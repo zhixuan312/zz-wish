@@ -965,7 +965,7 @@ const fadeTo = (o, ms = 900) => new Promise((res) => { if (reducedMotion.matches
 
 
 const WIDE = { pos: V3(0, 1.32, 2.3), look: V3(0, 1.02, -1) };
-const chooseView = () => ({ pos: V3(0, ALTAR_Y + .3, .82), look: V3(0, ALTAR_Y - .01, -.02) });
+const chooseView = () => ({ pos: V3(0, ALTAR_Y + .3, .82), look: V3(0, ALTAR_Y - (innerWidth < 720 ? .10 : .01), -.02) });
 function closeView() { const x = mine.top.x, top = ALTAR_Y + mine.top.y; const butter = mine.offer?.kind === 'butter'; const distance = Math.max(butter ? .40 : .38, mine.top.y * 2.3); return { pos: V3(x + .025, top + (butter ? .18 : .065), distance), look: V3(x, top - .012, .02) }; }
 const hallTones = {
   lingyin: [0x839b87,0x090d0b], shaolin: [0xaaa18a,0x100d09], yonghe: [0xa5b7d4,0x090d14],
@@ -985,7 +985,7 @@ function applyTemple(t) {
 }
 
 // Step 3: one of ours, or one you draw.
-const wickSmoke = new Smoke(hall, 70, 0xcfc8c0, .2);
+const wickSmoke = new Smoke(hall, 50, 0xa9ada5, .09);
 wickSmoke.parts.forEach(({s}) => s.layers.set(1));
 hall.traverse(o => { if (o.isLight && o !== previewFill) o.layers.enableAll(); });
 let smokeUntil = 0, emberUntil = 0, ending = 'out', wind = 0;
@@ -1107,7 +1107,7 @@ function frame(stamp = performance.now()) {
     previewFill.intensity = phase === 'candle' || phase === 'confirm' || phase === 'travel' ? .16 : 0;
     mine.update(time, topY);
     for (const o of others) { o.f.tick(time, .65, .012, o.wax, o.g.position.y + o.f.flame.position.y); }
-    if (time < smokeUntil && Math.random() < (ending === 'done' ? .3 : .7)) wickSmoke.puff(tmp.set(mine.top.x, topY + .004, mine.g.position.z), .002, ending === 'done' ? .003 : .009);
+    if (time < smokeUntil && Math.random() < (ending === 'done' ? .3 : .7)) wickSmoke.puff(tmp.set(mine.top.x, topY + .004, mine.g.position.z), .002, ending === 'done' ? .001 : .0025);
     wickSmoke.update(dt, time);
     if (Math.random() < .5) incenseSmoke.puff(incenseTips[Math.floor(Math.random() * 3)], .001, .01);
     incenseSmoke.update(dt, time);

@@ -14,7 +14,7 @@ for(const [name,width,height] of [['desktop',1440,900],['phone',390,844]]) {
   let draws=0,previous=0,last=0,lastRender=0;
   for(const key of ['drawArrays','drawElements','drawArraysInstanced','drawElementsInstanced']) {const fn=WebGL2RenderingContext.prototype[key];WebGL2RenderingContext.prototype[key]=function(...args){draws++;return fn.apply(this,args);};}
   const frame=t=>{const phase=window.__perf.phase;if(last)window.__perf.frames.push({phase,ms:t-last});last=t;if(draws!==previous){if(lastRender)window.__perf.renders.push({phase,ms:t-lastRender,draws:draws-previous});lastRender=t;previous=draws;}requestAnimationFrame(frame);};requestAnimationFrame(frame);
-  const Original=window.AudioContext;window.AudioContext=class extends Original {constructor(...args){super(...args);window.__perf.audioContexts++;}};
+  const Original=window.AudioContext;window.AudioContext=class extends Original {constructor(...args){super(...args);window.__perf.audioContexts++;window.__lastAudio=this;}};
  });
  const page=await context.newPage(),cdp=await context.newCDPSession(page),errors=[];
  page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});
@@ -46,12 +46,13 @@ for(const [name,width,height] of [['desktop',1440,900],['phone',390,844]]) {
  await page.getByRole('button',{name:/Light it/}).click();await page.getByTestId('with-you').waitFor();await page.waitForTimeout(2200);
  await phase('burning');await page.waitForTimeout(8000);
  const afterAudio=await page.evaluate(()=>window.__perf.audioContexts);
+ const audioState=await page.evaluate(()=>window.__lastAudio?.state??'not-created');
  if(await button('Save power').count()) {await button('Save power').click();await phase('power-saver');await page.waitForTimeout(8000);}
  const data=await page.evaluate(()=>({performance:window.__perf,canvas:{width:document.querySelector('#gl').width,height:document.querySelector('#gl').height},resources:performance.getEntriesByType('resource').map(r=>({url:r.name,bytes:r.transferSize}))}));
  await page.evaluate(()=>window.dispatchEvent(new Event('blur')));await page.getByTestId('result-title').waitFor();
  const summarize=(entries,phase)=>{const a=entries.filter(x=>x.phase===phase).map(x=>x.ms);return {samples:a.length,p50:q(a,.5),p95:q(a,.95),max:a.length?Math.max(...a):null};};
  const phases=Object.fromEntries(['wish','place-switch-4x','cached-switch','setup','burning','power-saver'].map(p=>[p,{raf:summarize(data.performance.frames,p),render:summarize(data.performance.renders,p),longTasks:summarize(data.performance.tasks,p)}]));
- results.push({name,browserVersion:browser.version(),viewport:{width,height},networkLoad,localLoad,fourGReady,beforeAudio,afterAudio,phases,errors,data});
+ results.push({name,browserVersion:browser.version(),viewport:{width,height},networkLoad,localLoad,fourGReady,beforeAudio,afterAudio,audioState,phases,errors,data});
  console.log(name,JSON.stringify({networkLoad,localLoad,phases,errors,beforeAudio,afterAudio}));await context.close();
 }
 await browser.close();await mkdir(`artifacts/tier2/${tag}`,{recursive:true});await writeFile(`artifacts/tier2/${tag}/isolated-performance.json`,JSON.stringify(results,null,2));
