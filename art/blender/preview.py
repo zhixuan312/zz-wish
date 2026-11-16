@@ -19,10 +19,16 @@ parser.add_argument('--width', type=int, default=720)
 parser.add_argument('--height', type=int, default=450)
 parser.add_argument('--look', choices=['authored','night','dusk','day'], default='authored')
 parser.add_argument('--fixture-factor', type=float, help='Preview-only day fixture/emission override; canonical bake presets are unchanged.')
+parser.add_argument('--view-transform', help='Explicit preview colour-management restoration for prepared scenes; recorded in metadata.')
 parser.add_argument('--hide-roof-snow', action='store_true', help='Construction diagnostic only; transient visibility, never saved to blend.')
 args = parser.parse_args(sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else [])
 bpy.ops.wm.open_mainfile(filepath=str(Path(args.scene).resolve()))
 scene = bpy.context.scene
+source_view = json.loads(scene.get('one_light_source_view_settings', '{}'))
+for name, value in source_view.items():
+    setattr(scene.view_settings, name, value)
+if args.view_transform:
+    scene.view_settings.view_transform = args.view_transform
 preview_overrides = {}
 if args.fixture_factor is not None and (args.look != 'day' or not 0 <= args.fixture_factor <= 1):
     raise ValueError('--fixture-factor is a day-only preview override in [0,1].')
@@ -60,7 +66,7 @@ scene.render.film_transparent = False
 output = Path(args.output).resolve()
 output.mkdir(parents=True, exist_ok=True)
 metadata = {'scene': str(Path(args.scene).resolve()), 'blendSha256': hashlib.sha256(Path(args.scene).read_bytes()).hexdigest(), 'sourceSha256': hashlib.sha256((ROOT/'art/blender/snow_roof.py').read_bytes()).hexdigest(), 'device': 'METAL', 'devices': metal_devices, 'denoiser': 'OPENIMAGEDENOISE', 'samples': args.samples,
-            'size': [args.width, args.height], 'look':args.look, 'previewOnlyOverrides':preview_overrides, 'lightingCandidate':bool(preview_overrides), 'appliedPreset':dict(baker.PRESETS[args.look]) if args.look!='authored' else None, 'maxBounces': 4, 'cameras': [], 'constructionDiagnostic': args.hide_roof_snow, 'hiddenRoofSnow': []}
+            'size': [args.width, args.height], 'colourManagement':{name:getattr(scene.view_settings,name) for name in ['view_transform','look','exposure','gamma']}, 'look':args.look, 'previewOnlyOverrides':preview_overrides, 'lightingCandidate':bool(preview_overrides), 'appliedPreset':dict(baker.PRESETS[args.look]) if args.look!='authored' else None, 'maxBounces': 4, 'cameras': [], 'constructionDiagnostic': args.hide_roof_snow, 'hiddenRoofSnow': []}
 hidden_roof_snow=[]
 if args.hide_roof_snow:
     metadata['diagnosticNote']='Only roof snow temporarily hidden to inspect tile-course construction. Lighting and geometry unchanged; final deep-snow scene is retained in the unsaved source blend.'

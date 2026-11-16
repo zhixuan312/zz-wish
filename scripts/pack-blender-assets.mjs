@@ -8,7 +8,7 @@
 import { spawn } from 'node:child_process';
 import { access, copyFile, mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
-import { dirname, join, resolve } from 'node:path';
+import { basename, dirname, join, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
 import { pathToFileURL } from 'node:url';
 const args = process.argv.slice(2);
@@ -57,10 +57,17 @@ if (args.includes('--unwrap')) {
   const output = args[index + 2];
   const resolution = Number(option('--resolution', '1024'));
   const unwrapSignature = digest(Buffer.concat([inputBytes, Buffer.from(`xatlas-topology-v3-chartids;resolution=${resolution};padding=8;iterations=2`)]));
-  if (await exists(output)) {
-    const cached = JSON.parse(await readFile(output, 'utf8'));
+  const externalCache = option('--unwrap-cache', null);
+  const candidates = [output, ...(externalCache ? [join(resolve(externalCache), basename(output))] : [])];
+  for (const cachePath of candidates) if (await exists(cachePath)) {
+    const cached = JSON.parse(await readFile(cachePath, 'utf8'));
     if (cached.report?.unwrapSignature === unwrapSignature) {
-      console.log('XATLAS_REUSED', output, unwrapSignature);
+      if (resolve(cachePath) !== resolve(output)) {
+        cached.report.reusedFrom = resolve(cachePath);
+        await writeFile(output, JSON.stringify(cached));
+        await writeFile(output + '.report.json', JSON.stringify(cached.report));
+      }
+      console.log('XATLAS_REUSED', cachePath, unwrapSignature);
       process.exit(0);
     }
   }
@@ -121,12 +128,15 @@ function verifyUV(data) {
   const json = glbJSON(data); const missing = [];
   for (const [index, mesh] of (json.meshes || []).entries()) for (const primitive of mesh.primitives) if (primitive.attributes.TEXCOORD_0 === undefined || primitive.attributes.TEXCOORD_1 === undefined) missing.push(index);
   if (missing.length) throw new Error(`Material or lightmap UV set missing from primitives: ${missing.join(', ')}`);
-  return { meshes: json.meshes.length, primitives: json.meshes.reduce((n, mesh) => n + mesh.primitives.length, 0), colourPrimitives: json.meshes.reduce((n, mesh) => n + mesh.primitives.filter(primitive => primitive.attributes.COLOR_0 !== undefined).length, 0), regions: [...new Set((json.nodes || []).map(node => node.extras?.lightmap_region).filter(Boolean))].sort(), roughnessClamps: (json.materials || []).filter(material => material.extras?.one_light_min_roughness !== undefined).map(material => ({ name: material.name, minimum: material.extras.one_light_min_roughness })), extensions: json.extensionsUsed || [] };
+  return { meshes: json.meshes.length, primitives: json.meshes.reduce((n, mesh) => n + mesh.primitives.length, 0), colourPrimitives: json.meshes.reduce((n, mesh) => n + mesh.primitives.filter(primitive => primitive.attributes.COLOR_0 !== undefined).length, 0), regions: [...new Set((json.nodes || []).map(node => node.extras?.lightmap_region).filter(Boolean))].sort(), roughnessClamps: (json.materials || []).filter(material => material.extras?.one_light_min_roughness !== undefined).map(material => ({ name: material.name, minimum: material.extras.one_light_min_roughness })), primitiveRoughness: json.meshes.flatMap((mesh, meshIndex) => mesh.primitives.map((primitive, index) => ({ key: `${meshIndex}/${index}`, material: json.materials?.[primitive.material]?.name ?? null, minimum: json.materials?.[primitive.material]?.extras?.one_light_min_roughness ?? null }))), extensions: json.extensionsUsed || [] };
 }
 function verifyPreserved(rawInfo, packedInfo) {
   if (JSON.stringify(packedInfo.regions) !== JSON.stringify(rawInfo.regions)) throw new Error('Compression lost lightmap region metadata.');
   if (packedInfo.primitives !== rawInfo.primitives || packedInfo.colourPrimitives !== rawInfo.colourPrimitives) throw new Error('Compression changed primitive or COLOR_0 coverage.');
-  for (const sourceClamp of rawInfo.roughnessClamps) if (!packedInfo.roughnessClamps.some(clamp => clamp.name === sourceClamp.name && clamp.minimum === sourceClamp.minimum)) throw new Error(`Compression lost the roughness constraint on ${sourceClamp.name}.`);
+  for (const sourcePrimitive of rawInfo.primitiveRoughness) {
+    const after = packedInfo.primitiveRoughness.find(primitive => primitive.key === sourcePrimitive.key);
+    if (!after || after.minimum !== sourcePrimitive.minimum) throw new Error(`Compression changed the roughness constraint on primitive ${sourcePrimitive.key} (${sourcePrimitive.material}).`);
+  }
 }
 function imageReport(data) {
   const json = glbJSON(data), bin = 28 + data.readUInt32LE(12);
@@ -192,6 +202,11 @@ function verifyMobileImages(images) {
   }
 }
 const rawData = await readFile(raw), rawInfo = verifyUV(rawData); console.log('RAW_UV_INFO', rawInfo);
+const materialRecipe = {
+  profile: materialProfile, sourceRawGLB: basename(raw), sourceRawGLBSha256: digest(rawData), originalPixelInput: true,
+  gltfTransform: '4.5.1', ktxSoftware: '4.4.2', metadataSource: 'Actual GLB material/image bindings and embedded KTX2 DFD/header; codec and dimensions are not inferred from filenames.',
+  ...(materialProfile === 'mobile' ? { normals: { codec: 'UASTC', maximumSize: 512, quality: 2, rdo: false, slotPattern: '*normal*', retainedAsNormalData: true }, otherMaps: { codec: 'ETC1S', maximumSize: 512, quality: 255, compression: 4, endpointRdo: false, selectorRdo: false }, screenBase: { sourceImageName: screenBasePattern, maximumSize: screenBaseSize, codec: 'ETC1S' } } : { textureCLI: ['uastc', '--level', '2', '--rdo', '2', '--zstd', '18', '--jobs', '2'] }),
+};
 const manifest = JSON.parse(await readFile(join(source, 'manifest.json'), 'utf8'));
 const availableLightmaps = new Set(Object.values(manifest.lightmaps).flatMap(passes => Object.values(passes).map(entry => entry.uri.replace(/\.ktx2$/, ''))));
 for (const name of lightmapSelection) if (!availableLightmaps.has(name)) throw new Error(`Unknown completed lightmap: ${name}`);
@@ -203,6 +218,12 @@ for (const region of rawInfo.regions) for (const pass of ['night', 'dusk', 'day'
   if (!manifest.lightmaps[region]?.[pass]) {
     missing.push({ region, pass });
     if (!geometryOnly && !lightmapsOnly && (!preview || pass === 'night' || pass === 'lamp')) throw new Error(`Incomplete bake: ${region}/${pass} is missing. Final delivery requires every pass; --preview still requires real night and lamp maps for every region.`);
+  }
+}
+if (!preview && !geometryOnly && !lightmapsOnly) {
+  if (!manifest.bakeFingerprint || !manifest.bake?.sourceBlendSha256 || !manifest.bake?.preparedPreviewAudit) throw new Error('Final packing requires source-bound bake identity and reviewed prepared-mapping evidence.');
+  for (const [region, maps] of Object.entries(manifest.lightmaps)) for (const [pass, entry] of Object.entries(maps)) {
+    if (entry.bakeFingerprint !== manifest.bakeFingerprint || entry.samples < manifest.bake.samples || entry.bakeDevice !== 'METAL' || entry.denoiseDevice !== 'METAL') throw new Error(`Final map provenance mismatch: ${region}/${pass}.`);
   }
 }
 if (preview) {
@@ -254,9 +275,16 @@ if (!cached) {
   if (!info.extensions.includes('EXT_meshopt_compression') || !info.extensions.includes('KHR_texture_basisu')) throw new Error('Geometry stage lost Meshopt or Basis textures.');
   const images = imageReport(data);
   if (materialProfile === 'mobile') verifyMobileImages(images);
-  await writeFile(geometryReceipt, JSON.stringify({ key: geometryKey, profile: materialProfile, sha256: digest(data), bytes: data.length, preMeshoptAttributeSha256: sourceAttributes, uvVerification: info, images, uniqueImageBytes: images.reduce((sum, image) => sum + image.bytes, 0) }, null, 2) + '\n');
+  await writeFile(geometryReceipt, JSON.stringify({ key: geometryKey, profile: materialProfile, materialRecipe, sha256: digest(data), bytes: data.length, preMeshoptAttributeSha256: sourceAttributes, uvVerification: info, images, uniqueImageBytes: images.reduce((sum, image) => sum + image.bytes, 0) }, null, 2) + '\n');
 } else console.log('GEOMETRY_STAGE_REUSED', geometryKey);
+if (cached && materialProfile === 'mobile') {
+  const receipt = JSON.parse(await readFile(geometryReceipt, 'utf8'));
+  receipt.materialRecipe = materialRecipe;
+  await writeFile(geometryReceipt, JSON.stringify(receipt, null, 2) + '\n');
+}
 if (geometryOnly) {
+  await copyFile(geometryCache, join(out, 'snow-roof.glb'));
+  await copyFile(geometryReceipt, join(out, 'geometry-stage.json'));
   console.log('GEOMETRY_STAGE_READY', geometryCache, 'No delivery manifest was written.');
   process.exit(0);
 }
@@ -294,6 +322,9 @@ for (const maps of Object.values(manifest.lightmaps)) for (const entry of Object
   if (!lightmapsOnly) await copyFile(output, join(out, deliveryUri));
   entry.uri = deliveryUri; entry.codec = lightmapCodec;
   entry.bytes = data.length;
+  const masterHash = digest(await readFile(join(source, entry.source)));
+  if (entry.masterSha256 && entry.masterSha256 !== masterHash) throw new Error(`Denoised master changed: ${region}/${Object.entries(maps).find(([, value]) => value === entry)?.[0] ?? entry.source}`);
+  entry.masterSha256 = masterHash;
   console.log('LIGHTMAP_SAMPLING', entry.uri, { mipLevels: levels, gutterPixels: sampling.gutterPixels, anisotropy: sampling.anisotropy });
   manifest.files.push({ uri: deliveryUri, bytes: data.length, sha256: digest(data), codec: lightmapCodec, mipLevels: levels, transfer: 'linear' });
 }
@@ -311,7 +342,7 @@ const images = imageReport(packed);
 if (materialProfile === 'mobile') verifyMobileImages(images);
 const bytesByRoleUnion = {};
 for (const image of images) { const key = image.roles.join('+') || 'unused'; bytesByRoleUnion[key] = (bytesByRoleUnion[key] ?? 0) + image.bytes; }
-manifest.compression = { gltfTransform: '4.5.1', ktxSoftware: '4.4.2', mesh: 'EXT_meshopt_compression', textures: 'KHR_texture_basisu', materialProfile, lightmapCodec, lightmaps: `${lightmapCodec === 'uastc' ? 'Basis UASTC + Zstandard' : 'Basis ETC1S / BasisLZ'}, per-pass log2 HDR in linear KTX2 samples; decode logRange/logGain before lighting`, transformOrder: materialProfile === 'quality' ? ['dedup', 'uastc', 'meshopt'] : ['dedup', 'uastc-normal-512', `etc1s-screen-${screenBaseSize}`, 'etc1s-other-512', 'meshopt'], uvVerification: packedInfo, images, uniqueMaterialImageBytes: images.reduce((sum, image) => sum + image.bytes, 0), bytesByRoleUnion };
+manifest.compression = { gltfTransform: '4.5.1', ktxSoftware: '4.4.2', mesh: 'EXT_meshopt_compression', textures: 'KHR_texture_basisu', materialProfile, materialRecipe, lightmapCodec, lightmaps: `${lightmapCodec === 'uastc' ? 'Basis UASTC + Zstandard' : 'Basis ETC1S / BasisLZ'}, per-pass log2 HDR in linear KTX2 samples; decode logRange/logGain before lighting`, transformOrder: materialProfile === 'quality' ? ['dedup', 'uastc', 'meshopt'] : ['dedup', 'uastc-normal-512', `etc1s-screen-${screenBaseSize}`, 'etc1s-other-512', 'meshopt'], uvVerification: packedInfo, images, uniqueMaterialImageBytes: images.reduce((sum, image) => sum + image.bytes, 0), bytesByRoleUnion };
 await writeFile(join(out, 'manifest.json'), JSON.stringify(manifest, null, 2) + '\n');
 const reportTag = `${profileTag}${lightmapCodec === 'uastc' ? '' : '.etc1s'}`;
 await writeFile(join(source, `delivery-report${reportTag}.json`), JSON.stringify({ ...manifest.compression, partialPreview: preview, missingAmbientLooks: manifest.missingAmbientLooks ?? [], files: manifest.files, totalBytes: manifest.totalBytes, targetBytes: 8 * 1024 * 1024, withinTarget: manifest.totalBytes <= 8 * 1024 * 1024 }, null, 2) + '\n');

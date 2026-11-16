@@ -37,6 +37,7 @@ def arguments():
     parser.add_argument('--hidden-faces', type=Path, help='Source-hash-verified conservative UV exclusions; geometry stays in the scene.')
     parser.add_argument('--chart-cache', type=Path, help='Reuse only exact receiver/chart matches from this earlier preparation; never imports bake pixels.')
     parser.add_argument('--receiver-report', action='store_true', help='Write receiver/UV fingerprints for an existing prepared blend; no render, bake or export.')
+    parser.add_argument('--prepared-preview-audit', type=Path, help='Source/generated-hash-bound native prepared-preview proof, included in the scene-wide bake identity.')
     parser.add_argument('--device', choices=['METAL', 'CPU'], default='METAL')
     parser.add_argument('--oidn-device', choices=['METAL', 'CPU'], default='METAL')
     parser.add_argument('--passes', default='night,dusk,day,lamp')
@@ -101,23 +102,27 @@ def receiver_profile(obj):
     """Exact evaluated receiver identity, independently from any baked illumination."""
     mesh = obj.data
     fingerprint = sha256()
-    def values(collection, field, kind, count):
+    field_hashes = {}
+    def record(name, data):
+        fingerprint.update(data)
+        field_hashes[name] = sha256(data).hexdigest()
+    def values(collection, field, kind, count, name):
         buffer = array(kind, [0]) * count
         collection.foreach_get(field, buffer)
-        fingerprint.update(buffer.tobytes())
-    fingerprint.update(array('f', [value for row in obj.matrix_world for value in row]).tobytes())
-    values(mesh.vertices, 'co', 'f', len(mesh.vertices) * 3)
-    values(mesh.loops, 'vertex_index', 'i', len(mesh.loops))
-    values(mesh.polygons, 'material_index', 'i', len(mesh.polygons))
-    values(mesh.corner_normals, 'vector', 'f', len(mesh.corner_normals) * 3)
-    values(mesh.uv_layers['UVMap'].data, 'uv', 'f', len(mesh.loops) * 2)
+        record(name, buffer.tobytes())
+    record('worldMatrix', array('f', [value for row in obj.matrix_world for value in row]).tobytes())
+    values(mesh.vertices, 'co', 'f', len(mesh.vertices) * 3, 'positions')
+    values(mesh.loops, 'vertex_index', 'i', len(mesh.loops), 'topology')
+    values(mesh.polygons, 'material_index', 'i', len(mesh.polygons), 'materialIndices')
+    values(mesh.corner_normals, 'vector', 'f', len(mesh.corner_normals) * 3, 'cornerNormals')
+    values(mesh.uv_layers['UVMap'].data, 'uv', 'f', len(mesh.loops) * 2, 'UVMap')
     tint = mesh.color_attributes.get('SurfaceTint')
     if tint:
-        values(tint.data, 'color', 'f', len(tint.data) * 4)
+        values(tint.data, 'color', 'f', len(tint.data) * 4, 'SurfaceTint')
     excluded = mesh.attributes.get('one_light_uv_excluded')
-    fingerprint.update(bytes(int(value.value) for value in excluded.data) if excluded else b'none')
-    fingerprint.update(json.dumps([material.name if material else None for material in mesh.materials]).encode())
-    profile = {'receiverFingerprint': fingerprint.hexdigest(), 'vertices': len(mesh.vertices), 'polygons': len(mesh.polygons), 'loops': len(mesh.loops), 'fields': ['worldMatrix', 'positions', 'topology', 'materialIndices', 'cornerNormals', 'UVMap', 'SurfaceTint', 'provenHiddenMask', 'materialSlots']}
+    record('provenHiddenMask', bytes(int(value.value) for value in excluded.data) if excluded else b'none')
+    record('materialSlots', json.dumps([material.name if material else None for material in mesh.materials]).encode())
+    profile = {'receiverFingerprint': fingerprint.hexdigest(), 'vertices': len(mesh.vertices), 'polygons': len(mesh.polygons), 'loops': len(mesh.loops), 'fields': list(field_hashes), 'fieldSha256': field_hashes}
     if mesh.uv_layers.get('Lightmap'):
         buffer = array('f', [0]) * (len(mesh.loops) * 2)
         mesh.uv_layers['Lightmap'].data.foreach_get('uv', buffer)
@@ -126,6 +131,47 @@ def receiver_profile(obj):
     profile['unwrapSignature'] = report.get('unwrapSignature')
     profile['resolution'] = report.get('resolution')
     return profile
+
+
+GENERATED_ATTRIBUTE = 'one_light_source_generated'
+GENERATED_POLICY = 'implicit-procedural-generated-evaluated-undeformed-source-texspace-v2'
+
+
+def preserve_generated_coordinates(objects):
+    """Freeze implicit procedural Generated coordinates before object joins change texspace.
+
+    Image textures are deliberately excluded: an unconnected Image Texture can
+    use the active UV map. Original UVMap and SurfaceTint are never rewritten.
+    """
+    import numpy as np
+    procedural = {'TEX_NOISE', 'TEX_VORONOI', 'TEX_MUSGRAVE', 'TEX_WAVE', 'TEX_GRADIENT', 'TEX_CHECKER', 'TEX_BRICK', 'TEX_MAGIC'}
+    materials = {material for obj in objects for material in obj.data.materials if material and material.use_nodes}
+    remaps = [(material, node) for material in materials for node in material.node_tree.nodes if node.type in procedural and node.inputs.get('Vector') and not node.inputs['Vector'].is_linked]
+    needed = {material for material, _ in remaps}
+    audit = {'policy': GENERATED_POLICY, 'attribute': GENERATED_ATTRIBUTE, 'space': 'Source local position normalized by source mesh texspace: (position-location)/(2*size)+.5; zero-size axes use.5.', 'objects': {}, 'remappedInputs': []}
+    for obj in objects:
+        if not any(material in needed for material in obj.data.materials):
+            continue
+        mesh = obj.data
+        location = np.array(mesh.texspace_location, dtype=np.float64)
+        size = np.array(mesh.texspace_size, dtype=np.float64)
+        positions = np.empty((len(mesh.vertices), 3), dtype=np.float32)
+        mesh.vertices.foreach_get('co', positions.ravel())
+        coordinates = np.full_like(positions, .5)
+        np.divide(positions - location, size * 2, out=coordinates, where=np.abs(size) > 1e-20)
+        coordinates[:, np.abs(size) > 1e-20] += .5
+        attribute = mesh.attributes.get(GENERATED_ATTRIBUTE) or mesh.attributes.new(name=GENERATED_ATTRIBUTE, type='FLOAT_VECTOR', domain='POINT')
+        attribute.data.foreach_set('vector', coordinates.ravel())
+        examples = sorted({0, len(positions) // 2, len(positions) - 1})
+        audit['objects'][obj.name] = {'vertices': len(positions), 'texspaceLocation': location.tolist(), 'texspaceSize': size.tolist(), 'autoTexspace': mesh.use_auto_texspace, 'localBounds': [positions.min(axis=0).tolist(), positions.max(axis=0).tolist()], 'attributeSha256': sha256(coordinates.tobytes()).hexdigest(), 'examples': [{'vertex': i, 'local': positions[i].tolist(), 'generated': coordinates[i].tolist()} for i in examples]}
+    for material, node in remaps:
+        attribute = material.node_tree.nodes.get('ONE_LIGHT_SOURCE_GENERATED') or material.node_tree.nodes.new('ShaderNodeAttribute')
+        attribute.name = 'ONE_LIGHT_SOURCE_GENERATED'
+        attribute.attribute_name = GENERATED_ATTRIBUTE
+        material.node_tree.links.new(attribute.outputs['Vector'], node.inputs['Vector'])
+        audit['remappedInputs'].append({'material': material.name, 'node': node.name, 'socket': 'Vector', 'source': 'implicit Generated'})
+    bpy.context.view_layer.update()
+    return audit
 
 
 def prepare_regions(resolution=1024, hall_resolution=None, output_dir=None, hidden_faces=None, court_resolution=None, gate_resolution=None, chart_cache=None):
@@ -144,6 +190,7 @@ def prepare_regions(resolution=1024, hall_resolution=None, output_dir=None, hidd
             by_region.setdefault(region, []).append(obj)
     if not by_region:
         raise RuntimeError('Source contains no one_light_static meshes.')
+    generated_audit = preserve_generated_coordinates([obj for objects in by_region.values() for obj in objects])
     # Evaluate construction modifiers once. Repeated modifier_apply operators rebuild the
     # entire 1000-object dependency graph for every bevel; a single graph avoids that quadratic cost.
     graph = bpy.context.evaluated_depsgraph_get()
@@ -151,6 +198,36 @@ def prepare_regions(resolution=1024, hall_resolution=None, output_dir=None, hidd
     for objects in by_region.values():
         for obj in objects:
             mesh = bpy.data.meshes.new_from_object(obj.evaluated_get(graph), preserve_all_data_layers=True, depsgraph=graph)
+            if obj.name in generated_audit['objects']:
+                import numpy as np
+                attribute = mesh.attributes.get(GENERATED_ATTRIBUTE)
+                if not attribute or len(attribute.data) != len(mesh.vertices):
+                    raise RuntimeError('Modifier evaluation lost source Generated coordinates: ' + obj.name)
+                coordinates = np.empty((len(mesh.vertices), 3), dtype=np.float32)
+                attribute.data.foreach_get('vector', coordinates.ravel())
+                if not np.all(np.isfinite(coordinates)):
+                    raise RuntimeError('Nonfinite Generated coordinates after evaluation: ' + obj.name)
+                record = generated_audit['objects'][obj.name]
+                record['evaluatedVertices'] = len(mesh.vertices)
+                record['modifierTypes'] = [modifier.type for modifier in obj.modifiers]
+                if any(modifier.type not in {'BEVEL', 'WEIGHTED_NORMAL', 'TRIANGULATE'} for modifier in obj.modifiers):
+                    raise RuntimeError('Generated-coordinate transfer needs a native equivalence proof for this modifier: ' + obj.name)
+                evaluated_positions = np.empty((len(mesh.vertices), 3), dtype=np.float32)
+                mesh.vertices.foreach_get('undeformed_co', evaluated_positions.ravel())
+                location, size = np.asarray(record['texspaceLocation']), np.asarray(record['texspaceSize'])
+                affine = np.full_like(evaluated_positions, .5)
+                np.divide(evaluated_positions - location, size * 2, out=affine, where=np.abs(size) > 1e-20)
+                affine[:, np.abs(size) > 1e-20] += .5
+                record['interpolatedPointMaxAbsError'] = float(np.max(np.abs(coordinates - affine)))
+                # Generated uses evaluated undeformed_co, not a generic POINT
+                # attribute's bevel interpolation. A Metal emission-bake proof
+                # distinguishes these paths down to float rounding.
+                attribute.data.foreach_set('vector', affine.ravel())
+                coordinates = affine
+                record['evaluatedAttributeSha256'] = sha256(coordinates.tobytes()).hexdigest()
+                record['evaluationPolicy'] = 'Evaluated MeshVertex.undeformed_co normalized by ORIGINAL source texspace; frozen before join.'
+                if not obj.modifiers and record['evaluatedAttributeSha256'] != record['attributeSha256']:
+                    raise RuntimeError('Unmodified source Generated coordinates changed: ' + obj.name)
             # Joined meshes share one active COLOR_0 layer. Untinted source pieces
             # need white, rather than Blender's zero-initialized missing attribute.
             tint = mesh.color_attributes.get('SurfaceTint')
@@ -169,6 +246,7 @@ def prepare_regions(resolution=1024, hall_resolution=None, output_dir=None, hidd
     for obj, mesh in evaluated:
         obj.modifiers.clear()
         obj.data = mesh
+    bpy.context.scene['one_light_generated_policy'] = GENERATED_POLICY
     regions = {}
     for region, objects in by_region.items():
         print('REGION_UNWRAP', region, len(objects), flush=True)
@@ -189,6 +267,11 @@ def prepare_regions(resolution=1024, hall_resolution=None, output_dir=None, hidd
         triangulated = bpy.data.meshes.new_from_object(obj.evaluated_get(graph), preserve_all_data_layers=True, depsgraph=graph)
         obj.modifiers.clear()
         obj.data = triangulated
+        generated = obj.data.attributes.get(GENERATED_ATTRIBUTE)
+        if generated:
+            coordinates = array('f', [0]) * (len(generated.data) * 3)
+            generated.data.foreach_get('vector', coordinates)
+            generated_audit.setdefault('receivers', {})[region] = {'attribute': GENERATED_ATTRIBUTE, 'domain': generated.domain, 'dataType': generated.data_type, 'vertices': len(generated.data), 'sha256': sha256(coordinates.tobytes()).hexdigest()}
         if len(obj.data.uv_layers) == 0:
             raise RuntimeError('Source region lacks UVMap: ' + region)
         obj.data.uv_layers[0].name = 'UVMap'
@@ -255,6 +338,8 @@ def prepare_regions(resolution=1024, hall_resolution=None, output_dir=None, hidd
         obj.data.uv_layers[0].active_render = True
         regions[region] = obj
         print('REGION_READY', region, len(obj.data.polygons), len(obj.data.uv_layers), flush=True)
+    (output_dir / 'generated-coordinate-audit.json').write_text(json.dumps(generated_audit, indent=2) + '\n')
+    bpy.context.scene['one_light_generated_audit_sha256'] = sha256((output_dir / 'generated-coordinate-audit.json').read_bytes()).hexdigest()
     return regions
 
 
@@ -284,6 +369,92 @@ def lighting_metadata(snapshot):
                 elif node.type == 'TEX_ENVIRONMENT' and node.image:
                     world_info['environmentTextures'].append(node.image.filepath)
     return {'world': world_info, 'lights': [{'name': obj.name, 'role': obj.get('bake_role', 'fixture'), 'type': obj.data.type, 'energy': energy, 'linearColour': list(colour), 'positionBlender': list(obj.matrix_world.translation), 'rotationBlender': list(obj.rotation_euler), 'includedInNight': obj.get('bake_role') != 'lamp'} for obj, energy, colour in lights], 'sourceEmissionStrengths': [strength for _, strength in emissions], 'meaning': 'Authored accepted source lighting, restored exactly for night except visitor lamp omitted. Positions/rotations use Blender coordinates; source socket colours are linear.'}
+
+
+def source_binding(scene, prepared):
+    """A prepared blend must retain its original authored source identity."""
+    if prepared:
+        raw = scene.get('one_light_source_binding')
+        if not raw:
+            raise RuntimeError('Legacy prepared blend lacks an authored source binding. Regenerate preparation from source; exact chart caches may still be reused.')
+        binding = json.loads(raw)
+        source = Path(binding['path'])
+        if not source.exists() or sha256(source.read_bytes()).hexdigest() != binding['sha256']:
+            raise RuntimeError('Authored source changed or is missing; regenerate preparation and all bake pixels.')
+        return binding
+    source = Path(bpy.data.filepath)
+    if not source.is_file():
+        raise RuntimeError('Load a saved authored source blend before preparing lightmaps.')
+    binding = {'path': str(source.resolve()), 'sha256': sha256(source.read_bytes()).hexdigest()}
+    scene['one_light_source_binding'] = json.dumps(binding)
+    return binding
+
+
+def transport_fingerprint(scene, regions, snapshot, binding, receiver_profiles):
+    """Conservative scene-wide cache key; regional UV identity never reuses illumination."""
+    images = {}
+    def image_identity(image):
+        key = image.name
+        if key in images:
+            return key
+        path = Path(bpy.path.abspath(image.filepath)) if image.filepath else None
+        packed = image.packed_file
+        images[key] = {'source': image.source, 'size': list(image.size), 'colourSpace': image.colorspace_settings.name,
+                       'sha256': sha256(bytes(packed.data)).hexdigest() if packed else sha256(path.read_bytes()).hexdigest() if path and path.is_file() else None}
+        return key
+    def clean(value):
+        if isinstance(value, (bool, str, int)) or value is None:
+            return value
+        if isinstance(value, float):
+            return value if math.isfinite(value) else str(value)
+        try:
+            return [clean(item) for item in value]
+        except TypeError:
+            return str(value)
+    def graph(owner):
+        if not owner or not owner.use_nodes:
+            return None
+        nodes = []
+        for node in sorted(owner.node_tree.nodes, key=lambda value: value.name):
+            if node.name == 'ONE_LIGHT_BAKE_TARGET':
+                continue
+            inputs = {}
+            for socket in node.inputs:
+                if hasattr(socket, 'default_value'):
+                    inputs[socket.identifier] = clean(socket.default_value)
+            properties = {name: clean(getattr(node, name)) for name in ['operation', 'blend_type', 'vector_type', 'uv_map', 'attribute_name', 'layer_name', 'space', 'distribution', 'interpolation', 'projection', 'extension', 'sky_type', 'sun_elevation', 'sun_rotation', 'altitude', 'air_density', 'dust_density', 'ozone_density'] if hasattr(node, name)}
+            if getattr(node, 'image', None):
+                properties['image'] = image_identity(node.image)
+            nodes.append({'name': node.name, 'type': node.bl_idname, 'inputs': inputs, 'properties': properties})
+        links = sorted((link.from_node.name, link.from_socket.identifier, link.to_node.name, link.to_socket.identifier) for link in owner.node_tree.links if link.from_node.name != 'ONE_LIGHT_BAKE_TARGET' and link.to_node.name != 'ONE_LIGHT_BAKE_TARGET')
+        return {'nodes': nodes, 'links': links}
+    materials = {}
+    for obj in scene.objects:
+        if obj.type != 'MESH':
+            continue
+        for material in obj.data.materials:
+            if material and material.name not in materials:
+                materials[material.name] = {'graph': graph(material), 'colour': list(material.diffuse_color), 'backfaceCulling': material.use_backface_culling, 'alphaThreshold': getattr(material, 'alpha_threshold', None), 'surfaceMethod': getattr(material, 'surface_render_method', None)}
+    lights = []
+    for obj, energy, colour in snapshot[0]:
+        lights.append({'name': obj.name, 'role': obj.get('bake_role'), 'type': obj.data.type, 'energy': energy, 'colour': list(colour), 'worldMatrix': [list(row) for row in obj.matrix_world], 'shape': {name: clean(getattr(obj.data, name)) for name in ['shadow_soft_size', 'angle', 'shape', 'size', 'size_y', 'spot_size', 'spot_blend', 'use_shadow'] if hasattr(obj.data, name)}})
+    visibility = [{'name': obj.name, 'hidden': obj.hide_render, 'rays': {name: getattr(obj, name) for name in ['visible_camera', 'visible_diffuse', 'visible_glossy', 'visible_transmission', 'visible_shadow'] if hasattr(obj, name)}} for obj in scene.objects if obj.type == 'MESH']
+    auxiliary = {obj.name: {'positions': [[*vertex.co] for vertex in obj.data.vertices], 'polygons': [list(polygon.vertices) for polygon in obj.data.polygons], 'worldMatrix': [list(row) for row in obj.matrix_world]} for obj in scene.objects if obj.type == 'MESH' and obj not in regions.values()}
+    generated = {}
+    for region, obj in sorted(regions.items()):
+        attribute = obj.data.attributes.get(GENERATED_ATTRIBUTE)
+        if not attribute:
+            raise RuntimeError('Prepared receiver lacks the preserved Generated attribute: ' + region)
+        coordinates = array('f', [0]) * (len(attribute.data) * 3)
+        attribute.data.foreach_get('vector', coordinates)
+        generated[region] = {'attribute': GENERATED_ATTRIBUTE, 'domain': attribute.domain, 'dataType': attribute.data_type, 'vertices': len(attribute.data), 'sha256': sha256(coordinates.tobytes()).hexdigest()}
+    preview_audit = json.loads(scene.get('one_light_prepared_preview_audit', 'null'))
+    if preview_audit and (preview_audit['sourceBlendSha256'] != binding['sha256'] or preview_audit['generatedReceivers'] != generated or preview_audit['mappingPolicy'] != scene.get('one_light_generated_policy')):
+        raise RuntimeError('Prepared-preview mapping evidence does not match current source/Generated bytes.')
+    payload = {'policy': 'scene-wide-source-geometry-material-lighting-generated-v3', 'sourceBlendSha256': binding['sha256'], 'receivers': receiver_profiles, 'generatedCoordinates': {'policy': scene.get('one_light_generated_policy'), 'receivers': generated, 'preparationAuditSha256': scene.get('one_light_generated_audit_sha256')}, 'preparedPreviewAudit': preview_audit, 'auxiliaryOccluders': auxiliary, 'visibility': visibility, 'world': graph(snapshot[2]), 'worldColour': list(snapshot[2].color) if snapshot[2] else None, 'lights': lights, 'materials': materials, 'images': images, 'presets': PRESETS,
+               'cycles': {name: getattr(scene.cycles, name) for name in ['max_bounces', 'diffuse_bounces', 'glossy_bounces', 'transmission_bounces', 'transparent_max_bounces', 'volume_bounces', 'sample_clamp_direct', 'sample_clamp_indirect']}, 'bake': {'passes': ['DIRECT', 'INDIRECT'], 'colour': False, 'oidn': 'Metal RT HDR HIGH per exact chart', 'gutterPixels': 8}}
+    encoded = json.dumps(payload, sort_keys=True, separators=(',', ':'))
+    return sha256(encoded.encode()).hexdigest(), payload
 
 
 def configure_light_pass(scene, name, snapshot):
@@ -436,38 +607,47 @@ def verify_delivery_maps(source, delivery):
     reports = {}
     for region, passes in manifest['lightmaps'].items():
         with np.load(source / f'{region}-coverage.npz', allow_pickle=False) as coverage:
-            valid = coverage['labels'] > 0
+            labels = coverage['labels']
         for name, entry in passes.items():
             path = source / f'{region}-{name}-decoded.ktx2'
             if not path.exists():
                 continue
             data = path.read_bytes()
-            vk_format, width, height = (struct.unpack_from('<I', data, offset)[0] for offset in [12, 20, 24])
-            if vk_format != 37 or valid.shape != (height, width):
+            vk_format, width, height, levels = (struct.unpack_from('<I', data, offset)[0] for offset in [12, 20, 24, 40])
+            if vk_format != 37 or labels.shape != (height, width) or levels != entry['mipLevels']:
                 raise RuntimeError('Delivery image audit requires matching RGBA8 UNORM transcode dimensions.')
-            offset, length, _ = struct.unpack_from('<QQQ', data, 80)
-            encoded = np.frombuffer(data[offset:offset + length], dtype=np.uint8).reshape(height, width, 4)[::-1, :, :3].astype(np.float32) / 255
-            decoded = (np.exp2(encoded * entry['logRange']) - 1) / entry['logGain']
             image = bpy.data.images.load(str(source / entry['source']), check_existing=False)
             image.colorspace_settings.name = 'Non-Color'
             pixels = np.empty(width * height * 4, dtype=np.float32)
             image.pixels.foreach_get(pixels)
             truth = pixels.reshape(height, width, 4)[:, :, :3]
-            bands = {}
-            luminance = truth @ np.array([.2126, .7152, .0722])
-            decoded_luminance = decoded @ np.array([.2126, .7152, .0722])
-            for band, low, high in [('dark', 0, .01), ('middle', .01, 1), ('peak', 1, float('inf'))]:
-                mask = valid & (luminance >= low) & (luminance < high)
-                count = int(mask.sum())
-                if not count:
-                    continue
-                error = np.abs(decoded_luminance[mask] - luminance[mask])
-                nonzero = luminance[mask] > .0001
-                bands[band] = {'texels': count, 'meanAbsoluteLuminanceError': float(error.mean()), 'p95AbsoluteLuminanceError': float(np.percentile(error, 95)), 'meanRelativeLuminanceErrorAbove0001': float(np.mean(error[nonzero] / luminance[mask][nonzero])) if np.any(nonzero) else None, 'nonzeroTexelsQuantizedToBlack': int(np.count_nonzero(nonzero & (decoded_luminance[mask] == 0)))}
-            reports[f'{region}/{name}'] = {'bands': bands, 'encoding': entry['encoding'], 'logGain': entry['logGain'], 'logRange': entry['logRange']}
+            mip_reports = []
+            mip_labels = labels.copy()
+            for level in range(levels):
+                h, w = truth.shape[:2]
+                offset, length, _ = struct.unpack_from('<QQQ', data, 80 + level * 24)
+                encoded = np.frombuffer(data[offset:offset + length], dtype=np.uint8).reshape(h, w, 4)[::-1, :, :3].astype(np.float32) / 255
+                decoded = (np.exp2(encoded * entry['logRange']) - 1) / entry['logGain']
+                bands = {}
+                luminance = truth @ np.array([.2126, .7152, .0722])
+                decoded_luminance = decoded @ np.array([.2126, .7152, .0722])
+                for band, low, high in [('dark', 0, .01), ('middle', .01, 1), ('peak', 1, float('inf'))]:
+                    mask = (mip_labels > 0) & (luminance >= low) & (luminance < high)
+                    count = int(mask.sum())
+                    if not count:
+                        continue
+                    error = np.abs(decoded_luminance[mask] - luminance[mask])
+                    nonzero = luminance[mask] > .0001
+                    bands[band] = {'texels': count, 'meanAbsoluteLuminanceError': float(error.mean()), 'p95AbsoluteLuminanceError': float(np.percentile(error, 95)), 'meanAbsoluteRGBError': float(np.mean(np.abs(decoded[mask] - truth[mask]))), 'meanRelativeLuminanceErrorAbove0001': float(np.mean(error[nonzero] / luminance[mask][nonzero])) if np.any(nonzero) else None, 'nonzeroTexelsQuantizedToBlack': int(np.count_nonzero(nonzero & (decoded_luminance[mask] == 0)))}
+                mip_reports.append({'level': level, 'size': [w, h], 'representedTexels': int(np.count_nonzero(mip_labels)), 'bands': bands})
+                if level + 1 < levels:
+                    truth = truth.reshape(h // 2, 2, w // 2, 2, 3).mean(axis=(1, 3))
+                    children = mip_labels.reshape(h // 2, 2, w // 2, 2).transpose(0, 2, 1, 3).reshape(h // 2, w // 2, 4)
+                    mip_labels = np.where(np.all(children == children[:, :, :1], axis=2), children[:, :, 0], 0)
+            reports[f'{region}/{name}'] = {'bands': mip_reports[0]['bands'], 'mips': mip_reports, 'encoding': entry['encoding'], 'logGain': entry['logGain'], 'logRange': entry['logRange'], 'codec': entry.get('codec', 'unspecified'), 'gutterPixels': entry['gutterPixels'], 'anisotropy': entry['anisotropy']}
             bpy.data.images.remove(image)
             print('DELIVERY_IMAGE_AUDIT', region, name, json.dumps(reports[f'{region}/{name}']), flush=True)
-    (source / 'delivery-image-audit.json').write_text(json.dumps({'maps': reports, 'scope': 'Actual UASTC plus official RGBA8 transcode compared with denoised EXR chart cores. Device ASTC/BC7/ETC transcode and screen interpolation still require runtime capture review.'}, indent=2) + '\n')
+    (source / 'delivery-image-audit.json').write_text(json.dumps({'maps': reports, 'scope': 'Actual compressed maps plus official RGBA8 transcode compared with denoised EXR. Base checks all chart cores; coarser mips check only texels whose full child footprint remains one chart. Reference mip averaging happens in linear radiance. Device ASTC/BC7/ETC output and screen interpolation still require runtime capture review.'}, indent=2) + '\n')
 
 
 def reencode_existing(options):
@@ -960,29 +1140,50 @@ def main():
         reencode_existing(options)
         return
     scene = bpy.context.scene
+    if options.receiver_report:
+        regions = {obj['lightmap_region']: obj for obj in scene.objects if obj.type == 'MESH' and obj.get('one_light_static') and obj.data.uv_layers.get('Lightmap')}
+        if not regions:
+            raise RuntimeError('Receiver report requires an already prepared blend.')
+        for region, obj in regions.items():
+            profile = receiver_profile(obj)
+            profile['preparedBlendSha256'] = sha256(Path(bpy.data.filepath).read_bytes()).hexdigest()
+            (options.out / f'{region}-receiver.json').write_text(json.dumps(profile, indent=2) + '\n')
+            print('RECEIVER_REPORT', region, profile['receiverFingerprint'], profile['lightmapUVFingerprint'], flush=True)
+        return
+    if not scene.get('one_light_source_view_settings'):
+        scene['one_light_source_view_settings'] = json.dumps({name: getattr(scene.view_settings, name) for name in ['view_transform', 'look', 'exposure', 'gamma']})
     configure_cycles(scene, options)
     started = time.time()
     prepared = (options.export_only or options.resume) and all(obj.data.uv_layers.get('Lightmap') for obj in scene.objects if obj.type == 'MESH' and obj.get('one_light_static'))
-    regions = {obj['lightmap_region']: obj for obj in scene.objects if obj.type == 'MESH' and obj.get('one_light_static')} if prepared else prepare_regions(options.resolution, options.hall_resolution, options.out, options.hidden_faces, options.court_resolution, options.gate_resolution)
+    binding = source_binding(scene, prepared)
+    if options.hidden_faces and json.loads(options.hidden_faces.read_text())['sourceSha256'] != binding['sha256']:
+        raise RuntimeError('The hidden-face proof belongs to a different authored source.')
+    regions = {obj['lightmap_region']: obj for obj in scene.objects if obj.type == 'MESH' and obj.get('one_light_static')} if prepared else prepare_regions(options.resolution, options.hall_resolution, options.out, options.hidden_faces, options.court_resolution, options.gate_resolution, options.chart_cache)
     if not prepared:
         bpy.ops.wm.save_as_mainfile(filepath=str(options.out / 'snow-roof-uv-candidate.blend'))
     fingerprint = sha256()
+    receiver_profiles = {}
     for region, obj in sorted(regions.items()):
+        receiver_profiles[region] = receiver_profile(obj)
         fingerprint.update(region.encode())
-        vertices = array('f', [0.0]) * (len(obj.data.vertices) * 3)
-        obj.data.vertices.foreach_get('co', vertices)
-        uv = array('f', [0.0]) * (len(obj.data.uv_layers['Lightmap'].data) * 2)
-        obj.data.uv_layers['Lightmap'].data.foreach_get('uv', uv)
-        fingerprint.update(vertices.tobytes())
-        fingerprint.update(uv.tobytes())
-        fingerprint.update(str(obj.matrix_world).encode())
+        fingerprint.update(receiver_profiles[region]['receiverFingerprint'].encode())
+        fingerprint.update(receiver_profiles[region]['lightmapUVFingerprint'].encode())
     geometry_fingerprint = fingerprint.hexdigest()
     resolution_by_region = {region: {'hall': options.hall_resolution, 'court': options.court_resolution, 'gate': options.gate_resolution}.get(region) or options.resolution for region in regions}
     snapshot = snapshot_lighting(scene)
+    if options.prepared_preview_audit:
+        scene['one_light_prepared_preview_audit'] = options.prepared_preview_audit.read_text()
+    bake_fingerprint, transport_payload = transport_fingerprint(scene, regions, snapshot, binding, receiver_profiles)
+    (options.out / 'bake-fingerprint.json').write_text(json.dumps(transport_payload, indent=2) + '\n')
     manifest = {'version': 1, 'place': 'snow-roof', 'scene': 'snow-roof.glb', 'lampAnchor': [0, 3.22, -.5], 'lampBasis': {'watts': 45, 'position': [0, 2.99, -.5], 'linearColor': [1, 189/255, 120/255]}, 'lightmaps': {}, 'bake': {'engine': 'Cycles', 'blender': bpy.app.version_string, 'samples': options.samples, 'resolution': options.resolution, 'resolutionByRegion': resolution_by_region, 'passes': ['DIRECT', 'INDIRECT'], 'colorExcluded': True, 'materialUV': 'TEXCOORD_0', 'lightmapUV': 'TEXCOORD_1', 'runtimeAlias': 'uv2', 'unwrap': 'xatlas/watlas1.0.1, topology-only input; UV0 preserved', 'quantity': 'diffuse-radiance-per-unit-albedo', 'threeLightMapIrradianceMultiplier': math.pi, 'denoising': {'backend': 'OpenImageDenoise RT HDR', 'device': 'CPU', 'isolation': 'Per-UV-chart with same-chart edge extension; subpixel charts excluded and reported'}, 'sampling': {'mipLevels': 3, 'gutterPixels': 8, 'anisotropy': 1, 'maxLod': 2}, 'presets': PRESETS}}
     manifest_path = options.out / 'manifest.json'
     manifest['bake']['denoising']['device'] = options.oidn_device
     manifest['bake']['sourceNightLighting'] = lighting_metadata(snapshot)
+    manifest['bake']['sourceBlendSha256'] = binding['sha256']
+    manifest['bake']['receiverProfiles'] = receiver_profiles
+    manifest['bake']['generatedCoordinates'] = transport_payload['generatedCoordinates']
+    manifest['bake']['preparedPreviewAudit'] = transport_payload['preparedPreviewAudit']
+    manifest['bake']['cachePolicy'] = 'Full scene/source/material/image/lighting identity. Region chart equality reuses UV preparation only, never illumination.'
     if options.hidden_faces:
         proof_bytes = options.hidden_faces.read_bytes()
         proof = json.loads(proof_bytes)
@@ -990,13 +1191,15 @@ def main():
     reusable = False
     if manifest_path.exists():
         previous = json.loads(manifest_path.read_text())
-        same_geometry = previous.get('geometryFingerprint') in (None, geometry_fingerprint)
-        reusable = same_geometry and previous['bake']['resolution'] == options.resolution and previous['bake']['samples'] >= options.samples and previous['bake'].get('resolutionByRegion', resolution_by_region) == resolution_by_region
+        same_geometry = previous.get('geometryFingerprint') == geometry_fingerprint
+        same_transport = previous.get('bakeFingerprint') == bake_fingerprint
+        reusable = same_geometry and same_transport and previous['bake']['resolution'] == options.resolution and previous['bake']['samples'] >= options.samples and previous['bake'].get('resolutionByRegion', resolution_by_region) == resolution_by_region
         if reusable:
             manifest['lightmaps'] = previous.get('lightmaps', {})
-        elif options.resume and previous.get('lightmaps') and not same_geometry:
-            raise RuntimeError('Prepared UV/geometry differs from existing lightmaps; rebuild without --resume.')
+        elif options.resume and previous.get('lightmaps') and (not same_geometry or not same_transport):
+            raise RuntimeError('Full-scene geometry/lighting/source identity differs from existing lightmaps; use a new output and rebake all regions.')
     manifest['geometryFingerprint'] = geometry_fingerprint
+    manifest['bakeFingerprint'] = bake_fingerprint
     masks = {}
     chart_maps = {}
     coverage = {}
@@ -1066,6 +1269,7 @@ def main():
                 entry['samples'] = options.samples
                 entry['bakeDevice'] = options.device
                 entry['denoiseDevice'] = options.oidn_device
+                entry['bakeFingerprint'] = bake_fingerprint
                 entry['uri'] = f'{region}-{name}.ktx2'
                 entry['seconds'] = round(time.time() - began, 3)
                 manifest['lightmaps'].setdefault(region, {})[name] = entry
