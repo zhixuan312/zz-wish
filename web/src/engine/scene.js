@@ -68,7 +68,6 @@ const noise2 = (x, y) => {
   const n=ix+iy*57, a=hash(n)*(1-u)+hash(n+1)*u, b=hash(n+57)*(1-u)+hash(n+58)*u;
   return a*(1-v)+b*v;
 };
-const wobble = (t, s) => Math.sin(t * 1.7 + s) * .5 + Math.sin(t * 3.1 + s * 2.3) * .3 + Math.sin(t * 7.3 + s * .7) * .2;
 const ease = (k) => k < .5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
 const SERIF = '"Noto Serif SC", "Songti SC", "STSong", serif';
 
@@ -380,13 +379,6 @@ for (const [x, z, lv] of [[.5, -.32, .55], [-.3, -.42, .3]]) {
 
 // ---------- The person's offering ----------
 const PLATE_H = .046; // a short brass candlestick (.04) and its dish (.006)
-// Resample a [height, radius] profile into rows every 2 mm.
-function resample(prof, step = .002) {
-  const top = prof[prof.length - 1][0], rows = [];
-  const at = (y) => { let i = 1; while (i < prof.length - 1 && prof[i][0] < y) i++; const [y0, r0] = prof[i - 1], [y1, r1] = prof[i]; const k = Math.min(1, Math.max(0, (y - y0) / (y1 - y0 || 1))); return { y, cx: 0, r: r0 + (r1 - r0) * k }; };
-  for (let y = 0; y < top - 1e-6; y += step) rows.push(at(y));
-  rows.push(at(top)); return rows;
-}
 // Wax volume from the base up; the level animation reads it so the wax drops in step with real time.
 function burnOf(rows) {
   const cum = [0]; let v = 0;

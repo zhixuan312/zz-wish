@@ -1,6 +1,6 @@
 // Loaded only when this place is visited.
 export default function createPlace(h) {
-  const { THREE, V3, M, roofMat, ground, pave, hallB, gateB, compound, trees, ridges, paifang, box, fall, tower, pavingTex, pauseBuild } = h;
+  const { THREE, V3, M, roofMat, ground, pave, hallB, gateB, compound, trees, ridges, paifang, fall, tower, pavingTex, pauseBuild } = h;
   return {
     sky: { top: 0x545a62, horizon: 0x9c9c98, ground: 0x4a4440, sun: 0xd0d0d0, dir: [0, .6, -1], glow: .1, clouds: .92, lit: 0xa0a2a6, dark: 0x5a5e66, disc: 0 },
     fog: [0x8a8c8e, .013], sunL: [0xdfe4ea, .9], hemi: [0xa8b0b8, 0x3a3530, 1.1], bloom: [.45, 1.2],

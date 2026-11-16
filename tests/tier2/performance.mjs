@@ -41,8 +41,10 @@ for(const [name,width,height] of [['desktop',1440,900],['phone',390,844]]) {
  await phase('travel');await button('Leave it here').click();await button('Skip').click();
  await page.getByRole('radio',{name:'10 min',exact:true}).waitFor();await page.getByRole('radio',{name:'10 min',exact:true}).click();
  await phase('setup');await page.waitForTimeout(4000);
+ await phase('confirmation');
  await page.getByRole('button',{name:/Take this one/}).click();await page.getByRole('button',{name:/Light it/}).waitFor();
  const beforeAudio=await page.evaluate(()=>window.__perf.audioContexts);
+ await phase('ignition');
  await page.getByRole('button',{name:/Light it/}).click();await page.getByTestId('with-you').waitFor();await page.waitForTimeout(2200);
  await phase('burning');await page.waitForTimeout(8000);
  const afterAudio=await page.evaluate(()=>window.__perf.audioContexts);
@@ -51,7 +53,7 @@ for(const [name,width,height] of [['desktop',1440,900],['phone',390,844]]) {
  const data=await page.evaluate(()=>({performance:window.__perf,canvas:{width:document.querySelector('#gl').width,height:document.querySelector('#gl').height},resources:performance.getEntriesByType('resource').map(r=>({url:r.name,bytes:r.transferSize}))}));
  await page.evaluate(()=>window.dispatchEvent(new Event('blur')));await page.getByTestId('result-title').waitFor();
  const summarize=(entries,phase)=>{const a=entries.filter(x=>x.phase===phase).map(x=>x.ms);return {samples:a.length,p50:q(a,.5),p95:q(a,.95),max:a.length?Math.max(...a):null};};
- const phases=Object.fromEntries(['wish','place-switch-4x','cached-switch','setup','burning','power-saver'].map(p=>[p,{raf:summarize(data.performance.frames,p),render:summarize(data.performance.renders,p),longTasks:summarize(data.performance.tasks,p)}]));
+ const phases=Object.fromEntries(['wish','place-switch-4x','cached-switch','setup','confirmation','ignition','burning','power-saver'].map(p=>[p,{raf:summarize(data.performance.frames,p),render:summarize(data.performance.renders,p),longTasks:summarize(data.performance.tasks,p)}]));
  results.push({name,browserVersion:browser.version(),viewport:{width,height},networkLoad,localLoad,fourGReady,beforeAudio,afterAudio,audioState,phases,errors,data});
  console.log(name,JSON.stringify({networkLoad,localLoad,phases,errors,beforeAudio,afterAudio}));await context.close();
 }

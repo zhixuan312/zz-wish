@@ -15,6 +15,10 @@ Environment: `PORT` (default 8787), `DB_FILE` (default `data/one-light.db`). Nod
 
 ## Tests
 
+- `npm run lint`: ESLint, including the JavaScript engine, with zero warnings allowed.
+- `npm run typecheck`: strict TypeScript for UI, server, shared rules, typed engine facade and Tier 1 tests. Scene JavaScript is linted; its public declaration is checked, not its implementation.
+- [Tier 3 report](docs/tier3-report.md) records the boundary and cleanup checks.
+
 - Tier 1: `npm run test:tier1` runs Vitest (`tests/tier1/unit`) and then Playwright (`tests/tier1/e2e`, one flow at desktop and phone size). Playwright uses installed Google Chrome with GPU flags because the WebGL scene is too slow under software rendering.
 - Tier 2: see [the evidence report](docs/tier2-report.md). With a built server running on port 8792 and a disposable database:
   ```sh

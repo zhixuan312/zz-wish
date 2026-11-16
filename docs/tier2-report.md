@@ -16,7 +16,7 @@ The wish form renders before the engine initializes. Places load in separate chu
 
 Baseline screenshots: `artifacts/tier2/baseline/desktop-en/` and `artifacts/tier2/baseline/phone-zh/`.
 
-Prototype reference: `artifacts/tier2/prototype/desktop-en/` and `artifacts/tier2/prototype/phone-zh/`. The untouched prototype lacks an encoding declaration; its served text showed encoding defects. It remains a visual reference, outside the production build.
+Prototype reference: `artifacts/tier2/prototype/desktop-en/` and `artifacts/tier2/prototype/phone-zh/`. The prototype lacks an encoding declaration; its served text showed encoding defects. It remains a visual reference, outside the production build.
 
 The capture covers the wish, all ten places, travel, presets, empty and shaped drawing, confirmation, ignition, burning, navigation/put-out confirmations, both endings, record filters, wishes, statistic sorts, and butter-lamp fill/burning. Extra final evidence includes pointer response, power saving and halfway-burned wax. A full-screen view with UI hidden is saved as `burning-dark-room.png` at each viewport.
 
@@ -45,28 +45,32 @@ Reference budgets from section 11 are report-only: wish usable within 2.5 s on 4
 
 ## Isolated results
 
-| Viewport | Measurement | Tier 1 | Tier 2 |
+| Viewport | Measurement | Tier 1 | Final build |
 |---|---|---:|---:|
-| desktop | Wish usable, emulated 4G (ms) | 6040.7 | 1204.6 |
-| desktop | Wish usable, local (ms) | 199.1 | 34.9 |
-| desktop | Setup-through-ignition rendered-frame p95 (ms) | 16.7 | 33.3 |
-| desktop | Place-switch maximum long task, 4× CPU (ms) | 125.0 | 120.0 |
-| desktop | Burning rendered-frame p95 (ms) | 16.8 | 33.4 |
+| desktop | Wish usable, emulated 4G (ms) | 6062.7 | 1226.5 |
+| desktop | Wish usable, local (ms) | 196.1 | 40.2 |
+| desktop | Setup rendered-frame p95 (ms) | 16.8 | 16.7 |
+| desktop | Place-switch maximum long task, 4× CPU (ms) | 148.0 | 127.0 |
+| desktop | Burning rendered-frame p95 (ms) | 16.7 | 33.4 |
 | desktop | Power-saving rendered-frame p95 (ms) | — | 66.8 |
-| phone | Wish usable, emulated 4G (ms) | 6055.9 | 1221.8 |
-| phone | Wish usable, local (ms) | 190.2 | 39.8 |
-| phone | Setup-through-ignition rendered-frame p95 (ms) | 16.7 | 33.3 |
-| phone | Place-switch maximum long task, 4× CPU (ms) | 117.0 | 112.0 |
+| phone | Wish usable, emulated 4G (ms) | 6065.6 | 1230.8 |
+| phone | Wish usable, local (ms) | 204.4 | 34.3 |
+| phone | Setup rendered-frame p95 (ms) | 16.7 | 16.7 |
+| phone | Place-switch maximum long task, 4× CPU (ms) | 136.0 | 112.0 |
 | phone | Burning rendered-frame p95 (ms) | 16.7 | 33.4 |
-| phone | Power-saving rendered-frame p95 (ms) | — | 66.7 |
+| phone | Power-saving rendered-frame p95 (ms) | — | 66.8 |
 
-Source summaries: [baseline](evidence/baseline-performance.json), [release](evidence/release-performance.json). Full samples: `artifacts/tier2/baseline-isolated/isolated-performance.json` and `artifacts/tier2/tier2-release/isolated-performance.json`. Single runs, not statistical benchmarks.
+Source summaries: [baseline](evidence/baseline-performance.json), [release](evidence/release-performance.json). Full samples: `artifacts/tier2/baseline-separated/isolated-performance.json` and `artifacts/tier2/release-separated/isolated-performance.json`. These final matched runs use the revised runner after Tier 3 cleanup. They are single runs, not statistical benchmarks.
 
-The wish form is usable roughly 80% sooner under the network emulation. Both place-switch main-thread maxima are below the 200 ms reference. Cached revisits had no tasks above 50 ms (baseline maximum 58 ms). Place-switch maximum rendered gaps were 266.7 ms desktop and 233.3 ms phone, versus 200.1/200.0 ms baseline: asynchronous compilation still pauses scene rendering behind the fade.
+Setup is now a clean four-second sample before confirmation. The earlier runner included confirmation and 2.2 seconds after ignition in its setup window, mixing 60 fps setup with intentional 30 fps burning. Original raw runs remain under `baseline-isolated` and `tier2-release`; their mixed-phase 33.3 ms release p95 must not be read as steady setup performance. The earlier release run also recorded a 230 ms task in that mixed window.
 
-The runner's `setup` window includes four seconds choosing a candle, the close-up transition and the first 2.2 seconds after ignition. Thus its 33.3 ms rendered p95 includes the intentional 30 fps burning cap and is above the 20 ms setup reference; it is not a clean steady-setup comparison. RAF p95 stayed 16.8/16.7 ms. A desktop setup task reached 230 ms; no phone setup long task was recorded. Power-saving entry produced 100/67 ms tasks. These remaining stalls are known gaps, not hidden by averages. Burning and power saving achieved their 30/15 fps targets in this run.
+**Desktop:** emulated-network form readiness improved by 79.8%. Place-switch maximum rendered gap was 266.6 ms (baseline 233.3 ms). Cached revisit maximum long task: none above 50 ms (baseline 65 ms). Remaining long-task maxima: setup none above 50 ms, confirmation none above 50 ms, ignition 234 ms, power-saver 100 ms.
 
-Both contexts reported zero page/console errors. Audio context count was 0 before light and 1 after, with state `running` after the tap. The [touch check](evidence/touch-report.json) passed touch drawing, live duration, early navigation, reduced motion, lighting, power saving and settlement. At emulated DPR 3 the normal canvas width was 487 pixels (DPR 1.25 cap), dropping to 390 with power saving.
+**Phone:** emulated-network form readiness improved by 79.7%. Place-switch maximum rendered gap was 233.3 ms (baseline 233.4 ms). Cached revisit maximum long task: none above 50 ms (baseline 63 ms). Remaining long-task maxima: setup none above 50 ms, confirmation none above 50 ms, ignition none above 50 ms, power-saver 94 ms.
+
+The scene can still pause rendering behind its fade during asynchronous compilation. Report-only budgets do not erase these occasional gaps. Burning and power-saving target 30/15 fps; reduced draw counts are intentional, not a timing slowdown.
+
+Both final contexts reported zero page/console errors. Audio context count was 0 before light and 1 after, with state `running`. The [final touch check](evidence/touch-report.json) passed touch drawing, live duration, early navigation, reduced motion, lighting, power saving and settlement. At emulated DPR 3 the normal canvas width was 487 pixels (DPR 1.25 cap), dropping to 390 with power saving.
 
 ## Validation and limits
 

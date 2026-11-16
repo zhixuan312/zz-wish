@@ -8,7 +8,6 @@ export default function createPlace(h) {
     view: { pos: V3(15, 3.6, 60), look: V3(0, 9, 0) },
     walk: [V3(0, 1.7, 42), V3(0, 1.7, 26), V3(0, 1.7, 18)], doors: V3(0, 3, 12),
     async build() {
-      const C = h.context;
       ground(0x9a8a72); pave(0, 32, 80, 50, 0, M(0xb4ab9c, .9, { map: pavingTex }));
       await pauseBuild();
       tibetan({ w: 36, d: 22, h: 9.5 });

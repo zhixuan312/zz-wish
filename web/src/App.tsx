@@ -10,7 +10,7 @@ import { MyCandles, TenLights } from './Panels.tsx';
 import { sound } from './sound.ts';
 import { DICTS, fmtClock, fmtDuration } from './i18n.ts';
 
-type Screen = 'wish' | 'place' | 'travel' | 'candle' | 'confirm' | 'burning' | 'result';
+type Screen = engine.ScenePhase;
 type Overlay = 'mine' | 'stats' | null;
 interface Result { done: boolean; burnedMs: number; plannedMs: number; reason: EndReason; saved: boolean | null }
 

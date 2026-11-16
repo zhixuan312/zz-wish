@@ -1,7 +1,7 @@
 // Repeatable GPU Chrome visual/performance evidence. No production test hooks.
 // Usage: EVIDENCE=baseline BASE_URL=http://localhost:8792 DB_FILE=/tmp/one-light-visual.db node tests/tier2/capture.mjs
 import { chromium } from '@playwright/test';
-import { mkdir, writeFile, readFile } from 'node:fs/promises';
+import { mkdir, writeFile } from 'node:fs/promises';
 import Database from 'better-sqlite3';
 const tag = process.env.EVIDENCE || 'baseline';
 const root = `artifacts/tier2/${tag}`;

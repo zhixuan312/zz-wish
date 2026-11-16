@@ -2,6 +2,8 @@
 // hold up the wish form, and the engine never receives product records or wishes.
 import type { Shape } from '../../../shared/rules.ts';
 import type { PlaceId } from '../../../shared/places.ts';
+import type { ScenePhase } from './scene.js';
+export type { ScenePhase } from './scene.js';
 type Scene = typeof import('./scene.js');
 let resolveScene: (scene: Scene) => void;
 let rejectScene: (error: unknown) => void;
@@ -15,7 +17,7 @@ const initialized = scene.then(async s => { await s.ready; return s; });
 export const ready = initialized.then(() => {});
 export const setOffer = (shape: Shape | null) => { void initialized.then(s => s.setOffer(shape)); };
 export const setLevel = (level: number) => { void initialized.then(s => s.setLevel(level)); };
-export const setPhase = (phase: string) => { void initialized.then(s => s.setPhase(phase)); };
+export const setPhase = (phase: ScenePhase) => { void initialized.then(s => s.setPhase(phase)); };
 export const setPowerSaver = (on: boolean) => { void initialized.then(s => s.setPowerSaver(on)); };
 export const previewPlace = (id: PlaceId) => initialized.then(s => s.previewPlace(id));
 export const travel = (id: PlaceId) => initialized.then(s => s.travel(id));
