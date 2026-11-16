@@ -47,6 +47,7 @@ const report = { evidence, state, base, createdAt: new Date().toISOString(), sou
   ] };
 await mkdir(out, { recursive: true });
 const save = () => writeFile(join(out, 'report.json'), JSON.stringify(report, null, 2) + '\n');
+await save();
 const browser = await chromium.launch({ channel: 'chrome', headless: false, args: ['--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist'] });
 report.runtime.browserVersion = browser.version();
 const re = (zh, en) => new RegExp(`${zh}|${en}`);
@@ -58,8 +59,8 @@ try {
     const page = await context.newPage(); page.setDefaultTimeout(120000);
     const act = locator => size.phone ? locator.tap() : locator.click(), button = name => page.getByRole('button', { name });
     const phase = far ? 'burnFar' : 'burning'; let lit = false;
-    page.on('pageerror', error => report.errors.push({ viewport: size.name, phase, error: error.stack }));
-    page.on('console', message => { if (message.type() === 'error') report.errors.push({ viewport: size.name, phase, console: message.text(), location: message.location() }); });
+    page.on('pageerror', error => { report.errors.push({ viewport: size.name, phase, error: error.stack }); console.log('CONTACT_RUNTIME_ERROR', size.name, phase, error.message); });
+    page.on('console', message => { if (message.type() === 'error') { report.errors.push({ viewport: size.name, phase, console: message.text(), location: message.location() }); console.log('CONTACT_CONSOLE_ERROR', size.name, phase, message.text()); } });
     page.on('response', response => { if (response.status() >= 400) report.resources.push({ viewport: size.name, phase, status: response.status(), url: response.url() }); });
     const settle = () => page.waitForFunction(() => {
       const fade = document.getElementById('fade'); if (fade && Number(getComputedStyle(fade).opacity) >= .01) return false;
@@ -97,6 +98,7 @@ try {
         samples: raw.samples.length, durationMs: raw.samples.at(-1).elapsedMs, visibleParticleObjectsRange: [Math.min(...raw.samples.map(sample => sample.visibleParticles)), Math.max(...raw.samples.map(sample => sample.visibleParticles))], exposureRange: [Math.min(...raw.samples.map(sample => sample.exposure)), Math.max(...raw.samples.map(sample => sample.exposure))], controls: raw.controls, lamp: raw.lamp,
         roiMetrics: raw.rois.map(roi => ({ name: roi.name, type: roi.type, meanPixelRmsDelta: raw.samples.slice(1).reduce((sum, sample) => sum + sample.rois[roi.name].rmsDelta, 0) / (raw.samples.length - 1) })), ...metadata };
       if (frame.cameraMaximumElementDelta !== 0 || frame.projectionMaximumElementDelta !== 0 || frame.visibleParticleObjectsRange.some(value => value !== 0) || (expected && (frame.referenceCameraMaximumElementDelta !== 0 || frame.referenceProjectionMaximumElementDelta !== 0))) throw new Error(`Matched hold failed: ${size.name}/${name}`);
+      if (state === 'after' && !frame.runtimeAnchors?.alignment?.passed) report.errors.push({ viewport: size.name, name, anchorAlignmentError: 'The actual runtime flame/specular/smoke anchors do not satisfy the source-extra contract.', alignment: frame.runtimeAnchors?.alignment ?? null });
       report.frames.push(frame); await save(); console.log('CONTACT_FRAME', size.name, name, JSON.stringify({ file: frame.file, samples: frame.samples, exposure: frame.exposureRange, errors: report.errors.length }));
     };
     const cleanup = async () => {

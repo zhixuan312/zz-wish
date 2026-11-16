@@ -9,15 +9,18 @@ import { resolve, join, dirname, relative } from 'node:path';
 import { pathToFileURL, fileURLToPath } from 'node:url';
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const argv=process.argv.slice(2), option=(name,fallback)=>argv.includes(name)?argv[argv.indexOf(name)+1]:fallback;
-if(argv.includes('--help')){console.log('node scripts/pack-float-position-diagnostic.mjs --source BAKE_DIR --manifest COMPLETE_MOBILE_MANIFEST --out NEW_art/build/DIR [--tools PREFIX]\nReads actual raw/mobile-textured GLBs and source-bound unpruned mobile baseline. Actual raw/baseline hashes must match the complete pack receipt; no hash bypass or SHORT-to-float cast. No image conversion or Cycles.');process.exit(0);}
+if(argv.includes('--help')){console.log('node scripts/pack-float-position-diagnostic.mjs --source BAKE_DIR --manifest COMPLETE_MOBILE_MANIFEST --out NEW_art/build/DIR [--tools PREFIX]\nProvisional geometry only: --geometry-only --geometry-receipt ACTUAL_MOBILE_GEOMETRY_RECEIPT --manifest ACTUAL_BAKE_MANIFEST. This writes no delivery manifest or fake maps. Normal packaging still requires twelve actual maps. Raw/baseline hashes must match actual receipts; no hash bypass or SHORT-to-float cast. No image conversion or Cycles.');process.exit(0);}
+const geometryOnly=argv.includes('--geometry-only');
 const source=resolve(option('--source',join(ROOT,'art/build/snow-roof-final'))), out=resolve(option('--out','art/build/snow-roof-float32-position-diagnostic'));
 if(!out.startsWith(join(ROOT,'art/build')+'/')||out===source)throw Error('Separate art/build output required.');
 const exists=p=>access(p).then(()=>true,()=>false), sha=b=>createHash('sha256').update(b).digest('hex');
 if(await exists(join(out,'snow-roof.glb')))throw Error('Refusing existing diagnostic output.');
 const paths={raw:join(source,'snow-roof.raw.glb'),textured:join(source,'snow-roof.mobile.textures.glb'),baseline:join(source,'snow-roof.mobile.packed.glb'),manifest:resolve(option('--manifest',join(ROOT,'art/build/snow-roof-final-mobile/manifest.json')))};
+if(geometryOnly){if(!option('--geometry-receipt'))throw Error('Geometry-only staging requires the actual material-stage receipt.');paths.geometryReceipt=resolve(option('--geometry-receipt'));}
 const bytes=Object.fromEntries(await Promise.all(Object.entries(paths).map(async([k,p])=>[k,await readFile(p)])));
 const packManifest=JSON.parse(bytes.manifest.toString()), bakeManifest=JSON.parse(await readFile(join(source,'manifest.json'),'utf8'));
-const expectedRaw=packManifest.compression?.materialRecipe?.sourceRawGLBSha256,expectedBaseline=packManifest.files?.find(file=>file.uri===packManifest.scene)?.sha256;
+const geometryReceipt=geometryOnly?JSON.parse(bytes.geometryReceipt.toString()):null;
+const expectedRaw=geometryOnly?geometryReceipt.materialRecipe?.sourceRawGLBSha256:packManifest.compression?.materialRecipe?.sourceRawGLBSha256,expectedBaseline=geometryOnly?geometryReceipt.sha256:packManifest.files?.find(file=>file.uri===packManifest.scene)?.sha256;
 if(!expectedRaw||!expectedBaseline||sha(bytes.raw)!==expectedRaw||sha(bytes.baseline)!==expectedBaseline||packManifest.bakeFingerprint!==bakeManifest.bakeFingerprint||packManifest.bake?.sourceBlendSha256!==bakeManifest.bake?.sourceBlendSha256)throw Error('Actual raw/baseline/transport identity differs from complete pack provenance. Obtain a fresh actual pack; do not edit pins.');
 const prefix=resolve(option('--tools','/tmp/one-light-gltf-tools')), modules=[];
 for(const [name,version] of [['@gltf-transform/core','4.5.1'],['@gltf-transform/extensions','4.5.1'],['@gltf-transform/functions','4.5.1'],['meshoptimizer','1.2.0']]){
@@ -62,14 +65,21 @@ const json=JSON.parse(packed.subarray(20,20+packed.readUInt32LE(12)).toString())
 for(const mesh of json.meshes)for(const p of mesh.primitives){const a=json.accessors[p.attributes.POSITION],v=json.bufferViews[a.bufferView];if(a.componentType!==5126||a.normalized||v.extensions?.EXT_meshopt_compression?.filter&&v.extensions.EXT_meshopt_compression.filter!=='NONE')throw Error('Output POSITION accessor/filter is not lossless FLOAT32/NONE.');}
 await mkdir(out,{recursive:true});await writeFile(join(out,'snow-roof.glb'),packed);
 const manifest=JSON.parse(bytes.manifest.toString());
-if(manifest.partialPreview||Object.values(manifest.lightmaps).reduce((n,p)=>n+Object.keys(p).length,0)!==12)throw Error('Complete twelve-map source manifest required.');
+if(!geometryOnly&&(manifest.partialPreview||Object.values(manifest.lightmaps).reduce((n,p)=>n+Object.keys(p).length,0)!==12))throw Error('Complete twelve-map source manifest required.');
+if(!geometryOnly){
 manifest.files=manifest.files.map(f=>f.uri==='snow-roof.glb'?{...f,sha256:sha(packed),bytes:packed.length}:f);
 for(const file of manifest.files.filter(f=>f.uri!=='snow-roof.glb')){const data=await readFile(join(dirname(paths.manifest),file.uri));if(data.length!==file.bytes||sha(data)!==file.sha256)throw Error('Source lightmap payload drift: '+file.uri);await copyFile(join(dirname(paths.manifest),file.uri),join(out,file.uri));}
 manifest.totalBytes=manifest.files.reduce((n,f)=>n+f.bytes,0);
 manifest.compression.geometryProfile='unpruned-float32-position-optical-diagnostic';
 manifest.compression.transformOrder=['existing-mobile-textures','reorder-size','quantize-nonposition-only','meshopt-filter-position-NONE'];
-const receipt={version:1,status:'Optical diagnostic only; hidden roof retained, no new geometry/light/material edits or bakes.',inputs:Object.fromEntries(Object.entries(paths).map(([k,p])=>[k,{path:relative(ROOT,p),sha256:sha(bytes[k])}])),output:{path:relative(ROOT,join(out,'snow-roof.glb')),sha256:sha(packed),bytes:packed.length},positions:{componentType:5126,normalized:false,sourceRawAccessorArraysExact:true,afterLosslessReorderRoundtripExact:true,accessors:positions(decoded)},nonpositionStreams:{baseline:'actual unpruned mobile packed GLB',decodedArraysBitExact:true,indexWindingExactAllowingCyclicRotation:true,streams:streams(decoded,true)},materialParametersExact:true,embeddedImagesExact:true,images:originalImages,originalNodeTransformsAndSceneExtrasExact:true,lightmaps:manifest.files.filter(f=>f.uri.endsWith('.ktx2')),fullSourceBakeFingerprintUnchanged:manifest.bakeFingerprint,encoding:{method:'EXT_meshopt FILTER',positionFilter:'NONE',normalFilter:'existing OCTAHEDRAL8',noPositionQuantizeOrFloatCast:true,noImageConversion:true}};
+}
+const receipt={version:1,status:'Optical diagnostic only; hidden roof retained, no new geometry/light/material edits or bakes.',inputs:Object.fromEntries(Object.entries(paths).map(([k,p])=>[k,{path:relative(ROOT,p),sha256:sha(bytes[k])}])),output:{path:relative(ROOT,join(out,'snow-roof.glb')),sha256:sha(packed),bytes:packed.length},positions:{componentType:5126,normalized:false,sourceRawAccessorArraysExact:true,afterLosslessReorderRoundtripExact:true,accessors:positions(decoded)},nonpositionStreams:{baseline:'actual unpruned mobile packed GLB',decodedArraysBitExact:true,indexWindingExactAllowingCyclicRotation:true,streams:streams(decoded,true)},materialParametersExact:true,embeddedImagesExact:true,images:originalImages,originalNodeTransformsAndSceneExtrasExact:true,lightmaps:geometryOnly?[]:manifest.files.filter(f=>f.uri.endsWith('.ktx2')),fullSourceBakeFingerprintUnchanged:manifest.bakeFingerprint,encoding:{method:'EXT_meshopt FILTER',positionFilter:'NONE',normalFilter:'existing OCTAHEDRAL8',noPositionQuantizeOrFloatCast:true,noImageConversion:true}};
+receipt.status=geometryOnly?'Provisional geometry only; hidden roof retained. No delivery manifest or invented lightmaps. Adoption requires exact final post-batch raw identity.':receipt.status;
+receipt.lightmaps=geometryOnly?[]:receipt.lightmaps;
+receipt.generator='scripts/pack-float-position-diagnostic.mjs';
+receipt.generatorSha256=sha(await readFile(fileURLToPath(import.meta.url)));
 await writeFile(join(out,'diagnostic.receipt.json'),JSON.stringify(receipt,null,2)+'\n');
+if(geometryOnly){console.log('FLOAT32_GEOMETRY_STAGE',JSON.stringify({directory:relative(ROOT,out),glbBytes:packed.length,glbSha256:sha(packed),positionAccessors:positions(decoded).length,deliveryManifestWritten:false,allAuditsPassed:true}));process.exit(0);}
 manifest.compression.positionPrecisionDiagnostic={uri:'diagnostic.receipt.json',sha256:sha(await readFile(join(out,'diagnostic.receipt.json'))),positionComponentType:5126,positionFilter:'NONE',unpruned:true,baselineSource:'genuine pre-Meshopt mobile-textured GLB'};
 await writeFile(join(out,'manifest.json'),JSON.stringify(manifest,null,2)+'\n');
 console.log('FLOAT32_POSITION_DIAGNOSTIC',JSON.stringify({directory:relative(ROOT,out),glbBytes:packed.length,glbSha256:sha(packed),totalBytes:manifest.totalBytes,positionAccessors:positions(decoded).length,lightmaps:12,allAuditsPassed:true}));

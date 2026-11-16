@@ -72,6 +72,21 @@
       "path": "art/blender/proofs/snow-roof-resting-contacts-accepted-hidden-tiles.json",
       "bytes": 4048937,
       "sha256": "cf525ebd5990e8487cc4e10f3a6110fc12d0deab152885889fe879991bbfba57"
+    },
+    {
+      "path": "scripts/finalize-resting-correspondence.mjs",
+      "bytes": 6231,
+      "sha256": "7b3bccbcf54dbb487f34f1797a808d6ae3b3c1583e6e763251688c9917c146c0"
+    },
+    {
+      "path": "art/build/resting-contacts-export-study/final-postbatch-correspondence.json",
+      "bytes": 5753,
+      "sha256": "b2d1edef24178c17aec6fce7af3de0a2eb30ea1e6e1c54fabce71dfa3a86e6a5"
+    },
+    {
+      "path": "art/build/snow-roof-resting-contacts-accepted-bake/postbatch-identity.json",
+      "bytes": 779,
+      "sha256": "1198f494f724a996d30dc50b412a9e4c0bb8b2769303b632f43c50f5488eae85"
     }
   ],
   "noOwnedActiveRenderOrBakeJobs": true,
@@ -131,6 +146,101 @@
     "sourceTriangles": 650936,
     "provenHiddenTriangles": 183750,
     "nonProofMarkerTrianglesRetained": 3292,
-    "finalPostBatchContainerMustBeMeasuredAgain": true
+    "finalPostBatchContainerMustBeMeasuredAgain": false
+  },
+  "provisionalFloat32IndependentProof": {
+    "receipt": {
+      "path": "art/build/resting-contacts-export-study/provisional-float32-independent.json",
+      "sha256": "bcce53b79f6365fa37bdacd0e015dfa698395322c4fdb09395f23641e221ab3c"
+    },
+    "actualRawSha256": "c3539702ab9c0a5eb244f4be25d57bd1c30f22bb31ecedd83674bd99642aef7b",
+    "float32": {
+      "path": "art/build/snow-roof-resting-contacts-float32-stage/snow-roof.glb",
+      "sha256": "418321fff225ec70e67d34bb4c78957b9ddac7d983c91ac74aa97fce7c595028",
+      "bytes": 20590604
+    },
+    "mobileBaselineSha256": "e834c4c39891ddfbb1bf98d3439fd4f6fe084fd2297313c6472acd53225b1b0b",
+    "vertices": 956830,
+    "triangles": 650936,
+    "actualContactTrianglesUnchanged": true,
+    "authoredWorldPositionsAndWindingExact": true,
+    "nonpositionAttributesAndMaterialImagesExactToActualBaseline": true,
+    "sourceAnchorStringsAndActualRawSceneExtrasExact": true,
+    "fullPostBatchIdentityRevalidationStillRequired": false
+  },
+  "provisionalPrunedFloat32": {
+    "output": {
+      "path": "art/build/snow-roof-resting-contacts-float32-optimized-stage/snow-roof.glb",
+      "sha256": "49cbe07a5a0f407b3df31b82ef0c75e6995e471593d51527a276a3d22723ef88",
+      "bytes": 16265084,
+      "vertices": 649213,
+      "triangles": 467186
+    },
+    "profile": {
+      "path": "art/build/snow-roof-resting-contacts-float32-optimized-stage/export-profile.json",
+      "sha256": "649d15e40ff58ed71a0e792307d791a67a0e084b6dc86012f4f52ecfe8de4ac6"
+    },
+    "producerReceipt": {
+      "path": "art/build/snow-roof-resting-contacts-float32-optimized-stage/snow-roof.receipt.json",
+      "sha256": "4bb89c5fca11c998da9cd50986e39a2eabf14fc2f2cd80796d02acb6326c6104"
+    },
+    "independentReceipt": {
+      "path": "art/build/snow-roof-resting-contacts-float32-optimized-stage/independent-geometry-proof.json",
+      "sha256": "a7a4e4a4fce7c46c1b08544a00f7f4db3b3ecefea4220c819c2652ec9f62e32b"
+    },
+    "exactFACEProvenTrianglesRemoved": 183750,
+    "allRetainedAttributeBytesWindingAndSceneMaterialImageBytesExact": true,
+    "independentAuditEncodersAndRequantizationPasses": 0,
+    "notAdoptedFinalRawIdentityRequired": false
+  },
+  "finalPostBatchCorrespondence": {
+    "passed": true,
+    "receipt": {
+      "path": "art/build/resting-contacts-export-study/final-postbatch-correspondence.json",
+      "sha256": "b2d1edef24178c17aec6fce7af3de0a2eb30ea1e6e1c54fabce71dfa3a86e6a5"
+    },
+    "actualFinalRaw": {
+      "path": "art/build/snow-roof-resting-contacts-accepted-bake/snow-roof.raw.glb",
+      "sha256": "c3539702ab9c0a5eb244f4be25d57bd1c30f22bb31ecedd83674bd99642aef7b"
+    },
+    "actualFinalPrepared": {
+      "path": "art/build/snow-roof-resting-contacts-accepted-bake/snow-roof-prepared.blend",
+      "sha256": "a49fe4fec7dcb52022c720b5a47a8d9c187f06433fda48adf1324d5d65c75d28"
+    },
+    "existingActualFloat32PruneAnchorProofsNowBindCompletedGeometry": true,
+    "noHashOrProfileOverrides": true,
+    "geometryEligibleForCompleteAssembly": true,
+    "completeEncodedPaddingAndBrowserGatesSeparate": true
+  },
+  "finalEightMapPadding": {
+    "passed": true,
+    "independentReceipt": {
+      "path": "art/build/snow-roof-resting-contacts-padding-production/independent-contact-padding-proof.json",
+      "sha256": "f3fbeff3b25626e5e7f8df0da6c2aadb3b870d67229c44612ab9770ab3e93719"
+    },
+    "candidateManifest": {
+      "path": "art/build/snow-roof-resting-contacts-padding-production/manifest.json",
+      "sha256": "dc4621379b2143451d55c4e655ed9e7853a1a0bc5f3ae828d353331b1fa8bf0d"
+    },
+    "geometryAtPaddingStage": "418321fff225ec70e67d34bb4c78957b9ddac7d983c91ac74aa97fce7c595028",
+    "allEightMapsVerified": [
+      "court/night",
+      "court/dusk",
+      "court/day",
+      "court/lamp",
+      "hall/night",
+      "hall/dusk",
+      "hall/day",
+      "hall/lamp"
+    ],
+    "courtRecipientsPerLook": 2098,
+    "hallRecipientsPerLook": 682,
+    "maximumDonorDistancePixels": 8,
+    "sameOriginalChartAndOwner": true,
+    "allUncertifiedVisibleBaseRgbaAndAllAlphaBitsExact": true,
+    "originalRawAndDenoisedMastersUnchanged": true,
+    "otherFourGateMapsByteIdentical": true,
+    "lossyCodecNeighborhoodsNotClaimedBitExact": true,
+    "assemblyAndBrowserApprovalRemainSeparate": true
   }
 }

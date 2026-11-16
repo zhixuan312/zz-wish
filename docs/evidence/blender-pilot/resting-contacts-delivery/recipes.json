@@ -1,0 +1,68 @@
+{
+  "scope": "Actual executed command records, not permission to overwrite immutable outputs. A new run uses new directories and actual freshly measured profiles. Native renders/bakes use Metal and AUTO threads. Classification, image I/O, encoding and numeric checks do not invoke CPU Cycles.",
+  "commands": [
+    {
+      "step": "fresh-roof-proof",
+      "command": "blender --background --python-exit-code 1 --python art/blender/classify_hidden_tiles.py -- --source-blend art/build/snow-roof-resting-contacts-accepted.blend --output art/blender/proofs/snow-roof-resting-contacts-accepted-hidden-tiles.json"
+    },
+    {
+      "step": "prepare",
+      "command": "blender --background art/build/snow-roof-resting-contacts-accepted.blend --python-exit-code 1 --python art/blender/bake_export.py -- --out art/build/snow-roof-resting-contacts-accepted-bake --resolution 2048 --hall-resolution 4096 --court-resolution 4096 --samples 64 --device METAL --oidn-device METAL --hidden-faces art/blender/proofs/snow-roof-resting-contacts-accepted-hidden-tiles.json --chart-cache art/build/snow-roof-resting-contacts-bake --skip-bake"
+    },
+    {
+      "step": "targeted-native",
+      "command": "blender --background --python-exit-code 1 --python art/blender/held_preview.py -- --scene art/build/snow-roof-resting-contacts-accepted-bake/snow-roof-prepared.blend --camera-index art/build/snow-roof-resting-contacts-accepted-bake/native-cameras.json --names low-altar-edge,cushion-contact --viewports desktop-en --output art/build/snow-roof-resting-contacts-accepted-prepared-preview --samples 8 --look night --visitor on"
+    },
+    {
+      "step": "bake-twelve",
+      "command": "blender --background art/build/snow-roof-resting-contacts-accepted-bake/snow-roof-prepared.blend --python-exit-code 1 --python art/blender/bake_export.py -- --out art/build/snow-roof-resting-contacts-accepted-bake --resolution 2048 --hall-resolution 4096 --court-resolution 4096 --samples 64 --device METAL --oidn-device METAL --hidden-faces art/blender/proofs/snow-roof-resting-contacts-accepted-hidden-tiles.json --prepared-preview-audit art/build/snow-roof-resting-contacts-accepted-bake/prepared-mapping-proof.json --resting-contact-audit art/build/resting-contacts-accepted-replay/contacts-unique-crowns.json --resume"
+    },
+    {
+      "step": "pack-complete",
+      "command": "node scripts/pack-blender-assets.mjs --source art/build/snow-roof-resting-contacts-accepted-bake --out art/build/snow-roof-resting-contacts-mobile-complete --material-profile mobile --screen-base-size 1024"
+    },
+    {
+      "step": "float32-complete",
+      "command": "node scripts/pack-float-position-diagnostic.mjs --source art/build/snow-roof-resting-contacts-accepted-bake --manifest art/build/snow-roof-resting-contacts-mobile-complete/manifest.json --out art/build/snow-roof-resting-contacts-float32-complete"
+    },
+    {
+      "step": "certify-recipients",
+      "command": "blender --background --python-exit-code 1 --python art/blender/classify_snow_contact.py -- --inputs art/build/snow-roof-resting-contacts-accepted-bake/contact-input-profile.json --out art/build/snow-roof-resting-contacts-contact-domain-stage"
+    },
+    {
+      "step": "certify-donors",
+      "command": "blender --background --python-exit-code 1 --python art/blender/certify_snow_contact_donors.py -- --inputs art/build/snow-roof-resting-contacts-accepted-bake/contact-input-profile.json --classification-dir art/build/snow-roof-resting-contacts-contact-domain-stage --out art/build/snow-roof-resting-contacts-contact-donors-stage"
+    },
+    {
+      "step": "prune-float32",
+      "command": "node scripts/prune-float32-baked.mjs --input art/build/snow-roof-resting-contacts-float32-stage/snow-roof.glb --output art/build/snow-roof-resting-contacts-float32-optimized-stage/snow-roof.glb --inputs art/build/snow-roof-resting-contacts-float32-stage/prune-inputs.json --profile-out art/build/snow-roof-resting-contacts-float32-optimized-stage/export-profile.json"
+    },
+    {
+      "step": "pad-all-eight",
+      "command": "blender --background --python-exit-code 1 --python art/blender/contact_padding.py -- --source art/build/snow-roof-resting-contacts-accepted-bake --base art/build/snow-roof-resting-contacts-float32-complete --classification art/build/snow-roof-resting-contacts-contact-domain-stage/contact-visibility-classification.json --donors art/build/snow-roof-resting-contacts-contact-domain-stage/contact-valid-donors.npz --donor-metadata art/build/snow-roof-resting-contacts-contact-domain-stage/contact-valid-donors.json --out art/build/snow-roof-resting-contacts-padding-production --passes night,dusk,day,lamp"
+    },
+    {
+      "step": "independent-padding",
+      "command": "blender --background --python-exit-code 1 --python art/blender/audit_contact_padding.py -- --source art/build/snow-roof-resting-contacts-accepted-bake --base art/build/snow-roof-resting-contacts-float32-complete --classification-dir art/build/snow-roof-resting-contacts-contact-domain-stage --candidate art/build/snow-roof-resting-contacts-padding-production --passes night,dusk,day,lamp"
+    },
+    {
+      "step": "codec-metrics",
+      "command": "blender --background --python-exit-code 1 --python art/blender/bake_export.py -- --out art/build/snow-roof-resting-contacts-delivery-verification --verify-delivery art/build/snow-roof-resting-contacts-padding-production"
+    },
+    {
+      "step": "assemble",
+      "command": "python3 scripts/assemble-contact-delivery.py --padding art/build/snow-roof-resting-contacts-padding-production --geometry art/build/snow-roof-resting-contacts-float32-optimized-stage --out art/build/snow-roof-resting-contacts-delivery"
+    }
+  ],
+  "additionalOperations": [
+    "Donor JSON/NPZ copied byte-exact into recipient bundle; source records unchanged.",
+    "All twelve final KTX2 payloads officially transcoded with ktx transcode --target rgba8; verification masters/coverage are symlinks to actual immutable inputs.",
+    "Final manifest adds hash references to actual postbatch-correspondence and twelve-map codec audit; payloads unchanged.",
+    "Provisional raw/geometry/domain reuse was authorized only after final raw c353 and prepared a49 matched actual frozen input bytes."
+  ],
+  "profiles": {
+    "art/build/snow-roof-resting-contacts-accepted-bake/contact-input-profile.json": "3c2be5cfa1f1d14b6f222314943e0cc6b7f5e0b10a49eeb1cb9212a8b43df0b6",
+    "art/build/snow-roof-resting-contacts-float32-stage/prune-inputs.json": "98d0022400cc2b93228367d0e15924fa4dcc1ef938b109035451d98472d68b75",
+    "art/build/snow-roof-resting-contacts-float32-optimized-stage/export-profile.json": "649d15e40ff58ed71a0e792307d791a67a0e084b6dc86012f4f52ecfe8de4ac6"
+  }
+}

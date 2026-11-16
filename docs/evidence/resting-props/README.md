@@ -1,8 +1,12 @@
 # Resting props: source and prepared contact evidence
 
-The current frozen source is `art/build/snow-roof-resting-contacts-accepted.blend`, SHA256 **`b31360516a2713a6451ca920f3f94d9fefd9bc191bc07fca63c8c5ddce5a0c86`**. Its source audit passes all37 groups. The actual fresh prepared/raw contact gate now **passes all37 groups in both stages**. No new complete delivery or browser approval is claimed.
+The current frozen source is `art/build/snow-roof-resting-contacts-accepted.blend`, SHA256 **`b31360516a2713a6451ca920f3f94d9fefd9bc191bc07fca63c8c5ddce5a0c86`**. Its source audit passes all37 groups. The actual fresh prepared/raw contact gate **passes all37 groups in both stages**. The complete twelve-map package is installed, and the matched browser comparison passes. See the [before/after gallery](index.html) and [final review](review.md).
 
 The preserved2ee source passed source/native checks, but actual prepared **and exported raw triangles** put its cushions at **5.014837/5.044162mm** penetration, beyond the literal5mm guard. The baker stopped the partial batch (exit143); its pixels will not be reused. The new source raises only both cushion groups by **0.2mm**. Old2ee,6e9f, masters, rejected replay and50µm helper recipe remain immutable. `source-history.json` records this failure honestly.
+
+**Final native batch identity:** all 12 native maps completed at 64 samples on Metal with Metal OIDN. Independent final hashing confirms that actual raw `c353…` and prepared `a49fe4…` exactly match the frozen measured files. The geometry condition below is satisfied by `final-postbatch-correspondence.json`; historical provisional receipts keep their original names and bytes. All encoded/padded maps also pass their independent gates; [the delivery evidence](../blender-pilot/resting-contacts-delivery/README.md) records the full batch and codec checks.
+
+`installed-package.json` verifies all17 installed payload/proof files, totaling59,674,555 bytes. The manifest is `9beed715…`, and the genuine FLOAT32 optimized GLB is `49cbe07a…` (16,265,084 bytes). `runtime-validation.json` records matching registry/HTTP payloads and passing typecheck/production build. Runtime flame origins, specular lights and smoke now require the actual exported source anchors; the temporary legacy smoke fallback is removed. All132 live source-anchor comparisons are exactly0m. Root reviewed the desktop and phone close-ups: all four lamps and the visible burner feet meet their supports with contact darkening. The [portable provenance](provenance.json) preserves24 PNGs and all12 exact camera/projection pairs; six primary holds per state last at least ten seconds, with zero frozen ROI variation. Phone captures use M1 viewport/touch emulation.
 
 The legacy evaluated inner lamp-foot gaps are **44.497371mm** and **44.493556mm**. The original turned pedestal top was an open ring, so a centre ray could not legitimately use its highest rim as a solid support. The fix adds real top faces, places the console/pedestals themselves on actual uneven paving, and places both inner lamps on the actual scanned console surface. Complete lamp groups include their8 W point light and wick; the burner includes its ash/sticks, which also have their own explicit nested support checks. Nested bowl bases use the real lowest-vertex set so a cavity centre is not mistaken for the bearing annulus.
 
@@ -82,9 +86,35 @@ Raw glTF repeats coordinates at UV/normal/material seams. Crown centroids theref
 
 ## Provisional export identity
 
-Post-guard raw `c3539702…` is a measured provisional export, not a final delivery identity. `provisional-raw-contact-chain.json` proves its complete binary payload and every non-scene JSON field are byte-exact to the actual contact-tested raw7639. Every previously certified scene extra is unchanged; only prepared-contact and prepared-preview proof bindings were added. `scripts/audit-resting-export.mjs` implements this reproducible comparison and the later decoder-only FLOAT32/source-anchor audit. Its full FLOAT32 mode is prepared but cannot claim results until actual new candidates exist.
+Post-guard raw `c3539702…` was first measured as a provisional export. Its identity was subsequently confirmed against the actual completed native batch above. `provisional-raw-contact-chain.json` proves its complete binary payload and every non-scene JSON field are byte-exact to the actual contact-tested raw7639. Every previously certified scene extra is unchanged; only prepared-contact and prepared-preview proof bindings were added. `scripts/audit-resting-export.mjs` implements this reproducible comparison and the later decoder-only FLOAT32/source-anchor audit. Its full FLOAT32 mode was executed on actual staging candidates, as recorded below.
 
-`provisional-face-raw-correspondence.json` records actual fresh FACE-to-export correspondence: **650,936 source triangles**, **183,750 source-proven hidden triangles**. **3,292** other triangles with the reserved UV marker remain retained; the marker alone never authorizes pruning. All visible architecture, resting props and bake occluders remain intact. The sole fresh FACE reference is `art/build/resting-contacts-export-study/hidden-reference/reference.json`, SHA `473d5376b90a6f7b7add3e9032887dfa0346faac7653449ae609b7aa6573bc79`, bound to sourceb313, prepareda49fe4 and fresh hidden proofcf525. Actual post-batch raw/F32/prune hashes and retained-stream audits must be measured again before adoption; no provisional hash is substituted by hand.
+`provisional-face-raw-correspondence.json` records actual fresh FACE-to-export correspondence: **650,936 source triangles**, **183,750 source-proven hidden triangles**. **3,292** other triangles with the reserved UV marker remain retained; the marker alone never authorizes pruning. All visible architecture, resting props and bake occluders remain intact. The sole fresh FACE reference is `art/build/resting-contacts-export-study/hidden-reference/reference.json`, SHA `473d5376b90a6f7b7add3e9032887dfa0346faac7653449ae609b7aa6573bc79`, bound to sourceb313, prepareda49fe4 and fresh hidden proofcf525. The required post-batch raw/F32/prune hash and retained-stream checks were genuinely measured before adoption; no provisional hash was substituted by hand.
+
+## Provisional decoded FLOAT32 result
+
+`provisional-float32-independent.json`, SHA **`bcce53b79f6365fa37bdacd0e015dfa698395322c4fdb09395f23641e221ab3c`**, independently decodes the real 20,590,604-byte F32 candidate `418321ff…` and actual mobile baseline `e834c4c3…`. All **650,936 triangles / 956,830 vertices** have genuine nonnormalized 5126 positions. Contact-tested raw `7639…`, actual raw `c353…` and F32 `4183…` have exact FLOAT32 world-position and cyclic-winding triangle multisets. Thus the actual support and prop triangles used by the 37-group replay remain unchanged; no additional position quantization error can change their clearances. Wick/incense/smoke strings match the evaluated source audit, and complete actual-raw scene extras are unchanged.
+
+All other attribute formats, triangle bytes, cyclic winding, material graph and embedded image bytes match the real mobile baseline. This is an unpruned geometry/material-stage proof, **not completed lightmap delivery or browser approval**. There is no fabricated manifest or map. Actual final raw identity must match `c353…` after the native batch, or all affected profiles and proofs must be genuinely refreshed.
+
+## Provisional export-only pruning
+
+The actual measured profile and producer receipt are `provisional-prune-profile.json` and `provisional-prune-receipt.json`. The independent decoder-only result is `provisional-prune-independent.json`, SHA **`a7a4e4a4fce7c46c1b08544a00f7f4db3b3ecefea4220c819c2652ec9f62e32b`**. Output `49cbe07a…` is **16,265,084 bytes / 649,213 vertices / 467,186 triangles**. Exactly **183,750** triangles with unique measured FACE provenance were removed from this export copy; full Blender source and all bake occluders stay intact.
+
+Every retained POSITION, normal, UV0, UV1, COLOR0 and COLOR1 byte and cyclic winding matches the actual F32 input. World transforms, ownership, full scene/material JSON and embedded image bytes are unchanged. The independent audit used no encoder and performed zero requantization. This remains a provisional staged candidate; final post-batch raw identity and complete delivery proof are still required before adoption.
+
+## Final post-batch correspondence
+
+`final-postbatch-correspondence.json`, SHA **`b2d1edef24178c17aec6fce7af3de0a2eb30ea1e6e1c54fabce71dfa3a86e6a5`**, independently hashes the actual final paths, all measured input artifacts and the existing source/contact/F32/prune proofs. Final raw `c3539702…` and prepared `a49fe4fe…` are byte-identical to the actual FACE/F32 inputs. Thus source contacts, wick/incense metadata, authored FLOAT32 positions and retained attributes/images apply to the completed geometry without edited hashes, overrides or re-encoding. Optimized geometry `49cbe07a…` is eligible for complete package assembly.
+
+`native-postbatch-identity.json` records the baker's completed 12-map Metal/OIDN batch. The new reusable `scripts/finalize-resting-correspondence.mjs` performs this hash-only final binding; it does not render, bake, encode, modify authored/prepared files or install public assets. The actual eight-map padding/master checks now pass as recorded below; complete assembly and browser approval remain separate.
+
+## Independent eight-map padding gate
+
+`final-padding-independent.json`, SHA **`f3fbeff3b25626e5e7f8df0da6c2aadb3b870d67229c44612ab9770ab3e93719`**, independently reads every original/derived linear EXR pair for court and hall across night, dusk, day and lamp. Each look changes exactly **2,098 court + 682 hall** certified hidden recipients. The nearest valid donor, maximum **8-pixel Euclidean distance**, same original chart/owner and tie order were independently recomputed. No radiance threshold decides eligibility. The 55 parity-ambiguous court centres and 25 near-contact hall centres remain excluded from both recipients and donors.
+
+Every unassigned/uncertified visible base RGBA bit and every alpha bit is unchanged; donor RGB copies are exact. All original raw/denoised transport masters remain unchanged, and the other four fresh gate maps are byte-identical. The actual padding-stage F32 geometry, every package file hash and manifest byte total pass. Lossy KTX block/mip neighborhoods are **not** claimed bit-exact. `final-padding-producer-receipt.json` and the compact source-bound classification/domain metadata and `final-padding-valid-donor-summary.json` retain the actual certificate hashes; large centre/coordinate arrays and 7,018 uncovered-recipient rows stay in reproducible ignored build outputs.
+
+This audit performs CPU image reads and arithmetic only, with no render, bake, OIDN, encoder, source, runtime or public changes. It releases assembly of the independently proven optimized geometry with eight padded maps and four unchanged gate maps. Browser/visual/performance approval remains separate.
 
 ## Reproduce the source audit
 
@@ -122,3 +152,16 @@ node scripts/audit-resting-export.mjs \
 ```
 
 Add `--float32 ACTUAL_F32.glb --baseline ACTUAL_MOBILE_POSITION16.glb` for the independent decoder-only final export check. That mode requires exact authored FLOAT32 world-position/winding identity, unchanged nonposition triangle streams, material graph and embedded image bytes, plus actual source-backed wick/incense scene extras. It does not encode or adopt anything.
+
+The actual eight-map permission/master audit was executed with:
+
+```sh
+blender --background --python-exit-code 1 --python art/blender/audit_contact_padding.py -- \
+  --source art/build/snow-roof-resting-contacts-accepted-bake \
+  --base art/build/snow-roof-resting-contacts-float32-complete \
+  --classification-dir art/build/snow-roof-resting-contacts-contact-domain-stage \
+  --candidate art/build/snow-roof-resting-contacts-padding-production \
+  --passes night,dusk,day,lamp
+```
+
+The script will not overwrite an existing independent receipt. The recorded execution already passed; a rerun requires a copied candidate directory without that independent receipt, then a corresponding new `--candidate` path.

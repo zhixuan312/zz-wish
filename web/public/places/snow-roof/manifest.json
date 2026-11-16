@@ -24,7 +24,7 @@
     "hall": {
       "night": {
         "scale": 32,
-        "maximum": 24.697994232177734,
+        "maximum": 23.052501678466797,
         "encoding": "log2-hdr",
         "logRange": 17.000011006847668,
         "logGain": 4096,
@@ -40,43 +40,43 @@
         "anisotropy": 1,
         "maxLod": 2,
         "precision": {
-          "surfaceTexels": 2130438,
+          "surfaceTexels": 2134058,
           "luminancePercentiles": {
             "p0": 0.0,
             "p1": 0.0,
             "p10": 0.0,
-            "p50": 0.004318642744701355,
-            "p90": 0.08729298689544203,
-            "p99": 0.1383025599814501,
-            "p100": 17.971689193725584
+            "p50": 0.004266194751113653,
+            "p90": 0.0870412397620827,
+            "p99": 0.1386597743791792,
+            "p100": 16.774332893753048
           },
           "idealLinear8bitStep": 0.12549019607843137,
           "idealLog8bitStepAtPercentile": {
             "p0": 1.1546424354175796e-05,
             "p1": 1.1546424354175796e-05,
             "p10": 1.1546424354175796e-05,
-            "p50": 0.00021579298006117568,
-            "p90": 0.00413999440321175,
-            "p99": 0.006552449016106993,
-            "p100": 0.8499673855728709
+            "p50": 0.00021331249656733262,
+            "p90": 0.0041280882354786524,
+            "p99": 0.006569343168899622,
+            "p100": 0.7933394321438598
           },
-          "blackTexelFraction": 0.15398148174225207,
+          "blackTexelFraction": 0.15447518296128784,
           "note": "Ideal scalar 8-bit precision only; UASTC block/RDO and device transcode errors need delivery-image inspection."
         },
-        "denoiseSeconds": 76.383,
-        "bakeSeconds": 109.487,
+        "denoiseSeconds": 78.013,
+        "bakeSeconds": 127.129,
         "samples": 64,
         "bakeDevice": "METAL",
         "denoiseDevice": "METAL",
-        "bakeFingerprint": "bd24db11cb82a6128fbd04160f73abac416dd60b392c8276a063c8b4df3695a0",
+        "bakeFingerprint": "0ffdd3b3c38387ba15ea8c86fe93715fd3699c93d6c082702f4b2881858d8350",
         "uri": "hall-night.ktx2",
-        "seconds": 188.337,
+        "seconds": 208.741,
         "codec": "uastc",
-        "bytes": 5653656,
-        "masterSha256": "bfc9e1567351478267c065f7208407fa17d73774f1cd96ea49764d9105b5e9b6",
+        "bytes": 5650836,
+        "masterSha256": "35181c02ac4c1a6aaa8e84ef12055adaed5da6ed18d7e24f1e6fe6632a8ad647",
         "transportMaster": {
           "source": "hall-night.exr",
-          "sha256": "b77e9fa239e1c2285989ad4e7a6a66382e672499d076e71f93e14bb3096898b4"
+          "sha256": "89e36ecf9590d0590b723db80137d31f9fd78b4da7092be4bc81ddf6e401fcd5"
         },
         "samplingDomainExtension": {
           "policy": "certified-hidden-centres-nearest-visible-same-chart-owner-euclidean8-v1",
@@ -85,7 +85,7 @@
       },
       "dusk": {
         "scale": 32,
-        "maximum": 19.69345474243164,
+        "maximum": 18.459304809570312,
         "encoding": "log2-hdr",
         "logRange": 17.000011006847668,
         "logGain": 4096,
@@ -101,43 +101,43 @@
         "anisotropy": 1,
         "maxLod": 2,
         "precision": {
-          "surfaceTexels": 2130438,
+          "surfaceTexels": 2134058,
           "luminancePercentiles": {
             "p0": 0.0,
             "p1": 0.0,
             "p10": 0.0,
-            "p50": 0.007519734332850202,
-            "p90": 0.1694090141096711,
-            "p99": 0.27376685904264453,
-            "p100": 14.349288887310028
+            "p50": 0.007442117705149576,
+            "p90": 0.16905958576947455,
+            "p99": 0.27376951517257114,
+            "p100": 13.431404451560974
           },
           "idealLinear8bitStep": 0.12549019607843137,
           "idealLog8bitStepAtPercentile": {
             "p0": 1.1546424354175796e-05,
             "p1": 1.1546424354175796e-05,
             "p10": 1.1546424354175796e-05,
-            "p50": 0.00036718589909441254,
-            "p90": 0.008023602452853329,
-            "p99": 0.012959118458366004,
-            "p100": 0.6786490270711738
+            "p50": 0.00036351508633897245,
+            "p90": 0.008007076535066132,
+            "p99": 0.01295924407778426,
+            "p100": 0.6352384590706599
           },
-          "blackTexelFraction": 0.15530843892194937,
+          "blackTexelFraction": 0.15590860229665734,
           "note": "Ideal scalar 8-bit precision only; UASTC block/RDO and device transcode errors need delivery-image inspection."
         },
-        "denoiseSeconds": 72.797,
-        "bakeSeconds": 109.278,
+        "denoiseSeconds": 78.724,
+        "bakeSeconds": 294.015,
         "samples": 64,
         "bakeDevice": "METAL",
         "denoiseDevice": "METAL",
-        "bakeFingerprint": "bd24db11cb82a6128fbd04160f73abac416dd60b392c8276a063c8b4df3695a0",
+        "bakeFingerprint": "0ffdd3b3c38387ba15ea8c86fe93715fd3699c93d6c082702f4b2881858d8350",
         "uri": "hall-dusk.ktx2",
-        "seconds": 184.586,
+        "seconds": 375.392,
         "codec": "uastc",
-        "bytes": 5665158,
-        "masterSha256": "ccbe4c2f2cf99ccd2880e3f4f38d8480d5c3e23eca8fd929602687486f876021",
+        "bytes": 5668335,
+        "masterSha256": "2e44aa9597da0522096630cd2e623fae07d5be97be5a14ccadb765b6a030fc12",
         "transportMaster": {
           "source": "hall-dusk.exr",
-          "sha256": "5a60afb392734e7492e494e93d1684da3a69a219a8dae607522d148aee606e15"
+          "sha256": "1af772c3ef3cd91f7ed3591de2af13aa611c69fa749ab60587acffdb58a4204c"
         },
         "samplingDomainExtension": {
           "policy": "certified-hidden-centres-nearest-visible-same-chart-owner-euclidean8-v1",
@@ -146,7 +146,7 @@
       },
       "day": {
         "scale": 32,
-        "maximum": 24.378089904785156,
+        "maximum": 23.105541229248047,
         "encoding": "log2-hdr",
         "logRange": 17.000011006847668,
         "logGain": 4096,
@@ -162,43 +162,43 @@
         "anisotropy": 1,
         "maxLod": 2,
         "precision": {
-          "surfaceTexels": 2130438,
+          "surfaceTexels": 2134058,
           "luminancePercentiles": {
             "p0": 0.0,
             "p1": 0.0,
             "p10": 0.0,
-            "p50": 0.015083363961242139,
-            "p90": 0.5638450512707234,
-            "p99": 1.0820917762041091,
-            "p100": 17.73556391010284
+            "p50": 0.014810537263285368,
+            "p90": 0.5633926209032535,
+            "p99": 1.0820754161834716,
+            "p100": 16.78934637260437
           },
           "idealLinear8bitStep": 0.12549019607843137,
           "idealLog8bitStepAtPercentile": {
             "p0": 1.1546424354175796e-05,
             "p1": 1.1546424354175796e-05,
             "p10": 1.1546424354175796e-05,
-            "p50": 0.0007249013647086713,
-            "p90": 0.026678121198518423,
-            "p99": 0.051188161697688805,
-            "p100": 0.8388000400094064
+            "p50": 0.0007119982567979841,
+            "p90": 0.026656723886975042,
+            "p99": 0.05118738796435052,
+            "p100": 0.7940494819270292
           },
-          "blackTexelFraction": 0.15813227139207994,
+          "blackTexelFraction": 0.15862736626652135,
           "note": "Ideal scalar 8-bit precision only; UASTC block/RDO and device transcode errors need delivery-image inspection."
         },
-        "denoiseSeconds": 79.179,
-        "bakeSeconds": 107.91,
+        "denoiseSeconds": 83.673,
+        "bakeSeconds": 116.573,
         "samples": 64,
         "bakeDevice": "METAL",
         "denoiseDevice": "METAL",
-        "bakeFingerprint": "bd24db11cb82a6128fbd04160f73abac416dd60b392c8276a063c8b4df3695a0",
+        "bakeFingerprint": "0ffdd3b3c38387ba15ea8c86fe93715fd3699c93d6c082702f4b2881858d8350",
         "uri": "hall-day.ktx2",
-        "seconds": 189.605,
+        "seconds": 202.752,
         "codec": "uastc",
-        "bytes": 5755827,
-        "masterSha256": "bde4bcaaf11808228a3e6fc360f56e007c4feea1c9babef6636bf1ef89ca27d8",
+        "bytes": 5755457,
+        "masterSha256": "312be5a5db46d7e3cb1492ae5f1252f269bd5dbdd15f970ca8baf3c150d670e0",
         "transportMaster": {
           "source": "hall-day.exr",
-          "sha256": "17b529a1d658d3bde88901dc34deb3c105ddfc22b64b53c9f0ce9ef2f55e29a1"
+          "sha256": "fa27317a81999cc4407c1335620c9ed2d08e030212a2668efd4393495e773f57"
         },
         "samplingDomainExtension": {
           "policy": "certified-hidden-centres-nearest-visible-same-chart-owner-euclidean8-v1",
@@ -207,7 +207,7 @@
       },
       "lamp": {
         "scale": 32,
-        "maximum": 16.483861923217773,
+        "maximum": 16.477449417114258,
         "encoding": "log2-hdr",
         "logRange": 17.000011006847668,
         "logGain": 4096,
@@ -223,43 +223,43 @@
         "anisotropy": 1,
         "maxLod": 2,
         "precision": {
-          "surfaceTexels": 2130438,
+          "surfaceTexels": 2134058,
           "luminancePercentiles": {
             "p0": 0.0,
             "p1": 0.0,
             "p10": 0.0,
-            "p50": 1.1574755996548447e-07,
-            "p90": 0.01848939671963455,
-            "p99": 0.0915279678390172,
-            "p100": 12.822192241096497
+            "p50": 1.1400395006617715e-07,
+            "p90": 0.018409159436542543,
+            "p99": 0.09143645189771807,
+            "p100": 12.799197432136536
           },
           "idealLinear8bitStep": 0.12549019607843137,
           "idealLog8bitStepAtPercentile": {
             "p0": 1.1546424354175796e-05,
             "p1": 1.1546424354175796e-05,
             "p10": 1.1546424354175796e-05,
-            "p50": 1.1551898537119834e-05,
-            "p90": 0.000885986803040046,
-            "p99": 0.004340284244799472,
-            "p100": 0.6064262828760274
+            "p50": 1.1551816074564438e-05,
+            "p90": 0.0008821920486045375,
+            "p99": 0.004335956075764036,
+            "p100": 0.6053387628363129
           },
-          "blackTexelFraction": 0.3407717098549688,
+          "blackTexelFraction": 0.33967024326424117,
           "note": "Ideal scalar 8-bit precision only; UASTC block/RDO and device transcode errors need delivery-image inspection."
         },
-        "denoiseSeconds": 59.754,
-        "bakeSeconds": 87.786,
+        "denoiseSeconds": 87.632,
+        "bakeSeconds": 88.836,
         "samples": 64,
         "bakeDevice": "METAL",
         "denoiseDevice": "METAL",
-        "bakeFingerprint": "bd24db11cb82a6128fbd04160f73abac416dd60b392c8276a063c8b4df3695a0",
+        "bakeFingerprint": "0ffdd3b3c38387ba15ea8c86fe93715fd3699c93d6c082702f4b2881858d8350",
         "uri": "hall-lamp.ktx2",
-        "seconds": 149.798,
+        "seconds": 178.661,
         "codec": "uastc",
-        "bytes": 2661056,
-        "masterSha256": "ab3d52e9cb089698708ffaf851af9955d32736a9b9d4682cf3878862747d596d",
+        "bytes": 2672460,
+        "masterSha256": "ff723ff1d7e01987a3d5c7cea82fd5d62539c81be13de5c4788ecd4a40ea68cc",
         "transportMaster": {
           "source": "hall-lamp.exr",
-          "sha256": "222fe7c452bd5e48175cea7538e5848545d9dde7fd034538fef0c216e764f040"
+          "sha256": "15eccb0359b3f2f090113d1c420383466634addc2c836a9facb0fb46acfeba0b"
         },
         "samplingDomainExtension": {
           "policy": "certified-hidden-centres-nearest-visible-same-chart-owner-euclidean8-v1",
@@ -270,7 +270,7 @@
     "gate": {
       "night": {
         "scale": 32,
-        "maximum": 26.633699417114258,
+        "maximum": 26.633651733398438,
         "encoding": "log2-hdr",
         "logRange": 17.000011006847668,
         "logGain": 4096,
@@ -286,44 +286,44 @@
         "anisotropy": 1,
         "maxLod": 2,
         "precision": {
-          "surfaceTexels": 472902,
+          "surfaceTexels": 472906,
           "luminancePercentiles": {
             "p0": 0,
             "p1": 0,
             "p10": 0,
-            "p50": 0.00537963062368799,
-            "p90": 0.09828434095382689,
-            "p99": 0.127741559816882,
-            "p100": 19.21203473358154
+            "p50": 0.005379814345343038,
+            "p90": 0.09828443629071115,
+            "p99": 0.12775457427568734,
+            "p100": 19.212001461601258
           },
           "idealLinear8bitStep": 0.12549019607843137,
           "idealLog8bitStepAtPercentile": {
             "p0": 1.1546424354175796e-05,
             "p1": 1.1546424354175796e-05,
             "p10": 1.1546424354175796e-05,
-            "p50": 0.0002659715043662426,
-            "p90": 0.00465982119641789,
-            "p99": 0.00605297544629621,
-            "p100": 0.9086284787398959
+            "p50": 0.0002659801933265161,
+            "p90": 0.004659825705295245,
+            "p99": 0.006053590954117061,
+            "p100": 0.9086269051697222
           },
-          "blackTexelFraction": 0.13995711585064136,
+          "blackTexelFraction": 0.1399580466308315,
           "note": "Ideal scalar 8-bit precision only; UASTC block/RDO and device transcode errors need delivery-image inspection."
         },
-        "denoiseSeconds": 28.672,
-        "bakeSeconds": 31.01,
+        "denoiseSeconds": 26.439,
+        "bakeSeconds": 54.812,
         "samples": 64,
         "bakeDevice": "METAL",
         "denoiseDevice": "METAL",
-        "bakeFingerprint": "bd24db11cb82a6128fbd04160f73abac416dd60b392c8276a063c8b4df3695a0",
+        "bakeFingerprint": "0ffdd3b3c38387ba15ea8c86fe93715fd3699c93d6c082702f4b2881858d8350",
         "uri": "gate-night.ktx2",
-        "seconds": 60.296,
+        "seconds": 82.356,
         "codec": "uastc",
-        "bytes": 1508240,
-        "masterSha256": "0f0bc225af8817d2568c9b23506ce407e5eb6d3278c5956bea245ba8d0c8c96d"
+        "bytes": 1508137,
+        "masterSha256": "6b5c32157cd7347cd4dc6b50c2c32b11f6c1e54ec533deba232225a427c6a9d3"
       },
       "dusk": {
         "scale": 32,
-        "maximum": 20.3110294342041,
+        "maximum": 20.31102180480957,
         "encoding": "log2-hdr",
         "logRange": 17.000011006847668,
         "logGain": 4096,
@@ -339,44 +339,44 @@
         "anisotropy": 1,
         "maxLod": 2,
         "precision": {
-          "surfaceTexels": 472902,
+          "surfaceTexels": 472906,
           "luminancePercentiles": {
             "p0": 0,
             "p1": 0,
             "p10": 0,
-            "p50": 0.012671517958957702,
-            "p90": 0.19982740872740748,
-            "p99": 0.27259988266295193,
-            "p100": 14.737630631446837
+            "p50": 0.012673041216190903,
+            "p90": 0.199844846829772,
+            "p99": 0.2725895915865898,
+            "p100": 14.73762539253235
           },
           "idealLinear8bitStep": 0.12549019607843137,
           "idealLog8bitStepAtPercentile": {
             "p0": 1.1546424354175796e-05,
             "p1": 1.1546424354175796e-05,
             "p10": 1.1546424354175796e-05,
-            "p50": 0.0006108351480792248,
-            "p90": 0.009462214697043086,
-            "p99": 0.01290392729756995,
-            "p100": 0.6970153213830841
+            "p50": 0.0006109071892416214,
+            "p90": 0.009463039417344693,
+            "p99": 0.01290344058981796,
+            "p100": 0.6970150736130538
           },
-          "blackTexelFraction": 0.13976257237228856,
+          "blackTexelFraction": 0.13977619230883093,
           "note": "Ideal scalar 8-bit precision only; UASTC block/RDO and device transcode errors need delivery-image inspection."
         },
-        "denoiseSeconds": 28.454,
-        "bakeSeconds": 31.02,
+        "denoiseSeconds": 27.993,
+        "bakeSeconds": 34.286,
         "samples": 64,
         "bakeDevice": "METAL",
         "denoiseDevice": "METAL",
-        "bakeFingerprint": "bd24db11cb82a6128fbd04160f73abac416dd60b392c8276a063c8b4df3695a0",
+        "bakeFingerprint": "0ffdd3b3c38387ba15ea8c86fe93715fd3699c93d6c082702f4b2881858d8350",
         "uri": "gate-dusk.ktx2",
-        "seconds": 60.089,
+        "seconds": 62.905,
         "codec": "uastc",
-        "bytes": 1535660,
-        "masterSha256": "c13c5a3deb213903b7316b2a32eb97de031c71e8334f378bb4176856f003d33a"
+        "bytes": 1535595,
+        "masterSha256": "dc99056166c1bee48ed35c6a153090ceb877ea583e2f70993ff000f9580db111"
       },
       "day": {
         "scale": 32,
-        "maximum": 24.34535026550293,
+        "maximum": 24.345338821411133,
         "encoding": "log2-hdr",
         "logRange": 17.000011006847668,
         "logGain": 4096,
@@ -392,44 +392,44 @@
         "anisotropy": 1,
         "maxLod": 2,
         "precision": {
-          "surfaceTexels": 472902,
+          "surfaceTexels": 472906,
           "luminancePercentiles": {
             "p0": 0,
             "p1": 0,
             "p10": 0,
-            "p50": 0.04622807095311582,
-            "p90": 0.7896071181190022,
-            "p99": 1.0839794912803171,
-            "p100": 17.741080541038514
+            "p50": 0.04621810514479875,
+            "p90": 0.7896826704740525,
+            "p99": 1.083972194170952,
+            "p100": 17.78824146175384
           },
           "idealLinear8bitStep": 0.12549019607843137,
           "idealLog8bitStepAtPercentile": {
             "p0": 1.1546424354175796e-05,
             "p1": 1.1546424354175796e-05,
             "p10": 1.1546424354175796e-05,
-            "p50": 0.00219786393828543,
-            "p90": 0.03735534719032574,
-            "p99": 0.05127743958550335,
-            "p100": 0.8390609444032613
+            "p50": 0.002197392613810592,
+            "p90": 0.037358920375052396,
+            "p99": 0.05127709447488815,
+            "p100": 0.841291380257644
           },
-          "blackTexelFraction": 0.13813009883654542,
+          "blackTexelFraction": 0.13811624297429087,
           "note": "Ideal scalar 8-bit precision only; UASTC block/RDO and device transcode errors need delivery-image inspection."
         },
-        "denoiseSeconds": 26.603,
-        "bakeSeconds": 30.812,
+        "denoiseSeconds": 27.429,
+        "bakeSeconds": 30.819,
         "samples": 64,
         "bakeDevice": "METAL",
         "denoiseDevice": "METAL",
-        "bakeFingerprint": "bd24db11cb82a6128fbd04160f73abac416dd60b392c8276a063c8b4df3695a0",
+        "bakeFingerprint": "0ffdd3b3c38387ba15ea8c86fe93715fd3699c93d6c082702f4b2881858d8350",
         "uri": "gate-day.ktx2",
-        "seconds": 58.034,
+        "seconds": 58.867,
         "codec": "uastc",
-        "bytes": 1575585,
-        "masterSha256": "f2098adff8741b42315db54305c4a945372104954a8ee0b58b3fa2efa3362cc4"
+        "bytes": 1575735,
+        "masterSha256": "7f514a79a3dff21b66efc899ae183ba9380b6b1c5c5c1a402bbed0cda045881a"
       },
       "lamp": {
         "scale": 0.0078125,
-        "maximum": 0.007650863844901323,
+        "maximum": 0.007562503684312105,
         "encoding": "log2-hdr",
         "logRange": 5.044394119358453,
         "logGain": 4096,
@@ -445,40 +445,40 @@
         "anisotropy": 1,
         "maxLod": 2,
         "precision": {
-          "surfaceTexels": 472902,
+          "surfaceTexels": 472906,
           "luminancePercentiles": {
             "p0": 0,
             "p1": 0,
             "p10": 0,
-            "p50": 1.2489756140823262e-07,
-            "p90": 0.0002257152069071892,
-            "p99": 0.0031819354765685254,
-            "p100": 0.0054670429302845144
+            "p50": 1.2474084902365234e-07,
+            "p90": 0.00022575068554433526,
+            "p99": 0.0031816905418410894,
+            "p100": 0.005418365731462836
           },
           "idealLinear8bitStep": 3.0637254901960784e-05,
           "idealLog8bitStepAtPercentile": {
             "p0": 3.37066214709745e-06,
             "p1": 3.37066214709745e-06,
             "p10": 3.37066214709745e-06,
-            "p50": 3.3723865118258164e-06,
-            "p90": 6.486938694461644e-06,
-            "p99": 4.730120203727756e-05,
-            "p100": 7.884992604128421e-05
+            "p50": 3.372384348218282e-06,
+            "p90": 6.48742852076261e-06,
+            "p99": 4.729782041156807e-05,
+            "p100": 7.817787733372002e-05
           },
-          "blackTexelFraction": 0.30088686450892577,
+          "blackTexelFraction": 0.30089489243105394,
           "note": "Ideal scalar 8-bit precision only; UASTC block/RDO and device transcode errors need delivery-image inspection."
         },
-        "denoiseSeconds": 28.326,
-        "bakeSeconds": 25.262,
+        "denoiseSeconds": 28.278,
+        "bakeSeconds": 25.406,
         "samples": 64,
         "bakeDevice": "METAL",
         "denoiseDevice": "METAL",
-        "bakeFingerprint": "bd24db11cb82a6128fbd04160f73abac416dd60b392c8276a063c8b4df3695a0",
+        "bakeFingerprint": "0ffdd3b3c38387ba15ea8c86fe93715fd3699c93d6c082702f4b2881858d8350",
         "uri": "gate-lamp.ktx2",
-        "seconds": 54.144,
+        "seconds": 54.235,
         "codec": "uastc",
-        "bytes": 645370,
-        "masterSha256": "1edf3917eaa81610641ef653d4a5c273cce5c8aafc3cb98d563372b876cfe6b9"
+        "bytes": 645472,
+        "masterSha256": "8c32254744ad24e742ef7f252071efa06d96bbee8ef65bb0cd70c4a94c17fada"
       }
     },
     "court": {
@@ -504,39 +504,39 @@
           "luminancePercentiles": {
             "p0": 0.0,
             "p1": 0.0,
-            "p10": 6.531182159790207e-09,
-            "p50": 0.11904951246976851,
-            "p90": 0.12527721170037986,
-            "p99": 0.12939092731773852,
-            "p100": 0.25655824819505213
+            "p10": 6.515017480479558e-09,
+            "p50": 0.11904943898022174,
+            "p90": 0.12527713821083306,
+            "p99": 0.12938877674937246,
+            "p100": 0.25655810121595857
           },
           "idealLinear8bitStep": 0.00196078431372549,
           "idealLog8bitStepAtPercentile": {
             "p0": 7.410631566096308e-06,
             "p1": 7.410631566096308e-06,
-            "p10": 7.410829813252715e-06,
-            "p50": 0.0036210332109170157,
-            "p90": 0.0038100684626394543,
-            "p99": 0.003934935968028769,
-            "p100": 0.007794966072683984
+            "p10": 7.41082932259091e-06,
+            "p50": 0.0036210309802192364,
+            "p90": 0.003810066231941578,
+            "p99": 0.003934870689790759,
+            "p100": 0.007794961611288176
           },
-          "blackTexelFraction": 0.0917178808893973,
+          "blackTexelFraction": 0.09171516408093229,
           "note": "Ideal scalar 8-bit precision only; UASTC block/RDO and device transcode errors need delivery-image inspection."
         },
-        "denoiseSeconds": 54.825,
-        "bakeSeconds": 197.633,
+        "denoiseSeconds": 75.333,
+        "bakeSeconds": 406.74,
         "samples": 64,
         "bakeDevice": "METAL",
         "denoiseDevice": "METAL",
-        "bakeFingerprint": "bd24db11cb82a6128fbd04160f73abac416dd60b392c8276a063c8b4df3695a0",
+        "bakeFingerprint": "0ffdd3b3c38387ba15ea8c86fe93715fd3699c93d6c082702f4b2881858d8350",
         "uri": "court-night.ktx2",
-        "seconds": 255.918,
+        "seconds": 491.633,
         "codec": "uastc",
-        "bytes": 6182072,
-        "masterSha256": "d679282bc038914e9172149aafbc60db8b26a7bcddc6bb4378b9a7fadc236111",
+        "bytes": 6182297,
+        "masterSha256": "48b4809c2564494671a00ce1896359f027fbd5710166efd9e6e95f2a97d12d27",
         "transportMaster": {
           "source": "court-night.exr",
-          "sha256": "46dacc79e2232f66fa44062d37180c4c64f58c0526751545b5739e34c77b6d79"
+          "sha256": "1f14be569329bc57f28dc84de3922b49baa70a368eb88982c88fa5aa19922815"
         },
         "samplingDomainExtension": {
           "policy": "certified-hidden-centres-nearest-visible-same-chart-owner-euclidean8-v1",
@@ -545,7 +545,7 @@
       },
       "dusk": {
         "scale": 1,
-        "maximum": 0.6815187335014343,
+        "maximum": 0.6815191507339478,
         "encoding": "log2-hdr",
         "logRange": 12.0003521774803,
         "logGain": 4096,
@@ -565,39 +565,39 @@
           "luminancePercentiles": {
             "p0": 0.0,
             "p1": 0.0,
-            "p10": 1.7820306760043618e-08,
-            "p50": 0.24116125847697256,
-            "p90": 0.27692187545895575,
-            "p99": 0.2788346916437149,
+            "p10": 1.777115802246599e-08,
+            "p50": 0.24116120952963827,
+            "p90": 0.2769218158543109,
+            "p99": 0.2788346320390701,
             "p100": 0.42956791849136355
           },
           "idealLinear8bitStep": 0.00392156862745098,
           "idealLog8bitStepAtPercentile": {
             "p0": 8.095093049294896e-06,
             "p1": 8.095093049294896e-06,
-            "p10": 8.095683926136463e-06,
-            "p50": 0.008004399793490519,
-            "p90": 0.009190132491476988,
-            "p99": 0.009253556696284138,
+            "p10": 8.09568229648712e-06,
+            "p50": 0.00800439817051904,
+            "p90": 0.009190130515135786,
+            "p99": 0.009253554719943102,
             "p100": 0.014251493835800377
           },
-          "blackTexelFraction": 0.09161178236934296,
+          "blackTexelFraction": 0.09161807392578823,
           "note": "Ideal scalar 8-bit precision only; UASTC block/RDO and device transcode errors need delivery-image inspection."
         },
-        "denoiseSeconds": 50.386,
-        "bakeSeconds": 197.938,
+        "denoiseSeconds": 55.745,
+        "bakeSeconds": 220.398,
         "samples": 64,
         "bakeDevice": "METAL",
         "denoiseDevice": "METAL",
-        "bakeFingerprint": "bd24db11cb82a6128fbd04160f73abac416dd60b392c8276a063c8b4df3695a0",
+        "bakeFingerprint": "0ffdd3b3c38387ba15ea8c86fe93715fd3699c93d6c082702f4b2881858d8350",
         "uri": "court-dusk.ktx2",
-        "seconds": 251.968,
+        "seconds": 279.909,
         "codec": "uastc",
-        "bytes": 5543497,
-        "masterSha256": "4cb5733b4a3405594e0f6bf7888b2d21e2662e7dad2b26beefa16be4fcebd0ba",
+        "bytes": 5543653,
+        "masterSha256": "3d2ad02db45616a92707c85b9003e09c959cf0951e93e223544f8e361a3317a7",
         "transportMaster": {
           "source": "court-dusk.exr",
-          "sha256": "8bbf826ab7773beb49381d5d34ba1bdfc69dd07daf6a5c1b91ddc921a8c906c1"
+          "sha256": "f1163d91ed9c84942268a028a79cd4e36d9813dd940a6e5d7f91e17464edf9fa"
         },
         "samplingDomainExtension": {
           "policy": "certified-hidden-centres-nearest-visible-same-chart-owner-euclidean8-v1",
@@ -606,7 +606,7 @@
       },
       "day": {
         "scale": 4,
-        "maximum": 2.5370311737060547,
+        "maximum": 2.5370309352874756,
         "encoding": "log2-hdr",
         "logRange": 14.000088052430122,
         "logGain": 4096,
@@ -626,39 +626,39 @@
           "luminancePercentiles": {
             "p0": 0.0,
             "p1": 0.0,
-            "p10": 6.024200374298525e-08,
-            "p50": 0.9924708027005196,
-            "p90": 1.099048444914818,
-            "p99": 1.1118941946029663,
-            "p100": 1.7689256036520002
+            "p10": 6.009671526064691e-08,
+            "p50": 0.9924707387924194,
+            "p90": 1.0990483257055284,
+            "p99": 1.1118870201826094,
+            "p100": 1.7689254758358
           },
           "idealLinear8bitStep": 0.01568627450980392,
           "idealLog8bitStepAtPercentile": {
             "p0": 9.469911627595909e-06,
             "p1": 9.469911627595909e-06,
-            "p10": 9.472248340102107e-06,
-            "p50": 0.03850617972607573,
-            "p90": 0.04264019410097508,
-            "p99": 0.04313846477729899,
-            "p100": 0.06862389711880024
+            "p10": 9.472242704542356e-06,
+            "p50": 0.03850617724715932,
+            "p90": 0.04264018947699433,
+            "p99": 0.0431381864904441,
+            "p100": 0.06862389216096765
           },
-          "blackTexelFraction": 0.09166240080074355,
+          "blackTexelFraction": 0.0916645456495317,
           "note": "Ideal scalar 8-bit precision only; UASTC block/RDO and device transcode errors need delivery-image inspection."
         },
-        "denoiseSeconds": 54.431,
-        "bakeSeconds": 196.033,
+        "denoiseSeconds": 55.222,
+        "bakeSeconds": 203.99,
         "samples": 64,
         "bakeDevice": "METAL",
         "denoiseDevice": "METAL",
-        "bakeFingerprint": "bd24db11cb82a6128fbd04160f73abac416dd60b392c8276a063c8b4df3695a0",
+        "bakeFingerprint": "0ffdd3b3c38387ba15ea8c86fe93715fd3699c93d6c082702f4b2881858d8350",
         "uri": "court-day.ktx2",
-        "seconds": 253.936,
+        "seconds": 262.751,
         "codec": "uastc",
-        "bytes": 5520375,
-        "masterSha256": "4af6b45f1c846c5c4f2cba6065d2b3fea0753cd494271ed692fac29ea617ae90",
+        "bytes": 5520655,
+        "masterSha256": "c6aaeffcd0a41a5455a07ea7d9c5cdc04b1e14ee476860c1e01168f7070da47d",
         "transportMaster": {
           "source": "court-day.exr",
-          "sha256": "99b30cbc50c75933febd6a52b458c31f789a924a22f995b425e90249b733ae7c"
+          "sha256": "85836188f6278cd34243871d55afc8b343abef6e21bdd4074e873f9214522222"
         },
         "samplingDomainExtension": {
           "policy": "certified-hidden-centres-nearest-visible-same-chart-owner-euclidean8-v1",
@@ -667,7 +667,7 @@
       },
       "lamp": {
         "scale": 0.015625,
-        "maximum": 0.011649826541543007,
+        "maximum": 0.011641435325145721,
         "encoding": "log2-hdr",
         "logRange": 6.022367813028454,
         "logGain": 4096,
@@ -688,38 +688,38 @@
             "p0": 0.0,
             "p1": 0.0,
             "p10": 0.0,
-            "p50": 7.504046876904979e-09,
-            "p90": 9.595984763173008e-06,
-            "p99": 0.0003053312984425847,
-            "p100": 0.008719049067422747
+            "p50": 7.50512772684786e-09,
+            "p90": 9.59676649163157e-06,
+            "p99": 0.0003052487662128399,
+            "p100": 0.008693943946715445
           },
           "idealLinear8bitStep": 6.127450980392157e-05,
           "idealLog8bitStepAtPercentile": {
             "p0": 4.029509558354182e-06,
             "p1": 4.029509558354182e-06,
             "p10": 4.029509558354182e-06,
-            "p50": 4.0296334116810065e-06,
-            "p90": 4.1878900504375004e-06,
-            "p99": 9.068963297522359e-06,
-            "p100": 0.00014793629097557652
+            "p50": 4.029633429520292e-06,
+            "p90": 4.18790295276497e-06,
+            "p99": 9.06760111370452e-06,
+            "p100": 0.00014752193419307648
           },
-          "blackTexelFraction": 0.1897805104740116,
+          "blackTexelFraction": 0.1897673554014442,
           "note": "Ideal scalar 8-bit precision only; UASTC block/RDO and device transcode errors need delivery-image inspection."
         },
-        "denoiseSeconds": 54.605,
-        "bakeSeconds": 187.626,
+        "denoiseSeconds": 55.42,
+        "bakeSeconds": 185.593,
         "samples": 64,
         "bakeDevice": "METAL",
         "denoiseDevice": "METAL",
-        "bakeFingerprint": "bd24db11cb82a6128fbd04160f73abac416dd60b392c8276a063c8b4df3695a0",
+        "bakeFingerprint": "0ffdd3b3c38387ba15ea8c86fe93715fd3699c93d6c082702f4b2881858d8350",
         "uri": "court-lamp.ktx2",
-        "seconds": 244.699,
+        "seconds": 243.486,
         "codec": "uastc",
-        "bytes": 1102677,
-        "masterSha256": "90ecdf10d924fc6f28312e82922e1652338789f747739b7c0133b6c23c971ee5",
+        "bytes": 1102741,
+        "masterSha256": "d199e5cbf233af1b5a84930b36c9d4eaaf91962ea98fb25b2e65c7b30a814f49",
         "transportMaster": {
           "source": "court-lamp.exr",
-          "sha256": "aa5f141438531116183b1de98b5e1af890bf1405aa92d4f37475caff9df25ab2"
+          "sha256": "ab3a1d7ffea57d491b823c2c6471d05dc9bf058d42e2d7d2b45fa905443fee91"
         },
         "samplingDomainExtension": {
           "policy": "certified-hidden-centres-nearest-visible-same-chart-owner-euclidean8-v1",
@@ -847,7 +847,7 @@
           "positionBlender": [
             -1.4500000476837158,
             4.75,
-            1.8200000524520874
+            1.8259673118591309
           ],
           "rotationBlender": [
             0,
@@ -869,7 +869,7 @@
           "positionBlender": [
             -0.949999988079071,
             4.75,
-            1.8200000524520874
+            1.7810873985290527
           ],
           "rotationBlender": [
             0,
@@ -891,7 +891,7 @@
           "positionBlender": [
             0.949999988079071,
             4.75,
-            1.8200000524520874
+            1.7810912132263184
           ],
           "rotationBlender": [
             0,
@@ -913,7 +913,7 @@
           "positionBlender": [
             1.4500000476837158,
             4.75,
-            1.8200000524520874
+            1.8195929527282715
           ],
           "rotationBlender": [
             0,
@@ -979,7 +979,7 @@
           "positionBlender": [
             -2,
             -19.25,
-            1.7899999618530273
+            1.7900022268295288
           ],
           "rotationBlender": [
             0,
@@ -1001,7 +1001,7 @@
           "positionBlender": [
             2,
             -19.25,
-            1.7899999618530273
+            1.7900022268295288
           ],
           "rotationBlender": [
             0,
@@ -1065,7 +1065,7 @@
       ],
       "meaning": "Authored accepted source lighting, restored exactly for night except visitor lamp omitted. Positions/rotations use Blender coordinates; source socket colours are linear."
     },
-    "sourceBlendSha256": "6e9f59c93565e08a690eaafbc756967ba39e0f4d8ad0094e4520265948360af8",
+    "sourceBlendSha256": "b31360516a2713a6451ca920f3f94d9fefd9bc191bc07fca63c8c5ddce5a0c86",
     "receiverProfiles": {
       "court": {
         "receiverFingerprint": "a6c28664e2f20bf91f036cfdca9a614ffcbe857a2a591239073c144f993cec06",
@@ -1099,7 +1099,7 @@
         "resolution": 4096
       },
       "gate": {
-        "receiverFingerprint": "5429f3b5b2ee4e01c923e609ab2d780631eebcb25c3d337e9111aae63f1e77fa",
+        "receiverFingerprint": "7893ad7a411e6e299536d5856ea93b83c168655c4820ba39553ed046766c789b",
         "vertices": 54690,
         "polygons": 84844,
         "loops": 254532,
@@ -1116,24 +1116,24 @@
         ],
         "fieldSha256": {
           "worldMatrix": "891fa81a8a491eaff1c5d771f005f642ffffed4e8b2c84f27c419938f2fc4fca",
-          "positions": "52c35cb56f2f82da5f3bc08131deffa514752df63b7298fdd421a93f5e06d0ec",
+          "positions": "282019f985c01f74bc2722318eacde0a647f508c7a29869a5dc713669275e470",
           "topology": "d04eb58c113868b9317801f924ad9d48e92904614276f36e14ae1df416058828",
           "materialIndices": "0351aafec3a04a121f373c9161b094baffae8fcbb1189c261fbf03d8f46df43c",
-          "cornerNormals": "6ff92ccd22d1f724379fc3b399d0213c65b2479caf957d9e59d520f513aa2ebe",
-          "UVMap": "ebfa2802c14b289b4731508b1896ec63485b45c56df737f573b07cb68e8a0190",
+          "cornerNormals": "38da8fc70b2f349e3ede4ebd7f6505dc2a9f585a7df5055af06cc9be1158b9cf",
+          "UVMap": "3f94e05e05e1f60979866c9e33fccc0ceb64cafddfd0540101e54fc7531d22d9",
           "SurfaceTint": "6f0206e3c2328a81a27f2c7b90383a361171a4ddf8f117e992f23d2ae9b7a209",
           "provenHiddenMask": "2ba5453ff41583c2cc76e681a664615e627a789d26785905448b63b489ba87e0",
           "materialSlots": "c03e259e913ffe9850ae7cfe53d864130b0e4372b26ca82e6ef23b8889080c8d"
         },
-        "lightmapUVFingerprint": "04c65c99a9987fe52983028c32ea044e2df2812e0a1fd905ed4779eb4b5f18b1",
-        "unwrapSignature": "2fa46f54c0bd78731b278102daa3be2cb11adc18ebf781020166e82680504d2a",
+        "lightmapUVFingerprint": "4e2040cbb3adc3fbb8077b965d2d999ae0a103fb05a70f66ddf26d6d16fa191c",
+        "unwrapSignature": "17be4a61c3b243e90c885e9ac760cb326aed9f44dfecae964380e6e53c8743b1",
         "resolution": 2048
       },
       "hall": {
-        "receiverFingerprint": "fe19f5e6fe70ddb2ee4a73e03768f9d221164d751316f92a3f36e621ebb1fe66",
-        "vertices": 240877,
-        "polygons": 384524,
-        "loops": 1153572,
+        "receiverFingerprint": "8ef55548e31f53b875f923b4057c2bebd7eb8fa59d7270b746501ba45d66b5c1",
+        "vertices": 241013,
+        "polygons": 384836,
+        "loops": 1154508,
         "fields": [
           "worldMatrix",
           "positions",
@@ -1147,17 +1147,17 @@
         ],
         "fieldSha256": {
           "worldMatrix": "5998e9d1dd9bf48af6af87a1ef8c7783b818ac8329637ada08cc5fb329042376",
-          "positions": "46874bf388babe3ccede0743d59c940893b77f90c424c271bb617d58a1308f3b",
-          "topology": "4459bc87c3c6889c4b085f6b25e8d92f78a10c7835bb8f6dd3adb637cb7a261b",
-          "materialIndices": "7752fca205db988828f515072935632973664162dd13fc3146be9f3b1c5daec7",
-          "cornerNormals": "8ce8d24ee0189a43192ac2ab44ace304df329349c6bc3381b8e2a78ee70e4bd8",
-          "UVMap": "d674795c8a866f7666e76d2c57025d385eaf1df6076d6d4dbf077b996fd44d5a",
-          "SurfaceTint": "b7030b8cfd85f77b48e26524db634ca2593443806a959cfe9e027211cfbb6797",
-          "provenHiddenMask": "5923a8cb9fda582182b80afad4238475db48afa75f6f1b1c01ad0d458783d08e",
+          "positions": "018988759bacf73ea04b36a47f2ad2626f1a9d1a46f26d7556aabd38eb931a5c",
+          "topology": "284ed2f27adad05051551e3d064ed041b76399f366a9838eb108abf717899337",
+          "materialIndices": "ecb706686d0db17fa71a4088b05914e1bf42e0da46f8d3ce295e4a49f3adb1be",
+          "cornerNormals": "90ab803ff98127d7d95a89b1815e125f48d5e4c4b00c2eafc5d17d7b01990727",
+          "UVMap": "2725be39610970b678a5aaa465b0ec53f6b0601dd88974ff117e39a1af196f48",
+          "SurfaceTint": "62833d70cc93dac65952975c2205739f028e2b2f91f85ff4a82bbadb93bc4765",
+          "provenHiddenMask": "c28bc4ed557796a674c618a84b6be0982e221f89fee81a19beeab14159e47b08",
           "materialSlots": "674a3934720c37a025e00d33355501c10143eef1f74da2f145033273c7fd6030"
         },
-        "lightmapUVFingerprint": "baf8910dc8f85538f822373643e2d7b064c2465cc5df5f42e4bb6007df51e659",
-        "unwrapSignature": "30ac5d11939453f0e89735ac0ab0d360e1837b9de02879626e2cc5a95f4524c6",
+        "lightmapUVFingerprint": "4e1a7fcee7ea5dc8ea99bed247d6da861dc325d71b8426762d94acbf974ab6b1",
+        "unwrapSignature": "b7978e0ae9b46630548d22f97787858fd8167d240de79ca7255d15ab951bd99a",
         "resolution": 4096
       }
     },
@@ -1182,22 +1182,22 @@
           "attribute": "one_light_source_generated",
           "domain": "POINT",
           "dataType": "FLOAT_VECTOR",
-          "vertices": 240877,
-          "sha256": "01cf2755bec0dbd32fe7d8048c213fb903b5a9c961537a60c1e339b433e8c6c3"
+          "vertices": 241013,
+          "sha256": "29092b63ab9c1a9b8ade9541db4a85952adece783b7415a9715e3209e7c273a6"
         }
       },
-      "preparationAuditSha256": "e4c8a05c49440853a06776ce5fe0544df67b201eca3be3ae501f73aa4fb15975"
+      "preparationAuditSha256": "ba272d1341ec847d2664184d6dbf8ab6082b5bf0849353e442092f4e108fd790"
     },
     "preparedPreviewAudit": {
-      "sourceBlendSha256": "6e9f59c93565e08a690eaafbc756967ba39e0f4d8ad0094e4520265948360af8",
+      "sourceBlendSha256": "b31360516a2713a6451ca920f3f94d9fefd9bc191bc07fca63c8c5ddce5a0c86",
       "mappingPolicy": "implicit-procedural-generated-evaluated-undeformed-source-texspace-v2",
       "generatedReceivers": {
         "hall": {
           "attribute": "one_light_source_generated",
           "domain": "POINT",
           "dataType": "FLOAT_VECTOR",
-          "vertices": 240877,
-          "sha256": "01cf2755bec0dbd32fe7d8048c213fb903b5a9c961537a60c1e339b433e8c6c3"
+          "vertices": 241013,
+          "sha256": "29092b63ab9c1a9b8ade9541db4a85952adece783b7415a9715e3209e7c273a6"
         },
         "gate": {
           "attribute": "one_light_source_generated",
@@ -1214,58 +1214,279 @@
           "sha256": "24ab382da36df6747c69ca8db16619798973f58860b70af1d4596f565044b821"
         }
       },
-      "preparedBlendSha256": "1377c77832ceeee03df3ecd3aa325c519996177d2672e57ad25c54abd976d01e",
-      "mappingAuditSha256": "e4c8a05c49440853a06776ce5fe0544df67b201eca3be3ae501f73aa4fb15975",
+      "preparedBlendSha256": "01df8ba8b2eb440d179e65b31dbf34e7ee44d123d5aee5312b0f665776a45934",
+      "mappingAuditSha256": "ba272d1341ec847d2664184d6dbf8ab6082b5bf0849353e442092f4e108fd790",
       "nativePreview": {
-        "image": "art/build/snow-roof-final-prepared-preview/StepBankDetail.png",
-        "imageSha256": "5cb91554cf14a9353cacee13312304b02ccf81d855951fa18d3a340e52b590d6",
-        "metadataSha256": "21c34b3d0f5a2eaebb628967bd2076816d6b2720650d82f7e57689215881b0b3",
+        "metadata": "art/build/snow-roof-resting-contacts-accepted-prepared-preview/preview.json",
+        "sha256": "a5e9d241cc0b0af660169a53f18ae915ef02b9e0834fb0e5ce4bda60a8e48f09",
+        "images": [
+          {
+            "path": "art/build/snow-roof-resting-contacts-accepted-prepared-preview/desktop-en/low-altar-edge.png",
+            "sha256": "3f56bec57aebc60dbcd04800d7ae554e6a553fca2ed58cc68c2d5e5ff114ce0a"
+          },
+          {
+            "path": "art/build/snow-roof-resting-contacts-accepted-prepared-preview/desktop-en/cushion-contact.png",
+            "sha256": "ff1a11c10e5e374b25cad3ca22712f243496ed5b8e70f4bc878485f535ade0cb"
+          }
+        ],
         "samples": 8,
         "device": "METAL",
         "denoiser": "OPENIMAGEDENOISE",
-        "approval": "Root accepted native bank mapping. Corrected evaluated-undeformed transfer leaves bank values/geometry/UV0/UV2/SurfaceTint unchanged; no second image required."
+        "approval": "Root independently reviewed and accepted prepared low altar and cushion contact views. Lighting remains authored night plus unchanged45W visitor basis; not runtime color-matched."
       },
-      "nativeGeneratedProof": {
-        "script": "art/blender/proofs/generated-coordinate-probe.py",
-        "scriptSha256": "3de7bfccb531ad69ca14ccbe0b6c230c511d6291b06174867ee3fb3963cb2d95",
-        "report": "art/build/snow-roof-final/generated-emission-proof.json",
-        "reportSha256": "f959e1ab7bc0750e5157dc3b47da8fa89d2dd19831d79bdcbe7c661c87d310fb",
-        "results": {
-          "sourceObject": "Snow over bench",
-          "sourceBlend": "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-stair-banks-grain.blend",
-          "device": "METAL",
-          "type": "EMIT",
-          "samples": 1,
-          "pixels": 16086,
-          "comparisons": {
-            "sourceGenerated": {
-              "maxAbs": 0,
-              "meanAbs": 0,
-              "p99Abs": 0
-            },
-            "interpolatedPoint": {
-              "maxAbs": 0.18399745225906372,
-              "meanAbs": 0.016311705112457275,
-              "p99Abs": 0.12755729258060455
-            },
-            "evaluatedUndeformed": {
-              "maxAbs": 1.7881393432617188e-07,
-              "meanAbs": 6.512379080447772e-09,
-              "p99Abs": 5.960464477539063e-08
-            }
-          }
-        }
+      "preparedContactAudit": {
+        "path": "art/build/resting-contacts-accepted-replay/contacts-unique-crowns.json",
+        "sha256": "c7339acd30137c33398c8df122516f31b0405a5093dbace21c072db931bc38dc",
+        "geometryFingerprint": "89d4085e7b4ed662ab952b1430e9217b3c9befad602e1c317ae3ea659d848821",
+        "allPreparedAndRawGroupsPassed": true
+      },
+      "guardChallenge": {
+        "path": "art/build/resting-contacts-accepted-replay/guard/guard-proof.json",
+        "sha256": "34a4af3325a871aff69ae84f4700fed95fe6025f04be5cdc20e63204a362f9b6",
+        "rejectedCases": 19
+      },
+      "nativeGeneratedPolicyEvidence": {
+        "path": "docs/evidence/blender-pilot/final-bake/generated-emission-proof.json",
+        "sha256": "f959e1ab7bc0750e5157dc3b47da8fa89d2dd19831d79bdcbe7c661c87d310fb",
+        "scope": "Prior actual native emission evidence for unchanged evaluated-undeformed formula; not relabelled as this source."
       },
       "uv2Fingerprints": {
         "court": "59a83f09c1e75e223976c9fa8f7d2055bd329dc68cc7af74b66ee7b240bfa50b",
-        "gate": "04c65c99a9987fe52983028c32ea044e2df2812e0a1fd905ed4779eb4b5f18b1",
-        "hall": "baf8910dc8f85538f822373643e2d7b064c2465cc5df5f42e4bb6007df51e659"
+        "gate": "4e2040cbb3adc3fbb8077b965d2d999ae0a103fb05a70f66ddf26d6d16fa191c",
+        "hall": "4e1a7fcee7ea5dc8ea99bed247d6da861dc325d71b8426762d94acbf974ab6b1"
+      },
+      "coverage": {
+        "hall": {
+          "charts": 12919,
+          "representedCharts": 12916,
+          "subpixelCharts": 3,
+          "representedSurfaceAreaFraction": 0.9999955018065022,
+          "triangleWithNativeTexelSurfaceAreaFraction": 0.9627294339021368,
+          "surfaceAreaInChartsWithAtLeast16CoreTexelsFraction": 0.9949127546802145,
+          "totalSurfaceAreaSquareMetres": 2137.5266821217674,
+          "provenOccludedSurfaceAreaSquareMetres": 275.7123065737922,
+          "provenOccludedPolygons": 95790,
+          "coreTexels": 2134058,
+          "overlappingCorePixels": 0,
+          "coverageMeaning": "World-space mapped surface-area weighted; proven enclosed geometry is reported separately. A represented chart may contain subpixel triangles; their native-texel area is also reported. Camera-visible sampled coverage is separate.",
+          "sampledVisiblePixels": 17709,
+          "representedVisiblePixels": 17709,
+          "provenOccludedVisiblePixels": 0,
+          "referenceCameras": [
+            "Reference_outside",
+            "Reference_walk-1",
+            "Reference_walk-2",
+            "Reference_walk-3",
+            "Reference_choose",
+            "Reference_lit"
+          ],
+          "perCamera": {
+            "Reference_outside": {
+              "sampledVisiblePixels": 124,
+              "representedVisiblePixels": 124,
+              "provenOccludedVisiblePixels": 0,
+              "representedCameraVisibleFraction": 1
+            },
+            "Reference_walk-1": {
+              "sampledVisiblePixels": 124,
+              "representedVisiblePixels": 124,
+              "provenOccludedVisiblePixels": 0,
+              "representedCameraVisibleFraction": 1
+            },
+            "Reference_walk-2": {
+              "sampledVisiblePixels": 182,
+              "representedVisiblePixels": 182,
+              "provenOccludedVisiblePixels": 0,
+              "representedCameraVisibleFraction": 1
+            },
+            "Reference_walk-3": {
+              "sampledVisiblePixels": 5759,
+              "representedVisiblePixels": 5759,
+              "provenOccludedVisiblePixels": 0,
+              "representedCameraVisibleFraction": 1
+            },
+            "Reference_choose": {
+              "sampledVisiblePixels": 5760,
+              "representedVisiblePixels": 5760,
+              "provenOccludedVisiblePixels": 0,
+              "representedCameraVisibleFraction": 1
+            },
+            "Reference_lit": {
+              "sampledVisiblePixels": 5760,
+              "representedVisiblePixels": 5760,
+              "provenOccludedVisiblePixels": 0,
+              "representedCameraVisibleFraction": 1
+            }
+          },
+          "representedCameraVisibleFraction": 1,
+          "samplesPerCamera": [
+            96,
+            60
+          ],
+          "scope": "Coarse first-hit geometry visibility over the source reference cameras; excludes sky. Features smaller than the sampling grid and shading/noise quality are not verified by this metric."
+        },
+        "gate": {
+          "charts": 4369,
+          "representedCharts": 4368,
+          "subpixelCharts": 1,
+          "representedSurfaceAreaFraction": 0.9999999999999999,
+          "triangleWithNativeTexelSurfaceAreaFraction": 0.9637859055452497,
+          "surfaceAreaInChartsWithAtLeast16CoreTexelsFraction": 0.9859705711965254,
+          "totalSurfaceAreaSquareMetres": 409.99404631329475,
+          "provenOccludedSurfaceAreaSquareMetres": 51.99357033398157,
+          "provenOccludedPolygons": 22566,
+          "coreTexels": 472906,
+          "overlappingCorePixels": 0,
+          "coverageMeaning": "World-space mapped surface-area weighted; proven enclosed geometry is reported separately. A represented chart may contain subpixel triangles; their native-texel area is also reported. Camera-visible sampled coverage is separate.",
+          "sampledVisiblePixels": 2164,
+          "representedVisiblePixels": 2164,
+          "provenOccludedVisiblePixels": 0,
+          "referenceCameras": [
+            "Reference_outside",
+            "Reference_walk-1",
+            "Reference_walk-2",
+            "Reference_walk-3",
+            "Reference_choose",
+            "Reference_lit"
+          ],
+          "perCamera": {
+            "Reference_outside": {
+              "sampledVisiblePixels": 538,
+              "representedVisiblePixels": 538,
+              "provenOccludedVisiblePixels": 0,
+              "representedCameraVisibleFraction": 1
+            },
+            "Reference_walk-1": {
+              "sampledVisiblePixels": 538,
+              "representedVisiblePixels": 538,
+              "provenOccludedVisiblePixels": 0,
+              "representedCameraVisibleFraction": 1
+            },
+            "Reference_walk-2": {
+              "sampledVisiblePixels": 1088,
+              "representedVisiblePixels": 1088,
+              "provenOccludedVisiblePixels": 0,
+              "representedCameraVisibleFraction": 1
+            },
+            "Reference_walk-3": {
+              "sampledVisiblePixels": 0,
+              "representedVisiblePixels": 0,
+              "provenOccludedVisiblePixels": 0,
+              "representedCameraVisibleFraction": null
+            },
+            "Reference_choose": {
+              "sampledVisiblePixels": 0,
+              "representedVisiblePixels": 0,
+              "provenOccludedVisiblePixels": 0,
+              "representedCameraVisibleFraction": null
+            },
+            "Reference_lit": {
+              "sampledVisiblePixels": 0,
+              "representedVisiblePixels": 0,
+              "provenOccludedVisiblePixels": 0,
+              "representedCameraVisibleFraction": null
+            }
+          },
+          "representedCameraVisibleFraction": 1,
+          "samplesPerCamera": [
+            96,
+            60
+          ],
+          "scope": "Coarse first-hit geometry visibility over the source reference cameras; excludes sky. Features smaller than the sampling grid and shading/noise quality are not verified by this metric."
+        },
+        "court": {
+          "charts": 6631,
+          "representedCharts": 6630,
+          "subpixelCharts": 1,
+          "representedSurfaceAreaFraction": 1,
+          "triangleWithNativeTexelSurfaceAreaFraction": 0.9908133461790574,
+          "surfaceAreaInChartsWithAtLeast16CoreTexelsFraction": 0.998736337335152,
+          "totalSurfaceAreaSquareMetres": 5186.2199949044225,
+          "provenOccludedSurfaceAreaSquareMetres": 185.4434255075736,
+          "provenOccludedPolygons": 65394,
+          "coreTexels": 6993500,
+          "overlappingCorePixels": 0,
+          "coverageMeaning": "World-space mapped surface-area weighted; proven enclosed geometry is reported separately. A represented chart may contain subpixel triangles; their native-texel area is also reported. Camera-visible sampled coverage is separate.",
+          "sampledVisiblePixels": 7601,
+          "representedVisiblePixels": 7601,
+          "provenOccludedVisiblePixels": 0,
+          "referenceCameras": [
+            "Reference_outside",
+            "Reference_walk-1",
+            "Reference_walk-2",
+            "Reference_walk-3",
+            "Reference_choose",
+            "Reference_lit"
+          ],
+          "perCamera": {
+            "Reference_outside": {
+              "sampledVisiblePixels": 2541,
+              "representedVisiblePixels": 2541,
+              "provenOccludedVisiblePixels": 0,
+              "representedCameraVisibleFraction": 1
+            },
+            "Reference_walk-1": {
+              "sampledVisiblePixels": 2541,
+              "representedVisiblePixels": 2541,
+              "provenOccludedVisiblePixels": 0,
+              "representedCameraVisibleFraction": 1
+            },
+            "Reference_walk-2": {
+              "sampledVisiblePixels": 2518,
+              "representedVisiblePixels": 2518,
+              "provenOccludedVisiblePixels": 0,
+              "representedCameraVisibleFraction": 1
+            },
+            "Reference_walk-3": {
+              "sampledVisiblePixels": 1,
+              "representedVisiblePixels": 1,
+              "provenOccludedVisiblePixels": 0,
+              "representedCameraVisibleFraction": 1
+            },
+            "Reference_choose": {
+              "sampledVisiblePixels": 0,
+              "representedVisiblePixels": 0,
+              "provenOccludedVisiblePixels": 0,
+              "representedCameraVisibleFraction": null
+            },
+            "Reference_lit": {
+              "sampledVisiblePixels": 0,
+              "representedVisiblePixels": 0,
+              "provenOccludedVisiblePixels": 0,
+              "representedCameraVisibleFraction": null
+            }
+          },
+          "representedCameraVisibleFraction": 1,
+          "samplesPerCamera": [
+            96,
+            60
+          ],
+          "scope": "Coarse first-hit geometry visibility over the source reference cameras; excludes sky. Features smaller than the sampling grid and shading/noise quality are not verified by this metric."
+        }
       }
+    },
+    "preparedContactAudit": {
+      "path": "/Users/xuan/Documents/code/zz-wish/art/build/resting-contacts-accepted-replay/contacts-unique-crowns.json",
+      "sha256": "c7339acd30137c33398c8df122516f31b0405a5093dbace21c072db931bc38dc",
+      "sourceBlendSha256": "b31360516a2713a6451ca920f3f94d9fefd9bc191bc07fca63c8c5ddce5a0c86",
+      "geometryFingerprint": "89d4085e7b4ed662ab952b1430e9217b3c9befad602e1c317ae3ea659d848821",
+      "literalGuardsMetres": {
+        "gap": 0.002,
+        "penetration": 0.005
+      },
+      "groups": 37,
+      "stages": [
+        "prepared",
+        "raw"
+      ],
+      "rawReplaySha256": "7639d7bffc629aba69a852155d8980a5735abc7e567362fd09f4cc6ff74f308a",
+      "allActualPreparedAndRawGroupsPassed": true,
+      "sourceAnchorMetadataByteExact": true
     },
     "cachePolicy": "Full scene/source/material/image/lighting identity. Region chart equality reuses UV preparation only, never illumination.",
     "hiddenUVAllocationProof": {
-      "sha256": "6649e9c080c3b152c743fcc88ad5ebf95690ff8f678742cc5dd84be79ce2e014",
-      "sourceSha256": "6e9f59c93565e08a690eaafbc756967ba39e0f4d8ad0094e4520265948360af8",
+      "sha256": "cf525ebd5990e8487cc4e10f3a6110fc12d0deab152885889fe879991bbfba57",
+      "sourceSha256": "b31360516a2713a6451ca920f3f94d9fefd9bc191bc07fca63c8c5ddce5a0c86",
       "rule": "Only whole connected tile components enclosed by an opaque closed roof-snow volume, all vertex/mid-edge/face-center samples at least20mm inside, and no BVH-overlap pairs with the snow boundary. Full render/bake geometry is retained; this only identifies potential UV allocation exclusions.",
       "summary": {
         "hall": {
@@ -1332,20 +1553,20 @@
     },
     "coverage": {
       "hall": {
-        "charts": 12889,
-        "representedCharts": 12886,
+        "charts": 12919,
+        "representedCharts": 12916,
         "subpixelCharts": 3,
-        "representedSurfaceAreaFraction": 0.9999954938856166,
-        "triangleWithNativeTexelSurfaceAreaFraction": 0.962845080301833,
-        "surfaceAreaInChartsWithAtLeast16CoreTexelsFraction": 0.994920579320491,
-        "totalSurfaceAreaSquareMetres": 2133.7734402953347,
+        "representedSurfaceAreaFraction": 0.9999955018065022,
+        "triangleWithNativeTexelSurfaceAreaFraction": 0.9627294339021368,
+        "surfaceAreaInChartsWithAtLeast16CoreTexelsFraction": 0.9949127546802145,
+        "totalSurfaceAreaSquareMetres": 2137.5266821217674,
         "provenOccludedSurfaceAreaSquareMetres": 275.7123065737922,
         "provenOccludedPolygons": 95790,
-        "coreTexels": 2130438,
+        "coreTexels": 2134058,
         "overlappingCorePixels": 0,
         "coverageMeaning": "World-space mapped surface-area weighted; proven enclosed geometry is reported separately. A represented chart may contain subpixel triangles; their native-texel area is also reported. Camera-visible sampled coverage is separate.",
         "sampledVisiblePixels": 17709,
-        "representedVisiblePixels": 17705,
+        "representedVisiblePixels": 17709,
         "provenOccludedVisiblePixels": 0,
         "referenceCameras": [
           "Reference_outside",
@@ -1382,9 +1603,9 @@
           },
           "Reference_choose": {
             "sampledVisiblePixels": 5760,
-            "representedVisiblePixels": 5756,
+            "representedVisiblePixels": 5760,
             "provenOccludedVisiblePixels": 0,
-            "representedCameraVisibleFraction": 0.9993055555555556
+            "representedCameraVisibleFraction": 1
           },
           "Reference_lit": {
             "sampledVisiblePixels": 5760,
@@ -1393,7 +1614,7 @@
             "representedCameraVisibleFraction": 1
           }
         },
-        "representedCameraVisibleFraction": 0.999774126150545,
+        "representedCameraVisibleFraction": 1,
         "samplesPerCamera": [
           96,
           60
@@ -1405,12 +1626,12 @@
         "representedCharts": 4368,
         "subpixelCharts": 1,
         "representedSurfaceAreaFraction": 0.9999999999999999,
-        "triangleWithNativeTexelSurfaceAreaFraction": 0.9637856025355326,
-        "surfaceAreaInChartsWithAtLeast16CoreTexelsFraction": 0.9859705713497867,
+        "triangleWithNativeTexelSurfaceAreaFraction": 0.9637859055452497,
+        "surfaceAreaInChartsWithAtLeast16CoreTexelsFraction": 0.9859705711965254,
         "totalSurfaceAreaSquareMetres": 409.99404631329475,
         "provenOccludedSurfaceAreaSquareMetres": 51.99357033398157,
         "provenOccludedPolygons": 22566,
-        "coreTexels": 472902,
+        "coreTexels": 472906,
         "overlappingCorePixels": 0,
         "coverageMeaning": "World-space mapped surface-area weighted; proven enclosed geometry is reported separately. A represented chart may contain subpixel triangles; their native-texel area is also reported. Camera-visible sampled coverage is separate.",
         "sampledVisiblePixels": 2164,
@@ -1539,134 +1760,134 @@
         "scope": "Coarse first-hit geometry visibility over the source reference cameras; excludes sky. Features smaller than the sampling grid and shading/noise quality are not verified by this metric."
       }
     },
-    "totalSeconds": 1956.992
+    "totalSeconds": 2508.312
   },
-  "geometryFingerprint": "c914ac7f193ec738d0d285a03bf5632eaf0f3b1277b7a798078559a6e7785c1b",
-  "bakeFingerprint": "bd24db11cb82a6128fbd04160f73abac416dd60b392c8276a063c8b4df3695a0",
+  "geometryFingerprint": "89d4085e7b4ed662ab952b1430e9217b3c9befad602e1c317ae3ea659d848821",
+  "bakeFingerprint": "0ffdd3b3c38387ba15ea8c86fe93715fd3699c93d6c082702f4b2881858d8350",
   "files": [
     {
       "uri": "snow-roof.glb",
-      "bytes": 15904988,
-      "sha256": "9e3d5aa37878af0e2eca8d409b2f511916e488aa7b523dbd26c8ec8114022fdc"
+      "bytes": 16265084,
+      "sha256": "49cbe07a5a0f407b3df31b82ef0c75e6995e471593d51527a276a3d22723ef88"
     },
     {
       "uri": "hall-night.ktx2",
-      "bytes": 5653656,
-      "sha256": "72a3ea803af5fe9e4e1a1f4de2d74aa17bddf2911aca94b5d492bed7ef02fe9f",
+      "bytes": 5650836,
+      "sha256": "5e533b0ac4cf471672f801a37ebd07f947886ea65be946ae92707ef6e801f244",
       "codec": "uastc",
       "mipLevels": 3,
       "transfer": "linear"
     },
     {
       "uri": "hall-dusk.ktx2",
-      "bytes": 5665158,
-      "sha256": "1bcf9fc7d1ba7e8618e3560717ed15f3798d52178183888eb8d0923f63d6b106",
+      "bytes": 5668335,
+      "sha256": "69bf7b28b919f240afca0860faf29cf2867e165327b721d43659599662e8a735",
       "codec": "uastc",
       "mipLevels": 3,
       "transfer": "linear"
     },
     {
       "uri": "hall-day.ktx2",
-      "bytes": 5755827,
-      "sha256": "7266546fb2ec434c9e365c307b5a1c5db8950850410bb5e7bcfe151fda4db3b9",
+      "bytes": 5755457,
+      "sha256": "7f7fe1810df116c9b76ede3fed6a254c3d70243d2ed1d9898300fa21f6b6e873",
       "codec": "uastc",
       "mipLevels": 3,
       "transfer": "linear"
     },
     {
       "uri": "hall-lamp.ktx2",
-      "bytes": 2661056,
-      "sha256": "6cad627255abf75d628cef56379d11cc498e62f2ed7ff82d77722bee30129629",
+      "bytes": 2672460,
+      "sha256": "e9e663ad65d27860dd490059dc8a171a56bbede613e47f6fb6859fb6a066b1a8",
       "codec": "uastc",
       "mipLevels": 3,
       "transfer": "linear"
     },
     {
       "uri": "gate-night.ktx2",
-      "bytes": 1508240,
-      "sha256": "c08e78ac54ecf37262c9cb46141f7435779bb7fb08320ed4756885256251f1e6",
+      "bytes": 1508137,
+      "sha256": "6f58912ce47aa9aaacf0997e11b90105d0ba2110c85499067f0049b60191c04d",
       "codec": "uastc",
       "mipLevels": 3,
       "transfer": "linear"
     },
     {
       "uri": "gate-dusk.ktx2",
-      "bytes": 1535660,
-      "sha256": "07959525291bb978ce7696174d71cf1c772730f8c234e6ff69c8468c748400ba",
+      "bytes": 1535595,
+      "sha256": "963d00eb668b420807f76813902b3fda20870ed816a733966bf6b5b70f56d5d0",
       "codec": "uastc",
       "mipLevels": 3,
       "transfer": "linear"
     },
     {
       "uri": "gate-day.ktx2",
-      "bytes": 1575585,
-      "sha256": "1d1e7ece7433761ee7cc912476b65979d8dde28a159209a5292f5d350c509245",
+      "bytes": 1575735,
+      "sha256": "1884011687804d67ab00b9471a850eac7febe6e55f4e3f363ea93224f602f772",
       "codec": "uastc",
       "mipLevels": 3,
       "transfer": "linear"
     },
     {
       "uri": "gate-lamp.ktx2",
-      "bytes": 645370,
-      "sha256": "caa277045f1e6212107a71af75bfc0999c9467ee474ea9af85b8e3260e65cad5",
+      "bytes": 645472,
+      "sha256": "6e8049f093f4da83bb57daae44c615d9f706efc1382651f64d8186171bc84b5f",
       "codec": "uastc",
       "mipLevels": 3,
       "transfer": "linear"
     },
     {
       "uri": "court-night.ktx2",
-      "bytes": 6182072,
-      "sha256": "1b7676ecae0b2cb5b1da4f43ee5ba9d4dca3ba4cf6e3b0b06082d6e1becfabe1",
+      "bytes": 6182297,
+      "sha256": "0fa0f9e93da03daf43b282fcf6596834d4906f92a143cafdcb2c8f83803605f1",
       "codec": "uastc",
       "mipLevels": 3,
       "transfer": "linear"
     },
     {
       "uri": "court-dusk.ktx2",
-      "bytes": 5543497,
-      "sha256": "51582548f75f419d28d369fd4c7c943f463db859295795745c219d90d22359c3",
+      "bytes": 5543653,
+      "sha256": "102b7d99e65d860703d4f12c5e746f38db23b0f70194324df1fa281d4ed5632d",
       "codec": "uastc",
       "mipLevels": 3,
       "transfer": "linear"
     },
     {
       "uri": "court-day.ktx2",
-      "bytes": 5520375,
-      "sha256": "db8cb556b4b04345190d6ca34b497783d742e66e6a430b530c06053cf6941633",
+      "bytes": 5520655,
+      "sha256": "9e4ff36947525280fbda45eb03c6ae5378cd6bda3e9519e5d84ae5de8d4a067b",
       "codec": "uastc",
       "mipLevels": 3,
       "transfer": "linear"
     },
     {
       "uri": "court-lamp.ktx2",
-      "bytes": 1102677,
-      "sha256": "042403a98f0016dfab760333034624707ad7595a6c63a404fb9e4787b828aa9e",
+      "bytes": 1102741,
+      "sha256": "e0c418b1763faba6e3bdea4a4439b80adc8806121bd0833f270b18b8708ad16a",
       "codec": "uastc",
       "mipLevels": 3,
       "transfer": "linear"
     },
     {
       "uri": "contact-padding.receipt.json",
-      "bytes": 9736,
-      "sha256": "f57a7141a2e0bac2110b8e3c0e238afb6c42ded36e56349a889b61d67a5de9f1",
+      "bytes": 10180,
+      "sha256": "285fb571e873586abcbdbb8f3f03547135e8de1b15b42ae5ead7f7e2d0a20731",
       "role": "sampling-domain-proof"
     },
     {
       "uri": "geometry.receipt.json",
-      "bytes": 27877,
-      "sha256": "fe195bb332e794332885f3e913d15cc0c871cfaf8b7718bc3f894f36389e3456",
+      "bytes": 28040,
+      "sha256": "4bb89c5fca11c998da9cd50986e39a2eabf14fc2f2cd80796d02acb6326c6104",
       "role": "delivery-proof"
     },
     {
       "uri": "independent-geometry-proof.json",
       "bytes": 995,
-      "sha256": "a6725d3763bd2c0b3d44dc4e37a7fa2feaa11ce6f86331eac87ccef6a7cb1390",
+      "sha256": "a7a4e4a4fce7c46c1b08544a00f7f4db3b3ecefea4220c819c2652ec9f62e32b",
       "role": "delivery-proof"
     },
     {
       "uri": "independent-contact-padding-proof.json",
-      "bytes": 8214,
-      "sha256": "807b8ff3f9a50f12378801aad522a8a56f520759ec3ea7130919da304afb8725",
+      "bytes": 8883,
+      "sha256": "f3fbeff3b25626e5e7f8df0da6c2aadb3b870d67229c44612ab9770ab3e93719",
       "role": "delivery-proof"
     }
   ],
@@ -1676,7 +1897,7 @@
     "anisotropy": 1,
     "maxLod": 2
   },
-  "totalBytes": 59300983,
+  "totalBytes": 59674555,
   "compression": {
     "gltfTransform": "4.5.1",
     "ktxSoftware": "4.4.2",
@@ -1686,7 +1907,7 @@
     "materialRecipe": {
       "profile": "mobile",
       "sourceRawGLB": "snow-roof.raw.glb",
-      "sourceRawGLBSha256": "0deec9fd71d4c49e666e5b091f15af3067efbcdb7e3c350bcb85a2bf7f980dea",
+      "sourceRawGLBSha256": "c3539702ab9c0a5eb244f4be25d57bd1c30f22bb31ecedd83674bd99642aef7b",
       "originalPixelInput": true,
       "gltfTransform": "4.5.1",
       "ktxSoftware": "4.4.2",
@@ -2529,12 +2750,12 @@
       "baseColorTexture": 831153,
       "metallicRoughnessTexture": 412793
     },
-    "geometryCounts": {
-      "vertices": 648780,
-      "triangles": 466874,
-      "geometryBytes": 12253468
-    },
     "geometryProfile": "source-proven-float32-position-hidden-pruned-exact-weld",
+    "geometryCounts": {
+      "vertices": 649213,
+      "triangles": 467186,
+      "geometryBytes": 12261349
+    },
     "positionPrecision": {
       "componentType": 5126,
       "normalized": false,
@@ -2544,34 +2765,34 @@
     "optimization": {
       "receipt": {
         "uri": "geometry.receipt.json",
-        "sha256": "fe195bb332e794332885f3e913d15cc0c871cfaf8b7718bc3f894f36389e3456"
+        "sha256": "4bb89c5fca11c998da9cd50986e39a2eabf14fc2f2cd80796d02acb6326c6104"
       },
       "profile": {
-        "path": "art/blender/proofs/snow-roof-final-float32-export-profile.json",
+        "path": "art/build/snow-roof-resting-contacts-float32-optimized-stage/export-profile.json",
         "operation": "fresh measured genuine F32 profile",
-        "sha256": "1e37058881ad253b2fbea5b15646d47570a341013140ec4c9a57dee86418f78f"
+        "sha256": "649d15e40ff58ed71a0e792307d791a67a0e084b6dc86012f4f52ecfe8de4ac6"
       },
       "independentProof": {
         "uri": "independent-geometry-proof.json",
-        "sha256": "a6725d3763bd2c0b3d44dc4e37a7fa2feaa11ce6f86331eac87ccef6a7cb1390"
+        "sha256": "a7a4e4a4fce7c46c1b08544a00f7f4db3b3ecefea4220c819c2652ec9f62e32b"
       },
       "input": {
-        "bytes": 20229632,
+        "bytes": 20590604,
         "images": 24,
         "imageBytes": 3537347,
-        "geometryBytes": 16585321,
-        "vertices": 956291,
-        "triangles": 650624
+        "geometryBytes": 16594089,
+        "vertices": 956830,
+        "triangles": 650936
       },
       "output": {
-        "path": "art/build/snow-roof-float32-optimized/snow-roof.glb",
-        "bytes": 15904988,
+        "path": "art/build/snow-roof-resting-contacts-float32-optimized-stage/snow-roof.glb",
+        "bytes": 16265084,
         "images": 24,
         "imageBytes": 3537347,
-        "geometryBytes": 12253468,
-        "vertices": 648780,
-        "triangles": 466874,
-        "sha256": "9e3d5aa37878af0e2eca8d409b2f511916e488aa7b523dbd26c8ec8114022fdc"
+        "geometryBytes": 12261349,
+        "vertices": 649213,
+        "triangles": 467186,
+        "sha256": "49cbe07a5a0f407b3df31b82ef0c75e6995e471593d51527a276a3d22723ef88"
       },
       "encoding": {
         "dependencies": {
@@ -2662,12 +2883,12 @@
         {
           "region": "gate",
           "primitive": 8,
-          "positionTriangleMultisetSha256": "ba2c06d99fa367445f2ce94a699d2fb735d83503c042a789df347706e6367b67"
+          "positionTriangleMultisetSha256": "533aed7b4615b5f0aecfc08ec47c2ab5da2a80236fdb6fc3a6f4389e8f03a384"
         },
         {
           "region": "gate",
           "primitive": 9,
-          "positionTriangleMultisetSha256": "7a452ee21704513ba87efbf3cb1fec2c8fe2ab9c0fe6a8e8f2d1e39779857f4d"
+          "positionTriangleMultisetSha256": "4c8e517298bcb0621c891ba058d4d3a2440a80ed1b39573295f58fa915e5a563"
         },
         {
           "region": "hall",
@@ -2717,12 +2938,12 @@
         {
           "region": "hall",
           "primitive": 9,
-          "positionTriangleMultisetSha256": "d57cbf898ae951195bdf0eceb09e372edac3104d6b0859b4ea1725fb690e849a"
+          "positionTriangleMultisetSha256": "147fbdd5f635c416af2d418bcbeb826166046f4105f4ec4a0846076670b882ee"
         },
         {
           "region": "hall",
           "primitive": 10,
-          "positionTriangleMultisetSha256": "baa9c17b063918a097b8c18f7e0631b53e911132802c32ed70c7a2f739791443"
+          "positionTriangleMultisetSha256": "7939396675525ecedc97c3453546f25d4fa481eec2f914b9a44f807f6afe6c07"
         },
         {
           "region": "hall",
@@ -2732,7 +2953,7 @@
         {
           "region": "hall",
           "primitive": 12,
-          "positionTriangleMultisetSha256": "9645e4279f03d1812ad22550299b394e4ef185b2d1352aadaa36209581e90893"
+          "positionTriangleMultisetSha256": "4d33040610022afc46fe145b9952d12cbf7fa203d86eae2241ee5be06c97feec"
         },
         {
           "region": "hall",
@@ -2752,17 +2973,17 @@
         {
           "region": "hall",
           "primitive": 16,
-          "positionTriangleMultisetSha256": "44dc0ae617891fccd662e256cbb993312190770ad52f1ef5490b6fd3ee41beb5"
+          "positionTriangleMultisetSha256": "55b9229e6a3bf6995f1a27f7577896c6afe9d24be962185d1baa52690884c739"
         },
         {
           "region": "hall",
           "primitive": 17,
-          "positionTriangleMultisetSha256": "4ae369610f34b0fae3abd7ec5d5cfb60dbee199017de0a99210fde43a611f144"
+          "positionTriangleMultisetSha256": "4ac44c2a74a288e4f89b0aa3c54bd9884b76a335502d5753f6e7c60cd084c62a"
         },
         {
           "region": "hall",
           "primitive": 18,
-          "positionTriangleMultisetSha256": "e8a17b50a7d15de73b9a1425a8228c68c383bfb34fd60537af31e149760efe22"
+          "positionTriangleMultisetSha256": "955651f853fe539eaea5ebbec03eafa82828ccc41b845c8663fb026d87f7b11b"
         },
         {
           "region": "hall",
@@ -2772,35 +2993,35 @@
         {
           "region": "hall",
           "primitive": 20,
-          "positionTriangleMultisetSha256": "0f15c6329ac3d9948c86f332c7193b201daed7446168dcc8cc334927d1a4c253"
+          "positionTriangleMultisetSha256": "40906d5a98ee31754233d4803b1a686a53cdd9800acf26310a619c3202a1b795"
         },
         {
           "region": "hall",
           "primitive": 21,
-          "positionTriangleMultisetSha256": "035ac5e60ff0827a17632e47c842a96c85d6863f49499ef6d3d2ecb0d234b6a0"
+          "positionTriangleMultisetSha256": "8c4c692f319a1b2b70059361b96ea11f7b9b4eab4cf9d7d5a82d70b1e9b2d168"
         },
         {
           "region": "hall",
           "primitive": 22,
-          "positionTriangleMultisetSha256": "c12b627116d059fc81f7aa59f2dfb9591600d6fef7e64597e8593718beababce"
+          "positionTriangleMultisetSha256": "7057ee3b47ae0783ef350cde2b8b94dec93dab2efdedde07b3f81de3cb2e2825"
         },
         {
           "region": "hall",
           "primitive": 23,
-          "positionTriangleMultisetSha256": "3047e0313bb9ba605ae626076b26f075e01357af6018d993c504be30ec222f72"
+          "positionTriangleMultisetSha256": "c37bac7a4e77c4342679b0e8e7bb5621a931bdbaba489557a31642fce246f256"
         },
         {
           "region": "hall",
           "primitive": 24,
-          "positionTriangleMultisetSha256": "351ec6986798f0e99fed6d33f826f5b24d90ed7a2240848d8a4727803b517052"
+          "positionTriangleMultisetSha256": "170441d1317bd4b901bc83000d8d0ddd835c0e4369e09f201eed6af55015f387"
         },
         {
           "region": "hall",
           "primitive": 25,
-          "positionTriangleMultisetSha256": "262a6e2fb82b9fbfd56bb3f9098223aaff31c0ae317ce8e9ecfe4a0c03bdd851"
+          "positionTriangleMultisetSha256": "1a5b3fc8e1b688cb758d9d812e11e4c7696873f8b04bf8fba682b8a51722fe09"
         }
       ],
-      "sourceFaceSelection": "Exact prepared FACE triangle-position multiset + original region + audited roof material + reservedUV2 marker. Marker alone never authorizes removal.",
+      "sourceFaceSelection": "Exact prepared FACE triangle-position multiset + original region + reservedUV2 marker, with unique candidate population verified before mutation. Material names may deduplicate; marker alone never authorizes removal.",
       "invariants": {
         "actualRawAuthoredWorldPositionsExact": true,
         "fullF32InputPositionMultisetsAndCyclicWindingReverified": true,
@@ -2815,11 +3036,11 @@
     "contactPadding": {
       "receipt": {
         "uri": "contact-padding.receipt.json",
-        "sha256": "f57a7141a2e0bac2110b8e3c0e238afb6c42ded36e56349a889b61d67a5de9f1"
+        "sha256": "285fb571e873586abcbdbb8f3f03547135e8de1b15b42ae5ead7f7e2d0a20731"
       },
       "independentProof": {
         "uri": "independent-contact-padding-proof.json",
-        "sha256": "807b8ff3f9a50f12378801aad522a8a56f520759ec3ea7130919da304afb8725"
+        "sha256": "f3fbeff3b25626e5e7f8df0da6c2aadb3b870d67229c44612ab9770ab3e93719"
       },
       "policy": "certified-hidden-centres-nearest-visible-same-chart-owner-euclidean8-v1",
       "correctedPasses": [
@@ -2837,12 +3058,27 @@
       "originalTransportMastersUnmodified": true,
       "lossyDecodedSamplesNotClaimedBitExact": true,
       "geometryApplicability": "Padding certified on exact F32 input; production geometry preserves every retained visible position/UV/color/material attribute and original source bake occluders are retained in the immutable bake source."
+    },
+    "postbatchValidation": {
+      "path": "docs/evidence/blender-pilot/resting-contacts-delivery/postbatch-correspondence.json",
+      "sha256": "b2d1edef24178c17aec6fce7af3de0a2eb30ea1e6e1c54fabce71dfa3a86e6a5",
+      "actualFinalRawMatchesMeasuredGeometryInputs": true,
+      "sourceRawSha256": "c3539702ab9c0a5eb244f4be25d57bd1c30f22bb31ecedd83674bd99642aef7b",
+      "preparedSha256": "a49fe4fec7dcb52022c720b5a47a8d9c187f06433fda48adf1324d5d65c75d28"
+    },
+    "codecVerification": {
+      "path": "docs/evidence/blender-pilot/resting-contacts-delivery/delivery-image-audit.json",
+      "sha256": "dc85232022a76bc6aee878b4d09220e12eeda5929b1a812ac9dfb1b0efc1e269",
+      "maps": 12,
+      "levelsPerMap": 3,
+      "officialTranscode": "RGBA8 UNORM",
+      "scope": "Actual compressed maps plus official RGBA8 transcode compared with denoised EXR. Base checks all chart cores; coarser mips check only texels whose full child footprint remains one chart. Reference mip averaging happens in linear radiance. Device ASTC/BC7/ETC output and screen interpolation still require runtime capture review."
     }
   },
   "transportProvenance": {
-    "sourceBlendSha256": "6e9f59c93565e08a690eaafbc756967ba39e0f4d8ad0094e4520265948360af8",
-    "sourceGeometryFingerprint": "c914ac7f193ec738d0d285a03bf5632eaf0f3b1277b7a798078559a6e7785c1b",
-    "sourceBakeFingerprint": "bd24db11cb82a6128fbd04160f73abac416dd60b392c8276a063c8b4df3695a0",
+    "sourceBlendSha256": "b31360516a2713a6451ca920f3f94d9fefd9bc191bc07fca63c8c5ddce5a0c86",
+    "sourceGeometryFingerprint": "89d4085e7b4ed662ab952b1430e9217b3c9befad602e1c317ae3ea659d848821",
+    "sourceBakeFingerprint": "0ffdd3b3c38387ba15ea8c86fe93715fd3699c93d6c082702f4b2881858d8350",
     "samples": 64,
     "engine": "Cycles",
     "sourceNightLighting": {
@@ -2881,7 +3117,7 @@
           "positionBlender": [
             -1.4500000476837158,
             4.75,
-            1.8200000524520874
+            1.8259673118591309
           ],
           "rotationBlender": [
             0,
@@ -2903,7 +3139,7 @@
           "positionBlender": [
             -0.949999988079071,
             4.75,
-            1.8200000524520874
+            1.7810873985290527
           ],
           "rotationBlender": [
             0,
@@ -2925,7 +3161,7 @@
           "positionBlender": [
             0.949999988079071,
             4.75,
-            1.8200000524520874
+            1.7810912132263184
           ],
           "rotationBlender": [
             0,
@@ -2947,7 +3183,7 @@
           "positionBlender": [
             1.4500000476837158,
             4.75,
-            1.8200000524520874
+            1.8195929527282715
           ],
           "rotationBlender": [
             0,
@@ -3013,7 +3249,7 @@
           "positionBlender": [
             -2,
             -19.25,
-            1.7899999618530273
+            1.7900022268295288
           ],
           "rotationBlender": [
             0,
@@ -3035,7 +3271,7 @@
           "positionBlender": [
             2,
             -19.25,
-            1.7899999618530273
+            1.7900022268295288
           ],
           "rotationBlender": [
             0,

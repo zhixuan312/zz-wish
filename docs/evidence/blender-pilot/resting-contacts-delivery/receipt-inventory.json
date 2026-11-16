@@ -1,0 +1,71 @@
+{
+  "status": "Encoding/padding validation still in progress; these are actual completed source/native/geometry receipts.",
+  "receipts": [
+    {
+      "file": "postbatch-identity.json",
+      "source": "art/build/snow-roof-resting-contacts-accepted-bake/postbatch-identity.json",
+      "sha256": "1198f494f724a996d30dc50b412a9e4c0bb8b2769303b632f43c50f5488eae85",
+      "bytes": 779
+    },
+    {
+      "file": "postbatch-correspondence.json",
+      "source": "art/build/resting-contacts-export-study/final-postbatch-correspondence.json",
+      "sha256": "b2d1edef24178c17aec6fce7af3de0a2eb30ea1e6e1c54fabce71dfa3a86e6a5",
+      "bytes": 5753
+    },
+    {
+      "file": "prepared-mapping-proof.json",
+      "source": "art/build/snow-roof-resting-contacts-accepted-bake/prepared-mapping-proof.json",
+      "sha256": "0fd8f9d01f4d75ede556ef9698aae51a1ff672f84348df873e78bdc6d64fcc35",
+      "bytes": 11467
+    },
+    {
+      "file": "geometry.receipt.json",
+      "source": "art/build/snow-roof-resting-contacts-float32-optimized-stage/snow-roof.receipt.json",
+      "sha256": "4bb89c5fca11c998da9cd50986e39a2eabf14fc2f2cd80796d02acb6326c6104",
+      "bytes": 28040
+    },
+    {
+      "file": "export-profile.json",
+      "source": "art/build/snow-roof-resting-contacts-float32-optimized-stage/export-profile.json",
+      "sha256": "649d15e40ff58ed71a0e792307d791a67a0e084b6dc86012f4f52ecfe8de4ac6",
+      "bytes": 27780
+    },
+    {
+      "file": "independent-geometry-proof.json",
+      "source": "art/build/snow-roof-resting-contacts-float32-optimized-stage/independent-geometry-proof.json",
+      "sha256": "a7a4e4a4fce7c46c1b08544a00f7f4db3b3ecefea4220c819c2652ec9f62e32b",
+      "bytes": 995
+    },
+    {
+      "file": "independent-float32-proof.json",
+      "source": "art/build/resting-contacts-export-study/provisional-float32-independent.json",
+      "sha256": "bcce53b79f6365fa37bdacd0e015dfa698395322c4fdb09395f23641e221ab3c",
+      "bytes": 3982
+    },
+    {
+      "file": "geometric-domain.receipt.json",
+      "source": "art/build/snow-roof-resting-contacts-contact-domain-stage/geometric-domain.receipt.json",
+      "sha256": "663d4d4ebee1279190956bb1afa979810c1a36b3e875a526834010a4e5df5eac",
+      "bytes": 1558
+    },
+    {
+      "file": "pipeline-sources-at-launch.json",
+      "source": "art/build/snow-roof-resting-contacts-accepted-bake/pipeline-sources.json",
+      "sha256": "412d0a8ae298f604e5198453d89d73d60de29b9dca2e3f466f35158fccf559d8",
+      "bytes": 1541
+    },
+    {
+      "file": "downstream-float32-revision.json",
+      "source": "art/build/snow-roof-resting-contacts-accepted-bake/downstream-helper-revision.json",
+      "sha256": "9a9549f23c4d20e041a8ac61f97ab84a44678d7cba2561b9948b61566d9ea128",
+      "bytes": 739
+    },
+    {
+      "file": "downstream-contact-reader-revision.json",
+      "source": "art/build/snow-roof-resting-contacts-accepted-bake/downstream-contact-input-revision.json",
+      "sha256": "6bc56de0d9a45bd68889db8dcd607de01e705f8f342a23b3b14827feee34109b",
+      "bytes": 545
+    }
+  ]
+}

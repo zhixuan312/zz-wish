@@ -1,0 +1,45 @@
+{
+  "scope": "Provisional geometry-only contact-domain bundle. No transport/image changes. Reuse requires exact final post-batch raw identity c353.",
+  "inputProfile": {
+    "path": "art/build/snow-roof-resting-contacts-accepted-bake/contact-input-profile.json",
+    "sha256": "3c2be5cfa1f1d14b6f222314943e0cc6b7f5e0b10a49eeb1cb9212a8b43df0b6"
+  },
+  "sourceBlendSha256": "b31360516a2713a6451ca920f3f94d9fefd9bc191bc07fca63c8c5ddce5a0c86",
+  "recipientMetadata": {
+    "path": "art/build/snow-roof-resting-contacts-contact-domain-stage/contact-visibility-classification.json",
+    "sha256": "0f24b0399277e21182d6e94d04cee23e007a003f2d549e118c9ddfa36f6b1f27"
+  },
+  "donorMetadata": {
+    "path": "art/build/snow-roof-resting-contacts-contact-domain-stage/contact-valid-donors.json",
+    "sha256": "4da82700453bdc304ed3087d8dd5ed908e5f2dc93528352045460a6ea546db40"
+  },
+  "certifiedHiddenCentres": 9798,
+  "validDonors": 35917,
+  "recipientCoverage": [
+    {
+      "region": "court",
+      "outcome": "no-valid-donor-within8",
+      "count": 6000
+    },
+    {
+      "region": "court",
+      "outcome": "valid-donor-within8",
+      "count": 2098
+    },
+    {
+      "region": "hall",
+      "outcome": "no-valid-donor-within8",
+      "count": 1018
+    },
+    {
+      "region": "hall",
+      "outcome": "valid-donor-within8",
+      "count": 682
+    }
+  ],
+  "originalProducerDirectories": [
+    "art/build/snow-roof-resting-contacts-contact-domain-stage",
+    "art/build/snow-roof-resting-contacts-contact-donors-stage"
+  ],
+  "donorFilesCopiedByteExact": true
+}

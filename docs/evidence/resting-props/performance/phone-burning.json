@@ -1,0 +1,345 @@
+{
+  "source": {
+    "originalSceneSha256": "90d634eee0c8fb553dce074cef0531aace6d0be878766a4526f8b5ab09aedd56",
+    "manifestSha256": "9beed7157a74e41096bfb7bd94f62834a30d6df89cf4cf3979c1ffca62b9fb53",
+    "glbSha256": "49cbe07a5a0f407b3df31b82ef0c75e6995e471593d51527a276a3d22723ef88",
+    "descriptorSha256": "a64bb60b08c140209c5e2e24c75e20e8bce00bebee0018bf6c5e1c32d0c3a04c",
+    "aggregateSha256": "40817d61aad06d4fd6701b1b87a41d09d3c9d4d6353d8bb05acb0a0c453fd505"
+  },
+  "sourceReport": {
+    "file": "artifacts/snow-performance/resting-props-after-phone/report.json",
+    "sha256": "712075d15c241132d3c372c0d918be32e6f887c7d365aca57dbe372e92a00caa"
+  },
+  "intendedCapFPS": 30,
+  "seconds": 10,
+  "fps": 29.999400012035522,
+  "renderedFrames": 301,
+  "intervals": {
+    "samples": 300,
+    "meanMs": 33.33399999996026,
+    "p50Ms": 33.39999997615814,
+    "p95Ms": 48.4200000345707,
+    "p99Ms": 50.10000002384186,
+    "maxMs": 50.80000001192093
+  },
+  "intervalDistribution": {
+    "under25ms": 24,
+    "from25to42ms": 252,
+    "from42to59ms": 24,
+    "from59to75ms": 0,
+    "atLeast75ms": 0
+  },
+  "rafDeltaDistribution": {
+    "under25ms": 24,
+    "from25to42ms": 252,
+    "from42to59ms": 24,
+    "from59to75ms": 0,
+    "atLeast75ms": 0
+  },
+  "cpuSubmit": {
+    "samples": 301,
+    "meanMs": 2.761461793782307,
+    "p50Ms": 3,
+    "p95Ms": 3.799999952316284,
+    "p99Ms": 3.900000035762787,
+    "maxMs": 4.199999988079071
+  },
+  "gpu": {
+    "requested": true,
+    "supported": true,
+    "status": "complete",
+    "disjointObserved": false,
+    "droppedQueries": 0,
+    "samples": 301,
+    "meanMs": 16.240814700996694,
+    "p50Ms": 15.818708,
+    "p95Ms": 23.469666,
+    "p99Ms": 24.452958,
+    "maxMs": 26.536166
+  },
+  "valid": true,
+  "validation": {
+    "expectedSamples": 2,
+    "targetSamples": [
+      2,
+      2
+    ],
+    "expectedPixelRatio": 1.25,
+    "expectedBuffer": [
+      487,
+      1055
+    ],
+    "issues": []
+  },
+  "visibilityStart": "visible",
+  "visibilityChanges": [],
+  "configurationChanges": [],
+  "configurationStart": {
+    "pixelRatio": 1.25,
+    "drawingBuffer": [
+      487,
+      1055
+    ],
+    "contextAttributes": {
+      "alpha": true,
+      "antialias": true,
+      "depth": true,
+      "desynchronized": false,
+      "failIfMajorPerformanceCaveat": false,
+      "powerPreference": "high-performance",
+      "premultipliedAlpha": true,
+      "preserveDrawingBuffer": false,
+      "stencil": true,
+      "xrCompatible": false
+    },
+    "supportedSamples": {
+      "rgba16f": {
+        "supported": [
+          4,
+          2
+        ]
+      },
+      "depthComponent24": {
+        "supported": [
+          4,
+          2
+        ]
+      }
+    },
+    "renderTarget1": {
+      "width": 487.5,
+      "height": 1055,
+      "samples": 2,
+      "textureType": 1016,
+      "depthBuffer": true,
+      "stencilBuffer": false
+    },
+    "renderTarget2": {
+      "width": 487.5,
+      "height": 1055,
+      "samples": 2,
+      "textureType": 1016,
+      "depthBuffer": true,
+      "stencilBuffer": false
+    },
+    "shadowMap": {
+      "enabled": true,
+      "type": 2
+    },
+    "exposure": 1
+  },
+  "configurationEnd": {
+    "pixelRatio": 1.25,
+    "drawingBuffer": [
+      487,
+      1055
+    ],
+    "contextAttributes": {
+      "alpha": true,
+      "antialias": true,
+      "depth": true,
+      "desynchronized": false,
+      "failIfMajorPerformanceCaveat": false,
+      "powerPreference": "high-performance",
+      "premultipliedAlpha": true,
+      "preserveDrawingBuffer": false,
+      "stencil": true,
+      "xrCompatible": false
+    },
+    "supportedSamples": {
+      "rgba16f": {
+        "supported": [
+          4,
+          2
+        ]
+      },
+      "depthComponent24": {
+        "supported": [
+          4,
+          2
+        ]
+      }
+    },
+    "renderTarget1": {
+      "width": 487.5,
+      "height": 1055,
+      "samples": 2,
+      "textureType": 1016,
+      "depthBuffer": true,
+      "stencilBuffer": false
+    },
+    "renderTarget2": {
+      "width": 487.5,
+      "height": 1055,
+      "samples": 2,
+      "textureType": 1016,
+      "depthBuffer": true,
+      "stencilBuffer": false
+    },
+    "shadowMap": {
+      "enabled": true,
+      "type": 2
+    },
+    "exposure": 1
+  },
+  "cameraMaximumElementDelta": 0,
+  "projectionMaximumElementDelta": 0,
+  "runtime": {
+    "browserVersion": "157.0.8103.39",
+    "phone-zh": {
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36",
+      "devicePixelRatio": 2,
+      "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)",
+      "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1, Unspecified Version)",
+      "configuration": {
+        "pixelRatio": 1.25,
+        "drawingBuffer": [
+          487,
+          1055
+        ],
+        "contextAttributes": {
+          "alpha": true,
+          "antialias": true,
+          "depth": true,
+          "desynchronized": false,
+          "failIfMajorPerformanceCaveat": false,
+          "powerPreference": "high-performance",
+          "premultipliedAlpha": true,
+          "preserveDrawingBuffer": false,
+          "stencil": true,
+          "xrCompatible": false
+        },
+        "supportedSamples": {
+          "rgba16f": {
+            "supported": [
+              4,
+              2
+            ]
+          },
+          "depthComponent24": {
+            "supported": [
+              4,
+              2
+            ]
+          }
+        },
+        "renderTarget1": {
+          "width": 487.5,
+          "height": 1055,
+          "samples": 2,
+          "textureType": 1016,
+          "depthBuffer": true,
+          "stencilBuffer": false
+        },
+        "renderTarget2": {
+          "width": 487.5,
+          "height": 1055,
+          "samples": 2,
+          "textureType": 1016,
+          "depthBuffer": true,
+          "stencilBuffer": false
+        },
+        "shadowMap": {
+          "enabled": true,
+          "type": 2
+        },
+        "exposure": 2.756579699385522
+      }
+    }
+  },
+  "precondition": {
+    "visibility": "visible",
+    "focused": true,
+    "ignition": {
+      "state": "settled",
+      "progress": 1,
+      "journey": 3,
+      "position": [
+        0.18000000000000071,
+        2.22,
+        -2.3999999999999995
+      ],
+      "look": [
+        0.085,
+        2.48,
+        0
+      ],
+      "fov": 56
+    },
+    "rawRecorderActive": false,
+    "performanceHook": true,
+    "lightingState": {
+      "weights": [
+        1,
+        0,
+        0
+      ],
+      "residentPasses": [
+        "lamp",
+        "night"
+      ],
+      "pendingPasses": [],
+      "loadedPasses": [
+        "night",
+        "lamp"
+      ]
+    },
+    "daylight": {
+      "dawn": false,
+      "n": 1,
+      "g": 0,
+      "blue": 0.175,
+      "lamp": 0.8,
+      "haze": 1.1,
+      "elev": 1
+    }
+  },
+  "delivery": {
+    "materialProfile": "mobile",
+    "lightmapCodec": "uastc",
+    "lightingState": {
+      "weights": [
+        1,
+        0,
+        0
+      ],
+      "residentPasses": [
+        "lamp",
+        "night"
+      ],
+      "pendingPasses": [],
+      "loadedPasses": [
+        "night",
+        "lamp"
+      ]
+    }
+  },
+  "actualUICleanup": [
+    {
+      "viewport": "phone-zh",
+      "succeeded": true,
+      "endReasons": [
+        "put_out"
+      ]
+    }
+  ],
+  "errors": [],
+  "httpErrors": [],
+  "sourceChanged": false,
+  "geometry": {
+    "before": {
+      "bytes": 15904988,
+      "vertices": 648780,
+      "triangles": 466874
+    },
+    "after": {
+      "bytes": 16265084,
+      "vertices": 649213,
+      "triangles": 467186
+    },
+    "triangleDelta": 312,
+    "vertexDelta": 433
+  },
+  "timingScope": "Actual composer-render hook timestamps. CPU submit is wall time around composer.render(), including any driver stall, not CPU utilization. GPU queries are asynchronous and never awaited synchronously. Pending queries drain outside the timed render window for at most 2 seconds.",
+  "interpretation": "One headed Chrome Metal no-video/no-readback window on M1 phone viewport/touch emulation at deviceScaleFactor 2. The mean is 30 FPS and GPU p95 is within 33.33 ms; interval p95 is 48.42 ms with 24 short and 24 long intervals. No improved frame-pacing claim or cause attribution is made."
+}

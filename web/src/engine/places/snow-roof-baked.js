@@ -4,8 +4,8 @@ import { loadBakedPlace } from '../baked/loadPlace.js';
 export default function createPlace(h){
   const {V3}=h;
   let staticWicks;
-  const sourcePoint=(baked,key,fallback)=>{
-    const raw=baked.group.userData[key],point=raw===undefined?fallback:typeof raw==='string'?JSON.parse(raw):raw;
+  const sourcePoint=(baked,key)=>{
+    const raw=baked.group.userData[key],point=typeof raw==='string'?JSON.parse(raw):raw;
     if(!Array.isArray(point)||point.length!==3||!point.every(Number.isFinite))throw new Error(`Invalid Snow Roof source contact anchor: ${key}`);
     return point;
   };
@@ -55,9 +55,7 @@ export default function createPlace(h){
           h.liveFlame(...localPoint(C.G,wick.wickTip));
           h.fixtureSpecular(...localPoint(C.G,wick.pointLight));
         }
-        // The fallback supports the preceding delivery while new source assets
-        // are being rebuilt. New contact-audited exports carry the measured tip.
-        const smoke=sourcePoint(C.baked,'static_incense_smoke_engine',[.002,1.98,-4.85]);
+        const smoke=sourcePoint(C.baked,'static_incense_smoke_engine');
         h.smokeAt(...localPoint(C.G,smoke),{k:2,size:.007,spread:.06,op:.08,perSecond:8,n:48});
       },
     },

@@ -1,0 +1,7 @@
+{
+  "scope": "Downstream geometry-certificate reader update only; native baker/source/receiver data unchanged.",
+  "helper": "art/blender/contact_inputs.py",
+  "launchSha256": "a50adb6f634bccd6bd36cf96f76de40e9dd048428428b5a7f4d119c9df09fe24",
+  "newActualSha256": "05cfabbf9fade55b15af6864f8e6584ee02c2c71ae41c77692f0cb7055254802",
+  "change": "Accept either the original independent F32 schema or the measured contact-tested raw\u2192actual raw\u2192F32 proof, with exact actual path/hash/source bindings and all required proof invariants."
+}

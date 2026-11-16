@@ -1,0 +1,264 @@
+{
+  "version": 1,
+  "scope": "ANALYSIS-ONLY conservative donor permissions. hiddenFalse was not sufficient and is not used as a validity claim. No geometry, lighting, transport or image changes.",
+  "inputs": {
+    "source": {
+      "path": "art/build/snow-roof-resting-contacts-accepted.blend",
+      "sha256": "b31360516a2713a6451ca920f3f94d9fefd9bc191bc07fca63c8c5ddce5a0c86"
+    },
+    "prepared": {
+      "path": "art/build/snow-roof-resting-contacts-accepted-bake/snow-roof-prepared.blend",
+      "sha256": "a49fe4fec7dcb52022c720b5a47a8d9c187f06433fda48adf1324d5d65c75d28"
+    },
+    "raw": {
+      "path": "art/build/snow-roof-resting-contacts-export-stage/snow-roof.raw.glb",
+      "sha256": "c3539702ab9c0a5eb244f4be25d57bd1c30f22bb31ecedd83674bd99642aef7b"
+    },
+    "f32Diagnostic": {
+      "path": "art/build/snow-roof-resting-contacts-float32-stage/snow-roof.glb",
+      "sha256": "418321fff225ec70e67d34bb4c78957b9ddac7d983c91ac74aa97fce7c595028"
+    },
+    "independentExactF32PositionProof": {
+      "path": "art/build/resting-contacts-export-study/provisional-float32-independent.json",
+      "sha256": "bcce53b79f6365fa37bdacd0e015dfa698395322c4fdb09395f23641e221ab3c"
+    },
+    "sourceContactAudit": {
+      "path": "art/build/snow-roof-resting-contacts-accepted.audit.json",
+      "sha256": "1f722140f258eb74b02f6db1760960de056567dfe1fba64392d933d6d8a2a290"
+    },
+    "preparedRawContactAudit": {
+      "path": "art/build/resting-contacts-accepted-replay/contacts-unique-crowns.json",
+      "sha256": "c7339acd30137c33398c8df122516f31b0405a5093dbace21c072db931bc38dc"
+    },
+    "preparedMappingProof": {
+      "path": "art/build/snow-roof-resting-contacts-accepted-bake/prepared-mapping-proof.json",
+      "sha256": "0fd8f9d01f4d75ede556ef9698aae51a1ff672f84348df873e78bdc6d64fcc35"
+    }
+  },
+  "inputValidationScriptSha256": "05cfabbf9fade55b15af6864f8e6584ee02c2c71ae41c77692f0cb7055254802",
+  "recipientClassificationSha256": "0f24b0399277e21182d6e94d04cee23e007a003f2d549e118c9ddfa36f6b1f27",
+  "recipientRecordsSha256": "5f5e367a8f74b6006bfcc94126832c6ce651969f91e0fda5a512fa327c9a6c24",
+  "toleranceMetres": 2e-05,
+  "donorFile": {
+    "path": "contact-valid-donors.npz",
+    "sha256": "c8fa39e0926963bf46a029a0e26ac467ee854446bcce2e754a87838abe1d7e0d",
+    "arrays": [
+      "region(0court1hall)",
+      "xyBottomLeft",
+      "chartRaw",
+      "ownerId",
+      "validDonor"
+    ]
+  },
+  "owners": {
+    "0": "Snow with physically depressed footprint track",
+    "1": "Continuous stair-edge snow bank left",
+    "2": "Continuous stair-edge snow bank right"
+  },
+  "chartOwners": [
+    {
+      "region": "court",
+      "chartRaw": 1,
+      "ownerId": 0,
+      "sourceObject": "Snow with physically depressed footprint track",
+      "allPreparedPolygonCount": 42240,
+      "uniqueOwnerVerified": true
+    },
+    {
+      "region": "hall",
+      "chartRaw": 12892,
+      "ownerId": 1,
+      "sourceObject": "Continuous stair-edge snow bank left",
+      "allPreparedPolygonCount": 357,
+      "uniqueOwnerVerified": true
+    },
+    {
+      "region": "hall",
+      "chartRaw": 12893,
+      "ownerId": 1,
+      "sourceObject": "Continuous stair-edge snow bank left",
+      "allPreparedPolygonCount": 330,
+      "uniqueOwnerVerified": true
+    },
+    {
+      "region": "hall",
+      "chartRaw": 12896,
+      "ownerId": 1,
+      "sourceObject": "Continuous stair-edge snow bank left",
+      "allPreparedPolygonCount": 354,
+      "uniqueOwnerVerified": true
+    },
+    {
+      "region": "hall",
+      "chartRaw": 12898,
+      "ownerId": 1,
+      "sourceObject": "Continuous stair-edge snow bank left",
+      "allPreparedPolygonCount": 4385,
+      "uniqueOwnerVerified": true
+    },
+    {
+      "region": "hall",
+      "chartRaw": 12902,
+      "ownerId": 1,
+      "sourceObject": "Continuous stair-edge snow bank left",
+      "allPreparedPolygonCount": 214,
+      "uniqueOwnerVerified": true
+    },
+    {
+      "region": "hall",
+      "chartRaw": 12904,
+      "ownerId": 2,
+      "sourceObject": "Continuous stair-edge snow bank right",
+      "allPreparedPolygonCount": 310,
+      "uniqueOwnerVerified": true
+    },
+    {
+      "region": "hall",
+      "chartRaw": 12905,
+      "ownerId": 2,
+      "sourceObject": "Continuous stair-edge snow bank right",
+      "allPreparedPolygonCount": 1727,
+      "uniqueOwnerVerified": true
+    },
+    {
+      "region": "hall",
+      "chartRaw": 12906,
+      "ownerId": 2,
+      "sourceObject": "Continuous stair-edge snow bank right",
+      "allPreparedPolygonCount": 342,
+      "uniqueOwnerVerified": true
+    },
+    {
+      "region": "hall",
+      "chartRaw": 12909,
+      "ownerId": 2,
+      "sourceObject": "Continuous stair-edge snow bank right",
+      "allPreparedPolygonCount": 439,
+      "uniqueOwnerVerified": true
+    },
+    {
+      "region": "hall",
+      "chartRaw": 12910,
+      "ownerId": 2,
+      "sourceObject": "Continuous stair-edge snow bank right",
+      "allPreparedPolygonCount": 2871,
+      "uniqueOwnerVerified": true
+    }
+  ],
+  "maximumFullChartGroundSourceVertexMatchErrorMetres": 0,
+  "donorRules": {
+    "global": "Never hidden, near-contact, UV-ambiguous or parity-ambiguous; >20\u00b5m from stair/terrace surface and not below its vertical top; no radiance threshold.",
+    "hall": "Positive>20\u00b5m clearance ABOVE actual opaque ground, with nearest ground distance>20\u00b5m. All original source bank-top texel owners proven.",
+    "court": "Outside both watertight bank volumes: outside their AABB or3 agreeing even-parity rays; >20\u00b5m from both shells.",
+    "sampling": "Recipient and donor must share original chartRaw AND ownerId; nearest Euclidean distance<=8 native base pixels. Recipients lacking such donor are left unchanged. Missing sparse entries are never donors."
+  },
+  "validDonorCount": 35917,
+  "counts": [
+    {
+      "region": "court",
+      "reason": "ambiguous-or-near-contact-never-donor",
+      "count": 55
+    },
+    {
+      "region": "court",
+      "reason": "certified-hidden-recipient-never-donor",
+      "count": 8098
+    },
+    {
+      "region": "court",
+      "reason": "covered-or-near-opaque-stair-terrace-surface",
+      "count": 26406
+    },
+    {
+      "region": "court",
+      "reason": "ground-near-bank-shell-never-donor",
+      "count": 21
+    },
+    {
+      "region": "court",
+      "reason": "ground-outside-closed-banks-and-support-clear",
+      "count": 30914
+    },
+    {
+      "region": "hall",
+      "reason": "ambiguous-or-near-contact-never-donor",
+      "count": 25
+    },
+    {
+      "region": "hall",
+      "reason": "bank-positive-ground-and-support-clearance",
+      "count": 5003
+    },
+    {
+      "region": "hall",
+      "reason": "certified-hidden-recipient-never-donor",
+      "count": 1700
+    },
+    {
+      "region": "hall",
+      "reason": "covered-or-near-opaque-stair-terrace-surface",
+      "count": 2728
+    }
+  ],
+  "recipientCoverage": [
+    {
+      "region": "court",
+      "outcome": "no-valid-donor-within8",
+      "count": 6000
+    },
+    {
+      "region": "court",
+      "outcome": "valid-donor-within8",
+      "count": 2098
+    },
+    {
+      "region": "hall",
+      "outcome": "no-valid-donor-within8",
+      "count": 1018
+    },
+    {
+      "region": "hall",
+      "outcome": "valid-donor-within8",
+      "count": 682
+    }
+  ],
+  "coveredRecipientDistanceSquaredHistogram": {
+    "1": 422,
+    "2": 121,
+    "4": 313,
+    "5": 113,
+    "8": 96,
+    "9": 228,
+    "10": 81,
+    "13": 90,
+    "16": 171,
+    "17": 59,
+    "18": 17,
+    "20": 61,
+    "25": 166,
+    "26": 45,
+    "29": 57,
+    "32": 16,
+    "34": 54,
+    "36": 101,
+    "37": 49,
+    "40": 57,
+    "41": 18,
+    "45": 58,
+    "49": 103,
+    "50": 57,
+    "52": 23,
+    "53": 43,
+    "58": 50,
+    "61": 18,
+    "64": 93
+  },
+  "scriptSha256": "295debc57a35f161496682200043fef32a3b379a6fe6646f475f311deb6d32f7",
+  "sourceMetadata": {
+    "path": "art/build/snow-roof-resting-contacts-contact-domain-stage/contact-valid-donors.json",
+    "sha256": "4da82700453bdc304ed3087d8dd5ed908e5f2dc93528352045460a6ea546db40",
+    "bytes": 441977
+  },
+  "uncoveredRecipientRowsOmittedFromDurableSummary": 7018,
+  "provenance": "Derived compact metadata summary only. Complete original donor certificate and coordinate arrays remain unchanged at sourceMetadata.path and its donorFile."
+}

@@ -1,46 +1,46 @@
 {
   "version": 1,
-  "id": "snow-roof-final-mobile-float32-6e9f-v1",
+  "id": "snow-roof-mobile-float32-b3136051-v2",
   "variant": "mobile-float32",
   "inputs": {
-    "source": {
-      "path": "art/build/snow-roof-stair-banks-grain.blend",
-      "sha256": "6e9f59c93565e08a690eaafbc756967ba39e0f4d8ad0094e4520265948360af8"
-    },
     "prepared": {
-      "path": "art/build/snow-roof-final/snow-roof-prepared.blend",
-      "sha256": "6ed42644cd3a6c1026b079740957280df0274e9e9a0eaf5f8d3da514725079c1"
+      "path": "art/build/resting-contacts-export-study/snow-roof-prepared.blend",
+      "sha256": "a49fe4fec7dcb52022c720b5a47a8d9c187f06433fda48adf1324d5d65c75d28"
     },
-    "raw": {
-      "path": "art/build/snow-roof-final/snow-roof.raw.glb",
-      "sha256": "0deec9fd71d4c49e666e5b091f15af3067efbcdb7e3c350bcb85a2bf7f980dea"
+    "source": {
+      "path": "art/build/snow-roof-resting-contacts-accepted.blend",
+      "sha256": "b31360516a2713a6451ca920f3f94d9fefd9bc191bc07fca63c8c5ddce5a0c86"
     },
     "proof": {
-      "path": "art/blender/proofs/snow-roof-final-hidden-tiles.json",
-      "sha256": "6649e9c080c3b152c743fcc88ad5ebf95690ff8f678742cc5dd84be79ce2e014"
+      "path": "art/blender/proofs/snow-roof-resting-contacts-accepted-hidden-tiles.json",
+      "sha256": "cf525ebd5990e8487cc4e10f3a6110fc12d0deab152885889fe879991bbfba57"
+    },
+    "raw": {
+      "path": "art/build/snow-roof-resting-contacts-export-stage/snow-roof.raw.glb",
+      "sha256": "c3539702ab9c0a5eb244f4be25d57bd1c30f22bb31ecedd83674bd99642aef7b"
     },
     "reference": {
-      "path": "art/build/snow-roof-final/hidden-export-reference-postbatch/reference.json",
-      "sha256": "9138cc6d6db2d2334504ee2e7617d4ccda22888af9d9708b9d895093d7d66436"
+      "path": "art/build/resting-contacts-export-study/hidden-reference/reference.json",
+      "sha256": "473d5376b90a6f7b7add3e9032887dfa0346faac7653449ae609b7aa6573bc79"
     },
     "input": {
-      "path": "art/build/snow-roof-float32-position-diagnostic/snow-roof.glb",
-      "sha256": "e41a50e8cd5935d69f254514c7cac3c15fa1b1f640f9c4f0e8f351f220906217"
+      "path": "art/build/snow-roof-resting-contacts-float32-stage/snow-roof.glb",
+      "sha256": "418321fff225ec70e67d34bb4c78957b9ddac7d983c91ac74aa97fce7c595028"
     }
   },
   "faceReferenceBinaries": {
     "hall": {
-      "path": "art/build/snow-roof-final/hidden-export-reference-postbatch/hall.bin",
+      "path": "art/build/resting-contacts-export-study/hidden-reference/hall.bin",
       "sha256": "92580a5f77892f32930843fba283dcd0f305e3a2918e7b2713b642487ad1d9f1",
       "triangles": 95790
     },
     "gate": {
-      "path": "art/build/snow-roof-final/hidden-export-reference-postbatch/gate.bin",
+      "path": "art/build/resting-contacts-export-study/hidden-reference/gate.bin",
       "sha256": "e7501231e07a49c6b7387e2520b7fcccccb0a3096e213217e49bf296cffb36ec",
       "triangles": 22566
     },
     "court": {
-      "path": "art/build/snow-roof-final/hidden-export-reference-postbatch/court.bin",
+      "path": "art/build/resting-contacts-export-study/hidden-reference/court.bin",
       "sha256": "17b29d0a0aa791bec706191934320fa08dde814c5a7d2106a8a73bc3b3260d44",
       "triangles": 65394
     }
@@ -119,12 +119,12 @@
     {
       "region": "gate",
       "primitive": 8,
-      "positionTriangleMultisetSha256": "ba2c06d99fa367445f2ce94a699d2fb735d83503c042a789df347706e6367b67"
+      "positionTriangleMultisetSha256": "533aed7b4615b5f0aecfc08ec47c2ab5da2a80236fdb6fc3a6f4389e8f03a384"
     },
     {
       "region": "gate",
       "primitive": 9,
-      "positionTriangleMultisetSha256": "7a452ee21704513ba87efbf3cb1fec2c8fe2ab9c0fe6a8e8f2d1e39779857f4d"
+      "positionTriangleMultisetSha256": "4c8e517298bcb0621c891ba058d4d3a2440a80ed1b39573295f58fa915e5a563"
     },
     {
       "region": "hall",
@@ -174,12 +174,12 @@
     {
       "region": "hall",
       "primitive": 9,
-      "positionTriangleMultisetSha256": "d57cbf898ae951195bdf0eceb09e372edac3104d6b0859b4ea1725fb690e849a"
+      "positionTriangleMultisetSha256": "147fbdd5f635c416af2d418bcbeb826166046f4105f4ec4a0846076670b882ee"
     },
     {
       "region": "hall",
       "primitive": 10,
-      "positionTriangleMultisetSha256": "baa9c17b063918a097b8c18f7e0631b53e911132802c32ed70c7a2f739791443"
+      "positionTriangleMultisetSha256": "7939396675525ecedc97c3453546f25d4fa481eec2f914b9a44f807f6afe6c07"
     },
     {
       "region": "hall",
@@ -189,7 +189,7 @@
     {
       "region": "hall",
       "primitive": 12,
-      "positionTriangleMultisetSha256": "9645e4279f03d1812ad22550299b394e4ef185b2d1352aadaa36209581e90893"
+      "positionTriangleMultisetSha256": "4d33040610022afc46fe145b9952d12cbf7fa203d86eae2241ee5be06c97feec"
     },
     {
       "region": "hall",
@@ -209,17 +209,17 @@
     {
       "region": "hall",
       "primitive": 16,
-      "positionTriangleMultisetSha256": "44dc0ae617891fccd662e256cbb993312190770ad52f1ef5490b6fd3ee41beb5"
+      "positionTriangleMultisetSha256": "55b9229e6a3bf6995f1a27f7577896c6afe9d24be962185d1baa52690884c739"
     },
     {
       "region": "hall",
       "primitive": 17,
-      "positionTriangleMultisetSha256": "4ae369610f34b0fae3abd7ec5d5cfb60dbee199017de0a99210fde43a611f144"
+      "positionTriangleMultisetSha256": "4ac44c2a74a288e4f89b0aa3c54bd9884b76a335502d5753f6e7c60cd084c62a"
     },
     {
       "region": "hall",
       "primitive": 18,
-      "positionTriangleMultisetSha256": "e8a17b50a7d15de73b9a1425a8228c68c383bfb34fd60537af31e149760efe22"
+      "positionTriangleMultisetSha256": "955651f853fe539eaea5ebbec03eafa82828ccc41b845c8663fb026d87f7b11b"
     },
     {
       "region": "hall",
@@ -229,35 +229,35 @@
     {
       "region": "hall",
       "primitive": 20,
-      "positionTriangleMultisetSha256": "0f15c6329ac3d9948c86f332c7193b201daed7446168dcc8cc334927d1a4c253"
+      "positionTriangleMultisetSha256": "40906d5a98ee31754233d4803b1a686a53cdd9800acf26310a619c3202a1b795"
     },
     {
       "region": "hall",
       "primitive": 21,
-      "positionTriangleMultisetSha256": "035ac5e60ff0827a17632e47c842a96c85d6863f49499ef6d3d2ecb0d234b6a0"
+      "positionTriangleMultisetSha256": "8c4c692f319a1b2b70059361b96ea11f7b9b4eab4cf9d7d5a82d70b1e9b2d168"
     },
     {
       "region": "hall",
       "primitive": 22,
-      "positionTriangleMultisetSha256": "c12b627116d059fc81f7aa59f2dfb9591600d6fef7e64597e8593718beababce"
+      "positionTriangleMultisetSha256": "7057ee3b47ae0783ef350cde2b8b94dec93dab2efdedde07b3f81de3cb2e2825"
     },
     {
       "region": "hall",
       "primitive": 23,
-      "positionTriangleMultisetSha256": "3047e0313bb9ba605ae626076b26f075e01357af6018d993c504be30ec222f72"
+      "positionTriangleMultisetSha256": "c37bac7a4e77c4342679b0e8e7bb5621a931bdbaba489557a31642fce246f256"
     },
     {
       "region": "hall",
       "primitive": 24,
-      "positionTriangleMultisetSha256": "351ec6986798f0e99fed6d33f826f5b24d90ed7a2240848d8a4727803b517052"
+      "positionTriangleMultisetSha256": "170441d1317bd4b901bc83000d8d0ddd835c0e4369e09f201eed6af55015f387"
     },
     {
       "region": "hall",
       "primitive": 25,
-      "positionTriangleMultisetSha256": "262a6e2fb82b9fbfd56bb3f9098223aaff31c0ae317ce8e9ecfe4a0c03bdd851"
+      "positionTriangleMultisetSha256": "1a5b3fc8e1b688cb758d9d812e11e4c7696873f8b04bf8fba682b8a51722fe09"
     }
   ],
-  "sourceFaceSelection": "Exact prepared FACE triangle-position multiset + original region + audited roof material + reservedUV2 marker. Marker alone never authorizes removal.",
+  "sourceFaceSelection": "Exact prepared FACE triangle-position multiset + original region + reservedUV2 marker, with unique candidate population verified before mutation. Material names may deduplicate; marker alone never authorizes removal.",
   "removedTrianglesByRegion": {
     "hall": 95790,
     "court": 65394,
@@ -265,25 +265,25 @@
   },
   "preservedNonproofMarkerTriangles": 3292,
   "input": {
-    "bytes": 20229632,
+    "bytes": 20590604,
     "images": 24,
     "imageBytes": 3537347,
-    "geometryBytes": 16585321,
-    "vertices": 956291,
-    "triangles": 650624
+    "geometryBytes": 16594089,
+    "vertices": 956830,
+    "triangles": 650936
   },
   "output": {
-    "path": "art/build/snow-roof-float32-optimized/snow-roof.glb",
-    "bytes": 15904988,
+    "path": "art/build/snow-roof-resting-contacts-float32-optimized-stage/snow-roof.glb",
+    "bytes": 16265084,
     "images": 24,
     "imageBytes": 3537347,
-    "geometryBytes": 12253468,
-    "vertices": 648780,
-    "triangles": 466874,
-    "sha256": "9e3d5aa37878af0e2eca8d409b2f511916e488aa7b523dbd26c8ec8114022fdc"
+    "geometryBytes": 12261349,
+    "vertices": 649213,
+    "triangles": 467186,
+    "sha256": "49cbe07a5a0f407b3df31b82ef0c75e6995e471593d51527a276a3d22723ef88"
   },
   "prunedVertices": 198050,
-  "weldedVertices": 109461,
+  "weldedVertices": 109567,
   "retainedTriangleHashes": [
     {
       "region": "court",
@@ -318,7 +318,7 @@
     {
       "region": "gate",
       "material": "Patched lime plaster",
-      "hash": "df4b1e2a7d52c843ca094c686e5f8580f1f8a2d062fb8bcbddf6c80b4d93fcd2"
+      "hash": "ce936a67fde69b99dc238b62448e0bd09a3c2e291b1061620afa78ec0ebac189"
     },
     {
       "region": "gate",
@@ -328,7 +328,7 @@
     {
       "region": "gate",
       "material": "Dark old timber",
-      "hash": "08012f296d222cf177bb0b8f6a1552c8e8a30eb6f9265fa715715d6c2b7a0d4f"
+      "hash": "0a9c5efddaab7a67f823142e7e4a4becdd2c9cc9753065812f9b239908007a80"
     },
     {
       "region": "gate",
@@ -338,7 +338,7 @@
     {
       "region": "gate",
       "material": "Aged red painted timber",
-      "hash": "5c674e86b4528f655821f4329a1e5eea593aa465ec74df926553d4c1d7bd47b6"
+      "hash": "20ed8e5c31fce4c1538c5b5fe52ba2f6fe551dd55370bc0b2befda8b06646149"
     },
     {
       "region": "gate",
@@ -358,32 +358,32 @@
     {
       "region": "gate",
       "material": "Aged bronze",
-      "hash": "448020436f73ea9e92ca7a3ad52786103010f8fa25a42ee970fe8f7e4a5c33ae"
+      "hash": "dc4a7aa29b876f2029de7d232d01dfdf4a9cb567e32715a23ae98030827e8503"
     },
     {
       "region": "gate",
       "material": "Other lamps warm wick",
-      "hash": "15b69214c1594b8f529c24f0ae1688636dec95bf497aa1c0afd84cadd65c45f1"
+      "hash": "e7bfe1a816f7d0baf599b123ac9f8d45a0540a5da88dff08b613d54dc8ff2473"
     },
     {
       "region": "hall",
       "material": "Dark hall paving 1",
-      "hash": "0cd3bc8c7d0434330e9972086bfbf43ce8dfec2cfa68197e9098e7650eed24e5"
+      "hash": "b04a3967b43d02ee2849a8885fd86f34f4a775368506e4822aa7504952d90fc9"
     },
     {
       "region": "hall",
       "material": "Dark hall paving 1",
-      "hash": "85a5471d38b415ee841245ac0a06da4c752e6ddedb3fa7916f9387fed7292e31"
+      "hash": "88488d4b031200a96d6a86bd5acd83da8d1b0c37865f18f66ad456756996f422"
     },
     {
       "region": "hall",
       "material": "Dark hall paving 1",
-      "hash": "e779d3101f926291342855f297552aafad5d268374d2285c7efe982d0c822872"
+      "hash": "a32300f06338517b57fcd129bbdc78ab38725e7dc9a4e633b1b51e40c3873b79"
     },
     {
       "region": "hall",
       "material": "Walk-polished worn dark stone",
-      "hash": "fbf931040a44323ea8a3492220d0deb08e520805ee2ba10e8bb709333446dd9a"
+      "hash": "b24c6e2dbe20a13f76c9c4db7174cfa3d7339c4b8dbd127f1c3bb3b793a55167"
     },
     {
       "region": "hall",
@@ -393,107 +393,107 @@
     {
       "region": "hall",
       "material": "Patched lime plaster",
-      "hash": "2334eff0ae352c6513f05a774ba7bbf111b10f8908d7d5932912aadf39af75c8"
+      "hash": "18731ce9d92468fd886aeb5a412eecbbe042ffb03c5c39f99af159d2bd6b7d28"
     },
     {
       "region": "hall",
       "material": "Ivory window paper",
-      "hash": "37ac6680a46c63eecaec7d61fe1cbd40ef935ebf750ecc34751c9e7e04aaa4c1"
+      "hash": "b51b8842a578daa7adaf380f45786bc1d3fb316733996d915156e8e9064f4da2"
     },
     {
       "region": "hall",
       "material": "Aged red painted timber",
-      "hash": "5ec23b5cee078ffcadfa438a76e60792fe310ebe6ff4fb0197de11adcb84d201"
+      "hash": "a0345cf9545eed3990eeab85975178aa05cdad1880d3b1ae9aa0341af0ca3bd2"
     },
     {
       "region": "hall",
       "material": "Worn granite",
-      "hash": "12840569719e30b104f7f0204b3c099d30ee33a4ad976848d17c357e962c5dad"
+      "hash": "536e7bfcfa1b72465e966f1f6b91f29d7c3dbf876ee967989d6fcabbaa46dcf1"
     },
     {
       "region": "hall",
       "material": "Dark old timber",
-      "hash": "33b0a11042af6ed3bff5852798a4a438bdea808047720ff79d8d55b32acef265"
+      "hash": "395725b2aa6ad02a94acb2c8643149e67991bb1a3dcb58a142b456bf49f7cc67"
     },
     {
       "region": "hall",
       "material": "Aged bronze",
-      "hash": "0c26b9a02b8dab02bb51b1e42471a132f7c451a9772aa176268479b9485b0b8d"
+      "hash": "586fdc7d4974f722929e1658d33fd73de0feef56331582f0cb0f7aedab87ba1d"
     },
     {
       "region": "hall",
       "material": "Aged red painted timber",
-      "hash": "31ef7e9404dc27316ea25e17c70c942c3d3074a069c0a8e963bc4c1aaa6173ff"
+      "hash": "f860c083e95578385cc8eadc2b456ca8349ebe653e0a11313ba2c805425b6303"
     },
     {
       "region": "hall",
       "material": "Tarnished gilded edges",
-      "hash": "c2bf530d6fed95988e74d8cb12ebe2a8907c6dea6d57f97bdbeb75bfd9cccd0b"
+      "hash": "c1d5c038c4d884f56b87c16ea7882a9147017090327372696b2a30d08e781d20"
     },
     {
       "region": "hall",
       "material": "Side hall roof tiles",
-      "hash": "fafe6902c534a264315a7765111e5bf39db8d02f2d5d10284ffa4c22f630c0d3"
+      "hash": "0a0e58e8b6cf926bceb2951b35fae462af25c201d1ed86b5532b9aea31326179"
     },
     {
       "region": "hall",
       "material": "Snow settled dry grains",
-      "hash": "2872726a007d1c7f56e833ce15dc637ef3f49ec127cc50c11836b7a9717a7d31"
+      "hash": "0d1abfd4ce58697ecffb25337dcbbb73577a76ebbe7d1b8d1e164c55458438a2"
     },
     {
       "region": "hall",
       "material": "Cloudy icicle ice",
-      "hash": "94e20b7096b68764593a3561a954c9cf83f492874bfcfb16f529e0c7778f1b86"
+      "hash": "fe9a99fa01e682cb81b4017239110b59024fafd219d312aa908718ac0d10f711"
     },
     {
       "region": "hall",
       "material": "chinese_console_table",
-      "hash": "23b2e292602a51f19720eb90f4fafc9b038579d60aa13aa1412f63d54fc3d40d"
+      "hash": "eafb6c236525f334dce49f903289f50120445aca6a9c52003a3480148e57c6b0"
     },
     {
       "region": "hall",
       "material": "chinese_screen_panels",
-      "hash": "b3766d4283e031375c7798f5cdffecc0f5c43df2207cdef8008faae47cbcbe66"
+      "hash": "b0e1248b9bdcd58bda3d6451db858e07f51c71414f5ae3e6c67dcbe3ef20a3a6"
     },
     {
       "region": "hall",
       "material": "chinese_screen_panels",
-      "hash": "992cc12114ed0df97ecd5a66943107594772297350590d3232d1d5931f9594e6"
+      "hash": "bb2e339e5dbd45dfb38bd086c1ac656a649cb36c51e9f2f9b794f7f997cafc9b"
     },
     {
       "region": "hall",
       "material": "chinese_screen_panels",
-      "hash": "d31a7a8afd9db5d41a5be3fae0e1864489178b3a61df46aa90abb5b3b0342162"
+      "hash": "9d990912ee23793a8bc34ca64de571370f66ffa8d4452764b89938d131d6631e"
     },
     {
       "region": "hall",
       "material": "Other lamps warm wick",
-      "hash": "bae980943cc94d8152e8cf7d1ffcbe378a2133d98a5cb6da87c1f66d1f47305e"
+      "hash": "50ed1c7d675999308df82891ee583c10f098824bb82af869d0831049458ee2b2"
     },
     {
       "region": "hall",
       "material": "Soft cold incense ash",
-      "hash": "08a9de416e2c7f98f8db5461d4fe5d37a7509c8d4be82b318a92c8c686f385a2"
+      "hash": "a17d444e63a3a31dd77ace3ec7eafccc55bd23f1ac4c201ee44fd77b87e2528d"
     },
     {
       "region": "hall",
       "material": "Soot-darkened clay",
-      "hash": "bd94e836f1da04063ed065c5021c68f52ce3de5ecb667de19900d67326f5784f"
+      "hash": "8fbb48805b621d8aa378cb2c3fe0677d5b700fe7284ac071d05389bc9567794b"
     },
     {
       "region": "hall",
       "material": "Worn woven cushion cloth",
-      "hash": "2d9d22c8d4210e7aea92c1f35cead25207f355c9a3b8e3a20d71caeebd1338fe"
+      "hash": "927887f1c27591708864fa00e3b940b4bc74e7ddbc2ff4a564c42215584c02ba"
     },
     {
       "region": "hall",
       "material": "Cushion stitched piping",
-      "hash": "6a251e94744a537deb6ec4d4f82e32e3fbc1d4a2e714a6b2deff0a5ec4efa6c0"
+      "hash": "9900d0cf6e2cd6155bc0e706a4f98bedabf814f00e080ca8a3e614949078d6c7"
     },
     {
       "region": "hall",
       "material": "Dry straw",
-      "hash": "7b09e44224ed0480e950b0ed6d2170c5431ceb92e6dfe212b3abaabe4afee1a9"
+      "hash": "b7acf724bcf7af3c5abf8ae9e1d3498467e0710a6379411fc52d4c5e38d8eb96"
     }
   ],
   "imagePayloadMultisetSha256": "504f5d340b09b43921ff81793c02767f408d6a139692c53fae60da0f81886282",
@@ -752,19 +752,19 @@
       "region": "hall",
       "material": "Dark old timber",
       "removedTriangles": 0,
-      "retainedTriangles": 70952,
-      "verticesBefore": 128921,
-      "verticesAfterPrune": 128921,
-      "verticesAfterWeld": 106039
+      "retainedTriangles": 71120,
+      "verticesBefore": 129180,
+      "verticesAfterPrune": 129180,
+      "verticesAfterWeld": 106272
     },
     {
       "region": "hall",
       "material": "Aged bronze",
       "removedTriangles": 0,
-      "retainedTriangles": 10360,
-      "verticesBefore": 15555,
-      "verticesAfterPrune": 15555,
-      "verticesAfterWeld": 12791
+      "retainedTriangles": 10504,
+      "verticesBefore": 15775,
+      "verticesAfterPrune": 15775,
+      "verticesAfterWeld": 12997
     },
     {
       "region": "hall",
@@ -816,8 +816,8 @@
       "material": "chinese_console_table",
       "removedTriangles": 0,
       "retainedTriangles": 13648,
-      "verticesBefore": 15972,
-      "verticesAfterPrune": 15972,
+      "verticesBefore": 15965,
+      "verticesAfterPrune": 15965,
       "verticesAfterWeld": 15308
     },
     {
@@ -834,8 +834,8 @@
       "material": "chinese_screen_panels",
       "removedTriangles": 0,
       "retainedTriangles": 364,
-      "verticesBefore": 541,
-      "verticesAfterPrune": 541,
+      "verticesBefore": 543,
+      "verticesAfterPrune": 543,
       "verticesAfterWeld": 478
     },
     {
@@ -852,9 +852,9 @@
       "material": "Other lamps warm wick",
       "removedTriangles": 0,
       "retainedTriangles": 288,
-      "verticesBefore": 458,
-      "verticesAfterPrune": 458,
-      "verticesAfterWeld": 322
+      "verticesBefore": 462,
+      "verticesAfterPrune": 462,
+      "verticesAfterWeld": 326
     },
     {
       "region": "hall",
@@ -870,8 +870,8 @@
       "material": "Soot-darkened clay",
       "removedTriangles": 0,
       "retainedTriangles": 1284,
-      "verticesBefore": 1965,
-      "verticesAfterPrune": 1965,
+      "verticesBefore": 1983,
+      "verticesAfterPrune": 1983,
       "verticesAfterWeld": 1518
     },
     {
@@ -888,25 +888,25 @@
       "material": "Cushion stitched piping",
       "removedTriangles": 0,
       "retainedTriangles": 2880,
-      "verticesBefore": 5606,
-      "verticesAfterPrune": 5606,
-      "verticesAfterWeld": 4101
+      "verticesBefore": 5656,
+      "verticesAfterPrune": 5656,
+      "verticesAfterWeld": 4099
     },
     {
       "region": "hall",
       "material": "Dry straw",
       "removedTriangles": 0,
       "retainedTriangles": 1260,
-      "verticesBefore": 2728,
-      "verticesAfterPrune": 2728,
-      "verticesAfterWeld": 1921
+      "verticesBefore": 2721,
+      "verticesAfterPrune": 2721,
+      "verticesAfterWeld": 1913
     }
   ],
   "generator": "scripts/prune-float32-baked.mjs",
-  "generatorSha256": "34876bdd434f44d29ebbd2eab479ed32568c23e5844c1bdd5c60fd2f2888d02b",
+  "generatorSha256": "babd2f7a7a1d257a37ddd79e020bad2e4084847d3bdf956ac6b65d54854d1271",
   "adoption": "Separate art/build candidate only. Authored/bake geometry and public assets remain intact; runtime optical/performance review required.",
   "profile": {
-    "path": "art/blender/proofs/snow-roof-final-float32-export-profile.json",
+    "path": "art/build/snow-roof-resting-contacts-float32-optimized-stage/export-profile.json",
     "operation": "fresh measured genuine F32 profile"
   }
 }

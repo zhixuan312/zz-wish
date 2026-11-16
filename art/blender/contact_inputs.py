@@ -28,11 +28,23 @@ def load_profile(path):
         raise RuntimeError('Source, prepared, raw, genuine F32 and independent correspondence bindings are required.')
     paths = {key: resolve_binding(value) for key, value in profile['inputs'].items()}
     correspondence = json.loads(paths['independentExactF32PositionProof'].read_text())
-    if (not correspondence.get('worldPositionsExactlyAuthored')
-            or correspondence.get('positionComponentType') != 5126
-            or correspondence.get('positionNormalized') is not False
-            or correspondence.get('inputs', {}).get('raw') != profile['inputs']['raw']['sha256']
-            or correspondence.get('inputs', {}).get('candidate') != profile['inputs']['f32Diagnostic']['sha256']):
+    legacy_inputs = correspondence.get('inputs', {})
+    legacy = (isinstance(legacy_inputs, dict)
+              and correspondence.get('worldPositionsExactlyAuthored') is True
+              and correspondence.get('positionComponentType') == 5126
+              and correspondence.get('positionNormalized') is False
+              and legacy_inputs.get('raw') == profile['inputs']['raw']['sha256']
+              and legacy_inputs.get('candidate') == profile['inputs']['f32Diagnostic']['sha256'])
+    measured_inputs = correspondence.get('inputs', [])
+    measured = {(ROOT / item['path']).resolve(): item['sha256'] for item in measured_inputs} if isinstance(measured_inputs, list) else {}
+    contact_chain = (correspondence.get('contactTestedRawToActualRawToFloat32WorldPositionsAndWindingExact') is True
+                     and correspondence.get('allFloat32PositionsComponent5126NonNormalized') is True
+                     and correspondence.get('sourceAnchorStringsByteExact') is True
+                     and correspondence.get('allCompleteActualRawSceneExtrasByteExact') is True
+                     and correspondence.get('sourceBlendSha256') == profile['inputs']['source']['sha256']
+                     and measured.get(paths['raw']) == profile['inputs']['raw']['sha256']
+                     and measured.get(paths['f32Diagnostic']) == profile['inputs']['f32Diagnostic']['sha256'])
+    if not (legacy or contact_chain):
         raise RuntimeError('Independent F32 proof does not certify these actual raw/candidate inputs.')
     coverage = profile.get('coverage', {})
     if set(coverage) != {'hall', 'court'}:

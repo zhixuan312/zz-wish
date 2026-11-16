@@ -2,17 +2,17 @@
   "policy": "certified-hidden-centres-nearest-visible-same-chart-owner-euclidean8-v1",
   "scope": "Only certified hidden base recipients change. All uncertified/visible original denoised base RGBA samples remain bit-exact. No re-OIDN or new transport. KTX is lossy and its decoded block neighborhoods are measured separately.",
   "classification": {
-    "path": "art/build/fringe-geometry-diagnosis/contact-visibility-classification.json",
-    "sha256": "f47b949e90dd75729d3ace5fafb83122c0d589c84412457ee2f7c6634edadead",
-    "maskSha256": "1eda91ccc6227c3ccb94d7a641d4b1cd0ecd373ad31d0ce6b3b5931ddf371fd5"
+    "path": "art/build/snow-roof-resting-contacts-contact-domain-stage/contact-visibility-classification.json",
+    "sha256": "0f24b0399277e21182d6e94d04cee23e007a003f2d549e118c9ddfa36f6b1f27",
+    "maskSha256": "8ad88795edc360b26a3d3639f0b06c024d5457ec66bad59c5815e0bbb134c349"
   },
   "donorMetadata": {
-    "path": "art/build/fringe-geometry-diagnosis/contact-valid-donors.json",
-    "sha256": "cbaeba03ac2ff63f951df130ff4e3e810da8b4cb198cbd0ab0ebd0e013dbc18f",
-    "dataSha256": "8d1a971300ff6af23a49a2c0b2cf4a3e87c903db704c436ec4d07ca60e4f2fa5"
+    "path": "art/build/snow-roof-resting-contacts-contact-domain-stage/contact-valid-donors.json",
+    "sha256": "4da82700453bdc304ed3087d8dd5ed908e5f2dc93528352045460a6ea546db40",
+    "dataSha256": "c8fa39e0926963bf46a029a0e26ac467ee854446bcce2e754a87838abe1d7e0d"
   },
   "geometry": {
-    "sha256": "e41a50e8cd5935d69f254514c7cac3c15fa1b1f640f9c4f0e8f351f220906217",
+    "sha256": "418321fff225ec70e67d34bb4c78957b9ddac7d983c91ac74aa97fce7c595028",
     "precision": "genuine FLOAT32, unpruned staging base; optimized production geometry is assembled separately"
   },
   "regions": {
@@ -39,16 +39,16 @@
       "uncertifiedAndVisibleBaseRGBAFloatBitsUnchanged": true,
       "derivedEXRRoundtripBitExact": true,
       "originalMasters": {
-        "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-final/court-night.exr": "46dacc79e2232f66fa44062d37180c4c64f58c0526751545b5739e34c77b6d79",
-        "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-final/court-night-raw.exr": "68b14764d1f0373027e520b9cf6f8bdcfe8ad9a8e81aff1f46205fec30a16c6d"
+        "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-resting-contacts-accepted-bake/court-night.exr": "1f14be569329bc57f28dc84de3922b49baa70a368eb88982c88fa5aa19922815",
+        "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-resting-contacts-accepted-bake/court-night-raw.exr": "4be254e7a55abef9bb457626802e879a6408e02105b19b619a224f5a2177d336"
       },
       "derivedMaster": {
         "source": "court-night-contact-padding.exr",
-        "sha256": "d679282bc038914e9172149aafbc60db8b26a7bcddc6bb4378b9a7fadc236111"
+        "sha256": "48b4809c2564494671a00ce1896359f027fbd5710166efd9e6e95f2a97d12d27"
       },
       "changedOutsideCertified": 0,
-      "ktxBytes": 6182072,
-      "ktxSha256": "1b7676ecae0b2cb5b1da4f43ee5ba9d4dca3ba4cf6e3b0b06082d6e1becfabe1"
+      "ktxBytes": 6182297,
+      "ktxSha256": "0fa0f9e93da03daf43b282fcf6596834d4906f92a143cafdcb2c8f83803605f1"
     },
     "court/dusk": {
       "certifiedRecipients": 8098,
@@ -59,16 +59,16 @@
       "uncertifiedAndVisibleBaseRGBAFloatBitsUnchanged": true,
       "derivedEXRRoundtripBitExact": true,
       "originalMasters": {
-        "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-final/court-dusk.exr": "8bbf826ab7773beb49381d5d34ba1bdfc69dd07daf6a5c1b91ddc921a8c906c1",
-        "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-final/court-dusk-raw.exr": "160c5add9a3aa1db905f6b89c341d3387f25730629aaf1de21a1f9d9403693da"
+        "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-resting-contacts-accepted-bake/court-dusk.exr": "f1163d91ed9c84942268a028a79cd4e36d9813dd940a6e5d7f91e17464edf9fa",
+        "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-resting-contacts-accepted-bake/court-dusk-raw.exr": "36e66a17e5b5372ccb2ffe9db485b11e881627d548f59793ed3e785b921447f9"
       },
       "derivedMaster": {
         "source": "court-dusk-contact-padding.exr",
-        "sha256": "4cb5733b4a3405594e0f6bf7888b2d21e2662e7dad2b26beefa16be4fcebd0ba"
+        "sha256": "3d2ad02db45616a92707c85b9003e09c959cf0951e93e223544f8e361a3317a7"
       },
       "changedOutsideCertified": 0,
-      "ktxBytes": 5543497,
-      "ktxSha256": "51582548f75f419d28d369fd4c7c943f463db859295795745c219d90d22359c3"
+      "ktxBytes": 5543653,
+      "ktxSha256": "102b7d99e65d860703d4f12c5e746f38db23b0f70194324df1fa281d4ed5632d"
     },
     "court/day": {
       "certifiedRecipients": 8098,
@@ -79,16 +79,16 @@
       "uncertifiedAndVisibleBaseRGBAFloatBitsUnchanged": true,
       "derivedEXRRoundtripBitExact": true,
       "originalMasters": {
-        "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-final/court-day.exr": "99b30cbc50c75933febd6a52b458c31f789a924a22f995b425e90249b733ae7c",
-        "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-final/court-day-raw.exr": "6d3da30300bd617284e60177abd65aeda36f6684857de76af0fd3cdecae4cf63"
+        "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-resting-contacts-accepted-bake/court-day.exr": "85836188f6278cd34243871d55afc8b343abef6e21bdd4074e873f9214522222",
+        "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-resting-contacts-accepted-bake/court-day-raw.exr": "50c6bcda50c03ec9af15b8e3a305c32c7a11c2ea08f83ac22c65cff8a52b9dab"
       },
       "derivedMaster": {
         "source": "court-day-contact-padding.exr",
-        "sha256": "4af6b45f1c846c5c4f2cba6065d2b3fea0753cd494271ed692fac29ea617ae90"
+        "sha256": "c6aaeffcd0a41a5455a07ea7d9c5cdc04b1e14ee476860c1e01168f7070da47d"
       },
       "changedOutsideCertified": 0,
-      "ktxBytes": 5520375,
-      "ktxSha256": "db8cb556b4b04345190d6ca34b497783d742e66e6a430b530c06053cf6941633"
+      "ktxBytes": 5520655,
+      "ktxSha256": "9e4ff36947525280fbda45eb03c6ae5378cd6bda3e9519e5d84ae5de8d4a067b"
     },
     "court/lamp": {
       "certifiedRecipients": 8098,
@@ -99,16 +99,16 @@
       "uncertifiedAndVisibleBaseRGBAFloatBitsUnchanged": true,
       "derivedEXRRoundtripBitExact": true,
       "originalMasters": {
-        "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-final/court-lamp.exr": "aa5f141438531116183b1de98b5e1af890bf1405aa92d4f37475caff9df25ab2",
-        "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-final/court-lamp-raw.exr": "17d1f42fbd024a77e9103ad17ee08ce4e2f033ae4693fdb45f2001b1fdd877f4"
+        "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-resting-contacts-accepted-bake/court-lamp.exr": "ab3a1d7ffea57d491b823c2c6471d05dc9bf058d42e2d7d2b45fa905443fee91",
+        "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-resting-contacts-accepted-bake/court-lamp-raw.exr": "6aecfa47a4b5adc5ecc49a5e5e152a38e36b432dc80d6adef131e5a78746c048"
       },
       "derivedMaster": {
         "source": "court-lamp-contact-padding.exr",
-        "sha256": "90ecdf10d924fc6f28312e82922e1652338789f747739b7c0133b6c23c971ee5"
+        "sha256": "d199e5cbf233af1b5a84930b36c9d4eaaf91962ea98fb25b2e65c7b30a814f49"
       },
       "changedOutsideCertified": 0,
-      "ktxBytes": 1102677,
-      "ktxSha256": "042403a98f0016dfab760333034624707ad7595a6c63a404fb9e4787b828aa9e"
+      "ktxBytes": 1102741,
+      "ktxSha256": "e0c418b1763faba6e3bdea4a4439b80adc8806121bd0833f270b18b8708ad16a"
     },
     "hall/night": {
       "certifiedRecipients": 1700,
@@ -119,16 +119,16 @@
       "uncertifiedAndVisibleBaseRGBAFloatBitsUnchanged": true,
       "derivedEXRRoundtripBitExact": true,
       "originalMasters": {
-        "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-final/hall-night.exr": "b77e9fa239e1c2285989ad4e7a6a66382e672499d076e71f93e14bb3096898b4",
-        "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-final/hall-night-raw.exr": "80352ba57cd2f7cb2d7cbfe08d9fce8b4ab6727aa9ced42142f98fde3295663e"
+        "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-resting-contacts-accepted-bake/hall-night.exr": "89e36ecf9590d0590b723db80137d31f9fd78b4da7092be4bc81ddf6e401fcd5",
+        "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-resting-contacts-accepted-bake/hall-night-raw.exr": "63299bea2e211016ea6bcb829468b16e1dbbcd90ca532f4e9ebda3e2edd75ba5"
       },
       "derivedMaster": {
         "source": "hall-night-contact-padding.exr",
-        "sha256": "bfc9e1567351478267c065f7208407fa17d73774f1cd96ea49764d9105b5e9b6"
+        "sha256": "35181c02ac4c1a6aaa8e84ef12055adaed5da6ed18d7e24f1e6fe6632a8ad647"
       },
       "changedOutsideCertified": 0,
-      "ktxBytes": 5653656,
-      "ktxSha256": "72a3ea803af5fe9e4e1a1f4de2d74aa17bddf2911aca94b5d492bed7ef02fe9f"
+      "ktxBytes": 5650836,
+      "ktxSha256": "5e533b0ac4cf471672f801a37ebd07f947886ea65be946ae92707ef6e801f244"
     },
     "hall/dusk": {
       "certifiedRecipients": 1700,
@@ -139,16 +139,16 @@
       "uncertifiedAndVisibleBaseRGBAFloatBitsUnchanged": true,
       "derivedEXRRoundtripBitExact": true,
       "originalMasters": {
-        "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-final/hall-dusk.exr": "5a60afb392734e7492e494e93d1684da3a69a219a8dae607522d148aee606e15",
-        "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-final/hall-dusk-raw.exr": "8f0f9dba4420dcf6f1a80564388d5098bfc03fc41b3b7316418eb3ee5d4a3fc6"
+        "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-resting-contacts-accepted-bake/hall-dusk.exr": "1af772c3ef3cd91f7ed3591de2af13aa611c69fa749ab60587acffdb58a4204c",
+        "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-resting-contacts-accepted-bake/hall-dusk-raw.exr": "0c3eb47e761877d9c6208f78d1917ff97f907f5e8f4dd0d91cf6e4f459dbd26e"
       },
       "derivedMaster": {
         "source": "hall-dusk-contact-padding.exr",
-        "sha256": "ccbe4c2f2cf99ccd2880e3f4f38d8480d5c3e23eca8fd929602687486f876021"
+        "sha256": "2e44aa9597da0522096630cd2e623fae07d5be97be5a14ccadb765b6a030fc12"
       },
       "changedOutsideCertified": 0,
-      "ktxBytes": 5665158,
-      "ktxSha256": "1bcf9fc7d1ba7e8618e3560717ed15f3798d52178183888eb8d0923f63d6b106"
+      "ktxBytes": 5668335,
+      "ktxSha256": "69bf7b28b919f240afca0860faf29cf2867e165327b721d43659599662e8a735"
     },
     "hall/day": {
       "certifiedRecipients": 1700,
@@ -159,16 +159,16 @@
       "uncertifiedAndVisibleBaseRGBAFloatBitsUnchanged": true,
       "derivedEXRRoundtripBitExact": true,
       "originalMasters": {
-        "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-final/hall-day.exr": "17b529a1d658d3bde88901dc34deb3c105ddfc22b64b53c9f0ce9ef2f55e29a1",
-        "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-final/hall-day-raw.exr": "07ced0d004bc80c3c0feeefce2380fd5494928a19ffdbb16d4b5cc1e8e61e0bb"
+        "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-resting-contacts-accepted-bake/hall-day.exr": "fa27317a81999cc4407c1335620c9ed2d08e030212a2668efd4393495e773f57",
+        "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-resting-contacts-accepted-bake/hall-day-raw.exr": "e9a094e7876daeb51b4c55735275d9ff31a9c3010f0adb7e96aa62a493c8e2ba"
       },
       "derivedMaster": {
         "source": "hall-day-contact-padding.exr",
-        "sha256": "bde4bcaaf11808228a3e6fc360f56e007c4feea1c9babef6636bf1ef89ca27d8"
+        "sha256": "312be5a5db46d7e3cb1492ae5f1252f269bd5dbdd15f970ca8baf3c150d670e0"
       },
       "changedOutsideCertified": 0,
-      "ktxBytes": 5755827,
-      "ktxSha256": "7266546fb2ec434c9e365c307b5a1c5db8950850410bb5e7bcfe151fda4db3b9"
+      "ktxBytes": 5755457,
+      "ktxSha256": "7f7fe1810df116c9b76ede3fed6a254c3d70243d2ed1d9898300fa21f6b6e873"
     },
     "hall/lamp": {
       "certifiedRecipients": 1700,
@@ -179,16 +179,16 @@
       "uncertifiedAndVisibleBaseRGBAFloatBitsUnchanged": true,
       "derivedEXRRoundtripBitExact": true,
       "originalMasters": {
-        "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-final/hall-lamp.exr": "222fe7c452bd5e48175cea7538e5848545d9dde7fd034538fef0c216e764f040",
-        "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-final/hall-lamp-raw.exr": "ba0587cbb1ae74bab4a8443f6aa3bc3bc128aeecdcb501a842533631e88f5676"
+        "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-resting-contacts-accepted-bake/hall-lamp.exr": "15eccb0359b3f2f090113d1c420383466634addc2c836a9facb0fb46acfeba0b",
+        "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-resting-contacts-accepted-bake/hall-lamp-raw.exr": "9d173f7c32418918934b411606d47cbfeb2b50c16248b2ceb2c23e81f986ac82"
       },
       "derivedMaster": {
         "source": "hall-lamp-contact-padding.exr",
-        "sha256": "ab3d52e9cb089698708ffaf851af9955d32736a9b9d4682cf3878862747d596d"
+        "sha256": "ff723ff1d7e01987a3d5c7cea82fd5d62539c81be13de5c4788ecd4a40ea68cc"
       },
       "changedOutsideCertified": 0,
-      "ktxBytes": 2661056,
-      "ktxSha256": "6cad627255abf75d628cef56379d11cc498e62f2ed7ff82d77722bee30129629"
+      "ktxBytes": 2672460,
+      "ktxSha256": "e9e663ad65d27860dd490059dc8a171a56bbede613e47f6fb6859fb6a066b1a8"
     }
   },
   "passes": [
@@ -199,7 +199,7 @@
   ],
   "changedProof": "changed-texels.npz",
   "noRadianceThreshold": true,
-  "scriptSha256": "28a2b6ff30e885d1e4908902155cd492cdb20c979f001471bc44351a0d3fef21",
-  "sourceBakeFingerprint": "bd24db11cb82a6128fbd04160f73abac416dd60b392c8276a063c8b4df3695a0",
-  "changedProofSha256": "74159f5b1083412038a6485eb04e08f0506bf5f39deb2a999cfb94e93be5d3fd"
+  "scriptSha256": "10b2806a791a6c29b3e1b2ad6be8c6c41a10d42183e534ecbc1befbef262be11",
+  "sourceBakeFingerprint": "0ffdd3b3c38387ba15ea8c86fe93715fd3699c93d6c082702f4b2881858d8350",
+  "changedProofSha256": "a4b0342172763b22b131306e93fd6b925168c7bccfd7e849ce6d0b3875f57256"
 }

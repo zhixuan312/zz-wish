@@ -8,13 +8,39 @@ export function createGeometryControls({ renderer, camera, getPlace }) {
     const place = getPlace(), entries = [];
     place?.G?.updateMatrixWorld(true);
     place?.G?.traverse(object => {
+      for (const emitter of object.userData.captureSmokeEmitters ?? []) entries.push({ role: 'static-fixture-smoke-emitter', type: object.type,
+        localPosition: emitter.localPosition, worldPosition: object.localToWorld(new THREE.Vector3(...emitter.localPosition)).toArray(),
+        positionEvidence: 'Exact smokeAt emission argument, transformed through the actual live parent; not a moving puff position.' });
       if (!object.userData.captureRole?.startsWith('static-fixture-')) return;
       entries.push({ role: object.userData.captureRole, type: object.type, name: object.name,
         localPosition: object.position.toArray(), worldPosition: object.getWorldPosition(new THREE.Vector3()).toArray(),
         children: object.children.map(child => ({ type: child.type, name: child.name, localPosition: child.position.toArray(), worldPosition: child.getWorldPosition(new THREE.Vector3()).toArray() })) });
     });
-    return { sourceSceneExtras: structuredClone(place?.baked?.group.userData ?? null), runtimeFixtures: entries,
-      note: 'Capture-only userData tags identify the actual liveFlame group anchor and specular PointLight. Positions are read from live world matrices; rendering and source anchors are unchanged.' };
+    const extras = structuredClone(place?.baked?.group.userData ?? null);
+    const parse = value => { try { return typeof value === 'string' ? JSON.parse(value) : value; } catch { return null; } };
+    const wicks = parse(extras?.static_lamp_wicks_engine), smoke = parse(extras?.static_incense_smoke_engine), tolerance = 1e-8;
+    const validPoint = point => Array.isArray(point) && point.length === 3 && point.every(Number.isFinite);
+    const matches = [];
+    const match = (expected, role, field) => {
+      const remaining = entries.filter(entry => entry.role === role);
+      for (const source of expected) {
+        const point = source[field];
+        const index = validPoint(point) && remaining.length ? remaining.map((entry, index) => ({ index, distance: Math.hypot(...entry.worldPosition.map((value, axis) => value - point[axis])) })).sort((a, b) => a.distance - b.distance)[0].index : -1;
+        const actual = index >= 0 ? remaining.splice(index, 1)[0] : null;
+        const maximumElementDelta = actual ? Math.max(...actual.worldPosition.map((value, axis) => Math.abs(value - point[axis]))) : null;
+        matches.push({ sourceName: source.name, role, comparedSourceField: field, expectedWorld: point ?? null, actualWorld: actual?.worldPosition ?? null, maximumElementDelta, passed: maximumElementDelta !== null && maximumElementDelta <= tolerance });
+      }
+    };
+    const sourceWicks = Array.isArray(wicks) ? wicks : [];
+    match(sourceWicks, 'static-fixture-live-flame', 'wickTip');
+    match(sourceWicks.filter(wick => wick.name?.startsWith('altar ')), 'static-fixture-specular', 'pointLight');
+    match([{ name: 'incense smoke emitter', static_incense_smoke_engine: smoke }], 'static-fixture-smoke-emitter', 'static_incense_smoke_engine');
+    const counts = Object.fromEntries(['static-fixture-live-flame', 'static-fixture-specular', 'static-fixture-smoke-emitter'].map(role => [role, entries.filter(entry => entry.role === role).length]));
+    const alignment = { toleranceMetres: tolerance, counts, matches,
+      passed: sourceWicks.length === 6 && counts['static-fixture-live-flame'] === 6 && counts['static-fixture-specular'] === 4 && counts['static-fixture-smoke-emitter'] === 1 && matches.every(item => item.passed),
+      contract: 'liveFlame group origin compares to source wickTip, never flameAnchor; flameParts internally raises its visible quad 2 mm. Specular PointLight compares to pointLight. Smoke compares to static_incense_smoke_engine through the real parent transform.' };
+    return { sourceSceneExtras: extras, runtimeFixtures: entries, alignment,
+      note: 'Capture-only userData tags identify live fixture groups, specular lights and smoke emission inputs. Values come from live transforms without changing rendering or authored source anchors.' };
   };
   let originalAutoUpdate = null;
   const materials = () => {

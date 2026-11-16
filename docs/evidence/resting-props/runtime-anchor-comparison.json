@@ -1,0 +1,2528 @@
+{
+  "source": {
+    "originalSceneSha256": "90d634eee0c8fb553dce074cef0531aace6d0be878766a4526f8b5ab09aedd56",
+    "manifestSha256": "9beed7157a74e41096bfb7bd94f62834a30d6df89cf4cf3979c1ffca62b9fb53",
+    "glbSha256": "49cbe07a5a0f407b3df31b82ef0c75e6995e471593d51527a276a3d22723ef88",
+    "descriptorSha256": "a64bb60b08c140209c5e2e24c75e20e8bce00bebee0018bf6c5e1c32d0c3a04c",
+    "aggregateSha256": "40817d61aad06d4fd6701b1b87a41d09d3c9d4d6353d8bb05acb0a0c453fd505"
+  },
+  "captureReport": {
+    "file": "artifacts/snow-resting-props/resting-props-after/report.json",
+    "sha256": "c357089a97839d96695731b468373329784685639e0bf78d1078cd5febdfac07"
+  },
+  "contract": "Six liveFlame group origins compare to source wickTip; four specular PointLight world positions compare to pointLight; smokeAt emission input is transformed through its real live parent and compared to static_incense_smoke_engine. The visible flame quad internally rises 2 mm; historical flameAnchor is not the liveFlame input.",
+  "heldViews": 12,
+  "measurements": 132,
+  "toleranceMetres": 1e-8,
+  "maximumElementDeltaMetres": 0,
+  "records": [
+    {
+      "viewport": "desktop-en",
+      "view": "burning",
+      "sourceName": "altar -1.45",
+      "role": "static-fixture-live-flame",
+      "comparedSourceField": "wickTip",
+      "expectedWorld": [
+        -1.450000286102295,
+        1.775967001914978,
+        -4.75
+      ],
+      "actualWorld": [
+        -1.450000286102295,
+        1.775967001914978,
+        -4.75
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "desktop-en",
+      "view": "burning",
+      "sourceName": "altar -0.95",
+      "role": "static-fixture-live-flame",
+      "comparedSourceField": "wickTip",
+      "expectedWorld": [
+        -0.9500002264976501,
+        1.7310870885849,
+        -4.75
+      ],
+      "actualWorld": [
+        -0.9500002264976501,
+        1.7310870885849,
+        -4.75
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "desktop-en",
+      "view": "burning",
+      "sourceName": "altar 0.95",
+      "role": "static-fixture-live-flame",
+      "comparedSourceField": "wickTip",
+      "expectedWorld": [
+        0.9500002264976501,
+        1.7310909032821655,
+        -4.75
+      ],
+      "actualWorld": [
+        0.9500002264976501,
+        1.7310909032821655,
+        -4.75
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "desktop-en",
+      "view": "burning",
+      "sourceName": "altar 1.45",
+      "role": "static-fixture-live-flame",
+      "comparedSourceField": "wickTip",
+      "expectedWorld": [
+        1.450000286102295,
+        1.7695926427841187,
+        -4.75
+      ],
+      "actualWorld": [
+        1.450000286102295,
+        1.7695926427841187,
+        -4.75
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "desktop-en",
+      "view": "burning",
+      "sourceName": "gate -1",
+      "role": "static-fixture-live-flame",
+      "comparedSourceField": "wickTip",
+      "expectedWorld": [
+        -2,
+        1.7400020360946655,
+        19.25
+      ],
+      "actualWorld": [
+        -2,
+        1.7400020360946655,
+        19.25
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "desktop-en",
+      "view": "burning",
+      "sourceName": "gate 1",
+      "role": "static-fixture-live-flame",
+      "comparedSourceField": "wickTip",
+      "expectedWorld": [
+        2,
+        1.7400020360946655,
+        19.25
+      ],
+      "actualWorld": [
+        2,
+        1.7400020360946655,
+        19.25
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "desktop-en",
+      "view": "burning",
+      "sourceName": "altar -1.45",
+      "role": "static-fixture-specular",
+      "comparedSourceField": "pointLight",
+      "expectedWorld": [
+        -1.4500000476837158,
+        1.8259673118591309,
+        -4.75
+      ],
+      "actualWorld": [
+        -1.4500000476837158,
+        1.8259673118591309,
+        -4.75
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "desktop-en",
+      "view": "burning",
+      "sourceName": "altar -0.95",
+      "role": "static-fixture-specular",
+      "comparedSourceField": "pointLight",
+      "expectedWorld": [
+        -0.949999988079071,
+        1.7810873985290527,
+        -4.75
+      ],
+      "actualWorld": [
+        -0.949999988079071,
+        1.7810873985290527,
+        -4.75
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "desktop-en",
+      "view": "burning",
+      "sourceName": "altar 0.95",
+      "role": "static-fixture-specular",
+      "comparedSourceField": "pointLight",
+      "expectedWorld": [
+        0.949999988079071,
+        1.7810912132263184,
+        -4.75
+      ],
+      "actualWorld": [
+        0.949999988079071,
+        1.7810912132263184,
+        -4.75
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "desktop-en",
+      "view": "burning",
+      "sourceName": "altar 1.45",
+      "role": "static-fixture-specular",
+      "comparedSourceField": "pointLight",
+      "expectedWorld": [
+        1.4500000476837158,
+        1.8195929527282715,
+        -4.75
+      ],
+      "actualWorld": [
+        1.4500000476837158,
+        1.8195929527282715,
+        -4.75
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "desktop-en",
+      "view": "burning",
+      "sourceName": "incense smoke emitter",
+      "role": "static-fixture-smoke-emitter",
+      "comparedSourceField": "static_incense_smoke_engine",
+      "expectedWorld": [
+        0.000003567896783351898,
+        1.970379114151001,
+        -4.849999904632568
+      ],
+      "actualWorld": [
+        0.000003567896783351898,
+        1.970379114151001,
+        -4.849999904632568
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "desktop-en",
+      "view": "low-altar-edge",
+      "sourceName": "altar -1.45",
+      "role": "static-fixture-live-flame",
+      "comparedSourceField": "wickTip",
+      "expectedWorld": [
+        -1.450000286102295,
+        1.775967001914978,
+        -4.75
+      ],
+      "actualWorld": [
+        -1.450000286102295,
+        1.775967001914978,
+        -4.75
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "desktop-en",
+      "view": "low-altar-edge",
+      "sourceName": "altar -0.95",
+      "role": "static-fixture-live-flame",
+      "comparedSourceField": "wickTip",
+      "expectedWorld": [
+        -0.9500002264976501,
+        1.7310870885849,
+        -4.75
+      ],
+      "actualWorld": [
+        -0.9500002264976501,
+        1.7310870885849,
+        -4.75
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "desktop-en",
+      "view": "low-altar-edge",
+      "sourceName": "altar 0.95",
+      "role": "static-fixture-live-flame",
+      "comparedSourceField": "wickTip",
+      "expectedWorld": [
+        0.9500002264976501,
+        1.7310909032821655,
+        -4.75
+      ],
+      "actualWorld": [
+        0.9500002264976501,
+        1.7310909032821655,
+        -4.75
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "desktop-en",
+      "view": "low-altar-edge",
+      "sourceName": "altar 1.45",
+      "role": "static-fixture-live-flame",
+      "comparedSourceField": "wickTip",
+      "expectedWorld": [
+        1.450000286102295,
+        1.7695926427841187,
+        -4.75
+      ],
+      "actualWorld": [
+        1.450000286102295,
+        1.7695926427841187,
+        -4.75
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "desktop-en",
+      "view": "low-altar-edge",
+      "sourceName": "gate -1",
+      "role": "static-fixture-live-flame",
+      "comparedSourceField": "wickTip",
+      "expectedWorld": [
+        -2,
+        1.7400020360946655,
+        19.25
+      ],
+      "actualWorld": [
+        -2,
+        1.7400020360946655,
+        19.25
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "desktop-en",
+      "view": "low-altar-edge",
+      "sourceName": "gate 1",
+      "role": "static-fixture-live-flame",
+      "comparedSourceField": "wickTip",
+      "expectedWorld": [
+        2,
+        1.7400020360946655,
+        19.25
+      ],
+      "actualWorld": [
+        2,
+        1.7400020360946655,
+        19.25
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "desktop-en",
+      "view": "low-altar-edge",
+      "sourceName": "altar -1.45",
+      "role": "static-fixture-specular",
+      "comparedSourceField": "pointLight",
+      "expectedWorld": [
+        -1.4500000476837158,
+        1.8259673118591309,
+        -4.75
+      ],
+      "actualWorld": [
+        -1.4500000476837158,
+        1.8259673118591309,
+        -4.75
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "desktop-en",
+      "view": "low-altar-edge",
+      "sourceName": "altar -0.95",
+      "role": "static-fixture-specular",
+      "comparedSourceField": "pointLight",
+      "expectedWorld": [
+        -0.949999988079071,
+        1.7810873985290527,
+        -4.75
+      ],
+      "actualWorld": [
+        -0.949999988079071,
+        1.7810873985290527,
+        -4.75
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "desktop-en",
+      "view": "low-altar-edge",
+      "sourceName": "altar 0.95",
+      "role": "static-fixture-specular",
+      "comparedSourceField": "pointLight",
+      "expectedWorld": [
+        0.949999988079071,
+        1.7810912132263184,
+        -4.75
+      ],
+      "actualWorld": [
+        0.949999988079071,
+        1.7810912132263184,
+        -4.75
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "desktop-en",
+      "view": "low-altar-edge",
+      "sourceName": "altar 1.45",
+      "role": "static-fixture-specular",
+      "comparedSourceField": "pointLight",
+      "expectedWorld": [
+        1.4500000476837158,
+        1.8195929527282715,
+        -4.75
+      ],
+      "actualWorld": [
+        1.4500000476837158,
+        1.8195929527282715,
+        -4.75
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "desktop-en",
+      "view": "low-altar-edge",
+      "sourceName": "incense smoke emitter",
+      "role": "static-fixture-smoke-emitter",
+      "comparedSourceField": "static_incense_smoke_engine",
+      "expectedWorld": [
+        0.000003567896783351898,
+        1.970379114151001,
+        -4.849999904632568
+      ],
+      "actualWorld": [
+        0.000003567896783351898,
+        1.970379114151001,
+        -4.849999904632568
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "desktop-en",
+      "view": "altar-left-contact",
+      "sourceName": "altar -1.45",
+      "role": "static-fixture-live-flame",
+      "comparedSourceField": "wickTip",
+      "expectedWorld": [
+        -1.450000286102295,
+        1.775967001914978,
+        -4.75
+      ],
+      "actualWorld": [
+        -1.450000286102295,
+        1.775967001914978,
+        -4.75
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "desktop-en",
+      "view": "altar-left-contact",
+      "sourceName": "altar -0.95",
+      "role": "static-fixture-live-flame",
+      "comparedSourceField": "wickTip",
+      "expectedWorld": [
+        -0.9500002264976501,
+        1.7310870885849,
+        -4.75
+      ],
+      "actualWorld": [
+        -0.9500002264976501,
+        1.7310870885849,
+        -4.75
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "desktop-en",
+      "view": "altar-left-contact",
+      "sourceName": "altar 0.95",
+      "role": "static-fixture-live-flame",
+      "comparedSourceField": "wickTip",
+      "expectedWorld": [
+        0.9500002264976501,
+        1.7310909032821655,
+        -4.75
+      ],
+      "actualWorld": [
+        0.9500002264976501,
+        1.7310909032821655,
+        -4.75
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "desktop-en",
+      "view": "altar-left-contact",
+      "sourceName": "altar 1.45",
+      "role": "static-fixture-live-flame",
+      "comparedSourceField": "wickTip",
+      "expectedWorld": [
+        1.450000286102295,
+        1.7695926427841187,
+        -4.75
+      ],
+      "actualWorld": [
+        1.450000286102295,
+        1.7695926427841187,
+        -4.75
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "desktop-en",
+      "view": "altar-left-contact",
+      "sourceName": "gate -1",
+      "role": "static-fixture-live-flame",
+      "comparedSourceField": "wickTip",
+      "expectedWorld": [
+        -2,
+        1.7400020360946655,
+        19.25
+      ],
+      "actualWorld": [
+        -2,
+        1.7400020360946655,
+        19.25
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "desktop-en",
+      "view": "altar-left-contact",
+      "sourceName": "gate 1",
+      "role": "static-fixture-live-flame",
+      "comparedSourceField": "wickTip",
+      "expectedWorld": [
+        2,
+        1.7400020360946655,
+        19.25
+      ],
+      "actualWorld": [
+        2,
+        1.7400020360946655,
+        19.25
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "desktop-en",
+      "view": "altar-left-contact",
+      "sourceName": "altar -1.45",
+      "role": "static-fixture-specular",
+      "comparedSourceField": "pointLight",
+      "expectedWorld": [
+        -1.4500000476837158,
+        1.8259673118591309,
+        -4.75
+      ],
+      "actualWorld": [
+        -1.4500000476837158,
+        1.8259673118591309,
+        -4.75
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "desktop-en",
+      "view": "altar-left-contact",
+      "sourceName": "altar -0.95",
+      "role": "static-fixture-specular",
+      "comparedSourceField": "pointLight",
+      "expectedWorld": [
+        -0.949999988079071,
+        1.7810873985290527,
+        -4.75
+      ],
+      "actualWorld": [
+        -0.949999988079071,
+        1.7810873985290527,
+        -4.75
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "desktop-en",
+      "view": "altar-left-contact",
+      "sourceName": "altar 0.95",
+      "role": "static-fixture-specular",
+      "comparedSourceField": "pointLight",
+      "expectedWorld": [
+        0.949999988079071,
+        1.7810912132263184,
+        -4.75
+      ],
+      "actualWorld": [
+        0.949999988079071,
+        1.7810912132263184,
+        -4.75
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "desktop-en",
+      "view": "altar-left-contact",
+      "sourceName": "altar 1.45",
+      "role": "static-fixture-specular",
+      "comparedSourceField": "pointLight",
+      "expectedWorld": [
+        1.4500000476837158,
+        1.8195929527282715,
+        -4.75
+      ],
+      "actualWorld": [
+        1.4500000476837158,
+        1.8195929527282715,
+        -4.75
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "desktop-en",
+      "view": "altar-left-contact",
+      "sourceName": "incense smoke emitter",
+      "role": "static-fixture-smoke-emitter",
+      "comparedSourceField": "static_incense_smoke_engine",
+      "expectedWorld": [
+        0.000003567896783351898,
+        1.970379114151001,
+        -4.849999904632568
+      ],
+      "actualWorld": [
+        0.000003567896783351898,
+        1.970379114151001,
+        -4.849999904632568
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "desktop-en",
+      "view": "altar-burner-contact",
+      "sourceName": "altar -1.45",
+      "role": "static-fixture-live-flame",
+      "comparedSourceField": "wickTip",
+      "expectedWorld": [
+        -1.450000286102295,
+        1.775967001914978,
+        -4.75
+      ],
+      "actualWorld": [
+        -1.450000286102295,
+        1.775967001914978,
+        -4.75
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "desktop-en",
+      "view": "altar-burner-contact",
+      "sourceName": "altar -0.95",
+      "role": "static-fixture-live-flame",
+      "comparedSourceField": "wickTip",
+      "expectedWorld": [
+        -0.9500002264976501,
+        1.7310870885849,
+        -4.75
+      ],
+      "actualWorld": [
+        -0.9500002264976501,
+        1.7310870885849,
+        -4.75
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "desktop-en",
+      "view": "altar-burner-contact",
+      "sourceName": "altar 0.95",
+      "role": "static-fixture-live-flame",
+      "comparedSourceField": "wickTip",
+      "expectedWorld": [
+        0.9500002264976501,
+        1.7310909032821655,
+        -4.75
+      ],
+      "actualWorld": [
+        0.9500002264976501,
+        1.7310909032821655,
+        -4.75
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "desktop-en",
+      "view": "altar-burner-contact",
+      "sourceName": "altar 1.45",
+      "role": "static-fixture-live-flame",
+      "comparedSourceField": "wickTip",
+      "expectedWorld": [
+        1.450000286102295,
+        1.7695926427841187,
+        -4.75
+      ],
+      "actualWorld": [
+        1.450000286102295,
+        1.7695926427841187,
+        -4.75
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "desktop-en",
+      "view": "altar-burner-contact",
+      "sourceName": "gate -1",
+      "role": "static-fixture-live-flame",
+      "comparedSourceField": "wickTip",
+      "expectedWorld": [
+        -2,
+        1.7400020360946655,
+        19.25
+      ],
+      "actualWorld": [
+        -2,
+        1.7400020360946655,
+        19.25
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "desktop-en",
+      "view": "altar-burner-contact",
+      "sourceName": "gate 1",
+      "role": "static-fixture-live-flame",
+      "comparedSourceField": "wickTip",
+      "expectedWorld": [
+        2,
+        1.7400020360946655,
+        19.25
+      ],
+      "actualWorld": [
+        2,
+        1.7400020360946655,
+        19.25
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "desktop-en",
+      "view": "altar-burner-contact",
+      "sourceName": "altar -1.45",
+      "role": "static-fixture-specular",
+      "comparedSourceField": "pointLight",
+      "expectedWorld": [
+        -1.4500000476837158,
+        1.8259673118591309,
+        -4.75
+      ],
+      "actualWorld": [
+        -1.4500000476837158,
+        1.8259673118591309,
+        -4.75
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "desktop-en",
+      "view": "altar-burner-contact",
+      "sourceName": "altar -0.95",
+      "role": "static-fixture-specular",
+      "comparedSourceField": "pointLight",
+      "expectedWorld": [
+        -0.949999988079071,
+        1.7810873985290527,
+        -4.75
+      ],
+      "actualWorld": [
+        -0.949999988079071,
+        1.7810873985290527,
+        -4.75
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "desktop-en",
+      "view": "altar-burner-contact",
+      "sourceName": "altar 0.95",
+      "role": "static-fixture-specular",
+      "comparedSourceField": "pointLight",
+      "expectedWorld": [
+        0.949999988079071,
+        1.7810912132263184,
+        -4.75
+      ],
+      "actualWorld": [
+        0.949999988079071,
+        1.7810912132263184,
+        -4.75
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "desktop-en",
+      "view": "altar-burner-contact",
+      "sourceName": "altar 1.45",
+      "role": "static-fixture-specular",
+      "comparedSourceField": "pointLight",
+      "expectedWorld": [
+        1.4500000476837158,
+        1.8195929527282715,
+        -4.75
+      ],
+      "actualWorld": [
+        1.4500000476837158,
+        1.8195929527282715,
+        -4.75
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "desktop-en",
+      "view": "altar-burner-contact",
+      "sourceName": "incense smoke emitter",
+      "role": "static-fixture-smoke-emitter",
+      "comparedSourceField": "static_incense_smoke_engine",
+      "expectedWorld": [
+        0.000003567896783351898,
+        1.970379114151001,
+        -4.849999904632568
+      ],
+      "actualWorld": [
+        0.000003567896783351898,
+        1.970379114151001,
+        -4.849999904632568
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "desktop-en",
+      "view": "altar-right-contact",
+      "sourceName": "altar -1.45",
+      "role": "static-fixture-live-flame",
+      "comparedSourceField": "wickTip",
+      "expectedWorld": [
+        -1.450000286102295,
+        1.775967001914978,
+        -4.75
+      ],
+      "actualWorld": [
+        -1.450000286102295,
+        1.775967001914978,
+        -4.75
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "desktop-en",
+      "view": "altar-right-contact",
+      "sourceName": "altar -0.95",
+      "role": "static-fixture-live-flame",
+      "comparedSourceField": "wickTip",
+      "expectedWorld": [
+        -0.9500002264976501,
+        1.7310870885849,
+        -4.75
+      ],
+      "actualWorld": [
+        -0.9500002264976501,
+        1.7310870885849,
+        -4.75
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "desktop-en",
+      "view": "altar-right-contact",
+      "sourceName": "altar 0.95",
+      "role": "static-fixture-live-flame",
+      "comparedSourceField": "wickTip",
+      "expectedWorld": [
+        0.9500002264976501,
+        1.7310909032821655,
+        -4.75
+      ],
+      "actualWorld": [
+        0.9500002264976501,
+        1.7310909032821655,
+        -4.75
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "desktop-en",
+      "view": "altar-right-contact",
+      "sourceName": "altar 1.45",
+      "role": "static-fixture-live-flame",
+      "comparedSourceField": "wickTip",
+      "expectedWorld": [
+        1.450000286102295,
+        1.7695926427841187,
+        -4.75
+      ],
+      "actualWorld": [
+        1.450000286102295,
+        1.7695926427841187,
+        -4.75
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "desktop-en",
+      "view": "altar-right-contact",
+      "sourceName": "gate -1",
+      "role": "static-fixture-live-flame",
+      "comparedSourceField": "wickTip",
+      "expectedWorld": [
+        -2,
+        1.7400020360946655,
+        19.25
+      ],
+      "actualWorld": [
+        -2,
+        1.7400020360946655,
+        19.25
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "desktop-en",
+      "view": "altar-right-contact",
+      "sourceName": "gate 1",
+      "role": "static-fixture-live-flame",
+      "comparedSourceField": "wickTip",
+      "expectedWorld": [
+        2,
+        1.7400020360946655,
+        19.25
+      ],
+      "actualWorld": [
+        2,
+        1.7400020360946655,
+        19.25
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "desktop-en",
+      "view": "altar-right-contact",
+      "sourceName": "altar -1.45",
+      "role": "static-fixture-specular",
+      "comparedSourceField": "pointLight",
+      "expectedWorld": [
+        -1.4500000476837158,
+        1.8259673118591309,
+        -4.75
+      ],
+      "actualWorld": [
+        -1.4500000476837158,
+        1.8259673118591309,
+        -4.75
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "desktop-en",
+      "view": "altar-right-contact",
+      "sourceName": "altar -0.95",
+      "role": "static-fixture-specular",
+      "comparedSourceField": "pointLight",
+      "expectedWorld": [
+        -0.949999988079071,
+        1.7810873985290527,
+        -4.75
+      ],
+      "actualWorld": [
+        -0.949999988079071,
+        1.7810873985290527,
+        -4.75
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "desktop-en",
+      "view": "altar-right-contact",
+      "sourceName": "altar 0.95",
+      "role": "static-fixture-specular",
+      "comparedSourceField": "pointLight",
+      "expectedWorld": [
+        0.949999988079071,
+        1.7810912132263184,
+        -4.75
+      ],
+      "actualWorld": [
+        0.949999988079071,
+        1.7810912132263184,
+        -4.75
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "desktop-en",
+      "view": "altar-right-contact",
+      "sourceName": "altar 1.45",
+      "role": "static-fixture-specular",
+      "comparedSourceField": "pointLight",
+      "expectedWorld": [
+        1.4500000476837158,
+        1.8195929527282715,
+        -4.75
+      ],
+      "actualWorld": [
+        1.4500000476837158,
+        1.8195929527282715,
+        -4.75
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "desktop-en",
+      "view": "altar-right-contact",
+      "sourceName": "incense smoke emitter",
+      "role": "static-fixture-smoke-emitter",
+      "comparedSourceField": "static_incense_smoke_engine",
+      "expectedWorld": [
+        0.000003567896783351898,
+        1.970379114151001,
+        -4.849999904632568
+      ],
+      "actualWorld": [
+        0.000003567896783351898,
+        1.970379114151001,
+        -4.849999904632568
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "desktop-en",
+      "view": "burnFar",
+      "sourceName": "altar -1.45",
+      "role": "static-fixture-live-flame",
+      "comparedSourceField": "wickTip",
+      "expectedWorld": [
+        -1.450000286102295,
+        1.775967001914978,
+        -4.75
+      ],
+      "actualWorld": [
+        -1.450000286102295,
+        1.775967001914978,
+        -4.75
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "desktop-en",
+      "view": "burnFar",
+      "sourceName": "altar -0.95",
+      "role": "static-fixture-live-flame",
+      "comparedSourceField": "wickTip",
+      "expectedWorld": [
+        -0.9500002264976501,
+        1.7310870885849,
+        -4.75
+      ],
+      "actualWorld": [
+        -0.9500002264976501,
+        1.7310870885849,
+        -4.75
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "desktop-en",
+      "view": "burnFar",
+      "sourceName": "altar 0.95",
+      "role": "static-fixture-live-flame",
+      "comparedSourceField": "wickTip",
+      "expectedWorld": [
+        0.9500002264976501,
+        1.7310909032821655,
+        -4.75
+      ],
+      "actualWorld": [
+        0.9500002264976501,
+        1.7310909032821655,
+        -4.75
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "desktop-en",
+      "view": "burnFar",
+      "sourceName": "altar 1.45",
+      "role": "static-fixture-live-flame",
+      "comparedSourceField": "wickTip",
+      "expectedWorld": [
+        1.450000286102295,
+        1.7695926427841187,
+        -4.75
+      ],
+      "actualWorld": [
+        1.450000286102295,
+        1.7695926427841187,
+        -4.75
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "desktop-en",
+      "view": "burnFar",
+      "sourceName": "gate -1",
+      "role": "static-fixture-live-flame",
+      "comparedSourceField": "wickTip",
+      "expectedWorld": [
+        -2,
+        1.7400020360946655,
+        19.25
+      ],
+      "actualWorld": [
+        -2,
+        1.7400020360946655,
+        19.25
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "desktop-en",
+      "view": "burnFar",
+      "sourceName": "gate 1",
+      "role": "static-fixture-live-flame",
+      "comparedSourceField": "wickTip",
+      "expectedWorld": [
+        2,
+        1.7400020360946655,
+        19.25
+      ],
+      "actualWorld": [
+        2,
+        1.7400020360946655,
+        19.25
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "desktop-en",
+      "view": "burnFar",
+      "sourceName": "altar -1.45",
+      "role": "static-fixture-specular",
+      "comparedSourceField": "pointLight",
+      "expectedWorld": [
+        -1.4500000476837158,
+        1.8259673118591309,
+        -4.75
+      ],
+      "actualWorld": [
+        -1.4500000476837158,
+        1.8259673118591309,
+        -4.75
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "desktop-en",
+      "view": "burnFar",
+      "sourceName": "altar -0.95",
+      "role": "static-fixture-specular",
+      "comparedSourceField": "pointLight",
+      "expectedWorld": [
+        -0.949999988079071,
+        1.7810873985290527,
+        -4.75
+      ],
+      "actualWorld": [
+        -0.949999988079071,
+        1.7810873985290527,
+        -4.75
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "desktop-en",
+      "view": "burnFar",
+      "sourceName": "altar 0.95",
+      "role": "static-fixture-specular",
+      "comparedSourceField": "pointLight",
+      "expectedWorld": [
+        0.949999988079071,
+        1.7810912132263184,
+        -4.75
+      ],
+      "actualWorld": [
+        0.949999988079071,
+        1.7810912132263184,
+        -4.75
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "desktop-en",
+      "view": "burnFar",
+      "sourceName": "altar 1.45",
+      "role": "static-fixture-specular",
+      "comparedSourceField": "pointLight",
+      "expectedWorld": [
+        1.4500000476837158,
+        1.8195929527282715,
+        -4.75
+      ],
+      "actualWorld": [
+        1.4500000476837158,
+        1.8195929527282715,
+        -4.75
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "desktop-en",
+      "view": "burnFar",
+      "sourceName": "incense smoke emitter",
+      "role": "static-fixture-smoke-emitter",
+      "comparedSourceField": "static_incense_smoke_engine",
+      "expectedWorld": [
+        0.000003567896783351898,
+        1.970379114151001,
+        -4.849999904632568
+      ],
+      "actualWorld": [
+        0.000003567896783351898,
+        1.970379114151001,
+        -4.849999904632568
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "phone-zh",
+      "view": "burning",
+      "sourceName": "altar -1.45",
+      "role": "static-fixture-live-flame",
+      "comparedSourceField": "wickTip",
+      "expectedWorld": [
+        -1.450000286102295,
+        1.775967001914978,
+        -4.75
+      ],
+      "actualWorld": [
+        -1.450000286102295,
+        1.775967001914978,
+        -4.75
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "phone-zh",
+      "view": "burning",
+      "sourceName": "altar -0.95",
+      "role": "static-fixture-live-flame",
+      "comparedSourceField": "wickTip",
+      "expectedWorld": [
+        -0.9500002264976501,
+        1.7310870885849,
+        -4.75
+      ],
+      "actualWorld": [
+        -0.9500002264976501,
+        1.7310870885849,
+        -4.75
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "phone-zh",
+      "view": "burning",
+      "sourceName": "altar 0.95",
+      "role": "static-fixture-live-flame",
+      "comparedSourceField": "wickTip",
+      "expectedWorld": [
+        0.9500002264976501,
+        1.7310909032821655,
+        -4.75
+      ],
+      "actualWorld": [
+        0.9500002264976501,
+        1.7310909032821655,
+        -4.75
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "phone-zh",
+      "view": "burning",
+      "sourceName": "altar 1.45",
+      "role": "static-fixture-live-flame",
+      "comparedSourceField": "wickTip",
+      "expectedWorld": [
+        1.450000286102295,
+        1.7695926427841187,
+        -4.75
+      ],
+      "actualWorld": [
+        1.450000286102295,
+        1.7695926427841187,
+        -4.75
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "phone-zh",
+      "view": "burning",
+      "sourceName": "gate -1",
+      "role": "static-fixture-live-flame",
+      "comparedSourceField": "wickTip",
+      "expectedWorld": [
+        -2,
+        1.7400020360946655,
+        19.25
+      ],
+      "actualWorld": [
+        -2,
+        1.7400020360946655,
+        19.25
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "phone-zh",
+      "view": "burning",
+      "sourceName": "gate 1",
+      "role": "static-fixture-live-flame",
+      "comparedSourceField": "wickTip",
+      "expectedWorld": [
+        2,
+        1.7400020360946655,
+        19.25
+      ],
+      "actualWorld": [
+        2,
+        1.7400020360946655,
+        19.25
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "phone-zh",
+      "view": "burning",
+      "sourceName": "altar -1.45",
+      "role": "static-fixture-specular",
+      "comparedSourceField": "pointLight",
+      "expectedWorld": [
+        -1.4500000476837158,
+        1.8259673118591309,
+        -4.75
+      ],
+      "actualWorld": [
+        -1.4500000476837158,
+        1.8259673118591309,
+        -4.75
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "phone-zh",
+      "view": "burning",
+      "sourceName": "altar -0.95",
+      "role": "static-fixture-specular",
+      "comparedSourceField": "pointLight",
+      "expectedWorld": [
+        -0.949999988079071,
+        1.7810873985290527,
+        -4.75
+      ],
+      "actualWorld": [
+        -0.949999988079071,
+        1.7810873985290527,
+        -4.75
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "phone-zh",
+      "view": "burning",
+      "sourceName": "altar 0.95",
+      "role": "static-fixture-specular",
+      "comparedSourceField": "pointLight",
+      "expectedWorld": [
+        0.949999988079071,
+        1.7810912132263184,
+        -4.75
+      ],
+      "actualWorld": [
+        0.949999988079071,
+        1.7810912132263184,
+        -4.75
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "phone-zh",
+      "view": "burning",
+      "sourceName": "altar 1.45",
+      "role": "static-fixture-specular",
+      "comparedSourceField": "pointLight",
+      "expectedWorld": [
+        1.4500000476837158,
+        1.8195929527282715,
+        -4.75
+      ],
+      "actualWorld": [
+        1.4500000476837158,
+        1.8195929527282715,
+        -4.75
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "phone-zh",
+      "view": "burning",
+      "sourceName": "incense smoke emitter",
+      "role": "static-fixture-smoke-emitter",
+      "comparedSourceField": "static_incense_smoke_engine",
+      "expectedWorld": [
+        0.000003567896783351898,
+        1.970379114151001,
+        -4.849999904632568
+      ],
+      "actualWorld": [
+        0.000003567896783351898,
+        1.970379114151001,
+        -4.849999904632568
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "phone-zh",
+      "view": "low-altar-edge",
+      "sourceName": "altar -1.45",
+      "role": "static-fixture-live-flame",
+      "comparedSourceField": "wickTip",
+      "expectedWorld": [
+        -1.450000286102295,
+        1.775967001914978,
+        -4.75
+      ],
+      "actualWorld": [
+        -1.450000286102295,
+        1.775967001914978,
+        -4.75
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "phone-zh",
+      "view": "low-altar-edge",
+      "sourceName": "altar -0.95",
+      "role": "static-fixture-live-flame",
+      "comparedSourceField": "wickTip",
+      "expectedWorld": [
+        -0.9500002264976501,
+        1.7310870885849,
+        -4.75
+      ],
+      "actualWorld": [
+        -0.9500002264976501,
+        1.7310870885849,
+        -4.75
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "phone-zh",
+      "view": "low-altar-edge",
+      "sourceName": "altar 0.95",
+      "role": "static-fixture-live-flame",
+      "comparedSourceField": "wickTip",
+      "expectedWorld": [
+        0.9500002264976501,
+        1.7310909032821655,
+        -4.75
+      ],
+      "actualWorld": [
+        0.9500002264976501,
+        1.7310909032821655,
+        -4.75
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "phone-zh",
+      "view": "low-altar-edge",
+      "sourceName": "altar 1.45",
+      "role": "static-fixture-live-flame",
+      "comparedSourceField": "wickTip",
+      "expectedWorld": [
+        1.450000286102295,
+        1.7695926427841187,
+        -4.75
+      ],
+      "actualWorld": [
+        1.450000286102295,
+        1.7695926427841187,
+        -4.75
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "phone-zh",
+      "view": "low-altar-edge",
+      "sourceName": "gate -1",
+      "role": "static-fixture-live-flame",
+      "comparedSourceField": "wickTip",
+      "expectedWorld": [
+        -2,
+        1.7400020360946655,
+        19.25
+      ],
+      "actualWorld": [
+        -2,
+        1.7400020360946655,
+        19.25
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "phone-zh",
+      "view": "low-altar-edge",
+      "sourceName": "gate 1",
+      "role": "static-fixture-live-flame",
+      "comparedSourceField": "wickTip",
+      "expectedWorld": [
+        2,
+        1.7400020360946655,
+        19.25
+      ],
+      "actualWorld": [
+        2,
+        1.7400020360946655,
+        19.25
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "phone-zh",
+      "view": "low-altar-edge",
+      "sourceName": "altar -1.45",
+      "role": "static-fixture-specular",
+      "comparedSourceField": "pointLight",
+      "expectedWorld": [
+        -1.4500000476837158,
+        1.8259673118591309,
+        -4.75
+      ],
+      "actualWorld": [
+        -1.4500000476837158,
+        1.8259673118591309,
+        -4.75
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "phone-zh",
+      "view": "low-altar-edge",
+      "sourceName": "altar -0.95",
+      "role": "static-fixture-specular",
+      "comparedSourceField": "pointLight",
+      "expectedWorld": [
+        -0.949999988079071,
+        1.7810873985290527,
+        -4.75
+      ],
+      "actualWorld": [
+        -0.949999988079071,
+        1.7810873985290527,
+        -4.75
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "phone-zh",
+      "view": "low-altar-edge",
+      "sourceName": "altar 0.95",
+      "role": "static-fixture-specular",
+      "comparedSourceField": "pointLight",
+      "expectedWorld": [
+        0.949999988079071,
+        1.7810912132263184,
+        -4.75
+      ],
+      "actualWorld": [
+        0.949999988079071,
+        1.7810912132263184,
+        -4.75
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "phone-zh",
+      "view": "low-altar-edge",
+      "sourceName": "altar 1.45",
+      "role": "static-fixture-specular",
+      "comparedSourceField": "pointLight",
+      "expectedWorld": [
+        1.4500000476837158,
+        1.8195929527282715,
+        -4.75
+      ],
+      "actualWorld": [
+        1.4500000476837158,
+        1.8195929527282715,
+        -4.75
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "phone-zh",
+      "view": "low-altar-edge",
+      "sourceName": "incense smoke emitter",
+      "role": "static-fixture-smoke-emitter",
+      "comparedSourceField": "static_incense_smoke_engine",
+      "expectedWorld": [
+        0.000003567896783351898,
+        1.970379114151001,
+        -4.849999904632568
+      ],
+      "actualWorld": [
+        0.000003567896783351898,
+        1.970379114151001,
+        -4.849999904632568
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "phone-zh",
+      "view": "altar-left-contact",
+      "sourceName": "altar -1.45",
+      "role": "static-fixture-live-flame",
+      "comparedSourceField": "wickTip",
+      "expectedWorld": [
+        -1.450000286102295,
+        1.775967001914978,
+        -4.75
+      ],
+      "actualWorld": [
+        -1.450000286102295,
+        1.775967001914978,
+        -4.75
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "phone-zh",
+      "view": "altar-left-contact",
+      "sourceName": "altar -0.95",
+      "role": "static-fixture-live-flame",
+      "comparedSourceField": "wickTip",
+      "expectedWorld": [
+        -0.9500002264976501,
+        1.7310870885849,
+        -4.75
+      ],
+      "actualWorld": [
+        -0.9500002264976501,
+        1.7310870885849,
+        -4.75
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "phone-zh",
+      "view": "altar-left-contact",
+      "sourceName": "altar 0.95",
+      "role": "static-fixture-live-flame",
+      "comparedSourceField": "wickTip",
+      "expectedWorld": [
+        0.9500002264976501,
+        1.7310909032821655,
+        -4.75
+      ],
+      "actualWorld": [
+        0.9500002264976501,
+        1.7310909032821655,
+        -4.75
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "phone-zh",
+      "view": "altar-left-contact",
+      "sourceName": "altar 1.45",
+      "role": "static-fixture-live-flame",
+      "comparedSourceField": "wickTip",
+      "expectedWorld": [
+        1.450000286102295,
+        1.7695926427841187,
+        -4.75
+      ],
+      "actualWorld": [
+        1.450000286102295,
+        1.7695926427841187,
+        -4.75
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "phone-zh",
+      "view": "altar-left-contact",
+      "sourceName": "gate -1",
+      "role": "static-fixture-live-flame",
+      "comparedSourceField": "wickTip",
+      "expectedWorld": [
+        -2,
+        1.7400020360946655,
+        19.25
+      ],
+      "actualWorld": [
+        -2,
+        1.7400020360946655,
+        19.25
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "phone-zh",
+      "view": "altar-left-contact",
+      "sourceName": "gate 1",
+      "role": "static-fixture-live-flame",
+      "comparedSourceField": "wickTip",
+      "expectedWorld": [
+        2,
+        1.7400020360946655,
+        19.25
+      ],
+      "actualWorld": [
+        2,
+        1.7400020360946655,
+        19.25
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "phone-zh",
+      "view": "altar-left-contact",
+      "sourceName": "altar -1.45",
+      "role": "static-fixture-specular",
+      "comparedSourceField": "pointLight",
+      "expectedWorld": [
+        -1.4500000476837158,
+        1.8259673118591309,
+        -4.75
+      ],
+      "actualWorld": [
+        -1.4500000476837158,
+        1.8259673118591309,
+        -4.75
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "phone-zh",
+      "view": "altar-left-contact",
+      "sourceName": "altar -0.95",
+      "role": "static-fixture-specular",
+      "comparedSourceField": "pointLight",
+      "expectedWorld": [
+        -0.949999988079071,
+        1.7810873985290527,
+        -4.75
+      ],
+      "actualWorld": [
+        -0.949999988079071,
+        1.7810873985290527,
+        -4.75
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "phone-zh",
+      "view": "altar-left-contact",
+      "sourceName": "altar 0.95",
+      "role": "static-fixture-specular",
+      "comparedSourceField": "pointLight",
+      "expectedWorld": [
+        0.949999988079071,
+        1.7810912132263184,
+        -4.75
+      ],
+      "actualWorld": [
+        0.949999988079071,
+        1.7810912132263184,
+        -4.75
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "phone-zh",
+      "view": "altar-left-contact",
+      "sourceName": "altar 1.45",
+      "role": "static-fixture-specular",
+      "comparedSourceField": "pointLight",
+      "expectedWorld": [
+        1.4500000476837158,
+        1.8195929527282715,
+        -4.75
+      ],
+      "actualWorld": [
+        1.4500000476837158,
+        1.8195929527282715,
+        -4.75
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "phone-zh",
+      "view": "altar-left-contact",
+      "sourceName": "incense smoke emitter",
+      "role": "static-fixture-smoke-emitter",
+      "comparedSourceField": "static_incense_smoke_engine",
+      "expectedWorld": [
+        0.000003567896783351898,
+        1.970379114151001,
+        -4.849999904632568
+      ],
+      "actualWorld": [
+        0.000003567896783351898,
+        1.970379114151001,
+        -4.849999904632568
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "phone-zh",
+      "view": "altar-burner-contact",
+      "sourceName": "altar -1.45",
+      "role": "static-fixture-live-flame",
+      "comparedSourceField": "wickTip",
+      "expectedWorld": [
+        -1.450000286102295,
+        1.775967001914978,
+        -4.75
+      ],
+      "actualWorld": [
+        -1.450000286102295,
+        1.775967001914978,
+        -4.75
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "phone-zh",
+      "view": "altar-burner-contact",
+      "sourceName": "altar -0.95",
+      "role": "static-fixture-live-flame",
+      "comparedSourceField": "wickTip",
+      "expectedWorld": [
+        -0.9500002264976501,
+        1.7310870885849,
+        -4.75
+      ],
+      "actualWorld": [
+        -0.9500002264976501,
+        1.7310870885849,
+        -4.75
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "phone-zh",
+      "view": "altar-burner-contact",
+      "sourceName": "altar 0.95",
+      "role": "static-fixture-live-flame",
+      "comparedSourceField": "wickTip",
+      "expectedWorld": [
+        0.9500002264976501,
+        1.7310909032821655,
+        -4.75
+      ],
+      "actualWorld": [
+        0.9500002264976501,
+        1.7310909032821655,
+        -4.75
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "phone-zh",
+      "view": "altar-burner-contact",
+      "sourceName": "altar 1.45",
+      "role": "static-fixture-live-flame",
+      "comparedSourceField": "wickTip",
+      "expectedWorld": [
+        1.450000286102295,
+        1.7695926427841187,
+        -4.75
+      ],
+      "actualWorld": [
+        1.450000286102295,
+        1.7695926427841187,
+        -4.75
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "phone-zh",
+      "view": "altar-burner-contact",
+      "sourceName": "gate -1",
+      "role": "static-fixture-live-flame",
+      "comparedSourceField": "wickTip",
+      "expectedWorld": [
+        -2,
+        1.7400020360946655,
+        19.25
+      ],
+      "actualWorld": [
+        -2,
+        1.7400020360946655,
+        19.25
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "phone-zh",
+      "view": "altar-burner-contact",
+      "sourceName": "gate 1",
+      "role": "static-fixture-live-flame",
+      "comparedSourceField": "wickTip",
+      "expectedWorld": [
+        2,
+        1.7400020360946655,
+        19.25
+      ],
+      "actualWorld": [
+        2,
+        1.7400020360946655,
+        19.25
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "phone-zh",
+      "view": "altar-burner-contact",
+      "sourceName": "altar -1.45",
+      "role": "static-fixture-specular",
+      "comparedSourceField": "pointLight",
+      "expectedWorld": [
+        -1.4500000476837158,
+        1.8259673118591309,
+        -4.75
+      ],
+      "actualWorld": [
+        -1.4500000476837158,
+        1.8259673118591309,
+        -4.75
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "phone-zh",
+      "view": "altar-burner-contact",
+      "sourceName": "altar -0.95",
+      "role": "static-fixture-specular",
+      "comparedSourceField": "pointLight",
+      "expectedWorld": [
+        -0.949999988079071,
+        1.7810873985290527,
+        -4.75
+      ],
+      "actualWorld": [
+        -0.949999988079071,
+        1.7810873985290527,
+        -4.75
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "phone-zh",
+      "view": "altar-burner-contact",
+      "sourceName": "altar 0.95",
+      "role": "static-fixture-specular",
+      "comparedSourceField": "pointLight",
+      "expectedWorld": [
+        0.949999988079071,
+        1.7810912132263184,
+        -4.75
+      ],
+      "actualWorld": [
+        0.949999988079071,
+        1.7810912132263184,
+        -4.75
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "phone-zh",
+      "view": "altar-burner-contact",
+      "sourceName": "altar 1.45",
+      "role": "static-fixture-specular",
+      "comparedSourceField": "pointLight",
+      "expectedWorld": [
+        1.4500000476837158,
+        1.8195929527282715,
+        -4.75
+      ],
+      "actualWorld": [
+        1.4500000476837158,
+        1.8195929527282715,
+        -4.75
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "phone-zh",
+      "view": "altar-burner-contact",
+      "sourceName": "incense smoke emitter",
+      "role": "static-fixture-smoke-emitter",
+      "comparedSourceField": "static_incense_smoke_engine",
+      "expectedWorld": [
+        0.000003567896783351898,
+        1.970379114151001,
+        -4.849999904632568
+      ],
+      "actualWorld": [
+        0.000003567896783351898,
+        1.970379114151001,
+        -4.849999904632568
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "phone-zh",
+      "view": "altar-right-contact",
+      "sourceName": "altar -1.45",
+      "role": "static-fixture-live-flame",
+      "comparedSourceField": "wickTip",
+      "expectedWorld": [
+        -1.450000286102295,
+        1.775967001914978,
+        -4.75
+      ],
+      "actualWorld": [
+        -1.450000286102295,
+        1.775967001914978,
+        -4.75
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "phone-zh",
+      "view": "altar-right-contact",
+      "sourceName": "altar -0.95",
+      "role": "static-fixture-live-flame",
+      "comparedSourceField": "wickTip",
+      "expectedWorld": [
+        -0.9500002264976501,
+        1.7310870885849,
+        -4.75
+      ],
+      "actualWorld": [
+        -0.9500002264976501,
+        1.7310870885849,
+        -4.75
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "phone-zh",
+      "view": "altar-right-contact",
+      "sourceName": "altar 0.95",
+      "role": "static-fixture-live-flame",
+      "comparedSourceField": "wickTip",
+      "expectedWorld": [
+        0.9500002264976501,
+        1.7310909032821655,
+        -4.75
+      ],
+      "actualWorld": [
+        0.9500002264976501,
+        1.7310909032821655,
+        -4.75
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "phone-zh",
+      "view": "altar-right-contact",
+      "sourceName": "altar 1.45",
+      "role": "static-fixture-live-flame",
+      "comparedSourceField": "wickTip",
+      "expectedWorld": [
+        1.450000286102295,
+        1.7695926427841187,
+        -4.75
+      ],
+      "actualWorld": [
+        1.450000286102295,
+        1.7695926427841187,
+        -4.75
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "phone-zh",
+      "view": "altar-right-contact",
+      "sourceName": "gate -1",
+      "role": "static-fixture-live-flame",
+      "comparedSourceField": "wickTip",
+      "expectedWorld": [
+        -2,
+        1.7400020360946655,
+        19.25
+      ],
+      "actualWorld": [
+        -2,
+        1.7400020360946655,
+        19.25
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "phone-zh",
+      "view": "altar-right-contact",
+      "sourceName": "gate 1",
+      "role": "static-fixture-live-flame",
+      "comparedSourceField": "wickTip",
+      "expectedWorld": [
+        2,
+        1.7400020360946655,
+        19.25
+      ],
+      "actualWorld": [
+        2,
+        1.7400020360946655,
+        19.25
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "phone-zh",
+      "view": "altar-right-contact",
+      "sourceName": "altar -1.45",
+      "role": "static-fixture-specular",
+      "comparedSourceField": "pointLight",
+      "expectedWorld": [
+        -1.4500000476837158,
+        1.8259673118591309,
+        -4.75
+      ],
+      "actualWorld": [
+        -1.4500000476837158,
+        1.8259673118591309,
+        -4.75
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "phone-zh",
+      "view": "altar-right-contact",
+      "sourceName": "altar -0.95",
+      "role": "static-fixture-specular",
+      "comparedSourceField": "pointLight",
+      "expectedWorld": [
+        -0.949999988079071,
+        1.7810873985290527,
+        -4.75
+      ],
+      "actualWorld": [
+        -0.949999988079071,
+        1.7810873985290527,
+        -4.75
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "phone-zh",
+      "view": "altar-right-contact",
+      "sourceName": "altar 0.95",
+      "role": "static-fixture-specular",
+      "comparedSourceField": "pointLight",
+      "expectedWorld": [
+        0.949999988079071,
+        1.7810912132263184,
+        -4.75
+      ],
+      "actualWorld": [
+        0.949999988079071,
+        1.7810912132263184,
+        -4.75
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "phone-zh",
+      "view": "altar-right-contact",
+      "sourceName": "altar 1.45",
+      "role": "static-fixture-specular",
+      "comparedSourceField": "pointLight",
+      "expectedWorld": [
+        1.4500000476837158,
+        1.8195929527282715,
+        -4.75
+      ],
+      "actualWorld": [
+        1.4500000476837158,
+        1.8195929527282715,
+        -4.75
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "phone-zh",
+      "view": "altar-right-contact",
+      "sourceName": "incense smoke emitter",
+      "role": "static-fixture-smoke-emitter",
+      "comparedSourceField": "static_incense_smoke_engine",
+      "expectedWorld": [
+        0.000003567896783351898,
+        1.970379114151001,
+        -4.849999904632568
+      ],
+      "actualWorld": [
+        0.000003567896783351898,
+        1.970379114151001,
+        -4.849999904632568
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "phone-zh",
+      "view": "burnFar",
+      "sourceName": "altar -1.45",
+      "role": "static-fixture-live-flame",
+      "comparedSourceField": "wickTip",
+      "expectedWorld": [
+        -1.450000286102295,
+        1.775967001914978,
+        -4.75
+      ],
+      "actualWorld": [
+        -1.450000286102295,
+        1.775967001914978,
+        -4.75
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "phone-zh",
+      "view": "burnFar",
+      "sourceName": "altar -0.95",
+      "role": "static-fixture-live-flame",
+      "comparedSourceField": "wickTip",
+      "expectedWorld": [
+        -0.9500002264976501,
+        1.7310870885849,
+        -4.75
+      ],
+      "actualWorld": [
+        -0.9500002264976501,
+        1.7310870885849,
+        -4.75
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "phone-zh",
+      "view": "burnFar",
+      "sourceName": "altar 0.95",
+      "role": "static-fixture-live-flame",
+      "comparedSourceField": "wickTip",
+      "expectedWorld": [
+        0.9500002264976501,
+        1.7310909032821655,
+        -4.75
+      ],
+      "actualWorld": [
+        0.9500002264976501,
+        1.7310909032821655,
+        -4.75
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "phone-zh",
+      "view": "burnFar",
+      "sourceName": "altar 1.45",
+      "role": "static-fixture-live-flame",
+      "comparedSourceField": "wickTip",
+      "expectedWorld": [
+        1.450000286102295,
+        1.7695926427841187,
+        -4.75
+      ],
+      "actualWorld": [
+        1.450000286102295,
+        1.7695926427841187,
+        -4.75
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "phone-zh",
+      "view": "burnFar",
+      "sourceName": "gate -1",
+      "role": "static-fixture-live-flame",
+      "comparedSourceField": "wickTip",
+      "expectedWorld": [
+        -2,
+        1.7400020360946655,
+        19.25
+      ],
+      "actualWorld": [
+        -2,
+        1.7400020360946655,
+        19.25
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "phone-zh",
+      "view": "burnFar",
+      "sourceName": "gate 1",
+      "role": "static-fixture-live-flame",
+      "comparedSourceField": "wickTip",
+      "expectedWorld": [
+        2,
+        1.7400020360946655,
+        19.25
+      ],
+      "actualWorld": [
+        2,
+        1.7400020360946655,
+        19.25
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "phone-zh",
+      "view": "burnFar",
+      "sourceName": "altar -1.45",
+      "role": "static-fixture-specular",
+      "comparedSourceField": "pointLight",
+      "expectedWorld": [
+        -1.4500000476837158,
+        1.8259673118591309,
+        -4.75
+      ],
+      "actualWorld": [
+        -1.4500000476837158,
+        1.8259673118591309,
+        -4.75
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "phone-zh",
+      "view": "burnFar",
+      "sourceName": "altar -0.95",
+      "role": "static-fixture-specular",
+      "comparedSourceField": "pointLight",
+      "expectedWorld": [
+        -0.949999988079071,
+        1.7810873985290527,
+        -4.75
+      ],
+      "actualWorld": [
+        -0.949999988079071,
+        1.7810873985290527,
+        -4.75
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "phone-zh",
+      "view": "burnFar",
+      "sourceName": "altar 0.95",
+      "role": "static-fixture-specular",
+      "comparedSourceField": "pointLight",
+      "expectedWorld": [
+        0.949999988079071,
+        1.7810912132263184,
+        -4.75
+      ],
+      "actualWorld": [
+        0.949999988079071,
+        1.7810912132263184,
+        -4.75
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "phone-zh",
+      "view": "burnFar",
+      "sourceName": "altar 1.45",
+      "role": "static-fixture-specular",
+      "comparedSourceField": "pointLight",
+      "expectedWorld": [
+        1.4500000476837158,
+        1.8195929527282715,
+        -4.75
+      ],
+      "actualWorld": [
+        1.4500000476837158,
+        1.8195929527282715,
+        -4.75
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    },
+    {
+      "viewport": "phone-zh",
+      "view": "burnFar",
+      "sourceName": "incense smoke emitter",
+      "role": "static-fixture-smoke-emitter",
+      "comparedSourceField": "static_incense_smoke_engine",
+      "expectedWorld": [
+        0.000003567896783351898,
+        1.970379114151001,
+        -4.849999904632568
+      ],
+      "actualWorld": [
+        0.000003567896783351898,
+        1.970379114151001,
+        -4.849999904632568
+      ],
+      "maximumElementDelta": 0,
+      "passed": true
+    }
+  ]
+}

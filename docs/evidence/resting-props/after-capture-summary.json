@@ -1,0 +1,927 @@
+{
+  "source": {
+    "originalSceneSha256": "90d634eee0c8fb553dce074cef0531aace6d0be878766a4526f8b5ab09aedd56",
+    "manifestSha256": "9beed7157a74e41096bfb7bd94f62834a30d6df89cf4cf3979c1ffca62b9fb53",
+    "glbSha256": "49cbe07a5a0f407b3df31b82ef0c75e6995e471593d51527a276a3d22723ef88",
+    "descriptorSha256": "a64bb60b08c140209c5e2e24c75e20e8bce00bebee0018bf6c5e1c32d0c3a04c",
+    "aggregateSha256": "40817d61aad06d4fd6701b1b87a41d09d3c9d4d6353d8bb05acb0a0c453fd505"
+  },
+  "sourceReport": {
+    "file": "artifacts/snow-resting-props/resting-props-after/report.json",
+    "sha256": "c357089a97839d96695731b468373329784685639e0bf78d1078cd5febdfac07"
+  },
+  "afterPNGs": 16,
+  "liveEndpointPNGsInOriginalReport": 4,
+  "durableAfterHeldPNGs": 12,
+  "durableBeforeAfterPNGs": 24,
+  "primaryTenSecondHolds": 6,
+  "runtimeErrors": [],
+  "httpErrors": [],
+  "sourceChanged": false,
+  "maximumFrozenRoiMeanPixelRmsDelta": 0,
+  "maximumHeldCameraElementDelta": 0,
+  "maximumHeldProjectionElementDelta": 0,
+  "maximumPairedCameraElementDelta": 0,
+  "maximumPairedProjectionElementDelta": 0,
+  "runtimeAnchors": {
+    "file": "runtime-anchor-comparison.json",
+    "sha256": "455bf1eb7c13d7a5343a89b2e711479d5d7f1d7d4eec1700808b345c9a5c19dd",
+    "actualMeasurements": 132,
+    "maximumElementDeltaMetres": 0
+  },
+  "actualProductEndpoints": [
+    {
+      "viewport": "desktop-en",
+      "view": "burning",
+      "actualRigPosition": [
+        0.18000000000000071,
+        2.22,
+        -2.3999999999999995
+      ],
+      "actualRigLook": [
+        0,
+        2.7,
+        0
+      ],
+      "actualRigFov": 40,
+      "actualRigPositionBeforeDelta": 0,
+      "actualRigLookBeforeDelta": 0,
+      "actualRigFovBeforeDelta": 0,
+      "ignition": {
+        "state": "settled",
+        "progress": 1,
+        "journey": 3,
+        "position": [
+          0.18000000000000071,
+          2.22,
+          -2.3999999999999995
+        ],
+        "look": [
+          0,
+          2.7,
+          0
+        ],
+        "fov": 40
+      }
+    },
+    {
+      "viewport": "desktop-en",
+      "view": "burnFar",
+      "actualRigPosition": [
+        0.17999999999999994,
+        2.22,
+        -3.556773268939201
+      ],
+      "actualRigLook": [
+        0,
+        2.5803337997649103,
+        0
+      ],
+      "actualRigFov": 33.617802654128546,
+      "actualRigPositionBeforeDelta": 0,
+      "actualRigLookBeforeDelta": 0,
+      "actualRigFovBeforeDelta": 0,
+      "ignition": {
+        "state": "settled",
+        "progress": 1,
+        "journey": 3,
+        "position": [
+          0.17999999999999994,
+          2.22,
+          -3.556773268939201
+        ],
+        "look": [
+          0,
+          2.5803337997649103,
+          0
+        ],
+        "fov": 33.617802654128546
+      }
+    },
+    {
+      "viewport": "phone-zh",
+      "view": "burning",
+      "actualRigPosition": [
+        0.18000000000000071,
+        2.22,
+        -2.3999999999999995
+      ],
+      "actualRigLook": [
+        0.085,
+        2.48,
+        0
+      ],
+      "actualRigFov": 56,
+      "actualRigPositionBeforeDelta": 0,
+      "actualRigLookBeforeDelta": 0,
+      "actualRigFovBeforeDelta": 0,
+      "ignition": {
+        "state": "settled",
+        "progress": 1,
+        "journey": 3,
+        "position": [
+          0.18000000000000071,
+          2.22,
+          -2.3999999999999995
+        ],
+        "look": [
+          0.085,
+          2.48,
+          0
+        ],
+        "fov": 56
+      }
+    },
+    {
+      "viewport": "phone-zh",
+      "view": "burnFar",
+      "actualRigPosition": [
+        0.17999999999999994,
+        2.22,
+        -3.556773268939201
+      ],
+      "actualRigLook": [
+        0.01718915320011581,
+        2.48,
+        0
+      ],
+      "actualRigFov": 46.42670398119282,
+      "actualRigPositionBeforeDelta": 0,
+      "actualRigLookBeforeDelta": 0,
+      "actualRigFovBeforeDelta": 0,
+      "ignition": {
+        "state": "settled",
+        "progress": 1,
+        "journey": 3,
+        "position": [
+          0.17999999999999994,
+          2.22,
+          -3.556773268939201
+        ],
+        "look": [
+          0.01718915320011581,
+          2.48,
+          0
+        ],
+        "fov": 46.42670398119282
+      }
+    }
+  ],
+  "holds": [
+    {
+      "viewport": "desktop-en",
+      "view": "burning",
+      "diagnostic": false,
+      "samples": 301,
+      "durationMs": 10031,
+      "physicalTime": 17,
+      "fuel": 1,
+      "rawFile": "artifacts/snow-resting-props/resting-props-after/desktop-en/burning.json",
+      "rawSha256": "53139b27a27c82d9b1daf51badc2fc87bf9cdc64fb478b5247d6dd336c5053d2",
+      "exposureRange": [
+        1,
+        1
+      ],
+      "controls": {
+        "lockCamera": true,
+        "freezeScene": true,
+        "freezeGrade": true,
+        "freezeDaylight": true,
+        "freezeFlame": true,
+        "freezeLampMotion": true,
+        "freezeShadows": false,
+        "freezeFuel": true,
+        "disableBloom": false,
+        "hideParticles": true
+      },
+      "visibleParticleObjectsRange": [
+        0,
+        0
+      ],
+      "roiMetrics": [
+        {
+          "name": "left_structure",
+          "type": "structure",
+          "meanPixelRmsDelta": 0
+        },
+        {
+          "name": "right_structure",
+          "type": "structure",
+          "meanPixelRmsDelta": 0
+        },
+        {
+          "name": "lower_floor",
+          "type": "structure",
+          "meanPixelRmsDelta": 0
+        },
+        {
+          "name": "upper_control",
+          "type": "sky_or_structure",
+          "meanPixelRmsDelta": 0
+        },
+        {
+          "name": "flame_control",
+          "type": "flame",
+          "meanPixelRmsDelta": 0
+        }
+      ]
+    },
+    {
+      "viewport": "desktop-en",
+      "view": "low-altar-edge",
+      "diagnostic": true,
+      "samples": 301,
+      "durationMs": 10014.799999952316,
+      "physicalTime": 17,
+      "fuel": 1,
+      "rawFile": "artifacts/snow-resting-props/resting-props-after/desktop-en/low-altar-edge.json",
+      "rawSha256": "f3f959b2cdb653b36b036839de8e872ec87ff1a74e638e6c0e08dd77d6fcbc37",
+      "exposureRange": [
+        1,
+        1
+      ],
+      "controls": {
+        "lockCamera": true,
+        "freezeScene": true,
+        "freezeGrade": true,
+        "freezeDaylight": true,
+        "freezeFlame": true,
+        "freezeLampMotion": true,
+        "freezeShadows": false,
+        "freezeFuel": true,
+        "disableBloom": false,
+        "hideParticles": true
+      },
+      "visibleParticleObjectsRange": [
+        0,
+        0
+      ],
+      "roiMetrics": [
+        {
+          "name": "left_structure",
+          "type": "structure",
+          "meanPixelRmsDelta": 0
+        },
+        {
+          "name": "right_structure",
+          "type": "structure",
+          "meanPixelRmsDelta": 0
+        },
+        {
+          "name": "lower_floor",
+          "type": "structure",
+          "meanPixelRmsDelta": 0
+        },
+        {
+          "name": "upper_control",
+          "type": "sky_or_structure",
+          "meanPixelRmsDelta": 0
+        },
+        {
+          "name": "flame_control",
+          "type": "flame",
+          "meanPixelRmsDelta": 0
+        }
+      ]
+    },
+    {
+      "viewport": "desktop-en",
+      "view": "altar-left-contact",
+      "diagnostic": true,
+      "samples": 19,
+      "durationMs": 613.3999999761581,
+      "physicalTime": 17,
+      "fuel": 1,
+      "rawFile": "artifacts/snow-resting-props/resting-props-after/desktop-en/altar-left-contact.json",
+      "rawSha256": "308b1dae1e4ede30cd25d14b13c0c4eb2a6f0adde6e2e282a03b9e579169f112",
+      "exposureRange": [
+        1,
+        1
+      ],
+      "controls": {
+        "lockCamera": true,
+        "freezeScene": true,
+        "freezeGrade": true,
+        "freezeDaylight": true,
+        "freezeFlame": true,
+        "freezeLampMotion": true,
+        "freezeShadows": false,
+        "freezeFuel": true,
+        "disableBloom": false,
+        "hideParticles": true
+      },
+      "visibleParticleObjectsRange": [
+        0,
+        0
+      ],
+      "roiMetrics": [
+        {
+          "name": "left_structure",
+          "type": "structure",
+          "meanPixelRmsDelta": 0
+        },
+        {
+          "name": "right_structure",
+          "type": "structure",
+          "meanPixelRmsDelta": 0
+        },
+        {
+          "name": "lower_floor",
+          "type": "structure",
+          "meanPixelRmsDelta": 0
+        },
+        {
+          "name": "upper_control",
+          "type": "sky_or_structure",
+          "meanPixelRmsDelta": 0
+        },
+        {
+          "name": "flame_control",
+          "type": "flame",
+          "meanPixelRmsDelta": 0
+        }
+      ]
+    },
+    {
+      "viewport": "desktop-en",
+      "view": "altar-burner-contact",
+      "diagnostic": true,
+      "samples": 19,
+      "durationMs": 628.3000000119209,
+      "physicalTime": 17,
+      "fuel": 1,
+      "rawFile": "artifacts/snow-resting-props/resting-props-after/desktop-en/altar-burner-contact.json",
+      "rawSha256": "3f3ed4d1f7e6c0b342170834f48100d1e6d60f7dabaa41a9d9107158e9fc5370",
+      "exposureRange": [
+        1,
+        1
+      ],
+      "controls": {
+        "lockCamera": true,
+        "freezeScene": true,
+        "freezeGrade": true,
+        "freezeDaylight": true,
+        "freezeFlame": true,
+        "freezeLampMotion": true,
+        "freezeShadows": false,
+        "freezeFuel": true,
+        "disableBloom": false,
+        "hideParticles": true
+      },
+      "visibleParticleObjectsRange": [
+        0,
+        0
+      ],
+      "roiMetrics": [
+        {
+          "name": "left_structure",
+          "type": "structure",
+          "meanPixelRmsDelta": 0
+        },
+        {
+          "name": "right_structure",
+          "type": "structure",
+          "meanPixelRmsDelta": 0
+        },
+        {
+          "name": "lower_floor",
+          "type": "structure",
+          "meanPixelRmsDelta": 0
+        },
+        {
+          "name": "upper_control",
+          "type": "sky_or_structure",
+          "meanPixelRmsDelta": 0
+        },
+        {
+          "name": "flame_control",
+          "type": "flame",
+          "meanPixelRmsDelta": 0
+        }
+      ]
+    },
+    {
+      "viewport": "desktop-en",
+      "view": "altar-right-contact",
+      "diagnostic": true,
+      "samples": 19,
+      "durationMs": 609.4000000357628,
+      "physicalTime": 17,
+      "fuel": 1,
+      "rawFile": "artifacts/snow-resting-props/resting-props-after/desktop-en/altar-right-contact.json",
+      "rawSha256": "405d2838b1b5d93714c51ec1b699b011eaff36107f53e218143e276a5be2179a",
+      "exposureRange": [
+        1,
+        1
+      ],
+      "controls": {
+        "lockCamera": true,
+        "freezeScene": true,
+        "freezeGrade": true,
+        "freezeDaylight": true,
+        "freezeFlame": true,
+        "freezeLampMotion": true,
+        "freezeShadows": false,
+        "freezeFuel": true,
+        "disableBloom": false,
+        "hideParticles": true
+      },
+      "visibleParticleObjectsRange": [
+        0,
+        0
+      ],
+      "roiMetrics": [
+        {
+          "name": "left_structure",
+          "type": "structure",
+          "meanPixelRmsDelta": 0
+        },
+        {
+          "name": "right_structure",
+          "type": "structure",
+          "meanPixelRmsDelta": 0
+        },
+        {
+          "name": "lower_floor",
+          "type": "structure",
+          "meanPixelRmsDelta": 0
+        },
+        {
+          "name": "upper_control",
+          "type": "sky_or_structure",
+          "meanPixelRmsDelta": 0
+        },
+        {
+          "name": "flame_control",
+          "type": "flame",
+          "meanPixelRmsDelta": 0
+        }
+      ]
+    },
+    {
+      "viewport": "desktop-en",
+      "view": "burnFar",
+      "diagnostic": false,
+      "samples": 301,
+      "durationMs": 10024.199999988079,
+      "physicalTime": 17,
+      "fuel": 1,
+      "rawFile": "artifacts/snow-resting-props/resting-props-after/desktop-en/burnFar.json",
+      "rawSha256": "418129b6b4296e445a5f3239b8cb2b1cf0d62a30fd78f82923dd835e35bf9f2b",
+      "exposureRange": [
+        1,
+        1
+      ],
+      "controls": {
+        "lockCamera": true,
+        "freezeScene": true,
+        "freezeGrade": true,
+        "freezeDaylight": true,
+        "freezeFlame": true,
+        "freezeLampMotion": true,
+        "freezeShadows": false,
+        "freezeFuel": true,
+        "disableBloom": false,
+        "hideParticles": true
+      },
+      "visibleParticleObjectsRange": [
+        0,
+        0
+      ],
+      "roiMetrics": [
+        {
+          "name": "left_structure",
+          "type": "structure",
+          "meanPixelRmsDelta": 0
+        },
+        {
+          "name": "right_structure",
+          "type": "structure",
+          "meanPixelRmsDelta": 0
+        },
+        {
+          "name": "lower_floor",
+          "type": "structure",
+          "meanPixelRmsDelta": 0
+        },
+        {
+          "name": "upper_control",
+          "type": "sky_or_structure",
+          "meanPixelRmsDelta": 0
+        },
+        {
+          "name": "flame_control",
+          "type": "flame",
+          "meanPixelRmsDelta": 0
+        }
+      ]
+    },
+    {
+      "viewport": "phone-zh",
+      "view": "burning",
+      "diagnostic": false,
+      "samples": 301,
+      "durationMs": 10015.199999988079,
+      "physicalTime": 17,
+      "fuel": 1,
+      "rawFile": "artifacts/snow-resting-props/resting-props-after/phone-zh/burning.json",
+      "rawSha256": "46d7f539f408f41b9fe7523c29de1e91f535bebc6afe3c7accd5b024050a1592",
+      "exposureRange": [
+        1,
+        1
+      ],
+      "controls": {
+        "lockCamera": true,
+        "freezeScene": true,
+        "freezeGrade": true,
+        "freezeDaylight": true,
+        "freezeFlame": true,
+        "freezeLampMotion": true,
+        "freezeShadows": false,
+        "freezeFuel": true,
+        "disableBloom": false,
+        "hideParticles": true
+      },
+      "visibleParticleObjectsRange": [
+        0,
+        0
+      ],
+      "roiMetrics": [
+        {
+          "name": "left_structure",
+          "type": "structure",
+          "meanPixelRmsDelta": 0
+        },
+        {
+          "name": "right_structure",
+          "type": "structure",
+          "meanPixelRmsDelta": 0
+        },
+        {
+          "name": "lower_floor",
+          "type": "structure",
+          "meanPixelRmsDelta": 0
+        },
+        {
+          "name": "upper_control",
+          "type": "sky_or_structure",
+          "meanPixelRmsDelta": 0
+        },
+        {
+          "name": "flame_control",
+          "type": "flame",
+          "meanPixelRmsDelta": 0
+        }
+      ]
+    },
+    {
+      "viewport": "phone-zh",
+      "view": "low-altar-edge",
+      "diagnostic": true,
+      "samples": 301,
+      "durationMs": 10001.199999988079,
+      "physicalTime": 17,
+      "fuel": 1,
+      "rawFile": "artifacts/snow-resting-props/resting-props-after/phone-zh/low-altar-edge.json",
+      "rawSha256": "e2597ac806216d7a4f06c347dadfd55dda0a6d437dbd29b21b001075957cca3e",
+      "exposureRange": [
+        1,
+        1
+      ],
+      "controls": {
+        "lockCamera": true,
+        "freezeScene": true,
+        "freezeGrade": true,
+        "freezeDaylight": true,
+        "freezeFlame": true,
+        "freezeLampMotion": true,
+        "freezeShadows": false,
+        "freezeFuel": true,
+        "disableBloom": false,
+        "hideParticles": true
+      },
+      "visibleParticleObjectsRange": [
+        0,
+        0
+      ],
+      "roiMetrics": [
+        {
+          "name": "left_structure",
+          "type": "structure",
+          "meanPixelRmsDelta": 0
+        },
+        {
+          "name": "right_structure",
+          "type": "structure",
+          "meanPixelRmsDelta": 0
+        },
+        {
+          "name": "lower_floor",
+          "type": "structure",
+          "meanPixelRmsDelta": 0
+        },
+        {
+          "name": "upper_control",
+          "type": "sky_or_structure",
+          "meanPixelRmsDelta": 0
+        },
+        {
+          "name": "flame_control",
+          "type": "flame",
+          "meanPixelRmsDelta": 0
+        }
+      ]
+    },
+    {
+      "viewport": "phone-zh",
+      "view": "altar-left-contact",
+      "diagnostic": true,
+      "samples": 19,
+      "durationMs": 604.0999999642372,
+      "physicalTime": 17,
+      "fuel": 1,
+      "rawFile": "artifacts/snow-resting-props/resting-props-after/phone-zh/altar-left-contact.json",
+      "rawSha256": "9f205d3572b15277d4fe5c363d60fb816ce2f3fab60d51bef8ad69c73039b4dd",
+      "exposureRange": [
+        1,
+        1
+      ],
+      "controls": {
+        "lockCamera": true,
+        "freezeScene": true,
+        "freezeGrade": true,
+        "freezeDaylight": true,
+        "freezeFlame": true,
+        "freezeLampMotion": true,
+        "freezeShadows": false,
+        "freezeFuel": true,
+        "disableBloom": false,
+        "hideParticles": true
+      },
+      "visibleParticleObjectsRange": [
+        0,
+        0
+      ],
+      "roiMetrics": [
+        {
+          "name": "left_structure",
+          "type": "structure",
+          "meanPixelRmsDelta": 0
+        },
+        {
+          "name": "right_structure",
+          "type": "structure",
+          "meanPixelRmsDelta": 0
+        },
+        {
+          "name": "lower_floor",
+          "type": "structure",
+          "meanPixelRmsDelta": 0
+        },
+        {
+          "name": "upper_control",
+          "type": "sky_or_structure",
+          "meanPixelRmsDelta": 0
+        },
+        {
+          "name": "flame_control",
+          "type": "flame",
+          "meanPixelRmsDelta": 0
+        }
+      ]
+    },
+    {
+      "viewport": "phone-zh",
+      "view": "altar-burner-contact",
+      "diagnostic": true,
+      "samples": 19,
+      "durationMs": 608.6000000238419,
+      "physicalTime": 17,
+      "fuel": 1,
+      "rawFile": "artifacts/snow-resting-props/resting-props-after/phone-zh/altar-burner-contact.json",
+      "rawSha256": "eaa3e1df347c54af0ac0be539e7946be41d46c00d74888d9a37547387ec07dfe",
+      "exposureRange": [
+        1,
+        1
+      ],
+      "controls": {
+        "lockCamera": true,
+        "freezeScene": true,
+        "freezeGrade": true,
+        "freezeDaylight": true,
+        "freezeFlame": true,
+        "freezeLampMotion": true,
+        "freezeShadows": false,
+        "freezeFuel": true,
+        "disableBloom": false,
+        "hideParticles": true
+      },
+      "visibleParticleObjectsRange": [
+        0,
+        0
+      ],
+      "roiMetrics": [
+        {
+          "name": "left_structure",
+          "type": "structure",
+          "meanPixelRmsDelta": 0
+        },
+        {
+          "name": "right_structure",
+          "type": "structure",
+          "meanPixelRmsDelta": 0
+        },
+        {
+          "name": "lower_floor",
+          "type": "structure",
+          "meanPixelRmsDelta": 0
+        },
+        {
+          "name": "upper_control",
+          "type": "sky_or_structure",
+          "meanPixelRmsDelta": 0
+        },
+        {
+          "name": "flame_control",
+          "type": "flame",
+          "meanPixelRmsDelta": 0
+        }
+      ]
+    },
+    {
+      "viewport": "phone-zh",
+      "view": "altar-right-contact",
+      "diagnostic": true,
+      "samples": 19,
+      "durationMs": 624.5999999642372,
+      "physicalTime": 17,
+      "fuel": 1,
+      "rawFile": "artifacts/snow-resting-props/resting-props-after/phone-zh/altar-right-contact.json",
+      "rawSha256": "7a4de5a023936635be152d74dcbe0f497d01220d6e358bcff2a2059e08883797",
+      "exposureRange": [
+        1,
+        1
+      ],
+      "controls": {
+        "lockCamera": true,
+        "freezeScene": true,
+        "freezeGrade": true,
+        "freezeDaylight": true,
+        "freezeFlame": true,
+        "freezeLampMotion": true,
+        "freezeShadows": false,
+        "freezeFuel": true,
+        "disableBloom": false,
+        "hideParticles": true
+      },
+      "visibleParticleObjectsRange": [
+        0,
+        0
+      ],
+      "roiMetrics": [
+        {
+          "name": "left_structure",
+          "type": "structure",
+          "meanPixelRmsDelta": 0
+        },
+        {
+          "name": "right_structure",
+          "type": "structure",
+          "meanPixelRmsDelta": 0
+        },
+        {
+          "name": "lower_floor",
+          "type": "structure",
+          "meanPixelRmsDelta": 0
+        },
+        {
+          "name": "upper_control",
+          "type": "sky_or_structure",
+          "meanPixelRmsDelta": 0
+        },
+        {
+          "name": "flame_control",
+          "type": "flame",
+          "meanPixelRmsDelta": 0
+        }
+      ]
+    },
+    {
+      "viewport": "phone-zh",
+      "view": "burnFar",
+      "diagnostic": false,
+      "samples": 301,
+      "durationMs": 10011,
+      "physicalTime": 17,
+      "fuel": 1,
+      "rawFile": "artifacts/snow-resting-props/resting-props-after/phone-zh/burnFar.json",
+      "rawSha256": "478e3ccd06498fa3ab49ef79b490afb7e59030375adebe623c3c687a2c2207fc",
+      "exposureRange": [
+        1,
+        1
+      ],
+      "controls": {
+        "lockCamera": true,
+        "freezeScene": true,
+        "freezeGrade": true,
+        "freezeDaylight": true,
+        "freezeFlame": true,
+        "freezeLampMotion": true,
+        "freezeShadows": false,
+        "freezeFuel": true,
+        "disableBloom": false,
+        "hideParticles": true
+      },
+      "visibleParticleObjectsRange": [
+        0,
+        0
+      ],
+      "roiMetrics": [
+        {
+          "name": "left_structure",
+          "type": "structure",
+          "meanPixelRmsDelta": 0
+        },
+        {
+          "name": "right_structure",
+          "type": "structure",
+          "meanPixelRmsDelta": 0
+        },
+        {
+          "name": "lower_floor",
+          "type": "structure",
+          "meanPixelRmsDelta": 0
+        },
+        {
+          "name": "upper_control",
+          "type": "sky_or_structure",
+          "meanPixelRmsDelta": 0
+        },
+        {
+          "name": "flame_control",
+          "type": "flame",
+          "meanPixelRmsDelta": 0
+        }
+      ]
+    }
+  ],
+  "actualUICleanup": [
+    {
+      "viewport": "desktop-en",
+      "phase": "burning",
+      "actualUI": true,
+      "candles": [
+        {
+          "id": "14abf16c-842f-4a95-8ecb-507b7ce4a9ce",
+          "durationMs": 600000,
+          "burnedMs": 47848,
+          "status": "went_out",
+          "endReason": "put_out"
+        }
+      ]
+    },
+    {
+      "viewport": "desktop-en",
+      "phase": "burnFar",
+      "actualUI": true,
+      "candles": [
+        {
+          "id": "9d30572e-e5a6-4197-a4d6-4694f99f095b",
+          "durationMs": 86400000,
+          "burnedMs": 33226,
+          "status": "went_out",
+          "endReason": "put_out"
+        }
+      ]
+    },
+    {
+      "viewport": "phone-zh",
+      "phase": "burning",
+      "actualUI": true,
+      "candles": [
+        {
+          "id": "3a5b0fb3-7485-4c90-99c3-3431d4746855",
+          "durationMs": 600000,
+          "burnedMs": 46794,
+          "status": "went_out",
+          "endReason": "put_out"
+        }
+      ]
+    },
+    {
+      "viewport": "phone-zh",
+      "phase": "burnFar",
+      "actualUI": true,
+      "candles": [
+        {
+          "id": "2c5a6aec-57ba-46bb-8539-19073b0e278c",
+          "durationMs": 86400000,
+          "burnedMs": 32879,
+          "status": "went_out",
+          "endReason": "put_out"
+        }
+      ]
+    }
+  ],
+  "scope": "Exact held views retain normal materials, samplers, exposure and bloom, with fixed time/fuel/camera and particles hidden. Raw Rec.709 luminance is measured in 0–255 code values; structural rectangles are not semantic masks. Phone is M1 emulation at deviceScaleFactor1."
+}

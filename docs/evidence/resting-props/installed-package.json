@@ -1,0 +1,141 @@
+{
+  "installedAt": "2026-11-16T23:22:38.565889+00:00",
+  "source": "art/build/snow-roof-resting-contacts-delivery",
+  "destination": "web/public/places/snow-roof",
+  "sourceBlendSha256": "b31360516a2713a6451ca920f3f94d9fefd9bc191bc07fca63c8c5ddce5a0c86",
+  "manifestSha256": "9beed7157a74e41096bfb7bd94f62834a30d6df89cf4cf3979c1ffca62b9fb53",
+  "previousManifestSha256": "4f51484ba21e9764232b14c641ba3eb38c3dc393237418d323b391c49d70ce1c",
+  "previousPackagePreservedAt": "art/build/snow-roof-resting-props-public-swapped-out",
+  "declaredFiles": 17,
+  "payloadBytes": 59674555,
+  "manifestBytes": 108583,
+  "allFileHashesVerified": true,
+  "allTwelveMapsPresent": true,
+  "files": [
+    {
+      "uri": "snow-roof.glb",
+      "bytes": 16265084,
+      "sha256": "49cbe07a5a0f407b3df31b82ef0c75e6995e471593d51527a276a3d22723ef88"
+    },
+    {
+      "uri": "hall-night.ktx2",
+      "bytes": 5650836,
+      "sha256": "5e533b0ac4cf471672f801a37ebd07f947886ea65be946ae92707ef6e801f244",
+      "codec": "uastc",
+      "mipLevels": 3,
+      "transfer": "linear"
+    },
+    {
+      "uri": "hall-dusk.ktx2",
+      "bytes": 5668335,
+      "sha256": "69bf7b28b919f240afca0860faf29cf2867e165327b721d43659599662e8a735",
+      "codec": "uastc",
+      "mipLevels": 3,
+      "transfer": "linear"
+    },
+    {
+      "uri": "hall-day.ktx2",
+      "bytes": 5755457,
+      "sha256": "7f7fe1810df116c9b76ede3fed6a254c3d70243d2ed1d9898300fa21f6b6e873",
+      "codec": "uastc",
+      "mipLevels": 3,
+      "transfer": "linear"
+    },
+    {
+      "uri": "hall-lamp.ktx2",
+      "bytes": 2672460,
+      "sha256": "e9e663ad65d27860dd490059dc8a171a56bbede613e47f6fb6859fb6a066b1a8",
+      "codec": "uastc",
+      "mipLevels": 3,
+      "transfer": "linear"
+    },
+    {
+      "uri": "gate-night.ktx2",
+      "bytes": 1508137,
+      "sha256": "6f58912ce47aa9aaacf0997e11b90105d0ba2110c85499067f0049b60191c04d",
+      "codec": "uastc",
+      "mipLevels": 3,
+      "transfer": "linear"
+    },
+    {
+      "uri": "gate-dusk.ktx2",
+      "bytes": 1535595,
+      "sha256": "963d00eb668b420807f76813902b3fda20870ed816a733966bf6b5b70f56d5d0",
+      "codec": "uastc",
+      "mipLevels": 3,
+      "transfer": "linear"
+    },
+    {
+      "uri": "gate-day.ktx2",
+      "bytes": 1575735,
+      "sha256": "1884011687804d67ab00b9471a850eac7febe6e55f4e3f363ea93224f602f772",
+      "codec": "uastc",
+      "mipLevels": 3,
+      "transfer": "linear"
+    },
+    {
+      "uri": "gate-lamp.ktx2",
+      "bytes": 645472,
+      "sha256": "6e8049f093f4da83bb57daae44c615d9f706efc1382651f64d8186171bc84b5f",
+      "codec": "uastc",
+      "mipLevels": 3,
+      "transfer": "linear"
+    },
+    {
+      "uri": "court-night.ktx2",
+      "bytes": 6182297,
+      "sha256": "0fa0f9e93da03daf43b282fcf6596834d4906f92a143cafdcb2c8f83803605f1",
+      "codec": "uastc",
+      "mipLevels": 3,
+      "transfer": "linear"
+    },
+    {
+      "uri": "court-dusk.ktx2",
+      "bytes": 5543653,
+      "sha256": "102b7d99e65d860703d4f12c5e746f38db23b0f70194324df1fa281d4ed5632d",
+      "codec": "uastc",
+      "mipLevels": 3,
+      "transfer": "linear"
+    },
+    {
+      "uri": "court-day.ktx2",
+      "bytes": 5520655,
+      "sha256": "9e4ff36947525280fbda45eb03c6ae5378cd6bda3e9519e5d84ae5de8d4a067b",
+      "codec": "uastc",
+      "mipLevels": 3,
+      "transfer": "linear"
+    },
+    {
+      "uri": "court-lamp.ktx2",
+      "bytes": 1102741,
+      "sha256": "e0c418b1763faba6e3bdea4a4439b80adc8806121bd0833f270b18b8708ad16a",
+      "codec": "uastc",
+      "mipLevels": 3,
+      "transfer": "linear"
+    },
+    {
+      "uri": "contact-padding.receipt.json",
+      "bytes": 10180,
+      "sha256": "285fb571e873586abcbdbb8f3f03547135e8de1b15b42ae5ead7f7e2d0a20731",
+      "role": "sampling-domain-proof"
+    },
+    {
+      "uri": "geometry.receipt.json",
+      "bytes": 28040,
+      "sha256": "4bb89c5fca11c998da9cd50986e39a2eabf14fc2f2cd80796d02acb6326c6104",
+      "role": "delivery-proof"
+    },
+    {
+      "uri": "independent-geometry-proof.json",
+      "bytes": 995,
+      "sha256": "a7a4e4a4fce7c46c1b08544a00f7f4db3b3ecefea4220c819c2652ec9f62e32b",
+      "role": "delivery-proof"
+    },
+    {
+      "uri": "independent-contact-padding-proof.json",
+      "bytes": 8883,
+      "sha256": "f3fbeff3b25626e5e7f8df0da6c2aadb3b870d67229c44612ab9770ab3e93719",
+      "role": "delivery-proof"
+    }
+  ]
+}

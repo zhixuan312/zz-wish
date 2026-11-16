@@ -1,0 +1,625 @@
+{
+  "sourceBlendSha256": "b31360516a2713a6451ca920f3f94d9fefd9bc191bc07fca63c8c5ddce5a0c86",
+  "geometryFingerprint": "89d4085e7b4ed662ab952b1430e9217b3c9befad602e1c317ae3ea659d848821",
+  "bakeFingerprint": "0ffdd3b3c38387ba15ea8c86fe93715fd3699c93d6c082702f4b2881858d8350",
+  "blender": "5.3.0",
+  "actualProcessExitCode": 0,
+  "nativeTotalSeconds": 2508.312,
+  "actualDeviceLogLine": "BAKE_DEVICE ['Apple M1 (GPU - 8 cores)']",
+  "actualGuardPassedBeforeBakeStart": true,
+  "denoising": {
+    "backend": "OpenImageDenoise RT HDR",
+    "device": "METAL",
+    "isolation": "Per-UV-chart with same-chart edge extension; subpixel charts excluded and reported"
+  },
+  "oidnBackendEvidence": "The executed LightmapDenoiser queried OIDN device type 5 (Metal) and rejects a mismatch before BAKE_START; per-chart RT HDR HIGH filtering uses OIDN-owned Metal buffers.",
+  "nativeBakerSha256": "55cb884fff68b333aa378a4f2ea10bc8c85d8703c405f7b09ecb72825d2ab55b",
+  "nativeBakerUnchangedSinceLaunch": true,
+  "lighting": {
+    "world": {
+      "name": "Cold winter sky.001",
+      "colour": [
+        0.05000000074505806,
+        0.05000000074505806,
+        0.05000000074505806
+      ],
+      "backgrounds": [
+        {
+          "colour": [
+            0.1899999976158142,
+            0.2800000011920929,
+            0.4699999988079071,
+            1.0
+          ],
+          "strength": 0.15000000596046448,
+          "linkedColour": false
+        }
+      ],
+      "environmentTextures": []
+    },
+    "lights": [
+      {
+        "name": "Other altar lamp warm spill",
+        "role": "fixture",
+        "type": "POINT",
+        "energy": 8.0,
+        "linearColour": [
+          1.0,
+          0.6784313917160034,
+          0.4000000059604645
+        ],
+        "positionBlender": [
+          -1.4500000476837158,
+          4.75,
+          1.8259673118591309
+        ],
+        "rotationBlender": [
+          0.0,
+          -0.0,
+          0.0
+        ],
+        "includedInNight": true
+      },
+      {
+        "name": "Other altar lamp warm spill.001",
+        "role": "fixture",
+        "type": "POINT",
+        "energy": 8.0,
+        "linearColour": [
+          1.0,
+          0.6784313917160034,
+          0.4000000059604645
+        ],
+        "positionBlender": [
+          -0.949999988079071,
+          4.75,
+          1.7810873985290527
+        ],
+        "rotationBlender": [
+          0.0,
+          -0.0,
+          0.0
+        ],
+        "includedInNight": true
+      },
+      {
+        "name": "Other altar lamp warm spill.002",
+        "role": "fixture",
+        "type": "POINT",
+        "energy": 8.0,
+        "linearColour": [
+          1.0,
+          0.6784313917160034,
+          0.4000000059604645
+        ],
+        "positionBlender": [
+          0.949999988079071,
+          4.75,
+          1.7810912132263184
+        ],
+        "rotationBlender": [
+          0.0,
+          -0.0,
+          0.0
+        ],
+        "includedInNight": true
+      },
+      {
+        "name": "Other altar lamp warm spill.003",
+        "role": "fixture",
+        "type": "POINT",
+        "energy": 8.0,
+        "linearColour": [
+          1.0,
+          0.6784313917160034,
+          0.4000000059604645
+        ],
+        "positionBlender": [
+          1.4500000476837158,
+          4.75,
+          1.8195929527282715
+        ],
+        "rotationBlender": [
+          0.0,
+          -0.0,
+          0.0
+        ],
+        "includedInNight": true
+      },
+      {
+        "name": "Visitor flame bake basis",
+        "role": "lamp",
+        "type": "POINT",
+        "energy": 45.0,
+        "linearColour": [
+          1.0,
+          0.7411764860153198,
+          0.47058823704719543
+        ],
+        "positionBlender": [
+          0.0,
+          0.5,
+          2.990000009536743
+        ],
+        "rotationBlender": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "includedInNight": false
+      },
+      {
+        "name": "Cool court light entering doorway",
+        "role": "ambient",
+        "type": "POINT",
+        "energy": 65.0,
+        "linearColour": [
+          0.7058823704719543,
+          0.8039215803146362,
+          0.9647058844566345
+        ],
+        "positionBlender": [
+          0.0,
+          -4.400000095367432,
+          2.200000047683716
+        ],
+        "rotationBlender": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "includedInNight": true
+      },
+      {
+        "name": "Gate shelf lamp warm spill",
+        "role": "fixture",
+        "type": "POINT",
+        "energy": 8.0,
+        "linearColour": [
+          1.0,
+          0.6784313917160034,
+          0.4000000059604645
+        ],
+        "positionBlender": [
+          -2.0,
+          -19.25,
+          1.7900022268295288
+        ],
+        "rotationBlender": [
+          0.0,
+          -0.0,
+          0.0
+        ],
+        "includedInNight": true
+      },
+      {
+        "name": "Gate shelf lamp warm spill.001",
+        "role": "fixture",
+        "type": "POINT",
+        "energy": 8.0,
+        "linearColour": [
+          1.0,
+          0.6784313917160034,
+          0.4000000059604645
+        ],
+        "positionBlender": [
+          2.0,
+          -19.25,
+          1.7900022268295288
+        ],
+        "rotationBlender": [
+          0.0,
+          -0.0,
+          0.0
+        ],
+        "includedInNight": true
+      },
+      {
+        "name": "Moon basis",
+        "role": "ambient",
+        "type": "SUN",
+        "energy": 0.44999998807907104,
+        "linearColour": [
+          0.6000000238418579,
+          0.7200000286102295,
+          1.0
+        ],
+        "positionBlender": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotationBlender": [
+          0.3839724361896515,
+          -0.48869219422340393,
+          -0.6108652353286743
+        ],
+        "includedInNight": true
+      }
+    ],
+    "sourceEmissionStrengths": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      3.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "meaning": "Authored accepted source lighting, restored exactly for night except visitor lamp omitted. Positions/rotations use Blender coordinates; source socket colours are linear."
+  },
+  "presets": {
+    "night": {
+      "sourceLighting": true,
+      "fixtures": 1
+    },
+    "dusk": {
+      "world": [
+        0.25,
+        0.31,
+        0.42
+      ],
+      "strength": 0.65,
+      "sun": [
+        1,
+        0.62,
+        0.38
+      ],
+      "energy": 0.45,
+      "fixtures": 0.8
+    },
+    "day": {
+      "world": [
+        0.64,
+        0.77,
+        1
+      ],
+      "strength": 0.75,
+      "sun": [
+        1,
+        0.92,
+        0.8
+      ],
+      "energy": 2.2,
+      "fixtures": 1
+    },
+    "lamp": {
+      "world": [
+        0,
+        0,
+        0
+      ],
+      "strength": 0,
+      "sun": [
+        1,
+        1,
+        1
+      ],
+      "energy": 0,
+      "fixtures": 0
+    }
+  },
+  "maps": [
+    {
+      "region": "hall",
+      "look": "night",
+      "cyclesSeconds": 127.129,
+      "oidnSeconds": 78.013,
+      "totalMapSeconds": 208.741,
+      "samples": 64,
+      "cyclesDevice": "METAL",
+      "oidnDevice": "METAL",
+      "scale": 32,
+      "logGain": 4096,
+      "logRange": 17.000011006847668,
+      "masters": {
+        "noisy": {
+          "path": "art/build/snow-roof-resting-contacts-accepted-bake/hall-night-raw.exr",
+          "bytes": 52146771,
+          "sha256": "63299bea2e211016ea6bcb829468b16e1dbbcd90ca532f4e9ebda3e2edd75ba5"
+        },
+        "denoised": {
+          "path": "art/build/snow-roof-resting-contacts-accepted-bake/hall-night.exr",
+          "bytes": 57227010,
+          "sha256": "89e36ecf9590d0590b723db80137d31f9fd78b4da7092be4bc81ddf6e401fcd5"
+        }
+      }
+    },
+    {
+      "region": "hall",
+      "look": "dusk",
+      "cyclesSeconds": 294.015,
+      "oidnSeconds": 78.724,
+      "totalMapSeconds": 375.392,
+      "samples": 64,
+      "cyclesDevice": "METAL",
+      "oidnDevice": "METAL",
+      "scale": 32,
+      "logGain": 4096,
+      "logRange": 17.000011006847668,
+      "masters": {
+        "noisy": {
+          "path": "art/build/snow-roof-resting-contacts-accepted-bake/hall-dusk-raw.exr",
+          "bytes": 52146202,
+          "sha256": "0c3eb47e761877d9c6208f78d1917ff97f907f5e8f4dd0d91cf6e4f459dbd26e"
+        },
+        "denoised": {
+          "path": "art/build/snow-roof-resting-contacts-accepted-bake/hall-dusk.exr",
+          "bytes": 56928906,
+          "sha256": "1af772c3ef3cd91f7ed3591de2af13aa611c69fa749ab60587acffdb58a4204c"
+        }
+      }
+    },
+    {
+      "region": "hall",
+      "look": "day",
+      "cyclesSeconds": 116.573,
+      "oidnSeconds": 83.673,
+      "totalMapSeconds": 202.752,
+      "samples": 64,
+      "cyclesDevice": "METAL",
+      "oidnDevice": "METAL",
+      "scale": 32,
+      "logGain": 4096,
+      "logRange": 17.000011006847668,
+      "masters": {
+        "noisy": {
+          "path": "art/build/snow-roof-resting-contacts-accepted-bake/hall-day-raw.exr",
+          "bytes": 52087887,
+          "sha256": "e9a094e7876daeb51b4c55735275d9ff31a9c3010f0adb7e96aa62a493c8e2ba"
+        },
+        "denoised": {
+          "path": "art/build/snow-roof-resting-contacts-accepted-bake/hall-day.exr",
+          "bytes": 57026991,
+          "sha256": "fa27317a81999cc4407c1335620c9ed2d08e030212a2668efd4393495e773f57"
+        }
+      }
+    },
+    {
+      "region": "hall",
+      "look": "lamp",
+      "cyclesSeconds": 88.836,
+      "oidnSeconds": 87.632,
+      "totalMapSeconds": 178.661,
+      "samples": 64,
+      "cyclesDevice": "METAL",
+      "oidnDevice": "METAL",
+      "scale": 32,
+      "logGain": 4096,
+      "logRange": 17.000011006847668,
+      "masters": {
+        "noisy": {
+          "path": "art/build/snow-roof-resting-contacts-accepted-bake/hall-lamp-raw.exr",
+          "bytes": 29305433,
+          "sha256": "9d173f7c32418918934b411606d47cbfeb2b50c16248b2ceb2c23e81f986ac82"
+        },
+        "denoised": {
+          "path": "art/build/snow-roof-resting-contacts-accepted-bake/hall-lamp.exr",
+          "bytes": 41437935,
+          "sha256": "15eccb0359b3f2f090113d1c420383466634addc2c836a9facb0fb46acfeba0b"
+        }
+      }
+    },
+    {
+      "region": "court",
+      "look": "night",
+      "cyclesSeconds": 406.74,
+      "oidnSeconds": 75.333,
+      "totalMapSeconds": 491.633,
+      "samples": 64,
+      "cyclesDevice": "METAL",
+      "oidnDevice": "METAL",
+      "scale": 0.5,
+      "logGain": 4096,
+      "logRange": 11.000704269011246,
+      "masters": {
+        "noisy": {
+          "path": "art/build/snow-roof-resting-contacts-accepted-bake/court-night-raw.exr",
+          "bytes": 98328150,
+          "sha256": "4be254e7a55abef9bb457626802e879a6408e02105b19b619a224f5a2177d336"
+        },
+        "denoised": {
+          "path": "art/build/snow-roof-resting-contacts-accepted-bake/court-night.exr",
+          "bytes": 80774241,
+          "sha256": "1f14be569329bc57f28dc84de3922b49baa70a368eb88982c88fa5aa19922815"
+        }
+      }
+    },
+    {
+      "region": "court",
+      "look": "dusk",
+      "cyclesSeconds": 220.398,
+      "oidnSeconds": 55.745,
+      "totalMapSeconds": 279.909,
+      "samples": 64,
+      "cyclesDevice": "METAL",
+      "oidnDevice": "METAL",
+      "scale": 1,
+      "logGain": 4096,
+      "logRange": 12.0003521774803,
+      "masters": {
+        "noisy": {
+          "path": "art/build/snow-roof-resting-contacts-accepted-bake/court-dusk-raw.exr",
+          "bytes": 97813820,
+          "sha256": "36e66a17e5b5372ccb2ffe9db485b11e881627d548f59793ed3e785b921447f9"
+        },
+        "denoised": {
+          "path": "art/build/snow-roof-resting-contacts-accepted-bake/court-dusk.exr",
+          "bytes": 74059513,
+          "sha256": "f1163d91ed9c84942268a028a79cd4e36d9813dd940a6e5d7f91e17464edf9fa"
+        }
+      }
+    },
+    {
+      "region": "court",
+      "look": "day",
+      "cyclesSeconds": 203.99,
+      "oidnSeconds": 55.222,
+      "totalMapSeconds": 262.751,
+      "samples": 64,
+      "cyclesDevice": "METAL",
+      "oidnDevice": "METAL",
+      "scale": 4,
+      "logGain": 4096,
+      "logRange": 14.000088052430122,
+      "masters": {
+        "noisy": {
+          "path": "art/build/snow-roof-resting-contacts-accepted-bake/court-day-raw.exr",
+          "bytes": 97838609,
+          "sha256": "50c6bcda50c03ec9af15b8e3a305c32c7a11c2ea08f83ac22c65cff8a52b9dab"
+        },
+        "denoised": {
+          "path": "art/build/snow-roof-resting-contacts-accepted-bake/court-day.exr",
+          "bytes": 79101874,
+          "sha256": "85836188f6278cd34243871d55afc8b343abef6e21bdd4074e873f9214522222"
+        }
+      }
+    },
+    {
+      "region": "court",
+      "look": "lamp",
+      "cyclesSeconds": 185.593,
+      "oidnSeconds": 55.42,
+      "totalMapSeconds": 243.486,
+      "samples": 64,
+      "cyclesDevice": "METAL",
+      "oidnDevice": "METAL",
+      "scale": 0.015625,
+      "logGain": 4096,
+      "logRange": 6.022367813028454,
+      "masters": {
+        "noisy": {
+          "path": "art/build/snow-roof-resting-contacts-accepted-bake/court-lamp-raw.exr",
+          "bytes": 25709463,
+          "sha256": "6aecfa47a4b5adc5ecc49a5e5e152a38e36b432dc80d6adef131e5a78746c048"
+        },
+        "denoised": {
+          "path": "art/build/snow-roof-resting-contacts-accepted-bake/court-lamp.exr",
+          "bytes": 82581940,
+          "sha256": "ab3a1d7ffea57d491b823c2c6471d05dc9bf058d42e2d7d2b45fa905443fee91"
+        }
+      }
+    },
+    {
+      "region": "gate",
+      "look": "night",
+      "cyclesSeconds": 54.812,
+      "oidnSeconds": 26.439,
+      "totalMapSeconds": 82.356,
+      "samples": 64,
+      "cyclesDevice": "METAL",
+      "oidnDevice": "METAL",
+      "scale": 32,
+      "logGain": 4096,
+      "logRange": 17.000011006847668,
+      "masters": {
+        "noisy": {
+          "path": "art/build/snow-roof-resting-contacts-accepted-bake/gate-night-raw.exr",
+          "bytes": 13186785,
+          "sha256": "3cae88c22a92e6ea2e44fcc904fa36aac5b3b18def859c5ce8b345c7886285e3"
+        },
+        "denoised": {
+          "path": "art/build/snow-roof-resting-contacts-accepted-bake/gate-night.exr",
+          "bytes": 9269550,
+          "sha256": "6b5c32157cd7347cd4dc6b50c2c32b11f6c1e54ec533deba232225a427c6a9d3"
+        }
+      }
+    },
+    {
+      "region": "gate",
+      "look": "dusk",
+      "cyclesSeconds": 34.286,
+      "oidnSeconds": 27.993,
+      "totalMapSeconds": 62.905,
+      "samples": 64,
+      "cyclesDevice": "METAL",
+      "oidnDevice": "METAL",
+      "scale": 32,
+      "logGain": 4096,
+      "logRange": 17.000011006847668,
+      "masters": {
+        "noisy": {
+          "path": "art/build/snow-roof-resting-contacts-accepted-bake/gate-dusk-raw.exr",
+          "bytes": 13181206,
+          "sha256": "a4d10a6949a207bd12abe455bfeb22fd69f1579f5a594f8e23cc5204e40425a6"
+        },
+        "denoised": {
+          "path": "art/build/snow-roof-resting-contacts-accepted-bake/gate-dusk.exr",
+          "bytes": 9239019,
+          "sha256": "dc99056166c1bee48ed35c6a153090ceb877ea583e2f70993ff000f9580db111"
+        }
+      }
+    },
+    {
+      "region": "gate",
+      "look": "day",
+      "cyclesSeconds": 30.819,
+      "oidnSeconds": 27.429,
+      "totalMapSeconds": 58.867,
+      "samples": 64,
+      "cyclesDevice": "METAL",
+      "oidnDevice": "METAL",
+      "scale": 32,
+      "logGain": 4096,
+      "logRange": 17.000011006847668,
+      "masters": {
+        "noisy": {
+          "path": "art/build/snow-roof-resting-contacts-accepted-bake/gate-day-raw.exr",
+          "bytes": 13176726,
+          "sha256": "4bb454e9581a115217dfc14159d9acd9adcf699b28fc798a8cef1084a745c535"
+        },
+        "denoised": {
+          "path": "art/build/snow-roof-resting-contacts-accepted-bake/gate-day.exr",
+          "bytes": 9274549,
+          "sha256": "7f514a79a3dff21b66efc899ae183ba9380b6b1c5c5c1a402bbed0cda045881a"
+        }
+      }
+    },
+    {
+      "region": "gate",
+      "look": "lamp",
+      "cyclesSeconds": 25.406,
+      "oidnSeconds": 28.278,
+      "totalMapSeconds": 54.235,
+      "samples": 64,
+      "cyclesDevice": "METAL",
+      "oidnDevice": "METAL",
+      "scale": 0.0078125,
+      "logGain": 4096,
+      "logRange": 5.044394119358453,
+      "masters": {
+        "noisy": {
+          "path": "art/build/snow-roof-resting-contacts-accepted-bake/gate-lamp-raw.exr",
+          "bytes": 8499606,
+          "sha256": "97fa7ac87f107e7a99b396d1a96982b5caf86157afc4cffeb78e1d52c466226e"
+        },
+        "denoised": {
+          "path": "art/build/snow-roof-resting-contacts-accepted-bake/gate-lamp.exr",
+          "bytes": 7352428,
+          "sha256": "8c32254744ad24e742ef7f252071efa06d96bbee8ef65bb0cd70c4a94c17fada"
+        }
+      }
+    }
+  ]
+}

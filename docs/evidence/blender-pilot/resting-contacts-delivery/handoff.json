@@ -1,0 +1,194 @@
+{
+  "status": "Complete staged delivery and all owned native/encoder/numeric jobs terminal. No public install or runtime/browser acceptance claimed.",
+  "packageDirectory": "art/build/snow-roof-resting-contacts-delivery",
+  "declaredPayloadAndProofFiles": 17,
+  "declaredBytes": 59674555,
+  "manifestBytes": 108583,
+  "physicalFileCount": 18,
+  "physicalTotalBytes": 59783138,
+  "hashes": {
+    "source": {
+      "path": "art/build/snow-roof-resting-contacts-accepted.blend",
+      "sha256": "b31360516a2713a6451ca920f3f94d9fefd9bc191bc07fca63c8c5ddce5a0c86",
+      "bytes": 13299379
+    },
+    "prepared": {
+      "path": "art/build/snow-roof-resting-contacts-accepted-bake/snow-roof-prepared.blend",
+      "sha256": "a49fe4fec7dcb52022c720b5a47a8d9c187f06433fda48adf1324d5d65c75d28",
+      "bytes": 31619436
+    },
+    "raw": {
+      "path": "art/build/snow-roof-resting-contacts-accepted-bake/snow-roof.raw.glb",
+      "sha256": "c3539702ab9c0a5eb244f4be25d57bd1c30f22bb31ecedd83674bd99642aef7b",
+      "bytes": 71902344
+    },
+    "prunedGLB": {
+      "path": "art/build/snow-roof-resting-contacts-delivery/snow-roof.glb",
+      "sha256": "49cbe07a5a0f407b3df31b82ef0c75e6995e471593d51527a276a3d22723ef88",
+      "bytes": 16265084
+    },
+    "manifest": {
+      "path": "art/build/snow-roof-resting-contacts-delivery/manifest.json",
+      "sha256": "9beed7157a74e41096bfb7bd94f62834a30d6df89cf4cf3979c1ffca62b9fb53",
+      "bytes": 108583
+    },
+    "hiddenProof": {
+      "path": "art/blender/proofs/snow-roof-resting-contacts-accepted-hidden-tiles.json",
+      "sha256": "cf525ebd5990e8487cc4e10f3a6110fc12d0deab152885889fe879991bbfba57",
+      "bytes": 4048937
+    },
+    "sourceContactAudit": {
+      "path": "art/build/snow-roof-resting-contacts-accepted.audit.json",
+      "sha256": "1f722140f258eb74b02f6db1760960de056567dfe1fba64392d933d6d8a2a290",
+      "bytes": 292520
+    },
+    "preparedRawContactReceipt": {
+      "path": "art/build/resting-contacts-accepted-replay/contacts-unique-crowns.json",
+      "sha256": "c7339acd30137c33398c8df122516f31b0405a5093dbace21c072db931bc38dc",
+      "bytes": 104142
+    },
+    "guardProof": {
+      "path": "art/build/resting-contacts-accepted-replay/guard/guard-proof.json",
+      "sha256": "34a4af3325a871aff69ae84f4700fed95fe6025f04be5cdc20e63204a362f9b6",
+      "bytes": 4050
+    },
+    "paddingReceipt": {
+      "path": "art/build/snow-roof-resting-contacts-padding-production/contact-padding.receipt.json",
+      "sha256": "285fb571e873586abcbdbb8f3f03547135e8de1b15b42ae5ead7f7e2d0a20731",
+      "bytes": 10180
+    },
+    "independentPaddingProof": {
+      "path": "art/build/snow-roof-resting-contacts-padding-production/independent-contact-padding-proof.json",
+      "sha256": "f3fbeff3b25626e5e7f8df0da6c2aadb3b870d67229c44612ab9770ab3e93719",
+      "bytes": 8883
+    },
+    "independentGeometryProof": {
+      "path": "art/build/snow-roof-resting-contacts-float32-optimized-stage/independent-geometry-proof.json",
+      "sha256": "a7a4e4a4fce7c46c1b08544a00f7f4db3b3ecefea4220c819c2652ec9f62e32b",
+      "bytes": 995
+    },
+    "postbatchCorrespondence": {
+      "path": "art/build/resting-contacts-export-study/final-postbatch-correspondence.json",
+      "sha256": "b2d1edef24178c17aec6fce7af3de0a2eb30ea1e6e1c54fabce71dfa3a86e6a5",
+      "bytes": 5753
+    },
+    "codecAudit": {
+      "path": "art/build/snow-roof-resting-contacts-delivery-verification/delivery-image-audit.json",
+      "sha256": "dc85232022a76bc6aee878b4d09220e12eeda5929b1a812ac9dfb1b0efc1e269",
+      "bytes": 54181
+    }
+  },
+  "nativeSeconds": 2508.312,
+  "mapCount": 12,
+  "samples": 64,
+  "cyclesDevice": "METAL",
+  "oidnDevice": "METAL",
+  "maps": [
+    {
+      "region": "hall",
+      "look": "night",
+      "cyclesSeconds": 127.129,
+      "oidnSeconds": 78.013,
+      "totalSeconds": 208.741
+    },
+    {
+      "region": "hall",
+      "look": "dusk",
+      "cyclesSeconds": 294.015,
+      "oidnSeconds": 78.724,
+      "totalSeconds": 375.392
+    },
+    {
+      "region": "hall",
+      "look": "day",
+      "cyclesSeconds": 116.573,
+      "oidnSeconds": 83.673,
+      "totalSeconds": 202.752
+    },
+    {
+      "region": "hall",
+      "look": "lamp",
+      "cyclesSeconds": 88.836,
+      "oidnSeconds": 87.632,
+      "totalSeconds": 178.661
+    },
+    {
+      "region": "court",
+      "look": "night",
+      "cyclesSeconds": 406.74,
+      "oidnSeconds": 75.333,
+      "totalSeconds": 491.633
+    },
+    {
+      "region": "court",
+      "look": "dusk",
+      "cyclesSeconds": 220.398,
+      "oidnSeconds": 55.745,
+      "totalSeconds": 279.909
+    },
+    {
+      "region": "court",
+      "look": "day",
+      "cyclesSeconds": 203.99,
+      "oidnSeconds": 55.222,
+      "totalSeconds": 262.751
+    },
+    {
+      "region": "court",
+      "look": "lamp",
+      "cyclesSeconds": 185.593,
+      "oidnSeconds": 55.42,
+      "totalSeconds": 243.486
+    },
+    {
+      "region": "gate",
+      "look": "night",
+      "cyclesSeconds": 54.812,
+      "oidnSeconds": 26.439,
+      "totalSeconds": 82.356
+    },
+    {
+      "region": "gate",
+      "look": "dusk",
+      "cyclesSeconds": 34.286,
+      "oidnSeconds": 27.993,
+      "totalSeconds": 62.905
+    },
+    {
+      "region": "gate",
+      "look": "day",
+      "cyclesSeconds": 30.819,
+      "oidnSeconds": 27.429,
+      "totalSeconds": 58.867
+    },
+    {
+      "region": "gate",
+      "look": "lamp",
+      "cyclesSeconds": 25.406,
+      "oidnSeconds": 28.278,
+      "totalSeconds": 54.235
+    }
+  ],
+  "geometry": {
+    "vertices": 649213,
+    "triangles": 467186,
+    "positionComponentType": 5126,
+    "positionFilter": "NONE",
+    "removedFACEProvenTriangles": 183750
+  },
+  "padding": {
+    "maps": 8,
+    "courtChangedTexelsPerLook": 2098,
+    "hallChangedTexelsPerLook": 682,
+    "visibleUncertifiedLinearRGBAFloatBitsExact": true,
+    "originalRawAndDenoisedMastersUnchanged": true,
+    "gateMapsByteIdentical": 4,
+    "lossyDecodedNeighborhoodsNotClaimedBitExact": true
+  },
+  "codecVerification": {
+    "officialRGBA8Transcodes": 12,
+    "levelsEach": 3,
+    "comparison": "Dark/middle/peak actual decoded radiance versus actual linear masters; mip footprints restricted to one original chart. Runtime ASTC/BC7 and screen interpolation still require browser review."
+  },
+  "publicFilesWritten": false
+}

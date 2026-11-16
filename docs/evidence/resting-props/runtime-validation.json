@@ -1,0 +1,20 @@
+{
+  "checkedAt": "2026-11-16T23:23:19.523697+00:00",
+  "manifestSha256": "9beed7157a74e41096bfb7bd94f62834a30d6df89cf4cf3979c1ffca62b9fb53",
+  "registryMatchesAllFiles": true,
+  "mainPreviewManifestMatches": true,
+  "mainPreviewApiStatus": 200,
+  "runtimeSource": "web/src/engine/places/snow-roof-baked.js",
+  "runtimeSha256": "a64bb60b08c140209c5e2e24c75e20e8bce00bebee0018bf6c5e1c32d0c3a04c",
+  "sourceAnchorsRequired": true,
+  "checks": [
+    {
+      "command": "npm run typecheck",
+      "exitCode": 0
+    },
+    {
+      "command": "npm run build",
+      "exitCode": 0
+    }
+  ]
+}

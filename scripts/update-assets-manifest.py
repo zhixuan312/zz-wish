@@ -35,7 +35,19 @@ if source.exists():
 delivery = ROOT / 'web/public/places/snow-roof/manifest.json'
 if delivery.exists():
     d = json.loads(delivery.read_text())
-    assets.append({'id': 'snow-roof-delivery', 'kind': 'Baked/compressed derivative scene', 'provider': 'One Light project', 'license': 'Original architecture with CC0 surface inputs listed above', 'sourceFiles': ['art/blender/snow_roof.py', 'art/blender/bake_export.py'], 'bake': d.get('bake'), 'compression': d.get('compression'), 'files': [file_info('web/public/places/snow-roof/' + f['uri']) for f in d['files']]})
+    source_files = [
+        'art/blender/snow_roof.py',
+        'art/blender/resting_contacts.py',
+        'art/blender/bake_export.py',
+        'art/blender/contact_inputs.py',
+        'art/blender/contact_padding.py',
+        'art/blender/classify_snow_contact.py',
+        'art/blender/certify_snow_contact_donors.py',
+        'scripts/pack-blender-assets.mjs',
+        'scripts/pack-float-position-diagnostic.mjs',
+        'scripts/prune-float32-baked.mjs',
+    ]
+    assets.append({'id': 'snow-roof-delivery', 'kind': 'Baked/compressed derivative scene', 'provider': 'One Light project', 'license': 'Original architecture with CC0 surface inputs listed above', 'sourceFiles': source_files, 'bake': d.get('bake'), 'compression': d.get('compression'), 'files': [file_info('web/public/places/snow-roof/' + f['uri']) for f in d['files']]})
 result = {'version': 1, 'generatedAt': datetime.now(timezone.utc).isoformat(), 'purpose': 'Single provenance and license register for every delivered visual asset and shared decoder.', 'assets': assets}
 (ROOT / 'docs/assets.json').write_text(json.dumps(result, indent=2) + '\n')
 print(len(assets), 'registered assets')

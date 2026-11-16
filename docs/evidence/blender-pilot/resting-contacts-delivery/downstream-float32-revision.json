@@ -1,0 +1,9 @@
+{
+  "scope": "Controlled downstream helper update during native baking. It is not executed by the Cycles batch and does not change transport, authored source or prepared receiver geometry.",
+  "helper": "scripts/pack-float-position-diagnostic.mjs",
+  "launchLedgerSha256": "edc8287826488e8113acc5a77fe6cddeeaecf22492f696fd929ef018fb223272",
+  "newActualSha256": "9c63867402588b6858be18bab100e99c9b29ae6e684ba0c60a79c494f70815bf",
+  "change": "Optional geometry-only staging with actual material-receipt identities; no delivery manifest or invented maps. Normal/final mode still requires all twelve real maps.",
+  "nativeBakerByteUnchanged": true,
+  "nativeBakerSha256": "55cb884fff68b333aa378a4f2ea10bc8c85d8703c405f7b09ecb72825d2ab55b"
+}

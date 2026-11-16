@@ -1,0 +1,14 @@
+{
+  "status": "Actual complete batch exited 0. Post-batch source/prepared/raw identities match the frozen provisional stage, authorizing exact downstream reuse without hash edits.",
+  "sourceBlendSha256": "b31360516a2713a6451ca920f3f94d9fefd9bc191bc07fca63c8c5ddce5a0c86",
+  "preparedSha256": "a49fe4fec7dcb52022c720b5a47a8d9c187f06433fda48adf1324d5d65c75d28",
+  "rawSha256": "c3539702ab9c0a5eb244f4be25d57bd1c30f22bb31ecedd83674bd99642aef7b",
+  "provisionalRawPath": "art/build/snow-roof-resting-contacts-export-stage/snow-roof.raw.glb",
+  "provisionalRawByteIdentical": true,
+  "maps": 12,
+  "samples": 64,
+  "cyclesDevice": "METAL",
+  "oidnDevice": "METAL",
+  "totalSeconds": 2508.312,
+  "bakeFingerprint": "0ffdd3b3c38387ba15ea8c86fe93715fd3699c93d6c082702f4b2881858d8350"
+}

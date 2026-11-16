@@ -1,0 +1,18 @@
+{
+  "sourceBlendSha256": "b31360516a2713a6451ca920f3f94d9fefd9bc191bc07fca63c8c5ddce5a0c86",
+  "scripts": {
+    "art/blender/bake_export.py": "55cb884fff68b333aa378a4f2ea10bc8c85d8703c405f7b09ecb72825d2ab55b",
+    "art/blender/held_preview.py": "95ba8bff96b1fd7d84b175b383cf365a6154a1775e8fcce54c66d5758607b0dc",
+    "art/blender/proofs/resting-contact-guard.py": "b61f413452386f1ac77a4349121eaf860f939d3a2f5a71dfe061fed1b365e4f2",
+    "scripts/pack-blender-assets.mjs": "f9a3751e7779cfebc1d68efb6c656e374e0604d5e20ab6b841374fd42ff3bd0c",
+    "scripts/pack-float-position-diagnostic.mjs": "edc8287826488e8113acc5a77fe6cddeeaecf22492f696fd929ef018fb223272",
+    "scripts/prune-float32-baked.mjs": "babd2f7a7a1d257a37ddd79e020bad2e4084847d3bdf956ac6b65d54854d1271",
+    "scripts/audit-float32-prune.mjs": "ee0f24fadae85698ba95a8f7949555f434a3d89edb096c71411a4aa23874f065",
+    "art/blender/contact_inputs.py": "a50adb6f634bccd6bd36cf96f76de40e9dd048428428b5a7f4d119c9df09fe24",
+    "art/blender/classify_snow_contact.py": "d41e4a10a573716d2e1d0fec9044ec24efc5d2fd2898fa74061568a6aacd2f72",
+    "art/blender/certify_snow_contact_donors.py": "295debc57a35f161496682200043fef32a3b379a6fe6646f475f311deb6d32f7",
+    "art/blender/contact_padding.py": "10b2806a791a6c29b3e1b2ad6be8c6c41a10d42183e534ecbc1befbef262be11",
+    "art/blender/audit_contact_padding.py": "0dc57a8187c21e514af2716777d685363bdee3438706c395e37b98eb6ff37c8b",
+    "scripts/assemble-contact-delivery.py": "8b9e1528abd05cfa6a48bae05a8b4af278cfe4db9aa30f99b436818e81912126"
+  }
+}

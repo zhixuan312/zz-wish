@@ -1,0 +1,17 @@
+# Snow Roof resting-contact review
+
+[Before/after gallery](index.html) · [Exact cameras and provenance](provenance.json) · [Source and delivery hashes](../../../art/blender/README.md)
+
+The inner altar lamps and burner now rest on the evaluated scanned console surface. The outer lamps rest on the real closed pedestal caps. The console, pedestals, cushions, nested bowls, broom and gate lamps also use downward evaluated-mesh raycasts. All 36 resting groups meet the literal 2 mm gap / 5 mm penetration limits; the screen's bearing rail has a separate four-fastener masonry mount check. The source audit inventories 37 groups / 176 objects without missing loose props. Maximum gap is 0.908315 mm; maximum prepared/raw penetration is 4.844189 mm.
+
+All twelve maps were freshly baked at 64 samples using Cycles Metal and explicit Metal OpenImageDenoise, with automatic Cycles threads. The accepted prepared views were reviewed at 8 samples first. The rejected partial batch was stopped and its pixels were never reused; the corrected source and receipt guard passed before the complete batch. Source, prepared, raw and delivered hashes are recorded in the linked README and [native/package evidence](../blender-pilot/resting-contacts-delivery/README.md).
+
+The app reads actual exported wick tips, fixture point-light positions and incense smoke origin, converting world coordinates into the nook frame. Source metadata is required. Across 12 held views, all 132 [actual runtime anchor comparisons](runtime-anchor-comparison.json) measure exactly 0 m error.
+
+The committed comparison contains 24 unmodified PNGs: burning, 24-hour burnFar, low altar overview, left lamps, burner and right lamps at desktop 1440×900 and phone 390×844. All paired camera/projection elements match exactly. Six primary holds per state last at least 10 seconds; six supplementary contact holds last 0.6 seconds. Frozen structural/flame ROI mean per-pixel RMS is 0. Normal materials, samplers, lighting, exposure and bloom are retained; physical time/fuel/camera are held and particles hidden for comparison. Separate live settled endpoint PNGs remain in the original source reports. Runtime/HTTP/capture errors and source changes are 0; actual UI put-out cleanup completed.
+
+Root visually reviewed the desktop and phone altar overview and all six contact close-ups, including the before burner gap. All four lamp bases and the visible burner feet now meet their table/pedestal surfaces with tight contact darkening. Both overviews contain all four whole lamps and the burner. The low/contact cameras are diagnostic; the actual product burn/burnFar cameras remain separately labeled.
+
+The [bounded normal phone run](performance/phone-burning.json) averaged 30.00 FPS over 10 seconds, with GPU p95 23.47 ms and CPU p95 3.80 ms at 487×1055/MSAA2. Render-interval p95 was 48.42 ms: cadence varies, so this result does not establish uniform 30 FPS pacing. The [raw frame intervals](performance/frames.csv) are preserved. Phone evidence uses M1 desktop-GPU viewport/touch emulation.
+
+Typecheck and production build pass. Every installed payload hash, registry entry and main-preview manifest matches the complete 17-file package. Original raw/denoised masters remain intact. The independent padding proof applies to linear base samples; lossy KTX block neighborhoods are not claimed bit-exact. All native, encoder, audit and browser jobs are terminal.
