@@ -1,0 +1,54 @@
+{
+  "copiesByteIdenticalToSources": true,
+  "files": [
+    {
+      "file": "quality-helper-receipt.json",
+      "source": "art/build/snow-roof-final-quality-optimized/snow-roof.receipt.json",
+      "sha256": "b6248e88d283663ac9e54379c55370fc3764bb877b7b4b1e90b933eaa021c96d",
+      "bytes": 20626
+    },
+    {
+      "file": "mobile-helper-receipt.json",
+      "source": "art/build/snow-roof-final-mobile-optimized/snow-roof.receipt.json",
+      "sha256": "454b2e02939aedc023430245a378a94fa80f42116e17f45e89ebeffc20f2490d",
+      "bytes": 20621
+    },
+    {
+      "file": "quality-frozen-profile.json",
+      "source": "art/blender/proofs/snow-roof-final-quality-export-profile.json",
+      "sha256": "356e38234e4255dca0632a896d725716ea47f0c2a1bb1180d43e2ae9b011fe14",
+      "bytes": 2070
+    },
+    {
+      "file": "mobile-frozen-profile.json",
+      "source": "art/blender/proofs/snow-roof-final-mobile-export-profile.json",
+      "sha256": "b147655917eb1729fb1aeaf33ff3cf4d7e653e30918c81893672aaf0d49952a2",
+      "bytes": 2066
+    },
+    {
+      "file": "actual-face-export-validation.json",
+      "source": "art/blender/proofs/snow-roof-final-face-export-validation.json",
+      "sha256": "def5a6a029883f37b8e804d9016f4f245d589c448396e0ec1f48d849a1f32ab3",
+      "bytes": 5203
+    },
+    {
+      "file": "actual-packed-export-validation.json",
+      "source": "art/blender/proofs/snow-roof-final-packed-export-validation.json",
+      "sha256": "1e8faafb700bd8bbca2d5e1d8d3fa6f209fe864d193b26b400b85a13368639c2",
+      "bytes": 5317
+    },
+    {
+      "file": "cross-profile-geometry.json",
+      "source": "art/blender/proofs/snow-roof-final-cross-profile-geometry.json",
+      "sha256": "3be7aa3f619a11f28ce278aae874849900173e29a6ad661b691a804b4e36e9b8",
+      "bytes": 82656
+    },
+    {
+      "file": "helper-execution.json",
+      "source": "art/blender/proofs/snow-roof-final-optimization-execution.json",
+      "sha256": "566ff9e23806697b7f50712839fc996df95e4bf86878fec9c98bc2bb34915c9d",
+      "bytes": 2455
+    }
+  ],
+  "noGpuOrPublicWrites": true
+}

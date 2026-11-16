@@ -1,0 +1,65 @@
+{
+  "id": "snow-roof-final-quality-6e9f-v1",
+  "variant": "quality",
+  "hashes": {
+    "proof": "6649e9c080c3b152c743fcc88ad5ebf95690ff8f678742cc5dd84be79ce2e014",
+    "sourceBlend": "6e9f59c93565e08a690eaafbc756967ba39e0f4d8ad0094e4520265948360af8",
+    "preparedBlend": "6ed42644cd3a6c1026b079740957280df0274e9e9a0eaf5f8d3da514725079c1",
+    "raw": "42def075058bc8d7d6673645678448a1d74173443742a529d8316afee6e47196",
+    "input": "545f101f30a16aaa241d8a63e476ab5b04cfb9c2a4fa15a61261bf506e4b5760"
+  },
+  "regions": {
+    "hall": {
+      "material": "Side hall roof tiles",
+      "sourceMaterials": {
+        "Dark clay roof tile": 95790
+      },
+      "triangles": 95790,
+      "components": 2905
+    },
+    "gate": {
+      "material": "Side hall roof tiles",
+      "sourceMaterials": {
+        "Gate roof tiles": 22566
+      },
+      "triangles": 22566,
+      "components": 685
+    },
+    "court": {
+      "material": "Side hall roof tiles",
+      "sourceMaterials": {
+        "Side hall roof tiles": 65394
+      },
+      "triangles": 65394,
+      "components": 1987
+    }
+  },
+  "input": {
+    "bytes": 38017908,
+    "vertices": 956291,
+    "triangles": 650624,
+    "images": 24,
+    "imageBytes": 24909483
+  },
+  "output": {
+    "bytes": 34821408,
+    "vertices": 648776,
+    "triangles": 466874,
+    "images": 24,
+    "imageBytes": 24909483,
+    "sha256": "d37a76d691b5d1703ba0c9ff36558631b4613e05e532ac92cb74f88c0f5fc174"
+  },
+  "faceAudit": {
+    "method": "Actual prepared FACE flags -> exact raw float32 triangles -> packed UV0/world triangles within existing quantization bounds.",
+    "matchedTriangles": 183750,
+    "unmatchedSourceTriangles": 0,
+    "unmatchedRawTriangles": 0,
+    "maximumPackedPositionErrorMetres": 0.0008451991078806152,
+    "conservativePositionErrorBoundMetres": 0.001512666219061861
+  },
+  "preservedNonproofMarkerTriangles": 3292,
+  "provenance": {
+    "validation": "art/blender/proofs/snow-roof-final-packed-export-validation.json",
+    "validationSha256": "1e8faafb700bd8bbca2d5e1d8d3fa6f209fe864d193b26b400b85a13368639c2"
+  }
+}

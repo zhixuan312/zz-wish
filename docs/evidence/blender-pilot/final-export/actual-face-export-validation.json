@@ -1,0 +1,117 @@
+{
+  "version": 1,
+  "stage": "Corrected pre-bake actual prepared/raw snapshot; packed profiles remain pending.",
+  "actualInputs": {
+    "prepared": {
+      "path": "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-final/snow-roof-prepared.blend",
+      "sha256": "6ed42644cd3a6c1026b079740957280df0274e9e9a0eaf5f8d3da514725079c1"
+    },
+    "source": {
+      "path": "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-stair-banks-grain.blend",
+      "sha256": "6e9f59c93565e08a690eaafbc756967ba39e0f4d8ad0094e4520265948360af8"
+    },
+    "proof": {
+      "path": "/Users/xuan/Documents/code/zz-wish/art/blender/proofs/snow-roof-final-hidden-tiles.json",
+      "sha256": "6649e9c080c3b152c743fcc88ad5ebf95690ff8f678742cc5dd84be79ce2e014"
+    }
+  },
+  "raw": {
+    "path": "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-final/snow-roof.raw.glb",
+    "sha256": "42def075058bc8d7d6673645678448a1d74173443742a529d8316afee6e47196"
+  },
+  "bakerEarlierPreparedSha256": "1377c77832ceeee03df3ecd3aa325c519996177d2672e57ad25c54abd976d01e",
+  "preparedHashNote": "The launched batch re-saved preparation before this audit. Actual audited bytes are 6ed42644..., not the earlier 1377c778... announcement. Source binding, FACE geometry and raw 42def remain verified.",
+  "sourceBoundHiddenProof": "art/blender/proofs/snow-roof-final-hidden-tiles.json",
+  "bakeFingerprintAtAudit": "a3474ff7706aba1f896aa6f1fd8f49b049b8a1ff264d687072b187f7fb503cac",
+  "geometryFingerprintAtAudit": "c914ac7f193ec738d0d285a03bf5632eaf0f3b1277b7a798078559a6e7785c1b",
+  "referenceReceipt": "art/build/snow-roof-final/hidden-export-reference-corrected/reference.json",
+  "referenceReceiptSha256": "9138cc6d6db2d2334504ee2e7617d4ccda22888af9d9708b9d895093d7d66436",
+  "rawCorrespondenceReceipt": "art/build/snow-roof-final/hidden-export-reference-corrected/raw-correspondence.json",
+  "rawCorrespondenceReceiptSha256": "33f91018543dc9610d3871b72954e4854a1322aa2e63d70a53e58c1f043641e2",
+  "exactFloat32FaceToRawCorrespondence": true,
+  "hiddenGeometryExactlyEqualBeforeAfterGeneratedCorrection": true,
+  "regions": {
+    "hall": {
+      "preparedObject": "SnowRoof_hall",
+      "hiddenTriangleBinarySha256": "92580a5f77892f32930843fba283dcd0f305e3a2918e7b2713b642487ad1d9f1",
+      "sourceGeneratedAttribute": {
+        "name": "one_light_source_generated",
+        "domain": "POINT",
+        "type": "FLOAT_VECTOR",
+        "vertices": 240877,
+        "sha256": "01cf2755bec0dbd32fe7d8048c213fb903b5a9c961537a60c1e339b433e8c6c3"
+      },
+      "vertices": 635360,
+      "triangles": 384524,
+      "matchedProvenTriangles": 95790,
+      "verticesUnusedAfterPrune": 103150,
+      "preservedNonproofMarkerTriangles": 2604,
+      "unmatchedSourceTriangles": 0,
+      "transformMaximumError": 0,
+      "materials": {
+        "Dark clay roof tile": 95790
+      }
+    },
+    "gate": {
+      "preparedObject": "SnowRoof_gate",
+      "hiddenTriangleBinarySha256": "e7501231e07a49c6b7387e2520b7fcccccb0a3096e213217e49bf296cffb36ec",
+      "sourceGeneratedAttribute": {
+        "name": "one_light_source_generated",
+        "domain": "POINT",
+        "type": "FLOAT_VECTOR",
+        "vertices": 54690,
+        "sha256": "476e7a301ae0eeb2b101622ab87adc1fb8a15279bcbbd2b90c2a406dd5816fb8"
+      },
+      "vertices": 116332,
+      "triangles": 84844,
+      "matchedProvenTriangles": 22566,
+      "verticesUnusedAfterPrune": 24324,
+      "preservedNonproofMarkerTriangles": 304,
+      "unmatchedSourceTriangles": 0,
+      "transformMaximumError": 0,
+      "materials": {
+        "Gate roof tiles": 22566
+      }
+    },
+    "court": {
+      "preparedObject": "SnowRoof_court",
+      "hiddenTriangleBinarySha256": "17b29d0a0aa791bec706191934320fa08dde814c5a7d2106a8a73bc3b3260d44",
+      "sourceGeneratedAttribute": {
+        "name": "one_light_source_generated",
+        "domain": "POINT",
+        "type": "FLOAT_VECTOR",
+        "vertices": 118657,
+        "sha256": "24ab382da36df6747c69ca8db16619798973f58860b70af1d4596f565044b821"
+      },
+      "vertices": 204599,
+      "triangles": 181256,
+      "matchedProvenTriangles": 65394,
+      "verticesUnusedAfterPrune": 70576,
+      "preservedNonproofMarkerTriangles": 384,
+      "unmatchedSourceTriangles": 0,
+      "transformMaximumError": 0,
+      "materials": {
+        "Side hall roof tiles": 65394
+      }
+    }
+  },
+  "totals": {
+    "vertices": 956291,
+    "triangles": 650624,
+    "matchedProvenTriangles": 183750,
+    "verticesUnusedAfterPrune": 198050,
+    "preservedNonproofMarkerTriangles": 3292
+  },
+  "unmatchedPreparedFaces": 0,
+  "unmatchedExportCandidates": 0,
+  "generatedAttributePolicy": "Actual preserved POINT FLOAT_VECTOR bytes fingerprinted separately; no UV identity assumption.",
+  "tools": {
+    "blenderReference": "art/blender/export_hidden_reference.py",
+    "rawAudit": "scripts/audit-hidden-export.mjs"
+  },
+  "renderOrBakePerformedByAudit": false,
+  "originalMeasuredOptimizationProfileRetained": true,
+  "qualityPackedProfileCreated": false,
+  "mobilePackedProfileCreated": false,
+  "nextGate": "Recheck actual end-of-batch raw hash/container and completed quality/mobile packed inputs before generating explicit profiles or candidate outputs."
+}
