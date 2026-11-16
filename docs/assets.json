@@ -1,0 +1,817 @@
+{
+  "version": 1,
+  "generatedAt": "2026-11-16T12:58:50.333262+00:00",
+  "purpose": "Single provenance and license register for every delivered visual asset and shared decoder.",
+  "assets": [
+    {
+      "id": "rock_pitted_mossy",
+      "kind": "PBR material",
+      "provider": "Poly Haven",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://polyhaven.com/license",
+      "sourceUrl": "https://polyhaven.com/a/rock_pitted_mossy",
+      "authors": {
+        "Dimitrios Savva": "Photography",
+        "Rico Cilliers": "Processing"
+      },
+      "files": [
+        {
+          "path": "web/public/materials/scans/rock_pitted_mossy/diffuse.jpg",
+          "bytes": 447787,
+          "sha256": "b93343437d4eb86d97bef1d9162e55e85ef7de83e89ee2f70f19761ad2accad0",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/rock_pitted_mossy/rock_pitted_mossy_diff_1k.jpg",
+          "sourceSha256": "afc60b7dee7c161c12a9fb3fffee2c118f1fe47aa1f1e21e4670180bbf29de3c",
+          "map": "diffuse",
+          "encoding": {
+            "format": "JPEG",
+            "quality": 91,
+            "subsampling": 2,
+            "mode": "RGB",
+            "optimize": true
+          }
+        },
+        {
+          "path": "web/public/materials/scans/rock_pitted_mossy/normal.jpg",
+          "bytes": 687754,
+          "sha256": "bb0c4cf5e3b958b681a00a66c8709e395e949f0c3c290e56a9c8c9879c5adb54",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/rock_pitted_mossy/rock_pitted_mossy_nor_gl_1k.jpg",
+          "sourceSha256": "070501836252ec7a7c2193531095fe4d442b649b9374361500183c3ed832f2fb",
+          "map": "normal",
+          "encoding": {
+            "format": "JPEG",
+            "quality": 93,
+            "subsampling": 0,
+            "mode": "RGB",
+            "optimize": true
+          }
+        },
+        {
+          "path": "web/public/materials/scans/rock_pitted_mossy/roughness.jpg",
+          "bytes": 273808,
+          "sha256": "1645e8ded47a3154e76f13a83963f222f22a6e3d429ed5e946c3d94f5b715e10",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/rock_pitted_mossy/rock_pitted_mossy_rough_1k.jpg",
+          "sourceSha256": "684e3314a64f2a9c89a79795adb71be88d90fdf0bda2a3c12685da425e5a413f",
+          "map": "roughness",
+          "encoding": {
+            "format": "JPEG",
+            "quality": 91,
+            "subsampling": 2,
+            "mode": "L",
+            "optimize": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "weathered_planks",
+      "kind": "PBR material",
+      "provider": "Poly Haven",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://polyhaven.com/license",
+      "sourceUrl": "https://polyhaven.com/a/weathered_planks",
+      "authors": {
+        "Dario Barresi": "Processing",
+        "Dimitrios Savva": "Photography"
+      },
+      "files": [
+        {
+          "path": "web/public/materials/scans/weathered_planks/diffuse.jpg",
+          "bytes": 202023,
+          "sha256": "b3d0c9512af469e9067ea967962785073516a02cf47c820c9b700b45901c9b16",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/weathered_planks/weathered_planks_diff_1k.jpg",
+          "sourceSha256": "01c9a372cfd7a7bf471b59c2458ed3ccecc93448aebf7ba0cc5b3b5b6ed24349",
+          "map": "diffuse",
+          "encoding": {
+            "format": "JPEG",
+            "quality": 91,
+            "subsampling": 2,
+            "mode": "RGB",
+            "optimize": true
+          }
+        },
+        {
+          "path": "web/public/materials/scans/weathered_planks/normal.jpg",
+          "bytes": 308526,
+          "sha256": "5b4234eeddbe3b2a11d7b3fdf9429f13291b8eac0e376be25df153e764acf879",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/weathered_planks/weathered_planks_nor_gl_1k.jpg",
+          "sourceSha256": "381d298f3194ec4961b04b4912b9b6efea4b2ff7b914dac57e24c8b6b0be6a25",
+          "map": "normal",
+          "encoding": {
+            "format": "JPEG",
+            "quality": 93,
+            "subsampling": 0,
+            "mode": "RGB",
+            "optimize": true
+          }
+        },
+        {
+          "path": "web/public/materials/scans/weathered_planks/roughness.jpg",
+          "bytes": 45927,
+          "sha256": "ba9bb772e2653454ef5aff408b027e0e394cd354c7a5ecb432097210d8870384",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/weathered_planks/weathered_planks_rough_1k.jpg",
+          "sourceSha256": "a017728183597417a350d1846a5a46db9702ee6d472a21c5da2f23015d606aa3",
+          "map": "roughness",
+          "encoding": {
+            "format": "JPEG",
+            "quality": 91,
+            "subsampling": 2,
+            "mode": "L",
+            "optimize": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "stone_pavers",
+      "kind": "PBR material",
+      "provider": "Poly Haven",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://polyhaven.com/license",
+      "sourceUrl": "https://polyhaven.com/a/stone_pavers",
+      "authors": {
+        "Amal Kumar": "All"
+      },
+      "files": [
+        {
+          "path": "web/public/materials/scans/stone_pavers/diffuse.jpg",
+          "bytes": 314197,
+          "sha256": "a1a7c10335f7a8d6b48f83b53ce6e6b100193f02058239350395ed70cca401fc",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/stone_pavers/stone_pavers_diff_1k.jpg",
+          "sourceSha256": "1e13349b9b6f956ba6ec8bf5443addde1ad31813879bf646918e7943684bba25",
+          "map": "diffuse",
+          "encoding": {
+            "format": "JPEG",
+            "quality": 91,
+            "subsampling": 2,
+            "mode": "RGB",
+            "optimize": true
+          }
+        },
+        {
+          "path": "web/public/materials/scans/stone_pavers/normal.jpg",
+          "bytes": 487206,
+          "sha256": "779d97cba32309840750ec2a7b13532f3b85589eb34fd7f6da10b94ebfc94f1e",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/stone_pavers/stone_pavers_nor_gl_1k.jpg",
+          "sourceSha256": "b06868bf171c9ffdaee50d08ee65ce8b36cb660ea772d711095a47890ee81deb",
+          "map": "normal",
+          "encoding": {
+            "format": "JPEG",
+            "quality": 93,
+            "subsampling": 0,
+            "mode": "RGB",
+            "optimize": true
+          }
+        },
+        {
+          "path": "web/public/materials/scans/stone_pavers/roughness.jpg",
+          "bytes": 131288,
+          "sha256": "46606abf3dc12dc61f03e860a9ef6a0f8c24b70af5fe95cee96db03e921d29f0",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/stone_pavers/stone_pavers_rough_1k.jpg",
+          "sourceSha256": "801a4bb6878e9584c3b56fc7eb06c4ba96a424b642560832868cc244d8724528",
+          "map": "roughness",
+          "encoding": {
+            "format": "JPEG",
+            "quality": 91,
+            "subsampling": 2,
+            "mode": "L",
+            "optimize": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "dark_brick_wall",
+      "kind": "PBR material",
+      "provider": "Poly Haven",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://polyhaven.com/license",
+      "sourceUrl": "https://polyhaven.com/a/dark_brick_wall",
+      "authors": {
+        "Dario Barresi": "Processing",
+        "Dimitrios Savva": "Photography"
+      },
+      "files": [
+        {
+          "path": "web/public/materials/scans/dark_brick_wall/diffuse.jpg",
+          "bytes": 363323,
+          "sha256": "3945fb2cb8d14aa1b37860492eef67aa17cb30d4674b9891e4a032258fb83472",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/dark_brick_wall/dark_brick_wall_diff_1k.jpg",
+          "sourceSha256": "5ec2718d497fadae9492d0b6977a1de3f0867c9ccbf65a835f9bbe48d632a228",
+          "map": "diffuse",
+          "encoding": {
+            "format": "JPEG",
+            "quality": 91,
+            "subsampling": 2,
+            "mode": "RGB",
+            "optimize": true
+          }
+        },
+        {
+          "path": "web/public/materials/scans/dark_brick_wall/normal.jpg",
+          "bytes": 830605,
+          "sha256": "6385e1d78bf7473f5e424521723dfd27d805dd8f321e196ba9e21752a13c5c65",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/dark_brick_wall/dark_brick_wall_nor_gl_1k.jpg",
+          "sourceSha256": "89b4b43655f87ca41734021986ff6261b41e624108eeb17ac24ea67593cb5858",
+          "map": "normal",
+          "encoding": {
+            "format": "JPEG",
+            "quality": 93,
+            "subsampling": 0,
+            "mode": "RGB",
+            "optimize": true
+          }
+        },
+        {
+          "path": "web/public/materials/scans/dark_brick_wall/roughness.jpg",
+          "bytes": 88818,
+          "sha256": "81f536cd56fb02bf24e01503c4221624768315a321437f860d14644b8e911c4f",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/dark_brick_wall/dark_brick_wall_rough_1k.jpg",
+          "sourceSha256": "b9184270464510cef4ca62d7c7eadab54a470f57892a504165a4c2a230d4ff57",
+          "map": "roughness",
+          "encoding": {
+            "format": "JPEG",
+            "quality": 91,
+            "subsampling": 2,
+            "mode": "L",
+            "optimize": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "white_plaster_rough_01",
+      "kind": "PBR material",
+      "provider": "Poly Haven",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://polyhaven.com/license",
+      "sourceUrl": "https://polyhaven.com/a/white_plaster_rough_01",
+      "authors": {
+        "Rob Tuytel": "All"
+      },
+      "files": [
+        {
+          "path": "web/public/materials/scans/white_plaster_rough_01/diffuse.jpg",
+          "bytes": 456910,
+          "sha256": "1bee5116cdf5a33167a01b4c7b6263b818b55bc502720b40ceefa121586c6a77",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/white_plaster_rough_01/white_plaster_rough_01_diff_1k.jpg",
+          "sourceSha256": "8d3b209ec5bbcee3db7a883c6c2eee982b7c18a268e6f43766ee540c7c28ebcb",
+          "map": "diffuse",
+          "encoding": {
+            "format": "JPEG",
+            "quality": 91,
+            "subsampling": 2,
+            "mode": "RGB",
+            "optimize": true
+          }
+        },
+        {
+          "path": "web/public/materials/scans/white_plaster_rough_01/normal.jpg",
+          "bytes": 339054,
+          "sha256": "fbe4d6cec0fccb2a2025d00578bc8ff1fb99e2d20288c307c193bad8b04e4971",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/white_plaster_rough_01/white_plaster_rough_01_nor_gl_1k.jpg",
+          "sourceSha256": "f9d15f0adb27a3cbcffe11bea7a14d486d036b0251e01ec24c3ca0ae05aef54b",
+          "map": "normal",
+          "encoding": {
+            "format": "JPEG",
+            "quality": 93,
+            "subsampling": 0,
+            "mode": "RGB",
+            "optimize": true
+          }
+        },
+        {
+          "path": "web/public/materials/scans/white_plaster_rough_01/roughness.jpg",
+          "bytes": 501151,
+          "sha256": "0ea0bbb9f9c43befe518bc97ba0bdcea5ae23e9573a61e29a40cc8a8be0f635c",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/white_plaster_rough_01/white_plaster_rough_01_rough_1k.jpg",
+          "sourceSha256": "459ab1eec7395a4617b4e043760be51eaac87828aae8816b6bf2c6030907225a",
+          "map": "roughness",
+          "encoding": {
+            "format": "JPEG",
+            "quality": 91,
+            "subsampling": 2,
+            "mode": "L",
+            "optimize": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "rock_face_01",
+      "kind": "Scanned natural model",
+      "provider": "Poly Haven",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://polyhaven.com/license",
+      "sourceUrl": "https://polyhaven.com/a/rock_face_01",
+      "authors": {
+        "Dario Barresi": "All"
+      },
+      "files": [
+        {
+          "path": "web/public/models/rock_face_01/rock_face_01.gltf",
+          "bytes": 1893,
+          "sha256": "bc0c32e17d771b6fa4aee4d1ffb01876d56a4c8196b804d0e92f062d02c3929a",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/rock_face_01/rock_face_01_1k.gltf",
+          "sourceMd5": "b4855bc7e841a17a94332561a9b301c0",
+          "transformation": "Geometry unchanged; source JPEGs encoded WebP at original1k resolution where recorded."
+        },
+        {
+          "path": "web/public/models/rock_face_01/textures/rock_face_01_arm_1k.webp",
+          "bytes": 127904,
+          "sha256": "9e93338101fb6b061076b51eb3f82b816dc2b79ab5f0bbfb5d1183e8109f8c37",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/rock_face_01/rock_face_01_arm_1k.jpg",
+          "sourceMd5": "5799e7f5546350576b87bf67c34fb49f",
+          "transformation": "Geometry unchanged; source JPEGs encoded WebP at original1k resolution where recorded."
+        },
+        {
+          "path": "web/public/models/rock_face_01/textures/rock_face_01_nor_gl_1k.webp",
+          "bytes": 446508,
+          "sha256": "40c436deb92328df115d12798a8f956d9ab9f1b82780246054b357bd52f0f1bf",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/rock_face_01/rock_face_01_nor_gl_1k.jpg",
+          "sourceMd5": "46e01f5c3b8ac4463aeef2b4c61d1cd4",
+          "transformation": "Geometry unchanged; source JPEGs encoded WebP at original1k resolution where recorded."
+        },
+        {
+          "path": "web/public/models/rock_face_01/textures/rock_face_01_diff_1k.webp",
+          "bytes": 249554,
+          "sha256": "c0b64c7094b217cf78eb274178da5197f8e5c64d88e2e548734c882a8e1d8a5b",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/rock_face_01/rock_face_01_diff_1k.jpg",
+          "sourceMd5": "98ee9f024a6383d7e6cab44ed41e1f15",
+          "transformation": "Geometry unchanged; source JPEGs encoded WebP at original1k resolution where recorded."
+        },
+        {
+          "path": "web/public/models/rock_face_01/rock_face_01.bin",
+          "bytes": 476436,
+          "sha256": "873eac0319333e92bc96ddeedf8ebf69dc3c68ff1dfe32d8c14ddc165cdb20ac",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/8k/rock_face_01/rock_face_01.bin",
+          "sourceMd5": "06caed23e725af568b64f8cbee210c1c",
+          "transformation": "Geometry unchanged; source JPEGs encoded WebP at original1k resolution where recorded."
+        }
+      ]
+    },
+    {
+      "id": "rock_face_02",
+      "kind": "Scanned natural model",
+      "provider": "Poly Haven",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://polyhaven.com/license",
+      "sourceUrl": "https://polyhaven.com/a/rock_face_02",
+      "authors": {
+        "Dario Barresi": "All",
+        "Rico Cilliers": "processing"
+      },
+      "files": [
+        {
+          "path": "web/public/models/rock_face_02/rock_face_02.gltf",
+          "bytes": 1894,
+          "sha256": "b8ecbfd6a46622a32e2823e5947126e60271513ba4fccef2c42c3fad87f15c80",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/rock_face_02/rock_face_02_1k.gltf",
+          "sourceMd5": "f4c7eefa474143b14312409cad4fb4b8",
+          "transformation": "Geometry unchanged; source JPEGs encoded WebP at original1k resolution where recorded."
+        },
+        {
+          "path": "web/public/models/rock_face_02/textures/rock_face_02_nor_gl_1k.webp",
+          "bytes": 482334,
+          "sha256": "b9e4b91ff4f467521141711a1daf57a55c6e702acee96e3778ad4eb40b7f23a1",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/rock_face_02/rock_face_02_nor_gl_1k.jpg",
+          "sourceMd5": "af2e17bb469b499dc14765dc13ad30ae",
+          "transformation": "Geometry unchanged; source JPEGs encoded WebP at original1k resolution where recorded."
+        },
+        {
+          "path": "web/public/models/rock_face_02/textures/rock_face_02_arm_1k.webp",
+          "bytes": 172416,
+          "sha256": "b91c2cbfcc2e32f562c7ad0133561b20c047a2e479bd68493d228e4566a6c9e0",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/rock_face_02/rock_face_02_arm_1k.jpg",
+          "sourceMd5": "9e59b31d77e404500effa446e790f8fb",
+          "transformation": "Geometry unchanged; source JPEGs encoded WebP at original1k resolution where recorded."
+        },
+        {
+          "path": "web/public/models/rock_face_02/rock_face_02.bin",
+          "bytes": 702068,
+          "sha256": "cfa3dea8f0f91525b5dfe93d889acacf961d20f7174aae100eae2c6e101edf31",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/8k/rock_face_02/rock_face_02.bin",
+          "sourceMd5": "add01c9b573fdddd688acb6378c78c3b",
+          "transformation": "Geometry unchanged; source JPEGs encoded WebP at original1k resolution where recorded."
+        },
+        {
+          "path": "web/public/models/rock_face_02/textures/rock_face_02_diff_1k.webp",
+          "bytes": 276580,
+          "sha256": "ba64319899f3b91a21e7fc2ba94253ca9b3a268740b9bef9f7334ca09bd3d605",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/rock_face_02/rock_face_02_diff_1k.jpg",
+          "sourceMd5": "8f3731e5c8e4e5c7f5de983353cf3ee3",
+          "transformation": "Geometry unchanged; source JPEGs encoded WebP at original1k resolution where recorded."
+        }
+      ]
+    },
+    {
+      "id": "rock_moss_set_01",
+      "kind": "Scanned natural model",
+      "provider": "Poly Haven",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://polyhaven.com/license",
+      "sourceUrl": "https://polyhaven.com/a/rock_moss_set_01",
+      "authors": {
+        "Kless Gyzen": "All"
+      },
+      "files": [
+        {
+          "path": "web/public/models/rock_moss_set_01/rock_moss_set_01.gltf",
+          "bytes": 6052,
+          "sha256": "fe7acfcdc66cd2ee9ef5981824585b87586493ff3f8fdeaf0728dfdf75765102",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/rock_moss_set_01/rock_moss_set_01_1k.gltf",
+          "sourceMd5": "75113cc1c21806cca5d8badad4737af7",
+          "transformation": "Geometry unchanged; source JPEGs encoded WebP at original1k resolution where recorded."
+        },
+        {
+          "path": "web/public/models/rock_moss_set_01/textures/rock_moss_set_01_nor_gl_1k.webp",
+          "bytes": 285534,
+          "sha256": "7de49a4df0dfe6632ff96c5fd60c1d54e5e56805502ca3b32d41383fbb05995d",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/rock_moss_set_01/rock_moss_set_01_nor_gl_1k.jpg",
+          "sourceMd5": "eb7ebd31ad08e78d0497900652ff1568",
+          "transformation": "Geometry unchanged; source JPEGs encoded WebP at original1k resolution where recorded."
+        },
+        {
+          "path": "web/public/models/rock_moss_set_01/rock_moss_set_01.bin",
+          "bytes": 1466380,
+          "sha256": "de8360e6175879aaf02c171911069cf5f1852547f9ca7f10e440085dbcc3315e",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/8k/rock_moss_set_01/rock_moss_set_01.bin",
+          "sourceMd5": "207a51c9f56d34732e9814bbf9cc07b1",
+          "transformation": "Geometry unchanged; source JPEGs encoded WebP at original1k resolution where recorded."
+        },
+        {
+          "path": "web/public/models/rock_moss_set_01/textures/rock_moss_set_01_rough_1k.webp",
+          "bytes": 39302,
+          "sha256": "3ddc4de64efe650fe917d3145e41bfc85bdf3abe0827e3c9316751b4e0c0c40e",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/rock_moss_set_01/rock_moss_set_01_rough_1k.jpg",
+          "sourceMd5": "ed9d8a2c863262f76f881346e8047c6a",
+          "transformation": "Geometry unchanged; source JPEGs encoded WebP at original1k resolution where recorded."
+        },
+        {
+          "path": "web/public/models/rock_moss_set_01/textures/rock_moss_set_01_diff_1k.webp",
+          "bytes": 131522,
+          "sha256": "df5e0eae80fb69099d0ef81e50d2f6bc7e0217e913b970819e8f742972b589be",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/rock_moss_set_01/rock_moss_set_01_diff_1k.jpg",
+          "sourceMd5": "b8742301e6b4bc5683d2de712e83f772",
+          "transformation": "Geometry unchanged; source JPEGs encoded WebP at original1k resolution where recorded."
+        }
+      ]
+    },
+    {
+      "id": "tree_stump_01",
+      "kind": "Scanned natural model",
+      "provider": "Poly Haven",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://polyhaven.com/license",
+      "sourceUrl": "https://polyhaven.com/a/tree_stump_01",
+      "authors": {
+        "Rob Tuytel": "All"
+      },
+      "files": [
+        {
+          "path": "web/public/models/tree_stump_01/tree_stump_01.gltf",
+          "bytes": 1893,
+          "sha256": "88db360622502aeda7f9e009c68e88bc5e880bd0ad09aecea674abc224e809ca",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/tree_stump_01/tree_stump_01_1k.gltf",
+          "sourceMd5": "fedfc620634a8dbaf6345413b13abe1a",
+          "transformation": "Geometry unchanged; source JPEGs encoded WebP at original1k resolution where recorded."
+        },
+        {
+          "path": "web/public/models/tree_stump_01/tree_stump_01.bin",
+          "bytes": 965380,
+          "sha256": "b4d9ca70b3c908c4a638fbd6a23ed96c84055bbbf14cf44b89e31ad59fa21e0a",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/8k/tree_stump_01/tree_stump_01.bin",
+          "sourceMd5": "acb292727949126b92e58217fd50fca9",
+          "transformation": "Geometry unchanged; source JPEGs encoded WebP at original1k resolution where recorded."
+        },
+        {
+          "path": "web/public/models/tree_stump_01/textures/tree_stump_01_diff_1k.webp",
+          "bytes": 292096,
+          "sha256": "60a3b17333f8a1ff47fd163d108c0eee429ffcd93dcc7fcb7f59272aba9b5108",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/tree_stump_01/tree_stump_01_diff_1k.jpg",
+          "sourceMd5": "c71fe60400276a37b8847048cbec3720",
+          "transformation": "Geometry unchanged; source JPEGs encoded WebP at original1k resolution where recorded."
+        },
+        {
+          "path": "web/public/models/tree_stump_01/textures/tree_stump_01_nor_gl_1k.webp",
+          "bytes": 554126,
+          "sha256": "584366728f9061cda46806fbd07d1f1ef4130d762a382c1f6685d252399f6574",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/tree_stump_01/tree_stump_01_nor_gl_1k.jpg",
+          "sourceMd5": "cc2a3c6e4682a521b15cccc61a416bbf",
+          "transformation": "Geometry unchanged; source JPEGs encoded WebP at original1k resolution where recorded."
+        },
+        {
+          "path": "web/public/models/tree_stump_01/textures/tree_stump_01_arm_1k.webp",
+          "bytes": 167694,
+          "sha256": "6f37ee00dfdbfea7e7859445ca1c5ddf5b51a7d45588866f29bb4a7f28dc52b6",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/tree_stump_01/tree_stump_01_arm_1k.jpg",
+          "sourceMd5": "09b7aa228dccb93f5cf4188ba5530578",
+          "transformation": "Geometry unchanged; source JPEGs encoded WebP at original1k resolution where recorded."
+        }
+      ]
+    },
+    {
+      "id": "grey_roof_tiles",
+      "provider": "Poly Haven",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://polyhaven.com/license",
+      "sourceUrl": "https://polyhaven.com/a/grey_roof_tiles",
+      "authors": {
+        "Rob Tuytel": "All"
+      },
+      "files": [
+        {
+          "path": "web/public/materials/scans/grey_roof_tiles/diffuse.jpg",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/grey_roof_tiles/grey_roof_tiles_diff_1k.jpg",
+          "bytes": 596156,
+          "sha256": "f61107b70cf56074c9db09384a332620c94c678ed2baabfae78029a8242e49a3",
+          "map": "diffuse",
+          "transformation": "None; official1kJPG"
+        },
+        {
+          "path": "web/public/materials/scans/grey_roof_tiles/normal.jpg",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/grey_roof_tiles/grey_roof_tiles_nor_gl_1k.jpg",
+          "bytes": 522186,
+          "sha256": "99546fdc2978d0950a2c61fe94dbd4230bb7825944bb4e4e7ad586839fdc721d",
+          "map": "normal",
+          "transformation": "None; official1kJPG"
+        },
+        {
+          "path": "web/public/materials/scans/grey_roof_tiles/roughness.jpg",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/grey_roof_tiles/grey_roof_tiles_rough_1k.jpg",
+          "bytes": 260780,
+          "sha256": "edc3185b560a71b2b5f5f568710b8674da41becb39ca374f5e8efeca15b5794f",
+          "map": "roughness",
+          "transformation": "None; official1kJPG"
+        }
+      ],
+      "kind": "PBR material"
+    },
+    {
+      "id": "Snow004",
+      "provider": "ambientCG",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://docs.ambientcg.com/license/",
+      "sourceUrl": "https://ambientcg.com/a/Snow004",
+      "sourceArchive": {
+        "url": "https://ambientcg.com/get?file=Snow004_1K-JPG.zip",
+        "sha256": "8d954173843674de72662459d79dbaa145e8562ede541f457c8460724a8d67e3",
+        "bytes": 6369066
+      },
+      "files": [
+        {
+          "path": "web/public/materials/scans/snow_004/diffuse.jpg",
+          "archiveMember": "Snow004_1K-JPG_Color.jpg",
+          "sourceUrl": "https://ambientcg.com/get?file=Snow004_1K-JPG.zip",
+          "bytes": 843052,
+          "sha256": "b60fcabb3f85a85235ed6b9dbea96f4ec4af6ede8ff5db8c3dff9c2a58102217",
+          "map": "diffuse",
+          "transformation": "None; official1kJPG"
+        },
+        {
+          "path": "web/public/materials/scans/snow_004/normal.jpg",
+          "archiveMember": "Snow004_1K-JPG_NormalGL.jpg",
+          "sourceUrl": "https://ambientcg.com/get?file=Snow004_1K-JPG.zip",
+          "bytes": 1555147,
+          "sha256": "e2c74adaf4449634eb9d02b2dc12769465711c6d0c1e1e64d1221779d3e3ee3e",
+          "map": "normal",
+          "transformation": "None; official1kJPG"
+        },
+        {
+          "path": "web/public/materials/scans/snow_004/roughness.jpg",
+          "archiveMember": "Snow004_1K-JPG_Roughness.jpg",
+          "sourceUrl": "https://ambientcg.com/get?file=Snow004_1K-JPG.zip",
+          "bytes": 803579,
+          "sha256": "15c01157eab42dc870ca2bb2bbd0777676fba7e7b6b3e050b3c68a7beeb02ea0",
+          "map": "roughness",
+          "transformation": "None; official1kJPG"
+        }
+      ],
+      "kind": "PBR material"
+    },
+    {
+      "id": "chinese_console_table",
+      "name": "Chinese Console Table",
+      "provider": "Poly Haven",
+      "kind": "Scanned generic furniture",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://polyhaven.com/license",
+      "sourceUrl": "https://polyhaven.com/a/chinese_console_table",
+      "filesApi": "https://api.polyhaven.com/files/chinese_console_table",
+      "authors": {
+        "Kirill Sannikov": "All"
+      },
+      "sourcePolycount": 13648,
+      "sourceDimensionsMillimetres": [
+        1719.6246981620789,
+        338.7930691242218,
+        660.7421338558197
+      ],
+      "files": [
+        {
+          "path": "web/public/models/chinese_console_table/chinese_console_table.gltf",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/chinese_console_table/chinese_console_table_1k.gltf",
+          "sourceMd5": "7afbbc2473741124afb17b8b7a92f1dd",
+          "sourceBytes": 2861,
+          "bytes": 2861,
+          "sha256": "d028085b14277ce3772445d5991572c95e8c80630bcb401f90129d3c972c5425",
+          "transformation": "None; official1kgltf mesh/bin/JPG"
+        },
+        {
+          "path": "web/public/models/chinese_console_table/textures/chinese_console_table_arm_1k.jpg",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/chinese_console_table/chinese_console_table_arm_1k.jpg",
+          "sourceMd5": "3aa4e460645083b231b20846b4d01df0",
+          "sourceBytes": 851730,
+          "bytes": 851730,
+          "sha256": "c819a43214165b1241392a599f5f3076263569e1aaad54ef92a57ba52e34e47e",
+          "transformation": "None; official1kgltf mesh/bin/JPG"
+        },
+        {
+          "path": "web/public/models/chinese_console_table/textures/chinese_console_table_diff_1k.jpg",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/chinese_console_table/chinese_console_table_diff_1k.jpg",
+          "sourceMd5": "1b6e339d5610bff8fd018ad8cbd7022c",
+          "sourceBytes": 731482,
+          "bytes": 731482,
+          "sha256": "82ecf04fa7793ffa6a5b11993944bf9a8f9a7179777ffaa63ef70295b044d4a4",
+          "transformation": "None; official1kgltf mesh/bin/JPG"
+        },
+        {
+          "path": "web/public/models/chinese_console_table/textures/chinese_console_table_nor_gl_1k.jpg",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/chinese_console_table/chinese_console_table_nor_gl_1k.jpg",
+          "sourceMd5": "ae12146cca5c94fd82b9de395e46b994",
+          "sourceBytes": 700938,
+          "bytes": 700938,
+          "sha256": "d07e9efc41896c4a77bc91f003341c4e0a64be05320862bf2457817220c3f86b",
+          "transformation": "None; official1kgltf mesh/bin/JPG"
+        },
+        {
+          "path": "web/public/models/chinese_console_table/chinese_console_table.bin",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/8k/chinese_console_table/chinese_console_table.bin",
+          "sourceMd5": "08e53d44d181263d5d4e731f7cd713c3",
+          "sourceBytes": 505184,
+          "bytes": 505184,
+          "sha256": "70be61585b2b44f8496116cb3665a0f2d121dd2dddac6778aec1c01d2ca9d338",
+          "transformation": "None; official1kgltf mesh/bin/JPG"
+        }
+      ]
+    },
+    {
+      "id": "chinese_screen_panels",
+      "name": "Chinese Screen Panels",
+      "provider": "Poly Haven",
+      "kind": "Scanned generic furniture",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://polyhaven.com/license",
+      "sourceUrl": "https://polyhaven.com/a/chinese_screen_panels",
+      "filesApi": "https://api.polyhaven.com/files/chinese_screen_panels",
+      "authors": {
+        "Kirill Sannikov": "All"
+      },
+      "sourcePolycount": 784,
+      "sourceDimensionsMillimetres": [
+        1293.9677834510803,
+        376.891165971756,
+        1603.1262874603271
+      ],
+      "files": [
+        {
+          "path": "web/public/models/chinese_screen_panels/chinese_screen_panels.gltf",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/chinese_screen_panels/chinese_screen_panels_1k.gltf",
+          "sourceMd5": "757c0dbdcbb0eae54e6dfa8ea812caaa",
+          "sourceBytes": 4225,
+          "bytes": 4225,
+          "sha256": "80eea5b87ed1355f4628c791dc14d7c45ce77888ee9314aa97d92438d43b61a2",
+          "transformation": "None; official1kgltf mesh/bin/JPG"
+        },
+        {
+          "path": "web/public/models/chinese_screen_panels/textures/chinese_screen_panels_arm_1k.jpg",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/chinese_screen_panels/chinese_screen_panels_arm_1k.jpg",
+          "sourceMd5": "2280069ab77f92ddab27cd93098d5253",
+          "sourceBytes": 558223,
+          "bytes": 558223,
+          "sha256": "fec093ccc5d21ed333c3ef489c0b71cc067359a6fbda62146fb39826425d5f93",
+          "transformation": "None; official1kgltf mesh/bin/JPG"
+        },
+        {
+          "path": "web/public/models/chinese_screen_panels/textures/chinese_screen_panels_diff_1k.jpg",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/chinese_screen_panels/chinese_screen_panels_diff_1k.jpg",
+          "sourceMd5": "5aa7494de265d99a25e0c86daa2137a5",
+          "sourceBytes": 666440,
+          "bytes": 666440,
+          "sha256": "2240dd186b02a778871cc55348e392f05f9bc451882896ec7457895cf7cbcb9d",
+          "transformation": "None; official1kgltf mesh/bin/JPG"
+        },
+        {
+          "path": "web/public/models/chinese_screen_panels/chinese_screen_panels.bin",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/8k/chinese_screen_panels/chinese_screen_panels.bin",
+          "sourceMd5": "f3ec2d7d0c14165e764e930112a31616",
+          "sourceBytes": 35936,
+          "bytes": 35936,
+          "sha256": "34a2f03180313ed4dbf6ac8dd6c0277b1b873929daf6bf8f06a209af6c9b2fc3",
+          "transformation": "None; official1kgltf mesh/bin/JPG"
+        },
+        {
+          "path": "web/public/models/chinese_screen_panels/textures/chinese_screen_panels_nor_gl_1k.jpg",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/chinese_screen_panels/chinese_screen_panels_nor_gl_1k.jpg",
+          "sourceMd5": "5aefa3e752c297f545890b23f1d3397d",
+          "sourceBytes": 428108,
+          "bytes": 428108,
+          "sha256": "e887b7e2ce2483fe835ddc8978dd42704505d110ec72e07c84bfef916205ef80",
+          "transformation": "None; official1kgltf mesh/bin/JPG"
+        }
+      ]
+    },
+    {
+      "id": "noto-serif-sc-subsets",
+      "kind": "Font",
+      "provider": "Google Fonts / Noto",
+      "license": "OFL-1.1",
+      "licenseFile": "web/public/fonts/OFL.txt",
+      "sourceUrl": "https://fonts.google.com/noto/specimen/Noto+Serif+SC",
+      "transformation": "UI character subsets; reproducible with scripts/subset-fonts.py",
+      "files": [
+        {
+          "path": "web/public/fonts/noto-serif-sc-700.woff2",
+          "bytes": 70372,
+          "sha256": "d991a33ee75c3432da4de74d217b1e4345cd8413b5f29c76dfdceaed7ef5c99c"
+        },
+        {
+          "path": "web/public/fonts/noto-serif-sc-600.woff2",
+          "bytes": 69572,
+          "sha256": "82fe2c0692b0738fc184a4fa828403d23641479bfb60cb7db3fbfd29e19cff95"
+        },
+        {
+          "path": "web/public/fonts/noto-serif-sc-400.woff2",
+          "bytes": 68668,
+          "sha256": "da76ffb5f48ef37db3f9bb1af9c89849dd0ad30e4ac4c1bcd551177657d5c35a"
+        }
+      ]
+    },
+    {
+      "id": "basis-universal-transcoder",
+      "kind": "Shared texture runtime codec",
+      "provider": "Binomial / three.js 0.160.0 distribution",
+      "license": "Apache-2.0",
+      "licenseFile": "web/public/codecs/basis/LICENSE.txt",
+      "distributionLicense": "MIT",
+      "distributionLicenseFile": "web/public/codecs/basis/THREE-LICENSE.txt",
+      "sourceUrl": "https://github.com/mrdoob/three.js/tree/r160/examples/jsm/libs/basis",
+      "upstreamSourceUrl": "https://github.com/BinomialLLC/basis_universal",
+      "files": [
+        {
+          "path": "web/public/codecs/basis/basis_transcoder.js",
+          "bytes": 62337,
+          "sha256": "48a0ef319a28bf0224ee88ded34f74eaf97c175bba9eb18b47fb9720510ad6c4"
+        },
+        {
+          "path": "web/public/codecs/basis/basis_transcoder.wasm",
+          "bytes": 499935,
+          "sha256": "79ae97d781e10a566659c689b7bb1de91726453f55f9f5e3bcc07a4e3904070f"
+        }
+      ]
+    },
+    {
+      "id": "legacy-generated-weathered-granite",
+      "kind": "Generated legacy material source",
+      "provider": "OpenAI imagegen",
+      "license": "Generated project asset; no third-party scan license claimed",
+      "provenanceFile": "web/public/materials/README.md",
+      "sourceUrl": null,
+      "files": [
+        {
+          "path": "web/public/materials/weathered-granite.jpg",
+          "bytes": 931620,
+          "sha256": "43c065be067c96a382ef95fd4e2580e28f9cf1f7b4b899e85d803c0bfa076982"
+        }
+      ]
+    },
+    {
+      "id": "legacy-generated-old-timber",
+      "kind": "Generated legacy material source",
+      "provider": "OpenAI imagegen",
+      "license": "Generated project asset; no third-party scan license claimed",
+      "provenanceFile": "web/public/materials/README.md",
+      "sourceUrl": null,
+      "files": [
+        {
+          "path": "web/public/materials/old-timber.jpg",
+          "bytes": 620953,
+          "sha256": "4a368617d8f769cedd2909a90fdd7891f46d32bfaaa11e3eeeb61afc679f012b"
+        }
+      ]
+    },
+    {
+      "id": "snow-roof-original-architecture",
+      "kind": "Original fictional architecture",
+      "provider": "One Light project",
+      "license": "Project-owned source; no external architecture asset",
+      "notes": "Original timber hall, court and gate; no monument replica, statues or ritual asset.",
+      "files": [
+        {
+          "path": "art/blender/snow_roof.py",
+          "bytes": 30882,
+          "sha256": "d7dfa3f3e8644eed68fcd9230c68fdb712741bcd605151c4e35ac731aea39b31"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,538 @@
+{
+  "createdAt": "2026-11-16T13:14:30.688Z",
+  "previewDirectory": "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-architecture-preview",
+  "matched": [
+    {
+      "stage": "outside",
+      "expectedCamera": {
+        "position": [
+          2.4,
+          1.75,
+          45
+        ],
+        "target": [
+          0,
+          3.1,
+          16
+        ],
+        "provenance": "exact source base pose; outside camera drift amplitude 1m omitted"
+      },
+      "sourcePoseCheck": {
+        "positionMetres": [
+          2.4000000953674316,
+          1.75,
+          45
+        ],
+        "deltaMetres": 9.536743172944284e-8,
+        "verticalFovDegrees": 32.00000072953212,
+        "sensorFit": "VERTICAL",
+        "expectedVerticalFovDegrees": 32,
+        "rotationDeltaDegrees": 0.0000034150945850063755,
+        "rotationConvention": "Blender XYZ: Rz*Ry*Rx, converted with Three.js Euler ZYX"
+      },
+      "image": "outside.png",
+      "status": "available for visual review",
+      "sha256": "86ecb0267a6e81e3398e3641fa92644ea97153fc042befae6cbb210e777c9120"
+    },
+    {
+      "stage": "walk-1",
+      "expectedCamera": {
+        "position": [
+          2.4,
+          1.75,
+          45
+        ],
+        "target": [
+          0,
+          3.1,
+          16
+        ],
+        "progress": 0,
+        "provenance": "image-fit approximation: effectively same view as outside"
+      },
+      "sourcePoseCheck": {
+        "positionMetres": [
+          2.4000000953674316,
+          1.75,
+          45
+        ],
+        "deltaMetres": 9.536743172944284e-8,
+        "verticalFovDegrees": 32.00000072953212,
+        "sensorFit": "VERTICAL",
+        "expectedVerticalFovDegrees": 32,
+        "rotationDeltaDegrees": 0.0000034150945850063755,
+        "rotationConvention": "Blender XYZ: Rz*Ry*Rx, converted with Three.js Euler ZYX"
+      },
+      "image": "walk-1.png",
+      "status": "available for visual review",
+      "sha256": "52ce113108bee942e17824b8407b773a6f461431ea6f736753a6e839e8177f2b"
+    },
+    {
+      "stage": "walk-2",
+      "expectedCamera": {
+        "position": [
+          0.18139026372654277,
+          1.7017195533548737,
+          37.50420947701375
+        ],
+        "target": [
+          0.12667489999999998,
+          2.48123251,
+          14.0998765
+        ],
+        "progress": 0.1045,
+        "provenance": "image-fit approximation from gate front rectangle",
+        "landmarks": {
+          "worldCorners": [
+            [
+              -4,
+              3.8,
+              19.2
+            ],
+            [
+              4,
+              3.8,
+              19.2
+            ],
+            [
+              -4,
+              0,
+              19.2
+            ],
+            [
+              4,
+              0,
+              19.2
+            ]
+          ],
+          "estimatedImageBounds": [
+            363,
+            1051,
+            322,
+            648
+          ],
+          "predictedImageBounds": [
+            364.06,
+            1052.44,
+            322.77,
+            648.86
+          ]
+        }
+      },
+      "sourcePoseCheck": {
+        "positionMetres": [
+          0.18139027059078217,
+          1.7017195224761963,
+          37.504207611083984
+        ],
+        "deltaMetres": 0.0000018661978752857439,
+        "verticalFovDegrees": 32.00000072953212,
+        "sensorFit": "VERTICAL",
+        "expectedVerticalFovDegrees": 32,
+        "rotationDeltaDegrees": 0.000009956626120759429,
+        "rotationConvention": "Blender XYZ: Rz*Ry*Rx, converted with Three.js Euler ZYX"
+      },
+      "image": "walk-2.png",
+      "status": "available for visual review",
+      "sha256": "40a12182d50ce92772a1ba156559ec5de46d2d8aa463e6c67fce84a358cd5899"
+    },
+    {
+      "stage": "walk-3",
+      "expectedCamera": {
+        "position": [
+          0.20147881584347993,
+          1.9198398668620216,
+          4.473190350385493
+        ],
+        "target": [
+          0,
+          2.3132800000000002,
+          -0.7703999999999986
+        ],
+        "progress": 0.72,
+        "provenance": "image-fit approximation from gilded screen rectangle",
+        "landmarks": {
+          "worldCorners": [
+            [
+              -2.3,
+              4.9,
+              -6.42
+            ],
+            [
+              2.3,
+              4.9,
+              -6.42
+            ],
+            [
+              -2.3,
+              1.3,
+              -6.42
+            ],
+            [
+              2.3,
+              1.3,
+              -6.42
+            ]
+          ],
+          "estimatedImageBounds": [
+            423,
+            1088,
+            143,
+            663
+          ],
+          "predictedImageBounds": [
+            420.44,
+            1087.94,
+            141.19,
+            658.59
+          ]
+        }
+      },
+      "sourcePoseCheck": {
+        "positionMetres": [
+          0.20147880911827087,
+          1.919839859008789,
+          4.4731903076171875
+        ],
+        "deltaMetres": 4.4000336811045785e-8,
+        "verticalFovDegrees": 32.00000072953212,
+        "sensorFit": "VERTICAL",
+        "expectedVerticalFovDegrees": 32,
+        "rotationDeltaDegrees": 0.0000017075472925031877,
+        "rotationConvention": "Blender XYZ: Rz*Ry*Rx, converted with Three.js Euler ZYX"
+      },
+      "image": "walk-3.png",
+      "status": "available for visual review",
+      "sha256": "12cd0c797ef945d2087bd81c55a7db63c28c17dc4d43963f938eb8d1de433ee1"
+    },
+    {
+      "stage": "choose",
+      "expectedCamera": {
+        "position": [
+          0.04,
+          3.3,
+          0.9750000000000001
+        ],
+        "target": [
+          0,
+          3.0625,
+          -0.5
+        ],
+        "provenance": "exact source formula for default 30-minute drum; .006m camera drift omitted"
+      },
+      "sourcePoseCheck": {
+        "positionMetres": [
+          0.03999999910593033,
+          3.299999952316284,
+          0.9750000238418579
+        ],
+        "deltaMetres": 5.331951127348971e-8,
+        "verticalFovDegrees": 32.00000072953212,
+        "sensorFit": "VERTICAL",
+        "expectedVerticalFovDegrees": 32,
+        "rotationDeltaDegrees": 0.0000017075472925031877,
+        "rotationConvention": "Blender XYZ: Rz*Ry*Rx, converted with Three.js Euler ZYX"
+      },
+      "image": "choose.png",
+      "status": "available for visual review",
+      "sha256": "b6113c7368e0e69fe9acd6d251db39221b60aeb4e712237e0d71775660451e9c"
+    },
+    {
+      "stage": "lit",
+      "expectedCamera": {
+        "position": [
+          0.03,
+          3.17625,
+          0.6624999999999999
+        ],
+        "target": [
+          0,
+          3.0625,
+          -0.5
+        ],
+        "provenance": "exact source closeView formula for default 30-minute drum; .006m camera drift omitted"
+      },
+      "sourcePoseCheck": {
+        "positionMetres": [
+          0.029999999329447746,
+          3.1762499809265137,
+          0.6625000238418579
+        ],
+        "deltaMetres": 3.053983818999553e-8,
+        "verticalFovDegrees": 32.00000072953212,
+        "sensorFit": "VERTICAL",
+        "expectedVerticalFovDegrees": 32,
+        "rotationDeltaDegrees": 0.000005663293681020316,
+        "rotationConvention": "Blender XYZ: Rz*Ry*Rx, converted with Three.js Euler ZYX"
+      },
+      "image": "lit.png",
+      "status": "available for visual review",
+      "sha256": "fea56474d9fd597db05dab81bbfcc1d2760ad9eed1f6fd126bb3d064557170f5"
+    }
+  ],
+  "details": [
+    {
+      "label": "Eave construction detail",
+      "required": true,
+      "sourcePath": "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-architecture-preview/EaveDetail.png",
+      "camera": "EaveDetail",
+      "status": "available for visual review",
+      "sha256": "2339b3517fbf14189c0ddf4154ac44bd56596bd3774af05b2d5bd8d7df06becb"
+    },
+    {
+      "label": "Door, column base and floor detail",
+      "required": true,
+      "sourcePath": "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-architecture-preview/DoorFloorDetail.png",
+      "camera": "DoorFloorDetail",
+      "status": "available for visual review",
+      "sha256": "0d6691d27feed3d66c1e2606033065f10c79e323cef5810858e4ee9f0464dd5a"
+    },
+    {
+      "label": "Ridge and tile-course detail",
+      "required": false,
+      "sourcePath": "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-architecture-preview/RoofRidgeDetail.png",
+      "camera": "RoofRidgeDetail",
+      "status": "available for visual review",
+      "sha256": "6e9ec194a2bcc74a3bd26643ea4a18b3507a40f69aa26b19d1eb0ade89425fc5"
+    },
+    {
+      "label": "Painted beam and bracket detail",
+      "required": false,
+      "sourcePath": "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-architecture-beam-preview/BeamJoineryDetail.png",
+      "camera": "BeamJoineryDetail",
+      "status": "available for visual review",
+      "sha256": "5405445feeaef0f02985283a9747c00e2499a48b02034579a18900e0a33593e6"
+    },
+    {
+      "label": "Close tile overlap inspection",
+      "required": false,
+      "sourcePath": null,
+      "camera": null,
+      "status": "unverified: no detail image"
+    },
+    {
+      "label": "Close step edge inspection",
+      "required": false,
+      "sourcePath": null,
+      "camera": null,
+      "status": "unverified: no detail image"
+    }
+  ],
+  "notes": [
+    "Construction review only, before new bakes. Lighting setup is not modified by this assembler.",
+    "Reference camera recovery limitations remain in reference-cameras.json. Matched means the intended camera, not proven visual alignment.",
+    "A file being present or source code naming a feature does not establish that a construction criterion is visible."
+  ],
+  "previewMetadata": {
+    "scene": "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-architecture.blend",
+    "blendSha256": "cfb97b9beba9c8cfc3590a7441d18146a55e1262b7f216f6afd391bfbb5eab8e",
+    "sourceSha256": "2340429934fc35c8ec72a0456a94f53fdc82920c1c2f10c73aceaacf6e04213c",
+    "device": "CPU",
+    "samples": 8,
+    "size": [
+      720,
+      450
+    ],
+    "maxBounces": 4,
+    "cameras": [
+      {
+        "name": "Reference_outside",
+        "path": "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-architecture-preview/Reference_outside.png",
+        "position": [
+          2.4000000953674316,
+          -45,
+          1.75
+        ],
+        "rotationEuler": [
+          1.6171562671661377,
+          -5.978479489243682e-9,
+          0.08257046341896057
+        ],
+        "lens": 41.84897232055664,
+        "sensorFit": "VERTICAL",
+        "sensorHeight": 24
+      },
+      {
+        "name": "EaveDetail",
+        "path": "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-architecture-preview/EaveDetail.png",
+        "position": [
+          5.800000190734863,
+          -8,
+          5.599999904632568
+        ],
+        "rotationEuler": [
+          1.5935927629470825,
+          -7.281079206222785e-8,
+          0.6777083873748779
+        ],
+        "lens": 41.84897232055664,
+        "sensorFit": "VERTICAL",
+        "sensorHeight": 24
+      },
+      {
+        "name": "Reference_walk-3",
+        "path": "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-architecture-preview/Reference_walk-3.png",
+        "position": [
+          0.20147880911827087,
+          -4.4731903076171875,
+          1.919839859008789
+        ],
+        "rotationEuler": [
+          1.645633578300476,
+          -5.084612730854587e-10,
+          0.03840493783354759
+        ],
+        "lens": 41.84897232055664,
+        "sensorFit": "VERTICAL",
+        "sensorHeight": 24
+      },
+      {
+        "name": "DoorFloorDetail",
+        "path": "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-architecture-preview/DoorFloorDetail.png",
+        "position": [
+          3,
+          -8.5,
+          1.7999999523162842
+        ],
+        "rotationEuler": [
+          1.4757494926452637,
+          -1.4574855988769286e-8,
+          0.30667632818222046
+        ],
+        "lens": 32,
+        "sensorFit": "VERTICAL",
+        "sensorHeight": 24
+      },
+      {
+        "name": "Reference_walk-1",
+        "path": "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-architecture-preview/Reference_walk-1.png",
+        "position": [
+          2.4000000953674316,
+          -45,
+          1.75
+        ],
+        "rotationEuler": [
+          1.6171562671661377,
+          -5.978479489243682e-9,
+          0.08257046341896057
+        ],
+        "lens": 41.84897232055664,
+        "sensorFit": "VERTICAL",
+        "sensorHeight": 24
+      },
+      {
+        "name": "Reference_walk-2",
+        "path": "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-architecture-preview/Reference_walk-2.png",
+        "position": [
+          0.18139027059078217,
+          -37.504207611083984,
+          1.7017195224761963
+        ],
+        "rotationEuler": [
+          1.6040904521942139,
+          6.255983925340658e-11,
+          0.002337826881557703
+        ],
+        "lens": 41.84897232055664,
+        "sensorFit": "VERTICAL",
+        "sensorHeight": 24
+      },
+      {
+        "name": "Reference_choose",
+        "path": "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-architecture-preview/Reference_choose.png",
+        "position": [
+          0.03999999910593033,
+          -0.9750000238418579,
+          3.299999952316284
+        ],
+        "rotationEuler": [
+          1.4112073183059692,
+          -5.102229749809339e-10,
+          0.027112001553177834
+        ],
+        "lens": 41.84897232055664,
+        "sensorFit": "VERTICAL",
+        "sensorHeight": 24
+      },
+      {
+        "name": "Reference_lit",
+        "path": "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-architecture-preview/Reference_lit.png",
+        "position": [
+          0.029999999329447746,
+          -0.6625000238418579,
+          3.1762499809265137
+        ],
+        "rotationEuler": [
+          1.4732897281646729,
+          1.4312511176228782e-9,
+          0.02580072544515133
+        ],
+        "lens": 41.84897232055664,
+        "sensorFit": "VERTICAL",
+        "sensorHeight": 24
+      },
+      {
+        "name": "RoofRidgeDetail",
+        "path": "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-architecture-preview/RoofRidgeDetail.png",
+        "position": [
+          8.300000190734863,
+          -10,
+          7.199999809265137
+        ],
+        "rotationEuler": [
+          1.4696588516235352,
+          6.398512653049693e-8,
+          0.3553770184516907
+        ],
+        "lens": 41.84897232055664,
+        "sensorFit": "VERTICAL",
+        "sensorHeight": 24
+      }
+    ]
+  },
+  "supplementalMetadata": [
+    {
+      "directory": "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-architecture-beam-preview",
+      "metadata": {
+        "scene": "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-architecture.blend",
+        "blendSha256": "cfb97b9beba9c8cfc3590a7441d18146a55e1262b7f216f6afd391bfbb5eab8e",
+        "sourceSha256": "2340429934fc35c8ec72a0456a94f53fdc82920c1c2f10c73aceaacf6e04213c",
+        "device": "CPU",
+        "samples": 8,
+        "size": [
+          720,
+          450
+        ],
+        "maxBounces": 4,
+        "cameras": [
+          {
+            "name": "BeamJoineryDetail",
+            "path": "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-architecture-beam-preview/BeamJoineryDetail.png",
+            "position": [
+              0.20000000298023224,
+              0.20000000298023224,
+              3.5999999046325684
+            ],
+            "rotationEuler": [
+              2.046746253967285,
+              -3.529792280687616e-8,
+              -0.6154556274414062
+            ],
+            "lens": 41.84897232055664,
+            "sensorFit": "VERTICAL",
+            "sensorHeight": 24
+          }
+        ]
+      }
+    }
+  ],
+  "builderAtComparison": {
+    "path": "art/blender/snow_roof.py",
+    "sha256": "2340429934fc35c8ec72a0456a94f53fdc82920c1c2f10c73aceaacf6e04213c"
+  },
+  "blendAtComparison": {
+    "path": "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-architecture.blend",
+    "bytes": 12379421,
+    "modifiedAt": "2026-11-16T13:07:15.334Z"
+  }
+}

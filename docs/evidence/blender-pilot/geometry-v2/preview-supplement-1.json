@@ -1,0 +1,31 @@
+{
+  "scene": "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-architecture.blend",
+  "blendSha256": "cfb97b9beba9c8cfc3590a7441d18146a55e1262b7f216f6afd391bfbb5eab8e",
+  "sourceSha256": "2340429934fc35c8ec72a0456a94f53fdc82920c1c2f10c73aceaacf6e04213c",
+  "device": "CPU",
+  "samples": 8,
+  "size": [
+    720,
+    450
+  ],
+  "maxBounces": 4,
+  "cameras": [
+    {
+      "name": "BeamJoineryDetail",
+      "path": "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-architecture-beam-preview/BeamJoineryDetail.png",
+      "position": [
+        0.20000000298023224,
+        0.20000000298023224,
+        3.5999999046325684
+      ],
+      "rotationEuler": [
+        2.046746253967285,
+        -3.529792280687616e-08,
+        -0.6154556274414062
+      ],
+      "lens": 41.84897232055664,
+      "sensorFit": "VERTICAL",
+      "sensorHeight": 24.0
+    }
+  ]
+}

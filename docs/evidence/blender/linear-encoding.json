@@ -1,0 +1,35 @@
+{
+  "known": [
+    0.19252102077007294,
+    0.19327105581760406,
+    0.1955210566520691
+  ],
+  "scale": 0.25,
+  "expectedPNG": [
+    0.7700840830802917,
+    0.7730842232704163,
+    0.7820842266082764
+  ],
+  "maximum": 0.1958487629890442,
+  "encoding": "linear-normalized",
+  "source": "linear-normalized.exr",
+  "png": "linear-normalized.png",
+  "pngBitDepth": 16,
+  "pngRGB16": [
+    50467,
+    50664,
+    51254
+  ],
+  "decodedNormalizedLinear": [
+    0.7700770580605784,
+    0.7730830853742275,
+    0.7820859082932784
+  ],
+  "absoluteError": [
+    7.025019713391423e-06,
+    1.1378961887187344e-06,
+    1.6816850020306973e-06
+  ],
+  "maxAbsoluteError": 7.025019713391423e-06,
+  "rowConvention": "Blenderpixel(16,16) maps to PNG pixel(16,15), top origin"
+}

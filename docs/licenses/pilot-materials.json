@@ -1,0 +1,79 @@
+[
+  {
+    "id": "grey_roof_tiles",
+    "provider": "Poly Haven",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://polyhaven.com/license",
+    "sourceUrl": "https://polyhaven.com/a/grey_roof_tiles",
+    "authors": {
+      "Rob Tuytel": "All"
+    },
+    "files": [
+      {
+        "path": "web/public/materials/scans/grey_roof_tiles/diffuse.jpg",
+        "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/grey_roof_tiles/grey_roof_tiles_diff_1k.jpg",
+        "bytes": 596156,
+        "sha256": "f61107b70cf56074c9db09384a332620c94c678ed2baabfae78029a8242e49a3",
+        "map": "diffuse",
+        "transformation": "None; official1kJPG"
+      },
+      {
+        "path": "web/public/materials/scans/grey_roof_tiles/normal.jpg",
+        "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/grey_roof_tiles/grey_roof_tiles_nor_gl_1k.jpg",
+        "bytes": 522186,
+        "sha256": "99546fdc2978d0950a2c61fe94dbd4230bb7825944bb4e4e7ad586839fdc721d",
+        "map": "normal",
+        "transformation": "None; official1kJPG"
+      },
+      {
+        "path": "web/public/materials/scans/grey_roof_tiles/roughness.jpg",
+        "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/grey_roof_tiles/grey_roof_tiles_rough_1k.jpg",
+        "bytes": 260780,
+        "sha256": "edc3185b560a71b2b5f5f568710b8674da41becb39ca374f5e8efeca15b5794f",
+        "map": "roughness",
+        "transformation": "None; official1kJPG"
+      }
+    ]
+  },
+  {
+    "id": "Snow004",
+    "provider": "ambientCG",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://docs.ambientcg.com/license/",
+    "sourceUrl": "https://ambientcg.com/a/Snow004",
+    "sourceArchive": {
+      "url": "https://ambientcg.com/get?file=Snow004_1K-JPG.zip",
+      "sha256": "8d954173843674de72662459d79dbaa145e8562ede541f457c8460724a8d67e3",
+      "bytes": 6369066
+    },
+    "files": [
+      {
+        "path": "web/public/materials/scans/snow_004/diffuse.jpg",
+        "archiveMember": "Snow004_1K-JPG_Color.jpg",
+        "sourceUrl": "https://ambientcg.com/get?file=Snow004_1K-JPG.zip",
+        "bytes": 843052,
+        "sha256": "b60fcabb3f85a85235ed6b9dbea96f4ec4af6ede8ff5db8c3dff9c2a58102217",
+        "map": "diffuse",
+        "transformation": "None; official1kJPG"
+      },
+      {
+        "path": "web/public/materials/scans/snow_004/normal.jpg",
+        "archiveMember": "Snow004_1K-JPG_NormalGL.jpg",
+        "sourceUrl": "https://ambientcg.com/get?file=Snow004_1K-JPG.zip",
+        "bytes": 1555147,
+        "sha256": "e2c74adaf4449634eb9d02b2dc12769465711c6d0c1e1e64d1221779d3e3ee3e",
+        "map": "normal",
+        "transformation": "None; official1kJPG"
+      },
+      {
+        "path": "web/public/materials/scans/snow_004/roughness.jpg",
+        "archiveMember": "Snow004_1K-JPG_Roughness.jpg",
+        "sourceUrl": "https://ambientcg.com/get?file=Snow004_1K-JPG.zip",
+        "bytes": 803579,
+        "sha256": "15c01157eab42dc870ca2bb2bbd0777676fba7e7b6b3e050b3c68a7beeb02ea0",
+        "map": "roughness",
+        "transformation": "None; official1kJPG"
+      }
+    ]
+  }
+]

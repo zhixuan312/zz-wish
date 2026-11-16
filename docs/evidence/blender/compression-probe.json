@@ -1,0 +1,85 @@
+{
+  "version": 1,
+  "place": "snow-roof",
+  "scene": "snow-roof.glb",
+  "lampAnchor": [
+    0,
+    3.22,
+    -0.5
+  ],
+  "lightmaps": {
+    "court": {
+      "night": {
+        "uri": "court-night.ktx2",
+        "scale": 1,
+        "encoding": "linear-normalized",
+        "png": "probe.png"
+      },
+      "dusk": {
+        "uri": "court-dusk.ktx2",
+        "scale": 1,
+        "encoding": "linear-normalized",
+        "png": "probe.png"
+      },
+      "day": {
+        "uri": "court-day.ktx2",
+        "scale": 1,
+        "encoding": "linear-normalized",
+        "png": "probe.png"
+      },
+      "lamp": {
+        "uri": "court-lamp.ktx2",
+        "scale": 1,
+        "encoding": "linear-normalized",
+        "png": "probe.png"
+      }
+    }
+  },
+  "files": [
+    {
+      "uri": "snow-roof.glb",
+      "bytes": 4256,
+      "sha256": "b965ae7c2c0f539864e9b39a99b185ccc30d43c307769f671e0ca2f05737f64b"
+    },
+    {
+      "uri": "court-night.ktx2",
+      "bytes": 1269,
+      "sha256": "1ad41cf3f5eef66ea85b8b81aa35d3cd9f585fdef55d4a1f90353f7000aa6b44"
+    },
+    {
+      "uri": "court-dusk.ktx2",
+      "bytes": 1269,
+      "sha256": "1ad41cf3f5eef66ea85b8b81aa35d3cd9f585fdef55d4a1f90353f7000aa6b44"
+    },
+    {
+      "uri": "court-day.ktx2",
+      "bytes": 1269,
+      "sha256": "1ad41cf3f5eef66ea85b8b81aa35d3cd9f585fdef55d4a1f90353f7000aa6b44"
+    },
+    {
+      "uri": "court-lamp.ktx2",
+      "bytes": 1269,
+      "sha256": "1ad41cf3f5eef66ea85b8b81aa35d3cd9f585fdef55d4a1f90353f7000aa6b44"
+    }
+  ],
+  "totalBytes": 9332,
+  "compression": {
+    "gltfTransform": "4.5.1",
+    "ktxSoftware": "4.4.2",
+    "mesh": "EXT_meshopt_compression",
+    "textures": "KHR_texture_basisu",
+    "lightmaps": "Basis UASTC + Zstandard, linear normalized",
+    "uvVerification": {
+      "meshes": 1,
+      "primitives": 1,
+      "regions": [
+        "court"
+      ],
+      "extensions": [
+        "EXT_meshopt_compression",
+        "KHR_mesh_quantization",
+        "KHR_texture_basisu"
+      ]
+    }
+  }
+}

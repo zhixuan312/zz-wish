@@ -1,0 +1,31 @@
+{
+  "bakedDiffuseNoColor": [
+    0.18980473279953003,
+    0.18980470299720764,
+    0.18980470299720764
+  ],
+  "albedo": [
+    0.6,
+    0.4,
+    0.2
+  ],
+  "renderedLinear": [
+    0.11386868357658386,
+    0.0759124681353569,
+    0.03795623406767845
+  ],
+  "renderedDividedByAlbedo": [
+    0.18978113929430646,
+    0.18978117033839226,
+    0.18978117033839226
+  ],
+  "renderedOverBakeTimesAlbedo": [
+    0.9998756959066532,
+    0.9998760164609002,
+    0.9998760164609002
+  ],
+  "analyticPointIrradianceAtOrigin": 0.5968310365946076,
+  "analyticLambertCoefficientAtOrigin": 0.18997721932938336,
+  "quantity": "diffuse-radiance-per-unit-albedo",
+  "threeLightMapIrradianceMultiplier": 3.141592653589793
+}
