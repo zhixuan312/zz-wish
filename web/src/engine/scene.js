@@ -279,7 +279,7 @@ offeringPass.clear = false; offeringPass.clearDepth = true;
 composer.insertPass(focusBlur, 1); composer.insertPass(offeringPass, 2);
 const ALTAR_Y = .82;
 const lacquer = new THREE.MeshPhysicalMaterial({ color: 0x241811, map: grainTex, roughness: .68, clearcoat: .12, clearcoatRoughness: .6, envMapIntensity: .08 });
-const brass = new THREE.MeshStandardMaterial({ color: 0xb08a4e, metalness: 1, roughness: .32, envMapIntensity: .35 });
+const brass = new THREE.MeshStandardMaterial({ color: 0xb08a4e, metalness: .9, roughness: .48, envMapIntensity: .12 });
 const darkIron = new THREE.MeshStandardMaterial({ color: 0x1c1714, metalness: .6, roughness: .6, envMapIntensity: .2 });
 {
   const floorTex = stoneTex(3); floorTex.repeat.set(5, 5);
@@ -360,7 +360,20 @@ for (const [x, z, lv] of [[.5, -.32, .55], [-.3, -.42, .3]]) {
   const holder = new THREE.Mesh(new THREE.LatheGeometry([[0, 0], [.06, 0], [.064, .006], [.028, .014], [.02, .032], [.026, .046], [.074, .05], [.078, .058], [.07, .058], [0, .056]].map(([a, b]) => V2(a * .93, b)), 48), brass);
   holder.castShadow = true; g.add(holder);
   const wax = waxMaterial(0x8c1a12), h = .2 * (.1 + .9 * lv);
-  const body = new THREE.Mesh(new THREE.CylinderGeometry(.028, .0283, h, 48), wax); body.position.y = .056 + h / 2; body.castShadow = true; g.add(body);
+  const geometry = new THREE.LatheGeometry([[0,-h/2],[.0283,-h/2],[.028,h/2-.002],[.0277,h/2],[.024,h/2-.0008],[.02,h/2-.003],[0,h/2-.003]].map(([r,y])=>V2(r,y)),64);
+  const points = geometry.attributes.position;
+  for (let i=0;i<points.count;i++) {
+    if (points.getY(i) < h/2-.0001) continue;
+    const a=Math.atan2(points.getZ(i),points.getX(i));
+    points.setY(i,points.getY(i)+.0005*Math.sin(a*5));
+  }
+  geometry.computeVertexNormals();
+  const body = new THREE.Mesh(geometry, wax); body.position.y = .056 + h / 2; body.castShadow = true; g.add(body);
+  const melted = new THREE.Mesh(new THREE.CircleGeometry(.0195,48).rotateX(-Math.PI/2),new THREE.MeshPhysicalMaterial({color:0x541d0c,roughness:.1,clearcoat:1,envMapIntensity:.08})); melted.position.y=.056+h-.0027; g.add(melted);
+  for (const [angle,length] of [[.8,.026],[1.8,.016],[2.8,.034]]) {
+    const trail=new THREE.Mesh(new THREE.LatheGeometry([[0,-1],[.7,-.94],[1,-.75],[.4,-.3],[.2,1],[0,1]].map(([r,y])=>V2(r,y)),12),wax);
+    trail.position.set(Math.cos(angle)*.028,.056+h-length/2,Math.sin(angle)*.028);trail.scale.set(.0011,length/2,.0011);g.add(trail);
+  }
   const f = flameParts(g); f.place(0, .056 + h); f.light.castShadow = false;
   others.push({ g, f, wax: [wax] });
 }
@@ -964,7 +977,7 @@ const fadeEl = document.getElementById('fade');
 const fadeTo = (o, ms = 900) => new Promise((res) => { if (reducedMotion.matches) ms = 80; fadeEl.style.transitionDuration = ms + 'ms'; fadeEl.style.opacity = o; setTimeout(res, ms); });
 
 
-const WIDE = { pos: V3(0, 1.32, 2.3), look: V3(0, 1.02, -1) };
+const WIDE = { pos: V3(innerWidth < 720 ? -.3 : -.2, 1.04, .2), look: V3(innerWidth < 720 ? -.3 : -.2, innerWidth < 720 ? .85 : .92, -.42) };
 const chooseView = () => ({ pos: V3(0, ALTAR_Y + .3, .82), look: V3(0, ALTAR_Y - (innerWidth < 720 ? .10 : .01), -.02) });
 function closeView() { const x = mine.top.x, top = ALTAR_Y + mine.top.y; const butter = mine.offer?.kind === 'butter'; const distance = Math.max(butter ? .40 : .38, mine.top.y * 2.3); return { pos: V3(x + .025, top + (butter ? .18 : .065), distance), look: V3(x, top - .012, .02) }; }
 const hallTones = {
@@ -999,13 +1012,13 @@ window.addEventListener('pointermove', (e) => {
 }, { passive: true });
 
 // ---------- Public API ----------
-export function setPhase(next) { phase = next; }
+export function setPhase(next) { phase = next; others[1].g.traverse(o => { if (!o.isLight) o.layers.set(next === 'wish' ? 1 : 0); }); }
 export function setPowerSaver(on) { powerSaver = on; resize(); }
 
 const TEMPLE = Object.fromEntries(TEMPLES.map((t) => [t.id, t]));
 const LAMP_CUP = .72;
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-let level = 1, lit = false, wanted = null, busy = false;
+let level = 1, lit = false, wanted = null, busy = false, skipNextTravel = false;
 
 function toOffer(shape) {
   if (!shape) return null;
@@ -1041,6 +1054,7 @@ export async function toHall() {
 
 /** Walk into the place and end at the altar, ready to choose a candle. */
 export async function travel(id) {
+  skipNextTravel = false;
   const t = TEMPLE[id];
   wanted = null; while (busy) await sleep(50);
   if (place?.id !== id || active !== outside) {
@@ -1050,14 +1064,16 @@ export async function travel(id) {
   const P = PLACES[id];
   const curve = new THREE.CatmullRomCurve3([rig.pos.clone(), ...P.walk], false, 'centripetal');
   const l0 = rig.look.clone(), a0 = rig.amp;
-  await tween(10, (k) => { const e = ease(k); rig.pos.copy(curve.getPoint(e)); rig.look.lerpVectors(l0, P.doors, Math.min(1, e * 1.25)); rig.amp = a0 * (1 - Math.min(1, k * 3)); });
+  const walk = tween(10, (k) => { const e = ease(k); rig.pos.copy(curve.getPoint(e)); rig.look.lerpVectors(l0, P.doors, Math.min(1, e * 1.25)); rig.amp = a0 * (1 - Math.min(1, k * 3)); });
+  if (skipNextTravel) skipTweens();
+  await walk;
   await fadeTo(1, 900);
   applyTemple(t); switchTo(hall); await warmHall(); rig.amp = .006;
   rig.pos.copy(WIDE.pos); rig.look.copy(WIDE.look);
   await fadeTo(0, 1000);
   const c = chooseView(); await moveCam(c.pos, c.look, 2.4);
 }
-export const skip = skipTweens;
+export function skip() { skipNextTravel = true; skipTweens(); }
 /** Close in on the person's candle before lighting. */
 export function closeUp() { const c = closeView(); return moveCam(c.pos, c.look, 2.6); }
 /** Back from the close-up to the choosing view. */
@@ -1106,7 +1122,7 @@ function frame(stamp = performance.now()) {
     const topY = ALTAR_Y + mine.top.y;
     previewFill.intensity = phase === 'candle' || phase === 'confirm' || phase === 'travel' ? .16 : 0;
     mine.update(time, topY);
-    for (const o of others) { o.f.tick(time, .65, .012, o.wax, o.g.position.y + o.f.flame.position.y); }
+    for (const [i, o] of others.entries()) { o.f.tick(time, .65, phase === 'wish' && i === 1 ? .045 : .012, o.wax, o.g.position.y + o.f.flame.position.y); }
     if (time < smokeUntil && Math.random() < (ending === 'done' ? .3 : .7)) wickSmoke.puff(tmp.set(mine.top.x, topY + .004, mine.g.position.z), .002, ending === 'done' ? .001 : .0025);
     wickSmoke.update(dt, time);
     if (Math.random() < .5) incenseSmoke.puff(incenseTips[Math.floor(Math.random() * 3)], .001, .01);
@@ -1125,7 +1141,7 @@ function frame(stamp = performance.now()) {
   camera.lookAt(rig.look);
   if (place) place.sky.position.copy(camera.position);
   renderPass.scene = active;
-  offeringPass.enabled = active === hall && mine.g.visible;
+  offeringPass.enabled = active === hall && (mine.g.visible || phase === 'wish');
   focusBlur.enabled = offeringPass.enabled && !powerSaver;
   bloom.enabled = !powerSaver;
   grade.uniforms.uTime.value = time % 10;
@@ -1146,7 +1162,7 @@ async function warmHall() {
 // ---------- Start ----------
 export const ready = (async () => {
   try { await Promise.race([document.fonts.load(`700 80px ${SERIF}`, '大雄宝殿'), new Promise((r) => setTimeout(r, 2500))]); } catch { /* fallback serif */ }
-  applyTemple(TEMPLES[0]); switchTo(hall);
+  applyTemple(TEMPLES[0]); setPhase('wish'); switchTo(hall);
   rig.pos.copy(WIDE.pos); rig.look.copy(WIDE.look);
   await warmHall();
   frame();

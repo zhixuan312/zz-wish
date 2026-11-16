@@ -1,0 +1,9 @@
+{
+  "liveDuration": "1 h 32 min",
+  "duration": "1 h 36 min",
+  "status": "Went out · not burned down",
+  "normalPixels": 487,
+  "saverPixels": 390,
+  "errors": [],
+  "notes": "CDP touch input with reduced motion at 390x844 with emulated DPR 3 on desktop GPU; not a real phone."
+}
