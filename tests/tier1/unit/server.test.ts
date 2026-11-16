@@ -93,3 +93,20 @@ describe('privacy and stats', () => {
     expect(bList.totals.totalMs).toBe(30 * 60_000);
   });
 });
+
+
+describe('leave before lighting response', () => {
+  it('settles by run ID, remains private, and never overwrites a settled record', async () => {
+    const owner = await visitor(), stranger = await visitor();
+    const body = candle(10);
+    await owner.call('POST', '/api/candles', body);
+    clock += 250;
+    const url = `/api/runs/${body.runId}/end`;
+    const end = {runId: body.runId, reason: 'left', burnedMs: 250};
+    expect((await stranger.call('POST', url, end)).statusCode).toBe(404);
+    const result = (await owner.call('POST', url, end)).json();
+    expect(result).toMatchObject({status: 'went_out', burnedMs: 250});
+    clock += 600_000;
+    expect((await owner.call('POST', url, {...end, reason: 'complete', burnedMs: 600_000})).json()).toMatchObject({status: 'went_out', burnedMs: 250});
+  });
+});

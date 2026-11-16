@@ -134,12 +134,13 @@ export async function buildApp(opts: AppOptions) {
 
   const endBody = z.object({ runId: z.string(), reason: z.enum(['left', 'navigated', 'put_out', 'complete']), burnedMs: z.number().min(0) });
 
-  app.post('/api/candles/:id/end', async (req, reply) => {
+  const endCandle = async (req: FastifyRequest, reply: FastifyReply) => {
     const v = visitorOf(req);
     if (!v) return reply.code(401).send({ error: 'unknown_visitor' });
-    const c = q.candle.get((req.params as { id: string }).id, v.id);
-    if (!c) return reply.code(404).send({ error: 'not_found' });
     const b = endBody.parse(req.body);
+    const params = req.params as { id?: string; runId?: string };
+    const c = params.id ? q.candle.get(params.id, v.id) : q.candleByRun.get(v.id, params.runId!);
+    if (!c || c.run_id !== b.runId) return reply.code(404).send({ error: 'not_found' });
     // Only a burning candle, or one marked unexpected that this same run now explains, can be settled.
     const reconcilable = c.status === 'ended_unexpectedly' && c.run_id === b.runId;
     if (c.status === 'burning' || reconcilable) {
@@ -149,7 +150,9 @@ export async function buildApp(opts: AppOptions) {
       q.settle.run(done ? 'burned_down' : 'went_out', c.started_at + finalBurned, finalBurned, done ? 'complete' : b.reason === 'complete' ? 'left' : b.reason, c.id);
     }
     return publicCandle(q.candle.get(c.id, v.id)!);
-  });
+  };
+  app.post('/api/candles/:id/end', endCandle);
+  app.post('/api/runs/:runId/end', endCandle);
 
   app.get('/api/me/candles', async (req, reply) => {
     const v = visitorOf(req, reply)!;

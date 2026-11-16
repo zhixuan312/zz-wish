@@ -50,3 +50,18 @@ test('a refresh while burning records that the page was left, not a lit candle',
   await expect(record).toContainText('e2e: refresh');
   await expect(record.getByTestId('record-status')).toHaveText(re('已熄灭', 'Went out'));
 });
+
+
+test('refresh before the lighting response preserves the leave event', async ({ page }) => {
+  await page.route('**/api/candles', async (route) => {
+    const response = await route.fetch();
+    // Commit on the server, but keep the client from receiving the candle ID.
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+    await route.fulfill({ response }).catch(() => {});
+  });
+  await lightTenMinutes(page, 'e2e: pending lighting response');
+  await page.reload();
+  await page.waitForFunction(() => (window as unknown as { __ready?: boolean }).__ready === true);
+  const record = await openMyCandles(page);
+  await expect(record.getByTestId('record-status')).toHaveText(re('已熄灭', 'Went out'));
+});

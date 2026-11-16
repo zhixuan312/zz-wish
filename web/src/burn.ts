@@ -56,15 +56,14 @@ export class Burn {
     const done = burnedMs >= this.durationMs;
     this.settled = { reason: done ? 'complete' : reason, burnedMs };
     this.detach();
-    const saved = this.candle ? this.report() : new Promise<Candle | null>((res) => { this.pendingSaved = res; });
+    const saved = this.report();
     this.onEnd({ reason: this.settled.reason, burnedMs, done, saved });
   }
 
-  private pendingSaved: ((c: Candle | null) => void) | null = null;
   private report(): Promise<Candle | null> {
-    const p = reportEnd({ candleId: this.candle!.id, runId: this.runId, reason: this.settled!.reason, burnedMs: this.settled!.burnedMs });
-    if (this.pendingSaved) { const res = this.pendingSaved; this.pendingSaved = null; p.then(res); }
-    return p;
+    // A refresh may destroy this page before the lighting response arrives.
+    // Persist the run ID now; it is enough to settle the authenticated visitor's candle.
+    return reportEnd({ candleId: this.candle?.id ?? null, runId: this.runId, reason: this.settled!.reason, burnedMs: this.settled!.burnedMs });
   }
 
   private detach() {

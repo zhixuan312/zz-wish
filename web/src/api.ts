@@ -24,31 +24,31 @@ export const api = {
   me: () => call<{ locale: Locale | null; totals: Totals }>('/api/me'),
   setLocale: (locale: Locale) => call('/api/me/locale', { method: 'PUT', body: JSON.stringify({ locale }) }),
   light: (body: { runId: string; placeId: PlaceId; shape: Shape; wishId?: string; wishText?: string }) =>
-    call<Candle>('/api/candles', { method: 'POST', body: JSON.stringify(body) }),
+    call<Candle>('/api/candles', { method: 'POST', keepalive: true, body: JSON.stringify(body) }),
   myCandles: () => call<{ candles: Candle[]; totals: Totals }>('/api/me/candles'),
   myWishes: () => call<{ wishes: WishSummary[] }>('/api/me/wishes'),
   stats: () => call<Stats>('/api/places/stats'),
 };
 
 // Final results are queued locally until the server confirms them, so a short offline spell loses nothing.
-interface PendingEnd { candleId: string; runId: string; reason: EndReason; burnedMs: number }
+interface PendingEnd { candleId: string | null; runId: string; reason: EndReason; burnedMs: number }
 const KEY = 'yz.pendingEnds';
 const readQueue = (): PendingEnd[] => { try { return JSON.parse(localStorage.getItem(KEY) ?? '[]'); } catch { return []; } };
 const writeQueue = (q: PendingEnd[]) => { try { localStorage.setItem(KEY, JSON.stringify(q)); } catch { /* storage unavailable */ } };
 
 async function sendEnd(e: PendingEnd): Promise<Candle | null> {
   try {
-    const res = await fetch(`/api/candles/${e.candleId}/end`, {
+    const res = await fetch(e.candleId ? `/api/candles/${e.candleId}/end` : `/api/runs/${e.runId}/end`, {
       method: 'POST', keepalive: true, credentials: 'same-origin', headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ runId: e.runId, reason: e.reason, burnedMs: Math.floor(e.burnedMs) }),
     });
-    if (res.ok || res.status === 404) { writeQueue(readQueue().filter((x) => x.candleId !== e.candleId)); return res.ok ? res.json() : null; }
+    if (res.ok || (res.status === 404 && e.candleId)) { writeQueue(readQueue().filter((x) => x.runId !== e.runId)); return res.ok ? res.json() : null; }
   } catch { /* offline: stays queued */ }
   return null;
 }
 
 export function reportEnd(e: PendingEnd): Promise<Candle | null> {
-  writeQueue([...readQueue().filter((x) => x.candleId !== e.candleId), e]);
+  writeQueue([...readQueue().filter((x) => x.runId !== e.runId), e]);
   return sendEnd(e);
 }
 
