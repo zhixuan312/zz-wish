@@ -1,0 +1,56 @@
+{
+  "sourceBlend": "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-stair-banks-joined.blend",
+  "sourceBlendSha256": "25182ce2af22a7537a2d38019cc11ce90bb5b843854a25a008bda3446500450b",
+  "outputBlend": "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-stair-banks-grain.blend",
+  "outputBlendSha256": "6e9f59c93565e08a690eaafbc756967ba39e0f4d8ad0094e4520265948360af8",
+  "sourcePythonSha256": "0b16b4539b90b9986b70c9a0a29bf80f4951a002020e53219ae55f0540c77d39",
+  "onlyChangedProperties": [
+    {
+      "object": "Continuous stair-edge snow bank left",
+      "beforeTexspaceSize": [
+        26.0,
+        33.0,
+        0.21147464215755463
+      ],
+      "afterTexspaceSize": [
+        26.0,
+        33.0,
+        29.5
+      ],
+      "texspaceLocationUnchanged": [
+        0.0,
+        -20.0,
+        0.18147464096546173
+      ],
+      "autoTexspaceUnchanged": false
+    },
+    {
+      "object": "Continuous stair-edge snow bank right",
+      "beforeTexspaceSize": [
+        26.0,
+        33.0,
+        0.21147464215755463
+      ],
+      "afterTexspaceSize": [
+        26.0,
+        33.0,
+        29.5
+      ],
+      "texspaceLocationUnchanged": [
+        0.0,
+        -20.0,
+        0.18147464096546173
+      ],
+      "autoTexspaceUnchanged": false
+    }
+  ],
+  "allStaticMeshGeometryExactlyUnchanged": true,
+  "staticMeshCount": 3082,
+  "geometrySha256Before": "c35732dc630768d7e0e1f613f04d2198bb21bc533f89c5b25814d097b019aa1a",
+  "geometrySha256After": "c35732dc630768d7e0e1f613f04d2198bb21bc533f89c5b25814d097b019aa1a",
+  "allObjectNamesExactlyUnchanged": true,
+  "lightingMaterialsColorManagementExactlyUnchanged": true,
+  "lightingMaterialColorHash": "b526276a2f943c2ba8aa56fb85b57934e1f38244a9fc141b3cf95187ea375828",
+  "renderOrBakePerformed": false,
+  "geometryReference": "Structurally accepted joined-bank blend 25182ce2af22a7537a2d38019cc11ce90bb5b843854a25a008bda3446500450b; only new-bank mesh Generated texspace Z size changes."
+}

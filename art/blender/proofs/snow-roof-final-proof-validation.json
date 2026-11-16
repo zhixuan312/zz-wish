@@ -1,0 +1,126 @@
+{
+  "version": 1,
+  "status": "Final accepted bank source freshly classified; all original/final selected proof fields exactly equal.",
+  "sourceBlend": "art/build/snow-roof-stair-banks-grain.blend",
+  "sourceBlendSha256": "6e9f59c93565e08a690eaafbc756967ba39e0f4d8ad0094e4520265948360af8",
+  "finalProof": "art/blender/proofs/snow-roof-final-hidden-tiles.json",
+  "finalProofSha256": "6649e9c080c3b152c743fcc88ad5ebf95690ff8f678742cc5dd84be79ce2e014",
+  "originalProof": "art/blender/proofs/snow-roof-hidden-tiles.json",
+  "originalProofSha256": "c64adb44283c4cd766921392da95b113767ddceab4dca44192e350caf5aeeae2",
+  "originalProofByteUnchanged": true,
+  "newProofProducedByFreshClassifierRun": true,
+  "sourceHashWasNotEditedIntoOldProof": true,
+  "classifierSha256": "315e6f0c1dddbae826916dee7fa3fc1daaf6a49fcdbe3ddcb75ffb367c6da5b8",
+  "sourcePythonSha256": "0b16b4539b90b9986b70c9a0a29bf80f4951a002020e53219ae55f0540c77d39",
+  "allProofPartFieldsExactlyEqual": true,
+  "objectComponentPolygonRangesExactlyEqual": true,
+  "allClearanceBoundsAreasExactlyEqual": true,
+  "representativeCameraChecksExactlyEqual": true,
+  "safeComponents": 5577,
+  "excludedSourcePolygons": 91875,
+  "expectedExcludedTriangulatedFaces": 183750,
+  "minimumBoundaryClearanceMetres": 0.02008267305791378,
+  "representativeCameraRays": 44616,
+  "snowBlockedCameraRays": 44616,
+  "summary": {
+    "hall": {
+      "components": 3720,
+      "safeComponents": 2905,
+      "polygons": 61440,
+      "excludedPolygons": 47895,
+      "excludedArea": 275.7121420661424
+    },
+    "court": {
+      "components": 2660,
+      "safeComponents": 1987,
+      "polygons": 44004,
+      "excludedPolygons": 32697,
+      "excludedArea": 185.4433033408277
+    },
+    "gate": {
+      "components": 1104,
+      "safeComponents": 685,
+      "polygons": 18240,
+      "excludedPolygons": 11283,
+      "excludedArea": 51.99351329394267
+    }
+  },
+  "freshClassifierSeconds": 5.04201602935791,
+  "geometryAuditChain": [
+    {
+      "path": "art/build/studies/snow-roof-stair-banks-joined-audit.json",
+      "sha256": "7bc5d3bd969eb553b113d30eb1e9aff52b94e972bac8b39f68c72d03f123ae9a",
+      "sourceBlendSha256": "73af75982e5dc97741afb994403dde0d8b1f65a826d84adbed56dd6438873997",
+      "outputBlendSha256": "25182ce2af22a7537a2d38019cc11ce90bb5b843854a25a008bda3446500450b",
+      "removedObjects": [
+        "Step-edge snow",
+        "Step-edge snow.001",
+        "Step-edge snow.002",
+        "Step-edge snow.003",
+        "Step-edge snow.004",
+        "Step-edge snow.005"
+      ],
+      "addedObjects": [
+        "Continuous stair-edge snow bank left",
+        "Continuous stair-edge snow bank right"
+      ],
+      "otherStaticMeshesExactlyUnchanged": 3080,
+      "courtGateExactlyUnchanged": true,
+      "lightingMaterialsColorManagementExactlyUnchanged": true
+    },
+    {
+      "path": "art/build/snow-roof-stair-banks-grain-audit.json",
+      "sha256": "e951de1f85819cb98d8ed4e7911728e7d5ba9c44e0846c0c99c26aa30234b09d",
+      "sourceBlendSha256": "25182ce2af22a7537a2d38019cc11ce90bb5b843854a25a008bda3446500450b",
+      "outputBlendSha256": "6e9f59c93565e08a690eaafbc756967ba39e0f4d8ad0094e4520265948360af8",
+      "all3082MeshGeometryExactlyUnchanged": true,
+      "geometrySha256Before": "c35732dc630768d7e0e1f613f04d2198bb21bc533f89c5b25814d097b019aa1a",
+      "geometrySha256After": "c35732dc630768d7e0e1f613f04d2198bb21bc533f89c5b25814d097b019aa1a",
+      "onlyChangedProperties": [
+        {
+          "object": "Continuous stair-edge snow bank left",
+          "beforeTexspaceSize": [
+            26.0,
+            33.0,
+            0.21147464215755463
+          ],
+          "afterTexspaceSize": [
+            26.0,
+            33.0,
+            29.5
+          ],
+          "texspaceLocationUnchanged": [
+            0.0,
+            -20.0,
+            0.18147464096546173
+          ],
+          "autoTexspaceUnchanged": false
+        },
+        {
+          "object": "Continuous stair-edge snow bank right",
+          "beforeTexspaceSize": [
+            26.0,
+            33.0,
+            0.21147464215755463
+          ],
+          "afterTexspaceSize": [
+            26.0,
+            33.0,
+            29.5
+          ],
+          "texspaceLocationUnchanged": [
+            0.0,
+            -20.0,
+            0.18147464096546173
+          ],
+          "autoTexspaceUnchanged": false
+        }
+      ],
+      "lightingMaterialsColorManagementExactlyUnchanged": true
+    }
+  ],
+  "renderOrBakePerformedByClassifier": false,
+  "originalMeasuredOptimizationProfileRetained": true,
+  "finalPackedProfileCreated": false,
+  "finalPackedProfileGate": "Wait for real final prepared/raw/packed assets, validate genuine FACE-to-export correspondence and exact retained attributes/images, then add a separate profile and candidate-only output."
+}

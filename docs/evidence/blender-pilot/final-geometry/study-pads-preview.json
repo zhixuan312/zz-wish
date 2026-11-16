@@ -1,0 +1,55 @@
+{
+  "scene": "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-step-drifts.blend",
+  "blendSha256": "3577673d67499a7a0c832be3adeba7680603ff1b4b34390baca444ad00d2c512",
+  "sourceSha256": "32d31e72027c3da166388cce24b42e918dd30a917e22bba50084e7b25e258a04",
+  "device": "METAL",
+  "devices": [
+    "Apple M1 (GPU - 8 cores)"
+  ],
+  "denoiser": "OPENIMAGEDENOISE",
+  "samples": 8,
+  "size": [
+    960,
+    600
+  ],
+  "look": "authored",
+  "maxBounces": 4,
+  "cameras": [
+    {
+      "name": "StepSnowDetail",
+      "path": "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-step-drifts-preview/StepSnowDetail.png",
+      "position": [
+        0.0,
+        -8.5,
+        1.7200000286102295
+      ],
+      "rotationEuler": [
+        1.2742505073547363,
+        -0.0,
+        0.0
+      ],
+      "lens": 41.84897232055664,
+      "sensorFit": "VERTICAL",
+      "sensorHeight": 24.0
+    },
+    {
+      "name": "StepEdgeDetail",
+      "path": "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-step-drifts-preview/StepEdgeDetail.png",
+      "position": [
+        1.2999999523162842,
+        -6.599999904632568,
+        0.8500000238418579
+      ],
+      "rotationEuler": [
+        1.3579334020614624,
+        -3.658285763208369e-08,
+        0.6705216765403748
+      ],
+      "lens": 41.84897232055664,
+      "sensorFit": "VERTICAL",
+      "sensorHeight": 24.0
+    }
+  ],
+  "constructionDiagnostic": false,
+  "hiddenRoofSnow": []
+}

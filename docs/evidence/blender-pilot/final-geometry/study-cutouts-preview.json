@@ -1,0 +1,58 @@
+{
+  "scene": "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-stair-banks.blend",
+  "blendSha256": "a7a49a28c29b09ab28ab0a7deadb2ed7e136dcb0c4a2b23b0e02a69629ca9160",
+  "sourceSha256": "e5ea21bb09d55eb3a1e36a21e43afe7c71bbda8f22c3822d26049a4965c9b7a3",
+  "device": "METAL",
+  "devices": [
+    "Apple M1 (GPU - 8 cores)"
+  ],
+  "denoiser": "OPENIMAGEDENOISE",
+  "samples": 8,
+  "size": [
+    960,
+    600
+  ],
+  "look": "authored",
+  "previewOnlyOverrides": {},
+  "lightingCandidate": false,
+  "appliedPreset": null,
+  "maxBounces": 4,
+  "cameras": [
+    {
+      "name": "StepBanksWide",
+      "path": "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-stair-banks-preview/StepBanksWide.png",
+      "position": [
+        0.0,
+        -10.199999809265137,
+        1.7200000286102295
+      ],
+      "rotationEuler": [
+        1.3639918565750122,
+        -0.0,
+        0.0
+      ],
+      "lens": 41.84897232055664,
+      "sensorFit": "VERTICAL",
+      "sensorHeight": 24.0
+    },
+    {
+      "name": "StepBankDetail",
+      "path": "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-stair-banks-preview/StepBankDetail.png",
+      "position": [
+        3.0,
+        -7.349999904632568,
+        1.25
+      ],
+      "rotationEuler": [
+        1.2860910892486572,
+        1.0447305953675823e-07,
+        0.6947383880615234
+      ],
+      "lens": 41.84897232055664,
+      "sensorFit": "VERTICAL",
+      "sensorHeight": 24.0
+    }
+  ],
+  "constructionDiagnostic": false,
+  "hiddenRoofSnow": []
+}

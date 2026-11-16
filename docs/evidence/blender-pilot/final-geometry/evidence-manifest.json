@@ -1,0 +1,134 @@
+{
+  "version": 1,
+  "scope": "Accepted source geometry and mesh-coordinate Metal previews, not baked runtime.",
+  "acceptedSourceBlendSha256": "6e9f59c93565e08a690eaafbc756967ba39e0f4d8ad0094e4520265948360af8",
+  "render": {
+    "device": "METAL",
+    "devices": [
+      "Apple M1 (GPU - 8 cores)"
+    ],
+    "denoiser": "OPENIMAGEDENOISE",
+    "samples": 8,
+    "size": [
+      960,
+      600
+    ],
+    "look": "authored",
+    "maxBounces": 4,
+    "constructionDiagnostic": false
+  },
+  "acceptedCameras": [
+    {
+      "name": "StepBanksWide",
+      "position": [
+        0.0,
+        -10.199999809265137,
+        1.7200000286102295
+      ],
+      "rotationEuler": [
+        1.3639918565750122,
+        -0.0,
+        0.0
+      ],
+      "lens": 41.84897232055664,
+      "sensorFit": "VERTICAL",
+      "sensorHeight": 24.0
+    },
+    {
+      "name": "StepBankDetail",
+      "position": [
+        3.0,
+        -7.349999904632568,
+        1.25
+      ],
+      "rotationEuler": [
+        1.2860910892486572,
+        1.0447305953675823e-07,
+        0.6947383880615234
+      ],
+      "lens": 41.84897232055664,
+      "sensorFit": "VERTICAL",
+      "sensorHeight": 24.0
+    }
+  ],
+  "matchedDetailCameraControls": {
+    "cutouts": true,
+    "stripes": true
+  },
+  "padsComparison": "Qualitative; StepSnowDetail and StepBanksWide have different camera positions. No pixel-difference metric is claimed.",
+  "copiesByteIdenticalToSources": true,
+  "files": [
+    {
+      "file": "accepted-StepBanksWide.png",
+      "source": "art/build/snow-roof-stair-banks-grain-preview/StepBanksWide.png",
+      "sha256": "9a4d618ed1abbcb6d3b66308e5fe6c9dd38f4aaa5cdde30f8aac1408c60ec576",
+      "bytes": 692095
+    },
+    {
+      "file": "accepted-StepBankDetail.png",
+      "source": "art/build/snow-roof-stair-banks-grain-preview/StepBankDetail.png",
+      "sha256": "1fa3b40c1d1355657e3ed48a60879b87532ca0b4a6fce6de2aa6ec4cbe4242e1",
+      "bytes": 704481
+    },
+    {
+      "file": "accepted-preview.json",
+      "source": "art/build/snow-roof-stair-banks-grain-preview/preview.json",
+      "sha256": "8e06bbe7c36f143f27e731f5c739b2b308d150468c325ce90c1223c71a76915f",
+      "bytes": 1521
+    },
+    {
+      "file": "study-pads-StepSnowDetail.png",
+      "source": "art/build/snow-roof-step-drifts-preview/StepSnowDetail.png",
+      "sha256": "0f0101662133ae14d8be73fe4741a1c0f7de0d83d641d906c9b3bb5db116b087",
+      "bytes": 708400
+    },
+    {
+      "file": "study-pads-preview.json",
+      "source": "art/build/snow-roof-step-drifts-preview/preview.json",
+      "sha256": "61a3b235b0f367b52a6db5ed24c38df5de4b5287e0937aa0350ac17ca54744c7",
+      "bytes": 1434
+    },
+    {
+      "file": "study-cutouts-StepBankDetail.png",
+      "source": "art/build/snow-roof-stair-banks-preview/StepBankDetail.png",
+      "sha256": "427fceb381bd6e696dbcf490ab0f68154cff6d9b94e0bca7436522ff4fb17f64",
+      "bytes": 738059
+    },
+    {
+      "file": "study-cutouts-preview.json",
+      "source": "art/build/snow-roof-stair-banks-preview/preview.json",
+      "sha256": "002e21f52e6c6c8186ea9b8603a28602abbe8b3d71169d9f2b0047f99b971af6",
+      "bytes": 1503
+    },
+    {
+      "file": "study-stripes-StepBankDetail.png",
+      "source": "art/build/snow-roof-stair-banks-joined-preview/StepBankDetail.png",
+      "sha256": "d3438e45171931954b46cb43e2dd64f2e4af35f1867b6ea7b8248b33ad7f6acb",
+      "bytes": 751224
+    },
+    {
+      "file": "study-stripes-preview.json",
+      "source": "art/build/snow-roof-stair-banks-joined-preview/preview.json",
+      "sha256": "8e5f2be01385aa0d1c2b4524a123d01459a18ba2cc2dd62361461c32d62a9b20",
+      "bytes": 1524
+    },
+    {
+      "file": "audit-original-to-joined.json",
+      "source": "art/build/studies/snow-roof-stair-banks-joined-audit.json",
+      "sha256": "7bc5d3bd969eb553b113d30eb1e9aff52b94e972bac8b39f68c72d03f123ae9a",
+      "bytes": 4475
+    },
+    {
+      "file": "audit-joined-to-final-grain.json",
+      "source": "art/build/snow-roof-stair-banks-grain-audit.json",
+      "sha256": "e951de1f85819cb98d8ed4e7911728e7d5ba9c44e0846c0c99c26aa30234b09d",
+      "bytes": 1958
+    },
+    {
+      "file": "final-proof-validation.json",
+      "source": "art/blender/proofs/snow-roof-final-proof-validation.json",
+      "sha256": "b56ad699ec4644d01e97ec325c7275e775871e678c6f9aa696090c4e2905b7cc",
+      "bytes": 4809
+    }
+  ]
+}

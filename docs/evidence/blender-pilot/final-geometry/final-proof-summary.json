@@ -1,0 +1,19 @@
+{
+  "sourceBlend": "art/build/snow-roof-stair-banks-grain.blend",
+  "sourceBlendSha256": "6e9f59c93565e08a690eaafbc756967ba39e0f4d8ad0094e4520265948360af8",
+  "sourcePythonSha256": "0b16b4539b90b9986b70c9a0a29bf80f4951a002020e53219ae55f0540c77d39",
+  "proof": "art/blender/proofs/snow-roof-final-hidden-tiles.json",
+  "proofSha256": "6649e9c080c3b152c743fcc88ad5ebf95690ff8f678742cc5dd84be79ce2e014",
+  "safeComponents": 5577,
+  "excludedSourcePolygons": 91875,
+  "expectedExcludedTriangulatedFaces": 183750,
+  "cameraRays": 44616,
+  "snowBlockedCameraRays": 44616,
+  "minimumBoundaryClearanceMetres": 0.02008267305791378,
+  "originalFinalSelectionExactlyEqual": true,
+  "removedSourceObjects": 6,
+  "addedConnectedBanks": 2,
+  "otherStaticMeshesExactlyUnchanged": 3080,
+  "finalGeometryCoordinateOnlyControl": "Final texture-space Z correction leaves all 3,082 mesh geometry records exactly unchanged.",
+  "packedRuntimeStatus": "Not part of this evidence; final prepared/raw/packed delivery and runtime verification remain separate."
+}

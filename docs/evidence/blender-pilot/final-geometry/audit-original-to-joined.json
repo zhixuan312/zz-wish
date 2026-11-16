@@ -1,0 +1,151 @@
+{
+  "sourceBlend": "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-stable.blend",
+  "sourceBlendSha256": "73af75982e5dc97741afb994403dde0d8b1f65a826d84adbed56dd6438873997",
+  "outputBlend": "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-stair-banks-joined.blend",
+  "outputBlendSha256": "25182ce2af22a7537a2d38019cc11ce90bb5b843854a25a008bda3446500450b",
+  "sourcePythonSha256": "c1be3fd4652b4ffb98d7fb0f43df635c6094228b47fdb2e851e5cd845e63596d",
+  "removedObjects": [
+    "Step-edge snow",
+    "Step-edge snow.001",
+    "Step-edge snow.002",
+    "Step-edge snow.003",
+    "Step-edge snow.004",
+    "Step-edge snow.005"
+  ],
+  "addedObjects": [
+    "Continuous stair-edge snow bank left",
+    "Continuous stair-edge snow bank right"
+  ],
+  "changedRetainedObjects": [],
+  "oldCaps": [
+    {
+      "object": "Step-edge snow",
+      "vertices": 8,
+      "faces": 6,
+      "evaluatedVertices": 56,
+      "evaluatedFaces": 54,
+      "evaluatedTriangles": 108
+    },
+    {
+      "object": "Step-edge snow.001",
+      "vertices": 8,
+      "faces": 6,
+      "evaluatedVertices": 56,
+      "evaluatedFaces": 54,
+      "evaluatedTriangles": 108
+    },
+    {
+      "object": "Step-edge snow.002",
+      "vertices": 8,
+      "faces": 6,
+      "evaluatedVertices": 56,
+      "evaluatedFaces": 54,
+      "evaluatedTriangles": 108
+    },
+    {
+      "object": "Step-edge snow.003",
+      "vertices": 8,
+      "faces": 6,
+      "evaluatedVertices": 56,
+      "evaluatedFaces": 54,
+      "evaluatedTriangles": 108
+    },
+    {
+      "object": "Step-edge snow.004",
+      "vertices": 8,
+      "faces": 6,
+      "evaluatedVertices": 56,
+      "evaluatedFaces": 54,
+      "evaluatedTriangles": 108
+    },
+    {
+      "object": "Step-edge snow.005",
+      "vertices": 8,
+      "faces": 6,
+      "evaluatedVertices": 56,
+      "evaluatedFaces": 54,
+      "evaluatedTriangles": 108
+    }
+  ],
+  "newBanks": [
+    {
+      "object": "Continuous stair-edge snow bank left",
+      "seed": 241701,
+      "vertices": 3050,
+      "faces": 3168,
+      "triangles": 6096,
+      "connectedComponents": 1,
+      "allEdgeIncidencesTwo": true,
+      "signedVolumeCubicMetres": 1.3711678054465433,
+      "minimumAbsX": 0.8684706687927246,
+      "boundsBlender": [
+        [
+          -2.428873300552368,
+          -7.097094535827637,
+          -0.1500002145767212
+        ],
+        [
+          -0.8684706687927246,
+          -3.7605936527252197,
+          0.738640546798706
+        ]
+      ],
+      "region": "hall"
+    },
+    {
+      "object": "Continuous stair-edge snow bank right",
+      "seed": 241798,
+      "vertices": 3050,
+      "faces": 3168,
+      "triangles": 6096,
+      "connectedComponents": 1,
+      "allEdgeIncidencesTwo": true,
+      "signedVolumeCubicMetres": 1.352968123585394,
+      "minimumAbsX": 0.9319548606872559,
+      "boundsBlender": [
+        [
+          0.9319548606872559,
+          -7.0177507400512695,
+          -0.1500002145767212
+        ],
+        [
+          2.4317920207977295,
+          -3.7224833965301514,
+          0.7119672894477844
+        ]
+      ],
+      "region": "hall"
+    }
+  ],
+  "regions": {
+    "court": {
+      "objects": 859,
+      "geometryBeforeSha256": "9ad1bcf84bd6f30749394909d087ed72c591b570a831a89e7afa2886805df274",
+      "geometryAfterSha256": "9ad1bcf84bd6f30749394909d087ed72c591b570a831a89e7afa2886805df274",
+      "exactlyUnchanged": true
+    },
+    "gate": {
+      "objects": 546,
+      "geometryBeforeSha256": "eef56deda58b05498d3c453ec1e31ea50b509b064fca653f376bc74985b86686",
+      "geometryAfterSha256": "eef56deda58b05498d3c453ec1e31ea50b509b064fca653f376bc74985b86686",
+      "exactlyUnchanged": true
+    }
+  },
+  "unchangedOtherStaticMeshes": 3080,
+  "staticMeshCountBefore": 3086,
+  "staticMeshCountAfter": 3082,
+  "sourceFaceDelta": 6300,
+  "sourceVertexDelta": 6052,
+  "lightingMaterialsColorManagementExactlyUnchanged": true,
+  "lightingMaterialColorHash": "7f69c94b927f8e26043884165cb9c37885e98101e67bf1fc3c3ecdc0e0ddfb2a",
+  "globalSceneRngExactlyUnchanged": true,
+  "pythonGlobalRngExactlyUnchanged": true,
+  "renderSettings": {
+    "device": "GPU",
+    "denoiser": "OPENIMAGEDENOISE",
+    "threadsMode": "AUTO",
+    "denoisingUseGpu": true
+  },
+  "renderOrBakePerformed": false,
+  "proofImplication": "Prior source/proof/profile variants are preserved. New connected-bank source requires fresh source-bound proof/UV preparation and conservative fresh lightmaps after root approves targeted Metal previews."
+}

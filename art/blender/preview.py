@@ -1,6 +1,7 @@
 """Reproducible low-sample Cycles Metal GPU previews, without changing the source blend."""
 import argparse
 import hashlib
+import importlib.util
 import json
 import sys
 from pathlib import Path
@@ -16,10 +17,22 @@ parser.add_argument('--output', default=str(ROOT / 'art/build/snow-roof-preview'
 parser.add_argument('--samples', type=int, default=8)
 parser.add_argument('--width', type=int, default=720)
 parser.add_argument('--height', type=int, default=450)
+parser.add_argument('--look', choices=['authored','night','dusk','day'], default='authored')
+parser.add_argument('--fixture-factor', type=float, help='Preview-only day fixture/emission override; canonical bake presets are unchanged.')
 parser.add_argument('--hide-roof-snow', action='store_true', help='Construction diagnostic only; transient visibility, never saved to blend.')
 args = parser.parse_args(sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else [])
 bpy.ops.wm.open_mainfile(filepath=str(Path(args.scene).resolve()))
 scene = bpy.context.scene
+preview_overrides = {}
+if args.fixture_factor is not None and (args.look != 'day' or not 0 <= args.fixture_factor <= 1):
+    raise ValueError('--fixture-factor is a day-only preview override in [0,1].')
+if args.look!='authored':
+    spec=importlib.util.spec_from_file_location('one_light_bake',ROOT/'art/blender/bake_export.py')
+    baker=importlib.util.module_from_spec(spec);spec.loader.exec_module(baker)
+    if args.fixture_factor is not None:
+        baker.PRESETS['day'] = {**baker.PRESETS['day'], 'fixtures': args.fixture_factor}
+        preview_overrides['fixtures'] = args.fixture_factor
+    baker.configure_light_pass(scene,args.look,baker.snapshot_lighting(scene))
 scene.render.engine = 'CYCLES'
 prefs=bpy.context.preferences.addons['cycles'].preferences
 prefs.compute_device_type='METAL'
@@ -47,7 +60,7 @@ scene.render.film_transparent = False
 output = Path(args.output).resolve()
 output.mkdir(parents=True, exist_ok=True)
 metadata = {'scene': str(Path(args.scene).resolve()), 'blendSha256': hashlib.sha256(Path(args.scene).read_bytes()).hexdigest(), 'sourceSha256': hashlib.sha256((ROOT/'art/blender/snow_roof.py').read_bytes()).hexdigest(), 'device': 'METAL', 'devices': metal_devices, 'denoiser': 'OPENIMAGEDENOISE', 'samples': args.samples,
-            'size': [args.width, args.height], 'maxBounces': 4, 'cameras': [], 'constructionDiagnostic': args.hide_roof_snow, 'hiddenRoofSnow': []}
+            'size': [args.width, args.height], 'look':args.look, 'previewOnlyOverrides':preview_overrides, 'lightingCandidate':bool(preview_overrides), 'appliedPreset':dict(baker.PRESETS[args.look]) if args.look!='authored' else None, 'maxBounces': 4, 'cameras': [], 'constructionDiagnostic': args.hide_roof_snow, 'hiddenRoofSnow': []}
 hidden_roof_snow=[]
 if args.hide_roof_snow:
     metadata['diagnosticNote']='Only roof snow temporarily hidden to inspect tile-course construction. Lighting and geometry unchanged; final deep-snow scene is retained in the unsaved source blend.'
@@ -61,6 +74,9 @@ for name in args.cameras.split(','):
         'TileCourseDetail': ((1.0,6.35,5.8),(0.0,5.58,3.95)),
         'StepEdgeDetail': ((1.3,.85,6.6),(.15,.45,5.15)),
         'StepWearDetail': ((-.3,.64,5.93),(-.2,.4,5.2)),
+        'StepSnowDetail': ((0,1.72,8.5),(0,.62,4.9)),
+        'StepBanksWide': ((0,1.72,10.2),(0,.65,5.1)),
+        'StepBankDetail': ((3.0,1.25,7.35),(1.25,.45,5.25)),
         'ClutterDetail': ((2.4,1.85,-.8),(0,1.2,-4.75)),
     }
     if camera is None and name in inspection_poses:

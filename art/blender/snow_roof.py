@@ -550,6 +550,137 @@ def worn_step(name,width,height,depth,location,mat):
     return obj
 
 
+def stair_snow_banks(mat):
+    """Two connected snow banks wrap the outer stair edges into ground snow."""
+    from mathutils.bvhtree import BVHTree
+    bpy.context.view_layer.update()
+    graph=bpy.context.evaluated_depsgraph_get()
+    ground=[o for o in STATIC.objects if o.name.startswith('Snow with physically depressed footprint track')]
+    stone=[o for o in STATIC.objects if o.name.startswith('Chipped and worn granite step') or o.name=='Front terrace']
+    if len(ground)!=1 or len(stone)!=4:raise RuntimeError('Stair-bank support geometry is missing')
+
+    def support_tree(objects):
+        vertices=[];faces=[]
+        for obj in objects:
+            evaluated=obj.evaluated_get(graph);mesh=evaluated.data;offset=len(vertices)
+            vertices.extend(evaluated.matrix_world@v.co for v in mesh.vertices)
+            faces.extend(tuple(offset+i for i in face.vertices) for face in mesh.polygons)
+        return BVHTree.FromPolygons(vertices,faces,all_triangles=False)
+
+    ground_tree=support_tree(ground)
+    # Measure the actual evaluated stone, including bevel/nosing extrema.
+    terrace=next(o for o in stone if o.name=='Front terrace')
+    terrace_eval=terrace.evaluated_get(graph)
+    terrace_points=[terrace_eval.matrix_world@v.co for v in terrace_eval.data.vertices]
+    terrace_top=max(v.z for v in terrace_points)
+    terrace_front=max(-v.y for v in terrace_points)
+    step_bounds=[]
+    for obj in stone:
+        if not obj.name.startswith('Chipped and worn granite step'):continue
+        evaluated=obj.evaluated_get(graph)
+        points=[evaluated.matrix_world@v.co for v in evaluated.data.vertices]
+        step_bounds.append((max(-v.y for v in points),max(v.z for v in points)))
+    step_bounds.sort()
+    ground_texspace=(ground[0].data.texspace_location.copy(),ground[0].data.texspace_size.copy())
+    def height(tree,x,z):
+        hit=tree.ray_cast(point((x,2,z)),Vector((0,0,-1)),4)[0]
+        if hit is None:raise RuntimeError('Stair-bank footprint left its support surface')
+        return hit.z
+    def smooth(a,b,value):
+        q=max(0,min(1,(value-a)/(b-a)))
+        return q*q*(3-2*q)
+    banks=[]
+    for side in [-1,1]:
+        # Every shape decision uses this local generator, never the scene RNG.
+        seed=241701+(97 if side>0 else 0);rng=random.Random(seed)
+        phases=[rng.uniform(0,math.tau) for _ in range(5)]
+        peak=rng.uniform(.078,.108)
+        start_z=terrace_front-.85+rng.uniform(-.035,.015)
+        end_z=7.05+rng.uniform(-.035,.055)
+        rows,across=88,32
+        vertices=[];faces=[];row_ids=[];ground_heights=[]
+        for row in range(rows+1):
+            t=row/rows;z=start_z+(end_z-start_z)*t
+            center=1.52+.035*math.sin(t*4.7+phases[0])
+            envelope=math.sin(math.pi*t)**.43
+            inner=.93+.050*math.sin(t*8.3+phases[1])+.025*math.sin(t*17.1+phases[2])
+            outer=2.43+.085*math.sin(t*6.1+phases[3])+.035*math.sin(t*13.4+phases[0])
+            columns=[across//2] if row in [0,rows] else range(across+1)
+            ids=[]
+            for column in columns:
+                u=column/across
+                x=side*(center+((inner+(outer-inner)*u)-center)*envelope)
+                zz=z+.025*math.sin(math.pi*t)*math.sin(math.pi*u)*math.sin(u*5+phases[4])
+                ground_y=height(ground_tree,x,zz)
+                # This exposed envelope is continuous across the terrace edge.
+                # The old ray-hit support blend jumped 0.6m at that edge and
+                # pulled triangles through the cap. The rear seam now starts
+                # deeply beneath stone; the full cap clears measured extrema.
+                first,second,last=step_bounds
+                stairs=max(terrace_top,first[1])-(first[1]-second[1])*smooth(first[0],first[0]+.18,zz)
+                stairs-=(second[1]-last[1])*smooth(second[0],second[0]+.18,zz)
+                stairs=stairs*(1-smooth(last[0],last[0]+.26,zz))+ground_y*smooth(last[0],last[0]+.26,zz)
+                wrap=1-smooth(1.60,2.40,abs(x))
+                rolled=ground_y+(stairs-ground_y)*wrap
+                rolled=max(rolled,ground_y+(terrace_top-ground_y)*(1-smooth(terrace_front,terrace_front+.65,zz)))
+                accumulation=peak*(1+.23*math.sin(t*7.7+phases[2])+.11*math.sin(t*16.3+phases[4]))
+                accumulation*=.88+.12*math.cos((u-.45)*math.pi)
+                coverage=smooth(0,.17,u)*(1-smooth(.73,1,u))*smooth(0,.14,t)*(1-smooth(.70,1,t))
+                # A signed cubic meets the unchanged field tangentially at one
+                # contour, then continues 80mm below it; no visible shell rim.
+                q=(coverage-.16)/.84
+                delta=(max(0,rolled-ground_y)+accumulation)*q**3 if q>=0 else -.08*((.16-coverage)/.16)**3
+                top=ground_y+delta
+                ids.append(len(vertices));vertices.append((x,top,zz));ground_heights.append(ground_y)
+            row_ids.append(ids)
+        for j in range(across):faces.append((row_ids[0][0],row_ids[1][j],row_ids[1][j+1]))
+        for row in range(1,rows-1):
+            for j in range(across):faces.append((row_ids[row][j],row_ids[row+1][j],row_ids[row+1][j+1],row_ids[row][j+1]))
+        for j in range(across):faces.append((row_ids[-1][0],row_ids[-2][j+1],row_ids[-2][j]))
+        if side<0:faces=[tuple(reversed(face)) for face in faces]
+        top_faces=len(faces)
+        # Derive a single perimeter from the top disk, then close its volume
+        # below the existing ground field. No six-piece overlaps or flat decals.
+        edge_faces={}
+        for face in faces:
+            for i,a in enumerate(face):
+                b=face[(i+1)%len(face)];key=tuple(sorted((a,b)))
+                edge_faces.setdefault(key,[]).append((a,b))
+        boundary=[edges[0] for edges in edge_faces.values() if len(edges)==1]
+        bottom={}
+        for a,b in boundary:
+            for index in [a,b]:
+                if index not in bottom:
+                    x,y,z=vertices[index];bottom[index]=len(vertices)
+                    vertices.append((x,ground_heights[index]-.09,z))
+        bottom_center=len(vertices)
+        vertices.append((side*1.52,min(ground_heights)-.12,(start_z+end_z)/2))
+        for a,b in boundary:
+            faces.append((b,a,bottom[a],bottom[b]))
+            faces.append((bottom_center,bottom[b],bottom[a]))
+        label='left' if side<0 else 'right'
+        obj=mesh_object('Continuous stair-edge snow bank '+label,vertices,faces,mat,'hall')
+        for polygon in obj.data.polygons:polygon.use_smooth=polygon.index<top_faces or (polygon.index-top_faces)%2==0
+        # Snow's existing Generated-coordinate grain must use the same world
+        # texture space on both sides of the join. Materials stay untouched.
+        obj.data.use_auto_texspace=False
+        obj.data.texspace_location=ground_texspace[0]
+        grain_size=ground_texspace[1].copy()
+        # Keep the field's horizontal grain density while avoiding its very
+        # thin vertical bounding box, which creates compressed grain stripes.
+        grain_size.z=(abs(grain_size.x)+abs(grain_size.y))*.5
+        obj.data.texspace_size=grain_size
+        obj['step_snow_shape']='One closed connected bank across all treads/risers, wrapping over the outer edge and merging below the existing ground snow.'
+        obj['step_snow_seed']=seed;obj['step_snow_side']=side
+        obj['step_snow_peak_metres']=peak
+        obj['step_snow_center_clearance_metres']=.85
+        obj['step_snow_ground_overlap']='Tangent cubic taper crosses below ground; outer/end rim buried80mm and closed bottom at least90mm below field.'
+        obj['step_snow_terrace_cap']='Continuous envelope above measured terrace/step extrema; rear seam starts850mm behind terrace front inside stone.'
+        obj['step_snow_texture_space']='Matches unchanged ground snow Generated coordinates; no material edits.'
+        banks.append(obj)
+    return banks
+
+
 def irregular_paver(name,x,z,width,depth,height,mat):
     outline=[(-.5,-.5),(.4,-.5),(.5,-.37),(.5,.43),(.40,.5),(-.43,.5),(-.5,.39)]
     vertices=[]
@@ -686,8 +817,12 @@ def build_scene():
     scene.unit_settings.system = 'METRIC'
     scene.unit_settings.scale_length = 1
     scene.render.engine = 'CYCLES'
+    scene.cycles.device = 'GPU'
     scene.cycles.samples = 64
     scene.cycles.use_denoising = True
+    scene.cycles.denoiser = 'OPENIMAGEDENOISE'
+    if hasattr(scene.cycles,'denoising_use_gpu'):scene.cycles.denoising_use_gpu=True
+    scene.render.threads_mode = 'AUTO'
     scene.view_settings.view_transform = 'AgX'
     scene.render.resolution_x, scene.render.resolution_y = 1440, 900
     scene.render.resolution_percentage = 100
@@ -799,7 +934,7 @@ def build_scene():
     box('Front terrace',(11,.6,2.4),(0,.3,3.4),granite,.045)
     for i in range(3):
         worn_step('Chipped and worn granite step',3.2,.2,.43,(0,.5-i*.2,4.8+i*.4),granite)
-        for side in [-1,1]:box('Step-edge snow',(.55,.055,.34),(side*1.29,.615-i*.2,4.8+i*.4),snow,.03)
+    stair_snow_banks(snow)
     # Narrow icicles hang from the sheltered edge rather than floating over the court.
     ice=material('Cloudy icicle ice','#ccdbe5',rough=.38)
     for i in range(47):
