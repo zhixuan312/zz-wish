@@ -1,0 +1,65 @@
+{
+  "scope": "Independent staged two-night-map contact-padding proof. No rendering, baking, OIDN, encoding, source/runtime/public edits. Candidate is optical-only; lossy KTX neighborhoods are not claimed bit-exact.",
+  "inputs": {
+    "source": {
+      "path": "art/build/snow-roof-stair-banks-grain.blend",
+      "sha256": "6e9f59c93565e08a690eaafbc756967ba39e0f4d8ad0094e4520265948360af8"
+    },
+    "prepared": {
+      "path": "art/build/snow-roof-final/snow-roof-prepared.blend",
+      "sha256": "6ed42644cd3a6c1026b079740957280df0274e9e9a0eaf5f8d3da514725079c1"
+    },
+    "raw": {
+      "path": "art/build/snow-roof-final/snow-roof.raw.glb",
+      "sha256": "0deec9fd71d4c49e666e5b091f15af3067efbcdb7e3c350bcb85a2bf7f980dea"
+    },
+    "f32Diagnostic": {
+      "path": "art/build/snow-roof-float32-position-diagnostic/snow-roof.glb",
+      "sha256": "e41a50e8cd5935d69f254514c7cac3c15fa1b1f640f9c4f0e8f351f220906217"
+    },
+    "independentExactF32PositionProof": {
+      "path": "art/build/snow-roof-float32-position-diagnostic/independent-position-stream-proof.json",
+      "sha256": "1c9f0e3962735f8a55aa7bbcf9e1aad1b328e1253d5b36f6626b75270880f6f0"
+    }
+  },
+  "sourceClassificationSha256": "f47b949e90dd75729d3ace5fafb83122c0d589c84412457ee2f7c6634edadead",
+  "donorMetadataSha256": "cbaeba03ac2ff63f951df130ff4e3e810da8b4cb198cbd0ab0ebd0e013dbc18f",
+  "donorMaskSha256": "8d1a971300ff6af23a49a2c0b2cf4a3e87c903db704c436ec4d07ca60e4f2fa5",
+  "candidateReceiptSha256": "438ad03af0caa27cff1a9ee1ea6490879c469be0c90aa90c038d4b6340758ef9",
+  "regions": {
+    "court": {
+      "sourceMasterSha256": "46dacc79e2232f66fa44062d37180c4c64f58c0526751545b5739e34c77b6d79",
+      "sourceRawTransportSha256": "68b14764d1f0373027e520b9cf6f8bdcfe8ad9a8e81aff1f46205fec30a16c6d",
+      "derivedMasterSha256": "d679282bc038914e9172149aafbc60db8b26a7bcddc6bb4378b9a7fadc236111",
+      "assignedCertifiedHiddenRecipients": 2098,
+      "actualChangedBaseRGBAFloatPixels": 2098,
+      "maximumDonorDistancePixels": 8.0,
+      "sameOriginalChartAndOwner": true,
+      "nearestPermittedDonorIncludingTieOrderIndependentlyVerified": true,
+      "allUnassignedAndUncertifiedVisibleBaseFloatBitsExact": true,
+      "allAlphaFloatBitsExact": true,
+      "donorRGBCopiedFloatBitsExact": true,
+      "changedOutsideCertifiedRecipientMask": 0
+    },
+    "hall": {
+      "sourceMasterSha256": "b77e9fa239e1c2285989ad4e7a6a66382e672499d076e71f93e14bb3096898b4",
+      "sourceRawTransportSha256": "80352ba57cd2f7cb2d7cbfe08d9fce8b4ab6727aa9ced42142f98fde3295663e",
+      "derivedMasterSha256": "bfc9e1567351478267c065f7208407fa17d73774f1cd96ea49764d9105b5e9b6",
+      "assignedCertifiedHiddenRecipients": 682,
+      "actualChangedBaseRGBAFloatPixels": 682,
+      "maximumDonorDistancePixels": 8.0,
+      "sameOriginalChartAndOwner": true,
+      "nearestPermittedDonorIncludingTieOrderIndependentlyVerified": true,
+      "allUnassignedAndUncertifiedVisibleBaseFloatBitsExact": true,
+      "allAlphaFloatBitsExact": true,
+      "donorRGBCopiedFloatBitsExact": true,
+      "changedOutsideCertifiedRecipientMask": 0
+    }
+  },
+  "allOther10MapsByteIdentical": true,
+  "geometryByteIdentical": true,
+  "sourceBakeFingerprintUnchanged": true,
+  "originalTransportMastersUnchanged": true,
+  "candidateManifestSha256": "c3496164f0da86f399650b3b97f08d64f7facf065e77c022834fb4585e456922",
+  "scriptSha256": "721db145ff6671494098f0ae6960328b4319855ad5f0a84c7300d278c0bc4027"
+}

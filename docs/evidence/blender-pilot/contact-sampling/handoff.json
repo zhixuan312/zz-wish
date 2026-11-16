@@ -1,0 +1,99 @@
+{
+  "scope": "Current actual source-bound F32 geometry/contact proof handoff. Production package assembly, final browser approval and performance run remain separate. No authored geometry/lights/transport changes.",
+  "files": [
+    {
+      "path": "scripts/prune-float32-baked.mjs",
+      "bytes": 18190,
+      "sha256": "34876bdd434f44d29ebbd2eab479ed32568c23e5844c1bdd5c60fd2f2888d02b"
+    },
+    {
+      "path": "scripts/audit-float32-prune.mjs",
+      "bytes": 6193,
+      "sha256": "6dde683bc848047fb9fec04615c600bb1de2fee15f82b9b54148786770a3e9fe"
+    },
+    {
+      "path": "art/blender/classify_snow_contact.py",
+      "bytes": 16131,
+      "sha256": "ec0497052b6f652a3353e4014bb97faac12aac55859bf067f030377b1fa8ed9c"
+    },
+    {
+      "path": "art/blender/certify_snow_contact_donors.py",
+      "bytes": 15355,
+      "sha256": "22b510cfb374dfa0906bc2d8c1134d347fbfa900b5fffa4a24dca51b274eccd0"
+    },
+    {
+      "path": "art/blender/audit_contact_padding.py",
+      "bytes": 8362,
+      "sha256": "436ea486e3fdda1a455fc2c9bb88520ee0d79596996986b2faab6ae331e0f9a6"
+    },
+    {
+      "path": "art/blender/verify_contact_reproduction.py",
+      "bytes": 2616,
+      "sha256": "c9e21a5ff81d07198d1910614f03a3bbaa0418d4723dcb2ba279c21bb081966c"
+    },
+    {
+      "path": "art/blender/proofs/snow-roof-final-float32-export-profile.json",
+      "bytes": 27658,
+      "sha256": "1e37058881ad253b2fbea5b15646d47570a341013140ec4c9a57dee86418f78f"
+    },
+    {
+      "path": "art/blender/proofs/snow-roof-contact-portable-reproduction.json",
+      "bytes": 3273,
+      "sha256": "703dec39d871e37688faa838a653656f5fed48006836e65e3128a0c724173444"
+    },
+    {
+      "path": "art/build/snow-roof-float32-optimized/snow-roof.glb",
+      "bytes": 15904988,
+      "sha256": "9e3d5aa37878af0e2eca8d409b2f511916e488aa7b523dbd26c8ec8114022fdc"
+    },
+    {
+      "path": "art/build/snow-roof-float32-optimized/snow-roof.receipt.json",
+      "bytes": 27877,
+      "sha256": "fe195bb332e794332885f3e913d15cc0c871cfaf8b7718bc3f894f36389e3456"
+    },
+    {
+      "path": "art/build/snow-roof-float32-optimized/independent-geometry-proof.json",
+      "bytes": 995,
+      "sha256": "a6725d3763bd2c0b3d44dc4e37a7fa2feaa11ce6f86331eac87ccef6a7cb1390"
+    },
+    {
+      "path": "art/build/snow-roof-float32-reproduction/snow-roof.glb",
+      "bytes": 15904988,
+      "sha256": "9e3d5aa37878af0e2eca8d409b2f511916e488aa7b523dbd26c8ec8114022fdc"
+    },
+    {
+      "path": "art/build/fringe-geometry-diagnosis/contact-visibility-classification.json",
+      "bytes": 6352,
+      "sha256": "f47b949e90dd75729d3ace5fafb83122c0d589c84412457ee2f7c6634edadead"
+    },
+    {
+      "path": "art/build/fringe-geometry-diagnosis/contact-texel-centres.npz",
+      "bytes": 834041,
+      "sha256": "1eda91ccc6227c3ccb94d7a641d4b1cd0ecd373ad31d0ce6b3b5931ddf371fd5"
+    },
+    {
+      "path": "art/build/fringe-geometry-diagnosis/contact-valid-donors.json",
+      "bytes": 441452,
+      "sha256": "cbaeba03ac2ff63f951df130ff4e3e810da8b4cb198cbd0ab0ebd0e013dbc18f"
+    },
+    {
+      "path": "art/build/fringe-geometry-diagnosis/contact-valid-donors.npz",
+      "bytes": 156888,
+      "sha256": "8d1a971300ff6af23a49a2c0b2cf4a3e87c903db704c436ec4d07ca60e4f2fa5"
+    },
+    {
+      "path": "art/build/snow-roof-contact-padding-production/contact-padding.receipt.json",
+      "bytes": 9736,
+      "sha256": "f57a7141a2e0bac2110b8e3c0e238afb6c42ded36e56349a889b61d67a5de9f1"
+    },
+    {
+      "path": "art/build/snow-roof-contact-padding-production/independent-contact-padding-proof.json",
+      "bytes": 8214,
+      "sha256": "807b8ff3f9a50f12378801aad522a8a56f520759ec3ea7130919da304afb8725"
+    }
+  ],
+  "jobs": "All required production, reproduction and final audit jobs exited0. No active owned job; the earlier read-only audit setup was stopped and replaced after caching NPZ arrays.",
+  "renderBakeGpuJobsRun": 0,
+  "publicWrites": 0,
+  "remainingVisibleLimitation": "Normal-sampler desktop/phone comparisons reduce the black fringe substantially, but a faint grey/scalloped contact seam remains."
+}

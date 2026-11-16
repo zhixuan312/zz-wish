@@ -1,0 +1,109 @@
+{
+  "scope": "Portable source-bound recipes reproduce original contact permissions exactly; NPZ ZIP container timestamps may differ, decoded arrays and full JSON certificates are byte-exact.",
+  "originalRecipientMetadataSha256": "f47b949e90dd75729d3ace5fafb83122c0d589c84412457ee2f7c6634edadead",
+  "originalDonorMetadataSha256": "cbaeba03ac2ff63f951df130ff4e3e810da8b4cb198cbd0ab0ebd0e013dbc18f",
+  "reproducedRecipientMetadataSha256": "dd43ea2376039b6c6391fa61de558414385867773e37e0d4f5f1cd568dc3f8f9",
+  "reproducedDonorMetadataSha256": "96b782d236afafea356c4490c9a887e9da5b047b9daa2bcdabb1b6818e5fe981",
+  "fullTexelCertificateJsonSha256": "9be4265115516fe71d7a858d1bee948487cef3960da4bece96cd13609d8b6398",
+  "recipientArrays": [
+    {
+      "name": "region",
+      "shape": [
+        74950
+      ],
+      "dtype": "uint8",
+      "sha256": "56072a18154487ca4274b7041d0564a7efcb9dfbca517d58251d5ad94444d4c5"
+    },
+    {
+      "name": "xyBottomLeft",
+      "shape": [
+        74950,
+        2
+      ],
+      "dtype": "uint16",
+      "sha256": "c8f36bdfddb300b92825ce924f534b69b4a1d851e2514fa9f9c56a92f6d877e1"
+    },
+    {
+      "name": "hidden",
+      "shape": [
+        74950
+      ],
+      "dtype": "bool",
+      "sha256": "9acff307f9d3cd8859941d261b29bb8c012e655f5a347e0d8e7028ffce202ca7"
+    },
+    {
+      "name": "preparedPolygon",
+      "shape": [
+        74950
+      ],
+      "dtype": "uint32",
+      "sha256": "5b3ff5cdfdfc8972ddc2047682cfe6b5fc2f56ebdf3e4d4a67ec21bf7211736d"
+    },
+    {
+      "name": "chartRaw",
+      "shape": [
+        74950
+      ],
+      "dtype": "int32",
+      "sha256": "81340dcdb2b9a326182ba8b620b4c05b4de2427d9c4ba097763b45a337150cea"
+    },
+    {
+      "name": "worldEngine",
+      "shape": [
+        74950,
+        3
+      ],
+      "dtype": "float32",
+      "sha256": "cfced5ce70c84124c620b42186894413372eb4591994730793f81af344bb0841"
+    }
+  ],
+  "donorArrays": [
+    {
+      "name": "region",
+      "shape": [
+        74950
+      ],
+      "dtype": "uint8",
+      "sha256": "56072a18154487ca4274b7041d0564a7efcb9dfbca517d58251d5ad94444d4c5"
+    },
+    {
+      "name": "xyBottomLeft",
+      "shape": [
+        74950,
+        2
+      ],
+      "dtype": "uint16",
+      "sha256": "c8f36bdfddb300b92825ce924f534b69b4a1d851e2514fa9f9c56a92f6d877e1"
+    },
+    {
+      "name": "chartRaw",
+      "shape": [
+        74950
+      ],
+      "dtype": "int32",
+      "sha256": "81340dcdb2b9a326182ba8b620b4c05b4de2427d9c4ba097763b45a337150cea"
+    },
+    {
+      "name": "ownerId",
+      "shape": [
+        74950
+      ],
+      "dtype": "uint8",
+      "sha256": "753655abbda50b85b9867a0bcbf130532aad4b659209f4ae322fa4aee19b8706"
+    },
+    {
+      "name": "validDonor",
+      "shape": [
+        74950
+      ],
+      "dtype": "bool",
+      "sha256": "2e9d27e914ce931edd5aa081fec173037cfd398b298e51d8a6bc511b9bdb43ec"
+    }
+  ],
+  "scripts": {
+    "art/blender/classify_snow_contact.py": "ec0497052b6f652a3353e4014bb97faac12aac55859bf067f030377b1fa8ed9c",
+    "art/blender/certify_snow_contact_donors.py": "22b510cfb374dfa0906bc2d8c1134d347fbfa900b5fffa4a24dca51b274eccd0",
+    "art/blender/verify_contact_reproduction.py": "c9e21a5ff81d07198d1910614f03a3bbaa0418d4723dcb2ba279c21bb081966c"
+  },
+  "modelRenderBakeImageOrPublicWrites": false
+}

@@ -1,0 +1,30 @@
+{
+  "contact-padding.receipt.json": {
+    "bytes": 9736,
+    "sha256": "f57a7141a2e0bac2110b8e3c0e238afb6c42ded36e56349a889b61d67a5de9f1"
+  },
+  "classification-summary.json": {
+    "bytes": 6908,
+    "sha256": "8b3901ca8860165f2fcb35372bf514bf470538f28ea7bb1f1e3a97977e56cb57"
+  },
+  "independent-geometry-proof.json": {
+    "bytes": 995,
+    "sha256": "a6725d3763bd2c0b3d44dc4e37a7fa2feaa11ce6f86331eac87ccef6a7cb1390"
+  },
+  "independent-contact-padding-proof.json": {
+    "bytes": 8214,
+    "sha256": "807b8ff3f9a50f12378801aad522a8a56f520759ec3ea7130919da304afb8725"
+  },
+  "delivery-summary.json": {
+    "bytes": 16044,
+    "sha256": "7661e37f28da68468cbedd4aab2a466b2cf4c73fe197dc748f7f5ddb2591b6b1"
+  },
+  "geometry.receipt.json": {
+    "bytes": 27877,
+    "sha256": "fe195bb332e794332885f3e913d15cc0c871cfaf8b7718bc3f894f36389e3456"
+  },
+  "README.md": {
+    "bytes": 2806,
+    "sha256": "284d482834a50fbfdfd2be0ba2576fa7c9931292af104921abd6ab55b10ae955"
+  }
+}

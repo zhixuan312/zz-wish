@@ -48,3 +48,9 @@ node scripts/prune-validated-baked.mjs --profile mobile \
 Each output has a sibling receipt. Existing outputs are refused. Current files are verified export-only candidates; complete-package manifest hashes/byte totals and runtime quality/mobile review remain separate. Full source geometry and bake occluders are unchanged. The original helper/profile and c64 proof remain byte-identical to their historical receipts.
 
 Independent optimized cross-profile data and index/winding equality are recorded in `snow-roof-final-cross-profile-geometry.json`; complete evidence and executed receipts are under `docs/evidence/blender-pilot/final-export`. Final helper: `scripts/prune-validated-baked.mjs --profile quality|mobile`. The actual post-batch raw/prepared guard and replacement production-helper executions passed; final browser/package approval remains separate.
+
+## Actual FLOAT32 candidate and contact permissions
+
+`snow-roof-final-float32-export-profile.json` is a fresh actual profile for genuine F32 input `e41a50e8...`, pruned candidate `9e3d5aa3...` (15,904,988 B). It does not modify or override the position16 quality/mobile profiles. `scripts/prune-float32-baked.mjs` rechecks actual raw FLOAT32 positions, prepared FACE binary multisets and every decoded retained attribute before output. Replay with `--profile` and explicit input/new art/build output. Independent decoder-only proof is produced by `scripts/audit-float32-prune.mjs`.
+
+`snow-roof-contact-portable-reproduction.json` verifies clean repository recipes reproduce every original geometric recipient/donor array and the full centre-certificate JSON. Actual masks, source bindings, helper receipts and optical limitations are in `docs/evidence/blender-pilot/contact-sampling`. These authorize only same-owner/chart extension into certified hidden centres; no visible dark value is reclassified from its radiance. Final packaging/browser approval remains separate.

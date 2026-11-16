@@ -1,0 +1,191 @@
+{
+  "version": 1,
+  "classifierScriptSha256": "1497c5d059ddd2fc0d70958a20519d811834662bdba9c5074236635e0d8a9818",
+  "opaqueMaterialProof": {
+    "rawMaterial": "Snow settled dry grains",
+    "alphaMode": "OPAQUE",
+    "baseColorAlpha": 1,
+    "basis": "Actual raw0deec GLB material JSON inspected; source ground and both banks use the same opaque material."
+  },
+  "terrainMaximumActualVertexY": 0.39294928312301636,
+  "terrainMinimumActualVertexY": -0.029999999329447746,
+  "scope": "ANALYSIS ONLY. Native TEXEL CENTRE geometry certificates. No illumination, geometry, UV, material, source file or delivery asset changed. Not a whole-texel footprint mask or permission to relabel visible dark illumination. Original raw/denoised transport remains immutable.",
+  "inputs": {
+    "source": {
+      "path": "art/build/snow-roof-stair-banks-grain.blend",
+      "sha256": "6e9f59c93565e08a690eaafbc756967ba39e0f4d8ad0094e4520265948360af8"
+    },
+    "prepared": {
+      "path": "art/build/snow-roof-final/snow-roof-prepared.blend",
+      "sha256": "6ed42644cd3a6c1026b079740957280df0274e9e9a0eaf5f8d3da514725079c1"
+    },
+    "raw": {
+      "path": "art/build/snow-roof-final/snow-roof.raw.glb",
+      "sha256": "0deec9fd71d4c49e666e5b091f15af3067efbcdb7e3c350bcb85a2bf7f980dea"
+    },
+    "f32Diagnostic": {
+      "path": "art/build/snow-roof-float32-position-diagnostic/snow-roof.glb",
+      "sha256": "e41a50e8cd5935d69f254514c7cac3c15fa1b1f640f9c4f0e8f351f220906217"
+    },
+    "independentExactF32PositionProof": {
+      "path": "art/build/snow-roof-float32-position-diagnostic/independent-position-stream-proof.json",
+      "sha256": "1c9f0e3962735f8a55aa7bbcf9e1aad1b328e1253d5b36f6626b75270880f6f0"
+    }
+  },
+  "toleranceMetres": 2e-05,
+  "floatPrecisionScope": "Certificates apply to exact authored/prepared FLOAT32 world positions. Position16 delivery may move near-tangent geometry and is not covered. UV16 still shifts sampling; per-centre classification does not assert all bilinear footprints are hidden.",
+  "allowedCameraDomain": "All journey cameras lie inside opaque terrain XY rectangle and above its heightfield. Ground-inside-bank certificates are camera-independent for every camera outside the closed bank volume. Bank-below-ground certificates are camera-independent within the continuous opaque field for above-ground cameras.",
+  "terrainDomainEngine": {
+    "x": [
+      -26,
+      26
+    ],
+    "z": [
+      -13,
+      53
+    ]
+  },
+  "proofRules": {
+    "bank": "Native top receiver centre lies below actual prepared ground, with both vertical clearance and nearest ground-surface distance >20\u00b5m; it is at least1m from terrain boundary. No radiance threshold is consulted.",
+    "ground": "Native receiver centre lies inside a watertight, consistently oriented opaque bank volume: three irrational-direction parity rays all odd and nearest bank-shell distance >20\u00b5m. No radiance threshold is consulted.",
+    "ambiguity": "Points within20\u00b5m of tested shell, UV-boundary position disagreements >5\u00b5m, and parity disagreements are never certified hidden."
+  },
+  "closedBankProof": {
+    "Continuous stair-edge snow bank left": {
+      "preparedTriangles": 6096,
+      "edgeCount": 9144,
+      "nonTwoSidedEdges": 0,
+      "inconsistentOrientedEdges": 0
+    },
+    "Continuous stair-edge snow bank right": {
+      "preparedTriangles": 6096,
+      "edgeCount": 9144,
+      "nonTwoSidedEdges": 0,
+      "inconsistentOrientedEdges": 0
+    }
+  },
+  "nativeResolutionByRegion": {
+    "hall": 4096,
+    "court": 4096
+  },
+  "coordinateRule": "worldEngine=(Blender.x,Blender.z,-Blender.y); texel(x,yBottomLeft), UV2=((x+.5)/size,(y+.5)/size).",
+  "maximumUVBoundaryDuplicateWorldDifferenceMetres": 0,
+  "counts": [
+    {
+      "region": "court",
+      "reason": "ground-centre-inside-closed-opaque-bank",
+      "texels": 8098
+    },
+    {
+      "region": "court",
+      "reason": "not-proven-hidden",
+      "texels": 57341
+    },
+    {
+      "region": "court",
+      "reason": "parity-disagreement-not-certified",
+      "texels": 55
+    },
+    {
+      "region": "hall",
+      "reason": "bank-top-below-continuous-opaque-ground",
+      "texels": 1700
+    },
+    {
+      "region": "hall",
+      "reason": "near-contact-not-certified",
+      "texels": 25
+    },
+    {
+      "region": "hall",
+      "reason": "not-proven-hidden",
+      "texels": 7731
+    }
+  ],
+  "charts": [
+    {
+      "region": "court",
+      "chartRaw": 1,
+      "candidates": 65494,
+      "notCertified": 57396,
+      "hidden": 8098
+    },
+    {
+      "region": "hall",
+      "chartRaw": 12862,
+      "candidates": 654,
+      "notCertified": 654
+    },
+    {
+      "region": "hall",
+      "chartRaw": 12863,
+      "candidates": 815,
+      "notCertified": 815
+    },
+    {
+      "region": "hall",
+      "chartRaw": 12866,
+      "candidates": 132,
+      "hidden": 132
+    },
+    {
+      "region": "hall",
+      "chartRaw": 12868,
+      "candidates": 2948,
+      "hidden": 604,
+      "notCertified": 2344
+    },
+    {
+      "region": "hall",
+      "chartRaw": 12872,
+      "candidates": 227,
+      "hidden": 223,
+      "notCertified": 4
+    },
+    {
+      "region": "hall",
+      "chartRaw": 12874,
+      "candidates": 423,
+      "notCertified": 423
+    },
+    {
+      "region": "hall",
+      "chartRaw": 12875,
+      "candidates": 1567,
+      "notCertified": 1567
+    },
+    {
+      "region": "hall",
+      "chartRaw": 12876,
+      "candidates": 853,
+      "notCertified": 853
+    },
+    {
+      "region": "hall",
+      "chartRaw": 12879,
+      "candidates": 237,
+      "hidden": 237
+    },
+    {
+      "region": "hall",
+      "chartRaw": 12880,
+      "candidates": 1600,
+      "hidden": 504,
+      "notCertified": 1096
+    }
+  ],
+  "candidateTexels": 74950,
+  "certifiedHiddenTexels": 9798,
+  "recordsFile": "contact-texel-certificates.json",
+  "geometryV2Sha256": "4b7556cba8104365717def12d228ffd8c5d2d6e2736d4bf183ff3991f3913aed",
+  "recordsSha256": "9be4265115516fe71d7a858d1bee948487cef3960da4bece96cd13609d8b6398",
+  "compactCentres": {
+    "file": "contact-texel-centres.npz",
+    "sha256": "1eda91ccc6227c3ccb94d7a641d4b1cd0ecd373ad31d0ce6b3b5931ddf371fd5",
+    "regionCode": {
+      "0": "court",
+      "1": "hall"
+    },
+    "hiddenField": "True only for certified opaque geometric occlusion; all other points are False/uncertified."
+  }
+}

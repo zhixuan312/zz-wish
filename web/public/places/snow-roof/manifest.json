@@ -28,12 +28,12 @@
         "encoding": "log2-hdr",
         "logRange": 17.000011006847668,
         "logGain": 4096,
-        "source": "hall-night.exr",
-        "png": "hall-night.png",
+        "source": "hall-night-contact-padding.exr",
+        "png": "hall-night-contact-padding.png",
         "pngMipmaps": [
-          "hall-night.png",
-          "hall-night-mip1.png",
-          "hall-night-mip2.png"
+          "hall-night-contact-padding.png",
+          "hall-night-contact-padding-mip1.png",
+          "hall-night-contact-padding-mip2.png"
         ],
         "mipLevels": 3,
         "gutterPixels": 8,
@@ -42,12 +42,12 @@
         "precision": {
           "surfaceTexels": 2130438,
           "luminancePercentiles": {
-            "p0": 0,
-            "p1": 0,
-            "p10": 0,
-            "p50": 0.0043157569768605755,
-            "p90": 0.08704208541840315,
-            "p99": 0.13782089528451844,
+            "p0": 0.0,
+            "p1": 0.0,
+            "p10": 0.0,
+            "p50": 0.004318642744701355,
+            "p90": 0.08729298689544203,
+            "p99": 0.1383025599814501,
             "p100": 17.971689193725584
           },
           "idealLinear8bitStep": 0.12549019607843137,
@@ -55,12 +55,12 @@
             "p0": 1.1546424354175796e-05,
             "p1": 1.1546424354175796e-05,
             "p10": 1.1546424354175796e-05,
-            "p50": 0.0002156565001120575,
-            "p90": 0.004128128230079006,
-            "p99": 0.006529669091679541,
+            "p50": 0.00021579298006117568,
+            "p90": 0.00413999440321175,
+            "p99": 0.006552449016106993,
             "p100": 0.8499673855728709
           },
-          "blackTexelFraction": 0.15398242051634453,
+          "blackTexelFraction": 0.15398148174225207,
           "note": "Ideal scalar 8-bit precision only; UASTC block/RDO and device transcode errors need delivery-image inspection."
         },
         "denoiseSeconds": 76.383,
@@ -72,8 +72,16 @@
         "uri": "hall-night.ktx2",
         "seconds": 188.337,
         "codec": "uastc",
-        "bytes": 5653549,
-        "masterSha256": "b77e9fa239e1c2285989ad4e7a6a66382e672499d076e71f93e14bb3096898b4"
+        "bytes": 5653656,
+        "masterSha256": "bfc9e1567351478267c065f7208407fa17d73774f1cd96ea49764d9105b5e9b6",
+        "transportMaster": {
+          "source": "hall-night.exr",
+          "sha256": "b77e9fa239e1c2285989ad4e7a6a66382e672499d076e71f93e14bb3096898b4"
+        },
+        "samplingDomainExtension": {
+          "policy": "certified-hidden-centres-nearest-visible-same-chart-owner-euclidean8-v1",
+          "originalVisibleBasePreserved": true
+        }
       },
       "dusk": {
         "scale": 32,
@@ -81,12 +89,12 @@
         "encoding": "log2-hdr",
         "logRange": 17.000011006847668,
         "logGain": 4096,
-        "source": "hall-dusk.exr",
-        "png": "hall-dusk.png",
+        "source": "hall-dusk-contact-padding.exr",
+        "png": "hall-dusk-contact-padding.png",
         "pngMipmaps": [
-          "hall-dusk.png",
-          "hall-dusk-mip1.png",
-          "hall-dusk-mip2.png"
+          "hall-dusk-contact-padding.png",
+          "hall-dusk-contact-padding-mip1.png",
+          "hall-dusk-contact-padding-mip2.png"
         ],
         "mipLevels": 3,
         "gutterPixels": 8,
@@ -95,11 +103,11 @@
         "precision": {
           "surfaceTexels": 2130438,
           "luminancePercentiles": {
-            "p0": 0,
-            "p1": 0,
-            "p10": 0,
-            "p50": 0.00751828555674292,
-            "p90": 0.16904664201319217,
+            "p0": 0.0,
+            "p1": 0.0,
+            "p10": 0.0,
+            "p50": 0.007519734332850202,
+            "p90": 0.1694090141096711,
             "p99": 0.27376685904264453,
             "p100": 14.349288887310028
           },
@@ -108,12 +116,12 @@
             "p0": 1.1546424354175796e-05,
             "p1": 1.1546424354175796e-05,
             "p10": 1.1546424354175796e-05,
-            "p50": 0.0003671173804538595,
-            "p90": 0.008006464371061062,
+            "p50": 0.00036718589909441254,
+            "p90": 0.008023602452853329,
             "p99": 0.012959118458366004,
             "p100": 0.6786490270711738
           },
-          "blackTexelFraction": 0.15530984708308807,
+          "blackTexelFraction": 0.15530843892194937,
           "note": "Ideal scalar 8-bit precision only; UASTC block/RDO and device transcode errors need delivery-image inspection."
         },
         "denoiseSeconds": 72.797,
@@ -125,8 +133,16 @@
         "uri": "hall-dusk.ktx2",
         "seconds": 184.586,
         "codec": "uastc",
-        "bytes": 5665246,
-        "masterSha256": "5a60afb392734e7492e494e93d1684da3a69a219a8dae607522d148aee606e15"
+        "bytes": 5665158,
+        "masterSha256": "ccbe4c2f2cf99ccd2880e3f4f38d8480d5c3e23eca8fd929602687486f876021",
+        "transportMaster": {
+          "source": "hall-dusk.exr",
+          "sha256": "5a60afb392734e7492e494e93d1684da3a69a219a8dae607522d148aee606e15"
+        },
+        "samplingDomainExtension": {
+          "policy": "certified-hidden-centres-nearest-visible-same-chart-owner-euclidean8-v1",
+          "originalVisibleBasePreserved": true
+        }
       },
       "day": {
         "scale": 32,
@@ -134,12 +150,12 @@
         "encoding": "log2-hdr",
         "logRange": 17.000011006847668,
         "logGain": 4096,
-        "source": "hall-day.exr",
-        "png": "hall-day.png",
+        "source": "hall-day-contact-padding.exr",
+        "png": "hall-day-contact-padding.png",
         "pngMipmaps": [
-          "hall-day.png",
-          "hall-day-mip1.png",
-          "hall-day-mip2.png"
+          "hall-day-contact-padding.png",
+          "hall-day-contact-padding-mip1.png",
+          "hall-day-contact-padding-mip2.png"
         ],
         "mipLevels": 3,
         "gutterPixels": 8,
@@ -148,12 +164,12 @@
         "precision": {
           "surfaceTexels": 2130438,
           "luminancePercentiles": {
-            "p0": 0,
-            "p1": 0,
-            "p10": 0,
-            "p50": 0.015079648355022072,
-            "p90": 0.5635293170809746,
-            "p99": 1.08206925303936,
+            "p0": 0.0,
+            "p1": 0.0,
+            "p10": 0.0,
+            "p50": 0.015083363961242139,
+            "p90": 0.5638450512707234,
+            "p99": 1.0820917762041091,
             "p100": 17.73556391010284
           },
           "idealLinear8bitStep": 0.12549019607843137,
@@ -161,12 +177,12 @@
             "p0": 1.1546424354175796e-05,
             "p1": 1.1546424354175796e-05,
             "p10": 1.1546424354175796e-05,
-            "p50": 0.0007247256382553191,
-            "p90": 0.026663188817076522,
-            "p99": 0.051187096483662486,
+            "p50": 0.0007249013647086713,
+            "p90": 0.026678121198518423,
+            "p99": 0.051188161697688805,
             "p100": 0.8388000400094064
           },
-          "blackTexelFraction": 0.15813367955321864,
+          "blackTexelFraction": 0.15813227139207994,
           "note": "Ideal scalar 8-bit precision only; UASTC block/RDO and device transcode errors need delivery-image inspection."
         },
         "denoiseSeconds": 79.179,
@@ -178,8 +194,16 @@
         "uri": "hall-day.ktx2",
         "seconds": 189.605,
         "codec": "uastc",
-        "bytes": 5755783,
-        "masterSha256": "17b529a1d658d3bde88901dc34deb3c105ddfc22b64b53c9f0ce9ef2f55e29a1"
+        "bytes": 5755827,
+        "masterSha256": "bde4bcaaf11808228a3e6fc360f56e007c4feea1c9babef6636bf1ef89ca27d8",
+        "transportMaster": {
+          "source": "hall-day.exr",
+          "sha256": "17b529a1d658d3bde88901dc34deb3c105ddfc22b64b53c9f0ce9ef2f55e29a1"
+        },
+        "samplingDomainExtension": {
+          "policy": "certified-hidden-centres-nearest-visible-same-chart-owner-euclidean8-v1",
+          "originalVisibleBasePreserved": true
+        }
       },
       "lamp": {
         "scale": 32,
@@ -187,12 +211,12 @@
         "encoding": "log2-hdr",
         "logRange": 17.000011006847668,
         "logGain": 4096,
-        "source": "hall-lamp.exr",
-        "png": "hall-lamp.png",
+        "source": "hall-lamp-contact-padding.exr",
+        "png": "hall-lamp-contact-padding.png",
         "pngMipmaps": [
-          "hall-lamp.png",
-          "hall-lamp-mip1.png",
-          "hall-lamp-mip2.png"
+          "hall-lamp-contact-padding.png",
+          "hall-lamp-contact-padding-mip1.png",
+          "hall-lamp-contact-padding-mip2.png"
         ],
         "mipLevels": 3,
         "gutterPixels": 8,
@@ -201,10 +225,10 @@
         "precision": {
           "surfaceTexels": 2130438,
           "luminancePercentiles": {
-            "p0": 0,
-            "p1": 0,
-            "p10": 0,
-            "p50": 1.1503192205246648e-07,
+            "p0": 0.0,
+            "p1": 0.0,
+            "p10": 0.0,
+            "p50": 1.1574755996548447e-07,
             "p90": 0.01848939671963455,
             "p99": 0.0915279678390172,
             "p100": 12.822192241096497
@@ -214,12 +238,12 @@
             "p0": 1.1546424354175796e-05,
             "p1": 1.1546424354175796e-05,
             "p10": 1.1546424354175796e-05,
-            "p50": 1.155186469163005e-05,
+            "p50": 1.1551898537119834e-05,
             "p90": 0.000885986803040046,
             "p99": 0.004340284244799472,
             "p100": 0.6064262828760274
           },
-          "blackTexelFraction": 0.34080222001297383,
+          "blackTexelFraction": 0.3407717098549688,
           "note": "Ideal scalar 8-bit precision only; UASTC block/RDO and device transcode errors need delivery-image inspection."
         },
         "denoiseSeconds": 59.754,
@@ -231,8 +255,16 @@
         "uri": "hall-lamp.ktx2",
         "seconds": 149.798,
         "codec": "uastc",
-        "bytes": 2660643,
-        "masterSha256": "222fe7c452bd5e48175cea7538e5848545d9dde7fd034538fef0c216e764f040"
+        "bytes": 2661056,
+        "masterSha256": "ab3d52e9cb089698708ffaf851af9955d32736a9b9d4682cf3878862747d596d",
+        "transportMaster": {
+          "source": "hall-lamp.exr",
+          "sha256": "222fe7c452bd5e48175cea7538e5848545d9dde7fd034538fef0c216e764f040"
+        },
+        "samplingDomainExtension": {
+          "policy": "certified-hidden-centres-nearest-visible-same-chart-owner-euclidean8-v1",
+          "originalVisibleBasePreserved": true
+        }
       }
     },
     "gate": {
@@ -456,12 +488,12 @@
         "encoding": "log2-hdr",
         "logRange": 11.000704269011246,
         "logGain": 4096,
-        "source": "court-night.exr",
-        "png": "court-night.png",
+        "source": "court-night-contact-padding.exr",
+        "png": "court-night-contact-padding.png",
         "pngMipmaps": [
-          "court-night.png",
-          "court-night-mip1.png",
-          "court-night-mip2.png"
+          "court-night-contact-padding.png",
+          "court-night-contact-padding-mip1.png",
+          "court-night-contact-padding-mip2.png"
         ],
         "mipLevels": 3,
         "gutterPixels": 8,
@@ -470,25 +502,25 @@
         "precision": {
           "surfaceTexels": 6993500,
           "luminancePercentiles": {
-            "p0": 0,
-            "p1": 0,
-            "p10": 6.3587657934505285e-09,
-            "p50": 0.11903950811773538,
+            "p0": 0.0,
+            "p1": 0.0,
+            "p10": 6.531182159790207e-09,
+            "p50": 0.11904951246976851,
             "p90": 0.12527721170037986,
-            "p99": 0.12928293914794922,
+            "p99": 0.12939092731773852,
             "p100": 0.25655824819505213
           },
           "idealLinear8bitStep": 0.00196078431372549,
           "idealLog8bitStepAtPercentile": {
             "p0": 7.410631566096308e-06,
             "p1": 7.410631566096308e-06,
-            "p10": 7.410824579735481e-06,
-            "p50": 0.003620729539346723,
+            "p10": 7.410829813252715e-06,
+            "p50": 0.0036210332109170157,
             "p90": 0.0038100684626394543,
-            "p99": 0.003931658100857605,
+            "p99": 0.003934935968028769,
             "p100": 0.007794966072683984
           },
-          "blackTexelFraction": 0.09180667762922715,
+          "blackTexelFraction": 0.0917178808893973,
           "note": "Ideal scalar 8-bit precision only; UASTC block/RDO and device transcode errors need delivery-image inspection."
         },
         "denoiseSeconds": 54.825,
@@ -500,8 +532,16 @@
         "uri": "court-night.ktx2",
         "seconds": 255.918,
         "codec": "uastc",
-        "bytes": 6180701,
-        "masterSha256": "46dacc79e2232f66fa44062d37180c4c64f58c0526751545b5739e34c77b6d79"
+        "bytes": 6182072,
+        "masterSha256": "d679282bc038914e9172149aafbc60db8b26a7bcddc6bb4378b9a7fadc236111",
+        "transportMaster": {
+          "source": "court-night.exr",
+          "sha256": "46dacc79e2232f66fa44062d37180c4c64f58c0526751545b5739e34c77b6d79"
+        },
+        "samplingDomainExtension": {
+          "policy": "certified-hidden-centres-nearest-visible-same-chart-owner-euclidean8-v1",
+          "originalVisibleBasePreserved": true
+        }
       },
       "dusk": {
         "scale": 1,
@@ -509,12 +549,12 @@
         "encoding": "log2-hdr",
         "logRange": 12.0003521774803,
         "logGain": 4096,
-        "source": "court-dusk.exr",
-        "png": "court-dusk.png",
+        "source": "court-dusk-contact-padding.exr",
+        "png": "court-dusk-contact-padding.png",
         "pngMipmaps": [
-          "court-dusk.png",
-          "court-dusk-mip1.png",
-          "court-dusk-mip2.png"
+          "court-dusk-contact-padding.png",
+          "court-dusk-contact-padding-mip1.png",
+          "court-dusk-contact-padding-mip2.png"
         ],
         "mipLevels": 3,
         "gutterPixels": 8,
@@ -523,10 +563,10 @@
         "precision": {
           "surfaceTexels": 6993500,
           "luminancePercentiles": {
-            "p0": 0,
-            "p1": 0,
-            "p10": 1.7287835925863262e-08,
-            "p50": 0.2411551268815994,
+            "p0": 0.0,
+            "p1": 0.0,
+            "p10": 1.7820306760043618e-08,
+            "p50": 0.24116125847697256,
             "p90": 0.27692187545895575,
             "p99": 0.2788346916437149,
             "p100": 0.42956791849136355
@@ -535,13 +575,13 @@
           "idealLog8bitStepAtPercentile": {
             "p0": 8.095093049294896e-06,
             "p1": 8.095093049294896e-06,
-            "p10": 8.09566627073414e-06,
-            "p50": 0.008004196485109777,
+            "p10": 8.095683926136463e-06,
+            "p50": 0.008004399793490519,
             "p90": 0.009190132491476988,
             "p99": 0.009253556696284138,
             "p100": 0.014251493835800377
           },
-          "blackTexelFraction": 0.09171144634303281,
+          "blackTexelFraction": 0.09161178236934296,
           "note": "Ideal scalar 8-bit precision only; UASTC block/RDO and device transcode errors need delivery-image inspection."
         },
         "denoiseSeconds": 50.386,
@@ -553,8 +593,16 @@
         "uri": "court-dusk.ktx2",
         "seconds": 251.968,
         "codec": "uastc",
-        "bytes": 5542161,
-        "masterSha256": "8bbf826ab7773beb49381d5d34ba1bdfc69dd07daf6a5c1b91ddc921a8c906c1"
+        "bytes": 5543497,
+        "masterSha256": "4cb5733b4a3405594e0f6bf7888b2d21e2662e7dad2b26beefa16be4fcebd0ba",
+        "transportMaster": {
+          "source": "court-dusk.exr",
+          "sha256": "8bbf826ab7773beb49381d5d34ba1bdfc69dd07daf6a5c1b91ddc921a8c906c1"
+        },
+        "samplingDomainExtension": {
+          "policy": "certified-hidden-centres-nearest-visible-same-chart-owner-euclidean8-v1",
+          "originalVisibleBasePreserved": true
+        }
       },
       "day": {
         "scale": 4,
@@ -562,12 +610,12 @@
         "encoding": "log2-hdr",
         "logRange": 14.000088052430122,
         "logGain": 4096,
-        "source": "court-day.exr",
-        "png": "court-day.png",
+        "source": "court-day-contact-padding.exr",
+        "png": "court-day-contact-padding.png",
         "pngMipmaps": [
-          "court-day.png",
-          "court-day-mip1.png",
-          "court-day-mip2.png"
+          "court-day-contact-padding.png",
+          "court-day-contact-padding-mip1.png",
+          "court-day-contact-padding-mip2.png"
         ],
         "mipLevels": 3,
         "gutterPixels": 8,
@@ -576,10 +624,10 @@
         "precision": {
           "surfaceTexels": 6993500,
           "luminancePercentiles": {
-            "p0": 0,
-            "p1": 0,
-            "p10": 5.836205091124925e-08,
-            "p50": 0.9924645190954208,
+            "p0": 0.0,
+            "p1": 0.0,
+            "p10": 6.024200374298525e-08,
+            "p50": 0.9924708027005196,
             "p90": 1.099048444914818,
             "p99": 1.1118941946029663,
             "p100": 1.7689256036520002
@@ -588,13 +636,13 @@
           "idealLog8bitStepAtPercentile": {
             "p0": 9.469911627595909e-06,
             "p1": 9.469911627595909e-06,
-            "p10": 9.47217541906667e-06,
-            "p50": 0.03850593599283736,
+            "p10": 9.472248340102107e-06,
+            "p50": 0.03850617972607573,
             "p90": 0.04264019410097508,
             "p99": 0.04313846477729899,
             "p100": 0.06862389711880024
           },
-          "blackTexelFraction": 0.09176292271394866,
+          "blackTexelFraction": 0.09166240080074355,
           "note": "Ideal scalar 8-bit precision only; UASTC block/RDO and device transcode errors need delivery-image inspection."
         },
         "denoiseSeconds": 54.431,
@@ -606,8 +654,16 @@
         "uri": "court-day.ktx2",
         "seconds": 253.936,
         "codec": "uastc",
-        "bytes": 5519580,
-        "masterSha256": "99b30cbc50c75933febd6a52b458c31f789a924a22f995b425e90249b733ae7c"
+        "bytes": 5520375,
+        "masterSha256": "4af6b45f1c846c5c4f2cba6065d2b3fea0753cd494271ed692fac29ea617ae90",
+        "transportMaster": {
+          "source": "court-day.exr",
+          "sha256": "99b30cbc50c75933febd6a52b458c31f789a924a22f995b425e90249b733ae7c"
+        },
+        "samplingDomainExtension": {
+          "policy": "certified-hidden-centres-nearest-visible-same-chart-owner-euclidean8-v1",
+          "originalVisibleBasePreserved": true
+        }
       },
       "lamp": {
         "scale": 0.015625,
@@ -615,12 +671,12 @@
         "encoding": "log2-hdr",
         "logRange": 6.022367813028454,
         "logGain": 4096,
-        "source": "court-lamp.exr",
-        "png": "court-lamp.png",
+        "source": "court-lamp-contact-padding.exr",
+        "png": "court-lamp-contact-padding.png",
         "pngMipmaps": [
-          "court-lamp.png",
-          "court-lamp-mip1.png",
-          "court-lamp-mip2.png"
+          "court-lamp-contact-padding.png",
+          "court-lamp-contact-padding-mip1.png",
+          "court-lamp-contact-padding-mip2.png"
         ],
         "mipLevels": 3,
         "gutterPixels": 8,
@@ -629,12 +685,12 @@
         "precision": {
           "surfaceTexels": 6993500,
           "luminancePercentiles": {
-            "p0": 0,
-            "p1": 0,
-            "p10": 0,
-            "p50": 7.493564965788124e-09,
-            "p90": 9.549773495791682e-06,
-            "p99": 0.00030220049973361736,
+            "p0": 0.0,
+            "p1": 0.0,
+            "p10": 0.0,
+            "p50": 7.504046876904979e-09,
+            "p90": 9.595984763173008e-06,
+            "p99": 0.0003053312984425847,
             "p100": 0.008719049067422747
           },
           "idealLinear8bitStep": 6.127450980392157e-05,
@@ -642,12 +698,12 @@
             "p0": 4.029509558354182e-06,
             "p1": 4.029509558354182e-06,
             "p10": 4.029509558354182e-06,
-            "p50": 4.029633238678432e-06,
-            "p90": 4.187127339423639e-06,
-            "p99": 9.017289868231088e-06,
+            "p50": 4.0296334116810065e-06,
+            "p90": 4.1878900504375004e-06,
+            "p99": 9.068963297522359e-06,
             "p100": 0.00014793629097557652
           },
-          "blackTexelFraction": 0.18982526631872454,
+          "blackTexelFraction": 0.1897805104740116,
           "note": "Ideal scalar 8-bit precision only; UASTC block/RDO and device transcode errors need delivery-image inspection."
         },
         "denoiseSeconds": 54.605,
@@ -659,8 +715,16 @@
         "uri": "court-lamp.ktx2",
         "seconds": 244.699,
         "codec": "uastc",
-        "bytes": 1101411,
-        "masterSha256": "aa5f141438531116183b1de98b5e1af890bf1405aa92d4f37475caff9df25ab2"
+        "bytes": 1102677,
+        "masterSha256": "90ecdf10d924fc6f28312e82922e1652338789f747739b7c0133b6c23c971ee5",
+        "transportMaster": {
+          "source": "court-lamp.exr",
+          "sha256": "aa5f141438531116183b1de98b5e1af890bf1405aa92d4f37475caff9df25ab2"
+        },
+        "samplingDomainExtension": {
+          "policy": "certified-hidden-centres-nearest-visible-same-chart-owner-euclidean8-v1",
+          "originalVisibleBasePreserved": true
+        }
       }
     }
   },
@@ -1482,37 +1546,37 @@
   "files": [
     {
       "uri": "snow-roof.glb",
-      "bytes": 13452396,
-      "sha256": "2a110e13205d4426c812806c2396a4460dd4bc551fe118ebe8db605fdefea003"
+      "bytes": 15904988,
+      "sha256": "9e3d5aa37878af0e2eca8d409b2f511916e488aa7b523dbd26c8ec8114022fdc"
     },
     {
       "uri": "hall-night.ktx2",
-      "bytes": 5653549,
-      "sha256": "1a6823d365516576ddac96198fdb8c4fe097c17ad8e7c959f10658db0ac8da1c",
+      "bytes": 5653656,
+      "sha256": "72a3ea803af5fe9e4e1a1f4de2d74aa17bddf2911aca94b5d492bed7ef02fe9f",
       "codec": "uastc",
       "mipLevels": 3,
       "transfer": "linear"
     },
     {
       "uri": "hall-dusk.ktx2",
-      "bytes": 5665246,
-      "sha256": "63a3f9a934e437b72617324fbf82a0b1d8fcd45d4199fa43f1bd1e3f8404d1a3",
+      "bytes": 5665158,
+      "sha256": "1bcf9fc7d1ba7e8618e3560717ed15f3798d52178183888eb8d0923f63d6b106",
       "codec": "uastc",
       "mipLevels": 3,
       "transfer": "linear"
     },
     {
       "uri": "hall-day.ktx2",
-      "bytes": 5755783,
-      "sha256": "468821d2ab38da5bd467fbc39173b8ba34f6b70e549f753f7470b9e0a16f48d5",
+      "bytes": 5755827,
+      "sha256": "7266546fb2ec434c9e365c307b5a1c5db8950850410bb5e7bcfe151fda4db3b9",
       "codec": "uastc",
       "mipLevels": 3,
       "transfer": "linear"
     },
     {
       "uri": "hall-lamp.ktx2",
-      "bytes": 2660643,
-      "sha256": "471af0829a7bbb9bb709303151213a3b046be9e5b0ee4ce8b1568e0d6c7ce090",
+      "bytes": 2661056,
+      "sha256": "6cad627255abf75d628cef56379d11cc498e62f2ed7ff82d77722bee30129629",
       "codec": "uastc",
       "mipLevels": 3,
       "transfer": "linear"
@@ -1551,46 +1615,58 @@
     },
     {
       "uri": "court-night.ktx2",
-      "bytes": 6180701,
-      "sha256": "a2bdd8a93af6641bdcc6a1b0562b4e30697170a18ae2244eb3412073ea55821d",
+      "bytes": 6182072,
+      "sha256": "1b7676ecae0b2cb5b1da4f43ee5ba9d4dca3ba4cf6e3b0b06082d6e1becfabe1",
       "codec": "uastc",
       "mipLevels": 3,
       "transfer": "linear"
     },
     {
       "uri": "court-dusk.ktx2",
-      "bytes": 5542161,
-      "sha256": "a59257178f2efa766df5e3d52aa29f59a0c4bb1401f742ddb6081adf3cbc73e4",
+      "bytes": 5543497,
+      "sha256": "51582548f75f419d28d369fd4c7c943f463db859295795745c219d90d22359c3",
       "codec": "uastc",
       "mipLevels": 3,
       "transfer": "linear"
     },
     {
       "uri": "court-day.ktx2",
-      "bytes": 5519580,
-      "sha256": "a04ab58e7d4e08f9a496f4051eca4e55a055d167f9dfa4675749c01197c115b9",
+      "bytes": 5520375,
+      "sha256": "db8cb556b4b04345190d6ca34b497783d742e66e6a430b530c06053cf6941633",
       "codec": "uastc",
       "mipLevels": 3,
       "transfer": "linear"
     },
     {
       "uri": "court-lamp.ktx2",
-      "bytes": 1101411,
-      "sha256": "34e0a1fff130f45dc6232e2ec9181824ea1aaef250b55d9cc7a44456787a7cc9",
+      "bytes": 1102677,
+      "sha256": "042403a98f0016dfab760333034624707ad7595a6c63a404fb9e4787b828aa9e",
       "codec": "uastc",
       "mipLevels": 3,
       "transfer": "linear"
     },
     {
-      "uri": "snow-roof.receipt.json",
-      "bytes": 20692,
-      "sha256": "3025c54649efd7ae66e146022df7e0d3d627e0ee33622d269c6be31f65c51702",
+      "uri": "contact-padding.receipt.json",
+      "bytes": 9736,
+      "sha256": "f57a7141a2e0bac2110b8e3c0e238afb6c42ded36e56349a889b61d67a5de9f1",
+      "role": "sampling-domain-proof"
+    },
+    {
+      "uri": "geometry.receipt.json",
+      "bytes": 27877,
+      "sha256": "fe195bb332e794332885f3e913d15cc0c871cfaf8b7718bc3f894f36389e3456",
       "role": "delivery-proof"
     },
     {
-      "uri": "geometry-equivalence.json",
-      "bytes": 82724,
-      "sha256": "8dd442cbdc1ccb96c33e7f1e4800304c21db4f6ed27358dc0af4b366ac075202",
+      "uri": "independent-geometry-proof.json",
+      "bytes": 995,
+      "sha256": "a6725d3763bd2c0b3d44dc4e37a7fa2feaa11ce6f86331eac87ccef6a7cb1390",
+      "role": "delivery-proof"
+    },
+    {
+      "uri": "independent-contact-padding-proof.json",
+      "bytes": 8214,
+      "sha256": "807b8ff3f9a50f12378801aad522a8a56f520759ec3ea7130919da304afb8725",
       "role": "delivery-proof"
     }
   ],
@@ -1600,7 +1676,7 @@
     "anisotropy": 1,
     "maxLod": 2
   },
-  "totalBytes": 56899741,
+  "totalBytes": 59300983,
   "compression": {
     "gltfTransform": "4.5.1",
     "ktxSoftware": "4.4.2",
@@ -1640,13 +1716,17 @@
     "lightmapCodec": "uastc",
     "lightmaps": "Basis UASTC + Zstandard, per-pass log2 HDR in linear KTX2 samples; decode logRange/logGain before lighting",
     "transformOrder": [
-      "dedup",
-      "uastc-normal-512",
-      "etc1s-screen-1024",
-      "etc1s-other-512",
-      "meshopt"
+      "existing-mobile-textures",
+      "reorder-size",
+      "quantize-nonposition-only",
+      "meshopt-filter-position-NONE",
+      "FACE-proven-hidden-export-prune",
+      "exact-attribute-record-weld",
+      "meshopt-existing-streams-no-new-quantization",
+      "certified-hidden-only-nearest-contact-padding"
     ],
     "uvVerification": {
+      "source": "Actual production F32 GLB JSON",
       "meshes": 3,
       "primitives": 42,
       "colourPrimitives": 42,
@@ -1654,32 +1734,6 @@
         "court",
         "gate",
         "hall"
-      ],
-      "roughnessClamps": [
-        {
-          "name": "Tarnished gilded edges",
-          "minimum": 0.45
-        },
-        {
-          "name": "Aged bronze",
-          "minimum": 0.48
-        },
-        {
-          "name": "Dark hall paving 1",
-          "minimum": 0.58
-        },
-        {
-          "name": "Walk-polished worn dark stone",
-          "minimum": 0.43
-        },
-        {
-          "name": "chinese_console_table",
-          "minimum": 0.36
-        },
-        {
-          "name": "chinese_screen_panels",
-          "minimum": 0.36
-        }
       ],
       "primitiveRoughness": [
         {
@@ -1893,10 +1947,38 @@
           "minimum": null
         }
       ],
+      "roughnessClamps": [
+        {
+          "name": "Tarnished gilded edges",
+          "minimum": 0.45
+        },
+        {
+          "name": "Aged bronze",
+          "minimum": 0.48
+        },
+        {
+          "name": "Dark hall paving 1",
+          "minimum": 0.58
+        },
+        {
+          "name": "Walk-polished worn dark stone",
+          "minimum": 0.43
+        },
+        {
+          "name": "chinese_console_table",
+          "minimum": 0.36
+        },
+        {
+          "name": "chinese_screen_panels",
+          "minimum": 0.36
+        }
+      ],
+      "positionComponentTypes": [
+        5126
+      ],
       "extensions": [
         "EXT_meshopt_compression",
         "KHR_materials_emissive_strength",
-        "KHR_mesh_quantization",
         "KHR_texture_basisu"
       ]
     },
@@ -1931,7 +2013,7 @@
         "references": [
           {
             "material": "Snow settled dry grains",
-            "slot": "pbrMetallicRoughness.baseColorTexture",
+            "slot": "baseColorTexture",
             "texture": 0
           }
         ],
@@ -1952,7 +2034,7 @@
         "references": [
           {
             "material": "Snow settled dry grains",
-            "slot": "pbrMetallicRoughness.metallicRoughnessTexture",
+            "slot": "metallicRoughnessTexture",
             "texture": 2
           }
         ],
@@ -1994,7 +2076,7 @@
         "references": [
           {
             "material": "Patched lime plaster",
-            "slot": "pbrMetallicRoughness.baseColorTexture",
+            "slot": "baseColorTexture",
             "texture": 3
           }
         ],
@@ -2015,7 +2097,7 @@
         "references": [
           {
             "material": "Patched lime plaster",
-            "slot": "pbrMetallicRoughness.metallicRoughnessTexture",
+            "slot": "metallicRoughnessTexture",
             "texture": 5
           }
         ],
@@ -2067,17 +2149,17 @@
         "references": [
           {
             "material": "Worn granite",
-            "slot": "pbrMetallicRoughness.baseColorTexture",
+            "slot": "baseColorTexture",
             "texture": 6
           },
           {
             "material": "Dark hall paving 1",
-            "slot": "pbrMetallicRoughness.baseColorTexture",
+            "slot": "baseColorTexture",
             "texture": 6
           },
           {
             "material": "Walk-polished worn dark stone",
-            "slot": "pbrMetallicRoughness.baseColorTexture",
+            "slot": "baseColorTexture",
             "texture": 6
           }
         ],
@@ -2098,7 +2180,7 @@
         "references": [
           {
             "material": "Worn granite",
-            "slot": "pbrMetallicRoughness.metallicRoughnessTexture",
+            "slot": "metallicRoughnessTexture",
             "texture": 8
           }
         ],
@@ -2145,12 +2227,12 @@
         "references": [
           {
             "material": "Aged red painted timber",
-            "slot": "pbrMetallicRoughness.baseColorTexture",
+            "slot": "baseColorTexture",
             "texture": 9
           },
           {
             "material": "Dark old timber",
-            "slot": "pbrMetallicRoughness.baseColorTexture",
+            "slot": "baseColorTexture",
             "texture": 9
           }
         ],
@@ -2171,12 +2253,12 @@
         "references": [
           {
             "material": "Aged red painted timber",
-            "slot": "pbrMetallicRoughness.metallicRoughnessTexture",
+            "slot": "metallicRoughnessTexture",
             "texture": 11
           },
           {
             "material": "Dark old timber",
-            "slot": "pbrMetallicRoughness.metallicRoughnessTexture",
+            "slot": "metallicRoughnessTexture",
             "texture": 11
           }
         ],
@@ -2218,7 +2300,7 @@
         "references": [
           {
             "material": "Side hall roof tiles",
-            "slot": "pbrMetallicRoughness.baseColorTexture",
+            "slot": "baseColorTexture",
             "texture": 12
           }
         ],
@@ -2239,7 +2321,7 @@
         "references": [
           {
             "material": "Side hall roof tiles",
-            "slot": "pbrMetallicRoughness.metallicRoughnessTexture",
+            "slot": "metallicRoughnessTexture",
             "texture": 14
           }
         ],
@@ -2281,7 +2363,7 @@
         "references": [
           {
             "material": "Weathered brick footings",
-            "slot": "pbrMetallicRoughness.baseColorTexture",
+            "slot": "baseColorTexture",
             "texture": 15
           }
         ],
@@ -2302,7 +2384,7 @@
         "references": [
           {
             "material": "Weathered brick footings",
-            "slot": "pbrMetallicRoughness.metallicRoughnessTexture",
+            "slot": "metallicRoughnessTexture",
             "texture": 17
           }
         ],
@@ -2344,7 +2426,7 @@
         "references": [
           {
             "material": "chinese_console_table",
-            "slot": "pbrMetallicRoughness.baseColorTexture",
+            "slot": "baseColorTexture",
             "texture": 18
           }
         ],
@@ -2365,7 +2447,7 @@
         "references": [
           {
             "material": "chinese_console_table",
-            "slot": "pbrMetallicRoughness.metallicRoughnessTexture",
+            "slot": "metallicRoughnessTexture",
             "texture": 20
           }
         ],
@@ -2407,7 +2489,7 @@
         "references": [
           {
             "material": "chinese_screen_panels",
-            "slot": "pbrMetallicRoughness.baseColorTexture",
+            "slot": "baseColorTexture",
             "texture": 21
           }
         ],
@@ -2428,7 +2510,7 @@
         "references": [
           {
             "material": "chinese_screen_panels",
-            "slot": "pbrMetallicRoughness.metallicRoughnessTexture",
+            "slot": "metallicRoughnessTexture",
             "texture": 23
           }
         ],
@@ -2448,53 +2530,575 @@
       "metallicRoughnessTexture": 412793
     },
     "geometryCounts": {
-      "vertices": 648776,
+      "vertices": 648780,
       "triangles": 466874,
-      "geometryBytes": 9803782
+      "geometryBytes": 12253468
     },
-    "geometryProfile": "proven-hidden-export-prune",
+    "geometryProfile": "source-proven-float32-position-hidden-pruned-exact-weld",
+    "positionPrecision": {
+      "componentType": 5126,
+      "normalized": false,
+      "meshoptFilter": "NONE",
+      "authoredFloat32SourcePreserved": true
+    },
     "optimization": {
-      "helper": {
-        "path": "scripts/prune-validated-baked.mjs",
-        "sha256": "85794e6fa713ca4901888abc658b0877b8a5e92f569b49f44c9b9567f4093bed"
-      },
       "receipt": {
-        "uri": "snow-roof.receipt.json",
-        "sha256": "3025c54649efd7ae66e146022df7e0d3d627e0ee33622d269c6be31f65c51702",
-        "profile": "snow-roof-final-mobile-postbatch-6e9f-v2"
+        "uri": "geometry.receipt.json",
+        "sha256": "fe195bb332e794332885f3e913d15cc0c871cfaf8b7718bc3f894f36389e3456"
       },
-      "crossProfileProof": {
-        "uri": "geometry-equivalence.json",
-        "sha256": "8dd442cbdc1ccb96c33e7f1e4800304c21db4f6ed27358dc0af4b366ac075202"
+      "profile": {
+        "path": "art/blender/proofs/snow-roof-final-float32-export-profile.json",
+        "operation": "fresh measured genuine F32 profile",
+        "sha256": "1e37058881ad253b2fbea5b15646d47570a341013140ec4c9a57dee86418f78f"
       },
-      "inputs": {
-        "proof": {
-          "path": "art/blender/proofs/snow-roof-final-hidden-tiles.json",
-          "sha256": "6649e9c080c3b152c743fcc88ad5ebf95690ff8f678742cc5dd84be79ce2e014"
+      "independentProof": {
+        "uri": "independent-geometry-proof.json",
+        "sha256": "a6725d3763bd2c0b3d44dc4e37a7fa2feaa11ce6f86331eac87ccef6a7cb1390"
+      },
+      "input": {
+        "bytes": 20229632,
+        "images": 24,
+        "imageBytes": 3537347,
+        "geometryBytes": 16585321,
+        "vertices": 956291,
+        "triangles": 650624
+      },
+      "output": {
+        "path": "art/build/snow-roof-float32-optimized/snow-roof.glb",
+        "bytes": 15904988,
+        "images": 24,
+        "imageBytes": 3537347,
+        "geometryBytes": 12253468,
+        "vertices": 648780,
+        "triangles": 466874,
+        "sha256": "9e3d5aa37878af0e2eca8d409b2f511916e488aa7b523dbd26c8ec8114022fdc"
+      },
+      "encoding": {
+        "dependencies": {
+          "@gltf-transform/core": "4.5.1",
+          "@gltf-transform/extensions": "4.5.1",
+          "@gltf-transform/functions": "4.5.1",
+          "meshoptimizer": "1.2.0"
         },
-        "sourceBlend": {
-          "path": "art/build/snow-roof-stair-banks-grain.blend",
-          "sha256": "6e9f59c93565e08a690eaafbc756967ba39e0f4d8ad0094e4520265948360af8"
+        "writerMethod": "QUANTIZE codec-only",
+        "positionComponentType": 5126,
+        "positionNormalized": false,
+        "positionFilter": "NONE",
+        "quantizationTransformsRun": 0,
+        "normalFilterPassesAdded": 0,
+        "imageConversions": 0
+      },
+      "authoredPositionProof": [
+        {
+          "region": "court",
+          "primitive": 0,
+          "positionTriangleMultisetSha256": "7695dafc015965264976a0d51cfbdb63e5fb7739e0b3aaa69cbc44ff2785e474"
         },
-        "preparedBlend": {
-          "path": "art/build/snow-roof-final/snow-roof-prepared.blend",
-          "sha256": "6ed42644cd3a6c1026b079740957280df0274e9e9a0eaf5f8d3da514725079c1"
+        {
+          "region": "court",
+          "primitive": 1,
+          "positionTriangleMultisetSha256": "8c52e11f87cc62ac1cf51f1e58c7b37ece6f0ede58f91a9ec5a5a05a23438b14"
         },
-        "raw": {
-          "path": "art/build/snow-roof-final/snow-roof.raw.glb",
-          "sha256": "0deec9fd71d4c49e666e5b091f15af3067efbcdb7e3c350bcb85a2bf7f980dea"
+        {
+          "region": "court",
+          "primitive": 2,
+          "positionTriangleMultisetSha256": "e0a878c2f771de95aa05da151c01a2db16e921a5c4c2706f1b36bc110441e86a"
         },
-        "input": {
-          "path": "art/build/snow-roof-final-mobile/snow-roof.glb",
-          "sha256": "18a924b6840598e284197c5a07ff9f3f731ebe220aad720bdbf149a786784237"
+        {
+          "region": "court",
+          "primitive": 3,
+          "positionTriangleMultisetSha256": "a90a211f5f3cbb2c0349f0970884df0ed9ac5340ab59275c47b75b1a0368a21c"
+        },
+        {
+          "region": "court",
+          "primitive": 4,
+          "positionTriangleMultisetSha256": "7e5002ae009e73365ebef54ed8f6ca1f87e498f06ab7ac15f92c26ffeaca5d4a"
+        },
+        {
+          "region": "court",
+          "primitive": 5,
+          "positionTriangleMultisetSha256": "5804ed43894644a96e076323706d3c6df226b0eebccab72dafc92c23793aa0f5"
+        },
+        {
+          "region": "gate",
+          "primitive": 0,
+          "positionTriangleMultisetSha256": "0c5259c1a7b34d429aa08ac470a2c771bad8c6bf1439966299245e5e279694c4"
+        },
+        {
+          "region": "gate",
+          "primitive": 1,
+          "positionTriangleMultisetSha256": "ab7de148ed8c537bc2f65fa3d567a2a0c48c099b665860bcb3f3079e7e3ab2b5"
+        },
+        {
+          "region": "gate",
+          "primitive": 2,
+          "positionTriangleMultisetSha256": "3b496e2518e8fb4e724b7cb42c9a4df3dabf0b6ac110bf898999bf1206923fbd"
+        },
+        {
+          "region": "gate",
+          "primitive": 3,
+          "positionTriangleMultisetSha256": "bc40cb539efb6b8c2226ce987ad49bec429a58e7886a14cd6d81e8d3679fd434"
+        },
+        {
+          "region": "gate",
+          "primitive": 4,
+          "positionTriangleMultisetSha256": "81815f019a1fbc6a25c92b99fdca24752ee133d1c55b70adf39ce47dfabba136"
+        },
+        {
+          "region": "gate",
+          "primitive": 5,
+          "positionTriangleMultisetSha256": "661dd58cdf2fc1be4781fca0b76e4ea54b55b40c6787b5bf3d9034e92c57cdf7"
+        },
+        {
+          "region": "gate",
+          "primitive": 6,
+          "positionTriangleMultisetSha256": "fd202a42451df5fb40324219e6ac89268fc67db9b73bf67b8591e27686362b19"
+        },
+        {
+          "region": "gate",
+          "primitive": 7,
+          "positionTriangleMultisetSha256": "36c5d1c168f59fb4389efcfacfca6d1e8a8a85d3c11296645922af61cfc0d6e2"
+        },
+        {
+          "region": "gate",
+          "primitive": 8,
+          "positionTriangleMultisetSha256": "ba2c06d99fa367445f2ce94a699d2fb735d83503c042a789df347706e6367b67"
+        },
+        {
+          "region": "gate",
+          "primitive": 9,
+          "positionTriangleMultisetSha256": "7a452ee21704513ba87efbf3cb1fec2c8fe2ab9c0fe6a8e8f2d1e39779857f4d"
+        },
+        {
+          "region": "hall",
+          "primitive": 0,
+          "positionTriangleMultisetSha256": "56b68f1a8fabeddc0cd28e118f8dbc133a31d0e0cfda52d806a84e770cd2c83c"
+        },
+        {
+          "region": "hall",
+          "primitive": 1,
+          "positionTriangleMultisetSha256": "e4adb4a290cb4e8649ac8e691d4a247de57f468f9db238b052d0bcb202d157cb"
+        },
+        {
+          "region": "hall",
+          "primitive": 2,
+          "positionTriangleMultisetSha256": "2aedcd58588d7280ea84a0c236aa3bfa0505b94ab50b7cbe415e649759324e65"
+        },
+        {
+          "region": "hall",
+          "primitive": 3,
+          "positionTriangleMultisetSha256": "e101719a9a4cb91453131574eb6146f8a919c69c78acd747038cca280d1fb4d4"
+        },
+        {
+          "region": "hall",
+          "primitive": 4,
+          "positionTriangleMultisetSha256": "1ea1cc120e70a72c8366f2c4603f4b7bb25578287f6190a79f9548831aebcc9d"
+        },
+        {
+          "region": "hall",
+          "primitive": 5,
+          "positionTriangleMultisetSha256": "a240c73904c1c783781670ca7f5ade092a1208471706cc06e8b69cfe8b0733ef"
+        },
+        {
+          "region": "hall",
+          "primitive": 6,
+          "positionTriangleMultisetSha256": "3092168e109759adfbce5ddfa4e448ba61fe4686c23dac179a14e58476696fbf"
+        },
+        {
+          "region": "hall",
+          "primitive": 7,
+          "positionTriangleMultisetSha256": "b635d38964db5675cc5321879b747a9437c41f8a63295ed96ab53b31b983e25c"
+        },
+        {
+          "region": "hall",
+          "primitive": 8,
+          "positionTriangleMultisetSha256": "caa0228962516a26b7adcd81b8ec0c200c989f47239ca37a661e74191fd8de69"
+        },
+        {
+          "region": "hall",
+          "primitive": 9,
+          "positionTriangleMultisetSha256": "d57cbf898ae951195bdf0eceb09e372edac3104d6b0859b4ea1725fb690e849a"
+        },
+        {
+          "region": "hall",
+          "primitive": 10,
+          "positionTriangleMultisetSha256": "baa9c17b063918a097b8c18f7e0631b53e911132802c32ed70c7a2f739791443"
+        },
+        {
+          "region": "hall",
+          "primitive": 11,
+          "positionTriangleMultisetSha256": "686122014b2353f0329bdfe577cf1c20b9363ce9421f3dbe0504c421b5d15504"
+        },
+        {
+          "region": "hall",
+          "primitive": 12,
+          "positionTriangleMultisetSha256": "9645e4279f03d1812ad22550299b394e4ef185b2d1352aadaa36209581e90893"
+        },
+        {
+          "region": "hall",
+          "primitive": 13,
+          "positionTriangleMultisetSha256": "61f8865e2fa43bb1e7faf847de6992ef291408f100902cad58d3a9f8d20fd924"
+        },
+        {
+          "region": "hall",
+          "primitive": 14,
+          "positionTriangleMultisetSha256": "07b1615fa516258e26d9c10736a5798cd4af39537947b5ae9228eff7daf3115a"
+        },
+        {
+          "region": "hall",
+          "primitive": 15,
+          "positionTriangleMultisetSha256": "242a7636fcead8e757996a45bd9681cd34cffa4868637f2010d176b142b9649f"
+        },
+        {
+          "region": "hall",
+          "primitive": 16,
+          "positionTriangleMultisetSha256": "44dc0ae617891fccd662e256cbb993312190770ad52f1ef5490b6fd3ee41beb5"
+        },
+        {
+          "region": "hall",
+          "primitive": 17,
+          "positionTriangleMultisetSha256": "4ae369610f34b0fae3abd7ec5d5cfb60dbee199017de0a99210fde43a611f144"
+        },
+        {
+          "region": "hall",
+          "primitive": 18,
+          "positionTriangleMultisetSha256": "e8a17b50a7d15de73b9a1425a8228c68c383bfb34fd60537af31e149760efe22"
+        },
+        {
+          "region": "hall",
+          "primitive": 19,
+          "positionTriangleMultisetSha256": "19000b6443f6fc87955f27551371514e50a72c6188548b8c7ad882a92662848b"
+        },
+        {
+          "region": "hall",
+          "primitive": 20,
+          "positionTriangleMultisetSha256": "0f15c6329ac3d9948c86f332c7193b201daed7446168dcc8cc334927d1a4c253"
+        },
+        {
+          "region": "hall",
+          "primitive": 21,
+          "positionTriangleMultisetSha256": "035ac5e60ff0827a17632e47c842a96c85d6863f49499ef6d3d2ecb0d234b6a0"
+        },
+        {
+          "region": "hall",
+          "primitive": 22,
+          "positionTriangleMultisetSha256": "c12b627116d059fc81f7aa59f2dfb9591600d6fef7e64597e8593718beababce"
+        },
+        {
+          "region": "hall",
+          "primitive": 23,
+          "positionTriangleMultisetSha256": "3047e0313bb9ba605ae626076b26f075e01357af6018d993c504be30ec222f72"
+        },
+        {
+          "region": "hall",
+          "primitive": 24,
+          "positionTriangleMultisetSha256": "351ec6986798f0e99fed6d33f826f5b24d90ed7a2240848d8a4727803b517052"
+        },
+        {
+          "region": "hall",
+          "primitive": 25,
+          "positionTriangleMultisetSha256": "262a6e2fb82b9fbfd56bb3f9098223aaff31c0ae317ce8e9ecfe4a0c03bdd851"
         }
+      ],
+      "sourceFaceSelection": "Exact prepared FACE triangle-position multiset + original region + audited roof material + reservedUV2 marker. Marker alone never authorizes removal.",
+      "invariants": {
+        "actualRawAuthoredWorldPositionsExact": true,
+        "fullF32InputPositionMultisetsAndCyclicWindingReverified": true,
+        "retainedAllAttributeTriangleBytesAndWindingExact": true,
+        "nodeTransformsExtrasHierarchyExact": true,
+        "sourceSceneProofExact": true,
+        "materialDefinitionsExact": true,
+        "embeddedImagesByteExact": true,
+        "allInputsByteUnchanged": true
+      }
+    },
+    "contactPadding": {
+      "receipt": {
+        "uri": "contact-padding.receipt.json",
+        "sha256": "f57a7141a2e0bac2110b8e3c0e238afb6c42ded36e56349a889b61d67a5de9f1"
       },
-      "removedTriangles": 183750,
-      "removedVertices": 307515,
-      "retainedTriangleAttributesBitExact": true,
-      "windingPreserved": true,
-      "imagePayloadBytesUnchanged": true,
-      "fullSourceBakeOccludersRetained": true
+      "independentProof": {
+        "uri": "independent-contact-padding-proof.json",
+        "sha256": "807b8ff3f9a50f12378801aad522a8a56f520759ec3ea7130919da304afb8725"
+      },
+      "policy": "certified-hidden-centres-nearest-visible-same-chart-owner-euclidean8-v1",
+      "correctedPasses": [
+        "court/day",
+        "court/dusk",
+        "court/lamp",
+        "court/night",
+        "hall/day",
+        "hall/dusk",
+        "hall/lamp",
+        "hall/night"
+      ],
+      "gate4ByteIdentical": true,
+      "allVisibleAndUncertifiedLinearRGBAFloatBitsExact": true,
+      "originalTransportMastersUnmodified": true,
+      "lossyDecodedSamplesNotClaimedBitExact": true,
+      "geometryApplicability": "Padding certified on exact F32 input; production geometry preserves every retained visible position/UV/color/material attribute and original source bake occluders are retained in the immutable bake source."
     }
+  },
+  "transportProvenance": {
+    "sourceBlendSha256": "6e9f59c93565e08a690eaafbc756967ba39e0f4d8ad0094e4520265948360af8",
+    "sourceGeometryFingerprint": "c914ac7f193ec738d0d285a03bf5632eaf0f3b1277b7a798078559a6e7785c1b",
+    "sourceBakeFingerprint": "bd24db11cb82a6128fbd04160f73abac416dd60b392c8276a063c8b4df3695a0",
+    "samples": 64,
+    "engine": "Cycles",
+    "sourceNightLighting": {
+      "world": {
+        "name": "Cold winter sky.001",
+        "colour": [
+          0.05000000074505806,
+          0.05000000074505806,
+          0.05000000074505806
+        ],
+        "backgrounds": [
+          {
+            "colour": [
+              0.1899999976158142,
+              0.2800000011920929,
+              0.4699999988079071,
+              1
+            ],
+            "strength": 0.15000000596046448,
+            "linkedColour": false
+          }
+        ],
+        "environmentTextures": []
+      },
+      "lights": [
+        {
+          "name": "Other altar lamp warm spill",
+          "role": "fixture",
+          "type": "POINT",
+          "energy": 8,
+          "linearColour": [
+            1,
+            0.6784313917160034,
+            0.4000000059604645
+          ],
+          "positionBlender": [
+            -1.4500000476837158,
+            4.75,
+            1.8200000524520874
+          ],
+          "rotationBlender": [
+            0,
+            0,
+            0
+          ],
+          "includedInNight": true
+        },
+        {
+          "name": "Other altar lamp warm spill.001",
+          "role": "fixture",
+          "type": "POINT",
+          "energy": 8,
+          "linearColour": [
+            1,
+            0.6784313917160034,
+            0.4000000059604645
+          ],
+          "positionBlender": [
+            -0.949999988079071,
+            4.75,
+            1.8200000524520874
+          ],
+          "rotationBlender": [
+            0,
+            0,
+            0
+          ],
+          "includedInNight": true
+        },
+        {
+          "name": "Other altar lamp warm spill.002",
+          "role": "fixture",
+          "type": "POINT",
+          "energy": 8,
+          "linearColour": [
+            1,
+            0.6784313917160034,
+            0.4000000059604645
+          ],
+          "positionBlender": [
+            0.949999988079071,
+            4.75,
+            1.8200000524520874
+          ],
+          "rotationBlender": [
+            0,
+            0,
+            0
+          ],
+          "includedInNight": true
+        },
+        {
+          "name": "Other altar lamp warm spill.003",
+          "role": "fixture",
+          "type": "POINT",
+          "energy": 8,
+          "linearColour": [
+            1,
+            0.6784313917160034,
+            0.4000000059604645
+          ],
+          "positionBlender": [
+            1.4500000476837158,
+            4.75,
+            1.8200000524520874
+          ],
+          "rotationBlender": [
+            0,
+            0,
+            0
+          ],
+          "includedInNight": true
+        },
+        {
+          "name": "Visitor flame bake basis",
+          "role": "lamp",
+          "type": "POINT",
+          "energy": 45,
+          "linearColour": [
+            1,
+            0.7411764860153198,
+            0.47058823704719543
+          ],
+          "positionBlender": [
+            0,
+            0.5,
+            2.990000009536743
+          ],
+          "rotationBlender": [
+            0,
+            0,
+            0
+          ],
+          "includedInNight": false
+        },
+        {
+          "name": "Cool court light entering doorway",
+          "role": "ambient",
+          "type": "POINT",
+          "energy": 65,
+          "linearColour": [
+            0.7058823704719543,
+            0.8039215803146362,
+            0.9647058844566345
+          ],
+          "positionBlender": [
+            0,
+            -4.400000095367432,
+            2.200000047683716
+          ],
+          "rotationBlender": [
+            0,
+            0,
+            0
+          ],
+          "includedInNight": true
+        },
+        {
+          "name": "Gate shelf lamp warm spill",
+          "role": "fixture",
+          "type": "POINT",
+          "energy": 8,
+          "linearColour": [
+            1,
+            0.6784313917160034,
+            0.4000000059604645
+          ],
+          "positionBlender": [
+            -2,
+            -19.25,
+            1.7899999618530273
+          ],
+          "rotationBlender": [
+            0,
+            0,
+            0
+          ],
+          "includedInNight": true
+        },
+        {
+          "name": "Gate shelf lamp warm spill.001",
+          "role": "fixture",
+          "type": "POINT",
+          "energy": 8,
+          "linearColour": [
+            1,
+            0.6784313917160034,
+            0.4000000059604645
+          ],
+          "positionBlender": [
+            2,
+            -19.25,
+            1.7899999618530273
+          ],
+          "rotationBlender": [
+            0,
+            0,
+            0
+          ],
+          "includedInNight": true
+        },
+        {
+          "name": "Moon basis",
+          "role": "ambient",
+          "type": "SUN",
+          "energy": 0.44999998807907104,
+          "linearColour": [
+            0.6000000238418579,
+            0.7200000286102295,
+            1
+          ],
+          "positionBlender": [
+            0,
+            0,
+            0
+          ],
+          "rotationBlender": [
+            0.3839724361896515,
+            -0.48869219422340393,
+            -0.6108652353286743
+          ],
+          "includedInNight": true
+        }
+      ],
+      "sourceEmissionStrengths": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        3,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "meaning": "Authored accepted source lighting, restored exactly for night except visitor lamp omitted. Positions/rotations use Blender coordinates; source socket colours are linear."
+    },
+    "meaning": "Original64-sample Metal/Cycles+MetalOIDN transport, unchanged. Sampling-domain padding is a separately bound image derivative."
   }
 }

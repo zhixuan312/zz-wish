@@ -1,0 +1,592 @@
+{
+  "bundle": "art/build/snow-roof-final-contact-delivery",
+  "manifestSha256": "4f51484ba21e9764232b14c641ba3eb38c3dc393237418d323b391c49d70ce1c",
+  "declaredFileCount": 17,
+  "declaredAssetBytes": 59300983,
+  "manifestBytes": 97367,
+  "scene": {
+    "uri": "snow-roof.glb",
+    "bytes": 15904988,
+    "sha256": "9e3d5aa37878af0e2eca8d409b2f511916e488aa7b523dbd26c8ec8114022fdc"
+  },
+  "geometry": {
+    "vertices": 648780,
+    "triangles": 466874,
+    "geometryBytes": 12253468
+  },
+  "positionPrecision": {
+    "componentType": 5126,
+    "normalized": false,
+    "meshoptFilter": "NONE",
+    "authoredFloat32SourcePreserved": true
+  },
+  "maps": {
+    "hall/night": {
+      "uri": "hall-night.ktx2",
+      "bytes": 5653656,
+      "masterSha256": "bfc9e1567351478267c065f7208407fa17d73774f1cd96ea49764d9105b5e9b6",
+      "scale": 32,
+      "logRange": 17.000011006847668,
+      "logGain": 4096,
+      "mipLevels": 3,
+      "gutterPixels": 8,
+      "anisotropy": 1,
+      "samples": 64,
+      "bakeDevice": "METAL",
+      "denoiseDevice": "METAL"
+    },
+    "hall/dusk": {
+      "uri": "hall-dusk.ktx2",
+      "bytes": 5665158,
+      "masterSha256": "ccbe4c2f2cf99ccd2880e3f4f38d8480d5c3e23eca8fd929602687486f876021",
+      "scale": 32,
+      "logRange": 17.000011006847668,
+      "logGain": 4096,
+      "mipLevels": 3,
+      "gutterPixels": 8,
+      "anisotropy": 1,
+      "samples": 64,
+      "bakeDevice": "METAL",
+      "denoiseDevice": "METAL"
+    },
+    "hall/day": {
+      "uri": "hall-day.ktx2",
+      "bytes": 5755827,
+      "masterSha256": "bde4bcaaf11808228a3e6fc360f56e007c4feea1c9babef6636bf1ef89ca27d8",
+      "scale": 32,
+      "logRange": 17.000011006847668,
+      "logGain": 4096,
+      "mipLevels": 3,
+      "gutterPixels": 8,
+      "anisotropy": 1,
+      "samples": 64,
+      "bakeDevice": "METAL",
+      "denoiseDevice": "METAL"
+    },
+    "hall/lamp": {
+      "uri": "hall-lamp.ktx2",
+      "bytes": 2661056,
+      "masterSha256": "ab3d52e9cb089698708ffaf851af9955d32736a9b9d4682cf3878862747d596d",
+      "scale": 32,
+      "logRange": 17.000011006847668,
+      "logGain": 4096,
+      "mipLevels": 3,
+      "gutterPixels": 8,
+      "anisotropy": 1,
+      "samples": 64,
+      "bakeDevice": "METAL",
+      "denoiseDevice": "METAL"
+    },
+    "gate/night": {
+      "uri": "gate-night.ktx2",
+      "bytes": 1508240,
+      "masterSha256": "0f0bc225af8817d2568c9b23506ce407e5eb6d3278c5956bea245ba8d0c8c96d",
+      "scale": 32,
+      "logRange": 17.000011006847668,
+      "logGain": 4096,
+      "mipLevels": 3,
+      "gutterPixels": 8,
+      "anisotropy": 1,
+      "samples": 64,
+      "bakeDevice": "METAL",
+      "denoiseDevice": "METAL"
+    },
+    "gate/dusk": {
+      "uri": "gate-dusk.ktx2",
+      "bytes": 1535660,
+      "masterSha256": "c13c5a3deb213903b7316b2a32eb97de031c71e8334f378bb4176856f003d33a",
+      "scale": 32,
+      "logRange": 17.000011006847668,
+      "logGain": 4096,
+      "mipLevels": 3,
+      "gutterPixels": 8,
+      "anisotropy": 1,
+      "samples": 64,
+      "bakeDevice": "METAL",
+      "denoiseDevice": "METAL"
+    },
+    "gate/day": {
+      "uri": "gate-day.ktx2",
+      "bytes": 1575585,
+      "masterSha256": "f2098adff8741b42315db54305c4a945372104954a8ee0b58b3fa2efa3362cc4",
+      "scale": 32,
+      "logRange": 17.000011006847668,
+      "logGain": 4096,
+      "mipLevels": 3,
+      "gutterPixels": 8,
+      "anisotropy": 1,
+      "samples": 64,
+      "bakeDevice": "METAL",
+      "denoiseDevice": "METAL"
+    },
+    "gate/lamp": {
+      "uri": "gate-lamp.ktx2",
+      "bytes": 645370,
+      "masterSha256": "1edf3917eaa81610641ef653d4a5c273cce5c8aafc3cb98d563372b876cfe6b9",
+      "scale": 0.0078125,
+      "logRange": 5.044394119358453,
+      "logGain": 4096,
+      "mipLevels": 3,
+      "gutterPixels": 8,
+      "anisotropy": 1,
+      "samples": 64,
+      "bakeDevice": "METAL",
+      "denoiseDevice": "METAL"
+    },
+    "court/night": {
+      "uri": "court-night.ktx2",
+      "bytes": 6182072,
+      "masterSha256": "d679282bc038914e9172149aafbc60db8b26a7bcddc6bb4378b9a7fadc236111",
+      "scale": 0.5,
+      "logRange": 11.000704269011246,
+      "logGain": 4096,
+      "mipLevels": 3,
+      "gutterPixels": 8,
+      "anisotropy": 1,
+      "samples": 64,
+      "bakeDevice": "METAL",
+      "denoiseDevice": "METAL"
+    },
+    "court/dusk": {
+      "uri": "court-dusk.ktx2",
+      "bytes": 5543497,
+      "masterSha256": "4cb5733b4a3405594e0f6bf7888b2d21e2662e7dad2b26beefa16be4fcebd0ba",
+      "scale": 1,
+      "logRange": 12.0003521774803,
+      "logGain": 4096,
+      "mipLevels": 3,
+      "gutterPixels": 8,
+      "anisotropy": 1,
+      "samples": 64,
+      "bakeDevice": "METAL",
+      "denoiseDevice": "METAL"
+    },
+    "court/day": {
+      "uri": "court-day.ktx2",
+      "bytes": 5520375,
+      "masterSha256": "4af6b45f1c846c5c4f2cba6065d2b3fea0753cd494271ed692fac29ea617ae90",
+      "scale": 4,
+      "logRange": 14.000088052430122,
+      "logGain": 4096,
+      "mipLevels": 3,
+      "gutterPixels": 8,
+      "anisotropy": 1,
+      "samples": 64,
+      "bakeDevice": "METAL",
+      "denoiseDevice": "METAL"
+    },
+    "court/lamp": {
+      "uri": "court-lamp.ktx2",
+      "bytes": 1102677,
+      "masterSha256": "90ecdf10d924fc6f28312e82922e1652338789f747739b7c0133b6c23c971ee5",
+      "scale": 0.015625,
+      "logRange": 6.022367813028454,
+      "logGain": 4096,
+      "mipLevels": 3,
+      "gutterPixels": 8,
+      "anisotropy": 1,
+      "samples": 64,
+      "bakeDevice": "METAL",
+      "denoiseDevice": "METAL"
+    }
+  },
+  "files": [
+    {
+      "uri": "snow-roof.glb",
+      "bytes": 15904988,
+      "sha256": "9e3d5aa37878af0e2eca8d409b2f511916e488aa7b523dbd26c8ec8114022fdc"
+    },
+    {
+      "uri": "hall-night.ktx2",
+      "bytes": 5653656,
+      "sha256": "72a3ea803af5fe9e4e1a1f4de2d74aa17bddf2911aca94b5d492bed7ef02fe9f",
+      "codec": "uastc",
+      "mipLevels": 3,
+      "transfer": "linear"
+    },
+    {
+      "uri": "hall-dusk.ktx2",
+      "bytes": 5665158,
+      "sha256": "1bcf9fc7d1ba7e8618e3560717ed15f3798d52178183888eb8d0923f63d6b106",
+      "codec": "uastc",
+      "mipLevels": 3,
+      "transfer": "linear"
+    },
+    {
+      "uri": "hall-day.ktx2",
+      "bytes": 5755827,
+      "sha256": "7266546fb2ec434c9e365c307b5a1c5db8950850410bb5e7bcfe151fda4db3b9",
+      "codec": "uastc",
+      "mipLevels": 3,
+      "transfer": "linear"
+    },
+    {
+      "uri": "hall-lamp.ktx2",
+      "bytes": 2661056,
+      "sha256": "6cad627255abf75d628cef56379d11cc498e62f2ed7ff82d77722bee30129629",
+      "codec": "uastc",
+      "mipLevels": 3,
+      "transfer": "linear"
+    },
+    {
+      "uri": "gate-night.ktx2",
+      "bytes": 1508240,
+      "sha256": "c08e78ac54ecf37262c9cb46141f7435779bb7fb08320ed4756885256251f1e6",
+      "codec": "uastc",
+      "mipLevels": 3,
+      "transfer": "linear"
+    },
+    {
+      "uri": "gate-dusk.ktx2",
+      "bytes": 1535660,
+      "sha256": "07959525291bb978ce7696174d71cf1c772730f8c234e6ff69c8468c748400ba",
+      "codec": "uastc",
+      "mipLevels": 3,
+      "transfer": "linear"
+    },
+    {
+      "uri": "gate-day.ktx2",
+      "bytes": 1575585,
+      "sha256": "1d1e7ece7433761ee7cc912476b65979d8dde28a159209a5292f5d350c509245",
+      "codec": "uastc",
+      "mipLevels": 3,
+      "transfer": "linear"
+    },
+    {
+      "uri": "gate-lamp.ktx2",
+      "bytes": 645370,
+      "sha256": "caa277045f1e6212107a71af75bfc0999c9467ee474ea9af85b8e3260e65cad5",
+      "codec": "uastc",
+      "mipLevels": 3,
+      "transfer": "linear"
+    },
+    {
+      "uri": "court-night.ktx2",
+      "bytes": 6182072,
+      "sha256": "1b7676ecae0b2cb5b1da4f43ee5ba9d4dca3ba4cf6e3b0b06082d6e1becfabe1",
+      "codec": "uastc",
+      "mipLevels": 3,
+      "transfer": "linear"
+    },
+    {
+      "uri": "court-dusk.ktx2",
+      "bytes": 5543497,
+      "sha256": "51582548f75f419d28d369fd4c7c943f463db859295795745c219d90d22359c3",
+      "codec": "uastc",
+      "mipLevels": 3,
+      "transfer": "linear"
+    },
+    {
+      "uri": "court-day.ktx2",
+      "bytes": 5520375,
+      "sha256": "db8cb556b4b04345190d6ca34b497783d742e66e6a430b530c06053cf6941633",
+      "codec": "uastc",
+      "mipLevels": 3,
+      "transfer": "linear"
+    },
+    {
+      "uri": "court-lamp.ktx2",
+      "bytes": 1102677,
+      "sha256": "042403a98f0016dfab760333034624707ad7595a6c63a404fb9e4787b828aa9e",
+      "codec": "uastc",
+      "mipLevels": 3,
+      "transfer": "linear"
+    },
+    {
+      "uri": "contact-padding.receipt.json",
+      "bytes": 9736,
+      "sha256": "f57a7141a2e0bac2110b8e3c0e238afb6c42ded36e56349a889b61d67a5de9f1",
+      "role": "sampling-domain-proof"
+    },
+    {
+      "uri": "geometry.receipt.json",
+      "bytes": 27877,
+      "sha256": "fe195bb332e794332885f3e913d15cc0c871cfaf8b7718bc3f894f36389e3456",
+      "role": "delivery-proof"
+    },
+    {
+      "uri": "independent-geometry-proof.json",
+      "bytes": 995,
+      "sha256": "a6725d3763bd2c0b3d44dc4e37a7fa2feaa11ce6f86331eac87ccef6a7cb1390",
+      "role": "delivery-proof"
+    },
+    {
+      "uri": "independent-contact-padding-proof.json",
+      "bytes": 8214,
+      "sha256": "807b8ff3f9a50f12378801aad522a8a56f520759ec3ea7130919da304afb8725",
+      "role": "delivery-proof"
+    }
+  ],
+  "transportProvenance": {
+    "sourceBlendSha256": "6e9f59c93565e08a690eaafbc756967ba39e0f4d8ad0094e4520265948360af8",
+    "sourceGeometryFingerprint": "c914ac7f193ec738d0d285a03bf5632eaf0f3b1277b7a798078559a6e7785c1b",
+    "sourceBakeFingerprint": "bd24db11cb82a6128fbd04160f73abac416dd60b392c8276a063c8b4df3695a0",
+    "samples": 64,
+    "engine": "Cycles",
+    "sourceNightLighting": {
+      "world": {
+        "name": "Cold winter sky.001",
+        "colour": [
+          0.05000000074505806,
+          0.05000000074505806,
+          0.05000000074505806
+        ],
+        "backgrounds": [
+          {
+            "colour": [
+              0.1899999976158142,
+              0.2800000011920929,
+              0.4699999988079071,
+              1
+            ],
+            "strength": 0.15000000596046448,
+            "linkedColour": false
+          }
+        ],
+        "environmentTextures": []
+      },
+      "lights": [
+        {
+          "name": "Other altar lamp warm spill",
+          "role": "fixture",
+          "type": "POINT",
+          "energy": 8,
+          "linearColour": [
+            1,
+            0.6784313917160034,
+            0.4000000059604645
+          ],
+          "positionBlender": [
+            -1.4500000476837158,
+            4.75,
+            1.8200000524520874
+          ],
+          "rotationBlender": [
+            0,
+            0,
+            0
+          ],
+          "includedInNight": true
+        },
+        {
+          "name": "Other altar lamp warm spill.001",
+          "role": "fixture",
+          "type": "POINT",
+          "energy": 8,
+          "linearColour": [
+            1,
+            0.6784313917160034,
+            0.4000000059604645
+          ],
+          "positionBlender": [
+            -0.949999988079071,
+            4.75,
+            1.8200000524520874
+          ],
+          "rotationBlender": [
+            0,
+            0,
+            0
+          ],
+          "includedInNight": true
+        },
+        {
+          "name": "Other altar lamp warm spill.002",
+          "role": "fixture",
+          "type": "POINT",
+          "energy": 8,
+          "linearColour": [
+            1,
+            0.6784313917160034,
+            0.4000000059604645
+          ],
+          "positionBlender": [
+            0.949999988079071,
+            4.75,
+            1.8200000524520874
+          ],
+          "rotationBlender": [
+            0,
+            0,
+            0
+          ],
+          "includedInNight": true
+        },
+        {
+          "name": "Other altar lamp warm spill.003",
+          "role": "fixture",
+          "type": "POINT",
+          "energy": 8,
+          "linearColour": [
+            1,
+            0.6784313917160034,
+            0.4000000059604645
+          ],
+          "positionBlender": [
+            1.4500000476837158,
+            4.75,
+            1.8200000524520874
+          ],
+          "rotationBlender": [
+            0,
+            0,
+            0
+          ],
+          "includedInNight": true
+        },
+        {
+          "name": "Visitor flame bake basis",
+          "role": "lamp",
+          "type": "POINT",
+          "energy": 45,
+          "linearColour": [
+            1,
+            0.7411764860153198,
+            0.47058823704719543
+          ],
+          "positionBlender": [
+            0,
+            0.5,
+            2.990000009536743
+          ],
+          "rotationBlender": [
+            0,
+            0,
+            0
+          ],
+          "includedInNight": false
+        },
+        {
+          "name": "Cool court light entering doorway",
+          "role": "ambient",
+          "type": "POINT",
+          "energy": 65,
+          "linearColour": [
+            0.7058823704719543,
+            0.8039215803146362,
+            0.9647058844566345
+          ],
+          "positionBlender": [
+            0,
+            -4.400000095367432,
+            2.200000047683716
+          ],
+          "rotationBlender": [
+            0,
+            0,
+            0
+          ],
+          "includedInNight": true
+        },
+        {
+          "name": "Gate shelf lamp warm spill",
+          "role": "fixture",
+          "type": "POINT",
+          "energy": 8,
+          "linearColour": [
+            1,
+            0.6784313917160034,
+            0.4000000059604645
+          ],
+          "positionBlender": [
+            -2,
+            -19.25,
+            1.7899999618530273
+          ],
+          "rotationBlender": [
+            0,
+            0,
+            0
+          ],
+          "includedInNight": true
+        },
+        {
+          "name": "Gate shelf lamp warm spill.001",
+          "role": "fixture",
+          "type": "POINT",
+          "energy": 8,
+          "linearColour": [
+            1,
+            0.6784313917160034,
+            0.4000000059604645
+          ],
+          "positionBlender": [
+            2,
+            -19.25,
+            1.7899999618530273
+          ],
+          "rotationBlender": [
+            0,
+            0,
+            0
+          ],
+          "includedInNight": true
+        },
+        {
+          "name": "Moon basis",
+          "role": "ambient",
+          "type": "SUN",
+          "energy": 0.44999998807907104,
+          "linearColour": [
+            0.6000000238418579,
+            0.7200000286102295,
+            1
+          ],
+          "positionBlender": [
+            0,
+            0,
+            0
+          ],
+          "rotationBlender": [
+            0.3839724361896515,
+            -0.48869219422340393,
+            -0.6108652353286743
+          ],
+          "includedInNight": true
+        }
+      ],
+      "sourceEmissionStrengths": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        3,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "meaning": "Authored accepted source lighting, restored exactly for night except visitor lamp omitted. Positions/rotations use Blender coordinates; source socket colours are linear."
+    },
+    "meaning": "Original64-sample Metal/Cycles+MetalOIDN transport, unchanged. Sampling-domain padding is a separately bound image derivative."
+  },
+  "validation": {
+    "independent8MapProofSha256": "807b8ff3f9a50f12378801aad522a8a56f520759ec3ea7130919da304afb8725",
+    "independentGeometryProofSha256": "a6725d3763bd2c0b3d44dc4e37a7fa2feaa11ce6f86331eac87ccef6a7cb1390",
+    "allOriginalRawAndDenoisedMastersUnchanged": true,
+    "allVisibleAndUncertifiedBaseRGBAFloatBitsExact": true,
+    "gate4ByteIdentical": true,
+    "noNewCyclesOrOIDN": true,
+    "lossyCodecDecodedSamplesNotClaimedBitExact": true
+  },
+  "status": "All native/encoding/independent jobs terminal. Source-bound production candidate staged; public installation/full runtime review belongs to root."
+}

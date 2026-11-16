@@ -1,0 +1,210 @@
+{
+  "recipientMetadata": {
+    "path": "art/build/fringe-geometry-diagnosis/contact-visibility-classification.json",
+    "sha256": "f47b949e90dd75729d3ace5fafb83122c0d589c84412457ee2f7c6634edadead"
+  },
+  "donorMetadata": {
+    "path": "art/build/fringe-geometry-diagnosis/contact-valid-donors.json",
+    "sha256": "cbaeba03ac2ff63f951df130ff4e3e810da8b4cb198cbd0ab0ebd0e013dbc18f"
+  },
+  "sourceBindings": {
+    "source": {
+      "path": "art/build/snow-roof-stair-banks-grain.blend",
+      "sha256": "6e9f59c93565e08a690eaafbc756967ba39e0f4d8ad0094e4520265948360af8"
+    },
+    "prepared": {
+      "path": "art/build/snow-roof-final/snow-roof-prepared.blend",
+      "sha256": "6ed42644cd3a6c1026b079740957280df0274e9e9a0eaf5f8d3da514725079c1"
+    },
+    "raw": {
+      "path": "art/build/snow-roof-final/snow-roof.raw.glb",
+      "sha256": "0deec9fd71d4c49e666e5b091f15af3067efbcdb7e3c350bcb85a2bf7f980dea"
+    },
+    "f32Diagnostic": {
+      "path": "art/build/snow-roof-float32-position-diagnostic/snow-roof.glb",
+      "sha256": "e41a50e8cd5935d69f254514c7cac3c15fa1b1f640f9c4f0e8f351f220906217"
+    },
+    "independentExactF32PositionProof": {
+      "path": "art/build/snow-roof-float32-position-diagnostic/independent-position-stream-proof.json",
+      "sha256": "1c9f0e3962735f8a55aa7bbcf9e1aad1b328e1253d5b36f6626b75270880f6f0"
+    }
+  },
+  "recipientRules": {
+    "bank": "Native top receiver centre lies below actual prepared ground, with both vertical clearance and nearest ground-surface distance >20\u00b5m; it is at least1m from terrain boundary. No radiance threshold is consulted.",
+    "ground": "Native receiver centre lies inside a watertight, consistently oriented opaque bank volume: three irrational-direction parity rays all odd and nearest bank-shell distance >20\u00b5m. No radiance threshold is consulted.",
+    "ambiguity": "Points within20\u00b5m of tested shell, UV-boundary position disagreements >5\u00b5m, and parity disagreements are never certified hidden."
+  },
+  "donorRules": {
+    "global": "Never hidden, near-contact, UV-ambiguous or parity-ambiguous; >20\u00b5m from stair/terrace surface and not below its vertical top; no radiance threshold.",
+    "hall": "Positive>20\u00b5m clearance ABOVE actual opaque ground, with nearest ground distance>20\u00b5m. All original source bank-top texel owners proven.",
+    "court": "Outside both watertight bank volumes: outside their AABB or3 agreeing even-parity rays; >20\u00b5m from both shells.",
+    "sampling": "Recipient and donor must share original chartRaw AND ownerId; nearest Euclidean distance<=8 native base pixels. Recipients lacking such donor are left unchanged. Missing sparse entries are never donors."
+  },
+  "counts": [
+    {
+      "region": "court",
+      "reason": "ground-centre-inside-closed-opaque-bank",
+      "texels": 8098
+    },
+    {
+      "region": "court",
+      "reason": "not-proven-hidden",
+      "texels": 57341
+    },
+    {
+      "region": "court",
+      "reason": "parity-disagreement-not-certified",
+      "texels": 55
+    },
+    {
+      "region": "hall",
+      "reason": "bank-top-below-continuous-opaque-ground",
+      "texels": 1700
+    },
+    {
+      "region": "hall",
+      "reason": "near-contact-not-certified",
+      "texels": 25
+    },
+    {
+      "region": "hall",
+      "reason": "not-proven-hidden",
+      "texels": 7731
+    }
+  ],
+  "ownerChartCertificate": [
+    {
+      "region": "court",
+      "chartRaw": 1,
+      "ownerId": 0,
+      "sourceObject": "Snow with physically depressed footprint track",
+      "allPreparedPolygonCount": 42240,
+      "uniqueOwnerVerified": true
+    },
+    {
+      "region": "hall",
+      "chartRaw": 12862,
+      "ownerId": 1,
+      "sourceObject": "Continuous stair-edge snow bank left",
+      "allPreparedPolygonCount": 357,
+      "uniqueOwnerVerified": true
+    },
+    {
+      "region": "hall",
+      "chartRaw": 12863,
+      "ownerId": 1,
+      "sourceObject": "Continuous stair-edge snow bank left",
+      "allPreparedPolygonCount": 330,
+      "uniqueOwnerVerified": true
+    },
+    {
+      "region": "hall",
+      "chartRaw": 12866,
+      "ownerId": 1,
+      "sourceObject": "Continuous stair-edge snow bank left",
+      "allPreparedPolygonCount": 354,
+      "uniqueOwnerVerified": true
+    },
+    {
+      "region": "hall",
+      "chartRaw": 12868,
+      "ownerId": 1,
+      "sourceObject": "Continuous stair-edge snow bank left",
+      "allPreparedPolygonCount": 4385,
+      "uniqueOwnerVerified": true
+    },
+    {
+      "region": "hall",
+      "chartRaw": 12872,
+      "ownerId": 1,
+      "sourceObject": "Continuous stair-edge snow bank left",
+      "allPreparedPolygonCount": 214,
+      "uniqueOwnerVerified": true
+    },
+    {
+      "region": "hall",
+      "chartRaw": 12874,
+      "ownerId": 2,
+      "sourceObject": "Continuous stair-edge snow bank right",
+      "allPreparedPolygonCount": 310,
+      "uniqueOwnerVerified": true
+    },
+    {
+      "region": "hall",
+      "chartRaw": 12875,
+      "ownerId": 2,
+      "sourceObject": "Continuous stair-edge snow bank right",
+      "allPreparedPolygonCount": 1727,
+      "uniqueOwnerVerified": true
+    },
+    {
+      "region": "hall",
+      "chartRaw": 12876,
+      "ownerId": 2,
+      "sourceObject": "Continuous stair-edge snow bank right",
+      "allPreparedPolygonCount": 342,
+      "uniqueOwnerVerified": true
+    },
+    {
+      "region": "hall",
+      "chartRaw": 12879,
+      "ownerId": 2,
+      "sourceObject": "Continuous stair-edge snow bank right",
+      "allPreparedPolygonCount": 439,
+      "uniqueOwnerVerified": true
+    },
+    {
+      "region": "hall",
+      "chartRaw": 12880,
+      "ownerId": 2,
+      "sourceObject": "Continuous stair-edge snow bank right",
+      "allPreparedPolygonCount": 2871,
+      "uniqueOwnerVerified": true
+    }
+  ],
+  "validDonorCount": 35917,
+  "recipientCoverage": [
+    {
+      "region": "court",
+      "outcome": "no-valid-donor-within8",
+      "count": 6000
+    },
+    {
+      "region": "court",
+      "outcome": "valid-donor-within8",
+      "count": 2098
+    },
+    {
+      "region": "hall",
+      "outcome": "no-valid-donor-within8",
+      "count": 1018
+    },
+    {
+      "region": "hall",
+      "outcome": "valid-donor-within8",
+      "count": 682
+    }
+  ],
+  "localArraysOnly": {
+    "recipientNPZ": {
+      "file": "contact-texel-centres.npz",
+      "sha256": "1eda91ccc6227c3ccb94d7a641d4b1cd0ecd373ad31d0ce6b3b5931ddf371fd5",
+      "regionCode": {
+        "0": "court",
+        "1": "hall"
+      },
+      "hiddenField": "True only for certified opaque geometric occlusion; all other points are False/uncertified."
+    },
+    "donorNPZ": {
+      "path": "contact-valid-donors.npz",
+      "sha256": "8d1a971300ff6af23a49a2c0b2cf4a3e87c903db704c436ec4d07ca60e4f2fa5",
+      "arrays": [
+        "region(0court1hall)",
+        "xyBottomLeft",
+        "chartRaw",
+        "ownerId",
+        "validDonor"
+      ]
+    }
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "scope": "Independent actual decoded F32 candidate verification; staging only, no optical/performance approval.",
+  "profileSha256": "1e37058881ad253b2fbea5b15646d47570a341013140ec4c9a57dee86418f78f",
+  "inputSha256": "e41a50e8cd5935d69f254514c7cac3c15fa1b1f640f9c4f0e8f351f220906217",
+  "outputSha256": "9e3d5aa37878af0e2eca8d409b2f511916e488aa7b523dbd26c8ec8114022fdc",
+  "regions": {
+    "court": {
+      "removedFACEProvenTriangles": 65394,
+      "retainedTriangles": 115862
+    },
+    "gate": {
+      "removedFACEProvenTriangles": 22566,
+      "retainedTriangles": 62278
+    },
+    "hall": {
+      "removedFACEProvenTriangles": 95790,
+      "retainedTriangles": 288734
+    }
+  },
+  "allRetainedPositionNormalUV0UV1Color0Color1BytesAndCyclicWindingExact": true,
+  "worldTransformsAndOwnershipExact": true,
+  "materialJsonAndEmbeddedImagesExact": true,
+  "quantizationPasses": 0,
+  "encodersUsed": 0,
+  "scriptSha256": "6dde683bc848047fb9fec04615c600bb1de2fee15f82b9b54148786770a3e9fe"
+}
