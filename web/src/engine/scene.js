@@ -265,6 +265,7 @@ hall.fog = new THREE.FogExp2(0x090605, .17);
 hall.environment = roomEnv;
 // The offering is the focal plane. Blur the distant hall before compositing it,
 // keeping the flame's soft procedural edge and the person's own outline intact.
+const previewFill = new THREE.DirectionalLight(0xe4dbc2, .16); previewFill.position.set(1, 2, 2); previewFill.layers.set(1); hall.add(previewFill);
 const focusBlur = new FocusBlur();
 class OfferingPass extends RenderPass {
   render(renderer, write, read, delta, mask) {
@@ -906,7 +907,12 @@ function disposePlace(old) {
   old.envTarget.dispose();
 }
 
+let warming = false;
 async function buildPlace(t) {
+  warming = true;
+  try { await buildPlaceNow(t); } finally { warming = false; }
+}
+async function buildPlaceNow(t) {
   if (place) outside.remove(place.G);
   if (cachedPlaces.has(t.id)) {
     place = cachedPlaces.get(t.id); cachedPlaces.delete(t.id); cachedPlaces.set(t.id, place);
@@ -981,7 +987,7 @@ function applyTemple(t) {
 // Step 3: one of ours, or one you draw.
 const wickSmoke = new Smoke(hall, 70, 0xcfc8c0, .2);
 wickSmoke.parts.forEach(({s}) => s.layers.set(1));
-hall.traverse(o => { if (o.isLight) o.layers.enableAll(); });
+hall.traverse(o => { if (o.isLight && o !== previewFill) o.layers.enableAll(); });
 let smokeUntil = 0, emberUntil = 0, ending = 'out', wind = 0;
 let pointerX = 0, pointerY = 0, previousPointerX = 0;
 window.addEventListener('pointermove', (e) => {
@@ -1046,7 +1052,7 @@ export async function travel(id) {
   const l0 = rig.look.clone(), a0 = rig.amp;
   await tween(10, (k) => { const e = ease(k); rig.pos.copy(curve.getPoint(e)); rig.look.lerpVectors(l0, P.doors, Math.min(1, e * 1.25)); rig.amp = a0 * (1 - Math.min(1, k * 3)); });
   await fadeTo(1, 900);
-  applyTemple(t); switchTo(hall); rig.amp = .006;
+  applyTemple(t); switchTo(hall); await warmHall(); rig.amp = .006;
   rig.pos.copy(WIDE.pos); rig.look.copy(WIDE.look);
   await fadeTo(0, 1000);
   const c = chooseView(); await moveCam(c.pos, c.look, 2.4);
@@ -1098,6 +1104,7 @@ function frame(stamp = performance.now()) {
     if (mine.g.visible && mine.offer) mine.setLevel(level);
     for (const m of flameMats) m.uniforms.uTime.value = time;
     const topY = ALTAR_Y + mine.top.y;
+    previewFill.intensity = phase === 'candle' || phase === 'confirm' || phase === 'travel' ? .16 : 0;
     mine.update(time, topY);
     for (const o of others) { o.f.tick(time, .65, .012, o.wax, o.g.position.y + o.f.flame.position.y); }
     if (time < smokeUntil && Math.random() < (ending === 'done' ? .3 : .7)) wickSmoke.puff(tmp.set(mine.top.x, topY + .004, mine.g.position.z), .002, ending === 'done' ? .003 : .009);
@@ -1122,15 +1129,26 @@ function frame(stamp = performance.now()) {
   focusBlur.enabled = offeringPass.enabled && !powerSaver;
   bloom.enabled = !powerSaver;
   grade.uniforms.uTime.value = time % 10;
-  composer.render();
+  if (!warming) composer.render();
 }
 
 
+async function warmHall() {
+  warming = true;
+  const mask = camera.layers.mask;
+  try {
+    camera.layers.set(0); const background = renderer.compileAsync(hall, camera);
+    camera.layers.set(1); const offering = renderer.compileAsync(hall, camera);
+    camera.layers.mask = mask;
+    await Promise.all([background, offering]);
+  } finally { camera.layers.mask = mask; warming = false; }
+}
 // ---------- Start ----------
 export const ready = (async () => {
   try { await Promise.race([document.fonts.load(`700 80px ${SERIF}`, '大雄宝殿'), new Promise((r) => setTimeout(r, 2500))]); } catch { /* fallback serif */ }
   applyTemple(TEMPLES[0]); switchTo(hall);
   rig.pos.copy(WIDE.pos); rig.look.copy(WIDE.look);
+  await warmHall();
   frame();
   fadeTo(0, 1600);
 })();

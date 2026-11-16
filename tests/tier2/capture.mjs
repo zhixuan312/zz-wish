@@ -15,7 +15,7 @@ async function run(size){
  const out=`${root}/${size.name}`;await mkdir(out,{recursive:true});
  const context=await browser.newContext({ viewport: size.viewport, locale: size.locale, hasTouch: size.phone, isMobile: size.phone });
  const page=await context.newPage();page.setDefaultTimeout(60000);
- const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ const layoutProblems=[]; const errors=[];page.on('pageerror',e=>errors.push(e.message));
  const cdp=await context.newCDPSession(page);
  await context.addInitScript(()=>{
   window.__evidence={ frames:[], renderedFrames:[], longTasks:[], phase:'load', marks:{} };
@@ -31,7 +31,7 @@ async function run(size){
   const now=performance.now.bind(performance);window.__clockOffset=0;performance.now=()=>now()+window.__clockOffset;
  });
  const phase=async name=>page.evaluate(n=>{window.__evidence.phase=n;window.__evidence.marks[n]=performance.now();},name);
- const shot=async(name,wait=350)=>{await page.waitForTimeout(wait);await page.screenshot({path:`${out}/${name}.png`});console.log(size.name,name);};
+ const shot=async(name,wait=350)=>{await page.waitForTimeout(wait);const overflow=await page.evaluate(()=>[...document.querySelectorAll('.ui button,.ui textarea,.ui h1,.ui h2')].filter(e=>{const r=e.getBoundingClientRect();return r.width>0&&(r.left < -2 || r.right > innerWidth+2);}).map(e=>e.textContent?.slice(0,70)));if(overflow.length)layoutProblems.push({name,overflow});await page.screenshot({path:`${out}/${name}.png`});console.log(size.name,name);};
  const dark=async(name)=>{await page.evaluate(()=>document.querySelector('.ui').style.visibility='hidden');await page.screenshot({path:`${out}/${name}.png`});await page.evaluate(()=>document.querySelector('.ui').style.visibility='');};
  const button=name=>page.getByRole('button',{name});
  const start=async()=>{await page.goto(base);await page.getByLabel(re('你的愿望','Your wish')).waitFor();await page.waitForFunction(()=>window.__ready===true,{timeout:60000});};
@@ -56,6 +56,11 @@ async function run(size){
  await phase('ignition');await button(re('点亮这支','Light it')).click();await shot('ignition',200);
  await page.getByTestId('with-you').waitFor();await phase('burning-measurement');await page.waitForTimeout(5000);await phase('burning');await shot('burning',0);
  await dark('burning-dark-room');
+ if(await button(re('^省电$','^Save power$')).count()) {
+  await button(re('^省电$','^Save power$')).click();await phase('power-saver-measurement');await page.waitForTimeout(5000);await shot('power-saver',0);await button(re('^细腻画质$','^Full detail$')).click();
+  await page.mouse.move(size.viewport.width*.38,size.viewport.height*.45);await page.mouse.move(size.viewport.width*.62,size.viewport.height*.45,{steps:10});await shot('pointer-flame-response',50);
+ }
+
  await button(re('^我的烛$','^My Candles$')).click();await shot('leave-confirm');await button(re('^留下$','^Stay$')).click();
  await button(re('^熄灭$','^Put out$')).click();await shot('put-out-confirm');await button(re('熄灭并结束','Put out and end')).click();await phase('went-out');await shot('went-out-smoke',250);await shot('went-out',1800);
  await button(re('^我的烛$','^My Candles$')).click();await page.getByTestId('record').first().waitFor();await shot('my-candles');
@@ -67,6 +72,7 @@ async function run(size){
  await button(re('^为这个愿，再点一支$','^Light a new one for this wish$')).click();await button(re('就放在这里','Leave it here')).click();await button(re('跳过','Skip')).click();await page.getByRole('radio',{name:re('^10 分钟$','^10 min$')}).click();await button(re('带上这支','Take this one')).click();await button(re('点亮这支','Light it')).click();await page.getByTestId('with-you').waitFor();await page.waitForTimeout(1900);
  const active=await page.evaluate(async()=> (await(await fetch('/api/me/candles')).json()).candles.find(c=>c.status==='burning'));
  if(dbFile&&active){const db=new Database(dbFile);db.prepare('UPDATE candles SET started_at=started_at-600000 WHERE id=?').run(active.id);db.close();}
+ await page.evaluate(()=>window.__clockOffset=300000);await phase('half-burn-accelerated');await shot('half-burn-drips-accelerated',1200);
  await page.evaluate(()=>window.__clockOffset=594000);await phase('late-burn-accelerated');await shot('late-burn-accelerated',1400);
  await page.evaluate(()=>window.__clockOffset=601000);await phase('burned-down-accelerated');await shot('burned-down-ember-accelerated',300);await shot('burned-down-accelerated',2200);
  await button(re('^我的烛$','^My Candles$')).click();await shot('my-candles-both-endings');await button(re('^关闭$','^Close$')).click();
@@ -77,7 +83,7 @@ async function run(size){
  await button(re('^为这个愿，再点一支$','^Light a new one for this wish$')).click();await phase('place-switch-4x');await radioPlaces.nth(1).click();await page.waitForTimeout(4500);await radioPlaces.nth(0).click();await page.waitForTimeout(4500);
  const throttled=await page.evaluate(()=>window.__evidence);
  await cdp.send('Emulation.setCPUThrottlingRate',{rate:1});await page.reload();await page.getByLabel(re('你的愿望','Your wish')).waitFor();const warmUsable=await page.evaluate(()=>window.__evidence.marks.wishUsable);
- const report={size,tag,gpu,loads,warmUsable,errors,metrics,throttled,notes:['Viewport/touch emulation on desktop GPU; not a real phone.','Late burn and burned-down use accelerated client and matching SQLite start clock, not long-session endurance evidence.','Cold browser cache on local server; network not 4G.']};
+ const report={size,tag,gpu,loads,warmUsable,errors,layoutProblems,metrics,throttled,notes:['Viewport/touch emulation on desktop GPU; not a real phone.','Late burn and burned-down use accelerated client and matching SQLite start clock, not long-session endurance evidence.','Cold browser cache on local server; network not 4G.']};
  await writeFile(`${out}/metrics.json`,JSON.stringify(report,null,2));reports.push(report);await context.close();
 }
 try{for(const size of [{name:'desktop-en',viewport:{width:1440,height:900},locale:'en-US',phone:false},{name:'phone-zh',viewport:{width:390,height:844},locale:'zh-CN',phone:true}])await run(size);await writeFile(`${root}/report.json`,JSON.stringify(reports,null,2));}finally{await browser.close();}
