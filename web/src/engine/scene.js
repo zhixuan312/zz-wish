@@ -247,10 +247,10 @@ const flameMats = [];
 
 // Smoke: recycled soft sprites. `k` scales speed for outdoor sizes.
 class Smoke {
-  constructor(scene, n, color, maxOp, k = 1) {
+  constructor(scene, n, color, maxOp, k = 1, map = softTex) {
     this.parts = []; this.maxOp = maxOp; this.k = k; this.rnd = mulberry32(n * 7);
     for (let i = 0; i < n; i++) {
-      const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: softTex, color, transparent: true, depthWrite: false, opacity: 0, fog: true }));
+      const s = new THREE.Sprite(new THREE.SpriteMaterial({ map, color, transparent: true, depthWrite: false, opacity: 0, fog: true }));
       s.visible = false; scene.add(s); this.parts.push({ s, age: 0, life: 0, v: V3(0, 0, 0), seed: this.rnd() * 10 });
     }
   }
@@ -282,7 +282,7 @@ hall.fog = new THREE.FogExp2(0x090605, .17);
 hall.environment = hallEnv;
 // The offering is the focal plane. Blur the distant hall before compositing it,
 // keeping the flame's soft procedural edge and the person's own outline intact.
-const previewFill = new THREE.DirectionalLight(0xe4dbc2, .16); previewFill.position.set(1, 2, 2); previewFill.layers.set(1); hall.add(previewFill);
+const previewFill = new THREE.DirectionalLight(0xe4dbc2, 1.1); previewFill.position.set(1, 2, 2); previewFill.layers.set(1); hall.add(previewFill);
 const focusBlur = new FocusBlur();
 class OfferingPass extends RenderPass {
   render(renderer, write, read, delta, mask) {
@@ -295,6 +295,7 @@ const offeringPass = new OfferingPass(hall, camera);
 offeringPass.clear = false; offeringPass.clearDepth = true;
 composer.insertPass(focusBlur, 1); composer.insertPass(offeringPass, 2);
 const ALTAR_Y = .82;
+let hallDoor, hallWindow; // daylight through the doors and lattice follows the local time
 const lacquer = new THREE.MeshPhysicalMaterial({ color: 0x241811, map: grainTex, roughness: .68, clearcoat: .12, clearcoatRoughness: .6, envMapIntensity: .08 });
 const patina = canvasTex(256, 256, (g, w, h) => {
   const rnd = mulberry32(19); g.fillStyle = '#7a7a7a'; g.fillRect(0, 0, w, h);
@@ -310,16 +311,16 @@ const darkIron = new THREE.MeshStandardMaterial({ color: 0x1c1714, metalness: .7
   const altar = new THREE.Mesh(new THREE.BoxGeometry(1.9, ALTAR_Y, .75), lacquer); altar.position.set(0, ALTAR_Y / 2, -.12); altar.receiveShadow = true; altar.castShadow = true; hall.add(altar);
   const cloth = new THREE.Mesh(new THREE.PlaneGeometry(1.7, .6), new THREE.MeshStandardMaterial({ map: clothTex, roughness: .55, envMapIntensity: .2 }));
   cloth.position.set(0, ALTAR_Y - .32, .256); cloth.receiveShadow = true; hall.add(cloth);
-  const trim = new THREE.Mesh(new THREE.BoxGeometry(1.92, .018, .02), brass); trim.position.set(0, ALTAR_Y - .01, .255); hall.add(trim);
+  const trim = new THREE.Mesh(new THREE.BoxGeometry(1.92, .018, .02), new THREE.MeshStandardMaterial({ color: 0x8a6a3c, metalness: .9, roughness: .55, envMapIntensity: .25 })); trim.position.set(0, ALTAR_Y - .01, .255); hall.add(trim);
   const hemi = new THREE.HemisphereLight(0x3a2c22, 0x0a0705, .55); hall.add(hemi);
-  const door = new THREE.DirectionalLight(0x7f95b0, .22); door.position.set(-2, 3, -6); hall.add(door);
+  const door = new THREE.DirectionalLight(0x7f95b0, .22); door.position.set(-2, 3, -6); hall.add(door); hallDoor = door;
   for (const x of [-2.1, 2.1]) for (const z of [-.7, -3.9]) {
     const p = new THREE.Mesh(new THREE.CylinderGeometry(.19, .2, 6, 32), lacquer); p.position.set(x, 3, z); p.castShadow = true; hall.add(p);
     const b = new THREE.Mesh(new THREE.CylinderGeometry(.3, .32, .2, 24), new THREE.MeshStandardMaterial({ color: 0x2b2622, roughness: .8 })); b.position.set(x, .1, z); hall.add(b);
   }
   for (const z of [-.7, -3.9]) { const beam = new THREE.Mesh(new THREE.BoxGeometry(4.8, .36, .3), lacquer); beam.position.set(0, 4.3, z); hall.add(beam); }
   const wall = new THREE.Mesh(new THREE.PlaneGeometry(9, 6), new THREE.MeshStandardMaterial({ color: 0x1a1210, emissive: 0x8ea6c4, emissiveMap: latticeTex, emissiveIntensity: .5, roughness: .9 }));
-  wall.position.set(0, 3, -6); hall.add(wall);
+  wall.position.set(0, 3, -6); hall.add(wall); hallWindow = wall.material;
   const statueGlow = new THREE.Sprite(new THREE.SpriteMaterial({ map: softTex, color: 0xffa64d, transparent: true, opacity: .08, depthWrite: false, blending: THREE.AdditiveBlending }));
   statueGlow.position.set(0, 2.4, -4.7); statueGlow.scale.set(3.6, 4.6, 1); hall.add(statueGlow);
   for (const [x, rot] of [[-1.05, .32], [.9, .28]]) {
@@ -359,7 +360,7 @@ const incenseTips = [];
 // Flame parts shared by every lit thing.
 function flameParts(g) {
   const wick = new THREE.Mesh(new THREE.CylinderGeometry(.0008, .001, .008, 8), new THREE.MeshStandardMaterial({ color: 0x15100c, roughness: 1 })); wick.geometry.translate(.0007, .004, 0); g.add(wick);
-  const ember = new THREE.Mesh(new THREE.SphereGeometry(.00045, 8, 8), new THREE.MeshBasicMaterial({ color: new THREE.Color(3, .7, .15) })); g.add(ember);
+  const ember = new THREE.Mesh(new THREE.SphereGeometry(.0009, 8, 8), new THREE.MeshBasicMaterial({ color: new THREE.Color(3, .7, .15) })); g.add(ember);
   const fm = flameMaterial(false); fm.uniforms.uSeedU.value = Math.random() * 10; flameMats.push(fm);
   const flame = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), fm); flame.frustumCulled = false; g.add(flame);
   const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: softTex, color: 0xff8a3a, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending })); halo.scale.set(.2, .26, 1); g.add(halo);
@@ -451,7 +452,8 @@ const mine = (() => {
     const rnd = mulberry32(42); ctx.fillStyle = '#b0a58c'; ctx.fillRect(0,0,w,h);
     for(let i=0;i<2400;i++){const v=130+rnd()*100;ctx.fillStyle=`rgb(${v},${v},${v})`;ctx.fillRect(rnd()*w,rnd()*h,1+rnd()*2,1+rnd()*2);}
   }, false);
-  const fat = waxMaterial(0xe9cf8a, { roughness: .3, clearcoat: .6, glow: 0xff8a2a, fall: 25 });
+  // Butter: pale, matte and set firm, with only a small clear pool of melted fat around the wick.
+  const fat = waxMaterial(0xf2e4b4, { roughness: .62, clearcoat: .08, glow: 0xffc27a, fall: 25 });
   fat.bumpMap = butterTexture; fat.bumpScale = .0003;
   const surface = new THREE.Mesh(new THREE.CircleGeometry(1, 48).rotateX(-Math.PI / 2), fat); cupG.add(surface);
   const liquid = new THREE.Mesh(new THREE.CircleGeometry(.016, 48).rotateX(-Math.PI / 2), new THREE.MeshPhysicalMaterial({color:0xb58c37, roughness:.1, clearcoat:1, metalness:0, envMapIntensity:.15, transparent:true, opacity:.82})); cupG.add(liquid);
@@ -502,7 +504,11 @@ const mine = (() => {
       f.place(this.top.x, this.top.y);
     },
     // Rendering choice: dim the point light as the flame nears the altar, so the near surface does not blow out to white.
-    update(time, topY) { f.fm.uniforms.uWind.value = wind; f.tick(time, this.power * (lit ? Math.min(1, level * 25) : 1), this.lightMax * Math.min(1, ((this.top.y + .03) / .2) ** 2), [wax, poolMat], topY); fat.userData.u.uTop.value = topY; fat.userData.u.uGlow.value = .12 * this.power; f.ember.visible = this.power > .02 || clockTime < emberUntil; f.ember.material.color.setRGB(2.4, .36, .035).multiplyScalar(clockTime < emberUntil ? Math.max(0, (emberUntil - clockTime) / 2.5) : 1); },
+    update(time, topY) { f.fm.uniforms.uWind.value = wind; f.tick(time, this.power * (lit ? Math.min(1, level * 25) : 1), this.lightMax * Math.min(1, ((this.top.y + .03) / .2) ** 2), [wax, poolMat], topY); fat.userData.u.uTop.value = topY; fat.userData.u.uGlow.value = .05 * this.power; f.ember.visible = this.power > .02 || clockTime < emberUntil; f.ember.material.color.setRGB(2.4, .36, .035).multiplyScalar(clockTime < emberUntil ? Math.max(0, (emberUntil - clockTime) / 2.5) : 1);
+      // The last ember: a small red glow at the wick that fades after the flame is gone.
+      const embering = this.power < .02 && clockTime < emberUntil, fade = embering ? Math.max(0, (emberUntil - clockTime) / 2.5) : 0;
+      f.halo.material.color.setHex(embering ? 0xff3a0a : 0xff8a3a);
+      if (embering) { f.halo.material.opacity = .55 * fade; f.halo.scale.set(.02, .02, 1); } else f.halo.scale.set(.2, .26, 1); },
   };
   g.traverse((o) => o.layers.set(1)); f.light.layers.enableAll();
   g.visible = false; return api;
@@ -914,7 +920,60 @@ void main(){
   gl_FragColor = vec4(c, 1.);
 }`;
 
-// Each place: its time of day, weather, landmark and buildings. Hall at the origin facing +z.
+// ---------- Time of day ----------
+// The places follow the visitor's local clock through six looks: dawn, morning, afternoon, dusk, evening, late night.
+// n: 0 = the place's day look, 1 = its night look. g: low-sun warmth. blue: blue-hour lift of a night sky.
+// lamp: lamplight spilling from the halls. haze: mist density. elev: sun height by day.
+const DAY_KEYS = [
+  [0, { n: 1, g: 0, blue: 0, lamp: .55, haze: 1.3, elev: 1 }],
+  [4.5, { n: 1, g: 0, blue: .15, lamp: .55, haze: 1.5, elev: 1 }],
+  [6, { n: .5, g: .8, blue: .5, lamp: .8, haze: 1.7, elev: .12 }],
+  [7.5, { n: 0, g: .35, blue: 0, lamp: 0, haze: 2, elev: .28 }],
+  [10, { n: 0, g: .1, blue: 0, lamp: 0, haze: 1.6, elev: .55 }],
+  [13, { n: 0, g: 0, blue: 0, lamp: 0, haze: 1, elev: 1 }],
+  [16, { n: 0, g: .3, blue: 0, lamp: 0, haze: 1, elev: .5 }],
+  [18, { n: .5, g: 1, blue: .3, lamp: .9, haze: 1.1, elev: .05 }],
+  [19.5, { n: .85, g: .25, blue: 1, lamp: 1, haze: 1, elev: 1 }],
+  [21, { n: 1, g: 0, blue: .35, lamp: 1, haze: 1, elev: 1 }],
+  [23, { n: 1, g: 0, blue: 0, lamp: .6, haze: 1.2, elev: 1 }],
+  [24, { n: 1, g: 0, blue: 0, lamp: .55, haze: 1.3, elev: 1 }],
+];
+function daylight(date = new Date()) {
+  const h = date.getHours() + date.getMinutes() / 60;
+  let i = 1; while (i < DAY_KEYS.length - 1 && DAY_KEYS[i][0] <= h) i++;
+  const [h0, a] = DAY_KEYS[i - 1], [h1, b] = DAY_KEYS[i], t = Math.min(1, Math.max(0, (h - h0) / (h1 - h0))), k = t * t * (3 - 2 * t);
+  const out = { dawn: h < 12 };
+  for (const key of Object.keys(a)) out[key] = Math.round((a[key] + (b[key] - a[key]) * k) * 20) / 20;
+  return out;
+}
+const hexMix = (a, b, k) => new THREE.Color(a).lerp(new THREE.Color(b), Math.min(1, Math.max(0, k))).getHex();
+function blendPlace(N, L) {
+  const D = N.day, n = L.n, g = L.g, mix = (a, b) => a + (b - a) * n;
+  const warm = L.dawn ? 0xeaa08a : 0xee8a46, sunWarm = L.dawn ? 0xffc6a0 : 0xff8c42;
+  // Morning light comes from the other side of the court than afternoon light.
+  const dDir = [D.sky.dir[0] * (L.dawn ? -1 : 1), Math.max(.02, D.sky.dir[1] * L.elev), D.sky.dir[2]];
+  const sky = {
+    top: hexMix(hexMix(D.sky.top, N.sky.top, n), 0x1c2c56, .55 * L.blue * n),
+    horizon: hexMix(hexMix(hexMix(D.sky.horizon, N.sky.horizon, n), warm, .65 * g), 0x3a4a7a, .4 * L.blue * n),
+    ground: hexMix(D.sky.ground, N.sky.ground, n),
+    sun: hexMix(hexMix(D.sky.sun, N.sky.sun, n), sunWarm, g),
+    dir: dDir.map((v, j) => v + (N.sky.dir[j] - v) * n),
+    glow: mix(D.sky.glow, N.sky.glow) + .9 * g, clouds: mix(D.sky.clouds, N.sky.clouds),
+    lit: hexMix(hexMix(D.sky.lit, N.sky.lit, n), warm, .5 * g), dark: hexMix(D.sky.dark, N.sky.dark, n),
+    stars: (N.sky.stars ?? 0) * n * n * (1 - .6 * L.blue), disc: mix(D.sky.disc ?? 5, N.sky.disc ?? 0),
+  };
+  const sunScale = n < .5 ? .35 + .65 * L.elev : 1;
+  return {
+    sky, exposure: mix(D.exposure ?? 1, N.exposure ?? 1), shade: mix(1, N.shade ?? 1),
+    fog: [hexMix(hexMix(D.fog[0], N.fog[0], n), warm, .3 * g), mix(D.fog[1], N.fog[1]) * L.haze],
+    sunL: [hexMix(hexMix(D.sunL[0], N.sunL[0], n), sunWarm, .7 * g), mix(D.sunL[1], N.sunL[1]) * sunScale],
+    hemi: [hexMix(D.hemi[0], N.hemi[0], n), hexMix(D.hemi[1], N.hemi[1], n), mix(D.hemi[2], N.hemi[2])],
+    bloom: [mix(D.bloom[0], N.bloom[0]), mix(D.bloom[1], N.bloom[1])],
+    porch: N.porch && L.lamp > 0 ? [N.porch[0], N.porch[1] * L.lamp] : null,
+  };
+}
+
+// Each place: its weather, landmark and buildings, by day and by night. Hall at the origin facing +z.
 const placeModules = {
   lingyin: () => import('./places/lingyin.js'),
   shaolin: () => import('./places/shaolin.js'),
@@ -951,12 +1010,15 @@ async function buildPlace(t) {
 }
 async function buildPlaceNow(t) {
   if (place) outside.remove(place.G);
-  if (cachedPlaces.has(t.id)) {
+  const light = daylight(), lightKey = JSON.stringify(light);
+  if (cachedPlaces.get(t.id)?.lightKey === lightKey) {
     place = cachedPlaces.get(t.id); cachedPlaces.delete(t.id); cachedPlaces.set(t.id, place);
     outside.add(place.G); outside.environment = place.env; outside.fog = new THREE.FogExp2(...place.P.fog); return;
   }
+  // The clock moved into another look since this place was built: rebuild it.
+  if (cachedPlaces.has(t.id)) { disposePlace(cachedPlaces.get(t.id)); cachedPlaces.delete(t.id); }
   PLACES[t.id] ??= (await placeModules[t.id]()).default(placeHelpers);
-  const P = PLACES[t.id], G = new THREE.Group(); outside.add(G);
+  const P = { ...PLACES[t.id], ...blendPlace(PLACES[t.id], light) }, G = new THREE.Group(); outside.add(G);
   // `shade` dims the unlit pieces (backdrop ridges, mist, smoke, rain) to match the night light.
   C = { G, up: [], bat: new Map(), seed: seedOf(t.id), rnd: mulberry32(seedOf(t.id)), snow: P.snow ?? 0, shade: P.shade ?? 1, cam: P.view.pos, tgt: P.view.look };
   C.materials = new Map();
@@ -978,7 +1040,7 @@ async function buildPlaceNow(t) {
   await P.build(t); await finishBatch();
   await renderer.compileAsync(outside, camera);
   C.up.push((dt, time) => { u.uTime.value = time; });
-  place = { G, up: C.up, sky, env, envTarget, P, id: t.id };
+  place = { G, up: C.up, sky, env, envTarget, P, id: t.id, lightKey };
   cachedPlaces.set(t.id, place);
   // Retain a bounded two-place working set. Eviction releases every owned resource.
   while (cachedPlaces.size > 2) { const id = cachedPlaces.keys().next().value; disposePlace(cachedPlaces.get(id)); cachedPlaces.delete(id); }
@@ -1015,7 +1077,10 @@ const hallTones = {
 function applyTemple(t) {
   const [light, night] = hallTones[t.id];
   hall.background.setHex(night); hall.fog.color.setHex(night);
-  hall.children.find(o => o.isDirectionalLight).color.setHex(light);
+  // Inside, the candles stay the light; the doorway and lattice carry the hour.
+  const L = daylight(), day = 1 - L.n;
+  hallDoor.color.setHex(hexMix(light, L.dawn ? 0xe8b4a0 : 0xf0a060, L.g)); hallDoor.intensity = .22 + .5 * day + .15 * L.g;
+  hallWindow.emissive.setHex(hexMix(hexMix(0x8ea6c4, 0xdfe6ee, day), L.dawn ? 0xf0b8a0 : 0xf0a060, L.g)); hallWindow.emissiveIntensity = .5 + .9 * day + .3 * L.g;
   banners.forEach(b => { b.visible = t.id !== 'jokhang'; });
   lacquer.color.setHex(t.lacquer).multiplyScalar(.3);
   plaqueMat.map?.dispose(); plaqueMat.map = plaqueTex(t.plaque); plaqueMat.emissiveMap = plaqueMat.map; plaqueMat.needsUpdate = true; plaque.visible = !!t.plaque;
@@ -1025,7 +1090,13 @@ function applyTemple(t) {
 }
 
 // Step 3: one of ours, or one you draw.
-const wickSmoke = new Smoke(hall, 260, 0xc9c6c0, .13);
+// Wick smoke uses a wide, centreless puff so overlapping puffs read as one thread, not a string of beads.
+const smokeTex = canvasTex(64, 64, (g, w, h) => {
+  const r = g.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, w / 2);
+  r.addColorStop(0, 'rgba(255,255,255,.55)'); r.addColorStop(.5, 'rgba(255,255,255,.28)'); r.addColorStop(1, 'rgba(255,255,255,0)');
+  g.fillStyle = r; g.fillRect(0, 0, w, h);
+});
+const wickSmoke = new Smoke(hall, 360, 0xc9c6c0, .16, 1, smokeTex);
 wickSmoke.curl = 1;
 wickSmoke.parts.forEach(({s}) => s.layers.set(1));
 hall.traverse(o => { if (o.isLight && o !== previewFill) o.layers.enableAll(); });
@@ -1151,10 +1222,10 @@ function frame(stamp = performance.now()) {
     if (mine.g.visible && mine.offer) mine.setLevel(level);
     for (const m of flameMats) m.uniforms.uTime.value = time;
     const topY = ALTAR_Y + mine.top.y;
-    previewFill.intensity = phase === 'candle' || phase === 'confirm' || phase === 'travel' ? .16 : 0;
+    previewFill.intensity = phase === 'candle' || phase === 'confirm' || phase === 'travel' ? 1.1 : 0;
     mine.update(time, topY);
     for (const [i, o] of others.entries()) { o.f.tick(time, .65, phase === 'wish' && i === 1 ? .045 : .012, o.wax, o.g.position.y + o.f.flame.position.y); }
-    if (time < smokeUntil) { const left = (smokeUntil - time) / (ending === 'done' ? 3.4 : 4.8); for (let n = 0; n < 3; n++) if (Math.random() < (ending === 'done' ? .45 : .9) * Math.min(1, left * 2.5)) wickSmoke.puff(tmp.set(mine.top.x, topY + .004 + Math.random() * .004, mine.g.position.z), .0006, ending === 'done' ? .0016 : .0028); }
+    if (time < smokeUntil) { const left = (smokeUntil - time) / (ending === 'done' ? 3.4 : 4.8); for (let n = 0; n < 4; n++) if (Math.random() < (ending === 'done' ? .75 : .9) * Math.min(1, left * 2.5)) wickSmoke.puff(tmp.set(mine.top.x, topY + .004 + Math.random() * .004, mine.g.position.z), .0006, ending === 'done' ? .0024 : .0028); }
     wickSmoke.update(dt, time);
     if (Math.random() < .5) incenseSmoke.puff(incenseTips[Math.floor(Math.random() * 3)], .001, .01);
     incenseSmoke.update(dt, time);

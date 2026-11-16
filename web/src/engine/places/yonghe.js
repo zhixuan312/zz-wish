@@ -5,6 +5,8 @@ export default function createPlace(h) {
     snow: .85, exposure: 1.2, shade: 0.4,
     sky: { top: 0x070a16, horizon: 0x2c2638, ground: 0x14121a, sun: 0xc8d4ff, dir: [.4, .5, -1], glow: .15, clouds: .75, lit: 0x4a3e4e, dark: 0x16141e, disc: 0 },
     fog: [0x221e2c, .02], sunL: [0x9fb4e0, .45], hemi: [0x4a5478, 0x1c181c, .42], bloom: [.85, .8], porch: [0xffa04a, 110],
+    // The same place by day; the scene blends toward it by the visitor's local time.
+    day: { exposure: 1, sky: { top: 0x8494aa, horizon: 0xdadfe6, ground: 0x6a6870, sun: 0xf4f6ff, dir: [.4, .45, -1], glow: .35, clouds: .7, lit: 0xf4f4f8, dark: 0x9aa0ae, disc: 2 }, fog: [0xc6cbd4, .012], sunL: [0xf2f5ff, 1.5], hemi: [0xd4dcea, 0x585058, .95], bloom: [.35, 1.3] },
     view: { pos: V3(13, 7, 54), look: V3(0, 7, -6) },
     walk: [V3(0, 1.7, 42), V3(0, 1.7, 24), V3(0, 1.7, 16), V3(0, 1.7, 8)], doors: V3(0, 3.5, 4),
     async build() {
