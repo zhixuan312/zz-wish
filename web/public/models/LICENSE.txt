@@ -1,0 +1,17 @@
+Natural model assets from Poly Haven
+License: CC0 1.0 Universal
+Official license statement: https://polyhaven.com/license
+Legal code: https://creativecommons.org/publicdomain/zero/1.0/legalcode
+
+Rock Face 01 — Dario Barresi
+https://polyhaven.com/a/rock_face_01
+Rock Face 02 — Dario Barresi; Rico Cilliers (processing)
+https://polyhaven.com/a/rock_face_02
+Rock Moss Set 01 — Kless Gyzen
+https://polyhaven.com/a/rock_moss_set_01
+Tree Stump 01 — Rob Tuytel
+https://polyhaven.com/a/tree_stump_01
+
+Mesh geometry is unchanged from the official glTF exports. Texture JPEGs were
+converted to WebP at their original 1K resolution for browser delivery. The
+manifest records source URLs, original download hashes and local file hashes.

@@ -1,0 +1,408 @@
+{
+  "provider": "Poly Haven",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://polyhaven.com/license",
+  "cc0Url": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "downloadedAt": "2026-11-16T12:24:37.598880+00:00",
+  "catalogApi": "https://api.polyhaven.com/assets?t=textures",
+  "assets": [
+    {
+      "id": "rock_pitted_mossy",
+      "name": "Rock Pitted Mossy",
+      "assetUrl": "https://polyhaven.com/a/rock_pitted_mossy",
+      "filesApi": "https://api.polyhaven.com/files/rock_pitted_mossy",
+      "authors": {
+        "Dimitrios Savva": "Photography",
+        "Rico Cilliers": "Processing"
+      },
+      "sourceDimensions": [
+        1000,
+        1000
+      ],
+      "maps": [
+        {
+          "map": "diffuse",
+          "sourceMap": "Diffuse",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/rock_pitted_mossy/rock_pitted_mossy_diff_1k.jpg",
+          "sourceBytes": 1087680,
+          "sourceMd5": "03b18a8408cda2cd99c08da2b567c6ce",
+          "sourceSha256": "afc60b7dee7c161c12a9fb3fffee2c118f1fe47aa1f1e21e4670180bbf29de3c",
+          "path": "web/public/materials/scans/rock_pitted_mossy/diffuse.jpg",
+          "webPath": "/materials/scans/rock_pitted_mossy/diffuse.jpg",
+          "bytes": 447787,
+          "sha256": "b93343437d4eb86d97bef1d9162e55e85ef7de83e89ee2f70f19761ad2accad0",
+          "width": 1024,
+          "height": 1024,
+          "encoding": {
+            "format": "JPEG",
+            "quality": 91,
+            "subsampling": 2,
+            "mode": "RGB",
+            "optimize": true
+          }
+        },
+        {
+          "map": "normal",
+          "sourceMap": "nor_gl",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/rock_pitted_mossy/rock_pitted_mossy_nor_gl_1k.jpg",
+          "sourceBytes": 1137508,
+          "sourceMd5": "b59f8349d301c3c3e886acfba561352b",
+          "sourceSha256": "070501836252ec7a7c2193531095fe4d442b649b9374361500183c3ed832f2fb",
+          "path": "web/public/materials/scans/rock_pitted_mossy/normal.jpg",
+          "webPath": "/materials/scans/rock_pitted_mossy/normal.jpg",
+          "bytes": 687754,
+          "sha256": "bb0c4cf5e3b958b681a00a66c8709e395e949f0c3c290e56a9c8c9879c5adb54",
+          "width": 1024,
+          "height": 1024,
+          "encoding": {
+            "format": "JPEG",
+            "quality": 93,
+            "subsampling": 0,
+            "mode": "RGB",
+            "optimize": true
+          }
+        },
+        {
+          "map": "roughness",
+          "sourceMap": "Rough",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/rock_pitted_mossy/rock_pitted_mossy_rough_1k.jpg",
+          "sourceBytes": 647478,
+          "sourceMd5": "2ea5c41d5f89e77ff8b295922610e53f",
+          "sourceSha256": "684e3314a64f2a9c89a79795adb71be88d90fdf0bda2a3c12685da425e5a413f",
+          "path": "web/public/materials/scans/rock_pitted_mossy/roughness.jpg",
+          "webPath": "/materials/scans/rock_pitted_mossy/roughness.jpg",
+          "bytes": 273808,
+          "sha256": "1645e8ded47a3154e76f13a83963f222f22a6e3d429ed5e946c3d94f5b715e10",
+          "width": 1024,
+          "height": 1024,
+          "encoding": {
+            "format": "JPEG",
+            "quality": 91,
+            "subsampling": 2,
+            "mode": "L",
+            "optimize": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "weathered_planks",
+      "name": "Weathered Planks",
+      "assetUrl": "https://polyhaven.com/a/weathered_planks",
+      "filesApi": "https://api.polyhaven.com/files/weathered_planks",
+      "authors": {
+        "Dario Barresi": "Processing",
+        "Dimitrios Savva": "Photography"
+      },
+      "sourceDimensions": [
+        2000,
+        2000
+      ],
+      "maps": [
+        {
+          "map": "diffuse",
+          "sourceMap": "Diffuse",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/weathered_planks/weathered_planks_diff_1k.jpg",
+          "sourceBytes": 599581,
+          "sourceMd5": "5d7c9e7088bfa54490ba03ba15b660d8",
+          "sourceSha256": "01c9a372cfd7a7bf471b59c2458ed3ccecc93448aebf7ba0cc5b3b5b6ed24349",
+          "path": "web/public/materials/scans/weathered_planks/diffuse.jpg",
+          "webPath": "/materials/scans/weathered_planks/diffuse.jpg",
+          "bytes": 202023,
+          "sha256": "b3d0c9512af469e9067ea967962785073516a02cf47c820c9b700b45901c9b16",
+          "width": 1024,
+          "height": 1024,
+          "encoding": {
+            "format": "JPEG",
+            "quality": 91,
+            "subsampling": 2,
+            "mode": "RGB",
+            "optimize": true
+          }
+        },
+        {
+          "map": "normal",
+          "sourceMap": "nor_gl",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/weathered_planks/weathered_planks_nor_gl_1k.jpg",
+          "sourceBytes": 681552,
+          "sourceMd5": "119541f6b143f21f0a6e9774e9208905",
+          "sourceSha256": "381d298f3194ec4961b04b4912b9b6efea4b2ff7b914dac57e24c8b6b0be6a25",
+          "path": "web/public/materials/scans/weathered_planks/normal.jpg",
+          "webPath": "/materials/scans/weathered_planks/normal.jpg",
+          "bytes": 308526,
+          "sha256": "5b4234eeddbe3b2a11d7b3fdf9429f13291b8eac0e376be25df153e764acf879",
+          "width": 1024,
+          "height": 1024,
+          "encoding": {
+            "format": "JPEG",
+            "quality": 93,
+            "subsampling": 0,
+            "mode": "RGB",
+            "optimize": true
+          }
+        },
+        {
+          "map": "roughness",
+          "sourceMap": "Rough",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/weathered_planks/weathered_planks_rough_1k.jpg",
+          "sourceBytes": 218802,
+          "sourceMd5": "4ca50b076e1fc58f6862a5b039a7d5c9",
+          "sourceSha256": "a017728183597417a350d1846a5a46db9702ee6d472a21c5da2f23015d606aa3",
+          "path": "web/public/materials/scans/weathered_planks/roughness.jpg",
+          "webPath": "/materials/scans/weathered_planks/roughness.jpg",
+          "bytes": 45927,
+          "sha256": "ba9bb772e2653454ef5aff408b027e0e394cd354c7a5ecb432097210d8870384",
+          "width": 1024,
+          "height": 1024,
+          "encoding": {
+            "format": "JPEG",
+            "quality": 91,
+            "subsampling": 2,
+            "mode": "L",
+            "optimize": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "stone_pavers",
+      "name": "Stone Pavers",
+      "assetUrl": "https://polyhaven.com/a/stone_pavers",
+      "filesApi": "https://api.polyhaven.com/files/stone_pavers",
+      "authors": {
+        "Amal Kumar": "All"
+      },
+      "sourceDimensions": [
+        2000,
+        2000
+      ],
+      "maps": [
+        {
+          "map": "diffuse",
+          "sourceMap": "Diffuse",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/stone_pavers/stone_pavers_diff_1k.jpg",
+          "sourceBytes": 772390,
+          "sourceMd5": "f4105e343506abd2fbeca014fe62c22a",
+          "sourceSha256": "1e13349b9b6f956ba6ec8bf5443addde1ad31813879bf646918e7943684bba25",
+          "path": "web/public/materials/scans/stone_pavers/diffuse.jpg",
+          "webPath": "/materials/scans/stone_pavers/diffuse.jpg",
+          "bytes": 314197,
+          "sha256": "a1a7c10335f7a8d6b48f83b53ce6e6b100193f02058239350395ed70cca401fc",
+          "width": 1024,
+          "height": 1024,
+          "encoding": {
+            "format": "JPEG",
+            "quality": 91,
+            "subsampling": 2,
+            "mode": "RGB",
+            "optimize": true
+          }
+        },
+        {
+          "map": "normal",
+          "sourceMap": "nor_gl",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/stone_pavers/stone_pavers_nor_gl_1k.jpg",
+          "sourceBytes": 910668,
+          "sourceMd5": "bcc54ee7f372d58789b28fbc56c0f417",
+          "sourceSha256": "b06868bf171c9ffdaee50d08ee65ce8b36cb660ea772d711095a47890ee81deb",
+          "path": "web/public/materials/scans/stone_pavers/normal.jpg",
+          "webPath": "/materials/scans/stone_pavers/normal.jpg",
+          "bytes": 487206,
+          "sha256": "779d97cba32309840750ec2a7b13532f3b85589eb34fd7f6da10b94ebfc94f1e",
+          "width": 1024,
+          "height": 1024,
+          "encoding": {
+            "format": "JPEG",
+            "quality": 93,
+            "subsampling": 0,
+            "mode": "RGB",
+            "optimize": true
+          }
+        },
+        {
+          "map": "roughness",
+          "sourceMap": "Rough",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/stone_pavers/stone_pavers_rough_1k.jpg",
+          "sourceBytes": 425066,
+          "sourceMd5": "6f3da8f919c76cc62e8796dd39e2aba5",
+          "sourceSha256": "801a4bb6878e9584c3b56fc7eb06c4ba96a424b642560832868cc244d8724528",
+          "path": "web/public/materials/scans/stone_pavers/roughness.jpg",
+          "webPath": "/materials/scans/stone_pavers/roughness.jpg",
+          "bytes": 131288,
+          "sha256": "46606abf3dc12dc61f03e860a9ef6a0f8c24b70af5fe95cee96db03e921d29f0",
+          "width": 1024,
+          "height": 1024,
+          "encoding": {
+            "format": "JPEG",
+            "quality": 91,
+            "subsampling": 2,
+            "mode": "L",
+            "optimize": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "dark_brick_wall",
+      "name": "Dark Brick Wall",
+      "assetUrl": "https://polyhaven.com/a/dark_brick_wall",
+      "filesApi": "https://api.polyhaven.com/files/dark_brick_wall",
+      "authors": {
+        "Dario Barresi": "Processing",
+        "Dimitrios Savva": "Photography"
+      },
+      "sourceDimensions": [
+        1049.9998331069946,
+        1049.9999523162842
+      ],
+      "maps": [
+        {
+          "map": "diffuse",
+          "sourceMap": "Diffuse",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/dark_brick_wall/dark_brick_wall_diff_1k.jpg",
+          "sourceBytes": 917619,
+          "sourceMd5": "b1e82a72dddf31ae97c3b0b8fab0e690",
+          "sourceSha256": "5ec2718d497fadae9492d0b6977a1de3f0867c9ccbf65a835f9bbe48d632a228",
+          "path": "web/public/materials/scans/dark_brick_wall/diffuse.jpg",
+          "webPath": "/materials/scans/dark_brick_wall/diffuse.jpg",
+          "bytes": 363323,
+          "sha256": "3945fb2cb8d14aa1b37860492eef67aa17cb30d4674b9891e4a032258fb83472",
+          "width": 1024,
+          "height": 1024,
+          "encoding": {
+            "format": "JPEG",
+            "quality": 91,
+            "subsampling": 2,
+            "mode": "RGB",
+            "optimize": true
+          }
+        },
+        {
+          "map": "normal",
+          "sourceMap": "nor_gl",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/dark_brick_wall/dark_brick_wall_nor_gl_1k.jpg",
+          "sourceBytes": 1327208,
+          "sourceMd5": "656efc89b0c03084add1042cb77362ac",
+          "sourceSha256": "89b4b43655f87ca41734021986ff6261b41e624108eeb17ac24ea67593cb5858",
+          "path": "web/public/materials/scans/dark_brick_wall/normal.jpg",
+          "webPath": "/materials/scans/dark_brick_wall/normal.jpg",
+          "bytes": 830605,
+          "sha256": "6385e1d78bf7473f5e424521723dfd27d805dd8f321e196ba9e21752a13c5c65",
+          "width": 1024,
+          "height": 1024,
+          "encoding": {
+            "format": "JPEG",
+            "quality": 93,
+            "subsampling": 0,
+            "mode": "RGB",
+            "optimize": true
+          }
+        },
+        {
+          "map": "roughness",
+          "sourceMap": "Rough",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/dark_brick_wall/dark_brick_wall_rough_1k.jpg",
+          "sourceBytes": 342901,
+          "sourceMd5": "8c08e7ffd512440ee076c1f7fd506561",
+          "sourceSha256": "b9184270464510cef4ca62d7c7eadab54a470f57892a504165a4c2a230d4ff57",
+          "path": "web/public/materials/scans/dark_brick_wall/roughness.jpg",
+          "webPath": "/materials/scans/dark_brick_wall/roughness.jpg",
+          "bytes": 88818,
+          "sha256": "81f536cd56fb02bf24e01503c4221624768315a321437f860d14644b8e911c4f",
+          "width": 1024,
+          "height": 1024,
+          "encoding": {
+            "format": "JPEG",
+            "quality": 91,
+            "subsampling": 2,
+            "mode": "L",
+            "optimize": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "white_plaster_rough_01",
+      "name": "White Plaster Rough 01",
+      "assetUrl": "https://polyhaven.com/a/white_plaster_rough_01",
+      "filesApi": "https://api.polyhaven.com/files/white_plaster_rough_01",
+      "authors": {
+        "Rob Tuytel": "All"
+      },
+      "sourceDimensions": [
+        1000,
+        1000
+      ],
+      "maps": [
+        {
+          "map": "diffuse",
+          "sourceMap": "Diffuse",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/white_plaster_rough_01/white_plaster_rough_01_diff_1k.jpg",
+          "sourceBytes": 628421,
+          "sourceMd5": "c0964b0628920619f0364f19f2d9973d",
+          "sourceSha256": "8d3b209ec5bbcee3db7a883c6c2eee982b7c18a268e6f43766ee540c7c28ebcb",
+          "path": "web/public/materials/scans/white_plaster_rough_01/diffuse.jpg",
+          "webPath": "/materials/scans/white_plaster_rough_01/diffuse.jpg",
+          "bytes": 456910,
+          "sha256": "1bee5116cdf5a33167a01b4c7b6263b818b55bc502720b40ceefa121586c6a77",
+          "width": 1024,
+          "height": 1024,
+          "encoding": {
+            "format": "JPEG",
+            "quality": 91,
+            "subsampling": 2,
+            "mode": "RGB",
+            "optimize": true
+          }
+        },
+        {
+          "map": "normal",
+          "sourceMap": "nor_gl",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/white_plaster_rough_01/white_plaster_rough_01_nor_gl_1k.jpg",
+          "sourceBytes": 384190,
+          "sourceMd5": "a45f7354cab5014e5167e63ddbf9c571",
+          "sourceSha256": "f9d15f0adb27a3cbcffe11bea7a14d486d036b0251e01ec24c3ca0ae05aef54b",
+          "path": "web/public/materials/scans/white_plaster_rough_01/normal.jpg",
+          "webPath": "/materials/scans/white_plaster_rough_01/normal.jpg",
+          "bytes": 339054,
+          "sha256": "fbe4d6cec0fccb2a2025d00578bc8ff1fb99e2d20288c307c193bad8b04e4971",
+          "width": 1024,
+          "height": 1024,
+          "encoding": {
+            "format": "JPEG",
+            "quality": 93,
+            "subsampling": 0,
+            "mode": "RGB",
+            "optimize": true
+          }
+        },
+        {
+          "map": "roughness",
+          "sourceMap": "Rough",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/white_plaster_rough_01/white_plaster_rough_01_rough_1k.jpg",
+          "sourceBytes": 594450,
+          "sourceMd5": "6a4f00696f958e42ad7bf3b1d48794d5",
+          "sourceSha256": "459ab1eec7395a4617b4e043760be51eaac87828aae8816b6bf2c6030907225a",
+          "path": "web/public/materials/scans/white_plaster_rough_01/roughness.jpg",
+          "webPath": "/materials/scans/white_plaster_rough_01/roughness.jpg",
+          "bytes": 501151,
+          "sha256": "0ea0bbb9f9c43befe518bc97ba0bdcea5ae23e9573a61e29a40cc8a8be0f635c",
+          "width": 1024,
+          "height": 1024,
+          "encoding": {
+            "format": "JPEG",
+            "quality": 91,
+            "subsampling": 2,
+            "mode": "L",
+            "optimize": true
+          }
+        }
+      ]
+    }
+  ],
+  "totalBytes": 5478377,
+  "encoder": {
+    "Pillow": "13.0.0",
+    "libjpeg": "6.2"
+  }
+}

@@ -1,7 +1,7 @@
 // Cloud Cliff Court: halls built out from a sheer cliff on long posts, a sea of cloud far below.
 // The lamp is a brass storm lantern hung inside the gallery that runs along the cliff edge.
 export default function createPlace(h) {
-  const { THREE, V3, M, roofMat, hallB, box, put, peak, rock, mist, eave, col, rail, cloudSea, otherLamp, trees, pauseBuild, latticeTex, grainTex } = h;
+  const { THREE, V3, M, roofMat, hallB, box, put, rock, mist, eave, col, rail, cloudSea, otherLamp, trees, pauseBuild, latticeTex, grainTex } = h;
   return {
     exposure: 1.2, shade: 0.35,
     sky: { top: 0x050811, horizon: 0x1c2638, ground: 0x0c1018, sun: 0xdde6ff, dir: [.3, .26, .92], glow: .3, clouds: .25, lit: 0x3a4660, dark: 0x0c1018, stars: .7, disc: 1.6 },
@@ -38,7 +38,7 @@ export default function createPlace(h) {
       await pauseBuild();
       // Rock rises behind the halls and anchors the route on the left, rather than a floating platform.
       rock(-12,-18,-9,[9,55,14],21);rock(-7,-8,18,[5,34,20],23);
-      peak(-34,-135,-50,56,210,M(0x343c3d,1),9,.6);
+      rock(-18,-30,-25,[9,48,12],29);rock(-22,8,-42,[12,22,16],31);
       const T=trees();for(const [x,y,z] of [[-8,9,-8],[-10,15,-18],[-6,6,24]])T.pine(x,y,z,1.6,0x28372e,true);T.finish();
       for(const [x,y,z] of [[-4.1,2.4,6],[-3.8,2.4,-1]]){const f=new THREE.PointLight(0xffb979,1.8,8,2);f.position.set(x,y,z);C.G.add(f);}
       await pauseBuild();

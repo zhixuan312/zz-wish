@@ -54,8 +54,8 @@ export default function createPlace(h) {
       at: { pos: V3(-9.3, .35, 6), ry: Math.PI / 2 },
       lamp: 'celadon', y: .91, exposure: 1.1, bloom: [.36, 1],
       approach: [V3(.4, 1.3, 4.2)],
-      wide: { pos: V3(.9, 1.4, -.22), look: V3(-.4, .96, .8) },
-      burn: { pos: V3(.65, 1.28, -.2), look: V3(-.25, .96, .55) },
+      wide: { pos: V3(.9, 1.4, -.22), look: V3(0,.96,0) },
+      burn: { pos: V3(.65, 1.28, -.2), look: V3(0,.96,0) },
       async build(hh) {
         const { THREE, M, box, put, col, eave, fall, rock, mist, otherLamp, lathe, plasterTex, grainTex, pavingTex, pauseBuild } = hh;
         const wood = M(0x3a2216, .68, { map: grainTex }), plaster = M(0xe2ded4, .95, { map: plasterTex }), skirt = M(0x55575a, .9, { map: pavingTex }), wet = M(0x4a4c4c, .22, { map: pavingTex }), floor = M(0x666260, .55, { map: pavingTex });

@@ -1,0 +1,465 @@
+{
+  "license": "CC0-1.0",
+  "licenseSource": "https://polyhaven.com/license",
+  "retrieved": "2026-11-16",
+  "notes": "Generic natural scans only. No temples, monuments or ritual objects. Mesh geometry unchanged; JPEG textures converted to WebP at original1K size. Geometry shares original PolyHaven coordinates and material UVs.",
+  "assets": [
+    {
+      "sourcePage": "https://polyhaven.com/a/rock_face_01",
+      "sourceFiles": "https://api.polyhaven.com/files/rock_face_01",
+      "name": "Rock Face 01",
+      "authors": {
+        "Dario Barresi": "All"
+      },
+      "sourcePolycount": 20174,
+      "sourceDimensionsMillimetres": [
+        7108.232021331787,
+        5624.304533004761,
+        4980.4371148347855
+      ],
+      "files": [
+        {
+          "local": "rock_face_01/rock_face_01.gltf",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/rock_face_01/rock_face_01_1k.gltf",
+          "sourceMd5": "b4855bc7e841a17a94332561a9b301c0",
+          "sourceBytes": 2793,
+          "bytes": 1893,
+          "sha256": "bc0c32e17d771b6fa4aee4d1ffb01876d56a4c8196b804d0e92f062d02c3929a"
+        },
+        {
+          "local": "rock_face_01/textures/rock_face_01_arm_1k.webp",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/rock_face_01/rock_face_01_arm_1k.jpg",
+          "sourceMd5": "5799e7f5546350576b87bf67c34fb49f",
+          "sourceBytes": 693610,
+          "bytes": 127904,
+          "sha256": "9e93338101fb6b061076b51eb3f82b816dc2b79ab5f0bbfb5d1183e8109f8c37"
+        },
+        {
+          "local": "rock_face_01/textures/rock_face_01_nor_gl_1k.webp",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/rock_face_01/rock_face_01_nor_gl_1k.jpg",
+          "sourceMd5": "46e01f5c3b8ac4463aeef2b4c61d1cd4",
+          "sourceBytes": 1023400,
+          "bytes": 446508,
+          "sha256": "40c436deb92328df115d12798a8f956d9ab9f1b82780246054b357bd52f0f1bf"
+        },
+        {
+          "local": "rock_face_01/textures/rock_face_01_diff_1k.webp",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/rock_face_01/rock_face_01_diff_1k.jpg",
+          "sourceMd5": "98ee9f024a6383d7e6cab44ed41e1f15",
+          "sourceBytes": 853749,
+          "bytes": 249554,
+          "sha256": "c0b64c7094b217cf78eb274178da5197f8e5c64d88e2e548734c882a8e1d8a5b"
+        },
+        {
+          "local": "rock_face_01/rock_face_01.bin",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/8k/rock_face_01/rock_face_01.bin",
+          "sourceMd5": "06caed23e725af568b64f8cbee210c1c",
+          "sourceBytes": 476436,
+          "bytes": 476436,
+          "sha256": "873eac0319333e92bc96ddeedf8ebf69dc3c68ff1dfe32d8c14ddc165cdb20ac"
+        }
+      ],
+      "localModel": "rock_face_01/rock_face_01.gltf",
+      "meshBounds": [
+        {
+          "min": [
+            -2.133601427078247,
+            -0.03435921296477318,
+            -3.466048240661621
+          ],
+          "max": [
+            2.8199098110198975,
+            3.5296897888183594,
+            0.36125504970550537
+          ],
+          "vertices": 11106
+        }
+      ],
+      "bytes": 1302295,
+      "triangles": 20174,
+      "nodes": [
+        {
+          "name": "rock_face_01",
+          "mesh": 0,
+          "translation": null,
+          "scale": null,
+          "rotation": null
+        }
+      ]
+    },
+    {
+      "sourcePage": "https://polyhaven.com/a/rock_face_02",
+      "sourceFiles": "https://api.polyhaven.com/files/rock_face_02",
+      "name": "Rock Face 02",
+      "authors": {
+        "Dario Barresi": "All",
+        "Rico Cilliers": "processing"
+      },
+      "sourcePolycount": 29566,
+      "sourceDimensionsMillimetres": [
+        4870.411515235901,
+        3472.859501838684,
+        4734.235167503357
+      ],
+      "files": [
+        {
+          "local": "rock_face_02/rock_face_02.gltf",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/rock_face_02/rock_face_02_1k.gltf",
+          "sourceMd5": "f4c7eefa474143b14312409cad4fb4b8",
+          "sourceBytes": 2794,
+          "bytes": 1894,
+          "sha256": "b8ecbfd6a46622a32e2823e5947126e60271513ba4fccef2c42c3fad87f15c80"
+        },
+        {
+          "local": "rock_face_02/textures/rock_face_02_nor_gl_1k.webp",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/rock_face_02/rock_face_02_nor_gl_1k.jpg",
+          "sourceMd5": "af2e17bb469b499dc14765dc13ad30ae",
+          "sourceBytes": 1082942,
+          "bytes": 482334,
+          "sha256": "b9e4b91ff4f467521141711a1daf57a55c6e702acee96e3778ad4eb40b7f23a1"
+        },
+        {
+          "local": "rock_face_02/textures/rock_face_02_arm_1k.webp",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/rock_face_02/rock_face_02_arm_1k.jpg",
+          "sourceMd5": "9e59b31d77e404500effa446e790f8fb",
+          "sourceBytes": 820389,
+          "bytes": 172416,
+          "sha256": "b91c2cbfcc2e32f562c7ad0133561b20c047a2e479bd68493d228e4566a6c9e0"
+        },
+        {
+          "local": "rock_face_02/rock_face_02.bin",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/8k/rock_face_02/rock_face_02.bin",
+          "sourceMd5": "add01c9b573fdddd688acb6378c78c3b",
+          "sourceBytes": 702068,
+          "bytes": 702068,
+          "sha256": "cfa3dea8f0f91525b5dfe93d889acacf961d20f7174aae100eae2c6e101edf31"
+        },
+        {
+          "local": "rock_face_02/textures/rock_face_02_diff_1k.webp",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/rock_face_02/rock_face_02_diff_1k.jpg",
+          "sourceMd5": "8f3731e5c8e4e5c7f5de983353cf3ee3",
+          "sourceBytes": 920193,
+          "bytes": 276580,
+          "sha256": "ba64319899f3b91a21e7fc2ba94253ca9b3a268740b9bef9f7334ca09bd3d605"
+        }
+      ],
+      "localModel": "rock_face_02/rock_face_02.gltf",
+      "meshBounds": [
+        {
+          "min": [
+            -2.2611024379730225,
+            -0.13961930572986603,
+            -1.188185453414917
+          ],
+          "max": [
+            0.45009371638298035,
+            2.3323476314544678,
+            0.938514769077301
+          ],
+          "vertices": 16396
+        }
+      ],
+      "bytes": 1635292,
+      "triangles": 29566,
+      "nodes": [
+        {
+          "name": "rock_face_02",
+          "mesh": 0,
+          "translation": null,
+          "scale": null,
+          "rotation": null
+        }
+      ]
+    },
+    {
+      "sourcePage": "https://polyhaven.com/a/rock_moss_set_01",
+      "sourceFiles": "https://api.polyhaven.com/files/rock_moss_set_01",
+      "name": "Rock Moss Set 01",
+      "authors": {
+        "Kless Gyzen": "All"
+      },
+      "sourcePolycount": 63127,
+      "sourceDimensionsMillimetres": [
+        8004.603862762451,
+        6948.764801025391,
+        1768.319845199585
+      ],
+      "files": [
+        {
+          "local": "rock_moss_set_01/rock_moss_set_01.gltf",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/rock_moss_set_01/rock_moss_set_01_1k.gltf",
+          "sourceMd5": "75113cc1c21806cca5d8badad4737af7",
+          "sourceBytes": 9987,
+          "bytes": 6052,
+          "sha256": "fe7acfcdc66cd2ee9ef5981824585b87586493ff3f8fdeaf0728dfdf75765102"
+        },
+        {
+          "local": "rock_moss_set_01/textures/rock_moss_set_01_nor_gl_1k.webp",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/rock_moss_set_01/rock_moss_set_01_nor_gl_1k.jpg",
+          "sourceMd5": "eb7ebd31ad08e78d0497900652ff1568",
+          "sourceBytes": 209975,
+          "bytes": 285534,
+          "sha256": "7de49a4df0dfe6632ff96c5fd60c1d54e5e56805502ca3b32d41383fbb05995d"
+        },
+        {
+          "local": "rock_moss_set_01/rock_moss_set_01.bin",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/8k/rock_moss_set_01/rock_moss_set_01.bin",
+          "sourceMd5": "207a51c9f56d34732e9814bbf9cc07b1",
+          "sourceBytes": 1466380,
+          "bytes": 1466380,
+          "sha256": "de8360e6175879aaf02c171911069cf5f1852547f9ca7f10e440085dbcc3315e"
+        },
+        {
+          "local": "rock_moss_set_01/textures/rock_moss_set_01_rough_1k.webp",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/rock_moss_set_01/rock_moss_set_01_rough_1k.jpg",
+          "sourceMd5": "ed9d8a2c863262f76f881346e8047c6a",
+          "sourceBytes": 82624,
+          "bytes": 39302,
+          "sha256": "3ddc4de64efe650fe917d3145e41bfc85bdf3abe0827e3c9316751b4e0c0c40e"
+        },
+        {
+          "local": "rock_moss_set_01/textures/rock_moss_set_01_diff_1k.webp",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/rock_moss_set_01/rock_moss_set_01_diff_1k.jpg",
+          "sourceMd5": "b8742301e6b4bc5683d2de712e83f772",
+          "sourceBytes": 168099,
+          "bytes": 131522,
+          "sha256": "df5e0eae80fb69099d0ef81e50d2f6bc7e0217e913b970819e8f742972b589be"
+        }
+      ],
+      "localModel": "rock_moss_set_01/rock_moss_set_01.gltf",
+      "meshBounds": [
+        {
+          "min": [
+            -1.1140209436416626,
+            -0.6565686464309692,
+            -1.701040267944336
+          ],
+          "max": [
+            1.1236112117767334,
+            0.8161294460296631,
+            1.6677640676498413
+          ],
+          "vertices": 6078
+        },
+        {
+          "min": [
+            -1.2730549573898315,
+            -0.4656194746494293,
+            -1.6444144248962402
+          ],
+          "max": [
+            1.3823258876800537,
+            0.7963716983795166,
+            1.619305968284607
+          ],
+          "vertices": 6192
+        },
+        {
+          "min": [
+            -1.0179996490478516,
+            -0.4108721911907196,
+            -1.0236197710037231
+          ],
+          "max": [
+            1.0905829668045044,
+            0.6888222694396973,
+            1.0559659004211426
+          ],
+          "vertices": 2741
+        },
+        {
+          "min": [
+            -0.9502788186073303,
+            -0.6609705686569214,
+            -0.8874189853668213
+          ],
+          "max": [
+            1.1773505210876465,
+            1.1073492765426636,
+            1.0773223638534546
+          ],
+          "vertices": 5691
+        },
+        {
+          "min": [
+            -0.8606676459312439,
+            -0.5725544691085815,
+            -1.3509392738342285
+          ],
+          "max": [
+            0.9566551446914673,
+            0.6328962445259094,
+            1.6477245092391968
+          ],
+          "vertices": 8538
+        },
+        {
+          "min": [
+            -1.2007771730422974,
+            -0.5280566811561584,
+            -1.4801461696624756
+          ],
+          "max": [
+            0.9252050518989563,
+            0.7337960004806519,
+            1.277156949043274
+          ],
+          "vertices": 4748
+        }
+      ],
+      "bytes": 1928790,
+      "triangles": 63127,
+      "nodes": [
+        {
+          "name": "rock_moss_set_01_rock01",
+          "mesh": 0,
+          "translation": [
+            -2.799999952316284,
+            0,
+            -2.122781276702881
+          ],
+          "scale": null,
+          "rotation": null
+        },
+        {
+          "name": "rock_moss_set_01_rock02",
+          "mesh": 1,
+          "translation": [
+            0,
+            0,
+            -2.122781276702881
+          ],
+          "scale": null,
+          "rotation": null
+        },
+        {
+          "name": "rock_moss_set_01_rock03",
+          "mesh": 2,
+          "translation": [
+            3,
+            0,
+            -2.122781276702881
+          ],
+          "scale": null,
+          "rotation": null
+        },
+        {
+          "name": "rock_moss_set_01_rock04",
+          "mesh": 3,
+          "translation": [
+            -2.700000047683716,
+            0,
+            1.5772186517715454
+          ],
+          "scale": null,
+          "rotation": null
+        },
+        {
+          "name": "rock_moss_set_01_rock05",
+          "mesh": 4,
+          "translation": [
+            0.15000000596046448,
+            0,
+            1.4772186279296875
+          ],
+          "scale": null,
+          "rotation": null
+        },
+        {
+          "name": "rock_moss_set_01_rock06",
+          "mesh": 5,
+          "translation": [
+            2.799999952316284,
+            0,
+            1.5772186517715454
+          ],
+          "scale": null,
+          "rotation": null
+        }
+      ]
+    },
+    {
+      "sourcePage": "https://polyhaven.com/a/tree_stump_01",
+      "sourceFiles": "https://api.polyhaven.com/files/tree_stump_01",
+      "name": "Tree Stump 01",
+      "authors": {
+        "Rob Tuytel": "All"
+      },
+      "sourcePolycount": 41046,
+      "sourceDimensionsMillimetres": [
+        1425.5504608154297,
+        1590.3143286705017,
+        572.6675391197205
+      ],
+      "files": [
+        {
+          "local": "tree_stump_01/tree_stump_01.gltf",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/tree_stump_01/tree_stump_01_1k.gltf",
+          "sourceMd5": "fedfc620634a8dbaf6345413b13abe1a",
+          "sourceBytes": 2793,
+          "bytes": 1893,
+          "sha256": "88db360622502aeda7f9e009c68e88bc5e880bd0ad09aecea674abc224e809ca"
+        },
+        {
+          "local": "tree_stump_01/tree_stump_01.bin",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/8k/tree_stump_01/tree_stump_01.bin",
+          "sourceMd5": "acb292727949126b92e58217fd50fca9",
+          "sourceBytes": 965380,
+          "bytes": 965380,
+          "sha256": "b4d9ca70b3c908c4a638fbd6a23ed96c84055bbbf14cf44b89e31ad59fa21e0a"
+        },
+        {
+          "local": "tree_stump_01/textures/tree_stump_01_diff_1k.webp",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/tree_stump_01/tree_stump_01_diff_1k.jpg",
+          "sourceMd5": "c71fe60400276a37b8847048cbec3720",
+          "sourceBytes": 907451,
+          "bytes": 292096,
+          "sha256": "60a3b17333f8a1ff47fd163d108c0eee429ffcd93dcc7fcb7f59272aba9b5108"
+        },
+        {
+          "local": "tree_stump_01/textures/tree_stump_01_nor_gl_1k.webp",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/tree_stump_01/tree_stump_01_nor_gl_1k.jpg",
+          "sourceMd5": "cc2a3c6e4682a521b15cccc61a416bbf",
+          "sourceBytes": 1238404,
+          "bytes": 554126,
+          "sha256": "584366728f9061cda46806fbd07d1f1ef4130d762a382c1f6685d252399f6574"
+        },
+        {
+          "local": "tree_stump_01/textures/tree_stump_01_arm_1k.webp",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/tree_stump_01/tree_stump_01_arm_1k.jpg",
+          "sourceMd5": "09b7aa228dccb93f5cf4188ba5530578",
+          "sourceBytes": 825646,
+          "bytes": 167694,
+          "sha256": "6f37ee00dfdbfea7e7859445ca1c5ddf5b51a7d45588866f29bb4a7f28dc52b6"
+        }
+      ],
+      "localModel": "tree_stump_01/tree_stump_01.gltf",
+      "meshBounds": [
+        {
+          "min": [
+            -0.7844194173812866,
+            -0.1929784119129181,
+            -0.7604432702064514
+          ],
+          "max": [
+            0.6411310434341431,
+            0.37968912720680237,
+            0.8298710584640503
+          ],
+          "vertices": 22472
+        }
+      ],
+      "bytes": 1981189,
+      "triangles": 41046,
+      "nodes": [
+        {
+          "name": "tree_stump_01",
+          "mesh": 0,
+          "translation": null,
+          "scale": null,
+          "rotation": null
+        }
+      ]
+    }
+  ]
+}

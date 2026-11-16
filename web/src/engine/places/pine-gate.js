@@ -56,7 +56,7 @@ export default function createPlace(h) {
           put(new THREE.TubeGeometry(root, 12, .045, 6, false), bark);
         }
       }
-      T.finish(); await pauseBuild();
+      T.finish(); h.addStump(-5.8,1.1,33,.8,.5);h.addStump(6.5,2.5,20,.65,-.4);await pauseBuild();
       const mountain = M(0x2c3730, 1);
       for (const [x, z, r, height, seed] of [[-100,-130,80,130,3],[80,-160,100,170,7],[-150,80,80,100,13]]) peak(x, -90, z, r, height, mountain, seed, .7);
       mist({ n: 55, at: [0, -12, 55], box: [180, 10, 140], color: 0x9aa9b2, opacity: .18, size: 24, drift: .55 });
