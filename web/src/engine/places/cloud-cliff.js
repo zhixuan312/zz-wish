@@ -25,11 +25,14 @@ export default function createPlace(h) {
       box(3.5,.24,.35,wood,.5,3.04,18);
       eave({x0:-1.7,x1:2.7,y:3.2,z:19.3,depth:2.8,rise:.6,tile:0x33383b});
       box(.85,2.65,.09,red,-.75,1.34,17.65,-.9);
-      for(const x of [-8.2,.3])for(const z of [-8.5,-3])box(.26,54,.26,wood,x,-27.3,z);
+      for(const x of [-11.7,-3.3])for(const z of [-8.5,-3])box(.26,54,.26,wood,x,-27.3,z);
       // Timber ties beneath the hall run into the same gallery joists.
-      box(9.8,.28,7,wood,-4,-.25,-5.6);
-      for(const z of [-8.5,-3])box(9.8,.28,.24,wood,-4,-.5,z);
-      hallB({x:-4,z:-5.8,w:9,d:6,h:3.5,wall:red,roof:dark,base:.25,glow:.22});
+      box(9.8,.28,7,wood,-7.5,-.25,-5.6);
+      for(const z of [-8.5,-3])box(9.8,.28,.24,wood,-7.5,-.5,z);
+      hallB({x:-7.5,z:-5.8,w:9,d:6,h:3.5,wall:red,roof:dark,base:.25,glow:.22});
+      // A short timber connection joins the hall's east side to the gallery, clear of the walking line.
+      for(let z=-4.5;z<-2.5;z+=.22)box(3.2,.13,.205,wood,-2.5,-.075,z);
+      for(const z of [-4.5,-2.5])box(3.2,.24,.16,wood,-2.5,-.23,z);
       hallB({x:-10,y:4,z:-13,w:7,d:5,h:3.4,wall:red,roof:dark,base:.3,glow:.16});
       for(const x of [-13.5,-6.5])for(const z of [-15,-11])box(.28,55,.28,wood,x,-23.2,z);
       await pauseBuild();
@@ -46,15 +49,19 @@ export default function createPlace(h) {
       at: { pos: V3(0, 0, 2), ry: 0 },
       lamp: 'lantern', y: 1.86, exposure: 1.05, bloom: [.42, .95],
       approach: [V3(.7, 1.65, 3.4)],
-      wide: { pos: V3(1.35, 1.6, 1.0), look: V3(-.25, 1.55, -.3) },
+      wide: { pos: V3(.85, 1.55, 1.45), look: V3(-.18, 1.53, -.15) },
+      // The flame stays in the place: brass, suspension rod, roof beam, timber screen and cloud beyond the rail.
+      burn: { pos: V3(.64, 1.7, 2.1), look: V3(-.1, 1.95, -.13) },
+      burnPhone: { pos: V3(.28, 1.75, 2.2), look: V3(-.05, 1.95, -.08) },
       cover: { pos: V3(1.7, 1.65, 2.8), look: V3(1.4, 1.47, .3) },
       coverPhone: { pos: V3(1.35, 1.7, 2.3), look: V3(.95, 1.3, .62) },
       async build(hh, C) {
         const wood = M(0x3a2618, .72, { map: grainTex }), red = M(0x5a1a12, .55), floorM = M(0x5a4030, .8, { map: grainTex });
         // Floor planks over joists, open to the drop at the edge.
-        for (let z = -1.1; z < 1.3; z += .2) box(7.2, .05, .18, floorM, 0, -.025, z + .1);
-        for (let x = -3.4; x <= 3.4; x += 1.1) box(.12, .2, 2.6, wood, x, -.15, .1);
-        box(7.2, .22, .14, wood, 0, -.12, 1.28);
+        for (let z = -1.1; z < 1.65; z += .2) box(7.2, .05, .18, floorM, 0, -.025, z + .1);
+        for(const x of [-3.4,3.4])box(.16,.24,2.9,wood,x,-.16,.25);
+        for (let x = -3.4; x <= 3.4; x += 1.1) box(.12, .2, 2.9, wood, x, -.15, .25);
+        box(7.2, .22, .14, wood, 0, -.12, 1.68);
         // Posts and struts under the gallery, going down into the cloud.
         for (const x of [-2.6, 0, 2.6]) { box(.2, 40, .2, wood, x, -20.2, 1.2); const s = new THREE.BoxGeometry(.14, 3, .14); s.rotateX(-.6); put(s, wood, x, -1.4, .55); }
         // The cross-gallery opens onto the approach. Its rail never crosses the walking line.

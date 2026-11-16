@@ -49,3 +49,13 @@ The rebuilt layouts are a clear improvement, but **round 1 does not meet the foo
 - The three walk images are nominal wall-time samples. Render/build stalls can delay actual progress, so they do not establish quarter/half/three-quarter spatial positions. Round 2 adds a development-only observable progress signal and captures against it.
 
 Next round: contextual authored views, corrected physical layout/supports, visible pond reflection, softer contact shadows, readable night fill and close material texture. Generated surface assets and their exact prompts are recorded in `web/public/materials/README.md`; they are not in use in round 1.
+
+## Round 2: context, material and visibility correction
+
+The full capture round was interrupted after the user's direct feedback that the scenes were too dark and the surroundings still looked fake. Completed partial captures remain under `artifacts/realism/round2/`; they are not claimed as a complete round. They use actual development-reported camera progress, with before/after values around each screenshot because image capture itself takes time.
+
+A separate visibility sweep then captured every place's outside and lit view, plus the cover, at both sizes: `artifacts/realism/visibility1/`. Its 42 views (84 scene/UI images) have complete coverage, zero page/console errors, no horizontal overflow and no WebGL errors/context loss. The first attempt hit an API routing race while closing a capture context; the remaining four phone places were resumed after correcting the harness.
+
+Night fill and exposure are now substantially lifted. All ten surroundings can be read. This revealed remaining geometry and composition failures: clipped Bamboo and Lotus lamps, an oversized cliff slab, underdeveloped temple façades and artificial pine crowns. The scenery still fails the requested footage bar. A raycast identified the cover obstruction as the merged untextured `0x343c3d` mountain mesh with world bounds approximately (-102,-135,-104) to (30,80,5), rather than a UI overlay.
+
+The next work replaces that primitive environment treatment with scanned natural surfaces/rocks, real timber façade details, and open branch pines. The latest user clarification prioritizes the surrounding temple location. Lamp and product behaviour remain preserved.

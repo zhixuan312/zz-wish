@@ -5,7 +5,7 @@ export default function createPlace(h) {
   return {
     exposure: 1.1, shade: 0.3,
     sky: { top: 0x060a0e, horizon: 0x222a2e, ground: 0x0c0f10, sun: 0xd8e2e6, dir: [.6, .3, -1], glow: .2, clouds: .62, lit: 0x3a4448, dark: 0x0e1214, stars: .2, disc: 1.2 },
-    fog: [0x1a2124, .014], sunL: [0xb8c8cc, .5], hemi: [0x344044, 0x0c0e0c, .3], bloom: [.75, .82], porch: [0xffa850, 90],
+    fog: [0x1a2124, .014], sunL: [0xc5d4db, .68], hemi: [0x47545c, 0x10150e, .48], bloom: [.75, .82], porch: [0xffa850, 90],
     // The same place by day; the scene blends toward it by the visitor's local time.
     day: { exposure: 1, sky: { top: 0x587090, horizon: 0xdadee2, ground: 0xc8ccd2, sun: 0xfff4e0, dir: [.6, .3, -1], glow: .6, clouds: .35, lit: 0xffffff, dark: 0xa8b0bc }, fog: [0xc6ced6, .0055], sunL: [0xfff2dc, 2], hemi: [0xc0d0e0, 0x384030, .85], bloom: [.4, 1.3] },
     view: { pos: V3(3.8, 2.3, 52), look: V3(-.4, 5.4, 1) },
@@ -14,6 +14,16 @@ export default function createPlace(h) {
       const C = h.context;
       const granite = M(0x797b74, .94, { map: pavingTex }), damp = M(0x484e43, .98, { map: pavingTex }), bark = M(0x40382b, 1, { map: grainTex });
       ground(0x252e23, { y: -.12 });
+      // The mountain rises under the flight and the tree roots rather than leaving trunks suspended above a flat ground plane.
+      const bank = new THREE.PlaneGeometry(56, 80, 56, 80); bank.rotateX(-Math.PI / 2); bank.translate(0, 0, 20);
+      const bp = bank.attributes.position;
+      for (let i = 0; i < bp.count; i++) {
+        const x = bp.getX(i), z = bp.getZ(i), rise = Math.max(0, Math.min(4, (46 - z) * .1));
+        const shoulder = Math.max(0, Math.abs(x) - 14), ripple = Math.sin(x * 2.3 + z * .4) * .025 + Math.sin(z * 2.1) * .018;
+        bp.setY(i, rise - .13 - Math.pow(shoulder, 1.2) * .25 + ripple);
+      }
+      bank.computeVertexNormals();
+      const bankMesh = new THREE.Mesh(bank, M(0x303c2b, 1, { map: pavingTex })); bankMesh.receiveShadow = true; C.G.add(bankMesh);
       // Fifty shallow risers climb four metres. The lamp pier, gate, landing and hall all share that level.
       stairs(0, 0, 46, 50, .08, .8, 4.2, granite);
       box(10, 4, 14, damp, 0, 2, -1);
@@ -36,9 +46,9 @@ export default function createPlace(h) {
       }
       await pauseBuild();
       const T = trees();
-      for (let i = 0; i < 58; i++) {
-        const side = i % 2 ? -1 : 1, z = 48 - (i / 2) * 1.75, y = Math.max(0, Math.min(4, (46 - z) * .1));
-        const x = side * (3.3 + C.rnd() * 7.5), size = 1.65 + C.rnd() * 1.25;
+      for (let i = 0; i < 38; i++) {
+        const side = i % 2 ? -1 : 1, z = 47 - (i / 2) * 2.7, y = Math.max(0, Math.min(4, (46 - z) * .1));
+        const x = side * (6.2 + C.rnd() * 6.6), size = 1.1 + C.rnd() * .65;
         T.pine(x, y - .16, z, size, 0x27382b, true);
         if (i % 3 === 0) {
           rock(x, y - .2, z, [.5 + C.rnd(), .3 + C.rnd() * .35, .6 + C.rnd()], i + 13);
@@ -82,9 +92,6 @@ export default function createPlace(h) {
         box(.44, .04, .3, dark, -1.24, .84, -.17);
         box(2.9, .16, .62, M(0x3a3c3a, .8), -2.0, 1.78, -.2);
         otherLamp('niche', -1.33, .86, -.2, .45); otherLamp('niche', -1.14, .86, -.24, .75);
-        // A lantern under the gate eave, so the steps are not climbed in the dark.
-        hh.lanterns([[1.82, 2.32, .3]], .34);
-        const gateLight = new THREE.PointLight(0xff9a58, 3.5, 7, 2); gateLight.position.set(1.82, 2.2, .45); C.G.add(gateLight);
         // The landing at the top of the flight, worn and mossy at its edges.
         box(4.6, .2, 1.6, stone, .6, -.1, .5);
         rock(-2.2, -.3, 1.6, [.6, .45, .5], 61); rock(3.4, -.3, 1.4, [.5, .4, .5], 63);

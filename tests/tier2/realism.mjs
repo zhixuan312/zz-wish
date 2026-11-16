@@ -1,6 +1,6 @@
 // Visual review only: run sequentially, with no test suites or other GPU captures.
 // EVIDENCE=round-0 BASE_URL=http://localhost:5173 API_URL=http://localhost:8792 node tests/tier2/realism.mjs
-// Optional: PLACES=cloud-cliff,pine-gate VIEWPORT=desktop|phone HOUR=22 CAMERA_SPEED=2 RESUME=1 COVER_ONLY=1.
+// Optional: PLACES=cloud-cliff,pine-gate VIEWPORT=desktop|phone HOUR=22 CAMERA_SPEED=2 RESUME=1 COVER_ONLY=1 REQUIRE_WALK_PROGRESS=1 FAST_SWEEP=1.
 import { chromium } from '@playwright/test';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 
@@ -11,6 +11,7 @@ const api = process.env.API_URL;
 const tag = process.env.EVIDENCE || 'round-0';
 const root = `artifacts/realism/${tag}`;
 const hour = Number(process.env.HOUR || 22);
+const fastSweep = !!process.env.FAST_SWEEP;
 const cameraSpeed = Number(process.env.CAMERA_SPEED || 1);
 if (!(cameraSpeed > 0 && cameraSpeed <= 3)) throw new Error('CAMERA_SPEED must be greater than zero and at most three.');
 const sizes = [
@@ -20,12 +21,13 @@ const sizes = [
 let stopRequested = false;
 process.on('SIGINT', () => { stopRequested = true; console.log('Stopping after the current place.'); });
 const browser = await chromium.launch({ channel: 'chrome', headless: true, handleSIGINT: false, args: ['--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist'] });
-const report = { tag, base, localHour: hour, cameraSpeed, startedAt: new Date().toISOString(), views: [], errors: [], consoleErrors: [], notes: [
+const report = { tag, base, localHour: hour, cameraSpeed, fastSweep, startedAt: new Date().toISOString(), views: [], errors: [], consoleErrors: [], notes: [
   'Visual captures from real UI actions; no test suite and no accelerated burn clock.',
   'When the development-only __walkProgress signal is present, walk samples wait for actual spatial fractions 0.25/0.50/0.75 and record before/after progress and camera position. Snapshot builds without the signal fall back to nominal wall-time samples; those do not prove exact positions. CAMERA_SPEED scales rAF timestamps from a stable initial origin, speeding scene animation only; product burn time stays real.',
   'Phone viewport and touch emulation on desktop GPU, not a physical phone.',
   'Clean captures hide only .ui visibility for the screenshot, without moving camera, hiding scene geometry or changing lights.',
 ] };
+if (fastSweep) report.notes.push('Brightness review only: FAST_SWEEP uses the visible Skip control and captures outside/lit, not walk or ending evidence.');
 await mkdir(root, { recursive: true });
 if (process.env.RESUME) {
   try { const previous = JSON.parse(await readFile(`${root}/report.json`, 'utf8')); report.views = previous.views || []; report.errors = previous.errors || []; report.consoleErrors = previous.consoleErrors || [];
@@ -37,12 +39,17 @@ try {
    if (stopRequested) break;
    for (const currentId of selected) {
     if (stopRequested) break;
-    if (process.env.RESUME && report.views.some(v => v.viewport === size.name && v.place === currentId && v.phase === 'went-out')) continue;
+    if (process.env.RESUME && report.views.some(v => v.viewport === size.name && v.place === currentId && v.phase === (fastSweep ? 'lit' : 'went-out'))) continue;
     const context = await browser.newContext({ viewport: size.viewport, locale: 'en-US', hasTouch: size.phone, isMobile: size.phone, reducedMotion: 'no-preference' });
     if (api) await context.route('**/api/**', async route => {
-      const original = new URL(route.request().url());
-      const upstream = await route.fetch({ url: new URL(original.pathname + original.search, api).href });
-      await route.fulfill({ response: upstream });
+      try {
+        const original = new URL(route.request().url());
+        const upstream = await route.fetch({ url: new URL(original.pathname + original.search, api).href });
+        await route.fulfill({ response: upstream });
+      } catch (error) {
+        if (/disposed|Target.*closed|Browser.*closed/i.test(error.message)) return;
+        throw error;
+      }
     });
     await context.addInitScript(({ hour, cameraSpeed }) => {
       Date.prototype.getHours = () => hour;
@@ -109,9 +116,12 @@ try {
       await shot(id, 'outside');
       const start = Date.now();
       await act(button('Leave it here'));
+      if (fastSweep) await act(button('Skip'));
+      if (!fastSweep) {
       // Wait on actual engine progress when available. The frozen baseline predates this development signal.
       await page.waitForTimeout(100);
-      const hasProgress = await page.evaluate(id => window.__walkProgress?.id === id, id);
+      const hasProgress = await page.evaluate(() => window.__visualWalkAvailable === true);
+      if (process.env.REQUIRE_WALK_PROGRESS && !hasProgress) throw new Error('Development walk-progress capability is required for this capture.');
       for (const [index, fraction, seconds] of [[1, .25, 14 * Math.cbrt(.25 / 4)], [2, .5, 7], [3, .75, 14 * (1 - Math.cbrt(.25 / 4))]]) {
         if (hasProgress) {
           await page.waitForFunction(({ id, fraction }) => {
@@ -121,9 +131,10 @@ try {
         } else await page.waitForTimeout(Math.max(0, start + seconds * 1000 / cameraSpeed - Date.now()));
         await shot(id, `walk-${index}`, Date.now() - start);
       }
+      }
       await page.getByRole('tab', { name: 'Ready-made', exact: true }).waitFor();
       await page.waitForTimeout(800);
-      await shot(id, 'choose');
+      if (!fastSweep) await shot(id, 'choose');
       await act(button(/Take this one/));
       await button(/Light it/).waitFor();
       await act(button(/Light it/));
@@ -133,10 +144,12 @@ try {
       await act(button('Put out'));
       await act(button('Put out and end'));
       await page.getByTestId('result-title').waitFor();
-      await page.waitForTimeout(400);
-      await shot(id, 'went-out-smoke');
-      await page.waitForTimeout(1700);
-      await shot(id, 'went-out');
+      if (!fastSweep) {
+        await page.waitForTimeout(400);
+        await shot(id, 'went-out-smoke');
+        await page.waitForTimeout(1700);
+        await shot(id, 'went-out');
+      }
     }
     } catch (error) {
       const path = `${out}/${currentId}/capture-failure.png`;
@@ -151,7 +164,7 @@ try {
   report.errors.push({ fatal: error.stack || String(error) });
   throw error;
 } finally {
-  const required = ['outside', 'walk-1', 'walk-2', 'walk-3', 'choose', 'lit', 'went-out-smoke', 'went-out'];
+  const required = fastSweep ? ['outside', 'lit'] : ['outside', 'walk-1', 'walk-2', 'walk-3', 'choose', 'lit', 'went-out-smoke', 'went-out'];
   report.coverage = sizes.flatMap(size => selected.map(place => {
     const captured = new Set(report.views.filter(view => view.viewport === size.name && view.place === place).map(view => view.phase));
     return { viewport: size.name, place, missing: process.env.COVER_ONLY ? [] : required.filter(phase => !captured.has(phase)) };

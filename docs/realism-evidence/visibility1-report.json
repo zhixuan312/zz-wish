@@ -1,0 +1,739 @@
+{
+  "tag": "visibility1",
+  "base": "http://localhost:5173",
+  "localHour": 22,
+  "cameraSpeed": 2,
+  "fastSweep": true,
+  "startedAt": "2026-11-16T12:30:27.982Z",
+  "views": [
+    {
+      "viewport": "desktop",
+      "place": "cover",
+      "phase": "cover",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      },
+      "walkBefore": null,
+      "walkAfter": null
+    },
+    {
+      "viewport": "desktop",
+      "place": "pine-gate",
+      "phase": "outside",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      },
+      "walkBefore": null,
+      "walkAfter": null
+    },
+    {
+      "viewport": "desktop",
+      "place": "pine-gate",
+      "phase": "lit",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      },
+      "walkBefore": null,
+      "walkAfter": null
+    },
+    {
+      "viewport": "desktop",
+      "place": "bamboo-rain",
+      "phase": "outside",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      },
+      "walkBefore": null,
+      "walkAfter": null
+    },
+    {
+      "viewport": "desktop",
+      "place": "bamboo-rain",
+      "phase": "lit",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      },
+      "walkBefore": null,
+      "walkAfter": null
+    },
+    {
+      "viewport": "desktop",
+      "place": "cloud-cliff",
+      "phase": "outside",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      },
+      "walkBefore": null,
+      "walkAfter": null
+    },
+    {
+      "viewport": "desktop",
+      "place": "cloud-cliff",
+      "phase": "lit",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      },
+      "walkBefore": null,
+      "walkAfter": null
+    },
+    {
+      "viewport": "desktop",
+      "place": "lotus-pond",
+      "phase": "outside",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      },
+      "walkBefore": null,
+      "walkAfter": null
+    },
+    {
+      "viewport": "desktop",
+      "place": "lotus-pond",
+      "phase": "lit",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      },
+      "walkBefore": null,
+      "walkAfter": null
+    },
+    {
+      "viewport": "desktop",
+      "place": "sea-tide",
+      "phase": "outside",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      },
+      "walkBefore": null,
+      "walkAfter": null
+    },
+    {
+      "viewport": "desktop",
+      "place": "sea-tide",
+      "phase": "lit",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      },
+      "walkBefore": null,
+      "walkAfter": null
+    },
+    {
+      "viewport": "desktop",
+      "place": "snow-roof",
+      "phase": "outside",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      },
+      "walkBefore": null,
+      "walkAfter": null
+    },
+    {
+      "viewport": "desktop",
+      "place": "snow-roof",
+      "phase": "lit",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      },
+      "walkBefore": null,
+      "walkAfter": null
+    },
+    {
+      "viewport": "desktop",
+      "place": "loess-cliff",
+      "phase": "outside",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      },
+      "walkBefore": null,
+      "walkAfter": null
+    },
+    {
+      "viewport": "desktop",
+      "place": "loess-cliff",
+      "phase": "lit",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      },
+      "walkBefore": null,
+      "walkAfter": null
+    },
+    {
+      "viewport": "desktop",
+      "place": "highland",
+      "phase": "outside",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      },
+      "walkBefore": null,
+      "walkAfter": null
+    },
+    {
+      "viewport": "desktop",
+      "place": "highland",
+      "phase": "lit",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      },
+      "walkBefore": null,
+      "walkAfter": null
+    },
+    {
+      "viewport": "desktop",
+      "place": "bell-lane",
+      "phase": "outside",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      },
+      "walkBefore": null,
+      "walkAfter": null
+    },
+    {
+      "viewport": "desktop",
+      "place": "bell-lane",
+      "phase": "lit",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      },
+      "walkBefore": null,
+      "walkAfter": null
+    },
+    {
+      "viewport": "desktop",
+      "place": "valley-pagoda",
+      "phase": "outside",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      },
+      "walkBefore": null,
+      "walkAfter": null
+    },
+    {
+      "viewport": "desktop",
+      "place": "valley-pagoda",
+      "phase": "lit",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      },
+      "walkBefore": null,
+      "walkAfter": null
+    },
+    {
+      "viewport": "phone",
+      "place": "cover",
+      "phase": "cover",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      },
+      "walkBefore": null,
+      "walkAfter": null
+    },
+    {
+      "viewport": "phone",
+      "place": "pine-gate",
+      "phase": "outside",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      },
+      "walkBefore": null,
+      "walkAfter": null
+    },
+    {
+      "viewport": "phone",
+      "place": "pine-gate",
+      "phase": "lit",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      },
+      "walkBefore": null,
+      "walkAfter": null
+    },
+    {
+      "viewport": "phone",
+      "place": "bamboo-rain",
+      "phase": "outside",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      },
+      "walkBefore": null,
+      "walkAfter": null
+    },
+    {
+      "viewport": "phone",
+      "place": "bamboo-rain",
+      "phase": "lit",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      },
+      "walkBefore": null,
+      "walkAfter": null
+    },
+    {
+      "viewport": "phone",
+      "place": "cloud-cliff",
+      "phase": "outside",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      },
+      "walkBefore": null,
+      "walkAfter": null
+    },
+    {
+      "viewport": "phone",
+      "place": "cloud-cliff",
+      "phase": "lit",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      },
+      "walkBefore": null,
+      "walkAfter": null
+    },
+    {
+      "viewport": "phone",
+      "place": "lotus-pond",
+      "phase": "outside",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      },
+      "walkBefore": null,
+      "walkAfter": null
+    },
+    {
+      "viewport": "phone",
+      "place": "lotus-pond",
+      "phase": "lit",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      },
+      "walkBefore": null,
+      "walkAfter": null
+    },
+    {
+      "viewport": "phone",
+      "place": "sea-tide",
+      "phase": "outside",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      },
+      "walkBefore": null,
+      "walkAfter": null
+    },
+    {
+      "viewport": "phone",
+      "place": "sea-tide",
+      "phase": "lit",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      },
+      "walkBefore": null,
+      "walkAfter": null
+    },
+    {
+      "viewport": "phone",
+      "place": "snow-roof",
+      "phase": "outside",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      },
+      "walkBefore": null,
+      "walkAfter": null
+    },
+    {
+      "viewport": "phone",
+      "place": "snow-roof",
+      "phase": "lit",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      },
+      "walkBefore": null,
+      "walkAfter": null
+    },
+    {
+      "viewport": "phone",
+      "place": "loess-cliff",
+      "phase": "outside",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      },
+      "walkBefore": null,
+      "walkAfter": null
+    },
+    {
+      "viewport": "phone",
+      "place": "loess-cliff",
+      "phase": "lit",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      },
+      "walkBefore": null,
+      "walkAfter": null
+    },
+    {
+      "viewport": "phone",
+      "place": "highland",
+      "phase": "outside",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      },
+      "walkBefore": null,
+      "walkAfter": null
+    },
+    {
+      "viewport": "phone",
+      "place": "highland",
+      "phase": "lit",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      },
+      "walkBefore": null,
+      "walkAfter": null
+    },
+    {
+      "viewport": "phone",
+      "place": "bell-lane",
+      "phase": "outside",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      },
+      "walkBefore": null,
+      "walkAfter": null
+    },
+    {
+      "viewport": "phone",
+      "place": "bell-lane",
+      "phase": "lit",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      },
+      "walkBefore": null,
+      "walkAfter": null
+    },
+    {
+      "viewport": "phone",
+      "place": "valley-pagoda",
+      "phase": "outside",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      },
+      "walkBefore": null,
+      "walkAfter": null
+    },
+    {
+      "viewport": "phone",
+      "place": "valley-pagoda",
+      "phase": "lit",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      },
+      "walkBefore": null,
+      "walkAfter": null
+    }
+  ],
+  "errors": [],
+  "consoleErrors": [],
+  "notes": [
+    "Visual captures from real UI actions; no test suite and no accelerated burn clock.",
+    "When the development-only __walkProgress signal is present, walk samples wait for actual spatial fractions 0.25/0.50/0.75 and record before/after progress and camera position. Snapshot builds without the signal fall back to nominal wall-time samples; those do not prove exact positions. CAMERA_SPEED scales rAF timestamps from a stable initial origin, speeding scene animation only; product burn time stays real.",
+    "Phone viewport and touch emulation on desktop GPU, not a physical phone.",
+    "Clean captures hide only .ui visibility for the screenshot, without moving camera, hiding scene geometry or changing lights.",
+    "Brightness review only: FAST_SWEEP uses the visible Skip control and captures outside/lit, not walk or ending evidence.",
+    "The sweep resumed after a capture-harness API-route response disposal during context close. Already saved views were retained; the final four phone places completed after the route-close race was handled."
+  ],
+  "desktop": {
+    "gpu": {
+      "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1, Unspecified Version)",
+      "width": 1440,
+      "height": 900
+    },
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "touch": false,
+    "cameraSpeed": 2,
+    "localHour": 22
+  },
+  "phone": {
+    "gpu": {
+      "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1, Unspecified Version)",
+      "width": 390,
+      "height": 844
+    },
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "touch": true,
+    "cameraSpeed": 2,
+    "localHour": 22
+  },
+  "coverage": [
+    {
+      "viewport": "desktop",
+      "place": "pine-gate",
+      "missing": []
+    },
+    {
+      "viewport": "desktop",
+      "place": "bamboo-rain",
+      "missing": []
+    },
+    {
+      "viewport": "desktop",
+      "place": "cloud-cliff",
+      "missing": []
+    },
+    {
+      "viewport": "desktop",
+      "place": "lotus-pond",
+      "missing": []
+    },
+    {
+      "viewport": "desktop",
+      "place": "sea-tide",
+      "missing": []
+    },
+    {
+      "viewport": "desktop",
+      "place": "snow-roof",
+      "missing": []
+    },
+    {
+      "viewport": "desktop",
+      "place": "loess-cliff",
+      "missing": []
+    },
+    {
+      "viewport": "desktop",
+      "place": "highland",
+      "missing": []
+    },
+    {
+      "viewport": "desktop",
+      "place": "bell-lane",
+      "missing": []
+    },
+    {
+      "viewport": "desktop",
+      "place": "valley-pagoda",
+      "missing": []
+    },
+    {
+      "viewport": "phone",
+      "place": "pine-gate",
+      "missing": []
+    },
+    {
+      "viewport": "phone",
+      "place": "bamboo-rain",
+      "missing": []
+    },
+    {
+      "viewport": "phone",
+      "place": "cloud-cliff",
+      "missing": []
+    },
+    {
+      "viewport": "phone",
+      "place": "lotus-pond",
+      "missing": []
+    },
+    {
+      "viewport": "phone",
+      "place": "sea-tide",
+      "missing": []
+    },
+    {
+      "viewport": "phone",
+      "place": "snow-roof",
+      "missing": []
+    },
+    {
+      "viewport": "phone",
+      "place": "loess-cliff",
+      "missing": []
+    },
+    {
+      "viewport": "phone",
+      "place": "highland",
+      "missing": []
+    },
+    {
+      "viewport": "phone",
+      "place": "bell-lane",
+      "missing": []
+    },
+    {
+      "viewport": "phone",
+      "place": "valley-pagoda",
+      "missing": []
+    }
+  ],
+  "finishedAt": "2026-11-16T12:31:37.362Z"
+}

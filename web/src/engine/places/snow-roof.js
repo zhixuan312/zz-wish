@@ -43,8 +43,9 @@ export default function createPlace(h) {
       at: { pos: V3(0, .6, -.5), ry: 0 },
       lamp: 'gauze', y: 2.62, exposure: 1.15, bloom: [.42, .92], dust: true,
       interior: { min: [-5, -.3, -6], max: [5, 4.4, 2.5] },
-      approach: [V3(.5, 1.0, 11), V3(.3, 1.05, 6.4), V3(.1, 1.6, 3.6), V3(0, 1.62, 1.8)],
-      wide: { pos: V3(.75, 1.62, 1.55), look: V3(0, 2.15, -.6) },
+      approach: [V3(.5, 1.0, 11), V3(.3, 1.05, 6.4), V3(.1, 1.6, 3.6), V3(1.3, 1.62, 1.8), V3(1.5, 1.62, -.7)],
+      wide: { pos: V3(1.3, 1.6, -2.4), look: V3(0, 2.15, 1.6) },
+      burn: { pos: V3(1.15, 1.65, -2.05), look: V3(0, 2.15, 1.7) },
       async build(hh, C) {
         const { THREE, M, box, put, col, eave, fall, otherLamp, wallWithHoles, smokeAt, lathe, latticeTex, pavingTex, grainTex, plasterTex, pauseBuild } = hh;
         C.snow = 0; // Snow belongs outside; the altar, floor and painted beams remain dry.
