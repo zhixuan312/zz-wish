@@ -99,22 +99,19 @@ async function loadTools(prefix) {
   return { core: modules[0], extensions: modules[1], functions: modules[2], meshoptimizer: modules[3], versions };
 }
 const args=process.argv.slice(2),opt={};
-if(args.includes('--help')){console.log('node scripts/prune-float32-baked.mjs --input PATH --output NEW_art/build/PATH.glb (--profile-out NEW_PROFILE.json | --profile EXISTING_PROFILE.json) [--tools PREFIX]\nFrozen actual e41a50e8 genuine F32 source only. All source FACE/raw and retained-attribute proofs execute before any output write.');process.exit(0);}
-for(let i=0;i<args.length;i+=2){if(!['--input','--output','--profile','--profile-out','--tools'].includes(args[i])||!args[i+1]||opt[args[i]])throw Error('Invalid/repeated option');opt[args[i]]=args[i+1];}
+if(args.includes('--help')){console.log('node scripts/prune-float32-baked.mjs --input PATH --output NEW_art/build/PATH.glb (--profile-out NEW_PROFILE.json --inputs ACTUAL_BINDINGS.json | --profile EXISTING_PROFILE.json) [--tools PREFIX]\nFresh measurements require explicit source/prepared/raw/proof/reference/input paths and actual SHA256 bindings. Reproduction reads those bindings from the frozen profile. Source FACE/raw and retained-attribute proofs execute before any output write.');process.exit(0);}
+for(let i=0;i<args.length;i+=2){if(!['--input','--output','--profile','--profile-out','--inputs','--tools'].includes(args[i])||!args[i+1]||opt[args[i]])throw Error('Invalid/repeated option');opt[args[i]]=args[i+1];}
 if(!opt['--input']||!opt['--output']||!!opt['--profile']===!!opt['--profile-out'])throw Error('Required input, output and exactly one profile/profile-out');
 const input=await realpath(resolve(opt['--input'])),output=resolve(opt['--output']),profilePath=resolve(opt['--profile']??opt['--profile-out']);
 if(!output.startsWith(join(ROOT,'art/build')+'/')||output.startsWith(dirname(input)+'/')||!output.endsWith('.glb')||await exists(output)||await exists(output.slice(0,-4)+'.receipt.json'))throw Error('New separate art/build output required');
 if(opt['--profile-out']&&await exists(profilePath))throw Error('New profile output refused existing file');
 if(!profilePath.startsWith(ROOT+'/'))throw Error('Profile must remain in repository');
 const receiptPath=output.slice(0,-4)+'.receipt.json',prior=opt['--profile']?JSON.parse(await readFile(profilePath,'utf8')):null;
-const frozen={
- source:{path:join(ROOT,'art/build/snow-roof-stair-banks-grain.blend'),sha256:'6e9f59c93565e08a690eaafbc756967ba39e0f4d8ad0094e4520265948360af8'},
- prepared:{path:join(ROOT,'art/build/snow-roof-final/snow-roof-prepared.blend'),sha256:'6ed42644cd3a6c1026b079740957280df0274e9e9a0eaf5f8d3da514725079c1'},
- raw:{path:join(ROOT,'art/build/snow-roof-final/snow-roof.raw.glb'),sha256:'0deec9fd71d4c49e666e5b091f15af3067efbcdb7e3c350bcb85a2bf7f980dea'},
- proof:{path:join(ROOT,'art/blender/proofs/snow-roof-final-hidden-tiles.json'),sha256:'6649e9c080c3b152c743fcc88ad5ebf95690ff8f678742cc5dd84be79ce2e014'},
- reference:{path:join(ROOT,'art/build/snow-roof-final/hidden-export-reference-postbatch/reference.json'),sha256:'9138cc6d6db2d2334504ee2e7617d4ccda22888af9d9708b9d895093d7d66436'},
- input:{path:input,sha256:'e41a50e8cd5935d69f254514c7cac3c15fa1b1f640f9c4f0e8f351f220906217'},
-};
+if(prior&&opt['--inputs']||!prior&&!opt['--inputs'])throw Error('Fresh profiles require --inputs; reproduction uses only existing profile bindings');
+const bound=prior?.inputs??JSON.parse(await readFile(resolve(opt['--inputs']),'utf8')).inputs;
+if(!bound||JSON.stringify(Object.keys(bound).sort())!==JSON.stringify(['source','prepared','raw','proof','reference','input'].sort()))throw Error('Explicit actual input bindings are incomplete');
+const frozen=Object.fromEntries(Object.entries(bound).map(([k,v])=>{if(!v.path||!/^[a-f0-9]{64}$/.test(v.sha256))throw Error('Invalid actual binding: '+k);return[k,{path:resolve(ROOT,v.path),sha256:v.sha256}];}));
+if(await realpath(frozen.input.path)!==input)throw Error('CLI input differs from actual profile binding');
 const inputs={};
 for(const[k,v]of Object.entries(frozen)){const bytes=await readFile(v.path);if(sha(bytes)!==v.sha256)throw Error('Actual frozen input changed: '+k);inputs[k]={path:portablePath(v.path),sha256:v.sha256};}
 const reference=JSON.parse(await readFile(frozen.reference.path,'utf8')),sourceProof=JSON.parse(await readFile(frozen.proof.path,'utf8'));
@@ -134,13 +131,22 @@ const authoredPositionProof=[];const rn=nodes(raw);
 for(const[region,n]of nodes(doc)){const a=n.getMesh().listPrimitives(),b=rn.get(region).getMesh().listPrimitives();if(a.length!==b.length)throw Error('Authored primitive population differs');for(let i=0;i<a.length;i++){const h=positionSignature(a[i]);if(h!==positionSignature(b[i]))throw Error('Input F32 positions/winding differ from actual raw: '+region+'/'+i);authoredPositionProof.push({region,primitive:i,positionTriangleMultisetSha256:h});}}
 const sourceSets={};const binaries={};
 for(const[region,r]of Object.entries(reference.regions)){const path=join(dirname(frozen.reference.path),r.binary),bytes=await readFile(path);if(sha(bytes)!==r.binarySha256||bytes.length!==r.hiddenTriangles*36)throw Error('Actual FACE binary changed');const map=new Map();for(let i=0;i<bytes.length;i+=36){const k=bytes.subarray(i,i+36).toString('hex');map.set(k,(map.get(k)??0)+1);}sourceSets[region]=map;binaries[region]={path:portablePath(path),sha256:r.binarySha256,triangles:r.hiddenTriangles};}
+// Texture/material dedup can merge identical source tile materials under a new
+// name. Authorization comes from exact FACE geometry plus the reserved marker,
+// with a uniqueness gate that refuses coincident non-proof marker triangles.
+for(const[region,node]of nodes(doc)){
+ const candidates=new Map();
+ for(const p of node.getMesh().listPrimitives()){const uv=p.getAttribute('TEXCOORD_1'),idx=p.getIndices().getArray();for(let i=0;i<idx.length;i+=3){const ids=[idx[i],idx[i+1],idx[i+2]];if(!ids.every(j=>{const v=uv.getElement(j,[0,0]);return v[0]===0&&v[1]===1;}))continue;const k=positionKey(p,ids,true);if(sourceSets[region].has(k))candidates.set(k,(candidates.get(k)??0)+1);}}
+ for(const[k,n]of sourceSets[region])if(candidates.get(k)!==n)throw Error('FACE geometry is absent or ambiguous among reserved-marker triangles: '+region);
+}
 const removed={hall:0,court:0,gate:0},primitives=[],retained=[];let otherMarkers=0,prunedVertices=0,weldedVertices=0;
 for(const[region,node]of nodes(doc))for(const p of node.getMesh().listPrimitives()){
  if(p.getMode()!==4||p.listTargets().length)throw Error('Only static indexed triangles');
  for(const semantic of ['POSITION','NORMAL','TEXCOORD_0','TEXCOORD_1','COLOR_0','COLOR_1'])if(!p.getAttribute(semantic))throw Error('Missing accepted attribute');
  const pos=p.getAttribute('POSITION'),uv=p.getAttribute('TEXCOORD_1'),old=p.getIndices(),idx=old.getArray(),keep=[],material=p.getMaterial()?.getName(),vertexBefore=pos.getCount();let count=0;
  for(let i=0;i<idx.length;i+=3){const ids=[idx[i],idx[i+1],idx[i+2]],marker=ids.every(j=>{const v=uv.getElement(j,[0,0]);return v[0]===0&&v[1]===1;});
-  if(marker&&material==='Side hall roof tiles'){const k=positionKey(p,ids,true),left=sourceSets[region].get(k)??0;if(!left)throw Error('Candidate roof triangle lacks exact actual FACE provenance: '+region);sourceSets[region].set(k,left-1);count++;removed[region]++;}
+  const k=marker?positionKey(p,ids,true):null,left=k?(sourceSets[region].get(k)??0):0;
+  if(marker&&left){sourceSets[region].set(k,left-1);count++;removed[region]++;}
   else{keep.push(...ids);if(marker)otherMarkers++;}
  }
  p.setIndices(doc.createAccessor().setType('SCALAR').setArray(new idx.constructor(keep)));if(old.listParents().length===1)old.dispose();
@@ -148,7 +154,6 @@ for(const[region,node]of nodes(doc))for(const p of node.getMesh().listPrimitives
  if(primitiveHash(p)!==expected)throw Error('Retained attribute bytes/winding changed during exact prune/weld');retained.push({region,material,hash:expected});primitives.push({region,material,removedTriangles:count,retainedTriangles:keep.length/3,verticesBefore:vertexBefore,verticesAfterPrune:vertexAfterPrune,verticesAfterWeld:vertexAfterWeld});
 }
 for(const[region,set]of Object.entries(sourceSets)){if([...set.values()].some(n=>n)||removed[region]!==reference.regions[region].hiddenTriangles)throw Error('Actual FACE subset incomplete');}
-if(otherMarkers!==3292)throw Error('Non-proof UV-marker population changed');
 await doc.transform(dedup());
 // Codec-only QUANTIZE enum: no quantize() transform and no FILTER normal pass.
 // FLOAT32 POSITION stays FLOAT32/NONE and is verified after decoding below.
@@ -156,9 +161,9 @@ doc.createExtension(EXTMeshoptCompression).setRequired(true).setEncoderOptions({
 const outputBytes=await io.writeBinary(doc),decoded=await io.readBinary(outputBytes),after=summary(outputBytes),jsonAfter=glbParts(outputBytes).json;
 same(primitiveStates(decoded),retained,'Actual decoded retained triangle attribute bytes/winding');same(nodeState(decoded),nodeBefore,'Actual authored node state');same(sceneState(decoded),sceneBefore,'Actual source scene proof');same(imageSignature(outputBytes),imagesBefore,'Actual embedded image payloads');same(jsonAfter.materials,jsonBefore.materials,'Full material definitions');
 for(const m of jsonAfter.meshes)for(const p of m.primitives){const a=jsonAfter.accessors[p.attributes.POSITION],view=jsonAfter.bufferViews[a.bufferView];if(a.componentType!==5126||a.normalized||view.extensions?.EXT_meshopt_compression?.filter&&view.extensions.EXT_meshopt_compression.filter!=='NONE')throw Error('Output F32 precision/filter changed');}
-if(after.triangles!==before.triangles-183750)throw Error('Unexpected retained triangle count');
+if(after.triangles!==before.triangles-Object.values(reference.regions).reduce((n,r)=>n+r.hiddenTriangles,0))throw Error('Unexpected retained triangle count');
 for(const[k,v]of Object.entries(frozen))if(sha(await readFile(v.path))!==v.sha256)throw Error('Read-only input changed during build: '+k);
-const profile={version:1,id:'snow-roof-final-mobile-float32-6e9f-v1',variant:'mobile-float32',inputs,faceReferenceBinaries:binaries,authoredPositionProof,sourceFaceSelection:'Exact prepared FACE triangle-position multiset + original region + audited roof material + reservedUV2 marker. Marker alone never authorizes removal.',removedTrianglesByRegion:removed,preservedNonproofMarkerTriangles:otherMarkers,input:before,output:{...after,sha256:sha(outputBytes)},prunedVertices,weldedVertices,retainedTriangleHashes:retained,imagePayloadMultisetSha256:imagesBefore.sha256,encoding:{dependencies:tools.versions,writerMethod:'QUANTIZE codec-only',positionComponentType:5126,positionNormalized:false,positionFilter:'NONE',quantizationTransformsRun:0,normalFilterPassesAdded:0,imageConversions:0},invariants:{actualRawAuthoredWorldPositionsExact:true,fullF32InputPositionMultisetsAndCyclicWindingReverified:true,retainedAllAttributeTriangleBytesAndWindingExact:true,nodeTransformsExtrasHierarchyExact:true,sourceSceneProofExact:true,materialDefinitionsExact:true,embeddedImagesByteExact:true,allInputsByteUnchanged:true},primitives,generator:'scripts/prune-float32-baked.mjs',generatorSha256:sha(await readFile(fileURLToPath(import.meta.url))),adoption:'Separate art/build candidate only. Authored/bake geometry and public assets remain intact; runtime optical/performance review required.'};
+const profile={version:1,id:prior?.id??`snow-roof-mobile-float32-${inputs.source.sha256.slice(0,8)}-v2`,variant:'mobile-float32',inputs,faceReferenceBinaries:binaries,authoredPositionProof,sourceFaceSelection:'Exact prepared FACE triangle-position multiset + original region + reservedUV2 marker, with unique candidate population verified before mutation. Material names may deduplicate; marker alone never authorizes removal.',removedTrianglesByRegion:removed,preservedNonproofMarkerTriangles:otherMarkers,input:before,output:{...after,sha256:sha(outputBytes)},prunedVertices,weldedVertices,retainedTriangleHashes:retained,imagePayloadMultisetSha256:imagesBefore.sha256,encoding:{dependencies:tools.versions,writerMethod:'QUANTIZE codec-only',positionComponentType:5126,positionNormalized:false,positionFilter:'NONE',quantizationTransformsRun:0,normalFilterPassesAdded:0,imageConversions:0},invariants:{actualRawAuthoredWorldPositionsExact:true,fullF32InputPositionMultisetsAndCyclicWindingReverified:true,retainedAllAttributeTriangleBytesAndWindingExact:true,nodeTransformsExtrasHierarchyExact:true,sourceSceneProofExact:true,materialDefinitionsExact:true,embeddedImagesByteExact:true,allInputsByteUnchanged:true},primitives,generator:'scripts/prune-float32-baked.mjs',generatorSha256:sha(await readFile(fileURLToPath(import.meta.url))),adoption:'Separate art/build candidate only. Authored/bake geometry and public assets remain intact; runtime optical/performance review required.'};
 if(prior){same(prior.inputs,profile.inputs,'Frozen explicit profile input bindings');same(prior.output,profile.output,'Frozen measured output');same(prior.retainedTriangleHashes,profile.retainedTriangleHashes,'Frozen retained attribute hashes');}
 const receipt={...profile,output:{path:portablePath(output),...profile.output},profile:{path:portablePath(profilePath),operation:prior?'reproduce validated profile':'fresh measured genuine F32 profile'}};
 await mkdir(dirname(output),{recursive:true});let written=false;

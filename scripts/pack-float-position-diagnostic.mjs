@@ -9,14 +9,16 @@ import { resolve, join, dirname, relative } from 'node:path';
 import { pathToFileURL, fileURLToPath } from 'node:url';
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const argv=process.argv.slice(2), option=(name,fallback)=>argv.includes(name)?argv[argv.indexOf(name)+1]:fallback;
-if(argv.includes('--help')){console.log('node scripts/pack-float-position-diagnostic.mjs --out art/build/snow-roof-float32-position-diagnostic [--tools /tmp/one-light-gltf-tools]\nReads actual raw/mobile-textured GLBs and current unpruned mobile baseline; writes a separate unpruned complete optical diagnostic. No image conversion or Cycles.');process.exit(0);}
-const source=resolve(ROOT,'art/build/snow-roof-final'), out=resolve(option('--out','art/build/snow-roof-float32-position-diagnostic'));
+if(argv.includes('--help')){console.log('node scripts/pack-float-position-diagnostic.mjs --source BAKE_DIR --manifest COMPLETE_MOBILE_MANIFEST --out NEW_art/build/DIR [--tools PREFIX]\nReads actual raw/mobile-textured GLBs and source-bound unpruned mobile baseline. Actual raw/baseline hashes must match the complete pack receipt; no hash bypass or SHORT-to-float cast. No image conversion or Cycles.');process.exit(0);}
+const source=resolve(option('--source',join(ROOT,'art/build/snow-roof-final'))), out=resolve(option('--out','art/build/snow-roof-float32-position-diagnostic'));
 if(!out.startsWith(join(ROOT,'art/build')+'/')||out===source)throw Error('Separate art/build output required.');
 const exists=p=>access(p).then(()=>true,()=>false), sha=b=>createHash('sha256').update(b).digest('hex');
 if(await exists(join(out,'snow-roof.glb')))throw Error('Refusing existing diagnostic output.');
-const paths={raw:join(source,'snow-roof.raw.glb'),textured:join(source,'snow-roof.mobile.textures.glb'),baseline:join(source,'snow-roof.mobile.packed.glb'),manifest:join(ROOT,'art/build/snow-roof-final-mobile/manifest.json')};
+const paths={raw:join(source,'snow-roof.raw.glb'),textured:join(source,'snow-roof.mobile.textures.glb'),baseline:join(source,'snow-roof.mobile.packed.glb'),manifest:resolve(option('--manifest',join(ROOT,'art/build/snow-roof-final-mobile/manifest.json')))};
 const bytes=Object.fromEntries(await Promise.all(Object.entries(paths).map(async([k,p])=>[k,await readFile(p)])));
-if(sha(bytes.raw)!=='0deec9fd71d4c49e666e5b091f15af3067efbcdb7e3c350bcb85a2bf7f980dea'||sha(bytes.baseline)!=='18a924b6840598e284197c5a07ff9f3f731ebe220aad720bdbf149a786784237')throw Error('Frozen actual raw/baseline identity drift. Obtain fresh provenance.');
+const packManifest=JSON.parse(bytes.manifest.toString()), bakeManifest=JSON.parse(await readFile(join(source,'manifest.json'),'utf8'));
+const expectedRaw=packManifest.compression?.materialRecipe?.sourceRawGLBSha256,expectedBaseline=packManifest.files?.find(file=>file.uri===packManifest.scene)?.sha256;
+if(!expectedRaw||!expectedBaseline||sha(bytes.raw)!==expectedRaw||sha(bytes.baseline)!==expectedBaseline||packManifest.bakeFingerprint!==bakeManifest.bakeFingerprint||packManifest.bake?.sourceBlendSha256!==bakeManifest.bake?.sourceBlendSha256)throw Error('Actual raw/baseline/transport identity differs from complete pack provenance. Obtain a fresh actual pack; do not edit pins.');
 const prefix=resolve(option('--tools','/tmp/one-light-gltf-tools')), modules=[];
 for(const [name,version] of [['@gltf-transform/core','4.5.1'],['@gltf-transform/extensions','4.5.1'],['@gltf-transform/functions','4.5.1'],['meshoptimizer','1.2.0']]){
  const folder=join(prefix,'node_modules',name),p=JSON.parse(await readFile(join(folder,'package.json'),'utf8'));

@@ -128,9 +128,10 @@ function verifyUV(data) {
   const json = glbJSON(data); const missing = [];
   for (const [index, mesh] of (json.meshes || []).entries()) for (const primitive of mesh.primitives) if (primitive.attributes.TEXCOORD_0 === undefined || primitive.attributes.TEXCOORD_1 === undefined) missing.push(index);
   if (missing.length) throw new Error(`Material or lightmap UV set missing from primitives: ${missing.join(', ')}`);
-  return { meshes: json.meshes.length, primitives: json.meshes.reduce((n, mesh) => n + mesh.primitives.length, 0), colourPrimitives: json.meshes.reduce((n, mesh) => n + mesh.primitives.filter(primitive => primitive.attributes.COLOR_0 !== undefined).length, 0), regions: [...new Set((json.nodes || []).map(node => node.extras?.lightmap_region).filter(Boolean))].sort(), roughnessClamps: (json.materials || []).filter(material => material.extras?.one_light_min_roughness !== undefined).map(material => ({ name: material.name, minimum: material.extras.one_light_min_roughness })), primitiveRoughness: json.meshes.flatMap((mesh, meshIndex) => mesh.primitives.map((primitive, index) => ({ key: `${meshIndex}/${index}`, material: json.materials?.[primitive.material]?.name ?? null, minimum: json.materials?.[primitive.material]?.extras?.one_light_min_roughness ?? null }))), extensions: json.extensionsUsed || [] };
+  return { meshes: json.meshes.length, primitives: json.meshes.reduce((n, mesh) => n + mesh.primitives.length, 0), colourPrimitives: json.meshes.reduce((n, mesh) => n + mesh.primitives.filter(primitive => primitive.attributes.COLOR_0 !== undefined).length, 0), sceneExtras: (json.scenes || []).map(scene => ({name: scene.name, extras: scene.extras || {}})), regions: [...new Set((json.nodes || []).map(node => node.extras?.lightmap_region).filter(Boolean))].sort(), roughnessClamps: (json.materials || []).filter(material => material.extras?.one_light_min_roughness !== undefined).map(material => ({ name: material.name, minimum: material.extras.one_light_min_roughness })), primitiveRoughness: json.meshes.flatMap((mesh, meshIndex) => mesh.primitives.map((primitive, index) => ({ key: `${meshIndex}/${index}`, material: json.materials?.[primitive.material]?.name ?? null, minimum: json.materials?.[primitive.material]?.extras?.one_light_min_roughness ?? null }))), extensions: json.extensionsUsed || [] };
 }
 function verifyPreserved(rawInfo, packedInfo) {
+  if (JSON.stringify(packedInfo.sceneExtras) !== JSON.stringify(rawInfo.sceneExtras)) throw new Error('Compression changed actual source scene extras, including fixture/wick/smoke anchors.');
   if (JSON.stringify(packedInfo.regions) !== JSON.stringify(rawInfo.regions)) throw new Error('Compression lost lightmap region metadata.');
   if (packedInfo.primitives !== rawInfo.primitives || packedInfo.colourPrimitives !== rawInfo.colourPrimitives) throw new Error('Compression changed primitive or COLOR_0 coverage.');
   for (const sourcePrimitive of rawInfo.primitiveRoughness) {
@@ -277,6 +278,7 @@ if (!cached) {
   if (materialProfile === 'mobile') verifyMobileImages(images);
   await writeFile(geometryReceipt, JSON.stringify({ key: geometryKey, profile: materialProfile, materialRecipe, sha256: digest(data), bytes: data.length, preMeshoptAttributeSha256: sourceAttributes, uvVerification: info, images, uniqueImageBytes: images.reduce((sum, image) => sum + image.bytes, 0) }, null, 2) + '\n');
 } else console.log('GEOMETRY_STAGE_REUSED', geometryKey);
+verifyPreserved(rawInfo, verifyUV(await readFile(geometryCache)));
 if (cached && materialProfile === 'mobile') {
   const receipt = JSON.parse(await readFile(geometryReceipt, 'utf8'));
   receipt.materialRecipe = materialRecipe;

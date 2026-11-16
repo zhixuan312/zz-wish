@@ -1,0 +1,32 @@
+{
+  "preservedOriginalSource": {
+    "path": "art/build/snow-roof-stair-banks-grain.blend",
+    "sha256": "6e9f59c93565e08a690eaafbc756967ba39e0f4d8ad0094e4520265948360af8"
+  },
+  "rejectedPreparedSource": {
+    "path": "art/build/snow-roof-resting-contacts-strict.blend",
+    "sha256": "2ee18ea002b160f2eeff93023efaae55ee7ec601d139a7b63b4d97b3dc2a55bf"
+  },
+  "rejectedPreparedContactReplay": {
+    "path": "art/build/studies/resting-contact-prepared-failure/prepared-raw-replay.json",
+    "sha256": "c4858011a3be189989a63313c2947b6ce37ed7cbd36cdbfa0976ac7f4471d22a",
+    "sourcePassed": true,
+    "preparedAndRawPassed": false,
+    "maximumCushionPenetrationsMetres": [
+      0.00501483678817749,
+      0.005044162273406982
+    ]
+  },
+  "partialBake": {
+    "session": 69437,
+    "exitCode": 143,
+    "allPartialPixelsDiscardedForNewSource": true
+  },
+  "newAcceptedSource": {
+    "path": "art/build/snow-roof-resting-contacts-accepted.blend",
+    "sha256": "b31360516a2713a6451ca920f3f94d9fefd9bc191bc07fca63c8c5ddce5a0c86"
+  },
+  "onlyPhysicalDeltaFromRejectedSource": "Both cushion semantic groups +0.0002m engine Y, 82 component meshes; all other placements and anchors unchanged.",
+  "guardThresholdsUnchanged": true,
+  "oldHelperRecipe": "art/build/studies/resting-contact-prepared-failure/resting_contacts-50um-safety.py"
+}

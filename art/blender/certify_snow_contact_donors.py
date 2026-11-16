@@ -2,8 +2,8 @@
 
 Run with Blender --background --python-exit-code 1 --python THIS_FILE -- --out NEW_ART_BUILD_DIR --classification-dir EXISTING_RECIPIENT_DIR
 No render, bake, OIDN, encoding, source edit or lightmap modification occurs.
-The accepted source/prepared hashes are deliberately frozen; a new model requires
-new correspondence evidence. Classifications never depend on radiance thresholds.
+Explicit actual-file input profiles bind every new source and correspondence proof.
+Classifications never depend on radiance thresholds.
 """
 import bpy, math, json, hashlib
 from pathlib import Path
@@ -13,7 +13,10 @@ from mathutils.bvhtree import BVHTree
 import numpy as np
 ROOT=Path(__file__).resolve().parents[2]
 import argparse,sys
+sys.path.insert(0,str(Path(__file__).resolve().parent))
+from contact_inputs import load_profile,validate_prepared_source,opaque_snow_proof
 parser=argparse.ArgumentParser(description=__doc__)
+parser.add_argument('--inputs',type=Path,required=True,help='Explicit measured source/prepared/raw/F32 proof and coverage bindings JSON.')
 parser.add_argument('--out',type=Path,required=True,help='New ignored art/build analysis directory; no existing proof is overwritten.')
 parser.add_argument('--classification-dir',type=Path,required=True,help='Existing source-bound recipient classification directory.')
 args=parser.parse_args(sys.argv[sys.argv.index('--')+1:] if '--' in sys.argv else [])
@@ -22,7 +25,8 @@ if not OUT.is_relative_to(ROOT/'art/build'):raise RuntimeError('Separate art/bui
 if any((OUT/name).exists() for name in ['contact-visibility-classification.json','contact-valid-donors.json']):raise RuntimeError('Existing proof output refused')
 OUT.mkdir(parents=True,exist_ok=True)
 
-SOURCE=ROOT/'art/build/snow-roof-stair-banks-grain.blend';PREP=ROOT/'art/build/snow-roof-final/snow-roof-prepared.blend'
+PROFILE,INPUT_PATHS,COVERAGE_PATHS=load_profile(args.inputs)
+SOURCE=INPUT_PATHS['source'];PREP=INPUT_PATHS['prepared']
 def sha(p):return hashlib.sha256(p.read_bytes()).hexdigest()
 def eng(p):return [float(p.x),float(p.z),float(-p.y)]
 def bl(p):return Vector((p[0],-p[2],p[1]))
@@ -39,10 +43,10 @@ def interp(rows,weights):return [sum(float(row[j])*w for row,w in zip(rows,weigh
 def record_source(obj):
  mesh=obj.data;mesh.calc_loop_triangles();vertices=[obj.matrix_world@v.co for v in mesh.vertices]
  faces=[tuple(p.vertices) for p in mesh.polygons];triangles=[tuple(t.vertices) for t in mesh.loop_triangles]
- return {'name':obj.name,'vertices':vertices,'faces':faces,'triangles':triangles,'triangleFaces':[t.polygon_index for t in mesh.loop_triangles], 'modifiers':[m.type for m in obj.modifiers]}
+ return {'name':obj.name,'vertices':vertices,'faces':faces,'triangles':triangles,'triangleFaces':[t.polygon_index for t in mesh.loop_triangles], 'modifiers':[m.type for m in obj.modifiers], 'topFaceCount':obj.get('step_snow_top_faces')}
 report={'scope':'Read-only bounded geometry/UV diagnosis; no render/bake/encoding or authored edits. Engine coordinates x,Y-up,z. UVs labelled Blender bottom-left and glTF V-flipped.','inputs':{'source':{'path':str(SOURCE.relative_to(ROOT)),'sha256':sha(SOURCE)},'prepared':{'path':str(PREP.relative_to(ROOT)),'sha256':sha(PREP)}},'sourcePreparedComparisons':{},'samples':[]}
-assert report['inputs']['source']['sha256']=='6e9f59c93565e08a690eaafbc756967ba39e0f4d8ad0094e4520265948360af8'
-assert report['inputs']['prepared']['sha256']=='6ed42644cd3a6c1026b079740957280df0274e9e9a0eaf5f8d3da514725079c1'
+assert report['inputs']['source']['sha256']==PROFILE['inputs']['source']['sha256']
+assert report['inputs']['prepared']['sha256']==PROFILE['inputs']['prepared']['sha256']
 bpy.ops.wm.open_mainfile(filepath=str(SOURCE));bpy.context.view_layer.update()
 sources={}
 for o in bpy.context.scene.objects:
@@ -58,6 +62,7 @@ for data in sources.values():
   for vi in f:data['vertexFace'][vi].add(i)
  data['preparedTriangles']=[]
 bpy.ops.wm.open_mainfile(filepath=str(PREP));bpy.context.view_layer.update()
+validate_prepared_source(bpy.context.scene,PROFILE['inputs']['source']['sha256'])
 prepared={o.get('lightmap_region'):o for o in bpy.context.scene.objects if o.type=='MESH' and o.get('one_light_static')}
 prepared_vertices={};tri_records=[];ground_tri_records=[];bank_tri_records=[];bank_bounds=[.65,2.8,2.0,7.4]
 for region in ['court','hall']:
@@ -106,9 +111,11 @@ def parity(bvh,p,d):
  return -1,count
 coverage={};chartnumber={}
 for region in ['hall','court']:
- data=np.load(ROOT/f'art/build/snow-roof-final/{region}-coverage.npz');coverage[region]=data['labels'];chartnumber[region]=data['charts']
+ data=np.load(COVERAGE_PATHS[region]);coverage[region]=data['labels'];chartnumber[region]=data['charts']
 CLASSIFICATION=args.classification_dir.resolve()
 rows=json.loads((CLASSIFICATION/'contact-texel-certificates.json').read_text());classification=json.loads((CLASSIFICATION/'contact-visibility-classification.json').read_text())
+assert classification['inputs']==PROFILE['inputs']
+assert classification['coverage']==PROFILE['coverage']
 for item in classification['inputs'].values():
  if sha(ROOT/item['path'])!=item['sha256']:raise RuntimeError('Actual source classification input changed')
 ownerNames=[src_ground['name']]+sorted(banks)
@@ -175,5 +182,5 @@ for row,oid in zip(rows,rowOwner):
  if found is None:covered[(row['region'],'no-valid-donor-within8')]+=1;uncovered.append([0 if row['region']=='court' else 1,row['x'],row['yBottomLeft'],row['chartRaw'],oid])
  else:covered[(row['region'],'valid-donor-within8')]+=1;distanceCounts[found]+=1
 np.savez_compressed(OUT/'contact-valid-donors.npz',region=np.array([0 if r['region']=='court' else 1 for r in rows],np.uint8),xyBottomLeft=np.array([[r['x'],r['yBottomLeft']] for r in rows],np.uint16),chartRaw=np.array([r['chartRaw'] for r in rows],np.int32),ownerId=np.array(rowOwner,np.uint8),validDonor=np.array(valid,np.bool_))
-result={'version':1,'scope':'ANALYSIS-ONLY conservative donor permissions. hiddenFalse was not sufficient and is not used as a validity claim. No geometry, lighting, transport or image changes.','inputs':classification['inputs'],'recipientClassificationSha256':sha(CLASSIFICATION/'contact-visibility-classification.json'),'recipientRecordsSha256':sha(CLASSIFICATION/'contact-texel-certificates.json'),'toleranceMetres':TOL,'donorFile':{'path':'contact-valid-donors.npz','sha256':sha(OUT/'contact-valid-donors.npz'),'arrays':['region(0court1hall)','xyBottomLeft','chartRaw','ownerId','validDonor']},'owners':{str(i):n for i,n in enumerate(ownerNames)},'chartOwners':ownership,'maximumFullChartGroundSourceVertexMatchErrorMetres':maximumMatchError,'donorRules':{'global':'Never hidden, near-contact, UV-ambiguous or parity-ambiguous; >20µm from stair/terrace surface and not below its vertical top; no radiance threshold.','hall':'Positive>20µm clearance ABOVE actual opaque ground, with nearest ground distance>20µm. All original source bank-top texel owners proven.','court':'Outside both watertight bank volumes: outside their AABB or3 agreeing even-parity rays; >20µm from both shells.','sampling':'Recipient and donor must share original chartRaw AND ownerId; nearest Euclidean distance<=8 native base pixels. Recipients lacking such donor are left unchanged. Missing sparse entries are never donors.'},'validDonorCount':sum(valid),'counts':[{'region':r,'reason':why,'count':n} for (r,why),n in sorted(reasons.items())],'recipientCoverage':[{'region':r,'outcome':why,'count':n} for (r,why),n in sorted(covered.items())],'coveredRecipientDistanceSquaredHistogram':dict(sorted(distanceCounts.items())),'uncoveredRecipientRows':uncovered,'scriptSha256':sha(Path(__file__))}
+result={'version':1,'scope':'ANALYSIS-ONLY conservative donor permissions. hiddenFalse was not sufficient and is not used as a validity claim. No geometry, lighting, transport or image changes.','inputs':classification['inputs'],'inputValidationScriptSha256':sha(Path(__file__).with_name('contact_inputs.py')),'recipientClassificationSha256':sha(CLASSIFICATION/'contact-visibility-classification.json'),'recipientRecordsSha256':sha(CLASSIFICATION/'contact-texel-certificates.json'),'toleranceMetres':TOL,'donorFile':{'path':'contact-valid-donors.npz','sha256':sha(OUT/'contact-valid-donors.npz'),'arrays':['region(0court1hall)','xyBottomLeft','chartRaw','ownerId','validDonor']},'owners':{str(i):n for i,n in enumerate(ownerNames)},'chartOwners':ownership,'maximumFullChartGroundSourceVertexMatchErrorMetres':maximumMatchError,'donorRules':{'global':'Never hidden, near-contact, UV-ambiguous or parity-ambiguous; >20µm from stair/terrace surface and not below its vertical top; no radiance threshold.','hall':'Positive>20µm clearance ABOVE actual opaque ground, with nearest ground distance>20µm. All original source bank-top texel owners proven.','court':'Outside both watertight bank volumes: outside their AABB or3 agreeing even-parity rays; >20µm from both shells.','sampling':'Recipient and donor must share original chartRaw AND ownerId; nearest Euclidean distance<=8 native base pixels. Recipients lacking such donor are left unchanged. Missing sparse entries are never donors.'},'validDonorCount':sum(valid),'counts':[{'region':r,'reason':why,'count':n} for (r,why),n in sorted(reasons.items())],'recipientCoverage':[{'region':r,'outcome':why,'count':n} for (r,why),n in sorted(covered.items())],'coveredRecipientDistanceSquaredHistogram':dict(sorted(distanceCounts.items())),'uncoveredRecipientRows':uncovered,'scriptSha256':sha(Path(__file__))}
 (OUT/'contact-valid-donors.json').write_text(json.dumps(result,indent=2)+'\n');print('CONTACT_DONORS_READY',json.dumps({'metadata':str(OUT/'contact-valid-donors.json'),'sha256':sha(OUT/'contact-valid-donors.json'),'validDonors':sum(valid),'recipientCoverage':result['recipientCoverage'],'owners':result['owners']}),flush=True)

@@ -41,6 +41,8 @@ inject('Freeze flame clocks before intensity and graphics updates', 'tick(time, 
 inject('Freeze shared flame graphic time', 'for (const m of flameMats) m.uniforms.uTime.value = time;', 'for (const m of flameMats) m.uniforms.uTime.value = flickerLab.flameTime(time);');
 inject('Retain flame halo during particle control', 'g.add(halo);', "halo.userData.visualKeepForParticleControl = true; g.add(halo);");
 inject('Identify physical suspension for camera/size evidence', 'hanger.visible=false;g.add(hanger);', "hanger.userData.visualRole='suspension';hanger.visible=false;g.add(hanger);", false);
+inject('Tag live fixture groups for read-only world-anchor evidence', 'const g=new THREE.Group();C.G.add(g);g.position.set(x,y,z);\n  const f=flameParts(g,{light:false,size:1.3});', "const g=new THREE.Group();g.userData.captureRole='static-fixture-live-flame';C.G.add(g);g.position.set(x,y,z);\n  const f=flameParts(g,{light:false,size:1.3});", false);
+inject('Tag fixture specular lights for read-only world-anchor evidence', 'light.position.set(x,y,z);C.G.add(light);', "light.userData.captureRole='static-fixture-specular';light.position.set(x,y,z);C.G.add(light);", false);
 inject('Hold lamp rotation independently', 'g.rotation.z=Math.sin(time*.32)*.0035;', 'g.rotation.z=Math.sin(flickerLab.lampTime(time)*.32)*.0035;', false);
 inject('Hold smoothed fuel independently', 'level += (targetLevel-level)*(1-Math.exp(-dt*5));', 'if (!flickerLab.freezeFuel) level += (targetLevel-level)*(1-Math.exp(-dt*5));', false);
 inject('Hold UI level updates independently', /export function setLevel\(L\) \{ ((?:targetLevel|level) = [^;]+;) \}/, 'export function setLevel(L) { if (!flickerLab.freezeFuel) $1 }');

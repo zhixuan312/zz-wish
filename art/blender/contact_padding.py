@@ -4,12 +4,12 @@ No Cycles/OIDN, geometry, material values or original transport masters change.
 import bpy,numpy as np,json,sys,argparse,hashlib,subprocess,shutil,time,math
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[2];sys.path.insert(0,str(ROOT/'art/blender'));import bake_export as baker
-parser=argparse.ArgumentParser();parser.add_argument('--donors',type=Path,required=True);parser.add_argument('--donor-metadata',type=Path,required=True);parser.add_argument('--out',type=Path,default=ROOT/'art/build/snow-roof-contact-padding-diagnostic');parser.add_argument('--passes',default='night',help='night or night,dusk,day,lamp; no new transport is computed.');args=parser.parse_args(sys.argv[sys.argv.index('--')+1:] if '--' in sys.argv else [])
+parser=argparse.ArgumentParser();parser.add_argument('--source',type=Path,required=True,help='Actual completed bake directory.');parser.add_argument('--base',type=Path,required=True,help='Complete genuine F32 staging package.');parser.add_argument('--classification',type=Path,required=True,help='Actual source-bound contact-visibility-classification.json.');parser.add_argument('--donors',type=Path,required=True);parser.add_argument('--donor-metadata',type=Path,required=True);parser.add_argument('--out',type=Path,default=ROOT/'art/build/snow-roof-contact-padding-diagnostic');parser.add_argument('--passes',default='night',help='night or night,dusk,day,lamp; no new transport is computed.');args=parser.parse_args(sys.argv[sys.argv.index('--')+1:] if '--' in sys.argv else [])
 args.donors=args.donors.resolve();args.donor_metadata=args.donor_metadata.resolve()
 passes=args.passes.split(',')
 if len(set(passes))!=len(passes) or any(p not in ['night','dusk','day','lamp'] for p in passes):raise ValueError('Choose unique authored pass names.')
 modifiedUris={f'{region}-{look}.ktx2' for region in ['court','hall'] for look in passes}
-source=ROOT/'art/build/snow-roof-final';base=ROOT/'art/build/snow-roof-float32-position-diagnostic';classification=ROOT/'art/build/fringe-geometry-diagnosis/contact-visibility-classification.json';maskpath=classification.with_name('contact-texel-centres.npz');out=args.out.resolve()
+source=args.source.resolve();base=args.base.resolve();classification=args.classification.resolve();maskpath=classification.with_name('contact-texel-centres.npz');out=args.out.resolve()
 if out==source or out==base or 'public' in out.parts or not out.is_relative_to(ROOT/'art/build'):raise RuntimeError('Separate art/build diagnostic directory required.')
 if (out/'manifest.json').exists():raise RuntimeError('Existing diagnostic refused.')
 out.mkdir(parents=True,exist_ok=True);h=lambda p:hashlib.sha256(p.read_bytes()).hexdigest();same=lambda a,b:np.array_equal(a.view(np.uint32),b.view(np.uint32))
@@ -19,7 +19,11 @@ metadata=json.loads(args.donor_metadata.read_text());assert metadata['recipientC
 print('DONOR_SCHEMA',donors.files,flush=True)
 required={'region','xyBottomLeft','chartRaw','ownerId','validDonor'}
 if not required.issubset(donors.files):raise RuntimeError('Explicit donor-valid ownership schema required: '+str(required))
-manifest=json.loads((base/'manifest.json').read_text());proof={'policy':'certified-hidden-centres-nearest-visible-same-chart-owner-euclidean8-v1','scope':'Only certified hidden base recipients change. All uncertified/visible original denoised base RGBA samples remain bit-exact. No re-OIDN or new transport. KTX is lossy and its decoded block neighborhoods are measured separately.','classification':{'path':str(classification.relative_to(ROOT)),'sha256':h(classification),'maskSha256':h(maskpath)},'donorMetadata':{'path':str(args.donor_metadata.relative_to(ROOT)),'sha256':h(args.donor_metadata),'dataSha256':h(args.donors)},'geometry':{'sha256':h(base/'snow-roof.glb'),'precision':'genuine FLOAT32, unpruned staging base; optimized production geometry is assembled separately'},'regions':{},'maps':{},'passes':passes,'changedProof':'changed-texels.npz','noRadianceThreshold':True,'scriptSha256':h(Path(__file__)),'sourceBakeFingerprint':manifest['bakeFingerprint']}
+manifest=json.loads((base/'manifest.json').read_text());bake_manifest=json.loads((source/'manifest.json').read_text())
+assert manifest['bakeFingerprint']==bake_manifest['bakeFingerprint'] and manifest['bake']['sourceBlendSha256']==cert['inputs']['source']['sha256']
+assert h(source/'snow-roof-prepared.blend')==cert['inputs']['prepared']['sha256'] and h(base/'snow-roof.glb')==cert['inputs']['f32Diagnostic']['sha256']
+for item in cert['coverage'].values():assert h(ROOT/item['path'])==item['sha256']
+proof={'policy':'certified-hidden-centres-nearest-visible-same-chart-owner-euclidean8-v1','scope':'Only certified hidden base recipients change. All uncertified/visible original denoised base RGBA samples remain bit-exact. No re-OIDN or new transport. KTX is lossy and its decoded block neighborhoods are measured separately.','classification':{'path':str(classification.relative_to(ROOT)),'sha256':h(classification),'maskSha256':h(maskpath)},'donorMetadata':{'path':str(args.donor_metadata.relative_to(ROOT)),'sha256':h(args.donor_metadata),'dataSha256':h(args.donors)},'geometry':{'sha256':h(base/'snow-roof.glb'),'precision':'genuine FLOAT32, unpruned staging base; optimized production geometry is assembled separately'},'regions':{},'maps':{},'passes':passes,'changedProof':'changed-texels.npz','noRadianceThreshold':True,'scriptSha256':h(Path(__file__)),'sourceBakeFingerprint':manifest['bakeFingerprint']}
 scene=bpy.context.scene;scene.view_settings.view_transform='Raw';scene.view_settings.look='None';scene.view_settings.exposure=0;scene.view_settings.gamma=1
 changes={};offsets=sorted([(dx*dx+dy*dy,dy,dx) for dy in range(-8,9) for dx in range(-8,9) if dx*dx+dy*dy<=64])
 ktx='/tmp/one-light-ktx-tools/KTX-Software-4.4.2-Darwin-arm64-tools.pkg/Payload/usr/local/bin/toktx'
@@ -44,7 +48,7 @@ for code,region in enumerate(['court','hall']):
   assert same(rgba[unchanged],originalRGBA[unchanged]),'Uncertified/visible samples changed'
   changed=np.any(rgba.view(np.uint32)!=originalRGBA.view(np.uint32),axis=2);assert not np.any(changed&unchanged)
   assert not np.any(valid&certified),'Hidden recipients were used as donors'
-  im.pixels.foreach_set(rgba.ravel());im.update();stem=out/f'{region}-{look}-contact-padding';entry=baker.save_linear(scene,im,stem,labels>0,gain=4096);bpy.data.images.remove(im)
+  im.pixels.foreach_set(rgba.ravel());im.update();stem=out/f'{region}-{look}-contact-padding';entry=baker.save_linear(scene,im,stem,labels>0,gain=4096,encoding_scale=original['scale']);bpy.data.images.remove(im)
   assert entry['scale']==original['scale'] and entry['logRange']==original['logRange'],'Global encoding normalization changed'
   check=bpy.data.images.load(str(stem.with_suffix('.exr')),check_existing=False);check.colorspace_settings.name='Non-Color';roundtrip=np.empty(width*height*4,np.float32);check.pixels.foreach_get(roundtrip);bpy.data.images.remove(check);roundtrip=roundtrip.reshape(height,width,4);assert same(roundtrip,rgba),'Derived EXR is not exact linear FLOAT32';assert same(roundtrip[unchanged],originalRGBA[unchanged])
   for p,digest in before.items():assert h(Path(p))==digest,'Original transport master changed'

@@ -1,0 +1,39 @@
+{
+  "version": 1,
+  "scope": "Actual raw container after metadata binding; provisional until final postbatch raw is measured. No render, encoder or model mutation.",
+  "sourceBlendSha256": "b31360516a2713a6451ca920f3f94d9fefd9bc191bc07fca63c8c5ddce5a0c86",
+  "inputs": [
+    {
+      "path": "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-resting-contacts-accepted.audit.json",
+      "sha256": "1f722140f258eb74b02f6db1760960de056567dfe1fba64392d933d6d8a2a290"
+    },
+    {
+      "path": "/Users/xuan/Documents/code/zz-wish/art/build/resting-contacts-accepted-replay/contacts-unique-crowns.json",
+      "sha256": "c7339acd30137c33398c8df122516f31b0405a5093dbace21c072db931bc38dc"
+    },
+    {
+      "path": "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-resting-contacts-accepted.blend",
+      "sha256": "b31360516a2713a6451ca920f3f94d9fefd9bc191bc07fca63c8c5ddce5a0c86"
+    },
+    {
+      "path": "/Users/xuan/Documents/code/zz-wish/art/build/resting-contacts-accepted-replay/snow-roof.raw.glb",
+      "sha256": "7639d7bffc629aba69a852155d8980a5735abc7e567362fd09f4cc6ff74f308a"
+    },
+    {
+      "path": "/Users/xuan/Documents/code/zz-wish/art/build/resting-contacts-export-study/snow-roof.raw.glb",
+      "sha256": "c3539702ab9c0a5eb244f4be25d57bd1c30f22bb31ecedd83674bd99642aef7b"
+    }
+  ],
+  "certifiedRawBinaryAndNonSceneJsonByteExact": true,
+  "allPreviouslyCertifiedSceneExtrasByteExact": true,
+  "newProofExtraFields": [
+    [
+      "one_light_prepared_contact_audit_binding",
+      "one_light_prepared_preview_audit"
+    ]
+  ],
+  "geometryFingerprint": "89d4085e7b4ed662ab952b1430e9217b3c9befad602e1c317ae3ea659d848821",
+  "allActualPreparedAndRaw37GroupsPassed": true,
+  "renderBakeEncoderGpuJobs": 0,
+  "scriptSha256": "c1a90e36b5d7788f8da96d748b8b110f2761277ec2ae5edb3a6e783825f80bda"
+}

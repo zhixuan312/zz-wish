@@ -1,0 +1,268 @@
+{
+  "status": "All source, native, mapping, prepared/raw contact and pre-bake guard gates passed. The new twelve-map batch is running; no public installation or final delivery claim.",
+  "source": {
+    "path": "art/build/snow-roof-resting-contacts-accepted.blend",
+    "sha256": "b31360516a2713a6451ca920f3f94d9fefd9bc191bc07fca63c8c5ddce5a0c86",
+    "bytes": 13299379
+  },
+  "sourceAudit": {
+    "path": "art/build/snow-roof-resting-contacts-accepted.audit.json",
+    "sha256": "1f722140f258eb74b02f6db1760960de056567dfe1fba64392d933d6d8a2a290",
+    "bytes": 292520
+  },
+  "architectureAudit": {
+    "path": "art/build/snow-roof-resting-contacts-accepted.architecture.json",
+    "sha256": "b44ffbf2df2930a44d57e0274e9428c1e64dd69f2f361085d322cb5a5842a21e",
+    "bytes": 7565
+  },
+  "freshHiddenProof": {
+    "path": "art/blender/proofs/snow-roof-resting-contacts-accepted-hidden-tiles.json",
+    "sha256": "cf525ebd5990e8487cc4e10f3a6110fc12d0deab152885889fe879991bbfba57",
+    "bytes": 4048937
+  },
+  "preparedMappingProof": {
+    "path": "art/build/snow-roof-resting-contacts-accepted-bake/prepared-mapping-proof.json",
+    "sha256": "0fd8f9d01f4d75ede556ef9698aae51a1ff672f84348df873e78bdc6d64fcc35",
+    "bytes": 11467
+  },
+  "preparedAndRawContactAudit": {
+    "path": "art/build/resting-contacts-accepted-replay/contacts-unique-crowns.json",
+    "sha256": "c7339acd30137c33398c8df122516f31b0405a5093dbace21c072db931bc38dc",
+    "bytes": 104142
+  },
+  "actualPreBakeGuardChallenge": {
+    "path": "art/build/resting-contacts-accepted-replay/guard/guard-proof.json",
+    "sha256": "34a4af3325a871aff69ae84f4700fed95fe6025f04be5cdc20e63204a362f9b6",
+    "bytes": 4050
+  },
+  "literalGuardsMetres": {
+    "gap": 0.002,
+    "penetration": 0.005
+  },
+  "groupsPerStage": 37,
+  "geometryFingerprint": "89d4085e7b4ed662ab952b1430e9217b3c9befad602e1c317ae3ea659d848821",
+  "nativePreview": {
+    "path": "art/build/snow-roof-resting-contacts-accepted-prepared-preview/preview.json",
+    "sha256": "a5e9d241cc0b0af660169a53f18ae915ef02b9e0834fb0e5ce4bda60a8e48f09",
+    "bytes": 16455
+  },
+  "coverage": {
+    "hall": {
+      "charts": 12919,
+      "representedCharts": 12916,
+      "subpixelCharts": 3,
+      "representedSurfaceAreaFraction": 0.9999955018065022,
+      "triangleWithNativeTexelSurfaceAreaFraction": 0.9627294339021368,
+      "surfaceAreaInChartsWithAtLeast16CoreTexelsFraction": 0.9949127546802145,
+      "totalSurfaceAreaSquareMetres": 2137.5266821217674,
+      "provenOccludedSurfaceAreaSquareMetres": 275.7123065737922,
+      "provenOccludedPolygons": 95790,
+      "coreTexels": 2134058,
+      "overlappingCorePixels": 0,
+      "coverageMeaning": "World-space mapped surface-area weighted; proven enclosed geometry is reported separately. A represented chart may contain subpixel triangles; their native-texel area is also reported. Camera-visible sampled coverage is separate.",
+      "sampledVisiblePixels": 17709,
+      "representedVisiblePixels": 17709,
+      "provenOccludedVisiblePixels": 0,
+      "referenceCameras": [
+        "Reference_outside",
+        "Reference_walk-1",
+        "Reference_walk-2",
+        "Reference_walk-3",
+        "Reference_choose",
+        "Reference_lit"
+      ],
+      "perCamera": {
+        "Reference_outside": {
+          "sampledVisiblePixels": 124,
+          "representedVisiblePixels": 124,
+          "provenOccludedVisiblePixels": 0,
+          "representedCameraVisibleFraction": 1.0
+        },
+        "Reference_walk-1": {
+          "sampledVisiblePixels": 124,
+          "representedVisiblePixels": 124,
+          "provenOccludedVisiblePixels": 0,
+          "representedCameraVisibleFraction": 1.0
+        },
+        "Reference_walk-2": {
+          "sampledVisiblePixels": 182,
+          "representedVisiblePixels": 182,
+          "provenOccludedVisiblePixels": 0,
+          "representedCameraVisibleFraction": 1.0
+        },
+        "Reference_walk-3": {
+          "sampledVisiblePixels": 5759,
+          "representedVisiblePixels": 5759,
+          "provenOccludedVisiblePixels": 0,
+          "representedCameraVisibleFraction": 1.0
+        },
+        "Reference_choose": {
+          "sampledVisiblePixels": 5760,
+          "representedVisiblePixels": 5760,
+          "provenOccludedVisiblePixels": 0,
+          "representedCameraVisibleFraction": 1.0
+        },
+        "Reference_lit": {
+          "sampledVisiblePixels": 5760,
+          "representedVisiblePixels": 5760,
+          "provenOccludedVisiblePixels": 0,
+          "representedCameraVisibleFraction": 1.0
+        }
+      },
+      "representedCameraVisibleFraction": 1.0,
+      "samplesPerCamera": [
+        96,
+        60
+      ],
+      "scope": "Coarse first-hit geometry visibility over the source reference cameras; excludes sky. Features smaller than the sampling grid and shading/noise quality are not verified by this metric."
+    },
+    "gate": {
+      "charts": 4369,
+      "representedCharts": 4368,
+      "subpixelCharts": 1,
+      "representedSurfaceAreaFraction": 0.9999999999999999,
+      "triangleWithNativeTexelSurfaceAreaFraction": 0.9637859055452497,
+      "surfaceAreaInChartsWithAtLeast16CoreTexelsFraction": 0.9859705711965254,
+      "totalSurfaceAreaSquareMetres": 409.99404631329475,
+      "provenOccludedSurfaceAreaSquareMetres": 51.99357033398157,
+      "provenOccludedPolygons": 22566,
+      "coreTexels": 472906,
+      "overlappingCorePixels": 0,
+      "coverageMeaning": "World-space mapped surface-area weighted; proven enclosed geometry is reported separately. A represented chart may contain subpixel triangles; their native-texel area is also reported. Camera-visible sampled coverage is separate.",
+      "sampledVisiblePixels": 2164,
+      "representedVisiblePixels": 2164,
+      "provenOccludedVisiblePixels": 0,
+      "referenceCameras": [
+        "Reference_outside",
+        "Reference_walk-1",
+        "Reference_walk-2",
+        "Reference_walk-3",
+        "Reference_choose",
+        "Reference_lit"
+      ],
+      "perCamera": {
+        "Reference_outside": {
+          "sampledVisiblePixels": 538,
+          "representedVisiblePixels": 538,
+          "provenOccludedVisiblePixels": 0,
+          "representedCameraVisibleFraction": 1.0
+        },
+        "Reference_walk-1": {
+          "sampledVisiblePixels": 538,
+          "representedVisiblePixels": 538,
+          "provenOccludedVisiblePixels": 0,
+          "representedCameraVisibleFraction": 1.0
+        },
+        "Reference_walk-2": {
+          "sampledVisiblePixels": 1088,
+          "representedVisiblePixels": 1088,
+          "provenOccludedVisiblePixels": 0,
+          "representedCameraVisibleFraction": 1.0
+        },
+        "Reference_walk-3": {
+          "sampledVisiblePixels": 0,
+          "representedVisiblePixels": 0,
+          "provenOccludedVisiblePixels": 0,
+          "representedCameraVisibleFraction": null
+        },
+        "Reference_choose": {
+          "sampledVisiblePixels": 0,
+          "representedVisiblePixels": 0,
+          "provenOccludedVisiblePixels": 0,
+          "representedCameraVisibleFraction": null
+        },
+        "Reference_lit": {
+          "sampledVisiblePixels": 0,
+          "representedVisiblePixels": 0,
+          "provenOccludedVisiblePixels": 0,
+          "representedCameraVisibleFraction": null
+        }
+      },
+      "representedCameraVisibleFraction": 1.0,
+      "samplesPerCamera": [
+        96,
+        60
+      ],
+      "scope": "Coarse first-hit geometry visibility over the source reference cameras; excludes sky. Features smaller than the sampling grid and shading/noise quality are not verified by this metric."
+    },
+    "court": {
+      "charts": 6631,
+      "representedCharts": 6630,
+      "subpixelCharts": 1,
+      "representedSurfaceAreaFraction": 1.0,
+      "triangleWithNativeTexelSurfaceAreaFraction": 0.9908133461790574,
+      "surfaceAreaInChartsWithAtLeast16CoreTexelsFraction": 0.998736337335152,
+      "totalSurfaceAreaSquareMetres": 5186.2199949044225,
+      "provenOccludedSurfaceAreaSquareMetres": 185.4434255075736,
+      "provenOccludedPolygons": 65394,
+      "coreTexels": 6993500,
+      "overlappingCorePixels": 0,
+      "coverageMeaning": "World-space mapped surface-area weighted; proven enclosed geometry is reported separately. A represented chart may contain subpixel triangles; their native-texel area is also reported. Camera-visible sampled coverage is separate.",
+      "sampledVisiblePixels": 7601,
+      "representedVisiblePixels": 7601,
+      "provenOccludedVisiblePixels": 0,
+      "referenceCameras": [
+        "Reference_outside",
+        "Reference_walk-1",
+        "Reference_walk-2",
+        "Reference_walk-3",
+        "Reference_choose",
+        "Reference_lit"
+      ],
+      "perCamera": {
+        "Reference_outside": {
+          "sampledVisiblePixels": 2541,
+          "representedVisiblePixels": 2541,
+          "provenOccludedVisiblePixels": 0,
+          "representedCameraVisibleFraction": 1.0
+        },
+        "Reference_walk-1": {
+          "sampledVisiblePixels": 2541,
+          "representedVisiblePixels": 2541,
+          "provenOccludedVisiblePixels": 0,
+          "representedCameraVisibleFraction": 1.0
+        },
+        "Reference_walk-2": {
+          "sampledVisiblePixels": 2518,
+          "representedVisiblePixels": 2518,
+          "provenOccludedVisiblePixels": 0,
+          "representedCameraVisibleFraction": 1.0
+        },
+        "Reference_walk-3": {
+          "sampledVisiblePixels": 1,
+          "representedVisiblePixels": 1,
+          "provenOccludedVisiblePixels": 0,
+          "representedCameraVisibleFraction": 1.0
+        },
+        "Reference_choose": {
+          "sampledVisiblePixels": 0,
+          "representedVisiblePixels": 0,
+          "provenOccludedVisiblePixels": 0,
+          "representedCameraVisibleFraction": null
+        },
+        "Reference_lit": {
+          "sampledVisiblePixels": 0,
+          "representedVisiblePixels": 0,
+          "provenOccludedVisiblePixels": 0,
+          "representedCameraVisibleFraction": null
+        }
+      },
+      "representedCameraVisibleFraction": 1.0,
+      "samplesPerCamera": [
+        96,
+        60
+      ],
+      "scope": "Coarse first-hit geometry visibility over the source reference cameras; excludes sky. Features smaller than the sampling grid and shading/noise quality are not verified by this metric."
+    }
+  },
+  "pipelineSourceLedger": {
+    "path": "art/build/snow-roof-resting-contacts-accepted-bake/pipeline-sources.json",
+    "sha256": "412d0a8ae298f604e5198453d89d73d60de29b9dca2e3f466f35158fccf559d8",
+    "bytes": 1541
+  },
+  "rejectedAttempt": {
+    "path": "art/build/snow-roof-resting-contacts-bake/rejected-attempt.json",
+    "sha256": "ae4c363264152bdb9097140c9784b3f533ebf41d00ee396621209ade12166468",
+    "policy": "The rejected source and partial maps remain archived; none of its GI is reused."
+  }
+}

@@ -38,6 +38,7 @@ def arguments():
     parser.add_argument('--chart-cache', type=Path, help='Reuse only exact receiver/chart matches from this earlier preparation; never imports bake pixels.')
     parser.add_argument('--receiver-report', action='store_true', help='Write receiver/UV fingerprints for an existing prepared blend; no render, bake or export.')
     parser.add_argument('--prepared-preview-audit', type=Path, help='Source/generated-hash-bound native prepared-preview proof, included in the scene-wide bake identity.')
+    parser.add_argument('--resting-contact-audit', type=Path, help='Required for real baking of registered resting props: independent prepared-triangle contact receipt, pinned to source and receiver/UV fingerprints.')
     parser.add_argument('--device', choices=['METAL', 'CPU'], default='METAL')
     parser.add_argument('--oidn-device', choices=['METAL', 'CPU'], default='METAL')
     parser.add_argument('--passes', default='night,dusk,day,lamp')
@@ -131,6 +132,65 @@ def receiver_profile(obj):
     profile['unwrapSignature'] = report.get('unwrapSignature')
     profile['resolution'] = report.get('resolution')
     return profile
+
+
+def validate_resting_contact_audit(scene, binding, receiver_profiles, geometry_fingerprint, path):
+    """Fail before Cycles if prepared triangulation violates an actual contact guard."""
+    registry = scene.get('resting_contact_groups')
+    if not registry:
+        return None
+    if not path or not Path(path).is_file():
+        raise RuntimeError('Registered resting props require --resting-contact-audit before any Cycles bake.')
+    data = Path(path).read_bytes()
+    audit = json.loads(data)
+    if (audit.get('sourceBlendSha256') != binding['sha256']
+            or audit.get('source', {}).get('sha256') != binding['sha256']):
+        raise RuntimeError('Prepared contact audit belongs to a different authored source.')
+    if audit.get('passed') is not True or audit.get('literalGuardsMetres') != {'gap': .002, 'penetration': .005}:
+        raise RuntimeError('Prepared contact audit failed or changed the literal 2 mm / 5 mm guards.')
+    if audit.get('geometryFingerprint') != geometry_fingerprint:
+        raise RuntimeError('Prepared contact audit geometry fingerprint is stale.')
+    audited_receivers = audit.get('receiverProfiles', {})
+    if set(audited_receivers) != set(receiver_profiles):
+        raise RuntimeError('Prepared contact audit receiver population differs.')
+    for region, profile in receiver_profiles.items():
+        for field in ['receiverFingerprint', 'lightmapUVFingerprint']:
+            if audited_receivers[region].get(field) != profile[field]:
+                raise RuntimeError('Prepared contact audit receiver/UV mismatch: ' + region + '/' + field)
+    registered = json.loads(registry)
+    expected = {group['name']: group for group in registered}
+    raw = audit.get('raw')
+    if not isinstance(raw, dict) or raw.get('passed') is not True:
+        raise RuntimeError('An actual passing raw-export contact replay is required.')
+    raw_path = Path(raw.get('path', ''))
+    if not raw_path.is_absolute():
+        raw_path = Path(__file__).resolve().parents[2] / raw_path
+    if not raw_path.is_file() or sha256(raw_path.read_bytes()).hexdigest() != raw.get('sha256'):
+        raise RuntimeError('The actual frozen raw contact replay input changed.')
+    for stage, measured in [('prepared', audit), ('raw', raw)]:
+        groups = measured.get('groups', [])
+        names = [group.get('name') for group in groups]
+        if len(set(names)) != len(names) or set(names) != set(expected):
+            raise RuntimeError(stage + ' contact audit omits, duplicates or adds registered groups.')
+        for group in groups:
+            if group.get('passed') is not True or group.get('mode') != expected[group['name']]['mode']:
+                raise RuntimeError(stage + ' contact group failed or changed its support mode: ' + group['name'])
+            if group['mode'] == 'resting':
+                gap = group.get('contact', {}).get('gapMetres')
+                penetration = group.get('maximumPenetrationMetres')
+                if (not isinstance(gap, (int, float)) or not math.isfinite(gap)
+                        or not isinstance(penetration, (int, float)) or not math.isfinite(penetration)
+                        or gap > .002 or penetration < max(0, -gap) or penetration > .005):
+                    raise RuntimeError(stage + ' contact exceeds a literal guard: ' + group['name'])
+                if group.get('contact', {}).get('supportObject') not in expected[group['name']]['supports']:
+                    raise RuntimeError(stage + ' contact uses an undeclared support: ' + group['name'])
+        if measured.get('sourceAnchorMetadataByteExact') is not True or measured.get('association', {}).get('missingSourceVertices') != {}:
+            raise RuntimeError(stage + ' contact audit lost source members or anchor metadata.')
+    return {'path': str(Path(path).resolve()), 'sha256': sha256(data).hexdigest(),
+            'sourceBlendSha256': binding['sha256'], 'geometryFingerprint': geometry_fingerprint,
+            'literalGuardsMetres': audit['literalGuardsMetres'], 'groups': len(groups),
+            'stages': ['prepared', 'raw'], 'rawReplaySha256': raw['sha256'],
+            'allActualPreparedAndRawGroupsPassed': True, 'sourceAnchorMetadataByteExact': True}
 
 
 GENERATED_ATTRIBUTE = 'one_light_source_generated'
@@ -451,7 +511,7 @@ def transport_fingerprint(scene, regions, snapshot, binding, receiver_profiles):
     preview_audit = json.loads(scene.get('one_light_prepared_preview_audit', 'null'))
     if preview_audit and (preview_audit['sourceBlendSha256'] != binding['sha256'] or preview_audit['generatedReceivers'] != generated or preview_audit['mappingPolicy'] != scene.get('one_light_generated_policy')):
         raise RuntimeError('Prepared-preview mapping evidence does not match current source/Generated bytes.')
-    payload = {'policy': 'scene-wide-source-geometry-material-lighting-generated-v3', 'sourceBlendSha256': binding['sha256'], 'receivers': receiver_profiles, 'generatedCoordinates': {'policy': scene.get('one_light_generated_policy'), 'receivers': generated, 'preparationAuditSha256': scene.get('one_light_generated_audit_sha256')}, 'preparedPreviewAudit': preview_audit, 'auxiliaryOccluders': auxiliary, 'visibility': visibility, 'world': graph(snapshot[2]), 'worldColour': list(snapshot[2].color) if snapshot[2] else None, 'lights': lights, 'materials': materials, 'images': images, 'presets': PRESETS,
+    payload = {'policy': 'scene-wide-source-geometry-material-lighting-generated-v3', 'sourceBlendSha256': binding['sha256'], 'receivers': receiver_profiles, 'generatedCoordinates': {'policy': scene.get('one_light_generated_policy'), 'receivers': generated, 'preparationAuditSha256': scene.get('one_light_generated_audit_sha256')}, 'preparedPreviewAudit': preview_audit, 'preparedRestingContactAudit': scene.get('one_light_prepared_contact_audit_binding'), 'auxiliaryOccluders': auxiliary, 'visibility': visibility, 'world': graph(snapshot[2]), 'worldColour': list(snapshot[2].color) if snapshot[2] else None, 'lights': lights, 'materials': materials, 'images': images, 'presets': PRESETS,
                'cycles': {name: getattr(scene.cycles, name) for name in ['max_bounces', 'diffuse_bounces', 'glossy_bounces', 'transmission_bounces', 'transparent_max_bounces', 'volume_bounces', 'sample_clamp_direct', 'sample_clamp_indirect']}, 'bake': {'passes': ['DIRECT', 'INDIRECT'], 'colour': False, 'oidn': 'Metal RT HDR HIGH per exact chart', 'gutterPixels': 8}}
     encoded = json.dumps(payload, sort_keys=True, separators=(',', ':'))
     return sha256(encoded.encode()).hexdigest(), payload
@@ -501,7 +561,7 @@ def set_bake_image(obj, image):
         nodes.active = node
 
 
-def save_linear(scene, image, stem, valid_mask=None, gain=4096.0, write_master=True):
+def save_linear(scene, image, stem, valid_mask=None, gain=4096.0, write_master=True, encoding_scale=None):
     """Keep linear EXR masters; logarithmically encode delivery to protect dark values in 8-bit UASTC."""
     import numpy as np
     scene.render.image_settings.file_format = 'OPEN_EXR'
@@ -516,7 +576,9 @@ def save_linear(scene, image, stem, valid_mask=None, gain=4096.0, write_master=T
     rgba = pixels.reshape(image.size[1], image.size[0], 4)
     rgb = np.nan_to_num(np.maximum(rgba[:, :, :3], 0), posinf=0)
     maximum = float(rgb.max(initial=0))
-    scale = 2 ** math.ceil(math.log2(maximum)) if maximum > 0 else 1
+    scale = encoding_scale if encoding_scale is not None else 2 ** math.ceil(math.log2(maximum)) if maximum > 0 else 1
+    if not math.isfinite(scale) or scale <= 0 or maximum > scale:
+        raise ValueError('Encoding scale must preserve the full linear-radiance range without clipping.')
     log_range = math.log2(1 + scale * gain)
     encoded = np.log2(1 + rgb * gain) / log_range
     rgba[:, :, :3] = encoded
@@ -1169,6 +1231,12 @@ def main():
         fingerprint.update(receiver_profiles[region]['receiverFingerprint'].encode())
         fingerprint.update(receiver_profiles[region]['lightmapUVFingerprint'].encode())
     geometry_fingerprint = fingerprint.hexdigest()
+    resting_audit = None
+    if not options.skip_bake and not options.export_only:
+        resting_audit = validate_resting_contact_audit(scene, binding, receiver_profiles, geometry_fingerprint, options.resting_contact_audit)
+        if resting_audit:
+            scene['one_light_prepared_contact_audit_binding'] = json.dumps(resting_audit)
+            print('PREPARED_CONTACT_GUARD_PASS', json.dumps(resting_audit), flush=True)
     resolution_by_region = {region: {'hall': options.hall_resolution, 'court': options.court_resolution, 'gate': options.gate_resolution}.get(region) or options.resolution for region in regions}
     snapshot = snapshot_lighting(scene)
     if options.prepared_preview_audit:
@@ -1183,6 +1251,8 @@ def main():
     manifest['bake']['receiverProfiles'] = receiver_profiles
     manifest['bake']['generatedCoordinates'] = transport_payload['generatedCoordinates']
     manifest['bake']['preparedPreviewAudit'] = transport_payload['preparedPreviewAudit']
+    if resting_audit:
+        manifest['bake']['preparedContactAudit'] = resting_audit
     manifest['bake']['cachePolicy'] = 'Full scene/source/material/image/lighting identity. Region chart equality reuses UV preparation only, never illumination.'
     if options.hidden_faces:
         proof_bytes = options.hidden_faces.read_bytes()

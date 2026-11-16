@@ -1,0 +1,225 @@
+{
+  "source": {
+    "path": "art/build/snow-roof-resting-contacts-accepted.blend",
+    "sha256": "b31360516a2713a6451ca920f3f94d9fefd9bc191bc07fca63c8c5ddce5a0c86"
+  },
+  "auditSha256": "1f722140f258eb74b02f6db1760960de056567dfe1fba64392d933d6d8a2a290",
+  "coordinates": "Engine world x,Y-up,z. Runtime should convert to nook local.",
+  "static_lamp_wicks_engine": [
+    {
+      "name": "altar -1.45",
+      "contactGroup": "altar -1.45",
+      "wickObject": "Other altar lamp warm wick",
+      "pointLightObject": "Other altar lamp warm spill",
+      "supportObjects": [
+        "Turned altar side lamp pedestal"
+      ],
+      "wickCenter": [
+        -1.4500001668930054,
+        1.7559678554534912,
+        -4.75
+      ],
+      "wickTip": [
+        -1.450000286102295,
+        1.775967001914978,
+        -4.75
+      ],
+      "flameAnchor": [
+        -1.450000286102295,
+        1.778967022895813,
+        -4.75
+      ],
+      "pointLight": [
+        -1.4500000476837158,
+        1.8259673118591309,
+        -4.75
+      ]
+    },
+    {
+      "name": "altar -0.95",
+      "contactGroup": "altar -0.95",
+      "wickObject": "Other altar lamp warm wick.001",
+      "pointLightObject": "Other altar lamp warm spill.001",
+      "supportObjects": [
+        "Scanned console altar chinese_console_table"
+      ],
+      "wickCenter": [
+        -0.9500001668930054,
+        1.7110871076583862,
+        -4.75
+      ],
+      "wickTip": [
+        -0.9500002264976501,
+        1.7310870885849,
+        -4.75
+      ],
+      "flameAnchor": [
+        -0.9500002264976501,
+        1.7340871095657349,
+        -4.75
+      ],
+      "pointLight": [
+        -0.949999988079071,
+        1.7810873985290527,
+        -4.75
+      ]
+    },
+    {
+      "name": "altar 0.95",
+      "contactGroup": "altar 0.95",
+      "wickObject": "Other altar lamp warm wick.002",
+      "pointLightObject": "Other altar lamp warm spill.002",
+      "supportObjects": [
+        "Scanned console altar chinese_console_table"
+      ],
+      "wickCenter": [
+        0.9500001668930054,
+        1.7110917568206787,
+        -4.75
+      ],
+      "wickTip": [
+        0.9500002264976501,
+        1.7310909032821655,
+        -4.75
+      ],
+      "flameAnchor": [
+        0.9500002264976501,
+        1.7340909242630005,
+        -4.75
+      ],
+      "pointLight": [
+        0.949999988079071,
+        1.7810912132263184,
+        -4.75
+      ]
+    },
+    {
+      "name": "altar 1.45",
+      "contactGroup": "altar 1.45",
+      "wickObject": "Other altar lamp warm wick.003",
+      "pointLightObject": "Other altar lamp warm spill.003",
+      "supportObjects": [
+        "Turned altar side lamp pedestal.001"
+      ],
+      "wickCenter": [
+        1.4500001668930054,
+        1.749592661857605,
+        -4.75
+      ],
+      "wickTip": [
+        1.450000286102295,
+        1.7695926427841187,
+        -4.75
+      ],
+      "flameAnchor": [
+        1.450000286102295,
+        1.7725926637649536,
+        -4.75
+      ],
+      "pointLight": [
+        1.4500000476837158,
+        1.8195929527282715,
+        -4.75
+      ]
+    },
+    {
+      "name": "gate -1",
+      "contactGroup": "gate -1",
+      "wickObject": "Gate shelf lamp warm wick",
+      "pointLightObject": "Gate shelf lamp warm spill",
+      "supportObjects": [
+        "Gate lamp shelf"
+      ],
+      "wickCenter": [
+        -2.0,
+        1.7200028896331787,
+        19.250001907348633
+      ],
+      "wickTip": [
+        -2.0,
+        1.7400020360946655,
+        19.25
+      ],
+      "flameAnchor": [
+        -2.0,
+        1.7430020570755005,
+        19.25
+      ],
+      "pointLight": [
+        -2.0,
+        1.7900022268295288,
+        19.25
+      ]
+    },
+    {
+      "name": "gate 1",
+      "contactGroup": "gate 1",
+      "wickObject": "Gate shelf lamp warm wick.001",
+      "pointLightObject": "Gate shelf lamp warm spill.001",
+      "supportObjects": [
+        "Gate lamp shelf.001"
+      ],
+      "wickCenter": [
+        2.0,
+        1.7200028896331787,
+        19.250001907348633
+      ],
+      "wickTip": [
+        2.0,
+        1.7400020360946655,
+        19.25
+      ],
+      "flameAnchor": [
+        2.0,
+        1.7430020570755005,
+        19.25
+      ],
+      "pointLight": [
+        2.0,
+        1.7900022268295288,
+        19.25
+      ]
+    }
+  ],
+  "static_incense_tips_engine": [
+    {
+      "object": "Smouldering incense",
+      "tipEngine": [
+        -0.03999999538064003,
+        1.9657137393951416,
+        -4.849999904632568
+      ]
+    },
+    {
+      "object": "Smouldering incense.001",
+      "tipEngine": [
+        -0.01466272957623005,
+        1.961943507194519,
+        -4.849999904632568
+      ]
+    },
+    {
+      "object": "Smouldering incense.002",
+      "tipEngine": [
+        0.013337889686226845,
+        1.9709473848342896,
+        -4.849999904632568
+      ]
+    },
+    {
+      "object": "Smouldering incense.003",
+      "tipEngine": [
+        0.04133911058306694,
+        1.958911657333374,
+        -4.849999904632568
+      ]
+    }
+  ],
+  "static_incense_smoke_engine": [
+    3.567896783351898e-06,
+    1.970379114151001,
+    -4.849999904632568
+  ],
+  "flameSemantics": "Runtime liveFlame takes wickTip; flameAnchor is wickTip+3mm metadata, not the origin to use.",
+  "smokeSemantics": "Mean actual evaluated highest-tip crown points plus6mm engineY; the four source rod identifiers are retained."
+}

@@ -4,6 +4,18 @@ import * as THREE from 'three';
 export function createGeometryControls({ renderer, camera, getPlace }) {
   const savedTextures = new Map(), savedMaterials = new Map(), idMaterials = new Set();
   const lab = { mode: 'normal', exactCamera: null, surfaceIds: [] };
+  lab.inspectSceneAnchors = () => {
+    const place = getPlace(), entries = [];
+    place?.G?.updateMatrixWorld(true);
+    place?.G?.traverse(object => {
+      if (!object.userData.captureRole?.startsWith('static-fixture-')) return;
+      entries.push({ role: object.userData.captureRole, type: object.type, name: object.name,
+        localPosition: object.position.toArray(), worldPosition: object.getWorldPosition(new THREE.Vector3()).toArray(),
+        children: object.children.map(child => ({ type: child.type, name: child.name, localPosition: child.position.toArray(), worldPosition: child.getWorldPosition(new THREE.Vector3()).toArray() })) });
+    });
+    return { sourceSceneExtras: structuredClone(place?.baked?.group.userData ?? null), runtimeFixtures: entries,
+      note: 'Capture-only userData tags identify the actual liveFlame group anchor and specular PointLight. Positions are read from live world matrices; rendering and source anchors are unchanged.' };
+  };
   let originalAutoUpdate = null;
   const materials = () => {
     const found = new Set();

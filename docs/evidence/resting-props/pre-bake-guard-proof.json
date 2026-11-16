@@ -1,0 +1,111 @@
+{
+  "scope": "Actual contact validation function and genuine prepared geometry. No rendering, baking, denoising, encoding or source writes.",
+  "sourceBlendSha256": "b31360516a2713a6451ca920f3f94d9fefd9bc191bc07fca63c8c5ddce5a0c86",
+  "inputs": {
+    "prepared": "01df8ba8b2eb440d179e65b31dbf34e7ee44d123d5aee5312b0f665776a45934",
+    "audit": "c7339acd30137c33398c8df122516f31b0405a5093dbace21c072db931bc38dc"
+  },
+  "geometryFingerprint": "89d4085e7b4ed662ab952b1430e9217b3c9befad602e1c317ae3ea659d848821",
+  "validActualReceiptPassed": true,
+  "unrelatedMetadataAcceptedWithSameReceiverFingerprints": true,
+  "challenges": [
+    {
+      "name": "missing-receipt",
+      "rejectedBeforeCycles": true,
+      "reason": "Registered resting props require --resting-contact-audit before any Cycles bake."
+    },
+    {
+      "name": "missing-file",
+      "rejectedBeforeCycles": true,
+      "reason": "Registered resting props require --resting-contact-audit before any Cycles bake."
+    },
+    {
+      "name": "failed-replay",
+      "rejectedBeforeCycles": true,
+      "reason": "Prepared contact audit failed or changed the literal 2 mm / 5 mm guards."
+    },
+    {
+      "name": "wrong-source",
+      "rejectedBeforeCycles": true,
+      "reason": "Prepared contact audit belongs to a different authored source."
+    },
+    {
+      "name": "wrong-geometry",
+      "rejectedBeforeCycles": true,
+      "reason": "Prepared contact audit geometry fingerprint is stale."
+    },
+    {
+      "name": "wrong-receiver",
+      "rejectedBeforeCycles": true,
+      "reason": "Prepared contact audit receiver/UV mismatch: court/receiverFingerprint"
+    },
+    {
+      "name": "wrong-uv",
+      "rejectedBeforeCycles": true,
+      "reason": "Prepared contact audit receiver/UV mismatch: court/lightmapUVFingerprint"
+    },
+    {
+      "name": "gap-over-literal-limit",
+      "rejectedBeforeCycles": true,
+      "reason": "prepared contact exceeds a literal guard: scanned console altar"
+    },
+    {
+      "name": "penetration-over-literal-limit",
+      "rejectedBeforeCycles": true,
+      "reason": "prepared contact exceeds a literal guard: scanned console altar"
+    },
+    {
+      "name": "relaxed-limit",
+      "rejectedBeforeCycles": true,
+      "reason": "Prepared contact audit failed or changed the literal 2 mm / 5 mm guards."
+    },
+    {
+      "name": "missing-group",
+      "rejectedBeforeCycles": true,
+      "reason": "prepared contact audit omits, duplicates or adds registered groups."
+    },
+    {
+      "name": "duplicate-group",
+      "rejectedBeforeCycles": true,
+      "reason": "prepared contact audit omits, duplicates or adds registered groups."
+    },
+    {
+      "name": "changed-support-mode",
+      "rejectedBeforeCycles": true,
+      "reason": "prepared contact group failed or changed its support mode: scanned console altar"
+    },
+    {
+      "name": "lost-anchor-metadata",
+      "rejectedBeforeCycles": true,
+      "reason": "prepared contact audit lost source members or anchor metadata."
+    },
+    {
+      "name": "nonfinite-measurement",
+      "rejectedBeforeCycles": true,
+      "reason": "prepared contact exceeds a literal guard: scanned console altar"
+    },
+    {
+      "name": "failed-raw-replay",
+      "rejectedBeforeCycles": true,
+      "reason": "An actual passing raw-export contact replay is required."
+    },
+    {
+      "name": "wrong-frozen-raw",
+      "rejectedBeforeCycles": true,
+      "reason": "The actual frozen raw contact replay input changed."
+    },
+    {
+      "name": "raw-penetration-over-limit",
+      "rejectedBeforeCycles": true,
+      "reason": "raw contact exceeds a literal guard: scanned console altar"
+    },
+    {
+      "name": "lost-raw-anchor-metadata",
+      "rejectedBeforeCycles": true,
+      "reason": "raw contact audit lost source members or anchor metadata."
+    }
+  ],
+  "originalInputsByteUnchanged": true,
+  "scriptSha256": "b61f413452386f1ac77a4349121eaf860f939d3a2f5a71dfe061fed1b365e4f2",
+  "bakerSha256": "55cb884fff68b333aa378a4f2ea10bc8c85d8703c405f7b09ecb72825d2ab55b"
+}

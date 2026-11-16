@@ -1,0 +1,751 @@
+{
+  "raw": {
+    "path": "/Users/xuan/Documents/code/zz-wish/art/build/resting-contacts-export-study/snow-roof.raw.glb",
+    "sha256": "c3539702ab9c0a5eb244f4be25d57bd1c30f22bb31ecedd83674bd99642aef7b"
+  },
+  "reference": {
+    "path": "/Users/xuan/Documents/code/zz-wish/art/build/resting-contacts-export-study/hidden-reference/reference.json",
+    "sha256": "473d5376b90a6f7b7add3e9032887dfa0346faac7653449ae609b7aa6573bc79",
+    "inputs": {
+      "prepared": {
+        "path": "/Users/xuan/Documents/code/zz-wish/art/build/resting-contacts-export-study/snow-roof-prepared.blend",
+        "sha256": "a49fe4fec7dcb52022c720b5a47a8d9c187f06433fda48adf1324d5d65c75d28"
+      },
+      "source": {
+        "path": "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-resting-contacts-accepted.blend",
+        "sha256": "b31360516a2713a6451ca920f3f94d9fefd9bc191bc07fca63c8c5ddce5a0c86"
+      },
+      "proof": {
+        "path": "/Users/xuan/Documents/code/zz-wish/art/blender/proofs/snow-roof-resting-contacts-accepted-hidden-tiles.json",
+        "sha256": "cf525ebd5990e8487cc4e10f3a6110fc12d0deab152885889fe879991bbfba57"
+      }
+    }
+  },
+  "method": "Exact float32 triangle-position multisets matched against actual prepared FACE flags. Mesh-local axes converted to glTF Y-up; node transforms checked separately. UV marker alone never authorizes removal.",
+  "regions": {
+    "hall": {
+      "vertices": 635899,
+      "triangles": 384836,
+      "matchedProvenTriangles": 95790,
+      "verticesUnusedAfterPrune": 103150,
+      "preservedNonproofMarkerTriangles": 2604,
+      "transformMaximumError": 0,
+      "materials": {
+        "Dark clay roof tile": 95790
+      },
+      "primitives": [
+        {
+          "material": "Dark hall paving 1",
+          "vertices": 58172,
+          "triangles": 24152,
+          "matchedProvenTriangles": 0,
+          "removableVertices": 0,
+          "preservedNonproofMarkerTriangles": 0,
+          "semantics": [
+            "COLOR_0",
+            "COLOR_1",
+            "NORMAL",
+            "POSITION",
+            "TEXCOORD_0",
+            "TEXCOORD_1"
+          ]
+        },
+        {
+          "material": "Dark hall paving 0",
+          "vertices": 44525,
+          "triangles": 18432,
+          "matchedProvenTriangles": 0,
+          "removableVertices": 0,
+          "preservedNonproofMarkerTriangles": 0,
+          "semantics": [
+            "COLOR_0",
+            "COLOR_1",
+            "NORMAL",
+            "POSITION",
+            "TEXCOORD_0",
+            "TEXCOORD_1"
+          ]
+        },
+        {
+          "material": "Dark hall paving 2",
+          "vertices": 41883,
+          "triangles": 17340,
+          "matchedProvenTriangles": 0,
+          "removableVertices": 0,
+          "preservedNonproofMarkerTriangles": 0,
+          "semantics": [
+            "COLOR_0",
+            "COLOR_1",
+            "NORMAL",
+            "POSITION",
+            "TEXCOORD_0",
+            "TEXCOORD_1"
+          ]
+        },
+        {
+          "material": "Walk-polished worn dark stone",
+          "vertices": 24364,
+          "triangles": 10260,
+          "matchedProvenTriangles": 0,
+          "removableVertices": 0,
+          "preservedNonproofMarkerTriangles": 0,
+          "semantics": [
+            "COLOR_0",
+            "COLOR_1",
+            "NORMAL",
+            "POSITION",
+            "TEXCOORD_0",
+            "TEXCOORD_1"
+          ]
+        },
+        {
+          "material": "Weathered brick footings",
+          "vertices": 244,
+          "triangles": 108,
+          "matchedProvenTriangles": 0,
+          "removableVertices": 0,
+          "preservedNonproofMarkerTriangles": 0,
+          "semantics": [
+            "COLOR_0",
+            "COLOR_1",
+            "NORMAL",
+            "POSITION",
+            "TEXCOORD_0",
+            "TEXCOORD_1"
+          ]
+        },
+        {
+          "material": "Patched lime plaster",
+          "vertices": 2720,
+          "triangles": 1188,
+          "matchedProvenTriangles": 0,
+          "removableVertices": 0,
+          "preservedNonproofMarkerTriangles": 0,
+          "semantics": [
+            "COLOR_0",
+            "COLOR_1",
+            "NORMAL",
+            "POSITION",
+            "TEXCOORD_0",
+            "TEXCOORD_1"
+          ]
+        },
+        {
+          "material": "Ivory window paper",
+          "vertices": 556,
+          "triangles": 216,
+          "matchedProvenTriangles": 0,
+          "removableVertices": 0,
+          "preservedNonproofMarkerTriangles": 0,
+          "semantics": [
+            "COLOR_0",
+            "COLOR_1",
+            "NORMAL",
+            "POSITION",
+            "TEXCOORD_0",
+            "TEXCOORD_1"
+          ]
+        },
+        {
+          "material": "Aged red painted timber",
+          "vertices": 23251,
+          "triangles": 12356,
+          "matchedProvenTriangles": 0,
+          "removableVertices": 0,
+          "preservedNonproofMarkerTriangles": 0,
+          "semantics": [
+            "COLOR_0",
+            "COLOR_1",
+            "NORMAL",
+            "POSITION",
+            "TEXCOORD_0",
+            "TEXCOORD_1"
+          ]
+        },
+        {
+          "material": "Worn granite",
+          "vertices": 15534,
+          "triangles": 8232,
+          "matchedProvenTriangles": 0,
+          "removableVertices": 0,
+          "preservedNonproofMarkerTriangles": 0,
+          "semantics": [
+            "COLOR_0",
+            "COLOR_1",
+            "NORMAL",
+            "POSITION",
+            "TEXCOORD_0",
+            "TEXCOORD_1"
+          ]
+        },
+        {
+          "material": "Dark old timber",
+          "vertices": 129180,
+          "triangles": 71120,
+          "matchedProvenTriangles": 0,
+          "removableVertices": 0,
+          "preservedNonproofMarkerTriangles": 0,
+          "semantics": [
+            "COLOR_0",
+            "COLOR_1",
+            "NORMAL",
+            "POSITION",
+            "TEXCOORD_0",
+            "TEXCOORD_1"
+          ]
+        },
+        {
+          "material": "Aged bronze",
+          "vertices": 15775,
+          "triangles": 10504,
+          "matchedProvenTriangles": 0,
+          "removableVertices": 0,
+          "preservedNonproofMarkerTriangles": 2000,
+          "semantics": [
+            "COLOR_0",
+            "COLOR_1",
+            "NORMAL",
+            "POSITION",
+            "TEXCOORD_0",
+            "TEXCOORD_1"
+          ]
+        },
+        {
+          "material": "Faded teal beam paint",
+          "vertices": 73616,
+          "triangles": 30544,
+          "matchedProvenTriangles": 0,
+          "removableVertices": 0,
+          "preservedNonproofMarkerTriangles": 0,
+          "semantics": [
+            "COLOR_0",
+            "COLOR_1",
+            "NORMAL",
+            "POSITION",
+            "TEXCOORD_0",
+            "TEXCOORD_1"
+          ]
+        },
+        {
+          "material": "Tarnished gilded edges",
+          "vertices": 24113,
+          "triangles": 10912,
+          "matchedProvenTriangles": 0,
+          "removableVertices": 0,
+          "preservedNonproofMarkerTriangles": 0,
+          "semantics": [
+            "COLOR_0",
+            "COLOR_1",
+            "NORMAL",
+            "POSITION",
+            "TEXCOORD_0",
+            "TEXCOORD_1"
+          ]
+        },
+        {
+          "material": "Dark clay roof tile",
+          "vertices": 134811,
+          "triangles": 123904,
+          "matchedProvenTriangles": 95790,
+          "removableVertices": 103150,
+          "preservedNonproofMarkerTriangles": 0,
+          "semantics": [
+            "COLOR_0",
+            "COLOR_1",
+            "NORMAL",
+            "POSITION",
+            "TEXCOORD_0",
+            "TEXCOORD_1"
+          ]
+        },
+        {
+          "material": "Snow settled dry grains",
+          "vertices": 13555,
+          "triangles": 20384,
+          "matchedProvenTriangles": 0,
+          "removableVertices": 0,
+          "preservedNonproofMarkerTriangles": 0,
+          "semantics": [
+            "COLOR_0",
+            "COLOR_1",
+            "NORMAL",
+            "POSITION",
+            "TEXCOORD_0",
+            "TEXCOORD_1"
+          ]
+        },
+        {
+          "material": "Cloudy icicle ice",
+          "vertices": 2812,
+          "triangles": 1692,
+          "matchedProvenTriangles": 0,
+          "removableVertices": 0,
+          "preservedNonproofMarkerTriangles": 156,
+          "semantics": [
+            "COLOR_0",
+            "COLOR_1",
+            "NORMAL",
+            "POSITION",
+            "TEXCOORD_0",
+            "TEXCOORD_1"
+          ]
+        },
+        {
+          "material": "chinese_console_table",
+          "vertices": 15965,
+          "triangles": 13648,
+          "matchedProvenTriangles": 0,
+          "removableVertices": 0,
+          "preservedNonproofMarkerTriangles": 0,
+          "semantics": [
+            "COLOR_0",
+            "COLOR_1",
+            "NORMAL",
+            "POSITION",
+            "TEXCOORD_0",
+            "TEXCOORD_1"
+          ]
+        },
+        {
+          "material": "chinese_screen_panels",
+          "vertices": 572,
+          "triangles": 420,
+          "matchedProvenTriangles": 0,
+          "removableVertices": 0,
+          "preservedNonproofMarkerTriangles": 0,
+          "semantics": [
+            "COLOR_0",
+            "COLOR_1",
+            "NORMAL",
+            "POSITION",
+            "TEXCOORD_0",
+            "TEXCOORD_1"
+          ]
+        },
+        {
+          "material": "chinese_screen_panels.001",
+          "vertices": 543,
+          "triangles": 364,
+          "matchedProvenTriangles": 0,
+          "removableVertices": 0,
+          "preservedNonproofMarkerTriangles": 0,
+          "semantics": [
+            "COLOR_0",
+            "COLOR_1",
+            "NORMAL",
+            "POSITION",
+            "TEXCOORD_0",
+            "TEXCOORD_1"
+          ]
+        },
+        {
+          "material": "chinese_screen_panels.002",
+          "vertices": 572,
+          "triangles": 420,
+          "matchedProvenTriangles": 0,
+          "removableVertices": 0,
+          "preservedNonproofMarkerTriangles": 0,
+          "semantics": [
+            "COLOR_0",
+            "COLOR_1",
+            "NORMAL",
+            "POSITION",
+            "TEXCOORD_0",
+            "TEXCOORD_1"
+          ]
+        },
+        {
+          "material": "Other lamps warm wick",
+          "vertices": 462,
+          "triangles": 288,
+          "matchedProvenTriangles": 0,
+          "removableVertices": 0,
+          "preservedNonproofMarkerTriangles": 96,
+          "semantics": [
+            "COLOR_0",
+            "COLOR_1",
+            "NORMAL",
+            "POSITION",
+            "TEXCOORD_0",
+            "TEXCOORD_1"
+          ]
+        },
+        {
+          "material": "Soft cold incense ash",
+          "vertices": 144,
+          "triangles": 48,
+          "matchedProvenTriangles": 0,
+          "removableVertices": 0,
+          "preservedNonproofMarkerTriangles": 0,
+          "semantics": [
+            "COLOR_0",
+            "COLOR_1",
+            "NORMAL",
+            "POSITION",
+            "TEXCOORD_0",
+            "TEXCOORD_1"
+          ]
+        },
+        {
+          "material": "Soot-darkened clay",
+          "vertices": 1983,
+          "triangles": 1284,
+          "matchedProvenTriangles": 0,
+          "removableVertices": 0,
+          "preservedNonproofMarkerTriangles": 192,
+          "semantics": [
+            "COLOR_0",
+            "COLOR_1",
+            "NORMAL",
+            "POSITION",
+            "TEXCOORD_0",
+            "TEXCOORD_1"
+          ]
+        },
+        {
+          "material": "Worn woven cushion cloth",
+          "vertices": 2170,
+          "triangles": 2880,
+          "matchedProvenTriangles": 0,
+          "removableVertices": 0,
+          "preservedNonproofMarkerTriangles": 160,
+          "semantics": [
+            "COLOR_0",
+            "COLOR_1",
+            "NORMAL",
+            "POSITION",
+            "TEXCOORD_0",
+            "TEXCOORD_1"
+          ]
+        },
+        {
+          "material": "Cushion stitched piping",
+          "vertices": 5656,
+          "triangles": 2880,
+          "matchedProvenTriangles": 0,
+          "removableVertices": 0,
+          "preservedNonproofMarkerTriangles": 0,
+          "semantics": [
+            "COLOR_0",
+            "COLOR_1",
+            "NORMAL",
+            "POSITION",
+            "TEXCOORD_0",
+            "TEXCOORD_1"
+          ]
+        },
+        {
+          "material": "Dry straw",
+          "vertices": 2721,
+          "triangles": 1260,
+          "matchedProvenTriangles": 0,
+          "removableVertices": 0,
+          "preservedNonproofMarkerTriangles": 0,
+          "semantics": [
+            "COLOR_0",
+            "COLOR_1",
+            "NORMAL",
+            "POSITION",
+            "TEXCOORD_0",
+            "TEXCOORD_1"
+          ]
+        }
+      ],
+      "unmatchedSourceTriangles": 0
+    },
+    "gate": {
+      "vertices": 116332,
+      "triangles": 84844,
+      "matchedProvenTriangles": 22566,
+      "verticesUnusedAfterPrune": 24324,
+      "preservedNonproofMarkerTriangles": 304,
+      "transformMaximumError": 0,
+      "materials": {
+        "Gate roof tiles": 22566
+      },
+      "primitives": [
+        {
+          "material": "Patched lime plaster",
+          "vertices": 3436,
+          "triangles": 4696,
+          "matchedProvenTriangles": 0,
+          "removableVertices": 0,
+          "preservedNonproofMarkerTriangles": 0,
+          "semantics": [
+            "COLOR_0",
+            "COLOR_1",
+            "NORMAL",
+            "POSITION",
+            "TEXCOORD_0",
+            "TEXCOORD_1"
+          ]
+        },
+        {
+          "material": "Worn granite",
+          "vertices": 1836,
+          "triangles": 1032,
+          "matchedProvenTriangles": 0,
+          "removableVertices": 0,
+          "preservedNonproofMarkerTriangles": 0,
+          "semantics": [
+            "COLOR_0",
+            "COLOR_1",
+            "NORMAL",
+            "POSITION",
+            "TEXCOORD_0",
+            "TEXCOORD_1"
+          ]
+        },
+        {
+          "material": "Dark old timber",
+          "vertices": 51168,
+          "triangles": 28044,
+          "matchedProvenTriangles": 0,
+          "removableVertices": 0,
+          "preservedNonproofMarkerTriangles": 0,
+          "semantics": [
+            "COLOR_0",
+            "COLOR_1",
+            "NORMAL",
+            "POSITION",
+            "TEXCOORD_0",
+            "TEXCOORD_1"
+          ]
+        },
+        {
+          "material": "Aged red painted timber",
+          "vertices": 754,
+          "triangles": 600,
+          "matchedProvenTriangles": 0,
+          "removableVertices": 0,
+          "preservedNonproofMarkerTriangles": 0,
+          "semantics": [
+            "COLOR_0",
+            "COLOR_1",
+            "NORMAL",
+            "POSITION",
+            "TEXCOORD_0",
+            "TEXCOORD_1"
+          ]
+        },
+        {
+          "material": "Faded teal beam paint",
+          "vertices": 9355,
+          "triangles": 4072,
+          "matchedProvenTriangles": 0,
+          "removableVertices": 0,
+          "preservedNonproofMarkerTriangles": 0,
+          "semantics": [
+            "COLOR_0",
+            "COLOR_1",
+            "NORMAL",
+            "POSITION",
+            "TEXCOORD_0",
+            "TEXCOORD_1"
+          ]
+        },
+        {
+          "material": "Tarnished gilded edges",
+          "vertices": 3049,
+          "triangles": 1296,
+          "matchedProvenTriangles": 0,
+          "removableVertices": 0,
+          "preservedNonproofMarkerTriangles": 0,
+          "semantics": [
+            "COLOR_0",
+            "COLOR_1",
+            "NORMAL",
+            "POSITION",
+            "TEXCOORD_0",
+            "TEXCOORD_1"
+          ]
+        },
+        {
+          "material": "Gate roof tiles",
+          "vertices": 40930,
+          "triangles": 37360,
+          "matchedProvenTriangles": 22566,
+          "removableVertices": 24324,
+          "preservedNonproofMarkerTriangles": 0,
+          "semantics": [
+            "COLOR_0",
+            "COLOR_1",
+            "NORMAL",
+            "POSITION",
+            "TEXCOORD_0",
+            "TEXCOORD_1"
+          ]
+        },
+        {
+          "material": "Snow settled dry grains",
+          "vertices": 3672,
+          "triangles": 6192,
+          "matchedProvenTriangles": 0,
+          "removableVertices": 0,
+          "preservedNonproofMarkerTriangles": 0,
+          "semantics": [
+            "COLOR_0",
+            "COLOR_1",
+            "NORMAL",
+            "POSITION",
+            "TEXCOORD_0",
+            "TEXCOORD_1"
+          ]
+        },
+        {
+          "material": "Aged bronze",
+          "vertices": 1902,
+          "triangles": 1408,
+          "matchedProvenTriangles": 0,
+          "removableVertices": 0,
+          "preservedNonproofMarkerTriangles": 256,
+          "semantics": [
+            "COLOR_0",
+            "COLOR_1",
+            "NORMAL",
+            "POSITION",
+            "TEXCOORD_0",
+            "TEXCOORD_1"
+          ]
+        },
+        {
+          "material": "Other lamps warm wick",
+          "vertices": 230,
+          "triangles": 144,
+          "matchedProvenTriangles": 0,
+          "removableVertices": 0,
+          "preservedNonproofMarkerTriangles": 48,
+          "semantics": [
+            "COLOR_0",
+            "COLOR_1",
+            "NORMAL",
+            "POSITION",
+            "TEXCOORD_0",
+            "TEXCOORD_1"
+          ]
+        }
+      ],
+      "unmatchedSourceTriangles": 0
+    },
+    "court": {
+      "vertices": 204599,
+      "triangles": 181256,
+      "matchedProvenTriangles": 65394,
+      "verticesUnusedAfterPrune": 70576,
+      "preservedNonproofMarkerTriangles": 384,
+      "transformMaximumError": 0,
+      "materials": {
+        "Side hall roof tiles": 65394
+      },
+      "primitives": [
+        {
+          "material": "Snow settled dry grains",
+          "vertices": 29290,
+          "triangles": 50716,
+          "matchedProvenTriangles": 0,
+          "removableVertices": 0,
+          "preservedNonproofMarkerTriangles": 0,
+          "semantics": [
+            "COLOR_0",
+            "COLOR_1",
+            "NORMAL",
+            "POSITION",
+            "TEXCOORD_0",
+            "TEXCOORD_1"
+          ]
+        },
+        {
+          "material": "Patched lime plaster",
+          "vertices": 1792,
+          "triangles": 756,
+          "matchedProvenTriangles": 0,
+          "removableVertices": 0,
+          "preservedNonproofMarkerTriangles": 0,
+          "semantics": [
+            "COLOR_0",
+            "COLOR_1",
+            "NORMAL",
+            "POSITION",
+            "TEXCOORD_0",
+            "TEXCOORD_1"
+          ]
+        },
+        {
+          "material": "Worn granite",
+          "vertices": 24247,
+          "triangles": 10368,
+          "matchedProvenTriangles": 0,
+          "removableVertices": 0,
+          "preservedNonproofMarkerTriangles": 0,
+          "semantics": [
+            "COLOR_0",
+            "COLOR_1",
+            "NORMAL",
+            "POSITION",
+            "TEXCOORD_0",
+            "TEXCOORD_1"
+          ]
+        },
+        {
+          "material": "Aged red painted timber",
+          "vertices": 3336,
+          "triangles": 2688,
+          "matchedProvenTriangles": 0,
+          "removableVertices": 0,
+          "preservedNonproofMarkerTriangles": 384,
+          "semantics": [
+            "COLOR_0",
+            "COLOR_1",
+            "NORMAL",
+            "POSITION",
+            "TEXCOORD_0",
+            "TEXCOORD_1"
+          ]
+        },
+        {
+          "material": "Dark old timber",
+          "vertices": 48536,
+          "triangles": 27408,
+          "matchedProvenTriangles": 0,
+          "removableVertices": 0,
+          "preservedNonproofMarkerTriangles": 0,
+          "semantics": [
+            "COLOR_0",
+            "COLOR_1",
+            "NORMAL",
+            "POSITION",
+            "TEXCOORD_0",
+            "TEXCOORD_1"
+          ]
+        },
+        {
+          "material": "Side hall roof tiles",
+          "vertices": 97398,
+          "triangles": 89320,
+          "matchedProvenTriangles": 65394,
+          "removableVertices": 70576,
+          "preservedNonproofMarkerTriangles": 0,
+          "semantics": [
+            "COLOR_0",
+            "COLOR_1",
+            "NORMAL",
+            "POSITION",
+            "TEXCOORD_0",
+            "TEXCOORD_1"
+          ]
+        }
+      ],
+      "unmatchedSourceTriangles": 0
+    }
+  },
+  "totals": {
+    "vertices": 956830,
+    "triangles": 650936,
+    "matchedProvenTriangles": 183750,
+    "verticesUnusedAfterPrune": 198050,
+    "preservedNonproofMarkerTriangles": 3292
+  },
+  "sourceOrModelModified": false,
+  "renderOrBakePerformed": false,
+  "exactPreparedFaceCorrespondence": true
+}

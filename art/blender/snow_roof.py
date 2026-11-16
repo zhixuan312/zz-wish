@@ -22,15 +22,34 @@ import bpy
 from mathutils import Vector, Matrix, noise
 
 ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from resting_contacts import RestingContacts, engine as engine_point
 MATERIALS = ROOT / 'web/public/materials/scans'
 RNG = random.Random(61903)
 STATIC = None
 REGION = 'court'
 CACHE = {}
+CONTACTS = None
+FIXED_LAMPS = []
+INCENSE = []
 
 
 def point(p):
     return Vector((p[0], -p[2], p[1]))
+
+
+def resting_contact_height(x, z, support_meshes):
+    """Return actual engine-Y contact height from evaluated support triangles.
+
+    All resting-group placement uses this one helper at an actual evaluated
+    lowest bearing vertex. The independent audit casts its own rays again.
+    """
+    tree, owners = CONTACTS.support(support_meshes)
+    hit, normal, triangle, distance = tree.ray_cast(
+        point((x, 50, z)), Vector((0, 0, -1)), 100)
+    if hit is None:
+        raise RuntimeError('No actual evaluated support beneath resting contact')
+    return float(hit.z)
 
 
 def mesh_object(name, vertices, faces, material, region=None):
@@ -124,6 +143,24 @@ def lathe(name, profile, location, material, segments=32, region=None):
     obj = mesh_object(name, vertices, faces, material, region)
     for polygon in obj.data.polygons:
         polygon.use_smooth = True
+    return obj
+
+
+def close_turning_top(obj, segments):
+    """Close the existing top rim with a physical bearing face, same silhouette."""
+    import bmesh
+    bm = bmesh.new()
+    bm.from_mesh(obj.data)
+    bm.verts.ensure_lookup_table()
+    rim = list(bm.verts)[-segments:]
+    face = bm.faces.new(list(reversed(rim)))
+    face.smooth = False
+    bm.normal_update()
+    bm.to_mesh(obj.data)
+    bm.free()
+    obj.data.update()
+    uv_world(obj)
+    obj['physical_bearing_top'] = 'Closed actual top-rim face; no bounding-box support surrogate.'
     return obj
 
 
@@ -311,7 +348,7 @@ def kneeling_cushion(x,y,z):
 
 def brass_burner(location,bronze,soot):
     x,y,z=location
-    lathe('Brass incense burner with rolled lip',[(0,0),(.10,0),(.12,.02),(.13,.055),(.185,.12),(.18,.17),(.15,.185),(.137,.17),(.135,.12),(0,.11)],location,bronze,48)
+    body=lathe('Brass incense burner with rolled lip',[(0,0),(.10,0),(.12,.02),(.13,.055),(.185,.12),(.18,.17),(.15,.185),(.137,.17),(.135,.12),(0,.11)],location,bronze,48)
     for i in range(3):
         a=i/3*math.tau
         beam('Brass burner foot',(x+math.cos(a)*.105,y+.035,z+math.sin(a)*.105),(x+math.cos(a)*.125,y,z+math.sin(a)*.125),.013,bronze,.017)
@@ -321,10 +358,13 @@ def brass_burner(location,bronze,soot):
         a=i/n*math.tau
         vertices.append((x+math.cos(a)*.133,y+.121+.002*math.sin(a*7),z+math.sin(a)*.133))
     for i in range(n):faces.append((0,1+(i+1)%n,1+i))
-    mesh_object('Ash mound in brass burner',vertices,faces,ash)
+    with CONTACTS.group('burner ash', [body]):
+        ash_surface=mesh_object('Ash mound in brass burner',vertices,faces,ash)
     for i in range(9):
         a=i*2.39;r=.022+.065*((i*7)%9)/9
-        beam('Charred incense end in ash',(x+math.cos(a)*r,y+.133,z+math.sin(a)*r),(x+math.cos(a)*r+.01,y+.134,z+math.sin(a)*r+.008),.0018,soot,.0015)
+        with CONTACTS.group('charred incense '+str(i), [ash_surface]):
+            beam('Charred incense end in ash',(x+math.cos(a)*r,y+.133,z+math.sin(a)*r),(x+math.cos(a)*r+.01,y+.134,z+math.sin(a)*r+.008),.0018,soot,.0015)
+    return ash_surface
 
 
 def light(name, location, energy, tint, radius=.1, role='fixture'):
@@ -671,6 +711,7 @@ def stair_snow_banks(mat):
         grain_size.z=(abs(grain_size.x)+abs(grain_size.y))*.5
         obj.data.texspace_size=grain_size
         obj['step_snow_shape']='One closed connected bank across all treads/risers, wrapping over the outer edge and merging below the existing ground snow.'
+        obj['step_snow_top_faces']=top_faces
         obj['step_snow_seed']=seed;obj['step_snow_side']=side
         obj['step_snow_peak_metres']=peak
         obj['step_snow_center_clearance_metres']=.85
@@ -772,10 +813,11 @@ def snow_field(material_snow):
 
 
 def small_fixture(name, x, y, z, bronze, warm, role='fixture'):
-    lathe(name + ' bronze foot', [(0, 0), (.065, 0), (.07, .018), (.04, .045), (.045, .06), (0, .06)], (x, y, z), bronze)
-    lathe(name + ' shallow bowl', [(0, .05), (.04, .05), (.07, .08), (.074, .11), (.065, .12), (.058, .08), (0, .075)], (x, y, z), bronze)
-    cylinder(name + ' warm wick', .012, .04, (x, y + .12, z), warm, 12, 0)
-    light(name + ' warm spill', (x, y + .19, z), 8, '#ffad66', .07, role)
+    foot=lathe(name + ' bronze foot', [(0, 0), (.065, 0), (.07, .018), (.04, .045), (.045, .06), (0, .06)], (x, y, z), bronze)
+    bowl=lathe(name + ' shallow bowl', [(0, .05), (.04, .05), (.07, .08), (.074, .11), (.065, .12), (.058, .08), (0, .075)], (x, y, z), bronze)
+    wick=cylinder(name + ' warm wick', .012, .04, (x, y + .12, z), warm, 12, 0)
+    spill=light(name + ' warm spill', (x, y + .19, z), 8, '#ffad66', .07, role)
+    return {'foot':foot,'bowl':bowl,'wick':wick,'light':spill}
 
 
 def bare_tree(x, z, height, bark, snow):
@@ -802,8 +844,11 @@ def bare_tree(x, z, height, bark, snow):
 
 
 def build_scene():
-    global STATIC, REGION, RNG
+    global STATIC, REGION, RNG, CONTACTS, FIXED_LAMPS, INCENSE
     RNG = random.Random(61903)
+    CONTACTS = RestingContacts(height_query=resting_contact_height)
+    FIXED_LAMPS = []
+    INCENSE = []
     bpy.ops.object.select_all(action='SELECT')
     bpy.ops.object.delete(use_global=False)
     for collection in list(bpy.data.collections):
@@ -869,7 +914,7 @@ def build_scene():
         zz+=depth
     box('Hall foundation', (10.8,.52,9.0), (0,.26,-2.3), brick, .045)
     # Main hall in the exact runtime nook frame: origin(0,.6,-.5), front z2.2, back z-6.6.
-    box('Hall rear wall', (10.6,4.5,.32), (0,2.85,-6.6), plaster, .025)
+    rear_wall=box('Hall rear wall', (10.6,4.5,.32), (0,2.85,-6.6), plaster, .025)
     for side in [-1,1]:
         box('Hall side wall', (.34,4.5,8.8), (side*5.3,2.85,-2.3), plaster, .025)
         box('Front lower wall', (3.95,1.0,.32), (side*3.125,1.1,2.2), plaster, .025)
@@ -934,7 +979,6 @@ def build_scene():
     box('Front terrace',(11,.6,2.4),(0,.3,3.4),granite,.045)
     for i in range(3):
         worn_step('Chipped and worn granite step',3.2,.2,.43,(0,.5-i*.2,4.8+i*.4),granite)
-    stair_snow_banks(snow)
     # Narrow icicles hang from the sheltered edge rather than floating over the court.
     ice=material('Cloudy icicle ice','#ccdbe5',rough=.38)
     for i in range(47):
@@ -945,23 +989,51 @@ def build_scene():
 
     # Actual Poly Haven CC0 antique joinery and screen panels replace the box
     # altar and schematic diamond screen. Their original photo UVs are retained.
-    import_prop('Scanned console altar','web/public/models/chinese_console_table/chinese_console_table.gltf',(0,.6,-4.85),1.03)
-    # Round side pedestals support the unchanged outer lamp positions.
+    floor_supports=[obj for obj in STATIC.objects if obj.name.startswith('Settled irregular paving stone')]
+    with CONTACTS.group('scanned console altar', floor_supports):
+        console=import_prop('Scanned console altar','web/public/models/chinese_console_table/chinese_console_table.gltf',(0,.6,-4.85),1.03)
+    # Pedestals themselves rest on the actual irregular paving. Their top
+    # profiles require a bearing cap: the old open rim cannot support a lamp.
+    pedestals={}
     for xx in [-1.45,1.45]:
-        lathe('Turned altar side lamp pedestal',[(.13,0),(.15,.04),(.09,.12),(.065,.75),(.11,.91),(.17,.96),(.17,1.03)],(xx,.6,-4.75),dark_wood,32)
+        with CONTACTS.group('turned pedestal '+str(xx), floor_supports):
+            pedestals[xx]=close_turning_top(lathe('Turned altar side lamp pedestal',[(.13,0),(.15,.04),(.09,.12),(.065,.75),(.11,.91),(.17,.96),(.17,1.03)],(xx,.6,-4.75),dark_wood,32),32)
+    # The accepted raised panel composition is physically wall-mounted, with
+    # a real bearing rail and fasteners entering the rear masonry.
+    mount_probes=[{'startEngine':[xx,1.25,-6.10],'directionEngine':[0,0,-1]} for xx in [-2.2,-.7,.7,2.2]]
+    with CONTACTS.group('wall-mounted screen bearing rail', [rear_wall], mode='mounted', mount_probes=mount_probes):
+        screen_rail=box('Wall-fastened screen bearing rail',(5.2,.10,.24),(0,1.25,-6.322),dark_wood,.006)
+        for xx in [-2.2,-.7,.7,2.2]:
+            beam('Screen rail wall fastener',(xx,1.25,-6.18),(xx,1.25,-6.52),.006,bronze,.006)
     for i,xx in enumerate([-1.51,0,1.51]):
-        import_prop('Scanned screen leaf','web/public/models/chinese_screen_panels/chinese_screen_panels.gltf',(xx,1.3,-6.31),3.6,select_mesh='panels_a' if i%2==0 else 'panels_b')
+        with CONTACTS.group('mounted screen leaf '+str(i), [screen_rail]):
+            import_prop('Scanned screen leaf','web/public/models/chinese_screen_panels/chinese_screen_panels.gltf',(xx,1.3,-6.31),3.6,select_mesh='panels_a' if i%2==0 else 'panels_b')
     for xx in [-2.34,2.34]:
-        lathe('Gilded screen edge molding',[(.028,0),(.038,.04),(.028,3.5),(.045,3.58),(.045,3.62)],(xx,1.3,-6.23),gold,16)
-    for xx in [-1.45,-.95,.95,1.45]:small_fixture('Other altar lamp',xx,1.63,-4.75,bronze,warm)
-    brass_burner((0,1.63,-4.85),bronze,soot)
-    for i in range(4):beam('Smouldering incense',(i*.025-.04,1.75,-4.85),(i*.028-.04,1.98+RNG.uniform(-.015,.015),-4.85),.0028,dark_wood,.0028)
+        with CONTACTS.group('screen edge molding '+str(xx), [screen_rail]):
+            lathe('Gilded screen edge molding',[(.028,0),(.038,.04),(.028,3.5),(.045,3.58),(.045,3.62)],(xx,1.3,-6.23),gold,16)
+    for xx in [-1.45,-.95,.95,1.45]:
+        support=[pedestals[xx]] if xx in pedestals else console
+        with CONTACTS.group('altar '+str(xx), support):
+            fixture=small_fixture('Other altar lamp',xx,1.63,-4.75,bronze,warm)
+        FIXED_LAMPS.append({'name':'altar '+str(xx),'group':'altar '+str(xx),**fixture})
+    with CONTACTS.group('altar burner assembly', console):
+        ash_surface=brass_burner((0,1.63,-4.85),bronze,soot)
+        for i in range(4):
+            with CONTACTS.group('smouldering incense '+str(i), [ash_surface]):
+                rod=beam('Smouldering incense',(i*.025-.04,1.75,-4.85),(i*.028-.04,1.98+RNG.uniform(-.015,.015),-4.85),.0028,dark_wood,.0028)
+            INCENSE.append(rod)
     for side in [-1,1]:
-        kneeling_cushion(side*.85,.661,-3.3)
+        with CONTACTS.group('kneeling cushion '+str(side), floor_supports):
+            kneeling_cushion(side*.85,.661,-3.3)
     # A broom, stacked bowls and repaired threshold give the room a maintained human scale.
-    beam('Broom handle',(4.5,.66,-5.8),(4.75,2.25,-5.85),.018,dark_wood,.018)
-    for i in range(35):beam('Broom straw',(4.5,.77,-5.8),(4.38+RNG.random()*.26,.64,-5.72+RNG.random()*.1),.0035,material('Dry straw','#b3a17c',rough=.95),.002)
-    for i in range(3):lathe('Stacked plain bowls',[(0,0),(.11,0),(.15,.09),(.14,.11),(.1,.03),(0,.02)],(4.62,.6+i*.055,-4.9),soot)
+    with CONTACTS.group('leaning broom', floor_supports):
+        beam('Broom handle',(4.5,.66,-5.8),(4.75,2.25,-5.85),.018,dark_wood,.018)
+        for i in range(35):beam('Broom straw',(4.5,.77,-5.8),(4.38+RNG.random()*.26,.64,-5.72+RNG.random()*.1),.0035,material('Dry straw','#b3a17c',rough=.95),.002)
+    with CONTACTS.group('stacked bowl assembly', floor_supports):
+        previous=None
+        for i in range(3):
+            with CONTACTS.group('stacked bowl '+str(i), [previous] if previous else floor_supports):
+                previous=lathe('Stacked plain bowls',[(0,0),(.11,0),(.15,.09),(.14,.11),(.1,.03),(0,.02)],(4.62,.6+i*.055,-4.9),soot)
     # The suspension and fixed anchor are static; the person's red gauze lantern is not part of this export.
     beam('Visitor lantern suspension',(0,4.73,-.5),(0,3.25,-.5),.007,bronze,.007)
     anchor=bpy.data.objects.new('Visitor_Lamp_Anchor',None)
@@ -986,11 +1058,14 @@ def build_scene():
         box('Gate threshold end',(.45,.13,1.2),(side*1.55,.065,18),granite,.04)
     # Two unobtrusive fixed gate lamps provide warm pools while leaving the blue snow dominant.
     for side in [-1,1]:
-        box('Gate lamp shelf',(.38,.10,.33),(side*2.0,1.55,19.25),granite,.02)
-        small_fixture('Gate shelf lamp',side*2.0,1.6,19.25,bronze,warm)
+        shelf=box('Gate lamp shelf',(.38,.10,.33),(side*2.0,1.55,19.25),granite,.02)
+        with CONTACTS.group('gate '+str(side), [shelf]):
+            fixture=small_fixture('Gate shelf lamp',side*2.0,1.6,19.25,bronze,warm)
+        FIXED_LAMPS.append({'name':'gate '+str(side),'group':'gate '+str(side),**fixture})
 
     REGION='court'
     snow_field(snow)
+    stair_snow_banks(snow)
     for side in [-1,1]:
         box('Court front wall',(8.0,2.55,.55),(side*8,1.275,18),plaster,.035)
         box('Front wall coping snow',(8.2,.17,.72),(side*8,2.63,18),snow,.055)
@@ -1045,7 +1120,37 @@ def build_scene():
     scene['lightmap_contract']='UVMap is material UV; baker creates packed Lightmap as second channel.'
     bpy.context.view_layer.update()
     apply_surface_tints()
-    scene['static_lamp_wicks_engine']=json.dumps([{'name':'altar '+str(xx),'wickCenter':[xx,1.75,-4.75],'wickTip':[xx,1.77,-4.75],'flameAnchor':[xx,1.773,-4.75],'pointLight':[xx,1.82,-4.75]} for xx in [-1.45,-.95,.95,1.45]]+[{'name':'gate '+str(side),'wickCenter':[side*2.0,1.72,19.25],'wickTip':[side*2.0,1.74,19.25],'flameAnchor':[side*2.0,1.743,19.25],'pointLight':[side*2.0,1.79,19.25]} for side in [-1,1]])
+    contact_audit=CONTACTS.audit(fail=True)
+    entries={entry['name']:entry for entry in CONTACTS.entries}
+    wicks=[]
+    for fixture in FIXED_LAMPS:
+        points=[p for _,_,p in CONTACTS.vertices([fixture['wick']])]
+        center=sum(points,Vector())/len(points)
+        top=max(p.z for p in points)
+        crown=[p for p in points if abs(p.z-top)<.000001]
+        tip=sum(crown,Vector())/len(crown)
+        flame=tip+Vector((0,0,.003))
+        wicks.append({'name':fixture['name'],'contactGroup':fixture['group'],
+                      'wickObject':fixture['wick'].name,'pointLightObject':fixture['light'].name,
+                      'supportObjects':entries[fixture['group']]['supports'],
+                      'wickCenter':engine_point(center),'wickTip':engine_point(tip),
+                      'flameAnchor':engine_point(flame),'pointLight':engine_point(fixture['light'].matrix_world.translation)})
+    tips=[]
+    for rod in INCENSE:
+        points=[p for _,_,p in CONTACTS.vertices([rod])]
+        top=max(p.z for p in points)
+        crown=[p for p in points if abs(p.z-top)<.000001]
+        tip=sum(crown,Vector())/len(crown)
+        tips.append({'object':rod.name,'tipEngine':engine_point(tip)})
+    smoke=sum((blender_point for blender_point in [Vector(record['tipEngine']) for record in tips]),Vector())/len(tips)
+    smoke.y+=.006
+    scene['static_lamp_wicks_engine']=json.dumps(wicks)
+    scene['static_incense_tips_engine']=json.dumps(tips)
+    scene['static_incense_smoke_engine']=json.dumps(list(smoke))
+    scene['static_incense_smoke_source']=json.dumps({'objects':[rod.name for rod in INCENSE],'tipMeanOffsetEngine':[0,.006,0],'derivation':'Mean actual evaluated highest incense-tip vertices, plus6mm upward.'})
+    scene['resting_prop_inventory']=json.dumps({'registeredGroups':[entry['name'] for entry in CONTACTS.entries],
+        'mountedSupport':'Raised scanned screen leaves and edge molding bear on a real wall-fastened rail with actual fastener/wall intersections.',
+        'fixedArchitecture':'Columns, column drums, built-in masonry benches, thresholds, roof snow and bough snow are construction/settled weather volumes, not loose table/floor props. Their embedded bearing is intentional; no loose prop is exempted.'})
     scene['static_stability_notes']=json.dumps({'roofSnowTopOffsetLowerBound':.186,'tileCoverAndLipOffsetUpperBound':.135,'minimumBlanketClearance':.051,'weathering':'SurfaceTint COLOR_0; opaque geometry only, no decal planes','metalMinRoughness':.45,'bronzeMinRoughness':.48,'propRuntimeMinRoughness':.36,'walkPolishRoughness':.48,'coplanarAudit':'Floor slabs are above foundation by80mm; snow caps are closed volumes with embedded undersides; door hardware and beam inlays embed in their support surfaces.'})
     scene['static_floor_heights_engine']=json.dumps({'hallFloor':.6,'terrace':.6,'steps':[{'z':4.8,'depth':.43,'top':.6,'wornCenterNosing':.575},{'z':5.2,'depth':.43,'top':.4,'wornCenterNosing':.375},{'z':5.6,'depth':.43,'top':.2,'wornCenterNosing':.175}],'snowTrackRange':[.04,.15]})
     return scene

@@ -7,10 +7,10 @@ import bpy,numpy as np,json,hashlib,math,argparse,sys
 from pathlib import Path
 from collections import Counter
 ROOT=Path(__file__).resolve().parents[2]
-parser=argparse.ArgumentParser(description=__doc__);parser.add_argument('--candidate',type=Path,required=True);parser.add_argument('--passes',default='night,dusk,day,lamp');parser.add_argument('--geometry',type=Path,help='Actual separately validated final geometry. Omit for the unpruned padding stage.')
+parser=argparse.ArgumentParser(description=__doc__);parser.add_argument('--source',type=Path,required=True);parser.add_argument('--base',type=Path,required=True);parser.add_argument('--classification-dir',type=Path,required=True);parser.add_argument('--candidate',type=Path,required=True);parser.add_argument('--passes',default='night,dusk,day,lamp');parser.add_argument('--geometry',type=Path,help='Actual separately validated final geometry. Omit for the unpruned padding stage.')
 args=parser.parse_args(sys.argv[sys.argv.index('--')+1:] if '--' in sys.argv else []);looks=args.passes.split(',')
 if len(set(looks))!=len(looks) or any(p not in ['night','dusk','day','lamp'] for p in looks):raise RuntimeError('Unique authored passes required')
-DIAG=ROOT/'art/build/fringe-geometry-diagnosis';OUT=args.candidate.resolve();BASE=ROOT/'art/build/snow-roof-float32-position-diagnostic';SOURCE=ROOT/'art/build/snow-roof-final'
+DIAG=args.classification_dir.resolve();OUT=args.candidate.resolve();BASE=args.base.resolve();SOURCE=args.source.resolve()
 if not OUT.is_relative_to(ROOT/'art/build') or (OUT/'independent-contact-padding-proof.json').exists():raise RuntimeError('New art/build analysis proof required')
 GEOMETRY=args.geometry.resolve() if args.geometry else BASE/'snow-roof.glb'
 MODIFIED={f'{r}-{look}.ktx2' for r in ['court','hall'] for look in looks}
@@ -19,6 +19,8 @@ sha=lambda p:hashlib.sha256(p.read_bytes()).hexdigest();same=lambda a,b:np.array
 cls=json.loads((DIAG/'contact-visibility-classification.json').read_text());dm=json.loads((DIAG/'contact-valid-donors.json').read_text());receipt=json.loads((OUT/'contact-padding.receipt.json').read_text());manifest=json.loads((OUT/'manifest.json').read_text());baseline=json.loads((BASE/'manifest.json').read_text());recips=dict(np.load(DIAG/'contact-texel-centres.npz'));donors=dict(np.load(DIAG/'contact-valid-donors.npz'));changes=dict(np.load(OUT/'changed-texels.npz'))
 assert sha(DIAG/'contact-texel-centres.npz')==cls['compactCentres']['sha256'];assert sha(DIAG/'contact-valid-donors.npz')==dm['donorFile']['sha256'];assert sha(DIAG/'contact-visibility-classification.json')==dm['recipientClassificationSha256'];assert sha(DIAG/'contact-texel-certificates.json')==dm['recipientRecordsSha256']
 for item in cls['inputs'].values():assert sha(ROOT/item['path'])==item['sha256']
+for item in cls['coverage'].values():assert sha(ROOT/item['path'])==item['sha256']
+assert baseline['bake']['sourceBlendSha256']==cls['inputs']['source']['sha256'] and sha(SOURCE/'snow-roof-prepared.blend')==cls['inputs']['prepared']['sha256']
 assert receipt['classification']['sha256']==sha(DIAG/'contact-visibility-classification.json');assert receipt['classification']['maskSha256']==sha(DIAG/'contact-texel-centres.npz');assert receipt['donorMetadata']['sha256']==sha(DIAG/'contact-valid-donors.json');assert receipt['donorMetadata']['dataSha256']==sha(DIAG/'contact-valid-donors.npz');assert receipt['changedProofSha256']==sha(OUT/'changed-texels.npz')
 assert manifest['bakeFingerprint']==baseline['bakeFingerprint'];assert receipt['sourceBakeFingerprint']==baseline['bakeFingerprint'];assert sha(OUT/'snow-roof.glb')==sha(GEOMETRY);assert sha(BASE/'snow-roof.glb')==receipt['geometry']['sha256']
 permitted={};centres={}

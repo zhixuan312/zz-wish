@@ -1,0 +1,1262 @@
+{
+  "source": {
+    "path": "art/build/snow-roof-resting-contacts-accepted.blend",
+    "sha256": "b31360516a2713a6451ca920f3f94d9fefd9bc191bc07fca63c8c5ddce5a0c86"
+  },
+  "auditSha256": "1f722140f258eb74b02f6db1760960de056567dfe1fba64392d933d6d8a2a290",
+  "objects": [
+    {
+      "object": "Ash mound in brass burner",
+      "kind": "MESH",
+      "semanticGroups": [
+        "burner ash",
+        "altar burner assembly"
+      ]
+    },
+    {
+      "object": "Brass burner foot",
+      "kind": "MESH",
+      "semanticGroups": [
+        "altar burner assembly"
+      ]
+    },
+    {
+      "object": "Brass burner foot.001",
+      "kind": "MESH",
+      "semanticGroups": [
+        "altar burner assembly"
+      ]
+    },
+    {
+      "object": "Brass burner foot.002",
+      "kind": "MESH",
+      "semanticGroups": [
+        "altar burner assembly"
+      ]
+    },
+    {
+      "object": "Brass incense burner with rolled lip",
+      "kind": "MESH",
+      "semanticGroups": [
+        "altar burner assembly"
+      ]
+    },
+    {
+      "object": "Broom handle",
+      "kind": "MESH",
+      "semanticGroups": [
+        "leaning broom"
+      ]
+    },
+    {
+      "object": "Broom straw",
+      "kind": "MESH",
+      "semanticGroups": [
+        "leaning broom"
+      ]
+    },
+    {
+      "object": "Broom straw.001",
+      "kind": "MESH",
+      "semanticGroups": [
+        "leaning broom"
+      ]
+    },
+    {
+      "object": "Broom straw.002",
+      "kind": "MESH",
+      "semanticGroups": [
+        "leaning broom"
+      ]
+    },
+    {
+      "object": "Broom straw.003",
+      "kind": "MESH",
+      "semanticGroups": [
+        "leaning broom"
+      ]
+    },
+    {
+      "object": "Broom straw.004",
+      "kind": "MESH",
+      "semanticGroups": [
+        "leaning broom"
+      ]
+    },
+    {
+      "object": "Broom straw.005",
+      "kind": "MESH",
+      "semanticGroups": [
+        "leaning broom"
+      ]
+    },
+    {
+      "object": "Broom straw.006",
+      "kind": "MESH",
+      "semanticGroups": [
+        "leaning broom"
+      ]
+    },
+    {
+      "object": "Broom straw.007",
+      "kind": "MESH",
+      "semanticGroups": [
+        "leaning broom"
+      ]
+    },
+    {
+      "object": "Broom straw.008",
+      "kind": "MESH",
+      "semanticGroups": [
+        "leaning broom"
+      ]
+    },
+    {
+      "object": "Broom straw.009",
+      "kind": "MESH",
+      "semanticGroups": [
+        "leaning broom"
+      ]
+    },
+    {
+      "object": "Broom straw.010",
+      "kind": "MESH",
+      "semanticGroups": [
+        "leaning broom"
+      ]
+    },
+    {
+      "object": "Broom straw.011",
+      "kind": "MESH",
+      "semanticGroups": [
+        "leaning broom"
+      ]
+    },
+    {
+      "object": "Broom straw.012",
+      "kind": "MESH",
+      "semanticGroups": [
+        "leaning broom"
+      ]
+    },
+    {
+      "object": "Broom straw.013",
+      "kind": "MESH",
+      "semanticGroups": [
+        "leaning broom"
+      ]
+    },
+    {
+      "object": "Broom straw.014",
+      "kind": "MESH",
+      "semanticGroups": [
+        "leaning broom"
+      ]
+    },
+    {
+      "object": "Broom straw.015",
+      "kind": "MESH",
+      "semanticGroups": [
+        "leaning broom"
+      ]
+    },
+    {
+      "object": "Broom straw.016",
+      "kind": "MESH",
+      "semanticGroups": [
+        "leaning broom"
+      ]
+    },
+    {
+      "object": "Broom straw.017",
+      "kind": "MESH",
+      "semanticGroups": [
+        "leaning broom"
+      ]
+    },
+    {
+      "object": "Broom straw.018",
+      "kind": "MESH",
+      "semanticGroups": [
+        "leaning broom"
+      ]
+    },
+    {
+      "object": "Broom straw.019",
+      "kind": "MESH",
+      "semanticGroups": [
+        "leaning broom"
+      ]
+    },
+    {
+      "object": "Broom straw.020",
+      "kind": "MESH",
+      "semanticGroups": [
+        "leaning broom"
+      ]
+    },
+    {
+      "object": "Broom straw.021",
+      "kind": "MESH",
+      "semanticGroups": [
+        "leaning broom"
+      ]
+    },
+    {
+      "object": "Broom straw.022",
+      "kind": "MESH",
+      "semanticGroups": [
+        "leaning broom"
+      ]
+    },
+    {
+      "object": "Broom straw.023",
+      "kind": "MESH",
+      "semanticGroups": [
+        "leaning broom"
+      ]
+    },
+    {
+      "object": "Broom straw.024",
+      "kind": "MESH",
+      "semanticGroups": [
+        "leaning broom"
+      ]
+    },
+    {
+      "object": "Broom straw.025",
+      "kind": "MESH",
+      "semanticGroups": [
+        "leaning broom"
+      ]
+    },
+    {
+      "object": "Broom straw.026",
+      "kind": "MESH",
+      "semanticGroups": [
+        "leaning broom"
+      ]
+    },
+    {
+      "object": "Broom straw.027",
+      "kind": "MESH",
+      "semanticGroups": [
+        "leaning broom"
+      ]
+    },
+    {
+      "object": "Broom straw.028",
+      "kind": "MESH",
+      "semanticGroups": [
+        "leaning broom"
+      ]
+    },
+    {
+      "object": "Broom straw.029",
+      "kind": "MESH",
+      "semanticGroups": [
+        "leaning broom"
+      ]
+    },
+    {
+      "object": "Broom straw.030",
+      "kind": "MESH",
+      "semanticGroups": [
+        "leaning broom"
+      ]
+    },
+    {
+      "object": "Broom straw.031",
+      "kind": "MESH",
+      "semanticGroups": [
+        "leaning broom"
+      ]
+    },
+    {
+      "object": "Broom straw.032",
+      "kind": "MESH",
+      "semanticGroups": [
+        "leaning broom"
+      ]
+    },
+    {
+      "object": "Broom straw.033",
+      "kind": "MESH",
+      "semanticGroups": [
+        "leaning broom"
+      ]
+    },
+    {
+      "object": "Broom straw.034",
+      "kind": "MESH",
+      "semanticGroups": [
+        "leaning broom"
+      ]
+    },
+    {
+      "object": "Charred incense end in ash",
+      "kind": "MESH",
+      "semanticGroups": [
+        "charred incense 0",
+        "altar burner assembly"
+      ]
+    },
+    {
+      "object": "Charred incense end in ash.001",
+      "kind": "MESH",
+      "semanticGroups": [
+        "charred incense 1",
+        "altar burner assembly"
+      ]
+    },
+    {
+      "object": "Charred incense end in ash.002",
+      "kind": "MESH",
+      "semanticGroups": [
+        "charred incense 2",
+        "altar burner assembly"
+      ]
+    },
+    {
+      "object": "Charred incense end in ash.003",
+      "kind": "MESH",
+      "semanticGroups": [
+        "charred incense 3",
+        "altar burner assembly"
+      ]
+    },
+    {
+      "object": "Charred incense end in ash.004",
+      "kind": "MESH",
+      "semanticGroups": [
+        "charred incense 4",
+        "altar burner assembly"
+      ]
+    },
+    {
+      "object": "Charred incense end in ash.005",
+      "kind": "MESH",
+      "semanticGroups": [
+        "charred incense 5",
+        "altar burner assembly"
+      ]
+    },
+    {
+      "object": "Charred incense end in ash.006",
+      "kind": "MESH",
+      "semanticGroups": [
+        "charred incense 6",
+        "altar burner assembly"
+      ]
+    },
+    {
+      "object": "Charred incense end in ash.007",
+      "kind": "MESH",
+      "semanticGroups": [
+        "charred incense 7",
+        "altar burner assembly"
+      ]
+    },
+    {
+      "object": "Charred incense end in ash.008",
+      "kind": "MESH",
+      "semanticGroups": [
+        "charred incense 8",
+        "altar burner assembly"
+      ]
+    },
+    {
+      "object": "Cushion sewn edge piping",
+      "kind": "MESH",
+      "semanticGroups": [
+        "kneeling cushion -1"
+      ]
+    },
+    {
+      "object": "Cushion sewn edge piping.001",
+      "kind": "MESH",
+      "semanticGroups": [
+        "kneeling cushion -1"
+      ]
+    },
+    {
+      "object": "Cushion sewn edge piping.002",
+      "kind": "MESH",
+      "semanticGroups": [
+        "kneeling cushion -1"
+      ]
+    },
+    {
+      "object": "Cushion sewn edge piping.003",
+      "kind": "MESH",
+      "semanticGroups": [
+        "kneeling cushion -1"
+      ]
+    },
+    {
+      "object": "Cushion sewn edge piping.004",
+      "kind": "MESH",
+      "semanticGroups": [
+        "kneeling cushion -1"
+      ]
+    },
+    {
+      "object": "Cushion sewn edge piping.005",
+      "kind": "MESH",
+      "semanticGroups": [
+        "kneeling cushion -1"
+      ]
+    },
+    {
+      "object": "Cushion sewn edge piping.006",
+      "kind": "MESH",
+      "semanticGroups": [
+        "kneeling cushion -1"
+      ]
+    },
+    {
+      "object": "Cushion sewn edge piping.007",
+      "kind": "MESH",
+      "semanticGroups": [
+        "kneeling cushion -1"
+      ]
+    },
+    {
+      "object": "Cushion sewn edge piping.008",
+      "kind": "MESH",
+      "semanticGroups": [
+        "kneeling cushion -1"
+      ]
+    },
+    {
+      "object": "Cushion sewn edge piping.009",
+      "kind": "MESH",
+      "semanticGroups": [
+        "kneeling cushion -1"
+      ]
+    },
+    {
+      "object": "Cushion sewn edge piping.010",
+      "kind": "MESH",
+      "semanticGroups": [
+        "kneeling cushion -1"
+      ]
+    },
+    {
+      "object": "Cushion sewn edge piping.011",
+      "kind": "MESH",
+      "semanticGroups": [
+        "kneeling cushion -1"
+      ]
+    },
+    {
+      "object": "Cushion sewn edge piping.012",
+      "kind": "MESH",
+      "semanticGroups": [
+        "kneeling cushion -1"
+      ]
+    },
+    {
+      "object": "Cushion sewn edge piping.013",
+      "kind": "MESH",
+      "semanticGroups": [
+        "kneeling cushion -1"
+      ]
+    },
+    {
+      "object": "Cushion sewn edge piping.014",
+      "kind": "MESH",
+      "semanticGroups": [
+        "kneeling cushion -1"
+      ]
+    },
+    {
+      "object": "Cushion sewn edge piping.015",
+      "kind": "MESH",
+      "semanticGroups": [
+        "kneeling cushion -1"
+      ]
+    },
+    {
+      "object": "Cushion sewn edge piping.016",
+      "kind": "MESH",
+      "semanticGroups": [
+        "kneeling cushion -1"
+      ]
+    },
+    {
+      "object": "Cushion sewn edge piping.017",
+      "kind": "MESH",
+      "semanticGroups": [
+        "kneeling cushion -1"
+      ]
+    },
+    {
+      "object": "Cushion sewn edge piping.018",
+      "kind": "MESH",
+      "semanticGroups": [
+        "kneeling cushion -1"
+      ]
+    },
+    {
+      "object": "Cushion sewn edge piping.019",
+      "kind": "MESH",
+      "semanticGroups": [
+        "kneeling cushion -1"
+      ]
+    },
+    {
+      "object": "Cushion sewn edge piping.020",
+      "kind": "MESH",
+      "semanticGroups": [
+        "kneeling cushion -1"
+      ]
+    },
+    {
+      "object": "Cushion sewn edge piping.021",
+      "kind": "MESH",
+      "semanticGroups": [
+        "kneeling cushion -1"
+      ]
+    },
+    {
+      "object": "Cushion sewn edge piping.022",
+      "kind": "MESH",
+      "semanticGroups": [
+        "kneeling cushion -1"
+      ]
+    },
+    {
+      "object": "Cushion sewn edge piping.023",
+      "kind": "MESH",
+      "semanticGroups": [
+        "kneeling cushion -1"
+      ]
+    },
+    {
+      "object": "Cushion sewn edge piping.024",
+      "kind": "MESH",
+      "semanticGroups": [
+        "kneeling cushion -1"
+      ]
+    },
+    {
+      "object": "Cushion sewn edge piping.025",
+      "kind": "MESH",
+      "semanticGroups": [
+        "kneeling cushion -1"
+      ]
+    },
+    {
+      "object": "Cushion sewn edge piping.026",
+      "kind": "MESH",
+      "semanticGroups": [
+        "kneeling cushion -1"
+      ]
+    },
+    {
+      "object": "Cushion sewn edge piping.027",
+      "kind": "MESH",
+      "semanticGroups": [
+        "kneeling cushion -1"
+      ]
+    },
+    {
+      "object": "Cushion sewn edge piping.028",
+      "kind": "MESH",
+      "semanticGroups": [
+        "kneeling cushion -1"
+      ]
+    },
+    {
+      "object": "Cushion sewn edge piping.029",
+      "kind": "MESH",
+      "semanticGroups": [
+        "kneeling cushion -1"
+      ]
+    },
+    {
+      "object": "Cushion sewn edge piping.030",
+      "kind": "MESH",
+      "semanticGroups": [
+        "kneeling cushion -1"
+      ]
+    },
+    {
+      "object": "Cushion sewn edge piping.031",
+      "kind": "MESH",
+      "semanticGroups": [
+        "kneeling cushion -1"
+      ]
+    },
+    {
+      "object": "Cushion sewn edge piping.032",
+      "kind": "MESH",
+      "semanticGroups": [
+        "kneeling cushion -1"
+      ]
+    },
+    {
+      "object": "Cushion sewn edge piping.033",
+      "kind": "MESH",
+      "semanticGroups": [
+        "kneeling cushion -1"
+      ]
+    },
+    {
+      "object": "Cushion sewn edge piping.034",
+      "kind": "MESH",
+      "semanticGroups": [
+        "kneeling cushion -1"
+      ]
+    },
+    {
+      "object": "Cushion sewn edge piping.035",
+      "kind": "MESH",
+      "semanticGroups": [
+        "kneeling cushion -1"
+      ]
+    },
+    {
+      "object": "Cushion sewn edge piping.036",
+      "kind": "MESH",
+      "semanticGroups": [
+        "kneeling cushion -1"
+      ]
+    },
+    {
+      "object": "Cushion sewn edge piping.037",
+      "kind": "MESH",
+      "semanticGroups": [
+        "kneeling cushion -1"
+      ]
+    },
+    {
+      "object": "Cushion sewn edge piping.038",
+      "kind": "MESH",
+      "semanticGroups": [
+        "kneeling cushion -1"
+      ]
+    },
+    {
+      "object": "Cushion sewn edge piping.039",
+      "kind": "MESH",
+      "semanticGroups": [
+        "kneeling cushion -1"
+      ]
+    },
+    {
+      "object": "Cushion sewn edge piping.040",
+      "kind": "MESH",
+      "semanticGroups": [
+        "kneeling cushion 1"
+      ]
+    },
+    {
+      "object": "Cushion sewn edge piping.041",
+      "kind": "MESH",
+      "semanticGroups": [
+        "kneeling cushion 1"
+      ]
+    },
+    {
+      "object": "Cushion sewn edge piping.042",
+      "kind": "MESH",
+      "semanticGroups": [
+        "kneeling cushion 1"
+      ]
+    },
+    {
+      "object": "Cushion sewn edge piping.043",
+      "kind": "MESH",
+      "semanticGroups": [
+        "kneeling cushion 1"
+      ]
+    },
+    {
+      "object": "Cushion sewn edge piping.044",
+      "kind": "MESH",
+      "semanticGroups": [
+        "kneeling cushion 1"
+      ]
+    },
+    {
+      "object": "Cushion sewn edge piping.045",
+      "kind": "MESH",
+      "semanticGroups": [
+        "kneeling cushion 1"
+      ]
+    },
+    {
+      "object": "Cushion sewn edge piping.046",
+      "kind": "MESH",
+      "semanticGroups": [
+        "kneeling cushion 1"
+      ]
+    },
+    {
+      "object": "Cushion sewn edge piping.047",
+      "kind": "MESH",
+      "semanticGroups": [
+        "kneeling cushion 1"
+      ]
+    },
+    {
+      "object": "Cushion sewn edge piping.048",
+      "kind": "MESH",
+      "semanticGroups": [
+        "kneeling cushion 1"
+      ]
+    },
+    {
+      "object": "Cushion sewn edge piping.049",
+      "kind": "MESH",
+      "semanticGroups": [
+        "kneeling cushion 1"
+      ]
+    },
+    {
+      "object": "Cushion sewn edge piping.050",
+      "kind": "MESH",
+      "semanticGroups": [
+        "kneeling cushion 1"
+      ]
+    },
+    {
+      "object": "Cushion sewn edge piping.051",
+      "kind": "MESH",
+      "semanticGroups": [
+        "kneeling cushion 1"
+      ]
+    },
+    {
+      "object": "Cushion sewn edge piping.052",
+      "kind": "MESH",
+      "semanticGroups": [
+        "kneeling cushion 1"
+      ]
+    },
+    {
+      "object": "Cushion sewn edge piping.053",
+      "kind": "MESH",
+      "semanticGroups": [
+        "kneeling cushion 1"
+      ]
+    },
+    {
+      "object": "Cushion sewn edge piping.054",
+      "kind": "MESH",
+      "semanticGroups": [
+        "kneeling cushion 1"
+      ]
+    },
+    {
+      "object": "Cushion sewn edge piping.055",
+      "kind": "MESH",
+      "semanticGroups": [
+        "kneeling cushion 1"
+      ]
+    },
+    {
+      "object": "Cushion sewn edge piping.056",
+      "kind": "MESH",
+      "semanticGroups": [
+        "kneeling cushion 1"
+      ]
+    },
+    {
+      "object": "Cushion sewn edge piping.057",
+      "kind": "MESH",
+      "semanticGroups": [
+        "kneeling cushion 1"
+      ]
+    },
+    {
+      "object": "Cushion sewn edge piping.058",
+      "kind": "MESH",
+      "semanticGroups": [
+        "kneeling cushion 1"
+      ]
+    },
+    {
+      "object": "Cushion sewn edge piping.059",
+      "kind": "MESH",
+      "semanticGroups": [
+        "kneeling cushion 1"
+      ]
+    },
+    {
+      "object": "Cushion sewn edge piping.060",
+      "kind": "MESH",
+      "semanticGroups": [
+        "kneeling cushion 1"
+      ]
+    },
+    {
+      "object": "Cushion sewn edge piping.061",
+      "kind": "MESH",
+      "semanticGroups": [
+        "kneeling cushion 1"
+      ]
+    },
+    {
+      "object": "Cushion sewn edge piping.062",
+      "kind": "MESH",
+      "semanticGroups": [
+        "kneeling cushion 1"
+      ]
+    },
+    {
+      "object": "Cushion sewn edge piping.063",
+      "kind": "MESH",
+      "semanticGroups": [
+        "kneeling cushion 1"
+      ]
+    },
+    {
+      "object": "Cushion sewn edge piping.064",
+      "kind": "MESH",
+      "semanticGroups": [
+        "kneeling cushion 1"
+      ]
+    },
+    {
+      "object": "Cushion sewn edge piping.065",
+      "kind": "MESH",
+      "semanticGroups": [
+        "kneeling cushion 1"
+      ]
+    },
+    {
+      "object": "Cushion sewn edge piping.066",
+      "kind": "MESH",
+      "semanticGroups": [
+        "kneeling cushion 1"
+      ]
+    },
+    {
+      "object": "Cushion sewn edge piping.067",
+      "kind": "MESH",
+      "semanticGroups": [
+        "kneeling cushion 1"
+      ]
+    },
+    {
+      "object": "Cushion sewn edge piping.068",
+      "kind": "MESH",
+      "semanticGroups": [
+        "kneeling cushion 1"
+      ]
+    },
+    {
+      "object": "Cushion sewn edge piping.069",
+      "kind": "MESH",
+      "semanticGroups": [
+        "kneeling cushion 1"
+      ]
+    },
+    {
+      "object": "Cushion sewn edge piping.070",
+      "kind": "MESH",
+      "semanticGroups": [
+        "kneeling cushion 1"
+      ]
+    },
+    {
+      "object": "Cushion sewn edge piping.071",
+      "kind": "MESH",
+      "semanticGroups": [
+        "kneeling cushion 1"
+      ]
+    },
+    {
+      "object": "Cushion sewn edge piping.072",
+      "kind": "MESH",
+      "semanticGroups": [
+        "kneeling cushion 1"
+      ]
+    },
+    {
+      "object": "Cushion sewn edge piping.073",
+      "kind": "MESH",
+      "semanticGroups": [
+        "kneeling cushion 1"
+      ]
+    },
+    {
+      "object": "Cushion sewn edge piping.074",
+      "kind": "MESH",
+      "semanticGroups": [
+        "kneeling cushion 1"
+      ]
+    },
+    {
+      "object": "Cushion sewn edge piping.075",
+      "kind": "MESH",
+      "semanticGroups": [
+        "kneeling cushion 1"
+      ]
+    },
+    {
+      "object": "Cushion sewn edge piping.076",
+      "kind": "MESH",
+      "semanticGroups": [
+        "kneeling cushion 1"
+      ]
+    },
+    {
+      "object": "Cushion sewn edge piping.077",
+      "kind": "MESH",
+      "semanticGroups": [
+        "kneeling cushion 1"
+      ]
+    },
+    {
+      "object": "Cushion sewn edge piping.078",
+      "kind": "MESH",
+      "semanticGroups": [
+        "kneeling cushion 1"
+      ]
+    },
+    {
+      "object": "Cushion sewn edge piping.079",
+      "kind": "MESH",
+      "semanticGroups": [
+        "kneeling cushion 1"
+      ]
+    },
+    {
+      "object": "Gate shelf lamp bronze foot",
+      "kind": "MESH",
+      "semanticGroups": [
+        "gate -1"
+      ]
+    },
+    {
+      "object": "Gate shelf lamp bronze foot.001",
+      "kind": "MESH",
+      "semanticGroups": [
+        "gate 1"
+      ]
+    },
+    {
+      "object": "Gate shelf lamp shallow bowl",
+      "kind": "MESH",
+      "semanticGroups": [
+        "gate -1"
+      ]
+    },
+    {
+      "object": "Gate shelf lamp shallow bowl.001",
+      "kind": "MESH",
+      "semanticGroups": [
+        "gate 1"
+      ]
+    },
+    {
+      "object": "Gate shelf lamp warm spill",
+      "kind": "LIGHT",
+      "semanticGroups": [
+        "gate -1"
+      ]
+    },
+    {
+      "object": "Gate shelf lamp warm spill.001",
+      "kind": "LIGHT",
+      "semanticGroups": [
+        "gate 1"
+      ]
+    },
+    {
+      "object": "Gate shelf lamp warm wick",
+      "kind": "MESH",
+      "semanticGroups": [
+        "gate -1"
+      ]
+    },
+    {
+      "object": "Gate shelf lamp warm wick.001",
+      "kind": "MESH",
+      "semanticGroups": [
+        "gate 1"
+      ]
+    },
+    {
+      "object": "Gilded screen edge molding",
+      "kind": "MESH",
+      "semanticGroups": [
+        "screen edge molding -2.34"
+      ]
+    },
+    {
+      "object": "Gilded screen edge molding.001",
+      "kind": "MESH",
+      "semanticGroups": [
+        "screen edge molding 2.34"
+      ]
+    },
+    {
+      "object": "Other altar lamp bronze foot",
+      "kind": "MESH",
+      "semanticGroups": [
+        "altar -1.45"
+      ]
+    },
+    {
+      "object": "Other altar lamp bronze foot.001",
+      "kind": "MESH",
+      "semanticGroups": [
+        "altar -0.95"
+      ]
+    },
+    {
+      "object": "Other altar lamp bronze foot.002",
+      "kind": "MESH",
+      "semanticGroups": [
+        "altar 0.95"
+      ]
+    },
+    {
+      "object": "Other altar lamp bronze foot.003",
+      "kind": "MESH",
+      "semanticGroups": [
+        "altar 1.45"
+      ]
+    },
+    {
+      "object": "Other altar lamp shallow bowl",
+      "kind": "MESH",
+      "semanticGroups": [
+        "altar -1.45"
+      ]
+    },
+    {
+      "object": "Other altar lamp shallow bowl.001",
+      "kind": "MESH",
+      "semanticGroups": [
+        "altar -0.95"
+      ]
+    },
+    {
+      "object": "Other altar lamp shallow bowl.002",
+      "kind": "MESH",
+      "semanticGroups": [
+        "altar 0.95"
+      ]
+    },
+    {
+      "object": "Other altar lamp shallow bowl.003",
+      "kind": "MESH",
+      "semanticGroups": [
+        "altar 1.45"
+      ]
+    },
+    {
+      "object": "Other altar lamp warm spill",
+      "kind": "LIGHT",
+      "semanticGroups": [
+        "altar -1.45"
+      ]
+    },
+    {
+      "object": "Other altar lamp warm spill.001",
+      "kind": "LIGHT",
+      "semanticGroups": [
+        "altar -0.95"
+      ]
+    },
+    {
+      "object": "Other altar lamp warm spill.002",
+      "kind": "LIGHT",
+      "semanticGroups": [
+        "altar 0.95"
+      ]
+    },
+    {
+      "object": "Other altar lamp warm spill.003",
+      "kind": "LIGHT",
+      "semanticGroups": [
+        "altar 1.45"
+      ]
+    },
+    {
+      "object": "Other altar lamp warm wick",
+      "kind": "MESH",
+      "semanticGroups": [
+        "altar -1.45"
+      ]
+    },
+    {
+      "object": "Other altar lamp warm wick.001",
+      "kind": "MESH",
+      "semanticGroups": [
+        "altar -0.95"
+      ]
+    },
+    {
+      "object": "Other altar lamp warm wick.002",
+      "kind": "MESH",
+      "semanticGroups": [
+        "altar 0.95"
+      ]
+    },
+    {
+      "object": "Other altar lamp warm wick.003",
+      "kind": "MESH",
+      "semanticGroups": [
+        "altar 1.45"
+      ]
+    },
+    {
+      "object": "Scanned console altar chinese_console_table",
+      "kind": "MESH",
+      "semanticGroups": [
+        "scanned console altar"
+      ]
+    },
+    {
+      "object": "Scanned screen leaf chinese_screen_panels_a",
+      "kind": "MESH",
+      "semanticGroups": [
+        "mounted screen leaf 0"
+      ]
+    },
+    {
+      "object": "Scanned screen leaf chinese_screen_panels_a.001",
+      "kind": "MESH",
+      "semanticGroups": [
+        "mounted screen leaf 2"
+      ]
+    },
+    {
+      "object": "Scanned screen leaf chinese_screen_panels_b",
+      "kind": "MESH",
+      "semanticGroups": [
+        "mounted screen leaf 1"
+      ]
+    },
+    {
+      "object": "Screen rail wall fastener",
+      "kind": "MESH",
+      "semanticGroups": [
+        "wall-mounted screen bearing rail"
+      ]
+    },
+    {
+      "object": "Screen rail wall fastener.001",
+      "kind": "MESH",
+      "semanticGroups": [
+        "wall-mounted screen bearing rail"
+      ]
+    },
+    {
+      "object": "Screen rail wall fastener.002",
+      "kind": "MESH",
+      "semanticGroups": [
+        "wall-mounted screen bearing rail"
+      ]
+    },
+    {
+      "object": "Screen rail wall fastener.003",
+      "kind": "MESH",
+      "semanticGroups": [
+        "wall-mounted screen bearing rail"
+      ]
+    },
+    {
+      "object": "Smouldering incense",
+      "kind": "MESH",
+      "semanticGroups": [
+        "smouldering incense 0",
+        "altar burner assembly"
+      ]
+    },
+    {
+      "object": "Smouldering incense.001",
+      "kind": "MESH",
+      "semanticGroups": [
+        "smouldering incense 1",
+        "altar burner assembly"
+      ]
+    },
+    {
+      "object": "Smouldering incense.002",
+      "kind": "MESH",
+      "semanticGroups": [
+        "smouldering incense 2",
+        "altar burner assembly"
+      ]
+    },
+    {
+      "object": "Smouldering incense.003",
+      "kind": "MESH",
+      "semanticGroups": [
+        "smouldering incense 3",
+        "altar burner assembly"
+      ]
+    },
+    {
+      "object": "Soft sewn kneeling cushion",
+      "kind": "MESH",
+      "semanticGroups": [
+        "kneeling cushion -1"
+      ]
+    },
+    {
+      "object": "Soft sewn kneeling cushion.001",
+      "kind": "MESH",
+      "semanticGroups": [
+        "kneeling cushion 1"
+      ]
+    },
+    {
+      "object": "Stacked plain bowls",
+      "kind": "MESH",
+      "semanticGroups": [
+        "stacked bowl 0",
+        "stacked bowl assembly"
+      ]
+    },
+    {
+      "object": "Stacked plain bowls.001",
+      "kind": "MESH",
+      "semanticGroups": [
+        "stacked bowl 1",
+        "stacked bowl assembly"
+      ]
+    },
+    {
+      "object": "Stacked plain bowls.002",
+      "kind": "MESH",
+      "semanticGroups": [
+        "stacked bowl 2",
+        "stacked bowl assembly"
+      ]
+    },
+    {
+      "object": "Turned altar side lamp pedestal",
+      "kind": "MESH",
+      "semanticGroups": [
+        "turned pedestal -1.45"
+      ]
+    },
+    {
+      "object": "Turned altar side lamp pedestal.001",
+      "kind": "MESH",
+      "semanticGroups": [
+        "turned pedestal 1.45"
+      ]
+    },
+    {
+      "object": "Wall-fastened screen bearing rail",
+      "kind": "MESH",
+      "semanticGroups": [
+        "wall-mounted screen bearing rail"
+      ]
+    }
+  ],
+  "exactObjectCount": 176,
+  "registeredSemanticGroups": 37,
+  "unregisteredRestingCandidates": [],
+  "fixedArchitectureClassification": "Columns, column drums, built-in masonry benches, thresholds, roof snow and bough snow are construction/settled weather volumes, not loose table/floor props. Their embedded bearing is intentional; no loose prop is exempted."
+}

@@ -1,0 +1,136 @@
+{
+  "source": {
+    "path": "art/build/snow-roof-resting-contacts-accepted.blend",
+    "sha256": "b31360516a2713a6451ca920f3f94d9fefd9bc191bc07fca63c8c5ddce5a0c86"
+  },
+  "sourceFrozen": true,
+  "sourceAndAcceptedLegacyUnmodifiedByAudit": true,
+  "contactGroups": 37,
+  "inventoryObjects": 176,
+  "contactAuditPassed": true,
+  "literalLimitsMetres": {
+    "maximumGap": 0.002,
+    "maximumPenetration": 0.005
+  },
+  "maximumObservedMetres": {
+    "gap": 0.0009083151817321777,
+    "penetration": 0.00475001335144043
+  },
+  "nativePreviewApproval": "The preserved nine source-native previews bind2ee, accepted before prepared contacts failed. New b313 cushions differ by only0.2mm; actual prepared/raw contact gate remains pending.",
+  "files": [
+    {
+      "path": "art/blender/snow_roof.py",
+      "bytes": 66120,
+      "sha256": "f6d193403ae044c33b9c808961041f608216de94726874fa9b20f07c935d6dfe"
+    },
+    {
+      "path": "art/blender/resting_contacts.py",
+      "bytes": 11102,
+      "sha256": "163d80f6ecdfe1c9e20236971edbd6f3ab867ff58070f37d4a4543bd81bfd7fe"
+    },
+    {
+      "path": "art/blender/audit_resting_props.py",
+      "bytes": 11020,
+      "sha256": "93e21338c8ffe8a8c5f639e8a5af9170a3f658e849adfad0d3acccf055073288"
+    },
+    {
+      "path": "art/blender/compare_resting_architecture.py",
+      "bytes": 7394,
+      "sha256": "064afcd9c1b64a45cd4ac73c120ef7a846b4c4674723f25de993dc56457cdfd0"
+    },
+    {
+      "path": "art/blender/audit_prepared_resting_contacts.py",
+      "bytes": 14559,
+      "sha256": "66b8b0d5fd9bddc265cc928daaf7fca97b55c0e284adba84d8965152055870cf"
+    },
+    {
+      "path": "art/build/snow-roof-resting-contacts-accepted.audit.json",
+      "bytes": 292520,
+      "sha256": "1f722140f258eb74b02f6db1760960de056567dfe1fba64392d933d6d8a2a290"
+    },
+    {
+      "path": "art/build/snow-roof-resting-contacts-accepted.architecture.json",
+      "bytes": 7565,
+      "sha256": "b44ffbf2df2930a44d57e0274e9428c1e64dd69f2f361085d322cb5a5842a21e"
+    },
+    {
+      "path": "art/build/resting-contacts-accepted-replay/contacts-unique-crowns.json",
+      "bytes": 104142,
+      "sha256": "c7339acd30137c33398c8df122516f31b0405a5093dbace21c072db931bc38dc"
+    },
+    {
+      "path": "art/build/resting-contacts-accepted-replay/guard/guard-proof.json",
+      "bytes": 4050,
+      "sha256": "34a4af3325a871aff69ae84f4700fed95fe6025f04be5cdc20e63204a362f9b6"
+    },
+    {
+      "path": "scripts/audit-resting-export.mjs",
+      "bytes": 11984,
+      "sha256": "c1a90e36b5d7788f8da96d748b8b110f2761277ec2ae5edb3a6e783825f80bda"
+    },
+    {
+      "path": "art/blender/proofs/snow-roof-resting-contacts-accepted-hidden-tiles.json",
+      "bytes": 4048937,
+      "sha256": "cf525ebd5990e8487cc4e10f3a6110fc12d0deab152885889fe879991bbfba57"
+    }
+  ],
+  "noOwnedActiveRenderOrBakeJobs": true,
+  "fullNewDeliveryNotClaimedComplete": true,
+  "nativePreviewEvidence": {
+    "metadata": "art/build/snow-roof-resting-contacts-native-preview/preview.json",
+    "sha256": "e4e2994a534d0ceb212bda13ddb35d92c4d32162ac4ecaccce44aa5559e3dadc",
+    "compactIndex": "docs/evidence/resting-props/native-preview-index.json",
+    "compactIndexSha256": "cacded7b4d52757b24abc021b85909b7af71b2e3819505d169718c78a5bfb1eb",
+    "samples": 8,
+    "device": "METAL",
+    "denoiser": "OPENIMAGEDENOISE GPU",
+    "images": 9
+  },
+  "preparedRawGate": {
+    "passed": true,
+    "receipt": {
+      "path": "art/build/resting-contacts-accepted-replay/contacts-unique-crowns.json",
+      "sha256": "c7339acd30137c33398c8df122516f31b0405a5093dbace21c072db931bc38dc"
+    },
+    "geometryFingerprint": "89d4085e7b4ed662ab952b1430e9217b3c9befad602e1c317ae3ea659d848821",
+    "all37GroupsPassedBothActualTriangleStages": true,
+    "maximumGapMetres": 0.0009083151817321777,
+    "maximumPenetrationMetres": 0.004844188690185547,
+    "maximumAnchorCoordinateErrorMetres": 1.9073486328125e-06,
+    "guardProof": {
+      "path": "art/build/resting-contacts-accepted-replay/guard/guard-proof.json",
+      "sha256": "34a4af3325a871aff69ae84f4700fed95fe6025f04be5cdc20e63204a362f9b6",
+      "invalidReceiptChallengesRejected": 19
+    },
+    "rawFrozenCopy": {
+      "path": "art/build/resting-contacts-accepted-replay/snow-roof.raw.glb",
+      "sha256": "7639d7bffc629aba69a852155d8980a5735abc7e567362fd09f4cc6ff74f308a"
+    },
+    "sourceAndAllGeometryUnchangedByProof": true
+  },
+  "provisionalPostGuardRawExport": {
+    "path": "art/build/resting-contacts-export-study/snow-roof.raw.glb",
+    "sha256": "c3539702ab9c0a5eb244f4be25d57bd1c30f22bb31ecedd83674bd99642aef7b",
+    "bytes": 71902344,
+    "rawChainReceipt": {
+      "path": "art/build/resting-contacts-export-study/raw-contact-chain-whitespace-clean.json",
+      "sha256": "1779df623a096bba091deacfc02f5f5eb394a14e5bcec0938d42f95fe495ba75"
+    },
+    "faceCorrespondenceReceipt": {
+      "path": "art/build/resting-contacts-export-study/face-raw-correspondence.json",
+      "sha256": "2ee0319bf185b318cecc2e625244f312d4247570f52edd1ab5cf555f67183436"
+    },
+    "faceReference": {
+      "path": "art/build/resting-contacts-export-study/hidden-reference/reference.json",
+      "sha256": "473d5376b90a6f7b7add3e9032887dfa0346faac7653449ae609b7aa6573bc79"
+    },
+    "sourceBoundHiddenProof": {
+      "path": "art/blender/proofs/snow-roof-resting-contacts-accepted-hidden-tiles.json",
+      "sha256": "cf525ebd5990e8487cc4e10f3a6110fc12d0deab152885889fe879991bbfba57"
+    },
+    "sourceTriangles": 650936,
+    "provenHiddenTriangles": 183750,
+    "nonProofMarkerTrianglesRetained": 3292,
+    "finalPostBatchContainerMustBeMeasuredAgain": true
+  }
+}

@@ -1,0 +1,80 @@
+{
+  "version": 1,
+  "scope": "Fresh classifier run on the strict resting-contact source; no old-proof hash edits or geometry changes.",
+  "sourceBlend": "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-resting-contacts-strict.blend",
+  "sourceBlendSha256": "2ee18ea002b160f2eeff93023efaae55ee7ec601d139a7b63b4d97b3dc2a55bf",
+  "proof": "art/blender/proofs/snow-roof-resting-contacts-hidden-tiles.json",
+  "proofSha256": "d5c66034320a71ae17a8ff0fb40d71fa2c875604e3e6209b88d1b743d17c52c3",
+  "sourceContactAudit": {
+    "path": "art/build/snow-roof-resting-contacts-strict.audit.json",
+    "sha256": "0d07a0714e7ec4d3ca973c44cac9f583b05868d97962010a0c43ce49be421cd6"
+  },
+  "classifier": {
+    "path": "art/blender/classify_hidden_tiles.py",
+    "sha256": "315e6f0c1dddbae826916dee7fa3fc1daaf6a49fcdbe3ddcb75ffb367c6da5b8"
+  },
+  "previousProof": {
+    "path": "art/blender/proofs/snow-roof-final-hidden-tiles.json",
+    "sha256": "6649e9c080c3b152c743fcc88ad5ebf95690ff8f678742cc5dd84be79ce2e014"
+  },
+  "allPartsExactlyEqualPrevious": true,
+  "summaryExactlyEqualPrevious": true,
+  "cameraChecksExactlyEqualPrevious": true,
+  "summary": {
+    "hall": {
+      "components": 3720,
+      "safeComponents": 2905,
+      "polygons": 61440,
+      "excludedPolygons": 47895,
+      "excludedArea": 275.7121420661424
+    },
+    "court": {
+      "components": 2660,
+      "safeComponents": 1987,
+      "polygons": 44004,
+      "excludedPolygons": 32697,
+      "excludedArea": 185.4433033408277
+    },
+    "gate": {
+      "components": 1104,
+      "safeComponents": 685,
+      "polygons": 18240,
+      "excludedPolygons": 11283,
+      "excludedArea": 51.99351329394267
+    }
+  },
+  "representativeCameraRayChecks": {
+    "EaveDetail": {
+      "samples": 5577,
+      "snowBlocksRay": 5577
+    },
+    "RoofRidgeDetail": {
+      "samples": 5577,
+      "snowBlocksRay": 5577
+    },
+    "Reference_outside": {
+      "samples": 5577,
+      "snowBlocksRay": 5577
+    },
+    "Reference_walk-1": {
+      "samples": 5577,
+      "snowBlocksRay": 5577
+    },
+    "Reference_walk-2": {
+      "samples": 5577,
+      "snowBlocksRay": 5577
+    },
+    "Reference_walk-3": {
+      "samples": 5577,
+      "snowBlocksRay": 5577
+    },
+    "Reference_choose": {
+      "samples": 5577,
+      "snowBlocksRay": 5577
+    },
+    "Reference_lit": {
+      "samples": 5577,
+      "snowBlocksRay": 5577
+    }
+  }
+}

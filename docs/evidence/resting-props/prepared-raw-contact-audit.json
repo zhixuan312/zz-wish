@@ -1,0 +1,3368 @@
+{
+  "source": {
+    "path": "art/build/snow-roof-resting-contacts-accepted.blend",
+    "sha256": "b31360516a2713a6451ca920f3f94d9fefd9bc191bc07fca63c8c5ddce5a0c86"
+  },
+  "sourceBlendSha256": "b31360516a2713a6451ca920f3f94d9fefd9bc191bc07fca63c8c5ddce5a0c86",
+  "sourceAuditSha256": "1f722140f258eb74b02f6db1760960de056567dfe1fba64392d933d6d8a2a290",
+  "prepared": {
+    "path": "art/build/resting-contacts-accepted-replay/snow-roof-prepared.blend",
+    "sha256": "01df8ba8b2eb440d179e65b31dbf34e7ee44d123d5aee5312b0f665776a45934"
+  },
+  "receiverProfiles": {
+    "court": {
+      "receiverFingerprint": "a6c28664e2f20bf91f036cfdca9a614ffcbe857a2a591239073c144f993cec06",
+      "vertices": 118657,
+      "polygons": 181256,
+      "loops": 543768,
+      "fields": [
+        "worldMatrix",
+        "positions",
+        "topology",
+        "materialIndices",
+        "cornerNormals",
+        "UVMap",
+        "SurfaceTint",
+        "provenHiddenMask",
+        "materialSlots"
+      ],
+      "fieldSha256": {
+        "worldMatrix": "5998e9d1dd9bf48af6af87a1ef8c7783b818ac8329637ada08cc5fb329042376",
+        "positions": "f39a43501cd5185a809c136922ae6ae053ab644101bb7f094e9c459c4911c8fe",
+        "topology": "b3753b9612e3698de3e4fff9305f3fb9dbddde848f9f7008bce1f75f63372f14",
+        "materialIndices": "5f503c9bc87d77b6feb5140b8e679d1cc54bf5ea0c47a22b583d8785bd2d746f",
+        "cornerNormals": "33bfa5d618c58b478386c12129bcefd02f1e1671dc51e0b73de26a7a25c76c48",
+        "UVMap": "94bc0ea0c53e8c1ee5c83618adb24c95b14da3a3137e60e9970352e6c3768471",
+        "SurfaceTint": "2dce03eadd000f2c8c24b54ce84e82401731de2875e4c541eaf39ce6a8953e16",
+        "provenHiddenMask": "64eba238892f6db85266776145cff1ad0c2e34798614d9f6624b73c9a3685e1b",
+        "materialSlots": "9a7695a6b2ecef87b85e1ac746da7c67b9e946d267358539537129018e1a944f"
+      },
+      "lightmapUVFingerprint": "59a83f09c1e75e223976c9fa8f7d2055bd329dc68cc7af74b66ee7b240bfa50b",
+      "unwrapSignature": "9d1f318206da421c14f4cffb31b68b0bdbb6f21f7cd61d9add9fe539b4e64f70",
+      "resolution": 4096
+    },
+    "gate": {
+      "receiverFingerprint": "7893ad7a411e6e299536d5856ea93b83c168655c4820ba39553ed046766c789b",
+      "vertices": 54690,
+      "polygons": 84844,
+      "loops": 254532,
+      "fields": [
+        "worldMatrix",
+        "positions",
+        "topology",
+        "materialIndices",
+        "cornerNormals",
+        "UVMap",
+        "SurfaceTint",
+        "provenHiddenMask",
+        "materialSlots"
+      ],
+      "fieldSha256": {
+        "worldMatrix": "891fa81a8a491eaff1c5d771f005f642ffffed4e8b2c84f27c419938f2fc4fca",
+        "positions": "282019f985c01f74bc2722318eacde0a647f508c7a29869a5dc713669275e470",
+        "topology": "d04eb58c113868b9317801f924ad9d48e92904614276f36e14ae1df416058828",
+        "materialIndices": "0351aafec3a04a121f373c9161b094baffae8fcbb1189c261fbf03d8f46df43c",
+        "cornerNormals": "38da8fc70b2f349e3ede4ebd7f6505dc2a9f585a7df5055af06cc9be1158b9cf",
+        "UVMap": "3f94e05e05e1f60979866c9e33fccc0ceb64cafddfd0540101e54fc7531d22d9",
+        "SurfaceTint": "6f0206e3c2328a81a27f2c7b90383a361171a4ddf8f117e992f23d2ae9b7a209",
+        "provenHiddenMask": "2ba5453ff41583c2cc76e681a664615e627a789d26785905448b63b489ba87e0",
+        "materialSlots": "c03e259e913ffe9850ae7cfe53d864130b0e4372b26ca82e6ef23b8889080c8d"
+      },
+      "lightmapUVFingerprint": "4e2040cbb3adc3fbb8077b965d2d999ae0a103fb05a70f66ddf26d6d16fa191c",
+      "unwrapSignature": "17be4a61c3b243e90c885e9ac760cb326aed9f44dfecae964380e6e53c8743b1",
+      "resolution": 2048
+    },
+    "hall": {
+      "receiverFingerprint": "8ef55548e31f53b875f923b4057c2bebd7eb8fa59d7270b746501ba45d66b5c1",
+      "vertices": 241013,
+      "polygons": 384836,
+      "loops": 1154508,
+      "fields": [
+        "worldMatrix",
+        "positions",
+        "topology",
+        "materialIndices",
+        "cornerNormals",
+        "UVMap",
+        "SurfaceTint",
+        "provenHiddenMask",
+        "materialSlots"
+      ],
+      "fieldSha256": {
+        "worldMatrix": "5998e9d1dd9bf48af6af87a1ef8c7783b818ac8329637ada08cc5fb329042376",
+        "positions": "018988759bacf73ea04b36a47f2ad2626f1a9d1a46f26d7556aabd38eb931a5c",
+        "topology": "284ed2f27adad05051551e3d064ed041b76399f366a9838eb108abf717899337",
+        "materialIndices": "ecb706686d0db17fa71a4088b05914e1bf42e0da46f8d3ce295e4a49f3adb1be",
+        "cornerNormals": "90ab803ff98127d7d95a89b1815e125f48d5e4c4b00c2eafc5d17d7b01990727",
+        "UVMap": "2725be39610970b678a5aaa465b0ec53f6b0601dd88974ff117e39a1af196f48",
+        "SurfaceTint": "62833d70cc93dac65952975c2205739f028e2b2f91f85ff4a82bbadb93bc4765",
+        "provenHiddenMask": "c28bc4ed557796a674c618a84b6be0982e221f89fee81a19beeab14159e47b08",
+        "materialSlots": "674a3934720c37a025e00d33355501c10143eef1f74da2f145033273c7fd6030"
+      },
+      "lightmapUVFingerprint": "4e1a7fcee7ea5dc8ea99bed247d6da861dc325d71b8426762d94acbf974ab6b1",
+      "unwrapSignature": "b7978e0ae9b46630548d22f97787858fd8167d240de79ca7255d15ab951bd99a",
+      "resolution": 4096
+    }
+  },
+  "geometryFingerprint": "89d4085e7b4ed662ab952b1430e9217b3c9befad602e1c317ae3ea659d848821",
+  "literalGuardsMetres": {
+    "gap": 0.002,
+    "penetration": 0.005
+  },
+  "association": {
+    "method": "Actual evaluated source world-vertex membership; exact FLOAT32 keys first, native KD association\u22645\u00b5m only where necessary. BVHs use actual prepared triangles.",
+    "exactPreparedVertices": 58797,
+    "toleranceAssociatedVertices": 418,
+    "maximumAssociationErrorMetres": 3.5762786865234375e-07,
+    "missingSourceVertices": {}
+  },
+  "groups": [
+    {
+      "name": "scanned console altar",
+      "mode": "resting",
+      "passed": true,
+      "contact": {
+        "member": "Scanned console altar chinese_console_table",
+        "pointEngine": [
+          -0.9357838034629822,
+          0.6055870056152344,
+          -4.705382347106934
+        ],
+        "supportPointEngine": [
+          -0.9357838034629822,
+          0.605682373046875,
+          -4.705382347106934
+        ],
+        "supportObject": "Settled irregular paving stone.036",
+        "gapMetres": -9.5367431640625e-05
+      },
+      "measuredGapMetres": -9.5367431640625e-05,
+      "maximumPenetrationMetres": 0.00024366378784179688,
+      "worstPenetrationContact": {
+        "member": "Scanned console altar chinese_console_table",
+        "pointEngine": [
+          -0.9330872297286987,
+          0.6057705879211426,
+          -4.592812538146973
+        ],
+        "supportPointEngine": [
+          -0.9330872297286987,
+          0.6060142517089844,
+          -4.592812538146973
+        ],
+        "supportObject": "Settled irregular paving stone.036",
+        "gapMetres": -0.00024366378784179688
+      },
+      "sourceContactGapMetres": 0.0,
+      "sourceMaximumPenetrationMetres": 0.00019788742065429688
+    },
+    {
+      "name": "turned pedestal -1.45",
+      "mode": "resting",
+      "passed": true,
+      "contact": {
+        "member": "Turned altar side lamp pedestal",
+        "pointEngine": [
+          -1.4997488260269165,
+          0.6059646606445312,
+          -4.8701043128967285
+        ],
+        "supportPointEngine": [
+          -1.4997488260269165,
+          0.6060218811035156,
+          -4.8701043128967285
+        ],
+        "supportObject": "Settled irregular paving stone.035",
+        "gapMetres": -5.7220458984375e-05
+      },
+      "measuredGapMetres": -5.7220458984375e-05,
+      "maximumPenetrationMetres": 5.7220458984375e-05,
+      "worstPenetrationContact": {
+        "member": "Turned altar side lamp pedestal",
+        "pointEngine": [
+          -1.4997488260269165,
+          0.6059646606445312,
+          -4.8701043128967285
+        ],
+        "supportPointEngine": [
+          -1.4997488260269165,
+          0.6060218811035156,
+          -4.8701043128967285
+        ],
+        "supportObject": "Settled irregular paving stone.035",
+        "gapMetres": -5.7220458984375e-05
+      },
+      "sourceContactGapMetres": 0.0,
+      "sourceMaximumPenetrationMetres": 0.0
+    },
+    {
+      "name": "turned pedestal 1.45",
+      "mode": "resting",
+      "passed": true,
+      "contact": {
+        "member": "Turned altar side lamp pedestal.001",
+        "pointEngine": [
+          1.3419089317321777,
+          0.5995903015136719,
+          -4.677775859832764
+        ],
+        "supportPointEngine": [
+          1.3419089317321777,
+          0.5997734069824219,
+          -4.677775859832764
+        ],
+        "supportObject": "Settled irregular paving stone.040",
+        "gapMetres": -0.00018310546875
+      },
+      "measuredGapMetres": -0.00018310546875,
+      "maximumPenetrationMetres": 0.00018310546875,
+      "worstPenetrationContact": {
+        "member": "Turned altar side lamp pedestal.001",
+        "pointEngine": [
+          1.3419089317321777,
+          0.5995903015136719,
+          -4.677775859832764
+        ],
+        "supportPointEngine": [
+          1.3419089317321777,
+          0.5997734069824219,
+          -4.677775859832764
+        ],
+        "supportObject": "Settled irregular paving stone.040",
+        "gapMetres": -0.00018310546875
+      },
+      "sourceContactGapMetres": 0.0,
+      "sourceMaximumPenetrationMetres": 0.0
+    },
+    {
+      "name": "wall-mounted screen bearing rail",
+      "mode": "mounted",
+      "passed": true,
+      "mountedSupportChecks": [
+        {
+          "supportObject": "Hall rear wall",
+          "supportPointEngine": [
+            -2.200000047683716,
+            1.25,
+            -6.440000057220459
+          ],
+          "actualFastenerEmbeddingMetres": 0.07999992370605469,
+          "passed": true
+        },
+        {
+          "supportObject": "Hall rear wall",
+          "supportPointEngine": [
+            -0.699999988079071,
+            1.25,
+            -6.440000057220459
+          ],
+          "actualFastenerEmbeddingMetres": 0.0799998939037323,
+          "passed": true
+        },
+        {
+          "supportObject": "Hall rear wall",
+          "supportPointEngine": [
+            0.699999988079071,
+            1.25,
+            -6.440000057220459
+          ],
+          "actualFastenerEmbeddingMetres": 0.07999992370605469,
+          "passed": true
+        },
+        {
+          "supportObject": "Hall rear wall",
+          "supportPointEngine": [
+            2.200000047683716,
+            1.25,
+            -6.440000057220459
+          ],
+          "actualFastenerEmbeddingMetres": 0.07999992370605469,
+          "passed": true
+        }
+      ],
+      "measuredGapMetres": null,
+      "maximumPenetrationMetres": null,
+      "restingLimitApplicable": false
+    },
+    {
+      "name": "mounted screen leaf 0",
+      "mode": "resting",
+      "passed": true,
+      "contact": {
+        "member": "Scanned screen leaf chinese_screen_panels_a",
+        "pointEngine": [
+          -0.7505022883415222,
+          1.3000030517578125,
+          -6.276276588439941
+        ],
+        "supportPointEngine": [
+          -0.7505022883415222,
+          1.2999992370605469,
+          -6.276276588439941
+        ],
+        "supportObject": "Wall-fastened screen bearing rail",
+        "gapMetres": 3.814697265625e-06
+      },
+      "measuredGapMetres": 3.814697265625e-06,
+      "maximumPenetrationMetres": 0.0,
+      "worstPenetrationContact": {
+        "member": "Scanned screen leaf chinese_screen_panels_a",
+        "pointEngine": [
+          -0.7505022883415222,
+          1.3000030517578125,
+          -6.276276588439941
+        ],
+        "supportPointEngine": [
+          -0.7505022883415222,
+          1.2999992370605469,
+          -6.276276588439941
+        ],
+        "supportObject": "Wall-fastened screen bearing rail",
+        "gapMetres": 3.814697265625e-06
+      },
+      "sourceContactGapMetres": 0.0,
+      "sourceMaximumPenetrationMetres": 0.0
+    },
+    {
+      "name": "mounted screen leaf 1",
+      "mode": "resting",
+      "passed": true,
+      "contact": {
+        "member": "Scanned screen leaf chinese_screen_panels_b",
+        "pointEngine": [
+          -0.7614692449569702,
+          1.3000030517578125,
+          -6.270593166351318
+        ],
+        "supportPointEngine": [
+          -0.7614692449569702,
+          1.2999992370605469,
+          -6.270593166351318
+        ],
+        "supportObject": "Wall-fastened screen bearing rail",
+        "gapMetres": 3.814697265625e-06
+      },
+      "measuredGapMetres": 3.814697265625e-06,
+      "maximumPenetrationMetres": 0.0,
+      "worstPenetrationContact": {
+        "member": "Scanned screen leaf chinese_screen_panels_b",
+        "pointEngine": [
+          -0.7614692449569702,
+          1.3000030517578125,
+          -6.270593166351318
+        ],
+        "supportPointEngine": [
+          -0.7614692449569702,
+          1.2999992370605469,
+          -6.270593166351318
+        ],
+        "supportObject": "Wall-fastened screen bearing rail",
+        "gapMetres": 3.814697265625e-06
+      },
+      "sourceContactGapMetres": 0.0,
+      "sourceMaximumPenetrationMetres": 0.0
+    },
+    {
+      "name": "mounted screen leaf 2",
+      "mode": "resting",
+      "passed": true,
+      "contact": {
+        "member": "Scanned screen leaf chinese_screen_panels_a.001",
+        "pointEngine": [
+          2.2694976329803467,
+          1.2999999523162842,
+          -6.276276588439941
+        ],
+        "supportPointEngine": [
+          2.2694976329803467,
+          1.2999992370605469,
+          -6.276276588439941
+        ],
+        "supportObject": "Wall-fastened screen bearing rail",
+        "gapMetres": 7.152557373046875e-07
+      },
+      "measuredGapMetres": 7.152557373046875e-07,
+      "maximumPenetrationMetres": 0.0,
+      "worstPenetrationContact": {
+        "member": "Scanned screen leaf chinese_screen_panels_a.001",
+        "pointEngine": [
+          2.2694976329803467,
+          1.2999999523162842,
+          -6.276276588439941
+        ],
+        "supportPointEngine": [
+          2.2694976329803467,
+          1.2999992370605469,
+          -6.276276588439941
+        ],
+        "supportObject": "Wall-fastened screen bearing rail",
+        "gapMetres": 7.152557373046875e-07
+      },
+      "sourceContactGapMetres": 7.152557373046875e-07,
+      "sourceMaximumPenetrationMetres": 0.0
+    },
+    {
+      "name": "screen edge molding -2.34",
+      "mode": "resting",
+      "passed": true,
+      "contact": {
+        "member": "Gilded screen edge molding",
+        "pointEngine": [
+          -2.312000036239624,
+          1.3000030517578125,
+          -6.230000019073486
+        ],
+        "supportPointEngine": [
+          -2.312000036239624,
+          1.2999992370605469,
+          -6.230000019073486
+        ],
+        "supportObject": "Wall-fastened screen bearing rail",
+        "gapMetres": 3.814697265625e-06
+      },
+      "measuredGapMetres": 3.814697265625e-06,
+      "maximumPenetrationMetres": 0.0,
+      "worstPenetrationContact": {
+        "member": "Gilded screen edge molding",
+        "pointEngine": [
+          -2.312000036239624,
+          1.3000030517578125,
+          -6.230000019073486
+        ],
+        "supportPointEngine": [
+          -2.312000036239624,
+          1.2999992370605469,
+          -6.230000019073486
+        ],
+        "supportObject": "Wall-fastened screen bearing rail",
+        "gapMetres": 3.814697265625e-06
+      },
+      "sourceContactGapMetres": 0.0,
+      "sourceMaximumPenetrationMetres": 0.0
+    },
+    {
+      "name": "screen edge molding 2.34",
+      "mode": "resting",
+      "passed": true,
+      "contact": {
+        "member": "Gilded screen edge molding.001",
+        "pointEngine": [
+          2.36586856842041,
+          1.2999999523162842,
+          -6.219285011291504
+        ],
+        "supportPointEngine": [
+          2.36586856842041,
+          1.3000030517578125,
+          -6.219285011291504
+        ],
+        "supportObject": "Wall-fastened screen bearing rail",
+        "gapMetres": -3.0994415283203125e-06
+      },
+      "measuredGapMetres": -3.0994415283203125e-06,
+      "maximumPenetrationMetres": 3.0994415283203125e-06,
+      "worstPenetrationContact": {
+        "member": "Gilded screen edge molding.001",
+        "pointEngine": [
+          2.36586856842041,
+          1.2999999523162842,
+          -6.219285011291504
+        ],
+        "supportPointEngine": [
+          2.36586856842041,
+          1.3000030517578125,
+          -6.219285011291504
+        ],
+        "supportObject": "Wall-fastened screen bearing rail",
+        "gapMetres": -3.0994415283203125e-06
+      },
+      "sourceContactGapMetres": 7.152557373046875e-07,
+      "sourceMaximumPenetrationMetres": 0.0
+    },
+    {
+      "name": "altar -1.45",
+      "mode": "resting",
+      "passed": true,
+      "contact": {
+        "member": "Other altar lamp bronze foot",
+        "pointEngine": [
+          -1.3849999904632568,
+          1.6359672546386719,
+          -4.75
+        ],
+        "supportPointEngine": [
+          -1.3849999904632568,
+          1.6359672546386719,
+          -4.75
+        ],
+        "supportObject": "Turned altar side lamp pedestal",
+        "gapMetres": 0.0
+      },
+      "measuredGapMetres": 0.0,
+      "maximumPenetrationMetres": 0.0,
+      "worstPenetrationContact": {
+        "member": "Other altar lamp bronze foot",
+        "pointEngine": [
+          -1.3849999904632568,
+          1.6359672546386719,
+          -4.75
+        ],
+        "supportPointEngine": [
+          -1.3849999904632568,
+          1.6359672546386719,
+          -4.75
+        ],
+        "supportObject": "Turned altar side lamp pedestal",
+        "gapMetres": 0.0
+      },
+      "sourceContactGapMetres": 0.0,
+      "sourceMaximumPenetrationMetres": 0.0
+    },
+    {
+      "name": "altar -0.95",
+      "mode": "resting",
+      "passed": true,
+      "contact": {
+        "member": "Other altar lamp bronze foot.001",
+        "pointEngine": [
+          -0.8899478316307068,
+          1.5910873413085938,
+          -4.725125789642334
+        ],
+        "supportPointEngine": [
+          -0.8899478316307068,
+          1.5910873413085938,
+          -4.725125789642334
+        ],
+        "supportObject": "Scanned console altar chinese_console_table",
+        "gapMetres": 0.0
+      },
+      "measuredGapMetres": 0.0,
+      "maximumPenetrationMetres": 0.0,
+      "worstPenetrationContact": {
+        "member": "Other altar lamp bronze foot.001",
+        "pointEngine": [
+          -0.8899478316307068,
+          1.5910873413085938,
+          -4.725125789642334
+        ],
+        "supportPointEngine": [
+          -0.8899478316307068,
+          1.5910873413085938,
+          -4.725125789642334
+        ],
+        "supportObject": "Scanned console altar chinese_console_table",
+        "gapMetres": 0.0
+      },
+      "sourceContactGapMetres": 0.0,
+      "sourceMaximumPenetrationMetres": 0.0
+    },
+    {
+      "name": "altar 0.95",
+      "mode": "resting",
+      "passed": true,
+      "contact": {
+        "member": "Other altar lamp bronze foot.002",
+        "pointEngine": [
+          0.8849999904632568,
+          1.5910911560058594,
+          -4.75
+        ],
+        "supportPointEngine": [
+          0.8849999904632568,
+          1.5910911560058594,
+          -4.75
+        ],
+        "supportObject": "Scanned console altar chinese_console_table",
+        "gapMetres": 0.0
+      },
+      "measuredGapMetres": 0.0,
+      "maximumPenetrationMetres": 0.0,
+      "worstPenetrationContact": {
+        "member": "Other altar lamp bronze foot.002",
+        "pointEngine": [
+          0.8849999904632568,
+          1.5910911560058594,
+          -4.75
+        ],
+        "supportPointEngine": [
+          0.8849999904632568,
+          1.5910911560058594,
+          -4.75
+        ],
+        "supportObject": "Scanned console altar chinese_console_table",
+        "gapMetres": 0.0
+      },
+      "sourceContactGapMetres": 0.0,
+      "sourceMaximumPenetrationMetres": 0.0
+    },
+    {
+      "name": "altar 1.45",
+      "mode": "resting",
+      "passed": true,
+      "contact": {
+        "member": "Other altar lamp bronze foot.003",
+        "pointEngine": [
+          1.51005220413208,
+          1.6295928955078125,
+          -4.725125789642334
+        ],
+        "supportPointEngine": [
+          1.51005220413208,
+          1.6295928955078125,
+          -4.725125789642334
+        ],
+        "supportObject": "Turned altar side lamp pedestal.001",
+        "gapMetres": 0.0
+      },
+      "measuredGapMetres": 0.0,
+      "maximumPenetrationMetres": 0.0,
+      "worstPenetrationContact": {
+        "member": "Other altar lamp bronze foot.003",
+        "pointEngine": [
+          1.51005220413208,
+          1.6295928955078125,
+          -4.725125789642334
+        ],
+        "supportPointEngine": [
+          1.51005220413208,
+          1.6295928955078125,
+          -4.725125789642334
+        ],
+        "supportObject": "Turned altar side lamp pedestal.001",
+        "gapMetres": 0.0
+      },
+      "sourceContactGapMetres": 0.0,
+      "sourceMaximumPenetrationMetres": 0.0
+    },
+    {
+      "name": "burner ash",
+      "mode": "resting",
+      "passed": true,
+      "contact": {
+        "member": "Ash mound in brass burner",
+        "pointEngine": [
+          8.143900841772427e-18,
+          1.718960165977478,
+          -4.7170000076293945
+        ],
+        "supportPointEngine": [
+          8.143900841772427e-18,
+          1.7189598083496094,
+          -4.7170000076293945
+        ],
+        "supportObject": "Brass incense burner with rolled lip",
+        "gapMetres": 3.5762786865234375e-07
+      },
+      "measuredGapMetres": 3.5762786865234375e-07,
+      "maximumPenetrationMetres": 0.0,
+      "worstPenetrationContact": {
+        "member": "Ash mound in brass burner",
+        "pointEngine": [
+          8.143900841772427e-18,
+          1.718960165977478,
+          -4.7170000076293945
+        ],
+        "supportPointEngine": [
+          8.143900841772427e-18,
+          1.7189598083496094,
+          -4.7170000076293945
+        ],
+        "supportObject": "Brass incense burner with rolled lip",
+        "gapMetres": 3.5762786865234375e-07
+      },
+      "sourceContactGapMetres": 3.5762786865234375e-07,
+      "sourceMaximumPenetrationMetres": 0.0
+    },
+    {
+      "name": "charred incense 0",
+      "mode": "resting",
+      "passed": true,
+      "contact": {
+        "member": "Charred incense end in ash",
+        "pointEngine": [
+          0.021756602451205254,
+          1.7318767309188843,
+          -4.84948205947876
+        ],
+        "supportPointEngine": [
+          0.021756602451205254,
+          1.7318801879882812,
+          -4.84948205947876
+        ],
+        "supportObject": "Ash mound in brass burner",
+        "gapMetres": -3.4570693969726562e-06
+      },
+      "measuredGapMetres": -3.4570693969726562e-06,
+      "maximumPenetrationMetres": 3.4570693969726562e-06,
+      "worstPenetrationContact": {
+        "member": "Charred incense end in ash",
+        "pointEngine": [
+          0.021756602451205254,
+          1.7318767309188843,
+          -4.84948205947876
+        ],
+        "supportPointEngine": [
+          0.021756602451205254,
+          1.7318801879882812,
+          -4.84948205947876
+        ],
+        "supportObject": "Ash mound in brass burner",
+        "gapMetres": -3.4570693969726562e-06
+      },
+      "sourceContactGapMetres": -3.4570693969726562e-06,
+      "sourceMaximumPenetrationMetres": 3.4570693969726562e-06
+    },
+    {
+      "name": "charred incense 1",
+      "mode": "resting",
+      "passed": true,
+      "contact": {
+        "member": "Charred incense end in ash.001",
+        "pointEngine": [
+          -0.05255771055817604,
+          1.7260631322860718,
+          -4.800809860229492
+        ],
+        "supportPointEngine": [
+          -0.05255771055817604,
+          1.7260665893554688,
+          -4.800809860229492
+        ],
+        "supportObject": "Ash mound in brass burner",
+        "gapMetres": -3.4570693969726562e-06
+      },
+      "measuredGapMetres": -3.4570693969726562e-06,
+      "maximumPenetrationMetres": 3.4570693969726562e-06,
+      "worstPenetrationContact": {
+        "member": "Charred incense end in ash.001",
+        "pointEngine": [
+          -0.05255771055817604,
+          1.7260631322860718,
+          -4.800809860229492
+        ],
+        "supportPointEngine": [
+          -0.05255771055817604,
+          1.7260665893554688,
+          -4.800809860229492
+        ],
+        "supportObject": "Ash mound in brass burner",
+        "gapMetres": -3.4570693969726562e-06
+      },
+      "sourceContactGapMetres": -3.4570693969726562e-06,
+      "sourceMaximumPenetrationMetres": 3.4570693969726562e-06
+    },
+    {
+      "name": "charred incense 2",
+      "mode": "resting",
+      "passed": true,
+      "contact": {
+        "member": "Charred incense end in ash.002",
+        "pointEngine": [
+          0.0036825428251177073,
+          1.7290195226669312,
+          -4.907460689544678
+        ],
+        "supportPointEngine": [
+          0.0036825428251177073,
+          1.7290191650390625,
+          -4.907460689544678
+        ],
+        "supportObject": "Ash mound in brass burner",
+        "gapMetres": 3.5762786865234375e-07
+      },
+      "measuredGapMetres": 3.5762786865234375e-07,
+      "maximumPenetrationMetres": 0.0,
+      "worstPenetrationContact": {
+        "member": "Charred incense end in ash.002",
+        "pointEngine": [
+          0.0036825428251177073,
+          1.7290195226669312,
+          -4.907460689544678
+        ],
+        "supportPointEngine": [
+          0.0036825428251177073,
+          1.7290191650390625,
+          -4.907460689544678
+        ],
+        "supportObject": "Ash mound in brass burner",
+        "gapMetres": 3.5762786865234375e-07
+      },
+      "sourceContactGapMetres": 3.5762786865234375e-07,
+      "sourceMaximumPenetrationMetres": 0.0
+    },
+    {
+      "name": "charred incense 3",
+      "mode": "resting",
+      "passed": true,
+      "contact": {
+        "member": "Charred incense end in ash.003",
+        "pointEngine": [
+          0.027348872274160385,
+          1.7296756505966187,
+          -4.815637588500977
+        ],
+        "supportPointEngine": [
+          0.027348872274160385,
+          1.72967529296875,
+          -4.815637588500977
+        ],
+        "supportObject": "Ash mound in brass burner",
+        "gapMetres": 3.5762786865234375e-07
+      },
+      "measuredGapMetres": 3.5762786865234375e-07,
+      "maximumPenetrationMetres": 0.0,
+      "worstPenetrationContact": {
+        "member": "Charred incense end in ash.003",
+        "pointEngine": [
+          0.027348872274160385,
+          1.7296756505966187,
+          -4.815637588500977
+        ],
+        "supportPointEngine": [
+          0.027348872274160385,
+          1.72967529296875,
+          -4.815637588500977
+        ],
+        "supportObject": "Ash mound in brass burner",
+        "gapMetres": 3.5762786865234375e-07
+      },
+      "sourceContactGapMetres": 3.5762786865234375e-07,
+      "sourceMaximumPenetrationMetres": 0.0
+    },
+    {
+      "name": "charred incense 4",
+      "mode": "resting",
+      "passed": true,
+      "contact": {
+        "member": "Charred incense end in ash.004",
+        "pointEngine": [
+          -0.028503920882940292,
+          1.7307857275009155,
+          -4.85429048538208
+        ],
+        "supportPointEngine": [
+          -0.028503920882940292,
+          1.7307815551757812,
+          -4.85429048538208
+        ],
+        "supportObject": "Ash mound in brass burner",
+        "gapMetres": 4.172325134277344e-06
+      },
+      "measuredGapMetres": 4.172325134277344e-06,
+      "maximumPenetrationMetres": 0.0002906322479248047,
+      "worstPenetrationContact": {
+        "member": "Charred incense end in ash.004",
+        "pointEngine": [
+          -0.01857917755842209,
+          1.7320702075958252,
+          -4.846231937408447
+        ],
+        "supportPointEngine": [
+          -0.01857917755842209,
+          1.73236083984375,
+          -4.846231937408447
+        ],
+        "supportObject": "Ash mound in brass burner",
+        "gapMetres": -0.0002906322479248047
+      },
+      "sourceContactGapMetres": 4.172325134277344e-06,
+      "sourceMaximumPenetrationMetres": 0.0002906322479248047
+    },
+    {
+      "name": "charred incense 5",
+      "mode": "resting",
+      "passed": true,
+      "contact": {
+        "member": "Charred incense end in ash.005",
+        "pointEngine": [
+          0.06485381722450256,
+          1.7271922826766968,
+          -4.895599842071533
+        ],
+        "supportPointEngine": [
+          0.06485381722450256,
+          1.7271919250488281,
+          -4.895599842071533
+        ],
+        "supportObject": "Ash mound in brass burner",
+        "gapMetres": 3.5762786865234375e-07
+      },
+      "measuredGapMetres": 3.5762786865234375e-07,
+      "maximumPenetrationMetres": 0.0,
+      "worstPenetrationContact": {
+        "member": "Charred incense end in ash.005",
+        "pointEngine": [
+          0.06485381722450256,
+          1.7271922826766968,
+          -4.895599842071533
+        ],
+        "supportPointEngine": [
+          0.06485381722450256,
+          1.7271919250488281,
+          -4.895599842071533
+        ],
+        "supportObject": "Ash mound in brass burner",
+        "gapMetres": 3.5762786865234375e-07
+      },
+      "sourceContactGapMetres": 3.5762786865234375e-07,
+      "sourceMaximumPenetrationMetres": 0.0
+    },
+    {
+      "name": "charred incense 6",
+      "mode": "resting",
+      "passed": true,
+      "contact": {
+        "member": "Charred incense end in ash.006",
+        "pointEngine": [
+          -0.012709535658359528,
+          1.7274364233016968,
+          -4.7863569259643555
+        ],
+        "supportPointEngine": [
+          -0.012709535658359528,
+          1.7274322509765625,
+          -4.7863569259643555
+        ],
+        "supportObject": "Ash mound in brass burner",
+        "gapMetres": 4.172325134277344e-06
+      },
+      "measuredGapMetres": 4.172325134277344e-06,
+      "maximumPenetrationMetres": 0.0,
+      "worstPenetrationContact": {
+        "member": "Charred incense end in ash.006",
+        "pointEngine": [
+          -0.012709535658359528,
+          1.7274364233016968,
+          -4.7863569259643555
+        ],
+        "supportPointEngine": [
+          -0.012709535658359528,
+          1.7274322509765625,
+          -4.7863569259643555
+        ],
+        "supportObject": "Ash mound in brass burner",
+        "gapMetres": 4.172325134277344e-06
+      },
+      "sourceContactGapMetres": 4.172325134277344e-06,
+      "sourceMaximumPenetrationMetres": 0.0
+    },
+    {
+      "name": "charred incense 7",
+      "mode": "resting",
+      "passed": true,
+      "contact": {
+        "member": "Charred incense end in ash.007",
+        "pointEngine": [
+          -0.026788534596562386,
+          1.728493094444275,
+          -4.892899036407471
+        ],
+        "supportPointEngine": [
+          -0.026788534596562386,
+          1.7284927368164062,
+          -4.892899036407471
+        ],
+        "supportObject": "Ash mound in brass burner",
+        "gapMetres": 3.5762786865234375e-07
+      },
+      "measuredGapMetres": 3.5762786865234375e-07,
+      "maximumPenetrationMetres": 0.0,
+      "worstPenetrationContact": {
+        "member": "Charred incense end in ash.007",
+        "pointEngine": [
+          -0.026788534596562386,
+          1.728493094444275,
+          -4.892899036407471
+        ],
+        "supportPointEngine": [
+          -0.026788534596562386,
+          1.7284927368164062,
+          -4.892899036407471
+        ],
+        "supportObject": "Ash mound in brass burner",
+        "gapMetres": 3.5762786865234375e-07
+      },
+      "sourceContactGapMetres": 3.5762786865234375e-07,
+      "sourceMaximumPenetrationMetres": 0.0
+    },
+    {
+      "name": "charred incense 8",
+      "mode": "resting",
+      "passed": true,
+      "contact": {
+        "member": "Charred incense end in ash.008",
+        "pointEngine": [
+          0.035571321845054626,
+          1.7308963537216187,
+          -4.840614318847656
+        ],
+        "supportPointEngine": [
+          0.035571321845054626,
+          1.7308921813964844,
+          -4.840614318847656
+        ],
+        "supportObject": "Ash mound in brass burner",
+        "gapMetres": 4.172325134277344e-06
+      },
+      "measuredGapMetres": 4.172325134277344e-06,
+      "maximumPenetrationMetres": 0.0,
+      "worstPenetrationContact": {
+        "member": "Charred incense end in ash.008",
+        "pointEngine": [
+          0.035571321845054626,
+          1.7308963537216187,
+          -4.840614318847656
+        ],
+        "supportPointEngine": [
+          0.035571321845054626,
+          1.7308921813964844,
+          -4.840614318847656
+        ],
+        "supportObject": "Ash mound in brass burner",
+        "gapMetres": 4.172325134277344e-06
+      },
+      "sourceContactGapMetres": 4.172325134277344e-06,
+      "sourceMaximumPenetrationMetres": 0.0
+    },
+    {
+      "name": "smouldering incense 0",
+      "mode": "resting",
+      "passed": true,
+      "contact": {
+        "member": "Smouldering incense",
+        "pointEngine": [
+          -0.03835419937968254,
+          1.7303966283798218,
+          -4.847734451293945
+        ],
+        "supportPointEngine": [
+          -0.03835419937968254,
+          1.7303962707519531,
+          -4.847734451293945
+        ],
+        "supportObject": "Ash mound in brass burner",
+        "gapMetres": 3.5762786865234375e-07
+      },
+      "measuredGapMetres": 3.5762786865234375e-07,
+      "maximumPenetrationMetres": 0.0,
+      "worstPenetrationContact": {
+        "member": "Smouldering incense",
+        "pointEngine": [
+          -0.03835419937968254,
+          1.7303966283798218,
+          -4.847734451293945
+        ],
+        "supportPointEngine": [
+          -0.03835419937968254,
+          1.7303962707519531,
+          -4.847734451293945
+        ],
+        "supportObject": "Ash mound in brass burner",
+        "gapMetres": 3.5762786865234375e-07
+      },
+      "sourceContactGapMetres": 3.5762786865234375e-07,
+      "sourceMaximumPenetrationMetres": 0.0
+    },
+    {
+      "name": "smouldering incense 1",
+      "mode": "resting",
+      "passed": true,
+      "contact": {
+        "member": "Smouldering incense.001",
+        "pointEngine": [
+          -0.012337270192801952,
+          1.732826590538025,
+          -4.84913444519043
+        ],
+        "supportPointEngine": [
+          -0.012337270192801952,
+          1.7328262329101562,
+          -4.84913444519043
+        ],
+        "supportObject": "Ash mound in brass burner",
+        "gapMetres": 3.5762786865234375e-07
+      },
+      "measuredGapMetres": 3.5762786865234375e-07,
+      "maximumPenetrationMetres": 0.0,
+      "worstPenetrationContact": {
+        "member": "Smouldering incense.001",
+        "pointEngine": [
+          -0.012337270192801952,
+          1.732826590538025,
+          -4.84913444519043
+        ],
+        "supportPointEngine": [
+          -0.012337270192801952,
+          1.7328262329101562,
+          -4.84913444519043
+        ],
+        "supportObject": "Ash mound in brass burner",
+        "gapMetres": 3.5762786865234375e-07
+      },
+      "sourceContactGapMetres": 3.5762786865234375e-07,
+      "sourceMaximumPenetrationMetres": 0.0
+    },
+    {
+      "name": "smouldering incense 2",
+      "mode": "resting",
+      "passed": true,
+      "contact": {
+        "member": "Smouldering incense.002",
+        "pointEngine": [
+          0.011645275168120861,
+          1.7329524755477905,
+          -4.847734451293945
+        ],
+        "supportPointEngine": [
+          0.011645275168120861,
+          1.7329483032226562,
+          -4.847734451293945
+        ],
+        "supportObject": "Ash mound in brass burner",
+        "gapMetres": 4.172325134277344e-06
+      },
+      "measuredGapMetres": 4.172325134277344e-06,
+      "maximumPenetrationMetres": 0.00025725364685058594,
+      "worstPenetrationContact": {
+        "member": "Smouldering incense.002",
+        "pointEngine": [
+          0.007337888237088919,
+          1.7330610752105713,
+          -4.84913444519043
+        ],
+        "supportPointEngine": [
+          0.007337888237088919,
+          1.7333183288574219,
+          -4.84913444519043
+        ],
+        "supportObject": "Ash mound in brass burner",
+        "gapMetres": -0.00025725364685058594
+      },
+      "sourceContactGapMetres": 4.172325134277344e-06,
+      "sourceMaximumPenetrationMetres": 0.00025725364685058594
+    },
+    {
+      "name": "smouldering incense 3",
+      "mode": "resting",
+      "passed": true,
+      "contact": {
+        "member": "Smouldering incense.003",
+        "pointEngine": [
+          0.03664451837539673,
+          1.7305644750595093,
+          -4.847734451293945
+        ],
+        "supportPointEngine": [
+          0.03664451837539673,
+          1.7305641174316406,
+          -4.847734451293945
+        ],
+        "supportObject": "Ash mound in brass burner",
+        "gapMetres": 3.5762786865234375e-07
+      },
+      "measuredGapMetres": 3.5762786865234375e-07,
+      "maximumPenetrationMetres": 0.00019800662994384766,
+      "worstPenetrationContact": {
+        "member": "Smouldering incense.003",
+        "pointEngine": [
+          0.033355481922626495,
+          1.7306941747665405,
+          -4.847734451293945
+        ],
+        "supportPointEngine": [
+          0.033355481922626495,
+          1.7308921813964844,
+          -4.847734451293945
+        ],
+        "supportObject": "Ash mound in brass burner",
+        "gapMetres": -0.00019800662994384766
+      },
+      "sourceContactGapMetres": 3.5762786865234375e-07,
+      "sourceMaximumPenetrationMetres": 0.00019800662994384766
+    },
+    {
+      "name": "altar burner assembly",
+      "mode": "resting",
+      "passed": true,
+      "contact": {
+        "member": "Brass burner foot.001",
+        "pointEngine": [
+          -0.060030676424503326,
+          1.5910873413085938,
+          -4.756530284881592
+        ],
+        "supportPointEngine": [
+          -0.060030676424503326,
+          1.5910873413085938,
+          -4.756530284881592
+        ],
+        "supportObject": "Scanned console altar chinese_console_table",
+        "gapMetres": 0.0
+      },
+      "measuredGapMetres": 0.0,
+      "maximumPenetrationMetres": 0.0,
+      "worstPenetrationContact": {
+        "member": "Brass burner foot.001",
+        "pointEngine": [
+          -0.060030676424503326,
+          1.5910873413085938,
+          -4.756530284881592
+        ],
+        "supportPointEngine": [
+          -0.060030676424503326,
+          1.5910873413085938,
+          -4.756530284881592
+        ],
+        "supportObject": "Scanned console altar chinese_console_table",
+        "gapMetres": 0.0
+      },
+      "sourceContactGapMetres": 0.0,
+      "sourceMaximumPenetrationMetres": 0.0
+    },
+    {
+      "name": "kneeling cushion -1",
+      "mode": "resting",
+      "passed": true,
+      "contact": {
+        "member": "Soft sewn kneeling cushion",
+        "pointEngine": [
+          -0.8500000238418579,
+          0.5932790040969849,
+          -3.299999952316284
+        ],
+        "supportPointEngine": [
+          -0.8500000238418579,
+          0.5928611755371094,
+          -3.299999952316284
+        ],
+        "supportObject": "Settled irregular paving stone.066",
+        "gapMetres": 0.0004178285598754883
+      },
+      "measuredGapMetres": 0.0004178285598754883,
+      "maximumPenetrationMetres": 0.004814863204956055,
+      "worstPenetrationContact": {
+        "member": "Soft sewn kneeling cushion",
+        "pointEngine": [
+          -0.9708434343338013,
+          0.5942299365997314,
+          -3.223088026046753
+        ],
+        "supportPointEngine": [
+          -0.9708434343338013,
+          0.5990447998046875,
+          -3.223088026046753
+        ],
+        "supportObject": "Settled irregular paving stone.081",
+        "gapMetres": -0.004814863204956055
+      },
+      "sourceContactGapMetres": 0.0003873109817504883,
+      "sourceMaximumPenetrationMetres": 0.00475001335144043
+    },
+    {
+      "name": "kneeling cushion 1",
+      "mode": "resting",
+      "passed": true,
+      "contact": {
+        "member": "Soft sewn kneeling cushion.001",
+        "pointEngine": [
+          0.8500000238418579,
+          0.6006245017051697,
+          -3.299999952316284
+        ],
+        "supportPointEngine": [
+          0.8500000238418579,
+          0.5997161865234375,
+          -3.299999952316284
+        ],
+        "supportObject": "Settled irregular paving stone.068",
+        "gapMetres": 0.0009083151817321777
+      },
+      "measuredGapMetres": 0.0009083151817321777,
+      "maximumPenetrationMetres": 0.004844188690185547,
+      "worstPenetrationContact": {
+        "member": "Soft sewn kneeling cushion.001",
+        "pointEngine": [
+          0.9765744805335999,
+          0.6015667915344238,
+          -3.232055902481079
+        ],
+        "supportPointEngine": [
+          0.9765744805335999,
+          0.6064109802246094,
+          -3.232055902481079
+        ],
+        "supportObject": "Settled irregular paving stone.085",
+        "gapMetres": -0.004844188690185547
+      },
+      "sourceContactGapMetres": 0.0009083151817321777,
+      "sourceMaximumPenetrationMetres": 0.00475001335144043
+    },
+    {
+      "name": "leaning broom",
+      "mode": "resting",
+      "passed": true,
+      "contact": {
+        "member": "Broom straw.021",
+        "pointEngine": [
+          4.413103103637695,
+          0.5972900390625,
+          -5.624128341674805
+        ],
+        "supportPointEngine": [
+          4.413103103637695,
+          0.5972900390625,
+          -5.624128341674805
+        ],
+        "supportObject": "Settled irregular paving stone.029",
+        "gapMetres": 0.0
+      },
+      "measuredGapMetres": 0.0,
+      "maximumPenetrationMetres": 2.485513687133789e-05,
+      "worstPenetrationContact": {
+        "member": "Broom straw.032",
+        "pointEngine": [
+          4.385743141174316,
+          0.5974559187889099,
+          -5.710526466369629
+        ],
+        "supportPointEngine": [
+          4.385743141174316,
+          0.5974807739257812,
+          -5.710526466369629
+        ],
+        "supportObject": "Settled irregular paving stone.029",
+        "gapMetres": -2.485513687133789e-05
+      },
+      "sourceContactGapMetres": 0.0,
+      "sourceMaximumPenetrationMetres": 2.485513687133789e-05
+    },
+    {
+      "name": "stacked bowl 0",
+      "mode": "resting",
+      "passed": true,
+      "contact": {
+        "member": "Stacked plain bowls",
+        "pointEngine": [
+          4.711461544036865,
+          0.5980758666992188,
+          -4.8388872146606445
+        ],
+        "supportPointEngine": [
+          4.711461544036865,
+          0.5976943969726562,
+          -4.8388872146606445
+        ],
+        "supportObject": "Settled irregular paving stone.044",
+        "gapMetres": 0.0003814697265625
+      },
+      "measuredGapMetres": 0.0003814697265625,
+      "maximumPenetrationMetres": 0.0,
+      "worstPenetrationContact": {
+        "member": "Stacked plain bowls",
+        "pointEngine": [
+          4.711461544036865,
+          0.5980758666992188,
+          -4.8388872146606445
+        ],
+        "supportPointEngine": [
+          4.711461544036865,
+          0.5976943969726562,
+          -4.8388872146606445
+        ],
+        "supportObject": "Settled irregular paving stone.044",
+        "gapMetres": 0.0003814697265625
+      },
+      "sourceContactGapMetres": 0.0,
+      "sourceMaximumPenetrationMetres": 0.0
+    },
+    {
+      "name": "stacked bowl 1",
+      "mode": "resting",
+      "passed": true,
+      "contact": {
+        "member": "Stacked plain bowls.001",
+        "pointEngine": [
+          4.711461544036865,
+          0.6480789184570312,
+          -4.8388872146606445
+        ],
+        "supportPointEngine": [
+          4.711461544036865,
+          0.6480789184570312,
+          -4.8388872146606445
+        ],
+        "supportObject": "Stacked plain bowls",
+        "gapMetres": 0.0
+      },
+      "measuredGapMetres": 0.0,
+      "maximumPenetrationMetres": 0.0,
+      "worstPenetrationContact": {
+        "member": "Stacked plain bowls.001",
+        "pointEngine": [
+          4.711461544036865,
+          0.6480789184570312,
+          -4.8388872146606445
+        ],
+        "supportPointEngine": [
+          4.711461544036865,
+          0.6480789184570312,
+          -4.8388872146606445
+        ],
+        "supportObject": "Stacked plain bowls",
+        "gapMetres": 0.0
+      },
+      "sourceContactGapMetres": 0.0,
+      "sourceMaximumPenetrationMetres": 0.0
+    },
+    {
+      "name": "stacked bowl 2",
+      "mode": "resting",
+      "passed": true,
+      "contact": {
+        "member": "Stacked plain bowls.002",
+        "pointEngine": [
+          4.711461544036865,
+          0.6980819702148438,
+          -4.8388872146606445
+        ],
+        "supportPointEngine": [
+          4.711461544036865,
+          0.6980819702148438,
+          -4.8388872146606445
+        ],
+        "supportObject": "Stacked plain bowls.001",
+        "gapMetres": 0.0
+      },
+      "measuredGapMetres": 0.0,
+      "maximumPenetrationMetres": 0.0,
+      "worstPenetrationContact": {
+        "member": "Stacked plain bowls.002",
+        "pointEngine": [
+          4.711461544036865,
+          0.6980819702148438,
+          -4.8388872146606445
+        ],
+        "supportPointEngine": [
+          4.711461544036865,
+          0.6980819702148438,
+          -4.8388872146606445
+        ],
+        "supportObject": "Stacked plain bowls.001",
+        "gapMetres": 0.0
+      },
+      "sourceContactGapMetres": 0.0,
+      "sourceMaximumPenetrationMetres": 0.0
+    },
+    {
+      "name": "stacked bowl assembly",
+      "mode": "resting",
+      "passed": true,
+      "contact": {
+        "member": "Stacked plain bowls",
+        "pointEngine": [
+          4.711461544036865,
+          0.5980758666992188,
+          -4.8388872146606445
+        ],
+        "supportPointEngine": [
+          4.711461544036865,
+          0.5976943969726562,
+          -4.8388872146606445
+        ],
+        "supportObject": "Settled irregular paving stone.044",
+        "gapMetres": 0.0003814697265625
+      },
+      "measuredGapMetres": 0.0003814697265625,
+      "maximumPenetrationMetres": 0.0,
+      "worstPenetrationContact": {
+        "member": "Stacked plain bowls",
+        "pointEngine": [
+          4.711461544036865,
+          0.5980758666992188,
+          -4.8388872146606445
+        ],
+        "supportPointEngine": [
+          4.711461544036865,
+          0.5976943969726562,
+          -4.8388872146606445
+        ],
+        "supportObject": "Settled irregular paving stone.044",
+        "gapMetres": 0.0003814697265625
+      },
+      "sourceContactGapMetres": 0.0,
+      "sourceMaximumPenetrationMetres": 0.0
+    },
+    {
+      "name": "gate -1",
+      "mode": "resting",
+      "passed": true,
+      "contact": {
+        "member": "Gate shelf lamp bronze foot",
+        "pointEngine": [
+          -1.9362488985061646,
+          1.6000022888183594,
+          19.262680053710938
+        ],
+        "supportPointEngine": [
+          -1.9362488985061646,
+          1.600006103515625,
+          19.262680053710938
+        ],
+        "supportObject": "Gate lamp shelf",
+        "gapMetres": -3.814697265625e-06
+      },
+      "measuredGapMetres": -3.814697265625e-06,
+      "maximumPenetrationMetres": 3.814697265625e-06,
+      "worstPenetrationContact": {
+        "member": "Gate shelf lamp bronze foot",
+        "pointEngine": [
+          -1.9362488985061646,
+          1.6000022888183594,
+          19.262680053710938
+        ],
+        "supportPointEngine": [
+          -1.9362488985061646,
+          1.600006103515625,
+          19.262680053710938
+        ],
+        "supportObject": "Gate lamp shelf",
+        "gapMetres": -3.814697265625e-06
+      },
+      "sourceContactGapMetres": 0.0,
+      "sourceMaximumPenetrationMetres": 0.0
+    },
+    {
+      "name": "gate 1",
+      "mode": "resting",
+      "passed": true,
+      "contact": {
+        "member": "Gate shelf lamp bronze foot.001",
+        "pointEngine": [
+          1.9399478435516357,
+          1.6000022888183594,
+          19.274873733520508
+        ],
+        "supportPointEngine": [
+          1.9399478435516357,
+          1.600006103515625,
+          19.274873733520508
+        ],
+        "supportObject": "Gate lamp shelf.001",
+        "gapMetres": -3.814697265625e-06
+      },
+      "measuredGapMetres": -3.814697265625e-06,
+      "maximumPenetrationMetres": 3.814697265625e-06,
+      "worstPenetrationContact": {
+        "member": "Gate shelf lamp bronze foot.001",
+        "pointEngine": [
+          1.9399478435516357,
+          1.6000022888183594,
+          19.274873733520508
+        ],
+        "supportPointEngine": [
+          1.9399478435516357,
+          1.600006103515625,
+          19.274873733520508
+        ],
+        "supportObject": "Gate lamp shelf.001",
+        "gapMetres": -3.814697265625e-06
+      },
+      "sourceContactGapMetres": 0.0,
+      "sourceMaximumPenetrationMetres": 0.0
+    }
+  ],
+  "wickTips": [
+    {
+      "name": "altar -1.45",
+      "sourceObject": "Other altar lamp warm wick",
+      "actualPreparedWickTip": [
+        -1.4500000476837158,
+        1.7759672403335571,
+        -4.75
+      ],
+      "sourceMetadataWickTip": [
+        -1.450000286102295,
+        1.775967001914978,
+        -4.75
+      ],
+      "maximumCoordinateErrorMetres": 2.384185791015625e-07,
+      "passed": true
+    },
+    {
+      "name": "altar -0.95",
+      "sourceObject": "Other altar lamp warm wick.001",
+      "actualPreparedWickTip": [
+        -0.9500000476837158,
+        1.731087327003479,
+        -4.75
+      ],
+      "sourceMetadataWickTip": [
+        -0.9500002264976501,
+        1.7310870885849,
+        -4.75
+      ],
+      "maximumCoordinateErrorMetres": 2.384185791015625e-07,
+      "passed": true
+    },
+    {
+      "name": "altar 0.95",
+      "sourceObject": "Other altar lamp warm wick.002",
+      "actualPreparedWickTip": [
+        0.949999988079071,
+        1.7310911417007446,
+        -4.75
+      ],
+      "sourceMetadataWickTip": [
+        0.9500002264976501,
+        1.7310909032821655,
+        -4.75
+      ],
+      "maximumCoordinateErrorMetres": 2.384185791015625e-07,
+      "passed": true
+    },
+    {
+      "name": "altar 1.45",
+      "sourceObject": "Other altar lamp warm wick.003",
+      "actualPreparedWickTip": [
+        1.4500000476837158,
+        1.7695928812026978,
+        -4.75
+      ],
+      "sourceMetadataWickTip": [
+        1.450000286102295,
+        1.7695926427841187,
+        -4.75
+      ],
+      "maximumCoordinateErrorMetres": 2.384185791015625e-07,
+      "passed": true
+    },
+    {
+      "name": "gate -1",
+      "sourceObject": "Gate shelf lamp warm wick",
+      "actualPreparedWickTip": [
+        -1.9999998807907104,
+        1.7400022745132446,
+        19.250001907348633
+      ],
+      "sourceMetadataWickTip": [
+        -2.0,
+        1.7400020360946655,
+        19.25
+      ],
+      "maximumCoordinateErrorMetres": 1.9073486328125e-06,
+      "passed": true
+    },
+    {
+      "name": "gate 1",
+      "sourceObject": "Gate shelf lamp warm wick.001",
+      "actualPreparedWickTip": [
+        2.0,
+        1.7400022745132446,
+        19.250001907348633
+      ],
+      "sourceMetadataWickTip": [
+        2.0,
+        1.7400020360946655,
+        19.25
+      ],
+      "maximumCoordinateErrorMetres": 1.9073486328125e-06,
+      "passed": true
+    }
+  ],
+  "incenseTips": [
+    {
+      "sourceObject": "Smouldering incense",
+      "actualPreparedTip": [
+        -0.03999999538064003,
+        1.9657137393951416,
+        -4.849999904632568
+      ],
+      "sourceMetadataTip": [
+        -0.03999999538064003,
+        1.9657137393951416,
+        -4.849999904632568
+      ],
+      "maximumCoordinateErrorMetres": 0.0,
+      "passed": true
+    },
+    {
+      "sourceObject": "Smouldering incense.001",
+      "actualPreparedTip": [
+        -0.01466272957623005,
+        1.961943507194519,
+        -4.849999904632568
+      ],
+      "sourceMetadataTip": [
+        -0.01466272957623005,
+        1.961943507194519,
+        -4.849999904632568
+      ],
+      "maximumCoordinateErrorMetres": 0.0,
+      "passed": true
+    },
+    {
+      "sourceObject": "Smouldering incense.002",
+      "actualPreparedTip": [
+        0.013337889686226845,
+        1.9709473848342896,
+        -4.849999904632568
+      ],
+      "sourceMetadataTip": [
+        0.013337889686226845,
+        1.9709473848342896,
+        -4.849999904632568
+      ],
+      "maximumCoordinateErrorMetres": 0.0,
+      "passed": true
+    },
+    {
+      "sourceObject": "Smouldering incense.003",
+      "actualPreparedTip": [
+        0.04133911058306694,
+        1.958911657333374,
+        -4.849999904632568
+      ],
+      "sourceMetadataTip": [
+        0.04133911058306694,
+        1.958911657333374,
+        -4.849999904632568
+      ],
+      "maximumCoordinateErrorMetres": 0.0,
+      "passed": true
+    }
+  ],
+  "passed": true,
+  "sourceAnchorMetadataByteExact": true,
+  "noModelMutationsRenderBakeEncoding": true,
+  "scriptSha256": "66b8b0d5fd9bddc265cc928daaf7fca97b55c0e284adba84d8965152055870cf",
+  "raw": {
+    "path": "art/build/resting-contacts-accepted-replay/snow-roof.raw.glb",
+    "sha256": "7639d7bffc629aba69a852155d8980a5735abc7e567362fd09f4cc6ff74f308a",
+    "association": {
+      "method": "Actual evaluated source world-vertex membership; exact FLOAT32 keys first, native KD association\u22645\u00b5m only where necessary. BVHs use actual raw triangles.",
+      "exactPreparedVertices": 208250,
+      "toleranceAssociatedVertices": 1061,
+      "maximumAssociationErrorMetres": 3.5762786865234375e-07,
+      "missingSourceVertices": {}
+    },
+    "groups": [
+      {
+        "name": "scanned console altar",
+        "mode": "resting",
+        "passed": true,
+        "contact": {
+          "member": "Scanned console altar chinese_console_table",
+          "pointEngine": [
+            -0.9357838034629822,
+            0.6055870056152344,
+            -4.705382347106934
+          ],
+          "supportPointEngine": [
+            -0.9357838034629822,
+            0.605682373046875,
+            -4.705382347106934
+          ],
+          "supportObject": "Settled irregular paving stone.036",
+          "gapMetres": -9.5367431640625e-05
+        },
+        "measuredGapMetres": -9.5367431640625e-05,
+        "maximumPenetrationMetres": 0.00024366378784179688,
+        "worstPenetrationContact": {
+          "member": "Scanned console altar chinese_console_table",
+          "pointEngine": [
+            -0.9330872297286987,
+            0.6057705879211426,
+            -4.592812538146973
+          ],
+          "supportPointEngine": [
+            -0.9330872297286987,
+            0.6060142517089844,
+            -4.592812538146973
+          ],
+          "supportObject": "Settled irregular paving stone.036",
+          "gapMetres": -0.00024366378784179688
+        },
+        "sourceContactGapMetres": 0.0,
+        "sourceMaximumPenetrationMetres": 0.00019788742065429688
+      },
+      {
+        "name": "turned pedestal -1.45",
+        "mode": "resting",
+        "passed": true,
+        "contact": {
+          "member": "Turned altar side lamp pedestal",
+          "pointEngine": [
+            -1.4997488260269165,
+            0.6059646606445312,
+            -4.8701043128967285
+          ],
+          "supportPointEngine": [
+            -1.4997488260269165,
+            0.6060218811035156,
+            -4.8701043128967285
+          ],
+          "supportObject": "Settled irregular paving stone.035",
+          "gapMetres": -5.7220458984375e-05
+        },
+        "measuredGapMetres": -5.7220458984375e-05,
+        "maximumPenetrationMetres": 5.7220458984375e-05,
+        "worstPenetrationContact": {
+          "member": "Turned altar side lamp pedestal",
+          "pointEngine": [
+            -1.4997488260269165,
+            0.6059646606445312,
+            -4.8701043128967285
+          ],
+          "supportPointEngine": [
+            -1.4997488260269165,
+            0.6060218811035156,
+            -4.8701043128967285
+          ],
+          "supportObject": "Settled irregular paving stone.035",
+          "gapMetres": -5.7220458984375e-05
+        },
+        "sourceContactGapMetres": 0.0,
+        "sourceMaximumPenetrationMetres": 0.0
+      },
+      {
+        "name": "turned pedestal 1.45",
+        "mode": "resting",
+        "passed": true,
+        "contact": {
+          "member": "Turned altar side lamp pedestal.001",
+          "pointEngine": [
+            1.3419089317321777,
+            0.5995903015136719,
+            -4.677775859832764
+          ],
+          "supportPointEngine": [
+            1.3419089317321777,
+            0.5997734069824219,
+            -4.677775859832764
+          ],
+          "supportObject": "Settled irregular paving stone.040",
+          "gapMetres": -0.00018310546875
+        },
+        "measuredGapMetres": -0.00018310546875,
+        "maximumPenetrationMetres": 0.00018310546875,
+        "worstPenetrationContact": {
+          "member": "Turned altar side lamp pedestal.001",
+          "pointEngine": [
+            1.3419089317321777,
+            0.5995903015136719,
+            -4.677775859832764
+          ],
+          "supportPointEngine": [
+            1.3419089317321777,
+            0.5997734069824219,
+            -4.677775859832764
+          ],
+          "supportObject": "Settled irregular paving stone.040",
+          "gapMetres": -0.00018310546875
+        },
+        "sourceContactGapMetres": 0.0,
+        "sourceMaximumPenetrationMetres": 0.0
+      },
+      {
+        "name": "wall-mounted screen bearing rail",
+        "mode": "mounted",
+        "passed": true,
+        "mountedSupportChecks": [
+          {
+            "supportObject": "Hall rear wall",
+            "supportPointEngine": [
+              -2.200000047683716,
+              1.25,
+              -6.440000057220459
+            ],
+            "actualFastenerEmbeddingMetres": 0.07999992370605469,
+            "passed": true
+          },
+          {
+            "supportObject": "Hall rear wall",
+            "supportPointEngine": [
+              -0.699999988079071,
+              1.25,
+              -6.440000057220459
+            ],
+            "actualFastenerEmbeddingMetres": 0.0799998939037323,
+            "passed": true
+          },
+          {
+            "supportObject": "Hall rear wall",
+            "supportPointEngine": [
+              0.699999988079071,
+              1.25,
+              -6.440000057220459
+            ],
+            "actualFastenerEmbeddingMetres": 0.07999992370605469,
+            "passed": true
+          },
+          {
+            "supportObject": "Hall rear wall",
+            "supportPointEngine": [
+              2.200000047683716,
+              1.25,
+              -6.440000057220459
+            ],
+            "actualFastenerEmbeddingMetres": 0.07999992370605469,
+            "passed": true
+          }
+        ],
+        "measuredGapMetres": null,
+        "maximumPenetrationMetres": null,
+        "restingLimitApplicable": false
+      },
+      {
+        "name": "mounted screen leaf 0",
+        "mode": "resting",
+        "passed": true,
+        "contact": {
+          "member": "Scanned screen leaf chinese_screen_panels_a",
+          "pointEngine": [
+            -0.7505022883415222,
+            1.3000030517578125,
+            -6.276276588439941
+          ],
+          "supportPointEngine": [
+            -0.7505022883415222,
+            1.2999992370605469,
+            -6.276276588439941
+          ],
+          "supportObject": "Wall-fastened screen bearing rail",
+          "gapMetres": 3.814697265625e-06
+        },
+        "measuredGapMetres": 3.814697265625e-06,
+        "maximumPenetrationMetres": 0.0,
+        "worstPenetrationContact": {
+          "member": "Scanned screen leaf chinese_screen_panels_a",
+          "pointEngine": [
+            -0.7505022883415222,
+            1.3000030517578125,
+            -6.276276588439941
+          ],
+          "supportPointEngine": [
+            -0.7505022883415222,
+            1.2999992370605469,
+            -6.276276588439941
+          ],
+          "supportObject": "Wall-fastened screen bearing rail",
+          "gapMetres": 3.814697265625e-06
+        },
+        "sourceContactGapMetres": 0.0,
+        "sourceMaximumPenetrationMetres": 0.0
+      },
+      {
+        "name": "mounted screen leaf 1",
+        "mode": "resting",
+        "passed": true,
+        "contact": {
+          "member": "Scanned screen leaf chinese_screen_panels_b",
+          "pointEngine": [
+            -0.7614692449569702,
+            1.3000030517578125,
+            -6.270593166351318
+          ],
+          "supportPointEngine": [
+            -0.7614692449569702,
+            1.2999992370605469,
+            -6.270593166351318
+          ],
+          "supportObject": "Wall-fastened screen bearing rail",
+          "gapMetres": 3.814697265625e-06
+        },
+        "measuredGapMetres": 3.814697265625e-06,
+        "maximumPenetrationMetres": 0.0,
+        "worstPenetrationContact": {
+          "member": "Scanned screen leaf chinese_screen_panels_b",
+          "pointEngine": [
+            -0.7614692449569702,
+            1.3000030517578125,
+            -6.270593166351318
+          ],
+          "supportPointEngine": [
+            -0.7614692449569702,
+            1.2999992370605469,
+            -6.270593166351318
+          ],
+          "supportObject": "Wall-fastened screen bearing rail",
+          "gapMetres": 3.814697265625e-06
+        },
+        "sourceContactGapMetres": 0.0,
+        "sourceMaximumPenetrationMetres": 0.0
+      },
+      {
+        "name": "mounted screen leaf 2",
+        "mode": "resting",
+        "passed": true,
+        "contact": {
+          "member": "Scanned screen leaf chinese_screen_panels_a.001",
+          "pointEngine": [
+            2.2694976329803467,
+            1.2999999523162842,
+            -6.276276588439941
+          ],
+          "supportPointEngine": [
+            2.2694976329803467,
+            1.2999992370605469,
+            -6.276276588439941
+          ],
+          "supportObject": "Wall-fastened screen bearing rail",
+          "gapMetres": 7.152557373046875e-07
+        },
+        "measuredGapMetres": 7.152557373046875e-07,
+        "maximumPenetrationMetres": 0.0,
+        "worstPenetrationContact": {
+          "member": "Scanned screen leaf chinese_screen_panels_a.001",
+          "pointEngine": [
+            2.2694976329803467,
+            1.2999999523162842,
+            -6.276276588439941
+          ],
+          "supportPointEngine": [
+            2.2694976329803467,
+            1.2999992370605469,
+            -6.276276588439941
+          ],
+          "supportObject": "Wall-fastened screen bearing rail",
+          "gapMetres": 7.152557373046875e-07
+        },
+        "sourceContactGapMetres": 7.152557373046875e-07,
+        "sourceMaximumPenetrationMetres": 0.0
+      },
+      {
+        "name": "screen edge molding -2.34",
+        "mode": "resting",
+        "passed": true,
+        "contact": {
+          "member": "Gilded screen edge molding",
+          "pointEngine": [
+            -2.312000036239624,
+            1.3000030517578125,
+            -6.230000019073486
+          ],
+          "supportPointEngine": [
+            -2.312000036239624,
+            1.2999992370605469,
+            -6.230000019073486
+          ],
+          "supportObject": "Wall-fastened screen bearing rail",
+          "gapMetres": 3.814697265625e-06
+        },
+        "measuredGapMetres": 3.814697265625e-06,
+        "maximumPenetrationMetres": 0.0,
+        "worstPenetrationContact": {
+          "member": "Gilded screen edge molding",
+          "pointEngine": [
+            -2.312000036239624,
+            1.3000030517578125,
+            -6.230000019073486
+          ],
+          "supportPointEngine": [
+            -2.312000036239624,
+            1.2999992370605469,
+            -6.230000019073486
+          ],
+          "supportObject": "Wall-fastened screen bearing rail",
+          "gapMetres": 3.814697265625e-06
+        },
+        "sourceContactGapMetres": 0.0,
+        "sourceMaximumPenetrationMetres": 0.0
+      },
+      {
+        "name": "screen edge molding 2.34",
+        "mode": "resting",
+        "passed": true,
+        "contact": {
+          "member": "Gilded screen edge molding.001",
+          "pointEngine": [
+            2.36586856842041,
+            1.2999999523162842,
+            -6.219285011291504
+          ],
+          "supportPointEngine": [
+            2.36586856842041,
+            1.3000030517578125,
+            -6.219285011291504
+          ],
+          "supportObject": "Wall-fastened screen bearing rail",
+          "gapMetres": -3.0994415283203125e-06
+        },
+        "measuredGapMetres": -3.0994415283203125e-06,
+        "maximumPenetrationMetres": 3.0994415283203125e-06,
+        "worstPenetrationContact": {
+          "member": "Gilded screen edge molding.001",
+          "pointEngine": [
+            2.36586856842041,
+            1.2999999523162842,
+            -6.219285011291504
+          ],
+          "supportPointEngine": [
+            2.36586856842041,
+            1.3000030517578125,
+            -6.219285011291504
+          ],
+          "supportObject": "Wall-fastened screen bearing rail",
+          "gapMetres": -3.0994415283203125e-06
+        },
+        "sourceContactGapMetres": 7.152557373046875e-07,
+        "sourceMaximumPenetrationMetres": 0.0
+      },
+      {
+        "name": "altar -1.45",
+        "mode": "resting",
+        "passed": true,
+        "contact": {
+          "member": "Other altar lamp bronze foot",
+          "pointEngine": [
+            -1.3849999904632568,
+            1.6359672546386719,
+            -4.75
+          ],
+          "supportPointEngine": [
+            -1.3849999904632568,
+            1.6359672546386719,
+            -4.75
+          ],
+          "supportObject": "Turned altar side lamp pedestal",
+          "gapMetres": 0.0
+        },
+        "measuredGapMetres": 0.0,
+        "maximumPenetrationMetres": 0.0,
+        "worstPenetrationContact": {
+          "member": "Other altar lamp bronze foot",
+          "pointEngine": [
+            -1.3849999904632568,
+            1.6359672546386719,
+            -4.75
+          ],
+          "supportPointEngine": [
+            -1.3849999904632568,
+            1.6359672546386719,
+            -4.75
+          ],
+          "supportObject": "Turned altar side lamp pedestal",
+          "gapMetres": 0.0
+        },
+        "sourceContactGapMetres": 0.0,
+        "sourceMaximumPenetrationMetres": 0.0
+      },
+      {
+        "name": "altar -0.95",
+        "mode": "resting",
+        "passed": true,
+        "contact": {
+          "member": "Other altar lamp bronze foot.001",
+          "pointEngine": [
+            -0.8899478316307068,
+            1.5910873413085938,
+            -4.725125789642334
+          ],
+          "supportPointEngine": [
+            -0.8899478316307068,
+            1.5910873413085938,
+            -4.725125789642334
+          ],
+          "supportObject": "Scanned console altar chinese_console_table",
+          "gapMetres": 0.0
+        },
+        "measuredGapMetres": 0.0,
+        "maximumPenetrationMetres": 0.0,
+        "worstPenetrationContact": {
+          "member": "Other altar lamp bronze foot.001",
+          "pointEngine": [
+            -0.8899478316307068,
+            1.5910873413085938,
+            -4.725125789642334
+          ],
+          "supportPointEngine": [
+            -0.8899478316307068,
+            1.5910873413085938,
+            -4.725125789642334
+          ],
+          "supportObject": "Scanned console altar chinese_console_table",
+          "gapMetres": 0.0
+        },
+        "sourceContactGapMetres": 0.0,
+        "sourceMaximumPenetrationMetres": 0.0
+      },
+      {
+        "name": "altar 0.95",
+        "mode": "resting",
+        "passed": true,
+        "contact": {
+          "member": "Other altar lamp bronze foot.002",
+          "pointEngine": [
+            0.8849999904632568,
+            1.5910911560058594,
+            -4.75
+          ],
+          "supportPointEngine": [
+            0.8849999904632568,
+            1.5910911560058594,
+            -4.75
+          ],
+          "supportObject": "Scanned console altar chinese_console_table",
+          "gapMetres": 0.0
+        },
+        "measuredGapMetres": 0.0,
+        "maximumPenetrationMetres": 0.0,
+        "worstPenetrationContact": {
+          "member": "Other altar lamp bronze foot.002",
+          "pointEngine": [
+            0.8849999904632568,
+            1.5910911560058594,
+            -4.75
+          ],
+          "supportPointEngine": [
+            0.8849999904632568,
+            1.5910911560058594,
+            -4.75
+          ],
+          "supportObject": "Scanned console altar chinese_console_table",
+          "gapMetres": 0.0
+        },
+        "sourceContactGapMetres": 0.0,
+        "sourceMaximumPenetrationMetres": 0.0
+      },
+      {
+        "name": "altar 1.45",
+        "mode": "resting",
+        "passed": true,
+        "contact": {
+          "member": "Other altar lamp bronze foot.003",
+          "pointEngine": [
+            1.51005220413208,
+            1.6295928955078125,
+            -4.725125789642334
+          ],
+          "supportPointEngine": [
+            1.51005220413208,
+            1.6295928955078125,
+            -4.725125789642334
+          ],
+          "supportObject": "Turned altar side lamp pedestal.001",
+          "gapMetres": 0.0
+        },
+        "measuredGapMetres": 0.0,
+        "maximumPenetrationMetres": 0.0,
+        "worstPenetrationContact": {
+          "member": "Other altar lamp bronze foot.003",
+          "pointEngine": [
+            1.51005220413208,
+            1.6295928955078125,
+            -4.725125789642334
+          ],
+          "supportPointEngine": [
+            1.51005220413208,
+            1.6295928955078125,
+            -4.725125789642334
+          ],
+          "supportObject": "Turned altar side lamp pedestal.001",
+          "gapMetres": 0.0
+        },
+        "sourceContactGapMetres": 0.0,
+        "sourceMaximumPenetrationMetres": 0.0
+      },
+      {
+        "name": "burner ash",
+        "mode": "resting",
+        "passed": true,
+        "contact": {
+          "member": "Ash mound in brass burner",
+          "pointEngine": [
+            8.143900841772427e-18,
+            1.718960165977478,
+            -4.7170000076293945
+          ],
+          "supportPointEngine": [
+            8.143900841772427e-18,
+            1.7189598083496094,
+            -4.7170000076293945
+          ],
+          "supportObject": "Brass incense burner with rolled lip",
+          "gapMetres": 3.5762786865234375e-07
+        },
+        "measuredGapMetres": 3.5762786865234375e-07,
+        "maximumPenetrationMetres": 0.0,
+        "worstPenetrationContact": {
+          "member": "Ash mound in brass burner",
+          "pointEngine": [
+            8.143900841772427e-18,
+            1.718960165977478,
+            -4.7170000076293945
+          ],
+          "supportPointEngine": [
+            8.143900841772427e-18,
+            1.7189598083496094,
+            -4.7170000076293945
+          ],
+          "supportObject": "Brass incense burner with rolled lip",
+          "gapMetres": 3.5762786865234375e-07
+        },
+        "sourceContactGapMetres": 3.5762786865234375e-07,
+        "sourceMaximumPenetrationMetres": 0.0
+      },
+      {
+        "name": "charred incense 0",
+        "mode": "resting",
+        "passed": true,
+        "contact": {
+          "member": "Charred incense end in ash",
+          "pointEngine": [
+            0.021756602451205254,
+            1.7318767309188843,
+            -4.84948205947876
+          ],
+          "supportPointEngine": [
+            0.021756602451205254,
+            1.7318801879882812,
+            -4.84948205947876
+          ],
+          "supportObject": "Ash mound in brass burner",
+          "gapMetres": -3.4570693969726562e-06
+        },
+        "measuredGapMetres": -3.4570693969726562e-06,
+        "maximumPenetrationMetres": 3.4570693969726562e-06,
+        "worstPenetrationContact": {
+          "member": "Charred incense end in ash",
+          "pointEngine": [
+            0.021756602451205254,
+            1.7318767309188843,
+            -4.84948205947876
+          ],
+          "supportPointEngine": [
+            0.021756602451205254,
+            1.7318801879882812,
+            -4.84948205947876
+          ],
+          "supportObject": "Ash mound in brass burner",
+          "gapMetres": -3.4570693969726562e-06
+        },
+        "sourceContactGapMetres": -3.4570693969726562e-06,
+        "sourceMaximumPenetrationMetres": 3.4570693969726562e-06
+      },
+      {
+        "name": "charred incense 1",
+        "mode": "resting",
+        "passed": true,
+        "contact": {
+          "member": "Charred incense end in ash.001",
+          "pointEngine": [
+            -0.05255771055817604,
+            1.7260631322860718,
+            -4.800809860229492
+          ],
+          "supportPointEngine": [
+            -0.05255771055817604,
+            1.7260665893554688,
+            -4.800809860229492
+          ],
+          "supportObject": "Ash mound in brass burner",
+          "gapMetres": -3.4570693969726562e-06
+        },
+        "measuredGapMetres": -3.4570693969726562e-06,
+        "maximumPenetrationMetres": 3.4570693969726562e-06,
+        "worstPenetrationContact": {
+          "member": "Charred incense end in ash.001",
+          "pointEngine": [
+            -0.05255771055817604,
+            1.7260631322860718,
+            -4.800809860229492
+          ],
+          "supportPointEngine": [
+            -0.05255771055817604,
+            1.7260665893554688,
+            -4.800809860229492
+          ],
+          "supportObject": "Ash mound in brass burner",
+          "gapMetres": -3.4570693969726562e-06
+        },
+        "sourceContactGapMetres": -3.4570693969726562e-06,
+        "sourceMaximumPenetrationMetres": 3.4570693969726562e-06
+      },
+      {
+        "name": "charred incense 2",
+        "mode": "resting",
+        "passed": true,
+        "contact": {
+          "member": "Charred incense end in ash.002",
+          "pointEngine": [
+            0.0036825428251177073,
+            1.7290195226669312,
+            -4.907460689544678
+          ],
+          "supportPointEngine": [
+            0.0036825428251177073,
+            1.7290191650390625,
+            -4.907460689544678
+          ],
+          "supportObject": "Ash mound in brass burner",
+          "gapMetres": 3.5762786865234375e-07
+        },
+        "measuredGapMetres": 3.5762786865234375e-07,
+        "maximumPenetrationMetres": 0.0,
+        "worstPenetrationContact": {
+          "member": "Charred incense end in ash.002",
+          "pointEngine": [
+            0.0036825428251177073,
+            1.7290195226669312,
+            -4.907460689544678
+          ],
+          "supportPointEngine": [
+            0.0036825428251177073,
+            1.7290191650390625,
+            -4.907460689544678
+          ],
+          "supportObject": "Ash mound in brass burner",
+          "gapMetres": 3.5762786865234375e-07
+        },
+        "sourceContactGapMetres": 3.5762786865234375e-07,
+        "sourceMaximumPenetrationMetres": 0.0
+      },
+      {
+        "name": "charred incense 3",
+        "mode": "resting",
+        "passed": true,
+        "contact": {
+          "member": "Charred incense end in ash.003",
+          "pointEngine": [
+            0.027348872274160385,
+            1.7296756505966187,
+            -4.815637588500977
+          ],
+          "supportPointEngine": [
+            0.027348872274160385,
+            1.72967529296875,
+            -4.815637588500977
+          ],
+          "supportObject": "Ash mound in brass burner",
+          "gapMetres": 3.5762786865234375e-07
+        },
+        "measuredGapMetres": 3.5762786865234375e-07,
+        "maximumPenetrationMetres": 0.0,
+        "worstPenetrationContact": {
+          "member": "Charred incense end in ash.003",
+          "pointEngine": [
+            0.027348872274160385,
+            1.7296756505966187,
+            -4.815637588500977
+          ],
+          "supportPointEngine": [
+            0.027348872274160385,
+            1.72967529296875,
+            -4.815637588500977
+          ],
+          "supportObject": "Ash mound in brass burner",
+          "gapMetres": 3.5762786865234375e-07
+        },
+        "sourceContactGapMetres": 3.5762786865234375e-07,
+        "sourceMaximumPenetrationMetres": 0.0
+      },
+      {
+        "name": "charred incense 4",
+        "mode": "resting",
+        "passed": true,
+        "contact": {
+          "member": "Charred incense end in ash.004",
+          "pointEngine": [
+            -0.028503920882940292,
+            1.7307857275009155,
+            -4.85429048538208
+          ],
+          "supportPointEngine": [
+            -0.028503920882940292,
+            1.7307815551757812,
+            -4.85429048538208
+          ],
+          "supportObject": "Ash mound in brass burner",
+          "gapMetres": 4.172325134277344e-06
+        },
+        "measuredGapMetres": 4.172325134277344e-06,
+        "maximumPenetrationMetres": 0.0002906322479248047,
+        "worstPenetrationContact": {
+          "member": "Charred incense end in ash.004",
+          "pointEngine": [
+            -0.01857917755842209,
+            1.7320702075958252,
+            -4.846231937408447
+          ],
+          "supportPointEngine": [
+            -0.01857917755842209,
+            1.73236083984375,
+            -4.846231937408447
+          ],
+          "supportObject": "Ash mound in brass burner",
+          "gapMetres": -0.0002906322479248047
+        },
+        "sourceContactGapMetres": 4.172325134277344e-06,
+        "sourceMaximumPenetrationMetres": 0.0002906322479248047
+      },
+      {
+        "name": "charred incense 5",
+        "mode": "resting",
+        "passed": true,
+        "contact": {
+          "member": "Charred incense end in ash.005",
+          "pointEngine": [
+            0.06485381722450256,
+            1.7271922826766968,
+            -4.895599842071533
+          ],
+          "supportPointEngine": [
+            0.06485381722450256,
+            1.7271919250488281,
+            -4.895599842071533
+          ],
+          "supportObject": "Ash mound in brass burner",
+          "gapMetres": 3.5762786865234375e-07
+        },
+        "measuredGapMetres": 3.5762786865234375e-07,
+        "maximumPenetrationMetres": 0.0,
+        "worstPenetrationContact": {
+          "member": "Charred incense end in ash.005",
+          "pointEngine": [
+            0.06485381722450256,
+            1.7271922826766968,
+            -4.895599842071533
+          ],
+          "supportPointEngine": [
+            0.06485381722450256,
+            1.7271919250488281,
+            -4.895599842071533
+          ],
+          "supportObject": "Ash mound in brass burner",
+          "gapMetres": 3.5762786865234375e-07
+        },
+        "sourceContactGapMetres": 3.5762786865234375e-07,
+        "sourceMaximumPenetrationMetres": 0.0
+      },
+      {
+        "name": "charred incense 6",
+        "mode": "resting",
+        "passed": true,
+        "contact": {
+          "member": "Charred incense end in ash.006",
+          "pointEngine": [
+            -0.012709535658359528,
+            1.7274364233016968,
+            -4.7863569259643555
+          ],
+          "supportPointEngine": [
+            -0.012709535658359528,
+            1.7274322509765625,
+            -4.7863569259643555
+          ],
+          "supportObject": "Ash mound in brass burner",
+          "gapMetres": 4.172325134277344e-06
+        },
+        "measuredGapMetres": 4.172325134277344e-06,
+        "maximumPenetrationMetres": 0.0,
+        "worstPenetrationContact": {
+          "member": "Charred incense end in ash.006",
+          "pointEngine": [
+            -0.012709535658359528,
+            1.7274364233016968,
+            -4.7863569259643555
+          ],
+          "supportPointEngine": [
+            -0.012709535658359528,
+            1.7274322509765625,
+            -4.7863569259643555
+          ],
+          "supportObject": "Ash mound in brass burner",
+          "gapMetres": 4.172325134277344e-06
+        },
+        "sourceContactGapMetres": 4.172325134277344e-06,
+        "sourceMaximumPenetrationMetres": 0.0
+      },
+      {
+        "name": "charred incense 7",
+        "mode": "resting",
+        "passed": true,
+        "contact": {
+          "member": "Charred incense end in ash.007",
+          "pointEngine": [
+            -0.026788534596562386,
+            1.728493094444275,
+            -4.892899036407471
+          ],
+          "supportPointEngine": [
+            -0.026788534596562386,
+            1.7284927368164062,
+            -4.892899036407471
+          ],
+          "supportObject": "Ash mound in brass burner",
+          "gapMetres": 3.5762786865234375e-07
+        },
+        "measuredGapMetres": 3.5762786865234375e-07,
+        "maximumPenetrationMetres": 0.0,
+        "worstPenetrationContact": {
+          "member": "Charred incense end in ash.007",
+          "pointEngine": [
+            -0.026788534596562386,
+            1.728493094444275,
+            -4.892899036407471
+          ],
+          "supportPointEngine": [
+            -0.026788534596562386,
+            1.7284927368164062,
+            -4.892899036407471
+          ],
+          "supportObject": "Ash mound in brass burner",
+          "gapMetres": 3.5762786865234375e-07
+        },
+        "sourceContactGapMetres": 3.5762786865234375e-07,
+        "sourceMaximumPenetrationMetres": 0.0
+      },
+      {
+        "name": "charred incense 8",
+        "mode": "resting",
+        "passed": true,
+        "contact": {
+          "member": "Charred incense end in ash.008",
+          "pointEngine": [
+            0.035571321845054626,
+            1.7308963537216187,
+            -4.840614318847656
+          ],
+          "supportPointEngine": [
+            0.035571321845054626,
+            1.7308921813964844,
+            -4.840614318847656
+          ],
+          "supportObject": "Ash mound in brass burner",
+          "gapMetres": 4.172325134277344e-06
+        },
+        "measuredGapMetres": 4.172325134277344e-06,
+        "maximumPenetrationMetres": 0.0,
+        "worstPenetrationContact": {
+          "member": "Charred incense end in ash.008",
+          "pointEngine": [
+            0.035571321845054626,
+            1.7308963537216187,
+            -4.840614318847656
+          ],
+          "supportPointEngine": [
+            0.035571321845054626,
+            1.7308921813964844,
+            -4.840614318847656
+          ],
+          "supportObject": "Ash mound in brass burner",
+          "gapMetres": 4.172325134277344e-06
+        },
+        "sourceContactGapMetres": 4.172325134277344e-06,
+        "sourceMaximumPenetrationMetres": 0.0
+      },
+      {
+        "name": "smouldering incense 0",
+        "mode": "resting",
+        "passed": true,
+        "contact": {
+          "member": "Smouldering incense",
+          "pointEngine": [
+            -0.03835419937968254,
+            1.7303966283798218,
+            -4.847734451293945
+          ],
+          "supportPointEngine": [
+            -0.03835419937968254,
+            1.7303962707519531,
+            -4.847734451293945
+          ],
+          "supportObject": "Ash mound in brass burner",
+          "gapMetres": 3.5762786865234375e-07
+        },
+        "measuredGapMetres": 3.5762786865234375e-07,
+        "maximumPenetrationMetres": 0.0,
+        "worstPenetrationContact": {
+          "member": "Smouldering incense",
+          "pointEngine": [
+            -0.03835419937968254,
+            1.7303966283798218,
+            -4.847734451293945
+          ],
+          "supportPointEngine": [
+            -0.03835419937968254,
+            1.7303962707519531,
+            -4.847734451293945
+          ],
+          "supportObject": "Ash mound in brass burner",
+          "gapMetres": 3.5762786865234375e-07
+        },
+        "sourceContactGapMetres": 3.5762786865234375e-07,
+        "sourceMaximumPenetrationMetres": 0.0
+      },
+      {
+        "name": "smouldering incense 1",
+        "mode": "resting",
+        "passed": true,
+        "contact": {
+          "member": "Smouldering incense.001",
+          "pointEngine": [
+            -0.012337270192801952,
+            1.732826590538025,
+            -4.84913444519043
+          ],
+          "supportPointEngine": [
+            -0.012337270192801952,
+            1.7328262329101562,
+            -4.84913444519043
+          ],
+          "supportObject": "Ash mound in brass burner",
+          "gapMetres": 3.5762786865234375e-07
+        },
+        "measuredGapMetres": 3.5762786865234375e-07,
+        "maximumPenetrationMetres": 0.0,
+        "worstPenetrationContact": {
+          "member": "Smouldering incense.001",
+          "pointEngine": [
+            -0.012337270192801952,
+            1.732826590538025,
+            -4.84913444519043
+          ],
+          "supportPointEngine": [
+            -0.012337270192801952,
+            1.7328262329101562,
+            -4.84913444519043
+          ],
+          "supportObject": "Ash mound in brass burner",
+          "gapMetres": 3.5762786865234375e-07
+        },
+        "sourceContactGapMetres": 3.5762786865234375e-07,
+        "sourceMaximumPenetrationMetres": 0.0
+      },
+      {
+        "name": "smouldering incense 2",
+        "mode": "resting",
+        "passed": true,
+        "contact": {
+          "member": "Smouldering incense.002",
+          "pointEngine": [
+            0.011645275168120861,
+            1.7329524755477905,
+            -4.847734451293945
+          ],
+          "supportPointEngine": [
+            0.011645275168120861,
+            1.7329483032226562,
+            -4.847734451293945
+          ],
+          "supportObject": "Ash mound in brass burner",
+          "gapMetres": 4.172325134277344e-06
+        },
+        "measuredGapMetres": 4.172325134277344e-06,
+        "maximumPenetrationMetres": 0.00025725364685058594,
+        "worstPenetrationContact": {
+          "member": "Smouldering incense.002",
+          "pointEngine": [
+            0.007337888237088919,
+            1.7330610752105713,
+            -4.84913444519043
+          ],
+          "supportPointEngine": [
+            0.007337888237088919,
+            1.7333183288574219,
+            -4.84913444519043
+          ],
+          "supportObject": "Ash mound in brass burner",
+          "gapMetres": -0.00025725364685058594
+        },
+        "sourceContactGapMetres": 4.172325134277344e-06,
+        "sourceMaximumPenetrationMetres": 0.00025725364685058594
+      },
+      {
+        "name": "smouldering incense 3",
+        "mode": "resting",
+        "passed": true,
+        "contact": {
+          "member": "Smouldering incense.003",
+          "pointEngine": [
+            0.03664451837539673,
+            1.7305644750595093,
+            -4.847734451293945
+          ],
+          "supportPointEngine": [
+            0.03664451837539673,
+            1.7305641174316406,
+            -4.847734451293945
+          ],
+          "supportObject": "Ash mound in brass burner",
+          "gapMetres": 3.5762786865234375e-07
+        },
+        "measuredGapMetres": 3.5762786865234375e-07,
+        "maximumPenetrationMetres": 0.00019800662994384766,
+        "worstPenetrationContact": {
+          "member": "Smouldering incense.003",
+          "pointEngine": [
+            0.033355481922626495,
+            1.7306941747665405,
+            -4.847734451293945
+          ],
+          "supportPointEngine": [
+            0.033355481922626495,
+            1.7308921813964844,
+            -4.847734451293945
+          ],
+          "supportObject": "Ash mound in brass burner",
+          "gapMetres": -0.00019800662994384766
+        },
+        "sourceContactGapMetres": 3.5762786865234375e-07,
+        "sourceMaximumPenetrationMetres": 0.00019800662994384766
+      },
+      {
+        "name": "altar burner assembly",
+        "mode": "resting",
+        "passed": true,
+        "contact": {
+          "member": "Brass burner foot.001",
+          "pointEngine": [
+            -0.060030676424503326,
+            1.5910873413085938,
+            -4.756530284881592
+          ],
+          "supportPointEngine": [
+            -0.060030676424503326,
+            1.5910873413085938,
+            -4.756530284881592
+          ],
+          "supportObject": "Scanned console altar chinese_console_table",
+          "gapMetres": 0.0
+        },
+        "measuredGapMetres": 0.0,
+        "maximumPenetrationMetres": 0.0,
+        "worstPenetrationContact": {
+          "member": "Brass burner foot.001",
+          "pointEngine": [
+            -0.060030676424503326,
+            1.5910873413085938,
+            -4.756530284881592
+          ],
+          "supportPointEngine": [
+            -0.060030676424503326,
+            1.5910873413085938,
+            -4.756530284881592
+          ],
+          "supportObject": "Scanned console altar chinese_console_table",
+          "gapMetres": 0.0
+        },
+        "sourceContactGapMetres": 0.0,
+        "sourceMaximumPenetrationMetres": 0.0
+      },
+      {
+        "name": "kneeling cushion -1",
+        "mode": "resting",
+        "passed": true,
+        "contact": {
+          "member": "Soft sewn kneeling cushion",
+          "pointEngine": [
+            -0.8500000238418579,
+            0.5932790040969849,
+            -3.299999952316284
+          ],
+          "supportPointEngine": [
+            -0.8500000238418579,
+            0.5928611755371094,
+            -3.299999952316284
+          ],
+          "supportObject": "Settled irregular paving stone.066",
+          "gapMetres": 0.0004178285598754883
+        },
+        "measuredGapMetres": 0.0004178285598754883,
+        "maximumPenetrationMetres": 0.004814863204956055,
+        "worstPenetrationContact": {
+          "member": "Soft sewn kneeling cushion",
+          "pointEngine": [
+            -0.9708434343338013,
+            0.5942299365997314,
+            -3.223088026046753
+          ],
+          "supportPointEngine": [
+            -0.9708434343338013,
+            0.5990447998046875,
+            -3.223088026046753
+          ],
+          "supportObject": "Settled irregular paving stone.081",
+          "gapMetres": -0.004814863204956055
+        },
+        "sourceContactGapMetres": 0.0003873109817504883,
+        "sourceMaximumPenetrationMetres": 0.00475001335144043
+      },
+      {
+        "name": "kneeling cushion 1",
+        "mode": "resting",
+        "passed": true,
+        "contact": {
+          "member": "Soft sewn kneeling cushion.001",
+          "pointEngine": [
+            0.8500000238418579,
+            0.6006245017051697,
+            -3.299999952316284
+          ],
+          "supportPointEngine": [
+            0.8500000238418579,
+            0.5997161865234375,
+            -3.299999952316284
+          ],
+          "supportObject": "Settled irregular paving stone.068",
+          "gapMetres": 0.0009083151817321777
+        },
+        "measuredGapMetres": 0.0009083151817321777,
+        "maximumPenetrationMetres": 0.004844188690185547,
+        "worstPenetrationContact": {
+          "member": "Soft sewn kneeling cushion.001",
+          "pointEngine": [
+            0.9765744805335999,
+            0.6015667915344238,
+            -3.232055902481079
+          ],
+          "supportPointEngine": [
+            0.9765744805335999,
+            0.6064109802246094,
+            -3.232055902481079
+          ],
+          "supportObject": "Settled irregular paving stone.085",
+          "gapMetres": -0.004844188690185547
+        },
+        "sourceContactGapMetres": 0.0009083151817321777,
+        "sourceMaximumPenetrationMetres": 0.00475001335144043
+      },
+      {
+        "name": "leaning broom",
+        "mode": "resting",
+        "passed": true,
+        "contact": {
+          "member": "Broom straw.021",
+          "pointEngine": [
+            4.413103103637695,
+            0.5972900390625,
+            -5.624128341674805
+          ],
+          "supportPointEngine": [
+            4.413103103637695,
+            0.5972900390625,
+            -5.624128341674805
+          ],
+          "supportObject": "Settled irregular paving stone.029",
+          "gapMetres": 0.0
+        },
+        "measuredGapMetres": 0.0,
+        "maximumPenetrationMetres": 2.485513687133789e-05,
+        "worstPenetrationContact": {
+          "member": "Broom straw.032",
+          "pointEngine": [
+            4.385743141174316,
+            0.5974559187889099,
+            -5.710526466369629
+          ],
+          "supportPointEngine": [
+            4.385743141174316,
+            0.5974807739257812,
+            -5.710526466369629
+          ],
+          "supportObject": "Settled irregular paving stone.029",
+          "gapMetres": -2.485513687133789e-05
+        },
+        "sourceContactGapMetres": 0.0,
+        "sourceMaximumPenetrationMetres": 2.485513687133789e-05
+      },
+      {
+        "name": "stacked bowl 0",
+        "mode": "resting",
+        "passed": true,
+        "contact": {
+          "member": "Stacked plain bowls",
+          "pointEngine": [
+            4.711461544036865,
+            0.5980758666992188,
+            -4.8388872146606445
+          ],
+          "supportPointEngine": [
+            4.711461544036865,
+            0.5976943969726562,
+            -4.8388872146606445
+          ],
+          "supportObject": "Settled irregular paving stone.044",
+          "gapMetres": 0.0003814697265625
+        },
+        "measuredGapMetres": 0.0003814697265625,
+        "maximumPenetrationMetres": 0.0,
+        "worstPenetrationContact": {
+          "member": "Stacked plain bowls",
+          "pointEngine": [
+            4.711461544036865,
+            0.5980758666992188,
+            -4.8388872146606445
+          ],
+          "supportPointEngine": [
+            4.711461544036865,
+            0.5976943969726562,
+            -4.8388872146606445
+          ],
+          "supportObject": "Settled irregular paving stone.044",
+          "gapMetres": 0.0003814697265625
+        },
+        "sourceContactGapMetres": 0.0,
+        "sourceMaximumPenetrationMetres": 0.0
+      },
+      {
+        "name": "stacked bowl 1",
+        "mode": "resting",
+        "passed": true,
+        "contact": {
+          "member": "Stacked plain bowls.001",
+          "pointEngine": [
+            4.711461544036865,
+            0.6480789184570312,
+            -4.8388872146606445
+          ],
+          "supportPointEngine": [
+            4.711461544036865,
+            0.6480789184570312,
+            -4.8388872146606445
+          ],
+          "supportObject": "Stacked plain bowls",
+          "gapMetres": 0.0
+        },
+        "measuredGapMetres": 0.0,
+        "maximumPenetrationMetres": 0.0,
+        "worstPenetrationContact": {
+          "member": "Stacked plain bowls.001",
+          "pointEngine": [
+            4.711461544036865,
+            0.6480789184570312,
+            -4.8388872146606445
+          ],
+          "supportPointEngine": [
+            4.711461544036865,
+            0.6480789184570312,
+            -4.8388872146606445
+          ],
+          "supportObject": "Stacked plain bowls",
+          "gapMetres": 0.0
+        },
+        "sourceContactGapMetres": 0.0,
+        "sourceMaximumPenetrationMetres": 0.0
+      },
+      {
+        "name": "stacked bowl 2",
+        "mode": "resting",
+        "passed": true,
+        "contact": {
+          "member": "Stacked plain bowls.002",
+          "pointEngine": [
+            4.711461544036865,
+            0.6980819702148438,
+            -4.8388872146606445
+          ],
+          "supportPointEngine": [
+            4.711461544036865,
+            0.6980819702148438,
+            -4.8388872146606445
+          ],
+          "supportObject": "Stacked plain bowls.001",
+          "gapMetres": 0.0
+        },
+        "measuredGapMetres": 0.0,
+        "maximumPenetrationMetres": 0.0,
+        "worstPenetrationContact": {
+          "member": "Stacked plain bowls.002",
+          "pointEngine": [
+            4.711461544036865,
+            0.6980819702148438,
+            -4.8388872146606445
+          ],
+          "supportPointEngine": [
+            4.711461544036865,
+            0.6980819702148438,
+            -4.8388872146606445
+          ],
+          "supportObject": "Stacked plain bowls.001",
+          "gapMetres": 0.0
+        },
+        "sourceContactGapMetres": 0.0,
+        "sourceMaximumPenetrationMetres": 0.0
+      },
+      {
+        "name": "stacked bowl assembly",
+        "mode": "resting",
+        "passed": true,
+        "contact": {
+          "member": "Stacked plain bowls",
+          "pointEngine": [
+            4.711461544036865,
+            0.5980758666992188,
+            -4.8388872146606445
+          ],
+          "supportPointEngine": [
+            4.711461544036865,
+            0.5976943969726562,
+            -4.8388872146606445
+          ],
+          "supportObject": "Settled irregular paving stone.044",
+          "gapMetres": 0.0003814697265625
+        },
+        "measuredGapMetres": 0.0003814697265625,
+        "maximumPenetrationMetres": 0.0,
+        "worstPenetrationContact": {
+          "member": "Stacked plain bowls",
+          "pointEngine": [
+            4.711461544036865,
+            0.5980758666992188,
+            -4.8388872146606445
+          ],
+          "supportPointEngine": [
+            4.711461544036865,
+            0.5976943969726562,
+            -4.8388872146606445
+          ],
+          "supportObject": "Settled irregular paving stone.044",
+          "gapMetres": 0.0003814697265625
+        },
+        "sourceContactGapMetres": 0.0,
+        "sourceMaximumPenetrationMetres": 0.0
+      },
+      {
+        "name": "gate -1",
+        "mode": "resting",
+        "passed": true,
+        "contact": {
+          "member": "Gate shelf lamp bronze foot",
+          "pointEngine": [
+            -1.9362488985061646,
+            1.6000022888183594,
+            19.262680053710938
+          ],
+          "supportPointEngine": [
+            -1.9362488985061646,
+            1.600006103515625,
+            19.262680053710938
+          ],
+          "supportObject": "Gate lamp shelf",
+          "gapMetres": -3.814697265625e-06
+        },
+        "measuredGapMetres": -3.814697265625e-06,
+        "maximumPenetrationMetres": 3.814697265625e-06,
+        "worstPenetrationContact": {
+          "member": "Gate shelf lamp bronze foot",
+          "pointEngine": [
+            -1.9362488985061646,
+            1.6000022888183594,
+            19.262680053710938
+          ],
+          "supportPointEngine": [
+            -1.9362488985061646,
+            1.600006103515625,
+            19.262680053710938
+          ],
+          "supportObject": "Gate lamp shelf",
+          "gapMetres": -3.814697265625e-06
+        },
+        "sourceContactGapMetres": 0.0,
+        "sourceMaximumPenetrationMetres": 0.0
+      },
+      {
+        "name": "gate 1",
+        "mode": "resting",
+        "passed": true,
+        "contact": {
+          "member": "Gate shelf lamp bronze foot.001",
+          "pointEngine": [
+            1.9399478435516357,
+            1.6000022888183594,
+            19.274873733520508
+          ],
+          "supportPointEngine": [
+            1.9399478435516357,
+            1.600006103515625,
+            19.274873733520508
+          ],
+          "supportObject": "Gate lamp shelf.001",
+          "gapMetres": -3.814697265625e-06
+        },
+        "measuredGapMetres": -3.814697265625e-06,
+        "maximumPenetrationMetres": 3.814697265625e-06,
+        "worstPenetrationContact": {
+          "member": "Gate shelf lamp bronze foot.001",
+          "pointEngine": [
+            1.9399478435516357,
+            1.6000022888183594,
+            19.274873733520508
+          ],
+          "supportPointEngine": [
+            1.9399478435516357,
+            1.600006103515625,
+            19.274873733520508
+          ],
+          "supportObject": "Gate lamp shelf.001",
+          "gapMetres": -3.814697265625e-06
+        },
+        "sourceContactGapMetres": 0.0,
+        "sourceMaximumPenetrationMetres": 0.0
+      }
+    ],
+    "wickTips": [
+      {
+        "name": "altar -1.45",
+        "sourceObject": "Other altar lamp warm wick",
+        "actualPreparedWickTip": [
+          -1.4500000476837158,
+          1.7759672403335571,
+          -4.75
+        ],
+        "sourceMetadataWickTip": [
+          -1.450000286102295,
+          1.775967001914978,
+          -4.75
+        ],
+        "maximumCoordinateErrorMetres": 2.384185791015625e-07,
+        "passed": true
+      },
+      {
+        "name": "altar -0.95",
+        "sourceObject": "Other altar lamp warm wick.001",
+        "actualPreparedWickTip": [
+          -0.9500000476837158,
+          1.731087327003479,
+          -4.75
+        ],
+        "sourceMetadataWickTip": [
+          -0.9500002264976501,
+          1.7310870885849,
+          -4.75
+        ],
+        "maximumCoordinateErrorMetres": 2.384185791015625e-07,
+        "passed": true
+      },
+      {
+        "name": "altar 0.95",
+        "sourceObject": "Other altar lamp warm wick.002",
+        "actualPreparedWickTip": [
+          0.949999988079071,
+          1.7310911417007446,
+          -4.75
+        ],
+        "sourceMetadataWickTip": [
+          0.9500002264976501,
+          1.7310909032821655,
+          -4.75
+        ],
+        "maximumCoordinateErrorMetres": 2.384185791015625e-07,
+        "passed": true
+      },
+      {
+        "name": "altar 1.45",
+        "sourceObject": "Other altar lamp warm wick.003",
+        "actualPreparedWickTip": [
+          1.4500000476837158,
+          1.7695928812026978,
+          -4.75
+        ],
+        "sourceMetadataWickTip": [
+          1.450000286102295,
+          1.7695926427841187,
+          -4.75
+        ],
+        "maximumCoordinateErrorMetres": 2.384185791015625e-07,
+        "passed": true
+      },
+      {
+        "name": "gate -1",
+        "sourceObject": "Gate shelf lamp warm wick",
+        "actualPreparedWickTip": [
+          -1.9999998807907104,
+          1.7400022745132446,
+          19.250001907348633
+        ],
+        "sourceMetadataWickTip": [
+          -2.0,
+          1.7400020360946655,
+          19.25
+        ],
+        "maximumCoordinateErrorMetres": 1.9073486328125e-06,
+        "passed": true
+      },
+      {
+        "name": "gate 1",
+        "sourceObject": "Gate shelf lamp warm wick.001",
+        "actualPreparedWickTip": [
+          2.0,
+          1.7400022745132446,
+          19.250001907348633
+        ],
+        "sourceMetadataWickTip": [
+          2.0,
+          1.7400020360946655,
+          19.25
+        ],
+        "maximumCoordinateErrorMetres": 1.9073486328125e-06,
+        "passed": true
+      }
+    ],
+    "incenseTips": [
+      {
+        "sourceObject": "Smouldering incense",
+        "actualPreparedTip": [
+          -0.03999999538064003,
+          1.9657137393951416,
+          -4.849999904632568
+        ],
+        "sourceMetadataTip": [
+          -0.03999999538064003,
+          1.9657137393951416,
+          -4.849999904632568
+        ],
+        "maximumCoordinateErrorMetres": 0.0,
+        "passed": true
+      },
+      {
+        "sourceObject": "Smouldering incense.001",
+        "actualPreparedTip": [
+          -0.01466272957623005,
+          1.961943507194519,
+          -4.849999904632568
+        ],
+        "sourceMetadataTip": [
+          -0.01466272957623005,
+          1.961943507194519,
+          -4.849999904632568
+        ],
+        "maximumCoordinateErrorMetres": 0.0,
+        "passed": true
+      },
+      {
+        "sourceObject": "Smouldering incense.002",
+        "actualPreparedTip": [
+          0.013337889686226845,
+          1.9709473848342896,
+          -4.849999904632568
+        ],
+        "sourceMetadataTip": [
+          0.013337889686226845,
+          1.9709473848342896,
+          -4.849999904632568
+        ],
+        "maximumCoordinateErrorMetres": 0.0,
+        "passed": true
+      },
+      {
+        "sourceObject": "Smouldering incense.003",
+        "actualPreparedTip": [
+          0.04133911058306694,
+          1.958911657333374,
+          -4.849999904632568
+        ],
+        "sourceMetadataTip": [
+          0.04133911058306694,
+          1.958911657333374,
+          -4.849999904632568
+        ],
+        "maximumCoordinateErrorMetres": 0.0,
+        "passed": true
+      }
+    ],
+    "passed": true,
+    "sourceAnchorMetadataByteExact": true
+  }
+}

@@ -2,8 +2,8 @@
 
 Run with Blender --background --python-exit-code 1 --python THIS_FILE -- --out NEW_ART_BUILD_DIR
 No render, bake, OIDN, encoding, source edit or lightmap modification occurs.
-The accepted source/prepared hashes are deliberately frozen; a new model requires
-new correspondence evidence. Classifications never depend on radiance thresholds.
+Explicit actual-file input profiles bind every new source and correspondence proof.
+Classifications never depend on radiance thresholds.
 """
 import bpy, math, json, hashlib
 from pathlib import Path
@@ -13,7 +13,10 @@ from mathutils.bvhtree import BVHTree
 import numpy as np
 ROOT=Path(__file__).resolve().parents[2]
 import argparse,sys
+sys.path.insert(0,str(Path(__file__).resolve().parent))
+from contact_inputs import load_profile,validate_prepared_source,opaque_snow_proof
 parser=argparse.ArgumentParser(description=__doc__)
+parser.add_argument('--inputs',type=Path,required=True,help='Explicit measured source/prepared/raw/F32 proof and coverage bindings JSON.')
 parser.add_argument('--out',type=Path,required=True,help='New ignored art/build analysis directory; no existing proof is overwritten.')
 args=parser.parse_args(sys.argv[sys.argv.index('--')+1:] if '--' in sys.argv else [])
 OUT=args.out.resolve()
@@ -21,7 +24,8 @@ if not OUT.is_relative_to(ROOT/'art/build'):raise RuntimeError('Separate art/bui
 if any((OUT/name).exists() for name in ['contact-visibility-classification.json','contact-valid-donors.json']):raise RuntimeError('Existing proof output refused')
 OUT.mkdir(parents=True,exist_ok=True)
 
-SOURCE=ROOT/'art/build/snow-roof-stair-banks-grain.blend';PREP=ROOT/'art/build/snow-roof-final/snow-roof-prepared.blend'
+PROFILE,INPUT_PATHS,COVERAGE_PATHS=load_profile(args.inputs)
+SOURCE=INPUT_PATHS['source'];PREP=INPUT_PATHS['prepared']
 def sha(p):return hashlib.sha256(p.read_bytes()).hexdigest()
 def eng(p):return [float(p.x),float(p.z),float(-p.y)]
 def bl(p):return Vector((p[0],-p[2],p[1]))
@@ -38,10 +42,10 @@ def interp(rows,weights):return [sum(float(row[j])*w for row,w in zip(rows,weigh
 def record_source(obj):
  mesh=obj.data;mesh.calc_loop_triangles();vertices=[obj.matrix_world@v.co for v in mesh.vertices]
  faces=[tuple(p.vertices) for p in mesh.polygons];triangles=[tuple(t.vertices) for t in mesh.loop_triangles]
- return {'name':obj.name,'vertices':vertices,'faces':faces,'triangles':triangles,'triangleFaces':[t.polygon_index for t in mesh.loop_triangles], 'modifiers':[m.type for m in obj.modifiers]}
+ return {'name':obj.name,'vertices':vertices,'faces':faces,'triangles':triangles,'triangleFaces':[t.polygon_index for t in mesh.loop_triangles], 'modifiers':[m.type for m in obj.modifiers], 'topFaceCount':obj.get('step_snow_top_faces')}
 report={'scope':'Read-only bounded geometry/UV diagnosis; no render/bake/encoding or authored edits. Engine coordinates x,Y-up,z. UVs labelled Blender bottom-left and glTF V-flipped.','inputs':{'source':{'path':str(SOURCE.relative_to(ROOT)),'sha256':sha(SOURCE)},'prepared':{'path':str(PREP.relative_to(ROOT)),'sha256':sha(PREP)}},'sourcePreparedComparisons':{},'samples':[]}
-assert report['inputs']['source']['sha256']=='6e9f59c93565e08a690eaafbc756967ba39e0f4d8ad0094e4520265948360af8'
-assert report['inputs']['prepared']['sha256']=='6ed42644cd3a6c1026b079740957280df0274e9e9a0eaf5f8d3da514725079c1'
+assert report['inputs']['source']['sha256']==PROFILE['inputs']['source']['sha256']
+assert report['inputs']['prepared']['sha256']==PROFILE['inputs']['prepared']['sha256']
 bpy.ops.wm.open_mainfile(filepath=str(SOURCE));bpy.context.view_layer.update()
 sources={}
 for o in bpy.context.scene.objects:
@@ -57,6 +61,7 @@ for data in sources.values():
   for vi in f:data['vertexFace'][vi].add(i)
  data['preparedTriangles']=[]
 bpy.ops.wm.open_mainfile(filepath=str(PREP));bpy.context.view_layer.update()
+validate_prepared_source(bpy.context.scene,PROFILE['inputs']['source']['sha256'])
 prepared={o.get('lightmap_region'):o for o in bpy.context.scene.objects if o.type=='MESH' and o.get('one_light_static')}
 prepared_vertices={};tri_records=[];ground_tri_records=[];bank_tri_records=[];bank_bounds=[.65,2.8,2.0,7.4]
 for region in ['court','hall']:
@@ -105,11 +110,14 @@ def parity(bvh,p,d):
  return -1,count
 coverage={};chartnumber={}
 for region in ['hall','court']:
- data=np.load(ROOT/f'art/build/snow-roof-final/{region}-coverage.npz');coverage[region]=data['labels'];chartnumber[region]=data['charts']
+ data=np.load(COVERAGE_PATHS[region]);coverage[region]=data['labels'];chartnumber[region]=data['charts']
 # Native pixel centers, exact unchanged prepared UV2 rasterization. Keep UV-boundary duplicates conservative.
 receivers={};duplicate_max=0
 for r in bank_tri_records+ground_tri_records:
- if r['region']=='hall' and r['sourceFace']>=2816:continue
+ if r['region']=='hall':
+  top_count=sources[r['source']]['topFaceCount']
+  if not isinstance(top_count,int) or top_count<=0 or top_count>=len(sources[r['source']]['faces']):raise RuntimeError('Measured source bank top-face metadata is required')
+  if r['sourceFace']>=top_count:continue
  size=coverage[r['region']].shape[0];uv=np.array(r['uv2'])*size;low=np.maximum(0,np.floor(uv.min(axis=0)).astype(int));high=np.minimum(size-1,np.ceil(uv.max(axis=0)).astype(int))
  if np.any(low>high):continue
  a,b,c=uv;den=(b[1]-c[1])*(a[0]-c[0])+(c[0]-b[0])*(a[1]-c[1])
@@ -148,8 +156,8 @@ for (region,x,y),item in sorted(receivers.items()):
  rows.append({'region':region,'x':x,'yBottomLeft':y,'preparedPolygon':r['polygon'],'sourceObject':r['source'],'sourceFace':r['sourceFace'],'chartRaw':r['chartRaw'],'chartRaster':int(chartnumber[region][r['polygon']]),'worldEngine':eng(p),'hidden':hidden,'reason':reason,'certificate':certificate})
  counts[(region,reason)]+=1;charts[(region,r['chartRaw'])]['candidates']+=1;charts[(region,r['chartRaw'])]['hidden' if hidden else 'notCertified']+=1
 print('CONTACT_CLASSIFICATION_COUNTS',json.dumps({str(k):v for k,v in counts.items()}),flush=True)
-inputs={**report['inputs'],'raw':{'path':'art/build/snow-roof-final/snow-roof.raw.glb','sha256':sha(ROOT/'art/build/snow-roof-final/snow-roof.raw.glb')},'f32Diagnostic':{'path':'art/build/snow-roof-float32-position-diagnostic/snow-roof.glb','sha256':sha(ROOT/'art/build/snow-roof-float32-position-diagnostic/snow-roof.glb')},'independentExactF32PositionProof':{'path':'art/build/snow-roof-float32-position-diagnostic/independent-position-stream-proof.json','sha256':sha(ROOT/'art/build/snow-roof-float32-position-diagnostic/independent-position-stream-proof.json')}}
-metadata={'version':1,'classifierScriptSha256':sha(Path(__file__)),'opaqueMaterialProof':{'rawMaterial':'Snow settled dry grains','alphaMode':'OPAQUE','baseColorAlpha':1,'basis':'Actual raw0deec GLB material JSON inspected; source ground and both banks use the same opaque material.'},'terrainMaximumActualVertexY':max(v.z for v in src_ground['vertices']),'terrainMinimumActualVertexY':min(v.z for v in src_ground['vertices']),'scope':'ANALYSIS ONLY. Native TEXEL CENTRE geometry certificates. No illumination, geometry, UV, material, source file or delivery asset changed. Not a whole-texel footprint mask or permission to relabel visible dark illumination. Original raw/denoised transport remains immutable.','inputs':inputs,'toleranceMetres':TOL,'floatPrecisionScope':'Certificates apply to exact authored/prepared FLOAT32 world positions. Position16 delivery may move near-tangent geometry and is not covered. UV16 still shifts sampling; per-centre classification does not assert all bilinear footprints are hidden.','allowedCameraDomain':'All journey cameras lie inside opaque terrain XY rectangle and above its heightfield. Ground-inside-bank certificates are camera-independent for every camera outside the closed bank volume. Bank-below-ground certificates are camera-independent within the continuous opaque field for above-ground cameras.','terrainDomainEngine':{'x':[-26,26],'z':[-13,53]},'proofRules':{'bank':'Native top receiver centre lies below actual prepared ground, with both vertical clearance and nearest ground-surface distance >20µm; it is at least1m from terrain boundary. No radiance threshold is consulted.','ground':'Native receiver centre lies inside a watertight, consistently oriented opaque bank volume: three irrational-direction parity rays all odd and nearest bank-shell distance >20µm. No radiance threshold is consulted.','ambiguity':'Points within20µm of tested shell, UV-boundary position disagreements >5µm, and parity disagreements are never certified hidden.'},'closedBankProof':closed,'nativeResolutionByRegion':{r:int(v.shape[0]) for r,v in coverage.items()},'coordinateRule':'worldEngine=(Blender.x,Blender.z,-Blender.y); texel(x,yBottomLeft), UV2=((x+.5)/size,(y+.5)/size).','maximumUVBoundaryDuplicateWorldDifferenceMetres':duplicate_max,'counts':[{'region':r,'reason':why,'texels':n} for (r,why),n in sorted(counts.items())],'charts':[{'region':r,'chartRaw':c,**dict(v)} for (r,c),v in sorted(charts.items())],'candidateTexels':len(rows),'certifiedHiddenTexels':sum(v['hidden'] for v in rows),'recordsFile':'contact-texel-certificates.json','groundDiagnosticScope':'The recipient classifier independently rebuilds exact source/prepared geometry; no pre-existing camera diagnostic is required.'}
+inputs=PROFILE['inputs']
+metadata={'version':2,'inputProfileSha256':sha(args.inputs),'inputValidationScriptSha256':sha(Path(__file__).with_name('contact_inputs.py')),'coverage':PROFILE['coverage'],'classifierScriptSha256':sha(Path(__file__)),'opaqueMaterialProof':opaque_snow_proof(INPUT_PATHS['raw'],'Snow settled dry grains'),'terrainMaximumActualVertexY':max(v.z for v in src_ground['vertices']),'terrainMinimumActualVertexY':min(v.z for v in src_ground['vertices']),'scope':'ANALYSIS ONLY. Native TEXEL CENTRE geometry certificates. No illumination, geometry, UV, material, source file or delivery asset changed. Not a whole-texel footprint mask or permission to relabel visible dark illumination. Original raw/denoised transport remains immutable.','inputs':inputs,'toleranceMetres':TOL,'floatPrecisionScope':'Certificates apply to exact authored/prepared FLOAT32 world positions. Position16 delivery may move near-tangent geometry and is not covered. UV16 still shifts sampling; per-centre classification does not assert all bilinear footprints are hidden.','allowedCameraDomain':'All journey cameras lie inside opaque terrain XY rectangle and above its heightfield. Ground-inside-bank certificates are camera-independent for every camera outside the closed bank volume. Bank-below-ground certificates are camera-independent within the continuous opaque field for above-ground cameras.','terrainDomainEngine':{'x':[-26,26],'z':[-13,53]},'proofRules':{'bank':'Native top receiver centre lies below actual prepared ground, with both vertical clearance and nearest ground-surface distance >20µm; it is at least1m from terrain boundary. No radiance threshold is consulted.','ground':'Native receiver centre lies inside a watertight, consistently oriented opaque bank volume: three irrational-direction parity rays all odd and nearest bank-shell distance >20µm. No radiance threshold is consulted.','ambiguity':'Points within20µm of tested shell, UV-boundary position disagreements >5µm, and parity disagreements are never certified hidden.'},'closedBankProof':closed,'nativeResolutionByRegion':{r:int(v.shape[0]) for r,v in coverage.items()},'coordinateRule':'worldEngine=(Blender.x,Blender.z,-Blender.y); texel(x,yBottomLeft), UV2=((x+.5)/size,(y+.5)/size).','maximumUVBoundaryDuplicateWorldDifferenceMetres':duplicate_max,'counts':[{'region':r,'reason':why,'texels':n} for (r,why),n in sorted(counts.items())],'charts':[{'region':r,'chartRaw':c,**dict(v)} for (r,c),v in sorted(charts.items())],'candidateTexels':len(rows),'certifiedHiddenTexels':sum(v['hidden'] for v in rows),'recordsFile':'contact-texel-certificates.json','groundDiagnosticScope':'The recipient classifier independently rebuilds exact source/prepared geometry; no pre-existing camera diagnostic is required.'}
 # Human-readable sparse proof is small and reproducible; never writes any lightmap.
 (OUT/'contact-texel-certificates.json').write_text(json.dumps(rows,separators=(',',':'))+'\n');metadata['recordsSha256']=sha(OUT/'contact-texel-certificates.json')
 np.savez_compressed(OUT/'contact-texel-centres.npz',region=np.array([0 if r['region']=='court' else 1 for r in rows],dtype=np.uint8),xyBottomLeft=np.array([[r['x'],r['yBottomLeft']] for r in rows],dtype=np.uint16),hidden=np.array([r['hidden'] for r in rows],dtype=np.bool_),preparedPolygon=np.array([r['preparedPolygon'] for r in rows],dtype=np.uint32),chartRaw=np.array([r['chartRaw'] for r in rows],dtype=np.int32),worldEngine=np.array([r['worldEngine'] for r in rows],dtype=np.float32))

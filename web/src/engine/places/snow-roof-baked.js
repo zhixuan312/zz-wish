@@ -3,6 +3,13 @@
 import { loadBakedPlace } from '../baked/loadPlace.js';
 export default function createPlace(h){
   const {V3}=h;
+  let staticWicks;
+  const sourcePoint=(baked,key,fallback)=>{
+    const raw=baked.group.userData[key],point=raw===undefined?fallback:typeof raw==='string'?JSON.parse(raw):raw;
+    if(!Array.isArray(point)||point.length!==3||!point.every(Number.isFinite))throw new Error(`Invalid Snow Roof source contact anchor: ${key}`);
+    return point;
+  };
+  const localPoint=(group,point)=>group.worldToLocal(V3(...point)).toArray();
   return{
     bakedLighting:true,snow:0,exposure:1,shade:.4,
     sky:{top:0x1e2c3f,horizon:0x384b5d,ground:0x141b25,sun:0xc8d4ff,dir:[.4,.5,-1],glow:.05,clouds:.65,lit:0x495c6b,dark:0x172433,disc:0},
@@ -14,7 +21,11 @@ export default function createPlace(h){
     async build(){
       const C=h.context,baked=await loadBakedPlace('snow-roof',h.renderer,C.light);
       C.G.add(baked.group);C.baked=baked;
-      for(const x of [-2,2])h.liveFlame(x,1.74,19.25);
+      const raw=baked.group.userData.static_lamp_wicks_engine;
+      staticWicks=typeof raw==='string'?JSON.parse(raw):raw;
+      if(!Array.isArray(staticWicks)||staticWicks.filter(wick=>wick.name.startsWith('altar ')).length!==4||staticWicks.filter(wick=>wick.name.startsWith('gate ')).length!==2)throw new Error('Snow Roof requires its six source wick contacts.');
+      C.G.updateMatrixWorld(true);
+      for(const wick of staticWicks.filter(wick=>wick.name.startsWith('gate ')))h.liveFlame(...localPoint(C.G,wick.wickTip));
       h.fall({n:1000,at:[0,6.5,30.3],box:[48,13,52.2],color:0xe4ecf8,size:.025,vy:.65,sway:.18,opacity:.52,softEdges:true});
     },
     nook:{
@@ -36,8 +47,18 @@ export default function createPlace(h){
       burnFarPhone:{pos:V3(.18,1.62,-3.35),look:V3(0,1.88,.5),fov:44},
       burnWalk:[V3(1.4,1.62,1.3),V3(1.95,1.62,-.75),V3(1.65,1.62,-1.7)],
       async build(){
-        for(const x of [-1.45,-.95,.95,1.45]){h.liveFlame(x,1.17,-4.25);h.fixtureSpecular(x,1.22,-4.25);}
-        h.smokeAt(.002,1.38,-4.35,{k:2,size:.007,spread:.06,op:.08,perSecond:8,n:48});
+        const C=h.context;
+        C.G.updateMatrixWorld(true);
+        // Source anchors use world Y-up. The nook has its own translated frame;
+        // liveFlame accepts the baked wick tip, and its flame mesh adds 2 mm.
+        for(const wick of staticWicks.filter(wick=>wick.name.startsWith('altar '))){
+          h.liveFlame(...localPoint(C.G,wick.wickTip));
+          h.fixtureSpecular(...localPoint(C.G,wick.pointLight));
+        }
+        // The fallback supports the preceding delivery while new source assets
+        // are being rebuilt. New contact-audited exports carry the measured tip.
+        const smoke=sourcePoint(C.baked,'static_incense_smoke_engine',[.002,1.98,-4.85]);
+        h.smokeAt(...localPoint(C.G,smoke),{k:2,size:.007,spread:.06,op:.08,perSecond:8,n:48});
       },
     },
   };
