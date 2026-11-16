@@ -393,7 +393,7 @@ function candleGeo(rows, cut, seg = 56) {
   const R = rows.filter((q) => q.y < cut - 1e-6); R.push(ringAt(rows, cut));
   if (R.length < 2) R.unshift({ ...R[0], y: 0 });
   const top = R[R.length - 1], pos = [], uv = [], idx = [];
-  const ring = (cx, r, y) => { const s = pos.length / 3; for (let j = 0; j <= seg; j++) { const a = j / seg * Math.PI * 2; const grain = 1 + .006 * Math.sin(a * 7 + y * 180) + .003 * Math.sin(a * 19 - y * 310); pos.push(cx + Math.cos(a) * r * grain, y, Math.sin(a) * r * grain); uv.push(j / seg, y * 8); } return s; };
+  const ring = (cx, r, y) => { const s = pos.length / 3; for (let j = 0; j <= seg; j++) { const a = j / seg * Math.PI * 2; const grain = 1 + .006 * Math.sin(a * 7 + y * 180) + .003 * Math.sin(a * 19 - y * 310); const lip = y > cut - .004 ? Math.sin(a * 3 + .5) * .0003 + Math.sin(a * 7) * .00015 : 0; pos.push(cx + Math.cos(a) * r * grain, y + lip, Math.sin(a) * r * grain); uv.push(j / seg, y * 8); } return s; };
   const strip = (s0, s1) => { for (let j = 0; j < seg; j++) idx.push(s0 + j, s1 + j, s0 + j + 1, s0 + j + 1, s1 + j, s1 + j + 1); };
   let prev = ring(R[0].cx, R[0].r, R[0].y);
   for (let i = 1; i < R.length - 1; i++) { const s = ring(R[i].cx, R[i].r, R[i].y); strip(prev, s); prev = s; }
@@ -428,8 +428,8 @@ const mine = (() => {
   const surface = new THREE.Mesh(new THREE.CircleGeometry(1, 48).rotateX(-Math.PI / 2), fat); cupG.add(surface);
   const liquid = new THREE.Mesh(new THREE.CircleGeometry(.016, 48).rotateX(-Math.PI / 2), new THREE.MeshPhysicalMaterial({color:0xb58c37, roughness:.1, clearcoat:1, metalness:0, envMapIntensity:.15, transparent:true, opacity:.82})); cupG.add(liquid);
   const drips = Array.from({ length: 7 }, (_, i) => {
-    const mesh = new THREE.Mesh(new THREE.SphereGeometry(1, 12, 12), wax);
-    mesh.visible = false; g.add(mesh); return { mesh, angle: i * 2.399, start: .015 + i * .025 };
+    const mesh = new THREE.Mesh(new THREE.LatheGeometry([[0,-1],[.65,-.96],[1,-.8],[.55,-.45],[.3,.25],[.2,1],[0,1]].map(([r,y])=>V2(r,y)), 12), wax);
+    mesh.visible = false; g.add(mesh); return { mesh, angle: i * 2.399, start: .015 + i * .025, reach: .006 + .014 * ((i * .618 + .17) % 1), width: .00065 + .0004 * ((i * .414 + .3) % 1) };
   });
   const f = flameParts(g);
   f.light.castShadow = true; f.light.shadow.mapSize.set(1024, 1024); f.light.shadow.bias = -.002; f.light.shadow.radius = 4; f.light.shadow.camera.near = .01;
@@ -461,14 +461,14 @@ const mine = (() => {
         }
       }
       if (o.kind !== 'butter') {
-        for (const {mesh, angle, start} of drips) {
+        for (const {mesh, angle, start, reach, width} of drips) {
           const grown = Math.min(1, Math.max(0, (1 - L - start) * 9));
           mesh.visible = grown > 0 && L > .03;
-          const length = Math.min(.018 * grown, this.lastCut * .65);
+          const length = Math.min(reach * grown, this.lastCut * .65);
           const y = Math.max(.002, this.lastCut - length * .55);
           const q = ringAt(o.rows, y);
           mesh.position.set(q.cx + Math.cos(angle) * q.r, PLATE_H + y, Math.sin(angle) * q.r);
-          mesh.scale.set(.0015 * grown, Math.max(.0001, length * .5), .0015 * grown);
+          mesh.scale.set(width * grown, Math.max(.0001, length * .5), width * grown);
         }
       }
       f.place(this.top.x, this.top.y);
@@ -1070,7 +1070,7 @@ export async function snuff(done = false) {
   lit = false; ending = done ? 'done' : 'out';
   if (done) { level = 0; mine.setLevel(0); }
   smokeUntil = clockTime + (done ? 3.4 : 4.8); emberUntil = clockTime + (done ? 2.5 : .35);
-  const p0 = mine.power; await tween(done ? .55 : .09, (k) => { mine.power = p0 * (1 - k); }); mine.power = 0;
+  const p0 = mine.power * (done ? .08 : 1); mine.power = p0; await tween(done ? .55 : .09, (k) => { mine.power = p0 * (1 - k); }); mine.power = 0;
 }
 
 function resize() {

@@ -51,7 +51,7 @@ for(const [name,width,height] of [['desktop',1440,900],['phone',390,844]]) {
  await page.evaluate(()=>window.dispatchEvent(new Event('blur')));await page.getByTestId('result-title').waitFor();
  const summarize=(entries,phase)=>{const a=entries.filter(x=>x.phase===phase).map(x=>x.ms);return {samples:a.length,p50:q(a,.5),p95:q(a,.95),max:a.length?Math.max(...a):null};};
  const phases=Object.fromEntries(['wish','place-switch-4x','cached-switch','setup','burning','power-saver'].map(p=>[p,{raf:summarize(data.performance.frames,p),render:summarize(data.performance.renders,p),longTasks:summarize(data.performance.tasks,p)}]));
- results.push({name,viewport:{width,height},networkLoad,localLoad,fourGReady,beforeAudio,afterAudio,phases,errors,data});
+ results.push({name,browserVersion:browser.version(),viewport:{width,height},networkLoad,localLoad,fourGReady,beforeAudio,afterAudio,phases,errors,data});
  console.log(name,JSON.stringify({networkLoad,localLoad,phases,errors,beforeAudio,afterAudio}));await context.close();
 }
 await browser.close();await mkdir(`artifacts/tier2/${tag}`,{recursive:true});await writeFile(`artifacts/tier2/${tag}/isolated-performance.json`,JSON.stringify(results,null,2));
