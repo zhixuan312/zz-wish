@@ -965,7 +965,7 @@ function blendPlace(N, L) {
   const sunScale = n < .5 ? .35 + .65 * L.elev : 1;
   return {
     sky, exposure: mix(D.exposure ?? 1, N.exposure ?? 1), shade: mix(1, N.shade ?? 1),
-    fog: [hexMix(hexMix(D.fog[0], N.fog[0], n), warm, .3 * g), mix(D.fog[1], N.fog[1]) * L.haze],
+    fog: [hexMix(hexMix(D.fog[0], N.fog[0], n), warm, .18 * g), mix(D.fog[1], N.fog[1]) * L.haze * (1 - .3 * g)],
     sunL: [hexMix(hexMix(D.sunL[0], N.sunL[0], n), sunWarm, .7 * g), mix(D.sunL[1], N.sunL[1]) * sunScale],
     hemi: [hexMix(D.hemi[0], N.hemi[0], n), hexMix(D.hemi[1], N.hemi[1], n), mix(D.hemi[2], N.hemi[2])],
     bloom: [mix(D.bloom[0], N.bloom[0]), mix(D.bloom[1], N.bloom[1])],

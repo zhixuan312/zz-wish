@@ -1,0 +1,31 @@
+
+> test:tier1
+> vitest run tests/tier1/unit && playwright test --config tests/tier1/playwright.config.ts
+
+
+ RUN  v5.1.0 /Users/xuan/Documents/code/zz-wish
+
+
+ Test Files  2 passed (2)
+      Tests  11 passed (11)
+   Start at  17:35:21
+   Duration  435ms (tests 48%, import 44%, transform 6%, worker 2%)
+
+[WebServer] [plugin builtin:vite-reporter] 
+[WebServer] (!) Some chunks are larger than 500 kB after minification. Consider:
+[WebServer] - Using dynamic import() to code-split the application
+[WebServer] - Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting
+[WebServer] - Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+
+Running 8 tests using 1 worker
+
+  ✓  1 [desktop-en] › tests/tier1/e2e/flow.spec.ts:24:1 › a lit candle shows live presence, goes out when the page is hidden, and the record shows it went out (12.5s)
+  ✓  2 [desktop-en] › tests/tier1/e2e/flow.spec.ts:38:1 › losing window focus puts the candle out (12.4s)
+  ✓  3 [desktop-en] › tests/tier1/e2e/flow.spec.ts:44:1 › a refresh while burning records that the page was left, not a lit candle (13.8s)
+  ✓  4 [desktop-en] › tests/tier1/e2e/flow.spec.ts:55:1 › refresh before the lighting response preserves the leave event (13.8s)
+  ✓  5 [phone-zh] › tests/tier1/e2e/flow.spec.ts:24:1 › a lit candle shows live presence, goes out when the page is hidden, and the record shows it went out (12.6s)
+  ✓  6 [phone-zh] › tests/tier1/e2e/flow.spec.ts:38:1 › losing window focus puts the candle out (11.8s)
+  ✓  7 [phone-zh] › tests/tier1/e2e/flow.spec.ts:44:1 › a refresh while burning records that the page was left, not a lit candle (12.3s)
+  ✓  8 [phone-zh] › tests/tier1/e2e/flow.spec.ts:55:1 › refresh before the lighting response preserves the leave event (12.5s)
+
+  8 passed (1.8m)

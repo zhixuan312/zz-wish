@@ -2,7 +2,69 @@
 
 Tier 1 baseline: `f1bdbdc`. The renderer remains pinned to three.js **0.160.0**. Final capture and isolated measurement runs completed on 2026-11-16.
 
-## What changed
+## Round 2: the look, against the bar
+
+Round 2 started from Codex's final release (`138675e`) as its baseline. The bar: a stranger takes the hall for a real candle in a real temple hall, filmed at night. Commits: `1cafc8a` (night places, wax, metal, place picker, Ten Lights), `7a3f281` (local time of day, butter, ember, smoke) and the follow-up with this report.
+
+What changed:
+
+- **Places follow the visitor's local clock.** Each place has a day look and a night look. The scene blends between them through six looks by the browser's local time: dawn (04:30-07:00, cool pink horizon, heaviest mist, hall lamps still lit), morning (07:00-11:00, low clear sun from the east side, haze), afternoon (11:00-16:00, high sun, full colour), dusk (16:00-19:00, low orange sun, lamps coming on), evening (19:00-23:00, blue hour into deep blue, lamplight at its fullest) and late night (23:00-04:30, darkest, moon and stars, lamps lowered). Transitions are continuous; a place is rebuilt when the look has moved since it was cached. Yonghe and Meizhou, which had only a night or dusk look, gained a daytime look. Inside the hall, the doorway light and lattice follow the same hour while the candles stay the light.
+- **Night places** are lit from their halls: a warm porch light spills onto the court, and the unlit pieces (backdrop ridges, mist, incense smoke, rain) are dimmed to the place's light so nothing glows that should not.
+- **Wax** scatters flame light from inside: strongest just under the flame, with a faint tail down the body and more glow at the silhouette. The wish-screen pillar is cream wax instead of an opaque dark red block.
+- **Metal** reflects a dark hall environment (near-black room, warm candle points, one cool window) instead of a white studio, with a patina roughness map, so holders read as brass, not plastic.
+- **Rack candles** vary in wax colour, unlit ones are darker, and each glows near its own top.
+- **Endings.** Went out: a soft, continuous curl of smoke and a room that keeps less of its light. Burned down: a fading red ember at the wick and a thin thread of smoke.
+- **Butter lamp**: pale, matte, set butter with a small clear pool of melted fat around the wick.
+- **Place picker**: a line of names under the view; the chosen one carries a thread of flame light. The secondary action is a text link and the primary button has a fixed width.
+- **Ten Lights and My Candles** sit over the dimmed hall. In Ten Lights, each place has one line of light whose length carries the chosen sort.
+
+Evidence. Raw sweeps: `artifacts/tier2/claude-r1/` and `artifacts/tier2/claude-r2/` (local, excluded from Git). Both sweeps recorded zero page errors and zero detected horizontal overflows. The claude-r2 sweep ran at 17:50 local time, so its places show the dusk look.
+
+| View | Codex final | Round 2 |
+|---|---|---|
+| Desktop opening | [Codex](evidence/codex-final-desktop-en-wish.png) | [round 2](evidence/round2-desktop-en-wish.png) |
+| Desktop Lingyin | [Codex](evidence/codex-final-desktop-en-place-lingyin.png) | [round 2](evidence/round2-desktop-en-place-lingyin.png) |
+| Desktop Jokhang | [Codex](evidence/codex-final-desktop-en-place-jokhang.png) | [round 2](evidence/round2-desktop-en-place-jokhang.png) |
+| Desktop dark room | [Codex](evidence/after-desktop-en-burning-dark-room.png) | [round 2](evidence/round2-desktop-en-burning-dark-room.png) |
+| Phone dark room | [Codex](evidence/after-phone-zh-burning-dark-room.png) | [round 2](evidence/round2-phone-zh-burning-dark-room.png) |
+| Desktop butter lamp | [Codex](evidence/after-desktop-en-butter-lamp-dark-room.png) | [round 2](evidence/round2-desktop-en-butter-lamp-dark-room.png) |
+| Phone butter lamp | [Codex](evidence/after-phone-zh-butter-lamp-dark-room.png) | [round 2](evidence/round2-phone-zh-butter-lamp-dark-room.png) |
+| Desktop went-out smoke | [Codex](evidence/codex-final-desktop-en-went-out-smoke.png) | [round 2](evidence/round2-desktop-en-went-out-smoke.png) |
+| Desktop Ten Lights | [Codex](evidence/codex-final-desktop-en-ten-lights.png) | [round 2](evidence/round2-desktop-en-ten-lights.png) |
+
+Six times of day, captured by running the browser in time zones whose local time falls in each look (no test hook in the product): [Qufu](evidence/time-of-day-qufu.png), [Jokhang](evidence/time-of-day-jokhang.png).
+
+Isolated measurements, same runner, machine and network emulation as Codex's release run (`tests/tier2/performance.mjs`, single run each; [summary](evidence/round2-performance.json)):
+
+| Size | Measure | Codex release | Round 2 |
+|---|---|---|---|
+| desktop | Wish usable, emulated 4G (ms) | 1226.5 | 1214.4 |
+| desktop | Wish usable, local (ms) | 40.2 | 33.8 |
+| desktop | Setup rendered-frame p95 (ms) | 16.7 | 16.7 |
+| desktop | Place-switch maximum long task, 4x CPU (ms) | 127.0 | 126.0 |
+| desktop | Ignition maximum long task (ms) | 234 | 291 |
+| desktop | Burning rendered-frame p95 (ms) | 33.4 | 33.4 |
+| desktop | Power-saving rendered-frame p95 (ms) | 66.8 | 66.7 |
+| phone | Wish usable, emulated 4G (ms) | 1230.8 | 1215.6 |
+| phone | Wish usable, local (ms) | 34.3 | 30.4 |
+| phone | Setup rendered-frame p95 (ms) | 16.7 | 16.7 |
+| phone | Place-switch maximum long task, 4x CPU (ms) | 112.0 | 137.0 |
+| phone | Ignition maximum long task (ms) | none above 50 | none above 50 |
+| phone | Burning rendered-frame p95 (ms) | 33.4 | 33.4 |
+| phone | Power-saving rendered-frame p95 (ms) | 66.8 | 66.8 |
+
+Against the section 11 reference budgets: wish usable within 2.5 s on emulated 4G holds at both sizes; setup p95 is under 20 ms; no place-switch long task exceeds 200 ms. The desktop ignition task rose from 234 ms to 291 ms and the phone place-switch maximum from 112 ms to 137 ms, both single runs; the richer wax and metal shaders compiling on first use are the likely cause, not yet confirmed by a profile. Both contexts reported zero page or console errors; the audio context count was 0 before the light tap and 1 after.
+
+Known gaps after round 2:
+
+- The places' geometry is still stylised and low-poly. Night and dusk hide it; morning and afternoon show it.
+- Lingyin's day look carries heavy fog by design (after rain), so its dawn and dusk read washed out on phone.
+- The desktop ignition long task (291 ms) is above the 200 ms place-switch reference, although that budget does not cover ignition.
+- Whether a stranger takes the hall for filmed footage has not been tested with independent viewers.
+
+Not verified in round 2: real Android or iPhone hardware, Safari, Firefox, real 4G, battery drain, device temperature, real 30-minute or 24-hour burns, and the look across a live time-of-day boundary during a long session (only fresh loads in each look were captured).
+
+## Round 1 (Codex): what changed
 
 The visitor's candle is larger in frame, with a restrained hall, softer distant lights, less reflective lacquer and a warm local light that follows the procedural flame. Its blue base, hot core, turbulent tip and nearby-pointer response are computed in the shader. Wax keeps the original drawn outline, develops a melt pool and uneven trails, and falls with the existing burn clock. Jokhang has a textured butter surface and a liquid area around the wick.
 

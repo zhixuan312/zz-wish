@@ -20,3 +20,11 @@ The isolated performance runner now labels confirmation and ignition separately 
 - `npm run typecheck`: passed, zero diagnostics. [Log](evidence/typecheck.log).
 - `npm run test:tier1`: 11 unit tests and 8 GPU Chrome browser tests passed. Its browser setup also builds the production bundle. [Log](evidence/tier1-tier3.log).
 - Final isolated baseline/release performance comparison and touch rerun completed without page errors; see the Tier 2 report and [touch results](evidence/touch-report.json). The limitations in the Tier 2 report, including real hardware/browser/endurance gaps, still apply.
+
+## Round 2
+
+Round 2 changed the renderer, place configurations, two UI components and styles; the engine/UI facade in `web/src/engine/index.ts` is unchanged, and no new export crosses it. The time-of-day blend lives inside the renderer and reads only the browser clock. Code the round made unused was removed in the same change (the white-room environment and its import, and the old card styles for places).
+
+- `npm run lint`: passed, zero warnings. [Log](evidence/lint-round2.log).
+- `npm run typecheck`: passed, zero diagnostics. [Log](evidence/typecheck-round2.log).
+- `npm run test:tier1`: 11 unit tests and 8 GPU Chrome browser tests passed. [Log](evidence/tier1-round2.log).
