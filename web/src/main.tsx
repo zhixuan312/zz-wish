@@ -11,7 +11,8 @@ const me = await api.me().catch(() => null);
 presence.connect();
 window.addEventListener('online', () => { flushPendingEnds(); });
 
-const engine = await import('./engine/scene.js');
+const engine = await import('./engine/index.ts');
 createRoot(document.getElementById('root')!).render(<App initialLocale={me?.locale ?? detectLocale()} />);
+requestAnimationFrame(() => setTimeout(() => engine.boot(), 0));
 await engine.ready;
 (window as unknown as { __ready: boolean }).__ready = true;

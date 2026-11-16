@@ -4,6 +4,7 @@ import * as THREE from 'three';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
+import { FocusBlur } from './FocusBlur.js';
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
@@ -27,7 +28,9 @@ const TEMPLES = [
 // ---------- Renderer ----------
 const canvas = document.getElementById('gl');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+let quality = innerWidth < 720 ? 'balanced' : 'high', powerSaver = false, phase = 'wish';
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, quality === 'high' ? 1.75 : 1.25));
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.0;
 renderer.shadowMap.enabled = true;
@@ -59,6 +62,12 @@ function canvasTex(w, h, draw, srgb = true) {
   const c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d'), w, h);
   const t = new THREE.CanvasTexture(c); if (srgb) t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; return t;
 }
+const noise2 = (x, y) => {
+  const ix=Math.floor(x), iy=Math.floor(y), fx=x-ix, fy=y-iy, u=fx*fx*(3-2*fx), v=fy*fy*(3-2*fy);
+  const hash=n=>{const k=Math.sin(n)*43758.5453;return k-Math.floor(k);};
+  const n=ix+iy*57, a=hash(n)*(1-u)+hash(n+1)*u, b=hash(n+57)*(1-u)+hash(n+58)*u;
+  return a*(1-v)+b*v;
+};
 const wobble = (t, s) => Math.sin(t * 1.7 + s) * .5 + Math.sin(t * 3.1 + s * 2.3) * .3 + Math.sin(t * 7.3 + s * .7) * .2;
 const ease = (k) => k < .5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
 const SERIF = '"Noto Serif SC", "Songti SC", "STSong", serif';
@@ -160,7 +169,7 @@ function plaqueTex(text) {
 function waxMaterial(color, o = {}) {
   const m = new THREE.MeshPhysicalMaterial({ color, roughness: o.roughness ?? .52, clearcoat: o.clearcoat ?? .12, clearcoatRoughness: .35,
     sheen: .5, sheenColor: new THREE.Color(0xffc3a0), envMapIntensity: .08 });
-  m.userData.u = { uTop: { value: 1 }, uGlow: { value: 0 }, uFall: { value: o.fall ?? 110 }, uGlowColor: { value: new THREE.Color(o.glow ?? 0xff4a18) } };
+  m.userData.u = { uTop: { value: 1 }, uGlow: { value: 0 }, uFall: { value: o.fall ?? 110 }, uGlowColor: { value: new THREE.Color(o.glow ?? 0xffa344) } };
   m.onBeforeCompile = (sh) => {
     Object.assign(sh.uniforms, m.userData.u);
     sh.vertexShader = 'varying vec3 vWPos;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\nvWPos = (modelMatrix * vec4(transformed, 1.0)).xyz;');
@@ -201,7 +210,7 @@ void main(){
   x += (vn(vec2(y * 7. - t * 3.1, t * .43)) - .5) * .07 * y;
   float stretch = (1. + (vn(vec2(t * 3.7, vSeed * 5.)) - .5) * .16) * mix(.35, 1., uPower);
   float py = (y - .26) / stretch; float up = max(py, 0.);
-  float wid = .4 * max(1. - up * 1.08, .02);
+  float wid = .4 * max(1. - up * 1.08, .02) * (1. + (vn(vec2(t * 2.3 - y * 4., vSeed)) - .5) * .15);
   vec2 q = vec2(x / wid, py > 0. ? py / .66 : py / .2);
   float d = length(q);
   float a = (1. - smoothstep(.62, 1., d)) * smoothstep(0., .09, y);
@@ -212,7 +221,7 @@ void main(){
   col = mix(col, vec3(1., .92, .76), core);
   col = mix(col, vec3(.04, .12, .42), clamp(blue, 0., 1.) * .75);
   float alpha = a * uPower;
-  gl_FragColor = vec4(col * (1.15 + core * 1.1), alpha);
+  gl_FragColor = vec4(col * (1.15 + core * 1.1) * (.85 + .15 * vn(vec2(t * 3.7, vSeed * 5.))), alpha);
 }`;
 function flameMaterial(instanced) {
   return new THREE.ShaderMaterial({ vertexShader: flameVS, fragmentShader: flameFS, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
@@ -254,6 +263,19 @@ const hall = new THREE.Scene();
 hall.background = new THREE.Color(0x090605);
 hall.fog = new THREE.FogExp2(0x090605, .17);
 hall.environment = roomEnv;
+// The offering is the focal plane. Blur the distant hall before compositing it,
+// keeping the flame's soft procedural edge and the person's own outline intact.
+const focusBlur = new FocusBlur();
+class OfferingPass extends RenderPass {
+  render(renderer, write, read, delta, mask) {
+    const background = hall.background; hall.background = null; camera.layers.set(1);
+    super.render(renderer, write, read, delta, mask);
+    camera.layers.set(0); hall.background = background;
+  }
+}
+const offeringPass = new OfferingPass(hall, camera);
+offeringPass.clear = false; offeringPass.clearDepth = true;
+composer.insertPass(focusBlur, 1); composer.insertPass(offeringPass, 2);
 const ALTAR_Y = .82;
 const lacquer = new THREE.MeshPhysicalMaterial({ color: 0x241811, map: grainTex, roughness: .68, clearcoat: .12, clearcoatRoughness: .6, envMapIntensity: .08 });
 const brass = new THREE.MeshStandardMaterial({ color: 0xb08a4e, metalness: 1, roughness: .32, envMapIntensity: .35 });
@@ -314,18 +336,19 @@ const incenseTips = [];
 // Flame parts shared by every lit thing.
 function flameParts(g) {
   const wick = new THREE.Mesh(new THREE.CylinderGeometry(.0008, .001, .008, 8), new THREE.MeshStandardMaterial({ color: 0x15100c, roughness: 1 })); wick.geometry.translate(.0007, .004, 0); g.add(wick);
-  const ember = new THREE.Mesh(new THREE.SphereGeometry(.0016, 8, 8), new THREE.MeshBasicMaterial({ color: new THREE.Color(3, .7, .15) })); g.add(ember);
+  const ember = new THREE.Mesh(new THREE.SphereGeometry(.00045, 8, 8), new THREE.MeshBasicMaterial({ color: new THREE.Color(3, .7, .15) })); g.add(ember);
   const fm = flameMaterial(false); fm.uniforms.uSeedU.value = Math.random() * 10; flameMats.push(fm);
   const flame = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), fm); flame.frustumCulled = false; g.add(flame);
   const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: softTex, color: 0xff8a3a, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending })); halo.scale.set(.2, .26, 1); g.add(halo);
   const light = new THREE.PointLight(0xff9a48, 0, 0, 2); g.add(light);
   return { wick, ember, fm, flame, halo, light,
-    place(x, y) { wick.position.set(x, y - .004, 0); ember.position.set(x, y + .004, 0); flame.position.set(x, y + .002, 0); halo.position.set(x, y + .03, 0); light.position.set(x, y + .035, 0); },
+    place(x, y) { wick.position.set(x, y - .004, 0); ember.position.set(x, y + .004, 0); flame.position.set(x, y + .002, 0); halo.position.set(x, y + .03, 0); light.position.set(x, y + .019, 0); },
     tick(time, power, lightMax, wax, topY) {
-      const f = .86 + .14 * wobble(time * 2.2, fm.uniforms.uSeedU.value);
+      const seed = fm.uniforms.uSeedU.value;
+      const f = .85 + .15 * noise2((time + seed * 17) * 3.7, seed * 5);
       fm.uniforms.uTime.value = time; fm.uniforms.uPower.value = power; fm.uniforms.uScale.value = .038 * (.85 + .15 * f) * Math.max(.15, Math.sqrt(power));
       light.intensity = lightMax * power * f; halo.material.opacity = .025 * power * f; ember.visible = power > .02;
-      for (const m of wax) { m.userData.u.uTop.value = topY; m.userData.u.uGlow.value = .35 * power * f; }
+      for (const m of wax) { m.userData.u.uTop.value = topY; m.userData.u.uGlow.value = .22 * power * f; }
     } };
 }
 
@@ -382,7 +405,7 @@ function candleGeo(rows, cut, seg = 56) {
 
 const mine = (() => {
   const g = new THREE.Group(); g.position.set(0, ALTAR_Y, .06); hall.add(g);
-  const satin = new THREE.MeshStandardMaterial({ color: 0x9a7642, metalness: 1, roughness: .48, envMapIntensity: .35 });
+  const satin = new THREE.MeshStandardMaterial({ color: 0x9a7642, metalness: .85, roughness: .52, envMapIntensity: .08 });
   const plate = new THREE.Mesh(new THREE.LatheGeometry([[0, 0], [.96, 0], [1, .0035], [1.06, .011], [1.03, .012], [.95, .0062], [0, .006]].map(([x, y]) => V2(x, y)), 64), satin);
   plate.position.y = .04; plate.castShadow = plate.receiveShadow = true; g.add(plate);
   const stand = new THREE.Mesh(new THREE.LatheGeometry([[0, 0], [.042, 0], [.044, .004], [.03, .008], [.014, .014], [.01, .03], [.016, .036], [.012, .0405], [0, .0405]].map(([x, y]) => V2(x, y)), 48), satin);
@@ -393,10 +416,16 @@ const mine = (() => {
   const pool = new THREE.Mesh(new THREE.CircleGeometry(1, 48).rotateX(-Math.PI / 2), poolMat); g.add(pool);
   const cupG = new THREE.Group(); g.add(cupG);
   const cup = new THREE.Mesh(new THREE.LatheGeometry([[0, 0], [.045, 0], [.046, .007], [.014, .02], [.011, .058], [.03, .068], [.054, .1], [.058, .116], [.054, .117], [.05, .104], [.028, .074], [0, .07]].map(([x, y]) => V2(x, y)), 64),
-    new THREE.MeshStandardMaterial({ color: 0xc9a14f, metalness: 1, roughness: .25, envMapIntensity: .45 }));
+    new THREE.MeshStandardMaterial({ color: 0xc9a14f, metalness: .85, roughness: .42, envMapIntensity: .12 }));
   cup.castShadow = cup.receiveShadow = true; cupG.add(cup);
+  const butterTexture = canvasTex(128, 128, (ctx,w,h) => {
+    const rnd = mulberry32(42); ctx.fillStyle = '#b0a58c'; ctx.fillRect(0,0,w,h);
+    for(let i=0;i<2400;i++){const v=130+rnd()*100;ctx.fillStyle=`rgb(${v},${v},${v})`;ctx.fillRect(rnd()*w,rnd()*h,1+rnd()*2,1+rnd()*2);}
+  }, false);
   const fat = waxMaterial(0xe9cf8a, { roughness: .3, clearcoat: .6, glow: 0xff8a2a, fall: 25 });
+  fat.bumpMap = butterTexture; fat.bumpScale = .0003;
   const surface = new THREE.Mesh(new THREE.CircleGeometry(1, 48).rotateX(-Math.PI / 2), fat); cupG.add(surface);
+  const liquid = new THREE.Mesh(new THREE.CircleGeometry(.016, 48).rotateX(-Math.PI / 2), new THREE.MeshPhysicalMaterial({color:0xb58c37, roughness:.1, clearcoat:1, metalness:0, envMapIntensity:.15, transparent:true, opacity:.82})); cupG.add(liquid);
   const drips = Array.from({ length: 7 }, (_, i) => {
     const mesh = new THREE.Mesh(new THREE.SphereGeometry(1, 12, 12), wax);
     mesh.visible = false; g.add(mesh); return { mesh, angle: i * 2.399, start: .015 + i * .025 };
@@ -411,6 +440,7 @@ const mine = (() => {
       if (isButter) cupG.scale.setScalar(o.cup);
       else {
         wax.color.setHex(o.color); poolMat.color.setHex(o.color).lerp(new THREE.Color(0xffd0a0), .18);
+        stand.scale.set(Math.min(1, Math.max(.4, o.rows[0].r / .025)), 1, Math.min(1, Math.max(.4, o.rows[0].r / .025)));
         plate.scale.set(Math.max(...o.rows.slice(0, 4).map((q) => q.r)) + .014, 1, Math.max(...o.rows.slice(0, 4).map((q) => q.r)) + .014);
       }
       this.setLevel(1);
@@ -420,7 +450,7 @@ const mine = (() => {
       const b = o.burn, find = (arr, tgt) => { let i = 1; while (i < arr.length - 1 && arr[i] < tgt) i++; return [i, Math.min(1, Math.max(0, (tgt - arr[i - 1]) / (arr[i] - arr[i - 1] || 1)))]; };
       if (o.kind === 'butter') {
         const [i, k] = find(b.cum, L * o.fill * b.vol), y = b.ys[i - 1] + (b.ys[i] - b.ys[i - 1]) * k;
-        surface.position.y = y; surface.scale.setScalar(cupR(y)); this.top.set(0, y * o.cup, 0);
+        surface.position.y = y; surface.scale.setScalar(cupR(y)); liquid.position.y = y + .00015; liquid.scale.setScalar(Math.min(1, cupR(y) / .018)); this.top.set(0, y * o.cup, 0);
       } else {
         const R = o.rows, [i, k] = find(b.cum, L * b.total);
         const cut = Math.max(R[i - 1].y + (R[i].y - R[i - 1].y) * k, .002);
@@ -445,6 +475,7 @@ const mine = (() => {
     // Rendering choice: dim the point light as the flame nears the altar, so the near surface does not blow out to white.
     update(time, topY) { f.fm.uniforms.uWind.value = wind; f.tick(time, this.power * (lit ? Math.min(1, level * 25) : 1), this.lightMax * Math.min(1, ((this.top.y + .03) / .2) ** 2), [wax, poolMat], topY); fat.userData.u.uTop.value = topY; fat.userData.u.uGlow.value = .12 * this.power; f.ember.visible = this.power > .02 || clockTime < emberUntil; f.ember.material.color.setRGB(2.4, .36, .035).multiplyScalar(clockTime < emberUntil ? Math.max(0, (emberUntil - clockTime) / 2.5) : 1); },
   };
+  g.traverse((o) => o.layers.set(1)); f.light.layers.enableAll();
   g.visible = false; return api;
 })();
 
@@ -496,7 +527,12 @@ function snowy(m, amt) {
     sh.fragmentShader = 'varying vec3 vWN;\n' + sh.fragmentShader.replace('#include <map_fragment>', `#include <map_fragment>\ndiffuseColor.rgb = mix(diffuseColor.rgb, vec3(.86, .89, .95), smoothstep(.42, .72, vWN.y) * ${amt.toFixed(2)});`);
   };
 }
-function M(color, rough = .85, o = {}) { const m = new THREE.MeshStandardMaterial({ color, roughness: rough, ...o }); if (C.snow) snowy(m, C.snow); return m; }
+function M(color, rough = .85, o = {}) {
+  const key = JSON.stringify([color, rough, Object.entries(o).map(([k,v]) => [k, v?.isTexture ? v.uuid : v])]);
+  if (C.materials.has(key)) return C.materials.get(key);
+  const m = new THREE.MeshStandardMaterial({color, roughness: rough, ...o}); if (C.snow) snowy(m, C.snow);
+  C.materials.set(key, m); return m;
+}
 const roofMat = (color, glazed) => M(color, glazed ? .36 : .8, { map: tileTex, metalness: glazed ? .25 : .05, side: THREE.DoubleSide });
 // Static pieces are merged per material at the end of a build.
 function put(geo, m, x = 0, y = 0, z = 0, ry = 0) {
@@ -504,8 +540,9 @@ function put(geo, m, x = 0, y = 0, z = 0, ry = 0) {
   if (!C.bat.has(m)) C.bat.set(m, []); C.bat.get(m).push(g);
 }
 const box = (w, h, d, m, x, y, z, ry = 0) => put(new THREE.BoxGeometry(w, h, d), m, x, y, z, ry);
-function finishBatch() {
+async function finishBatch() {
   for (const [m, list] of C.bat) {
+    await pauseBuild();
     const geo = mergeGeometries(list.map((g) => { for (const k of Object.keys(g.attributes)) if (!['position', 'normal', 'uv'].includes(k)) g.deleteAttribute(k); return g; }));
     list.forEach((g) => g.dispose());
     const mesh = new THREE.Mesh(geo, m); C.G.add(mesh);
@@ -686,7 +723,7 @@ function trees() {
 }
 // Falling or drifting particles: snow, rain, petals, leaves, motes.
 function fall(o) {
-  const n = o.n, [cx, cy, cz] = o.at, [w, h, d] = o.box, rnd = C.rnd, rain = o.kind === 'rain', st = rain ? 6 : 3;
+  const n = Math.round(o.n * (quality === 'high' ? 1 : .45)), [cx, cy, cz] = o.at, [w, h, d] = o.box, rnd = C.rnd, rain = o.kind === 'rain', st = rain ? 6 : 3;
   const pos = new Float32Array(n * st), seeds = new Float32Array(n);
   for (let i = 0; i < n; i++) { const x = cx + (rnd() - .5) * w, y = cy + (rnd() - .5) * h, z = cz + (rnd() - .5) * d; seeds[i] = rnd() * 100; pos.set(rain ? [x, y, z, x + .05, y + .7, z] : [x, y, z], i * st); }
   const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
@@ -695,6 +732,7 @@ function fall(o) {
   obj.frustumCulled = false; C.G.add(obj);
   const lo = cy - h / 2, hi = cy + h / 2;
   C.up.push((dt, t) => {
+    obj.visible = !powerSaver && !reducedMotion.matches; if (!obj.visible) return;
     for (let i = 0; i < n; i++) {
       const j = i * st; let y = pos[j + 1] - o.vy * dt * (.7 + .6 * ((seeds[i] * 7) % 1));
       pos[j] += Math.sin(t * .9 + seeds[i]) * o.sway * dt + (o.wind ?? 0) * dt; pos[j + 2] += Math.cos(t * .7 + seeds[i] * 1.3) * o.sway * dt;
@@ -721,8 +759,9 @@ function lanterns(list, s = 1) {
 }
 function postLanterns(zs, xoff, h = 3, s = 1) { const pts = []; for (const z of zs) for (const x of [-xoff, xoff]) { box(.12, h, .12, C.dark, x, h / 2, z); box(.9, .1, .1, C.dark, x * .93, h, z); pts.push([x * .86, h - .6, z]); } lanterns(pts, s); }
 function smokeAt(x, y, z, o = {}) {
+  const rnd = C.rnd;
   const sm = new Smoke(C.G, o.n ?? 80, o.color ?? 0xd8d4cc, o.op ?? .28, o.k ?? 14);
-  C.up.push((dt, t) => { if (C.rnd() < (o.rate ?? .6)) sm.puff(V3(x, y, z), o.spread ?? .4, o.size ?? .35); sm.update(dt, t); });
+  C.up.push((dt, t) => { if (rnd() < (o.rate ?? .6)) sm.puff(V3(x, y, z), o.spread ?? .4, o.size ?? .35); sm.update(dt, t); });
 }
 function burnerAt(x, z, s = 1) {
   const g = new THREE.LatheGeometry([[0, 0], [.5, 0], [.55, .1], [.4, .3], [.9, .7], [.95, 1.2], [1, 1.25], [.85, 1.25], [.8, 1], [0, 1]].map(([a, b]) => V2(a * s, b * s)), 32);
@@ -838,251 +877,45 @@ void main(){
 }`;
 
 // Each place: its time of day, weather, landmark and buildings. Hall at the origin facing +z.
-const PLACES = {
-  // Hangzhou: early morning mist under Feilai Peak, yellow walls, deep green trees.
-  lingyin: {
-    sky: { top: 0x7c909c, horizon: 0xcfd4c8, ground: 0x59604c, sun: 0xffe2b8, dir: [.5, .22, -1], glow: .5, clouds: .45, lit: 0xf2efe6, dark: 0x9aa39e },
-    fog: [0xc2c9bd, .016], sunL: [0xfff0dc, 1.7], hemi: [0xd0dcd6, 0x3c4434, .9], bloom: [.4, 1.2],
-    view: { pos: V3(18, 10, 62), look: V3(-6, 7, 0) },
-    walk: [V3(0, 1.7, 40), V3(0, 1.7, 24), V3(0, 1.7, 14), V3(0, 1.7, 8)], doors: V3(0, 3.5, 4),
-    build() {
-      ground(0x47502f); pave(0, 30, 6, 34); pave(0, 6, 24, 16);
-      const yellow = M(0xd4a54e, .9), grey = roofMat(0xa29f98);
-      hallB({ z: -4, w: 20, d: 12, h: 6.5, eaves: 2, wall: C.red, roof: grey, lift: .9 });
-      gateB({ z: 16, w: 11, wall: yellow, roof: grey, text: '灵隐寺' });
-      compound(16, -16, 24, 3.6, yellow, grey);
-      rock(-34, 0, 14, [15, 15, 13], 5); rock(-27, 0, 38, [8, 7, 8], 9); rock(-46, 0, -6, [12, 18, 12], 13);
-      const T = trees();
-      for (let i = 0; i < 70; i++) { const side = C.rnd() < .5 ? -1 : 1, x = side * (6 + C.rnd() * 44), z = -40 + C.rnd() * 110; if (Math.abs(x) < 26 && z < 18 && z > -18) continue; if (x < -20 && Math.hypot(x + 34, z - 14) < 16) continue; T.broad(x, 0, z, 1.6 + C.rnd() * 1.6, 0x2c4626); }
-      T.finish();
-      peak(-80, 0, -140, 60, 70, M(0x3c4c3a, 1), 3, .8); peak(30, 0, -170, 80, 85, M(0x44543f, 1), 7, .8);
-      ridges([[260, 0, 50, 0x8a978c], [380, 0, 80, 0xa8b2a8]]);
-      mist({ n: 34, at: [0, 3, 10], box: [140, 5, 140], color: 0xe6ebe4, opacity: .2, size: 26 });
-      burnerAt(0, 8, 1.1);
-    },
-  },
-  // Songshan: golden dusk behind the hall; the pagoda forest in front.
-  shaolin: {
-    sky: { top: 0x34456e, horizon: 0xf2a462, ground: 0x4a3a2a, sun: 0xffb060, dir: [-.25, .05, -1], glow: 1.1, clouds: .35, lit: 0xffc98a, dark: 0x6a5468 },
-    fog: [0xc98e62, .008], sunL: [0xffb070, 2.4], hemi: [0x7a88b0, 0x40301c, .55], bloom: [.55, 1.1],
-    view: { pos: V3(-22, 15, 74), look: V3(-5, 5, 4) },
-    walk: [V3(0, 1.7, 40), V3(0, 1.7, 22), V3(0, 1.7, 14), V3(0, 1.7, 6)], doors: V3(0, 3.5, 2),
-    build() {
-      ground(0x6a573c); pave(0, 28, 6, 28);
-      const grey = roofMat(0x8e8a82);
-      hallB({ z: -4, w: 18, d: 11, h: 6, wall: C.red, roof: grey });
-      gateB({ z: 14, w: 10, wall: C.red, roof: grey, text: '少林寺' });
-      compound(14, -16, 20, 3.4, C.red, grey);
-      const brick = [M(0x8a6c52, .95), M(0x7a6858, .95), M(0x96826a, .95)];
-      for (let i = 0; i < 46; i++) { const x = -6 - C.rnd() * 36, z = 18 + C.rnd() * 38; pagoda(x, z, 1 + Math.floor(C.rnd() * 7), .7 + C.rnd() * .9, brick[i % 3]); }
-      for (let i = 0; i < 10; i++) pagoda(8 + C.rnd() * 20, 22 + C.rnd() * 30, 1 + Math.floor(C.rnd() * 4), .6 + C.rnd() * .6, brick[i % 3]);
-      const T = trees();
-      for (let i = 0; i < 40; i++) { const x = (C.rnd() - .5) * 120, z = -50 + C.rnd() * 110; if (Math.abs(x) < 22 && z < 16) continue; T.pine(x, 0, z, 1.4 + C.rnd() * 1.4, 0x2c3624); }
-      T.finish();
-      const rockM = M(0x4a4250, 1);
-      peak(-70, 0, -150, 80, 110, rockM, 11, 1.4); peak(20, 0, -190, 90, 140, rockM, 17, 1.5); peak(110, 0, -160, 70, 95, rockM, 23, 1.3);
-      ridges([[300, 0, 90, 0x6a5470], [420, 0, 120, 0x9a7a80]]);
-      fall({ n: 500, at: [-10, 4, 36], box: [50, 8, 50], color: 0xffd8a0, size: .1, vy: -.06, sway: .25, opacity: .55, add: true });
-    },
-  },
-  // Beijing: a snowy night, yellow roofs under snow, red lanterns, the city around.
-  yonghe: {
-    snow: .85, exposure: 1.2,
-    sky: { top: 0x0b0f1e, horizon: 0x3c3248, ground: 0x1c1a22, sun: 0xc8d4ff, dir: [.4, .5, -1], glow: .15, clouds: .75, lit: 0x5a4c5c, dark: 0x1e1c26, disc: 0 },
-    fog: [0x2c2634, .018], sunL: [0x9fb4e0, .5], hemi: [0x5a6488, 0x2a2428, .55], bloom: [.8, .85],
-    view: { pos: V3(13, 7, 54), look: V3(0, 7, -6) },
-    walk: [V3(0, 1.7, 42), V3(0, 1.7, 24), V3(0, 1.7, 16), V3(0, 1.7, 8)], doors: V3(0, 3.5, 4),
-    build() {
-      ground(0xdde3ec, { rough: .9 });
-      const yel = roofMat(0xe0b03a, true);
-      hallB({ z: -4, w: 20, d: 12, h: 6.5, eaves: 2, wall: C.red, roof: yel, glow: 1.8 });
-      tower({ z: -36, w: 16, d: 12, floors: 3, fh: 5, wall: C.red, roof: yel });
-      gateB({ z: 16, w: 11, wall: C.red, roof: yel, text: '雍和宫' });
-      compound(16, -46, 26, 4, C.red, yel);
-      postLanterns([22, 28, 34, 40, 46], 3.4, 3.2, 1);
-      lanterns([[-1.6, 4.1, 17.6], [1.6, 4.1, 17.6]], 1.3);
-      for (const z of [26, 40]) { const l = new THREE.PointLight(0xff6a2a, 10, 30, 2); l.position.set(0, 3.2, z); C.G.add(l); }
-      const T = trees();
-      for (let i = 0; i < 24; i++) { const side = C.rnd() < .5 ? -1 : 1; T.pine(side * (8 + C.rnd() * 16), 0, -10 + C.rnd() * 26, 1.2 + C.rnd(), 0x1e2c22); }
-      T.finish();
-      city(160, 320, 480, [-Math.PI * .9, -Math.PI * .1]);
-      fall({ n: 2600, at: [4, 9, 34], box: [60, 22, 70], color: 0xffffff, size: .16, vy: 1.1, sway: .5, opacity: .85 });
-    },
-  },
-  // Lhasa: thin air, a deep blue noon sky, white walls, gilded roofs, prayer flags, juniper smoke.
-  jokhang: {
-    exposure: .9,
-    sky: { top: 0x0b3d9e, horizon: 0x8ab6e6, ground: 0x6a5a48, sun: 0xffffff, dir: [.35, .8, -.5], glow: .3, clouds: .3, lit: 0xffffff, dark: 0xc4d4ea, disc: 4 },
-    fog: [0xa9c6ea, .004], sunL: [0xffffff, 3.1], hemi: [0x9ac0ff, 0x6a5030, .8], bloom: [.25, 2.2],
-    view: { pos: V3(15, 3.6, 60), look: V3(0, 9, 0) },
-    walk: [V3(0, 1.7, 42), V3(0, 1.7, 26), V3(0, 1.7, 18)], doors: V3(0, 3, 12),
-    build() {
-      ground(0x9a8a72); pave(0, 32, 80, 50, 0, M(0xb4ab9c, .9, { map: pavingTex }));
-      tibetan({ w: 36, d: 22, h: 9.5 });
-      for (const s of [-1, 1]) { const g = new THREE.LatheGeometry([[0, 0], [1.6, 0], [1.6, .5], [1.1, .7], [1.2, 2.2], [.8, 2.4], [.5, 3.6], [.15, 4.4], [0, 4.6]].map(([a, b]) => V2(a, b)), 24); put(g, M(0xefe9dc, .95), s * 8, 0, 22); smokeAt(s * 8, 3.4, 22, { color: 0xf0eee8, size: .7, spread: .6, op: .35, k: 20, rate: .8 }); }
-      put(new THREE.CylinderGeometry(.18, .26, 18, 10), M(0x6a4a2a, .8), -14, 9, 30);
-      for (let i = 0; i < 8; i++) { const a = i / 8 * Math.PI * 2; flags(V3(-14, 17.5, 30), V3(-14 + Math.cos(a) * 12, .6, 30 + Math.sin(a) * 12), 26, .8); }
-      flags(V3(-18, 9.8, 11), V3(-6, 14.6, -4), 30, .6); flags(V3(18, 9.8, 11), V3(6, 14.6, -4), 30, .6); flags(V3(-18, 9.8, 11), V3(18, 9.8, 11), 70, 1.5);
-      const snowM = M(0x8a7a6a, 1);
-      peak(-120, 0, -200, 90, 110, snowM, 5, 1.2); peak(60, 0, -240, 110, 140, snowM, 9, 1.3);
-      ridges([[320, 0, 130, 0x7a8aa8, 95], [460, 0, 170, 0x9aaccc, 120]]);
-    },
-  },
-  // Putuo: a pink sunrise over the sea, the lotus pond and its arched bridge before the gate.
-  puji: {
-    sky: { top: 0x5c6ea2, horizon: 0xf6c4aa, ground: 0x3a4a5a, sun: 0xffd2a0, dir: [-1, .07, -.45], glow: 1.1, clouds: .4, lit: 0xffd4c0, dark: 0x8a7a98 },
-    fog: [0xe0bcb2, .009], sunL: [0xffc8a0, 1.9], hemi: [0xa8b0d8, 0x504040, .75], bloom: [.5, 1.1],
-    view: { pos: V3(-22, 8, 70), look: V3(3, 4, 12) },
-    walk: [V3(0, 1.7, 50), V3(0, 1.9, 40), V3(0, 4, 31), V3(0, 1.9, 23), V3(0, 1.7, 14), V3(0, 1.7, 8)], doors: V3(0, 3.5, 4),
-    build() {
-      water(-1, 0x16283a); ground(0x4c5a34, { r: 120 }); ground(0xb8a888, { r: 128, y: -.3 });
-      pave(0, 48, 6, 14); pave(0, 19, 6, 8); pave(0, 6, 26, 16);
-      const rimM = M(0xb8b2a4, .9);
-      box(34, .5, 1, rimM, 0, .1, 41); box(34, .5, 1, rimM, 0, .1, 21); box(1, .5, 20, rimM, -17, .1, 31); box(1, .5, 20, rimM, 17, .1, 31);
-      water(.05, 0x1e3424, { geo: new THREE.PlaneGeometry(33, 19), z: 31, waves: .15, env: .8 });
-      lotus(-16, 16, 22, 40, .08, 90);
-      archBridge(31, 10, 2, 4, M(0xc6c0b2, .85));
-      const yellow = M(0xd8aa4c, .9), grey = roofMat(0x9a958e);
-      hallB({ z: -4, w: 22, d: 13, h: 7, eaves: 2, wall: C.red, roof: grey });
-      gateB({ z: 16, w: 11, wall: yellow, roof: grey, text: '普济寺' });
-      compound(16, -18, 24, 3.6, yellow, grey);
-      const T = trees();
-      for (let i = 0; i < 50; i++) { const a = C.rnd() * 6.28, r = 30 + C.rnd() * 80, x = Math.cos(a) * r, z = Math.sin(a) * r; if (z > 0 && Math.abs(x) < 22) continue; T.broad(x, 0, z, 1.5 + C.rnd() * 1.4, 0x2f4a2a); }
-      T.finish();
-      const isl = M(0x3a4048, 1);
-      peak(-260, -1, -320, 70, 40, isl, 3, .7); peak(-120, -1, -420, 90, 50, isl, 5, .7); peak(200, -1, -380, 60, 30, isl, 8, .7);
-      peak(60, -1, -90, 70, 60, M(0x3c4a32, 1), 12, .8);
-    },
-  },
-  // Wudang: a temple on a mountain shoulder above a sea of cloud; green-glazed roofs; the golden hall on the far summit.
-  zixiao: {
-    sky: { top: 0x587090, horizon: 0xdadee2, ground: 0xc8ccd2, sun: 0xfff4e0, dir: [.6, .3, -1], glow: .6, clouds: .35, lit: 0xffffff, dark: 0xa8b0bc },
-    fog: [0xc6ced6, .0055], sunL: [0xfff2dc, 2], hemi: [0xc0d0e0, 0x384030, .85], bloom: [.4, 1.3],
-    view: { pos: V3(28, 18, 62), look: V3(0, 8, -8) },
-    walk: [V3(0, 1.7, 40), V3(0, 1.7, 22), V3(0, 1.7, 14), V3(0, 1.7, 11), V3(0, 5.4, 3), V3(0, 5.8, -1)], doors: V3(0, 8.5, -7),
-    build() {
-      ground(0x4a5636, { r: 52 }); peak(0, -160, -8, 120, 150, M(0x34442e, 1), 2, .55);
-      pave(0, 30, 6, 30);
-      const green = roofMat(0x3c7a52, true);
-      stairs(0, 0, 10, 20, .2, .4, 8, C.stone); box(44, 4, 22, C.stone, 0, 2, -10);
-      hallB({ y: 4, z: -12, w: 18, d: 11, h: 6, eaves: 2, wall: C.red, roof: green, base: 1.4 });
-      gateB({ z: 18, w: 10, wall: C.red, roof: green, text: '紫霄宫' });
-      compound(18, -26, 24, 3.4, C.red, green);
-      const T = trees();
-      for (let i = 0; i < 40; i++) { const a = C.rnd() * 6.28, r = 28 + C.rnd() * 22; T.pine(Math.cos(a) * r, 0, Math.sin(a) * r - 6, 1.3 + C.rnd(), 0x26382a); }
-      T.finish();
-      const mtn = M(0x2e4232, 1);
-      for (const [x, z, r, h, s] of [[-120, -160, 70, 190, 1], [-60, -260, 90, 230, 2], [90, -200, 80, 210, 3], [200, -130, 70, 170, 4], [-200, -90, 80, 160, 5], [150, -330, 110, 250, 6], [-230, -280, 100, 220, 7]]) peak(x, -140, z, r, h, mtn, s * 7, 1.4);
-      peak(40, -140, -300, 70, 270, mtn, 99, 1.6); box(4, 3, 3, M(0xe0ac3c, .25, { metalness: 1 }), 40, 129, -300);
-      mist({ n: 120, at: [0, -16, -60], box: [600, 14, 500], color: 0xf4f6f8, opacity: .55, size: 70, drift: 1.2 });
-      mist({ n: 18, at: [0, 2, 10], box: [120, 4, 80], color: 0xf0f2f4, opacity: .14, size: 20 });
-    },
-  },
-  // Qufu: a clear autumn afternoon, ancient cypresses, gingko gold, the double-eaved Dacheng Hall.
-  qufu: {
-    sky: { top: 0x4f7cc0, horizon: 0xeadab8, ground: 0x7a6a50, sun: 0xffd8a0, dir: [-.7, .35, -.35], glow: .6, clouds: .28, lit: 0xfff4e4, dark: 0xb8c0d0 },
-    fog: [0xd8c8a8, .0065], sunL: [0xffd49a, 2.3], hemi: [0xb0c4e0, 0x5a4630, .7], bloom: [.4, 1.3],
-    view: { pos: V3(-15, 8, 66), look: V3(3, 7, 2) },
-    walk: [V3(0, 1.7, 46), V3(0, 1.7, 30), V3(0, 1.7, 22), V3(7.5, 1.7, 15), V3(7, 1.7, 9), V3(0, 1.7, 6.5)], doors: V3(0, 5, 0),
-    build() {
-      ground(0x8a7a5a); pave(0, 34, 6, 30); pave(0, 8, 30, 12);
-      const yel = roofMat(0xdcae3e, true), marble = M(0xdcd6c8, .85);
-      hallB({ z: -6, w: 26, d: 15, h: 8, eaves: 2, wall: C.red, roof: yel, base: 2.4, baseM: marble });
-      hallB({ z: 12, w: 5.5, d: 5.5, h: 3.2, eaves: 2, wall: C.red, roof: yel, base: .8, glow: 0 });
-      paifang(22, 12, 6, marble, roofMat(0x3d6a56, true));
-      compound(22, -26, 28, 4.2, C.red, yel);
-      const T = trees();
-      for (let z = 26; z < 76; z += 4.5) for (const s of [-1, 1]) T.cypress(s * (5.5 + C.rnd() * 3), 0, z + C.rnd() * 2, 1 + C.rnd() * .5, 0x2a3a26);
-      for (let i = 0; i < 30; i++) { const s = C.rnd() < .5 ? -1 : 1; T.cypress(s * (12 + C.rnd() * 30), 0, -30 + C.rnd() * 100, 1 + C.rnd() * .6, 0x2a3a26); }
-      for (const [x, z] of [[-16, 6], [16, 4], [-20, 30], [20, 34], [-34, 50], [30, 58]]) T.broad(x, 0, z, 2.4, 0xd9a52c);
-      T.finish();
-      ridges([[300, 0, 30, 0xb8b0a0]]);
-      fall({ n: 360, at: [0, 7, 30], box: [60, 14, 60], color: 0xe8b434, size: .35, vy: .9, sway: 1.2, opacity: 1, tex: petalTex });
-    },
-  },
-  // Meizhou Island: blue hour by the sea, lanterns lit, the white statue of Mazu on the hill above.
-  meizhou: {
-    exposure: 1.1,
-    sky: { top: 0x101a3e, horizon: 0x7a5a74, ground: 0x141824, sun: 0xff8a50, dir: [.95, .02, -.5], glow: 1.3, clouds: .35, lit: 0xd88a7a, dark: 0x2a2a44, stars: .7, disc: 0 },
-    fog: [0x3a3650, .007], sunL: [0xff9a6a, .5], hemi: [0x4a5a90, 0x201820, .6], bloom: [.8, .85],
-    view: { pos: V3(24, 11, 66), look: V3(0, 24, -36) },
-    walk: [V3(0, 1.7, 30), V3(0, 1.7, 18), V3(0, 1.7, 10)], doors: V3(0, 3.5, 4),
-    build() {
-      water(-2.5, 0x0c1424, { env: 1.2 });
-      box(60, 6, 46, C.stone, 0, -3, 0); pave(0, 12, 8, 20);
-      peak(0, -4, -95, 85, 52, M(0x26302a, 1), 21, .55);
-      const roof = roofMat(0xc0542e, true), red = M(0x9a3a28, .85);
-      hallB({ z: -4, w: 16, d: 10, h: 5.5, wall: red, roof, lift: 1.8, glow: 1.6 });
-      box(26, 16, 18, C.stone, 0, 2, -24); stairs(0, 0, -9, 20, .5, .3, 5, C.stone);
-      hallB({ y: 10, z: -24, w: 14, d: 9, h: 5, wall: red, roof, lift: 1.8, glow: 1.4 });
-      box(22, 34, 16, C.stone, 0, 9, -42); hallB({ y: 26, z: -42, w: 12, d: 8, h: 5, wall: red, roof, lift: 1.8, glow: 1.4 });
-      statue(0, 47, -95, 22, M(0xece8de, .8));
-      const sp = new THREE.SpotLight(0xffe2c0, 4000, 200, .22, .6, 2); sp.position.set(10, 34, -50); sp.target.position.set(0, 58, -95); sp.intensity = 9000; C.G.add(sp, sp.target);
-      paifang(17, 9, 5.5, M(0xb8b0a2, .9), roof);
-      const L = []; for (const [y, z, w] of [[6.3, 1.5, 16], [16.3, -19, 14], [32.3, -37.5, 12]]) for (let i = 0; i < 6; i++) L.push([-w / 2 + w * (i + .5) / 6, y, z]);
-      lanterns(L, .8); postLanterns([6, 11, 16, 21], 3, 3, .9);
-      for (const z of [8, 18]) { const l = new THREE.PointLight(0xff6a30, 12, 30, 2); l.position.set(0, 4, z); C.G.add(l); }
-      const T = trees();
-      for (let i = 0; i < 30; i++) { const x = (C.rnd() - .5) * 120, z = -110 + C.rnd() * 100, dist = Math.hypot(x, z + 95), y = -4 + 52 * Math.max(0, 1 - Math.pow(dist / 85, 1 / .55)); if (Math.abs(x) < 16 || y < 0) continue; T.broad(x, y - .5, z, 1.6 + C.rnd(), 0x1e2c22); }
-      T.finish();
-    },
-  },
-  // Xiezhou: an overcast plain in drizzle; the tall Chunqiu Tower behind green roofs.
-  guandi: {
-    sky: { top: 0x545a62, horizon: 0x9c9c98, ground: 0x4a4440, sun: 0xd0d0d0, dir: [0, .6, -1], glow: .1, clouds: .92, lit: 0xa0a2a6, dark: 0x5a5e66, disc: 0 },
-    fog: [0x8a8c8e, .013], sunL: [0xdfe4ea, .9], hemi: [0xa8b0b8, 0x3a3530, 1.1], bloom: [.45, 1.2],
-    view: { pos: V3(18, 4.5, 66), look: V3(0, 10, -10) },
-    walk: [V3(0, 1.7, 44), V3(0, 1.7, 26), V3(0, 1.7, 14), V3(0, 1.7, 8)], doors: V3(0, 3.5, 4),
-    build() {
-      ground(0x6a5c46, { rough: .55 }); pave(0, 30, 6, 34, 0, M(0x6e6a62, .3, { map: pavingTex }));
-      const green = roofMat(0x3e6c4c, true);
-      hallB({ z: -4, w: 20, d: 12, h: 6.5, eaves: 2, wall: C.red, roof: green });
-      tower({ z: -36, w: 15, d: 12, floors: 2, fh: 7.5, wall: C.red, roof: green });
-      gateB({ z: 14, w: 10, wall: C.red, roof: green, text: '关帝庙' });
-      paifang(26, 10, 6.5, C.col, green);
-      compound(14, -46, 24, 4, C.red, green);
-      for (let i = 0; i < 8; i++) { const p = new THREE.Mesh(new THREE.CircleGeometry(1 + C.rnd() * 2, 24), new THREE.MeshPhysicalMaterial({ color: 0x2a2a2a, roughness: .02, envMapIntensity: 1 })); p.rotation.x = -Math.PI / 2; p.position.set((C.rnd() - .5) * 10, .13, 20 + C.rnd() * 26); C.G.add(p); }
-      const T = trees();
-      for (let i = 0; i < 26; i++) { const s = C.rnd() < .5 ? -1 : 1; T.cypress(s * (8 + C.rnd() * 30), 0, -20 + C.rnd() * 80, 1 + C.rnd() * .5, 0x2a3424); }
-      T.finish();
-      ridges([[340, 0, 26, 0x7a7e80], [460, 0, 40, 0x8c9092]]);
-      fall({ kind: 'rain', n: 3200, at: [6, 10, 36], box: [70, 22, 70], color: 0xc8ccd2, vy: 16, sway: 0, wind: .8, opacity: .28 });
-    },
-  },
-  // Hongluo Mountain: late spring, bamboo by the path, purple wisteria on old pines, red ribbons for vows.
-  hongluo: {
-    sky: { top: 0x76a0d0, horizon: 0xece2d2, ground: 0x5a6a44, sun: 0xfff0d0, dir: [.5, .45, -1], glow: .55, clouds: .38, lit: 0xffffff, dark: 0xb4c0d0 },
-    fog: [0xd6dccc, .01], sunL: [0xfff0d8, 2.1], hemi: [0xc8d8e8, 0x506038, .85], bloom: [.4, 1.3],
-    view: { pos: V3(-11, 4.6, 60), look: V3(2, 6.5, 4) },
-    walk: [V3(0, 1.7, 42), V3(0, 1.7, 24), V3(0, 1.7, 14), V3(0, 1.7, 8)], doors: V3(0, 3.5, 2),
-    build() {
-      ground(0x4f6b34); pave(0, 32, 5, 36);
-      const grey = roofMat(0x8e8b84);
-      hallB({ z: -6, w: 18, d: 11, h: 6, wall: C.red, roof: grey });
-      gateB({ z: 14, w: 10, wall: C.red, roof: grey, text: '红螺寺' });
-      compound(14, -20, 20, 3.4, C.red, grey);
-      const T = trees();
-      for (let i = 0; i < 170; i++) { const s = C.rnd() < .5 ? -1 : 1; T.bamboo(s * (3.6 + C.rnd() * 12), 0, 18 + C.rnd() * 46, .9 + C.rnd() * .3, 0x6f9a40); }
-      for (const [x, z] of [[-9, 10], [10, 8]]) { T.pine(x, 0, z, 2.6, 0x2c3e26, true); for (let k = 0; k < 24; k++) { const a = C.rnd() * 6.28, d = 1 + C.rnd() * 3.4; T.blob(x + Math.cos(a) * d, 3 + C.rnd() * 4, z + Math.sin(a) * d, .35, 1.1 + C.rnd() * .6, .35, 0xa47ad0); } }
-      for (let i = 0; i < 40; i++) { const x = (C.rnd() - .5) * 160, z = -80 + C.rnd() * 60; T.broad(x, 0, z, 1.6 + C.rnd(), 0x3c5a2c); }
-      T.finish();
-      ribbons(10, 5, 8, 40, 5);
-      const hill = M(0x3c5a30, 1);
-      peak(-40, 0, -130, 70, 70, hill, 4, .9); peak(50, 0, -150, 80, 90, hill, 8, .9); peak(130, 0, -110, 60, 60, hill, 12, .9);
-      ridges([[300, 0, 60, 0x8aa08a], [420, 0, 90, 0xa8b8aa]]);
-      fall({ n: 420, at: [0, 6, 26], box: [50, 12, 50], color: 0xf4c2d0, size: .26, vy: .7, sway: 1, opacity: 1, tex: petalTex });
-    },
-  },
+const placeModules = {
+  lingyin: () => import('./places/lingyin.js'),
+  shaolin: () => import('./places/shaolin.js'),
+  yonghe: () => import('./places/yonghe.js'),
+  jokhang: () => import('./places/jokhang.js'),
+  puji: () => import('./places/puji.js'),
+  zixiao: () => import('./places/zixiao.js'),
+  qufu: () => import('./places/qufu.js'),
+  meizhou: () => import('./places/meizhou.js'),
+  guandi: () => import('./places/guandi.js'),
+  hongluo: () => import('./places/hongluo.js')
 };
+const PLACES = {};
+let lastBuildYield = 0;
+async function pauseBuild() {
+  if (performance.now() - lastBuildYield < 6) return;
+  await new Promise(resolve => setTimeout(resolve, 0)); lastBuildYield = performance.now();
+}
+const placeHelpers = { THREE, V3, V2, M, roofMat, ground, pave, hallB, gateB, compound, rock, trees, peak, ridges, mist, burnerAt, postLanterns, pagoda, stairs, paifang, wallRun, tibetan, flags, water, archBridge, lotus, statue, box, city, ribbons, fall, lanterns, put, tower, smokeAt, pavingTex, petalTex, pauseBuild, get context() { return C; } };
+const cachedPlaces = new Map();
+const sharedTextures = new Set([pavingTex, grainTex, tileTex, waterTex, latticeTex, softTex, petalTex, windowsTex]);
+function disposePlace(old) {
+  const materials = new Set(), textures = new Set();
+  old.G.traverse(o => { if (o.geometry && ![blobGeo, trunkGeo, coneGeo].includes(o.geometry)) o.geometry.dispose(); if (o.material) for (const m of (Array.isArray(o.material) ? o.material : [o.material])) materials.add(m); });
+  for (const m of materials) { for (const v of Object.values(m)) if (v?.isTexture && !sharedTextures.has(v)) textures.add(v); m.dispose(); }
+  for (const texture of textures) texture.dispose();
+  old.envTarget.dispose();
+}
 
-function buildPlace(t) {
-  if (place) {
-    outside.remove(place.G);
-    place.G.traverse((o) => { o.geometry?.dispose(); const m = o.material; if (m) (Array.isArray(m) ? m : [m]).forEach((x) => x.dispose()); });
-    place.env.dispose();
+async function buildPlace(t) {
+  if (place) outside.remove(place.G);
+  if (cachedPlaces.has(t.id)) {
+    place = cachedPlaces.get(t.id); cachedPlaces.delete(t.id); cachedPlaces.set(t.id, place);
+    outside.add(place.G); outside.environment = place.env; outside.fog = new THREE.FogExp2(...place.P.fog); return;
   }
+  PLACES[t.id] ??= (await placeModules[t.id]()).default(placeHelpers);
   const P = PLACES[t.id], G = new THREE.Group(); outside.add(G);
   C = { G, up: [], bat: new Map(), seed: seedOf(t.id), rnd: mulberry32(seedOf(t.id)), snow: P.snow ?? 0, cam: P.view.pos, tgt: P.view.look };
+  C.materials = new Map();
   C.stone = M(0x9c968c, .85, { map: pavingTex }); C.pave = M(0xa8a296, .85, { map: pavingTex });
   C.red = M(0x8a2a1e, .9); C.col = M(0x6e1a12, .5); C.paint = M(0x2c4a52, .8); C.dark = M(0x1c1714, .6, { metalness: .5 });
   const s = P.sky, dir = V3(...s.dir).normalize(), col = (h) => new THREE.Color(h);
@@ -1091,13 +924,18 @@ function buildPlace(t) {
   const skyMat = new THREE.ShaderMaterial({ side: THREE.BackSide, depthWrite: false, uniforms: u, vertexShader: skyVS, fragmentShader: skyFS });
   const sky = new THREE.Mesh(new THREE.SphereGeometry(500, 48, 24), skyMat); sky.renderOrder = -1; G.add(sky);
   const skyScene = new THREE.Scene(); skyScene.add(new THREE.Mesh(sky.geometry, skyMat));
-  const env = pmrem.fromScene(skyScene, 0, .1, 1000).texture; outside.environment = env;
+  await pauseBuild();
+  const envTarget = pmrem.fromScene(skyScene, 0, .1, 1000), env = envTarget.texture; outside.environment = env;
   outside.fog = new THREE.FogExp2(P.fog[0], P.fog[1]);
   const sun = new THREE.DirectionalLight(P.sunL[0], P.sunL[1]); sun.position.copy(dir).multiplyScalar(100); G.add(sun);
   G.add(new THREE.HemisphereLight(...P.hemi));
-  P.build(t); finishBatch();
+  await P.build(t); await finishBatch();
+  await renderer.compileAsync(outside, camera);
   C.up.push((dt, time) => { u.uTime.value = time; });
-  place = { G, up: C.up, sky, env, P, id: t.id };
+  place = { G, up: C.up, sky, env, envTarget, P, id: t.id };
+  cachedPlaces.set(t.id, place);
+  // Retain a bounded two-place working set. Eviction releases every owned resource.
+  while (cachedPlaces.size > 2) { const id = cachedPlaces.keys().next().value; disposePlace(cachedPlaces.get(id)); cachedPlaces.delete(id); }
 }
 
 // ---------- Camera rig and tweens ----------
@@ -1110,20 +948,29 @@ function switchTo(scene) {
   const [st, th] = out ? P.bloom : [.24, 1.15]; bloom.strength = st; bloom.threshold = th;
 }
 const tweens = [];
-function tween(dur, fn) { return new Promise((res) => { tweens.push({ t: 0, dur, fn, res, skip: false }); }); }
+function tween(dur, fn) { if (reducedMotion.matches) { fn(1); return Promise.resolve(); } return new Promise((res) => { tweens.push({ t: 0, dur, fn, res, skip: false }); }); }
 function skipTweens() { for (const tw of tweens) tw.skip = true; }
 function moveCam(pos, look, dur) {
   const p0 = rig.pos.clone(), l0 = rig.look.clone();
   return tween(dur, (k) => { const e = ease(k); rig.pos.lerpVectors(p0, pos, e); rig.look.lerpVectors(l0, look, e); });
 }
 const fadeEl = document.getElementById('fade');
-const fadeTo = (o, ms = 900) => new Promise((res) => { fadeEl.style.transitionDuration = ms + 'ms'; fadeEl.style.opacity = o; setTimeout(res, ms); });
+const fadeTo = (o, ms = 900) => new Promise((res) => { if (reducedMotion.matches) ms = 80; fadeEl.style.transitionDuration = ms + 'ms'; fadeEl.style.opacity = o; setTimeout(res, ms); });
 
 
 const WIDE = { pos: V3(0, 1.32, 2.3), look: V3(0, 1.02, -1) };
 const chooseView = () => ({ pos: V3(0, ALTAR_Y + .3, .82), look: V3(0, ALTAR_Y - .01, -.02) });
-function closeView() { const x = mine.top.x, top = ALTAR_Y + mine.top.y; const distance = Math.max(.34, mine.top.y * 2.3); return { pos: V3(x + .025, top + .052, distance), look: V3(x, top - .012, .02) }; }
+function closeView() { const x = mine.top.x, top = ALTAR_Y + mine.top.y; const butter = mine.offer?.kind === 'butter'; const distance = Math.max(butter ? .40 : .38, mine.top.y * 2.3); return { pos: V3(x + .025, top + (butter ? .18 : .065), distance), look: V3(x, top - .012, .02) }; }
+const hallTones = {
+  lingyin: [0x839b87,0x090d0b], shaolin: [0xaaa18a,0x100d09], yonghe: [0xa5b7d4,0x090d14],
+  jokhang: [0xc9a562,0x100c08], puji: [0x7c9eaa,0x080f12], zixiao: [0x72958f,0x08110e],
+  qufu: [0xb6aa80,0x111009], meizhou: [0x7e93b0,0x080c14], guandi: [0x9a9690,0x0e0f0e], hongluo: [0xb58f80,0x100a09],
+};
 function applyTemple(t) {
+  const [light, night] = hallTones[t.id];
+  hall.background.setHex(night); hall.fog.color.setHex(night);
+  hall.children.find(o => o.isDirectionalLight).color.setHex(light);
+  banners.forEach(b => { b.visible = t.id !== 'jokhang'; });
   lacquer.color.setHex(t.lacquer).multiplyScalar(.3);
   plaqueMat.map?.dispose(); plaqueMat.map = plaqueTex(t.plaque); plaqueMat.emissiveMap = plaqueMat.map; plaqueMat.needsUpdate = true; plaque.visible = !!t.plaque;
   layoutRack(t.lamp);
@@ -1133,6 +980,8 @@ function applyTemple(t) {
 
 // Step 3: one of ours, or one you draw.
 const wickSmoke = new Smoke(hall, 70, 0xcfc8c0, .2);
+wickSmoke.parts.forEach(({s}) => s.layers.set(1));
+hall.traverse(o => { if (o.isLight) o.layers.enableAll(); });
 let smokeUntil = 0, emberUntil = 0, ending = 'out', wind = 0;
 let pointerX = 0, pointerY = 0, previousPointerX = 0;
 window.addEventListener('pointermove', (e) => {
@@ -1144,6 +993,9 @@ window.addEventListener('pointermove', (e) => {
 }, { passive: true });
 
 // ---------- Public API ----------
+export function setPhase(next) { phase = next; }
+export function setPowerSaver(on) { powerSaver = on; resize(); }
+
 const TEMPLE = Object.fromEntries(TEMPLES.map((t) => [t.id, t]));
 const LAMP_CUP = .72;
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -1165,7 +1017,7 @@ export async function previewPlace(id) {
   if (busy) return; busy = true;
   while (wanted && (place?.id !== wanted.id || active !== outside)) {
     const w = wanted; await fadeTo(1, active === outside ? 260 : 700);
-    if (place?.id !== w.id) buildPlace(w);
+    if (place?.id !== w.id) await buildPlace(w);
     switchTo(outside); const v = PLACES[w.id].view; rig.pos.copy(v.pos); rig.look.copy(v.look); rig.amp = 1;
     await fadeTo(0, 600);
   }
@@ -1186,7 +1038,7 @@ export async function travel(id) {
   const t = TEMPLE[id];
   wanted = null; while (busy) await sleep(50);
   if (place?.id !== id || active !== outside) {
-    await fadeTo(1, 300); if (place?.id !== id) buildPlace(t);
+    await fadeTo(1, 300); if (place?.id !== id) await buildPlace(t);
     switchTo(outside); const v = PLACES[id].view; rig.pos.copy(v.pos); rig.look.copy(v.look); rig.amp = 1; await fadeTo(0, 400);
   }
   const P = PLACES[id];
@@ -1217,14 +1069,27 @@ export async function snuff(done = false) {
 
 function resize() {
   const w = window.innerWidth, h = window.innerHeight;
+  renderer.setPixelRatio(Math.min(devicePixelRatio, powerSaver ? 1 : quality === 'high' ? 1.75 : 1.25));
+  composer.setPixelRatio(renderer.getPixelRatio());
   renderer.setSize(w, h, false); composer.setSize(w, h);
+  renderer.shadowMap.enabled = !powerSaver;
+  mine.g.traverse(o => { if (o.isLight && o.shadow) { o.shadow.mapSize.set(quality === 'high' ? 1024 : 512, quality === 'high' ? 1024 : 512); } });
   camera.aspect = w / h; camera.fov = w / h < .8 ? 44 : 32; camera.updateProjectionMatrix();
 }
 window.addEventListener('resize', resize); resize();
-const clock = new THREE.Clock(); let clockTime = 0;
+let clockTime = 0, lastRender = 0, sampleFrames = 0, slowFrames = 0;
 const tmp = V3(0, 0, 0);
-function frame() {
-  const dt = Math.min(clock.getDelta(), .05); wind *= Math.exp(-dt * 2.8); clockTime += dt; const time = clockTime;
+function frame(stamp = performance.now()) {
+  requestAnimationFrame(frame);
+  const interval = 1000 / (powerSaver ? 15 : phase === 'burning' || phase === 'result' ? 30 : 60);
+  if (stamp - lastRender < interval - .6) return;
+  const elapsed = stamp - lastRender;
+  const dt = Math.min(elapsed / 1000, .1); lastRender = stamp;
+  if (sampleFrames < 180 && phase !== 'travel' && phase !== 'burning' && phase !== 'result' && !powerSaver) {
+    sampleFrames++; if (elapsed > 27) slowFrames++;
+    if (sampleFrames === 180 && slowFrames > 45 && quality === 'high') { quality = 'balanced'; resize(); }
+  }
+  wind *= Math.exp(-dt * 2.8); clockTime += dt; const time = clockTime;
   for (let i = tweens.length - 1; i >= 0; i--) {
     const tw = tweens[i]; tw.t += dt; const k = tw.skip ? 1 : Math.min(1, tw.t / tw.dur); tw.fn(k);
     if (k >= 1) { tweens.splice(i, 1); tw.res(); }
@@ -1239,6 +1104,7 @@ function frame() {
     wickSmoke.update(dt, time);
     if (Math.random() < .5) incenseSmoke.puff(incenseTips[Math.floor(Math.random() * 3)], .001, .01);
     incenseSmoke.update(dt, time);
+    dust.visible = !powerSaver && !reducedMotion.matches;
     const dp = dust.geometry.attributes.position;
     for (let i = 0; i < dp.count; i++) { let y = dp.getY(i) + dt * .02; if (y > 3.8) y = .4; dp.setY(i, y); dp.setX(i, dp.getX(i) + Math.sin(time * .3 + i) * dt * .004); }
     dp.needsUpdate = true;
@@ -1247,14 +1113,16 @@ function frame() {
     for (const f of place.up) f(dt, time);
   }
   // A slow drift so the view breathes like a held camera; wider outside.
-  const a = rig.amp;
+  const a = reducedMotion.matches ? 0 : rig.amp;
   camera.position.copy(rig.pos).add(tmp.set(Math.sin(time * .13) * a, Math.sin(time * .09) * a * .35, Math.cos(time * .11) * a * .5));
   camera.lookAt(rig.look);
   if (place) place.sky.position.copy(camera.position);
   renderPass.scene = active;
+  offeringPass.enabled = active === hall && mine.g.visible;
+  focusBlur.enabled = offeringPass.enabled && !powerSaver;
+  bloom.enabled = !powerSaver;
   grade.uniforms.uTime.value = time % 10;
   composer.render();
-  requestAnimationFrame(frame);
 }
 
 

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import * as engine from './engine/scene.js';
+import * as engine from './engine/index.ts';
 import { PLACES, placeById, type Locale, type PlaceId } from '../../shared/places.ts';
 import { DEFAULT_PRESET, MAX_MINUTES, MIN_MINUTES, PRESET_MINUTES, WAX_COLORS, isAllowedMinutes, presetRows, shapeMinutes, type Shape } from '../../shared/rules.ts';
 import { api, ApiError, type EndReason, type Stats } from './api.ts';
@@ -7,6 +7,7 @@ import { Burn, type Settlement } from './burn.ts';
 import { presence } from './presence.ts';
 import { DrawPad, rowsFromStrokes, type Pt } from './DrawPad.tsx';
 import { MyCandles, TenLights } from './Panels.tsx';
+import { sound } from './sound.ts';
 import { DICTS, fmtClock, fmtDuration } from './i18n.ts';
 
 type Screen = 'wish' | 'place' | 'travel' | 'candle' | 'confirm' | 'burning' | 'result';
@@ -25,6 +26,10 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
   const switchLocale = () => { const next = locale === 'zh' ? 'en' : 'zh'; setLocaleState(next); api.setLocale(next).catch(() => {}); };
 
   const [screen, setScreen] = useState<Screen>('wish');
+  const [quiet, setQuiet] = useState(false);
+  const [powerSaver, setPowerSaver] = useState(false);
+  useEffect(() => { engine.setPhase(screen); }, [screen]);
+  useEffect(() => { engine.setPowerSaver(powerSaver); }, [powerSaver]);
   const [overlay, setOverlay] = useState<Overlay>(null);
   const [busy, setBusy] = useState(false);
   const run = async (fn: () => Promise<void>) => { setBusy(true); try { await fn(); } finally { setBusy(false); } };
@@ -38,6 +43,7 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
   const [tab, setTab] = useState<'preset' | 'draw'>('preset');
   const [preset, setPreset] = useState<number>(DEFAULT_PRESET);
   const [strokes, setStrokes] = useState<Pt[][]>([]);
+  const [drawingMinutes, setDrawingMinutes] = useState<number | null>(null);
   const [color, setColor] = useState(0);
   const [fillMinutes, setFillMinutes] = useState(60);
   const shape: Shape | null = useMemo(() => {
@@ -99,7 +105,7 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
     setLightError(null); setAskPutOut(false);
     const lightPlace = placeId;
     const b = new Burn(minutes! * 60_000, (s: Settlement) => {
-      presence.stopBurning();
+      presence.stopBurning(); sound.stop();
       burnRef.current = null;
       engine.snuff(s.done);
       setResult({ done: s.done, burnedMs: s.burnedMs, plannedMs: b.planned, reason: s.reason, saved: null });
@@ -110,7 +116,7 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
     });
     burnRef.current = b; setBusy(true);
     b.keepScreenOn();
-    setScreen('burning'); setShowLeft(false); engine.ignite();
+    setScreen('burning'); setShowLeft(false); sound.start(lightPlace); engine.ignite();
     try {
       const c = await api.light({ runId: b.runId, placeId: lightPlace, shape, ...(wishId ? { wishId } : { wishText: wish.trim() }) });
       setWishId(c.wishId);
@@ -118,7 +124,7 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
       if (!b.isSettled) presence.burn(lightPlace, c.id, () => b.elapsed());
     } catch (e) {
       if (!b.isSettled) {
-        b.abort(); burnRef.current = null; engine.snuff(); setScreen('confirm');
+        b.abort(); sound.stop(); burnRef.current = null; engine.snuff(); setScreen('confirm');
         setLightError(e instanceof ApiError && e.code === 'already_burning' ? t.alreadyBurning : t.lightFailed);
       }
     } finally { setBusy(false); }
@@ -141,14 +147,15 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
   const startOver = () => { setWish(''); setWishId(null); setStrokes([]); setResult(null); setScreen('wish'); run(() => engine.toHall()); };
   const backToWish = () => { setScreen('wish'); run(() => engine.toHall()); };
 
-  const dLabel = minutes !== null ? fmtDuration(minutes * 60_000, t) : '—';
+  const displayMinutes = drawingMinutes ?? minutes;
+  const dLabel = displayMinutes !== null ? fmtDuration(displayMinutes * 60_000, t) : '—';
   const b = burnRef.current;
   const pill = online ? (liveCount === null ? null : t.presence(liveCount, screen === 'burning')) : t.presenceOff;
 
   return (
-    <div className="ui">
+    <div className="ui" data-screen={screen}>
       <header className="topbar">
-        <span className="brand">{t.brand}</span>
+        <span className="brand"><span lang="zh-CN">一盏</span><span lang="en">One Light</span></span>
         <nav>
           {screen !== 'burning' && <button className="btn small" onClick={switchLocale} aria-label={t.langSwitchLabel}>{t.langSwitch}</button>}
           <button className="btn small" onClick={() => open('stats')}>{t.tenLights}</button>
@@ -163,7 +170,7 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
         <section className="sheet">
           <div className="inner">
             <div className="eyebrow">{t.wishEyebrow}</div>
-            <h1>{t.wishTitle}</h1>
+            <h1>{t.wishTitle}</h1><div className="parallel" lang={locale === 'zh' ? 'en' : 'zh-CN'}>{DICTS[locale === 'zh' ? 'en' : 'zh'].wishTitle}</div>
             <p>{t.wishLead}</p>
             <textarea value={wish} maxLength={60} rows={2} placeholder={t.wishPlaceholder} aria-label={t.wishLabel}
               onChange={(e) => { setWish(e.target.value); setWishId(null); }} />
@@ -178,7 +185,7 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
         <section className="sheet low">
           <div className="inner">
             <div className="eyebrow">{t.placeEyebrow}</div>
-            <div className="tname">{place.name[locale]}</div>
+            <div className="tname">{place.name[locale]}<small lang={locale === 'zh' ? 'en' : 'zh-CN'}>{place.name[locale === 'zh' ? 'en' : 'zh']}</small></div>
             <p className="note">{place.where[locale]} · {place.line[locale]}</p>
             <div className="places" role="radiogroup">
               {PLACES.map((p) => (
@@ -225,7 +232,7 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
               </div>
             ) : (
               <div className="draw">
-                <DrawPad strokes={strokes} setStrokes={setStrokes} color={WAX_COLORS[color]} label={t.drawHint} empty={t.drawEmpty} />
+                <DrawPad onPreview={setDrawingMinutes} strokes={strokes} setStrokes={setStrokes} color={WAX_COLORS[color]} label={t.drawHint} empty={t.drawEmpty} />
                 <div className="draw-side">
                   <p className="note">{t.drawHint}</p>
                   <div className="row">
@@ -291,6 +298,8 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
               </div>
             ) : (
               <div className="row ctl">
+                <button className="btn small" aria-pressed={quiet} onClick={() => { sound.mute(!quiet); setQuiet(!quiet); }}>{quiet ? t.soundOn : t.soundOff}</button>
+                <button className="btn small" aria-pressed={powerSaver} onClick={() => setPowerSaver(!powerSaver)}>{powerSaver ? t.qualityOn : t.powerSaver}</button>
                 <button className="btn small" onClick={() => setShowWish(!showWish)}>{showWish ? t.hideWish : t.showWish}</button>
                 <button className="btn small" onClick={() => setShowLeft(!showLeft)}>{showLeft ? t.hideRemaining : t.showRemaining}</button>
                 <button className="btn small" onClick={() => setAskPutOut(true)}>{t.putOut}</button>

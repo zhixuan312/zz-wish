@@ -11,3 +11,6 @@ export function closeUp(): Promise<void>;
 export function backToChoose(): Promise<void>;
 export function ignite(): Promise<void>;
 export function snuff(done?: boolean): Promise<void>;
+
+export function setPhase(phase: string): void;
+export function setPowerSaver(on: boolean): void;

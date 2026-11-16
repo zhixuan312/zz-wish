@@ -1,6 +1,6 @@
 // The drawing pad: a 10 x 15 cm area. Strokes become the candle's outline row by row (the prototype's method).
 import { useEffect, useRef } from 'react';
-import { MIN_RADIUS, PAD, type Row } from '../../shared/rules.ts';
+import { MIN_RADIUS, PAD, shapeMinutes, type Row } from '../../shared/rules.ts';
 
 type Pt = { x: number; y: number };
 const PAD_ROWS = 60;
@@ -37,7 +37,7 @@ export function rowsFromStrokes(strokes: Pt[][]): Row[] | null {
   return rows;
 }
 
-export function DrawPad({ strokes, setStrokes, color, label, empty }: { strokes: Pt[][]; setStrokes: (s: Pt[][]) => void; color: number; label: string; empty: string }) {
+export function DrawPad({ strokes, setStrokes, color, label, empty, onPreview }: { onPreview: (minutes: number | null) => void; strokes: Pt[][]; setStrokes: (s: Pt[][]) => void; color: number; label: string; empty: string }) {
   const ref = useRef<HTMLCanvasElement>(null);
   const live = useRef<Pt[][]>(strokes);
   const drawing = useRef<Pt[] | null>(null);
@@ -67,12 +67,12 @@ export function DrawPad({ strokes, setStrokes, color, label, empty }: { strokes:
   useEffect(() => { const on = () => paint(); window.addEventListener('resize', on); return () => window.removeEventListener('resize', on); });
 
   const pt = (e: React.PointerEvent) => { const r = ref.current!.getBoundingClientRect(); return { x: Math.min(1, Math.max(0, (e.clientX - r.left) / r.width)), y: Math.min(1, Math.max(0, (e.clientY - r.top) / r.height)) }; };
-  const end = () => { if (!drawing.current) return; drawing.current = null; setStrokes(live.current); };
+  const end = () => { if (!drawing.current) return; drawing.current = null; setStrokes(live.current); onPreview(null); };
 
   return (
     <canvas ref={ref} className="pad" aria-label={label}
       onPointerDown={(e) => { ref.current!.setPointerCapture(e.pointerId); drawing.current = [pt(e)]; live.current = [...strokes, drawing.current]; paint(); }}
-      onPointerMove={(e) => { if (!drawing.current) return; drawing.current.push(pt(e)); paint(); }}
+      onPointerMove={(e) => { if (!drawing.current) return; drawing.current.push(pt(e)); paint(); const rows = rowsFromStrokes(live.current); onPreview(rows ? shapeMinutes({kind:'candle', rows, color}) : null); }}
       onPointerUp={end} onPointerCancel={end} />
   );
 }

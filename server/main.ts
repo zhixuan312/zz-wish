@@ -10,7 +10,7 @@ const { app } = await buildApp({ dbFile, logger: true });
 // In production the same process serves the built front end.
 const dist = resolve('web/dist');
 if (existsSync(dist)) {
-  await app.register(fastifyStatic, { root: dist, wildcard: false });
+  await app.register(fastifyStatic, { root: dist, wildcard: false, preCompressed: true });
   app.setNotFoundHandler((req, reply) => (req.url.startsWith('/api') ? reply.code(404).send({ error: 'not_found' }) : reply.sendFile('index.html')));
 }
 
