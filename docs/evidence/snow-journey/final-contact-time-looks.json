@@ -1,0 +1,396 @@
+{
+  "originalReport": {
+    "path": "artifacts/snow-time-looks/final-contact/report.json",
+    "sha256": "3007625bf4e4ae586b1455fdff7106e0c19561333e1eefb800edf49096d7096a"
+  },
+  "uiSettledReport": {
+    "path": "artifacts/snow-time-looks/final-contact-ui-settled/report.json",
+    "sha256": "f6db819991b01b5342ec3ba9d744751f844c43e21456e500a394badce3b38806"
+  },
+  "frames": [
+    {
+      "viewport": "desktop-en",
+      "hour": 5.5,
+      "name": "outside",
+      "dataset": "UI-settled replacement",
+      "path": "artifacts/snow-time-looks/final-contact-ui-settled/desktop-en/5-5/outside.png",
+      "sha256": "9bfaa795adca8936177d8c7d9405e6873efe5c1f40c29df3a8ab85d03f7bdb2c"
+    },
+    {
+      "viewport": "desktop-en",
+      "hour": 5.5,
+      "name": "choose",
+      "dataset": "UI-settled replacement",
+      "path": "artifacts/snow-time-looks/final-contact-ui-settled/desktop-en/5-5/choose.png",
+      "sha256": "cb555e614fbb16f7383ca8610fdc0f56615e731cc2a8f8033ab69e56db5b1c85"
+    },
+    {
+      "viewport": "desktop-en",
+      "hour": 5.5,
+      "name": "confirm",
+      "dataset": "UI-settled replacement",
+      "path": "artifacts/snow-time-looks/final-contact-ui-settled/desktop-en/5-5/confirm.png",
+      "sha256": "a5b63fa1364a777d24bb8aed4092133e9f9955f87596f5da146ed04188a87cad"
+    },
+    {
+      "viewport": "desktop-en",
+      "hour": 5.5,
+      "name": "burning",
+      "dataset": "Original settled burning",
+      "path": "artifacts/snow-time-looks/final-contact/desktop-en/5-5/burning.png",
+      "sha256": "ef34b39be51935f05587bf8f315244dbde4ff6654514e56c3cd016426fa08895"
+    },
+    {
+      "viewport": "desktop-en",
+      "hour": 7,
+      "name": "outside",
+      "dataset": "UI-settled replacement",
+      "path": "artifacts/snow-time-looks/final-contact-ui-settled/desktop-en/7/outside.png",
+      "sha256": "42e47cc7e63c92fc13fa51d320eeb1f4b225fde46ea355facf805dcc2f3a421c"
+    },
+    {
+      "viewport": "desktop-en",
+      "hour": 7,
+      "name": "choose",
+      "dataset": "UI-settled replacement",
+      "path": "artifacts/snow-time-looks/final-contact-ui-settled/desktop-en/7/choose.png",
+      "sha256": "56e0980b9fff20e7818c95f37c91a1342c7ed8fec7dd8aa1b887abe424d55a39"
+    },
+    {
+      "viewport": "desktop-en",
+      "hour": 7,
+      "name": "confirm",
+      "dataset": "UI-settled replacement",
+      "path": "artifacts/snow-time-looks/final-contact-ui-settled/desktop-en/7/confirm.png",
+      "sha256": "411ce2c52365e7ecd912549d7768b3dafe6a7af37a9a97d48f11a2a416891cd5"
+    },
+    {
+      "viewport": "desktop-en",
+      "hour": 7,
+      "name": "burning",
+      "dataset": "Original settled burning",
+      "path": "artifacts/snow-time-looks/final-contact/desktop-en/7/burning.png",
+      "sha256": "2f10319dc6891ee4ff9f6c960b7e1e8047598d6cb1c6dc2d781b64580dbfb72d"
+    },
+    {
+      "viewport": "desktop-en",
+      "hour": 13,
+      "name": "outside",
+      "dataset": "UI-settled replacement",
+      "path": "artifacts/snow-time-looks/final-contact-ui-settled/desktop-en/13/outside.png",
+      "sha256": "90eb70ed229288ebbdab23bb5d8e73a7e6127c760656a803d258a378fa4a6077"
+    },
+    {
+      "viewport": "desktop-en",
+      "hour": 13,
+      "name": "choose",
+      "dataset": "UI-settled replacement",
+      "path": "artifacts/snow-time-looks/final-contact-ui-settled/desktop-en/13/choose.png",
+      "sha256": "1b85789edab4b622e1edf82c306279151e8f02afaa1aef1d2f4254279ad8e0fb"
+    },
+    {
+      "viewport": "desktop-en",
+      "hour": 13,
+      "name": "confirm",
+      "dataset": "UI-settled replacement",
+      "path": "artifacts/snow-time-looks/final-contact-ui-settled/desktop-en/13/confirm.png",
+      "sha256": "a675561e767ce19438f41b4f2f2ed4710fa4dadc8d41c750336f9342eef84be5"
+    },
+    {
+      "viewport": "desktop-en",
+      "hour": 13,
+      "name": "burning",
+      "dataset": "Original settled burning",
+      "path": "artifacts/snow-time-looks/final-contact/desktop-en/13/burning.png",
+      "sha256": "d98597faccfc18472a03b545e91e1425c71559201ff5c0041bfb84cb92932ffd"
+    },
+    {
+      "viewport": "desktop-en",
+      "hour": 17.5,
+      "name": "outside",
+      "dataset": "UI-settled replacement",
+      "path": "artifacts/snow-time-looks/final-contact-ui-settled/desktop-en/17-5/outside.png",
+      "sha256": "5b5fd489bd3f0c3e47e9160c8a62fddb15fcfbf795f446f00ad0e147ca8563ed"
+    },
+    {
+      "viewport": "desktop-en",
+      "hour": 17.5,
+      "name": "choose",
+      "dataset": "UI-settled replacement",
+      "path": "artifacts/snow-time-looks/final-contact-ui-settled/desktop-en/17-5/choose.png",
+      "sha256": "18d897467a7e7f1eaccdf00ef2c5a4aa11ff0c4e8ce82a89931cee0d5ce817f6"
+    },
+    {
+      "viewport": "desktop-en",
+      "hour": 17.5,
+      "name": "confirm",
+      "dataset": "UI-settled replacement",
+      "path": "artifacts/snow-time-looks/final-contact-ui-settled/desktop-en/17-5/confirm.png",
+      "sha256": "58a89764d57cb9f5669e97247e22b8ccb2e06a97afbbe0df4ea65c176d2add41"
+    },
+    {
+      "viewport": "desktop-en",
+      "hour": 17.5,
+      "name": "burning",
+      "dataset": "Original settled burning",
+      "path": "artifacts/snow-time-looks/final-contact/desktop-en/17-5/burning.png",
+      "sha256": "a230cfd0379e05b6dacfb948e66385f712e6f3c70e65a6a8b66500374ca3a011"
+    },
+    {
+      "viewport": "desktop-en",
+      "hour": 19.5,
+      "name": "outside",
+      "dataset": "UI-settled replacement",
+      "path": "artifacts/snow-time-looks/final-contact-ui-settled/desktop-en/19-5/outside.png",
+      "sha256": "4879435cf4c2d7653387de3850bcfa1d9dd81328d16d99f02714c5bdb1e9b864"
+    },
+    {
+      "viewport": "desktop-en",
+      "hour": 19.5,
+      "name": "choose",
+      "dataset": "UI-settled replacement",
+      "path": "artifacts/snow-time-looks/final-contact-ui-settled/desktop-en/19-5/choose.png",
+      "sha256": "7547847efae354b623ffffb68ceea2eb5c9bb1f2fc06d508ebc6de3b85de1608"
+    },
+    {
+      "viewport": "desktop-en",
+      "hour": 19.5,
+      "name": "confirm",
+      "dataset": "UI-settled replacement",
+      "path": "artifacts/snow-time-looks/final-contact-ui-settled/desktop-en/19-5/confirm.png",
+      "sha256": "3c68a711c4dd29751d1081800163bb39d4e6bbccfcd85a6e1dbbdff464faa15d"
+    },
+    {
+      "viewport": "desktop-en",
+      "hour": 19.5,
+      "name": "burning",
+      "dataset": "Original settled burning",
+      "path": "artifacts/snow-time-looks/final-contact/desktop-en/19-5/burning.png",
+      "sha256": "e44cd6cdf09e9acf2ae993e65ba06e03ac0a4db7063766b51790e28ff532b360"
+    },
+    {
+      "viewport": "desktop-en",
+      "hour": 22,
+      "name": "outside",
+      "dataset": "UI-settled replacement",
+      "path": "artifacts/snow-time-looks/final-contact-ui-settled/desktop-en/22/outside.png",
+      "sha256": "a45e30f05ce2e3aacf7142107c1865ebe4c4f899233558cdedfc8bb25b8dd67b"
+    },
+    {
+      "viewport": "desktop-en",
+      "hour": 22,
+      "name": "choose",
+      "dataset": "UI-settled replacement",
+      "path": "artifacts/snow-time-looks/final-contact-ui-settled/desktop-en/22/choose.png",
+      "sha256": "2d0b39241a9bae9aa93a6bb6e598ab276ee3a305cea64075c9ce9917ea9b43b2"
+    },
+    {
+      "viewport": "desktop-en",
+      "hour": 22,
+      "name": "confirm",
+      "dataset": "UI-settled replacement",
+      "path": "artifacts/snow-time-looks/final-contact-ui-settled/desktop-en/22/confirm.png",
+      "sha256": "e16b8feaecfd94fab903755d49de9cfb3afb3aa0b2f4d2b0414b1ad4cd5a2b6f"
+    },
+    {
+      "viewport": "desktop-en",
+      "hour": 22,
+      "name": "burning",
+      "dataset": "Original settled burning",
+      "path": "artifacts/snow-time-looks/final-contact/desktop-en/22/burning.png",
+      "sha256": "23b5ce701c1b309764776b7d9285cf10e56b86ddde842ccd5d2715608a628974"
+    },
+    {
+      "viewport": "phone-zh",
+      "hour": 5.5,
+      "name": "outside",
+      "dataset": "UI-settled replacement",
+      "path": "artifacts/snow-time-looks/final-contact-ui-settled/phone-zh/5-5/outside.png",
+      "sha256": "03524f111d770810ebbd7910bd47f668c8e576cbefd5a9aaa9467db94d869d35"
+    },
+    {
+      "viewport": "phone-zh",
+      "hour": 5.5,
+      "name": "choose",
+      "dataset": "UI-settled replacement",
+      "path": "artifacts/snow-time-looks/final-contact-ui-settled/phone-zh/5-5/choose.png",
+      "sha256": "142a410e2e46068dea1b8a9167c12b4f22105482eaa32b7427a9e37ad1f19098"
+    },
+    {
+      "viewport": "phone-zh",
+      "hour": 5.5,
+      "name": "confirm",
+      "dataset": "UI-settled replacement",
+      "path": "artifacts/snow-time-looks/final-contact-ui-settled/phone-zh/5-5/confirm.png",
+      "sha256": "7890d270cab21216aad77d856a926e0f50b23e69cbaa612814ece51c6768af7a"
+    },
+    {
+      "viewport": "phone-zh",
+      "hour": 5.5,
+      "name": "burning",
+      "dataset": "Original settled burning",
+      "path": "artifacts/snow-time-looks/final-contact/phone-zh/5-5/burning.png",
+      "sha256": "bf5c8eabebb24e32f722075aacafe62746c57feff0732a67f053ff96852c0e1a"
+    },
+    {
+      "viewport": "phone-zh",
+      "hour": 7,
+      "name": "outside",
+      "dataset": "UI-settled replacement",
+      "path": "artifacts/snow-time-looks/final-contact-ui-settled/phone-zh/7/outside.png",
+      "sha256": "e46c0f3e73493da05f203740dbc0a65e672663d364b0ac65c89c25d9376a0aea"
+    },
+    {
+      "viewport": "phone-zh",
+      "hour": 7,
+      "name": "choose",
+      "dataset": "UI-settled replacement",
+      "path": "artifacts/snow-time-looks/final-contact-ui-settled/phone-zh/7/choose.png",
+      "sha256": "da7ec26f76511ef1e08574899699e775b282cf68423a2b4e1be73a5dfb30daa8"
+    },
+    {
+      "viewport": "phone-zh",
+      "hour": 7,
+      "name": "confirm",
+      "dataset": "UI-settled replacement",
+      "path": "artifacts/snow-time-looks/final-contact-ui-settled/phone-zh/7/confirm.png",
+      "sha256": "c6f5c15723896d2c7dc7c7ae01718110fdebed12a580a4d87ecf66cfc555dada"
+    },
+    {
+      "viewport": "phone-zh",
+      "hour": 7,
+      "name": "burning",
+      "dataset": "Original settled burning",
+      "path": "artifacts/snow-time-looks/final-contact/phone-zh/7/burning.png",
+      "sha256": "12fb2efc462e9d64273a09a7f671db29cb4070496912e1cd9db1a9bf34eb5169"
+    },
+    {
+      "viewport": "phone-zh",
+      "hour": 13,
+      "name": "outside",
+      "dataset": "UI-settled replacement",
+      "path": "artifacts/snow-time-looks/final-contact-ui-settled/phone-zh/13/outside.png",
+      "sha256": "a0e25131c2d4550ab7f31b0b4a1842edc17fff1e7326252938b4ec5700103915"
+    },
+    {
+      "viewport": "phone-zh",
+      "hour": 13,
+      "name": "choose",
+      "dataset": "UI-settled replacement",
+      "path": "artifacts/snow-time-looks/final-contact-ui-settled/phone-zh/13/choose.png",
+      "sha256": "e5957cd683e19237edef68a1e1f958d884974fba5738ae1820a9830f1bdbbd63"
+    },
+    {
+      "viewport": "phone-zh",
+      "hour": 13,
+      "name": "confirm",
+      "dataset": "UI-settled replacement",
+      "path": "artifacts/snow-time-looks/final-contact-ui-settled/phone-zh/13/confirm.png",
+      "sha256": "7f256776f9ea57031eafa63769540b05fa5557e46a2daf0e3286b44bd968ae42"
+    },
+    {
+      "viewport": "phone-zh",
+      "hour": 13,
+      "name": "burning",
+      "dataset": "Original settled burning",
+      "path": "artifacts/snow-time-looks/final-contact/phone-zh/13/burning.png",
+      "sha256": "fa25e92532e085b902feaf95414b83727e55c122fc94e00eaf149b1c2b1fa77b"
+    },
+    {
+      "viewport": "phone-zh",
+      "hour": 17.5,
+      "name": "outside",
+      "dataset": "UI-settled replacement",
+      "path": "artifacts/snow-time-looks/final-contact-ui-settled/phone-zh/17-5/outside.png",
+      "sha256": "41480fbab11cc00cf2ee87a17091bbf6194c4608693744747ab78979f4da8763"
+    },
+    {
+      "viewport": "phone-zh",
+      "hour": 17.5,
+      "name": "choose",
+      "dataset": "UI-settled replacement",
+      "path": "artifacts/snow-time-looks/final-contact-ui-settled/phone-zh/17-5/choose.png",
+      "sha256": "14ca0c8a1ec476ad7fe13b4feb1d2e96587f3ecab05b5f098c683a369d834b52"
+    },
+    {
+      "viewport": "phone-zh",
+      "hour": 17.5,
+      "name": "confirm",
+      "dataset": "UI-settled replacement",
+      "path": "artifacts/snow-time-looks/final-contact-ui-settled/phone-zh/17-5/confirm.png",
+      "sha256": "bd624c6f6b0859653e1d18f7b05f8e4c9054f2b15ae0e4efe0faf48ecd162ef3"
+    },
+    {
+      "viewport": "phone-zh",
+      "hour": 17.5,
+      "name": "burning",
+      "dataset": "Original settled burning",
+      "path": "artifacts/snow-time-looks/final-contact/phone-zh/17-5/burning.png",
+      "sha256": "1d5f493ade74f297634bb74db71d62052804b069136be9d126b5b0685fe13de0"
+    },
+    {
+      "viewport": "phone-zh",
+      "hour": 19.5,
+      "name": "outside",
+      "dataset": "UI-settled replacement",
+      "path": "artifacts/snow-time-looks/final-contact-ui-settled/phone-zh/19-5/outside.png",
+      "sha256": "6a5cc964605af78b78d655e5a2c3b1353d2390f059f3ae568a4f282a7f354d88"
+    },
+    {
+      "viewport": "phone-zh",
+      "hour": 19.5,
+      "name": "choose",
+      "dataset": "UI-settled replacement",
+      "path": "artifacts/snow-time-looks/final-contact-ui-settled/phone-zh/19-5/choose.png",
+      "sha256": "67b5bfd4e32934d3997c1a85fc88df64ee714b34013545d7e7065b2d9b02c219"
+    },
+    {
+      "viewport": "phone-zh",
+      "hour": 19.5,
+      "name": "confirm",
+      "dataset": "UI-settled replacement",
+      "path": "artifacts/snow-time-looks/final-contact-ui-settled/phone-zh/19-5/confirm.png",
+      "sha256": "32d28afb3485485e9878cb32e41cf57a20c8801446cb605966cff5f1a72338b7"
+    },
+    {
+      "viewport": "phone-zh",
+      "hour": 19.5,
+      "name": "burning",
+      "dataset": "Original settled burning",
+      "path": "artifacts/snow-time-looks/final-contact/phone-zh/19-5/burning.png",
+      "sha256": "ee725852116b7525d5ae6d0fd2f51ca675f19b33a98e439da76eb35d92c86ee8"
+    },
+    {
+      "viewport": "phone-zh",
+      "hour": 22,
+      "name": "outside",
+      "dataset": "UI-settled replacement",
+      "path": "artifacts/snow-time-looks/final-contact-ui-settled/phone-zh/22/outside.png",
+      "sha256": "5371d6d349db138af848c2ad55dcce1efb61247ad6a47070774c1bf195e51018"
+    },
+    {
+      "viewport": "phone-zh",
+      "hour": 22,
+      "name": "choose",
+      "dataset": "UI-settled replacement",
+      "path": "artifacts/snow-time-looks/final-contact-ui-settled/phone-zh/22/choose.png",
+      "sha256": "226a70e8f9b19eccf598fb738ca67c6478b9298e891884d8e215c91ec1c183b1"
+    },
+    {
+      "viewport": "phone-zh",
+      "hour": 22,
+      "name": "confirm",
+      "dataset": "UI-settled replacement",
+      "path": "artifacts/snow-time-looks/final-contact-ui-settled/phone-zh/22/confirm.png",
+      "sha256": "18e2d9524f6c167e540111bcc64d969ea87c829d85ab813f0d3313e7499fd2ca"
+    },
+    {
+      "viewport": "phone-zh",
+      "hour": 22,
+      "name": "burning",
+      "dataset": "Original settled burning",
+      "path": "artifacts/snow-time-looks/final-contact/phone-zh/22/burning.png",
+      "sha256": "4675f8da0ba8f56b8b609e40c0ab34b38ca82a8cefa3bcf0dd2f2d734f8da0b2"
+    }
+  ]
+}

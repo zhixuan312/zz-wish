@@ -1,0 +1,105 @@
+{
+  "createdAt": "2026-11-16T19:28:37.295Z",
+  "target": "/tmp/one-light-final-contact",
+  "url": "http://127.0.0.1:5198",
+  "api": "http://127.0.0.1:8792",
+  "sourceState": "Current production working frontend and installed final-contact assets; standard capture instrumentation only.",
+  "originalSceneSha256": "90d634eee0c8fb553dce074cef0531aace6d0be878766a4526f8b5ab09aedd56",
+  "manifestSha256": "4f51484ba21e9764232b14c641ba3eb38c3dc393237418d323b391c49d70ce1c",
+  "declaredFiles": 17,
+  "declaredPayloadBytes": 59300983,
+  "glb": {
+    "uri": "snow-roof.glb",
+    "sha256": "9e3d5aa37878af0e2eca8d409b2f511916e488aa7b523dbd26c8ec8114022fdc",
+    "bytes": 15904988
+  },
+  "verifiedFiles": [
+    {
+      "uri": "snow-roof.glb",
+      "sha256": "9e3d5aa37878af0e2eca8d409b2f511916e488aa7b523dbd26c8ec8114022fdc",
+      "bytes": 15904988
+    },
+    {
+      "uri": "hall-night.ktx2",
+      "sha256": "72a3ea803af5fe9e4e1a1f4de2d74aa17bddf2911aca94b5d492bed7ef02fe9f",
+      "bytes": 5653656
+    },
+    {
+      "uri": "hall-dusk.ktx2",
+      "sha256": "1bcf9fc7d1ba7e8618e3560717ed15f3798d52178183888eb8d0923f63d6b106",
+      "bytes": 5665158
+    },
+    {
+      "uri": "hall-day.ktx2",
+      "sha256": "7266546fb2ec434c9e365c307b5a1c5db8950850410bb5e7bcfe151fda4db3b9",
+      "bytes": 5755827
+    },
+    {
+      "uri": "hall-lamp.ktx2",
+      "sha256": "6cad627255abf75d628cef56379d11cc498e62f2ed7ff82d77722bee30129629",
+      "bytes": 2661056
+    },
+    {
+      "uri": "gate-night.ktx2",
+      "sha256": "c08e78ac54ecf37262c9cb46141f7435779bb7fb08320ed4756885256251f1e6",
+      "bytes": 1508240
+    },
+    {
+      "uri": "gate-dusk.ktx2",
+      "sha256": "07959525291bb978ce7696174d71cf1c772730f8c234e6ff69c8468c748400ba",
+      "bytes": 1535660
+    },
+    {
+      "uri": "gate-day.ktx2",
+      "sha256": "1d1e7ece7433761ee7cc912476b65979d8dde28a159209a5292f5d350c509245",
+      "bytes": 1575585
+    },
+    {
+      "uri": "gate-lamp.ktx2",
+      "sha256": "caa277045f1e6212107a71af75bfc0999c9467ee474ea9af85b8e3260e65cad5",
+      "bytes": 645370
+    },
+    {
+      "uri": "court-night.ktx2",
+      "sha256": "1b7676ecae0b2cb5b1da4f43ee5ba9d4dca3ba4cf6e3b0b06082d6e1becfabe1",
+      "bytes": 6182072
+    },
+    {
+      "uri": "court-dusk.ktx2",
+      "sha256": "51582548f75f419d28d369fd4c7c943f463db859295795745c219d90d22359c3",
+      "bytes": 5543497
+    },
+    {
+      "uri": "court-day.ktx2",
+      "sha256": "db8cb556b4b04345190d6ca34b497783d742e66e6a430b530c06053cf6941633",
+      "bytes": 5520375
+    },
+    {
+      "uri": "court-lamp.ktx2",
+      "sha256": "042403a98f0016dfab760333034624707ad7595a6c63a404fb9e4787b828aa9e",
+      "bytes": 1102677
+    },
+    {
+      "uri": "contact-padding.receipt.json",
+      "sha256": "f57a7141a2e0bac2110b8e3c0e238afb6c42ded36e56349a889b61d67a5de9f1",
+      "bytes": 9736
+    },
+    {
+      "uri": "geometry.receipt.json",
+      "sha256": "fe195bb332e794332885f3e913d15cc0c871cfaf8b7718bc3f894f36389e3456",
+      "bytes": 27877
+    },
+    {
+      "uri": "independent-geometry-proof.json",
+      "sha256": "a6725d3763bd2c0b3d44dc4e37a7fa2feaa11ce6f86331eac87ccef6a7cb1390",
+      "bytes": 995
+    },
+    {
+      "uri": "independent-contact-padding-proof.json",
+      "sha256": "807b8ff3f9a50f12378801aad522a8a56f520759ec3ea7130919da304afb8725",
+      "bytes": 8214
+    }
+  ],
+  "geometryDiagnosticsInstalled": false,
+  "prior5194Preserved": true
+}

@@ -5,6 +5,7 @@ import { execFileSync } from 'node:child_process';
 import { resolve, relative, join } from 'node:path';
 
 const evidence = process.env.EVIDENCE || 'before';
+const compact = process.env.COMPACT_SUMMARY === '1';
 const root = resolve(`artifacts/snow-journey/${evidence}`);
 const out = resolve('docs/evidence/snow-journey');
 const reportBytes = await readFile(join(root, 'report.json'));
@@ -15,6 +16,21 @@ const range = values => [Math.min(...values), Math.max(...values)];
 const rel = path => relative(process.cwd(), path);
 const escape = value => String(value).replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character]);
 const invalidParticleControl = evidence === 'before';
+const manifestSha256 = report.sourceFingerprints?.start?.instrumentation?.snowManifestSha256 ?? null;
+let deliveryManifest = null;
+const compactDelivery = (value, viewIndex) => {
+  if (!compact || !value?.available) return value;
+  const layouts = [...new Map(value.textures.map(texture => {
+    const layout = { image: texture.image, format: texture.format, type: texture.type, mipCount: texture.mipCount,
+      mipDimensions: texture.mipmaps.map(mip => ({ level: mip.level, width: mip.width, height: mip.height, bytes: mip.bytes })),
+      minFilter: texture.minFilter, magFilter: texture.magFilter, anisotropy: texture.anisotropy, channel: texture.channel, colorSpace: texture.colorSpace };
+    return [JSON.stringify(layout), layout];
+  })).values()];
+  return { available: true, place: value.place, partialPreview: value.partialPreview, materialProfile: value.materialProfile, lightmapCodec: value.lightmapCodec,
+    lightingState: value.lightingState, bankReferences: value.bankReferences, textureLayouts: layouts,
+    uploadCounts: { textures: value.textures.length, validHandles: value.textures.filter(texture => texture.upload.webglHandleIsTexture).length, versionsMatch: value.textures.filter(texture => texture.upload.versionMatches).length },
+    manifestSha256, exactMetadataReference: { file: rel(join(root, 'report.json')), reportSha256: hash(reportBytes), viewIndex, field: 'views[viewIndex].delivery' } };
+};
 const validity = {
   normalJourneySequences: 'Valid camera-still raw framebuffer observations with normal scene animation.',
   temporalGradeCausalProbe: invalidParticleControl ? 'Valid before-state causal probe. Both controls freeze physical animation; changing only the temporal grade time causes the measured pixel changes.' : 'The earlier before-state causal probe is preserved separately. This run records whether the removed temporal grade uniform is present; it does not repeat that old probe.',
@@ -27,6 +43,7 @@ for (const item of report.sequences) {
   const path = resolve(item.rawFile);
   const bytes = await readFile(path);
   const raw = JSON.parse(bytes);
+  if (raw.place?.manifest && !deliveryManifest) deliveryManifest = raw.place.manifest;
   const samples = raw.samples.slice(1);
   const lights = [...new Set(raw.samples.flatMap(sample => sample.lights.map(light => light.id)))].map(id => {
     const rows = raw.samples.map(sample => sample.lights.find(light => light.id === id)).filter(Boolean);
@@ -40,7 +57,7 @@ for (const item of report.sequences) {
     observedRenderedFramesPerSecond: (raw.samples.length - 1) / (raw.samples.at(-1).elapsedMs / 1000),
     cameraMaximumElementDelta: raw.cameraMaximumElementDelta,
     projectionMaximumElementDelta: raw.projectionMaximumElementDelta,
-    controls: raw.controls, place: raw.place ?? null,renderInfo:raw.renderInfo??null, lamp: raw.lamp ?? null, walk: raw.walk ?? null,
+    controls: raw.controls, place: compact && raw.place ? { id: raw.place.id, baked: raw.place.baked, lightingState: raw.place.lightingState, manifestSha256, fullManifestIn: rel(path) } : raw.place ?? null,renderInfo:raw.renderInfo??null, lamp: raw.lamp ?? null, walk: raw.walk ?? null,
     temporalGradeUniformPresent: raw.temporalGradeUniformPresent ?? null,
     exposureRange: range(raw.samples.map(sample => sample.exposure)),
     bloomStrengthRange: range(raw.samples.map(sample => sample.bloomStrength)),
@@ -74,9 +91,9 @@ if (evidence === 'before') {
   source = { label: 'Actual procedural before state; Blender-baked Snow Roof was not active.', frozenCheckout: baseline, committedRevision: revision, frontendFiles: files, originalSceneSha256: files.find(file => file.path.endsWith('/scene.js'))?.sha256, snapshotOnlyChanges: ['Raw framebuffer capture helper and scene instrumentation.', 'Vite API proxy uses the isolated API on port 8792.', 'Camera drift disabled and walk inspection holds for measurement.'] };
 }
 
-const screenshots = await Promise.all(report.views.map(async view => {
+const screenshots = await Promise.all(report.views.map(async (view, viewIndex) => {
   const path = join(root, view.viewport, `${view.name}.png`), bytes = await readFile(path);
-  return { ...view, file: rel(path), sha256: hash(bytes), bytes: bytes.length };
+  return { ...view, delivery: compactDelivery(view.delivery, viewIndex), file: rel(path), sha256: hash(bytes), bytes: bytes.length };
 }));
 const videos = [];
 for (const viewport of [...new Set(report.views.map(view => view.viewport))]) {
@@ -88,6 +105,7 @@ for (const viewport of [...new Set(report.views.map(view => view.viewport))]) {
 const records = report.records.map(record => ({ viewport: record.viewport, stage: record.stage, hiddenObserved: record.hiddenObserved ?? null, candles: record.candles.map(candle => ({ id: candle.id, wishId: candle.wishId, placeId: candle.placeId, durationMs: candle.durationMs, status: candle.status, burnedMs: candle.burnedMs, endReason: candle.endReason })) }));
 const summary = {
   evidence, source, runtime: report.runtime ?? null, capturedAt: report.createdAt, finishedAt: report.finishedAt,
+  compactSummary: compact, ...(compact ? { deliveryManifest, exactNumericEvidence: 'Original report, per-frame sequence JSON and lossless pixel arrays remain unchanged and linked by hashes. This derived summary deduplicates manifest/texture-layout descriptions only.' } : {}),
   method: 'Ten-second sequences read raw display RGB framebuffer regions immediately after rendering. Rec.709 weighted luminance is measured on a 0–255 code-value scale before video encoding. Per-pixel frame-to-frame RMS is averaged over the sequence; ROI mean deltas are reported separately.',
   validity,
   coverage: { screenshots: screenshots.length, tenSecondSequences: sequences.length, allCameraMatricesExactlyStill: sequences.every(sequence => sequence.cameraMaximumElementDelta === 0), allProjectionMatricesExactlyStill: sequences.every(sequence => sequence.projectionMaximumElementDelta === 0), viewports: ['1440×900 desktop, English primary language', '390×844 touch emulation, Chinese primary language'], originalHomeCoverRetained: true, onlySnowRoofJourneySelected: true },

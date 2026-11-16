@@ -1,0 +1,2753 @@
+{
+  "method": "Lossless uint32 Rec.709 numerator / 10000, recomputed independently from gzip pixel arrays; no video decoding.",
+  "results": [
+    {
+      "source": "artifacts/snow-journey/final-contact/desktop-en/sequences/home.json",
+      "name": "home",
+      "rois": [
+        {
+          "name": "left_lattice",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.01765442358303345,
+          "maximumPixelRmsDelta": 0.059162193309473414,
+          "meanAbsoluteRoiMeanDelta": 0.0008061137695312503,
+          "meanChangedPixelFraction": 0.0019551595052083332,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 9.020562075079397e-17,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "floor_planks",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.007336511089267456,
+          "maximumPixelRmsDelta": 0.026117479292791155,
+          "meanAbsoluteRoiMeanDelta": 0.00020466324869791727,
+          "meanChangedPixelFraction": 0.0006103515625,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 4.163336342344337e-17,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "rock_surface",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.015652613784657,
+          "maximumPixelRmsDelta": 0.06477304428251772,
+          "meanAbsoluteRoiMeanDelta": 0.0006510639648437499,
+          "meanChangedPixelFraction": 0.0014432779947916668,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 1.444157293750692e-16,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "sky_control",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0,
+          "maximumPixelRmsDelta": 0,
+          "meanAbsoluteRoiMeanDelta": 0,
+          "meanChangedPixelFraction": 0,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 0,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "flame_control",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.21704078674054364,
+          "maximumPixelRmsDelta": 0.5694324262684185,
+          "meanAbsoluteRoiMeanDelta": 0.08581765624999964,
+          "meanChangedPixelFraction": 0.15572184244791668,
+          "meanOver3LsbPixelFraction": 0.000016276041666666666,
+          "maximumDifferenceFromReportedFloat64Metrics": 3.635980405647388e-15,
+          "matchesReportedMetricsWithin1eMinus8": true
+        }
+      ]
+    },
+    {
+      "source": "artifacts/snow-journey/final-contact/desktop-en/sequences/home-other-language.json",
+      "name": "home-other-language",
+      "rois": [
+        {
+          "name": "left_lattice",
+          "frames": 600,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.018825331169029645,
+          "maximumPixelRmsDelta": 0.05996464941686478,
+          "meanAbsoluteRoiMeanDelta": 0.0009187050846462861,
+          "meanChangedPixelFraction": 0.0022392464002504173,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 1.0061396160665481e-16,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "floor_planks",
+          "frames": 600,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.007939605945588893,
+          "maximumPixelRmsDelta": 0.028190349946003238,
+          "meanAbsoluteRoiMeanDelta": 0.0002441043503495409,
+          "meanChangedPixelFraction": 0.0007218247861018364,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 4.163336342344337e-17,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "rock_surface",
+          "frames": 600,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.01676605049845056,
+          "maximumPixelRmsDelta": 0.061253709788800764,
+          "meanAbsoluteRoiMeanDelta": 0.0007355392124895657,
+          "meanChangedPixelFraction": 0.0016413260381886478,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 1.4051260155412137e-16,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "sky_control",
+          "frames": 600,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0,
+          "maximumPixelRmsDelta": 0,
+          "meanAbsoluteRoiMeanDelta": 0,
+          "meanChangedPixelFraction": 0,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 0,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "flame_control",
+          "frames": 600,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.2352344519695548,
+          "maximumPixelRmsDelta": 0.5382810807873455,
+          "meanAbsoluteRoiMeanDelta": 0.10293820372821857,
+          "meanChangedPixelFraction": 0.1807696258086394,
+          "meanOver3LsbPixelFraction": 0.0000032606427378964943,
+          "maximumDifferenceFromReportedFloat64Metrics": 4.3298697960381105e-15,
+          "matchesReportedMetricsWithin1eMinus8": true
+        }
+      ]
+    },
+    {
+      "source": "artifacts/snow-journey/final-contact/desktop-en/sequences/wish-written.json",
+      "name": "wish-written",
+      "rois": [
+        {
+          "name": "left_lattice",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.014453079665094917,
+          "maximumPixelRmsDelta": 0.062489290957531286,
+          "meanAbsoluteRoiMeanDelta": 0.0006106933593749997,
+          "meanChangedPixelFraction": 0.0014933268229166666,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 1.205632815803881e-16,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "floor_planks",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.006034450427343946,
+          "maximumPixelRmsDelta": 0.024244614414855103,
+          "meanAbsoluteRoiMeanDelta": 0.00016245581054687532,
+          "meanChangedPixelFraction": 0.0004728190104166667,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 4.163336342344337e-17,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "rock_surface",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.013290901984490509,
+          "maximumPixelRmsDelta": 0.05662105342896979,
+          "meanAbsoluteRoiMeanDelta": 0.0005129248860677086,
+          "meanChangedPixelFraction": 0.0011372884114583333,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 1.4051260155412137e-16,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "sky_control",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0,
+          "maximumPixelRmsDelta": 0,
+          "meanAbsoluteRoiMeanDelta": 0,
+          "meanChangedPixelFraction": 0,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 0,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "flame_control",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.18870603970465888,
+          "maximumPixelRmsDelta": 0.5111534286370585,
+          "meanAbsoluteRoiMeanDelta": 0.06709258268229158,
+          "meanChangedPixelFraction": 0.12292561848958333,
+          "meanOver3LsbPixelFraction": 0.000004475911458333333,
+          "maximumDifferenceFromReportedFloat64Metrics": 3.4139358007223564e-15,
+          "matchesReportedMetricsWithin1eMinus8": true
+        }
+      ]
+    },
+    {
+      "source": "artifacts/snow-journey/final-contact/desktop-en/sequences/place.json",
+      "name": "place",
+      "rois": [
+        {
+          "name": "left_structure",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.4124591137763977,
+          "maximumPixelRmsDelta": 2.121091283638069,
+          "meanAbsoluteRoiMeanDelta": 0.0014723736979166664,
+          "meanChangedPixelFraction": 0.0027494303385416667,
+          "meanOver3LsbPixelFraction": 0.0009749348958333333,
+          "maximumDifferenceFromReportedFloat64Metrics": 7.216449660063518e-16,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "right_structure",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.4797145255852602,
+          "maximumPixelRmsDelta": 1.8132575926047223,
+          "meanAbsoluteRoiMeanDelta": 0.0017847637532552093,
+          "meanChangedPixelFraction": 0.0023551432291666666,
+          "meanOver3LsbPixelFraction": 0.001187744140625,
+          "maximumDifferenceFromReportedFloat64Metrics": 6.661338147750939e-16,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "lower_floor",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0,
+          "maximumPixelRmsDelta": 0,
+          "meanAbsoluteRoiMeanDelta": 0,
+          "meanChangedPixelFraction": 0,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 0,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "upper_control",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.1240192401667561,
+          "maximumPixelRmsDelta": 0.4372355216656692,
+          "meanAbsoluteRoiMeanDelta": 0.0029413789062500023,
+          "meanChangedPixelFraction": 0.00668212890625,
+          "meanOver3LsbPixelFraction": 0.000389404296875,
+          "maximumDifferenceFromReportedFloat64Metrics": 4.718447854656915e-16,
+          "matchesReportedMetricsWithin1eMinus8": true
+        }
+      ]
+    },
+    {
+      "source": "artifacts/snow-journey/final-contact/desktop-en/sequences/walk-1.json",
+      "name": "walk-1",
+      "rois": [
+        {
+          "name": "left_structure",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.04064575270486496,
+          "maximumPixelRmsDelta": 1.7438820712193566,
+          "meanAbsoluteRoiMeanDelta": 0.0002894503580729166,
+          "meanChangedPixelFraction": 0.00003662109375,
+          "meanOver3LsbPixelFraction": 0.0000341796875,
+          "maximumDifferenceFromReportedFloat64Metrics": 4.440892098500626e-16,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "right_structure",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.08184785481876361,
+          "maximumPixelRmsDelta": 1.5958145748380748,
+          "meanAbsoluteRoiMeanDelta": 0.00021615478515624967,
+          "meanChangedPixelFraction": 0.00008382161458333333,
+          "meanOver3LsbPixelFraction": 0.0000634765625,
+          "maximumDifferenceFromReportedFloat64Metrics": 2.220446049250313e-16,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "lower_floor",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.0036237235206426173,
+          "maximumPixelRmsDelta": 0.2661564387951368,
+          "meanAbsoluteRoiMeanDelta": 0.000029393880208333325,
+          "meanChangedPixelFraction": 0.000040690104166666664,
+          "meanOver3LsbPixelFraction": 0.000020345052083333332,
+          "maximumDifferenceFromReportedFloat64Metrics": 4.440892098500626e-16,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "upper_control",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.11270746223958088,
+          "maximumPixelRmsDelta": 0.4674903451960933,
+          "meanAbsoluteRoiMeanDelta": 0.0005355946451822918,
+          "meanChangedPixelFraction": 0.00419921875,
+          "meanOver3LsbPixelFraction": 0.0003125,
+          "maximumDifferenceFromReportedFloat64Metrics": 5.551115123125783e-16,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "flame_control",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.4007348526470981,
+          "maximumPixelRmsDelta": 2.501068033273095,
+          "meanAbsoluteRoiMeanDelta": 0.0010981975911458356,
+          "meanChangedPixelFraction": 0.0010611979166666667,
+          "meanOver3LsbPixelFraction": 0.0006953938802083333,
+          "maximumDifferenceFromReportedFloat64Metrics": 4.440892098500626e-16,
+          "matchesReportedMetricsWithin1eMinus8": true
+        }
+      ]
+    },
+    {
+      "source": "artifacts/snow-journey/final-contact/desktop-en/sequences/walk-2.json",
+      "name": "walk-2",
+      "rois": [
+        {
+          "name": "left_structure",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0,
+          "maximumPixelRmsDelta": 0,
+          "meanAbsoluteRoiMeanDelta": 0,
+          "meanChangedPixelFraction": 0,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 0,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "right_structure",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0,
+          "maximumPixelRmsDelta": 0,
+          "meanAbsoluteRoiMeanDelta": 0,
+          "meanChangedPixelFraction": 0,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 0,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "lower_floor",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.004667803123667944,
+          "maximumPixelRmsDelta": 0.40109570362545255,
+          "meanAbsoluteRoiMeanDelta": 0.00003345865885416666,
+          "meanChangedPixelFraction": 0.000018717447916666665,
+          "meanOver3LsbPixelFraction": 0.000018717447916666665,
+          "maximumDifferenceFromReportedFloat64Metrics": 1.6653345369377348e-16,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "upper_control",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0,
+          "maximumPixelRmsDelta": 0,
+          "meanAbsoluteRoiMeanDelta": 0,
+          "meanChangedPixelFraction": 0,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 0,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "flame_control",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.22678862196913785,
+          "maximumPixelRmsDelta": 2.1461881702495567,
+          "meanAbsoluteRoiMeanDelta": 0.001592446940104168,
+          "meanChangedPixelFraction": 0.00063232421875,
+          "meanOver3LsbPixelFraction": 0.00035888671875,
+          "maximumDifferenceFromReportedFloat64Metrics": 4.440892098500626e-16,
+          "matchesReportedMetricsWithin1eMinus8": true
+        }
+      ]
+    },
+    {
+      "source": "artifacts/snow-journey/final-contact/desktop-en/sequences/walk-3.json",
+      "name": "walk-3",
+      "rois": [
+        {
+          "name": "left_structure",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0,
+          "maximumPixelRmsDelta": 0,
+          "meanAbsoluteRoiMeanDelta": 0,
+          "meanChangedPixelFraction": 0,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 0,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "right_structure",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0,
+          "maximumPixelRmsDelta": 0,
+          "meanAbsoluteRoiMeanDelta": 0,
+          "meanChangedPixelFraction": 0,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 0,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "lower_floor",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0,
+          "maximumPixelRmsDelta": 0,
+          "meanAbsoluteRoiMeanDelta": 0,
+          "meanChangedPixelFraction": 0,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 0,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "upper_control",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0,
+          "maximumPixelRmsDelta": 0,
+          "meanAbsoluteRoiMeanDelta": 0,
+          "meanChangedPixelFraction": 0,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 0,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "flame_control",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.06311723684676558,
+          "maximumPixelRmsDelta": 0.35170407518808516,
+          "meanAbsoluteRoiMeanDelta": 0.000682639973958334,
+          "meanChangedPixelFraction": 0.0008455403645833333,
+          "meanOver3LsbPixelFraction": 0.00019287109375,
+          "maximumDifferenceFromReportedFloat64Metrics": 1.214306433183765e-16,
+          "matchesReportedMetricsWithin1eMinus8": true
+        }
+      ]
+    },
+    {
+      "source": "artifacts/snow-journey/final-contact/desktop-en/sequences/lamp-preset.json",
+      "name": "lamp-preset",
+      "rois": [
+        {
+          "name": "left_structure",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.02292443047842944,
+          "maximumPixelRmsDelta": 0.11806384267533233,
+          "meanAbsoluteRoiMeanDelta": 0.00004421997070312496,
+          "meanChangedPixelFraction": 0.00014567057291666667,
+          "meanOver3LsbPixelFraction": 0.000126953125,
+          "maximumDifferenceFromReportedFloat64Metrics": 2.7755575615628914e-17,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "right_structure",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.0125568328014806,
+          "maximumPixelRmsDelta": 0.12655759434937122,
+          "meanAbsoluteRoiMeanDelta": 0.000027473470052083333,
+          "meanChangedPixelFraction": 0.00008748372395833333,
+          "meanOver3LsbPixelFraction": 0.000056966145833333334,
+          "maximumDifferenceFromReportedFloat64Metrics": 4.163336342344337e-17,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "lower_floor",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0,
+          "maximumPixelRmsDelta": 0,
+          "meanAbsoluteRoiMeanDelta": 0,
+          "meanChangedPixelFraction": 0,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 0,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "upper_control",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.011675560838007939,
+          "maximumPixelRmsDelta": 0.09354327838835148,
+          "meanAbsoluteRoiMeanDelta": 0.00016910205078125008,
+          "meanChangedPixelFraction": 0.00015665690104166668,
+          "meanOver3LsbPixelFraction": 0.000024007161458333332,
+          "maximumDifferenceFromReportedFloat64Metrics": 3.469446951953614e-17,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "flame_control",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 1.5952726681916145,
+          "maximumPixelRmsDelta": 4.989821033598541,
+          "meanAbsoluteRoiMeanDelta": 0.06168993383789053,
+          "meanChangedPixelFraction": 0.03993937174479167,
+          "meanOver3LsbPixelFraction": 0.013125813802083334,
+          "maximumDifferenceFromReportedFloat64Metrics": 2.6645352591003757e-15,
+          "matchesReportedMetricsWithin1eMinus8": true
+        }
+      ]
+    },
+    {
+      "source": "artifacts/snow-journey/final-contact/desktop-en/sequences/confirm.json",
+      "name": "confirm",
+      "rois": [
+        {
+          "name": "left_structure",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.0020441796041698024,
+          "maximumPixelRmsDelta": 0.0704282716337161,
+          "meanAbsoluteRoiMeanDelta": 0.00000655517578125,
+          "meanChangedPixelFraction": 0.000015462239583333335,
+          "meanOver3LsbPixelFraction": 0.000004069010416666667,
+          "maximumDifferenceFromReportedFloat64Metrics": 6.938893903907228e-18,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "right_structure",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.000667313948049636,
+          "maximumPixelRmsDelta": 0.07056327294195791,
+          "meanAbsoluteRoiMeanDelta": 0.0000066181640625,
+          "meanChangedPixelFraction": 0.0000048828125,
+          "meanOver3LsbPixelFraction": 0.00000244140625,
+          "maximumDifferenceFromReportedFloat64Metrics": 1.3877787807814457e-17,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "lower_floor",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0,
+          "maximumPixelRmsDelta": 0,
+          "meanAbsoluteRoiMeanDelta": 0,
+          "meanChangedPixelFraction": 0,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 0,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "upper_control",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0,
+          "maximumPixelRmsDelta": 0,
+          "meanAbsoluteRoiMeanDelta": 0,
+          "meanChangedPixelFraction": 0,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 0,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "flame_control",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 1.61161310388145,
+          "maximumPixelRmsDelta": 4.504940524756317,
+          "meanAbsoluteRoiMeanDelta": 0.048359864990234376,
+          "meanChangedPixelFraction": 0.019502360026041665,
+          "meanOver3LsbPixelFraction": 0.006395670572916666,
+          "maximumDifferenceFromReportedFloat64Metrics": 8.881784197001252e-16,
+          "matchesReportedMetricsWithin1eMinus8": true
+        }
+      ]
+    },
+    {
+      "source": "artifacts/snow-journey/final-contact/desktop-en/sequences/burning.json",
+      "name": "burning",
+      "rois": [
+        {
+          "name": "left_structure",
+          "frames": 301,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.04212624935152521,
+          "maximumPixelRmsDelta": 0.09082872043069927,
+          "meanAbsoluteRoiMeanDelta": 0.003301088378906248,
+          "meanChangedPixelFraction": 0.0073876953125,
+          "meanOver3LsbPixelFraction": 0.0000048828125,
+          "maximumDifferenceFromReportedFloat64Metrics": 1.1102230246251565e-16,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "right_structure",
+          "frames": 301,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.05081550532545769,
+          "maximumPixelRmsDelta": 0.13527680782871884,
+          "meanAbsoluteRoiMeanDelta": 0.0035932031249999974,
+          "meanChangedPixelFraction": 0.008006998697916667,
+          "meanOver3LsbPixelFraction": 0.00005452473958333333,
+          "maximumDifferenceFromReportedFloat64Metrics": 1.3877787807814457e-16,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "lower_floor",
+          "frames": 301,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.22026255228131528,
+          "maximumPixelRmsDelta": 1.368663848326826,
+          "meanAbsoluteRoiMeanDelta": 0.0006393383789062492,
+          "meanChangedPixelFraction": 0.00055419921875,
+          "meanOver3LsbPixelFraction": 0.0004020182291666667,
+          "maximumDifferenceFromReportedFloat64Metrics": 6.38378239159465e-16,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "upper_control",
+          "frames": 301,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.12283961415210035,
+          "maximumPixelRmsDelta": 0.3526513869984822,
+          "meanAbsoluteRoiMeanDelta": 0.0024490864257812493,
+          "meanChangedPixelFraction": 0.005634765625,
+          "meanOver3LsbPixelFraction": 0.00021728515625,
+          "maximumDifferenceFromReportedFloat64Metrics": 1.3877787807814457e-16,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "flame_control",
+          "frames": 301,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.8693877468650026,
+          "maximumPixelRmsDelta": 2.4342208062547472,
+          "meanAbsoluteRoiMeanDelta": 0.013225981119791664,
+          "meanChangedPixelFraction": 0.030559895833333333,
+          "meanOver3LsbPixelFraction": 0.0015478515625,
+          "maximumDifferenceFromReportedFloat64Metrics": 4.440892098500626e-16,
+          "matchesReportedMetricsWithin1eMinus8": true
+        }
+      ]
+    },
+    {
+      "source": "artifacts/snow-journey/final-contact/desktop-en/sequences/diagnostic-burning-all-static.json",
+      "name": "diagnostic-burning-all-static",
+      "rois": [
+        {
+          "name": "left_structure",
+          "frames": 301,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0,
+          "maximumPixelRmsDelta": 0,
+          "meanAbsoluteRoiMeanDelta": 0,
+          "meanChangedPixelFraction": 0,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 0,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "right_structure",
+          "frames": 301,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0,
+          "maximumPixelRmsDelta": 0,
+          "meanAbsoluteRoiMeanDelta": 0,
+          "meanChangedPixelFraction": 0,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 0,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "lower_floor",
+          "frames": 301,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0,
+          "maximumPixelRmsDelta": 0,
+          "meanAbsoluteRoiMeanDelta": 0,
+          "meanChangedPixelFraction": 0,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 0,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "upper_control",
+          "frames": 301,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0,
+          "maximumPixelRmsDelta": 0,
+          "meanAbsoluteRoiMeanDelta": 0,
+          "meanChangedPixelFraction": 0,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 0,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "flame_control",
+          "frames": 301,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0,
+          "maximumPixelRmsDelta": 0,
+          "meanAbsoluteRoiMeanDelta": 0,
+          "meanChangedPixelFraction": 0,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 0,
+          "matchesReportedMetricsWithin1eMinus8": true
+        }
+      ]
+    },
+    {
+      "source": "artifacts/snow-journey/final-contact/desktop-en/sequences/leave-warning.json",
+      "name": "leave-warning",
+      "rois": [
+        {
+          "name": "left_structure",
+          "frames": 301,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.02362158989356412,
+          "maximumPixelRmsDelta": 0.06247654005017104,
+          "meanAbsoluteRoiMeanDelta": 0.001379159830729166,
+          "meanChangedPixelFraction": 0.0030428059895833332,
+          "meanOver3LsbPixelFraction": 0.0000016276041666666668,
+          "maximumDifferenceFromReportedFloat64Metrics": 1.457167719820518e-16,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "right_structure",
+          "frames": 301,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.024142644422622594,
+          "maximumPixelRmsDelta": 0.06489740197575807,
+          "meanAbsoluteRoiMeanDelta": 0.0015309401041666663,
+          "meanChangedPixelFraction": 0.0033487955729166667,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 1.0755285551056204e-16,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "lower_floor",
+          "frames": 301,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.4176258018611168,
+          "maximumPixelRmsDelta": 1.8672788605342392,
+          "meanAbsoluteRoiMeanDelta": 0.0013241253255208336,
+          "meanChangedPixelFraction": 0.0005973307291666667,
+          "meanOver3LsbPixelFraction": 0.0005069986979166667,
+          "maximumDifferenceFromReportedFloat64Metrics": 4.440892098500626e-16,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "upper_control",
+          "frames": 301,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.018760369097955962,
+          "maximumPixelRmsDelta": 0.04930286235431088,
+          "meanAbsoluteRoiMeanDelta": 0.0009760447591145828,
+          "meanChangedPixelFraction": 0.0022224934895833334,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 6.938893903907228e-17,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "flame_control",
+          "frames": 301,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.9233720459328706,
+          "maximumPixelRmsDelta": 2.155619804142133,
+          "meanAbsoluteRoiMeanDelta": 0.012875368489583329,
+          "meanChangedPixelFraction": 0.026923828125,
+          "meanOver3LsbPixelFraction": 0.0014542643229166667,
+          "maximumDifferenceFromReportedFloat64Metrics": 4.440892098500626e-16,
+          "matchesReportedMetricsWithin1eMinus8": true
+        }
+      ]
+    },
+    {
+      "source": "artifacts/snow-journey/final-contact/desktop-en/sequences/result-went-out.json",
+      "name": "result-went-out",
+      "rois": [
+        {
+          "name": "left_structure",
+          "frames": 301,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0,
+          "maximumPixelRmsDelta": 0,
+          "meanAbsoluteRoiMeanDelta": 0,
+          "meanChangedPixelFraction": 0,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 0,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "right_structure",
+          "frames": 301,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0,
+          "maximumPixelRmsDelta": 0,
+          "meanAbsoluteRoiMeanDelta": 0,
+          "meanChangedPixelFraction": 0,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 0,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "lower_floor",
+          "frames": 301,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.31429485157473597,
+          "maximumPixelRmsDelta": 1.7696557979899297,
+          "meanAbsoluteRoiMeanDelta": 0.0009260561523437501,
+          "meanChangedPixelFraction": 0.00056640625,
+          "meanOver3LsbPixelFraction": 0.0004939778645833334,
+          "maximumDifferenceFromReportedFloat64Metrics": 4.718447854656915e-16,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "upper_control",
+          "frames": 301,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.013285885242788368,
+          "maximumPixelRmsDelta": 0.08601851987635424,
+          "meanAbsoluteRoiMeanDelta": 0.00005386523437500002,
+          "meanChangedPixelFraction": 0.0001318359375,
+          "meanOver3LsbPixelFraction": 0.00002604166666666667,
+          "maximumDifferenceFromReportedFloat64Metrics": 1.3877787807814457e-17,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "flame_control",
+          "frames": 301,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.13022794508273586,
+          "maximumPixelRmsDelta": 0.2839339767177674,
+          "meanAbsoluteRoiMeanDelta": 0.0036854890950520805,
+          "meanChangedPixelFraction": 0.013221842447916667,
+          "meanOver3LsbPixelFraction": 0.00034261067708333333,
+          "maximumDifferenceFromReportedFloat64Metrics": 5.551115123125783e-17,
+          "matchesReportedMetricsWithin1eMinus8": true
+        }
+      ]
+    },
+    {
+      "source": "artifacts/snow-journey/final-contact/desktop-en/sequences/custom-shade-before-tab-hidden.json",
+      "name": "custom-shade-before-tab-hidden",
+      "rois": [
+        {
+          "name": "left_structure",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.0009435668260458062,
+          "maximumPixelRmsDelta": 0.022971008604937768,
+          "meanAbsoluteRoiMeanDelta": 0.000007094401041666664,
+          "meanChangedPixelFraction": 0.000037841796875,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 6.938893903907228e-18,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "right_structure",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0,
+          "maximumPixelRmsDelta": 0,
+          "meanAbsoluteRoiMeanDelta": 0,
+          "meanChangedPixelFraction": 0,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 0,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "lower_floor",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0,
+          "maximumPixelRmsDelta": 0,
+          "meanAbsoluteRoiMeanDelta": 0,
+          "meanChangedPixelFraction": 0,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 0,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "upper_control",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0,
+          "maximumPixelRmsDelta": 0,
+          "meanAbsoluteRoiMeanDelta": 0,
+          "meanChangedPixelFraction": 0,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 0,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "flame_control",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.5426307742391677,
+          "maximumPixelRmsDelta": 1.0806731524253983,
+          "meanAbsoluteRoiMeanDelta": 0.04084383992513021,
+          "meanChangedPixelFraction": 0.030528971354166667,
+          "meanOver3LsbPixelFraction": 0.0097216796875,
+          "maximumDifferenceFromReportedFloat64Metrics": 8.881784197001252e-16,
+          "matchesReportedMetricsWithin1eMinus8": true
+        }
+      ]
+    },
+    {
+      "source": "artifacts/snow-journey/final-contact/desktop-en/sequences/burning-before-tab-hidden.json",
+      "name": "burning-before-tab-hidden",
+      "rois": [
+        {
+          "name": "left_structure",
+          "frames": 301,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.05803862118118604,
+          "maximumPixelRmsDelta": 0.15685378977629938,
+          "meanAbsoluteRoiMeanDelta": 0.003912050130208331,
+          "meanChangedPixelFraction": 0.008553059895833333,
+          "meanOver3LsbPixelFraction": 0.00006103515625,
+          "maximumDifferenceFromReportedFloat64Metrics": 1.6653345369377348e-16,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "right_structure",
+          "frames": 301,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.04078929979008949,
+          "maximumPixelRmsDelta": 0.0749794364387455,
+          "meanAbsoluteRoiMeanDelta": 0.00342392610677083,
+          "meanChangedPixelFraction": 0.007539876302083333,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 1.249000902703301e-16,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "lower_floor",
+          "frames": 301,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.10107693640285573,
+          "maximumPixelRmsDelta": 1.3182985381333514,
+          "meanAbsoluteRoiMeanDelta": 0.00029408723958333354,
+          "meanChangedPixelFraction": 0.0003507486979166667,
+          "meanOver3LsbPixelFraction": 0.00021402994791666668,
+          "maximumDifferenceFromReportedFloat64Metrics": 4.718447854656915e-16,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "upper_control",
+          "frames": 301,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.03523829968932304,
+          "maximumPixelRmsDelta": 0.06368778965218726,
+          "meanAbsoluteRoiMeanDelta": 0.0025391346028645844,
+          "meanChangedPixelFraction": 0.005664876302083333,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 1.1796119636642288e-16,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "flame_control",
+          "frames": 301,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 1.2884040145977855,
+          "maximumPixelRmsDelta": 5.1245120418904495,
+          "meanAbsoluteRoiMeanDelta": 0.01711761344401042,
+          "meanChangedPixelFraction": 0.03803466796875,
+          "meanOver3LsbPixelFraction": 0.0012858072916666667,
+          "maximumDifferenceFromReportedFloat64Metrics": 8.881784197001252e-16,
+          "matchesReportedMetricsWithin1eMinus8": true
+        }
+      ]
+    },
+    {
+      "source": "artifacts/snow-journey/final-contact/desktop-en/sequences/result-focus-departure.json",
+      "name": "result-focus-departure",
+      "rois": [
+        {
+          "name": "left_structure",
+          "frames": 300,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0,
+          "maximumPixelRmsDelta": 0,
+          "meanAbsoluteRoiMeanDelta": 0,
+          "meanChangedPixelFraction": 0,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 0,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "right_structure",
+          "frames": 300,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0,
+          "maximumPixelRmsDelta": 0,
+          "meanAbsoluteRoiMeanDelta": 0,
+          "meanChangedPixelFraction": 0,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 0,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "lower_floor",
+          "frames": 300,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.17996163924222988,
+          "maximumPixelRmsDelta": 1.910170406184763,
+          "meanAbsoluteRoiMeanDelta": 0.0004926966842600334,
+          "meanChangedPixelFraction": 0.0001673873850334448,
+          "meanOver3LsbPixelFraction": 0.00016412128971571906,
+          "maximumDifferenceFromReportedFloat64Metrics": 2.220446049250313e-16,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "upper_control",
+          "frames": 300,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.0008261422896425867,
+          "maximumPixelRmsDelta": 0.039948113930955806,
+          "meanAbsoluteRoiMeanDelta": 0.000006058606814381271,
+          "meanChangedPixelFraction": 0.000016330476588628762,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 1.0408340855860843e-17,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "flame_control",
+          "frames": 300,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.12980199610065687,
+          "maximumPixelRmsDelta": 0.2745291793106313,
+          "meanAbsoluteRoiMeanDelta": 0.0038791371629389613,
+          "meanChangedPixelFraction": 0.018398731448578596,
+          "meanOver3LsbPixelFraction": 0.0006009615384615385,
+          "maximumDifferenceFromReportedFloat64Metrics": 5.551115123125783e-17,
+          "matchesReportedMetricsWithin1eMinus8": true
+        }
+      ]
+    },
+    {
+      "source": "artifacts/snow-journey/final-contact/desktop-en/sequences/result-burned-down-accelerated.json",
+      "name": "result-burned-down-accelerated",
+      "rois": [
+        {
+          "name": "left_structure",
+          "frames": 301,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.0017269514997033204,
+          "maximumPixelRmsDelta": 0.02209708691207961,
+          "meanAbsoluteRoiMeanDelta": 0.000010978678385416671,
+          "meanChangedPixelFraction": 0.000048014322916666664,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 1.0408340855860843e-17,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "right_structure",
+          "frames": 301,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.001584628750155626,
+          "maximumPixelRmsDelta": 0.044463767069730493,
+          "meanAbsoluteRoiMeanDelta": 0.000012322265624999999,
+          "meanChangedPixelFraction": 0.000040690104166666664,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 1.0408340855860843e-17,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "lower_floor",
+          "frames": 301,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.17448537109295698,
+          "maximumPixelRmsDelta": 1.4549071029192895,
+          "meanAbsoluteRoiMeanDelta": 0.0006022617187499996,
+          "meanChangedPixelFraction": 0.00044840494791666667,
+          "meanOver3LsbPixelFraction": 0.0003955078125,
+          "maximumDifferenceFromReportedFloat64Metrics": 4.996003610813204e-16,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "upper_control",
+          "frames": 301,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0,
+          "maximumPixelRmsDelta": 0,
+          "meanAbsoluteRoiMeanDelta": 0,
+          "meanChangedPixelFraction": 0,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 0,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "flame_control",
+          "frames": 301,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.1316775741203829,
+          "maximumPixelRmsDelta": 0.25219046520871385,
+          "meanAbsoluteRoiMeanDelta": 0.0031459822591145847,
+          "meanChangedPixelFraction": 0.012626953125,
+          "meanOver3LsbPixelFraction": 0.0003816731770833333,
+          "maximumDifferenceFromReportedFloat64Metrics": 5.551115123125783e-17,
+          "matchesReportedMetricsWithin1eMinus8": true
+        }
+      ]
+    },
+    {
+      "source": "artifacts/snow-journey/final-contact/desktop-en/sequences/my-lamps.json",
+      "name": "my-lamps",
+      "rois": [
+        {
+          "name": "left_structure",
+          "frames": 301,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0,
+          "maximumPixelRmsDelta": 0,
+          "meanAbsoluteRoiMeanDelta": 0,
+          "meanChangedPixelFraction": 0,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 0,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "right_structure",
+          "frames": 301,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0,
+          "maximumPixelRmsDelta": 0,
+          "meanAbsoluteRoiMeanDelta": 0,
+          "meanChangedPixelFraction": 0,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 0,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "lower_floor",
+          "frames": 301,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.34821072102400324,
+          "maximumPixelRmsDelta": 1.3386697401609764,
+          "meanAbsoluteRoiMeanDelta": 0.00082349658203125,
+          "meanChangedPixelFraction": 0.0006754557291666667,
+          "meanOver3LsbPixelFraction": 0.0006087239583333333,
+          "maximumDifferenceFromReportedFloat64Metrics": 6.661338147750939e-16,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "upper_control",
+          "frames": 301,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.0005181207023422013,
+          "maximumPixelRmsDelta": 0.0239308029551481,
+          "meanAbsoluteRoiMeanDelta": 0.000005977376302083333,
+          "meanChangedPixelFraction": 0.00001953125,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 6.938893903907228e-18,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "flame_control",
+          "frames": 301,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.11845607362629022,
+          "maximumPixelRmsDelta": 0.2431171879769996,
+          "meanAbsoluteRoiMeanDelta": 0.002806036621093752,
+          "meanChangedPixelFraction": 0.0118359375,
+          "meanOver3LsbPixelFraction": 0.00028076171875,
+          "maximumDifferenceFromReportedFloat64Metrics": 5.551115123125783e-17,
+          "matchesReportedMetricsWithin1eMinus8": true
+        }
+      ]
+    },
+    {
+      "source": "artifacts/snow-journey/final-contact/desktop-en/sequences/my-wishes.json",
+      "name": "my-wishes",
+      "rois": [
+        {
+          "name": "left_structure",
+          "frames": 301,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0,
+          "maximumPixelRmsDelta": 0,
+          "meanAbsoluteRoiMeanDelta": 0,
+          "meanChangedPixelFraction": 0,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 0,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "right_structure",
+          "frames": 301,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0,
+          "maximumPixelRmsDelta": 0,
+          "meanAbsoluteRoiMeanDelta": 0,
+          "meanChangedPixelFraction": 0,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 0,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "lower_floor",
+          "frames": 301,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.18985065693572079,
+          "maximumPixelRmsDelta": 1.393901513877729,
+          "meanAbsoluteRoiMeanDelta": 0.0005381165364583333,
+          "meanChangedPixelFraction": 0.00031087239583333336,
+          "meanOver3LsbPixelFraction": 0.0002596028645833333,
+          "maximumDifferenceFromReportedFloat64Metrics": 4.85722573273506e-16,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "upper_control",
+          "frames": 301,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0,
+          "maximumPixelRmsDelta": 0,
+          "meanAbsoluteRoiMeanDelta": 0,
+          "meanChangedPixelFraction": 0,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 0,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "flame_control",
+          "frames": 301,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.1269088794668439,
+          "maximumPixelRmsDelta": 0.25106014711758445,
+          "meanAbsoluteRoiMeanDelta": 0.0030053417968750012,
+          "meanChangedPixelFraction": 0.012579752604166666,
+          "meanOver3LsbPixelFraction": 0.000341796875,
+          "maximumDifferenceFromReportedFloat64Metrics": 5.551115123125783e-17,
+          "matchesReportedMetricsWithin1eMinus8": true
+        }
+      ]
+    },
+    {
+      "source": "artifacts/snow-journey/final-contact/desktop-en/sequences/ten-lights.json",
+      "name": "ten-lights",
+      "rois": [
+        {
+          "name": "left_structure",
+          "frames": 300,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0,
+          "maximumPixelRmsDelta": 0,
+          "meanAbsoluteRoiMeanDelta": 0,
+          "meanChangedPixelFraction": 0,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 0,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "right_structure",
+          "frames": 300,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0,
+          "maximumPixelRmsDelta": 0,
+          "meanAbsoluteRoiMeanDelta": 0,
+          "meanChangedPixelFraction": 0,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 0,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "lower_floor",
+          "frames": 300,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.3666879481950203,
+          "maximumPixelRmsDelta": 1.6316409359079187,
+          "meanAbsoluteRoiMeanDelta": 0.001034679400083612,
+          "meanChangedPixelFraction": 0.0007316053511705685,
+          "meanOver3LsbPixelFraction": 0.0006515860158862876,
+          "maximumDifferenceFromReportedFloat64Metrics": 5.828670879282072e-16,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "upper_control",
+          "frames": 300,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.020691921211202047,
+          "maximumPixelRmsDelta": 0.06581158846116124,
+          "meanAbsoluteRoiMeanDelta": 0.00008131662834448158,
+          "meanChangedPixelFraction": 0.0002057640050167224,
+          "meanOver3LsbPixelFraction": 0.000038376619983277594,
+          "maximumDifferenceFromReportedFloat64Metrics": 1.3877787807814457e-17,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "flame_control",
+          "frames": 300,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.1190089199703523,
+          "maximumPixelRmsDelta": 0.23678008821643187,
+          "meanAbsoluteRoiMeanDelta": 0.002897740025344899,
+          "meanChangedPixelFraction": 0.011879605194397994,
+          "meanOver3LsbPixelFraction": 0.0002678198160535117,
+          "maximumDifferenceFromReportedFloat64Metrics": 8.326672684688674e-17,
+          "matchesReportedMetricsWithin1eMinus8": true
+        }
+      ]
+    },
+    {
+      "source": "artifacts/snow-journey/final-contact/desktop-en/sequences/home-return.json",
+      "name": "home-return",
+      "rois": [
+        {
+          "name": "left_lattice",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.01929714830088413,
+          "maximumPixelRmsDelta": 0.07351272344167711,
+          "meanAbsoluteRoiMeanDelta": 0.0009549280598958339,
+          "meanChangedPixelFraction": 0.0023160807291666666,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 1.5092094240998222e-16,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "floor_planks",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.00823086757902978,
+          "maximumPixelRmsDelta": 0.026117479292791155,
+          "meanAbsoluteRoiMeanDelta": 0.0002485788574218753,
+          "meanChangedPixelFraction": 0.00072998046875,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 3.2959746043559335e-17,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "rock_surface",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.016986224379553702,
+          "maximumPixelRmsDelta": 0.08066752191431738,
+          "meanAbsoluteRoiMeanDelta": 0.0007542343750000005,
+          "meanChangedPixelFraction": 0.0016829427083333334,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 1.4051260155412137e-16,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "sky_control",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0,
+          "maximumPixelRmsDelta": 0,
+          "meanAbsoluteRoiMeanDelta": 0,
+          "meanChangedPixelFraction": 0,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 0,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "flame_control",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.23833464449369765,
+          "maximumPixelRmsDelta": 0.7800978656678398,
+          "meanAbsoluteRoiMeanDelta": 0.10427201220703078,
+          "meanChangedPixelFraction": 0.18245157877604168,
+          "meanOver3LsbPixelFraction": 0.00004597981770833333,
+          "maximumDifferenceFromReportedFloat64Metrics": 4.884981308350689e-15,
+          "matchesReportedMetricsWithin1eMinus8": true
+        }
+      ]
+    },
+    {
+      "source": "artifacts/snow-journey/final-contact/phone-zh/sequences/home.json",
+      "name": "home",
+      "rois": [
+        {
+          "name": "left_lattice",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.03319319673491001,
+          "maximumPixelRmsDelta": 0.09358539622568657,
+          "meanAbsoluteRoiMeanDelta": 0.002756192057291666,
+          "meanChangedPixelFraction": 0.006516927083333333,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 5.551115123125783e-17,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "floor_planks",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.01637734577019496,
+          "maximumPixelRmsDelta": 0.04751969051170394,
+          "meanAbsoluteRoiMeanDelta": 0.0007968419596354169,
+          "meanChangedPixelFraction": 0.0022220865885416666,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 3.122502256758253e-17,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "rock_surface",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.06498323735520597,
+          "maximumPixelRmsDelta": 0.18473300000016973,
+          "meanAbsoluteRoiMeanDelta": 0.010288393310546868,
+          "meanChangedPixelFraction": 0.024855550130208334,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 4.440892098500626e-16,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "sky_control",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.047397945013077036,
+          "maximumPixelRmsDelta": 0.16141724557174472,
+          "meanAbsoluteRoiMeanDelta": 0.005972964518229169,
+          "meanChangedPixelFraction": 0.016196695963541667,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 8.881784197001252e-16,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "flame_control",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.2897851414149643,
+          "maximumPixelRmsDelta": 0.7204904017566354,
+          "meanAbsoluteRoiMeanDelta": 0.0737616151529946,
+          "meanChangedPixelFraction": 0.140079345703125,
+          "meanOver3LsbPixelFraction": 0.0006852213541666667,
+          "maximumDifferenceFromReportedFloat64Metrics": 5.10702591327572e-15,
+          "matchesReportedMetricsWithin1eMinus8": true
+        }
+      ]
+    },
+    {
+      "source": "artifacts/snow-journey/final-contact/phone-zh/sequences/home-other-language.json",
+      "name": "home-other-language",
+      "rois": [
+        {
+          "name": "left_lattice",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.03333054568349722,
+          "maximumPixelRmsDelta": 0.09988731996331225,
+          "meanAbsoluteRoiMeanDelta": 0.003050410319010412,
+          "meanChangedPixelFraction": 0.0073726399739583335,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 5.551115123125783e-17,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "floor_planks",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.016489927499345882,
+          "maximumPixelRmsDelta": 0.04491083646985296,
+          "meanAbsoluteRoiMeanDelta": 0.0008657864583333348,
+          "meanChangedPixelFraction": 0.0024593098958333335,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 3.122502256758253e-17,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "rock_surface",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.06692718758031733,
+          "maximumPixelRmsDelta": 0.18353555463302826,
+          "meanAbsoluteRoiMeanDelta": 0.011685136230468737,
+          "meanChangedPixelFraction": 0.028175455729166667,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 4.718447854656915e-16,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "sky_control",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.04971706851306447,
+          "maximumPixelRmsDelta": 0.1518214709229338,
+          "meanAbsoluteRoiMeanDelta": 0.006913429117838541,
+          "meanChangedPixelFraction": 0.018592529296875,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 6.38378239159465e-16,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "flame_control",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.26699451084906,
+          "maximumPixelRmsDelta": 0.6825875557177291,
+          "meanAbsoluteRoiMeanDelta": 0.08268767301432249,
+          "meanChangedPixelFraction": 0.154549560546875,
+          "meanOver3LsbPixelFraction": 0.00034749348958333333,
+          "maximumDifferenceFromReportedFloat64Metrics": 3.0531133177191805e-15,
+          "matchesReportedMetricsWithin1eMinus8": true
+        }
+      ]
+    },
+    {
+      "source": "artifacts/snow-journey/final-contact/phone-zh/sequences/wish-written.json",
+      "name": "wish-written",
+      "rois": [
+        {
+          "name": "left_lattice",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.0310637200162729,
+          "maximumPixelRmsDelta": 0.08366797615799608,
+          "meanAbsoluteRoiMeanDelta": 0.0025611138509114575,
+          "meanChangedPixelFraction": 0.00618408203125,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 5.551115123125783e-17,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "floor_planks",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.015875525826704637,
+          "maximumPixelRmsDelta": 0.04440086911012413,
+          "meanAbsoluteRoiMeanDelta": 0.0007550484212239585,
+          "meanChangedPixelFraction": 0.0021354166666666665,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 3.122502256758253e-17,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "rock_surface",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.062322240224563924,
+          "maximumPixelRmsDelta": 0.1667912009866309,
+          "meanAbsoluteRoiMeanDelta": 0.009765610188802077,
+          "meanChangedPixelFraction": 0.023722737630208334,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 3.885780586188048e-16,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "sky_control",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.04523375975628015,
+          "maximumPixelRmsDelta": 0.1366153102264944,
+          "meanAbsoluteRoiMeanDelta": 0.005577907389322917,
+          "meanChangedPixelFraction": 0.015271402994791667,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 3.885780586188048e-16,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "flame_control",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.27995389127511344,
+          "maximumPixelRmsDelta": 0.8649317741225127,
+          "meanAbsoluteRoiMeanDelta": 0.07138509716796856,
+          "meanChangedPixelFraction": 0.13531168619791667,
+          "meanOver3LsbPixelFraction": 0.000379638671875,
+          "maximumDifferenceFromReportedFloat64Metrics": 5.218048215738236e-15,
+          "matchesReportedMetricsWithin1eMinus8": true
+        }
+      ]
+    },
+    {
+      "source": "artifacts/snow-journey/final-contact/phone-zh/sequences/place.json",
+      "name": "place",
+      "rois": [
+        {
+          "name": "left_structure",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.18295162097545145,
+          "maximumPixelRmsDelta": 1.3567697988243816,
+          "meanAbsoluteRoiMeanDelta": 0.0005488372395833333,
+          "meanChangedPixelFraction": 0.00012125651041666666,
+          "meanOver3LsbPixelFraction": 0.00012125651041666666,
+          "maximumDifferenceFromReportedFloat64Metrics": 3.3306690738754696e-16,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "right_structure",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.03256565534393712,
+          "maximumPixelRmsDelta": 1.2564008786338983,
+          "meanAbsoluteRoiMeanDelta": 0.00013167919921875003,
+          "meanChangedPixelFraction": 0.00001953125,
+          "meanOver3LsbPixelFraction": 0.00001953125,
+          "maximumDifferenceFromReportedFloat64Metrics": 2.220446049250313e-16,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "lower_floor",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0,
+          "maximumPixelRmsDelta": 0,
+          "meanAbsoluteRoiMeanDelta": 0,
+          "meanChangedPixelFraction": 0,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 0,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "upper_control",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.2628184436151904,
+          "maximumPixelRmsDelta": 0.7593725660519122,
+          "meanAbsoluteRoiMeanDelta": 0.001649604654947916,
+          "meanChangedPixelFraction": 0.005292561848958334,
+          "meanOver3LsbPixelFraction": 0.0005232747395833334,
+          "maximumDifferenceFromReportedFloat64Metrics": 6.106226635438361e-16,
+          "matchesReportedMetricsWithin1eMinus8": true
+        }
+      ]
+    },
+    {
+      "source": "artifacts/snow-journey/final-contact/phone-zh/sequences/walk-1.json",
+      "name": "walk-1",
+      "rois": [
+        {
+          "name": "left_structure",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.0011547698976816783,
+          "maximumPixelRmsDelta": 0.022838393267286775,
+          "meanAbsoluteRoiMeanDelta": 0.000031107421875,
+          "meanChangedPixelFraction": 0.00007771809895833334,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 2.949029909160572e-16,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "right_structure",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.2877845841230106,
+          "maximumPixelRmsDelta": 1.1559292807096606,
+          "meanAbsoluteRoiMeanDelta": 0.0006649947102864589,
+          "meanChangedPixelFraction": 0.000487060546875,
+          "meanOver3LsbPixelFraction": 0.00026285807291666667,
+          "maximumDifferenceFromReportedFloat64Metrics": 3.3306690738754696e-16,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "lower_floor",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.000130375,
+          "maximumPixelRmsDelta": 0.011175,
+          "meanAbsoluteRoiMeanDelta": 0.000002037109375,
+          "meanChangedPixelFraction": 0.000002848307291666667,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 1.5785983631388945e-16,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "upper_control",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.19990092602667456,
+          "maximumPixelRmsDelta": 0.6154287798251795,
+          "meanAbsoluteRoiMeanDelta": 0.000641404947916667,
+          "meanChangedPixelFraction": 0.0017207845052083332,
+          "meanOver3LsbPixelFraction": 0.00036173502604166667,
+          "maximumDifferenceFromReportedFloat64Metrics": 6.661338147750939e-16,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "flame_control",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.4610759379251405,
+          "maximumPixelRmsDelta": 1.497129091178946,
+          "meanAbsoluteRoiMeanDelta": 0.0012664296061197918,
+          "meanChangedPixelFraction": 0.0012935384114583332,
+          "meanOver3LsbPixelFraction": 0.0006193033854166667,
+          "maximumDifferenceFromReportedFloat64Metrics": 4.440892098500626e-16,
+          "matchesReportedMetricsWithin1eMinus8": true
+        }
+      ]
+    },
+    {
+      "source": "artifacts/snow-journey/final-contact/phone-zh/sequences/walk-2.json",
+      "name": "walk-2",
+      "rois": [
+        {
+          "name": "left_structure",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.22161187981065164,
+          "maximumPixelRmsDelta": 2.5438740419867765,
+          "meanAbsoluteRoiMeanDelta": 0.0007397272135416666,
+          "meanChangedPixelFraction": 0.00022013346354166665,
+          "meanOver3LsbPixelFraction": 0.0002197265625,
+          "maximumDifferenceFromReportedFloat64Metrics": 4.440892098500626e-16,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "right_structure",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.30891640921975194,
+          "maximumPixelRmsDelta": 2.3916306614772207,
+          "meanAbsoluteRoiMeanDelta": 0.002076525716145833,
+          "meanChangedPixelFraction": 0.00032918294270833335,
+          "meanOver3LsbPixelFraction": 0.00032185872395833334,
+          "maximumDifferenceFromReportedFloat64Metrics": 4.440892098500626e-16,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "lower_floor",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0,
+          "maximumPixelRmsDelta": 0,
+          "meanAbsoluteRoiMeanDelta": 0,
+          "meanChangedPixelFraction": 0,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 0,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "upper_control",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0,
+          "maximumPixelRmsDelta": 0,
+          "meanAbsoluteRoiMeanDelta": 0,
+          "meanChangedPixelFraction": 0,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 0,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "flame_control",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.10225792844351585,
+          "maximumPixelRmsDelta": 1.470631364975734,
+          "meanAbsoluteRoiMeanDelta": 0.0003587920735677069,
+          "meanChangedPixelFraction": 0.0006868489583333334,
+          "meanOver3LsbPixelFraction": 0.00038533528645833334,
+          "maximumDifferenceFromReportedFloat64Metrics": 2.220446049250313e-16,
+          "matchesReportedMetricsWithin1eMinus8": true
+        }
+      ]
+    },
+    {
+      "source": "artifacts/snow-journey/final-contact/phone-zh/sequences/walk-3.json",
+      "name": "walk-3",
+      "rois": [
+        {
+          "name": "left_structure",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.00016842841162603275,
+          "maximumPixelRmsDelta": 0.01217468677407657,
+          "meanAbsoluteRoiMeanDelta": 0.000002935302734375,
+          "meanChangedPixelFraction": 0.000005696614583333334,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 4.683753385137379e-17,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "right_structure",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0,
+          "maximumPixelRmsDelta": 0,
+          "meanAbsoluteRoiMeanDelta": 0,
+          "meanChangedPixelFraction": 0,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 0,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "lower_floor",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0,
+          "maximumPixelRmsDelta": 0,
+          "meanAbsoluteRoiMeanDelta": 0,
+          "meanChangedPixelFraction": 0,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 0,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "upper_control",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.12279924874029988,
+          "maximumPixelRmsDelta": 2.0460417042707695,
+          "meanAbsoluteRoiMeanDelta": 0.0008202109375000002,
+          "meanChangedPixelFraction": 0.00011271158854166667,
+          "meanOver3LsbPixelFraction": 0.00011149088541666667,
+          "maximumDifferenceFromReportedFloat64Metrics": 4.440892098500626e-16,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "flame_control",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.04903074630532644,
+          "maximumPixelRmsDelta": 0.351128125,
+          "meanAbsoluteRoiMeanDelta": 0.0002504296061197916,
+          "meanChangedPixelFraction": 0.00050048828125,
+          "meanOver3LsbPixelFraction": 0.0002294921875,
+          "maximumDifferenceFromReportedFloat64Metrics": 2.255140518769849e-16,
+          "matchesReportedMetricsWithin1eMinus8": true
+        }
+      ]
+    },
+    {
+      "source": "artifacts/snow-journey/final-contact/phone-zh/sequences/lamp-preset.json",
+      "name": "lamp-preset",
+      "rois": [
+        {
+          "name": "left_structure",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.000011072916666666667,
+          "maximumPixelRmsDelta": 0.003321875,
+          "meanAbsoluteRoiMeanDelta": 1.7301432291666667e-7,
+          "meanChangedPixelFraction": 8.138020833333334e-7,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 1.734723475976807e-18,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "right_structure",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0,
+          "maximumPixelRmsDelta": 0,
+          "meanAbsoluteRoiMeanDelta": 0,
+          "meanChangedPixelFraction": 0,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 0,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "lower_floor",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.0001460344689250271,
+          "maximumPixelRmsDelta": 0.011175,
+          "meanAbsoluteRoiMeanDelta": 0.0000023831380208333334,
+          "meanChangedPixelFraction": 0.000004475911458333333,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 1.734723475976807e-17,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "upper_control",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.006531488983282341,
+          "maximumPixelRmsDelta": 0.12495215244400805,
+          "meanAbsoluteRoiMeanDelta": 0.000025245442708333347,
+          "meanChangedPixelFraction": 0.00006184895833333334,
+          "meanOver3LsbPixelFraction": 0.000013427734375,
+          "maximumDifferenceFromReportedFloat64Metrics": 1.3877787807814457e-17,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "flame_control",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.625886084157707,
+          "maximumPixelRmsDelta": 1.4959306469252378,
+          "meanAbsoluteRoiMeanDelta": 0.024027170003255206,
+          "meanChangedPixelFraction": 0.015088297526041667,
+          "meanOver3LsbPixelFraction": 0.004878336588541666,
+          "maximumDifferenceFromReportedFloat64Metrics": 2.220446049250313e-16,
+          "matchesReportedMetricsWithin1eMinus8": true
+        }
+      ]
+    },
+    {
+      "source": "artifacts/snow-journey/final-contact/phone-zh/sequences/confirm.json",
+      "name": "confirm",
+      "rois": [
+        {
+          "name": "left_structure",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.009575220593591097,
+          "maximumPixelRmsDelta": 0.08910123505255482,
+          "meanAbsoluteRoiMeanDelta": 0.00002711661783854167,
+          "meanChangedPixelFraction": 0.00011067708333333333,
+          "meanOver3LsbPixelFraction": 0.000021158854166666667,
+          "maximumDifferenceFromReportedFloat64Metrics": 8.326672684688674e-17,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "right_structure",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0,
+          "maximumPixelRmsDelta": 0,
+          "meanAbsoluteRoiMeanDelta": 0,
+          "meanChangedPixelFraction": 0,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 0,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "lower_floor",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0,
+          "maximumPixelRmsDelta": 0,
+          "meanAbsoluteRoiMeanDelta": 0,
+          "meanChangedPixelFraction": 0,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 0,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "upper_control",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.03611956012323378,
+          "maximumPixelRmsDelta": 0.14241515408579683,
+          "meanAbsoluteRoiMeanDelta": 0.00017014721679687485,
+          "meanChangedPixelFraction": 0.00027303059895833335,
+          "meanOver3LsbPixelFraction": 0.00020711263020833335,
+          "maximumDifferenceFromReportedFloat64Metrics": 2.7755575615628914e-17,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "flame_control",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 1.46851299311221,
+          "maximumPixelRmsDelta": 3.53662829148869,
+          "meanAbsoluteRoiMeanDelta": 0.04462453580729167,
+          "meanChangedPixelFraction": 0.014227294921875,
+          "meanOver3LsbPixelFraction": 0.0065791829427083335,
+          "maximumDifferenceFromReportedFloat64Metrics": 8.881784197001252e-16,
+          "matchesReportedMetricsWithin1eMinus8": true
+        }
+      ]
+    },
+    {
+      "source": "artifacts/snow-journey/final-contact/phone-zh/sequences/burning.json",
+      "name": "burning",
+      "rois": [
+        {
+          "name": "left_structure",
+          "frames": 301,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.01625545309583659,
+          "maximumPixelRmsDelta": 0.03810778812296772,
+          "meanAbsoluteRoiMeanDelta": 0.0005849453124999993,
+          "meanChangedPixelFraction": 0.0014615885416666666,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 1.8214596497756474e-16,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "right_structure",
+          "frames": 301,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.015804277730126184,
+          "maximumPixelRmsDelta": 0.037884356569120314,
+          "meanAbsoluteRoiMeanDelta": 0.0006180305989583333,
+          "meanChangedPixelFraction": 0.0014778645833333334,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 7.632783294297951e-17,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "lower_floor",
+          "frames": 301,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.008871861808444731,
+          "maximumPixelRmsDelta": 0.0378893976605346,
+          "meanAbsoluteRoiMeanDelta": 0.0002464166666666667,
+          "meanChangedPixelFraction": 0.0005615234375,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 1.6306400674181987e-16,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "upper_control",
+          "frames": 301,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.11105594063606325,
+          "maximumPixelRmsDelta": 0.4537271718710932,
+          "meanAbsoluteRoiMeanDelta": 0.0008195319010416668,
+          "meanChangedPixelFraction": 0.0020377604166666665,
+          "meanOver3LsbPixelFraction": 0.00018391927083333333,
+          "maximumDifferenceFromReportedFloat64Metrics": 1.1102230246251565e-16,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "flame_control",
+          "frames": 301,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.7277783397473229,
+          "maximumPixelRmsDelta": 1.8987277428053855,
+          "meanAbsoluteRoiMeanDelta": 0.009277033691406245,
+          "meanChangedPixelFraction": 0.01771484375,
+          "meanOver3LsbPixelFraction": 0.0012996419270833333,
+          "maximumDifferenceFromReportedFloat64Metrics": 4.440892098500626e-16,
+          "matchesReportedMetricsWithin1eMinus8": true
+        }
+      ]
+    },
+    {
+      "source": "artifacts/snow-journey/final-contact/phone-zh/sequences/diagnostic-burning-all-static.json",
+      "name": "diagnostic-burning-all-static",
+      "rois": [
+        {
+          "name": "left_structure",
+          "frames": 301,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0,
+          "maximumPixelRmsDelta": 0,
+          "meanAbsoluteRoiMeanDelta": 0,
+          "meanChangedPixelFraction": 0,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 0,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "right_structure",
+          "frames": 301,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0,
+          "maximumPixelRmsDelta": 0,
+          "meanAbsoluteRoiMeanDelta": 0,
+          "meanChangedPixelFraction": 0,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 0,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "lower_floor",
+          "frames": 301,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0,
+          "maximumPixelRmsDelta": 0,
+          "meanAbsoluteRoiMeanDelta": 0,
+          "meanChangedPixelFraction": 0,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 0,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "upper_control",
+          "frames": 301,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0,
+          "maximumPixelRmsDelta": 0,
+          "meanAbsoluteRoiMeanDelta": 0,
+          "meanChangedPixelFraction": 0,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 0,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "flame_control",
+          "frames": 301,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0,
+          "maximumPixelRmsDelta": 0,
+          "meanAbsoluteRoiMeanDelta": 0,
+          "meanChangedPixelFraction": 0,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 0,
+          "matchesReportedMetricsWithin1eMinus8": true
+        }
+      ]
+    },
+    {
+      "source": "artifacts/snow-journey/final-contact/phone-zh/sequences/leave-warning.json",
+      "name": "leave-warning",
+      "rois": [
+        {
+          "name": "left_structure",
+          "frames": 301,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.08220500389488271,
+          "maximumPixelRmsDelta": 1.4392728983069139,
+          "meanAbsoluteRoiMeanDelta": 0.001145874999999999,
+          "meanChangedPixelFraction": 0.0025390625,
+          "meanOver3LsbPixelFraction": 0.00007649739583333334,
+          "maximumDifferenceFromReportedFloat64Metrics": 2.7755575615628914e-16,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "right_structure",
+          "frames": 301,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.01982779034423239,
+          "maximumPixelRmsDelta": 0.05185579049452915,
+          "meanAbsoluteRoiMeanDelta": 0.001093514485677083,
+          "meanChangedPixelFraction": 0.002611490885416667,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 4.163336342344337e-17,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "lower_floor",
+          "frames": 301,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.010466871681042773,
+          "maximumPixelRmsDelta": 0.03962736475100729,
+          "meanAbsoluteRoiMeanDelta": 0.0003251977539062503,
+          "meanChangedPixelFraction": 0.0007438151041666667,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 1.9081958235744878e-16,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "upper_control",
+          "frames": 301,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.023186547371935134,
+          "maximumPixelRmsDelta": 0.06073994298505824,
+          "meanAbsoluteRoiMeanDelta": 0.0014207600911458323,
+          "meanChangedPixelFraction": 0.0033642578125,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 4.2500725161431774e-17,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "flame_control",
+          "frames": 301,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.6509588013959017,
+          "maximumPixelRmsDelta": 1.8079068839476753,
+          "meanAbsoluteRoiMeanDelta": 0.009406671549479164,
+          "meanChangedPixelFraction": 0.01922119140625,
+          "meanOver3LsbPixelFraction": 0.001201171875,
+          "maximumDifferenceFromReportedFloat64Metrics": 4.440892098500626e-16,
+          "matchesReportedMetricsWithin1eMinus8": true
+        }
+      ]
+    },
+    {
+      "source": "artifacts/snow-journey/final-contact/phone-zh/sequences/result-went-out.json",
+      "name": "result-went-out",
+      "rois": [
+        {
+          "name": "left_structure",
+          "frames": 301,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.041121386913290606,
+          "maximumPixelRmsDelta": 0.49674693320093205,
+          "meanAbsoluteRoiMeanDelta": 0.00015069677734375,
+          "meanChangedPixelFraction": 0.00010579427083333334,
+          "meanOver3LsbPixelFraction": 0.00007242838541666667,
+          "maximumDifferenceFromReportedFloat64Metrics": 3.885780586188048e-16,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "right_structure",
+          "frames": 301,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0,
+          "maximumPixelRmsDelta": 0,
+          "meanAbsoluteRoiMeanDelta": 0,
+          "meanChangedPixelFraction": 0,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 0,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "lower_floor",
+          "frames": 301,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0,
+          "maximumPixelRmsDelta": 0,
+          "meanAbsoluteRoiMeanDelta": 0,
+          "meanChangedPixelFraction": 0,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 0,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "upper_control",
+          "frames": 301,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.03848517746906079,
+          "maximumPixelRmsDelta": 0.09787087006372862,
+          "meanAbsoluteRoiMeanDelta": 0.0002997457682291666,
+          "meanChangedPixelFraction": 0.00056884765625,
+          "meanOver3LsbPixelFraction": 0.000029296875,
+          "maximumDifferenceFromReportedFloat64Metrics": 1.3877787807814457e-17,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "flame_control",
+          "frames": 301,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.11784294683761395,
+          "maximumPixelRmsDelta": 0.20862197479925418,
+          "meanAbsoluteRoiMeanDelta": 0.0026600704752604183,
+          "meanChangedPixelFraction": 0.008662923177083334,
+          "meanOver3LsbPixelFraction": 0.0003271484375,
+          "maximumDifferenceFromReportedFloat64Metrics": 2.7755575615628914e-17,
+          "matchesReportedMetricsWithin1eMinus8": true
+        }
+      ]
+    },
+    {
+      "source": "artifacts/snow-journey/final-contact/phone-zh/sequences/custom-shade-before-tab-hidden.json",
+      "name": "custom-shade-before-tab-hidden",
+      "rois": [
+        {
+          "name": "left_structure",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0,
+          "maximumPixelRmsDelta": 0,
+          "meanAbsoluteRoiMeanDelta": 0,
+          "meanChangedPixelFraction": 0,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 0,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "right_structure",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0,
+          "maximumPixelRmsDelta": 0,
+          "meanAbsoluteRoiMeanDelta": 0,
+          "meanChangedPixelFraction": 0,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 0,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "lower_floor",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0,
+          "maximumPixelRmsDelta": 0,
+          "meanAbsoluteRoiMeanDelta": 0,
+          "meanChangedPixelFraction": 0,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 0,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "upper_control",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.01796310318237071,
+          "maximumPixelRmsDelta": 0.09314335541627823,
+          "meanAbsoluteRoiMeanDelta": 0.000049672119140625,
+          "meanChangedPixelFraction": 0.00014200846354166667,
+          "meanOver3LsbPixelFraction": 0.00008748372395833333,
+          "maximumDifferenceFromReportedFloat64Metrics": 5.551115123125783e-17,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "flame_control",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.3522128671705815,
+          "maximumPixelRmsDelta": 1.0613758739995003,
+          "meanAbsoluteRoiMeanDelta": 0.005255193929036464,
+          "meanChangedPixelFraction": 0.014813232421875,
+          "meanOver3LsbPixelFraction": 0.0025325520833333333,
+          "maximumDifferenceFromReportedFloat64Metrics": 2.220446049250313e-16,
+          "matchesReportedMetricsWithin1eMinus8": true
+        }
+      ]
+    },
+    {
+      "source": "artifacts/snow-journey/final-contact/phone-zh/sequences/burning-before-tab-hidden.json",
+      "name": "burning-before-tab-hidden",
+      "rois": [
+        {
+          "name": "left_structure",
+          "frames": 301,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.020047683505065857,
+          "maximumPixelRmsDelta": 0.04754787369555814,
+          "meanAbsoluteRoiMeanDelta": 0.0009550571289062496,
+          "meanChangedPixelFraction": 0.002425944010416667,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 1.3140530330524314e-16,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "right_structure",
+          "frames": 301,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.022414986231345264,
+          "maximumPixelRmsDelta": 0.05397513958628894,
+          "meanAbsoluteRoiMeanDelta": 0.0012097172851562507,
+          "meanChangedPixelFraction": 0.002936197916666667,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 4.5102810375396984e-17,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "lower_floor",
+          "frames": 301,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.010157156984728681,
+          "maximumPixelRmsDelta": 0.030706983377157056,
+          "meanAbsoluteRoiMeanDelta": 0.0003221046549479168,
+          "meanChangedPixelFraction": 0.0007804361979166667,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 1.3183898417423734e-16,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "upper_control",
+          "frames": 301,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.12429754732599178,
+          "maximumPixelRmsDelta": 0.39636536428143315,
+          "meanAbsoluteRoiMeanDelta": 0.0015381303710937505,
+          "meanChangedPixelFraction": 0.0038859049479166665,
+          "meanOver3LsbPixelFraction": 0.00022623697916666666,
+          "maximumDifferenceFromReportedFloat64Metrics": 1.1102230246251565e-16,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "flame_control",
+          "frames": 301,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 1.1591438223569828,
+          "maximumPixelRmsDelta": 4.088716411660318,
+          "meanAbsoluteRoiMeanDelta": 0.01794959830729165,
+          "meanChangedPixelFraction": 0.02885009765625,
+          "meanOver3LsbPixelFraction": 0.0011442057291666666,
+          "maximumDifferenceFromReportedFloat64Metrics": 8.881784197001252e-16,
+          "matchesReportedMetricsWithin1eMinus8": true
+        }
+      ]
+    },
+    {
+      "source": "artifacts/snow-journey/final-contact/phone-zh/sequences/result-focus-departure.json",
+      "name": "result-focus-departure",
+      "rois": [
+        {
+          "name": "left_structure",
+          "frames": 301,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.045617356883874104,
+          "maximumPixelRmsDelta": 0.7769243950759059,
+          "meanAbsoluteRoiMeanDelta": 0.00021231722005208352,
+          "meanChangedPixelFraction": 0.0001611328125,
+          "meanOver3LsbPixelFraction": 0.0001025390625,
+          "maximumDifferenceFromReportedFloat64Metrics": 6.106226635438361e-16,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "right_structure",
+          "frames": 301,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0,
+          "maximumPixelRmsDelta": 0,
+          "meanAbsoluteRoiMeanDelta": 0,
+          "meanChangedPixelFraction": 0,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 0,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "lower_floor",
+          "frames": 301,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0,
+          "maximumPixelRmsDelta": 0,
+          "meanAbsoluteRoiMeanDelta": 0,
+          "meanChangedPixelFraction": 0,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 0,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "upper_control",
+          "frames": 301,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.027771858460998774,
+          "maximumPixelRmsDelta": 0.08650601389182792,
+          "meanAbsoluteRoiMeanDelta": 0.00008491162109374999,
+          "meanChangedPixelFraction": 0.0003377278645833333,
+          "meanOver3LsbPixelFraction": 0.000020345052083333332,
+          "maximumDifferenceFromReportedFloat64Metrics": 1.3877787807814457e-17,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "flame_control",
+          "frames": 301,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.10225489459506112,
+          "maximumPixelRmsDelta": 0.2876611122110803,
+          "meanAbsoluteRoiMeanDelta": 0.002906902669270832,
+          "meanChangedPixelFraction": 0.011178385416666667,
+          "meanOver3LsbPixelFraction": 0.00020100911458333334,
+          "maximumDifferenceFromReportedFloat64Metrics": 5.551115123125783e-17,
+          "matchesReportedMetricsWithin1eMinus8": true
+        }
+      ]
+    },
+    {
+      "source": "artifacts/snow-journey/final-contact/phone-zh/sequences/result-burned-down-accelerated.json",
+      "name": "result-burned-down-accelerated",
+      "rois": [
+        {
+          "name": "left_structure",
+          "frames": 301,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.0007136458333333334,
+          "maximumPixelRmsDelta": 0.21409375,
+          "meanAbsoluteRoiMeanDelta": 0.000011150716145833334,
+          "meanChangedPixelFraction": 8.138020833333334e-7,
+          "meanOver3LsbPixelFraction": 8.138020833333334e-7,
+          "maximumDifferenceFromReportedFloat64Metrics": 2.7755575615628914e-17,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "right_structure",
+          "frames": 301,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.000022145833333333334,
+          "maximumPixelRmsDelta": 0.003321875,
+          "meanAbsoluteRoiMeanDelta": 3.4602864583333334e-7,
+          "meanChangedPixelFraction": 0.0000016276041666666668,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 1.734723475976807e-18,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "lower_floor",
+          "frames": 301,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0,
+          "maximumPixelRmsDelta": 0,
+          "meanAbsoluteRoiMeanDelta": 0,
+          "meanChangedPixelFraction": 0,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 0,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "upper_control",
+          "frames": 301,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.019076734078844363,
+          "maximumPixelRmsDelta": 0.0789574692674797,
+          "meanAbsoluteRoiMeanDelta": 0.000033028645833333376,
+          "meanChangedPixelFraction": 0.00020182291666666667,
+          "meanOver3LsbPixelFraction": 0.0000048828125,
+          "maximumDifferenceFromReportedFloat64Metrics": 6.938893903907228e-18,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "flame_control",
+          "frames": 301,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.12502296567863858,
+          "maximumPixelRmsDelta": 0.2245754363924501,
+          "meanAbsoluteRoiMeanDelta": 0.0023861879882812486,
+          "meanChangedPixelFraction": 0.00917724609375,
+          "meanOver3LsbPixelFraction": 0.0003857421875,
+          "maximumDifferenceFromReportedFloat64Metrics": 2.7755575615628914e-17,
+          "matchesReportedMetricsWithin1eMinus8": true
+        }
+      ]
+    },
+    {
+      "source": "artifacts/snow-journey/final-contact/phone-zh/sequences/my-lamps.json",
+      "name": "my-lamps",
+      "rois": [
+        {
+          "name": "left_structure",
+          "frames": 301,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.012952705598006556,
+          "maximumPixelRmsDelta": 0.4140581926780681,
+          "meanAbsoluteRoiMeanDelta": 0.00005320442708333333,
+          "meanChangedPixelFraction": 0.000018717447916666665,
+          "meanOver3LsbPixelFraction": 0.000017903645833333333,
+          "maximumDifferenceFromReportedFloat64Metrics": 1.1102230246251565e-16,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "right_structure",
+          "frames": 301,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0,
+          "maximumPixelRmsDelta": 0,
+          "meanAbsoluteRoiMeanDelta": 0,
+          "meanChangedPixelFraction": 0,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 0,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "lower_floor",
+          "frames": 301,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0,
+          "maximumPixelRmsDelta": 0,
+          "meanAbsoluteRoiMeanDelta": 0,
+          "meanChangedPixelFraction": 0,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 0,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "upper_control",
+          "frames": 301,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.0016872317341078006,
+          "maximumPixelRmsDelta": 0.05134508072301693,
+          "meanAbsoluteRoiMeanDelta": 0.0000043455403645833326,
+          "meanChangedPixelFraction": 0.000016276041666666666,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 0,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "flame_control",
+          "frames": 301,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.1222472266522109,
+          "maximumPixelRmsDelta": 0.21481731726032213,
+          "meanAbsoluteRoiMeanDelta": 0.0021524055989583335,
+          "meanChangedPixelFraction": 0.009012044270833333,
+          "meanOver3LsbPixelFraction": 0.000361328125,
+          "maximumDifferenceFromReportedFloat64Metrics": 2.7755575615628914e-17,
+          "matchesReportedMetricsWithin1eMinus8": true
+        }
+      ]
+    },
+    {
+      "source": "artifacts/snow-journey/final-contact/phone-zh/sequences/my-wishes.json",
+      "name": "my-wishes",
+      "rois": [
+        {
+          "name": "left_structure",
+          "frames": 301,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.027491317160296014,
+          "maximumPixelRmsDelta": 0.4877162599451076,
+          "meanAbsoluteRoiMeanDelta": 0.00006676985677083333,
+          "meanChangedPixelFraction": 0.0000439453125,
+          "meanOver3LsbPixelFraction": 0.0000439453125,
+          "maximumDifferenceFromReportedFloat64Metrics": 2.220446049250313e-16,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "right_structure",
+          "frames": 301,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0,
+          "maximumPixelRmsDelta": 0,
+          "meanAbsoluteRoiMeanDelta": 0,
+          "meanChangedPixelFraction": 0,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 0,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "lower_floor",
+          "frames": 301,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0,
+          "maximumPixelRmsDelta": 0,
+          "meanAbsoluteRoiMeanDelta": 0,
+          "meanChangedPixelFraction": 0,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 0,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "upper_control",
+          "frames": 301,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.004761834890617094,
+          "maximumPixelRmsDelta": 0.07249612274115079,
+          "meanAbsoluteRoiMeanDelta": 0.000036086588541666655,
+          "meanChangedPixelFraction": 0.00010660807291666666,
+          "meanOver3LsbPixelFraction": 0.0000016276041666666668,
+          "maximumDifferenceFromReportedFloat64Metrics": 6.938893903907228e-18,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "flame_control",
+          "frames": 301,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.12048655785257623,
+          "maximumPixelRmsDelta": 0.21338642294683813,
+          "meanAbsoluteRoiMeanDelta": 0.0021105266927083327,
+          "meanChangedPixelFraction": 0.00932861328125,
+          "meanOver3LsbPixelFraction": 0.00035888671875,
+          "maximumDifferenceFromReportedFloat64Metrics": 4.163336342344337e-17,
+          "matchesReportedMetricsWithin1eMinus8": true
+        }
+      ]
+    },
+    {
+      "source": "artifacts/snow-journey/final-contact/phone-zh/sequences/ten-lights.json",
+      "name": "ten-lights",
+      "rois": [
+        {
+          "name": "left_structure",
+          "frames": 301,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.03307313596935412,
+          "maximumPixelRmsDelta": 0.5164257104597215,
+          "meanAbsoluteRoiMeanDelta": 0.00011503727213541666,
+          "meanChangedPixelFraction": 0.0000537109375,
+          "meanOver3LsbPixelFraction": 0.0000537109375,
+          "maximumDifferenceFromReportedFloat64Metrics": 3.3306690738754696e-16,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "right_structure",
+          "frames": 301,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0,
+          "maximumPixelRmsDelta": 0,
+          "meanAbsoluteRoiMeanDelta": 0,
+          "meanChangedPixelFraction": 0,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 0,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "lower_floor",
+          "frames": 301,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0,
+          "maximumPixelRmsDelta": 0,
+          "meanAbsoluteRoiMeanDelta": 0,
+          "meanChangedPixelFraction": 0,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 0,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "upper_control",
+          "frames": 301,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.03980017546376871,
+          "maximumPixelRmsDelta": 0.09968518409339662,
+          "meanAbsoluteRoiMeanDelta": 0.00033101936848958335,
+          "meanChangedPixelFraction": 0.00052001953125,
+          "meanOver3LsbPixelFraction": 0.00003743489583333333,
+          "maximumDifferenceFromReportedFloat64Metrics": 1.3877787807814457e-17,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "flame_control",
+          "frames": 301,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.1213158456749155,
+          "maximumPixelRmsDelta": 0.20370473912549875,
+          "meanAbsoluteRoiMeanDelta": 0.0024258572591145814,
+          "meanChangedPixelFraction": 0.0091015625,
+          "meanOver3LsbPixelFraction": 0.0003759765625,
+          "maximumDifferenceFromReportedFloat64Metrics": 5.551115123125783e-17,
+          "matchesReportedMetricsWithin1eMinus8": true
+        }
+      ]
+    },
+    {
+      "source": "artifacts/snow-journey/final-contact/phone-zh/sequences/home-return.json",
+      "name": "home-return",
+      "rois": [
+        {
+          "name": "left_lattice",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.027948298168280747,
+          "maximumPixelRmsDelta": 0.08842209461670905,
+          "meanAbsoluteRoiMeanDelta": 0.0022077322591145814,
+          "meanChangedPixelFraction": 0.005204264322916667,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 5.551115123125783e-17,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "floor_planks",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.014334664497422564,
+          "maximumPixelRmsDelta": 0.04189169921226191,
+          "meanAbsoluteRoiMeanDelta": 0.0006620077311197917,
+          "meanChangedPixelFraction": 0.001839599609375,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 3.122502256758253e-17,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "rock_surface",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.054755762293647016,
+          "maximumPixelRmsDelta": 0.15750844803111994,
+          "meanAbsoluteRoiMeanDelta": 0.008247642008463542,
+          "meanChangedPixelFraction": 0.019995930989583334,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 3.608224830031759e-16,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "sky_control",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.04067781355011011,
+          "maximumPixelRmsDelta": 0.11969024348193806,
+          "meanAbsoluteRoiMeanDelta": 0.00486028401692708,
+          "meanChangedPixelFraction": 0.013163248697916666,
+          "meanOver3LsbPixelFraction": 0,
+          "maximumDifferenceFromReportedFloat64Metrics": 1.734723475976807e-16,
+          "matchesReportedMetricsWithin1eMinus8": true
+        },
+        {
+          "name": "flame_control",
+          "frames": 601,
+          "pixelsPerFrame": 4096,
+          "meanPixelRmsDelta": 0.19707919899976317,
+          "maximumPixelRmsDelta": 0.5465866803095327,
+          "meanAbsoluteRoiMeanDelta": 0.06809094677734351,
+          "meanChangedPixelFraction": 0.1248876953125,
+          "meanOver3LsbPixelFraction": 0.00006022135416666667,
+          "maximumDifferenceFromReportedFloat64Metrics": 3.58046925441613e-15,
+          "matchesReportedMetricsWithin1eMinus8": true
+        }
+      ]
+    }
+  ]
+}

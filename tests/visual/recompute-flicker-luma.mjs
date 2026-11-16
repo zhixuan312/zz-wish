@@ -13,6 +13,7 @@ for (const path of paths) {
   for (const roi of sequence.rois) {
     if (!roi.rawLuminance?.file) { rois.push({ name: roi.name, unavailable: 'This original run retained raw RGBA representatives and per-frame telemetry, but not every pixel of every frame.' }); continue; }
     const descriptor = roi.rawLuminance, compressed = await readFile(descriptor.file);
+    if (descriptor.frames !== sequence.samples.length || descriptor.pixelsPerFrame !== roi.pixels.width * roi.pixels.height) throw new Error(`Raw frame/pixel descriptor mismatch: ${descriptor.file}`);
     if (createHash('sha256').update(compressed).digest('hex') !== descriptor.sha256) throw new Error(`Compressed luminance hash mismatch: ${descriptor.file}`);
     const bytes = gunzipSync(compressed);
     const expected = descriptor.frames * descriptor.pixelsPerFrame * 4;

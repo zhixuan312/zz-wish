@@ -1,0 +1,1485 @@
+{
+  "sourceSceneSha256": "90d634eee0c8fb553dce074cef0531aace6d0be878766a4526f8b5ab09aedd56",
+  "manifestSha256": "4f51484ba21e9764232b14c641ba3eb38c3dc393237418d323b391c49d70ce1c",
+  "partialPreview": false,
+  "hours": [
+    5.5,
+    7,
+    13,
+    17.5,
+    19.5,
+    22
+  ],
+  "viewports": [
+    "desktop-en",
+    "phone-zh"
+  ],
+  "originalReport": {
+    "file": "artifacts/snow-time-looks/final-contact/report.json",
+    "sha256": "3007625bf4e4ae586b1455fdff7106e0c19561333e1eefb800edf49096d7096a",
+    "views": 48
+  },
+  "repairedUIReport": {
+    "file": "artifacts/snow-time-looks/final-contact-ui-settled/report.json",
+    "sha256": "f6db819991b01b5342ec3ba9d744751f844c43e21456e500a394badce3b38806",
+    "views": 36
+  },
+  "finalGallery": "docs/evidence/snow-journey/final-contact-time-looks.html",
+  "selection": "36 repaired outside/choose/confirm stills plus the original 12 settled burning stills. Original 48 frames and all four transition traces remain preserved.",
+  "captureDefect": "The original phone 5.5 confirm frame caught the 650 ms CSS sheet entrance. The bounded repair waits for sheet opacity, identity transform, finished animations and fade opacity < .01; no lighting/source change or repeated ignition was involved.",
+  "transitions": [
+    {
+      "viewport": "desktop-en",
+      "name": "hot-night-to-day",
+      "from": 22,
+      "to": 13,
+      "rawFile": "artifacts/snow-time-looks/final-contact/desktop-en/22/hot-night-to-day.json",
+      "rawSha256": "3bbf0a66671cbc247eeb99f426e99c1a279e6e97278de85ee847fdad7e476040",
+      "renderedFrames": 301,
+      "durationMs": 10015.599999964237,
+      "allFramesHaveWeights": true,
+      "ambientWeightSumMinimum": 0.9999999999999999,
+      "cameraMaximumElementDelta": 0,
+      "projectionMaximumElementDelta": 0,
+      "bankRequests": [
+        {
+          "viewport": "desktop-en",
+          "hour": 13,
+          "url": "http://127.0.0.1:5198/places/snow-roof/hall-day.ktx2?v=7266546fb2ec434c9e365c307b5a1c5db8950850410bb5e7bcfe151fda4db3b9",
+          "status": 200,
+          "fromDiskCache": false,
+          "fromServiceWorker": false,
+          "at": 419542.519661,
+          "pathname": "/places/snow-roof/hall-day.ktx2"
+        },
+        {
+          "viewport": "desktop-en",
+          "hour": 13,
+          "url": "http://127.0.0.1:5198/places/snow-roof/gate-day.ktx2?v=1d1e7ece7433761ee7cc912476b65979d8dde28a159209a5292f5d350c509245",
+          "status": 200,
+          "fromDiskCache": false,
+          "fromServiceWorker": false,
+          "at": 419542.519846,
+          "pathname": "/places/snow-roof/gate-day.ktx2"
+        },
+        {
+          "viewport": "desktop-en",
+          "hour": 13,
+          "url": "http://127.0.0.1:5198/places/snow-roof/court-day.ktx2?v=db8cb556b4b04345190d6ca34b497783d742e66e6a430b530c06053cf6941633",
+          "status": 200,
+          "fromDiskCache": false,
+          "fromServiceWorker": false,
+          "at": 419542.519949,
+          "pathname": "/places/snow-roof/court-day.ktx2"
+        }
+      ],
+      "restoreWithoutBankRequest": null,
+      "before": {
+        "weights": [
+          1,
+          0,
+          0
+        ],
+        "residentPasses": [
+          "lamp",
+          "night"
+        ],
+        "pendingPasses": [],
+        "loadedPasses": [
+          "night",
+          "lamp"
+        ]
+      },
+      "after": {
+        "weights": [
+          0,
+          0,
+          1
+        ],
+        "residentPasses": [
+          "lamp",
+          "day"
+        ],
+        "pendingPasses": [],
+        "loadedPasses": [
+          "night",
+          "day",
+          "lamp"
+        ]
+      },
+      "bankReferences": {
+        "before": {
+          "night": {
+            "regions": 3,
+            "nonPlaceholderSamplerReferences": 3,
+            "placeholderSamplerReferences": 0,
+            "uncompiledSamplerReferences": 0,
+            "uploadedNonPlaceholderReferences": 3
+          },
+          "dusk": {
+            "regions": 3,
+            "nonPlaceholderSamplerReferences": 0,
+            "placeholderSamplerReferences": 3,
+            "uncompiledSamplerReferences": 0,
+            "uploadedNonPlaceholderReferences": 0
+          },
+          "day": {
+            "regions": 3,
+            "nonPlaceholderSamplerReferences": 0,
+            "placeholderSamplerReferences": 3,
+            "uncompiledSamplerReferences": 0,
+            "uploadedNonPlaceholderReferences": 0
+          },
+          "lamp": {
+            "regions": 3,
+            "nonPlaceholderSamplerReferences": 3,
+            "placeholderSamplerReferences": 0,
+            "uncompiledSamplerReferences": 0,
+            "uploadedNonPlaceholderReferences": 3
+          }
+        },
+        "after": {
+          "night": {
+            "regions": 3,
+            "nonPlaceholderSamplerReferences": 0,
+            "placeholderSamplerReferences": 3,
+            "uncompiledSamplerReferences": 0,
+            "uploadedNonPlaceholderReferences": 0
+          },
+          "dusk": {
+            "regions": 3,
+            "nonPlaceholderSamplerReferences": 0,
+            "placeholderSamplerReferences": 3,
+            "uncompiledSamplerReferences": 0,
+            "uploadedNonPlaceholderReferences": 0
+          },
+          "day": {
+            "regions": 3,
+            "nonPlaceholderSamplerReferences": 3,
+            "placeholderSamplerReferences": 0,
+            "uncompiledSamplerReferences": 0,
+            "uploadedNonPlaceholderReferences": 3
+          },
+          "lamp": {
+            "regions": 3,
+            "nonPlaceholderSamplerReferences": 3,
+            "placeholderSamplerReferences": 0,
+            "uncompiledSamplerReferences": 0,
+            "uploadedNonPlaceholderReferences": 3
+          }
+        }
+      },
+      "inactiveBoundReferences": [
+        {
+          "phase": "before",
+          "pass": "dusk",
+          "nonPlaceholderReferences": 0,
+          "placeholderReferences": 3
+        },
+        {
+          "phase": "before",
+          "pass": "day",
+          "nonPlaceholderReferences": 0,
+          "placeholderReferences": 3
+        },
+        {
+          "phase": "after",
+          "pass": "night",
+          "nonPlaceholderReferences": 0,
+          "placeholderReferences": 3
+        },
+        {
+          "phase": "after",
+          "pass": "dusk",
+          "nonPlaceholderReferences": 0,
+          "placeholderReferences": 3
+        }
+      ],
+      "structuralRoiMeans": [
+        {
+          "name": "left_structure",
+          "meanLuminanceMinimum": 20.826222216796847,
+          "meanLuminanceFirst": 20.826222216796847,
+          "meanLuminanceLast": 20.939030371093736
+        },
+        {
+          "name": "right_structure",
+          "meanLuminanceMinimum": 24.336219238281483,
+          "meanLuminanceFirst": 24.336219238281483,
+          "meanLuminanceLast": 24.4289342285158
+        },
+        {
+          "name": "lower_floor",
+          "meanLuminanceMinimum": 54.56998569335979,
+          "meanLuminanceFirst": 54.56998569335979,
+          "meanLuminanceLast": 121.55000244140672
+        }
+      ]
+    },
+    {
+      "viewport": "desktop-en",
+      "name": "hot-day-to-night-restore",
+      "from": 13,
+      "to": 22,
+      "rawFile": "artifacts/snow-time-looks/final-contact/desktop-en/22/hot-day-to-night-restore.json",
+      "rawSha256": "3794ccc62c921ec8ed9086b9a3ddaefd15fa7866540a58b44b47ea3ae0cd08a5",
+      "renderedFrames": 301,
+      "durationMs": 10022.600000023842,
+      "allFramesHaveWeights": true,
+      "ambientWeightSumMinimum": 0.9999999999999999,
+      "cameraMaximumElementDelta": 0,
+      "projectionMaximumElementDelta": 0,
+      "bankRequests": [],
+      "restoreWithoutBankRequest": true,
+      "before": {
+        "weights": [
+          0,
+          0,
+          1
+        ],
+        "residentPasses": [
+          "lamp",
+          "day"
+        ],
+        "pendingPasses": [],
+        "loadedPasses": [
+          "night",
+          "day",
+          "lamp"
+        ]
+      },
+      "after": {
+        "weights": [
+          1,
+          0,
+          0
+        ],
+        "residentPasses": [
+          "lamp",
+          "night"
+        ],
+        "pendingPasses": [],
+        "loadedPasses": [
+          "night",
+          "day",
+          "lamp"
+        ]
+      },
+      "bankReferences": {
+        "before": {
+          "night": {
+            "regions": 3,
+            "nonPlaceholderSamplerReferences": 0,
+            "placeholderSamplerReferences": 3,
+            "uncompiledSamplerReferences": 0,
+            "uploadedNonPlaceholderReferences": 0
+          },
+          "dusk": {
+            "regions": 3,
+            "nonPlaceholderSamplerReferences": 0,
+            "placeholderSamplerReferences": 3,
+            "uncompiledSamplerReferences": 0,
+            "uploadedNonPlaceholderReferences": 0
+          },
+          "day": {
+            "regions": 3,
+            "nonPlaceholderSamplerReferences": 3,
+            "placeholderSamplerReferences": 0,
+            "uncompiledSamplerReferences": 0,
+            "uploadedNonPlaceholderReferences": 3
+          },
+          "lamp": {
+            "regions": 3,
+            "nonPlaceholderSamplerReferences": 3,
+            "placeholderSamplerReferences": 0,
+            "uncompiledSamplerReferences": 0,
+            "uploadedNonPlaceholderReferences": 3
+          }
+        },
+        "after": {
+          "night": {
+            "regions": 3,
+            "nonPlaceholderSamplerReferences": 3,
+            "placeholderSamplerReferences": 0,
+            "uncompiledSamplerReferences": 0,
+            "uploadedNonPlaceholderReferences": 3
+          },
+          "dusk": {
+            "regions": 3,
+            "nonPlaceholderSamplerReferences": 0,
+            "placeholderSamplerReferences": 3,
+            "uncompiledSamplerReferences": 0,
+            "uploadedNonPlaceholderReferences": 0
+          },
+          "day": {
+            "regions": 3,
+            "nonPlaceholderSamplerReferences": 0,
+            "placeholderSamplerReferences": 3,
+            "uncompiledSamplerReferences": 0,
+            "uploadedNonPlaceholderReferences": 0
+          },
+          "lamp": {
+            "regions": 3,
+            "nonPlaceholderSamplerReferences": 3,
+            "placeholderSamplerReferences": 0,
+            "uncompiledSamplerReferences": 0,
+            "uploadedNonPlaceholderReferences": 3
+          }
+        }
+      },
+      "inactiveBoundReferences": [
+        {
+          "phase": "before",
+          "pass": "night",
+          "nonPlaceholderReferences": 0,
+          "placeholderReferences": 3
+        },
+        {
+          "phase": "before",
+          "pass": "dusk",
+          "nonPlaceholderReferences": 0,
+          "placeholderReferences": 3
+        },
+        {
+          "phase": "after",
+          "pass": "dusk",
+          "nonPlaceholderReferences": 0,
+          "placeholderReferences": 3
+        },
+        {
+          "phase": "after",
+          "pass": "day",
+          "nonPlaceholderReferences": 0,
+          "placeholderReferences": 3
+        }
+      ],
+      "structuralRoiMeans": [
+        {
+          "name": "left_structure",
+          "meanLuminanceMinimum": 20.774088330078122,
+          "meanLuminanceFirst": 20.891515576171876,
+          "meanLuminanceLast": 23.07248354492206
+        },
+        {
+          "name": "right_structure",
+          "meanLuminanceMinimum": 24.27789677734398,
+          "meanLuminanceFirst": 24.381697558593917,
+          "meanLuminanceLast": 26.72014125976564
+        },
+        {
+          "name": "lower_floor",
+          "meanLuminanceMinimum": 49.173616308594916,
+          "meanLuminanceFirst": 121.54616406250048,
+          "meanLuminanceLast": 49.1749930175793
+        }
+      ]
+    },
+    {
+      "viewport": "phone-zh",
+      "name": "hot-night-to-day",
+      "from": 22,
+      "to": 13,
+      "rawFile": "artifacts/snow-time-looks/final-contact/phone-zh/22/hot-night-to-day.json",
+      "rawSha256": "50238991a340c61b8db8cf2961d07e40172203e7a9c73859dc0db9fbb43a9b50",
+      "renderedFrames": 301,
+      "durationMs": 10011.599999964237,
+      "allFramesHaveWeights": true,
+      "ambientWeightSumMinimum": 0.9999999999999999,
+      "cameraMaximumElementDelta": 0,
+      "projectionMaximumElementDelta": 0,
+      "bankRequests": [
+        {
+          "viewport": "phone-zh",
+          "hour": 13,
+          "url": "http://127.0.0.1:5198/places/snow-roof/hall-day.ktx2?v=7266546fb2ec434c9e365c307b5a1c5db8950850410bb5e7bcfe151fda4db3b9",
+          "status": 200,
+          "fromDiskCache": false,
+          "fromServiceWorker": false,
+          "at": 419751.459235,
+          "pathname": "/places/snow-roof/hall-day.ktx2"
+        },
+        {
+          "viewport": "phone-zh",
+          "hour": 13,
+          "url": "http://127.0.0.1:5198/places/snow-roof/gate-day.ktx2?v=1d1e7ece7433761ee7cc912476b65979d8dde28a159209a5292f5d350c509245",
+          "status": 200,
+          "fromDiskCache": false,
+          "fromServiceWorker": false,
+          "at": 419751.459425,
+          "pathname": "/places/snow-roof/gate-day.ktx2"
+        },
+        {
+          "viewport": "phone-zh",
+          "hour": 13,
+          "url": "http://127.0.0.1:5198/places/snow-roof/court-day.ktx2?v=db8cb556b4b04345190d6ca34b497783d742e66e6a430b530c06053cf6941633",
+          "status": 200,
+          "fromDiskCache": false,
+          "fromServiceWorker": false,
+          "at": 419751.45952,
+          "pathname": "/places/snow-roof/court-day.ktx2"
+        }
+      ],
+      "restoreWithoutBankRequest": null,
+      "before": {
+        "weights": [
+          1,
+          0,
+          0
+        ],
+        "residentPasses": [
+          "lamp",
+          "night"
+        ],
+        "pendingPasses": [],
+        "loadedPasses": [
+          "night",
+          "lamp"
+        ]
+      },
+      "after": {
+        "weights": [
+          0,
+          0,
+          1
+        ],
+        "residentPasses": [
+          "lamp",
+          "day"
+        ],
+        "pendingPasses": [],
+        "loadedPasses": [
+          "night",
+          "day",
+          "lamp"
+        ]
+      },
+      "bankReferences": {
+        "before": {
+          "night": {
+            "regions": 3,
+            "nonPlaceholderSamplerReferences": 3,
+            "placeholderSamplerReferences": 0,
+            "uncompiledSamplerReferences": 0,
+            "uploadedNonPlaceholderReferences": 3
+          },
+          "dusk": {
+            "regions": 3,
+            "nonPlaceholderSamplerReferences": 0,
+            "placeholderSamplerReferences": 3,
+            "uncompiledSamplerReferences": 0,
+            "uploadedNonPlaceholderReferences": 0
+          },
+          "day": {
+            "regions": 3,
+            "nonPlaceholderSamplerReferences": 0,
+            "placeholderSamplerReferences": 3,
+            "uncompiledSamplerReferences": 0,
+            "uploadedNonPlaceholderReferences": 0
+          },
+          "lamp": {
+            "regions": 3,
+            "nonPlaceholderSamplerReferences": 3,
+            "placeholderSamplerReferences": 0,
+            "uncompiledSamplerReferences": 0,
+            "uploadedNonPlaceholderReferences": 3
+          }
+        },
+        "after": {
+          "night": {
+            "regions": 3,
+            "nonPlaceholderSamplerReferences": 0,
+            "placeholderSamplerReferences": 3,
+            "uncompiledSamplerReferences": 0,
+            "uploadedNonPlaceholderReferences": 0
+          },
+          "dusk": {
+            "regions": 3,
+            "nonPlaceholderSamplerReferences": 0,
+            "placeholderSamplerReferences": 3,
+            "uncompiledSamplerReferences": 0,
+            "uploadedNonPlaceholderReferences": 0
+          },
+          "day": {
+            "regions": 3,
+            "nonPlaceholderSamplerReferences": 3,
+            "placeholderSamplerReferences": 0,
+            "uncompiledSamplerReferences": 0,
+            "uploadedNonPlaceholderReferences": 3
+          },
+          "lamp": {
+            "regions": 3,
+            "nonPlaceholderSamplerReferences": 3,
+            "placeholderSamplerReferences": 0,
+            "uncompiledSamplerReferences": 0,
+            "uploadedNonPlaceholderReferences": 3
+          }
+        }
+      },
+      "inactiveBoundReferences": [
+        {
+          "phase": "before",
+          "pass": "dusk",
+          "nonPlaceholderReferences": 0,
+          "placeholderReferences": 3
+        },
+        {
+          "phase": "before",
+          "pass": "day",
+          "nonPlaceholderReferences": 0,
+          "placeholderReferences": 3
+        },
+        {
+          "phase": "after",
+          "pass": "night",
+          "nonPlaceholderReferences": 0,
+          "placeholderReferences": 3
+        },
+        {
+          "phase": "after",
+          "pass": "dusk",
+          "nonPlaceholderReferences": 0,
+          "placeholderReferences": 3
+        }
+      ],
+      "structuralRoiMeans": [
+        {
+          "name": "left_structure",
+          "meanLuminanceMinimum": 12.789379541015752,
+          "meanLuminanceFirst": 12.789379541015752,
+          "meanLuminanceLast": 21.236228857421693
+        },
+        {
+          "name": "right_structure",
+          "meanLuminanceMinimum": 10.002261035156272,
+          "meanLuminanceFirst": 10.414971679687516,
+          "meanLuminanceLast": 15.292235351562544
+        },
+        {
+          "name": "lower_floor",
+          "meanLuminanceMinimum": 46.48861938476547,
+          "meanLuminanceFirst": 46.48861938476547,
+          "meanLuminanceLast": 68.90001987304677
+        }
+      ]
+    },
+    {
+      "viewport": "phone-zh",
+      "name": "hot-day-to-night-restore",
+      "from": 13,
+      "to": 22,
+      "rawFile": "artifacts/snow-time-looks/final-contact/phone-zh/22/hot-day-to-night-restore.json",
+      "rawSha256": "55e6ff50438c768d657e53db9144757ab1e0b9059181946021af8a7bd06ccbfc",
+      "renderedFrames": 302,
+      "durationMs": 10021.600000023842,
+      "allFramesHaveWeights": true,
+      "ambientWeightSumMinimum": 0.9999999999999999,
+      "cameraMaximumElementDelta": 0,
+      "projectionMaximumElementDelta": 0,
+      "bankRequests": [],
+      "restoreWithoutBankRequest": true,
+      "before": {
+        "weights": [
+          0,
+          0,
+          1
+        ],
+        "residentPasses": [
+          "lamp",
+          "day"
+        ],
+        "pendingPasses": [],
+        "loadedPasses": [
+          "night",
+          "day",
+          "lamp"
+        ]
+      },
+      "after": {
+        "weights": [
+          1,
+          0,
+          0
+        ],
+        "residentPasses": [
+          "lamp",
+          "night"
+        ],
+        "pendingPasses": [],
+        "loadedPasses": [
+          "night",
+          "day",
+          "lamp"
+        ]
+      },
+      "bankReferences": {
+        "before": {
+          "night": {
+            "regions": 3,
+            "nonPlaceholderSamplerReferences": 0,
+            "placeholderSamplerReferences": 3,
+            "uncompiledSamplerReferences": 0,
+            "uploadedNonPlaceholderReferences": 0
+          },
+          "dusk": {
+            "regions": 3,
+            "nonPlaceholderSamplerReferences": 0,
+            "placeholderSamplerReferences": 3,
+            "uncompiledSamplerReferences": 0,
+            "uploadedNonPlaceholderReferences": 0
+          },
+          "day": {
+            "regions": 3,
+            "nonPlaceholderSamplerReferences": 3,
+            "placeholderSamplerReferences": 0,
+            "uncompiledSamplerReferences": 0,
+            "uploadedNonPlaceholderReferences": 3
+          },
+          "lamp": {
+            "regions": 3,
+            "nonPlaceholderSamplerReferences": 3,
+            "placeholderSamplerReferences": 0,
+            "uncompiledSamplerReferences": 0,
+            "uploadedNonPlaceholderReferences": 3
+          }
+        },
+        "after": {
+          "night": {
+            "regions": 3,
+            "nonPlaceholderSamplerReferences": 3,
+            "placeholderSamplerReferences": 0,
+            "uncompiledSamplerReferences": 0,
+            "uploadedNonPlaceholderReferences": 3
+          },
+          "dusk": {
+            "regions": 3,
+            "nonPlaceholderSamplerReferences": 0,
+            "placeholderSamplerReferences": 3,
+            "uncompiledSamplerReferences": 0,
+            "uploadedNonPlaceholderReferences": 0
+          },
+          "day": {
+            "regions": 3,
+            "nonPlaceholderSamplerReferences": 0,
+            "placeholderSamplerReferences": 3,
+            "uncompiledSamplerReferences": 0,
+            "uploadedNonPlaceholderReferences": 0
+          },
+          "lamp": {
+            "regions": 3,
+            "nonPlaceholderSamplerReferences": 3,
+            "placeholderSamplerReferences": 0,
+            "uncompiledSamplerReferences": 0,
+            "uploadedNonPlaceholderReferences": 3
+          }
+        }
+      },
+      "inactiveBoundReferences": [
+        {
+          "phase": "before",
+          "pass": "night",
+          "nonPlaceholderReferences": 0,
+          "placeholderReferences": 3
+        },
+        {
+          "phase": "before",
+          "pass": "dusk",
+          "nonPlaceholderReferences": 0,
+          "placeholderReferences": 3
+        },
+        {
+          "phase": "after",
+          "pass": "dusk",
+          "nonPlaceholderReferences": 0,
+          "placeholderReferences": 3
+        },
+        {
+          "phase": "after",
+          "pass": "day",
+          "nonPlaceholderReferences": 0,
+          "placeholderReferences": 3
+        }
+      ],
+      "structuralRoiMeans": [
+        {
+          "name": "left_structure",
+          "meanLuminanceMinimum": 12.686011816406369,
+          "meanLuminanceFirst": 21.254959863281076,
+          "meanLuminanceLast": 12.764410205078244
+        },
+        {
+          "name": "right_structure",
+          "meanLuminanceMinimum": 9.175536914062537,
+          "meanLuminanceFirst": 15.30935131835941,
+          "meanLuminanceLast": 10.384909570312518
+        },
+        {
+          "name": "lower_floor",
+          "meanLuminanceMinimum": 43.39443339843735,
+          "meanLuminanceFirst": 68.90984594726552,
+          "meanLuminanceLast": 46.47191708984359
+        }
+      ]
+    }
+  ],
+  "repairedUI": [
+    {
+      "viewport": "desktop-en",
+      "hour": 5.5,
+      "name": "outside",
+      "file": "artifacts/snow-time-looks/final-contact-ui-settled/desktop-en/5-5/outside.png",
+      "uiSettle": {
+        "fadeOpacity": 0,
+        "sheets": [
+          {
+            "opacity": 1,
+            "transform": "matrix(1, 0, 0, 1, 0, 0)",
+            "animations": [
+              {
+                "state": "finished",
+                "currentTime": 650
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "viewport": "desktop-en",
+      "hour": 5.5,
+      "name": "choose",
+      "file": "artifacts/snow-time-looks/final-contact-ui-settled/desktop-en/5-5/choose.png",
+      "uiSettle": {
+        "fadeOpacity": 0,
+        "sheets": [
+          {
+            "opacity": 1,
+            "transform": "matrix(1, 0, 0, 1, 0, 0)",
+            "animations": [
+              {
+                "state": "finished",
+                "currentTime": 650
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "viewport": "desktop-en",
+      "hour": 5.5,
+      "name": "confirm",
+      "file": "artifacts/snow-time-looks/final-contact-ui-settled/desktop-en/5-5/confirm.png",
+      "uiSettle": {
+        "fadeOpacity": 0,
+        "sheets": [
+          {
+            "opacity": 1,
+            "transform": "matrix(1, 0, 0, 1, 0, 0)",
+            "animations": [
+              {
+                "state": "finished",
+                "currentTime": 650
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "viewport": "desktop-en",
+      "hour": 7,
+      "name": "outside",
+      "file": "artifacts/snow-time-looks/final-contact-ui-settled/desktop-en/7/outside.png",
+      "uiSettle": {
+        "fadeOpacity": 0,
+        "sheets": [
+          {
+            "opacity": 1,
+            "transform": "matrix(1, 0, 0, 1, 0, 0)",
+            "animations": [
+              {
+                "state": "finished",
+                "currentTime": 650
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "viewport": "desktop-en",
+      "hour": 7,
+      "name": "choose",
+      "file": "artifacts/snow-time-looks/final-contact-ui-settled/desktop-en/7/choose.png",
+      "uiSettle": {
+        "fadeOpacity": 0,
+        "sheets": [
+          {
+            "opacity": 1,
+            "transform": "matrix(1, 0, 0, 1, 0, 0)",
+            "animations": [
+              {
+                "state": "finished",
+                "currentTime": 650
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "viewport": "desktop-en",
+      "hour": 7,
+      "name": "confirm",
+      "file": "artifacts/snow-time-looks/final-contact-ui-settled/desktop-en/7/confirm.png",
+      "uiSettle": {
+        "fadeOpacity": 0,
+        "sheets": [
+          {
+            "opacity": 1,
+            "transform": "matrix(1, 0, 0, 1, 0, 0)",
+            "animations": [
+              {
+                "state": "finished",
+                "currentTime": 650
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "viewport": "desktop-en",
+      "hour": 13,
+      "name": "outside",
+      "file": "artifacts/snow-time-looks/final-contact-ui-settled/desktop-en/13/outside.png",
+      "uiSettle": {
+        "fadeOpacity": 0.00706067,
+        "sheets": [
+          {
+            "opacity": 1,
+            "transform": "matrix(1, 0, 0, 1, 0, 0)",
+            "animations": [
+              {
+                "state": "finished",
+                "currentTime": 650
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "viewport": "desktop-en",
+      "hour": 13,
+      "name": "choose",
+      "file": "artifacts/snow-time-looks/final-contact-ui-settled/desktop-en/13/choose.png",
+      "uiSettle": {
+        "fadeOpacity": 0,
+        "sheets": [
+          {
+            "opacity": 1,
+            "transform": "matrix(1, 0, 0, 1, 0, 0)",
+            "animations": [
+              {
+                "state": "finished",
+                "currentTime": 650
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "viewport": "desktop-en",
+      "hour": 13,
+      "name": "confirm",
+      "file": "artifacts/snow-time-looks/final-contact-ui-settled/desktop-en/13/confirm.png",
+      "uiSettle": {
+        "fadeOpacity": 0,
+        "sheets": [
+          {
+            "opacity": 1,
+            "transform": "matrix(1, 0, 0, 1, 0, 0)",
+            "animations": [
+              {
+                "state": "finished",
+                "currentTime": 650
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "viewport": "desktop-en",
+      "hour": 17.5,
+      "name": "outside",
+      "file": "artifacts/snow-time-looks/final-contact-ui-settled/desktop-en/17-5/outside.png",
+      "uiSettle": {
+        "fadeOpacity": 0,
+        "sheets": [
+          {
+            "opacity": 1,
+            "transform": "matrix(1, 0, 0, 1, 0, 0)",
+            "animations": [
+              {
+                "state": "finished",
+                "currentTime": 650
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "viewport": "desktop-en",
+      "hour": 17.5,
+      "name": "choose",
+      "file": "artifacts/snow-time-looks/final-contact-ui-settled/desktop-en/17-5/choose.png",
+      "uiSettle": {
+        "fadeOpacity": 0,
+        "sheets": [
+          {
+            "opacity": 1,
+            "transform": "matrix(1, 0, 0, 1, 0, 0)",
+            "animations": [
+              {
+                "state": "finished",
+                "currentTime": 650
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "viewport": "desktop-en",
+      "hour": 17.5,
+      "name": "confirm",
+      "file": "artifacts/snow-time-looks/final-contact-ui-settled/desktop-en/17-5/confirm.png",
+      "uiSettle": {
+        "fadeOpacity": 0,
+        "sheets": [
+          {
+            "opacity": 1,
+            "transform": "matrix(1, 0, 0, 1, 0, 0)",
+            "animations": [
+              {
+                "state": "finished",
+                "currentTime": 650
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "viewport": "desktop-en",
+      "hour": 19.5,
+      "name": "outside",
+      "file": "artifacts/snow-time-looks/final-contact-ui-settled/desktop-en/19-5/outside.png",
+      "uiSettle": {
+        "fadeOpacity": 0.00707079,
+        "sheets": [
+          {
+            "opacity": 1,
+            "transform": "matrix(1, 0, 0, 1, 0, 0)",
+            "animations": [
+              {
+                "state": "finished",
+                "currentTime": 650
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "viewport": "desktop-en",
+      "hour": 19.5,
+      "name": "choose",
+      "file": "artifacts/snow-time-looks/final-contact-ui-settled/desktop-en/19-5/choose.png",
+      "uiSettle": {
+        "fadeOpacity": 0,
+        "sheets": [
+          {
+            "opacity": 1,
+            "transform": "matrix(1, 0, 0, 1, 0, 0)",
+            "animations": [
+              {
+                "state": "finished",
+                "currentTime": 650
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "viewport": "desktop-en",
+      "hour": 19.5,
+      "name": "confirm",
+      "file": "artifacts/snow-time-looks/final-contact-ui-settled/desktop-en/19-5/confirm.png",
+      "uiSettle": {
+        "fadeOpacity": 0,
+        "sheets": [
+          {
+            "opacity": 1,
+            "transform": "matrix(1, 0, 0, 1, 0, 0)",
+            "animations": [
+              {
+                "state": "finished",
+                "currentTime": 650
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "viewport": "desktop-en",
+      "hour": 22,
+      "name": "outside",
+      "file": "artifacts/snow-time-looks/final-contact-ui-settled/desktop-en/22/outside.png",
+      "uiSettle": {
+        "fadeOpacity": 0.0071237,
+        "sheets": [
+          {
+            "opacity": 1,
+            "transform": "matrix(1, 0, 0, 1, 0, 0)",
+            "animations": [
+              {
+                "state": "finished",
+                "currentTime": 650
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "viewport": "desktop-en",
+      "hour": 22,
+      "name": "choose",
+      "file": "artifacts/snow-time-looks/final-contact-ui-settled/desktop-en/22/choose.png",
+      "uiSettle": {
+        "fadeOpacity": 0,
+        "sheets": [
+          {
+            "opacity": 1,
+            "transform": "matrix(1, 0, 0, 1, 0, 0)",
+            "animations": [
+              {
+                "state": "finished",
+                "currentTime": 650
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "viewport": "desktop-en",
+      "hour": 22,
+      "name": "confirm",
+      "file": "artifacts/snow-time-looks/final-contact-ui-settled/desktop-en/22/confirm.png",
+      "uiSettle": {
+        "fadeOpacity": 0,
+        "sheets": [
+          {
+            "opacity": 1,
+            "transform": "matrix(1, 0, 0, 1, 0, 0)",
+            "animations": [
+              {
+                "state": "finished",
+                "currentTime": 650
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "viewport": "phone-zh",
+      "hour": 5.5,
+      "name": "outside",
+      "file": "artifacts/snow-time-looks/final-contact-ui-settled/phone-zh/5-5/outside.png",
+      "uiSettle": {
+        "fadeOpacity": 0,
+        "sheets": [
+          {
+            "opacity": 1,
+            "transform": "matrix(1, 0, 0, 1, 0, 0)",
+            "animations": [
+              {
+                "state": "finished",
+                "currentTime": 650
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "viewport": "phone-zh",
+      "hour": 5.5,
+      "name": "choose",
+      "file": "artifacts/snow-time-looks/final-contact-ui-settled/phone-zh/5-5/choose.png",
+      "uiSettle": {
+        "fadeOpacity": 0,
+        "sheets": [
+          {
+            "opacity": 1,
+            "transform": "matrix(1, 0, 0, 1, 0, 0)",
+            "animations": [
+              {
+                "state": "finished",
+                "currentTime": 650
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "viewport": "phone-zh",
+      "hour": 5.5,
+      "name": "confirm",
+      "file": "artifacts/snow-time-looks/final-contact-ui-settled/phone-zh/5-5/confirm.png",
+      "uiSettle": {
+        "fadeOpacity": 0,
+        "sheets": [
+          {
+            "opacity": 1,
+            "transform": "matrix(1, 0, 0, 1, 0, 0)",
+            "animations": [
+              {
+                "state": "finished",
+                "currentTime": 650
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "viewport": "phone-zh",
+      "hour": 7,
+      "name": "outside",
+      "file": "artifacts/snow-time-looks/final-contact-ui-settled/phone-zh/7/outside.png",
+      "uiSettle": {
+        "fadeOpacity": 0,
+        "sheets": [
+          {
+            "opacity": 1,
+            "transform": "matrix(1, 0, 0, 1, 0, 0)",
+            "animations": [
+              {
+                "state": "finished",
+                "currentTime": 650
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "viewport": "phone-zh",
+      "hour": 7,
+      "name": "choose",
+      "file": "artifacts/snow-time-looks/final-contact-ui-settled/phone-zh/7/choose.png",
+      "uiSettle": {
+        "fadeOpacity": 0,
+        "sheets": [
+          {
+            "opacity": 1,
+            "transform": "matrix(1, 0, 0, 1, 0, 0)",
+            "animations": [
+              {
+                "state": "finished",
+                "currentTime": 650
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "viewport": "phone-zh",
+      "hour": 7,
+      "name": "confirm",
+      "file": "artifacts/snow-time-looks/final-contact-ui-settled/phone-zh/7/confirm.png",
+      "uiSettle": {
+        "fadeOpacity": 0,
+        "sheets": [
+          {
+            "opacity": 1,
+            "transform": "matrix(1, 0, 0, 1, 0, 0)",
+            "animations": [
+              {
+                "state": "finished",
+                "currentTime": 650
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "viewport": "phone-zh",
+      "hour": 13,
+      "name": "outside",
+      "file": "artifacts/snow-time-looks/final-contact-ui-settled/phone-zh/13/outside.png",
+      "uiSettle": {
+        "fadeOpacity": 0.00706837,
+        "sheets": [
+          {
+            "opacity": 1,
+            "transform": "matrix(1, 0, 0, 1, 0, 0)",
+            "animations": [
+              {
+                "state": "finished",
+                "currentTime": 650
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "viewport": "phone-zh",
+      "hour": 13,
+      "name": "choose",
+      "file": "artifacts/snow-time-looks/final-contact-ui-settled/phone-zh/13/choose.png",
+      "uiSettle": {
+        "fadeOpacity": 0,
+        "sheets": [
+          {
+            "opacity": 1,
+            "transform": "matrix(1, 0, 0, 1, 0, 0)",
+            "animations": [
+              {
+                "state": "finished",
+                "currentTime": 650
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "viewport": "phone-zh",
+      "hour": 13,
+      "name": "confirm",
+      "file": "artifacts/snow-time-looks/final-contact-ui-settled/phone-zh/13/confirm.png",
+      "uiSettle": {
+        "fadeOpacity": 0,
+        "sheets": [
+          {
+            "opacity": 1,
+            "transform": "matrix(1, 0, 0, 1, 0, 0)",
+            "animations": [
+              {
+                "state": "finished",
+                "currentTime": 650
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "viewport": "phone-zh",
+      "hour": 17.5,
+      "name": "outside",
+      "file": "artifacts/snow-time-looks/final-contact-ui-settled/phone-zh/17-5/outside.png",
+      "uiSettle": {
+        "fadeOpacity": 0,
+        "sheets": [
+          {
+            "opacity": 1,
+            "transform": "matrix(1, 0, 0, 1, 0, 0)",
+            "animations": [
+              {
+                "state": "finished",
+                "currentTime": 650
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "viewport": "phone-zh",
+      "hour": 17.5,
+      "name": "choose",
+      "file": "artifacts/snow-time-looks/final-contact-ui-settled/phone-zh/17-5/choose.png",
+      "uiSettle": {
+        "fadeOpacity": 0,
+        "sheets": [
+          {
+            "opacity": 1,
+            "transform": "matrix(1, 0, 0, 1, 0, 0)",
+            "animations": [
+              {
+                "state": "finished",
+                "currentTime": 650
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "viewport": "phone-zh",
+      "hour": 17.5,
+      "name": "confirm",
+      "file": "artifacts/snow-time-looks/final-contact-ui-settled/phone-zh/17-5/confirm.png",
+      "uiSettle": {
+        "fadeOpacity": 0,
+        "sheets": [
+          {
+            "opacity": 1,
+            "transform": "matrix(1, 0, 0, 1, 0, 0)",
+            "animations": [
+              {
+                "state": "finished",
+                "currentTime": 650
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "viewport": "phone-zh",
+      "hour": 19.5,
+      "name": "outside",
+      "file": "artifacts/snow-time-looks/final-contact-ui-settled/phone-zh/19-5/outside.png",
+      "uiSettle": {
+        "fadeOpacity": 0.00707893,
+        "sheets": [
+          {
+            "opacity": 1,
+            "transform": "matrix(1, 0, 0, 1, 0, 0)",
+            "animations": [
+              {
+                "state": "finished",
+                "currentTime": 650
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "viewport": "phone-zh",
+      "hour": 19.5,
+      "name": "choose",
+      "file": "artifacts/snow-time-looks/final-contact-ui-settled/phone-zh/19-5/choose.png",
+      "uiSettle": {
+        "fadeOpacity": 0,
+        "sheets": [
+          {
+            "opacity": 1,
+            "transform": "matrix(1, 0, 0, 1, 0, 0)",
+            "animations": [
+              {
+                "state": "finished",
+                "currentTime": 650
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "viewport": "phone-zh",
+      "hour": 19.5,
+      "name": "confirm",
+      "file": "artifacts/snow-time-looks/final-contact-ui-settled/phone-zh/19-5/confirm.png",
+      "uiSettle": {
+        "fadeOpacity": 0,
+        "sheets": [
+          {
+            "opacity": 1,
+            "transform": "matrix(1, 0, 0, 1, 0, 0)",
+            "animations": [
+              {
+                "state": "finished",
+                "currentTime": 650
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "viewport": "phone-zh",
+      "hour": 22,
+      "name": "outside",
+      "file": "artifacts/snow-time-looks/final-contact-ui-settled/phone-zh/22/outside.png",
+      "uiSettle": {
+        "fadeOpacity": 0.00705738,
+        "sheets": [
+          {
+            "opacity": 1,
+            "transform": "matrix(1, 0, 0, 1, 0, 0)",
+            "animations": [
+              {
+                "state": "finished",
+                "currentTime": 650
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "viewport": "phone-zh",
+      "hour": 22,
+      "name": "choose",
+      "file": "artifacts/snow-time-looks/final-contact-ui-settled/phone-zh/22/choose.png",
+      "uiSettle": {
+        "fadeOpacity": 0,
+        "sheets": [
+          {
+            "opacity": 1,
+            "transform": "matrix(1, 0, 0, 1, 0, 0)",
+            "animations": [
+              {
+                "state": "finished",
+                "currentTime": 650
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "viewport": "phone-zh",
+      "hour": 22,
+      "name": "confirm",
+      "file": "artifacts/snow-time-looks/final-contact-ui-settled/phone-zh/22/confirm.png",
+      "uiSettle": {
+        "fadeOpacity": 0,
+        "sheets": [
+          {
+            "opacity": 1,
+            "transform": "matrix(1, 0, 0, 1, 0, 0)",
+            "animations": [
+              {
+                "state": "finished",
+                "currentTime": 650
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "actualPutOutCleanupCount": 12,
+  "repairNoCandleLitCount": 12,
+  "scope": "Compiled sampler bindings and gl.isTexture/upload telemetry establish atlas attachment/detachment. CPU compressed texture retention is distinct from GPU residency; WebGL storage dimensions/internal formats are not queried."
+}

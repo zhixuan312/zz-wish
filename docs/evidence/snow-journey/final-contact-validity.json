@@ -1,0 +1,10 @@
+{
+  "evidence": "final-contact",
+  "reportSha256": "20d193aa3ca72f0817fe0cc0f5985b4abb34899fc902b3082feebd8351d27f5a",
+  "validity": {
+    "normalJourneySequences": "Valid camera-still raw framebuffer observations with normal scene animation.",
+    "temporalGradeCausalProbe": "The earlier before-state causal probe is preserved separately. This run records whether the removed temporal grade uniform is present; it does not repeat that old probe.",
+    "particleIsolation": "Check visibleParticles telemetry is zero throughout the intended particle-hidden control.",
+    "allStaticControl": "The physical clock, daylight and fuel are held; particle hiding runs after scene updates on every render. Actual particle counts and raw pixels establish the result."
+  }
+}

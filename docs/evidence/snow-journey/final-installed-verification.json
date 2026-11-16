@@ -1,0 +1,32 @@
+{
+  "verifiedAt": "2026-11-16T20:05:17.658173+00:00",
+  "declaredFiles": 17,
+  "declaredBytes": 59300983,
+  "registryExact": true,
+  "mainSceneSha256": "90d634eee0c8fb553dce074cef0531aace6d0be878766a4526f8b5ab09aedd56",
+  "manifestSha256": "4f51484ba21e9764232b14c641ba3eb38c3dc393237418d323b391c49d70ce1c",
+  "mainPreview": "http://127.0.0.1:5173",
+  "readOnlyHTTP": [
+    {
+      "path": "/",
+      "status": 200,
+      "bytes": 751,
+      "sha256": "fc9a3259416eca893e927c396a6a0422dd3a36c415c078a39caf744d77284606"
+    },
+    {
+      "path": "/places/snow-roof/manifest.json",
+      "status": 200,
+      "bytes": 97367,
+      "sha256": "4f51484ba21e9764232b14c641ba3eb38c3dc393237418d323b391c49d70ce1c"
+    },
+    {
+      "path": "/api/places/stats",
+      "status": 200,
+      "bytes": 1060,
+      "sha256": "75832e35c23e6787062f8fa8b21bad284935593bcce197c925f31b47405fa3cd"
+    }
+  ],
+  "typecheck": "passed before frozen final-contact capture",
+  "productionBuild": "passed before frozen final-contact capture",
+  "testSuitesRun": false
+}
