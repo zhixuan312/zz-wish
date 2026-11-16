@@ -1,0 +1,296 @@
+{
+  "decision": "Keep UASTC lightmaps; reject this ETC1S candidate because actual dark/middle reconstruction and nonzero-to-black regressions exceed quality baseline. Material codec decision is separate.",
+  "source": "Completed old stable gate-night denoised linear EXR; no final-source maps were substituted.",
+  "settings": {
+    "logGain": 4096,
+    "mipLevels": 3,
+    "mipConstruction": "linear radiance before log encode",
+    "gutterPixels": 8,
+    "anisotropy": 1,
+    "etc1s": "q255 c4 endpoint/selector RDO disabled",
+    "uastc": "quality2 RDO1 Zstd18"
+  },
+  "bytes": {
+    "uastc": 1508599,
+    "etc1s": 452406
+  },
+  "maps": {
+    "uastc": {
+      "bands": {
+        "dark": {
+          "texels": 257466,
+          "meanAbsoluteLuminanceError": 8.025164493941822e-05,
+          "p95AbsoluteLuminanceError": 0.0004024471023585637,
+          "meanAbsoluteRGBError": 0.0001175922661786899,
+          "meanRelativeLuminanceErrorAbove0001": 0.07618239901440134,
+          "nonzeroTexelsQuantizedToBlack": 43
+        },
+        "middle": {
+          "texels": 214905,
+          "meanAbsoluteLuminanceError": 0.0020799134734858964,
+          "p95AbsoluteLuminanceError": 0.006925625002980221,
+          "meanAbsoluteRGBError": 0.002667481079697609,
+          "meanRelativeLuminanceErrorAbove0001": 0.04031659751754022,
+          "nonzeroTexelsQuantizedToBlack": 0
+        },
+        "peak": {
+          "texels": 531,
+          "meanAbsoluteLuminanceError": 0.18336936986825786,
+          "p95AbsoluteLuminanceError": 0.7728208884716032,
+          "meanAbsoluteRGBError": 0.191138356924057,
+          "meanRelativeLuminanceErrorAbove0001": 0.04167186146428341,
+          "nonzeroTexelsQuantizedToBlack": 0
+        }
+      },
+      "mips": [
+        {
+          "level": 0,
+          "size": [
+            2048,
+            2048
+          ],
+          "representedTexels": 472902,
+          "bands": {
+            "dark": {
+              "texels": 257466,
+              "meanAbsoluteLuminanceError": 8.025164493941822e-05,
+              "p95AbsoluteLuminanceError": 0.0004024471023585637,
+              "meanAbsoluteRGBError": 0.0001175922661786899,
+              "meanRelativeLuminanceErrorAbove0001": 0.07618239901440134,
+              "nonzeroTexelsQuantizedToBlack": 43
+            },
+            "middle": {
+              "texels": 214905,
+              "meanAbsoluteLuminanceError": 0.0020799134734858964,
+              "p95AbsoluteLuminanceError": 0.006925625002980221,
+              "meanAbsoluteRGBError": 0.002667481079697609,
+              "meanRelativeLuminanceErrorAbove0001": 0.04031659751754022,
+              "nonzeroTexelsQuantizedToBlack": 0
+            },
+            "peak": {
+              "texels": 531,
+              "meanAbsoluteLuminanceError": 0.18336936986825786,
+              "p95AbsoluteLuminanceError": 0.7728208884716032,
+              "meanAbsoluteRGBError": 0.191138356924057,
+              "meanRelativeLuminanceErrorAbove0001": 0.04167186146428341,
+              "nonzeroTexelsQuantizedToBlack": 0
+            }
+          }
+        },
+        {
+          "level": 1,
+          "size": [
+            1024,
+            1024
+          ],
+          "representedTexels": 103841,
+          "bands": {
+            "dark": {
+              "texels": 54631,
+              "meanAbsoluteLuminanceError": 9.746145575416534e-05,
+              "p95AbsoluteLuminanceError": 0.00046781932152807756,
+              "meanAbsoluteRGBError": 0.0001347348588751629,
+              "meanRelativeLuminanceErrorAbove0001": 0.08229055916000086,
+              "nonzeroTexelsQuantizedToBlack": 12
+            },
+            "middle": {
+              "texels": 49114,
+              "meanAbsoluteLuminanceError": 0.0022102114183140814,
+              "p95AbsoluteLuminanceError": 0.007252491635493921,
+              "meanAbsoluteRGBError": 0.0027478160336613655,
+              "meanRelativeLuminanceErrorAbove0001": 0.04374494222938963,
+              "nonzeroTexelsQuantizedToBlack": 0
+            },
+            "peak": {
+              "texels": 96,
+              "meanAbsoluteLuminanceError": 0.17201509327391776,
+              "p95AbsoluteLuminanceError": 0.614370621860028,
+              "meanAbsoluteRGBError": 0.18144236505031586,
+              "meanRelativeLuminanceErrorAbove0001": 0.049747606437076375,
+              "nonzeroTexelsQuantizedToBlack": 0
+            }
+          }
+        },
+        {
+          "level": 2,
+          "size": [
+            512,
+            512
+          ],
+          "representedTexels": 21403,
+          "bands": {
+            "dark": {
+              "texels": 11026,
+              "meanAbsoluteLuminanceError": 0.00010263620326863169,
+              "p95AbsoluteLuminanceError": 0.0004943989531777332,
+              "meanAbsoluteRGBError": 0.00013776597916148603,
+              "meanRelativeLuminanceErrorAbove0001": 0.08120046803792337,
+              "nonzeroTexelsQuantizedToBlack": 6
+            },
+            "middle": {
+              "texels": 10361,
+              "meanAbsoluteLuminanceError": 0.002365697766505349,
+              "p95AbsoluteLuminanceError": 0.007357551670074486,
+              "meanAbsoluteRGBError": 0.002982509322464466,
+              "meanRelativeLuminanceErrorAbove0001": 0.046689846245528036,
+              "nonzeroTexelsQuantizedToBlack": 0
+            },
+            "peak": {
+              "texels": 16,
+              "meanAbsoluteLuminanceError": 0.2397413866363466,
+              "p95AbsoluteLuminanceError": 0.9501590843915939,
+              "meanAbsoluteRGBError": 0.3529569208621979,
+              "meanRelativeLuminanceErrorAbove0001": 0.06124972558377641,
+              "nonzeroTexelsQuantizedToBlack": 0
+            }
+          }
+        }
+      ],
+      "encoding": "log2-hdr",
+      "logGain": 4096.0,
+      "logRange": 17.000011006847668,
+      "codec": "uastc",
+      "gutterPixels": 8,
+      "anisotropy": 1
+    },
+    "etc1s": {
+      "bands": {
+        "dark": {
+          "texels": 257466,
+          "meanAbsoluteLuminanceError": 0.0002590297491221104,
+          "p95AbsoluteLuminanceError": 0.0014483103813719923,
+          "meanAbsoluteRGBError": 0.00030826416332274675,
+          "meanRelativeLuminanceErrorAbove0001": 0.22701036697984692,
+          "nonzeroTexelsQuantizedToBlack": 728
+        },
+        "middle": {
+          "texels": 214905,
+          "meanAbsoluteLuminanceError": 0.00446460237767686,
+          "p95AbsoluteLuminanceError": 0.013238436565995212,
+          "meanAbsoluteRGBError": 0.005675530061125755,
+          "meanRelativeLuminanceErrorAbove0001": 0.09707894657119098,
+          "nonzeroTexelsQuantizedToBlack": 0
+        },
+        "peak": {
+          "texels": 531,
+          "meanAbsoluteLuminanceError": 0.5813658902806864,
+          "p95AbsoluteLuminanceError": 1.825020564222335,
+          "meanAbsoluteRGBError": 0.5686957836151123,
+          "meanRelativeLuminanceErrorAbove0001": 0.14420454076542066,
+          "nonzeroTexelsQuantizedToBlack": 0
+        }
+      },
+      "mips": [
+        {
+          "level": 0,
+          "size": [
+            2048,
+            2048
+          ],
+          "representedTexels": 472902,
+          "bands": {
+            "dark": {
+              "texels": 257466,
+              "meanAbsoluteLuminanceError": 0.0002590297491221104,
+              "p95AbsoluteLuminanceError": 0.0014483103813719923,
+              "meanAbsoluteRGBError": 0.00030826416332274675,
+              "meanRelativeLuminanceErrorAbove0001": 0.22701036697984692,
+              "nonzeroTexelsQuantizedToBlack": 728
+            },
+            "middle": {
+              "texels": 214905,
+              "meanAbsoluteLuminanceError": 0.00446460237767686,
+              "p95AbsoluteLuminanceError": 0.013238436565995212,
+              "meanAbsoluteRGBError": 0.005675530061125755,
+              "meanRelativeLuminanceErrorAbove0001": 0.09707894657119098,
+              "nonzeroTexelsQuantizedToBlack": 0
+            },
+            "peak": {
+              "texels": 531,
+              "meanAbsoluteLuminanceError": 0.5813658902806864,
+              "p95AbsoluteLuminanceError": 1.825020564222335,
+              "meanAbsoluteRGBError": 0.5686957836151123,
+              "meanRelativeLuminanceErrorAbove0001": 0.14420454076542066,
+              "nonzeroTexelsQuantizedToBlack": 0
+            }
+          }
+        },
+        {
+          "level": 1,
+          "size": [
+            1024,
+            1024
+          ],
+          "representedTexels": 103841,
+          "bands": {
+            "dark": {
+              "texels": 54631,
+              "meanAbsoluteLuminanceError": 0.0003100665127895173,
+              "p95AbsoluteLuminanceError": 0.0016740391191560778,
+              "meanAbsoluteRGBError": 0.00036056432873010635,
+              "meanRelativeLuminanceErrorAbove0001": 0.2345799517358181,
+              "nonzeroTexelsQuantizedToBlack": 130
+            },
+            "middle": {
+              "texels": 49114,
+              "meanAbsoluteLuminanceError": 0.0048984746701377325,
+              "p95AbsoluteLuminanceError": 0.015350828405600038,
+              "meanAbsoluteRGBError": 0.00604926235973835,
+              "meanRelativeLuminanceErrorAbove0001": 0.10189723850587466,
+              "nonzeroTexelsQuantizedToBlack": 0
+            },
+            "peak": {
+              "texels": 96,
+              "meanAbsoluteLuminanceError": 0.673859448710953,
+              "p95AbsoluteLuminanceError": 2.3385532713890074,
+              "meanAbsoluteRGBError": 0.6988121867179871,
+              "meanRelativeLuminanceErrorAbove0001": 0.1986690247736382,
+              "nonzeroTexelsQuantizedToBlack": 0
+            }
+          }
+        },
+        {
+          "level": 2,
+          "size": [
+            512,
+            512
+          ],
+          "representedTexels": 21403,
+          "bands": {
+            "dark": {
+              "texels": 11026,
+              "meanAbsoluteLuminanceError": 0.0003445894382899716,
+              "p95AbsoluteLuminanceError": 0.0017882471611024814,
+              "meanAbsoluteRGBError": 0.00039741460932418704,
+              "meanRelativeLuminanceErrorAbove0001": 0.22823786173444918,
+              "nonzeroTexelsQuantizedToBlack": 22
+            },
+            "middle": {
+              "texels": 10361,
+              "meanAbsoluteLuminanceError": 0.00521910013378516,
+              "p95AbsoluteLuminanceError": 0.016554125172272324,
+              "meanAbsoluteRGBError": 0.006422690115869045,
+              "meanRelativeLuminanceErrorAbove0001": 0.110735959911323,
+              "nonzeroTexelsQuantizedToBlack": 0
+            },
+            "peak": {
+              "texels": 16,
+              "meanAbsoluteLuminanceError": 1.8250507144987584,
+              "p95AbsoluteLuminanceError": 5.363464590001106,
+              "meanAbsoluteRGBError": 1.8073219060897827,
+              "meanRelativeLuminanceErrorAbove0001": 0.4918578280003538,
+              "nonzeroTexelsQuantizedToBlack": 0
+            }
+          }
+        }
+      ],
+      "encoding": "log2-hdr",
+      "logGain": 4096.0,
+      "logRange": 17.000011006847668,
+      "codec": "etc1s",
+      "gutterPixels": 8,
+      "anisotropy": 1
+    }
+  },
+  "limitation": "Official RGBA8 transcode, not device-uploaded ASTC/BC7/ETC output. Mip1/2 masks require one complete chart footprint; peak mip2 has16samples."
+}

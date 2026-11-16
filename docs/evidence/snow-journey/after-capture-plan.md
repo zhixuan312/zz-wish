@@ -1,17 +1,16 @@
 # After capture preparation
 
-The runner is prepared for the current single Snow Roof UI and new baked renderer. It has not run against the after delivery. Metal Cycles currently owns the GPU; Chrome must stay closed until the explicit GPU handoff.
+The final runner is prepared for the current single Snow Roof UI, streaming ambient banks and compositor MSAA. The earlier night3 partial preview was captured and is documented in [night3-review.md](night3-review.md). The newer complete banks, geometry fixes and MSAA have not been captured or timed yet. Metal Cycles currently owns the GPU; Chrome must stay closed until the explicit GPU handoff.
 
 Use a frozen after checkout containing the actual delivered assets, served through Vite with the HTTP and WebSocket API target on `http://127.0.0.1:8792`. The isolated database remains `/tmp/one-light-real.db`. The capture uses new visitor cookies and leaves earlier visitors' records intact.
 
 ```sh
-node tests/visual/instrument-flicker.mjs /tmp/one-light-snow-single-after
-STATE=after SOURCE_ROOT=/tmp/one-light-snow-single-after BASE_URL=http://127.0.0.1:5191 DB_FILE=/tmp/one-light-real.db EVIDENCE=after HEADLESS=0 node tests/visual/snow-journey-capture.mjs
+node tests/visual/instrument-flicker.mjs /tmp/one-light-final
 ```
 
-`SOURCE_ROOT` must be the source actually served by `BASE_URL`. Instrumentation accepts only a `/tmp/` checkout, keeps `scene.js.uninstrumented`, and emits `visual-instrumentation.json` with exact original, instrumented and helper hashes plus applied hooks. The capture fingerprints the served frontend and all delivered Snow Roof files before and after the run. Changed source/assets invalidate the stability claim.
+`SOURCE_ROOT` must be the source actually served by `BASE_URL`. Instrumentation accepts only a `/tmp/` checkout, keeps `scene.js.uninstrumented`, and emits `visual-instrumentation.json` with exact original, instrumented and helper hashes plus applied hooks. The browser exposes the frozen source path, original scene hash and manifest hash; each final driver compares these with `SOURCE_ROOT` before accepting any evidence. The capture also fingerprints the frontend and every delivered Snow Roof file before and after the run. Changed source/assets invalidate the stability claim.
 
-The latest source passes CPU-only hook matching. The skipped legacy grade-time hook is expected because `grade.uTime` was removed. Syntax checks pass. There has been no after browser, GPU render or suite run.
+The latest source passes CPU-only hook matching at `/tmp/one-light-final-hook-check2`. The skipped legacy grade-time hook is expected because `grade.uTime` was removed. Syntax checks pass. No browser, GPU render or test suite was run for this preparation.
 
 ## Journey
 
@@ -26,7 +25,7 @@ The latest source passes CPU-only hook matching. The skipped legacy grade-time h
 9. A third real burn with approved client/server visual clock acceleration, actual natural gutter/result and saved `burned_down / complete` record. Ember/smoke imagery is separate; the settled result waits six seconds before its static measurement. This remains a visual settlement check, not an endurance burn.
 10. My Lamps, My wishes, public statistics/order tabs and return home.
 
-Every static view gets a ten-second raw sequence. The entire UI journey is also recorded to video. A blank second-tab video is labelled separately from the main journey.
+Every required static journey view gets a ten-second raw sequence. In final core mode, already reviewed swatch/preset/drawing variants use screenshots. The UI journey is also recorded to video. A blank second-tab video is labelled separately from the main journey.
 
 ## Cause controls
 
@@ -48,11 +47,28 @@ The recomputation command reads the compressed pixels independently, checks thei
 For a later frozen final delivery, use `CORE_FLOW=1` with the journey command. Required core stages keep ten-second static sequences. Presets, swatches, 10-minute/24-hour sizes and drawn variants remain screenshots rather than repeating ten seconds each. Normal and fully static burning controls remain. Power-saver and restored-detail screenshots remain because their compositor MSAA behavior changed. Actual supported RGBA16F/depth24 sample arrays and both composer sample counts are retained in screenshot/sequence metadata.
 
 ```sh
-STATE=after CORE_FLOW=1 SOURCE_ROOT=/tmp/one-light-final BASE_URL=http://127.0.0.1:5191 DB_FILE=/tmp/one-light-real.db EVIDENCE=final HEADLESS=0 node tests/visual/snow-journey-capture.mjs
-BASE_URL=http://127.0.0.1:5191 SOURCE_ROOT=/tmp/one-light-final EVIDENCE=final node tests/visual/snow-performance.mjs
+REQUIRE_FINAL_BANKS=1 BASE_URL=http://127.0.0.1:5191 SOURCE_ROOT=/tmp/one-light-final EVIDENCE=final node tests/visual/snow-performance.mjs
+STATE=after CORE_FLOW=1 REQUIRE_FINAL_BANKS=1 SOURCE_ROOT=/tmp/one-light-final BASE_URL=http://127.0.0.1:5191 DB_FILE=/tmp/one-light-real.db EVIDENCE=final HEADLESS=0 node tests/visual/snow-journey-capture.mjs
+BASE_URL=http://127.0.0.1:5191 SOURCE_ROOT=/tmp/one-light-final EVIDENCE=final node tests/visual/snow-time-looks.mjs
 ```
 
-Run these sequentially, after the GPU handoff. The separate performance driver records no video and reads no pixels during timing. It measures actual composer-render intervals, CPU submit time and asynchronous GPU time when the extension is available and not disjoint. It covers home/outside/choose and settled normal, power-saver and restored burning at both sizes. Source caps are 60 FPS before burning, 30 FPS for normal/restored burning and 15 FPS for power saver. The driver records supported sample arrays, actual composer target sample properties, renderer counters, pixel ratio, buffer size and camera stability; it never calls `gl.finish`.
+After the [candidate A/B review](candidate-comparison-plan.md) selects a delivery, run these sequentially in the order shown: no-video performance first, full core journey second, and six looks third. This finds shader or frame-budget problems before the lengthy complete journey. Wait for the GPU handoff, with no Cycles job or other capture running. The bank guard rejects an incomplete/partial manifest before Chrome launches. Start the frozen server from `/tmp/one-light-final` after stopping the older owned port 5191 server:
+
+```sh
+ONE_LIGHT_API_TARGET=http://127.0.0.1:8792 ONE_LIGHT_VITE_CACHE=/tmp/one-light-final/.vite-cache node node_modules/vite/bin/vite.js --config web/vite.config.ts --host 127.0.0.1 --port 5191 --strictPort
+```
+
+The separate performance driver records no video and reads no pixels during timing. It measures actual composer-render intervals, CPU submit time and asynchronous GPU time when the extension is available and not disjoint. It covers home/outside/choose and settled normal, power-saver and restored burning at both sizes. Source caps are 60 FPS before burning, 30 FPS for normal/restored burning and 15 FPS for power saver. The driver records queried supported RGBA16F/depth24 sample arrays, both composer target sample properties, renderer counters, pixel ratio, buffer size and camera stability; it never calls `gl.finish`. It checks both target sample values against 2 when supported, 0 in power saver, and restored 2 afterward (or the supported 0 fallback).
+
+The performance phone uses 390×844 CSS pixels with touch/mobile emulation and deviceScaleFactor 2. The balanced renderer cap should produce pixel ratio 1.25 and a 487×1055 drawing buffer (integer flooring); power saver should produce 390×844 at pixel ratio 1. The final core visual/luma journey and six-look checks retain deviceScaleFactor 1 for comparison with prior evidence. All are M1 desktop-GPU emulation, not physical-phone benchmarks.
+
+Delivery metadata is collected before and after each timed window, never in its per-frame timing path. It includes manifest `bake.sampling`, compression profile/codec/images, each lightmap's gain/range/source fields, actual Three texture format/type after KTX2 transcoding, image/mipmap dimensions, and uploaded-handle/version evidence. An absent material profile is null; the driver does not infer mobile assets from viewport size. WebGL has no texture-level storage query, so the uploaded storage internal format is explicitly unqueried. Compiled uniform references distinguish actual atlas samplers from one-pixel placeholders; `lightingState.loadedPasses` separately identifies retained CPU images.
+
+## Six time looks and streaming
+
+The narrow six-look driver captures actual outside, 10-minute red Drum choose, confirm and settled burning at local hours 5.5, 7, 13, 17.5, 19.5 and 22, at both sizes. It waits for the requested local-hour daylight update, all required banks to finish loading, and effective weights to settle. Each view records source identity, requested/loaded/resident/pending banks, compiled samplers, device texture metadata and actual camera state. Actual UI put-out actions clean up each visitor's lamp.
+
+At the final 22:00 case, the still camera also switches 22→13→22. Raw acquisition begins before the clock switch and continues until streaming and the crossfade settle, with at least ten seconds recorded; it can extend to 120 seconds to retain a late arrival. Per-frame effective weights and lossless structural ROI luminance show continuity, while representative PNGs retain the visual result. This deliberately changing illumination is not scored as static flicker. The report checks that ambient weights never sum to zero, inactive atlas uniforms reference placeholders, and restoring the retained night bank issues no new bank request. Network records include URLs, statuses and cache flags. Visual inspection and raw pixel traces are still required before declaring no black flash.
 
 Native visibility requires clearing Playwright's override through its owning primary CDP session. The capture-only `native-focus-control.mjs` does this; a separately attached session was insufficient. The corrected approach produced trusted same-window hidden events in the actual product at both sizes, both with and without video. See the [lifecycle proof](native-visibility-proof.md). Single-court statistics ordering controls are optional. Private visitor recovery state is saved with mode0600 under `/tmp/one-light-capture-visitors/`, outside published evidence.
 

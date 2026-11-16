@@ -1,0 +1,25 @@
+{
+  "sourceObject": "Snow over bench",
+  "sourceBlend": "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-stair-banks-grain.blend",
+  "device": "METAL",
+  "type": "EMIT",
+  "samples": 1,
+  "pixels": 16086,
+  "comparisons": {
+    "sourceGenerated": {
+      "maxAbs": 0.0,
+      "meanAbs": 0.0,
+      "p99Abs": 0.0
+    },
+    "interpolatedPoint": {
+      "maxAbs": 0.18399745225906372,
+      "meanAbs": 0.016311705112457275,
+      "p99Abs": 0.12755729258060455
+    },
+    "evaluatedUndeformed": {
+      "maxAbs": 1.7881393432617188e-07,
+      "meanAbs": 6.512379080447772e-09,
+      "p99Abs": 5.960464477539063e-08
+    }
+  }
+}

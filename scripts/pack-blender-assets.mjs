@@ -323,7 +323,7 @@ for (const maps of Object.values(manifest.lightmaps)) for (const entry of Object
   entry.uri = deliveryUri; entry.codec = lightmapCodec;
   entry.bytes = data.length;
   const masterHash = digest(await readFile(join(source, entry.source)));
-  if (entry.masterSha256 && entry.masterSha256 !== masterHash) throw new Error(`Denoised master changed: ${region}/${Object.entries(maps).find(([, value]) => value === entry)?.[0] ?? entry.source}`);
+  if (entry.masterSha256 && entry.masterSha256 !== masterHash) throw new Error(`Denoised master changed: ${entry.source}`);
   entry.masterSha256 = masterHash;
   console.log('LIGHTMAP_SAMPLING', entry.uri, { mipLevels: levels, gutterPixels: sampling.gutterPixels, anisotropy: sampling.anisotropy });
   manifest.files.push({ uri: deliveryUri, bytes: data.length, sha256: digest(data), codec: lightmapCodec, mipLevels: levels, transfer: 'linear' });

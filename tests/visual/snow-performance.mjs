@@ -2,9 +2,10 @@
 // Requires capture-only beforeRender/afterRender hooks from performance-lab.mjs.
 // BASE_URL=http://127.0.0.1:5191 SOURCE_ROOT=/tmp/FROZEN EVIDENCE=final node tests/visual/snow-performance.mjs
 import { chromium } from '@playwright/test';
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { mkdir, writeFile } from 'node:fs/promises';
 import { resolve, join } from 'node:path';
 import { fingerprintCaptureSource } from './capture-source-fingerprint.mjs';
+import { readCaptureManifest, assertServedSnapshot } from './capture-preflight.mjs';
 
 if (process.argv.includes('--help')) {
   console.log('Set BASE_URL and SOURCE_ROOT for the frozen instrumented Vite/API snapshot. Optional EVIDENCE, VIEWPORT=desktop|phone, GPU_TIMERS=0, WARMUP_MS. This driver always uses headed Chrome Metal, ten-second render windows, no video and no pixel readback. Do not run while another capture or native GPU job owns the device.');
@@ -18,13 +19,13 @@ const out = resolve('artifacts/snow-performance', process.env.EVIDENCE || 'prepa
 const seconds = 10, warmupMs = Number(process.env.WARMUP_MS || 2000);
 const sourceStart = await fingerprintCaptureSource(source);
 if (!sourceStart.sourceFiles) throw new Error('Frozen source was not found; no browser was launched.');
-const manifest = JSON.parse(await readFile(join(source, 'web/public/places/snow-roof/manifest.json'), 'utf8'));
+const manifest = await readCaptureManifest(source, { requireFinalBanks: process.env.REQUIRE_FINAL_BANKS === '1' });
 const report = { createdAt: new Date().toISOString(), base, sourceStart, partialPreview: !!manifest.partialPreview, seconds, warmupMs, runtime: {}, samples: [], errors: [], resources: [], cleanup: [], notes: [
   'Actual composer-render timestamps and asynchronous GPU queries; no RAF-only FPS estimate, video recording, gl.readPixels, screenshot or raw-frame recorder during measured windows.',
   'CPU submit is wall time around composer.render(), not CPU utilization. GPU timing is unavailable when unsupported, disjoint, incomplete or disabled.',
   'Each window lasts ten seconds of actual rendering. Screenshots and settling waits occur outside timed windows.',
   'Local lighting clock is held at 22:00; fuel, flame, weather and other animation remain running. Camera drift is held for phase-to-phase comparisons.',
-  'Phone is 390×844 touch/viewport emulation on the desktop GPU with deviceScaleFactor 1; it is not physical-phone performance.',
+  'Phone is 390×844 CSS touch/viewport emulation on the M1 desktop GPU with deviceScaleFactor 2, exercising the balanced 1.25 renderer cap (about 488×1055 pixels; power saver 390×844). It is not physical-phone performance. Desktop uses deviceScaleFactor 1.',
   'Pre-burn views intentionally cap at 60 FPS. Burning power saver caps at 15 FPS; normal and restored burning detail cap at 30 FPS. Results must be judged against these source caps.',
 ] };
 await mkdir(out, { recursive: true });
@@ -36,7 +37,7 @@ const sizes = [{ name: 'desktop-en', width: 1440, height: 900, locale: 'en-US', 
 try {
   for (const size of sizes) {
     const dir = join(out, size.name); await mkdir(dir, { recursive: true });
-    const context = await browser.newContext({ viewport: { width: size.width, height: size.height }, deviceScaleFactor: 1, locale: size.locale, hasTouch: size.phone, isMobile: size.phone, reducedMotion: 'no-preference' });
+    const context = await browser.newContext({ viewport: { width: size.width, height: size.height }, deviceScaleFactor: size.phone?2:1, locale: size.locale, hasTouch: size.phone, isMobile: size.phone, reducedMotion: 'no-preference' });
     await context.addInitScript(() => { Date.prototype.getHours = () => 22; Date.prototype.getMinutes = () => 0; window.__visualFreezeCamera = true; });
     const page = await context.newPage(); page.setDefaultTimeout(120000);
     const act = locator => size.phone ? locator.tap() : locator.click();
@@ -57,11 +58,27 @@ try {
         page.evaluate(options => window.__performanceLab.begin(options), { name, seconds, gpu: process.env.GPU_TIMERS !== '0' }),
         new Promise((_, reject) => { timeout = setTimeout(() => reject(new Error(`No completed actual-render sample for ${name}.`)), 30000); }),
       ]).finally(() => clearTimeout(timeout));
-      report.samples.push({ viewport: size.name, name, intendedCapFPS, precondition: state, ...sample });
+      const supported = sample.configurationStart.supportedSamples;
+      const supported2x = supported.rgba16f.supported.includes(2) && supported.depthComponent24.supported.includes(2);
+      const expectedSamples = name === 'burning-power-saver' ? 0 : supported2x ? 2 : 0;
+      const expectedPixelRatio = size.phone && name !== 'burning-power-saver' ? 1.25 : 1;
+      const expectedBuffer = [Math.floor(size.width * expectedPixelRatio), Math.floor(size.height * expectedPixelRatio)];
+      const targetSamples = [sample.configurationStart.renderTarget1?.samples, sample.configurationStart.renderTarget2?.samples];
+      const issues = [];
+      if (!sample.valid) issues.push('The timing window was invalid.');
+      if (targetSamples.some(value => value !== expectedSamples)) issues.push(`Composer targets were ${targetSamples}; expected both ${expectedSamples}.`);
+      if (sample.configurationStart.pixelRatio !== expectedPixelRatio || sample.configurationStart.drawingBuffer.some((value, index) => value !== expectedBuffer[index])) issues.push('The measured buffer did not exercise the expected viewport pixel budget.');
+      if (sample.configurationChanges.length) issues.push('Render configuration changed during the measured window.');
+      if (sample.cameraMaximumElementDelta !== 0 || sample.projectionMaximumElementDelta !== 0) issues.push('The inspection camera moved during timing.');
+      if (sample.deliveryStart?.diagnosticError || sample.deliveryEnd?.diagnosticError) issues.push('Delivery diagnostics failed outside the timing window.');
+      if (name !== 'home' && (!sample.deliveryStart?.available || !sample.deliveryEnd?.available)) issues.push('The measured Snow Roof did not expose an active baked delivery.');
+      const validation = { expectedSamples, targetSamples, expectedPixelRatio, expectedBuffer, issues };
+      report.samples.push({ viewport: size.name, name, intendedCapFPS, targetFrameBudgetMs: 1000 / intendedCapFPS, precondition: state, validation, ...sample });
+      for (const issue of issues) report.errors.push({ viewport: size.name, name, diagnostic: issue });
       await writeFile(join(dir, `${name}.json`), JSON.stringify(sample, null, 2) + '\n');
       await page.screenshot({ path: join(dir, `${name}-after.png`) });
       await save();
-      console.log('PERFORMANCE', size.name, name, JSON.stringify({ valid: sample.valid, frames: sample.renderedFrames, fps: sample.fps, intervalP95: sample.intervals.p95Ms, cpuP95: sample.cpuSubmit.p95Ms, gpuStatus: sample.gpu.status, gpuP95: sample.gpu.p95Ms }));
+      console.log('PERFORMANCE', size.name, name, JSON.stringify({ valid: sample.valid, frames: sample.renderedFrames, fps: sample.fps, intervalP95: sample.intervals.p95Ms, cpuP95: sample.cpuSubmit.p95Ms, gpuStatus: sample.gpu.status, gpuP95: sample.gpu.p95Ms, ...validation }));
     };
     const putOut = async () => {
       await act(button(re('^熄灭$', '^Put out$')));
@@ -78,6 +95,7 @@ try {
       await page.goto(base); await page.bringToFront();
       await page.getByLabel(re('你的愿望', 'Your wish')).waitFor();
       await page.waitForFunction(() => window.__ready === true && !!window.__performanceLab);
+      await assertServedSnapshot(page, sourceStart);
       await page.evaluate(() => document.fonts.ready.then(() => true));
       report.runtime[size.name] = await page.evaluate(() => {
         const renderer = window.__renderer, gl = renderer.getContext(), debug = gl.getExtension('WEBGL_debug_renderer_info');

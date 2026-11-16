@@ -1,0 +1,266 @@
+{
+  "createdAt": "2026-11-16T17:20:22.591Z",
+  "state": "Frontend snapshots prepared; complete candidate Snow Roof assets are still pending. No browser or GPU capture has run.",
+  "commonRoot": "/tmp/one-light-ab-common",
+  "commonFrontendSha256": "6bb412e03c30f2aff9990cc33d3f922acbfeab498306af13f3950d958c7110c4",
+  "commonFiles": 104,
+  "sourceState": "Actual current working tree, including uncommitted and untracked frontend files; not git HEAD.",
+  "workingTreeWasStableDuringCopy": true,
+  "sourceAndApiHttpChecks": "Both ports returned HTTP 200 for HTML, instrumented scene, baked loader, delivery helper and proxied public statistics. These were Node HTTP requests, not browser rendering.",
+  "preservedServers": [
+    "http://127.0.0.1:5190",
+    "http://127.0.0.1:5174"
+  ],
+  "retiredOwnedServer": {
+    "root": "/tmp/one-light-snow-single-after-night3",
+    "port": 5191,
+    "session": 20486
+  },
+  "nextStep": "Install each complete candidate asset folder, rerun instrument-flicker.mjs without ALLOW_PENDING_DELIVERY, then perform CPU pair preflight. Chrome remains forbidden until root releases the GPU.",
+  "entries": [
+    {
+      "profile": "quality",
+      "root": "/tmp/one-light-final-quality",
+      "url": "http://127.0.0.1:5191",
+      "ownedViteSession": 90160,
+      "cache": "/tmp/one-light-final-quality/.vite-cache",
+      "api": "http://127.0.0.1:8792",
+      "deliveryPending": true,
+      "originalSceneSha256": "afbf3d01e6751ba51cfc5746069977b96348cb139b4d3ed380e729c417438fc9",
+      "instrumentation": {
+        "target": "/tmp/one-light-final-quality",
+        "originalSceneSha256": "afbf3d01e6751ba51cfc5746069977b96348cb139b4d3ed380e729c417438fc9",
+        "instrumentedSceneSha256": "b278c757382b90c3ad8f92de920e3b0e12429f0890d8c2ae33905b820e5d510b",
+        "helperSha256": "10cf901169211e5f4570a89d3bbab127b9259e535c5f8eaedb8c309da7334115",
+        "performanceHelperSha256": "f39282f2c8a5b95aa0726d9da505131c7fde7c7ad50b25278bd3c1ddc62d8499",
+        "deliveryHelperSha256": "0977299d1742597b92ad5fa1584f1eebc563c22c48f54170436a6d53d549b0a5",
+        "snowManifestSha256": null,
+        "deliveryPending": true,
+        "hooks": [
+          {
+            "name": "Create capture helper",
+            "applied": true,
+            "required": true
+          },
+          {
+            "name": "Freeze physical clock",
+            "applied": true,
+            "required": true
+          },
+          {
+            "name": "Hold camera tweens for inspection",
+            "applied": true,
+            "required": true
+          },
+          {
+            "name": "Expose explicitly exploratory snapshot camera control",
+            "applied": true,
+            "required": true
+          },
+          {
+            "name": "Expose pending camera/tween state for settled static captures",
+            "applied": true,
+            "required": true
+          },
+          {
+            "name": "Expose controlled physical state for material-only A/B",
+            "applied": true,
+            "required": true
+          },
+          {
+            "name": "Remove camera drift",
+            "applied": true,
+            "required": true
+          },
+          {
+            "name": "Freeze lamp fuel and animation",
+            "applied": true,
+            "required": true
+          },
+          {
+            "name": "Freeze flame clocks before intensity and graphics updates",
+            "applied": true,
+            "required": true
+          },
+          {
+            "name": "Freeze shared flame graphic time",
+            "applied": true,
+            "required": true
+          },
+          {
+            "name": "Retain flame halo during particle control",
+            "applied": true,
+            "required": true
+          },
+          {
+            "name": "Identify physical suspension for camera/size evidence",
+            "applied": true,
+            "required": false
+          },
+          {
+            "name": "Hold lamp rotation independently",
+            "applied": true,
+            "required": false
+          },
+          {
+            "name": "Hold smoothed fuel independently",
+            "applied": true,
+            "required": false
+          },
+          {
+            "name": "Hold UI level updates independently",
+            "applied": true,
+            "required": true
+          },
+          {
+            "name": "Hold quantized daylight independently",
+            "applied": true,
+            "required": false
+          },
+          {
+            "name": "Hold continuous baked daylight independently",
+            "applied": true,
+            "required": false
+          },
+          {
+            "name": "Control bloom",
+            "applied": true,
+            "required": true
+          },
+          {
+            "name": "Hold legacy temporal grade",
+            "applied": false,
+            "required": false
+          },
+          {
+            "name": "Read raw framebuffer after late particle and shadow controls",
+            "applied": true,
+            "required": true
+          }
+        ]
+      }
+    },
+    {
+      "profile": "mobile",
+      "root": "/tmp/one-light-final-mobile",
+      "url": "http://127.0.0.1:5192",
+      "ownedViteSession": 2238,
+      "cache": "/tmp/one-light-final-mobile/.vite-cache",
+      "api": "http://127.0.0.1:8792",
+      "deliveryPending": true,
+      "originalSceneSha256": "afbf3d01e6751ba51cfc5746069977b96348cb139b4d3ed380e729c417438fc9",
+      "instrumentation": {
+        "target": "/tmp/one-light-final-mobile",
+        "originalSceneSha256": "afbf3d01e6751ba51cfc5746069977b96348cb139b4d3ed380e729c417438fc9",
+        "instrumentedSceneSha256": "facb798d40ccbdc58539aea04e76188e61742a42badc3fed21af3e7697225302",
+        "helperSha256": "10cf901169211e5f4570a89d3bbab127b9259e535c5f8eaedb8c309da7334115",
+        "performanceHelperSha256": "f39282f2c8a5b95aa0726d9da505131c7fde7c7ad50b25278bd3c1ddc62d8499",
+        "deliveryHelperSha256": "0977299d1742597b92ad5fa1584f1eebc563c22c48f54170436a6d53d549b0a5",
+        "snowManifestSha256": null,
+        "deliveryPending": true,
+        "hooks": [
+          {
+            "name": "Create capture helper",
+            "applied": true,
+            "required": true
+          },
+          {
+            "name": "Freeze physical clock",
+            "applied": true,
+            "required": true
+          },
+          {
+            "name": "Hold camera tweens for inspection",
+            "applied": true,
+            "required": true
+          },
+          {
+            "name": "Expose explicitly exploratory snapshot camera control",
+            "applied": true,
+            "required": true
+          },
+          {
+            "name": "Expose pending camera/tween state for settled static captures",
+            "applied": true,
+            "required": true
+          },
+          {
+            "name": "Expose controlled physical state for material-only A/B",
+            "applied": true,
+            "required": true
+          },
+          {
+            "name": "Remove camera drift",
+            "applied": true,
+            "required": true
+          },
+          {
+            "name": "Freeze lamp fuel and animation",
+            "applied": true,
+            "required": true
+          },
+          {
+            "name": "Freeze flame clocks before intensity and graphics updates",
+            "applied": true,
+            "required": true
+          },
+          {
+            "name": "Freeze shared flame graphic time",
+            "applied": true,
+            "required": true
+          },
+          {
+            "name": "Retain flame halo during particle control",
+            "applied": true,
+            "required": true
+          },
+          {
+            "name": "Identify physical suspension for camera/size evidence",
+            "applied": true,
+            "required": false
+          },
+          {
+            "name": "Hold lamp rotation independently",
+            "applied": true,
+            "required": false
+          },
+          {
+            "name": "Hold smoothed fuel independently",
+            "applied": true,
+            "required": false
+          },
+          {
+            "name": "Hold UI level updates independently",
+            "applied": true,
+            "required": true
+          },
+          {
+            "name": "Hold quantized daylight independently",
+            "applied": true,
+            "required": false
+          },
+          {
+            "name": "Hold continuous baked daylight independently",
+            "applied": true,
+            "required": false
+          },
+          {
+            "name": "Control bloom",
+            "applied": true,
+            "required": true
+          },
+          {
+            "name": "Hold legacy temporal grade",
+            "applied": false,
+            "required": false
+          },
+          {
+            "name": "Read raw framebuffer after late particle and shadow controls",
+            "applied": true,
+            "required": true
+          }
+        ]
+      }
+    }
+  ]
+}

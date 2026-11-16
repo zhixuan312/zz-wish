@@ -12,7 +12,7 @@ export default function createPlace(h){
     walkSeconds:46,
     walk:[V3(.7,1.7,37),V3(.1,1.7,27),V3(0,1.7,19),V3(0,1.7,13)],doors:V3(0,1.7,17),
     async build(){
-      const C=h.context,baked=await loadBakedPlace('snow-roof',h.renderer);
+      const C=h.context,baked=await loadBakedPlace('snow-roof',h.renderer,C.light);
       C.G.add(baked.group);C.baked=baked;
       for(const x of [-2,2])h.liveFlame(x,1.74,19.25);
       h.fall({n:1000,at:[0,6.5,30.3],box:[48,13,52.2],color:0xe4ecf8,size:.025,vy:.65,sway:.18,opacity:.52,softEdges:true});
@@ -36,8 +36,8 @@ export default function createPlace(h){
       burnFarPhone:{pos:V3(.18,1.62,-3.35),look:V3(0,1.88,.5),fov:44},
       burnWalk:[V3(1.4,1.62,1.3),V3(1.95,1.62,-.75),V3(1.65,1.62,-1.7)],
       async build(){
-        for(const x of [-1.45,-.95,.95,1.45])h.liveFlame(x,1.17,-4.25);
-        h.smokeAt(0,1.11,-4.25,{k:.5,size:.018,spread:.015,op:.06,rate:.2,n:30});
+        for(const x of [-1.45,-.95,.95,1.45]){h.liveFlame(x,1.17,-4.25);h.fixtureSpecular(x,1.22,-4.25);}
+        h.smokeAt(.002,1.38,-4.35,{k:2,size:.007,spread:.06,op:.08,perSecond:8,n:48});
       },
     },
   };

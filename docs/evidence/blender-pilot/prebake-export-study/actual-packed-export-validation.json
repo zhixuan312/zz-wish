@@ -1,0 +1,133 @@
+{
+  "version": 1,
+  "actualPreparedReference": "art/build/snow-roof-final/hidden-export-reference-corrected/reference.json",
+  "actualPreparedReferenceSha256": "9138cc6d6db2d2334504ee2e7617d4ccda22888af9d9708b9d895093d7d66436",
+  "actualFaceRawAudit": "art/build/snow-roof-final/hidden-export-reference-corrected/raw-correspondence.json",
+  "actualFaceRawAuditSha256": "33f91018543dc9610d3871b72954e4854a1322aa2e63d70a53e58c1f043641e2",
+  "source": {
+    "path": "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-stair-banks-grain.blend",
+    "sha256": "6e9f59c93565e08a690eaafbc756967ba39e0f4d8ad0094e4520265948360af8"
+  },
+  "proof": {
+    "path": "/Users/xuan/Documents/code/zz-wish/art/blender/proofs/snow-roof-final-hidden-tiles.json",
+    "sha256": "6649e9c080c3b152c743fcc88ad5ebf95690ff8f678742cc5dd84be79ce2e014"
+  },
+  "prepared": {
+    "path": "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-final/snow-roof-prepared.blend",
+    "sha256": "6ed42644cd3a6c1026b079740957280df0274e9e9a0eaf5f8d3da514725079c1"
+  },
+  "raw": {
+    "path": "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-final/snow-roof.raw.glb",
+    "sha256": "42def075058bc8d7d6673645678448a1d74173443742a529d8316afee6e47196"
+  },
+  "qualityMobilePackedGeometryAndAttributesExactlyEqual": true,
+  "originalMeasuredProfileModified": false,
+  "records": [
+    {
+      "variant": "quality",
+      "input": {
+        "path": "art/build/snow-roof-final-quality/snow-roof.glb",
+        "sha256": "545f101f30a16aaa241d8a63e476ab5b04cfb9c2a4fa15a61261bf506e4b5760",
+        "bytes": 38017908,
+        "vertices": 956291,
+        "triangles": 650624,
+        "images": 24,
+        "imageBytes": 24909483,
+        "geometryBytes": 13007534
+      },
+      "measuredOutput": {
+        "path": "art/build/snow-roof-final-export-measurement/quality-measured.glb",
+        "sha256": "d37a76d691b5d1703ba0c9ff36558631b4613e05e532ac92cb74f88c0f5fc174",
+        "bytes": 34821408,
+        "vertices": 648776,
+        "triangles": 466874,
+        "images": 24,
+        "imageBytes": 24909483,
+        "geometryBytes": 9803782
+      },
+      "removedTrianglesByRegion": {
+        "court": 65394,
+        "gate": 22566,
+        "hall": 95790
+      },
+      "packedRoofAliases": {
+        "court": {
+          "Side hall roof tiles": 65394
+        },
+        "gate": {
+          "Side hall roof tiles": 22566
+        },
+        "hall": {
+          "Side hall roof tiles": 95790
+        }
+      },
+      "removableVertices": 198050,
+      "exactWeldedVertices": 109465,
+      "preservedNonproofMarkerTriangles": 3292,
+      "rawToPackedProvenTrianglePositionMaxErrorMetres": 0.0008451991078806152,
+      "conservativePositionErrorBoundMetres": 0.001512666219061861,
+      "sourcePackedHiddenSubsetVerified": true,
+      "retainedTriangleAttributesAndWindingBitExact": true,
+      "imagePayloadsByteIdentical": true,
+      "imagePayloadMultisetSha256": "f98827c680360421b5abaa4563f4ead6b90a72ee2298ead8f31002383e13aef0",
+      "inputGeometrySha256": "c83c73a9d64704b0758e1804102497d46aa36e1c16114f8557de55766eab3bb8",
+      "retainedTriangleHashSha256": "d40601e6ad85ac316ee26efa4e1eb7f23e1305516d2f707bf7e7c6277f30fb56"
+    },
+    {
+      "variant": "mobile",
+      "input": {
+        "path": "art/build/snow-roof-final-mobile/snow-roof.glb",
+        "sha256": "bf8de4afc5692771d2569780942e7ee4b419a5b7b6cd819f95bdff8497543069",
+        "bytes": 16645632,
+        "vertices": 956291,
+        "triangles": 650624,
+        "images": 24,
+        "imageBytes": 3537347,
+        "geometryBytes": 13007534
+      },
+      "measuredOutput": {
+        "path": "art/build/snow-roof-final-export-measurement/mobile-measured.glb",
+        "sha256": "9f34007cc49bb899c98dc59c862aa20dee91d533ba5b2ee574a5ace8f42db94d",
+        "bytes": 13449088,
+        "vertices": 648776,
+        "triangles": 466874,
+        "images": 24,
+        "imageBytes": 3537347,
+        "geometryBytes": 9803782
+      },
+      "removedTrianglesByRegion": {
+        "court": 65394,
+        "gate": 22566,
+        "hall": 95790
+      },
+      "packedRoofAliases": {
+        "court": {
+          "Side hall roof tiles": 65394
+        },
+        "gate": {
+          "Side hall roof tiles": 22566
+        },
+        "hall": {
+          "Side hall roof tiles": 95790
+        }
+      },
+      "removableVertices": 198050,
+      "exactWeldedVertices": 109465,
+      "preservedNonproofMarkerTriangles": 3292,
+      "rawToPackedProvenTrianglePositionMaxErrorMetres": 0.0008451991078806152,
+      "conservativePositionErrorBoundMetres": 0.001512666219061861,
+      "sourcePackedHiddenSubsetVerified": true,
+      "retainedTriangleAttributesAndWindingBitExact": true,
+      "imagePayloadsByteIdentical": true,
+      "imagePayloadMultisetSha256": "504f5d340b09b43921ff81793c02767f408d6a139692c53fae60da0f81886282",
+      "inputGeometrySha256": "c83c73a9d64704b0758e1804102497d46aa36e1c16114f8557de55766eab3bb8",
+      "retainedTriangleHashSha256": "d40601e6ad85ac316ee26efa4e1eb7f23e1305516d2f707bf7e7c6277f30fb56"
+    }
+  ],
+  "textureConversions": 0,
+  "extraQuantizationPasses": 0,
+  "extraNormalFilters": 0,
+  "renderOrBakePerformed": false,
+  "generator": "scripts/measure-final-hidden-export.mjs",
+  "generatorSha256": "07f4df3c6fc95b090e34bc7b7d2b728c531add96dd11629f47157d3b48b74c85"
+}

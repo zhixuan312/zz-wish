@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "profile": "snow-roof-final-quality-6e9f-v1",
-  "generatedAt": "2026-11-16T17:05:19.333Z",
+  "profile": "snow-roof-final-quality-postbatch-6e9f-v2",
+  "generatedAt": "2026-11-16T17:24:07.864Z",
   "inputs": {
     "proof": {
       "path": "art/blender/proofs/snow-roof-final-hidden-tiles.json",
@@ -17,11 +17,11 @@
     },
     "raw": {
       "path": "art/build/snow-roof-final/snow-roof.raw.glb",
-      "sha256": "42def075058bc8d7d6673645678448a1d74173443742a529d8316afee6e47196"
+      "sha256": "0deec9fd71d4c49e666e5b091f15af3067efbcdb7e3c350bcb85a2bf7f980dea"
     },
     "input": {
       "path": "art/build/snow-roof-final-quality/snow-roof.glb",
-      "sha256": "545f101f30a16aaa241d8a63e476ab5b04cfb9c2a4fa15a61261bf506e4b5760"
+      "sha256": "ad130202974f0a1f6c9b6843f15900c95b0135fcd613dd9afa2bfd4765a9fd62"
     }
   },
   "sourceFaceProvenance": {
@@ -37,7 +37,7 @@
     "freshBlenderScan": false
   },
   "input": {
-    "bytes": 38017908,
+    "bytes": 38021216,
     "images": 24,
     "imageBytes": 24909483,
     "geometryBytes": 13007534,
@@ -45,9 +45,9 @@
     "triangles": 650624
   },
   "output": {
-    "path": "art/build/snow-roof-final-quality-optimized/snow-roof.glb",
-    "sha256": "d37a76d691b5d1703ba0c9ff36558631b4613e05e532ac92cb74f88c0f5fc174",
-    "bytes": 34821408,
+    "path": "art/build/snow-roof-final-quality-optimized-postbatch/snow-roof.glb",
+    "sha256": "23218d772ad960574be347e60bbccf8583a60e839f52858c635a1d2852804760",
+    "bytes": 34824716,
     "images": 24,
     "imageBytes": 24909483,
     "geometryBytes": 9803782,
@@ -283,7 +283,8 @@
     "imagePayloadBytesUnchanged": true,
     "imagePayloadMultisetSha256": "f98827c680360421b5abaa4563f4ead6b90a72ee2298ead8f31002383e13aef0",
     "imageCount": 24,
-    "nodeTransformsExtrasHierarchyUnchanged": true
+    "nodeTransformsExtrasHierarchyUnchanged": true,
+    "sourceSceneOwnershipMetadataUnchanged": true
   },
   "encoding": {
     "dependencies": {

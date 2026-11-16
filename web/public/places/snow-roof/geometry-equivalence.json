@@ -1,0 +1,3136 @@
+{
+  "version": 1,
+  "inputs": {
+    "left": {
+      "path": "art/build/snow-roof-final-quality-optimized-postbatch/snow-roof.glb",
+      "sha256": "23218d772ad960574be347e60bbccf8583a60e839f52858c635a1d2852804760",
+      "bytes": 34824716
+    },
+    "right": {
+      "path": "art/build/snow-roof-final-mobile-optimized-postbatch/snow-roof.glb",
+      "sha256": "2a110e13205d4426c812806c2396a4460dd4bc551fe118ebe8db605fdefea003",
+      "bytes": 13452396
+    }
+  },
+  "method": "Decode Meshopt. Compare every semantic/format/normalized vertex array and actual indices. If storage order differs, compare cyclic-corner canonical triangle multisets without accepting winding reversal.",
+  "nodeTransformsExtrasHierarchyExactlyEqual": true,
+  "sourceSceneProofMetadataExactlyEqual": true,
+  "nodeStateSha256": "cdba116eb292763802d0945dec60e497dfb5240fd4a7a825d88d5c925c6f39ee",
+  "primitives": [
+    {
+      "region": "court",
+      "primitive": 0,
+      "material": "Snow settled dry grains",
+      "attributes": {
+        "COLOR_0": {
+          "format": [
+            "VEC4",
+            5121,
+            true,
+            28585
+          ],
+          "sha256": "b6ae098e4b2d3871ef04f7b4fc14bb641d01819ab740c24f311b47c167d1d0ee",
+          "exactlyEqual": true
+        },
+        "COLOR_1": {
+          "format": [
+            "VEC4",
+            5121,
+            true,
+            28585
+          ],
+          "sha256": "b6ae098e4b2d3871ef04f7b4fc14bb641d01819ab740c24f311b47c167d1d0ee",
+          "exactlyEqual": true
+        },
+        "NORMAL": {
+          "format": [
+            "VEC3",
+            5120,
+            true,
+            28585
+          ],
+          "sha256": "8763fc647666f22b8a4e149c07936dc80bd4b9ab8e9018332e6bd5388db86367",
+          "exactlyEqual": true
+        },
+        "POSITION": {
+          "format": [
+            "VEC3",
+            5122,
+            true,
+            28585
+          ],
+          "sha256": "58b7657343ed5a0d701b4612e9cd76b3f832d59d91e217402f4debc6ed8c04aa",
+          "exactlyEqual": true
+        },
+        "TEXCOORD_0": {
+          "format": [
+            "VEC2",
+            5126,
+            false,
+            28585
+          ],
+          "sha256": "4b96288d890360e3dee9e4beb2471abbc57cd5c8571455487106cd2d96d739a9",
+          "exactlyEqual": true
+        },
+        "TEXCOORD_1": {
+          "format": [
+            "VEC2",
+            5123,
+            true,
+            28585
+          ],
+          "sha256": "5f6ef314b23f57effc5d762a858394e25a4ff7c24937381e5d160a70429140b3",
+          "exactlyEqual": true
+        }
+      },
+      "index": {
+        "count": 152148,
+        "componentType": 5123,
+        "sha256": "3490330ef7077b8125e9446a3e95dbaa6ef271d61d46b9ad2fca49f0afa7a90d"
+      },
+      "vertexStorageExactlyEqual": true,
+      "indexStorageExactlyEqual": true
+    },
+    {
+      "region": "court",
+      "primitive": 1,
+      "material": "Patched lime plaster",
+      "attributes": {
+        "COLOR_0": {
+          "format": [
+            "VEC4",
+            5121,
+            true,
+            1512
+          ],
+          "sha256": "2357d7e188aa8603f802521b7dcb9932ff43337cd666ed0af87d965258540e60",
+          "exactlyEqual": true
+        },
+        "COLOR_1": {
+          "format": [
+            "VEC4",
+            5121,
+            true,
+            1512
+          ],
+          "sha256": "726452b8f7607bdce078410025d4effb348f625cfe185ca8a5c8fabd6e3822f0",
+          "exactlyEqual": true
+        },
+        "NORMAL": {
+          "format": [
+            "VEC3",
+            5120,
+            true,
+            1512
+          ],
+          "sha256": "1b4cf1a4740f3c5911a149448f5987c0a5f5c35663841a6596100f3c53194660",
+          "exactlyEqual": true
+        },
+        "POSITION": {
+          "format": [
+            "VEC3",
+            5122,
+            true,
+            1512
+          ],
+          "sha256": "7c1eae869fa629d2342689f52518b7ef37f97a72ef87fbd1c8729e7d47d399e1",
+          "exactlyEqual": true
+        },
+        "TEXCOORD_0": {
+          "format": [
+            "VEC2",
+            5126,
+            false,
+            1512
+          ],
+          "sha256": "bc5706271f27425a4b74d23df0a3bf0586ea37691512f8cf6fb43c424861c508",
+          "exactlyEqual": true
+        },
+        "TEXCOORD_1": {
+          "format": [
+            "VEC2",
+            5123,
+            true,
+            1512
+          ],
+          "sha256": "ab7f79f13af25684969904b53f1e50d648350bec9171d8b4c0b035f13438b699",
+          "exactlyEqual": true
+        }
+      },
+      "index": {
+        "count": 2268,
+        "componentType": 5123,
+        "sha256": "c816d9b026b558b5ebbba5c99e695fb3128ed65dec8794be4a29aa1d0c20b0cb"
+      },
+      "vertexStorageExactlyEqual": true,
+      "indexStorageExactlyEqual": true
+    },
+    {
+      "region": "court",
+      "primitive": 2,
+      "material": "Worn granite",
+      "attributes": {
+        "COLOR_0": {
+          "format": [
+            "VEC4",
+            5121,
+            true,
+            20736
+          ],
+          "sha256": "e5bad48a81eb12d8d3c581b90b64ad596ab7a6b032abdb60437d8239eb4fefe0",
+          "exactlyEqual": true
+        },
+        "COLOR_1": {
+          "format": [
+            "VEC4",
+            5121,
+            true,
+            20736
+          ],
+          "sha256": "e5bad48a81eb12d8d3c581b90b64ad596ab7a6b032abdb60437d8239eb4fefe0",
+          "exactlyEqual": true
+        },
+        "NORMAL": {
+          "format": [
+            "VEC3",
+            5120,
+            true,
+            20736
+          ],
+          "sha256": "33e91252bd164aa81c4e5476280ca5df9998568fd33f53b538810e14f583f6f2",
+          "exactlyEqual": true
+        },
+        "POSITION": {
+          "format": [
+            "VEC3",
+            5122,
+            true,
+            20736
+          ],
+          "sha256": "12a54f9ee3dc9336bd1d3fe46477f88d2216bce5d51771cffe72f1cbd1ce1b7f",
+          "exactlyEqual": true
+        },
+        "TEXCOORD_0": {
+          "format": [
+            "VEC2",
+            5126,
+            false,
+            20736
+          ],
+          "sha256": "e9f06716ebf397c650b30845a6ca4562ef736071cdafc8abcddecc59f35c4beb",
+          "exactlyEqual": true
+        },
+        "TEXCOORD_1": {
+          "format": [
+            "VEC2",
+            5123,
+            true,
+            20736
+          ],
+          "sha256": "97fc951e4d2d1af70273fa08f6f4e75a49730e13e5db4c7401490dd10cb4a1dd",
+          "exactlyEqual": true
+        }
+      },
+      "index": {
+        "count": 31104,
+        "componentType": 5123,
+        "sha256": "3bd232925bc47f8f5857fe0a2d8cf4aa13c4290fba7446a4ad8d2d2b30cc8a31"
+      },
+      "vertexStorageExactlyEqual": true,
+      "indexStorageExactlyEqual": true
+    },
+    {
+      "region": "court",
+      "primitive": 3,
+      "material": "Aged red painted timber",
+      "attributes": {
+        "COLOR_0": {
+          "format": [
+            "VEC4",
+            5121,
+            true,
+            2756
+          ],
+          "sha256": "303b894ec6d74380c749bb4eda90262b19956f11d28f8dfc6a468424e27a99f2",
+          "exactlyEqual": true
+        },
+        "COLOR_1": {
+          "format": [
+            "VEC4",
+            5121,
+            true,
+            2756
+          ],
+          "sha256": "303b894ec6d74380c749bb4eda90262b19956f11d28f8dfc6a468424e27a99f2",
+          "exactlyEqual": true
+        },
+        "NORMAL": {
+          "format": [
+            "VEC3",
+            5120,
+            true,
+            2756
+          ],
+          "sha256": "2fc701a680b72bc26fb900b506cde84a9bffdc88fd290e9e4fe450269381db95",
+          "exactlyEqual": true
+        },
+        "POSITION": {
+          "format": [
+            "VEC3",
+            5122,
+            true,
+            2756
+          ],
+          "sha256": "30a462ac52661723563f8e1337d15925c36513d4868ec3031710465015db567e",
+          "exactlyEqual": true
+        },
+        "TEXCOORD_0": {
+          "format": [
+            "VEC2",
+            5126,
+            false,
+            2756
+          ],
+          "sha256": "e75236da4abcd9093d036b5c85eb41682bddb0ecdf8b0437c5ae474d11b6a936",
+          "exactlyEqual": true
+        },
+        "TEXCOORD_1": {
+          "format": [
+            "VEC2",
+            5123,
+            true,
+            2756
+          ],
+          "sha256": "156b64af4aac319510cea0e23e2aa18de52260c4a82ce94ea1e6b33fc7de9864",
+          "exactlyEqual": true
+        }
+      },
+      "index": {
+        "count": 8064,
+        "componentType": 5123,
+        "sha256": "6c23ad99d784f7cd81f700f43352878885a9c16c92389cac8c302ecdf79c4836"
+      },
+      "vertexStorageExactlyEqual": true,
+      "indexStorageExactlyEqual": true
+    },
+    {
+      "region": "court",
+      "primitive": 4,
+      "material": "Dark old timber",
+      "attributes": {
+        "COLOR_0": {
+          "format": [
+            "VEC4",
+            5121,
+            true,
+            39277
+          ],
+          "sha256": "c81ea66e86eefe0843c9ed4c6ecbc231744888a201059d22f05ce234e6ddec01",
+          "exactlyEqual": true
+        },
+        "COLOR_1": {
+          "format": [
+            "VEC4",
+            5121,
+            true,
+            39277
+          ],
+          "sha256": "c81ea66e86eefe0843c9ed4c6ecbc231744888a201059d22f05ce234e6ddec01",
+          "exactlyEqual": true
+        },
+        "NORMAL": {
+          "format": [
+            "VEC3",
+            5120,
+            true,
+            39277
+          ],
+          "sha256": "1001a51a73dd8dd2876ce85c7c0b5ac0c22d918cc4284403c08e671f49370c13",
+          "exactlyEqual": true
+        },
+        "POSITION": {
+          "format": [
+            "VEC3",
+            5122,
+            true,
+            39277
+          ],
+          "sha256": "a399c1708117539e30694b2e8b33c3a791591ab531af955dba7c6225117384cf",
+          "exactlyEqual": true
+        },
+        "TEXCOORD_0": {
+          "format": [
+            "VEC2",
+            5126,
+            false,
+            39277
+          ],
+          "sha256": "003e1294f84de106cdcf4bb75f99209129830ac0daaaf735f9b15aa287db6334",
+          "exactlyEqual": true
+        },
+        "TEXCOORD_1": {
+          "format": [
+            "VEC2",
+            5123,
+            true,
+            39277
+          ],
+          "sha256": "866b262fe38e65125bf6773b0e7897c8cdeaeb7dd3494ff1a8d9b77f601d09a4",
+          "exactlyEqual": true
+        }
+      },
+      "index": {
+        "count": 82224,
+        "componentType": 5123,
+        "sha256": "c65ea87aa335bc61d3a3701618426c716f7dc676aa7e151fa8f98eb59bcbd470"
+      },
+      "vertexStorageExactlyEqual": true,
+      "indexStorageExactlyEqual": true
+    },
+    {
+      "region": "court",
+      "primitive": 5,
+      "material": "Side hall roof tiles",
+      "attributes": {
+        "COLOR_0": {
+          "format": [
+            "VEC4",
+            5121,
+            true,
+            26706
+          ],
+          "sha256": "4257f800d941b378b2922bc7f4880c3b5f4bb525f9dc7731ba1879314e00f8c2",
+          "exactlyEqual": true
+        },
+        "COLOR_1": {
+          "format": [
+            "VEC4",
+            5121,
+            true,
+            26706
+          ],
+          "sha256": "4257f800d941b378b2922bc7f4880c3b5f4bb525f9dc7731ba1879314e00f8c2",
+          "exactlyEqual": true
+        },
+        "NORMAL": {
+          "format": [
+            "VEC3",
+            5120,
+            true,
+            26706
+          ],
+          "sha256": "e50575b63dad5bfe63cbac3a51e6832f87e7b5f5d2a17a0f09af8d342da40b37",
+          "exactlyEqual": true
+        },
+        "POSITION": {
+          "format": [
+            "VEC3",
+            5122,
+            true,
+            26706
+          ],
+          "sha256": "d8f47a317b6bd9e3dea086c6dd4ab5af2a12377762bb8ce130de747216f7bfa4",
+          "exactlyEqual": true
+        },
+        "TEXCOORD_0": {
+          "format": [
+            "VEC2",
+            5126,
+            false,
+            26706
+          ],
+          "sha256": "e02f65e2a36bc9becbaa9ddb039bf97c301db1a65ef55354e69d387afc5abb2f",
+          "exactlyEqual": true
+        },
+        "TEXCOORD_1": {
+          "format": [
+            "VEC2",
+            5123,
+            true,
+            26706
+          ],
+          "sha256": "c813aa1dedb5333e9ce64b940f661f046f3737967920ba6adfdf0fd5592a2428",
+          "exactlyEqual": true
+        }
+      },
+      "index": {
+        "count": 71778,
+        "componentType": 5123,
+        "sha256": "65e33335e242de44d235f7f680faf4ba46d10ba32b2ac47fef042b9df0eaf0b4"
+      },
+      "vertexStorageExactlyEqual": true,
+      "indexStorageExactlyEqual": true
+    },
+    {
+      "region": "gate",
+      "primitive": 0,
+      "material": "Patched lime plaster",
+      "attributes": {
+        "COLOR_0": {
+          "format": [
+            "VEC4",
+            5121,
+            true,
+            3344
+          ],
+          "sha256": "755bd10bb48f8e7a98720031db620267901e6b77c5aa04f29506ad2c56dfad62",
+          "exactlyEqual": true
+        },
+        "COLOR_1": {
+          "format": [
+            "VEC4",
+            5121,
+            true,
+            3344
+          ],
+          "sha256": "70cbb7b9bb2bf23684c535f4ea39e12682fea053a8e21a10549175cee2122a35",
+          "exactlyEqual": true
+        },
+        "NORMAL": {
+          "format": [
+            "VEC3",
+            5120,
+            true,
+            3344
+          ],
+          "sha256": "b7d5ec3414106a2d1b1ed408dd136dfb94ea0e597cd0b54f33c79a16d8128be7",
+          "exactlyEqual": true
+        },
+        "POSITION": {
+          "format": [
+            "VEC3",
+            5122,
+            true,
+            3344
+          ],
+          "sha256": "28af2caf41a15899e0112ff46119617e0d11c91f29e3ec0d07d18e6d767332fa",
+          "exactlyEqual": true
+        },
+        "TEXCOORD_0": {
+          "format": [
+            "VEC2",
+            5126,
+            false,
+            3344
+          ],
+          "sha256": "8769c7183dc07f663c92eea43b40f707a617dd91c6d21e63a3e273b795dd32a5",
+          "exactlyEqual": true
+        },
+        "TEXCOORD_1": {
+          "format": [
+            "VEC2",
+            5123,
+            true,
+            3344
+          ],
+          "sha256": "ebbadd623881aa80b63c564983fe366d6a479e714905028007fd7b67117058f0",
+          "exactlyEqual": true
+        }
+      },
+      "index": {
+        "count": 14088,
+        "componentType": 5123,
+        "sha256": "56b48c7602b29b03b823055e7b0f169dd9822a5dffa7ddb5a7d4664a6e03cd3f"
+      },
+      "vertexStorageExactlyEqual": true,
+      "indexStorageExactlyEqual": true
+    },
+    {
+      "region": "gate",
+      "primitive": 1,
+      "material": "Worn granite",
+      "attributes": {
+        "COLOR_0": {
+          "format": [
+            "VEC4",
+            5121,
+            true,
+            1716
+          ],
+          "sha256": "fdce1fb35fc3648d3a578145381195136a5d379cfe988bc683c42f65535aaf07",
+          "exactlyEqual": true
+        },
+        "COLOR_1": {
+          "format": [
+            "VEC4",
+            5121,
+            true,
+            1716
+          ],
+          "sha256": "fdce1fb35fc3648d3a578145381195136a5d379cfe988bc683c42f65535aaf07",
+          "exactlyEqual": true
+        },
+        "NORMAL": {
+          "format": [
+            "VEC3",
+            5120,
+            true,
+            1716
+          ],
+          "sha256": "0e601d40ef380e984535b09d9da75406306bdf6ad42bbf9728393ea1c6efa567",
+          "exactlyEqual": true
+        },
+        "POSITION": {
+          "format": [
+            "VEC3",
+            5122,
+            true,
+            1716
+          ],
+          "sha256": "bf9eef15cc9287c0825c06d62db4099ef2206626439393b724581a55ad7a0539",
+          "exactlyEqual": true
+        },
+        "TEXCOORD_0": {
+          "format": [
+            "VEC2",
+            5126,
+            false,
+            1716
+          ],
+          "sha256": "6e4d0e51d521c64a37de3f3a526bec1bd09c31eeaa50103129d603d45a8b5824",
+          "exactlyEqual": true
+        },
+        "TEXCOORD_1": {
+          "format": [
+            "VEC2",
+            5123,
+            true,
+            1716
+          ],
+          "sha256": "949f403cad792fc339cdf102e3ce674e54663e7e867ab364376a6e1a69ca5abb",
+          "exactlyEqual": true
+        }
+      },
+      "index": {
+        "count": 3096,
+        "componentType": 5123,
+        "sha256": "5282ebee4a97492224eaef23181761dc1fea27ffc2ae3a02714f70576eaa1529"
+      },
+      "vertexStorageExactlyEqual": true,
+      "indexStorageExactlyEqual": true
+    },
+    {
+      "region": "gate",
+      "primitive": 2,
+      "material": "Dark old timber",
+      "attributes": {
+        "COLOR_0": {
+          "format": [
+            "VEC4",
+            5121,
+            true,
+            42283
+          ],
+          "sha256": "cba2567f7a04bab5956ad5303b7c12b36b675af478e6971a0d21f5c9c0e9ef37",
+          "exactlyEqual": true
+        },
+        "COLOR_1": {
+          "format": [
+            "VEC4",
+            5121,
+            true,
+            42283
+          ],
+          "sha256": "cba2567f7a04bab5956ad5303b7c12b36b675af478e6971a0d21f5c9c0e9ef37",
+          "exactlyEqual": true
+        },
+        "NORMAL": {
+          "format": [
+            "VEC3",
+            5120,
+            true,
+            42283
+          ],
+          "sha256": "1619c4bd75b500621780bfa9dcecbe212b97a07d7f86ddd31058f38b1536d93a",
+          "exactlyEqual": true
+        },
+        "POSITION": {
+          "format": [
+            "VEC3",
+            5122,
+            true,
+            42283
+          ],
+          "sha256": "d5d694599dcb6acaec2ed8845cecec6a84c51032e4ae0f23fa0ba122ae3fe99e",
+          "exactlyEqual": true
+        },
+        "TEXCOORD_0": {
+          "format": [
+            "VEC2",
+            5126,
+            false,
+            42283
+          ],
+          "sha256": "c2e3ad7d63cd28e68d9b4a2d8269649db4edc8ee47fb1aee1300be9ef9e11203",
+          "exactlyEqual": true
+        },
+        "TEXCOORD_1": {
+          "format": [
+            "VEC2",
+            5123,
+            true,
+            42283
+          ],
+          "sha256": "593fd9b4e3408ddf820a06be8ba7b8795d4d105cf716b6641c98cb07eed20a41",
+          "exactlyEqual": true
+        }
+      },
+      "index": {
+        "count": 84132,
+        "componentType": 5123,
+        "sha256": "3f56086d1fd860e6024da5fb22b691e4c9f199b382331471932284f1fae931c1"
+      },
+      "vertexStorageExactlyEqual": true,
+      "indexStorageExactlyEqual": true
+    },
+    {
+      "region": "gate",
+      "primitive": 3,
+      "material": "Aged red painted timber",
+      "attributes": {
+        "COLOR_0": {
+          "format": [
+            "VEC4",
+            5121,
+            true,
+            720
+          ],
+          "sha256": "75ea5f13d445db294d548f692454f621a9da55ef5578fc9a446a52459521e4f1",
+          "exactlyEqual": true
+        },
+        "COLOR_1": {
+          "format": [
+            "VEC4",
+            5121,
+            true,
+            720
+          ],
+          "sha256": "75ea5f13d445db294d548f692454f621a9da55ef5578fc9a446a52459521e4f1",
+          "exactlyEqual": true
+        },
+        "NORMAL": {
+          "format": [
+            "VEC3",
+            5120,
+            true,
+            720
+          ],
+          "sha256": "5180b149f9a27f19d172c9306962b7818f3d8b55d22cceee96eb054bea8e19d5",
+          "exactlyEqual": true
+        },
+        "POSITION": {
+          "format": [
+            "VEC3",
+            5122,
+            true,
+            720
+          ],
+          "sha256": "92126157561c761154e3996d8b6db7aba197822a04c5bddb1fa26e326445867d",
+          "exactlyEqual": true
+        },
+        "TEXCOORD_0": {
+          "format": [
+            "VEC2",
+            5126,
+            false,
+            720
+          ],
+          "sha256": "85456f2221f864f2a9d8e28e028073c6b7d6bc641cb00359b1ff95055e44f674",
+          "exactlyEqual": true
+        },
+        "TEXCOORD_1": {
+          "format": [
+            "VEC2",
+            5123,
+            true,
+            720
+          ],
+          "sha256": "ca42e82b2b7deb9698be47fa4454843d817fe7ff820b91bae6c10afd552097e5",
+          "exactlyEqual": true
+        }
+      },
+      "index": {
+        "count": 1800,
+        "componentType": 5123,
+        "sha256": "c4f4a002e3e29b084e3621ab0ebd4f181aafe382a3ec96f490df942b47b46c25"
+      },
+      "vertexStorageExactlyEqual": true,
+      "indexStorageExactlyEqual": true
+    },
+    {
+      "region": "gate",
+      "primitive": 4,
+      "material": "Aged red painted timber",
+      "attributes": {
+        "COLOR_0": {
+          "format": [
+            "VEC4",
+            5121,
+            true,
+            7672
+          ],
+          "sha256": "ef63a1665a3b2c4b3baee1007dea5802f839d248d269dff5cbb4627263f576ab",
+          "exactlyEqual": true
+        },
+        "COLOR_1": {
+          "format": [
+            "VEC4",
+            5121,
+            true,
+            7672
+          ],
+          "sha256": "ef63a1665a3b2c4b3baee1007dea5802f839d248d269dff5cbb4627263f576ab",
+          "exactlyEqual": true
+        },
+        "NORMAL": {
+          "format": [
+            "VEC3",
+            5120,
+            true,
+            7672
+          ],
+          "sha256": "e239d8b24ee71304234e650cc619916a10e10bcd176d1afac843c1a44fbc6ebf",
+          "exactlyEqual": true
+        },
+        "POSITION": {
+          "format": [
+            "VEC3",
+            5122,
+            true,
+            7672
+          ],
+          "sha256": "9fcaca26eb7d6a01c48918f5a332718211fdfc96edc3f838f3d28d8a5f63d344",
+          "exactlyEqual": true
+        },
+        "TEXCOORD_0": {
+          "format": [
+            "VEC2",
+            5126,
+            false,
+            7672
+          ],
+          "sha256": "1ec19fe5ad3949f24d599234f314b79f9e0b3b0c9b1773d75cae48a905cff4b7",
+          "exactlyEqual": true
+        },
+        "TEXCOORD_1": {
+          "format": [
+            "VEC2",
+            5123,
+            true,
+            7672
+          ],
+          "sha256": "4d96be9c1307ea0c041c980045f93c06b68223310c1109fc84f2f4c375a7a7c6",
+          "exactlyEqual": true
+        }
+      },
+      "index": {
+        "count": 12216,
+        "componentType": 5123,
+        "sha256": "566f9dec97265623e2404a3ad2b4bb848c922294d955e0a7caf9b78be106bff6"
+      },
+      "vertexStorageExactlyEqual": true,
+      "indexStorageExactlyEqual": true
+    },
+    {
+      "region": "gate",
+      "primitive": 5,
+      "material": "Tarnished gilded edges",
+      "attributes": {
+        "COLOR_0": {
+          "format": [
+            "VEC4",
+            5121,
+            true,
+            2592
+          ],
+          "sha256": "8662899153fde7b3d5893a64f02a38a66a5df9e35f74913ccbf6ef452d838138",
+          "exactlyEqual": true
+        },
+        "COLOR_1": {
+          "format": [
+            "VEC4",
+            5121,
+            true,
+            2592
+          ],
+          "sha256": "8662899153fde7b3d5893a64f02a38a66a5df9e35f74913ccbf6ef452d838138",
+          "exactlyEqual": true
+        },
+        "NORMAL": {
+          "format": [
+            "VEC3",
+            5120,
+            true,
+            2592
+          ],
+          "sha256": "1e125babb8a8b7e771d336c9bf775d3441f10752ee5ba814e862cd0bbd06da40",
+          "exactlyEqual": true
+        },
+        "POSITION": {
+          "format": [
+            "VEC3",
+            5122,
+            true,
+            2592
+          ],
+          "sha256": "9a2bafa25533b3747fb0d913bffa0019f392b8af460c6707e0e3deb7b544e269",
+          "exactlyEqual": true
+        },
+        "TEXCOORD_0": {
+          "format": [
+            "VEC2",
+            5126,
+            false,
+            2592
+          ],
+          "sha256": "fe1aca9a8ba5c4401a12a4258b4044e2d894c77e444dc2a76ada4ebdb8b49fa0",
+          "exactlyEqual": true
+        },
+        "TEXCOORD_1": {
+          "format": [
+            "VEC2",
+            5123,
+            true,
+            2592
+          ],
+          "sha256": "be5e062f8afd92498f956d916feda5500b35e572ff3eafd52ba76e48aa3220f1",
+          "exactlyEqual": true
+        }
+      },
+      "index": {
+        "count": 3888,
+        "componentType": 5123,
+        "sha256": "40718475d0899c4e737289652588b94b71ae2c07c23bc203f0037653f7fad71e"
+      },
+      "vertexStorageExactlyEqual": true,
+      "indexStorageExactlyEqual": true
+    },
+    {
+      "region": "gate",
+      "primitive": 6,
+      "material": "Side hall roof tiles",
+      "attributes": {
+        "COLOR_0": {
+          "format": [
+            "VEC4",
+            5121,
+            true,
+            16601
+          ],
+          "sha256": "184a5db2ca935b4b0d5189025ffdf32f93e7809b13bf8612ca6a72db54657c5b",
+          "exactlyEqual": true
+        },
+        "COLOR_1": {
+          "format": [
+            "VEC4",
+            5121,
+            true,
+            16601
+          ],
+          "sha256": "184a5db2ca935b4b0d5189025ffdf32f93e7809b13bf8612ca6a72db54657c5b",
+          "exactlyEqual": true
+        },
+        "NORMAL": {
+          "format": [
+            "VEC3",
+            5120,
+            true,
+            16601
+          ],
+          "sha256": "922c12563af92a275af80a4e5ed8c0f7c890cd87b89c425bd4434501ebea6872",
+          "exactlyEqual": true
+        },
+        "POSITION": {
+          "format": [
+            "VEC3",
+            5122,
+            true,
+            16601
+          ],
+          "sha256": "c313b84cb2443f0ccd184aae49ea2ee569ae06f39ed680475b084280a5c3373e",
+          "exactlyEqual": true
+        },
+        "TEXCOORD_0": {
+          "format": [
+            "VEC2",
+            5126,
+            false,
+            16601
+          ],
+          "sha256": "02303d58cdcda97d587317712733c632ee759f5f9664502f755bf3d6a2a9ec11",
+          "exactlyEqual": true
+        },
+        "TEXCOORD_1": {
+          "format": [
+            "VEC2",
+            5123,
+            true,
+            16601
+          ],
+          "sha256": "77772c2a0212a104bf1138c325300887c5a69efee5771aba83752f058d14c8f3",
+          "exactlyEqual": true
+        }
+      },
+      "index": {
+        "count": 44382,
+        "componentType": 5123,
+        "sha256": "50ea9bcc7c93d3886bc9f1fb3b21de715e98dbacde71e5225245c6ca7a60997a"
+      },
+      "vertexStorageExactlyEqual": true,
+      "indexStorageExactlyEqual": true
+    },
+    {
+      "region": "gate",
+      "primitive": 7,
+      "material": "Snow settled dry grains",
+      "attributes": {
+        "COLOR_0": {
+          "format": [
+            "VEC4",
+            5121,
+            true,
+            3672
+          ],
+          "sha256": "388bb38e548c2a2889f88d397ea7ef2e76759bd526498602e764dfc8258182c4",
+          "exactlyEqual": true
+        },
+        "COLOR_1": {
+          "format": [
+            "VEC4",
+            5121,
+            true,
+            3672
+          ],
+          "sha256": "388bb38e548c2a2889f88d397ea7ef2e76759bd526498602e764dfc8258182c4",
+          "exactlyEqual": true
+        },
+        "NORMAL": {
+          "format": [
+            "VEC3",
+            5120,
+            true,
+            3672
+          ],
+          "sha256": "81a0f8d24d27707bd11c185d42160ec355e2afe8c0d37d959ee54488e60ef615",
+          "exactlyEqual": true
+        },
+        "POSITION": {
+          "format": [
+            "VEC3",
+            5122,
+            true,
+            3672
+          ],
+          "sha256": "eea028f4f8a4aba1f88bbc9ae8ed9c338c425faf589badd327e2479532851601",
+          "exactlyEqual": true
+        },
+        "TEXCOORD_0": {
+          "format": [
+            "VEC2",
+            5126,
+            false,
+            3672
+          ],
+          "sha256": "4b46aae920e88487dd488acb791fdedb4c4a7d20e1b91a5d0d154953a0d8b383",
+          "exactlyEqual": true
+        },
+        "TEXCOORD_1": {
+          "format": [
+            "VEC2",
+            5123,
+            true,
+            3672
+          ],
+          "sha256": "54606f608020eb9af502e79ce84445e63ab7a41a505bc64e197233115a025e8c",
+          "exactlyEqual": true
+        }
+      },
+      "index": {
+        "count": 18576,
+        "componentType": 5123,
+        "sha256": "9aa82632f948df1aeeef46b8b1e92e9395070fa88a8e7686b8559a452fc90e3e"
+      },
+      "vertexStorageExactlyEqual": true,
+      "indexStorageExactlyEqual": true
+    },
+    {
+      "region": "gate",
+      "primitive": 8,
+      "material": "Aged bronze",
+      "attributes": {
+        "COLOR_0": {
+          "format": [
+            "VEC4",
+            5121,
+            true,
+            1520
+          ],
+          "sha256": "d9f9c9477aedf06d6ff89202a3665df498e954edb7af4a66a5fd26c6cc36ae08",
+          "exactlyEqual": true
+        },
+        "COLOR_1": {
+          "format": [
+            "VEC4",
+            5121,
+            true,
+            1520
+          ],
+          "sha256": "d9f9c9477aedf06d6ff89202a3665df498e954edb7af4a66a5fd26c6cc36ae08",
+          "exactlyEqual": true
+        },
+        "NORMAL": {
+          "format": [
+            "VEC3",
+            5120,
+            true,
+            1520
+          ],
+          "sha256": "7e8a791258cbdb1e4924dda12c0555b26feed41c0b612627f491f4bf4effcad0",
+          "exactlyEqual": true
+        },
+        "POSITION": {
+          "format": [
+            "VEC3",
+            5122,
+            true,
+            1520
+          ],
+          "sha256": "213b5cc1cdfde28b75db381766fa3c9259e8786cdfb9927afe72c5e57bd15100",
+          "exactlyEqual": true
+        },
+        "TEXCOORD_0": {
+          "format": [
+            "VEC2",
+            5126,
+            false,
+            1520
+          ],
+          "sha256": "6230656c39754881f9ae27d24ce2c982d4f7b1e9156faa4d0e4951792b65a35b",
+          "exactlyEqual": true
+        },
+        "TEXCOORD_1": {
+          "format": [
+            "VEC2",
+            5123,
+            true,
+            1520
+          ],
+          "sha256": "d78a6a7fe83874d61634c4fb1cdc0a461f04e99ae27dca1ada6b2072f5531e2c",
+          "exactlyEqual": true
+        }
+      },
+      "index": {
+        "count": 4224,
+        "componentType": 5123,
+        "sha256": "1f56192f3b3aa000846c565edf247eb3aff342e60bf1f07273abc291873baae9"
+      },
+      "vertexStorageExactlyEqual": true,
+      "indexStorageExactlyEqual": true
+    },
+    {
+      "region": "gate",
+      "primitive": 9,
+      "material": "Other lamps warm wick",
+      "attributes": {
+        "COLOR_0": {
+          "format": [
+            "VEC4",
+            5121,
+            true,
+            158
+          ],
+          "sha256": "c6f7a1fb2136b7834bd83ed3fa08218d350219a08cf7e755be40eea281656c52",
+          "exactlyEqual": true
+        },
+        "COLOR_1": {
+          "format": [
+            "VEC4",
+            5121,
+            true,
+            158
+          ],
+          "sha256": "c6f7a1fb2136b7834bd83ed3fa08218d350219a08cf7e755be40eea281656c52",
+          "exactlyEqual": true
+        },
+        "NORMAL": {
+          "format": [
+            "VEC3",
+            5120,
+            true,
+            158
+          ],
+          "sha256": "bd92aac571a0ddf61d68a89a0b0cb954c81f6c9fefc794869289666a4836dfaa",
+          "exactlyEqual": true
+        },
+        "POSITION": {
+          "format": [
+            "VEC3",
+            5122,
+            true,
+            158
+          ],
+          "sha256": "b2e73ec02d49b1b408b62f868ee4f6a3d6ea5c29d944794c7d10263ea5c9a207",
+          "exactlyEqual": true
+        },
+        "TEXCOORD_0": {
+          "format": [
+            "VEC2",
+            5126,
+            false,
+            158
+          ],
+          "sha256": "e8c96c033fcf83c4181f51477130f5aba3b0f205b055f0e0c557010f83ecc01c",
+          "exactlyEqual": true
+        },
+        "TEXCOORD_1": {
+          "format": [
+            "VEC2",
+            5123,
+            true,
+            158
+          ],
+          "sha256": "bd5c29225207a34ebf3d323c8b6f51876740b78cded820e1e88cbd4b9612bba8",
+          "exactlyEqual": true
+        }
+      },
+      "index": {
+        "count": 432,
+        "componentType": 5123,
+        "sha256": "ce31cba73c67572d5ebefd39069db436f6160b8eb471349ee6849d40c5a16b5a"
+      },
+      "vertexStorageExactlyEqual": true,
+      "indexStorageExactlyEqual": true
+    },
+    {
+      "region": "hall",
+      "primitive": 0,
+      "material": "Dark hall paving 1",
+      "attributes": {
+        "COLOR_0": {
+          "format": [
+            "VEC4",
+            5121,
+            true,
+            49457
+          ],
+          "sha256": "ed78b0d674f24faf954fbc830d948f27403b6841a4c2ae5ced1c20fef216dccd",
+          "exactlyEqual": true
+        },
+        "COLOR_1": {
+          "format": [
+            "VEC4",
+            5121,
+            true,
+            49457
+          ],
+          "sha256": "ed78b0d674f24faf954fbc830d948f27403b6841a4c2ae5ced1c20fef216dccd",
+          "exactlyEqual": true
+        },
+        "NORMAL": {
+          "format": [
+            "VEC3",
+            5120,
+            true,
+            49457
+          ],
+          "sha256": "697b2be6aa0e06075f7ed77a35d630aee9a2b8be0c24ed915057b00425667d41",
+          "exactlyEqual": true
+        },
+        "POSITION": {
+          "format": [
+            "VEC3",
+            5122,
+            true,
+            49457
+          ],
+          "sha256": "b9d65d98809b20fcd3910a5f1a635dc5edf7f0f595e601375d676209a3202aff",
+          "exactlyEqual": true
+        },
+        "TEXCOORD_0": {
+          "format": [
+            "VEC2",
+            5126,
+            false,
+            49457
+          ],
+          "sha256": "3808f3bc17c12f944b4a7d088e1f86d8d07845aafbb7b1a2c7a33ba8ebba4076",
+          "exactlyEqual": true
+        },
+        "TEXCOORD_1": {
+          "format": [
+            "VEC2",
+            5123,
+            true,
+            49457
+          ],
+          "sha256": "7abb541b9217f0feb92a1d9a0549dee2cfe5e781e2286a051e659df4ce62ca46",
+          "exactlyEqual": true
+        }
+      },
+      "index": {
+        "count": 72456,
+        "componentType": 5123,
+        "sha256": "8c5a35b6bbee8794474554884bb1a69b774029a4dd95f523d6d3c9922c13c47c"
+      },
+      "vertexStorageExactlyEqual": true,
+      "indexStorageExactlyEqual": true
+    },
+    {
+      "region": "hall",
+      "primitive": 1,
+      "material": "Dark hall paving 1",
+      "attributes": {
+        "COLOR_0": {
+          "format": [
+            "VEC4",
+            5121,
+            true,
+            37762
+          ],
+          "sha256": "8f408b3985521ef4efd92d3dd6f26ca1a19725ae10c3e642339b6ca811a11fb6",
+          "exactlyEqual": true
+        },
+        "COLOR_1": {
+          "format": [
+            "VEC4",
+            5121,
+            true,
+            37762
+          ],
+          "sha256": "8f408b3985521ef4efd92d3dd6f26ca1a19725ae10c3e642339b6ca811a11fb6",
+          "exactlyEqual": true
+        },
+        "NORMAL": {
+          "format": [
+            "VEC3",
+            5120,
+            true,
+            37762
+          ],
+          "sha256": "f8d6e9920a61ac3016365bfa30c8ce70747da0cd4c23e8e3610f96b65bb88cd1",
+          "exactlyEqual": true
+        },
+        "POSITION": {
+          "format": [
+            "VEC3",
+            5122,
+            true,
+            37762
+          ],
+          "sha256": "06323a0ca5a175f03ecd82db707926c09e6aa10319fba79753b2a498389b8c12",
+          "exactlyEqual": true
+        },
+        "TEXCOORD_0": {
+          "format": [
+            "VEC2",
+            5126,
+            false,
+            37762
+          ],
+          "sha256": "530866b1ac1a35e94bf7426f0a5a50c72bdc5eebb161526abdbfeff18a1d98a4",
+          "exactlyEqual": true
+        },
+        "TEXCOORD_1": {
+          "format": [
+            "VEC2",
+            5123,
+            true,
+            37762
+          ],
+          "sha256": "776bfb2887d4a3126517ad03d29a6502c7adce5af6f4b585b2b652bb8710af3a",
+          "exactlyEqual": true
+        }
+      },
+      "index": {
+        "count": 55296,
+        "componentType": 5123,
+        "sha256": "02899af9e496ca1212fcd2684f302f0cb518a2e23c031b03d295393a9657f0e3"
+      },
+      "vertexStorageExactlyEqual": true,
+      "indexStorageExactlyEqual": true
+    },
+    {
+      "region": "hall",
+      "primitive": 2,
+      "material": "Dark hall paving 1",
+      "attributes": {
+        "COLOR_0": {
+          "format": [
+            "VEC4",
+            5121,
+            true,
+            35465
+          ],
+          "sha256": "004d6599b8b0e9276ba0305672b68232726dd8643210e459267d9748d15a4fd6",
+          "exactlyEqual": true
+        },
+        "COLOR_1": {
+          "format": [
+            "VEC4",
+            5121,
+            true,
+            35465
+          ],
+          "sha256": "004d6599b8b0e9276ba0305672b68232726dd8643210e459267d9748d15a4fd6",
+          "exactlyEqual": true
+        },
+        "NORMAL": {
+          "format": [
+            "VEC3",
+            5120,
+            true,
+            35465
+          ],
+          "sha256": "8eda8e568acddfad0755b21bfa8bdffb2ae1957d384620d5a37c8472e0e9465f",
+          "exactlyEqual": true
+        },
+        "POSITION": {
+          "format": [
+            "VEC3",
+            5122,
+            true,
+            35465
+          ],
+          "sha256": "32cffb92034ad8ab61622157752874a9b2dfea3547bc704935ad4f5cca17b116",
+          "exactlyEqual": true
+        },
+        "TEXCOORD_0": {
+          "format": [
+            "VEC2",
+            5126,
+            false,
+            35465
+          ],
+          "sha256": "e4d030ead8273cb87c693bcad5fccfc138ec48bcc7173857179b11362bb30816",
+          "exactlyEqual": true
+        },
+        "TEXCOORD_1": {
+          "format": [
+            "VEC2",
+            5123,
+            true,
+            35465
+          ],
+          "sha256": "61e937b25406110071eab3a4b091c244d37ee7cb06495b5098a0258e873603de",
+          "exactlyEqual": true
+        }
+      },
+      "index": {
+        "count": 52020,
+        "componentType": 5123,
+        "sha256": "3257a6d7ab893bbb024d192b8b5beef1c03920e07d3d329cddd7a573a0799181"
+      },
+      "vertexStorageExactlyEqual": true,
+      "indexStorageExactlyEqual": true
+    },
+    {
+      "region": "hall",
+      "primitive": 3,
+      "material": "Walk-polished worn dark stone",
+      "attributes": {
+        "COLOR_0": {
+          "format": [
+            "VEC4",
+            5121,
+            true,
+            20995
+          ],
+          "sha256": "b763287a3f25a8568024c0b06757860acf9ac1284a216c543648c96ffb6e8747",
+          "exactlyEqual": true
+        },
+        "COLOR_1": {
+          "format": [
+            "VEC4",
+            5121,
+            true,
+            20995
+          ],
+          "sha256": "b763287a3f25a8568024c0b06757860acf9ac1284a216c543648c96ffb6e8747",
+          "exactlyEqual": true
+        },
+        "NORMAL": {
+          "format": [
+            "VEC3",
+            5120,
+            true,
+            20995
+          ],
+          "sha256": "d2d2c7e563d9bb821a18736f3123542e35217f20ae3c76e433b73004eaf12eae",
+          "exactlyEqual": true
+        },
+        "POSITION": {
+          "format": [
+            "VEC3",
+            5122,
+            true,
+            20995
+          ],
+          "sha256": "6b1ee0878fb4cf52c434f1d9104e985bcd6c7ee4b5485e0f90ed5fa2d5b76901",
+          "exactlyEqual": true
+        },
+        "TEXCOORD_0": {
+          "format": [
+            "VEC2",
+            5126,
+            false,
+            20995
+          ],
+          "sha256": "f2caa0fde286c9a31417f86d428e2d34730efcff41e17977aadea3a2b6b45b36",
+          "exactlyEqual": true
+        },
+        "TEXCOORD_1": {
+          "format": [
+            "VEC2",
+            5123,
+            true,
+            20995
+          ],
+          "sha256": "e1ba5076dccc83c793d60bdb555566435d3ec894f37037d7c30517cbf2778a39",
+          "exactlyEqual": true
+        }
+      },
+      "index": {
+        "count": 30780,
+        "componentType": 5123,
+        "sha256": "809c9bf3194538be36b150d8436203950a0fe5ce384e61faba01e719953d6e80"
+      },
+      "vertexStorageExactlyEqual": true,
+      "indexStorageExactlyEqual": true
+    },
+    {
+      "region": "hall",
+      "primitive": 4,
+      "material": "Weathered brick footings",
+      "attributes": {
+        "COLOR_0": {
+          "format": [
+            "VEC4",
+            5121,
+            true,
+            216
+          ],
+          "sha256": "207009d77acb2fe81c2dfd36a8d8a565147c894f3de9484aa69152fa96db9a42",
+          "exactlyEqual": true
+        },
+        "COLOR_1": {
+          "format": [
+            "VEC4",
+            5121,
+            true,
+            216
+          ],
+          "sha256": "207009d77acb2fe81c2dfd36a8d8a565147c894f3de9484aa69152fa96db9a42",
+          "exactlyEqual": true
+        },
+        "NORMAL": {
+          "format": [
+            "VEC3",
+            5120,
+            true,
+            216
+          ],
+          "sha256": "b8abb7ed3b75bfa0a9b93da726ee16d1d7957bb932c0c1e29a6e57e5baf238da",
+          "exactlyEqual": true
+        },
+        "POSITION": {
+          "format": [
+            "VEC3",
+            5122,
+            true,
+            216
+          ],
+          "sha256": "f1adf47255e89857ad568e16662ee40ebdd9e99e420f2cd8ec16e92f7d1989aa",
+          "exactlyEqual": true
+        },
+        "TEXCOORD_0": {
+          "format": [
+            "VEC2",
+            5126,
+            false,
+            216
+          ],
+          "sha256": "3cd77198c5c0058cd778fb48ae8b4b8c09d4cd83da2730ebc6bd9e9a9e373a26",
+          "exactlyEqual": true
+        },
+        "TEXCOORD_1": {
+          "format": [
+            "VEC2",
+            5123,
+            true,
+            216
+          ],
+          "sha256": "926a0c162681d65476b3397ace5c8d412f93f1adb1d57604288593fb9af1c267",
+          "exactlyEqual": true
+        }
+      },
+      "index": {
+        "count": 324,
+        "componentType": 5123,
+        "sha256": "aba449278c4bb58a4948c2693b666893668675b8a2e9276fd8316ad03a1a4d0a"
+      },
+      "vertexStorageExactlyEqual": true,
+      "indexStorageExactlyEqual": true
+    },
+    {
+      "region": "hall",
+      "primitive": 5,
+      "material": "Patched lime plaster",
+      "attributes": {
+        "COLOR_0": {
+          "format": [
+            "VEC4",
+            5121,
+            true,
+            2376
+          ],
+          "sha256": "28d131f2551758d75b9c3ed9bddf3d99b245cb5da0b9ca66f7477ec94f6fe52d",
+          "exactlyEqual": true
+        },
+        "COLOR_1": {
+          "format": [
+            "VEC4",
+            5121,
+            true,
+            2376
+          ],
+          "sha256": "3dba4084a5914c6d7f65f18aabdfef3e28816d3eb196e42ca2a8b4d43063c2d0",
+          "exactlyEqual": true
+        },
+        "NORMAL": {
+          "format": [
+            "VEC3",
+            5120,
+            true,
+            2376
+          ],
+          "sha256": "95ca2b45e399805b693c9b7aa1ad7a98bd67b9931ac60e53a3b4672646b5a1bf",
+          "exactlyEqual": true
+        },
+        "POSITION": {
+          "format": [
+            "VEC3",
+            5122,
+            true,
+            2376
+          ],
+          "sha256": "168b0f409e73bc2284ea9aae67d5f0b22aba57919b1f57526cf6d419e8512d22",
+          "exactlyEqual": true
+        },
+        "TEXCOORD_0": {
+          "format": [
+            "VEC2",
+            5126,
+            false,
+            2376
+          ],
+          "sha256": "01fd4caa2883d43db81836b5c60f617ccafe3fbc35c4814e12b4444796d1b8d9",
+          "exactlyEqual": true
+        },
+        "TEXCOORD_1": {
+          "format": [
+            "VEC2",
+            5123,
+            true,
+            2376
+          ],
+          "sha256": "752224b0a0cc10a683dd9be98ce50bf217585724ea5583ee54f8737d446f61ca",
+          "exactlyEqual": true
+        }
+      },
+      "index": {
+        "count": 3564,
+        "componentType": 5123,
+        "sha256": "ed07b519b763a18ec87d2bf1e9ee0e78b9f7d4531cb79cd11e19ad1ea32c5d83"
+      },
+      "vertexStorageExactlyEqual": true,
+      "indexStorageExactlyEqual": true
+    },
+    {
+      "region": "hall",
+      "primitive": 6,
+      "material": "Ivory window paper",
+      "attributes": {
+        "COLOR_0": {
+          "format": [
+            "VEC4",
+            5121,
+            true,
+            432
+          ],
+          "sha256": "fbe860eb13af5ac6b27644de65e0b7387cde3edfa586c09f1e6bfd039ca5fc37",
+          "exactlyEqual": true
+        },
+        "COLOR_1": {
+          "format": [
+            "VEC4",
+            5121,
+            true,
+            432
+          ],
+          "sha256": "fbe860eb13af5ac6b27644de65e0b7387cde3edfa586c09f1e6bfd039ca5fc37",
+          "exactlyEqual": true
+        },
+        "NORMAL": {
+          "format": [
+            "VEC3",
+            5120,
+            true,
+            432
+          ],
+          "sha256": "d2b5ef59b66afa98eeb8769af7d3a18cf6b74ae2b0506f60801b2ba2977009d7",
+          "exactlyEqual": true
+        },
+        "POSITION": {
+          "format": [
+            "VEC3",
+            5122,
+            true,
+            432
+          ],
+          "sha256": "303ca2060a22ca51b7df0f734ea2e7f069380938b5b9fe7084e06a3e8c80e4de",
+          "exactlyEqual": true
+        },
+        "TEXCOORD_0": {
+          "format": [
+            "VEC2",
+            5126,
+            false,
+            432
+          ],
+          "sha256": "556e2dab00421fb2b8d234b962f6cc7f518c4a4d104f113578a7107177f26286",
+          "exactlyEqual": true
+        },
+        "TEXCOORD_1": {
+          "format": [
+            "VEC2",
+            5123,
+            true,
+            432
+          ],
+          "sha256": "4b08ea3dc0c8adc4ebf1fc4c458e0317b65cc8498f265e2b2baab2dc65aaa938",
+          "exactlyEqual": true
+        }
+      },
+      "index": {
+        "count": 648,
+        "componentType": 5123,
+        "sha256": "aa99fbf51ba2a29729097c60ff0ed83820ea3cde34f7b02c94b7f12f001eac4f"
+      },
+      "vertexStorageExactlyEqual": true,
+      "indexStorageExactlyEqual": true
+    },
+    {
+      "region": "hall",
+      "primitive": 7,
+      "material": "Aged red painted timber",
+      "attributes": {
+        "COLOR_0": {
+          "format": [
+            "VEC4",
+            5121,
+            true,
+            20206
+          ],
+          "sha256": "ed6a938d9b2ba3392f0087f69fa8d3e49dc9bf4ed699ffcf0458823c0c21ed64",
+          "exactlyEqual": true
+        },
+        "COLOR_1": {
+          "format": [
+            "VEC4",
+            5121,
+            true,
+            20206
+          ],
+          "sha256": "ed6a938d9b2ba3392f0087f69fa8d3e49dc9bf4ed699ffcf0458823c0c21ed64",
+          "exactlyEqual": true
+        },
+        "NORMAL": {
+          "format": [
+            "VEC3",
+            5120,
+            true,
+            20206
+          ],
+          "sha256": "d85a28cdc3129707efe101cbd26759d0bd5fa16bc0ca0e209fae7b5986cc033c",
+          "exactlyEqual": true
+        },
+        "POSITION": {
+          "format": [
+            "VEC3",
+            5122,
+            true,
+            20206
+          ],
+          "sha256": "9fdafc6c1eb6f137b65a73bcdb46473ea711350ec291565d810f0cfa05bc8f02",
+          "exactlyEqual": true
+        },
+        "TEXCOORD_0": {
+          "format": [
+            "VEC2",
+            5126,
+            false,
+            20206
+          ],
+          "sha256": "d4dc883653cf22526317e7ab5cef1356b694fca1a0eec135c40d1c05b2fe1dad",
+          "exactlyEqual": true
+        },
+        "TEXCOORD_1": {
+          "format": [
+            "VEC2",
+            5123,
+            true,
+            20206
+          ],
+          "sha256": "b950b8ef6b121695d12f3c496061637e6e3d0517223adc96864c2e28751c85f4",
+          "exactlyEqual": true
+        }
+      },
+      "index": {
+        "count": 37068,
+        "componentType": 5123,
+        "sha256": "92f96b88eaad21050c7d5ecc21e8e1237f5920c7018152fe39d7b16ad78c6fb4"
+      },
+      "vertexStorageExactlyEqual": true,
+      "indexStorageExactlyEqual": true
+    },
+    {
+      "region": "hall",
+      "primitive": 8,
+      "material": "Worn granite",
+      "attributes": {
+        "COLOR_0": {
+          "format": [
+            "VEC4",
+            5121,
+            true,
+            10442
+          ],
+          "sha256": "bc81a3e00b905c6a22a2a09256bd5224944a3b92085cbcf8a9d5fde791510d1d",
+          "exactlyEqual": true
+        },
+        "COLOR_1": {
+          "format": [
+            "VEC4",
+            5121,
+            true,
+            10442
+          ],
+          "sha256": "bc81a3e00b905c6a22a2a09256bd5224944a3b92085cbcf8a9d5fde791510d1d",
+          "exactlyEqual": true
+        },
+        "NORMAL": {
+          "format": [
+            "VEC3",
+            5120,
+            true,
+            10442
+          ],
+          "sha256": "e65af7962be8404d866f966942f98115c3b71225a48f313c2af88e175450d0a8",
+          "exactlyEqual": true
+        },
+        "POSITION": {
+          "format": [
+            "VEC3",
+            5122,
+            true,
+            10442
+          ],
+          "sha256": "8f9fe9bd751153868f8f3bf18157c7287e3e4441efe0e45604d5d47049abdc5d",
+          "exactlyEqual": true
+        },
+        "TEXCOORD_0": {
+          "format": [
+            "VEC2",
+            5126,
+            false,
+            10442
+          ],
+          "sha256": "30da1259241f7ae47cf9ed54364e1eee82b3368c374e74bb7da5456d013abe09",
+          "exactlyEqual": true
+        },
+        "TEXCOORD_1": {
+          "format": [
+            "VEC2",
+            5123,
+            true,
+            10442
+          ],
+          "sha256": "0ae4968bd1f24e24c2cb5b8d002f2e853f09e20c5eb659336a25d15e87b62151",
+          "exactlyEqual": true
+        }
+      },
+      "index": {
+        "count": 24696,
+        "componentType": 5123,
+        "sha256": "050ed9ec9bdeeed1a7914b1a00107e47eeedb07b89c91b390d4ec4554ba927e3"
+      },
+      "vertexStorageExactlyEqual": true,
+      "indexStorageExactlyEqual": true
+    },
+    {
+      "region": "hall",
+      "primitive": 9,
+      "material": "Dark old timber",
+      "attributes": {
+        "COLOR_0": {
+          "format": [
+            "VEC4",
+            5121,
+            true,
+            106039
+          ],
+          "sha256": "08e16f90cf65d24a7098dac7101fdcc59babf85def011b6af03df996d750770f",
+          "exactlyEqual": true
+        },
+        "COLOR_1": {
+          "format": [
+            "VEC4",
+            5121,
+            true,
+            106039
+          ],
+          "sha256": "913def7cf783b88938d5bf8b2dd15cae065cf38cf4acb4ca2fdb37e19892d821",
+          "exactlyEqual": true
+        },
+        "NORMAL": {
+          "format": [
+            "VEC3",
+            5120,
+            true,
+            106039
+          ],
+          "sha256": "058e6eabc3bf698ee099a5d573ad4d913fc20f07514ba603804460db27eab7e2",
+          "exactlyEqual": true
+        },
+        "POSITION": {
+          "format": [
+            "VEC3",
+            5122,
+            true,
+            106039
+          ],
+          "sha256": "c607ff0c9a75231a09470c6e163928026168439e0730b94536cad0b6090f2b48",
+          "exactlyEqual": true
+        },
+        "TEXCOORD_0": {
+          "format": [
+            "VEC2",
+            5126,
+            false,
+            106039
+          ],
+          "sha256": "f42c4fe155adb7d91161426fffa6ec81c430a564ea048d11be98be2634ac8425",
+          "exactlyEqual": true
+        },
+        "TEXCOORD_1": {
+          "format": [
+            "VEC2",
+            5123,
+            true,
+            106039
+          ],
+          "sha256": "6e309f036c412284b3cafe12ae8697a5b6d1b0280ffb3a16fb22d16b50dfe739",
+          "exactlyEqual": true
+        }
+      },
+      "index": {
+        "count": 212856,
+        "componentType": 5125,
+        "sha256": "6d567320597ee69609f18b09ebf4c64dc195c0ffb0ed3ce818e996e89ef3f334"
+      },
+      "vertexStorageExactlyEqual": true,
+      "indexStorageExactlyEqual": true
+    },
+    {
+      "region": "hall",
+      "primitive": 10,
+      "material": "Aged bronze",
+      "attributes": {
+        "COLOR_0": {
+          "format": [
+            "VEC4",
+            5121,
+            true,
+            12791
+          ],
+          "sha256": "8a467f9ffac34e66586647da29db2cc749799128ae1edc804c18feb89a6ae363",
+          "exactlyEqual": true
+        },
+        "COLOR_1": {
+          "format": [
+            "VEC4",
+            5121,
+            true,
+            12791
+          ],
+          "sha256": "8a467f9ffac34e66586647da29db2cc749799128ae1edc804c18feb89a6ae363",
+          "exactlyEqual": true
+        },
+        "NORMAL": {
+          "format": [
+            "VEC3",
+            5120,
+            true,
+            12791
+          ],
+          "sha256": "83d315fbe10905befaa8f5a9c1a46d175c2bf6da4fb6009b5105258fba6af245",
+          "exactlyEqual": true
+        },
+        "POSITION": {
+          "format": [
+            "VEC3",
+            5122,
+            true,
+            12791
+          ],
+          "sha256": "2de4a768d03999e61c3dd269ad489b87003bec955944751e2c7d9fdf4a377e0f",
+          "exactlyEqual": true
+        },
+        "TEXCOORD_0": {
+          "format": [
+            "VEC2",
+            5126,
+            false,
+            12791
+          ],
+          "sha256": "4dd6f24142c9c07dee76d34c7430aa6a0dee8c77f64e1a57debecca77b30642a",
+          "exactlyEqual": true
+        },
+        "TEXCOORD_1": {
+          "format": [
+            "VEC2",
+            5123,
+            true,
+            12791
+          ],
+          "sha256": "67058b5ec7e4194f95a8c3c8790b865a77f612c179696835926ebf5bb2d8975b",
+          "exactlyEqual": true
+        }
+      },
+      "index": {
+        "count": 31080,
+        "componentType": 5123,
+        "sha256": "f4e6a5f2abc0a0bec230e445cfbab42b4dddf63123f96d89f8de20ded7ca6ca4"
+      },
+      "vertexStorageExactlyEqual": true,
+      "indexStorageExactlyEqual": true
+    },
+    {
+      "region": "hall",
+      "primitive": 11,
+      "material": "Aged red painted timber",
+      "attributes": {
+        "COLOR_0": {
+          "format": [
+            "VEC4",
+            5121,
+            true,
+            59200
+          ],
+          "sha256": "d8de6ae231535082d201b51089491dd4a07f1d804e921b434be726f682123728",
+          "exactlyEqual": true
+        },
+        "COLOR_1": {
+          "format": [
+            "VEC4",
+            5121,
+            true,
+            59200
+          ],
+          "sha256": "d8de6ae231535082d201b51089491dd4a07f1d804e921b434be726f682123728",
+          "exactlyEqual": true
+        },
+        "NORMAL": {
+          "format": [
+            "VEC3",
+            5120,
+            true,
+            59200
+          ],
+          "sha256": "538954be92238b58030a5d707f9aeaf088a0d998c1d9a3fcb4642883991bf619",
+          "exactlyEqual": true
+        },
+        "POSITION": {
+          "format": [
+            "VEC3",
+            5122,
+            true,
+            59200
+          ],
+          "sha256": "c11b7f91cbde226d9b35c7a27c16f27dd5678ea1f5bc62134d9ac5340a072bed",
+          "exactlyEqual": true
+        },
+        "TEXCOORD_0": {
+          "format": [
+            "VEC2",
+            5126,
+            false,
+            59200
+          ],
+          "sha256": "674a704befc60dab77093b59a0579a3e87ce5fda6d0fb0907aa9e755fd775dec",
+          "exactlyEqual": true
+        },
+        "TEXCOORD_1": {
+          "format": [
+            "VEC2",
+            5123,
+            true,
+            59200
+          ],
+          "sha256": "0e4697da50ca4a4bb09c180052bc715d2b9e6229158aa321983d3c2f652c5568",
+          "exactlyEqual": true
+        }
+      },
+      "index": {
+        "count": 91632,
+        "componentType": 5123,
+        "sha256": "b2bd98869b5de3a5b85f944d5da5254a30b95a4951a7ab81b2218e21dcc4920e"
+      },
+      "vertexStorageExactlyEqual": true,
+      "indexStorageExactlyEqual": true
+    },
+    {
+      "region": "hall",
+      "primitive": 12,
+      "material": "Tarnished gilded edges",
+      "attributes": {
+        "COLOR_0": {
+          "format": [
+            "VEC4",
+            5121,
+            true,
+            19440
+          ],
+          "sha256": "b72ea7699f2ebd42c73e9cf04941ced2c883769d5e3e200ce482b1000a1411aa",
+          "exactlyEqual": true
+        },
+        "COLOR_1": {
+          "format": [
+            "VEC4",
+            5121,
+            true,
+            19440
+          ],
+          "sha256": "b72ea7699f2ebd42c73e9cf04941ced2c883769d5e3e200ce482b1000a1411aa",
+          "exactlyEqual": true
+        },
+        "NORMAL": {
+          "format": [
+            "VEC3",
+            5120,
+            true,
+            19440
+          ],
+          "sha256": "d7f70164c28812599cde4c39b9257226674199ab35dcb620bd380bf3730b80d6",
+          "exactlyEqual": true
+        },
+        "POSITION": {
+          "format": [
+            "VEC3",
+            5122,
+            true,
+            19440
+          ],
+          "sha256": "b707f43776132fa5698453bb7978c4994de797626d56011a5464b7ca7962ab6e",
+          "exactlyEqual": true
+        },
+        "TEXCOORD_0": {
+          "format": [
+            "VEC2",
+            5126,
+            false,
+            19440
+          ],
+          "sha256": "584d31b7f18980098afd89ecc576cc57ae55b15e31eb1a8e34f939d5bcc48706",
+          "exactlyEqual": true
+        },
+        "TEXCOORD_1": {
+          "format": [
+            "VEC2",
+            5123,
+            true,
+            19440
+          ],
+          "sha256": "c0e2a65c5a16b74a89de36e04cb7e09aac070c229d5f567e07798c0581b08d67",
+          "exactlyEqual": true
+        }
+      },
+      "index": {
+        "count": 32736,
+        "componentType": 5123,
+        "sha256": "a083746460314f2809e58d4cbd4a42a5cb41eb10e6e71a5d1feb97654bd5a079"
+      },
+      "vertexStorageExactlyEqual": true,
+      "indexStorageExactlyEqual": true
+    },
+    {
+      "region": "hall",
+      "primitive": 13,
+      "material": "Side hall roof tiles",
+      "attributes": {
+        "COLOR_0": {
+          "format": [
+            "VEC4",
+            5121,
+            true,
+            31593
+          ],
+          "sha256": "b24324f19dcc319019ecdc8cf3978d431b7a356cec639e4f4b766b7a9f192a72",
+          "exactlyEqual": true
+        },
+        "COLOR_1": {
+          "format": [
+            "VEC4",
+            5121,
+            true,
+            31593
+          ],
+          "sha256": "b24324f19dcc319019ecdc8cf3978d431b7a356cec639e4f4b766b7a9f192a72",
+          "exactlyEqual": true
+        },
+        "NORMAL": {
+          "format": [
+            "VEC3",
+            5120,
+            true,
+            31593
+          ],
+          "sha256": "7f4f4a34ca663997dcb14ce38f76519e65072c40b98711430fe951d7dd3195be",
+          "exactlyEqual": true
+        },
+        "POSITION": {
+          "format": [
+            "VEC3",
+            5122,
+            true,
+            31593
+          ],
+          "sha256": "01726b67e5c6b09e4637f3ff1a150e4751735f61eebae0f83420dacd9d087f79",
+          "exactlyEqual": true
+        },
+        "TEXCOORD_0": {
+          "format": [
+            "VEC2",
+            5126,
+            false,
+            31593
+          ],
+          "sha256": "e866b19e6f0a79ec354208c3b49406b55f098a09241541792c8ad06b0b508ac3",
+          "exactlyEqual": true
+        },
+        "TEXCOORD_1": {
+          "format": [
+            "VEC2",
+            5123,
+            true,
+            31593
+          ],
+          "sha256": "6d37a267415c7998932f781acfac2c665da640b1dde67e26c950411af3a8f90b",
+          "exactlyEqual": true
+        }
+      },
+      "index": {
+        "count": 84342,
+        "componentType": 5123,
+        "sha256": "5201bf6609029844ff19b90a1792532d0e37a6058ac689732952424a124cfe17"
+      },
+      "vertexStorageExactlyEqual": true,
+      "indexStorageExactlyEqual": true
+    },
+    {
+      "region": "hall",
+      "primitive": 14,
+      "material": "Snow settled dry grains",
+      "attributes": {
+        "COLOR_0": {
+          "format": [
+            "VEC4",
+            5121,
+            true,
+            13215
+          ],
+          "sha256": "056791c6ee44e7abac1ee45c156af5f8b2cc3277dae676dc3859d7de69501b8f",
+          "exactlyEqual": true
+        },
+        "COLOR_1": {
+          "format": [
+            "VEC4",
+            5121,
+            true,
+            13215
+          ],
+          "sha256": "056791c6ee44e7abac1ee45c156af5f8b2cc3277dae676dc3859d7de69501b8f",
+          "exactlyEqual": true
+        },
+        "NORMAL": {
+          "format": [
+            "VEC3",
+            5120,
+            true,
+            13215
+          ],
+          "sha256": "7fe84b61992c60c5f0b948fe82822b4f52b5f003b7af3600e177f908b7cfab9e",
+          "exactlyEqual": true
+        },
+        "POSITION": {
+          "format": [
+            "VEC3",
+            5122,
+            true,
+            13215
+          ],
+          "sha256": "d03d9acb23d10767aa56d12deccec0c4620f19b952f2e300f02d82548bea156b",
+          "exactlyEqual": true
+        },
+        "TEXCOORD_0": {
+          "format": [
+            "VEC2",
+            5126,
+            false,
+            13215
+          ],
+          "sha256": "db12f0ec9e1dcf45e86fa9bc28efdea9f89249628857e112ebe4b44c9969d900",
+          "exactlyEqual": true
+        },
+        "TEXCOORD_1": {
+          "format": [
+            "VEC2",
+            5123,
+            true,
+            13215
+          ],
+          "sha256": "d805b9edc6546de0a94e6a2248dcee474681032b0f8ff345868772535ba8fbdf",
+          "exactlyEqual": true
+        }
+      },
+      "index": {
+        "count": 61152,
+        "componentType": 5123,
+        "sha256": "d5562c355ce1a0cc448a2dd935a0e2e3850d8c74514302e76deba6bedbcad33d"
+      },
+      "vertexStorageExactlyEqual": true,
+      "indexStorageExactlyEqual": true
+    },
+    {
+      "region": "hall",
+      "primitive": 15,
+      "material": "Cloudy icicle ice",
+      "attributes": {
+        "COLOR_0": {
+          "format": [
+            "VEC4",
+            5121,
+            true,
+            2511
+          ],
+          "sha256": "39e67c89df18876849e74c12f1fefd15b43d269d1630b84bf8bd6ce4102038d3",
+          "exactlyEqual": true
+        },
+        "COLOR_1": {
+          "format": [
+            "VEC4",
+            5121,
+            true,
+            2511
+          ],
+          "sha256": "39e67c89df18876849e74c12f1fefd15b43d269d1630b84bf8bd6ce4102038d3",
+          "exactlyEqual": true
+        },
+        "NORMAL": {
+          "format": [
+            "VEC3",
+            5120,
+            true,
+            2511
+          ],
+          "sha256": "5cc9178750e4983e655b602cb122f23b9786503652382236a6a20b3829908872",
+          "exactlyEqual": true
+        },
+        "POSITION": {
+          "format": [
+            "VEC3",
+            5122,
+            true,
+            2511
+          ],
+          "sha256": "bddd7a2457f214bd061f17c5a3f3fbc748e14d1d4ef3dd4e25d0cf464fe4d1a1",
+          "exactlyEqual": true
+        },
+        "TEXCOORD_0": {
+          "format": [
+            "VEC2",
+            5126,
+            false,
+            2511
+          ],
+          "sha256": "ed55084ccfb7aafd91b9086bfcd4c114802109baacbe477ec661ec7d26801fce",
+          "exactlyEqual": true
+        },
+        "TEXCOORD_1": {
+          "format": [
+            "VEC2",
+            5123,
+            true,
+            2511
+          ],
+          "sha256": "d4e5d44873192543015c127dcac4d33adadb52371325393e26b36f72bee2aef8",
+          "exactlyEqual": true
+        }
+      },
+      "index": {
+        "count": 5076,
+        "componentType": 5123,
+        "sha256": "bffd2617b6266d25588d6a8b7df5a6d55012c87ee6c41364b07367e1bf986967"
+      },
+      "vertexStorageExactlyEqual": true,
+      "indexStorageExactlyEqual": true
+    },
+    {
+      "region": "hall",
+      "primitive": 16,
+      "material": "chinese_console_table",
+      "attributes": {
+        "COLOR_0": {
+          "format": [
+            "VEC4",
+            5121,
+            true,
+            15308
+          ],
+          "sha256": "c4d4e42faec5ae4bc94ec35685b0ccf3a88421daaca1f0d3bb3fd5f3650f8d4e",
+          "exactlyEqual": true
+        },
+        "COLOR_1": {
+          "format": [
+            "VEC4",
+            5121,
+            true,
+            15308
+          ],
+          "sha256": "c4d4e42faec5ae4bc94ec35685b0ccf3a88421daaca1f0d3bb3fd5f3650f8d4e",
+          "exactlyEqual": true
+        },
+        "NORMAL": {
+          "format": [
+            "VEC3",
+            5120,
+            true,
+            15308
+          ],
+          "sha256": "27731a34aba794904023443ae834b27747f557beaed07ee939b5e660ce1fa1a9",
+          "exactlyEqual": true
+        },
+        "POSITION": {
+          "format": [
+            "VEC3",
+            5122,
+            true,
+            15308
+          ],
+          "sha256": "5b6694bb05912fd22cb9b028843752faf1758a7633100e24f2f501375a5c8fd7",
+          "exactlyEqual": true
+        },
+        "TEXCOORD_0": {
+          "format": [
+            "VEC2",
+            5123,
+            true,
+            15308
+          ],
+          "sha256": "475255cb6780921076a233b056c61335e85c1dae31189c516450c775fb6c8cfd",
+          "exactlyEqual": true
+        },
+        "TEXCOORD_1": {
+          "format": [
+            "VEC2",
+            5123,
+            true,
+            15308
+          ],
+          "sha256": "b500167d91a69c8e0976b04da18fd91de5889b253deda1bc4c6ddbfd4cb511bb",
+          "exactlyEqual": true
+        }
+      },
+      "index": {
+        "count": 40944,
+        "componentType": 5123,
+        "sha256": "cbe678ea295ac5138f7571f95bb2612d12e763c3cb2e33c7da7452a275614ea8"
+      },
+      "vertexStorageExactlyEqual": true,
+      "indexStorageExactlyEqual": true
+    },
+    {
+      "region": "hall",
+      "primitive": 17,
+      "material": "chinese_screen_panels",
+      "attributes": {
+        "COLOR_0": {
+          "format": [
+            "VEC4",
+            5121,
+            true,
+            558
+          ],
+          "sha256": "48c8cffc25393f9d54bd491b9bfcd48ca312e6f879e6c5dcbb0b05cca142bbb0",
+          "exactlyEqual": true
+        },
+        "COLOR_1": {
+          "format": [
+            "VEC4",
+            5121,
+            true,
+            558
+          ],
+          "sha256": "48c8cffc25393f9d54bd491b9bfcd48ca312e6f879e6c5dcbb0b05cca142bbb0",
+          "exactlyEqual": true
+        },
+        "NORMAL": {
+          "format": [
+            "VEC3",
+            5120,
+            true,
+            558
+          ],
+          "sha256": "a609f19638c62100a5473c198c1761dff79e5147f205835e66ceb0beb0f52b8e",
+          "exactlyEqual": true
+        },
+        "POSITION": {
+          "format": [
+            "VEC3",
+            5122,
+            true,
+            558
+          ],
+          "sha256": "ee09443092b88e7ff6259e9d4063098f3d8c8e41fa1bf24f6d8398d23e6269bf",
+          "exactlyEqual": true
+        },
+        "TEXCOORD_0": {
+          "format": [
+            "VEC2",
+            5123,
+            true,
+            558
+          ],
+          "sha256": "2d3d177ac8a75effd40c362ef1e88e96c5feca0922a0f740f82c90e5b0397f55",
+          "exactlyEqual": true
+        },
+        "TEXCOORD_1": {
+          "format": [
+            "VEC2",
+            5123,
+            true,
+            558
+          ],
+          "sha256": "37a174c90a5a8fe39b9a54564245498d8f2c851596907a55cba4308b463eb25d",
+          "exactlyEqual": true
+        }
+      },
+      "index": {
+        "count": 1260,
+        "componentType": 5123,
+        "sha256": "1da8df5d3f4c547d0ef63c89b78a5eed0ec5acc1d864020ae2db351af08f76d0"
+      },
+      "vertexStorageExactlyEqual": true,
+      "indexStorageExactlyEqual": true
+    },
+    {
+      "region": "hall",
+      "primitive": 18,
+      "material": "chinese_screen_panels",
+      "attributes": {
+        "COLOR_0": {
+          "format": [
+            "VEC4",
+            5121,
+            true,
+            478
+          ],
+          "sha256": "5b3a796be1a72e85c24f89fbd337db000af73c269a5a75fd2193c17d19032eba",
+          "exactlyEqual": true
+        },
+        "COLOR_1": {
+          "format": [
+            "VEC4",
+            5121,
+            true,
+            478
+          ],
+          "sha256": "5b3a796be1a72e85c24f89fbd337db000af73c269a5a75fd2193c17d19032eba",
+          "exactlyEqual": true
+        },
+        "NORMAL": {
+          "format": [
+            "VEC3",
+            5120,
+            true,
+            478
+          ],
+          "sha256": "e4bbf3ec091447560fc676b4248a45abb9e430ae8bca3815463dc257bcfa5f00",
+          "exactlyEqual": true
+        },
+        "POSITION": {
+          "format": [
+            "VEC3",
+            5122,
+            true,
+            478
+          ],
+          "sha256": "fa25883e57873cb5d0bb841a546501bb98d1409c72840f16d8429ad83e274484",
+          "exactlyEqual": true
+        },
+        "TEXCOORD_0": {
+          "format": [
+            "VEC2",
+            5123,
+            true,
+            478
+          ],
+          "sha256": "51e7ba1bdccddb6e05aac2073914467709296583603cacdd38dec01a5d6842e7",
+          "exactlyEqual": true
+        },
+        "TEXCOORD_1": {
+          "format": [
+            "VEC2",
+            5123,
+            true,
+            478
+          ],
+          "sha256": "c25cf71f4cb8bcb60b4345e88dc4239294a42f59c17128308d9813712db831fe",
+          "exactlyEqual": true
+        }
+      },
+      "index": {
+        "count": 1092,
+        "componentType": 5123,
+        "sha256": "f4880d17904a1179bb0d915fb40ae708ce0299335b8c6c88d313e6c972f39647"
+      },
+      "vertexStorageExactlyEqual": true,
+      "indexStorageExactlyEqual": true
+    },
+    {
+      "region": "hall",
+      "primitive": 19,
+      "material": "chinese_screen_panels",
+      "attributes": {
+        "COLOR_0": {
+          "format": [
+            "VEC4",
+            5121,
+            true,
+            558
+          ],
+          "sha256": "48c8cffc25393f9d54bd491b9bfcd48ca312e6f879e6c5dcbb0b05cca142bbb0",
+          "exactlyEqual": true
+        },
+        "COLOR_1": {
+          "format": [
+            "VEC4",
+            5121,
+            true,
+            558
+          ],
+          "sha256": "48c8cffc25393f9d54bd491b9bfcd48ca312e6f879e6c5dcbb0b05cca142bbb0",
+          "exactlyEqual": true
+        },
+        "NORMAL": {
+          "format": [
+            "VEC3",
+            5120,
+            true,
+            558
+          ],
+          "sha256": "2969ad44d4f3304639feed6d3df47258f6cf2923aa6b761d33d264c0a40c07bb",
+          "exactlyEqual": true
+        },
+        "POSITION": {
+          "format": [
+            "VEC3",
+            5122,
+            true,
+            558
+          ],
+          "sha256": "e49049c94d3a7e1b8a9ef47e9745b6ffb99b6eee706482380df87af67054acfb",
+          "exactlyEqual": true
+        },
+        "TEXCOORD_0": {
+          "format": [
+            "VEC2",
+            5123,
+            true,
+            558
+          ],
+          "sha256": "6747e53cb682d2c6050e6405c41f919b182e1f20dbd45803e2569c6f395ab82d",
+          "exactlyEqual": true
+        },
+        "TEXCOORD_1": {
+          "format": [
+            "VEC2",
+            5123,
+            true,
+            558
+          ],
+          "sha256": "c8ab02d2f2d45239f6a308eb36f1c0e61f895642c3f19ca60bff43c844025407",
+          "exactlyEqual": true
+        }
+      },
+      "index": {
+        "count": 1260,
+        "componentType": 5123,
+        "sha256": "374239dfdb296753b25d2e0a9c4f0fdc7ad3da2c6ad1b989e89f537e783d8c9d"
+      },
+      "vertexStorageExactlyEqual": true,
+      "indexStorageExactlyEqual": true
+    },
+    {
+      "region": "hall",
+      "primitive": 20,
+      "material": "Other lamps warm wick",
+      "attributes": {
+        "COLOR_0": {
+          "format": [
+            "VEC4",
+            5121,
+            true,
+            322
+          ],
+          "sha256": "acb7e98800540b36b936cc55ecf49a888ec22ee6c26833f35196ac33d2bccc43",
+          "exactlyEqual": true
+        },
+        "COLOR_1": {
+          "format": [
+            "VEC4",
+            5121,
+            true,
+            322
+          ],
+          "sha256": "acb7e98800540b36b936cc55ecf49a888ec22ee6c26833f35196ac33d2bccc43",
+          "exactlyEqual": true
+        },
+        "NORMAL": {
+          "format": [
+            "VEC3",
+            5120,
+            true,
+            322
+          ],
+          "sha256": "b6b0b3a8b4875f18bf4c7c834e52c94b295a3dd4e6991886f4d08c8929532d64",
+          "exactlyEqual": true
+        },
+        "POSITION": {
+          "format": [
+            "VEC3",
+            5122,
+            true,
+            322
+          ],
+          "sha256": "b1b6447a7be4fbc74dd354b6f3a10e6715682d2a7a5bcb83b68a057b279b8151",
+          "exactlyEqual": true
+        },
+        "TEXCOORD_0": {
+          "format": [
+            "VEC2",
+            5126,
+            false,
+            322
+          ],
+          "sha256": "a8cc629a2e0c9b382db3653dd134e0f87fe854367d1c3a69699295dbf515e9a5",
+          "exactlyEqual": true
+        },
+        "TEXCOORD_1": {
+          "format": [
+            "VEC2",
+            5123,
+            true,
+            322
+          ],
+          "sha256": "9a1f6d557ef9810fbe8f2a49e3e3d66bcc64c8759e8c20afc468952f2b1cf498",
+          "exactlyEqual": true
+        }
+      },
+      "index": {
+        "count": 864,
+        "componentType": 5123,
+        "sha256": "08e0ca85329ab4e993bf153233529599d6c363748f8bdef6c23a5eb96fdef9c0"
+      },
+      "vertexStorageExactlyEqual": true,
+      "indexStorageExactlyEqual": true
+    },
+    {
+      "region": "hall",
+      "primitive": 21,
+      "material": "Soft cold incense ash",
+      "attributes": {
+        "COLOR_0": {
+          "format": [
+            "VEC4",
+            5121,
+            true,
+            140
+          ],
+          "sha256": "9da686cb0787ccaa098ae16e3ad53d1933bb24c05878011d4555a0671bd6898e",
+          "exactlyEqual": true
+        },
+        "COLOR_1": {
+          "format": [
+            "VEC4",
+            5121,
+            true,
+            140
+          ],
+          "sha256": "9da686cb0787ccaa098ae16e3ad53d1933bb24c05878011d4555a0671bd6898e",
+          "exactlyEqual": true
+        },
+        "NORMAL": {
+          "format": [
+            "VEC3",
+            5120,
+            true,
+            140
+          ],
+          "sha256": "cf8cf45804e140bea5f16ad2a2e96a2ae432ae8cb2749468577104284ff1fa7f",
+          "exactlyEqual": true
+        },
+        "POSITION": {
+          "format": [
+            "VEC3",
+            5122,
+            true,
+            140
+          ],
+          "sha256": "1892a2b6adaa7f6e151000dc52943d7839e4e5894f207aea75eb80e3bc98a975",
+          "exactlyEqual": true
+        },
+        "TEXCOORD_0": {
+          "format": [
+            "VEC2",
+            5126,
+            false,
+            140
+          ],
+          "sha256": "6041afb746e1eca2853491f078ee2bef22e08c0f1e760654321e27fe6180d4f8",
+          "exactlyEqual": true
+        },
+        "TEXCOORD_1": {
+          "format": [
+            "VEC2",
+            5123,
+            true,
+            140
+          ],
+          "sha256": "50f3b00000baf1767fa40579b9cb36db65933b023de92672d391eb3a4246dd1c",
+          "exactlyEqual": true
+        }
+      },
+      "index": {
+        "count": 144,
+        "componentType": 5123,
+        "sha256": "5555cc80b676fcc31b3fa52b7ec8934935f2f9014c3b76bceac947c00430bc85"
+      },
+      "vertexStorageExactlyEqual": true,
+      "indexStorageExactlyEqual": true
+    },
+    {
+      "region": "hall",
+      "primitive": 22,
+      "material": "Soot-darkened clay",
+      "attributes": {
+        "COLOR_0": {
+          "format": [
+            "VEC4",
+            5121,
+            true,
+            1518
+          ],
+          "sha256": "483a7db38b02b1cf428b868765d9b4a0209234a2598da8e0c0b124a5f73e78dd",
+          "exactlyEqual": true
+        },
+        "COLOR_1": {
+          "format": [
+            "VEC4",
+            5121,
+            true,
+            1518
+          ],
+          "sha256": "483a7db38b02b1cf428b868765d9b4a0209234a2598da8e0c0b124a5f73e78dd",
+          "exactlyEqual": true
+        },
+        "NORMAL": {
+          "format": [
+            "VEC3",
+            5120,
+            true,
+            1518
+          ],
+          "sha256": "60a0c032393eda6f7be8fe9a2fe4e7a4065a76761e40d39ff04ae0621a0e86e3",
+          "exactlyEqual": true
+        },
+        "POSITION": {
+          "format": [
+            "VEC3",
+            5122,
+            true,
+            1518
+          ],
+          "sha256": "531816a6dccbe665b22bb2add66d0150fe2016820c61bf50207dcc182c82866c",
+          "exactlyEqual": true
+        },
+        "TEXCOORD_0": {
+          "format": [
+            "VEC2",
+            5126,
+            false,
+            1518
+          ],
+          "sha256": "d3ef38e96afcdbf7bfceaa573116248bcf6d475ee8adb6b0fd21d192d2d65f0b",
+          "exactlyEqual": true
+        },
+        "TEXCOORD_1": {
+          "format": [
+            "VEC2",
+            5123,
+            true,
+            1518
+          ],
+          "sha256": "b0714e1dadd79dddf2210a872952bb99bac809689ca08cfb533b4f8fef3d3e92",
+          "exactlyEqual": true
+        }
+      },
+      "index": {
+        "count": 3852,
+        "componentType": 5123,
+        "sha256": "bb577d2b78bb597cede7468079438b16e0d29f45b13a3187e23b26012a89c25a"
+      },
+      "vertexStorageExactlyEqual": true,
+      "indexStorageExactlyEqual": true
+    },
+    {
+      "region": "hall",
+      "primitive": 23,
+      "material": "Worn woven cushion cloth",
+      "attributes": {
+        "COLOR_0": {
+          "format": [
+            "VEC4",
+            5121,
+            true,
+            1882
+          ],
+          "sha256": "99c8b6fedbdbffa73802f97e76ae8e007bd0d278a66b493d0f9472e475082311",
+          "exactlyEqual": true
+        },
+        "COLOR_1": {
+          "format": [
+            "VEC4",
+            5121,
+            true,
+            1882
+          ],
+          "sha256": "99c8b6fedbdbffa73802f97e76ae8e007bd0d278a66b493d0f9472e475082311",
+          "exactlyEqual": true
+        },
+        "NORMAL": {
+          "format": [
+            "VEC3",
+            5120,
+            true,
+            1882
+          ],
+          "sha256": "bbb2436a8d4e9adac4782aec4af1a94f313e419dbff5647c469038d7d20c2f1a",
+          "exactlyEqual": true
+        },
+        "POSITION": {
+          "format": [
+            "VEC3",
+            5122,
+            true,
+            1882
+          ],
+          "sha256": "698a2df98d298b9b03b4eae6b2588e707be62a886fc585bc4582abdcb12bac5b",
+          "exactlyEqual": true
+        },
+        "TEXCOORD_0": {
+          "format": [
+            "VEC2",
+            5126,
+            false,
+            1882
+          ],
+          "sha256": "e4257a46442723a6dafad4e1007c5e9bf718d47199ad4c5c1e42a8a0f5aa1b7a",
+          "exactlyEqual": true
+        },
+        "TEXCOORD_1": {
+          "format": [
+            "VEC2",
+            5123,
+            true,
+            1882
+          ],
+          "sha256": "faa33c732925acdd9217aa737a16f9831dc9850321d39cd0946b64abb86817aa",
+          "exactlyEqual": true
+        }
+      },
+      "index": {
+        "count": 8640,
+        "componentType": 5123,
+        "sha256": "7a4ec2469e43d10c578178b942140b1c67fa042437031b2053442867e8d02b4e"
+      },
+      "vertexStorageExactlyEqual": true,
+      "indexStorageExactlyEqual": true
+    },
+    {
+      "region": "hall",
+      "primitive": 24,
+      "material": "Cushion stitched piping",
+      "attributes": {
+        "COLOR_0": {
+          "format": [
+            "VEC4",
+            5121,
+            true,
+            4101
+          ],
+          "sha256": "1960c52f9e95354b0d1f957bbc97186e7c090a1e1ac5c1113b2cabbd4d55590e",
+          "exactlyEqual": true
+        },
+        "COLOR_1": {
+          "format": [
+            "VEC4",
+            5121,
+            true,
+            4101
+          ],
+          "sha256": "1960c52f9e95354b0d1f957bbc97186e7c090a1e1ac5c1113b2cabbd4d55590e",
+          "exactlyEqual": true
+        },
+        "NORMAL": {
+          "format": [
+            "VEC3",
+            5120,
+            true,
+            4101
+          ],
+          "sha256": "37070dc314df2341f3ed47d9ea806f266d2f9e66c21b21a0fa329c758cbb4080",
+          "exactlyEqual": true
+        },
+        "POSITION": {
+          "format": [
+            "VEC3",
+            5122,
+            true,
+            4101
+          ],
+          "sha256": "b1f371772b61d99264f4722b6a3d2d3a6cdf4f4d4f78bb5aefa11ed975dd14b6",
+          "exactlyEqual": true
+        },
+        "TEXCOORD_0": {
+          "format": [
+            "VEC2",
+            5126,
+            false,
+            4101
+          ],
+          "sha256": "47c509e1318a2f63e0cfdfc647d92376785361762e4495cb8449a4243ad022e7",
+          "exactlyEqual": true
+        },
+        "TEXCOORD_1": {
+          "format": [
+            "VEC2",
+            5123,
+            true,
+            4101
+          ],
+          "sha256": "c3a67b2065256e252bf2d52a7e4707a334c3836defa3f518376c7dc979b5dfd7",
+          "exactlyEqual": true
+        }
+      },
+      "index": {
+        "count": 8640,
+        "componentType": 5123,
+        "sha256": "113e256316cdcaad9431f059aca64d7a8330e23dbe5cec762ba0785e4b7ff150"
+      },
+      "vertexStorageExactlyEqual": true,
+      "indexStorageExactlyEqual": true
+    },
+    {
+      "region": "hall",
+      "primitive": 25,
+      "material": "Dry straw",
+      "attributes": {
+        "COLOR_0": {
+          "format": [
+            "VEC4",
+            5121,
+            true,
+            1921
+          ],
+          "sha256": "925c2b07d3b6acbd14a740486f71ab06756580ec6feae28d0a406e0c76d123ef",
+          "exactlyEqual": true
+        },
+        "COLOR_1": {
+          "format": [
+            "VEC4",
+            5121,
+            true,
+            1921
+          ],
+          "sha256": "925c2b07d3b6acbd14a740486f71ab06756580ec6feae28d0a406e0c76d123ef",
+          "exactlyEqual": true
+        },
+        "NORMAL": {
+          "format": [
+            "VEC3",
+            5120,
+            true,
+            1921
+          ],
+          "sha256": "eb4b267c6729035118b82cbe971de84a1fdc4563983a8e1b834771fe434b1b6b",
+          "exactlyEqual": true
+        },
+        "POSITION": {
+          "format": [
+            "VEC3",
+            5122,
+            true,
+            1921
+          ],
+          "sha256": "851e11cd258c134692aae78d0f00f1b7a6f313e0b65fd9c5a0d977cd9ce6b1ea",
+          "exactlyEqual": true
+        },
+        "TEXCOORD_0": {
+          "format": [
+            "VEC2",
+            5126,
+            false,
+            1921
+          ],
+          "sha256": "0f595f7cea963d41e190661bf699a69e35d235ecd34efb7a263180fe92180f69",
+          "exactlyEqual": true
+        },
+        "TEXCOORD_1": {
+          "format": [
+            "VEC2",
+            5123,
+            true,
+            1921
+          ],
+          "sha256": "79bbf21081e474b0c6732e83cb165e7bb7ed358114c4a45a794d91683afdcdbc",
+          "exactlyEqual": true
+        }
+      },
+      "index": {
+        "count": 3780,
+        "componentType": 5123,
+        "sha256": "781210a5f46114f1cb0339b33cfbe6a4654ba58af2dc1f414477856086dbdbdf"
+      },
+      "vertexStorageExactlyEqual": true,
+      "indexStorageExactlyEqual": true
+    }
+  ],
+  "literalVertexStorageExactlyEqual": true,
+  "literalIndexStorageExactlyEqual": true,
+  "positionsNormalsUV0UV1AllColorsAndWindingExactlyEqual": true,
+  "vertices": 648776,
+  "triangles": 466874,
+  "renderOrBrowserOrGpuUsed": false,
+  "externalLightmaps": "Not embedded in these GLBs. Complete staged manifests must separately verify identical lightmap payload hashes for the material-only A/B."
+}

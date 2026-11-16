@@ -1,0 +1,12 @@
+{
+  "observedAtUTC": "2026-11-16T16:57:56.597740+00:00",
+  "pid": 35710,
+  "enabledCyclesDeviceLog": "BAKE_DEVICE ['Apple M1 (GPU - 8 cores)']",
+  "loadedOIDNLibraries": [
+    "Blender 35710 xuan  txt    REG   1,17    157024            62151807 /Applications/Blender.app/Contents/Resources/lib/libOpenImageDenoise.dylib",
+    "Blender 35710 xuan  txt    REG   1,17    261120            62151810 /Applications/Blender.app/Contents/Resources/lib/libOpenImageDenoise_device_metal.dylib",
+    "Blender 35710 xuan  txt    REG   1,17  47299760            62151808 /Applications/Blender.app/Contents/Resources/lib/libOpenImageDenoise_core.dylib"
+  ],
+  "bakerSha256AtObservation": "ad97fd53784a7448aa39e6ee0de9ae166de24414a2000f07c740a47439c4b0c8",
+  "scope": "Read-only observation during actual64-sample production batch. Cycles configuration enables only METAL devices. Explicit OIDN initialization validates device type5 before each run; completion proves its error guards passed. A loaded library observation alone is not a GPU utilization measurement."
+}

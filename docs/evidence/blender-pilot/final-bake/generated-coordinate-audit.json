@@ -1,0 +1,2985 @@
+{
+  "policy": "implicit-procedural-generated-evaluated-undeformed-source-texspace-v2",
+  "attribute": "one_light_source_generated",
+  "space": "Source local position normalized by source mesh texspace: (position-location)/(2*size)+.5; zero-size axes use.5.",
+  "objects": {
+    "Main hall curved settled snow cap": {
+      "vertices": 2050,
+      "texspaceLocation": [
+        0.0,
+        5.32871675491333,
+        6.787320137023926
+      ],
+      "texspaceSize": [
+        5.909999847412109,
+        3.028716564178467,
+        1.3846251964569092
+      ],
+      "autoTexspace": true,
+      "localBounds": [
+        [
+          -5.909999847412109,
+          2.299999952316284,
+          5.402695178985596
+        ],
+        [
+          5.909999847412109,
+          8.357433319091797,
+          8.171945571899414
+        ]
+      ],
+      "attributeSha256": "019d04733d94e41836fd6d10f842b1797d4370534a7f6c12719c0e6fac308bdf",
+      "examples": [
+        {
+          "vertex": 0,
+          "local": [
+            -5.909999847412109,
+            2.299999952316284,
+            8.165423393249512
+          ],
+          "generated": [
+            0.0,
+            -5.960464477539063e-08,
+            0.9976449012756348
+          ]
+        },
+        {
+          "vertex": 1025,
+          "local": [
+            -5.909999847412109,
+            2.299999952316284,
+            7.791999816894531
+          ],
+          "generated": [
+            0.0,
+            -5.960464477539063e-08,
+            0.8627984523773193
+          ]
+        },
+        {
+          "vertex": 2049,
+          "local": [
+            5.909999847412109,
+            8.212611198425293,
+            5.5651021003723145
+          ],
+          "generated": [
+            1.0,
+            0.9760918617248535,
+            0.05864661931991577
+          ]
+        }
+      ],
+      "evaluatedVertices": 2050,
+      "modifierTypes": [],
+      "interpolatedPointMaxAbsError": 0.0,
+      "evaluatedAttributeSha256": "019d04733d94e41836fd6d10f842b1797d4370534a7f6c12719c0e6fac308bdf",
+      "evaluationPolicy": "Evaluated MeshVertex.undeformed_co normalized by ORIGINAL source texspace; frozen before join."
+    },
+    "Main hall curved settled snow cap.001": {
+      "vertices": 2050,
+      "texspaceLocation": [
+        0.0,
+        -0.7789478302001953,
+        6.78730583190918
+      ],
+      "texspaceSize": [
+        5.909999847412109,
+        3.0789477825164795,
+        1.3846399784088135
+      ],
+      "autoTexspace": true,
+      "localBounds": [
+        [
+          -5.909999847412109,
+          -3.857895612716675,
+          5.402665615081787
+        ],
+        [
+          5.909999847412109,
+          2.299999952316284,
+          8.171945571899414
+        ]
+      ],
+      "attributeSha256": "170245842b0b304e4b3dd68d86c68daa9f80784d79b7f872e7ee59db7549107a",
+      "examples": [
+        {
+          "vertex": 0,
+          "local": [
+            -5.909999847412109,
+            2.299999952316284,
+            8.165423393249512
+          ],
+          "generated": [
+            0.0,
+            1.0,
+            0.9976447224617004
+          ]
+        },
+        {
+          "vertex": 1025,
+          "local": [
+            -5.909999847412109,
+            2.299999952316284,
+            7.791999816894531
+          ],
+          "generated": [
+            0.0,
+            1.0,
+            0.8627997040748596
+          ]
+        },
+        {
+          "vertex": 2049,
+          "local": [
+            5.909999847412109,
+            -3.5751829147338867,
+            5.560103893280029
+          ],
+          "generated": [
+            1.0,
+            0.04591059684753418,
+            0.05685162544250488
+          ]
+        }
+      ],
+      "evaluatedVertices": 2050,
+      "modifierTypes": [],
+      "interpolatedPointMaxAbsError": 0.0,
+      "evaluatedAttributeSha256": "170245842b0b304e4b3dd68d86c68daa9f80784d79b7f872e7ee59db7549107a",
+      "evaluationPolicy": "Evaluated MeshVertex.undeformed_co normalized by ORIGINAL source texspace; frozen before join."
+    },
+    "Continuous stair-edge snow bank left": {
+      "vertices": 3050,
+      "texspaceLocation": [
+        0.0,
+        -20.0,
+        0.18147464096546173
+      ],
+      "texspaceSize": [
+        26.0,
+        33.0,
+        29.5
+      ],
+      "autoTexspace": false,
+      "localBounds": [
+        [
+          -2.428873300552368,
+          -7.097094535827637,
+          -0.1500002145767212
+        ],
+        [
+          -0.8684706687927246,
+          -3.7605936527252197,
+          0.738640546798706
+        ]
+      ],
+      "attributeSha256": "1ebc3b328ba14953f168f2d616028b719fdf1b6e1f618666c2ca33001b55739f",
+      "examples": [
+        {
+          "vertex": 0,
+          "local": [
+            -1.491849422454834,
+            -3.7605936527252197,
+            -0.10999973118305206
+          ],
+          "generated": [
+            0.4713105857372284,
+            0.7460516095161438,
+            0.4950597584247589
+          ]
+        },
+        {
+          "vertex": 1525,
+          "local": [
+            -1.1659655570983887,
+            -5.5379743576049805,
+            0.3581886291503906
+          ],
+          "generated": [
+            0.4775775969028473,
+            0.7191215753555298,
+            0.5029951333999634
+          ]
+        },
+        {
+          "vertex": 3049,
+          "local": [
+            -1.5199999809265137,
+            -5.428843975067139,
+            -0.1500002145767212
+          ],
+          "generated": [
+            0.4707692265510559,
+            0.7207751274108887,
+            0.49438178539276123
+          ]
+        }
+      ],
+      "evaluatedVertices": 3050,
+      "modifierTypes": [],
+      "interpolatedPointMaxAbsError": 0.0,
+      "evaluatedAttributeSha256": "1ebc3b328ba14953f168f2d616028b719fdf1b6e1f618666c2ca33001b55739f",
+      "evaluationPolicy": "Evaluated MeshVertex.undeformed_co normalized by ORIGINAL source texspace; frozen before join."
+    },
+    "Continuous stair-edge snow bank right": {
+      "vertices": 3050,
+      "texspaceLocation": [
+        0.0,
+        -20.0,
+        0.18147464096546173
+      ],
+      "texspaceSize": [
+        26.0,
+        33.0,
+        29.5
+      ],
+      "autoTexspace": false,
+      "localBounds": [
+        [
+          0.9319548606872559,
+          -7.0177507400512695,
+          -0.1500002145767212
+        ],
+        [
+          2.4317920207977295,
+          -3.7224833965301514,
+          0.7119672894477844
+        ]
+      ],
+      "attributeSha256": "37b4c8fa21c8e80d3412013cfc79d63245e3567a1a6694c5d768588042f0170e",
+      "examples": [
+        {
+          "vertex": 0,
+          "local": [
+            1.4850622415542603,
+            -3.7224833965301514,
+            -0.10999996960163116
+          ],
+          "generated": [
+            0.5285589098930359,
+            0.7466290593147278,
+            0.4950597584247589
+          ]
+        },
+        {
+          "vertex": 1525,
+          "local": [
+            1.2134828567504883,
+            -5.489502429962158,
+            0.42206209897994995
+          ],
+          "generated": [
+            0.5233362317085266,
+            0.7198560237884521,
+            0.5040777325630188
+          ]
+        },
+        {
+          "vertex": 3049,
+          "local": [
+            1.5199999809265137,
+            -5.3701171875,
+            -0.1500002145767212
+          ],
+          "generated": [
+            0.5292307734489441,
+            0.7216649055480957,
+            0.49438178539276123
+          ]
+        }
+      ],
+      "evaluatedVertices": 3050,
+      "modifierTypes": [],
+      "interpolatedPointMaxAbsError": 0.0,
+      "evaluatedAttributeSha256": "37b4c8fa21c8e80d3412013cfc79d63245e3567a1a6694c5d768588042f0170e",
+      "evaluationPolicy": "Evaluated MeshVertex.undeformed_co normalized by ORIGINAL source texspace; frozen before join."
+    },
+    "Court gate curved settled snow cap": {
+      "vertices": 1550,
+      "texspaceLocation": [
+        0.0,
+        -17.050668716430664,
+        4.52067756652832
+      ],
+      "texspaceSize": [
+        4.409999847412109,
+        0.9493312835693359,
+        0.6022679805755615
+      ],
+      "autoTexspace": true,
+      "localBounds": [
+        [
+          -4.409999847412109,
+          -18.0,
+          3.918409824371338
+        ],
+        [
+          4.409999847412109,
+          -16.101337432861328,
+          5.122945785522461
+        ]
+      ],
+      "attributeSha256": "0e2b60b51e0963185708bdd351fe6978e679d20c167715120a7a2d3bfc22b62a",
+      "examples": [
+        {
+          "vertex": 0,
+          "local": [
+            -4.409999847412109,
+            -18.0,
+            5.110774040222168
+          ],
+          "generated": [
+            0.0,
+            0.0,
+            0.9898952841758728
+          ]
+        },
+        {
+          "vertex": 775,
+          "local": [
+            -4.409999847412109,
+            -18.0,
+            4.742000102996826
+          ],
+          "generated": [
+            0.0,
+            0.0,
+            0.6837409138679504
+          ]
+        },
+        {
+          "vertex": 1549,
+          "local": [
+            4.409999847412109,
+            -16.123489379882812,
+            4.044818878173828
+          ],
+          "generated": [
+            1.0,
+            0.9883328676223755,
+            0.1049443781375885
+          ]
+        }
+      ],
+      "evaluatedVertices": 1550,
+      "modifierTypes": [],
+      "interpolatedPointMaxAbsError": 0.0,
+      "evaluatedAttributeSha256": "0e2b60b51e0963185708bdd351fe6978e679d20c167715120a7a2d3bfc22b62a",
+      "evaluationPolicy": "Evaluated MeshVertex.undeformed_co normalized by ORIGINAL source texspace; frozen before join."
+    },
+    "Court gate curved settled snow cap.001": {
+      "vertices": 1550,
+      "texspaceLocation": [
+        0.0,
+        -18.96536636352539,
+        4.520700454711914
+      ],
+      "texspaceSize": [
+        4.409999847412109,
+        0.9653654098510742,
+        0.602245569229126
+      ],
+      "autoTexspace": true,
+      "localBounds": [
+        [
+          -4.409999847412109,
+          -19.93073081970215,
+          3.918454647064209
+        ],
+        [
+          4.409999847412109,
+          -18.0,
+          5.122945785522461
+        ]
+      ],
+      "attributeSha256": "179ba79b724c98ffe35a62a9651e9c4bc8bda1e3142ac19779eae499caff6e33",
+      "examples": [
+        {
+          "vertex": 0,
+          "local": [
+            -4.409999847412109,
+            -18.0,
+            5.110774040222168
+          ],
+          "generated": [
+            0.0,
+            1.0000004768371582,
+            0.9898945093154907
+          ]
+        },
+        {
+          "vertex": 775,
+          "local": [
+            -4.409999847412109,
+            -18.0,
+            4.742000102996826
+          ],
+          "generated": [
+            0.0,
+            1.0000004768371582,
+            0.6837287545204163
+          ]
+        },
+        {
+          "vertex": 1549,
+          "local": [
+            4.409999847412109,
+            -19.878402709960938,
+            4.045840263366699
+          ],
+          "generated": [
+            1.0,
+            0.0271032452583313,
+            0.1057586669921875
+          ]
+        }
+      ],
+      "evaluatedVertices": 1550,
+      "modifierTypes": [],
+      "interpolatedPointMaxAbsError": 0.0,
+      "evaluatedAttributeSha256": "179ba79b724c98ffe35a62a9651e9c4bc8bda1e3142ac19779eae499caff6e33",
+      "evaluationPolicy": "Evaluated MeshVertex.undeformed_co normalized by ORIGINAL source texspace; frozen before join."
+    },
+    "Snow with physically depressed footprint track": {
+      "vertices": 21533,
+      "texspaceLocation": [
+        0.0,
+        -20.0,
+        0.18147464096546173
+      ],
+      "texspaceSize": [
+        26.0,
+        33.0,
+        0.21147464215755463
+      ],
+      "autoTexspace": true,
+      "localBounds": [
+        [
+          -26.0,
+          -53.0,
+          -0.029999999329447746
+        ],
+        [
+          26.0,
+          13.0,
+          0.39294928312301636
+        ]
+      ],
+      "attributeSha256": "d288b72c04a61409df5d35600ea06f8f81260b85c61570572877f04a9fad11f6",
+      "examples": [
+        {
+          "vertex": 0,
+          "local": [
+            -26.0,
+            13.0,
+            0.10671890527009964
+          ],
+          "generated": [
+            0.0,
+            1.0,
+            0.32325130701065063
+          ]
+        },
+        {
+          "vertex": 10766,
+          "local": [
+            0.0,
+            -23.959999084472656,
+            0.11513396352529526
+          ],
+          "generated": [
+            0.5,
+            0.4399999976158142,
+            0.3431474566459656
+          ]
+        },
+        {
+          "vertex": 21532,
+          "local": [
+            26.0,
+            -53.0,
+            0.09124714881181717
+          ],
+          "generated": [
+            1.0,
+            0.0,
+            0.28667065501213074
+          ]
+        }
+      ],
+      "evaluatedVertices": 21533,
+      "modifierTypes": [],
+      "interpolatedPointMaxAbsError": 0.0,
+      "evaluatedAttributeSha256": "d288b72c04a61409df5d35600ea06f8f81260b85c61570572877f04a9fad11f6",
+      "evaluationPolicy": "Evaluated MeshVertex.undeformed_co normalized by ORIGINAL source texspace; frozen before join."
+    },
+    "Front wall coping snow": {
+      "vertices": 8,
+      "texspaceLocation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "texspaceSize": [
+        4.099999904632568,
+        0.36000001430511475,
+        0.08500000089406967
+      ],
+      "autoTexspace": true,
+      "localBounds": [
+        [
+          -4.099999904632568,
+          -0.36000001430511475,
+          -0.08500000089406967
+        ],
+        [
+          4.099999904632568,
+          0.36000001430511475,
+          0.08500000089406967
+        ]
+      ],
+      "attributeSha256": "af7781ed342f34c7c151f810e435d4a738d6f3d6da7c2bde765d5758049ebf64",
+      "examples": [
+        {
+          "vertex": 0,
+          "local": [
+            -4.099999904632568,
+            0.36000001430511475,
+            -0.08500000089406967
+          ],
+          "generated": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        {
+          "vertex": 4,
+          "local": [
+            -4.099999904632568,
+            -0.36000001430511475,
+            -0.08500000089406967
+          ],
+          "generated": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "vertex": 7,
+          "local": [
+            -4.099999904632568,
+            -0.36000001430511475,
+            0.08500000089406967
+          ],
+          "generated": [
+            0.0,
+            0.0,
+            1.0
+          ]
+        }
+      ],
+      "evaluatedVertices": 56,
+      "modifierTypes": [
+        "BEVEL",
+        "WEIGHTED_NORMAL"
+      ],
+      "interpolatedPointMaxAbsError": 0.1367396116256714,
+      "evaluatedAttributeSha256": "d002279d93f0322b475290ba8e0c622c14313b4c448fcdf3088a37ce7ef21698",
+      "evaluationPolicy": "Evaluated MeshVertex.undeformed_co normalized by ORIGINAL source texspace; frozen before join."
+    },
+    "Side wall coping snow": {
+      "vertices": 8,
+      "texspaceLocation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "texspaceSize": [
+        0.36000001430511475,
+        14.100000381469727,
+        0.08500000089406967
+      ],
+      "autoTexspace": true,
+      "localBounds": [
+        [
+          -0.36000001430511475,
+          -14.100000381469727,
+          -0.08500000089406967
+        ],
+        [
+          0.36000001430511475,
+          14.100000381469727,
+          0.08500000089406967
+        ]
+      ],
+      "attributeSha256": "af7781ed342f34c7c151f810e435d4a738d6f3d6da7c2bde765d5758049ebf64",
+      "examples": [
+        {
+          "vertex": 0,
+          "local": [
+            -0.36000001430511475,
+            14.100000381469727,
+            -0.08500000089406967
+          ],
+          "generated": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        {
+          "vertex": 4,
+          "local": [
+            -0.36000001430511475,
+            -14.100000381469727,
+            -0.08500000089406967
+          ],
+          "generated": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "vertex": 7,
+          "local": [
+            -0.36000001430511475,
+            -14.100000381469727,
+            0.08500000089406967
+          ],
+          "generated": [
+            0.0,
+            0.0,
+            1.0
+          ]
+        }
+      ],
+      "evaluatedVertices": 56,
+      "modifierTypes": [
+        "BEVEL",
+        "WEIGHTED_NORMAL"
+      ],
+      "interpolatedPointMaxAbsError": 0.1367396116256714,
+      "evaluatedAttributeSha256": "c5e13ef6e998c148d685ccda0b10910c841de7b17ebf9e0e01eebe45c1c983a6",
+      "evaluationPolicy": "Evaluated MeshVertex.undeformed_co normalized by ORIGINAL source texspace; frozen before join."
+    },
+    "Side hall curved settled snow cap": {
+      "vertices": 850,
+      "texspaceLocation": [
+        -10.0,
+        -0.05332052707672119,
+        3.6677868366241455
+      ],
+      "texspaceSize": [
+        2.260000228881836,
+        2.9466795921325684,
+        0.5994079113006592
+      ],
+      "autoTexspace": true,
+      "localBounds": [
+        [
+          -12.260000228881836,
+          -3.0,
+          3.0683789253234863
+        ],
+        [
+          -7.739999771118164,
+          2.8933589458465576,
+          4.267194747924805
+        ]
+      ],
+      "attributeSha256": "60af2ea38c050e1a6a3f62fbc4fc9305c0aa41fc1505f3cf84dce7ad986dca11",
+      "examples": [
+        {
+          "vertex": 0,
+          "local": [
+            -12.260000228881836,
+            -3.0,
+            4.251735687255859
+          ],
+          "generated": [
+            0.0,
+            2.9802322387695312e-08,
+            0.9871047139167786
+          ]
+        },
+        {
+          "vertex": 425,
+          "local": [
+            -12.260000228881836,
+            -3.0,
+            3.8919999599456787
+          ],
+          "generated": [
+            0.0,
+            2.9802322387695312e-08,
+            0.6870288252830505
+          ]
+        },
+        {
+          "vertex": 849,
+          "local": [
+            -7.739999771118164,
+            2.7396554946899414,
+            3.1723294258117676
+          ],
+          "generated": [
+            1.0,
+            0.973919153213501,
+            0.08671098947525024
+          ]
+        }
+      ],
+      "evaluatedVertices": 850,
+      "modifierTypes": [],
+      "interpolatedPointMaxAbsError": 0.0,
+      "evaluatedAttributeSha256": "60af2ea38c050e1a6a3f62fbc4fc9305c0aa41fc1505f3cf84dce7ad986dca11",
+      "evaluationPolicy": "Evaluated MeshVertex.undeformed_co normalized by ORIGINAL source texspace; frozen before join."
+    },
+    "Side hall curved settled snow cap.001": {
+      "vertices": 850,
+      "texspaceLocation": [
+        -10.0,
+        -5.918050289154053,
+        3.6679162979125977
+      ],
+      "texspaceSize": [
+        2.260000228881836,
+        2.9180502891540527,
+        0.599278450012207
+      ],
+      "autoTexspace": true,
+      "localBounds": [
+        [
+          -12.260000228881836,
+          -8.836100578308105,
+          3.0686378479003906
+        ],
+        [
+          -7.739999771118164,
+          -3.0,
+          4.267194747924805
+        ]
+      ],
+      "attributeSha256": "1fd04d23c66d8053b31d9fca9b5d85e7f41ca6f644578906caf833f0b9fe7276",
+      "examples": [
+        {
+          "vertex": 0,
+          "local": [
+            -12.260000228881836,
+            -3.0,
+            4.251735687255859
+          ],
+          "generated": [
+            0.0,
+            1.0,
+            0.9871019124984741
+          ]
+        },
+        {
+          "vertex": 425,
+          "local": [
+            -12.260000228881836,
+            -3.0,
+            3.8919999599456787
+          ],
+          "generated": [
+            0.0,
+            1.0,
+            0.6869612336158752
+          ]
+        },
+        {
+          "vertex": 849,
+          "local": [
+            -7.739999771118164,
+            -8.728373527526855,
+            3.1707239151000977
+          ],
+          "generated": [
+            1.0,
+            0.01845872402191162,
+            0.08517414331436157
+          ]
+        }
+      ],
+      "evaluatedVertices": 850,
+      "modifierTypes": [],
+      "interpolatedPointMaxAbsError": 0.0,
+      "evaluatedAttributeSha256": "1fd04d23c66d8053b31d9fca9b5d85e7f41ca6f644578906caf833f0b9fe7276",
+      "evaluationPolicy": "Evaluated MeshVertex.undeformed_co normalized by ORIGINAL source texspace; frozen before join."
+    },
+    "Snow over bench": {
+      "vertices": 8,
+      "texspaceLocation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "texspaceSize": [
+        0.6499999761581421,
+        0.25,
+        0.03999999910593033
+      ],
+      "autoTexspace": true,
+      "localBounds": [
+        [
+          -0.6499999761581421,
+          -0.25,
+          -0.03999999910593033
+        ],
+        [
+          0.6499999761581421,
+          0.25,
+          0.03999999910593033
+        ]
+      ],
+      "attributeSha256": "af7781ed342f34c7c151f810e435d4a738d6f3d6da7c2bde765d5758049ebf64",
+      "examples": [
+        {
+          "vertex": 0,
+          "local": [
+            -0.6499999761581421,
+            0.25,
+            -0.03999999910593033
+          ],
+          "generated": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        {
+          "vertex": 4,
+          "local": [
+            -0.6499999761581421,
+            -0.25,
+            -0.03999999910593033
+          ],
+          "generated": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "vertex": 7,
+          "local": [
+            -0.6499999761581421,
+            -0.25,
+            0.03999999910593033
+          ],
+          "generated": [
+            0.0,
+            0.0,
+            1.0
+          ]
+        }
+      ],
+      "evaluatedVertices": 56,
+      "modifierTypes": [
+        "BEVEL",
+        "WEIGHTED_NORMAL"
+      ],
+      "interpolatedPointMaxAbsError": 0.18490922451019287,
+      "evaluatedAttributeSha256": "dfbe10972716960bcf5d1a538dea9bdd781b7510a64e1e984e5e2fdcaf7c5d94",
+      "evaluationPolicy": "Evaluated MeshVertex.undeformed_co normalized by ORIGINAL source texspace; frozen before join."
+    },
+    "Snow over bench.001": {
+      "vertices": 8,
+      "texspaceLocation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "texspaceSize": [
+        0.6499999761581421,
+        0.25,
+        0.03999999910593033
+      ],
+      "autoTexspace": true,
+      "localBounds": [
+        [
+          -0.6499999761581421,
+          -0.25,
+          -0.03999999910593033
+        ],
+        [
+          0.6499999761581421,
+          0.25,
+          0.03999999910593033
+        ]
+      ],
+      "attributeSha256": "af7781ed342f34c7c151f810e435d4a738d6f3d6da7c2bde765d5758049ebf64",
+      "examples": [
+        {
+          "vertex": 0,
+          "local": [
+            -0.6499999761581421,
+            0.25,
+            -0.03999999910593033
+          ],
+          "generated": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        {
+          "vertex": 4,
+          "local": [
+            -0.6499999761581421,
+            -0.25,
+            -0.03999999910593033
+          ],
+          "generated": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "vertex": 7,
+          "local": [
+            -0.6499999761581421,
+            -0.25,
+            0.03999999910593033
+          ],
+          "generated": [
+            0.0,
+            0.0,
+            1.0
+          ]
+        }
+      ],
+      "evaluatedVertices": 56,
+      "modifierTypes": [
+        "BEVEL",
+        "WEIGHTED_NORMAL"
+      ],
+      "interpolatedPointMaxAbsError": 0.18490922451019287,
+      "evaluatedAttributeSha256": "dfbe10972716960bcf5d1a538dea9bdd781b7510a64e1e984e5e2fdcaf7c5d94",
+      "evaluationPolicy": "Evaluated MeshVertex.undeformed_co normalized by ORIGINAL source texspace; frozen before join."
+    },
+    "Front wall coping snow.001": {
+      "vertices": 8,
+      "texspaceLocation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "texspaceSize": [
+        4.099999904632568,
+        0.36000001430511475,
+        0.08500000089406967
+      ],
+      "autoTexspace": true,
+      "localBounds": [
+        [
+          -4.099999904632568,
+          -0.36000001430511475,
+          -0.08500000089406967
+        ],
+        [
+          4.099999904632568,
+          0.36000001430511475,
+          0.08500000089406967
+        ]
+      ],
+      "attributeSha256": "af7781ed342f34c7c151f810e435d4a738d6f3d6da7c2bde765d5758049ebf64",
+      "examples": [
+        {
+          "vertex": 0,
+          "local": [
+            -4.099999904632568,
+            0.36000001430511475,
+            -0.08500000089406967
+          ],
+          "generated": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        {
+          "vertex": 4,
+          "local": [
+            -4.099999904632568,
+            -0.36000001430511475,
+            -0.08500000089406967
+          ],
+          "generated": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "vertex": 7,
+          "local": [
+            -4.099999904632568,
+            -0.36000001430511475,
+            0.08500000089406967
+          ],
+          "generated": [
+            0.0,
+            0.0,
+            1.0
+          ]
+        }
+      ],
+      "evaluatedVertices": 56,
+      "modifierTypes": [
+        "BEVEL",
+        "WEIGHTED_NORMAL"
+      ],
+      "interpolatedPointMaxAbsError": 0.1367396116256714,
+      "evaluatedAttributeSha256": "d002279d93f0322b475290ba8e0c622c14313b4c448fcdf3088a37ce7ef21698",
+      "evaluationPolicy": "Evaluated MeshVertex.undeformed_co normalized by ORIGINAL source texspace; frozen before join."
+    },
+    "Side wall coping snow.001": {
+      "vertices": 8,
+      "texspaceLocation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "texspaceSize": [
+        0.36000001430511475,
+        14.100000381469727,
+        0.08500000089406967
+      ],
+      "autoTexspace": true,
+      "localBounds": [
+        [
+          -0.36000001430511475,
+          -14.100000381469727,
+          -0.08500000089406967
+        ],
+        [
+          0.36000001430511475,
+          14.100000381469727,
+          0.08500000089406967
+        ]
+      ],
+      "attributeSha256": "af7781ed342f34c7c151f810e435d4a738d6f3d6da7c2bde765d5758049ebf64",
+      "examples": [
+        {
+          "vertex": 0,
+          "local": [
+            -0.36000001430511475,
+            14.100000381469727,
+            -0.08500000089406967
+          ],
+          "generated": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        {
+          "vertex": 4,
+          "local": [
+            -0.36000001430511475,
+            -14.100000381469727,
+            -0.08500000089406967
+          ],
+          "generated": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "vertex": 7,
+          "local": [
+            -0.36000001430511475,
+            -14.100000381469727,
+            0.08500000089406967
+          ],
+          "generated": [
+            0.0,
+            0.0,
+            1.0
+          ]
+        }
+      ],
+      "evaluatedVertices": 56,
+      "modifierTypes": [
+        "BEVEL",
+        "WEIGHTED_NORMAL"
+      ],
+      "interpolatedPointMaxAbsError": 0.1367396116256714,
+      "evaluatedAttributeSha256": "c5e13ef6e998c148d685ccda0b10910c841de7b17ebf9e0e01eebe45c1c983a6",
+      "evaluationPolicy": "Evaluated MeshVertex.undeformed_co normalized by ORIGINAL source texspace; frozen before join."
+    },
+    "Side hall curved settled snow cap.002": {
+      "vertices": 850,
+      "texspaceLocation": [
+        10.0,
+        -0.023955941200256348,
+        3.674877166748047
+      ],
+      "texspaceSize": [
+        2.260000228881836,
+        2.976044178009033,
+        0.6060935258865356
+      ],
+      "autoTexspace": true,
+      "localBounds": [
+        [
+          7.739999771118164,
+          -3.0,
+          3.0687835216522217
+        ],
+        [
+          12.260000228881836,
+          2.9520881175994873,
+          4.280970573425293
+        ]
+      ],
+      "attributeSha256": "91649dde843326f14e8726ed4311e41e88d1f1228066bef0b610f3e9838172ff",
+      "examples": [
+        {
+          "vertex": 0,
+          "local": [
+            7.739999771118164,
+            -3.0,
+            4.263177871704102
+          ],
+          "generated": [
+            0.0,
+            2.9802322387695312e-08,
+            0.9853217601776123
+          ]
+        },
+        {
+          "vertex": 425,
+          "local": [
+            7.739999771118164,
+            -3.0,
+            3.8919999599456787
+          ],
+          "generated": [
+            0.0,
+            2.9802322387695312e-08,
+            0.6791166067123413
+          ]
+        },
+        {
+          "vertex": 849,
+          "local": [
+            12.260000228881836,
+            2.7254416942596436,
+            3.1703121662139893
+          ],
+          "generated": [
+            1.0,
+            0.9619215130805969,
+            0.0837564766407013
+          ]
+        }
+      ],
+      "evaluatedVertices": 850,
+      "modifierTypes": [],
+      "interpolatedPointMaxAbsError": 0.0,
+      "evaluatedAttributeSha256": "91649dde843326f14e8726ed4311e41e88d1f1228066bef0b610f3e9838172ff",
+      "evaluationPolicy": "Evaluated MeshVertex.undeformed_co normalized by ORIGINAL source texspace; frozen before join."
+    },
+    "Side hall curved settled snow cap.003": {
+      "vertices": 850,
+      "texspaceLocation": [
+        10.0,
+        -5.9197587966918945,
+        3.6749844551086426
+      ],
+      "texspaceSize": [
+        2.260000228881836,
+        2.9197587966918945,
+        0.6059859991073608
+      ],
+      "autoTexspace": true,
+      "localBounds": [
+        [
+          7.739999771118164,
+          -8.839517593383789,
+          3.0689985752105713
+        ],
+        [
+          12.260000228881836,
+          -3.0,
+          4.280970573425293
+        ]
+      ],
+      "attributeSha256": "1048db4044172a4893c21d817f2cee6d4a3af557c0b4082e971ee2c0de128498",
+      "examples": [
+        {
+          "vertex": 0,
+          "local": [
+            7.739999771118164,
+            -3.0,
+            4.263177871704102
+          ],
+          "generated": [
+            0.0,
+            1.0,
+            0.9853193163871765
+          ]
+        },
+        {
+          "vertex": 425,
+          "local": [
+            7.739999771118164,
+            -3.0,
+            3.8919999599456787
+          ],
+          "generated": [
+            0.0,
+            1.0,
+            0.6790598630905151
+          ]
+        },
+        {
+          "vertex": 849,
+          "local": [
+            12.260000228881836,
+            -8.839517593383789,
+            3.1880979537963867
+          ],
+          "generated": [
+            1.0,
+            0.0,
+            0.09826919436454773
+          ]
+        }
+      ],
+      "evaluatedVertices": 850,
+      "modifierTypes": [],
+      "interpolatedPointMaxAbsError": 0.0,
+      "evaluatedAttributeSha256": "1048db4044172a4893c21d817f2cee6d4a3af557c0b4082e971ee2c0de128498",
+      "evaluationPolicy": "Evaluated MeshVertex.undeformed_co normalized by ORIGINAL source texspace; frozen before join."
+    },
+    "Snow over bench.002": {
+      "vertices": 8,
+      "texspaceLocation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "texspaceSize": [
+        0.6499999761581421,
+        0.25,
+        0.03999999910593033
+      ],
+      "autoTexspace": true,
+      "localBounds": [
+        [
+          -0.6499999761581421,
+          -0.25,
+          -0.03999999910593033
+        ],
+        [
+          0.6499999761581421,
+          0.25,
+          0.03999999910593033
+        ]
+      ],
+      "attributeSha256": "af7781ed342f34c7c151f810e435d4a738d6f3d6da7c2bde765d5758049ebf64",
+      "examples": [
+        {
+          "vertex": 0,
+          "local": [
+            -0.6499999761581421,
+            0.25,
+            -0.03999999910593033
+          ],
+          "generated": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        {
+          "vertex": 4,
+          "local": [
+            -0.6499999761581421,
+            -0.25,
+            -0.03999999910593033
+          ],
+          "generated": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "vertex": 7,
+          "local": [
+            -0.6499999761581421,
+            -0.25,
+            0.03999999910593033
+          ],
+          "generated": [
+            0.0,
+            0.0,
+            1.0
+          ]
+        }
+      ],
+      "evaluatedVertices": 56,
+      "modifierTypes": [
+        "BEVEL",
+        "WEIGHTED_NORMAL"
+      ],
+      "interpolatedPointMaxAbsError": 0.18490922451019287,
+      "evaluatedAttributeSha256": "dfbe10972716960bcf5d1a538dea9bdd781b7510a64e1e984e5e2fdcaf7c5d94",
+      "evaluationPolicy": "Evaluated MeshVertex.undeformed_co normalized by ORIGINAL source texspace; frozen before join."
+    },
+    "Snow over bench.003": {
+      "vertices": 8,
+      "texspaceLocation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "texspaceSize": [
+        0.6499999761581421,
+        0.25,
+        0.03999999910593033
+      ],
+      "autoTexspace": true,
+      "localBounds": [
+        [
+          -0.6499999761581421,
+          -0.25,
+          -0.03999999910593033
+        ],
+        [
+          0.6499999761581421,
+          0.25,
+          0.03999999910593033
+        ]
+      ],
+      "attributeSha256": "af7781ed342f34c7c151f810e435d4a738d6f3d6da7c2bde765d5758049ebf64",
+      "examples": [
+        {
+          "vertex": 0,
+          "local": [
+            -0.6499999761581421,
+            0.25,
+            -0.03999999910593033
+          ],
+          "generated": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        {
+          "vertex": 4,
+          "local": [
+            -0.6499999761581421,
+            -0.25,
+            -0.03999999910593033
+          ],
+          "generated": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "vertex": 7,
+          "local": [
+            -0.6499999761581421,
+            -0.25,
+            0.03999999910593033
+          ],
+          "generated": [
+            0.0,
+            0.0,
+            1.0
+          ]
+        }
+      ],
+      "evaluatedVertices": 56,
+      "modifierTypes": [
+        "BEVEL",
+        "WEIGHTED_NORMAL"
+      ],
+      "interpolatedPointMaxAbsError": 0.18490922451019287,
+      "evaluatedAttributeSha256": "dfbe10972716960bcf5d1a538dea9bdd781b7510a64e1e984e5e2fdcaf7c5d94",
+      "evaluationPolicy": "Evaluated MeshVertex.undeformed_co normalized by ORIGINAL source texspace; frozen before join."
+    },
+    "Back wall snow": {
+      "vertices": 8,
+      "texspaceLocation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "texspaceSize": [
+        12.100000381469727,
+        0.36000001430511475,
+        0.08500000089406967
+      ],
+      "autoTexspace": true,
+      "localBounds": [
+        [
+          -12.100000381469727,
+          -0.36000001430511475,
+          -0.08500000089406967
+        ],
+        [
+          12.100000381469727,
+          0.36000001430511475,
+          0.08500000089406967
+        ]
+      ],
+      "attributeSha256": "af7781ed342f34c7c151f810e435d4a738d6f3d6da7c2bde765d5758049ebf64",
+      "examples": [
+        {
+          "vertex": 0,
+          "local": [
+            -12.100000381469727,
+            0.36000001430511475,
+            -0.08500000089406967
+          ],
+          "generated": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        {
+          "vertex": 4,
+          "local": [
+            -12.100000381469727,
+            -0.36000001430511475,
+            -0.08500000089406967
+          ],
+          "generated": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "vertex": 7,
+          "local": [
+            -12.100000381469727,
+            -0.36000001430511475,
+            0.08500000089406967
+          ],
+          "generated": [
+            0.0,
+            0.0,
+            1.0
+          ]
+        }
+      ],
+      "evaluatedVertices": 56,
+      "modifierTypes": [
+        "BEVEL",
+        "WEIGHTED_NORMAL"
+      ],
+      "interpolatedPointMaxAbsError": 0.1367396116256714,
+      "evaluatedAttributeSha256": "44e034ddd9ae7379acbf3db98dfd412d5ccc8418740348e67046966103d86b48",
+      "evaluationPolicy": "Evaluated MeshVertex.undeformed_co normalized by ORIGINAL source texspace; frozen before join."
+    },
+    "Snow resting on bough": {
+      "vertices": 20,
+      "texspaceLocation": [
+        -15.11520004272461,
+        -11.021721839904785,
+        2.52762508392334
+      ],
+      "texspaceSize": [
+        0.892608642578125,
+        0.053704261779785156,
+        0.2471250295639038
+      ],
+      "autoTexspace": true,
+      "localBounds": [
+        [
+          -16.007808685302734,
+          -11.07542610168457,
+          2.2804999351501465
+        ],
+        [
+          -14.222591400146484,
+          -10.968017578125,
+          2.774749994277954
+        ]
+      ],
+      "attributeSha256": "917536068ef93387b2c145bc04c87b0b84ae213b240e13414c9389edd5f96c86",
+      "examples": [
+        {
+          "vertex": 0,
+          "local": [
+            -16.00107192993164,
+            -11.031982421875,
+            2.309999942779541
+          ],
+          "generated": [
+            0.003773629665374756,
+            0.40447142720222473,
+            0.05968615412712097
+          ]
+        },
+        {
+          "vertex": 10,
+          "local": [
+            -14.227031707763672,
+            -11.07542610168457,
+            2.759999990463257
+          ],
+          "generated": [
+            0.997512698173523,
+            0.0,
+            0.9701565504074097
+          ]
+        },
+        {
+          "vertex": 19,
+          "local": [
+            -14.229240417480469,
+            -11.072294235229492,
+            2.769115924835205
+          ],
+          "generated": [
+            0.9962755441665649,
+            0.029158443212509155,
+            0.988600492477417
+          ]
+        }
+      ],
+      "evaluatedVertices": 20,
+      "modifierTypes": [],
+      "interpolatedPointMaxAbsError": 0.0,
+      "evaluatedAttributeSha256": "917536068ef93387b2c145bc04c87b0b84ae213b240e13414c9389edd5f96c86",
+      "evaluationPolicy": "Evaluated MeshVertex.undeformed_co normalized by ORIGINAL source texspace; frozen before join."
+    },
+    "Snow resting on bough.001": {
+      "vertices": 20,
+      "texspaceLocation": [
+        -16.052398681640625,
+        -10.254056930541992,
+        3.1777119636535645
+      ],
+      "texspaceSize": [
+        0.08429622650146484,
+        0.7554469108581543,
+        0.24686455726623535
+      ],
+      "autoTexspace": true,
+      "localBounds": [
+        [
+          -16.136695861816406,
+          -11.009504318237305,
+          2.930847406387329
+        ],
+        [
+          -15.968103408813477,
+          -9.498610496520996,
+          3.4245765209198
+        ]
+      ],
+      "attributeSha256": "84ae10573064894b0b520e7ec20b18119b263049347d1f5c1a56115082c2231c",
+      "examples": [
+        {
+          "vertex": 0,
+          "local": [
+            -15.968103408813477,
+            -10.997426986694336,
+            2.9600000381469727
+          ],
+          "generated": [
+            0.9999943375587463,
+            0.007993191480636597,
+            0.05904579162597656
+          ]
+        },
+        {
+          "vertex": 10,
+          "local": [
+            -16.104801177978516,
+            -9.502076148986816,
+            3.4100000858306885
+          ],
+          "generated": [
+            0.1891764998435974,
+            0.9977059364318848,
+            0.9704768657684326
+          ]
+        },
+        {
+          "vertex": 19,
+          "local": [
+            -16.107627868652344,
+            -9.505012512207031,
+            3.419008731842041
+          ],
+          "generated": [
+            0.17241010069847107,
+            0.9957624673843384,
+            0.9887229800224304
+          ]
+        }
+      ],
+      "evaluatedVertices": 20,
+      "modifierTypes": [],
+      "interpolatedPointMaxAbsError": 0.0,
+      "evaluatedAttributeSha256": "84ae10573064894b0b520e7ec20b18119b263049347d1f5c1a56115082c2231c",
+      "evaluationPolicy": "Evaluated MeshVertex.undeformed_co normalized by ORIGINAL source texspace; frozen before join."
+    },
+    "Snow resting on bough.002": {
+      "vertices": 20,
+      "texspaceLocation": [
+        -16.610652923583984,
+        -10.975603103637695,
+        3.8278555870056152
+      ],
+      "texspaceSize": [
+        0.6216268539428711,
+        0.05635213851928711,
+        0.24643266201019287
+      ],
+      "autoTexspace": true,
+      "localBounds": [
+        [
+          -17.23227882385254,
+          -11.03195571899414,
+          3.581423044204712
+        ],
+        [
+          -15.989025115966797,
+          -10.919251441955566,
+          4.074288368225098
+        ]
+      ],
+      "attributeSha256": "cf57d4594d90fdaefb4733451db7ef7931ef21837686c1aacf96e9946afc6d3c",
+      "examples": [
+        {
+          "vertex": 0,
+          "local": [
+            -15.998312950134277,
+            -10.96804428100586,
+            3.609999895095825
+          ],
+          "generated": [
+            0.9925301671028137,
+            0.5670677423477173,
+            0.057981282472610474
+          ]
+        },
+        {
+          "vertex": 10,
+          "local": [
+            -17.225948333740234,
+            -10.919251441955566,
+            4.059999942779541
+          ],
+          "generated": [
+            0.005092650651931763,
+            0.999995768070221,
+            0.9710097312927246
+          ]
+        },
+        {
+          "vertex": 19,
+          "local": [
+            -17.222877502441406,
+            -10.922473907470703,
+            4.068830490112305
+          ],
+          "generated": [
+            0.0075626373291015625,
+            0.9714035391807556,
+            0.9889264702796936
+          ]
+        }
+      ],
+      "evaluatedVertices": 20,
+      "modifierTypes": [],
+      "interpolatedPointMaxAbsError": 0.0,
+      "evaluatedAttributeSha256": "cf57d4594d90fdaefb4733451db7ef7931ef21837686c1aacf96e9946afc6d3c",
+      "evaluationPolicy": "Evaluated MeshVertex.undeformed_co normalized by ORIGINAL source texspace; frozen before join."
+    },
+    "Snow resting on bough.003": {
+      "vertices": 20,
+      "texspaceLocation": [
+        -16.169315338134766,
+        -11.439596176147461,
+        4.478116989135742
+      ],
+      "texspaceSize": [
+        0.19904613494873047,
+        0.4566197395324707,
+        0.2456498146057129
+      ],
+      "autoTexspace": true,
+      "localBounds": [
+        [
+          -16.368362426757812,
+          -11.89621639251709,
+          4.232467174530029
+        ],
+        [
+          -15.970270156860352,
+          -10.982976913452148,
+          4.723766803741455
+        ]
+      ],
+      "attributeSha256": "363d33b8f08dc11c50bc5cbd2ffc5cd10eb41ad0e9b6271a16021e00a2296caf",
+      "examples": [
+        {
+          "vertex": 0,
+          "local": [
+            -16.02972984313965,
+            -10.988161087036133,
+            4.260000228881836
+          ],
+          "generated": [
+            0.8506360054016113,
+            0.9943227767944336,
+            0.05604127049446106
+          ]
+        },
+        {
+          "vertex": 10,
+          "local": [
+            -16.368362426757812,
+            -11.881784439086914,
+            4.710000038146973
+          ],
+          "generated": [
+            -2.384185791015625e-06,
+            0.015802502632141113,
+            0.9719789028167725
+          ]
+        },
+        {
+          "vertex": 19,
+          "local": [
+            -16.364042282104492,
+            -11.879191398620605,
+            4.718508243560791
+          ],
+          "generated": [
+            0.010849714279174805,
+            0.018641889095306396,
+            0.9892966747283936
+          ]
+        }
+      ],
+      "evaluatedVertices": 20,
+      "modifierTypes": [],
+      "interpolatedPointMaxAbsError": 0.0,
+      "evaluatedAttributeSha256": "363d33b8f08dc11c50bc5cbd2ffc5cd10eb41ad0e9b6271a16021e00a2296caf",
+      "evaluationPolicy": "Evaluated MeshVertex.undeformed_co normalized by ORIGINAL source texspace; frozen before join."
+    },
+    "Snow resting on bough.004": {
+      "vertices": 20,
+      "texspaceLocation": [
+        -15.704252243041992,
+        -11.15357780456543,
+        5.128647804260254
+      ],
+      "texspaceSize": [
+        0.31706762313842773,
+        0.1818103790283203,
+        0.24405622482299805
+      ],
+      "autoTexspace": true,
+      "localBounds": [
+        [
+          -16.021320343017578,
+          -11.33538818359375,
+          4.884591579437256
+        ],
+        [
+          -15.387185096740723,
+          -10.97176742553711,
+          5.372704029083252
+        ]
+      ],
+      "attributeSha256": "18282fd2bb735fd9ed9e33f9178c9175ddf4ec98d8dba7711d34803036b64fc6",
+      "examples": [
+        {
+          "vertex": 0,
+          "local": [
+            -16.015064239501953,
+            -11.02823257446289,
+            4.909999847412109
+          ],
+          "generated": [
+            0.00986480712890625,
+            0.8447141647338867,
+            0.052054136991500854
+          ]
+        },
+        {
+          "vertex": 10,
+          "local": [
+            -15.405377388000488,
+            -11.33538818359375,
+            5.360000133514404
+          ],
+          "generated": [
+            0.9713109135627747,
+            0.0,
+            0.9739733934402466
+          ]
+        },
+        {
+          "vertex": 19,
+          "local": [
+            -15.4085054397583,
+            -11.330255508422852,
+            5.367851734161377
+          ],
+          "generated": [
+            0.9663780927658081,
+            0.014115452766418457,
+            0.9900590777397156
+          ]
+        }
+      ],
+      "evaluatedVertices": 20,
+      "modifierTypes": [],
+      "interpolatedPointMaxAbsError": 0.0,
+      "evaluatedAttributeSha256": "18282fd2bb735fd9ed9e33f9178c9175ddf4ec98d8dba7711d34803036b64fc6",
+      "evaluationPolicy": "Evaluated MeshVertex.undeformed_co normalized by ORIGINAL source texspace; frozen before join."
+    },
+    "Snow resting on bough.005": {
+      "vertices": 20,
+      "texspaceLocation": [
+        18.022003173828125,
+        -6.004932403564453,
+        2.8775689601898193
+      ],
+      "texspaceSize": [
+        1.028660774230957,
+        0.03693032264709473,
+        0.24729323387145996
+      ],
+      "autoTexspace": true,
+      "localBounds": [
+        [
+          16.993343353271484,
+          -6.041862964630127,
+          2.6302757263183594
+        ],
+        [
+          19.0506649017334,
+          -5.9680023193359375,
+          3.1248621940612793
+        ]
+      ],
+      "attributeSha256": "bb5881d684521b37ef41544a90900e8207ef59b34ffbdb75471171bb6d81b5fa",
+      "examples": [
+        {
+          "vertex": 0,
+          "local": [
+            16.999595642089844,
+            -6.0319976806640625,
+            2.6600000858306885
+          ],
+          "generated": [
+            0.0030395090579986572,
+            0.13356295228004456,
+            0.06009942293167114
+          ]
+        },
+        {
+          "vertex": 10,
+          "local": [
+            19.047134399414062,
+            -6.041862964630127,
+            3.109999895095825
+          ],
+          "generated": [
+            0.9982843995094299,
+            -3.2186508178710938e-06,
+            0.9699500799179077
+          ]
+        },
+        {
+          "vertex": 19,
+          "local": [
+            19.045154571533203,
+            -6.038782119750977,
+            3.119185209274292
+          ],
+          "generated": [
+            0.9973220825195312,
+            0.04170835018157959,
+            0.9885217547416687
+          ]
+        }
+      ],
+      "evaluatedVertices": 20,
+      "modifierTypes": [],
+      "interpolatedPointMaxAbsError": 0.0,
+      "evaluatedAttributeSha256": "bb5881d684521b37ef41544a90900e8207ef59b34ffbdb75471171bb6d81b5fa",
+      "evaluationPolicy": "Evaluated MeshVertex.undeformed_co normalized by ORIGINAL source texspace; frozen before join."
+    },
+    "Snow resting on bough.006": {
+      "vertices": 20,
+      "texspaceLocation": [
+        16.85651969909668,
+        -5.149390697479248,
+        3.627635955810547
+      ],
+      "texspaceSize": [
+        0.17498779296875,
+        0.859870433807373,
+        0.24709224700927734
+      ],
+      "autoTexspace": true,
+      "localBounds": [
+        [
+          16.68153190612793,
+          -6.009261131286621,
+          3.3805437088012695
+        ],
+        [
+          17.03150749206543,
+          -4.289520263671875,
+          3.874728202819824
+        ]
+      ],
+      "attributeSha256": "6178cbd9cf51a19ff9d11cd92b97a8c695c7916d9717f7bd28edf857d0a5344d",
+      "examples": [
+        {
+          "vertex": 0,
+          "local": [
+            17.03150749206543,
+            -5.99440860748291,
+            3.4100000858306885
+          ],
+          "generated": [
+            1.0,
+            0.008636474609375,
+            0.05960604548454285
+          ]
+        },
+        {
+          "vertex": 10,
+          "local": [
+            16.713041305541992,
+            -4.291355133056641,
+            3.859999895095825
+          ],
+          "generated": [
+            0.0900331437587738,
+            0.9989330768585205,
+            0.9701967239379883
+          ]
+        },
+        {
+          "vertex": 19,
+          "local": [
+            16.710445404052734,
+            -4.294217109680176,
+            3.8691024780273438
+          ],
+          "generated": [
+            0.08261576294898987,
+            0.9972688555717468,
+            0.9886161088943481
+          ]
+        }
+      ],
+      "evaluatedVertices": 20,
+      "modifierTypes": [],
+      "interpolatedPointMaxAbsError": 0.0,
+      "evaluatedAttributeSha256": "6178cbd9cf51a19ff9d11cd92b97a8c695c7916d9717f7bd28edf857d0a5344d",
+      "evaluationPolicy": "Evaluated MeshVertex.undeformed_co normalized by ORIGINAL source texspace; frozen before join."
+    },
+    "Snow resting on bough.007": {
+      "vertices": 20,
+      "texspaceLocation": [
+        16.294090270996094,
+        -6.017285346984863,
+        4.377748012542725
+      ],
+      "texspaceSize": [
+        0.7154660224914551,
+        0.049265146255493164,
+        0.24675559997558594
+      ],
+      "autoTexspace": true,
+      "localBounds": [
+        [
+          15.57862377166748,
+          -6.0665507316589355,
+          4.130992412567139
+        ],
+        [
+          17.00955581665039,
+          -5.968020439147949,
+          4.6245036125183105
+        ]
+      ],
+      "attributeSha256": "2b5a9c081660a47a1d38d45011068a66feed22f374b5118c55926e039ace9410",
+      "examples": [
+        {
+          "vertex": 0,
+          "local": [
+            16.998859405517578,
+            -5.968020439147949,
+            4.159999847412109
+          ],
+          "generated": [
+            0.9925245046615601,
+            0.999997615814209,
+            0.05877766013145447
+          ]
+        },
+        {
+          "vertex": 10,
+          "local": [
+            15.582831382751465,
+            -6.034571170806885,
+            4.610000133514404
+          ],
+          "generated": [
+            0.002940148115158081,
+            0.3245633542537689,
+            0.9706116914749146
+          ]
+        },
+        {
+          "vertex": 19,
+          "local": [
+            15.585783958435059,
+            -6.03752326965332,
+            4.618963718414307
+          ],
+          "generated": [
+            0.005003541707992554,
+            0.29460203647613525,
+            0.9887745380401611
+          ]
+        }
+      ],
+      "evaluatedVertices": 20,
+      "modifierTypes": [],
+      "interpolatedPointMaxAbsError": 0.0,
+      "evaluatedAttributeSha256": "2b5a9c081660a47a1d38d45011068a66feed22f374b5118c55926e039ace9410",
+      "evaluationPolicy": "Evaluated MeshVertex.undeformed_co normalized by ORIGINAL source texspace; frozen before join."
+    },
+    "Snow resting on bough.008": {
+      "vertices": 20,
+      "texspaceLocation": [
+        16.91774559020996,
+        -6.54058837890625,
+        5.127955436706543
+      ],
+      "texspaceSize": [
+        0.11382293701171875,
+        0.553551435470581,
+        0.24613308906555176
+      ],
+      "autoTexspace": true,
+      "localBounds": [
+        [
+          16.803922653198242,
+          -7.09414005279541,
+          4.88182258605957
+        ],
+        [
+          17.03156852722168,
+          -5.987037181854248,
+          5.374088764190674
+        ]
+      ],
+      "attributeSha256": "f422ce82efc80b83017c800989b673ab197792afb50bf39d631c2fbae3a40c93",
+      "examples": [
+        {
+          "vertex": 0,
+          "local": [
+            16.96843147277832,
+            -5.994767189025879,
+            4.909999847412109
+          ],
+          "generated": [
+            0.7226523160934448,
+            0.9930175542831421,
+            0.05724036693572998
+          ]
+        },
+        {
+          "vertex": 10,
+          "local": [
+            16.803922653198242,
+            -7.0850419998168945,
+            5.360000133514404
+          ],
+          "generated": [
+            0.0,
+            0.008217692375183105,
+            0.9713805317878723
+          ]
+        },
+        {
+          "vertex": 19,
+          "local": [
+            16.807519912719727,
+            -7.082035541534424,
+            5.368707180023193
+          ],
+          "generated": [
+            0.015801995992660522,
+            0.010933279991149902,
+            0.9890682101249695
+          ]
+        }
+      ],
+      "evaluatedVertices": 20,
+      "modifierTypes": [],
+      "interpolatedPointMaxAbsError": 0.0,
+      "evaluatedAttributeSha256": "f422ce82efc80b83017c800989b673ab197792afb50bf39d631c2fbae3a40c93",
+      "evaluationPolicy": "Evaluated MeshVertex.undeformed_co normalized by ORIGINAL source texspace; frozen before join."
+    },
+    "Snow resting on bough.009": {
+      "vertices": 20,
+      "texspaceLocation": [
+        17.381786346435547,
+        -6.070015907287598,
+        5.87839412689209
+      ],
+      "texspaceSize": [
+        0.3985433578491211,
+        0.10138440132141113,
+        0.24481821060180664
+      ],
+      "autoTexspace": true,
+      "localBounds": [
+        [
+          16.983243942260742,
+          -6.171400547027588,
+          5.633575916290283
+        ],
+        [
+          17.780330657958984,
+          -5.968631744384766,
+          6.1232123374938965
+        ]
+      ],
+      "attributeSha256": "04bee4956959b15434eddda55e33a29201a2e45bbaafdec4886cd8711878e232",
+      "examples": [
+        {
+          "vertex": 0,
+          "local": [
+            16.99367332458496,
+            -6.031368255615234,
+            5.659999847412109
+          ],
+          "generated": [
+            0.01308557391166687,
+            0.6905995607376099,
+            0.05396643280982971
+          ]
+        },
+        {
+          "vertex": 10,
+          "local": [
+            17.768787384033203,
+            -6.171400547027588,
+            6.110000133514404
+          ],
+          "generated": [
+            0.9855194091796875,
+            -1.1920928955078125e-06,
+            0.9730162620544434
+          ]
+        },
+        {
+          "vertex": 19,
+          "local": [
+            17.76481819152832,
+            -6.167482376098633,
+            6.118165493011475
+          ],
+          "generated": [
+            0.9805397391319275,
+            0.01932215690612793,
+            0.9896926879882812
+          ]
+        }
+      ],
+      "evaluatedVertices": 20,
+      "modifierTypes": [],
+      "interpolatedPointMaxAbsError": 0.0,
+      "evaluatedAttributeSha256": "04bee4956959b15434eddda55e33a29201a2e45bbaafdec4886cd8711878e232",
+      "evaluationPolicy": "Evaluated MeshVertex.undeformed_co normalized by ORIGINAL source texspace; frozen before join."
+    },
+    "Snow resting on bough.010": {
+      "vertices": 20,
+      "texspaceLocation": [
+        -14.061356544494629,
+        7.158891677856445,
+        2.702594041824341
+      ],
+      "texspaceSize": [
+        0.9474067687988281,
+        0.1904008388519287,
+        0.24721765518188477
+      ],
+      "autoTexspace": true,
+      "localBounds": [
+        [
+          -15.008763313293457,
+          6.968491077423096,
+          2.455376386642456
+        ],
+        [
+          -13.1139497756958,
+          7.349292755126953,
+          2.9498116970062256
+        ]
+      ],
+      "attributeSha256": "f9f314c3b5ade649925bf4048611470b074ea762733ca14869fb8e23f40730f2",
+      "examples": [
+        {
+          "vertex": 0,
+          "local": [
+            -14.994415283203125,
+            6.968491077423096,
+            2.484999895095825
+          ],
+          "generated": [
+            0.007572263479232788,
+            6.258487701416016e-07,
+            0.059913814067840576
+          ]
+        },
+        {
+          "vertex": 10,
+          "local": [
+            -13.11553955078125,
+            7.317784309387207,
+            2.934999942779541
+          ],
+          "generated": [
+            0.9991610050201416,
+            0.9172582626342773,
+            0.9700430631637573
+          ]
+        },
+        {
+          "vertex": 19,
+          "local": [
+            -13.118195533752441,
+            7.3204169273376465,
+            2.9441540241241455
+          ],
+          "generated": [
+            0.9977592825889587,
+            0.9241715669631958,
+            0.9885573387145996
+          ]
+        }
+      ],
+      "evaluatedVertices": 20,
+      "modifierTypes": [],
+      "interpolatedPointMaxAbsError": 0.0,
+      "evaluatedAttributeSha256": "f9f314c3b5ade649925bf4048611470b074ea762733ca14869fb8e23f40730f2",
+      "evaluationPolicy": "Evaluated MeshVertex.undeformed_co normalized by ORIGINAL source texspace; frozen before join."
+    },
+    "Snow resting on bough.011": {
+      "vertices": 20,
+      "texspaceLocation": [
+        -14.929365158081055,
+        7.802400588989258,
+        3.40267014503479
+      ],
+      "texspaceSize": [
+        0.10248327255249023,
+        0.8114826679229736,
+        0.24698972702026367
+      ],
+      "autoTexspace": true,
+      "localBounds": [
+        [
+          -15.031848907470703,
+          6.990917682647705,
+          3.1556804180145264
+        ],
+        [
+          -14.826882362365723,
+          8.613883018493652,
+          3.6496598720550537
+        ]
+      ],
+      "attributeSha256": "1cc661686276f153d7bfecc9c4f229b43d1376637b6c7c3cbc795f1b17342e52",
+      "examples": [
+        {
+          "vertex": 0,
+          "local": [
+            -14.968151092529297,
+            6.996889114379883,
+            3.184999942779541
+          ],
+          "generated": [
+            0.3107694387435913,
+            0.0036791861057281494,
+            0.05935373902320862
+          ]
+        },
+        {
+          "vertex": 10,
+          "local": [
+            -14.826882362365723,
+            8.607786178588867,
+            3.634999990463257
+          ],
+          "generated": [
+            0.9999976754188538,
+            0.9962432384490967,
+            0.970322847366333
+          ]
+        },
+        {
+          "vertex": 19,
+          "local": [
+            -14.830168724060059,
+            8.605574607849121,
+            3.6440601348876953
+          ],
+          "generated": [
+            0.9839640259742737,
+            0.9948805570602417,
+            0.9886640310287476
+          ]
+        }
+      ],
+      "evaluatedVertices": 20,
+      "modifierTypes": [],
+      "interpolatedPointMaxAbsError": 0.0,
+      "evaluatedAttributeSha256": "1cc661686276f153d7bfecc9c4f229b43d1376637b6c7c3cbc795f1b17342e52",
+      "evaluationPolicy": "Evaluated MeshVertex.undeformed_co normalized by ORIGINAL source texspace; frozen before join."
+    },
+    "Snow resting on bough.012": {
+      "vertices": 20,
+      "texspaceLocation": [
+        -15.64314079284668,
+        7.1342573165893555,
+        4.10279655456543
+      ],
+      "texspaceSize": [
+        0.6548352241516113,
+        0.165510892868042,
+        0.24660944938659668
+      ],
+      "autoTexspace": true,
+      "localBounds": [
+        [
+          -16.297975540161133,
+          6.968746662139893,
+          3.856187343597412
+        ],
+        [
+          -14.98830509185791,
+          7.299768447875977,
+          4.3494062423706055
+        ]
+      ],
+      "attributeSha256": "c5a6e26d562ae29b2c7abf23105485d870c611acab9d52c7351f66204628cb19",
+      "examples": [
+        {
+          "vertex": 0,
+          "local": [
+            -14.99312686920166,
+            7.031253337860107,
+            3.884999990463257
+          ],
+          "generated": [
+            0.9963186979293823,
+            0.18883022665977478,
+            0.05841803550720215
+          ]
+        },
+        {
+          "vertex": 10,
+          "local": [
+            -16.2886905670166,
+            7.299768447875977,
+            4.335000038146973
+          ],
+          "generated": [
+            0.0070899128913879395,
+            1.0000007152557373,
+            0.9707919359207153
+          ]
+        },
+        {
+          "vertex": 19,
+          "local": [
+            -16.286388397216797,
+            7.296133995056152,
+            4.343903541564941
+          ],
+          "generated": [
+            0.008847743272781372,
+            0.9890211820602417,
+            0.9888437986373901
+          ]
+        }
+      ],
+      "evaluatedVertices": 20,
+      "modifierTypes": [],
+      "interpolatedPointMaxAbsError": 0.0,
+      "evaluatedAttributeSha256": "c5a6e26d562ae29b2c7abf23105485d870c611acab9d52c7351f66204628cb19",
+      "evaluationPolicy": "Evaluated MeshVertex.undeformed_co normalized by ORIGINAL source texspace; frozen before join."
+    },
+    "Snow resting on bough.013": {
+      "vertices": 20,
+      "texspaceLocation": [
+        -15.104884147644043,
+        6.501508712768555,
+        4.8030290603637695
+      ],
+      "texspaceSize": [
+        0.1361074447631836,
+        0.5125551223754883,
+        0.24591302871704102
+      ],
+      "autoTexspace": true,
+      "localBounds": [
+        [
+          -15.240991592407227,
+          5.988953590393066,
+          4.5571160316467285
+        ],
+        [
+          -14.96877670288086,
+          7.014063835144043,
+          5.0489420890808105
+        ]
+      ],
+      "attributeSha256": "1c34b1d844ef0c4f84e7daca0fbb93c874f3095d721ab18cb696480f558fb962",
+      "examples": [
+        {
+          "vertex": 0,
+          "local": [
+            -15.03122329711914,
+            7.007009029388428,
+            4.585000038146973
+          ],
+          "generated": [
+            0.7705981731414795,
+            0.9931179881095886,
+            0.056694865226745605
+          ]
+        },
+        {
+          "vertex": 10,
+          "local": [
+            -15.240991592407227,
+            5.999489784240723,
+            5.034999847412109
+          ],
+          "generated": [
+            0.0,
+            0.010278105735778809,
+            0.971652090549469
+          ]
+        },
+        {
+          "vertex": 19,
+          "local": [
+            -15.237184524536133,
+            6.002497673034668,
+            5.04361629486084
+          ],
+          "generated": [
+            0.013985514640808105,
+            0.013212323188781738,
+            0.9891713857650757
+          ]
+        }
+      ],
+      "evaluatedVertices": 20,
+      "modifierTypes": [],
+      "interpolatedPointMaxAbsError": 0.0,
+      "evaluatedAttributeSha256": "1c34b1d844ef0c4f84e7daca0fbb93c874f3095d721ab18cb696480f558fb962",
+      "evaluationPolicy": "Evaluated MeshVertex.undeformed_co normalized by ORIGINAL source texspace; frozen before join."
+    },
+    "Snow resting on bough.014": {
+      "vertices": 20,
+      "texspaceLocation": [
+        -14.648771286010742,
+        6.915347099304199,
+        5.50351095199585
+      ],
+      "texspaceSize": [
+        0.3690958023071289,
+        0.11562466621398926,
+        0.24446678161621094
+      ],
+      "autoTexspace": true,
+      "localBounds": [
+        [
+          -15.017867088317871,
+          6.799722671508789,
+          5.259044170379639
+        ],
+        [
+          -14.279675483703613,
+          7.030972003936768,
+          5.7479777336120605
+        ]
+      ],
+      "attributeSha256": "89b1a8a5feec7f2ce1bdbb44d8cc5a4123dc29b59278caa93effb8c78ef46dcc",
+      "examples": [
+        {
+          "vertex": 0,
+          "local": [
+            -15.008045196533203,
+            6.969027996063232,
+            5.284999847412109
+          ],
+          "generated": [
+            0.013305336236953735,
+            0.7321342825889587,
+            0.053086310625076294
+          ]
+        },
+        {
+          "vertex": 10,
+          "local": [
+            -14.292631149291992,
+            6.799722671508789,
+            5.735000133514404
+          ],
+          "generated": [
+            0.9824494123458862,
+            1.043081283569336e-06,
+            0.9734573364257812
+          ]
+        },
+        {
+          "vertex": 19,
+          "local": [
+            -14.296615600585938,
+            6.803915023803711,
+            5.743021011352539
+          ],
+          "generated": [
+            0.977051854133606,
+            0.018130183219909668,
+            0.9898622035980225
+          ]
+        }
+      ],
+      "evaluatedVertices": 20,
+      "modifierTypes": [],
+      "interpolatedPointMaxAbsError": 0.0,
+      "evaluatedAttributeSha256": "89b1a8a5feec7f2ce1bdbb44d8cc5a4123dc29b59278caa93effb8c78ef46dcc",
+      "evaluationPolicy": "Evaluated MeshVertex.undeformed_co normalized by ORIGINAL source texspace; frozen before join."
+    },
+    "Snow resting on bough.015": {
+      "vertices": 20,
+      "texspaceLocation": [
+        16.898643493652344,
+        9.214212417602539,
+        2.63260555267334
+      ],
+      "texspaceSize": [
+        0.9091367721557617,
+        0.2452840805053711,
+        0.2471829652786255
+      ],
+      "autoTexspace": true,
+      "localBounds": [
+        [
+          15.989505767822266,
+          8.968928337097168,
+          2.385422706604004
+        ],
+        [
+          17.80777931213379,
+          9.45949649810791,
+          2.879788637161255
+        ]
+      ],
+      "attributeSha256": "87b8a9a7c7b3772f47c88fb81ac730b095c8134a206cae1ad718a10517b8d427",
+      "examples": [
+        {
+          "vertex": 0,
+          "local": [
+            16.007652282714844,
+            8.968928337097168,
+            2.4149999618530273
+          ],
+          "generated": [
+            0.009979546070098877,
+            0.0,
+            0.05982890725135803
+          ]
+        },
+        {
+          "vertex": 10,
+          "local": [
+            17.806358337402344,
+            9.428425788879395,
+            2.865000009536743
+          ],
+          "generated": [
+            0.9992179870605469,
+            0.9366638660430908,
+            0.9700859189033508
+          ]
+        },
+        {
+          "vertex": 19,
+          "local": [
+            17.803476333618164,
+            9.430862426757812,
+            2.8741397857666016
+          ],
+          "generated": [
+            0.9976329803466797,
+            0.9416308403015137,
+            0.9885737895965576
+          ]
+        }
+      ],
+      "evaluatedVertices": 20,
+      "modifierTypes": [],
+      "interpolatedPointMaxAbsError": 0.0,
+      "evaluatedAttributeSha256": "87b8a9a7c7b3772f47c88fb81ac730b095c8134a206cae1ad718a10517b8d427",
+      "evaluationPolicy": "Evaluated MeshVertex.undeformed_co normalized by ORIGINAL source texspace; frozen before join."
+    },
+    "Snow resting on bough.016": {
+      "vertices": 20,
+      "texspaceLocation": [
+        16.20267105102539,
+        9.753718376159668,
+        3.312685966491699
+      ],
+      "texspaceSize": [
+        0.23350238800048828,
+        0.7656431198120117,
+        0.2469426393508911
+      ],
+      "autoTexspace": true,
+      "localBounds": [
+        [
+          15.969169616699219,
+          8.988075256347656,
+          3.0657432079315186
+        ],
+        [
+          16.436174392700195,
+          10.51936149597168,
+          3.559628486633301
+        ]
+      ],
+      "attributeSha256": "542d2c8092eba1da143c4137be90b2a9b524aaf35b7e78b334188d5eb1f86101",
+      "examples": [
+        {
+          "vertex": 0,
+          "local": [
+            16.03083038330078,
+            8.99142837524414,
+            3.0950000286102295
+          ],
+          "generated": [
+            0.13203659653663635,
+            0.002189725637435913,
+            0.05923783779144287
+          ]
+        },
+        {
+          "vertex": 10,
+          "local": [
+            16.436174392700195,
+            10.509112358093262,
+            3.5450000762939453
+          ],
+          "generated": [
+            1.0000020265579224,
+            0.9933068752288818,
+            0.9703807234764099
+          ]
+        },
+        {
+          "vertex": 19,
+          "local": [
+            16.432537078857422,
+            10.507434844970703,
+            3.5540409088134766
+          ],
+          "generated": [
+            0.9922134280204773,
+            0.9922113418579102,
+            0.988686203956604
+          ]
+        }
+      ],
+      "evaluatedVertices": 20,
+      "modifierTypes": [],
+      "interpolatedPointMaxAbsError": 0.0,
+      "evaluatedAttributeSha256": "542d2c8092eba1da143c4137be90b2a9b524aaf35b7e78b334188d5eb1f86101",
+      "evaluationPolicy": "Evaluated MeshVertex.undeformed_co normalized by ORIGINAL source texspace; frozen before join."
+    },
+    "Snow resting on bough.017": {
+      "vertices": 20,
+      "texspaceLocation": [
+        15.360628128051758,
+        9.019974708557129,
+        3.992818832397461
+      ],
+      "texspaceSize": [
+        0.6498503684997559,
+        0.051944732666015625,
+        0.2465428113937378
+      ],
+      "autoTexspace": true,
+      "localBounds": [
+        [
+          14.71077823638916,
+          8.968029975891113,
+          3.7462761402130127
+        ],
+        [
+          16.010478973388672,
+          9.071919441223145,
+          4.239361763000488
+        ]
+      ],
+      "attributeSha256": "79fdd823858c7ca27973a3272681a40531bfe0698c00c74454804332cf79f061",
+      "examples": [
+        {
+          "vertex": 0,
+          "local": [
+            16.001392364501953,
+            9.031970024108887,
+            3.7750000953674316
+          ],
+          "generated": [
+            0.993009090423584,
+            0.6154623031616211,
+            0.058253735303878784
+          ]
+        },
+        {
+          "vertex": 10,
+          "local": [
+            14.716713905334473,
+            9.071919441223145,
+            4.224999904632568
+          ],
+          "generated": [
+            0.004567325115203857,
+            1.0,
+            0.9708737134933472
+          ]
+        },
+        {
+          "vertex": 19,
+          "local": [
+            14.719686508178711,
+            9.068731307983398,
+            4.2338762283325195
+          ],
+          "generated": [
+            0.0068544745445251465,
+            0.9693122506141663,
+            0.9888753294944763
+          ]
+        }
+      ],
+      "evaluatedVertices": 20,
+      "modifierTypes": [],
+      "interpolatedPointMaxAbsError": 0.0,
+      "evaluatedAttributeSha256": "79fdd823858c7ca27973a3272681a40531bfe0698c00c74454804332cf79f061",
+      "evaluationPolicy": "Evaluated MeshVertex.undeformed_co normalized by ORIGINAL source texspace; frozen before join."
+    },
+    "Snow resting on bough.018": {
+      "vertices": 20,
+      "texspaceLocation": [
+        15.850215911865234,
+        8.529494285583496,
+        4.673062324523926
+      ],
+      "texspaceSize": [
+        0.18015718460083008,
+        0.48598575592041016,
+        0.24581360816955566
+      ],
+      "autoTexspace": true,
+      "localBounds": [
+        [
+          15.670058250427246,
+          8.043508529663086,
+          4.427248477935791
+        ],
+        [
+          16.030372619628906,
+          9.015480041503906,
+          4.918875694274902
+        ]
+      ],
+      "attributeSha256": "32ae5b3427d0bfc79de64ed1c60d6edd33e5b793fe35fc9561afb0f78698d735",
+      "examples": [
+        {
+          "vertex": 0,
+          "local": [
+            15.969627380371094,
+            9.010076522827148,
+            4.454999923706055
+          ],
+          "generated": [
+            0.8314090967178345,
+            0.9944406747817993,
+            0.05644765496253967
+          ]
+        },
+        {
+          "vertex": 10,
+          "local": [
+            15.670058250427246,
+            8.056286811828613,
+            4.90500020980835
+          ],
+          "generated": [
+            -1.3113021850585938e-06,
+            0.013146758079528809,
+            0.9717758893966675
+          ]
+        },
+        {
+          "vertex": 19,
+          "local": [
+            15.674174308776855,
+            8.058988571166992,
+            4.913575649261475
+          ],
+          "generated": [
+            0.011422187089920044,
+            0.01592642068862915,
+            0.9892188906669617
+          ]
+        }
+      ],
+      "evaluatedVertices": 20,
+      "modifierTypes": [],
+      "interpolatedPointMaxAbsError": 0.0,
+      "evaluatedAttributeSha256": "32ae5b3427d0bfc79de64ed1c60d6edd33e5b793fe35fc9561afb0f78698d735",
+      "evaluationPolicy": "Evaluated MeshVertex.undeformed_co normalized by ORIGINAL source texspace; frozen before join."
+    },
+    "Snow resting on bough.019": {
+      "vertices": 20,
+      "texspaceLocation": [
+        16.3446044921875,
+        8.933076858520508,
+        5.35356330871582
+      ],
+      "texspaceSize": [
+        0.36254167556762695,
+        0.09821367263793945,
+        0.2443101406097412
+      ],
+      "autoTexspace": true,
+      "localBounds": [
+        [
+          15.982062339782715,
+          8.834863662719727,
+          5.109253406524658
+        ],
+        [
+          16.70714569091797,
+          9.031291007995605,
+          5.597873687744141
+        ]
+      ],
+      "attributeSha256": "0d274d6ce37c31800f6f67716e44bd41a1ec6dbfa242911844d6719d2907fc68",
+      "examples": [
+        {
+          "vertex": 0,
+          "local": [
+            15.993300437927246,
+            8.968708992004395,
+            5.135000228881836
+          ],
+          "generated": [
+            0.01549839973449707,
+            0.6814010739326477,
+            0.05269339680671692
+          ]
+        },
+        {
+          "vertex": 10,
+          "local": [
+            16.694826126098633,
+            8.834863662719727,
+            5.585000038146973
+          ],
+          "generated": [
+            0.9830088019371033,
+            2.4139881134033203e-06,
+            0.9736535549163818
+          ]
+        },
+        {
+          "vertex": 19,
+          "local": [
+            16.690561294555664,
+            8.83890151977539,
+            5.592956066131592
+          ],
+          "generated": [
+            0.977126955986023,
+            0.020558923482894897,
+            0.9899361729621887
+          ]
+        }
+      ],
+      "evaluatedVertices": 20,
+      "modifierTypes": [],
+      "interpolatedPointMaxAbsError": 0.0,
+      "evaluatedAttributeSha256": "0d274d6ce37c31800f6f67716e44bd41a1ec6dbfa242911844d6719d2907fc68",
+      "evaluationPolicy": "Evaluated MeshVertex.undeformed_co normalized by ORIGINAL source texspace; frozen before join."
+    }
+  },
+  "remappedInputs": [
+    {
+      "material": "Snow settled dry grains",
+      "node": "Noise Texture",
+      "socket": "Vector",
+      "source": "implicit Generated"
+    }
+  ],
+  "receivers": {
+    "hall": {
+      "attribute": "one_light_source_generated",
+      "domain": "POINT",
+      "dataType": "FLOAT_VECTOR",
+      "vertices": 240877,
+      "sha256": "01cf2755bec0dbd32fe7d8048c213fb903b5a9c961537a60c1e339b433e8c6c3"
+    },
+    "gate": {
+      "attribute": "one_light_source_generated",
+      "domain": "POINT",
+      "dataType": "FLOAT_VECTOR",
+      "vertices": 54690,
+      "sha256": "476e7a301ae0eeb2b101622ab87adc1fb8a15279bcbbd2b90c2a406dd5816fb8"
+    },
+    "court": {
+      "attribute": "one_light_source_generated",
+      "domain": "POINT",
+      "dataType": "FLOAT_VECTOR",
+      "vertices": 118657,
+      "sha256": "24ab382da36df6747c69ca8db16619798973f58860b70af1d4596f565044b821"
+    }
+  }
+}

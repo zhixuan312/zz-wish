@@ -6,12 +6,14 @@ import Database from 'better-sqlite3';
 import { createHash } from 'node:crypto';
 import { fingerprintCaptureSource } from './capture-source-fingerprint.mjs';
 import { setFocusEmulation } from './native-focus-control.mjs';
+import { readCaptureManifest, assertServedSnapshot } from './capture-preflight.mjs';
 const base = process.env.BASE_URL || 'http://127.0.0.1:5190';
 const root = `artifacts/snow-journey/${process.env.EVIDENCE || 'before'}`;
 const state = process.env.STATE || 'before';
 const core = process.env.CORE_FLOW === '1';
 const expanded = process.env.EXPANDED_FLOW === '1' || (state === 'after' && process.env.EXPANDED_FLOW !== '0');
 const sourceRoot = process.env.SOURCE_ROOT || (state === 'before' ? '/tmp/one-light-snow-single-baseline' : '/tmp/one-light-snow-single-after');
+const manifest = await readCaptureManifest(sourceRoot, { requireFinalBanks: process.env.REQUIRE_FINAL_BANKS === '1' });
 const ignitionSettleMs = process.env.IGNITION_SETTLE_MS ? Number(process.env.IGNITION_SETTLE_MS) : null;
 const endingSettleMs = Number(process.env.ENDING_SETTLE_MS || (state === 'after' ? 6000 : 1800));
 const seconds = Number(process.env.SECONDS || 10);
@@ -19,7 +21,7 @@ const dbFile = process.env.DB_FILE || '/tmp/one-light-real.db';
 if (!dbFile.startsWith('/tmp/')) throw new Error('Use the explicitly isolated /tmp database for accelerated visual ending evidence.');
 const sizes = [{ name: 'desktop-en', width: 1440, height: 900, locale: 'en-US', phone: false }, { name: 'phone-zh', width: 390, height: 844, locale: 'zh-CN', phone: true }].filter(size => !process.env.VIEWPORT || size.name.startsWith(process.env.VIEWPORT));
 const defaultControls = { lockCamera: true, pauseTweens: true, freezeScene: false, freezeGrade: false, freezeDaylight: false, freezeFlame: false, freezeLampMotion: false, freezeShadows: false, freezeFuel: false, hideParticles: false, disableBloom: false };
-const report = { base, state, createdAt: new Date().toISOString(), sourceFingerprints: { start: await fingerprintCaptureSource(sourceRoot) }, runtime: {}, views: [], sequences: [], errors: [], consoleErrors: [], records: [], visibilityEvents: [], interactions: [], videos: [], notes: [
+const report = { base, state, createdAt: new Date().toISOString(), manifestAtStart: { partialPreview: !!manifest.partialPreview, materialProfile: manifest.compression?.materialProfile ?? null, lightmapCodec: manifest.compression?.lightmapCodec ?? null }, sourceFingerprints: { start: await fingerprintCaptureSource(sourceRoot) }, runtime: {}, views: [], sequences: [], errors: [], consoleErrors: [], records: [], visibilityEvents: [], interactions: [], videos: [], notes: [
   state === 'before' ? 'Before state: the frozen procedural HEAD, not the unbuilt Blender-baked delivery.' : 'After state: inspect each raw sequence place metadata to verify the baked descriptor is actually active.',
   'Only Snow Roof is selected. The original Cloud Cliff cover is captured as the actual home state.',
   'Ten-second sequences read raw RGBA framebuffer regions inside the render callback. Metrics precede video encoding; raw ROI samples are retained for independent recomputation.',
@@ -30,7 +32,7 @@ const report = { base, state, createdAt: new Date().toISOString(), sourceFingerp
   'Phone is viewport/touch emulation on a desktop GPU. Sound is not audibly reviewed.',
   'The expanded after flow records all presets/colors, small/large touch drawings and burning toolbar states. Diagnostic controls are separate from product behavior.',
   'Background-tab extinction requires an observed native document.visibilityState=hidden transition; synthetic visibility events are not used.',
-  'Recorded-video contexts can remain visible because of Chrome screencast. Their departure branch proves native focus loss; an independent no-video lifecycle proof supplies actual hidden-state evidence.',
+  'The native hidden branch clears Playwright focus emulation through its owning CDP session. Trusted event history and actual saved state determine coverage; no hidden-state override or synthetic event is used.',
   core?'Core flow: required static journey views retain ten-second sequences; unchanged preset/color/drawing variations use screenshots.':'Broad flow: individual preset/color/drawing/toolbar states retain ten-second sequences.',
 ] };
 if (!report.sourceFingerprints.start.sourceFiles) throw new Error(`The served source checkout was not found at ${sourceRoot}. Set SOURCE_ROOT to the actual frozen source.`);
@@ -72,7 +74,7 @@ try {
   const shot = async name => {
    await page.screenshot({ path: `${out}/${name}.png` });
    const layout = await page.evaluate(() => [...document.querySelectorAll('.ui button,.ui textarea,.ui h1,.ui h2')].filter(element => { const rect = element.getBoundingClientRect(); return rect.width > 0 && (rect.left < -2 || rect.right > innerWidth + 2); }).map(element => element.textContent?.trim().slice(0, 80)));
-   const visualMetadata = await page.evaluate(() => ({ ignition: window.__visualIgnition ?? null, walk: window.__walkProgress ?? null, visibilityState: document.visibilityState,renderInfo:window.__flickerLab.renderInfo?.()??null }));
+   const visualMetadata = await page.evaluate(() => ({ ignition: window.__visualIgnition ?? null, walk: window.__walkProgress ?? null, visibilityState: document.visibilityState,renderInfo:window.__flickerLab.renderInfo?.()??null,delivery:window.__captureDeliveryInfo?.()??null }));
    report.views.push({ viewport: size.name, name, layoutOverflow: layout, ...visualMetadata }); console.log(size.name, name);
    await writeFile(`${root}/report.json`, JSON.stringify(report, null, 2));
   };
@@ -197,6 +199,7 @@ try {
   };
   try {
    await page.goto(base); await page.bringToFront(); await page.getByLabel(re('你的愿望', 'Your wish')).waitFor(); await page.waitForFunction(() => window.__ready === true && !!window.__flickerLab); await page.evaluate(() => document.fonts.ready.then(() => true));
+   if (state === 'after') await assertServedSnapshot(page, report.sourceFingerprints.start);
    report.runtime[size.name] = await page.evaluate(() => { const renderer = window.__renderer, gl = renderer.getContext(), debug = gl.getExtension('WEBGL_debug_renderer_info'); return { userAgent: navigator.userAgent, devicePixelRatio, drawingBuffer: [gl.drawingBufferWidth, gl.drawingBufferHeight], webglVersion: gl.getParameter(gl.VERSION), renderer: debug ? gl.getParameter(debug.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER), vendor: debug ? gl.getParameter(debug.UNMASKED_VENDOR_WEBGL) : gl.getParameter(gl.VENDOR), visibilityState: document.visibilityState }; });
    await sequence('home'); await act(page.locator('.topbar nav button').first()); await sequence('home-other-language'); await act(page.locator('.topbar nav button').first());
    const wish=state==='after'&&process.env.LONG_WISH!=='0'?(size.phone?'愿远行的人平安，愿归来的人有家，愿每一个孤独的夜晚都有人相伴，也愿我们在漫长的日子里仍然心怀温柔与希望。愿你我都安好。':'May this lamp keep someone company through the longest night'):(size.phone?'愿远行的人平安，也愿心里有光。':'May a little light keep someone company.');

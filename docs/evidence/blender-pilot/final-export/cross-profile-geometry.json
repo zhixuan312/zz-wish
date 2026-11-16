@@ -2,18 +2,19 @@
   "version": 1,
   "inputs": {
     "left": {
-      "path": "art/build/snow-roof-final-quality-optimized/snow-roof.glb",
-      "sha256": "d37a76d691b5d1703ba0c9ff36558631b4613e05e532ac92cb74f88c0f5fc174",
-      "bytes": 34821408
+      "path": "art/build/snow-roof-final-quality-optimized-postbatch/snow-roof.glb",
+      "sha256": "23218d772ad960574be347e60bbccf8583a60e839f52858c635a1d2852804760",
+      "bytes": 34824716
     },
     "right": {
-      "path": "art/build/snow-roof-final-mobile-optimized/snow-roof.glb",
-      "sha256": "9f34007cc49bb899c98dc59c862aa20dee91d533ba5b2ee574a5ace8f42db94d",
-      "bytes": 13449088
+      "path": "art/build/snow-roof-final-mobile-optimized-postbatch/snow-roof.glb",
+      "sha256": "2a110e13205d4426c812806c2396a4460dd4bc551fe118ebe8db605fdefea003",
+      "bytes": 13452396
     }
   },
   "method": "Decode Meshopt. Compare every semantic/format/normalized vertex array and actual indices. If storage order differs, compare cyclic-corner canonical triangle multisets without accepting winding reversal.",
   "nodeTransformsExtrasHierarchyExactlyEqual": true,
+  "sourceSceneProofMetadataExactlyEqual": true,
   "nodeStateSha256": "cdba116eb292763802d0945dec60e497dfb5240fd4a7a825d88d5c925c6f39ee",
   "primitives": [
     {

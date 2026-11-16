@@ -1,0 +1,196 @@
+00:00.300  blend            | Read blend: "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-final/snow-roof-prepared.blend"
+BAKE_DEVICE ['Apple M1 (GPU - 8 cores)']
+/Users/xuan/Documents/code/zz-wish/art/blender/bake_export.py:350: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  if not material.use_nodes:
+/Users/xuan/Documents/code/zz-wish/art/blender/bake_export.py:415: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  if not owner or not owner.use_nodes:
+/Users/xuan/Documents/code/zz-wish/art/blender/bake_export.py:415: DeprecationWarning: 'World.use_nodes' is expected to be removed in Blender 6.0
+  if not owner or not owner.use_nodes:
+/Users/xuan/Documents/code/zz-wish/art/blender/bake_export.py:365: DeprecationWarning: 'World.use_nodes' is expected to be removed in Blender 6.0
+  if world.use_nodes:
+UV_COVERAGE_REUSED hall
+UV_COVERAGE hall {"charts": 12889, "representedCharts": 12886, "subpixelCharts": 3, "representedSurfaceAreaFraction": 0.9999954938856166, "triangleWithNativeTexelSurfaceAreaFraction": 0.962845080301833, "surfaceAreaInChartsWithAtLeast16CoreTexelsFraction": 0.994920579320491, "totalSurfaceAreaSquareMetres": 2133.7734402953347, "provenOccludedSurfaceAreaSquareMetres": 275.7123065737922, "provenOccludedPolygons": 95790, "coreTexels": 2130438, "overlappingCorePixels": 0, "coverageMeaning": "World-space mapped surface-area weighted; proven enclosed geometry is reported separately. A represented chart may contain subpixel triangles; their native-texel area is also reported. Camera-visible sampled coverage is separate."}
+UV_COVERAGE_REUSED gate
+UV_COVERAGE gate {"charts": 4369, "representedCharts": 4368, "subpixelCharts": 1, "representedSurfaceAreaFraction": 0.9999999999999999, "triangleWithNativeTexelSurfaceAreaFraction": 0.9637856025355326, "surfaceAreaInChartsWithAtLeast16CoreTexelsFraction": 0.9859705713497867, "totalSurfaceAreaSquareMetres": 409.99404631329475, "provenOccludedSurfaceAreaSquareMetres": 51.99357033398157, "provenOccludedPolygons": 22566, "coreTexels": 472902, "overlappingCorePixels": 0, "coverageMeaning": "World-space mapped surface-area weighted; proven enclosed geometry is reported separately. A represented chart may contain subpixel triangles; their native-texel area is also reported. Camera-visible sampled coverage is separate."}
+UV_COVERAGE_REUSED court
+UV_COVERAGE court {"charts": 6631, "representedCharts": 6630, "subpixelCharts": 1, "representedSurfaceAreaFraction": 1.0, "triangleWithNativeTexelSurfaceAreaFraction": 0.9908133461790574, "surfaceAreaInChartsWithAtLeast16CoreTexelsFraction": 0.998736337335152, "totalSurfaceAreaSquareMetres": 5186.2199949044225, "provenOccludedSurfaceAreaSquareMetres": 185.4434255075736, "provenOccludedPolygons": 65394, "coreTexels": 6993500, "overlappingCorePixels": 0, "coverageMeaning": "World-space mapped surface-area weighted; proven enclosed geometry is reported separately. A represented chart may contain subpixel triangles; their native-texel area is also reported. Camera-visible sampled coverage is separate."}
+VISIBLE_UV_COVERAGE hall {"sampledVisiblePixels": 17709, "representedVisiblePixels": 17705, "provenOccludedVisiblePixels": 0, "referenceCameras": ["Reference_outside", "Reference_walk-1", "Reference_walk-2", "Reference_walk-3", "Reference_choose", "Reference_lit"], "perCamera": {"Reference_outside": {"sampledVisiblePixels": 124, "representedVisiblePixels": 124, "provenOccludedVisiblePixels": 0, "representedCameraVisibleFraction": 1.0}, "Reference_walk-1": {"sampledVisiblePixels": 124, "representedVisiblePixels": 124, "provenOccludedVisiblePixels": 0, "representedCameraVisibleFraction": 1.0}, "Reference_walk-2": {"sampledVisiblePixels": 182, "representedVisiblePixels": 182, "provenOccludedVisiblePixels": 0, "representedCameraVisibleFraction": 1.0}, "Reference_walk-3": {"sampledVisiblePixels": 5759, "representedVisiblePixels": 5759, "provenOccludedVisiblePixels": 0, "representedCameraVisibleFraction": 1.0}, "Reference_choose": {"sampledVisiblePixels": 5760, "representedVisiblePixels": 5756, "provenOccludedVisiblePixels": 0, "representedCameraVisibleFraction": 0.9993055555555556}, "Reference_lit": {"sampledVisiblePixels": 5760, "representedVisiblePixels": 5760, "provenOccludedVisiblePixels": 0, "representedCameraVisibleFraction": 1.0}}, "representedCameraVisibleFraction": 0.999774126150545, "samplesPerCamera": [96, 60], "scope": "Coarse first-hit geometry visibility over the source reference cameras; excludes sky. Features smaller than the sampling grid and shading/noise quality are not verified by this metric."}
+VISIBLE_UV_COVERAGE gate {"sampledVisiblePixels": 2164, "representedVisiblePixels": 2164, "provenOccludedVisiblePixels": 0, "referenceCameras": ["Reference_outside", "Reference_walk-1", "Reference_walk-2", "Reference_walk-3", "Reference_choose", "Reference_lit"], "perCamera": {"Reference_outside": {"sampledVisiblePixels": 538, "representedVisiblePixels": 538, "provenOccludedVisiblePixels": 0, "representedCameraVisibleFraction": 1.0}, "Reference_walk-1": {"sampledVisiblePixels": 538, "representedVisiblePixels": 538, "provenOccludedVisiblePixels": 0, "representedCameraVisibleFraction": 1.0}, "Reference_walk-2": {"sampledVisiblePixels": 1088, "representedVisiblePixels": 1088, "provenOccludedVisiblePixels": 0, "representedCameraVisibleFraction": 1.0}, "Reference_walk-3": {"sampledVisiblePixels": 0, "representedVisiblePixels": 0, "provenOccludedVisiblePixels": 0, "representedCameraVisibleFraction": null}, "Reference_choose": {"sampledVisiblePixels": 0, "representedVisiblePixels": 0, "provenOccludedVisiblePixels": 0, "representedCameraVisibleFraction": null}, "Reference_lit": {"sampledVisiblePixels": 0, "representedVisiblePixels": 0, "provenOccludedVisiblePixels": 0, "representedCameraVisibleFraction": null}}, "representedCameraVisibleFraction": 1.0, "samplesPerCamera": [96, 60], "scope": "Coarse first-hit geometry visibility over the source reference cameras; excludes sky. Features smaller than the sampling grid and shading/noise quality are not verified by this metric."}
+VISIBLE_UV_COVERAGE court {"sampledVisiblePixels": 7601, "representedVisiblePixels": 7601, "provenOccludedVisiblePixels": 0, "referenceCameras": ["Reference_outside", "Reference_walk-1", "Reference_walk-2", "Reference_walk-3", "Reference_choose", "Reference_lit"], "perCamera": {"Reference_outside": {"sampledVisiblePixels": 2541, "representedVisiblePixels": 2541, "provenOccludedVisiblePixels": 0, "representedCameraVisibleFraction": 1.0}, "Reference_walk-1": {"sampledVisiblePixels": 2541, "representedVisiblePixels": 2541, "provenOccludedVisiblePixels": 0, "representedCameraVisibleFraction": 1.0}, "Reference_walk-2": {"sampledVisiblePixels": 2518, "representedVisiblePixels": 2518, "provenOccludedVisiblePixels": 0, "representedCameraVisibleFraction": 1.0}, "Reference_walk-3": {"sampledVisiblePixels": 1, "representedVisiblePixels": 1, "provenOccludedVisiblePixels": 0, "representedCameraVisibleFraction": 1.0}, "Reference_choose": {"sampledVisiblePixels": 0, "representedVisiblePixels": 0, "provenOccludedVisiblePixels": 0, "representedCameraVisibleFraction": null}, "Reference_lit": {"sampledVisiblePixels": 0, "representedVisiblePixels": 0, "provenOccludedVisiblePixels": 0, "representedCameraVisibleFraction": null}}, "representedCameraVisibleFraction": 1.0, "samplesPerCamera": [96, 60], "scope": "Coarse first-hit geometry visibility over the source reference cameras; excludes sky. Features smaller than the sampling grid and shading/noise quality are not verified by this metric."}
+/Users/xuan/Documents/code/zz-wish/art/blender/bake_export.py:495: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  material.use_nodes = True
+Info: Saved as "snow-roof-prepared.blend"
+BAKE_START hall night
+Info: Baking map saved to internal image, save it externally or pack it
+CYCLES_BAKE_DONE hall night 109.487
+DENOISE_CHARTS 1024 12886 5.8
+DENOISE_CHARTS 2048 12886 14.34
+DENOISE_CHARTS 3072 12886 20.75
+DENOISE_CHARTS 4096 12886 25.81
+DENOISE_CHARTS 5120 12886 31.71
+DENOISE_CHARTS 6144 12886 38.46
+DENOISE_CHARTS 7168 12886 44.41
+DENOISE_CHARTS 8192 12886 50.11
+DENOISE_CHARTS 9216 12886 54.04
+DENOISE_CHARTS 10240 12886 57.69
+DENOISE_CHARTS 11264 12886 62.41
+DENOISE_CHARTS 12288 12886 68.44
+DENOISE_CHARTS 12886 12886 72.13
+BAKE_DONE hall night 188.337 24.697994232177734
+BAKE_START gate night
+Info: Baking map saved to internal image, save it externally or pack it
+CYCLES_BAKE_DONE gate night 31.01
+DENOISE_CHARTS 1024 4368 7.75
+DENOISE_CHARTS 2048 4368 13.56
+DENOISE_CHARTS 3072 4368 19.75
+DENOISE_CHARTS 4096 4368 25.76
+DENOISE_CHARTS 4368 4368 27.57
+BAKE_DONE gate night 60.296 26.633699417114258
+BAKE_START court night
+Info: Baking map saved to internal image, save it externally or pack it
+CYCLES_BAKE_DONE court night 197.633
+DENOISE_CHARTS 1024 6630 10.49
+DENOISE_CHARTS 2048 6630 16.8
+DENOISE_CHARTS 3072 6630 25.58
+DENOISE_CHARTS 4096 6630 32.11
+DENOISE_CHARTS 5120 6630 38.7
+DENOISE_CHARTS 6144 6630 46.73
+DENOISE_CHARTS 6630 6630 49.73
+BAKE_DONE court night 255.918 0.4118088483810425
+/Users/xuan/Documents/code/zz-wish/art/blender/bake_export.py:467: DeprecationWarning: 'World.use_nodes' is expected to be removed in Blender 6.0
+  world.use_nodes = True
+BAKE_START hall dusk
+Info: Baking map saved to internal image, save it externally or pack it
+CYCLES_BAKE_DONE hall dusk 109.278
+DENOISE_CHARTS 1024 12886 3.84
+DENOISE_CHARTS 2048 12886 11.41
+DENOISE_CHARTS 3072 12886 16.2
+DENOISE_CHARTS 4096 12886 19.97
+DENOISE_CHARTS 5120 12886 23.7
+DENOISE_CHARTS 6144 12886 28.57
+DENOISE_CHARTS 7168 12886 33.98
+DENOISE_CHARTS 8192 12886 40.21
+DENOISE_CHARTS 9216 12886 46.14
+DENOISE_CHARTS 10240 12886 52.0
+DENOISE_CHARTS 11264 12886 58.14
+DENOISE_CHARTS 12288 12886 64.77
+DENOISE_CHARTS 12886 12886 68.43
+BAKE_DONE hall dusk 184.586 19.69345474243164
+BAKE_START gate dusk
+Info: Baking map saved to internal image, save it externally or pack it
+CYCLES_BAKE_DONE gate dusk 31.02
+DENOISE_CHARTS 1024 4368 7.72
+DENOISE_CHARTS 2048 4368 13.49
+DENOISE_CHARTS 3072 4368 19.62
+DENOISE_CHARTS 4096 4368 25.5
+DENOISE_CHARTS 4368 4368 27.36
+BAKE_DONE gate dusk 60.089 20.3110294342041
+BAKE_START court dusk
+Info: Baking map saved to internal image, save it externally or pack it
+CYCLES_BAKE_DONE court dusk 197.938
+DENOISE_CHARTS 1024 6630 9.06
+DENOISE_CHARTS 2048 6630 13.41
+DENOISE_CHARTS 3072 6630 21.25
+DENOISE_CHARTS 4096 6630 27.78
+DENOISE_CHARTS 5120 6630 34.36
+DENOISE_CHARTS 6144 6630 42.3
+DENOISE_CHARTS 6630 6630 45.29
+BAKE_DONE court dusk 251.968 0.6815187335014343
+BAKE_START hall day
+Info: Baking map saved to internal image, save it externally or pack it
+CYCLES_BAKE_DONE hall day 107.91
+DENOISE_CHARTS 1024 12886 3.86
+DENOISE_CHARTS 2048 12886 11.8
+DENOISE_CHARTS 3072 12886 18.21
+DENOISE_CHARTS 4096 12886 24.14
+DENOISE_CHARTS 5120 12886 30.02
+DENOISE_CHARTS 6144 12886 36.86
+DENOISE_CHARTS 7168 12886 40.62
+DENOISE_CHARTS 8192 12886 46.03
+DENOISE_CHARTS 9216 12886 51.97
+DENOISE_CHARTS 10240 12886 57.95
+DENOISE_CHARTS 11264 12886 64.35
+DENOISE_CHARTS 12288 12886 71.08
+DENOISE_CHARTS 12886 12886 74.8
+BAKE_DONE hall day 189.605 24.378089904785156
+BAKE_START gate day
+Info: Baking map saved to internal image, save it externally or pack it
+CYCLES_BAKE_DONE gate day 30.812
+DENOISE_CHARTS 1024 4368 6.41
+DENOISE_CHARTS 2048 4368 11.56
+DENOISE_CHARTS 3072 4368 17.69
+DENOISE_CHARTS 4096 4368 23.67
+DENOISE_CHARTS 4368 4368 25.51
+BAKE_DONE gate day 58.034 24.34535026550293
+BAKE_START court day
+Info: Baking map saved to internal image, save it externally or pack it
+CYCLES_BAKE_DONE court day 196.033
+DENOISE_CHARTS 1024 6630 10.54
+DENOISE_CHARTS 2048 6630 16.53
+DENOISE_CHARTS 3072 6630 25.3
+DENOISE_CHARTS 4096 6630 31.93
+DENOISE_CHARTS 5120 6630 38.45
+DENOISE_CHARTS 6144 6630 46.35
+DENOISE_CHARTS 6630 6630 49.31
+BAKE_DONE court day 253.936 2.5370311737060547
+BAKE_START hall lamp
+Info: Baking map saved to internal image, save it externally or pack it
+CYCLES_BAKE_DONE hall lamp 87.786
+DENOISE_CHARTS 1024 12886 3.81
+DENOISE_CHARTS 2048 12886 11.57
+DENOISE_CHARTS 3072 12886 16.42
+DENOISE_CHARTS 4096 12886 20.21
+DENOISE_CHARTS 5120 12886 24.0
+DENOISE_CHARTS 6144 12886 28.91
+DENOISE_CHARTS 7168 12886 32.56
+DENOISE_CHARTS 8192 12886 36.58
+DENOISE_CHARTS 9216 12886 40.1
+DENOISE_CHARTS 10240 12886 43.72
+DENOISE_CHARTS 11264 12886 48.14
+DENOISE_CHARTS 12288 12886 52.95
+DENOISE_CHARTS 12886 12886 55.4
+BAKE_DONE hall lamp 149.798 16.483861923217773
+BAKE_START gate lamp
+Info: Baking map saved to internal image, save it externally or pack it
+CYCLES_BAKE_DONE gate lamp 25.262
+DENOISE_CHARTS 1024 4368 7.66
+DENOISE_CHARTS 2048 4368 13.34
+DENOISE_CHARTS 3072 4368 19.48
+DENOISE_CHARTS 4096 4368 25.38
+DENOISE_CHARTS 4368 4368 27.22
+BAKE_DONE gate lamp 54.144 0.007650863844901323
+BAKE_START court lamp
+Info: Baking map saved to internal image, save it externally or pack it
+CYCLES_BAKE_DONE court lamp 187.626
+DENOISE_CHARTS 1024 6630 10.61
+DENOISE_CHARTS 2048 6630 16.73
+DENOISE_CHARTS 3072 6630 25.6
+DENOISE_CHARTS 4096 6630 32.25
+DENOISE_CHARTS 5120 6630 38.71
+DENOISE_CHARTS 6144 6630 46.57
+DENOISE_CHARTS 6630 6630 49.53
+BAKE_DONE court lamp 244.699 0.011649826541543007
+/Users/xuan/Documents/code/zz-wish/art/blender/bake_export.py:1278: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  if material.use_nodes:
+INFO Draco is available, use library at /Applications/Blender.app/Contents/Resources/lib/libbf_intern_draco_bridge.dylib
+INFO MeshOptimizer is available, use library at /Applications/Blender.app/Contents/Resources/lib/libbf_intern_meshopt_bridge.dylib
+01:18:38 | INFO: Starting glTF 2.0 export
+01:18:38 | INFO: Extracting primitive: Snow with physically depressed footprint track.002
+01:18:38 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:18:39 | INFO: Primitives created: 6
+01:18:39 | INFO: Extracting primitive: Gate plaster pier.004
+01:18:39 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:18:39 | INFO: Primitives created: 10
+01:18:39 | INFO: Extracting primitive: Settled irregular paving stone.428
+01:18:39 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:18:39 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+01:18:39 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+01:18:39 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+01:18:39 | INFO: Primitives created: 26
+01:18:39 | INFO: Finished glTF 2.0 export in 1.3068480491638184 s
+
+Info: Saved as "snow-roof-baked.blend"
+EXPORT_DONE art/build/snow-roof-final 1956.992
+Blender 5.3.0 (hash 02f0899d78e3 built 2026-11-10 01:31:21)
+
+Blender quit

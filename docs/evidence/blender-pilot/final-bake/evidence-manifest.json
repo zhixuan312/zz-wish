@@ -1,0 +1,46 @@
+{
+  "candidate-summary.json": {
+    "bytes": 3692,
+    "sha256": "efdc7b95d9fa561a8146f81e991de4b4646042d9b9089e5eb4d5f87654a3b45c"
+  },
+  "summary.json": {
+    "bytes": 24783,
+    "sha256": "f797f475dd816dcd1d017b48f8d74a5f5937130930847d77baf54c565f818d19"
+  },
+  "prepared-mapping-proof.json": {
+    "bytes": 3009,
+    "sha256": "96dc65dc03bd1dfe8d10c6d5753508dc3b296203d2d37ada5b4789f972df61e2"
+  },
+  "generated-emission-proof.json": {
+    "bytes": 631,
+    "sha256": "f959e1ab7bc0750e5157dc3b47da8fa89d2dd19831d79bdcbe7c661c87d310fb"
+  },
+  "assemble-final-candidates.py": {
+    "bytes": 4969,
+    "sha256": "95256daec3c62ad8a493ef6f651196851118431d7bbe385a3c31b75c0a9129fd"
+  },
+  "generated-coordinate-audit.json": {
+    "bytes": 76517,
+    "sha256": "e4c8a05c49440853a06776ce5fe0544df67b201eca3be3ae501f73aa4fb15975"
+  },
+  "native-device-observation.json": {
+    "bytes": 1054,
+    "sha256": "6bf5fedb7a1944e8e6c4fc4f27a0d5eda181d919436da26303fbe80956f2c146"
+  },
+  "lightmap-codec-comparison.json": {
+    "bytes": 11332,
+    "sha256": "94fffb5468113f7c5ec9f0df839691548ca207f8f650b614de93198407cd8160"
+  },
+  "README.md": {
+    "bytes": 2439,
+    "sha256": "e71ec9848cc05e966ab9d5b7ad6d01144c71a38463d3c483d2adafb915b4b8d3"
+  },
+  "delivery-image-audit.json": {
+    "bytes": 54167,
+    "sha256": "079ee4791bbfcff9c602ad8c45b1d6bff6b9fa35bb76de33b0c65a74d67765fe"
+  },
+  "native-bake.log": {
+    "bytes": 15127,
+    "sha256": "ac48bfcb0cabc570ddd3bc36665dd8959e17973ee88b99f6278c9e1bf0d8863f"
+  }
+}

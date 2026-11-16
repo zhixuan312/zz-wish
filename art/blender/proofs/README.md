@@ -25,7 +25,7 @@ The working final bake settings are Cycles Metal, OpenImageDenoise Metal, 64 sam
 
 ## Actual final export profiles and staging candidates
 
-`export_hidden_reference.py` and `scripts/audit-hidden-export.mjs` verified the actual prepared FACE flags against raw GLB float32 triangles. `snow-roof-final-face-export-validation.json` records the corrected pre-bake snapshot: prepared `6ed42644...`, raw `42def075...`, authored source `6e9f59c9...`, with all 183,750 proven triangles matched and 3,292 unrelated UV-marker triangles preserved. End-of-batch container changes require a fresh actual-hash check.
+`export_hidden_reference.py` and `scripts/audit-hidden-export.mjs` verified the actual prepared FACE flags against raw GLB float32 triangles. `snow-roof-final-face-export-validation.json` records the actual post-batch snapshot: prepared `6ed42644...`, raw `0deec9fd...`, authored source `6e9f59c9...`, with all 183,750 proven triangles matched and 3,292 unrelated UV-marker triangles preserved. The post-batch raw change was genuinely re-audited; earlier pre-bake receipts are provisional history under `docs/evidence/blender-pilot/prebake-export-study`.
 
 `snow-roof-final-packed-export-validation.json` additionally matches every selected packed triangle to its proven raw UV0/world-position triangle within the existing position quantization bound. Maximum observed error is 0.8452 mm versus 20.08 mm minimum snow clearance. Material deduplication merged roof names into the actual `Side hall roof tiles` alias; the profiles derive this alias from actual geometry correspondence rather than assuming raw material names.
 
@@ -33,18 +33,18 @@ The explicit `snow-roof-final-quality-export-profile.json` and `snow-roof-final-
 
 | Variant | Optimized GLB bytes | Vertices | Triangles |
 |---|---:|---:|---:|
-| Quality | 34,821,408 | 648,776 | 466,874 |
-| Mobile materials | 13,449,088 | 648,776 | 466,874 |
+| Quality | 34,824,716 | 648,776 | 466,874 |
+| Mobile materials | 13,452,396 | 648,776 | 466,874 |
 
 ```sh
 node scripts/prune-validated-baked.mjs --profile quality \
   --input art/build/snow-roof-final-quality/snow-roof.glb \
-  --output art/build/snow-roof-final-quality-optimized/snow-roof.glb
+  --output art/build/snow-roof-final-quality-optimized-postbatch/snow-roof.glb
 node scripts/prune-validated-baked.mjs --profile mobile \
   --input art/build/snow-roof-final-mobile/snow-roof.glb \
-  --output art/build/snow-roof-final-mobile-optimized/snow-roof.glb
+  --output art/build/snow-roof-final-mobile-optimized-postbatch/snow-roof.glb
 ```
 
 Each output has a sibling receipt. Existing outputs are refused. Current files are verified export-only candidates; complete-package manifest hashes/byte totals and runtime quality/mobile review remain separate. Full source geometry and bake occluders are unchanged. The original helper/profile and c64 proof remain byte-identical to their historical receipts.
 
-Independent optimized cross-profile data and index/winding equality are recorded in `snow-roof-final-cross-profile-geometry.json`; complete evidence and executed receipts are under `docs/evidence/blender-pilot/final-export`. Final helper: `scripts/prune-validated-baked.mjs --profile quality|mobile`. A native batch-end raw/container change requires fresh actual input verification before optimized adoption.
+Independent optimized cross-profile data and index/winding equality are recorded in `snow-roof-final-cross-profile-geometry.json`; complete evidence and executed receipts are under `docs/evidence/blender-pilot/final-export`. Final helper: `scripts/prune-validated-baked.mjs --profile quality|mobile`. The actual post-batch raw/prepared guard and replacement production-helper executions passed; final browser/package approval remains separate.

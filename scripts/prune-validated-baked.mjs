@@ -151,6 +151,9 @@ function nodeState(document) {
     mesh: node.getMesh()?.getName() ?? null,
   }));
 }
+function sceneState(document) {
+  return document.getRoot().listScenes().map((scene) => ({ name: scene.getName(), extras: scene.getExtras(), roots: scene.listChildren().map((node) => node.getName()) }));
+}
 function primitiveStates(document) {
   const result = [];
   for (const node of document.getRoot().listNodes()) for (const primitive of node.getMesh()?.listPrimitives() ?? []) {
@@ -216,7 +219,7 @@ async function main() {
   const { MeshoptDecoder, MeshoptEncoder } = tools.meshoptimizer;
   await Promise.all([MeshoptDecoder.ready, MeshoptEncoder.ready]);
   const io = new NodeIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({ 'meshopt.decoder': MeshoptDecoder, 'meshopt.encoder': MeshoptEncoder });
-  const document = await io.read(input), nodesBefore = nodeState(document);
+  const document = await io.read(input), nodesBefore = nodeState(document), scenesBefore = sceneState(document);
   const removed = { hall: 0, gate: 0, court: 0 }, primitives = [], expectedTriangles = [];
   let preservedUnprovenMarkerTriangles = 0;
   const meshes = new Set();
@@ -262,6 +265,7 @@ async function main() {
   const outputBytes = await io.writeBinary(document), decoded = await io.readBinary(outputBytes);
   same(primitiveStates(decoded), expectedTriangles, 'Re-decoded retained triangle attributes/winding');
   same(nodeState(decoded), nodesBefore, 'Node transforms/extras/hierarchy');
+  same(sceneState(decoded), scenesBefore, 'Source scene ownership/proof metadata');
   const imagesAfter = imageSignature(outputBytes);
   same(imagesAfter, imagesBefore, 'Embedded image bytes');
   const outputSummary = summary(outputBytes), outputSha = sha(outputBytes);
@@ -282,7 +286,7 @@ async function main() {
       attributeHashAlgorithm: 'SHA256 over semantic/type/normalization header and cyclically canonical triangle corner attribute bytes.',
       triangleHashes: expectedTriangles, imagePayloadBytesUnchanged: true,
       imagePayloadMultisetSha256: imagesBefore.sha256, imageCount: imagesBefore.count,
-      nodeTransformsExtrasHierarchyUnchanged: true,
+      nodeTransformsExtrasHierarchyUnchanged: true, sourceSceneOwnershipMetadataUnchanged: true,
     },
     encoding: { dependencies: tools.versions, codec: 'EXT_meshopt_compression', writerMethod: 'QUANTIZE enum (codec strategy only)', quantizationTransformsRun: 0, normalFilterPassesAdded: 0, textureConversions: 0, exactWeld: true },
     primitives,

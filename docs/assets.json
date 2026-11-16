@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-16T13:50:58.983139+00:00",
+  "generatedAt": "2026-11-16T17:36:42.733848+00:00",
   "purpose": "Single provenance and license register for every delivered visual asset and shared decoder.",
   "assets": [
     {
@@ -808,8 +808,1804 @@
       "files": [
         {
           "path": "art/blender/snow_roof.py",
-          "bytes": 52379,
-          "sha256": "964d61839e6982530f12e49edec19fd7f3e3b67d31b5d9b250ff9e2f27514919"
+          "bytes": 60406,
+          "sha256": "0b16b4539b90b9986b70c9a0a29bf80f4951a002020e53219ae55f0540c77d39"
+        }
+      ]
+    },
+    {
+      "id": "snow-roof-delivery",
+      "kind": "Baked/compressed derivative scene",
+      "provider": "One Light project",
+      "license": "Original architecture with CC0 surface inputs listed above",
+      "sourceFiles": [
+        "art/blender/snow_roof.py",
+        "art/blender/bake_export.py"
+      ],
+      "bake": {
+        "engine": "Cycles",
+        "blender": "5.3.0",
+        "samples": 64,
+        "resolution": 2048,
+        "resolutionByRegion": {
+          "hall": 4096,
+          "gate": 2048,
+          "court": 4096
+        },
+        "passes": [
+          "DIRECT",
+          "INDIRECT"
+        ],
+        "colorExcluded": true,
+        "materialUV": "TEXCOORD_0",
+        "lightmapUV": "TEXCOORD_1",
+        "runtimeAlias": "uv2",
+        "unwrap": "xatlas/watlas1.0.1, topology-only input; UV0 preserved",
+        "quantity": "diffuse-radiance-per-unit-albedo",
+        "threeLightMapIrradianceMultiplier": 3.141592653589793,
+        "denoising": {
+          "backend": "OpenImageDenoise RT HDR",
+          "device": "METAL",
+          "isolation": "Per-UV-chart with same-chart edge extension; subpixel charts excluded and reported"
+        },
+        "sampling": {
+          "mipLevels": 3,
+          "gutterPixels": 8,
+          "anisotropy": 1,
+          "maxLod": 2
+        },
+        "presets": {
+          "night": {
+            "sourceLighting": true,
+            "fixtures": 1
+          },
+          "dusk": {
+            "world": [
+              0.25,
+              0.31,
+              0.42
+            ],
+            "strength": 0.65,
+            "sun": [
+              1,
+              0.62,
+              0.38
+            ],
+            "energy": 0.45,
+            "fixtures": 0.8
+          },
+          "day": {
+            "world": [
+              0.64,
+              0.77,
+              1
+            ],
+            "strength": 0.75,
+            "sun": [
+              1,
+              0.92,
+              0.8
+            ],
+            "energy": 2.2,
+            "fixtures": 1
+          },
+          "lamp": {
+            "world": [
+              0,
+              0,
+              0
+            ],
+            "strength": 0,
+            "sun": [
+              1,
+              1,
+              1
+            ],
+            "energy": 0,
+            "fixtures": 0
+          }
+        },
+        "sourceNightLighting": {
+          "world": {
+            "name": "Cold winter sky.001",
+            "colour": [
+              0.05000000074505806,
+              0.05000000074505806,
+              0.05000000074505806
+            ],
+            "backgrounds": [
+              {
+                "colour": [
+                  0.1899999976158142,
+                  0.2800000011920929,
+                  0.4699999988079071,
+                  1
+                ],
+                "strength": 0.15000000596046448,
+                "linkedColour": false
+              }
+            ],
+            "environmentTextures": []
+          },
+          "lights": [
+            {
+              "name": "Other altar lamp warm spill",
+              "role": "fixture",
+              "type": "POINT",
+              "energy": 8,
+              "linearColour": [
+                1,
+                0.6784313917160034,
+                0.4000000059604645
+              ],
+              "positionBlender": [
+                -1.4500000476837158,
+                4.75,
+                1.8200000524520874
+              ],
+              "rotationBlender": [
+                0,
+                0,
+                0
+              ],
+              "includedInNight": true
+            },
+            {
+              "name": "Other altar lamp warm spill.001",
+              "role": "fixture",
+              "type": "POINT",
+              "energy": 8,
+              "linearColour": [
+                1,
+                0.6784313917160034,
+                0.4000000059604645
+              ],
+              "positionBlender": [
+                -0.949999988079071,
+                4.75,
+                1.8200000524520874
+              ],
+              "rotationBlender": [
+                0,
+                0,
+                0
+              ],
+              "includedInNight": true
+            },
+            {
+              "name": "Other altar lamp warm spill.002",
+              "role": "fixture",
+              "type": "POINT",
+              "energy": 8,
+              "linearColour": [
+                1,
+                0.6784313917160034,
+                0.4000000059604645
+              ],
+              "positionBlender": [
+                0.949999988079071,
+                4.75,
+                1.8200000524520874
+              ],
+              "rotationBlender": [
+                0,
+                0,
+                0
+              ],
+              "includedInNight": true
+            },
+            {
+              "name": "Other altar lamp warm spill.003",
+              "role": "fixture",
+              "type": "POINT",
+              "energy": 8,
+              "linearColour": [
+                1,
+                0.6784313917160034,
+                0.4000000059604645
+              ],
+              "positionBlender": [
+                1.4500000476837158,
+                4.75,
+                1.8200000524520874
+              ],
+              "rotationBlender": [
+                0,
+                0,
+                0
+              ],
+              "includedInNight": true
+            },
+            {
+              "name": "Visitor flame bake basis",
+              "role": "lamp",
+              "type": "POINT",
+              "energy": 45,
+              "linearColour": [
+                1,
+                0.7411764860153198,
+                0.47058823704719543
+              ],
+              "positionBlender": [
+                0,
+                0.5,
+                2.990000009536743
+              ],
+              "rotationBlender": [
+                0,
+                0,
+                0
+              ],
+              "includedInNight": false
+            },
+            {
+              "name": "Cool court light entering doorway",
+              "role": "ambient",
+              "type": "POINT",
+              "energy": 65,
+              "linearColour": [
+                0.7058823704719543,
+                0.8039215803146362,
+                0.9647058844566345
+              ],
+              "positionBlender": [
+                0,
+                -4.400000095367432,
+                2.200000047683716
+              ],
+              "rotationBlender": [
+                0,
+                0,
+                0
+              ],
+              "includedInNight": true
+            },
+            {
+              "name": "Gate shelf lamp warm spill",
+              "role": "fixture",
+              "type": "POINT",
+              "energy": 8,
+              "linearColour": [
+                1,
+                0.6784313917160034,
+                0.4000000059604645
+              ],
+              "positionBlender": [
+                -2,
+                -19.25,
+                1.7899999618530273
+              ],
+              "rotationBlender": [
+                0,
+                0,
+                0
+              ],
+              "includedInNight": true
+            },
+            {
+              "name": "Gate shelf lamp warm spill.001",
+              "role": "fixture",
+              "type": "POINT",
+              "energy": 8,
+              "linearColour": [
+                1,
+                0.6784313917160034,
+                0.4000000059604645
+              ],
+              "positionBlender": [
+                2,
+                -19.25,
+                1.7899999618530273
+              ],
+              "rotationBlender": [
+                0,
+                0,
+                0
+              ],
+              "includedInNight": true
+            },
+            {
+              "name": "Moon basis",
+              "role": "ambient",
+              "type": "SUN",
+              "energy": 0.44999998807907104,
+              "linearColour": [
+                0.6000000238418579,
+                0.7200000286102295,
+                1
+              ],
+              "positionBlender": [
+                0,
+                0,
+                0
+              ],
+              "rotationBlender": [
+                0.3839724361896515,
+                -0.48869219422340393,
+                -0.6108652353286743
+              ],
+              "includedInNight": true
+            }
+          ],
+          "sourceEmissionStrengths": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            3,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "meaning": "Authored accepted source lighting, restored exactly for night except visitor lamp omitted. Positions/rotations use Blender coordinates; source socket colours are linear."
+        },
+        "sourceBlendSha256": "6e9f59c93565e08a690eaafbc756967ba39e0f4d8ad0094e4520265948360af8",
+        "receiverProfiles": {
+          "court": {
+            "receiverFingerprint": "a6c28664e2f20bf91f036cfdca9a614ffcbe857a2a591239073c144f993cec06",
+            "vertices": 118657,
+            "polygons": 181256,
+            "loops": 543768,
+            "fields": [
+              "worldMatrix",
+              "positions",
+              "topology",
+              "materialIndices",
+              "cornerNormals",
+              "UVMap",
+              "SurfaceTint",
+              "provenHiddenMask",
+              "materialSlots"
+            ],
+            "fieldSha256": {
+              "worldMatrix": "5998e9d1dd9bf48af6af87a1ef8c7783b818ac8329637ada08cc5fb329042376",
+              "positions": "f39a43501cd5185a809c136922ae6ae053ab644101bb7f094e9c459c4911c8fe",
+              "topology": "b3753b9612e3698de3e4fff9305f3fb9dbddde848f9f7008bce1f75f63372f14",
+              "materialIndices": "5f503c9bc87d77b6feb5140b8e679d1cc54bf5ea0c47a22b583d8785bd2d746f",
+              "cornerNormals": "33bfa5d618c58b478386c12129bcefd02f1e1671dc51e0b73de26a7a25c76c48",
+              "UVMap": "94bc0ea0c53e8c1ee5c83618adb24c95b14da3a3137e60e9970352e6c3768471",
+              "SurfaceTint": "2dce03eadd000f2c8c24b54ce84e82401731de2875e4c541eaf39ce6a8953e16",
+              "provenHiddenMask": "64eba238892f6db85266776145cff1ad0c2e34798614d9f6624b73c9a3685e1b",
+              "materialSlots": "9a7695a6b2ecef87b85e1ac746da7c67b9e946d267358539537129018e1a944f"
+            },
+            "lightmapUVFingerprint": "59a83f09c1e75e223976c9fa8f7d2055bd329dc68cc7af74b66ee7b240bfa50b",
+            "unwrapSignature": "9d1f318206da421c14f4cffb31b68b0bdbb6f21f7cd61d9add9fe539b4e64f70",
+            "resolution": 4096
+          },
+          "gate": {
+            "receiverFingerprint": "5429f3b5b2ee4e01c923e609ab2d780631eebcb25c3d337e9111aae63f1e77fa",
+            "vertices": 54690,
+            "polygons": 84844,
+            "loops": 254532,
+            "fields": [
+              "worldMatrix",
+              "positions",
+              "topology",
+              "materialIndices",
+              "cornerNormals",
+              "UVMap",
+              "SurfaceTint",
+              "provenHiddenMask",
+              "materialSlots"
+            ],
+            "fieldSha256": {
+              "worldMatrix": "891fa81a8a491eaff1c5d771f005f642ffffed4e8b2c84f27c419938f2fc4fca",
+              "positions": "52c35cb56f2f82da5f3bc08131deffa514752df63b7298fdd421a93f5e06d0ec",
+              "topology": "d04eb58c113868b9317801f924ad9d48e92904614276f36e14ae1df416058828",
+              "materialIndices": "0351aafec3a04a121f373c9161b094baffae8fcbb1189c261fbf03d8f46df43c",
+              "cornerNormals": "6ff92ccd22d1f724379fc3b399d0213c65b2479caf957d9e59d520f513aa2ebe",
+              "UVMap": "ebfa2802c14b289b4731508b1896ec63485b45c56df737f573b07cb68e8a0190",
+              "SurfaceTint": "6f0206e3c2328a81a27f2c7b90383a361171a4ddf8f117e992f23d2ae9b7a209",
+              "provenHiddenMask": "2ba5453ff41583c2cc76e681a664615e627a789d26785905448b63b489ba87e0",
+              "materialSlots": "c03e259e913ffe9850ae7cfe53d864130b0e4372b26ca82e6ef23b8889080c8d"
+            },
+            "lightmapUVFingerprint": "04c65c99a9987fe52983028c32ea044e2df2812e0a1fd905ed4779eb4b5f18b1",
+            "unwrapSignature": "2fa46f54c0bd78731b278102daa3be2cb11adc18ebf781020166e82680504d2a",
+            "resolution": 2048
+          },
+          "hall": {
+            "receiverFingerprint": "fe19f5e6fe70ddb2ee4a73e03768f9d221164d751316f92a3f36e621ebb1fe66",
+            "vertices": 240877,
+            "polygons": 384524,
+            "loops": 1153572,
+            "fields": [
+              "worldMatrix",
+              "positions",
+              "topology",
+              "materialIndices",
+              "cornerNormals",
+              "UVMap",
+              "SurfaceTint",
+              "provenHiddenMask",
+              "materialSlots"
+            ],
+            "fieldSha256": {
+              "worldMatrix": "5998e9d1dd9bf48af6af87a1ef8c7783b818ac8329637ada08cc5fb329042376",
+              "positions": "46874bf388babe3ccede0743d59c940893b77f90c424c271bb617d58a1308f3b",
+              "topology": "4459bc87c3c6889c4b085f6b25e8d92f78a10c7835bb8f6dd3adb637cb7a261b",
+              "materialIndices": "7752fca205db988828f515072935632973664162dd13fc3146be9f3b1c5daec7",
+              "cornerNormals": "8ce8d24ee0189a43192ac2ab44ace304df329349c6bc3381b8e2a78ee70e4bd8",
+              "UVMap": "d674795c8a866f7666e76d2c57025d385eaf1df6076d6d4dbf077b996fd44d5a",
+              "SurfaceTint": "b7030b8cfd85f77b48e26524db634ca2593443806a959cfe9e027211cfbb6797",
+              "provenHiddenMask": "5923a8cb9fda582182b80afad4238475db48afa75f6f1b1c01ad0d458783d08e",
+              "materialSlots": "674a3934720c37a025e00d33355501c10143eef1f74da2f145033273c7fd6030"
+            },
+            "lightmapUVFingerprint": "baf8910dc8f85538f822373643e2d7b064c2465cc5df5f42e4bb6007df51e659",
+            "unwrapSignature": "30ac5d11939453f0e89735ac0ab0d360e1837b9de02879626e2cc5a95f4524c6",
+            "resolution": 4096
+          }
+        },
+        "generatedCoordinates": {
+          "policy": "implicit-procedural-generated-evaluated-undeformed-source-texspace-v2",
+          "receivers": {
+            "court": {
+              "attribute": "one_light_source_generated",
+              "domain": "POINT",
+              "dataType": "FLOAT_VECTOR",
+              "vertices": 118657,
+              "sha256": "24ab382da36df6747c69ca8db16619798973f58860b70af1d4596f565044b821"
+            },
+            "gate": {
+              "attribute": "one_light_source_generated",
+              "domain": "POINT",
+              "dataType": "FLOAT_VECTOR",
+              "vertices": 54690,
+              "sha256": "476e7a301ae0eeb2b101622ab87adc1fb8a15279bcbbd2b90c2a406dd5816fb8"
+            },
+            "hall": {
+              "attribute": "one_light_source_generated",
+              "domain": "POINT",
+              "dataType": "FLOAT_VECTOR",
+              "vertices": 240877,
+              "sha256": "01cf2755bec0dbd32fe7d8048c213fb903b5a9c961537a60c1e339b433e8c6c3"
+            }
+          },
+          "preparationAuditSha256": "e4c8a05c49440853a06776ce5fe0544df67b201eca3be3ae501f73aa4fb15975"
+        },
+        "preparedPreviewAudit": {
+          "sourceBlendSha256": "6e9f59c93565e08a690eaafbc756967ba39e0f4d8ad0094e4520265948360af8",
+          "mappingPolicy": "implicit-procedural-generated-evaluated-undeformed-source-texspace-v2",
+          "generatedReceivers": {
+            "hall": {
+              "attribute": "one_light_source_generated",
+              "domain": "POINT",
+              "dataType": "FLOAT_VECTOR",
+              "vertices": 240877,
+              "sha256": "01cf2755bec0dbd32fe7d8048c213fb903b5a9c961537a60c1e339b433e8c6c3"
+            },
+            "gate": {
+              "attribute": "one_light_source_generated",
+              "domain": "POINT",
+              "dataType": "FLOAT_VECTOR",
+              "vertices": 54690,
+              "sha256": "476e7a301ae0eeb2b101622ab87adc1fb8a15279bcbbd2b90c2a406dd5816fb8"
+            },
+            "court": {
+              "attribute": "one_light_source_generated",
+              "domain": "POINT",
+              "dataType": "FLOAT_VECTOR",
+              "vertices": 118657,
+              "sha256": "24ab382da36df6747c69ca8db16619798973f58860b70af1d4596f565044b821"
+            }
+          },
+          "preparedBlendSha256": "1377c77832ceeee03df3ecd3aa325c519996177d2672e57ad25c54abd976d01e",
+          "mappingAuditSha256": "e4c8a05c49440853a06776ce5fe0544df67b201eca3be3ae501f73aa4fb15975",
+          "nativePreview": {
+            "image": "art/build/snow-roof-final-prepared-preview/StepBankDetail.png",
+            "imageSha256": "5cb91554cf14a9353cacee13312304b02ccf81d855951fa18d3a340e52b590d6",
+            "metadataSha256": "21c34b3d0f5a2eaebb628967bd2076816d6b2720650d82f7e57689215881b0b3",
+            "samples": 8,
+            "device": "METAL",
+            "denoiser": "OPENIMAGEDENOISE",
+            "approval": "Root accepted native bank mapping. Corrected evaluated-undeformed transfer leaves bank values/geometry/UV0/UV2/SurfaceTint unchanged; no second image required."
+          },
+          "nativeGeneratedProof": {
+            "script": "art/blender/proofs/generated-coordinate-probe.py",
+            "scriptSha256": "3de7bfccb531ad69ca14ccbe0b6c230c511d6291b06174867ee3fb3963cb2d95",
+            "report": "art/build/snow-roof-final/generated-emission-proof.json",
+            "reportSha256": "f959e1ab7bc0750e5157dc3b47da8fa89d2dd19831d79bdcbe7c661c87d310fb",
+            "results": {
+              "sourceObject": "Snow over bench",
+              "sourceBlend": "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-stair-banks-grain.blend",
+              "device": "METAL",
+              "type": "EMIT",
+              "samples": 1,
+              "pixels": 16086,
+              "comparisons": {
+                "sourceGenerated": {
+                  "maxAbs": 0,
+                  "meanAbs": 0,
+                  "p99Abs": 0
+                },
+                "interpolatedPoint": {
+                  "maxAbs": 0.18399745225906372,
+                  "meanAbs": 0.016311705112457275,
+                  "p99Abs": 0.12755729258060455
+                },
+                "evaluatedUndeformed": {
+                  "maxAbs": 1.7881393432617188e-07,
+                  "meanAbs": 6.512379080447772e-09,
+                  "p99Abs": 5.960464477539063e-08
+                }
+              }
+            }
+          },
+          "uv2Fingerprints": {
+            "court": "59a83f09c1e75e223976c9fa8f7d2055bd329dc68cc7af74b66ee7b240bfa50b",
+            "gate": "04c65c99a9987fe52983028c32ea044e2df2812e0a1fd905ed4779eb4b5f18b1",
+            "hall": "baf8910dc8f85538f822373643e2d7b064c2465cc5df5f42e4bb6007df51e659"
+          }
+        },
+        "cachePolicy": "Full scene/source/material/image/lighting identity. Region chart equality reuses UV preparation only, never illumination.",
+        "hiddenUVAllocationProof": {
+          "sha256": "6649e9c080c3b152c743fcc88ad5ebf95690ff8f678742cc5dd84be79ce2e014",
+          "sourceSha256": "6e9f59c93565e08a690eaafbc756967ba39e0f4d8ad0094e4520265948360af8",
+          "rule": "Only whole connected tile components enclosed by an opaque closed roof-snow volume, all vertex/mid-edge/face-center samples at least20mm inside, and no BVH-overlap pairs with the snow boundary. Full render/bake geometry is retained; this only identifies potential UV allocation exclusions.",
+          "summary": {
+            "hall": {
+              "components": 3720,
+              "safeComponents": 2905,
+              "polygons": 61440,
+              "excludedPolygons": 47895,
+              "excludedArea": 275.7121420661424
+            },
+            "court": {
+              "components": 2660,
+              "safeComponents": 1987,
+              "polygons": 44004,
+              "excludedPolygons": 32697,
+              "excludedArea": 185.4433033408277
+            },
+            "gate": {
+              "components": 1104,
+              "safeComponents": 685,
+              "polygons": 18240,
+              "excludedPolygons": 11283,
+              "excludedArea": 51.99351329394267
+            }
+          },
+          "representativeCameraRayChecks": {
+            "EaveDetail": {
+              "samples": 5577,
+              "snowBlocksRay": 5577
+            },
+            "RoofRidgeDetail": {
+              "samples": 5577,
+              "snowBlocksRay": 5577
+            },
+            "Reference_outside": {
+              "samples": 5577,
+              "snowBlocksRay": 5577
+            },
+            "Reference_walk-1": {
+              "samples": 5577,
+              "snowBlocksRay": 5577
+            },
+            "Reference_walk-2": {
+              "samples": 5577,
+              "snowBlocksRay": 5577
+            },
+            "Reference_walk-3": {
+              "samples": 5577,
+              "snowBlocksRay": 5577
+            },
+            "Reference_choose": {
+              "samples": 5577,
+              "snowBlocksRay": 5577
+            },
+            "Reference_lit": {
+              "samples": 5577,
+              "snowBlocksRay": 5577
+            }
+          },
+          "geometryRetained": true,
+          "reservedUV": [
+            0,
+            0
+          ]
+        },
+        "coverage": {
+          "hall": {
+            "charts": 12889,
+            "representedCharts": 12886,
+            "subpixelCharts": 3,
+            "representedSurfaceAreaFraction": 0.9999954938856166,
+            "triangleWithNativeTexelSurfaceAreaFraction": 0.962845080301833,
+            "surfaceAreaInChartsWithAtLeast16CoreTexelsFraction": 0.994920579320491,
+            "totalSurfaceAreaSquareMetres": 2133.7734402953347,
+            "provenOccludedSurfaceAreaSquareMetres": 275.7123065737922,
+            "provenOccludedPolygons": 95790,
+            "coreTexels": 2130438,
+            "overlappingCorePixels": 0,
+            "coverageMeaning": "World-space mapped surface-area weighted; proven enclosed geometry is reported separately. A represented chart may contain subpixel triangles; their native-texel area is also reported. Camera-visible sampled coverage is separate.",
+            "sampledVisiblePixels": 17709,
+            "representedVisiblePixels": 17705,
+            "provenOccludedVisiblePixels": 0,
+            "referenceCameras": [
+              "Reference_outside",
+              "Reference_walk-1",
+              "Reference_walk-2",
+              "Reference_walk-3",
+              "Reference_choose",
+              "Reference_lit"
+            ],
+            "perCamera": {
+              "Reference_outside": {
+                "sampledVisiblePixels": 124,
+                "representedVisiblePixels": 124,
+                "provenOccludedVisiblePixels": 0,
+                "representedCameraVisibleFraction": 1
+              },
+              "Reference_walk-1": {
+                "sampledVisiblePixels": 124,
+                "representedVisiblePixels": 124,
+                "provenOccludedVisiblePixels": 0,
+                "representedCameraVisibleFraction": 1
+              },
+              "Reference_walk-2": {
+                "sampledVisiblePixels": 182,
+                "representedVisiblePixels": 182,
+                "provenOccludedVisiblePixels": 0,
+                "representedCameraVisibleFraction": 1
+              },
+              "Reference_walk-3": {
+                "sampledVisiblePixels": 5759,
+                "representedVisiblePixels": 5759,
+                "provenOccludedVisiblePixels": 0,
+                "representedCameraVisibleFraction": 1
+              },
+              "Reference_choose": {
+                "sampledVisiblePixels": 5760,
+                "representedVisiblePixels": 5756,
+                "provenOccludedVisiblePixels": 0,
+                "representedCameraVisibleFraction": 0.9993055555555556
+              },
+              "Reference_lit": {
+                "sampledVisiblePixels": 5760,
+                "representedVisiblePixels": 5760,
+                "provenOccludedVisiblePixels": 0,
+                "representedCameraVisibleFraction": 1
+              }
+            },
+            "representedCameraVisibleFraction": 0.999774126150545,
+            "samplesPerCamera": [
+              96,
+              60
+            ],
+            "scope": "Coarse first-hit geometry visibility over the source reference cameras; excludes sky. Features smaller than the sampling grid and shading/noise quality are not verified by this metric."
+          },
+          "gate": {
+            "charts": 4369,
+            "representedCharts": 4368,
+            "subpixelCharts": 1,
+            "representedSurfaceAreaFraction": 0.9999999999999999,
+            "triangleWithNativeTexelSurfaceAreaFraction": 0.9637856025355326,
+            "surfaceAreaInChartsWithAtLeast16CoreTexelsFraction": 0.9859705713497867,
+            "totalSurfaceAreaSquareMetres": 409.99404631329475,
+            "provenOccludedSurfaceAreaSquareMetres": 51.99357033398157,
+            "provenOccludedPolygons": 22566,
+            "coreTexels": 472902,
+            "overlappingCorePixels": 0,
+            "coverageMeaning": "World-space mapped surface-area weighted; proven enclosed geometry is reported separately. A represented chart may contain subpixel triangles; their native-texel area is also reported. Camera-visible sampled coverage is separate.",
+            "sampledVisiblePixels": 2164,
+            "representedVisiblePixels": 2164,
+            "provenOccludedVisiblePixels": 0,
+            "referenceCameras": [
+              "Reference_outside",
+              "Reference_walk-1",
+              "Reference_walk-2",
+              "Reference_walk-3",
+              "Reference_choose",
+              "Reference_lit"
+            ],
+            "perCamera": {
+              "Reference_outside": {
+                "sampledVisiblePixels": 538,
+                "representedVisiblePixels": 538,
+                "provenOccludedVisiblePixels": 0,
+                "representedCameraVisibleFraction": 1
+              },
+              "Reference_walk-1": {
+                "sampledVisiblePixels": 538,
+                "representedVisiblePixels": 538,
+                "provenOccludedVisiblePixels": 0,
+                "representedCameraVisibleFraction": 1
+              },
+              "Reference_walk-2": {
+                "sampledVisiblePixels": 1088,
+                "representedVisiblePixels": 1088,
+                "provenOccludedVisiblePixels": 0,
+                "representedCameraVisibleFraction": 1
+              },
+              "Reference_walk-3": {
+                "sampledVisiblePixels": 0,
+                "representedVisiblePixels": 0,
+                "provenOccludedVisiblePixels": 0,
+                "representedCameraVisibleFraction": null
+              },
+              "Reference_choose": {
+                "sampledVisiblePixels": 0,
+                "representedVisiblePixels": 0,
+                "provenOccludedVisiblePixels": 0,
+                "representedCameraVisibleFraction": null
+              },
+              "Reference_lit": {
+                "sampledVisiblePixels": 0,
+                "representedVisiblePixels": 0,
+                "provenOccludedVisiblePixels": 0,
+                "representedCameraVisibleFraction": null
+              }
+            },
+            "representedCameraVisibleFraction": 1,
+            "samplesPerCamera": [
+              96,
+              60
+            ],
+            "scope": "Coarse first-hit geometry visibility over the source reference cameras; excludes sky. Features smaller than the sampling grid and shading/noise quality are not verified by this metric."
+          },
+          "court": {
+            "charts": 6631,
+            "representedCharts": 6630,
+            "subpixelCharts": 1,
+            "representedSurfaceAreaFraction": 1,
+            "triangleWithNativeTexelSurfaceAreaFraction": 0.9908133461790574,
+            "surfaceAreaInChartsWithAtLeast16CoreTexelsFraction": 0.998736337335152,
+            "totalSurfaceAreaSquareMetres": 5186.2199949044225,
+            "provenOccludedSurfaceAreaSquareMetres": 185.4434255075736,
+            "provenOccludedPolygons": 65394,
+            "coreTexels": 6993500,
+            "overlappingCorePixels": 0,
+            "coverageMeaning": "World-space mapped surface-area weighted; proven enclosed geometry is reported separately. A represented chart may contain subpixel triangles; their native-texel area is also reported. Camera-visible sampled coverage is separate.",
+            "sampledVisiblePixels": 7601,
+            "representedVisiblePixels": 7601,
+            "provenOccludedVisiblePixels": 0,
+            "referenceCameras": [
+              "Reference_outside",
+              "Reference_walk-1",
+              "Reference_walk-2",
+              "Reference_walk-3",
+              "Reference_choose",
+              "Reference_lit"
+            ],
+            "perCamera": {
+              "Reference_outside": {
+                "sampledVisiblePixels": 2541,
+                "representedVisiblePixels": 2541,
+                "provenOccludedVisiblePixels": 0,
+                "representedCameraVisibleFraction": 1
+              },
+              "Reference_walk-1": {
+                "sampledVisiblePixels": 2541,
+                "representedVisiblePixels": 2541,
+                "provenOccludedVisiblePixels": 0,
+                "representedCameraVisibleFraction": 1
+              },
+              "Reference_walk-2": {
+                "sampledVisiblePixels": 2518,
+                "representedVisiblePixels": 2518,
+                "provenOccludedVisiblePixels": 0,
+                "representedCameraVisibleFraction": 1
+              },
+              "Reference_walk-3": {
+                "sampledVisiblePixels": 1,
+                "representedVisiblePixels": 1,
+                "provenOccludedVisiblePixels": 0,
+                "representedCameraVisibleFraction": 1
+              },
+              "Reference_choose": {
+                "sampledVisiblePixels": 0,
+                "representedVisiblePixels": 0,
+                "provenOccludedVisiblePixels": 0,
+                "representedCameraVisibleFraction": null
+              },
+              "Reference_lit": {
+                "sampledVisiblePixels": 0,
+                "representedVisiblePixels": 0,
+                "provenOccludedVisiblePixels": 0,
+                "representedCameraVisibleFraction": null
+              }
+            },
+            "representedCameraVisibleFraction": 1,
+            "samplesPerCamera": [
+              96,
+              60
+            ],
+            "scope": "Coarse first-hit geometry visibility over the source reference cameras; excludes sky. Features smaller than the sampling grid and shading/noise quality are not verified by this metric."
+          }
+        },
+        "totalSeconds": 1956.992
+      },
+      "compression": {
+        "gltfTransform": "4.5.1",
+        "ktxSoftware": "4.4.2",
+        "mesh": "EXT_meshopt_compression",
+        "textures": "KHR_texture_basisu",
+        "materialProfile": "mobile",
+        "materialRecipe": {
+          "profile": "mobile",
+          "sourceRawGLB": "snow-roof.raw.glb",
+          "sourceRawGLBSha256": "0deec9fd71d4c49e666e5b091f15af3067efbcdb7e3c350bcb85a2bf7f980dea",
+          "originalPixelInput": true,
+          "gltfTransform": "4.5.1",
+          "ktxSoftware": "4.4.2",
+          "metadataSource": "Actual GLB material/image bindings and embedded KTX2 DFD/header; codec and dimensions are not inferred from filenames.",
+          "normals": {
+            "codec": "UASTC",
+            "maximumSize": 512,
+            "quality": 2,
+            "rdo": false,
+            "slotPattern": "*normal*",
+            "retainedAsNormalData": true
+          },
+          "otherMaps": {
+            "codec": "ETC1S",
+            "maximumSize": 512,
+            "quality": 255,
+            "compression": 4,
+            "endpointRdo": false,
+            "selectorRdo": false
+          },
+          "screenBase": {
+            "sourceImageName": "chinese_screen_panels_diff_1k",
+            "maximumSize": 1024,
+            "codec": "ETC1S"
+          }
+        },
+        "lightmapCodec": "uastc",
+        "lightmaps": "Basis UASTC + Zstandard, per-pass log2 HDR in linear KTX2 samples; decode logRange/logGain before lighting",
+        "transformOrder": [
+          "dedup",
+          "uastc-normal-512",
+          "etc1s-screen-1024",
+          "etc1s-other-512",
+          "meshopt"
+        ],
+        "uvVerification": {
+          "meshes": 3,
+          "primitives": 42,
+          "colourPrimitives": 42,
+          "regions": [
+            "court",
+            "gate",
+            "hall"
+          ],
+          "roughnessClamps": [
+            {
+              "name": "Tarnished gilded edges",
+              "minimum": 0.45
+            },
+            {
+              "name": "Aged bronze",
+              "minimum": 0.48
+            },
+            {
+              "name": "Dark hall paving 1",
+              "minimum": 0.58
+            },
+            {
+              "name": "Walk-polished worn dark stone",
+              "minimum": 0.43
+            },
+            {
+              "name": "chinese_console_table",
+              "minimum": 0.36
+            },
+            {
+              "name": "chinese_screen_panels",
+              "minimum": 0.36
+            }
+          ],
+          "primitiveRoughness": [
+            {
+              "key": "0/0",
+              "material": "Snow settled dry grains",
+              "minimum": null
+            },
+            {
+              "key": "0/1",
+              "material": "Patched lime plaster",
+              "minimum": null
+            },
+            {
+              "key": "0/2",
+              "material": "Worn granite",
+              "minimum": null
+            },
+            {
+              "key": "0/3",
+              "material": "Aged red painted timber",
+              "minimum": null
+            },
+            {
+              "key": "0/4",
+              "material": "Dark old timber",
+              "minimum": null
+            },
+            {
+              "key": "0/5",
+              "material": "Side hall roof tiles",
+              "minimum": null
+            },
+            {
+              "key": "1/0",
+              "material": "Patched lime plaster",
+              "minimum": null
+            },
+            {
+              "key": "1/1",
+              "material": "Worn granite",
+              "minimum": null
+            },
+            {
+              "key": "1/2",
+              "material": "Dark old timber",
+              "minimum": null
+            },
+            {
+              "key": "1/3",
+              "material": "Aged red painted timber",
+              "minimum": null
+            },
+            {
+              "key": "1/4",
+              "material": "Aged red painted timber",
+              "minimum": null
+            },
+            {
+              "key": "1/5",
+              "material": "Tarnished gilded edges",
+              "minimum": 0.45
+            },
+            {
+              "key": "1/6",
+              "material": "Side hall roof tiles",
+              "minimum": null
+            },
+            {
+              "key": "1/7",
+              "material": "Snow settled dry grains",
+              "minimum": null
+            },
+            {
+              "key": "1/8",
+              "material": "Aged bronze",
+              "minimum": 0.48
+            },
+            {
+              "key": "1/9",
+              "material": "Other lamps warm wick",
+              "minimum": null
+            },
+            {
+              "key": "2/0",
+              "material": "Dark hall paving 1",
+              "minimum": 0.58
+            },
+            {
+              "key": "2/1",
+              "material": "Dark hall paving 1",
+              "minimum": 0.58
+            },
+            {
+              "key": "2/2",
+              "material": "Dark hall paving 1",
+              "minimum": 0.58
+            },
+            {
+              "key": "2/3",
+              "material": "Walk-polished worn dark stone",
+              "minimum": 0.43
+            },
+            {
+              "key": "2/4",
+              "material": "Weathered brick footings",
+              "minimum": null
+            },
+            {
+              "key": "2/5",
+              "material": "Patched lime plaster",
+              "minimum": null
+            },
+            {
+              "key": "2/6",
+              "material": "Ivory window paper",
+              "minimum": null
+            },
+            {
+              "key": "2/7",
+              "material": "Aged red painted timber",
+              "minimum": null
+            },
+            {
+              "key": "2/8",
+              "material": "Worn granite",
+              "minimum": null
+            },
+            {
+              "key": "2/9",
+              "material": "Dark old timber",
+              "minimum": null
+            },
+            {
+              "key": "2/10",
+              "material": "Aged bronze",
+              "minimum": 0.48
+            },
+            {
+              "key": "2/11",
+              "material": "Aged red painted timber",
+              "minimum": null
+            },
+            {
+              "key": "2/12",
+              "material": "Tarnished gilded edges",
+              "minimum": 0.45
+            },
+            {
+              "key": "2/13",
+              "material": "Side hall roof tiles",
+              "minimum": null
+            },
+            {
+              "key": "2/14",
+              "material": "Snow settled dry grains",
+              "minimum": null
+            },
+            {
+              "key": "2/15",
+              "material": "Cloudy icicle ice",
+              "minimum": null
+            },
+            {
+              "key": "2/16",
+              "material": "chinese_console_table",
+              "minimum": 0.36
+            },
+            {
+              "key": "2/17",
+              "material": "chinese_screen_panels",
+              "minimum": 0.36
+            },
+            {
+              "key": "2/18",
+              "material": "chinese_screen_panels",
+              "minimum": 0.36
+            },
+            {
+              "key": "2/19",
+              "material": "chinese_screen_panels",
+              "minimum": 0.36
+            },
+            {
+              "key": "2/20",
+              "material": "Other lamps warm wick",
+              "minimum": null
+            },
+            {
+              "key": "2/21",
+              "material": "Soft cold incense ash",
+              "minimum": null
+            },
+            {
+              "key": "2/22",
+              "material": "Soot-darkened clay",
+              "minimum": null
+            },
+            {
+              "key": "2/23",
+              "material": "Worn woven cushion cloth",
+              "minimum": null
+            },
+            {
+              "key": "2/24",
+              "material": "Cushion stitched piping",
+              "minimum": null
+            },
+            {
+              "key": "2/25",
+              "material": "Dry straw",
+              "minimum": null
+            }
+          ],
+          "extensions": [
+            "EXT_meshopt_compression",
+            "KHR_materials_emissive_strength",
+            "KHR_mesh_quantization",
+            "KHR_texture_basisu"
+          ]
+        },
+        "images": [
+          {
+            "image": 0,
+            "name": "normal",
+            "roles": [
+              "normalTexture"
+            ],
+            "references": [
+              {
+                "material": "Snow settled dry grains",
+                "slot": "normalTexture",
+                "texture": 1
+              }
+            ],
+            "width": 512,
+            "height": 512,
+            "mipLevels": 10,
+            "transfer": "linear",
+            "codec": "UASTC",
+            "bytes": 305677,
+            "sha256": "5fb386b84f8d99cd7ed20feea408f6fe73fe5e480cb3de4542463f00fa59ad43"
+          },
+          {
+            "image": 1,
+            "name": "diffuse",
+            "roles": [
+              "baseColorTexture"
+            ],
+            "references": [
+              {
+                "material": "Snow settled dry grains",
+                "slot": "pbrMetallicRoughness.baseColorTexture",
+                "texture": 0
+              }
+            ],
+            "width": 512,
+            "height": 512,
+            "mipLevels": 10,
+            "transfer": "sRGB",
+            "codec": "ETC1S",
+            "bytes": 33683,
+            "sha256": "41b520a67cde123b7826ea701f5d03805f6c077d9f75b0ba5d465ef4d097d72e"
+          },
+          {
+            "image": 2,
+            "name": "roughness",
+            "roles": [
+              "metallicRoughnessTexture"
+            ],
+            "references": [
+              {
+                "material": "Snow settled dry grains",
+                "slot": "pbrMetallicRoughness.metallicRoughnessTexture",
+                "texture": 2
+              }
+            ],
+            "width": 512,
+            "height": 512,
+            "mipLevels": 10,
+            "transfer": "linear",
+            "codec": "ETC1S",
+            "bytes": 77542,
+            "sha256": "51b170739ea9da03200bd2895abcacf547431eb61db8477b51d2e18fa7c71af5"
+          },
+          {
+            "image": 3,
+            "name": "normal",
+            "roles": [
+              "normalTexture"
+            ],
+            "references": [
+              {
+                "material": "Patched lime plaster",
+                "slot": "normalTexture",
+                "texture": 4
+              }
+            ],
+            "width": 512,
+            "height": 512,
+            "mipLevels": 10,
+            "transfer": "linear",
+            "codec": "UASTC",
+            "bytes": 277475,
+            "sha256": "2d3274589f5abba8e246964c5cfdee38f64bc1497fdbedea80576d70ac381f51"
+          },
+          {
+            "image": 4,
+            "name": "diffuse",
+            "roles": [
+              "baseColorTexture"
+            ],
+            "references": [
+              {
+                "material": "Patched lime plaster",
+                "slot": "pbrMetallicRoughness.baseColorTexture",
+                "texture": 3
+              }
+            ],
+            "width": 512,
+            "height": 512,
+            "mipLevels": 10,
+            "transfer": "sRGB",
+            "codec": "ETC1S",
+            "bytes": 95504,
+            "sha256": "d49cfb4b7f31f13d296d1c1a3de66208f4ef6d2f264bcf35977c218f579dd9cc"
+          },
+          {
+            "image": 5,
+            "name": "roughness",
+            "roles": [
+              "metallicRoughnessTexture"
+            ],
+            "references": [
+              {
+                "material": "Patched lime plaster",
+                "slot": "pbrMetallicRoughness.metallicRoughnessTexture",
+                "texture": 5
+              }
+            ],
+            "width": 512,
+            "height": 512,
+            "mipLevels": 10,
+            "transfer": "linear",
+            "codec": "ETC1S",
+            "bytes": 79798,
+            "sha256": "7951464f73afc6ab1bf84502d1ade2f36b04ed41b08748a64a4353433607649a"
+          },
+          {
+            "image": 6,
+            "name": "normal",
+            "roles": [
+              "normalTexture"
+            ],
+            "references": [
+              {
+                "material": "Worn granite",
+                "slot": "normalTexture",
+                "texture": 7
+              },
+              {
+                "material": "Dark hall paving 1",
+                "slot": "normalTexture",
+                "texture": 7
+              },
+              {
+                "material": "Walk-polished worn dark stone",
+                "slot": "normalTexture",
+                "texture": 7
+              }
+            ],
+            "width": 512,
+            "height": 512,
+            "mipLevels": 10,
+            "transfer": "linear",
+            "codec": "UASTC",
+            "bytes": 306600,
+            "sha256": "4a8aab04d2b6cbf16ab233352bf2354d324a71c7a6a30d145c98d211d60c141e"
+          },
+          {
+            "image": 7,
+            "name": "diffuse",
+            "roles": [
+              "baseColorTexture"
+            ],
+            "references": [
+              {
+                "material": "Worn granite",
+                "slot": "pbrMetallicRoughness.baseColorTexture",
+                "texture": 6
+              },
+              {
+                "material": "Dark hall paving 1",
+                "slot": "pbrMetallicRoughness.baseColorTexture",
+                "texture": 6
+              },
+              {
+                "material": "Walk-polished worn dark stone",
+                "slot": "pbrMetallicRoughness.baseColorTexture",
+                "texture": 6
+              }
+            ],
+            "width": 512,
+            "height": 512,
+            "mipLevels": 10,
+            "transfer": "sRGB",
+            "codec": "ETC1S",
+            "bytes": 90514,
+            "sha256": "878f19ead920c9cce99728d4209f2c8dd83caca4e40fc93d939b30b86b584ae3"
+          },
+          {
+            "image": 8,
+            "name": "roughness",
+            "roles": [
+              "metallicRoughnessTexture"
+            ],
+            "references": [
+              {
+                "material": "Worn granite",
+                "slot": "pbrMetallicRoughness.metallicRoughnessTexture",
+                "texture": 8
+              }
+            ],
+            "width": 512,
+            "height": 512,
+            "mipLevels": 10,
+            "transfer": "linear",
+            "codec": "ETC1S",
+            "bytes": 36261,
+            "sha256": "e9c5f9a4680c4799180db9f7e561b9e5eed5ef6b66aa6a11965e63cf9dc77c2c"
+          },
+          {
+            "image": 9,
+            "name": "normal",
+            "roles": [
+              "normalTexture"
+            ],
+            "references": [
+              {
+                "material": "Aged red painted timber",
+                "slot": "normalTexture",
+                "texture": 10
+              },
+              {
+                "material": "Dark old timber",
+                "slot": "normalTexture",
+                "texture": 10
+              }
+            ],
+            "width": 512,
+            "height": 512,
+            "mipLevels": 10,
+            "transfer": "linear",
+            "codec": "UASTC",
+            "bytes": 285384,
+            "sha256": "a73758ab49c1ff7ef1f9879f98ba1b93c8b760b300f6c9d32e6ca716a8f9c166"
+          },
+          {
+            "image": 10,
+            "name": "diffuse",
+            "roles": [
+              "baseColorTexture"
+            ],
+            "references": [
+              {
+                "material": "Aged red painted timber",
+                "slot": "pbrMetallicRoughness.baseColorTexture",
+                "texture": 9
+              },
+              {
+                "material": "Dark old timber",
+                "slot": "pbrMetallicRoughness.baseColorTexture",
+                "texture": 9
+              }
+            ],
+            "width": 512,
+            "height": 512,
+            "mipLevels": 10,
+            "transfer": "sRGB",
+            "codec": "ETC1S",
+            "bytes": 81280,
+            "sha256": "211af6ac4b13def153dbb575910cb61971903b7ee71308e1975495de6f816e51"
+          },
+          {
+            "image": 11,
+            "name": "roughness",
+            "roles": [
+              "metallicRoughnessTexture"
+            ],
+            "references": [
+              {
+                "material": "Aged red painted timber",
+                "slot": "pbrMetallicRoughness.metallicRoughnessTexture",
+                "texture": 11
+              },
+              {
+                "material": "Dark old timber",
+                "slot": "pbrMetallicRoughness.metallicRoughnessTexture",
+                "texture": 11
+              }
+            ],
+            "width": 512,
+            "height": 512,
+            "mipLevels": 10,
+            "transfer": "linear",
+            "codec": "ETC1S",
+            "bytes": 11355,
+            "sha256": "b389dd13f0bc1b6b1af3cbe9cec78e6c918a2e1eca99c8183c2bcb9aeb1a5196"
+          },
+          {
+            "image": 12,
+            "name": "normal",
+            "roles": [
+              "normalTexture"
+            ],
+            "references": [
+              {
+                "material": "Side hall roof tiles",
+                "slot": "normalTexture",
+                "texture": 13
+              }
+            ],
+            "width": 512,
+            "height": 512,
+            "mipLevels": 10,
+            "transfer": "linear",
+            "codec": "UASTC",
+            "bytes": 299588,
+            "sha256": "9938507048e8b99b60ad9a126bd4abe2d6bb72832b4b00cee5c8afe768f37082"
+          },
+          {
+            "image": 13,
+            "name": "diffuse",
+            "roles": [
+              "baseColorTexture"
+            ],
+            "references": [
+              {
+                "material": "Side hall roof tiles",
+                "slot": "pbrMetallicRoughness.baseColorTexture",
+                "texture": 12
+              }
+            ],
+            "width": 512,
+            "height": 512,
+            "mipLevels": 10,
+            "transfer": "sRGB",
+            "codec": "ETC1S",
+            "bytes": 100888,
+            "sha256": "1636ebac0c5280efc127b56fcbeba1f9bf79c7737b5e8596fd42a24792650dd9"
+          },
+          {
+            "image": 14,
+            "name": "roughness",
+            "roles": [
+              "metallicRoughnessTexture"
+            ],
+            "references": [
+              {
+                "material": "Side hall roof tiles",
+                "slot": "pbrMetallicRoughness.metallicRoughnessTexture",
+                "texture": 14
+              }
+            ],
+            "width": 512,
+            "height": 512,
+            "mipLevels": 10,
+            "transfer": "linear",
+            "codec": "ETC1S",
+            "bytes": 50577,
+            "sha256": "de0c0f21cc64b31ec30f08896fa6a84d190d22357de00f8c19a483f907992b5d"
+          },
+          {
+            "image": 15,
+            "name": "normal",
+            "roles": [
+              "normalTexture"
+            ],
+            "references": [
+              {
+                "material": "Weathered brick footings",
+                "slot": "normalTexture",
+                "texture": 16
+              }
+            ],
+            "width": 512,
+            "height": 512,
+            "mipLevels": 10,
+            "transfer": "linear",
+            "codec": "UASTC",
+            "bytes": 323024,
+            "sha256": "9783fe3c7d23253b251d4297c9fb14df582c53bc0c03caf4fad54a886aa8a86f"
+          },
+          {
+            "image": 16,
+            "name": "diffuse",
+            "roles": [
+              "baseColorTexture"
+            ],
+            "references": [
+              {
+                "material": "Weathered brick footings",
+                "slot": "pbrMetallicRoughness.baseColorTexture",
+                "texture": 15
+              }
+            ],
+            "width": 512,
+            "height": 512,
+            "mipLevels": 10,
+            "transfer": "sRGB",
+            "codec": "ETC1S",
+            "bytes": 96508,
+            "sha256": "a97ba0307ca4cdc3f76aae2febdca31dd8948d169c35cd89c24b35ffde171145"
+          },
+          {
+            "image": 17,
+            "name": "roughness",
+            "roles": [
+              "metallicRoughnessTexture"
+            ],
+            "references": [
+              {
+                "material": "Weathered brick footings",
+                "slot": "pbrMetallicRoughness.metallicRoughnessTexture",
+                "texture": 17
+              }
+            ],
+            "width": 512,
+            "height": 512,
+            "mipLevels": 10,
+            "transfer": "linear",
+            "codec": "ETC1S",
+            "bytes": 20910,
+            "sha256": "5ec60d3cf6d274b7337bef18f60737873bc8551dfbc5a52c26f929be038837b5"
+          },
+          {
+            "image": 18,
+            "name": "chinese_console_table_nor_gl_1k",
+            "roles": [
+              "normalTexture"
+            ],
+            "references": [
+              {
+                "material": "chinese_console_table",
+                "slot": "normalTexture",
+                "texture": 19
+              }
+            ],
+            "width": 512,
+            "height": 512,
+            "mipLevels": 10,
+            "transfer": "linear",
+            "codec": "UASTC",
+            "bytes": 285372,
+            "sha256": "ef2fe7263b56209c705bea1f6919f41bbc26b6e5de9ae7abfd8c8b581419edd2"
+          },
+          {
+            "image": 19,
+            "name": "chinese_console_table_diff_1k",
+            "roles": [
+              "baseColorTexture"
+            ],
+            "references": [
+              {
+                "material": "chinese_console_table",
+                "slot": "pbrMetallicRoughness.baseColorTexture",
+                "texture": 18
+              }
+            ],
+            "width": 512,
+            "height": 512,
+            "mipLevels": 10,
+            "transfer": "sRGB",
+            "codec": "ETC1S",
+            "bytes": 94898,
+            "sha256": "7b071ff2d8e42643d1ed012f5acfa898c75c201edaae6689753d4fbc20fc91ce"
+          },
+          {
+            "image": 20,
+            "name": "chinese_console_table_arm_1k",
+            "roles": [
+              "metallicRoughnessTexture"
+            ],
+            "references": [
+              {
+                "material": "chinese_console_table",
+                "slot": "pbrMetallicRoughness.metallicRoughnessTexture",
+                "texture": 20
+              }
+            ],
+            "width": 512,
+            "height": 512,
+            "mipLevels": 10,
+            "transfer": "linear",
+            "codec": "ETC1S",
+            "bytes": 67277,
+            "sha256": "5cdb42561487df0e0b3af8b7ec6f5bfba76a95d58f20c7b4bcba189752f89893"
+          },
+          {
+            "image": 21,
+            "name": "chinese_screen_panels_nor_gl_1k",
+            "roles": [
+              "normalTexture"
+            ],
+            "references": [
+              {
+                "material": "chinese_screen_panels",
+                "slot": "normalTexture",
+                "texture": 22
+              }
+            ],
+            "width": 512,
+            "height": 512,
+            "mipLevels": 10,
+            "transfer": "linear",
+            "codec": "UASTC",
+            "bytes": 210281,
+            "sha256": "277ee6a7aa06de36aa5e10b1431ce529506e022ae1f5d32d5261eadb37d8dfb5"
+          },
+          {
+            "image": 22,
+            "name": "chinese_screen_panels_diff_1k",
+            "roles": [
+              "baseColorTexture"
+            ],
+            "references": [
+              {
+                "material": "chinese_screen_panels",
+                "slot": "pbrMetallicRoughness.baseColorTexture",
+                "texture": 21
+              }
+            ],
+            "width": 1024,
+            "height": 1024,
+            "mipLevels": 11,
+            "transfer": "sRGB",
+            "codec": "ETC1S",
+            "bytes": 237878,
+            "sha256": "8c5004070f7366c320c7bf3f85ee019448cb5bc809f16c2199d4f1295410280b"
+          },
+          {
+            "image": 23,
+            "name": "chinese_screen_panels_arm_1k",
+            "roles": [
+              "metallicRoughnessTexture"
+            ],
+            "references": [
+              {
+                "material": "chinese_screen_panels",
+                "slot": "pbrMetallicRoughness.metallicRoughnessTexture",
+                "texture": 23
+              }
+            ],
+            "width": 512,
+            "height": 512,
+            "mipLevels": 10,
+            "transfer": "linear",
+            "codec": "ETC1S",
+            "bytes": 69073,
+            "sha256": "415932a6188a517957d499a33121cb8671b8ae85932e40fa57189951e1179285"
+          }
+        ],
+        "uniqueMaterialImageBytes": 3537347,
+        "bytesByRoleUnion": {
+          "normalTexture": 2293401,
+          "baseColorTexture": 831153,
+          "metallicRoughnessTexture": 412793
+        },
+        "geometryCounts": {
+          "vertices": 648776,
+          "triangles": 466874,
+          "geometryBytes": 9803782
+        },
+        "geometryProfile": "proven-hidden-export-prune",
+        "optimization": {
+          "helper": {
+            "path": "scripts/prune-validated-baked.mjs",
+            "sha256": "85794e6fa713ca4901888abc658b0877b8a5e92f569b49f44c9b9567f4093bed"
+          },
+          "receipt": {
+            "uri": "snow-roof.receipt.json",
+            "sha256": "3025c54649efd7ae66e146022df7e0d3d627e0ee33622d269c6be31f65c51702",
+            "profile": "snow-roof-final-mobile-postbatch-6e9f-v2"
+          },
+          "crossProfileProof": {
+            "uri": "geometry-equivalence.json",
+            "sha256": "8dd442cbdc1ccb96c33e7f1e4800304c21db4f6ed27358dc0af4b366ac075202"
+          },
+          "inputs": {
+            "proof": {
+              "path": "art/blender/proofs/snow-roof-final-hidden-tiles.json",
+              "sha256": "6649e9c080c3b152c743fcc88ad5ebf95690ff8f678742cc5dd84be79ce2e014"
+            },
+            "sourceBlend": {
+              "path": "art/build/snow-roof-stair-banks-grain.blend",
+              "sha256": "6e9f59c93565e08a690eaafbc756967ba39e0f4d8ad0094e4520265948360af8"
+            },
+            "preparedBlend": {
+              "path": "art/build/snow-roof-final/snow-roof-prepared.blend",
+              "sha256": "6ed42644cd3a6c1026b079740957280df0274e9e9a0eaf5f8d3da514725079c1"
+            },
+            "raw": {
+              "path": "art/build/snow-roof-final/snow-roof.raw.glb",
+              "sha256": "0deec9fd71d4c49e666e5b091f15af3067efbcdb7e3c350bcb85a2bf7f980dea"
+            },
+            "input": {
+              "path": "art/build/snow-roof-final-mobile/snow-roof.glb",
+              "sha256": "18a924b6840598e284197c5a07ff9f3f731ebe220aad720bdbf149a786784237"
+            }
+          },
+          "removedTriangles": 183750,
+          "removedVertices": 307515,
+          "retainedTriangleAttributesBitExact": true,
+          "windingPreserved": true,
+          "imagePayloadBytesUnchanged": true,
+          "fullSourceBakeOccludersRetained": true
+        }
+      },
+      "files": [
+        {
+          "path": "web/public/places/snow-roof/snow-roof.glb",
+          "bytes": 13452396,
+          "sha256": "2a110e13205d4426c812806c2396a4460dd4bc551fe118ebe8db605fdefea003"
+        },
+        {
+          "path": "web/public/places/snow-roof/hall-night.ktx2",
+          "bytes": 5653549,
+          "sha256": "1a6823d365516576ddac96198fdb8c4fe097c17ad8e7c959f10658db0ac8da1c"
+        },
+        {
+          "path": "web/public/places/snow-roof/hall-dusk.ktx2",
+          "bytes": 5665246,
+          "sha256": "63a3f9a934e437b72617324fbf82a0b1d8fcd45d4199fa43f1bd1e3f8404d1a3"
+        },
+        {
+          "path": "web/public/places/snow-roof/hall-day.ktx2",
+          "bytes": 5755783,
+          "sha256": "468821d2ab38da5bd467fbc39173b8ba34f6b70e549f753f7470b9e0a16f48d5"
+        },
+        {
+          "path": "web/public/places/snow-roof/hall-lamp.ktx2",
+          "bytes": 2660643,
+          "sha256": "471af0829a7bbb9bb709303151213a3b046be9e5b0ee4ce8b1568e0d6c7ce090"
+        },
+        {
+          "path": "web/public/places/snow-roof/gate-night.ktx2",
+          "bytes": 1508240,
+          "sha256": "c08e78ac54ecf37262c9cb46141f7435779bb7fb08320ed4756885256251f1e6"
+        },
+        {
+          "path": "web/public/places/snow-roof/gate-dusk.ktx2",
+          "bytes": 1535660,
+          "sha256": "07959525291bb978ce7696174d71cf1c772730f8c234e6ff69c8468c748400ba"
+        },
+        {
+          "path": "web/public/places/snow-roof/gate-day.ktx2",
+          "bytes": 1575585,
+          "sha256": "1d1e7ece7433761ee7cc912476b65979d8dde28a159209a5292f5d350c509245"
+        },
+        {
+          "path": "web/public/places/snow-roof/gate-lamp.ktx2",
+          "bytes": 645370,
+          "sha256": "caa277045f1e6212107a71af75bfc0999c9467ee474ea9af85b8e3260e65cad5"
+        },
+        {
+          "path": "web/public/places/snow-roof/court-night.ktx2",
+          "bytes": 6180701,
+          "sha256": "a2bdd8a93af6641bdcc6a1b0562b4e30697170a18ae2244eb3412073ea55821d"
+        },
+        {
+          "path": "web/public/places/snow-roof/court-dusk.ktx2",
+          "bytes": 5542161,
+          "sha256": "a59257178f2efa766df5e3d52aa29f59a0c4bb1401f742ddb6081adf3cbc73e4"
+        },
+        {
+          "path": "web/public/places/snow-roof/court-day.ktx2",
+          "bytes": 5519580,
+          "sha256": "a04ab58e7d4e08f9a496f4051eca4e55a055d167f9dfa4675749c01197c115b9"
+        },
+        {
+          "path": "web/public/places/snow-roof/court-lamp.ktx2",
+          "bytes": 1101411,
+          "sha256": "34e0a1fff130f45dc6232e2ec9181824ea1aaef250b55d9cc7a44456787a7cc9"
+        },
+        {
+          "path": "web/public/places/snow-roof/snow-roof.receipt.json",
+          "bytes": 20692,
+          "sha256": "3025c54649efd7ae66e146022df7e0d3d627e0ee33622d269c6be31f65c51702"
+        },
+        {
+          "path": "web/public/places/snow-roof/geometry-equivalence.json",
+          "bytes": 82724,
+          "sha256": "8dd442cbdc1ccb96c33e7f1e4800304c21db4f6ed27358dc0af4b366ac075202"
         }
       ]
     }

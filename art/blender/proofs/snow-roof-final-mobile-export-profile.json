@@ -1,12 +1,12 @@
 {
-  "id": "snow-roof-final-mobile-6e9f-v1",
+  "id": "snow-roof-final-mobile-postbatch-6e9f-v2",
   "variant": "mobile",
   "hashes": {
     "proof": "6649e9c080c3b152c743fcc88ad5ebf95690ff8f678742cc5dd84be79ce2e014",
     "sourceBlend": "6e9f59c93565e08a690eaafbc756967ba39e0f4d8ad0094e4520265948360af8",
     "preparedBlend": "6ed42644cd3a6c1026b079740957280df0274e9e9a0eaf5f8d3da514725079c1",
-    "raw": "42def075058bc8d7d6673645678448a1d74173443742a529d8316afee6e47196",
-    "input": "bf8de4afc5692771d2569780942e7ee4b419a5b7b6cd819f95bdff8497543069"
+    "raw": "0deec9fd71d4c49e666e5b091f15af3067efbcdb7e3c350bcb85a2bf7f980dea",
+    "input": "18a924b6840598e284197c5a07ff9f3f731ebe220aad720bdbf149a786784237"
   },
   "regions": {
     "hall": {
@@ -35,19 +35,19 @@
     }
   },
   "input": {
-    "bytes": 16645632,
+    "bytes": 16648936,
     "vertices": 956291,
     "triangles": 650624,
     "images": 24,
     "imageBytes": 3537347
   },
   "output": {
-    "bytes": 13449088,
+    "bytes": 13452396,
     "vertices": 648776,
     "triangles": 466874,
     "images": 24,
     "imageBytes": 3537347,
-    "sha256": "9f34007cc49bb899c98dc59c862aa20dee91d533ba5b2ee574a5ace8f42db94d"
+    "sha256": "2a110e13205d4426c812806c2396a4460dd4bc551fe118ebe8db605fdefea003"
   },
   "faceAudit": {
     "method": "Actual prepared FACE flags -> exact raw float32 triangles -> packed UV0/world triangles within existing quantization bounds.",
@@ -60,6 +60,6 @@
   "preservedNonproofMarkerTriangles": 3292,
   "provenance": {
     "validation": "art/blender/proofs/snow-roof-final-packed-export-validation.json",
-    "validationSha256": "1e8faafb700bd8bbca2d5e1d8d3fa6f209fe864d193b26b400b85a13368639c2"
+    "validationSha256": "8a9e11a3ac99bc975883ce77763d249382cb71f9a494647bf24a06dcf4346aaa"
   }
 }

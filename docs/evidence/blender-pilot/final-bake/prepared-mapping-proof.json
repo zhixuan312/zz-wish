@@ -1,0 +1,74 @@
+{
+  "sourceBlendSha256": "6e9f59c93565e08a690eaafbc756967ba39e0f4d8ad0094e4520265948360af8",
+  "mappingPolicy": "implicit-procedural-generated-evaluated-undeformed-source-texspace-v2",
+  "generatedReceivers": {
+    "hall": {
+      "attribute": "one_light_source_generated",
+      "domain": "POINT",
+      "dataType": "FLOAT_VECTOR",
+      "vertices": 240877,
+      "sha256": "01cf2755bec0dbd32fe7d8048c213fb903b5a9c961537a60c1e339b433e8c6c3"
+    },
+    "gate": {
+      "attribute": "one_light_source_generated",
+      "domain": "POINT",
+      "dataType": "FLOAT_VECTOR",
+      "vertices": 54690,
+      "sha256": "476e7a301ae0eeb2b101622ab87adc1fb8a15279bcbbd2b90c2a406dd5816fb8"
+    },
+    "court": {
+      "attribute": "one_light_source_generated",
+      "domain": "POINT",
+      "dataType": "FLOAT_VECTOR",
+      "vertices": 118657,
+      "sha256": "24ab382da36df6747c69ca8db16619798973f58860b70af1d4596f565044b821"
+    }
+  },
+  "preparedBlendSha256": "1377c77832ceeee03df3ecd3aa325c519996177d2672e57ad25c54abd976d01e",
+  "mappingAuditSha256": "e4c8a05c49440853a06776ce5fe0544df67b201eca3be3ae501f73aa4fb15975",
+  "nativePreview": {
+    "image": "art/build/snow-roof-final-prepared-preview/StepBankDetail.png",
+    "imageSha256": "5cb91554cf14a9353cacee13312304b02ccf81d855951fa18d3a340e52b590d6",
+    "metadataSha256": "21c34b3d0f5a2eaebb628967bd2076816d6b2720650d82f7e57689215881b0b3",
+    "samples": 8,
+    "device": "METAL",
+    "denoiser": "OPENIMAGEDENOISE",
+    "approval": "Root accepted native bank mapping. Corrected evaluated-undeformed transfer leaves bank values/geometry/UV0/UV2/SurfaceTint unchanged; no second image required."
+  },
+  "nativeGeneratedProof": {
+    "script": "art/blender/proofs/generated-coordinate-probe.py",
+    "scriptSha256": "3de7bfccb531ad69ca14ccbe0b6c230c511d6291b06174867ee3fb3963cb2d95",
+    "report": "art/build/snow-roof-final/generated-emission-proof.json",
+    "reportSha256": "f959e1ab7bc0750e5157dc3b47da8fa89d2dd19831d79bdcbe7c661c87d310fb",
+    "results": {
+      "sourceObject": "Snow over bench",
+      "sourceBlend": "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-stair-banks-grain.blend",
+      "device": "METAL",
+      "type": "EMIT",
+      "samples": 1,
+      "pixels": 16086,
+      "comparisons": {
+        "sourceGenerated": {
+          "maxAbs": 0.0,
+          "meanAbs": 0.0,
+          "p99Abs": 0.0
+        },
+        "interpolatedPoint": {
+          "maxAbs": 0.18399745225906372,
+          "meanAbs": 0.016311705112457275,
+          "p99Abs": 0.12755729258060455
+        },
+        "evaluatedUndeformed": {
+          "maxAbs": 1.7881393432617188e-07,
+          "meanAbs": 6.512379080447772e-09,
+          "p99Abs": 5.960464477539063e-08
+        }
+      }
+    }
+  },
+  "uv2Fingerprints": {
+    "court": "59a83f09c1e75e223976c9fa8f7d2055bd329dc68cc7af74b66ee7b240bfa50b",
+    "gate": "04c65c99a9987fe52983028c32ea044e2df2812e0a1fd905ed4779eb4b5f18b1",
+    "hall": "baf8910dc8f85538f822373643e2d7b064c2465cc5df5f42e4bb6007df51e659"
+  }
+}

@@ -1,0 +1,89 @@
+{
+  "sourceIdentityGate": {
+    "raw": "0deec9fd71d4c49e666e5b091f15af3067efbcdb7e3c350bcb85a2bf7f980dea",
+    "prepared": "6ed42644cd3a6c1026b079740957280df0274e9e9a0eaf5f8d3da514725079c1"
+  },
+  "lightmapFileHashesIdenticalAcrossAllCandidates": {
+    "hall-night.ktx2": "1a6823d365516576ddac96198fdb8c4fe097c17ad8e7c959f10658db0ac8da1c",
+    "hall-dusk.ktx2": "63a3f9a934e437b72617324fbf82a0b1d8fcd45d4199fa43f1bd1e3f8404d1a3",
+    "hall-day.ktx2": "468821d2ab38da5bd467fbc39173b8ba34f6b70e549f753f7470b9e0a16f48d5",
+    "hall-lamp.ktx2": "471af0829a7bbb9bb709303151213a3b046be9e5b0ee4ce8b1568e0d6c7ce090",
+    "gate-night.ktx2": "c08e78ac54ecf37262c9cb46141f7435779bb7fb08320ed4756885256251f1e6",
+    "gate-dusk.ktx2": "07959525291bb978ce7696174d71cf1c772730f8c234e6ff69c8468c748400ba",
+    "gate-day.ktx2": "1d1e7ece7433761ee7cc912476b65979d8dde28a159209a5292f5d350c509245",
+    "gate-lamp.ktx2": "caa277045f1e6212107a71af75bfc0999c9467ee474ea9af85b8e3260e65cad5",
+    "court-night.ktx2": "a2bdd8a93af6641bdcc6a1b0562b4e30697170a18ae2244eb3412073ea55821d",
+    "court-dusk.ktx2": "a59257178f2efa766df5e3d52aa29f59a0c4bb1401f742ddb6081adf3cbc73e4",
+    "court-day.ktx2": "a04ab58e7d4e08f9a496f4051eca4e55a055d167f9dfa4675749c01197c115b9",
+    "court-lamp.ktx2": "34e0a1fff130f45dc6232e2ec9181824ea1aaef250b55d9cc7a44456787a7cc9"
+  },
+  "crossProfileProofSha256": "8dd442cbdc1ccb96c33e7f1e4800304c21db4f6ed27358dc0af4b366ac075202",
+  "assemblyScriptSha256": "95256daec3c62ad8a493ef6f651196851118431d7bbe385a3c31b75c0a9129fd",
+  "candidates": [
+    {
+      "path": "art/build/snow-roof-final-quality",
+      "profile": "quality",
+      "optimized": false,
+      "manifestSha256": "a4c239a7fd040d12914edaa049b8b59d9365b516b3faeddb2db8c32774088207",
+      "assetBytes": 81365145,
+      "manifestBytes": 75119,
+      "referencedBytesIncludingManifest": 81440264,
+      "sceneBytes": 38021216,
+      "geometry": {
+        "vertices": 956291,
+        "triangles": 650624,
+        "geometryBytes": 13007534
+      },
+      "lightmapBytes": 43343929
+    },
+    {
+      "path": "art/build/snow-roof-final-quality-optimized-postbatch",
+      "profile": "quality",
+      "optimized": true,
+      "manifestSha256": "1d96919b3c62d854e06d21b48ef1b633059309cf5ac56fc7e6625318cf4a9266",
+      "assetBytes": 78272066,
+      "manifestBytes": 77291,
+      "referencedBytesIncludingManifest": 78349357,
+      "sceneBytes": 34824716,
+      "geometry": {
+        "vertices": 648776,
+        "triangles": 466874,
+        "geometryBytes": 9803782
+      },
+      "lightmapBytes": 43343929
+    },
+    {
+      "path": "art/build/snow-roof-final-mobile",
+      "profile": "mobile",
+      "optimized": false,
+      "manifestSha256": "5976fdf1dea19043881bde6b8bee2b915d25bc063386516945cd362bdb4251a7",
+      "assetBytes": 59992865,
+      "manifestBytes": 75464,
+      "referencedBytesIncludingManifest": 60068329,
+      "sceneBytes": 16648936,
+      "geometry": {
+        "vertices": 956291,
+        "triangles": 650624,
+        "geometryBytes": 13007534
+      },
+      "lightmapBytes": 43343929
+    },
+    {
+      "path": "art/build/snow-roof-final-mobile-optimized-postbatch",
+      "profile": "mobile",
+      "optimized": true,
+      "manifestSha256": "37b90a2d8cd9dec67a3b290c4f1c04347e786c9d1a50e955c0e03382e419a91e",
+      "assetBytes": 56899741,
+      "manifestBytes": 77634,
+      "referencedBytesIncludingManifest": 56977375,
+      "sceneBytes": 13452396,
+      "geometry": {
+        "vertices": 648776,
+        "triangles": 466874,
+        "geometryBytes": 9803782
+      },
+      "lightmapBytes": 43343929
+    }
+  ],
+  "status": "Complete staged candidates; browser review and live adoption remain separate."
+}

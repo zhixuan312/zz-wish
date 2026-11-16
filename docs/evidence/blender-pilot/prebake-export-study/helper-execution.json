@@ -1,0 +1,46 @@
+{
+  "version": 1,
+  "status": "Both explicit production-helper executions passed; separate staging candidates only.",
+  "helper": "scripts/prune-validated-baked.mjs",
+  "helperSha256": "c0d430108cad29361c7a5d631c72ae7b90b7f1a0c79f1a3eb06ed412979c6829",
+  "originalHelper": "scripts/prune-baked-hidden.mjs",
+  "originalHelperSha256": "e714db56fe9801446a6ee4f816b8cc1fe49a13722c51091ca2d443b54be3844a",
+  "originalHelperByteUnchangedAgainstHistoricalReceipt": true,
+  "originalC64ProofByteUnchanged": true,
+  "actualPackedValidation": "art/blender/proofs/snow-roof-final-packed-export-validation.json",
+  "actualPackedValidationSha256": "1e8faafb700bd8bbca2d5e1d8d3fa6f209fe864d193b26b400b85a13368639c2",
+  "candidates": [
+    {
+      "variant": "quality",
+      "candidate": "art/build/snow-roof-final-quality-optimized/snow-roof.glb",
+      "candidateSha256": "d37a76d691b5d1703ba0c9ff36558631b4613e05e532ac92cb74f88c0f5fc174",
+      "bytes": 34821408,
+      "receipt": "art/build/snow-roof-final-quality-optimized/snow-roof.receipt.json",
+      "receiptSha256": "b6248e88d283663ac9e54379c55370fc3764bb877b7b4b1e90b933eaa021c96d",
+      "profile": "snow-roof-final-quality-6e9f-v1",
+      "vertices": 648776,
+      "triangles": 466874,
+      "retainedTriangleAttributesWindingAndImagesExactlyPreserved": true,
+      "nodesAndInputsExactlyPreserved": true
+    },
+    {
+      "variant": "mobile",
+      "candidate": "art/build/snow-roof-final-mobile-optimized/snow-roof.glb",
+      "candidateSha256": "9f34007cc49bb899c98dc59c862aa20dee91d533ba5b2ee574a5ace8f42db94d",
+      "bytes": 13449088,
+      "receipt": "art/build/snow-roof-final-mobile-optimized/snow-roof.receipt.json",
+      "receiptSha256": "454b2e02939aedc023430245a378a94fa80f42116e17f45e89ebeffc20f2490d",
+      "profile": "snow-roof-final-mobile-6e9f-v1",
+      "vertices": 648776,
+      "triangles": 466874,
+      "retainedTriangleAttributesWindingAndImagesExactlyPreserved": true,
+      "nodesAndInputsExactlyPreserved": true
+    }
+  ],
+  "noPublicWrites": true,
+  "noRenderOrBakeByHelper": true,
+  "newQuantizationOrNormalFilterPasses": 0,
+  "geometryAndBakeOccludersRemainInSources": true,
+  "packageManifestStatus": "Not modified. Baker must replace selected GLB files entry hash/bytes, recompute totalBytes and add optimization provenance when assembling complete final maps.",
+  "runtimeVisualAcceptance": "Pending root quality/mobile A/B after complete lightmaps and GPU handoff."
+}

@@ -1,10 +1,15 @@
 // Copy only into a frozen capture checkout. Hook immediately around composer.render().
 // This helper never reads pixels, records video, waits on the GPU, or alters animation.
-export function createPerformanceLab({ renderer, camera, composer = null }) {
+export function createPerformanceLab({ renderer, camera, composer = null, getDeliveryInfo = null }) {
   const gl = renderer.getContext();
   const webgl2 = !!renderer.capabilities.isWebGL2;
   const timer = webgl2 ? gl.getExtension('EXT_disjoint_timer_query_webgl2') : null;
   const lab = { result: null, recording: null };
+  // Delivery traversal and texture diagnostics belong outside the timed frame path.
+  const delivery = () => {
+    try { return getDeliveryInfo?.() ?? null; }
+    catch (error) { return { diagnosticError: String(error) }; }
+  };
   const onVisibility = event => {
     const record = lab.recording;
     if (!record || record.phase !== 'recording') return;
@@ -72,6 +77,7 @@ export function createPerformanceLab({ renderer, camera, composer = null }) {
       cameraStart: record.cameraStart, cameraEnd: record.cameraEnd ?? matrix(), cameraMaximumElementDelta: record.cameraDelta, projectionMaximumElementDelta: record.projectionDelta,
       configurationStart: record.configurationStart, configurationEnd: record.configurationEnd ?? configuration(), configurationChanges: record.configurationChanges,
       rendererInfoStart: record.rendererInfoStart, rendererInfoEnd: last?.rendererInfo ?? rendererInfo(), visibilityStart: record.visibilityStart, visibilityChanges: record.visibilityChanges,
+      deliveryStart: record.deliveryStart, deliveryEnd: delivery(),
       rendererInfoScope: 'autoReset temporarily disabled and counters reset before each composer render; per-frame counts aggregate its passes. Original autoReset is restored.',
       timingScope: 'Actual composer-render hook timestamps. CPU submit is wall time around composer.render(), including any driver stall, not CPU utilization. GPU queries are asynchronous and never awaited synchronously. Pending queries drain outside the timed render window for at most 2 seconds.',
       frames,
@@ -83,10 +89,11 @@ export function createPerformanceLab({ renderer, camera, composer = null }) {
     if (!(seconds > 0 && seconds <= 60)) throw new Error('Performance interval must be between 0 and 60 seconds.');
     if (window.__flickerLab?.recording) throw new Error('Disable the raw-frame recorder before performance measurement.');
     lab.result = null;
+    const deliveryStart = delivery();
     const done = new Promise(resolve => {
       lab.recording = { name, seconds, beginMs: performance.now(), createdAt: new Date().toISOString(), resolve, phase: 'recording', frames: [], current: null, pending: [],
         gpuRequested: gpu, gpuEnabled: gpu && !!timer, disjoint: false, droppedQueries: 0, originalAutoReset: renderer.info.autoReset,
-        cameraStart: matrix(), cameraDelta: 0, projectionDelta: 0, configurationStart: configuration(), configurationChanges: [], rendererInfoStart: rendererInfo(), visibilityChanges: [], visibilityStart: document.visibilityState, visibility: document.visibilityState };
+        cameraStart: matrix(), cameraDelta: 0, projectionDelta: 0, configurationStart: configuration(), configurationChanges: [], rendererInfoStart: rendererInfo(), visibilityChanges: [], visibilityStart: document.visibilityState, visibility: document.visibilityState, deliveryStart };
     });
     renderer.info.autoReset = false;
     return done;

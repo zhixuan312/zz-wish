@@ -17,17 +17,17 @@ const sha = (bytes) => createHash('sha256').update(bytes).digest('hex');
 const readJSON = async (path) => JSON.parse(await fs.readFile(path, 'utf8'));
 const relative = (path) => path.startsWith(ROOT + '/') ? path.slice(ROOT.length + 1) : path;
 const sourceDir = join(ROOT, 'art/build/snow-roof-final');
-const refPath = join(sourceDir, 'hidden-export-reference-corrected/reference.json');
-const facePath = join(sourceDir, 'hidden-export-reference-corrected/raw-correspondence.json');
+const refPath = join(sourceDir, 'hidden-export-reference-postbatch/reference.json');
+const facePath = join(sourceDir, 'hidden-export-reference-postbatch/raw-correspondence.json');
 const reference = await readJSON(refPath), face = await readJSON(facePath);
 for (const input of Object.values(reference.inputs)) if (sha(await fs.readFile(input.path)) !== input.sha256) throw new Error('Actual reference input changed.');
 if (!face.exactPreparedFaceCorrespondence || sha(await fs.readFile(face.raw.path)) !== face.raw.sha256) throw new Error('Actual FACE/raw audit is stale.');
 const proof = await readJSON(reference.inputs.proof.path);
 const inputs = [
-  { variant: 'quality', path: join(ROOT, 'art/build/snow-roof-final-quality/snow-roof.glb'), expected: '545f101f30a16aaa241d8a63e476ab5b04cfb9c2a4fa15a61261bf506e4b5760' },
-  { variant: 'mobile', path: join(ROOT, 'art/build/snow-roof-final-mobile/snow-roof.glb'), expected: 'bf8de4afc5692771d2569780942e7ee4b419a5b7b6cd819f95bdff8497543069' },
+  { variant: 'quality', path: join(ROOT, 'art/build/snow-roof-final-quality/snow-roof.glb'), receipt: join(sourceDir, 'geometry-stage.json') },
+  { variant: 'mobile', path: join(ROOT, 'art/build/snow-roof-final-mobile/snow-roof.glb'), receipt: join(sourceDir, 'geometry-stage.mobile.json') },
 ];
-const outDir = join(ROOT, 'art/build/snow-roof-final-export-measurement');
+const outDir = join(ROOT, 'art/build/snow-roof-final-export-measurement-postbatch');
 await fs.mkdir(outDir, { recursive: true });
 function uvKey(attribute, index) {
   if (attribute.getComponentType() !== 5126) throw new Error('Roof UV0 must be unchanged float32 for correspondence.');
@@ -84,12 +84,16 @@ function inspect(bytes) {
     imageHashes, imageMultisetSha256: sha(imageHashes.join('')),
   };
 }
+const sceneState = (doc) => doc.getRoot().listScenes().map((scene) => ({ name: scene.getName(), extras: scene.getExtras(), roots: scene.listChildren().map((node) => node.getName()) }));
 const records = [], profiles = [];
 let inputGeometryControl;
 for (const input of inputs) {
+  const packerReceiptBytes = await fs.readFile(input.receipt), packerReceipt = JSON.parse(packerReceiptBytes);
+  if (packerReceipt.profile !== input.variant || !packerReceipt.key.includes(face.raw.sha256)) throw new Error('Packer receipt does not bind the actual final raw/profile.');
+  input.expected = packerReceipt.sha256;
   const bytes = await fs.readFile(input.path);
   if (sha(bytes) !== input.expected) throw new Error('Packed input is not the declared frozen actual asset.');
-  const before = inspect(bytes), doc = await io.read(input.path), inputGeometry = signatures(doc);
+  const before = inspect(bytes), doc = await io.read(input.path), inputGeometry = signatures(doc), scenesBefore = sceneState(doc);
   if (inputGeometryControl && JSON.stringify(inputGeometry) !== JSON.stringify(inputGeometryControl)) throw new Error('Quality/mobile packed geometry or attributes differ.');
   inputGeometryControl = inputGeometry;
   const removed = {}, buckets = new Map(), retained = [], packedRoofAliases = {};
@@ -137,17 +141,18 @@ for (const input of inputs) {
   await doc.transform(dedup());
   doc.createExtension(EXTMeshoptCompression).setRequired(true).setEncoderOptions({ method: EXTMeshoptCompression.EncoderMethod.QUANTIZE });
   const outputBytes = await io.writeBinary(doc), decoded = await io.readBinary(outputBytes), after = inspect(outputBytes);
+  if (JSON.stringify(sceneState(decoded)) !== JSON.stringify(scenesBefore)) throw new Error('Source scene proof/ownership metadata changed.');
   if (JSON.stringify(signatures(decoded)) !== JSON.stringify(retained)) throw new Error('Retained triangle values/winding changed after codec roundtrip.');
   if (JSON.stringify(before.imageHashes) !== JSON.stringify(after.imageHashes)) throw new Error('Embedded image payload changed.');
   const output = join(outDir, input.variant + '-measured.glb');
   await fs.writeFile(output, outputBytes, { flag: 'wx' });
-  const record = { variant: input.variant, input: { path: relative(input.path), sha256: sha(bytes), ...before.summary, geometryBytes: before.geometryBytes }, measuredOutput: { path: relative(output), sha256: sha(outputBytes), ...after.summary, geometryBytes: after.geometryBytes }, removedTrianglesByRegion: removed, packedRoofAliases, removableVertices, exactWeldedVertices: weldedVertices, preservedNonproofMarkerTriangles: preservedOtherMarker, rawToPackedProvenTrianglePositionMaxErrorMetres: maxError, conservativePositionErrorBoundMetres: maxBound, sourcePackedHiddenSubsetVerified: true, retainedTriangleAttributesAndWindingBitExact: true, imagePayloadsByteIdentical: true, imagePayloadMultisetSha256: before.imageMultisetSha256, inputGeometrySha256: sha(JSON.stringify(inputGeometry)), retainedTriangleHashSha256: sha(JSON.stringify(retained)) };
+  const record = { variant: input.variant, input: { path: relative(input.path), sha256: sha(bytes), packerReceipt: relative(input.receipt), packerReceiptSha256: sha(packerReceiptBytes), preMeshoptAttributeSha256: packerReceipt.preMeshoptAttributeSha256, ...before.summary, geometryBytes: before.geometryBytes }, measuredOutput: { path: relative(output), sha256: sha(outputBytes), ...after.summary, geometryBytes: after.geometryBytes }, removedTrianglesByRegion: removed, packedRoofAliases, removableVertices, exactWeldedVertices: weldedVertices, preservedNonproofMarkerTriangles: preservedOtherMarker, rawToPackedProvenTrianglePositionMaxErrorMetres: maxError, conservativePositionErrorBoundMetres: maxBound, sourcePackedHiddenSubsetVerified: true, sourceSceneOwnershipMetadataPreserved: true, retainedTriangleAttributesAndWindingBitExact: true, imagePayloadsByteIdentical: true, imagePayloadMultisetSha256: before.imageMultisetSha256, inputGeometrySha256: sha(JSON.stringify(inputGeometry)), retainedTriangleHashSha256: sha(JSON.stringify(retained)) };
   records.push(record);
-  profiles.push({ id: 'snow-roof-final-' + input.variant + '-6e9f-v1', variant: input.variant, hashes: { proof: reference.inputs.proof.sha256, sourceBlend: reference.inputs.source.sha256, preparedBlend: reference.inputs.prepared.sha256, raw: face.raw.sha256, input: input.expected }, regions: Object.fromEntries(Object.entries(reference.regions).map(([r, value]) => [r, { material: Object.keys(packedRoofAliases[r])[0], sourceMaterials: value.materials, triangles: value.hiddenTriangles, components: proof.summary[r].safeComponents }])), input: before.summary, output: { ...after.summary, sha256: sha(outputBytes) }, faceAudit: { method: 'Actual prepared FACE flags -> exact raw float32 triangles -> packed UV0/world triangles within existing quantization bounds.', matchedTriangles: Object.values(removed).reduce((a, n) => a + n, 0), unmatchedSourceTriangles: 0, unmatchedRawTriangles: 0, maximumPackedPositionErrorMetres: maxError, conservativePositionErrorBoundMetres: maxBound }, preservedNonproofMarkerTriangles: preservedOtherMarker });
+  profiles.push({ id: 'snow-roof-final-' + input.variant + '-postbatch-6e9f-v2', variant: input.variant, hashes: { proof: reference.inputs.proof.sha256, sourceBlend: reference.inputs.source.sha256, preparedBlend: reference.inputs.prepared.sha256, raw: face.raw.sha256, input: input.expected }, regions: Object.fromEntries(Object.entries(reference.regions).map(([r, value]) => [r, { material: Object.keys(packedRoofAliases[r])[0], sourceMaterials: value.materials, triangles: value.hiddenTriangles, components: proof.summary[r].safeComponents }])), input: before.summary, output: { ...after.summary, sha256: sha(outputBytes) }, faceAudit: { method: 'Actual prepared FACE flags -> exact raw float32 triangles -> packed UV0/world triangles within existing quantization bounds.', matchedTriangles: Object.values(removed).reduce((a, n) => a + n, 0), unmatchedSourceTriangles: 0, unmatchedRawTriangles: 0, maximumPackedPositionErrorMetres: maxError, conservativePositionErrorBoundMetres: maxBound }, preservedNonproofMarkerTriangles: preservedOtherMarker });
   console.log(JSON.stringify(record));
   global.gc?.();
 }
-const validation = { version: 1, actualPreparedReference: relative(refPath), actualPreparedReferenceSha256: sha(await fs.readFile(refPath)), actualFaceRawAudit: relative(facePath), actualFaceRawAuditSha256: sha(await fs.readFile(facePath)), source: reference.inputs.source, proof: reference.inputs.proof, prepared: reference.inputs.prepared, raw: face.raw, qualityMobilePackedGeometryAndAttributesExactlyEqual: true, originalMeasuredProfileModified: false, records, textureConversions: 0, extraQuantizationPasses: 0, extraNormalFilters: 0, renderOrBakePerformed: false, generator: 'scripts/measure-final-hidden-export.mjs', generatorSha256: sha(await fs.readFile(fileURLToPath(import.meta.url))) };
+const validation = { version: 2, stage: 'Post-batch actual ownership records; pre-bake data is provisional history.', actualPreparedReference: relative(refPath), actualPreparedReferenceSha256: sha(await fs.readFile(refPath)), actualFaceRawAudit: relative(facePath), actualFaceRawAuditSha256: sha(await fs.readFile(facePath)), source: reference.inputs.source, proof: reference.inputs.proof, prepared: reference.inputs.prepared, raw: face.raw, qualityMobilePackedGeometryAndAttributesExactlyEqual: true, originalMeasuredProfileModified: false, records, textureConversions: 0, extraQuantizationPasses: 0, extraNormalFilters: 0, renderOrBakePerformed: false, generator: 'scripts/measure-final-hidden-export.mjs', generatorSha256: sha(await fs.readFile(fileURLToPath(import.meta.url))) };
 const validationPath = join(ROOT, 'art/blender/proofs/snow-roof-final-packed-export-validation.json');
 await fs.writeFile(validationPath, JSON.stringify(validation, null, 2) + '\n', { flag: 'wx' });
 for (const profile of profiles) {

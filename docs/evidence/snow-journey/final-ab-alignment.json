@@ -1,0 +1,321 @@
+{
+  "createdAt": "2026-11-16T17:35:37.313Z",
+  "method": "Read-only reprojection of a fixed world grid spanning x=-7..7m, y=.6..6.6m, z=-8..8m through both recorded camera/view matrices. Only landmarks inside both frusta contribute to the CSS-pixel shift. This is an alignment bound on sampled world points, not image PSNR or pixel equivalence.",
+  "productConsolePageHttpErrors": 0,
+  "originalStrictNumericGateIssues": 10,
+  "maximumSampledPixelShift": 0.009452115851373632,
+  "maximumPositionDeltaMetres": 0.0000030273711589340433,
+  "allProjectionDifferencesAreDepthOnly": false,
+  "comparisons": [
+    {
+      "viewport": "desktop-en",
+      "name": "outside",
+      "positionDeltaMetres": 0,
+      "rotationDeltaRadians": 0,
+      "projectionDifferences": [],
+      "projectionDepthOnly": true,
+      "sampledVisibleLandmarks": 3315,
+      "maximumSampledPixelShift": 0,
+      "sampledFrustumMembershipDifferences": 0
+    },
+    {
+      "viewport": "desktop-en",
+      "name": "choose-10-minutes",
+      "positionDeltaMetres": 0,
+      "rotationDeltaRadians": 0.000003752726611781002,
+      "projectionDifferences": [],
+      "projectionDepthOnly": true,
+      "sampledVisibleLandmarks": 359,
+      "maximumSampledPixelShift": 0.007218803215727969,
+      "sampledFrustumMembershipDifferences": 0
+    },
+    {
+      "viewport": "desktop-en",
+      "name": "choose-24-hours",
+      "positionDeltaMetres": 1.5232924097070075e-8,
+      "rotationDeltaRadians": 4.2146848510894035e-8,
+      "projectionDifferences": [
+        {
+          "index": 10,
+          "delta": 3.072495800005015e-7
+        },
+        {
+          "index": 14,
+          "delta": 0.00046087436955935535
+        }
+      ],
+      "projectionDepthOnly": true,
+      "sampledVisibleLandmarks": 430,
+      "maximumSampledPixelShift": 0.000042015947346739626,
+      "sampledFrustumMembershipDifferences": 0
+    },
+    {
+      "viewport": "desktop-en",
+      "name": "confirm",
+      "positionDeltaMetres": 1.3877787807814457e-17,
+      "rotationDeltaRadians": 0.000004947634326157061,
+      "projectionDifferences": [
+        {
+          "index": 5,
+          "delta": 4.440892098500626e-16
+        },
+        {
+          "index": 10,
+          "delta": 5.528618014505327e-7
+        },
+        {
+          "index": 14,
+          "delta": 0.0008292927020107921
+        }
+      ],
+      "projectionDepthOnly": false,
+      "sampledVisibleLandmarks": 345,
+      "maximumSampledPixelShift": 0.009452115851373632,
+      "sampledFrustumMembershipDifferences": 0
+    },
+    {
+      "viewport": "desktop-en",
+      "name": "burning-settled",
+      "positionDeltaMetres": 0,
+      "rotationDeltaRadians": 0,
+      "projectionDifferences": [
+        {
+          "index": 0,
+          "delta": 4.370850348323074e-9
+        },
+        {
+          "index": 5,
+          "delta": 6.993360557316919e-9
+        },
+        {
+          "index": 10,
+          "delta": 2.948947175340777e-8
+        },
+        {
+          "index": 14,
+          "delta": 0.00004423420781631687
+        }
+      ],
+      "projectionDepthOnly": false,
+      "sampledVisibleLandmarks": 713,
+      "maximumSampledPixelShift": 0.000002118145861436155,
+      "sampledFrustumMembershipDifferences": 0
+    },
+    {
+      "viewport": "desktop-en",
+      "name": "detail-scanned-altar",
+      "positionDeltaMetres": 0,
+      "rotationDeltaRadians": 0,
+      "projectionDifferences": [
+        {
+          "index": 0,
+          "delta": 2.220446049250313e-16
+        },
+        {
+          "index": 10,
+          "delta": 2.948947175340777e-8
+        },
+        {
+          "index": 14,
+          "delta": 0.00004423420781631687
+        }
+      ],
+      "projectionDepthOnly": false,
+      "sampledVisibleLandmarks": 148,
+      "maximumSampledPixelShift": 1.5987211554602254e-13,
+      "sampledFrustumMembershipDifferences": 0
+    },
+    {
+      "viewport": "desktop-en",
+      "name": "detail-painted-screen",
+      "positionDeltaMetres": 0,
+      "rotationDeltaRadians": 0,
+      "projectionDifferences": [],
+      "projectionDepthOnly": true,
+      "sampledVisibleLandmarks": 221,
+      "maximumSampledPixelShift": 0,
+      "sampledFrustumMembershipDifferences": 0
+    },
+    {
+      "viewport": "desktop-en",
+      "name": "detail-brass-burner",
+      "positionDeltaMetres": 0,
+      "rotationDeltaRadians": 0,
+      "projectionDifferences": [],
+      "projectionDepthOnly": true,
+      "sampledVisibleLandmarks": 32,
+      "maximumSampledPixelShift": 0,
+      "sampledFrustumMembershipDifferences": 0
+    },
+    {
+      "viewport": "desktop-en",
+      "name": "detail-painted-beam",
+      "positionDeltaMetres": 0,
+      "rotationDeltaRadians": 0,
+      "projectionDifferences": [],
+      "projectionDepthOnly": true,
+      "sampledVisibleLandmarks": 154,
+      "maximumSampledPixelShift": 0,
+      "sampledFrustumMembershipDifferences": 0
+    },
+    {
+      "viewport": "desktop-en",
+      "name": "detail-polished-floor",
+      "positionDeltaMetres": 0,
+      "rotationDeltaRadians": 4.2146848510894035e-8,
+      "projectionDifferences": [],
+      "projectionDepthOnly": true,
+      "sampledVisibleLandmarks": 192,
+      "maximumSampledPixelShift": 0,
+      "sampledFrustumMembershipDifferences": 0
+    },
+    {
+      "viewport": "phone-zh",
+      "name": "outside",
+      "positionDeltaMetres": 0,
+      "rotationDeltaRadians": 0,
+      "projectionDifferences": [],
+      "projectionDepthOnly": true,
+      "sampledVisibleLandmarks": 3208,
+      "maximumSampledPixelShift": 0,
+      "sampledFrustumMembershipDifferences": 0
+    },
+    {
+      "viewport": "phone-zh",
+      "name": "choose-10-minutes",
+      "positionDeltaMetres": 0,
+      "rotationDeltaRadians": 9.372344728420097e-7,
+      "projectionDifferences": [],
+      "projectionDepthOnly": true,
+      "sampledVisibleLandmarks": 204,
+      "maximumSampledPixelShift": 0.0010470223335144792,
+      "sampledFrustumMembershipDifferences": 0
+    },
+    {
+      "viewport": "phone-zh",
+      "name": "choose-24-hours",
+      "positionDeltaMetres": 0.0000030273711589340433,
+      "rotationDeltaRadians": 0.000001968984205622625,
+      "projectionDifferences": [
+        {
+          "index": 10,
+          "delta": 4.321004665186479e-9
+        },
+        {
+          "index": 14,
+          "delta": 0.000006481507080269289
+        }
+      ],
+      "projectionDepthOnly": true,
+      "sampledVisibleLandmarks": 269,
+      "maximumSampledPixelShift": 0.0018306485618669816,
+      "sampledFrustumMembershipDifferences": 0
+    },
+    {
+      "viewport": "phone-zh",
+      "name": "confirm",
+      "positionDeltaMetres": 0,
+      "rotationDeltaRadians": 7.696850043621681e-7,
+      "projectionDifferences": [
+        {
+          "index": 10,
+          "delta": 6.565832322280585e-10
+        },
+        {
+          "index": 14,
+          "delta": 9.848746342910886e-7
+        }
+      ],
+      "projectionDepthOnly": true,
+      "sampledVisibleLandmarks": 200,
+      "maximumSampledPixelShift": 0.0008799114939081509,
+      "sampledFrustumMembershipDifferences": 0
+    },
+    {
+      "viewport": "phone-zh",
+      "name": "burning-settled",
+      "positionDeltaMetres": 0,
+      "rotationDeltaRadians": 2.9802322387695312e-8,
+      "projectionDifferences": [
+        {
+          "index": 10,
+          "delta": 1.9702805342802776e-7
+        },
+        {
+          "index": 14,
+          "delta": 0.000295542080434516
+        }
+      ],
+      "projectionDepthOnly": true,
+      "sampledVisibleLandmarks": 340,
+      "maximumSampledPixelShift": 0,
+      "sampledFrustumMembershipDifferences": 0
+    },
+    {
+      "viewport": "phone-zh",
+      "name": "detail-scanned-altar",
+      "positionDeltaMetres": 0,
+      "rotationDeltaRadians": 0,
+      "projectionDifferences": [
+        {
+          "index": 10,
+          "delta": 1.9702805342802776e-7
+        },
+        {
+          "index": 14,
+          "delta": 0.000295542080434516
+        }
+      ],
+      "projectionDepthOnly": true,
+      "sampledVisibleLandmarks": 42,
+      "maximumSampledPixelShift": 0,
+      "sampledFrustumMembershipDifferences": 0
+    },
+    {
+      "viewport": "phone-zh",
+      "name": "detail-painted-screen",
+      "positionDeltaMetres": 0,
+      "rotationDeltaRadians": 0,
+      "projectionDifferences": [],
+      "projectionDepthOnly": true,
+      "sampledVisibleLandmarks": 61,
+      "maximumSampledPixelShift": 0,
+      "sampledFrustumMembershipDifferences": 0
+    },
+    {
+      "viewport": "phone-zh",
+      "name": "detail-brass-burner",
+      "positionDeltaMetres": 0,
+      "rotationDeltaRadians": 0,
+      "projectionDifferences": [],
+      "projectionDepthOnly": true,
+      "sampledVisibleLandmarks": 10,
+      "maximumSampledPixelShift": 0,
+      "sampledFrustumMembershipDifferences": 0
+    },
+    {
+      "viewport": "phone-zh",
+      "name": "detail-painted-beam",
+      "positionDeltaMetres": 0,
+      "rotationDeltaRadians": 0,
+      "projectionDifferences": [],
+      "projectionDepthOnly": true,
+      "sampledVisibleLandmarks": 44,
+      "maximumSampledPixelShift": 0,
+      "sampledFrustumMembershipDifferences": 0
+    },
+    {
+      "viewport": "phone-zh",
+      "name": "detail-polished-floor",
+      "positionDeltaMetres": 0,
+      "rotationDeltaRadians": 4.2146848510894035e-8,
+      "projectionDifferences": [],
+      "projectionDepthOnly": true,
+      "sampledVisibleLandmarks": 55,
+      "maximumSampledPixelShift": 0,
+      "sampledFrustumMembershipDifferences": 0
+    }
+  ],
+  "scope": "Forty actual frames remain available for visual material-profile review. Camera matrices are not claimed bit-identical. The original strict numeric gate failures remain preserved in errors.",
+  "allProjectionDifferencesAbove1eMinus8AreDepthOnly": true
+}

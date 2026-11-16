@@ -66,14 +66,14 @@ export function createFlickerLab({ renderer, camera, grade, bloom, scene, flameP
       sample.rois[roi.name] = { mean: mean / count, rmsDelta: roi.previous ? Math.sqrt(squared / count) : null, meanAbsoluteDelta: roi.previous ? absolute / count : null, signedMeanDelta: roi.previous ? deltaMean / count : null, changedPixelFraction: changed / count, over3LsbFraction: large / count };
       roi.previous = luminance;
       roi.luminanceNumerators.push(numerators);
-      if (record.samples.length < 2 || (elapsed >= record.seconds * 500 && !roi.midSaved) || elapsed >= record.seconds * 1000) {
+      if (record.samples.length < 2 || (elapsed >= record.seconds * 500 && !roi.midSaved) || elapsed >= record.seconds * 1000 || record.stopRequested) {
         if (elapsed >= record.seconds * 500) roi.midSaved = true;
         let binary = ''; for (const byte of bytes) binary += String.fromCharCode(byte);
         roi.raw.push({ elapsedMs: elapsed, rgbaBase64: btoa(binary) });
       }
     }
     record.samples.push(sample);
-    if (elapsed >= record.seconds * 1000) {
+    if (elapsed >= record.seconds * 1000 || record.stopRequested) {
       lab.recording = null;
       const controls = { lockCamera: lab.lockCamera, freezeScene: lab.freezeScene, freezeGrade: lab.freezeGrade, freezeDaylight: lab.freezeDaylight, freezeFlame: lab.freezeFlame, freezeLampMotion: lab.freezeLampMotion, freezeShadows: lab.freezeShadows, freezeFuel: lab.freezeFuel, disableBloom: lab.disableBloom, hideParticles: lab.hideParticles };
       // Compression happens after acquisition. The metrics above use unencoded pixels.
@@ -90,6 +90,9 @@ export function createFlickerLab({ renderer, camera, grade, bloom, scene, flameP
       })();
     }
   };
+  // A streaming-bank diagnostic may wait longer than ten seconds for network/decode.
+  // Finish on the next actual rendered frame, preserving that frame's raw pixels.
+  lab.endRecording = reason => { if (lab.recording) lab.recording.stopRequested = reason || 'requested'; };
   lab.gradeTime = time => {
     if (lab.freezeScene) time = (performance.now() / 1000) % 10;
     if (!lab.freezeGrade) { lab.gradeHold = time; return time; }
@@ -99,6 +102,7 @@ export function createFlickerLab({ renderer, camera, grade, bloom, scene, flameP
     if (!lab.freezeDaylight || !daylightHolds.has(channel)) daylightHolds.set(channel, structuredClone(value));
     const result = lab.freezeDaylight ? daylightHolds.get(channel) : value;
     lab.currentDaylight = { ...lab.currentDaylight, [channel]: structuredClone(result) };
+    const now = new Date(); lab.currentDaylightLocalHour = now.getHours() + now.getMinutes() / 60;
     return result;
   };
   lab.flameTime = time => {
@@ -112,5 +116,6 @@ export function createFlickerLab({ renderer, camera, grade, bloom, scene, flameP
   lab.applyBloom = value => { bloom.enabled = value && !lab.disableBloom; };
   lab.grade = grade;
   lab.renderInfo = renderInfo;
+  lab.placeInfo = placeInfo;
   window.__flickerLab = lab; return lab;
 }
