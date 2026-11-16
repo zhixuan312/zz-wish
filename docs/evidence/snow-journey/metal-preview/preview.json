@@ -1,0 +1,40 @@
+{
+  "scene": "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-stable.blend",
+  "blendSha256": "73af75982e5dc97741afb994403dde0d8b1f65a826d84adbed56dd6438873997",
+  "sourceSha256": "964d61839e6982530f12e49edec19fd7f3e3b67d31b5d9b250ff9e2f27514919",
+  "device": "METAL",
+  "devices": [
+    "Apple M1 (GPU - 8 cores)"
+  ],
+  "denoiser": "OPENIMAGEDENOISE",
+  "samples": 8,
+  "size": [
+    720,
+    450
+  ],
+  "maxBounces": 4,
+  "cameras": [
+    {
+      "name": "Reference_walk-3",
+      "path": "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-metal-preview/Reference_walk-3.png",
+      "position": [
+        0.20147880911827087,
+        -4.4731903076171875,
+        1.919839859008789
+      ],
+      "rotationEuler": [
+        1.645633578300476,
+        -5.084612730854587e-10,
+        0.03840493783354759
+      ],
+      "lens": 41.84897232055664,
+      "sensorFit": "VERTICAL",
+      "sensorHeight": 24.0
+    }
+  ],
+  "constructionDiagnostic": false,
+  "hiddenRoofSnow": [],
+  "imageSha256": "6546cd27be0bb813da40df135347c120ffb742a13c0a6573b512aa5aa0a4aaa9",
+  "renderSecondsIncludingFirstMetalCompilation": 277.05,
+  "scope": "Low-sample source construction preview. The visitor bake-basis light is present; the visitor lantern body is runtime-owned. Not a delivered runtime lightmap or final-quality frame."
+}

@@ -19,7 +19,7 @@ import sys
 from pathlib import Path
 
 import bpy
-from mathutils import Vector, Matrix
+from mathutils import Vector, Matrix, noise
 
 ROOT = Path(__file__).resolve().parents[2]
 MATERIALS = ROOT / 'web/public/materials/scans'
@@ -210,6 +210,123 @@ def material(name, tint='#ffffff', scan=None, rough=.8, metal=0, emission=0):
     return mat
 
 
+def stable_roughness(mat, minimum, preserve_maps=False):
+    mat['one_light_min_roughness']=minimum
+    mat['one_light_roughness_runtime']='roughnessFactor=max(roughnessFactor,one_light_min_roughness), after roughnessmap_fragment'
+    bsdf=mat.node_tree.nodes.get('Principled BSDF')
+    if bsdf and not preserve_maps:
+        for link in list(bsdf.inputs['Roughness'].links):mat.node_tree.links.remove(link)
+        bsdf.inputs['Roughness'].default_value=max(minimum,bsdf.inputs['Roughness'].default_value)
+
+
+def vertex_tint_shader(mat):
+    if mat.get('one_light_surface_tint'):return
+    nodes,links=mat.node_tree.nodes,mat.node_tree.links
+    bsdf=nodes.get('Principled BSDF');existing=list(bsdf.inputs['Base Color'].links)
+    vertex=nodes.new('ShaderNodeVertexColor');vertex.layer_name='SurfaceTint';vertex.label='Exported COLOR_0: weathering and soot'
+    mix=nodes.new('ShaderNodeMixRGB');mix.blend_type='MULTIPLY';mix.inputs[0].default_value=1
+    if existing:links.new(existing[0].from_socket,mix.inputs[1])
+    else:mix.inputs[1].default_value=bsdf.inputs['Base Color'].default_value
+    links.new(vertex.outputs['Color'],mix.inputs[2]);links.new(mix.outputs[0],bsdf.inputs['Base Color'])
+    mat['one_light_surface_tint']=True
+    mat['one_light_vertex_color']='SurfaceTint / glTF COLOR_0 multiply'
+
+
+def weather_plaster(mat):
+    vertex_tint_shader(mat);mat['one_light_base_weathering']=True
+
+
+def soot_stains(mat, stains, strength):
+    vertex_tint_shader(mat)
+    mat['one_light_soot_stencils']=json.dumps(stains)
+    mat['one_light_soot_strength']=strength
+
+
+def apply_surface_tints():
+    import bmesh
+    for obj in list(STATIC.objects):
+        if obj.type!='MESH' or not any(m and m.get('one_light_surface_tint') for m in obj.data.materials):continue
+        # Refine the existing opaque surface, not a second coplanar decal mesh.
+        target=None
+        if obj.name.startswith('Gate plaster pier'):target=(1,-1,.13)
+        if obj.name.startswith('Dark boarded ceiling'):target=(2,-1,.17)
+        if target:
+            bm=bmesh.new();bm.from_mesh(obj.data)
+            axis,sign,spacing=target
+            candidate=max(bm.faces,key=lambda f:f.normal[axis]*sign)
+            cuts=max(1,math.ceil(max(e.calc_length() for e in candidate.edges)/spacing)-1)
+            bmesh.ops.subdivide_edges(bm,edges=list(candidate.edges),cuts=cuts,use_grid_fill=True)
+            bm.to_mesh(obj.data);bm.free();obj.data.update();uv_world(obj)
+        attr=obj.data.color_attributes.get('SurfaceTint') or obj.data.color_attributes.new(name='SurfaceTint',type='FLOAT_COLOR',domain='CORNER')
+        obj.data.color_attributes.active_color=attr
+        for polygon in obj.data.polygons:
+            mat=obj.data.materials[polygon.material_index]
+            stains=json.loads(mat.get('one_light_soot_stencils','[]')) if mat else []
+            strength=mat.get('one_light_soot_strength',0) if mat else 0
+            for loop_index in polygon.loop_indices:
+                vertex=obj.data.vertices[obj.data.loops[loop_index].vertex_index]
+                world=obj.matrix_world@vertex.co;engine=(world.x,world.z,-world.y)
+                tint=[1.0,1.0,1.0]
+                if mat and mat.get('one_light_base_weathering'):
+                    damp=max(0,1-engine[1]/1.15)**1.5*.32
+                    variation=.75+.25*noise.noise(Vector((world.x*.8,world.y*.8,1.3)))
+                    for k,dark in enumerate([.42,.39,.32]):tint[k]*=1-damp*variation*(1-dark)
+                amount=0
+                for cx,cy,cz,rx,ry,rz in stains:
+                    q=((engine[0]-cx)/rx)**2+((engine[1]-cy)/ry)**2+((engine[2]-cz)/rz)**2
+                    amount+=strength*max(0,1-q)**1.7
+                for k in range(3):tint[k]*=1-min(.72,amount)*.84
+                attr.data[loop_index].color=(*tint,1)
+        obj['surface_tint_export']='Preserve active SurfaceTint as glTF COLOR_0; multiply original base color/texture.'
+
+
+def kneeling_cushion(x,y,z):
+    cloth=material('Worn woven cushion cloth','#746148',rough=.96)
+    seam=material('Cushion stitched piping','#4c4031',rough=.98)
+    vertices=[];faces=[];segments=40;rings=18;w,d,h=.62,.46,.125
+    signed=lambda a,e:math.copysign(abs(a)**e,a)
+    for row in range(rings+1):
+        theta=row/rings*math.pi
+        for col in range(segments):
+            phi=col/segments*math.tau
+            xx=w/2*signed(math.sin(theta)*math.cos(phi),.48)
+            zz=d/2*signed(math.sin(theta)*math.sin(phi),.48)
+            yy=h/2*math.cos(theta)
+            yy+=.0025*math.sin(phi*11+row*.4)*math.sin(theta)**3
+            vertices.append((x+xx,y+yy,z+zz))
+    for row in range(rings):
+        for col in range(segments):
+            j=(col+1)%segments;i=row*segments+col
+            faces.append((i,row*segments+j,(row+1)*segments+j,i+segments))
+    obj=mesh_object('Soft sewn kneeling cushion',vertices,faces,cloth)
+    import bmesh
+    bm=bmesh.new();bm.from_mesh(obj.data);bmesh.ops.recalc_face_normals(bm,faces=list(bm.faces));bm.to_mesh(obj.data);bm.free()
+    for polygon in obj.data.polygons:polygon.use_smooth=True
+    for i in range(segments):
+        a=i/segments*math.tau;b=(i+1)/segments*math.tau
+        p=(x+w/2*signed(math.cos(a),.48),y-.003,z+d/2*signed(math.sin(a),.48))
+        q=(x+w/2*signed(math.cos(b),.48),y-.003,z+d/2*signed(math.sin(b),.48))
+        beam('Cushion sewn edge piping',p,q,.0026,seam,.0026)
+
+
+def brass_burner(location,bronze,soot):
+    x,y,z=location
+    lathe('Brass incense burner with rolled lip',[(0,0),(.10,0),(.12,.02),(.13,.055),(.185,.12),(.18,.17),(.15,.185),(.137,.17),(.135,.12),(0,.11)],location,bronze,48)
+    for i in range(3):
+        a=i/3*math.tau
+        beam('Brass burner foot',(x+math.cos(a)*.105,y+.035,z+math.sin(a)*.105),(x+math.cos(a)*.125,y,z+math.sin(a)*.125),.013,bronze,.017)
+    ash=material('Soft cold incense ash','#8e8880',rough=1)
+    vertices=[(x,y+.134,z)];faces=[];n=48
+    for i in range(n):
+        a=i/n*math.tau
+        vertices.append((x+math.cos(a)*.133,y+.121+.002*math.sin(a*7),z+math.sin(a)*.133))
+    for i in range(n):faces.append((0,1+(i+1)%n,1+i))
+    mesh_object('Ash mound in brass burner',vertices,faces,ash)
+    for i in range(9):
+        a=i*2.39;r=.022+.065*((i*7)%9)/9
+        beam('Charred incense end in ash',(x+math.cos(a)*r,y+.133,z+math.sin(a)*r),(x+math.cos(a)*r+.01,y+.134,z+math.sin(a)*r+.008),.0018,soot,.0015)
+
+
 def light(name, location, energy, tint, radius=.1, role='fixture'):
     data = bpy.data.lights.new(name, 'POINT')
     data.energy = energy
@@ -333,23 +450,46 @@ def tiled_roof(name,cx,y_eave,ridge_z,width,half_depth,rise,tile,wood,snow,regio
             if side>0:faces=[tuple(reversed(face)) for face in faces]
             obj=mesh_object(name+(' convex cover tile rows' if cover else ' concave pan tile rows'),vertices,faces,tile,region)
             for polygon in obj.data.polygons:polygon.use_smooth=True
-        # Snow is thinner and wind-scoured at the perimeter so tile courses and
-        # upturned flying eaves remain visible in the night silhouette.
-        vertices=[];faces=[]
+        # Closed, soft snow volume. Its TOP stays above every tile/lip rather
+        # than intersecting the periodic tile rows. Only the irregular outer
+        # boundary thins down into the roof, so it cannot produce striped holes.
+        vertices=[];faces=[];base_positions=[]
         for row in range(ny+1):
+            q=row/ny
             for col in range(nx+1):
                 xx=cx-width/2+.09+(width-.18)*col/nx
-                tmax=.865+.035*math.sin(xx*1.2)+.018*math.sin(xx*4.1)
-                t=row/ny*tmax
+                fringe=noise.noise(Vector((xx*.64,side*.7,2.31)))
+                detail=noise.noise(Vector((xx*1.73,side*1.4,7.0)))
+                tmax=.885+.035*fringe+.014*detail
+                t=q*tmax
                 p=roof_surface(cx,y_eave,ridge_z,width,half_depth,rise,xx,t,side)
-                depth=.115+.025*math.sin(xx*1.7+row*.4)+.018*math.cos(xx*4.1-row)
+                n=noise.noise(Vector((xx*.65,p[2]*.55,4.2)))
+                n2=noise.noise(Vector((xx*1.4,p[2]*1.1,1.8)))
+                edge=max(0,(q-.86)/.14);edge=edge*edge*(3-2*edge)
+                ridge=max(0,1-t/.15);ridge=ridge*ridge*(3-2*ridge)
+                depth=.26+.025*n+.014*n2-.035*edge+.10*ridge
                 vertices.append((p[0],p[1]+depth,p[2]))
+                # The hidden underside embeds in the solid roof; no floating
+                # snow lip or duplicate surface lies on the visible tile skin.
+                base_positions.append((p[0],p[1]-.008,p[2]))
+        top_count=len(vertices);vertices.extend(base_positions)
+        top_faces=[]
         for row in range(ny):
             for col in range(nx):
-                i=row*(nx+1)+col;faces.append((i,i+1,i+nx+2,i+nx+1))
-        if side>0:faces=[tuple(reversed(face)) for face in faces]
+                i=row*(nx+1)+col;top_faces.append((i,i+1,i+nx+2,i+nx+1))
+        if side>0:top_faces=[tuple(reversed(face)) for face in top_faces]
+        faces.extend(top_faces)
+        faces.extend(tuple(i+top_count for i in reversed(face)) for face in top_faces)
+        boundary=list(range(nx+1))+[r*(nx+1)+nx for r in range(1,ny+1)]+[ny*(nx+1)+c for c in range(nx-1,-1,-1)]+[r*(nx+1) for r in range(ny-1,0,-1)]
+        for i,a in enumerate(boundary):
+            b=boundary[(i+1)%len(boundary)]
+            faces.append((a,b,b+top_count,a+top_count))
         cap=mesh_object(name+' curved settled snow cap',vertices,faces,snow,region)
+        import bmesh
+        bm=bmesh.new();bm.from_mesh(cap.data);bmesh.ops.recalc_face_normals(bm,faces=list(bm.faces));bm.to_mesh(cap.data);bm.free()
         for polygon in cap.data.polygons:polygon.use_smooth=True
+        cap['minimum_top_offset_metres']=.18
+        cap['snow_volume_closed']=True
         # Curved exposed rafters and transverse purlins support the roof rather
         # than a single rectangular fascia floating under it.
         for i in range(max(8,int(width/.4))):
@@ -451,6 +591,8 @@ def import_prop(name,path,location,target_height,select_mesh=None):
         obj.location=point(location);obj.name=name+' '+obj.name;move_to_static(obj)
         if obj.data.uv_layers:obj.data.uv_layers[0].name='UVMap'
         obj['source_asset']=str(path);obj['source_license']='CC0-1.0'
+        for mat in obj.data.materials:
+            if mat:stable_roughness(mat,.36,True)
     for obj in imported:
         if obj not in meshes:bpy.data.objects.remove(obj,do_unlink=True)
     return meshes
@@ -471,6 +613,11 @@ def snow_field(material_snow):
         candidates = [p for p in prints if abs(z - p[1]) < .55]
         for x in xs:
             height = .11 + .025 * math.sin(x * 1.7 + z * .23) + .02 * math.cos(z * .8 - x * .33)
+            if -10.5 < z < 18.5:
+                height += .16 * math.exp(-((abs(x)-11.75)/.75)**2)
+            if abs(x)>1.7:
+                height += .11*math.exp(-((z-17.8)/.65)**2)
+            height += .09*math.exp(-((z+9.8)/.65)**2)
             if abs(x) < .55:
                 for px, pz, angle in candidates:
                     dx, dz = x - px, z - pz
@@ -551,7 +698,8 @@ def build_scene():
     scene.world.node_tree.nodes['Background'].inputs['Strength'].default_value = .15
 
     granite = material('Worn granite', '#9d9d94', 'stone_pavers', .92)
-    paving = [material('Dark hall paving %d' % i, c, 'stone_pavers', .62) for i, c in enumerate(['#4c4d4a', '#555450', '#434542'])]
+    paving = [material('Dark hall paving %d' % i, c, 'stone_pavers', .68) for i, c in enumerate(['#4c4d4a', '#555450', '#434542'])]
+    walk_paving=material('Walk-polished worn dark stone','#41443f','stone_pavers',.48)
     brick = material('Weathered brick footings', '#9b8f81', 'dark_brick_wall', .9)
     plaster = material('Patched lime plaster', '#c4c0b5', 'white_plaster_rough_01', .95)
     red = material('Aged red painted timber', '#9b3d2c', 'weathered_planks', .65)
@@ -564,6 +712,13 @@ def build_scene():
     warm = material('Other lamps warm wick', '#ffbc78', rough=.5, emission=3)
     bronze = material('Aged bronze', '#746041', rough=.42, metal=.78)
     soot = material('Soot-darkened clay', '#36312a', rough=.97)
+    weather_plaster(plaster)
+    soot_stains(plaster,[(side*2.0,2.18,19.215,.20,.56,.045) for side in [-1,1]],.48)
+    soot_stains(dark_wood,[(xx,5.025,-4.75,.28,.045,.35) for xx in [-1.45,-.95,.95,1.45]],.35)
+    stable_roughness(gold,.45)
+    stable_roughness(bronze,.48)
+    for mat in paving:stable_roughness(mat,.58)
+    stable_roughness(walk_paving,.43)
 
     REGION = 'hall'
     # Varied old paving follows neither a perfect square grid nor a repeating
@@ -574,7 +729,7 @@ def build_scene():
         xx=-5.18
         while xx<5.15:
             width=RNG.uniform(.48,.93);width=min(width,5.2-xx)
-            irregular_paver('Settled irregular paving stone',xx+width/2,zz+depth/2,width-.018,depth-.018,.60+RNG.uniform(-.006,.006),RNG.choice(paving))
+            irregular_paver('Settled irregular paving stone',xx+width/2,zz+depth/2,width-.018,depth-.018,.60+RNG.uniform(-.006,.006),walk_paving if abs(xx+width/2)<1.05 and -4.0<zz<2.2 else RNG.choice(paving))
             xx+=width
         zz+=depth
     box('Hall foundation', (10.8,.52,9.0), (0,.26,-2.3), brick, .045)
@@ -608,16 +763,16 @@ def build_scene():
         for row in range(6):
             for col in range(3):
                 obj=lathe('Worn bronze door stud',[(0,0),(.023,0),(.024,.007),(.018,.021),(0,.027)],(0,0,0),bronze,16)
-                obj.parent=hinge;obj.location=Vector((-side*(.19+col*.28),-.048,.40+row*.42));obj.rotation_euler=(math.pi/2,0,0)
+                obj.parent=hinge;obj.location=Vector((-side*(.19+col*.28),-.033,.40+row*.42));obj.rotation_euler=(math.pi/2,0,0)
         for hh in [.44,1.45,2.46]:
             obj=box('Forged door hinge strap',(.075,.27,.022),(0,0,0),bronze,.012)
-            obj.parent=hinge;obj.location=Vector((-side*.04,-.06,hh))
+            obj.parent=hinge;obj.location=Vector((-side*.04,-.043,hh))
         obj=lathe('Door ring backplate',[(0,0),(.067,0),(.07,.009),(.06,.016),(0,.016)],(0,0,0),bronze,24)
-        obj.parent=hinge;obj.location=Vector((-side*.72,-.052,1.43));obj.rotation_euler=(math.pi/2,0,0)
+        obj.parent=hinge;obj.location=Vector((-side*.72,-.034,1.43));obj.rotation_euler=(math.pi/2,0,0)
         # A real loose metal ring, not a painted circle on the leaf.
         bpy.ops.mesh.primitive_torus_add(major_radius=.077,minor_radius=.008,major_segments=28,minor_segments=8)
         obj=move_to_static(bpy.context.object,'hall');obj.name='Forged door pull ring';obj.data.materials.append(bronze)
-        obj.parent=hinge;obj.location=Vector((-side*.72,-.079,1.36));obj.rotation_euler=(math.pi/2,0,0);uv_world(obj)
+        obj.parent=hinge;obj.location=Vector((-side*.72,-.063,1.36));obj.rotation_euler=(math.pi/2,0,0);uv_world(obj)
     # Columns stand on granite drums, with visible timber shoulders and bracket sets.
     for xx,zz in [(-2.7,1.0),(2.7,1.0),(-2.7,-4.2),(2.7,-4.2)]:
         lathe('Carved granite column base',[(.28,0),(.29,.025),(.28,.075),(.24,.10),(.255,.14),(.24,.18),(.205,.23)],(xx,.6,zz),granite,40)
@@ -633,12 +788,12 @@ def build_scene():
         box('Painted transverse beam',(10.4,.28,.24),(0,4.85,zz),teal,.025)
         for yy in [4.73,4.98]:box('Worn gilded beam rule',(10.3,.025,.255),(0,yy,zz),gold,.004)
         for xx in [-4.15,-3.3,-1.65,-.55,.55,1.65,3.3,4.15]:
-            box('Recessed painted beam panel',(.66,.15,.025),(xx,4.85,zz+.135),red,.012)
+            box('Recessed painted beam panel',(.66,.15,.035),(xx,4.85,zz+.13),red,.012)
             for side in [-1,1]:
                 box('Painted panel relief frame',(.7,.018,.035),(xx,4.85+side*.083,zz+.15),teal,.007)
                 box('Painted panel relief frame',(.018,.18,.035),(xx+side*.34,4.85,zz+.15),teal,.007)
-                beam('Abstract ochre panel line',(xx-.24,4.85,zz+.165),(xx,4.85+side*.048,zz+.165),.006,gold,.006)
-                beam('Abstract ochre panel line',(xx,4.85+side*.048,zz+.165),(xx+.24,4.85,zz+.165),.006,gold,.006)
+                beam('Abstract ochre panel line',(xx-.24,4.85,zz+.15),(xx,4.85+side*.048,zz+.15),.006,gold,.006)
+                beam('Abstract ochre panel line',(xx,4.85+side*.048,zz+.15),(xx+.24,4.85,zz+.15),.006,gold,.006)
     tiled_roof('Main hall',0,5.15,-2.3,12,6.7,2.65,material('Dark clay roof tile','#6c7073','grey_roof_tiles',rough=.85),dark_wood,snow,'hall')
     # Terrace and short worn steps align exactly with the walk's rise to the hall floor.
     box('Front terrace',(11,.6,2.4),(0,.3,3.4),granite,.045)
@@ -646,7 +801,7 @@ def build_scene():
         worn_step('Chipped and worn granite step',3.2,.2,.43,(0,.5-i*.2,4.8+i*.4),granite)
         for side in [-1,1]:box('Step-edge snow',(.55,.055,.34),(side*1.29,.615-i*.2,4.8+i*.4),snow,.03)
     # Narrow icicles hang from the sheltered edge rather than floating over the court.
-    ice=material('Cloudy icicle ice','#ccdbe5',rough=.24)
+    ice=material('Cloudy icicle ice','#ccdbe5',rough=.38)
     for i in range(47):
         xx=-5.8+i*.25+RNG.uniform(-.035,.035)
         length=.06+RNG.random()**2*.29
@@ -664,10 +819,10 @@ def build_scene():
     for xx in [-2.34,2.34]:
         lathe('Gilded screen edge molding',[(.028,0),(.038,.04),(.028,3.5),(.045,3.58),(.045,3.62)],(xx,1.3,-6.23),gold,16)
     for xx in [-1.45,-.95,.95,1.45]:small_fixture('Other altar lamp',xx,1.63,-4.75,bronze,warm)
-    lathe('Sooted clay bowl',[(0,0),(.14,0),(.18,.15),(.17,.19),(.15,.18),(.10,.04),(0,.035)],(0,1.63,-4.85),soot)
+    brass_burner((0,1.63,-4.85),bronze,soot)
     for i in range(4):beam('Smouldering incense',(i*.025-.04,1.75,-4.85),(i*.028-.04,1.98+RNG.uniform(-.015,.015),-4.85),.0028,dark_wood,.0028)
     for side in [-1,1]:
-        box('Plain kneeling stool',(.55,.17,.34),(side*.85,.695,-3.3),dark_wood,.025)
+        kneeling_cushion(side*.85,.661,-3.3)
     # A broom, stacked bowls and repaired threshold give the room a maintained human scale.
     beam('Broom handle',(4.5,.66,-5.8),(4.75,2.25,-5.85),.018,dark_wood,.018)
     for i in range(35):beam('Broom straw',(4.5,.77,-5.8),(4.38+RNG.random()*.26,.64,-5.72+RNG.random()*.1),.0035,material('Dry straw','#b3a17c',rough=.95),.002)
@@ -682,7 +837,9 @@ def build_scene():
     light('Cool court light entering doorway',(0,2.2,4.4),65,'#b4cdf6',1.4,'ambient')
 
     REGION='gate'
-    for side in [-1,1]:box('Gate plaster pier',(2.6,3.7,2.4),(side*2.7,1.85,18),plaster,.045)
+    for side in [-1,1]:
+        box('Gate plaster pier',(2.6,3.7,2.4),(side*2.7,1.85,18),plaster,.045)
+        box('Weathered gate stone plinth',(2.72,.4,2.52),(side*2.7,.2,18),granite,.035)
     box('Gate lintel',(2.8,.48,2.4),(0,3.48,18),dark_wood,.025)
     for side in [-1,1]:
         lathe('Gate round stone drum',[(.24,0),(.26,.04),(.23,.14),(.17,.20)],(side*1.64,.1,19.35),granite,32)
@@ -704,6 +861,10 @@ def build_scene():
         box('Front wall coping snow',(8.2,.17,.72),(side*8,2.63,18),snow,.055)
         box('Court side wall',(.55,2.55,28),(side*12,1.275,4),plaster,.035)
         box('Side wall coping snow',(.72,.17,28.2),(side*12,2.63,4),snow,.055)
+        for k in range(7):
+            box('Front wall base stone',(1.10,.4,.66),(side*(4.5+k*1.13),.2,18),granite,.022)
+        for k in range(25):
+            box('Side wall base stone',(.66,.4,1.1),(side*12,.2,-9.4+k*1.13),granite,.022)
         # Low side halls use plain roofs and shallow porches at the same construction scale as the main hall.
         box('Side hall back',(.3,2.5,11),(side*10.7,1.4,3),plaster,.025)
         for zz in [-2.3,1.1,4.5,7.9]:
@@ -712,8 +873,9 @@ def build_scene():
         for zz in [-.8,4.0]:
             box('Snow bench seat',(1.3,.15,.5),(side*7.0,.5,zz),granite,.025)
             for dx in [-.4,.4]:box('Stone bench leg',(.2,.4,.35),(side*7+dx,.2,zz),granite,.025)
-            box('Snow over bench',(1.3,.08,.5),(side*7,.62,zz),snow,.035)
+            box('Snow over bench',(1.3,.08,.5),(side*7,.61,zz),snow,.035)
     box('Court back wall',(24,2.55,.55),(0,1.275,-10),plaster,.035)
+    for k in range(20):box('Back wall base stone',(1.18,.4,.66),(-11.4+k*1.2,.2,-10),granite,.022)
     box('Back wall snow',(24.2,.17,.72),(0,2.63,-10),snow,.055)
     for xx,zz,hh in [(-16,11,6.5),(17,6,7.5),(-15,-7,7.0),(16,-9,6.8)]:bare_tree(xx,zz,hh,dark_wood,snow)
 
@@ -747,6 +909,10 @@ def build_scene():
     scene['one_light_place']='snow-roof';scene['runtime_origin']='glTF Y-up; metres';scene['visitor_lamp_anchor']=[0,3.22,-.5]
     scene['lightmap_contract']='UVMap is material UV; baker creates packed Lightmap as second channel.'
     bpy.context.view_layer.update()
+    apply_surface_tints()
+    scene['static_lamp_wicks_engine']=json.dumps([{'name':'altar '+str(xx),'wickCenter':[xx,1.75,-4.75],'wickTip':[xx,1.77,-4.75],'flameAnchor':[xx,1.773,-4.75],'pointLight':[xx,1.82,-4.75]} for xx in [-1.45,-.95,.95,1.45]]+[{'name':'gate '+str(side),'wickCenter':[side*2.0,1.72,19.25],'wickTip':[side*2.0,1.74,19.25],'flameAnchor':[side*2.0,1.743,19.25],'pointLight':[side*2.0,1.79,19.25]} for side in [-1,1]])
+    scene['static_stability_notes']=json.dumps({'roofSnowTopOffsetLowerBound':.186,'tileCoverAndLipOffsetUpperBound':.135,'minimumBlanketClearance':.051,'weathering':'SurfaceTint COLOR_0; opaque geometry only, no decal planes','metalMinRoughness':.45,'bronzeMinRoughness':.48,'propRuntimeMinRoughness':.36,'walkPolishRoughness':.48,'coplanarAudit':'Floor slabs are above foundation by80mm; snow caps are closed volumes with embedded undersides; door hardware and beam inlays embed in their support surfaces.'})
+    scene['static_floor_heights_engine']=json.dumps({'hallFloor':.6,'terrace':.6,'steps':[{'z':4.8,'depth':.43,'top':.6,'wornCenterNosing':.575},{'z':5.2,'depth':.43,'top':.4,'wornCenterNosing':.375},{'z':5.6,'depth':.43,'top':.2,'wornCenterNosing':.175}],'snowTrackRange':[.04,.15]})
     return scene
 
 

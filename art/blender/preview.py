@@ -1,4 +1,4 @@
-"""Reproducible low-sample Cycles CPU previews, without changing the source blend."""
+"""Reproducible low-sample Cycles Metal GPU previews, without changing the source blend."""
 import argparse
 import hashlib
 import json
@@ -21,7 +21,17 @@ args = parser.parse_args(sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv
 bpy.ops.wm.open_mainfile(filepath=str(Path(args.scene).resolve()))
 scene = bpy.context.scene
 scene.render.engine = 'CYCLES'
-scene.cycles.device = 'CPU'
+prefs=bpy.context.preferences.addons['cycles'].preferences
+prefs.compute_device_type='METAL'
+prefs.get_devices()
+metal_devices=[]
+for device in prefs.devices:
+    device.use=device.type=='METAL'
+    if device.use:metal_devices.append(device.name)
+if not metal_devices:raise RuntimeError('No Metal GPU available; previews require the M1 Metal device.')
+scene.cycles.device='GPU'
+scene.cycles.denoiser='OPENIMAGEDENOISE'
+if hasattr(scene.cycles,'denoising_use_gpu'):scene.cycles.denoising_use_gpu=True
 scene.cycles.samples = args.samples
 scene.cycles.max_bounces = 4
 scene.cycles.diffuse_bounces = 2
@@ -29,15 +39,14 @@ scene.cycles.glossy_bounces = 2
 scene.cycles.transmission_bounces = 2
 scene.cycles.transparent_max_bounces = 6
 scene.cycles.use_denoising = True
-scene.render.threads_mode = 'FIXED'
-scene.render.threads = 4
+scene.render.threads_mode = 'AUTO'
 scene.render.resolution_x, scene.render.resolution_y = args.width, args.height
 scene.render.resolution_percentage = 100
 scene.render.image_settings.file_format = 'PNG'
 scene.render.film_transparent = False
 output = Path(args.output).resolve()
 output.mkdir(parents=True, exist_ok=True)
-metadata = {'scene': str(Path(args.scene).resolve()), 'blendSha256': hashlib.sha256(Path(args.scene).read_bytes()).hexdigest(), 'sourceSha256': hashlib.sha256((ROOT/'art/blender/snow_roof.py').read_bytes()).hexdigest(), 'device': 'CPU', 'samples': args.samples,
+metadata = {'scene': str(Path(args.scene).resolve()), 'blendSha256': hashlib.sha256(Path(args.scene).read_bytes()).hexdigest(), 'sourceSha256': hashlib.sha256((ROOT/'art/blender/snow_roof.py').read_bytes()).hexdigest(), 'device': 'METAL', 'devices': metal_devices, 'denoiser': 'OPENIMAGEDENOISE', 'samples': args.samples,
             'size': [args.width, args.height], 'maxBounces': 4, 'cameras': [], 'constructionDiagnostic': args.hide_roof_snow, 'hiddenRoofSnow': []}
 hidden_roof_snow=[]
 if args.hide_roof_snow:
@@ -52,6 +61,7 @@ for name in args.cameras.split(','):
         'TileCourseDetail': ((1.0,6.35,5.8),(0.0,5.58,3.95)),
         'StepEdgeDetail': ((1.3,.85,6.6),(.15,.45,5.15)),
         'StepWearDetail': ((-.3,.64,5.93),(-.2,.4,5.2)),
+        'ClutterDetail': ((2.4,1.85,-.8),(0,1.2,-4.75)),
     }
     if camera is None and name in inspection_poses:
         location,target=inspection_poses[name]
@@ -65,7 +75,7 @@ for name in args.cameras.split(','):
     scene.camera = camera
     path = output / (name + '.png')
     scene.render.filepath = str(path)
-    print('ONE_LIGHT_PREVIEW_START', name, 'CPU', flush=True)
+    print('ONE_LIGHT_PREVIEW_START', name, 'METAL', metal_devices, flush=True)
     bpy.ops.render.render(write_still=True)
     metadata['cameras'].append({'name': name, 'path': str(path), 'position': list(camera.location),
                                 'rotationEuler': list(camera.rotation_euler), 'lens': camera.data.lens,

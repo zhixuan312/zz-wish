@@ -1,0 +1,2385 @@
+{
+  "before": {
+    "path": "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-architecture.blend",
+    "fileSha256": "d12cfe548102cecfc518e574072dc55cf77e48b7b9630666aa46c89ac05cadfc",
+    "fileUnchangedAfterRead": true,
+    "rigSha256": "d30c5aae55d26b3f4ede052785e356b0da22f6d0fe41ec72f2910fe9bf580e26",
+    "rig": {
+      "lights": [
+        {
+          "name": "Cool court light entering doorway",
+          "matrixWorld": [
+            [
+              1.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              1.0,
+              0.0,
+              -4.400000095367432
+            ],
+            [
+              0.0,
+              0.0,
+              1.0,
+              2.200000047683716
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ],
+          "location": [
+            0.0,
+            -4.400000095367432,
+            2.200000047683716
+          ],
+          "rotationEuler": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "hideRender": false,
+          "collections": [
+            {
+              "name": "LIGHTS",
+              "hideRender": false
+            }
+          ],
+          "properties": {
+            "type": "POINT",
+            "color": [
+              0.7058823704719543,
+              0.8039215803146362,
+              0.9647058844566345
+            ],
+            "energy": 65.0,
+            "shadow_soft_size": 1.399999976158142,
+            "use_shadow": true,
+            "normalize": true,
+            "diffuse_factor": 1.0,
+            "specular_factor": 1.0,
+            "volume_factor": 1.0,
+            "use_nodes": true
+          },
+          "nodes": {
+            "nodes": [
+              {
+                "name": "Emission",
+                "type": "ShaderNodeEmission",
+                "mute": false,
+                "inputs": [
+                  {
+                    "name": "Color",
+                    "identifier": "Color",
+                    "value": [
+                      1.0,
+                      1.0,
+                      1.0,
+                      1.0
+                    ]
+                  },
+                  {
+                    "name": "Strength",
+                    "identifier": "Strength",
+                    "value": 1.0
+                  },
+                  {
+                    "name": "Weight",
+                    "identifier": "Weight",
+                    "value": 0.0
+                  }
+                ],
+                "properties": {}
+              },
+              {
+                "name": "Light Output",
+                "type": "ShaderNodeOutputLight",
+                "mute": false,
+                "inputs": [
+                  {
+                    "name": "Surface",
+                    "identifier": "Surface",
+                    "value": null
+                  }
+                ],
+                "properties": {
+                  "is_active_output": true
+                }
+              }
+            ],
+            "links": [
+              {
+                "fromNode": "Emission",
+                "fromSocket": "Emission",
+                "toNode": "Light Output",
+                "toSocket": "Surface"
+              }
+            ]
+          }
+        },
+        {
+          "name": "Gate shelf lamp warm spill",
+          "matrixWorld": [
+            [
+              1.0,
+              0.0,
+              0.0,
+              -2.0
+            ],
+            [
+              0.0,
+              1.0,
+              0.0,
+              -19.25
+            ],
+            [
+              0.0,
+              0.0,
+              1.0,
+              1.7899999618530273
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ],
+          "location": [
+            -2.0,
+            -19.25,
+            1.7899999618530273
+          ],
+          "rotationEuler": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "hideRender": false,
+          "collections": [
+            {
+              "name": "LIGHTS",
+              "hideRender": false
+            }
+          ],
+          "properties": {
+            "type": "POINT",
+            "color": [
+              1.0,
+              0.6784313917160034,
+              0.4000000059604645
+            ],
+            "energy": 8.0,
+            "shadow_soft_size": 0.07000000029802322,
+            "use_shadow": true,
+            "normalize": true,
+            "diffuse_factor": 1.0,
+            "specular_factor": 1.0,
+            "volume_factor": 1.0,
+            "use_nodes": true
+          },
+          "nodes": {
+            "nodes": [
+              {
+                "name": "Emission",
+                "type": "ShaderNodeEmission",
+                "mute": false,
+                "inputs": [
+                  {
+                    "name": "Color",
+                    "identifier": "Color",
+                    "value": [
+                      1.0,
+                      1.0,
+                      1.0,
+                      1.0
+                    ]
+                  },
+                  {
+                    "name": "Strength",
+                    "identifier": "Strength",
+                    "value": 1.0
+                  },
+                  {
+                    "name": "Weight",
+                    "identifier": "Weight",
+                    "value": 0.0
+                  }
+                ],
+                "properties": {}
+              },
+              {
+                "name": "Light Output",
+                "type": "ShaderNodeOutputLight",
+                "mute": false,
+                "inputs": [
+                  {
+                    "name": "Surface",
+                    "identifier": "Surface",
+                    "value": null
+                  }
+                ],
+                "properties": {
+                  "is_active_output": true
+                }
+              }
+            ],
+            "links": [
+              {
+                "fromNode": "Emission",
+                "fromSocket": "Emission",
+                "toNode": "Light Output",
+                "toSocket": "Surface"
+              }
+            ]
+          }
+        },
+        {
+          "name": "Gate shelf lamp warm spill.001",
+          "matrixWorld": [
+            [
+              1.0,
+              0.0,
+              0.0,
+              2.0
+            ],
+            [
+              0.0,
+              1.0,
+              0.0,
+              -19.25
+            ],
+            [
+              0.0,
+              0.0,
+              1.0,
+              1.7899999618530273
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ],
+          "location": [
+            2.0,
+            -19.25,
+            1.7899999618530273
+          ],
+          "rotationEuler": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "hideRender": false,
+          "collections": [
+            {
+              "name": "LIGHTS",
+              "hideRender": false
+            }
+          ],
+          "properties": {
+            "type": "POINT",
+            "color": [
+              1.0,
+              0.6784313917160034,
+              0.4000000059604645
+            ],
+            "energy": 8.0,
+            "shadow_soft_size": 0.07000000029802322,
+            "use_shadow": true,
+            "normalize": true,
+            "diffuse_factor": 1.0,
+            "specular_factor": 1.0,
+            "volume_factor": 1.0,
+            "use_nodes": true
+          },
+          "nodes": {
+            "nodes": [
+              {
+                "name": "Emission",
+                "type": "ShaderNodeEmission",
+                "mute": false,
+                "inputs": [
+                  {
+                    "name": "Color",
+                    "identifier": "Color",
+                    "value": [
+                      1.0,
+                      1.0,
+                      1.0,
+                      1.0
+                    ]
+                  },
+                  {
+                    "name": "Strength",
+                    "identifier": "Strength",
+                    "value": 1.0
+                  },
+                  {
+                    "name": "Weight",
+                    "identifier": "Weight",
+                    "value": 0.0
+                  }
+                ],
+                "properties": {}
+              },
+              {
+                "name": "Light Output",
+                "type": "ShaderNodeOutputLight",
+                "mute": false,
+                "inputs": [
+                  {
+                    "name": "Surface",
+                    "identifier": "Surface",
+                    "value": null
+                  }
+                ],
+                "properties": {
+                  "is_active_output": true
+                }
+              }
+            ],
+            "links": [
+              {
+                "fromNode": "Emission",
+                "fromSocket": "Emission",
+                "toNode": "Light Output",
+                "toSocket": "Surface"
+              }
+            ]
+          }
+        },
+        {
+          "name": "Moon basis",
+          "matrixWorld": [
+            [
+              0.7232683300971985,
+              0.3877488672733307,
+              -0.5714312791824341,
+              0.0
+            ],
+            [
+              -0.5064379572868347,
+              0.8603777885437012,
+              -0.0571897029876709,
+              0.0
+            ],
+            [
+              0.4694715738296509,
+              0.3307579755783081,
+              0.8186547756195068,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rotationEuler": [
+            0.3839724361896515,
+            -0.48869219422340393,
+            -0.6108652353286743
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "hideRender": false,
+          "collections": [
+            {
+              "name": "LIGHTS",
+              "hideRender": false
+            }
+          ],
+          "properties": {
+            "type": "SUN",
+            "color": [
+              0.6000000238418579,
+              0.7200000286102295,
+              1.0
+            ],
+            "energy": 0.44999998807907104,
+            "shadow_soft_size": 0.0,
+            "angle": 0.10999999940395355,
+            "use_shadow": true,
+            "normalize": true,
+            "diffuse_factor": 1.0,
+            "specular_factor": 1.0,
+            "volume_factor": 1.0,
+            "use_nodes": true
+          },
+          "nodes": {
+            "nodes": [
+              {
+                "name": "Emission",
+                "type": "ShaderNodeEmission",
+                "mute": false,
+                "inputs": [
+                  {
+                    "name": "Color",
+                    "identifier": "Color",
+                    "value": [
+                      1.0,
+                      1.0,
+                      1.0,
+                      1.0
+                    ]
+                  },
+                  {
+                    "name": "Strength",
+                    "identifier": "Strength",
+                    "value": 1.0
+                  },
+                  {
+                    "name": "Weight",
+                    "identifier": "Weight",
+                    "value": 0.0
+                  }
+                ],
+                "properties": {}
+              },
+              {
+                "name": "Light Output",
+                "type": "ShaderNodeOutputLight",
+                "mute": false,
+                "inputs": [
+                  {
+                    "name": "Surface",
+                    "identifier": "Surface",
+                    "value": null
+                  }
+                ],
+                "properties": {
+                  "is_active_output": true
+                }
+              }
+            ],
+            "links": [
+              {
+                "fromNode": "Emission",
+                "fromSocket": "Emission",
+                "toNode": "Light Output",
+                "toSocket": "Surface"
+              }
+            ]
+          }
+        },
+        {
+          "name": "Other altar lamp warm spill",
+          "matrixWorld": [
+            [
+              1.0,
+              0.0,
+              0.0,
+              -1.4500000476837158
+            ],
+            [
+              0.0,
+              1.0,
+              0.0,
+              4.75
+            ],
+            [
+              0.0,
+              0.0,
+              1.0,
+              1.8200000524520874
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ],
+          "location": [
+            -1.4500000476837158,
+            4.75,
+            1.8200000524520874
+          ],
+          "rotationEuler": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "hideRender": false,
+          "collections": [
+            {
+              "name": "LIGHTS",
+              "hideRender": false
+            }
+          ],
+          "properties": {
+            "type": "POINT",
+            "color": [
+              1.0,
+              0.6784313917160034,
+              0.4000000059604645
+            ],
+            "energy": 8.0,
+            "shadow_soft_size": 0.07000000029802322,
+            "use_shadow": true,
+            "normalize": true,
+            "diffuse_factor": 1.0,
+            "specular_factor": 1.0,
+            "volume_factor": 1.0,
+            "use_nodes": true
+          },
+          "nodes": {
+            "nodes": [
+              {
+                "name": "Emission",
+                "type": "ShaderNodeEmission",
+                "mute": false,
+                "inputs": [
+                  {
+                    "name": "Color",
+                    "identifier": "Color",
+                    "value": [
+                      1.0,
+                      1.0,
+                      1.0,
+                      1.0
+                    ]
+                  },
+                  {
+                    "name": "Strength",
+                    "identifier": "Strength",
+                    "value": 1.0
+                  },
+                  {
+                    "name": "Weight",
+                    "identifier": "Weight",
+                    "value": 0.0
+                  }
+                ],
+                "properties": {}
+              },
+              {
+                "name": "Light Output",
+                "type": "ShaderNodeOutputLight",
+                "mute": false,
+                "inputs": [
+                  {
+                    "name": "Surface",
+                    "identifier": "Surface",
+                    "value": null
+                  }
+                ],
+                "properties": {
+                  "is_active_output": true
+                }
+              }
+            ],
+            "links": [
+              {
+                "fromNode": "Emission",
+                "fromSocket": "Emission",
+                "toNode": "Light Output",
+                "toSocket": "Surface"
+              }
+            ]
+          }
+        },
+        {
+          "name": "Other altar lamp warm spill.001",
+          "matrixWorld": [
+            [
+              1.0,
+              0.0,
+              0.0,
+              -0.949999988079071
+            ],
+            [
+              0.0,
+              1.0,
+              0.0,
+              4.75
+            ],
+            [
+              0.0,
+              0.0,
+              1.0,
+              1.8200000524520874
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ],
+          "location": [
+            -0.949999988079071,
+            4.75,
+            1.8200000524520874
+          ],
+          "rotationEuler": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "hideRender": false,
+          "collections": [
+            {
+              "name": "LIGHTS",
+              "hideRender": false
+            }
+          ],
+          "properties": {
+            "type": "POINT",
+            "color": [
+              1.0,
+              0.6784313917160034,
+              0.4000000059604645
+            ],
+            "energy": 8.0,
+            "shadow_soft_size": 0.07000000029802322,
+            "use_shadow": true,
+            "normalize": true,
+            "diffuse_factor": 1.0,
+            "specular_factor": 1.0,
+            "volume_factor": 1.0,
+            "use_nodes": true
+          },
+          "nodes": {
+            "nodes": [
+              {
+                "name": "Emission",
+                "type": "ShaderNodeEmission",
+                "mute": false,
+                "inputs": [
+                  {
+                    "name": "Color",
+                    "identifier": "Color",
+                    "value": [
+                      1.0,
+                      1.0,
+                      1.0,
+                      1.0
+                    ]
+                  },
+                  {
+                    "name": "Strength",
+                    "identifier": "Strength",
+                    "value": 1.0
+                  },
+                  {
+                    "name": "Weight",
+                    "identifier": "Weight",
+                    "value": 0.0
+                  }
+                ],
+                "properties": {}
+              },
+              {
+                "name": "Light Output",
+                "type": "ShaderNodeOutputLight",
+                "mute": false,
+                "inputs": [
+                  {
+                    "name": "Surface",
+                    "identifier": "Surface",
+                    "value": null
+                  }
+                ],
+                "properties": {
+                  "is_active_output": true
+                }
+              }
+            ],
+            "links": [
+              {
+                "fromNode": "Emission",
+                "fromSocket": "Emission",
+                "toNode": "Light Output",
+                "toSocket": "Surface"
+              }
+            ]
+          }
+        },
+        {
+          "name": "Other altar lamp warm spill.002",
+          "matrixWorld": [
+            [
+              1.0,
+              0.0,
+              0.0,
+              0.949999988079071
+            ],
+            [
+              0.0,
+              1.0,
+              0.0,
+              4.75
+            ],
+            [
+              0.0,
+              0.0,
+              1.0,
+              1.8200000524520874
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ],
+          "location": [
+            0.949999988079071,
+            4.75,
+            1.8200000524520874
+          ],
+          "rotationEuler": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "hideRender": false,
+          "collections": [
+            {
+              "name": "LIGHTS",
+              "hideRender": false
+            }
+          ],
+          "properties": {
+            "type": "POINT",
+            "color": [
+              1.0,
+              0.6784313917160034,
+              0.4000000059604645
+            ],
+            "energy": 8.0,
+            "shadow_soft_size": 0.07000000029802322,
+            "use_shadow": true,
+            "normalize": true,
+            "diffuse_factor": 1.0,
+            "specular_factor": 1.0,
+            "volume_factor": 1.0,
+            "use_nodes": true
+          },
+          "nodes": {
+            "nodes": [
+              {
+                "name": "Emission",
+                "type": "ShaderNodeEmission",
+                "mute": false,
+                "inputs": [
+                  {
+                    "name": "Color",
+                    "identifier": "Color",
+                    "value": [
+                      1.0,
+                      1.0,
+                      1.0,
+                      1.0
+                    ]
+                  },
+                  {
+                    "name": "Strength",
+                    "identifier": "Strength",
+                    "value": 1.0
+                  },
+                  {
+                    "name": "Weight",
+                    "identifier": "Weight",
+                    "value": 0.0
+                  }
+                ],
+                "properties": {}
+              },
+              {
+                "name": "Light Output",
+                "type": "ShaderNodeOutputLight",
+                "mute": false,
+                "inputs": [
+                  {
+                    "name": "Surface",
+                    "identifier": "Surface",
+                    "value": null
+                  }
+                ],
+                "properties": {
+                  "is_active_output": true
+                }
+              }
+            ],
+            "links": [
+              {
+                "fromNode": "Emission",
+                "fromSocket": "Emission",
+                "toNode": "Light Output",
+                "toSocket": "Surface"
+              }
+            ]
+          }
+        },
+        {
+          "name": "Other altar lamp warm spill.003",
+          "matrixWorld": [
+            [
+              1.0,
+              0.0,
+              0.0,
+              1.4500000476837158
+            ],
+            [
+              0.0,
+              1.0,
+              0.0,
+              4.75
+            ],
+            [
+              0.0,
+              0.0,
+              1.0,
+              1.8200000524520874
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ],
+          "location": [
+            1.4500000476837158,
+            4.75,
+            1.8200000524520874
+          ],
+          "rotationEuler": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "hideRender": false,
+          "collections": [
+            {
+              "name": "LIGHTS",
+              "hideRender": false
+            }
+          ],
+          "properties": {
+            "type": "POINT",
+            "color": [
+              1.0,
+              0.6784313917160034,
+              0.4000000059604645
+            ],
+            "energy": 8.0,
+            "shadow_soft_size": 0.07000000029802322,
+            "use_shadow": true,
+            "normalize": true,
+            "diffuse_factor": 1.0,
+            "specular_factor": 1.0,
+            "volume_factor": 1.0,
+            "use_nodes": true
+          },
+          "nodes": {
+            "nodes": [
+              {
+                "name": "Emission",
+                "type": "ShaderNodeEmission",
+                "mute": false,
+                "inputs": [
+                  {
+                    "name": "Color",
+                    "identifier": "Color",
+                    "value": [
+                      1.0,
+                      1.0,
+                      1.0,
+                      1.0
+                    ]
+                  },
+                  {
+                    "name": "Strength",
+                    "identifier": "Strength",
+                    "value": 1.0
+                  },
+                  {
+                    "name": "Weight",
+                    "identifier": "Weight",
+                    "value": 0.0
+                  }
+                ],
+                "properties": {}
+              },
+              {
+                "name": "Light Output",
+                "type": "ShaderNodeOutputLight",
+                "mute": false,
+                "inputs": [
+                  {
+                    "name": "Surface",
+                    "identifier": "Surface",
+                    "value": null
+                  }
+                ],
+                "properties": {
+                  "is_active_output": true
+                }
+              }
+            ],
+            "links": [
+              {
+                "fromNode": "Emission",
+                "fromSocket": "Emission",
+                "toNode": "Light Output",
+                "toSocket": "Surface"
+              }
+            ]
+          }
+        },
+        {
+          "name": "Visitor flame bake basis",
+          "matrixWorld": [
+            [
+              1.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              1.0,
+              0.0,
+              0.5
+            ],
+            [
+              0.0,
+              0.0,
+              1.0,
+              2.990000009536743
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ],
+          "location": [
+            0.0,
+            0.5,
+            2.990000009536743
+          ],
+          "rotationEuler": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "hideRender": false,
+          "collections": [
+            {
+              "name": "LIGHTS",
+              "hideRender": false
+            }
+          ],
+          "properties": {
+            "type": "POINT",
+            "color": [
+              1.0,
+              0.7411764860153198,
+              0.47058823704719543
+            ],
+            "energy": 45.0,
+            "shadow_soft_size": 0.03999999910593033,
+            "use_shadow": true,
+            "normalize": true,
+            "diffuse_factor": 1.0,
+            "specular_factor": 1.0,
+            "volume_factor": 1.0,
+            "use_nodes": true
+          },
+          "nodes": {
+            "nodes": [
+              {
+                "name": "Emission",
+                "type": "ShaderNodeEmission",
+                "mute": false,
+                "inputs": [
+                  {
+                    "name": "Color",
+                    "identifier": "Color",
+                    "value": [
+                      1.0,
+                      1.0,
+                      1.0,
+                      1.0
+                    ]
+                  },
+                  {
+                    "name": "Strength",
+                    "identifier": "Strength",
+                    "value": 1.0
+                  },
+                  {
+                    "name": "Weight",
+                    "identifier": "Weight",
+                    "value": 0.0
+                  }
+                ],
+                "properties": {}
+              },
+              {
+                "name": "Light Output",
+                "type": "ShaderNodeOutputLight",
+                "mute": false,
+                "inputs": [
+                  {
+                    "name": "Surface",
+                    "identifier": "Surface",
+                    "value": null
+                  }
+                ],
+                "properties": {
+                  "is_active_output": true
+                }
+              }
+            ],
+            "links": [
+              {
+                "fromNode": "Emission",
+                "fromSocket": "Emission",
+                "toNode": "Light Output",
+                "toSocket": "Surface"
+              }
+            ]
+          }
+        }
+      ],
+      "world": {
+        "useNodes": true,
+        "color": [
+          0.05000000074505806,
+          0.05000000074505806,
+          0.05000000074505806
+        ],
+        "nodes": {
+          "nodes": [
+            {
+              "name": "Background",
+              "type": "ShaderNodeBackground",
+              "mute": false,
+              "inputs": [
+                {
+                  "name": "Color",
+                  "identifier": "Color",
+                  "value": [
+                    0.1899999976158142,
+                    0.2800000011920929,
+                    0.4699999988079071,
+                    1.0
+                  ]
+                },
+                {
+                  "name": "Strength",
+                  "identifier": "Strength",
+                  "value": 0.15000000596046448
+                },
+                {
+                  "name": "Weight",
+                  "identifier": "Weight",
+                  "value": 0.0
+                }
+              ],
+              "properties": {}
+            },
+            {
+              "name": "World Output",
+              "type": "ShaderNodeOutputWorld",
+              "mute": false,
+              "inputs": [
+                {
+                  "name": "Surface",
+                  "identifier": "Surface",
+                  "value": null
+                },
+                {
+                  "name": "Volume",
+                  "identifier": "Volume",
+                  "value": null
+                }
+              ],
+              "properties": {
+                "is_active_output": true
+              }
+            }
+          ],
+          "links": [
+            {
+              "fromNode": "Background",
+              "fromSocket": "Background",
+              "toNode": "World Output",
+              "toSocket": "Surface"
+            }
+          ]
+        }
+      }
+    },
+    "colorManagement": {
+      "view_transform": "AgX",
+      "look": "None",
+      "exposure": 0.0,
+      "gamma": 1.0,
+      "use_white_balance": false,
+      "white_balance_temperature": 6500.0,
+      "white_balance_tint": 10.0
+    }
+  },
+  "after": {
+    "path": "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-stable.blend",
+    "fileSha256": "73af75982e5dc97741afb994403dde0d8b1f65a826d84adbed56dd6438873997",
+    "fileUnchangedAfterRead": true,
+    "rigSha256": "d30c5aae55d26b3f4ede052785e356b0da22f6d0fe41ec72f2910fe9bf580e26",
+    "rig": {
+      "lights": [
+        {
+          "name": "Cool court light entering doorway",
+          "matrixWorld": [
+            [
+              1.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              1.0,
+              0.0,
+              -4.400000095367432
+            ],
+            [
+              0.0,
+              0.0,
+              1.0,
+              2.200000047683716
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ],
+          "location": [
+            0.0,
+            -4.400000095367432,
+            2.200000047683716
+          ],
+          "rotationEuler": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "hideRender": false,
+          "collections": [
+            {
+              "name": "LIGHTS",
+              "hideRender": false
+            }
+          ],
+          "properties": {
+            "type": "POINT",
+            "color": [
+              0.7058823704719543,
+              0.8039215803146362,
+              0.9647058844566345
+            ],
+            "energy": 65.0,
+            "shadow_soft_size": 1.399999976158142,
+            "use_shadow": true,
+            "normalize": true,
+            "diffuse_factor": 1.0,
+            "specular_factor": 1.0,
+            "volume_factor": 1.0,
+            "use_nodes": true
+          },
+          "nodes": {
+            "nodes": [
+              {
+                "name": "Emission",
+                "type": "ShaderNodeEmission",
+                "mute": false,
+                "inputs": [
+                  {
+                    "name": "Color",
+                    "identifier": "Color",
+                    "value": [
+                      1.0,
+                      1.0,
+                      1.0,
+                      1.0
+                    ]
+                  },
+                  {
+                    "name": "Strength",
+                    "identifier": "Strength",
+                    "value": 1.0
+                  },
+                  {
+                    "name": "Weight",
+                    "identifier": "Weight",
+                    "value": 0.0
+                  }
+                ],
+                "properties": {}
+              },
+              {
+                "name": "Light Output",
+                "type": "ShaderNodeOutputLight",
+                "mute": false,
+                "inputs": [
+                  {
+                    "name": "Surface",
+                    "identifier": "Surface",
+                    "value": null
+                  }
+                ],
+                "properties": {
+                  "is_active_output": true
+                }
+              }
+            ],
+            "links": [
+              {
+                "fromNode": "Emission",
+                "fromSocket": "Emission",
+                "toNode": "Light Output",
+                "toSocket": "Surface"
+              }
+            ]
+          }
+        },
+        {
+          "name": "Gate shelf lamp warm spill",
+          "matrixWorld": [
+            [
+              1.0,
+              0.0,
+              0.0,
+              -2.0
+            ],
+            [
+              0.0,
+              1.0,
+              0.0,
+              -19.25
+            ],
+            [
+              0.0,
+              0.0,
+              1.0,
+              1.7899999618530273
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ],
+          "location": [
+            -2.0,
+            -19.25,
+            1.7899999618530273
+          ],
+          "rotationEuler": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "hideRender": false,
+          "collections": [
+            {
+              "name": "LIGHTS",
+              "hideRender": false
+            }
+          ],
+          "properties": {
+            "type": "POINT",
+            "color": [
+              1.0,
+              0.6784313917160034,
+              0.4000000059604645
+            ],
+            "energy": 8.0,
+            "shadow_soft_size": 0.07000000029802322,
+            "use_shadow": true,
+            "normalize": true,
+            "diffuse_factor": 1.0,
+            "specular_factor": 1.0,
+            "volume_factor": 1.0,
+            "use_nodes": true
+          },
+          "nodes": {
+            "nodes": [
+              {
+                "name": "Emission",
+                "type": "ShaderNodeEmission",
+                "mute": false,
+                "inputs": [
+                  {
+                    "name": "Color",
+                    "identifier": "Color",
+                    "value": [
+                      1.0,
+                      1.0,
+                      1.0,
+                      1.0
+                    ]
+                  },
+                  {
+                    "name": "Strength",
+                    "identifier": "Strength",
+                    "value": 1.0
+                  },
+                  {
+                    "name": "Weight",
+                    "identifier": "Weight",
+                    "value": 0.0
+                  }
+                ],
+                "properties": {}
+              },
+              {
+                "name": "Light Output",
+                "type": "ShaderNodeOutputLight",
+                "mute": false,
+                "inputs": [
+                  {
+                    "name": "Surface",
+                    "identifier": "Surface",
+                    "value": null
+                  }
+                ],
+                "properties": {
+                  "is_active_output": true
+                }
+              }
+            ],
+            "links": [
+              {
+                "fromNode": "Emission",
+                "fromSocket": "Emission",
+                "toNode": "Light Output",
+                "toSocket": "Surface"
+              }
+            ]
+          }
+        },
+        {
+          "name": "Gate shelf lamp warm spill.001",
+          "matrixWorld": [
+            [
+              1.0,
+              0.0,
+              0.0,
+              2.0
+            ],
+            [
+              0.0,
+              1.0,
+              0.0,
+              -19.25
+            ],
+            [
+              0.0,
+              0.0,
+              1.0,
+              1.7899999618530273
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ],
+          "location": [
+            2.0,
+            -19.25,
+            1.7899999618530273
+          ],
+          "rotationEuler": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "hideRender": false,
+          "collections": [
+            {
+              "name": "LIGHTS",
+              "hideRender": false
+            }
+          ],
+          "properties": {
+            "type": "POINT",
+            "color": [
+              1.0,
+              0.6784313917160034,
+              0.4000000059604645
+            ],
+            "energy": 8.0,
+            "shadow_soft_size": 0.07000000029802322,
+            "use_shadow": true,
+            "normalize": true,
+            "diffuse_factor": 1.0,
+            "specular_factor": 1.0,
+            "volume_factor": 1.0,
+            "use_nodes": true
+          },
+          "nodes": {
+            "nodes": [
+              {
+                "name": "Emission",
+                "type": "ShaderNodeEmission",
+                "mute": false,
+                "inputs": [
+                  {
+                    "name": "Color",
+                    "identifier": "Color",
+                    "value": [
+                      1.0,
+                      1.0,
+                      1.0,
+                      1.0
+                    ]
+                  },
+                  {
+                    "name": "Strength",
+                    "identifier": "Strength",
+                    "value": 1.0
+                  },
+                  {
+                    "name": "Weight",
+                    "identifier": "Weight",
+                    "value": 0.0
+                  }
+                ],
+                "properties": {}
+              },
+              {
+                "name": "Light Output",
+                "type": "ShaderNodeOutputLight",
+                "mute": false,
+                "inputs": [
+                  {
+                    "name": "Surface",
+                    "identifier": "Surface",
+                    "value": null
+                  }
+                ],
+                "properties": {
+                  "is_active_output": true
+                }
+              }
+            ],
+            "links": [
+              {
+                "fromNode": "Emission",
+                "fromSocket": "Emission",
+                "toNode": "Light Output",
+                "toSocket": "Surface"
+              }
+            ]
+          }
+        },
+        {
+          "name": "Moon basis",
+          "matrixWorld": [
+            [
+              0.7232683300971985,
+              0.3877488672733307,
+              -0.5714312791824341,
+              0.0
+            ],
+            [
+              -0.5064379572868347,
+              0.8603777885437012,
+              -0.0571897029876709,
+              0.0
+            ],
+            [
+              0.4694715738296509,
+              0.3307579755783081,
+              0.8186547756195068,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ],
+          "location": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rotationEuler": [
+            0.3839724361896515,
+            -0.48869219422340393,
+            -0.6108652353286743
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "hideRender": false,
+          "collections": [
+            {
+              "name": "LIGHTS",
+              "hideRender": false
+            }
+          ],
+          "properties": {
+            "type": "SUN",
+            "color": [
+              0.6000000238418579,
+              0.7200000286102295,
+              1.0
+            ],
+            "energy": 0.44999998807907104,
+            "shadow_soft_size": 0.0,
+            "angle": 0.10999999940395355,
+            "use_shadow": true,
+            "normalize": true,
+            "diffuse_factor": 1.0,
+            "specular_factor": 1.0,
+            "volume_factor": 1.0,
+            "use_nodes": true
+          },
+          "nodes": {
+            "nodes": [
+              {
+                "name": "Emission",
+                "type": "ShaderNodeEmission",
+                "mute": false,
+                "inputs": [
+                  {
+                    "name": "Color",
+                    "identifier": "Color",
+                    "value": [
+                      1.0,
+                      1.0,
+                      1.0,
+                      1.0
+                    ]
+                  },
+                  {
+                    "name": "Strength",
+                    "identifier": "Strength",
+                    "value": 1.0
+                  },
+                  {
+                    "name": "Weight",
+                    "identifier": "Weight",
+                    "value": 0.0
+                  }
+                ],
+                "properties": {}
+              },
+              {
+                "name": "Light Output",
+                "type": "ShaderNodeOutputLight",
+                "mute": false,
+                "inputs": [
+                  {
+                    "name": "Surface",
+                    "identifier": "Surface",
+                    "value": null
+                  }
+                ],
+                "properties": {
+                  "is_active_output": true
+                }
+              }
+            ],
+            "links": [
+              {
+                "fromNode": "Emission",
+                "fromSocket": "Emission",
+                "toNode": "Light Output",
+                "toSocket": "Surface"
+              }
+            ]
+          }
+        },
+        {
+          "name": "Other altar lamp warm spill",
+          "matrixWorld": [
+            [
+              1.0,
+              0.0,
+              0.0,
+              -1.4500000476837158
+            ],
+            [
+              0.0,
+              1.0,
+              0.0,
+              4.75
+            ],
+            [
+              0.0,
+              0.0,
+              1.0,
+              1.8200000524520874
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ],
+          "location": [
+            -1.4500000476837158,
+            4.75,
+            1.8200000524520874
+          ],
+          "rotationEuler": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "hideRender": false,
+          "collections": [
+            {
+              "name": "LIGHTS",
+              "hideRender": false
+            }
+          ],
+          "properties": {
+            "type": "POINT",
+            "color": [
+              1.0,
+              0.6784313917160034,
+              0.4000000059604645
+            ],
+            "energy": 8.0,
+            "shadow_soft_size": 0.07000000029802322,
+            "use_shadow": true,
+            "normalize": true,
+            "diffuse_factor": 1.0,
+            "specular_factor": 1.0,
+            "volume_factor": 1.0,
+            "use_nodes": true
+          },
+          "nodes": {
+            "nodes": [
+              {
+                "name": "Emission",
+                "type": "ShaderNodeEmission",
+                "mute": false,
+                "inputs": [
+                  {
+                    "name": "Color",
+                    "identifier": "Color",
+                    "value": [
+                      1.0,
+                      1.0,
+                      1.0,
+                      1.0
+                    ]
+                  },
+                  {
+                    "name": "Strength",
+                    "identifier": "Strength",
+                    "value": 1.0
+                  },
+                  {
+                    "name": "Weight",
+                    "identifier": "Weight",
+                    "value": 0.0
+                  }
+                ],
+                "properties": {}
+              },
+              {
+                "name": "Light Output",
+                "type": "ShaderNodeOutputLight",
+                "mute": false,
+                "inputs": [
+                  {
+                    "name": "Surface",
+                    "identifier": "Surface",
+                    "value": null
+                  }
+                ],
+                "properties": {
+                  "is_active_output": true
+                }
+              }
+            ],
+            "links": [
+              {
+                "fromNode": "Emission",
+                "fromSocket": "Emission",
+                "toNode": "Light Output",
+                "toSocket": "Surface"
+              }
+            ]
+          }
+        },
+        {
+          "name": "Other altar lamp warm spill.001",
+          "matrixWorld": [
+            [
+              1.0,
+              0.0,
+              0.0,
+              -0.949999988079071
+            ],
+            [
+              0.0,
+              1.0,
+              0.0,
+              4.75
+            ],
+            [
+              0.0,
+              0.0,
+              1.0,
+              1.8200000524520874
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ],
+          "location": [
+            -0.949999988079071,
+            4.75,
+            1.8200000524520874
+          ],
+          "rotationEuler": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "hideRender": false,
+          "collections": [
+            {
+              "name": "LIGHTS",
+              "hideRender": false
+            }
+          ],
+          "properties": {
+            "type": "POINT",
+            "color": [
+              1.0,
+              0.6784313917160034,
+              0.4000000059604645
+            ],
+            "energy": 8.0,
+            "shadow_soft_size": 0.07000000029802322,
+            "use_shadow": true,
+            "normalize": true,
+            "diffuse_factor": 1.0,
+            "specular_factor": 1.0,
+            "volume_factor": 1.0,
+            "use_nodes": true
+          },
+          "nodes": {
+            "nodes": [
+              {
+                "name": "Emission",
+                "type": "ShaderNodeEmission",
+                "mute": false,
+                "inputs": [
+                  {
+                    "name": "Color",
+                    "identifier": "Color",
+                    "value": [
+                      1.0,
+                      1.0,
+                      1.0,
+                      1.0
+                    ]
+                  },
+                  {
+                    "name": "Strength",
+                    "identifier": "Strength",
+                    "value": 1.0
+                  },
+                  {
+                    "name": "Weight",
+                    "identifier": "Weight",
+                    "value": 0.0
+                  }
+                ],
+                "properties": {}
+              },
+              {
+                "name": "Light Output",
+                "type": "ShaderNodeOutputLight",
+                "mute": false,
+                "inputs": [
+                  {
+                    "name": "Surface",
+                    "identifier": "Surface",
+                    "value": null
+                  }
+                ],
+                "properties": {
+                  "is_active_output": true
+                }
+              }
+            ],
+            "links": [
+              {
+                "fromNode": "Emission",
+                "fromSocket": "Emission",
+                "toNode": "Light Output",
+                "toSocket": "Surface"
+              }
+            ]
+          }
+        },
+        {
+          "name": "Other altar lamp warm spill.002",
+          "matrixWorld": [
+            [
+              1.0,
+              0.0,
+              0.0,
+              0.949999988079071
+            ],
+            [
+              0.0,
+              1.0,
+              0.0,
+              4.75
+            ],
+            [
+              0.0,
+              0.0,
+              1.0,
+              1.8200000524520874
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ],
+          "location": [
+            0.949999988079071,
+            4.75,
+            1.8200000524520874
+          ],
+          "rotationEuler": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "hideRender": false,
+          "collections": [
+            {
+              "name": "LIGHTS",
+              "hideRender": false
+            }
+          ],
+          "properties": {
+            "type": "POINT",
+            "color": [
+              1.0,
+              0.6784313917160034,
+              0.4000000059604645
+            ],
+            "energy": 8.0,
+            "shadow_soft_size": 0.07000000029802322,
+            "use_shadow": true,
+            "normalize": true,
+            "diffuse_factor": 1.0,
+            "specular_factor": 1.0,
+            "volume_factor": 1.0,
+            "use_nodes": true
+          },
+          "nodes": {
+            "nodes": [
+              {
+                "name": "Emission",
+                "type": "ShaderNodeEmission",
+                "mute": false,
+                "inputs": [
+                  {
+                    "name": "Color",
+                    "identifier": "Color",
+                    "value": [
+                      1.0,
+                      1.0,
+                      1.0,
+                      1.0
+                    ]
+                  },
+                  {
+                    "name": "Strength",
+                    "identifier": "Strength",
+                    "value": 1.0
+                  },
+                  {
+                    "name": "Weight",
+                    "identifier": "Weight",
+                    "value": 0.0
+                  }
+                ],
+                "properties": {}
+              },
+              {
+                "name": "Light Output",
+                "type": "ShaderNodeOutputLight",
+                "mute": false,
+                "inputs": [
+                  {
+                    "name": "Surface",
+                    "identifier": "Surface",
+                    "value": null
+                  }
+                ],
+                "properties": {
+                  "is_active_output": true
+                }
+              }
+            ],
+            "links": [
+              {
+                "fromNode": "Emission",
+                "fromSocket": "Emission",
+                "toNode": "Light Output",
+                "toSocket": "Surface"
+              }
+            ]
+          }
+        },
+        {
+          "name": "Other altar lamp warm spill.003",
+          "matrixWorld": [
+            [
+              1.0,
+              0.0,
+              0.0,
+              1.4500000476837158
+            ],
+            [
+              0.0,
+              1.0,
+              0.0,
+              4.75
+            ],
+            [
+              0.0,
+              0.0,
+              1.0,
+              1.8200000524520874
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ],
+          "location": [
+            1.4500000476837158,
+            4.75,
+            1.8200000524520874
+          ],
+          "rotationEuler": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "hideRender": false,
+          "collections": [
+            {
+              "name": "LIGHTS",
+              "hideRender": false
+            }
+          ],
+          "properties": {
+            "type": "POINT",
+            "color": [
+              1.0,
+              0.6784313917160034,
+              0.4000000059604645
+            ],
+            "energy": 8.0,
+            "shadow_soft_size": 0.07000000029802322,
+            "use_shadow": true,
+            "normalize": true,
+            "diffuse_factor": 1.0,
+            "specular_factor": 1.0,
+            "volume_factor": 1.0,
+            "use_nodes": true
+          },
+          "nodes": {
+            "nodes": [
+              {
+                "name": "Emission",
+                "type": "ShaderNodeEmission",
+                "mute": false,
+                "inputs": [
+                  {
+                    "name": "Color",
+                    "identifier": "Color",
+                    "value": [
+                      1.0,
+                      1.0,
+                      1.0,
+                      1.0
+                    ]
+                  },
+                  {
+                    "name": "Strength",
+                    "identifier": "Strength",
+                    "value": 1.0
+                  },
+                  {
+                    "name": "Weight",
+                    "identifier": "Weight",
+                    "value": 0.0
+                  }
+                ],
+                "properties": {}
+              },
+              {
+                "name": "Light Output",
+                "type": "ShaderNodeOutputLight",
+                "mute": false,
+                "inputs": [
+                  {
+                    "name": "Surface",
+                    "identifier": "Surface",
+                    "value": null
+                  }
+                ],
+                "properties": {
+                  "is_active_output": true
+                }
+              }
+            ],
+            "links": [
+              {
+                "fromNode": "Emission",
+                "fromSocket": "Emission",
+                "toNode": "Light Output",
+                "toSocket": "Surface"
+              }
+            ]
+          }
+        },
+        {
+          "name": "Visitor flame bake basis",
+          "matrixWorld": [
+            [
+              1.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              1.0,
+              0.0,
+              0.5
+            ],
+            [
+              0.0,
+              0.0,
+              1.0,
+              2.990000009536743
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ],
+          "location": [
+            0.0,
+            0.5,
+            2.990000009536743
+          ],
+          "rotationEuler": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "hideRender": false,
+          "collections": [
+            {
+              "name": "LIGHTS",
+              "hideRender": false
+            }
+          ],
+          "properties": {
+            "type": "POINT",
+            "color": [
+              1.0,
+              0.7411764860153198,
+              0.47058823704719543
+            ],
+            "energy": 45.0,
+            "shadow_soft_size": 0.03999999910593033,
+            "use_shadow": true,
+            "normalize": true,
+            "diffuse_factor": 1.0,
+            "specular_factor": 1.0,
+            "volume_factor": 1.0,
+            "use_nodes": true
+          },
+          "nodes": {
+            "nodes": [
+              {
+                "name": "Emission",
+                "type": "ShaderNodeEmission",
+                "mute": false,
+                "inputs": [
+                  {
+                    "name": "Color",
+                    "identifier": "Color",
+                    "value": [
+                      1.0,
+                      1.0,
+                      1.0,
+                      1.0
+                    ]
+                  },
+                  {
+                    "name": "Strength",
+                    "identifier": "Strength",
+                    "value": 1.0
+                  },
+                  {
+                    "name": "Weight",
+                    "identifier": "Weight",
+                    "value": 0.0
+                  }
+                ],
+                "properties": {}
+              },
+              {
+                "name": "Light Output",
+                "type": "ShaderNodeOutputLight",
+                "mute": false,
+                "inputs": [
+                  {
+                    "name": "Surface",
+                    "identifier": "Surface",
+                    "value": null
+                  }
+                ],
+                "properties": {
+                  "is_active_output": true
+                }
+              }
+            ],
+            "links": [
+              {
+                "fromNode": "Emission",
+                "fromSocket": "Emission",
+                "toNode": "Light Output",
+                "toSocket": "Surface"
+              }
+            ]
+          }
+        }
+      ],
+      "world": {
+        "useNodes": true,
+        "color": [
+          0.05000000074505806,
+          0.05000000074505806,
+          0.05000000074505806
+        ],
+        "nodes": {
+          "nodes": [
+            {
+              "name": "Background",
+              "type": "ShaderNodeBackground",
+              "mute": false,
+              "inputs": [
+                {
+                  "name": "Color",
+                  "identifier": "Color",
+                  "value": [
+                    0.1899999976158142,
+                    0.2800000011920929,
+                    0.4699999988079071,
+                    1.0
+                  ]
+                },
+                {
+                  "name": "Strength",
+                  "identifier": "Strength",
+                  "value": 0.15000000596046448
+                },
+                {
+                  "name": "Weight",
+                  "identifier": "Weight",
+                  "value": 0.0
+                }
+              ],
+              "properties": {}
+            },
+            {
+              "name": "World Output",
+              "type": "ShaderNodeOutputWorld",
+              "mute": false,
+              "inputs": [
+                {
+                  "name": "Surface",
+                  "identifier": "Surface",
+                  "value": null
+                },
+                {
+                  "name": "Volume",
+                  "identifier": "Volume",
+                  "value": null
+                }
+              ],
+              "properties": {
+                "is_active_output": true
+              }
+            }
+          ],
+          "links": [
+            {
+              "fromNode": "Background",
+              "fromSocket": "Background",
+              "toNode": "World Output",
+              "toSocket": "Surface"
+            }
+          ]
+        }
+      }
+    },
+    "colorManagement": {
+      "view_transform": "AgX",
+      "look": "None",
+      "exposure": 0.0,
+      "gamma": 1.0,
+      "use_white_balance": false,
+      "white_balance_temperature": 6500.0,
+      "white_balance_tint": 10.0
+    }
+  },
+  "sourceRigIdentical": true,
+  "colorManagementIdentical": true,
+  "rigDifferences": [],
+  "colorManagementDifferences": [],
+  "scope": [
+    "Light object transforms, colors, energy, radii, shape, visibility and node graphs.",
+    "World shader nodes, input values, image identity and links; color management is compared separately.",
+    "Read-only: no render, bake, scene edit or save. Both source files are rehashed after reading.",
+    "Identical source rigs do not imply identical pixels: new geometry and materials change occlusion, reflections and indirect bounce.",
+    "Emissive material/mesh changes belong to the geometry/material review and are not equated with source light-object identity."
+  ]
+}
