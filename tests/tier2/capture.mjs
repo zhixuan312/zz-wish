@@ -18,7 +18,13 @@ async function run(size){
  const errors=[];page.on('pageerror',e=>errors.push(e.message));
  const cdp=await context.newCDPSession(page);
  await context.addInitScript(()=>{
-  window.__evidence={ frames:[], longTasks:[], phase:'load', marks:{} };
+  window.__evidence={ frames:[], renderedFrames:[], longTasks:[], phase:'load', marks:{} };
+  let draws=0, priorDraws=0, lastRender=0;
+  for(const key of ['drawArrays','drawElements','drawArraysInstanced','drawElementsInstanced']) {
+    const original=WebGL2RenderingContext.prototype[key];
+    WebGL2RenderingContext.prototype[key]=function(...args){draws++;return original.apply(this,args);};
+  }
+  const sample=t=>{if(draws!==priorDraws){if(lastRender)window.__evidence.renderedFrames.push({phase:window.__evidence.phase,ms:t-lastRender,draws:draws-priorDraws});lastRender=t;priorDraws=draws;}requestAnimationFrame(sample);};requestAnimationFrame(sample);
   const usable=new MutationObserver(()=>{if(document.querySelector('textarea')){window.__evidence.marks.wishUsable=performance.now();usable.disconnect();}});usable.observe(document,{childList:true,subtree:true});
   let last=0;const frame=(t)=>{if(last)window.__evidence.frames.push({phase:window.__evidence.phase,ms:t-last});last=t;requestAnimationFrame(frame);};requestAnimationFrame(frame);
   new PerformanceObserver(list=>{for(const e of list.getEntries())window.__evidence.longTasks.push({phase:window.__evidence.phase,ms:e.duration,start:e.startTime});}).observe({type:'longtask',buffered:true});

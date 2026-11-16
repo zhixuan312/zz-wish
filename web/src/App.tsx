@@ -101,7 +101,7 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
     const b = new Burn(minutes! * 60_000, (s: Settlement) => {
       presence.stopBurning();
       burnRef.current = null;
-      engine.snuff();
+      engine.snuff(s.done);
       setResult({ done: s.done, burnedMs: s.burnedMs, plannedMs: b.planned, reason: s.reason, saved: null });
       setScreen('result'); setAskLeave(null);
       s.saved.then((c) => setResult((r) => r && { ...r, saved: !!c }));

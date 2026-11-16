@@ -10,4 +10,4 @@ export function skip(): void;
 export function closeUp(): Promise<void>;
 export function backToChoose(): Promise<void>;
 export function ignite(): Promise<void>;
-export function snuff(): Promise<void>;
+export function snuff(done?: boolean): Promise<void>;

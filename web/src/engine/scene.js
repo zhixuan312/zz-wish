@@ -158,9 +158,9 @@ function plaqueTex(text) {
 
 // Wax with a warm glow near the burning top, standing in for light scattered inside the wax.
 function waxMaterial(color, o = {}) {
-  const m = new THREE.MeshPhysicalMaterial({ color, roughness: o.roughness ?? .4, clearcoat: o.clearcoat ?? .3, clearcoatRoughness: .35,
-    sheen: .5, sheenColor: new THREE.Color(0xffc3a0), envMapIntensity: .25 });
-  m.userData.u = { uTop: { value: 1 }, uGlow: { value: 0 }, uFall: { value: o.fall ?? 60 }, uGlowColor: { value: new THREE.Color(o.glow ?? 0xff4a18) } };
+  const m = new THREE.MeshPhysicalMaterial({ color, roughness: o.roughness ?? .52, clearcoat: o.clearcoat ?? .12, clearcoatRoughness: .35,
+    sheen: .5, sheenColor: new THREE.Color(0xffc3a0), envMapIntensity: .08 });
+  m.userData.u = { uTop: { value: 1 }, uGlow: { value: 0 }, uFall: { value: o.fall ?? 110 }, uGlowColor: { value: new THREE.Color(o.glow ?? 0xff4a18) } };
   m.onBeforeCompile = (sh) => {
     Object.assign(sh.uniforms, m.userData.u);
     sh.vertexShader = 'varying vec3 vWPos;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\nvWPos = (modelMatrix * vec4(transformed, 1.0)).xyz;');
@@ -188,7 +188,7 @@ void main(){
   gl_Position = projectionMatrix * viewMatrix * vec4(wp, 1.);
 }`;
 const flameFS = `
-uniform float uTime; uniform float uPower;
+uniform float uTime; uniform float uPower; uniform float uWind;
 varying vec2 vUv; varying float vSeed;
 float h1(float n){ return fract(sin(n) * 43758.5453); }
 float vn(vec2 x){ vec2 p = floor(x), f = fract(x); f = f * f * (3. - 2. * f); float n = p.x + p.y * 57.;
@@ -197,25 +197,26 @@ void main(){
   float t = uTime + vSeed * 17.;
   float y = vUv.y; float x = (vUv.x - .5) * 2.;
   float sway = (vn(vec2(t * 1.1, vSeed * 9.)) - .5) * .32 + (vn(vec2(t * 5.3, vSeed * 3.)) - .5) * .1;
-  x -= sway * pow(y, 1.6);
+  x -= (sway + uWind) * pow(y, 1.6);
+  x += (vn(vec2(y * 7. - t * 3.1, t * .43)) - .5) * .07 * y;
   float stretch = (1. + (vn(vec2(t * 3.7, vSeed * 5.)) - .5) * .16) * mix(.35, 1., uPower);
   float py = (y - .26) / stretch; float up = max(py, 0.);
   float wid = .4 * max(1. - up * 1.08, .02);
   vec2 q = vec2(x / wid, py > 0. ? py / .66 : py / .2);
   float d = length(q);
-  float a = 1. - smoothstep(.5, 1., d);
+  float a = (1. - smoothstep(.62, 1., d)) * smoothstep(0., .09, y);
   vec2 qc = vec2(x / (wid * .5), py > 0. ? (py + .02) / .4 : py / .12);
   float core = 1. - smoothstep(.15, 1., length(qc));
   float blue = (1. - smoothstep(-.2, .04, py)) * smoothstep(.1, .8, abs(x) / .4 + .25);
   vec3 col = mix(vec3(1., .36, .06), vec3(1., .64, .24), 1. - smoothstep(.4, 1., d));
   col = mix(col, vec3(1., .92, .76), core);
-  col = mix(col, vec3(.22, .4, 1.), clamp(blue, 0., 1.) * .75);
+  col = mix(col, vec3(.04, .12, .42), clamp(blue, 0., 1.) * .75);
   float alpha = a * uPower;
-  gl_FragColor = vec4(col * alpha * 2.6, alpha);
+  gl_FragColor = vec4(col * (1.15 + core * 1.1), alpha);
 }`;
 function flameMaterial(instanced) {
   return new THREE.ShaderMaterial({ vertexShader: flameVS, fragmentShader: flameFS, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
-    uniforms: { uTime: { value: 0 }, uPower: { value: instanced ? 1 : 0 }, uScale: { value: .06 }, uSeedU: { value: .37 } } });
+    uniforms: { uTime: { value: 0 }, uWind: { value: 0 }, uPower: { value: instanced ? .52 : 0 }, uScale: { value: .06 }, uSeedU: { value: .37 } } });
 }
 const flameMats = [];
 
@@ -254,7 +255,7 @@ hall.background = new THREE.Color(0x090605);
 hall.fog = new THREE.FogExp2(0x090605, .17);
 hall.environment = roomEnv;
 const ALTAR_Y = .82;
-const lacquer = new THREE.MeshPhysicalMaterial({ color: 0x6e1a12, map: grainTex, roughness: .3, clearcoat: .6, clearcoatRoughness: .25, envMapIntensity: .2 });
+const lacquer = new THREE.MeshPhysicalMaterial({ color: 0x241811, map: grainTex, roughness: .68, clearcoat: .12, clearcoatRoughness: .6, envMapIntensity: .08 });
 const brass = new THREE.MeshStandardMaterial({ color: 0xb08a4e, metalness: 1, roughness: .32, envMapIntensity: .35 });
 const darkIron = new THREE.MeshStandardMaterial({ color: 0x1c1714, metalness: .6, roughness: .6, envMapIntensity: .2 });
 {
@@ -274,7 +275,7 @@ const darkIron = new THREE.MeshStandardMaterial({ color: 0x1c1714, metalness: .6
   for (const z of [-.7, -3.9]) { const beam = new THREE.Mesh(new THREE.BoxGeometry(4.8, .36, .3), lacquer); beam.position.set(0, 4.3, z); hall.add(beam); }
   const wall = new THREE.Mesh(new THREE.PlaneGeometry(9, 6), new THREE.MeshStandardMaterial({ color: 0x1a1210, emissive: 0x8ea6c4, emissiveMap: latticeTex, emissiveIntensity: .5, roughness: .9 }));
   wall.position.set(0, 3, -6); hall.add(wall);
-  const statueGlow = new THREE.Sprite(new THREE.SpriteMaterial({ map: softTex, color: 0xffa64d, transparent: true, opacity: .32, depthWrite: false, blending: THREE.AdditiveBlending }));
+  const statueGlow = new THREE.Sprite(new THREE.SpriteMaterial({ map: softTex, color: 0xffa64d, transparent: true, opacity: .08, depthWrite: false, blending: THREE.AdditiveBlending }));
   statueGlow.position.set(0, 2.4, -4.7); statueGlow.scale.set(3.6, 4.6, 1); hall.add(statueGlow);
   for (const [x, rot] of [[-1.05, .32], [.9, .28]]) {
     const s = new THREE.Mesh(new THREE.PlaneGeometry(.9, 6.5), new THREE.MeshBasicMaterial({ map: shaftTex, color: 0xffe7c4, transparent: true, opacity: .055, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide }));
@@ -312,18 +313,18 @@ const incenseTips = [];
 
 // Flame parts shared by every lit thing.
 function flameParts(g) {
-  const wick = new THREE.Mesh(new THREE.CylinderGeometry(.0011, .0013, .016, 6), new THREE.MeshStandardMaterial({ color: 0x15100c, roughness: 1 })); wick.geometry.translate(0, .008, 0); g.add(wick);
+  const wick = new THREE.Mesh(new THREE.CylinderGeometry(.0008, .001, .008, 8), new THREE.MeshStandardMaterial({ color: 0x15100c, roughness: 1 })); wick.geometry.translate(.0007, .004, 0); g.add(wick);
   const ember = new THREE.Mesh(new THREE.SphereGeometry(.0016, 8, 8), new THREE.MeshBasicMaterial({ color: new THREE.Color(3, .7, .15) })); g.add(ember);
   const fm = flameMaterial(false); fm.uniforms.uSeedU.value = Math.random() * 10; flameMats.push(fm);
   const flame = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), fm); flame.frustumCulled = false; g.add(flame);
   const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: softTex, color: 0xff8a3a, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending })); halo.scale.set(.2, .26, 1); g.add(halo);
   const light = new THREE.PointLight(0xff9a48, 0, 0, 2); g.add(light);
   return { wick, ember, fm, flame, halo, light,
-    place(x, y) { wick.position.set(x, y - .004, 0); ember.position.set(x, y + .011, 0); flame.position.set(x, y + .006, 0); halo.position.set(x, y + .03, 0); light.position.set(x, y + .035, 0); },
+    place(x, y) { wick.position.set(x, y - .004, 0); ember.position.set(x, y + .004, 0); flame.position.set(x, y + .002, 0); halo.position.set(x, y + .03, 0); light.position.set(x, y + .035, 0); },
     tick(time, power, lightMax, wax, topY) {
       const f = .86 + .14 * wobble(time * 2.2, fm.uniforms.uSeedU.value);
-      fm.uniforms.uTime.value = time; fm.uniforms.uPower.value = power; fm.uniforms.uScale.value = .062 * (.85 + .15 * f);
-      light.intensity = lightMax * power * f; halo.material.opacity = .1 * power * f; ember.visible = power > .02;
+      fm.uniforms.uTime.value = time; fm.uniforms.uPower.value = power; fm.uniforms.uScale.value = .038 * (.85 + .15 * f) * Math.max(.15, Math.sqrt(power));
+      light.intensity = lightMax * power * f; halo.material.opacity = .025 * power * f; ember.visible = power > .02;
       for (const m of wax) { m.userData.u.uTop.value = topY; m.userData.u.uGlow.value = .35 * power * f; }
     } };
 }
@@ -368,7 +369,7 @@ function candleGeo(rows, cut, seg = 56) {
   const R = rows.filter((q) => q.y < cut - 1e-6); R.push(ringAt(rows, cut));
   if (R.length < 2) R.unshift({ ...R[0], y: 0 });
   const top = R[R.length - 1], pos = [], uv = [], idx = [];
-  const ring = (cx, r, y) => { const s = pos.length / 3; for (let j = 0; j <= seg; j++) { const a = j / seg * Math.PI * 2; pos.push(cx + Math.cos(a) * r, y, Math.sin(a) * r); uv.push(j / seg, y * 8); } return s; };
+  const ring = (cx, r, y) => { const s = pos.length / 3; for (let j = 0; j <= seg; j++) { const a = j / seg * Math.PI * 2; const grain = 1 + .006 * Math.sin(a * 7 + y * 180) + .003 * Math.sin(a * 19 - y * 310); pos.push(cx + Math.cos(a) * r * grain, y, Math.sin(a) * r * grain); uv.push(j / seg, y * 8); } return s; };
   const strip = (s0, s1) => { for (let j = 0; j < seg; j++) idx.push(s0 + j, s1 + j, s0 + j + 1, s0 + j + 1, s1 + j, s1 + j + 1); };
   let prev = ring(R[0].cx, R[0].r, R[0].y);
   for (let i = 1; i < R.length - 1; i++) { const s = ring(R[i].cx, R[i].r, R[i].y); strip(prev, s); prev = s; }
@@ -396,11 +397,16 @@ const mine = (() => {
   cup.castShadow = cup.receiveShadow = true; cupG.add(cup);
   const fat = waxMaterial(0xe9cf8a, { roughness: .3, clearcoat: .6, glow: 0xff8a2a, fall: 25 });
   const surface = new THREE.Mesh(new THREE.CircleGeometry(1, 48).rotateX(-Math.PI / 2), fat); cupG.add(surface);
+  const drips = Array.from({ length: 7 }, (_, i) => {
+    const mesh = new THREE.Mesh(new THREE.SphereGeometry(1, 12, 12), wax);
+    mesh.visible = false; g.add(mesh); return { mesh, angle: i * 2.399, start: .015 + i * .025 };
+  });
   const f = flameParts(g);
   f.light.castShadow = true; f.light.shadow.mapSize.set(1024, 1024); f.light.shadow.bias = -.002; f.light.shadow.radius = 4; f.light.shadow.camera.near = .01;
-  const api = { g, power: 0, lightMax: .55, offer: null, top: V3(0, 0, 0), lastCut: -1,
+  const api = { g, power: 0, lightMax: .10, offer: null, top: V3(0, 0, 0), lastCut: -1,
     setOffer(o) {
       this.offer = o; this.lastCut = -1; const isButter = o.kind === 'butter';
+      drips.forEach(({mesh}) => { mesh.visible = false; });
       cupG.visible = isButter; plate.visible = stand.visible = body.visible = pool.visible = !isButter;
       if (isButter) cupG.scale.setScalar(o.cup);
       else {
@@ -423,10 +429,21 @@ const mine = (() => {
           const q = ringAt(R, cut); pool.position.set(q.cx, PLATE_H + cut - .0011, 0); pool.scale.setScalar(Math.max(q.r * .8, .0005)); this.top.set(q.cx, PLATE_H + cut, 0);
         }
       }
+      if (o.kind !== 'butter') {
+        for (const {mesh, angle, start} of drips) {
+          const grown = Math.min(1, Math.max(0, (1 - L - start) * 9));
+          mesh.visible = grown > 0 && L > .03;
+          const length = Math.min(.018 * grown, this.lastCut * .65);
+          const y = Math.max(.002, this.lastCut - length * .55);
+          const q = ringAt(o.rows, y);
+          mesh.position.set(q.cx + Math.cos(angle) * q.r, PLATE_H + y, Math.sin(angle) * q.r);
+          mesh.scale.set(.0015 * grown, Math.max(.0001, length * .5), .0015 * grown);
+        }
+      }
       f.place(this.top.x, this.top.y);
     },
     // Rendering choice: dim the point light as the flame nears the altar, so the near surface does not blow out to white.
-    update(time, topY) { f.tick(time, this.power, this.lightMax * Math.min(1, ((this.top.y + .03) / .2) ** 2), [wax, poolMat], topY); fat.userData.u.uTop.value = topY; fat.userData.u.uGlow.value = .22 * this.power; },
+    update(time, topY) { f.fm.uniforms.uWind.value = wind; f.tick(time, this.power * (lit ? Math.min(1, level * 25) : 1), this.lightMax * Math.min(1, ((this.top.y + .03) / .2) ** 2), [wax, poolMat], topY); fat.userData.u.uTop.value = topY; fat.userData.u.uGlow.value = .12 * this.power; f.ember.visible = this.power > .02 || clockTime < emberUntil; f.ember.material.color.setRGB(2.4, .36, .035).multiplyScalar(clockTime < emberUntil ? Math.max(0, (emberUntil - clockTime) / 2.5) : 1); },
   };
   g.visible = false; return api;
 })();
@@ -1090,7 +1107,7 @@ function switchTo(scene) {
   active = scene; const out = scene === outside, P = place?.P;
   camera.near = out ? .3 : .01; camera.far = out ? 1200 : 60; camera.updateProjectionMatrix();
   renderer.toneMappingExposure = out ? P.exposure ?? 1 : 1;
-  const [st, th] = out ? P.bloom : [.7, .9]; bloom.strength = st; bloom.threshold = th;
+  const [st, th] = out ? P.bloom : [.24, 1.15]; bloom.strength = st; bloom.threshold = th;
 }
 const tweens = [];
 function tween(dur, fn) { return new Promise((res) => { tweens.push({ t: 0, dur, fn, res, skip: false }); }); }
@@ -1105,18 +1122,26 @@ const fadeTo = (o, ms = 900) => new Promise((res) => { fadeEl.style.transitionDu
 
 const WIDE = { pos: V3(0, 1.32, 2.3), look: V3(0, 1.02, -1) };
 const chooseView = () => ({ pos: V3(0, ALTAR_Y + .3, .82), look: V3(0, ALTAR_Y - .01, -.02) });
-function closeView() { const x = mine.top.x, top = ALTAR_Y + mine.top.y; return { pos: V3(x, top + .13, .74), look: V3(x, top - .03, .02) }; }
+function closeView() { const x = mine.top.x, top = ALTAR_Y + mine.top.y; const distance = Math.max(.34, mine.top.y * 2.3); return { pos: V3(x + .025, top + .052, distance), look: V3(x, top - .012, .02) }; }
 function applyTemple(t) {
-  lacquer.color.setHex(t.lacquer);
+  lacquer.color.setHex(t.lacquer).multiplyScalar(.3);
   plaqueMat.map?.dispose(); plaqueMat.map = plaqueTex(t.plaque); plaqueMat.emissiveMap = plaqueMat.map; plaqueMat.needsUpdate = true; plaque.visible = !!t.plaque;
   layoutRack(t.lamp);
   const isButter = t.lamp === 'butter';
-  for (const l of rackLights) { l.color.setHex(isButter ? 0xffae50 : 0xff9040); l.intensity = isButter ? .7 : .45; }
+  for (const l of rackLights) { l.color.setHex(isButter ? 0xffae50 : 0xff9040); l.intensity = isButter ? .055 : .035; }
 }
 
 // Step 3: one of ours, or one you draw.
 const wickSmoke = new Smoke(hall, 70, 0xcfc8c0, .2);
-let smokeUntil = 0;
+let smokeUntil = 0, emberUntil = 0, ending = 'out', wind = 0;
+let pointerX = 0, pointerY = 0, previousPointerX = 0;
+window.addEventListener('pointermove', (e) => {
+  pointerX = e.clientX / innerWidth * 2 - 1; pointerY = 1 - e.clientY / innerHeight * 2;
+  if (lit) { const p = mine.top.clone(); p.y += ALTAR_Y; p.z += mine.g.position.z; p.project(camera);
+    const near = Math.max(0, 1 - Math.hypot(pointerX - p.x, pointerY - p.y) / .5);
+    wind = Math.max(-.5, Math.min(.5, wind + (pointerX - previousPointerX) * near * 4)); }
+  previousPointerX = pointerX;
+}, { passive: true });
 
 // ---------- Public API ----------
 const TEMPLE = Object.fromEntries(TEMPLES.map((t) => [t.id, t]));
@@ -1180,11 +1205,14 @@ export function closeUp() { const c = closeView(); return moveCam(c.pos, c.look,
 /** Back from the close-up to the choosing view. */
 export function backToChoose() { const c = chooseView(); return moveCam(c.pos, c.look, 1.6); }
 /** Light the flame (animation only; the burn clock lives in the UI). */
-export async function ignite() { lit = true; await tween(1.6, (k) => { if (lit) mine.power = ease(k); }); }
+export async function ignite() { lit = true; emberUntil = 0; smokeUntil = 0; await tween(1.6, (k) => { if (lit) mine.power = k < .18 ? k * .35 : Math.min(1.15, ease((k - .18) / .82) + Math.sin(k * Math.PI) * .22); }); }
 /** Put the flame out with a thread of smoke. */
-export async function snuff() {
-  lit = false; smokeUntil = clockTime + 4;
-  const p0 = mine.power; await tween(.7, (k) => { mine.power = p0 * (1 - k); }); mine.power = 0;
+export async function snuff(done = false) {
+  // Only visuals: settlement and persistence have already happened synchronously.
+  lit = false; ending = done ? 'done' : 'out';
+  if (done) { level = 0; mine.setLevel(0); }
+  smokeUntil = clockTime + (done ? 3.4 : 4.8); emberUntil = clockTime + (done ? 2.5 : .35);
+  const p0 = mine.power; await tween(done ? .55 : .09, (k) => { mine.power = p0 * (1 - k); }); mine.power = 0;
 }
 
 function resize() {
@@ -1196,7 +1224,7 @@ window.addEventListener('resize', resize); resize();
 const clock = new THREE.Clock(); let clockTime = 0;
 const tmp = V3(0, 0, 0);
 function frame() {
-  const dt = Math.min(clock.getDelta(), .05); clockTime += dt; const time = clockTime;
+  const dt = Math.min(clock.getDelta(), .05); wind *= Math.exp(-dt * 2.8); clockTime += dt; const time = clockTime;
   for (let i = tweens.length - 1; i >= 0; i--) {
     const tw = tweens[i]; tw.t += dt; const k = tw.skip ? 1 : Math.min(1, tw.t / tw.dur); tw.fn(k);
     if (k >= 1) { tweens.splice(i, 1); tw.res(); }
@@ -1206,8 +1234,8 @@ function frame() {
     for (const m of flameMats) m.uniforms.uTime.value = time;
     const topY = ALTAR_Y + mine.top.y;
     mine.update(time, topY);
-    for (const o of others) { o.f.tick(time, 1, .3, o.wax, o.g.position.y + o.f.flame.position.y); }
-    if (time < smokeUntil && Math.random() < .7) wickSmoke.puff(tmp.set(mine.top.x, topY, mine.g.position.z), .002, .012);
+    for (const o of others) { o.f.tick(time, .65, .012, o.wax, o.g.position.y + o.f.flame.position.y); }
+    if (time < smokeUntil && Math.random() < (ending === 'done' ? .3 : .7)) wickSmoke.puff(tmp.set(mine.top.x, topY + .004, mine.g.position.z), .002, ending === 'done' ? .003 : .009);
     wickSmoke.update(dt, time);
     if (Math.random() < .5) incenseSmoke.puff(incenseTips[Math.floor(Math.random() * 3)], .001, .01);
     incenseSmoke.update(dt, time);
