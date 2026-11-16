@@ -1,0 +1,342 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light">
+<meta name="description" content="一盏：许愿、制烛与长时专注体验的完整设计反馈。固定八档，最长24小时；每支烛只点一次；匿名身份与SQLite长期记录。">
+<title>一盏 · 完整故事与设计反馈</title>
+<style>
+:root{--paper:#f5f1e8;--white:#fffdf8;--ink:#25372e;--muted:#59655c;--line:#d5d9cc;--green:#345a45;--amber:#9a6024;--soft:#e7ecdf;--rose:#a34f3b;--night:#0e1412;--serif:"Songti SC","STSong","Noto Serif CJK SC",serif;--sans:system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;--radius:18px}
+*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:90px}body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.85 var(--sans);-webkit-font-smoothing:antialiased}a{color:var(--green);text-underline-offset:4px}button,input,select{font:inherit}button,a,input,summary,select{touch-action:manipulation}button{cursor:pointer}button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{outline:3px solid #b5742b;outline-offset:4px}button:disabled{cursor:default}::selection{background:#e6c38a;color:#18241c}.skip{position:absolute;top:-100px;left:20px;z-index:30;background:var(--white);padding:12px}.skip:focus{top:12px}.wrap{width:min(1240px,calc(100% - 64px));margin:auto}.topbar{position:sticky;top:0;background:rgba(245,241,232,.96);border-bottom:1px solid var(--line);z-index:10;backdrop-filter:blur(10px)}.topbar .wrap{display:flex;align-items:center;justify-content:space-between;min-height:64px;gap:16px}.wordmark{font:700 24px var(--serif);letter-spacing:.18em;color:var(--ink);text-decoration:none}.top-meta{font-size:12px;letter-spacing:.1em;color:var(--muted)}.tools{display:flex;gap:8px;align-items:center}.plain{border:1px solid var(--line);border-radius:999px;padding:8px 16px;background:transparent;color:var(--ink);font-size:13px;min-height:42px}.plain:hover{background:var(--soft)}.hero{padding:72px 0 56px;background:var(--night);color:#eee5d3}.eyebrow{font-size:12px;letter-spacing:.16em;font-weight:650;text-transform:uppercase;color:var(--muted)}.hero .eyebrow{color:#d8a45f}.hero-grid{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(280px,.8fr);gap:60px;align-items:end}.hero h1{font:600 clamp(36px,4.8vw,64px)/1.25 var(--serif);letter-spacing:.015em;margin:18px 0 24px}.hero h1 span{color:#d8a45f}.hero .lead{font-size:18px;line-height:1.95;max-width:720px;color:#c6cbbf}.hero-note{padding-left:24px;border-left:1px solid #4b5548;color:#adb6a8;font-size:14px}.hero-note strong{color:#eee5d3;font-size:18px;display:block;margin-bottom:12px}.hero-note p{margin:0 0 18px}.hero-badges{display:flex;flex-wrap:wrap;gap:10px;margin-top:32px}.hero-badges span{border:1px solid #465142;border-radius:100px;padding:5px 12px;font-size:12px;color:#cbd0c3}.bodygrid{display:grid;grid-template-columns:205px minmax(0,1fr);gap:46px}.toc{position:sticky;top:88px;align-self:start;padding:30px 0;max-height:calc(100vh - 110px);overflow:auto;font-size:13px}.toc h2{font-size:12px;letter-spacing:.15em;color:var(--muted);margin:0 0 16px}.toc a{display:block;padding:7px 10px;text-decoration:none;color:var(--muted);border-left:2px solid transparent}.toc a:hover,.toc a.active{color:var(--green);background:var(--soft);border-color:var(--green)}main{min-width:0;padding-bottom:50px}section.chapter{padding:48px 0 12px;scroll-margin-top:70px}section.chapter+section.chapter{border-top:1px solid var(--line);margin-top:38px}.section-head{display:flex;gap:18px;align-items:flex-start;margin-bottom:20px}.section-no{font:500 14px/1.5 var(--sans);color:var(--amber);padding-top:9px;flex:0 0 26px}h2{font:600 clamp(26px,3vw,34px)/1.5 var(--serif);margin:0 0 12px}h3{font-size:20px;line-height:1.55;margin:30px 0 12px}h4{font-size:16px;margin:0 0 9px}p{margin:0 0 16px}.intro{font-size:18px;line-height:1.95}.muted,.caption{color:var(--muted)}.caption{font-size:13px;line-height:1.75}.tag{display:inline-block;border:1px solid #b8c6b1;border-radius:999px;padding:1px 9px;font-size:11px;vertical-align:middle;color:var(--green);background:#eef2e7;font-family:var(--sans);letter-spacing:.02em}.tag.warn{background:#f4e6da;border-color:#dab99c;color:#7f482b}.tag.fact{background:#eef0eb;border-color:#c6cec2;color:#435548}.cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin:22px 0}.card{background:var(--white);border:1px solid var(--line);border-radius:var(--radius);padding:22px;min-width:0}.card p:last-child{margin-bottom:0}.card .kicker{color:var(--amber);font-size:12px;font-weight:700;letter-spacing:.08em;margin-bottom:8px}.card .big{font:600 32px/1.4 var(--serif);margin:8px 0 12px}.callout{padding:22px 24px;border-left:4px solid var(--green);border-radius:0 12px 12px 0;background:var(--soft);margin:22px 0}.callout.warm{border-color:#a96f33;background:#eee4d1}.callout p:last-child{margin-bottom:0}.callout strong{color:#294732}.callout.warm strong{color:#784822}.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:14px;margin:20px 0;background:var(--white)}table{border-collapse:collapse;width:100%;font-size:14px;line-height:1.8;text-align:left}th,td{padding:15px 16px;vertical-align:top;border-bottom:1px solid var(--line)}th{color:#465b49;background:#eaf0e3;font-weight:650;white-space:nowrap}tr:last-child td{border-bottom:0}td:first-child{font-weight:600}table.min-wide{min-width:650px}table.wide{min-width:730px}.source-ref{font-size:12px;font-weight:500;color:#68725f;text-decoration:none;white-space:nowrap}ul,ol{padding-left:1.35em;margin:14px 0 20px}li{margin:8px 0}.story{counter-reset:story;display:grid;gap:12px;margin:24px 0}.story-step{display:grid;grid-template-columns:46px minmax(0,1fr);gap:14px;padding:22px;border:1px solid var(--line);border-radius:15px;background:var(--white)}.story-step:before{counter-increment:story;content:counter(story,decimal-leading-zero);font:600 17px var(--serif);color:var(--amber);border-right:1px solid var(--line);padding-top:4px}.story-step h3{margin:0 0 8px;font-size:19px}.story-step p{font-size:15px;margin:8px 0 0}.quote{font-family:var(--serif);font-size:19px!important;color:#2f4d3c}.small{font-size:13px;color:var(--muted)}.durations{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:22px 0}.duration{border:1px solid var(--line);border-radius:12px;background:var(--white);padding:18px 12px;min-width:0}.duration strong{font:600 25px/1.4 var(--serif);display:block}.duration span{display:block;color:var(--muted);font-size:12px;margin-top:7px}.duration.recommend{background:var(--soft);border-color:#8da683}.demo{border:1px solid #9ead96;border-radius:18px;padding:26px;margin:24px 0;background:#eef2e8}.demo h3{margin:0 0 8px}.demo-grid{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,.8fr);gap:26px;margin-top:20px}.control{margin:16px 0}.control label{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:14px}.control input[type=range]{display:block;width:100%;margin:12px 0 0;accent-color:#436b4c;min-height:32px}.control select{width:100%;background:var(--white);color:var(--ink);border:1px solid #afbea5;padding:9px 10px;border-radius:8px}.mini-options{display:flex;flex-wrap:wrap;gap:7px;margin:12px 0}.mini-options button,.filter button{background:var(--white);color:var(--ink);border:1px solid #bac6b0;border-radius:8px;padding:8px 12px;min-height:42px;font-size:13px}.mini-options button[aria-pressed=true],.filter button[aria-pressed=true]{background:var(--green);color:#fff;border-color:var(--green)}.cal-result{border-radius:14px;background:#17211a;color:#eee5d3;padding:25px;display:flex;flex-direction:column;justify-content:center}.cal-result .small{color:#c1c9b8}.cal-result output{font:600 45px/1.3 var(--serif);color:#e1af68;display:block;margin:12px 0}.meter{height:7px;border-radius:100px;background:#45513e;margin:20px 0 12px;overflow:hidden}.meter i{display:block;width:20%;height:100%;background:#d8a45f;transition:width .12s}.mock{background:#141a18;color:#eee5d3;border:1px solid #465142;border-radius:16px;padding:24px;margin:22px 0;--mock-muted:#a7b09f;--mock-accent:#d8a45f;--mock-ink:#eee5d3;--mock-card:#202923;--mock-bg:#141a18;--mock-on:#211a10}.mock[data-theme=warm]{--mock-muted:#b9a58b;--mock-accent:#e3a35b;--mock-ink:#eee3d1;--mock-card:#251a12;--mock-bg:#0b0806;--mock-on:#1c1009;background:var(--mock-bg)}.mock .mock-top{display:flex;justify-content:space-between;gap:12px;color:var(--mock-muted);font-size:12px;flex-wrap:wrap}.mock .mock-title{color:var(--mock-ink);font:600 23px var(--serif);margin:24px 0 12px}.mock .mock-wish{color:var(--mock-ink);font:500 21px/1.8 var(--serif);margin:28px 0;text-align:center}.mock .mock-card{border:1px solid #56614c;background:var(--mock-card);border-radius:12px;padding:18px}.mock .mock-time{font-size:14px;color:var(--mock-muted)}.mock .mock-action{display:inline-block;margin-top:16px;padding:9px 17px;color:var(--mock-on);background:var(--mock-accent);border-radius:8px;font-size:14px;font-weight:600}.mock .state{color:#81a69a;font-size:13px}.swatches{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:20px 0}.swatch{background:var(--white);border:1px solid var(--line);border-radius:12px;overflow:hidden}.swatch .color{height:62px}.swatch p{font-size:12px;line-height:1.8;padding:11px;margin:0}.swatch code{font-size:12px}.record{border-left:4px solid #9c6846}.record.done{border-left-color:#809771}.facts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:20px 0}.fact{padding:18px;border:1px solid var(--line);border-radius:12px;background:var(--white)}.fact strong{font:600 28px/1.3 var(--serif);display:block;color:var(--green)}.fact span{font-size:12px;color:var(--muted)}.filter{display:flex;flex-wrap:wrap;gap:8px;margin:20px 0}.task{margin:12px 0;background:var(--white);border:1px solid var(--line);border-radius:12px;padding:18px 20px;display:grid;grid-template-columns:42px minmax(0,1fr);gap:14px}.task .priority{font-size:12px;font-weight:800;color:var(--amber)}.task h4{margin:0 0 5px}.task p{font-size:14px;margin:0}.task[hidden]{display:none}details{border:1px solid var(--line);border-radius:12px;background:var(--white);padding:16px 20px;margin:16px 0}summary{font-weight:600;cursor:pointer;min-height:28px}details[open] summary{margin-bottom:18px}pre{background:#17231b;color:#e8e9dc;border-radius:12px;padding:20px;white-space:pre-wrap;overflow-wrap:anywhere;font:13px/1.9 ui-monospace,SFMono-Regular,Consolas,monospace}code{font: .88em ui-monospace,SFMono-Regular,Consolas,monospace;overflow-wrap:anywhere}.checklist{list-style:none;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:12px}.checklist li{border:1px solid var(--line);border-radius:10px;background:var(--white);padding:14px 16px;margin:0;font-size:14px}.checklist b{display:block;color:var(--green);margin-bottom:5px}.sources{font-size:13px}.sources li{padding:8px 0;border-bottom:1px solid var(--line);overflow-wrap:anywhere}.sources a{font-weight:600}.endnote{margin:36px 0 10px;padding:28px 0;border-top:1px solid var(--line);font:500 25px/1.7 var(--serif)}footer{border-top:1px solid var(--line);padding:24px 0;color:var(--muted);font-size:12px}.no-js{padding:10px 16px;background:#eee4d1}.print-note{display:none}
+@media(min-width:1500px){.wrap{width:min(1360px,calc(100% - 100px))}.bodygrid{grid-template-columns:220px minmax(0,1fr);gap:64px}}
+@media(max-width:1000px){.bodygrid{grid-template-columns:170px minmax(0,1fr);gap:25px}.wrap{width:calc(100% - 40px)}.hero-grid{grid-template-columns:1fr;gap:28px}.hero-note{max-width:720px}.cards{gap:10px}.demo-grid{grid-template-columns:1fr}.durations,.swatches{grid-template-columns:repeat(4,minmax(0,1fr))}.top-meta{display:none}}
+@media(max-width:740px){.wrap{width:calc(100% - 32px)}.hero{padding:44px 0 36px}.hero .lead{font-size:16px}.hero-note{font-size:13px}.bodygrid{display:block}.toc{position:static;max-height:none;padding:22px 0 14px;display:flex;gap:8px;overflow:auto;white-space:nowrap;border-bottom:1px solid var(--line)}.toc h2{display:none}.toc a{border:1px solid var(--line);border-radius:100px;padding:7px 11px;display:inline-block;font-size:12px;flex:0 0 auto}.toc a.active{border-color:var(--green)}section.chapter{padding-top:34px}.cards,.checklist{grid-template-columns:1fr}.section-head{gap:10px}.section-no{flex-basis:24px}.durations,.swatches{grid-template-columns:repeat(2,minmax(0,1fr))}.story-step{padding:18px 16px;grid-template-columns:34px 1fr;gap:12px}.card,.demo,.mock{padding:19px}.facts{grid-template-columns:1fr}.fact{display:flex;gap:14px;align-items:center}.fact strong{font-size:24px}.intro{font-size:16px}.topbar .wrap{min-height:60px}.plain{font-size:12px;padding:7px 12px}th,td{padding:12px}.cal-result{padding:22px}.hero-badges{margin-top:24px}.endnote{font-size:22px}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*:before,*:after{transition:none!important;animation:none!important}}
+@media print{html{scroll-behavior:auto}body{background:#fff;color:#17231b;font-size:10pt}.wrap{width:100%;max-width:none}.topbar,.toc,.tools,.filter,#filterCount,.mini-options,.control,.no-print{display:none!important}.bodygrid{display:block}.hero{background:#fff;color:#17231b;padding:0 0 20px;border-bottom:2px solid #345a45}.hero-grid{display:block}.hero h1{font-size:29pt;color:#17231b}.hero h1 span{color:#345a45}.hero .lead,.hero-note,.hero .eyebrow,.hero-badges span{color:#334b38}.hero-note{border:0;padding:0}.hero-badges{margin-top:10px}.hero-badges span{border-color:#a8b89d}.chapter{break-before:auto;padding:24px 0 0!important;margin-top:22px!important}.section-head{break-after:avoid}h2{font-size:20pt}h3{font-size:14pt;break-after:avoid}.card,.story-step,.task,.checklist li,details{break-inside:avoid}.cards,.durations,.swatches{display:grid;grid-template-columns:1fr 1fr}.table-wrap{overflow:visible;border:0}table.min-wide,table.wide{min-width:0;font-size:9pt}thead{display:table-header-group}tr{break-inside:avoid}th,td{padding:7px 9px}.mock,.cal-result,pre{background:#fff!important;color:#17231b;border:1px solid #829278}.mock *,.cal-result *,pre *{color:#17231b!important}.mock .mock-card{background:#fff}.swatch .color{print-color-adjust:exact;-webkit-print-color-adjust:exact}.print-note{display:block}.demo-grid{display:block}.sources{font-size:9pt}a{color:#274a35}details>summary{list-style:none}.endnote{font-size:18pt}footer{font-size:9pt}}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">跳到正文</a>
+<header class="topbar"><div class="wrap"><a class="wordmark" href="#top">一盏</a><span class="top-meta">PRODUCT REVIEW / 2026.11.16 / 按本轮最新规则整理</span><div class="tools"><button class="plain" id="expandAll" type="button">展开技术细节</button><button class="plain" id="printReport" type="button">打印 / 存为 PDF</button></div></div></header>
+<div class="hero" id="top"><div class="wrap"><div class="eyebrow">完整故事 · 产品规则 · 视觉方向 · 落地清单</div><div class="hero-grid"><div><h1>把心里的愿望，<br>交给<span>这一盏光。</span></h1><p class="lead">一次许愿，一支亲选或亲画的蜡烛，一段你愿意留下的时间。你去学习、做事，让它安静地烧。燃尽留下完整的痕迹；熄灭留下真实的一次。</p></div><aside class="hero-note"><strong>这是一款长时专注体验。</strong><p>短的是开始与收尾，陪伴可以长达 24 小时。它的吸引力来自自己的愿、自己的烛，以及一次不能重来的点燃。</p><p>本报告提供具体建议与实现规格，不代表原型已完成这些功能。</p></aside></div><div class="hero-badges"><span>8 个固定时长档位</span><span>每支蜡烛只点燃一次</span><span>10 处供奉地点</span><span>匿名身份 + SQLite 长期记录</span></div></div></div>
+<noscript><div class="wrap no-js">完整报告可直接阅读。时间档位演示、主题切换和优先级筛选需要 JavaScript；它们不影响正文内容。</div></noscript>
+<div class="wrap bodygrid"><nav class="toc" aria-label="报告目录"><h2>阅读路线</h2><a href="#decisions">00 · 最终规则</a><a href="#current">01 · 原稿判断</a><a href="#story">02 · 完整故事</a><a href="#screens">03 · 页面与入口</a><a href="#candles">04 · 蜡烛与时间</a><a href="#leaving">05 · 离开与结局</a><a href="#history">06 · 我的烛与身份</a><a href="#stats">07 · 十处灯火统计</a><a href="#places">08 · 地点与趣味</a><a href="#visual">09 · 配色与视觉</a><a href="#copy">10 · 文案与长时体验</a><a href="#implementation">11 · 实现规格</a><a href="#delivery">12 · 优先级与验收</a><a href="#sources">13 · 依据与边界</a></nav>
+<main id="main">
+<section class="chapter" id="decisions"><div class="section-head"><span class="section-no">00</span><div><div class="eyebrow">先锁定，不再混用旧建议</div><h2>这次最终采用什么规则</h2></div></div><p class="intro">保留「许愿 → 选择供奉地点 → 选择或画蜡烛 → 点燃 → 安静陪伴 → 留下记录」这条线。把它做成<strong>有仪式感的长时专注产品</strong>，不要求用户在燃烧期间反复操作。</p>
+<div class="table-wrap"><table><thead><tr><th>事项</th><th>本轮最终规则</th><th>来源</th></tr></thead><tbody>
+<tr><td>体验定位</td><td>以蜡烛代替种树的专注体验；设置和结尾很短，燃烧可以很久。</td><td><span class="tag fact">用户明确</span></td></tr>
+<tr><td>时长上限</td><td>最长 24 小时，只能使用固定档位，不能出现任意的「4 小时 23 分钟」总时长。</td><td><span class="tag fact">用户明确</span></td></tr>
+<tr><td>具体档位</td><td><strong>10 分钟 / 30 分钟 / 1 小时 / 2 小时 / 3 小时 / 6 小时 / 12 小时 / 24 小时</strong>；默认 30 分钟。</td><td><span class="tag">本报告建议</span></td></tr>
+<tr><td>每次点燃</td><td>必须使用一支新的蜡烛。旧烛一旦熄灭，永久结束，不允许续燃。</td><td><span class="tag fact">用户明确</span></td></tr>
+<tr><td>同一个愿望</td><td>可以再为它点一支新烛，但新旧记录分别保留；原来熄灭的事实不会被覆盖。</td><td><span class="tag fact">用户明确</span></td></tr>
+<tr><td>燃尽的意义</td><td>通过画面、声音和完成后的痕迹表达圆满感，不写「愿望已实现」或解释现实结果。</td><td><span class="tag fact">用户明确</span></td></tr>
+<tr><td>身份与存储</td><td>稳定的匿名 unique ID；刷新仍是同一人。所有人的记录长期保存到部署服务的 SQLite。</td><td><span class="tag fact">用户明确</span></td></tr>
+<tr><td>总览与私人记录</td><td>十处地点各有累计点亮数量与当前守烛人数；本人可查看愿望、原烛形和最终状态。</td><td><span class="tag fact">用户明确</span></td></tr>
+</tbody></table></div><div class="callout"><strong>最重要的区分：刷新恢复的是「身份与历史」，不是「正在燃烧的火」。</strong><p>燃烧中刷新，属于离开这次守烛页面：旧烛永久熄灭。回来仍认识你，仍找得到这支烛，也可以另点一支新的。</p></div><p class="caption">此前提出的 1／3／5 分钟短体验、最长 6 小时和「剩余蜡烛可续燃」均已撤回。本报告以你后续补充的 24 小时上限、固定档位、一次点燃、SQLite 长期记录为准。</p></section>
+
+<section class="chapter" id="current"><div class="section-head"><span class="section-no">01</span><div><div class="eyebrow">基于 index.html 源码</div><h2>原稿的方向成立，核心规则尚未闭合</h2></div></div><p>原稿最值得保留的是：一屏一个决定、深色场景里的烛火、先许愿再赴约，以及从远景靠近自己蜡烛的仪式。现在最该补的是<strong>制烛、一次性结局、真实记录与真实同在</strong>。这些比继续叠加视觉特效更能使产品成立。</p>
+<div class="table-wrap"><table class="min-wide"><thead><tr><th>原稿已有</th><th>与最新需求的差距</th><th>要如何改</th></tr></thead><tbody>
+<tr><td>许愿、7 个可选类别</td><td>愿望最长 60 字；返回步骤有基本路径。</td><td>保留轻量输入，补字数提示和草稿保存；类别可选。</td></tr>
+<tr><td>10 个地点与过场</td><td>卡片横向排列；地点有环境类型和酥油灯区别。</td><td>保留十处，补「查看全部」、清晰选中态与地点统计。</td></tr>
+<tr><td>4 个固定规格</td><td><code>SIZES</code> 为 25／60／120／180 分钟，默认 60 分钟；没有画烛。</td><td>改为八档；让选烛与自绘都进入同一套档位规则。</td></tr>
+<tr><td>隐藏页面时熄灭</td><td>有 <code>visibilitychange</code> 和 <code>pagehide</code>；缺少持久结算与明确的站内离开规则。</td><td>先结算、先保存，再做熄灭动画；补路由与严格失焦边界。</td></tr>
+<tr><td>熄灭后「重新点燃」</td><td><code>relight → lightUp()</code> 会延续原来的剩余时间，与用户新规则冲突。</td><td><strong>删除续燃路径</strong>；替换为「为这个愿，再点一支」，创建新记录。</td></tr>
+<tr><td>「都会记下」的文案</td><td>状态只在内存里；没有 SQLite、历史列表或身份。<code>later</code> 实际调用 <code>restart()</code> 清空当前。</td><td>真正落库后再说已保存；「回到入口」不能删除旧记录。</td></tr>
+<tr><td>群烛背景</td><td><code>RACK_N = 66</code> 与固定旁烛是预设场景；不是实际在线用户。</td><td>区分场景装饰与实时数量，不能用假烛数量充当真人统计。</td></tr>
+<tr><td>倒计时与「加速看看」</td><td>计时跟随帧循环；单帧时间被截到 0.05 秒。加速按钮直接 ×120 消耗正式蜡量。</td><td>真实时间独立计算；正式版移除加速。演示数据与真实记录隔离。</td></tr>
+</tbody></table></div><p class="caption">以上均可在附件的 <code>SIZES</code>、<code>S</code>、<code>renderSizes()</code>、<code>layoutRack()</code>、<code>lightUp()</code>、<code>goOut()</code>、<code>restart()</code>、<code>frame()</code> 中定位。<a class="source-ref" href="#ref-source">[S1]</a></p><div class="callout warm"><strong>审阅边界</strong><p>本次读到了附件完整源码，但预览环境无法打开本地 HTML，未取得有效渲染截图。因此，本报告不会把颜色层级、实际遮挡或移动端表现的推断写成已看见的画面问题；这些需在部署预览中补做视觉验证。</p></div></section>
+
+<section class="chapter" id="story"><div class="section-head"><span class="section-no">02</span><div><div class="eyebrow">短设置，长陪伴，轻收尾</div><h2>完整故事：为一个愿，点这一支</h2></div></div><p class="intro">不需要人物主角、任务系统或不断弹出的剧情。用户自己就是故事的来源：为什么点、在哪里点、亲手做成什么样、最后留下什么痕迹。</p>
+<div class="story">
+<article class="story-step"><div><h3>进来：一句话知道要做什么</h3><p class="quote">给心里的事，留一盏光。</p><p>直接落在许愿输入，不再增加一张必须点击的欢迎页。顶部有安静的「十处灯火」「我的烛」入口；首次展示简短规则。不要先要求注册或选择头像。</p><p class="small">目标：看到页面后，能理解自己要许愿、选烛，然后把页面留在前台。</p></div></article>
+<article class="story-step"><div><h3>许愿：把这一支与自己的事联系起来</h3><p class="quote">这一盏，为哪个愿望而亮？</p><p>保留 60 字输入，示例可用「愿家人平安，也愿自己少一点着急」。类别可选，供推荐地点用。愿望默认不公开，不进入公共统计，也不在日志里随意打印。</p><p class="small">主按钮：把愿望放好。向后修改时，文本与已做的选择都保留。</p></div></article>
+<article class="story-step"><div><h3>选地方：决定这段时间在哪里度过</h3><p class="quote">想把这一盏，留在哪里？</p><p>十处地点都有一张卡片：名称、环境的一句描述、当前守烛人数、累计点亮数量。愿望类别可以排序推荐，不把某个愿望绑定成某处的专属功效。给「全部十处」的明确入口。</p><p class="small">主按钮：就放在这里。地点是氛围选择，不是成功概率选择。</p></div></article>
+<article class="story-step"><div><h3>选或画烛：选择愿意留下的时间</h3><p class="quote">挑一支烛，或画出自己的那一支。</p><p>同一步提供「选一支」「自己画」。每个现成规格直接显示时长；自绘时，形状旁持续显示<strong>所属的固定档位</strong>。用户确认前就知道总时长，点燃后不得修改。</p><p class="small">主按钮示例：带上这支 · 1 小时。不给自由输入小时和分钟的框。</p></div></article>
+<article class="story-step"><div><h3>赴约与放置：很短，但有抵达感</h3><p class="quote">放好了，等你点亮。</p><p>首次过场建议总计 6–8 秒，复访约 2 秒，可立即跳过。镜头走向烛台，不需要出现一个人。点火前再确认愿望、地点、烛形、时长和一次性规则。</p><p class="small">点火按钮：点亮这支 · 1 小时。音效在这次主动操作后开始；默认安静。</p></div></article>
+<article class="story-step"><div><h3>守烛：你去学习，它在这里</h3><p class="quote">让这一页留在眼前。你可以去做自己的事。</p><p>火慢慢燃烧，蜡随真实时间减少。没有签到弹窗、点击保持、随机任务或强制看剧情。默认把秒级倒计时收起来，仅保留较轻的「已陪伴 12 分钟 · 共 1 小时」；可主动展开精确剩余时间。</p><p class="small">人不动鼠标、读书、写字都不算离开。页面状态才是规则依据，不把它宣传成识别真实注意力。</p></div></article>
+<article class="story-step"><div><h3>自然燃尽：用场景表达圆满</h3><p>火苗缓慢收小，最后一缕烟消散；留下完整的蜡印或灯痕，环境稍微明亮一点。最多一声可关闭的轻音，不弹出必须确认的全屏框。</p><p class="quote">这一盏，已燃尽。</p><p>记录只写真实事实：「完整陪伴 1 小时」。不要写愿望实现、成功率或解释接下来现实会怎样。自动保存后，用户回来就能看到留念。</p></div></article>
+<article class="story-step"><div><h3>中途熄灭：这一次，就停在这里</h3><p class="quote">这一盏，到这里了。</p><p>原烛保留烧到一半的形状，愿望、实际燃烧时间和终止原因进入记录。这支不能再次点燃。回来之后直接看到「已熄灭 · 未燃尽」，不先播放还在燃烧的假象。</p><p class="small">主操作：查看这一盏。次操作：为这个愿，再点一支。新支可以沿用愿望，但仍重新选规格、重新确认。</p></div></article>
+</div><div class="callout"><strong>完成感来自：我为这个愿，确实留出了一段时间。</strong><p>燃尽有圆满的余韵；熄灭有不可改写的痕迹。不要用「诚意不足」「功德减少」或催促文案去解释中断。</p></div></section>
+
+<section class="chapter" id="screens"><div class="section-head"><span class="section-no">03</span><div><div class="eyebrow">主线保持简单，信息有处可去</div><h2>页面结构与两个常驻入口</h2></div></div><div class="table-wrap"><table class="min-wide"><thead><tr><th>页面 / 信息层</th><th>最需要显示的内容</th><th>主要操作与规则</th></tr></thead><tbody>
+<tr><td>许愿</td><td>愿望输入、可选类别、简短玩法说明；我的烛与总览入口。</td><td>把愿望放好。切换步骤自动留草稿。</td></tr>
+<tr><td>选择地点</td><td>十处卡片、选择状态、氛围、两项统计；默认不塞满历史年代。</td><td>选中后前进；可回去改愿望。桌面网格，手机卡片 + 全部列表。</td></tr>
+<tr><td>选择 / 画烛</td><td>八档现成烛或画布；所属时长始终可见；颜色和图案为外观。</td><td>带上这支。没画好可用现成烛，不把创作变成门槛。</td></tr>
+<tr><td>放置与点火确认</td><td>愿望、地点、造型、固定总时长、离开即永久熄灭、亮屏状态。</td><td>点亮。首次有效点燃后锁定本支定义。</td></tr>
+<tr><td>守烛</td><td>自己的烛为主；愿望可收起；已陪伴 / 总时长；声音、省电、熄灭入口。</td><td>保持前台；不要求持续操作。查看同页信息层不会中断。</td></tr>
+<tr><td>同页统计 / 记录抽屉</td><td>简短总览和自己的历史摘要；当前烛与「仍在燃烧」状态继续可见。</td><td>只读、无路由跳转。若想进入另一个地点或详情页，明确提示本支会熄灭。</td></tr>
+<tr><td>结果 / 我的烛</td><td>原愿望、原烛形、状态、地点、目标与实际时间、开始 / 结束时间、保存状态。</td><td>已熄灭 / 已燃尽都是终态。再点创建新支，绝不复活旧记录。</td></tr>
+</tbody></table></div><p>总览入口可叫<strong>「十处灯火」</strong>；私人记录叫<strong>「我的烛」</strong>。用户在开始前和结束后可以完整浏览；燃烧中使用同页抽屉，避免产品自己制造意外离开。</p><div class="callout warm"><strong>「同页」要有实际含义。</strong><p>不能仅仅 URL 没变，就在后台保留蜡烛、前台切到另一个功能页面。抽屉仍属于守烛场景，当前烛应保留可见。真正进入独立统计页、历史详情页或别处场景，都按离开处理。</p></div></section>
+
+<section class="chapter" id="candles"><div class="section-head"><span class="section-no">04</span><div><div class="eyebrow">选择一支，也就是选择一段时间</div><h2>八个档位，现成与自绘用同一规则</h2></div></div><p>推荐保留常用的半小时、一小时、两小时；再覆盖短体验、较长专注与半天 / 一天。<strong>烛卡上优先写时间</strong>，名称和大小只是辅助。不要让人先理解一套诗意名字，才知道要守多久。</p>
+<div class="durations"><div class="duration"><strong>10 分钟</strong><span>最短档 · 先体验一次</span></div><div class="duration recommend"><strong>30 分钟</strong><span>默认档 · 一段清楚的开始</span></div><div class="duration"><strong>1 小时</strong><span>常用档</span></div><div class="duration"><strong>2 小时</strong><span>较长的一段时间</span></div><div class="duration"><strong>3 小时</strong><span>长时档</span></div><div class="duration"><strong>6 小时</strong><span>长时档</span></div><div class="duration"><strong>12 小时</strong><span>半天档 · 建议省电场景</span></div><div class="duration"><strong>24 小时</strong><span>最长档 · 建议省电场景</span></div></div>
+<p class="caption">这里的「长时」描述产品运行时长，不要求人连续学习、不离座或不休息。人可以休息；守烛页面的前台和亮屏规则仍然成立。</p>
+<h3>现成蜡烛：让时间一眼可见</h3><p>桌面建议 4 × 2，手机 2 × 4。每张卡只有烛形、时长、轻量说明。默认突出 30 分钟；所有档位都有相同的尊重，不把 24 小时做成最高等级、最强愿力或最有诚意。</p>
+<h3>自己画：画的是烛，得到的是一个固定档位</h3><ol><li><strong>先画轮廓。</strong>给一支可以直接修改的默认烛，允许画长、画短、画粗、画细；支持撤销、重画、回到模板。</li><li><strong>轮廓稳定后显示所属档位。</strong>例如「这支属于 2 小时档」。持续绘制时只在跨档后更新，避免读数抖动。</li><li><strong>颜色与装饰不改变时间。</strong>同一轮廓换色、画小花、写符号，都不增加蜡量。重复涂一条线也不刷时长。</li><li><strong>画完后最后确认。</strong>「带上这支 · 2 小时」。点燃后，轮廓、档位和愿望快照锁定。</li><li><strong>保留手作痕迹。</strong>有点歪、有点不对称都可以；最终场景必须看得出是自己的那支，不要把所有画稿都替换成同一个标准圆柱。</li></ol>
+<div class="demo" aria-labelledby="duration-demo-title"><h3 id="duration-demo-title">试一试：形状怎样归入固定时长</h3><p class="caption">这是报告里的规则演示，不是完整画烛编辑器。长度、宽度是归一化设计参数，不是厘米，也不是真实蜡烛的燃烧预测。输出永远属于上面的八档。</p><div class="demo-grid"><div><div class="control"><label for="candleLength">长度 <output id="lengthValue">120</output></label><input id="candleLength" type="range" min="60" max="280" step="1" value="120"></div><div class="control"><label for="candleWidth">粗细 <output id="widthValue">24</output></label><input id="candleWidth" type="range" min="12" max="120" step="1" value="24"></div><div class="control"><label for="candleProfile">轮廓示例</label><select id="candleProfile"><option value="1">直身：宽度较均匀</option><option value="0.72">收腰：中段蜡量较少</option><option value="0.88">不规则：有轻微凹凸</option></select></div><div class="mini-options" aria-label="快速试用固定档位"><button type="button" data-duration="10">10 分钟</button><button type="button" data-duration="30">30 分钟</button><button type="button" data-duration="60">1 小时</button><button type="button" data-duration="120">2 小时</button><button type="button" data-duration="180">3 小时</button><button type="button" data-duration="360">6 小时</button><button type="button" data-duration="720">12 小时</button><button type="button" data-duration="1440">24 小时</button></div></div><div class="cal-result" aria-live="polite"><span class="small">这支蜡烛属于</span><output id="durationResult">30 分钟档</output><span id="tierHint" class="small">点燃前确认；点燃后锁定。</span><div class="meter" aria-hidden="true"><i id="tierMeter"></i></div><span class="small" id="tierIndex">第 2 / 8 档</span></div></div></div>
+<details><summary>给实现者：一个统一、可解释的归档算法</summary><p>建议用最终实心轮廓的「蜡量分数」归档。将画稿映射到固定坐标，沿高度取每一行的烛身宽度，累加 <code>宽度² × 行高</code>，用作近似体积感评分。以一支参考烛对应 30 分钟，再映射到固定档位。这是<strong>游戏规则</strong>，不是物理仿真。</p><pre>allowedMinutes = [10, 30, 60, 120, 180, 360, 720, 1440]
+referenceScore = 120 × 24²
+waxScore = Σ(widthAtRow² × rowHeight)
+rawMinutes = 30 × waxScore / referenceScore
+
+归档边界（相邻档位的算术中点）：
+20 / 45 / 90 / 150 / 270 / 540 / 1080 分钟
+
+rawMinutes &lt; 20       → 10 分钟档
+20 ≤ rawMinutes &lt; 45  → 30 分钟档
+…
+rawMinutes ≥ 1080      → 24 小时档
+
+保存：tier_id + planned_seconds + shape_snapshot + rule_version
+前端预览与服务端校验使用同一版本的规则。</pre><p>演示中的收腰 / 不规则只用固定系数近似；真实画稿按每行实际宽度计算。首版限制为一个连通、无洞、能放在烛台上的轮廓；不支持悬空碎片或多烛芯。小缺口可自动闭合并让用户确认。平滑只能改善显示，不可让预览时长和确认时长不同。</p><p>边界交互：手指抬起时确认当前档位；显示「再画粗一些，会进入 3 小时档」或「已到最长 24 小时档」。可以提供「调整成 1 小时档」的等比缩放操作，实际改变形状，并重新展示结果。不要偷偷更改档位，也不要展示原始计算出的任意分钟数。</p></details>
+<div class="callout"><strong>禁止任意的是「初始总时长」，不是「剩余时间」。</strong><p>一支 6 小时烛烧了一段时间后，显示还剩 4 小时 23 分钟是正常的；用户创建时不能选择 4 小时 23 分钟。这两个概念在界面和数据字段中要分开。</p></div>
+<h3>现有酥油灯场景怎么处理</h3><p>附件在大昭寺使用酥油灯。建议保留这个器物区别：这里的创作入口叫「装点一盏灯」，八档时间由填充量 / 规格决定，灯盏图案只影响外观。对外可用「这一盏」统一称呼；其他地点仍是选烛 / 画烛。它是对现有设计的内容适配建议，不是对现实仪式的考据结论。</p></section>
+
+<section class="chapter" id="leaving"><div class="section-head"><span class="section-no">05</span><div><div class="eyebrow">一次点燃，不可重来</div><h2>把「离开即熄灭」定义到每一种情况</h2></div></div><p>这个规则是产品的重量来源，必须在点火前说清楚。点燃之后不提供暂停、续燃、恢复剩余时间或撤回熄灭。用户仍然可以选择结束，只是结束后得到一条不可复活的历史。</p>
+<div class="table-wrap"><table class="min-wide"><thead><tr><th>发生什么</th><th>本支蜡烛</th><th>用户看到什么</th></tr></thead><tbody>
+<tr><td>不动鼠标，读书、写字、离座休息</td><td>继续燃烧</td><td>页面仍在前台即可；没有「你太久没操作」的检查。</td></tr>
+<tr><td>打开同页统计 / 记录抽屉</td><td>继续燃烧</td><td>主烛仍可见，抽屉不换页面。关闭后回原视角。</td></tr>
+<tr><td>页面内移动焦点、调声音、省电</td><td>继续燃烧</td><td>这是守烛页自己的操作，不按元素失焦误判。</td></tr>
+<tr><td>跳去本站其他页面、其他地点</td><td>永久熄灭</td><td>站内主动跳转可先提示「离开会结束这支烛」。确认继续后先结算再导航。</td></tr>
+<tr><td>切换标签页、最小化、切应用、锁屏</td><td>永久熄灭</td><td>回来看到已熄灭记录；从未自动恢复火焰。</td></tr>
+<tr><td>电脑上页面仍可见，但切到别的窗口</td><td>按严格方案永久熄灭</td><td>以窗口失去焦点作为离开的信号；需要事先说明这个严格边界。</td></tr>
+<tr><td>刷新、关闭后重新进入、浏览器后退</td><td>永久熄灭</td><td>身份与记录恢复，燃烧不恢复。</td></tr>
+<tr><td>点击「熄灭并结束」</td><td>永久熄灭</td><td>一次明确确认，提示本支不可再次点燃；记录已烧时长。</td></tr>
+<tr><td>网络断开，但原页面仍在前台运行</td><td>同一次燃烧继续</td><td>在线人数暂不可用；终态先保留待同步。网络中断本身不是离开。</td></tr>
+<tr><td>应用被系统终止、没有可靠终止事件</td><td>不重新点燃</td><td>显示「意外结束 · 结果待核实」，保留最后确认时长；有原运行记录时再核对终点，不虚构燃尽。</td></tr>
+<tr><td>达到总时长</td><td>自然燃尽，永久终态</td><td>保存完整记录。后续进入只是回看。</td></tr>
+</tbody></table></div>
+<h3>长时专注的实际使用方式</h3><p><strong>最顺畅的是把手机留在守烛页，人在现实中阅读、写作，或用另一台设备做事。</strong>如果在电脑上点烛，再切到同一台电脑的文档、IDE 或其他窗口，严格规则会让它熄灭。这个取舍应在使用说明里诚实呈现，不能一边要求切出即灭，一边承诺同设备跨应用办公。</p>
+<p class="caption">浏览器的可见性事件能观察切标签、隐藏等变化；<code>window.blur</code> 只是窗口失焦信号，不能可靠辨认人在做什么，地址栏或系统界面也可能造成失焦。这里把「切出窗口也熄灭」作为遵循你严格方向的实现建议，而不是声称网页能检测真实注意力。<a class="source-ref" href="#ref-visibility">[W1]</a></p>
+<h3>三件会直接影响公平感的事</h3><ul><li><strong>点火前处理设置和权限。</strong>音量、亮屏请求、系统提示尽量先完成，避免刚开始就因产品自身弹窗熄灭。</li><li><strong>先记录结局，再播放动画。</strong>离开之后不一定还来得及运行动画或发完网络请求。不能把保存放在烟散完之后。</li><li><strong>异常与主动离开分开记。</strong>能确认的写「主动熄灭」「切出页面」；不能确认的只写「意外结束」。系统故障不写成用户不够专注。</li></ul>
+<div class="callout warm"><strong>刷新不是新的点燃机会。</strong><p>不要通过页面重载、缓存返回、断网重试或重复按钮，让同一支烛回到燃烧状态。「为这个愿再点一支」必须生成新蜡烛 ID，旧支仍然躺在原来的历史位置。</p></div></section>
+
+<section class="chapter" id="history"><div class="section-head"><span class="section-no">06</span><div><div class="eyebrow">每一次都留着，不覆盖上一次</div><h2>「我的烛」是这个产品的记忆</h2></div></div><p>私人记录不是一排成功次数。它要让人认出：<strong>这是那天那个愿望，和当时我亲手做的那支烛。</strong>已燃尽和已熄灭都长期保留；同一个愿望后来点过新的，也不把之前的熄灭擦掉。</p>
+<div class="cards"><article class="card record"><div class="kicker">记录样例 · 非真实用户数据</div><h4>愿新的一周，稳稳当当。</h4><p><span class="tag warn">已熄灭 · 未燃尽</span></p><p>灵隐寺 · 原定 1 小时<br>实际陪伴 23 分 18 秒<br>因离开守烛页结束</p><p class="caption">2026-11-16 09:30 — 09:53:18<br>保留当时的烛形、颜色与剩余蜡痕。此支不能再次点燃。</p><p><strong>可用操作：为这个愿，再点一支</strong></p></article><article class="card record done"><div class="kicker">同一个愿望 · 新的一支</div><h4>愿新的一周，稳稳当当。</h4><p><span class="tag">已燃尽</span></p><p>灵隐寺 · 原定 30 分钟<br>完整陪伴 30 分钟<br>自然燃尽</p><p class="caption">2026-11-16 10:00 — 10:30<br>这是一条新的记录。前一支熄灭的事实仍然保留。</p><p><strong>可用操作：查看留念 / 再点新烛</strong></p></article></div>
+<h3>每支记录必须包含什么</h3><div class="table-wrap"><table><thead><tr><th>内容</th><th>为什么需要</th></tr></thead><tbody><tr><td>愿望原文快照</td><td>准确记住这支烛是为哪个愿望而点；点燃后修改新愿望，不回写旧记录。</td></tr><tr><td>地点、烛形 / 灯形、颜色、原画稿</td><td>让记录有辨识度；不能只存一张通用烛图。</td></tr><tr><td>固定总时长与实际已烧时长</td><td>区分选择的承诺和真正经历的时间；实际时长可以到秒。</td></tr><tr><td>开始与结束时间</td><td>最长 24 小时可能跨日；显示完整日期，按用户当地时间阅读。</td></tr><tr><td>已燃尽 / 已熄灭 / 意外结束</td><td>状态必须有文字；异常状态单独说明证据不足，不能伪造成功。</td></tr><tr><td>结束原因与保存状态</td><td>区分主动离开、手动结束、异常；「记录待保存」与烛本身的终态是两回事。</td></tr></tbody></table></div>
+<p>列表默认按最近时间倒序，可筛选「全部 / 已燃尽 / 已熄灭」，异常记录仍出现在全部中并有清楚标签。历史很长时分页加载；每张卡优先露出愿望和状态，不让技术 ID 占据主视图。未点燃草稿可保留一份，但不混进已点燃历史。</p>
+<h3>匿名 unique ID：刷新仍认识同一个人</h3><ol><li>首次访问，服务端自动生成匿名身份，浏览器保存第一方身份凭证；用户不用注册或输入名字。</li><li>之后在同一站点、同一浏览器刷新或再次进入，服务端用这个凭证找到 SQLite 里的本人记录。</li><li>当前正在烧的烛因刷新而结束；重新加载只取回历史和新的可操作入口。</li><li>每个人只可读取自己的愿望与烛形。公开接口只返回聚合数字。</li></ol>
+<div class="callout"><strong>记录在服务器，浏览器保存的是「认出你」的凭证。</strong><p>这与你的 SQLite 想法一致。不要把浏览器里的 localStorage 当作所有历史的唯一来源。普通刷新不会换人；清掉站点数据、换浏览器或换设备，则不能自动证明还是原来的匿名访客。这条边界放在记录帮助里说明即可。</p></div><p class="caption">技术上建议使用服务器签发的高强度随机不透明 cookie，设置 <code>HttpOnly</code>、<code>Secure</code>、合适的 <code>SameSite</code> 与持久期限；服务端将它映射到内部 visitor ID。浏览器能保留此凭证跨请求识别，但用户仍可清除它。<a class="source-ref" href="#ref-cookie">[W11]</a></p>
+<p><strong>「长期」的产品含义：</strong>蜡烛记录不自动过期、不按最近 N 条覆盖；服务器重启和重新部署不丢；有定期备份与可恢复流程。匿名恢复码、导出或跨设备迁移可以后续再补，不要在第一版强加一套账号系统。</p></section>
+
+<section class="chapter" id="stats"><div class="section-head"><span class="section-no">07</span><div><div class="eyebrow">让人感觉有人同在，数字必须是真的</div><h2>十处灯火：总览怎样算、怎样看</h2></div></div><p>公共总览只需要回答两个问题：<strong>这里累计点亮过多少支？现在有多少匿名访客正在守烛？</strong>十个地点都要有数据。人以数字存在即可，不需要人物模型、头像墙或聊天。</p>
+<div class="table-wrap"><table class="min-wide"><thead><tr><th>指标</th><th>精确定义</th><th>哪些不计入</th></tr></thead><tbody>
+<tr><td>累计点亮</td><td>本站上线以来，在这个地点成功开始过燃烧的不同 candle ID 数量；包含已燃尽、已熄灭和当前正在烧的。</td><td>草稿、还没点燃的烛、重复请求、演示模式不计。此数不是现实寺庙的香火量。</td></tr>
+<tr><td>此刻守烛</td><td>当前在该地点有有效燃烧状态，并且近期仍确认在场的不同匿名 visitor ID 数量。</td><td>只浏览页面的人、过期连接、历史烛、装饰烛不计；同一浏览器多标签不重复算人。</td></tr>
+<tr><td>总计</td><td>十处累计点亮相加；全站当前人数按 visitor ID 去重。首版建议每个身份同时只允许一支燃烧。</td><td>不要把各地点人数机械相加后，又允许同一身份同时在多个地点点烛。</td></tr>
+</tbody></table></div>
+<h3>展示建议</h3><p>总览上方两项数字，下方十处列表。每行显示「地点 · 累计 X 支 · 此刻 Y 人」，可按原有顺序或地点环境查看。没有必要默认排出高低名次；正在守烛的地方用小标记定位。</p>
+<div class="cards"><div class="card"><div class="kicker">数据充足时</div><p class="quote">此刻，有 12 人在这里守烛。</p><p class="caption">文案例；12 为示意数字。真实版由服务端返回，不填随机数，不用场景中画了几支烛来推算。</p></div><div class="card"><div class="kicker">没有其他人在场时</div><p class="quote">此刻，这里有你的一盏光。</p><p class="caption">未点燃且在线人数为 0，则写「此刻还没有人守烛」。零人也应是完整、安静的体验。</p></div></div>
+<h3>当前人数允许有短暂延迟，但不允许伪造</h3><p>建议首版每 10 秒发送 / 刷新一次在场状态，30 秒没有新确认则从公共在线人数中移除；加上刷新间隔，异常断线后最多约 40 秒回收。这里是<strong>建议的实现参数</strong>，不是已经测得的性能。正常离开可主动上报，数字更快下降。</p><p>断网时写「当前人数暂不可用」，或显示带时间的最后一次结果，不能把未知显示成 0。心跳过期只说明「当前无法确认在线」，<strong>不等于这支烛已经被证明熄灭</strong>。如果原页面仍在前台，个人这次燃烧可以继续，恢复连接后同步结果。</p>
+<p class="caption">人数按匿名浏览器身份估计；同一人使用两台设备会产生不同身份。无需把这段技术解释放在主画面，但应在统计口径中可查看。累计历史与瞬时在场数据采用不同的保留策略。</p>
+<h3>群烛场景怎样与数字匹配</h3><p>自己的烛永远清楚；远处的常设灯与装饰烛有固定视觉角色。如果要把其他用户的火光画出来，就从真实在线数据驱动，并在数量多时做聚合表现。不要让目前固定的 66 支背景烛被误读成 66 位真人，也不需要把所有历史蜡烛无限堆进 3D 场景。</p></section>
+
+<section class="chapter" id="places"><div class="section-head"><span class="section-no">08</span><div><div class="eyebrow">十个地方，十种留下来的感觉</div><h2>趣味放在创作、抵达和留念里</h2></div></div><p>专注中间不适合持续添加互动。更有价值的是：用户认出自己画的烛，知道自己选的地方有区别，回来看到这一次独有的蜡痕。</p>
+<div class="cards"><div class="card"><div class="kicker">创作时</div><h4>有一点不完美，才像自己的</h4><p>歪烛、收腰、斜切顶面、自己画的小图案，都保留到场景和记录里。点火前能绕着看一次；操作很短，不要求精通绘画。</p></div><div class="card"><div class="kicker">燃烧时</div><h4>变化慢到不会打扰</h4><p>蜡位下降、图案逐渐融去、烛光投影稍有变化。进度由总时长推导，24 小时档仍有细微火焰，不需要等几小时才有视觉反馈。</p></div><div class="card"><div class="kicker">完成后</div><h4>留下一枚自己的烛印</h4><p>自然燃尽留下完整余痕；中途熄灭保留当时的残烛比例。记录可以像安静的烛签，让每次看起来不同。</p></div><div class="card"><div class="kicker">再访时</div><h4>同一个愿，也可以有不同的几次</h4><p>复制愿望后重新选一支新烛，形成一条时间线。旧的熄灭记录留着，不需要靠连续打卡或等级让人回来。</p></div></div>
+<p><strong>以下是艺术方向建议，不是实地建筑复原、历史考证或现实宗教功效说明。</strong>保留当前十个名称；每处至少在环境轮廓、光色、声音、器物、开场文字中有两三项明显区别。</p>
+<div class="table-wrap"><table class="wide"><thead><tr><th>现有地点</th><th>建议的环境与声音</th><th>一句创作文案</th></tr></thead><tbody>
+<tr><td>灵隐寺</td><td>雨后石阶、树影、轻滴水声；近景以米白蜡和暗木形成对比。</td><td>山色很静，心里的话可以慢慢说。</td></tr>
+<tr><td>少林寺</td><td>规整石庭、松影、远风；线条更朴素、沉稳。</td><td>留一段时间，给想做好的事。</td></tr>
+<tr><td>雍和宫</td><td>暖色檐影；从入口走近时，城市背景声慢慢变轻。</td><td>热闹留在门外，这一盏留给你。</td></tr>
+<tr><td>大昭寺</td><td>开阔天光、低风声、保留酥油灯器型；与普通蜡烛形成可见差异。</td><td>让一点暖光，陪你坐一会儿。</td></tr>
+<tr><td>普济寺</td><td>雾气、柔和潮声，环境略冷而烛光温暖。</td><td>远处有潮声，眼前有一盏光。</td></tr>
+<tr><td>紫霄宫</td><td>山雾、深木、风过枝叶；器物和符号与佛寺场景分开设计。</td><td>云慢慢经过，你做自己的事。</td></tr>
+<tr><td>孔庙</td><td>庭院、日影、书页般轻的声景；保留安定、清朗的空间感。</td><td>为想学会的事，留一点耐心。</td></tr>
+<tr><td>妈祖祖庙</td><td>远潮、暖木、微风；地平线和海边空气形成记忆点。</td><td>愿远行的人，也有安心的方向。</td></tr>
+<tr><td>关帝庙</td><td>沉稳檐影、木石肌理、低频环境声；减少装饰闪光。</td><td>把在意的事，郑重放在这里。</td></tr>
+<tr><td>红螺寺</td><td>树影、少量暖红、柔和鸟声；亲近但不过分甜腻。</td><td>为相遇，也为好好相处。</td></tr>
+</tbody></table></div>
+<p>首版可复用山、海、城、平地、高原几组环境基础，再加独有器物和声景，不必做十套巨大 3D 世界。原稿里的建成年代、派别和「最旺」等描述应逐条查证后再作为事实发布；选择页先让氛围与玩法成立，不靠未经核验的信息撑满卡片。</p></section>
+
+<section class="chapter" id="visual"><div class="section-head"><span class="section-no">09</span><div><div class="eyebrow">让火有光，让蜡有形</div><h2>配色首选：墨绿灰夜色、米白蜡、琥珀火</h2></div></div><p>当前源码大量使用近黑、深红烛、深红木材、橙光和金色；自己的烛 <code>#8F1B12</code> 与背景烛 <code>#8A1A12</code> 也非常接近。我的推断是：它们可能在同一暖暗色带里相互混合，主角不够突出。需要把<strong>环境、烛、火、操作</strong>的职责分开，不能只换一个主题色。<a class="source-ref" href="#ref-source">[S1]</a></p>
+<div class="swatches"><div class="swatch"><div class="color" style="background:#101614"></div><p>夜色 / scene<br><code>#101614</code></p></div><div class="swatch"><div class="color" style="background:#141A18"></div><p>信息面板 / surface<br><code>#141A18</code></p></div><div class="swatch"><div class="color" style="background:#E9DDC3"></div><p>自己的蜡 / wax<br><code>#E9DDC3</code></p></div><div class="swatch"><div class="color" style="background:#D8A45F"></div><p>火与主操作 / ember<br><code>#D8A45F</code></p></div></div>
+<div class="table-wrap"><table><thead><tr><th>角色</th><th>色值</th><th>使用方法</th></tr></thead><tbody>
+<tr><td>深层卡片</td><td><code>#202923</code></td><td>地点、记录、抽屉二级容器；与最深背景分层。</td></tr>
+<tr><td>主文字</td><td><code>#E9E0CD</code></td><td>愿望、标题、档位时长；重要文字不要用低透明度。</td></tr>
+<tr><td>正文 / 次文字</td><td><code>#B7BCAF</code> / <code>#90998E</code></td><td>解释和元数据各有稳定明度。仅装饰信息才可再弱化。</td></tr>
+<tr><td>主按钮文字</td><td><code>#211A10</code></td><td>放在琥珀按钮上，用深色字保持清楚。</td></tr>
+<tr><td>建筑朱红</td><td><code>#6B352B</code></td><td>建筑局部、可选烛色；避免所有主角和背景都深红。</td></tr>
+<tr><td>已燃尽</td><td><code>#81A69A</code></td><td>低饱和绿灰，配「已燃尽」文字。</td></tr>
+<tr><td>已熄灭</td><td><code>#C3B5A0</code></td><td>中性的旧蜡色，配「未燃尽」文字；不采用惩罚性鲜红。</td></tr>
+<tr><td>保存异常</td><td><code>#E0A17F</code></td><td>只用于需要用户知道的同步或保存问题，和正常熄灭分开。</td></tr>
+</tbody></table></div>
+<div class="demo"><h3>色彩分工示意</h3><p class="caption">下面是报告内的文字卡片，用来比较颜色职责；不代表已渲染的原稿、3D 画面或最终视觉稿。</p><div class="mini-options" aria-label="色彩示意切换"><button type="button" data-theme="green" aria-pressed="true">推荐：墨绿灰 + 米白</button><button type="button" data-theme="warm" aria-pressed="false">参考：原暖色倾向</button></div><div class="mock" id="themePreview" data-theme="green"><div class="mock-top"><span>一盏 / 我的烛</span><span>示意记录 · 已保存</span></div><div class="mock-title">愿家人平安，也愿自己从容一点。</div><div class="mock-card"><span class="state">已燃尽</span><p class="mock-wish">完整陪伴 1 小时</p><div class="mock-time">灵隐寺 · 2026-11-16<br>自己的烛形与愿望，一起留在这里。</div><span class="mock-action">查看这一盏</span></div></div></div>
+<h3>比换色更重要的五个调整</h3><ol><li><strong>主烛与背景拉开明度。</strong>默认米白蜡，背景烛更小、更低亮；火是最高亮点。用户选择朱红蜡时，也通过轮廓光保持辨识。</li><li><strong>关键信息有稳定底色。</strong>文字不能完全依赖 3D 场景某一帧的暗部。信息层使用可预测的面板底色。</li><li><strong>减少统一的棕黄色滤镜。</strong>原稿有色调映射、泛光、暗角和多盏暖光；材质色与灯光要一起校准。不要把所有表面都烘成同一种颜色。</li><li><strong>时间卡把时间放大。</strong>原稿 <code>.size span</code> 为 12px、38% 透明的米色，关键时间应提升至 18–22px 主文字。</li><li><strong>十处统计用一种主要数据色。</strong>长度和数字表达差异，当前地点用描边强调。十个地点无需各配一种鲜艳颜色。</li></ol>
+<details><summary>可读性依据与数值边界</summary><p>按源码在纯色背景 <code>#0B0806</code> 上合成，38% 米色文字的对比度约 <strong>2.99:1</strong>。这只是指定纯色条件下的计算，不是动态 3D 截图的实测。</p><div class="table-wrap"><table><thead><tr><th>建议前景 / 背景</th><th>计算对比度</th></tr></thead><tbody><tr><td><code>#E9E0CD / #141A18</code></td><td>13.44:1</td></tr><tr><td><code>#90998E / #202923</code></td><td>5.08:1</td></tr><tr><td><code>#211A10 / #D8A45F</code></td><td>7.70:1</td></tr><tr><td><code>#81A69A / #202923</code></td><td>5.60:1</td></tr></tbody></table></div><p>W3C 的普通文本最低对比度要求为 4.5:1，大文本为 3:1；实际合成背景、选中态和小字仍要逐个验证。不能只凭这张色表宣称整页无障碍合规。<a class="source-ref" href="#ref-contrast">[W5]</a></p></details>
+<p>中文标题保留宋体的仪式感，按钮、说明和时间采用清晰的系统无衬线；不要把所有小字都做成细宋体。浏览器标题建议与页面名字统一为<strong>「一盏｜为一个愿望，留一段时间」</strong>，目前附件里的 <code>Vigil Temple Candle</code> 与页面「一盏」不一致。</p></section>
+
+<section class="chapter" id="copy"><div class="section-head"><span class="section-no">10</span><div><div class="eyebrow">对长时间友好，对规则诚实</div><h2>文案、亮屏与可访问性一起补齐</h2></div></div>
+<h3>可以直接采用的关键文案</h3><div class="table-wrap"><table class="min-wide"><thead><tr><th>位置</th><th>建议文案</th></tr></thead><tbody>
+<tr><td>开场</td><td>给心里的事，留一盏光。写下一个愿，选一支烛，让它陪你做自己的事。</td></tr>
+<tr><td>愿望隐私</td><td>愿望默认仅自己可见，不会展示在十处灯火的统计中。</td></tr>
+<tr><td>自绘时间</td><td>这支属于 2 小时档。再画粗一些，可以进入更长的一档。</td></tr>
+<tr><td>点火前</td><td>让这一页保持打开。切到别处、刷新或锁屏，这支烛就会熄灭，不能再次点燃。</td></tr>
+<tr><td>12 / 24 小时档提示</td><td>这支需要长时间保持前台亮屏。可以接上电源，使用省电守烛。</td></tr>
+<tr><td>守烛</td><td>已陪伴 2 小时 12 分钟 · 共 6 小时。</td></tr>
+<tr><td>主动熄灭确认</td><td>熄灭后，这支烛不能再次点燃。已陪伴的时间会留在记录中。<br>操作：熄灭并结束 / 继续守烛。</td></tr>
+<tr><td>中断结果</td><td>这一盏，到这里了。已陪伴 23 分 18 秒，原定 1 小时。<br>已熄灭 · 不能再次点燃。</td></tr>
+<tr><td>自然燃尽</td><td>这一盏，已燃尽。完整陪伴 1 小时。</td></tr>
+<tr><td>再来一次</td><td>为这个愿，再点一支。<br>小字：将创建一支新的蜡烛，原来的记录会保留。</td></tr>
+<tr><td>保存状态</td><td>记录已保存 / 记录待保存，连接恢复后会再试。</td></tr>
+<tr><td>异常中断</td><td>这次意外结束了。最后确认已陪伴 37 分钟。结果正在核对，这支烛不会重新点燃。</td></tr>
+</tbody></table></div>
+<h3>24 小时，不应靠持续炫技来支撑</h3><ul><li><strong>渲染和燃烧时钟分开。</strong>省电场景可降低分辨率与帧率，减少泛光、粒子和相机漂移，计时仍准确。</li><li><strong>保持亮屏有真实状态。</strong>点火前尝试申请 Screen Wake Lock；成功才写「已保持亮屏」。失败或被系统释放时显示说明，不能静默承诺不会锁屏。该能力受安全上下文、浏览器和系统状态影响。<a class="source-ref" href="#ref-wake">[W3]</a></li><li><strong>省电不改变规则。</strong>减少画面开销可以，锁屏或切后台继续烧不可以。也不要把一层黑色遮罩宣传成已经改变系统耗电。</li><li><strong>允许安静地不看。</strong>愿望可收起，秒级倒计时可收起，音效默认轻或关闭；退出入口始终可找到。</li><li><strong>跨日显示自然。</strong>24 小时是从点燃开始的持续时长，不在午夜归零。记录显示起止日期，时间以用户所在时区阅读。</li><li><strong>部署版本不要强制刷新正在烧的页面。</strong>更新提示可等本支结束后出现；不要让一次发布把所有人的蜡烛意外熄灭。</li></ul>
+<h3>原稿可直接补的布局与可访问性项</h3><div class="table-wrap"><table class="min-wide"><thead><tr><th>源码证据 / 风险</th><th>具体调整</th></tr></thead><tbody>
+<tr><td>独立文件未见标准 viewport、charset、lang 与 doctype</td><td>补齐标准 HTML 文档结构；平台如果自动包装，则核查最终产物。</td></tr>
+<tr><td>固定底部面板 + body overflow:hidden</td><td>场景固定，面板自身可滚动；考虑手机键盘、短屏、横屏和安全区，主按钮不被挤出。</td></tr>
+<tr><td>原规格始终四列</td><td>新八档手机两列、桌面四列；短屏可滚动。选中状态包含文字或标记，不能只靠颜色。</td></tr>
+<tr><td>寺庙按钮使用 role=listitem</td><td>恢复按钮语义，用列表容器包按钮，或使用明确的单选组。</td></tr>
+<tr><td>步骤切换只改 hidden</td><td>把键盘焦点移到新步骤标题 / 第一字段；抽屉支持 Escape、焦点限制和关闭后归还焦点。</td></tr>
+<tr><td>减少动效只修改了 CSS</td><td>让 JS 也跳过长运镜、关闭相机漂移和大粒子；不是只把淡入加快。</td></tr>
+<tr><td>3D canvas 不能独立表达全部状态</td><td>愿望、时长、状态与动作提供 DOM 文本；屏幕阅读器只播关键状态，不每秒报时。</td></tr>
+<tr><td>徒手绘制可能成为门槛</td><td>保留现成烛；长度、粗细和档位调整也可用键盘完成。主要触控目标建议 44px。</td></tr>
+</tbody></table></div><p class="caption">44px 是本产品建议的舒适触控目标；WCAG 2.2 AA 目标尺寸的基础规则为 24 × 24 CSS px，并有间距等例外。另需在 320 CSS px 等效宽度检查主要内容重排。<a class="source-ref" href="#ref-target">[W6]</a> <a class="source-ref" href="#ref-reflow">[W7]</a></p></section>
+
+<section class="chapter" id="implementation"><div class="section-head"><span class="section-no">11</span><div><div class="eyebrow">SQLite 足够起步，关键是规则一致</div><h2>给实现者的最小完整规格</h2></div></div><p>建议结构就是：<strong>一个前端 + 一个业务服务 + 一份持久化 SQLite</strong>。前端负责场景、制烛、即时状态；服务端负责匿名身份、记录归属、一次性点燃、存档和公共统计。低中流量网站是 SQLite 官方列出的合适场景之一；是否扩展要看实际负载，不需要预先引入复杂分布式系统。<a class="source-ref" href="#ref-sqlite">[W8]</a></p>
+<h3>状态只能沿这条方向走</h3><div class="table-wrap"><table><thead><tr><th>状态</th><th>允许的下一步</th><th>不变量</th></tr></thead><tbody><tr><td>草稿 / 已就绪</td><td>编辑、放弃、首次点燃 → 燃烧中</td><td>未点燃不计公共累计；可以改愿望、地点和烛形。</td></tr><tr><td>燃烧中</td><td>时间到 → 已燃尽；离开 / 手动结束 → 已熄灭</td><td>同一身份最多一支有效燃烧；原愿望和预算不可修改。</td></tr><tr><td>已燃尽</td><td>查看记录；复制愿望创建另一支</td><td>永久终态，不可回到燃烧中。</td></tr><tr><td>已熄灭</td><td>查看记录；复制愿望创建另一支</td><td>永久终态，剩余蜡只是记录，不可再用。</td></tr><tr><td>意外结束 / 结果待核实</td><td>核对同一次运行留下的结束证据</td><td>不提供再次点燃；不按墙上时间自动判燃尽，也不凭心跳过期断言用户离开。</td></tr></tbody></table></div>
+<p>「记录待同步」是保存状态，不是燃烧状态。不能因为保存失败，就把已熄灭改回燃烧中。异常记录的核对是修正证据不完整的结算，不是复活旧烛。</p>
+<details><summary>建议数据结构：少量实体即可</summary><div class="table-wrap"><table class="min-wide"><thead><tr><th>实体</th><th>关键内容</th><th>用途</th></tr></thead><tbody><tr><td>visitors</td><td>内部 id、匿名凭证哈希、创建时间、最近访问时间</td><td>刷新同人；凭证验证后映射归属。</td></tr><tr><td>candles</td><td>id、visitor_id、temple_id、愿望快照、烛形 / 外观快照、tier_id、planned_seconds、规则版本、状态、开始 / 结束时间、实际燃烧时长、结束原因、来源旧烛 id（可选）</td><td>长期历史的主体；一次点燃一条记录。原图稿 / 缩略图也要持久保存。</td></tr><tr><td>presence</td><td>visitor_id、candle_id、当前运行标识、last_seen_at、expires_at</td><td>短期在场状态；可过期，不能把它当作永久历史。</td></tr><tr><td>temples</td><td>十个稳定 id 与内容配置</td><td>可先用版本化静态配置；需要后台编辑再建表。</td></tr></tbody></table></div><p>每支烛只燃烧一次，首版不需要独立的多次续燃会话体系。具体迁移 SQL 由实现项目统一维护；统计先从真实记录查询，避免维护多套容易不同步的计数。</p></details>
+<details><summary>必要的接口与服务端约束</summary><ul><li>初始化匿名身份 / 读取本人：服务器签发或复用 cookie。不要相信客户端随便传来的 <code>visitor_id</code> 就返回别人的记录。</li><li>创建草稿与首次点燃：服务端验证时长属于八档、对象归属、状态尚未点燃；重复请求返回同一结果，不创建第二支。</li><li>在场更新：验证当前运行与该蜡烛匹配；重复、多标签和过期上报不重复增加人数。</li><li>结束上报：同一 candle ID 的正常终态只结算一次；迟到的「开始」或旧心跳不能覆盖已结束记录。</li><li>个人列表 / 详情：始终按经过验证的身份过滤；公共统计不返回愿望、画稿、身份凭证或个人记录。</li><li>为旧愿望再点一支：复制愿望和可选外观，创建新的 candle ID；重新选择 / 确认时长后才能点燃。</li></ul><p>小规模产品也需要这些基本约束，但不必上复杂风控或重型并发框架。数据库事务、唯一约束和幂等请求足以覆盖主要重复点击与重试问题。</p></details>
+<details><summary>计时与生命周期：避免 24 小时后得到假结果</summary><ol><li><strong>不按帧数累计。</strong>本次前台运行以单调时钟的时间差计算进度，动画只读进度。掉帧不能拖慢一支本应 30 分钟的烛。原稿的 <code>min(delta, .05)</code> 可用于动画稳定，不能用于扣真实燃烧时间。浏览器在后台会暂停或限制部分动画回调。<a class="source-ref" href="#ref-raf">[W4]</a></li><li><strong>点火动作先建立状态。</strong>开始点燃后即进入受离开规则保护的运行状态，不能等 1.6 秒动画播完才开始监听有效离开。</li><li><strong>离开事件先结算。</strong>取得截止时刻，算已烧时长，立即停止本地燃烧并写入待提交记录；能发送则上报，再处理动画或导航。</li><li><strong>燃尽与离开同时发生。</strong>同一次结算中，若有效已烧时长已达到目标则完成；否则熄灭。不能两个回调各写一个结局。</li><li><strong>关闭事件不是可靠的唯一保存点。</strong>以可见性变化为主要信号，pagehide 作补充；移动系统可能直接终止应用，无法保证每次关闭都运行 JS。点燃 / 终态及时提交，周期保存最后确认进度。<a class="source-ref" href="#ref-pagehide">[W2]</a></li><li><strong>恢复页面只做恢复读取。</strong>刷新、后退缓存恢复、重进页面，都不能自动恢复火。旧运行的终态补交与新建蜡烛是两个不同操作。</li><li><strong>长时休眠与网络异常分开。</strong>网络中断而页面仍正常运行，可以继续同一次燃烧并稍后同步；进程终止或系统长时间挂起而缺乏完整证据，则保留异常结果，不补算一整夜为已完成。</li></ol><p>首版可以保留轻量浏览器待提交队列应对短断网，但最终记录进入 SQLite。把每次补交绑定到原 candle ID / 运行标识，防止重试增加累计数量。</p></details>
+<details><summary>SQLite 部署与长期保存</summary><ul><li>数据库文件放在部署环境的<strong>持久磁盘 / 持久卷</strong>，不放构建输出或随实例销毁的临时目录。</li><li>首版采用一个主业务服务访问同一份数据库。不要在多个互不相通的实例各放一份 <code>app.db</code>，再把它们当作统一记录。</li><li>短事务、合理索引，按需要启用 WAL。WAL 支持读写并行，但所有访问进程需在同一主机；它不适用于网络文件系统的那种共享方式。<a class="source-ref" href="#ref-wal">[W9]</a></li><li>每日定期备份，发布迁移前额外备份，并实际演练一次恢复。对活跃数据库采用一致的备份方式，如 SQLite Online Backup API 或 <code>VACUUM INTO</code>，不要只随意复制正在写入的主文件。<a class="source-ref" href="#ref-backup">[W10]</a></li><li>同时保存烛形、图片等用户资产；若存文件目录，该目录也要持久化和纳入备份。只备份表、不备份烛图会留下残缺记录。</li><li>服务重新部署不能清空身份映射与历史；前端资源保留版本兼容，正在运行的旧页不强制重载。</li></ul><p>以上是基于 SQLite 文档作出的部署建议。它不意味着所有托管平台都不能使用 SQLite；关键是该平台是否提供符合这些条件的持久存储与运行方式。</p></details></section>
+
+<section class="chapter" id="delivery"><div class="section-head"><span class="section-no">12</span><div><div class="eyebrow">先把承诺做实，再把细节做美</div><h2>实现优先级与可验收清单</h2></div></div><p>完成标准应是：一个陌生人能独立点好一支，知道离开会怎样；烧完或熄灭后，回来仍找得到自己的记录，十处统计也不会因为刷新和重试而乱计。</p><div class="filter" aria-label="按优先级查看"><button type="button" data-filter="all" aria-pressed="true">全部</button><button type="button" data-filter="P0" aria-pressed="false">P0 · 必须闭合</button><button type="button" data-filter="P1" aria-pressed="false">P1 · 体验打磨</button><button type="button" data-filter="P2" aria-pressed="false">P2 · 后续扩展</button></div>
+<div id="priorityTasks"><article class="task" data-priority="P0"><div class="priority">P0</div><div><h4>统一八档与一次性状态</h4><p>替换原规格；删除 relight；服务端禁止旧烛再次点燃。正式守烛移除加速。刷新、重试和双击不能绕过规则。</p></div></article><article class="task" data-priority="P0"><div class="priority">P0</div><div><h4>匿名身份 + SQLite 历史</h4><p>同浏览器刷新身份稳定；所有人记录持久保存；愿望归属隔离。服务重启 / 部署后历史仍存在。</p></div></article><article class="task" data-priority="P0"><div class="priority">P0</div><div><h4>选烛与自绘都能预知时间</h4><p>轮廓映射到固定档位；预览与服务端一致；创作结果出现在场景及记录里；点燃后不可改预算。</p></div></article><article class="task" data-priority="P0"><div class="priority">P0</div><div><h4>离开结算、永久结果与异常保存</h4><p>完整覆盖站内导航、切标签、刷新、窗口失焦、锁屏。先结算后动画；保存失败可重试，旧火不可恢复。</p></div></article><article class="task" data-priority="P0"><div class="priority">P0</div><div><h4>十处真实统计与长时运行</h4><p>累计与在线口径正确，装饰不冒充人数；24 小时计时独立于渲染，亮屏状态诚实可见，省电场景可用。</p></div></article><article class="task" data-priority="P0"><div class="priority">P0</div><div><h4>移动主流程与基本可访问性</h4><p>键盘出现也能前进，八档可见可选；键盘操作、状态文字、减少动效与渲染失败的简化场景都能完成主流程。</p></div></article><article class="task" data-priority="P1"><div class="priority">P1</div><div><h4>统一色板、点火与结果的仪式</h4><p>校准主烛 / 火光 / 背景层级，完成温柔的点火与两种收尾；标题与品牌统一成「一盏」。</p></div></article><article class="task" data-priority="P1"><div class="priority">P1</div><div><h4>十处差异与自己的烛痕</h4><p>每处有可辨别环境和声景，自己的歪烛及图案真实保留；记录缩略图表现实际燃烧进度。</p></div></article><article class="task" data-priority="P2"><div class="priority">P2</div><div><h4>匿名记录的恢复 / 导出与留念</h4><p>在基础稳定后增加恢复码、记录导出、留念卡和更多造型；分享默认遮住愿望，必须由本人主动选择。</p></div></article></div><p class="caption" id="filterCount" aria-live="polite">显示全部 9 项</p>
+<h3>上线前应该通过的 22 个检查</h3><ul class="checklist">
+<li><b>01 / 档位一致</b>所有入口只能创建 10 / 30 / 60 / 120 / 180 / 360 / 720 / 1440 分钟，默认 30。</li>
+<li><b>02 / 不生成任意总时长</b>手绘再复杂，也只显示八档之一；剩余时间与实际时长可以连续计时。</li>
+<li><b>03 / 形状与时间有因果</b>增大轮廓不会落入更短档；颜色 / 图案 / 重复涂色不改变档位。</li>
+<li><b>04 / 预览与确认相同</b>前端显示 2 小时，服务端就记录 2 小时；不是进场后才改变。</li>
+<li><b>05 / 自己的烛被保留</b>现场和历史可辨认原画稿；刷新后形状、愿望与状态不丢。</li>
+<li><b>06 / 不能复活旧烛</b>已熄灭 / 已燃尽在 UI 和 API 都不能再次点燃；旧请求也无法覆盖终态。</li>
+<li><b>07 / 同愿望新支</b>再点生成新 ID 和新记录；前一条熄灭历史仍存在，累计只新增一次。</li>
+<li><b>08 / 刷新仍是本人</b>匿名 cookie 复用；个人列表恢复。燃烧中刷新得到结束状态，不恢复火。</li>
+<li><b>09 / 离开边界</b>切标签、站内新页、最小化、锁屏、窗口切出分别验证；系统误判边界有说明。</li>
+<li><b>10 / 同页抽屉</b>看统计与摘要时主烛可见、继续烧；进入完整其他页面会先结束。</li>
+<li><b>11 / 不操作也能完成</b>不点鼠标、不碰屏幕，不会被当作离开；没有定时响应要求。</li>
+<li><b>12 / 计时不受掉帧影响</b>省电与低帧率模式仍在同一真实时刻完成；变慢的只可以是动画。</li>
+<li><b>13 / 结束竞争</b>时间到与离开几乎同时发生，数据库只产生一个正确终态。</li>
+<li><b>14 / 多标签与重复请求</b>一个匿名身份最多一支有效燃烧；双击和断网重试不多计人数或蜡烛。</li>
+<li><b>15 / 断网不等于离开</b>原页面运行可继续同一次燃烧；在线指标过期，不伪造永久失败；补交只记一次。</li>
+<li><b>16 / 保存真实</b>服务端写入确认才显示已保存；失败时有待保存状态和保留的提交队列。</li>
+<li><b>17 / 私人数据隔离</b>两个不同浏览器身份不能读取对方愿望；公共接口只返回聚合统计。</li>
+<li><b>18 / 十处全部有口径</b>每处累计与在线都可查；0 人、加载、断网、过期数字分别呈现。</li>
+<li><b>19 / 部署不丢记录</b>重启 / 再部署后 SQLite、身份映射和烛形资产仍在；备份可实际恢复。</li>
+<li><b>20 / 手机与键盘</b>320–390px、短屏、横屏、软键盘、字体放大均能完成；焦点和触控目标可用。</li>
+<li><b>21 / 30 分钟与 24 小时实跑</b>实机验证计时、跨日、发热、耗电、亮屏释放和内存。加速演示不能替代长跑。</li>
+<li><b>22 / 结局语气</b>燃尽有圆满感但不宣称愿望实现；熄灭不羞辱用户、不出现续燃按钮。</li>
+</ul><p class="caption">这是建议的验收清单，不代表本次已经执行了这些产品测试。当前交付是设计反馈与规则报告，原型和后端尚需按上述内容实现。</p></section>
+
+<section class="chapter" id="sources"><div class="section-head"><span class="section-no">13</span><div><div class="eyebrow">事实、判断与建议分开</div><h2>依据与本次审阅范围</h2></div></div><p>优先级最高的是你本轮后续澄清：<strong>长时专注、最长 24 小时、固定档位、新烛只点一次、熄灭永久结束、匿名 unique ID、SQLite 长期记录</strong>。具体八档、默认 30 分钟、配色、抽屉和归档公式是本报告推荐值。</p><p>附件的功能存在与缺失来自源码检查；颜色合成比值来自指定色值计算；实际视觉效果、真实设备行为、多人同步和数据库持久化没有在本次原型上验证。寺庙环境表是艺术方向，不是文化史实来源。</p>
+<ol class="sources"><li id="ref-source"><strong>[S1] 用户附件 index.html。</strong>主要定位：<code>TEMPLES</code>、<code>SIZES</code>、<code>S</code>、<code>renderTemples</code>、<code>renderSizes</code>、<code>travel</code>、<code>lightUp</code>、<code>goOut</code>、<code>restart</code>、<code>frame</code>、<code>RACK_N</code> 与顶部 CSS。原附件未被修改。</li>
+<li id="ref-visibility"><a href="https://developer.mozilla.org/en-US/docs/Web/API/Page_Visibility_API" target="_blank" rel="noreferrer">[W1] MDN · Page Visibility API</a> — 可见 / 隐藏、后台行为，以及 blur 与 hidden 并不等价。</li>
+<li id="ref-pagehide"><a href="https://developer.mozilla.org/en-US/docs/Web/API/Window/pagehide_event" target="_blank" rel="noreferrer">[W2] MDN · pagehide event</a> — 移动端不能保证每次触发，不能将关闭时保存作为唯一依赖。</li>
+<li id="ref-wake"><a href="https://developer.mozilla.org/en-US/docs/Web/API/Screen_Wake_Lock_API" target="_blank" rel="noreferrer">[W3] MDN · Screen Wake Lock API</a> — 屏幕保持唤醒的能力、条件与释放边界。</li>
+<li id="ref-raf"><a href="https://developer.mozilla.org/en-US/docs/Web/API/Window/requestAnimationFrame" target="_blank" rel="noreferrer">[W4] MDN · requestAnimationFrame</a> — 动画回调与时间戳，后台运行的限制。</li>
+<li id="ref-contrast"><a href="https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html" target="_blank" rel="noreferrer">[W5] W3C · Contrast (Minimum)</a> — 普通文本与大文本的对比度要求。</li>
+<li id="ref-target"><a href="https://www.w3.org/WAI/standards-guidelines/wcag/new-in-22/" target="_blank" rel="noreferrer">[W6] W3C · WCAG 2.2 新增要求</a> — 目标尺寸基础规则及例外。</li>
+<li id="ref-reflow"><a href="https://www.w3.org/WAI/WCAG22/Understanding/reflow.html" target="_blank" rel="noreferrer">[W7] W3C · Reflow</a> — 窄视口与放大后的内容重排。</li>
+<li id="ref-sqlite"><a href="https://www.sqlite.org/whentouse.html" target="_blank" rel="noreferrer">[W8] SQLite · Appropriate Uses</a> — SQLite 在网站与应用服务中的适用范围。</li>
+<li id="ref-wal"><a href="https://www.sqlite.org/wal.html" target="_blank" rel="noreferrer">[W9] SQLite · Write-Ahead Logging</a> — WAL 的读写并行、同机与文件系统约束。</li>
+<li id="ref-backup"><a href="https://www.sqlite.org/backup.html" target="_blank" rel="noreferrer">[W10] SQLite · Backup API</a> — 一致备份与 VACUUM INTO 等方式。</li>
+<li id="ref-cookie"><a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Set-Cookie" target="_blank" rel="noreferrer">[W11] MDN · Set-Cookie</a> — 第一方身份凭证、持久期限与 HttpOnly / Secure 等属性。</li></ol>
+<div class="endnote">让人记住的应该是：<br>「那天，我为那个愿望，点过这样一支烛。」</div><p>先把这支烛从点燃到终止的全部事实保存好，再让它的形状、火光、地点和余痕更动人。这样，蜡烛才真正承载了专注与愿望。</p></section>
+</main></div>
+<footer><div class="wrap">一盏 · 完整设计反馈 · 2026 年 11 月 16 日 · 以本轮最新口述与附件 index.html 为依据</div></footer>
+<script>
+'use strict';
+const DURATION_TIERS = Object.freeze([10,30,60,120,180,360,720,1440]);
+const DURATION_BOUNDARIES = Object.freeze([20,45,90,150,270,540,1080]);
+function chooseTier(rawMinutes){
+  if(!Number.isFinite(rawMinutes) || rawMinutes < 0) throw new RangeError('Invalid candle score');
+  for(let i=0;i<DURATION_BOUNDARIES.length;i++){
+    if(rawMinutes < DURATION_BOUNDARIES[i]) return DURATION_TIERS[i];
+  }
+  return 1440;
+}
+function candleScoreMinutes(length,width,profile){return 30*(length/120)*Math.pow(width/24,2)*profile;}
+function durationLabel(minutes){return minutes >= 60 ? String(minutes/60)+' 小时' : String(minutes)+' 分钟';}
+document.addEventListener('DOMContentLoaded',function(){
+  const byId=function(id){return document.getElementById(id);};
+  const lengthInput=byId('candleLength'), widthInput=byId('candleWidth'), profileInput=byId('candleProfile');
+  function updateDuration(){
+    const length=Number(lengthInput.value),width=Number(widthInput.value),profile=Number(profileInput.value);
+    const tier=chooseTier(candleScoreMinutes(length,width,profile));
+    const index=DURATION_TIERS.indexOf(tier);
+    byId('lengthValue').textContent=String(length);
+    byId('widthValue').textContent=String(width);
+    const label=durationLabel(tier)+'档';
+    if(byId('durationResult').textContent!==label) byId('durationResult').textContent=label;
+    const hint=index===7?'已到最长 24 小时档；继续改变外观不会增加档位。':(index===0?'最短为 10 分钟档；画得更长、更粗会进入下一档。':'画得更长、更粗，可进入 '+durationLabel(DURATION_TIERS[index+1])+'档。');
+    if(byId('tierHint').textContent!==hint) byId('tierHint').textContent=hint;
+    const indexLabel='第 '+String(index+1)+' / 8 档 · 总时长固定';
+    if(byId('tierIndex').textContent!==indexLabel) byId('tierIndex').textContent=indexLabel;
+    byId('tierMeter').style.width=String((index+1)*12.5)+'%';
+    document.querySelectorAll('[data-duration]').forEach(function(button){button.setAttribute('aria-pressed',String(Number(button.dataset.duration)===tier));});
+  }
+  [lengthInput,widthInput,profileInput].forEach(function(input){input.addEventListener('input',updateDuration);});
+  document.querySelectorAll('[data-duration]').forEach(function(button){
+    button.addEventListener('click',function(){
+      const ratio=Number(button.dataset.duration)/30;
+      const length=Math.max(60,Math.min(280,120*Math.sqrt(ratio)));
+      const width=24*Math.sqrt(ratio/(length/120));
+      lengthInput.value=String(Math.round(length));
+      widthInput.value=String(Math.round(width));
+      profileInput.value='1';
+      updateDuration();
+    });
+  });
+  updateDuration();
+  document.querySelectorAll('button[data-theme]').forEach(function(button){
+    button.addEventListener('click',function(){
+      byId('themePreview').dataset.theme=button.dataset.theme;
+      document.querySelectorAll('button[data-theme]').forEach(function(other){other.setAttribute('aria-pressed',String(other===button));});
+    });
+  });
+  document.querySelectorAll('button[data-filter]').forEach(function(button){
+    button.addEventListener('click',function(){
+      const selected=button.dataset.filter;
+      let visible=0;
+      document.querySelectorAll('.task[data-priority]').forEach(function(task){
+        task.hidden=selected!=='all' && task.dataset.priority!==selected;
+        if(!task.hidden) visible++;
+      });
+      document.querySelectorAll('button[data-filter]').forEach(function(other){other.setAttribute('aria-pressed',String(other===button));});
+      byId('filterCount').textContent='显示 '+(selected==='all'?'全部':selected)+' '+String(visible)+' 项';
+    });
+  });
+  const details=Array.from(document.querySelectorAll('details'));
+  function updateExpandLabel(){byId('expandAll').textContent=details.every(function(d){return d.open;})?'收起技术细节':'展开技术细节';}
+  byId('expandAll').addEventListener('click',function(){
+    const open=!details.every(function(d){return d.open;});
+    details.forEach(function(d){d.open=open;});
+    updateExpandLabel();
+  });
+  details.forEach(function(d){d.addEventListener('toggle',updateExpandLabel);});
+  let printDetails=null;
+  let printTaskStates=null;
+  window.addEventListener('beforeprint',function(){
+    if(printDetails!==null) return;
+    printDetails=details.map(function(d){return d.open;});
+    details.forEach(function(d){d.open=true;});
+    const tasks=Array.from(document.querySelectorAll('.task[data-priority]'));
+    printTaskStates=tasks.map(function(t){return t.hidden;});
+    tasks.forEach(function(t){t.hidden=false;});
+  });
+  window.addEventListener('afterprint',function(){
+    if(printDetails!==null){details.forEach(function(d,i){d.open=printDetails[i];});printDetails=null;}
+    if(printTaskStates!==null){document.querySelectorAll('.task[data-priority]').forEach(function(t,i){t.hidden=printTaskStates[i];});printTaskStates=null;}
+    updateExpandLabel();
+  });
+  byId('printReport').addEventListener('click',function(){window.print();});
+  if('IntersectionObserver' in window){
+    const links=Array.from(document.querySelectorAll('.toc a'));
+    const observer=new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){if(entry.isIntersecting){links.forEach(function(link){link.classList.toggle('active',link.getAttribute('href')==='#'+entry.target.id);});}});
+    },{rootMargin:'-12% 0px -66% 0px',threshold:0});
+    document.querySelectorAll('section.chapter').forEach(function(section){observer.observe(section);});
+  }
+});
+</script>
+</body></html>

@@ -1,0 +1,9 @@
+node_modules
+web/dist
+data
+archive
+tests
+test-results
+playwright-report
+*.html
+!web/index.html
