@@ -1,0 +1,92 @@
+{
+  "createdAt": "2026-11-16T19:11:09.182Z",
+  "frames": 8,
+  "productErrors": [],
+  "httpErrors": [],
+  "sourceChanged": [
+    {
+      "name": "float32",
+      "changed": false
+    },
+    {
+      "name": "float32-padded",
+      "changed": false
+    }
+  ],
+  "glbSha256": "e41a50e8cd5935d69f254514c7cac3c15fa1b1f640f9c4f0e8f351f220906217",
+  "changedMaps": [
+    "court/night",
+    "hall/night"
+  ],
+  "paddingProof": {
+    "path": "art/build/snow-roof-contact-padding-diagnostic/contact-padding.receipt.json",
+    "sha256": "438ad03af0caa27cff1a9ee1ea6490879c469be0c90aa90c038d4b6340758ef9",
+    "changedPath": "art/build/snow-roof-contact-padding-diagnostic/changed-texels.npz",
+    "changedSha256": "a712bf0669d74083866ebcd98b95d6f0f5c45a383301e2f2be24208affd6b48a",
+    "policy": "certified-hidden-centres-nearest-visible-same-chart-owner-euclidean8-v1",
+    "changedBasePixels": {
+      "court": 2098,
+      "hall": 682
+    },
+    "sourceBakeFingerprint": "bd24db11cb82a6128fbd04160f73abac416dd60b392c8276a063c8b4df3695a0",
+    "independent": {
+      "path": "art/build/snow-roof-contact-padding-diagnostic/independent-contact-padding-proof.json",
+      "sha256": "11d34fc5e0463d08094b8060c6ecd2f8370fd3348933627299f24436505416f4"
+    }
+  },
+  "pairs": [
+    {
+      "viewport": "desktop-en",
+      "name": "walk-2",
+      "worldExactlyEqual": true,
+      "projectionExactlyEqual": true,
+      "exposureValuesA": [
+        1
+      ],
+      "exposureValuesB": [
+        1
+      ],
+      "originalSamplerMode": true
+    },
+    {
+      "viewport": "desktop-en",
+      "name": "walk-3",
+      "worldExactlyEqual": true,
+      "projectionExactlyEqual": true,
+      "exposureValuesA": [
+        1
+      ],
+      "exposureValuesB": [
+        1
+      ],
+      "originalSamplerMode": true
+    },
+    {
+      "viewport": "phone-zh",
+      "name": "walk-2",
+      "worldExactlyEqual": true,
+      "projectionExactlyEqual": true,
+      "exposureValuesA": [
+        1
+      ],
+      "exposureValuesB": [
+        1
+      ],
+      "originalSamplerMode": true
+    },
+    {
+      "viewport": "phone-zh",
+      "name": "walk-3",
+      "worldExactlyEqual": true,
+      "projectionExactlyEqual": true,
+      "exposureValuesA": [
+        1
+      ],
+      "exposureValuesB": [
+        1
+      ],
+      "originalSamplerMode": true
+    }
+  ],
+  "decision": "Hidden-only sampling-domain correction selected for complete production assembly after desktop and phone visual review. The unpruned F32 diagnostic is not adopted. A faint contact seam remains. No public assets changed by this comparison."
+}
