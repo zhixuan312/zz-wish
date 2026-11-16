@@ -1,0 +1,394 @@
+{
+  "createdAt": "2026-11-16T19:17:15.092Z",
+  "sourceReport": "artifacts/snow-journey/final-delivery/report.json",
+  "sourceOriginalSceneSha256": "90d634eee0c8fb553dce074cef0531aace6d0be878766a4526f8b5ab09aedd56",
+  "sequences": 42,
+  "rois": 208,
+  "allLosslessArraysPresent": true,
+  "allHashesLengthsAndMetricsVerified": true,
+  "maximumMetricDifference": 5.773159728050814e-15,
+  "reportedMaximumCameraElementDelta": 0,
+  "reportedMaximumProjectionElementDelta": 0,
+  "temporalGradeUniformPresent": false,
+  "burning": [
+    {
+      "viewport": "desktop-en",
+      "normal": "artifacts/snow-journey/final-delivery/desktop-en/sequences/burning.json",
+      "frozen": "artifacts/snow-journey/final-delivery/desktop-en/sequences/diagnostic-burning-all-static.json",
+      "cameraBetweenControlsMaximumElementDelta": 0,
+      "projectionBetweenControlsMaximumElementDelta": 0,
+      "normalControls": {
+        "lockCamera": true,
+        "freezeScene": false,
+        "freezeGrade": false,
+        "freezeDaylight": false,
+        "freezeFlame": false,
+        "freezeLampMotion": false,
+        "freezeShadows": false,
+        "freezeFuel": false,
+        "disableBloom": false,
+        "hideParticles": false
+      },
+      "frozenControls": {
+        "lockCamera": true,
+        "freezeScene": true,
+        "freezeGrade": true,
+        "freezeDaylight": true,
+        "freezeFlame": false,
+        "freezeLampMotion": false,
+        "freezeShadows": false,
+        "freezeFuel": true,
+        "disableBloom": false,
+        "hideParticles": true
+      },
+      "normalVisibleParticles": [
+        26,
+        34
+      ],
+      "frozenVisibleParticles": [
+        0,
+        0
+      ],
+      "rois": [
+        {
+          "name": "left_structure",
+          "type": "structure",
+          "overlapsLampBodyBounds": false,
+          "normal": {
+            "name": "left_structure",
+            "frames": 301,
+            "pixelsPerFrame": 4096,
+            "meanPixelRmsDelta": 0.030396497401887365,
+            "maximumPixelRmsDelta": 0.09107836480282379,
+            "meanAbsoluteRoiMeanDelta": 0.0018613180338541658,
+            "meanChangedPixelFraction": 0.004176432291666666,
+            "meanOver3LsbPixelFraction": 8.138020833333334e-7,
+            "maximumDifferenceFromReportedFloat64Metrics": 1.5265566588595902e-16,
+            "matchesReportedMetricsWithin1eMinus8": true
+          },
+          "frozen": {
+            "name": "left_structure",
+            "frames": 301,
+            "pixelsPerFrame": 4096,
+            "meanPixelRmsDelta": 0,
+            "maximumPixelRmsDelta": 0,
+            "meanAbsoluteRoiMeanDelta": 0,
+            "meanChangedPixelFraction": 0,
+            "meanOver3LsbPixelFraction": 0,
+            "maximumDifferenceFromReportedFloat64Metrics": 0,
+            "matchesReportedMetricsWithin1eMinus8": true
+          }
+        },
+        {
+          "name": "right_structure",
+          "type": "structure",
+          "overlapsLampBodyBounds": false,
+          "normal": {
+            "name": "right_structure",
+            "frames": 301,
+            "pixelsPerFrame": 4096,
+            "meanPixelRmsDelta": 0.040494254789097295,
+            "maximumPixelRmsDelta": 0.11345189969728084,
+            "meanAbsoluteRoiMeanDelta": 0.0019832814127604148,
+            "meanChangedPixelFraction": 0.0044767252604166665,
+            "meanOver3LsbPixelFraction": 0.000056966145833333334,
+            "maximumDifferenceFromReportedFloat64Metrics": 1.3877787807814457e-16,
+            "matchesReportedMetricsWithin1eMinus8": true
+          },
+          "frozen": {
+            "name": "right_structure",
+            "frames": 301,
+            "pixelsPerFrame": 4096,
+            "meanPixelRmsDelta": 0,
+            "maximumPixelRmsDelta": 0,
+            "meanAbsoluteRoiMeanDelta": 0,
+            "meanChangedPixelFraction": 0,
+            "meanOver3LsbPixelFraction": 0,
+            "maximumDifferenceFromReportedFloat64Metrics": 0,
+            "matchesReportedMetricsWithin1eMinus8": true
+          }
+        },
+        {
+          "name": "lower_floor",
+          "type": "structure",
+          "overlapsLampBodyBounds": false,
+          "normal": {
+            "name": "lower_floor",
+            "frames": 301,
+            "pixelsPerFrame": 4096,
+            "meanPixelRmsDelta": 0.1869418626223907,
+            "maximumPixelRmsDelta": 1.3114986752623288,
+            "meanAbsoluteRoiMeanDelta": 0.0004581997070312499,
+            "meanChangedPixelFraction": 0.00046142578125,
+            "meanOver3LsbPixelFraction": 0.00037434895833333336,
+            "maximumDifferenceFromReportedFloat64Metrics": 4.440892098500626e-16,
+            "matchesReportedMetricsWithin1eMinus8": true
+          },
+          "frozen": {
+            "name": "lower_floor",
+            "frames": 301,
+            "pixelsPerFrame": 4096,
+            "meanPixelRmsDelta": 0,
+            "maximumPixelRmsDelta": 0,
+            "meanAbsoluteRoiMeanDelta": 0,
+            "meanChangedPixelFraction": 0,
+            "meanOver3LsbPixelFraction": 0,
+            "maximumDifferenceFromReportedFloat64Metrics": 0,
+            "matchesReportedMetricsWithin1eMinus8": true
+          }
+        },
+        {
+          "name": "upper_control",
+          "type": "sky_or_structure",
+          "overlapsLampBodyBounds": false,
+          "normal": {
+            "name": "upper_control",
+            "frames": 301,
+            "pixelsPerFrame": 4096,
+            "meanPixelRmsDelta": 0.11274085136957998,
+            "maximumPixelRmsDelta": 0.3997387585387797,
+            "meanAbsoluteRoiMeanDelta": 0.001425783528645834,
+            "meanChangedPixelFraction": 0.003289388020833333,
+            "meanOver3LsbPixelFraction": 0.00021402994791666668,
+            "maximumDifferenceFromReportedFloat64Metrics": 1.3877787807814457e-16,
+            "matchesReportedMetricsWithin1eMinus8": true
+          },
+          "frozen": {
+            "name": "upper_control",
+            "frames": 301,
+            "pixelsPerFrame": 4096,
+            "meanPixelRmsDelta": 0,
+            "maximumPixelRmsDelta": 0,
+            "meanAbsoluteRoiMeanDelta": 0,
+            "meanChangedPixelFraction": 0,
+            "meanOver3LsbPixelFraction": 0,
+            "maximumDifferenceFromReportedFloat64Metrics": 0,
+            "matchesReportedMetricsWithin1eMinus8": true
+          }
+        },
+        {
+          "name": "flame_control",
+          "type": "flame",
+          "overlapsLampBodyBounds": true,
+          "normal": {
+            "name": "flame_control",
+            "frames": 301,
+            "pixelsPerFrame": 4096,
+            "meanPixelRmsDelta": 0.8869986812440298,
+            "maximumPixelRmsDelta": 2.4868519964831255,
+            "meanAbsoluteRoiMeanDelta": 0.012489690592447911,
+            "meanChangedPixelFraction": 0.028765462239583334,
+            "meanOver3LsbPixelFraction": 0.0015885416666666667,
+            "maximumDifferenceFromReportedFloat64Metrics": 4.440892098500626e-16,
+            "matchesReportedMetricsWithin1eMinus8": true
+          },
+          "frozen": {
+            "name": "flame_control",
+            "frames": 301,
+            "pixelsPerFrame": 4096,
+            "meanPixelRmsDelta": 0,
+            "maximumPixelRmsDelta": 0,
+            "meanAbsoluteRoiMeanDelta": 0,
+            "meanChangedPixelFraction": 0,
+            "meanOver3LsbPixelFraction": 0,
+            "maximumDifferenceFromReportedFloat64Metrics": 0,
+            "matchesReportedMetricsWithin1eMinus8": true
+          }
+        }
+      ]
+    },
+    {
+      "viewport": "phone-zh",
+      "normal": "artifacts/snow-journey/final-delivery/phone-zh/sequences/burning.json",
+      "frozen": "artifacts/snow-journey/final-delivery/phone-zh/sequences/diagnostic-burning-all-static.json",
+      "cameraBetweenControlsMaximumElementDelta": 0,
+      "projectionBetweenControlsMaximumElementDelta": 0,
+      "normalControls": {
+        "lockCamera": true,
+        "freezeScene": false,
+        "freezeGrade": false,
+        "freezeDaylight": false,
+        "freezeFlame": false,
+        "freezeLampMotion": false,
+        "freezeShadows": false,
+        "freezeFuel": false,
+        "disableBloom": false,
+        "hideParticles": false
+      },
+      "frozenControls": {
+        "lockCamera": true,
+        "freezeScene": true,
+        "freezeGrade": true,
+        "freezeDaylight": true,
+        "freezeFlame": false,
+        "freezeLampMotion": false,
+        "freezeShadows": false,
+        "freezeFuel": true,
+        "disableBloom": false,
+        "hideParticles": true
+      },
+      "normalVisibleParticles": [
+        26,
+        35
+      ],
+      "frozenVisibleParticles": [
+        0,
+        0
+      ],
+      "rois": [
+        {
+          "name": "left_structure",
+          "type": "structure",
+          "overlapsLampBodyBounds": false,
+          "normal": {
+            "name": "left_structure",
+            "frames": 301,
+            "pixelsPerFrame": 4096,
+            "meanPixelRmsDelta": 0.029647867648096918,
+            "maximumPixelRmsDelta": 0.292877917535751,
+            "meanAbsoluteRoiMeanDelta": 0.0016859794921874997,
+            "meanChangedPixelFraction": 0.004015299479166666,
+            "meanOver3LsbPixelFraction": 0.0000016276041666666668,
+            "maximumDifferenceFromReportedFloat64Metrics": 1.4051260155412137e-16,
+            "matchesReportedMetricsWithin1eMinus8": true
+          },
+          "frozen": {
+            "name": "left_structure",
+            "frames": 301,
+            "pixelsPerFrame": 4096,
+            "meanPixelRmsDelta": 0,
+            "maximumPixelRmsDelta": 0,
+            "meanAbsoluteRoiMeanDelta": 0,
+            "meanChangedPixelFraction": 0,
+            "meanOver3LsbPixelFraction": 0,
+            "maximumDifferenceFromReportedFloat64Metrics": 0,
+            "matchesReportedMetricsWithin1eMinus8": true
+          }
+        },
+        {
+          "name": "right_structure",
+          "type": "structure",
+          "overlapsLampBodyBounds": false,
+          "normal": {
+            "name": "right_structure",
+            "frames": 301,
+            "pixelsPerFrame": 4096,
+            "meanPixelRmsDelta": 0.02916784478944584,
+            "maximumPixelRmsDelta": 0.057680207336307104,
+            "meanAbsoluteRoiMeanDelta": 0.0018366653645833337,
+            "meanChangedPixelFraction": 0.004340006510416667,
+            "meanOver3LsbPixelFraction": 0,
+            "maximumDifferenceFromReportedFloat64Metrics": 4.85722573273506e-17,
+            "matchesReportedMetricsWithin1eMinus8": true
+          },
+          "frozen": {
+            "name": "right_structure",
+            "frames": 301,
+            "pixelsPerFrame": 4096,
+            "meanPixelRmsDelta": 0,
+            "maximumPixelRmsDelta": 0,
+            "meanAbsoluteRoiMeanDelta": 0,
+            "meanChangedPixelFraction": 0,
+            "meanOver3LsbPixelFraction": 0,
+            "maximumDifferenceFromReportedFloat64Metrics": 0,
+            "matchesReportedMetricsWithin1eMinus8": true
+          }
+        },
+        {
+          "name": "lower_floor",
+          "type": "structure",
+          "overlapsLampBodyBounds": false,
+          "normal": {
+            "name": "lower_floor",
+            "frames": 301,
+            "pixelsPerFrame": 4096,
+            "meanPixelRmsDelta": 0.013766300091598642,
+            "maximumPixelRmsDelta": 0.04459565507055452,
+            "meanAbsoluteRoiMeanDelta": 0.00045365136718750025,
+            "meanChangedPixelFraction": 0.0010441080729166666,
+            "meanOver3LsbPixelFraction": 0,
+            "maximumDifferenceFromReportedFloat64Metrics": 2.0122792321330962e-16,
+            "matchesReportedMetricsWithin1eMinus8": true
+          },
+          "frozen": {
+            "name": "lower_floor",
+            "frames": 301,
+            "pixelsPerFrame": 4096,
+            "meanPixelRmsDelta": 0,
+            "maximumPixelRmsDelta": 0,
+            "meanAbsoluteRoiMeanDelta": 0,
+            "meanChangedPixelFraction": 0,
+            "meanOver3LsbPixelFraction": 0,
+            "maximumDifferenceFromReportedFloat64Metrics": 0,
+            "matchesReportedMetricsWithin1eMinus8": true
+          }
+        },
+        {
+          "name": "upper_control",
+          "type": "sky_or_structure",
+          "overlapsLampBodyBounds": false,
+          "normal": {
+            "name": "upper_control",
+            "frames": 301,
+            "pixelsPerFrame": 4096,
+            "meanPixelRmsDelta": 0.12027342484483208,
+            "maximumPixelRmsDelta": 0.4394148870697435,
+            "meanAbsoluteRoiMeanDelta": 0.0023325787760416668,
+            "meanChangedPixelFraction": 0.0056331380208333335,
+            "meanOver3LsbPixelFraction": 0.00018229166666666667,
+            "maximumDifferenceFromReportedFloat64Metrics": 1.1102230246251565e-16,
+            "matchesReportedMetricsWithin1eMinus8": true
+          },
+          "frozen": {
+            "name": "upper_control",
+            "frames": 301,
+            "pixelsPerFrame": 4096,
+            "meanPixelRmsDelta": 0,
+            "maximumPixelRmsDelta": 0,
+            "meanAbsoluteRoiMeanDelta": 0,
+            "meanChangedPixelFraction": 0,
+            "meanOver3LsbPixelFraction": 0,
+            "maximumDifferenceFromReportedFloat64Metrics": 0,
+            "matchesReportedMetricsWithin1eMinus8": true
+          }
+        },
+        {
+          "name": "flame_control",
+          "type": "flame",
+          "overlapsLampBodyBounds": true,
+          "normal": {
+            "name": "flame_control",
+            "frames": 301,
+            "pixelsPerFrame": 4096,
+            "meanPixelRmsDelta": 0.7115791154274539,
+            "maximumPixelRmsDelta": 1.7983361498076729,
+            "meanAbsoluteRoiMeanDelta": 0.009316157552083329,
+            "meanChangedPixelFraction": 0.022718098958333332,
+            "meanOver3LsbPixelFraction": 0.0012353515625,
+            "maximumDifferenceFromReportedFloat64Metrics": 4.440892098500626e-16,
+            "matchesReportedMetricsWithin1eMinus8": true
+          },
+          "frozen": {
+            "name": "flame_control",
+            "frames": 301,
+            "pixelsPerFrame": 4096,
+            "meanPixelRmsDelta": 0,
+            "maximumPixelRmsDelta": 0,
+            "meanAbsoluteRoiMeanDelta": 0,
+            "meanChangedPixelFraction": 0,
+            "meanOver3LsbPixelFraction": 0,
+            "maximumDifferenceFromReportedFloat64Metrics": 0,
+            "matchesReportedMetricsWithin1eMinus8": true
+          }
+        }
+      ]
+    }
+  ],
+  "interpretation": [
+    "Fully frozen output has no independent temporal pixel variation in the measured ROIs.",
+    "Normal burning retains flame, shade motion and particles. The final core varies these together, so it does not isolate their separate causal shares.",
+    "The projected flame-position ROI may include translucent cloth/ribs and background; it is not a pure flame mask.",
+    "Rectangular regions labelled structure are not semantic masks; images must be used to judge crossings/coverage.",
+    "Statistics use raw framebuffer luminance code values, not video decoding or linear scene radiance. Capture readback/video timing is not the separate no-video frame-budget measurement."
+  ]
+}
