@@ -16,7 +16,7 @@ const extras = [
   { label: 'Ridge and tile-course detail', required: false, names: ['RoofRidgeDetail', 'TileCourseDetail'] },
   { label: 'Painted beam and bracket detail', required: false, names: ['BeamJoineryDetail'] },
   { label: 'Close tile overlap inspection', required: false, names: ['TileCourseDetail'] },
-  { label: 'Close step edge inspection', required: false, names: ['StepEdgeDetail'] },
+  { label: 'Close step edge inspection', required: false, names: ['StepWearDetail', 'StepEdgeDetail'] },
 ];
 const report = { createdAt: new Date().toISOString(), previewDirectory: preview, matched: [], details: [], notes: [
   'Construction review only, before new bakes. Lighting setup is not modified by this assembler.',
@@ -59,10 +59,21 @@ for (const stage of matched) {
 }
 for (const detail of extras) {
   const image = await findImage(detail.names);
-  const entry = { label: detail.label, required: detail.required, sourcePath: image?.path ?? null, camera: image?.name ?? null, status: image ? 'available for visual review' : 'unverified: no detail image' };
+  const entry = { label: detail.label, required: detail.required, sourcePath: image?.path ?? null, camera: image?.name ?? null, status: image ? 'available for visual review' : detail.required ? 'unverified: no detail image' : 'optional camera not included' };
   if (image) { await copyFile(image.path, join(output, `${image.name}.png`)); entry.sha256 = createHash('sha256').update(image.data).digest('hex'); }
   report.details.push(entry);
   if (image || detail.required) sections.push(`<section><h2>${detail.label}</h2>${image ? `<img class="detail" src="${dataImage(image.data)}">` : '<p class="missing">Unverified: supplemental angle is still missing.</p>'}</section>`);
+}
+if (flags.diagnostic) {
+  const directory = resolve(flags.diagnostic); report.diagnostics = [];
+  try { const data = JSON.parse(await readFile(join(directory, 'preview.json'), 'utf8')); report.diagnosticMetadata = data; await copyFile(join(directory, 'preview.json'), join(output, 'diagnostic-preview.json')); } catch { report.notes.push('Diagnostic metadata missing; altered visibility is not independently recorded.'); }
+  for (const name of ['TileCourseDetail', 'RoofRidgeDetail']) {
+    try {
+      const image = await readFile(join(directory, `${name}.png`)); const filename = `diagnostic-${name}.png`;
+      await writeFile(join(output, filename), image); report.diagnostics.push({ camera: name, image: filename, sha256: createHash('sha256').update(image).digest('hex'), visibility: 'Roof snow hidden only for construction inspection; not the finished scene.' });
+      sections.push(`<section><h2>CONSTRUCTION DIAGNOSTIC — ${name}: roof snow temporarily hidden</h2><p>Same frozen blend and lighting. This view exposes hidden tile geometry; it is not the finished Snow Roof appearance.</p><img class="detail" src="${dataImage(image)}"></section>`);
+    } catch { report.notes.push(`Missing construction diagnostic ${name}.`); }
+  }
 }
 try { report.builderAtComparison = { path: 'art/blender/snow_roof.py', sha256: createHash('sha256').update(await readFile('art/blender/snow_roof.py')).digest('hex') }; } catch { /* Source may be outside the chosen checkout. */ }
 try { const info = await stat(metadata.scene); report.blendAtComparison = { path: metadata.scene, bytes: info.size, modifiedAt: info.mtime.toISOString() }; } catch { /* Metadata or the source blend may not yet be available. */ }

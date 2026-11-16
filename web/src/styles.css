@@ -42,6 +42,7 @@ h1 { font-size: 32px; } h2 { font-size: 24px; }
 p { margin: 0; font-size: 15px; line-height: 1.75; color: var(--dim); }
 .note { font-family: var(--sans); font-size: 13px; line-height: 1.65; color: var(--faint); }
 .quote { font-size: 18px; color: var(--paper); }
+.quote, .hud-wish, .record, .wish-record { overflow-wrap: anywhere; }
 .error { color: #e0a17f; font-family: var(--sans); font-size: 14px; }
 textarea { width: 100%; box-sizing: border-box; resize: none; min-height: 84px; padding: 12px 14px; border-radius: 10px; border: 1px solid var(--line);
   background: rgba(238, 227, 209, .05); color: var(--paper); font: 17px/1.6 var(--serif); }
@@ -254,3 +255,23 @@ h2 { font-weight: 400; line-height: 1.5; }
 .shape .thumb { width: 30px; height: 48px; }
 .shape[aria-checked=true] { background: #d8a45f18; border-bottom-color: var(--ember); }
 .sheet .eyebrow + .sizes { margin-top: -4px; }
+
+/* One court: the view itself is the destination, with no duplicated selection card. */
+.place-invitation { max-width: 32em; }
+.panel-place-context { font: 13px var(--sans); color: var(--faint); letter-spacing: .04em; }
+.wish-record { grid-template-columns: 1fr; }
+.shape .shade-thumb { width: 36px; height: 60px; }
+.stat-rows { margin-top: 4px; }
+@media (max-width: 720px) {
+  .ui[data-screen=place] .sheet.low { padding-top: 56px; }
+  .panel-head h2 { font-size: 28px; }
+  .ui[data-screen=candle] .inner { gap: 9px; }
+  .ui[data-screen=candle] .inner > .eyebrow:first-child { display: none; }
+  .ui[data-screen=candle] h2 { font-size: 22px; }
+  .ui[data-screen=candle] .sheet { padding-top: 24px; padding-bottom: 16px; }
+  .ui[data-screen=candle] .shape { padding-top: 6px; padding-bottom: 6px; }
+  .ui[data-screen=candle] .shape .shade-thumb { height: 46px; }
+  .ui[data-screen=candle] .size { min-height: 44px; padding: 8px 2px; }
+  .ui[data-screen=candle] .pad { width: 120px; }
+  .topbar .btn.small, .hud .ctl .btn, .tab, .chip { min-height: 44px; }
+}

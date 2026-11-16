@@ -14,7 +14,7 @@ const rooms: Record<PlaceId, { low: number; high: number; gain: number; swell: n
   // Surf on the rocks below.
   'sea-tide': { low: 140, high: 900, gain: .085, swell: .11, detail: 'air' },
   // Snow muffles everything.
-  'snow-roof': { low: 90, high: 320, gain: .015, swell: .03, detail: 'air' },
+  'snow-roof': { low: 90, high: 220, gain: .004, swell: .018, detail: 'bell' },
   // Dry wind over the loess.
   'loess-cliff': { low: 220, high: 1100, gain: .055, swell: .06, detail: 'air' },
   // High, thin wind.
@@ -82,20 +82,28 @@ export const sound = {
       noise.forEach((data, channel) => buffer.copyToChannel(data, channel));
       const source = c.createBufferSource(), filter = c.createBiquadFilter(), volume = c.createGain(), swell = c.createOscillator(), amount = c.createGain();
       source.buffer = buffer; source.loop = true; filter.type = 'bandpass'; filter.frequency.value = room.low; filter.Q.value = .35;
-      volume.gain.value = room.gain; swell.frequency.value = room.swell; amount.gain.value = room.gain * .65;
+      volume.gain.value = room.gain; swell.frequency.value = room.swell; amount.gain.value = room.gain * (id === 'snow-roof' ? .15 : .65);
       source.connect(filter).connect(volume).connect(master); swell.connect(amount).connect(volume.gain);
       filter.frequency.setValueAtTime(room.low, now); filter.frequency.exponentialRampToValueAtTime(room.high, now + 18);
       source.start(); swell.start(); nodes = [source, swell];
       source.onended = () => { source.disconnect(); filter.disconnect(); volume.disconnect(); swell.disconnect(); amount.disconnect(); };
+      if (id === 'snow-roof') {
+        const flame = c.createBufferSource(), warmth = c.createBiquadFilter(), breath = c.createGain();
+        flame.buffer = buffer; flame.loop = true; flame.playbackRate.value = 1.13;
+        warmth.type = 'bandpass'; warmth.frequency.value = 1700; warmth.Q.value = .5;
+        breath.gain.setValueAtTime(0, now); breath.gain.linearRampToValueAtTime(.006, now + 2.1);
+        flame.connect(warmth).connect(breath).connect(master); flame.start(); nodes.push(flame);
+        flame.onended = () => { flame.disconnect(); warmth.disconnect(); breath.disconnect(); };
+      }
       const detail = () => {
         if (token !== generation) return;
         if (room.detail === 'drip') tone(1500 + Math.random() * 1000, .1, .018);
         if (room.detail === 'bird') { tone(2200 + Math.random() * 1100, .14, .012, 1.7); }
         if (room.detail === 'frog') { tone(420 + Math.random() * 80, .08, .01, 1.3); tone(400 + Math.random() * 80, .07, .008, 1.3); }
-        if (room.detail === 'bell') { tone(196, 6, .02, .995); tone(392.6, 4, .008, .995); tone(588, 2.5, .004, .995); }
-        detailTimer = window.setTimeout(detail, 3500 + Math.random() * 11000);
+        if (room.detail === 'bell') { const far = id === 'snow-roof' ? .36 : 1; tone(196, 8, .02 * far, .999); tone(392.6, 5, .008 * far, .999); tone(588, 3, .004 * far, .999); }
+        detailTimer = window.setTimeout(detail, id === 'snow-roof' ? 38000 + Math.random() * 42000 : 3500 + Math.random() * 11000);
       };
-      detailTimer = window.setTimeout(detail, 2500 + Math.random() * 5000);
+      detailTimer = window.setTimeout(detail, id === 'snow-roof' ? 14000 + Math.random() * 10000 : 2500 + Math.random() * 5000);
     } catch { /* Unsupported or denied audio must never block lighting. */ }
   },
   mute(value: boolean) { muted = value; if (master && context) master.gain.setTargetAtTime(value ? 0 : .65, context.currentTime, .15); },

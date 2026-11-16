@@ -1,0 +1,60 @@
+{
+  "scene": "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-architecture.blend",
+  "blendSha256": "d12cfe548102cecfc518e574072dc55cf77e48b7b9630666aa46c89ac05cadfc",
+  "sourceSha256": "96e491e873c60ec973d0fbe94622eb22714e59da3e1336ea5d5e6ade37359356",
+  "device": "CPU",
+  "samples": 8,
+  "size": [
+    720,
+    450
+  ],
+  "maxBounces": 4,
+  "cameras": [
+    {
+      "name": "TileCourseDetail",
+      "path": "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-construction-no-roof-snow/TileCourseDetail.png",
+      "position": [
+        1.0,
+        -5.800000190734863,
+        6.349999904632568
+      ],
+      "rotationEuler": [
+        1.2198086977005005,
+        -1.0529522143087888e-08,
+        0.49555161595344543
+      ],
+      "lens": 41.84897232055664,
+      "sensorFit": "VERTICAL",
+      "sensorHeight": 24.0
+    },
+    {
+      "name": "RoofRidgeDetail",
+      "path": "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-construction-no-roof-snow/RoofRidgeDetail.png",
+      "position": [
+        8.300000190734863,
+        -10.0,
+        7.199999809265137
+      ],
+      "rotationEuler": [
+        1.4696588516235352,
+        6.398512653049693e-08,
+        0.3553770184516907
+      ],
+      "lens": 41.84897232055664,
+      "sensorFit": "VERTICAL",
+      "sensorHeight": 24.0
+    }
+  ],
+  "constructionDiagnostic": true,
+  "hiddenRoofSnow": [
+    "Main hall curved settled snow cap",
+    "Main hall curved settled snow cap.001",
+    "Court gate curved settled snow cap",
+    "Court gate curved settled snow cap.001",
+    "Side hall curved settled snow cap",
+    "Side hall curved settled snow cap.001",
+    "Side hall curved settled snow cap.002",
+    "Side hall curved settled snow cap.003"
+  ],
+  "diagnosticNote": "Only roof snow temporarily hidden to inspect tile-course construction. Lighting and geometry unchanged; final deep-snow scene is retained in the unsaved source blend."
+}

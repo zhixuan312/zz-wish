@@ -1,0 +1,10 @@
+{
+  "evidence": "before",
+  "reportSha256": "57d916272f7cd3dfa9adf38a05593501af11c80fa876606fb5d35ef534dfb9f6",
+  "validity": {
+    "normalJourneySequences": "Valid camera-still raw framebuffer observations with normal scene animation.",
+    "temporalGradeCausalProbe": "Valid. Both controls freeze physical animation; changing only the temporal grade time causes the measured pixel changes.",
+    "particleIsolation": "Invalid for causal particle isolation: this run hid particle objects once, but weather update code re-enabled their visibility. The raw numbers are retained unchanged. The corrected helper hides them every render and records visible particle object counts; a rerun is pending GPU handoff.",
+    "allStaticControl": "Valid static-image observation. Even if particle object visibility is re-enabled, their animation clock is frozen. This does not prove that every particle is hidden."
+  }
+}

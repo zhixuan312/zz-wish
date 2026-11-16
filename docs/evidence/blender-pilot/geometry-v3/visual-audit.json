@@ -1,0 +1,103 @@
+{
+  "reviewedAt": "2026-11-16T13:24:47.521Z",
+  "scope": "Snow Roof construction evidence before baking",
+  "sourceSha256": "96e491e873c60ec973d0fbe94622eb22714e59da3e1336ea5d5e6ade37359356",
+  "blendSha256": "d12cfe548102cecfc518e574072dc55cf77e48b7b9630666aa46c89ac05cadfc",
+  "criteria": [
+    {
+      "criterion": "curved_roof_upturn",
+      "verdict": "shown",
+      "images": [
+        "EaveDetail.png",
+        "RoofRidgeDetail.png"
+      ]
+    },
+    {
+      "criterion": "individual_tile_rows",
+      "verdict": "shown_in_labelled_diagnostic",
+      "images": [
+        "diagnostic-TileCourseDetail.png",
+        "RoofRidgeDetail.png"
+      ]
+    },
+    {
+      "criterion": "ridge_ends",
+      "verdict": "shown",
+      "images": [
+        "RoofRidgeDetail.png",
+        "diagnostic-RoofRidgeDetail.png"
+      ]
+    },
+    {
+      "criterion": "bracket_sets",
+      "verdict": "shown",
+      "images": [
+        "EaveDetail.png",
+        "BeamJoineryDetail.png"
+      ]
+    },
+    {
+      "criterion": "round_columns_stone_bases",
+      "verdict": "shown",
+      "images": [
+        "DoorFloorDetail.png",
+        "walk-3.png"
+      ]
+    },
+    {
+      "criterion": "painted_beam_panels",
+      "verdict": "shown",
+      "images": [
+        "BeamJoineryDetail.png",
+        "walk-3.png"
+      ]
+    },
+    {
+      "criterion": "studded_door_leaves",
+      "verdict": "shown",
+      "images": [
+        "DoorFloorDetail.png",
+        "walk-3.png"
+      ]
+    },
+    {
+      "criterion": "worn_step_edges",
+      "verdict": "shown",
+      "images": [
+        "StepWearDetail.png",
+        "DoorFloorDetail.png"
+      ]
+    },
+    {
+      "criterion": "irregular_paving",
+      "verdict": "shown",
+      "images": [
+        "walk-3.png",
+        "DoorFloorDetail.png"
+      ]
+    },
+    {
+      "criterion": "poly_haven_console",
+      "verdict": "shown",
+      "images": [
+        "walk-3.png",
+        "lit.png"
+      ]
+    },
+    {
+      "criterion": "poly_haven_screen",
+      "verdict": "shown",
+      "images": [
+        "walk-3.png",
+        "lit.png"
+      ]
+    }
+  ],
+  "constructionEvidenceShown": true,
+  "finalPhotographicAcceptance": false,
+  "notes": [
+    "Lighting rig identity is proved separately in ../light-rig-preservation.json.",
+    "User lantern/runtime and final bake/compression/performance remain unverified.",
+    "Wear is visible but still fairly regular; diagnostics with hidden roof snow are not finished appearance."
+  ]
+}

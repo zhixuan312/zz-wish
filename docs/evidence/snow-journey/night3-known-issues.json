@@ -1,0 +1,29 @@
+{
+  "round": "after-night-partial / frozen night3",
+  "sourceRoot": "/tmp/one-light-snow-single-after-night3",
+  "originalSceneSha256": "aeb0d9aaa197e65a3e22464300d165627ce6edeb4863663ebfc825c131fe9cd2",
+  "knownIssues": [
+    {
+      "id": "incense-emitter-tip-mismatch",
+      "status": "Present in this frozen source; corrected in main only for a later round.",
+      "evidenceKind": "Source mismatch reported by root; do not infer that every screenshot visibly exposes the emitter.",
+      "currentEmitterWorld": {
+        "y": 1.71,
+        "z": -4.75
+      },
+      "modeledStickTipsWorld": {
+        "yApproximate": 1.98,
+        "z": -4.85
+      },
+      "consequence": "The current smoke lifetime/rise cannot reach the visible stick tips. Smoke can appear too low or be hidden.",
+      "nextSourceCorrection": "Main emits at actual stick tips, with frame-rate-independent eight puffs per second and approximately 0.3\u20130.6m rise. This fix is not present in current frames.",
+      "staticGeometryAndAcceptedLightmaps": "Unchanged."
+    },
+    {
+      "id": "rectangular-step-snow-pads",
+      "status": "Present in frozen night3 geometry; replacement belongs to a later source/build.",
+      "evidence": "artifacts/snow-journey/after-night-partial/desktop-en/walk-3.png",
+      "description": "Six separate rectangular snow pads are visible on the stair treads. The modeler has replaced them in a new source/blend outside this snapshot. Do not credit the replacement to night3 frames."
+    }
+  ]
+}

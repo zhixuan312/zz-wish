@@ -16,8 +16,16 @@ export async function loadBakedPlace(id,renderer){
   await Promise.all(Object.entries(manifest.lightmaps).map(async([region,passes])=>{
     const entries=await Promise.all(Object.entries(passes).map(async([pass,item])=>{
       const texture=await ktx.loadAsync(base+item.uri);texture.colorSpace=THREE.NoColorSpace;texture.channel=2;texture.flipY=false;
-      return[pass,{texture,scale:item.scale??1}];
-    }));regions[region]=Object.fromEntries(entries);
+      texture.anisotropy=Math.min(item.anisotropy??1,renderer.capabilities.getMaxAnisotropy());
+      return[pass,{...item,texture,scale:item.scale??1}];
+    }));
+    const maps=Object.fromEntries(entries);
+    for(const pass of ['night','lamp'])if(!maps[pass])throw new Error(`Missing ${region}/${pass} lightmap`);
+    for(const pass of ['dusk','day'])if(!maps[pass]){
+      if(!manifest.partialPreview)throw new Error(`Incomplete final place: missing ${region}/${pass}`);
+      maps[pass]=maps.night;
+    }
+    regions[region]=maps;
   }));
   const gltf=await loader.loadAsync(base+manifest.scene);
   const basis=manifest.lampBasis??{watts:45,position:[0,2.99,-.5],linearColor:[1,189/255,120/255]};
@@ -33,29 +41,54 @@ export async function loadBakedPlace(id,renderer){
     // glTF TEXCOORD_1 is named uv1 by three.js 0.160. Keep an explicit uv2 alias
     // for the lightmap channel, leaving the first material UV untouched.
     object.geometry.setAttribute('uv2',uv);geometries.add(object.geometry);
-    object.castShadow=true;object.receiveShadow=true;
+    // Static occlusion is already in both ambient and lamp atlases. The live
+    // shadow cube contains the moving lantern ribs, rather than rebaking the
+    // entire court six times per frame.
+    object.castShadow=false;object.receiveShadow=true;
     const convert=source=>{
       const material=source.clone();material.lightMap=maps.night.texture;material.lightMapIntensity=1;material.envMapIntensity=.18;
       const perMaterial={...uniforms,
         uBakedNight:{value:maps.night.texture},uBakedDusk:{value:maps.dusk.texture},uBakedDay:{value:maps.day.texture},uBakedLamp:{value:maps.lamp.texture},
         uBakedIrradianceFactor:{value:manifest.bake?.threeLightMapIrradianceMultiplier??Math.PI},
-        uBakedScales:{value:new THREE.Vector4(maps.night.scale,maps.dusk.scale,maps.day.scale,maps.lamp.scale)}};
+        uBakedMinRoughness:{value:source.userData.one_light_min_roughness??0},
+        uBakedScales:{value:new THREE.Vector4(maps.night.scale,maps.dusk.scale,maps.day.scale,maps.lamp.scale)},
+        uBakedLogRange:{value:new THREE.Vector4(...['night','dusk','day','lamp'].map(p=>maps[p].logRange??0))},
+        uBakedLogGain:{value:new THREE.Vector4(...['night','dusk','day','lamp'].map(p=>maps[p].logGain??16))}};
       material.onBeforeCompile=shader=>{
         Object.assign(shader.uniforms,perMaterial);
         shader.vertexShader='varying vec3 vBakedWorld;\n'+shader.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nvBakedWorld=(modelMatrix*vec4(transformed,1.)).xyz;');
         shader.fragmentShader=`varying vec3 vBakedWorld;
           uniform sampler2D uBakedNight,uBakedDusk,uBakedDay,uBakedLamp;
-          uniform vec3 uBakedWeights,uBakedLampAnchor;uniform vec4 uBakedScales;uniform float uLampPower,uBakedIrradianceFactor;\n`+shader.fragmentShader;
+          uniform vec3 uBakedWeights,uBakedLampAnchor;uniform vec4 uBakedScales,uBakedLogRange,uBakedLogGain;uniform float uLampPower,uBakedIrradianceFactor,uBakedMinRoughness;
+          vec3 decodeBaked(vec3 v,float scale,float range,float gain){return range>0.?(exp2(v*range)-1.)/gain:v*scale;}\n`+shader.fragmentShader;
+        shader.fragmentShader=shader.fragmentShader.replace('#include <roughnessmap_fragment>','#include <roughnessmap_fragment>\nroughnessFactor=max(roughnessFactor,uBakedMinRoughness);');
         // The static moon and sky already exist in the bake. Preserve direct
         // point lights for the visitor's nearest surfaces without doubling them.
-        shader.fragmentShader=shader.fragmentShader.replace('#include <lights_fragment_begin>',THREE.ShaderChunk.lights_fragment_begin.replace('getDirectionalLightInfo( directionalLight, directLight );','getDirectionalLightInfo( directionalLight, directLight ); directLight.color=vec3(0.);').replace('getPointLightInfo( pointLight, geometryPosition, directLight );','getPointLightInfo( pointLight, geometryPosition, directLight ); directLight.color*=1.-smoothstep(.7,1.8,distance(vBakedWorld,uBakedLampAnchor));'));
+        const directCall='RE_Direct( directLight, geometryPosition, geometryNormal, geometryViewDir, geometryClearcoatNormal, material, reflectedLight );';
+        const staticLights=THREE.ShaderChunk.lights_fragment_begin
+          .replace('getDirectionalLightInfo( directionalLight, directLight );','getDirectionalLightInfo( directionalLight, directLight ); directLight.color=vec3(0.);')
+          .replace(directCall,`{vec3 diffuseBeforeVisitor=reflectedLight.directDiffuse;
+            ${directCall}
+            reflectedLight.directDiffuse=mix(diffuseBeforeVisitor,reflectedLight.directDiffuse,1.-smoothstep(.7,1.8,distance(vBakedWorld,uBakedLampAnchor)));}`);
+        shader.fragmentShader=shader.fragmentShader.replace('#include <lights_fragment_begin>',staticLights);
         shader.fragmentShader=shader.fragmentShader.replace('#include <lights_fragment_maps>',`
           #if defined(RE_IndirectDiffuse) && defined(USE_LIGHTMAP)
-            vec3 baked=texture2D(uBakedNight,vLightMapUv).rgb*uBakedScales.x*uBakedWeights.x
-              +texture2D(uBakedDusk,vLightMapUv).rgb*uBakedScales.y*uBakedWeights.y
-              +texture2D(uBakedDay,vLightMapUv).rgb*uBakedScales.z*uBakedWeights.z;
+            vec3 baked=vec3(0.);
+            if(uBakedWeights.x>.0001)baked+=decodeBaked(texture2D(uBakedNight,vLightMapUv).rgb,uBakedScales.x,uBakedLogRange.x,uBakedLogGain.x)*uBakedWeights.x;
+            if(uBakedWeights.y>.0001)baked+=decodeBaked(texture2D(uBakedDusk,vLightMapUv).rgb,uBakedScales.y,uBakedLogRange.y,uBakedLogGain.y)*uBakedWeights.y;
+            if(uBakedWeights.z>.0001)baked+=decodeBaked(texture2D(uBakedDay,vLightMapUv).rgb,uBakedScales.z,uBakedLogRange.z,uBakedLogGain.z)*uBakedWeights.z;
             float away=smoothstep(.7,1.8,distance(vBakedWorld,uBakedLampAnchor));
-            baked+=texture2D(uBakedLamp,vLightMapUv).rgb*uBakedScales.w*uLampPower*away;
+            float movingShade=1.;
+            #if defined(USE_SHADOWMAP) && NUM_POINT_LIGHT_SHADOWS > 0
+            if(uLampPower>.0001){
+              PointLightShadow visitorShadow=pointLightShadows[0];
+              float ribShadow=getPointShadow(pointShadowMap[0],visitorShadow.shadowMapSize,visitorShadow.shadowBias,visitorShadow.shadowRadius,vPointShadowCoord[0],visitorShadow.shadowCameraNear,visitorShadow.shadowCameraFar);
+              float withinShadow=1.-smoothstep(visitorShadow.shadowCameraFar-1.,visitorShadow.shadowCameraFar,length(vPointShadowCoord[0].xyz));
+              // Keep indirect lamp bounce while the ribs interrupt its direct spill.
+              movingShade=mix(1.,mix(.65,1.,ribShadow),withinShadow);
+            }
+            #endif
+            if(uLampPower>.0001)baked+=decodeBaked(texture2D(uBakedLamp,vLightMapUv).rgb,uBakedScales.w,uBakedLogRange.w,uBakedLogGain.w)*uLampPower*away*movingShade;
             irradiance=baked*uBakedIrradianceFactor;
           #endif
           #if defined(USE_ENVMAP) && defined(RE_IndirectSpecular)
@@ -63,7 +96,7 @@ export async function loadBakedPlace(id,renderer){
           #endif`);
       };
       material.customProgramCacheKey=()=>`cycles-lightmap-1-${region}`;
-      materials.add(material);for(const value of Object.values(material))if(value?.isTexture)textures.add(value);
+      materials.add(material);for(const value of Object.values(material))if(value?.isTexture){if(value!==material.lightMap)value.anisotropy=Math.min(8,renderer.capabilities.getMaxAnisotropy());textures.add(value);}
       return material;
     };
     object.material=Array.isArray(object.material)?object.material.map(convert):convert(object.material);

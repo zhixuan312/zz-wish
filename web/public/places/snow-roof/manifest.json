@@ -1,0 +1,1099 @@
+{
+  "version": 1,
+  "place": "snow-roof",
+  "scene": "snow-roof.glb",
+  "lampAnchor": [
+    0,
+    3.22,
+    -0.5
+  ],
+  "lampBasis": {
+    "watts": 45,
+    "position": [
+      0,
+      2.99,
+      -0.5
+    ],
+    "linearColor": [
+      1,
+      0.7411764705882353,
+      0.47058823529411764
+    ]
+  },
+  "lightmaps": {
+    "gate": {
+      "night": {
+        "scale": 32,
+        "maximum": 26.626012802124023,
+        "encoding": "log2-hdr",
+        "logRange": 17.000011006847668,
+        "logGain": 4096,
+        "source": "gate-night.exr",
+        "png": "gate-night.png",
+        "pngMipmaps": [
+          "gate-night.png",
+          "gate-night-mip1.png",
+          "gate-night-mip2.png"
+        ],
+        "mipLevels": 3,
+        "gutterPixels": 8,
+        "anisotropy": 1,
+        "maxLod": 2,
+        "precision": {
+          "surfaceTexels": 472902,
+          "luminancePercentiles": {
+            "p0": 0,
+            "p1": 0,
+            "p10": 0,
+            "p50": 0.00537391286813654,
+            "p90": 0.09838742434233431,
+            "p99": 0.1279571508028358,
+            "p100": 19.20648952960968
+          },
+          "idealLinear8bitStep": 0.12549019607843137,
+          "idealLog8bitStepAtPercentile": {
+            "p0": 0.000011546424354175796,
+            "p1": 0.000011546424354175796,
+            "p10": 0.000011546424354175796,
+            "p50": 0.00026570108795377113,
+            "p90": 0.004664696438084773,
+            "p99": 0.006063171639620224,
+            "p100": 0.9083662230084251
+          },
+          "blackTexelFraction": 0.14044558914954897,
+          "note": "Ideal scalar 8-bit precision only; UASTC block/RDO and device transcode errors need delivery-image inspection."
+        },
+        "denoiseSeconds": 19.893,
+        "bakeSeconds": 32.716,
+        "samples": 64,
+        "bakeDevice": "METAL",
+        "denoiseDevice": "METAL",
+        "uri": "gate-night.ktx2",
+        "seconds": 53.259,
+        "masterSha256": "1539f33c91ec32507917375b67a8f9df75545151c618da5bc58a55b403d11bc6",
+        "bytes": 1508599
+      },
+      "lamp": {
+        "scale": 0.0078125,
+        "maximum": 0.006808517966419458,
+        "encoding": "log2-hdr",
+        "logRange": 5.044394119358453,
+        "logGain": 4096,
+        "source": "gate-lamp.exr",
+        "png": "gate-lamp.png",
+        "pngMipmaps": [
+          "gate-lamp.png",
+          "gate-lamp-mip1.png",
+          "gate-lamp-mip2.png"
+        ],
+        "mipLevels": 3,
+        "gutterPixels": 8,
+        "anisotropy": 1,
+        "maxLod": 2,
+        "precision": {
+          "surfaceTexels": 472902,
+          "luminancePercentiles": {
+            "p0": 0,
+            "p1": 0,
+            "p10": 0,
+            "p50": 1.2673922211519083e-7,
+            "p90": 0.00022587409243977172,
+            "p99": 0.003181573382172035,
+            "p100": 0.005286167563544586
+          },
+          "idealLinear8bitStep": 0.000030637254901960784,
+          "idealLog8bitStepAtPercentile": {
+            "p0": 0.00000337066214709745,
+            "p1": 0.00000337066214709745,
+            "p10": 0.00000337066214709745,
+            "p50": 0.00000337241193822108,
+            "p90": 0.000006489132305010438,
+            "p99": 0.00004729620287797836,
+            "p100": 0.00007635271873703952
+          },
+          "blackTexelFraction": 0.2989329713132954,
+          "note": "Ideal scalar 8-bit precision only; UASTC block/RDO and device transcode errors need delivery-image inspection."
+        },
+        "denoiseSeconds": 28.243,
+        "bakeSeconds": 25.732,
+        "samples": 64,
+        "bakeDevice": "METAL",
+        "denoiseDevice": "METAL",
+        "uri": "gate-lamp.ktx2",
+        "seconds": 54.521,
+        "masterSha256": "0b995b19f364460ebdc3ae9b43a0dc46bd7a2c194157386410d6f92c233dbe21",
+        "bytes": 643740
+      }
+    },
+    "hall": {
+      "night": {
+        "scale": 32,
+        "maximum": 26.768959045410156,
+        "encoding": "log2-hdr",
+        "logRange": 17.000011006847668,
+        "logGain": 4096,
+        "source": "hall-night.exr",
+        "png": "hall-night.png",
+        "pngMipmaps": [
+          "hall-night.png",
+          "hall-night-mip1.png",
+          "hall-night-mip2.png"
+        ],
+        "mipLevels": 3,
+        "gutterPixels": 8,
+        "anisotropy": 1,
+        "maxLod": 2,
+        "precision": {
+          "surfaceTexels": 2123777,
+          "luminancePercentiles": {
+            "p0": 0,
+            "p1": 0,
+            "p10": 0,
+            "p50": 0.004341377469943836,
+            "p90": 0.0873405101931097,
+            "p99": 0.13560085765159086,
+            "p100": 19.487182152748105
+          },
+          "idealLinear8bitStep": 0.12549019607843137,
+          "idealLog8bitStepAtPercentile": {
+            "p0": 0.000011546424354175796,
+            "p1": 0.000011546424354175796,
+            "p10": 0.000011546424354175796,
+            "p50": 0.00021686819966145778,
+            "p90": 0.0041422419773776,
+            "p99": 0.0064246742896386655,
+            "p100": 0.9216413431972548
+          },
+          "blackTexelFraction": 0.15170001370200356,
+          "note": "Ideal scalar 8-bit precision only; UASTC block/RDO and device transcode errors need delivery-image inspection."
+        },
+        "denoiseSeconds": 84.132,
+        "bakeSeconds": 109.278,
+        "samples": 64,
+        "bakeDevice": "METAL",
+        "denoiseDevice": "METAL",
+        "uri": "hall-night.ktx2",
+        "seconds": 195.841,
+        "masterSha256": "846b7ef447e925369807aea13b82dff692c947142f5aa27049f019a3a0982882",
+        "bytes": 5653596
+      },
+      "lamp": {
+        "scale": 32,
+        "maximum": 16.482879638671875,
+        "encoding": "log2-hdr",
+        "logRange": 17.000011006847668,
+        "logGain": 4096,
+        "source": "hall-lamp.exr",
+        "png": "hall-lamp.png",
+        "pngMipmaps": [
+          "hall-lamp.png",
+          "hall-lamp-mip1.png",
+          "hall-lamp-mip2.png"
+        ],
+        "mipLevels": 3,
+        "gutterPixels": 8,
+        "anisotropy": 1,
+        "maxLod": 2,
+        "precision": {
+          "surfaceTexels": 2123777,
+          "luminancePercentiles": {
+            "p0": 0,
+            "p1": 0,
+            "p10": 0,
+            "p50": 1.1642610394488884e-7,
+            "p90": 0.01866492159329358,
+            "p99": 0.09175312071186131,
+            "p100": 12.804590240287782
+          },
+          "idealLinear8bitStep": 0.12549019607843137,
+          "idealLog8bitStepAtPercentile": {
+            "p0": 0.000011546424354175796,
+            "p1": 0.000011546424354175796,
+            "p10": 0.000011546424354175796,
+            "p50": 0.000011551930628283338,
+            "p90": 0.0008942881034728588,
+            "p99": 0.004350932659476114,
+            "p100": 0.6055938111363393
+          },
+          "blackTexelFraction": 0.3344112870607413,
+          "note": "Ideal scalar 8-bit precision only; UASTC block/RDO and device transcode errors need delivery-image inspection."
+        },
+        "denoiseSeconds": 64.036,
+        "bakeSeconds": 94.108,
+        "samples": 64,
+        "bakeDevice": "METAL",
+        "denoiseDevice": "METAL",
+        "uri": "hall-lamp.ktx2",
+        "seconds": 160.295,
+        "masterSha256": "8ad1117c43efa669c9a3d948f14a458e1f4646e0579b547ba329db8bb921a571",
+        "bytes": 2665786
+      }
+    },
+    "court": {
+      "night": {
+        "scale": 0.5,
+        "maximum": 0.4019887149333954,
+        "encoding": "log2-hdr",
+        "logRange": 11.000704269011246,
+        "logGain": 4096,
+        "source": "court-night.exr",
+        "png": "court-night.png",
+        "pngMipmaps": [
+          "court-night.png",
+          "court-night-mip1.png",
+          "court-night-mip2.png"
+        ],
+        "mipLevels": 3,
+        "gutterPixels": 8,
+        "anisotropy": 1,
+        "maxLod": 2,
+        "precision": {
+          "surfaceTexels": 6993500,
+          "luminancePercentiles": {
+            "p0": 0,
+            "p1": 0,
+            "p10": 7.55355731175023e-9,
+            "p50": 0.11918917852044106,
+            "p90": 0.12523746342658995,
+            "p99": 0.12998190299868584,
+            "p100": 0.24571889541745184
+          },
+          "idealLinear8bitStep": 0.00196078431372549,
+          "idealLog8bitStepAtPercentile": {
+            "p0": 0.000007410631566096308,
+            "p1": 0.000007410631566096308,
+            "p10": 0.0000074108608463738,
+            "p50": 0.003625272626802137,
+            "p90": 0.003808861945647668,
+            "p99": 0.003952874412464197,
+            "p100": 0.0074659489340993535
+          },
+          "blackTexelFraction": 0.09132251376277972,
+          "note": "Ideal scalar 8-bit precision only; UASTC block/RDO and device transcode errors need delivery-image inspection."
+        },
+        "denoiseSeconds": 46.536,
+        "bakeSeconds": 197.912,
+        "samples": 64,
+        "bakeDevice": "METAL",
+        "denoiseDevice": "METAL",
+        "uri": "court-night.ktx2",
+        "seconds": 248.081,
+        "masterSha256": "062e72cdd3b9f15f4e26ca74aed7d2b47b7be353d7e2360a9064ec2f8183a305",
+        "bytes": 6142178
+      },
+      "lamp": {
+        "scale": 0.015625,
+        "maximum": 0.010628646239638329,
+        "encoding": "log2-hdr",
+        "logRange": 6.022367813028454,
+        "logGain": 4096,
+        "source": "court-lamp.exr",
+        "png": "court-lamp.png",
+        "pngMipmaps": [
+          "court-lamp.png",
+          "court-lamp-mip1.png",
+          "court-lamp-mip2.png"
+        ],
+        "mipLevels": 3,
+        "gutterPixels": 8,
+        "anisotropy": 1,
+        "maxLod": 2,
+        "precision": {
+          "surfaceTexels": 6993500,
+          "luminancePercentiles": {
+            "p0": 0,
+            "p1": 0,
+            "p10": 0,
+            "p50": 7.635824873064579e-9,
+            "p90": 0.000009601784771775786,
+            "p99": 0.00030337484977208075,
+            "p100": 0.008149357145559042
+          },
+          "idealLinear8bitStep": 0.00006127450980392157,
+          "idealLog8bitStepAtPercentile": {
+            "p0": 0.000004029509558354182,
+            "p1": 0.000004029509558354182,
+            "p10": 0.000004029509558354182,
+            "p50": 0.000004029635586659861,
+            "p90": 0.0000041879857788321805,
+            "p99": 0.000009036672364302065,
+            "p100": 0.00013853359920944046
+          },
+          "blackTexelFraction": 0.18868620862229213,
+          "note": "Ideal scalar 8-bit precision only; UASTC block/RDO and device transcode errors need delivery-image inspection."
+        },
+        "denoiseSeconds": 54.72,
+        "bakeSeconds": 185.997,
+        "samples": 64,
+        "bakeDevice": "METAL",
+        "denoiseDevice": "METAL",
+        "uri": "court-lamp.ktx2",
+        "seconds": 243.12,
+        "masterSha256": "da0c41120f791abf90860164571ff4b65ebaa4c899d49c753fa310c1299ca3a9",
+        "bytes": 1101109
+      }
+    }
+  },
+  "bake": {
+    "engine": "Cycles",
+    "blender": "5.3.0",
+    "samples": 64,
+    "resolution": 2048,
+    "resolutionByRegion": {
+      "hall": 4096,
+      "gate": 2048,
+      "court": 4096
+    },
+    "passes": [
+      "DIRECT",
+      "INDIRECT"
+    ],
+    "colorExcluded": true,
+    "materialUV": "TEXCOORD_0",
+    "lightmapUV": "TEXCOORD_1",
+    "runtimeAlias": "uv2",
+    "unwrap": "xatlas/watlas1.0.1, topology-only input; UV0 preserved",
+    "quantity": "diffuse-radiance-per-unit-albedo",
+    "threeLightMapIrradianceMultiplier": 3.141592653589793,
+    "denoising": {
+      "backend": "OpenImageDenoise RT HDR",
+      "device": "METAL",
+      "isolation": "Per-UV-chart with same-chart edge extension; subpixel charts excluded and reported"
+    },
+    "sampling": {
+      "mipLevels": 3,
+      "gutterPixels": 8,
+      "anisotropy": 1,
+      "maxLod": 2
+    },
+    "presets": {
+      "night": {
+        "sourceLighting": true,
+        "fixtures": 1
+      },
+      "dusk": {
+        "world": [
+          0.25,
+          0.31,
+          0.42
+        ],
+        "strength": 0.65,
+        "sun": [
+          1,
+          0.62,
+          0.38
+        ],
+        "energy": 0.45,
+        "fixtures": 0.8
+      },
+      "day": {
+        "world": [
+          0.64,
+          0.77,
+          1
+        ],
+        "strength": 0.75,
+        "sun": [
+          1,
+          0.92,
+          0.8
+        ],
+        "energy": 2.2,
+        "fixtures": 0.12
+      },
+      "lamp": {
+        "world": [
+          0,
+          0,
+          0
+        ],
+        "strength": 0,
+        "sun": [
+          1,
+          1,
+          1
+        ],
+        "energy": 0,
+        "fixtures": 0
+      }
+    },
+    "sourceNightLighting": {
+      "world": {
+        "name": "Cold winter sky.001",
+        "colour": [
+          0.05000000074505806,
+          0.05000000074505806,
+          0.05000000074505806
+        ],
+        "backgrounds": [
+          {
+            "colour": [
+              0.1899999976158142,
+              0.2800000011920929,
+              0.4699999988079071,
+              1
+            ],
+            "strength": 0.15000000596046448,
+            "linkedColour": false
+          }
+        ],
+        "environmentTextures": []
+      },
+      "lights": [
+        {
+          "name": "Other altar lamp warm spill",
+          "role": "fixture",
+          "type": "POINT",
+          "energy": 8,
+          "linearColour": [
+            1,
+            0.6784313917160034,
+            0.4000000059604645
+          ],
+          "positionBlender": [
+            -1.4500000476837158,
+            4.75,
+            1.8200000524520874
+          ],
+          "rotationBlender": [
+            0,
+            0,
+            0
+          ],
+          "includedInNight": true
+        },
+        {
+          "name": "Other altar lamp warm spill.001",
+          "role": "fixture",
+          "type": "POINT",
+          "energy": 8,
+          "linearColour": [
+            1,
+            0.6784313917160034,
+            0.4000000059604645
+          ],
+          "positionBlender": [
+            -0.949999988079071,
+            4.75,
+            1.8200000524520874
+          ],
+          "rotationBlender": [
+            0,
+            0,
+            0
+          ],
+          "includedInNight": true
+        },
+        {
+          "name": "Other altar lamp warm spill.002",
+          "role": "fixture",
+          "type": "POINT",
+          "energy": 8,
+          "linearColour": [
+            1,
+            0.6784313917160034,
+            0.4000000059604645
+          ],
+          "positionBlender": [
+            0.949999988079071,
+            4.75,
+            1.8200000524520874
+          ],
+          "rotationBlender": [
+            0,
+            0,
+            0
+          ],
+          "includedInNight": true
+        },
+        {
+          "name": "Other altar lamp warm spill.003",
+          "role": "fixture",
+          "type": "POINT",
+          "energy": 8,
+          "linearColour": [
+            1,
+            0.6784313917160034,
+            0.4000000059604645
+          ],
+          "positionBlender": [
+            1.4500000476837158,
+            4.75,
+            1.8200000524520874
+          ],
+          "rotationBlender": [
+            0,
+            0,
+            0
+          ],
+          "includedInNight": true
+        },
+        {
+          "name": "Visitor flame bake basis",
+          "role": "lamp",
+          "type": "POINT",
+          "energy": 45,
+          "linearColour": [
+            1,
+            0.7411764860153198,
+            0.47058823704719543
+          ],
+          "positionBlender": [
+            0,
+            0.5,
+            2.990000009536743
+          ],
+          "rotationBlender": [
+            0,
+            0,
+            0
+          ],
+          "includedInNight": false
+        },
+        {
+          "name": "Cool court light entering doorway",
+          "role": "ambient",
+          "type": "POINT",
+          "energy": 65,
+          "linearColour": [
+            0.7058823704719543,
+            0.8039215803146362,
+            0.9647058844566345
+          ],
+          "positionBlender": [
+            0,
+            -4.400000095367432,
+            2.200000047683716
+          ],
+          "rotationBlender": [
+            0,
+            0,
+            0
+          ],
+          "includedInNight": true
+        },
+        {
+          "name": "Gate shelf lamp warm spill",
+          "role": "fixture",
+          "type": "POINT",
+          "energy": 8,
+          "linearColour": [
+            1,
+            0.6784313917160034,
+            0.4000000059604645
+          ],
+          "positionBlender": [
+            -2,
+            -19.25,
+            1.7899999618530273
+          ],
+          "rotationBlender": [
+            0,
+            0,
+            0
+          ],
+          "includedInNight": true
+        },
+        {
+          "name": "Gate shelf lamp warm spill.001",
+          "role": "fixture",
+          "type": "POINT",
+          "energy": 8,
+          "linearColour": [
+            1,
+            0.6784313917160034,
+            0.4000000059604645
+          ],
+          "positionBlender": [
+            2,
+            -19.25,
+            1.7899999618530273
+          ],
+          "rotationBlender": [
+            0,
+            0,
+            0
+          ],
+          "includedInNight": true
+        },
+        {
+          "name": "Moon basis",
+          "role": "ambient",
+          "type": "SUN",
+          "energy": 0.44999998807907104,
+          "linearColour": [
+            0.6000000238418579,
+            0.7200000286102295,
+            1
+          ],
+          "positionBlender": [
+            0,
+            0,
+            0
+          ],
+          "rotationBlender": [
+            0.3839724361896515,
+            -0.48869219422340393,
+            -0.6108652353286743
+          ],
+          "includedInNight": true
+        }
+      ],
+      "sourceEmissionStrengths": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        3,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "meaning": "Authored accepted source lighting, restored exactly for night except visitor lamp omitted. Positions/rotations use Blender coordinates; source socket colours are linear."
+    },
+    "hiddenUVAllocationProof": {
+      "sha256": "c64adb44283c4cd766921392da95b113767ddceab4dca44192e350caf5aeeae2",
+      "sourceSha256": "73af75982e5dc97741afb994403dde0d8b1f65a826d84adbed56dd6438873997",
+      "rule": "Only whole connected tile components enclosed by an opaque closed roof-snow volume, all vertex/mid-edge/face-center samples at least20mm inside, and no BVH-overlap pairs with the snow boundary. Full render/bake geometry is retained; this only identifies potential UV allocation exclusions.",
+      "summary": {
+        "hall": {
+          "components": 3720,
+          "safeComponents": 2905,
+          "polygons": 61440,
+          "excludedPolygons": 47895,
+          "excludedArea": 275.7121420661424
+        },
+        "court": {
+          "components": 2660,
+          "safeComponents": 1987,
+          "polygons": 44004,
+          "excludedPolygons": 32697,
+          "excludedArea": 185.4433033408277
+        },
+        "gate": {
+          "components": 1104,
+          "safeComponents": 685,
+          "polygons": 18240,
+          "excludedPolygons": 11283,
+          "excludedArea": 51.99351329394267
+        }
+      },
+      "representativeCameraRayChecks": {
+        "EaveDetail": {
+          "samples": 5577,
+          "snowBlocksRay": 5577
+        },
+        "RoofRidgeDetail": {
+          "samples": 5577,
+          "snowBlocksRay": 5577
+        },
+        "Reference_outside": {
+          "samples": 5577,
+          "snowBlocksRay": 5577
+        },
+        "Reference_walk-1": {
+          "samples": 5577,
+          "snowBlocksRay": 5577
+        },
+        "Reference_walk-2": {
+          "samples": 5577,
+          "snowBlocksRay": 5577
+        },
+        "Reference_walk-3": {
+          "samples": 5577,
+          "snowBlocksRay": 5577
+        },
+        "Reference_choose": {
+          "samples": 5577,
+          "snowBlocksRay": 5577
+        },
+        "Reference_lit": {
+          "samples": 5577,
+          "snowBlocksRay": 5577
+        }
+      },
+      "geometryRetained": true,
+      "reservedUV": [
+        0,
+        0
+      ]
+    },
+    "coverage": {
+      "hall": {
+        "charts": 12898,
+        "representedCharts": 12895,
+        "subpixelCharts": 3,
+        "representedSurfaceAreaFraction": 0.9999954567739622,
+        "triangleWithNativeTexelSurfaceAreaFraction": 0.964224366720738,
+        "surfaceAreaInChartsWithAtLeast16CoreTexelsFraction": 0.9948759939326203,
+        "totalSurfaceAreaSquareMetres": 2116.3457300639675,
+        "provenOccludedSurfaceAreaSquareMetres": 275.7123065737922,
+        "provenOccludedPolygons": 95790,
+        "coreTexels": 2123777,
+        "overlappingCorePixels": 0,
+        "coverageMeaning": "World-space mapped surface-area weighted; proven enclosed geometry is reported separately. A represented chart may contain subpixel triangles; their native-texel area is also reported. Camera-visible sampled coverage is separate.",
+        "sampledVisiblePixels": 17709,
+        "representedVisiblePixels": 17705,
+        "provenOccludedVisiblePixels": 0,
+        "referenceCameras": [
+          "Reference_outside",
+          "Reference_walk-1",
+          "Reference_walk-2",
+          "Reference_walk-3",
+          "Reference_choose",
+          "Reference_lit"
+        ],
+        "perCamera": {
+          "Reference_outside": {
+            "sampledVisiblePixels": 124,
+            "representedVisiblePixels": 124,
+            "provenOccludedVisiblePixels": 0,
+            "representedCameraVisibleFraction": 1
+          },
+          "Reference_walk-1": {
+            "sampledVisiblePixels": 124,
+            "representedVisiblePixels": 124,
+            "provenOccludedVisiblePixels": 0,
+            "representedCameraVisibleFraction": 1
+          },
+          "Reference_walk-2": {
+            "sampledVisiblePixels": 182,
+            "representedVisiblePixels": 182,
+            "provenOccludedVisiblePixels": 0,
+            "representedCameraVisibleFraction": 1
+          },
+          "Reference_walk-3": {
+            "sampledVisiblePixels": 5759,
+            "representedVisiblePixels": 5759,
+            "provenOccludedVisiblePixels": 0,
+            "representedCameraVisibleFraction": 1
+          },
+          "Reference_choose": {
+            "sampledVisiblePixels": 5760,
+            "representedVisiblePixels": 5756,
+            "provenOccludedVisiblePixels": 0,
+            "representedCameraVisibleFraction": 0.9993055555555556
+          },
+          "Reference_lit": {
+            "sampledVisiblePixels": 5760,
+            "representedVisiblePixels": 5760,
+            "provenOccludedVisiblePixels": 0,
+            "representedCameraVisibleFraction": 1
+          }
+        },
+        "representedCameraVisibleFraction": 0.999774126150545,
+        "samplesPerCamera": [
+          96,
+          60
+        ],
+        "scope": "Coarse first-hit geometry visibility over the source reference cameras; excludes sky. Features smaller than the sampling grid and shading/noise quality are not verified by this metric."
+      },
+      "gate": {
+        "charts": 4369,
+        "representedCharts": 4368,
+        "subpixelCharts": 1,
+        "representedSurfaceAreaFraction": 0.9999999999999999,
+        "triangleWithNativeTexelSurfaceAreaFraction": 0.9637856025355326,
+        "surfaceAreaInChartsWithAtLeast16CoreTexelsFraction": 0.9859705713497867,
+        "totalSurfaceAreaSquareMetres": 409.99404631329475,
+        "provenOccludedSurfaceAreaSquareMetres": 51.99357033398157,
+        "provenOccludedPolygons": 22566,
+        "coreTexels": 472902,
+        "overlappingCorePixels": 0,
+        "coverageMeaning": "World-space mapped surface-area weighted; proven enclosed geometry is reported separately. A represented chart may contain subpixel triangles; their native-texel area is also reported. Camera-visible sampled coverage is separate.",
+        "sampledVisiblePixels": 2164,
+        "representedVisiblePixels": 2164,
+        "provenOccludedVisiblePixels": 0,
+        "referenceCameras": [
+          "Reference_outside",
+          "Reference_walk-1",
+          "Reference_walk-2",
+          "Reference_walk-3",
+          "Reference_choose",
+          "Reference_lit"
+        ],
+        "perCamera": {
+          "Reference_outside": {
+            "sampledVisiblePixels": 538,
+            "representedVisiblePixels": 538,
+            "provenOccludedVisiblePixels": 0,
+            "representedCameraVisibleFraction": 1
+          },
+          "Reference_walk-1": {
+            "sampledVisiblePixels": 538,
+            "representedVisiblePixels": 538,
+            "provenOccludedVisiblePixels": 0,
+            "representedCameraVisibleFraction": 1
+          },
+          "Reference_walk-2": {
+            "sampledVisiblePixels": 1088,
+            "representedVisiblePixels": 1088,
+            "provenOccludedVisiblePixels": 0,
+            "representedCameraVisibleFraction": 1
+          },
+          "Reference_walk-3": {
+            "sampledVisiblePixels": 0,
+            "representedVisiblePixels": 0,
+            "provenOccludedVisiblePixels": 0,
+            "representedCameraVisibleFraction": null
+          },
+          "Reference_choose": {
+            "sampledVisiblePixels": 0,
+            "representedVisiblePixels": 0,
+            "provenOccludedVisiblePixels": 0,
+            "representedCameraVisibleFraction": null
+          },
+          "Reference_lit": {
+            "sampledVisiblePixels": 0,
+            "representedVisiblePixels": 0,
+            "provenOccludedVisiblePixels": 0,
+            "representedCameraVisibleFraction": null
+          }
+        },
+        "representedCameraVisibleFraction": 1,
+        "samplesPerCamera": [
+          96,
+          60
+        ],
+        "scope": "Coarse first-hit geometry visibility over the source reference cameras; excludes sky. Features smaller than the sampling grid and shading/noise quality are not verified by this metric."
+      },
+      "court": {
+        "charts": 6631,
+        "representedCharts": 6630,
+        "subpixelCharts": 1,
+        "representedSurfaceAreaFraction": 1,
+        "triangleWithNativeTexelSurfaceAreaFraction": 0.9908133461790574,
+        "surfaceAreaInChartsWithAtLeast16CoreTexelsFraction": 0.998736337335152,
+        "totalSurfaceAreaSquareMetres": 5186.2199949044225,
+        "provenOccludedSurfaceAreaSquareMetres": 185.4434255075736,
+        "provenOccludedPolygons": 65394,
+        "coreTexels": 6993500,
+        "overlappingCorePixels": 0,
+        "coverageMeaning": "World-space mapped surface-area weighted; proven enclosed geometry is reported separately. A represented chart may contain subpixel triangles; their native-texel area is also reported. Camera-visible sampled coverage is separate.",
+        "sampledVisiblePixels": 7601,
+        "representedVisiblePixels": 7601,
+        "provenOccludedVisiblePixels": 0,
+        "referenceCameras": [
+          "Reference_outside",
+          "Reference_walk-1",
+          "Reference_walk-2",
+          "Reference_walk-3",
+          "Reference_choose",
+          "Reference_lit"
+        ],
+        "perCamera": {
+          "Reference_outside": {
+            "sampledVisiblePixels": 2541,
+            "representedVisiblePixels": 2541,
+            "provenOccludedVisiblePixels": 0,
+            "representedCameraVisibleFraction": 1
+          },
+          "Reference_walk-1": {
+            "sampledVisiblePixels": 2541,
+            "representedVisiblePixels": 2541,
+            "provenOccludedVisiblePixels": 0,
+            "representedCameraVisibleFraction": 1
+          },
+          "Reference_walk-2": {
+            "sampledVisiblePixels": 2518,
+            "representedVisiblePixels": 2518,
+            "provenOccludedVisiblePixels": 0,
+            "representedCameraVisibleFraction": 1
+          },
+          "Reference_walk-3": {
+            "sampledVisiblePixels": 1,
+            "representedVisiblePixels": 1,
+            "provenOccludedVisiblePixels": 0,
+            "representedCameraVisibleFraction": 1
+          },
+          "Reference_choose": {
+            "sampledVisiblePixels": 0,
+            "representedVisiblePixels": 0,
+            "provenOccludedVisiblePixels": 0,
+            "representedCameraVisibleFraction": null
+          },
+          "Reference_lit": {
+            "sampledVisiblePixels": 0,
+            "representedVisiblePixels": 0,
+            "provenOccludedVisiblePixels": 0,
+            "representedCameraVisibleFraction": null
+          }
+        },
+        "representedCameraVisibleFraction": 1,
+        "samplesPerCamera": [
+          96,
+          60
+        ],
+        "scope": "Coarse first-hit geometry visibility over the source reference cameras; excludes sky. Features smaller than the sampling grid and shading/noise quality are not verified by this metric."
+      }
+    },
+    "totalSeconds": 905.247,
+    "deliveryEncoding": {
+      "encoding": "log2-hdr",
+      "logGain": 4096,
+      "note": "Actual compressed-map comparison selected this gain to preserve deep night detail; EXR masters remain linear and unchanged."
+    }
+  },
+  "geometryFingerprint": "a33060329706a85b97710fca5febfaa973d33ec04e100b2d35a413136259a0c2",
+  "partialPreview": true,
+  "missingAmbientLooks": [
+    "dusk",
+    "day"
+  ],
+  "missingLightmaps": [
+    {
+      "region": "court",
+      "pass": "dusk"
+    },
+    {
+      "region": "court",
+      "pass": "day"
+    },
+    {
+      "region": "gate",
+      "pass": "dusk"
+    },
+    {
+      "region": "gate",
+      "pass": "day"
+    },
+    {
+      "region": "hall",
+      "pass": "dusk"
+    },
+    {
+      "region": "hall",
+      "pass": "day"
+    }
+  ],
+  "files": [
+    {
+      "uri": "snow-roof.glb",
+      "bytes": 37938024,
+      "sha256": "bcb6ee82e1ee3ffc212713818550475e845ca162fc4074763264e29fef7e3a05"
+    },
+    {
+      "uri": "gate-night.ktx2",
+      "bytes": 1508599,
+      "sha256": "506fea00dd005b756c5682fefd808aae7db523705b2c4b2b81b59fde38739895",
+      "mipLevels": 3,
+      "transfer": "linear"
+    },
+    {
+      "uri": "gate-lamp.ktx2",
+      "bytes": 643740,
+      "sha256": "acdc5430fa3d295e847b8df1a6f433a8fb6f54852d7a64df1bfc69bc27fc433d",
+      "mipLevels": 3,
+      "transfer": "linear"
+    },
+    {
+      "uri": "hall-night.ktx2",
+      "bytes": 5653596,
+      "sha256": "77a2749d8b5ba67fdeb48094277e66f17be3f4a85d3684eb9b387c96148a3972",
+      "mipLevels": 3,
+      "transfer": "linear"
+    },
+    {
+      "uri": "hall-lamp.ktx2",
+      "bytes": 2665786,
+      "sha256": "4ba5489d34da763b395d38781efa3baec084e74010a94198c019f018cfd9a365",
+      "mipLevels": 3,
+      "transfer": "linear"
+    },
+    {
+      "uri": "court-night.ktx2",
+      "bytes": 6142178,
+      "sha256": "fab30d876382eb2f925b844d0b067f536788d57538d964795c05b9c3833ece26",
+      "mipLevels": 3,
+      "transfer": "linear"
+    },
+    {
+      "uri": "court-lamp.ktx2",
+      "bytes": 1101109,
+      "sha256": "5ffa20266a09704545f9ecc787d6e6a14ad38e0970ae413db9097efd07425e37",
+      "mipLevels": 3,
+      "transfer": "linear"
+    }
+  ],
+  "sampling": {
+    "mipLevels": 3,
+    "gutterPixels": 8,
+    "anisotropy": 1,
+    "maxLod": 2
+  },
+  "totalBytes": 55653032,
+  "compression": {
+    "gltfTransform": "4.5.1",
+    "ktxSoftware": "4.4.2",
+    "mesh": "EXT_meshopt_compression",
+    "textures": "KHR_texture_basisu",
+    "lightmaps": "Basis UASTC + Zstandard, per-pass log2 HDR in linear KTX2 samples; decode logRange/logGain before lighting",
+    "transformOrder": [
+      "dedup",
+      "uastc",
+      "meshopt"
+    ],
+    "uvVerification": {
+      "meshes": 3,
+      "primitives": 42,
+      "colourPrimitives": 42,
+      "regions": [
+        "court",
+        "gate",
+        "hall"
+      ],
+      "roughnessClamps": [
+        {
+          "name": "Tarnished gilded edges",
+          "minimum": 0.45
+        },
+        {
+          "name": "Aged bronze",
+          "minimum": 0.48
+        },
+        {
+          "name": "Dark hall paving 1",
+          "minimum": 0.58
+        },
+        {
+          "name": "Walk-polished worn dark stone",
+          "minimum": 0.43
+        },
+        {
+          "name": "chinese_console_table",
+          "minimum": 0.36
+        },
+        {
+          "name": "chinese_screen_panels",
+          "minimum": 0.36
+        }
+      ],
+      "extensions": [
+        "EXT_meshopt_compression",
+        "KHR_materials_emissive_strength",
+        "KHR_mesh_quantization",
+        "KHR_texture_basisu"
+      ]
+    }
+  }
+}

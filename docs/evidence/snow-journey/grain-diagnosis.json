@@ -1,0 +1,139 @@
+{
+  "method": "Two ten-second raw WebGL framebuffer sequences. Camera, physical animation and particles held still. Temporal grade remains active in the first control and its time alone is fixed in the second.",
+  "units": "Rec.709 weighted 8-bit display RGB luminance levels, 0–255. The original probe stored previous luminance in Float32; its residual below0.000005 with fixed pixels is arithmetic rounding. Retained raw RGBA bytes are identical in the fixed-grade control.",
+  "scope": "The frozen procedural before state. Raw statistics are measured before video encoding.",
+  "rows": [
+    {
+      "name": "all_static_temporal_grade",
+      "sourceFile": "artifacts/snow-journey/baseline-diagnosis/all_static_temporal_grade.json",
+      "sha256": "469e86649d7b3aaef49aea084c6110313ac9c555a0b7e6b48e4f5fca9e3b38cd",
+      "samples": 601,
+      "cameraMaximumElementDelta": 0,
+      "controls": {
+        "lockCamera": true,
+        "freezeScene": true,
+        "freezeGrade": false,
+        "disableBloom": false,
+        "hideParticles": true
+      },
+      "rois": [
+        {
+          "name": "left_structure",
+          "type": "structure",
+          "meanPixelRmsDelta": 2.0398774003519695,
+          "maxPixelRmsDelta": 2.125975422513236,
+          "meanAbsoluteRoiMeanDelta": 0.031011495063858804,
+          "meanChangedPixelFraction": 0.875001220703125,
+          "firstTwoRawFramesChangedBytes": 9888,
+          "rawByteCount": 16384
+        },
+        {
+          "name": "right_structure",
+          "type": "structure",
+          "meanPixelRmsDelta": 2.0472124240697975,
+          "maxPixelRmsDelta": 2.1393169220253667,
+          "meanAbsoluteRoiMeanDelta": 0.02224817424713334,
+          "meanChangedPixelFraction": 0.8741398111979166,
+          "firstTwoRawFramesChangedBytes": 10058,
+          "rawByteCount": 16384
+        },
+        {
+          "name": "lower_floor",
+          "type": "structure",
+          "meanPixelRmsDelta": 2.080059372507007,
+          "maxPixelRmsDelta": 2.167004401022632,
+          "meanAbsoluteRoiMeanDelta": 0.021277523379368102,
+          "meanChangedPixelFraction": 0.87496826171875,
+          "firstTwoRawFramesChangedBytes": 10034,
+          "rawByteCount": 16384
+        },
+        {
+          "name": "upper_control",
+          "type": "sky_or_structure",
+          "meanPixelRmsDelta": 2.0444498365957697,
+          "maxPixelRmsDelta": 2.134080804654585,
+          "meanAbsoluteRoiMeanDelta": 0.027401841794513184,
+          "meanChangedPixelFraction": 0.869794921875,
+          "firstTwoRawFramesChangedBytes": 9809,
+          "rawByteCount": 16384
+        },
+        {
+          "name": "flame_control",
+          "type": "flame",
+          "meanPixelRmsDelta": 2.0441300092985504,
+          "maxPixelRmsDelta": 2.1205284683762167,
+          "meanAbsoluteRoiMeanDelta": 0.021812726515084615,
+          "meanChangedPixelFraction": 0.8750101725260416,
+          "firstTwoRawFramesChangedBytes": 9990,
+          "rawByteCount": 16384
+        }
+      ]
+    },
+    {
+      "name": "all_static_fixed_grade",
+      "sourceFile": "artifacts/snow-journey/baseline-diagnosis/all_static_fixed_grade.json",
+      "sha256": "bf78bafecd7151c9c5792df045b7b44edc95b3416823e015519c51cc23a9b121",
+      "samples": 601,
+      "cameraMaximumElementDelta": 0,
+      "controls": {
+        "lockCamera": true,
+        "freezeScene": true,
+        "freezeGrade": true,
+        "disableBloom": false,
+        "hideParticles": true
+      },
+      "rois": [
+        {
+          "name": "left_structure",
+          "type": "structure",
+          "meanPixelRmsDelta": 4.042133976072801e-7,
+          "maxPixelRmsDelta": 4.042133976072833e-7,
+          "meanAbsoluteRoiMeanDelta": 7.972870994570817e-8,
+          "meanChangedPixelFraction": 0,
+          "firstTwoRawFramesChangedBytes": 0,
+          "rawByteCount": 16384
+        },
+        {
+          "name": "right_structure",
+          "type": "structure",
+          "meanPixelRmsDelta": 0.0000028951210054141185,
+          "maxPixelRmsDelta": 0.0000028951210054140846,
+          "meanAbsoluteRoiMeanDelta": 8.510291612476989e-7,
+          "meanChangedPixelFraction": 0,
+          "firstTwoRawFramesChangedBytes": 0,
+          "rawByteCount": 16384
+        },
+        {
+          "name": "lower_floor",
+          "type": "structure",
+          "meanPixelRmsDelta": 1.536787218460471e-7,
+          "maxPixelRmsDelta": 1.5367872184604838e-7,
+          "meanAbsoluteRoiMeanDelta": 7.07558589579951e-8,
+          "meanChangedPixelFraction": 0,
+          "firstTwoRawFramesChangedBytes": 0,
+          "rawByteCount": 16384
+        },
+        {
+          "name": "upper_control",
+          "type": "sky_or_structure",
+          "meanPixelRmsDelta": 6.98851100505663e-7,
+          "maxPixelRmsDelta": 6.988511005056694e-7,
+          "meanAbsoluteRoiMeanDelta": 1.6404837234473835e-7,
+          "meanChangedPixelFraction": 0,
+          "firstTwoRawFramesChangedBytes": 0,
+          "rawByteCount": 16384
+        },
+        {
+          "name": "flame_control",
+          "type": "flame",
+          "meanPixelRmsDelta": 0.000004118320147137579,
+          "maxPixelRmsDelta": 0.000004118320147137634,
+          "meanAbsoluteRoiMeanDelta": 4.2293668415377406e-7,
+          "meanChangedPixelFraction": 0,
+          "firstTwoRawFramesChangedBytes": 0,
+          "rawByteCount": 16384
+        }
+      ]
+    }
+  ]
+}

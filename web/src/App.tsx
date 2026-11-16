@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import * as engine from './engine/index.ts';
-import { PLACES, placeById, type Locale, type PlaceId } from '../../shared/places.ts';
+import { placeById, type Locale, type PlaceId } from '../../shared/places.ts';
+import { DEFAULT_PLACE, VISIBLE_PLACES, isVisiblePlace } from './visiblePlaces.ts';
 import { COLORS, DEFAULT_MINUTES, MAX_MINUTES, MIN_MINUTES, PRESET_MINUTES, PRESET_SHAPES, isAllowedMinutes, shapeMinutes, sizedPreset, type Kind, type Shape } from '../../shared/rules.ts';
 import { api, ApiError, type EndReason, type Stats } from './api.ts';
 import { Burn, type Settlement } from './burn.ts';
@@ -38,7 +39,7 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
   // What the person is making.
   const [wish, setWish] = useState('');
   const [wishId, setWishId] = useState<string | null>(null);
-  const [placeId, setPlaceId] = useState<PlaceId>('pine-gate');
+  const [placeId, setPlaceId] = useState<PlaceId>(DEFAULT_PLACE.id);
   const place = placeById(placeId)!;
   // The place decides the kind of lamp. The person picks a shape and a time (the shape grows with the time),
   // or draws one: the bigger the drawing, the longer it burns.
@@ -48,7 +49,7 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
   const [preset, setPreset] = useState<number>(DEFAULT_MINUTES);
   const [strokes, setStrokes] = useState<Pt[][]>([]);
   const [drawingMinutes, setDrawingMinutes] = useState<number | null>(null);
-  const [color, setColor] = useState(0);
+  const [color, setColor] = useState(1);
   const shape: Shape | null = useMemo(() => {
     const rows = tab === 'preset' ? sizedPreset(PRESET_SHAPES[kind][presetShape].rows, preset) : rowsFromStrokes(strokes);
     return rows ? { kind, rows, color: COLORS[kind][color] } : null;
@@ -136,7 +137,7 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
 
   // Navigation between steps; the scene moves with them.
   const toPlace = () => { setScreen('place'); run(() => engine.previewPlace(placeId)); };
-  const pickPlace = (id: PlaceId) => { setPlaceId(id); if (placeById(id)!.vessel !== place.vessel) { setTab('preset'); setPresetShape(0); setStrokes([]); setColor(0); } engine.previewPlace(id); };
+  const pickPlace = (id: PlaceId) => { if (!isVisiblePlace(id)) return; setPlaceId(id); if (placeById(id)!.vessel !== place.vessel) { setTab('preset'); setPresetShape(0); setStrokes([]); setColor(1); } engine.previewPlace(id); };
   const goTravel = () => run(async () => {
     engine.setOffer(shape); setScreen('travel');
     await engine.travel(placeId); setScreen('candle');
@@ -188,8 +189,8 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
             <div className="eyebrow">{t.placeEyebrow}</div>
             <div className="tname">{place.name[locale]}<small lang={locale === 'zh' ? 'en' : 'zh-CN'}>{place.name[locale === 'zh' ? 'en' : 'zh']}</small></div>
             <p className="note">{place.lamp[locale]} · {place.line[locale]}</p>
-            <div className="places" role="radiogroup" aria-label={t.placeEyebrow}>
-              {PLACES.map((p) => {
+            {VISIBLE_PLACES.length > 1 && <div className="places" role="radiogroup" aria-label={t.placeEyebrow}>
+              {VISIBLE_PLACES.map((p) => {
                 const now = placeStats?.places.find((s) => s.placeId === p.id)?.now ?? 0;
                 return (
                   <button key={p.id} role="radio" aria-checked={p.id === placeId} className="place" onClick={() => pickPlace(p.id)}
@@ -199,7 +200,8 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
                   </button>
                 );
               })}
-            </div>
+            </div>}
+            <p className="note place-invitation">{t.placeLead}</p>
             <div className="row place-actions">
               <button className="btn link" onClick={backToWish} disabled={busy}>{t.placeBack}</button>
               <button className="btn primary" onClick={goTravel} disabled={busy}>{t.placeGo}</button>
@@ -228,7 +230,7 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
               <div className="shapes" role="radiogroup" aria-label={t.tabPresets}>
                 {PRESET_SHAPES[kind].map((p, i) => (
                   <button key={p.id} role="radio" aria-checked={presetShape === i} className="shape" onClick={() => setPresetShape(i)}>
-                    <CandleThumb shape={{ kind, rows: p.rows, color: COLORS[kind][color] }} remaining={1} />
+                    <CandleThumb shape={{ kind, rows: sizedPreset(p.rows, preset), color: COLORS[kind][color] }} remaining={1} />
                     <span>{t.presetNames[kind][i]}</span>
                   </button>
                 ))}

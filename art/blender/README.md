@@ -8,7 +8,7 @@ blender --background art/build/snow-roof.blend --python art/blender/bake_export.
 node scripts/pack-blender-assets.mjs --source art/build/snow-roof --out web/public/places/snow-roof
 ```
 
-For a CPU bake pass `--device CPU` explicitly. The first Metal kernel compilation may be slow. A 32-pixel CPU probe is recorded under `docs/evidence/blender/`; it verifies bake units, linear PNG encoding and both UV sets. This is build-pipeline evidence, not a product test suite.
+Renders and bakes use the M1 Metal GPU with OpenImageDenoise. Do not pass a CPU device or a fixed thread limit. Keep previews at low samples; run full-quality bakes only after geometry, lighting and UV coverage have been reviewed. The first Metal kernel compilation may be slow. A 32-pixel CPU probe is recorded under `docs/evidence/blender/`; it verifies bake units, linear PNG encoding and both UV sets. This is build-pipeline evidence, not a product test suite.
 
 The baker evaluates modifiers once, joins static construction by `hall`, `court` and `gate`, and packs `Lightmap` as the second UV set. The first `UVMap` remains the PBR material UV. Four Cycles diffuse passes exclude material color: night, dusk, day and the visitor lamp alone. Original source materials remain on the glTF. Full-range scene-linear EXR masters and normalized 16-bit linear PNG intermediates stay in `art/build/`, excluded from Git.
 
@@ -17,7 +17,7 @@ Each atlas/pass has its own power-of-two scale. Reconstruct `sample * scale` bef
 `--skip-bake` prepares the UVs and raw glTF only. For a resumed bake use the exact prepared scene and `--resume`:
 
 ```sh
-blender --background art/build/snow-roof/snow-roof-prepared.blend --python art/blender/bake_export.py -- --out art/build/snow-roof --resolution 1024 --samples 32 --device CPU --resume
+blender --background art/build/snow-roof/snow-roof-prepared.blend --python art/blender/bake_export.py -- --out art/build/snow-roof --resolution 1024 --samples 32 --device METAL --resume
 ```
 
 `--passes night` or `--passes night,dusk` selects passes while retaining completed atlas metadata. Resume reuses existing completed PNG/EXR maps. Change source geometry only before atlas packing; changed topology requires rebuilding the UVs and every pass.

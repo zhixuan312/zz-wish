@@ -1,0 +1,71 @@
+{
+  "samples": 2001,
+  "pointsWorld": [
+    [
+      0.12,
+      2.22,
+      1.85
+    ],
+    [
+      1.4,
+      2.22,
+      0.8
+    ],
+    [
+      1.95,
+      2.22,
+      -1.25
+    ],
+    [
+      1.65,
+      2.22,
+      -2.6
+    ],
+    [
+      1.65,
+      2.22,
+      -3.95
+    ],
+    [
+      0.18,
+      2.22,
+      -3.85
+    ]
+  ],
+  "durationSeconds": 16,
+  "lengthMetres": 8.082344618480116,
+  "meanSpeedMetresPerSecond": 0.5051465386550072,
+  "bounds": {
+    "x": [
+      0.12,
+      1.9503230704823284
+    ],
+    "z": [
+      -4.034045805632284,
+      1.85
+    ],
+    "y": [
+      2.22,
+      2.22
+    ]
+  },
+  "minDistanceToObstacleMetres": {
+    "columnSurface": 0.8418256704860038,
+    "cushionSurface": 0.36622790505516517,
+    "altarFront": 0.5529541943677154,
+    "sideWall": 3.3496769295176714,
+    "lampHorizontal": 1.8155299018637931
+  },
+  "bodyRadiusMetres": 0.25,
+  "minimumBodyClearanceMetres": {
+    "columnSurface": 0.5918256704860038,
+    "cushionSurface": 0.11622790505516517,
+    "altarFront": 0.3029541943677154,
+    "sideWall": 3.0996769295176714
+  },
+  "notes": [
+    "CPU horizontal-clearance checks against known source column/cushion bounds; not a full scene collision solver.",
+    "All path points are over the hall floor at world Y .6. Eye Y 2.22 gives 1.62m height.",
+    "Use curve.getPointAt for even speed; keep rear waypoint to pass behind kneeling cushion."
+  ]
+}

@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-16T12:58:50.333262+00:00",
+  "generatedAt": "2026-11-16T13:50:58.983139+00:00",
   "purpose": "Single provenance and license register for every delivered visual asset and shared decoder.",
   "assets": [
     {
@@ -731,18 +731,18 @@
       "files": [
         {
           "path": "web/public/fonts/noto-serif-sc-700.woff2",
-          "bytes": 70372,
-          "sha256": "d991a33ee75c3432da4de74d217b1e4345cd8413b5f29c76dfdceaed7ef5c99c"
+          "bytes": 70880,
+          "sha256": "70c51901724dfc4e0930c6dca222a7d075a17ff0ff45120ca012f34a9faca0b0"
         },
         {
           "path": "web/public/fonts/noto-serif-sc-600.woff2",
-          "bytes": 69572,
-          "sha256": "82fe2c0692b0738fc184a4fa828403d23641479bfb60cb7db3fbfd29e19cff95"
+          "bytes": 70056,
+          "sha256": "49a2dd895cf5a56e79bdfcba1181c83ec726234f27a58ceb8a4baa140c2f71fd"
         },
         {
           "path": "web/public/fonts/noto-serif-sc-400.woff2",
-          "bytes": 68668,
-          "sha256": "da76ffb5f48ef37db3f9bb1af9c89849dd0ad30e4ac4c1bcd551177657d5c35a"
+          "bytes": 69204,
+          "sha256": "6987fcc8efa9384e520c33ff5b81a05c2cc24b8cb834799a78966ebc4103131b"
         }
       ]
     },
@@ -808,8 +808,8 @@
       "files": [
         {
           "path": "art/blender/snow_roof.py",
-          "bytes": 30882,
-          "sha256": "d7dfa3f3e8644eed68fcd9230c68fdb712741bcd605151c4e35ac731aea39b31"
+          "bytes": 52379,
+          "sha256": "964d61839e6982530f12e49edec19fd7f3e3b67d31b5d9b250ff9e2f27514919"
         }
       ]
     }

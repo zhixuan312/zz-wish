@@ -1,0 +1,1135 @@
+{
+  "units": "World coordinates in metres, Y up. Nook local offset is world-[0,.6,-.5]. No runtime, geometry, light or source edits.",
+  "poses": {
+    "hallWide": {
+      "desktop": {
+        "position": [
+          0.2,
+          2.22,
+          3.25
+        ],
+        "target": [
+          0,
+          2.35,
+          -3.5
+        ],
+        "verticalFov": 40,
+        "horizontalFov": 60.428968169882076,
+        "projections": {
+          "screenBottom": {
+            "x": 731,
+            "y": 593,
+            "inFrame": true,
+            "front": true
+          },
+          "altarLeft": {
+            "x": 530,
+            "y": 564,
+            "inFrame": true,
+            "front": true
+          },
+          "altarRight": {
+            "x": 924,
+            "y": 564,
+            "inFrame": true,
+            "front": true
+          },
+          "lampCenter": {
+            "x": 691,
+            "y": 197,
+            "inFrame": true,
+            "front": true
+          },
+          "lampTop": {
+            "x": 691,
+            "y": 146,
+            "inFrame": true,
+            "front": true
+          },
+          "flame": {
+            "x": 691,
+            "y": 221,
+            "inFrame": true,
+            "front": true
+          },
+          "screenTop": {
+            "x": 731,
+            "y": 129,
+            "inFrame": true,
+            "front": true
+          },
+          "screenLeft": {
+            "x": 439,
+            "y": 361,
+            "inFrame": true,
+            "front": true
+          },
+          "screenRight": {
+            "x": 1027,
+            "y": 359,
+            "inFrame": true,
+            "front": true
+          },
+          "altarTop": {
+            "x": 726,
+            "y": 564,
+            "inFrame": true,
+            "front": true
+          },
+          "altarFeet": {
+            "x": 726,
+            "y": 722,
+            "inFrame": true,
+            "front": true
+          },
+          "rearBeam": {
+            "x": 723,
+            "y": 34,
+            "inFrame": true,
+            "front": true
+          },
+          "doorTop": {
+            "x": 527,
+            "y": -1104,
+            "inFrame": false,
+            "front": true
+          },
+          "doorBottom": {
+            "x": 516,
+            "y": 2430,
+            "inFrame": false,
+            "front": true
+          },
+          "snowNear": {
+            "x": 799,
+            "y": 25,
+            "inFrame": false,
+            "front": false
+          },
+          "snowFar": {
+            "x": 770,
+            "y": 335,
+            "inFrame": false,
+            "front": false
+          }
+        }
+      },
+      "phone": {
+        "position": [
+          0.05,
+          2.22,
+          3.25
+        ],
+        "target": [
+          0,
+          2.5,
+          -3.5
+        ],
+        "verticalFov": 56,
+        "horizontalFov": 27.60773325912627,
+        "projections": {
+          "screenBottom": {
+            "x": 197,
+            "y": 532,
+            "inFrame": true,
+            "front": true
+          },
+          "altarLeft": {
+            "x": 69,
+            "y": 513,
+            "inFrame": true,
+            "front": true
+          },
+          "altarRight": {
+            "x": 323,
+            "y": 513,
+            "inFrame": true,
+            "front": true
+          },
+          "lampCenter": {
+            "x": 190,
+            "y": 278,
+            "inFrame": true,
+            "front": true
+          },
+          "lampTop": {
+            "x": 190,
+            "y": 245,
+            "inFrame": true,
+            "front": true
+          },
+          "flame": {
+            "x": 190,
+            "y": 293,
+            "inFrame": true,
+            "front": true
+          },
+          "screenTop": {
+            "x": 197,
+            "y": 235,
+            "inFrame": true,
+            "front": true
+          },
+          "screenLeft": {
+            "x": 8,
+            "y": 382,
+            "inFrame": true,
+            "front": true
+          },
+          "screenRight": {
+            "x": 386,
+            "y": 382,
+            "inFrame": true,
+            "front": true
+          },
+          "altarTop": {
+            "x": 196,
+            "y": 513,
+            "inFrame": true,
+            "front": true
+          },
+          "altarFeet": {
+            "x": 196,
+            "y": 615,
+            "inFrame": true,
+            "front": true
+          },
+          "rearBeam": {
+            "x": 195,
+            "y": 175,
+            "inFrame": true,
+            "front": true
+          },
+          "doorTop": {
+            "x": 165,
+            "y": -536,
+            "inFrame": false,
+            "front": true
+          },
+          "doorBottom": {
+            "x": 161,
+            "y": 1765,
+            "inFrame": false,
+            "front": true
+          },
+          "snowNear": {
+            "x": 208,
+            "y": 169,
+            "inFrame": false,
+            "front": false
+          },
+          "snowFar": {
+            "x": 203,
+            "y": 366,
+            "inFrame": false,
+            "front": false
+          }
+        }
+      }
+    },
+    "choose": {
+      "desktop": {
+        "position": [
+          0.18,
+          2.22,
+          1.6
+        ],
+        "target": [
+          0.25,
+          2.68,
+          -0.5
+        ],
+        "verticalFov": 32,
+        "horizontalFov": 49.29061542320386,
+        "projections": {
+          "screenBottom": {
+            "x": 627,
+            "y": 990,
+            "inFrame": false,
+            "front": true
+          },
+          "altarLeft": {
+            "x": 288,
+            "y": 948,
+            "inFrame": false,
+            "front": true
+          },
+          "altarRight": {
+            "x": 946,
+            "y": 946,
+            "inFrame": false,
+            "front": true
+          },
+          "lampCenter": {
+            "x": 544,
+            "y": 185,
+            "inFrame": true,
+            "front": true
+          },
+          "lampTop": {
+            "x": 546,
+            "y": 82,
+            "inFrame": true,
+            "front": true
+          },
+          "flame": {
+            "x": 542,
+            "y": 234,
+            "inFrame": true,
+            "front": true
+          },
+          "screenTop": {
+            "x": 636,
+            "y": 274,
+            "inFrame": true,
+            "front": true
+          },
+          "screenLeft": {
+            "x": 174,
+            "y": 613,
+            "inFrame": true,
+            "front": true
+          },
+          "screenRight": {
+            "x": 1081,
+            "y": 616,
+            "inFrame": true,
+            "front": true
+          },
+          "altarTop": {
+            "x": 620,
+            "y": 947,
+            "inFrame": false,
+            "front": true
+          },
+          "altarFeet": {
+            "x": 616,
+            "y": 1231,
+            "inFrame": false,
+            "front": true
+          },
+          "rearBeam": {
+            "x": 625,
+            "y": 103,
+            "inFrame": true,
+            "front": true
+          },
+          "doorTop": {
+            "x": 1566,
+            "y": 8270,
+            "inFrame": false,
+            "front": false
+          },
+          "doorBottom": {
+            "x": 988,
+            "y": -1981,
+            "inFrame": false,
+            "front": false
+          },
+          "snowNear": {
+            "x": 706,
+            "y": 354,
+            "inFrame": false,
+            "front": false
+          },
+          "snowFar": {
+            "x": 682,
+            "y": 628,
+            "inFrame": false,
+            "front": false
+          }
+        }
+      },
+      "phone": {
+        "position": [
+          0.1,
+          2.22,
+          1.6
+        ],
+        "target": [
+          0,
+          2.72,
+          -0.5
+        ],
+        "verticalFov": 44,
+        "horizontalFov": 21.150138087488976,
+        "projections": {
+          "screenBottom": {
+            "x": 234,
+            "y": 802,
+            "inFrame": true,
+            "front": true
+          },
+          "altarLeft": {
+            "x": 13,
+            "y": 773,
+            "inFrame": true,
+            "front": true
+          },
+          "altarRight": {
+            "x": 452,
+            "y": 775,
+            "inFrame": false,
+            "front": true
+          },
+          "lampCenter": {
+            "x": 195,
+            "y": 267,
+            "inFrame": true,
+            "front": true
+          },
+          "lampTop": {
+            "x": 195,
+            "y": 199,
+            "inFrame": true,
+            "front": true
+          },
+          "flame": {
+            "x": 195,
+            "y": 299,
+            "inFrame": true,
+            "front": true
+          },
+          "screenTop": {
+            "x": 230,
+            "y": 324,
+            "inFrame": true,
+            "front": true
+          },
+          "screenLeft": {
+            "x": -66,
+            "y": 552,
+            "inFrame": false,
+            "front": true
+          },
+          "screenRight": {
+            "x": 537,
+            "y": 549,
+            "inFrame": false,
+            "front": true
+          },
+          "altarTop": {
+            "x": 230,
+            "y": 774,
+            "inFrame": true,
+            "front": true
+          },
+          "altarFeet": {
+            "x": 232,
+            "y": 965,
+            "inFrame": false,
+            "front": true
+          },
+          "rearBeam": {
+            "x": 224,
+            "y": 211,
+            "inFrame": true,
+            "front": true
+          },
+          "doorTop": {
+            "x": 713,
+            "y": 6388,
+            "inFrame": false,
+            "front": false
+          },
+          "doorBottom": {
+            "x": 336,
+            "y": -1154,
+            "inFrame": false,
+            "front": false
+          },
+          "snowNear": {
+            "x": 257,
+            "y": 377,
+            "inFrame": false,
+            "front": false
+          },
+          "snowFar": {
+            "x": 250,
+            "y": 559,
+            "inFrame": false,
+            "front": false
+          }
+        }
+      }
+    },
+    "confirmIgnition": {
+      "desktop": {
+        "position": [
+          0.12,
+          2.22,
+          1.38
+        ],
+        "target": [
+          0.2,
+          2.68,
+          -0.5
+        ],
+        "verticalFov": 32,
+        "horizontalFov": 49.29061542320386,
+        "projections": {
+          "screenBottom": {
+            "x": 623,
+            "y": 1039,
+            "inFrame": false,
+            "front": true
+          },
+          "altarLeft": {
+            "x": 271,
+            "y": 997,
+            "inFrame": false,
+            "front": true
+          },
+          "altarRight": {
+            "x": 958,
+            "y": 994,
+            "inFrame": false,
+            "front": true
+          },
+          "lampCenter": {
+            "x": 565,
+            "y": 160,
+            "inFrame": true,
+            "front": true
+          },
+          "lampTop": {
+            "x": 568,
+            "y": 48,
+            "inFrame": true,
+            "front": true
+          },
+          "flame": {
+            "x": 563,
+            "y": 212,
+            "inFrame": true,
+            "front": true
+          },
+          "screenTop": {
+            "x": 633,
+            "y": 299,
+            "inFrame": true,
+            "front": true
+          },
+          "screenLeft": {
+            "x": 155,
+            "y": 646,
+            "inFrame": true,
+            "front": true
+          },
+          "screenRight": {
+            "x": 1090,
+            "y": 650,
+            "inFrame": true,
+            "front": true
+          },
+          "altarTop": {
+            "x": 618,
+            "y": 995,
+            "inFrame": false,
+            "front": true
+          },
+          "altarFeet": {
+            "x": 613,
+            "y": 1296,
+            "inFrame": false,
+            "front": true
+          },
+          "rearBeam": {
+            "x": 627,
+            "y": 118,
+            "inFrame": true,
+            "front": true
+          },
+          "doorTop": {
+            "x": 1002,
+            "y": 5546,
+            "inFrame": false,
+            "front": false
+          },
+          "doorBottom": {
+            "x": 833,
+            "y": -1374,
+            "inFrame": false,
+            "front": false
+          },
+          "snowNear": {
+            "x": 679,
+            "y": 404,
+            "inFrame": false,
+            "front": false
+          },
+          "snowFar": {
+            "x": 662,
+            "y": 668,
+            "inFrame": false,
+            "front": false
+          }
+        }
+      },
+      "phone": {
+        "position": [
+          0.1,
+          2.22,
+          1.5
+        ],
+        "target": [
+          0,
+          2.75,
+          -0.5
+        ],
+        "verticalFov": 44,
+        "horizontalFov": 21.150138087488976,
+        "projections": {
+          "screenBottom": {
+            "x": 236,
+            "y": 834,
+            "inFrame": true,
+            "front": true
+          },
+          "altarLeft": {
+            "x": 10,
+            "y": 804,
+            "inFrame": true,
+            "front": true
+          },
+          "altarRight": {
+            "x": 461,
+            "y": 806,
+            "inFrame": false,
+            "front": true
+          },
+          "lampCenter": {
+            "x": 195,
+            "y": 275,
+            "inFrame": true,
+            "front": true
+          },
+          "lampTop": {
+            "x": 195,
+            "y": 205,
+            "inFrame": true,
+            "front": true
+          },
+          "flame": {
+            "x": 195,
+            "y": 308,
+            "inFrame": true,
+            "front": true
+          },
+          "screenTop": {
+            "x": 232,
+            "y": 347,
+            "inFrame": true,
+            "front": true
+          },
+          "screenLeft": {
+            "x": -68,
+            "y": 578,
+            "inFrame": false,
+            "front": true
+          },
+          "screenRight": {
+            "x": 545,
+            "y": 574,
+            "inFrame": false,
+            "front": true
+          },
+          "altarTop": {
+            "x": 233,
+            "y": 805,
+            "inFrame": true,
+            "front": true
+          },
+          "altarFeet": {
+            "x": 235,
+            "y": 1004,
+            "inFrame": false,
+            "front": true
+          },
+          "rearBeam": {
+            "x": 226,
+            "y": 231,
+            "inFrame": true,
+            "front": true
+          },
+          "doorTop": {
+            "x": 638,
+            "y": 5388,
+            "inFrame": false,
+            "front": false
+          },
+          "doorBottom": {
+            "x": 325,
+            "y": -914,
+            "inFrame": false,
+            "front": false
+          },
+          "snowNear": {
+            "x": 259,
+            "y": 407,
+            "inFrame": false,
+            "front": false
+          },
+          "snowFar": {
+            "x": 253,
+            "y": 587,
+            "inFrame": false,
+            "front": false
+          }
+        }
+      }
+    },
+    "spreadInside": {
+      "desktop": {
+        "position": [
+          0.12,
+          2.22,
+          1.85
+        ],
+        "target": [
+          0,
+          2.49,
+          -1.25
+        ],
+        "verticalFov": 44,
+        "horizontalFov": 65.76064597079672,
+        "projections": {
+          "screenBottom": {
+            "x": 747,
+            "y": 675,
+            "inFrame": true,
+            "front": true
+          },
+          "altarLeft": {
+            "x": 528,
+            "y": 646,
+            "inFrame": true,
+            "front": true
+          },
+          "altarRight": {
+            "x": 962,
+            "y": 647,
+            "inFrame": true,
+            "front": true
+          },
+          "lampCenter": {
+            "x": 707,
+            "y": 157,
+            "inFrame": true,
+            "front": true
+          },
+          "lampTop": {
+            "x": 707,
+            "y": 87,
+            "inFrame": true,
+            "front": true
+          },
+          "flame": {
+            "x": 707,
+            "y": 190,
+            "inFrame": true,
+            "front": true
+          },
+          "screenTop": {
+            "x": 746,
+            "y": 189,
+            "inFrame": true,
+            "front": true
+          },
+          "screenLeft": {
+            "x": 440,
+            "y": 428,
+            "inFrame": true,
+            "front": true
+          },
+          "screenRight": {
+            "x": 1060,
+            "y": 426,
+            "inFrame": true,
+            "front": true
+          },
+          "altarTop": {
+            "x": 743,
+            "y": 647,
+            "inFrame": true,
+            "front": true
+          },
+          "altarFeet": {
+            "x": 744,
+            "y": 824,
+            "inFrame": true,
+            "front": true
+          },
+          "rearBeam": {
+            "x": 740,
+            "y": 69,
+            "inFrame": true,
+            "front": true
+          },
+          "doorTop": {
+            "x": 1383,
+            "y": 7430,
+            "inFrame": false,
+            "front": false
+          },
+          "doorBottom": {
+            "x": 1027,
+            "y": -3193,
+            "inFrame": false,
+            "front": false
+          },
+          "snowNear": {
+            "x": 781,
+            "y": 225,
+            "inFrame": false,
+            "front": false
+          },
+          "snowFar": {
+            "x": 769,
+            "y": 431,
+            "inFrame": false,
+            "front": false
+          }
+        }
+      },
+      "phone": {
+        "position": [
+          0,
+          2.22,
+          1.85
+        ],
+        "target": [
+          0,
+          2.45,
+          -1.25
+        ],
+        "verticalFov": 64,
+        "horizontalFov": 32.21140035225118,
+        "projections": {
+          "screenBottom": {
+            "x": 195,
+            "y": 549,
+            "inFrame": true,
+            "front": true
+          },
+          "altarLeft": {
+            "x": 64,
+            "y": 532,
+            "inFrame": true,
+            "front": true
+          },
+          "altarRight": {
+            "x": 326,
+            "y": 532,
+            "inFrame": true,
+            "front": true
+          },
+          "lampCenter": {
+            "x": 195,
+            "y": 235,
+            "inFrame": true,
+            "front": true
+          },
+          "lampTop": {
+            "x": 195,
+            "y": 192,
+            "inFrame": true,
+            "front": true
+          },
+          "flame": {
+            "x": 195,
+            "y": 255,
+            "inFrame": true,
+            "front": true
+          },
+          "screenTop": {
+            "x": 195,
+            "y": 254,
+            "inFrame": true,
+            "front": true
+          },
+          "screenLeft": {
+            "x": 7,
+            "y": 399,
+            "inFrame": true,
+            "front": true
+          },
+          "screenRight": {
+            "x": 383,
+            "y": 399,
+            "inFrame": true,
+            "front": true
+          },
+          "altarTop": {
+            "x": 195,
+            "y": 532,
+            "inFrame": true,
+            "front": true
+          },
+          "altarFeet": {
+            "x": 195,
+            "y": 639,
+            "inFrame": true,
+            "front": true
+          },
+          "rearBeam": {
+            "x": 195,
+            "y": 181,
+            "inFrame": true,
+            "front": true
+          },
+          "doorTop": {
+            "x": 195,
+            "y": 4257,
+            "inFrame": false,
+            "front": false
+          },
+          "doorBottom": {
+            "x": 195,
+            "y": -1868,
+            "inFrame": false,
+            "front": false
+          },
+          "snowNear": {
+            "x": 195,
+            "y": 277,
+            "inFrame": false,
+            "front": false
+          },
+          "snowFar": {
+            "x": 195,
+            "y": 402,
+            "inFrame": false,
+            "front": false
+          }
+        }
+      }
+    },
+    "burning": {
+      "desktop": {
+        "position": [
+          0.18,
+          2.22,
+          -3.85
+        ],
+        "target": [
+          0,
+          2.55,
+          0
+        ],
+        "verticalFov": 32,
+        "horizontalFov": 49.29061542320386,
+        "projections": {
+          "screenBottom": {
+            "x": 536,
+            "y": 9,
+            "inFrame": false,
+            "front": false
+          },
+          "altarLeft": {
+            "x": -1713,
+            "y": -367,
+            "inFrame": false,
+            "front": false
+          },
+          "altarRight": {
+            "x": 2239,
+            "y": -263,
+            "inFrame": false,
+            "front": false
+          },
+          "lampCenter": {
+            "x": 731,
+            "y": 196,
+            "inFrame": true,
+            "front": true
+          },
+          "lampTop": {
+            "x": 731,
+            "y": 125,
+            "inFrame": true,
+            "front": true
+          },
+          "flame": {
+            "x": 731,
+            "y": 229,
+            "inFrame": true,
+            "front": true
+          },
+          "screenTop": {
+            "x": 511,
+            "y": 2493,
+            "inFrame": false,
+            "front": false
+          },
+          "screenLeft": {
+            "x": -1067,
+            "y": 1198,
+            "inFrame": false,
+            "front": false
+          },
+          "screenRight": {
+            "x": 1979,
+            "y": 1145,
+            "inFrame": false,
+            "front": false
+          },
+          "altarTop": {
+            "x": 377,
+            "y": -312,
+            "inFrame": false,
+            "front": false
+          },
+          "altarFeet": {
+            "x": 404,
+            "y": -1684,
+            "inFrame": false,
+            "front": false
+          },
+          "rearBeam": {
+            "x": -17968,
+            "y": 258210,
+            "inFrame": false,
+            "front": false
+          },
+          "doorTop": {
+            "x": 694,
+            "y": 231,
+            "inFrame": true,
+            "front": true
+          },
+          "doorBottom": {
+            "x": 693,
+            "y": 1017,
+            "inFrame": false,
+            "front": true
+          },
+          "snowNear": {
+            "x": 668,
+            "y": 846,
+            "inFrame": true,
+            "front": true
+          },
+          "snowFar": {
+            "x": 657,
+            "y": 714,
+            "inFrame": true,
+            "front": true
+          }
+        }
+      },
+      "phone": {
+        "position": [
+          0.18,
+          2.22,
+          -3.85
+        ],
+        "target": [
+          0,
+          2.48,
+          0
+        ],
+        "verticalFov": 44,
+        "horizontalFov": 21.150138087488976,
+        "projections": {
+          "screenBottom": {
+            "x": 72,
+            "y": 108,
+            "inFrame": false,
+            "front": false
+          },
+          "altarLeft": {
+            "x": -1440,
+            "y": -146,
+            "inFrame": false,
+            "front": false
+          },
+          "altarRight": {
+            "x": 1215,
+            "y": -75,
+            "inFrame": false,
+            "front": false
+          },
+          "lampCenter": {
+            "x": 202,
+            "y": 233,
+            "inFrame": true,
+            "front": true
+          },
+          "lampTop": {
+            "x": 202,
+            "y": 186,
+            "inFrame": true,
+            "front": true
+          },
+          "flame": {
+            "x": 202,
+            "y": 255,
+            "inFrame": true,
+            "front": true
+          },
+          "screenTop": {
+            "x": 59,
+            "y": 1732,
+            "inFrame": false,
+            "front": false
+          },
+          "screenLeft": {
+            "x": -984,
+            "y": 897,
+            "inFrame": false,
+            "front": false
+          },
+          "screenRight": {
+            "x": 1027,
+            "y": 862,
+            "inFrame": false,
+            "front": false
+          },
+          "altarTop": {
+            "x": -35,
+            "y": -108,
+            "inFrame": false,
+            "front": false
+          },
+          "altarFeet": {
+            "x": -21,
+            "y": -1053,
+            "inFrame": false,
+            "front": false
+          },
+          "rearBeam": {
+            "x": -2942,
+            "y": 43674,
+            "inFrame": false,
+            "front": false
+          },
+          "doorTop": {
+            "x": 177,
+            "y": 257,
+            "inFrame": true,
+            "front": true
+          },
+          "doorBottom": {
+            "x": 177,
+            "y": 778,
+            "inFrame": true,
+            "front": true
+          },
+          "snowNear": {
+            "x": 160,
+            "y": 666,
+            "inFrame": true,
+            "front": true
+          },
+          "snowFar": {
+            "x": 153,
+            "y": 578,
+            "inFrame": true,
+            "front": true
+          }
+        }
+      }
+    }
+  }
+}

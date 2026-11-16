@@ -1,0 +1,203 @@
+{
+  "scene": "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-architecture.blend",
+  "blendSha256": "d12cfe548102cecfc518e574072dc55cf77e48b7b9630666aa46c89ac05cadfc",
+  "sourceSha256": "96e491e873c60ec973d0fbe94622eb22714e59da3e1336ea5d5e6ade37359356",
+  "device": "CPU",
+  "samples": 8,
+  "size": [
+    720,
+    450
+  ],
+  "maxBounces": 4,
+  "cameras": [
+    {
+      "name": "Reference_outside",
+      "path": "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-architecture-overlap-preview/Reference_outside.png",
+      "position": [
+        2.4000000953674316,
+        -45.0,
+        1.75
+      ],
+      "rotationEuler": [
+        1.6171562671661377,
+        -5.978479489243682e-09,
+        0.08257046341896057
+      ],
+      "lens": 41.84897232055664,
+      "sensorFit": "VERTICAL",
+      "sensorHeight": 24.0
+    },
+    {
+      "name": "EaveDetail",
+      "path": "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-architecture-overlap-preview/EaveDetail.png",
+      "position": [
+        5.800000190734863,
+        -8.0,
+        5.599999904632568
+      ],
+      "rotationEuler": [
+        1.5935927629470825,
+        -7.281079206222785e-08,
+        0.6777083873748779
+      ],
+      "lens": 41.84897232055664,
+      "sensorFit": "VERTICAL",
+      "sensorHeight": 24.0
+    },
+    {
+      "name": "Reference_walk-3",
+      "path": "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-architecture-overlap-preview/Reference_walk-3.png",
+      "position": [
+        0.20147880911827087,
+        -4.4731903076171875,
+        1.919839859008789
+      ],
+      "rotationEuler": [
+        1.645633578300476,
+        -5.084612730854587e-10,
+        0.03840493783354759
+      ],
+      "lens": 41.84897232055664,
+      "sensorFit": "VERTICAL",
+      "sensorHeight": 24.0
+    },
+    {
+      "name": "DoorFloorDetail",
+      "path": "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-architecture-overlap-preview/DoorFloorDetail.png",
+      "position": [
+        3.0,
+        -8.5,
+        1.7999999523162842
+      ],
+      "rotationEuler": [
+        1.4757494926452637,
+        -1.4574855988769286e-08,
+        0.30667632818222046
+      ],
+      "lens": 32.0,
+      "sensorFit": "VERTICAL",
+      "sensorHeight": 24.0
+    },
+    {
+      "name": "Reference_walk-1",
+      "path": "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-architecture-overlap-preview/Reference_walk-1.png",
+      "position": [
+        2.4000000953674316,
+        -45.0,
+        1.75
+      ],
+      "rotationEuler": [
+        1.6171562671661377,
+        -5.978479489243682e-09,
+        0.08257046341896057
+      ],
+      "lens": 41.84897232055664,
+      "sensorFit": "VERTICAL",
+      "sensorHeight": 24.0
+    },
+    {
+      "name": "Reference_walk-2",
+      "path": "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-architecture-overlap-preview/Reference_walk-2.png",
+      "position": [
+        0.18139027059078217,
+        -37.504207611083984,
+        1.7017195224761963
+      ],
+      "rotationEuler": [
+        1.6040904521942139,
+        6.255983925340658e-11,
+        0.002337826881557703
+      ],
+      "lens": 41.84897232055664,
+      "sensorFit": "VERTICAL",
+      "sensorHeight": 24.0
+    },
+    {
+      "name": "Reference_choose",
+      "path": "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-architecture-overlap-preview/Reference_choose.png",
+      "position": [
+        0.03999999910593033,
+        -0.9750000238418579,
+        3.299999952316284
+      ],
+      "rotationEuler": [
+        1.4112073183059692,
+        -5.102229749809339e-10,
+        0.027112001553177834
+      ],
+      "lens": 41.84897232055664,
+      "sensorFit": "VERTICAL",
+      "sensorHeight": 24.0
+    },
+    {
+      "name": "Reference_lit",
+      "path": "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-architecture-overlap-preview/Reference_lit.png",
+      "position": [
+        0.029999999329447746,
+        -0.6625000238418579,
+        3.1762499809265137
+      ],
+      "rotationEuler": [
+        1.4732897281646729,
+        1.4312511176228782e-09,
+        0.02580072544515133
+      ],
+      "lens": 41.84897232055664,
+      "sensorFit": "VERTICAL",
+      "sensorHeight": 24.0
+    },
+    {
+      "name": "RoofRidgeDetail",
+      "path": "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-architecture-overlap-preview/RoofRidgeDetail.png",
+      "position": [
+        8.300000190734863,
+        -10.0,
+        7.199999809265137
+      ],
+      "rotationEuler": [
+        1.4696588516235352,
+        6.398512653049693e-08,
+        0.3553770184516907
+      ],
+      "lens": 41.84897232055664,
+      "sensorFit": "VERTICAL",
+      "sensorHeight": 24.0
+    },
+    {
+      "name": "StepWearDetail",
+      "path": "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-architecture-overlap-preview/StepWearDetail.png",
+      "position": [
+        -0.30000001192092896,
+        -5.929999828338623,
+        0.6399999856948853
+      ],
+      "rotationEuler": [
+        1.2559089660644531,
+        -1.504933422324939e-08,
+        -0.13613899052143097
+      ],
+      "lens": 41.84897232055664,
+      "sensorFit": "VERTICAL",
+      "sensorHeight": 24.0
+    },
+    {
+      "name": "BeamJoineryDetail",
+      "path": "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-architecture-overlap-preview/BeamJoineryDetail.png",
+      "position": [
+        0.20000000298023224,
+        0.20000000298023224,
+        3.5999999046325684
+      ],
+      "rotationEuler": [
+        2.046746253967285,
+        -3.529792280687616e-08,
+        -0.6154556274414062
+      ],
+      "lens": 41.84897232055664,
+      "sensorFit": "VERTICAL",
+      "sensorHeight": 24.0
+    }
+  ],
+  "constructionDiagnostic": false,
+  "hiddenRoofSnow": []
+}
