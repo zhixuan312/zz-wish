@@ -2,9 +2,9 @@
 export default function createPlace(h) {
   const { THREE, V3, roofMat, ground, hallB, gateB, compound, trees, postLanterns, city, fall, lanterns, tower, pauseBuild } = h;
   return {
-    snow: .85, exposure: 1.2,
-    sky: { top: 0x0b0f1e, horizon: 0x3c3248, ground: 0x1c1a22, sun: 0xc8d4ff, dir: [.4, .5, -1], glow: .15, clouds: .75, lit: 0x5a4c5c, dark: 0x1e1c26, disc: 0 },
-    fog: [0x2c2634, .018], sunL: [0x9fb4e0, .5], hemi: [0x5a6488, 0x2a2428, .55], bloom: [.8, .85],
+    snow: .85, exposure: 1.2, shade: 0.4,
+    sky: { top: 0x070a16, horizon: 0x2c2638, ground: 0x14121a, sun: 0xc8d4ff, dir: [.4, .5, -1], glow: .15, clouds: .75, lit: 0x4a3e4e, dark: 0x16141e, disc: 0 },
+    fog: [0x221e2c, .02], sunL: [0x9fb4e0, .45], hemi: [0x4a5478, 0x1c181c, .42], bloom: [.85, .8], porch: [0xffa04a, 110],
     view: { pos: V3(13, 7, 54), look: V3(0, 7, -6) },
     walk: [V3(0, 1.7, 42), V3(0, 1.7, 24), V3(0, 1.7, 16), V3(0, 1.7, 8)], doors: V3(0, 3.5, 4),
     async build() {

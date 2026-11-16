@@ -2,9 +2,9 @@
 export default function createPlace(h) {
   const { THREE, V3, M, roofMat, pave, hallB, trees, peak, postLanterns, stairs, paifang, water, statue, box, lanterns, pauseBuild } = h;
   return {
-    exposure: 1.1,
-    sky: { top: 0x101a3e, horizon: 0x7a5a74, ground: 0x141824, sun: 0xff8a50, dir: [.95, .02, -.5], glow: 1.3, clouds: .35, lit: 0xd88a7a, dark: 0x2a2a44, stars: .7, disc: 0 },
-    fog: [0x3a3650, .007], sunL: [0xff9a6a, .5], hemi: [0x4a5a90, 0x201820, .6], bloom: [.8, .85],
+    exposure: 1.1, shade: 0.32,
+    sky: { top: 0x070c22, horizon: 0x3a2e44, ground: 0x0c0e16, sun: 0xff8a50, dir: [.95, .02, -.5], glow: .7, clouds: .35, lit: 0x6a4450, dark: 0x161830, stars: .8, disc: 0 },
+    fog: [0x221e30, .008], sunL: [0x8a9ad0, .45], hemi: [0x3a4878, 0x141016, .32], bloom: [.85, .8], porch: [0xffa04a, 100],
     view: { pos: V3(24, 11, 66), look: V3(0, 24, -36) },
     walk: [V3(0, 1.7, 30), V3(0, 1.7, 18), V3(0, 1.7, 10)], doors: V3(0, 3.5, 4),
     async build() {
@@ -27,7 +27,7 @@ export default function createPlace(h) {
       await pauseBuild();
       statue(0, 47, -95, 22, M(0xece8de, .8));
       await pauseBuild();
-      const sp = new THREE.SpotLight(0xffe2c0, 4000, 200, .22, .6, 2); sp.position.set(10, 34, -50); sp.target.position.set(0, 58, -95); sp.intensity = 9000; C.G.add(sp, sp.target);
+      const sp = new THREE.SpotLight(0xffe2c0, 4000, 200, .22, .6, 2); sp.position.set(10, 34, -50); sp.target.position.set(0, 58, -95); sp.intensity = 3200; C.G.add(sp, sp.target);
       await pauseBuild();
       paifang(17, 9, 5.5, M(0xb8b0a2, .9), roof);
       await pauseBuild();

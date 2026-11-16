@@ -2,8 +2,9 @@
 export default function createPlace(h) {
   const { THREE, V3, M, roofMat, ground, pave, hallB, gateB, compound, trees, ridges, paifang, fall, tower, pavingTex, pauseBuild } = h;
   return {
-    sky: { top: 0x545a62, horizon: 0x9c9c98, ground: 0x4a4440, sun: 0xd0d0d0, dir: [0, .6, -1], glow: .1, clouds: .92, lit: 0xa0a2a6, dark: 0x5a5e66, disc: 0 },
-    fog: [0x8a8c8e, .013], sunL: [0xdfe4ea, .9], hemi: [0xa8b0b8, 0x3a3530, 1.1], bloom: [.45, 1.2],
+    exposure: 1.1, shade: 0.25,
+    sky: { top: 0x08090c, horizon: 0x26221f, ground: 0x0e0c0b, sun: 0xd0d0d0, dir: [0, .6, -1], glow: .05, clouds: .9, lit: 0x2e2c2c, dark: 0x101012, disc: 0 },
+    fog: [0x1c1a18, .015], sunL: [0xb8c0cc, .35], hemi: [0x3a3c40, 0x120f0c, .35], bloom: [.85, .8], porch: [0xff9440, 120],
     view: { pos: V3(18, 4.5, 66), look: V3(0, 10, -10) },
     walk: [V3(0, 1.7, 44), V3(0, 1.7, 26), V3(0, 1.7, 14), V3(0, 1.7, 8)], doors: V3(0, 3.5, 4),
     async build() {

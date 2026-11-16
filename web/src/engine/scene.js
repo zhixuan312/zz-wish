@@ -7,7 +7,6 @@ import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPa
 import { FocusBlur } from './FocusBlur.js';
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
-import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import { mergeGeometries, mergeVertices } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
 // ---------- Content ----------
@@ -37,7 +36,18 @@ renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 const camera = new THREE.PerspectiveCamera(34, 1, 0.01, 900);
 const pmrem = new THREE.PMREMGenerator(renderer);
-const roomEnv = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+// The hall's reflections: a near-black room with warm candle points and one cool window,
+// so brass reads as metal catching flames instead of a white studio.
+const hallEnv = (() => {
+  const s = new THREE.Scene();
+  s.add(new THREE.Mesh(new THREE.SphereGeometry(10, 32, 16), new THREE.MeshBasicMaterial({ color: 0x0a0605, side: THREE.BackSide })));
+  const warm = new THREE.MeshBasicMaterial({ color: new THREE.Color(6, 2.6, .8) }), dot = new THREE.SphereGeometry(.09, 8, 6);
+  for (let i = 0; i < 28; i++) { const a = -1.1 + i / 27 * 2.2, r = 4 + (i % 3) * .6; const m = new THREE.Mesh(dot, warm); m.position.set(Math.sin(a) * r, -.3 + (i % 3) * .35, -Math.cos(a) * r); s.add(m); }
+  const glow = new THREE.Mesh(new THREE.SphereGeometry(1.4, 16, 8), new THREE.MeshBasicMaterial({ color: new THREE.Color(.5, .22, .08) })); glow.position.set(0, 1.5, -6); s.add(glow);
+  const win = new THREE.Mesh(new THREE.PlaneGeometry(3, 2.2), new THREE.MeshBasicMaterial({ color: new THREE.Color(.06, .08, .12), side: THREE.DoubleSide })); win.position.set(-5, 2, 3); win.lookAt(0, 1, 0); s.add(win);
+  const warmFloor = new THREE.Mesh(new THREE.CircleGeometry(2.5, 24), new THREE.MeshBasicMaterial({ color: new THREE.Color(.12, .05, .02) })); warmFloor.rotation.x = -Math.PI / 2; warmFloor.position.y = -1; s.add(warmFloor);
+  return pmrem.fromScene(s, .02).texture;
+})();
 
 const composer = new EffectComposer(renderer);
 const renderPass = new RenderPass(new THREE.Scene(), camera);
@@ -166,14 +176,21 @@ function plaqueTex(text) {
 
 // Wax with a warm glow near the burning top, standing in for light scattered inside the wax.
 function waxMaterial(color, o = {}) {
-  const m = new THREE.MeshPhysicalMaterial({ color, roughness: o.roughness ?? .52, clearcoat: o.clearcoat ?? .12, clearcoatRoughness: .35,
-    sheen: .5, sheenColor: new THREE.Color(0xffc3a0), envMapIntensity: .08 });
-  m.userData.u = { uTop: { value: 1 }, uGlow: { value: 0 }, uFall: { value: o.fall ?? 110 }, uGlowColor: { value: new THREE.Color(o.glow ?? 0xffa344) } };
+  const m = new THREE.MeshPhysicalMaterial({ color, roughness: o.roughness ?? .48, clearcoat: o.clearcoat ?? .18, clearcoatRoughness: .3,
+    sheen: .6, sheenRoughness: .5, sheenColor: new THREE.Color(0xffc3a0), envMapIntensity: .35 });
+  m.userData.u = { uTop: { value: 1 }, uGlow: { value: 0 }, uFall: { value: o.fall ?? 110 }, uGlowColor: { value: new THREE.Color(o.glow ?? 0xffa650) } };
   m.onBeforeCompile = (sh) => {
     Object.assign(sh.uniforms, m.userData.u);
     sh.vertexShader = 'varying vec3 vWPos;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\nvWPos = (modelMatrix * vec4(transformed, 1.0)).xyz;');
+    // Light scattered inside the wax: strongest just under the flame, with a long faint tail down the body,
+    // and brighter at the silhouette where the light passes through less wax on its way out.
     sh.fragmentShader = 'uniform float uTop; uniform float uGlow; uniform float uFall; uniform vec3 uGlowColor; varying vec3 vWPos;\n' +
-      sh.fragmentShader.replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\ntotalEmissiveRadiance += uGlowColor * uGlow * exp(-max(uTop - vWPos.y, 0.0) * uFall);');
+      sh.fragmentShader.replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
+      float waxDepth = max(uTop - vWPos.y, 0.0);
+      float scatter = exp(-waxDepth * uFall) + .16 * exp(-waxDepth * uFall * .18);
+      float thin = .55 + .9 * pow(1.0 - abs(dot(normal, normalize(vViewPosition))), 1.6);
+      totalEmissiveRadiance += uGlowColor * uGlow * scatter * thin;
+      diffuseColor.rgb *= mix(1.0, .82, smoothstep(.0, .25, waxDepth * uFall * .1));`);
   };
   return m;
 }
@@ -250,6 +267,7 @@ class Smoke {
       p.age += dt; if (p.age > p.life) { p.s.visible = false; continue; }
       const k = p.age / p.life;
       p.v.x += Math.sin(time * 1.3 + p.seed + p.age * 2.1) * .006 * dt * this.k; p.v.z += Math.cos(time * .9 + p.seed) * .004 * dt * this.k;
+      if (this.curl) { const w = time * .7 + p.age * 1.9; p.v.x += Math.sin(w) * .012 * k * dt * 6; p.v.z += Math.cos(w * 1.3) * .008 * k * dt * 6; }
       p.s.position.addScaledVector(p.v, dt);
       const sc = p.size * (1 + k * 5); p.s.scale.set(sc, sc * 1.6, 1);
       p.s.material.opacity = this.maxOp * Math.sin(Math.PI * Math.min(1, k * 1.4)) * (1 - k);
@@ -261,7 +279,7 @@ class Smoke {
 const hall = new THREE.Scene();
 hall.background = new THREE.Color(0x090605);
 hall.fog = new THREE.FogExp2(0x090605, .17);
-hall.environment = roomEnv;
+hall.environment = hallEnv;
 // The offering is the focal plane. Blur the distant hall before compositing it,
 // keeping the flame's soft procedural edge and the person's own outline intact.
 const previewFill = new THREE.DirectionalLight(0xe4dbc2, .16); previewFill.position.set(1, 2, 2); previewFill.layers.set(1); hall.add(previewFill);
@@ -278,8 +296,13 @@ offeringPass.clear = false; offeringPass.clearDepth = true;
 composer.insertPass(focusBlur, 1); composer.insertPass(offeringPass, 2);
 const ALTAR_Y = .82;
 const lacquer = new THREE.MeshPhysicalMaterial({ color: 0x241811, map: grainTex, roughness: .68, clearcoat: .12, clearcoatRoughness: .6, envMapIntensity: .08 });
-const brass = new THREE.MeshStandardMaterial({ color: 0xb08a4e, metalness: .9, roughness: .48, envMapIntensity: .12 });
-const darkIron = new THREE.MeshStandardMaterial({ color: 0x1c1714, metalness: .6, roughness: .6, envMapIntensity: .2 });
+const patina = canvasTex(256, 256, (g, w, h) => {
+  const rnd = mulberry32(19); g.fillStyle = '#7a7a7a'; g.fillRect(0, 0, w, h);
+  for (let i = 0; i < 1400; i++) { const v = 90 + rnd() * 120; g.fillStyle = `rgba(${v},${v},${v},.35)`; g.beginPath(); g.arc(rnd() * w, rnd() * h, 1 + rnd() * 5, 0, 6.3); g.fill(); }
+}, false);
+patina.wrapS = patina.wrapT = THREE.RepeatWrapping; patina.repeat.set(3, 3);
+const brass = new THREE.MeshStandardMaterial({ color: 0xc09454, metalness: 1, roughness: .34, roughnessMap: patina, envMapIntensity: 1.1 });
+const darkIron = new THREE.MeshStandardMaterial({ color: 0x1c1714, metalness: .7, roughness: .5, envMapIntensity: .6 });
 {
   const floorTex = stoneTex(3); floorTex.repeat.set(5, 5);
   const floor = new THREE.Mesh(new THREE.PlaneGeometry(20, 20), new THREE.MeshStandardMaterial({ map: floorTex, roughness: .7, envMapIntensity: .2 }));
@@ -348,7 +371,7 @@ function flameParts(g) {
       const f = .85 + .15 * noise2((time + seed * 17) * 3.7, seed * 5);
       fm.uniforms.uTime.value = time; fm.uniforms.uPower.value = power; fm.uniforms.uScale.value = .038 * (.85 + .15 * f) * Math.max(.15, Math.sqrt(power));
       light.intensity = lightMax * power * f; halo.material.opacity = .025 * power * f; ember.visible = power > .02;
-      for (const m of wax) { m.userData.u.uTop.value = topY; m.userData.u.uGlow.value = .22 * power * f; }
+      for (const m of wax) { m.userData.u.uTop.value = topY; m.userData.u.uGlow.value = 1.1 * power * f; }
     } };
 }
 
@@ -358,7 +381,7 @@ for (const [x, z, lv] of [[.5, -.32, .55], [-.3, -.42, .3]]) {
   const g = new THREE.Group(); g.position.set(x, ALTAR_Y, z); hall.add(g);
   const holder = new THREE.Mesh(new THREE.LatheGeometry([[0, 0], [.06, 0], [.064, .006], [.028, .014], [.02, .032], [.026, .046], [.074, .05], [.078, .058], [.07, .058], [0, .056]].map(([a, b]) => V2(a * .93, b)), 48), brass);
   holder.castShadow = true; g.add(holder);
-  const wax = waxMaterial(0x8c1a12), h = .2 * (.1 + .9 * lv);
+  const wax = waxMaterial(lv < .4 ? 0xdcc9a6 : 0x8c1a12), h = .2 * (.1 + .9 * lv);
   const geometry = new THREE.LatheGeometry([[0,-h/2],[.0283,-h/2],[.028,h/2-.002],[.0277,h/2],[.024,h/2-.0008],[.02,h/2-.003],[0,h/2-.003]].map(([r,y])=>V2(r,y)),64);
   const points = geometry.attributes.position;
   for (let i=0;i<points.count;i++) {
@@ -411,7 +434,7 @@ function candleGeo(rows, cut, seg = 56) {
 
 const mine = (() => {
   const g = new THREE.Group(); g.position.set(0, ALTAR_Y, .06); hall.add(g);
-  const satin = new THREE.MeshStandardMaterial({ color: 0x9a7642, metalness: .85, roughness: .52, envMapIntensity: .08 });
+  const satin = new THREE.MeshStandardMaterial({ color: 0xb48a50, metalness: 1, roughness: .3, roughnessMap: patina, envMapIntensity: 1 });
   const plate = new THREE.Mesh(new THREE.LatheGeometry([[0, 0], [.96, 0], [1, .0035], [1.06, .011], [1.03, .012], [.95, .0062], [0, .006]].map(([x, y]) => V2(x, y)), 64), satin);
   plate.position.y = .04; plate.castShadow = plate.receiveShadow = true; g.add(plate);
   const stand = new THREE.Mesh(new THREE.LatheGeometry([[0, 0], [.042, 0], [.044, .004], [.03, .008], [.014, .014], [.01, .03], [.016, .036], [.012, .0405], [0, .0405]].map(([x, y]) => V2(x, y)), 48), satin);
@@ -422,7 +445,7 @@ const mine = (() => {
   const pool = new THREE.Mesh(new THREE.CircleGeometry(1, 48).rotateX(-Math.PI / 2), poolMat); g.add(pool);
   const cupG = new THREE.Group(); g.add(cupG);
   const cup = new THREE.Mesh(new THREE.LatheGeometry([[0, 0], [.045, 0], [.046, .007], [.014, .02], [.011, .058], [.03, .068], [.054, .1], [.058, .116], [.054, .117], [.05, .104], [.028, .074], [0, .07]].map(([x, y]) => V2(x, y)), 64),
-    new THREE.MeshStandardMaterial({ color: 0xc9a14f, metalness: .85, roughness: .42, envMapIntensity: .12 }));
+    new THREE.MeshStandardMaterial({ color: 0xd0a453, metalness: 1, roughness: .28, roughnessMap: patina, envMapIntensity: 1.1 }));
   cup.castShadow = cup.receiveShadow = true; cupG.add(cup);
   const butterTexture = canvasTex(128, 128, (ctx,w,h) => {
     const rnd = mulberry32(42); ctx.fillStyle = '#b0a58c'; ctx.fillRect(0,0,w,h);
@@ -487,7 +510,13 @@ const mine = (() => {
 
 // The rack behind the altar: rows of candles, or butter lamps, left by others.
 const RACK_N = 66;
-const rackBodies = new THREE.InstancedMesh(new THREE.CylinderGeometry(1, 1, 1, 18).translate(0, .5, 0), waxMaterial(0x8a1a12, { roughness: .45 }), RACK_N);
+const rackWax = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: .5, envMapIntensity: .3 });
+// Each rack candle glows near its own top: the body is a unit cylinder, so local height is the glow coordinate.
+rackWax.onBeforeCompile = (sh) => {
+  sh.vertexShader = 'varying float vLocalY;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\nvLocalY = position.y;');
+  sh.fragmentShader = 'varying float vLocalY;\n' + sh.fragmentShader.replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\ntotalEmissiveRadiance += diffuseColor.rgb * vec3(1., .55, .25) * (.9 * pow(vLocalY, 14.) + .1 * pow(vLocalY, 3.));');
+};
+const rackBodies = new THREE.InstancedMesh(new THREE.CylinderGeometry(1, 1, 1, 18).translate(0, .5, 0), rackWax, RACK_N);
 const rackCups = new THREE.InstancedMesh(new THREE.LatheGeometry([[0, 0], [.03, 0], [.012, .015], [.01, .04], [.036, .07], [.04, .08], [.03, .06], [0, .05]].map(([x, y]) => V2(x, y)), 20),
   new THREE.MeshStandardMaterial({ color: 0xc19a4c, metalness: 1, roughness: .3, envMapIntensity: .4 }), RACK_N);
 const rackFlames = new THREE.InstancedMesh(new THREE.PlaneGeometry(1, 1), flameMaterial(true), RACK_N);
@@ -513,6 +542,7 @@ function layoutRack(kind) {
       } else {
         const h = .04 + rnd() * .12, r = .016 + rnd() * .008, lit = rnd() > .22;
         m.compose(V3(x, y, z), new THREE.Quaternion(), V3(r, h, r)); rackBodies.setMatrixAt(i, m);
+        rackBodies.setColorAt(i, new THREE.Color([0x7a1810, 0x8a2414, 0xb89a72, 0x6a160e, 0xa0702a][Math.floor(rnd() * 5)]).multiplyScalar(lit ? 1 : .55));
         m.makeTranslation(x, y + h + .004, z); rackFlames.setMatrixAt(i, m); aScale[i] = lit ? .042 + rnd() * .016 : 0;
       }
       aSeed[i] = rnd() * 10;
@@ -520,6 +550,7 @@ function layoutRack(kind) {
   }
   rackBodies.visible = kind !== 'butter'; rackCups.visible = kind === 'butter';
   for (const im of [rackBodies, rackCups, rackFlames]) im.instanceMatrix.needsUpdate = true;
+  if (rackBodies.instanceColor) rackBodies.instanceColor.needsUpdate = true;
   rackFlames.geometry.attributes.aSeed.needsUpdate = true; rackFlames.geometry.attributes.aScale.needsUpdate = true;
 }
 
@@ -685,7 +716,7 @@ function ridgeGeo(width, base, amp, seed) {
 }
 function ridges(list) {
   list.forEach(([dist, base, amp, color, snow], i) => {
-    const m = new THREE.ShaderMaterial({ uniforms: { uC: { value: new THREE.Color(color) }, uS: { value: new THREE.Color(0xf4f6fa).lerp(new THREE.Color(color), .25) }, uLine: { value: snow ?? 1e5 } },
+    const m = new THREE.ShaderMaterial({ uniforms: { uC: { value: new THREE.Color(color).multiplyScalar(C.shade ** 3) }, uS: { value: new THREE.Color(0xf4f6fa).lerp(new THREE.Color(color), .25).multiplyScalar(C.shade ** 3) }, uLine: { value: snow ?? 1e5 } },
       vertexShader: 'varying vec3 vP; void main(){ vP = position; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.); }',
       fragmentShader: 'uniform vec3 uC, uS; uniform float uLine; varying vec3 vP; void main(){ float s = smoothstep(uLine, uLine + 2., vP.y + sin(vP.x * .21) * 3. + sin(vP.x * .67) * 1.4); gl_FragColor = vec4(mix(uC, uS, s), 1.); }' });
     const mesh = new THREE.Mesh(ridgeGeo(1600, base, amp, 40 + i * 13 + C.seed), m); mesh.position.set(0, 0, -dist); C.G.add(mesh);
@@ -733,8 +764,9 @@ function fall(o) {
   const pos = new Float32Array(n * st), seeds = new Float32Array(n);
   for (let i = 0; i < n; i++) { const x = cx + (rnd() - .5) * w, y = cy + (rnd() - .5) * h, z = cz + (rnd() - .5) * d; seeds[i] = rnd() * 100; pos.set(rain ? [x, y, z, x + .05, y + .7, z] : [x, y, z], i * st); }
   const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-  const obj = rain ? new THREE.LineSegments(g, new THREE.LineBasicMaterial({ color: o.color, transparent: true, opacity: o.opacity ?? .3, depthWrite: false }))
-    : new THREE.Points(g, new THREE.PointsMaterial({ map: o.tex ?? softTex, color: o.color, size: o.size, transparent: true, opacity: o.opacity ?? .9, depthWrite: false, alphaTest: o.tex ? .3 : 0, blending: o.add ? THREE.AdditiveBlending : THREE.NormalBlending }));
+  const tint = new THREE.Color(o.color).multiplyScalar(Math.min(1, C.shade * 2));
+  const obj = rain ? new THREE.LineSegments(g, new THREE.LineBasicMaterial({ color: tint, transparent: true, opacity: o.opacity ?? .3, depthWrite: false }))
+    : new THREE.Points(g, new THREE.PointsMaterial({ map: o.tex ?? softTex, color: tint, size: o.size, transparent: true, opacity: o.opacity ?? .9, depthWrite: false, alphaTest: o.tex ? .3 : 0, blending: o.add ? THREE.AdditiveBlending : THREE.NormalBlending }));
   obj.frustumCulled = false; C.G.add(obj);
   const lo = cy - h / 2, hi = cy + h / 2;
   C.up.push((dt, t) => {
@@ -750,7 +782,7 @@ function fall(o) {
   });
 }
 function mist(o) {
-  const mat = new THREE.SpriteMaterial({ map: softTex, color: o.color, transparent: true, opacity: o.opacity, depthWrite: false, fog: o.fog ?? true });
+  const mat = new THREE.SpriteMaterial({ map: softTex, color: new THREE.Color(o.color).multiplyScalar(Math.min(1, C.shade ** 2 * 1.5)), transparent: true, opacity: o.opacity, depthWrite: false, fog: o.fog ?? true });
   const list = [];
   for (let i = 0; i < o.n; i++) {
     const s = new THREE.Sprite(mat); const k = .6 + C.rnd() * .9;
@@ -766,7 +798,7 @@ function lanterns(list, s = 1) {
 function postLanterns(zs, xoff, h = 3, s = 1) { const pts = []; for (const z of zs) for (const x of [-xoff, xoff]) { box(.12, h, .12, C.dark, x, h / 2, z); box(.9, .1, .1, C.dark, x * .93, h, z); pts.push([x * .86, h - .6, z]); } lanterns(pts, s); }
 function smokeAt(x, y, z, o = {}) {
   const rnd = C.rnd;
-  const sm = new Smoke(C.G, o.n ?? 80, o.color ?? 0xd8d4cc, o.op ?? .28, o.k ?? 14);
+  const sm = new Smoke(C.G, o.n ?? 80, new THREE.Color(o.color ?? 0xd8d4cc).multiplyScalar(C.shade ** 2), (o.op ?? .28) * Math.min(1, C.shade * 2), o.k ?? 14);
   C.up.push((dt, t) => { if (rnd() < (o.rate ?? .6)) sm.puff(V3(x, y, z), o.spread ?? .4, o.size ?? .35); sm.update(dt, t); });
 }
 function burnerAt(x, z, s = 1) {
@@ -925,7 +957,8 @@ async function buildPlaceNow(t) {
   }
   PLACES[t.id] ??= (await placeModules[t.id]()).default(placeHelpers);
   const P = PLACES[t.id], G = new THREE.Group(); outside.add(G);
-  C = { G, up: [], bat: new Map(), seed: seedOf(t.id), rnd: mulberry32(seedOf(t.id)), snow: P.snow ?? 0, cam: P.view.pos, tgt: P.view.look };
+  // `shade` dims the unlit pieces (backdrop ridges, mist, smoke, rain) to match the night light.
+  C = { G, up: [], bat: new Map(), seed: seedOf(t.id), rnd: mulberry32(seedOf(t.id)), snow: P.snow ?? 0, shade: P.shade ?? 1, cam: P.view.pos, tgt: P.view.look };
   C.materials = new Map();
   C.stone = M(0x9c968c, .85, { map: pavingTex }); C.pave = M(0xa8a296, .85, { map: pavingTex });
   C.red = M(0x8a2a1e, .9); C.col = M(0x6e1a12, .5); C.paint = M(0x2c4a52, .8); C.dark = M(0x1c1714, .6, { metalness: .5 });
@@ -940,6 +973,8 @@ async function buildPlaceNow(t) {
   outside.fog = new THREE.FogExp2(P.fog[0], P.fog[1]);
   const sun = new THREE.DirectionalLight(P.sunL[0], P.sunL[1]); sun.position.copy(dir).multiplyScalar(100); G.add(sun);
   G.add(new THREE.HemisphereLight(...P.hemi));
+  // Night: lamplight spills out of the open hall onto the court in front of it.
+  if (P.porch) { const porch = new THREE.PointLight(P.porch[0], P.porch[1], 60, 2); porch.position.copy(P.doors).add(V3(0, 2.4, 5)); G.add(porch); }
   await P.build(t); await finishBatch();
   await renderer.compileAsync(outside, camera);
   C.up.push((dt, time) => { u.uTime.value = time; });
@@ -990,10 +1025,11 @@ function applyTemple(t) {
 }
 
 // Step 3: one of ours, or one you draw.
-const wickSmoke = new Smoke(hall, 50, 0xa9ada5, .09);
+const wickSmoke = new Smoke(hall, 260, 0xc9c6c0, .13);
+wickSmoke.curl = 1;
 wickSmoke.parts.forEach(({s}) => s.layers.set(1));
 hall.traverse(o => { if (o.isLight && o !== previewFill) o.layers.enableAll(); });
-let smokeUntil = 0, emberUntil = 0, ending = 'out', wind = 0;
+let smokeUntil = 0, emberUntil = 0, ending = 'out', wind = 0, roomLight = 1;
 let pointerX = 0, pointerY = 0, previousPointerX = 0;
 window.addEventListener('pointermove', (e) => {
   pointerX = e.clientX / innerWidth * 2 - 1; pointerY = 1 - e.clientY / innerHeight * 2;
@@ -1037,7 +1073,7 @@ export async function previewPlace(id) {
 
 /** Back to the hall's wide view (the wish screen). */
 export async function toHall() {
-  wanted = null; while (busy) await sleep(50);
+  wanted = null; while (busy) await sleep(50); roomLight = 1;
   if (active !== hall) { await fadeTo(1, 600); switchTo(hall); }
   mine.g.visible = false; rig.amp = .006;
   if (rig.pos.distanceTo(WIDE.pos) > .01) { rig.pos.copy(WIDE.pos); rig.look.copy(WIDE.look); }
@@ -1060,7 +1096,7 @@ export async function travel(id) {
   if (skipNextTravel) skipTweens();
   await walk;
   await fadeTo(1, 900);
-  applyTemple(t); switchTo(hall); await warmHall(); rig.amp = .006;
+  applyTemple(t); roomLight = 1; switchTo(hall); await warmHall(); rig.amp = .006;
   rig.pos.copy(WIDE.pos); rig.look.copy(WIDE.look);
   await fadeTo(0, 1000);
   const c = chooseView(); await moveCam(c.pos, c.look, 2.4);
@@ -1071,13 +1107,15 @@ export function closeUp() { const c = closeView(); return moveCam(c.pos, c.look,
 /** Back from the close-up to the choosing view. */
 export function backToChoose() { const c = chooseView(); return moveCam(c.pos, c.look, 1.6); }
 /** Light the flame (animation only; the burn clock lives in the UI). */
-export async function ignite() { lit = true; emberUntil = 0; smokeUntil = 0; await tween(1.6, (k) => { if (lit) mine.power = k < .18 ? k * .35 : Math.min(1.15, ease((k - .18) / .82) + Math.sin(k * Math.PI) * .22); }); }
+export async function ignite() { lit = true; emberUntil = 0; smokeUntil = 0; roomLight = 1; await tween(1.6, (k) => { if (lit) mine.power = k < .18 ? k * .35 : Math.min(1.15, ease((k - .18) / .82) + Math.sin(k * Math.PI) * .22); }); }
 /** Put the flame out with a thread of smoke. */
 export async function snuff(done = false) {
   // Only visuals: settlement and persistence have already happened synchronously.
   lit = false; ending = done ? 'done' : 'out';
   if (done) { level = 0; mine.setLevel(0); }
   smokeUntil = clockTime + (done ? 3.4 : 4.8); emberUntil = clockTime + (done ? 2.5 : .35);
+  // Went out: sudden, and the room keeps less of its light. Burned down: the room stays as it was.
+  if (!done) void tween(1.6, (k) => { roomLight = 1 - .3 * ease(k); });
   const p0 = mine.power * (done ? .08 : 1); mine.power = p0; await tween(done ? .55 : .09, (k) => { mine.power = p0 * (1 - k); }); mine.power = 0;
 }
 
@@ -1109,13 +1147,14 @@ function frame(stamp = performance.now()) {
     if (k >= 1) { tweens.splice(i, 1); tw.res(); }
   }
   if (active === hall) {
+    renderer.toneMappingExposure = roomLight;
     if (mine.g.visible && mine.offer) mine.setLevel(level);
     for (const m of flameMats) m.uniforms.uTime.value = time;
     const topY = ALTAR_Y + mine.top.y;
     previewFill.intensity = phase === 'candle' || phase === 'confirm' || phase === 'travel' ? .16 : 0;
     mine.update(time, topY);
     for (const [i, o] of others.entries()) { o.f.tick(time, .65, phase === 'wish' && i === 1 ? .045 : .012, o.wax, o.g.position.y + o.f.flame.position.y); }
-    if (time < smokeUntil && Math.random() < (ending === 'done' ? .3 : .7)) wickSmoke.puff(tmp.set(mine.top.x, topY + .004, mine.g.position.z), .002, ending === 'done' ? .001 : .0025);
+    if (time < smokeUntil) { const left = (smokeUntil - time) / (ending === 'done' ? 3.4 : 4.8); for (let n = 0; n < 3; n++) if (Math.random() < (ending === 'done' ? .45 : .9) * Math.min(1, left * 2.5)) wickSmoke.puff(tmp.set(mine.top.x, topY + .004 + Math.random() * .004, mine.g.position.z), .0006, ending === 'done' ? .0016 : .0028); }
     wickSmoke.update(dt, time);
     if (Math.random() < .5) incenseSmoke.puff(incenseTips[Math.floor(Math.random() * 3)], .001, .01);
     incenseSmoke.update(dt, time);

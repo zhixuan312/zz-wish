@@ -58,11 +58,6 @@ textarea::placeholder { color: var(--faint); }
 .chip { font: 14px var(--sans); color: var(--dim); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 7px 14px; cursor: pointer; }
 .chip[aria-pressed="true"] { color: var(--ember-ink); background: var(--ember); border-color: var(--ember); }
 
-.places { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
-.place { display: grid; gap: 2px; text-align: center; font: 15px var(--serif); padding: 10px 6px; border-radius: 10px; border: 1px solid var(--line); background: rgba(9, 7, 5, .5); color: var(--paper); cursor: pointer; }
-.place small { font: 11px var(--sans); color: var(--faint); min-height: 1.3em; }
-.place[aria-checked="true"] { background: var(--ember); color: var(--ember-ink); border-color: var(--ember); }
-.place[aria-checked="true"] small { color: var(--ember-ink); }
 
 .tabs { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid var(--line); border-radius: 10px; padding: 3px; }
 .tab { font: 15px var(--serif); letter-spacing: .08em; padding: 9px; border: 0; border-radius: 8px; background: transparent; color: var(--dim); cursor: pointer; }
@@ -124,7 +119,6 @@ textarea::placeholder { color: var(--faint); }
 .lead { font-family: var(--sans); font-size: 14px; }
 
 @media (max-width: 720px) {
-  .places { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .sizes { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .tname { font-size: 30px; }
   .travel .big { font-size: 40px; }
@@ -143,7 +137,7 @@ button, input, textarea { touch-action: manipulation; }
 .topbar { padding: 24px 32px; }
 .topbar .btn { border: 0; background: transparent; color: var(--dim); }
 .topbar .btn:hover { color: var(--paper); }
-.btn, .btn.small, .place, .size, .tab, .tabs, textarea, .dialog, .pad, .toast { border-radius: 2px; }
+.btn, .btn.small, .size, .tab, .tabs, textarea, .dialog, .pad, .toast { border-radius: 2px; }
 .btn { transition: background .25s, border-color .25s, color .25s; letter-spacing: .04em; }
 .btn.small { min-height: 44px; }
 .btn:hover:not(:disabled) { border-color: var(--ember); }
@@ -162,9 +156,6 @@ h2 { font-weight: 400; line-height: 1.5; }
 .tabs { border: 0; border-bottom: 1px solid var(--line); padding: 0; }
 .tab { min-height: 44px; }
 .tab[aria-selected=true] { background: transparent; border-bottom: 1px solid var(--ember); }
-.place { text-align: left; border-width: 0 0 1px; background: #0b100d88; padding: 12px; }
-.place[aria-checked=true] { background: #18201bd9; color: var(--paper); border-color: var(--ember); }
-.place[aria-checked=true] small { color: var(--dim); }
 .sizes { gap: 0; }
 .size { border-width: 0 0 1px; background: transparent; font-size: 16px; }
 .size[aria-checked=true] { background: #d8a45f18; }
@@ -182,7 +173,6 @@ h2 { font-weight: 400; line-height: 1.5; }
 .record-wish { font-size: 20px; line-height: 1.65; }
 .record .btn { background: transparent; border-width: 0 0 1px; padding-left: 0; }
 .thumb { width: 52px; height: 84px; }
-.stat-rows li { border-width: 0 0 1px; border-radius: 0; padding: 20px 0; gap: 8px; }
 .stat-rows strong { font-size: 22px; font-weight: 400; }
 .hud-bottom { gap: 10px; padding-bottom: 24px; background: linear-gradient(to top,#080c0cdd,transparent); }
 .hud-wish { font-size: 20px; color: #ded6c3; }
@@ -213,9 +203,6 @@ h2 { font-weight: 400; line-height: 1.5; }
   .inner { gap: 13px; }
   .sizes { grid-template-columns: repeat(4,minmax(0,1fr)); }
   .size { font-size: 14px; min-height: 48px; padding: 10px 2px; }
-  .places { gap: 2px 10px; }
-  .place { padding: 8px 10px; }
-  .place small { font-size: 10px; }
   .tname { font-size: 27px; }
   .tname small { font-size: 12px; }
   .sheet .btn { font-size: 14px; padding: 12px; }
@@ -233,3 +220,31 @@ h2 { font-weight: 400; line-height: 1.5; }
 @media(prefers-reduced-motion: reduce) { .sheet .inner { animation:none; } * { scroll-behavior: auto !important; } }
 
 .ui[data-screen=place]::before { content:''; position:absolute; inset:0 0 auto; height:150px; background:linear-gradient(#080d0cdd,transparent); pointer-events:none; }
+
+/* Places read as a line of names under the view, not a grid of cards; the chosen one carries a thread of flame light. */
+.places { display: flex; flex-wrap: wrap; gap: 0 28px; margin: 4px 0 2px; }
+.place { position: relative; display: inline-flex; align-items: baseline; gap: 6px; min-height: 44px; padding: 10px 0; border: 0; background: none;
+  font: 17px var(--serif); letter-spacing: .04em; color: #8e958a; cursor: pointer; transition: color .3s; text-shadow: 0 1px 10px #000; }
+.place:hover { color: var(--dim); }
+.place[aria-checked=true] { color: var(--paper); }
+.place::after { content: ''; position: absolute; left: 0; right: 0; bottom: 8px; height: 1px; background: var(--ember); box-shadow: 0 0 10px #f0a04a; transform: scaleX(0); transform-origin: left; transition: transform .45s ease; }
+.place[aria-checked=true]::after { transform: scaleX(1); }
+.place small { font: 11px var(--sans); color: var(--ember); }
+.place-actions { justify-content: flex-start; align-items: center; gap: 28px; margin-top: 6px; }
+.place-actions > * { flex: 0 0 auto; }
+.place-actions .btn.primary { padding: 13px 40px; }
+.btn.link { border: 0; background: none; padding-left: 0; padding-right: 0; color: var(--dim); }
+.btn.link:hover:not(:disabled) { color: var(--paper); }
+.ui[data-screen=place] .sheet.low { background: linear-gradient(to top, #070b0ae6 38%, #070b0a00); }
+@media(max-width:720px) {
+  .places { gap: 0 18px; }
+  .place { font-size: 15px; min-height: 40px; padding: 8px 0; }
+  .place::after { bottom: 6px; }
+  .place-actions { justify-content: space-between; }
+}
+
+/* Ten Lights and My Candles sit over the dimmed hall instead of replacing it. */
+.panel { background: linear-gradient(100deg, #070b0af2 0%, #070b0ad9 55%, #070b0ab8 100%); }
+.stat-rows li { position: relative; display: grid; grid-template-columns: 1fr; gap: 8px; padding: 20px 0 18px; border-bottom: 1px solid #7f887222; }
+.stat-rows .bar { display: block; height: 1px; width: calc(var(--k) * 100%); min-width: 6px; background: linear-gradient(90deg, #d8a45f, #f3c27c); box-shadow: 0 0 12px #e89a4a99, 0 0 2px #ffd9a0; transition: width .6s ease; }
+.ui:has(.panel) .sheet, .ui:has(.panel) .hud, .ui:has(.panel) .pill, .ui:has(.panel) .toast { visibility: hidden; }

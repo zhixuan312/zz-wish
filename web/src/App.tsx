@@ -187,16 +187,20 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
             <div className="eyebrow">{t.placeEyebrow}</div>
             <div className="tname">{place.name[locale]}<small lang={locale === 'zh' ? 'en' : 'zh-CN'}>{place.name[locale === 'zh' ? 'en' : 'zh']}</small></div>
             <p className="note">{place.where[locale]} · {place.line[locale]}</p>
-            <div className="places" role="radiogroup">
-              {PLACES.map((p) => (
-                <button key={p.id} role="radio" aria-checked={p.id === placeId} className="place" onClick={() => pickPlace(p.id)}>
-                  <span>{p.name[locale]}</span>
-                  <small>{placeStats ? t.placeNowCount(placeStats.places.find((s) => s.placeId === p.id)?.now ?? 0) : ' '}</small>
-                </button>
-              ))}
+            <div className="places" role="radiogroup" aria-label={t.placeEyebrow}>
+              {PLACES.map((p) => {
+                const now = placeStats?.places.find((s) => s.placeId === p.id)?.now ?? 0;
+                return (
+                  <button key={p.id} role="radio" aria-checked={p.id === placeId} className="place" onClick={() => pickPlace(p.id)}
+                    aria-label={placeStats ? `${p.name[locale]} · ${t.placeNowCount(now)}` : p.name[locale]}>
+                    <span>{p.name[locale]}</span>
+                    {now > 0 && <small aria-hidden="true">{now}</small>}
+                  </button>
+                );
+              })}
             </div>
-            <div className="row">
-              <button className="btn" onClick={backToWish} disabled={busy}>{t.placeBack}</button>
+            <div className="row place-actions">
+              <button className="btn link" onClick={backToWish} disabled={busy}>{t.placeBack}</button>
               <button className="btn primary" onClick={goTravel} disabled={busy}>{t.placeGo}</button>
             </div>
           </div>

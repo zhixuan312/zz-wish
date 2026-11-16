@@ -99,6 +99,9 @@ export function TenLights({ t, locale, onClose }: { t: Dict; locale: Locale; onC
   const order = PLACES.map((p) => p.id);
   const rows = stats ? [...stats.places].sort((a, b) =>
     (sort === 'people' ? b.people - a.people : sort === 'time' ? b.totalMs - a.totalMs : b.now - a.now) || order.indexOf(a.placeId) - order.indexOf(b.placeId)) : [];
+  // One data colour: the length of each line of light carries the difference for the chosen sort.
+  const measure = (r: Stats['places'][number]) => (sort === 'people' ? r.people : sort === 'time' ? r.totalMs : r.now);
+  const peak = Math.max(1, ...rows.map(measure));
   return (
     <Panel title={t.statsTitle} onClose={onClose} closeLabel={t.close}>
       <p className="lead">{t.statsLead}</p>
@@ -119,6 +122,7 @@ export function TenLights({ t, locale, onClose }: { t: Dict; locale: Locale; onC
             {rows.map((r) => (
               <li key={r.placeId} data-testid={`stat-${r.placeId}`}>
                 <strong>{placeById(r.placeId)!.name[locale]}</strong>
+                <i className="bar" aria-hidden="true" style={{ '--k': measure(r) / peak } as React.CSSProperties} />
                 <span>{t.rowPeople(r.people)} · {t.rowNow(r.now)}</span>
                 <span>{t.rowTotal(fmtDuration(r.totalMs, t))} · {t.rowAverage(fmtDuration(r.averageMs, t))} · {t.rowLongest(fmtDuration(r.longestMs, t))}</span>
               </li>
