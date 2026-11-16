@@ -1,0 +1,346 @@
+{
+  "createdAt": "2026-11-16T17:59:29.917Z",
+  "finalOriginalSceneSha256": "90d634eee0c8fb553dce074cef0531aace6d0be878766a4526f8b5ab09aedd56",
+  "valid": true,
+  "sourceChanged": false,
+  "productErrors": [],
+  "httpErrors": [],
+  "rows": [
+    {
+      "viewport": "desktop-en",
+      "name": "burning-normal",
+      "fps": 29.9988000480696,
+      "intervalP95Ms": 35.30000001192093,
+      "gpuP95Ms": 20.502041,
+      "cpuSubmitP95Ms": 4.300000011920929,
+      "intervalDistribution": {
+        "under25ms": 0,
+        "from25to42ms": 300,
+        "from42to59ms": 0,
+        "from59to75ms": 0,
+        "atLeast75ms": 0
+      },
+      "rafDeltaDistribution": {
+        "under25ms": 0,
+        "from25to42ms": 300,
+        "from42to59ms": 0,
+        "from59to75ms": 0,
+        "atLeast75ms": 0
+      },
+      "composerSamples": [
+        2,
+        2
+      ],
+      "drawingBuffer": [
+        1440,
+        900
+      ],
+      "prior": [
+        {
+          "version": "final-mobile-r2",
+          "fps": 26.743571064989112,
+          "intervalP95Ms": 50.19999998807907,
+          "intervalDistribution": {
+            "under25ms": 1,
+            "from25to42ms": 201,
+            "from42to59ms": 66,
+            "from59to75ms": 0,
+            "atLeast75ms": 0
+          }
+        },
+        {
+          "version": "final-mobile-paced",
+          "fps": 29.999700003107257,
+          "intervalP95Ms": 35.10500002205372,
+          "intervalDistribution": {
+            "under25ms": 0,
+            "from25to42ms": 300,
+            "from42to59ms": 0,
+            "from59to75ms": 0,
+            "atLeast75ms": 0
+          }
+        }
+      ]
+    },
+    {
+      "viewport": "desktop-en",
+      "name": "burning-power-saver",
+      "fps": 14.999700006017761,
+      "intervalP95Ms": 68.69999998807907,
+      "gpuP95Ms": 16.2796865,
+      "cpuSubmitP95Ms": 3.8499999940395355,
+      "intervalDistribution": {
+        "under25ms": 0,
+        "from25to42ms": 0,
+        "from42to59ms": 0,
+        "from59to75ms": 150,
+        "atLeast75ms": 0
+      },
+      "rafDeltaDistribution": {
+        "under25ms": 0,
+        "from25to42ms": 0,
+        "from42to59ms": 0,
+        "from59to75ms": 150,
+        "atLeast75ms": 0
+      },
+      "composerSamples": [
+        0,
+        0
+      ],
+      "drawingBuffer": [
+        1440,
+        900
+      ],
+      "prior": [
+        {
+          "version": "final-mobile-r2",
+          "fps": 14.427573580642374,
+          "intervalP95Ms": 83.30000001192093,
+          "intervalDistribution": {
+            "under25ms": 0,
+            "from25to42ms": 0,
+            "from42to59ms": 0,
+            "from59to75ms": 122,
+            "atLeast75ms": 23
+          }
+        },
+        {
+          "version": "final-mobile-paced",
+          "fps": 14.974842264976987,
+          "intervalP95Ms": 83.39999997615814,
+          "intervalDistribution": {
+            "under25ms": 0,
+            "from25to42ms": 0,
+            "from42to59ms": 20,
+            "from59to75ms": 109,
+            "atLeast75ms": 21
+          }
+        }
+      ]
+    },
+    {
+      "viewport": "desktop-en",
+      "name": "burning-restored-detail",
+      "fps": 30.035124131803695,
+      "intervalP95Ms": 35.30000001192093,
+      "gpuP95Ms": 21.39589965,
+      "cpuSubmitP95Ms": 4.100000020861626,
+      "intervalDistribution": {
+        "under25ms": 1,
+        "from25to42ms": 300,
+        "from42to59ms": 0,
+        "from59to75ms": 0,
+        "atLeast75ms": 0
+      },
+      "rafDeltaDistribution": {
+        "under25ms": 0,
+        "from25to42ms": 301,
+        "from42to59ms": 0,
+        "from59to75ms": 0,
+        "atLeast75ms": 0
+      },
+      "composerSamples": [
+        2,
+        2
+      ],
+      "drawingBuffer": [
+        1440,
+        900
+      ],
+      "prior": [
+        {
+          "version": "final-mobile-r2",
+          "fps": 26.972757515006307,
+          "intervalP95Ms": 50.10000002384186,
+          "intervalDistribution": {
+            "under25ms": 0,
+            "from25to42ms": 209,
+            "from42to59ms": 61,
+            "from59to75ms": 0,
+            "atLeast75ms": 0
+          }
+        },
+        {
+          "version": "final-mobile-paced",
+          "fps": 30.05011680620916,
+          "intervalP95Ms": 50.10000002384186,
+          "intervalDistribution": {
+            "under25ms": 60,
+            "from25to42ms": 182,
+            "from42to59ms": 59,
+            "from59to75ms": 0,
+            "atLeast75ms": 0
+          }
+        }
+      ]
+    },
+    {
+      "viewport": "phone-zh",
+      "name": "burning-normal",
+      "fps": 29.999700002928446,
+      "intervalP95Ms": 35.200000047683716,
+      "gpuP95Ms": 22.165041,
+      "cpuSubmitP95Ms": 4.900000035762787,
+      "intervalDistribution": {
+        "under25ms": 3,
+        "from25to42ms": 294,
+        "from42to59ms": 3,
+        "from59to75ms": 0,
+        "atLeast75ms": 0
+      },
+      "rafDeltaDistribution": {
+        "under25ms": 3,
+        "from25to42ms": 294,
+        "from42to59ms": 3,
+        "from59to75ms": 0,
+        "atLeast75ms": 0
+      },
+      "composerSamples": [
+        2,
+        2
+      ],
+      "drawingBuffer": [
+        487,
+        1055
+      ],
+      "prior": [
+        {
+          "version": "final-mobile-r2",
+          "fps": 27.298908043580628,
+          "intervalP95Ms": 50.10000002384186,
+          "intervalDistribution": {
+            "under25ms": 0,
+            "from25to42ms": 219,
+            "from42to59ms": 54,
+            "from59to75ms": 0,
+            "atLeast75ms": 0
+          }
+        },
+        {
+          "version": "final-mobile-paced",
+          "fps": 30.000900027036575,
+          "intervalP95Ms": 50.10500002205372,
+          "intervalDistribution": {
+            "under25ms": 40,
+            "from25to42ms": 220,
+            "from42to59ms": 40,
+            "from59to75ms": 0,
+            "atLeast75ms": 0
+          }
+        }
+      ]
+    },
+    {
+      "viewport": "phone-zh",
+      "name": "burning-power-saver",
+      "fps": 14.999850001553629,
+      "intervalP95Ms": 68.59999996423721,
+      "gpuP95Ms": 9.504354,
+      "cpuSubmitP95Ms": 4.399999976158142,
+      "intervalDistribution": {
+        "under25ms": 0,
+        "from25to42ms": 0,
+        "from42to59ms": 0,
+        "from59to75ms": 150,
+        "atLeast75ms": 0
+      },
+      "rafDeltaDistribution": {
+        "under25ms": 0,
+        "from25to42ms": 0,
+        "from42to59ms": 0,
+        "from59to75ms": 150,
+        "atLeast75ms": 0
+      },
+      "composerSamples": [
+        0,
+        0
+      ],
+      "drawingBuffer": [
+        390,
+        844
+      ],
+      "prior": [
+        {
+          "version": "final-mobile-r2",
+          "fps": 14.399568013028272,
+          "intervalP95Ms": 83.38499998152255,
+          "intervalDistribution": {
+            "under25ms": 0,
+            "from25to42ms": 0,
+            "from42to59ms": 0,
+            "from59to75ms": 120,
+            "atLeast75ms": 24
+          }
+        },
+        {
+          "version": "final-mobile-paced",
+          "fps": 15.000450013518288,
+          "intervalP95Ms": 83.55499998033046,
+          "intervalDistribution": {
+            "under25ms": 0,
+            "from25to42ms": 0,
+            "from42to59ms": 28,
+            "from59to75ms": 94,
+            "atLeast75ms": 28
+          }
+        }
+      ]
+    },
+    {
+      "viewport": "phone-zh",
+      "name": "burning-restored-detail",
+      "fps": 30.000600011964476,
+      "intervalP95Ms": 35.1999999910593,
+      "gpuP95Ms": 23.312375,
+      "cpuSubmitP95Ms": 4.600000023841858,
+      "intervalDistribution": {
+        "under25ms": 0,
+        "from25to42ms": 300,
+        "from42to59ms": 0,
+        "from59to75ms": 0,
+        "atLeast75ms": 0
+      },
+      "rafDeltaDistribution": {
+        "under25ms": 0,
+        "from25to42ms": 300,
+        "from42to59ms": 0,
+        "from59to75ms": 0,
+        "atLeast75ms": 0
+      },
+      "composerSamples": [
+        2,
+        2
+      ],
+      "drawingBuffer": [
+        487,
+        1055
+      ],
+      "prior": [
+        {
+          "version": "final-mobile-r2",
+          "fps": 27.354318288328056,
+          "intervalP95Ms": 50.10000002384186,
+          "intervalDistribution": {
+            "under25ms": 0,
+            "from25to42ms": 221,
+            "from42to59ms": 53,
+            "from59to75ms": 0,
+            "atLeast75ms": 0
+          }
+        },
+        {
+          "version": "final-mobile-paced",
+          "fps": 30.050116806030346,
+          "intervalP95Ms": 50.09999996423721,
+          "intervalDistribution": {
+            "under25ms": 47,
+            "from25to42ms": 208,
+            "from42to59ms": 46,
+            "from59to75ms": 0,
+            "atLeast75ms": 0
+          }
+        }
+      ]
+    }
+  ]
+}

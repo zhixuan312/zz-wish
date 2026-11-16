@@ -32,4 +32,4 @@ const csv = [['viewport', 'view', 'frame', 'renderStartMs', 'renderEndMs', 'rafT
   .map(row => row.map(value => value === null || value === undefined ? '' : String(value).includes(',') ? JSON.stringify(String(value)) : String(value)).join(',')).join('\n') + '\n';
 await writeFile(join(output, 'frames.csv'), csv);
 await writeFile(join(output, 'summary.json'), JSON.stringify(summary, null, 2) + '\n');
-console.log(JSON.stringify({ windows, errors: report.errors.length, httpErrors: report.resources.length, sourceChanged: report.sourceChanged, csv: join(output, 'frames.csv') }, null, 2));
+console.log(JSON.stringify({ windows: windows.length, errors: report.errors.length, httpErrors: report.resources.length, sourceChanged: report.sourceChanged, summary: join(output, 'summary.json'), csv: join(output, 'frames.csv') }, null, 2));
