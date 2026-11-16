@@ -10,7 +10,7 @@ const dbFile = process.env.DB_FILE;
 const browser = await chromium.launch({ channel: 'chrome', headless: true, args: ['--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist'] });
 const re = (zh,en) => new RegExp(`${zh}|${en}`);
 const reports=[];
-const places=['lingyin','shaolin','yonghe','jokhang','puji','zixiao','qufu','meizhou','guandi','hongluo'];
+const places=['pine-gate','bamboo-rain','cloud-cliff','lotus-pond','sea-tide','snow-roof','loess-cliff','highland','bell-lane','valley-pagoda'];
 async function run(size){
  const out=`${root}/${size.name}`;await mkdir(out,{recursive:true});
  const context=await browser.newContext({ viewport: size.viewport, locale: size.locale, hasTouch: size.phone, isMobile: size.phone });
@@ -41,7 +41,7 @@ async function run(size){
  await phase('wish');await shot('wish',2500);
  await button(re('^我的烛$','^My Candles$')).click();await shot('my-candles-empty');await button(re('^关闭$','^Close$')).click();
  await page.getByLabel(re('你的愿望','Your wish')).fill(size.phone?'愿远行的人平安，也愿心里有光。':'May those far from home find a little peace.');
- await button(re('许好了','Set my wish')).click();await phase('place');await shot('place-lingyin',2500);
+ await button(re('许好了','Set my wish')).click();await phase('place');await shot('place-pine-gate',2500);
  const radioPlaces=page.locator('.places [role=radio]');
  for(let i=1;i<places.length;i++){await phase(`place-${places[i]}`);await radioPlaces.nth(i).click();await shot(`place-${places[i]}`,1800);}
  await radioPlaces.nth(0).click();await page.waitForTimeout(1700);

@@ -248,3 +248,9 @@ h2 { font-weight: 400; line-height: 1.5; }
 .stat-rows li { position: relative; display: grid; grid-template-columns: 1fr; gap: 8px; padding: 20px 0 18px; border: 0; border-radius: 0; border-bottom: 1px solid #7f887222; }
 .stat-rows .bar { display: block; height: 1px; width: calc(var(--k) * 100%); min-width: 6px; background: linear-gradient(90deg, #d8a45f, #f3c27c); box-shadow: 0 0 12px #e89a4a99, 0 0 2px #ffd9a0; transition: width .6s ease; }
 .ui:has(.panel) .sheet, .ui:has(.panel) .hud, .ui:has(.panel) .pill, .ui:has(.panel) .toast { visibility: hidden; }
+/* Ready-made shapes: the outline itself, its name under it. */
+.shapes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.shape { display: grid; justify-items: center; gap: 6px; padding: 10px 4px 8px; border: 0; border-bottom: 1px solid var(--line); background: transparent; color: var(--paper); cursor: pointer; font: 500 14px var(--serif); }
+.shape .thumb { width: 30px; height: 48px; }
+.shape[aria-checked=true] { background: #d8a45f18; border-bottom-color: var(--ember); }
+.sheet .eyebrow + .sizes { margin-top: -4px; }

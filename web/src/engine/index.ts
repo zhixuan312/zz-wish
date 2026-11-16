@@ -21,7 +21,7 @@ export const setPhase = (phase: ScenePhase) => { void initialized.then(s => s.se
 export const setPowerSaver = (on: boolean) => { void initialized.then(s => s.setPowerSaver(on)); };
 export const previewPlace = (id: PlaceId) => initialized.then(s => s.previewPlace(id));
 export const travel = (id: PlaceId) => initialized.then(s => s.travel(id));
-export const toHall = () => initialized.then(s => s.toHall());
+export const toCover = () => initialized.then(s => s.toCover());
 export const closeUp = () => initialized.then(s => s.closeUp());
 export const backToChoose = () => initialized.then(s => s.backToChoose());
 export const ignite = () => initialized.then(s => s.ignite());

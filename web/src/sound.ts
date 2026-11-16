@@ -2,17 +2,27 @@
 // device is opened silently on the confirm screen so its one-off startup cost (hundreds of ms on
 // some systems) does not land on the ignition.
 import type { PlaceId } from '../../shared/places.ts';
-const rooms: Record<PlaceId, { low: number; high: number; gain: number; swell: number; detail: 'drip' | 'bird' | 'air' | 'paper' }> = {
-  lingyin: { low: 520, high: 1800, gain: .035, swell: .11, detail: 'drip' },
-  shaolin: { low: 180, high: 620, gain: .06, swell: .07, detail: 'air' },
-  yonghe: { low: 95, high: 380, gain: .025, swell: .043, detail: 'air' },
-  jokhang: { low: 70, high: 240, gain: .07, swell: .06, detail: 'air' },
-  puji: { low: 260, high: 1300, gain: .07, swell: .12, detail: 'air' },
-  zixiao: { low: 820, high: 2300, gain: .025, swell: .053, detail: 'air' },
-  qufu: { low: 1600, high: 4200, gain: .018, swell: .031, detail: 'paper' },
-  meizhou: { low: 130, high: 850, gain: .075, swell: .085, detail: 'air' },
-  guandi: { low: 55, high: 160, gain: .065, swell: .025, detail: 'drip' },
-  hongluo: { low: 700, high: 2500, gain: .022, swell: .09, detail: 'bird' },
+const rooms: Record<PlaceId, { low: number; high: number; gain: number; swell: number; detail: 'drip' | 'bird' | 'air' | 'frog' | 'bell' }> = {
+  // Pine wind high in the trees.
+  'pine-gate': { low: 380, high: 1400, gain: .045, swell: .07, detail: 'bird' },
+  // Rain on tiles, drops from the eaves.
+  'bamboo-rain': { low: 900, high: 3200, gain: .05, swell: .13, detail: 'drip' },
+  // Wind along the cliff.
+  'cloud-cliff': { low: 160, high: 700, gain: .07, swell: .09, detail: 'air' },
+  // Still water, now and then a frog.
+  'lotus-pond': { low: 260, high: 900, gain: .02, swell: .04, detail: 'frog' },
+  // Surf on the rocks below.
+  'sea-tide': { low: 140, high: 900, gain: .085, swell: .11, detail: 'air' },
+  // Snow muffles everything.
+  'snow-roof': { low: 90, high: 320, gain: .015, swell: .03, detail: 'air' },
+  // Dry wind over the loess.
+  'loess-cliff': { low: 220, high: 1100, gain: .055, swell: .06, detail: 'air' },
+  // High, thin wind.
+  'highland': { low: 300, high: 1600, gain: .05, swell: .08, detail: 'air' },
+  // The lane's hum beyond the wall; a bell now and then.
+  'bell-lane': { low: 120, high: 500, gain: .03, swell: .035, detail: 'bell' },
+  // The stream beyond the wall.
+  'valley-pagoda': { low: 700, high: 2600, gain: .045, swell: .05, detail: 'drip' },
 };
 // The 12 s brown-noise bed is generated in small idle slices while the visitor writes, so the
 // light tap only copies it. No audio device is touched here.
@@ -44,11 +54,11 @@ let nodes: AudioScheduledSourceNode[] = [];
 let detailTimer = 0;
 let muted = false;
 let generation = 0;
-function tone(frequency: number, duration: number, volume: number, chirp = false) {
+function tone(frequency: number, duration: number, volume: number, glide = .45) {
   if (!context || !master) return;
   const c = context, oscillator = c.createOscillator(), envelope = c.createGain(), now = c.currentTime;
   oscillator.frequency.setValueAtTime(frequency, now);
-  oscillator.frequency.exponentialRampToValueAtTime(frequency * (chirp ? 1.7 : .45), now + duration);
+  oscillator.frequency.exponentialRampToValueAtTime(frequency * glide, now + duration);
   envelope.gain.setValueAtTime(0, now); envelope.gain.linearRampToValueAtTime(volume, now + .012);
   envelope.gain.exponentialRampToValueAtTime(.00001, now + duration);
   oscillator.connect(envelope).connect(master); oscillator.start(); oscillator.stop(now + duration);
@@ -80,8 +90,9 @@ export const sound = {
       const detail = () => {
         if (token !== generation) return;
         if (room.detail === 'drip') tone(1500 + Math.random() * 1000, .1, .018);
-        if (room.detail === 'bird') { tone(2200 + Math.random() * 1100, .14, .012, true); }
-        if (room.detail === 'paper') tone(4200 + Math.random() * 800, .035, .002);
+        if (room.detail === 'bird') { tone(2200 + Math.random() * 1100, .14, .012, 1.7); }
+        if (room.detail === 'frog') { tone(420 + Math.random() * 80, .08, .01, 1.3); tone(400 + Math.random() * 80, .07, .008, 1.3); }
+        if (room.detail === 'bell') { tone(196, 6, .02, .995); tone(392.6, 4, .008, .995); tone(588, 2.5, .004, .995); }
         detailTimer = window.setTimeout(detail, 3500 + Math.random() * 11000);
       };
       detailTimer = window.setTimeout(detail, 2500 + Math.random() * 5000);

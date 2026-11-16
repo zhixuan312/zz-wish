@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import * as engine from './engine/index.ts';
 import { PLACES, placeById, type Locale, type PlaceId } from '../../shared/places.ts';
-import { DEFAULT_PRESET, MAX_MINUTES, MIN_MINUTES, PRESET_MINUTES, WAX_COLORS, isAllowedMinutes, presetRows, shapeMinutes, type Shape } from '../../shared/rules.ts';
+import { COLORS, DEFAULT_MINUTES, MAX_MINUTES, MIN_MINUTES, PRESET_MINUTES, PRESET_SHAPES, isAllowedMinutes, shapeMinutes, sizedPreset, type Kind, type Shape } from '../../shared/rules.ts';
 import { api, ApiError, type EndReason, type Stats } from './api.ts';
 import { Burn, type Settlement } from './burn.ts';
 import { presence } from './presence.ts';
 import { DrawPad, rowsFromStrokes, type Pt } from './DrawPad.tsx';
 import { MyCandles, TenLights } from './Panels.tsx';
+import { CandleThumb } from './CandleThumb.tsx';
 import { sound } from './sound.ts';
 import { DICTS, fmtClock, fmtDuration } from './i18n.ts';
 
@@ -37,21 +38,21 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
   // What the person is making.
   const [wish, setWish] = useState('');
   const [wishId, setWishId] = useState<string | null>(null);
-  const [placeId, setPlaceId] = useState<PlaceId>('lingyin');
+  const [placeId, setPlaceId] = useState<PlaceId>('pine-gate');
   const place = placeById(placeId)!;
-  const isLamp = place.vessel === 'lamp';
+  // The place decides the kind of lamp. The person picks a shape and a time (the shape grows with the time),
+  // or draws one: the bigger the drawing, the longer it burns.
+  const kind: Kind = ({ wax: 'candle', oil: 'oil', shade: 'shade' } as const)[place.vessel];
   const [tab, setTab] = useState<'preset' | 'draw'>('preset');
-  const [preset, setPreset] = useState<number>(DEFAULT_PRESET);
+  const [presetShape, setPresetShape] = useState(0);
+  const [preset, setPreset] = useState<number>(DEFAULT_MINUTES);
   const [strokes, setStrokes] = useState<Pt[][]>([]);
   const [drawingMinutes, setDrawingMinutes] = useState<number | null>(null);
   const [color, setColor] = useState(0);
-  const [fillMinutes, setFillMinutes] = useState(60);
   const shape: Shape | null = useMemo(() => {
-    if (isLamp) return { kind: 'lamp', fill: (tab === 'preset' ? preset : fillMinutes) / MAX_MINUTES };
-    if (tab === 'preset') return { kind: 'candle', rows: presetRows(preset), color: WAX_COLORS[color] };
-    const rows = rowsFromStrokes(strokes);
-    return rows ? { kind: 'candle', rows, color: WAX_COLORS[color] } : null;
-  }, [isLamp, tab, preset, fillMinutes, strokes, color]);
+    const rows = tab === 'preset' ? sizedPreset(PRESET_SHAPES[kind][presetShape].rows, preset) : rowsFromStrokes(strokes);
+    return rows ? { kind, rows, color: COLORS[kind][color] } : null;
+  }, [kind, tab, presetShape, preset, strokes, color]);
   const minutes = shape ? shapeMinutes(shape) : null;
   const allowed = minutes !== null && isAllowedMinutes(minutes);
   useEffect(() => { if (screen === 'candle') engine.setOffer(shape); }, [shape, screen]);
@@ -135,7 +136,7 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
 
   // Navigation between steps; the scene moves with them.
   const toPlace = () => { setScreen('place'); run(() => engine.previewPlace(placeId)); };
-  const pickPlace = (id: PlaceId) => { setPlaceId(id); if (placeById(id)!.vessel === 'lamp' || isLamp) setTab('preset'); engine.previewPlace(id); };
+  const pickPlace = (id: PlaceId) => { setPlaceId(id); if (placeById(id)!.vessel !== place.vessel) { setTab('preset'); setPresetShape(0); setStrokes([]); setColor(0); } engine.previewPlace(id); };
   const goTravel = () => run(async () => {
     engine.setOffer(shape); setScreen('travel');
     await engine.travel(placeId); setScreen('candle');
@@ -144,8 +145,8 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
   const toConfirm = () => run(async () => { setLightError(null); await engine.closeUp(); setScreen('confirm'); setTimeout(() => sound.prepare(), 500); });
   const backToCandle = () => run(async () => { setScreen('candle'); await engine.backToChoose(); });
   const again = (id: string | null, text: string) => { setOverlay(null); setWishId(id); setWish(text); setResult(null); backToPlace(); };
-  const startOver = () => { setWish(''); setWishId(null); setStrokes([]); setResult(null); setScreen('wish'); run(() => engine.toHall()); };
-  const backToWish = () => { setScreen('wish'); run(() => engine.toHall()); };
+  const startOver = () => { setWish(''); setWishId(null); setStrokes([]); setResult(null); setScreen('wish'); run(() => engine.toCover()); };
+  const backToWish = () => { setScreen('wish'); run(() => engine.toCover()); };
 
   const displayMinutes = drawingMinutes ?? minutes;
   const dLabel = displayMinutes !== null ? fmtDuration(displayMinutes * 60_000, t) : '—';
@@ -186,7 +187,7 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
           <div className="inner">
             <div className="eyebrow">{t.placeEyebrow}</div>
             <div className="tname">{place.name[locale]}<small lang={locale === 'zh' ? 'en' : 'zh-CN'}>{place.name[locale === 'zh' ? 'en' : 'zh']}</small></div>
-            <p className="note">{place.where[locale]} · {place.line[locale]}</p>
+            <p className="note">{place.lamp[locale]} · {place.line[locale]}</p>
             <div className="places" role="radiogroup" aria-label={t.placeEyebrow}>
               {PLACES.map((p) => {
                 const now = placeStats?.places.find((s) => s.placeId === p.id)?.now ?? 0;
@@ -209,7 +210,7 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
 
       {screen === 'travel' && (
         <>
-          <div className="travel"><div className="go">{t.travelGo}</div><div className="big">{place.name[locale]}</div><div className="where">{place.where[locale]}</div></div>
+          <div className="travel"><div className="go">{t.travelGo}</div><div className="big">{place.name[locale]}</div><div className="where">{place.lamp[locale]}</div></div>
           <button className="btn small skip" onClick={() => engine.skip()}>{t.skip}</button>
         </>
       )}
@@ -218,27 +219,25 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
         <section className="sheet">
           <div className="inner">
             <div className="eyebrow">{t.candleEyebrow}</div>
-            <h2>{isLamp ? t.lampTitle : t.candleTitle}</h2>
+            <h2>{t.stepTitle[kind]}</h2>
             <div className="tabs" role="tablist">
               <button role="tab" className="tab" aria-selected={tab === 'preset'} onClick={() => setTab('preset')}>{t.tabPresets}</button>
-              <button role="tab" className="tab" aria-selected={tab === 'draw'} onClick={() => setTab('draw')}>{isLamp ? t.tabFill : t.tabDraw}</button>
+              <button role="tab" className="tab" aria-selected={tab === 'draw'} onClick={() => setTab('draw')}>{t.tabDraw}</button>
             </div>
             {tab === 'preset' ? (
-              <div className="sizes" role="radiogroup">
-                {PRESET_MINUTES.map((m) => (
-                  <button key={m} role="radio" aria-checked={preset === m} className="size" onClick={() => setPreset(m)}>{fmtDuration(m * 60_000, t)}</button>
+              <div className="shapes" role="radiogroup" aria-label={t.tabPresets}>
+                {PRESET_SHAPES[kind].map((p, i) => (
+                  <button key={p.id} role="radio" aria-checked={presetShape === i} className="shape" onClick={() => setPresetShape(i)}>
+                    <CandleThumb shape={{ kind, rows: p.rows, color: COLORS[kind][color] }} remaining={1} />
+                    <span>{t.presetNames[kind][i]}</span>
+                  </button>
                 ))}
-              </div>
-            ) : isLamp ? (
-              <div className="fill">
-                <p className="note">{t.fillHint}</p>
-                <input type="range" min={MIN_MINUTES} max={MAX_MINUTES} step={5} value={fillMinutes} aria-label={t.tabFill} onChange={(e) => setFillMinutes(Number(e.target.value))} />
               </div>
             ) : (
               <div className="draw">
-                <DrawPad onPreview={setDrawingMinutes} strokes={strokes} setStrokes={setStrokes} color={WAX_COLORS[color]} label={t.drawHint} empty={t.drawEmpty} />
+                <DrawPad strokes={strokes} setStrokes={setStrokes} kind={kind} color={COLORS[kind][color]} label={t.drawHint[kind]} empty={t.drawEmpty} onPreview={setDrawingMinutes} />
                 <div className="draw-side">
-                  <p className="note">{t.drawHint}</p>
+                  <p className="note">{t.drawHint[kind]}</p>
                   <div className="row">
                     <button className="btn small" disabled={!strokes.length} onClick={() => setStrokes(strokes.slice(0, -1))}>{t.drawUndo}</button>
                     <button className="btn small" disabled={!strokes.length} onClick={() => setStrokes([])}>{t.drawClear}</button>
@@ -246,17 +245,25 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
                 </div>
               </div>
             )}
-            {!isLamp && (
-              <div className="swatches" role="radiogroup" aria-label={t.colorLabel}>
-                {WAX_COLORS.map((c, i) => (
-                  <button key={c} role="radio" aria-checked={color === i} aria-label={t.colors[i]} className="swatch" style={{ background: `#${c.toString(16).padStart(6, '0')}` }} onClick={() => setColor(i)} />
-                ))}
-              </div>
+            <div className="swatches" role="radiogroup" aria-label={t.colorLabel}>
+              {COLORS[kind].map((c, i) => (
+                <button key={c} role="radio" aria-checked={color === i} aria-label={t.colorNames[kind][i]} className="swatch" style={{ background: `#${c.toString(16).padStart(6, '0')}` }} onClick={() => setColor(i)} />
+              ))}
+            </div>
+            {tab === 'preset' && (
+              <>
+                <div className="eyebrow">{t.durationLabel}</div>
+                <div className="sizes" role="radiogroup" aria-label={t.durationLabel}>
+                  {PRESET_MINUTES.map((m) => (
+                    <button key={m} role="radio" aria-checked={preset === m} className="size" onClick={() => setPreset(m)}>{fmtDuration(m * 60_000, t)}</button>
+                  ))}
+                </div>
+              </>
             )}
             <div className="readout" aria-live="polite">
-              <span className="note">{isLamp ? t.lampBurnsFor : t.burnsFor}</span>
+              <span className="note">{t.burnsFor}</span>
               <strong data-testid="duration">{dLabel}</strong>
-              {minutes !== null && minutes < MIN_MINUTES && <span className="note">{t.tooShort}</span>}
+              {minutes !== null && minutes < MIN_MINUTES && <span className="note">{t.tooSmall}</span>}
               {minutes === MAX_MINUTES && <span className="note">{t.atMax}</span>}
             </div>
             <div className="row">
@@ -286,7 +293,7 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
 
       {screen === 'burning' && b && (
         <div className="hud">
-          <div className="hud-top">{place.name[locale]} · {place.where[locale]}</div>
+          <div className="hud-top">{place.name[locale]} · {place.lamp[locale]}</div>
           <div className="hud-bottom">
             {showWish && <div className="hud-wish">「{wish}」</div>}
             <div className="hud-time" data-testid="with-you">{t.withYou(fmtDuration(b.elapsed(), t), fmtDuration(b.planned, t))}</div>

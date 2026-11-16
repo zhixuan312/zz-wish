@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { buildApp } from '../../../server/app.ts';
-import { presetRows } from '../../../shared/rules.ts';
+import { PRESET_SHAPES, sizedPreset } from '../../../shared/rules.ts';
 
 let clock = 1_800_000_000_000;
 let app: Awaited<ReturnType<typeof buildApp>>['app'];
@@ -14,7 +14,7 @@ async function visitor() {
   const call = (method: 'GET' | 'POST', url: string, payload?: object) => app.inject({ method, url, payload, headers: { cookie } });
   return { call, cookie };
 }
-const candle = (minutes: number, extra: object = {}) => ({ runId: `run-${Math.random().toString(36).slice(2)}`, placeId: 'lingyin', shape: { kind: 'candle', color: 0, rows: presetRows(minutes) }, wishText: 'a private wish', ...extra });
+const candle = (minutes: number, extra: object = {}) => ({ runId: `run-${Math.random().toString(36).slice(2)}`, placeId: 'pine-gate', shape: { kind: 'candle', color: 0, rows: sizedPreset(PRESET_SHAPES.candle[0].rows, minutes) }, wishText: 'a private wish', ...extra });
 
 describe('candles', () => {
   it('records a candle that went out, and it can never burn again', async () => {
@@ -86,8 +86,8 @@ describe('privacy and stats', () => {
     }
     const stats = await app.inject({ method: 'GET', url: '/api/places/stats' });
     expect(stats.body).not.toContain('a private wish');
-    const lingyin = stats.json().places.find((p: { placeId: string }) => p.placeId === 'lingyin');
-    expect(lingyin).toMatchObject({ people: 2, candles: 2, totalMs: 40 * 60_000, averageMs: 20 * 60_000, longestMs: 30 * 60_000 });
+    const pineGate = stats.json().places.find((p: { placeId: string }) => p.placeId === 'pine-gate');
+    expect(pineGate).toMatchObject({ people: 2, candles: 2, totalMs: 40 * 60_000, averageMs: 20 * 60_000, longestMs: 30 * 60_000 });
     const bList = (await b.call('GET', '/api/me/candles')).json();
     expect(bList.candles).toHaveLength(1);
     expect(bList.totals.totalMs).toBe(30 * 60_000);

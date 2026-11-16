@@ -23,6 +23,8 @@ export class FocusBlur extends Pass {
       depthTest: false, depthWrite: false,
     });
     this.quad = new FullScreenQuad(this.material);
+    // 1 = the full blur; less keeps the place around the lamp readable.
+    this.amount = 1;
   }
   setSize(width, height) {
     this.a.setSize(Math.max(1, Math.ceil(width / 4)), Math.max(1, Math.ceil(height / 4)));
@@ -33,9 +35,9 @@ export class FocusBlur extends Pass {
     const u = this.material.uniforms;
     u.downsample.value = true; u.tDiffuse.value = read.texture;
     renderer.setRenderTarget(this.a); this.quad.render(renderer);
-    u.downsample.value = false; u.tDiffuse.value = this.a.texture; u.step.value.set(1 / this.a.width, 0);
+    u.downsample.value = false; u.tDiffuse.value = this.a.texture; u.step.value.set(this.amount / this.a.width, 0);
     renderer.setRenderTarget(this.b); this.quad.render(renderer);
-    u.tDiffuse.value = this.b.texture; u.step.value.set(0, 1 / this.b.height);
+    u.tDiffuse.value = this.b.texture; u.step.value.set(0, this.amount / this.b.height);
     renderer.setRenderTarget(this.renderToScreen ? null : write); this.quad.render(renderer);
   }
   dispose() { this.a.dispose(); this.b.dispose(); this.material.dispose(); this.quad.dispose(); }

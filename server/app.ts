@@ -118,7 +118,7 @@ export async function buildApp(opts: AppOptions) {
     const repeat = q.candleByRun.get(v.id, b.runId);
     if (repeat) return publicCandle(repeat);
     const place = placeById(b.placeId)!;
-    if ((place.vessel === 'lamp') !== (b.shape.kind === 'lamp')) return reply.code(400).send({ error: 'vessel' });
+    if (b.shape.kind !== { wax: 'candle', oil: 'oil', shade: 'shade' }[place.vessel]) return reply.code(400).send({ error: 'vessel' });
     const minutes = shapeMinutes(b.shape);
     if (!isAllowedMinutes(minutes)) return reply.code(400).send({ error: 'duration' });
     settleStale(v.id);
