@@ -4,7 +4,7 @@
 import type { PlaceId } from '../../shared/places.ts';
 const rooms: Record<PlaceId, { low: number; high: number; gain: number; swell: number; detail: 'drip' | 'bird' | 'air' | 'frog' | 'bell' }> = {
   // Pine wind high in the trees.
-  'pine-gate': { low: 380, high: 1400, gain: .045, swell: .07, detail: 'bird' },
+  'pine-gate': { low: 380, high: 1400, gain: .045, swell: .07, detail: 'air' },
   // Rain on tiles, drops from the eaves.
   'bamboo-rain': { low: 900, high: 3200, gain: .05, swell: .13, detail: 'drip' },
   // Wind along the cliff.

@@ -1,48 +1,56 @@
 // Pine Gate Steps: a long flight of stone steps between tall pines, the mountain gate half hidden at the top.
 // The lamp is a small candle in a stone niche cut into the gate pier, lighting the last few steps.
 export default function createPlace(h) {
-  const { THREE, V3, M, roofMat, ground, pave, hallB, gateB, compound, trees, peak, mist, stairs, box, rock, eave, wallWithHoles, otherLamp, pavingTex, grainTex, pauseBuild } = h;
+  const { THREE, V3, M, roofMat, ground, hallB, trees, peak, mist, stairs, box, put, rock, eave, wallWithHoles, otherLamp, pavingTex, grainTex, pauseBuild } = h;
   return {
     exposure: 1.1, shade: 0.3,
     sky: { top: 0x060a0e, horizon: 0x222a2e, ground: 0x0c0f10, sun: 0xd8e2e6, dir: [.6, .3, -1], glow: .2, clouds: .62, lit: 0x3a4448, dark: 0x0e1214, stars: .2, disc: 1.2 },
     fog: [0x1a2124, .014], sunL: [0xb8c8cc, .5], hemi: [0x344044, 0x0c0e0c, .3], bloom: [.75, .82], porch: [0xffa850, 90],
     // The same place by day; the scene blends toward it by the visitor's local time.
     day: { exposure: 1, sky: { top: 0x587090, horizon: 0xdadee2, ground: 0xc8ccd2, sun: 0xfff4e0, dir: [.6, .3, -1], glow: .6, clouds: .35, lit: 0xffffff, dark: 0xa8b0bc }, fog: [0xc6ced6, .0055], sunL: [0xfff2dc, 2], hemi: [0xc0d0e0, 0x384030, .85], bloom: [.4, 1.3] },
-    view: { pos: V3(28, 18, 62), look: V3(0, 8, -8) },
-    walk: [V3(0, 1.7, 40), V3(0, 1.7, 24), V3(0, 2.0, 13), V3(.2, 3.4, 8.5)], doors: V3(0, 5.4, 1),
+    view: { pos: V3(3.8, 2.3, 52), look: V3(-.4, 5.4, 1) },
+    walk: [V3(.2, 1.7, 46), V3(-.15, 2.65, 36), V3(.2, 3.65, 26), V3(0, 4.65, 16), V3(.1, 5.65, 6)], doors: V3(-.3, 5.6, .8),
     async build() {
       const C = h.context;
-      ground(0x4a5636, { r: 52 }); peak(0, -160, -8, 120, 150, M(0x34442e, 1), 2, .55);
+      const granite = M(0x797b74, .94, { map: pavingTex }), damp = M(0x484e43, .98, { map: pavingTex }), bark = M(0x40382b, 1, { map: grainTex });
+      ground(0x252e23, { y: -.12 });
+      // Fifty shallow risers climb four metres. The lamp pier, gate, landing and hall all share that level.
+      stairs(0, 0, 46, 50, .08, .8, 4.2, granite);
+      box(10, 4, 14, damp, 0, 2, -1);
+      box(13, .24, 12, granite, 0, 3.88, -3);
+      for (let i = 0; i < 50; i++) {
+        const z = 45.6 - i * .8, y = (i + 1) * .08;
+        for (const side of [-1, 1]) {
+          box(.32, .1, .78, damp, side * 2.26, y - .01, z);
+          // Worn edges and moss-filled joints break the ruler-straight stair silhouette.
+          if (i % 3 === 0) box(.14 + C.rnd() * .22, .018, .3, M(0x34452c, 1), side * (1.9 + C.rnd() * .12), y + .009, z - .16);
+        }
+      }
       await pauseBuild();
-      pave(0, 30, 6, 30);
-      await pauseBuild();
-      const green = roofMat(0x3c7a52, true);
-      await pauseBuild();
-      stairs(0, 0, 10, 20, .2, .4, 8, C.stone); box(44, 4, 22, C.stone, 0, 2, -10);
-      await pauseBuild();
-      hallB({ y: 4, z: -12, w: 18, d: 11, h: 6, eaves: 2, wall: C.red, roof: green, base: 1.4 });
-      await pauseBuild();
-      gateB({ z: 18, w: 10, wall: C.red, roof: green });
-      await pauseBuild();
-      compound(18, -26, 24, 3.4, C.red, green);
+      const tile = roofMat(0x34393a);
+      hallB({ x: 0, y: 4, z: -12, w: 11, d: 7, h: 3.3, wall: M(0x5c3025, .9, { map: grainTex }), roof: tile, base: .3, lift: .28, glow: .22 });
+      // The low mountain wall terminates at the actual gate pier; there is no second gate on the approach.
+      for (const side of [-1, 1]) {
+        box(7.3, 1.5, .6, damp, side * 6, 4.75, .7);
+        box(7.6, .14, .8, tile, side * 6, 5.57, .7);
+      }
       await pauseBuild();
       const T = trees();
-      await pauseBuild();
-      for (let i = 0; i < 40; i++) { const a = C.rnd() * 6.28, r = 28 + C.rnd() * 22; T.pine(Math.cos(a) * r, 0, Math.sin(a) * r - 6, 1.3 + C.rnd(), 0x26382a); }
-      // Tall pines crowding both sides of the steps.
-      for (let i = 0; i < 46; i++) { const side = C.rnd() < .5 ? -1 : 1, z = 10 + C.rnd() * 40; T.pine(side * (5.5 + C.rnd() * 9), z > 10 && z < 18 ? 4 - (z - 10) * .2 : 0, z, 2.2 + C.rnd() * 1.4, 0x1e3024, true); }
-      await pauseBuild();
-      T.finish();
-      await pauseBuild();
-      const mtn = M(0x2e4232, 1);
-      await pauseBuild();
-      for (const [x, z, r, h, s] of [[-120, -160, 70, 190, 1], [-60, -260, 90, 230, 2], [90, -200, 80, 210, 3], [200, -130, 70, 170, 4], [-200, -90, 80, 160, 5], [150, -330, 110, 250, 6], [-230, -280, 100, 220, 7]]) peak(x, -140, z, r, h, mtn, s * 7, 1.4);
-      await pauseBuild();
-      peak(40, -140, -300, 70, 270, mtn, 99, 1.6);
-      await pauseBuild();
-      mist({ n: 120, at: [0, -16, -60], box: [600, 14, 500], color: 0xf4f6f8, opacity: .55, size: 70, drift: 1.2 });
-      await pauseBuild();
-      mist({ n: 18, at: [0, 2, 10], box: [120, 4, 80], color: 0xf0f2f4, opacity: .14, size: 20 });
+      for (let i = 0; i < 58; i++) {
+        const side = i % 2 ? -1 : 1, z = 48 - (i / 2) * 1.75, y = Math.max(0, Math.min(4, (46 - z) * .1));
+        const x = side * (3.3 + C.rnd() * 7.5), size = 1.65 + C.rnd() * 1.25;
+        T.pine(x, y - .16, z, size, 0x27382b, true);
+        if (i % 3 === 0) {
+          rock(x, y - .2, z, [.5 + C.rnd(), .3 + C.rnd() * .35, .6 + C.rnd()], i + 13);
+          const root = new THREE.CatmullRomCurve3([V3(x, y + .06, z), V3(x * .78, y + .04, z + .4), V3(side * 2.35, y - .04, z + .85)]);
+          put(new THREE.TubeGeometry(root, 12, .045, 6, false), bark);
+        }
+      }
+      T.finish(); await pauseBuild();
+      const mountain = M(0x2c3730, 1);
+      for (const [x, z, r, height, seed] of [[-100,-130,80,130,3],[80,-160,100,170,7],[-150,80,80,100,13]]) peak(x, -90, z, r, height, mountain, seed, .7);
+      mist({ n: 55, at: [0, -12, 55], box: [180, 10, 140], color: 0x9aa9b2, opacity: .18, size: 24, drift: .55 });
+      mist({ n: 16, at: [0, 2, 28], box: [60, 3, 60], color: 0xb4bfc0, opacity: .055, size: 12, drift: .2 });
       await pauseBuild();
     },
 
@@ -50,8 +58,8 @@ export default function createPlace(h) {
     nook: {
       at: { pos: V3(-1.8, 4, .9), ry: 0 },
       lamp: 'niche', y: 1.0, exposure: 1.1, bloom: [.36, 1],
-      approach: [V3(1.2, .2, 6.5), V3(1.0, .6, 4.2)],
-      wide: { pos: V3(.62, .95, 2.5), look: V3(.15, 1.22, 0) },
+      approach: [V3(1.8, 1.65, 3.8), V3(1.2, 1.65, 2.3)],
+      wide: { pos: V3(.62, 1.62, 2.5), look: V3(.15, 1.22, 0) },
       async build(hh, C) {
         const stone = M(0x7e786c, .93, { map: pavingTex }), dark = M(0x4a463e, .95, { map: pavingTex }), red = M(0x6a1a12, .6), wood = M(0x3a2618, .75, { map: grainTex });
         // The pier, with the niche: a square opening under a round head, its back blackened by years of flames.
@@ -76,7 +84,7 @@ export default function createPlace(h) {
         otherLamp('niche', -1.33, .86, -.2, .45); otherLamp('niche', -1.14, .86, -.24, .75);
         // A lantern under the gate eave, so the steps are not climbed in the dark.
         hh.lanterns([[1.82, 2.32, .3]], .34);
-        const gateLight = new THREE.PointLight(0xff8a40, 14, 9, 2); gateLight.position.set(1.82, 2.2, .45); C.G.add(gateLight);
+        const gateLight = new THREE.PointLight(0xff9a58, 3.5, 7, 2); gateLight.position.set(1.82, 2.2, .45); C.G.add(gateLight);
         // The landing at the top of the flight, worn and mossy at its edges.
         box(4.6, .2, 1.6, stone, .6, -.1, .5);
         rock(-2.2, -.3, 1.6, [.6, .45, .5], 61); rock(3.4, -.3, 1.4, [.5, .4, .5], 63);

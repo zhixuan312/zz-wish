@@ -1,0 +1,2108 @@
+{
+  "tag": "round1",
+  "base": "http://localhost:5173",
+  "localHour": 22,
+  "cameraSpeed": 2,
+  "startedAt": "2026-11-16T12:04:44.294Z",
+  "views": [
+    {
+      "viewport": "desktop",
+      "place": "cover",
+      "phase": "cover",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "desktop",
+      "place": "pine-gate",
+      "phase": "outside",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "desktop",
+      "place": "pine-gate",
+      "phase": "walk-1",
+      "elapsedWalkMs": 6919,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "desktop",
+      "place": "pine-gate",
+      "phase": "walk-2",
+      "elapsedWalkMs": 7669,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "desktop",
+      "place": "pine-gate",
+      "phase": "walk-3",
+      "elapsedWalkMs": 8573,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "desktop",
+      "place": "pine-gate",
+      "phase": "choose",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "desktop",
+      "place": "pine-gate",
+      "phase": "lit",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "desktop",
+      "place": "pine-gate",
+      "phase": "went-out-smoke",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "desktop",
+      "place": "pine-gate",
+      "phase": "went-out",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "desktop",
+      "place": "cloud-cliff",
+      "phase": "outside",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "desktop",
+      "place": "cloud-cliff",
+      "phase": "walk-1",
+      "elapsedWalkMs": 2908,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "desktop",
+      "place": "cloud-cliff",
+      "phase": "walk-2",
+      "elapsedWalkMs": 4312,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "desktop",
+      "place": "cloud-cliff",
+      "phase": "walk-3",
+      "elapsedWalkMs": 5920,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "desktop",
+      "place": "cloud-cliff",
+      "phase": "choose",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "desktop",
+      "place": "cloud-cliff",
+      "phase": "lit",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "desktop",
+      "place": "cloud-cliff",
+      "phase": "went-out-smoke",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "desktop",
+      "place": "cloud-cliff",
+      "phase": "went-out",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "desktop",
+      "place": "lotus-pond",
+      "phase": "outside",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "desktop",
+      "place": "lotus-pond",
+      "phase": "walk-1",
+      "elapsedWalkMs": 2778,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "desktop",
+      "place": "lotus-pond",
+      "phase": "walk-2",
+      "elapsedWalkMs": 7587,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "desktop",
+      "place": "lotus-pond",
+      "phase": "walk-3",
+      "elapsedWalkMs": 9347,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "desktop",
+      "place": "lotus-pond",
+      "phase": "choose",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "desktop",
+      "place": "lotus-pond",
+      "phase": "lit",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "desktop",
+      "place": "lotus-pond",
+      "phase": "went-out-smoke",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "desktop",
+      "place": "lotus-pond",
+      "phase": "went-out",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "desktop",
+      "place": "sea-tide",
+      "phase": "outside",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "desktop",
+      "place": "sea-tide",
+      "phase": "walk-1",
+      "elapsedWalkMs": 2778,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "desktop",
+      "place": "sea-tide",
+      "phase": "walk-2",
+      "elapsedWalkMs": 4986,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "desktop",
+      "place": "sea-tide",
+      "phase": "walk-3",
+      "elapsedWalkMs": 5713,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "desktop",
+      "place": "sea-tide",
+      "phase": "choose",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "desktop",
+      "place": "sea-tide",
+      "phase": "lit",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "desktop",
+      "place": "sea-tide",
+      "phase": "went-out-smoke",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "desktop",
+      "place": "sea-tide",
+      "phase": "went-out",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "desktop",
+      "place": "bamboo-rain",
+      "phase": "outside",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "desktop",
+      "place": "bamboo-rain",
+      "phase": "walk-1",
+      "elapsedWalkMs": 2779,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "desktop",
+      "place": "bamboo-rain",
+      "phase": "walk-2",
+      "elapsedWalkMs": 5584,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "desktop",
+      "place": "bamboo-rain",
+      "phase": "walk-3",
+      "elapsedWalkMs": 7121,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "desktop",
+      "place": "bamboo-rain",
+      "phase": "choose",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "desktop",
+      "place": "bamboo-rain",
+      "phase": "lit",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "desktop",
+      "place": "bamboo-rain",
+      "phase": "went-out-smoke",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "desktop",
+      "place": "bamboo-rain",
+      "phase": "went-out",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "desktop",
+      "place": "snow-roof",
+      "phase": "outside",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "desktop",
+      "place": "snow-roof",
+      "phase": "walk-1",
+      "elapsedWalkMs": 2778,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "desktop",
+      "place": "snow-roof",
+      "phase": "walk-2",
+      "elapsedWalkMs": 10614,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "desktop",
+      "place": "snow-roof",
+      "phase": "walk-3",
+      "elapsedWalkMs": 12388,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "desktop",
+      "place": "snow-roof",
+      "phase": "choose",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "desktop",
+      "place": "snow-roof",
+      "phase": "lit",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "desktop",
+      "place": "snow-roof",
+      "phase": "went-out-smoke",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "desktop",
+      "place": "snow-roof",
+      "phase": "went-out",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "desktop",
+      "place": "loess-cliff",
+      "phase": "outside",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "desktop",
+      "place": "loess-cliff",
+      "phase": "walk-1",
+      "elapsedWalkMs": 2779,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "desktop",
+      "place": "loess-cliff",
+      "phase": "walk-2",
+      "elapsedWalkMs": 3501,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "desktop",
+      "place": "loess-cliff",
+      "phase": "walk-3",
+      "elapsedWalkMs": 4224,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "desktop",
+      "place": "loess-cliff",
+      "phase": "choose",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "desktop",
+      "place": "loess-cliff",
+      "phase": "lit",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "desktop",
+      "place": "loess-cliff",
+      "phase": "went-out-smoke",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "desktop",
+      "place": "loess-cliff",
+      "phase": "went-out",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "desktop",
+      "place": "highland",
+      "phase": "outside",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "desktop",
+      "place": "highland",
+      "phase": "walk-1",
+      "elapsedWalkMs": 2778,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "desktop",
+      "place": "highland",
+      "phase": "walk-2",
+      "elapsedWalkMs": 3501,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "desktop",
+      "place": "highland",
+      "phase": "walk-3",
+      "elapsedWalkMs": 4223,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "desktop",
+      "place": "highland",
+      "phase": "choose",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "desktop",
+      "place": "highland",
+      "phase": "lit",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "desktop",
+      "place": "highland",
+      "phase": "went-out-smoke",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "desktop",
+      "place": "highland",
+      "phase": "went-out",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "desktop",
+      "place": "bell-lane",
+      "phase": "outside",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "desktop",
+      "place": "bell-lane",
+      "phase": "walk-1",
+      "elapsedWalkMs": 2777,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "desktop",
+      "place": "bell-lane",
+      "phase": "walk-2",
+      "elapsedWalkMs": 4326,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "desktop",
+      "place": "bell-lane",
+      "phase": "walk-3",
+      "elapsedWalkMs": 4950,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "desktop",
+      "place": "bell-lane",
+      "phase": "choose",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "desktop",
+      "place": "bell-lane",
+      "phase": "lit",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "desktop",
+      "place": "bell-lane",
+      "phase": "went-out-smoke",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "desktop",
+      "place": "bell-lane",
+      "phase": "went-out",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "desktop",
+      "place": "valley-pagoda",
+      "phase": "outside",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "desktop",
+      "place": "valley-pagoda",
+      "phase": "walk-1",
+      "elapsedWalkMs": 2780,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "desktop",
+      "place": "valley-pagoda",
+      "phase": "walk-2",
+      "elapsedWalkMs": 4393,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "desktop",
+      "place": "valley-pagoda",
+      "phase": "walk-3",
+      "elapsedWalkMs": 6595,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "desktop",
+      "place": "valley-pagoda",
+      "phase": "choose",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "desktop",
+      "place": "valley-pagoda",
+      "phase": "lit",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "desktop",
+      "place": "valley-pagoda",
+      "phase": "went-out-smoke",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "desktop",
+      "place": "valley-pagoda",
+      "phase": "went-out",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "phone",
+      "place": "cover",
+      "phase": "cover",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "phone",
+      "place": "pine-gate",
+      "phase": "outside",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "phone",
+      "place": "pine-gate",
+      "phase": "walk-1",
+      "elapsedWalkMs": 2778,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "phone",
+      "place": "pine-gate",
+      "phase": "walk-2",
+      "elapsedWalkMs": 3502,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "phone",
+      "place": "pine-gate",
+      "phase": "walk-3",
+      "elapsedWalkMs": 4223,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "phone",
+      "place": "pine-gate",
+      "phase": "choose",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "phone",
+      "place": "pine-gate",
+      "phase": "lit",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "phone",
+      "place": "pine-gate",
+      "phase": "went-out-smoke",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "phone",
+      "place": "pine-gate",
+      "phase": "went-out",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "phone",
+      "place": "bamboo-rain",
+      "phase": "outside",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "phone",
+      "place": "bamboo-rain",
+      "phase": "walk-1",
+      "elapsedWalkMs": 2778,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "phone",
+      "place": "bamboo-rain",
+      "phase": "walk-2",
+      "elapsedWalkMs": 3501,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "phone",
+      "place": "bamboo-rain",
+      "phase": "walk-3",
+      "elapsedWalkMs": 4222,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "phone",
+      "place": "bamboo-rain",
+      "phase": "choose",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "phone",
+      "place": "bamboo-rain",
+      "phase": "lit",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "phone",
+      "place": "bamboo-rain",
+      "phase": "went-out-smoke",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "phone",
+      "place": "bamboo-rain",
+      "phase": "went-out",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "phone",
+      "place": "cloud-cliff",
+      "phase": "outside",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "phone",
+      "place": "cloud-cliff",
+      "phase": "walk-1",
+      "elapsedWalkMs": 2778,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "phone",
+      "place": "cloud-cliff",
+      "phase": "walk-2",
+      "elapsedWalkMs": 3501,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "phone",
+      "place": "cloud-cliff",
+      "phase": "walk-3",
+      "elapsedWalkMs": 4223,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "phone",
+      "place": "cloud-cliff",
+      "phase": "choose",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "phone",
+      "place": "cloud-cliff",
+      "phase": "lit",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "phone",
+      "place": "cloud-cliff",
+      "phase": "went-out-smoke",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "phone",
+      "place": "cloud-cliff",
+      "phase": "went-out",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "phone",
+      "place": "lotus-pond",
+      "phase": "outside",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "phone",
+      "place": "lotus-pond",
+      "phase": "walk-1",
+      "elapsedWalkMs": 2778,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "phone",
+      "place": "lotus-pond",
+      "phase": "walk-2",
+      "elapsedWalkMs": 3501,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "phone",
+      "place": "lotus-pond",
+      "phase": "walk-3",
+      "elapsedWalkMs": 4224,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "phone",
+      "place": "lotus-pond",
+      "phase": "choose",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "phone",
+      "place": "lotus-pond",
+      "phase": "lit",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "phone",
+      "place": "lotus-pond",
+      "phase": "went-out-smoke",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "phone",
+      "place": "lotus-pond",
+      "phase": "went-out",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "phone",
+      "place": "sea-tide",
+      "phase": "outside",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "phone",
+      "place": "sea-tide",
+      "phase": "walk-1",
+      "elapsedWalkMs": 2778,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "phone",
+      "place": "sea-tide",
+      "phase": "walk-2",
+      "elapsedWalkMs": 3501,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "phone",
+      "place": "sea-tide",
+      "phase": "walk-3",
+      "elapsedWalkMs": 4223,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "phone",
+      "place": "sea-tide",
+      "phase": "choose",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "phone",
+      "place": "sea-tide",
+      "phase": "lit",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "phone",
+      "place": "sea-tide",
+      "phase": "went-out-smoke",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "phone",
+      "place": "sea-tide",
+      "phase": "went-out",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "phone",
+      "place": "snow-roof",
+      "phase": "outside",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "phone",
+      "place": "snow-roof",
+      "phase": "walk-1",
+      "elapsedWalkMs": 2778,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "phone",
+      "place": "snow-roof",
+      "phase": "walk-2",
+      "elapsedWalkMs": 3501,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "phone",
+      "place": "snow-roof",
+      "phase": "walk-3",
+      "elapsedWalkMs": 4224,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "phone",
+      "place": "snow-roof",
+      "phase": "choose",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "phone",
+      "place": "snow-roof",
+      "phase": "lit",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "phone",
+      "place": "snow-roof",
+      "phase": "went-out-smoke",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "phone",
+      "place": "snow-roof",
+      "phase": "went-out",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "phone",
+      "place": "loess-cliff",
+      "phase": "outside",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "phone",
+      "place": "loess-cliff",
+      "phase": "walk-1",
+      "elapsedWalkMs": 2778,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "phone",
+      "place": "loess-cliff",
+      "phase": "walk-2",
+      "elapsedWalkMs": 3501,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "phone",
+      "place": "loess-cliff",
+      "phase": "walk-3",
+      "elapsedWalkMs": 4223,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "phone",
+      "place": "loess-cliff",
+      "phase": "choose",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "phone",
+      "place": "loess-cliff",
+      "phase": "lit",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "phone",
+      "place": "loess-cliff",
+      "phase": "went-out-smoke",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "phone",
+      "place": "loess-cliff",
+      "phase": "went-out",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "phone",
+      "place": "highland",
+      "phase": "outside",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "phone",
+      "place": "highland",
+      "phase": "walk-1",
+      "elapsedWalkMs": 2779,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "phone",
+      "place": "highland",
+      "phase": "walk-2",
+      "elapsedWalkMs": 3500,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "phone",
+      "place": "highland",
+      "phase": "walk-3",
+      "elapsedWalkMs": 4224,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "phone",
+      "place": "highland",
+      "phase": "choose",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "phone",
+      "place": "highland",
+      "phase": "lit",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "phone",
+      "place": "highland",
+      "phase": "went-out-smoke",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "phone",
+      "place": "highland",
+      "phase": "went-out",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "phone",
+      "place": "bell-lane",
+      "phase": "outside",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "phone",
+      "place": "bell-lane",
+      "phase": "walk-1",
+      "elapsedWalkMs": 2779,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "phone",
+      "place": "bell-lane",
+      "phase": "walk-2",
+      "elapsedWalkMs": 3501,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "phone",
+      "place": "bell-lane",
+      "phase": "walk-3",
+      "elapsedWalkMs": 4223,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "phone",
+      "place": "bell-lane",
+      "phase": "choose",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "phone",
+      "place": "bell-lane",
+      "phase": "lit",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "phone",
+      "place": "bell-lane",
+      "phase": "went-out-smoke",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "phone",
+      "place": "bell-lane",
+      "phase": "went-out",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "phone",
+      "place": "valley-pagoda",
+      "phase": "outside",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "phone",
+      "place": "valley-pagoda",
+      "phase": "walk-1",
+      "elapsedWalkMs": 2779,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "phone",
+      "place": "valley-pagoda",
+      "phase": "walk-2",
+      "elapsedWalkMs": 3502,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "phone",
+      "place": "valley-pagoda",
+      "phase": "walk-3",
+      "elapsedWalkMs": 4224,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "phone",
+      "place": "valley-pagoda",
+      "phase": "choose",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "phone",
+      "place": "valley-pagoda",
+      "phase": "lit",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "phone",
+      "place": "valley-pagoda",
+      "phase": "went-out-smoke",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    },
+    {
+      "viewport": "phone",
+      "place": "valley-pagoda",
+      "phase": "went-out",
+      "elapsedWalkMs": null,
+      "cameraSpeed": 2,
+      "overflow": [],
+      "gl": {
+        "error": 0,
+        "lost": false
+      }
+    }
+  ],
+  "errors": [
+    {
+      "viewport": "desktop",
+      "place": "bamboo-rain",
+      "error": "Cannot read properties of undefined (reading 'length')",
+      "resolvedBy": "Bamboo desktop recapture completed all eight phases after initializing C.others before the outside build; subsequent phone capture also completed."
+    },
+    {
+      "viewport": "desktop",
+      "place": "bamboo-rain",
+      "fatal": "page.waitForFunction: Timeout 120000ms exceeded.\n    at /Users/xuan/Documents/code/zz-wish/tests/tier2/realism.mjs:104:18",
+      "url": "http://localhost:5173/",
+      "screenshot": "artifacts/realism/round1/desktop/bamboo-rain/capture-failure.png",
+      "resolvedBy": "Bamboo desktop recapture completed all eight phases after initializing C.others before the outside build; subsequent phone capture also completed."
+    }
+  ],
+  "consoleErrors": [],
+  "notes": [
+    "Visual captures from real UI actions; no test suite and no accelerated burn clock.",
+    "Walk samples use elapsed wall time during the unskipped 14-second continuous walk, divided by CAMERA_SPEED when supplied. Nominal spatial fractions use cubic easing; shader stalls may shift them slightly. CAMERA_SPEED scales rAF timestamps from a stable initial origin, speeding scene animation only; product burn time stays real.",
+    "Phone viewport and touch emulation on desktop GPU, not a physical phone.",
+    "Clean captures hide only .ui visibility for the screenshot, without moving camera, hiding scene geometry or changing lights.",
+    "Round1 three walk points were nominal wall-time samples. They are not exact verified path fractions; later rounds wait on the development progress signal."
+  ],
+  "desktop": {
+    "gpu": {
+      "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1, Unspecified Version)",
+      "width": 1440,
+      "height": 900
+    },
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "touch": false,
+    "cameraSpeed": 2,
+    "localHour": 22
+  },
+  "phone": {
+    "gpu": {
+      "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1, Unspecified Version)",
+      "width": 390,
+      "height": 844
+    },
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "touch": true,
+    "cameraSpeed": 2,
+    "localHour": 22
+  },
+  "finishedAt": "2026-11-16T12:12:17.621Z",
+  "coverage": [
+    {
+      "viewport": "desktop",
+      "place": "pine-gate",
+      "missing": []
+    },
+    {
+      "viewport": "desktop",
+      "place": "bamboo-rain",
+      "missing": []
+    },
+    {
+      "viewport": "desktop",
+      "place": "cloud-cliff",
+      "missing": []
+    },
+    {
+      "viewport": "desktop",
+      "place": "lotus-pond",
+      "missing": []
+    },
+    {
+      "viewport": "desktop",
+      "place": "sea-tide",
+      "missing": []
+    },
+    {
+      "viewport": "desktop",
+      "place": "snow-roof",
+      "missing": []
+    },
+    {
+      "viewport": "desktop",
+      "place": "loess-cliff",
+      "missing": []
+    },
+    {
+      "viewport": "desktop",
+      "place": "highland",
+      "missing": []
+    },
+    {
+      "viewport": "desktop",
+      "place": "bell-lane",
+      "missing": []
+    },
+    {
+      "viewport": "desktop",
+      "place": "valley-pagoda",
+      "missing": []
+    },
+    {
+      "viewport": "phone",
+      "place": "pine-gate",
+      "missing": []
+    },
+    {
+      "viewport": "phone",
+      "place": "bamboo-rain",
+      "missing": []
+    },
+    {
+      "viewport": "phone",
+      "place": "cloud-cliff",
+      "missing": []
+    },
+    {
+      "viewport": "phone",
+      "place": "lotus-pond",
+      "missing": []
+    },
+    {
+      "viewport": "phone",
+      "place": "sea-tide",
+      "missing": []
+    },
+    {
+      "viewport": "phone",
+      "place": "snow-roof",
+      "missing": []
+    },
+    {
+      "viewport": "phone",
+      "place": "loess-cliff",
+      "missing": []
+    },
+    {
+      "viewport": "phone",
+      "place": "highland",
+      "missing": []
+    },
+    {
+      "viewport": "phone",
+      "place": "bell-lane",
+      "missing": []
+    },
+    {
+      "viewport": "phone",
+      "place": "valley-pagoda",
+      "missing": []
+    }
+  ]
+}
