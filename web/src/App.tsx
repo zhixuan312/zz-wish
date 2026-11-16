@@ -141,7 +141,7 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
     await engine.travel(placeId); setScreen('candle');
   });
   const backToPlace = () => { engine.setOffer(null); toPlace(); };
-  const toConfirm = () => run(async () => { setLightError(null); await engine.closeUp(); setScreen('confirm'); });
+  const toConfirm = () => run(async () => { setLightError(null); await engine.closeUp(); setScreen('confirm'); setTimeout(() => sound.prepare(), 500); });
   const backToCandle = () => run(async () => { setScreen('candle'); await engine.backToChoose(); });
   const again = (id: string | null, text: string) => { setOverlay(null); setWishId(id); setWish(text); setResult(null); backToPlace(); };
   const startOver = () => { setWish(''); setWishId(null); setStrokes([]); setResult(null); setScreen('wish'); run(() => engine.toHall()); };

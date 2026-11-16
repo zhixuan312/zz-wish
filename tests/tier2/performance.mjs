@@ -43,7 +43,7 @@ for(const [name,width,height] of [['desktop',1440,900],['phone',390,844]]) {
  await phase('setup');await page.waitForTimeout(4000);
  await phase('confirmation');
  await page.getByRole('button',{name:/Take this one/}).click();await page.getByRole('button',{name:/Light it/}).waitFor();
- const beforeAudio=await page.evaluate(()=>window.__perf.audioContexts);
+ await page.waitForTimeout(1500);const beforeAudio=await page.evaluate(()=>({contexts:window.__perf.audioContexts,state:window.__lastAudio?.state??'not-created'}));
  await phase('ignition');
  await page.getByRole('button',{name:/Light it/}).click();await page.getByTestId('with-you').waitFor();await page.waitForTimeout(2200);
  await phase('burning');await page.waitForTimeout(8000);

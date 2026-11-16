@@ -27,6 +27,9 @@ const TEMPLES = [
 // ---------- Renderer ----------
 const canvas = document.getElementById('gl');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
+// Reading shader logs blocks until each program links; only development needs them.
+renderer.debug.checkShaderErrors = import.meta.env.DEV;
+if (import.meta.env.DEV) window.__renderer = renderer;
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
 let quality = innerWidth < 720 ? 'balanced' : 'high', powerSaver = false, phase = 'wish';
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, quality === 'high' ? 1.75 : 1.25));
@@ -995,10 +998,13 @@ async function pauseBuild() {
 const placeHelpers = { THREE, V3, V2, M, roofMat, ground, pave, hallB, gateB, compound, rock, trees, peak, ridges, mist, burnerAt, postLanterns, pagoda, stairs, paifang, wallRun, tibetan, flags, water, archBridge, lotus, statue, box, city, ribbons, fall, lanterns, put, tower, smokeAt, pavingTex, petalTex, pauseBuild, get context() { return C; } };
 const cachedPlaces = new Map();
 const sharedTextures = new Set([pavingTex, grainTex, tileTex, waterTex, latticeTex, softTex, petalTex, windowsTex]);
+// Materials are left to the garbage collector rather than disposed: disposing them would also
+// release their shader programs, and the next place would stall recompiling the same variants.
+// The program set is bounded by the variants the ten places use.
 function disposePlace(old) {
   const materials = new Set(), textures = new Set();
   old.G.traverse(o => { if (o.geometry && ![blobGeo, trunkGeo, coneGeo].includes(o.geometry)) o.geometry.dispose(); if (o.material) for (const m of (Array.isArray(o.material) ? o.material : [o.material])) materials.add(m); });
-  for (const m of materials) { for (const v of Object.values(m)) if (v?.isTexture && !sharedTextures.has(v)) textures.add(v); m.dispose(); }
+  for (const m of materials) for (const v of Object.values(m)) if (v?.isTexture && !sharedTextures.has(v)) textures.add(v);
   for (const texture of textures) texture.dispose();
   old.envTarget.dispose();
 }
