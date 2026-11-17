@@ -2,6 +2,7 @@
 import { chromium, webkit } from '@playwright/test';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
+import { spawn } from 'node:child_process';
 import Database from 'better-sqlite3';
 import { fingerprintCaptureSource } from './capture-source-fingerprint.mjs';
 import { assertServedSnapshot, installCaptureGpuGuard, assertCaptureGpuHealthy } from './capture-preflight.mjs';
@@ -10,7 +11,7 @@ import { installLiveAudioAudit, sampleLiveAudio } from './live-audio-audit.mjs';
 import { captureEndingPlume } from './ending-plume-capture.mjs';
 
 if (process.argv.includes('--help')) {
-  console.log('Real UI capture only; no test suite. Required frozen SOURCE_ROOT and BASE_URL/API proxy, isolated DB_FILE. BROWSERS=chromium,webkit; VIEWPORT=desktop|phone (omit for both); LANGUAGES=en,zh for every language/size, otherwise desktop-en + phone-zh. FLOW=motion records a clean, continuous home→place→walk→ignition→burn video without diagnostic waits; FLOW=full (default) captures the complete UI/endings/records plus static diagnostics and12s real natural/put-out plume windows. REQUIRE_ENDING_PLUME=1 rejects a missing source hook; legacy snapshots otherwise record that limitation. STATIC_SECONDS=10; DETAIL_SECONDS=10; CLOSEUP_CONFIG=.../closeups.json; VIDEO=0 omits the full diagnostic flow video when a separate motion video exists. Set OUTPUT per run. Only launch while owning the exclusive GPU lease.');
+  console.log('Real UI capture only; no test suite. Required frozen SOURCE_ROOT and BASE_URL/API proxy, isolated DB_FILE. BROWSERS=chromium,webkit; VIEWPORT=desktop|phone (omit for both); LANGUAGES=en,zh for every language/size, otherwise desktop-en + phone-zh. FLOW=motion records a clean, continuous home→place→walk→ignition→burn video without diagnostic waits; FLOW=full (default) captures the complete UI/endings/records plus static diagnostics and12s real natural/put-out plume windows. REQUIRE_ENDING_PLUME=1 rejects a missing source hook; legacy snapshots otherwise record that limitation. STATIC_SECONDS=10; DETAIL_SECONDS=10; CLOSEUP_CONFIG=.../closeups.json; VIDEO=0 omits the full diagnostic flow video when a separate motion video exists. VIDEO_START=ready uses the public page.screencast API after readiness and before every home/wish action. VIDEO_START=screenshots with explicit FFMPEG_PATH records actual timestamped JPEG captures after readiness at target8FPS and encodes after context close, without a product FPS claim. Set OUTPUT per run. Only launch while owning the exclusive GPU lease.');
   process.exit(0);
 }
 
@@ -20,7 +21,8 @@ const output = process.env.OUTPUT || 'artifacts/full-review/round-1/before-journ
 const dbFile = process.env.DB_FILE || '/tmp/one-light-round1.db';
 if (!source.startsWith('/tmp/') || !dbFile.startsWith('/tmp/')) throw new Error('Use the isolated frozen source and visual API database.');
 const seconds = Number(process.env.STATIC_SECONDS || 10), detailSeconds = Number(process.env.DETAIL_SECONDS || seconds), smoke = process.env.FLOW === 'smoke', motion = process.env.FLOW === 'motion', shortFlow = smoke || motion;
-const recordVideo = process.env.VIDEO !== '0';
+const recordVideo = process.env.VIDEO !== '0', recordAfterReady = recordVideo && process.env.VIDEO_START === 'ready', screenshotVideo = recordVideo && process.env.VIDEO_START === 'screenshots', contextVideo = recordVideo && !recordAfterReady && !screenshotVideo;
+if (screenshotVideo && !process.env.FFMPEG_PATH) throw new Error('VIDEO_START=screenshots requires an explicit FFMPEG_PATH.');
 if (![seconds, detailSeconds].every(value => Number.isFinite(value) && value > 0)) throw new Error('Static/detail capture durations must be positive.');
 const names = (process.env.BROWSERS || 'webkit,chromium').split(',');
 if (names.some(name => !['webkit', 'chromium'].includes(name))) throw new Error('Unknown browser.');
@@ -132,7 +134,7 @@ for (const name of names) {
   try { for (const size of sizes) {
     const directory = `${output}/${name}/${size.name}`; await mkdir(`${directory}/sequences/luminance`, { recursive: true });
     const context = await browser.newContext({ viewport: { width: size.width, height: size.height }, deviceScaleFactor: 1, locale: size.locale, hasTouch: size.phone, isMobile: size.phone,
-      ...(recordVideo ? { recordVideo: { dir: `${directory}/video`, size: { width: size.width, height: size.height } } } : {}) });
+      ...(contextVideo ? { recordVideo: { dir: `${directory}/video`, size: { width: size.width, height: size.height } } } : {}) });
     await context.addInitScript(installLiveAudioAudit);
     await context.addInitScript(installCaptureGpuGuard);
     await context.addInitScript(() => {
@@ -143,7 +145,9 @@ for (const name of names) {
       for (const type of ['visibilitychange', 'blur', 'focus', 'pagehide']) addEventListener(type, event => window.__journeyEvents.push({ type, trusted: event.isTrusted, hidden: document.hidden, focused: document.hasFocus(), at: native() }), true);
     });
     const page = await context.newPage(); page.setDefaultTimeout(90000); const video = page.video();
-    let lit = false;
+    let lit = false, screencastStarted = false, screenshotRecording = false, screenshotTask = null, screenshotStopTime = null;
+    const screencastFile = `${directory}/video/motion.webm`;
+    const screenshotFrames = [], screenshotDirectory = `${directory}/video/screenshot-frames`, screenshotTimestamps = `${directory}/video/frame-times.json`;
     const scope = { browser: name, viewport: size.name };
     page.on('pageerror', error => { report.errors.push({ ...scope, error: error.stack }); console.log('JOURNEY_ERROR', name, size.name, error.message); });
     page.on('console', message => { if (message.type() === 'error') { report.errors.push({ ...scope, console: message.text(), location: message.location() }); console.log('JOURNEY_CONSOLE', name, size.name, message.text()); } });
@@ -253,7 +257,40 @@ for (const name of names) {
       report.interactions.push({ ...scope, stage: 'drawing', pointer: size.phone && name === 'chromium' ? 'native touch protocol' : 'trusted mouse pointer', duration: await page.getByTestId('duration').innerText() });
     };
     try {
-      await page.goto(base); await page.bringToFront(); await page.waitForFunction(() => window.__ready && window.__flickerLab); await assertServedSnapshot(page, fingerprint); await page.evaluate(() => document.fonts.ready.then(() => true));
+      const startupBegan = Date.now();
+      await page.goto(base); await page.bringToFront();
+      if (name === 'webkit' && contextVideo) {
+        await page.mouse.click(8, 8);
+        report.interactions.push({ ...scope, stage: 'recorded-startup-focus', pointer: 'trusted mouse click at empty page margin (8,8)', reason: 'Trusted focus control before recorded WebKit startup.' });
+      }
+      const startupBudget = name === 'webkit' && contextVideo ? 180000 : 90000;
+      await page.waitForFunction(() => window.__ready && window.__flickerLab, null, { timeout: startupBudget }); await assertServedSnapshot(page, fingerprint); await page.evaluate(() => document.fonts.ready.then(() => true));
+      report.interactions.push({ ...scope, stage: 'startup-ready', wallMs: Date.now() - startupBegan, timeoutMs: startupBudget, recordingDuringStartup: contextVideo });
+      console.log('JOURNEY_READY', name, size.name, Date.now() - startupBegan);
+      if (recordAfterReady) {
+        await mkdir(`${directory}/video`, { recursive: true });
+        await page.screencast.start({ path: screencastFile, size: { width: size.width, height: size.height } });
+        screencastStarted = true;
+        report.interactions.push({ ...scope, stage: 'recording-started', method: 'Public page.screencast API after readiness and before every home/wish action.' });
+      }
+      if (screenshotVideo) {
+        await mkdir(screenshotDirectory, { recursive: true });
+        screenshotRecording = true;
+        screenshotTask = (async () => {
+          const origin = performance.now(), wallOrigin = Date.now();
+          try {
+            while (screenshotRecording) {
+              const begin = performance.now(), file = `${screenshotDirectory}/${String(screenshotFrames.length).padStart(6, '0')}.jpg`;
+              await page.screenshot({ path: file, type: 'jpeg', quality: 80, animations: 'allow' });
+              const end = performance.now();
+              screenshotFrames.push({ file, relativeMs: (begin + end) / 2 - origin, wallTimestampMs: wallOrigin + (begin + end) / 2 - origin, captureMs: end - begin });
+              await new Promise(done => setTimeout(done, Math.max(0, 125 - (performance.now() - begin))));
+            }
+            screenshotStopTime = performance.now() - origin;
+          } catch (error) { report.errors.push({ ...scope, recordingError: String(error) }); }
+        })();
+        report.interactions.push({ ...scope, stage: 'recording-started', method: 'Actual page JPEG screenshots at a target8FPS, after readiness and before every home/wish action; native wall timestamps, no scene/clock freeze and no FPS claim.' });
+      }
       report.runtime.push({ ...scope, version: browser.version(), ...(await page.evaluate(() => { const gl = window.__renderer.getContext(), debug = gl.getExtension('WEBGL_debug_renderer_info'); return { userAgent: navigator.userAgent, renderer: debug ? gl.getParameter(debug.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER), buffer: [gl.drawingBufferWidth, gl.drawingBufferHeight] }; })) });
       await sequence('home');
       await audio('home-before-light', 'silent');
@@ -308,7 +345,35 @@ for (const name of names) {
       await writeFile(`${directory}/failure-state.json`,JSON.stringify(startupState,null,2)+'\n');
       await page.screenshot({ path: `${directory}/failure.png` }).catch(() => {});
     }
-    finally { if (lit) await putOut().catch(error => report.errors.push({ ...scope, cleanupError: String(error) })); await context.close(); if (video) report.videos.push({ ...scope, file: await video.path(), role: motion ? 'Clean continuous real UI motion; no inserted static holds.' : 'Real UI with explicit static diagnostic waits; use the separate FLOW=motion video for pacing.' }); await save(); }
+    finally {
+      if (lit) await putOut().catch(error => report.errors.push({ ...scope, cleanupError: String(error) }));
+      if (screencastStarted) {
+        await page.screencast.stop().catch(error => report.errors.push({ ...scope, recordingError: String(error) }));
+        report.videos.push({ ...scope, file: screencastFile, method: 'Public page.screencast; begins after engine readiness, before home/wish actions.', role: motion ? 'Clean continuous real UI motion; no inserted static holds.' : 'Real UI with explicit static diagnostic waits.' });
+      }
+      if (screenshotTask) { screenshotRecording = false; await screenshotTask; }
+      await context.close();
+      if (screenshotTask && screenshotFrames.length > 1) {
+        await writeFile(screenshotTimestamps, JSON.stringify({ ...scope, targetFps: 8, stopRelativeMs: screenshotStopTime, timestampConvention: 'Midpoint of each actual screenshot request in native wall time; capture latency is reported. The video uses these real intervals and makes no product FPS claim.', frames: screenshotFrames }, null, 2) + '\n');
+        const containerFps = 25, origin = screenshotFrames[0].relativeMs;
+        const child = spawn(process.env.FFMPEG_PATH, ['-hide_banner', '-loglevel', 'error', '-f', 'image2pipe', '-framerate', String(containerFps), '-c:v', 'mjpeg', '-i', 'pipe:0', '-c:v', 'libvpx-vp9', '-b:v', '0', '-crf', '34', '-cpu-used', '6', '-pix_fmt', 'yuv420p', '-an', '-y', screencastFile]);
+        const completed = new Promise(done => {
+          let errors = ''; child.stderr.on('data', chunk => { errors += chunk; });
+          child.on('error', error => { report.errors.push({ ...scope, recordingError: String(error) }); done(); });
+          child.on('close', code => { if (code) report.errors.push({ ...scope, recordingError: `Timestamped JPEG video encoder exited${code}: ${errors}` }); else report.videos.push({ ...scope, file: screencastFile, timestamps: screenshotTimestamps, capturedFrames: screenshotFrames.length, targetCaptureFps: 8, containerFps, timingQuantizationMs: 20, method: 'Actual JPEG captures encoded after context close; each source image is held to its measured native wall duration, rounded to the25FPS container grid. No frame interpolation.', role: 'Continuous real UI motion; capture-limited cadence, no inserted static holds, no product FPS claim.' }); done(); });
+        });
+        try {
+          for (let index = 0; index < screenshotFrames.length; index++) {
+            const frame = screenshotFrames[index], bytes = await readFile(frame.file);
+            const first = Math.round((frame.relativeMs - origin) * containerFps / 1000), next = Math.round(((screenshotFrames[index + 1]?.relativeMs ?? screenshotStopTime) - origin) * containerFps / 1000);
+            for (let repeat = first; repeat < next; repeat++) if (!child.stdin.write(bytes)) await new Promise(done => child.stdin.once('drain', done));
+          }
+          child.stdin.end();
+        } catch (error) { report.errors.push({ ...scope, recordingError: String(error) }); child.kill(); }
+        await completed;
+      }
+      if (video) report.videos.push({ ...scope, file: await video.path(), role: motion ? 'Clean continuous real UI motion; no inserted static holds.' : 'Real UI with explicit static diagnostic waits; use the separate FLOW=motion video for pacing.' }); await save();
+    }
     if (!shortFlow) await heldWalkReplay(browser, name, size);
   } } finally { await browser.close(); }
 }

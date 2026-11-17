@@ -1,36 +1,83 @@
-// Actual packaged LOW8 Snow optics. No final/fulljourney/FPS claim.
+// Actual packaged Snow optics/contact framing. Manifest samples are authoritative.
 import {chromium,webkit} from '@playwright/test';
 import {readFile,writeFile,mkdir} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 import {fingerprintCaptureSource} from './capture-source-fingerprint.mjs';
-import {installCaptureGpuGuard,assertCaptureGpuHealthy,assertServedSnapshot} from './capture-preflight.mjs';
+import {installCaptureGpuGuard,assertCaptureGpuHealthy,assertServedSnapshot,readCaptureManifest} from './capture-preflight.mjs';
+if(process.argv.includes('--help')){
+ console.log('Bounded real-UI C6/lantern/low-altar capture; exclusive browser GPU lease required. SOURCE_ROOT=/tmp/frozen-instrument-flicker-snapshot BASE_URL=http://127.0.0.1:5260 OUTPUT=artifacts/... BROWSERS=chromium,webkit [VIEWPORT=desktop|phone] [PHONE_POSES=.../candidates.json]. Optional gauze-optics instrumentation is not required. Eight frames per browser/size plus optional camera-only B5 phone poses; no lighting variants, FPS or full-journey approval.');
+ process.exit(0);
+}
 const source=process.env.SOURCE_ROOT,base=process.env.BASE_URL,out=process.env.OUTPUT;
 if(!source?.startsWith('/tmp/')||!base||!out)throw Error('Explicit isolated source/URL/output required');
-const manifest=JSON.parse(await readFile(source+'/web/public/places/snow-roof/manifest.json'));
+const manifest=await readCaptureManifest(source,{requireFinalBanks:true});
 if(manifest.bake.cameraPreExposure!==40||manifest.bake.lampPassQuantity!=='indirect-diffuse-radiance-per-unit-albedo')throw Error('Actual normalized indirect-only source required');
 const fingerprint=await fingerprintCaptureSource(source),sha=b=>createHash('sha256').update(b).digest('hex');
-const report={scope:'Actual packaged preview optical check of C1/C2/C6/B4. Declared per-map samples remain authoritative; default red fixture only; not final/fulljourney/hunt/FPS or arbitrary-shape GI approval. Cloud is a technical navigation control.',sourceStart:fingerprint,frames:[],errors:[],records:[]};
+let phonePoses=[],phonePosesInput=null;
+if(process.env.PHONE_POSES){
+ const bytes=await readFile(process.env.PHONE_POSES),registry=JSON.parse(bytes),rows=registry.candidates??registry;
+ if(!Array.isArray(rows))throw Error('PHONE_POSES must contain an array or candidates array');
+ phonePoses=rows.filter(row=>!row.viewport||row.viewport==='phone').map(row=>{
+  const name=row.name??row.id;
+  if(typeof name!=='string'||!/^[a-zA-Z0-9_-]+$/.test(name)||![row.position,row.look].every(v=>Array.isArray(v)&&v.length===3&&v.every(Number.isFinite))||!Number.isFinite(row.fov)||row.fov<=0||row.fov>=180)throw Error('Invalid named B5 phone camera');
+  return{name,position:row.position,look:row.look,fov:row.fov,purpose:row.purpose??null,preferred:!!row.preferred};
+ });
+ if(!phonePoses.length||new Set(phonePoses.map(row=>row.name)).size!==phonePoses.length)throw Error('Distinct phone camera candidates required');
+ phonePosesInput={path:process.env.PHONE_POSES,sha256:sha(bytes),source:registry.source??null,scope:'Camera-only B5 holds on the same frozen physical/lighting state; no exposure, power, fill, vignette or source mutation',candidates:phonePoses};
+}
+const browsers=(process.env.BROWSERS??'chromium,webkit').split(',');
+if(browsers.some(name=>!['chromium','webkit'].includes(name))||process.env.VIEWPORT&&!['desktop','phone'].includes(process.env.VIEWPORT))throw Error('Use chromium/webkit and desktop/phone capture choices');
+// Literal Source18 WORLD Y-up poses; the descriptor's nook offset is already applied.
+const compositions={
+ desktop:{near:{position:[-4.9,2.35,-2.15],look:[1.09794395,1.2,-1.99293831],fov:55},far:{position:[-4.94,2.35,-2.15],look:[1.05794395,1.2,-1.99293831],fov:55}},
+ phone:{near:{position:[-1.5,2.2,1.9],look:[-.9,1.7,-2.3],fov:55},far:{position:[-1.5,2.2,1.98],look:[-1.1,1.75,-2.3],fov:55}},
+};
+// Source18 contact-registry view height, not a bounding-box support estimate.
+// The phone pair views move back so both real lamp bases/pedestals fit together.
+const altarViewY=1.677066650390625;
+const altarViews=[
+ {name:'left',groups:['altar -1.45','altar -0.95'],desktop:{position:[-1.15,altarViewY,-3.55],look:[-1.15,altarViewY,-4.74],fov:50},phone:{position:[-1.15,altarViewY,-2.15],look:[-1.15,altarViewY,-4.74],fov:55}},
+ {name:'centre',groups:['altar burner assembly'],desktop:{position:[.15,altarViewY,-3.75],look:[0,altarViewY,-4.85],fov:50},phone:{position:[.05,altarViewY,-3.2],look:[0,altarViewY,-4.85],fov:55}},
+ {name:'right',groups:['altar 0.95','altar 1.45'],desktop:{position:[1.1,altarViewY,-3.55],look:[1.1,altarViewY,-4.73],fov:50},phone:{position:[1.1,altarViewY,-2.15],look:[1.1,altarViewY,-4.73],fov:55}},
+];
+// Runs synchronously in the page. Older basic flicker snapshots retain lampInfo
+// in the begin closure but do not expose it as lab.lampInfo. Read its immediate
+// CPU metadata and restore recording/result before any render or readback.
+const browserMetadata=()=>{
+ const lab=window.__flickerLab,optics=window.__captureGauzeOptics?.('metadata')??null;
+ let lamp=lab.lampInfo?.()??null,lampMetadataSource=lamp?'flickerLab.lampInfo':null;
+ if(!lamp?.worldBounds&&lab.begin){
+  const recording=lab.recording,result=lab.result;
+  if(recording)throw Error('Cannot borrow lamp metadata during an active diagnostic recording');
+  try{lab.begin({name:'c6-framing-metadata-only',seconds:1,rois:[]});lamp=lab.recording?.lamp??null;lampMetadataSource='flickerLab.begin immediate CPU metadata';}
+  finally{lab.recording=recording;lab.result=result;}
+ }
+ return{camera:window.__captureCameraState(),optics,lamp,lampMetadataSource,anchors:window.__captureRuntimeAnchors?.()??null,place:lab.placeInfo(),colorView:window.__captureColorView?.()??null};
+};
+const report={scope:'Actual installed-package optical/contact frames for C1/C2/C6/B4 and all four altar lamps/burner. Manifest per-map samples are authoritative; default red fixture only. This capture does not itself approve final visuals/full journey/hunt/FPS or arbitrary-shape GI. Cloud is a technical navigation control.',sourceStart:fingerprint,
+ nativeProvenance:{manifestSha256:fingerprint.files.find(file=>file.path==='web/public/places/snow-roof/manifest.json')?.sha256,sourceBlendSha256:manifest.bake.sourceBlendSha256,bakeFingerprint:manifest.bakeFingerprint,partialPreview:!!manifest.partialPreview,completePackageBytes:manifest.completePackageBytes,maps:Object.fromEntries(Object.entries(manifest.lightmaps).flatMap(([region,maps])=>Object.entries(maps).map(([pass,map])=>[region+'/'+pass,{samples:map.samples,bakeDevice:map.bakeDevice,denoiseDevice:map.denoiseDevice,passFilter:map.passFilter,quantity:map.quantity,masterSha256:map.masterSha256}])) )},
+ compositionPoses:compositions,phonePosesInput,lowAltarFraming:{viewHeightMetres:altarViewY,role:'Low view of actual contacts; no support placement or contact measurement from bounds',views:altarViews},frames:[],errors:[],records:[]};
 await mkdir(out,{recursive:true});
 const save=()=>writeFile(out+'/report.json',JSON.stringify(report,null,2)+'\n');
-for(const name of(process.env.BROWSERS??'chromium,webkit').split(',')){
+for(const name of browsers){
  const browser=await({chromium,webkit}[name]).launch(name==='chromium'?{channel:'chrome',headless:false,args:['--use-angle=metal','--enable-gpu','--ignore-gpu-blocklist']}:{headless:false});
  try{for(const size of[{name:'desktop',width:1440,height:900},{name:'phone',width:390,height:844}].filter(s=>!process.env.VIEWPORT||s.name===process.env.VIEWPORT)){
   const context=await browser.newContext({viewport:{width:size.width,height:size.height},deviceScaleFactor:1,locale:'en-US',hasTouch:size.name==='phone',isMobile:size.name==='phone'});
   await context.addInitScript(installCaptureGpuGuard);await context.addInitScript(()=>{Date.prototype.getHours=()=>22;Date.prototype.getMinutes=()=>0;window.__visualFreezeCamera=true;});
   const page=await context.newPage();page.setDefaultTimeout(90000);let lit=false;
   page.on('pageerror',e=>report.errors.push({browser:name,size:size.name,error:e.stack}));page.on('console',m=>{if(m.type()==='error')report.errors.push({browser:name,size:size.name,console:m.text()});});page.on('response',r=>{if(r.status()>=400)report.errors.push({browser:name,size:size.name,url:r.url(),status:r.status()});});
-  const act=async locator=>{if(await page.locator('.ui').getAttribute('data-controls-idle')==='true')await page.mouse.move(8,size.height/2);await locator.click();};
+  const act=async locator=>{if(await page.locator('.ui').getAttribute('data-controls-idle')==='true'){if(size.name==='phone')await page.touchscreen.tap(8,size.height/2);else await page.mouse.move(8,size.height/2);}if(size.name==='phone')await locator.tap();else await locator.click();};
   const button=re=>page.getByRole('button',{name:re});
-  const shot=async(stage,pose=null)=>{
+  const shot=async(stage,pose=null,extra={})=>{
    const previous=pose?await page.evaluate(p=>window.__captureSetCamera(p),pose):null;
    await page.waitForTimeout(250);const health=await assertCaptureGpuHealthy(page);
    const file=`${out}/${name}-${size.name}-${stage}.png`;await page.screenshot({path:file});
-   const metadata=await page.evaluate(()=>({camera:window.__captureCameraState(),optics:window.__captureGauzeOptics('metadata'),anchors:window.__captureRuntimeAnchors(),place:window.__flickerLab.placeInfo(),colorView:window.__captureColorView?.()}));
-   report.frames.push({browser:name,size:size.name,stage,file,sha256:sha(await readFile(file)),health,diagnosticCamera:pose,...metadata});await save();console.log('SNOW_C6_FRAME',name,size.name,stage);
+   const metadata=await page.evaluate(browserMetadata);
+   report.frames.push({browser:name,size:size.name,stage,file,sha256:sha(await readFile(file)),health,diagnosticCamera:pose,...metadata,...extra});await save();console.log('SNOW_C6_FRAME',name,size.name,stage);
    if(previous)await page.evaluate(p=>window.__captureSetCamera(p),previous);
   };
   try{
-   await page.goto(base);await page.bringToFront();await page.waitForFunction(()=>window.__ready&&window.__captureGauzeOptics);await assertServedSnapshot(page,fingerprint);
+   await page.goto(base);await page.bringToFront();await page.waitForFunction(()=>window.__ready&&window.__flickerLab);await assertServedSnapshot(page,fingerprint);
    await page.getByLabel('Your wish').fill('A quiet light under the old timber.');await act(button(/^Set my wish$/));
    await page.waitForFunction(()=>['ready','error'].includes(document.querySelector('.court-loading')?.dataset.stage));
    if(await page.locator('.court-loading').getAttribute('data-stage')==='error')throw Error('Actual court preparation error');
@@ -39,11 +86,22 @@ for(const name of(process.env.BROWSERS??'chromium,webkit').split(',')){
    await act(button(/^Light it(?: ·|$)/));lit=true;await page.waitForFunction(()=>window.__visualIgnition?.state==='settled'&&window.__visualIgnition.progress===1);
    await shot('burning-live');
    await page.evaluate(()=>{window.__captureSetPhysicalState({time:17,fuel:1});Object.assign(window.__flickerLab,{lockCamera:true,pauseTweens:true,freezeScene:true,freezeGrade:true,freezeDaylight:true,freezeFuel:true,freezeFlame:true,freezeLampMotion:true,hideParticles:true});});
-   await shot('burning-held');
-   const far=size.name==='phone'?{position:[-1.5,2.2,1.98],look:[-1.1,1.75,-2.3],fov:55}:{position:[-4.94,2.3,-1.6],look:[1.06,1.75,-2.124931981155544],fov:55};
-   await shot('burnFar-held',far);
-   const close=await page.evaluate(()=>{const b=window.__captureGauzeOptics('metadata').clothBounds,c=b.min.map((v,i)=>(v+b.max[i])/2),eye=window.__captureCameraState().position,d=eye.map((v,i)=>v-c[i]),length=Math.hypot(...d);return{position:c.map((v,i)=>v+d[i]/length*1.1),look:c,fov:42};});
-   const style=await page.addStyleTag({content:'.ui{visibility:hidden!important}'});await shot('diagnostic-cloth-close',close);await shot('diagnostic-low-altar-edge',{position:[.25,1.66,-3.65],look:[0,1.64,-4.75],fov:55});await style.evaluate(n=>n.remove());
+   await shot('burning-held',compositions[size.name].near);
+   await shot('burnFar-held',compositions[size.name].far);
+   const lampMetadata=await page.evaluate(browserMetadata);
+   const bounds=lampMetadata.optics?.clothBounds??lampMetadata.lamp?.worldBounds;
+   if(!bounds||![bounds.min,bounds.max].every(v=>Array.isArray(v)&&v.length===3&&v.every(Number.isFinite)))throw Error('Actual lantern bounds required for close-up framing');
+   const centre=bounds.min.map((v,i)=>(v+bounds.max[i])/2),delta=compositions[size.name].near.position.map((v,i)=>v-centre[i]),length=Math.hypot(...delta);
+   if(length<.001)throw Error('Close-up viewing direction is undefined');
+   const tangent=Math.tan(42*Math.PI/360),height=bounds.max[1]-bounds.min[1],width=Math.hypot(bounds.max[0]-bounds.min[0],bounds.max[2]-bounds.min[2]);
+   const distance=Math.max(.85,height/(2*tangent*.78),width/(2*tangent*(size.width/size.height)*.78));
+   const close={position:centre.map((v,i)=>v+delta[i]/length*distance),look:centre,fov:42};
+   const style=await page.addStyleTag({content:'.ui{visibility:hidden!important}'});
+   try{
+    await shot('diagnostic-lantern-close',close,{framingBoundsSource:lampMetadata.optics?.clothBounds?'optional gauze optics cloth bounds':'actual flicker lamp worldBounds',framingBounds:bounds});
+    for(const view of altarViews)await shot('diagnostic-low-altar-edge-'+view.name,view[size.name],{contactGroupIds:view.groups});
+    if(size.name==='phone')for(const candidate of phonePoses)await shot('diagnostic-b5-'+candidate.name,{position:candidate.position,look:candidate.look,fov:candidate.fov},{role:'B5 camera-only comparison',cameraCandidate:candidate});
+   }finally{await style.evaluate(n=>n.remove());}
   }catch(error){report.errors.push({browser:name,size:size.name,fatal:error.stack});await page.screenshot({path:`${out}/${name}-${size.name}-failure.png`}).catch(()=>{});throw error;}
   finally{
    if(lit){await page.evaluate(()=>Object.assign(window.__flickerLab,{pauseTweens:false,freezeScene:false,freezeFlame:false,freezeLampMotion:false})).catch(()=>{});await act(button(/^Put out$/)).catch(()=>{});await act(button(/^Put out and end$/)).catch(()=>{});report.records.push({browser:name,size:size.name,records:await page.evaluate(async()=>(await(await fetch('/api/me/candles')).json()).candles).catch(()=>null)});}
