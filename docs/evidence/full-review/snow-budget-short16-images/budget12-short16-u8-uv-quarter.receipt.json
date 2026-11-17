@@ -1,0 +1,1435 @@
+{
+  "scope": "Explicit delivery quantization from genuine original F32 NORMAL, with explicit U8 colour policy. F32 physical positions/UVs/images/materials/transforms/winding remain exact. No source/native/bake change; contact/optical review required.",
+  "input": {
+    "path": "art/build/snow-roof-round1/budget12-uv-quarter-source-f32/snow-roof.glb",
+    "bytes": 13436392,
+    "sha256": "954c06edf49e4fbef8c10d2e29071ebc1b07cca04331d7999d77b939e3850cf7"
+  },
+  "output": {
+    "path": "art/build/snow-roof-round1/budget12-short16-u8-uv-quarter/snow-roof.glb",
+    "bytes": 11399640,
+    "sha256": "5e1983fad5382d03317cf20a2e61ff71f716fa702dfd34c33951eafc238bcd9e",
+    "savedBytes": 2036752
+  },
+  "normalPolicy": {
+    "type": "normalized SHORT16",
+    "criticalF32": "none",
+    "maximumWorldComponentError": 0.00001964761175476948,
+    "maximumAllowedWorldComponentError": 0.0001
+  },
+  "colourPolicy": {
+    "type": "normalized U8",
+    "maximumLinearComponentError": 0.012772202491760254,
+    "maximumAllowedLinearComponentError": 0.00196078431372549,
+    "clamping": false
+  },
+  "verticesBefore": 373538,
+  "verticesAfter": 365519,
+  "allDecodedTriangleRecordsAndCyclicWindingExactAfterDeclaredQuantization": true,
+  "imagesAndMaterialValuesExact": true,
+  "sourceInputsUnchanged": true,
+  "renderBakeGpuJobs": 0,
+  "primitives": [
+    {
+      "region": "altar",
+      "primitive": 0,
+      "material": "Dark hall paving 1 UV16 altar 0",
+      "normalStorage": "normalized SHORT16",
+      "maximumWorldNormalComponentError": 0.00001647038525875999,
+      "colours": [
+        {
+          "semantic": "COLOR_0",
+          "sourceSha256": "08df6994c1bad6d56e36d0192e930f875d52eaecb94ca2a786788e1c068b5b83",
+          "maximumLinearComponentError": 0,
+          "storage": "U8 normalized, explicit reviewed policy",
+          "outOfUnitRangeComponentsClamped": 0,
+          "sourceHDRMinimum": null,
+          "sourceHDRMaximum": null
+        }
+      ],
+      "verticesBefore": 1820,
+      "verticesAfter": 1820
+    },
+    {
+      "region": "altar",
+      "primitive": 1,
+      "material": "Dark hall paving 2 UV16 altar 1",
+      "normalStorage": "normalized SHORT16",
+      "maximumWorldNormalComponentError": 0.00001777626759325024,
+      "colours": [
+        {
+          "semantic": "COLOR_0",
+          "sourceSha256": "6d498ae7a72e2e8e4794f7d262bb0e08acf6c6832d173495971ca7d1dc0128a0",
+          "maximumLinearComponentError": 0,
+          "storage": "U8 normalized, explicit reviewed policy",
+          "outOfUnitRangeComponentsClamped": 0,
+          "sourceHDRMinimum": null,
+          "sourceHDRMaximum": null
+        }
+      ],
+      "verticesBefore": 1260,
+      "verticesAfter": 1260
+    },
+    {
+      "region": "altar",
+      "primitive": 2,
+      "material": "Dark hall paving 0 UV16 altar 2",
+      "normalStorage": "normalized SHORT16",
+      "maximumWorldNormalComponentError": 0.000016852878658601966,
+      "colours": [
+        {
+          "semantic": "COLOR_0",
+          "sourceSha256": "819d5a5c185cc9b7709de30296c1c868cb6a83df4f0a774b71829bc23f9ede59",
+          "maximumLinearComponentError": 0,
+          "storage": "U8 normalized, explicit reviewed policy",
+          "outOfUnitRangeComponentsClamped": 0,
+          "sourceHDRMinimum": null,
+          "sourceHDRMaximum": null
+        }
+      ],
+      "verticesBefore": 420,
+      "verticesAfter": 420
+    },
+    {
+      "region": "altar",
+      "primitive": 3,
+      "material": "chinese_console_table UV16 altar 3",
+      "normalStorage": "normalized SHORT16",
+      "maximumWorldNormalComponentError": 0.00001894778307431899,
+      "colours": [
+        {
+          "semantic": "COLOR_0",
+          "sourceSha256": "4f904fdcae3cbed18caf826dd4d9a9c0847f9c5edf82ff1cf814c7007efc4f9d",
+          "maximumLinearComponentError": 0,
+          "storage": "U8 normalized, explicit reviewed policy",
+          "outOfUnitRangeComponentsClamped": 0,
+          "sourceHDRMinimum": null,
+          "sourceHDRMaximum": null
+        }
+      ],
+      "verticesBefore": 16615,
+      "verticesAfter": 14034
+    },
+    {
+      "region": "altar",
+      "primitive": 4,
+      "material": "Old glazed offering ceramic",
+      "normalStorage": "normalized SHORT16",
+      "maximumWorldNormalComponentError": 0.0000169294127743691,
+      "colours": [
+        {
+          "semantic": "COLOR_0",
+          "sourceSha256": "c4d0f95e3d1afa495c3a18795f455f5194977de8a2c827e55411c5d6c5d3b679",
+          "maximumLinearComponentError": 0,
+          "storage": "U8 normalized, explicit reviewed policy",
+          "outOfUnitRangeComponentsClamped": 0,
+          "sourceHDRMinimum": null,
+          "sourceHDRMaximum": null
+        }
+      ],
+      "verticesBefore": 521,
+      "verticesAfter": 495
+    },
+    {
+      "region": "altar",
+      "primitive": 5,
+      "material": "Aged folded offering paper",
+      "normalStorage": "normalized SHORT16",
+      "maximumWorldNormalComponentError": 0.000013054067293835625,
+      "colours": [
+        {
+          "semantic": "COLOR_0",
+          "sourceSha256": "a5447f937e6ed3c5e956695372c0a303e3f6e6b923a0016cbab8e5c1e8ba216c",
+          "maximumLinearComponentError": 0,
+          "storage": "U8 normalized, explicit reviewed policy",
+          "outOfUnitRangeComponentsClamped": 0,
+          "sourceHDRMinimum": null,
+          "sourceHDRMaximum": null
+        }
+      ],
+      "verticesBefore": 24,
+      "verticesAfter": 24
+    },
+    {
+      "region": "altar",
+      "primitive": 6,
+      "material": "Dark old timber UV16 altar 6",
+      "normalStorage": "normalized SHORT16",
+      "maximumWorldNormalComponentError": 0.000016842123948090926,
+      "colours": [
+        {
+          "semantic": "COLOR_0",
+          "sourceSha256": "222128cdfbbe09d9a67b57f5c2ecd460c77445d08936239d1e5ba9b276f8b7ba",
+          "maximumLinearComponentError": 0.0017884550433532875,
+          "storage": "U8 normalized, explicit reviewed policy",
+          "outOfUnitRangeComponentsClamped": 0,
+          "sourceHDRMinimum": null,
+          "sourceHDRMaximum": null
+        }
+      ],
+      "verticesBefore": 1130,
+      "verticesAfter": 1130
+    },
+    {
+      "region": "altar",
+      "primitive": 7,
+      "material": "Aged bronze UV16 altar 7",
+      "normalStorage": "normalized SHORT16",
+      "maximumWorldNormalComponentError": 0.000018796516048857903,
+      "colours": [
+        {
+          "semantic": "COLOR_0",
+          "sourceSha256": "a21e26b7b55e3a61b4f0ed8a98db6a1f91adacf55e65dd133030e496cdfacb1f",
+          "maximumLinearComponentError": 0.0019604407104791832,
+          "storage": "U8 normalized, explicit reviewed policy",
+          "outOfUnitRangeComponentsClamped": 0,
+          "sourceHDRMinimum": null,
+          "sourceHDRMaximum": null
+        }
+      ],
+      "verticesBefore": 4491,
+      "verticesAfter": 4244
+    },
+    {
+      "region": "altar",
+      "primitive": 8,
+      "material": "chinese_screen_panels UV16 altar 8",
+      "normalStorage": "normalized SHORT16",
+      "maximumWorldNormalComponentError": 0.000015989589203124766,
+      "colours": [
+        {
+          "semantic": "COLOR_0",
+          "sourceSha256": "90a2781870d9150ef15559cc3a6be1e2f99971e03d50ee9bae39d569e141a8af",
+          "maximumLinearComponentError": 0,
+          "storage": "U8 normalized, explicit reviewed policy",
+          "outOfUnitRangeComponentsClamped": 0,
+          "sourceHDRMinimum": null,
+          "sourceHDRMaximum": null
+        }
+      ],
+      "verticesBefore": 771,
+      "verticesAfter": 557
+    },
+    {
+      "region": "altar",
+      "primitive": 9,
+      "material": "chinese_screen_panels UV16 altar 9",
+      "normalStorage": "normalized SHORT16",
+      "maximumWorldNormalComponentError": 0.00001623111001755606,
+      "colours": [
+        {
+          "semantic": "COLOR_0",
+          "sourceSha256": "eba7fc73ac001353e482280e0f9f552d97ac7a4626192f15a58c836e8dc326a5",
+          "maximumLinearComponentError": 0,
+          "storage": "U8 normalized, explicit reviewed policy",
+          "outOfUnitRangeComponentsClamped": 0,
+          "sourceHDRMinimum": null,
+          "sourceHDRMaximum": null
+        }
+      ],
+      "verticesBefore": 704,
+      "verticesAfter": 449
+    },
+    {
+      "region": "altar",
+      "primitive": 10,
+      "material": "chinese_screen_panels UV16 altar 10",
+      "normalStorage": "normalized SHORT16",
+      "maximumWorldNormalComponentError": 0.000015989589203124766,
+      "colours": [
+        {
+          "semantic": "COLOR_0",
+          "sourceSha256": "90a2781870d9150ef15559cc3a6be1e2f99971e03d50ee9bae39d569e141a8af",
+          "maximumLinearComponentError": 0,
+          "storage": "U8 normalized, explicit reviewed policy",
+          "outOfUnitRangeComponentsClamped": 0,
+          "sourceHDRMinimum": null,
+          "sourceHDRMaximum": null
+        }
+      ],
+      "verticesBefore": 771,
+      "verticesAfter": 557
+    },
+    {
+      "region": "altar",
+      "primitive": 11,
+      "material": "Tarnished gilded edges",
+      "normalStorage": "normalized SHORT16",
+      "maximumWorldNormalComponentError": 0.000016825843343615254,
+      "colours": [
+        {
+          "semantic": "COLOR_0",
+          "sourceSha256": "aa5c3f2e2a1978c5e0ae421d3970e13af8365bd34bfc6e310f0a96bbf09e2433",
+          "maximumLinearComponentError": 0,
+          "storage": "U8 normalized, explicit reviewed policy",
+          "outOfUnitRangeComponentsClamped": 0,
+          "sourceHDRMinimum": null,
+          "sourceHDRMaximum": null
+        }
+      ],
+      "verticesBefore": 210,
+      "verticesAfter": 210
+    },
+    {
+      "region": "altar",
+      "primitive": 12,
+      "material": "Oil-sooted used bronze interior",
+      "normalStorage": "normalized SHORT16",
+      "maximumWorldNormalComponentError": 0.000017926450389171844,
+      "colours": [
+        {
+          "semantic": "COLOR_0",
+          "sourceSha256": "ca034df6121563a35de051f7c0dc60dca107acc603fe97aa946e50e590f6c7f6",
+          "maximumLinearComponentError": 0.001960450293971072,
+          "storage": "U8 normalized, explicit reviewed policy",
+          "outOfUnitRangeComponentsClamped": 0,
+          "sourceHDRMinimum": null,
+          "sourceHDRMaximum": null
+        }
+      ],
+      "verticesBefore": 1752,
+      "verticesAfter": 1752
+    },
+    {
+      "region": "altar",
+      "primitive": 13,
+      "material": "Burnished bronze high points UV16 altar 13",
+      "normalStorage": "normalized SHORT16",
+      "maximumWorldNormalComponentError": 0.000019416196447408218,
+      "colours": [
+        {
+          "semantic": "COLOR_0",
+          "sourceSha256": "acece9ff2abf9981892262d0cc8bd8883dce799354450f40aa70c922daf4d6e1",
+          "maximumLinearComponentError": 0,
+          "storage": "U8 normalized, explicit reviewed policy",
+          "outOfUnitRangeComponentsClamped": 0,
+          "sourceHDRMinimum": null,
+          "sourceHDRMaximum": null
+        }
+      ],
+      "verticesBefore": 1369,
+      "verticesAfter": 1369
+    },
+    {
+      "region": "altar",
+      "primitive": 14,
+      "material": "Dark pooled lamp oil",
+      "normalStorage": "normalized SHORT16",
+      "maximumWorldNormalComponentError": 0.000016664904946783743,
+      "colours": [
+        {
+          "semantic": "COLOR_0",
+          "sourceSha256": "b3b19ee4aa099658b7604b7bc581b2195ac57121ffa527ec7e91c42e5f0ac020",
+          "maximumLinearComponentError": 0,
+          "storage": "U8 normalized, explicit reviewed policy",
+          "outOfUnitRangeComponentsClamped": 0,
+          "sourceHDRMinimum": null,
+          "sourceHDRMaximum": null
+        }
+      ],
+      "verticesBefore": 868,
+      "verticesAfter": 709
+    },
+    {
+      "region": "altar",
+      "primitive": 15,
+      "material": "Oil-blackened rim and wick",
+      "normalStorage": "normalized SHORT16",
+      "maximumWorldNormalComponentError": 0.000015908963143518307,
+      "colours": [
+        {
+          "semantic": "COLOR_0",
+          "sourceSha256": "5724c6bb0de4b29f8e2e3d9382df375203dd426995ed55a033fc10f4e40f56a6",
+          "maximumLinearComponentError": 0,
+          "storage": "U8 normalized, explicit reviewed policy",
+          "outOfUnitRangeComponentsClamped": 0,
+          "sourceHDRMinimum": null,
+          "sourceHDRMaximum": null
+        }
+      ],
+      "verticesBefore": 784,
+      "verticesAfter": 773
+    },
+    {
+      "region": "altar",
+      "primitive": 16,
+      "material": "Unglazed old brown oil clay",
+      "normalStorage": "normalized SHORT16",
+      "maximumWorldNormalComponentError": 0.00001964761175476948,
+      "colours": [
+        {
+          "semantic": "COLOR_0",
+          "sourceSha256": "009445ec63d58fafe3934f52cdfce26cf1d431fe679ad6f1dd4a840f19b766f5",
+          "maximumLinearComponentError": 0,
+          "storage": "U8 normalized, explicit reviewed policy",
+          "outOfUnitRangeComponentsClamped": 0,
+          "sourceHDRMinimum": null,
+          "sourceHDRMaximum": null
+        }
+      ],
+      "verticesBefore": 1079,
+      "verticesAfter": 1027
+    },
+    {
+      "region": "altar",
+      "primitive": 17,
+      "material": "Oil-sooted used clay interior",
+      "normalStorage": "normalized SHORT16",
+      "maximumWorldNormalComponentError": 0.00001651240637179363,
+      "colours": [
+        {
+          "semantic": "COLOR_0",
+          "sourceSha256": "1ae27d32458137092f4e368e402bb0f919a1a3abf51e1389946877a1a4402069",
+          "maximumLinearComponentError": 0.0019534772517634247,
+          "storage": "U8 normalized, explicit reviewed policy",
+          "outOfUnitRangeComponentsClamped": 0,
+          "sourceHDRMinimum": null,
+          "sourceHDRMaximum": null
+        }
+      ],
+      "verticesBefore": 463,
+      "verticesAfter": 463
+    },
+    {
+      "region": "altar",
+      "primitive": 18,
+      "material": "Old ivory candle wax",
+      "normalStorage": "normalized SHORT16",
+      "maximumWorldNormalComponentError": 0.00001698146524087285,
+      "colours": [
+        {
+          "semantic": "COLOR_0",
+          "sourceSha256": "0494d0a3ff4b7d6eb935e7b3d3def5525082b1b45d9835ceae8904a6b898effd",
+          "maximumLinearComponentError": 0,
+          "storage": "U8 normalized, explicit reviewed policy",
+          "outOfUnitRangeComponentsClamped": 0,
+          "sourceHDRMinimum": null,
+          "sourceHDRMaximum": null
+        }
+      ],
+      "verticesBefore": 501,
+      "verticesAfter": 438
+    },
+    {
+      "region": "altar",
+      "primitive": 19,
+      "material": "Soft cold incense ash",
+      "normalStorage": "normalized SHORT16",
+      "maximumWorldNormalComponentError": 0.000016033271160453832,
+      "colours": [
+        {
+          "semantic": "COLOR_0",
+          "sourceSha256": "f623803cfb105f32590fe3c5ea288c935a62a219f18b4ce64c2fcdf8ca2cfd39",
+          "maximumLinearComponentError": 0,
+          "storage": "U8 normalized, explicit reviewed policy",
+          "outOfUnitRangeComponentsClamped": 0,
+          "sourceHDRMinimum": null,
+          "sourceHDRMaximum": null
+        }
+      ],
+      "verticesBefore": 400,
+      "verticesAfter": 400
+    },
+    {
+      "region": "altar",
+      "primitive": 20,
+      "material": "Soot-darkened clay",
+      "normalStorage": "normalized SHORT16",
+      "maximumWorldNormalComponentError": 0.000017356220037789694,
+      "colours": [
+        {
+          "semantic": "COLOR_0",
+          "sourceSha256": "2cbdcf203c8aa1ef752372afe8ebe023ed66f51bc18d16805546f3ee44e23792",
+          "maximumLinearComponentError": 0,
+          "storage": "U8 normalized, explicit reviewed policy",
+          "outOfUnitRangeComponentsClamped": 0,
+          "sourceHDRMinimum": null,
+          "sourceHDRMaximum": null
+        }
+      ],
+      "verticesBefore": 450,
+      "verticesAfter": 450
+    },
+    {
+      "region": "altar",
+      "primitive": 21,
+      "material": "Spilled cool grey incense ash",
+      "normalStorage": "normalized SHORT16",
+      "maximumWorldNormalComponentError": 0.000017543072903025703,
+      "colours": [
+        {
+          "semantic": "COLOR_0",
+          "sourceSha256": "54d74d9e6715009a9d4b79c104217162fa17b75955d47d295eeca6c5d557e650",
+          "maximumLinearComponentError": 0,
+          "storage": "U8 normalized, explicit reviewed policy",
+          "outOfUnitRangeComponentsClamped": 0,
+          "sourceHDRMinimum": null,
+          "sourceHDRMaximum": null
+        }
+      ],
+      "verticesBefore": 950,
+      "verticesAfter": 922
+    },
+    {
+      "region": "court",
+      "primitive": 0,
+      "material": "Snow settled dry grains",
+      "normalStorage": "normalized SHORT16",
+      "maximumWorldNormalComponentError": 0.000019366979459811695,
+      "colours": [
+        {
+          "semantic": "COLOR_0",
+          "sourceSha256": "516de643a348caee7f83ec3e08868f3065a2025da83df97df2ede526352d9808",
+          "maximumLinearComponentError": 0.0019602539492588056,
+          "storage": "U8 normalized, explicit reviewed policy",
+          "outOfUnitRangeComponentsClamped": 0,
+          "sourceHDRMinimum": null,
+          "sourceHDRMaximum": null
+        }
+      ],
+      "verticesBefore": 35143,
+      "verticesAfter": 35143
+    },
+    {
+      "region": "court",
+      "primitive": 1,
+      "material": "Patched lime plaster UV16 court 1",
+      "normalStorage": "normalized SHORT16",
+      "maximumWorldNormalComponentError": 0.000016054344737281845,
+      "colours": [
+        {
+          "semantic": "COLOR_0",
+          "sourceSha256": "694cd47f6256e8d716570e1277204c2629003f341a6d3f7f675e1156437237ec",
+          "maximumLinearComponentError": 0.0019604278545753973,
+          "storage": "U8 normalized, explicit reviewed policy",
+          "outOfUnitRangeComponentsClamped": 0,
+          "sourceHDRMinimum": null,
+          "sourceHDRMaximum": null
+        }
+      ],
+      "verticesBefore": 5768,
+      "verticesAfter": 5768
+    },
+    {
+      "region": "court",
+      "primitive": 2,
+      "material": "Old grey wall coping clay UV16 court 2",
+      "normalStorage": "normalized SHORT16",
+      "maximumWorldNormalComponentError": 0.00001085073261841707,
+      "colours": [
+        {
+          "semantic": "COLOR_0",
+          "sourceSha256": "fb2d869379e107c4bd22c09c55b8fe14ce139f3730760f5e9eaafcbd7a44d4ad",
+          "maximumLinearComponentError": 0,
+          "storage": "U8 normalized, explicit reviewed policy",
+          "outOfUnitRangeComponentsClamped": 0,
+          "sourceHDRMinimum": null,
+          "sourceHDRMaximum": null
+        }
+      ],
+      "verticesBefore": 5382,
+      "verticesAfter": 5382
+    },
+    {
+      "region": "court",
+      "primitive": 3,
+      "material": "Worn granite UV16 court 3",
+      "normalStorage": "normalized SHORT16",
+      "maximumWorldNormalComponentError": 0.000017551777588165063,
+      "colours": [
+        {
+          "semantic": "COLOR_0",
+          "sourceSha256": "900ee3134aea9f86626b6316c02f7377d41e1df83c88a8958a5a0231f9ad37f8",
+          "maximumLinearComponentError": 0,
+          "storage": "U8 normalized, explicit reviewed policy",
+          "outOfUnitRangeComponentsClamped": 0,
+          "sourceHDRMinimum": null,
+          "sourceHDRMaximum": null
+        }
+      ],
+      "verticesBefore": 23230,
+      "verticesAfter": 23190
+    },
+    {
+      "region": "court",
+      "primitive": 4,
+      "material": "Dark old timber UV16 court 4",
+      "normalStorage": "normalized SHORT16",
+      "maximumWorldNormalComponentError": 0.00001937437363447314,
+      "colours": [
+        {
+          "semantic": "COLOR_0",
+          "sourceSha256": "97ec7bfe4567505b46c576238be528434e2bd5ecff73645aa8b155905f8073fa",
+          "maximumLinearComponentError": 0.0017884475927726906,
+          "storage": "U8 normalized, explicit reviewed policy",
+          "outOfUnitRangeComponentsClamped": 0,
+          "sourceHDRMinimum": null,
+          "sourceHDRMaximum": null
+        }
+      ],
+      "verticesBefore": 19154,
+      "verticesAfter": 18022
+    },
+    {
+      "region": "court",
+      "primitive": 5,
+      "material": "Aged red painted timber",
+      "normalStorage": "normalized SHORT16",
+      "maximumWorldNormalComponentError": 0.000018190445565224866,
+      "colours": [
+        {
+          "semantic": "COLOR_0",
+          "sourceSha256": "f954c37d48e3f30967f9f3f24dc96511aaa6fdf4b072dbe829e9b9175a0d3de3",
+          "maximumLinearComponentError": 0.006097674369812012,
+          "storage": "U8 normalized, explicit reviewed policy",
+          "outOfUnitRangeComponentsClamped": 297,
+          "sourceHDRMinimum": 1.0000334978103638,
+          "sourceHDRMaximum": 1.006097674369812
+        }
+      ],
+      "verticesBefore": 4575,
+      "verticesAfter": 3793
+    },
+    {
+      "region": "court",
+      "primitive": 6,
+      "material": "Side hall roof tiles UV16 court 6",
+      "normalStorage": "normalized SHORT16",
+      "maximumWorldNormalComponentError": 0.000018912677013149803,
+      "colours": [
+        {
+          "semantic": "COLOR_0",
+          "sourceSha256": "827bba4a7b8d2afcb82ddeab90e7fd07af658222f1c76050e9ff36700d5e3aad",
+          "maximumLinearComponentError": 0,
+          "storage": "U8 normalized, explicit reviewed policy",
+          "outOfUnitRangeComponentsClamped": 0,
+          "sourceHDRMinimum": null,
+          "sourceHDRMaximum": null
+        }
+      ],
+      "verticesBefore": 11272,
+      "verticesAfter": 11272
+    },
+    {
+      "region": "court",
+      "primitive": 7,
+      "material": "Rough winter bark",
+      "normalStorage": "normalized SHORT16",
+      "maximumWorldNormalComponentError": 0.00001922748259491902,
+      "colours": [
+        {
+          "semantic": "COLOR_0",
+          "sourceSha256": "8c08cbc121ff7ef8cad9a383397986c469926fb4100760dfb016cd2014095912",
+          "maximumLinearComponentError": 0,
+          "storage": "U8 normalized, explicit reviewed policy",
+          "outOfUnitRangeComponentsClamped": 0,
+          "sourceHDRMinimum": null,
+          "sourceHDRMaximum": null
+        }
+      ],
+      "verticesBefore": 27994,
+      "verticesAfter": 27994
+    },
+    {
+      "region": "court",
+      "primitive": 8,
+      "material": "Aged bronze UV16 court 8",
+      "normalStorage": "normalized SHORT16",
+      "maximumWorldNormalComponentError": 0.00001858167615134687,
+      "colours": [
+        {
+          "semantic": "COLOR_0",
+          "sourceSha256": "344c0b0d5dae23ea3a598c7ea72edc4a747bbda951f4ecdf8aa07ca6aee636b6",
+          "maximumLinearComponentError": 0.0019593145333084427,
+          "storage": "U8 normalized, explicit reviewed policy",
+          "outOfUnitRangeComponentsClamped": 0,
+          "sourceHDRMinimum": null,
+          "sourceHDRMaximum": null
+        }
+      ],
+      "verticesBefore": 805,
+      "verticesAfter": 757
+    },
+    {
+      "region": "court",
+      "primitive": 9,
+      "material": "Oil-sooted used bronze interior",
+      "normalStorage": "normalized SHORT16",
+      "maximumWorldNormalComponentError": 0.00001836528041965213,
+      "colours": [
+        {
+          "semantic": "COLOR_0",
+          "sourceSha256": "4321c123ef1dbcd03d44cb1654e0e352937bf64202355a7e66c8a731c3f0c3f5",
+          "maximumLinearComponentError": 0.001959567911484661,
+          "storage": "U8 normalized, explicit reviewed policy",
+          "outOfUnitRangeComponentsClamped": 0,
+          "sourceHDRMinimum": null,
+          "sourceHDRMaximum": null
+        }
+      ],
+      "verticesBefore": 588,
+      "verticesAfter": 588
+    },
+    {
+      "region": "court",
+      "primitive": 10,
+      "material": "Burnished bronze high points UV16 court 10",
+      "normalStorage": "normalized SHORT16",
+      "maximumWorldNormalComponentError": 0.000018326412724256613,
+      "colours": [
+        {
+          "semantic": "COLOR_0",
+          "sourceSha256": "6bca1c38ca30d9a48b8a4c51410d33cea429afc10de1e511121eeb483b601a9b",
+          "maximumLinearComponentError": 0,
+          "storage": "U8 normalized, explicit reviewed policy",
+          "outOfUnitRangeComponentsClamped": 0,
+          "sourceHDRMinimum": null,
+          "sourceHDRMaximum": null
+        }
+      ],
+      "verticesBefore": 264,
+      "verticesAfter": 264
+    },
+    {
+      "region": "court",
+      "primitive": 11,
+      "material": "Dark pooled lamp oil",
+      "normalStorage": "normalized SHORT16",
+      "maximumWorldNormalComponentError": 0.000014799999915537961,
+      "colours": [
+        {
+          "semantic": "COLOR_0",
+          "sourceSha256": "ed7bdcf68e13e0671251fdcb4084b5f5df87b77ac00e881f6d90fe0dddfcd91a",
+          "maximumLinearComponentError": 0,
+          "storage": "U8 normalized, explicit reviewed policy",
+          "outOfUnitRangeComponentsClamped": 0,
+          "sourceHDRMinimum": null,
+          "sourceHDRMaximum": null
+        }
+      ],
+      "verticesBefore": 289,
+      "verticesAfter": 223
+    },
+    {
+      "region": "court",
+      "primitive": 12,
+      "material": "Oil-blackened rim and wick",
+      "normalStorage": "normalized SHORT16",
+      "maximumWorldNormalComponentError": 0.000017716849426779868,
+      "colours": [
+        {
+          "semantic": "COLOR_0",
+          "sourceSha256": "f2a80b89760a6bda66b9ff0cda8ba57f95ef0aa4badf690694a83d0b95bc60f8",
+          "maximumLinearComponentError": 0,
+          "storage": "U8 normalized, explicit reviewed policy",
+          "outOfUnitRangeComponentsClamped": 0,
+          "sourceHDRMinimum": null,
+          "sourceHDRMaximum": null
+        }
+      ],
+      "verticesBefore": 234,
+      "verticesAfter": 228
+    },
+    {
+      "region": "court",
+      "primitive": 13,
+      "material": "Court cold incense ash",
+      "normalStorage": "normalized SHORT16",
+      "maximumWorldNormalComponentError": 0.000011900753941834763,
+      "colours": [
+        {
+          "semantic": "COLOR_0",
+          "sourceSha256": "3632013bea39f4de94cd4aa7ec2d45636792c996bc77096626e86afa1a7964bb",
+          "maximumLinearComponentError": 0,
+          "storage": "U8 normalized, explicit reviewed policy",
+          "outOfUnitRangeComponentsClamped": 0,
+          "sourceHDRMinimum": null,
+          "sourceHDRMaximum": null
+        }
+      ],
+      "verticesBefore": 182,
+      "verticesAfter": 140
+    },
+    {
+      "region": "court",
+      "primitive": 14,
+      "material": "Soot-darkened clay",
+      "normalStorage": "normalized SHORT16",
+      "maximumWorldNormalComponentError": 0.000016164466004831013,
+      "colours": [
+        {
+          "semantic": "COLOR_0",
+          "sourceSha256": "ebfee31f63ff1ba7576ba6ce04277ef02a40707f4645d3641f79e32cf84e5451",
+          "maximumLinearComponentError": 0,
+          "storage": "U8 normalized, explicit reviewed policy",
+          "outOfUnitRangeComponentsClamped": 0,
+          "sourceHDRMinimum": null,
+          "sourceHDRMaximum": null
+        }
+      ],
+      "verticesBefore": 150,
+      "verticesAfter": 150
+    },
+    {
+      "region": "gate",
+      "primitive": 0,
+      "material": "Patched lime plaster UV16 gate 0",
+      "normalStorage": "normalized SHORT16",
+      "maximumWorldNormalComponentError": 0.000016007833364251045,
+      "colours": [
+        {
+          "semantic": "COLOR_0",
+          "sourceSha256": "93d07e3cdfec7283ecd578d89af6c50f551b618cd33b837f5218126efbba6dff",
+          "maximumLinearComponentError": 0.0019597752421510184,
+          "storage": "U8 normalized, explicit reviewed policy",
+          "outOfUnitRangeComponentsClamped": 0,
+          "sourceHDRMinimum": null,
+          "sourceHDRMaximum": null
+        }
+      ],
+      "verticesBefore": 3131,
+      "verticesAfter": 2240
+    },
+    {
+      "region": "gate",
+      "primitive": 1,
+      "material": "Worn granite UV16 gate 1",
+      "normalStorage": "normalized SHORT16",
+      "maximumWorldNormalComponentError": 0.000018502383179130888,
+      "colours": [
+        {
+          "semantic": "COLOR_0",
+          "sourceSha256": "212d052c829d283edf26300c4eaa4c6f8154b424ad170d90126d7707c20b7542",
+          "maximumLinearComponentError": 0,
+          "storage": "U8 normalized, explicit reviewed policy",
+          "outOfUnitRangeComponentsClamped": 0,
+          "sourceHDRMinimum": null,
+          "sourceHDRMaximum": null
+        }
+      ],
+      "verticesBefore": 1656,
+      "verticesAfter": 1656
+    },
+    {
+      "region": "gate",
+      "primitive": 2,
+      "material": "Dark old timber UV16 gate 2",
+      "normalStorage": "normalized SHORT16",
+      "maximumWorldNormalComponentError": 0.000018888693551599722,
+      "colours": [
+        {
+          "semantic": "COLOR_0",
+          "sourceSha256": "77fca8024247d0b7000240c25e8d100e681b34b41edd53812f98d043a9db35b2",
+          "maximumLinearComponentError": 0.0017884475927726906,
+          "storage": "U8 normalized, explicit reviewed policy",
+          "outOfUnitRangeComponentsClamped": 0,
+          "sourceHDRMinimum": null,
+          "sourceHDRMaximum": null
+        }
+      ],
+      "verticesBefore": 12774,
+      "verticesAfter": 12510
+    },
+    {
+      "region": "gate",
+      "primitive": 3,
+      "material": "Aged red painted timber",
+      "normalStorage": "normalized SHORT16",
+      "maximumWorldNormalComponentError": 0.000016743419320341957,
+      "colours": [
+        {
+          "semantic": "COLOR_0",
+          "sourceSha256": "8b90aef45184c308e74d6818a349c60c7bf5f3f821fd59f03fdf3f57902c1f38",
+          "maximumLinearComponentError": 0.008208751678466797,
+          "storage": "U8 normalized, explicit reviewed policy",
+          "outOfUnitRangeComponentsClamped": 39,
+          "sourceHDRMinimum": 1.0004316568374634,
+          "sourceHDRMaximum": 1.0082087516784668
+        }
+      ],
+      "verticesBefore": 728,
+      "verticesAfter": 728
+    },
+    {
+      "region": "gate",
+      "primitive": 4,
+      "material": "Faded teal beam paint",
+      "normalStorage": "normalized SHORT16",
+      "maximumWorldNormalComponentError": 0.000016711239406858036,
+      "colours": [
+        {
+          "semantic": "COLOR_0",
+          "sourceSha256": "c583adbb7dd34f3282b314f61ee75e36c90639bc9507f00ec3a6726c17a3baae",
+          "maximumLinearComponentError": 0.006499528884887695,
+          "storage": "U8 normalized, explicit reviewed policy",
+          "outOfUnitRangeComponentsClamped": 324,
+          "sourceHDRMinimum": 1.000004768371582,
+          "sourceHDRMaximum": 1.0064995288848877
+        }
+      ],
+      "verticesBefore": 1848,
+      "verticesAfter": 1848
+    },
+    {
+      "region": "gate",
+      "primitive": 5,
+      "material": "Tarnished gilded edges",
+      "normalStorage": "normalized SHORT16",
+      "maximumWorldNormalComponentError": 0,
+      "colours": [
+        {
+          "semantic": "COLOR_0",
+          "sourceSha256": "63215b89d94aeea12cd1fd4e2fe017446dce95dad00b89ab7f2d5abb4e5f2efe",
+          "maximumLinearComponentError": 0,
+          "storage": "U8 normalized, explicit reviewed policy",
+          "outOfUnitRangeComponentsClamped": 0,
+          "sourceHDRMinimum": null,
+          "sourceHDRMaximum": null
+        }
+      ],
+      "verticesBefore": 288,
+      "verticesAfter": 288
+    },
+    {
+      "region": "gate",
+      "primitive": 6,
+      "material": "Gate roof tiles UV16 gate 6",
+      "normalStorage": "normalized SHORT16",
+      "maximumWorldNormalComponentError": 0.00001845859726840038,
+      "colours": [
+        {
+          "semantic": "COLOR_0",
+          "sourceSha256": "eedea043e87a6d433355f71d28a6b7fde1ee6c5398a55fe38681f79a167c9e4e",
+          "maximumLinearComponentError": 0,
+          "storage": "U8 normalized, explicit reviewed policy",
+          "outOfUnitRangeComponentsClamped": 0,
+          "sourceHDRMinimum": null,
+          "sourceHDRMaximum": null
+        }
+      ],
+      "verticesBefore": 4431,
+      "verticesAfter": 4431
+    },
+    {
+      "region": "gate",
+      "primitive": 7,
+      "material": "Snow settled dry grains UV16 gate 7",
+      "normalStorage": "normalized SHORT16",
+      "maximumWorldNormalComponentError": 0.000017978200969492875,
+      "colours": [
+        {
+          "semantic": "COLOR_0",
+          "sourceSha256": "794c438191ac12192dfb069a3b10388da07830336d9cae05fccd1322df82ed67",
+          "maximumLinearComponentError": 0.0016486116484100144,
+          "storage": "U8 normalized, explicit reviewed policy",
+          "outOfUnitRangeComponentsClamped": 0,
+          "sourceHDRMinimum": null,
+          "sourceHDRMaximum": null
+        }
+      ],
+      "verticesBefore": 1754,
+      "verticesAfter": 1754
+    },
+    {
+      "region": "gate",
+      "primitive": 8,
+      "material": "Aged bronze UV16 gate 8",
+      "normalStorage": "normalized SHORT16",
+      "maximumWorldNormalComponentError": 0.000018008495299759453,
+      "colours": [
+        {
+          "semantic": "COLOR_0",
+          "sourceSha256": "565d9c8e01354244d22a59f5fcbc4d24ea2ec4a1d4a2eff8db8c1db2cca2953c",
+          "maximumLinearComponentError": 0.0019601083269306097,
+          "storage": "U8 normalized, explicit reviewed policy",
+          "outOfUnitRangeComponentsClamped": 0,
+          "sourceHDRMinimum": null,
+          "sourceHDRMaximum": null
+        }
+      ],
+      "verticesBefore": 1616,
+      "verticesAfter": 1518
+    },
+    {
+      "region": "gate",
+      "primitive": 9,
+      "material": "Oil-sooted used bronze interior",
+      "normalStorage": "normalized SHORT16",
+      "maximumWorldNormalComponentError": 0.00001736283363312774,
+      "colours": [
+        {
+          "semantic": "COLOR_0",
+          "sourceSha256": "9144ff896a1e690edb2a1cc5a9967ae3ffc884a940911b1718204d6f60b6397d",
+          "maximumLinearComponentError": 0.0019601083269306097,
+          "storage": "U8 normalized, explicit reviewed policy",
+          "outOfUnitRangeComponentsClamped": 0,
+          "sourceHDRMinimum": null,
+          "sourceHDRMaximum": null
+        }
+      ],
+      "verticesBefore": 1164,
+      "verticesAfter": 1164
+    },
+    {
+      "region": "gate",
+      "primitive": 10,
+      "material": "Burnished bronze high points UV16 gate 10",
+      "normalStorage": "normalized SHORT16",
+      "maximumWorldNormalComponentError": 0.000017396620757725856,
+      "colours": [
+        {
+          "semantic": "COLOR_0",
+          "sourceSha256": "2c79482c90d441b0ecd6dc08878d47df6478bb411e12f27ff699dec3eab5a06f",
+          "maximumLinearComponentError": 0,
+          "storage": "U8 normalized, explicit reviewed policy",
+          "outOfUnitRangeComponentsClamped": 0,
+          "sourceHDRMinimum": null,
+          "sourceHDRMaximum": null
+        }
+      ],
+      "verticesBefore": 520,
+      "verticesAfter": 520
+    },
+    {
+      "region": "gate",
+      "primitive": 11,
+      "material": "Dark pooled lamp oil",
+      "normalStorage": "normalized SHORT16",
+      "maximumWorldNormalComponentError": 0.000015249999703928778,
+      "colours": [
+        {
+          "semantic": "COLOR_0",
+          "sourceSha256": "6ea7243856965e020421af848f94d5f6238688dd7854b38cb19cc7107a518072",
+          "maximumLinearComponentError": 0,
+          "storage": "U8 normalized, explicit reviewed policy",
+          "outOfUnitRangeComponentsClamped": 0,
+          "sourceHDRMinimum": null,
+          "sourceHDRMaximum": null
+        }
+      ],
+      "verticesBefore": 587,
+      "verticesAfter": 488
+    },
+    {
+      "region": "gate",
+      "primitive": 12,
+      "material": "Oil-blackened rim and wick",
+      "normalStorage": "normalized SHORT16",
+      "maximumWorldNormalComponentError": 0.000016971632931350733,
+      "colours": [
+        {
+          "semantic": "COLOR_0",
+          "sourceSha256": "3a6bce41fa8638383284b0730fcd51267442b6e34a15905a791bdae4ed590efe",
+          "maximumLinearComponentError": 0,
+          "storage": "U8 normalized, explicit reviewed policy",
+          "outOfUnitRangeComponentsClamped": 0,
+          "sourceHDRMinimum": null,
+          "sourceHDRMaximum": null
+        }
+      ],
+      "verticesBefore": 455,
+      "verticesAfter": 452
+    },
+    {
+      "region": "hall",
+      "primitive": 0,
+      "material": "Dark hall paving 1 UV16 hall 0",
+      "normalStorage": "normalized SHORT16",
+      "maximumWorldNormalComponentError": 0.000019054768941706435,
+      "colours": [
+        {
+          "semantic": "COLOR_0",
+          "sourceSha256": "955b2b8d8784df58814da1e9626bf8ee6de59af6843010b644576f305ade4f29",
+          "maximumLinearComponentError": 0,
+          "storage": "U8 normalized, explicit reviewed policy",
+          "outOfUnitRangeComponentsClamped": 0,
+          "sourceHDRMinimum": null,
+          "sourceHDRMaximum": null
+        }
+      ],
+      "verticesBefore": 8540,
+      "verticesAfter": 8540
+    },
+    {
+      "region": "hall",
+      "primitive": 1,
+      "material": "Dark hall paving 2 UV16 hall 1",
+      "normalStorage": "normalized SHORT16",
+      "maximumWorldNormalComponentError": 0.000017895686632130037,
+      "colours": [
+        {
+          "semantic": "COLOR_0",
+          "sourceSha256": "955b2b8d8784df58814da1e9626bf8ee6de59af6843010b644576f305ade4f29",
+          "maximumLinearComponentError": 0,
+          "storage": "U8 normalized, explicit reviewed policy",
+          "outOfUnitRangeComponentsClamped": 0,
+          "sourceHDRMinimum": null,
+          "sourceHDRMaximum": null
+        }
+      ],
+      "verticesBefore": 8540,
+      "verticesAfter": 8540
+    },
+    {
+      "region": "hall",
+      "primitive": 2,
+      "material": "Dark hall paving 0 UV16 hall 2",
+      "normalStorage": "normalized SHORT16",
+      "maximumWorldNormalComponentError": 0.00001852849075500984,
+      "colours": [
+        {
+          "semantic": "COLOR_0",
+          "sourceSha256": "f903f99a0c4d76fd0f3eddc40c597bc088dec777587d5f78836ad6e01ff3ea4f",
+          "maximumLinearComponentError": 0,
+          "storage": "U8 normalized, explicit reviewed policy",
+          "outOfUnitRangeComponentsClamped": 0,
+          "sourceHDRMinimum": null,
+          "sourceHDRMaximum": null
+        }
+      ],
+      "verticesBefore": 7420,
+      "verticesAfter": 7420
+    },
+    {
+      "region": "hall",
+      "primitive": 3,
+      "material": "Walk-polished worn dark stone UV16 hall 3",
+      "normalStorage": "normalized SHORT16",
+      "maximumWorldNormalComponentError": 0.000017699581832730793,
+      "colours": [
+        {
+          "semantic": "COLOR_0",
+          "sourceSha256": "d1acbe6697cb456cb1164d105fb352e45d4ebb12f836cfd9066ddf30d2bed66a",
+          "maximumLinearComponentError": 0,
+          "storage": "U8 normalized, explicit reviewed policy",
+          "outOfUnitRangeComponentsClamped": 0,
+          "sourceHDRMinimum": null,
+          "sourceHDRMaximum": null
+        }
+      ],
+      "verticesBefore": 4060,
+      "verticesAfter": 4060
+    },
+    {
+      "region": "hall",
+      "primitive": 4,
+      "material": "Weathered brick footings UV16 hall 4",
+      "normalStorage": "normalized SHORT16",
+      "maximumWorldNormalComponentError": 0.000015516791549707865,
+      "colours": [
+        {
+          "semantic": "COLOR_0",
+          "sourceSha256": "47dc70dd4af037d9fb4ff256df741d6f7f6c97d7283b095a7343b33d7acad09d",
+          "maximumLinearComponentError": 0,
+          "storage": "U8 normalized, explicit reviewed policy",
+          "outOfUnitRangeComponentsClamped": 0,
+          "sourceHDRMinimum": null,
+          "sourceHDRMaximum": null
+        }
+      ],
+      "verticesBefore": 216,
+      "verticesAfter": 216
+    },
+    {
+      "region": "hall",
+      "primitive": 5,
+      "material": "Patched lime plaster UV16 hall 5",
+      "normalStorage": "normalized SHORT16",
+      "maximumWorldNormalComponentError": 0.000015067382190148138,
+      "colours": [
+        {
+          "semantic": "COLOR_0",
+          "sourceSha256": "91bb53372a8b5a7ac50f607b5b095661f2bb4af85690ee3d623ce29366019451",
+          "maximumLinearComponentError": 0.00196066650689819,
+          "storage": "U8 normalized, explicit reviewed policy",
+          "outOfUnitRangeComponentsClamped": 0,
+          "sourceHDRMinimum": null,
+          "sourceHDRMaximum": null
+        }
+      ],
+      "verticesBefore": 2376,
+      "verticesAfter": 2376
+    },
+    {
+      "region": "hall",
+      "primitive": 6,
+      "material": "Ivory window paper",
+      "normalStorage": "normalized SHORT16",
+      "maximumWorldNormalComponentError": 0,
+      "colours": [
+        {
+          "semantic": "COLOR_0",
+          "sourceSha256": "20e5ffaa4b145114cc781bef5b6de28aa3fdb5d639b9d387963443307a382c08",
+          "maximumLinearComponentError": 0,
+          "storage": "U8 normalized, explicit reviewed policy",
+          "outOfUnitRangeComponentsClamped": 0,
+          "sourceHDRMinimum": null,
+          "sourceHDRMaximum": null
+        }
+      ],
+      "verticesBefore": 48,
+      "verticesAfter": 48
+    },
+    {
+      "region": "hall",
+      "primitive": 7,
+      "material": "Aged red painted timber",
+      "normalStorage": "normalized SHORT16",
+      "maximumWorldNormalComponentError": 0.000016564611861447087,
+      "colours": [
+        {
+          "semantic": "COLOR_0",
+          "sourceSha256": "5d759e756908cd2e976fd5fb3c82c8de234f591e0b274b6248ae1c4383f4a425",
+          "maximumLinearComponentError": 0.009088635444641113,
+          "storage": "U8 normalized, explicit reviewed policy",
+          "outOfUnitRangeComponentsClamped": 789,
+          "sourceHDRMinimum": 1.000009536743164,
+          "sourceHDRMaximum": 1.0090886354446411
+        }
+      ],
+      "verticesBefore": 18912,
+      "verticesAfter": 18912
+    },
+    {
+      "region": "hall",
+      "primitive": 8,
+      "material": "Faded teal beam paint",
+      "normalStorage": "normalized SHORT16",
+      "maximumWorldNormalComponentError": 0.000017838950743809256,
+      "colours": [
+        {
+          "semantic": "COLOR_0",
+          "sourceSha256": "995574dff3d7931ea629050f90cb73ae7617b33b59f6cb6bda5fa26b3f18521d",
+          "maximumLinearComponentError": 0.012772202491760254,
+          "storage": "U8 normalized, explicit reviewed policy",
+          "outOfUnitRangeComponentsClamped": 2430,
+          "sourceHDRMinimum": 1.0000666379928589,
+          "sourceHDRMaximum": 1.0127722024917603
+        }
+      ],
+      "verticesBefore": 19539,
+      "verticesAfter": 19539
+    },
+    {
+      "region": "hall",
+      "primitive": 9,
+      "material": "Dark old timber UV16 hall 9",
+      "normalStorage": "normalized SHORT16",
+      "maximumWorldNormalComponentError": 0.00001886609079354562,
+      "colours": [
+        {
+          "semantic": "COLOR_0",
+          "sourceSha256": "6236f322bb6137e9523cfc79e8c6998f422074a1ba487e13538b1e2046d610d2",
+          "maximumLinearComponentError": 0.0017884550433532875,
+          "storage": "U8 normalized, explicit reviewed policy",
+          "outOfUnitRangeComponentsClamped": 0,
+          "sourceHDRMinimum": null,
+          "sourceHDRMaximum": null
+        }
+      ],
+      "verticesBefore": 53656,
+      "verticesAfter": 53196
+    },
+    {
+      "region": "hall",
+      "primitive": 10,
+      "material": "Worn granite UV16 hall 10",
+      "normalStorage": "normalized SHORT16",
+      "maximumWorldNormalComponentError": 0.000018009845523359047,
+      "colours": [
+        {
+          "semantic": "COLOR_0",
+          "sourceSha256": "7ec6f4b5e9d8054b63bbe7fec0d53e3a02a9f3510ba5ac7996f39df3313859e5",
+          "maximumLinearComponentError": 0,
+          "storage": "U8 normalized, explicit reviewed policy",
+          "outOfUnitRangeComponentsClamped": 0,
+          "sourceHDRMinimum": null,
+          "sourceHDRMaximum": null
+        }
+      ],
+      "verticesBefore": 11086,
+      "verticesAfter": 11004
+    },
+    {
+      "region": "hall",
+      "primitive": 11,
+      "material": "Aged bronze UV16 hall 11",
+      "normalStorage": "normalized SHORT16",
+      "maximumWorldNormalComponentError": 0.000016981206462707288,
+      "colours": [
+        {
+          "semantic": "COLOR_0",
+          "sourceSha256": "c907f1d2c45e7305e0419c369e88c8fe75f55781f96c6225439d866701e63082",
+          "maximumLinearComponentError": 0.0019602672726499737,
+          "storage": "U8 normalized, explicit reviewed policy",
+          "outOfUnitRangeComponentsClamped": 0,
+          "sourceHDRMinimum": null,
+          "sourceHDRMaximum": null
+        }
+      ],
+      "verticesBefore": 6568,
+      "verticesAfter": 6516
+    },
+    {
+      "region": "hall",
+      "primitive": 12,
+      "material": "Tarnished gilded edges",
+      "normalStorage": "normalized SHORT16",
+      "maximumWorldNormalComponentError": 0.000017751259147769094,
+      "colours": [
+        {
+          "semantic": "COLOR_0",
+          "sourceSha256": "20bedcecd279d997d9b41eac3b7ee7ca3c74503bfb46968c4ef3e15e0066616d",
+          "maximumLinearComponentError": 0,
+          "storage": "U8 normalized, explicit reviewed policy",
+          "outOfUnitRangeComponentsClamped": 0,
+          "sourceHDRMinimum": null,
+          "sourceHDRMaximum": null
+        }
+      ],
+      "verticesBefore": 10408,
+      "verticesAfter": 10408
+    },
+    {
+      "region": "hall",
+      "primitive": 13,
+      "material": "Dark clay roof tile UV16 hall 13",
+      "normalStorage": "normalized SHORT16",
+      "maximumWorldNormalComponentError": 0.000018270239575568503,
+      "colours": [
+        {
+          "semantic": "COLOR_0",
+          "sourceSha256": "610c8cf0d5888ed170eacef66823c17927bded8a7445589b432c031ab1b61607",
+          "maximumLinearComponentError": 0,
+          "storage": "U8 normalized, explicit reviewed policy",
+          "outOfUnitRangeComponentsClamped": 0,
+          "sourceHDRMinimum": null,
+          "sourceHDRMaximum": null
+        }
+      ],
+      "verticesBefore": 6524,
+      "verticesAfter": 6524
+    },
+    {
+      "region": "hall",
+      "primitive": 14,
+      "material": "Snow settled dry grains UV16 hall 14",
+      "normalStorage": "normalized SHORT16",
+      "maximumWorldNormalComponentError": 0.000017986241709788686,
+      "colours": [
+        {
+          "semantic": "COLOR_0",
+          "sourceSha256": "816d71fe10c20edd45308cc191c76dfb04a4fb3f8af5f82443342b330610c74e",
+          "maximumLinearComponentError": 0.0016486116484100144,
+          "storage": "U8 normalized, explicit reviewed policy",
+          "outOfUnitRangeComponentsClamped": 0,
+          "sourceHDRMinimum": null,
+          "sourceHDRMaximum": null
+        }
+      ],
+      "verticesBefore": 2228,
+      "verticesAfter": 2228
+    },
+    {
+      "region": "hall",
+      "primitive": 15,
+      "material": "Cloudy icicle ice",
+      "normalStorage": "normalized SHORT16",
+      "maximumWorldNormalComponentError": 0.000016698182203456202,
+      "colours": [
+        {
+          "semantic": "COLOR_0",
+          "sourceSha256": "8f513f3ffa8946a9f7560b3643e26b838813b74f67363b5b66970a3bfecdb45e",
+          "maximumLinearComponentError": 0,
+          "storage": "U8 normalized, explicit reviewed policy",
+          "outOfUnitRangeComponentsClamped": 0,
+          "sourceHDRMinimum": null,
+          "sourceHDRMaximum": null
+        }
+      ],
+      "verticesBefore": 1450,
+      "verticesAfter": 1450
+    },
+    {
+      "region": "hall",
+      "primitive": 16,
+      "material": "Worn woven cushion cloth",
+      "normalStorage": "normalized SHORT16",
+      "maximumWorldNormalComponentError": 0.00001751185626858165,
+      "colours": [
+        {
+          "semantic": "COLOR_0",
+          "sourceSha256": "9127f51ffd958304f3c26e05268297c4dc5b686e8a9899fb3f7f7892a2f8f35e",
+          "maximumLinearComponentError": 0,
+          "storage": "U8 normalized, explicit reviewed policy",
+          "outOfUnitRangeComponentsClamped": 0,
+          "sourceHDRMinimum": null,
+          "sourceHDRMaximum": null
+        }
+      ],
+      "verticesBefore": 2066,
+      "verticesAfter": 2066
+    },
+    {
+      "region": "hall",
+      "primitive": 17,
+      "material": "Cushion stitched piping",
+      "normalStorage": "normalized SHORT16",
+      "maximumWorldNormalComponentError": 0.000017214383570773872,
+      "colours": [
+        {
+          "semantic": "COLOR_0",
+          "sourceSha256": "ce1d9e8e75115d915c3d4deabeded0736b625c0378c3d8be201993183ae62dff",
+          "maximumLinearComponentError": 0,
+          "storage": "U8 normalized, explicit reviewed policy",
+          "outOfUnitRangeComponentsClamped": 0,
+          "sourceHDRMinimum": null,
+          "sourceHDRMaximum": null
+        }
+      ],
+      "verticesBefore": 4000,
+      "verticesAfter": 4000
+    },
+    {
+      "region": "hall",
+      "primitive": 18,
+      "material": "Dry straw",
+      "normalStorage": "normalized SHORT16",
+      "maximumWorldNormalComponentError": 0.000017780893051433377,
+      "colours": [
+        {
+          "semantic": "COLOR_0",
+          "sourceSha256": "08df6994c1bad6d56e36d0192e930f875d52eaecb94ca2a786788e1c068b5b83",
+          "maximumLinearComponentError": 0,
+          "storage": "U8 normalized, explicit reviewed policy",
+          "outOfUnitRangeComponentsClamped": 0,
+          "sourceHDRMinimum": null,
+          "sourceHDRMaximum": null
+        }
+      ],
+      "verticesBefore": 1820,
+      "verticesAfter": 1820
+    },
+    {
+      "region": "hall",
+      "primitive": 19,
+      "material": "Soot-darkened clay",
+      "normalStorage": "normalized SHORT16",
+      "maximumWorldNormalComponentError": 0.00001693183343109972,
+      "colours": [
+        {
+          "semantic": "COLOR_0",
+          "sourceSha256": "b8c3111adab384131a9392d8002c5b240596fede58e97e9518ded2d595c1c663",
+          "maximumLinearComponentError": 0,
+          "storage": "U8 normalized, explicit reviewed policy",
+          "outOfUnitRangeComponentsClamped": 0,
+          "sourceHDRMinimum": null,
+          "sourceHDRMaximum": null
+        }
+      ],
+      "verticesBefore": 746,
+      "verticesAfter": 642
+    }
+  ],
+  "generatorSha256": "471f6d7376b4d41dccc994d1e3977ce20f69d93b7bf1d1e1ac57349c452e5970"
+}

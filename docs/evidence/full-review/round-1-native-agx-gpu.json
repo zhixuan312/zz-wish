@@ -1,0 +1,375 @@
+{
+  "status": "PASS",
+  "scope": "Bounded256x158 actualThree160 nativeAgX shader/57^3 LUT/RenderPass/OutputPass lab; no Snow/Cloud app or performance approval.",
+  "source": {
+    "path": "art/build/snow-roof-round1/source-v17.blend",
+    "sha256": "2990854d3c9a65bf18879511d865b6e36788f6e727339248d5746b67fb52dd64",
+    "unchanged": true
+  },
+  "helper": {
+    "path": "art/build/snow-roof-round1/native-agx-prototype/nativeAgX.js",
+    "bytes": 15623,
+    "sha256": "aae6afa312921e1283b1f531d8528bdab50cb1482904743707036f620d42091a"
+  },
+  "assets": [
+    {
+      "path": "art/build/snow-roof-round1/native-agx-prototype/native-agx-57-f16.bin.zst",
+      "bytes": 116705,
+      "sha256": "bc942c1862956cb48aed8c259d2e410518a10c4b26775a27c3b326d539244463"
+    },
+    {
+      "path": "art/build/snow-roof-round1/native-agx-prototype/native-agx-57.bin.zst",
+      "bytes": 396098,
+      "sha256": "b9eb1e7da41183f169323cfdb60525f15149dd07b070ffdce175d15596849fd3"
+    }
+  ],
+  "reference": {
+    "cpuReceipt": {
+      "path": "docs/evidence/full-review/round-1-native-agx-cpu.json",
+      "bytes": 9872,
+      "sha256": "7c4c1a75e861d632e66b842a6c4b81adb1572b385cb065e9b31a781b828da4f8"
+    },
+    "displayOracle": {
+      "path": "art/build/snow-roof-round1/native-agx-prototype/gpu-expected-display-rgb.u8",
+      "bytes": 363717,
+      "sha256": "30fb8dda7eb77f1ee48e81094c217c065487bb51bec03e26f4c7658f6cf555b2"
+    },
+    "actualOCIOReference": "Blender5.3/PyOpenColorIO2.5 config, AgX/None/sRGB gamma1. Residual cameraEV -1,0,+1 applied once; no additional40 pre-exposure."
+  },
+  "rawReceipt": {
+    "path": "artifacts/full-review/round-1/native-agx-gpu/report.json",
+    "bytes": 11947,
+    "sha256": "a4dcb12d99ffff04c0acb0a48bbd11cee990095fbd2d5d883118d2e96fce40ba"
+  },
+  "browsers": [
+    {
+      "browser": "chromium",
+      "resolution": [
+        256,
+        158
+      ],
+      "caseCount": 40413,
+      "webgl2": true,
+      "health": {
+        "available": true,
+        "lost": false,
+        "events": []
+      },
+      "inputMeaning": "Bounded synthetic actual HDR render-target field of independent OCIO probes and actual EXR irradiance components; not a Snow app framebuffer",
+      "inputField": {
+        "sourceType": "RGBA32F data texture",
+        "renderedType": "RGBA32F target",
+        "viewOutputType": "RGBA16F target",
+        "finalReadType": "RGBA8",
+        "cameraPreExposureAppliedInView": 0,
+        "differentFloat32Words": 0,
+        "renderedSha256": "87f72300745e396bb28ab52f6b799dc7312bb4f36bedf546d4298759036bc45b"
+      },
+      "tests": [
+        {
+          "name": "declared-native-F16-0.5",
+          "exposureMultiplier": 0.5,
+          "cameraExposureEV": -1,
+          "cases": 40413,
+          "readRGBBytes": 121239,
+          "maxCode255": 1,
+          "meanAbsoluteCode255": 0.004536494032448305,
+          "differentRGBBytes": 550,
+          "overOneCode": 0,
+          "nonBlackPixels": 36066,
+          "worst": {
+            "case": 21,
+            "channel": 0,
+            "expected": 178,
+            "actual": 177,
+            "input": [
+              1,
+              0,
+              0
+            ]
+          },
+          "passed": true,
+          "readbackSha256": "cfb02e79d47534a95dfcdba1d8ee2cdadadca9e07e2fd8810565f4f991f1c129"
+        },
+        {
+          "name": "declared-native-F16-1",
+          "exposureMultiplier": 1,
+          "cameraExposureEV": 0,
+          "cases": 40413,
+          "readRGBBytes": 121239,
+          "maxCode255": 1,
+          "meanAbsoluteCode255": 0.004454012322767427,
+          "differentRGBBytes": 540,
+          "overOneCode": 0,
+          "nonBlackPixels": 36346,
+          "worst": {
+            "case": 11,
+            "channel": 0,
+            "expected": 249,
+            "actual": 248,
+            "input": [
+              10,
+              10,
+              10
+            ]
+          },
+          "passed": true,
+          "readbackSha256": "433a9150a7bf4437733591a953c3f51a3ba8618c553662f9379490b2ded292ec"
+        },
+        {
+          "name": "declared-native-F16-2",
+          "exposureMultiplier": 2,
+          "cameraExposureEV": 1,
+          "cases": 40413,
+          "readRGBBytes": 121239,
+          "maxCode255": 1,
+          "meanAbsoluteCode255": 0.004058100116299211,
+          "differentRGBBytes": 492,
+          "overOneCode": 0,
+          "nonBlackPixels": 36593,
+          "worst": {
+            "case": 7,
+            "channel": 0,
+            "expected": 124,
+            "actual": 123,
+            "input": [
+              0.10000000149011612,
+              0.10000000149011612,
+              0.10000000149011612
+            ]
+          },
+          "passed": true,
+          "readbackSha256": "96c6b1627e34494e02d482f0117d5ad8212c44a561414be520f3cd60971eb019"
+        },
+        {
+          "name": "exact-native-F32-reference",
+          "exposureMultiplier": 1,
+          "cameraExposureEV": 0,
+          "cases": 40413,
+          "readRGBBytes": 121239,
+          "maxCode255": 1,
+          "meanAbsoluteCode255": 0.0035054726614373263,
+          "differentRGBBytes": 425,
+          "overOneCode": 0,
+          "nonBlackPixels": 36345,
+          "worst": {
+            "case": 11,
+            "channel": 0,
+            "expected": 249,
+            "actual": 248,
+            "input": [
+              10,
+              10,
+              10
+            ]
+          },
+          "passed": true
+        }
+      ],
+      "outputPass": {
+        "defines": {
+          "SRGB_TRANSFER": ""
+        },
+        "rendererToneMapping": 0,
+        "rendererExposure": 1,
+        "noDoubleToneMapping": true
+      },
+      "resources": {
+        "concurrentFetches": 1,
+        "concurrentTextureIdentity": true,
+        "hashFailureThenRetry": true,
+        "idempotentLeaseRelease": true,
+        "F16GPUBytes": 1481544,
+        "F32GPUBytes": 2963088
+      },
+      "gpuError": 0,
+      "contextLost": false,
+      "cleanup": {
+        "geometries": 0,
+        "textures": 0,
+        "programs": 0,
+        "F16TextureDisposals": 1,
+        "contextLost": false,
+        "gpuError": 0
+      },
+      "frameSha256": "f4215770670d5d8a70d863cde5f964a471b05fa442591f10df70253157721633"
+    },
+    {
+      "browser": "webkit",
+      "resolution": [
+        256,
+        158
+      ],
+      "caseCount": 40413,
+      "webgl2": true,
+      "health": {
+        "available": true,
+        "lost": false,
+        "events": []
+      },
+      "inputMeaning": "Bounded synthetic actual HDR render-target field of independent OCIO probes and actual EXR irradiance components; not a Snow app framebuffer",
+      "inputField": {
+        "sourceType": "RGBA32F data texture",
+        "renderedType": "RGBA32F target",
+        "viewOutputType": "RGBA16F target",
+        "finalReadType": "RGBA8",
+        "cameraPreExposureAppliedInView": 0,
+        "differentFloat32Words": 0,
+        "renderedSha256": "87f72300745e396bb28ab52f6b799dc7312bb4f36bedf546d4298759036bc45b"
+      },
+      "tests": [
+        {
+          "name": "declared-native-F16-0.5",
+          "exposureMultiplier": 0.5,
+          "cameraExposureEV": -1,
+          "cases": 40413,
+          "readRGBBytes": 121239,
+          "maxCode255": 1,
+          "meanAbsoluteCode255": 0.004536494032448305,
+          "differentRGBBytes": 550,
+          "overOneCode": 0,
+          "nonBlackPixels": 36066,
+          "worst": {
+            "case": 21,
+            "channel": 0,
+            "expected": 178,
+            "actual": 177,
+            "input": [
+              1,
+              0,
+              0
+            ]
+          },
+          "passed": true,
+          "readbackSha256": "cfb02e79d47534a95dfcdba1d8ee2cdadadca9e07e2fd8810565f4f991f1c129"
+        },
+        {
+          "name": "declared-native-F16-1",
+          "exposureMultiplier": 1,
+          "cameraExposureEV": 0,
+          "cases": 40413,
+          "readRGBBytes": 121239,
+          "maxCode255": 1,
+          "meanAbsoluteCode255": 0.004454012322767427,
+          "differentRGBBytes": 540,
+          "overOneCode": 0,
+          "nonBlackPixels": 36346,
+          "worst": {
+            "case": 11,
+            "channel": 0,
+            "expected": 249,
+            "actual": 248,
+            "input": [
+              10,
+              10,
+              10
+            ]
+          },
+          "passed": true,
+          "readbackSha256": "433a9150a7bf4437733591a953c3f51a3ba8618c553662f9379490b2ded292ec"
+        },
+        {
+          "name": "declared-native-F16-2",
+          "exposureMultiplier": 2,
+          "cameraExposureEV": 1,
+          "cases": 40413,
+          "readRGBBytes": 121239,
+          "maxCode255": 1,
+          "meanAbsoluteCode255": 0.004058100116299211,
+          "differentRGBBytes": 492,
+          "overOneCode": 0,
+          "nonBlackPixels": 36593,
+          "worst": {
+            "case": 7,
+            "channel": 0,
+            "expected": 124,
+            "actual": 123,
+            "input": [
+              0.10000000149011612,
+              0.10000000149011612,
+              0.10000000149011612
+            ]
+          },
+          "passed": true,
+          "readbackSha256": "96c6b1627e34494e02d482f0117d5ad8212c44a561414be520f3cd60971eb019"
+        },
+        {
+          "name": "exact-native-F32-reference",
+          "exposureMultiplier": 1,
+          "cameraExposureEV": 0,
+          "cases": 40413,
+          "readRGBBytes": 121239,
+          "maxCode255": 1,
+          "meanAbsoluteCode255": 0.0035054726614373263,
+          "differentRGBBytes": 425,
+          "overOneCode": 0,
+          "nonBlackPixels": 36345,
+          "worst": {
+            "case": 11,
+            "channel": 0,
+            "expected": 249,
+            "actual": 248,
+            "input": [
+              10,
+              10,
+              10
+            ]
+          },
+          "passed": true
+        }
+      ],
+      "outputPass": {
+        "defines": {
+          "SRGB_TRANSFER": ""
+        },
+        "rendererToneMapping": 0,
+        "rendererExposure": 1,
+        "noDoubleToneMapping": true
+      },
+      "resources": {
+        "concurrentFetches": 1,
+        "concurrentTextureIdentity": true,
+        "hashFailureThenRetry": true,
+        "idempotentLeaseRelease": true,
+        "F16GPUBytes": 1481544,
+        "F32GPUBytes": 2963088
+      },
+      "gpuError": 0,
+      "contextLost": false,
+      "cleanup": {
+        "geometries": 0,
+        "textures": 0,
+        "programs": 0,
+        "F16TextureDisposals": 1,
+        "contextLost": false,
+        "gpuError": 0
+      },
+      "frameSha256": "8d01d47166935d5e723ad12a018e52d97c7aa9bd2f1465d4bd8ff3bcca41de00"
+    }
+  ],
+  "checks": {
+    "browserF16ReadbacksIdentical": true,
+    "allRGBReadbacksWithinOneCode": true,
+    "allHDRInputFloat32WordsPreserved": true,
+    "outputPassOETFOnly": true,
+    "noExtra40Multiplier": true,
+    "concurrentLazyLeaseIdentity": true,
+    "hashFailureRetry": true,
+    "resourcesZeroAfterDispose": true,
+    "sourceUnchanged": true,
+    "frozenSnapshotUnchanged": true,
+    "liveFrozenSourcesChangedDuringRun": [],
+    "browsersClosed": true,
+    "serverClosed": true,
+    "errors": []
+  },
+  "frozenLabSnapshot": "/var/folders/y7/b30gx9v90z36h9vf5pvk27mh0000gn/T/one-light-native-agx-lab-qVZ0Ps",
+  "harnessMaintenance": "After terminal, only environment-global lint header/import declarations were added to harnesses; tested immutable snapshot is preserved. The helper/LUT/oracle byte pins remain exactly those tested.",
+  "pending": [
+    "Root activation review",
+    "Actual Snow tDiffuse input samples, thumbnail view and app optical review",
+    "Full app memory/frame-time/transfer budgets",
+    "Asset license provenance decision"
+  ],
+  "sceneOrSourceEdits": 0
+}

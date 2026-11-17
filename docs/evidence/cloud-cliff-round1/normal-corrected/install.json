@@ -1,0 +1,94 @@
+{
+  "status": "Root-selected technical all-F32 Cloud assets installed. Runtime optics/bar acceptance and posters remain pending.",
+  "installedUTC": "2026-11-17T04:58:19.908786+00:00",
+  "source": "art/build/cloud-cliff-round1/delivery-normal-corrected-f32",
+  "public": "web/public/places/cloud-cliff",
+  "manifestSha256": "2ed96ec74059775b6904775eb77b21143b19e9b9260d503b5e634ed5d6be5260",
+  "runtimeFilesIncludingManifest": 15,
+  "completePackageBytes": 7430570,
+  "allRuntimePayloadBytesAndHashesVerified": true,
+  "sourceNightLightingAndPresetsExact": true,
+  "archive": "art/build/cloud-cliff-round1/public-before-normal-corrected-f32",
+  "previousPublic": {
+    "path": "web/public/places/cloud-cliff",
+    "manifestSha256": "e77f0f90114f83b1bc7d415afc4c17f51e91614edadc15e7bcdea568deb2c9f5",
+    "files": [
+      {
+        "uri": "cliff-day.ktx2",
+        "bytes": 147294,
+        "sha256": "f07259bde37f4a8e23ad80015de1ae101369b920845fdc90ffb61d1a06f86376"
+      },
+      {
+        "uri": "cliff-dusk.ktx2",
+        "bytes": 151087,
+        "sha256": "4e136dea3f502723f062b93acd324236784f602317ee25f4c554a3ee1e8bbbe5"
+      },
+      {
+        "uri": "cliff-lamp.ktx2",
+        "bytes": 19636,
+        "sha256": "428eb36051c5aea0d7cb166a077a44a4ac9dee7845467d8a521690ce3c3115b2"
+      },
+      {
+        "uri": "cliff-night.ktx2",
+        "bytes": 153902,
+        "sha256": "37d6f946437d12bd7f3a7e37db7c1c33ed22dac29de15caff86c94ac66968fca"
+      },
+      {
+        "uri": "cloud-cliff-storm.glb",
+        "bytes": 299312,
+        "sha256": "e8446546c3f6ccc7fa4829dfd7e179a98233cbc6f30c708408597ecfa768e6e0"
+      },
+      {
+        "uri": "cloud-cliff.glb",
+        "bytes": 4483584,
+        "sha256": "70cf6cff839200be2be36a13b3057d35b9fad670f7f4c1b0a348c8295b5e1786"
+      },
+      {
+        "uri": "cover-day.ktx2",
+        "bytes": 347272,
+        "sha256": "72d7a0306e6cdbc01e9d23a3bc40416acb63c805e557d3b5fcb0a8d1761c2091"
+      },
+      {
+        "uri": "cover-dusk.ktx2",
+        "bytes": 347978,
+        "sha256": "777c4405afcf10bf080ca4240ecdc8acc74113976ee8b70d6fef8eb6209dce42"
+      },
+      {
+        "uri": "cover-lamp.ktx2",
+        "bytes": 125928,
+        "sha256": "7ff6f7065756655ec5ddfd198ecf3e508ed9f608db574a11470bbbd08ef2a3e4"
+      },
+      {
+        "uri": "cover-night.ktx2",
+        "bytes": 350389,
+        "sha256": "287e02483614b1aa86cfa82d3b2e1abd69f4721400794e098a390e1fa11b02ac"
+      },
+      {
+        "uri": "far-day.ktx2",
+        "bytes": 14126,
+        "sha256": "020a982b4b405d752f6a5ed1a5b91b0bcfd1b7346ea4e8e45178281591843dc6"
+      },
+      {
+        "uri": "far-dusk.ktx2",
+        "bytes": 15091,
+        "sha256": "08d95c6d0475eda8fc4a6d93d38980a7c4b918231c4bcb315e6edfff7011ddaa"
+      },
+      {
+        "uri": "far-lamp.ktx2",
+        "bytes": 437,
+        "sha256": "fe7c2f57ac346c6523a6d89d142de123d06fbb06a6f93fca95e67fe8259c4016"
+      },
+      {
+        "uri": "far-night.ktx2",
+        "bytes": 15517,
+        "sha256": "a3eb23428ba11cbfc81b2be61585b7f1e4e8671378385c8dfaf7412676b9f425"
+      },
+      {
+        "uri": "manifest.json",
+        "bytes": 318841,
+        "sha256": "e77f0f90114f83b1bc7d415afc4c17f51e91614edadc15e7bcdea568deb2c9f5"
+      }
+    ]
+  },
+  "noNewBakeOrEncoding": true
+}

@@ -1,0 +1,66 @@
+{
+  "status": "CPU_PASS_GPU_PENDING_FOR_FULL_RESOLUTION",
+  "scope": "Narrow explicitly approved constructor allocation extension only; no renderer/GPU context, no main integration. Historical actual128GPU proof remains unchanged and does not prove full-resolution cost or pixels.",
+  "module": {
+    "path": "web/src/engine/places/cloudOpaqueDepth.js",
+    "sha256": "426b1aca3e346eb6b9eaff4266a2c65d32478e9e1c7fe335001a5807a9c5ede2",
+    "bytes": 15077
+  },
+  "defaults": {
+    "maxDimension": 1024,
+    "maxPixels": 1048576
+  },
+  "maximumOptIn": {
+    "maxDimension": 4096,
+    "maxPixels": 8388608
+  },
+  "checks": {
+    "default1440Rejected": true,
+    "invalidOptInRejected": true,
+    "exactPixelCap": true,
+    "hardwareMaxTextureSizeStillEnforced": true,
+    "byteAccounting": true,
+    "cacheReuseAtEachSize": true
+  },
+  "sizes": [
+    {
+      "width": 1440,
+      "height": 900,
+      "colourBytes": 5184000,
+      "depthRenderbufferBytesEstimate": 5184000
+    },
+    {
+      "width": 2880,
+      "height": 1800,
+      "colourBytes": 20736000,
+      "depthRenderbufferBytesEstimate": 20736000
+    },
+    {
+      "width": 2520,
+      "height": 1575,
+      "colourBytes": 15876000,
+      "depthRenderbufferBytesEstimate": 15876000
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "colourBytes": 1316640,
+      "depthRenderbufferBytesEstimate": 1316640
+    },
+    {
+      "width": 1170,
+      "height": 2532,
+      "colourBytes": 11849760,
+      "depthRenderbufferBytesEstimate": 11849760
+    },
+    {
+      "width": 4096,
+      "height": 2048,
+      "colourBytes": 33554432,
+      "depthRenderbufferBytesEstimate": 33554432
+    }
+  ],
+  "assertions": 36,
+  "sceneSourceEdits": 0,
+  "gpuContexts": 0
+}

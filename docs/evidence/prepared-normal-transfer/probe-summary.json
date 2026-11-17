@@ -1,0 +1,17 @@
+{
+  "policy": "evaluated-world-corner-free-float32-v1",
+  "sourceBlendSha256": "76a129450cd21e3af4a066a0880d13d6e5348f5e514bd1d03b6d9c90b25abf47",
+  "independentProbeProofSha256": "6f8b8c17dd3014e155fdb46b90e0d720cb5df118d6d2c3e9c037b916d864802d",
+  "actualLimits": {
+    "worldPositionMetres": 5e-06,
+    "materialUV0": 1e-06,
+    "worldNormalComponent": 1e-06,
+    "linearSurfaceTintComponent": 1e-06
+  },
+  "maximumWorldNormalComponentError": 1.1920928955078125e-07,
+  "allMaterialMappingsPassed": true,
+  "scope": "CPU-only source/prepared geometry, UV0, tint and normal proof. No UV2 preparation, export or native quality claim for this standalone probe.",
+  "implementation": "Blender FLOAT_VECTOR CORNER custom_normal, frozen through source-owner/original-loop provenance; original face sharp/smooth flags retained.",
+  "fullArrays": "Only in ignored native mesh/audit files; public metadata contains counts/hashes.",
+  "oldTransport": "Original prepared/blend/maps remain immutable. Any affected production batch requires fresh actual mapping/contact/raw/guard gates and a new complete bake."
+}

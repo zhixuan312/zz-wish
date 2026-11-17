@@ -1,0 +1,351 @@
+{
+  "scope": "CPU-only delivery-format measurements from the immutable Source15 priority LOW8 candidate. No raw-format adoption, browser/loader/performance PASS, source edit, new transport, geometry grid or atlas revision.",
+  "qualityReference": {
+    "path": "art/build/snow-roof-round1/priority15-quality-control-gzip/manifest.json",
+    "sha256": "e6381e00edfea018bed8461a501d45350489095f2b3329524da7398b9172a661",
+    "bytes": 147027
+  },
+  "qualityReferenceCompleteBytes": 16921440,
+  "budgetBytes": 15000000,
+  "qualityReferenceBudgetPassed": false,
+  "rawRGBA8": {
+    "report": {
+      "path": "art/build/snow-roof-round1/priority15-raw-rgba8-zstd/raw-zstd-study.json",
+      "sha256": "8c03125a0d7f0ac62848fc2d8495b93cc6fbd7f76ca8d6b8e2504cf07a2b83ad",
+      "bytes": 49801
+    },
+    "script": {
+      "path": "scripts/probe-raw-lightmap-zstd.mjs",
+      "sha256": "26b45f880b72dd9a8857af1810f7202072ce551ee5766d90666114dc657dd800",
+      "bytes": 12711
+    },
+    "sourcePrecision": "Original PNG16 log-HDR RGB -> explicit nearest RGBA8, alpha255; Zstd compression lossless only to that derived8-bit signal. Not lossless to PNG16 or EXR.",
+    "conversionMaxNormalizedSignalError": 0.001953154802777246,
+    "maps": {
+      "hall-night": {
+        "baselineBytes": 1070965,
+        "candidateBytes": 1210900,
+        "savedBytes": -139935,
+        "sha256": "8fbddd9740e15d4b2298c7f26cfb55c009db896b368b6728c31e61355d92d144",
+        "maximumNormalizedSignalQuantizationError": 0.001953154802777246,
+        "maximumHDRRGBErrorVsSourcePNG16": 0.109620946785423,
+        "maximumRelativeHDRRGBErrorAbove0001VsSourcePNG16": 0.07084227990464373
+      },
+      "hall-dusk": {
+        "baselineBytes": 1094709,
+        "candidateBytes": 1239986,
+        "savedBytes": -145277,
+        "sha256": "e50758b65d33f4db69372da55abe046854d2f3999942d1b88489b7d300e6d438",
+        "maximumNormalizedSignalQuantizationError": 0.001953154802777246,
+        "maximumHDRRGBErrorVsSourcePNG16": 0.023889337293663715,
+        "maximumRelativeHDRRGBErrorAbove0001VsSourcePNG16": 0.06305848084933902
+      },
+      "hall-day": {
+        "baselineBytes": 1096164,
+        "candidateBytes": 1250143,
+        "savedBytes": -153979,
+        "sha256": "e3a1c9cb7138c26b253ef958c97f2ca2d9fbff7ff03e8bc481c102e18789bada",
+        "maximumNormalizedSignalQuantizationError": 0.001953154802777246,
+        "maximumHDRRGBErrorVsSourcePNG16": 0.1426594813314006,
+        "maximumRelativeHDRRGBErrorAbove0001VsSourcePNG16": 0.07002905713368679
+      },
+      "hall-lamp": {
+        "baselineBytes": 649971,
+        "candidateBytes": 733722,
+        "savedBytes": -83751,
+        "sha256": "71ec82246e11e5205e0611348e2a752b47ae3f0e9f4784b133c2cba92632c46c",
+        "maximumNormalizedSignalQuantizationError": 0.001953154802777246,
+        "maximumHDRRGBErrorVsSourcePNG16": 0.09200818514104991,
+        "maximumRelativeHDRRGBErrorAbove0001VsSourcePNG16": 0.07002905713368679
+      },
+      "altar-night": {
+        "baselineBytes": 438093,
+        "candidateBytes": 558498,
+        "savedBytes": -120405,
+        "sha256": "f0c57be0f76b5c46ec1180212e945e5bba58643fd911fe2680ecbae387f04a83",
+        "maximumNormalizedSignalQuantizationError": 0.001953154802777246,
+        "maximumHDRRGBErrorVsSourcePNG16": 7.568239870781895,
+        "maximumRelativeHDRRGBErrorAbove0001VsSourcePNG16": 0.09300917234437198
+      },
+      "altar-dusk": {
+        "baselineBytes": 427609,
+        "candidateBytes": 529185,
+        "savedBytes": -101576,
+        "sha256": "4207e4fece017dd4727c11bf87502c8e4c64b2f72e2d4fae0a6548d234a12495",
+        "maximumNormalizedSignalQuantizationError": 0.001953154802777246,
+        "maximumHDRRGBErrorVsSourcePNG16": 7.43194672756664,
+        "maximumRelativeHDRRGBErrorAbove0001VsSourcePNG16": 0.09300917234437198
+      },
+      "altar-day": {
+        "baselineBytes": 423956,
+        "candidateBytes": 529465,
+        "savedBytes": -105509,
+        "sha256": "80cef71193660e066a0c7dbb370c0cf96bd9aa71c069f8bcf284fdd1866b26d7",
+        "maximumNormalizedSignalQuantizationError": 0.001953154802777246,
+        "maximumHDRRGBErrorVsSourcePNG16": 19.569511818514457,
+        "maximumRelativeHDRRGBErrorAbove0001VsSourcePNG16": 0.09384616290025095
+      },
+      "altar-lamp": {
+        "baselineBytes": 417715,
+        "candidateBytes": 493629,
+        "savedBytes": -75914,
+        "sha256": "c7f4bf350f3621e37df333b14c20fa17f0d7a15576cff5f4055656e542680b30",
+        "maximumNormalizedSignalQuantizationError": 0.001953154802777246,
+        "maximumHDRRGBErrorVsSourcePNG16": 0.005428726183557664,
+        "maximumRelativeHDRRGBErrorAbove0001VsSourcePNG16": 0.05155724885277049
+      },
+      "gate-night": {
+        "baselineBytes": 326372,
+        "candidateBytes": 469586,
+        "savedBytes": -143214,
+        "sha256": "920bbab5ac61a77b6d54279ab0d54675a1519f7e118ae83c995e65ca29355300",
+        "maximumNormalizedSignalQuantizationError": 0.001953154802777246,
+        "maximumHDRRGBErrorVsSourcePNG16": 7.923708005850017,
+        "maximumRelativeHDRRGBErrorAbove0001VsSourcePNG16": 0.09300917234437198
+      },
+      "gate-dusk": {
+        "baselineBytes": 331673,
+        "candidateBytes": 483213,
+        "savedBytes": -151540,
+        "sha256": "28fa023687122a6a7bad1a5792e1f6992da51146291c94f39663364204468e30",
+        "maximumNormalizedSignalQuantizationError": 0.001953154802777246,
+        "maximumHDRRGBErrorVsSourcePNG16": 8.273839499758424,
+        "maximumRelativeHDRRGBErrorAbove0001VsSourcePNG16": 0.09300917234437198
+      },
+      "gate-day": {
+        "baselineBytes": 338398,
+        "candidateBytes": 491928,
+        "savedBytes": -153530,
+        "sha256": "6bff436a9f1038d75a2b37adc7707046bcbca75573a946555a2be68543d9ab4a",
+        "maximumNormalizedSignalQuantizationError": 0.001953154802777246,
+        "maximumHDRRGBErrorVsSourcePNG16": 15.085609190920763,
+        "maximumRelativeHDRRGBErrorAbove0001VsSourcePNG16": 0.09384616290025095
+      },
+      "gate-lamp": {
+        "baselineBytes": 23820,
+        "candidateBytes": 30558,
+        "savedBytes": -6738,
+        "sha256": "155ca108fc78f6ef977fd4f4dc765a829415bf1df80bf79685bf817f80c0c859",
+        "maximumNormalizedSignalQuantizationError": 0.001953154802777163,
+        "maximumHDRRGBErrorVsSourcePNG16": 1.5948229424897487e-05,
+        "maximumRelativeHDRRGBErrorAbove0001VsSourcePNG16": 0.018688380661690273
+      },
+      "court-night": {
+        "baselineBytes": 1050775,
+        "candidateBytes": 1292265,
+        "savedBytes": -241490,
+        "sha256": "363091b3b07000a942eecec256be70e784560e0bf969c6504d7488c09bce2d1b",
+        "maximumNormalizedSignalQuantizationError": 0.001953154802777246,
+        "maximumHDRRGBErrorVsSourcePNG16": 2.0840156386719713,
+        "maximumRelativeHDRRGBErrorAbove0001VsSourcePNG16": 0.08111863393010688
+      },
+      "court-dusk": {
+        "baselineBytes": 1073719,
+        "candidateBytes": 1347546,
+        "savedBytes": -273827,
+        "sha256": "a024fdad088172c5b2ec8377e3adaee0c41263079b0bde7777c3aace9531ddc4",
+        "maximumNormalizedSignalQuantizationError": 0.001953154802777246,
+        "maximumHDRRGBErrorVsSourcePNG16": 1.5344090992210937,
+        "maximumRelativeHDRRGBErrorAbove0001VsSourcePNG16": 0.08111863393010688
+      },
+      "court-day": {
+        "baselineBytes": 1106775,
+        "candidateBytes": 1405192,
+        "savedBytes": -298417,
+        "sha256": "c195462ce7566f339a51553d0f900a9d4f391e6c16c49691064c04f801dacf11",
+        "maximumNormalizedSignalQuantizationError": 0.001953154802777246,
+        "maximumHDRRGBErrorVsSourcePNG16": 2.538062692582571,
+        "maximumRelativeHDRRGBErrorAbove0001VsSourcePNG16": 0.08111863393010688
+      },
+      "court-lamp": {
+        "baselineBytes": 72465,
+        "candidateBytes": 89843,
+        "savedBytes": -17378,
+        "sha256": "c63da16808093d815801bec23d80de79c1a2c6f3d6b6caaba6791b41ba1a3d5e",
+        "maximumNormalizedSignalQuantizationError": 0.001953154802777163,
+        "maximumHDRRGBErrorVsSourcePNG16": 0.00031102938405341146,
+        "maximumRelativeHDRRGBErrorAbove0001VsSourcePNG16": 0.036119684475232665
+      }
+    },
+    "baselineMapBytes": 9943179,
+    "candidateMapBytes": 12155659,
+    "package": {
+      "manifestSha256": "80288b152430c42f433328ac8c720859de7ac88886fa33f1c735c45efdd5aebe",
+      "payloadBytes": 18986893,
+      "completePackageBytes": 19139493,
+      "within15000000Bytes": false
+    },
+    "gpuTextureMemory": {
+      "allLooksBytes": 143130624,
+      "nightAndLampBytes": 71565312,
+      "baselineOneBytePerPixelBlockAllLooksBytes": 35782656,
+      "baselineOneBytePerPixelBlockNightAndLampBytes": 17891328,
+      "scope": "Actual allocated mip texel bytes, excluding driver alignment/auxiliary render targets. Night+lamp means allfour region maps in those two banks. All16 is worst-case residency; runtime may prefetch other looks as bytes only. Compressed baseline assumes1byte/pixel ASTC4x4/BC7; unsupported devices may already transcode toRGBA32."
+    },
+    "headersAndAll48MipByteArraysVerified": true,
+    "outcome": "Reject as budget alternative: every map is larger and raw resident texels increase4x over1byte/pixel block storage.",
+    "executedSourcePreserved": {
+      "path": "art/build/snow-roof-round1/priority15-raw-rgba8-zstd/executed-probe-source.mjs",
+      "sha256": "dd25eccc21357aa0009f5344e64829dafb9ab3ee0629136bc012827723bd077b",
+      "bytes": 12720
+    },
+    "postExecutionSourceChanges": "Unused import removal only; Half script also corrects future precision-label wording. Original payloads and execution reports remain immutable."
+  },
+  "rawRGBA16F": {
+    "report": {
+      "path": "art/build/snow-roof-round1/priority15-raw-half-zstd/half-study.json",
+      "sha256": "8bc99d3e000d028e8e68f8f4f5e64b149f64ea7a7c18bfe9a44a44767869d994",
+      "bytes": 6567
+    },
+    "script": {
+      "path": "scripts/probe-half-lightmap-zstd.mjs",
+      "sha256": "79bf6464d4fe2491a7abe425d9e5fa98402d8ee2fcf8e429c15c2dd9af451fda",
+      "bytes": 7738
+    },
+    "officialPath": "ktx create --raw --format R16G16B16A16_SFLOAT --levels3 --assign-tf linear --assign-primaries bt709 --zstd22",
+    "sourcePrecision": "Original normalized PNG16 signal first rounds to Float32, then to IEEE754half with ties-to-even. This two-step conversion differs from direct nearest-half for2of65536 possible source levels. Actual measured error bounds and hashes remain valid. Not lossless16bit.",
+    "maps": {
+      "hall-day": {
+        "baselineUastcBytes": 1096164,
+        "actualRawHalfKTXBytes": 2389240,
+        "sha256": "3171bd384d03954e28196b727408e18a633aad83af61db1de9b3a73f917bad9d",
+        "maximumNormalizedLogSignalErrorVsOriginalPNG16": 0.00024299694342722056,
+        "maximumHDRRGBErrorVsSourcePNG16": 0.016154347208082065,
+        "maximumRelativeHDRRGBErrorAbove0001": 0.0025234760740517883
+      },
+      "court-day": {
+        "baselineUastcBytes": 1106775,
+        "actualRawHalfKTXBytes": 3153258,
+        "sha256": "522ee63b123b2de5f2d4d50ae2b1ff2347f228ffbc480ed5cfa72166a6f5e4c8",
+        "maximumNormalizedLogSignalErrorVsOriginalPNG16": 0.00024008372196149264,
+        "maximumHDRRGBErrorVsSourcePNG16": 0.27446359106441776,
+        "maximumRelativeHDRRGBErrorAbove0001": 0.0031570605123910364
+      }
+    },
+    "headersAndAll6MipByteArraysVerified": true,
+    "actualTwoMapGpuBytes": 49545216,
+    "projectionOnlyAll16GpuBytes": 286261248,
+    "projectionOnlyNightAndLamp8GpuBytes": 143130624,
+    "outcome": "Reject as budget alternative: both worst-size maps are larger than RGBA8/UASTC. Only2maps encoded; full16half byte cost not claimed.",
+    "executedSourcePreserved": {
+      "path": "art/build/snow-roof-round1/priority15-raw-half-zstd/executed-probe-source.mjs",
+      "sha256": "36bffccbcf2223abfed649dba0033f51a0d6811f877becca959dd8808b4ba1fe",
+      "bytes": 7662
+    },
+    "postExecutionSourceChanges": "Unused import removal only; Half script also corrects future precision-label wording. Original payloads and execution reports remain immutable.",
+    "conversionLabelCorrection": {
+      "originalReportLabelsDirectNearestHalfTooStrongly": true,
+      "exhaustiveAdjacentHalfCheckLevels": 65536,
+      "twoStepVersusDirectNearestMismatchCount": 2,
+      "newRawEncodes": 0,
+      "actualMeasuredConversionErrorsStillValid": true
+    }
+  },
+  "sourceIntegrity": {
+    "originalPNGsAndEXRMastersUnchanged": true,
+    "qualityPackageUnchanged": true,
+    "renderBakeBrowserGpuJobs": 0
+  },
+  "losslessModelContainerSizeOnly": {
+    "report": {
+      "path": "art/build/snow-roof-round1/priority15-model-brotli-study.json",
+      "sha256": "ed9f06883bb8f05bb75e7e935f2c12d133017b8ff2ca36426e0995d3a7e07179",
+      "bytes": 762
+    },
+    "input": {
+      "path": "art/build/snow-roof-round1/priority15-short16-u8-normal256/snow-roof.glb",
+      "bytes": 10410696,
+      "sha256": "31eb9a24e2e3c78b6c83753c170d7e3f35de587a43b916a14f12897ff49a4037"
+    },
+    "existingGzipBytes": 6439992,
+    "candidates": [
+      {
+        "codec": "br",
+        "quality": 9,
+        "bytes": 6239412,
+        "sha256": "b5511a96ae0096563a3123ba9528b919ce82d115eb693b4e239a07ca28136152",
+        "seconds": 1.07,
+        "decodedByteExact": true
+      },
+      {
+        "codec": "br",
+        "quality": 11,
+        "bytes": 5974565,
+        "sha256": "b7e61217d0ccace51bf26ba5ce25d480f410d515953e913a28f04fdbf6e05b39",
+        "seconds": 22.797,
+        "decodedByteExact": true
+      }
+    ],
+    "bestSavedBytes": 465427,
+    "runtimeLoaderChanged": false,
+    "outcome": "Brotli11 saves465427B but leaves1456013B overbudget. Actual new loader/performance and explicit wrapper adoption remain unapproved."
+  },
+  "currentPhoneZ2": {
+    "cameraConfig": {
+      "path": "art/build/snow-roof-round1/current-cameras-v15-runtime-z2.json",
+      "sha256": "84210149710abd24b688c949dcf482a768bdcb132a4ee011c77288647bc6f5aa",
+      "bytes": 7027
+    },
+    "coverage": {
+      "path": "art/build/snow-roof-round1/postbatch-priority15/current-camera-z2-coverage.json",
+      "sha256": "cc5fa2f52a282559a1331d946acc3330e3d4cd1cde4f973414cfe15f144a38f8",
+      "bytes": 10482
+    },
+    "pitch": {
+      "path": "art/build/snow-roof-round1/postbatch-priority15/current-pitch-z2.json",
+      "sha256": "c7b69b8504dee1c4fe700f6eee69a625c2ef565c957948233cd34e79d7078a06",
+      "bytes": 138653
+    },
+    "coveragePassed": true,
+    "burningMedianWorstAxisMetresPerTexel": {
+      "floor": 0.051768043490634734,
+      "columns": 0.0560086905443217,
+      "beams": 0.05570680511208479
+    }
+  },
+  "commands": {
+    "rgba8": "node scripts/probe-raw-lightmap-zstd.mjs --source art/build/snow-roof-round1/preview15-priority-all16-native8 --delivery art/build/snow-roof-round1/priority15-quality-control-gzip --out art/build/snow-roof-round1/NEW-raw-rgba8-zstd",
+    "rgba16f": "node scripts/probe-half-lightmap-zstd.mjs --source art/build/snow-roof-round1/preview15-priority-all16-native8 --delivery art/build/snow-roof-round1/priority15-quality-control-gzip --out art/build/snow-roof-round1/NEW-raw-half-zstd"
+  },
+  "losslessModelZstd": {
+    "report": {
+      "path": "art/build/snow-roof-round1/priority15-model-zstd-study/model-zstd-study.json",
+      "sha256": "4b0a38adc2e35e412ce05799b8036415514c09e8ce1d264f7a0b2f0a74992a79",
+      "bytes": 6599
+    },
+    "script": {
+      "path": "scripts/probe-model-zstd.mjs",
+      "sha256": "acd57d7c5e66a3a1fd22d6b410f29b2a79617c1d2956dfcf1e797f25a34cf47f",
+      "bytes": 10120
+    },
+    "compressedBytes": 6102225,
+    "compressedSha256": "7aba82500ddc8d35f06e51ccaf8daacdc4263856431bae2561d0816541a2d0da",
+    "nativeAndThree160WasmDecodedExact": true,
+    "savedVsGzipBytes": 337767,
+    "largerThanBrotli11Bytes": 127660,
+    "runtimeOrLoaderAdoption": false,
+    "timingScope": "One local run. Native wall times include process startup and file I/O. WASM init/decode wall times are measured in Node. These are probe timings, not browser/runtime performance evidence.",
+    "probeTimingsMilliseconds": {
+      "encode": 1499.300958,
+      "nativeDecode": 15.52904199999989,
+      "three160WasmInit": 12.66212500000006,
+      "three160WasmDecode": 24.31925000000001
+    },
+    "long27Followup": {
+      "report": {
+        "path": "art/build/snow-roof-round1/priority15-model-zstd-study/long27/model-zstd-long27-study.json",
+        "sha256": "da90ebe99fc8d9b47eee9defc80d7b202699da5ba64a04bddaec012bf81c4646",
+        "bytes": 6091
+      },
+      "bytes": 6102072,
+      "additionalSavedBytes": 153,
+      "nativeAndThree160WasmExact": true,
+      "actualWindowBytesBothFrames": 10410696,
+      "actualWasmLinearMemoryBytes": {
+        "afterInit": 16777216,
+        "afterDecode": 21954560
+      },
+      "outcome": "No meaningful size gain; retain default Zstd recipe as the simpler measurement."
+    }
+  }
+}

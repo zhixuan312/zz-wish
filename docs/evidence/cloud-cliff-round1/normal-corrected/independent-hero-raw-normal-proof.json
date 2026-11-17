@@ -1,0 +1,312 @@
+{
+  "version": 1,
+  "inputs": {
+    "prepared": {
+      "path": "/Users/xuan/Documents/code/zz-wish/art/build/cloud-cliff-round1/production-normal-corrected/cloud-cliff-prepared.blend",
+      "sha256": "14fdacab407a318b73f6d93ba220316db66b1e7b0087486d28c70b69c886ddd1"
+    },
+    "raw": {
+      "path": "/Users/xuan/Documents/code/zz-wish/art/build/cloud-cliff-round1/production-normal-corrected/cloud-cliff-storm.raw.glb",
+      "sha256": "e19b1985fd6f1adb696db0c07528f68de39164db7ce04bc6e9a398ca33018210"
+    }
+  },
+  "selection": {
+    "hero": "storm",
+    "scope": "dynamic hero"
+  },
+  "passed": true,
+  "method": "Decode actual uncompressed glTF accessors and hierarchy; transform raw NORMAL by inverse transpose into world Y-up. Evaluate prepared CORNER normals and positions into the same engine basis. Match exact FLOAT32 triangle positions and cyclic winding; duplicate coincident triangle groups require a complete one-to-one normal assignment at1e\u22126. No normal attribute other than standard NORMAL is used.",
+  "preparedTrianglesByRegion": {
+    "null": 7996
+  },
+  "rawTrianglesByRegion": {
+    "null": 7996
+  },
+  "association": {
+    "geometryTriangleGroups": 7996,
+    "uniqueTriangleGroups": 7996,
+    "oneToOneNormalMatchedTriangles": 7996
+  },
+  "maximumBestMatchedWorldNormalComponentError": 1.1920928955078125e-07,
+  "normalComponentTolerance": 1e-06,
+  "standardNormalAccessorFormats": [
+    {
+      "node": "Storm bail eye",
+      "count": 344,
+      "componentType": 5126,
+      "normalized": false
+    },
+    {
+      "node": "Storm bail hinge pin",
+      "count": 56,
+      "componentType": 5126,
+      "normalized": false
+    },
+    {
+      "node": "Storm bail hinge pin.001",
+      "count": 56,
+      "componentType": 5126,
+      "normalized": false
+    },
+    {
+      "node": "Storm cast base and oil-wax cup",
+      "count": 600,
+      "componentType": 5126,
+      "normalized": false
+    },
+    {
+      "node": "Storm charred fibre wick",
+      "count": 40,
+      "componentType": 5126,
+      "normalized": false
+    },
+    {
+      "node": "Storm clear hurricane glass",
+      "count": 920,
+      "componentType": 5126,
+      "normalized": false
+    },
+    {
+      "node": "Storm crown vent rib",
+      "count": 32,
+      "componentType": 5126,
+      "normalized": false
+    },
+    {
+      "node": "Storm crown vent rib.001",
+      "count": 32,
+      "componentType": 5126,
+      "normalized": false
+    },
+    {
+      "node": "Storm crown vent rib.002",
+      "count": 32,
+      "componentType": 5126,
+      "normalized": false
+    },
+    {
+      "node": "Storm crown vent rib.003",
+      "count": 32,
+      "componentType": 5126,
+      "normalized": false
+    },
+    {
+      "node": "Storm crown vent rib.004",
+      "count": 32,
+      "componentType": 5126,
+      "normalized": false
+    },
+    {
+      "node": "Storm crown vent rib.005",
+      "count": 32,
+      "componentType": 5126,
+      "normalized": false
+    },
+    {
+      "node": "Storm crown vent rib.006",
+      "count": 32,
+      "componentType": 5126,
+      "normalized": false
+    },
+    {
+      "node": "Storm crown vent rib.007",
+      "count": 32,
+      "componentType": 5126,
+      "normalized": false
+    },
+    {
+      "node": "Storm crown vent rib.008",
+      "count": 32,
+      "componentType": 5126,
+      "normalized": false
+    },
+    {
+      "node": "Storm crown vent rib.009",
+      "count": 32,
+      "componentType": 5126,
+      "normalized": false
+    },
+    {
+      "node": "Storm crown vent rib.010",
+      "count": 32,
+      "componentType": 5126,
+      "normalized": false
+    },
+    {
+      "node": "Storm crown vent rib.011",
+      "count": 32,
+      "componentType": 5126,
+      "normalized": false
+    },
+    {
+      "node": "Storm frame rivet",
+      "count": 104,
+      "componentType": 5126,
+      "normalized": false
+    },
+    {
+      "node": "Storm frame rivet.001",
+      "count": 104,
+      "componentType": 5126,
+      "normalized": false
+    },
+    {
+      "node": "Storm frame rivet.002",
+      "count": 104,
+      "componentType": 5126,
+      "normalized": false
+    },
+    {
+      "node": "Storm frame rivet.003",
+      "count": 104,
+      "componentType": 5126,
+      "normalized": false
+    },
+    {
+      "node": "Storm lower load link",
+      "count": 344,
+      "componentType": 5126,
+      "normalized": false
+    },
+    {
+      "node": "Storm protective bowed upright",
+      "count": 84,
+      "componentType": 5126,
+      "normalized": false
+    },
+    {
+      "node": "Storm protective bowed upright.001",
+      "count": 84,
+      "componentType": 5126,
+      "normalized": false
+    },
+    {
+      "node": "Storm protective bowed upright.002",
+      "count": 84,
+      "componentType": 5126,
+      "normalized": false
+    },
+    {
+      "node": "Storm protective bowed upright.003",
+      "count": 84,
+      "componentType": 5126,
+      "normalized": false
+    },
+    {
+      "node": "Storm real bail hinge lug",
+      "count": 48,
+      "componentType": 5126,
+      "normalized": false
+    },
+    {
+      "node": "Storm real bail hinge lug.001",
+      "count": 48,
+      "componentType": 5126,
+      "normalized": false
+    },
+    {
+      "node": "Storm second load link",
+      "count": 344,
+      "componentType": 5126,
+      "normalized": false
+    },
+    {
+      "node": "Storm spun crown",
+      "count": 600,
+      "componentType": 5126,
+      "normalized": false
+    },
+    {
+      "node": "Storm swept brass bail",
+      "count": 264,
+      "componentType": 5126,
+      "normalized": false
+    },
+    {
+      "node": "Storm third load link",
+      "count": 344,
+      "componentType": 5126,
+      "normalized": false
+    },
+    {
+      "node": "Storm upper load link",
+      "count": 344,
+      "componentType": 5126,
+      "normalized": false
+    },
+    {
+      "node": "Storm used tallow candle",
+      "count": 268,
+      "componentType": 5126,
+      "normalized": false
+    },
+    {
+      "node": "Storm wax dribble",
+      "count": 20,
+      "componentType": 5126,
+      "normalized": false
+    },
+    {
+      "node": "Storm wax dribble.001",
+      "count": 20,
+      "componentType": 5126,
+      "normalized": false
+    },
+    {
+      "node": "Storm wax dribble.002",
+      "count": 20,
+      "componentType": 5126,
+      "normalized": false
+    },
+    {
+      "node": "Storm wax dribble.003",
+      "count": 20,
+      "componentType": 5126,
+      "normalized": false
+    },
+    {
+      "node": "Storm welded bail eye neck",
+      "count": 40,
+      "componentType": 5126,
+      "normalized": false
+    },
+    {
+      "node": "Storm worn turned bead",
+      "count": 224,
+      "componentType": 5126,
+      "normalized": false
+    },
+    {
+      "node": "Storm worn turned bead.001",
+      "count": 224,
+      "componentType": 5126,
+      "normalized": false
+    },
+    {
+      "node": "Storm worn turned bead.002",
+      "count": 208,
+      "componentType": 5126,
+      "normalized": false
+    },
+    {
+      "node": "Storm worn turned bead.003",
+      "count": 228,
+      "componentType": 5126,
+      "normalized": false
+    }
+  ],
+  "semanticPrimitiveCounts": {
+    "POSITION": 44,
+    "NORMAL": 44,
+    "TEXCOORD_0": 44,
+    "COLOR_0": 37
+  },
+  "unexpectedOrRedundantSemantics": [],
+  "redundantNormalAccessorNames": [],
+  "noCustomNormalOrEquivalentStream": true,
+  "maximumWorldNormalUnitLengthErrorAfterTransform": 1.035626002732215e-07,
+  "failureExamples": [],
+  "sourcePreparedOrRawModified": false,
+  "renderBakeEncoderGpuJobs": 0,
+  "scriptSha256": "8c046a546779ebc77473faa2cac20c6dcc3d8b6b3dd162a8187955d422069c06"
+}

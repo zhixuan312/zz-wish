@@ -1,0 +1,8 @@
+{
+  "archivedEvidence": true,
+  "path": "docs/evidence/resting-props/provenance.json",
+  "bytes": 4612814,
+  "sha256": "781001997cfd2503419a5941d5059e6c58afc280afd77af7aa2b5a40b673fd6b",
+  "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/resting-props/provenance.json",
+  "note": "Full immutable evidence is preserved locally in the git-ignored archive; see docs/evidence/ARCHIVE.md."
+}

@@ -1,0 +1,1181 @@
+{
+  "scope": "Actual packaged preview optical check of C1/C2/C6/B4. Declared per-map samples remain authoritative; default red fixture only; not final/fulljourney/hunt/FPS or arbitrary-shape GI approval. Cloud is a technical navigation control.",
+  "report": {
+    "path": "artifacts/full-review/round-1/snow17-native-agx-hall32/report.json",
+    "bytes": 1757141,
+    "sha256": "93174f607ab5b45662685e649e06c960bd8cb1e9caa4de041e4c2c366f8c64cc"
+  },
+  "sourceStartSha256": "31d26bf37dcdfa3f5ad8e42ee4990ee289f0829e65c88c84ccd01743929c04cc",
+  "sourceEndSha256": "31d26bf37dcdfa3f5ad8e42ee4990ee289f0829e65c88c84ccd01743929c04cc",
+  "sourceChanged": false,
+  "ownedBrowsersClosed": true,
+  "errors": [],
+  "actualSampleSchedule": {
+    "hall/night": 32,
+    "hall/dusk": 8,
+    "hall/day": 8,
+    "hall/lamp": 8,
+    "altar/night": 8,
+    "altar/dusk": 8,
+    "altar/day": 8,
+    "altar/lamp": 8,
+    "gate/night": 8,
+    "gate/dusk": 8,
+    "gate/day": 8,
+    "gate/lamp": 8,
+    "court/night": 8,
+    "court/dusk": 8,
+    "court/day": 8,
+    "court/lamp": 8
+  },
+  "frames": [
+    {
+      "browser": "chromium",
+      "size": "desktop",
+      "stage": "choose",
+      "file": "artifacts/full-review/round-1/snow17-native-agx-hall32/chromium-desktop-choose.png",
+      "sha256": "c23e5c22be219fac97097919702a44325527abd0f344733aacf53a13087b253a",
+      "health": {
+        "available": true,
+        "lost": false,
+        "events": []
+      },
+      "camera": {
+        "pendingTweens": 0,
+        "position": [
+          -2.75,
+          2.22,
+          0.6499999999999999
+        ],
+        "look": [
+          -1.4794503443859663,
+          2.1509020281329003,
+          -1.2999999523162842
+        ],
+        "fov": 55
+      },
+      "diagnosticCamera": null,
+      "colorView": {
+        "native": {
+          "enabled": true,
+          "cameraExposureEV": 0,
+          "precision": "Each native LUT Float32 texel rounded once to IEEE754 Float16 nearest-even; no resampling; same57^3/tetrahedral/matrix/shaper",
+          "lutSha256": "bc942c1862956cb48aed8c259d2e410518a10c4b26775a27c3b326d539244463"
+        },
+        "rendererToneMapping": 0,
+        "rendererExposure": 1,
+        "thumbnail": {
+          "cameraExposureEV": 0,
+          "lutSha256": "bc942c1862956cb48aed8c259d2e410518a10c4b26775a27c3b326d539244463"
+        }
+      }
+    },
+    {
+      "browser": "chromium",
+      "size": "desktop",
+      "stage": "burning-live",
+      "file": "artifacts/full-review/round-1/snow17-native-agx-hall32/chromium-desktop-burning-live.png",
+      "sha256": "a907b030c4a217b355803e776f0ffa146558388d8edad821d368752b2a7be9ff",
+      "health": {
+        "available": true,
+        "lost": false,
+        "events": []
+      },
+      "camera": {
+        "pendingTweens": 0,
+        "position": [
+          -4.900000000000001,
+          2.3,
+          -1.600000000000001
+        ],
+        "look": [
+          1.1,
+          1.75,
+          -2.124931981155544
+        ],
+        "fov": 55
+      },
+      "diagnosticCamera": null,
+      "colorView": {
+        "native": {
+          "enabled": true,
+          "cameraExposureEV": 0,
+          "precision": "Each native LUT Float32 texel rounded once to IEEE754 Float16 nearest-even; no resampling; same57^3/tetrahedral/matrix/shaper",
+          "lutSha256": "bc942c1862956cb48aed8c259d2e410518a10c4b26775a27c3b326d539244463"
+        },
+        "rendererToneMapping": 0,
+        "rendererExposure": 1,
+        "thumbnail": {
+          "cameraExposureEV": 0,
+          "lutSha256": "bc942c1862956cb48aed8c259d2e410518a10c4b26775a27c3b326d539244463"
+        }
+      }
+    },
+    {
+      "browser": "chromium",
+      "size": "desktop",
+      "stage": "burning-held",
+      "file": "artifacts/full-review/round-1/snow17-native-agx-hall32/chromium-desktop-burning-held.png",
+      "sha256": "feed99299a98178f6dc04f3dcddaac6857d1576e1bc7ea574801267f42c11a32",
+      "health": {
+        "available": true,
+        "lost": false,
+        "events": []
+      },
+      "camera": {
+        "pendingTweens": 0,
+        "position": [
+          -4.900000000000001,
+          2.3,
+          -1.600000000000001
+        ],
+        "look": [
+          1.1,
+          1.75,
+          -2.124931981155544
+        ],
+        "fov": 55
+      },
+      "diagnosticCamera": null,
+      "colorView": {
+        "native": {
+          "enabled": true,
+          "cameraExposureEV": 0,
+          "precision": "Each native LUT Float32 texel rounded once to IEEE754 Float16 nearest-even; no resampling; same57^3/tetrahedral/matrix/shaper",
+          "lutSha256": "bc942c1862956cb48aed8c259d2e410518a10c4b26775a27c3b326d539244463"
+        },
+        "rendererToneMapping": 0,
+        "rendererExposure": 1,
+        "thumbnail": {
+          "cameraExposureEV": 0,
+          "lutSha256": "bc942c1862956cb48aed8c259d2e410518a10c4b26775a27c3b326d539244463"
+        }
+      }
+    },
+    {
+      "browser": "chromium",
+      "size": "desktop",
+      "stage": "burnFar-held",
+      "file": "artifacts/full-review/round-1/snow17-native-agx-hall32/chromium-desktop-burnFar-held.png",
+      "sha256": "f77317f7883f3521d6cf02920ea4ab7096985e382801e36ddb8a4bd807cae116",
+      "health": {
+        "available": true,
+        "lost": false,
+        "events": []
+      },
+      "camera": {
+        "pendingTweens": 0,
+        "position": [
+          -4.94,
+          2.3,
+          -1.6
+        ],
+        "look": [
+          1.06,
+          1.75,
+          -2.124931981155544
+        ],
+        "fov": 55
+      },
+      "diagnosticCamera": {
+        "position": [
+          -4.94,
+          2.3,
+          -1.6
+        ],
+        "look": [
+          1.06,
+          1.75,
+          -2.124931981155544
+        ],
+        "fov": 55
+      },
+      "colorView": {
+        "native": {
+          "enabled": true,
+          "cameraExposureEV": 0,
+          "precision": "Each native LUT Float32 texel rounded once to IEEE754 Float16 nearest-even; no resampling; same57^3/tetrahedral/matrix/shaper",
+          "lutSha256": "bc942c1862956cb48aed8c259d2e410518a10c4b26775a27c3b326d539244463"
+        },
+        "rendererToneMapping": 0,
+        "rendererExposure": 1,
+        "thumbnail": {
+          "cameraExposureEV": 0,
+          "lutSha256": "bc942c1862956cb48aed8c259d2e410518a10c4b26775a27c3b326d539244463"
+        }
+      }
+    },
+    {
+      "browser": "chromium",
+      "size": "desktop",
+      "stage": "diagnostic-cloth-close",
+      "file": "artifacts/full-review/round-1/snow17-native-agx-hall32/chromium-desktop-diagnostic-cloth-close.png",
+      "sha256": "0fae6555a625888171853592ffea9ecd7aa4de6bd32db9c17c4829d456c1cf07",
+      "health": {
+        "available": true,
+        "lost": false,
+        "events": []
+      },
+      "camera": {
+        "pendingTweens": 0,
+        "position": [
+          -2.608467657132233,
+          2.4305992468237902,
+          -1.3969385922942594
+        ],
+        "look": [
+          -1.514522572771115,
+          2.4929454775147155,
+          -1.2999999523162842
+        ],
+        "fov": 42
+      },
+      "diagnosticCamera": {
+        "position": [
+          -2.608467657132233,
+          2.4305992468237902,
+          -1.3969385922942594
+        ],
+        "look": [
+          -1.514522572771115,
+          2.4929454775147155,
+          -1.2999999523162842
+        ],
+        "fov": 42
+      },
+      "colorView": {
+        "native": {
+          "enabled": true,
+          "cameraExposureEV": 0,
+          "precision": "Each native LUT Float32 texel rounded once to IEEE754 Float16 nearest-even; no resampling; same57^3/tetrahedral/matrix/shaper",
+          "lutSha256": "bc942c1862956cb48aed8c259d2e410518a10c4b26775a27c3b326d539244463"
+        },
+        "rendererToneMapping": 0,
+        "rendererExposure": 1,
+        "thumbnail": {
+          "cameraExposureEV": 0,
+          "lutSha256": "bc942c1862956cb48aed8c259d2e410518a10c4b26775a27c3b326d539244463"
+        }
+      }
+    },
+    {
+      "browser": "chromium",
+      "size": "desktop",
+      "stage": "diagnostic-low-altar-edge",
+      "file": "artifacts/full-review/round-1/snow17-native-agx-hall32/chromium-desktop-diagnostic-low-altar-edge.png",
+      "sha256": "4423d9c35d1d3b5c6383d60d99a1889546c1190f7919d340a7c380544673c5b9",
+      "health": {
+        "available": true,
+        "lost": false,
+        "events": []
+      },
+      "camera": {
+        "pendingTweens": 0,
+        "position": [
+          0.25,
+          1.66,
+          -3.65
+        ],
+        "look": [
+          0,
+          1.64,
+          -4.75
+        ],
+        "fov": 55
+      },
+      "diagnosticCamera": {
+        "position": [
+          0.25,
+          1.66,
+          -3.65
+        ],
+        "look": [
+          0,
+          1.64,
+          -4.75
+        ],
+        "fov": 55
+      },
+      "colorView": {
+        "native": {
+          "enabled": true,
+          "cameraExposureEV": 0,
+          "precision": "Each native LUT Float32 texel rounded once to IEEE754 Float16 nearest-even; no resampling; same57^3/tetrahedral/matrix/shaper",
+          "lutSha256": "bc942c1862956cb48aed8c259d2e410518a10c4b26775a27c3b326d539244463"
+        },
+        "rendererToneMapping": 0,
+        "rendererExposure": 1,
+        "thumbnail": {
+          "cameraExposureEV": 0,
+          "lutSha256": "bc942c1862956cb48aed8c259d2e410518a10c4b26775a27c3b326d539244463"
+        }
+      }
+    },
+    {
+      "browser": "chromium",
+      "size": "phone",
+      "stage": "choose",
+      "file": "artifacts/full-review/round-1/snow17-native-agx-hall32/chromium-phone-choose.png",
+      "sha256": "0e03921afc23b2a1f33f1f6d9326f8541e52b6c2b37e7e423fcdc05fbe934f01",
+      "health": {
+        "available": true,
+        "lost": false,
+        "events": []
+      },
+      "camera": {
+        "pendingTweens": 0,
+        "position": [
+          -1.5,
+          2.2,
+          1.7000000000000002
+        ],
+        "look": [
+          -1.4823131562110017,
+          1.5708468446913635,
+          -1.2999999523162842
+        ],
+        "fov": 55
+      },
+      "diagnosticCamera": null,
+      "colorView": {
+        "native": {
+          "enabled": true,
+          "cameraExposureEV": 0,
+          "precision": "Each native LUT Float32 texel rounded once to IEEE754 Float16 nearest-even; no resampling; same57^3/tetrahedral/matrix/shaper",
+          "lutSha256": "bc942c1862956cb48aed8c259d2e410518a10c4b26775a27c3b326d539244463"
+        },
+        "rendererToneMapping": 0,
+        "rendererExposure": 1,
+        "thumbnail": {
+          "cameraExposureEV": 0,
+          "lutSha256": "bc942c1862956cb48aed8c259d2e410518a10c4b26775a27c3b326d539244463"
+        }
+      }
+    },
+    {
+      "browser": "chromium",
+      "size": "phone",
+      "stage": "burning-live",
+      "file": "artifacts/full-review/round-1/snow17-native-agx-hall32/chromium-phone-burning-live.png",
+      "sha256": "ea46fa29caed1f05d95b3fffce949705c6b15b18d548179a138f831b3ddfea06",
+      "health": {
+        "available": true,
+        "lost": false,
+        "events": []
+      },
+      "camera": {
+        "pendingTweens": 0,
+        "position": [
+          -1.4999999999999996,
+          2.2,
+          1.8999999999999995
+        ],
+        "look": [
+          -0.9,
+          1.7000000000000002,
+          -2.3
+        ],
+        "fov": 55
+      },
+      "diagnosticCamera": null,
+      "colorView": {
+        "native": {
+          "enabled": true,
+          "cameraExposureEV": 0,
+          "precision": "Each native LUT Float32 texel rounded once to IEEE754 Float16 nearest-even; no resampling; same57^3/tetrahedral/matrix/shaper",
+          "lutSha256": "bc942c1862956cb48aed8c259d2e410518a10c4b26775a27c3b326d539244463"
+        },
+        "rendererToneMapping": 0,
+        "rendererExposure": 1,
+        "thumbnail": {
+          "cameraExposureEV": 0,
+          "lutSha256": "bc942c1862956cb48aed8c259d2e410518a10c4b26775a27c3b326d539244463"
+        }
+      }
+    },
+    {
+      "browser": "chromium",
+      "size": "phone",
+      "stage": "burning-held",
+      "file": "artifacts/full-review/round-1/snow17-native-agx-hall32/chromium-phone-burning-held.png",
+      "sha256": "d5599370c928e2ab872beff459668b01b5ea0e1c3e217b94ebe519cf6c7fbb70",
+      "health": {
+        "available": true,
+        "lost": false,
+        "events": []
+      },
+      "camera": {
+        "pendingTweens": 0,
+        "position": [
+          -1.4999999999999996,
+          2.2,
+          1.8999999999999995
+        ],
+        "look": [
+          -0.9,
+          1.7000000000000002,
+          -2.3
+        ],
+        "fov": 55
+      },
+      "diagnosticCamera": null,
+      "colorView": {
+        "native": {
+          "enabled": true,
+          "cameraExposureEV": 0,
+          "precision": "Each native LUT Float32 texel rounded once to IEEE754 Float16 nearest-even; no resampling; same57^3/tetrahedral/matrix/shaper",
+          "lutSha256": "bc942c1862956cb48aed8c259d2e410518a10c4b26775a27c3b326d539244463"
+        },
+        "rendererToneMapping": 0,
+        "rendererExposure": 1,
+        "thumbnail": {
+          "cameraExposureEV": 0,
+          "lutSha256": "bc942c1862956cb48aed8c259d2e410518a10c4b26775a27c3b326d539244463"
+        }
+      }
+    },
+    {
+      "browser": "chromium",
+      "size": "phone",
+      "stage": "burnFar-held",
+      "file": "artifacts/full-review/round-1/snow17-native-agx-hall32/chromium-phone-burnFar-held.png",
+      "sha256": "7fb45d8522fefd2e7858930e8f4f19cb3eaed433c6259ff7b3ccf665aaf72031",
+      "health": {
+        "available": true,
+        "lost": false,
+        "events": []
+      },
+      "camera": {
+        "pendingTweens": 0,
+        "position": [
+          -1.5,
+          2.2,
+          1.98
+        ],
+        "look": [
+          -1.1,
+          1.75,
+          -2.3
+        ],
+        "fov": 55
+      },
+      "diagnosticCamera": {
+        "position": [
+          -1.5,
+          2.2,
+          1.98
+        ],
+        "look": [
+          -1.1,
+          1.75,
+          -2.3
+        ],
+        "fov": 55
+      },
+      "colorView": {
+        "native": {
+          "enabled": true,
+          "cameraExposureEV": 0,
+          "precision": "Each native LUT Float32 texel rounded once to IEEE754 Float16 nearest-even; no resampling; same57^3/tetrahedral/matrix/shaper",
+          "lutSha256": "bc942c1862956cb48aed8c259d2e410518a10c4b26775a27c3b326d539244463"
+        },
+        "rendererToneMapping": 0,
+        "rendererExposure": 1,
+        "thumbnail": {
+          "cameraExposureEV": 0,
+          "lutSha256": "bc942c1862956cb48aed8c259d2e410518a10c4b26775a27c3b326d539244463"
+        }
+      }
+    },
+    {
+      "browser": "chromium",
+      "size": "phone",
+      "stage": "diagnostic-cloth-close",
+      "file": "artifacts/full-review/round-1/snow17-native-agx-hall32/chromium-phone-diagnostic-cloth-close.png",
+      "sha256": "463b5eac36731c2afcc7727ebfd764680e9145ed2d396d3573fd03924961b266",
+      "health": {
+        "available": true,
+        "lost": false,
+        "events": []
+      },
+      "camera": {
+        "pendingTweens": 0,
+        "position": [
+          -1.5095512769765167,
+          2.392665820227541,
+          -0.20459168296987773
+        ],
+        "look": [
+          -1.514522572771115,
+          2.4929454775147155,
+          -1.2999999523162842
+        ],
+        "fov": 42
+      },
+      "diagnosticCamera": {
+        "position": [
+          -1.5095512769765167,
+          2.392665820227541,
+          -0.20459168296987773
+        ],
+        "look": [
+          -1.514522572771115,
+          2.4929454775147155,
+          -1.2999999523162842
+        ],
+        "fov": 42
+      },
+      "colorView": {
+        "native": {
+          "enabled": true,
+          "cameraExposureEV": 0,
+          "precision": "Each native LUT Float32 texel rounded once to IEEE754 Float16 nearest-even; no resampling; same57^3/tetrahedral/matrix/shaper",
+          "lutSha256": "bc942c1862956cb48aed8c259d2e410518a10c4b26775a27c3b326d539244463"
+        },
+        "rendererToneMapping": 0,
+        "rendererExposure": 1,
+        "thumbnail": {
+          "cameraExposureEV": 0,
+          "lutSha256": "bc942c1862956cb48aed8c259d2e410518a10c4b26775a27c3b326d539244463"
+        }
+      }
+    },
+    {
+      "browser": "chromium",
+      "size": "phone",
+      "stage": "diagnostic-low-altar-edge",
+      "file": "artifacts/full-review/round-1/snow17-native-agx-hall32/chromium-phone-diagnostic-low-altar-edge.png",
+      "sha256": "74436b5b050b0eb092d520d605dda1ed6b27eb2aa2324c48653a013a028bb719",
+      "health": {
+        "available": true,
+        "lost": false,
+        "events": []
+      },
+      "camera": {
+        "pendingTweens": 0,
+        "position": [
+          0.25,
+          1.66,
+          -3.65
+        ],
+        "look": [
+          0,
+          1.64,
+          -4.75
+        ],
+        "fov": 55
+      },
+      "diagnosticCamera": {
+        "position": [
+          0.25,
+          1.66,
+          -3.65
+        ],
+        "look": [
+          0,
+          1.64,
+          -4.75
+        ],
+        "fov": 55
+      },
+      "colorView": {
+        "native": {
+          "enabled": true,
+          "cameraExposureEV": 0,
+          "precision": "Each native LUT Float32 texel rounded once to IEEE754 Float16 nearest-even; no resampling; same57^3/tetrahedral/matrix/shaper",
+          "lutSha256": "bc942c1862956cb48aed8c259d2e410518a10c4b26775a27c3b326d539244463"
+        },
+        "rendererToneMapping": 0,
+        "rendererExposure": 1,
+        "thumbnail": {
+          "cameraExposureEV": 0,
+          "lutSha256": "bc942c1862956cb48aed8c259d2e410518a10c4b26775a27c3b326d539244463"
+        }
+      }
+    },
+    {
+      "browser": "webkit",
+      "size": "desktop",
+      "stage": "choose",
+      "file": "artifacts/full-review/round-1/snow17-native-agx-hall32/webkit-desktop-choose.png",
+      "sha256": "8d673730d6f31828c7c6f86d7c5018f6705d5b350b9257a36e2a0b2cf5fd2188",
+      "health": {
+        "available": true,
+        "lost": false,
+        "events": []
+      },
+      "camera": {
+        "pendingTweens": 0,
+        "position": [
+          -2.75,
+          2.22,
+          0.6499999999999997
+        ],
+        "look": [
+          -1.4789868790320662,
+          2.1508692335355457,
+          -1.2999999523162842
+        ],
+        "fov": 55
+      },
+      "diagnosticCamera": null,
+      "colorView": {
+        "native": {
+          "enabled": true,
+          "cameraExposureEV": 0,
+          "precision": "Each native LUT Float32 texel rounded once to IEEE754 Float16 nearest-even; no resampling; same57^3/tetrahedral/matrix/shaper",
+          "lutSha256": "bc942c1862956cb48aed8c259d2e410518a10c4b26775a27c3b326d539244463"
+        },
+        "rendererToneMapping": 0,
+        "rendererExposure": 1,
+        "thumbnail": {
+          "cameraExposureEV": 0,
+          "lutSha256": "bc942c1862956cb48aed8c259d2e410518a10c4b26775a27c3b326d539244463"
+        }
+      }
+    },
+    {
+      "browser": "webkit",
+      "size": "desktop",
+      "stage": "burning-live",
+      "file": "artifacts/full-review/round-1/snow17-native-agx-hall32/webkit-desktop-burning-live.png",
+      "sha256": "78f3396a06c817d9c5251c0ce888032c44180a08b8bdbea4bb77cd63f1797594",
+      "health": {
+        "available": true,
+        "lost": false,
+        "events": []
+      },
+      "camera": {
+        "pendingTweens": 0,
+        "position": [
+          -4.900000000000001,
+          2.3,
+          -1.600000000000001
+        ],
+        "look": [
+          1.1,
+          1.75,
+          -2.124931981155544
+        ],
+        "fov": 55
+      },
+      "diagnosticCamera": null,
+      "colorView": {
+        "native": {
+          "enabled": true,
+          "cameraExposureEV": 0,
+          "precision": "Each native LUT Float32 texel rounded once to IEEE754 Float16 nearest-even; no resampling; same57^3/tetrahedral/matrix/shaper",
+          "lutSha256": "bc942c1862956cb48aed8c259d2e410518a10c4b26775a27c3b326d539244463"
+        },
+        "rendererToneMapping": 0,
+        "rendererExposure": 1,
+        "thumbnail": {
+          "cameraExposureEV": 0,
+          "lutSha256": "bc942c1862956cb48aed8c259d2e410518a10c4b26775a27c3b326d539244463"
+        }
+      }
+    },
+    {
+      "browser": "webkit",
+      "size": "desktop",
+      "stage": "burning-held",
+      "file": "artifacts/full-review/round-1/snow17-native-agx-hall32/webkit-desktop-burning-held.png",
+      "sha256": "315402b46b91a9fec04e9994f8408e1b1af6f35156c68d49a01b32923fcd084a",
+      "health": {
+        "available": true,
+        "lost": false,
+        "events": []
+      },
+      "camera": {
+        "pendingTweens": 0,
+        "position": [
+          -4.900000000000001,
+          2.3,
+          -1.600000000000001
+        ],
+        "look": [
+          1.1,
+          1.75,
+          -2.124931981155544
+        ],
+        "fov": 55
+      },
+      "diagnosticCamera": null,
+      "colorView": {
+        "native": {
+          "enabled": true,
+          "cameraExposureEV": 0,
+          "precision": "Each native LUT Float32 texel rounded once to IEEE754 Float16 nearest-even; no resampling; same57^3/tetrahedral/matrix/shaper",
+          "lutSha256": "bc942c1862956cb48aed8c259d2e410518a10c4b26775a27c3b326d539244463"
+        },
+        "rendererToneMapping": 0,
+        "rendererExposure": 1,
+        "thumbnail": {
+          "cameraExposureEV": 0,
+          "lutSha256": "bc942c1862956cb48aed8c259d2e410518a10c4b26775a27c3b326d539244463"
+        }
+      }
+    },
+    {
+      "browser": "webkit",
+      "size": "desktop",
+      "stage": "burnFar-held",
+      "file": "artifacts/full-review/round-1/snow17-native-agx-hall32/webkit-desktop-burnFar-held.png",
+      "sha256": "3973c589b8e0a090503bdf3d178e9342f68335eaa410c8a2a7155732961d5ba6",
+      "health": {
+        "available": true,
+        "lost": false,
+        "events": []
+      },
+      "camera": {
+        "pendingTweens": 0,
+        "position": [
+          -4.94,
+          2.3,
+          -1.6
+        ],
+        "look": [
+          1.06,
+          1.75,
+          -2.124931981155544
+        ],
+        "fov": 55
+      },
+      "diagnosticCamera": {
+        "position": [
+          -4.94,
+          2.3,
+          -1.6
+        ],
+        "look": [
+          1.06,
+          1.75,
+          -2.124931981155544
+        ],
+        "fov": 55
+      },
+      "colorView": {
+        "native": {
+          "enabled": true,
+          "cameraExposureEV": 0,
+          "precision": "Each native LUT Float32 texel rounded once to IEEE754 Float16 nearest-even; no resampling; same57^3/tetrahedral/matrix/shaper",
+          "lutSha256": "bc942c1862956cb48aed8c259d2e410518a10c4b26775a27c3b326d539244463"
+        },
+        "rendererToneMapping": 0,
+        "rendererExposure": 1,
+        "thumbnail": {
+          "cameraExposureEV": 0,
+          "lutSha256": "bc942c1862956cb48aed8c259d2e410518a10c4b26775a27c3b326d539244463"
+        }
+      }
+    },
+    {
+      "browser": "webkit",
+      "size": "desktop",
+      "stage": "diagnostic-cloth-close",
+      "file": "artifacts/full-review/round-1/snow17-native-agx-hall32/webkit-desktop-diagnostic-cloth-close.png",
+      "sha256": "12b6549a42a8c12f2198333e48af32549ea30072d735fd23332523689fb93596",
+      "health": {
+        "available": true,
+        "lost": false,
+        "events": []
+      },
+      "camera": {
+        "pendingTweens": 0,
+        "position": [
+          -2.608467657132233,
+          2.4305992468237902,
+          -1.3969385922942594
+        ],
+        "look": [
+          -1.514522572771115,
+          2.4929454775147155,
+          -1.2999999523162842
+        ],
+        "fov": 42
+      },
+      "diagnosticCamera": {
+        "position": [
+          -2.608467657132233,
+          2.4305992468237902,
+          -1.3969385922942594
+        ],
+        "look": [
+          -1.514522572771115,
+          2.4929454775147155,
+          -1.2999999523162842
+        ],
+        "fov": 42
+      },
+      "colorView": {
+        "native": {
+          "enabled": true,
+          "cameraExposureEV": 0,
+          "precision": "Each native LUT Float32 texel rounded once to IEEE754 Float16 nearest-even; no resampling; same57^3/tetrahedral/matrix/shaper",
+          "lutSha256": "bc942c1862956cb48aed8c259d2e410518a10c4b26775a27c3b326d539244463"
+        },
+        "rendererToneMapping": 0,
+        "rendererExposure": 1,
+        "thumbnail": {
+          "cameraExposureEV": 0,
+          "lutSha256": "bc942c1862956cb48aed8c259d2e410518a10c4b26775a27c3b326d539244463"
+        }
+      }
+    },
+    {
+      "browser": "webkit",
+      "size": "desktop",
+      "stage": "diagnostic-low-altar-edge",
+      "file": "artifacts/full-review/round-1/snow17-native-agx-hall32/webkit-desktop-diagnostic-low-altar-edge.png",
+      "sha256": "a7d8e429b26e3a9104a8d5e697b260c1382c83690c685388bbb77d078dc50d57",
+      "health": {
+        "available": true,
+        "lost": false,
+        "events": []
+      },
+      "camera": {
+        "pendingTweens": 0,
+        "position": [
+          0.25,
+          1.66,
+          -3.65
+        ],
+        "look": [
+          0,
+          1.64,
+          -4.75
+        ],
+        "fov": 55
+      },
+      "diagnosticCamera": {
+        "position": [
+          0.25,
+          1.66,
+          -3.65
+        ],
+        "look": [
+          0,
+          1.64,
+          -4.75
+        ],
+        "fov": 55
+      },
+      "colorView": {
+        "native": {
+          "enabled": true,
+          "cameraExposureEV": 0,
+          "precision": "Each native LUT Float32 texel rounded once to IEEE754 Float16 nearest-even; no resampling; same57^3/tetrahedral/matrix/shaper",
+          "lutSha256": "bc942c1862956cb48aed8c259d2e410518a10c4b26775a27c3b326d539244463"
+        },
+        "rendererToneMapping": 0,
+        "rendererExposure": 1,
+        "thumbnail": {
+          "cameraExposureEV": 0,
+          "lutSha256": "bc942c1862956cb48aed8c259d2e410518a10c4b26775a27c3b326d539244463"
+        }
+      }
+    },
+    {
+      "browser": "webkit",
+      "size": "phone",
+      "stage": "choose",
+      "file": "artifacts/full-review/round-1/snow17-native-agx-hall32/webkit-phone-choose.png",
+      "sha256": "e85fd365aeda8672c732e3da5ec0c11cc65faf833410fa2881fd35f564575903",
+      "health": {
+        "available": true,
+        "lost": false,
+        "events": []
+      },
+      "camera": {
+        "pendingTweens": 0,
+        "position": [
+          -1.5,
+          2.2,
+          1.7000000000000002
+        ],
+        "look": [
+          -1.48188062835225,
+          1.5708490621157853,
+          -1.2999999523162842
+        ],
+        "fov": 55
+      },
+      "diagnosticCamera": null,
+      "colorView": {
+        "native": {
+          "enabled": true,
+          "cameraExposureEV": 0,
+          "precision": "Each native LUT Float32 texel rounded once to IEEE754 Float16 nearest-even; no resampling; same57^3/tetrahedral/matrix/shaper",
+          "lutSha256": "bc942c1862956cb48aed8c259d2e410518a10c4b26775a27c3b326d539244463"
+        },
+        "rendererToneMapping": 0,
+        "rendererExposure": 1,
+        "thumbnail": {
+          "cameraExposureEV": 0,
+          "lutSha256": "bc942c1862956cb48aed8c259d2e410518a10c4b26775a27c3b326d539244463"
+        }
+      }
+    },
+    {
+      "browser": "webkit",
+      "size": "phone",
+      "stage": "burning-live",
+      "file": "artifacts/full-review/round-1/snow17-native-agx-hall32/webkit-phone-burning-live.png",
+      "sha256": "a6479d43d51f690d542357d0b305da9ccac7c7598d77dd399c8acb9ce2cc01dd",
+      "health": {
+        "available": true,
+        "lost": false,
+        "events": []
+      },
+      "camera": {
+        "pendingTweens": 0,
+        "position": [
+          -1.4999999999999996,
+          2.2,
+          1.8999999999999995
+        ],
+        "look": [
+          -0.9,
+          1.7000000000000002,
+          -2.3
+        ],
+        "fov": 55
+      },
+      "diagnosticCamera": null,
+      "colorView": {
+        "native": {
+          "enabled": true,
+          "cameraExposureEV": 0,
+          "precision": "Each native LUT Float32 texel rounded once to IEEE754 Float16 nearest-even; no resampling; same57^3/tetrahedral/matrix/shaper",
+          "lutSha256": "bc942c1862956cb48aed8c259d2e410518a10c4b26775a27c3b326d539244463"
+        },
+        "rendererToneMapping": 0,
+        "rendererExposure": 1,
+        "thumbnail": {
+          "cameraExposureEV": 0,
+          "lutSha256": "bc942c1862956cb48aed8c259d2e410518a10c4b26775a27c3b326d539244463"
+        }
+      }
+    },
+    {
+      "browser": "webkit",
+      "size": "phone",
+      "stage": "burning-held",
+      "file": "artifacts/full-review/round-1/snow17-native-agx-hall32/webkit-phone-burning-held.png",
+      "sha256": "b492ec0ed7e7d5460f2cf2beab81081b718bd0a5ac20da67fe4634608e40c3ed",
+      "health": {
+        "available": true,
+        "lost": false,
+        "events": []
+      },
+      "camera": {
+        "pendingTweens": 0,
+        "position": [
+          -1.4999999999999996,
+          2.2,
+          1.8999999999999995
+        ],
+        "look": [
+          -0.9,
+          1.7000000000000002,
+          -2.3
+        ],
+        "fov": 55
+      },
+      "diagnosticCamera": null,
+      "colorView": {
+        "native": {
+          "enabled": true,
+          "cameraExposureEV": 0,
+          "precision": "Each native LUT Float32 texel rounded once to IEEE754 Float16 nearest-even; no resampling; same57^3/tetrahedral/matrix/shaper",
+          "lutSha256": "bc942c1862956cb48aed8c259d2e410518a10c4b26775a27c3b326d539244463"
+        },
+        "rendererToneMapping": 0,
+        "rendererExposure": 1,
+        "thumbnail": {
+          "cameraExposureEV": 0,
+          "lutSha256": "bc942c1862956cb48aed8c259d2e410518a10c4b26775a27c3b326d539244463"
+        }
+      }
+    },
+    {
+      "browser": "webkit",
+      "size": "phone",
+      "stage": "burnFar-held",
+      "file": "artifacts/full-review/round-1/snow17-native-agx-hall32/webkit-phone-burnFar-held.png",
+      "sha256": "d1101e26a9e598d341525349448b83f459c8b057ea13dea260ac2bda9d6485d6",
+      "health": {
+        "available": true,
+        "lost": false,
+        "events": []
+      },
+      "camera": {
+        "pendingTweens": 0,
+        "position": [
+          -1.5,
+          2.2,
+          1.98
+        ],
+        "look": [
+          -1.1,
+          1.75,
+          -2.3
+        ],
+        "fov": 55
+      },
+      "diagnosticCamera": {
+        "position": [
+          -1.5,
+          2.2,
+          1.98
+        ],
+        "look": [
+          -1.1,
+          1.75,
+          -2.3
+        ],
+        "fov": 55
+      },
+      "colorView": {
+        "native": {
+          "enabled": true,
+          "cameraExposureEV": 0,
+          "precision": "Each native LUT Float32 texel rounded once to IEEE754 Float16 nearest-even; no resampling; same57^3/tetrahedral/matrix/shaper",
+          "lutSha256": "bc942c1862956cb48aed8c259d2e410518a10c4b26775a27c3b326d539244463"
+        },
+        "rendererToneMapping": 0,
+        "rendererExposure": 1,
+        "thumbnail": {
+          "cameraExposureEV": 0,
+          "lutSha256": "bc942c1862956cb48aed8c259d2e410518a10c4b26775a27c3b326d539244463"
+        }
+      }
+    },
+    {
+      "browser": "webkit",
+      "size": "phone",
+      "stage": "diagnostic-cloth-close",
+      "file": "artifacts/full-review/round-1/snow17-native-agx-hall32/webkit-phone-diagnostic-cloth-close.png",
+      "sha256": "67f2409de73d1e3cccf56a5e4d75ce4a50333cf8a1103f1c1c911c069a5db210",
+      "health": {
+        "available": true,
+        "lost": false,
+        "events": []
+      },
+      "camera": {
+        "pendingTweens": 0,
+        "position": [
+          -1.5095512769765167,
+          2.392665820227541,
+          -0.2045916829698775
+        ],
+        "look": [
+          -1.514522572771115,
+          2.4929454775147155,
+          -1.2999999523162842
+        ],
+        "fov": 42
+      },
+      "diagnosticCamera": {
+        "position": [
+          -1.5095512769765167,
+          2.392665820227541,
+          -0.2045916829698775
+        ],
+        "look": [
+          -1.514522572771115,
+          2.4929454775147155,
+          -1.2999999523162842
+        ],
+        "fov": 42
+      },
+      "colorView": {
+        "native": {
+          "enabled": true,
+          "cameraExposureEV": 0,
+          "precision": "Each native LUT Float32 texel rounded once to IEEE754 Float16 nearest-even; no resampling; same57^3/tetrahedral/matrix/shaper",
+          "lutSha256": "bc942c1862956cb48aed8c259d2e410518a10c4b26775a27c3b326d539244463"
+        },
+        "rendererToneMapping": 0,
+        "rendererExposure": 1,
+        "thumbnail": {
+          "cameraExposureEV": 0,
+          "lutSha256": "bc942c1862956cb48aed8c259d2e410518a10c4b26775a27c3b326d539244463"
+        }
+      }
+    },
+    {
+      "browser": "webkit",
+      "size": "phone",
+      "stage": "diagnostic-low-altar-edge",
+      "file": "artifacts/full-review/round-1/snow17-native-agx-hall32/webkit-phone-diagnostic-low-altar-edge.png",
+      "sha256": "90b570f1efa7239dc8f8dbdeb9d544d617adf67f362bf9563d64bd03faafac83",
+      "health": {
+        "available": true,
+        "lost": false,
+        "events": []
+      },
+      "camera": {
+        "pendingTweens": 0,
+        "position": [
+          0.25,
+          1.66,
+          -3.65
+        ],
+        "look": [
+          0,
+          1.64,
+          -4.75
+        ],
+        "fov": 55
+      },
+      "diagnosticCamera": {
+        "position": [
+          0.25,
+          1.66,
+          -3.65
+        ],
+        "look": [
+          0,
+          1.64,
+          -4.75
+        ],
+        "fov": 55
+      },
+      "colorView": {
+        "native": {
+          "enabled": true,
+          "cameraExposureEV": 0,
+          "precision": "Each native LUT Float32 texel rounded once to IEEE754 Float16 nearest-even; no resampling; same57^3/tetrahedral/matrix/shaper",
+          "lutSha256": "bc942c1862956cb48aed8c259d2e410518a10c4b26775a27c3b326d539244463"
+        },
+        "rendererToneMapping": 0,
+        "rendererExposure": 1,
+        "thumbnail": {
+          "cameraExposureEV": 0,
+          "lutSha256": "bc942c1862956cb48aed8c259d2e410518a10c4b26775a27c3b326d539244463"
+        }
+      }
+    }
+  ],
+  "observations": {
+    "rootReviewed": [
+      "chromium-desktop-choose",
+      "chromium-desktop-burning-held",
+      "chromium-desktop-diagnostic-cloth-close",
+      "webkit-phone-choose",
+      "webkit-phone-burning-held",
+      "webkit-phone-diagnostic-low-altar-edge"
+    ],
+    "contact": "Burner feet meet the scanned altar edge; all evaluated source/prepared/delivery contact measurements remain separate quantitative gates. This camera does not establish all47 contacts visually.",
+    "gauze": "Cloth is brighter before lighting with camera-facing preview illumination. Burning close-up shows yarn detail and lower-to-upper glow falloff; no smooth bright white core in the thumbnail.",
+    "tone": "Actual main and thumbnail passes use the same verified F16 lookup, residual cameraEV0, renderer NoToneMapping/exposure1 for OETF-only OutputPass. Laboratory colour error is not a claim that final scene RGB equals a Cycles path-traced image.",
+    "hall": "Spatial beam patches persist in the mixed32 image. Native8/32 EXR attribution identifies sample/OIDN variance. Final64 plus separate hall-night256 are in progress; no clean-convergence claim."
+  },
+  "limits": [
+    "Default red lantern only. Arbitrary drawn-shape/hue indirect-bounce approximation remains subject to final review.",
+    "The cover is an old navigation control; no Cloud19 acceptance.",
+    "No final sample quality, full journey, pacing, hunt or FPS claim.",
+    "Frozen capture helper header differs from production by a lint comment only; source hashes preserve the actual captured bytes."
+  ]
+}

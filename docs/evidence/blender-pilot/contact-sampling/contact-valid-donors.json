@@ -1,0 +1,8 @@
+{
+  "archivedEvidence": true,
+  "path": "docs/evidence/blender-pilot/contact-sampling/contact-valid-donors.json",
+  "bytes": 441452,
+  "sha256": "cbaeba03ac2ff63f951df130ff4e3e810da8b4cb198cbd0ab0ebd0e013dbc18f",
+  "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/blender-pilot/contact-sampling/contact-valid-donors.json",
+  "note": "Full immutable evidence is preserved locally in the git-ignored archive; see docs/evidence/ARCHIVE.md."
+}

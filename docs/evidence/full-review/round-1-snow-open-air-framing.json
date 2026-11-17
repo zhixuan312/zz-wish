@@ -1,0 +1,1880 @@
+{
+  "scope": "B4/C6 camera and physical-placement preparation. All imagery is actual Chrome realUI with the enlarged/open-bottom builder and retained-F32 Source15 control package. Old Source15 GI is invalid at the proposed visitor placement, visibly labelled in every frame. No source16 lighting/full64/final-camera/full-journey/performance approval.",
+  "status": "Physical basis and measured ceiling attachment are ready for source16 authoring; camera recommendation remains provisional until new source16 lighting and wired Chrome/WebKit desktop/phone review.",
+  "proposal": {
+    "path": "art/build/snow-roof-round1/open-air-framing/proposed-runtime-cameras.json",
+    "bytes": 14633,
+    "sha256": "26132e93cd89dc8ae4a1a9ceb7a2072d319bad9cc5bcaca1c7512a8221f8d98b"
+  },
+  "basisEngine": [
+    -1.5,
+    2.25,
+    -1.3
+  ],
+  "actualRawCeilingUndersideEngine": [
+    -1.4993,
+    5.039999961853027,
+    -1.3
+  ],
+  "runtimeHookWith1mmEmbedEngine": [
+    -1.4993,
+    5.040999961853027,
+    -1.3
+  ],
+  "source15BodyClearance": {
+    "scope": "Conservative every-triangle body clearance. Distance to a fixed surface is1-Lipschitz; every barycentric triangle point is within the triangle maximum edge length of a vertex, so minimum vertex distance minus global maximum edge lower-bounds the entire mesh. Excludes cord/tassel material and full suspension; all3actual body shapes. No source/render/GI edit.",
+    "basis": [
+      -1.5,
+      2.25,
+      -1.3
+    ],
+    "rows": [
+      {
+        "shape": "drum",
+        "actualMinimumBodyVertexToArchitectureMetres": 1.9591916799545288,
+        "maximumActualTriangleEdgeMetres": 0.12200332292673138,
+        "maximumEdgePart": "cup-bearing-spoke",
+        "conservativeWholeTriangleSurfaceSeparationMetres": 1.8371883570277974,
+        "closest": {
+          "lampPart": "lacquer",
+          "lampVertex": [
+            -1.623299997973442,
+            2.7888999992549417,
+            -1.3
+          ],
+          "sourceObject": "Hall longitudinal carrying beam",
+          "surfacePointEngine": [
+            -2.582322359085083,
+            4.4973225593566895,
+            -1.2999999523162842
+          ]
+        },
+        "passes1Point2MetresWithWholeTriangleBound": true
+      },
+      {
+        "shape": "tall",
+        "actualMinimumBodyVertexToArchitectureMetres": 1.9514095783233643,
+        "maximumActualTriangleEdgeMetres": 0.1380029368822696,
+        "maximumEdgePart": "cup-bearing-spoke",
+        "conservativeWholeTriangleSurfaceSeparationMetres": 1.8134066414410945,
+        "closest": {
+          "lampPart": "lacquer",
+          "lampVertex": [
+            -1.6393000005960463,
+            2.7888999992549417,
+            -1.3
+          ],
+          "sourceObject": "Hall longitudinal carrying beam",
+          "surfacePointEngine": [
+            -2.582322359085083,
+            4.4973225593566895,
+            -1.2999999523162842
+          ]
+        },
+        "passes1Point2MetresWithWholeTriangleBound": true
+      },
+      {
+        "shape": "bell",
+        "actualMinimumBodyVertexToArchitectureMetres": 2.003737449645996,
+        "maximumActualTriangleEdgeMetres": 0.19400209344838376,
+        "maximumEdgePart": "cup-bearing-spoke",
+        "conservativeWholeTriangleSurfaceSeparationMetres": 1.8097353561976124,
+        "closest": {
+          "lampPart": "lacquer",
+          "lampVertex": [
+            -1.535299998450279,
+            2.7888999992549417,
+            -1.3
+          ],
+          "sourceObject": "Hall longitudinal carrying beam",
+          "surfacePointEngine": [
+            -2.582322359085083,
+            4.4973225593566895,
+            -1.2999999523162842
+          ]
+        },
+        "passes1Point2MetresWithWholeTriangleBound": true
+      }
+    ]
+  },
+  "recommendedViews": {
+    "burn": {
+      "world": {
+        "position": [
+          -4.9,
+          2.3,
+          -1.6
+        ],
+        "look": [
+          1.1,
+          1.75,
+          -2.124931981155544
+        ],
+        "fov": 55
+      },
+      "nookLocal": {
+        "position": [
+          -4.9,
+          1.6999999999999997,
+          -1.1
+        ],
+        "look": [
+          1.1,
+          1.15,
+          -1.624931981155544
+        ],
+        "fov": 55
+      }
+    },
+    "burnFar": {
+      "world": {
+        "position": [
+          -4.94,
+          2.3,
+          -1.6
+        ],
+        "look": [
+          1.06,
+          1.75,
+          -2.124931981155544
+        ],
+        "fov": 55
+      },
+      "nookLocal": {
+        "position": [
+          -4.94,
+          1.6999999999999997,
+          -1.1
+        ],
+        "look": [
+          1.06,
+          1.15,
+          -1.624931981155544
+        ],
+        "fov": 55
+      }
+    },
+    "burnPhone": {
+      "world": {
+        "position": [
+          -1.5,
+          2.2,
+          1.9
+        ],
+        "look": [
+          -0.9,
+          1.7,
+          -2.3
+        ],
+        "fov": 55
+      },
+      "nookLocal": {
+        "position": [
+          -1.5,
+          1.6,
+          2.4
+        ],
+        "look": [
+          -0.9,
+          1.1,
+          -1.7999999999999998
+        ],
+        "fov": 55
+      }
+    },
+    "burnFarPhone": {
+      "world": {
+        "position": [
+          -1.5,
+          2.2,
+          2.1
+        ],
+        "look": [
+          -1.1,
+          1.75,
+          -2.3
+        ],
+        "fov": 53
+      },
+      "nookLocal": {
+        "position": [
+          -1.5,
+          1.6,
+          2.6
+        ],
+        "look": [
+          -1.1,
+          1.15,
+          -1.7999999999999998
+        ],
+        "fov": 53
+      }
+    }
+  },
+  "selectedDesktopCPU": {
+    "input": {
+      "path": "art/build/snow-roof-round1/open-air-framing/cpu-report-v7-final.json",
+      "bytes": 68357,
+      "sha256": "478b30c98b90881fd92444aa96c9a6833a4d4ed31fde904d1594cead4d298dca"
+    },
+    "pose": {
+      "name": "d-final-x-4.94-z-1.6-az-5-f55-y1.75",
+      "viewport": "desktop",
+      "position": [
+        -4.94,
+        2.3,
+        -1.6
+      ],
+      "look": [
+        1.06,
+        1.75,
+        -2.124931981155544
+      ],
+      "fov": 55,
+      "size": [
+        1440,
+        900
+      ],
+      "actualBodyProjection": {
+        "min": [
+          0.5722295472494725,
+          0.2658286206175764
+        ],
+        "max": [
+          0.6417249272604525,
+          0.443255632127426
+        ],
+        "heightFraction": 0.17742701150984963,
+        "widthFraction": 0.06949538001097999,
+        "center": [
+          0.6069772372549624,
+          0.3545421263725012
+        ]
+      },
+      "actualClothProjection": {
+        "min": [
+          0.5722295472494725,
+          0.2708567894149314
+        ],
+        "max": [
+          0.6417249272604525,
+          0.4379346063125292
+        ],
+        "heightFraction": 0.16707781689759776,
+        "widthFraction": 0.06949538001097999,
+        "center": [
+          0.6069772372549624,
+          0.35439569786373026
+        ]
+      },
+      "cameraNearestSurfaceMetres": 0.06500005722045898,
+      "cameraNearestObject": "Wall engaged timber post.001",
+      "coarseRayGrid": [
+        96,
+        60
+      ],
+      "counts": {
+        "lamp": 64,
+        "columns": 232,
+        "columnCentral85percentWidth": 198,
+        "skyOrNoHit": 32,
+        "screen": 504,
+        "console": 122,
+        "exteriorBeyondHallFrontZ3Point6": 74
+      },
+      "columnHorizontalOccupiedRange01": [
+        0.005208333333333333,
+        0.9947916666666666
+      ],
+      "exteriorHorizontalOccupiedRange01": [
+        0.953125,
+        0.9947916666666666
+      ],
+      "actualExteriorFirstHitObjects": {
+        "Winter tree irregular trunk boughs and twigs.003": 4,
+        "Side hall curved settled snow cap.002": 14,
+        "Side hall convex cover tile rows.002": 2,
+        "Side hall continuous curved eave fascia.002": 3,
+        "Side hall porch carrying beam.001": 2,
+        "Side hall round roof purlin.011": 1,
+        "Side hall enclosed curved gable.003": 2,
+        "Side hall back.001": 20,
+        "Side hall gable wall.003": 14,
+        "Continuous snowfield footprints and stair-edge drifts": 8,
+        "Front terrace": 4
+      },
+      "features": [
+        {
+          "name": "altar -1.45",
+          "pointEngine": [
+            -1.4950000047683716,
+            1.7989020347595215,
+            -4.829999923706055
+          ],
+          "projected01Depth": [
+            0.03216795334204475,
+            0.5413915444308035,
+            3.743586576121601
+          ],
+          "firstOccluderBeforeTarget": null,
+          "sourceDistanceMetres": 4.748897273909571,
+          "hitDistanceMetres": null,
+          "columnCrosses": false,
+          "beamOrCordCrosses": false
+        },
+        {
+          "name": "altar -0.95",
+          "pointEngine": [
+            -0.8200000524520874,
+            1.6524410247802734,
+            -4.649999618530273
+          ],
+          "projected01Depth": [
+            0.13535802384223555,
+            0.5538843942053364,
+            4.410927708414826
+          ],
+          "firstOccluderBeforeTarget": null,
+          "sourceDistanceMetres": 5.166839458924287,
+          "hitDistanceMetres": null,
+          "columnCrosses": false,
+          "beamOrCordCrosses": false
+        },
+        {
+          "name": "altar 0.95",
+          "pointEngine": [
+            0.7100000381469727,
+            1.6792622804641724,
+            -4.814999580383301
+          ],
+          "projected01Depth": [
+            0.22611967850085885,
+            0.5130688166043667,
+            5.940672132874834
+          ],
+          "firstOccluderBeforeTarget": "Other altar lamp bronze foot.002",
+          "sourceDistanceMetres": 6.530240311673374,
+          "hitDistanceMetres": 6.461671134875687,
+          "columnCrosses": false,
+          "beamOrCordCrosses": false
+        },
+        {
+          "name": "altar 1.45",
+          "pointEngine": [
+            1.4750001430511475,
+            1.7700556516647339,
+            -4.639999866485596
+          ],
+          "projected01Depth": [
+            0.27796293416067686,
+            0.4888497337325914,
+            6.676157674380063
+          ],
+          "firstOccluderBeforeTarget": null,
+          "sourceDistanceMetres": 7.118614085208657,
+          "hitDistanceMetres": null,
+          "columnCrosses": false,
+          "beamOrCordCrosses": false
+        },
+        {
+          "name": "screen-center",
+          "pointEngine": [
+            0,
+            2.45,
+            -6.2
+          ],
+          "projected01Depth": [
+            0.028520279333038245,
+            0.38492311086787345,
+            5.286424694893132
+          ],
+          "firstOccluderBeforeTarget": null,
+          "sourceDistanceMetres": 6.751747963971617,
+          "hitDistanceMetres": null,
+          "columnCrosses": false,
+          "beamOrCordCrosses": false
+        },
+        {
+          "name": "burner-center",
+          "pointEngine": [
+            0,
+            1.86,
+            -4.75
+          ],
+          "projected01Depth": [
+            0.1882933212148018,
+            0.4936778330445754,
+            5.214226800160757
+          ],
+          "firstOccluderBeforeTarget": "Brass incense burner with rolled lip",
+          "sourceDistanceMetres": 5.875346904008894,
+          "hitDistanceMetres": 5.747310242550681,
+          "columnCrosses": false,
+          "beamOrCordCrosses": false
+        },
+        {
+          "name": "door-left-aperture",
+          "pointEngine": [
+            -1.1,
+            2.4,
+            2.5
+          ],
+          "projected01Depth": [
+            1.2701369117607593,
+            0.38428991665897627,
+            3.4445850178995383
+          ],
+          "firstOccluderBeforeTarget": "Round entasis red timber column",
+          "sourceDistanceMetres": 5.618327170516887,
+          "hitDistanceMetres": 3.2942115713612576,
+          "columnCrosses": true,
+          "beamOrCordCrosses": false
+        },
+        {
+          "name": "door-right-aperture",
+          "pointEngine": [
+            1.1,
+            2.4,
+            2.5
+          ],
+          "projected01Depth": [
+            0.9918858155045193,
+            0.3951500763413157,
+            5.627132171313627
+          ],
+          "firstOccluderBeforeTarget": null,
+          "sourceDistanceMetres": 7.300794298908886,
+          "hitDistanceMetres": null,
+          "columnCrosses": false,
+          "beamOrCordCrosses": false
+        },
+        {
+          "name": "door-right-inner-edge",
+          "pointEngine": [
+            1.5,
+            2.4,
+            2.46
+          ],
+          "projected01Depth": [
+            0.958721768050031,
+            0.39628838820678214,
+            6.0274307107259055
+          ],
+          "firstOccluderBeforeTarget": null,
+          "sourceDistanceMetres": 7.613619443646747,
+          "hitDistanceMetres": null,
+          "columnCrosses": false,
+          "beamOrCordCrosses": false
+        },
+        {
+          "name": "lamp-body-center",
+          "pointEngine": [
+            -1.4992999999932821,
+            2.4929000018021594,
+            -1.298314560236331
+          ],
+          "projected01Depth": [
+            0.6069635832337777,
+            0.35707713441168165,
+            3.369677649421958
+          ],
+          "firstOccluderBeforeTarget": "StudyLamp_cloth_7",
+          "sourceDistanceMetres": 3.459283386630966,
+          "hitDistanceMetres": 3.2672270285807103,
+          "columnCrosses": false,
+          "beamOrCordCrosses": false
+        }
+      ]
+    },
+    "interpretation": "All4altar wick targets/burner and actual right inner doorway edge are in frame and have no column/beam/cord obstruction.74of5760coarse rays hit actual exterior beyondZ3.6, not inferred from sky colour. This does not prove fullresGI/colour or UI clearance."
+  },
+  "actualRawRouteProof": {
+    "path": "art/build/snow-roof-round1/open-air-framing/raw-camera-routes-v3.json",
+    "bytes": 8072,
+    "sha256": "324d02e8264ae75d753a3fae6b71a42f4ec898ffd640630201d8480bf6e21589"
+  },
+  "proposedRoutes": [
+    {
+      "name": "desktop-entry-to-choose",
+      "points": [
+        [
+          0.2,
+          2.22,
+          3.25
+        ],
+        [
+          0,
+          2.22,
+          2.2
+        ],
+        [
+          -0.5,
+          2.22,
+          1.3
+        ],
+        [
+          -1.6,
+          2.22,
+          0.65
+        ],
+        [
+          -2.75,
+          2.22,
+          0.65
+        ]
+      ],
+      "lengthMetres": 4.554245141946572,
+      "maximumSampleSpacingMetres": 0.010012392915960946,
+      "cappedMinimumSampleClearanceMetres": 0.15379638601456738,
+      "conservativeClearanceMetres": 0.1487901895565869,
+      "chordIntersections": 0,
+      "closest": {
+        "sample": 451,
+        "position": [
+          -2.7000695391973086,
+          2.22,
+          0.64946060102464
+        ],
+        "surface": [
+          -2.700000047683716,
+          2.2202197191282744,
+          0.8032568143901713
+        ],
+        "region": "hall",
+        "material": "Aged red painted timber"
+      },
+      "passed": true,
+      "pointsWorld": [
+        [
+          0.2,
+          2.22,
+          3.25
+        ],
+        [
+          0,
+          2.22,
+          2.2
+        ],
+        [
+          -0.5,
+          2.22,
+          1.3
+        ],
+        [
+          -1.6,
+          2.22,
+          0.65
+        ],
+        [
+          -2.75,
+          2.22,
+          0.65
+        ]
+      ],
+      "pointsNookLocal": [
+        [
+          0.2,
+          1.62,
+          3.75
+        ],
+        [
+          0,
+          1.62,
+          2.7
+        ],
+        [
+          -0.5,
+          1.62,
+          1.8
+        ],
+        [
+          -1.6,
+          1.62,
+          1.15
+        ],
+        [
+          -2.75,
+          1.62,
+          1.15
+        ]
+      ]
+    },
+    {
+      "name": "desktop-spread-to-deep-burn",
+      "points": [
+        [
+          -2.95,
+          2.25,
+          0.55
+        ],
+        [
+          -3.2,
+          2.27,
+          0.1
+        ],
+        [
+          -3.8,
+          2.3,
+          -0.5
+        ],
+        [
+          -4.5,
+          2.3,
+          -1.2
+        ],
+        [
+          -4.9,
+          2.3,
+          -1.6
+        ]
+      ],
+      "lengthMetres": 2.921560508362934,
+      "maximumSampleSpacingMetres": 0.00999783789979912,
+      "cappedMinimumSampleClearanceMetres": 0.10500011444091673,
+      "conservativeClearanceMetres": 0.10000119549101716,
+      "chordIntersections": 0,
+      "closest": {
+        "sample": 293,
+        "position": [
+          -4.900000000000001,
+          2.3,
+          -1.600000000000001
+        ],
+        "surface": [
+          -5.005000114440918,
+          2.3000000000000003,
+          -1.600000000000001
+        ],
+        "region": "hall",
+        "material": "Aged red painted timber"
+      },
+      "passed": true,
+      "pointsWorld": [
+        [
+          -2.95,
+          2.25,
+          0.55
+        ],
+        [
+          -3.2,
+          2.27,
+          0.1
+        ],
+        [
+          -3.8,
+          2.3,
+          -0.5
+        ],
+        [
+          -4.5,
+          2.3,
+          -1.2
+        ],
+        [
+          -4.9,
+          2.3,
+          -1.6
+        ]
+      ],
+      "pointsNookLocal": [
+        [
+          -2.95,
+          1.65,
+          1.05
+        ],
+        [
+          -3.2,
+          1.67,
+          0.6
+        ],
+        [
+          -3.8,
+          1.6999999999999997,
+          0.0
+        ],
+        [
+          -4.5,
+          1.6999999999999997,
+          -0.7
+        ],
+        [
+          -4.9,
+          1.6999999999999997,
+          -1.1
+        ]
+      ]
+    },
+    {
+      "name": "desktop-deep-burn-to-far",
+      "points": [
+        [
+          -4.9,
+          2.3,
+          -1.6
+        ],
+        [
+          -4.92,
+          2.3,
+          -1.6
+        ],
+        [
+          -4.94,
+          2.3,
+          -1.6
+        ]
+      ],
+      "lengthMetres": 0.040000000000000036,
+      "maximumSampleSpacingMetres": 0.008000000000000007,
+      "cappedMinimumSampleClearanceMetres": 0.06500011444091758,
+      "conservativeClearanceMetres": 0.061000114440917574,
+      "chordIntersections": 0,
+      "closest": {
+        "sample": 5,
+        "position": [
+          -4.94,
+          2.3,
+          -1.6
+        ],
+        "surface": [
+          -5.005000114440918,
+          2.3,
+          -1.6
+        ],
+        "region": "hall",
+        "material": "Aged red painted timber"
+      },
+      "passed": true,
+      "pointsWorld": [
+        [
+          -4.9,
+          2.3,
+          -1.6
+        ],
+        [
+          -4.92,
+          2.3,
+          -1.6
+        ],
+        [
+          -4.94,
+          2.3,
+          -1.6
+        ]
+      ],
+      "pointsNookLocal": [
+        [
+          -4.9,
+          1.6999999999999997,
+          -1.1
+        ],
+        [
+          -4.92,
+          1.6999999999999997,
+          -1.1
+        ],
+        [
+          -4.94,
+          1.6999999999999997,
+          -1.1
+        ]
+      ]
+    },
+    {
+      "name": "phone-entry-to-choose",
+      "points": [
+        [
+          0.2,
+          2.22,
+          3.25
+        ],
+        [
+          0,
+          2.22,
+          2.2
+        ],
+        [
+          -0.6,
+          2.22,
+          1.65
+        ],
+        [
+          -1.25,
+          2.22,
+          1.5
+        ],
+        [
+          -1.5,
+          2.2,
+          1.7
+        ]
+      ],
+      "lengthMetres": 2.9021927837873913,
+      "maximumSampleSpacingMetres": 0.009992898712658136,
+      "cappedMinimumSampleClearanceMetres": 0.2,
+      "conservativeClearanceMetres": 0.19500355064367095,
+      "chordIntersections": 0,
+      "closest": null,
+      "passed": true,
+      "pointsWorld": [
+        [
+          0.2,
+          2.22,
+          3.25
+        ],
+        [
+          0,
+          2.22,
+          2.2
+        ],
+        [
+          -0.6,
+          2.22,
+          1.65
+        ],
+        [
+          -1.25,
+          2.22,
+          1.5
+        ],
+        [
+          -1.5,
+          2.2,
+          1.7
+        ]
+      ],
+      "pointsNookLocal": [
+        [
+          0.2,
+          1.62,
+          3.75
+        ],
+        [
+          0,
+          1.62,
+          2.7
+        ],
+        [
+          -0.6,
+          1.62,
+          2.15
+        ],
+        [
+          -1.25,
+          1.62,
+          2.0
+        ],
+        [
+          -1.5,
+          1.6,
+          2.2
+        ]
+      ]
+    },
+    {
+      "name": "phone-spread-to-burn",
+      "points": [
+        [
+          -1.5,
+          2.23,
+          1.45
+        ],
+        [
+          -1.55,
+          2.25,
+          1.6
+        ],
+        [
+          -1.52,
+          2.25,
+          1.8
+        ],
+        [
+          -1.5,
+          2.2,
+          1.9
+        ]
+      ],
+      "lengthMetres": 0.4776055036164941,
+      "maximumSampleSpacingMetres": 0.009982260942161595,
+      "cappedMinimumSampleClearanceMetres": 0.11174646949621274,
+      "conservativeClearanceMetres": 0.10675533902513194,
+      "chordIntersections": 0,
+      "closest": {
+        "sample": 48,
+        "position": [
+          -1.4999999999999996,
+          2.2,
+          1.8999999999999992
+        ],
+        "surface": [
+          -1.5564435720443726,
+          2.2,
+          1.996443748474121
+        ],
+        "region": "hall",
+        "material": "Aged red painted timber"
+      },
+      "passed": true,
+      "pointsWorld": [
+        [
+          -1.5,
+          2.23,
+          1.45
+        ],
+        [
+          -1.55,
+          2.25,
+          1.6
+        ],
+        [
+          -1.52,
+          2.25,
+          1.8
+        ],
+        [
+          -1.5,
+          2.2,
+          1.9
+        ]
+      ],
+      "pointsNookLocal": [
+        [
+          -1.5,
+          1.63,
+          1.95
+        ],
+        [
+          -1.55,
+          1.65,
+          2.1
+        ],
+        [
+          -1.52,
+          1.65,
+          2.3
+        ],
+        [
+          -1.5,
+          1.6,
+          2.4
+        ]
+      ]
+    },
+    {
+      "name": "phone-burn-to-far",
+      "points": [
+        [
+          -1.5,
+          2.2,
+          1.9
+        ],
+        [
+          -1.5,
+          2.2,
+          1.95
+        ],
+        [
+          -1.5,
+          2.2,
+          2
+        ],
+        [
+          -1.5,
+          2.2,
+          2.1
+        ]
+      ],
+      "lengthMetres": 0.20000000000000062,
+      "maximumSampleSpacingMetres": 0.009524070503047266,
+      "cappedMinimumSampleClearanceMetres": 0.04999995231628418,
+      "conservativeClearanceMetres": 0.04523791706476055,
+      "chordIntersections": 0,
+      "closest": {
+        "sample": 12,
+        "position": [
+          -1.5,
+          2.2,
+          2.0142849353599392
+        ],
+        "surface": [
+          -1.5499999523162842,
+          2.1999999999999993,
+          2.0142849353599406
+        ],
+        "region": "hall",
+        "material": "Aged red painted timber"
+      },
+      "passed": true,
+      "pointsWorld": [
+        [
+          -1.5,
+          2.2,
+          1.9
+        ],
+        [
+          -1.5,
+          2.2,
+          1.95
+        ],
+        [
+          -1.5,
+          2.2,
+          2
+        ],
+        [
+          -1.5,
+          2.2,
+          2.1
+        ]
+      ],
+      "pointsNookLocal": [
+        [
+          -1.5,
+          1.6,
+          2.4
+        ],
+        [
+          -1.5,
+          1.6,
+          2.45
+        ],
+        [
+          -1.5,
+          1.6,
+          2.5
+        ],
+        [
+          -1.5,
+          1.6,
+          2.6
+        ]
+      ]
+    }
+  ],
+  "actualRawSuspensionRays": [
+    {
+      "basis": [
+        -0.9,
+        2.25,
+        -0.1
+      ],
+      "originEngine": [
+        -0.8993,
+        2.27,
+        -0.1
+      ],
+      "actualRawUndersidePointEngine": [
+        -0.8993,
+        5.007500171661377,
+        -0.1
+      ],
+      "material": "Faded teal beam paint",
+      "region": "hall",
+      "distanceMetres": 2.737500171661377
+    },
+    {
+      "basis": [
+        -1.3,
+        2.25,
+        -0.1
+      ],
+      "originEngine": [
+        -1.2993000000000001,
+        2.27,
+        -0.1
+      ],
+      "actualRawUndersidePointEngine": [
+        -1.2993000000000001,
+        5.007500171661377,
+        -0.1
+      ],
+      "material": "Faded teal beam paint",
+      "region": "hall",
+      "distanceMetres": 2.737500171661377
+    },
+    {
+      "basis": [
+        -1.5,
+        2.25,
+        -1.3
+      ],
+      "originEngine": [
+        -1.4993,
+        2.27,
+        -1.3
+      ],
+      "actualRawUndersidePointEngine": [
+        -1.4993,
+        5.039999961853027,
+        -1.3
+      ],
+      "material": "Dark old timber",
+      "region": "hall",
+      "distanceMetres": 2.7699999618530273
+    }
+  ],
+  "browserStudies": [
+    {
+      "report": {
+        "path": "artifacts/full-review/round-1/snow-open-air-composition/report.json",
+        "bytes": 51412,
+        "sha256": "6f59254147b27e0a5631b89470ac01f63d297c9f7104e911beb6c35db3f30012"
+      },
+      "scope": "Composition-only actual enlarged/open-bottom visitor and real Source15 retained-F32 model/maps. Visitor is rigidly moved in memory. Source15 GI belongs to its OLD basis and is INVALID for Source16 lighting approval. No FPS/full-journey/final-source claim.",
+      "sourceStartFingerprint": "2bc3fe1b4ac5e1e27d734f87fa67f95f6512410171beeb2c5239dcc55ea0f41c",
+      "sourceEndFingerprint": "2bc3fe1b4ac5e1e27d734f87fa67f95f6512410171beeb2c5239dcc55ea0f41c",
+      "sourceChanged": false,
+      "errors": [],
+      "ownedBrowserClosed": true,
+      "frames": [
+        {
+          "size": "desktop",
+          "pose": {
+            "name": "provisional-side",
+            "viewport": "desktop",
+            "basis": [
+              -0.9,
+              2.25,
+              -0.1
+            ],
+            "hook": [
+              -0.8993,
+              5.007500171661377,
+              -0.1
+            ],
+            "position": [
+              -4.4,
+              2.3,
+              -1.2
+            ],
+            "look": [
+              1.5999999999999996,
+              1.55,
+              -2.6959680170590845
+            ],
+            "fov": 52
+          },
+          "file": "artifacts/full-review/round-1/snow-open-air-composition/desktop-provisional-side-composition-only-old-gi.png",
+          "sha256": "fd025e9e96eb1823ae033371c1276a9026cb4df0c9c9a067389c2ded2f97dfda",
+          "health": {
+            "available": true,
+            "lost": false,
+            "events": []
+          },
+          "visitor": {
+            "basis": [
+              -0.9,
+              2.25,
+              -0.1
+            ],
+            "hook": [
+              -0.8993,
+              5.007500171661377,
+              -0.1
+            ],
+            "actualPoint": [
+              -0.9164735355509024,
+              2.25005338951141,
+              -0.09999999999999998
+            ],
+            "actualWickBase": [
+              -0.9165756924517143,
+              2.2329536946612785,
+              -0.09999999999999998
+            ],
+            "body": {
+              "min": [
+                -1.1079917620464146,
+                2.0549561493935182,
+                -0.29200000166893003
+              ],
+              "max": [
+                -0.7206531221222678,
+                2.83894645861365,
+                0.09200000166893008
+              ]
+            },
+            "cloth": {
+              "min": [
+                -1.1079917620464146,
+                2.211802857713454,
+                -0.29200000166893003
+              ],
+              "max": [
+                -0.7206531221222678,
+                2.774086901707021,
+                0.09200000166893008
+              ]
+            },
+            "sceneSourceScope": "Actual current runtime56cm/.21m open-bottom builder, rigidly moved at runtime only. Native Source15 GI belongs to old point and is invalid for lighting approval."
+          },
+          "camera": {
+            "pendingTweens": 0,
+            "position": [
+              -4.4,
+              2.3,
+              -1.2
+            ],
+            "look": [
+              1.5999999999999996,
+              1.55,
+              -2.6959680170590845
+            ],
+            "fov": 52
+          }
+        },
+        {
+          "size": "desktop",
+          "pose": {
+            "name": "middle-normal53",
+            "viewport": "desktop",
+            "basis": [
+              -1.5,
+              2.25,
+              -1.3
+            ],
+            "hook": [
+              -1.4993,
+              5.007500171661377,
+              -1.3
+            ],
+            "position": [
+              -4.9,
+              2.3,
+              -0.1
+            ],
+            "look": [
+              1.0999999999999996,
+              1.55,
+              -1.8545227845735426
+            ],
+            "fov": 53
+          },
+          "file": "artifacts/full-review/round-1/snow-open-air-composition/desktop-middle-normal53-composition-only-old-gi.png",
+          "sha256": "3841132d886c6bc61de9c79b9883f1c9de46692057583e37b6bd1c1b4e156a9f",
+          "health": {
+            "available": true,
+            "lost": false,
+            "events": []
+          },
+          "visitor": {
+            "basis": [
+              -1.5,
+              2.25,
+              -1.3
+            ],
+            "hook": [
+              -1.4993,
+              5.007500171661377,
+              -1.3
+            ],
+            "actualPoint": [
+              -1.5164735355509025,
+              2.25005338951141,
+              -1.3
+            ],
+            "actualWickBase": [
+              -1.5165756924517144,
+              2.2329536946612785,
+              -1.3
+            ],
+            "body": {
+              "min": [
+                -1.7079917620464147,
+                2.0549561493935182,
+                -1.49200000166893
+              ],
+              "max": [
+                -1.3206531221222677,
+                2.83894645861365,
+                -1.10799999833107
+              ]
+            },
+            "cloth": {
+              "min": [
+                -1.7079917620464147,
+                2.211802857713454,
+                -1.49200000166893
+              ],
+              "max": [
+                -1.3206531221222677,
+                2.774086901707021,
+                -1.10799999833107
+              ]
+            },
+            "sceneSourceScope": "Actual current runtime56cm/.21m open-bottom builder, rigidly moved at runtime only. Native Source15 GI belongs to old point and is invalid for lighting approval."
+          },
+          "camera": {
+            "pendingTweens": 0,
+            "position": [
+              -4.9,
+              2.3,
+              -0.1
+            ],
+            "look": [
+              1.0999999999999996,
+              1.55,
+              -1.8545227845735426
+            ],
+            "fov": 53
+          }
+        },
+        {
+          "size": "desktop",
+          "pose": {
+            "name": "middle-normal54",
+            "viewport": "desktop",
+            "basis": [
+              -1.5,
+              2.25,
+              -1.3
+            ],
+            "hook": [
+              -1.4993,
+              5.007500171661377,
+              -1.3
+            ],
+            "position": [
+              -4.8,
+              2.3,
+              -0.1
+            ],
+            "look": [
+              1.2000000000000002,
+              1.55,
+              -1.8772809697724817
+            ],
+            "fov": 54
+          },
+          "file": "artifacts/full-review/round-1/snow-open-air-composition/desktop-middle-normal54-composition-only-old-gi.png",
+          "sha256": "cdeeee1213d64f8b0d42c9eaed2d01e236fac21c7df97cb51cd45ab3f4e0c332",
+          "health": {
+            "available": true,
+            "lost": false,
+            "events": []
+          },
+          "visitor": {
+            "basis": [
+              -1.5,
+              2.25,
+              -1.3
+            ],
+            "hook": [
+              -1.4993,
+              5.007500171661377,
+              -1.3
+            ],
+            "actualPoint": [
+              -1.5164735355509025,
+              2.25005338951141,
+              -1.3
+            ],
+            "actualWickBase": [
+              -1.5165756924517144,
+              2.2329536946612785,
+              -1.3
+            ],
+            "body": {
+              "min": [
+                -1.7079917620464147,
+                2.0549561493935182,
+                -1.49200000166893
+              ],
+              "max": [
+                -1.3206531221222677,
+                2.83894645861365,
+                -1.10799999833107
+              ]
+            },
+            "cloth": {
+              "min": [
+                -1.7079917620464147,
+                2.211802857713454,
+                -1.49200000166893
+              ],
+              "max": [
+                -1.3206531221222677,
+                2.774086901707021,
+                -1.10799999833107
+              ]
+            },
+            "sceneSourceScope": "Actual current runtime56cm/.21m open-bottom builder, rigidly moved at runtime only. Native Source15 GI belongs to old point and is invalid for lighting approval."
+          },
+          "camera": {
+            "pendingTweens": 0,
+            "position": [
+              -4.8,
+              2.3,
+              -0.1
+            ],
+            "look": [
+              1.2000000000000002,
+              1.55,
+              -1.8772809697724817
+            ],
+            "fov": 54
+          }
+        },
+        {
+          "size": "phone",
+          "pose": {
+            "name": "provisional-front",
+            "viewport": "phone",
+            "basis": [
+              -0.9,
+              2.25,
+              -0.1
+            ],
+            "hook": [
+              -0.8993,
+              5.007500171661377,
+              -0.1
+            ],
+            "position": [
+              -1,
+              2.2,
+              2.65
+            ],
+            "look": [
+              -0.7,
+              1.7,
+              -2.3
+            ],
+            "fov": 55
+          },
+          "file": "artifacts/full-review/round-1/snow-open-air-composition/phone-provisional-front-composition-only-old-gi.png",
+          "sha256": "ec47a89a2ecb1d1f9ab6b71116e385a9ef29d06afe58e2b3ef073053b306f9a1",
+          "health": {
+            "available": true,
+            "lost": false,
+            "events": []
+          },
+          "visitor": {
+            "basis": [
+              -0.9,
+              2.25,
+              -0.1
+            ],
+            "hook": [
+              -0.8993,
+              5.007500171661377,
+              -0.1
+            ],
+            "actualPoint": [
+              -0.9164735355509024,
+              2.25005338951141,
+              -0.09999999999999998
+            ],
+            "actualWickBase": [
+              -0.9165756924517143,
+              2.2329536946612785,
+              -0.09999999999999998
+            ],
+            "body": {
+              "min": [
+                -1.1079917620464146,
+                2.0549561493935182,
+                -0.29200000166893003
+              ],
+              "max": [
+                -0.7206531221222678,
+                2.83894645861365,
+                0.09200000166893008
+              ]
+            },
+            "cloth": {
+              "min": [
+                -1.1079917620464146,
+                2.211802857713454,
+                -0.29200000166893003
+              ],
+              "max": [
+                -0.7206531221222678,
+                2.774086901707021,
+                0.09200000166893008
+              ]
+            },
+            "sceneSourceScope": "Actual current runtime56cm/.21m open-bottom builder, rigidly moved at runtime only. Native Source15 GI belongs to old point and is invalid for lighting approval."
+          },
+          "camera": {
+            "pendingTweens": 0,
+            "position": [
+              -1,
+              2.2,
+              2.65
+            ],
+            "look": [
+              -0.7,
+              1.7,
+              -2.3
+            ],
+            "fov": 55
+          }
+        },
+        {
+          "size": "phone",
+          "pose": {
+            "name": "middle-front55",
+            "viewport": "phone",
+            "basis": [
+              -1.5,
+              2.25,
+              -1.3
+            ],
+            "hook": [
+              -1.4993,
+              5.007500171661377,
+              -1.3
+            ],
+            "position": [
+              -1.5,
+              2.2,
+              1.9
+            ],
+            "look": [
+              -0.9,
+              1.7,
+              -2.3
+            ],
+            "fov": 55
+          },
+          "file": "artifacts/full-review/round-1/snow-open-air-composition/phone-middle-front55-composition-only-old-gi.png",
+          "sha256": "11fa145be9fbdced665ca6b00827aa5599917536da3bcee243c456044743f361",
+          "health": {
+            "available": true,
+            "lost": false,
+            "events": []
+          },
+          "visitor": {
+            "basis": [
+              -1.5,
+              2.25,
+              -1.3
+            ],
+            "hook": [
+              -1.4993,
+              5.007500171661377,
+              -1.3
+            ],
+            "actualPoint": [
+              -1.5164735355509025,
+              2.25005338951141,
+              -1.3
+            ],
+            "actualWickBase": [
+              -1.5165756924517144,
+              2.2329536946612785,
+              -1.3
+            ],
+            "body": {
+              "min": [
+                -1.7079917620464147,
+                2.0549561493935182,
+                -1.49200000166893
+              ],
+              "max": [
+                -1.3206531221222677,
+                2.83894645861365,
+                -1.10799999833107
+              ]
+            },
+            "cloth": {
+              "min": [
+                -1.7079917620464147,
+                2.211802857713454,
+                -1.49200000166893
+              ],
+              "max": [
+                -1.3206531221222677,
+                2.774086901707021,
+                -1.10799999833107
+              ]
+            },
+            "sceneSourceScope": "Actual current runtime56cm/.21m open-bottom builder, rigidly moved at runtime only. Native Source15 GI belongs to old point and is invalid for lighting approval."
+          },
+          "camera": {
+            "pendingTweens": 0,
+            "position": [
+              -1.5,
+              2.2,
+              1.9
+            ],
+            "look": [
+              -0.9,
+              1.7,
+              -2.3
+            ],
+            "fov": 55
+          }
+        },
+        {
+          "size": "phone",
+          "pose": {
+            "name": "middle-front53",
+            "viewport": "phone",
+            "basis": [
+              -1.5,
+              2.25,
+              -1.3
+            ],
+            "hook": [
+              -1.4993,
+              5.007500171661377,
+              -1.3
+            ],
+            "position": [
+              -1.5,
+              2.2,
+              2.1
+            ],
+            "look": [
+              -1.1,
+              1.75,
+              -2.3
+            ],
+            "fov": 53
+          },
+          "file": "artifacts/full-review/round-1/snow-open-air-composition/phone-middle-front53-composition-only-old-gi.png",
+          "sha256": "4344f60022ce269c8ddfd6617d32ad1d0c95000efc61a49a9d7d3805c428dd11",
+          "health": {
+            "available": true,
+            "lost": false,
+            "events": []
+          },
+          "visitor": {
+            "basis": [
+              -1.5,
+              2.25,
+              -1.3
+            ],
+            "hook": [
+              -1.4993,
+              5.007500171661377,
+              -1.3
+            ],
+            "actualPoint": [
+              -1.5164735355509025,
+              2.25005338951141,
+              -1.3
+            ],
+            "actualWickBase": [
+              -1.5165756924517144,
+              2.2329536946612785,
+              -1.3
+            ],
+            "body": {
+              "min": [
+                -1.7079917620464147,
+                2.0549561493935182,
+                -1.49200000166893
+              ],
+              "max": [
+                -1.3206531221222677,
+                2.83894645861365,
+                -1.10799999833107
+              ]
+            },
+            "cloth": {
+              "min": [
+                -1.7079917620464147,
+                2.211802857713454,
+                -1.49200000166893
+              ],
+              "max": [
+                -1.3206531221222677,
+                2.774086901707021,
+                -1.10799999833107
+              ]
+            },
+            "sceneSourceScope": "Actual current runtime56cm/.21m open-bottom builder, rigidly moved at runtime only. Native Source15 GI belongs to old point and is invalid for lighting approval."
+          },
+          "camera": {
+            "pendingTweens": 0,
+            "position": [
+              -1.5,
+              2.2,
+              2.1
+            ],
+            "look": [
+              -1.1,
+              1.75,
+              -2.3
+            ],
+            "fov": 53
+          }
+        }
+      ]
+    },
+    {
+      "report": {
+        "path": "artifacts/full-review/round-1/snow-open-air-deep55/report.json",
+        "bytes": 40322,
+        "sha256": "933b1ba33742e4e679ed70e4ad7fd7371bf4bdc8e46ec5dab9bea67d2ff61ea6"
+      },
+      "scope": "Composition-only actual enlarged/open-bottom visitor and real Source15 retained-F32 model/maps. Visitor is rigidly moved in memory. Source15 GI belongs to its OLD basis and is INVALID for Source16 lighting approval. No FPS/full-journey/final-source claim.",
+      "sourceStartFingerprint": "2bc3fe1b4ac5e1e27d734f87fa67f95f6512410171beeb2c5239dcc55ea0f41c",
+      "sourceEndFingerprint": "2bc3fe1b4ac5e1e27d734f87fa67f95f6512410171beeb2c5239dcc55ea0f41c",
+      "sourceChanged": false,
+      "errors": [],
+      "ownedBrowserClosed": true,
+      "frames": [
+        {
+          "size": "desktop",
+          "pose": {
+            "name": "deep55-measured-ceiling",
+            "viewport": "desktop",
+            "basis": [
+              -1.5,
+              2.25,
+              -1.3
+            ],
+            "hook": [
+              -1.4993,
+              5.040999961853027,
+              -1.3
+            ],
+            "position": [
+              -4.94,
+              2.3,
+              -1.6
+            ],
+            "look": [
+              1.06,
+              1.75,
+              -2.124931981155544
+            ],
+            "fov": 55
+          },
+          "file": "artifacts/full-review/round-1/snow-open-air-deep55/desktop-deep55-measured-ceiling-composition-only-old-gi.png",
+          "sha256": "9d993de992a9b1941603f50c1814ef4c459eafe1fc8def9d086376eee72093c2",
+          "health": {
+            "available": true,
+            "lost": false,
+            "events": []
+          },
+          "visitor": {
+            "basis": [
+              -1.5,
+              2.25,
+              -1.3
+            ],
+            "hook": [
+              -1.4993,
+              5.040999961853027,
+              -1.3
+            ],
+            "actualPoint": [
+              -1.516673666237676,
+              2.250053987315888,
+              -1.3
+            ],
+            "actualWickBase": [
+              -1.516775823138488,
+              2.2329542924657564,
+              -1.3
+            ],
+            "body": {
+              "min": [
+                -1.7081918927331883,
+                2.054956747197996,
+                -1.49200000166893
+              ],
+              "max": [
+                -1.3208532528090413,
+                2.838947056418128,
+                -1.10799999833107
+              ]
+            },
+            "cloth": {
+              "min": [
+                -1.7081918927331883,
+                2.211803455517932,
+                -1.49200000166893
+              ],
+              "max": [
+                -1.3208532528090413,
+                2.774087499511499,
+                -1.10799999833107
+              ]
+            },
+            "sceneSourceScope": "Actual current runtime56cm/.21m open-bottom builder, rigidly moved at runtime only. Native Source15 GI belongs to old point and is invalid for lighting approval."
+          },
+          "camera": {
+            "pendingTweens": 0,
+            "position": [
+              -4.94,
+              2.3,
+              -1.6
+            ],
+            "look": [
+              1.06,
+              1.75,
+              -2.124931981155544
+            ],
+            "fov": 55
+          }
+        }
+      ]
+    }
+  ],
+  "controlPackage": {
+    "path": "art/build/snow-roof-round1/compact15-packaged-control/runtime/manifest.json",
+    "bytes": 21628,
+    "sha256": "0be71df53bf753e9566549cefeef9eb6da60baada3fb517edb19eda31599e829"
+  },
+  "controlCompletePackageBytes": 14956030,
+  "fullRigProjectionEstimates": {
+    "path": "art/build/snow-roof-round1/open-air-framing/capture-projection-estimates.json",
+    "bytes": 5415,
+    "sha256": "f2ada0a719e055d00b61f463f6e47903ab70d64ee05693d9a588706b5bbfec0c"
+  },
+  "projectionInterpretation": "Full fixture includes tassel and short topcord, excludes long ceiling extension. Middle53/54 desktop~22.5%, phone55/53~24.6/23.8%; cloth alone~16.7\u201318.4%. Auxiliary CPU every-vertex projections recover actual sway, but are not pixel-mask or source-F32 equality proofs. Reported live nonpreciseBox3contains replica vertices with up to1.7mm slack; no guard tolerance was changed.",
+  "importantRejectedOrUnacceptedControls": [
+    "Early54pose exploratory report has an overwritten camera-owner label; finalv7/rawroutev3 supersede it.",
+    "First6compositionframes used provisional5.0075hook even for the deeper basis; source16 must use actual5.04wood ceiling. Corrected finaldeep55 frame uses5.04plus1mmembed.",
+    "EyeX-4.98 atZ-1.6 has only25mmgap to engagedwallpost and fails30mmcamera radius.",
+    "Firstmiddle53 desktop lacked bluecourt and left a blank farwall; owner-proposed deep55 improves actual doorway visibility.",
+    "56degreeCPU comparison did not materially improve exterior coverage and was notGPUrendered.55degreecontrol retained."
+  ],
+  "remaining": [
+    "Actual C6 source and runtime cloth radiance/light filtering; old prototype dark red cloth is not an accepted lighting result.",
+    "Final Source16 source-to-prepared/exported contacts/normals/anchors/hiddenface proofs and measured complete delivery budget.",
+    "Wire recommended views and device-specific choose route, then rerun actual runtime Catmull routes; proposed curves are not a delivered route claim.",
+    "Final bothbrowser/size/language journey, actual contact closeups, clean motion/static sequences and idlehost phone timing."
+  ],
+  "helpers": [
+    {
+      "path": "tests/visual/export-snow-open-air-lamp.mjs",
+      "bytes": 3724,
+      "sha256": "0af0728f8daa5a2c693853bb4c398b75d090df9852526049b5bbfc03eae6e220"
+    },
+    {
+      "path": "art/blender/study_snow_open_air_framing.py",
+      "bytes": 12304,
+      "sha256": "f2d0edaed3b89f364bcdef34da86a1d8dcf3f22344ffb61906b9dd5b7f5c9dc9"
+    },
+    {
+      "path": "tests/visual/instrument-snow-open-air.mjs",
+      "bytes": 2737,
+      "sha256": "f396104a0007056ad7f911bd0b62f014fabf2f8642ae51b7882276461dd737b4"
+    },
+    {
+      "path": "tests/visual/capture-snow-open-air.mjs",
+      "bytes": 5136,
+      "sha256": "973f12b7f6a486a342bf6b91f5b8b9f82530a347a5ad40aab91e98503d7b3a38"
+    },
+    {
+      "path": "scripts/audit-snow-open-air-cameras.mjs",
+      "bytes": 6064,
+      "sha256": "cc0a5994f9f8f536e3af5f2aaffe54ce06b8689717f38cf4103627cbbbe73f93"
+    }
+  ],
+  "checks": [
+    "Scoped ESLint, Python compile and gitdiffcheck pass.",
+    "All7realUI frames have healthy contexts, no recorded errors and frozen disk fingerprints unchanged.",
+    "No Cycles render/bake or FPS measurement was run by this study."
+  ],
+  "ownedGPUJobsTerminal": true,
+  "rootWorkspaceSceneAndPlaceDescriptorAuthoringSourceBlendsPreparedMastersAndPublicAssetsWereNotModified": true,
+  "isolatedSnapshotSourceWasInstrumented": true
+}

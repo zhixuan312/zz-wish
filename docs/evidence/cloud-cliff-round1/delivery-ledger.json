@@ -1,0 +1,358 @@
+{
+  "status": "Installed exact verified package after independent decoded proof; actual browser/bar acceptance and runtime posters pending.",
+  "source": {
+    "path": "art/build/cloud-cliff-round1/cloud-cliff-source-v11.blend",
+    "bytes": 6599749,
+    "sha256": "484438a4514352e70d7ffe0408306b4127660316c1422f3248f0ff33f5e0e565"
+  },
+  "sourceScript": {
+    "path": "art/blender/cloud_cliff.py",
+    "bytes": 48556,
+    "sha256": "e9bdd5366a9a9ea7343ec395ed3b16bb21e467a6a7b5343e98c0f8cee1ebb81b"
+  },
+  "prepared": {
+    "path": "art/build/cloud-cliff-round1/production/cloud-cliff-prepared.blend",
+    "bytes": 4506331,
+    "sha256": "a676f136a1a3a3a5f62d08aaa51d17466eaf30453e420ac28fe0c1a5de07f258"
+  },
+  "staticRaw": {
+    "path": "art/build/cloud-cliff-round1/production/cloud-cliff.raw.glb",
+    "bytes": 15239408,
+    "sha256": "31b7f0882d4d586748ce74862b67811c6b4a24614168fe88353ecba501ef0717"
+  },
+  "heroRaw": {
+    "path": "art/build/cloud-cliff-round1/production/cloud-cliff-storm.raw.glb",
+    "bytes": 485248,
+    "sha256": "3ee4ebed97d5c4bba92b62977616d6ff72fa56881018d48ab64812d422c7ed6e"
+  },
+  "manifest": {
+    "path": "art/build/cloud-cliff-round1/delivery/manifest.json",
+    "bytes": 318841,
+    "sha256": "e77f0f90114f83b1bc7d415afc4c17f51e91614edadc15e7bcdea568deb2c9f5"
+  },
+  "package": {
+    "directory": "art/build/cloud-cliff-round1/delivery",
+    "payloadFileCount": 14,
+    "physicalFileCount": 15,
+    "payloadBytes": 6471553,
+    "manifestBytes": 318841,
+    "completePackageBytes": 6790394,
+    "reservedPosterBytes": 400000,
+    "maximumAfterReservedPosters": 7190394,
+    "limitBytes": 10000000
+  },
+  "files": [
+    {
+      "uri": "cloud-cliff.glb",
+      "bytes": 4483584,
+      "sha256": "70cf6cff839200be2be36a13b3057d35b9fad670f7f4c1b0a348c8295b5e1786"
+    },
+    {
+      "uri": "cliff-night.ktx2",
+      "bytes": 153902,
+      "sha256": "37d6f946437d12bd7f3a7e37db7c1c33ed22dac29de15caff86c94ac66968fca",
+      "codec": "uastc",
+      "mipLevels": 3,
+      "transfer": "linear"
+    },
+    {
+      "uri": "cliff-dusk.ktx2",
+      "bytes": 151087,
+      "sha256": "4e136dea3f502723f062b93acd324236784f602317ee25f4c554a3ee1e8bbbe5",
+      "codec": "uastc",
+      "mipLevels": 3,
+      "transfer": "linear"
+    },
+    {
+      "uri": "cliff-day.ktx2",
+      "bytes": 147294,
+      "sha256": "f07259bde37f4a8e23ad80015de1ae101369b920845fdc90ffb61d1a06f86376",
+      "codec": "uastc",
+      "mipLevels": 3,
+      "transfer": "linear"
+    },
+    {
+      "uri": "cliff-lamp.ktx2",
+      "bytes": 19636,
+      "sha256": "428eb36051c5aea0d7cb166a077a44a4ac9dee7845467d8a521690ce3c3115b2",
+      "codec": "uastc",
+      "mipLevels": 3,
+      "transfer": "linear"
+    },
+    {
+      "uri": "cover-night.ktx2",
+      "bytes": 350389,
+      "sha256": "287e02483614b1aa86cfa82d3b2e1abd69f4721400794e098a390e1fa11b02ac",
+      "codec": "uastc",
+      "mipLevels": 3,
+      "transfer": "linear"
+    },
+    {
+      "uri": "cover-dusk.ktx2",
+      "bytes": 347978,
+      "sha256": "777c4405afcf10bf080ca4240ecdc8acc74113976ee8b70d6fef8eb6209dce42",
+      "codec": "uastc",
+      "mipLevels": 3,
+      "transfer": "linear"
+    },
+    {
+      "uri": "cover-day.ktx2",
+      "bytes": 347272,
+      "sha256": "72d7a0306e6cdbc01e9d23a3bc40416acb63c805e557d3b5fcb0a8d1761c2091",
+      "codec": "uastc",
+      "mipLevels": 3,
+      "transfer": "linear"
+    },
+    {
+      "uri": "cover-lamp.ktx2",
+      "bytes": 125928,
+      "sha256": "7ff6f7065756655ec5ddfd198ecf3e508ed9f608db574a11470bbbd08ef2a3e4",
+      "codec": "uastc",
+      "mipLevels": 3,
+      "transfer": "linear"
+    },
+    {
+      "uri": "far-night.ktx2",
+      "bytes": 15517,
+      "sha256": "a3eb23428ba11cbfc81b2be61585b7f1e4e8671378385c8dfaf7412676b9f425",
+      "codec": "uastc",
+      "mipLevels": 3,
+      "transfer": "linear"
+    },
+    {
+      "uri": "far-dusk.ktx2",
+      "bytes": 15091,
+      "sha256": "08d95c6d0475eda8fc4a6d93d38980a7c4b918231c4bcb315e6edfff7011ddaa",
+      "codec": "uastc",
+      "mipLevels": 3,
+      "transfer": "linear"
+    },
+    {
+      "uri": "far-day.ktx2",
+      "bytes": 14126,
+      "sha256": "020a982b4b405d752f6a5ed1a5b91b0bcfd1b7346ea4e8e45178281591843dc6",
+      "codec": "uastc",
+      "mipLevels": 3,
+      "transfer": "linear"
+    },
+    {
+      "uri": "far-lamp.ktx2",
+      "bytes": 437,
+      "sha256": "fe7c2f57ac346c6523a6d89d142de123d06fbb06a6f93fca95e67fe8259c4016",
+      "codec": "uastc",
+      "mipLevels": 3,
+      "transfer": "linear"
+    },
+    {
+      "uri": "cloud-cliff-storm.glb",
+      "bytes": 299312,
+      "sha256": "e8446546c3f6ccc7fa4829dfd7e179a98233cbc6f30c708408597ecfa768e6e0",
+      "role": "live-PBR-hero"
+    }
+  ],
+  "nativeInputLedger": {
+    "path": "art/build/cloud-cliff-round1/production/input-ledger.json",
+    "bytes": 4232,
+    "sha256": "49b5780158e336479910726b14f6602733c6528619cd81ba028e2b7e5ffc6ea2"
+  },
+  "nativeCompletion": {
+    "path": "art/build/cloud-cliff-round1/production/native-completion.json",
+    "bytes": 20393,
+    "sha256": "441f8a45c5f07567c50a1a54001cb4971abbe65a996566d012a933ecec665c53"
+  },
+  "nativeTotalSeconds": 89.743,
+  "mapTimings": [
+    {
+      "region": "cliff",
+      "look": "night",
+      "bakeSeconds": 4.231,
+      "denoiseSeconds": 3.212,
+      "totalSeconds": 7.507,
+      "samples": 64,
+      "bakeDevice": "METAL",
+      "denoiseDevice": "METAL"
+    },
+    {
+      "region": "cliff",
+      "look": "dusk",
+      "bakeSeconds": 4.182,
+      "denoiseSeconds": 1.294,
+      "totalSeconds": 5.536,
+      "samples": 64,
+      "bakeDevice": "METAL",
+      "denoiseDevice": "METAL"
+    },
+    {
+      "region": "cliff",
+      "look": "day",
+      "bakeSeconds": 3.736,
+      "denoiseSeconds": 1.113,
+      "totalSeconds": 4.902,
+      "samples": 64,
+      "bakeDevice": "METAL",
+      "denoiseDevice": "METAL"
+    },
+    {
+      "region": "cliff",
+      "look": "lamp",
+      "bakeSeconds": 3.458,
+      "denoiseSeconds": 1.197,
+      "totalSeconds": 4.696,
+      "samples": 64,
+      "bakeDevice": "METAL",
+      "denoiseDevice": "METAL"
+    },
+    {
+      "region": "cover",
+      "look": "night",
+      "bakeSeconds": 9.095,
+      "denoiseSeconds": 4.802,
+      "totalSeconds": 14.081,
+      "samples": 64,
+      "bakeDevice": "METAL",
+      "denoiseDevice": "METAL"
+    },
+    {
+      "region": "cover",
+      "look": "dusk",
+      "bakeSeconds": 8.914,
+      "denoiseSeconds": 3.893,
+      "totalSeconds": 12.968,
+      "samples": 64,
+      "bakeDevice": "METAL",
+      "denoiseDevice": "METAL"
+    },
+    {
+      "region": "cover",
+      "look": "day",
+      "bakeSeconds": 8.665,
+      "denoiseSeconds": 4.056,
+      "totalSeconds": 12.89,
+      "samples": 64,
+      "bakeDevice": "METAL",
+      "denoiseDevice": "METAL"
+    },
+    {
+      "region": "cover",
+      "look": "lamp",
+      "bakeSeconds": 7.762,
+      "denoiseSeconds": 4.565,
+      "totalSeconds": 12.515,
+      "samples": 64,
+      "bakeDevice": "METAL",
+      "denoiseDevice": "METAL"
+    },
+    {
+      "region": "far",
+      "look": "night",
+      "bakeSeconds": 2.314,
+      "denoiseSeconds": 0.418,
+      "totalSeconds": 2.752,
+      "samples": 64,
+      "bakeDevice": "METAL",
+      "denoiseDevice": "METAL"
+    },
+    {
+      "region": "far",
+      "look": "dusk",
+      "bakeSeconds": 1.878,
+      "denoiseSeconds": 0.046,
+      "totalSeconds": 1.941,
+      "samples": 64,
+      "bakeDevice": "METAL",
+      "denoiseDevice": "METAL"
+    },
+    {
+      "region": "far",
+      "look": "day",
+      "bakeSeconds": 1.96,
+      "denoiseSeconds": 0.063,
+      "totalSeconds": 2.044,
+      "samples": 64,
+      "bakeDevice": "METAL",
+      "denoiseDevice": "METAL"
+    },
+    {
+      "region": "far",
+      "look": "lamp",
+      "bakeSeconds": 2.141,
+      "denoiseSeconds": 0.054,
+      "totalSeconds": 2.209,
+      "samples": 64,
+      "bakeDevice": "METAL",
+      "denoiseDevice": "METAL"
+    }
+  ],
+  "contacts": {
+    "path": "art/build/cloud-cliff-round1/contact-replay-v11/contact-audit.json",
+    "bytes": 118751,
+    "sha256": "96b5c0f0bec769afdd9000c8712f255cc811cf42826f8c88cec8d6ca456406a5"
+  },
+  "guard": {
+    "path": "art/build/cloud-cliff-round1/contact-replay-v11/guard/guard-proof.json",
+    "bytes": 4030,
+    "sha256": "4300cf456336d0b83adce8443956555ed5a4bd620b6354e921e7105429a0d4a5"
+  },
+  "mapping": {
+    "path": "art/build/cloud-cliff-round1/prepared-v11/prepared-mapping-proof.json",
+    "bytes": 9333,
+    "sha256": "dfde20dd0a3f8f943f8de51a4f0a286ecfaa7c7d452a78c9981575bd90cd004d"
+  },
+  "codecAudit": {
+    "path": "art/build/cloud-cliff-round1/production/delivery-image-audit.json",
+    "bytes": 44212,
+    "sha256": "f698d1bef5fb689c4eb25f4486abe71fd4e0001136cbd1287a30a8eb74e6fe6c"
+  },
+  "codecSummary": {
+    "maps": 12,
+    "mipLevels": 3,
+    "logGain": 4096,
+    "codec": "UASTC quality2/RDO1/Zstd18",
+    "referenceTranscode": "Official KTX-Software RGBA8 UNORM; device ASTC/BC7 still requires actual browser evidence.",
+    "nonzeroAbove0001QuantizedToBlackAllAuditedMips": 19,
+    "coverNightBase": {
+      "dark": {
+        "texels": 38207,
+        "meanAbsoluteLuminanceError": 9.304205673556742e-05,
+        "p95AbsoluteLuminanceError": 0.0004825589825399206,
+        "meanAbsoluteRGBError": 0.00014325114898383617,
+        "meanRelativeLuminanceErrorAbove0001": 0.08071136739625207,
+        "nonzeroTexelsQuantizedToBlack": 6
+      },
+      "middle": {
+        "texels": 20327,
+        "meanAbsoluteLuminanceError": 0.003443714520716422,
+        "p95AbsoluteLuminanceError": 0.012114563916251072,
+        "meanAbsoluteRGBError": 0.004638161044567823,
+        "meanRelativeLuminanceErrorAbove0001": 0.057528964281940244,
+        "nonzeroTexelsQuantizedToBlack": 0
+      }
+    }
+  },
+  "actualDownstreamPackScript": {
+    "path": "scripts/pack-blender-assets.mjs",
+    "bytes": 48416,
+    "sha256": "5c1469ce702ccd048b5210c233b2c3cee086ddc76f6f09002b2e6f2ed94e0717"
+  },
+  "nativeDependencySnapshot": "Actual native dependency hashes and archived code copies are in input-ledger/frozen-native. The downstream packer gained explicit manifest/reserved-poster byte accounting after native completion; it was not executed by the Cycles batch.",
+  "cameraScope": {
+    "cameras": [
+      "Reference_cover-desktop",
+      "Reference_cover-phone",
+      "Reference_lantern-detail",
+      "Reference_hanging-contact",
+      "Reference_candle-contact"
+    ],
+    "positionEnvelopeMetres": 0.03,
+    "orientationEnvelopeDegrees": 2,
+    "supportedScope": "Fixed home cover and source lantern/contact diagnostics only. No walking or orbit camera is supported."
+  },
+  "positionFormat": "float32",
+  "positionFilter": "NONE",
+  "independentDecodedDeliveryProof": {
+    "path": "art/build/cloud-cliff-round1/independent-delivery-proof.json",
+    "sha256": "1849f169ebccf3326400b472158648693664867abeed228ebf5f316760aadacf",
+    "bytes": 25829
+  },
+  "installReceipt": "docs/evidence/cloud-cliff-round1/install.json"
+}

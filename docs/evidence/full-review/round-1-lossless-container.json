@@ -1,0 +1,45 @@
+{
+  "scope": "Lossless outer gzip transport; actual delivered bytes only. This is not final16-map budget or source15 optical acceptance.",
+  "representation": ".glb.gzip with manifest encoding=gzip, encoded and decoded byte counts/SHA256; original GLB remains only in ignored audited input.",
+  "numericalControls": {
+    "actualShort16Architecture256OriginalGLBBytes": 10049312,
+    "actualGzip9Bytes": 6110673,
+    "actualDecodedByteEquality": true
+  },
+  "rejected": {
+    "report": "artifacts/full-review/round-1/gzip-browser-review/report.json",
+    "sha256": "1daa556c4ef0317b20160be4a4d5aedcd747c9d1f3db36108bffdc8c67bc6370",
+    "sourceFingerprint": "15ed5361de499c06b060f87aaa820298425a30c96b15ed5653302a0c51132924",
+    "frames": 8,
+    "sequences": 6,
+    "runtimeErrors": 2,
+    "httpErrors": 0,
+    "sourceChanged": false,
+    "size": "390\u00d7844 desktop-GPU phone viewport emulation",
+    "browsers": [
+      "chromium",
+      "webkit"
+    ],
+    "reason": "Vite automatically adds Content-Encoding:gzip for .gz, so fetch returned decoded data before encoded-hash verification. No data accepted."
+  },
+  "acceptedDiagnostic": {
+    "report": "artifacts/full-review/round-1/gzip-browser-review-v2/report.json",
+    "sha256": "2e1b306a1fc6855614a06ef7710db5c80d78f68001e06cb637d1723648273d93",
+    "sourceFingerprint": "c2f8376d0c260ad39b287114fd61cd9e169c37abe43389cfa3e34a1d91d70020",
+    "frames": 24,
+    "sequences": 12,
+    "runtimeErrors": 0,
+    "httpErrors": 0,
+    "sourceChanged": false,
+    "size": "390\u00d7844 desktop-GPU phone viewport emulation",
+    "browsers": [
+      "chromium",
+      "webkit"
+    ],
+    "actualSourceModel": "Source12 reviewed BYTE8/partial low8 geometry: wrapper preserves every decoded byte. PCSS hook compiled with radius0, so finite-source filtering is not yet verified.",
+    "encodedModelBytes": 7042640,
+    "decodedModelBytes": 10478320,
+    "decodedSha256": "ace4d2f42586f7680113df496bb80d389ace55b6909c2ce382cff05b00483098"
+  },
+  "cpuRegressions": "16 focused tests pass, including encoded/decoded identity and stale-manifest recovery on direct cover reads."
+}

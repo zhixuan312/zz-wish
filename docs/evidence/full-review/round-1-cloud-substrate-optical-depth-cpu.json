@@ -1,0 +1,327 @@
+{
+  "status": "PASS",
+  "scope": "Static Source19 substrate continuous line optical depth only; Float32 parameter constants then Double polynomial/4-point Gauss, not native per-operation Float32/GPU exact. No banks/wisps/noise/occlusion/radiance/opacity threshold.",
+  "module": {
+    "path": "scripts/lib/cloud-substrate-optical-depth.mjs",
+    "bytes": 6460,
+    "sha256": "e3a8f0bb515d8457168ff35d499ff6b036f1f2829b75df7e36658357a2115214"
+  },
+  "input": {
+    "path": "art/build/cloud-cliff-round1/source19-cpu/saved-field/field.json",
+    "bytes": 47005,
+    "sha256": "eb24f1c42ec8790e4ef65b0181867aa34d8ced12944064a9373b8a81d2ef3d69",
+    "unchanged": true
+  },
+  "identity": {
+    "sourceBlendSha256": "ee3f9f065a72a102867d0bfe7ea9233761cd7db62e98711c993d38cba324bda0",
+    "sourceFieldSha256": "6aacf69c6964989e485f3f1a78401a10133738aa491b7e5fd7b4d71975c26f47",
+    "savedFieldJSONSha256": "eb24f1c42ec8790e4ef65b0181867aa34d8ced12944064a9373b8a81d2ef3d69"
+  },
+  "model": {
+    "centre": [
+      160,
+      -160,
+      -570
+    ],
+    "radii": [
+      650,
+      150,
+      1000
+    ],
+    "density": 0.006000000052154064,
+    "edgeStart": 0.46239998936653137,
+    "shellDenominator": 0.5376000106334686,
+    "edgeWidthSource": 0.32,
+    "bounds": {
+      "min": [
+        -490,
+        -310,
+        -1570
+      ],
+      "max": [
+        810,
+        0.7000000000000028,
+        430
+      ]
+    },
+    "quantity": "Integral of saved static substrate extinction field over world metres; no light/radiance/albedo/HG factor.",
+    "arithmetic": "Float32 saved socket constants (including edgeStart=f32((1-edgeWidth)^2)), followed by Double continuous q²/smoothstep and four-point Gauss. Not per-operation native Float32/GPU exact."
+  },
+  "caseCount": 256,
+  "positiveCases": 99,
+  "maximumSegments": 3,
+  "maximumGaussDensitySamples": 8,
+  "independentFineCompositeSimpson": {
+    "stepMetres": 0.125,
+    "convergenceStepMetres": 0.25,
+    "maxTauError": 9.048580773551862e-10,
+    "maxTransmissionError": 6.112159667281958e-10,
+    "maxFineConvergenceTau": 9.917484389276865e-9,
+    "worst": {
+      "name": "near-face-2-1-lane3",
+      "origin": [
+        40,
+        -20.5,
+        64
+      ],
+      "direction": [
+        0,
+        -1,
+        0
+      ],
+      "maximumDistance": "Infinity",
+      "tau": 0.9545122491400968,
+      "referenceTau": 0.9545122482352387,
+      "error": 9.048580773551862e-10,
+      "segments": [
+        {
+          "kind": "shell",
+          "start": 26.853978788975624,
+          "end": 115.14582468196653,
+          "localStart": 26.853978788975624,
+          "localEnd": 115.14582468196653,
+          "length": 88.2918458929909,
+          "tau": 0.3311310713916783,
+          "gaussSamples": 4
+        },
+        {
+          "kind": "core",
+          "start": 115.14582468196653,
+          "end": 163.85417531803347,
+          "localStart": 115.14582468196653,
+          "localEnd": 163.85417531803347,
+          "length": 48.70835063606694,
+          "tau": 0.2922501063567401,
+          "gaussSamples": 0
+        },
+        {
+          "kind": "shell",
+          "start": 163.85417531803347,
+          "end": 252.1460212110244,
+          "localStart": 163.85417531803347,
+          "localEnd": 252.1460212110244,
+          "length": 88.29184589299092,
+          "tau": 0.33113107139167836,
+          "gaussSamples": 4
+        }
+      ]
+    }
+  },
+  "independentAxisAntiderivativeMaximumTauError": 3.552713678800501e-15,
+  "sourceFloat32ConventionControl": {
+    "sampling": "Independent .125m composite Simpson of Float32 world input, explicit source XYZ dot order and rounded smoothstep/density operations. Continuous parameter model is intentionally separate.",
+    "maxTauDifference": 8.108497739911513e-7,
+    "maxTransmissionDifference": 1.4310155560526283e-7
+  },
+  "nearFaceControls": [
+    {
+      "axis": 0,
+      "sign": -1,
+      "point": [
+        -32,
+        -20.5,
+        0
+      ],
+      "transmission": [
+        1,
+        1,
+        1,
+        0.36919068848608794,
+        1,
+        0.9689163096164188,
+        1
+      ],
+      "tau": [
+        0,
+        0,
+        0,
+        0.9964419974567333,
+        0,
+        0.031577038606196185,
+        0
+      ]
+    },
+    {
+      "axis": 0,
+      "sign": 1,
+      "point": [
+        112,
+        -20.5,
+        0
+      ],
+      "transmission": [
+        1,
+        1,
+        1,
+        0.3243552495143169,
+        1,
+        0.7070521061784484,
+        1
+      ],
+      "tau": [
+        0,
+        0,
+        0,
+        1.1259159147328572,
+        0,
+        0.3466509154074599,
+        0
+      ]
+    },
+    {
+      "axis": 1,
+      "sign": -1,
+      "point": [
+        40,
+        -42,
+        0
+      ],
+      "transmission": [
+        0.9703379009121444,
+        0.999636808324584,
+        0.9999789637238948,
+        0.3387009010448616,
+        0.9998072335230671,
+        0.051044471890494436,
+        0.9999747046429365
+      ],
+      "tau": [
+        0.030110916689170902,
+        0.00036325764548625464,
+        0.00002103649737077199,
+        1.0826378588582544,
+        0.0001927850587782535,
+        2.9750580283742347,
+        0.000025295676996492727
+      ]
+    },
+    {
+      "axis": 1,
+      "sign": 1,
+      "point": [
+        40,
+        1,
+        0
+      ],
+      "transmission": [
+        1,
+        1,
+        1,
+        0.3386937760391902,
+        1,
+        1,
+        1
+      ],
+      "tau": [
+        0,
+        0,
+        0,
+        1.0826588953556249,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "axis": 2,
+      "sign": -1,
+      "point": [
+        40,
+        -20.5,
+        -64
+      ],
+      "transmission": [
+        1,
+        1,
+        1,
+        0.3061351097387236,
+        1,
+        0.8250370335129876,
+        1
+      ],
+      "tau": [
+        0,
+        0,
+        0,
+        1.1837287393838245,
+        0,
+        0.1923270045482902,
+        0
+      ]
+    },
+    {
+      "axis": 2,
+      "sign": 1,
+      "point": [
+        40,
+        -20.5,
+        64
+      ],
+      "transmission": [
+        1,
+        1,
+        1,
+        0.3849998827884064,
+        1,
+        0.8250370335129876,
+        1
+      ],
+      "tau": [
+        0,
+        0,
+        0,
+        0.9545122491400968,
+        0,
+        0.19232700454829016,
+        0
+      ]
+    }
+  ],
+  "checks": {
+    "tangentInnerOuterGrazing": true,
+    "negativeAxes": true,
+    "startInside": true,
+    "finiteAndZeroRay": true,
+    "farAxisOrigins1e8Metres": true,
+    "normalizedDirectionAndFiniteInputGuards": true,
+    "sourceIdentityAndSubstrateTamperGuards": true,
+    "immutableParameters": true,
+    "noOpacityEarlyExit": true,
+    "sourceUnchanged": true
+  },
+  "limits": [
+    "Four-point Gauss is mathematically exact for each shell polynomial segment of degree6; Double roots, coordinates and arithmetic have finite error.",
+    "Continuous Double evaluation with Float32 constants differs from native/GPU per-operation Float32/FMA, quantified only for the tested controls.",
+    "Very distant origins may lose source-scale precision during box-entry reconstruction; returned numerics reports a rounding scale, not a certified bound.",
+    "No image/radiance/multiple-scattering/native-render equivalence or GPU budget claim."
+  ],
+  "api": {
+    "load": "loadCloudSubstrateOpticalDepth(path?) verifies the exact saved field JSON and returns {identity,model,densityAt,integrate,input}.",
+    "create": "createCloudSubstrateOpticalDepth(actualRecord,{savedFieldJSONSha256?}) verifies Source19/source7 identity and exact substrate/bounds.",
+    "integrate": "integrate({origin:[x,y,z],direction:[dx,dy,dz],maximumDistance:Infinity}) -> {tau,transmission,segments,interval,identity,numerics?}; finite nonnegative maximumDistance allowed; direction must be normalized within1e-6 and is then normalized in Double.",
+    "segments": "At most three segments: shell/core/shell. At most eight Gauss density samples total; core uses constant density*length. No opacity threshold or early truncation."
+  },
+  "proofArtifacts": {
+    "harness": {
+      "path": "art/build/cloud-substrate-optical-depth/check.mjs",
+      "bytes": 8829,
+      "sha256": "1a2bca68dbb73228d45fef18b592a561bff16b9dcba8e898917b95b7e09e2eaf"
+    },
+    "detail": {
+      "path": "art/build/cloud-substrate-optical-depth/proof.json",
+      "bytes": 7275,
+      "sha256": "28b60115e5a676728677e028dd3eb55278741125e5c67c6b99276e964eedbe81"
+    },
+    "rows": {
+      "path": "art/build/cloud-substrate-optical-depth/rows.json",
+      "bytes": 25798,
+      "sha256": "3f51766d2be2e8f5d2cbfcf7396cf1b766ed7392fe1edd4badb0443c303a9f0c"
+    }
+  },
+  "validation": {
+    "scopedEslint": "PASS",
+    "nodeSyntax": "PASS",
+    "gpuContexts": 0,
+    "sceneOrRuntimeEdits": 0
+  }
+}

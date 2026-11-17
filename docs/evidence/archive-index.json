@@ -1,0 +1,803 @@
+{
+  "createdAt": "2026-11-17T02:06:03.485771+00:00",
+  "baseCommit": "8df1301",
+  "scope": "Working-tree evidence snapshot before Round1 bulk cleanup; immutable originals preserve their exact bytes. New round captures and videos stay under artifacts.",
+  "maximumTrackedTextBytes": 131072,
+  "archivedFiles": 132,
+  "archivedOriginalBytes": 137596464,
+  "archiveRoot": "artifacts/archive/evidence-8df1301",
+  "entries": [
+    {
+      "path": "docs/evidence/after-desktop-en-burning-dark-room.png",
+      "bytes": 1250590,
+      "sha256": "836471d9f1d5a74abb43a648b7219129690bc8e837705a8ae800e98417aa351e",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/after-desktop-en-burning-dark-room.png"
+    },
+    {
+      "path": "docs/evidence/after-desktop-en-butter-lamp-dark-room.png",
+      "bytes": 1226622,
+      "sha256": "53a465448af26f1731369065390a78f442fa9c760c2786a16eb604e41df31f60",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/after-desktop-en-butter-lamp-dark-room.png"
+    },
+    {
+      "path": "docs/evidence/after-desktop-en-my-candles.png",
+      "bytes": 203276,
+      "sha256": "150402c7c121ec3b40df06aa804a130807a205217b7bcbb5ddc89fae3a654021",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/after-desktop-en-my-candles.png"
+    },
+    {
+      "path": "docs/evidence/after-desktop-en-wish.png",
+      "bytes": 1228592,
+      "sha256": "01826ebe23d800b45ab60cedbf026a7e342646dd123340f37724de9bc7a637fd",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/after-desktop-en-wish.png"
+    },
+    {
+      "path": "docs/evidence/after-phone-zh-burning-dark-room.png",
+      "bytes": 331841,
+      "sha256": "665e0f4e90269dcf2001dd5de91da93cae271e137f8f656da2118cfff074f99a",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/after-phone-zh-burning-dark-room.png"
+    },
+    {
+      "path": "docs/evidence/after-phone-zh-butter-lamp-dark-room.png",
+      "bytes": 336152,
+      "sha256": "d703c4dc95322c4daf260242d3bc3a56a8d782f2acea8ea3535b9d58430c27da",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/after-phone-zh-butter-lamp-dark-room.png"
+    },
+    {
+      "path": "docs/evidence/after-phone-zh-my-candles.png",
+      "bytes": 102005,
+      "sha256": "a546c0b86ecba0cdd28fde77c411a264bfa4d7506b016ad455cd73ade2300baf",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/after-phone-zh-my-candles.png"
+    },
+    {
+      "path": "docs/evidence/after-phone-zh-wish.png",
+      "bytes": 272213,
+      "sha256": "ced1a348c307d7f76dad1b9f4777d2b840ebed39af47ab649cb8157f358f93cd",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/after-phone-zh-wish.png"
+    },
+    {
+      "path": "docs/evidence/before-desktop-en-burning-dark-room.png",
+      "bytes": 1410772,
+      "sha256": "857dc18f9249a08c7fbe4c11854b8c16ae096967d743160e9237cdd6c0a410f1",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/before-desktop-en-burning-dark-room.png"
+    },
+    {
+      "path": "docs/evidence/before-desktop-en-butter-lamp-dark-room.png",
+      "bytes": 1401639,
+      "sha256": "dc3558eee09966daeff46cd46928a3ae33aa2274ff32bbbc79333491a42a93fa",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/before-desktop-en-butter-lamp-dark-room.png"
+    },
+    {
+      "path": "docs/evidence/before-desktop-en-my-candles.png",
+      "bytes": 337058,
+      "sha256": "9957636540bdba6f3fb3162a617b0a261e623b88ce58f33d7548edbd3ef03f71",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/before-desktop-en-my-candles.png"
+    },
+    {
+      "path": "docs/evidence/before-desktop-en-wish.png",
+      "bytes": 1134212,
+      "sha256": "30e11639dd22292ca147eaa0a67032f9a0f274f838c768e1118d0f71ab662bb0",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/before-desktop-en-wish.png"
+    },
+    {
+      "path": "docs/evidence/before-phone-zh-burning-dark-room.png",
+      "bytes": 372719,
+      "sha256": "6669cc46702ec7828271f25955e5c1bd8b0200eaedb71b18836542f789ab7b2a",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/before-phone-zh-burning-dark-room.png"
+    },
+    {
+      "path": "docs/evidence/before-phone-zh-butter-lamp-dark-room.png",
+      "bytes": 372839,
+      "sha256": "d76c920885c32ebeab8ab01aa9cfae3ee312367eb065861d995fc76dbc6d71db",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/before-phone-zh-butter-lamp-dark-room.png"
+    },
+    {
+      "path": "docs/evidence/before-phone-zh-my-candles.png",
+      "bytes": 122173,
+      "sha256": "b231305ee7b870e406e593dd8b0ccdbdf7cd01769d0c060ed191697c80db7cf9",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/before-phone-zh-my-candles.png"
+    },
+    {
+      "path": "docs/evidence/before-phone-zh-wish.png",
+      "bytes": 321790,
+      "sha256": "0d5dbf02f2c827ce0674f9250484829ac834d2625370a5e784b450dd90c22788",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/before-phone-zh-wish.png"
+    },
+    {
+      "path": "docs/evidence/blender-pilot/contact-sampling/contact-texel-centres.npz",
+      "bytes": 834041,
+      "sha256": "1eda91ccc6227c3ccb94d7a641d4b1cd0ecd373ad31d0ce6b3b5931ddf371fd5",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/blender-pilot/contact-sampling/contact-texel-centres.npz"
+    },
+    {
+      "path": "docs/evidence/blender-pilot/contact-sampling/contact-valid-donors.json",
+      "bytes": 441452,
+      "sha256": "cbaeba03ac2ff63f951df130ff4e3e810da8b4cb198cbd0ab0ebd0e013dbc18f",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/blender-pilot/contact-sampling/contact-valid-donors.json"
+    },
+    {
+      "path": "docs/evidence/blender-pilot/contact-sampling/contact-valid-donors.npz",
+      "bytes": 156888,
+      "sha256": "8d1a971300ff6af23a49a2c0b2cf4a3e87c903db704c436ec4d07ca60e4f2fa5",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/blender-pilot/contact-sampling/contact-valid-donors.npz"
+    },
+    {
+      "path": "docs/evidence/blender-pilot/final-geometry/accepted-StepBankDetail.png",
+      "bytes": 704481,
+      "sha256": "1fa3b40c1d1355657e3ed48a60879b87532ca0b4a6fce6de2aa6ec4cbe4242e1",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/blender-pilot/final-geometry/accepted-StepBankDetail.png"
+    },
+    {
+      "path": "docs/evidence/blender-pilot/final-geometry/accepted-StepBanksWide.png",
+      "bytes": 692095,
+      "sha256": "9a4d618ed1abbcb6d3b66308e5fe6c9dd38f4aaa5cdde30f8aac1408c60ec576",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/blender-pilot/final-geometry/accepted-StepBanksWide.png"
+    },
+    {
+      "path": "docs/evidence/blender-pilot/final-geometry/study-cutouts-StepBankDetail.png",
+      "bytes": 738059,
+      "sha256": "427fceb381bd6e696dbcf490ab0f68154cff6d9b94e0bca7436522ff4fb17f64",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/blender-pilot/final-geometry/study-cutouts-StepBankDetail.png"
+    },
+    {
+      "path": "docs/evidence/blender-pilot/final-geometry/study-pads-StepSnowDetail.png",
+      "bytes": 708400,
+      "sha256": "0f0101662133ae14d8be73fe4741a1c0f7de0d83d641d906c9b3bb5db116b087",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/blender-pilot/final-geometry/study-pads-StepSnowDetail.png"
+    },
+    {
+      "path": "docs/evidence/blender-pilot/final-geometry/study-stripes-StepBankDetail.png",
+      "bytes": 751224,
+      "sha256": "d3438e45171931954b46cb43e2dd64f2e4af35f1867b6ea7b8248b33ad7f6acb",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/blender-pilot/final-geometry/study-stripes-StepBankDetail.png"
+    },
+    {
+      "path": "docs/evidence/blender-pilot/geometry-v2/BeamJoineryDetail.png",
+      "bytes": 357054,
+      "sha256": "5405445feeaef0f02985283a9747c00e2499a48b02034579a18900e0a33593e6",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/blender-pilot/geometry-v2/BeamJoineryDetail.png"
+    },
+    {
+      "path": "docs/evidence/blender-pilot/geometry-v2/DoorFloorDetail.png",
+      "bytes": 392080,
+      "sha256": "0d6691d27feed3d66c1e2606033065f10c79e323cef5810858e4ee9f0464dd5a",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/blender-pilot/geometry-v2/DoorFloorDetail.png"
+    },
+    {
+      "path": "docs/evidence/blender-pilot/geometry-v2/EaveDetail.png",
+      "bytes": 416319,
+      "sha256": "2339b3517fbf14189c0ddf4154ac44bd56596bd3774af05b2d5bd8d7df06becb",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/blender-pilot/geometry-v2/EaveDetail.png"
+    },
+    {
+      "path": "docs/evidence/blender-pilot/geometry-v2/RoofRidgeDetail.png",
+      "bytes": 418055,
+      "sha256": "6e9ec194a2bcc74a3bd26643ea4a18b3507a40f69aa26b19d1eb0ade89425fc5",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/blender-pilot/geometry-v2/RoofRidgeDetail.png"
+    },
+    {
+      "path": "docs/evidence/blender-pilot/geometry-v2/choose.png",
+      "bytes": 425942,
+      "sha256": "b6113c7368e0e69fe9acd6d251db39221b60aeb4e712237e0d71775660451e9c",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/blender-pilot/geometry-v2/choose.png"
+    },
+    {
+      "path": "docs/evidence/blender-pilot/geometry-v2/comparison-contact.jpg",
+      "bytes": 293961,
+      "sha256": "c88653e030890a58577fa40d2bcbf0e998297c667d70da764cefbbb19297e6f3",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/blender-pilot/geometry-v2/comparison-contact.jpg"
+    },
+    {
+      "path": "docs/evidence/blender-pilot/geometry-v2/comparison.html",
+      "bytes": 15919574,
+      "sha256": "73e7a4a34db332f7c06978342ad027ef9fcbe260af69a4a377676e6f9b367589",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/blender-pilot/geometry-v2/comparison.html"
+    },
+    {
+      "path": "docs/evidence/blender-pilot/geometry-v2/lit.png",
+      "bytes": 441149,
+      "sha256": "fea56474d9fd597db05dab81bbfcc1d2760ad9eed1f6fd126bb3d064557170f5",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/blender-pilot/geometry-v2/lit.png"
+    },
+    {
+      "path": "docs/evidence/blender-pilot/geometry-v2/outside.png",
+      "bytes": 378777,
+      "sha256": "86ecb0267a6e81e3398e3641fa92644ea97153fc042befae6cbb210e777c9120",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/blender-pilot/geometry-v2/outside.png"
+    },
+    {
+      "path": "docs/evidence/blender-pilot/geometry-v2/walk-1.png",
+      "bytes": 378865,
+      "sha256": "52ce113108bee942e17824b8407b773a6f461431ea6f736753a6e839e8177f2b",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/blender-pilot/geometry-v2/walk-1.png"
+    },
+    {
+      "path": "docs/evidence/blender-pilot/geometry-v2/walk-2.png",
+      "bytes": 379677,
+      "sha256": "40a12182d50ce92772a1ba156559ec5de46d2d8aa463e6c67fce84a358cd5899",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/blender-pilot/geometry-v2/walk-2.png"
+    },
+    {
+      "path": "docs/evidence/blender-pilot/geometry-v2/walk-3.png",
+      "bytes": 407083,
+      "sha256": "12cd0c797ef945d2087bd81c55a7db63c28c17dc4d43963f938eb8d1de433ee1",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/blender-pilot/geometry-v2/walk-3.png"
+    },
+    {
+      "path": "docs/evidence/blender-pilot/geometry-v3/BeamJoineryDetail.png",
+      "bytes": 357063,
+      "sha256": "4b04b410354b3b3abd8b991f69eed5a197c3b27beda520c20ae2f0d16a02302d",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/blender-pilot/geometry-v3/BeamJoineryDetail.png"
+    },
+    {
+      "path": "docs/evidence/blender-pilot/geometry-v3/DoorFloorDetail.png",
+      "bytes": 392231,
+      "sha256": "cd02eabb983a20733a119a4b751f4a89d3160c5e15d278e9e28f6891614fa5cd",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/blender-pilot/geometry-v3/DoorFloorDetail.png"
+    },
+    {
+      "path": "docs/evidence/blender-pilot/geometry-v3/EaveDetail.png",
+      "bytes": 426480,
+      "sha256": "774c4979e5fb313104470f81b1ca424340dab110611e9c19548d4ad855b70e5b",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/blender-pilot/geometry-v3/EaveDetail.png"
+    },
+    {
+      "path": "docs/evidence/blender-pilot/geometry-v3/RoofRidgeDetail.png",
+      "bytes": 433538,
+      "sha256": "23fad30ad91872bf9713784cdfd3dc69727ae80e308f91d4fa9ef6d487cc2b35",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/blender-pilot/geometry-v3/RoofRidgeDetail.png"
+    },
+    {
+      "path": "docs/evidence/blender-pilot/geometry-v3/StepWearDetail.png",
+      "bytes": 378864,
+      "sha256": "d54b80a9a75af20da9298386bfd1228a076f5a32309c24f0911afdd7e1866d42",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/blender-pilot/geometry-v3/StepWearDetail.png"
+    },
+    {
+      "path": "docs/evidence/blender-pilot/geometry-v3/choose.png",
+      "bytes": 425933,
+      "sha256": "f58c02b000195bb634b2876eb02d245a43a96a29f4cfe4cfc1a12e1c83685076",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/blender-pilot/geometry-v3/choose.png"
+    },
+    {
+      "path": "docs/evidence/blender-pilot/geometry-v3/comparison-contact.jpg",
+      "bytes": 294038,
+      "sha256": "9f725ade84242c4c21be0306ce2348c4d763bfc00974526f4949dc56b54bbe1d",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/blender-pilot/geometry-v3/comparison-contact.jpg"
+    },
+    {
+      "path": "docs/evidence/blender-pilot/geometry-v3/comparison.html",
+      "bytes": 17618272,
+      "sha256": "0fee0de7cc068a4c9ddab4536b0899ddbe95af219584da3f4e46be5d9647a71a",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/blender-pilot/geometry-v3/comparison.html"
+    },
+    {
+      "path": "docs/evidence/blender-pilot/geometry-v3/diagnostic-RoofRidgeDetail.png",
+      "bytes": 421145,
+      "sha256": "056329d08f23eaab401fb077c71492d58ecafbb20d60badc19b7ae11063a39af",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/blender-pilot/geometry-v3/diagnostic-RoofRidgeDetail.png"
+    },
+    {
+      "path": "docs/evidence/blender-pilot/geometry-v3/diagnostic-TileCourseDetail.png",
+      "bytes": 445767,
+      "sha256": "fe4a88034d2a15e92125b9389aeda2b551212c150a2036cf2854572fe8efdbc5",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/blender-pilot/geometry-v3/diagnostic-TileCourseDetail.png"
+    },
+    {
+      "path": "docs/evidence/blender-pilot/geometry-v3/lit.png",
+      "bytes": 441009,
+      "sha256": "cc4f9cc97851ca4f74016e09bcc6500e9c360dd386abb41cb6700e509e7452ba",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/blender-pilot/geometry-v3/lit.png"
+    },
+    {
+      "path": "docs/evidence/blender-pilot/geometry-v3/outside.png",
+      "bytes": 379507,
+      "sha256": "c6112d47036f5492c8831fc6261a7a6d3051c0426e077da89e653b66d852df27",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/blender-pilot/geometry-v3/outside.png"
+    },
+    {
+      "path": "docs/evidence/blender-pilot/geometry-v3/walk-1.png",
+      "bytes": 379543,
+      "sha256": "7b8c25cdff0a47d122d3cbb4e5feea2033031e394a1b987698d0f9efa69d8431",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/blender-pilot/geometry-v3/walk-1.png"
+    },
+    {
+      "path": "docs/evidence/blender-pilot/geometry-v3/walk-2.png",
+      "bytes": 380471,
+      "sha256": "196045c6d03ae3d689805e303a81529b4dff6cbb6774ea12a492b2770932d3f4",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/blender-pilot/geometry-v3/walk-2.png"
+    },
+    {
+      "path": "docs/evidence/blender-pilot/geometry-v3/walk-3.png",
+      "bytes": 406984,
+      "sha256": "20531389d6fcc3e6adde44e218fc8c34d1904f4567f4b6373b16b177a05f57a1",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/blender-pilot/geometry-v3/walk-3.png"
+    },
+    {
+      "path": "docs/evidence/blender-pilot/reference-desktop-contact.jpg",
+      "bytes": 89267,
+      "sha256": "b34c1c96dfb18e80529e81c6b0fa19947744b0f8af31f213ac8b5790fb5866e7",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/blender-pilot/reference-desktop-contact.jpg"
+    },
+    {
+      "path": "docs/evidence/blender-pilot/reference-desktop/choose.png",
+      "bytes": 1281906,
+      "sha256": "5a7f9a9f8e3ac2945ed582f6cc2fffdc5247af4639c36f81b43d77738a09d0f5",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/blender-pilot/reference-desktop/choose.png"
+    },
+    {
+      "path": "docs/evidence/blender-pilot/reference-desktop/lit.png",
+      "bytes": 1346535,
+      "sha256": "feac1cb200bc09a63f63e22bf016b0a2591ec476b34329be78b0c7029272a10f",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/blender-pilot/reference-desktop/lit.png"
+    },
+    {
+      "path": "docs/evidence/blender-pilot/reference-desktop/outside.png",
+      "bytes": 1344291,
+      "sha256": "47e7645d22bea908342e8b7715794af60ae05badbeae3d5e1a9cd3c8e545d1a4",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/blender-pilot/reference-desktop/outside.png"
+    },
+    {
+      "path": "docs/evidence/blender-pilot/reference-desktop/walk-1.png",
+      "bytes": 1344475,
+      "sha256": "d53d39329de50f48949f6e050a8f76369eca7953e7c4998d74ba0e7cf65690f5",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/blender-pilot/reference-desktop/walk-1.png"
+    },
+    {
+      "path": "docs/evidence/blender-pilot/reference-desktop/walk-2.png",
+      "bytes": 1357280,
+      "sha256": "65f20e6269701a36881095b73dcd7ab305c23783025946b7662745eea5e5c4a3",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/blender-pilot/reference-desktop/walk-2.png"
+    },
+    {
+      "path": "docs/evidence/blender-pilot/reference-desktop/walk-3.png",
+      "bytes": 1268004,
+      "sha256": "03880e6dd17bad7d7e2fe136959dafe697c9d1769bc8c613db40ad4ea2e86969",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/blender-pilot/reference-desktop/walk-3.png"
+    },
+    {
+      "path": "docs/evidence/codex-final-desktop-en-place-jokhang.png",
+      "bytes": 1160401,
+      "sha256": "1c8d3aac3390cbb02823ccdc0a35a1a6dfa1e31894975678e22a0c9ed2480489",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/codex-final-desktop-en-place-jokhang.png"
+    },
+    {
+      "path": "docs/evidence/codex-final-desktop-en-place-lingyin.png",
+      "bytes": 1107053,
+      "sha256": "13b7833d8ab99c880c33eb2153498d85c609da389a3a36a5358697e88dc5a2db",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/codex-final-desktop-en-place-lingyin.png"
+    },
+    {
+      "path": "docs/evidence/codex-final-desktop-en-ten-lights.png",
+      "bytes": 236201,
+      "sha256": "9cea14973db7aa2da681ab63c0e3c50ee923ffbea17918ff5a7ce1f1024dee53",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/codex-final-desktop-en-ten-lights.png"
+    },
+    {
+      "path": "docs/evidence/codex-final-desktop-en-went-out-smoke.png",
+      "bytes": 1186807,
+      "sha256": "3ca46de3c7c82f8e087097778414676fa2c5b94b1d010bc048f429f37afc8105",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/codex-final-desktop-en-went-out-smoke.png"
+    },
+    {
+      "path": "docs/evidence/codex-final-desktop-en-wish.png",
+      "bytes": 1228592,
+      "sha256": "01826ebe23d800b45ab60cedbf026a7e342646dd123340f37724de9bc7a637fd",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/codex-final-desktop-en-wish.png"
+    },
+    {
+      "path": "docs/evidence/resting-props/contact-audit.json",
+      "bytes": 292520,
+      "sha256": "1f722140f258eb74b02f6db1760960de056567dfe1fba64392d933d6d8a2a290",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/resting-props/contact-audit.json"
+    },
+    {
+      "path": "docs/evidence/resting-props/provenance.json",
+      "bytes": 4612814,
+      "sha256": "781001997cfd2503419a5941d5059e6c58afc280afd77af7aa2b5a40b673fd6b",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/resting-props/provenance.json"
+    },
+    {
+      "path": "docs/evidence/resting-props/views/desktop-en/altar-burner-contact-after.png",
+      "bytes": 712182,
+      "sha256": "783f4619a9b62f186cff545af639704839f167fb2e3fffb49d0f00b6e4373855",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/resting-props/views/desktop-en/altar-burner-contact-after.png"
+    },
+    {
+      "path": "docs/evidence/resting-props/views/desktop-en/altar-burner-contact-before.png",
+      "bytes": 723128,
+      "sha256": "4503bbda0cbab6663f7e033e1caf8f0f1a1f2388278ee4e1afeb1d2e55e6bf7b",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/resting-props/views/desktop-en/altar-burner-contact-before.png"
+    },
+    {
+      "path": "docs/evidence/resting-props/views/desktop-en/altar-left-contact-after.png",
+      "bytes": 973284,
+      "sha256": "f58afa005b71ff4038bd9123adf33d08e1d53a186612ac59989bf6c1d8a7b490",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/resting-props/views/desktop-en/altar-left-contact-after.png"
+    },
+    {
+      "path": "docs/evidence/resting-props/views/desktop-en/altar-left-contact-before.png",
+      "bytes": 986761,
+      "sha256": "ea437ba0a1decbb44a59e73e270dbe42f00aae3c099089e9ecd713d342ea819b",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/resting-props/views/desktop-en/altar-left-contact-before.png"
+    },
+    {
+      "path": "docs/evidence/resting-props/views/desktop-en/altar-right-contact-after.png",
+      "bytes": 963886,
+      "sha256": "e4ebb3784253195043167bdfa81d130f5c3a1978587e9b5c66809412ed738258",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/resting-props/views/desktop-en/altar-right-contact-after.png"
+    },
+    {
+      "path": "docs/evidence/resting-props/views/desktop-en/altar-right-contact-before.png",
+      "bytes": 984462,
+      "sha256": "4bca8ad837e919a42648896b6c6c310f37ce7f61f3d992b70696df4276762464",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/resting-props/views/desktop-en/altar-right-contact-before.png"
+    },
+    {
+      "path": "docs/evidence/resting-props/views/desktop-en/burnFar-after.png",
+      "bytes": 1244699,
+      "sha256": "327b5de8963aeb805ebcabf246267b797e9e12c53da67802597470f449a3c24b",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/resting-props/views/desktop-en/burnFar-after.png"
+    },
+    {
+      "path": "docs/evidence/resting-props/views/desktop-en/burnFar-before.png",
+      "bytes": 1246331,
+      "sha256": "4c5f77c6cc68327b1610d0bfdd2bf6a44b6bdede1092f721938db3a40029a85f",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/resting-props/views/desktop-en/burnFar-before.png"
+    },
+    {
+      "path": "docs/evidence/resting-props/views/desktop-en/burning-after.png",
+      "bytes": 1283256,
+      "sha256": "6bcea885b3eeff174e0f42e40b7ec95e03770d471da91ac581fe48d7f993bb4a",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/resting-props/views/desktop-en/burning-after.png"
+    },
+    {
+      "path": "docs/evidence/resting-props/views/desktop-en/burning-before.png",
+      "bytes": 1285587,
+      "sha256": "e3800a30192601903cdf31a306a50248553d90ae17539328ba92d47060ded45b",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/resting-props/views/desktop-en/burning-before.png"
+    },
+    {
+      "path": "docs/evidence/resting-props/views/desktop-en/low-altar-edge-after.png",
+      "bytes": 1127194,
+      "sha256": "9ad2b041ebc12462732820cb0609e5260c94097b3e6ff541570ffaf724460c67",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/resting-props/views/desktop-en/low-altar-edge-after.png"
+    },
+    {
+      "path": "docs/evidence/resting-props/views/desktop-en/low-altar-edge-before.png",
+      "bytes": 1147567,
+      "sha256": "f49df41fefff2056266a63b3d3382bbb7611fc6ffacd4b7f1e7a460189425445",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/resting-props/views/desktop-en/low-altar-edge-before.png"
+    },
+    {
+      "path": "docs/evidence/resting-props/views/phone-zh/altar-burner-contact-after.png",
+      "bytes": 249378,
+      "sha256": "b20a9964a3837c2b863bbde428b9afdd2b5070c8d12b52e5459be1f3a5b90d78",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/resting-props/views/phone-zh/altar-burner-contact-after.png"
+    },
+    {
+      "path": "docs/evidence/resting-props/views/phone-zh/altar-burner-contact-before.png",
+      "bytes": 253822,
+      "sha256": "7cf2ab3a838b16218bc01768341f85cead11393ec7bcccf15b39551d3b44b6f0",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/resting-props/views/phone-zh/altar-burner-contact-before.png"
+    },
+    {
+      "path": "docs/evidence/resting-props/views/phone-zh/altar-left-contact-after.png",
+      "bytes": 316566,
+      "sha256": "5e4607759e781acba5709d2faa0c56609312d26b8cdcdc1534b9b716837ebfed",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/resting-props/views/phone-zh/altar-left-contact-after.png"
+    },
+    {
+      "path": "docs/evidence/resting-props/views/phone-zh/altar-left-contact-before.png",
+      "bytes": 318327,
+      "sha256": "3bca12603d9a6ebdcf74b78bd13bce15147df7b0501617ea99999972037aefe7",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/resting-props/views/phone-zh/altar-left-contact-before.png"
+    },
+    {
+      "path": "docs/evidence/resting-props/views/phone-zh/altar-right-contact-after.png",
+      "bytes": 325304,
+      "sha256": "b44fc5fedeeadb1d3379f12b8d670172277debf72029f312cbae706d7f03a159",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/resting-props/views/phone-zh/altar-right-contact-after.png"
+    },
+    {
+      "path": "docs/evidence/resting-props/views/phone-zh/altar-right-contact-before.png",
+      "bytes": 326158,
+      "sha256": "6203a46de1c24bbe698fedd009b703b1780c52dc01a1243614899c459ff4f1a7",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/resting-props/views/phone-zh/altar-right-contact-before.png"
+    },
+    {
+      "path": "docs/evidence/resting-props/views/phone-zh/burnFar-after.png",
+      "bytes": 288260,
+      "sha256": "4f4faa554c9c651b2a37034acba90ef30018654f222f7f757f59146efeb0440e",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/resting-props/views/phone-zh/burnFar-after.png"
+    },
+    {
+      "path": "docs/evidence/resting-props/views/phone-zh/burnFar-before.png",
+      "bytes": 288610,
+      "sha256": "3b2307c2b11237502f2864ed77e66bb07646fe5f5ddabb61535595f4c3c49170",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/resting-props/views/phone-zh/burnFar-before.png"
+    },
+    {
+      "path": "docs/evidence/resting-props/views/phone-zh/burning-after.png",
+      "bytes": 291607,
+      "sha256": "3153cac4917a0b9568757335a02c3b6642ad7fa033c65dec025c47877c12d969",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/resting-props/views/phone-zh/burning-after.png"
+    },
+    {
+      "path": "docs/evidence/resting-props/views/phone-zh/burning-before.png",
+      "bytes": 291106,
+      "sha256": "b84f4f3e2ed7fb8a202ed1655f11767c86afb007efb90fc055839e36f9985c0c",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/resting-props/views/phone-zh/burning-before.png"
+    },
+    {
+      "path": "docs/evidence/resting-props/views/phone-zh/low-altar-edge-after.png",
+      "bytes": 364323,
+      "sha256": "3325715d3eb2ff0e32a600f45446f893eb1d6224048fbb3963ef14cf868b2fa9",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/resting-props/views/phone-zh/low-altar-edge-after.png"
+    },
+    {
+      "path": "docs/evidence/resting-props/views/phone-zh/low-altar-edge-before.png",
+      "bytes": 365808,
+      "sha256": "fc43418191e18ad7e627b2d96bb62851b473ca27e4537179963c38222b403feb",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/resting-props/views/phone-zh/low-altar-edge-before.png"
+    },
+    {
+      "path": "docs/evidence/round2-desktop-en-burning-dark-room.png",
+      "bytes": 1290705,
+      "sha256": "15e21d5576d4a7f84c7f4e16cbb60fa491f9587dfaf65fe2b91a2761dfffdaab",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/round2-desktop-en-burning-dark-room.png"
+    },
+    {
+      "path": "docs/evidence/round2-desktop-en-butter-lamp-dark-room.png",
+      "bytes": 1302892,
+      "sha256": "b23799482a613c7a43624c714d221f57fb34b36d31a21edebe7622fc934d999b",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/round2-desktop-en-butter-lamp-dark-room.png"
+    },
+    {
+      "path": "docs/evidence/round2-desktop-en-place-jokhang.png",
+      "bytes": 1228810,
+      "sha256": "635eda2f54eb167d50d500f125534db9c5d17294404c9464f1d35b9c8af3ab56",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/round2-desktop-en-place-jokhang.png"
+    },
+    {
+      "path": "docs/evidence/round2-desktop-en-place-lingyin.png",
+      "bytes": 1171554,
+      "sha256": "54710c9e69fe437d437f12a35325c5172e3c5872209876e04bf3a55c09d77c3e",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/round2-desktop-en-place-lingyin.png"
+    },
+    {
+      "path": "docs/evidence/round2-desktop-en-ten-lights.png",
+      "bytes": 490183,
+      "sha256": "b7c55c64320414afcb9ab8623b32c24e49f3dc1f3529483f80689b95cc9949ba",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/round2-desktop-en-ten-lights.png"
+    },
+    {
+      "path": "docs/evidence/round2-desktop-en-went-out-smoke.png",
+      "bytes": 1187376,
+      "sha256": "a8ccda5214144acf74df6d94af998b202e1ce2e7f98b894715bb9f10ee5a9d99",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/round2-desktop-en-went-out-smoke.png"
+    },
+    {
+      "path": "docs/evidence/round2-desktop-en-wish.png",
+      "bytes": 1216492,
+      "sha256": "8b517bed3aa3cb59a2b10eb781d3141dfb9dd6eb85633fbbec6c9c14919748eb",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/round2-desktop-en-wish.png"
+    },
+    {
+      "path": "docs/evidence/round2-performance.json",
+      "bytes": 1197592,
+      "sha256": "f1efbd348d67f2fd82fe3ce9889a28186900f2acae2b6fb6b6dbc8fe9e251632",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/round2-performance.json"
+    },
+    {
+      "path": "docs/evidence/round2-phone-zh-burning-dark-room.png",
+      "bytes": 341100,
+      "sha256": "e95a3f7ecda0ed627b69b879e3db0ad5d3c3e08ea9f8319595c979c666d3ee8e",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/round2-phone-zh-burning-dark-room.png"
+    },
+    {
+      "path": "docs/evidence/round2-phone-zh-butter-lamp-dark-room.png",
+      "bytes": 342674,
+      "sha256": "91fa45023a6d10d876b943da9992960b85431f7cb9d27f619e0828704e74e5aa",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/round2-phone-zh-butter-lamp-dark-room.png"
+    },
+    {
+      "path": "docs/evidence/snow-journey/all_static_fixed_grade.png",
+      "bytes": 1395280,
+      "sha256": "9e08e6e6595c059208166022acfd16000b7225854545154a829a4ac50c903c55",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/snow-journey/all_static_fixed_grade.png"
+    },
+    {
+      "path": "docs/evidence/snow-journey/all_static_temporal_grade.png",
+      "bytes": 1395755,
+      "sha256": "3152b5962190d16947b49ea6b71366bd272330a0f12c91a01620269d54df8b97",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/snow-journey/all_static_temporal_grade.png"
+    },
+    {
+      "path": "docs/evidence/snow-journey/before-contact/desktop-en-1.jpg",
+      "bytes": 227511,
+      "sha256": "1521a9726d63e295f14ebc8a3d30a16a1bd76f72e8cfb4ee335989292e3b8388",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/snow-journey/before-contact/desktop-en-1.jpg"
+    },
+    {
+      "path": "docs/evidence/snow-journey/before-contact/desktop-en-2.jpg",
+      "bytes": 208455,
+      "sha256": "d4b2262e0efc38ff16d30556caf9203c3fb33735085ceb0b6b570d1430702291",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/snow-journey/before-contact/desktop-en-2.jpg"
+    },
+    {
+      "path": "docs/evidence/snow-journey/before-contact/desktop-en-3.jpg",
+      "bytes": 190991,
+      "sha256": "1b3014902cb3b5306582e9d592662de40e0225d538d9d5bf277e145e0cd2c8e3",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/snow-journey/before-contact/desktop-en-3.jpg"
+    },
+    {
+      "path": "docs/evidence/snow-journey/before-contact/desktop-en-4.jpg",
+      "bytes": 97587,
+      "sha256": "35e71db96286846ffd8d1d3f3f6e09cff0e4f5b1bc3dd28a80b4c2b8206bb33b",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/snow-journey/before-contact/desktop-en-4.jpg"
+    },
+    {
+      "path": "docs/evidence/snow-journey/before-contact/phone-zh-1.jpg",
+      "bytes": 160274,
+      "sha256": "d9de2fdb0967b69a010781c6b6832f1e580af124ccb9e5f0e37c9bb442280bbd",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/snow-journey/before-contact/phone-zh-1.jpg"
+    },
+    {
+      "path": "docs/evidence/snow-journey/before-contact/phone-zh-2.jpg",
+      "bytes": 153289,
+      "sha256": "2fe20aca919d6631a3b20828d6312b191783e2357cd47b6e0058ba580d191463",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/snow-journey/before-contact/phone-zh-2.jpg"
+    },
+    {
+      "path": "docs/evidence/snow-journey/before-contact/phone-zh-3.jpg",
+      "bytes": 143602,
+      "sha256": "f8f09dfeb60b200f3f9e2bfb9b9f3a0ede1a71dc414ddbe089e794c67c6a042c",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/snow-journey/before-contact/phone-zh-3.jpg"
+    },
+    {
+      "path": "docs/evidence/snow-journey/before-contact/phone-zh-4.jpg",
+      "bytes": 93818,
+      "sha256": "ee0571cb4459d45c00d32c3d425417ecf23b2ed79fea79cc606a7fcf97feb919",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/snow-journey/before-contact/phone-zh-4.jpg"
+    },
+    {
+      "path": "docs/evidence/snow-journey/before-summary.json",
+      "bytes": 311089,
+      "sha256": "cbac9c1f3bbcab74ba7e19b6469aa55aa1a9276ac608557e4a4997b6e2164195",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/snow-journey/before-summary.json"
+    },
+    {
+      "path": "docs/evidence/snow-journey/final-ab-preflight.json",
+      "bytes": 270321,
+      "sha256": "133b41ce10853d07588bce676a66f11d6b7cae11d5c16fc0f45d88f4ec0e8e21",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/snow-journey/final-ab-preflight.json"
+    },
+    {
+      "path": "docs/evidence/snow-journey/final-contact-summary.json",
+      "bytes": 1938166,
+      "sha256": "b43f415d247321100d04c60e90c7ae54fe522b472c0fabe5094b7c3c2231715a",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/snow-journey/final-contact-summary.json"
+    },
+    {
+      "path": "docs/evidence/snow-journey/final-delivery-summary.json",
+      "bytes": 19373071,
+      "sha256": "e4c4b8ffb01f2434d4a76e7fb157ddf66669bcb5c9a1714193fc9bb6b81186db",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/snow-journey/final-delivery-summary.json"
+    },
+    {
+      "path": "docs/evidence/snow-journey/metal-preview/Reference_walk-3.png",
+      "bytes": 409974,
+      "sha256": "6546cd27be0bb813da40df135347c120ffb742a13c0a6573b512aa5aa0a4aaa9",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/snow-journey/metal-preview/Reference_walk-3.png"
+    },
+    {
+      "path": "docs/evidence/snow-journey/night3-contact/desktop-en-1.jpg",
+      "bytes": 209743,
+      "sha256": "a9b138b498b15365f541ddff540bb7ca33411cad2376a94ad833749b0a995937",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/snow-journey/night3-contact/desktop-en-1.jpg"
+    },
+    {
+      "path": "docs/evidence/snow-journey/night3-contact/desktop-en-2.jpg",
+      "bytes": 173527,
+      "sha256": "33edd1c16b8f4f6ce037673d931a96d1df23a565d8a2134833893cbfac3b9470",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/snow-journey/night3-contact/desktop-en-2.jpg"
+    },
+    {
+      "path": "docs/evidence/snow-journey/night3-contact/desktop-en-3.jpg",
+      "bytes": 170018,
+      "sha256": "f9575240fe66ca501d4a08525f8743135fa852d8701311ee6139522f358afe81",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/snow-journey/night3-contact/desktop-en-3.jpg"
+    },
+    {
+      "path": "docs/evidence/snow-journey/night3-contact/desktop-en-4.jpg",
+      "bytes": 207951,
+      "sha256": "86bb840e3f7e691d9402299d66567366880cc540997054d304530d8ac3bba8da",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/snow-journey/night3-contact/desktop-en-4.jpg"
+    },
+    {
+      "path": "docs/evidence/snow-journey/night3-contact/desktop-en-5.jpg",
+      "bytes": 204992,
+      "sha256": "33470d0586689d7e09be5283cf92ec617b62e1b0ab711d8bf10b8ffc8e382cd5",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/snow-journey/night3-contact/desktop-en-5.jpg"
+    },
+    {
+      "path": "docs/evidence/snow-journey/night3-contact/desktop-en-6.jpg",
+      "bytes": 160403,
+      "sha256": "e223be1b33d7cd8d1c28603053da2b78fdcc142aecac7eed5512b89331a22674",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/snow-journey/night3-contact/desktop-en-6.jpg"
+    },
+    {
+      "path": "docs/evidence/snow-journey/night3-contact/desktop-en-7.jpg",
+      "bytes": 106561,
+      "sha256": "04242c4a34d8439ba30896d1555331872e3329c5b9b41d095cdfb003d15b3c67",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/snow-journey/night3-contact/desktop-en-7.jpg"
+    },
+    {
+      "path": "docs/evidence/snow-journey/night3-contact/phone-zh-1.jpg",
+      "bytes": 152562,
+      "sha256": "1656cb98dcc4b0c5dcd247f91fcc506118fe394bcdc0b627da3174c64ed0ae2c",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/snow-journey/night3-contact/phone-zh-1.jpg"
+    },
+    {
+      "path": "docs/evidence/snow-journey/night3-contact/phone-zh-2.jpg",
+      "bytes": 148764,
+      "sha256": "3d1755f8eab1347772c61dd4e05702004ce65db3d5ee18370204440c57ef6dc4",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/snow-journey/night3-contact/phone-zh-2.jpg"
+    },
+    {
+      "path": "docs/evidence/snow-journey/night3-contact/phone-zh-3.jpg",
+      "bytes": 154720,
+      "sha256": "7df3e1b57b1e314c297f5da2c00ca559187d08eb7e993d94f9b613247c30e647",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/snow-journey/night3-contact/phone-zh-3.jpg"
+    },
+    {
+      "path": "docs/evidence/snow-journey/night3-contact/phone-zh-4.jpg",
+      "bytes": 164122,
+      "sha256": "b3ff509385124fdec012da49f9bc256d0b6f2bd658edd52c7038bef44d415920",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/snow-journey/night3-contact/phone-zh-4.jpg"
+    },
+    {
+      "path": "docs/evidence/snow-journey/night3-contact/phone-zh-5.jpg",
+      "bytes": 157455,
+      "sha256": "93bde25ed85a1450440b74182abf53cc35a276b1d0bbf4cfd7016d961f4c5c78",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/snow-journey/night3-contact/phone-zh-5.jpg"
+    },
+    {
+      "path": "docs/evidence/snow-journey/night3-contact/phone-zh-6.jpg",
+      "bytes": 132796,
+      "sha256": "9b9eff46d4d2361517e9b678ba59cd2f2c2ccac7e33530bc8908474774a07161",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/snow-journey/night3-contact/phone-zh-6.jpg"
+    },
+    {
+      "path": "docs/evidence/snow-journey/night3-contact/phone-zh-7.jpg",
+      "bytes": 125470,
+      "sha256": "c58591f2a2ed207ffe27f5a124e9b15aef88ba2b9bc5af7a890b898f22b1f77a",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/snow-journey/night3-contact/phone-zh-7.jpg"
+    },
+    {
+      "path": "docs/evidence/snow-journey/night3-luma-recomputation.json",
+      "bytes": 245449,
+      "sha256": "cf7d35223b430fd1ea45f8f46725f91c1a1e7553620751df53de05fc059db584",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/snow-journey/night3-luma-recomputation.json"
+    },
+    {
+      "path": "docs/evidence/snow-journey/night3-summary.json",
+      "bytes": 4356840,
+      "sha256": "4fc3b727410d9be22def31265d1877d355a6e13ac3c53586509c542aff716153",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/snow-journey/night3-summary.json"
+    },
+    {
+      "path": "docs/evidence/time-of-day-jokhang.png",
+      "bytes": 755176,
+      "sha256": "a371a737e835697d3d7f2cf9b3827f28c27c10b829d1194677db1ec3f3d7758e",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/time-of-day-jokhang.png"
+    },
+    {
+      "path": "docs/evidence/time-of-day-qufu.png",
+      "bytes": 777088,
+      "sha256": "9c9db9a19d3594d4e9a597a78086e5ba0b084268f940b8fb34234570ddb51794",
+      "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/time-of-day-qufu.png"
+    }
+  ]
+}

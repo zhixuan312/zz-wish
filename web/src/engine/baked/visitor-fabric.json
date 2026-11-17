@@ -1,0 +1,39 @@
+{
+  "version": 1,
+  "sourceAsset": "https://polyhaven.com/a/rough_linen",
+  "license": "CC0-1.0",
+  "maps": {
+    "weave": {
+      "path": "/places/snow-roof/gauze-weave.webp",
+      "sha256": "5008bae957c0c26a4323356b5c8922c4559d28e3d192c3fc725ba87db57c98b6",
+      "bytes": 41290,
+      "width": 511,
+      "height": 512,
+      "colourSpace": "sRGB"
+    },
+    "normal": {
+      "path": "/places/snow-roof/gauze-normal.webp",
+      "sha256": "599ba576df8863b328f96c543c1485ea2af14f02b2ca99bd2d735ac89c5b332f",
+      "bytes": 349898,
+      "width": 511,
+      "height": 512,
+      "colourSpace": "none"
+    },
+    "roughness": {
+      "path": "/places/snow-roof/gauze-roughness.webp",
+      "sha256": "aa1de52d1bf84dd3fee42fd55e7ba2c56da6df22232f820453ca9dba453aec33",
+      "bytes": 54,
+      "width": 511,
+      "height": 512,
+      "colourSpace": "none"
+    }
+  },
+  "meanLinearLuminance": 0.3978935245323998,
+  "normalConvention": "OpenGL +Y",
+  "sourceDimensionsMillimetres": [
+    270.7081392676629,
+    271.29998803138733
+  ],
+  "totalBytes": 391242,
+  "provenance": "docs/licenses/lantern-fabric.json"
+}

@@ -1,0 +1,96 @@
+{
+  "status": "CPU-staged integrationV2 only; no GPU retry/visual/performance/public approval.",
+  "sourceSha256": "e1fab71cd2500b53a0c3d925b579352c428f023506567266f9b1c7f078cc85a5",
+  "fieldHelper": {
+    "path": "/Users/xuan/Documents/code/zz-wish/art/build/cloud-cliff-round1/runtime-v16-primary-v2-stage/cloud-field-v6.js",
+    "sha256": "387b0ce53d82e8ae0c529f62251875b77f2a705bea102b1f39a44141c2c85bc8"
+  },
+  "primaryHelper": {
+    "path": "/Users/xuan/Documents/code/zz-wish/art/build/cloud-cliff-round1/runtime-v16-primary-v2-stage/cloud-primary-v2.js",
+    "sha256": "6c47486c9327d4f091355873c01e717084ee1ada62dc05a43daff900bea53270"
+  },
+  "descriptor": {
+    "path": "/Users/xuan/Documents/code/zz-wish/art/build/cloud-cliff-round1/runtime-v16-primary-v2-stage/cloud-cliff-baked.js",
+    "sha256": "d5c08655b08a13a87c34587d8155efc7f48a493a672f69a13fd133d47fbe76de"
+  },
+  "stageReceipt": {
+    "path": "art/build/cloud-cliff-round1/runtime-v16-primary-v2-stage/staging-receipt.json",
+    "sha256": "71abf9b2f98a451b43a033b860fab2608b6c45e1fc9f5e1ad2cbdf28acc729b3"
+  },
+  "primaryNumerical": {
+    "path": "art/build/cloud-cliff-round1/integration-query-ray-study-v1/ray-study.json",
+    "sha256": "e3834fab9ca3d0f4fd8d95fcdeef79d6b6920b3f713873426bd1e76ec53cab49",
+    "rayCount": 20,
+    "selected": {
+      "settings": {
+        "cap": 256,
+        "bankStep": 0.5,
+        "distanceStart": 0,
+        "distanceRate": 0.003,
+        "maxBankStep": 3,
+        "substrateStep": 8
+      },
+      "maximumPlannedSamples": 256,
+      "plannedCapRays": 6,
+      "unsafeVisibleCapRays": 0,
+      "maximumActualVisibleSamples": 245,
+      "maximumAlphaError": 0.002144605239524311,
+      "maximumFullOpticalDepthError": 0.018411347739180073,
+      "maximumScatteringDepthErrorMetres": 2.1026222112333244
+    }
+  },
+  "lightingNumerical": {
+    "path": "art/build/cloud-cliff-round1/light-cell-query-study-v1/study.json",
+    "sha256": "f5dd634dba3abc5441e876792ead8a3c529d4bbb2034e245baef2fd3f7230b4c",
+    "scope": "Actual20 numeric rays, not a CPU image. Reference primary.25m with the unchanged12-segment secondary solver. Optical-mass lighting cells preserve all source illumination and fine-step distance-air contribution; sample source at attenuated-scattering centroid. Secondary18 is a separate sampling control, never additional illumination. Geometry terrain stop uses the already-measured continuous ray stop, so this is a light-quadrature study, not a new terrain proof.",
+    "referenceSame12": true,
+    "profile": {
+      "cells": 24,
+      "lightSegments": 12,
+      "maximumLightingLookups": 20,
+      "maximumAbsoluteRGBErrorAgainstReferenceSame12": 0.0005969771070135146,
+      "maximumAbsoluteRGBErrorAgainstFineCoupledSame12": 0.0007091089161840453,
+      "worstExplicitDensityCallBound": 2356
+    }
+  },
+  "workBudget": {
+    "baselineWorstDensityCalls": 4080,
+    "failedV1WorstDensityCalls": 21760,
+    "candidateV2WorstDensityCalls": 2356,
+    "primaryCap": 256,
+    "maximumLightingCells": 25,
+    "privateIntervalEntries": 0,
+    "insertionSort": false,
+    "emittedFragmentBytes": 24561,
+    "baselineFragmentBytes": 20353,
+    "actualCompiledIRAvailable": false,
+    "gpuTimingClaim": false
+  },
+  "failedV1": {
+    "path": "artifacts/full-review/round-1/cloud-source16-primary-v1-night/failed-run-receipt.json",
+    "sha256": "58f55c4b07d4352925246f08bd57956e93541969fd087c92e9aadbc6cc1d4ad0",
+    "invalidEntirelyBlackCanvas": true,
+    "contextLoss": true,
+    "targetedStopExitCode": 130,
+    "incompleteOriginalFingerprintScope": true,
+    "driverCauseNotIsolated": true
+  },
+  "healthGuard": {
+    "path": "tests/visual/cloud-v16-runtime-study.mjs",
+    "sha256": "da12f7b6d58c989df52954359a77f46b4f345c680db8200d8796d70ed08d7976",
+    "checks": [
+      "actualcontext.isContextLost before and after two additional RAFs",
+      "context loss DOM events",
+      "all-black RGB rejection",
+      "runtime/HTTP/shader errors",
+      "preflight fingerprint persisted before browser",
+      "failure receipt/cleanup"
+    ]
+  },
+  "scopeLimits": [
+    "No driver compile/unroll/stack cause asserted for failedV1.",
+    "Same12 secondary reference remains aliased; cells do not add illumination or imply converged native lighting.",
+    "20 rays do not establish all-view cap safety.",
+    "Public/source16/assets/HERO/materials/source radiance unchanged."
+  ]
+}

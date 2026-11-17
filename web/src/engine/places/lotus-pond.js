@@ -43,7 +43,7 @@ export default function createPlace(h) {
       approach: [V3(-3, 1.6, 3.35), V3(1, 1.6, 2.8)],
       wide: { pos: V3(.6, 1.55, 2.05), look: V3(0, .65, -.55) },
       burn: { pos: V3(.45, 1.4, 1.95), look: V3(0, .63, -.55) },
-      async build(hh, C) {
+      async build(hh, _C) {
         const { THREE, M, box, put, otherLamp, pavingTex, pauseBuild } = hh;
         const pale = M(0xc9c1b2, .76, { map: pavingTex });
         // An open lamp alcove projects from the bridge's west rail. The camera remains on the bridge;

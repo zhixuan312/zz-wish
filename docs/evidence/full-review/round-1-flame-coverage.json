@@ -1,0 +1,1087 @@
+{
+  "scope": "Actual Chrome/WebKit,1440x900/390x844 isolated A/B. Four fixed quarter-pixel SDF evaluations integrate premultiplied linear colour and alpha, then unpremultiply for existing SrcAlpha/One blending. Geometry/power/size/point/depth unchanged.",
+  "studies": [
+    {
+      "study": "flame-coverage",
+      "fullReport": {
+        "path": "artifacts/full-review/round-1/flame-coverage/report.json",
+        "bytes": 172943,
+        "sha256": "7b19e6a49a4fa6586debc7727ea074a19354426d1cd3ceb6a8aa4180487f1de2"
+      },
+      "scope": "Isolated actual source16 storm flame four-sample pixel integration A/B. No geometry, power, gain, seed, time or depth change.",
+      "sourceStartFingerprint": "1ceb850e95500ba7c4798bd1b7d5a866b54def6de5b6a4af235796f80744ce19",
+      "sourceEndFingerprint": "1ceb850e95500ba7c4798bd1b7d5a866b54def6de5b6a4af235796f80744ce19",
+      "sourceChanged": false,
+      "frames": [
+        {
+          "kind": "chromium",
+          "name": "desktop",
+          "close": false,
+          "aa": false,
+          "file": "artifacts/full-review/round-1/flame-coverage/chromium-desktop-cover-baseline.png",
+          "sha256": "c25fdbaa53e627d85347e28f4a77bee6e4e4b2f497025641c07d9a92dab2e1a5",
+          "health": {
+            "available": true,
+            "lost": false,
+            "events": []
+          },
+          "coverage": {
+            "samples": 1,
+            "scale": 0.04934403162663449,
+            "power": 1,
+            "depthTest": true,
+            "world": [
+              4.500392913818359,
+              1.7945620079040527,
+              -9.184851316840576e-20
+            ],
+            "integration": "Four fixed quarter-pixel offsets using actual UV derivatives, alpha-weighted linear radiance; unchanged SDF/size/power/light."
+          },
+          "alignment": null
+        },
+        {
+          "kind": "chromium",
+          "name": "desktop",
+          "close": false,
+          "aa": true,
+          "file": "artifacts/full-review/round-1/flame-coverage/chromium-desktop-cover-aa4.png",
+          "sha256": "dbb2da917b54ea1cb1fce1df71d954bf58dd401011b3eec965344b97fdc2e3ae",
+          "health": {
+            "available": true,
+            "lost": false,
+            "events": []
+          },
+          "coverage": {
+            "samples": 4,
+            "scale": 0.04934403162663449,
+            "power": 1,
+            "depthTest": true,
+            "world": [
+              4.500392913818359,
+              1.7945620079040527,
+              -9.184851316840576e-20
+            ],
+            "integration": "Four fixed quarter-pixel offsets using actual UV derivatives, alpha-weighted linear radiance; unchanged SDF/size/power/light."
+          },
+          "alignment": null
+        },
+        {
+          "kind": "chromium",
+          "name": "desktop",
+          "close": true,
+          "aa": false,
+          "file": "artifacts/full-review/round-1/flame-coverage/chromium-desktop-close-baseline.png",
+          "sha256": "05ccd21e06877d173c1d2714a843113008978e8533a2cb80d1fc1ddcadb40153",
+          "health": {
+            "available": true,
+            "lost": false,
+            "events": []
+          },
+          "coverage": {
+            "samples": 1,
+            "scale": 0.04934403162663449,
+            "power": 1,
+            "depthTest": true,
+            "world": [
+              4.500392913818359,
+              1.7945620079040527,
+              -9.184851316840576e-20
+            ],
+            "integration": "Four fixed quarter-pixel offsets using actual UV derivatives, alpha-weighted linear radiance; unchanged SDF/size/power/light."
+          },
+          "alignment": null
+        },
+        {
+          "kind": "chromium",
+          "name": "desktop",
+          "close": true,
+          "aa": true,
+          "file": "artifacts/full-review/round-1/flame-coverage/chromium-desktop-close-aa4.png",
+          "sha256": "946361062cec3d00883a83ed6349b39f43dc80465bc5fa260b538fecbeca5ffb",
+          "health": {
+            "available": true,
+            "lost": false,
+            "events": []
+          },
+          "coverage": {
+            "samples": 4,
+            "scale": 0.04934403162663449,
+            "power": 1,
+            "depthTest": true,
+            "world": [
+              4.500392913818359,
+              1.7945620079040527,
+              -9.184851316840576e-20
+            ],
+            "integration": "Four fixed quarter-pixel offsets using actual UV derivatives, alpha-weighted linear radiance; unchanged SDF/size/power/light."
+          },
+          "alignment": null
+        },
+        {
+          "kind": "chromium",
+          "name": "phone",
+          "close": false,
+          "aa": false,
+          "file": "artifacts/full-review/round-1/flame-coverage/chromium-phone-cover-baseline.png",
+          "sha256": "9a7f2842b01f3adc13da7fdfd7df66fcd0b720c44f2528faea5ce3a0ba292ea2",
+          "health": {
+            "available": true,
+            "lost": false,
+            "events": []
+          },
+          "coverage": {
+            "samples": 1,
+            "scale": 0.04935743268907227,
+            "power": 1,
+            "depthTest": true,
+            "world": [
+              4.500392913818359,
+              1.7945620079040527,
+              -9.184851316840576e-20
+            ],
+            "integration": "Four fixed quarter-pixel offsets using actual UV derivatives, alpha-weighted linear radiance; unchanged SDF/size/power/light."
+          },
+          "alignment": null
+        },
+        {
+          "kind": "chromium",
+          "name": "phone",
+          "close": false,
+          "aa": true,
+          "file": "artifacts/full-review/round-1/flame-coverage/chromium-phone-cover-aa4.png",
+          "sha256": "96bc0a935ed5aa8ea09ae76542042eef7271a78559af5f6aace526b5954846f3",
+          "health": {
+            "available": true,
+            "lost": false,
+            "events": []
+          },
+          "coverage": {
+            "samples": 4,
+            "scale": 0.04935743268907227,
+            "power": 1,
+            "depthTest": true,
+            "world": [
+              4.500392913818359,
+              1.7945620079040527,
+              -9.184851316840576e-20
+            ],
+            "integration": "Four fixed quarter-pixel offsets using actual UV derivatives, alpha-weighted linear radiance; unchanged SDF/size/power/light."
+          },
+          "alignment": null
+        },
+        {
+          "kind": "chromium",
+          "name": "phone",
+          "close": true,
+          "aa": false,
+          "file": "artifacts/full-review/round-1/flame-coverage/chromium-phone-close-baseline.png",
+          "sha256": "0a03f89301de8d65951ec9c70be9b88a063c8726205c11f7df328aece8cb7ef8",
+          "health": {
+            "available": true,
+            "lost": false,
+            "events": []
+          },
+          "coverage": {
+            "samples": 1,
+            "scale": 0.04935743268907227,
+            "power": 1,
+            "depthTest": true,
+            "world": [
+              4.500392913818359,
+              1.7945620079040527,
+              -9.184851316840576e-20
+            ],
+            "integration": "Four fixed quarter-pixel offsets using actual UV derivatives, alpha-weighted linear radiance; unchanged SDF/size/power/light."
+          },
+          "alignment": null
+        },
+        {
+          "kind": "chromium",
+          "name": "phone",
+          "close": true,
+          "aa": true,
+          "file": "artifacts/full-review/round-1/flame-coverage/chromium-phone-close-aa4.png",
+          "sha256": "9237786278f4426252de9cbcf3268eefc49c4e2c8622c20e53871501b5a5c0ee",
+          "health": {
+            "available": true,
+            "lost": false,
+            "events": []
+          },
+          "coverage": {
+            "samples": 4,
+            "scale": 0.04935743268907227,
+            "power": 1,
+            "depthTest": true,
+            "world": [
+              4.500392913818359,
+              1.7945620079040527,
+              -9.184851316840576e-20
+            ],
+            "integration": "Four fixed quarter-pixel offsets using actual UV derivatives, alpha-weighted linear radiance; unchanged SDF/size/power/light."
+          },
+          "alignment": null
+        },
+        {
+          "kind": "webkit",
+          "name": "desktop",
+          "close": false,
+          "aa": false,
+          "file": "artifacts/full-review/round-1/flame-coverage/webkit-desktop-cover-baseline.png",
+          "sha256": "772c74af6eed9113d26193432c381e80a4ffec6bad1daf222d099da314a6e1a1",
+          "health": {
+            "available": true,
+            "lost": false,
+            "events": []
+          },
+          "coverage": {
+            "samples": 1,
+            "scale": 0.04935946050508516,
+            "power": 1,
+            "depthTest": true,
+            "world": [
+              4.500392913818359,
+              1.7945620079040527,
+              -9.184851316840576e-20
+            ],
+            "integration": "Four fixed quarter-pixel offsets using actual UV derivatives, alpha-weighted linear radiance; unchanged SDF/size/power/light."
+          },
+          "alignment": null
+        },
+        {
+          "kind": "webkit",
+          "name": "desktop",
+          "close": false,
+          "aa": true,
+          "file": "artifacts/full-review/round-1/flame-coverage/webkit-desktop-cover-aa4.png",
+          "sha256": "086293f0d542b6f27266f527c48007b618980a82d7b4f00872b1b642f0a9e528",
+          "health": {
+            "available": true,
+            "lost": false,
+            "events": []
+          },
+          "coverage": {
+            "samples": 4,
+            "scale": 0.04935946050508516,
+            "power": 1,
+            "depthTest": true,
+            "world": [
+              4.500392913818359,
+              1.7945620079040527,
+              -9.184851316840576e-20
+            ],
+            "integration": "Four fixed quarter-pixel offsets using actual UV derivatives, alpha-weighted linear radiance; unchanged SDF/size/power/light."
+          },
+          "alignment": null
+        },
+        {
+          "kind": "webkit",
+          "name": "desktop",
+          "close": true,
+          "aa": false,
+          "file": "artifacts/full-review/round-1/flame-coverage/webkit-desktop-close-baseline.png",
+          "sha256": "a00bfcf0fbc39520cb66cf6a60a5f77e58a026fb30d7dfa86e19536eee276052",
+          "health": {
+            "available": true,
+            "lost": false,
+            "events": []
+          },
+          "coverage": {
+            "samples": 1,
+            "scale": 0.04935946050508516,
+            "power": 1,
+            "depthTest": true,
+            "world": [
+              4.500392913818359,
+              1.7945620079040527,
+              -9.184851316840576e-20
+            ],
+            "integration": "Four fixed quarter-pixel offsets using actual UV derivatives, alpha-weighted linear radiance; unchanged SDF/size/power/light."
+          },
+          "alignment": null
+        },
+        {
+          "kind": "webkit",
+          "name": "desktop",
+          "close": true,
+          "aa": true,
+          "file": "artifacts/full-review/round-1/flame-coverage/webkit-desktop-close-aa4.png",
+          "sha256": "57297607ede17c248fecce5bba6543611c755c632ced21aec38d050695a42495",
+          "health": {
+            "available": true,
+            "lost": false,
+            "events": []
+          },
+          "coverage": {
+            "samples": 4,
+            "scale": 0.04935946050508516,
+            "power": 1,
+            "depthTest": true,
+            "world": [
+              4.500392913818359,
+              1.7945620079040527,
+              -9.184851316840576e-20
+            ],
+            "integration": "Four fixed quarter-pixel offsets using actual UV derivatives, alpha-weighted linear radiance; unchanged SDF/size/power/light."
+          },
+          "alignment": null
+        },
+        {
+          "kind": "webkit",
+          "name": "phone",
+          "close": false,
+          "aa": false,
+          "file": "artifacts/full-review/round-1/flame-coverage/webkit-phone-cover-baseline.png",
+          "sha256": "e2fc5b8dd00d40ff760da4442e34ec2be37a3fa108512c4ed838948918714001",
+          "health": {
+            "available": true,
+            "lost": false,
+            "events": []
+          },
+          "coverage": {
+            "samples": 1,
+            "scale": 0.04932236785052201,
+            "power": 1,
+            "depthTest": true,
+            "world": [
+              4.500392913818359,
+              1.7945620079040527,
+              -9.184851316840576e-20
+            ],
+            "integration": "Four fixed quarter-pixel offsets using actual UV derivatives, alpha-weighted linear radiance; unchanged SDF/size/power/light."
+          },
+          "alignment": null
+        },
+        {
+          "kind": "webkit",
+          "name": "phone",
+          "close": false,
+          "aa": true,
+          "file": "artifacts/full-review/round-1/flame-coverage/webkit-phone-cover-aa4.png",
+          "sha256": "63c9f20d6777f494efa5bec3e631dcb263822dcbf2f151dabbf0a923cd10294a",
+          "health": {
+            "available": true,
+            "lost": false,
+            "events": []
+          },
+          "coverage": {
+            "samples": 4,
+            "scale": 0.04932236785052201,
+            "power": 1,
+            "depthTest": true,
+            "world": [
+              4.500392913818359,
+              1.7945620079040527,
+              -9.184851316840576e-20
+            ],
+            "integration": "Four fixed quarter-pixel offsets using actual UV derivatives, alpha-weighted linear radiance; unchanged SDF/size/power/light."
+          },
+          "alignment": null
+        },
+        {
+          "kind": "webkit",
+          "name": "phone",
+          "close": true,
+          "aa": false,
+          "file": "artifacts/full-review/round-1/flame-coverage/webkit-phone-close-baseline.png",
+          "sha256": "13eabb699b697a3501a0f3d2e1cebf0cca30d495271e5da68f9d1b816386d1fa",
+          "health": {
+            "available": true,
+            "lost": false,
+            "events": []
+          },
+          "coverage": {
+            "samples": 1,
+            "scale": 0.04932236785052201,
+            "power": 1,
+            "depthTest": true,
+            "world": [
+              4.500392913818359,
+              1.7945620079040527,
+              -9.184851316840576e-20
+            ],
+            "integration": "Four fixed quarter-pixel offsets using actual UV derivatives, alpha-weighted linear radiance; unchanged SDF/size/power/light."
+          },
+          "alignment": null
+        },
+        {
+          "kind": "webkit",
+          "name": "phone",
+          "close": true,
+          "aa": true,
+          "file": "artifacts/full-review/round-1/flame-coverage/webkit-phone-close-aa4.png",
+          "sha256": "72dc7fbb37f51df30a2d98ca9f64472a0f9ff4df51f579a6909c85fd35ada7d1",
+          "health": {
+            "available": true,
+            "lost": false,
+            "events": []
+          },
+          "coverage": {
+            "samples": 4,
+            "scale": 0.04932236785052201,
+            "power": 1,
+            "depthTest": true,
+            "world": [
+              4.500392913818359,
+              1.7945620079040527,
+              -9.184851316840576e-20
+            ],
+            "integration": "Four fixed quarter-pixel offsets using actual UV derivatives, alpha-weighted linear radiance; unchanged SDF/size/power/light."
+          },
+          "alignment": null
+        }
+      ],
+      "errors": []
+    },
+    {
+      "study": "static-wick-alignment",
+      "fullReport": {
+        "path": "artifacts/full-review/round-1/static-wick-alignment/report.json",
+        "bytes": 180603,
+        "sha256": "60b48cfba5e48e97ef6c11f70b46caa6c7d75f3fbbc062cfce5fc3a17665abde"
+      },
+      "scope": "Isolated measured static wick-tip graphic alignment A/B, fixed four-sample SDF coverage on both sides. No source geometry, point/anchor, power, size or depth change.",
+      "sourceStartFingerprint": "19e2f6bc9e3f1a91e95757370fea9ebe7d2bbaf33535a85618989a24796b5c87",
+      "sourceEndFingerprint": "19e2f6bc9e3f1a91e95757370fea9ebe7d2bbaf33535a85618989a24796b5c87",
+      "sourceChanged": false,
+      "frames": [
+        {
+          "kind": "chromium",
+          "name": "desktop",
+          "close": false,
+          "aa": false,
+          "file": "artifacts/full-review/round-1/static-wick-alignment/chromium-desktop-cover-unaligned.png",
+          "sha256": "27bc956f53dbc2224e526fea62e8f7d7edddd9c454718ca07e753794f767b091",
+          "health": {
+            "available": true,
+            "lost": false,
+            "events": []
+          },
+          "coverage": {
+            "samples": 4,
+            "scale": 0.04936592347455,
+            "power": 1,
+            "depthTest": true,
+            "world": [
+              4.500392913818359,
+              1.7945620079040527,
+              -9.184851316840576e-20
+            ],
+            "integration": "Four fixed quarter-pixel offsets using actual UV derivatives, alpha-weighted linear radiance; unchanged SDF/size/power/light."
+          },
+          "alignment": {
+            "baselineY": 0.002,
+            "aligned": false,
+            "actualGraphicY": 0.002,
+            "scale": 0.04936592347455,
+            "actualWickTip": [
+              4.500392913818359,
+              1.7925620079040527,
+              -9.184851316840576e-20
+            ],
+            "group": null,
+            "scope": "Static wick-tip wrapper only; source wick/point/visitor geometry and own visitor wick-base convention unchanged."
+          }
+        },
+        {
+          "kind": "chromium",
+          "name": "desktop",
+          "close": false,
+          "aa": true,
+          "file": "artifacts/full-review/round-1/static-wick-alignment/chromium-desktop-cover-aligned.png",
+          "sha256": "92595e86f3e072a5d2f044219de13539ad2eda7efbb755b987dd244270bbefa6",
+          "health": {
+            "available": true,
+            "lost": false,
+            "events": []
+          },
+          "coverage": {
+            "samples": 4,
+            "scale": 0.04936592347455,
+            "power": 1,
+            "depthTest": true,
+            "world": [
+              4.500392913818359,
+              1.7896000524955797,
+              -9.184851316840576e-20
+            ],
+            "integration": "Four fixed quarter-pixel offsets using actual UV derivatives, alpha-weighted linear radiance; unchanged SDF/size/power/light."
+          },
+          "alignment": {
+            "baselineY": 0.002,
+            "aligned": true,
+            "actualGraphicY": -0.002961955408473,
+            "scale": 0.04936592347455,
+            "actualWickTip": [
+              4.500392913818359,
+              1.7925620079040527,
+              -9.184851316840576e-20
+            ],
+            "group": null,
+            "scope": "Static wick-tip wrapper only; source wick/point/visitor geometry and own visitor wick-base convention unchanged."
+          }
+        },
+        {
+          "kind": "chromium",
+          "name": "desktop",
+          "close": true,
+          "aa": false,
+          "file": "artifacts/full-review/round-1/static-wick-alignment/chromium-desktop-close-unaligned.png",
+          "sha256": "77a016689a20661ddfa63868d07bee3d7adebc6b038176c69476b4240c6fbac8",
+          "health": {
+            "available": true,
+            "lost": false,
+            "events": []
+          },
+          "coverage": {
+            "samples": 4,
+            "scale": 0.04936592347455,
+            "power": 1,
+            "depthTest": true,
+            "world": [
+              4.500392913818359,
+              1.7945620079040527,
+              -9.184851316840576e-20
+            ],
+            "integration": "Four fixed quarter-pixel offsets using actual UV derivatives, alpha-weighted linear radiance; unchanged SDF/size/power/light."
+          },
+          "alignment": {
+            "baselineY": 0.002,
+            "aligned": false,
+            "actualGraphicY": 0.002,
+            "scale": 0.04936592347455,
+            "actualWickTip": [
+              4.500392913818359,
+              1.7925620079040527,
+              -9.184851316840576e-20
+            ],
+            "group": null,
+            "scope": "Static wick-tip wrapper only; source wick/point/visitor geometry and own visitor wick-base convention unchanged."
+          }
+        },
+        {
+          "kind": "chromium",
+          "name": "desktop",
+          "close": true,
+          "aa": true,
+          "file": "artifacts/full-review/round-1/static-wick-alignment/chromium-desktop-close-aligned.png",
+          "sha256": "5ff2a484041100536100474dc4c7903daa3c55fc7ccb5080dd6c2176715b53cb",
+          "health": {
+            "available": true,
+            "lost": false,
+            "events": []
+          },
+          "coverage": {
+            "samples": 4,
+            "scale": 0.04936592347455,
+            "power": 1,
+            "depthTest": true,
+            "world": [
+              4.500392913818359,
+              1.7896000524955797,
+              -9.184851316840576e-20
+            ],
+            "integration": "Four fixed quarter-pixel offsets using actual UV derivatives, alpha-weighted linear radiance; unchanged SDF/size/power/light."
+          },
+          "alignment": {
+            "baselineY": 0.002,
+            "aligned": true,
+            "actualGraphicY": -0.002961955408473,
+            "scale": 0.04936592347455,
+            "actualWickTip": [
+              4.500392913818359,
+              1.7925620079040527,
+              -9.184851316840576e-20
+            ],
+            "group": null,
+            "scope": "Static wick-tip wrapper only; source wick/point/visitor geometry and own visitor wick-base convention unchanged."
+          }
+        },
+        {
+          "kind": "chromium",
+          "name": "phone",
+          "close": false,
+          "aa": false,
+          "file": "artifacts/full-review/round-1/static-wick-alignment/chromium-phone-cover-unaligned.png",
+          "sha256": "724acf3c2d6e23246ac29825b2f4242d88eb1cfb87135692eccd2472aa6a36b8",
+          "health": {
+            "available": true,
+            "lost": false,
+            "events": []
+          },
+          "coverage": {
+            "samples": 4,
+            "scale": 0.04926948910050556,
+            "power": 1,
+            "depthTest": true,
+            "world": [
+              4.500392913818359,
+              1.7945620079040527,
+              -9.184851316840576e-20
+            ],
+            "integration": "Four fixed quarter-pixel offsets using actual UV derivatives, alpha-weighted linear radiance; unchanged SDF/size/power/light."
+          },
+          "alignment": {
+            "baselineY": 0.002,
+            "aligned": false,
+            "actualGraphicY": 0.002,
+            "scale": 0.04926948910050556,
+            "actualWickTip": [
+              4.500392913818359,
+              1.7925620079040527,
+              -9.184851316840576e-20
+            ],
+            "group": null,
+            "scope": "Static wick-tip wrapper only; source wick/point/visitor geometry and own visitor wick-base convention unchanged."
+          }
+        },
+        {
+          "kind": "chromium",
+          "name": "phone",
+          "close": false,
+          "aa": true,
+          "file": "artifacts/full-review/round-1/static-wick-alignment/chromium-phone-cover-aligned.png",
+          "sha256": "2cc50bee49e5a7a5bb32fd053950a0670395f04eb08834d570581bc5821edecf",
+          "health": {
+            "available": true,
+            "lost": false,
+            "events": []
+          },
+          "coverage": {
+            "samples": 4,
+            "scale": 0.04926948910050556,
+            "power": 1,
+            "depthTest": true,
+            "world": [
+              4.500392913818359,
+              1.7896058385580225,
+              -9.184851316840576e-20
+            ],
+            "integration": "Four fixed quarter-pixel offsets using actual UV derivatives, alpha-weighted linear radiance; unchanged SDF/size/power/light."
+          },
+          "alignment": {
+            "baselineY": 0.002,
+            "aligned": true,
+            "actualGraphicY": -0.0029561693460303335,
+            "scale": 0.04926948910050556,
+            "actualWickTip": [
+              4.500392913818359,
+              1.7925620079040527,
+              -9.184851316840576e-20
+            ],
+            "group": null,
+            "scope": "Static wick-tip wrapper only; source wick/point/visitor geometry and own visitor wick-base convention unchanged."
+          }
+        },
+        {
+          "kind": "chromium",
+          "name": "phone",
+          "close": true,
+          "aa": false,
+          "file": "artifacts/full-review/round-1/static-wick-alignment/chromium-phone-close-unaligned.png",
+          "sha256": "1d2731ba2784d6435b0a25ec17a7fbb6d11c0a5facf3ae04f714305eead7a5bb",
+          "health": {
+            "available": true,
+            "lost": false,
+            "events": []
+          },
+          "coverage": {
+            "samples": 4,
+            "scale": 0.04926948910050556,
+            "power": 1,
+            "depthTest": true,
+            "world": [
+              4.500392913818359,
+              1.7945620079040527,
+              -9.184851316840576e-20
+            ],
+            "integration": "Four fixed quarter-pixel offsets using actual UV derivatives, alpha-weighted linear radiance; unchanged SDF/size/power/light."
+          },
+          "alignment": {
+            "baselineY": 0.002,
+            "aligned": false,
+            "actualGraphicY": 0.002,
+            "scale": 0.04926948910050556,
+            "actualWickTip": [
+              4.500392913818359,
+              1.7925620079040527,
+              -9.184851316840576e-20
+            ],
+            "group": null,
+            "scope": "Static wick-tip wrapper only; source wick/point/visitor geometry and own visitor wick-base convention unchanged."
+          }
+        },
+        {
+          "kind": "chromium",
+          "name": "phone",
+          "close": true,
+          "aa": true,
+          "file": "artifacts/full-review/round-1/static-wick-alignment/chromium-phone-close-aligned.png",
+          "sha256": "a50ddc57dd4e7a7dee94c916e34e37571f28dfecd844841a587de37ca80470fa",
+          "health": {
+            "available": true,
+            "lost": false,
+            "events": []
+          },
+          "coverage": {
+            "samples": 4,
+            "scale": 0.04926948910050556,
+            "power": 1,
+            "depthTest": true,
+            "world": [
+              4.500392913818359,
+              1.7896058385580225,
+              -9.184851316840576e-20
+            ],
+            "integration": "Four fixed quarter-pixel offsets using actual UV derivatives, alpha-weighted linear radiance; unchanged SDF/size/power/light."
+          },
+          "alignment": {
+            "baselineY": 0.002,
+            "aligned": true,
+            "actualGraphicY": -0.0029561693460303335,
+            "scale": 0.04926948910050556,
+            "actualWickTip": [
+              4.500392913818359,
+              1.7925620079040527,
+              -9.184851316840576e-20
+            ],
+            "group": null,
+            "scope": "Static wick-tip wrapper only; source wick/point/visitor geometry and own visitor wick-base convention unchanged."
+          }
+        },
+        {
+          "kind": "webkit",
+          "name": "desktop",
+          "close": false,
+          "aa": false,
+          "file": "artifacts/full-review/round-1/static-wick-alignment/webkit-desktop-cover-unaligned.png",
+          "sha256": "61f6429f95c9dc2c160574e273c05320ec551715710e5892319b85f012ec2dc2",
+          "health": {
+            "available": true,
+            "lost": false,
+            "events": []
+          },
+          "coverage": {
+            "samples": 4,
+            "scale": 0.04921859863048055,
+            "power": 1,
+            "depthTest": true,
+            "world": [
+              4.500392913818359,
+              1.7945620079040527,
+              -9.184851316840576e-20
+            ],
+            "integration": "Four fixed quarter-pixel offsets using actual UV derivatives, alpha-weighted linear radiance; unchanged SDF/size/power/light."
+          },
+          "alignment": {
+            "baselineY": 0.002,
+            "aligned": false,
+            "actualGraphicY": 0.002,
+            "scale": 0.04921859863048055,
+            "actualWickTip": [
+              4.500392913818359,
+              1.7925620079040527,
+              -9.184851316840576e-20
+            ],
+            "group": null,
+            "scope": "Static wick-tip wrapper only; source wick/point/visitor geometry and own visitor wick-base convention unchanged."
+          }
+        },
+        {
+          "kind": "webkit",
+          "name": "desktop",
+          "close": false,
+          "aa": true,
+          "file": "artifacts/full-review/round-1/static-wick-alignment/webkit-desktop-cover-aligned.png",
+          "sha256": "b18eade1cd20a11f3486ac18375042bf4ed233d7cb108f565b38ecb533932785",
+          "health": {
+            "available": true,
+            "lost": false,
+            "events": []
+          },
+          "coverage": {
+            "samples": 4,
+            "scale": 0.04921859863048055,
+            "power": 1,
+            "depthTest": true,
+            "world": [
+              4.500392913818359,
+              1.7896088919862239,
+              -9.184851316840576e-20
+            ],
+            "integration": "Four fixed quarter-pixel offsets using actual UV derivatives, alpha-weighted linear radiance; unchanged SDF/size/power/light."
+          },
+          "alignment": {
+            "baselineY": 0.002,
+            "aligned": true,
+            "actualGraphicY": -0.002953115917828833,
+            "scale": 0.04921859863048055,
+            "actualWickTip": [
+              4.500392913818359,
+              1.7925620079040527,
+              -9.184851316840576e-20
+            ],
+            "group": null,
+            "scope": "Static wick-tip wrapper only; source wick/point/visitor geometry and own visitor wick-base convention unchanged."
+          }
+        },
+        {
+          "kind": "webkit",
+          "name": "desktop",
+          "close": true,
+          "aa": false,
+          "file": "artifacts/full-review/round-1/static-wick-alignment/webkit-desktop-close-unaligned.png",
+          "sha256": "26e3f4ab608253a47081f71ff5bc9c16986b45481002604787e9b60355e76407",
+          "health": {
+            "available": true,
+            "lost": false,
+            "events": []
+          },
+          "coverage": {
+            "samples": 4,
+            "scale": 0.04921859863048055,
+            "power": 1,
+            "depthTest": true,
+            "world": [
+              4.500392913818359,
+              1.7945620079040527,
+              -9.184851316840576e-20
+            ],
+            "integration": "Four fixed quarter-pixel offsets using actual UV derivatives, alpha-weighted linear radiance; unchanged SDF/size/power/light."
+          },
+          "alignment": {
+            "baselineY": 0.002,
+            "aligned": false,
+            "actualGraphicY": 0.002,
+            "scale": 0.04921859863048055,
+            "actualWickTip": [
+              4.500392913818359,
+              1.7925620079040527,
+              -9.184851316840576e-20
+            ],
+            "group": null,
+            "scope": "Static wick-tip wrapper only; source wick/point/visitor geometry and own visitor wick-base convention unchanged."
+          }
+        },
+        {
+          "kind": "webkit",
+          "name": "desktop",
+          "close": true,
+          "aa": true,
+          "file": "artifacts/full-review/round-1/static-wick-alignment/webkit-desktop-close-aligned.png",
+          "sha256": "7d98c91f190e8ae21980fb229ffb3361ea2d62ea22d11cf4376deb47ee72aec9",
+          "health": {
+            "available": true,
+            "lost": false,
+            "events": []
+          },
+          "coverage": {
+            "samples": 4,
+            "scale": 0.04921859863048055,
+            "power": 1,
+            "depthTest": true,
+            "world": [
+              4.500392913818359,
+              1.7896088919862239,
+              -9.184851316840576e-20
+            ],
+            "integration": "Four fixed quarter-pixel offsets using actual UV derivatives, alpha-weighted linear radiance; unchanged SDF/size/power/light."
+          },
+          "alignment": {
+            "baselineY": 0.002,
+            "aligned": true,
+            "actualGraphicY": -0.002953115917828833,
+            "scale": 0.04921859863048055,
+            "actualWickTip": [
+              4.500392913818359,
+              1.7925620079040527,
+              -9.184851316840576e-20
+            ],
+            "group": null,
+            "scope": "Static wick-tip wrapper only; source wick/point/visitor geometry and own visitor wick-base convention unchanged."
+          }
+        },
+        {
+          "kind": "webkit",
+          "name": "phone",
+          "close": false,
+          "aa": false,
+          "file": "artifacts/full-review/round-1/static-wick-alignment/webkit-phone-cover-unaligned.png",
+          "sha256": "b37d59632d85d85f351fd5f446c3e6d4f94ce01b4c9a9840c8e7924f16b319e6",
+          "health": {
+            "available": true,
+            "lost": false,
+            "events": []
+          },
+          "coverage": {
+            "samples": 4,
+            "scale": 0.04928142177272986,
+            "power": 1,
+            "depthTest": true,
+            "world": [
+              4.500392913818359,
+              1.7945620079040527,
+              -9.184851316840576e-20
+            ],
+            "integration": "Four fixed quarter-pixel offsets using actual UV derivatives, alpha-weighted linear radiance; unchanged SDF/size/power/light."
+          },
+          "alignment": {
+            "baselineY": 0.002,
+            "aligned": false,
+            "actualGraphicY": 0.002,
+            "scale": 0.04928142177272986,
+            "actualWickTip": [
+              4.500392913818359,
+              1.7925620079040527,
+              -9.184851316840576e-20
+            ],
+            "group": null,
+            "scope": "Static wick-tip wrapper only; source wick/point/visitor geometry and own visitor wick-base convention unchanged."
+          }
+        },
+        {
+          "kind": "webkit",
+          "name": "phone",
+          "close": false,
+          "aa": true,
+          "file": "artifacts/full-review/round-1/static-wick-alignment/webkit-phone-cover-aligned.png",
+          "sha256": "04a888d3cc38a4701dc9fed00fc44bd47c9567947b459728ebd6b5a7bdce8a7f",
+          "health": {
+            "available": true,
+            "lost": false,
+            "events": []
+          },
+          "coverage": {
+            "samples": 4,
+            "scale": 0.04928142177272986,
+            "power": 1,
+            "depthTest": true,
+            "world": [
+              4.500392913818359,
+              1.789605122597689,
+              -9.184851316840576e-20
+            ],
+            "integration": "Four fixed quarter-pixel offsets using actual UV derivatives, alpha-weighted linear radiance; unchanged SDF/size/power/light."
+          },
+          "alignment": {
+            "baselineY": 0.002,
+            "aligned": true,
+            "actualGraphicY": -0.0029568853063637913,
+            "scale": 0.04928142177272986,
+            "actualWickTip": [
+              4.500392913818359,
+              1.7925620079040527,
+              -9.184851316840576e-20
+            ],
+            "group": null,
+            "scope": "Static wick-tip wrapper only; source wick/point/visitor geometry and own visitor wick-base convention unchanged."
+          }
+        },
+        {
+          "kind": "webkit",
+          "name": "phone",
+          "close": true,
+          "aa": false,
+          "file": "artifacts/full-review/round-1/static-wick-alignment/webkit-phone-close-unaligned.png",
+          "sha256": "95b766e264c5dd07deabf381e4a3f644014ad384d50cd9bb010b8cfe5797a27e",
+          "health": {
+            "available": true,
+            "lost": false,
+            "events": []
+          },
+          "coverage": {
+            "samples": 4,
+            "scale": 0.04928142177272986,
+            "power": 1,
+            "depthTest": true,
+            "world": [
+              4.500392913818359,
+              1.7945620079040527,
+              -9.184851316840576e-20
+            ],
+            "integration": "Four fixed quarter-pixel offsets using actual UV derivatives, alpha-weighted linear radiance; unchanged SDF/size/power/light."
+          },
+          "alignment": {
+            "baselineY": 0.002,
+            "aligned": false,
+            "actualGraphicY": 0.002,
+            "scale": 0.04928142177272986,
+            "actualWickTip": [
+              4.500392913818359,
+              1.7925620079040527,
+              -9.184851316840576e-20
+            ],
+            "group": null,
+            "scope": "Static wick-tip wrapper only; source wick/point/visitor geometry and own visitor wick-base convention unchanged."
+          }
+        },
+        {
+          "kind": "webkit",
+          "name": "phone",
+          "close": true,
+          "aa": true,
+          "file": "artifacts/full-review/round-1/static-wick-alignment/webkit-phone-close-aligned.png",
+          "sha256": "b257771d94bef98c5c8394b4e6a6e417b2d28d0fdd5cfdf94c7187441602002e",
+          "health": {
+            "available": true,
+            "lost": false,
+            "events": []
+          },
+          "coverage": {
+            "samples": 4,
+            "scale": 0.04928142177272986,
+            "power": 1,
+            "depthTest": true,
+            "world": [
+              4.500392913818359,
+              1.789605122597689,
+              -9.184851316840576e-20
+            ],
+            "integration": "Four fixed quarter-pixel offsets using actual UV derivatives, alpha-weighted linear radiance; unchanged SDF/size/power/light."
+          },
+          "alignment": {
+            "baselineY": 0.002,
+            "aligned": true,
+            "actualGraphicY": -0.0029568853063637913,
+            "scale": 0.04928142177272986,
+            "actualWickTip": [
+              4.500392913818359,
+              1.7925620079040527,
+              -9.184851316840576e-20
+            ],
+            "group": null,
+            "scope": "Static wick-tip wrapper only; source wick/point/visitor geometry and own visitor wick-base convention unchanged."
+          }
+        }
+      ],
+      "errors": []
+    }
+  ],
+  "visualReview": "Four-sample coverage smooths tiny edges; the wide cover flame remains faint and I9 is still partly. Wick-tip alignment removes the visible floating close-up gap in both browsers/sizes. This does not accept the cloud shape/primary integrator.",
+  "adoption": {
+    "scene": {
+      "path": "web/src/engine/scene.js",
+      "bytes": 150715,
+      "sha256": "f91a2f696d7987b0e3f568f972a3112ca73d25add4291b0a298dc1842b3191d3"
+    },
+    "coverage": "Existing SDF unchanged; four fixed derivative-based samples, no temporal jitter or gain.",
+    "staticTipWrapper": "Only liveFlame removes2mm placement offset and nominal blank SDF base(.26-.2*(.35+.65*power))*scale. Power1 equals actual tested .06*scale. Soft stretch produces <=.28mm residual at tested maximum size. Source wick/point/group metadata stay exact; visitor wick-base path unchanged."
+  },
+  "captureHelpers": [
+    {
+      "path": "tests/visual/instrument-flame-coverage.mjs",
+      "bytes": 3160,
+      "sha256": "ede6b04546198bf10873e79314a15cce01fde90612420504f01b6931c2c7852d"
+    },
+    {
+      "path": "tests/visual/instrument-live-flame-base.mjs",
+      "bytes": 1937,
+      "sha256": "cdfc7ce2368997b248c247ed678807d778fbb0a0277832c14c4ce6fba8274a0b"
+    },
+    {
+      "path": "tests/visual/capture-flame-coverage.mjs",
+      "bytes": 5083,
+      "sha256": "52b62e9c8228a0e9067e6272dd81e4e975c5146e0c992eed6454be4467e7a537"
+    }
+  ],
+  "remaining": "Latest combined production main and Snow actual static flames, final view temporal/FPS and final app captures remain pending."
+}

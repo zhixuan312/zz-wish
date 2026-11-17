@@ -1,0 +1,95 @@
+{
+  "status": "Bounded Source12 budget handoff; source13/14 and all16map delivery remain unbound. No adoption or final15MB claim.",
+  "candidates": [
+    {
+      "candidate": "budget12-uv-quarter-reviewed",
+      "path": "art/build/snow-roof-round1/budget12-uv-quarter-reviewed/snow-roof.glb",
+      "bytes": 9607176,
+      "sha256": "23385e2b7f8cda5a94c72b7eebaa8b213a191367285974b018817174d3099b9c",
+      "receipt": "art/build/snow-roof-round1/budget12-uv-quarter-reviewed/snow-roof.glb.receipt.json",
+      "receiptSha256": "c30c2458fffc76b6d7f15cd103aafe56ff8ae245de8c2b83e378cf4745efaa8d"
+    },
+    {
+      "candidate": "budget12-uv-quarter-source-reviewed",
+      "path": "art/build/snow-roof-round1/budget12-uv-quarter-source-reviewed/snow-roof.glb",
+      "bytes": 9662228,
+      "sha256": "1212fef9f0b615827f39a3ff72a6f79d0bf821504d0903e0500feb938c465b33",
+      "receipt": "art/build/snow-roof-round1/budget12-uv-quarter-source-reviewed/snow-roof.glb.receipt.json",
+      "receiptSha256": "18261c5f4fda2fde508c0fad5cfd2ad60ac68f0917baa7d36f948ee419a433ac"
+    },
+    {
+      "candidate": "budget12-uv-quarter-source-f32",
+      "path": "art/build/snow-roof-round1/budget12-uv-quarter-source-f32/snow-roof.glb",
+      "bytes": 13436392,
+      "sha256": "954c06edf49e4fbef8c10d2e29071ebc1b07cca04331d7999d77b939e3850cf7",
+      "receipt": "art/build/snow-roof-round1/budget12-uv-quarter-source-f32/snow-roof.glb.receipt.json",
+      "receiptSha256": "53c50609e89809fe4f7dd4853ae470e3ec9a66db88a5b683970ee5ed1a562e23"
+    },
+    {
+      "candidate": "budget12-short16-u8-uv-quarter",
+      "path": "art/build/snow-roof-round1/budget12-short16-u8-uv-quarter/snow-roof.glb",
+      "bytes": 11399640,
+      "sha256": "5e1983fad5382d03317cf20a2e61ff71f716fa702dfd34c33951eafc238bcd9e",
+      "receipt": "art/build/snow-roof-round1/budget12-short16-u8-uv-quarter/snow-roof.glb.receipt.json",
+      "receiptSha256": "4b815cb4fd8d0132e6435c9f9aa37194b97be338e0b3bd2731651b995be1e1d1"
+    },
+    {
+      "candidate": "budget12-short16-u8-normal256",
+      "path": "art/build/snow-roof-round1/budget12-short16-u8-normal256/snow-roof.glb",
+      "bytes": 10049312,
+      "sha256": "3277c44ddfbf5ecdfee6031d3f5393e772fe8e822bb9a523b4077d5db9e422a5",
+      "receipt": "art/build/snow-roof-round1/budget12-short16-u8-normal256/snow-roof.glb.receipt.json",
+      "receiptSha256": "c043784dbdf0b13e19c6392810a83bddcf790072f42456b40dcfb9ef1c97dd1f"
+    },
+    {
+      "candidate": "budget12-short16-u8-normal384",
+      "path": "art/build/snow-roof-round1/budget12-short16-u8-normal384/snow-roof.glb",
+      "bytes": 10611168,
+      "sha256": "6d8661a5c664a0bb8c30598d528d0891be93c6d92a086132b2d95858ea1e0e7d",
+      "receipt": "art/build/snow-roof-round1/budget12-short16-u8-normal384/snow-roof.glb.receipt.json",
+      "receiptSha256": "1ce25a87877ced42d74eae6de1813d261b9da008cc5d2f677dbdd9f2cd9eac38"
+    }
+  ],
+  "normal16MaximumWorldComponentError": 1.964761175476948e-05,
+  "colourPolicyCorrection": {
+    "note": "Original receipt header inherited clamping:false/halfstep-limit wording although its actual per-primitive clamp records and reported maximum were correct. Original receipt remains preserved. This correction records the explicit reviewed policy and actual Source12 cost. Helper header is corrected for future runs.",
+    "policy": "Explicit reviewed normalized U8 with unit-range clamp",
+    "sourceComponentsClamped": 3879,
+    "maximumActualSourceComponentError": 0.012772202491760254,
+    "rootAcceptedForOpticalCandidate": true
+  },
+  "normalImage256Contacts": {
+    "path": "art/build/snow-roof-round1/budget12-short16-u8-normal256/contact-audit.json",
+    "sha256": "ede2b64c19e6a1cab497c4d55d3ac0f984ac531a4ce920de389548b280d61fcb",
+    "passed": true,
+    "literalGuardsMetres": {
+      "gap": 0.002,
+      "penetration": 0.005
+    }
+  },
+  "imagePolicy": "6architectural normalimages resized from actual1024raw to256/384 UASTC. Table/screen512 and existingbronze256 payloads exact. Geometric SHORT16 NORMAL independent.",
+  "budget": {
+    "normal256GLB": 10049312,
+    "normal384GLB": 10611168,
+    "existing8NightLampMaps": 4855399,
+    "fabric": 391242,
+    "originalManifest": 231758,
+    "minimumPartial8TotalNormal256": 15527711,
+    "missingActualDuskDayMaps": 8,
+    "conclusion": "Not yet feasible final15MB. Need source13/14 binding, atlas/geometry savings and real ambient map costs."
+  },
+  "court1024": {
+    "path": "art/build/snow-roof-round1/budget12-court1024-resolution",
+    "representedCharts": 3400,
+    "charts": 3408,
+    "subpixelCharts": 8,
+    "representedSurfaceAreaFraction": 0.9999997944532591,
+    "coarseCameraVisibleFraction": 1.0,
+    "resampleStoppedAtMissingSameChart2KDonors": 8,
+    "encodedDerivativeExists": false,
+    "padding": "2K packing gaps halve;8final padding iterations do not prove8clear pixels. Fresh UV/core/mip/optical gate required."
+  },
+  "allJobsTerminal": true,
+  "renderBakeBrowserGpuJobs": 0,
+  "nextOwner": "Return to Cloudsource I6/I7/I8 as requested; modeler may continue Snow Source13/14 actual budget binding."
+}

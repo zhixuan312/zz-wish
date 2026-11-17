@@ -1,0 +1,191 @@
+{
+  "version": 1,
+  "status": "PASS standalone bounded prefix component only",
+  "artifact": {
+    "path": "artifacts/full-review/round-1/cloud19-prefix-tiny-v3/report.json",
+    "sha256": "bc264536faee15de1020829d6f05f60e40797f31b1e1d33ce72fb74e0760dd11"
+  },
+  "actualDevice": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1, Unspecified Version)",
+  "threeRevision": "160",
+  "contextEvents": [],
+  "errors": [],
+  "sourceUnchanged": true,
+  "sourceIdentity": "ee3f9f065a72a102867d0bfe7ea9233761cd7db62e98711c993d38cba324bda0",
+  "sourceFiles": [
+    {
+      "source": "tests/visual/cloud-prefix-lab-browser.mjs",
+      "path": "lab.mjs",
+      "bytes": 9275,
+      "sha256": "f0cc8fe7b1ce3892c67af703937a69ccab97438086742a4a90c3eb94e34b01a4"
+    },
+    {
+      "source": "web/src/engine/places/cloud-light-prefix-v1.js",
+      "path": "cloud-light-prefix-v1.js",
+      "bytes": 10827,
+      "sha256": "f5342dd669b1b890b0c2b9ecf69dcc4b12924cc60ff83800ee4f75533b421859"
+    },
+    {
+      "source": "web/src/engine/places/cloud-live-cache-v1.js",
+      "path": "cloud-live-cache-v1.js",
+      "bytes": 9770,
+      "sha256": "b262ed5c5ac8769792bb0cf0fb022258cba3b507496ef427a94735cb19fb3873"
+    },
+    {
+      "source": "art/build/cloud-cliff-round1/source19-cpu/saved-field/field.json",
+      "path": "field.json",
+      "bytes": 47005,
+      "sha256": "eb24f1c42ec8790e4ef65b0181867aa34d8ced12944064a9373b8a81d2ef3d69"
+    },
+    {
+      "source": "art/build/cloud-cliff-round1/source19-live-density-ktx/cloud-live-density.json",
+      "path": "public/cache/cloud-live-density.json",
+      "bytes": 6372,
+      "sha256": "0230e4422e8daad9b487ec4d2d930c0c856ba86e79f9303204a40efdb5842730"
+    },
+    {
+      "source": "art/build/cloud-cliff-round1/source19-live-density-ktx/cloud-live-envelope.ktx2",
+      "path": "public/cache/cloud-live-envelope.ktx2",
+      "bytes": 966878,
+      "sha256": "ecdcedb0ff1ea5b8344f30447fd4f421cf3f095faf26b8e14a587bd14020586b"
+    },
+    {
+      "source": "art/build/cloud-cliff-round1/source19-live-density-ktx/cloud-live-envelopeNear.ktx2",
+      "path": "public/cache/cloud-live-envelopeNear.ktx2",
+      "bytes": 201924,
+      "sha256": "f18ac1f698ef591077240535a9eccddd4686a36633fafcde00b2a7804acf8494"
+    },
+    {
+      "source": "art/build/cloud-cliff-round1/source19-live-density-ktx/cloud-live-noiseA.ktx2",
+      "path": "public/cache/cloud-live-noiseA.ktx2",
+      "bytes": 62925,
+      "sha256": "cf32cd9d37e8809b6af4513bcf8c9f0a6f0039a7bbec2e0327c927d968d8f28d"
+    },
+    {
+      "source": "art/build/cloud-cliff-round1/source19-live-density-ktx/cloud-live-noiseB.ktx2",
+      "path": "public/cache/cloud-live-noiseB.ktx2",
+      "bytes": 63042,
+      "sha256": "1e5e6cbe41bcc3bcbe2a36213de2a03fb3dea9215bbaf013092a365201e59a4c"
+    },
+    {
+      "source": "generated standalone lab wrapper",
+      "path": "package.json",
+      "bytes": 18,
+      "sha256": "1239d4d885dcad42201a27ed9324f8f0f760b78700d8db9ced39a511cffe7eae"
+    },
+    {
+      "source": "generated standalone lab wrapper",
+      "path": "index.html",
+      "bytes": 178,
+      "sha256": "b4e4856fc6564e03e6a437836ff09040429019902e5707d25b3bcd0871dc5deb"
+    }
+  ],
+  "rows": [
+    {
+      "logicalDimensions": [
+        16,
+        8,
+        16
+      ],
+      "actualAtlas": [
+        72,
+        40
+      ],
+      "checkedTypedValues": 6144,
+      "bitMismatches": 0,
+      "maximumError": 0,
+      "constantGpuMs": [
+        0.352583
+      ],
+      "densityStripGpuMs": [
+        34.630666
+      ],
+      "prefixScanGpuMs": [
+        0.095666,
+        0.023416,
+        0.072999,
+        0.036624
+      ]
+    },
+    {
+      "logicalDimensions": [
+        32,
+        16,
+        32
+      ],
+      "actualAtlas": [
+        272,
+        72
+      ],
+      "checkedTypedValues": 49152,
+      "bitMismatches": 0,
+      "maximumError": 0,
+      "constantGpuMs": [
+        0.13025
+      ],
+      "densityStripGpuMs": [
+        0.073958,
+        0.045333
+      ],
+      "prefixScanGpuMs": [
+        0.127625,
+        0.053166,
+        0.048166,
+        0.053874,
+        0.094083
+      ]
+    },
+    {
+      "logicalDimensions": [
+        64,
+        32,
+        64
+      ],
+      "actualAtlas": [
+        528,
+        272
+      ],
+      "checkedTypedValues": 393216,
+      "bitMismatches": 0,
+      "maximumError": 0,
+      "constantGpuMs": [
+        0.231333
+      ],
+      "densityStripGpuMs": [
+        0.069375,
+        0.082083,
+        0.099249,
+        0.097499,
+        0.079499,
+        0.080749,
+        0.079291,
+        0.065333,
+        0.054583
+      ],
+      "prefixScanGpuMs": [
+        0.247374,
+        0.127499,
+        0.123624,
+        0.11575,
+        0.122624,
+        0.122416
+      ]
+    }
+  ],
+  "browsersClosed": true,
+  "ownedViteStopped": true,
+  "failedHistory": [
+    {
+      "path": "artifacts/full-review/round-1/cloud19-prefix-tiny-v1/report.json",
+      "reason": "Missing standalone favicon;guard stopped before prefix work."
+    },
+    {
+      "path": "artifacts/full-review/round-1/cloud19-prefix-tiny-v2/report.json",
+      "reason": "Reserved GLSL local active;compilefailed,guard stopped at16;no contextloss."
+    }
+  ],
+  "limits": [
+    "Actual GPU density is the input to independent CPU prefix sums; source-field/noise-LUT1e-6 equality is NOT established by this test.",
+    "No logicalgrid128/fullviewport,sourceSUN,near-refinement,opaque-light visibility or phase-scheduling GPU proof.",
+    "No product scene, optical acceptance, final64 or phoneFPS claim."
+  ]
+}

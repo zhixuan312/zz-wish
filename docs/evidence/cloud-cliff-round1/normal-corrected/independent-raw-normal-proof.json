@@ -1,0 +1,111 @@
+{
+  "version": 1,
+  "inputs": {
+    "prepared": {
+      "path": "/Users/xuan/Documents/code/zz-wish/art/build/cloud-cliff-round1/production-normal-corrected/cloud-cliff-prepared.blend",
+      "sha256": "14fdacab407a318b73f6d93ba220316db66b1e7b0087486d28c70b69c886ddd1"
+    },
+    "raw": {
+      "path": "/Users/xuan/Documents/code/zz-wish/art/build/cloud-cliff-round1/production-normal-corrected/cloud-cliff.raw.glb",
+      "sha256": "2a6d17bdb4ab75f5bfac259622e72bc19b208692d391910a23ea7abc6ec27d42"
+    }
+  },
+  "passed": true,
+  "method": "Decode actual uncompressed glTF accessors and hierarchy; transform raw NORMAL by inverse transpose into world Y-up. Evaluate prepared CORNER normals and positions into the same engine basis. Match exact FLOAT32 triangle positions and cyclic winding; duplicate coincident triangle groups require a complete one-to-one normal assignment at1e\u22126. No normal attribute other than standard NORMAL is used.",
+  "preparedTrianglesByRegion": {
+    "cliff": 4999,
+    "cover": 54252,
+    "far": 14336
+  },
+  "rawTrianglesByRegion": {
+    "cliff": 4999,
+    "cover": 54252,
+    "far": 14336
+  },
+  "association": {
+    "geometryTriangleGroups": 72897,
+    "uniqueTriangleGroups": 72207,
+    "oneToOneNormalMatchedTriangles": 73587,
+    "coincidentTriangleGroups": 690
+  },
+  "maximumBestMatchedWorldNormalComponentError": 1.7881393432617188e-07,
+  "normalComponentTolerance": 1e-06,
+  "standardNormalAccessorFormats": [
+    {
+      "node": "cloud-cliff_cliff",
+      "count": 1424,
+      "componentType": 5126,
+      "normalized": false
+    },
+    {
+      "node": "cloud-cliff_cliff",
+      "count": 1324,
+      "componentType": 5126,
+      "normalized": false
+    },
+    {
+      "node": "cloud-cliff_cliff",
+      "count": 1822,
+      "componentType": 5126,
+      "normalized": false
+    },
+    {
+      "node": "cloud-cliff_cover",
+      "count": 42837,
+      "componentType": 5126,
+      "normalized": false
+    },
+    {
+      "node": "cloud-cliff_cover",
+      "count": 7523,
+      "componentType": 5126,
+      "normalized": false
+    },
+    {
+      "node": "cloud-cliff_cover",
+      "count": 18692,
+      "componentType": 5126,
+      "normalized": false
+    },
+    {
+      "node": "cloud-cliff_cover",
+      "count": 576,
+      "componentType": 5126,
+      "normalized": false
+    },
+    {
+      "node": "cloud-cliff_cover",
+      "count": 384,
+      "componentType": 5126,
+      "normalized": false
+    },
+    {
+      "node": "cloud-cliff_cover",
+      "count": 587,
+      "componentType": 5126,
+      "normalized": false
+    },
+    {
+      "node": "cloud-cliff_far",
+      "count": 9412,
+      "componentType": 5126,
+      "normalized": false
+    }
+  ],
+  "semanticPrimitiveCounts": {
+    "POSITION": 10,
+    "NORMAL": 10,
+    "TEXCOORD_0": 10,
+    "TEXCOORD_1": 10,
+    "COLOR_0": 10,
+    "COLOR_1": 10
+  },
+  "unexpectedOrRedundantSemantics": [],
+  "redundantNormalAccessorNames": [],
+  "noCustomNormalOrEquivalentStream": true,
+  "maximumWorldNormalUnitLengthErrorAfterTransform": 1.1332152172194299e-07,
+  "failureExamples": [],
+  "sourcePreparedOrRawModified": false,
+  "renderBakeEncoderGpuJobs": 0,
+  "scriptSha256": "9b03a8054b3b7ce6714a5c6f1cacec62bfb072ed633912fc817b1b729e8f94cf"
+}

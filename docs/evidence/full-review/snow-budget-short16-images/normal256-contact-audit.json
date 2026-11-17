@@ -1,0 +1,13 @@
+{
+  "scope": "Compact pointer to the complete ignored numerical receipt; no proof data was discarded.",
+  "archivedOriginal": "artifacts/archive/round1-snow-budget-evidence/normal256-contact-audit.json",
+  "sha256": "ede2b64c19e6a1cab497c4d55d3ac0f984ac531a4ce920de389548b280d61fcb",
+  "bytes": 136825,
+  "summary": {
+    "literalGuardsMetres": {
+      "gap": 0.002,
+      "penetration": 0.005
+    },
+    "passed": true
+  }
+}

@@ -1,0 +1,16 @@
+# Evaluated normal preservation
+
+The previous preparation joined evaluated meshes and triangulated them while relying on implicit normals. Independent source-to-prepared association measured a real maximum normal-component change of 1.2434 on Snow, including 5,576 nondegenerate triangles with a unique source parent and changes above 0.1. Cloud also had smaller measured changes, up to 0.005974 on scanned cliff surfaces and 0.000543 on far terrain. Those old files remain preserved as history.
+
+The corrected preparation freezes each evaluated corner direction in world space before joining. A source-owner and original-loop reference accompany each direction through triangulation. The receiver restores `FLOAT_VECTOR` / `CORNER` `custom_normal` values in its local frame. This uses Blender free normals and retains the original smooth/sharp face flags. The older tangent-space setter can average directions within smooth fans and was rejected by the numeric probe.
+
+The independently checked Snow probe passes source/prepared material, world position, UV0, normal and tint comparisons in both directions at the unchanged limits in [probe-summary.json](probe-summary.json). Its purpose is numeric validation; it does not claim UV2 preparation, raw export, contact replay or a completed production bake. Actual production preparations receive their own complete gates.
+
+The actual corner-normal bytes, frozen world-normal bytes and original-loop references enter receiver fingerprints. The compact transfer policy and audit hashes enter the transport fingerprint. Real Cycles baking now requires a passing source/current-receiver/UV-bound normal mapping receipt; legacy preparations cannot reuse earlier GI. Native vector arrays remain in ignored mesh and audit files. The glTF exporter retains the standard `NORMAL` stream and explicitly disables generic attribute export; actual exported streams are independently inspected.
+
+Official references: [Blender free normals](https://docs.blender.org/manual/en/latest/modeling/meshes/structure.html) and [Mesh API](https://docs.blender.org/api/current/bpy.types.Mesh.html). No source geometry, material value or authored light was changed by this correction.
+
+
+The installed Blender 5.3 glTF extractor also rounded normals to four decimal places before normalization. Its actual first export failed the unchanged normal gate by up to 0.000065625. A signature/version-checked, per-export override uses eight decimal places and restores the module default in `finally`; installed Blender files stay unchanged. The recipe and extractor file hash enter the transport identity and manifest. Actual corrected Cloud raw export then passes all 73,587 triangles, including coincident groups, at maximum world-normal component error 0.000000178814. It contains the standard `NORMAL` stream and no redundant custom-normal attribute. See [the independent raw proof](cloud-raw-normal-proof.json).
+
+The [actual normal guard challenge](cloud-normal-guard-proof.json) passes 16 cases without Cycles work. Missing/failed/stale-source/UV/receiver proofs, wrong provenance and legacy preparation are rejected. A real in-memory normal mutation changes the receiver fingerprint and rejects the previous receipt; exact restoration and metadata-only acceptance are checked. The original input files remain byte-identical.

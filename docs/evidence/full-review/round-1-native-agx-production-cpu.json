@@ -1,0 +1,65 @@
+{
+  "status": "PASS",
+  "scope": "CPU-only production staging of the exact tested native AgX helper and declared F16 lookup. Prototype remains frozen. Scene integration and shared asset registry are Root-owned and not edited by this staging.",
+  "files": [
+    {
+      "path": "web/src/engine/baked/nativeAgX.js",
+      "bytes": 15594,
+      "sha256": "bc2dc335a5fc190e6781d35d7acfb262d71dc1ad86253fb0e3a2080fd049baea"
+    },
+    {
+      "path": "web/src/engine/baked/nativeAgX.d.ts",
+      "bytes": 2164,
+      "sha256": "daaec35458fd9294bcb90212fa1fa9f0e8d0b1e1ca200d35bec4dabaf723e6fb"
+    },
+    {
+      "path": "web/public/color/native-agx-57-f16.bin.zst",
+      "bytes": 116705,
+      "sha256": "bc942c1862956cb48aed8c259d2e410518a10c4b26775a27c3b326d539244463"
+    },
+    {
+      "path": "docs/licenses/native-agx.json",
+      "bytes": 15906,
+      "sha256": "65617046063caa7107e1fe31a72351178f06504b03ba824707f25264cdc75a92"
+    },
+    {
+      "path": "docs/licenses/native-agx-historical-ocio.txt",
+      "bytes": 1520,
+      "sha256": "e39e97c2149a821e3e3b3c07839f8cadf6a98fb0a816b8ed69f16dd8817066fc"
+    },
+    {
+      "path": "docs/licenses/OpenColorIO-2.5.0-BSD-3-Clause.txt",
+      "bytes": 1485,
+      "sha256": "82a40c52065ee968aa62015735e84378ac11425db7a233e6a2dcd2c83fc24276"
+    }
+  ],
+  "checks": {
+    "executableBytesEqualFrozenGpuTestedPrototype": true,
+    "prototypeSha256": "aae6afa312921e1283b1f531d8528bdab50cb1482904743707036f620d42091a",
+    "commentDifferences": [
+      "Isolated proposal scope changed to production view",
+      "Redundant prototype-only crypto/fetch global lint header removed because web browser globals already define both"
+    ],
+    "assetByteIdenticalToTestedF16": true,
+    "noticeHashesEqualIndependentProvenanceSources": true,
+    "cpuReferenceCases": 40413,
+    "cpuProof": {
+      "path": "art/build/snow-roof-round1/native-agx-production-proof/cpu-proof.json",
+      "bytes": 19751,
+      "sha256": "b8f2fd43ba36e0e037d3ab300c6a5895966422f2ece602e5f8269acaf1eafa1a"
+    },
+    "scopedEslint": "PASS",
+    "scopedStrictTypescriptDeclarationAndApiSmoke": "PASS",
+    "nodeSyntax": "PASS",
+    "gpuRuns": 0
+  },
+  "typedScope": {
+    "declaration": "web/src/engine/baked/nativeAgX.d.ts",
+    "smoke": "art/build/snow-roof-round1/native-agx-production-proof/api-smoke.ts",
+    "command": "npx tsc --ignoreConfig --noEmit --strict --skipLibCheck --target ES2022 --module ESNext --moduleResolution Bundler --lib ES2022,DOM --types node art/build/snow-roof-round1/native-agx-production-proof/api-smoke.ts"
+  },
+  "pending": [
+    "Root Scene integration, thumbnails and actual app optics/performance/transfer budget",
+    "License record deliberately preserves historical/config/software distinctions; no definitive all-contributor AgX-specific grant is asserted"
+  ]
+}

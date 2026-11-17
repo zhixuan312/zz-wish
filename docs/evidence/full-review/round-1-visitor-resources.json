@@ -1,0 +1,106 @@
+{
+  "scope": "Bounded real-UI Chrome phone-viewport resource-lifetime comparison; not FPS, endurance or physical-phone evidence.",
+  "sides": {
+    "before": {
+      "report": "artifacts/full-review/round-1/material-before/report.json",
+      "sha256": "d73f07c001975a8b9395a703a659df3bcc5f3fa1285bd2e77dd51258389a7050",
+      "sourceFingerprint": "d47b1e9f8b1569af487439f74a9a0d7ae7086332912ac76ac74544f9756ca8fa",
+      "sourceChanged": false,
+      "errors": [],
+      "capture": "artifacts/full-review/round-1/material-before/choose.png",
+      "readings": [
+        {
+          "cycle": "cycle-1",
+          "geometries": 268,
+          "textures": 90,
+          "programs": 152,
+          "programReferences": 857,
+          "retainedReflectionMaterials": 31
+        },
+        {
+          "cycle": "cycle-2",
+          "geometries": 268,
+          "textures": 90,
+          "programs": 152,
+          "programReferences": 869,
+          "retainedReflectionMaterials": 43
+        },
+        {
+          "cycle": "cycle-3",
+          "geometries": 268,
+          "textures": 90,
+          "programs": 152,
+          "programReferences": 881,
+          "retainedReflectionMaterials": 55
+        },
+        {
+          "cycle": "cycle-4",
+          "geometries": 268,
+          "textures": 90,
+          "programs": 152,
+          "programReferences": 893,
+          "retainedReflectionMaterials": 67
+        },
+        {
+          "cycle": "cycle-5",
+          "geometries": 268,
+          "textures": 90,
+          "programs": 152,
+          "programReferences": 905,
+          "retainedReflectionMaterials": 79
+        }
+      ]
+    },
+    "after": {
+      "report": "artifacts/full-review/round-1/material-after/report.json",
+      "sha256": "e9ec451b46c05117f4d565e3686b03a31abc920887c33d0661fee32db5a98007",
+      "sourceFingerprint": "61ada335300f5220dcfa106aca7cec47dd0c8706e5158739319946464e6755c8",
+      "sourceChanged": false,
+      "errors": [],
+      "capture": "artifacts/full-review/round-1/material-after/choose.png",
+      "readings": [
+        {
+          "cycle": "cycle-1",
+          "geometries": 268,
+          "textures": 90,
+          "programs": 152,
+          "programReferences": 847,
+          "retainedReflectionMaterials": null
+        },
+        {
+          "cycle": "cycle-2",
+          "geometries": 268,
+          "textures": 90,
+          "programs": 152,
+          "programReferences": 847,
+          "retainedReflectionMaterials": null
+        },
+        {
+          "cycle": "cycle-3",
+          "geometries": 268,
+          "textures": 90,
+          "programs": 152,
+          "programReferences": 847,
+          "retainedReflectionMaterials": null
+        },
+        {
+          "cycle": "cycle-4",
+          "geometries": 268,
+          "textures": 90,
+          "programs": 152,
+          "programReferences": 847,
+          "retainedReflectionMaterials": null
+        },
+        {
+          "cycle": "cycle-5",
+          "geometries": 268,
+          "textures": 90,
+          "programs": 152,
+          "programReferences": 847,
+          "retainedReflectionMaterials": null
+        }
+      ]
+    }
+  },
+  "result": "PASS for repeated measured cycles. Old references grow by12 each cycle and retain31\u219279 materials; new references remain847 for all5 cycles with geometry268/textures90 unchanged. Owned materials dispose; reflection membership is weak."
+}

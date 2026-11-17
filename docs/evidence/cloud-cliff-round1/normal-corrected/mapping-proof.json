@@ -1,0 +1,405 @@
+{
+  "sourceBlendSha256": "484438a4514352e70d7ffe0408306b4127660316c1422f3248f0ff33f5e0e565",
+  "preparedBlendSha256": "fe2eef77f22056cc008465ba038aaaabcc32e98f36571ddf71b41216e1d657a7",
+  "mappingPolicy": "implicit-procedural-generated-evaluated-undeformed-source-texspace-v2",
+  "generatedReceivers": {
+    "cliff": {
+      "required": false,
+      "reason": "No implicit Generated procedural input; source material UVMap is unchanged."
+    },
+    "cover": {
+      "required": false,
+      "reason": "No implicit Generated procedural input; source material UVMap is unchanged."
+    },
+    "far": {
+      "required": false,
+      "reason": "No implicit Generated procedural input; source material UVMap is unchanged."
+    }
+  },
+  "geometryFingerprint": "4bb266f5731e8703491784151c72eb1f87a6540e866745e8ec48a7190d19b584",
+  "receiverProfiles": {
+    "cliff": {
+      "receiverFingerprint": "ad9b66949334ec451a08dcb5f65f1e9536bac8e609d29d6bcbfed500ad101b7d",
+      "vertices": 3705,
+      "polygons": 4999,
+      "loops": 14997,
+      "fields": [
+        "worldMatrix",
+        "positions",
+        "topology",
+        "materialIndices",
+        "cornerNormals",
+        "frozenSourceWorldCornerNormals",
+        "originalSourceNormalLoopReferences",
+        "UVMap",
+        "SurfaceTint",
+        "provenHiddenMask",
+        "materialSlots"
+      ],
+      "fieldSha256": {
+        "worldMatrix": "5998e9d1dd9bf48af6af87a1ef8c7783b818ac8329637ada08cc5fb329042376",
+        "positions": "2c535ffc0532963ae1b64e692d4d4e44adb0194637a3f9bd1dba98d7309fdbef",
+        "topology": "552b0d2047093af8d2a4321c6abc2e790420dc72833d4ebaa835b05d60184577",
+        "materialIndices": "398ba6f150a7704bab68531bf42750afbfd94e92f8c0e09aae1f4ba3f62fdbba",
+        "cornerNormals": "b57054f93d2b12d6fa4fe40efe9b8e4d642872df1bdf02524835a157b5338328",
+        "frozenSourceWorldCornerNormals": "8e18b00c056d61ddc3f844963e3f7f4911aad937f182e4e7db89d9d5237db8fc",
+        "originalSourceNormalLoopReferences": "b5bc2faa3f24c76511a6e63dc3078052f1c310e85f8965dea60d92c880060467",
+        "UVMap": "835e97f4ec46b1aab34a85622966d69453020eae94862c3d46960ba7852d072e",
+        "SurfaceTint": "5c84bb3540babe279d8554d88493fb8e12910478b5f1b3e3456946f2c1614e56",
+        "provenHiddenMask": "5e843fb3957622241304319159657150a9fa179d97e0c52a9ba7dc29e5d0803d",
+        "materialSlots": "3c2a774ab2a4528a6169d48406a9b1e6eebb8ef43ec40668d4c57a3c495ed38e"
+      },
+      "lightmapUVFingerprint": "850073a6a602e40919168ff9303269a18f53d9e676855f5c0bdcf3e92669877b",
+      "unwrapSignature": "49a0c86e36ae3108e7fea0c577bba955ea0f1cdb9b29493d16c77fd90019a23c",
+      "resolution": 512
+    },
+    "cover": {
+      "receiverFingerprint": "153203e2333e8921c4087c46a13ff45be49dc7e6c1aec321e53915229b2a5858",
+      "vertices": 34894,
+      "polygons": 54252,
+      "loops": 162756,
+      "fields": [
+        "worldMatrix",
+        "positions",
+        "topology",
+        "materialIndices",
+        "cornerNormals",
+        "frozenSourceWorldCornerNormals",
+        "originalSourceNormalLoopReferences",
+        "UVMap",
+        "SurfaceTint",
+        "provenHiddenMask",
+        "zeroAreaUVAllocationMask",
+        "materialSlots"
+      ],
+      "fieldSha256": {
+        "worldMatrix": "5998e9d1dd9bf48af6af87a1ef8c7783b818ac8329637ada08cc5fb329042376",
+        "positions": "fd0693e54ac0a4bf1e8bd418b214bd85a0b59f70186acc444885278dede93727",
+        "topology": "38e83636ff2ffe1746a8298b2fac8b8a46533a08f4f266a1b29b6da6425bc3aa",
+        "materialIndices": "f059812a58206e04f14d7bbf5ed69f67955f89dc6050fcc83b350ea421d3bbcc",
+        "cornerNormals": "f02a1b8b1f5f735de7339f6c36d9430bf784ed63e2fe407eae56de8734a3c729",
+        "frozenSourceWorldCornerNormals": "3c0ec26c9cec118c0ed6fc270e6d630c63e048fcd933d9c89af089cfdd59b8ed",
+        "originalSourceNormalLoopReferences": "ae775a62dfa54b0b97adf6eb7d0fe6d772ef59ea754f4e12d7c13962aaac2e1f",
+        "UVMap": "9913bc7bbcf6a938dfa79d231db52565c902f274dc6b60f29c5cccb879e54005",
+        "SurfaceTint": "929c263f6480ace54ef2b0d054a318c5eb1bd31c18da64739e1f60a8b2e0c2c0",
+        "provenHiddenMask": "84f573dc9d56ed6d06376b65c0e9c993aeab4b6a54f9e1d58fb66cd7f949fe67",
+        "zeroAreaUVAllocationMask": "969f3b4626e4b8a370c7163e8804d15f60de6d1d3be036303abe18ffb8ee93ad",
+        "materialSlots": "902f0fc442d849bba89f2f4acc5ee1c0d7cccfb3eb91a4e3f959e035e4be873c"
+      },
+      "lightmapUVFingerprint": "1ed75be700d9f5be2f2d22f8523bf23000092ebf19ae9e6c364248ae514073f0",
+      "unwrapSignature": "957d8adfa993284c6c900409694b2785958cafa74a56d053d3d8103b452fc018",
+      "resolution": 1024
+    },
+    "far": {
+      "receiverFingerprint": "c6d6b009dbc14e8081ed60c6eddafcc5755fb041abffa4042beab1a185c9a1cf",
+      "vertices": 7710,
+      "polygons": 14336,
+      "loops": 43008,
+      "fields": [
+        "worldMatrix",
+        "positions",
+        "topology",
+        "materialIndices",
+        "cornerNormals",
+        "frozenSourceWorldCornerNormals",
+        "originalSourceNormalLoopReferences",
+        "UVMap",
+        "SurfaceTint",
+        "provenHiddenMask",
+        "materialSlots"
+      ],
+      "fieldSha256": {
+        "worldMatrix": "5998e9d1dd9bf48af6af87a1ef8c7783b818ac8329637ada08cc5fb329042376",
+        "positions": "5bf50b8f5f173259fc70b979299b6fd91e04139ba7de1f33927e5f031bf2c245",
+        "topology": "2a2b99b77b9b40bf86c1819ea4049aad6e94a059260e3964d26757a8abe1b68b",
+        "materialIndices": "4f81904a9b06c58572a0e5769b3b4ffb99e7bd4be88ee8c2b64a804f483d9dc6",
+        "cornerNormals": "c638a9dc2b9bca9745e8cab6542f754ee81d2a9b8902221785369dacd800429c",
+        "frozenSourceWorldCornerNormals": "237c3e12b40b5a1ed2c8e821e3fcbedc081bf050b8b5ed2459598df773a5b026",
+        "originalSourceNormalLoopReferences": "a0932bbfd319dcd9b9587f55a22ce195f187cfb7c33836abec8b3ea876dd5c37",
+        "UVMap": "da0fc22486160cd0e8b6c9487434392ea29af071df7b9c548ba362fe7742a964",
+        "SurfaceTint": "b437f2a3e34f03bb233d7d5cd7397c68e80b331f41ddab9f03b1f802d77de868",
+        "provenHiddenMask": "90b446c6472fde83a94e15bcef5e4b2ea20522db2c242448f6a825bb2a3f42b1",
+        "materialSlots": "ee24c48ba87a9a42f8a8367bbf61732315186c6ebc42144084dc190718180321"
+      },
+      "lightmapUVFingerprint": "0cbed2a10a5180146ffc4f8648e4766f97464035e103880b86c8d24b5375a802",
+      "unwrapSignature": "12354350d5c1ea543b9cd16e1bf33ace7c0116a062cc7566b26510797b7210bb",
+      "resolution": 256
+    }
+  },
+  "diagnosticOnlyNoUVPreparationClaim": false,
+  "sourceMaterialUVTintNormalCorrespondencePassed": true,
+  "passed": true,
+  "materials": [
+    {
+      "material": "Cloud aged grey clay tiles",
+      "sourceUniqueCorners": 18546,
+      "preparedUniqueCorners": 18546,
+      "sourceToPrepared": {
+        "exactUniqueCorners": 18546,
+        "toleranceMatchedCorners": 0,
+        "failedCorners": 0,
+        "maximumPositionErrorMetres": 0,
+        "maximumUV0Error": 0,
+        "maximumWorldNormalError": 0,
+        "maximumTintError": 0
+      },
+      "preparedToSource": {
+        "exactUniqueCorners": 18546,
+        "toleranceMatchedCorners": 0,
+        "failedCorners": 0,
+        "maximumPositionErrorMetres": 0,
+        "maximumUV0Error": 0,
+        "maximumWorldNormalError": 0,
+        "maximumTintError": 0
+      },
+      "passed": true
+    },
+    {
+      "material": "Cloud far weathered mountain stone",
+      "sourceUniqueCorners": 9412,
+      "preparedUniqueCorners": 9412,
+      "sourceToPrepared": {
+        "exactUniqueCorners": 9412,
+        "toleranceMatchedCorners": 0,
+        "failedCorners": 0,
+        "maximumPositionErrorMetres": 0,
+        "maximumUV0Error": 0,
+        "maximumWorldNormalError": 0,
+        "maximumTintError": 0
+      },
+      "preparedToSource": {
+        "exactUniqueCorners": 9412,
+        "toleranceMatchedCorners": 0,
+        "failedCorners": 0,
+        "maximumPositionErrorMetres": 0,
+        "maximumUV0Error": 0,
+        "maximumWorldNormalError": 0,
+        "maximumTintError": 0
+      },
+      "passed": true
+    },
+    {
+      "material": "Cloud lime infill",
+      "sourceUniqueCorners": 576,
+      "preparedUniqueCorners": 576,
+      "sourceToPrepared": {
+        "exactUniqueCorners": 576,
+        "toleranceMatchedCorners": 0,
+        "failedCorners": 0,
+        "maximumPositionErrorMetres": 0,
+        "maximumUV0Error": 0,
+        "maximumWorldNormalError": 0,
+        "maximumTintError": 0
+      },
+      "preparedToSource": {
+        "exactUniqueCorners": 576,
+        "toleranceMatchedCorners": 0,
+        "failedCorners": 0,
+        "maximumPositionErrorMetres": 0,
+        "maximumUV0Error": 0,
+        "maximumWorldNormalError": 0,
+        "maximumTintError": 0
+      },
+      "passed": true
+    },
+    {
+      "material": "Cloud warm opaque window paper",
+      "sourceUniqueCorners": 384,
+      "preparedUniqueCorners": 384,
+      "sourceToPrepared": {
+        "exactUniqueCorners": 384,
+        "toleranceMatchedCorners": 0,
+        "failedCorners": 0,
+        "maximumPositionErrorMetres": 0,
+        "maximumUV0Error": 0,
+        "maximumWorldNormalError": 0,
+        "maximumTintError": 0
+      },
+      "preparedToSource": {
+        "exactUniqueCorners": 384,
+        "toleranceMatchedCorners": 0,
+        "failedCorners": 0,
+        "maximumPositionErrorMetres": 0,
+        "maximumUV0Error": 0,
+        "maximumWorldNormalError": 0,
+        "maximumTintError": 0
+      },
+      "passed": true
+    },
+    {
+      "material": "Cloud weathered gallery timber",
+      "sourceUniqueCorners": 41118,
+      "preparedUniqueCorners": 41118,
+      "sourceToPrepared": {
+        "exactUniqueCorners": 41118,
+        "toleranceMatchedCorners": 0,
+        "failedCorners": 0,
+        "maximumPositionErrorMetres": 0,
+        "maximumUV0Error": 0,
+        "maximumWorldNormalError": 0,
+        "maximumTintError": 0
+      },
+      "preparedToSource": {
+        "exactUniqueCorners": 41118,
+        "toleranceMatchedCorners": 0,
+        "failedCorners": 0,
+        "maximumPositionErrorMetres": 0,
+        "maximumUV0Error": 0,
+        "maximumWorldNormalError": 0,
+        "maximumTintError": 0
+      },
+      "passed": true
+    },
+    {
+      "material": "Cloud worn oxblood timber",
+      "sourceUniqueCorners": 5788,
+      "preparedUniqueCorners": 5788,
+      "sourceToPrepared": {
+        "exactUniqueCorners": 5788,
+        "toleranceMatchedCorners": 0,
+        "failedCorners": 0,
+        "maximumPositionErrorMetres": 0,
+        "maximumUV0Error": 0,
+        "maximumWorldNormalError": 0,
+        "maximumTintError": 0
+      },
+      "preparedToSource": {
+        "exactUniqueCorners": 5788,
+        "toleranceMatchedCorners": 0,
+        "failedCorners": 0,
+        "maximumPositionErrorMetres": 0,
+        "maximumUV0Error": 0,
+        "maximumWorldNormalError": 0,
+        "maximumTintError": 0
+      },
+      "passed": true
+    },
+    {
+      "material": "Storm carbon and iron",
+      "sourceUniqueCorners": 472,
+      "preparedUniqueCorners": 472,
+      "sourceToPrepared": {
+        "exactUniqueCorners": 472,
+        "toleranceMatchedCorners": 0,
+        "failedCorners": 0,
+        "maximumPositionErrorMetres": 0,
+        "maximumUV0Error": 0,
+        "maximumWorldNormalError": 0,
+        "maximumTintError": 0
+      },
+      "preparedToSource": {
+        "exactUniqueCorners": 472,
+        "toleranceMatchedCorners": 0,
+        "failedCorners": 0,
+        "maximumPositionErrorMetres": 0,
+        "maximumUV0Error": 0,
+        "maximumWorldNormalError": 0,
+        "maximumTintError": 0
+      },
+      "passed": true
+    },
+    {
+      "material": "rock_face_01",
+      "sourceUniqueCorners": 1146,
+      "preparedUniqueCorners": 1146,
+      "sourceToPrepared": {
+        "exactUniqueCorners": 1146,
+        "toleranceMatchedCorners": 0,
+        "failedCorners": 0,
+        "maximumPositionErrorMetres": 0,
+        "maximumUV0Error": 0,
+        "maximumWorldNormalError": 0,
+        "maximumTintError": 0
+      },
+      "preparedToSource": {
+        "exactUniqueCorners": 1146,
+        "toleranceMatchedCorners": 0,
+        "failedCorners": 0,
+        "maximumPositionErrorMetres": 0,
+        "maximumUV0Error": 0,
+        "maximumWorldNormalError": 0,
+        "maximumTintError": 0
+      },
+      "passed": true
+    },
+    {
+      "material": "rock_face_01.001",
+      "sourceUniqueCorners": 1146,
+      "preparedUniqueCorners": 1146,
+      "sourceToPrepared": {
+        "exactUniqueCorners": 1146,
+        "toleranceMatchedCorners": 0,
+        "failedCorners": 0,
+        "maximumPositionErrorMetres": 0,
+        "maximumUV0Error": 0,
+        "maximumWorldNormalError": 0,
+        "maximumTintError": 0
+      },
+      "preparedToSource": {
+        "exactUniqueCorners": 1146,
+        "toleranceMatchedCorners": 0,
+        "failedCorners": 0,
+        "maximumPositionErrorMetres": 0,
+        "maximumUV0Error": 0,
+        "maximumWorldNormalError": 0,
+        "maximumTintError": 0
+      },
+      "passed": true
+    },
+    {
+      "material": "rock_face_02",
+      "sourceUniqueCorners": 1396,
+      "preparedUniqueCorners": 1396,
+      "sourceToPrepared": {
+        "exactUniqueCorners": 1395,
+        "toleranceMatchedCorners": 1,
+        "positionUVTintMatchedCorners": 1,
+        "normalLimitFailedCorners": 0,
+        "failedCorners": 0,
+        "failureExamples": [],
+        "maximumPositionErrorMetres": 0.0,
+        "maximumUV0Error": 0.0,
+        "maximumWorldNormalError": 5.960464477539063e-08,
+        "maximumTintError": 0.0
+      },
+      "preparedToSource": {
+        "exactUniqueCorners": 1395,
+        "toleranceMatchedCorners": 1,
+        "positionUVTintMatchedCorners": 1,
+        "normalLimitFailedCorners": 0,
+        "failedCorners": 0,
+        "failureExamples": [],
+        "maximumPositionErrorMetres": 0.0,
+        "maximumUV0Error": 0.0,
+        "maximumWorldNormalError": 5.960464477539063e-08,
+        "maximumTintError": 0.0
+      },
+      "passed": true
+    }
+  ],
+  "inputs": {
+    "source": {
+      "path": "/Users/xuan/Documents/code/zz-wish/art/build/cloud-cliff-round1/cloud-cliff-source-v11.blend",
+      "sha256": "484438a4514352e70d7ffe0408306b4127660316c1422f3248f0ff33f5e0e565"
+    },
+    "prepared": {
+      "path": "/Users/xuan/Documents/code/zz-wish/art/build/cloud-cliff-round1/contact-replay-v13-normal8/cloud-cliff-prepared.blend",
+      "sha256": "fe2eef77f22056cc008465ba038aaaabcc32e98f36571ddf71b41216e1d657a7"
+    },
+    "manifest": {
+      "path": "/Users/xuan/Documents/code/zz-wish/art/build/cloud-cliff-round1/contact-replay-v13-normal8/manifest.json",
+      "sha256": "366165b12d34fa90cdd7f97f21c6bc87d1f634ff24ab2b88904584b020f9feb5"
+    }
+  },
+  "numericLimits": {
+    "worldPositionMetres": 5e-06,
+    "materialUV0": 1e-06,
+    "worldNormalComponent": 1e-06,
+    "linearSurfaceTintComponent": 1e-06
+  },
+  "scope": "Every unique evaluated material/world-position/UV0/world-normal/tint source corner matches prepared and vice versa. Exact tuples first; only measured Float32 transform/evaluation rounding uses explicit micrometre-level bounds. Does not assert identical quad interpolation or render pixels. Actual prepared/raw resting-contact replay remains separate and literal.",
+  "requiresRootNativeVisualReview": true,
+  "renderBakeEncoderGpuJobs": 0,
+  "sourceOrModelModified": false,
+  "scriptSha256": "bc627cb9e6c475ec16cb088d84e79e4801d5c801c2778603717880d843077938"
+}

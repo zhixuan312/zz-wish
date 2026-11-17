@@ -1,0 +1,265 @@
+{
+  "scope": "Bounded actual GPU helper lab only: frozen actual cloth shader, actual indexed proxy and actual Three160 helpers. No Snow/Cloud app, no FPS or full optical approval.",
+  "snapshot": "/var/folders/y7/b30gx9v90z36h9vf5pvk27mh0000gn/T/one-light-static-shadow-lab-keRfbL",
+  "fingerprints": [
+    {
+      "path": "web/src/engine/baked/staticLampShadow.js",
+      "sha256": "2a161104aafd3713fd969a132731823ee4b056c828f48a95099eab3176861474"
+    },
+    {
+      "path": "web/src/engine/baked/visitorShadow.js",
+      "sha256": "a0d40bee1b43356dae2d6d52fbe6a40198b88cb0f1a8ffa11163f9c01b5f637b"
+    },
+    {
+      "path": "web/src/engine/baked/gauzeTransmission.js",
+      "sha256": "c41dfecd6cd5d5c39f429353bed2dadc352ddd0a7af944eadabe3ae7bed71ae0"
+    },
+    {
+      "path": "web/src/engine/baked/gauzeMask.js",
+      "sha256": "59ec6e0043b5e109cc2a2aa3e6a307e83e3ec869ea9158fb720b995e54f41169"
+    },
+    {
+      "path": "node_modules/three/build/three.module.js",
+      "sha256": "76dea8151bc9352aef3528b4262e249b2604f62543828328db978d060d61a495"
+    },
+    {
+      "path": "art/build/snow-roof-round1/source16-gauze-proxy-default30.json",
+      "sha256": "4a8c0b97007b8fd2cba1d426e8d3f4e12fe5c2bc2eb61c33d40a7965b495b39e"
+    },
+    {
+      "path": "web/src/engine/scene.js",
+      "sha256": "7b015bd75b4a1e172b9655e94ede977b2f5a42fa82e540ea3a394133ae4b9082",
+      "actualClothFactorySha256": "199eccced608628fb28ca151413b3af4b964bbcfca842d3c5e00ac5e37943b2f"
+    },
+    {
+      "path": "web/public/places/snow-roof/gauze-weave.webp",
+      "sha256": "5008bae957c0c26a4323356b5c8922c4559d28e3d192c3fc725ba87db57c98b6"
+    },
+    {
+      "path": "web/public/places/snow-roof/gauze-normal.webp",
+      "sha256": "599ba576df8863b328f96c543c1485ea2af14f02b2ca99bd2d735ac89c5b332f"
+    },
+    {
+      "path": "web/public/places/snow-roof/gauze-roughness.webp",
+      "sha256": "aa1de52d1bf84dd3fee42fd55e7ba2c56da6df22232f820453ca9dba453aec33"
+    }
+  ],
+  "rows": [
+    {
+      "resolution": [
+        128,
+        128
+      ],
+      "threeRevision": "160",
+      "webgl2": true,
+      "tests": [
+        {
+          "name": "zero-point-shadow-geometric-visibility",
+          "controls": {
+            "opaque": [
+              0,
+              0,
+              0
+            ],
+            "glass": [
+              255,
+              255,
+              255
+            ],
+            "cutoutHole": [
+              255,
+              255,
+              255
+            ],
+            "cutoutOpaque": [
+              0,
+              0,
+              0
+            ]
+          },
+          "stats": {
+            "nonBlackPixels": 13164,
+            "meanChannelValue": 204.1302490234375,
+            "maxChannelSum": 765
+          },
+          "passed": true
+        },
+        {
+          "name": "standard-two-points-actual-three-hook-chain",
+          "stats": {
+            "nonBlackPixels": 16384,
+            "meanChannelValue": 24.566507975260418,
+            "maxChannelSum": 126
+          },
+          "passed": true
+        },
+        {
+          "name": "actual-physical-cloth-with-static-and-moving-shadow",
+          "stats": {
+            "nonBlackPixels": 5328,
+            "meanChannelValue": 4.51336669921875,
+            "maxChannelSum": 219
+          },
+          "sourceWatts": 0.05,
+          "cameraPreExposure": 40,
+          "actualTriangles": 24284,
+          "passed": true
+        },
+        {
+          "name": "actual-physical-cloth-zero-point-shadow-defines",
+          "stats": {
+            "nonBlackPixels": 5300,
+            "meanChannelValue": 4.6456298828125,
+            "maxChannelSum": 223
+          },
+          "passed": true
+        }
+      ],
+      "copy": {
+        "allBytes": 8388608,
+        "differentBytes": 0,
+        "nativeSha256": "45ba0d898825711dc61970a5a545899db885891cfde4fb67bfbc5e908678cb53",
+        "copiedSha256": "45ba0d898825711dc61970a5a545899db885891cfde4fb67bfbc5e908678cb53",
+        "atlas": [
+          2048,
+          1024
+        ]
+      },
+      "passed": true,
+      "gpuError": 0,
+      "resourcesBeforeDispose": {
+        "geometries": 59,
+        "textures": 7,
+        "programs": 11
+      },
+      "browser": "chromium",
+      "health": {
+        "available": true,
+        "lost": false,
+        "events": []
+      },
+      "frameSha256": "d25cc85aecbbeed6136258897fdbab227ddbdde7309ef7d6b693376bc9c654f8",
+      "cleanup": {
+        "ownedDisposed": true,
+        "geometries": 0,
+        "textures": 0,
+        "programs": 1,
+        "contextLost": false
+      }
+    },
+    {
+      "resolution": [
+        128,
+        128
+      ],
+      "threeRevision": "160",
+      "webgl2": true,
+      "tests": [
+        {
+          "name": "zero-point-shadow-geometric-visibility",
+          "controls": {
+            "opaque": [
+              0,
+              0,
+              0
+            ],
+            "glass": [
+              255,
+              255,
+              255
+            ],
+            "cutoutHole": [
+              255,
+              255,
+              255
+            ],
+            "cutoutOpaque": [
+              0,
+              0,
+              0
+            ]
+          },
+          "stats": {
+            "nonBlackPixels": 13164,
+            "meanChannelValue": 204.1302490234375,
+            "maxChannelSum": 765
+          },
+          "passed": true
+        },
+        {
+          "name": "standard-two-points-actual-three-hook-chain",
+          "stats": {
+            "nonBlackPixels": 16384,
+            "meanChannelValue": 24.566507975260418,
+            "maxChannelSum": 126
+          },
+          "passed": true
+        },
+        {
+          "name": "actual-physical-cloth-with-static-and-moving-shadow",
+          "stats": {
+            "nonBlackPixels": 5328,
+            "meanChannelValue": 4.51336669921875,
+            "maxChannelSum": 219
+          },
+          "sourceWatts": 0.05,
+          "cameraPreExposure": 40,
+          "actualTriangles": 24284,
+          "passed": true
+        },
+        {
+          "name": "actual-physical-cloth-zero-point-shadow-defines",
+          "stats": {
+            "nonBlackPixels": 5300,
+            "meanChannelValue": 4.6456298828125,
+            "maxChannelSum": 223
+          },
+          "passed": true
+        }
+      ],
+      "copy": {
+        "allBytes": 8388608,
+        "differentBytes": 0,
+        "nativeSha256": "45ba0d898825711dc61970a5a545899db885891cfde4fb67bfbc5e908678cb53",
+        "copiedSha256": "45ba0d898825711dc61970a5a545899db885891cfde4fb67bfbc5e908678cb53",
+        "atlas": [
+          2048,
+          1024
+        ]
+      },
+      "passed": true,
+      "gpuError": 0,
+      "resourcesBeforeDispose": {
+        "geometries": 59,
+        "textures": 7,
+        "programs": 11
+      },
+      "browser": "webkit",
+      "health": {
+        "available": true,
+        "lost": false,
+        "events": []
+      },
+      "frameSha256": "8bdf367a2a0b964269b4433bd91e241db0769d6ea2cbacd560a0df66913c4775",
+      "cleanup": {
+        "ownedDisposed": true,
+        "geometries": 0,
+        "textures": 0,
+        "programs": 1,
+        "contextLost": false
+      }
+    }
+  ],
+  "errors": [],
+  "ownedBrowsersClosed": true,
+  "serverClosed": true,
+  "snapshotUnchanged": true,
+  "liveSourcesChanged": [],
+  "passed": true,
+  "rawReport": {
+    "path": "artifacts/full-review/round-1/static-lamp-shadow-gpu/report.json",
+    "sha256": "866b01cd6376d4e05cbc59000821b9bc90deb5e1f218d55af81072c6b5a072a2"
+  },
+  "command": "GPU_LEASE=root-approved-static-helper node tests/visual/static-lamp-shadow-lab.mjs",
+  "validation": "Scoped ESLint passes; actual Chrome+WebKit run terminal0. Every native/copy atlas byte checked by real readback,0mismatches; actual GLSL shader compilation and geometric controls pass. This is128x128 helper testing, not full app/FPS/optical acceptance."
+}

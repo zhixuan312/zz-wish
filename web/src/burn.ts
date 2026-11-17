@@ -13,6 +13,7 @@ export class Burn {
   private settled: { reason: EndReason; burnedMs: number } | null = null;
   private timer = 0;
   private wake: WakeLockSentinel | null = null;
+  private active = true;
   private onEnd: (s: Settlement) => void;
   wakeOn = false;
 
@@ -27,7 +28,11 @@ export class Burn {
   }
 
   async keepScreenOn(): Promise<boolean> {
-    try { this.wake = await navigator.wakeLock.request('screen'); this.wakeOn = true; this.wake.addEventListener('release', () => { this.wakeOn = false; }); }
+    try {
+      const wake = await navigator.wakeLock.request('screen');
+      if (!this.active) { await wake.release(); return false; }
+      this.wake = wake; this.wakeOn = true; wake.addEventListener('release', () => { this.wakeOn = false; });
+    }
     catch { this.wakeOn = false; }
     return this.wakeOn;
   }
@@ -51,7 +56,7 @@ export class Burn {
   private onLeave = () => this.settle('left');
 
   settle(reason: EndReason) {
-    if (this.settled) return;
+    if (this.settled || !this.active) return;
     const burnedMs = this.elapsed();
     const done = burnedMs >= this.durationMs;
     this.settled = { reason: done ? 'complete' : reason, burnedMs };
@@ -67,6 +72,7 @@ export class Burn {
   }
 
   private detach() {
+    this.active = false; this.wakeOn = false;
     clearInterval(this.timer);
     document.removeEventListener('visibilitychange', this.onVisibility);
     window.removeEventListener('blur', this.onLeave);

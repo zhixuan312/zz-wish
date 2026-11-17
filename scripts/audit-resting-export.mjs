@@ -32,7 +32,7 @@ for(const flag of ['--raw','--float32','--baseline'])if(options[flag])await froz
 // to remain exact, plus every already-certified scene extra. New proof extras
 // may be added; they never authorize a changed old value or authored stream.
 const certifiedContainer=parseGlb(await fs.readFile(certifiedRaw)),actualContainer=parseGlb(await fs.readFile(options['--raw']));
-const geometryJson=json=>({...json,scenes:json.scenes.map(({extras,...scene})=>scene)});
+const geometryJson=json=>({...json,scenes:json.scenes.map(scene=>({...scene,extras:undefined}))});
 if(certifiedContainer.binarySha256!==actualContainer.binarySha256||JSON.stringify(geometryJson(certifiedContainer.json))!==JSON.stringify(geometryJson(actualContainer.json)))throw Error('Actual raw is not byte-exact certified geometry/material/image data');
 const oldExtras=certifiedContainer.json.scenes.map(s=>s.extras??{}),newExtras=actualContainer.json.scenes.map(s=>s.extras??{});
 for(let i=0;i<oldExtras.length;i++)for(const [field,value] of Object.entries(oldExtras[i]))if(JSON.stringify(newExtras[i][field])!==JSON.stringify(value))throw Error('An existing contact-certified scene extra changed: '+field);

@@ -1,0 +1,8 @@
+{
+  "archivedEvidence": true,
+  "path": "docs/evidence/round2-performance.json",
+  "bytes": 1197592,
+  "sha256": "f1efbd348d67f2fd82fe3ce9889a28186900f2acae2b6fb6b6dbc8fe9e251632",
+  "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/round2-performance.json",
+  "note": "Full immutable evidence is preserved locally in the git-ignored archive; see docs/evidence/ARCHIVE.md."
+}

@@ -1,0 +1,13 @@
+// Actual source post-ray Beer-Lambert profiles, not an image/lighting proof.
+import fs from'node:fs';import path from'node:path';import crypto from'node:crypto';import{makeCloudLiveReference}from'./lib/cloud-live-reference.mjs';
+const out=process.argv[2]??'art/build/cloud-cliff-round1/source19-post-opacity';if(fs.existsSync(out))throw Error('New output required');fs.mkdirSync(out,{recursive:true});
+const sha=b=>crypto.createHash('sha256').update(b).digest('hex'),inputs=[],read=(p,json=false)=>{const b=fs.readFileSync(p);inputs.push({path:p,sha256:sha(b),bytes:b.length});return json?JSON.parse(b):b;};
+const source=read('art/build/cloud-cliff-round1/source19-cpu/saved-field/field.json',true),rays=read('art/build/cloud-cliff-round1/source19-cpu/post-rays.json',true);if(source.source.sha256!==rays.source.sha256)throw Error('Actual source mismatch');
+const tables=['a','b'].map(name=>{const b=read(`art/build/cloud-cliff-round1/hash-lattice-source17-prototype/noise-corners-${name}.f16`);return new Uint16Array(b.buffer,b.byteOffset,b.length/2);}),field=makeCloudLiveReference(source.contract,tables).sample,rows=[],times=[0,1,10,60,600,3600];
+for(const ray of rays.rays.filter(r=>r.actualVisiblePostRay)){
+  const samples=[];for(const time of times){let tau=0;for(let distance=0;distance<ray.opaqueEnd;distance+=.25){const ds=Math.min(.25,ray.opaqueEnd-distance),p=ray.origin.map((v,k)=>v+ray.direction[k]*(distance+ds*.5));tau+=field(p,time)*ds;}samples.push({time,tau,mediumOpacity:1-Math.exp(-tau)});}
+  rows.push({...ray,samples});
+}
+for(const f of inputs)if(sha(fs.readFileSync(f.path))!==f.sha256)throw Error('Input changed');
+const groups={};for(const row of rows){const key=row.camera+'::'+row.post;(groups[key]??=[]).push({targetY:row.targetY,opacityAtT0:row.samples[0].mediumOpacity,rangeAcrossPhases:[Math.min(...row.samples.map(s=>s.mediumOpacity)),Math.max(...row.samples.map(s=>s.mediumOpacity))]});}
+const report={version:1,source:source.source,inputs,actualVisiblePostRayCount:rows.length,postsWithActualVisibleSamples:Object.keys(groups).length,times,spacingMetres:.25,profiles:groups,rows,scriptSha256:sha(fs.readFileSync(new URL(import.meta.url))),limits:['Beer-Lambert source-medium coverage only; source scattering RGB/opaque light visibility, runtime upsampling and browser appearance remain separate.','Only actual first-hit source posts inside the actual two viewports are claimed visible.','Not every post has a visible sampled ray; absent profiles are not a pass.','No root scene, geometry, lighting, renderer, Cycles or public asset change.']};fs.writeFileSync(path.join(out,'receipt.json'),JSON.stringify(report,null,2)+'\n');console.log('POST_OPACITY_READY',JSON.stringify({rays:rows.length,profiles:groups}));

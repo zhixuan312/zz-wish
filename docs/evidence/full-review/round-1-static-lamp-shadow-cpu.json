@@ -1,0 +1,114 @@
+{
+  "passed": true,
+  "scope": "CPU structural/ownership/renderer-state/hook composition only. Mock renderer creates CPU Three objects but issues no GPU commands. No shader compilation, packed-copy pixel agreement, actual shadow pixels, bias/PCF quality, GPU memory or FPS approval.",
+  "moduleSha256": "2a161104aafd3713fd969a132731823ee4b056c828f48a95099eab3176861474",
+  "threePointLightShadowSha256": "33d6e75da4342b4bd78ab07cb9d8153eac983541f5e04abe4b57effbe5366a5e",
+  "threeShadowMapSha256": "c5d0d62fafc9e1f495fa4cd51a05ccc3e84dd7525a987eb0570f6a550070f632",
+  "metadata": {
+    "method": "Frozen actual static geometry; native Three160 PointLightShadow RGBA radial-depth atlas",
+    "basisWorld": [
+      -1.5,
+      2.25,
+      -1.3
+    ],
+    "sourceRadiusMetres": 0.004,
+    "normalBiasMetres": 0.001,
+    "nearMetres": 0.008,
+    "farMetres": 80,
+    "requestedFaceResolution": 512,
+    "filter": {
+      "blockerDepthFetches": 1,
+      "visibilityDepthFetches": 4,
+      "temporalNoise": false,
+      "receiverPlaneDepthCorrection": true,
+      "sourceAngle": "R*(dReceiver-dBlocker)/(dReceiver*dBlocker), using actual cached center depth",
+      "minimumCoverageAngle": "1/actual face resolution"
+    },
+    "captured": true,
+    "limits": [
+      "Static visibility is frozen at the authored source basis; live suspension sway uses this nearby basis approximation.",
+      "Rays outside near/far return visible; choose a far bound covering all significant receivers.",
+      "GPU capture, packed copy, bias, PCF quality, memory and FPS require real browser verification."
+    ],
+    "staticRootUuid": "952382b9-021c-4454-84c1-8b71f20da206",
+    "staticMeshes": 2,
+    "staticTriangles": 24,
+    "excludedTransmittingMaterialGroups": 2,
+    "actualFaceResolution": 512,
+    "atlasSize": [
+      2048,
+      1024
+    ],
+    "rgbaTextureBytes": 8388608,
+    "captureBeautySize": [
+      4,
+      4
+    ],
+    "storage": "framebuffer-texture-copy",
+    "copyFailure": null,
+    "copyPixelEquivalenceVerified": false,
+    "mainSceneMutations": 0
+  },
+  "checks": {
+    "copyStateRestored": true,
+    "failureStateRestored": true,
+    "copyFailureNativeFallback": true,
+    "explicitNativeFallback": true,
+    "mainSceneUnmodified": true,
+    "actualWorldMatrices": true,
+    "actualAlphaCutoutMaterialPreserved": true,
+    "glassAndDynamicExcluded": true,
+    "sourceBasisFrozenLiveVectorShared": true,
+    "oneCapturePerStaticRoot": true,
+    "ownedTexturesDisposedExactlyOnce": true,
+    "pinnedAtlasLayout": true,
+    "lookupIndependentOfPointShadowDefines": true
+  },
+  "chains": [
+    {
+      "order": [
+        "visitor",
+        "gauze",
+        "static"
+      ],
+      "composes": true,
+      "key": "onBeforeCompile( /* shaderobject, renderer */ ) {}-visitor-finite-source-shadow-b4-f32-pixel-v2-actual-gauze-directional-transmission-v1-static-lamp-radial-depth-pcf4-v1",
+      "shaderSha256": "f6a18d09cc5f2ad59f961dae996156022063ac25de6b16a12a40cf8bbc2f6c2d"
+    },
+    {
+      "order": [
+        "static",
+        "visitor",
+        "gauze"
+      ],
+      "composes": true,
+      "key": "onBeforeCompile( /* shaderobject, renderer */ ) {}-static-lamp-radial-depth-pcf4-v1-visitor-finite-source-shadow-b4-f32-pixel-v2-actual-gauze-directional-transmission-v1",
+      "shaderSha256": "223ff2aba64e75fb6cdc0b5fe8b2eeb051595a4baebf253e6046b295acda1bd5"
+    },
+    {
+      "order": [
+        "gauze",
+        "static",
+        "visitor"
+      ],
+      "composes": true,
+      "key": "onBeforeCompile( /* shaderobject, renderer */ ) {}-actual-gauze-directional-transmission-v1-static-lamp-radial-depth-pcf4-v1-visitor-finite-source-shadow-b4-f32-pixel-v2",
+      "shaderSha256": "223ff2aba64e75fb6cdc0b5fe8b2eeb051595a4baebf253e6046b295acda1bd5"
+    }
+  ],
+  "rawReport": {
+    "path": "artifacts/full-review/round-1/static-lamp-shadow-cpu/report.json",
+    "sha256": "8723de3dd7f21b3928e864cff8329b9c9b9c540ad89541168c243228423880bb"
+  },
+  "command": "node tests/visual/check-static-lamp-shadow.mjs",
+  "scopedLint": "PASS: web/src/engine/baked/staticLampShadow.js and tests/visual/check-static-lamp-shadow.mjs",
+  "integration": "Root owns integration and real GPU validation; no main/source/descriptor edits by this helper agent.",
+  "api": {
+    "constructor": "createStaticLampShadow({lightWorld,sourceRadius,resolution:512,near:.008,far:80,normalBias:.001,matchTolerance:.08})",
+    "capture": "await state.capture(renderer,staticGltfRoot,{copyFramebuffer:true}); explicitfalse retains nativeRT fallback. Warm4x4 render only; native sixface shadow atlas still uses actual requestedresolution.",
+    "install": "state.install(ownedStandardOrPhysicalMaterial); definesUSE_STATIC_LAMP_SHADOW and getStaticLampVisibility(worldPos,worldNormal). Composes priorhooks. Rootcloth guards direct visibility call with define.",
+    "dispose": "Releases only owned cached texture/target; never shared source geometry/materials.",
+    "texture": "Getter null until capture; uniform shared disabled until complete.",
+    "basis": "Clones frozen source point; originalVector3 retained only as shared live-position matching uniform."
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "path": "art/build/snow-roof-round1/source-v5-handoff/closeups.json",
+  "sha256": "eb02a589db42c9f4b18e93c03c0508e33e9cedc754f8ba89aa56bab674431a66",
+  "views": 52,
+  "groups": 47,
+  "phoneOverrides": 52,
+  "sourceBlend": {
+    "path": "art/build/snow-roof-round1/source-v5.blend",
+    "sha256": "cf17ab6e4551d5876250bc51ebf2cab1a859bc69a2219ed549de44374a4c9b36"
+  },
+  "sourceAuthoring": {
+    "art/blender/snow_roof.py": "f4c9f5165c49d9897ce0bc4d21b71ea4a15acac99a25835511e871e0bb07cac1",
+    "art/blender/resting_contacts.py": "163d80f6ecdfe1c9e20236971edbd6f3ab867ff58070f37d4a4543bd81bfd7fe",
+    "art/blender/snow_round1_details.py": "33fdce5fcb98faa8034983fc094ad7ff3903efa225ab16938334e6ead8136e18",
+    "art/blender/snow_bronze_maps.py": "1b05dbb90700de0b5236e46fe5a289efefb83f1a71c15b8bb0be6248fefc2c81"
+  },
+  "missingGroups": [],
+  "coordinateSpace": "Browser WORLD Y-up; apply literally. Source contains hall y0.6/global z; do not add nook offset again.",
+  "status": "CPU schema and registry coverage only. Candidate is not yet delivered and no actual browser framing/visibility approval is claimed."
+}

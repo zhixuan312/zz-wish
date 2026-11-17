@@ -11,6 +11,17 @@
 <body>
 <canvas id="gl" aria-hidden="true"></canvas>
 <div id="fade"></div>
+<picture id="cover-poster" aria-hidden="true"></picture>
+<script>
+(() => {
+  const hour = new Date().getHours(), look = hour < 6 || hour >= 20 ? 'night' : hour < 8 || hour >= 17 ? 'dusk' : 'day';
+  const picture = document.getElementById('cover-poster');
+  const source = document.createElement('source'); source.media = '(max-width: 719px)'; source.srcset = `/places/cloud-cliff/cover-${look}-phone.webp`;
+  const image = new Image(); image.fetchPriority = 'high'; image.alt = '';
+  image.onerror = () => picture.remove(); picture.append(source, image);
+  image.src = `/places/cloud-cliff/cover-${look}-desktop.webp`;
+})();
+</script>
 <div id="root"></div>
 <script type="module" src="/src/main.tsx"></script>
 </body>

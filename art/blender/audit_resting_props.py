@@ -89,9 +89,10 @@ source_hash = sha(args.blend)
 bpy.ops.wm.open_mainfile(filepath=str(args.blend))
 registry = RestingContacts.from_scene()
 audit = registry.audit(fail=True, write_metadata=False)
+source_scripts=[ROOT/'art/blender/snow_roof.py',ROOT/'art/blender/resting_contacts.py',Path(__file__).resolve()]
+source_scripts.extend(ROOT/p for p in json.loads(bpy.context.scene.get('source_authoring_helpers','[]')))
 report = {'source': {'path': str(args.blend.relative_to(ROOT)), 'sha256': source_hash},
-          'sourceScripts': {str(p.relative_to(ROOT)): sha(p) for p in
-                            [ROOT/'art/blender/snow_roof.py', ROOT/'art/blender/resting_contacts.py', Path(__file__).resolve()]},
+          'sourceScripts': {str(p.relative_to(ROOT)): sha(p) for p in set(source_scripts)},
           'contactAudit': audit, 'renderBakeEncoderGpuJobs': 0,
           'savedModelMutations': False}
 prefixes = ['Scanned console altar', 'Turned altar side lamp pedestal', 'Scanned screen leaf',
@@ -99,10 +100,10 @@ prefixes = ['Scanned console altar', 'Turned altar side lamp pedestal', 'Scanned
             'Brass burner foot', 'Ash mound', 'Charred incense', 'Smouldering incense',
             'Soft sewn kneeling cushion', 'Cushion sewn edge piping', 'Broom handle',
             'Broom straw', 'Stacked plain bowls', 'Gate shelf lamp',
-            'Wall-fastened screen bearing rail', 'Screen rail wall fastener']
+            'Wall-fastened screen bearing rail', 'Screen rail wall fastener','Court stone lantern','Court lantern oil cup','Court incense','Court spent incense','Offering']
 members = {name for entry in registry.entries for name in entry['members']}
 candidates = [obj.name for obj in bpy.context.scene.objects
-              if any(obj.name.startswith(prefix) for prefix in prefixes)]
+              if obj.name in members or any(obj.name.startswith(prefix) for prefix in prefixes)]
 unowned = sorted(set(candidates) - members)
 if unowned:
     raise RuntimeError('Unregistered resting prop inventory: ' + json.dumps(unowned))
@@ -112,6 +113,8 @@ report['inventory'] = {'candidateObjects': len(candidates), 'registeredGroups': 
 report['wicks'] = json.loads(bpy.context.scene['static_lamp_wicks_engine'])
 report['incenseTips'] = json.loads(bpy.context.scene['static_incense_tips_engine'])
 report['incenseSmokeEngine'] = json.loads(bpy.context.scene['static_incense_smoke_engine'])
+report['anchorMetadataFields']=json.loads(bpy.context.scene.get('one_light_anchor_fields',json.dumps(['static_lamp_wicks_engine','static_incense_tips_engine','static_incense_smoke_engine','static_incense_smoke_source'])))
+report['anchorMetadata']={field:bpy.context.scene[field] for field in report['anchorMetadataFields']}
 for row in report['wicks']:
     center, tip = crown(registry, bpy.data.objects[row['wickObject']])
     actual_light = engine(bpy.data.objects[row['pointLightObject']].matrix_world.translation)
@@ -119,8 +122,11 @@ for row in report['wicks']:
                           ('flameAnchor', engine(tip + Vector((0, 0, .003)))), ('pointLight', actual_light)]:
         if max(abs(a-b) for a,b in zip(actual,row[label])) > .000001:
             raise RuntimeError('Source anchor differs from actual evaluated geometry: '+row['name']+'/'+label)
-    if abs(bpy.data.objects[row['pointLightObject']].data.energy - 8) > .000001:
-        raise RuntimeError('Static fixture energy changed')
+    actual_watts=float(bpy.data.objects[row['pointLightObject']].data.energy)
+    if 'linearColor' in row and max(abs(a-b) for a,b in zip(row['linearColor'],bpy.data.objects[row['pointLightObject']].data.color))>.000001:
+        raise RuntimeError('Static fixture linear RGB metadata differs from actual source')
+    if abs(actual_watts-row.get('actualWatts',8))>.000001 or (row.get('lit') is False and actual_watts!=0):
+        raise RuntimeError('Static fixture energy/state metadata differs from actual source')
 for row in report['incenseTips']:
     _, tip = crown(registry, bpy.data.objects[row['object']])
     if max(abs(a-b) for a,b in zip(engine(tip),row['tipEngine'])) > .000001:

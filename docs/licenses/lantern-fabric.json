@@ -1,0 +1,127 @@
+{
+  "asset": "rough_linen",
+  "title": "Rough Linen",
+  "authors": {
+    "colormass": "Photography",
+    "Rico Cilliers": "Processing"
+  },
+  "assetPage": "https://polyhaven.com/a/rough_linen",
+  "infoAPI": "https://api.polyhaven.com/info/rough_linen",
+  "filesAPI": "https://api.polyhaven.com/files/rough_linen",
+  "license": "CC0-1.0",
+  "licenseURL": "https://polyhaven.com/license",
+  "licenseLegalCode": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "sourceMetadata": {
+    "infoSha256": "825160c6c95c7b416c7474bedbd3e566715d8943c051070a8939b608a79cab85",
+    "filesSha256": "5dd2693a8fc8c9ff63975bf1e5803129e8f705853720ecb79d168fd09757cb85"
+  },
+  "process": "Official 1k PNGs verified against official MD5 and byte size; preserve originals in ignored art/build; convert decoded channels to RGB and resize proportionally with Pillow Lanczos to a maximum dimension of 512 pixels; WebP encoding only. No painting, synthesis, relighting, tinting, grayscale conversion or creative pixel edits.",
+  "meanLinearLuminanceMethod": "Decode the delivered WebP RGB, normalize 8-bit channels, apply the exact sRGB EOTF per channel, weight linear RGB by 0.2126/0.7152/0.0722, and average all pixels. Normal/roughness remain data maps and are not EOTF-converted for use.",
+  "maps": [
+    {
+      "role": "weave",
+      "channel": "Diffuse",
+      "source": {
+        "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/1k/rough_linen/rough_linen_diff_1k.png",
+        "md5": "c77ee2140db8d88cf15101f091ea55fc",
+        "md5Verified": true,
+        "sha256": "47444b9ef76fa32e0bfd20484fa63071336eba21e2e2bcb5e3957542bafaeaee",
+        "bytes": 5812140,
+        "dimensions": [
+          1024,
+          1026
+        ],
+        "preservedOriginal": "art/build/full-review/round-1/linen-source/originals/rough_linen_diff_1k.png"
+      },
+      "derived": {
+        "path": "web/public/places/snow-roof/gauze-weave.webp",
+        "url": "/places/snow-roof/gauze-weave.webp",
+        "sha256": "5008bae957c0c26a4323356b5c8922c4559d28e3d192c3fc725ba87db57c98b6",
+        "bytes": 41290,
+        "dimensions": [
+          511,
+          512
+        ],
+        "colourSpace": "sRGB",
+        "encoding": {
+          "format": "WebP",
+          "lossless": false,
+          "quality": 92,
+          "method": 6
+        },
+        "decodedPixelsEqualResizedRGB": false,
+        "meanLinearLuminance": 0.3978935245323998
+      }
+    },
+    {
+      "role": "normal",
+      "channel": "nor_gl",
+      "source": {
+        "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/1k/rough_linen/rough_linen_nor_gl_1k.png",
+        "md5": "46ebc7a3ca1e8650d7de6b5737b63c12",
+        "md5Verified": true,
+        "sha256": "ebafddfe30e304f9479e1005c800c4b0b2280fd8de9eeb1a96f92f57b999ea72",
+        "bytes": 5653944,
+        "dimensions": [
+          1024,
+          1026
+        ],
+        "preservedOriginal": "art/build/full-review/round-1/linen-source/originals/rough_linen_nor_gl_1k.png"
+      },
+      "derived": {
+        "path": "web/public/places/snow-roof/gauze-normal.webp",
+        "url": "/places/snow-roof/gauze-normal.webp",
+        "sha256": "599ba576df8863b328f96c543c1485ea2af14f02b2ca99bd2d735ac89c5b332f",
+        "bytes": 349898,
+        "dimensions": [
+          511,
+          512
+        ],
+        "colourSpace": "linear data, OpenGL +Y",
+        "encoding": {
+          "format": "WebP",
+          "lossless": true,
+          "method": 6
+        },
+        "decodedPixelsEqualResizedRGB": true,
+        "meanLinearLuminance": null
+      }
+    },
+    {
+      "role": "roughness",
+      "channel": "Rough",
+      "source": {
+        "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/1k/rough_linen/rough_linen_rough_1k.png",
+        "md5": "e9107cbc7aae80fe39d140a7fe592c79",
+        "md5Verified": true,
+        "sha256": "040eeef8041e3c619e5a17a76bb5f376416ce17f1ac42a04003a67952cc206a3",
+        "bytes": 2045070,
+        "dimensions": [
+          1024,
+          1026
+        ],
+        "preservedOriginal": "art/build/full-review/round-1/linen-source/originals/rough_linen_rough_1k.png"
+      },
+      "derived": {
+        "path": "web/public/places/snow-roof/gauze-roughness.webp",
+        "url": "/places/snow-roof/gauze-roughness.webp",
+        "sha256": "aa1de52d1bf84dd3fee42fd55e7ba2c56da6df22232f820453ca9dba453aec33",
+        "bytes": 54,
+        "dimensions": [
+          511,
+          512
+        ],
+        "colourSpace": "linear data",
+        "encoding": {
+          "format": "WebP",
+          "lossless": true,
+          "method": 6
+        },
+        "decodedPixelsEqualResizedRGB": true,
+        "meanLinearLuminance": null
+      }
+    }
+  ],
+  "script": "scripts/stage-visitor-fabric.py",
+  "totalDeliveredBytes": 391242
+}

@@ -1,0 +1,155 @@
+{
+  "version": 1,
+  "status": "CPU/source optics and unused live-density/depth integration work; no final optical/runtime/bake approval",
+  "files": [
+    {
+      "path": "art/build/cloud-cliff-round1/cloud-cliff-source-v19.blend",
+      "bytes": 7263755,
+      "sha256": "ee3f9f065a72a102867d0bfe7ea9233761cd7db62e98711c993d38cba324bda0"
+    },
+    {
+      "path": "art/build/cloud-cliff-round1/cloud-cliff-source-v19.audit.json",
+      "bytes": 269668,
+      "sha256": "f702c57c79be6fc94981761b3f0db426c7902b71c344458cd358a1f04bb1fe51"
+    },
+    {
+      "path": "art/build/cloud-cliff-round1/source19-cpu/actual-scope-proof.json",
+      "bytes": 209802,
+      "sha256": "4ec30b5f64349ac97ace14a68d3594862d253a843d1f3f0849bd847caf3404e2"
+    },
+    {
+      "path": "art/build/cloud-cliff-round1/source-v19-preview/launch-plan.json",
+      "bytes": 8096,
+      "sha256": "df95c7e50356cb4c406809fb4fcedd5487d85b3e974249e8e8096874ae7de7ab"
+    },
+    {
+      "path": "art/build/cloud-cliff-round1/source-v19-preview/completion.json",
+      "bytes": 12712,
+      "sha256": "0792684ece8f3beebba776424ceb4904b9c332e263d741f5318bcbd92d4dae0a"
+    },
+    {
+      "path": "art/build/cloud-cliff-round1/source19-live-envelope-y1/receipt.json",
+      "bytes": 58486,
+      "sha256": "08a057a3ac1eb1452a3294c7fe2fce8cb38b808123e5790e1bf1bb888c190268"
+    },
+    {
+      "path": "art/build/cloud-cliff-round1/source19-live-transport-study/study.json",
+      "bytes": 128012,
+      "sha256": "3a39f9a14f08f3749590178885dba64a092ab82fb61c396cd50a25afb63f8daa"
+    },
+    {
+      "path": "art/build/cloud-cliff-round1/source19-live-density-ktx/cloud-live-density.json",
+      "bytes": 6372,
+      "sha256": "0230e4422e8daad9b487ec4d2d930c0c856ba86e79f9303204a40efdb5842730"
+    },
+    {
+      "path": "art/blender/build_cloud_source19.py",
+      "bytes": 9148,
+      "sha256": "f0b0188f4c05bfba79ac3b5db33d72ec19e2e027bde9700fb547a22eeeead384"
+    },
+    {
+      "path": "art/blender/audit_cloud_source19.py",
+      "bytes": 10686,
+      "sha256": "477274ce4742ca376c0931c098b76e6172f4f37efef7dc9781f97b78ac719438"
+    },
+    {
+      "path": "art/blender/export_cloud_field_metadata.py",
+      "bytes": 1664,
+      "sha256": "6b3005f7012777ca98d575d43221e08d24407d9abf5aba6492b979eb2739f5e5"
+    },
+    {
+      "path": "art/blender/export_cloud_view_rays.py",
+      "bytes": 3965,
+      "sha256": "efc4e4572d3d45e8898f16f7e94e7568b4955a666576ec095b6403fb122cf70a"
+    },
+    {
+      "path": "scripts/prototype-cloud-live-envelope.mjs",
+      "bytes": 12051,
+      "sha256": "d3b71ed9eee2e769254cfdb5c006fff4ccfa2b9b3717cd3379512b2c9503af63"
+    },
+    {
+      "path": "scripts/pack-cloud-live-density.mjs",
+      "bytes": 5713,
+      "sha256": "2e1bb154621b7b7cf9ede6235a3cbf799b7cbcb66e17e1e1d3e5015eb6802b94"
+    },
+    {
+      "path": "scripts/study-cloud-live-transport.mjs",
+      "bytes": 6050,
+      "sha256": "1fa840e6e2b7d5d4c54053ddc64514f66e4447b1ef16c308c422c629ab66fc55"
+    },
+    {
+      "path": "scripts/lib/cloud-live-reference.mjs",
+      "bytes": 3150,
+      "sha256": "3afea98d5845fb156265f8ca622eaa1e897ce15a94d2f904f5e1aeddf2e8f584"
+    },
+    {
+      "path": "scripts/prove-cloud-hash-lattice.mjs",
+      "bytes": 4954,
+      "sha256": "1ed88a5fb31d207ecdb2d248779027d9f3a8471c99f0fb8c72f5cf99411dc01b"
+    },
+    {
+      "path": "scripts/pack-cloud-noise-lattice.mjs",
+      "bytes": 3436,
+      "sha256": "638d1f8f19578cf88eac51b6aa3638d853041ca482f48701c08d250400829b0b"
+    },
+    {
+      "path": "web/src/engine/places/cloud-live-cache-v1.js",
+      "bytes": 9766,
+      "sha256": "74f475924f24790d658edc220d41944669189e337c30a039aa977e6682bef7f8"
+    },
+    {
+      "path": "web/src/engine/places/cloud-depth-composite.js",
+      "bytes": 4839,
+      "sha256": "a4b12f6dc4385c64f07b63ae52d1e0c247a1d5c3ff13bc08f400b9c322e04606"
+    },
+    {
+      "path": "web/src/engine/places/cloudOpaqueDepth.js",
+      "bytes": 14305,
+      "sha256": "bca97df2d2810a44303bc8e25d668f4f6122c76eb24ff5064bfbdc9e249c193b"
+    },
+    {
+      "path": "docs/evidence/full-review/round-1-cloud-opaque-depth-gpu.json",
+      "bytes": 19813,
+      "sha256": "e334896ac26f46c119d535faacaeb3d4fd572fb80e9f9e2a7b98c7c063bd1b64"
+    }
+  ],
+  "sourceScope": {
+    "replacedOpenMassifs": 6,
+    "closedScannedReplacements": 6,
+    "trianglesEach": 1600,
+    "farTriangles": 9600,
+    "otherProtectedMeshesExact": 1108,
+    "restingGroups": 18,
+    "hangingPairs": 6,
+    "nightWorldAndLights": "unchanged",
+    "field": "actual saved source7 contract and native DAG unchanged"
+  },
+  "native": {
+    "samples": 8,
+    "metal": true,
+    "gpuOIDN": true,
+    "desktop": [
+      720,
+      450
+    ],
+    "desktopProjectionSource": [
+      1440,
+      900
+    ],
+    "phone": [
+      390,
+      844
+    ],
+    "terminalExit": 0,
+    "gpuReleased": true,
+    "seconds": 342.677
+  },
+  "limits": [
+    "Source18 geometry/native pair is rejected historical evidence; it is not an accepted delivery.",
+    "Source19 native views are review candidates, not full64/runtime/poster/final-bar acceptance.",
+    "Density cache interpolation has measured errors, not an all-world exactness claim.",
+    "Live density with frozen time0 directional lighting is numerically invalid; new transport updates remain unresolved.",
+    "Depth helper tinyGPU proof does not approve full-resolution compositor cost or thin-edge fallback.",
+    "All new Cloud runtime helpers are unimported; main/public source11 remains unchanged."
+  ]
+}

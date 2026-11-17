@@ -1,0 +1,272 @@
+{
+  "status": "CPU_PASS_GPU_PENDING",
+  "date": "2026-11-17T14:16:57.068Z",
+  "scope": "CPUonly; actualnativeOCIO reference plus independent JS Float32 emulation of exact generated GPU chain. GPU arithmetic/compile/capture still require coordinated later GPU gate; no appFPSclaim.",
+  "source": {
+    "path": "art/build/snow-roof-round1/source-v17.blend",
+    "sha256": "2990854d3c9a65bf18879511d865b6e36788f6e727339248d5746b67fb52dd64",
+    "unchanged": true
+  },
+  "view": {
+    "input": "Scene-linear Rec.709",
+    "output": "Linear display sRGB",
+    "display": "sRGB",
+    "view": "AgX",
+    "look": "None",
+    "referenceExposureEV": 0,
+    "gamma": 1,
+    "sourceSavedExposureEV": 5.321928024291992,
+    "scenePreExposureAlreadyApplied": 40,
+    "source17ResidualExposureEV": -7.059537043829778e-8,
+    "nativeResolution": 57,
+    "interpolation": "Actual OCIO tetrahedral via NEAREST 3D texture",
+    "chain": "Optimized native Rec.709 to FilmLight E-Gamut matrix -> log2 shaper25 stops -> native57^3 LUT -> pow2.4",
+    "activation": false
+  },
+  "proposal": {
+    "helper": {
+      "path": "art/build/snow-roof-round1/native-agx-prototype/nativeAgX.js",
+      "bytes": 15623,
+      "sha256": "aae6afa312921e1283b1f531d8528bdab50cb1482904743707036f620d42091a"
+    },
+    "readme": {
+      "path": "art/build/snow-roof-round1/native-agx-prototype/README.md",
+      "bytes": 4030,
+      "sha256": "72056aaac4ffe309fa147c06a8950da61ce599922c3d3a0d4aaba047a0505e05"
+    },
+    "metadata": {
+      "path": "art/build/snow-roof-round1/native-agx-prototype/native-agx-metadata.json",
+      "bytes": 3942,
+      "sha256": "1f5f93fbaef54cffceafb30dd62b57f2d2015a75f0cb60090902a2a742382c5c"
+    },
+    "generatedShader": {
+      "path": "art/build/snow-roof-round1/native-agx-prototype/ocio-generated.glsl",
+      "bytes": 5570,
+      "sha256": "bd358f4584c8e57cb0b07fdbde77b1540ba305a6ddb34541455a843e9d9556d2"
+    },
+    "cpuHarness": {
+      "path": "art/build/snow-roof-round1/native-agx-prototype/check-native-agx.mjs",
+      "bytes": 8880,
+      "sha256": "62e6bc361109ff3a9b3d2f2998f7836753061e28a9d45c37ec06b0b67ac0557f"
+    },
+    "cpuReferenceMaker": {
+      "path": "art/build/snow-roof-round1/native-agx-prototype/make-cpu-reference.py",
+      "bytes": 4192,
+      "sha256": "c25c0cad38ba51ea4c91f35ba82412eabc87a50f9fc309da4ff4751c90acc714"
+    },
+    "cpuDetailedProof": {
+      "path": "art/build/snow-roof-round1/native-agx-prototype/cpu-proof.json",
+      "bytes": 19751,
+      "sha256": "36e3225e227bb9b4b7830625ca9b03a4c07eb080d163d11d6a3601fa5108dd99"
+    },
+    "f32Asset": {
+      "path": "art/build/snow-roof-round1/native-agx-prototype/native-agx-57.bin.zst",
+      "bytes": 396098,
+      "sha256": "b9eb1e7da41183f169323cfdb60525f15149dd07b070ffdce175d15596849fd3"
+    },
+    "declaredF16Asset": {
+      "path": "art/build/snow-roof-round1/native-agx-prototype/native-agx-57-f16.bin.zst",
+      "bytes": 116705,
+      "sha256": "bc942c1862956cb48aed8c259d2e410518a10c4b26775a27c3b326d539244463"
+    }
+  },
+  "referenceGate": {
+    "cases": 40413,
+    "actualOriginalOCIOProbes": 72,
+    "actualBlender16BitPNGControls": 75,
+    "actualPNGMaxCode255": 0.00809373726520235,
+    "nativeF32": {
+      "maxCode255": 0.00019364317332085101,
+      "p99Code255": 0.00005011913223690323,
+      "maxLinear": 7.748603820800781e-7,
+      "worst": {
+        "index": 13495,
+        "group": "positive-independent-log-HDR",
+        "input": [
+          1.8218496222743852e-7,
+          0.21197105944156647,
+          0.7519288659095764
+        ],
+        "ev": 0,
+        "channel": 0,
+        "expectedLinear": [
+          0.025867117568850517,
+          0.2346615493297577,
+          0.5376716256141663
+        ],
+        "actualLinear": [
+          0.025866912677884102,
+          0.2346615493297577,
+          0.5376716256141663
+        ],
+        "codeError": 0.00019364317332085101
+      }
+    },
+    "declaredF16": {
+      "maxCode255": 0.0642838142234825,
+      "p99Code255": 0.051117260119885044,
+      "maxLinear": 0.000503838062286377,
+      "worst": {
+        "index": 38835,
+        "group": "grey-exposure-ramp",
+        "input": [
+          0.5510309338569641,
+          0.5510309338569641,
+          0.5510309338569641
+        ],
+        "ev": 0,
+        "channel": 2,
+        "expectedLinear": [
+          0.42295438051223755,
+          0.4229525625705719,
+          0.4229908287525177
+        ],
+        "actualLinear": [
+          0.42263975739479065,
+          0.42263975739479065,
+          0.4233380854129791
+        ],
+        "codeError": 0.0642838142234825
+      },
+      "analyticRoundingBound": {
+        "scope": "LUT rounding alone, exact arithmetic; convex tetrahedral weights and LUT0..1; excludes implementation arithmetic",
+        "maxTexelAbsErrorBound": 0.000244140625,
+        "maxCompositeOETFDerivative": 1.0730155811892614,
+        "maxCode255": 0.06680150712970255
+      }
+    },
+    "dataset": {
+      "positiveLogHDR": 32768,
+      "signedLogHDR": 4096,
+      "greyRamp": 2048,
+      "exposureVariants": 12,
+      "actualEXRFiles": 16,
+      "actualEXRTexelComponents": 512,
+      "actualFinalSceneRGBSamples": 0,
+      "actualEXRScope": "Irradiance component inputs, not final scene framebuffer RGB"
+    },
+    "byteExact": {
+      "nativeF32Words": 555579,
+      "nativeF16Words": 555579,
+      "f32RawSha256": "cb92475f7c9feb46b589847f26c9ce068c89f1d0a2f7a88aecd0857b42c7fe5f",
+      "f16RawSha256": "0af4abfe1372ab918471829aeae211a8f99ef0411b02beca107f4a441c3559a0"
+    }
+  },
+  "resourceControls": {
+    "concurrentFetches": 1,
+    "concurrentDecodes": 1,
+    "sharedTexture": true,
+    "releaseReferenceCountAndIdempotence": true,
+    "reacquireAfterFinalDispose": true,
+    "hashFailureThenRetry": true,
+    "glslVersion": "GLSL3",
+    "nativeF32GPUBytes": 2963088,
+    "declaredF16SharedLeaseAndAllRGBWords": true,
+    "nativeF16GPUBytes": 1481544,
+    "ownedGPUContexts": 0
+  },
+  "transferBudget": {
+    "f32AssetBytes": 396098,
+    "f16AssetBytes": 116705,
+    "helperRawBytes": 15623,
+    "helperGzipBytes": 4654,
+    "metadataIfHTTPBytes": 3942,
+    "f32GPUBytes": 2963088,
+    "f16GPUBytes": 1481544,
+    "nativeZstdDecoder": "Existing Three160 module path, lazy import; inject shared decoder if available. Count helper/asset in shared HTTP asset budget once, not per place."
+  },
+  "previousThree160Difference": {
+    "reference": {
+      "path": "art/build/snow-roof-round1/agx-cpu-audit/comparison.json",
+      "bytes": 136075,
+      "sha256": "4a2b12ebaad06094e876e6605dc90cae0cf290e5c6036b3b2fd9e20454b6f75f"
+    },
+    "standardExposureControlMaxCode255": 0.003360016717723485,
+    "float32PortVersusDoubleMaxCode255": 0.0018214888634571214,
+    "syntheticROIControls": [
+      {
+        "name": "roi-reference-26.8",
+        "level": 0.04368019154341862,
+        "runtimeEquivalentLinearRGB": [
+          0.017103960830787676,
+          0.0007495839831449333,
+          0.00023869416167017195
+        ],
+        "threeDisplayRGB255": [
+          26.800000000000015,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "roi-reference-61.8",
+        "level": 0.11409286715635042,
+        "runtimeEquivalentLinearRGB": [
+          0.04467562668480345,
+          0.0019579169135847956,
+          0.0006234702806044506
+        ],
+        "threeDisplayRGB255": [
+          61.80000000000002,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "roi-reference-89.9",
+        "level": 0.20832657047571923,
+        "runtimeEquivalentLinearRGB": [
+          0.08157495138012749,
+          0.003575036074118176,
+          0.0011384184532225604
+        ],
+        "threeDisplayRGB255": [
+          89.90000000000005,
+          1.8416826590422317,
+          0.5663097916495686
+        ]
+      }
+    ],
+    "interpretation": "Three160 polynomial/Rec2020 AgX is a different view from actual Blender5.3 native E-Gamut/LUT AgX. Spatial input variation may be amplified; a pointwise view cannot generate the observed spatial baked star pattern by itself."
+  },
+  "attribution": {
+    "authors": [
+      "Troy Sobotka",
+      "Zijun Eary Zhou",
+      "Mark Faderbauer",
+      "Sakari Kapanen"
+    ],
+    "upstreamLut": "https://github.com/blender/blender/blob/main/release/datafiles/colormanagement/luts/AgX_Base_sRGB.cube",
+    "upstreamConfig": "https://github.com/blender/blender/blob/main/release/datafiles/colormanagement/config.ocio",
+    "upstreamAgX": "https://github.com/EaryChow/AgX",
+    "upstreamLutFetched": {
+      "path": "art/build/snow-roof-round1/native-agx-prototype/AgX_Base_sRGB-upstream.cube",
+      "bytes": 2716206,
+      "sha256": "e707a36f3e90ee79bc342332febf91334c02ce3974cac700ece00ca9d4507491"
+    },
+    "bundledConfigSha256": "066a440ed1c02551fa3cacbb3af5d22d2efde7e4da5f2c14dffcca00c47751a0",
+    "bundledLutSha256": "e707a36f3e90ee79bc342332febf91334c02ce3974cac700ece00ca9d4507491",
+    "license": "Specific referenced ocio-license.txt absent from actual bundle and inspected upstream directories; LUT-specific terms not established. No permissive SPDX label inferred. General Blender code COPYING is recorded separately.",
+    "generalBlenderCopying": {
+      "path": "art/build/snow-roof-round1/native-agx-prototype/blender-upstream-COPYING.txt",
+      "bytes": 302,
+      "sha256": "19e6f4b541772f9d7b98a52bdbca3ebd5ef9e404956a9a6de68bfc3c1a178387"
+    }
+  },
+  "checks": {
+    "scopedEslint": "PASS",
+    "nodeSyntax": "PASS",
+    "actualSourceUnchanged": true,
+    "sceneEdits": 0,
+    "sourceEdits": 0,
+    "gpuContexts": 0,
+    "sceneRenders": 0
+  },
+  "pending": [
+    "Root review and explicit native/F16 selection",
+    "Actual integrated tDiffuse scene RGB samples and thumbnails",
+    "Actual runtime memory/frame-time and complete shared transfer budget",
+    "Resolve asset license text for final shared registry"
+  ],
+  "revision": 2
+}

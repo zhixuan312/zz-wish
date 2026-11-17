@@ -7,7 +7,7 @@
  */
 import { createHash } from 'node:crypto';
 import { readFile, writeFile, mkdir, access, realpath, unlink } from 'node:fs/promises';
-import { resolve, dirname, join, relative, isAbsolute } from 'node:path';
+import { resolve, dirname, join, relative } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 const ROOT=resolve(dirname(fileURLToPath(import.meta.url)),'..');
 const sha=b=>createHash('sha256').update(b).digest('hex');
@@ -48,9 +48,6 @@ function summary(bytes) {
 }
 function same(value, expected, label) {
   if (JSON.stringify(value) !== JSON.stringify(expected)) throw new Error(label + ' changed.');
-}
-function assertSummary(actual, expected, label) {
-  for (const [key, value] of Object.entries(expected)) if (actual[key] !== value) throw new Error(label + ' ' + key + ': expected ' + value + ', got ' + actual[key]);
 }
 function primitiveHash(primitive) {
   const hash = createHash('sha256'), semantics = primitive.listSemantics().sort();
@@ -139,10 +136,14 @@ for(const[region,node]of nodes(doc)){
  for(const p of node.getMesh().listPrimitives()){const uv=p.getAttribute('TEXCOORD_1'),idx=p.getIndices().getArray();for(let i=0;i<idx.length;i+=3){const ids=[idx[i],idx[i+1],idx[i+2]];if(!ids.every(j=>{const v=uv.getElement(j,[0,0]);return v[0]===0&&v[1]===1;}))continue;const k=positionKey(p,ids,true);if(sourceSets[region].has(k))candidates.set(k,(candidates.get(k)??0)+1);}}
  for(const[k,n]of sourceSets[region])if(candidates.get(k)!==n)throw Error('FACE geometry is absent or ambiguous among reserved-marker triangles: '+region);
 }
-const removed={hall:0,court:0,gate:0},primitives=[],retained=[];let otherMarkers=0,prunedVertices=0,weldedVertices=0;
+const removed=Object.fromEntries(Object.keys(reference.regions).map(region=>[region,0])),primitives=[],retained=[];let otherMarkers=0,prunedVertices=0,weldedVertices=0;
 for(const[region,node]of nodes(doc))for(const p of node.getMesh().listPrimitives()){
  if(p.getMode()!==4||p.listTargets().length)throw Error('Only static indexed triangles');
- for(const semantic of ['POSITION','NORMAL','TEXCOORD_0','TEXCOORD_1','COLOR_0','COLOR_1'])if(!p.getAttribute(semantic))throw Error('Missing accepted attribute');
+ for(const semantic of ['POSITION','NORMAL','TEXCOORD_0','TEXCOORD_1'])if(!p.getAttribute(semantic))throw Error('Missing required authored attribute: '+semantic);
+ // Optional COLOR streams exist only when the actual source exports them.
+ // primitiveHash below includes every present semantic, format and full byte
+ // record; an absent Generated/color stream is never fabricated for delivery.
+ const authoredSemantics=p.listSemantics().sort();
  const pos=p.getAttribute('POSITION'),uv=p.getAttribute('TEXCOORD_1'),old=p.getIndices(),idx=old.getArray(),keep=[],material=p.getMaterial()?.getName(),vertexBefore=pos.getCount();let count=0;
  for(let i=0;i<idx.length;i+=3){const ids=[idx[i],idx[i+1],idx[i+2]],marker=ids.every(j=>{const v=uv.getElement(j,[0,0]);return v[0]===0&&v[1]===1;});
   const k=marker?positionKey(p,ids,true):null,left=k?(sourceSets[region].get(k)??0):0;
@@ -151,7 +152,7 @@ for(const[region,node]of nodes(doc))for(const p of node.getMesh().listPrimitives
  }
  p.setIndices(doc.createAccessor().setType('SCALAR').setArray(new idx.constructor(keep)));if(old.listParents().length===1)old.dispose();
  const expected=primitiveHash(p);compactPrimitive(p);const vertexAfterPrune=p.getAttribute('POSITION').getCount();prunedVertices+=vertexBefore-vertexAfterPrune;weldPrimitive(p,{overwrite:true});const vertexAfterWeld=p.getAttribute('POSITION').getCount();weldedVertices+=vertexAfterPrune-vertexAfterWeld;
- if(primitiveHash(p)!==expected)throw Error('Retained attribute bytes/winding changed during exact prune/weld');retained.push({region,material,hash:expected});primitives.push({region,material,removedTriangles:count,retainedTriangles:keep.length/3,verticesBefore:vertexBefore,verticesAfterPrune:vertexAfterPrune,verticesAfterWeld:vertexAfterWeld});
+ if(primitiveHash(p)!==expected)throw Error('Retained attribute bytes/winding changed during exact prune/weld');retained.push({region,material,hash:expected});primitives.push({region,material,authoredSemantics,removedTriangles:count,retainedTriangles:keep.length/3,verticesBefore:vertexBefore,verticesAfterPrune:vertexAfterPrune,verticesAfterWeld:vertexAfterWeld});
 }
 for(const[region,set]of Object.entries(sourceSets)){if([...set.values()].some(n=>n)||removed[region]!==reference.regions[region].hiddenTriangles)throw Error('Actual FACE subset incomplete');}
 await doc.transform(dedup());

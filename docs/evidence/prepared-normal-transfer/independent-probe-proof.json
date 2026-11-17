@@ -1,0 +1,1243 @@
+{
+  "sourceBlendSha256": "76a129450cd21e3af4a066a0880d13d6e5348f5e514bd1d03b6d9c90b25abf47",
+  "preparedBlendSha256": "a8fb7b22ee6c1f54d7617225981a39d0f8ed974a5a60a9d41b9651b034fd6d3e",
+  "mappingPolicy": "implicit-procedural-generated-evaluated-undeformed-source-texspace-v2",
+  "generatedReceivers": {
+    "altar": {
+      "required": false,
+      "reason": "No implicit Generated procedural input; source material UVMap is unchanged."
+    },
+    "court": {
+      "required": false,
+      "reason": "No implicit Generated procedural input; source material UVMap is unchanged."
+    },
+    "gate": {
+      "required": false,
+      "reason": "No implicit Generated procedural input; source material UVMap is unchanged."
+    },
+    "hall": {
+      "required": false,
+      "reason": "No implicit Generated procedural input; source material UVMap is unchanged."
+    }
+  },
+  "geometryFingerprint": null,
+  "receiverProfiles": {},
+  "diagnosticOnlyNoUVPreparationClaim": true,
+  "sourceMaterialUVTintNormalCorrespondencePassed": true,
+  "passed": true,
+  "materials": [
+    {
+      "material": "Aged bronze",
+      "sourceUniqueCorners": 12700,
+      "preparedUniqueCorners": 12700,
+      "sourceToPrepared": {
+        "exactUniqueCorners": 9983,
+        "toleranceMatchedCorners": 2717,
+        "positionUVTintMatchedCorners": 2717,
+        "normalLimitFailedCorners": 0,
+        "failedCorners": 0,
+        "failureExamples": [],
+        "maximumPositionErrorMetres": 2.384185791015625e-07,
+        "maximumUV0Error": 0.0,
+        "maximumWorldNormalError": 1.1920928955078125e-07,
+        "maximumTintError": 0.0
+      },
+      "preparedToSource": {
+        "exactUniqueCorners": 9983,
+        "toleranceMatchedCorners": 2717,
+        "positionUVTintMatchedCorners": 2717,
+        "normalLimitFailedCorners": 0,
+        "failedCorners": 0,
+        "failureExamples": [],
+        "maximumPositionErrorMetres": 2.384185791015625e-07,
+        "maximumUV0Error": 0.0,
+        "maximumWorldNormalError": 1.1920928955078125e-07,
+        "maximumTintError": 0.0
+      },
+      "passed": true
+    },
+    {
+      "material": "Aged folded offering paper",
+      "sourceUniqueCorners": 24,
+      "preparedUniqueCorners": 24,
+      "sourceToPrepared": {
+        "exactUniqueCorners": 24,
+        "toleranceMatchedCorners": 0,
+        "failedCorners": 0,
+        "maximumPositionErrorMetres": 0,
+        "maximumUV0Error": 0,
+        "maximumWorldNormalError": 0,
+        "maximumTintError": 0
+      },
+      "preparedToSource": {
+        "exactUniqueCorners": 24,
+        "toleranceMatchedCorners": 0,
+        "failedCorners": 0,
+        "maximumPositionErrorMetres": 0,
+        "maximumUV0Error": 0,
+        "maximumWorldNormalError": 0,
+        "maximumTintError": 0
+      },
+      "passed": true
+    },
+    {
+      "material": "Aged red painted timber",
+      "sourceUniqueCorners": 24161,
+      "preparedUniqueCorners": 24161,
+      "sourceToPrepared": {
+        "exactUniqueCorners": 17150,
+        "toleranceMatchedCorners": 7011,
+        "positionUVTintMatchedCorners": 7011,
+        "normalLimitFailedCorners": 0,
+        "failedCorners": 0,
+        "failureExamples": [],
+        "maximumPositionErrorMetres": 4.76837158203125e-07,
+        "maximumUV0Error": 4.76837158203125e-07,
+        "maximumWorldNormalError": 1.1920928955078125e-07,
+        "maximumTintError": 0.0
+      },
+      "preparedToSource": {
+        "exactUniqueCorners": 17150,
+        "toleranceMatchedCorners": 7011,
+        "positionUVTintMatchedCorners": 7011,
+        "normalLimitFailedCorners": 0,
+        "failedCorners": 0,
+        "failureExamples": [],
+        "maximumPositionErrorMetres": 4.76837158203125e-07,
+        "maximumUV0Error": 4.76837158203125e-07,
+        "maximumWorldNormalError": 1.1920928955078125e-07,
+        "maximumTintError": 0.0
+      },
+      "passed": true
+    },
+    {
+      "material": "Burnished bronze high points",
+      "sourceUniqueCorners": 2145,
+      "preparedUniqueCorners": 2145,
+      "sourceToPrepared": {
+        "exactUniqueCorners": 1648,
+        "toleranceMatchedCorners": 497,
+        "positionUVTintMatchedCorners": 497,
+        "normalLimitFailedCorners": 0,
+        "failedCorners": 0,
+        "failureExamples": [],
+        "maximumPositionErrorMetres": 2.384185791015625e-07,
+        "maximumUV0Error": 0.0,
+        "maximumWorldNormalError": 1.1920928955078125e-07,
+        "maximumTintError": 0.0
+      },
+      "preparedToSource": {
+        "exactUniqueCorners": 1648,
+        "toleranceMatchedCorners": 497,
+        "positionUVTintMatchedCorners": 497,
+        "normalLimitFailedCorners": 0,
+        "failedCorners": 0,
+        "failureExamples": [],
+        "maximumPositionErrorMetres": 2.384185791015625e-07,
+        "maximumUV0Error": 0.0,
+        "maximumWorldNormalError": 1.1920928955078125e-07,
+        "maximumTintError": 0.0
+      },
+      "passed": true
+    },
+    {
+      "material": "Cloudy icicle ice",
+      "sourceUniqueCorners": 1392,
+      "preparedUniqueCorners": 1392,
+      "sourceToPrepared": {
+        "exactUniqueCorners": 1224,
+        "toleranceMatchedCorners": 168,
+        "positionUVTintMatchedCorners": 168,
+        "normalLimitFailedCorners": 0,
+        "failedCorners": 0,
+        "failureExamples": [],
+        "maximumPositionErrorMetres": 0.0,
+        "maximumUV0Error": 0.0,
+        "maximumWorldNormalError": 1.1920928955078125e-07,
+        "maximumTintError": 0.0
+      },
+      "preparedToSource": {
+        "exactUniqueCorners": 1224,
+        "toleranceMatchedCorners": 168,
+        "positionUVTintMatchedCorners": 168,
+        "normalLimitFailedCorners": 0,
+        "failedCorners": 0,
+        "failureExamples": [],
+        "maximumPositionErrorMetres": 0.0,
+        "maximumUV0Error": 0.0,
+        "maximumWorldNormalError": 1.1920928955078125e-07,
+        "maximumTintError": 0.0
+      },
+      "passed": true
+    },
+    {
+      "material": "Court cold incense ash",
+      "sourceUniqueCorners": 184,
+      "preparedUniqueCorners": 184,
+      "sourceToPrepared": {
+        "exactUniqueCorners": 176,
+        "toleranceMatchedCorners": 8,
+        "positionUVTintMatchedCorners": 8,
+        "normalLimitFailedCorners": 0,
+        "failedCorners": 0,
+        "failureExamples": [],
+        "maximumPositionErrorMetres": 0.0,
+        "maximumUV0Error": 0.0,
+        "maximumWorldNormalError": 1.1920928955078125e-07,
+        "maximumTintError": 0.0
+      },
+      "preparedToSource": {
+        "exactUniqueCorners": 176,
+        "toleranceMatchedCorners": 8,
+        "positionUVTintMatchedCorners": 8,
+        "normalLimitFailedCorners": 0,
+        "failedCorners": 0,
+        "failureExamples": [],
+        "maximumPositionErrorMetres": 0.0,
+        "maximumUV0Error": 0.0,
+        "maximumWorldNormalError": 1.1920928955078125e-07,
+        "maximumTintError": 0.0
+      },
+      "passed": true
+    },
+    {
+      "material": "Cushion stitched piping",
+      "sourceUniqueCorners": 3840,
+      "preparedUniqueCorners": 3840,
+      "sourceToPrepared": {
+        "exactUniqueCorners": 3100,
+        "toleranceMatchedCorners": 740,
+        "positionUVTintMatchedCorners": 740,
+        "normalLimitFailedCorners": 0,
+        "failedCorners": 0,
+        "failureExamples": [],
+        "maximumPositionErrorMetres": 0.0,
+        "maximumUV0Error": 0.0,
+        "maximumWorldNormalError": 1.1920928955078125e-07,
+        "maximumTintError": 0.0
+      },
+      "preparedToSource": {
+        "exactUniqueCorners": 3100,
+        "toleranceMatchedCorners": 740,
+        "positionUVTintMatchedCorners": 740,
+        "normalLimitFailedCorners": 0,
+        "failedCorners": 0,
+        "failureExamples": [],
+        "maximumPositionErrorMetres": 0.0,
+        "maximumUV0Error": 0.0,
+        "maximumWorldNormalError": 1.1920928955078125e-07,
+        "maximumTintError": 0.0
+      },
+      "passed": true
+    },
+    {
+      "material": "Dark clay roof tile",
+      "sourceUniqueCorners": 15920,
+      "preparedUniqueCorners": 15920,
+      "sourceToPrepared": {
+        "exactUniqueCorners": 13134,
+        "toleranceMatchedCorners": 2786,
+        "positionUVTintMatchedCorners": 2786,
+        "normalLimitFailedCorners": 0,
+        "failedCorners": 0,
+        "failureExamples": [],
+        "maximumPositionErrorMetres": 0.0,
+        "maximumUV0Error": 0.0,
+        "maximumWorldNormalError": 1.1920928955078125e-07,
+        "maximumTintError": 0.0
+      },
+      "preparedToSource": {
+        "exactUniqueCorners": 13134,
+        "toleranceMatchedCorners": 2786,
+        "positionUVTintMatchedCorners": 2786,
+        "normalLimitFailedCorners": 0,
+        "failedCorners": 0,
+        "failureExamples": [],
+        "maximumPositionErrorMetres": 0.0,
+        "maximumUV0Error": 0.0,
+        "maximumWorldNormalError": 1.1920928955078125e-07,
+        "maximumTintError": 0.0
+      },
+      "passed": true
+    },
+    {
+      "material": "Dark hall paving 0",
+      "sourceUniqueCorners": 7840,
+      "preparedUniqueCorners": 7840,
+      "sourceToPrepared": {
+        "exactUniqueCorners": 6092,
+        "toleranceMatchedCorners": 1748,
+        "positionUVTintMatchedCorners": 1748,
+        "normalLimitFailedCorners": 0,
+        "failedCorners": 0,
+        "failureExamples": [],
+        "maximumPositionErrorMetres": 0.0,
+        "maximumUV0Error": 0.0,
+        "maximumWorldNormalError": 1.1920928955078125e-07,
+        "maximumTintError": 0.0
+      },
+      "preparedToSource": {
+        "exactUniqueCorners": 6092,
+        "toleranceMatchedCorners": 1748,
+        "positionUVTintMatchedCorners": 1748,
+        "normalLimitFailedCorners": 0,
+        "failedCorners": 0,
+        "failureExamples": [],
+        "maximumPositionErrorMetres": 0.0,
+        "maximumUV0Error": 0.0,
+        "maximumWorldNormalError": 1.1920928955078125e-07,
+        "maximumTintError": 0.0
+      },
+      "passed": true
+    },
+    {
+      "material": "Dark hall paving 1",
+      "sourceUniqueCorners": 10360,
+      "preparedUniqueCorners": 10360,
+      "sourceToPrepared": {
+        "exactUniqueCorners": 8084,
+        "toleranceMatchedCorners": 2276,
+        "positionUVTintMatchedCorners": 2276,
+        "normalLimitFailedCorners": 0,
+        "failedCorners": 0,
+        "failureExamples": [],
+        "maximumPositionErrorMetres": 0.0,
+        "maximumUV0Error": 0.0,
+        "maximumWorldNormalError": 1.1920928955078125e-07,
+        "maximumTintError": 0.0
+      },
+      "preparedToSource": {
+        "exactUniqueCorners": 8084,
+        "toleranceMatchedCorners": 2276,
+        "positionUVTintMatchedCorners": 2276,
+        "normalLimitFailedCorners": 0,
+        "failedCorners": 0,
+        "failureExamples": [],
+        "maximumPositionErrorMetres": 0.0,
+        "maximumUV0Error": 0.0,
+        "maximumWorldNormalError": 1.1920928955078125e-07,
+        "maximumTintError": 0.0
+      },
+      "passed": true
+    },
+    {
+      "material": "Dark hall paving 2",
+      "sourceUniqueCorners": 9800,
+      "preparedUniqueCorners": 9800,
+      "sourceToPrepared": {
+        "exactUniqueCorners": 7808,
+        "toleranceMatchedCorners": 1992,
+        "positionUVTintMatchedCorners": 1992,
+        "normalLimitFailedCorners": 0,
+        "failedCorners": 0,
+        "failureExamples": [],
+        "maximumPositionErrorMetres": 0.0,
+        "maximumUV0Error": 0.0,
+        "maximumWorldNormalError": 1.1920928955078125e-07,
+        "maximumTintError": 0.0
+      },
+      "preparedToSource": {
+        "exactUniqueCorners": 7808,
+        "toleranceMatchedCorners": 1992,
+        "positionUVTintMatchedCorners": 1992,
+        "normalLimitFailedCorners": 0,
+        "failedCorners": 0,
+        "failureExamples": [],
+        "maximumPositionErrorMetres": 0.0,
+        "maximumUV0Error": 0.0,
+        "maximumWorldNormalError": 1.1920928955078125e-07,
+        "maximumTintError": 0.0
+      },
+      "passed": true
+    },
+    {
+      "material": "Dark old timber",
+      "sourceUniqueCorners": 85154,
+      "preparedUniqueCorners": 85154,
+      "sourceToPrepared": {
+        "exactUniqueCorners": 65351,
+        "toleranceMatchedCorners": 19803,
+        "positionUVTintMatchedCorners": 19803,
+        "normalLimitFailedCorners": 0,
+        "failedCorners": 0,
+        "failureExamples": [],
+        "maximumPositionErrorMetres": 4.76837158203125e-07,
+        "maximumUV0Error": 0.0,
+        "maximumWorldNormalError": 1.1920928955078125e-07,
+        "maximumTintError": 0.0
+      },
+      "preparedToSource": {
+        "exactUniqueCorners": 65351,
+        "toleranceMatchedCorners": 19803,
+        "positionUVTintMatchedCorners": 19803,
+        "normalLimitFailedCorners": 0,
+        "failedCorners": 0,
+        "failureExamples": [],
+        "maximumPositionErrorMetres": 4.76837158203125e-07,
+        "maximumUV0Error": 0.0,
+        "maximumWorldNormalError": 1.1920928955078125e-07,
+        "maximumTintError": 0.0
+      },
+      "passed": true
+    },
+    {
+      "material": "Dark pooled lamp oil",
+      "sourceUniqueCorners": 1846,
+      "preparedUniqueCorners": 1846,
+      "sourceToPrepared": {
+        "exactUniqueCorners": 1475,
+        "toleranceMatchedCorners": 371,
+        "positionUVTintMatchedCorners": 371,
+        "normalLimitFailedCorners": 0,
+        "failedCorners": 0,
+        "failureExamples": [],
+        "maximumPositionErrorMetres": 2.384185791015625e-07,
+        "maximumUV0Error": 0.0,
+        "maximumWorldNormalError": 1.1920928955078125e-07,
+        "maximumTintError": 0.0
+      },
+      "preparedToSource": {
+        "exactUniqueCorners": 1475,
+        "toleranceMatchedCorners": 371,
+        "positionUVTintMatchedCorners": 371,
+        "normalLimitFailedCorners": 0,
+        "failedCorners": 0,
+        "failureExamples": [],
+        "maximumPositionErrorMetres": 2.384185791015625e-07,
+        "maximumUV0Error": 0.0,
+        "maximumWorldNormalError": 1.1920928955078125e-07,
+        "maximumTintError": 0.0
+      },
+      "passed": true
+    },
+    {
+      "material": "Dry straw",
+      "sourceUniqueCorners": 1778,
+      "preparedUniqueCorners": 1778,
+      "sourceToPrepared": {
+        "exactUniqueCorners": 1581,
+        "toleranceMatchedCorners": 197,
+        "positionUVTintMatchedCorners": 197,
+        "normalLimitFailedCorners": 0,
+        "failedCorners": 0,
+        "failureExamples": [],
+        "maximumPositionErrorMetres": 0.0,
+        "maximumUV0Error": 0.0,
+        "maximumWorldNormalError": 1.1920928955078125e-07,
+        "maximumTintError": 0.0
+      },
+      "preparedToSource": {
+        "exactUniqueCorners": 1581,
+        "toleranceMatchedCorners": 197,
+        "positionUVTintMatchedCorners": 197,
+        "normalLimitFailedCorners": 0,
+        "failedCorners": 0,
+        "failureExamples": [],
+        "maximumPositionErrorMetres": 0.0,
+        "maximumUV0Error": 0.0,
+        "maximumWorldNormalError": 1.1920928955078125e-07,
+        "maximumTintError": 0.0
+      },
+      "passed": true
+    },
+    {
+      "material": "Faded teal beam paint",
+      "sourceUniqueCorners": 21387,
+      "preparedUniqueCorners": 21387,
+      "sourceToPrepared": {
+        "exactUniqueCorners": 16720,
+        "toleranceMatchedCorners": 4667,
+        "positionUVTintMatchedCorners": 4667,
+        "normalLimitFailedCorners": 0,
+        "failedCorners": 0,
+        "failureExamples": [],
+        "maximumPositionErrorMetres": 3.3717478231665154e-07,
+        "maximumUV0Error": 0.0,
+        "maximumWorldNormalError": 1.1920928955078125e-07,
+        "maximumTintError": 0.0
+      },
+      "preparedToSource": {
+        "exactUniqueCorners": 16720,
+        "toleranceMatchedCorners": 4667,
+        "positionUVTintMatchedCorners": 4667,
+        "normalLimitFailedCorners": 0,
+        "failedCorners": 0,
+        "failureExamples": [],
+        "maximumPositionErrorMetres": 3.3717478231665154e-07,
+        "maximumUV0Error": 0.0,
+        "maximumWorldNormalError": 1.1920928955078125e-07,
+        "maximumTintError": 0.0
+      },
+      "passed": true
+    },
+    {
+      "material": "Gate roof tiles",
+      "sourceUniqueCorners": 10640,
+      "preparedUniqueCorners": 10640,
+      "sourceToPrepared": {
+        "exactUniqueCorners": 5368,
+        "toleranceMatchedCorners": 5272,
+        "positionUVTintMatchedCorners": 5272,
+        "normalLimitFailedCorners": 0,
+        "failedCorners": 0,
+        "failureExamples": [],
+        "maximumPositionErrorMetres": 4.76837158203125e-07,
+        "maximumUV0Error": 0.0,
+        "maximumWorldNormalError": 1.1920928955078125e-07,
+        "maximumTintError": 0.0
+      },
+      "preparedToSource": {
+        "exactUniqueCorners": 5368,
+        "toleranceMatchedCorners": 5272,
+        "positionUVTintMatchedCorners": 5272,
+        "normalLimitFailedCorners": 0,
+        "failedCorners": 0,
+        "failureExamples": [],
+        "maximumPositionErrorMetres": 4.76837158203125e-07,
+        "maximumUV0Error": 0.0,
+        "maximumWorldNormalError": 1.1920928955078125e-07,
+        "maximumTintError": 0.0
+      },
+      "passed": true
+    },
+    {
+      "material": "Ivory window paper",
+      "sourceUniqueCorners": 48,
+      "preparedUniqueCorners": 48,
+      "sourceToPrepared": {
+        "exactUniqueCorners": 48,
+        "toleranceMatchedCorners": 0,
+        "failedCorners": 0,
+        "maximumPositionErrorMetres": 0,
+        "maximumUV0Error": 0,
+        "maximumWorldNormalError": 0,
+        "maximumTintError": 0
+      },
+      "preparedToSource": {
+        "exactUniqueCorners": 48,
+        "toleranceMatchedCorners": 0,
+        "failedCorners": 0,
+        "maximumPositionErrorMetres": 0,
+        "maximumUV0Error": 0,
+        "maximumWorldNormalError": 0,
+        "maximumTintError": 0
+      },
+      "passed": true
+    },
+    {
+      "material": "Oil-blackened rim and wick",
+      "sourceUniqueCorners": 1398,
+      "preparedUniqueCorners": 1398,
+      "sourceToPrepared": {
+        "exactUniqueCorners": 1096,
+        "toleranceMatchedCorners": 302,
+        "positionUVTintMatchedCorners": 302,
+        "normalLimitFailedCorners": 0,
+        "failedCorners": 0,
+        "failureExamples": [],
+        "maximumPositionErrorMetres": 2.384185791015625e-07,
+        "maximumUV0Error": 0.0,
+        "maximumWorldNormalError": 1.1920928955078125e-07,
+        "maximumTintError": 0.0
+      },
+      "preparedToSource": {
+        "exactUniqueCorners": 1096,
+        "toleranceMatchedCorners": 302,
+        "positionUVTintMatchedCorners": 302,
+        "normalLimitFailedCorners": 0,
+        "failedCorners": 0,
+        "failureExamples": [],
+        "maximumPositionErrorMetres": 2.384185791015625e-07,
+        "maximumUV0Error": 0.0,
+        "maximumWorldNormalError": 1.1920928955078125e-07,
+        "maximumTintError": 0.0
+      },
+      "passed": true
+    },
+    {
+      "material": "Oil-sooted used bronze interior",
+      "sourceUniqueCorners": 3492,
+      "preparedUniqueCorners": 3492,
+      "sourceToPrepared": {
+        "exactUniqueCorners": 2463,
+        "toleranceMatchedCorners": 1029,
+        "positionUVTintMatchedCorners": 1029,
+        "normalLimitFailedCorners": 0,
+        "failedCorners": 0,
+        "failureExamples": [],
+        "maximumPositionErrorMetres": 2.384185791015625e-07,
+        "maximumUV0Error": 0.0,
+        "maximumWorldNormalError": 1.1920928955078125e-07,
+        "maximumTintError": 0.0
+      },
+      "preparedToSource": {
+        "exactUniqueCorners": 2463,
+        "toleranceMatchedCorners": 1029,
+        "positionUVTintMatchedCorners": 1029,
+        "normalLimitFailedCorners": 0,
+        "failedCorners": 0,
+        "failureExamples": [],
+        "maximumPositionErrorMetres": 2.384185791015625e-07,
+        "maximumUV0Error": 0.0,
+        "maximumWorldNormalError": 1.1920928955078125e-07,
+        "maximumTintError": 0.0
+      },
+      "passed": true
+    },
+    {
+      "material": "Oil-sooted used clay interior",
+      "sourceUniqueCorners": 457,
+      "preparedUniqueCorners": 457,
+      "sourceToPrepared": {
+        "exactUniqueCorners": 400,
+        "toleranceMatchedCorners": 57,
+        "positionUVTintMatchedCorners": 57,
+        "normalLimitFailedCorners": 0,
+        "failedCorners": 0,
+        "failureExamples": [],
+        "maximumPositionErrorMetres": 0.0,
+        "maximumUV0Error": 0.0,
+        "maximumWorldNormalError": 1.1920928955078125e-07,
+        "maximumTintError": 0.0
+      },
+      "preparedToSource": {
+        "exactUniqueCorners": 400,
+        "toleranceMatchedCorners": 57,
+        "positionUVTintMatchedCorners": 57,
+        "normalLimitFailedCorners": 0,
+        "failedCorners": 0,
+        "failureExamples": [],
+        "maximumPositionErrorMetres": 0.0,
+        "maximumUV0Error": 0.0,
+        "maximumWorldNormalError": 1.1920928955078125e-07,
+        "maximumTintError": 0.0
+      },
+      "passed": true
+    },
+    {
+      "material": "Old glazed offering ceramic",
+      "sourceUniqueCorners": 527,
+      "preparedUniqueCorners": 527,
+      "sourceToPrepared": {
+        "exactUniqueCorners": 452,
+        "toleranceMatchedCorners": 75,
+        "positionUVTintMatchedCorners": 75,
+        "normalLimitFailedCorners": 0,
+        "failedCorners": 0,
+        "failureExamples": [],
+        "maximumPositionErrorMetres": 0.0,
+        "maximumUV0Error": 0.0,
+        "maximumWorldNormalError": 1.1920928955078125e-07,
+        "maximumTintError": 0.0
+      },
+      "preparedToSource": {
+        "exactUniqueCorners": 452,
+        "toleranceMatchedCorners": 75,
+        "positionUVTintMatchedCorners": 75,
+        "normalLimitFailedCorners": 0,
+        "failedCorners": 0,
+        "failureExamples": [],
+        "maximumPositionErrorMetres": 0.0,
+        "maximumUV0Error": 0.0,
+        "maximumWorldNormalError": 1.1920928955078125e-07,
+        "maximumTintError": 0.0
+      },
+      "passed": true
+    },
+    {
+      "material": "Old grey wall coping clay",
+      "sourceUniqueCorners": 5382,
+      "preparedUniqueCorners": 5382,
+      "sourceToPrepared": {
+        "exactUniqueCorners": 4786,
+        "toleranceMatchedCorners": 596,
+        "positionUVTintMatchedCorners": 596,
+        "normalLimitFailedCorners": 0,
+        "failedCorners": 0,
+        "failureExamples": [],
+        "maximumPositionErrorMetres": 0.0,
+        "maximumUV0Error": 0.0,
+        "maximumWorldNormalError": 1.1920928955078125e-07,
+        "maximumTintError": 0.0
+      },
+      "preparedToSource": {
+        "exactUniqueCorners": 4786,
+        "toleranceMatchedCorners": 596,
+        "positionUVTintMatchedCorners": 596,
+        "normalLimitFailedCorners": 0,
+        "failedCorners": 0,
+        "failureExamples": [],
+        "maximumPositionErrorMetres": 0.0,
+        "maximumUV0Error": 0.0,
+        "maximumWorldNormalError": 1.1920928955078125e-07,
+        "maximumTintError": 0.0
+      },
+      "passed": true
+    },
+    {
+      "material": "Old ivory candle wax",
+      "sourceUniqueCorners": 509,
+      "preparedUniqueCorners": 509,
+      "sourceToPrepared": {
+        "exactUniqueCorners": 458,
+        "toleranceMatchedCorners": 51,
+        "positionUVTintMatchedCorners": 51,
+        "normalLimitFailedCorners": 0,
+        "failedCorners": 0,
+        "failureExamples": [],
+        "maximumPositionErrorMetres": 0.0,
+        "maximumUV0Error": 0.0,
+        "maximumWorldNormalError": 1.1920928955078125e-07,
+        "maximumTintError": 0.0
+      },
+      "preparedToSource": {
+        "exactUniqueCorners": 458,
+        "toleranceMatchedCorners": 51,
+        "positionUVTintMatchedCorners": 51,
+        "normalLimitFailedCorners": 0,
+        "failedCorners": 0,
+        "failureExamples": [],
+        "maximumPositionErrorMetres": 0.0,
+        "maximumUV0Error": 0.0,
+        "maximumWorldNormalError": 1.1920928955078125e-07,
+        "maximumTintError": 0.0
+      },
+      "passed": true
+    },
+    {
+      "material": "Patched lime plaster",
+      "sourceUniqueCorners": 11287,
+      "preparedUniqueCorners": 11287,
+      "sourceToPrepared": {
+        "exactUniqueCorners": 8730,
+        "toleranceMatchedCorners": 2557,
+        "positionUVTintMatchedCorners": 2557,
+        "normalLimitFailedCorners": 0,
+        "failedCorners": 0,
+        "failureExamples": [],
+        "maximumPositionErrorMetres": 2.384185791015625e-07,
+        "maximumUV0Error": 1.862645149230957e-09,
+        "maximumWorldNormalError": 1.1920928955078125e-07,
+        "maximumTintError": 5.960464477539063e-08
+      },
+      "preparedToSource": {
+        "exactUniqueCorners": 8730,
+        "toleranceMatchedCorners": 2557,
+        "positionUVTintMatchedCorners": 2557,
+        "normalLimitFailedCorners": 0,
+        "failedCorners": 0,
+        "failureExamples": [],
+        "maximumPositionErrorMetres": 2.384185791015625e-07,
+        "maximumUV0Error": 1.862645149230957e-09,
+        "maximumWorldNormalError": 1.1920928955078125e-07,
+        "maximumTintError": 0.0
+      },
+      "passed": true
+    },
+    {
+      "material": "Rough winter bark",
+      "sourceUniqueCorners": 25026,
+      "preparedUniqueCorners": 25026,
+      "sourceToPrepared": {
+        "exactUniqueCorners": 20761,
+        "toleranceMatchedCorners": 4265,
+        "positionUVTintMatchedCorners": 4265,
+        "normalLimitFailedCorners": 0,
+        "failedCorners": 0,
+        "failureExamples": [],
+        "maximumPositionErrorMetres": 0.0,
+        "maximumUV0Error": 0.0,
+        "maximumWorldNormalError": 1.1920928955078125e-07,
+        "maximumTintError": 0.0
+      },
+      "preparedToSource": {
+        "exactUniqueCorners": 20761,
+        "toleranceMatchedCorners": 4265,
+        "positionUVTintMatchedCorners": 4265,
+        "normalLimitFailedCorners": 0,
+        "failedCorners": 0,
+        "failureExamples": [],
+        "maximumPositionErrorMetres": 0.0,
+        "maximumUV0Error": 0.0,
+        "maximumWorldNormalError": 1.1920928955078125e-07,
+        "maximumTintError": 0.0
+      },
+      "passed": true
+    },
+    {
+      "material": "Side hall roof tiles",
+      "sourceUniqueCorners": 28664,
+      "preparedUniqueCorners": 28664,
+      "sourceToPrepared": {
+        "exactUniqueCorners": 23572,
+        "toleranceMatchedCorners": 5092,
+        "positionUVTintMatchedCorners": 5092,
+        "normalLimitFailedCorners": 0,
+        "failedCorners": 0,
+        "failureExamples": [],
+        "maximumPositionErrorMetres": 0.0,
+        "maximumUV0Error": 0.0,
+        "maximumWorldNormalError": 1.1920928955078125e-07,
+        "maximumTintError": 0.0
+      },
+      "preparedToSource": {
+        "exactUniqueCorners": 23572,
+        "toleranceMatchedCorners": 5092,
+        "positionUVTintMatchedCorners": 5092,
+        "normalLimitFailedCorners": 0,
+        "failedCorners": 0,
+        "failureExamples": [],
+        "maximumPositionErrorMetres": 0.0,
+        "maximumUV0Error": 0.0,
+        "maximumWorldNormalError": 1.1920928955078125e-07,
+        "maximumTintError": 0.0
+      },
+      "passed": true
+    },
+    {
+      "material": "Snow settled dry grains",
+      "sourceUniqueCorners": 38723,
+      "preparedUniqueCorners": 38723,
+      "sourceToPrepared": {
+        "exactUniqueCorners": 31818,
+        "toleranceMatchedCorners": 6905,
+        "positionUVTintMatchedCorners": 6905,
+        "normalLimitFailedCorners": 0,
+        "failedCorners": 0,
+        "failureExamples": [],
+        "maximumPositionErrorMetres": 5.331201577973843e-07,
+        "maximumUV0Error": 0.0,
+        "maximumWorldNormalError": 1.1920928955078125e-07,
+        "maximumTintError": 0.0
+      },
+      "preparedToSource": {
+        "exactUniqueCorners": 31818,
+        "toleranceMatchedCorners": 6905,
+        "positionUVTintMatchedCorners": 6905,
+        "normalLimitFailedCorners": 0,
+        "failedCorners": 0,
+        "failureExamples": [],
+        "maximumPositionErrorMetres": 5.331201577973843e-07,
+        "maximumUV0Error": 0.0,
+        "maximumWorldNormalError": 1.1920928955078125e-07,
+        "maximumTintError": 0.0
+      },
+      "passed": true
+    },
+    {
+      "material": "Soft cold incense ash",
+      "sourceUniqueCorners": 400,
+      "preparedUniqueCorners": 400,
+      "sourceToPrepared": {
+        "exactUniqueCorners": 327,
+        "toleranceMatchedCorners": 73,
+        "positionUVTintMatchedCorners": 73,
+        "normalLimitFailedCorners": 0,
+        "failedCorners": 0,
+        "failureExamples": [],
+        "maximumPositionErrorMetres": 0.0,
+        "maximumUV0Error": 0.0,
+        "maximumWorldNormalError": 1.1920928955078125e-07,
+        "maximumTintError": 0.0
+      },
+      "preparedToSource": {
+        "exactUniqueCorners": 327,
+        "toleranceMatchedCorners": 73,
+        "positionUVTintMatchedCorners": 73,
+        "normalLimitFailedCorners": 0,
+        "failedCorners": 0,
+        "failureExamples": [],
+        "maximumPositionErrorMetres": 0.0,
+        "maximumUV0Error": 0.0,
+        "maximumWorldNormalError": 1.1920928955078125e-07,
+        "maximumTintError": 0.0
+      },
+      "passed": true
+    },
+    {
+      "material": "Soot-darkened clay",
+      "sourceUniqueCorners": 1344,
+      "preparedUniqueCorners": 1344,
+      "sourceToPrepared": {
+        "exactUniqueCorners": 1168,
+        "toleranceMatchedCorners": 176,
+        "positionUVTintMatchedCorners": 176,
+        "normalLimitFailedCorners": 0,
+        "failedCorners": 0,
+        "failureExamples": [],
+        "maximumPositionErrorMetres": 0.0,
+        "maximumUV0Error": 0.0,
+        "maximumWorldNormalError": 1.1920928955078125e-07,
+        "maximumTintError": 0.0
+      },
+      "preparedToSource": {
+        "exactUniqueCorners": 1168,
+        "toleranceMatchedCorners": 176,
+        "positionUVTintMatchedCorners": 176,
+        "normalLimitFailedCorners": 0,
+        "failedCorners": 0,
+        "failureExamples": [],
+        "maximumPositionErrorMetres": 0.0,
+        "maximumUV0Error": 0.0,
+        "maximumWorldNormalError": 1.1920928955078125e-07,
+        "maximumTintError": 0.0
+      },
+      "passed": true
+    },
+    {
+      "material": "Spilled cool grey incense ash",
+      "sourceUniqueCorners": 785,
+      "preparedUniqueCorners": 785,
+      "sourceToPrepared": {
+        "exactUniqueCorners": 667,
+        "toleranceMatchedCorners": 118,
+        "positionUVTintMatchedCorners": 118,
+        "normalLimitFailedCorners": 0,
+        "failedCorners": 0,
+        "failureExamples": [],
+        "maximumPositionErrorMetres": 0.0,
+        "maximumUV0Error": 0.0,
+        "maximumWorldNormalError": 1.1920928955078125e-07,
+        "maximumTintError": 0.0
+      },
+      "preparedToSource": {
+        "exactUniqueCorners": 667,
+        "toleranceMatchedCorners": 118,
+        "positionUVTintMatchedCorners": 118,
+        "normalLimitFailedCorners": 0,
+        "failedCorners": 0,
+        "failureExamples": [],
+        "maximumPositionErrorMetres": 0.0,
+        "maximumUV0Error": 0.0,
+        "maximumWorldNormalError": 1.1920928955078125e-07,
+        "maximumTintError": 0.0
+      },
+      "passed": true
+    },
+    {
+      "material": "Tarnished gilded edges",
+      "sourceUniqueCorners": 10568,
+      "preparedUniqueCorners": 10568,
+      "sourceToPrepared": {
+        "exactUniqueCorners": 8691,
+        "toleranceMatchedCorners": 1877,
+        "positionUVTintMatchedCorners": 1877,
+        "normalLimitFailedCorners": 0,
+        "failedCorners": 0,
+        "failureExamples": [],
+        "maximumPositionErrorMetres": 3.3717478231665154e-07,
+        "maximumUV0Error": 0.0,
+        "maximumWorldNormalError": 1.1920928955078125e-07,
+        "maximumTintError": 0.0
+      },
+      "preparedToSource": {
+        "exactUniqueCorners": 8691,
+        "toleranceMatchedCorners": 1877,
+        "positionUVTintMatchedCorners": 1877,
+        "normalLimitFailedCorners": 0,
+        "failedCorners": 0,
+        "failureExamples": [],
+        "maximumPositionErrorMetres": 3.3717478231665154e-07,
+        "maximumUV0Error": 0.0,
+        "maximumWorldNormalError": 1.1920928955078125e-07,
+        "maximumTintError": 0.0
+      },
+      "passed": true
+    },
+    {
+      "material": "Unglazed old brown oil clay",
+      "sourceUniqueCorners": 1093,
+      "preparedUniqueCorners": 1093,
+      "sourceToPrepared": {
+        "exactUniqueCorners": 924,
+        "toleranceMatchedCorners": 169,
+        "positionUVTintMatchedCorners": 169,
+        "normalLimitFailedCorners": 0,
+        "failedCorners": 0,
+        "failureExamples": [],
+        "maximumPositionErrorMetres": 0.0,
+        "maximumUV0Error": 0.0,
+        "maximumWorldNormalError": 1.1920928955078125e-07,
+        "maximumTintError": 0.0
+      },
+      "preparedToSource": {
+        "exactUniqueCorners": 924,
+        "toleranceMatchedCorners": 169,
+        "positionUVTintMatchedCorners": 169,
+        "normalLimitFailedCorners": 0,
+        "failedCorners": 0,
+        "failureExamples": [],
+        "maximumPositionErrorMetres": 0.0,
+        "maximumUV0Error": 0.0,
+        "maximumWorldNormalError": 1.1920928955078125e-07,
+        "maximumTintError": 0.0
+      },
+      "passed": true
+    },
+    {
+      "material": "Walk-polished worn dark stone",
+      "sourceUniqueCorners": 4060,
+      "preparedUniqueCorners": 4060,
+      "sourceToPrepared": {
+        "exactUniqueCorners": 3244,
+        "toleranceMatchedCorners": 816,
+        "positionUVTintMatchedCorners": 816,
+        "normalLimitFailedCorners": 0,
+        "failedCorners": 0,
+        "failureExamples": [],
+        "maximumPositionErrorMetres": 0.0,
+        "maximumUV0Error": 0.0,
+        "maximumWorldNormalError": 1.1920928955078125e-07,
+        "maximumTintError": 0.0
+      },
+      "preparedToSource": {
+        "exactUniqueCorners": 3244,
+        "toleranceMatchedCorners": 816,
+        "positionUVTintMatchedCorners": 816,
+        "normalLimitFailedCorners": 0,
+        "failedCorners": 0,
+        "failureExamples": [],
+        "maximumPositionErrorMetres": 0.0,
+        "maximumUV0Error": 0.0,
+        "maximumWorldNormalError": 1.1920928955078125e-07,
+        "maximumTintError": 0.0
+      },
+      "passed": true
+    },
+    {
+      "material": "Weathered brick footings",
+      "sourceUniqueCorners": 216,
+      "preparedUniqueCorners": 216,
+      "sourceToPrepared": {
+        "exactUniqueCorners": 184,
+        "toleranceMatchedCorners": 32,
+        "positionUVTintMatchedCorners": 32,
+        "normalLimitFailedCorners": 0,
+        "failedCorners": 0,
+        "failureExamples": [],
+        "maximumPositionErrorMetres": 0.0,
+        "maximumUV0Error": 0.0,
+        "maximumWorldNormalError": 1.1920928955078125e-07,
+        "maximumTintError": 0.0
+      },
+      "preparedToSource": {
+        "exactUniqueCorners": 184,
+        "toleranceMatchedCorners": 32,
+        "positionUVTintMatchedCorners": 32,
+        "normalLimitFailedCorners": 0,
+        "failedCorners": 0,
+        "failureExamples": [],
+        "maximumPositionErrorMetres": 0.0,
+        "maximumUV0Error": 0.0,
+        "maximumWorldNormalError": 1.1920928955078125e-07,
+        "maximumTintError": 0.0
+      },
+      "passed": true
+    },
+    {
+      "material": "Worn granite",
+      "sourceUniqueCorners": 35891,
+      "preparedUniqueCorners": 35891,
+      "sourceToPrepared": {
+        "exactUniqueCorners": 23182,
+        "toleranceMatchedCorners": 12709,
+        "positionUVTintMatchedCorners": 12709,
+        "normalLimitFailedCorners": 0,
+        "failedCorners": 0,
+        "failureExamples": [],
+        "maximumPositionErrorMetres": 4.915124804938387e-07,
+        "maximumUV0Error": 2.384185791015625e-07,
+        "maximumWorldNormalError": 1.1920928955078125e-07,
+        "maximumTintError": 0.0
+      },
+      "preparedToSource": {
+        "exactUniqueCorners": 23182,
+        "toleranceMatchedCorners": 12709,
+        "positionUVTintMatchedCorners": 12709,
+        "normalLimitFailedCorners": 0,
+        "failedCorners": 0,
+        "failureExamples": [],
+        "maximumPositionErrorMetres": 4.915124804938387e-07,
+        "maximumUV0Error": 2.384185791015625e-07,
+        "maximumWorldNormalError": 1.1920928955078125e-07,
+        "maximumTintError": 0.0
+      },
+      "passed": true
+    },
+    {
+      "material": "Worn woven cushion cloth",
+      "sourceUniqueCorners": 1744,
+      "preparedUniqueCorners": 1744,
+      "sourceToPrepared": {
+        "exactUniqueCorners": 1399,
+        "toleranceMatchedCorners": 345,
+        "positionUVTintMatchedCorners": 345,
+        "normalLimitFailedCorners": 0,
+        "failedCorners": 0,
+        "failureExamples": [],
+        "maximumPositionErrorMetres": 0.0,
+        "maximumUV0Error": 0.0,
+        "maximumWorldNormalError": 1.1920928955078125e-07,
+        "maximumTintError": 0.0
+      },
+      "preparedToSource": {
+        "exactUniqueCorners": 1399,
+        "toleranceMatchedCorners": 345,
+        "positionUVTintMatchedCorners": 345,
+        "normalLimitFailedCorners": 0,
+        "failedCorners": 0,
+        "failureExamples": [],
+        "maximumPositionErrorMetres": 0.0,
+        "maximumUV0Error": 0.0,
+        "maximumWorldNormalError": 1.1920928955078125e-07,
+        "maximumTintError": 0.0
+      },
+      "passed": true
+    },
+    {
+      "material": "chinese_console_table",
+      "sourceUniqueCorners": 16639,
+      "preparedUniqueCorners": 16639,
+      "sourceToPrepared": {
+        "exactUniqueCorners": 14126,
+        "toleranceMatchedCorners": 2513,
+        "positionUVTintMatchedCorners": 2513,
+        "normalLimitFailedCorners": 0,
+        "failedCorners": 0,
+        "failureExamples": [],
+        "maximumPositionErrorMetres": 0.0,
+        "maximumUV0Error": 0.0,
+        "maximumWorldNormalError": 1.1920928955078125e-07,
+        "maximumTintError": 0.0
+      },
+      "preparedToSource": {
+        "exactUniqueCorners": 14126,
+        "toleranceMatchedCorners": 2513,
+        "positionUVTintMatchedCorners": 2513,
+        "normalLimitFailedCorners": 0,
+        "failedCorners": 0,
+        "failureExamples": [],
+        "maximumPositionErrorMetres": 0.0,
+        "maximumUV0Error": 0.0,
+        "maximumWorldNormalError": 1.1920928955078125e-07,
+        "maximumTintError": 0.0
+      },
+      "passed": true
+    },
+    {
+      "material": "chinese_screen_panels",
+      "sourceUniqueCorners": 775,
+      "preparedUniqueCorners": 775,
+      "sourceToPrepared": {
+        "exactUniqueCorners": 671,
+        "toleranceMatchedCorners": 104,
+        "positionUVTintMatchedCorners": 104,
+        "normalLimitFailedCorners": 0,
+        "failedCorners": 0,
+        "failureExamples": [],
+        "maximumPositionErrorMetres": 0.0,
+        "maximumUV0Error": 0.0,
+        "maximumWorldNormalError": 1.1920928955078125e-07,
+        "maximumTintError": 0.0
+      },
+      "preparedToSource": {
+        "exactUniqueCorners": 671,
+        "toleranceMatchedCorners": 104,
+        "positionUVTintMatchedCorners": 104,
+        "normalLimitFailedCorners": 0,
+        "failedCorners": 0,
+        "failureExamples": [],
+        "maximumPositionErrorMetres": 0.0,
+        "maximumUV0Error": 0.0,
+        "maximumWorldNormalError": 1.1920928955078125e-07,
+        "maximumTintError": 0.0
+      },
+      "passed": true
+    },
+    {
+      "material": "chinese_screen_panels.001",
+      "sourceUniqueCorners": 704,
+      "preparedUniqueCorners": 704,
+      "sourceToPrepared": {
+        "exactUniqueCorners": 581,
+        "toleranceMatchedCorners": 123,
+        "positionUVTintMatchedCorners": 123,
+        "normalLimitFailedCorners": 0,
+        "failedCorners": 0,
+        "failureExamples": [],
+        "maximumPositionErrorMetres": 0.0,
+        "maximumUV0Error": 0.0,
+        "maximumWorldNormalError": 1.1920928955078125e-07,
+        "maximumTintError": 0.0
+      },
+      "preparedToSource": {
+        "exactUniqueCorners": 581,
+        "toleranceMatchedCorners": 123,
+        "positionUVTintMatchedCorners": 123,
+        "normalLimitFailedCorners": 0,
+        "failedCorners": 0,
+        "failureExamples": [],
+        "maximumPositionErrorMetres": 0.0,
+        "maximumUV0Error": 0.0,
+        "maximumWorldNormalError": 1.1920928955078125e-07,
+        "maximumTintError": 0.0
+      },
+      "passed": true
+    },
+    {
+      "material": "chinese_screen_panels.002",
+      "sourceUniqueCorners": 775,
+      "preparedUniqueCorners": 775,
+      "sourceToPrepared": {
+        "exactUniqueCorners": 671,
+        "toleranceMatchedCorners": 104,
+        "positionUVTintMatchedCorners": 104,
+        "normalLimitFailedCorners": 0,
+        "failedCorners": 0,
+        "failureExamples": [],
+        "maximumPositionErrorMetres": 0.0,
+        "maximumUV0Error": 0.0,
+        "maximumWorldNormalError": 1.1920928955078125e-07,
+        "maximumTintError": 0.0
+      },
+      "preparedToSource": {
+        "exactUniqueCorners": 671,
+        "toleranceMatchedCorners": 104,
+        "positionUVTintMatchedCorners": 104,
+        "normalLimitFailedCorners": 0,
+        "failedCorners": 0,
+        "failureExamples": [],
+        "maximumPositionErrorMetres": 0.0,
+        "maximumUV0Error": 0.0,
+        "maximumWorldNormalError": 1.1920928955078125e-07,
+        "maximumTintError": 0.0
+      },
+      "passed": true
+    }
+  ],
+  "inputs": {
+    "source": {
+      "path": "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-round1/source-v12.blend",
+      "sha256": "76a129450cd21e3af4a066a0880d13d6e5348f5e514bd1d03b6d9c90b25abf47"
+    },
+    "prepared": {
+      "path": "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-round1/normal-freeze-probe-v12-v6/normal-probe.blend",
+      "sha256": "a8fb7b22ee6c1f54d7617225981a39d0f8ed974a5a60a9d41b9651b034fd6d3e"
+    },
+    "manifest": {
+      "path": "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-round1/contact-replay-v12/manifest.json",
+      "sha256": "ba1212b08ab20e45a521c749f3c20fa0fb5af3a4b40909d7339091c850b0c02b"
+    }
+  },
+  "numericLimits": {
+    "worldPositionMetres": 5e-06,
+    "materialUV0": 1e-06,
+    "worldNormalComponent": 1e-06,
+    "linearSurfaceTintComponent": 1e-06
+  },
+  "scope": "Every unique evaluated material/world-position/UV0/world-normal/tint source corner matches prepared and vice versa. Exact tuples first; only measured Float32 transform/evaluation rounding uses explicit micrometre-level bounds. Does not assert identical quad interpolation or render pixels. Actual prepared/raw resting-contact replay remains separate and literal.",
+  "requiresRootNativeVisualReview": true,
+  "renderBakeEncoderGpuJobs": 0,
+  "sourceOrModelModified": false,
+  "scriptSha256": "bc627cb9e6c475ec16cb088d84e79e4801d5c801c2778603717880d843077938"
+}

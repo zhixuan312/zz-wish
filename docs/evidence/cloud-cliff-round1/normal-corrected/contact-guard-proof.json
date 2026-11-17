@@ -1,0 +1,111 @@
+{
+  "scope": "Actual contact validation function and genuine prepared geometry. No rendering, baking, denoising, encoding or source writes.",
+  "sourceBlendSha256": "484438a4514352e70d7ffe0408306b4127660316c1422f3248f0ff33f5e0e565",
+  "inputs": {
+    "prepared": "fe2eef77f22056cc008465ba038aaaabcc32e98f36571ddf71b41216e1d657a7",
+    "audit": "21f883fcff4b51527d65d63502a080029b78bde0e15794cd4da7ba66ab4225fd"
+  },
+  "geometryFingerprint": "4bb266f5731e8703491784151c72eb1f87a6540e866745e8ec48a7190d19b584",
+  "validActualReceiptPassed": true,
+  "unrelatedMetadataAcceptedWithSameReceiverFingerprints": true,
+  "challenges": [
+    {
+      "name": "missing-receipt",
+      "rejectedBeforeCycles": true,
+      "reason": "Registered resting props require --resting-contact-audit before any Cycles bake."
+    },
+    {
+      "name": "missing-file",
+      "rejectedBeforeCycles": true,
+      "reason": "Registered resting props require --resting-contact-audit before any Cycles bake."
+    },
+    {
+      "name": "failed-replay",
+      "rejectedBeforeCycles": true,
+      "reason": "Prepared contact audit failed or changed the literal 2 mm / 5 mm guards."
+    },
+    {
+      "name": "wrong-source",
+      "rejectedBeforeCycles": true,
+      "reason": "Prepared contact audit belongs to a different authored source."
+    },
+    {
+      "name": "wrong-geometry",
+      "rejectedBeforeCycles": true,
+      "reason": "Prepared contact audit geometry fingerprint is stale."
+    },
+    {
+      "name": "wrong-receiver",
+      "rejectedBeforeCycles": true,
+      "reason": "Prepared contact audit receiver/UV mismatch: cliff/receiverFingerprint"
+    },
+    {
+      "name": "wrong-uv",
+      "rejectedBeforeCycles": true,
+      "reason": "Prepared contact audit receiver/UV mismatch: cliff/lightmapUVFingerprint"
+    },
+    {
+      "name": "gap-over-literal-limit",
+      "rejectedBeforeCycles": true,
+      "reason": "prepared contact exceeds a literal guard: structural post 0"
+    },
+    {
+      "name": "penetration-over-literal-limit",
+      "rejectedBeforeCycles": true,
+      "reason": "prepared contact exceeds a literal guard: structural post 0"
+    },
+    {
+      "name": "relaxed-limit",
+      "rejectedBeforeCycles": true,
+      "reason": "Prepared contact audit failed or changed the literal 2 mm / 5 mm guards."
+    },
+    {
+      "name": "missing-group",
+      "rejectedBeforeCycles": true,
+      "reason": "prepared contact audit omits, duplicates or adds registered groups."
+    },
+    {
+      "name": "duplicate-group",
+      "rejectedBeforeCycles": true,
+      "reason": "prepared contact audit omits, duplicates or adds registered groups."
+    },
+    {
+      "name": "changed-support-mode",
+      "rejectedBeforeCycles": true,
+      "reason": "prepared contact group failed or changed its support mode: structural post 0"
+    },
+    {
+      "name": "lost-anchor-metadata",
+      "rejectedBeforeCycles": true,
+      "reason": "prepared contact audit lost source members or anchor metadata."
+    },
+    {
+      "name": "nonfinite-measurement",
+      "rejectedBeforeCycles": true,
+      "reason": "prepared contact exceeds a literal guard: structural post 0"
+    },
+    {
+      "name": "failed-raw-replay",
+      "rejectedBeforeCycles": true,
+      "reason": "An actual passing raw-export contact replay is required."
+    },
+    {
+      "name": "wrong-frozen-raw",
+      "rejectedBeforeCycles": true,
+      "reason": "The actual frozen raw contact replay input changed."
+    },
+    {
+      "name": "raw-penetration-over-limit",
+      "rejectedBeforeCycles": true,
+      "reason": "raw contact exceeds a literal guard: structural post 0"
+    },
+    {
+      "name": "lost-raw-anchor-metadata",
+      "rejectedBeforeCycles": true,
+      "reason": "raw contact audit lost source members or anchor metadata."
+    }
+  ],
+  "originalInputsByteUnchanged": true,
+  "scriptSha256": "b61f413452386f1ac77a4349121eaf860f939d3a2f5a71dfe061fed1b365e4f2",
+  "bakerSha256": "7702eee04c67ab74ecb28784ea76f04388cfa990dfe58d1cda6f4ba2ef92e9ca"
+}

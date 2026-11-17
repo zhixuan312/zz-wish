@@ -1,0 +1,32 @@
+{
+  "status": "CPU_PASS_GPU_FIRST_COLD_DRAW_STOP",
+  "scope": "Addendum after CPU-only reserved GLSL identifier correction and bounded first-depth-draw GPU stop. No main activation or successful GPU visibility proof.",
+  "previousCPU": {
+    "path": "docs/evidence/full-review/round-1-cloud-opaque-light-cpu.json",
+    "bytes": 27621,
+    "sha256": "fb618d4a15dfa8fa82f2e7bc2c0781df1ae0d4cf25710001c255d52944cf8ae0"
+  },
+  "helper": {
+    "path": "web/src/engine/places/cloudOpaqueLightVisibility.js",
+    "bytes": 17048,
+    "sha256": "15966f811ab09778c39948953842b96bd2bb1d39e994a48100a8c120ebef8953"
+  },
+  "change": "Renamed local GLSL packed to opaquePacked before the GPU run; arithmetic and API unchanged.",
+  "rerunCPU": {
+    "path": "art/build/cloud-opaque-light-prototype/cpu-proof.json",
+    "bytes": 25397,
+    "sha256": "ab9c70443d9314185201005bf8e3ea704821723ac0d74bbe290c294529f9e397"
+  },
+  "coldStop": {
+    "path": "docs/evidence/full-review/round-1-cloud-opaque-light-cold-stop.json",
+    "bytes": 4339,
+    "sha256": "81fe5dfd3a801aa41ba338bf5f8037182d7ca8123878cbc66e8541ecb0716f7d"
+  },
+  "failedGPUReceipt": {
+    "path": "artifacts/full-review/round-1/cloud-opaque-light-gpu-failed-cold-depth/report.json",
+    "bytes": 2419,
+    "sha256": "91dab19f32f41025f1623d3830abc64658e85c3b3c15f17d31740953e3c4c91a"
+  },
+  "leaseReleased": true,
+  "gpuRetry": false
+}

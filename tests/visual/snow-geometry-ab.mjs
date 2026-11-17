@@ -40,7 +40,7 @@ for (const candidate of candidates) {
 }
 const [a, b] = entries;
 const changedMaps = a.lightmaps.filter((map,index)=>map.sha256!==b.lightmaps[index]?.sha256).map(map=>map.region+'/'+map.pass);
-const decodeUnchanged = JSON.stringify(a.lightmaps.map(({sha256,...map})=>map)) === JSON.stringify(b.lightmaps.map(({sha256,...map})=>map));
+const decodeUnchanged = JSON.stringify(a.lightmaps.map(({sha256:_sha256,...map})=>map)) === JSON.stringify(b.lightmaps.map(({sha256:_sha256,...map})=>map));
 const expectedChanges = ['court/night','hall/night'];
 const validMapChanges = pairKind === 'padding' ? decodeUnchanged && JSON.stringify(changedMaps)===JSON.stringify(expectedChanges) : JSON.stringify(a.lightmaps)===JSON.stringify(b.lightmaps);
 const validPositions = pairKind === 'padding' ? a.glbSha256===b.glbSha256 && [...a.positionTypes,...b.positionTypes].every(type=>type===5126) : a.positionTypes.every(type=>type===5122)&&b.positionTypes.every(type=>type===5126);

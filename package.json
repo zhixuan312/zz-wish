@@ -11,7 +11,8 @@
     "start": "node server/main.ts",
     "test:tier1": "vitest run tests/tier1/unit && playwright test --config tests/tier1/playwright.config.ts",
     "lint": "eslint . --max-warnings 0",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "check:evidence": "node scripts/check-evidence-size.mjs"
   },
   "dependencies": {
     "@fastify/cookie": "^11.1.5",

@@ -1,0 +1,30 @@
+{
+  "passed": true,
+  "scope": "Actual rawcontainer refresh; fullbinary andallnon-sceneJSONidentity independentlychecked. Source/normal/contact receiptsremainimmutable; actual finaldecoderproofis separate.",
+  "rows": [
+    {
+      "file": "cloud-cliff.raw.glb",
+      "beforeSha256": "27c5a230f1afe86bfe001a6e96a5080d51fdb3aeb119fd05ead64a3e7b3fc438",
+      "afterSha256": "2a6d17bdb4ab75f5bfac259622e72bc19b208692d391910a23ea7abc6ec27d42",
+      "binaryBytesExact": true,
+      "allNonSceneJsonExact": true,
+      "allExistingSceneExtrasExact": true,
+      "addedSceneKeys": [
+        "one_light_prepared_contact_audit_binding",
+        "one_light_prepared_preview_audit"
+      ]
+    },
+    {
+      "file": "cloud-cliff-storm.raw.glb",
+      "beforeSha256": "0771b22e43142f933e170cedd0af8bb6fbf7a5d914b45f6103db7a02d644eca7",
+      "afterSha256": "e19b1985fd6f1adb696db0c07528f68de39164db7ce04bc6e9a398ca33018210",
+      "binaryBytesExact": true,
+      "allNonSceneJsonExact": true,
+      "allExistingSceneExtrasExact": true,
+      "addedSceneKeys": [
+        "one_light_prepared_contact_audit_binding",
+        "one_light_prepared_preview_audit"
+      ]
+    }
+  ]
+}

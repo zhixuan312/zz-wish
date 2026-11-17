@@ -1,0 +1,57 @@
+{
+  "scope": "Controlled manifest checksum faults in isolated real browser contexts; original assets and server files remain unchanged. Phone viewport is desktop-GPU emulation.",
+  "report": {
+    "path": "artifacts/full-review/round-1/loading-retry-snow15-v2/report.json",
+    "sha256": "d1f01319915df258c840555d757a964908b601d6c8d4ebd0071c695bf4560c28"
+  },
+  "sourceFingerprintSha256": "7fef1a01d437fda534e2dc877f0b7ebc94fef157952a42923bb8ebf95d852eae",
+  "sourceChanged": false,
+  "cases": [
+    {
+      "browser": "chromium",
+      "place": "cloud-cliff",
+      "manifestRequests": 2,
+      "injectedFaults": 1,
+      "errors": [],
+      "consoleErrors": [],
+      "recoveryAction": "Actual UI Retry button",
+      "recovered": true
+    },
+    {
+      "browser": "chromium",
+      "place": "snow-roof",
+      "manifestRequests": 2,
+      "injectedFaults": 1,
+      "errors": [],
+      "consoleErrors": [],
+      "recoveryAction": "Actual UI Retry button",
+      "recovered": true
+    },
+    {
+      "browser": "webkit",
+      "place": "cloud-cliff",
+      "manifestRequests": 2,
+      "injectedFaults": 1,
+      "errors": [],
+      "consoleErrors": [],
+      "recoveryAction": "Actual UI Retry button",
+      "recovered": true
+    },
+    {
+      "browser": "webkit",
+      "place": "snow-roof",
+      "manifestRequests": 2,
+      "injectedFaults": 1,
+      "errors": [],
+      "consoleErrors": [],
+      "recoveryAction": "Actual UI Retry button",
+      "recovered": true
+    }
+  ],
+  "captures": "artifacts/full-review/round-1/loading-retry-snow15-v2/",
+  "limits": [
+    "Controlled integrity faults in isolated browser routes, not an actual network outage.",
+    "Actual source15 LOW8 diagnostic snapshot; final-source browser verification remains pending.",
+    "An earlier driver incorrectly waited only for automatic success after a failed cover attempt, missing the realRetry UI. Its rejected report remains at artifacts/full-review/round-1/loading-retry-snow15/report.json; no product mutation was needed."
+  ]
+}

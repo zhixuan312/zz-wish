@@ -1,0 +1,20 @@
+{
+  "scope": "Compact pointer to the complete ignored numerical receipt; no proof data was discarded.",
+  "archivedOriginal": "artifacts/archive/round1-snow-budget-evidence/budget12-uv-quarter-source-reviewed.receipt.json",
+  "sha256": "18261c5f4fda2fde508c0fad5cfd2ad60ac68f0917baa7d36f948ee419a433ac",
+  "bytes": 147146,
+  "summary": {
+    "scope": "Explicit LOSSY UV16 delivery budget probe. No source/chart/island remap, position, normal, tint, geometry, image, lighting or transport change. Affine UV0 storage is explicitly decoded by KHR_texture_transform; PBR factors remain unchanged. Not adopted; actual runtime optics remain required.",
+    "input": {
+      "path": "art/build/snow-roof-round1/preview12-mobile-delivery/snow-roof.glb",
+      "sha256": "ace4d2f42586f7680113df496bb80d389ace55b6909c2ce382cff05b00483098",
+      "bytes": 10478320
+    },
+    "output": {
+      "path": "art/build/snow-roof-round1/budget12-uv-quarter-source-reviewed/snow-roof.glb",
+      "sha256": "1212fef9f0b615827f39a3ff72a6f79d0bf821504d0903e0500feb938c465b33",
+      "bytes": 9662228,
+      "savedBytes": 816092
+    }
+  }
+}

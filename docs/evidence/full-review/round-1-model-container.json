@@ -1,0 +1,98 @@
+{
+  "scope": "Actual local Chrome/WebKit production loader verification with the real10,410,696-byte retained-F32 model and actual Three160 embedded WASM. No rendering/FPS/final-package acceptance.",
+  "fullReport": {
+    "path": "artifacts/full-review/round-1/model-zstd-browser/report.json",
+    "bytes": 4247,
+    "sha256": "bde01b3f8991334067721761555c73c5581e61a4fc895d3b69c46daaf4d7c6b5"
+  },
+  "input": {
+    "path": "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-round1/priority15-short16-u8-normal256/snow-roof.glb",
+    "bytes": 10410696,
+    "sha256": "31eb9a24e2e3c78b6c83753c170d7e3f35de587a43b916a14f12897ff49a4037"
+  },
+  "encoded": {
+    "uri": "court.glb.zstd",
+    "encoding": "zstd",
+    "bytes": 6102221,
+    "sha256": "4277a383c2e71adffcd5fd983e97b6e050a4ef650e4a168f08837c9af6d4932d",
+    "decodedBytes": 10410696,
+    "decodedSha256": "31eb9a24e2e3c78b6c83753c170d7e3f35de587a43b916a14f12897ff49a4037"
+  },
+  "browsers": [
+    {
+      "kind": "chromium",
+      "version": "157.0.8103.39",
+      "times": {
+        "prefetchMilliseconds": 104.69999998807907,
+        "retryMilliseconds": 89.89999997615814
+      },
+      "decodedBytes": 10410696,
+      "decodedSha256": "31eb9a24e2e3c78b6c83753c170d7e3f35de587a43b916a14f12897ff49a4037",
+      "magic": "glTF",
+      "sameOwnedCacheBuffer": true,
+      "retryBytes": 10410696,
+      "rejectedWrongDecodedChecksum": "Changed decoded court.glb.zstd; please try again",
+      "requests": {
+        "/places/zstd-valid/manifest.json": 1,
+        "/places/zstd-valid/court.glb.zstd": 1,
+        "/places/zstd-retry/manifest.json": 2,
+        "/places/zstd-retry/court.glb.zstd": 2
+      },
+      "errors": [],
+      "passed": true
+    },
+    {
+      "kind": "webkit",
+      "version": "27.2",
+      "times": {
+        "prefetchMilliseconds": 175,
+        "retryMilliseconds": 127
+      },
+      "decodedBytes": 10410696,
+      "decodedSha256": "31eb9a24e2e3c78b6c83753c170d7e3f35de587a43b916a14f12897ff49a4037",
+      "magic": "glTF",
+      "sameOwnedCacheBuffer": true,
+      "retryBytes": 10410696,
+      "rejectedWrongDecodedChecksum": "Changed decoded court.glb.zstd; please try again",
+      "requests": {
+        "/places/zstd-valid/manifest.json": 1,
+        "/places/zstd-valid/court.glb.zstd": 1,
+        "/places/zstd-retry/manifest.json": 2,
+        "/places/zstd-retry/court.glb.zstd": 2
+      },
+      "errors": [],
+      "passed": true
+    }
+  ],
+  "files": [
+    {
+      "path": "web/src/engine/baked/prefetchPlace.js",
+      "sha256": "03fd05cf33331c0ecba489903f9f8903c5e34b0da6735d05fb1fb93de31f0bda"
+    },
+    {
+      "path": "web/src/engine/baked/sha256.js",
+      "sha256": "e7442cf204267da18825b79cda648fdf98071ecb5fea3ee66d736cc72de9b56c"
+    },
+    {
+      "path": "node_modules/three/examples/jsm/libs/zstddec.module.js",
+      "sha256": "5cbf818e842628a4464e748594a6deae18ceddda3c2f541e7b3a0ff5fc7611e2"
+    },
+    {
+      "path": "tests/visual/verify-model-zstd.mjs",
+      "sha256": "4f10cb17893d281d45e968ffd57bfae4f1e0dc4b1a02cf1063dbc30d788f3d94"
+    }
+  ],
+  "inputUnchanged": true,
+  "tests": "28 unit tests in6 files passed; TypeScript noEmit and scoped ESLint passed. Browser timings include local HTTP+SHA+WASM and are single-run wall times, not decode-only or FPS.",
+  "packer": {
+    "path": "scripts/gzip-place-models.mjs",
+    "bytes": 4722,
+    "sha256": "7adfbdc3506f1f7b9938e8965d8a9281d4f5d9d68cfd21f51b5d857028396f32"
+  },
+  "projectionControl": {
+    "path": "art/build/snow-roof-round1/priority15-runtime-manifest-control-receipt.json",
+    "bytes": 24081,
+    "sha256": "e46318d28e70621de01836249c6a3278ef4ee18c1b941439da66a3d1e5d4a774"
+  },
+  "remaining": "Actual new-layout all16 map bytes, full64 finalization and final app journey remain pending."
+}

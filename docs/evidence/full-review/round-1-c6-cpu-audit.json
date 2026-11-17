@@ -1,0 +1,164 @@
+{
+  "scope": "Independent read-only CPU audit of the2W Source16 proposal and evolving runtime; no optical/GPU approval. Root owns subsequent corrections.",
+  "inputs": {
+    "web/src/engine/scene.js": "593184c913cd4168c56063b260a28b40f70df66c1d883c0f0ded19eb3604a3d5",
+    "web/src/engine/baked/gauzeTransmission.js": "3d4623d16983037107ebef6abb491669341b366268ce5e40f7ec089cce129486",
+    "web/src/engine/baked/loadPlace.js": "d92a32b443c5a379cf95987e83900db76af07c99e6e4ea9c622f4f8c5ae11ef8",
+    "art/blender/snow_lantern_transport.py": "6b84c4970ed2bf75d9454ccced95015ea529f574d5a2422f6eff4d6e2094b7dd",
+    "art/blender/bake_export.py": "c366d5503e7c69c3ec42b6cb83f978dd8bff46e9c81e663cba6ff005ffd4e2b5",
+    "art/build/snow-roof-round1/contact-replay-v16-c6/manifest.json": "e6652c00a8329c9fac8397e2ba95bc2b06f71fbac73e6cb493ac1c13f820f3eb"
+  },
+  "sourcePoint": {
+    "preparedSha256": "fb7506df6126382099c22e0afdfedd7679b9bc26c0c904ad9c50de8999eb8e40",
+    "point": {
+      "type": "POINT",
+      "energy": 2.0,
+      "exposure": 0.0,
+      "use_nodes": true,
+      "normalize": true,
+      "use_temperature": false,
+      "temperature": 6500.0,
+      "shadow_soft_size": 0.004000000189989805,
+      "diffuse_factor": 1.0,
+      "specular_factor": 1.0,
+      "transmission_factor": 1.0,
+      "volume_factor": 1.0
+    },
+    "colour": [
+      1.0,
+      0.7411764860153198,
+      0.47058823704719543
+    ],
+    "unitScale": 1.0,
+    "renderExposure": "None",
+    "displayView": "Raw",
+    "filmExposure": 0.0,
+    "proxyMaterials": [
+      {
+        "name": "Visitor transport nonemissive photographic red gauze",
+        "nodes": [
+          {
+            "type": "ShaderNodeNormalMap",
+            "name": "Normal Map",
+            "inputs": {
+              "Strength": 0.3799999952316284,
+              "Color": [
+                0.5,
+                0.5,
+                1.0,
+                1.0
+              ]
+            }
+          },
+          {
+            "type": "ShaderNodeBsdfDiffuse",
+            "name": "Diffuse BSDF",
+            "inputs": {
+              "Color": [
+                0.800000011920929,
+                0.800000011920929,
+                0.800000011920929,
+                1.0
+              ],
+              "Roughness": 0.0,
+              "Normal": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "Weight": 0.0
+            }
+          },
+          {
+            "type": "ShaderNodeBsdfTranslucent",
+            "name": "Translucent BSDF",
+            "inputs": {
+              "Color": [
+                0.800000011920929,
+                0.800000011920929,
+                0.800000011920929,
+                1.0
+              ],
+              "Normal": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "Weight": 0.0
+            }
+          },
+          {
+            "type": "ShaderNodeMixShader",
+            "name": "Mix Shader",
+            "inputs": {
+              "Factor": 0.6499999761581421
+            }
+          },
+          {
+            "type": "ShaderNodeMixShader",
+            "name": "Mix Shader.001",
+            "inputs": {
+              "Factor": 0.5
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "findings": [
+    {
+      "priority": "P1",
+      "issue": "2W is not established candle power",
+      "evidence": "Actual light normalize=true, energy=2W, exposure=0, temperature=false, unitScale=1. Blender official candle reference0.05W visible radiant flux;2W is40times that power.",
+      "suggestion": "Preview0.05W shared source/runtime, then settle global camera exposure; no independent cloth gain and no unilateral683factor.",
+      "source": "https://docs.blender.org/manual/en/dev/render/lights/light_object.html#power-of-lights"
+    },
+    {
+      "priority": "P1",
+      "issue": "Physical cloth keeps28percent direct light in full opaque shadow",
+      "evidence": "Runtime physical radiance multiplied by mix(.28,1,shadowVisibility). Cycles opaque caps/ribs/cup block direct light, with indirect computed separately.",
+      "suggestion": "Use actual visibility in physical branch; actual hall environment supplies indirect. Keep artistic floor only in nonphysical fallback if needed."
+    },
+    {
+      "priority": "P1",
+      "issue": "Selected cloth colour/geometry differs from immutable far bake",
+      "evidence": "Far lamp map is source default30/red#a82a1c, scaled only by scalar power. Actual cream throughput over source red=[1,14.77695,20.96373]; brown=[1,6.01599,6.91519]. Runtime direct uses selected mask/colour.",
+      "suggestion": "Separate lamp indirect from live direct; bake lamp INDIRECT only, remove spatial handoff, bound recolouring approximation for indirect. Live direct requires static visibility first."
+    },
+    {
+      "priority": "P1",
+      "issue": "All-range direct currently lacks architectural visibility",
+      "evidence": "loadPlace disables castShadow on every static object. Live shadow camera far is6m.",
+      "suggestion": "Capture actual static radial depth at source basis once and combine with moving fixture visibility before enabling all-range direct; select far range covering all receiver geometry or document bounds."
+    },
+    {
+      "priority": "P2",
+      "issue": "Source and runtime cloth closures differ",
+      "evidence": "Source is.35 Diffuse+.65 Translucent with no sheen/GGX. Runtime is full MeshPhysical diffuse/specular plus.45sheen and an added.65 diffuse-transmission radiance on both sides. All6 actual fixture geometry vertices have negative normalDotIncoming, so current outside shell is back-lit and leading first-order transmission agrees; visible interior/front-lit faces may add extra energy. Sheen compensation alone multiplies injected radiance by.9723red/.9373cream/.9898brown.",
+      "suggestion": "Keep transmission only on opposite incident/outgoing hemisphere, scale same-side reflection to.35, and match source/runtime sheen/specular closures if exact material equivalence is required; otherwise document as approximate PBR representation."
+    },
+    {
+      "priority": "P2",
+      "issue": "Thumbnail source fallback used different colour",
+      "status": "Root reports fixed",
+      "evidence": "OldnewColor0xffbd78 yielded[1,.50888,.18782], source is explicit scene-linear[1,.741176,.470588].",
+      "suggestion": "Use one immutable source-linear reference for thumbnails and main runtime; bind future source-power/reference revisions to cache key."
+    }
+  ],
+  "correctRelationships": [
+    "Main runtime light RGB is fromArray(manifest.lampBasis.linearColor), preserving explicit scene-linear source.",
+    "W/(4pi) provides matching numeric radiometric intensity in inverse-square and BRDF/pi equations, despite lampCandela naming; adding photometric efficacy only on runtime would break matching.",
+    "uLampPower and physical cloth intensity share power*keep without temporal point-power noise for baked lighting.",
+    "Actual photographed weave repeat1.28/.96, luminance mean/clamp.66..1.24 and normal strength.38 agree at authoring level.",
+    "Runtime point and cloth emitter positions use the same actual source basis, including rigid local-to-world transforms."
+  ],
+  "bakerChangeNotes": {
+    "explicitPassFilterSites": [
+      1499,
+      1676
+    ],
+    "lampOnlyFilter": "pass_filter={'INDIRECT'} if name=='lamp' else {'DIRECT','INDIRECT'}",
+    "metadata": "Change lamp quantity/recipe in fingerprint, manifest and resume guards; old total lamp maps are incompatible.",
+    "runtime": "Remove distance away and movingShade only for indirect lamp term; retain full live filtered direct with actual static and fixture visibility."
+  }
+}

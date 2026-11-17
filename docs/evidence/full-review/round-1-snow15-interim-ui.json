@@ -1,0 +1,60 @@
+{
+  "scope": "Interim source15 LOW8 Chrome phone UI and C5 rendering, not final production/stranger/performance approval.",
+  "report": {
+    "path": "artifacts/full-review/round-1/snow15-plume-review/report.json",
+    "sha256": "f457c8685a849f662d00a6faa68a32527c22466f52f229f152087ea3d8ba0b8f"
+  },
+  "snapshot": "/tmp/one-light-snow15-plume",
+  "sourceFingerprintSha256": "7fef1a01d437fda534e2dc877f0b7ebc94fef157952a42923bb8ebf95d852eae",
+  "originalSceneSha256": "bc62e73db04afbff2070f4d8584c0731abe8824b00f41b769d11e1d65dffaf8d",
+  "snowManifestSha256": "46240aa1bf69f7048cde4550bc068563c202e5b43e8f4e256e8e62e53ec6543b",
+  "actualFrames": 73,
+  "actualSequences": 22,
+  "staticSeconds": 1,
+  "errors": [],
+  "httpErrors": [],
+  "sourceChanged": false,
+  "runtime": [
+    {
+      "browser": "chromium",
+      "viewport": "phone-zh",
+      "version": "157.0.8103.39",
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36",
+      "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1, Unspecified Version)",
+      "buffer": [
+        390,
+        844
+      ]
+    }
+  ],
+  "endingCaptures": [
+    {
+      "browser": "chromium",
+      "viewport": "phone-zh",
+      "stage": "ending-put-out",
+      "captured": true,
+      "seconds": 12,
+      "file": "artifacts/full-review/round-1/snow15-plume-review/chromium/phone-zh/ending-plume/ending-put-out.json"
+    },
+    {
+      "browser": "chromium",
+      "viewport": "phone-zh",
+      "stage": "ending-natural",
+      "captured": true,
+      "seconds": 12,
+      "file": "artifacts/full-review/round-1/snow15-plume-review/chromium/phone-zh/ending-plume/ending-natural.json"
+    }
+  ],
+  "findings": [
+    "Foreground column blocks too much of original phone burning frame; exploratory camera studies2/3 are separate holds.",
+    "Cloth rib marks remain black dashed strokes; a geometry/self-shadow isolation is pending.",
+    "Natural/sudden plume origins, open vent and timing are recorded, but optical readability and WebKit parity are still pending."
+  ],
+  "limits": [
+    "All sixteen Snow maps are eight-sample Metal previews, not production64.",
+    "Complete source15 quality-control package is19925634bytes: budgetFAIL.",
+    "Phone is M1 desktop-GPU viewport/touch emulation, not a physical phone.",
+    "One-second static diagnostic sequences and readback captures do not establish final ten-second stability or30fps.",
+    "This snapshot predates the later short-drawn flame bound; six ordinary presets retain the same.9size."
+  ]
+}

@@ -1,0 +1,209 @@
+{
+  "status": "Actual corrected64 production batch launched after explicit Snow GPU release; native completion is not yet claimed.",
+  "preparedUTC": "2026-11-17T04:31:15.944739+00:00",
+  "inputs": [
+    {
+      "path": "art/build/cloud-cliff-round1/cloud-cliff-source-v11.blend",
+      "sha256": "484438a4514352e70d7ffe0408306b4127660316c1422f3248f0ff33f5e0e565",
+      "bytes": 6599749
+    },
+    {
+      "path": "art/build/cloud-cliff-round1/cloud-cliff-source-v11.audit.json",
+      "sha256": "cf7205b1d990e74eebfeaffecad945e301e9282b7f715c502eaf0294a0b2265f",
+      "bytes": 253518
+    },
+    {
+      "path": "art/build/cloud-cliff-round1/contact-replay-v13-normal8/cloud-cliff-prepared.blend",
+      "sha256": "fe2eef77f22056cc008465ba038aaaabcc32e98f36571ddf71b41216e1d657a7",
+      "bytes": 5906107
+    },
+    {
+      "path": "art/build/cloud-cliff-round1/contact-replay-v13-normal8/cloud-cliff.raw.glb",
+      "sha256": "27c5a230f1afe86bfe001a6e96a5080d51fdb3aeb119fd05ead64a3e7b3fc438",
+      "bytes": 15129712
+    },
+    {
+      "path": "art/build/cloud-cliff-round1/contact-replay-v13-normal8/cloud-cliff-storm.raw.glb",
+      "sha256": "0771b22e43142f933e170cedd0af8bb6fbf7a5d914b45f6103db7a02d644eca7",
+      "bytes": 477364
+    },
+    {
+      "path": "art/build/cloud-cliff-round1/contact-replay-v13-normal8/manifest.json",
+      "sha256": "366165b12d34fa90cdd7f97f21c6bc87d1f634ff24ab2b88904584b020f9feb5",
+      "bytes": 31443
+    },
+    {
+      "path": "art/build/cloud-cliff-round1/contact-replay-v13-normal8/mapping-proof.json",
+      "sha256": "b2c2206780d6261d9b3bbb729b774343f3ff8f81471c356798de1f26ed2be1b7",
+      "bytes": 15327
+    },
+    {
+      "path": "art/build/cloud-cliff-round1/contact-replay-v13-normal8/contact-audit.json",
+      "sha256": "21f883fcff4b51527d65d63502a080029b78bde0e15794cd4da7ba66ab4225fd",
+      "bytes": 119719
+    },
+    {
+      "path": "art/build/cloud-cliff-round1/contact-replay-v13-normal8/guard/guard-proof.json",
+      "sha256": "7978ef8241c195a4ef5c423eed9d831435553de2e061a16e12751ad7d4f33603",
+      "bytes": 4030
+    },
+    {
+      "path": "art/build/cloud-cliff-round1/contact-replay-v13-normal8/normal-guard-proof.json",
+      "sha256": "e703b91746d1f187b762cca457f89c4e35bb8ffb8a858c5ef99c31398136f81b",
+      "bytes": 5094
+    },
+    {
+      "path": "art/build/cloud-cliff-round1/prepared-v13-free-normals-export8/independent-raw-normal-proof.json",
+      "sha256": "3ee3a763d8487860652cdded79cd3baf988f141074eacef9d01488d69dede89c",
+      "bytes": 3248
+    },
+    {
+      "path": "art/build/cloud-cliff-round1/prepared-v12-free-normals/corner-normal-transfer-audit.json",
+      "sha256": "04baf6545a52fe23387dd765989b7137b04f3dbb33b57cef74a361fe4d2e6ce4",
+      "bytes": 236470
+    }
+  ],
+  "nativeDependencies": [
+    {
+      "path": "art/blender/bake_export.py",
+      "sha256": "7702eee04c67ab74ecb28784ea76f04388cfa990dfe58d1cda6f4ba2ef92e9ca",
+      "bytes": 115393
+    },
+    {
+      "path": "art/blender/contact_fingerprints.py",
+      "sha256": "8d682bc1e19a8063498755287d55e351787868215f0f1baab9cabb29b000f07a",
+      "bytes": 1781
+    },
+    {
+      "path": "art/blender/fixed_view_allocation.py",
+      "sha256": "e587e75be3c015e501dd82d9b8f0f87807ebf8fefb7265b51dc766178a879030",
+      "bytes": 7838
+    },
+    {
+      "path": "/Applications/Blender.app/Contents/Resources/5.3/scripts/addons_core/io_scene_gltf2/blender/exp/primitive_extract.py",
+      "sha256": "60f243d20c07c5b1efeffa7b7fd7e1eba06d243c3ce2ce3acf872aa9e7665a02",
+      "bytes": 89909
+    },
+    {
+      "path": "/Applications/Blender.app/Contents/Resources/5.3/scripts/addons_core/io_scene_gltf2/io/com/constants.py",
+      "sha256": "199e6ef99c863b8bc0027c71a85a0e114cb798b2b006a8e1f0ade3edb24e7e13",
+      "bytes": 4212
+    },
+    {
+      "path": "/Applications/Blender.app/Contents/Resources/lib/libtbb.dylib",
+      "sha256": "fe8abf885324cc67e01ee7023ba2a7184af2f3fe6d01fae1b7974561449c8894",
+      "bytes": 381040
+    },
+    {
+      "path": "/Applications/Blender.app/Contents/Resources/lib/libOpenImageDenoise_core.dylib",
+      "sha256": "64c4b6d6d38da709b218fd1e8984b74e993b0ea3b3b504d77483eef4c46b2024",
+      "bytes": 47299760
+    },
+    {
+      "path": "/Applications/Blender.app/Contents/Resources/lib/libOpenImageDenoise_device_metal.dylib",
+      "sha256": "346a64828eb45f296a088a674637f74491e27e9e438f90b917452591e67bfcc1",
+      "bytes": 261120
+    },
+    {
+      "path": "/Applications/Blender.app/Contents/Resources/lib/libOpenImageDenoise.dylib",
+      "sha256": "6c32b46becd2b60fd982ceb9637da804743bfba199d8830109276b762c028240",
+      "bytes": 157024
+    }
+  ],
+  "nonexecutedAuditPackProvenance": [
+    {
+      "path": "art/blender/cloud_cliff.py",
+      "sha256": "e9bdd5366a9a9ea7343ec395ed3b16bb21e467a6a7b5343e98c0f8cee1ebb81b",
+      "bytes": 48556
+    },
+    {
+      "path": "art/blender/resting_contacts.py",
+      "sha256": "163d80f6ecdfe1c9e20236971edbd6f3ab867ff58070f37d4a4543bd81bfd7fe",
+      "bytes": 11102
+    },
+    {
+      "path": "art/blender/audit_prepared_resting_contacts.py",
+      "sha256": "cd70353c5db4b8e49f713d3bcea4e9e8b568bd101b8dcd20db120aaa23415251",
+      "bytes": 19251
+    },
+    {
+      "path": "art/blender/audit_prepared_mapping.py",
+      "sha256": "bc627cb9e6c475ec16cb088d84e79e4801d5c801c2778603717880d843077938",
+      "bytes": 6687
+    },
+    {
+      "path": "art/blender/challenge_normal_guard.py",
+      "sha256": "7ce10fb3403b32e180f6549b545620fe4af721848463ed3e7462082f1a59da30",
+      "bytes": 4747
+    },
+    {
+      "path": "scripts/pack-blender-assets.mjs",
+      "sha256": "5c1469ce702ccd048b5210c233b2c3cee086ddc76f6f09002b2e6f2ed94e0717",
+      "bytes": 48416
+    }
+  ],
+  "frozenCodeCopies": "art/build/cloud-cliff-round1/production-normal-corrected/frozen-native",
+  "command": [
+    "blender",
+    "--background",
+    "art/build/cloud-cliff-round1/contact-replay-v13-normal8/cloud-cliff-prepared.blend",
+    "--python-exit-code",
+    "1",
+    "--python",
+    "art/blender/bake_export.py",
+    "--",
+    "--out",
+    "art/build/cloud-cliff-round1/production-normal-corrected",
+    "--resume",
+    "--samples",
+    "64",
+    "--device",
+    "METAL",
+    "--oidn-device",
+    "METAL",
+    "--prepared-preview-audit",
+    "art/build/cloud-cliff-round1/contact-replay-v13-normal8/mapping-proof.json",
+    "--resting-contact-audit",
+    "art/build/cloud-cliff-round1/contact-replay-v13-normal8/contact-audit.json"
+  ],
+  "configuration": {
+    "engine": "Cycles",
+    "device": "METAL",
+    "threads": "AUTO",
+    "samples": 64,
+    "denoiser": "OpenImageDenoise RT HDR",
+    "denoiserDevice": "METAL",
+    "regions": {
+      "cover": 1024,
+      "cliff": 512,
+      "far": 256
+    },
+    "passes": [
+      "night",
+      "dusk",
+      "day",
+      "lamp"
+    ],
+    "logGain": 4096,
+    "mipLevels": 3,
+    "gutterPixels": 8,
+    "anisotropy": 1
+  },
+  "normalExportRecipe": {
+    "policy": "blender53-scoped-normal-extractor-round8-v1",
+    "blender": "5.3.0",
+    "module": "io_scene_gltf2.blender.exp.primitive_extract",
+    "extractorSha256": "60f243d20c07c5b1efeffa7b7fd7e1eba06d243c3ce2ce3acf872aa9e7665a02",
+    "method": "PrimitiveCreator.__get_normals(self)",
+    "defaultRoundingDigits": 4,
+    "effectiveRoundingDigits": 8,
+    "standardStream": "NORMAL",
+    "genericAttributeExport": false,
+    "scope": "Per-export in-memory module override; restored in finally. Installed files, source and prepared directions stay unchanged."
+  },
+  "sourceAcceptance": "Source484 geometry and night/dusk/day accepted for Round1. Corrected preparation/raw/contact/normal guards passed; runtime appearance remains unaccepted.",
+  "cacheRule": "Fresh all12 maps. No previous implicit-normal or round4 lightmaps reused.",
+  "startedUTC": "2026-11-17T04:33:32.121776+00:00",
+  "launchPlanSha256": "dc18c4521a8e5cf8db39f05420657dcdf394a7729b2f76dac9f1db9ab72d53e7",
+  "gpuHandoff": "Mountain Snow preview session15833 terminal0, explicit GPU release to review_places. Root conditionally approved corrected Cloud all12/64 under these exact gates."
+}

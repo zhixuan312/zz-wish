@@ -1,0 +1,61 @@
+{
+  "scope": "Code-only preparation for an explicitly authorized future real64+ bake package. No native64 execution, fabricated sample values, public install or new source revision. Defaultpreview remains eight-sample and payload-byte-exact.",
+  "scripts": [
+    {
+      "path": "scripts/package-snow-compact-preview.py",
+      "sha256": "7bf82b8b8262761fd9d2df7658face62556768154644b9d518f5af0fccfb3c64",
+      "bytes": 9702
+    },
+    {
+      "path": "scripts/assemble-snow-preview.mjs",
+      "sha256": "b193d5439ec451bba580d5a5874702d6769392c1f9d880c5972ac3e17c64abc9",
+      "bytes": 11573
+    }
+  ],
+  "preservedActualExecutedPreviewCode": {
+    "path": "art/build/snow-roof-round1/compact17-packaged-control/executed-code/receipt.json",
+    "sha256": "fa20432b08e51cb759e20ba6583009078d7d1fd583a33e82824103652bfafbe8",
+    "bytes": 1241
+  },
+  "modeGuard": {
+    "path": "art/build/snow-roof-round1/package-final-mode-guard17-v2/guard-proof.json",
+    "sha256": "7fddfa2c537ab6642328bd1d90504e3cbd000ba92673fade6eef1e94f77ad7d7",
+    "bytes": 5088
+  },
+  "genuinePositive64PathExecuted": false,
+  "proofRequirements": [
+    "All16 four-region/four-look native maps samples>=64 and>=manifest.bake.samples",
+    "METALbake and METALOIDN,3mips,8pxgutters,one actual source/receiver/transport identity",
+    "Source actualSHA/contact/hiddenFACE binding; fresh actual exportFACE\u2192raw correspondence",
+    "Independent retained-face/prune/geometry+original-image invariants",
+    "Actual declared F32position/SHORT16normal/UV<=.25source-texel/U8tint/architecture normal256 precision chain",
+    "All47actual prepared and decoded contact/anchors at literal2mmgap/5mmpenetration",
+    "Quantity/passFilter/cameraPreExposure40 retained; lampINDIRECT only",
+    "Actual native and ThreeWASM losslessZstd roundtrips",
+    "Actual complete package<=15000000 includingfabric/maps/model/manifest"
+  ],
+  "finalInvocationTemplate": [
+    "python3",
+    "scripts/package-snow-compact-preview.py",
+    "--source",
+    "ACTUAL_APPROVED_FROZEN_64_PLUS_NATIVE_DIRECTORY",
+    "--out",
+    "NEW_IGNORED_FINAL_CANDIDATE_DIRECTORY",
+    "--source-blend",
+    "art/build/snow-roof-round1/source-v17.blend",
+    "--hidden-proof",
+    "art/build/snow-roof-round1/source-v17-hidden-faces-20mm.json",
+    "--source-audit",
+    "art/build/snow-roof-round1/source-v17.audit.json",
+    "--final"
+  ],
+  "semantics": {
+    "sharedPackerPreviewFlagOmittedOnlyInFinalMode": true,
+    "assemblerFinalFlagPassedOnlyInFinalMode": true,
+    "previewFlagsClearedOnlyAfterAllReal64AndPhysicalProofGuards": true,
+    "oversizeFinalReceiptPreservedButExecutionFails": true,
+    "finalOutputStillStagingOnly": true
+  },
+  "renderBakeEncoderGpuJobs": 0,
+  "publicWrites": 0
+}

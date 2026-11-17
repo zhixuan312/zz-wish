@@ -1,0 +1,798 @@
+{
+  "scope": "Isolated authored-source freeze feasibility for the next Snow revision. No C6/B4 lantern placement/filter/power change, unique atlas, new GI, full64, public installation or final-design approval.",
+  "source15": {
+    "path": "art/build/snow-roof-round1/source-v15.blend",
+    "sha256": "26ca35d8303937c88372f2c7a4b34d3308935f332f2d3918f2caef11a89e5bb1"
+  },
+  "frozenPrototype": {
+    "path": "art/build/snow-roof-round1/source16-freeze-feasibility-v5/source-frozen.blend",
+    "sha256": "402d192bcd62e49f8ce827ef85c1c10b65164332abbd7ac86dcc8f1e5f4def55",
+    "bytes": 11136451
+  },
+  "freezeReceipt": {
+    "path": "art/build/snow-roof-round1/source16-freeze-feasibility-v5/freeze.json",
+    "sha256": "3bb98c1b9ceb14354993cccc8c24f97700fd7bf9101d6640ec688c43415ef874",
+    "bytes": 7067332
+  },
+  "constructionFreeze": {
+    "staticObjects": 1872,
+    "frozenOwners": 252,
+    "removedModifierTypes": [
+      "BEVEL",
+      "WEIGHTED_NORMAL"
+    ],
+    "snapshotPolicy": "One actual first evaluated Source15 snapshot. Persistent mesh geometry/topology must match that capture, then captured UV/color streams and literal local CORNER custom_normal are assigned before modifier removal. Every static mesh is checked immediately and after save/reopen.",
+    "historical2KUVEqualityClaimed": false,
+    "historicalTransitiveMappingCertificateUsed": false,
+    "beforeSaveAllRecordedFieldsByteExact": true,
+    "afterSaveReopenAllRecordedFieldsByteExact": true,
+    "maximumPositionComponentErrorMetres": 0.0,
+    "maximumUV0ComponentError": 0.0,
+    "maximumWorldNormalComponentError": 0.0,
+    "allRecordedUVLayersSurfaceTintTopologyMaterialsAndFlagsByteExact": true,
+    "usedMaterialGraphsResolvedImageInputsPackedImageBytesLightsWorldExposureObjectsRegistryAnchorsExact": true,
+    "relativeImagePathsRebasedToSameResolvedFiles": 27,
+    "unusedMaterialOrphansOutsideScene": [
+      "Material"
+    ]
+  },
+  "freshDiagnosticPreparation": {
+    "prepared": {
+      "path": "art/build/snow-roof-round1/source16-freeze-feasibility-v5/preparation-diagnostic-v2/prepared.blend",
+      "sha256": "f0a5489356d597cfdac4e86553227a2582a8415f35713c11704e6cea51d7a5b6",
+      "bytes": 23779361
+    },
+    "raw": {
+      "path": "art/build/snow-roof-round1/source16-freeze-feasibility-v5/preparation-diagnostic-v2/diagnostic.raw.glb",
+      "sha256": "8177c677e2b9d4d38158aa1670e63b6eebc7d8df74bf77996933ab34817020bf",
+      "bytes": 39431924
+    },
+    "manifest": {
+      "path": "art/build/snow-roof-round1/source16-freeze-feasibility-v5/preparation-diagnostic-v2/manifest.json",
+      "sha256": "40472c72d20a96f3ee87f9cae53a1480b6f3768bbfa62afa50ce9ceca387c3eb",
+      "bytes": 12857
+    },
+    "normalTransfer": {
+      "path": "art/build/snow-roof-round1/source16-freeze-feasibility-v5/preparation-diagnostic-v2/normal-transfer.json",
+      "sha256": "74551b50b342b08e749db21d77b6550aaba4e815e8f697dcc666ddb2fabebd9b",
+      "bytes": 401553
+    },
+    "sourceMapping": {
+      "path": "art/build/snow-roof-round1/source16-freeze-feasibility-v5/preparation-diagnostic-v2/mapping-diagnostic.json",
+      "sha256": "6ff78d7581885609b77be05c675473ceffa2156bc4ef8ea063e9806dfec7be76",
+      "bytes": 36210
+    },
+    "sourceMappingPassed": true,
+    "freshSourceToPreparedMaxima": {
+      "maximumPositionErrorMetres": 5.331201577973843e-07,
+      "maximumUV0Error": 0.0,
+      "maximumWorldNormalError": 1.1920928955078125e-07,
+      "maximumTintError": 0.0
+    },
+    "limits": {
+      "worldPositionMetres": 5e-06,
+      "materialUV0": 1e-06,
+      "worldNormalComponent": 1e-06,
+      "linearSurfaceTintComponent": 1e-06
+    },
+    "uniqueUVAtlasPrepared": false,
+    "bakeReady": false,
+    "explanation": "Production free-normal capture/join/triangulate/restore and round8 raw export functions are executed. Lightmap only copies unallocated source coordinates to bind contact geometry; this is explicitly diagnostic, not atlas validation."
+  },
+  "physicalGuards": {
+    "sourceContactAudit": {
+      "path": "art/build/snow-roof-round1/source16-freeze-feasibility-v5/source-contact-audit.json",
+      "sha256": "59cb7f86705672ab256696c0cecf8f07e1e1029d1cb2fb2ed278543dcaf00733",
+      "bytes": 341800
+    },
+    "preparedRawContactAudit": {
+      "path": "art/build/snow-roof-round1/source16-freeze-feasibility-v5/preparation-diagnostic-v2/contact-replay.json",
+      "sha256": "992183078cba52ac45e91077c811db252f50259aafeb80c7e40f3fdf8ffbcfda",
+      "bytes": 136466
+    },
+    "sourceGroups": 47,
+    "sourceInventoryCandidates": 234,
+    "unregisteredCandidates": [],
+    "sourceAnchorCorrespondencePassed": true,
+    "sourceToleranceChallenges": [
+      {
+        "group": "altar -0.95",
+        "unsavedTranslationEngine": [
+          0,
+          0.003,
+          0
+        ],
+        "caught": true,
+        "measurement": {
+          "passed": false,
+          "lowestEvaluatedYEngine": 1.59006667137146,
+          "evaluatedMeshVertices": 1014,
+          "lowestBandVerticesWithSupport": 48,
+          "rayMisses": 337,
+          "contact": {
+            "object": "Other altar lamp bronze foot.001",
+            "vertex": 3,
+            "pointEngine": [
+              -0.7593089938163757,
+              1.59006667137146,
+              -4.637928009033203
+            ],
+            "supportPointEngine": [
+              -0.7593089938163757,
+              1.587066650390625,
+              -4.637928009033203
+            ],
+            "supportNormalEngine": [
+              4.699842648392405e-08,
+              1.0,
+              0.0
+            ],
+            "supportObject": "Scanned console altar chinese_console_table",
+            "supportPolygon": 1356,
+            "gapMetres": 0.003000020980834961
+          },
+          "worstPenetrationContact": {
+            "object": "Other altar lamp bronze foot.001",
+            "vertex": 3,
+            "pointEngine": [
+              -0.7593089938163757,
+              1.59006667137146,
+              -4.637928009033203
+            ],
+            "supportPointEngine": [
+              -0.7593089938163757,
+              1.587066650390625,
+              -4.637928009033203
+            ],
+            "supportNormalEngine": [
+              4.699842648392405e-08,
+              1.0,
+              0.0
+            ],
+            "supportObject": "Scanned console altar chinese_console_table",
+            "supportPolygon": 1356,
+            "gapMetres": 0.003000020980834961
+          },
+          "maximumPenetrationMetres": 0.0,
+          "lowestSetGapRangeMetres": [
+            0.003000020980834961,
+            0.003007650375366211
+          ],
+          "gapLimitMetres": 0.002,
+          "penetrationLimitMetres": 0.005,
+          "lowestSetRule": "At least one real lowest-band bearing vertex contacts; hollow bowl centres and gaps between feet need not touch. All evaluated vertices are tested for penetration."
+        }
+      },
+      {
+        "group": "altar -0.95",
+        "unsavedTranslationEngine": [
+          0,
+          -0.006,
+          0
+        ],
+        "caught": true,
+        "measurement": {
+          "passed": false,
+          "lowestEvaluatedYEngine": 1.581066608428955,
+          "evaluatedMeshVertices": 1014,
+          "lowestBandVerticesWithSupport": 48,
+          "rayMisses": 337,
+          "contact": {
+            "object": "Other altar lamp bronze foot.001",
+            "vertex": 3,
+            "pointEngine": [
+              -0.7593089938163757,
+              1.581066608428955,
+              -4.637928009033203
+            ],
+            "supportPointEngine": [
+              -0.7593089938163757,
+              1.587066650390625,
+              -4.637928009033203
+            ],
+            "supportNormalEngine": [
+              4.699842648392405e-08,
+              1.0,
+              0.0
+            ],
+            "supportObject": "Scanned console altar chinese_console_table",
+            "supportPolygon": 1356,
+            "gapMetres": -0.006000041961669922
+          },
+          "worstPenetrationContact": {
+            "object": "Other altar lamp bronze foot.001",
+            "vertex": 3,
+            "pointEngine": [
+              -0.7593089938163757,
+              1.581066608428955,
+              -4.637928009033203
+            ],
+            "supportPointEngine": [
+              -0.7593089938163757,
+              1.587066650390625,
+              -4.637928009033203
+            ],
+            "supportNormalEngine": [
+              4.699842648392405e-08,
+              1.0,
+              0.0
+            ],
+            "supportObject": "Scanned console altar chinese_console_table",
+            "supportPolygon": 1356,
+            "gapMetres": -0.006000041961669922
+          },
+          "maximumPenetrationMetres": 0.006000041961669922,
+          "lowestSetGapRangeMetres": [
+            -0.006000041961669922,
+            -0.005992412567138672
+          ],
+          "gapLimitMetres": 0.002,
+          "penetrationLimitMetres": 0.005,
+          "lowestSetRule": "At least one real lowest-band bearing vertex contacts; hollow bowl centres and gaps between feet need not touch. All evaluated vertices are tested for penetration."
+        }
+      }
+    ],
+    "all47PreparedAndRawGroupsPassed": true,
+    "literalGuardsMetres": {
+      "gap": 0.002,
+      "penetration": 0.005
+    },
+    "missingSourceVertices": {},
+    "contactGuard19": {
+      "path": "art/build/snow-roof-round1/source16-freeze-feasibility-v5/preparation-diagnostic-v2/contact-guard/guard-proof.json",
+      "sha256": "86970af8052f5cd260c6dd58f70bdaf915fe140fad323cd6abf6e69bc5f1f698",
+      "bytes": 4050
+    },
+    "contacts": [
+      {
+        "name": "scanned console altar",
+        "mode": "resting",
+        "preparedPassed": true,
+        "rawPassed": true,
+        "preparedGapMetres": -0.0001373291015625,
+        "preparedMaximumPenetrationMetres": 0.0001373291015625,
+        "rawGapMetres": -0.0001373291015625,
+        "rawMaximumPenetrationMetres": 0.0001373291015625
+      },
+      {
+        "name": "small personal offering bowl",
+        "mode": "resting",
+        "preparedPassed": true,
+        "rawPassed": true,
+        "preparedGapMetres": 0.0,
+        "preparedMaximumPenetrationMetres": 0.0,
+        "rawGapMetres": 0.0,
+        "rawMaximumPenetrationMetres": 0.0
+      },
+      {
+        "name": "folded personal offering note",
+        "mode": "resting",
+        "preparedPassed": true,
+        "rawPassed": true,
+        "preparedGapMetres": 0.0,
+        "preparedMaximumPenetrationMetres": 0.0,
+        "rawGapMetres": 0.0,
+        "rawMaximumPenetrationMetres": 0.0
+      },
+      {
+        "name": "turned pedestal -1.45",
+        "mode": "resting",
+        "preparedPassed": true,
+        "rawPassed": true,
+        "preparedGapMetres": -0.000301361083984375,
+        "preparedMaximumPenetrationMetres": 0.000301361083984375,
+        "rawGapMetres": -0.000301361083984375,
+        "rawMaximumPenetrationMetres": 0.000301361083984375
+      },
+      {
+        "name": "turned pedestal 1.45",
+        "mode": "resting",
+        "preparedPassed": true,
+        "rawPassed": true,
+        "preparedGapMetres": 6.103515625e-05,
+        "preparedMaximumPenetrationMetres": 0.0,
+        "rawGapMetres": 6.103515625e-05,
+        "rawMaximumPenetrationMetres": 0.0
+      },
+      {
+        "name": "wall-mounted screen bearing rail",
+        "mode": "mounted",
+        "preparedPassed": true,
+        "rawPassed": true,
+        "preparedGapMetres": null,
+        "preparedMaximumPenetrationMetres": null,
+        "rawGapMetres": null,
+        "rawMaximumPenetrationMetres": null
+      },
+      {
+        "name": "mounted screen leaf 0",
+        "mode": "resting",
+        "preparedPassed": true,
+        "rawPassed": true,
+        "preparedGapMetres": 3.814697265625e-06,
+        "preparedMaximumPenetrationMetres": 0.0,
+        "rawGapMetres": 3.814697265625e-06,
+        "rawMaximumPenetrationMetres": 0.0
+      },
+      {
+        "name": "mounted screen leaf 1",
+        "mode": "resting",
+        "preparedPassed": true,
+        "rawPassed": true,
+        "preparedGapMetres": 3.814697265625e-06,
+        "preparedMaximumPenetrationMetres": 0.0,
+        "rawGapMetres": 3.814697265625e-06,
+        "rawMaximumPenetrationMetres": 0.0
+      },
+      {
+        "name": "mounted screen leaf 2",
+        "mode": "resting",
+        "preparedPassed": true,
+        "rawPassed": true,
+        "preparedGapMetres": 7.152557373046875e-07,
+        "preparedMaximumPenetrationMetres": 0.0,
+        "rawGapMetres": 7.152557373046875e-07,
+        "rawMaximumPenetrationMetres": 0.0
+      },
+      {
+        "name": "screen edge molding -2.34",
+        "mode": "resting",
+        "preparedPassed": true,
+        "rawPassed": true,
+        "preparedGapMetres": 3.814697265625e-06,
+        "preparedMaximumPenetrationMetres": 0.0,
+        "rawGapMetres": 3.814697265625e-06,
+        "rawMaximumPenetrationMetres": 0.0
+      },
+      {
+        "name": "screen edge molding 2.34",
+        "mode": "resting",
+        "preparedPassed": true,
+        "rawPassed": true,
+        "preparedGapMetres": -3.0994415283203125e-06,
+        "preparedMaximumPenetrationMetres": 3.0994415283203125e-06,
+        "rawGapMetres": -3.0994415283203125e-06,
+        "rawMaximumPenetrationMetres": 3.0994415283203125e-06
+      },
+      {
+        "name": "altar -1.45",
+        "mode": "resting",
+        "preparedPassed": true,
+        "rawPassed": true,
+        "preparedGapMetres": 0.0,
+        "preparedMaximumPenetrationMetres": 0.0,
+        "rawGapMetres": 0.0,
+        "rawMaximumPenetrationMetres": 0.0
+      },
+      {
+        "name": "altar -0.95",
+        "mode": "resting",
+        "preparedPassed": true,
+        "rawPassed": true,
+        "preparedGapMetres": 0.0,
+        "preparedMaximumPenetrationMetres": 0.0,
+        "rawGapMetres": 0.0,
+        "rawMaximumPenetrationMetres": 0.0
+      },
+      {
+        "name": "altar 0.95",
+        "mode": "resting",
+        "preparedPassed": true,
+        "rawPassed": true,
+        "preparedGapMetres": 0.0,
+        "preparedMaximumPenetrationMetres": 0.0,
+        "rawGapMetres": 0.0,
+        "rawMaximumPenetrationMetres": 0.0
+      },
+      {
+        "name": "altar 1.45",
+        "mode": "resting",
+        "preparedPassed": true,
+        "rawPassed": true,
+        "preparedGapMetres": 3.814697265625e-06,
+        "preparedMaximumPenetrationMetres": 0.0,
+        "rawGapMetres": 3.814697265625e-06,
+        "rawMaximumPenetrationMetres": 0.0
+      },
+      {
+        "name": "burner ash",
+        "mode": "resting",
+        "preparedPassed": true,
+        "rawPassed": true,
+        "preparedGapMetres": 2.1457672119140625e-06,
+        "preparedMaximumPenetrationMetres": 9.298324584960938e-06,
+        "rawGapMetres": 2.1457672119140625e-06,
+        "rawMaximumPenetrationMetres": 9.298324584960938e-06
+      },
+      {
+        "name": "charred incense 0",
+        "mode": "resting",
+        "preparedPassed": true,
+        "rawPassed": true,
+        "preparedGapMetres": -5.4836273193359375e-06,
+        "preparedMaximumPenetrationMetres": 5.4836273193359375e-06,
+        "rawGapMetres": -5.4836273193359375e-06,
+        "rawMaximumPenetrationMetres": 5.4836273193359375e-06
+      },
+      {
+        "name": "charred incense 1",
+        "mode": "resting",
+        "preparedPassed": true,
+        "rawPassed": true,
+        "preparedGapMetres": -5.4836273193359375e-06,
+        "preparedMaximumPenetrationMetres": 0.000891566276550293,
+        "rawGapMetres": -5.4836273193359375e-06,
+        "rawMaximumPenetrationMetres": 0.000891566276550293
+      },
+      {
+        "name": "charred incense 2",
+        "mode": "resting",
+        "preparedPassed": true,
+        "rawPassed": true,
+        "preparedGapMetres": -1.6689300537109375e-06,
+        "preparedMaximumPenetrationMetres": 1.6689300537109375e-06,
+        "rawGapMetres": -1.6689300537109375e-06,
+        "rawMaximumPenetrationMetres": 1.6689300537109375e-06
+      },
+      {
+        "name": "charred incense 3",
+        "mode": "resting",
+        "preparedPassed": true,
+        "rawPassed": true,
+        "preparedGapMetres": 2.1457672119140625e-06,
+        "preparedMaximumPenetrationMetres": 0.0,
+        "rawGapMetres": 2.1457672119140625e-06,
+        "rawMaximumPenetrationMetres": 0.0
+      },
+      {
+        "name": "charred incense 4",
+        "mode": "resting",
+        "preparedPassed": true,
+        "rawPassed": true,
+        "preparedGapMetres": -1.6689300537109375e-06,
+        "preparedMaximumPenetrationMetres": 0.002035975456237793,
+        "rawGapMetres": -1.6689300537109375e-06,
+        "rawMaximumPenetrationMetres": 0.002035975456237793
+      },
+      {
+        "name": "charred incense 5",
+        "mode": "resting",
+        "preparedPassed": true,
+        "rawPassed": true,
+        "preparedGapMetres": 2.1457672119140625e-06,
+        "preparedMaximumPenetrationMetres": 0.0,
+        "rawGapMetres": 2.1457672119140625e-06,
+        "rawMaximumPenetrationMetres": 0.0
+      },
+      {
+        "name": "charred incense 6",
+        "mode": "resting",
+        "preparedPassed": true,
+        "rawPassed": true,
+        "preparedGapMetres": -5.4836273193359375e-06,
+        "preparedMaximumPenetrationMetres": 5.4836273193359375e-06,
+        "rawGapMetres": -5.4836273193359375e-06,
+        "rawMaximumPenetrationMetres": 5.4836273193359375e-06
+      },
+      {
+        "name": "charred incense 7",
+        "mode": "resting",
+        "preparedPassed": true,
+        "rawPassed": true,
+        "preparedGapMetres": -1.6689300537109375e-06,
+        "preparedMaximumPenetrationMetres": 9.810924530029297e-05,
+        "rawGapMetres": -1.6689300537109375e-06,
+        "rawMaximumPenetrationMetres": 9.810924530029297e-05
+      },
+      {
+        "name": "charred incense 8",
+        "mode": "resting",
+        "preparedPassed": true,
+        "rawPassed": true,
+        "preparedGapMetres": -1.6689300537109375e-06,
+        "preparedMaximumPenetrationMetres": 1.6689300537109375e-06,
+        "rawGapMetres": -1.6689300537109375e-06,
+        "rawMaximumPenetrationMetres": 1.6689300537109375e-06
+      },
+      {
+        "name": "smouldering incense 0",
+        "mode": "resting",
+        "preparedPassed": true,
+        "rawPassed": true,
+        "preparedGapMetres": -5.4836273193359375e-06,
+        "preparedMaximumPenetrationMetres": 5.4836273193359375e-06,
+        "rawGapMetres": -5.4836273193359375e-06,
+        "rawMaximumPenetrationMetres": 5.4836273193359375e-06
+      },
+      {
+        "name": "smouldering incense 1",
+        "mode": "resting",
+        "preparedPassed": true,
+        "rawPassed": true,
+        "preparedGapMetres": -5.4836273193359375e-06,
+        "preparedMaximumPenetrationMetres": 5.4836273193359375e-06,
+        "rawGapMetres": -5.4836273193359375e-06,
+        "rawMaximumPenetrationMetres": 5.4836273193359375e-06
+      },
+      {
+        "name": "smouldering incense 2",
+        "mode": "resting",
+        "preparedPassed": true,
+        "rawPassed": true,
+        "preparedGapMetres": -9.298324584960938e-06,
+        "preparedMaximumPenetrationMetres": 0.00034677982330322266,
+        "rawGapMetres": -9.298324584960938e-06,
+        "rawMaximumPenetrationMetres": 0.00034677982330322266
+      },
+      {
+        "name": "smouldering incense 3",
+        "mode": "resting",
+        "preparedPassed": true,
+        "rawPassed": true,
+        "preparedGapMetres": 2.1457672119140625e-06,
+        "preparedMaximumPenetrationMetres": 0.00036215782165527344,
+        "rawGapMetres": 2.1457672119140625e-06,
+        "rawMaximumPenetrationMetres": 0.00036215782165527344
+      },
+      {
+        "name": "altar burner assembly",
+        "mode": "resting",
+        "preparedPassed": true,
+        "rawPassed": true,
+        "preparedGapMetres": 0.0,
+        "preparedMaximumPenetrationMetres": 0.0,
+        "rawGapMetres": 0.0,
+        "rawMaximumPenetrationMetres": 0.0
+      },
+      {
+        "name": "altar spilled incense ash",
+        "mode": "resting",
+        "preparedPassed": true,
+        "rawPassed": true,
+        "preparedGapMetres": 0.0,
+        "preparedMaximumPenetrationMetres": 0.0,
+        "rawGapMetres": 0.0,
+        "rawMaximumPenetrationMetres": 0.0
+      },
+      {
+        "name": "kneeling cushion -1",
+        "mode": "resting",
+        "preparedPassed": true,
+        "rawPassed": true,
+        "preparedGapMetres": -4.57763671875e-05,
+        "preparedMaximumPenetrationMetres": 0.0030508041381835938,
+        "rawGapMetres": -4.57763671875e-05,
+        "rawMaximumPenetrationMetres": 0.0030508041381835938
+      },
+      {
+        "name": "kneeling cushion 1",
+        "mode": "resting",
+        "preparedPassed": true,
+        "rawPassed": true,
+        "preparedGapMetres": 0.001241445541381836,
+        "preparedMaximumPenetrationMetres": 0.00475001335144043,
+        "rawGapMetres": 0.001241445541381836,
+        "rawMaximumPenetrationMetres": 0.00475001335144043
+      },
+      {
+        "name": "leaning broom",
+        "mode": "resting",
+        "preparedPassed": true,
+        "rawPassed": true,
+        "preparedGapMetres": 0.0002104043960571289,
+        "preparedMaximumPenetrationMetres": 0.0,
+        "rawGapMetres": 0.0002104043960571289,
+        "rawMaximumPenetrationMetres": 0.0
+      },
+      {
+        "name": "stacked bowl 0",
+        "mode": "resting",
+        "preparedPassed": true,
+        "rawPassed": true,
+        "preparedGapMetres": -0.000576019287109375,
+        "preparedMaximumPenetrationMetres": 0.000576019287109375,
+        "rawGapMetres": -0.000576019287109375,
+        "rawMaximumPenetrationMetres": 0.000576019287109375
+      },
+      {
+        "name": "stacked bowl 1",
+        "mode": "resting",
+        "preparedPassed": true,
+        "rawPassed": true,
+        "preparedGapMetres": -3.814697265625e-06,
+        "preparedMaximumPenetrationMetres": 3.814697265625e-06,
+        "rawGapMetres": -3.814697265625e-06,
+        "rawMaximumPenetrationMetres": 3.814697265625e-06
+      },
+      {
+        "name": "stacked bowl 2",
+        "mode": "resting",
+        "preparedPassed": true,
+        "rawPassed": true,
+        "preparedGapMetres": 0.0,
+        "preparedMaximumPenetrationMetres": 0.0,
+        "rawGapMetres": 0.0,
+        "rawMaximumPenetrationMetres": 0.0
+      },
+      {
+        "name": "stacked bowl assembly",
+        "mode": "resting",
+        "preparedPassed": true,
+        "rawPassed": true,
+        "preparedGapMetres": -0.000576019287109375,
+        "preparedMaximumPenetrationMetres": 0.000576019287109375,
+        "rawGapMetres": -0.000576019287109375,
+        "rawMaximumPenetrationMetres": 0.000576019287109375
+      },
+      {
+        "name": "gate -1",
+        "mode": "resting",
+        "preparedPassed": true,
+        "rawPassed": true,
+        "preparedGapMetres": -3.814697265625e-06,
+        "preparedMaximumPenetrationMetres": 3.814697265625e-06,
+        "rawGapMetres": -3.814697265625e-06,
+        "rawMaximumPenetrationMetres": 3.814697265625e-06
+      },
+      {
+        "name": "gate 1",
+        "mode": "resting",
+        "preparedPassed": true,
+        "rawPassed": true,
+        "preparedGapMetres": -3.814697265625e-06,
+        "preparedMaximumPenetrationMetres": 3.814697265625e-06,
+        "rawGapMetres": -3.814697265625e-06,
+        "rawMaximumPenetrationMetres": 3.814697265625e-06
+      },
+      {
+        "name": "court lantern oil cup",
+        "mode": "resting",
+        "preparedPassed": true,
+        "rawPassed": true,
+        "preparedGapMetres": -6.318092346191406e-06,
+        "preparedMaximumPenetrationMetres": 6.318092346191406e-06,
+        "rawGapMetres": -6.318092346191406e-06,
+        "rawMaximumPenetrationMetres": 6.318092346191406e-06
+      },
+      {
+        "name": "court stone lantern foundation",
+        "mode": "resting",
+        "preparedPassed": true,
+        "rawPassed": true,
+        "preparedGapMetres": -0.000102996826171875,
+        "preparedMaximumPenetrationMetres": 0.000232696533203125,
+        "rawGapMetres": -0.000102996826171875,
+        "rawMaximumPenetrationMetres": 0.000232696533203125
+      },
+      {
+        "name": "court incense ash",
+        "mode": "resting",
+        "preparedPassed": true,
+        "rawPassed": true,
+        "preparedGapMetres": 5.185604095458984e-06,
+        "preparedMaximumPenetrationMetres": 0.0,
+        "rawGapMetres": 5.185604095458984e-06,
+        "rawMaximumPenetrationMetres": 0.0
+      },
+      {
+        "name": "court spent incense 0",
+        "mode": "resting",
+        "preparedPassed": true,
+        "rawPassed": true,
+        "preparedGapMetres": 1.3709068298339844e-06,
+        "preparedMaximumPenetrationMetres": 0.0,
+        "rawGapMetres": 1.3709068298339844e-06,
+        "rawMaximumPenetrationMetres": 0.0
+      },
+      {
+        "name": "court spent incense 1",
+        "mode": "resting",
+        "preparedPassed": true,
+        "rawPassed": true,
+        "preparedGapMetres": -2.4437904357910156e-06,
+        "preparedMaximumPenetrationMetres": 2.4437904357910156e-06,
+        "rawGapMetres": -2.4437904357910156e-06,
+        "rawMaximumPenetrationMetres": 2.4437904357910156e-06
+      },
+      {
+        "name": "court spent incense 2",
+        "mode": "resting",
+        "preparedPassed": true,
+        "rawPassed": true,
+        "preparedGapMetres": -2.4437904357910156e-06,
+        "preparedMaximumPenetrationMetres": 2.4437904357910156e-06,
+        "rawGapMetres": -2.4437904357910156e-06,
+        "rawMaximumPenetrationMetres": 2.4437904357910156e-06
+      },
+      {
+        "name": "court incense stand",
+        "mode": "resting",
+        "preparedPassed": true,
+        "rawPassed": true,
+        "preparedGapMetres": 0.0,
+        "preparedMaximumPenetrationMetres": 0.0,
+        "rawGapMetres": 0.0,
+        "rawMaximumPenetrationMetres": 0.0
+      }
+    ]
+  },
+  "actualRawNormals": {
+    "receipt": {
+      "path": "art/build/snow-roof-round1/source16-freeze-feasibility-v5/preparation-diagnostic-v2/raw-normal-proof.json",
+      "sha256": "8062cb07fe2c0f1e2580287a9f0eb8904b38d4aec5b552c8330470aaf3daf690",
+      "bytes": 11818
+    },
+    "passed": true,
+    "oneToOneTriangles": 330776,
+    "coincidentGroups": 16,
+    "maximumWorldNormalComponentError": 1.7881393432617188e-07,
+    "unchangedLimit": 1e-06,
+    "standardNORMALOnly": true
+  },
+  "pendingForActualSource16": [
+    "Root-authored new open-air lantern placement and filtered candle transport",
+    "Fresh source-bound hidden proof and real unique UV preparation after new physical design",
+    "Full actual overlap/core/current-camera/source mapping/contact and16normal-guard gate on actual unique atlases",
+    "Root-approved Metal8 visual/runtime review before any full64"
+  ],
+  "recipes": {
+    "art/blender/freeze_source_modifiers.py": {
+      "path": "art/blender/freeze_source_modifiers.py",
+      "sha256": "59c1a2bc060a49cc4413acc23765b25aaac0fe84a25e853c8edf89e9e50d7e31",
+      "bytes": 14003
+    },
+    "art/blender/probe_frozen_source_mapping.py": {
+      "path": "art/blender/probe_frozen_source_mapping.py",
+      "sha256": "00f4e47b4ce23a0b0858ed76aebb75710258751f90e3a3b9f91f8d69c66a7aed",
+      "bytes": 6836
+    },
+    "art/blender/audit_resting_props.py": {
+      "path": "art/blender/audit_resting_props.py",
+      "sha256": "8bde83a9b21da44513682e4214999845b8993e330c094faac6d651ddb7ca629a",
+      "bytes": 11947
+    },
+    "art/blender/audit_prepared_mapping.py": {
+      "path": "art/blender/audit_prepared_mapping.py",
+      "sha256": "bc627cb9e6c475ec16cb088d84e79e4801d5c801c2778603717880d843077938",
+      "bytes": 6687
+    },
+    "art/blender/audit_prepared_resting_contacts.py": {
+      "path": "art/blender/audit_prepared_resting_contacts.py",
+      "sha256": "cd70353c5db4b8e49f713d3bcea4e9e8b568bd101b8dcd20db120aaa23415251",
+      "bytes": 19251
+    },
+    "art/blender/proofs/resting-contact-guard.py": {
+      "path": "art/blender/proofs/resting-contact-guard.py",
+      "sha256": "b61f413452386f1ac77a4349121eaf860f939d3a2f5a71dfe061fed1b365e4f2",
+      "bytes": 5677
+    },
+    "art/blender/audit_raw_normals.py": {
+      "path": "art/blender/audit_raw_normals.py",
+      "sha256": "8c046a546779ebc77473faa2cac20c6dcc3d8b6b3dd162a8187955d422069c06",
+      "bytes": 8972
+    },
+    "art/blender/bake_export.py": {
+      "path": "art/blender/bake_export.py",
+      "sha256": "4d3e3c0d5195fdf7dc6971e73003d45c769738e5b3eb44d3761ff8add0fd1855",
+      "bytes": 116003
+    }
+  },
+  "jobs": {
+    "terminal": true,
+    "sourceOriginalUnchanged": true,
+    "CyclesRenderOrBakeJobs": 0,
+    "gpuJobs": 0,
+    "rawGltfExportJobs": 1,
+    "KtxMeshoptImageEncoderJobs": 0,
+    "runtimePublicOrRootFileChanges": false
+  },
+  "priorProbeHistory": {
+    "firstProbe": "Rejected before save after new_from_object requested second Bevel UV evaluation. Its failed report is preserved.",
+    "geometryExactStateChecks": "Earlier saved prototypes had exact geometry but fingerprinted relative image strings and an unused default Material orphan; final scope uses actual resolved image identity and all scene material slots. No used material was dropped.",
+    "paths": [
+      "art/build/snow-roof-round1/source16-freeze-feasibility/freeze.json",
+      "art/build/snow-roof-round1/source16-freeze-feasibility-v3/freeze.json",
+      "art/build/snow-roof-round1/source16-freeze-feasibility-v4/freeze.json"
+    ]
+  }
+}

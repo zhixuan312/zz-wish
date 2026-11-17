@@ -1,0 +1,181 @@
+{
+  "scope": "Actual native eight-sample Metal/OIDN common-exposure check. Source17 uses a0.05W candle and divides all scene flux/world/material emission by40 with one global EV+log2(40). This is a shared camera normalization, not a cloth-only gain or lm/cd calibration. No full-quality/app/phone-FPS/baked-live optical approval.",
+  "inputs": [
+    {
+      "path": "art/build/snow-roof-round1/native-v16-c6/desktop/Runtime16_burnFar.png",
+      "bytes": 381367,
+      "sha256": "377c4489bb33dc53f695893831c3f34af430831788e2ad50772ea03e6433c1bb"
+    },
+    {
+      "path": "art/build/snow-roof-round1/native-v17-candle/desktop/Runtime16_burnFar.png",
+      "bytes": 381260,
+      "sha256": "02d7a31393b52dd88c547b9208cd91a2a4a9744e1588b7372b2a4291a48000e1"
+    },
+    {
+      "path": "art/build/snow-roof-round1/source-v16.blend",
+      "bytes": 11716544,
+      "sha256": "8f414ee9c99550192a767ef1d1e498316f760863f949a2b417c43d701b428814"
+    },
+    {
+      "path": "art/build/snow-roof-round1/source-v17.blend",
+      "bytes": 11717577,
+      "sha256": "2990854d3c9a65bf18879511d865b6e36788f6e727339248d5746b67fb52dd64"
+    },
+    {
+      "path": "art/build/snow-roof-round1/source-v17-radiometry-audit.json",
+      "bytes": 3539188,
+      "sha256": "c9e8119376820838914ed2010a1202ebf4bd6417720ccf9686361fa352b7c4b7"
+    },
+    {
+      "path": "art/build/snow-roof-round1/source16-native-runtime-poses.json",
+      "bytes": 669,
+      "sha256": "2194f3d5ac3d09bab9e438015992a963c01bc135c1eaef43f2b0a7bfebf033d4"
+    },
+    {
+      "path": "art/blender/preview.py",
+      "bytes": 8387,
+      "sha256": "63099046a364be9d0600ae43287bfd38584c0aba9d9ad64b296f72f6eb1e538f"
+    },
+    {
+      "path": "art/blender/rebase_snow_radiometry.py",
+      "bytes": 14147,
+      "sha256": "f3d6af6ecc35a6d70dc138eaee9375546d3908fc66db31eee19942e5233ff7fe"
+    },
+    {
+      "path": "art/build/snow-roof-round1/native-v16-c6/desktop/preview.json",
+      "bytes": 1517,
+      "sha256": "694519c7072574094f66546428c18c125f904acf0fe3b9fb09b9dab1cd514bfb"
+    },
+    {
+      "path": "art/build/snow-roof-round1/native-v17-candle/desktop/preview.json",
+      "bytes": 1535,
+      "sha256": "bdd37de5101322850191995141aa4a508da98fb04a21f88f513613386dd88140"
+    },
+    {
+      "path": "art/build/snow-roof-round1/native-v17-candle/phone/preview.json",
+      "bytes": 1530,
+      "sha256": "c894b4c8673910d2fd1cf34a1cec480da664580fb7934c6494c88ed4ff066d7f"
+    },
+    {
+      "path": "art/build/snow-roof-round1/native-v17-candle/phone/Runtime16_burnFarPhone.png",
+      "bytes": 406661,
+      "sha256": "dcb4e654ce35e5f8360353a282c333784a186e422d3b45b44037802b352d1f22"
+    }
+  ],
+  "actualPreviewMetadata": [
+    {
+      "scene": "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-round1/source-v17.blend",
+      "blendSha256": "2990854d3c9a65bf18879511d865b6e36788f6e727339248d5746b67fb52dd64",
+      "sourceSha256": "126d2a11f81249960690ec4466c32744051afd34b1108cf61c54f6207b05546c",
+      "device": "METAL",
+      "devices": [
+        "Apple M1 (GPU - 8 cores)"
+      ],
+      "denoiser": "OPENIMAGEDENOISE",
+      "samples": 8,
+      "size": [
+        720,
+        450
+      ],
+      "colourManagement": {
+        "view_transform": "AgX",
+        "look": "None",
+        "exposure": 5.321928024291992,
+        "gamma": 1
+      },
+      "look": "authored",
+      "previewOnlyOverrides": {},
+      "lightingCandidate": false,
+      "appliedPreset": null,
+      "maxBounces": 4,
+      "cameras": [
+        {
+          "name": "Runtime16_burnFar",
+          "path": "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-round1/native-v17-candle/desktop/Runtime16_burnFar.png",
+          "position": [
+            -4.940000057220459,
+            1.600000023841858,
+            2.299999952316284
+          ],
+          "rotationEuler": [
+            1.4797312021255493,
+            -2.5495051403368052e-8,
+            -1.483530044555664
+          ],
+          "lens": 23.051786422729492,
+          "sensorFit": "VERTICAL",
+          "sensorHeight": 24
+        }
+      ],
+      "constructionDiagnostic": false,
+      "hiddenRoofSnow": [],
+      "cameraPoses": {
+        "path": "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-round1/source16-native-runtime-poses.json",
+        "sha256": "2194f3d5ac3d09bab9e438015992a963c01bc135c1eaef43f2b0a7bfebf033d4",
+        "scope": "Unsaved measured world Y-up projections only."
+      }
+    },
+    {
+      "scene": "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-round1/source-v17.blend",
+      "blendSha256": "2990854d3c9a65bf18879511d865b6e36788f6e727339248d5746b67fb52dd64",
+      "sourceSha256": "126d2a11f81249960690ec4466c32744051afd34b1108cf61c54f6207b05546c",
+      "device": "METAL",
+      "devices": [
+        "Apple M1 (GPU - 8 cores)"
+      ],
+      "denoiser": "OPENIMAGEDENOISE",
+      "samples": 8,
+      "size": [
+        390,
+        844
+      ],
+      "colourManagement": {
+        "view_transform": "AgX",
+        "look": "None",
+        "exposure": 5.321928024291992,
+        "gamma": 1
+      },
+      "look": "authored",
+      "previewOnlyOverrides": {},
+      "lightingCandidate": false,
+      "appliedPreset": null,
+      "maxBounces": 4,
+      "cameras": [
+        {
+          "name": "Runtime16_burnFarPhone",
+          "path": "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-round1/native-v17-candle/phone/Runtime16_burnFarPhone.png",
+          "position": [
+            -1.5,
+            -1.9800000190734863,
+            2.200000047683716
+          ],
+          "rotationEuler": [
+            1.4664924144744873,
+            5.51472201237857e-9,
+            -0.09318726509809494
+          ],
+          "lens": 23.051786422729492,
+          "sensorFit": "VERTICAL",
+          "sensorHeight": 24
+        }
+      ],
+      "constructionDiagnostic": false,
+      "hiddenRoofSnow": [],
+      "cameraPoses": {
+        "path": "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-round1/source16-native-runtime-poses.json",
+        "sha256": "2194f3d5ac3d09bab9e438015992a963c01bc135c1eaef43f2b0a7bfebf033d4",
+        "scope": "Unsaved measured world Y-up projections only."
+      }
+    }
+  ],
+  "sameProjectionComparison": {
+    "width": 720,
+    "height": 450,
+    "meanAbsoluteChannelDifference8Bit": 0.008979423868312757,
+    "p99AbsoluteChannelDifference8Bit": 0,
+    "maximumAbsoluteChannelDifference8Bit": 4,
+    "changedPixels": 6840,
+    "note": "Independent noisy8sample path integration and OIDN may differ under radiometric scaling; no pixel identity is claimed."
+  },
+  "passed": true
+}

@@ -1,0 +1,320 @@
+{
+  "status": "Native corrected production batch terminal exit0;12 fresh maps complete. Packaging/runtime acceptance still pending.",
+  "completedUTC": "2026-11-17T04:35:32.413585+00:00",
+  "sourceBlendSha256": "484438a4514352e70d7ffe0408306b4127660316c1422f3248f0ff33f5e0e565",
+  "seconds": 88.535,
+  "maps": [
+    {
+      "region": "cliff",
+      "look": "night",
+      "seconds": 5.939,
+      "bakeSeconds": 3.702,
+      "denoiseSeconds": 2.19,
+      "samples": 64,
+      "bakeDevice": "METAL",
+      "denoiseDevice": "METAL"
+    },
+    {
+      "region": "cliff",
+      "look": "dusk",
+      "seconds": 5.297,
+      "bakeSeconds": 3.696,
+      "denoiseSeconds": 1.556,
+      "samples": 64,
+      "bakeDevice": "METAL",
+      "denoiseDevice": "METAL"
+    },
+    {
+      "region": "cliff",
+      "look": "day",
+      "seconds": 5.215,
+      "bakeSeconds": 3.638,
+      "denoiseSeconds": 1.532,
+      "samples": 64,
+      "bakeDevice": "METAL",
+      "denoiseDevice": "METAL"
+    },
+    {
+      "region": "cliff",
+      "look": "lamp",
+      "seconds": 4.297,
+      "bakeSeconds": 3.076,
+      "denoiseSeconds": 1.173,
+      "samples": 64,
+      "bakeDevice": "METAL",
+      "denoiseDevice": "METAL"
+    },
+    {
+      "region": "cover",
+      "look": "night",
+      "seconds": 14.315,
+      "bakeSeconds": 8.371,
+      "denoiseSeconds": 5.802,
+      "samples": 64,
+      "bakeDevice": "METAL",
+      "denoiseDevice": "METAL"
+    },
+    {
+      "region": "cover",
+      "look": "dusk",
+      "seconds": 14.192,
+      "bakeSeconds": 8.617,
+      "denoiseSeconds": 5.433,
+      "samples": 64,
+      "bakeDevice": "METAL",
+      "denoiseDevice": "METAL"
+    },
+    {
+      "region": "cover",
+      "look": "day",
+      "seconds": 14.059,
+      "bakeSeconds": 8.519,
+      "denoiseSeconds": 5.398,
+      "samples": 64,
+      "bakeDevice": "METAL",
+      "denoiseDevice": "METAL"
+    },
+    {
+      "region": "cover",
+      "look": "lamp",
+      "seconds": 11.438,
+      "bakeSeconds": 7.19,
+      "denoiseSeconds": 4.095,
+      "samples": 64,
+      "bakeDevice": "METAL",
+      "denoiseDevice": "METAL"
+    },
+    {
+      "region": "far",
+      "look": "night",
+      "seconds": 2.169,
+      "bakeSeconds": 1.846,
+      "denoiseSeconds": 0.308,
+      "samples": 64,
+      "bakeDevice": "METAL",
+      "denoiseDevice": "METAL"
+    },
+    {
+      "region": "far",
+      "look": "dusk",
+      "seconds": 1.928,
+      "bakeSeconds": 1.873,
+      "denoiseSeconds": 0.04,
+      "samples": 64,
+      "bakeDevice": "METAL",
+      "denoiseDevice": "METAL"
+    },
+    {
+      "region": "far",
+      "look": "day",
+      "seconds": 1.937,
+      "bakeSeconds": 1.87,
+      "denoiseSeconds": 0.052,
+      "samples": 64,
+      "bakeDevice": "METAL",
+      "denoiseDevice": "METAL"
+    },
+    {
+      "region": "far",
+      "look": "lamp",
+      "seconds": 2.127,
+      "bakeSeconds": 2.05,
+      "denoiseSeconds": 0.062,
+      "samples": 64,
+      "bakeDevice": "METAL",
+      "denoiseDevice": "METAL"
+    }
+  ],
+  "files": [
+    {
+      "path": "art/build/cloud-cliff-round1/production-normal-corrected/cloud-cliff-prepared.blend",
+      "bytes": 5908322,
+      "sha256": "14fdacab407a318b73f6d93ba220316db66b1e7b0087486d28c70b69c886ddd1"
+    },
+    {
+      "path": "art/build/cloud-cliff-round1/production-normal-corrected/cloud-cliff.raw.glb",
+      "bytes": 15147044,
+      "sha256": "2a6d17bdb4ab75f5bfac259622e72bc19b208692d391910a23ea7abc6ec27d42"
+    },
+    {
+      "path": "art/build/cloud-cliff-round1/production-normal-corrected/cloud-cliff-storm.raw.glb",
+      "bytes": 494696,
+      "sha256": "e19b1985fd6f1adb696db0c07528f68de39164db7ce04bc6e9a398ca33018210"
+    },
+    {
+      "path": "art/build/cloud-cliff-round1/production-normal-corrected/cloud-cliff-baked.blend",
+      "bytes": 5909181,
+      "sha256": "9bafc2e0f9ccfbc1a8de48f8a5d394b2184caf667204738d8f97dc3612a95492"
+    },
+    {
+      "path": "art/build/cloud-cliff-round1/production-normal-corrected/manifest.json",
+      "bytes": 69845,
+      "sha256": "b7dfec9d15947cf66c45896bf22459bb859f164cca5f6f0fb46cee312c1fed86"
+    },
+    {
+      "path": "art/build/cloud-cliff-round1/production-normal-corrected/bake-fingerprint.json",
+      "bytes": 942683,
+      "sha256": "9baed2dc61d4642cef06615fe032e2f2a5b1fb53de2c9217493c50894ff97ce1"
+    }
+  ],
+  "frozenInputChecks": [
+    {
+      "path": "art/build/cloud-cliff-round1/cloud-cliff-source-v11.blend",
+      "bytesUnchanged": true,
+      "sha256Unchanged": true
+    },
+    {
+      "path": "art/build/cloud-cliff-round1/cloud-cliff-source-v11.audit.json",
+      "bytesUnchanged": true,
+      "sha256Unchanged": true
+    },
+    {
+      "path": "art/build/cloud-cliff-round1/contact-replay-v13-normal8/cloud-cliff-prepared.blend",
+      "bytesUnchanged": true,
+      "sha256Unchanged": true
+    },
+    {
+      "path": "art/build/cloud-cliff-round1/contact-replay-v13-normal8/cloud-cliff.raw.glb",
+      "bytesUnchanged": true,
+      "sha256Unchanged": true
+    },
+    {
+      "path": "art/build/cloud-cliff-round1/contact-replay-v13-normal8/cloud-cliff-storm.raw.glb",
+      "bytesUnchanged": true,
+      "sha256Unchanged": true
+    },
+    {
+      "path": "art/build/cloud-cliff-round1/contact-replay-v13-normal8/manifest.json",
+      "bytesUnchanged": true,
+      "sha256Unchanged": true
+    },
+    {
+      "path": "art/build/cloud-cliff-round1/contact-replay-v13-normal8/mapping-proof.json",
+      "bytesUnchanged": true,
+      "sha256Unchanged": true
+    },
+    {
+      "path": "art/build/cloud-cliff-round1/contact-replay-v13-normal8/contact-audit.json",
+      "bytesUnchanged": true,
+      "sha256Unchanged": true
+    },
+    {
+      "path": "art/build/cloud-cliff-round1/contact-replay-v13-normal8/guard/guard-proof.json",
+      "bytesUnchanged": true,
+      "sha256Unchanged": true
+    },
+    {
+      "path": "art/build/cloud-cliff-round1/contact-replay-v13-normal8/normal-guard-proof.json",
+      "bytesUnchanged": true,
+      "sha256Unchanged": true
+    },
+    {
+      "path": "art/build/cloud-cliff-round1/prepared-v13-free-normals-export8/independent-raw-normal-proof.json",
+      "bytesUnchanged": true,
+      "sha256Unchanged": true
+    },
+    {
+      "path": "art/build/cloud-cliff-round1/prepared-v12-free-normals/corner-normal-transfer-audit.json",
+      "bytesUnchanged": true,
+      "sha256Unchanged": true
+    },
+    {
+      "path": "art/blender/bake_export.py",
+      "bytesUnchanged": true,
+      "sha256Unchanged": true
+    },
+    {
+      "path": "art/blender/contact_fingerprints.py",
+      "bytesUnchanged": true,
+      "sha256Unchanged": true
+    },
+    {
+      "path": "art/blender/fixed_view_allocation.py",
+      "bytesUnchanged": true,
+      "sha256Unchanged": true
+    },
+    {
+      "path": "/Applications/Blender.app/Contents/Resources/5.3/scripts/addons_core/io_scene_gltf2/blender/exp/primitive_extract.py",
+      "bytesUnchanged": true,
+      "sha256Unchanged": true
+    },
+    {
+      "path": "/Applications/Blender.app/Contents/Resources/5.3/scripts/addons_core/io_scene_gltf2/io/com/constants.py",
+      "bytesUnchanged": true,
+      "sha256Unchanged": true
+    },
+    {
+      "path": "/Applications/Blender.app/Contents/Resources/lib/libtbb.dylib",
+      "bytesUnchanged": true,
+      "sha256Unchanged": true
+    },
+    {
+      "path": "/Applications/Blender.app/Contents/Resources/lib/libOpenImageDenoise_core.dylib",
+      "bytesUnchanged": true,
+      "sha256Unchanged": true
+    },
+    {
+      "path": "/Applications/Blender.app/Contents/Resources/lib/libOpenImageDenoise_device_metal.dylib",
+      "bytesUnchanged": true,
+      "sha256Unchanged": true
+    },
+    {
+      "path": "/Applications/Blender.app/Contents/Resources/lib/libOpenImageDenoise.dylib",
+      "bytesUnchanged": true,
+      "sha256Unchanged": true
+    }
+  ],
+  "allFrozenInputsUnchanged": true,
+  "normalExportRecipe": {
+    "policy": "blender53-scoped-normal-extractor-round8-v1",
+    "blender": "5.3.0",
+    "module": "io_scene_gltf2.blender.exp.primitive_extract",
+    "extractorSha256": "60f243d20c07c5b1efeffa7b7fd7e1eba06d243c3ce2ce3acf872aa9e7665a02",
+    "method": "PrimitiveCreator.__get_normals(self)",
+    "defaultRoundingDigits": 4,
+    "effectiveRoundingDigits": 8,
+    "standardStream": "NORMAL",
+    "genericAttributeExport": false,
+    "scope": "Per-export in-memory module override; restored in finally. Installed files, source and prepared directions stay unchanged."
+  },
+  "normalExports": [
+    {
+      "file": "cloud-cliff.raw.glb",
+      "recipePolicy": "blender53-scoped-normal-extractor-round8-v1",
+      "restoredRoundingDigits": 4
+    },
+    {
+      "file": "cloud-cliff-storm.raw.glb",
+      "recipePolicy": "blender53-scoped-normal-extractor-round8-v1",
+      "restoredRoundingDigits": 4
+    }
+  ],
+  "denoising": {
+    "backend": "OpenImageDenoise RT HDR",
+    "device": "METAL",
+    "isolation": "Per-UV-chart with same-chart edge extension; subpixel charts excluded and reported"
+  },
+  "configuration": {
+    "engine": "Cycles",
+    "device": "METAL",
+    "threads": "AUTO",
+    "samples": 64,
+    "denoiser": "OpenImageDenoise RT HDR",
+    "denoiserDevice": "METAL",
+    "regions": {
+      "cover": 1024,
+      "cliff": 512,
+      "far": 256
+    },
+    "passes": [
+      "night",
+      "dusk",
+      "day",
+      "lamp"
+    ],
+    "logGain": 4096,
+    "mipLevels": 3,
+    "gutterPixels": 8,
+    "anisotropy": 1
+  }
+}

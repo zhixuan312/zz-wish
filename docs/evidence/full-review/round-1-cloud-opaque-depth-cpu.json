@@ -1,0 +1,120 @@
+{
+  "passed": true,
+  "scope": "CPU actual Three160 template, linear packing/ray reconstruction, wrapper ownership, callback camera/probe clone selection, cache revision and mock-renderer state only. No GPU commands, depth pixels, compositor integration or performance approval.",
+  "moduleSha256": "bca97df2d2810a44303bc8e25d668f4f6122c76eb24ff5064bfbdc9e249c193b",
+  "cases": 220,
+  "maximumWorldRayDistanceErrorMetres": 3.4985550882993266e-05,
+  "reconstruction": [
+    {
+      "name": "main",
+      "cases": 20,
+      "maximumWorldRayDistanceErrorMetres": 3.4985550882993266e-05,
+      "near": 0.01,
+      "far": 2000
+    },
+    {
+      "name": "main-near",
+      "cases": 20,
+      "maximumWorldRayDistanceErrorMetres": 3.4985550882993266e-05,
+      "near": 0.3,
+      "far": 2000
+    },
+    {
+      "name": "probe",
+      "cases": 20,
+      "maximumWorldRayDistanceErrorMetres": 6.235458585024389e-07,
+      "near": 0.004,
+      "far": 30
+    },
+    {
+      "name": "asymmetric-view-offset",
+      "cases": 20,
+      "maximumWorldRayDistanceErrorMetres": 3.247542190365493e-05,
+      "near": 0.01,
+      "far": 2000
+    },
+    {
+      "name": "orthographic",
+      "cases": 20,
+      "maximumWorldRayDistanceErrorMetres": 2.655792263794865e-05,
+      "near": 0.02,
+      "far": 2000
+    },
+    {
+      "name": "cube-face-0",
+      "cases": 20,
+      "maximumWorldRayDistanceErrorMetres": 6.235458585024389e-07,
+      "near": 0.004,
+      "far": 30
+    },
+    {
+      "name": "cube-face-1",
+      "cases": 20,
+      "maximumWorldRayDistanceErrorMetres": 6.235458585024389e-07,
+      "near": 0.004,
+      "far": 30
+    },
+    {
+      "name": "cube-face-2",
+      "cases": 20,
+      "maximumWorldRayDistanceErrorMetres": 6.235458585024389e-07,
+      "near": 0.004,
+      "far": 30
+    },
+    {
+      "name": "cube-face-3",
+      "cases": 20,
+      "maximumWorldRayDistanceErrorMetres": 6.235458585024389e-07,
+      "near": 0.004,
+      "far": 30
+    },
+    {
+      "name": "cube-face-4",
+      "cases": 20,
+      "maximumWorldRayDistanceErrorMetres": 6.235458656078663e-07,
+      "near": 0.004,
+      "far": 30
+    },
+    {
+      "name": "cube-face-5",
+      "cases": 20,
+      "maximumWorldRayDistanceErrorMetres": 6.235458656078663e-07,
+      "near": 0.004,
+      "far": 30
+    }
+  ],
+  "checks": {
+    "actualCameraViewRaySolve": true,
+    "linearEncodingHeadroom": true,
+    "whiteSkySentinel": true,
+    "actualWorldMatrices": true,
+    "actualAlphaMapTestOpacitySideGroups": true,
+    "glassSkyAdditiveCloudExcluded": true,
+    "rigidHeroIncluded": true,
+    "probeCloneExclusionsHonoured": true,
+    "geometryAndCameraChangeRevision": true,
+    "unchangedOpaqueInputReused": true,
+    "threeDoubleSideMaterialVersionIgnored": true,
+    "sameVersionAttributeAndIndexIdentityMiss": true,
+    "alphaUvTransformMiss": true,
+    "exactOrderedIdentityScalarComparisonNoHash": true,
+    "noParentMsaaDepthRead": true,
+    "stateRestored": true,
+    "parentTargetRestoredLast": true,
+    "errorDisablesStaleTexture": true,
+    "noMainMaterialOrCastMutation": true,
+    "boundedOwnedMaterialsPruned": true,
+    "disposeIdempotent": true
+  },
+  "samples": 0,
+  "encodingRange": "2*actual camera.far; encoding headroom only, no arbitrary world-depth bias",
+  "gpuRuns": 0,
+  "command": "node tests/visual/check-cloud-opaque-depth.mjs",
+  "rawReport": {
+    "path": "artifacts/full-review/round-1/cloud-opaque-depth-cpu/report.json",
+    "sha256": "366511e606eff2391af1197a286fe8d523913c5506e35a2147129b2bf47ad251"
+  },
+  "scopedLint": "PASS: new helper and CPU checker",
+  "ownership": "New helper/CPU checker only; parent/review_places owns Cloud main integration. GPU test pending lease.",
+  "gpuStatus": "Current exact helper passed bounded actualChrome/WebKit geometry/shader/MSAA/cube/cache lab; fullCloud compositor/upsampling/FPS remains separate."
+}

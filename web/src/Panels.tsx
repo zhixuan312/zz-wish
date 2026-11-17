@@ -3,7 +3,7 @@ import type { Locale } from '../../shared/places.ts';
 import { DEFAULT_PLACE, VISIBLE_PLACES, isVisiblePlace, visiblePlaceById } from './visiblePlaces.ts';
 import { api, type Candle, type Stats, type Totals, type WishSummary } from './api.ts';
 import { CandleThumb } from './CandleThumb.tsx';
-import { fmtDateTime, fmtDuration, type Dict } from './i18n.ts';
+import { fmtDateRange, fmtDuration, type Dict } from './i18n.ts';
 
 function Panel({ title, onClose, closeLabel, children }: { title: string; onClose: () => void; closeLabel: string; children: React.ReactNode }) {
   useEffect(() => { const k = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); }; window.addEventListener('keydown', k); return () => window.removeEventListener('keydown', k); }, [onClose]);
@@ -29,6 +29,7 @@ export function MyCandles({ t, locale, onClose, onAgain }: { t: Dict; locale: Lo
   const [failed, setFailed] = useState(false);
   const [tab, setTab] = useState<'candles' | 'wishes'>('candles');
   const [filter, setFilter] = useState<'all' | 'done' | 'out'>('all');
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   useEffect(() => { Promise.all([api.myCandles(), api.myWishes()]).then(([c, w]) => { setData(c); setWishes(w.wishes); }).catch(() => setFailed(true)); }, []);
 
   // Hidden-place records keep their real place and remain on the server. Every visible number
@@ -47,7 +48,7 @@ export function MyCandles({ t, locale, onClose, onAgain }: { t: Dict; locale: Lo
   }) ?? [];
   return (
     <Panel title={t.mineTitle} onClose={onClose} closeLabel={t.close}>
-      <p className="panel-place-context">{VISIBLE_PLACES.map((place) => place.name[locale]).join(' · ')}</p>
+      {VISIBLE_PLACES.length > 1 && <p className="panel-place-context">{VISIBLE_PLACES.map((place) => place.name[locale]).join(' · ')}</p>}
       {failed ? <p>{t.loadFailed}</p> : !data ? <p>{t.loading}</p> : (
         <>
           <div className="facts">
@@ -70,15 +71,21 @@ export function MyCandles({ t, locale, onClose, onAgain }: { t: Dict; locale: Lo
               {!list.length && <p>{filter === 'all' ? t.mineEmpty : t.filterEmpty}</p>}
               <ul className="records">
                 {list.map((c) => (
-                  <li key={c.id} className={`record ${c.status}`} data-testid="record">
-                    <CandleThumb shape={c.shape} remaining={1 - c.burnedMs / c.durationMs} />
-                    <div>
-                      <p className="record-wish">{c.wish}</p>
-                      <p className="tag" data-testid="record-status">{statusText(c, t)}</p>
-                      <p className="meta">{visiblePlaceById(c.placeId)!.name[locale]} · {t.planned(fmtDuration(c.durationMs, t))} · {t.burned(fmtDuration(c.burnedMs, t, true))}</p>
-                      <p className="meta">{fmtDateTime(c.startedAt, locale)}{c.endedAt ? ` – ${fmtDateTime(c.endedAt, locale)}` : ''} · {reasonText(c, t)}</p>
+                  <li key={c.id} className={`record ${c.status}${selectedId === c.id ? ' expanded' : ''}`} data-testid="record">
+                    <button className="record-summary" aria-label={`${t.recordDetails}: ${c.wish}`} aria-expanded={selectedId === c.id} onClick={() => setSelectedId(selectedId === c.id ? null : c.id)}>
+                      <CandleThumb shape={c.shape} remaining={1 - c.burnedMs / c.durationMs} state={c.status === 'ended_unexpectedly' ? 'went_out' : c.status} />
+                      <span className="record-copy">
+                        <span className="record-wish">{c.wish}</span>
+                        <span className="record-state"><span className="tag" data-testid="record-status">{statusText(c, t)}</span><span className="record-chevron" aria-hidden="true">⌄</span></span>
+                        <span className="meta">{t.recordTime(fmtDuration(c.burnedMs, t, true), fmtDuration(c.durationMs, t))}</span>
+                        <span className="meta">{fmtDateRange(c.startedAt, c.endedAt, locale)}</span>
+                        {VISIBLE_PLACES.length > 1 && <span className="meta">{visiblePlaceById(c.placeId)!.name[locale]}</span>}
+                      </span>
+                    </button>
+                    {selectedId === c.id && <div className="record-detail">
+                      {c.endReason !== 'complete' && <p className="meta">{reasonText(c, t)}</p>}
                       {c.status !== 'burning' && <button className="btn small" onClick={() => onAgain(c.wishId, c.wish)}>{t.again}</button>}
-                    </div>
+                    </div>}
                   </li>
                 ))}
               </ul>
@@ -110,32 +117,27 @@ export function TenLights({ t, locale, onClose }: { t: Dict; locale: Locale; onC
     const load = () => api.stats().then((s) => { setStats(s); setFailed(false); }).catch(() => setFailed(true));
     load(); const id = setInterval(load, 10_000); return () => clearInterval(id);
   }, []);
-  const rows = VISIBLE_PLACES.flatMap((place) => stats?.places.filter((row) => row.placeId === place.id) ?? []);
   // With this one visible court, its own people count is exact. The server's global people
   // count includes the hidden places and must not be presented as this court's count.
-  const summary = rows.find((row) => row.placeId === DEFAULT_PLACE.id);
+  const summary = stats?.places.find((row) => row.placeId === DEFAULT_PLACE.id);
   return (
     <Panel title={t.statsTitle} onClose={onClose} closeLabel={t.close}>
       <p className="lead">{t.statsLead}</p>
       {failed && <p>{t.loadFailed}</p>}
       {!stats ? !failed && <p>{t.loading}</p> : !summary ? <p>{t.statsEmpty}</p> : (
-        <>
-          <p className="panel-place-context">{DEFAULT_PLACE.name[locale]}</p>
+        <section className="court-stats" data-testid={`stat-${DEFAULT_PLACE.id}`}>
+          <div className="court-stats-heading"><h3>{DEFAULT_PLACE.name[locale]}</h3><p>{DEFAULT_PLACE.line[locale]}</p></div>
           <div className="facts">
             <div><strong>{summary.now}</strong><span>{t.statsNow}</span></div>
             <div><strong>{summary.people}</strong><span>{t.statsPeople}</span></div>
+            <div><strong>{summary.candles}</strong><span>{t.statsLamps}</span></div>
             <div><strong>{fmtDuration(summary.totalMs, t)}</strong><span>{t.statsTime}</span></div>
           </div>
-          <ul className="stat-rows">
-            {rows.map((r) => (
-              <li key={r.placeId} data-testid={`stat-${r.placeId}`}>
-                <strong>{visiblePlaceById(r.placeId)!.name[locale]}</strong>
-                <span>{t.rowPeople(r.people)} · {t.rowNow(r.now)}</span>
-                <span>{t.rowTotal(fmtDuration(r.totalMs, t))} · {t.rowAverage(fmtDuration(r.averageMs, t))} · {t.rowLongest(fmtDuration(r.longestMs, t))}</span>
-              </li>
-            ))}
-          </ul>
-        </>
+          <dl className="court-stats-times">
+            <div><dt>{t.statsAverage}</dt><dd>{fmtDuration(summary.averageMs, t)}</dd></div>
+            <div><dt>{t.statsLongest}</dt><dd>{fmtDuration(summary.longestMs, t)}</dd></div>
+          </dl>
+        </section>
       )}
     </Panel>
   );

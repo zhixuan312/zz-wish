@@ -1,0 +1,139 @@
+{
+  "scope": "Picture-approved Source18 source/preparation evidence; final delivery remains pending actual native completion, decoded contacts, byte budget and browser journey.",
+  "status": "Final64 installed; actual journey/stranger checks pending",
+  "inputs": {
+    "source": {
+      "path": "art/build/snow-roof-round1/source-v18.blend",
+      "sha256": "5d3d015e7b01517d2edc237d9740f80c128d1bc4ad32b373fe9eef8566edc904",
+      "bytes": 11722323
+    },
+    "sourceContactAudit": {
+      "path": "art/build/snow-roof-round1/source-v18.audit.json",
+      "sha256": "5d189abe2f97fe74f0d0333f197013a836e3b0153a3f7e12e49d1743fd31b8fd",
+      "bytes": 346093
+    },
+    "hiddenFaceProof": {
+      "path": "art/build/snow-roof-round1/source-v18-hidden-faces-20mm.json",
+      "sha256": "09646cbcb166bff8c12296251cc18d2f4d149bcb8dfba1b7514eb7b12c3d9810",
+      "bytes": 918601
+    },
+    "acceptedPicture": {
+      "path": "art/build/snow-roof-round1/picture-final-warm-pool-native8/RoomCandidate_backBay.png",
+      "sha256": "74cce11eb8a93e075e4996eb355d09c03b7fb9b7a9792ccca3d17a841197e721",
+      "bytes": 1536123
+    },
+    "acceptedPictureMetadata": {
+      "path": "art/build/snow-roof-round1/picture-final-warm-pool-native8/preview.json",
+      "sha256": "1076ea61fd8ecb70766883b6844ad36d56546f3ac5d5c8a27f470158a9bfbdd3",
+      "bytes": 4924
+    },
+    "sourceChoice": {
+      "path": "art/build/snow-roof-round1/source18-final-picture-choice/source-choice.json",
+      "sha256": "bfc65da71e26e9d9ed60a2960e1964a06e7556978050b70c9748af697894327c",
+      "bytes": 2277
+    },
+    "preparationRecipe": {
+      "path": "art/build/snow-roof-round1/prepared-v18-final/preparation-recipe.json",
+      "sha256": "a764d2b45db0e3002c79e6ff2abd2c3669f4c4d2f0deb00ea25bb6498c3af5f3",
+      "bytes": 19498
+    },
+    "preparedContacts": {
+      "path": "art/build/snow-roof-round1/contact-replay-v18-final/contacts.json",
+      "sha256": "8d5b621ff92aa3b8a88413c81a8cb5fd372c99355e24266554c57d28ad599dab",
+      "bytes": 136836
+    },
+    "mappingRegression": {
+      "path": "art/build/snow-roof-round1/contact-replay-v18-final/mapping.json",
+      "sha256": "33b63b493a2574c4886324b4df77422cd69f70b94922c099d8b4479531121e6b",
+      "bytes": 45732
+    },
+    "rawNormalRegression": {
+      "path": "art/build/snow-roof-round1/contact-replay-v18-final/raw-normal-regression.json",
+      "sha256": "5ecf8e93f882a08adbd4867ba008f785ea2df18f9a2ab5a36623375f5dfcfe9c",
+      "bytes": 10757
+    },
+    "nativeInputLedger": {
+      "path": "art/build/snow-roof-round1/final18-native-input-ledger.json",
+      "sha256": "b5964d8107b095cf3e1e37f60736c92d01f539a06d803acb206057ca422d5d8b",
+      "bytes": 17932
+    }
+  },
+  "sourceContacts": {
+    "groups": 47,
+    "passed": true,
+    "gapLimitMetres": 0.002,
+    "penetrationLimitMetres": 0.005
+  },
+  "preparedAndRawContactsPassed": true,
+  "materialUVTintWorldNormalRegressionPassed": true,
+  "selectedSettings": {
+    "visitorWatts": 2,
+    "visitorLinearRGB": [
+      1,
+      0.43,
+      0.13
+    ],
+    "visitorRadiusMetres": 0.004,
+    "visitorWorldPosition": [
+      -1.5,
+      2.25,
+      -1.3
+    ],
+    "clothDiffuseReflectionWeight": 0.35,
+    "clothDiffuseTransmissionWeight": 0.065,
+    "clothShadowTransmissionScale": 0.022,
+    "roomWatts": 0.9,
+    "roomWorldPosition": [
+      0,
+      3.2,
+      -3.3
+    ],
+    "doorWatts": 0.6,
+    "paintNormalStrength": 0.03,
+    "hallFloorAlbedoMultiplier": 3,
+    "removedBlankBacking": "Main hall lattice paper backing.001",
+    "nativeViewEV": 5.671928024291992,
+    "cameraPreExposure": 40,
+    "residualCameraEV": 0.35,
+    "eye": [
+      -4.9,
+      2.35,
+      -2.15
+    ],
+    "look": [
+      1.09794395,
+      1.2,
+      -1.99293831
+    ],
+    "fov": 55
+  },
+  "nativeRequested": {
+    "maps": 16,
+    "fixedSamplesEach": 64,
+    "device": "METAL",
+    "oidnDevice": "METAL",
+    "threads": "AUTO",
+    "previousGIPixelsReused": false
+  },
+  "nativeComplete": true,
+  "deliveryInstalled": true,
+  "sourceAuthoringHelper": "art/blender/preview_snow_room_candidate.py",
+  "sourceAuthoringHelperSha256": "eb9478cdc547c6845341d15b963d623a1386ce073ea36f197c48c1dc2cec5b14",
+  "nativeActual": {
+    "maps": 16,
+    "samplesEach": 64,
+    "device": "METAL",
+    "denoiseDevice": "METAL",
+    "elapsedSeconds": 340.3770815000171,
+    "allFrozenInputsUnchanged": true,
+    "bakeFingerprint": "ec3417164f4bdf7a6d00ab2810c21eb9d63d7052a533aff07be682dda625424f",
+    "nativeManifest": {
+      "path": "art/build/snow-roof-round1/final18-native64/manifest.json",
+      "sha256": "fe39efbfa2b228406a4a97648fbdd171cba2aca0905021d12d63e3783b7e2b22"
+    }
+  },
+  "finalDeliveryReceipt": {
+    "path": "docs/evidence/full-review/round-1-snow-source18-package.json",
+    "sha256": "a87fd9287080c241c7677e6fb1ba649d345b5ebfe3e9a577f60f75e37e765154"
+  }
+}

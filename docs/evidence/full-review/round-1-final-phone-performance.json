@@ -1,0 +1,159 @@
+{
+  "scope": "Final installed Source18/19; actual ten-second composer windows on Apple M1 desktop-GPU phone emulation. No video/readback/audio analysis during timing. Physical phone not tested.",
+  "report": "artifacts/snow-performance/round-1-source18-final/report.json",
+  "reportSha256": "1ac04b1eda6cf4fa0f84b8cd7d1a6691720dac24d7b15a91de0c594d8185011d",
+  "sourceFingerprint": "c06178ff1f8195acb2daaad9bbdeeb0cd7a72132ba7a577aca94636c897eabed",
+  "sourceChanged": false,
+  "windows": [
+    {
+      "browser": "chromium",
+      "viewport": "phone-zh",
+      "phase": "home",
+      "fps": 51.55,
+      "intendedCapFPS": 60,
+      "valid": true,
+      "validationIssues": [],
+      "intervalP95Ms": 20.6,
+      "cpuSubmitP95Ms": 3.6,
+      "gpuTimer": "complete"
+    },
+    {
+      "browser": "chromium",
+      "viewport": "phone-zh",
+      "phase": "outside",
+      "fps": 60.12,
+      "intendedCapFPS": 60,
+      "valid": true,
+      "validationIssues": [],
+      "intervalP95Ms": 18,
+      "cpuSubmitP95Ms": 3,
+      "gpuTimer": "complete"
+    },
+    {
+      "browser": "chromium",
+      "viewport": "phone-zh",
+      "phase": "choose",
+      "fps": 60.14,
+      "intendedCapFPS": 60,
+      "valid": true,
+      "validationIssues": [],
+      "intervalP95Ms": 18.5,
+      "cpuSubmitP95Ms": 2.7,
+      "gpuTimer": "complete"
+    },
+    {
+      "browser": "chromium",
+      "viewport": "phone-zh",
+      "phase": "burning-normal",
+      "fps": 30.1,
+      "intendedCapFPS": 30,
+      "valid": true,
+      "validationIssues": [],
+      "intervalP95Ms": 35.2,
+      "cpuSubmitP95Ms": 5.1,
+      "gpuTimer": "complete"
+    },
+    {
+      "browser": "chromium",
+      "viewport": "phone-zh",
+      "phase": "burning-power-saver",
+      "fps": 15.02,
+      "intendedCapFPS": 15,
+      "valid": true,
+      "validationIssues": [],
+      "intervalP95Ms": 68.6,
+      "cpuSubmitP95Ms": 5.6,
+      "gpuTimer": "complete"
+    },
+    {
+      "browser": "chromium",
+      "viewport": "phone-zh",
+      "phase": "burning-restored-detail",
+      "fps": 30.1,
+      "intendedCapFPS": 30,
+      "valid": true,
+      "validationIssues": [],
+      "intervalP95Ms": 35,
+      "cpuSubmitP95Ms": 5.1,
+      "gpuTimer": "complete"
+    },
+    {
+      "browser": "webkit",
+      "viewport": "phone-zh",
+      "phase": "home",
+      "fps": 52.11,
+      "intendedCapFPS": 60,
+      "valid": true,
+      "validationIssues": [],
+      "intervalP95Ms": 20,
+      "cpuSubmitP95Ms": 5,
+      "gpuTimer": "unsupported"
+    },
+    {
+      "browser": "webkit",
+      "viewport": "phone-zh",
+      "phase": "outside",
+      "fps": 60.08,
+      "intendedCapFPS": 60,
+      "valid": true,
+      "validationIssues": [],
+      "intervalP95Ms": 18,
+      "cpuSubmitP95Ms": 6,
+      "gpuTimer": "unsupported"
+    },
+    {
+      "browser": "webkit",
+      "viewport": "phone-zh",
+      "phase": "choose",
+      "fps": 59.99,
+      "intendedCapFPS": 60,
+      "valid": true,
+      "validationIssues": [],
+      "intervalP95Ms": 18,
+      "cpuSubmitP95Ms": 6,
+      "gpuTimer": "unsupported"
+    },
+    {
+      "browser": "webkit",
+      "viewport": "phone-zh",
+      "phase": "burning-normal",
+      "fps": 30,
+      "intendedCapFPS": 30,
+      "valid": true,
+      "validationIssues": [],
+      "intervalP95Ms": 35,
+      "cpuSubmitP95Ms": 8,
+      "gpuTimer": "unsupported"
+    },
+    {
+      "browser": "webkit",
+      "viewport": "phone-zh",
+      "phase": "burning-power-saver",
+      "fps": 15.04,
+      "intendedCapFPS": 15,
+      "valid": true,
+      "validationIssues": [],
+      "intervalP95Ms": 68,
+      "cpuSubmitP95Ms": 8,
+      "gpuTimer": "unsupported"
+    },
+    {
+      "browser": "webkit",
+      "viewport": "phone-zh",
+      "phase": "burning-restored-detail",
+      "fps": 30,
+      "intendedCapFPS": 30,
+      "valid": true,
+      "validationIssues": [],
+      "intervalP95Ms": 35,
+      "cpuSubmitP95Ms": 8,
+      "gpuTimer": "unsupported"
+    }
+  ],
+  "errors": 0,
+  "limits": [
+    "Phone390x844 CSS at DSF2; balanced render ratio1.25, drawing buffer487x1055; power saver390x844.",
+    "WebKit GPU timer unsupported; compositor intervals and CPU submit remain measured.",
+    "Desktop full-quality Cover was earlier about20FPS; this final benchmark covers the required phone viewport."
+  ]
+}

@@ -1,0 +1,817 @@
+{
+  "scope": "Source15 UV-only priority allocation; all geometry/UV0/normals/tints/materials/anchors exact to original certified2K dataset. Fresh Bevel reevaluation failure is explicit, never waived. All16 LOW8 native running; no64/public/budget acceptance.",
+  "source": {
+    "path": "art/build/snow-roof-round1/source-v15.blend",
+    "sha256": "26ca35d8303937c88372f2c7a4b34d3308935f332f2d3918f2caef11a89e5bb1",
+    "bytes": 10794425
+  },
+  "originalCertificate": {
+    "path": "art/build/snow-roof-round1/contact-replay-v15/mapping-proof.json",
+    "sha256": "a431b30f5f653110619505ad26eb1970d075f408bf85b26d6fa03b3a323b4d63",
+    "bytes": 43675
+  },
+  "originalFullCertifiedDataset": {
+    "path": "art/build/snow-roof-round1/contact-replay-v15/snow-roof-prepared.blend",
+    "sha256": "f2d186fb7c942193df867b3888b3c7c34af03bd6fc23de68c036c538f45857a3",
+    "bytes": 24063466
+  },
+  "candidate": {
+    "prepared": {
+      "path": "art/build/snow-roof-round1/contact-replay-v15-allocation-final/snow-roof-prepared.blend",
+      "sha256": "32a3700efc47e4d07ee8c6ebe155cbf5a766f77493b4deb17e39eaf575f5e931",
+      "bytes": 27178270
+    },
+    "raw": {
+      "path": "art/build/snow-roof-round1/contact-replay-v15-allocation-final/snow-roof.raw.glb",
+      "sha256": "2517ee6174ac33d52bce1bc62772e3653e7a69c365dd8fcc4eb4f59201b2c51e",
+      "bytes": 39485600
+    },
+    "manifest": {
+      "path": "art/build/snow-roof-round1/contact-replay-v15-allocation-final/manifest.json",
+      "sha256": "521f8da64da3640e8ff6a9b73fee1b96ac09b09b2ad66ac293b421e1d1f3baea",
+      "bytes": 39617
+    }
+  },
+  "proofs": {
+    "exactNonUV1": {
+      "path": "art/build/snow-roof-round1/contact-replay-v15-allocation-final/nonlightmap-equality.json",
+      "sha256": "684b9e2c6b9771ca080376b8550f7aa0419d33701d0d5a4eb691cd36e9b033eb",
+      "bytes": 1550
+    },
+    "contacts47": {
+      "path": "art/build/snow-roof-round1/contact-replay-v15-allocation-final/contact-audit.json",
+      "sha256": "f629aaa15d326958f9fe48094e7685a3ab77183e47ecbe1e1b7cfb1a02ecb0e2",
+      "bytes": 136787
+    },
+    "transitiveFull": {
+      "path": "art/build/snow-roof-round1/contact-replay-v15-allocation-final/mapping-transitive.json",
+      "sha256": "438f4500b6ae02d2df71ce1e3e623ae2f4c0c709879ed9d46f7ad4d312359ac2",
+      "bytes": 839436
+    },
+    "transitiveCompact": {
+      "path": "art/build/snow-roof-round1/contact-replay-v15-allocation-final/mapping-bake-binding.json",
+      "sha256": "83ae179859cb81349a081708c5f811b55f907043da93f8b41d3103894372b684",
+      "bytes": 11181
+    },
+    "freshSourceFailurePreserved": {
+      "path": "art/build/snow-roof-round1/contact-replay-v15-allocation-final/mapping-proof.json",
+      "sha256": "03108485eea6101a450fe2e459c0365e55f38055fad51ac13d80066f3236babd",
+      "bytes": 48386
+    },
+    "original2KFreshReevaluationFailurePreserved": {
+      "path": "art/build/snow-roof-round1/contact-replay-v15-allocation-final/original-2k-source-reevaluation.json",
+      "sha256": "1acef6678ccb91471b6378c8ba178aee90b4d2ff97f5a2df10126641420f7eab",
+      "bytes": 49844
+    },
+    "contact19Challenges": {
+      "path": "art/build/snow-roof-round1/contact-replay-v15-allocation-final/guard-transitive/guard-proof.json",
+      "sha256": "27333f1f7317bff619eda9ba6c1a8c1eefd8858a841753c2ea8ecfb81cdf5a0b",
+      "bytes": 4050
+    },
+    "normal16CompactChallenges": {
+      "path": "art/build/snow-roof-round1/contact-replay-v15-allocation-final/normal-guard-compact.json",
+      "sha256": "192ebbf1a154965a5f3938443d517a3f1b6f619704a3fadd720e907728e3783a",
+      "bytes": 5194
+    },
+    "standardRawNormals": {
+      "path": "art/build/snow-roof-round1/contact-replay-v15-allocation-final/independent-raw-normal-proof.json",
+      "sha256": "1a819cabd2fdb7662a296de92dde090b06bb10dfa574400c454f4fcee4737a7a",
+      "bytes": 10777
+    },
+    "currentCameraCoverage": {
+      "path": "art/build/snow-roof-round1/contact-replay-v15-allocation-final/current-camera-coverage.json",
+      "sha256": "0cc92a968769370e31664bb0b56719cd2325558a6d2b62e0b8773989a2739faf",
+      "bytes": 10483
+    },
+    "currentCameraPitch": {
+      "path": "art/build/snow-roof-round1/contact-replay-v15-allocation-final/current-pitch.json",
+      "sha256": "33937a96e15c2e23fced32cc47439e5ed33ce22d238e034ebdfa6e12647aa032",
+      "bytes": 138682
+    }
+  },
+  "sourceUV0Trust": {
+    "originalOwnersReconstructed": 1872,
+    "directUnmodifiedSourceUV0HashesMatched": 1620,
+    "modifiedOwnersWithoutIndependentOriginalEvaluatedUV0Hash": 252,
+    "modifiedTrustLink": "Original1e-6 passing certificate plus actual sealed whole-region UVMap hashes and full exact candidate/reference dataset equality. No fabricated separate source UV0 hash.",
+    "normals": {
+      "owners": 1872,
+      "loops": 662708,
+      "allOriginalSourceNormalArrayHashesMatched": true,
+      "maximumFrozenSourceToActualCertifiedPreparedWorldNormalError": 1.1920928955078125e-07
+    },
+    "freshReevaluationPassed": false,
+    "freshFailedCorners": 16,
+    "freshFailureMaximumUV0ComponentDifference": 1.9073486328125e-06
+  },
+  "uv2": {
+    "resolutions": {
+      "hall": 1536,
+      "altar": 1024,
+      "gate": 1024,
+      "court": 1536
+    },
+    "coverage": {
+      "hall": {
+        "charts": 2392,
+        "representedCharts": 2356,
+        "subpixelCharts": 36,
+        "representedSurfaceAreaFraction": 0.9999583155794289,
+        "triangleWithNativeTexelSurfaceAreaFraction": 0.6547972026094488,
+        "surfaceAreaInChartsWithAtLeast16CoreTexelsFraction": 0.8927066397874646,
+        "totalSurfaceAreaSquareMetres": 2181.2798091831573,
+        "provenOccludedSurfaceAreaSquareMetres": 10.12740734876819,
+        "provenOccludedPolygons": 1940,
+        "coreTexels": 220187,
+        "overlappingCorePixels": 0,
+        "coverageMeaning": "World-space mapped surface-area weighted; proven enclosed geometry is reported separately. A represented chart may contain subpixel triangles; their native-texel area is also reported. Camera-visible sampled coverage is separate.",
+        "sameChartDistinctWorldPositionOverlaps": 0,
+        "zeroAreaGeometryRetainedPolygons": 156,
+        "sameChartOverlapAudit": "All occupied native core samples reconstructed to world position. Shared triangle edges use10micrometres plus2norm(float32 ULP(world)) for stored-sample/interpolation rounding; no distinct physical surfaces may overlap.",
+        "maximumSharedSampleWorldDifferenceMetres": 2.9705181652530797e-07,
+        "maximumSharedSampleNumericToleranceMetres": 1.2336015061009675e-05,
+        "sampledVisiblePixels": 8507,
+        "representedVisiblePixels": 8507,
+        "provenOccludedVisiblePixels": 0,
+        "referenceCameras": [
+          "Reference_outside",
+          "Reference_walk-1",
+          "Reference_walk-2",
+          "Reference_walk-3",
+          "Reference_choose",
+          "Reference_lit"
+        ],
+        "perCamera": {
+          "Reference_outside": {
+            "sampledVisiblePixels": 80,
+            "representedVisiblePixels": 80,
+            "provenOccludedVisiblePixels": 0,
+            "representedCameraVisibleFraction": 1.0
+          },
+          "Reference_walk-1": {
+            "sampledVisiblePixels": 80,
+            "representedVisiblePixels": 80,
+            "provenOccludedVisiblePixels": 0,
+            "representedCameraVisibleFraction": 1.0
+          },
+          "Reference_walk-2": {
+            "sampledVisiblePixels": 102,
+            "representedVisiblePixels": 102,
+            "provenOccludedVisiblePixels": 0,
+            "representedCameraVisibleFraction": 1.0
+          },
+          "Reference_walk-3": {
+            "sampledVisiblePixels": 4005,
+            "representedVisiblePixels": 4005,
+            "provenOccludedVisiblePixels": 0,
+            "representedCameraVisibleFraction": 1.0
+          },
+          "Reference_choose": {
+            "sampledVisiblePixels": 2173,
+            "representedVisiblePixels": 2173,
+            "provenOccludedVisiblePixels": 0,
+            "representedCameraVisibleFraction": 1.0
+          },
+          "Reference_lit": {
+            "sampledVisiblePixels": 2067,
+            "representedVisiblePixels": 2067,
+            "provenOccludedVisiblePixels": 0,
+            "representedCameraVisibleFraction": 1.0
+          }
+        },
+        "representedCameraVisibleFraction": 1.0,
+        "samplesPerCamera": [
+          96,
+          60
+        ],
+        "scope": "Coarse first-hit geometry visibility over the source reference cameras; excludes sky. Features smaller than the sampling grid and shading/noise quality are not verified by this metric."
+      },
+      "altar": {
+        "charts": 726,
+        "representedCharts": 726,
+        "subpixelCharts": 0,
+        "representedSurfaceAreaFraction": 1.0,
+        "triangleWithNativeTexelSurfaceAreaFraction": 0.9633925953087362,
+        "surfaceAreaInChartsWithAtLeast16CoreTexelsFraction": 0.9955388070948273,
+        "totalSurfaceAreaSquareMetres": 82.41546571486387,
+        "provenOccludedSurfaceAreaSquareMetres": 0.0,
+        "provenOccludedPolygons": 0,
+        "coreTexels": 153563,
+        "overlappingCorePixels": 0,
+        "coverageMeaning": "World-space mapped surface-area weighted; proven enclosed geometry is reported separately. A represented chart may contain subpixel triangles; their native-texel area is also reported. Camera-visible sampled coverage is separate.",
+        "sameChartDistinctWorldPositionOverlaps": 0,
+        "zeroAreaGeometryRetainedPolygons": 0,
+        "sameChartOverlapAudit": "All occupied native core samples reconstructed to world position. Shared triangle edges use10micrometres plus2norm(float32 ULP(world)) for stored-sample/interpolation rounding; no distinct physical surfaces may overlap.",
+        "maximumSharedSampleWorldDifferenceMetres": 2.3577495883139432e-07,
+        "maximumSharedSampleNumericToleranceMetres": 1.1430511221988127e-05,
+        "sampledVisiblePixels": 9186,
+        "representedVisiblePixels": 9186,
+        "provenOccludedVisiblePixels": 0,
+        "referenceCameras": [
+          "Reference_outside",
+          "Reference_walk-1",
+          "Reference_walk-2",
+          "Reference_walk-3",
+          "Reference_choose",
+          "Reference_lit"
+        ],
+        "perCamera": {
+          "Reference_outside": {
+            "sampledVisiblePixels": 36,
+            "representedVisiblePixels": 36,
+            "provenOccludedVisiblePixels": 0,
+            "representedCameraVisibleFraction": 1.0
+          },
+          "Reference_walk-1": {
+            "sampledVisiblePixels": 36,
+            "representedVisiblePixels": 36,
+            "provenOccludedVisiblePixels": 0,
+            "representedCameraVisibleFraction": 1.0
+          },
+          "Reference_walk-2": {
+            "sampledVisiblePixels": 79,
+            "representedVisiblePixels": 79,
+            "provenOccludedVisiblePixels": 0,
+            "representedCameraVisibleFraction": 1.0
+          },
+          "Reference_walk-3": {
+            "sampledVisiblePixels": 1755,
+            "representedVisiblePixels": 1755,
+            "provenOccludedVisiblePixels": 0,
+            "representedCameraVisibleFraction": 1.0
+          },
+          "Reference_choose": {
+            "sampledVisiblePixels": 3587,
+            "representedVisiblePixels": 3587,
+            "provenOccludedVisiblePixels": 0,
+            "representedCameraVisibleFraction": 1.0
+          },
+          "Reference_lit": {
+            "sampledVisiblePixels": 3693,
+            "representedVisiblePixels": 3693,
+            "provenOccludedVisiblePixels": 0,
+            "representedCameraVisibleFraction": 1.0
+          }
+        },
+        "representedCameraVisibleFraction": 1.0,
+        "samplesPerCamera": [
+          96,
+          60
+        ],
+        "scope": "Coarse first-hit geometry visibility over the source reference cameras; excludes sky. Features smaller than the sampling grid and shading/noise quality are not verified by this metric."
+      },
+      "gate": {
+        "charts": 627,
+        "representedCharts": 627,
+        "subpixelCharts": 0,
+        "representedSurfaceAreaFraction": 1.0,
+        "triangleWithNativeTexelSurfaceAreaFraction": 0.9746397209030123,
+        "surfaceAreaInChartsWithAtLeast16CoreTexelsFraction": 0.9983860574531508,
+        "totalSurfaceAreaSquareMetres": 407.4995082490698,
+        "provenOccludedSurfaceAreaSquareMetres": 13.594650404852187,
+        "provenOccludedPolygons": 2996,
+        "coreTexels": 179731,
+        "overlappingCorePixels": 0,
+        "coverageMeaning": "World-space mapped surface-area weighted; proven enclosed geometry is reported separately. A represented chart may contain subpixel triangles; their native-texel area is also reported. Camera-visible sampled coverage is separate.",
+        "sameChartDistinctWorldPositionOverlaps": 0,
+        "zeroAreaGeometryRetainedPolygons": 0,
+        "sameChartOverlapAudit": "All occupied native core samples reconstructed to world position. Shared triangle edges use10micrometres plus2norm(float32 ULP(world)) for stored-sample/interpolation rounding; no distinct physical surfaces may overlap.",
+        "maximumSharedSampleWorldDifferenceMetres": 9.431348995531611e-07,
+        "maximumSharedSampleNumericToleranceMetres": 1.4046097021491732e-05,
+        "sampledVisiblePixels": 2008,
+        "representedVisiblePixels": 2008,
+        "provenOccludedVisiblePixels": 0,
+        "referenceCameras": [
+          "Reference_outside",
+          "Reference_walk-1",
+          "Reference_walk-2",
+          "Reference_walk-3",
+          "Reference_choose",
+          "Reference_lit"
+        ],
+        "perCamera": {
+          "Reference_outside": {
+            "sampledVisiblePixels": 508,
+            "representedVisiblePixels": 508,
+            "provenOccludedVisiblePixels": 0,
+            "representedCameraVisibleFraction": 1.0
+          },
+          "Reference_walk-1": {
+            "sampledVisiblePixels": 508,
+            "representedVisiblePixels": 508,
+            "provenOccludedVisiblePixels": 0,
+            "representedCameraVisibleFraction": 1.0
+          },
+          "Reference_walk-2": {
+            "sampledVisiblePixels": 992,
+            "representedVisiblePixels": 992,
+            "provenOccludedVisiblePixels": 0,
+            "representedCameraVisibleFraction": 1.0
+          },
+          "Reference_walk-3": {
+            "sampledVisiblePixels": 0,
+            "representedVisiblePixels": 0,
+            "provenOccludedVisiblePixels": 0,
+            "representedCameraVisibleFraction": null
+          },
+          "Reference_choose": {
+            "sampledVisiblePixels": 0,
+            "representedVisiblePixels": 0,
+            "provenOccludedVisiblePixels": 0,
+            "representedCameraVisibleFraction": null
+          },
+          "Reference_lit": {
+            "sampledVisiblePixels": 0,
+            "representedVisiblePixels": 0,
+            "provenOccludedVisiblePixels": 0,
+            "representedCameraVisibleFraction": null
+          }
+        },
+        "representedCameraVisibleFraction": 1.0,
+        "samplesPerCamera": [
+          96,
+          60
+        ],
+        "scope": "Coarse first-hit geometry visibility over the source reference cameras; excludes sky. Features smaller than the sampling grid and shading/noise quality are not verified by this metric."
+      },
+      "court": {
+        "charts": 2002,
+        "representedCharts": 2001,
+        "subpixelCharts": 1,
+        "representedSurfaceAreaFraction": 0.9999917150500094,
+        "triangleWithNativeTexelSurfaceAreaFraction": 0.9384977721603338,
+        "surfaceAreaInChartsWithAtLeast16CoreTexelsFraction": 0.9919542744138926,
+        "totalSurfaceAreaSquareMetres": 7233.792449346205,
+        "provenOccludedSurfaceAreaSquareMetres": 38.23844751646738,
+        "provenOccludedPolygons": 8136,
+        "coreTexels": 505301,
+        "overlappingCorePixels": 0,
+        "coverageMeaning": "World-space mapped surface-area weighted; proven enclosed geometry is reported separately. A represented chart may contain subpixel triangles; their native-texel area is also reported. Camera-visible sampled coverage is separate.",
+        "sameChartDistinctWorldPositionOverlaps": 0,
+        "zeroAreaGeometryRetainedPolygons": 0,
+        "sameChartOverlapAudit": "All occupied native core samples reconstructed to world position. Shared triangle edges use10micrometres plus2norm(float32 ULP(world)) for stored-sample/interpolation rounding; no distinct physical surfaces may overlap.",
+        "maximumSharedSampleWorldDifferenceMetres": 1.2996324213598304e-06,
+        "maximumSharedSampleNumericToleranceMetres": 1.547844112792518e-05,
+        "sampledVisiblePixels": 8183,
+        "representedVisiblePixels": 8183,
+        "provenOccludedVisiblePixels": 0,
+        "referenceCameras": [
+          "Reference_outside",
+          "Reference_walk-1",
+          "Reference_walk-2",
+          "Reference_walk-3",
+          "Reference_choose",
+          "Reference_lit"
+        ],
+        "perCamera": {
+          "Reference_outside": {
+            "sampledVisiblePixels": 2668,
+            "representedVisiblePixels": 2668,
+            "provenOccludedVisiblePixels": 0,
+            "representedCameraVisibleFraction": 1.0
+          },
+          "Reference_walk-1": {
+            "sampledVisiblePixels": 2668,
+            "representedVisiblePixels": 2668,
+            "provenOccludedVisiblePixels": 0,
+            "representedCameraVisibleFraction": 1.0
+          },
+          "Reference_walk-2": {
+            "sampledVisiblePixels": 2847,
+            "representedVisiblePixels": 2847,
+            "provenOccludedVisiblePixels": 0,
+            "representedCameraVisibleFraction": 1.0
+          },
+          "Reference_walk-3": {
+            "sampledVisiblePixels": 0,
+            "representedVisiblePixels": 0,
+            "provenOccludedVisiblePixels": 0,
+            "representedCameraVisibleFraction": null
+          },
+          "Reference_choose": {
+            "sampledVisiblePixels": 0,
+            "representedVisiblePixels": 0,
+            "provenOccludedVisiblePixels": 0,
+            "representedCameraVisibleFraction": null
+          },
+          "Reference_lit": {
+            "sampledVisiblePixels": 0,
+            "representedVisiblePixels": 0,
+            "provenOccludedVisiblePixels": 0,
+            "representedCameraVisibleFraction": null
+          }
+        },
+        "representedCameraVisibleFraction": 1.0,
+        "samplesPerCamera": [
+          96,
+          60
+        ],
+        "scope": "Coarse first-hit geometry visibility over the source reference cameras; excludes sky. Features smaller than the sampling grid and shading/noise quality are not verified by this metric."
+      }
+    },
+    "currentCameraSampleSize": [
+      96,
+      60
+    ],
+    "allCurrentCoarseCameraSamplesRepresented": true,
+    "currentPitch": {
+      "desktop-en/place": {
+        "court/footprint-track": {
+          "p10": 0.07199837176128465,
+          "p50": 0.072004282808153,
+          "p90": 0.08344669009799621,
+          "p99": 0.1103711152453771,
+          "worldAreaSquareMetres": 208.0
+        },
+        "gate/columns": {
+          "p10": 0.05423990067771852,
+          "p50": 0.054239922221226526,
+          "p90": 0.05423999728570845,
+          "p99": 0.05423999776677407,
+          "worldAreaSquareMetres": 45.0
+        },
+        "hall/floor-and-steps": {
+          "p10": 0.043631439780421895,
+          "p50": 0.06697788803926592,
+          "p90": 0.2734878482320793,
+          "p99": 0.2736923430867266,
+          "worldAreaSquareMetres": 16.0
+        },
+        "hall/columns": {
+          "p10": 0.05704594870550712,
+          "p50": 0.05704609983658658,
+          "p90": 0.057046148644164574,
+          "p99": 0.057046148644164574,
+          "worldAreaSquareMetres": 10.0
+        },
+        "altar/floor-and-steps": {
+          "p10": 0.02585173292336752,
+          "p50": 0.02585194583065207,
+          "p90": 0.025964514903037923,
+          "p99": 0.025964514903037923,
+          "worldAreaSquareMetres": 3.0
+        },
+        "court/beams-and-brackets": {
+          "p10": 0.06710387941921873,
+          "p50": 0.06710388010100954,
+          "p90": 0.0674772488284874,
+          "p99": 0.0674772488284874,
+          "worldAreaSquareMetres": 3.0
+        },
+        "gate/beams-and-brackets": {
+          "p10": 0.047759750906228034,
+          "p50": 0.052631577553107725,
+          "p90": 0.052631577553107725,
+          "p99": 0.05463429144520119,
+          "worldAreaSquareMetres": 56.0
+        }
+      },
+      "desktop-en/burning": {
+        "hall/floor-and-steps": {
+          "p10": 0.05000423685391626,
+          "p50": 0.051713893578471525,
+          "p90": 0.0552631760222536,
+          "p99": 0.08014857397053184,
+          "worldAreaSquareMetres": 852.0
+        },
+        "hall/columns": {
+          "p10": 0.05600860877044079,
+          "p50": 0.05600869091456626,
+          "p90": 0.05704604971573311,
+          "p99": 0.057046187793434594,
+          "worldAreaSquareMetres": 845.0
+        },
+        "altar/floor-and-steps": {
+          "p10": 0.024138700874822255,
+          "p50": 0.025195837048845995,
+          "p90": 0.0288189684218975,
+          "p99": 0.0310413772295475,
+          "worldAreaSquareMetres": 145.0
+        },
+        "court/beams-and-brackets": {
+          "p10": 0.0722276059214396,
+          "p50": 0.0722276059214396,
+          "p90": 0.0722276059214396,
+          "p99": 0.0722276059214396,
+          "worldAreaSquareMetres": 3.0
+        },
+        "hall/beams-and-brackets": {
+          "p10": 0.05261478404282493,
+          "p50": 0.0557068057554518,
+          "p90": 0.05601826283968956,
+          "p99": 0.0599116054085429,
+          "worldAreaSquareMetres": 535.0
+        }
+      },
+      "desktop-en/facade": {
+        "hall/floor-and-steps": {
+          "p10": 0.047761107737352246,
+          "p50": 0.050503769652342205,
+          "p90": 0.1227779014214898,
+          "p99": 1.455656664788511,
+          "worldAreaSquareMetres": 408.0
+        },
+        "hall/columns": {
+          "p10": 0.05704597466430111,
+          "p50": 0.05704609985300359,
+          "p90": 0.05704614867905899,
+          "p99": 0.057046321560621414,
+          "worldAreaSquareMetres": 484.0
+        },
+        "court/columns": {
+          "p10": 0.07063927580229235,
+          "p50": 0.07063927580229236,
+          "p90": 0.07063927580229236,
+          "p99": 0.07063927580229236,
+          "worldAreaSquareMetres": 39.0
+        },
+        "court/snow-wall-contact-band": {
+          "p10": 0.11953727878452168,
+          "p50": 0.11957697142501518,
+          "p90": 0.1197238433655722,
+          "p99": 0.1197238433655722,
+          "worldAreaSquareMetres": 8.0
+        },
+        "altar/floor-and-steps": {
+          "p10": 0.023383953782879045,
+          "p50": 0.025984752933235593,
+          "p90": 0.03113471056807098,
+          "p99": 0.03113471056807098,
+          "worldAreaSquareMetres": 9.0
+        },
+        "court/beams-and-brackets": {
+          "p10": 0.06459007158918087,
+          "p50": 0.07222760177547838,
+          "p90": 0.07222761539792441,
+          "p99": 0.07654671208733882,
+          "worldAreaSquareMetres": 27.0
+        },
+        "hall/beams-and-brackets": {
+          "p10": 0.05166278627107221,
+          "p50": 0.055706805112084784,
+          "p90": 0.05629562321173855,
+          "p99": 0.08559908505304073,
+          "worldAreaSquareMetres": 460.0
+        }
+      },
+      "phone-zh/place": {
+        "court/footprint-track": {
+          "p10": 0.07200066008273914,
+          "p50": 0.07200526642857252,
+          "p90": 0.0803562209935279,
+          "p99": 0.10330102279154477,
+          "worldAreaSquareMetres": 326.0
+        },
+        "gate/columns": {
+          "p10": 0.054239900585351004,
+          "p50": 0.054239927862075134,
+          "p90": 0.05423999752218125,
+          "p99": 0.05423999823247956,
+          "worldAreaSquareMetres": 48.0
+        },
+        "hall/floor-and-steps": {
+          "p10": 0.04363655743776549,
+          "p50": 0.06639536368720542,
+          "p90": 1.1400712956584782,
+          "p99": 1.4564771155096359,
+          "worldAreaSquareMetres": 15.0
+        },
+        "hall/columns": {
+          "p10": 0.05704604882481931,
+          "p50": 0.05704609985300359,
+          "p90": 0.05704614873671142,
+          "p99": 0.05704614873671142,
+          "worldAreaSquareMetres": 12.0
+        },
+        "gate/beams-and-brackets": {
+          "p10": 0.05263157755310772,
+          "p50": 0.052631577553107725,
+          "p90": 0.052631577553107725,
+          "p99": 0.052857633680948604,
+          "worldAreaSquareMetres": 84.0
+        }
+      },
+      "phone-zh/burning-current": {
+        "hall/floor-and-steps": {
+          "p10": 0.04925846874327386,
+          "p50": 0.05178635454872536,
+          "p90": 0.07235137018212265,
+          "p99": 0.07891164866441885,
+          "worldAreaSquareMetres": 1144.0
+        },
+        "hall/columns": {
+          "p10": 0.056008608791375175,
+          "p50": 0.0560086905443217,
+          "p90": 0.05600881646135051,
+          "p99": 0.05669912406307352,
+          "worldAreaSquareMetres": 1216.0
+        },
+        "altar/floor-and-steps": {
+          "p10": 0.024197588313709467,
+          "p50": 0.02570521749386576,
+          "p90": 0.028872680310826383,
+          "p99": 0.030911057579826387,
+          "worldAreaSquareMetres": 188.0
+        },
+        "hall/beams-and-brackets": {
+          "p10": 0.05526178172490281,
+          "p50": 0.05570680511208479,
+          "p90": 0.05601823809555523,
+          "p99": 0.0599116054085429,
+          "worldAreaSquareMetres": 857.0
+        }
+      },
+      "phone-zh/burnFar-current": {
+        "hall/floor-and-steps": {
+          "p10": 0.05017672209954938,
+          "p50": 0.05211075781462316,
+          "p90": 0.07217253453221331,
+          "p99": 0.08048542287094496,
+          "worldAreaSquareMetres": 1201.0
+        },
+        "hall/columns": {
+          "p10": 0.05600860877044079,
+          "p50": 0.0560086905443217,
+          "p90": 0.056008816460597695,
+          "p99": 0.056018975944395207,
+          "worldAreaSquareMetres": 1111.0
+        },
+        "altar/floor-and-steps": {
+          "p10": 0.024026702482828195,
+          "p50": 0.02453475593760763,
+          "p90": 0.02827504293891106,
+          "p99": 0.031229295352023064,
+          "worldAreaSquareMetres": 180.0
+        },
+        "hall/beams-and-brackets": {
+          "p10": 0.05526178172490281,
+          "p50": 0.05570680511208479,
+          "p90": 0.05628415404773148,
+          "p99": 0.0599116054085429,
+          "worldAreaSquareMetres": 860.0
+        }
+      }
+    },
+    "nativePixelClaim": "Pitch is local world/UV Jacobian measurement; camera coverage is coarse first-hit sampling. Neither is a render-quality or full-area minimum-density PASS."
+  },
+  "hiddenProof": {
+    "path": "art/build/snow-roof-round1/source-v15-hidden-faces-refined-20mm.json",
+    "sha256": "b1a129a565e478a946c49bf95f0f206816d9cd80ef58612a651ec311726b87b8",
+    "bytes": 918596
+  },
+  "faceReference": {
+    "path": "art/build/snow-roof-round1/face-reference-v15-allocation-final/reference.json",
+    "sha256": "379507339ac9e81b8ba1b2cb2b1483f08a04ebc744c67d3a35e72204fe96b5c6",
+    "bytes": 4196
+  },
+  "faceRawCorrespondence": {
+    "path": "art/build/snow-roof-round1/face-reference-v15-allocation-final/raw-correspondence.json",
+    "sha256": "b08e3f6898c5240f73688272fc2b13094ef5a9043119a397208726d6e7afed84",
+    "bytes": 32208
+  },
+  "certifiedHiddenTriangles": 12916,
+  "additionalHiddenTriangles": 1700,
+  "retainedAfterProvenPruneTriangles": 317860,
+  "preservedNonproofMarkerTriangles": 156,
+  "reproduction": {
+    "driver": {
+      "path": "scripts/prepare-snow-priority-atlas.py",
+      "sha256": "dc84666c01981d5bfb8f3a472392b3d3a952fd83825ca2c04626e1cbb2a8cb95",
+      "bytes": 7483
+    },
+    "UVNetHelper": {
+      "path": "art/blender/join_tube_lightmap_charts.py",
+      "sha256": "a0daa8353784b09a6f567d529fc4d37ad29f770f570f56dee41129d4acbce376",
+      "bytes": 7738
+    },
+    "priorityHelper": {
+      "path": "art/blender/priority_lightmap_allocation.py",
+      "sha256": "69dc26ebfcf4c9103407a0d871dab80c12c5c8fcc756660b59fb607baa43be77",
+      "bytes": 4880
+    },
+    "densityHelper": {
+      "path": "scripts/uv-density-search.mjs",
+      "sha256": "d92217814db080af7c67b30b274a1a0c610041c16d3ef8849f9622709e8b1abb",
+      "bytes": 1240
+    },
+    "canonicalHelper": {
+      "path": "art/blender/preserve_prepared_geometry.py",
+      "sha256": "127862b824c3021ffc5c1f49fd6380a9abc6c8667dbe756a5279853dd2e71887",
+      "bytes": 6986
+    },
+    "sourceTransitiveProofHelper": {
+      "path": "art/blender/derive_certified_prepared_mapping.py",
+      "sha256": "37fbfe3bfe0ae8d65457e055d9212ca73b9f6dfd1e531f170f67b75746494d3f",
+      "bytes": 10025
+    },
+    "compactBindingHelper": {
+      "path": "art/blender/compact_mapping_binding.py",
+      "sha256": "8f02d5ebbf1f96a74723739759d0d2eb6bd73647cfa183d8b4f47bbcd9de480a",
+      "bytes": 2467
+    },
+    "snapshotRecipe": {
+      "path": "art/build/snow-roof-round1/repro-final-allocation-recipe/preparation-recipe.json",
+      "sha256": "829fbd607d551a4a2b5b1c1e87c15fb5a6dec2e7b6d75399f737cca90a346449",
+      "bytes": 17931
+    },
+    "numericPackEquivalence": {
+      "path": "art/build/snow-roof-round1/repro-final-allocation-recipe/hall-equivalence.json",
+      "sha256": "c3656061dda4ed61b5654678a583d8e4993d4b53f3d18b746e354438cd9e6bda",
+      "bytes": 1116
+    }
+  },
+  "native": {
+    "ledger": {
+      "path": "art/build/snow-roof-round1/priority15-all16-native-input-ledger.json",
+      "sha256": "4ec58ed0fbcd6b257dd15277871cc3507f5f3b67c9ceb2b7e4f98697ccc881dc",
+      "bytes": 11469
+    },
+    "session": 31395,
+    "startLocal": "2026-11-17T17:29:03+0800",
+    "status": "TERMINAL",
+    "samples": 8,
+    "device": "METAL Apple M1",
+    "OIDN": "METAL",
+    "threads": "AUTO",
+    "looks": [
+      "night",
+      "dusk",
+      "day",
+      "lamp"
+    ],
+    "sourceOrOldGIReuse": false,
+    "output": "art/build/snow-roof-round1/preview15-priority-all16-native8",
+    "exitCode": 0,
+    "nativeSeconds": 225.414,
+    "actualMapCount": 16,
+    "all47PinnedInputsUnchanged": true,
+    "postbatchSnapshot": {
+      "path": "art/build/snow-roof-round1/postbatch-priority15/snapshot.json",
+      "sha256": "2ea9479e09262b446a7da7751ebe77b36dcec7bd07b29cf44bc6a1a91a064468",
+      "bytes": 1097
+    },
+    "postbatchFiles": {
+      "snow-roof-prepared.blend": {
+        "path": "art/build/snow-roof-round1/postbatch-priority15/snow-roof-prepared.blend",
+        "sha256": "1f42c8e4e48bdcf0972c218ed438377cbb905ae367ba5d204db9d6ddc1382202",
+        "bytes": 24224940
+      },
+      "snow-roof.raw.glb": {
+        "path": "art/build/snow-roof-round1/postbatch-priority15/snow-roof.raw.glb",
+        "sha256": "4020f26877d0160bc5d9ca349d17bbb09f7310d5c8bca6251373ce4c27d072f1",
+        "bytes": 39498320
+      },
+      "manifest.json": {
+        "path": "art/build/snow-roof-round1/postbatch-priority15/manifest.json",
+        "sha256": "256d6a25645fd9c3e61368303c68df75c9ee2f6951b79dd1cebd8dd7c5874e3a",
+        "bytes": 79381
+      }
+    },
+    "gpuReleased": true
+  },
+  "budget": {
+    "status": "FAIL",
+    "limitBytes": 15000000,
+    "completePackageBytes": 16921440,
+    "overBudgetBytes": 1921440,
+    "manifest": {
+      "path": "art/build/snow-roof-round1/priority15-quality-control-gzip/manifest.json",
+      "sha256": "e6381e00edfea018bed8461a501d45350489095f2b3329524da7398b9172a661",
+      "bytes": 147027
+    },
+    "sourceQualityOrFull64Approval": false,
+    "rawCodecStudy": {
+      "path": "docs/evidence/full-review/round-1-snow-priority-codecs.json",
+      "sha256": "35155df24326ce74c254464e29e0f75112cca975869a627cdb5c23ba9425a200",
+      "bytes": 16850
+    },
+    "nextCopiedUVFitStudy": {
+      "path": "docs/evidence/full-review/round-1-snow-underside-uv-study.json",
+      "sha256": "3eff05515f101c27e585ab7b160d193f7574ddd532a797df6b3914dd42b366fe",
+      "bytes": 10645
+    }
+  },
+  "currentPhoneZ2": {
+    "cameraConfig": {
+      "path": "art/build/snow-roof-round1/current-cameras-v15-runtime-z2.json",
+      "sha256": "84210149710abd24b688c949dcf482a768bdcb132a4ee011c77288647bc6f5aa",
+      "bytes": 7027
+    },
+    "coverage": {
+      "path": "art/build/snow-roof-round1/postbatch-priority15/current-camera-z2-coverage.json",
+      "sha256": "cc5fa2f52a282559a1331d946acc3330e3d4cd1cde4f973414cfe15f144a38f8",
+      "bytes": 10482
+    },
+    "pitch": {
+      "path": "art/build/snow-roof-round1/postbatch-priority15/current-pitch-z2.json",
+      "sha256": "c7b69b8504dee1c4fe700f6eee69a625c2ef565c957948233cd34e79d7078a06",
+      "bytes": 138653
+    },
+    "coveragePassed": true,
+    "burningMedianWorstAxisMetresPerTexel": {
+      "floor": 0.051768043490634734,
+      "columns": 0.0560086905443217,
+      "beams": 0.05570680511208479
+    }
+  }
+}

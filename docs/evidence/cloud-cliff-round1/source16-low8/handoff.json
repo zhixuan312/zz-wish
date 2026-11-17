@@ -1,0 +1,519 @@
+{
+  "version": 1,
+  "status": "LOW8 transfer/contact and corrected actual-source arithmetic gates PASS; morphology/integration remain unaccepted. Original Double and uncontracted-reference failures preserved. No64/public installation.",
+  "sourceBlendSha256": "e1fab71cd2500b53a0c3d925b579352c428f023506567266f9b1c7f078cc85a5",
+  "sourceAudit": {
+    "path": "art/build/cloud-cliff-round1/cloud-cliff-source-v16.audit.json",
+    "sha256": "c245f64b6ce37838f17743984f801de3ba3532ea74df53855c71e7ef98a34604"
+  },
+  "native": {
+    "terminalExitCode": 0,
+    "nativeSeconds": 328.961,
+    "deviceNames": "['Apple M1 (GPU - 8 cores)']",
+    "engine": "CYCLES",
+    "device": "METAL",
+    "threadsMode": "AUTO",
+    "oidnDevice": "METAL",
+    "samples": 8,
+    "all12FreshMapsComplete": true,
+    "allPinnedInputsUnchanged": true,
+    "bakeFingerprint": "68f04753bfb2e7d342672ceecd557a80fd6a09ab58b0ab90dd59f7fc5e8c807a",
+    "geometryFingerprint": "faa90e23fe4549eb3f8033093ce9a589f744801eed972193638b1c27a30d6617"
+  },
+  "nativeCompletion": {
+    "path": "art/build/cloud-cliff-round1/runtime-eval-v16-native8/native-completion.json",
+    "sha256": "a36a8b3ae0a68235ebb1d9e522bad508d9b154faf69d5f3dd64851f525807014"
+  },
+  "outputs": [
+    {
+      "path": "art/build/cloud-cliff-round1/runtime-eval-v16-native8/cloud-cliff-prepared.blend",
+      "bytes": 6751446,
+      "sha256": "b4873b0c93eceaaba3fb3fb72868084625843a852f6585604f3479ccc7f5f82e"
+    },
+    {
+      "path": "art/build/cloud-cliff-round1/runtime-eval-v16-native8/cloud-cliff.raw.glb",
+      "bytes": 15479692,
+      "sha256": "0884703bd2651432220997a8bfe94d32763ff986aa09503ffe78b581f5b82f78"
+    },
+    {
+      "path": "art/build/cloud-cliff-round1/runtime-eval-v16-native8/cloud-cliff-storm.raw.glb",
+      "bytes": 531904,
+      "sha256": "d3fc4b523c480fad51c0a6da7a58e2b3071b018dee21184f9cfcc8e2595e7114"
+    },
+    {
+      "path": "art/build/cloud-cliff-round1/runtime-eval-v16-native8/manifest.json",
+      "bytes": 79927,
+      "sha256": "53c229a47f679f9fd0ae938d3c56b1284a449f5287b3fc8ed58de44d80bce43c"
+    },
+    {
+      "path": "art/build/cloud-cliff-round1/runtime-eval-v16-native8/bake-fingerprint.json",
+      "bytes": 1622268,
+      "sha256": "d5b09ebcf71833adf63039f4d8a77dec74b241e25d1d4a860606aea5a2c69509"
+    }
+  ],
+  "mapDurations": [
+    {
+      "region": "cover",
+      "look": "night",
+      "seconds": 37.745,
+      "bakeSeconds": 32.823,
+      "denoiseSeconds": 4.733,
+      "samples": 8,
+      "bakeDevice": "METAL",
+      "denoiseDevice": "METAL"
+    },
+    {
+      "region": "cover",
+      "look": "dusk",
+      "seconds": 34.354,
+      "bakeSeconds": 28.775,
+      "denoiseSeconds": 5.437,
+      "samples": 8,
+      "bakeDevice": "METAL",
+      "denoiseDevice": "METAL"
+    },
+    {
+      "region": "cover",
+      "look": "day",
+      "seconds": 35.662,
+      "bakeSeconds": 30.103,
+      "denoiseSeconds": 5.415,
+      "samples": 8,
+      "bakeDevice": "METAL",
+      "denoiseDevice": "METAL"
+    },
+    {
+      "region": "cover",
+      "look": "lamp",
+      "seconds": 28.461,
+      "bakeSeconds": 24.458,
+      "denoiseSeconds": 3.862,
+      "samples": 8,
+      "bakeDevice": "METAL",
+      "denoiseDevice": "METAL"
+    },
+    {
+      "region": "cliff",
+      "look": "night",
+      "seconds": 24.871,
+      "bakeSeconds": 23.7,
+      "denoiseSeconds": 1.065,
+      "samples": 8,
+      "bakeDevice": "METAL",
+      "denoiseDevice": "METAL"
+    },
+    {
+      "region": "cliff",
+      "look": "dusk",
+      "seconds": 23.747,
+      "bakeSeconds": 23.374,
+      "denoiseSeconds": 0.308,
+      "samples": 8,
+      "bakeDevice": "METAL",
+      "denoiseDevice": "METAL"
+    },
+    {
+      "region": "cliff",
+      "look": "day",
+      "seconds": 23.576,
+      "bakeSeconds": 23.216,
+      "denoiseSeconds": 0.298,
+      "samples": 8,
+      "bakeDevice": "METAL",
+      "denoiseDevice": "METAL"
+    },
+    {
+      "region": "cliff",
+      "look": "lamp",
+      "seconds": 23.862,
+      "bakeSeconds": 23.266,
+      "denoiseSeconds": 0.512,
+      "samples": 8,
+      "bakeDevice": "METAL",
+      "denoiseDevice": "METAL"
+    },
+    {
+      "region": "far",
+      "look": "night",
+      "seconds": 23.799,
+      "bakeSeconds": 23.555,
+      "denoiseSeconds": 0.226,
+      "samples": 8,
+      "bakeDevice": "METAL",
+      "denoiseDevice": "METAL"
+    },
+    {
+      "region": "far",
+      "look": "dusk",
+      "seconds": 23.588,
+      "bakeSeconds": 23.29,
+      "denoiseSeconds": 0.279,
+      "samples": 8,
+      "bakeDevice": "METAL",
+      "denoiseDevice": "METAL"
+    },
+    {
+      "region": "far",
+      "look": "day",
+      "seconds": 23.637,
+      "bakeSeconds": 23.332,
+      "denoiseSeconds": 0.287,
+      "samples": 8,
+      "bakeDevice": "METAL",
+      "denoiseDevice": "METAL"
+    },
+    {
+      "region": "far",
+      "look": "lamp",
+      "seconds": 23.518,
+      "bakeSeconds": 23.252,
+      "denoiseSeconds": 0.25,
+      "samples": 8,
+      "bakeDevice": "METAL",
+      "denoiseDevice": "METAL"
+    }
+  ],
+  "package": {
+    "path": "art/build/cloud-cliff-round1/runtime-eval-v16-delivery",
+    "manifestSha256": "1bf10e437ae6b4f5d67aa9db7932634c26c80d6868a0effd5ea6244fdb57d568",
+    "manifestBytes": 434487,
+    "payloadBytes": 6958634,
+    "completePackageBytes": 7393121,
+    "actualRequestedFileCount": 15,
+    "reservedPosterBytes": 400000,
+    "within10MillionIncludingReserve": true,
+    "partialPreview": true,
+    "missingAmbientLooks": [],
+    "positionFormat": "float32",
+    "normalFormat": "float32",
+    "files": [
+      {
+        "uri": "cloud-cliff.glb",
+        "bytes": 5175744,
+        "sha256": "6a52ad09d503f8accff02a20068bb2cf0ed213a4acf83b02eb674cb8a54ce73e"
+      },
+      {
+        "uri": "cliff-night.ktx2",
+        "bytes": 91600,
+        "sha256": "59bf78abbe55f5ae5fce36c5058ae428c385a743b1e897ac2bff863c67592d05",
+        "codec": "uastc",
+        "mipLevels": 3,
+        "transfer": "linear"
+      },
+      {
+        "uri": "cliff-dusk.ktx2",
+        "bytes": 90323,
+        "sha256": "855d87ea285ed27c623555bd68cd6843e560f14f0cd0b5d69020eb909731f411",
+        "codec": "uastc",
+        "mipLevels": 3,
+        "transfer": "linear"
+      },
+      {
+        "uri": "cliff-day.ktx2",
+        "bytes": 84434,
+        "sha256": "c884355144164d5a66f1f30c2c8a8944a6ef27966b7e7343699a6f88f7b683dd",
+        "codec": "uastc",
+        "mipLevels": 3,
+        "transfer": "linear"
+      },
+      {
+        "uri": "cliff-lamp.ktx2",
+        "bytes": 451,
+        "sha256": "26273ac27c17caa5021d9ff9c3296d5b22d0fe0e6726ded62a313795bf47ec24",
+        "codec": "uastc",
+        "mipLevels": 3,
+        "transfer": "linear"
+      },
+      {
+        "uri": "cover-night.ktx2",
+        "bytes": 331989,
+        "sha256": "644dedf33624c4e07ea70a159db39d7851a0c4df6c8a1c20840ad694a151517a",
+        "codec": "uastc",
+        "mipLevels": 3,
+        "transfer": "linear"
+      },
+      {
+        "uri": "cover-dusk.ktx2",
+        "bytes": 329754,
+        "sha256": "285a64ed4dbe61298a9763e2814117fe8ef9aff5f905b098b840b1bee99fe6a3",
+        "codec": "uastc",
+        "mipLevels": 3,
+        "transfer": "linear"
+      },
+      {
+        "uri": "cover-day.ktx2",
+        "bytes": 333021,
+        "sha256": "38e235b83b68104a975758dd90f4a62835b0eae8f346070033d2ffd37c83f1cb",
+        "codec": "uastc",
+        "mipLevels": 3,
+        "transfer": "linear"
+      },
+      {
+        "uri": "cover-lamp.ktx2",
+        "bytes": 530,
+        "sha256": "0a6b0dc7ba94be2d1ea70d24020359cc57934cad961d3fb31a32ea7de15872ea",
+        "codec": "uastc",
+        "mipLevels": 3,
+        "transfer": "linear"
+      },
+      {
+        "uri": "far-night.ktx2",
+        "bytes": 33986,
+        "sha256": "829aedbefc84d7237f71de66aebe97972801d3fe4045f521a9e04c468055efa2",
+        "codec": "uastc",
+        "mipLevels": 3,
+        "transfer": "linear"
+      },
+      {
+        "uri": "far-dusk.ktx2",
+        "bytes": 33353,
+        "sha256": "12f6d232f1463e716db9e0c00fbce04c9a2baaa3f006a106fbe9f4d41da507e3",
+        "codec": "uastc",
+        "mipLevels": 3,
+        "transfer": "linear"
+      },
+      {
+        "uri": "far-day.ktx2",
+        "bytes": 32356,
+        "sha256": "75922c911a094f7ade8f9f63ac9744611bbc175823634a406f00381e41e84956",
+        "codec": "uastc",
+        "mipLevels": 3,
+        "transfer": "linear"
+      },
+      {
+        "uri": "far-lamp.ktx2",
+        "bytes": 437,
+        "sha256": "fe7c2f57ac346c6523a6d89d142de123d06fbb06a6f93fca95e67fe8259c4016",
+        "codec": "uastc",
+        "mipLevels": 3,
+        "transfer": "linear"
+      },
+      {
+        "uri": "cloud-cliff-storm.glb",
+        "bytes": 420656,
+        "sha256": "de08fb903f3261bf14e3a090cbfce058e70eb82b629d3d13de2b41e143870abe",
+        "role": "live-PBR-hero"
+      }
+    ]
+  },
+  "sampling": {
+    "mipLevels": 3,
+    "gutterPixels": 8,
+    "anisotropy": 1,
+    "maxLod": 2
+  },
+  "imageAudit": {
+    "path": "art/build/cloud-cliff-round1/runtime-eval-v16-native8/delivery-image-audit.json",
+    "sha256": "b3a01c8a89a0b168407f9a89e5905e2a3ceab7a3771dcf5fd738de6cac85c624",
+    "maps": 12,
+    "coverNightBaseBands": {
+      "dark": {
+        "texels": 37376,
+        "meanAbsoluteLuminanceError": 8.398344108963488e-05,
+        "p95AbsoluteLuminanceError": 0.0004621362166886682,
+        "meanAbsoluteRGBError": 0.00013495152234099805,
+        "meanRelativeLuminanceErrorAbove0001": 0.11058670738976523,
+        "nonzeroTexelsQuantizedToBlack": 7
+      },
+      "middle": {
+        "texels": 21158,
+        "meanAbsoluteLuminanceError": 0.004633798656112848,
+        "p95AbsoluteLuminanceError": 0.01727651245143265,
+        "meanAbsoluteRGBError": 0.006633993238210678,
+        "meanRelativeLuminanceErrorAbove0001": 0.07651064576652085,
+        "nonzeroTexelsQuantizedToBlack": 0
+      }
+    },
+    "allMipNonzeroTexelsQuantizedToBlack": 28,
+    "limitation": "Official RGBA8 transcode only; device ASTC/BC7/ETC and interpolation require actual app review."
+  },
+  "noPublicWrites": true,
+  "independentDelivery": {
+    "path": "art/build/cloud-cliff-round1/independent-runtime-eval-v16-proof.json",
+    "sha256": "6a03742e116767e07eb8f9ebdc39c926e861c7b277cf2fc5cdace2691a3e08b4",
+    "passed": true,
+    "genuineF32PositionAndNormalBoth": true,
+    "contacts": 18,
+    "hangingPairs": 6,
+    "literalGuardsMetres": {
+      "gap": 0.002,
+      "penetration": 0.005
+    },
+    "exactOwnershipVertices": 4274,
+    "toleranceAssociatedVertices": 0,
+    "sourceRawNormalMaxErrors": {
+      "static": 1.7881393432617188e-07,
+      "hero": 1.1920928955078125e-07
+    }
+  },
+  "stagedDescriptor": {
+    "path": "art/build/cloud-cliff-round1/runtime-v16-stage/cloud-cliff-baked.js",
+    "sha256": "05328486c3845efd60e18ec26a22d182fa7afd7e4c8056ad13b3ddcb6d33fb87",
+    "receiptSha256": "17d2a22deb2ff69f8ae7d70e75532cfc4de4afb2d1c1142c19d27c966bf2db31",
+    "productionDescriptorUnchanged": true,
+    "strictSource16Only": true,
+    "newFieldHelperSha256": "387b0ce53d82e8ae0c529f62251875b77f2a705bea102b1f39a44141c2c85bc8"
+  },
+  "runtimeStudy": {
+    "path": "artifacts/full-review/round-1/cloud-source16-runtime-night",
+    "inputsSha256": "0f9764a11ac58af49d726c71e9bdfd5de1034b1d9a6ec61848670695d1b7b40c",
+    "terminalExitCode": 0,
+    "browserContextsClosed": true,
+    "views": 4,
+    "browsers": [
+      "Chrome/ANGLE Metal Apple M1",
+      "WebKit/Apple GPU"
+    ],
+    "look": "night",
+    "hour": 22,
+    "fieldTime": 0,
+    "allSourceInputsUnchanged": true,
+    "sourceFingerprintBefore": "5c805d6603b25a9340a3bd6878101dde12268aaa71f4d302e49b368f4c0cd457",
+    "sourceFingerprintAfter": "5c805d6603b25a9340a3bd6878101dde12268aaa71f4d302e49b368f4c0cd457",
+    "runtimeHttpShaderErrors": 0,
+    "density": [
+      {
+        "browser": "chromium",
+        "proof": "artifacts/full-review/round-1/cloud-source16-runtime-night/chromium-density-proof.json",
+        "sha256": "84105c19384d212729cbab6dd443af444b5eb4707b4d31c09d4a8eea4e3912a0",
+        "passed": false,
+        "points": 5897,
+        "limit": 1e-06,
+        "maximumAbsoluteDensityError": 3.2591099112105892e-06,
+        "rmsAbsoluteDensityError": 1.2382754244802574e-07,
+        "pointsExceedingLimit": 20,
+        "readback": {
+          "width": 256,
+          "height": 24,
+          "format": "RGBA32F",
+          "framebufferComplete": true,
+          "glError": 0,
+          "vendor": "WebKit",
+          "renderer": "WebKit WebGL",
+          "unmaskedVendor": "Google Inc. (Apple)",
+          "unmaskedRenderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1, Unspecified Version)",
+          "cpuWallMs": 148.0999999642372,
+          "gpuTimerMs": null
+        }
+      },
+      {
+        "browser": "webkit",
+        "proof": "artifacts/full-review/round-1/cloud-source16-runtime-night/webkit-density-proof.json",
+        "sha256": "36c46ed6de07db9fe69e6a40769e360fc64777b7c7c8ffc691b0154a0599ab8f",
+        "passed": false,
+        "points": 5897,
+        "limit": 1e-06,
+        "maximumAbsoluteDensityError": 3.2591099112105892e-06,
+        "rmsAbsoluteDensityError": 1.2382754244653824e-07,
+        "pointsExceedingLimit": 20,
+        "readback": {
+          "width": 256,
+          "height": 24,
+          "format": "RGBA32F",
+          "framebufferComplete": true,
+          "glError": 0,
+          "vendor": "WebKit",
+          "renderer": "WebKit WebGL",
+          "unmaskedVendor": "Apple Inc.",
+          "unmaskedRenderer": "Apple GPU",
+          "cpuWallMs": 145,
+          "gpuTimerMs": null
+        }
+      }
+    ],
+    "visualLimit": "Actual runtime has coarse contour bands/holes and weak flame; physical far scan cut-top spans persist. Native foreground is softer. No additional optics, integration, lighting or source change made.",
+    "densityReferenceCorrection": {
+      "path": "artifacts/full-review/round-1/cloud-source16-arithmetic/diagnosis.json",
+      "sha256": "dd72baf7d5a7bc2d3c11829244841eeb700cf925013c9510e462dc418d7c0278",
+      "limit": 1e-06,
+      "pointCount": 5897,
+      "actualSourceDagF32Fma": [
+        {
+          "browser": "chromium",
+          "name": "native-graph-f32-explicit-fma",
+          "maximum": 3.110617399215698e-07,
+          "rms": 1.4549336621221421e-08,
+          "failed": 0,
+          "passed": true,
+          "worstIndex": 31,
+          "raw": {
+            "file": "artifacts/full-review/round-1/cloud-source16-arithmetic/chromium-native-graph-f32-explicit-fma.f64le",
+            "sha256": "dbaa381fe0b3d3750bcb8d845a21afd9207a77e8ce7f655b71416183677cd849"
+          }
+        },
+        {
+          "browser": "webkit",
+          "name": "native-graph-f32-explicit-fma",
+          "maximum": 3.110617399215698e-07,
+          "rms": 1.4549336621221421e-08,
+          "failed": 0,
+          "passed": true,
+          "worstIndex": 31,
+          "raw": {
+            "file": "artifacts/full-review/round-1/cloud-source16-arithmetic/webkit-native-graph-f32-explicit-fma.f64le",
+            "sha256": "dbaa381fe0b3d3750bcb8d845a21afd9207a77e8ce7f655b71416183677cd849"
+          }
+        }
+      ],
+      "originalDoublePreserved": [
+        {
+          "browser": "chromium",
+          "maximum": 3.2591099112105892e-06,
+          "rms": 1.2382754244802574e-07,
+          "failed": 20,
+          "passed": false
+        },
+        {
+          "browser": "webkit",
+          "maximum": 3.2591099112105892e-06,
+          "rms": 1.2382754244653824e-07,
+          "failed": 20,
+          "passed": false
+        }
+      ],
+      "uncontractedF32Preserved": [
+        {
+          "browser": "chromium",
+          "name": "native-graph-f32-no-fma",
+          "maximum": 5.543231964111328e-06,
+          "rms": 1.2477276307727957e-07,
+          "failed": 6,
+          "passed": false,
+          "worstIndex": 2458,
+          "raw": {
+            "file": "artifacts/full-review/round-1/cloud-source16-arithmetic/chromium-native-graph-f32-no-fma.f64le",
+            "sha256": "7670e387795ed7595c715c36a2deaae81bf46992095026e6a206541d4b6d77c0"
+          }
+        },
+        {
+          "browser": "webkit",
+          "name": "native-graph-f32-no-fma",
+          "maximum": 5.543231964111328e-06,
+          "rms": 1.2477276307727957e-07,
+          "failed": 6,
+          "passed": false,
+          "worstIndex": 2458,
+          "raw": {
+            "file": "artifacts/full-review/round-1/cloud-source16-arithmetic/webkit-native-graph-f32-no-fma.f64le",
+            "sha256": "7670e387795ed7595c715c36a2deaae81bf46992095026e6a206541d4b6d77c0"
+          }
+        }
+      ],
+      "nativeFmafValidation": {
+        "cpuOnly": true,
+        "operation": "native C fmaf",
+        "floatEvalMethod": 0,
+        "triples": 837374,
+        "bitMismatches": 0,
+        "maximumAbsoluteDifference": 0,
+        "passed": true
+      },
+      "limitations": [
+        "No native Cycles GPU intermediate values or Metal instruction disassembly were obtained. GPU contraction is an inference supported by the saved node operations and actual readback agreement.",
+        "All model variants, including failed Double/uncontracted references, are retained; the original GPU proof passed:false fields were not edited.",
+        "The source16 field and emitted shipping GLSL are unchanged. This receipt does not establish bit-exact equality across all hardware or all world points."
+      ],
+      "fieldAndToleranceUnchanged": true
+    }
+  }
+}

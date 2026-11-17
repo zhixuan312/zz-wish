@@ -1,35 +1,30 @@
-// The 3D scene: hall, ten places, the person's candle or lamp, flame and camera.
+// The 3D scene: ten places, each with the spot inside it where a lamp is lit, the person's lamp, flame and camera.
 // Ported from the index.html prototype. It owns its render loop; the UI drives it only through the exported functions.
 import * as THREE from 'three';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 import { FocusBlur } from './FocusBlur.js';
+import { buildHall } from './architecture.js';
+import { createPineBatch } from './NaturalPines.js';
+import { loadNaturalAssets,scans,isScanTexture,naturalResources,addScannedRock,addScannedStump } from './NaturalAssets.js';
+import { Reflector } from 'three/examples/jsm/objects/Reflector.js';
+import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import { mergeGeometries, mergeVertices } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-
-// ---------- Content ----------
-// Ten places: hall lacquer, plaque text and what is offered there (candle or butter lamp).
-const TEMPLES = [
-  { id: 'lingyin', plaque: '大雄宝殿', lacquer: 0x6e1a12, lamp: 'candle' },
-  { id: 'shaolin', plaque: '大雄宝殿', lacquer: 0x5e1a14, lamp: 'candle' },
-  { id: 'yonghe', plaque: '雍和宫', lacquer: 0x7a1a10, lamp: 'candle' },
-  { id: 'jokhang', plaque: null, lacquer: 0x4a1612, lamp: 'butter' },
-  { id: 'puji', plaque: '大圆通殿', lacquer: 0x6a1c14, lamp: 'candle' },
-  { id: 'zixiao', plaque: '紫霄殿', lacquer: 0x5a1812, lamp: 'candle' },
-  { id: 'qufu', plaque: '大成殿', lacquer: 0x6a1810, lamp: 'candle' },
-  { id: 'meizhou', plaque: '湄洲祖庙', lacquer: 0x7a1c12, lamp: 'candle' },
-  { id: 'guandi', plaque: '崇宁殿', lacquer: 0x681a12, lamp: 'candle' },
-  { id: 'hongluo', plaque: '大雄宝殿', lacquer: 0x701b12, lamp: 'candle' },
-];
+import { COLORS, PRESET_SHAPES } from '../../../shared/rules.ts';
+import { GAUZE_CANDLE_REFERENCE } from './baked/gauzeTransmission.js';
+import { acquireNativeAgX, NativeAgXPass } from './baked/nativeAgX.js';
+import visitorFabric from './baked/visitor-fabric.json';
+import { WickPlume, addGauzeVent, createGauzeSmokePath, gauzeFlameSize, gauzeRibGeometry, gauzeThroat } from './WickPlume.js';
 
 // ---------- Renderer ----------
 const canvas = document.getElementById('gl');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
 // Reading shader logs blocks until each program links; only development needs them.
 renderer.debug.checkShaderErrors = import.meta.env.DEV;
-if (import.meta.env.DEV) window.__renderer = renderer;
+if(import.meta.env.DEV){window.__renderer=renderer;window.__visualWalkAvailable=true;}
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
 let quality = innerWidth < 720 ? 'balanced' : 'high', powerSaver = false, phase = 'wish';
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, quality === 'high' ? 1.75 : 1.25));
@@ -39,9 +34,9 @@ renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 const camera = new THREE.PerspectiveCamera(34, 1, 0.01, 900);
 const pmrem = new THREE.PMREMGenerator(renderer);
-// The hall's reflections: a near-black room with warm candle points and one cool window,
+// Reflections near the lamp: a near-black room with warm candle points and one cool window,
 // so brass reads as metal catching flames instead of a white studio.
-const hallEnv = (() => {
+const spotEnv = (() => {
   const s = new THREE.Scene();
   s.add(new THREE.Mesh(new THREE.SphereGeometry(10, 32, 16), new THREE.MeshBasicMaterial({ color: 0x0a0605, side: THREE.BackSide })));
   const warm = new THREE.MeshBasicMaterial({ color: new THREE.Color(6, 2.6, .8) }), dot = new THREE.SphereGeometry(.09, 8, 6);
@@ -52,19 +47,39 @@ const hallEnv = (() => {
   return pmrem.fromScene(s, .02).texture;
 })();
 
-const composer = new EffectComposer(renderer);
+const geometrySamples=(()=>{
+  if(!renderer.capabilities.isWebGL2)return 0;
+  const gl=renderer.getContext();
+  const color=Array.from(gl.getInternalformatParameter(gl.RENDERBUFFER,gl.RGBA16F,gl.SAMPLES));
+  const depth=Array.from(gl.getInternalformatParameter(gl.RENDERBUFFER,gl.DEPTH_COMPONENT24,gl.SAMPLES));
+  return color.includes(2)&&depth.includes(2)?2:0;
+})();
+// Geometry coverage is resolved before grading. Canvas antialiasing alone
+// cannot smooth geometry drawn into the composer's offscreen HDR targets.
+const sceneTarget=new THREE.WebGLRenderTarget(1,1,{type:THREE.HalfFloatType,samples:geometrySamples});
+const composer = new EffectComposer(renderer,sceneTarget);
 const renderPass = new RenderPass(new THREE.Scene(), camera);
 const bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), 0.7, 0.5, 0.9);
 const grade = new ShaderPass({
-  uniforms: { tDiffuse: { value: null }, uTime: { value: 0 } },
+  uniforms: { tDiffuse: { value: null } },
   vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.); }',
-  fragmentShader: `uniform sampler2D tDiffuse; uniform float uTime; varying vec2 vUv;
+  fragmentShader: `uniform sampler2D tDiffuse; varying vec2 vUv;
     void main(){ vec4 c = texture2D(tDiffuse, vUv); vec2 p = (vUv - .5) * vec2(1., 1.12);
       float v = 1. - smoothstep(.3, .9, length(p)); c.rgb *= mix(.55, 1., v);
-      float n = fract(sin(dot(vUv * 913.7 + uTime, vec2(12.9898, 78.233))) * 43758.5453) - .5;
-      c.rgb += n * .02; gl_FragColor = c; }`,
+      gl_FragColor = c; }`,
 });
-composer.addPass(renderPass); composer.addPass(bloom); composer.addPass(new OutputPass()); composer.addPass(grade);
+const outputPass=new OutputPass();
+composer.addPass(renderPass); composer.addPass(bloom); composer.addPass(outputPass); composer.addPass(grade);
+let nativeAgXPass,nativeAgXReady;
+function ensureNativeAgX(){
+  return nativeAgXReady??=(async()=>{
+    const lease=await acquireNativeAgX({url:'/color/native-agx-57-f16.bin.zst',precision:'float16'});
+    const pass=new NativeAgXPass(lease);pass.enabled=false;
+    composer.insertPass(pass,composer.passes.indexOf(outputPass));
+    nativeAgXPass=pass;
+    return pass;
+  })().catch(error=>{nativeAgXReady=null;throw error;});
+}
 
 // ---------- Helpers ----------
 const V3 = (x, y, z) => new THREE.Vector3(x, y, z);
@@ -82,7 +97,6 @@ const noise2 = (x, y) => {
   return a*(1-v)+b*v;
 };
 const ease = (k) => k < .5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
-const SERIF = '"Noto Serif SC", "Songti SC", "STSong", serif';
 
 const softTex = canvasTex(128, 128, (g, w, h) => {
   const r = g.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, w / 2);
@@ -90,12 +104,15 @@ const softTex = canvasTex(128, 128, (g, w, h) => {
   g.fillStyle = r; g.fillRect(0, 0, w, h);
 });
 const petalTex = canvasTex(32, 32, (g) => { g.fillStyle = '#fff'; g.beginPath(); g.ellipse(16, 16, 13, 7, .6, 0, Math.PI * 2); g.fill(); });
+const materialImage = async (path) => { const img=new Image(); img.src=path; await img.decode(); return img; };
+const [graniteImage,timberImage]=await Promise.all([materialImage('/materials/weathered-granite.jpg'),materialImage('/materials/old-timber.jpg')]);
 function stoneTex(seed, base = [24, 9, 15]) {
   const rnd = mulberry32(seed);
   const t = canvasTex(1024, 1024, (g, w, h) => {
     const n = 4, s = w / n;
     for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) {
-      const l = base[2] + rnd() * 6; g.fillStyle = `hsl(${base[0]} ${base[1]}% ${l}%)`; g.fillRect(i * s, j * s, s, s);
+      g.drawImage(graniteImage,rnd()*200,rnd()*200,900,900,i*s,j*s,s,s);
+      g.globalCompositeOperation="multiply"; const l = 70 + rnd()*20; g.fillStyle = `hsl(${base[0]} ${base[1]}% ${l}%)`; g.fillRect(i * s, j * s, s, s);g.globalCompositeOperation="source-over";
       for (let k = 0; k < 900; k++) { g.fillStyle = `rgba(${rnd() < .5 ? '255,240,220' : '0,0,0'},${rnd() * .06})`; g.fillRect(i * s + rnd() * s, j * s + rnd() * s, 2 + rnd() * 5, 2 + rnd() * 5); }
     }
     g.strokeStyle = 'rgba(0,0,0,.55)'; g.lineWidth = 5;
@@ -104,9 +121,11 @@ function stoneTex(seed, base = [24, 9, 15]) {
   t.wrapS = t.wrapT = THREE.RepeatWrapping; return t;
 }
 const pavingTex = stoneTex(7, [30, 6, 46]);
-const grainTex = canvasTex(512, 512, (g, w, h) => {
-  const rnd = mulberry32(11); g.fillStyle = '#fff'; g.fillRect(0, 0, w, h);
-  for (let i = 0; i < 260; i++) { g.strokeStyle = `rgba(60,20,10,${.04 + rnd() * .08})`; g.lineWidth = 1 + rnd() * 3; g.beginPath(); const y = rnd() * h; g.moveTo(0, y); g.bezierCurveTo(w * .3, y + rnd() * 20 - 10, w * .7, y + rnd() * 20 - 10, w, y + rnd() * 10 - 5); g.stroke(); }
+const grainTex = canvasTex(1024,1024,(g,w,h)=>{
+  g.drawImage(timberImage,0,0,w,h);
+  const data=g.getImageData(0,0,w,h);
+  for(let i=0;i<data.data.length;i+=4){const v=(data.data[i]*.3+data.data[i+1]*.59+data.data[i+2]*.11); const n=Math.max(90,Math.min(250,205+(v-105)*1.1));data.data[i]=data.data[i+1]=data.data[i+2]=n;}
+  g.putImageData(data,0,0);
 });
 grainTex.wrapS = grainTex.wrapT = THREE.RepeatWrapping;
 // Roof tiles: channels running down the slope.
@@ -129,14 +148,6 @@ const waterTex = (() => {
   }, false);
 })();
 waterTex.wrapS = waterTex.wrapT = THREE.RepeatWrapping; waterTex.repeat.set(60, 60);
-const clothTex = canvasTex(1024, 360, (g, w, h) => {
-  g.fillStyle = '#7d1410'; g.fillRect(0, 0, w, h);
-  const rnd = mulberry32(5); for (let i = 0; i < 4000; i++) { g.fillStyle = `rgba(255,${120 + rnd() * 60},80,${rnd() * .05})`; g.fillRect(rnd() * w, rnd() * h, 1, 3); }
-  g.strokeStyle = '#c99a45'; g.lineWidth = 10; g.strokeRect(24, 18, w - 48, h - 36); g.lineWidth = 3; g.strokeRect(44, 36, w - 88, h - 72);
-  g.save(); g.translate(w / 2, h / 2); g.strokeStyle = '#d4a650'; g.lineWidth = 4;
-  for (let i = 0; i < 8; i++) { g.rotate(Math.PI / 4); g.beginPath(); g.ellipse(0, -48, 18, 44, 0, 0, Math.PI * 2); g.stroke(); }
-  g.beginPath(); g.arc(0, 0, 22, 0, Math.PI * 2); g.stroke(); g.beginPath(); g.arc(0, 0, 100, 0, Math.PI * 2); g.stroke(); g.restore();
-});
 const latticeTex = canvasTex(512, 512, (g, w, h) => {
   g.fillStyle = '#000'; g.fillRect(0, 0, w, h);
   const cols = 4; const cw = w / cols;
@@ -153,30 +164,6 @@ const windowsTex = canvasTex(64, 128, (g, w, h) => {
   const rnd = mulberry32(31); g.fillStyle = '#000'; g.fillRect(0, 0, w, h);
   for (let y = 4; y < h; y += 8) for (let x = 3; x < w; x += 7) if (rnd() < .35) { g.fillStyle = `rgba(255,${180 + rnd() * 50},${110 + rnd() * 60},${.5 + rnd() * .5})`; g.fillRect(x, y, 4, 4); }
 });
-const shaftTex = canvasTex(64, 256, (g, w, h) => {
-  const a = g.createLinearGradient(0, 0, w, 0); a.addColorStop(0, 'rgba(255,255,255,0)'); a.addColorStop(.5, 'rgba(255,255,255,1)'); a.addColorStop(1, 'rgba(255,255,255,0)');
-  g.fillStyle = a; g.fillRect(0, 0, w, h);
-  g.globalCompositeOperation = 'destination-in';
-  const b = g.createLinearGradient(0, 0, 0, h); b.addColorStop(0, 'rgba(0,0,0,.9)'); b.addColorStop(1, 'rgba(0,0,0,0)');
-  g.fillStyle = b; g.fillRect(0, 0, w, h);
-});
-const bannerTex = canvasTex(128, 512, (g, w, h) => {
-  g.fillStyle = '#8a6a1c'; g.fillRect(0, 0, w, h); g.fillStyle = '#7a1612'; g.fillRect(10, 10, w - 20, h - 20);
-  g.strokeStyle = '#d2a54d'; g.lineWidth = 3;
-  for (let y = 40; y < h - 40; y += 64) { g.beginPath(); g.arc(w / 2, y + 20, 18, 0, Math.PI * 2); g.stroke(); }
-});
-function plaqueTex(text) {
-  return canvasTex(1024, 320, (g, w, h) => {
-    g.fillStyle = '#140c08'; g.fillRect(0, 0, w, h);
-    g.strokeStyle = '#b8893a'; g.lineWidth = 14; g.strokeRect(14, 14, w - 28, h - 28); g.lineWidth = 3; g.strokeRect(40, 40, w - 80, h - 80);
-    if (!text) return;
-    g.fillStyle = '#d9ae58'; g.textAlign = 'center'; g.textBaseline = 'middle';
-    const size = Math.min(170, (w - 160) / text.length); g.font = `700 ${size}px ${SERIF}`;
-    const gap = (w - 140) / text.length;
-    [...text].forEach((ch, i) => g.fillText(ch, 70 + gap * (i + .5), h / 2 + 6));
-  });
-}
-
 // Wax with a warm glow near the burning top, standing in for light scattered inside the wax.
 function waxMaterial(color, o = {}) {
   const m = new THREE.MeshPhysicalMaterial({ color, roughness: o.roughness ?? .48, clearcoat: o.clearcoat ?? .18, clearcoatRoughness: .3,
@@ -216,18 +203,19 @@ void main(){
   gl_Position = projectionMatrix * viewMatrix * vec4(wp, 1.);
 }`;
 const flameFS = `
-uniform float uTime; uniform float uPower; uniform float uWind;
+uniform float uTime; uniform float uPower; uniform float uWind; uniform float uSoft;
 varying vec2 vUv; varying float vSeed;
 float h1(float n){ return fract(sin(n) * 43758.5453); }
 float vn(vec2 x){ vec2 p = floor(x), f = fract(x); f = f * f * (3. - 2. * f); float n = p.x + p.y * 57.;
   return mix(mix(h1(n), h1(n + 1.), f.x), mix(h1(n + 57.), h1(n + 58.), f.x), f.y); }
-void main(){
-  float t = uTime + vSeed * 17.;
-  float y = vUv.y; float x = (vUv.x - .5) * 2.;
+vec4 flameAt(vec2 sampleUv){
+  if(sampleUv.x<0.||sampleUv.x>1.||sampleUv.y<=0.||sampleUv.y>=1.)return vec4(0.);
+  float t = uTime * mix(1., .32, uSoft) + vSeed * 17.;
+  float y = sampleUv.y; float x = (sampleUv.x - .5) * 2.;
   float sway = (vn(vec2(t * 1.1, vSeed * 9.)) - .5) * .32 + (vn(vec2(t * 5.3, vSeed * 3.)) - .5) * .1;
   x -= (sway + uWind) * pow(y, 1.6);
   x += (vn(vec2(y * 7. - t * 3.1, t * .43)) - .5) * .07 * y;
-  float stretch = (1. + (vn(vec2(t * 3.7, vSeed * 5.)) - .5) * .16) * mix(.35, 1., uPower);
+  float stretch = (1. + (vn(vec2(t * 3.7, vSeed * 5.)) - .5) * mix(.16,.055,uSoft)) * mix(.35, 1., uPower);
   float py = (y - .26) / stretch; float up = max(py, 0.);
   float wid = .4 * max(1. - up * 1.08, .02) * (1. + (vn(vec2(t * 2.3 - y * 4., vSeed)) - .5) * .15);
   vec2 q = vec2(x / wid, py > 0. ? py / .66 : py / .2);
@@ -240,11 +228,19 @@ void main(){
   col = mix(col, vec3(1., .92, .76), core);
   col = mix(col, vec3(.04, .12, .42), clamp(blue, 0., 1.) * .75);
   float alpha = a * uPower;
-  gl_FragColor = vec4(col * (1.15 + core * 1.1) * (.85 + .15 * vn(vec2(t * 3.7, vSeed * 5.))), alpha);
+  return vec4(col * (1.15 + core * 1.1) * (.85 + .15 * vn(vec2(t * 3.7, vSeed * 5.))), alpha);
+}
+void main(){
+  vec2 dx=dFdx(vUv),dy=dFdy(vUv);
+  vec4 a=flameAt(vUv+.25*(dx+dy)),b=flameAt(vUv+.25*(dx-dy));
+  vec4 c=flameAt(vUv+.25*(-dx+dy)),d=flameAt(vUv-.25*(dx+dy));
+  float alpha=.25*(a.a+b.a+c.a+d.a);
+  vec3 premultiplied=.25*(a.rgb*a.a+b.rgb*b.a+c.rgb*c.a+d.rgb*d.a);
+  gl_FragColor=vec4(alpha>0.?premultiplied/alpha:vec3(0.),alpha);
 }`;
 function flameMaterial(instanced) {
   return new THREE.ShaderMaterial({ vertexShader: flameVS, fragmentShader: flameFS, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
-    uniforms: { uTime: { value: 0 }, uWind: { value: 0 }, uPower: { value: instanced ? .52 : 0 }, uScale: { value: .06 }, uSeedU: { value: .37 } } });
+    uniforms: { uTime: { value: 0 }, uWind: { value: 0 }, uPower: { value: instanced ? .52 : 0 }, uScale: { value: .06 }, uSeedU: { value: .37 }, uSoft: { value: 0 } } });
 }
 const flameMats = [];
 
@@ -278,148 +274,409 @@ class Smoke {
   }
 }
 
-// ---------- The hall ----------
-const hall = new THREE.Scene();
-hall.background = new THREE.Color(0x090605);
-hall.fog = new THREE.FogExp2(0x090605, .17);
-hall.environment = hallEnv;
-// The offering is the focal plane. Blur the distant hall before compositing it,
+// ---------- The spot: where the lamp is lit ----------
+// Each place has its own corner where people there light lamps: a niche by a gate, a cloister shelf,
+// a cliff gallery. It is rebuilt per place around the origin: the lamp stands (or hangs) at x = z = 0,
+// and the open side faces +z.
+// One world per place: the walk in and the lamp are in the same scene.
+const outside = new THREE.Scene();
+// The offering is the focal plane. Blur the distant scene before compositing it,
 // keeping the flame's soft procedural edge and the person's own outline intact.
-const previewFill = new THREE.DirectionalLight(0xe4dbc2, 1.1); previewFill.position.set(1, 2, 2); previewFill.layers.set(1); hall.add(previewFill);
+const previewFill = new THREE.DirectionalLight(0xe4dbc2, 0); previewFill.position.set(1, 2, 2); previewFill.layers.enableAll(); outside.add(previewFill);
+const previewFillTarget=new THREE.Object3D();outside.add(previewFillTarget);previewFill.target=previewFillTarget;
+const gauzePreviewIntensity=2.5;
+function aimGauzePreview(light,target,centre,eye){
+  const offset=eye.clone().sub(centre).normalize().add(V3(0,.18,0)).normalize();
+  light.position.copy(light.parent.worldToLocal(centre.clone().add(offset)));
+  target.position.copy(target.parent.worldToLocal(centre.clone()));target.updateMatrixWorld(true);
+}
 const focusBlur = new FocusBlur();
 class OfferingPass extends RenderPass {
   render(renderer, write, read, delta, mask) {
-    const background = hall.background; hall.background = null; camera.layers.set(1);
+    camera.layers.set(1);
     super.render(renderer, write, read, delta, mask);
-    camera.layers.set(0); hall.background = background;
+    camera.layers.set(0);
   }
 }
-const offeringPass = new OfferingPass(hall, camera);
+const offeringPass = new OfferingPass(outside, camera);
 offeringPass.clear = false; offeringPass.clearDepth = true;
 composer.insertPass(focusBlur, 1); composer.insertPass(offeringPass, 2);
-const ALTAR_Y = .82;
-let hallDoor, hallWindow; // daylight through the doors and lattice follows the local time
-const lacquer = new THREE.MeshPhysicalMaterial({ color: 0x241811, map: grainTex, roughness: .68, clearcoat: .12, clearcoatRoughness: .6, envMapIntensity: .08 });
+
 const patina = canvasTex(256, 256, (g, w, h) => {
   const rnd = mulberry32(19); g.fillStyle = '#7a7a7a'; g.fillRect(0, 0, w, h);
   for (let i = 0; i < 1400; i++) { const v = 90 + rnd() * 120; g.fillStyle = `rgba(${v},${v},${v},.35)`; g.beginPath(); g.arc(rnd() * w, rnd() * h, 1 + rnd() * 5, 0, 6.3); g.fill(); }
 }, false);
 patina.wrapS = patina.wrapT = THREE.RepeatWrapping; patina.repeat.set(3, 3);
-const brass = new THREE.MeshStandardMaterial({ color: 0xc09454, metalness: 1, roughness: .34, roughnessMap: patina, envMapIntensity: 1.1 });
-const darkIron = new THREE.MeshStandardMaterial({ color: 0x1c1714, metalness: .7, roughness: .5, envMapIntensity: .6 });
-{
-  const floorTex = stoneTex(3); floorTex.repeat.set(5, 5);
-  const floor = new THREE.Mesh(new THREE.PlaneGeometry(20, 20), new THREE.MeshStandardMaterial({ map: floorTex, roughness: .7, envMapIntensity: .2 }));
-  floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; hall.add(floor);
-  const altar = new THREE.Mesh(new THREE.BoxGeometry(1.9, ALTAR_Y, .75), lacquer); altar.position.set(0, ALTAR_Y / 2, -.12); altar.receiveShadow = true; altar.castShadow = true; hall.add(altar);
-  const cloth = new THREE.Mesh(new THREE.PlaneGeometry(1.7, .6), new THREE.MeshStandardMaterial({ map: clothTex, roughness: .55, envMapIntensity: .2 }));
-  cloth.position.set(0, ALTAR_Y - .32, .256); cloth.receiveShadow = true; hall.add(cloth);
-  const trim = new THREE.Mesh(new THREE.BoxGeometry(1.92, .018, .02), new THREE.MeshStandardMaterial({ color: 0x8a6a3c, metalness: .9, roughness: .55, envMapIntensity: .25 })); trim.position.set(0, ALTAR_Y - .01, .255); hall.add(trim);
-  const hemi = new THREE.HemisphereLight(0x3a2c22, 0x0a0705, .55); hall.add(hemi);
-  const door = new THREE.DirectionalLight(0x7f95b0, .22); door.position.set(-2, 3, -6); hall.add(door); hallDoor = door;
-  for (const x of [-2.1, 2.1]) for (const z of [-.7, -3.9]) {
-    const p = new THREE.Mesh(new THREE.CylinderGeometry(.19, .2, 6, 32), lacquer); p.position.set(x, 3, z); p.castShadow = true; hall.add(p);
-    const b = new THREE.Mesh(new THREE.CylinderGeometry(.3, .32, .2, 24), new THREE.MeshStandardMaterial({ color: 0x2b2622, roughness: .8 })); b.position.set(x, .1, z); hall.add(b);
-  }
-  for (const z of [-.7, -3.9]) { const beam = new THREE.Mesh(new THREE.BoxGeometry(4.8, .36, .3), lacquer); beam.position.set(0, 4.3, z); hall.add(beam); }
-  const wall = new THREE.Mesh(new THREE.PlaneGeometry(9, 6), new THREE.MeshStandardMaterial({ color: 0x1a1210, emissive: 0x8ea6c4, emissiveMap: latticeTex, emissiveIntensity: .5, roughness: .9 }));
-  wall.position.set(0, 3, -6); hall.add(wall); hallWindow = wall.material;
-  const statueGlow = new THREE.Sprite(new THREE.SpriteMaterial({ map: softTex, color: 0xffa64d, transparent: true, opacity: .08, depthWrite: false, blending: THREE.AdditiveBlending }));
-  statueGlow.position.set(0, 2.4, -4.7); statueGlow.scale.set(3.6, 4.6, 1); hall.add(statueGlow);
-  for (const [x, rot] of [[-1.05, .32], [.9, .28]]) {
-    const s = new THREE.Mesh(new THREE.PlaneGeometry(.9, 6.5), new THREE.MeshBasicMaterial({ map: shaftTex, color: 0xffe7c4, transparent: true, opacity: .055, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide }));
-    s.position.set(x, 3.2, -2.8); s.rotation.set(0, 0, rot); hall.add(s);
-  }
+// Fine crazing in a celadon glaze.
+const crackleTex = canvasTex(512, 512, (g, w, h) => {
+  const rnd = mulberry32(23); g.fillStyle = '#808080'; g.fillRect(0, 0, w, h); g.strokeStyle = 'rgba(40,40,40,.5)'; g.lineWidth = 1.2;
+  for (let i = 0; i < 160; i++) { let x = rnd() * w, y = rnd() * h; g.beginPath(); g.moveTo(x, y); for (let k = 0; k < 5; k++) { x += (rnd() - .5) * 60; y += (rnd() - .5) * 60; g.lineTo(x, y); } g.stroke(); }
+}, false);
+// Holes punched in a pottery hood, as an alpha map (white = solid).
+const holesTex = canvasTex(256, 256, (g, w, h) => {
+  g.fillStyle = '#fff'; g.fillRect(0, 0, w, h); g.fillStyle = '#000';
+  for (let row = 0; row < 4; row++) for (let i = 0; i < 9; i++) { const x = (i + (row % 2) * .5) / 9 * w, y = h * (.3 + row * .13); g.beginPath(); g.arc(x, y, 4.5 - row * .5, 0, 6.3); g.fill(); }
+}, false);
+// Actual photographed weave/normal/roughness. The photograph contributes its
+// measured yarn luminance; the person's chosen colour remains the cloth dye.
+const gauzeTex=new THREE.Texture(),gauzeNormal=new THREE.Texture(),gauzeRoughness=new THREE.Texture();
+let visitorFabricReady;
+async function ensureVisitorFabric(){
+  if(!visitorFabricReady)visitorFabricReady=Promise.all(Object.entries(visitorFabric.maps).map(async([role,file])=>{
+    const loaded=await new THREE.TextureLoader().loadAsync(`${file.path}?v=${file.sha256}`);
+    const texture=role==='weave'?gauzeTex:role==='normal'?gauzeNormal:gauzeRoughness;
+    texture.image=loaded.image;texture.colorSpace=role==='weave'?THREE.SRGBColorSpace:THREE.NoColorSpace;
+    texture.wrapS=texture.wrapT=THREE.RepeatWrapping;texture.repeat.set(1.28,.96);
+    texture.anisotropy=Math.min(4,renderer.capabilities.getMaxAnisotropy());texture.needsUpdate=true;loaded.dispose();
+  })).catch(error=>{visitorFabricReady=null;throw error;});
+  await visitorFabricReady;
 }
-const plaqueMat = new THREE.MeshStandardMaterial({ roughness: .45, metalness: .2, emissive: 0xffffff, emissiveIntensity: .1 });
-const plaque = new THREE.Mesh(new THREE.PlaneGeometry(1.1, .34), plaqueMat); plaque.position.set(0, 2.7, -3.2); hall.add(plaque);
-const banners = [-1.3, 1.3].map((x) => {
-  const b = new THREE.Mesh(new THREE.PlaneGeometry(.42, 2.1), new THREE.MeshStandardMaterial({ map: bannerTex, roughness: .8, side: THREE.DoubleSide }));
-  b.geometry.translate(0, -1.05, 0); b.position.set(x, 3.7, -2.1); hall.add(b); return b;
+// Paper in a wooden lattice: the paper is lit, the bars are dark.
+const paperLatticeTex = canvasTex(256, 384, (g, w, h) => {
+  g.fillStyle = '#efe2c8'; g.fillRect(0, 0, w, h);
+  const rnd = mulberry32(37); for (let i = 0; i < 1600; i++) { g.fillStyle = `rgba(150,120,80,${rnd() * .08})`; g.fillRect(rnd() * w, rnd() * h, 1 + rnd() * 4, 1); }
+  g.fillStyle = '#3a2416'; for (let x = 0; x <= w; x += w / 3) g.fillRect(x - 5, 0, 10, h); for (let y = 0; y <= h; y += h / 4) g.fillRect(0, y - 5, w, 10);
 });
-const dust = (() => {
-  const n = 320, rnd = mulberry32(9), pos = new Float32Array(n * 3);
-  for (let i = 0; i < n; i++) { pos[i * 3] = (rnd() - .5) * 3.4; pos[i * 3 + 1] = .4 + rnd() * 3.4; pos[i * 3 + 2] = -3.2 + rnd() * 4; }
-  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-  const p = new THREE.Points(g, new THREE.PointsMaterial({ map: softTex, color: 0xffd7a0, size: .012, transparent: true, opacity: .45, depthWrite: false, blending: THREE.AdditiveBlending }));
-  hall.add(p); return p;
-})();
 
-const incenseSmoke = new Smoke(hall, 60, 0xb8b0a8, .1);
-const incenseTips = [];
-{
-  const burner = new THREE.Mesh(new THREE.LatheGeometry([[0, 0], [.07, 0], [.075, .01], [.06, .02], [.11, .05], [.115, .11], [.12, .118], [.105, .118], [.1, .1], [0, .1]].map(([x, y]) => V2(x, y)), 48),
-    new THREE.MeshStandardMaterial({ color: 0x5a4630, metalness: 1, roughness: .45, envMapIntensity: .3 }));
-  burner.position.set(-.56, ALTAR_Y, -.3); burner.castShadow = true; burner.receiveShadow = true; hall.add(burner);
-  const ash = new THREE.Mesh(new THREE.CircleGeometry(.1, 32), new THREE.MeshStandardMaterial({ color: 0x8a847c, roughness: 1 })); ash.rotation.x = -Math.PI / 2; ash.position.set(-.56, ALTAR_Y + .104, -.3); hall.add(ash);
-  for (const [dx, lean] of [[-.03, -.06], [0, 0], [.03, .07]]) {
-    const st = new THREE.Mesh(new THREE.CylinderGeometry(.0018, .0018, .26, 6), new THREE.MeshStandardMaterial({ color: 0x8b2a1c, roughness: .8 }));
-    st.position.set(-.56 + dx, ALTAR_Y + .23, -.3); st.rotation.z = lean; hall.add(st);
-    const tip = new THREE.Mesh(new THREE.SphereGeometry(.0032, 8, 8), new THREE.MeshBasicMaterial({ color: new THREE.Color(4, 1.1, .3) }));
-    tip.position.set(-.56 + dx - Math.sin(lean) * .13, ALTAR_Y + .23 + Math.cos(lean) * .13, -.3); hall.add(tip); incenseTips.push(tip.position);
+const brass = new THREE.MeshStandardMaterial({ color: 0xc09454, metalness: 1, roughness: .34, roughnessMap: patina, envMapIntensity: 1.1 });
+const darkBrass = new THREE.MeshStandardMaterial({ color: 0x7a5a32, metalness: 1, roughness: .42, roughnessMap: patina, envMapIntensity: .9 });
+const glassMat = new THREE.MeshPhysicalMaterial({ color: 0xf6f2ea, roughness: .03, transparent: true, opacity: .07, envMapIntensity: 1.2, clearcoat: 1, depthWrite: false, side: THREE.DoubleSide });
+const clayMat = new THREE.MeshStandardMaterial({ color: 0x8a5838, roughness: .92, bumpMap: patina, bumpScale: .0007, envMapIntensity: .15 });
+const greyStoneMat = new THREE.MeshStandardMaterial({ color: 0x77736a, roughness: .9, bumpMap: patina, bumpScale: .0009, envMapIntensity: .12 });
+const lotusMat = new THREE.MeshPhysicalMaterial({ color: 0xeadcd2, roughness: .32, clearcoat: .6, clearcoatRoughness: .2, envMapIntensity: .5, sheen: .5, sheenColor: new THREE.Color(0xffd6d0) });
+// A lotus petal: pointed, cupped across, its tip curling a little outward. Concave side faces -z.
+function petalGeo(w,h,cup){
+  const columns=16,rows=20,vertices=[],uv=[],index=[];
+  for(let side=0;side<2;side++)for(let j=0;j<=rows;j++)for(let i=0;i<=columns;i++){
+    const u=i/columns-.5,v=j/rows,width=Math.pow(Math.max(0,Math.sin(Math.PI*v)),.65)*(1-.25*v);
+    vertices.push(u*w*width,v*h,-cup*(1-4*u*u)*width+h*.22*v*v+(side?-.0008:.0008));uv.push(i/columns,v);
   }
+  const layer=(columns+1)*(rows+1);
+  for(let side=0;side<2;side++)for(let j=0;j<rows;j++)for(let i=0;i<columns;i++){
+    const a=side*layer+j*(columns+1)+i,b=a+columns+1;
+    if(side)index.push(a,b,b+1,a,b+1,a+1);else index.push(a,b+1,b,a,a+1,b+1);
+  }
+  for(let j=0;j<rows;j++)for(const i of [0,columns]){const a=j*(columns+1)+i,b=a+columns+1;index.push(a,a+layer,b+layer,a,b+layer,b);}
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(vertices,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));g.setIndex(index);g.computeVertexNormals();return g;
+}
+const oilMat = new THREE.MeshPhysicalMaterial({ color: 0x2c1a08, roughness: .04, clearcoat: 1, envMapIntensity: .9 });
+const lacquerBlack = new THREE.MeshPhysicalMaterial({ color: 0x140d0a, roughness: .36, clearcoat: .6, envMapIntensity: .4 });
+const lampWood = new THREE.MeshStandardMaterial({ color: 0x5a3a24, map: grainTex, roughness: .66, envMapIntensity: .2 });
+const cordMat = new THREE.MeshStandardMaterial({ color: 0x9a1810, roughness: .8 });
+function visitorRibMaterial(color){
+  const material=lampWood.clone(),cloth=new THREE.Color(color),maximum=Math.max(.0001,cloth.r,cloth.g,cloth.b);
+  const throughput=new THREE.Color().setRGB(...[cloth.r,cloth.g,cloth.b].map(c=>.06*Math.pow(c/maximum,.7)));
+  material.roughness=.9;material.envMapIntensity=.1;
+  material.onBeforeCompile=shader=>{
+    shader.uniforms.uClothThroughput={value:throughput};
+    shader.fragmentShader='uniform vec3 uClothThroughput;\n'+shader.fragmentShader.replace('#include <lights_fragment_begin>',THREE.ShaderChunk.lights_fragment_begin.replace('getPointLightInfo( pointLight, geometryPosition, directLight );',`getPointLightInfo( pointLight, geometryPosition, directLight );
+      {float flameDistance2=dot(pointLight.position-geometryPosition,pointLight.position-geometryPosition);
+      if(flameDistance2<1.)directLight.color*=uClothThroughput*flameDistance2/(flameDistance2+.0016);}`));
+  };
+  material.userData.lampOwned=true;
+  material.customProgramCacheKey=()=> 'visitor-gauze-transmitted-ribs-1';return material;
 }
 
-// Flame parts shared by every lit thing.
-function flameParts(g) {
+// A shade lit from inside: paper, gauze or pottery that glows most where the flame is near.
+function shellMaterial(color, o = {}) {
+  const Material=o.cloth?THREE.MeshPhysicalMaterial:THREE.MeshStandardMaterial;
+  const m = new Material({ color, roughness: o.rough ?? .85, map: o.map ?? null, alphaMap: o.alphaMap ?? null, alphaTest: o.alphaMap ? .5 : 0, side: THREE.DoubleSide, envMapIntensity: .15 });
+  if(o.cloth){
+    m.normalMap=gauzeNormal;m.normalScale.set(.38,.38);m.roughnessMap=gauzeRoughness;
+    m.sheen=.45;m.sheenRoughness=.85;m.sheenColor.copy(m.color);m.specularIntensity=.3;
+  }
+  m.userData.u = { uFlame: { value: V3(0, 0, 0) }, uGlow: { value: 0 }, uGlowColor: { value: new THREE.Color(o.glow ?? 0xffa050) }, uReach: { value: o.reach ?? 9 }, uBase: { value: o.base ?? .2 } };
+  if(o.cloth){
+    m.userData.cloth=true;
+    Object.assign(m.userData.u,{uClothPhysical:{value:0},uClothIntensity:{value:0},uClothSourceRGB:{value:new THREE.Color()},uClothEmitterRadius:{value:.004},uClothTransmissionWeight:{value:.65},uClothReflectionWeight:{value:.35}});
+  }
+  m.userData.strength = o.strength ?? 1;
+  m.userData.lampOwned=true;
+  m.onBeforeCompile = (sh) => {
+    Object.assign(sh.uniforms, m.userData.u);
+    sh.vertexShader = 'varying vec3 vSPos;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\nvSPos = (modelMatrix * vec4(transformed, 1.0)).xyz;');
+    sh.fragmentShader = 'uniform vec3 uFlame; uniform float uGlow; uniform vec3 uGlowColor; uniform float uReach; uniform float uBase; varying vec3 vSPos;\n'+(o.cloth?'uniform float uClothPhysical,uClothIntensity,uClothEmitterRadius,uClothTransmissionWeight,uClothReflectionWeight;uniform vec3 uClothSourceRGB;\n':'') + sh.fragmentShader.replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
+      float near = exp(-distance(vSPos, uFlame) * uReach);
+      float transmissionShadow=1.,physicalTransmissionShadow=1.;
+      #ifdef USE_STATIC_LAMP_SHADOW
+        physicalTransmissionShadow*=getStaticLampVisibility(vSPos,inverseTransformDirection(normal,viewMatrix));
+      #endif
+      ${o.cloth?`#if defined(USE_SHADOWMAP) && NUM_POINT_LIGHT_SHADOWS > 0
+        PointLightShadow ribShadow=pointLightShadows[0];
+        physicalTransmissionShadow*=getPointShadow(pointShadowMap[0],ribShadow.shadowMapSize,ribShadow.shadowBias,ribShadow.shadowRadius,vPointShadowCoord[0],ribShadow.shadowCameraNear,ribShadow.shadowCameraFar);
+        transmissionShadow=mix(.28,1.,physicalTransmissionShadow);
+      #endif`:''}
+      vec3 transmitted=${o.cloth?'mix(diffuseColor.rgb,pow(max(diffuseColor.rgb,vec3(0.)),vec3(.55)),.32)':'diffuseColor.rgb'};
+      float clothSignedIncidence=${o.cloth?'dot(normal,normalize((viewMatrix*vec4(uFlame,1.)).xyz+vViewPosition))':'1.'};
+      float clothIncidence=abs(clothSignedIncidence);
+      ${o.cloth?`if(uClothPhysical>.5){
+        // Thin-cloth diffuse transmission from the actual candle. The source
+        // uses the same translucent weight. Emissive accumulation here is only
+        // Three's outgoing-radiance accumulator; no independent glow gain.
+        float sourceDistance2=dot(uFlame-vSPos,uFlame-vSPos);
+        float irradiance=uClothIntensity*clothIncidence/max(sourceDistance2,uClothEmitterRadius*uClothEmitterRadius);
+        totalEmissiveRadiance+=uClothSourceRGB*diffuseColor.rgb*(uClothTransmissionWeight/3.14159265359)*irradiance*physicalTransmissionShadow*(1.-step(0.,clothSignedIncidence));
+      }else` : ''}{
+        totalEmissiveRadiance += uGlowColor * uGlow * (uBase + near * clothIncidence) * transmitted * transmissionShadow;
+      }`);
+    if(o.cloth){
+      sh.fragmentShader=sh.fragmentShader.replace('#include <lights_fragment_end>','#include <lights_fragment_end>\nif(uClothPhysical>.5){reflectedLight.directDiffuse*=uClothReflectionWeight;reflectedLight.indirectDiffuse*=uClothReflectionWeight;}');
+      sh.uniforms.uWeaveMean={value:visitorFabric.meanLinearLuminance};
+      sh.fragmentShader='uniform float uWeaveMean;\n'+sh.fragmentShader.replace('#include <map_fragment>',`#ifdef USE_MAP
+        vec3 photographedWeave=texture2D(map,vMapUv).rgb;
+        float yarn=dot(photographedWeave,vec3(.2126,.7152,.0722))/uWeaveMean;
+        diffuseColor.rgb*=clamp(yarn,.66,1.24);
+      #endif`);
+    }
+  };
+  m.customProgramCacheKey=()=>`translucent-shell-${o.cloth?'woven':'plain'}-3`;
+  return m;
+}
+const lathe = (pts, seg = 64) => new THREE.LatheGeometry(pts.map(([r, y]) => V2(r, y)), seg);
+const solid = (g, geo, m, x = 0, y = 0, z = 0) => { const o = new THREE.Mesh(geo, m); o.position.set(x, y, z); o.castShadow = !m.transparent; o.receiveShadow = true; g.add(o); return o; };
+
+// Flame parts shared by every lit thing. Lamps left by others carry no light of their own.
+function flameParts(g, o = {}) {
   const wick = new THREE.Mesh(new THREE.CylinderGeometry(.0008, .001, .008, 8), new THREE.MeshStandardMaterial({ color: 0x15100c, roughness: 1 })); wick.geometry.translate(.0007, .004, 0); g.add(wick);
   const ember = new THREE.Mesh(new THREE.SphereGeometry(.0009, 8, 8), new THREE.MeshBasicMaterial({ color: new THREE.Color(3, .7, .15) })); g.add(ember);
   const fm = flameMaterial(false); fm.uniforms.uSeedU.value = Math.random() * 10; flameMats.push(fm);
   const flame = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), fm); flame.frustumCulled = false; g.add(flame);
   const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: softTex, color: 0xff8a3a, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending })); halo.scale.set(.2, .26, 1); g.add(halo);
-  const light = new THREE.PointLight(0xff9a48, 0, 0, 2); g.add(light);
-  return { wick, ember, fm, flame, halo, light,
-    place(x, y) { wick.position.set(x, y - .004, 0); ember.position.set(x, y + .004, 0); flame.position.set(x, y + .002, 0); halo.position.set(x, y + .03, 0); light.position.set(x, y + .019, 0); },
+  const light = o.light === false ? null : new THREE.PointLight(o.color ?? 0xffba78, 0, 0, 2); if (light) g.add(light);
+  const size = o.size ?? 1;
+  return { wick, ember, fm, flame, halo, light, size, soft: false,
+    place(x, y, z = 0) { wick.position.set(x, y - .004, z); ember.position.set(x, y + .004, z); flame.position.set(x, y + .002, z); halo.position.set(x, y + .03 * this.size, z); light?.position.set(x, y + .019 * this.size, z); },
     tick(time, power, lightMax, wax, topY) {
       const seed = fm.uniforms.uSeedU.value;
-      const f = .85 + .15 * noise2((time + seed * 17) * 3.7, seed * 5);
-      fm.uniforms.uTime.value = time; fm.uniforms.uPower.value = power; fm.uniforms.uScale.value = .038 * (.85 + .15 * f) * Math.max(.15, Math.sqrt(power));
-      light.intensity = lightMax * power * f; halo.material.opacity = .025 * power * f; ember.visible = power > .02;
-      for (const m of wax) { m.userData.u.uTop.value = topY; m.userData.u.uGlow.value = 1.1 * power * f; }
+      const f = this.soft ? .975 + .025 * noise2((time + seed * 17) * .48, seed * 5) : .85 + .15 * noise2((time + seed * 17) * 3.7, seed * 5);
+      fm.uniforms.uSoft.value = this.soft ? 1 : 0;
+      fm.uniforms.uTime.value = time; fm.uniforms.uPower.value = power; fm.uniforms.uScale.value = .038 * this.size * (.85 + .15 * f) * Math.max(.15, Math.sqrt(power));
+      const field=this.soft?1:f;
+      if (light) light.intensity = lightMax * power * field;
+      halo.material.opacity = .025 * power * f; ember.visible = power > .02;
+      for (const m of wax) { m.userData.u.uTop.value = topY; m.userData.u.uGlow.value = 1.1 * power * field; }
+      return field;
     } };
 }
 
-// Two candles left by other people, already burning.
-const others = [];
-for (const [x, z, lv] of [[.5, -.32, .55], [-.3, -.42, .3]]) {
-  const g = new THREE.Group(); g.position.set(x, ALTAR_Y, z); hall.add(g);
-  const holder = new THREE.Mesh(new THREE.LatheGeometry([[0, 0], [.06, 0], [.064, .006], [.028, .014], [.02, .032], [.026, .046], [.074, .05], [.078, .058], [.07, .058], [0, .056]].map(([a, b]) => V2(a * .93, b)), 48), brass);
-  holder.castShadow = true; g.add(holder);
-  const wax = waxMaterial(lv < .4 ? 0xdcc9a6 : 0x8c1a12), h = .2 * (.1 + .9 * lv);
-  const geometry = new THREE.LatheGeometry([[0,-h/2],[.0283,-h/2],[.028,h/2-.002],[.0277,h/2],[.024,h/2-.0008],[.02,h/2-.003],[0,h/2-.003]].map(([r,y])=>V2(r,y)),64);
-  const points = geometry.attributes.position;
-  for (let i=0;i<points.count;i++) {
-    if (points.getY(i) < h/2-.0001) continue;
-    const a=Math.atan2(points.getZ(i),points.getX(i));
-    points.setY(i,points.getY(i)+.0005*Math.sin(a*5));
+// ---------- The lamps ----------
+// Each place's own lamp. A builder returns the vessel and what the burn needs:
+// wax lamps give a seat for the candle; oil lamps the inside of the vessel; shaded lamps their shells.
+// frame: the height of the whole lamp and where its middle is, for framing the camera.
+const cupVolume = (r, y0, y1, n = 40) => { const ys = [y0], cum = [0], dy = (y1 - y0) / n; let v = 0; for (let i = 1; i <= n; i++) { const y = y0 + dy * i, rr = r(y - dy / 2); v += Math.PI * rr * rr * dy; ys.push(y); cum.push(v); } return { ys, cum, vol: v, r }; };
+// A profile from the person's rows, scaled, as [radius, height] pairs from the bottom up.
+const scaled = (rows, s) => rows.map((q) => [Math.max(.002, q.r * s), q.y * s]);
+// A shade is scaled up from the drawing, but never below what still holds its flame.
+const shadeScale = (rows, s, minR) => Math.max(s, minR / Math.max(...rows.map((q) => q.r)));
+const radiusAt = (P, y) => { let i = 1; while (i < P.length - 1 && P[i][1] < y) i++; const [r0, y0] = P[i - 1], [r1, y1] = P[i]; return r0 + (r1 - r0) * Math.min(1, Math.max(0, (y - y0) / (y1 - y0 || 1))); };
+// A dish turned from an outline: the outside follows the drawing, the inside is a wall's thickness in, above a floor.
+function dish(rows, s, m, o = {}) {
+  const P = scaled(rows, s), top = P[P.length - 1][1], wall = o.wall ?? .0028, floor = Math.min(.006, top * .22);
+  const inner = (y) => Math.max(.0015, radiusAt(P, y) - wall);
+  const pts = [[0, 0], ...P, [inner(top), top]];
+  for (let i = P.length - 1; i >= 0; i--) if (P[i][1] > floor && P[i][1] < top) pts.push([inner(P[i][1]), P[i][1]]);
+  pts.push([inner(floor), floor], [0, floor]);
+  const geo = lathe(pts, 72);
+  if (o.spout) {
+    // A pinched spout on +x where the wick lies.
+    const p = geo.attributes.position, R = P[P.length - 1][0];
+    for (let i = 0; i < p.count; i++) { const x = p.getX(i), z = p.getZ(i), a = Math.atan2(z, x), k = Math.exp(-a * a * 9) * Math.min(1, p.getY(i) / Math.max(top, .001)); p.setXYZ(i, x + k * R * .4 * Math.cos(a) - Math.abs(z) * k * .3, p.getY(i) + k * .003, z * (1 - k * .5)); }
+    geo.computeVertexNormals();
   }
-  geometry.computeVertexNormals();
-  const body = new THREE.Mesh(geometry, wax); body.position.y = .056 + h / 2; body.castShadow = true; g.add(body);
-  const melted = new THREE.Mesh(new THREE.CircleGeometry(.0195,48).rotateX(-Math.PI/2),new THREE.MeshPhysicalMaterial({color:0x541d0c,roughness:.1,clearcoat:1,envMapIntensity:.08})); melted.position.y=.056+h-.0027; g.add(melted);
-  for (const [angle,length] of [[.8,.026],[1.8,.016],[2.8,.034]]) {
-    const trail=new THREE.Mesh(new THREE.LatheGeometry([[0,-1],[.7,-.94],[1,-.75],[.4,-.3],[.2,1],[0,1]].map(([r,y])=>V2(r,y)),12),wax);
-    trail.position.set(Math.cos(angle)*.028,.056+h-length/2,Math.sin(angle)*.028);trail.scale.set(.0011,length/2,.0011);g.add(trail);
-  }
-  const f = flameParts(g); f.place(0, .056 + h); f.light.castShadow = false;
-  others.push({ g, f, wax: [wax] });
+  const mesh = new THREE.Mesh(geo, m); mesh.castShadow = !m.transparent; mesh.receiveShadow = true;
+  return { mesh, top, rim: P[P.length - 1][0], vessel: cupVolume(inner, floor, top * .94) };
 }
+// The person's glaze: celadon and white porcelain shine, clay stays matte.
+function dishMaterial(color, glass) {
+  if (glass) return new THREE.MeshPhysicalMaterial({ color: new THREE.Color(color).lerp(new THREE.Color(0xd8962e), .35), roughness: .05, transparent: true, opacity: .4, clearcoat: 1, envMapIntensity: 1.5, depthWrite: false, side: THREE.DoubleSide });
+  const clay = color === 0x8a5838;
+  return new THREE.MeshPhysicalMaterial({ color, roughness: clay ? .9 : .14, bumpMap: clay ? patina : crackleTex, bumpScale: clay ? .0007 : .00012, clearcoat: clay ? 0 : 1, clearcoatRoughness: .06, envMapIntensity: clay ? .15 : 1, side: THREE.DoubleSide });
+}
+const WAX_LAMPS = new Set(['niche', 'lantern', 'lotus']);
+// Metal, glaze and wax near a flame reflect a dark room with warm points, not the open sky.
+const nearMaterials = new WeakSet();
+function warmReflections(o) { for (const m of [o.material].flat()) if (m && 'envMap' in m && !nearMaterials.has(m)) { nearMaterials.add(m); m.envMap = spotEnv; m.needsUpdate = true; } }
+function actualHallEnvironment(material,texture){
+  const compile=material.onBeforeCompile,key=material.customProgramCacheKey.bind(material);
+  material.envMap=texture;material.envMapIntensity=1;
+  material.onBeforeCompile=(shader,renderer)=>{
+    compile.call(material,shader,renderer);
+    // Captured hall radiance already contains the ambient contribution.
+    shader.fragmentShader=shader.fragmentShader.replace('#include <lights_fragment_begin>',THREE.ShaderChunk.lights_fragment_begin)
+      .replace('irradiance += getHemisphereLightIrradiance( hemisphereLights[ i ], geometryNormal );','/* Ambient is sampled from the actual hall. */');
+  };
+  material.customProgramCacheKey=()=>key()+'-actual-hall-environment-1';material.needsUpdate=true;
+}
+const presetOf = (kind) => ({ rows: PRESET_SHAPES[kind][0].rows, color: COLORS[kind][0] });
+const LAMPS = {
+  // A small rough stone dish in a niche.
+  niche() {
+    const g = new THREE.Group();
+    solid(g, lathe([[0, 0], [.042, 0], [.05, .004], [.052, .013], [.047, .015], [.043, .007], [0, .007]], 40), greyStoneMat);
+    return { g, kind: 'wax', seat: { y: .007, maxR: .045, maxH: .16 }, frame: { h: .2, cy: .08 }, lightMax: .3 };
+  },
+  // A brass-framed storm lantern hanging from a hook; the candle stands inside behind glass.
+  lantern() {
+    const g = new THREE.Group(), W = .075, top = -.07, bottom = -.31;
+    solid(g, new THREE.TorusGeometry(.016, .0022, 8, 24), brass, 0, -.004, 0);
+    solid(g, new THREE.CylinderGeometry(.012, .02, .03, 16), brass, 0, -.035, 0);
+    const cap = solid(g, new THREE.ConeGeometry(W * 1.42, .045, 4, 1, true), brass, 0, top + .012, 0); cap.rotation.y = Math.PI / 4;
+    solid(g, new THREE.BoxGeometry(W * 2 + .012, .008, W * 2 + .012), brass, 0, top - .012, 0);
+    for (const [x, z] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) solid(g, new THREE.BoxGeometry(.007, top - bottom, .007), brass, x * W, (top + bottom) / 2, z * W);
+    for (const [x, z, ry] of [[0, W, 0], [0, -W, 0], [W, 0, Math.PI / 2], [-W, 0, Math.PI / 2]]) { const p = new THREE.Mesh(new THREE.PlaneGeometry(W * 2, top - bottom - .016), glassMat); p.position.set(x, (top + bottom) / 2, z); p.rotation.y = ry; p.renderOrder = 2; g.add(p); }
+    solid(g, new THREE.BoxGeometry(W * 2 + .016, .012, W * 2 + .016), brass, 0, bottom, 0);
+    solid(g, new THREE.BoxGeometry(W * 2 - .01, .004, W * 2 - .01), darkBrass, 0, bottom + .008, 0);
+    for (const s of [-1, 1]) solid(g, new THREE.BoxGeometry(.004, .03, .004), brass, s * W * .9, bottom - .02, 0);
+    return { g, kind: 'wax', seat: { y: bottom + .01, maxR: .055, maxH: .17 }, frame: { h: .36, cy: -.17 }, lightMax: .34, hang: true };
+  },
+  // A lotus seat: two rings of petals around a cup.
+  lotus() {
+    const g = new THREE.Group();
+    solid(g, lathe([[0, 0], [.07, 0], [.072, .01], [.05, .016], [.04, .03], [0, .03]], 48), lotusMat);
+    for (const [n, r, y, lean, s] of [[12, .046, .016, .62, 1], [10, .032, .026, .32, .84]]) for (let i = 0; i < n; i++) {
+      const a = (i + (s < 1 ? .5 : 0)) / n * Math.PI * 2, m = new THREE.Mesh(petalGeo(.05 * s, .052 * s, .017 * s), lotusMat);
+      m.position.set(Math.cos(a) * r, y, Math.sin(a) * r); m.rotation.set(lean, Math.PI / 2 - a, 0, 'YXZ'); m.castShadow = m.receiveShadow = true; g.add(m);
+    }
+    solid(g, lathe([[0, .03], [.032, .03], [.036, .05], [.033, .052], [.028, .04], [0, .04]], 40), lotusMat);
+    return { g, kind: 'wax', seat: { y: .04, maxR: .05, maxH: .16 }, frame: { h: .22, cy: .09 }, lightMax: .3 };
+  },
+  // A glazed dish on the cloister shelf; the wick lies in the oil and rests on the rim.
+  celadon(o = presetOf('oil')) {
+    const g = new THREE.Group(), d = dish(o.rows, 1, dishMaterial(o.color)); g.add(d.mesh);
+    return { g, kind: 'oil', vessel: d.vessel, wick: { at: V3(d.rim * .86, d.top + .004, 0) }, frame: { h: Math.max(.08, d.top + .05), cy: d.top * .5 }, lightMax: .24, flame: .85 };
+  },
+  // A clay dish with a pinched spout where the short wick lies.
+  clay(o = presetOf('oil')) {
+    const g = new THREE.Group(), d = dish(o.rows, 1, dishMaterial(o.color), { spout: true }); g.add(d.mesh);
+    return { g, kind: 'oil', vessel: d.vessel, wick: { at: V3(d.rim * 1.32, d.top + .006, 0) }, frame: { h: Math.max(.08, d.top + .05), cy: d.top * .5 }, lightMax: .24, flame: .8 };
+  },
+  // The person's dish raised on a brass foot, a brass wick tube in the middle and a glass chimney over the flame.
+  chimney(o = presetOf('oil')) {
+    const g = new THREE.Group(), foot = .03;
+    solid(g, lathe([[0, 0], [.045, 0], [.047, .005], [.03, .012], [.014, .02], [.012, .026], [.02, foot], [0, foot]], 48), brass);
+    const d = dish(o.rows, 1, dishMaterial(o.color)); d.mesh.position.y = foot; g.add(d.mesh);
+    const wy = foot + d.top + .01;
+    solid(g, new THREE.CylinderGeometry(.004, .005, wy - foot - .006, 12), brass, 0, (wy + foot + .006) / 2, 0);
+    solid(g, new THREE.TorusGeometry(.024, .0018, 8, 32).rotateX(Math.PI / 2), brass, 0, wy - .004, 0);
+    for (let i = 0; i < 3; i++) { const a = i / 3 * Math.PI * 2; solid(g, new THREE.BoxGeometry(.002, .012, .002), brass, Math.cos(a) * .024, wy - .01, Math.sin(a) * .024); }
+    const ch = new THREE.Mesh(lathe([[.022, wy - .004], [.024, wy + .01], [.034, wy + .035], [.034, wy + .05], [.022, wy + .08], [.019, wy + .12]], 48), glassMat); ch.renderOrder = 3; g.add(ch);
+    const vessel = { ...d.vessel, ys: d.vessel.ys.map((y) => y + foot), r: (y) => d.vessel.r(y - foot) };
+    return { g, kind: 'oil', vessel, wick: { at: V3(0, wy, 0) }, frame: { h: wy + .12, cy: wy * .6 }, lightMax: .3, flame: .9 };
+  },
+  // A small dish of tinted glass; the wick floats on the oil.
+  glass(o = presetOf('oil')) {
+    const g = new THREE.Group(), d = dish(o.rows, 1, dishMaterial(o.color, true), { wall: .0018 }); d.mesh.renderOrder = 2; d.mesh.castShadow = false; g.add(d.mesh);
+    return { g, kind: 'oil', vessel: d.vessel, wick: { float: .005 }, oilBody: true, frame: { h: Math.max(.08, d.top + .04), cy: d.top * .5 }, lightMax: .24, flame: .78 };
+  },
+  // A pottery hood pierced with small holes, over a clay cup; its outline is the person's.
+  hood(o = presetOf('shade')) {
+    const g = new THREE.Group(), P = scaled(o.rows, shadeScale(o.rows, 1.5, .045)), r0 = P[0][0], top = P[P.length - 1][1];
+    solid(g, lathe([[0, 0], [r0 + .012, 0], [r0 + .016, .012], [r0 + .01, .014], [r0 + .006, .006], [0, .006]], 48), clayMat);
+    solid(g, lathe([[0, .006], [.018, .006], [.022, .026], [.019, .028], [0, .022]], 32), clayMat);
+    const shell = shellMaterial(o.color, { alphaMap: holesTex, glow: 0xff9040, reach: 18, rough: .95, base: .02, strength: .3 });
+    solid(g, lathe(P.map(([r, y]) => [r, y + .012]), 48), shell);
+    solid(g, new THREE.SphereGeometry(.012, 16, 10), clayMat, 0, top + .016, 0);
+    return { g, kind: 'shade', shells: [shell], wick: { at: V3(0, .03, 0) }, frame: { h: top + .03, cy: top * .48 }, lightMax: .6, flame: .8, light: 0xffa048 };
+  },
+  // A gauze lantern hanging under the eaves, ribbed with bamboo, a tassel below; its outline is the person's.
+  gauze(o = presetOf('shade')) {
+    const topCx=o.rows[o.rows.length-1].cx;
+    // Fuel duration does not push a larger shade through its ceiling beam.
+    // Preserve every drawn profile proportion within a real hanging envelope.
+    const width=Math.max(...o.rows.map(row=>row.r+Math.abs(row.cx-topCx)));
+    const size=o.liveBaked?Math.min(.56/Math.max(.0001,o.rows.at(-1).y),.21/Math.max(.0001,width)):shadeScale(o.rows,3.8,.02);
+    const g = new THREE.Group(), P = scaled(o.rows,size), H = P[P.length - 1][1], y0 = -.066 - H;
+    const centerAt=y=>{const q=ringAt(o.rows,Math.max(0,Math.min(H,(y-y0)))/size);return(q.cx-topCx)*size;};
+    const bottomCx=centerAt(y0);
+    const ribs=o.liveBaked?visitorRibMaterial(o.color):lampWood;
+    // Cloth and its supporting ribs must follow the same profile. Previously
+    // straight cloth panels crossed the curved ribs between the drawn rows.
+    const outline=new THREE.CatmullRomCurve3(P.map(([r,y])=>V3(r,y0+y,0)));
+    const prof=outline.getPoints(Math.max(64,P.length*2)).map(p=>[Math.max(.002,p.x),p.y]);
+    const rTop=prof.at(-1)[0],rBot=prof[0][0];
+    const smokeProfile=prof.map(([r,y])=>[r,y,centerAt(y)]);
+    solid(g, new THREE.CylinderGeometry(.0015, .0015, .06, 6), cordMat, 0, -.03, 0);
+    const vent=addGauzeVent(g,{radius:rTop,topY:prof.at(-1)[1],material:lacquerBlack,cordMaterial:cordMat});
+    const shell = shellMaterial(o.color, { map: gauzeTex, glow: 0xffb070, reach: 18, rough: .82, base: .025, strength: 1.05, cloth:true });
+    const fabric=lathe(prof,96),fp=fabric.attributes.position;
+    for(let i=0;i<fp.count;i++){
+      const x=fp.getX(i),z=fp.getZ(i),y=fp.getY(i),r=Math.hypot(x,z),a=Math.atan2(z,x),q=(y-y0)/H;
+      // A stretched cloth panel bows gently inward between the bamboo strips.
+      // Its seam remains above the strip; the strip never paints the outside.
+      const sag=gauzeThroat(r).sag*Math.sin(a*6)**2*Math.sin(Math.PI*q)*(.85+.15*Math.sin(a*5+q*2));
+      const k=Math.max(.001,r-sag)/r;fp.setXYZ(i,x*k+centerAt(y),y,z*k);
+    }
+    fabric.computeVertexNormals();
+    const cloth=solid(g,fabric,shell);cloth.castShadow=false;cloth.userData.visitorCloth=true;
+    for (let i = 0; i < 12; i++) { const a = i / 12 * Math.PI * 2, rib = new THREE.Mesh(gauzeRibGeometry(smokeProfile,a),ribs); rib.castShadow = true; rib.userData.visitorRib=true;g.add(rib); }
+    // The bottom stays open. Three thin risers carry the small internal cup
+    // from this bearing ring, leaving real paths for warm light around it.
+    const bottomOpening=Math.max(.003,rBot-.008);
+    const bottomRing=solid(g,lathe([[bottomOpening,y0],[rBot+.004,y0],[rBot+.008,y0-.01],[rBot+.004,y0-.018],[bottomOpening,y0-.018],[bottomOpening,y0]],48),lacquerBlack,bottomCx);
+    bottomRing.userData.gauzeTransportRole='bottom-ring';
+    solid(g, new THREE.CylinderGeometry(.002, .002, .05, 6), cordMat, bottomCx, y0 - .043, 0);
+    solid(g,new THREE.SphereGeometry(.0045,12,8),cordMat,bottomCx,y0-.066,0);
+    for(let i=0;i<28;i++){
+      const a=i*2.399,spread=.0025+Math.sqrt(i/28)*.006,length=.073+.016*Math.sin(i*1.7);
+      const x=Math.cos(a)*spread,z=Math.sin(a)*spread;
+      const strand=new THREE.CatmullRomCurve3([V3(bottomCx+x*.3,y0-.069,z*.3),V3(bottomCx+x*.75,y0-.105,z*.75),V3(bottomCx+x,y0-.069-length,z)]);
+      solid(g,new THREE.TubeGeometry(strand,6,.00048,3,false),cordMat);
+    }
+    // The real wick sits in the lower-middle body, rather than in its bottom
+    // throat. The existing suspension fit still preserves the world flame point.
+    const wickY=y0+H*.32,wick=V3(centerAt(wickY+.004)-.0007,wickY,0),wickTip=wick.clone().add(V3(.0007,.004,0));
+    const insideAt=y=>{
+      let i=1;while(i<prof.length-1&&prof[i][1]<y)i++;
+      const a=prof[i-1],b=prof[i],k=THREE.MathUtils.clamp((y-a[1])/(b[1]-a[1]||1),0,1),r=THREE.MathUtils.lerp(a[0],b[0],k),hardware=gauzeThroat(r);
+      return Math.max(.0001,r-hardware.inset-hardware.ribRadius);
+    };
+    const cupHeight=Math.min(.012,H*.12),cupTop=wickY-Math.min(.002,H*.025),cupBottom=cupTop-cupHeight;
+    const cupFree=Math.min(insideAt(cupBottom),insideAt(cupTop),...prof.filter(([,y])=>y>cupBottom&&y<cupTop).map(([,y])=>insideAt(y)));
+    const cupFloor=Math.min(.003,cupHeight*.25),cupShoulder=Math.min(.002,cupHeight*.2);
+    // An east-offset cup leaves the western foreground inside the real light
+    // opening. Its short wick leans from the near rim to the fixed flame tip.
+    const cupRadius=Math.min(.009,cupFree*.75),cupOffset=Math.min(.012,Math.max(0,cupFree-cupRadius-.001)),cup=lathe([[0,cupBottom],[cupRadius*.8,cupBottom],[cupRadius,cupBottom+cupShoulder],[cupRadius,cupTop],[cupRadius*.82,cupTop],[cupRadius*.72,cupBottom+cupFloor],[0,cupBottom+cupFloor]],24),cp=cup.attributes.position;
+    for(let i=0;i<cp.count;i++)cp.setX(i,cp.getX(i)+centerAt(cp.getY(i))+cupOffset);cup.computeVertexNormals();solid(g,cup,clayMat).userData.gauzeTransportRole='clay-cup';
+    for(let i=0;i<3;i++){
+      const a=i*Math.PI*2/3,points=Array.from({length:16},(_,j)=>{
+        const t=j/15,y=THREE.MathUtils.lerp(y0+.0004,cupBottom+.0004,t),r=j===0?bottomOpening+.003:Math.min(THREE.MathUtils.lerp(bottomOpening+.003,cupRadius*.65,t),insideAt(y)*.92);
+        return V3(centerAt(y)+cupOffset*t+Math.cos(a)*r,y,Math.sin(a)*r);
+      });
+      const path=new THREE.CurvePath();for(let j=1;j<points.length;j++)path.add(new THREE.LineCurve3(points[j-1],points[j]));
+      const riser=solid(g,new THREE.TubeGeometry(path,48,.0008,6),lacquerBlack);riser.userData.gauzeTransportRole='cup-bearing-spoke';riser.userData.gauzeSupportKind='interior-riser-wire';
+    }
+    const wickMaterial=new THREE.MeshStandardMaterial({color:0x15100c,roughness:1});wickMaterial.userData.lampOwned=true;
+    const wickPoints=Array.from({length:12},(_,i)=>{const t=i/11,y=THREE.MathUtils.lerp(cupTop-.001,wickTip.y,t);return V3(centerAt(y)+(cupOffset-cupRadius*.82)*(1-t),y,0);});
+    const wickMesh=solid(g,new THREE.TubeGeometry(new THREE.CatmullRomCurve3(wickPoints),24,.00065,6),wickMaterial);
+    const smokePath=createGauzeSmokePath(smokeProfile,wickTip,vent);
+    const flameSize=gauzeFlameSize(smokeProfile,wick,vent.topY);
+    return { g, kind: 'shade', shells: [shell], wick: { at:wick },wickMesh,smokePath, frame: { h: H + .2, cy: -.07 - H * .5 }, lightMax: .9, flame: flameSize, light: 0xff6a3a, hang: true };
+  },
+  // A square lattice lamp with paper panels on a low wooden stand; its outline, turned square, is the person's.
+  lattice(o = presetOf('shade')) {
+    const g = new THREE.Group(), y0 = .5, P = scaled(o.rows, shadeScale(o.rows, 1.8, .05)).map(([r, y]) => [r * Math.SQRT2, y0 + .02 + y]), top = P[P.length - 1][1];
+    for (const [x, z] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) solid(g, new THREE.BoxGeometry(.022, y0, .022), lampWood, x * .11, y0 / 2, z * .11);
+    solid(g, new THREE.BoxGeometry(.26, .02, .26), lampWood, 0, y0, 0);
+    for (const y of [.1, .3]) for (const [w, d] of [[.24, .014], [.014, .24]]) for (const s of [-1, 1]) solid(g, new THREE.BoxGeometry(w, .016, d), lampWood, w > .1 ? 0 : s * .11, y, w > .1 ? s * .11 : 0);
+    const paper = paperLatticeTex.clone(); paper.wrapS = THREE.RepeatWrapping; paper.repeat.set(4, 1); paper.needsUpdate = true;
+    const shell = shellMaterial(o.color, { map: paper, glow: 0xffb070, reach: 9, rough: .9, base: .06, strength: .45 });
+    const box4 = lathe(P, 4); box4.rotateY(Math.PI / 4); solid(g, box4, shell).castShadow = false;
+    // Corner posts follow the outline; rails close it at the top and the bottom.
+    for (let i = 0; i < 4; i++) { const a = Math.PI / 4 + i * Math.PI / 2, post = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(P.map(([r, y]) => V3(Math.sin(a) * r, y, Math.cos(a) * r))), 16, .006, 4), lampWood); post.castShadow = true; g.add(post); }
+    for (const [r, y] of [P[0], P[P.length - 1]]) { const ring = lathe([[r + .006, y - .008], [r + .006, y + .008]], 4); ring.rotateY(Math.PI / 4); solid(g, ring, lampWood); }
+    solid(g, lathe([[0, y0 + .01], [.022, y0 + .01], [.024, y0 + .03], [.02, y0 + .032], [0, y0 + .026]], 32), clayMat);
+    return { g, kind: 'shade', shells: [shell], wick: { at: V3(0, y0 + .036, 0) }, frame: { h: top - y0 + .08, cy: (y0 + top) / 2 }, lightMax: .8, flame: .85, light: 0xffaa60 };
+  },
+};
 
-// ---------- The person's offering ----------
-const PLATE_H = .046; // a short brass candlestick (.04) and its dish (.006)
 // Wax volume from the base up; the level animation reads it so the wax drops in step with real time.
 function burnOf(rows) {
   const cum = [0]; let v = 0;
   for (let i = 1; i < rows.length; i++) { const a = rows[i - 1], b = rows[i]; v += Math.PI * (b.y - a.y) * (a.r * a.r + a.r * b.r + b.r * b.r) / 3; cum.push(v); }
   return { cum, total: v };
 }
-const CUP = { y0: .072, y1: .114 };
-const cupR = (y) => Math.min(.028 + .022 * (y - .072) / .032, .052);
-function butterOf() {
-  const n = 40, ys = [CUP.y0], cum = [0], dy = (CUP.y1 - CUP.y0) / n; let v = 0;
-  for (let i = 1; i <= n; i++) { const y = CUP.y0 + dy * i, r = cupR(y - dy / 2); v += Math.PI * r * r * dy; ys.push(y); cum.push(v); }
-  return { ys, cum, vol: v };
-}
 const ringAt = (R, y) => { let i = 1; while (i < R.length - 1 && R[i].y < y) i++; const a = R[i - 1], b = R[i], k = Math.min(1, Math.max(0, (y - a.y) / (b.y - a.y || 1))); return { y, cx: a.cx + (b.cx - a.cx) * k, r: a.r + (b.r - a.r) * k }; };
+const findCum = (arr, tgt) => { let i = 1; while (i < arr.length - 1 && arr[i] < tgt) i++; return [i, Math.min(1, Math.max(0, (tgt - arr[i - 1]) / (arr[i] - arr[i - 1] || 1)))]; };
 // A candle body from rows, cut flat at `cut` with a soft rim and a shallow dip where the pool sits.
 function candleGeo(rows, cut, seg = 56) {
   const R = rows.filter((q) => q.y < cut - 1e-6); R.push(ringAt(rows, cut));
@@ -435,136 +692,233 @@ function candleGeo(rows, cut, seg = 56) {
   g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); g.setIndex(idx);
   g.computeVertexNormals(); return g;
 }
-
-const mine = (() => {
-  const g = new THREE.Group(); g.position.set(0, ALTAR_Y, .06); hall.add(g);
-  const satin = new THREE.MeshStandardMaterial({ color: 0xb48a50, metalness: 1, roughness: .3, roughnessMap: patina, envMapIntensity: 1 });
-  const plate = new THREE.Mesh(new THREE.LatheGeometry([[0, 0], [.96, 0], [1, .0035], [1.06, .011], [1.03, .012], [.95, .0062], [0, .006]].map(([x, y]) => V2(x, y)), 64), satin);
-  plate.position.y = .04; plate.castShadow = plate.receiveShadow = true; g.add(plate);
-  const stand = new THREE.Mesh(new THREE.LatheGeometry([[0, 0], [.042, 0], [.044, .004], [.03, .008], [.014, .014], [.01, .03], [.016, .036], [.012, .0405], [0, .0405]].map(([x, y]) => V2(x, y)), 48), satin);
-  stand.castShadow = stand.receiveShadow = true; g.add(stand);
-  const wax = waxMaterial(0x8f1b12);
-  const body = new THREE.Mesh(new THREE.BufferGeometry(), wax); body.position.y = PLATE_H; body.castShadow = true; body.receiveShadow = true; g.add(body);
-  const poolMat = waxMaterial(0xa02a1a, { roughness: .08, clearcoat: 1, fall: 30 });
-  const pool = new THREE.Mesh(new THREE.CircleGeometry(1, 48).rotateX(-Math.PI / 2), poolMat); g.add(pool);
-  const cupG = new THREE.Group(); g.add(cupG);
-  const cup = new THREE.Mesh(new THREE.LatheGeometry([[0, 0], [.045, 0], [.046, .007], [.014, .02], [.011, .058], [.03, .068], [.054, .1], [.058, .116], [.054, .117], [.05, .104], [.028, .074], [0, .07]].map(([x, y]) => V2(x, y)), 64),
-    new THREE.MeshStandardMaterial({ color: 0xd0a453, metalness: 1, roughness: .28, roughnessMap: patina, envMapIntensity: 1.1 }));
-  cup.castShadow = cup.receiveShadow = true; cupG.add(cup);
-  const butterTexture = canvasTex(128, 128, (ctx,w,h) => {
-    const rnd = mulberry32(42); ctx.fillStyle = '#b0a58c'; ctx.fillRect(0,0,w,h);
-    for(let i=0;i<2400;i++){const v=130+rnd()*100;ctx.fillStyle=`rgb(${v},${v},${v})`;ctx.fillRect(rnd()*w,rnd()*h,1+rnd()*2,1+rnd()*2);}
-  }, false);
-  // Butter: pale, matte and set firm, with only a small clear pool of melted fat around the wick.
-  const fat = waxMaterial(0xf2e4b4, { roughness: .62, clearcoat: .08, glow: 0xffc27a, fall: 25 });
-  fat.bumpMap = butterTexture; fat.bumpScale = .0003;
-  const surface = new THREE.Mesh(new THREE.CircleGeometry(1, 48).rotateX(-Math.PI / 2), fat); cupG.add(surface);
-  const liquid = new THREE.Mesh(new THREE.CircleGeometry(.016, 48).rotateX(-Math.PI / 2), new THREE.MeshPhysicalMaterial({color:0xb58c37, roughness:.1, clearcoat:1, metalness:0, envMapIntensity:.15, transparent:true, opacity:.82})); cupG.add(liquid);
-  const drips = Array.from({ length: 7 }, (_, i) => {
-    const mesh = new THREE.Mesh(new THREE.LatheGeometry([[0,-1],[.65,-.96],[1,-.8],[.55,-.45],[.3,.25],[.2,1],[0,1]].map(([r,y])=>V2(r,y)), 12), wax);
-    mesh.visible = false; g.add(mesh); return { mesh, angle: i * 2.399, start: .015 + i * .025, reach: .006 + .014 * ((i * .618 + .17) % 1), width: .00065 + .0004 * ((i * .414 + .3) % 1) };
+// The oil inside a clear vessel, from the bottom up to the level.
+function oilBodyGeo(vessel, y) { const pts = [[0, vessel.ys[0]]]; for (const yy of vessel.ys) if (yy < y) pts.push([vessel.r(yy) * .97, yy]); pts.push([vessel.r(y) * .97, y], [0, y]); return lathe(pts, 40); }
+function disposeTree(o) {
+  const geometries=new Set(),materials=new Set();
+  o.traverse(object=>{
+    if(object.geometry)geometries.add(object.geometry);
+    for(const material of [object.material].flat())if(material?.userData.lampOwned)materials.add(material);
   });
+  for(const geometry of geometries)geometry.dispose();
+  for(const material of materials){nearMaterials.delete(material);material.dispose();}
+}
+
+// The person's own lamp: whichever vessel this place uses, and its candle or oil.
+const mine = (() => {
+  const g = new THREE.Group(); outside.add(g);
+  const candleG = new THREE.Group(); g.add(candleG);
+  const wax = waxMaterial(0x8f1b12);
+  const body = new THREE.Mesh(new THREE.BufferGeometry(), wax); body.castShadow = true; body.receiveShadow = true; candleG.add(body);
+  const poolMat = waxMaterial(0xa02a1a, { roughness: .08, clearcoat: 1, fall: 30 });
+  const pool = new THREE.Mesh(new THREE.CircleGeometry(1, 48).rotateX(-Math.PI / 2), poolMat); candleG.add(pool);
+  const drips = Array.from({ length: 7 }, (_, i) => {
+    const mesh = new THREE.Mesh(lathe([[0, -1], [.65, -.96], [1, -.8], [.55, -.45], [.3, .25], [.2, 1], [0, 1]], 12), wax);
+    mesh.visible = false; candleG.add(mesh); return { mesh, angle: i * 2.399, start: .015 + i * .025, reach: .006 + .014 * ((i * .618 + .17) % 1), width: .00065 + .0004 * ((i * .414 + .3) % 1) };
+  });
+  const oil = new THREE.Mesh(new THREE.CircleGeometry(1, 56).rotateX(-Math.PI / 2), oilMat); g.add(oil);
+  const oilGlow = waxMaterial(0xb0761e, { roughness: .05, clearcoat: 1, glow: 0xffa040, fall: 30 });
+  const oilBody = new THREE.Mesh(new THREE.BufferGeometry(), oilGlow); oilBody.renderOrder = 1; g.add(oilBody);
   const f = flameParts(g);
-  f.light.castShadow = true; f.light.shadow.mapSize.set(1024, 1024); f.light.shadow.bias = -.002; f.light.shadow.radius = 4; f.light.shadow.camera.near = .01;
-  const api = { g, power: 0, lightMax: .10, offer: null, top: V3(0, 0, 0), lastCut: -1,
+  const hanger=new THREE.Mesh(new THREE.CylinderGeometry(1,1,1,8),new THREE.MeshStandardMaterial({color:0x746041,metalness:.7,roughness:.5}));
+  hanger.visible=false;g.add(hanger);
+  // Keep depth offsets below the measured submillimetre rib/cloth separation.
+  f.light.castShadow = true; f.light.shadow.mapSize.set(1024, 1024); f.light.shadow.bias = -.00002; f.light.shadow.normalBias = .0001; f.light.shadow.radius = 2; f.light.shadow.camera.near = .008; f.light.shadow.camera.far = 6;
+  f.light.shadow.camera.layers.enableAll(); // the lamp is drawn on layer 1; its own vessel and shade must still cast
+  // A second flame, upside down in still water below, when the place has water.
+  const mirror = flameParts(g, { light: false }); mirror.fm.uniforms.uSeedU.value = f.fm.uniforms.uSeedU.value; mirror.flame.visible = mirror.halo.visible = false; mirror.wick.visible = mirror.ember.visible = false;
+  const world = V3(0, 0, 0);
+const api = { g, parts: null, partsKey: null, type: null, power: 0, lightPower: 0, lightBoost: 1, lightTint: null, offer: null, top: V3(0, 0, 0), lastCut: -1, scale: 1, mirrorY: null, lastOil: -1,
+    // Builds this place's vessel; a dish or a shade takes the person's outline and colour.
+    build(o) {
+      const drawn = !WAX_LAMPS.has(this.type) && o,liveBaked=!!place?.P.bakedLighting,key = this.type + (liveBaked?'|cycles':'') + (drawn ? JSON.stringify([o.rows, o.color]) : '');
+      if (key === this.partsKey) return;
+      if (this.parts) { g.remove(this.parts.g); disposeTree(this.parts.g); }
+      const input=drawn?{...o,liveBaked}:this.type==='gauze'?{...presetOf('shade'),liveBaked}:undefined;
+      const p = input ? LAMPS[this.type](input) : LAMPS[this.type](); this.parts = p; this.partsKey = key; g.add(p.g);
+      f.wick.visible=!p.wickMesh;
+      f.light.color.setHex(p.light ?? 0xffba78); f.size = p.flame ?? 1; mirror.size = f.size;
+      g.traverse((c) => { c.layers.set(0); warmReflections(c); }); f.light.layers.enableAll();
+      if(liveBaked&&place?.visitorEnvironment){
+        // The cloth sees the actual lit hall, including its baked indirect
+        // light, rather than the generic warm-room reflection used elsewhere.
+        const materials=new Set();p.g.traverse(object=>{for(const material of [object.material].flat())if(material?.userData.lampOwned&&'envMap'in material)materials.add(material);});
+        for(const material of materials)actualHallEnvironment(material,place.visitorEnvironment.texture);
+      }
+      if(liveBaked&&place?.baked?.visitorShadow){
+        const materials=new Set();p.g.traverse(object=>{for(const material of [object.material].flat())if(material?.userData.lampOwned)materials.add(material);});
+        for(const material of materials){place.baked.visitorShadow.install(material);place.baked.staticLampShadow?.install(material);}
+      }
+      if(liveBaked&&place?.baked?.gauzeTransmission&&this.type==='gauze'){
+        let cloth;p.g.traverse(object=>{if(object.userData.visitorCloth)cloth=object;});
+        const pointLocal=p.wick.at.clone().add(V3(0,.019*(p.flame??1),0));
+        cloth.material.sheen=0;cloth.material.specularIntensity=0;cloth.material.needsUpdate=true;
+        place.baked.gauzeTransmission.configure({cloth,pointLocal,colour:input.color,shadowTransmissionScale:place.baked.manifest.lampBasis.transport.shadowTransmissionScale??.22,frame:g});
+      }else place?.baked?.gauzeTransmission?.disable();
+    },
+    setType(type) {
+      if (this.type === type) return;
+      this.type = type; this.partsKey = null; this.build(null);
+      if (this.offer) this.setOffer(this.offer);
+    },
     setOffer(o) {
-      this.offer = o; this.lastCut = -1; const isButter = o.kind === 'butter';
-      drips.forEach(({mesh}) => { mesh.visible = false; });
-      cupG.visible = isButter; plate.visible = stand.visible = body.visible = pool.visible = !isButter;
-      if (isButter) cupG.scale.setScalar(o.cup);
-      else {
+      this.offer = o; this.lastCut = -1; this.lastOil = -1;
+      if (this.parts && this.parts.kind !== 'wax' && o.kind === this.parts.kind) this.build(o);
+      const p = this.parts; if (!p) return;
+      f.soft = !!place?.P.bakedLighting;
+      const isWax = p.kind === 'wax';
+      candleG.visible = isWax; oil.visible = p.kind === 'oil'; oilBody.visible = !!p.oilBody;
+      drips.forEach(({ mesh }) => { mesh.visible = false; });
+      if (isWax && o.kind === 'candle') {
         wax.color.setHex(o.color); poolMat.color.setHex(o.color).lerp(new THREE.Color(0xffd0a0), .18);
-        stand.scale.set(Math.min(1, Math.max(.4, o.rows[0].r / .025)), 1, Math.min(1, Math.max(.4, o.rows[0].r / .025)));
-        plate.scale.set(Math.max(...o.rows.slice(0, 4).map((q) => q.r)) + .014, 1, Math.max(...o.rows.slice(0, 4).map((q) => q.r)) + .014);
+        const R = o.rows, w = Math.max(...R.map((q) => q.r + Math.abs(q.cx))), h = R[R.length - 1].y;
+        // A drawn candle keeps its shape; inside a lantern it is scaled to fit behind the glass.
+        this.scale = Math.min(1, p.seat.maxR / w, p.seat.maxH / h); candleG.scale.setScalar(this.scale); candleG.position.y = p.seat.y;
       }
       this.setLevel(1);
     },
     setLevel(L) {
-      const o = this.offer; if (!o) return;
-      const b = o.burn, find = (arr, tgt) => { let i = 1; while (i < arr.length - 1 && arr[i] < tgt) i++; return [i, Math.min(1, Math.max(0, (tgt - arr[i - 1]) / (arr[i] - arr[i - 1] || 1)))]; };
-      if (o.kind === 'butter') {
-        const [i, k] = find(b.cum, L * o.fill * b.vol), y = b.ys[i - 1] + (b.ys[i] - b.ys[i - 1]) * k;
-        surface.position.y = y; surface.scale.setScalar(cupR(y)); liquid.position.y = y + .00015; liquid.scale.setScalar(Math.min(1, cupR(y) / .018)); this.top.set(0, y * o.cup, 0);
-      } else {
-        const R = o.rows, [i, k] = find(b.cum, L * b.total);
+      const o = this.offer, p = this.parts; if (!o || !p) return;
+      if (p.kind === 'wax' && o.kind === 'candle') {
+        const R = o.rows, [i, k] = findCum(o.burn.cum, L * o.burn.total);
         const cut = Math.max(R[i - 1].y + (R[i].y - R[i - 1].y) * k, .002);
         if (Math.abs(cut - this.lastCut) > .0003) {
           body.geometry.dispose(); body.geometry = candleGeo(R, cut); this.lastCut = cut;
-          const q = ringAt(R, cut); pool.position.set(q.cx, PLATE_H + cut - .0011, 0); pool.scale.setScalar(Math.max(q.r * .8, .0005)); this.top.set(q.cx, PLATE_H + cut, 0);
+          const q = ringAt(R, cut); pool.position.set(q.cx, cut - .0011, 0); pool.scale.setScalar(Math.max(q.r * .8, .0005));
+          this.top.set(q.cx * this.scale, p.seat.y + cut * this.scale, 0);
         }
-      }
-      if (o.kind !== 'butter') {
-        for (const {mesh, angle, start, reach, width} of drips) {
+        for (const { mesh, angle, start, reach, width } of drips) {
           const grown = Math.min(1, Math.max(0, (1 - L - start) * 9));
           mesh.visible = grown > 0 && L > .03;
-          const length = Math.min(reach * grown, this.lastCut * .65);
-          const y = Math.max(.002, this.lastCut - length * .55);
-          const q = ringAt(o.rows, y);
-          mesh.position.set(q.cx + Math.cos(angle) * q.r, PLATE_H + y, Math.sin(angle) * q.r);
+          const length = Math.min(reach * grown, this.lastCut * .65), y = Math.max(.002, this.lastCut - length * .55), q = ringAt(o.rows, y);
+          mesh.position.set(q.cx + Math.cos(angle) * q.r, y, Math.sin(angle) * q.r);
           mesh.scale.set(width * grown, Math.max(.0001, length * .5), width * grown);
         }
+      } else if (p.kind === 'oil') {
+        // The vessel shows its oil on a gentler curve than volume, so a short burn still holds visible oil.
+        const V = p.vessel, [i, k] = findCum(V.cum, L * V.vol), y = V.ys[i - 1] + (V.ys[i] - V.ys[i - 1]) * k;
+        if (Math.abs(y - this.lastOil) > .0002) {
+          this.lastOil = y; oil.position.y = y; oil.scale.setScalar(V.r(y));
+          if (p.oilBody) { oilBody.geometry.dispose(); oilBody.geometry = oilBodyGeo(V, y); }
+        }
+        if (p.wick.float) this.top.set(0, y + p.wick.float, 0); else this.top.copy(p.wick.at);
+      } else if (p.kind === 'shade') this.top.copy(p.wick.at);
+      else this.top.set(0, p.seat.y, 0); // a wax lamp still holding the last place's oil offer, until the UI sends a candle
+      hanger.visible=!!place?.baked&&p.kind==='shade';
+      if(hanger.visible){
+        // Size changes the shade, while the actual light stays on its Cycles
+        // bake basis. Extend the suspension above a smaller lantern.
+        const basis=place.nookG.worldToLocal(V3(...place.baked.manifest.lampBasis.position));
+        const pivot=g.parent?.userData.visitorPivot?g.parent:null;
+        if(pivot)basis.sub(pivot.position);
+        g.position.set(basis.x-this.top.x,basis.y-.019*(p.flame??1)-this.top.y,basis.z-this.top.z);
+        const hook=place.nookG.worldToLocal(V3(...(place.P.nook.hangingPoint??[place.baked.manifest.lampBasis.position[0],3.22,place.baked.manifest.lampBasis.position[2]])));
+        if(pivot)hook.sub(pivot.position);
+        const length=Math.max(0,hook.y-g.position.y);
+        hanger.visible=length>.001;hanger.position.set(0,length/2,0);hanger.scale.set(.0025,length,.0025);
       }
-      f.place(this.top.x, this.top.y);
+      f.place(this.top.x, this.top.y, this.top.z);
     },
-    // Rendering choice: dim the point light as the flame nears the altar, so the near surface does not blow out to white.
-    update(time, topY) { f.fm.uniforms.uWind.value = wind; f.tick(time, this.power * (lit ? Math.min(1, level * 25) : 1), this.lightMax * Math.min(1, ((this.top.y + .03) / .2) ** 2), [wax, poolMat], topY); fat.userData.u.uTop.value = topY; fat.userData.u.uGlow.value = .05 * this.power; f.ember.visible = this.power > .02 || clockTime < emberUntil; f.ember.material.color.setRGB(2.4, .36, .035).multiplyScalar(clockTime < emberUntil ? Math.max(0, (emberUntil - clockTime) / 2.5) : 1);
+    flameWorld() { g.updateWorldMatrix(true, false); return g.localToWorld(world.copy(this.top)); },
+    setShadowFar(far){f.light.shadow.camera.far=far;f.light.shadow.camera.updateProjectionMatrix();},
+    lightWorld() { f.light.updateWorldMatrix(true,false);return f.light.getWorldPosition(world); },
+    update(time) {
+      const p = this.parts; if (!p) return;
+      if(place?.P.bakedLighting){
+        if(g.parent?.userData.visitorPivot){g.rotation.z=0;g.parent.rotation.z=Math.sin(time*.32)*.008;}
+        else g.rotation.z=Math.sin(time*.32)*.0035;
+      }
+      f.fm.uniforms.uWind.value = wind;
+      if(this.lightTint)f.light.color.copy(this.lightTint);
+      // A shaded lamp's light draws in as it burns; a candle's dims as it nears its holder.
+      const keep = p.kind === 'shade' ? .35 + .65 * Math.min(1, level * 1.4) : p.kind === 'wax' ? Math.min(1, ((this.top.y - (p.seat?.y ?? 0) + .03) / .2) ** 2) : 1;
+      const power = this.power * (lit ? Math.min(1, level * 25) : 1);
+      const fw = this.flameWorld(), k = f.tick(time, power, p.lightMax * keep * this.lightBoost, [wax, poolMat, oilGlow], fw.y);
+      place?.baked?.gauzeTransmission?.update(f.light);
+      this.lightPower = power * k * keep;
+      oilGlow.userData.u.uGlow.value = .4 * power * k;
+      const cooling=clockTime<shadeCoolingUntil?shadeCoolingGlow*Math.pow((shadeCoolingUntil-clockTime)/5.2,1.5):0;
+      for (const m of p.shells ?? []) {
+        const u=m.userData.u,transport=place?.baked?.gauzeTransmission;
+        u.uFlame.value.copy(fw);u.uGlow.value=Math.max(2.4*m.userData.strength*power*k*keep,cooling*m.userData.strength);
+        if(m.userData.cloth){
+          u.uClothPhysical.value=transport?1:0;
+          if(transport){
+            const basis=place.baked.manifest.lampBasis,emberIntensity=place.baked.lampCandela*cooling/2.4;
+            u.uFlame.value.copy(transport.uniforms.uGauzeFilterPoint.value);
+            u.uClothIntensity.value=Math.max(f.light.intensity,emberIntensity);
+            u.uClothSourceRGB.value.copy(f.light.color);
+            if(emberIntensity>f.light.intensity)u.uClothSourceRGB.value.setRGB(1,.15,.0146);
+            u.uClothEmitterRadius.value=basis.pointRadiusMetres;
+            u.uClothTransmissionWeight.value=basis.transport.diffuseTransmissionWeight??.65;
+            u.uClothReflectionWeight.value=basis.transport.diffuseReflectionWeight??.35;
+          }
+        }
+      }
+      f.ember.visible = this.power > .02 || clockTime < emberUntil; f.ember.material.color.setRGB(2.4, .36, .035).multiplyScalar(clockTime < emberUntil ? Math.max(0, (emberUntil - clockTime) / 2.5) : 1);
       // The last ember: a small red glow at the wick that fades after the flame is gone.
       const embering = this.power < .02 && clockTime < emberUntil, fade = embering ? Math.max(0, (emberUntil - clockTime) / 2.5) : 0;
       f.halo.material.color.setHex(embering ? 0xff3a0a : 0xff8a3a);
-      if (embering) { f.halo.material.opacity = .55 * fade; f.halo.scale.set(.02, .02, 1); } else f.halo.scale.set(.2, .26, 1); },
+      if (embering) { f.halo.material.opacity = .55 * fade; f.halo.scale.set(.02, .02, 1); } else f.halo.scale.set(.2, .26, 1);
+      if (p.kind === 'shade') f.halo.material.opacity *= .3;
+      // The reflection: same flame, flipped about the water, broken up a little by ripples.
+      const on = false; // Pond reflections use the scene reflection, including the real flame and rail.
+      mirror.flame.visible = mirror.halo.visible = on;
+      if (on) {
+        const my = 2 * (this.mirrorY - g.position.y) - this.top.y;
+        mirror.place(this.top.x, my, this.top.z); mirror.tick(time, power * .55, 0, [], 0);
+        mirror.fm.uniforms.uScale.value *= -1.6; mirror.fm.uniforms.uWind.value = wind + Math.sin(time * 2.3) * .25;
+        mirror.halo.position.y = my - .02; mirror.halo.material.opacity *= 2.2; mirror.halo.scale.set(.1, .42, 1);
+      }
+    },
   };
-  g.traverse((o) => o.layers.set(1)); f.light.layers.enableAll();
   g.visible = false; return api;
 })();
 
-// The rack behind the altar: rows of candles, or butter lamps, left by others.
-const RACK_N = 66;
-const rackWax = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: .5, envMapIntensity: .3 });
-// Each rack candle glows near its own top: the body is a unit cylinder, so local height is the glow coordinate.
-rackWax.onBeforeCompile = (sh) => {
-  sh.vertexShader = 'varying float vLocalY;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\nvLocalY = position.y;');
-  sh.fragmentShader = 'varying float vLocalY;\n' + sh.fragmentShader.replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\ntotalEmissiveRadiance += diffuseColor.rgb * vec3(1., .55, .25) * (.9 * pow(vLocalY, 14.) + .1 * pow(vLocalY, 3.));');
-};
-const rackBodies = new THREE.InstancedMesh(new THREE.CylinderGeometry(1, 1, 1, 18).translate(0, .5, 0), rackWax, RACK_N);
-const rackCups = new THREE.InstancedMesh(new THREE.LatheGeometry([[0, 0], [.03, 0], [.012, .015], [.01, .04], [.036, .07], [.04, .08], [.03, .06], [0, .05]].map(([x, y]) => V2(x, y)), 20),
-  new THREE.MeshStandardMaterial({ color: 0xc19a4c, metalness: 1, roughness: .3, envMapIntensity: .4 }), RACK_N);
-const rackFlames = new THREE.InstancedMesh(new THREE.PlaneGeometry(1, 1), flameMaterial(true), RACK_N);
-rackFlames.frustumCulled = false; flameMats.push(rackFlames.material);
-const aSeed = new Float32Array(RACK_N), aScale = new Float32Array(RACK_N);
-rackFlames.geometry.setAttribute('aSeed', new THREE.InstancedBufferAttribute(aSeed, 1));
-rackFlames.geometry.setAttribute('aScale', new THREE.InstancedBufferAttribute(aScale, 1));
-hall.add(rackBodies, rackCups, rackFlames);
-for (let tier = 0; tier < 3; tier++) {
-  const shelf = new THREE.Mesh(new THREE.BoxGeometry(3.3, .04, .22), darkIron); shelf.position.set(0, .72 + tier * .2, -1.15 - tier * .26); shelf.receiveShadow = true; hall.add(shelf);
-  for (const x of [-1.6, 1.6]) { const leg = new THREE.Mesh(new THREE.BoxGeometry(.03, .72 + tier * .2, .03), darkIron); leg.position.set(x, (.72 + tier * .2) / 2, -1.15 - tier * .26); hall.add(leg); }
-}
-const rackLights = [-1, 0, 1].map((x) => { const l = new THREE.PointLight(0xff9040, .45, 0, 2); l.position.set(x, 1.6, -.8); hall.add(l); return l; });
-function layoutRack(kind) {
-  const rnd = mulberry32(kind === 'butter' ? 21 : 13); const m = new THREE.Matrix4(); let i = 0;
-  for (let tier = 0; tier < 3; tier++) {
-    const y = .74 + tier * .2, z = -1.15 - tier * .26, per = RACK_N / 3;
-    for (let k = 0; k < per; k++, i++) {
-      const x = -1.5 + 3 * (k + .5) / per + (rnd() - .5) * .02;
-      if (kind === 'butter') {
-        m.makeTranslation(x, y, z); rackCups.setMatrixAt(i, m);
-        m.makeTranslation(x, y + .066, z); rackFlames.setMatrixAt(i, m); aScale[i] = .03 + rnd() * .012;
-      } else {
-        const h = .04 + rnd() * .12, r = .016 + rnd() * .008, lit = rnd() > .22;
-        m.compose(V3(x, y, z), new THREE.Quaternion(), V3(r, h, r)); rackBodies.setMatrixAt(i, m);
-        rackBodies.setColorAt(i, new THREE.Color([0x7a1810, 0x8a2414, 0xb89a72, 0x6a160e, 0xa0702a][Math.floor(rnd() * 5)]).multiplyScalar(lit ? 1 : .55));
-        m.makeTranslation(x, y + h + .004, z); rackFlames.setMatrixAt(i, m); aScale[i] = lit ? .042 + rnd() * .016 : 0;
-      }
-      aSeed[i] = rnd() * 10;
-    }
-  }
-  rackBodies.visible = kind !== 'butter'; rackCups.visible = kind === 'butter';
-  for (const im of [rackBodies, rackCups, rackFlames]) im.instanceMatrix.needsUpdate = true;
-  if (rackBodies.instanceColor) rackBodies.instanceColor.needsUpdate = true;
-  rackFlames.geometry.attributes.aSeed.needsUpdate = true; rackFlames.geometry.attributes.aScale.needsUpdate = true;
+// Lamps other people lit here, already burning: the same vessel, a simpler candle, no light of their own.
+function otherLamp(type, x, y, z, L = .6, ry = 0, power = .62) {
+  const p = LAMPS[type](), g = p.g; g.position.set(x, y, z); g.rotation.y = ry; C.G.add(g);
+  const wx = [];
+  let top;
+  if (p.kind === 'wax') {
+    const h = .03 + .1 * L, r = Math.min(.022, p.seat.maxR * .6), m = waxMaterial([0x8c1a12, 0xdcc9a6, 0xc8922e][Math.floor(C.rnd() * 3)]);
+    const b = new THREE.Mesh(candleGeo([{ y: 0, cx: 0, r }, { y: h, cx: 0, r }], h), m); b.position.y = p.seat.y; b.castShadow = true; g.add(b); wx.push(m);
+    top = V3(0, p.seat.y + h, 0);
+  } else if (p.kind === 'oil') {
+    const V = p.vessel, yy = V.ys[0] + (V.ys[V.ys.length - 1] - V.ys[0]) * L, o = new THREE.Mesh(new THREE.CircleGeometry(V.r(yy), 40).rotateX(-Math.PI / 2), oilMat); o.position.y = yy; g.add(o);
+    if (p.oilBody) { const ob = new THREE.Mesh(oilBodyGeo(V, yy), waxMaterial(0xb0761e, { glow: 0xffa040, fall: 30 })); g.add(ob); wx.push(ob.material); }
+    top = p.wick.float ? V3(0, yy + p.wick.float, 0) : p.wick.at.clone();
+  } else top = p.wick.at.clone();
+  // Only the first two carry a light of their own; more would cost every surface another light to shade.
+  g.traverse(warmReflections);
+  const lightOwn = C.others.length < 2;
+  const f = flameParts(g, { light: lightOwn, color: p.light, size: p.flame ?? 1 }); f.place(top.x, top.y, top.z);
+  const fw = V3(0, 0, 0);
+  const o = { g, f, p, tick(time) {
+    g.updateMatrixWorld(); fw.copy(top).applyMatrix4(g.matrixWorld);
+    const k = f.tick(time, power, p.lightMax * .55 * power / .62, wx, fw.y);
+    for (const m of p.shells ?? []) { m.userData.u.uFlame.value.copy(fw); m.userData.u.uGlow.value = 1.6 * m.userData.strength * k; }
+    if (p.kind === 'shade') f.halo.material.opacity *= .3;
+  } };
+  C.others.push(o); return o;
 }
 
-// ---------- Outside: each temple in its own place ----------
-const outside = new THREE.Scene();
+// Motes drifting in the lamplight, where the spot is sheltered enough to hold them.
+const dust = (() => {
+  const n = 220, rnd = mulberry32(9), pos = new Float32Array(n * 3);
+  for (let i = 0; i < n; i++) { pos[i * 3] = (rnd() - .5) * 2.4; pos[i * 3 + 1] = -.4 + rnd() * 3; pos[i * 3 + 2] = -1 + rnd() * 2.2; }
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  const p = new THREE.Points(g, new THREE.PointsMaterial({ map: softTex, color: 0xffd7a0, size: .01, transparent: true, opacity: .4, depthWrite: false, blending: THREE.AdditiveBlending }));
+  p.material.userData.soft={value:0};
+  p.material.onBeforeCompile=shader=>{
+    shader.uniforms.uDustSoft=p.material.userData.soft;
+    shader.vertexShader='varying float vDustY;\n'+shader.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nvDustY=position.y;');
+    shader.fragmentShader='varying float vDustY;uniform float uDustSoft;\n'+shader.fragmentShader.replace('#include <alphatest_fragment>','diffuseColor.a*=mix(1.,smoothstep(-.4,-.12,vDustY)*(1.-smoothstep(2.2,2.6,vDustY)),uDustSoft);\n#include <alphatest_fragment>');
+  };
+  p.frustumCulled = false; outside.add(p); return p;
+})();
+
+// ---------- Outside: each place and its temple ----------
 let place = null;
 let C = null; // the place being built
 function snowy(m, amt) {
@@ -576,22 +930,54 @@ function snowy(m, amt) {
 function M(color, rough = .85, o = {}) {
   const key = JSON.stringify([color, rough, Object.entries(o).map(([k,v]) => [k, v?.isTexture ? v.uuid : v])]);
   if (C.materials.has(key)) return C.materials.get(key);
-  const m = new THREE.MeshStandardMaterial({color, roughness: rough, ...o}); if (C.snow) snowy(m, C.snow);
+  let scan=null;
+  if(o.map?.image===pavingTex.image)scan=scans.stone_pavers;
+  else if(o.map?.image===grainTex.image)scan=scans.weathered_planks;
+  else if(o.map?.image===brickTex.image)scan=scans.dark_brick_wall;
+  else if(o.map?.image===plasterTex.image)scan=scans.white_plaster_rough_01;
+  const tint=new THREE.Color(color);if(scan&&scan!==scans.weathered_planks)tint.lerp(new THREE.Color(0xffffff),.6);
+  const m=new THREE.MeshStandardMaterial({color:tint,roughness:rough,bumpMap:scan?null:patina,bumpScale:.008,...o,...(scan??{})}); if (C.snow) snowy(m, C.snow);
+  const previous = m.onBeforeCompile;
+  const projected=isScanTexture(m.map)||[pavingTex,brickTex,plasterTex,loessTex].some(t=>o.map?.image===t.image);
+  const snowKey = C.snow;
+  m.customProgramCacheKey = () => `weather-5-${projected}-${snowKey}`;
+  m.onBeforeCompile = (sh, r) => {
+    previous(sh, r);
+    sh.vertexShader = 'varying vec3 vSurface; varying vec3 vSurfaceN;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\nvec4 surfacePosition=vec4(transformed,1.);vec3 surfaceNormal=objectNormal;\n#ifdef USE_INSTANCING\nsurfacePosition=instanceMatrix*surfacePosition;surfaceNormal=mat3(instanceMatrix)*surfaceNormal;\n#endif\nvSurface=(modelMatrix*surfacePosition).xyz;vSurfaceN=normalize(mat3(modelMatrix)*surfaceNormal);');
+    sh.fragmentShader = `varying vec3 vSurface; varying vec3 vSurfaceN;
+      float surfaceHash(vec3 p){p=fract(p*.1031);p+=dot(p,p.yzx+33.33);return fract((p.x+p.y)*p.z);}
+      float surfaceNoise(vec3 p){vec3 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(mix(surfaceHash(i),surfaceHash(i+vec3(1,0,0)),f.x),mix(surfaceHash(i+vec3(0,1,0)),surfaceHash(i+vec3(1,1,0)),f.x),f.y),mix(mix(surfaceHash(i+vec3(0,0,1)),surfaceHash(i+vec3(1,0,1)),f.x),mix(surfaceHash(i+vec3(0,1,1)),surfaceHash(i+vec3(1,1,1)),f.x),f.y),f.z);}
+      ` + sh.fragmentShader;
+    sh.fragmentShader = sh.fragmentShader.replace('#include <map_fragment>', `#include <map_fragment>
+      float weather = surfaceNoise(vSurface*3.7)*.55+surfaceNoise(vSurface*31.)*.3+surfaceNoise(vSurface*127.)*.15;
+      diffuseColor.rgb *= .78 + weather*.36;
+      float foot = exp(-abs(vSurface.y)*1.7);
+      diffuseColor.rgb *= 1.-foot*.10;`);
+    if(projected) sh.fragmentShader = sh.fragmentShader.replace('#include <map_fragment>', `
+      vec3 axes = abs(normalize(vSurfaceN));
+      vec2 surfaceUV = axes.y > max(axes.x,axes.z) ? vSurface.xz : axes.x > axes.z ? vSurface.zy : vSurface.xy;
+      vec4 surfaceSample=texture2D(map,surfaceUV*.45);diffuseColor *= vec4(pow(surfaceSample.rgb,vec3(.65)),surfaceSample.a);`);
+    if(projected){
+      sh.fragmentShader=sh.fragmentShader.replace('#include <normal_fragment_maps>',THREE.ShaderChunk.normal_fragment_maps.replaceAll('vNormalMapUv','(surfaceUV*.45)'));
+      sh.fragmentShader=sh.fragmentShader.replace('#include <roughnessmap_fragment>',THREE.ShaderChunk.roughnessmap_fragment.replaceAll('vRoughnessMapUv','(surfaceUV*.45)'));
+    }
+    sh.fragmentShader = sh.fragmentShader.replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\nroughnessFactor = clamp(roughnessFactor + (weather-.5)*.12,.05,1.);');
+  };
   C.materials.set(key, m); return m;
 }
-const roofMat = (color, glazed) => M(color, glazed ? .36 : .8, { map: tileTex, metalness: glazed ? .25 : .05, side: THREE.DoubleSide });
+const roofMat = (color, glazed) => M(color, glazed ? .36 : .8, { map: tileTex, bumpMap:tileTex,bumpScale:.045,metalness:glazed?.08:0,side:THREE.DoubleSide });
 // Static pieces are merged per material at the end of a build.
 function put(geo, m, x = 0, y = 0, z = 0, ry = 0) {
   const g = geo.index ? geo.toNonIndexed() : geo; if (ry) g.rotateY(ry); g.translate(x, y, z);
   if (!C.bat.has(m)) C.bat.set(m, []); C.bat.get(m).push(g);
 }
-const box = (w, h, d, m, x, y, z, ry = 0) => put(new THREE.BoxGeometry(w, h, d), m, x, y, z, ry);
+const box = (w,h,d,m,x,y,z,ry=0) => put(Math.min(w,h,d)>.025 && Math.max(w,h,d)<16 ? new RoundedBoxGeometry(w,h,d,2,Math.min(.018,Math.min(w,h,d)*.12)) : new THREE.BoxGeometry(w,h,d),m,x,y,z,ry);
 async function finishBatch() {
   for (const [m, list] of C.bat) {
     await pauseBuild();
     const geo = mergeGeometries(list.map((g) => { for (const k of Object.keys(g.attributes)) if (!['position', 'normal', 'uv'].includes(k)) g.deleteAttribute(k); return g; }));
     list.forEach((g) => g.dispose());
-    const mesh = new THREE.Mesh(geo, m); C.G.add(mesh);
+    const mesh = new THREE.Mesh(geo, m); mesh.castShadow = true; mesh.receiveShadow = true; C.G.add(mesh);
   }
 }
 function roofGeo(w, d, h, lift) {
@@ -603,6 +989,7 @@ function roofGeo(w, d, h, lift) {
     const t = Math.min(1, Math.max(az, ax));
     p.setY(i, h * Math.pow(1 - t, 1.7) + lift * Math.pow(t, 4) * (.25 + .75 * Math.pow(Math.min(ax, az) + .0001, 1.5)));
   }
+  const uv=g.attributes.uv;for(let i=0;i<uv.count;i++)uv.setXY(i,uv.getX(i)*w*.14,uv.getY(i)*d*.14);
   g.computeVertexNormals(); return { g, ridge };
 }
 function ridgeBar(r, y, m, x, z, scale = 1) {
@@ -610,31 +997,7 @@ function ridgeBar(r, y, m, x, z, scale = 1) {
   for (const s of [-1, 1]) box(.45 * scale, 1.2 * scale, .5 * scale, m, x + s * (r.ridge + .3 * scale), y + .5 * scale, z);
 }
 // A Chinese hall: stone base, columns, glowing lattice doors, painted brackets, one or two eaves.
-function hallB(o) {
-  const x = o.x ?? 0, y = o.y ?? 0, z = o.z ?? 0, w = o.w, d = o.d, h = o.h, base = o.base ?? 1.2, lift = o.lift ?? .8;
-  box(w + 3.2, base, d + 3.2, o.baseM ?? C.stone, x, y + base / 2, z);
-  const yb = y + base;
-  box(w, h, d, o.wall, x, yb + h / 2, z - .5);
-  const n = Math.max(4, Math.round(w / 2.8) + 1), colG = new THREE.CylinderGeometry(.26, .28, h, 14);
-  for (let i = 0; i < n; i++) put(colG.clone(), C.col, x - w / 2 + w * i / (n - 1), yb + h / 2, z + d / 2 + .3);
-  if (o.glow !== 0) {
-    const dm = new THREE.MeshStandardMaterial({ color: 0x1a0a06, emissive: o.glowColor ?? 0xffa04a, emissiveMap: latticeTex, emissiveIntensity: o.glow ?? 1.2 });
-    const dp = new THREE.Mesh(new THREE.PlaneGeometry(w * .62, h * .78), dm); dp.position.set(x, yb + h * .42, z + d / 2 - .48); C.G.add(dp);
-  }
-  box(w + 1, .8, d + 1, C.paint, x, yb + h + .4, z - .3);
-  let ry = yb + h + .8; const rh = o.eaves === 2 ? h * .3 : h * .6;
-  const r1 = roofGeo(w + 4.6, d + 4.6, rh, lift); put(r1.g, o.roof, x, ry, z - .3);
-  let top = ry + rh, last = r1;
-  if (o.eaves === 2) {
-    const w2 = w * .74, d2 = d * .62, h2 = h * .42;
-    box(w2, h2 + 1, d2, o.wall, x, ry + h2 / 2 + .5, z - .3);
-    box(w2 + .8, .6, d2 + .8, C.paint, x, ry + h2 + .8, z - .3);
-    ry += h2 + 1.1; const r2 = roofGeo(w2 + 4, d2 + 4, h * .55, lift); put(r2.g, o.roof, x, ry, z - .3);
-    top = ry + h * .55; last = r2;
-  }
-  ridgeBar(last, top, o.roof, x, z - .3);
-  return { top, front: z + d / 2 + 1.6, doors: V3(x, yb + h * .45, z + d / 2) };
-}
+function hallB(o){return buildHall(o,{THREE,V3,M,box,put,roofGeo,roofMat,pavingTex,grainTex,latticeTex,context:C});}
 // A tall pavilion of several floors.
 function tower(o) {
   const x = o.x ?? 0, z = o.z ?? 0; let y = o.y ?? 0, w = o.w, d = o.d;
@@ -655,7 +1018,6 @@ function gateB(o) {
   box(open, h - 3.6, 2.4, o.wall, 0, y + 3.6 + (h - 3.6) / 2, z);
   box(w + .6, .6, 2.8, C.paint, 0, y + h + .3, z);
   const r = roofGeo(w + 3, 5.4, 1.9, o.lift ?? .6); put(r.g, o.roof, 0, y + h + .6, z); ridgeBar(r, y + h + 2.5, o.roof, 0, z, .7);
-  if (o.text) { const tx = plaqueTex(o.text); const pl = new THREE.Mesh(new THREE.PlaneGeometry(1.9, .6), new THREE.MeshStandardMaterial({ map: tx, emissive: 0xffffff, emissiveMap: tx, emissiveIntensity: .25, roughness: .5 })); pl.position.set(0, y + h - .5, z + 1.22); C.G.add(pl); }
 }
 function wallRun(x1, z1, x2, z2, h, m, cap, y = 0) {
   const len = Math.hypot(x2 - x1, z2 - z1), ry = -Math.atan2(z2 - z1, x2 - x1);
@@ -677,11 +1039,19 @@ function pave(x, z, w, d, y = 0, m = C.pave) { box(w, .12, d, m, x, y + .06, z);
 function ground(color, o = {}) {
   const m = M(color, o.rough ?? 1, o.mat ?? {});
   const g = new THREE.Mesh(o.r ? new THREE.CircleGeometry(o.r, 96) : new THREE.PlaneGeometry(1600, 1600), m);
-  g.rotation.x = -Math.PI / 2; g.position.set(o.x ?? 0, o.y ?? 0, o.z ?? 0); C.G.add(g); return g;
+  g.rotation.x = -Math.PI / 2; g.receiveShadow = true; g.position.set(o.x ?? 0, o.y ?? 0, o.z ?? 0); C.G.add(g); return g;
 }
 function water(y, color, o = {}) {
   const m = new THREE.MeshPhysicalMaterial({ color, roughness: o.rough ?? .06, metalness: 0, normalMap: waterTex, normalScale: V2(o.waves ?? .35, o.waves ?? .35), envMapIntensity: o.env ?? 1, clearcoat: .3 });
-  const w = new THREE.Mesh(o.geo ?? new THREE.PlaneGeometry(2400, 2400), m); w.rotation.x = -Math.PI / 2; w.position.set(o.x ?? 0, y, o.z ?? 0); C.G.add(w);
+  let w;
+  if(o.reflect){
+    const shader={...Reflector.ReflectorShader,uniforms:{...Reflector.ReflectorShader.uniforms,uWaterTime:{value:0}},
+      fragmentShader:Reflector.ReflectorShader.fragmentShader.replace('uniform vec3 color;','uniform vec3 color; uniform float uWaterTime;').replace('vec4 base = texture2DProj( tDiffuse, vUv );',`vec4 q=vUv;q.x+=sin(q.y*83.+uWaterTime*1.2)*.0005*q.w;q.y+=sin(q.x*127.+uWaterTime*.8)*.0008*q.w;vec4 base=texture2DProj(tDiffuse,q);`)};
+    w=new Reflector(o.geo,{textureWidth:innerWidth<720?512:1024,textureHeight:innerWidth<720?512:1024,color:0x737c79,clipBias:.003,shader});
+    w.material.depthWrite=true;C.up.push((dt,t)=>{w.material.uniforms.uWaterTime.value=t;});
+    C.reflectors??=[];C.reflectors.push(w);
+  } else w = new THREE.Mesh(o.geo ?? new THREE.PlaneGeometry(2400, 2400),m);
+  w.rotation.x = -Math.PI / 2; w.position.set(o.x ?? 0,y,o.z ?? 0);C.G.add(w);
   if (!C.waterAnim) { C.waterAnim = true; C.up.push((dt) => { waterTex.offset.x += dt * .004; waterTex.offset.y += dt * .002; }); }
   return w;
 }
@@ -691,7 +1061,7 @@ function peakGeo(r, h, seed, sharp = 1.3) {
   const g = new THREE.CylinderGeometry(0, r, h, 72, 36, true); const p = g.attributes.position;
   for (let i = 0; i < p.count; i++) {
     const x = p.getX(i), z = p.getZ(i), t = (p.getY(i) + h / 2) / h, a = Math.atan2(z, x), rad = Math.hypot(x, z);
-    if (rad < 1e-6) { p.setY(i, h); continue; }
+    if (rad < 1e-6) { p.setY(i, h * .94); continue; }
     const n = Math.sin(a * 2 + ph[0] + t * 3) * .5 + Math.sin(a * 5 + ph[1] - t * 7) * .3 + Math.sin(a * 11 + ph[2] + t * 13) * .16 + Math.sin(a * 23 + ph[3] - t * 19) * .08;
     const prof = Math.pow(1 - t, sharp), k = r * prof * (1 + .3 * n) / rad;
     p.setXYZ(i, x * k, t * h * (1 + .06 * n), z * k);
@@ -699,7 +1069,8 @@ function peakGeo(r, h, seed, sharp = 1.3) {
   g.computeVertexNormals(); return g;
 }
 function peak(x, y, z, r, h, m, seed, sharp) { put(peakGeo(r, h, seed, sharp), m, x, y, z); }
-function rock(x, y, z, s, seed) {
+function rock(x,y,z,s,seed){
+  if(addScannedRock(C.G,x,y,z,s,seed))return;
   const rnd = mulberry32(seed), ph = Array.from({ length: 6 }, () => rnd() * 6);
   let g = new THREE.IcosahedronGeometry(1, 5); g.deleteAttribute('normal'); g.deleteAttribute('uv'); g = mergeVertices(g);
   const p = g.attributes.position, col = [];
@@ -724,13 +1095,26 @@ function ridgeGeo(width, base, amp, seed) {
   s.lineTo(width / 2, -60); return new THREE.ShapeGeometry(s);
 }
 function ridges(list) {
-  list.forEach(([dist, base, amp, color, snow], i) => {
-    const m = new THREE.ShaderMaterial({ uniforms: { uC: { value: new THREE.Color(color).multiplyScalar(C.shade ** 3) }, uS: { value: new THREE.Color(0xf4f6fa).lerp(new THREE.Color(color), .25).multiplyScalar(C.shade ** 3) }, uLine: { value: snow ?? 1e5 } },
+  list.forEach(([dist, base, amp, color, snow, back], i) => {
+    const m = new THREE.ShaderMaterial({ uniforms: { uC: { value: new THREE.Color(color).multiplyScalar(C.shade) }, uS: { value: new THREE.Color(0xf4f6fa).lerp(new THREE.Color(color), .25).multiplyScalar(C.shade) }, uLine: { value: snow ?? 1e5 } },
       vertexShader: 'varying vec3 vP; void main(){ vP = position; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.); }',
       fragmentShader: 'uniform vec3 uC, uS; uniform float uLine; varying vec3 vP; void main(){ float s = smoothstep(uLine, uLine + 2., vP.y + sin(vP.x * .21) * 3. + sin(vP.x * .67) * 1.4); gl_FragColor = vec4(mix(uC, uS, s), 1.); }' });
-    const mesh = new THREE.Mesh(ridgeGeo(1600, base, amp, 40 + i * 13 + C.seed), m); mesh.position.set(0, 0, -dist); C.G.add(mesh);
+    const mesh = new THREE.Mesh(ridgeGeo(1600, base, amp, 40 + i * 13 + C.seed), m); mesh.position.set(0, 0, back ? dist : -dist); if (back) mesh.rotation.y = Math.PI; C.G.add(mesh);
   });
 }
+// Foliage cutouts carry individual needles and leaves instead of solid cone silhouettes.
+const foliageTexture = (pine) => canvasTex(256,256,(g,w,h)=>{
+  const rnd=mulberry32(pine?88:89);g.clearRect(0,0,w,h);
+  g.strokeStyle='#82917b';g.lineWidth=2;g.beginPath();g.moveTo(128,250);g.lineTo(128,30);g.stroke();
+  for(let i=0;i<(pine?160:90);i++){
+    const y=30+rnd()*200,side=rnd()<.5?-1:1,reach=(pine?30:65)*(1-Math.abs(y-120)/200)*( .4+rnd());
+    const x=128+side*reach;g.strokeStyle=pine?'#81957c':'#728d66';g.lineWidth=pine?1.3:1.7;g.beginPath();g.moveTo(128,y+20);g.lineTo(x,y);g.stroke();
+    if(pine){for(let k=0;k<8;k++){const q=k/8;g.strokeStyle=['#6b8166','#9cab8a','#425f43'][i%3];g.beginPath();g.moveTo(128+(x-128)*q,y+20-20*q);g.lineTo(128+(x-128)*q+side*(8+rnd()*9),y-5-20*q);g.stroke();}}
+    else{g.fillStyle=['#526f47','#71905c','#8a9c68'][i%3];g.beginPath();g.ellipse(x,y,7+rnd()*5,3+rnd()*2,side*.5,0,6.283);g.fill();}
+  }
+});
+const needleTex=foliageTexture(true),leafTex=foliageTexture(false);
+const foliageGeo=new THREE.PlaneGeometry(1.8,1.8);
 // Trees as instanced pieces: lumpy foliage blobs, trunks, cones, culms.
 const blobGeo = (() => {
   let g = new THREE.IcosahedronGeometry(1, 2); g.deleteAttribute('normal'); g.deleteAttribute('uv'); g = mergeVertices(g);
@@ -743,24 +1127,38 @@ const coneGeo = new THREE.ConeGeometry(1, 1, 9).translate(0, .5, 0);
 // True when a spot would stand between the overview camera and the temple, or on the walk.
 // `top` is how tall the thing is; anything that stays below the line of sight is fine.
 function blocked(x, z, r = 7, top = Infinity) {
+  if (C.free) return false;
   const a = C.cam, b = C.tgt, dx = b.x - a.x, dz = b.z - a.z, k = Math.max(0, Math.min(1, ((x - a.x) * dx + (z - a.z) * dz) / (dx * dx + dz * dz)));
   const below = top < a.y + (b.y - a.y) * k - 1;
   return (!below && Math.hypot(x - a.x - dx * k, z - a.z - dz * k) < r) || (Math.abs(x) < 3.5 && z > -2 && z < 70);
 }
 function trees() {
-  const L = { blob: [], trunk: [], cone: [] }, q = new THREE.Quaternion(), e = new THREE.Euler(), rnd = C.rnd;
+  const pineBatch=createPineBatch({THREE,rnd:C.rnd,material:(color,rough)=>M(color,rough,{map:grainTex}),needleTexture:needleTex,group:C.G});
+  const L = { blob: [], trunk: [], cone: [], needle: [], leaf: [] }, q = new THREE.Quaternion(), e = new THREE.Euler(), rnd = C.rnd;
   const add = (k, x, y, z, sx, sy, sz, color, rx = 0, rz = 0) => { e.set(rx, rnd() * 6.28, rz); q.setFromEuler(e); L[k].push([new THREE.Matrix4().compose(V3(x, y, z), q.clone(), V3(sx, sy, sz)), new THREE.Color(color)]); };
   const jit = (c, a = .12) => new THREE.Color(c).offsetHSL((rnd() - .5) * .03, (rnd() - .5) * a, (rnd() - .5) * a).getHex();
   const T = {
-    broad(x, y, z, s, color) { if (blocked(x, z, 4 + s * 2, y + 5 * s)) return; add('trunk', x, y, z, .22 * s, 2.6 * s, .22 * s, 0x3a2e24); for (let k = 0; k < 6; k++) { const a = rnd() * 6.28, d = rnd() * 1.4 * s; add('blob', x + Math.cos(a) * d, y + 2.6 * s + rnd() * 1.6 * s, z + Math.sin(a) * d, (1 + rnd() * .6) * s, (.8 + rnd() * .5) * s, (1 + rnd() * .6) * s, jit(color)); } },
-    pine(x, y, z, s, color, keep) { if (!keep && blocked(x, z, 3 + s * 1.5, y + 5.2 * s)) return; add('trunk', x, y, z, .14 * s, 2 * s, .14 * s, 0x3a2a20); for (let k = 0; k < 3; k++) add('cone', x, y + (1 + k * 1.15) * s, z, (1.6 - k * .38) * s, 1.9 * s, (1.6 - k * .38) * s, jit(color, .08)); },
+    broad(x,y,z,s,color){
+      if(blocked(x,z,4+s*2,y+5*s))return;
+      add('trunk',x,y,z,.2*s,3*s,.2*s,0x483e32);
+      for(let k=0;k<6;k++){const a=rnd()*6.28,d=rnd()*1.3*s;add('blob',x+Math.cos(a)*d,y+3*s+rnd()*.7*s,z+Math.sin(a)*d,.7*s,.65*s,.7*s,jit(color));}
+      for(let k=0;k<110;k++){const a=rnd()*6.28,v=rnd()*2-1,rr=(.9+rnd()*.6)*s;add('leaf',x+Math.cos(a)*rr*Math.sqrt(1-v*v),y+3.6*s+v*s,z+Math.sin(a)*rr*Math.sqrt(1-v*v),.7*s,.7*s,.7*s,jit(color),rnd()*2-1,rnd()*2-1);}
+    },
+    pine(x,y,z,s,color,keep){if(!keep&&blocked(x,z,3+s*1.5,y+7*s))return;pineBatch.add(x,y,z,s,color);},
     cypress(x, y, z, s, color) { if (blocked(x, z, 3 + s * 1.5, y + 8.5 * s)) return; const lean = (rnd() - .5) * .2; add('trunk', x, y, z, .3 * s, 3 * s, .3 * s, 0x4a3a2c, 0, lean); for (let k = 0; k < 5; k++) add('blob', x + Math.sin(lean) * k * .7 * s + (rnd() - .5) * .8 * s, y + (2.2 + k * 1.3) * s, z + (rnd() - .5) * .8 * s, (1.1 - k * .12) * s, .9 * s, (1.1 - k * .12) * s, jit(color, .06)); },
-    bamboo(x, y, z, s, color) { if (blocked(x, z, 4, y + 12 * s)) return; const lx = (rnd() - .5) * .14, lz = (rnd() - .5) * .14, h = (8 + rnd() * 4) * s; add('trunk', x, y, z, .07 * s, h, .07 * s, jit(0x7a9a48), lx, lz); for (let k = 0; k < 3; k++) add('blob', x - lz * h * .9 + (rnd() - .5) * 1.2, y + h * (.75 + k * .1), z + lx * h * .9 + (rnd() - .5) * 1.2, (.9 + rnd() * .5) * s, .45 * s, (.9 + rnd() * .5) * s, jit(color, .1)); },
+    bamboo(x,y,z,s,color){
+      if(blocked(x,z,4,y+12*s))return;
+      const lx=(rnd()-.5)*.14,lz=(rnd()-.5)*.14,h=(8+rnd()*4)*s;
+      add('trunk',x,y,z,.035*s,h,.035*s,jit(0x697b46),lx,lz);
+      for(let k=0;k<34;k++){const f=.55+rnd()*.45,a=rnd()*6.28,rr=rnd()*1.5*s;add('leaf',x-lz*h*f+Math.cos(a)*rr,y+h*f,z+lx*h*f+Math.sin(a)*rr,.62*s,.28*s,.6*s,jit(color,.1),rnd()*.8-.4,rnd()*.8-.4);}
+    },
     blob(x, y, z, sx, sy, sz, color) { add('blob', x, y, z, sx, sy, sz, jit(color, .06)); },
     finish() {
-      for (const [k, geo, rough] of [['blob', blobGeo, .95], ['trunk', trunkGeo, 1], ['cone', coneGeo, .95]]) {
+      pineBatch.finish();
+      for (const [k, geo, rough] of [['blob', blobGeo, .95], ['trunk', trunkGeo, 1], ['cone', coneGeo, .95], ['needle',foliageGeo,.9], ['leaf',foliageGeo,.9]]) {
         if (!L[k].length) continue;
-        const im = new THREE.InstancedMesh(geo, M(0xffffff, rough), L[k].length);
+        const fm = k === 'needle' || k === 'leaf' ? new THREE.MeshStandardMaterial({color:0xffffff,map:k==='needle'?needleTex:leafTex,alphaTest:.35,side:THREE.DoubleSide,roughness:.9}) : M(0xffffff,rough);
+        const im = new THREE.InstancedMesh(geo, fm, L[k].length); im.castShadow = true; im.receiveShadow = true;
         L[k].forEach(([m, c], i) => { im.setMatrixAt(i, m); im.setColorAt(i, c); });
         im.instanceMatrix.needsUpdate = true; im.instanceColor.needsUpdate = true; C.G.add(im);
       }
@@ -778,6 +1176,17 @@ function fall(o) {
     : new THREE.Points(g, new THREE.PointsMaterial({ map: o.tex ?? softTex, color: tint, size: o.size, transparent: true, opacity: o.opacity ?? .9, depthWrite: false, alphaTest: o.tex ? .3 : 0, blending: o.add ? THREE.AdditiveBlending : THREE.NormalBlending }));
   obj.frustumCulled = false; C.G.add(obj);
   const lo = cy - h / 2, hi = cy + h / 2;
+  if(o.softEdges&&!rain){
+    obj.material.onBeforeCompile=shader=>{
+      shader.vertexShader='varying vec3 vWeatherPosition;\n'+shader.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nvWeatherPosition=position;');
+      shader.fragmentShader='varying vec3 vWeatherPosition;\n'+shader.fragmentShader.replace('#include <alphatest_fragment>',`
+        float weatherFade=smoothstep(${lo.toFixed(3)},${(lo+.45).toFixed(3)},vWeatherPosition.y)*(1.-smoothstep(${(hi-.8).toFixed(3)},${hi.toFixed(3)},vWeatherPosition.y));
+        weatherFade*=smoothstep(${(cx-w/2).toFixed(3)},${(cx-w/2+1).toFixed(3)},vWeatherPosition.x)*(1.-smoothstep(${(cx+w/2-1).toFixed(3)},${(cx+w/2).toFixed(3)},vWeatherPosition.x));
+        weatherFade*=smoothstep(${(cz-d/2).toFixed(3)},${(cz-d/2+1).toFixed(3)},vWeatherPosition.z)*(1.-smoothstep(${(cz+d/2-1).toFixed(3)},${(cz+d/2).toFixed(3)},vWeatherPosition.z));
+        diffuseColor.a*=weatherFade;
+        #include <alphatest_fragment>`);
+    };
+  }
   C.up.push((dt, t) => {
     obj.visible = !powerSaver && !reducedMotion.matches; if (!obj.visible) return;
     for (let i = 0; i < n; i++) {
@@ -808,7 +1217,12 @@ function postLanterns(zs, xoff, h = 3, s = 1) { const pts = []; for (const z of 
 function smokeAt(x, y, z, o = {}) {
   const rnd = C.rnd;
   const sm = new Smoke(C.G, o.n ?? 80, new THREE.Color(o.color ?? 0xd8d4cc).multiplyScalar(C.shade ** 2), (o.op ?? .28) * Math.min(1, C.shade * 2), o.k ?? 14);
-  C.up.push((dt, t) => { if (rnd() < (o.rate ?? .6)) sm.puff(V3(x, y, z), o.spread ?? .4, o.size ?? .35); sm.update(dt, t); });
+  let pending=0;
+  C.up.push((dt, t) => {
+    if(o.perSecond){pending+=dt*o.perSecond;while(pending>=1){sm.puff(V3(x,y,z),o.spread??.4,o.size??.35);pending--;}}
+    else if (rnd() < (o.rate ?? .6)) sm.puff(V3(x, y, z), o.spread ?? .4, o.size ?? .35);
+    sm.update(dt,t);
+  });
 }
 function burnerAt(x, z, s = 1) {
   const g = new THREE.LatheGeometry([[0, 0], [.5, 0], [.55, .1], [.4, .3], [.9, .7], [.95, 1.2], [1, 1.25], [.85, 1.25], [.8, 1], [0, 1]].map(([a, b]) => V2(a * s, b * s)), 32);
@@ -816,22 +1230,6 @@ function burnerAt(x, z, s = 1) {
   smokeAt(x, 1.3 * s, z, { size: .25 * s, spread: .3 * s });
 }
 // Prayer flags on a sagging string; they flutter.
-function flags(a, b, n, sag) {
-  const cols = [0x2a5ab8, 0xf0efe6, 0xc0302a, 0x2a9a50, 0xf0c020];
-  const im = new THREE.InstancedMesh(new THREE.PlaneGeometry(.5, .4).translate(0, -.22, 0), M(0xffffff, .9, { side: THREE.DoubleSide }), n);
-  const pts = [], yaw = -Math.atan2(b.z - a.z, b.x - a.x), q = new THREE.Quaternion(), e = new THREE.Euler(0, 0, 0, 'YXZ'), m = new THREE.Matrix4(), one = V3(1, 1, 1);
-  for (let i = 0; i < n; i++) { const k = (i + .5) / n, p = a.clone().lerp(b, k); p.y -= sag * 4 * k * (1 - k); pts.push(p); im.setColorAt(i, new THREE.Color(cols[i % 5])); }
-  const lp = []; for (let i = 0; i <= 24; i++) { const k = i / 24, p = a.clone().lerp(b, k); p.y -= sag * 4 * k * (1 - k); lp.push(p); }
-  C.G.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(lp), new THREE.LineBasicMaterial({ color: 0x3a3028 })));
-  im.instanceColor.needsUpdate = true; C.G.add(im);
-  C.up.push((dt, t) => { for (let i = 0; i < n; i++) { e.set(Math.sin(t * 2.4 + i * .7) * .5 + .25, yaw, 0); q.setFromEuler(e); m.compose(pts[i], q, one); im.setMatrixAt(i, m); } im.instanceMatrix.needsUpdate = true; });
-}
-function ribbons(cx, cy, cz, n, spread) {
-  const im = new THREE.InstancedMesh(new THREE.PlaneGeometry(.08, .9).translate(0, -.45, 0), new THREE.MeshStandardMaterial({ color: 0xc8141a, emissive: 0x5a0606, roughness: .7, side: THREE.DoubleSide }), n);
-  const pts = Array.from({ length: n }, () => V3(cx + (C.rnd() - .5) * spread, cy + (C.rnd() - .5) * spread * .4, cz + (C.rnd() - .5) * spread));
-  const q = new THREE.Quaternion(), e = new THREE.Euler(), m = new THREE.Matrix4(), one = V3(1, 1, 1);
-  C.G.add(im); C.up.push((dt, t) => { pts.forEach((p, i) => { e.set(Math.sin(t * 1.7 + i) * .25, i, Math.sin(t * 1.3 + i * 2) * .2); q.setFromEuler(e); m.compose(p, q, one); im.setMatrixAt(i, m); }); im.instanceMatrix.needsUpdate = true; });
-}
 function pagoda(x, z, tiers, s, m) {
   if (blocked(x, z, 3 + s * 2, (4.5 + tiers * .7) * s)) return;
   const hex = (r, h) => new THREE.CylinderGeometry(r, r, h, 6);
@@ -842,54 +1240,30 @@ function pagoda(x, z, tiers, s, m) {
   put(new THREE.ConeGeometry(r * 1.25, .8 * s, 6), m, x, y + .4 * s, z); y += .8 * s;
   put(new THREE.CylinderGeometry(.06 * s, .1 * s, .9 * s, 6), m, x, y + .45 * s, z); put(new THREE.SphereGeometry(.16 * s, 8, 6), m, x, y + .95 * s, z);
 }
-function tibetan(o) {
-  const { w, d, h } = o, x = o.x ?? 0, z = o.z ?? 0;
-  const white = M(0xeee6d4, .95), band = M(0x4a1a14, 1), dark = M(0x15110f, .9), gold = M(0xd9a43a, .26, { metalness: 1 });
-  box(w, h, d, white, x, h / 2, z);
-  box(w + .3, 1.7, d + .3, band, x, h - 1.05, z); box(w + .5, .35, d + .5, dark, x, h + .02, z);
-  const trap = new THREE.Shape(); trap.moveTo(-.8, -1); trap.lineTo(.8, -1); trap.lineTo(.6, 1); trap.lineTo(-.6, 1); trap.closePath();
-  const tg = new THREE.ShapeGeometry(trap), win = M(0x2a1810, .7);
-  for (const yy of [2.4, 5.2]) for (let xx = -w / 2 + 2.4; xx < w / 2 - 1.5; xx += 3.4) { if (Math.abs(xx) < 6.5) continue; put(tg.clone(), dark, x + xx, yy, z + d / 2 + .02); box(.75, 1.2, .05, win, x + xx, yy - .05, z + d / 2 + .05); box(1.5, .14, .5, band, x + xx, yy + 1.1, z + d / 2 + .25); }
-  // Porch with red columns and a dark yak-hair curtain.
-  for (let i = 0; i < 6; i++) put(new THREE.CylinderGeometry(.28, .3, h - 2, 12), C.col, x - 6 + i * 2.4, (h - 2) / 2, z + d / 2 + 2.6);
-  box(14, .7, 3.4, band, x, h - 1.65, z + d / 2 + 1.7); box(10, h - 2.6, .1, M(0x1b1512, 1), x, (h - 2.6) / 2, z + d / 2 + .1);
-  for (let i = 0; i < 4; i++) box(.18, h - 3, .04, M(0xe8e0cc, 1), x - 3 + i * 2, (h - 3) / 2 + .2, z + d / 2 + .16);
-  // Upper storey and gilded roofs.
-  box(w * .55, 4, d * .5, white, x, h + 2, z - d * .15); box(w * .55 + .2, 1.1, d * .5 + .2, band, x, h + 3.4, z - d * .15);
-  for (const [xx, s] of [[-7, .8], [0, 1.15], [7, .8]]) { const r = roofGeo(5.5 * s, 4.4 * s, 2.1 * s, .7 * s); put(r.g, gold, x + xx, h + 4.2, z - d * .2); ridgeBar(r, h + 4.2 + 2.1 * s, gold, x + xx, z - d * .2, .6 * s); put(new THREE.CylinderGeometry(.12, .3, 1.3, 10), gold, x + xx, h + 4.2 + 2.1 * s + .9, z - d * .2); }
-  // Dharma wheel with two deer on the front parapet.
-  const wy = h + 1.6, wz = z + d / 2 - .4;
-  put(new THREE.TorusGeometry(1, .13, 10, 40), gold, x, wy, wz); put(new THREE.CylinderGeometry(.25, .25, .2, 16).rotateX(Math.PI / 2), gold, x, wy, wz);
-  for (let i = 0; i < 8; i++) { const a = i / 8 * Math.PI; box(.07, 1.9, .07, gold, x, wy, wz); C.bat.get(gold).at(-1).translate(-x, -wy, -wz).rotateZ(a).translate(x, wy, wz); }
-  box(.4, .9, .4, gold, x, h + .45, wz);
-  for (const s of [-1, 1]) { box(1, .55, .4, gold, x + s * 1.8, h + .65, wz); box(.28, .7, .28, gold, x + s * 1.35, h + 1.1, wz); box(.2, .6, .2, gold, x + s * 2.15, h + .2, wz); }
-  for (const [cx, cz] of [[-w / 2, d / 2], [w / 2, d / 2], [-w / 2, -d / 2], [w / 2, -d / 2]]) put(new THREE.CylinderGeometry(.35, .5, 2, 12), gold, x + cx, h + 1.2, z + cz);
-}
-function archBridge(z, span, rise, width, m, y = 0) {
+function archBridge(z, span, rise, width, m, y = 0, railSides = [-1,1]) {
   const sh = new THREE.Shape(), L = span / 2 + 2.5, N = 24;
   sh.moveTo(-L, 0); for (let i = 0; i <= N; i++) { const u = -L + 2 * L * i / N; sh.lineTo(u, rise * Math.cos(Math.PI * u / (2 * L)) ** 1.2 + .3); } sh.lineTo(L, 0);
   const hole = new THREE.Path(); hole.moveTo(span * .32, 0); hole.absarc(0, 0, span * .32, 0, Math.PI, false); hole.lineTo(span * .32, 0); sh.holes.push(hole);
   const g = new THREE.ExtrudeGeometry(sh, { depth: width, bevelEnabled: false, curveSegments: 20 });
   g.translate(0, 0, -width / 2); g.rotateY(-Math.PI / 2); put(g, m, 0, y, z);
-  for (const s of [-1, 1]) {
+  for (const s of railSides) {
     const rail = new THREE.Shape(); rail.moveTo(-L, .3); for (let i = 0; i <= N; i++) { const u = -L + 2 * L * i / N; rail.lineTo(u, rise * Math.cos(Math.PI * u / (2 * L)) ** 1.2 + 1.1); } for (let i = N; i >= 0; i--) { const u = -L + 2 * L * i / N; rail.lineTo(u, rise * Math.cos(Math.PI * u / (2 * L)) ** 1.2 + .3); }
     const rg = new THREE.ExtrudeGeometry(rail, { depth: .2, bevelEnabled: false }); rg.translate(0, 0, -.1); rg.rotateY(-Math.PI / 2); put(rg, m, s * (width / 2 - .1), y, z);
   }
 }
 function lotus(x0, x1, z0, z1, y, n) {
-  const pads = new THREE.InstancedMesh(new THREE.CircleGeometry(1, 20, .3, 6).rotateX(-Math.PI / 2), M(0xffffff, .7, { side: THREE.DoubleSide }), n);
+  const pads = new THREE.InstancedMesh(new THREE.CircleGeometry(1, 96, .3, 6).rotateX(-Math.PI / 2), M(0xffffff, .7, { side: THREE.DoubleSide }), n);
   const m = new THREE.Matrix4(), q = new THREE.Quaternion();
   for (let i = 0; i < n; i++) { const s = .35 + C.rnd() * .55; q.setFromEuler(new THREE.Euler(0, C.rnd() * 6.28, 0)); m.compose(V3(x0 + C.rnd() * (x1 - x0), y + C.rnd() * .03, z0 + C.rnd() * (z1 - z0)), q, V3(s, 1, s)); pads.setMatrixAt(i, m); pads.setColorAt(i, new THREE.Color(0x3d6a2c).offsetHSL((C.rnd() - .5) * .04, 0, (C.rnd() - .5) * .1)); }
   pads.instanceColor.needsUpdate = true; C.G.add(pads);
-  const pink = M(0xf0a0b8, .6, { emissive: 0x3a1018 });
-  for (let i = 0; i < n / 6; i++) { const g = new THREE.LatheGeometry([[0, 0], [.12, .04], [.2, .2], [.1, .32], [0, .3]].map(([a, b]) => V2(a, b)), 7); put(g, pink, x0 + C.rnd() * (x1 - x0), y + .2, z0 + C.rnd() * (z1 - z0)); }
-}
-function statue(x, y, z, h, m) {
-  const s = h / 13;
-  put(new THREE.CylinderGeometry(3.6 * s, 4.2 * s, 2 * s, 8), C.stone, x, y + 1 * s, z);
-  put(new THREE.LatheGeometry([[0, 0], [2.4, 0], [2.3, 1], [1.9, 4.5], [1.55, 8], [1.75, 9.6], [1.2, 10.4], [.55, 10.6], [0, 10.6]].map(([a, b]) => V2(a * s, b * s)), 40), m, x, y + 2 * s, z);
-  put(new THREE.SphereGeometry(.85 * s, 24, 18), m, x, y + 13.3 * s, z); box(1.8 * s, .35 * s, 1.5 * s, m, x, y + 14.3 * s, z);
-  box(2.4 * s, .7 * s, 1 * s, m, x, y + 10 * s, z + 1.2 * s);
+  const pink=M(0xcf9ca6,.84,{side:THREE.DoubleSide});
+  for(let i=0;i<n/6;i++){
+    const x=x0+C.rnd()*(x1-x0),z=z0+C.rnd()*(z1-z0);
+    for(let ring=0;ring<2;ring++)for(let j=0;j<8;j++){
+      const angle=(j+ring*.5)/8*Math.PI*2,g=petalGeo(.1-ring*.02,.18-ring*.035,.03);
+      g.rotateX(.65-ring*.3);g.rotateY(angle);put(g,pink,x+Math.sin(angle)*.035,y+.06+ring*.035,z+Math.cos(angle)*.035);
+    }
+  }
 }
 function city(n, rMin, rMax, arc) {
   const m = new THREE.MeshStandardMaterial({ color: 0x15161c, emissive: 0xffffff, emissiveMap: windowsTex, emissiveIntensity: .9, roughness: .9 });
@@ -909,7 +1283,7 @@ void main(){
   vec3 d = normalize(vD); float h = d.y;
   vec3 c = mix(uHorizon, uTop, pow(smoothstep(0., .75, h), .6));
   float s = max(dot(d, uDir), 0.);
-  c += uSun * (pow(s, 10.) * uGlow * .7 + pow(s, 2.5) * uGlow * .18);
+  c += uSun * (pow(s, 10.) * uGlow * .7 + pow(s, 2.5) * uGlow * .18) * (uDisc < 2.5 ? .025 : 1.);
   c += uSun * smoothstep(.9992, .9996, s) * uDisc;
   if (uClouds > 0.) {
     vec2 p = d.xz / max(h + .1, .03) * .8 + vec2(uTime * .004, 0.);
@@ -918,7 +1292,7 @@ void main(){
     vec3 cc = mix(uDark, uLit, clamp(.4 + pow(s, 3.) * .8 + (n - .55) * 1.4, 0., 1.));
     c = mix(c, cc, cov);
   }
-  if (uStars > 0.) { vec3 q = floor(d * 420.); c += step(.9984, h3(q)) * uStars * smoothstep(.08, .45, h); }
+  if (uStars > 0.) { vec3 q = d*900.;float spot=1.-smoothstep(.08,.3,length(fract(q)-.5));c+=step(.9997,h3(floor(q)))*spot*uStars*.45*smoothstep(.08,.45,h); }
   c = mix(uGround, c, smoothstep(-.06, .0, h));
   gl_FragColor = vec4(c, 1.);
 }`;
@@ -941,12 +1315,12 @@ const DAY_KEYS = [
   [23, { n: 1, g: 0, blue: 0, lamp: .6, haze: 1.2, elev: 1 }],
   [24, { n: 1, g: 0, blue: 0, lamp: .55, haze: 1.3, elev: 1 }],
 ];
-function daylight(date = new Date()) {
-  const h = date.getHours() + date.getMinutes() / 60;
+function daylight(date = new Date(), continuous = false) {
+  const h = date.getHours() + date.getMinutes() / 60 + (continuous ? (date.getSeconds()+date.getMilliseconds()/1000)/3600 : 0);
   let i = 1; while (i < DAY_KEYS.length - 1 && DAY_KEYS[i][0] <= h) i++;
   const [h0, a] = DAY_KEYS[i - 1], [h1, b] = DAY_KEYS[i], t = Math.min(1, Math.max(0, (h - h0) / (h1 - h0))), k = t * t * (3 - 2 * t);
   const out = { dawn: h < 12 };
-  for (const key of Object.keys(a)) out[key] = Math.round((a[key] + (b[key] - a[key]) * k) * 20) / 20;
+  for (const key of Object.keys(a)) { const value=a[key]+(b[key]-a[key])*k;out[key]=continuous?value:Math.round(value*20)/20; }
   return out;
 }
 const hexMix = (a, b, k) => new THREE.Color(a).lerp(new THREE.Color(b), Math.min(1, Math.max(0, k))).getHex();
@@ -967,27 +1341,27 @@ function blendPlace(N, L) {
   };
   const sunScale = n < .5 ? .35 + .65 * L.elev : 1;
   return {
-    sky, exposure: mix(D.exposure ?? 1, N.exposure ?? 1), shade: mix(1, N.shade ?? 1),
+    sky, exposure: mix(D.exposure ?? 1,N.exposure ?? 1)*(N.bakedLighting?1:1+1.2*n), shade: mix(1, N.shade ?? 1),
     fog: [hexMix(hexMix(D.fog[0], N.fog[0], n), warm, .18 * g), mix(D.fog[1], N.fog[1]) * L.haze * (1 - .3 * g)],
     sunL: [hexMix(hexMix(D.sunL[0], N.sunL[0], n), sunWarm, .7 * g), mix(D.sunL[1], N.sunL[1]) * sunScale],
-    hemi: [hexMix(D.hemi[0], N.hemi[0], n), hexMix(D.hemi[1], N.hemi[1], n), mix(D.hemi[2], N.hemi[2])],
+    hemi: [hexMix(hexMix(D.hemi[0],N.hemi[0],n),0xa5b2c2,N.bakedLighting?0:n*.8),hexMix(D.hemi[1],N.hemi[1],n),Math.max(mix(D.hemi[2],N.hemi[2]),N.bakedLighting?0:n*2.4)],
     bloom: [mix(D.bloom[0], N.bloom[0]), mix(D.bloom[1], N.bloom[1])],
     porch: N.porch && L.lamp > 0 ? [N.porch[0], N.porch[1] * L.lamp] : null,
   };
 }
 
-// Each place: its weather, landmark and buildings, by day and by night. Hall at the origin facing +z.
+// Each place: its weather, landmark and buildings, by day and by night, and the spot where its lamp is lit.
 const placeModules = {
-  lingyin: () => import('./places/lingyin.js'),
-  shaolin: () => import('./places/shaolin.js'),
-  yonghe: () => import('./places/yonghe.js'),
-  jokhang: () => import('./places/jokhang.js'),
-  puji: () => import('./places/puji.js'),
-  zixiao: () => import('./places/zixiao.js'),
-  qufu: () => import('./places/qufu.js'),
-  meizhou: () => import('./places/meizhou.js'),
-  guandi: () => import('./places/guandi.js'),
-  hongluo: () => import('./places/hongluo.js')
+  'pine-gate': () => import('./places/pine-gate.js'),
+  'bamboo-rain': () => import('./places/bamboo-rain.js'),
+  'cloud-cliff': () => import('./places/cloud-cliff-baked.js'),
+  'lotus-pond': () => import('./places/lotus-pond.js'),
+  'sea-tide': () => import('./places/sea-tide.js'),
+  'snow-roof': () => import('./places/snow-roof-baked.js'),
+  'loess-cliff': () => import('./places/loess-cliff.js'),
+  'highland': () => import('./places/highland.js'),
+  'bell-lane': () => import('./places/bell-lane.js'),
+  'valley-pagoda': () => import('./places/valley-pagoda.js'),
 };
 const PLACES = {};
 let lastBuildYield = 0;
@@ -995,38 +1369,216 @@ async function pauseBuild() {
   if (performance.now() - lastBuildYield < 6) return;
   await new Promise(resolve => setTimeout(resolve, 0)); lastBuildYield = performance.now();
 }
-const placeHelpers = { THREE, V3, V2, M, roofMat, ground, pave, hallB, gateB, compound, rock, trees, peak, ridges, mist, burnerAt, postLanterns, pagoda, stairs, paifang, wallRun, tibetan, flags, water, archBridge, lotus, statue, box, city, ribbons, fall, lanterns, put, tower, smokeAt, pavingTex, petalTex, pauseBuild, get context() { return C; } };
+// ---------- Spot pieces: what stands close around a lamp ----------
+// Rammed loess: ochre bands laid down layer by layer, with cracks.
+const loessTex = canvasTex(512, 512, (g, w, h) => {
+  const rnd = mulberry32(51); g.fillStyle = '#9a7448'; g.fillRect(0, 0, w, h);
+  for (let y = 0; y < h; y += 4 + rnd() * 10) { g.fillStyle = `rgba(${rnd() < .5 ? '60,38,18' : '210,170,120'},${.05 + rnd() * .12})`; g.fillRect(0, y, w, 2 + rnd() * 6); }
+  for (let i = 0; i < 3000; i++) { g.fillStyle = `rgba(40,24,10,${rnd() * .12})`; g.fillRect(rnd() * w, rnd() * h, 1 + rnd() * 3, 1); }
+  g.strokeStyle = 'rgba(30,18,8,.35)'; for (let i = 0; i < 18; i++) { let x = rnd() * w, y = rnd() * h; g.beginPath(); g.moveTo(x, y); for (let k = 0; k < 6; k++) { x += (rnd() - .5) * 20; y += 8 + rnd() * 16; g.lineTo(x, y); } g.stroke(); }
+});
+loessTex.wrapS = loessTex.wrapT = THREE.RepeatWrapping;
+// Grey bricks in running bond.
+const brickTex = canvasTex(512, 512, (g, w, h) => {
+  const rnd = mulberry32(53); g.fillStyle = '#2a2a2c'; g.fillRect(0, 0, w, h);
+  for (let r = 0; r < 16; r++) for (let c = -1; c < 5; c++) { const l = 34 + rnd() * 12; g.fillStyle = `hsl(220 4% ${l}%)`; g.fillRect(c * 128 + (r % 2) * 64 + 3, r * 32 + 3, 122, 26); for (let k = 0; k < 30; k++) { g.fillStyle = `rgba(0,0,0,${rnd() * .12})`; g.fillRect(c * 128 + (r % 2) * 64 + rnd() * 120, r * 32 + rnd() * 26, 2 + rnd() * 6, 2); } }
+});
+brickTex.wrapS = brickTex.wrapT = THREE.RepeatWrapping;
+// Lime plaster on a wall, a little stained toward the ground.
+const plasterTex = canvasTex(512, 512, (g, w, h) => {
+  const rnd = mulberry32(57); g.fillStyle = '#e8e4da'; g.fillRect(0, 0, w, h);
+  for (let i = 0; i < 4000; i++) { const v = 150 + rnd() * 90; g.fillStyle = `rgba(${v},${v - 6},${v - 14},${rnd() * .08})`; g.fillRect(rnd() * w, rnd() * h, 2 + rnd() * 8, 2 + rnd() * 8); }
+  const s = g.createLinearGradient(0, h * .6, 0, h); s.addColorStop(0, 'rgba(90,90,80,0)'); s.addColorStop(1, 'rgba(70,72,60,.35)'); g.fillStyle = s; g.fillRect(0, 0, w, h);
+});
+plasterTex.wrapS = plasterTex.wrapT = THREE.RepeatWrapping;
+// Red paper-cuts on a lattice window: round flowers and a border.
+const papercutTex = canvasTex(512, 512, (g, w, h) => {
+  g.fillStyle = '#efe0c2'; g.fillRect(0, 0, w, h);
+  g.fillStyle = '#b0140e';
+  const flower = (cx, cy, r) => { for (let i = 0; i < 12; i++) { const a = i / 12 * Math.PI * 2; g.beginPath(); g.ellipse(cx + Math.cos(a) * r * .55, cy + Math.sin(a) * r * .55, r * .38, r * .14, a, 0, Math.PI * 2); g.fill(); } g.beginPath(); g.arc(cx, cy, r * .25, 0, Math.PI * 2); g.fill(); };
+  flower(w / 2, h / 2, 120); for (const [x, y] of [[90, 90], [w - 90, 90], [90, h - 90], [w - 90, h - 90]]) flower(x, y, 60);
+  g.fillStyle = '#3a2416'; for (let x = 0; x <= w; x += w / 4) g.fillRect(x - 6, 0, 12, h); for (let y = 0; y <= h; y += h / 4) g.fillRect(0, y - 6, w, 12);
+});
+// Soot left above a flame on stone: dark at the middle, fading out.
+const sootTex = canvasTex(128, 128, (g, w, h) => {
+  const r = g.createRadialGradient(w / 2, h * .62, 0, w / 2, h * .62, w * .55);
+  r.addColorStop(0, 'rgba(255,255,255,1)'); r.addColorStop(.5, 'rgba(255,255,255,.45)'); r.addColorStop(1, 'rgba(255,255,255,0)');
+  g.fillStyle = r; g.fillRect(0, 0, w, h);
+});
+// A run of eaves seen from below: rafters, boards, a fascia, and a row of round tile ends with drip tiles.
+function eave(o) {
+  const x0 = o.x0, x1 = o.x1, w = x1 - x0, cx = (x0 + x1) / 2, d = o.depth ?? 1.6, rise = o.rise ?? .55, y = o.y, z = o.z;
+  const slope = Math.atan2(rise, d), L = Math.hypot(d, rise);
+  const wood = M(o.wood ?? 0x2e1e14, .8, { map: grainTex }), tile = roofMat(o.tile ?? 0x3e3e40), paint = o.paint ? M(o.paint, .7) : wood;
+  const board = new THREE.BoxGeometry(w, .03, L); board.rotateX(slope); put(board, wood, cx, y + rise / 2 + .1, z - d / 2);
+  const roof = new THREE.BoxGeometry(w + .2, .08, L + .1); roof.rotateX(slope); put(roof, tile, cx, y + rise / 2 + .2, z - d / 2);
+  for (let x = x0 + .1; x <= x1; x += .22) { const r = new THREE.CylinderGeometry(.035, .035, L, 8); r.rotateX(Math.PI / 2 + slope); put(r, paint, x, y + rise / 2 + .05, z - d / 2 + .02); }
+  box(w, .14, .08, paint, cx, y + .02, z);
+  const end = new THREE.CylinderGeometry(.055, .055, .05, 14); end.rotateX(Math.PI / 2);
+  for (let x = x0 + .1; x <= x1; x += .2) { put(end.clone(), tile, x, y + .2, z + .04); const drip = new THREE.ConeGeometry(.07, .08, 3); drip.rotateX(Math.PI); drip.rotateY(Math.PI / 6); put(drip, tile, x + .1, y + .12, z + .03); }
+  if (o.snow) {
+    const snowM = M(0xe8eef6, .95), sl = new THREE.BoxGeometry(w + .3, .16, L + .1); sl.rotateX(slope); put(sl, snowM, cx, y + rise / 2 + .32, z - d / 2);
+    box(w + .3, .14, .16, snowM, cx, y + .34, z + .08);
+    for (let x = x0 + .07; x <= x1; x += .09 + C.rnd() * .12) { const l = .04 + C.rnd() ** 2 * .3; const ic = new THREE.ConeGeometry(.012 + l * .04, l, 6); ic.rotateX(Math.PI); put(ic, M(0xd8e4f0, .15, { metalness: .1 }), x, y + .2 - l / 2, z + .1); }
+  }
+}
+// A column on a stone drum.
+function col(x, z, h, r, m, y = 0) { put(new THREE.CylinderGeometry(r, r * 1.04, h, 20), m, x, y + h / 2 + .08, z); put(new THREE.CylinderGeometry(r * 1.45, r * 1.6, .16, 20), C.stone, x, y + .08, z); }
+// A wooden balustrade: posts, top rail, mid rail and close balusters.
+function rail(x0, x1, z, h, m, y = 0) {
+  box(x1 - x0, .06, .08, m, (x0 + x1) / 2, y + h, z); box(x1 - x0, .05, .06, m, (x0 + x1) / 2, y + h * .45, z); box(x1 - x0, .05, .07, m, (x0 + x1) / 2, y + .05, z);
+  for (let x = x0; x <= x1 + 1e-6; x += .9) box(.09, h + .06, .09, m, x, y + (h + .06) / 2, z);
+  for (let x = x0 + .1; x < x1; x += .1) box(.022, h * .4, .022, m, x, y + h * .67, z);
+}
+// A wall with openings, as one extruded slab: rectangles, or arches with a round top.
+function wallWithHoles(o) {
+  const s = new THREE.Shape(); s.moveTo(o.x0, o.y0); s.lineTo(o.x1, o.y0); s.lineTo(o.x1, o.y1); s.lineTo(o.x0, o.y1); s.lineTo(o.x0, o.y0);
+  for (const hl of o.holes) {
+    const p = new THREE.Path(), r = (hl.x1 - hl.x0) / 2, cx = (hl.x0 + hl.x1) / 2;
+    p.moveTo(hl.x0, hl.y0); p.lineTo(hl.x1, hl.y0);
+    if (hl.arch) { p.lineTo(hl.x1, hl.y1 - r); p.absarc(cx, hl.y1 - r, r, 0, Math.PI, false); } else { p.lineTo(hl.x1, hl.y1); p.lineTo(hl.x0, hl.y1); }
+    p.lineTo(hl.x0, hl.y0); s.holes.push(p);
+  }
+  const g = new THREE.ExtrudeGeometry(s, { depth: o.depth, bevelEnabled: false, curveSegments: 18 });
+  const pos = g.attributes.position, uv = g.attributes.uv, k = o.uv ?? 1;
+  for (let i = 0; i < pos.count; i++) uv.setXY(i, (pos.getX(i) + pos.getZ(i)) * k, pos.getY(i) * k);
+  g.translate(0, 0, o.z - o.depth); put(g, o.m, 0, 0, 0);
+}
+// A sea of cloud far below, moving fast, lit from above by the sky.
+function cloudSea(o) {
+  const n = C.light.n;
+  const u = { uTime: { value: 0 }, uTop: { value: new THREE.Color(hexMix(0xf6f4f0, 0x6c7890, n)) }, uDeep: { value: new THREE.Color(hexMix(0xa8b2c2, 0x0e131c, n)) }, uFar: { value: new THREE.Color(o.far ?? hexMix(0xdfe4ea, 0x1c2434, n)) }, uSpeed: { value: o.speed ?? 6 } };
+  const m = new THREE.ShaderMaterial({ uniforms: u, fog: false, depthWrite: true,
+    vertexShader: 'uniform float uTime,uSpeed; varying vec3 vW; void main(){ vec4 w = modelMatrix * vec4(position, 1.); float t=uTime*uSpeed*.03;w.y+=sin(w.x*.025+t)*sin(w.z*.018+t*.6)*2.5+sin(w.x*.063+w.z*.043+t)*.9;vW = w.xyz; gl_Position = projectionMatrix * viewMatrix * w; }',
+    fragmentShader: `uniform float uTime, uSpeed; uniform vec3 uTop, uDeep, uFar; varying vec3 vW;
+      float h2(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+      float n2(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3. - 2. * f); return mix(mix(h2(i), h2(i + vec2(1., 0.)), f.x), mix(h2(i + vec2(0., 1.)), h2(i + vec2(1., 1.)), f.x), f.y); }
+      float fbm(vec2 p){ float a = .5, s = 0.; for (int i = 0; i < 6; i++){ s += a * n2(p); p = p * 2.07 + vec2(1.7, 9.2); a *= .5; } return s; }
+      void main(){
+        vec2 p = vW.xz * .006 + vec2(uTime * uSpeed * .0012, uTime * uSpeed * .0004);
+        float c = fbm(p) * .65 + fbm(p * 2.3 - vec2(uTime * uSpeed * .002, 0.)) * .35;
+        float lit = smoothstep(.35, .75, c);
+        vec3 col = mix(uDeep, uTop, lit);
+        float d = length(vW.xz - cameraPosition.xz);
+        gl_FragColor = vec4(mix(col, uFar, smoothstep(300., 1400., d)), 1.);
+      }` });
+  const sea = new THREE.Mesh(new THREE.PlaneGeometry(4000, 4000,240,240).rotateX(-Math.PI / 2), m); sea.position.y = o.y; sea.userData.cast = false; C.G.add(sea);
+  C.up.push((dt, t) => { u.uTime.value = t; });
+}
+// A line of footprints across snow.
+function footprints(from, to, n, m) {
+  const step = to.clone().sub(from).divideScalar(n), yaw = Math.atan2(step.x, step.z);
+  for (let i = 0; i < n; i++) { const p = from.clone().addScaledVector(step, i), side = i % 2 ? 1 : -1; const g = new THREE.CircleGeometry(1, 14); g.scale(.05, .13, 1); g.rotateX(-Math.PI / 2); g.rotateY(yaw); put(g, m, p.x + Math.cos(yaw) * side * .1, p.y + .005, p.z - Math.sin(yaw) * side * .1); }
+}
+// A bronze bell.
+function bell(x, y, z, s, m) { put(lathe([[0, 0], [.42, 0], [.44, .08], [.38, .3], [.33, .7], [.3, .9], [.16, 1], [.05, 1.12], [0, 1.12]].map(([r, h]) => [r * s, -h * s]), 40), m, x, y, z); }
+function liveFlame(x,y,z,options={}){
+  const g=new THREE.Group();C.G.add(g);g.position.set(x,y,z);
+  const f=flameParts(g,{light:false,size:options.size??1.3});f.soft=true;f.place(0,0,0);
+  const state={g,f,power:options.power??.86,flameWorld:()=>g.getWorldPosition(V3())};
+  C.up.push((dt,time)=>{
+    f.tick(time,state.power,0,[],0);
+    // Source fixtures give the measured wick TIP. Remove the SDF's blank
+    // bottom margin from this graphic only; the ordinary visitor uses a wick
+    // BASE and retains its own placement. Soft stretch varies by <=0.28 mm.
+    const baseUv=.26-.2*(.35+.65*state.power);
+    f.flame.position.y=-baseUv*f.fm.uniforms.uScale.value;
+    f.wick.visible=false;f.ember.visible=false;
+  });
+  return state;
+}
+function fixtureSpecular(x,y,z,watts=8,linearColor=[1,173/255,102/255]){
+  const baked=C.baked,light=new THREE.PointLight(new THREE.Color().fromArray(linearColor),watts/(4*Math.PI),12,2);
+  light.intensity*=baked?.fixturePower()??1;
+  light.position.set(x,y,z);C.G.add(light);
+  C.up.push(()=>{light.intensity=watts/(4*Math.PI)*(baked?.fixturePower()??1);});
+  return light;
+}
+// A local reflection probe samples actual lit construction. Clone the scene
+// graph while sharing immutable geometry/materials so temporary visibility and
+// shadow maps never alter the active place. The cube remains scene-linear HDR.
+function captureLocalEnvironment({root=C.root,environment=C.environment,fog=C.fog,position,exclude=[],size=128,near=.004,far=30}){
+  if(!root?.isObject3D||!Array.isArray(position)||position.length!==3||!position.every(Number.isFinite))throw new Error('A local probe requires an actual place and world position.');
+  if(![64,128,256].includes(size)||near<=0||far<=near)throw new Error('Invalid bounded local probe.');
+  const context=C,scene=new THREE.Scene(),pairs=new Map();
+  root.updateWorldMatrix(true,true);
+  const copy=root.clone(true);
+  const pair=(original,clone)=>{pairs.set(original,clone);for(let i=0;i<original.children.length;i++)pair(original.children[i],clone.children[i]);};
+  pair(root,copy);copy.matrixAutoUpdate=false;copy.matrix.copy(root.matrixWorld);
+  scene.add(copy);scene.environment=environment;scene.background=environment;scene.fog=fog?.clone()??null;
+  for(const original of exclude){const clone=pairs.get(original);if(!clone)throw new Error('Probe exclusion is outside its source place.');clone.visible=false;}
+  const cube=new THREE.WebGLCubeRenderTarget(size,{type:THREE.HalfFloatType,format:THREE.RGBAFormat,minFilter:THREE.LinearFilter,generateMipmaps:false});
+  cube.texture.colorSpace=THREE.LinearSRGBColorSpace;
+  const probe=new THREE.CubeCamera(near,far,cube);probe.position.set(...position);
+  const state={target:renderer.getRenderTarget(),face:renderer.getActiveCubeFace(),mip:renderer.getActiveMipmapLevel(),viewport:renderer.getViewport(new THREE.Vector4()),scissor:renderer.getScissor(new THREE.Vector4()),scissorTest:renderer.getScissorTest(),clear:renderer.getClearColor(new THREE.Color()),alpha:renderer.getClearAlpha(),autoClear:renderer.autoClear,xr:renderer.xr.enabled,tone:renderer.toneMapping,exposure:renderer.toneMappingExposure,colorSpace:renderer.outputColorSpace,shadowEnabled:renderer.shadowMap.enabled,shadowAuto:renderer.shadowMap.autoUpdate,shadowNeeds:renderer.shadowMap.needsUpdate};
+  let target;
+  try{
+    renderer.xr.enabled=false;renderer.autoClear=true;renderer.setScissorTest(false);
+    renderer.toneMapping=THREE.NoToneMapping;renderer.toneMappingExposure=1;renderer.outputColorSpace=THREE.LinearSRGBColorSpace;
+    renderer.shadowMap.autoUpdate=true;
+    probe.update(renderer,scene);target=pmrem.fromCubemap(cube.texture);
+  }catch(error){target?.dispose();throw error;}
+  finally{
+    cube.dispose();copy.traverse(object=>{if(object.isLight)object.shadow?.dispose();});
+    renderer.setRenderTarget(state.target,state.face,state.mip);renderer.setViewport(state.viewport);renderer.setScissor(state.scissor);renderer.setScissorTest(state.scissorTest);renderer.setClearColor(state.clear,state.alpha);renderer.autoClear=state.autoClear;renderer.xr.enabled=state.xr;renderer.toneMapping=state.tone;renderer.toneMappingExposure=state.exposure;renderer.outputColorSpace=state.colorSpace;renderer.shadowMap.enabled=state.shadowEnabled;renderer.shadowMap.autoUpdate=state.shadowAuto;renderer.shadowMap.needsUpdate=state.shadowNeeds;
+  }
+  let disposed=false;
+  const dispose=()=>{if(disposed)return;disposed=true;target.dispose();const index=context.disposers.indexOf(dispose);if(index>=0)context.disposers.splice(index,1);};
+  context.disposers.push(dispose);
+  return{texture:target.texture,dispose,metadata:{position:[...position],size,near,far,format:'linear RGBA16F cube → PMREM',sourceRoot:root.name,excluded:exclude.map(object=>object.name),scope:'One local reflection/indirect approximation from actual lit geometry; no extra light, exposure, gain or SH.'}};
+}
+const placeHelpers = { THREE, V3, V2, M, roofMat, ground, pave, hallB, gateB, compound, rock, trees, peak, ridges, mist, burnerAt, postLanterns, pagoda, stairs, paifang, wallRun, water, archBridge, lotus, box, city, fall, lanterns, put, tower, smokeAt, pavingTex, petalTex, pauseBuild, eave, col, rail, wallWithHoles, cloudSea, footprints, bell, otherLamp, lathe, hexMix, addStump:(x,y,z,scale,yaw)=>addScannedStump(C.G,x,y,z,scale,yaw),
+  liveFlame,fixtureSpecular,captureLocalEnvironment,loessTex, brickTex, plasterTex, papercutTex, grainTex, latticeTex, sootTex, windowsTex, get renderer() { return renderer; }, get context() { return C; } };
 const cachedPlaces = new Map();
-const sharedTextures = new Set([pavingTex, grainTex, tileTex, waterTex, latticeTex, softTex, petalTex, windowsTex]);
+const sharedTextures = new Set([needleTex, leafTex, pavingTex, grainTex, tileTex, waterTex, latticeTex, softTex, petalTex, windowsTex, patina, crackleTex, holesTex, gauzeTex,gauzeNormal,gauzeRoughness, paperLatticeTex, loessTex, brickTex, plasterTex, papercutTex, sootTex]);
 // Materials are left to the garbage collector rather than disposed: disposing them would also
 // release their shader programs, and the next place would stall recompiling the same variants.
 // The program set is bounded by the variants the ten places use.
 function disposePlace(old) {
+  for(const dispose of [...(old.disposers??[])])dispose();
+  old.baked?.dispose();
   const materials = new Set(), textures = new Set();
-  old.G.traverse(o => { if (o.geometry && ![blobGeo, trunkGeo, coneGeo].includes(o.geometry)) o.geometry.dispose(); if (o.material) for (const m of (Array.isArray(o.material) ? o.material : [o.material])) materials.add(m); });
-  for (const m of materials) for (const v of Object.values(m)) if (v?.isTexture && !sharedTextures.has(v)) textures.add(v);
+  old.G.traverse(o => { if (o.geometry && !naturalResources.geometries.has(o.geometry) && ![blobGeo, trunkGeo, coneGeo, foliageGeo].includes(o.geometry)) o.geometry.dispose(); if (o.material) for (const m of (Array.isArray(o.material) ? o.material : [o.material])) materials.add(m); });
+  for (const m of materials) for (const v of Object.values(m)) if (v?.isTexture && !sharedTextures.has(v) && !naturalResources.textures.has(v)) textures.add(v);
   for (const texture of textures) texture.dispose();
+  for(const r of old.reflectors??[])r.getRenderTarget().dispose();
   old.envTarget.dispose();
 }
 
-let warming = false;
+const preparingPlaces = new Map();
+let preparationQueue = Promise.resolve();
+// Construction helpers share an authoring context, so build one candidate at a
+// time. The active court keeps rendering while the next one is decoded.
+export function preparePlace(id) {
+  if (cachedPlaces.has(id)) return Promise.resolve(cachedPlaces.get(id));
+  if (!preparingPlaces.has(id)) {
+    const pending = preparationQueue.then(() => buildPlaceNow({ id }));
+    preparationQueue = pending.catch(() => {});
+    preparingPlaces.set(id, pending);
+    pending.finally(() => preparingPlaces.delete(id)).catch(() => {});
+  }
+  return preparingPlaces.get(id);
+}
 async function buildPlace(t) {
-  warming = true;
-  try { await buildPlaceNow(t); } finally { warming = false; }
+  const next = await preparePlace(t.id);
+  mine.g.removeFromParent(); outside.add(mine.g);
+  if (place) outside.remove(place.G);
+  place = next;
+  outside.add(place.G); outside.environment = place.env;
+  outside.fog = new THREE.FogExp2(...place.P.fog);
+  cachedPlaces.delete(t.id); cachedPlaces.set(t.id, place);
+  attachMine();
 }
 async function buildPlaceNow(t) {
-  if (place) outside.remove(place.G);
   const light = daylight(), lightKey = JSON.stringify(light);
-  if (cachedPlaces.get(t.id)?.lightKey === lightKey) {
-    place = cachedPlaces.get(t.id); cachedPlaces.delete(t.id); cachedPlaces.set(t.id, place);
-    outside.add(place.G); outside.environment = place.env; outside.fog = new THREE.FogExp2(...place.P.fog); return;
-  }
-  // The clock moved into another look since this place was built: rebuild it.
-  if (cachedPlaces.has(t.id)) { disposePlace(cachedPlaces.get(t.id)); cachedPlaces.delete(t.id); }
+  if (cachedPlaces.has(t.id)) return cachedPlaces.get(t.id);
   PLACES[t.id] ??= (await placeModules[t.id]()).default(placeHelpers);
-  const P = { ...PLACES[t.id], ...blendPlace(PLACES[t.id], light) }, G = new THREE.Group(); outside.add(G);
+  if(PLACES[t.id].bakedLighting)await ensureNativeAgX();
+  if(t.id==='snow-roof')await ensureVisitorFabric();
+  if(!PLACES[t.id].bakedLighting)await loadNaturalAssets();
+  const P = { ...PLACES[t.id], ...blendPlace(PLACES[t.id], light) }, G = new THREE.Group();
   // `shade` dims the unlit pieces (backdrop ridges, mist, smoke, rain) to match the night light.
-  C = { G, up: [], bat: new Map(), seed: seedOf(t.id), rnd: mulberry32(seedOf(t.id)), snow: P.snow ?? 0, shade: P.shade ?? 1, cam: P.view.pos, tgt: P.view.look };
+  C = { G, root:G, disposers:[], up: [], others: [], cover: null, bat: new Map(), seed: seedOf(t.id), rnd: mulberry32(seedOf(t.id)), snow: P.snow ?? 0, shade: P.shade ?? 1, cam: P.view.pos, tgt: P.view.look, light };
   C.materials = new Map();
   C.stone = M(0x9c968c, .85, { map: pavingTex }); C.pave = M(0xa8a296, .85, { map: pavingTex });
   C.red = M(0x8a2a1e, .9); C.col = M(0x6e1a12, .5); C.paint = M(0x2c4a52, .8); C.dark = M(0x1c1714, .6, { metalness: .5 });
@@ -1037,163 +1589,452 @@ async function buildPlaceNow(t) {
   const sky = new THREE.Mesh(new THREE.SphereGeometry(500, 48, 24), skyMat); sky.renderOrder = -1; G.add(sky);
   const skyScene = new THREE.Scene(); skyScene.add(new THREE.Mesh(sky.geometry, skyMat));
   await pauseBuild();
-  const envTarget = pmrem.fromScene(skyScene, 0, .1, 1000), env = envTarget.texture; outside.environment = env;
-  outside.fog = new THREE.FogExp2(P.fog[0], P.fog[1]);
-  const sun = new THREE.DirectionalLight(P.sunL[0], P.sunL[1]); sun.position.copy(dir).multiplyScalar(100); G.add(sun);
-  G.add(new THREE.HemisphereLight(...P.hemi));
-  // Night: lamplight spills out of the open hall onto the court in front of it.
-  if (P.porch) { const porch = new THREE.PointLight(P.porch[0], P.porch[1], 60, 2); porch.position.copy(P.doors).add(V3(0, 2.4, 5)); G.add(porch); }
+  const envTarget = pmrem.fromScene(skyScene, 0, .1, 1000), env = envTarget.texture;
+  C.environment=env;C.fog=new THREE.FogExp2(...P.fog);
+  const buildingContext = C;
+  try {
+  const sun = new THREE.DirectionalLight(P.sunL[0], P.sunL[1]); sun.position.copy(dir).multiplyScalar(100);
+  sun.castShadow = !P.bakedLighting; sun.shadow.mapSize.set(innerWidth<720?1024:2048,innerWidth<720?1024:2048);
+  Object.assign(sun.shadow.camera,{left:-45,right:45,top:45,bottom:-45,near:.5,far:260});
+  sun.shadow.bias = -.00025; sun.shadow.normalBias = .025; sun.shadow.radius = 3; G.add(sun);
+  const hemi = new THREE.HemisphereLight(...P.hemi); G.add(hemi);
   await P.build(t); await finishBatch();
-  await renderer.compileAsync(outside, camera);
+  // The spot where the lamp is lit, built in its own frame and set into the place.
+  const N = P.nook, nookG = new THREE.Group(); nookG.position.copy(N.at.pos); nookG.rotation.y = N.at.ry ?? 0; G.add(nookG); nookG.updateMatrixWorld(true);
+  C.G = nookG; C.bat = new Map(); C.cover = null;
+  await N.build(placeHelpers, C); await finishBatch();
+  nookG.traverse((o) => { if (o.isMesh && !o.material.transparent && !o.isInstancedMesh) { o.receiveShadow = true; if (o.userData.cast !== false) o.castShadow = true; } if (o.isLight) o.layers.enableAll(); });
+  G.traverse((o) => { if (o.isLight) o.layers.enableAll(); });
+  C.G = G;
   C.up.push((dt, time) => { u.uTime.value = time; });
-  place = { G, up: C.up, sky, env, envTarget, P, id: t.id, lightKey };
-  cachedPlaces.set(t.id, place);
+  const candidate = { G, disposers:C.disposers, up: C.up, sky, env, envTarget, P, id: t.id, lightKey, nookG, others: C.others, cover: C.cover, baked:C.baked, reflectors:C.reflectors, hemi, sun, hemiBase: hemi.intensity, sunBase: sun.intensity };
+  if(C.baked?.staticLampShadow)await C.baked.staticLampShadow.capture(renderer,C.baked.group);
+  const stage = new THREE.Scene(); stage.environment = env; stage.fog = new THREE.FogExp2(...P.fog); stage.add(G);
+  stage.add(previewFill.clone());
+  const stageCamera = camera.clone(); stageCamera.position.copy(P.view.pos); stageCamera.lookAt(P.view.look);
+  stageCamera.far = P.cameraFar ?? 1500; stageCamera.updateProjectionMatrix();
+  // Never leave a render target bound across an await: the live cover's next
+  // frame must still reach its normal framebuffer while shaders link.
+  let visitorPreview;
+  const target = renderer.getRenderTarget(), warm = new THREE.WebGLRenderTarget(4, 4);
+  try {
+    await renderer.compileAsync(stage, stageCamera);
+    if (P.bakedLighting && P.nook.lamp === 'gauze') {
+      visitorPreview = LAMPS.gauze({ ...presetOf('shade'), liveBaked: true });
+      const basis = C.baked.manifest.lampBasis.position;
+      visitorPreview.g.position.set(...basis); stage.add(visitorPreview.g);
+      const point = new THREE.PointLight(0xffb070, 1, 6, 2);
+      point.position.set(...basis); point.castShadow = true; point.shadow.mapSize.set(512, 512); stage.add(point);
+      await renderer.compileAsync(stage, stageCamera);
+    }
+    renderer.setRenderTarget(warm); renderer.render(stage, stageCamera);
+  }
+  finally {
+    renderer.setRenderTarget(target); warm.dispose(); stage.remove(G);
+    if(visitorPreview)disposeTree(visitorPreview.g);
+    stage.traverse(object => object.shadow?.dispose());
+  }
+  if(P.bakedLighting&&N.lamp==='gauze'&&C.baked){
+    const basis=C.baked.manifest.lampBasis.position;
+    C.baked.update(C.light,0,V3(...basis));
+    // All hall programs are already warmed above. This bounded six-face
+    // capture adds no light and keeps the visitor out of its own environment.
+    candidate.visitorEnvironment=captureLocalEnvironment({root:G,environment:env,fog:stage.fog,position:[...basis],size:64,near:.01,far:30});
+  }
+  cachedPlaces.set(t.id, candidate);
   // Retain a bounded two-place working set. Eviction releases every owned resource.
-  while (cachedPlaces.size > 2) { const id = cachedPlaces.keys().next().value; disposePlace(cachedPlaces.get(id)); cachedPlaces.delete(id); }
+  while (cachedPlaces.size > 2) {
+    const id = [...cachedPlaces.keys()].find(id => id !== place?.id && id !== t.id);
+    if (!id) break;
+    disposePlace(cachedPlaces.get(id)); cachedPlaces.delete(id);
+  }
+  return candidate;
+  } catch (error) {
+    cachedPlaces.delete(t.id);
+    disposePlace({ G, envTarget, disposers:buildingContext.disposers, baked: buildingContext.baked, reflectors: buildingContext.reflectors });
+    throw error;
+  }
 }
 
 // ---------- Camera rig and tweens ----------
-const rig = { pos: V3(0, 1.35, 2.3), look: V3(0, 1, -1), amp: .006 };
-let active = hall;
-function switchTo(scene) {
-  active = scene; const out = scene === outside, P = place?.P;
-  camera.near = out ? .3 : .01; camera.far = out ? 1200 : 60; camera.updateProjectionMatrix();
-  renderer.toneMappingExposure = out ? P.exposure ?? 1 : 1;
-  const [st, th] = out ? P.bloom : [.24, 1.15]; bloom.strength = st; bloom.threshold = th;
-}
+const rig = { pos: V3(0, 1.35, 2.3), look: V3(0, 1, -1), amp: .006, fov: null };
+let cameraJourneyVersion=0;
+let choiceCameraVersion=0;
+const active = outside;
 const tweens = [];
 function tween(dur, fn) { if (reducedMotion.matches) { fn(1); return Promise.resolve(); } return new Promise((res) => { tweens.push({ t: 0, dur, fn, res, skip: false }); }); }
 function skipTweens() { for (const tw of tweens) tw.skip = true; }
-function moveCam(pos, look, dur) {
-  const p0 = rig.pos.clone(), l0 = rig.look.clone();
-  return tween(dur, (k) => { const e = ease(k); rig.pos.lerpVectors(p0, pos, e); rig.look.lerpVectors(l0, look, e); });
+function moveCam(pos, look, dur, fov) {
+  const p0 = rig.pos.clone(), l0 = rig.look.clone(),f0=rig.fov??camera.fov,f1=fov??(narrow()?44:32);
+  return tween(dur, (k) => { const e = ease(k); rig.pos.lerpVectors(p0, pos, e); rig.look.lerpVectors(l0, look, e);rig.fov=THREE.MathUtils.lerp(f0,f1,e); });
 }
 const fadeEl = document.getElementById('fade');
-const fadeTo = (o, ms = 900) => new Promise((res) => { if (reducedMotion.matches) ms = 80; fadeEl.style.transitionDuration = ms + 'ms'; fadeEl.style.opacity = o; setTimeout(res, ms); });
+const fadeTo = (o, ms = 600) => new Promise((res) => { if (reducedMotion.matches) ms = 80; fadeEl.style.transitionDuration = ms + 'ms'; fadeEl.style.opacity = o; setTimeout(res, ms); });
 
-
-const WIDE = { pos: V3(innerWidth < 720 ? -.3 : -.2, 1.04, .2), look: V3(innerWidth < 720 ? -.3 : -.2, innerWidth < 720 ? .85 : .92, -.42) };
-const chooseView = () => ({ pos: V3(0, ALTAR_Y + .3, .82), look: V3(0, ALTAR_Y - (innerWidth < 720 ? .10 : .01), -.02) });
-function closeView() { const x = mine.top.x, top = ALTAR_Y + mine.top.y; const butter = mine.offer?.kind === 'butter'; const distance = Math.max(butter ? .40 : .38, mine.top.y * 2.3); return { pos: V3(x + .025, top + (butter ? .18 : .065), distance), look: V3(x, top - .012, .02) }; }
-const hallTones = {
-  lingyin: [0x839b87,0x090d0b], shaolin: [0xaaa18a,0x100d09], yonghe: [0xa5b7d4,0x090d14],
-  jokhang: [0xc9a562,0x100c08], puji: [0x7c9eaa,0x080f12], zixiao: [0x72958f,0x08110e],
-  qufu: [0xb6aa80,0x111009], meizhou: [0x7e93b0,0x080c14], guandi: [0x9a9690,0x0e0f0e], hongluo: [0xb58f80,0x100a09],
+// ---------- Views around the lamp ----------
+// Views at the lamp are written in the spot's own frame; these turn them into the world.
+const COVER = 'cloud-cliff';
+const narrow = () => innerWidth < 720;
+const toWorld = (v) => place.nookG.localToWorld(v.clone());
+const viewOf = (v) => {
+  const pos = toWorld(v.pos), look = toWorld(v.look);
+  if (!narrow() || place.P.bakedLighting) return { pos, look, fov:v.fov };
+  // A narrow screen pulls the same view back along its line.
+  return { pos: look.clone().add(pos.sub(look).multiplyScalar(1.45)), look };
 };
-function applyTemple(t) {
-  const [light, night] = hallTones[t.id];
-  hall.background.setHex(night); hall.fog.color.setHex(night);
-  // Inside, the candles stay the light; the doorway and lattice carry the hour.
-  const L = daylight(), day = 1 - L.n;
-  hallDoor.color.setHex(hexMix(light, L.dawn ? 0xe8b4a0 : 0xf0a060, L.g)); hallDoor.intensity = .22 + .5 * day + .15 * L.g;
-  hallWindow.emissive.setHex(hexMix(hexMix(0x8ea6c4, 0xdfe6ee, day), L.dawn ? 0xf0b8a0 : 0xf0a060, L.g)); hallWindow.emissiveIntensity = .5 + .9 * day + .3 * L.g;
-  banners.forEach(b => { b.visible = t.id !== 'jokhang'; });
-  lacquer.color.setHex(t.lacquer).multiplyScalar(.3);
-  plaqueMat.map?.dispose(); plaqueMat.map = plaqueTex(t.plaque); plaqueMat.emissiveMap = plaqueMat.map; plaqueMat.needsUpdate = true; plaque.visible = !!t.plaque;
-  layoutRack(t.lamp);
-  const isButter = t.lamp === 'butter';
-  for (const l of rackLights) { l.color.setHex(isButter ? 0xffae50 : 0xff9040); l.intensity = isButter ? .055 : .035; }
+const coverView = () => viewOf(narrow()&&place.P.nook.coverPhone?place.P.nook.coverPhone:place.P.nook.cover);
+function fitShadeView(v){
+  if(!place.P.bakedLighting||!mine.parts?.frame)return v;
+  const fr=mine.parts.frame,c=mine.g.localToWorld(V3(0,fr.cy,0));
+  const offset=V3(v.pos.x-c.x,0,v.pos.z-c.z),base=offset.length();
+  const fraction=narrow()?.26:.45,subjectY=narrow()?.20:.36;
+  const tangent=Math.tan(THREE.MathUtils.degToRad(v.fov/2));
+  const distance=Math.max(base,fr.h/(2*tangent*fraction));offset.setLength(distance);
+  v.pos.x=c.x+offset.x;v.pos.z=c.z+offset.z;
+  const pitch=Math.atan2(c.y-v.pos.y,distance)-Math.atan((1-2*subjectY)*tangent);
+  v.look.set(c.x,v.pos.y+Math.tan(pitch)*distance,c.z);return v;
+}
+const chooseView = () => {
+  const N=place.P.nook,v=viewOf((narrow()&&N.choosePhone)||N.choose||N.wide);
+  if(narrow()&&!place.P.bakedLighting)v.look.y-=v.pos.distanceTo(v.look)*.10;
+  return fitShadeView(v);
+};
+function burnView(){
+  const N=place.P.nook,v=viewOf((narrow()&&N.burnPhone)||N.burn);
+  if(!N.burnFar)return v;
+  const fuelProfile=mine.offer?.rows?.at(-1)?.y;
+  const originalSize=fuelProfile?fuelProfile*3.8+.2:mine.parts.frame.h;
+  const far=viewOf((narrow()&&N.burnFarPhone)||N.burnFar),k=THREE.MathUtils.clamp((originalSize-.45)/.32,0,1);
+  v.pos.lerp(far.pos,k);v.look.lerp(far.look,k);v.fov=THREE.MathUtils.lerp(v.fov,far.fov,k);return v;
+}
+// The person's lamp lives in the current place's spot.
+function attachMine() {
+  const N = place.P.nook;
+  if(place.baked&&N.lamp==='gauze'){
+    place.visitorPivot??=new THREE.Group();place.visitorPivot.userData.visitorPivot=true;
+    const basis=place.baked.manifest.lampBasis.position;
+    place.visitorPivot.position.copy(place.nookG.worldToLocal(V3(...(N.hangingPoint??[basis[0],3.22,basis[2]]))));
+    place.visitorPivot.rotation.set(0,0,0);place.nookG.add(place.visitorPivot);place.visitorPivot.add(mine.g);
+  }else place.nookG.add(mine.g);
+  mine.g.position.set(0, N.y, 0);
+  mine.g.rotation.set(0,0,0);
+  mine.setType(N.lamp);
+  mine.setShadowFar(place.baked?.manifest.bake?.lampPassQuantity==='indirect-diffuse-radiance-per-unit-albedo'?80:6);
+  mine.mirrorY = N.mirror ?? null;
+  mine.lightBoost = place.baked ? place.baked.lampCandela / mine.parts.lightMax : 1;
+  mine.lightTint = place.baked?.lampColor ?? null;
 }
 
-// Step 3: one of ours, or one you draw.
 // Wick smoke uses a wide, centreless puff so overlapping puffs read as one thread, not a string of beads.
 const smokeTex = canvasTex(64, 64, (g, w, h) => {
   const r = g.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, w / 2);
   r.addColorStop(0, 'rgba(255,255,255,.55)'); r.addColorStop(.5, 'rgba(255,255,255,.28)'); r.addColorStop(1, 'rgba(255,255,255,0)');
   g.fillStyle = r; g.fillRect(0, 0, w, h);
 });
-const wickSmoke = new Smoke(hall, 360, 0xc9c6c0, .16, 1, smokeTex);
-wickSmoke.curl = 1;
-wickSmoke.parts.forEach(({s}) => s.layers.set(1));
-hall.traverse(o => { if (o.isLight && o !== previewFill) o.layers.enableAll(); });
-let smokeUntil = 0, emberUntil = 0, ending = 'out', wind = 0, roomLight = 1;
+const wickPlume=new WickPlume({scene:outside,map:smokeTex});
+if(import.meta.env.DEV)window.__visualWickPlume=()=>wickPlume.state();
+let shadeCoolingUntil=0,shadeCoolingGlow=0, emberUntil = 0, wind = 0, roomLight = 1, ignitionFill=0;
 let pointerX = 0, pointerY = 0, previousPointerX = 0;
 window.addEventListener('pointermove', (e) => {
   pointerX = e.clientX / innerWidth * 2 - 1; pointerY = 1 - e.clientY / innerHeight * 2;
-  if (lit) { const p = mine.top.clone(); p.y += ALTAR_Y; p.z += mine.g.position.z; p.project(camera);
+  if (lit) { const p = mine.flameWorld().clone().project(camera);
     const near = Math.max(0, 1 - Math.hypot(pointerX - p.x, pointerY - p.y) / .5);
     wind = Math.max(-.5, Math.min(.5, wind + (pointerX - previousPointerX) * near * 4)); }
   previousPointerX = pointerX;
 }, { passive: true });
 
 // ---------- Public API ----------
-export function setPhase(next) { phase = next; others[1].g.traverse(o => { if (!o.isLight) o.layers.set(next === 'wish' ? 1 : 0); }); }
+// On the cover the lamp already burning there is the subject, drawn sharp in front of the blurred scene.
+function coverLayers() { place?.cover?.g.traverse((o) => { if (!o.isLight) o.layers.set(0); }); }
+export function setPhase(next) { phase = next; coverLayers(); }
 export function setPowerSaver(on) { powerSaver = on; resize(); }
 
-const TEMPLE = Object.fromEntries(TEMPLES.map((t) => [t.id, t]));
-const LAMP_CUP = .72;
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-let level = 1, lit = false, wanted = null, busy = false, skipNextTravel = false;
+let level = 1, targetLevel = 1, lit = false, wanted = null, busy = false, skipNextTravel = false;
 
 function toOffer(shape) {
   if (!shape) return null;
-  if (shape.kind === 'lamp') return { kind: 'butter', cup: LAMP_CUP, fill: shape.fill, burn: butterOf() };
-  return { kind: 'candle', rows: shape.rows, color: shape.color, burn: burnOf(shape.rows) };
+  return { kind: shape.kind, rows: shape.rows, color: shape.color, burn: burnOf(shape.rows) };
 }
 /** Show the person's candle or lamp (or hide it with null), full. */
-export function setOffer(shape) { const o = toOffer(shape); level = 1; mine.g.visible = !!o; if (o) mine.setOffer(o); }
-/** Remaining fraction of the wax, 1 = untouched. */
-export function setLevel(L) { level = Math.max(0, Math.min(1, L)); }
+export function setOffer(shape) {
+  const o=toOffer(shape);level=targetLevel=1;mine.g.visible=!!o&&atLamp;
+  if(o)mine.setOffer(o);else mine.offer=null;
+  if(o&&place?.P.bakedLighting&&atLamp&&phase==='candle'){
+    const v=chooseView(),version=++choiceCameraVersion;
+    if(rig.pos.distanceTo(v.pos)>.015||rig.look.distanceTo(v.look)>.015){
+      const p0=rig.pos.clone(),l0=rig.look.clone(),f0=rig.fov??camera.fov;
+      void tween(1.2,k=>{if(version!==choiceCameraVersion||phase!=='candle')return;const e=ease(k);rig.pos.lerpVectors(p0,v.pos,e);rig.look.lerpVectors(l0,v.look,e);rig.fov=THREE.MathUtils.lerp(f0,v.fov,e);});
+    }
+  }
+}
+let atLamp = false; // the person has walked in and stands at their lamp
+/** Remaining fraction of the wax or oil, 1 = untouched. */
+export function setLevel(L) { targetLevel = Math.max(0, Math.min(1, L)); }
 
+let thumbnailStage, thumbnailQueue=Promise.resolve();
+const thumbnailCache=new Map();
+async function makeThumbnailStage(){
+  const lease=await acquireNativeAgX({url:'/color/native-agx-57-f16.bin.zst',precision:'float16'});
+  const view=new NativeAgXPass(lease,{cameraExposureEV:0});
+  const scene=new THREE.Scene(),group=new THREE.Group();scene.add(group);
+  scene.background=new THREE.Color(0x171410);scene.environment=spotEnv;
+  scene.add(new THREE.HemisphereLight(0xdacbb9,0x30251d,.85));
+  const soft=new THREE.PointLight(0xffd9ae,.65,0,2);soft.position.set(-.5,.7,.8);scene.add(soft);
+  const gauzeKey=new THREE.DirectionalLight(0xe4dbc2,gauzePreviewIntensity),gauzeTarget=new THREE.Object3D();scene.add(gauzeKey,gauzeTarget);gauzeKey.target=gauzeTarget;
+  const rim=new THREE.PointLight(0xa4b6ca,.12,0,2);rim.position.set(.6,.4,-.5);scene.add(rim);
+  const flame=flameParts(group);flame.soft=true;flame.fm.uniforms.uSeedU.value=2.1;
+  const camera=new THREE.PerspectiveCamera(30,2/3,.005,20);
+  const linear=new THREE.WebGLRenderTarget(120,180,{type:THREE.HalfFloatType,samples:geometrySamples});
+  const mapped=new THREE.WebGLRenderTarget(120,180,{type:THREE.HalfFloatType});
+  const output=new THREE.WebGLRenderTarget(120,180);
+  const pass=new OutputPass();pass.renderToScreen=false;
+  return{scene,group,flame,camera,soft,gauzeKey,gauzeTarget,linear,mapped,output,pass,view,parts:null,key:null};
+}
+async function drawLampThumbnail(shape,{state,remaining,width,height}){
+  thumbnailStage??=await makeThumbnailStage();
+  const stage=thumbnailStage,w=Math.max(32,Math.min(256,Math.round(width))),h=Math.max(32,Math.min(256,Math.round(height)));
+  const key=JSON.stringify([shape.kind,shape.color,shape.rows]);
+  if(stage.key!==key){
+    if(stage.parts){
+      stage.group.remove(stage.parts.g);
+      disposeTree(stage.parts.g);
+    }
+    const input={...shape,liveBaked:true};
+    stage.parts=shape.kind==='shade'?LAMPS.gauze(input):shape.kind==='oil'?LAMPS.glass(input):LAMPS.standing();
+    if(shape.kind==='candle'){
+      const rows=shape.rows,scale=Math.min(1,stage.parts.seat.maxR/Math.max(...rows.map(row=>row.r+Math.abs(row.cx))),stage.parts.seat.maxH/rows.at(-1).y);
+      const material=waxMaterial(shape.color);material.userData.lampOwned=true;
+      const body=new THREE.Mesh(candleGeo(rows,rows.at(-1).y),material);body.scale.setScalar(scale);body.position.y=stage.parts.seat.y;
+      stage.parts.g.add(body);stage.parts.thumbnailWax={body,rows,scale,material};
+    }
+    stage.group.add(stage.parts.g);stage.parts.g.traverse(warmReflections);stage.key=key;
+  }
+  const parts=stage.parts,power=state==='burning'?1:0,fuel=Math.max(0,Math.min(1,remaining));
+  stage.flame.wick.visible=!parts.wickMesh;
+  let wick=parts.wick?.at?.clone()??V3(0,.03,0);
+  if(parts.thumbnailWax){
+    const {body,rows,scale,material}=parts.thumbnailWax,burn=burnOf(rows),[i,k]=findCum(burn.cum,fuel*burn.total);
+    const cut=Math.max(.002,THREE.MathUtils.lerp(rows[i-1].y,rows[i].y,k));
+    body.geometry.dispose();body.geometry=candleGeo(rows,cut);wick=V3(ringAt(rows,cut).cx*scale,parts.seat.y+cut*scale,0);
+    material.userData.u.uTop.value=wick.y;material.userData.u.uGlow.value=1.1*power;
+  }else if(parts.kind==='oil'&&parts.wick.float){
+    const V=parts.vessel,[i,k]=findCum(V.cum,fuel*V.vol);wick=V3(0,THREE.MathUtils.lerp(V.ys[i-1],V.ys[i],k)+parts.wick.float,0);
+  }
+  stage.flame.place(wick.x,wick.y,wick.z);stage.flame.size=parts.flame??1;
+  const reference=shape.kind==='shade'?GAUZE_CANDLE_REFERENCE:null;
+  stage.view.uniforms.cameraExposureEV.value=reference?.cameraExposureEV??0;
+  const shadeKeep=.35+.65*Math.min(1,fuel*1.4);
+  if(reference)stage.flame.light.color.fromArray(reference.linearColor);
+  stage.flame.tick(17,power,reference?reference.watts*reference.cameraPreExposure/(4*Math.PI)*shadeKeep:(parts.lightMax??.9),[],wick.y);
+  stage.flame.flame.visible=stage.flame.halo.visible=power>0;stage.flame.ember.visible=false;
+  stage.flame.wick.material.color.setHex(state==='unlit'?0x4c3d2b:0x15100c);
+  stage.group.updateMatrixWorld(true);
+  for(const material of parts.shells??[]){
+    const u=material.userData.u;u.uFlame.value.copy(wick);u.uGlow.value=2.4*material.userData.strength*power;
+    if(material.userData.cloth&&reference){
+      material.sheen=0;material.specularIntensity=0;
+      u.uClothPhysical.value=1;stage.flame.light.getWorldPosition(u.uFlame.value);u.uClothIntensity.value=stage.flame.light.intensity;u.uClothSourceRGB.value.copy(stage.flame.light.color);
+      u.uClothEmitterRadius.value=reference.pointRadiusMetres;u.uClothTransmissionWeight.value=reference.transport?.diffuseTransmissionWeight??GAUZE_CANDLE_REFERENCE.diffuseTransmissionWeight;
+      u.uClothReflectionWeight.value=reference.diffuseReflectionWeight??.35;
+    }
+  }
+  stage.group.updateMatrixWorld(true);
+  const bounds=new THREE.Box3().setFromObject(parts.g),size=bounds.getSize(V3()),center=bounds.getCenter(V3());
+  const tangent=Math.tan(Math.PI/12),distance=Math.max(size.y/(2*tangent*.82),size.x/(2*tangent*(w/h)*.82));
+  stage.camera.aspect=w/h;stage.camera.position.copy(center).add(V3(distance*.25,distance*.10,distance));stage.camera.lookAt(center);stage.camera.updateProjectionMatrix();
+  stage.soft.visible=shape.kind!=='shade';stage.gauzeKey.visible=shape.kind==='shade'&&state==='unlit';
+  if(stage.gauzeKey.visible)aimGauzePreview(stage.gauzeKey,stage.gauzeTarget,center,stage.camera.position);
+  stage.flame.flame.quaternion.copy(stage.camera.quaternion);
+  stage.linear.setSize(w,h);stage.mapped.setSize(w,h);stage.output.setSize(w,h);
+  const target=renderer.getRenderTarget(),face=renderer.getActiveCubeFace(),mip=renderer.getActiveMipmapLevel(),viewport=renderer.getViewport(new THREE.Vector4()),scissor=renderer.getScissor(new THREE.Vector4()),scissorTest=renderer.getScissorTest();
+  const clear=renderer.getClearColor(new THREE.Color()),alpha=renderer.getClearAlpha();
+  const tone=renderer.toneMapping,exposure=renderer.toneMappingExposure;
+  const bytes=new Uint8Array(w*h*4);
+  try{
+    renderer.toneMapping=THREE.NoToneMapping;renderer.toneMappingExposure=1;
+    renderer.setScissorTest(false);renderer.setRenderTarget(stage.linear);renderer.clear();renderer.render(stage.scene,stage.camera);
+    stage.view.render(renderer,stage.mapped,stage.linear);
+    stage.pass.render(renderer,stage.output,stage.mapped);
+    renderer.readRenderTargetPixels(stage.output,0,0,w,h,bytes);
+  }finally{
+    renderer.toneMapping=tone;renderer.toneMappingExposure=exposure;
+    renderer.setRenderTarget(target,face,mip);renderer.setViewport(viewport);renderer.setScissor(scissor);renderer.setScissorTest(scissorTest);renderer.setClearColor(clear,alpha);
+  }
+  const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;
+  const pixels=new Uint8ClampedArray(bytes.length);
+  for(let y=0;y<h;y++)pixels.set(bytes.subarray(y*w*4,(y+1)*w*4),(h-1-y)*w*4);
+  canvas.getContext('2d').putImageData(new ImageData(pixels,w,h),0,0);
+  return canvas.toDataURL('image/png');
+}
+/** Portraits use the same vessel builders and materials as the actual lamp. */
+export function renderLampThumbnail(shape,options){
+  const key=JSON.stringify([GAUZE_CANDLE_REFERENCE.revision,shape,options.state,Math.round(options.remaining*100),options.width,options.height]);
+  if(thumbnailCache.has(key))return thumbnailCache.get(key);
+  const request=thumbnailQueue.then(ensureVisitorFabric).then(()=>new Promise(resolve=>requestAnimationFrame(resolve))).then(()=>drawLampThumbnail(shape,options));
+  thumbnailQueue=request.catch(()=>{});thumbnailCache.set(key,request);
+  request.catch(()=>thumbnailCache.delete(key));
+  while(thumbnailCache.size>64)thumbnailCache.delete(thumbnailCache.keys().next().value);
+  return request;
+}
+
+async function showPlace(id) {
+  if (place?.id !== id) await buildPlace({ id });
+  attachMine(); coverLayers();
+}
 /** Show a place from outside while it is being chosen. */
 export async function previewPlace(id) {
-  wanted = TEMPLE[id];
+  cameraJourneyVersion++;choiceCameraVersion++;
+  wanted = id;
   if (busy) return; busy = true;
-  while (wanted && (place?.id !== wanted.id || active !== outside)) {
-    const w = wanted; await fadeTo(1, active === outside ? 260 : 700);
-    if (place?.id !== w.id) await buildPlace(w);
-    switchTo(outside); const v = PLACES[w.id].view; rig.pos.copy(v.pos); rig.look.copy(v.look); rig.amp = 1;
-    await fadeTo(0, 600);
-  }
-  busy = false;
+  try {
+    while (wanted && (place?.id !== wanted || rig.amp < 1)) {
+      const w = wanted;
+      await preparePlace(w);
+      if (wanted !== w) continue;
+      await fadeTo(1, 200);
+      atLamp = false; mine.g.visible = false;
+      await showPlace(w);
+      const p=PLACES[w],v=(narrow()&&p.viewPhone)||p.view;rig.pos.copy(v.pos);rig.look.copy(v.look);rig.amp=1;rig.fov=v.fov??null;
+      await fadeTo(0, 400);
+    }
+  } finally { busy = false; }
 }
 
-/** Back to the hall's wide view (the wish screen). */
-export async function toHall() {
+/** Back to the cover: the cliff gallery over the clouds, one lamp already burning (the wish screen). */
+export async function toCover() {
+  cameraJourneyVersion++;choiceCameraVersion++;
   wanted = null; while (busy) await sleep(50); roomLight = 1;
-  if (active !== hall) { await fadeTo(1, 600); switchTo(hall); }
-  mine.g.visible = false; rig.amp = .006;
-  if (rig.pos.distanceTo(WIDE.pos) > .01) { rig.pos.copy(WIDE.pos); rig.look.copy(WIDE.look); }
-  await fadeTo(0, 800);
+  await fadeTo(1, 400);
+  atLamp = false; mine.g.visible = false;
+  await showPlace(COVER);
+  rig.amp = .006; const v = coverView(); rig.fov=v.fov??null; rig.pos.copy(v.pos); rig.look.copy(v.look);
+  await fadeTo(0, 600);
 }
 
-/** Walk into the place and end at the altar, ready to choose a candle. */
+/** Walk in from outside, through the place, to its lamp, ready to choose. One continuous walk. */
 export async function travel(id) {
+  cameraJourneyVersion++;
   skipNextTravel = false;
-  const t = TEMPLE[id];
   wanted = null; while (busy) await sleep(50);
-  if (place?.id !== id || active !== outside) {
-    await fadeTo(1, 300); if (place?.id !== id) await buildPlace(t);
-    switchTo(outside); const v = PLACES[id].view; rig.pos.copy(v.pos); rig.look.copy(v.look); rig.amp = 1; await fadeTo(0, 400);
+  if (place?.id !== id) {
+    await fadeTo(1, 200); await showPlace(id);
+    const p=PLACES[id],v=(narrow()&&p.viewPhone)||p.view;rig.pos.copy(v.pos);rig.look.copy(v.look);rig.amp=1;rig.fov=v.fov??null;await fadeTo(0,267);
   }
-  const P = PLACES[id];
-  const curve = new THREE.CatmullRomCurve3([rig.pos.clone(), ...P.walk], false, 'centripetal');
-  const l0 = rig.look.clone(), a0 = rig.amp;
-  const walk = tween(10, (k) => { const e = ease(k); rig.pos.copy(curve.getPoint(e)); rig.look.lerpVectors(l0, P.doors, Math.min(1, e * 1.25)); rig.amp = a0 * (1 - Math.min(1, k * 3)); });
+  const P = place.P, N = P.nook, arrival=viewOf((narrow()&&N.widePhone)||N.wide),end=P.bakedLighting?chooseView():arrival;
+  const pts = [rig.pos.clone(), ...P.walk, ...(N.approach ?? []).map(toWorld), ...(P.bakedLighting&&arrival.pos.z>end.pos.z+.1?[arrival.pos]:[]),...(((narrow()&&N.chooseApproachPhone)||N.chooseApproach)??[]).map(toWorld),end.pos];
+  const curve = new THREE.CatmullRomCurve3(pts, false, 'centripetal');
+  const lookPts = [P.doors.clone(), ...(N.approach ?? []).map((q) => toWorld(q.clone().add(V3(0, 0, -2)))), end.look];
+  const l0 = rig.look.clone(), a0 = rig.amp,f0=rig.fov??camera.fov;
+  atLamp = true; mine.g.visible = !!mine.offer;
+  if(import.meta.env.DEV)window.__walkProgress={id,progress:0,state:'walking',position:rig.pos.toArray()};
+  const walk = tween(P.walkSeconds ?? 14, (k) => {
+    // Arc length keeps each metre at the same walking speed. Short ramps start
+    // and stop the walk without the rush through the middle of a cubic ease.
+    const r=.08, steady=k<r?k*k/(2*r*(1-r)):k>1-r?1-(1-k)*(1-k)/(2*r*(1-r)):(k-r*.5)/(1-r);
+    const e = P.bakedLighting ? steady : ease(k);
+    rig.pos.copy(P.bakedLighting ? curve.getPointAt(e) : curve.getPoint(e));
+    // Look ahead toward the gate first, then along the way in, then at the lamp.
+    const seg = Math.min(lookPts.length - 1, e * (lookPts.length - .2)), i = Math.floor(seg), f = seg - i;
+    const target = lookPts[i].clone().lerp(lookPts[Math.min(lookPts.length - 1, i + 1)], f);
+    if(P.bakedLighting){
+      const forward=curve.getTangentAt(Math.min(.999,e));
+      target.copy(rig.pos).addScaledVector(forward,6);target.y=rig.pos.y+.08;
+      target.lerp(arrival.look,smooth(.78,.92,e));target.lerp(end.look,smooth(.93,1,e));
+      rig.look.lerpVectors(l0,target,Math.min(1,e*7));rig.amp=0;
+      const contextFov=THREE.MathUtils.lerp(f0,arrival.fov??f0,smooth(.72,.88,e));
+      rig.fov=THREE.MathUtils.lerp(contextFov,end.fov??f0,smooth(.91,1,e));
+    }else{
+      rig.look.lerpVectors(l0,target,Math.min(1,e*4));rig.amp=a0*(1-Math.min(1,k*3))+.006;
+    }
+    if(import.meta.env.DEV)window.__walkProgress={id,progress:e,state:'walking',position:rig.pos.toArray()};
+  });
   if (skipNextTravel) skipTweens();
   await walk;
-  await fadeTo(1, 900);
-  applyTemple(t); roomLight = 1; switchTo(hall); await warmHall(); rig.amp = .006;
-  rig.pos.copy(WIDE.pos); rig.look.copy(WIDE.look);
-  await fadeTo(0, 1000);
-  const c = chooseView(); await moveCam(c.pos, c.look, 2.4);
+  if(import.meta.env.DEV)window.__walkProgress={id,progress:1,state:'done',position:rig.pos.toArray()};
+  if(!P.bakedLighting){const c = chooseView(); await moveCam(c.pos, c.look,2.4,c.fov);}
 }
 export function skip() { skipNextTravel = true; skipTweens(); }
-/** Close in on the person's candle before lighting. */
-export function closeUp() { const c = closeView(); return moveCam(c.pos, c.look, 2.6); }
-/** Back from the close-up to the choosing view. */
-export function backToChoose() { const c = chooseView(); return moveCam(c.pos, c.look, 1.6); }
+let ignitionTaper;
+function makeIgnitionTaper(){
+  const g=new THREE.Group();outside.add(g);g.visible=false;
+  solid(g,new THREE.CylinderGeometry(.003,.004,.19,12),new THREE.MeshStandardMaterial({color:0xdfc9a3,roughness:.86}),0,-.10,0);
+  solid(g,new THREE.CylinderGeometry(.007,.008,.055,12),new THREE.MeshStandardMaterial({color:0x71563a,metalness:.65,roughness:.48}),0,-.2,0);
+  solid(g,new THREE.CylinderGeometry(.005,.007,1.18,12),lampWood,0,-.8,0);
+  const f=flameParts(g,{light:false,size:.55});f.soft=true;f.place(0,0);
+  // The lighting pole enters from the right; its grip remains beyond the frame.
+  g.rotation.set(-.22,0,-.95);
+  return{g,f};
+}
 /** Light the flame (animation only; the burn clock lives in the UI). */
-export async function ignite() { lit = true; emberUntil = 0; smokeUntil = 0; roomLight = 1; await tween(1.6, (k) => { if (lit) mine.power = k < .18 ? k * .35 : Math.min(1.15, ease((k - .18) / .82) + Math.sin(k * Math.PI) * .22); }); }
+export async function ignite({onCatch}={}) {
+  const journey=++cameraJourneyVersion;
+  const mark=(state,progress)=>{if(import.meta.env.DEV)window.__visualIgnition={state,progress,journey,position:rig.pos.toArray(),look:rig.look.toArray(),fov:rig.fov??camera.fov};};
+  lit=true;emberUntil=0;wickPlume.clear();shadeCoolingUntil=0;shadeCoolingGlow=0;roomLight=1;ignitionFill=place.P.bakedLighting?1:0;mark('igniting',0);
+  if(!place.P.bakedLighting){
+    let caught=false;
+    await tween(1.6,k=>{if(lit&&journey===cameraJourneyVersion){mine.power=k<.18?k*.35:Math.min(1.15,ease((k-.18)/.82)+Math.sin(k*Math.PI)*.22);if(!caught&&k>=.28){caught=true;onCatch?.();}}});if(lit&&journey===cameraJourneyVersion)mark('settled',1);return;
+  }
+  const N=place.P.nook,spread=viewOf((narrow()&&N.spreadPhone)||N.spread),burn=burnView();
+  if(!narrow())spread.fov=Math.min(N.lampFovMax??Infinity,spread.fov+12*THREE.MathUtils.clamp((mine.parts.frame.h-.45)/.32,0,1));
+  const cameraStart=rig.pos.clone(),lookStart=rig.look.clone(),fovStart=rig.fov??camera.fov;
+  const active=()=>lit&&journey===cameraJourneyVersion;
+  ignitionTaper??=makeIgnitionTaper();
+  const {g,f}=ignitionTaper,tip=mine.flameWorld().clone(),right=V3(1,0,0).applyQuaternion(camera.quaternion);
+  const start=tip.clone().addScaledVector(right,.27).add(V3(0,-.34,.22));
+  const contact=tip.clone().add(V3(.004,-.006,.012));mine.power=0;g.visible=true;
+  let caught=false;
+  await tween(3.2,k=>{
+    if(!active())return;
+    const retreat=ease(Math.min(1,k*3.2/1.0));
+    rig.pos.lerpVectors(cameraStart,spread.pos,retreat);rig.look.lerpVectors(lookStart,spread.look,retreat);
+    rig.fov=THREE.MathUtils.lerp(fovStart,spread.fov,retreat);
+    if(k<.3)g.position.lerpVectors(start,contact,ease(k/.3));
+    else if(k<.58)g.position.copy(contact);
+    else g.position.lerpVectors(contact,start.clone().add(V3(.12,-.35,.18)),ease((k-.58)/.42));
+    const catchPower=smooth(.29,.57,k);
+    if(!caught&&catchPower>=.18){caught=true;onCatch?.();}
+    ignitionFill=1-catchPower;
+    mine.power=catchPower*(1+.06*Math.sin(Math.PI*smooth(.3,.75,k)));
+    f.tick(clockTime,k>.88?smooth(1,.88,k):1,0,[],0);
+    mark('igniting',k*.18);
+  });
+  if(journey===cameraJourneyVersion)g.visible=false;
+  if(!active())return;
+  mine.power=1;mark('spreading',.18);
+  await tween(.8,()=>{});if(!active())return;
+  const front=viewOf((narrow()&&N.burnPhone)||N.burn).pos;
+  const burnWalk=(narrow()&&N.burnWalkPhone)||N.burnWalk;
+  const route=new THREE.CatmullRomCurve3([rig.pos.clone(),...burnWalk.map(toWorld),...(burn.pos.distanceTo(front)>.01?[front]:[]),burn.pos],false,'centripetal');
+  const follow=mine.g.localToWorld(V3(0,mine.parts.frame.cy,0)),orbitLookStart=rig.look.clone();
+  await tween(9,k=>{
+    if(!active())return;
+    const r=.08,e=k<r?k*k/(2*r*(1-r)):k>1-r?1-(1-k)*(1-k)/(2*r*(1-r)):(k-r*.5)/(1-r);
+    rig.pos.copy(route.getPointAt(e));rig.look.lerpVectors(orbitLookStart,follow,smooth(0,.2,k)).lerp(burn.look,smooth(.75,1,k));
+    rig.fov=THREE.MathUtils.lerp(spread.fov,burn.fov,smooth(.60,1,k));
+    mark('walking',.18+.82*k);
+  });
+  if(active())mark('settled',1);
+}
 /** Put the flame out with a thread of smoke. */
 export async function snuff(done = false) {
   // Only visuals: settlement and persistence have already happened synchronously.
-  lit = false; ending = done ? 'done' : 'out';
-  if (done) { level = 0; mine.setLevel(0); }
-  smokeUntil = clockTime + (done ? 3.4 : 4.8); emberUntil = clockTime + (done ? 2.5 : .35);
-  // Went out: sudden, and the room keeps less of its light. Burned down: the room stays as it was.
-  if (!done) void tween(1.6, (k) => { roomLight = 1 - .3 * ease(k); });
-  const p0 = mine.power * (done ? .08 : 1); mine.power = p0; await tween(done ? .55 : .09, (k) => { mine.power = p0 * (1 - k); }); mine.power = 0;
+  const lastPower=mine.power*(lit?Math.min(1,level*25):1);
+  const lastGlow=Math.max(0,...(mine.parts?.shells??[]).map(material=>material.userData.u.uGlow.value/material.userData.strength));
+  lit = false;
+  shadeCoolingUntil=done?clockTime+5.2:0;shadeCoolingGlow=done?Math.min(.65,Math.max(.12,lastGlow*.55)):0;
+  ignitionFill=0;
+  cameraJourneyVersion++;
+  if(import.meta.env.DEV)window.__visualIgnition={state:'cancelled',journey:cameraJourneyVersion};
+  if(ignitionTaper)ignitionTaper.g.visible=false;
+  if (done) { level = targetLevel = 0; mine.setLevel(0); }
+  const endingParts=mine.parts,wickTip=mine.top.clone().add(V3(.0007,.004,0));
+  wickPlume.start({time:clockTime,done,frame:mine.g,path:endingParts?.smokePath,wickTip,valid:()=>mine.parts===endingParts});
+  emberUntil = clockTime + (done ? 3.8 : .35);
+  // Went out: sudden, and the place keeps less of its light. Burned down: it stays as it was.
+  if (!done && !place.P.bakedLighting) void tween(1.6, (k) => { roomLight = 1 - .3 * ease(k); });
+  const p0=done?Math.min(.24,Math.max(.015,lastPower)):mine.power;mine.power=p0;
+  await tween(done?2.6:.12,k=>{mine.power=p0*Math.pow(1-k,done?1.35:1)*(done?.78+.22*Math.sin(k*17)**2:1);});mine.power=0;
 }
 
 function resize() {
@@ -1201,78 +2042,133 @@ function resize() {
   renderer.setPixelRatio(Math.min(devicePixelRatio, powerSaver ? 1 : quality === 'high' ? 1.75 : 1.25));
   composer.setPixelRatio(renderer.getPixelRatio());
   renderer.setSize(w, h, false); composer.setSize(w, h);
+  for(const target of [composer.renderTarget1,composer.renderTarget2]){
+    const samples=powerSaver?0:geometrySamples;
+    if(target.samples!==samples){target.samples=samples;target.dispose();}
+  }
   renderer.shadowMap.enabled = !powerSaver;
-  mine.g.traverse(o => { if (o.isLight && o.shadow) { o.shadow.mapSize.set(quality === 'high' ? 1024 : 512, quality === 'high' ? 1024 : 512); } });
-  camera.aspect = w / h; camera.fov = w / h < .8 ? 44 : 32; camera.updateProjectionMatrix();
+  const size = quality === 'high' ? 1024 : 512; mine.g.traverse(o => { if (o.isLight && o.shadow) o.shadow.mapSize.set(size, size); });
+  camera.aspect = w / h; camera.fov = rig.fov??(w / h < .8 ? 44 : 32); camera.updateProjectionMatrix();
 }
 window.addEventListener('resize', resize); resize();
-let clockTime = 0, lastRender = 0, sampleFrames = 0, slowFrames = 0;
-const tmp = V3(0, 0, 0);
+let clockTime = 0, lastRender = 0, renderDeadline = 0, renderCadence = 0, sampleFrames = 0, slowFrames = 0, nextClockCheck = 0;
+const tmp = V3(0, 0, 0), local = V3(0, 0, 0);
+const smooth = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
 function frame(stamp = performance.now()) {
   requestAnimationFrame(frame);
   const interval = 1000 / (powerSaver ? 15 : phase === 'burning' || phase === 'result' ? 30 : 60);
-  if (stamp - lastRender < interval - .6) return;
+  if (renderCadence !== interval) { renderCadence = interval; renderDeadline = stamp; }
+  // Display timestamps can arrive slightly before their nominal slot.
+  if (stamp < renderDeadline - 3) return;
+  // Keep late callbacks from shifting every following frame. Missed slots are
+  // skipped; physics still receives time since the actual previous render.
+  renderDeadline += (Math.floor((Math.max(0, stamp - renderDeadline) + 1e-6) / interval) + 1) * interval;
   const elapsed = stamp - lastRender;
   const dt = Math.min(elapsed / 1000, .1); lastRender = stamp;
   if (sampleFrames < 180 && phase !== 'travel' && phase !== 'burning' && phase !== 'result' && !powerSaver) {
     sampleFrames++; if (elapsed > 27) slowFrames++;
     if (sampleFrames === 180 && slowFrames > 45 && quality === 'high') { quality = 'balanced'; resize(); }
   }
-  wind *= Math.exp(-dt * 2.8); clockTime += dt; const time = clockTime;
+  wind *= Math.exp(-dt * 2.8); clockTime += dt>0?Math.max(0,elapsed/1000):0; const time = clockTime;
   for (let i = tweens.length - 1; i >= 0; i--) {
-    const tw = tweens[i]; tw.t += dt; const k = tw.skip ? 1 : Math.min(1, tw.t / tw.dur); tw.fn(k);
+    // Camera/story durations use elapsed wall time. Particle stability's100ms
+    // step cap must not turn a slow browser frame into a slow-motion walk.
+    const tw = tweens[i]; tw.t += Math.max(0,elapsed/1000); const k = tw.skip ? 1 : Math.min(1, tw.t / tw.dur); tw.fn(k);
     if (k >= 1) { tweens.splice(i, 1); tw.res(); }
   }
-  if (active === hall) {
-    renderer.toneMappingExposure = roomLight;
-    if (mine.g.visible && mine.offer) mine.setLevel(level);
-    for (const m of flameMats) m.uniforms.uTime.value = time;
-    const topY = ALTAR_Y + mine.top.y;
-    previewFill.intensity = phase === 'candle' || phase === 'confirm' || phase === 'travel' ? 1.1 : 0;
-    mine.update(time, topY);
-    for (const [i, o] of others.entries()) { o.f.tick(time, .65, phase === 'wish' && i === 1 ? .045 : .012, o.wax, o.g.position.y + o.f.flame.position.y); }
-    if (time < smokeUntil) { const left = (smokeUntil - time) / (ending === 'done' ? 3.4 : 4.8); for (let n = 0; n < 4; n++) if (Math.random() < (ending === 'done' ? .75 : .9) * Math.min(1, left * 2.5)) wickSmoke.puff(tmp.set(mine.top.x, topY + .004 + Math.random() * .004, mine.g.position.z), .0006, ending === 'done' ? .0024 : .0028); }
-    wickSmoke.update(dt, time);
-    if (Math.random() < .5) incenseSmoke.puff(incenseTips[Math.floor(Math.random() * 3)], .001, .01);
-    incenseSmoke.update(dt, time);
-    dust.visible = !powerSaver && !reducedMotion.matches;
-    const dp = dust.geometry.attributes.position;
-    for (let i = 0; i < dp.count; i++) { let y = dp.getY(i) + dt * .02; if (y > 3.8) y = .4; dp.setY(i, y); dp.setX(i, dp.getX(i) + Math.sin(time * .3 + i) * dt * .004); }
-    dp.needsUpdate = true;
-    banners.forEach((b, i) => { b.rotation.z = Math.sin(time * .4 + i * 2) * .012; });
-  } else if (place) {
-    for (const f of place.up) f(dt, time);
-  }
   // A slow drift so the view breathes like a held camera; wider outside.
-  const a = reducedMotion.matches ? 0 : rig.amp;
+  const a = reducedMotion.matches || place?.P.bakedLighting || (import.meta.env.DEV && window.__visualFreezeCamera) ? 0 : rig.amp;
   camera.position.copy(rig.pos).add(tmp.set(Math.sin(time * .13) * a, Math.sin(time * .09) * a * .35, Math.cos(time * .11) * a * .5));
   camera.lookAt(rig.look);
-  if (place) place.sky.position.copy(camera.position);
-  renderPass.scene = active;
-  offeringPass.enabled = active === hall && (mine.g.visible || phase === 'wish');
-  focusBlur.enabled = offeringPass.enabled && !powerSaver;
+  const lens=rig.fov??(innerWidth/innerHeight<.8?44:32);
+  if(Math.abs(camera.fov-lens)>.001){camera.fov=lens;camera.updateProjectionMatrix();}
+  if (place) {
+    if(time>nextClockCheck){
+      nextClockCheck=time+15;
+      const light=daylight(),key=JSON.stringify(light);
+      if(key!==place.lightKey){
+        place.P={...PLACES[place.id],...blendPlace(PLACES[place.id],light)};place.lightKey=key;
+        const p=place.P,u=place.sky.material.uniforms;
+        for(const [name,value] of Object.entries({uTop:p.sky.top,uHorizon:p.sky.horizon,uGround:p.sky.ground,uSun:p.sky.sun,uLit:p.sky.lit,uDark:p.sky.dark}))u[name].value.setHex(value);
+        u.uDir.value.set(...p.sky.dir).normalize();u.uGlow.value=p.sky.glow;u.uClouds.value=p.sky.clouds;u.uStars.value=p.sky.stars;u.uDisc.value=p.sky.disc;
+        place.sun.color.setHex(p.sunL[0]);place.sunBase=p.sunL[1];place.hemi.color.setHex(p.hemi[0]);place.hemi.groundColor.setHex(p.hemi[1]);place.hemiBase=p.hemi[2];outside.fog.color.setHex(p.fog[0]);outside.fog.density=p.fog[1];
+      }
+    }
+    const P = place.P, N = P.nook;
+    for (const f of place.up) f(dt, time);
+    place.sky.position.copy(camera.position);
+    for (const m of flameMats) m.uniforms.uTime.value = time;
+    for (const o of place.others) o.tick(time);
+    // Near the lamp the view takes the spot's own exposure, bloom and depth range; inside a hall the sky's light falls away.
+    const lamp = mine.g.getWorldPosition(tmp), d = camera.position.distanceTo(lamp), near = smooth(7, 1.5, d);
+    local.copy(camera.position); place.nookG.worldToLocal(local);
+    const I = N.interior, inside = I ? smooth(-.3, .3, Math.min(local.x - I.min[0], I.max[0] - local.x, local.y - I.min[1], I.max[1] - local.y, local.z - I.min[2], I.max[2] - local.z)) : 0;
+    place.hemi.intensity = place.hemiBase * (P.bakedLighting?1:1-.8*inside); place.sun.intensity = place.sunBase * (1 - .9 * inside);
+    // Baked radiance, source lights and emission already include the common
+    // camera pre-exposure. Only the remaining camera multiplier belongs here.
+    const cameraMultiplier=roomLight*(P.exposure??1)*(1+((N.exposure??1)-1)*near);
+    if(nativeAgXPass){
+      nativeAgXPass.enabled=!!P.bakedLighting;
+      nativeAgXPass.uniforms.cameraExposureEV.value=Math.log2(Math.max(1e-8,cameraMultiplier))+(place.baked?.residualCameraExposureEV??0);
+    }
+    renderer.toneMapping = P.bakedLighting ? THREE.NoToneMapping : THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = P.bakedLighting ? 1 : cameraMultiplier;
+    bloom.strength = P.bloom[0] + ((N.bloom ?? P.bloom)[0] - P.bloom[0]) * near; bloom.threshold = P.bloom[1] + ((N.bloom ?? P.bloom)[1] - P.bloom[1]) * near;
+    const wantNear = Math.min(.3, Math.max(.01, d * .012));
+    const wantFar=P.cameraFar??1500;
+    if (Math.abs(camera.near - wantNear) > .002||camera.far!==wantFar) { camera.near = wantNear; camera.far = wantFar; camera.updateProjectionMatrix(); }
+    level += (targetLevel-level)*(1-Math.exp(-dt*5));
+    if (mine.g.visible && mine.offer) { mine.setLevel(level); mine.update(time); }
+    const cover=!atLamp&&place.cover;
+    place.baked?.update(daylight(new Date(),true),mine.g.visible?mine.lightPower:cover?(cover.power??1):0,mine.g.visible?mine.lightWorld():cover?.light?.getWorldPosition(V3()));
+    if(P.bakedLighting&&mine.parts?.frame){
+      const centre=mine.g.localToWorld(V3(0,mine.parts.frame.cy,0));
+      aimGauzePreview(previewFill,previewFillTarget,centre,camera.position);
+    }else{previewFill.position.set(1,2,2);previewFillTarget.position.set(0,0,0);}
+    previewFill.intensity = phase === 'candle' ? (P.bakedLighting ? gauzePreviewIntensity : .7) : P.bakedLighting ? gauzePreviewIntensity*ignitionFill : 0;
+    wickPlume.update(time);
+    dust.visible = !!N.dust && atLamp && !powerSaver && !reducedMotion.matches;
+    dust.material.userData.soft.value=P.bakedLighting?1:0;
+    dust.material.size=P.bakedLighting ? .005 : .01;
+    dust.material.opacity=P.bakedLighting ? .04+.1*mine.lightPower : .4;
+    if (dust.visible) {
+      const dp = dust.geometry.attributes.position;
+      for (let i = 0; i < dp.count; i++) { let y = dp.getY(i) + dt * .02; if (y > 2.6) y = -.4; dp.setY(i, y); dp.setX(i, dp.getX(i) + Math.sin(time * .3 + i) * dt * .004); }
+      dp.needsUpdate = true; dust.position.copy(lamp);
+    }
+  }
+  renderPass.scene = active; offeringPass.scene = active;
+  offeringPass.enabled = false;
+  focusBlur.enabled = false;
+  focusBlur.amount = phase === 'wish' ? 1 : phase === 'burning' || phase === 'result' ? .55 : .3;
   bloom.enabled = !powerSaver;
-  grade.uniforms.uTime.value = time % 10;
-  if (!warming) composer.render();
+  grade.enabled=!place?.P.bakedLighting;
+  composer.render();
 }
 
-
-async function warmHall() {
-  warming = true;
-  const mask = camera.layers.mask;
-  try {
-    camera.layers.set(0); const background = renderer.compileAsync(hall, camera);
-    camera.layers.set(1); const offering = renderer.compileAsync(hall, camera);
-    camera.layers.mask = mask;
-    await Promise.all([background, offering]);
-  } finally { camera.layers.mask = mask; warming = false; }
-}
 // ---------- Start ----------
-export const ready = (async () => {
-  try { await Promise.race([document.fonts.load(`700 80px ${SERIF}`, '大雄宝殿'), new Promise((r) => setTimeout(r, 2500))]); } catch { /* fallback serif */ }
-  applyTemple(TEMPLES[0]); setPhase('wish'); switchTo(hall);
-  rig.pos.copy(WIDE.pos); rig.look.copy(WIDE.look);
-  await warmHall();
-  frame();
-  fadeTo(0, 1600);
-})();
+let startupAttempt = null, frameStarted = false;
+export function ensureReady() {
+  if (!startupAttempt) startupAttempt = (async () => {
+    setPhase('wish');
+    await showPlace(COVER);
+    rig.amp = .006; const v = coverView(); rig.fov=v.fov??null; rig.pos.copy(v.pos); rig.look.copy(v.look);
+    try { camera.layers.set(1); await renderer.compileAsync(outside, camera); }
+    finally { camera.layers.set(0); }
+    if (!frameStarted) { frameStarted = true; frame(); }
+    const poster = document.getElementById('cover-poster');
+    if (poster) {
+      fadeEl.style.transitionDuration = '0ms';
+      fadeEl.style.opacity = '0';
+      requestAnimationFrame(() => {
+        poster.dataset.ready = 'true';
+        setTimeout(() => poster.remove(), 700);
+      });
+    } else fadeTo(0, 1067);
+  })().catch(error => { startupAttempt = null; throw error; });
+  return startupAttempt;
+}
+export const ready = ensureReady();
+// Asset errors are presented by the form's preparation/retry state. The facade
+// retries ensureReady and resolves its public barrier after the first success.
+void ready.catch(() => {});

@@ -1,0 +1,124 @@
+{
+  "passed": true,
+  "cases": [
+    {
+      "case": "actual current source/receiver proof",
+      "expectedAccepted": true,
+      "actualAccepted": true,
+      "message": null
+    },
+    {
+      "case": "missing mapping proof",
+      "expectedAccepted": false,
+      "actualAccepted": false,
+      "message": "Actual Cycles bake requires a passing source/prepared corner-normal mapping proof bound to current source/receiver/UV data."
+    },
+    {
+      "case": "failed proof",
+      "expectedAccepted": false,
+      "actualAccepted": false,
+      "message": "Actual Cycles bake requires a passing source/prepared corner-normal mapping proof bound to current source/receiver/UV data."
+    },
+    {
+      "case": "failed source normal correspondence",
+      "expectedAccepted": false,
+      "actualAccepted": false,
+      "message": "Actual Cycles bake requires a passing source/prepared corner-normal mapping proof bound to current source/receiver/UV data."
+    },
+    {
+      "case": "wrong source",
+      "expectedAccepted": false,
+      "actualAccepted": false,
+      "message": "Actual Cycles bake requires a passing source/prepared corner-normal mapping proof bound to current source/receiver/UV data."
+    },
+    {
+      "case": "diagnostic without UV binding",
+      "expectedAccepted": false,
+      "actualAccepted": false,
+      "message": "Actual Cycles bake requires a passing source/prepared corner-normal mapping proof bound to current source/receiver/UV data."
+    },
+    {
+      "case": "missing receiver bindings",
+      "expectedAccepted": false,
+      "actualAccepted": false,
+      "message": "Actual Cycles bake requires a passing source/prepared corner-normal mapping proof bound to current source/receiver/UV data."
+    },
+    {
+      "case": "stale receiverFingerprint",
+      "expectedAccepted": false,
+      "actualAccepted": false,
+      "message": "Actual Cycles bake requires a passing source/prepared corner-normal mapping proof bound to current source/receiver/UV data."
+    },
+    {
+      "case": "stale lightmapUVFingerprint",
+      "expectedAccepted": false,
+      "actualAccepted": false,
+      "message": "Actual Cycles bake requires a passing source/prepared corner-normal mapping proof bound to current source/receiver/UV data."
+    },
+    {
+      "case": "wrong actual sourceWorldNormalSha256",
+      "expectedAccepted": false,
+      "actualAccepted": false,
+      "message": "Prepared corner-normal provenance metadata differs from actual receiver: cliff"
+    },
+    {
+      "case": "wrong actual sourceLoopReferenceSha256",
+      "expectedAccepted": false,
+      "actualAccepted": false,
+      "message": "Prepared corner-normal provenance metadata differs from actual receiver: cliff"
+    },
+    {
+      "case": "missing transfer",
+      "expectedAccepted": false,
+      "actualAccepted": false,
+      "message": "Actual Cycles bake requires fresh evaluated free-normal preparation; legacy implicit normals are not reusable."
+    },
+    {
+      "case": "missing transfer receiver",
+      "expectedAccepted": false,
+      "actualAccepted": false,
+      "message": "Prepared free-normal transfer receiver population differs."
+    },
+    {
+      "case": "legacy preparation policy",
+      "expectedAccepted": false,
+      "actualAccepted": false,
+      "message": "Actual Cycles bake requires fresh evaluated free-normal preparation; legacy implicit normals are not reusable."
+    },
+    {
+      "case": "actual normal mutation cannot reuse proof/GI key",
+      "expectedAccepted": false,
+      "actualAccepted": false,
+      "message": "Actual Cycles bake requires a passing source/prepared corner-normal mapping proof bound to current source/receiver/UV data."
+    },
+    {
+      "case": "unrelated metadata does not change receiver identity",
+      "expectedAccepted": true,
+      "actualAccepted": true,
+      "message": null
+    }
+  ],
+  "inputs": {
+    "prepared": {
+      "path": "art/build/cloud-cliff-round1/contact-replay-v13-normal8/cloud-cliff-prepared.blend",
+      "sha256": "fe2eef77f22056cc008465ba038aaaabcc32e98f36571ddf71b41216e1d657a7"
+    },
+    "mapping": {
+      "path": "art/build/cloud-cliff-round1/contact-replay-v13-normal8/mapping-proof.json",
+      "sha256": "b2c2206780d6261d9b3bbb729b774343f3ff8f81471c356798de1f26ed2be1b7"
+    }
+  },
+  "sourceBlendSha256": "484438a4514352e70d7ffe0408306b4127660316c1422f3248f0ff33f5e0e565",
+  "normalTransferPolicy": "evaluated-world-corner-free-float32-v1",
+  "receiverFingerprints": {
+    "cliff": "ad9b66949334ec451a08dcb5f65f1e9536bac8e609d29d6bcbfed500ad101b7d",
+    "cover": "153203e2333e8921c4087c46a13ff45be49dc7e6c1aec321e53915229b2a5858",
+    "far": "c6d6b009dbc14e8081ed60c6eddafcc5755fb041abffa4042beab1a185c9a1cf"
+  },
+  "actualCornerNormalMutationInvalidatesFingerprint": true,
+  "allInMemoryNormalsExactlyRestored": true,
+  "immutableFilesUnchanged": true,
+  "cyclesRenderBakeGpuJobs": 0,
+  "validatorScriptSha256": "7702eee04c67ab74ecb28784ea76f04388cfa990dfe58d1cda6f4ba2ef92e9ca",
+  "generatorSha256": "7ce10fb3403b32e180f6549b545620fe4af721848463ed3e7462082f1a59da30"
+}

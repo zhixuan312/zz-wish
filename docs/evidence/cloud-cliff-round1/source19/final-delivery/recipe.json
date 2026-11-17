@@ -1,0 +1,45 @@
+{
+  "nativeCommand": [
+    "/Applications/Blender.app/Contents/MacOS/Blender",
+    "--background",
+    "art/build/cloud-cliff-round1/prepared-v19/cloud-cliff-prepared.blend",
+    "--python",
+    "art/blender/bake_export.py",
+    "--",
+    "--out",
+    "art/build/cloud-cliff-round1/production-v19-final64",
+    "--resume",
+    "--samples",
+    "64",
+    "--resolution",
+    "1024",
+    "--region-resolutions",
+    "cover=1024,cliff=512,far=256",
+    "--device",
+    "METAL",
+    "--oidn-device",
+    "METAL",
+    "--resting-contact-audit",
+    "art/build/cloud-cliff-round1/contact-replay-v19/contact-audit.json",
+    "--prepared-preview-audit",
+    "art/build/cloud-cliff-round1/contact-replay-v19/mapping-proof.json",
+    "--passes",
+    "night,dusk,day,lamp"
+  ],
+  "source19Derivation": {
+    "script": "art/blender/build_cloud_source19.py",
+    "source17": "art/build/cloud-cliff-round1/cloud-cliff-source-v17.blend",
+    "source17Sha256": "6aa1b86785c3126c43902c57381612da468e75edb808ee2d2257d8437595ea73"
+  },
+  "packAndPosterCommands": [
+    "node scripts/pack-blender-assets.mjs --source art/build/cloud-cliff-round1/production-v19-final64 --out NEW_FULL --material-profile mobile --position-format float32 --normal-format float32 --max-bytes 10000000 --reserve-bytes 1850000",
+    "node scripts/compact-place-manifest.mjs --input NEW_FULL --out NEW_COMPACT --report NEW_PROJECTION.json",
+    "node scripts/gzip-place-models.mjs --input NEW_COMPACT --out NEW_GZIP --codec gzip",
+    "node scripts/attach-cloud-live-density.mjs --input NEW_GZIP --cache art/build/cloud-cliff-round1/source19-live-density-ktx --out NEW_DELIVERY",
+    "node scripts/attach-place-runtime-assets.mjs --out NEW_DELIVERY --native-view docs/licenses/native-agx.json",
+    "SOURCE_ROOT=FROZEN_ROOT BASE_URL=FROZEN_URL SOURCE_BLEND=art/build/cloud-cliff-round1/cloud-cliff-source-v19.blend OUTPUT=NEW_CAPTURE node tests/visual/capture-cover-posters.mjs",
+    "node scripts/make-cover-posters.mjs --inputs NEW_CAPTURE/inputs.json --out NEW_POSTERS --max-bytes 400000",
+    "node scripts/attach-place-runtime-assets.mjs --out NEW_DELIVERY --posters NEW_POSTERS --native-view docs/licenses/native-agx.json"
+  ],
+  "note": "NEW outputs must not exist. Poster capture requires an exclusive GPU lease; CPU encoders must stay outside timed windows."
+}

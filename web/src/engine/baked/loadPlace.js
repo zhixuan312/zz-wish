@@ -2,16 +2,23 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { KTX2Loader } from 'three/examples/jsm/loaders/KTX2Loader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
+import { readBakedManifest,readBakedAsset } from './prefetchPlace.js';
+import { createVisitorShadow } from './visitorShadow.js';
+import { createGauzeTransmission } from './gauzeTransmission.js';
+import { createStaticLampShadow } from './staticLampShadow.js';
 
 // Static construction receives Cycles irradiance. Only the nearby visitor lamp
 // adds direct realtime light, so its own vessel and closest surfaces keep moving shadows.
 export async function loadBakedPlace(id,renderer,initialLight={n:1,g:0}){
   const base=`/places/${id}/`;
-  const response=await fetch(base+'manifest.json',{cache:'no-cache'});
-  if(!response.ok)throw new Error(`Cannot load ${id} manifest (${response.status})`);
-  const manifest=await response.json();
+  const manifest=await readBakedManifest(id);
   const versions=new Map((manifest.files??[]).map(file=>[file.uri,file.sha256]));
   const assetUrl=uri=>base+uri+(versions.get(uri)?`${uri.includes('?')?'&':'?'}v=${versions.get(uri)}`:'');
+  const verified=async uri=>{
+    const file=manifest.files.find(file=>file.uri===uri);
+    if(!file)throw new Error(`Undeclared ${id} asset ${uri}`);
+    await readBakedAsset(id,file);return assetUrl(uri);
+  };
   const ktx=new KTX2Loader().setTranscoderPath('/codecs/basis/').detectSupport(renderer);
   const loader=new GLTFLoader().setKTX2Loader(ktx).setMeshoptDecoder(MeshoptDecoder);
   const ambientPasses=['night','dusk','day'];
@@ -39,7 +46,7 @@ export async function loadBakedPlace(id,renderer,initialLight={n:1,g:0}){
     if(ready[pass])return Promise.resolve();
     if(pending[pass])return pending[pass];
     pending[pass]=Promise.all(Object.values(regions).map(async maps=>{
-      const item=maps[pass],texture=item.texture!==empty?item.texture:await ktx.loadAsync(assetUrl(item.uri));
+      const item=maps[pass],texture=item.texture!==empty?item.texture:await ktx.loadAsync(await verified(item.uri));
       if(disposed){texture.dispose();return;}
       texture.colorSpace=THREE.NoColorSpace;texture.channel=2;texture.flipY=false;
       texture.anisotropy=Math.min(item.anisotropy??1,renderer.capabilities.getMaxAnisotropy());
@@ -51,12 +58,46 @@ export async function loadBakedPlace(id,renderer,initialLight={n:1,g:0}){
     });
     return pending[pass];
   };
-  const [gltf]=await Promise.all([loader.loadAsync(assetUrl(manifest.scene)),
-    Promise.all(['lamp',...ambientPasses.filter((_,i)=>initialWeights.getComponent(i)>.0001)].map(ensurePass))]);
+  const heroEntries=Object.entries(manifest.heroes??{});
+  const [gltf,,heroFiles]=await Promise.all([verified(manifest.scene).then(url=>loader.loadAsync(url)),
+    Promise.all(['lamp',...ambientPasses.filter((_,i)=>initialWeights.getComponent(i)>.0001)].map(ensurePass)),
+    Promise.all(heroEntries.map(async([name,metadata])=>({name,metadata,gltf:await loader.loadAsync(await verified(metadata.uri))}))) ]);
   const basis=manifest.lampBasis??{watts:45,position:[0,2.99,-.5],linearColor:[1,189/255,120/255]};
+  const cameraPreExposure=manifest.bake?.cameraPreExposure??1;
+  if(!Number.isFinite(cameraPreExposure)||cameraPreExposure<=0)throw new Error('Invalid authored camera pre-exposure');
+  const savedView=gltf.scene.userData.one_light_source_view_settings;
+  const sourceView=typeof savedView==='string'?JSON.parse(savedView):savedView;
+  const residualCameraExposureEV=manifest.bake?.residualCameraExposureEV??Math.round(((sourceView?.exposure??Math.log2(cameraPreExposure))-Math.log2(cameraPreExposure))*1e6)/1e6;
+  if(!Number.isFinite(residualCameraExposureEV))throw Error('Invalid authored residual camera exposure');
   const anchor=new THREE.Vector3(...(basis.position??manifest.lampAnchor));
+  const indirectLamp=manifest.bake?.lampPassQuantity==='indirect-diffuse-radiance-per-unit-albedo';
+  const staticLampShadow=indirectLamp?createStaticLampShadow({lightWorld:anchor,sourceRadius:basis.pointRadiusMetres,resolution:512,near:.008,far:80}):null;
   const uniforms={uBakedWeights:{value:initialWeights.clone()},uLampPower:{value:0},uBakedLampAnchor:{value:anchor}};
+  const visitorShadow=id==='snow-roof'?createVisitorShadow({lightWorld:anchor,sourceRadius:basis.pointRadiusMetres??0}):null;
+  const gauzeTransmission=id==='snow-roof'&&basis.transport?.type==='actual-gauze'&&basis.transport.version===1?createGauzeTransmission():null;
   const materials=new Set(),geometries=new Set();
+  const heroes={};
+  for(const {name,metadata,gltf:hero} of heroFiles){
+    hero.scene.userData.hero=metadata;
+    hero.scene.userData.one_light_dynamic=true;
+    hero.scene.traverse(object=>{
+      if(!object.isMesh)return;
+      geometries.add(object.geometry);
+      const sourceMaterials=Array.isArray(object.material)?object.material:[object.material];
+      // Thin glass transmits the lamp instead of becoming an opaque cube-map
+      // shadow caster. Brass, wood and wax retain real moving shadows.
+      const transmits=sourceMaterials.some(material=>material.transparent||material.transmission>0);
+      object.castShadow=!transmits;object.receiveShadow=true;
+      if(transmits)object.userData.cast=false;
+      for(const material of sourceMaterials){
+        materials.add(material);
+        for(const value of Object.values(material))if(value?.isTexture){
+          value.anisotropy=Math.min(8,renderer.capabilities.getMaxAnisotropy());textures.add(value);
+        }
+      }
+    });
+    heroes[name]=hero.scene;
+  }
   gltf.scene.traverse(object=>{
     if(!object.isMesh)return;
     const region=object.userData.lightmap_region??object.userData.region??object.parent?.userData.lightmap_region;
@@ -80,6 +121,7 @@ export async function loadBakedPlace(id,renderer,initialLight={n:1,g:0}){
         uBakedLogRange:{value:new THREE.Vector4(...['night','dusk','day','lamp'].map(p=>maps[p].logRange??0))},
         uBakedLogGain:{value:new THREE.Vector4(...['night','dusk','day','lamp'].map(p=>maps[p].logGain??16))}};
       bindings.push({maps,uniforms:perMaterial});
+      if(material.emissive)material.emissiveIntensity*=cameraPreExposure;
       material.onBeforeCompile=shader=>{
         Object.assign(shader.uniforms,perMaterial);
         shader.vertexShader='varying vec3 vBakedWorld;\n'+shader.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nvBakedWorld=(modelMatrix*vec4(transformed,1.)).xyz;');
@@ -97,7 +139,7 @@ export async function loadBakedPlace(id,renderer,initialLight={n:1,g:0}){
             ${directCall}
             vec3 visitorView=(viewMatrix*vec4(uBakedLampAnchor,1.)).xyz;
             float isVisitor=1.-step(.08,distance(pointLight.position,visitorView));
-            reflectedLight.directDiffuse=mix(diffuseBeforeVisitor,reflectedLight.directDiffuse,isVisitor*(1.-smoothstep(.7,1.8,distance(vBakedWorld,uBakedLampAnchor))));}`);
+            reflectedLight.directDiffuse=mix(diffuseBeforeVisitor,reflectedLight.directDiffuse,isVisitor*${indirectLamp?'1.':'(1.-smoothstep(.7,1.8,distance(vBakedWorld,uBakedLampAnchor)))'});}`);
         shader.fragmentShader=shader.fragmentShader.replace('#include <lights_fragment_begin>',staticLights);
         shader.fragmentShader=shader.fragmentShader.replace('#include <lights_fragment_maps>',`
           #if defined(RE_IndirectDiffuse) && defined(USE_LIGHTMAP)
@@ -105,10 +147,10 @@ export async function loadBakedPlace(id,renderer,initialLight={n:1,g:0}){
             if(uBakedWeights.x>.0001)baked+=decodeBaked(texture2D(uBakedNight,vLightMapUv).rgb,uBakedScales.x,uBakedLogRange.x,uBakedLogGain.x)*uBakedWeights.x;
             if(uBakedWeights.y>.0001)baked+=decodeBaked(texture2D(uBakedDusk,vLightMapUv).rgb,uBakedScales.y,uBakedLogRange.y,uBakedLogGain.y)*uBakedWeights.y;
             if(uBakedWeights.z>.0001)baked+=decodeBaked(texture2D(uBakedDay,vLightMapUv).rgb,uBakedScales.z,uBakedLogRange.z,uBakedLogGain.z)*uBakedWeights.z;
-            float away=smoothstep(.7,1.8,distance(vBakedWorld,uBakedLampAnchor));
+            float away=${indirectLamp?'1.':'smoothstep(.7,1.8,distance(vBakedWorld,uBakedLampAnchor))'};
             float movingShade=1.;
             #if defined(USE_SHADOWMAP) && NUM_POINT_LIGHT_SHADOWS > 0
-            if(uLampPower>.0001){
+            if(uLampPower>.0001${indirectLamp?'&&false':''}){
               PointLightShadow visitorShadow=pointLightShadows[0];
               float ribShadow=getPointShadow(pointShadowMap[0],visitorShadow.shadowMapSize,visitorShadow.shadowBias,visitorShadow.shadowRadius,vPointShadowCoord[0],visitorShadow.shadowCameraNear,visitorShadow.shadowCameraFar);
               float withinShadow=1.-smoothstep(visitorShadow.shadowCameraFar-1.,visitorShadow.shadowCameraFar,length(vPointShadowCoord[0].xyz));
@@ -124,6 +166,9 @@ export async function loadBakedPlace(id,renderer,initialLight={n:1,g:0}){
           #endif`);
       };
       material.customProgramCacheKey=()=>`cycles-lightmap-1-${region}`;
+      visitorShadow?.install(material);
+      gauzeTransmission?.install(material);
+      staticLampShadow?.install(material);
       materials.add(material);for(const value of Object.values(material))if(value?.isTexture){if(value!==material.lightMap)value.anisotropy=Math.min(8,renderer.capabilities.getMaxAnisotropy());textures.add(value);}
       return material;
     };
@@ -131,9 +176,10 @@ export async function loadBakedPlace(id,renderer,initialLight={n:1,g:0}){
   });
   for(const maps of Object.values(regions))for(const pass of Object.values(maps))textures.add(pass.texture);
   return{
-    group:gltf.scene,manifest,
+    group:gltf.scene,manifest,heroes,visitorShadow,gauzeTransmission,staticLampShadow,cameraPreExposure,residualCameraExposureEV,
     lightingState(){return {weights:uniforms.uBakedWeights.value.toArray(),residentPasses:Object.keys(ready).filter(pass=>ready[pass]),pendingPasses:Object.keys(pending).filter(pass=>pending[pass]&&!ready[pass]),loadedPasses:[...ambientPasses,'lamp'].filter(pass=>Object.values(regions).every(maps=>maps[pass].texture!==empty))};},
-    lampCandela:basis.watts/(4*Math.PI),lampColor:new THREE.Color().fromArray(basis.linearColor),
+    // Historical name: pre-exposed radiant intensity in engine units; no lm/cd calibration.
+    lampCandela:basis.watts*cameraPreExposure/(4*Math.PI),lampColor:new THREE.Color().fromArray(basis.linearColor),
     fixturePower(){const w=uniforms.uBakedWeights.value,p=manifest.bake?.presets;return w.x*(p?.night.fixtures??1)+w.y*(p?.dusk.fixtures??.8)+w.z*(p?.day.fixtures??.12);},
     update(light,lampPower,lampPosition){
       if(lampPosition)uniforms.uBakedLampAnchor.value.copy(lampPosition);
@@ -165,6 +211,6 @@ export async function loadBakedPlace(id,renderer,initialLight={n:1,g:0}){
       uniforms.uBakedWeights.value.divideScalar(Math.max(.0001,uniforms.uBakedWeights.value.manhattanLength()));
       uniforms.uLampPower.value=Math.max(0,lampPower);
     },
-    dispose(){disposed=true;for(const m of materials)m.dispose();for(const g of geometries)g.dispose();for(const t of textures)t.dispose();ktx.dispose();},
+    dispose(){disposed=true;staticLampShadow?.dispose();gauzeTransmission?.dispose();for(const m of materials)m.dispose();for(const g of geometries)g.dispose();for(const t of textures)t.dispose();ktx.dispose();},
   };
 }

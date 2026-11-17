@@ -1,0 +1,23 @@
+{
+  "scope": "Nonvisual whitespace cleanup after the frozen capture snapshot. No scene, light, texture, numerical transform or product behaviour change. Existing captures use the preceding whitespace-equivalent helper files.",
+  "files": [
+    {
+      "path": "web/src/engine/baked/nativeAgX.js",
+      "beforeSha256": "bc2dc335a5fc190e6781d35d7acfb262d71dc1ad86253fb0e3a2080fd049baea",
+      "sha256": "1e6a35592672bd051b45e129dac9ae63d795fa306b16f57604d8a8c9501a84a8",
+      "change": "Whitespace only; executable/shader tokens unchanged."
+    },
+    {
+      "path": "web/src/engine/baked/visitorShadow.js",
+      "beforeSha256": "a0d40bee1b43356dae2d6d52fbe6a40198b88cb0f1a8ffa11163f9c01b5f637b",
+      "sha256": "6bdc08de24ebb4779c960fb02b0378164a7367a7f5001a5ed9e7df0dccdc25f5",
+      "change": "Whitespace only; executable/shader tokens unchanged."
+    },
+    {
+      "path": "web/src/engine/places/cloud-depth-composite.js",
+      "beforeSha256": "590bcad829d6ae7fe406a1e8030dcf91b032f37a8c9bd69787cc40722201aaae",
+      "sha256": "a4aa8034b5343d21d58a4313fbd81fd37b125a6017dcff6be75732e69122f6a0",
+      "change": "Whitespace only; executable/shader tokens unchanged."
+    }
+  ]
+}

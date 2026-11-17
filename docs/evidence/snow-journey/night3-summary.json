@@ -1,0 +1,8 @@
+{
+  "archivedEvidence": true,
+  "path": "docs/evidence/snow-journey/night3-summary.json",
+  "bytes": 4356840,
+  "sha256": "4fc3b727410d9be22def31265d1877d355a6e13ac3c53586509c542aff716153",
+  "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/snow-journey/night3-summary.json",
+  "note": "Full immutable evidence is preserved locally in the git-ignored archive; see docs/evidence/ARCHIVE.md."
+}

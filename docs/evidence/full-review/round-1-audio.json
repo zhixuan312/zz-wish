@@ -1,0 +1,286 @@
+{
+  "version": 1,
+  "createdAt": "2026-11-17T02:00:34.711Z",
+  "checklist": "H5",
+  "status": "Measured checks pass; owner listening remains required.",
+  "method": "Actual TypeScript sound module, transpiled without graph changes, in native OfflineAudioContext. Seeded noise and virtual timers; no scene, GPU, encoded audio or microphone analysis.",
+  "browserVersion": "157.0.8103.39",
+  "sampleRate": 48000,
+  "seed": 1852795251,
+  "sourceSHA256": {
+    "before": "7f795d95e457611f9274f3776421ddd98b436064b50b1f1a11a5abc72949947a",
+    "after": "3d7537eac6d7fafaeb7f8060b0b80d6d863189cb099ca91d96bd624c3e5947fa",
+    "loop": "6960061c21916439719cd68b7467c9908606d8b2330ef8398647e50e45513cfc"
+  },
+  "checks": {
+    "noRuntimeErrors": true,
+    "noClippedSamples": true,
+    "preparationCreatesNoSourcesAndIsSilent": true,
+    "originalEarlyMuteDefectReproduced": true,
+    "earlyMuteAndPersistentMuteAreExactSilence": true,
+    "endingsReachExactZeroWithin301ms": true,
+    "overlapJoinBelowOrdinaryAdjacentP95": true,
+    "observedBellTimingWithinDesignedRanges": true
+  },
+  "changes": [
+    "Use a 250 ms equal-power overlap in the generated noise buffer. Actual wind loop is 11.75 s; the same buffer at 1.13 playback rate gives a 10.3982300885 s flame loop.",
+    "Cancel and hold gain automation before a 160 ms mute/unmute ramp, removing the future startup ramp that defeated early mute.",
+    "Both endings cancel pending details, fade to exact zero in 300 ms, and stop tracked bell/noise oscillators and sources. Existing synthesis levels, frequencies and bell interval design are unchanged."
+  ],
+  "loopJoin": {
+    "before": [
+      {
+        "channel": 0,
+        "samples": 576000,
+        "duration": 12,
+        "boundaryJump": 0.44928669184446335,
+        "adjacentDeltaMean": 0.03676583604866717,
+        "adjacentDeltaRMS": 0.04253447492612397,
+        "adjacentDeltaP95": 0.07030025124549866,
+        "adjacentDeltaMax": 0.09305775165557861
+      },
+      {
+        "channel": 1,
+        "samples": 576000,
+        "duration": 12,
+        "boundaryJump": 0.06244756653904915,
+        "adjacentDeltaMean": 0.03672344946936697,
+        "adjacentDeltaRMS": 0.04249589301378326,
+        "adjacentDeltaP95": 0.07027710229158401,
+        "adjacentDeltaMax": 0.08962756395339966
+      }
+    ],
+    "after": [
+      {
+        "channel": 0,
+        "samples": 564000,
+        "duration": 11.75,
+        "boundaryJump": 0.03475677967071533,
+        "adjacentDeltaMean": 0.036754441721932825,
+        "adjacentDeltaRMS": 0.04253547038698171,
+        "adjacentDeltaP95": 0.07034920901060104,
+        "adjacentDeltaMax": 0.10241831839084625
+      },
+      {
+        "channel": 1,
+        "samples": 564000,
+        "duration": 11.75,
+        "boundaryJump": 0.04893571138381958,
+        "adjacentDeltaMean": 0.03670370565798903,
+        "adjacentDeltaRMS": 0.04249008187343126,
+        "adjacentDeltaP95": 0.07032480835914612,
+        "adjacentDeltaMax": 0.11043837666511536
+      }
+    ]
+  },
+  "earlyMute": {
+    "actionAtSeconds": 0.4,
+    "lateMutedWindow": [
+      1.9,
+      2.7
+    ],
+    "before": {
+      "start": 1.9,
+      "end": 2.7,
+      "samples": 76800,
+      "peak": 0.0020632301457226276,
+      "peakDbFS": -53.709046507501775,
+      "rms": 0.0005029774398771496,
+      "rmsDbFS": -65.96902987966044,
+      "clippedSamples": 0
+    },
+    "after": {
+      "start": 1.9,
+      "end": 2.7,
+      "samples": 76800,
+      "peak": 0,
+      "peakDbFS": null,
+      "rms": 0,
+      "rmsDbFS": null,
+      "clippedSamples": 0
+    }
+  },
+  "levels": {
+    "snowCombined100s": {
+      "start": 0,
+      "end": 100,
+      "samples": 9600000,
+      "peak": 0.0072928536683321,
+      "peakDbFS": -42.74205001003297,
+      "rms": 0.0006406637713306955,
+      "rmsDbFS": -63.86739668158071,
+      "clippedSamples": 0
+    },
+    "wind3to13s": {
+      "start": 3,
+      "end": 13,
+      "samples": 960000,
+      "peak": 0.0016887513920664787,
+      "peakDbFS": -55.44868559946884,
+      "rms": 0.0004208562516214124,
+      "rmsDbFS": -67.51732434400346,
+      "clippedSamples": 0
+    },
+    "flame3to13s": {
+      "start": 3,
+      "end": 13,
+      "samples": 960000,
+      "peak": 0.0013877676101401448,
+      "peakDbFS": -57.153665059231486,
+      "rms": 0.0003335596456287563,
+      "rmsDbFS": -69.53652992452567,
+      "clippedSamples": 0
+    },
+    "bellActive8s": {
+      "start": 23.144,
+      "end": 31.144,
+      "samples": 768000,
+      "peak": 0.0058966451324522495,
+      "peakDbFS": -44.587900156518415,
+      "rms": 0.0009748798512533286,
+      "rmsDbFS": -60.22097810968064,
+      "clippedSamples": 0
+    },
+    "flameRelativeToWindDb": -2.019205580522211,
+    "bellActiveRelativeToWindDb": 7.296346234322819,
+    "higherGainSea30s": {
+      "start": 0,
+      "end": 30,
+      "samples": 2880000,
+      "peak": 0.05095157027244568,
+      "peakDbFS": -25.856848539274946,
+      "rms": 0.007972521880940074,
+      "rmsDbFS": -41.96808560285781,
+      "clippedSamples": 0
+    }
+  },
+  "bell": {
+    "designedFirstDelaySeconds": [
+      14,
+      24
+    ],
+    "designedSubsequentGapSeconds": [
+      38,
+      80
+    ],
+    "observedStarts": [
+      23.144,
+      63.49066666666667
+    ],
+    "observedGaps": [
+      40.34666666666667
+    ],
+    "events": [
+      {
+        "kind": "timer",
+        "scheduledDelay": 1.5,
+        "scheduledAt": 1.5,
+        "executedAt": 1.5013333333333334
+      },
+      {
+        "kind": "timer",
+        "scheduledDelay": 23.143682699650526,
+        "scheduledAt": 23.143682699650526,
+        "executedAt": 23.144
+      },
+      {
+        "kind": "timer",
+        "scheduledDelay": 40.3460261602886,
+        "scheduledAt": 63.4900261602886,
+        "executedAt": 63.49066666666667
+      }
+    ]
+  },
+  "exactEndings": {
+    "early-mute-and-ending": {
+      "stopAt": 4,
+      "silentFrom": 4.3,
+      "fadeToExactZeroSeconds": 0.2999999999999998
+    },
+    "starts-muted-and-ending": {
+      "stopAt": 4,
+      "silentFrom": 4.3,
+      "fadeToExactZeroSeconds": 0.2999999999999998
+    },
+    "stop-during-bell": {
+      "stopAt": 23.344,
+      "silentFrom": 23.644,
+      "fadeToExactZeroSeconds": 0.29999999999999716
+    }
+  },
+  "ownerListening": [
+    {
+      "moment": "Live: tap Light; listen from 0–3 s.",
+      "expectation": "Silence before tapping; a gentle ambience/flame fade-in after the tap. Device volume and subjective balance need owner approval."
+    },
+    {
+      "moment": "Live: 10.398 s / 20.796 s flame joins and 11.75 s / 23.5 s wind joins after starting.",
+      "expectation": "No repeating click or gain dip at the joins. Measured joins are ordinary adjacent-noise-size deltas; audibility still requires listening."
+    },
+    {
+      "moment": "Live: first bell 14–24 s after starting, then 38–80 s between bells.",
+      "expectation": "A distant, infrequent bell. In the seeded listening copy it starts at 23.144 s; the three partials decay over 8/5/3 s."
+    },
+    {
+      "moment": "after-early-mute-and-ending.wav: mute at 0.4 s; unmute at 2.8 s; end at 4 s.",
+      "expectation": "Silent after 0.56 s until unmute; smooth return by 2.96 s; silence by 4.3 s. Check the live mute button during the initial fade too."
+    },
+    {
+      "moment": "Live: explicit put-out, leaving, and natural completion, including while a bell is ringing.",
+      "expectation": "The same 300 ms ending fade; no next bell or audio leaking into the result screen. App settlement uses the shared sound.stop path for every reason."
+    }
+  ],
+  "rawEvidence": "artifacts/full-review/round-1/audio/measurements.json",
+  "listeningCopies": [
+    {
+      "variant": "before",
+      "name": "snow-combined",
+      "file": "before-snow-combined.wav",
+      "seconds": 32,
+      "note": "PCM16 listening copy. Metrics above are from native float PCM before this export."
+    },
+    {
+      "variant": "before",
+      "name": "snow-bell",
+      "file": "before-snow-bell.wav",
+      "seconds": 32,
+      "note": "PCM16 listening copy. Metrics above are from native float PCM before this export."
+    },
+    {
+      "variant": "before",
+      "name": "early-mute-and-ending",
+      "file": "before-early-mute-and-ending.wav",
+      "seconds": 6,
+      "note": "PCM16 listening copy. Metrics above are from native float PCM before this export."
+    },
+    {
+      "variant": "after",
+      "name": "snow-combined",
+      "file": "after-snow-combined.wav",
+      "seconds": 32,
+      "note": "PCM16 listening copy. Metrics above are from native float PCM before this export."
+    },
+    {
+      "variant": "after",
+      "name": "snow-bell",
+      "file": "after-snow-bell.wav",
+      "seconds": 32,
+      "note": "PCM16 listening copy. Metrics above are from native float PCM before this export."
+    },
+    {
+      "variant": "after",
+      "name": "early-mute-and-ending",
+      "file": "after-early-mute-and-ending.wav",
+      "seconds": 6,
+      "note": "PCM16 listening copy. Metrics above are from native float PCM before this export."
+    }
+  ],
+  "limitations": [
+    "Offline output checks synthesis and control behavior; it does not establish loudspeaker/headphone volume, auditory realism or the owner’s subjective balance preference.",
+    "Audio-only Chrome runs with GPU disabled. This is not a WebKit audio-device or autoplay test.",
+    "Timer callbacks are driven at the offline render quantum, not live browser timer jitter; actual scheduled and executed bell times are retained.",
+    "Components are isolated by disconnecting only the other source nodes from the actual graph. Bell comparisons use its active eight-second window, not a ninety-second average."
+  ],
+  "command": "node tests/visual/audio-review.mjs",
+  "summaryOnlyCommand": "node tests/visual/audio-review.mjs --summarize"
+}

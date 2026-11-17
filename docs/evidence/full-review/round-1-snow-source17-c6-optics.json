@@ -1,0 +1,808 @@
+{
+  "scope": "Actual LOW8 packaged app optical check of C1/C6/B4, all4browser/viewport contexts. Default red fixture only; not final/fulljourney/hunt/FPS or arbitrary-shape GI approval. Cloud is a technical navigation control.",
+  "report": {
+    "path": "artifacts/full-review/round-1/snow17-c6-optics-v2/report.json",
+    "bytes": 1722911,
+    "sha256": "cac21ef22d76eae574b80a271e07b92ba923da9c6f9d4a9b83a9daa644b2b1fe"
+  },
+  "sourceStartSha256": "021880cc10fe46d960850784ba6d74f1dfa012fcbb6af2302f42071b79db9fd3",
+  "sourceEndSha256": "021880cc10fe46d960850784ba6d74f1dfa012fcbb6af2302f42071b79db9fd3",
+  "sourceChanged": false,
+  "ownedBrowsersClosed": true,
+  "errors": [],
+  "frames": [
+    {
+      "browser": "chromium",
+      "size": "desktop",
+      "stage": "choose",
+      "file": "artifacts/full-review/round-1/snow17-c6-optics-v2/chromium-desktop-choose.png",
+      "sha256": "73e61f1287d2d5387a52203315eca787c6309503d9befbe35f443cb74dd59363",
+      "health": {
+        "available": true,
+        "lost": false,
+        "events": []
+      },
+      "camera": {
+        "pendingTweens": 0,
+        "position": [
+          -2.75,
+          2.22,
+          0.6499999999999997
+        ],
+        "look": [
+          -1.4802116512311987,
+          2.1509560579031515,
+          -1.2999999523162842
+        ],
+        "fov": 55
+      },
+      "diagnosticCamera": null
+    },
+    {
+      "browser": "chromium",
+      "size": "desktop",
+      "stage": "burning-live",
+      "file": "artifacts/full-review/round-1/snow17-c6-optics-v2/chromium-desktop-burning-live.png",
+      "sha256": "749b67e3ad7ecd3271c9fa8ae2ddcdf688656956a2f129762def54be111da536",
+      "health": {
+        "available": true,
+        "lost": false,
+        "events": []
+      },
+      "camera": {
+        "pendingTweens": 0,
+        "position": [
+          -4.900000000000001,
+          2.3,
+          -1.600000000000001
+        ],
+        "look": [
+          1.1,
+          1.75,
+          -2.124931981155544
+        ],
+        "fov": 55
+      },
+      "diagnosticCamera": null
+    },
+    {
+      "browser": "chromium",
+      "size": "desktop",
+      "stage": "burning-held",
+      "file": "artifacts/full-review/round-1/snow17-c6-optics-v2/chromium-desktop-burning-held.png",
+      "sha256": "19373d4e8f114f3c21cc8c3148bdf2d45c98c05562a909aa5ec64f29ccc762ae",
+      "health": {
+        "available": true,
+        "lost": false,
+        "events": []
+      },
+      "camera": {
+        "pendingTweens": 0,
+        "position": [
+          -4.900000000000001,
+          2.3,
+          -1.600000000000001
+        ],
+        "look": [
+          1.1,
+          1.75,
+          -2.124931981155544
+        ],
+        "fov": 55
+      },
+      "diagnosticCamera": null
+    },
+    {
+      "browser": "chromium",
+      "size": "desktop",
+      "stage": "burnFar-held",
+      "file": "artifacts/full-review/round-1/snow17-c6-optics-v2/chromium-desktop-burnFar-held.png",
+      "sha256": "29882ec091c72dcc242724641600dfce4613943d082832a49ad6c55a802f45b0",
+      "health": {
+        "available": true,
+        "lost": false,
+        "events": []
+      },
+      "camera": {
+        "pendingTweens": 0,
+        "position": [
+          -4.94,
+          2.3,
+          -1.6
+        ],
+        "look": [
+          1.06,
+          1.75,
+          -2.124931981155544
+        ],
+        "fov": 55
+      },
+      "diagnosticCamera": {
+        "position": [
+          -4.94,
+          2.3,
+          -1.6
+        ],
+        "look": [
+          1.06,
+          1.75,
+          -2.124931981155544
+        ],
+        "fov": 55
+      }
+    },
+    {
+      "browser": "chromium",
+      "size": "desktop",
+      "stage": "diagnostic-cloth-close",
+      "file": "artifacts/full-review/round-1/snow17-c6-optics-v2/chromium-desktop-diagnostic-cloth-close.png",
+      "sha256": "bd6843d540e291ca3c48886eefa204eca5766af17450a1ea09cca74f2c5f8787",
+      "health": {
+        "available": true,
+        "lost": false,
+        "events": []
+      },
+      "camera": {
+        "pendingTweens": 0,
+        "position": [
+          -2.608467657132233,
+          2.4305992468237902,
+          -1.3969385922942594
+        ],
+        "look": [
+          -1.514522572771115,
+          2.4929454775147155,
+          -1.2999999523162842
+        ],
+        "fov": 42
+      },
+      "diagnosticCamera": {
+        "position": [
+          -2.608467657132233,
+          2.4305992468237902,
+          -1.3969385922942594
+        ],
+        "look": [
+          -1.514522572771115,
+          2.4929454775147155,
+          -1.2999999523162842
+        ],
+        "fov": 42
+      }
+    },
+    {
+      "browser": "chromium",
+      "size": "desktop",
+      "stage": "diagnostic-low-altar-edge",
+      "file": "artifacts/full-review/round-1/snow17-c6-optics-v2/chromium-desktop-diagnostic-low-altar-edge.png",
+      "sha256": "d1b8f67d6c1a4460df7cc21bbfd5c129f5d76650aeae4885e86c53a094e08c2e",
+      "health": {
+        "available": true,
+        "lost": false,
+        "events": []
+      },
+      "camera": {
+        "pendingTweens": 0,
+        "position": [
+          0.25,
+          1.66,
+          -3.65
+        ],
+        "look": [
+          0,
+          1.64,
+          -4.75
+        ],
+        "fov": 55
+      },
+      "diagnosticCamera": {
+        "position": [
+          0.25,
+          1.66,
+          -3.65
+        ],
+        "look": [
+          0,
+          1.64,
+          -4.75
+        ],
+        "fov": 55
+      }
+    },
+    {
+      "browser": "chromium",
+      "size": "phone",
+      "stage": "choose",
+      "file": "artifacts/full-review/round-1/snow17-c6-optics-v2/chromium-phone-choose.png",
+      "sha256": "edb016480d743881559c1b3d053f15e3dc1a5f3d05ede171899f679dada56f9a",
+      "health": {
+        "available": true,
+        "lost": false,
+        "events": []
+      },
+      "camera": {
+        "pendingTweens": 0,
+        "position": [
+          -1.5,
+          2.2,
+          1.7000000000000002
+        ],
+        "look": [
+          -1.4823567739695627,
+          1.5708466242161174,
+          -1.2999999523162842
+        ],
+        "fov": 55
+      },
+      "diagnosticCamera": null
+    },
+    {
+      "browser": "chromium",
+      "size": "phone",
+      "stage": "burning-live",
+      "file": "artifacts/full-review/round-1/snow17-c6-optics-v2/chromium-phone-burning-live.png",
+      "sha256": "d45409f7a232b1fa6eab5531a88b0b037fccb1a3161199cade54b169010ea152",
+      "health": {
+        "available": true,
+        "lost": false,
+        "events": []
+      },
+      "camera": {
+        "pendingTweens": 0,
+        "position": [
+          -1.4999999999999996,
+          2.2,
+          1.8999999999999995
+        ],
+        "look": [
+          -0.9,
+          1.7000000000000002,
+          -2.3
+        ],
+        "fov": 55
+      },
+      "diagnosticCamera": null
+    },
+    {
+      "browser": "chromium",
+      "size": "phone",
+      "stage": "burning-held",
+      "file": "artifacts/full-review/round-1/snow17-c6-optics-v2/chromium-phone-burning-held.png",
+      "sha256": "235702acb5c7f7ab62e9264e18a09ba84f8710649e896dec9393a44cf7d51bd2",
+      "health": {
+        "available": true,
+        "lost": false,
+        "events": []
+      },
+      "camera": {
+        "pendingTweens": 0,
+        "position": [
+          -1.4999999999999996,
+          2.2,
+          1.8999999999999995
+        ],
+        "look": [
+          -0.9,
+          1.7000000000000002,
+          -2.3
+        ],
+        "fov": 55
+      },
+      "diagnosticCamera": null
+    },
+    {
+      "browser": "chromium",
+      "size": "phone",
+      "stage": "burnFar-held",
+      "file": "artifacts/full-review/round-1/snow17-c6-optics-v2/chromium-phone-burnFar-held.png",
+      "sha256": "a134b094a562ae7892c0f4fdd7e5fb94c3fc51f48b7bbc8c4c98d198f0dccbca",
+      "health": {
+        "available": true,
+        "lost": false,
+        "events": []
+      },
+      "camera": {
+        "pendingTweens": 0,
+        "position": [
+          -1.5,
+          2.2,
+          1.98
+        ],
+        "look": [
+          -1.1,
+          1.75,
+          -2.3
+        ],
+        "fov": 55
+      },
+      "diagnosticCamera": {
+        "position": [
+          -1.5,
+          2.2,
+          1.98
+        ],
+        "look": [
+          -1.1,
+          1.75,
+          -2.3
+        ],
+        "fov": 55
+      }
+    },
+    {
+      "browser": "chromium",
+      "size": "phone",
+      "stage": "diagnostic-cloth-close",
+      "file": "artifacts/full-review/round-1/snow17-c6-optics-v2/chromium-phone-diagnostic-cloth-close.png",
+      "sha256": "a3052bcf4ef15ffe1a312250887557e250011b818e455a2250bafff316619d57",
+      "health": {
+        "available": true,
+        "lost": false,
+        "events": []
+      },
+      "camera": {
+        "pendingTweens": 0,
+        "position": [
+          -1.5095512769765167,
+          2.392665820227541,
+          -0.20459168296987773
+        ],
+        "look": [
+          -1.514522572771115,
+          2.4929454775147155,
+          -1.2999999523162842
+        ],
+        "fov": 42
+      },
+      "diagnosticCamera": {
+        "position": [
+          -1.5095512769765167,
+          2.392665820227541,
+          -0.20459168296987773
+        ],
+        "look": [
+          -1.514522572771115,
+          2.4929454775147155,
+          -1.2999999523162842
+        ],
+        "fov": 42
+      }
+    },
+    {
+      "browser": "chromium",
+      "size": "phone",
+      "stage": "diagnostic-low-altar-edge",
+      "file": "artifacts/full-review/round-1/snow17-c6-optics-v2/chromium-phone-diagnostic-low-altar-edge.png",
+      "sha256": "d994095e5969a7aef934746900832821707ec1070b56a92f90336f72811b4669",
+      "health": {
+        "available": true,
+        "lost": false,
+        "events": []
+      },
+      "camera": {
+        "pendingTweens": 0,
+        "position": [
+          0.25,
+          1.66,
+          -3.65
+        ],
+        "look": [
+          0,
+          1.64,
+          -4.75
+        ],
+        "fov": 55
+      },
+      "diagnosticCamera": {
+        "position": [
+          0.25,
+          1.66,
+          -3.65
+        ],
+        "look": [
+          0,
+          1.64,
+          -4.75
+        ],
+        "fov": 55
+      }
+    },
+    {
+      "browser": "webkit",
+      "size": "desktop",
+      "stage": "choose",
+      "file": "artifacts/full-review/round-1/snow17-c6-optics-v2/webkit-desktop-choose.png",
+      "sha256": "00b70c38117f7bc7b5438a1503d8dd60758a391e7e97a9ced8de6f48c9bbf1fe",
+      "health": {
+        "available": true,
+        "lost": false,
+        "events": []
+      },
+      "camera": {
+        "pendingTweens": 0,
+        "position": [
+          -2.749999999999999,
+          2.22,
+          0.6499999999999999
+        ],
+        "look": [
+          -1.4993,
+          2.1523757360838984,
+          -1.2999999523162842
+        ],
+        "fov": 55
+      },
+      "diagnosticCamera": null
+    },
+    {
+      "browser": "webkit",
+      "size": "desktop",
+      "stage": "burning-live",
+      "file": "artifacts/full-review/round-1/snow17-c6-optics-v2/webkit-desktop-burning-live.png",
+      "sha256": "e3f9a2b1668cbff947d8663e1bb9e315f05f145956971765fa7fa862d46d631f",
+      "health": {
+        "available": true,
+        "lost": false,
+        "events": []
+      },
+      "camera": {
+        "pendingTweens": 0,
+        "position": [
+          -4.900000000000001,
+          2.3,
+          -1.600000000000001
+        ],
+        "look": [
+          1.1000000000000003,
+          1.75,
+          -2.124931981155544
+        ],
+        "fov": 55
+      },
+      "diagnosticCamera": null
+    },
+    {
+      "browser": "webkit",
+      "size": "desktop",
+      "stage": "burning-held",
+      "file": "artifacts/full-review/round-1/snow17-c6-optics-v2/webkit-desktop-burning-held.png",
+      "sha256": "0e7377cdd3fda636d0f05edbf0a9b8bd28d549221b6a06c2c4e18fd4d0654b0a",
+      "health": {
+        "available": true,
+        "lost": false,
+        "events": []
+      },
+      "camera": {
+        "pendingTweens": 0,
+        "position": [
+          -4.900000000000001,
+          2.3,
+          -1.600000000000001
+        ],
+        "look": [
+          1.1000000000000003,
+          1.75,
+          -2.124931981155544
+        ],
+        "fov": 55
+      },
+      "diagnosticCamera": null
+    },
+    {
+      "browser": "webkit",
+      "size": "desktop",
+      "stage": "burnFar-held",
+      "file": "artifacts/full-review/round-1/snow17-c6-optics-v2/webkit-desktop-burnFar-held.png",
+      "sha256": "f9fd452ac499b30c3c8a99e09974aae0a1b92b9a4c1d727098527894f58c6339",
+      "health": {
+        "available": true,
+        "lost": false,
+        "events": []
+      },
+      "camera": {
+        "pendingTweens": 0,
+        "position": [
+          -4.94,
+          2.3,
+          -1.6
+        ],
+        "look": [
+          1.06,
+          1.75,
+          -2.124931981155544
+        ],
+        "fov": 55
+      },
+      "diagnosticCamera": {
+        "position": [
+          -4.94,
+          2.3,
+          -1.6
+        ],
+        "look": [
+          1.06,
+          1.75,
+          -2.124931981155544
+        ],
+        "fov": 55
+      }
+    },
+    {
+      "browser": "webkit",
+      "size": "desktop",
+      "stage": "diagnostic-cloth-close",
+      "file": "artifacts/full-review/round-1/snow17-c6-optics-v2/webkit-desktop-diagnostic-cloth-close.png",
+      "sha256": "eb6e47d7340ae26e0363fc2521ea214b6e469b05062969f0fcdf545afa2d7c8d",
+      "health": {
+        "available": true,
+        "lost": false,
+        "events": []
+      },
+      "camera": {
+        "pendingTweens": 0,
+        "position": [
+          -2.608467657132233,
+          2.4305992468237902,
+          -1.3969385922942594
+        ],
+        "look": [
+          -1.514522572771115,
+          2.4929454775147155,
+          -1.2999999523162842
+        ],
+        "fov": 42
+      },
+      "diagnosticCamera": {
+        "position": [
+          -2.608467657132233,
+          2.4305992468237902,
+          -1.3969385922942594
+        ],
+        "look": [
+          -1.514522572771115,
+          2.4929454775147155,
+          -1.2999999523162842
+        ],
+        "fov": 42
+      }
+    },
+    {
+      "browser": "webkit",
+      "size": "desktop",
+      "stage": "diagnostic-low-altar-edge",
+      "file": "artifacts/full-review/round-1/snow17-c6-optics-v2/webkit-desktop-diagnostic-low-altar-edge.png",
+      "sha256": "b2f518d56d2ee1ea12e017506d86563f6bc008fa6ad5890f3601a1865a7eb114",
+      "health": {
+        "available": true,
+        "lost": false,
+        "events": []
+      },
+      "camera": {
+        "pendingTweens": 0,
+        "position": [
+          0.25,
+          1.66,
+          -3.65
+        ],
+        "look": [
+          0,
+          1.64,
+          -4.75
+        ],
+        "fov": 55
+      },
+      "diagnosticCamera": {
+        "position": [
+          0.25,
+          1.66,
+          -3.65
+        ],
+        "look": [
+          0,
+          1.64,
+          -4.75
+        ],
+        "fov": 55
+      }
+    },
+    {
+      "browser": "webkit",
+      "size": "phone",
+      "stage": "choose",
+      "file": "artifacts/full-review/round-1/snow17-c6-optics-v2/webkit-phone-choose.png",
+      "sha256": "c33345f0ebda40b2cb5df958e90567822a5d212a737db1d8f2f17b440afb38e3",
+      "health": {
+        "available": true,
+        "lost": false,
+        "events": []
+      },
+      "camera": {
+        "pendingTweens": 0,
+        "position": [
+          -1.5,
+          2.2,
+          1.7000000000000002
+        ],
+        "look": [
+          -1.4814180367840928,
+          1.5708514962371818,
+          -1.2999999523162842
+        ],
+        "fov": 55
+      },
+      "diagnosticCamera": null
+    },
+    {
+      "browser": "webkit",
+      "size": "phone",
+      "stage": "burning-live",
+      "file": "artifacts/full-review/round-1/snow17-c6-optics-v2/webkit-phone-burning-live.png",
+      "sha256": "6ad520ee49dc3e9e5dd3a6551e5c3fe8729790fc58f2c9a6e0fadfa6ccde53cb",
+      "health": {
+        "available": true,
+        "lost": false,
+        "events": []
+      },
+      "camera": {
+        "pendingTweens": 0,
+        "position": [
+          -1.4999999999999996,
+          2.2,
+          1.8999999999999995
+        ],
+        "look": [
+          -0.9,
+          1.7000000000000002,
+          -2.3
+        ],
+        "fov": 55
+      },
+      "diagnosticCamera": null
+    },
+    {
+      "browser": "webkit",
+      "size": "phone",
+      "stage": "burning-held",
+      "file": "artifacts/full-review/round-1/snow17-c6-optics-v2/webkit-phone-burning-held.png",
+      "sha256": "3c5c1fe94604642ef414d34e1903e4bfb2fe60aac9ebeb22d820b1c55cbec9ef",
+      "health": {
+        "available": true,
+        "lost": false,
+        "events": []
+      },
+      "camera": {
+        "pendingTweens": 0,
+        "position": [
+          -1.4999999999999996,
+          2.2,
+          1.8999999999999995
+        ],
+        "look": [
+          -0.9,
+          1.7000000000000002,
+          -2.3
+        ],
+        "fov": 55
+      },
+      "diagnosticCamera": null
+    },
+    {
+      "browser": "webkit",
+      "size": "phone",
+      "stage": "burnFar-held",
+      "file": "artifacts/full-review/round-1/snow17-c6-optics-v2/webkit-phone-burnFar-held.png",
+      "sha256": "dd024b2df1a201c7c2c8bb0cc9eaa4ef218c9a4bf7c3d35c2616697ac0bfe66f",
+      "health": {
+        "available": true,
+        "lost": false,
+        "events": []
+      },
+      "camera": {
+        "pendingTweens": 0,
+        "position": [
+          -1.5,
+          2.2,
+          1.98
+        ],
+        "look": [
+          -1.1,
+          1.75,
+          -2.3
+        ],
+        "fov": 55
+      },
+      "diagnosticCamera": {
+        "position": [
+          -1.5,
+          2.2,
+          1.98
+        ],
+        "look": [
+          -1.1,
+          1.75,
+          -2.3
+        ],
+        "fov": 55
+      }
+    },
+    {
+      "browser": "webkit",
+      "size": "phone",
+      "stage": "diagnostic-cloth-close",
+      "file": "artifacts/full-review/round-1/snow17-c6-optics-v2/webkit-phone-diagnostic-cloth-close.png",
+      "sha256": "2651ef2ffdb76f60e8a70c997d36c17db9e809e682f65339e5bebd8df1b17331",
+      "health": {
+        "available": true,
+        "lost": false,
+        "events": []
+      },
+      "camera": {
+        "pendingTweens": 0,
+        "position": [
+          -1.5095512769765167,
+          2.392665820227541,
+          -0.2045916829698775
+        ],
+        "look": [
+          -1.514522572771115,
+          2.4929454775147155,
+          -1.2999999523162842
+        ],
+        "fov": 42
+      },
+      "diagnosticCamera": {
+        "position": [
+          -1.5095512769765167,
+          2.392665820227541,
+          -0.2045916829698775
+        ],
+        "look": [
+          -1.514522572771115,
+          2.4929454775147155,
+          -1.2999999523162842
+        ],
+        "fov": 42
+      }
+    },
+    {
+      "browser": "webkit",
+      "size": "phone",
+      "stage": "diagnostic-low-altar-edge",
+      "file": "artifacts/full-review/round-1/snow17-c6-optics-v2/webkit-phone-diagnostic-low-altar-edge.png",
+      "sha256": "90be21a4ffac1e398f5d19387dffcac74b2aec1c15d0443b89d5bf0af67e1f19",
+      "health": {
+        "available": true,
+        "lost": false,
+        "events": []
+      },
+      "camera": {
+        "pendingTweens": 0,
+        "position": [
+          0.25,
+          1.66,
+          -3.65
+        ],
+        "look": [
+          0,
+          1.64,
+          -4.75
+        ],
+        "fov": 55
+      },
+      "diagnosticCamera": {
+        "position": [
+          0.25,
+          1.66,
+          -3.65
+        ],
+        "look": [
+          0,
+          1.64,
+          -4.75
+        ],
+        "fov": 55
+      }
+    }
+  ],
+  "assessment": "Technical4contextcapturePASS. NOTfull64approval: actualchoosingclothstilldark(C2), source/runtimepaintedbeamhighlightdifferenceunderdiagnosis; actualC1/C6/B4beauty/floorpool/staticappearanceandremainingfulljourney/huntpending."
+}

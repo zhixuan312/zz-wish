@@ -1,0 +1,523 @@
+{
+  "scope": "Read-onlyD7causality: actualsource17same38UV/fullchartinteriors8/32/64/256raw+OIDN. These are configuredsamplemaxima; full256pertexelcountsareNOTproven. NoGPU/newGI/source/runtimechange.",
+  "inputs": {
+    "comparison": {
+      "path": "art/build/snow-roof-round1/source17-diffuse-8-32-64-256-comparison/comparison.json",
+      "sha256": "72b76a29e415ae33a84d1c1a87463a59157af33712c59cc71c95c5e58cf4b7f8",
+      "bytes": 93295
+    },
+    "actualCyclesSettings": {
+      "path": "art/build/snow-roof-round1/source17-diffuse-8-32-64-256-comparison/cycles-sampling-settings-v2.json",
+      "sha256": "3df2947e2723715cf53726b4e1d60be650b3ae05416fc81491df4c93b502b1fc",
+      "bytes": 9784
+    },
+    "officialExactBuildBackendSources": {
+      "path": "art/build/snow-roof-round1/source17-diffuse-8-32-64-256-comparison/blender-source-02f0899d78e3/sources.json",
+      "sha256": "9696cfb89c82e171a0ce43ecc7183a0c3665b5db24d26cdc67d0e6631416c01b",
+      "bytes": 2375
+    },
+    "source17": {
+      "path": "art/build/snow-roof-round1/source-v17.blend",
+      "sha256": "2990854d3c9a65bf18879511d865b6e36788f6e727339248d5746b67fb52dd64",
+      "bytes": 11717577
+    }
+  },
+  "blenderBuildHash": "02f0899d78e3",
+  "actualSavedBakeIntegrator": {
+    "device": "GPU",
+    "samples": 256,
+    "use_adaptive_sampling": true,
+    "adaptive_threshold": 0.009999999776482582,
+    "adaptive_min_samples": 0,
+    "sample_offset": 0,
+    "seed": 0,
+    "use_animated_seed": false,
+    "sampling_pattern": "AUTOMATIC",
+    "use_light_tree": true,
+    "use_guiding": false,
+    "film_exposure": 1.0,
+    "time_limit": 0.0,
+    "use_sample_subset": false,
+    "sample_subset_length": 2048,
+    "scrambling_distance": 1.0,
+    "auto_scrambling_distance": false,
+    "guiding_training_samples": 128,
+    "use_surface_guiding": true,
+    "use_volume_guiding": true,
+    "max_bounces": 6,
+    "diffuse_bounces": 4,
+    "glossy_bounces": 2,
+    "transmission_bounces": 12,
+    "volume_bounces": 0,
+    "transparent_max_bounces": 4,
+    "sample_clamp_direct": 0.0,
+    "sample_clamp_indirect": 10.0,
+    "blur_glossy": 1.0,
+    "caustics_reflective": true,
+    "caustics_refractive": true,
+    "use_denoising": false,
+    "denoiser": "OPENIMAGEDENOISE",
+    "denoising_input_passes": "RGB_ALBEDO_NORMAL",
+    "denoising_prefilter": "ACCURATE",
+    "denoising_use_gpu": true,
+    "min_light_bounces": 0,
+    "min_transparent_bounces": 0,
+    "light_sampling_threshold": 0.009999999776482582,
+    "use_fast_gi": false,
+    "ao_bounces": 1
+  },
+  "adaptiveBackendDerivation": {
+    "threshold": 0.009999999776482582,
+    "autoMinimumSamples": 64,
+    "backendEffectiveThreshold": 0.04999999888241291,
+    "filmExposure": 1.0,
+    "viewExposureNotUsedByStoppingTest": true,
+    "configured64EarlyStoppingBefore64": "Excluded by automaticminimum64, absenttimelimit/subset; realizedsamplebufferwasnotexported.",
+    "configured256RealizedCounts": "Maystopafterautomatic64+adaptivefiltersteps; countbufferwasnotexported. Neverassertalltexels256.",
+    "darkRadiometricRebaseInference": "Atintensity<1,stoppingerrorisroughlydifference/sqrt(intensity). Uniformradiance/40withfilmExposure1reduceserrorapproximatelysqrt(40),apartfromepsilon. Thiscanmakecriterionlooser; realizedstopcountsremainunmeasured.",
+    "officialSourceUrls": [
+      "https://github.com/blender/blender/blob/02f0899d78e3/intern/cycles/scene/integrator.cpp#L436-L487",
+      "https://github.com/blender/blender/blob/02f0899d78e3/intern/cycles/kernel/film/adaptive_sampling.h#L50-L75",
+      "https://github.com/blender/blender/blob/02f0899d78e3/intern/cycles/kernel/integrator/init_from_bake.h#L104-L111",
+      "https://github.com/blender/blender/blob/02f0899d78e3/intern/cycles/blender/sync.cpp#L431-L447"
+    ]
+  },
+  "fullChartStatistics": [
+    {
+      "chart": 555,
+      "sourceOwners": [
+        "Round entasis red timber column.001"
+      ],
+      "coreTexels": 1178,
+      "interiorTexels": 1020,
+      "byConfiguredMaximumSamples": {
+        "8": {
+          "raw": {
+            "wholeMean": 0.0004902145181589297,
+            "wholeSD": 0.0006552469899688675,
+            "sameChartHighPassSD": 0.0005638739496645655
+          },
+          "denoised": {
+            "wholeMean": 0.00046411991749455324,
+            "wholeSD": 0.00048498149363442646,
+            "sameChartHighPassSD": 0.0003469677741163125
+          }
+        },
+        "32": {
+          "raw": {
+            "wholeMean": 0.0005176634657068734,
+            "wholeSD": 0.0004622132726148566,
+            "sameChartHighPassSD": 0.0002911623509747028
+          },
+          "denoised": {
+            "wholeMean": 0.0005067667111135951,
+            "wholeSD": 0.0004089946511593447,
+            "sameChartHighPassSD": 0.00020020827595315784
+          }
+        },
+        "64": {
+          "raw": {
+            "wholeMean": 0.0005174915000250236,
+            "wholeSD": 0.00044729448688078015,
+            "sameChartHighPassSD": 0.00025978389946227276
+          },
+          "denoised": {
+            "wholeMean": 0.0005078236036242884,
+            "wholeSD": 0.0003862166137033688,
+            "sameChartHighPassSD": 0.00013251946591978593
+          }
+        },
+        "256": {
+          "raw": {
+            "wholeMean": 0.0005180092858038478,
+            "wholeSD": 0.0004215233072933101,
+            "sameChartHighPassSD": 0.0001964300537475875
+          },
+          "denoised": {
+            "wholeMean": 0.0005070591459733365,
+            "wholeSD": 0.0003703075299518527,
+            "sameChartHighPassSD": 8.485295689877363e-05
+          }
+        }
+      }
+    },
+    {
+      "chart": 604,
+      "sourceOwners": [
+        "Round entasis red timber column.003"
+      ],
+      "coreTexels": 1280,
+      "interiorTexels": 1116,
+      "byConfiguredMaximumSamples": {
+        "8": {
+          "raw": {
+            "wholeMean": 0.0014866969188808477,
+            "wholeSD": 0.004447357122585373,
+            "sameChartHighPassSD": 0.004118245413799045
+          },
+          "denoised": {
+            "wholeMean": 0.00131754569952751,
+            "wholeSD": 0.0018999662424280352,
+            "sameChartHighPassSD": 0.00043539055555600036
+          }
+        },
+        "32": {
+          "raw": {
+            "wholeMean": 0.0014936448335862718,
+            "wholeSD": 0.0027090069731679697,
+            "sameChartHighPassSD": 0.0013966151385008583
+          },
+          "denoised": {
+            "wholeMean": 0.0014159939208154683,
+            "wholeSD": 0.002180807631041599,
+            "sameChartHighPassSD": 0.00028864388219788044
+          }
+        },
+        "64": {
+          "raw": {
+            "wholeMean": 0.0014800806684327483,
+            "wholeSD": 0.002389112488190301,
+            "sameChartHighPassSD": 0.0008328839508556868
+          },
+          "denoised": {
+            "wholeMean": 0.0014432123082420741,
+            "wholeSD": 0.0022566927206408476,
+            "sameChartHighPassSD": 0.0005474200724017665
+          }
+        },
+        "256": {
+          "raw": {
+            "wholeMean": 0.0014951800239250356,
+            "wholeSD": 0.002377542612073091,
+            "sameChartHighPassSD": 0.0007691804075248995
+          },
+          "denoised": {
+            "wholeMean": 0.0014833160059946897,
+            "wholeSD": 0.0023484497839069063,
+            "sameChartHighPassSD": 0.0006882124047013683
+          }
+        }
+      }
+    },
+    {
+      "chart": 875,
+      "sourceOwners": [
+        "Hall longitudinal carrying beam.001"
+      ],
+      "coreTexels": 2096,
+      "interiorTexels": 808,
+      "byConfiguredMaximumSamples": {
+        "8": {
+          "raw": {
+            "wholeMean": 0.0005967424621315603,
+            "wholeSD": 0.0013843616459255626,
+            "sameChartHighPassSD": 0.0012859264741627771
+          },
+          "denoised": {
+            "wholeMean": 0.0005389061460787308,
+            "wholeSD": 0.0009980516178618713,
+            "sameChartHighPassSD": 0.0007318485912783082
+          }
+        },
+        "32": {
+          "raw": {
+            "wholeMean": 0.0006303374538065249,
+            "wholeSD": 0.0010268548388465118,
+            "sameChartHighPassSD": 0.0006241712834584667
+          },
+          "denoised": {
+            "wholeMean": 0.0006111608514160453,
+            "wholeSD": 0.0008813508417060315,
+            "sameChartHighPassSD": 0.0005434491519663439
+          }
+        },
+        "64": {
+          "raw": {
+            "wholeMean": 0.0006135631532704677,
+            "wholeSD": 0.0007937489515296359,
+            "sameChartHighPassSD": 0.00032992798114149844
+          },
+          "denoised": {
+            "wholeMean": 0.0006106066685182954,
+            "wholeSD": 0.0007899424850458531,
+            "sameChartHighPassSD": 0.0003193342223674648
+          }
+        },
+        "256": {
+          "raw": {
+            "wholeMean": 0.0006215916952425271,
+            "wholeSD": 0.000805199664721357,
+            "sameChartHighPassSD": 0.00039006587810064687
+          },
+          "denoised": {
+            "wholeMean": 0.0006187521861368135,
+            "wholeSD": 0.0008004394434841409,
+            "sameChartHighPassSD": 0.000373538014920833
+          }
+        }
+      }
+    }
+  ],
+  "selectedPoints": [
+    {
+      "xy": [
+        462,
+        91
+      ],
+      "sourceOwner": "Hall longitudinal carrying beam.001",
+      "samples": {
+        "8": {
+          "raw": [
+            0.01746311318078308,
+            0.012397573871482114,
+            0.007519197213188022
+          ],
+          "denoised": [
+            0.010767740834742787,
+            0.008414512226590396,
+            0.005160551808556981
+          ]
+        },
+        "32": {
+          "raw": [
+            0.0015263142634512,
+            0.0010201189836848764,
+            0.0005738495555142548
+          ],
+          "denoised": [
+            0.0013163618091955036,
+            0.0009273732012580598,
+            0.0005877022249609083
+          ]
+        },
+        "64": {
+          "raw": [
+            0.0012968237683398335,
+            0.0010382388583549474,
+            0.0007524796803598538
+          ],
+          "denoised": [
+            0.0013228760834441853,
+            0.001064552709905302,
+            0.0007660649202234497
+          ]
+        },
+        "256": {
+          "raw": [
+            0.0013200305350585034,
+            0.0010518721069110437,
+            0.0007364273092378893
+          ],
+          "denoised": [
+            0.0013274374510268323,
+            0.0010591838059584907,
+            0.0007416782590662063
+          ]
+        }
+      }
+    },
+    {
+      "xy": [
+        655,
+        110
+      ],
+      "sourceOwner": "Hall longitudinal carrying beam.001",
+      "samples": {
+        "8": {
+          "raw": [
+            0.008873858510627133,
+            0.006435635397281264,
+            0.004070715168306633
+          ],
+          "denoised": [
+            0.010309230938450634,
+            0.008086806936694637,
+            0.005233720194423587
+          ]
+        },
+        "32": {
+          "raw": [
+            0.002018062281438132,
+            0.001559127144958525,
+            0.0011627494604911687
+          ],
+          "denoised": [
+            0.00190116922745628,
+            0.0014979699542773664,
+            0.001141199354634596
+          ]
+        },
+        "64": {
+          "raw": [
+            0.002494043751990583,
+            0.0018939808645218647,
+            0.0013452055344986352
+          ],
+          "denoised": [
+            0.002399271863715681,
+            0.0018536519444099368,
+            0.0013246030940446732
+          ]
+        },
+        "256": {
+          "raw": [
+            0.002483773570769313,
+            0.0019404594235226768,
+            0.0013684109462929655
+          ],
+          "denoised": [
+            0.002468042473974414,
+            0.001918122624683579,
+            0.001353214212690257
+          ]
+        }
+      }
+    },
+    {
+      "xy": [
+        643,
+        110
+      ],
+      "sourceOwner": "Hall longitudinal carrying beam.001",
+      "samples": {
+        "8": {
+          "raw": [
+            0.0011607958792006056,
+            0.0009875907422387045,
+            0.0007664125123765222
+          ],
+          "denoised": [
+            0.0016557983978473067,
+            0.0014003352884846795,
+            0.0010148814431243812
+          ]
+        },
+        "32": {
+          "raw": [
+            0.00195610801398627,
+            0.0015025467782027613,
+            0.0010888781250358737
+          ],
+          "denoised": [
+            0.001782230450771749,
+            0.0013845091667834628,
+            0.0010392405962228676
+          ]
+        },
+        "64": {
+          "raw": [
+            0.0025029353940428595,
+            0.0019087904348705927,
+            0.0013622549303104244
+          ],
+          "denoised": [
+            0.002701883582997862,
+            0.002069500605524664,
+            0.0014676231868565098
+          ]
+        },
+        "256": {
+          "raw": [
+            0.002435945580829323,
+            0.001846530741587328,
+            0.0013260273844567252
+          ],
+          "denoised": [
+            0.002679993139883612,
+            0.0020269886388245653,
+            0.0014354281483414343
+          ]
+        }
+      }
+    },
+    {
+      "xy": [
+        490,
+        350
+      ],
+      "sourceOwner": "Round entasis red timber column.003",
+      "samples": {
+        "8": {
+          "raw": [
+            0.0006486229508772737,
+            0.00046839658878066565,
+            0.0003355901822579578
+          ],
+          "denoised": [
+            0.005621678112357922,
+            0.004029286938206816,
+            0.002570617251502166
+          ]
+        },
+        "32": {
+          "raw": [
+            0.0087438258119709,
+            0.0062245050049373665,
+            0.0038020807592572567
+          ],
+          "denoised": [
+            0.007525749798628808,
+            0.0053565218446412245,
+            0.0033556448929028754
+          ]
+        },
+        "64": {
+          "raw": [
+            0.007747708471135158,
+            0.005455197124099495,
+            0.0033315937469189116
+          ],
+          "denoised": [
+            0.007074850263747616,
+            0.004954696006360304,
+            0.0030071383570421106
+          ]
+        },
+        "256": {
+          "raw": [
+            0.006330724328661897,
+            0.004513903101664695,
+            0.0027688713449382013
+          ],
+          "denoised": [
+            0.006389061065573294,
+            0.004520714581481305,
+            0.0027718200754279516
+          ]
+        }
+      }
+    }
+  ],
+  "nativeComparisonMismatch": {
+    "beauty": {
+      "maxBounces": 4,
+      "diffuseBounces": 2,
+      "glossyBounces": 2,
+      "transmissionBounces": 2,
+      "transparentMaxBounces": 6
+    },
+    "bake": {
+      "max_bounces": 6,
+      "diffuse_bounces": 4,
+      "glossy_bounces": 2,
+      "transmission_bounces": 12,
+      "transparent_max_bounces": 4
+    },
+    "meaning": "Samephysicalsourceisnotanintegrator-matchednativebeautyreference."
+  },
+  "findings": [
+    "Beamrawhighpassdecreases8\u219264thenrises18%atconfigured256; nocleanconvergenceclaim.",
+    "Nearcolumnrawhighpassdecreasesbutdenoisedstructureincreases32\u2192256. Atpixel490,350raw256R.00633072anddenoisedR.00638906showthebroadpatchalreadyinraw,notsolelyintroducedbyOIDN.",
+    "Adaptiveconfigured256doesnotprove256uniformsamples. Newfixed-samplingfingerprinteddiagnosticneededbeforemorebatchbakes.",
+    "Nativebeautyusesdifferentbounceconstraints; actualphysicalmulti-bouncefeaturesremainapotentialcontributor.",
+    "Allmaster/sourcehashesunchanged. OldD7visuallyrejectedpackagekeptimmutable; budget/contactproofsremainactualbutdonotimplyopticalacceptance."
+  ],
+  "limits": [
+    "Points were chosen in the8-sample image: peak regression is selection-biased.",
+    "Whole-chart statistics use every core and same-chart3x3interior texel; spatial variation includes real gradients and OIDN structure.",
+    "No count is ground truth; lower high-pass spatial deviation alone is not convergence, correctness or removal of broad blotches.",
+    "No runtime image, albedo, KTX, tone mapping or perceived-result equivalence is asserted."
+  ],
+  "gpuRenderBakeEncodeJobs": 0,
+  "sourceOrMastersChanged": false
+}

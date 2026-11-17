@@ -62,9 +62,9 @@ try {
     await setFocusEmulation(page,false);
     const background=await context.newPage();await background.goto('about:blank');await background.bringToFront();
     const other=await context.newCDPSession(background),otherTarget=await other.send('Target.getTargetInfo');const backgroundWindow=await other.send('Browser.getWindowForTarget',{targetId:otherTarget.targetInfo.targetId});
-    let tabHidden=false;try{await page.waitForFunction(()=>document.hidden,null,{polling:100,timeout:3000});tabHidden=true;}catch{}
+    let tabHidden=false;try{await page.waitForFunction(()=>document.hidden,null,{polling:100,timeout:3000});tabHidden=true;}catch{/* Record native tab activation failing to hide the page before trying minimization. */}
     let action='Activate second native browser tab';
-    if(!tabHidden){action='Native window minimization after tab activation did not hide original page';await network.send('Browser.setWindowBounds',{windowId:originalWindow.windowId,bounds:{windowState:'minimized'}});try{await page.waitForFunction(()=>document.hidden,null,{polling:100,timeout:3000});}catch{}}
+    if(!tabHidden){action='Native window minimization after tab activation did not hide original page';await network.send('Browser.setWindowBounds',{windowId:originalWindow.windowId,bounds:{windowState:'minimized'}});try{await page.waitForFunction(()=>document.hidden,null,{polling:100,timeout:3000});}catch{/* Preserve actual visibility/events even when native minimization produces no hidden state. */}}
     const during=await page.evaluate(()=>({hidden:document.hidden,visibility:document.visibilityState,focused:document.hasFocus()}));
     if(action.startsWith('Native window'))await network.send('Browser.setWindowBounds',{windowId:originalWindow.windowId,bounds:{windowState:'normal'}});
     await page.bringToFront();await background.close();await setFocusEmulation(page,true);

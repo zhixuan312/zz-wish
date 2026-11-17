@@ -1,0 +1,218 @@
+{
+  "scope": "Actionable Source17 final64 readiness handoff. Actual native64 has started under Root authorization; supplementalhall/night256 is queued separately. No public install/final visual acceptance.",
+  "source": {
+    "path": "art/build/snow-roof-round1/source-v17.blend",
+    "sha256": "2990854d3c9a65bf18879511d865b6e36788f6e727339248d5746b67fb52dd64",
+    "bytes": 11717577
+  },
+  "references": {
+    "nativeLedger": {
+      "path": "art/build/snow-roof-round1/final17-c6-normalized-input-ledger.json",
+      "sha256": "6e0ed2684e6026e83239ae8f36bb7740a16d6cba374dd5ce04064a489f0c4fa1",
+      "bytes": 24804
+    },
+    "nativeCommands": {
+      "path": "art/build/snow-roof-round1/final17-c6-normalized-launch-commands.txt",
+      "sha256": "2b3ba9648d9ba7413888a5fb315c5a76b9d6a4f5847f8a638233e81432471680",
+      "bytes": 1465
+    },
+    "mergeHelper": {
+      "path": "scripts/merge-snow-native-samples.py",
+      "sha256": "db6909bea2934357b2a5fc3b13b1e647d0fd9c187d410c88e32ffb3113299abe",
+      "bytes": 8865
+    },
+    "mergeGuard": {
+      "path": "art/build/snow-roof-round1/final17-merge-guard.json",
+      "sha256": "845c19ec081dd2761f9680d9e751ce39ca76e020556ea3622cb38b79406fc474",
+      "bytes": 677
+    },
+    "packageDriver": {
+      "path": "scripts/package-snow-compact-preview.py",
+      "sha256": "7bf82b8b8262761fd9d2df7658face62556768154644b9d518f5af0fccfb3c64",
+      "bytes": 9702
+    },
+    "assembler": {
+      "path": "scripts/assemble-snow-preview.mjs",
+      "sha256": "b193d5439ec451bba580d5a5874702d6769392c1f9d880c5972ac3e17c64abc9",
+      "bytes": 11573
+    },
+    "previewPackage": {
+      "path": "art/build/snow-roof-round1/compact17-packaged-control/package-receipt.json",
+      "sha256": "7931b48140c283f7312a563075deac00b9d8db154d384390afc459bdd0f006b2",
+      "bytes": 19310
+    },
+    "mixed32Receipt": {
+      "path": "art/build/snow-roof-round1/diagnostic17-hall-night32-runtime.receipt.json",
+      "sha256": "83ffd7344aa4de395607777a5f9b91f5a756f56dc7fb7ec517153a9dd858a7ac",
+      "bytes": 7001
+    },
+    "actualMixed32Capture": {
+      "path": "artifacts/full-review/round-1/snow17-native-agx-hall32/report.json",
+      "sha256": "93174f607ab5b45662685e649e06c960bd8cb1e9caa4de041e4c2c366f8c64cc",
+      "bytes": 1757141
+    },
+    "contactCameraRegistry": {
+      "path": "art/build/snow-roof-round1/source-v17-handoff-v2/closeups.json",
+      "sha256": "c0aab1ad003b66fcd3fff57bbd572e47dc1c98fe6ec6a7271ce2db493aa525a1",
+      "bytes": 29938
+    },
+    "diffuseVariance": {
+      "path": "docs/evidence/full-review/round-1-snow-source17-diffuse-variance.json",
+      "sha256": "da628382e940b2e483ea1f48179bbce375307578b252a6e7d4184f110ba47e8f",
+      "bytes": 39369
+    },
+    "nativeToneLicense": {
+      "path": "docs/licenses/native-agx.json",
+      "sha256": "65617046063caa7107e1fe31a72351178f06504b03ba824707f25264cdc75a92",
+      "bytes": 15906
+    }
+  },
+  "nativeStatusAtWriting": {
+    "all16x64": "STARTED session81597, /tmp/snow-source17-final64.log",
+    "hallNight256": "not started; sequential only after64terminal0+57pin verification",
+    "gpuLease": "mountain_courts exclusive through both native invocations",
+    "sourceGeometryLightsChanged": false
+  },
+  "budget": {
+    "previewAll8LocalBytes": 14337323,
+    "mixedHallNight32LocalBytes": 14371382,
+    "sharedNativeViewBytes": 116705,
+    "previewAll8PlusSharedBytesBeforeMetadata": 14454028,
+    "mixed32PlusSharedBytesBeforeMetadata": 14488087,
+    "mixed32HeadroomBeforeSharedMetadata": 511913,
+    "final64And256Bytes": "unmeasured; exact output required, no estimate adopted",
+    "modelPositionFormat": "genuine originalFLOAT32, no grid",
+    "otherDeclaredPrecision": "SHORT16 normals, UV0\u2264.25originalsource texel, UV1 measured, U8tint,6architecture normalimages256; protected scan512 and bronze retained",
+    "actualFinalGateBytes": 15000000
+  },
+  "visualReview": {
+    "readOnlyImages": [
+      "chromium-desktop-burning-held.png",
+      "webkit-phone-burning-held.png",
+      "chromium-desktop-choose.png",
+      "webkit-phone-diagnostic-low-altar-edge.png"
+    ],
+    "dataset": "artifacts/full-review/round-1/snow17-native-agx-hall32",
+    "findings": [
+      "Defaultred choose is readable without appearing lit; panel/controls fit observeddesktopframe.",
+      "Phone altar/burner and lantern remain readable; contact view shows actual burner feet bearing on table.",
+      "Desktop carrying beams and columns still show conspicuous mottled orange diffuse patterns despitehall/night32.",
+      "Cloth ribs/weave are subtle at product distance; closeup evidence and final live motion remain necessary."
+    ],
+    "causalLimit": "This capture combines nativeAgX,C2fill andhall32; visual difference cannot be attributed to sample count alone. Source17 rawEXR/OIDN38sample/fullchart study separately isolates variance."
+  },
+  "requiredFinalCaptures": [
+    {
+      "ids": [
+        "B1",
+        "B2",
+        "B4",
+        "C1",
+        "C6",
+        "D3",
+        "D4"
+      ],
+      "capture": "Actual final-source burning/burnFar, desktop and phone in Chromium/WebKit; retain near/far exact poses, live motion and held screenshots. Compare carrying-beam blotches, red gauze weave/ribs, ceiling cord, altar and doorway.",
+      "limit": "Native64/256 may reduce MonteCarlo noise; do not promise total blotch removal or pixel-equivalent native/runtime materials. C6 source transport is the fixed default red body; arbitrary drawn/color GI is outside the current source certification."
+    },
+    {
+      "ids": [
+        "C2",
+        "C3",
+        "C4",
+        "G3"
+      ],
+      "capture": "Choose all three shapes, three colors,10min/24h, representative narrow/wide drawn silhouettes; ensure unlit preview fill and thumbnails agree. Both browsers and sizes.",
+      "limit": "Current four-context default-red choose is improved; the complete preset/drawn matrix is still pending on final delivery."
+    },
+    {
+      "ids": [
+        "D1",
+        "D2",
+        "D5",
+        "D6"
+      ],
+      "capture": "Run the52unique diagnostic views with phone overrides, covering all47resting groups; inspect lamp feet/rims/oil, burner legs/ash/incense, console/screen mounts, bowl stack, cushions, broom and gate lamps. Record actual wick/smoke anchors.",
+      "registry": "art/build/snow-roof-round1/source-v17-handoff-v2/closeups.json",
+      "limit": "CPU frustum/ray coverage and literal contacts pass; actual final render silhouette/material clarity is not implied.52views\u00d72viewports perbrowser =104diagnostics perbrowser."
+    },
+    {
+      "ids": [
+        "E1",
+        "E2",
+        "E3",
+        "E4",
+        "E5",
+        "E6",
+        "E7",
+        "E8",
+        "E9",
+        "E10"
+      ],
+      "capture": "Final place and walk1\u20133 at both sizes, plus gate passage, roof/eave, outward door/transom and swept step/ground details; night/dusk/day actual source maps.",
+      "limit": "Check remaining tree morphology, broad wall weathering, roof accumulation, continuous snow joins and distant silhouettes in actual journey views, not source implementation alone."
+    },
+    {
+      "ids": [
+        "A1",
+        "A2",
+        "A3",
+        "A4",
+        "A5",
+        "A6",
+        "A7",
+        "A8",
+        "B3",
+        "C5",
+        "F1",
+        "F2",
+        "F3",
+        "F4",
+        "F5",
+        "F6",
+        "F7",
+        "F8",
+        "F9",
+        "F10",
+        "F11",
+        "F12",
+        "G1",
+        "G2"
+      ],
+      "capture": "Full real journey,30s walk, choose\u2192ignition, burn, navigate-away ending, trusted hidden-tab ending and actual natural fuel ending; records/stats/home return. Measure timing, labels and layout from frozen current runtime.",
+      "limit": "No relabeled or simulated endpoint screenshots. Keep actual product cameras separate from contact diagnostics."
+    },
+    {
+      "ids": [
+        "H1",
+        "H2",
+        "H3",
+        "H5",
+        "H6"
+      ],
+      "capture": "Bind actual final complete-package bytes including shared native-view asset; isolated raw-frame performance and live audio/mute/endings in Chromium/WebKit at both sizes; final resource cycle if ownership changes.",
+      "limit": "No physical phone tested. Desktop-emulated phone evidence must stay labeled; no phone performance claim. Owner listening moments remain explicit."
+    }
+  ],
+  "packageCommand": [
+    "python3",
+    "scripts/package-snow-compact-preview.py",
+    "--source",
+    "art/build/snow-roof-round1/final17-c6-normalized-native-merged",
+    "--out",
+    "art/build/snow-roof-round1/final17-c6-packaged-staging",
+    "--source-blend",
+    "art/build/snow-roof-round1/source-v17.blend",
+    "--hidden-proof",
+    "art/build/snow-roof-round1/source-v17-hidden-faces-20mm.json",
+    "--source-audit",
+    "art/build/snow-roof-round1/source-v17.audit.json",
+    "--final"
+  ],
+  "finalReadinessGaps": [
+    "Both genuine native invocations must finish unchanged and their actual per-map masters/sample schedule must be preserved.",
+    "Run measuredmerge, postbatch raw/FACE/anchor rebind, actual fresh packing/prune/precision/47decodedcontacts andZstd verification.",
+    "Attach/account116705BsharednativeAgX viaRoot-ownedattachment recipe; current package driver itself includes fabric but not tone asset.",
+    "Actual final complete size\u226415M and final Chromium/WebKit journey/look/contact/performance/audio evidence are still pending."
+  ]
+}

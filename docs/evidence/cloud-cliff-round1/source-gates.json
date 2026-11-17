@@ -1,0 +1,533 @@
+{
+  "stage": "All six source views approved; native64 all12 and complete staged pack finished. Independent decoded delivery and browser/bar acceptance remain pending.",
+  "authoredSource": {
+    "path": "art/build/cloud-cliff-round1/cloud-cliff-source-v11.blend",
+    "sha256": "484438a4514352e70d7ffe0408306b4127660316c1422f3248f0ff33f5e0e565",
+    "bytes": 6599749
+  },
+  "sourceAudit": {
+    "path": "art/build/cloud-cliff-round1/cloud-cliff-source-v11.audit.json",
+    "sha256": "cf7205b1d990e74eebfeaffecad945e301e9282b7f715c502eaf0294a0b2265f",
+    "bytes": 253518
+  },
+  "sourceScript": {
+    "path": "art/blender/cloud_cliff.py",
+    "sha256": "e9bdd5366a9a9ea7343ec395ed3b16bb21e467a6a7b5343e98c0f8cee1ebb81b",
+    "bytes": 48556
+  },
+  "prepared": {
+    "path": "art/build/cloud-cliff-round1/prepared-v11/cloud-cliff-prepared.blend",
+    "sha256": "e64843a157751766e4cfb7392c04bf49b83552fe31d788a0bb48e6d01817d3eb",
+    "bytes": 4502225
+  },
+  "raw": {
+    "path": "art/build/cloud-cliff-round1/prepared-v11/cloud-cliff.raw.glb",
+    "sha256": "890e8c04369481f22e969994a49517eb05c111fd0faf8365af5f391ac34f52a0",
+    "bytes": 15228580
+  },
+  "heroRaw": {
+    "path": "art/build/cloud-cliff-round1/prepared-v11/cloud-cliff-storm.raw.glb",
+    "sha256": "d4dd6f3f5c7ae11e96a4a73896329964e39567d1f822981fcb8bff92b52bbb19",
+    "bytes": 474420
+  },
+  "trianglesByRegion": {
+    "cliff": 4999,
+    "cover": 54252,
+    "far": 14336,
+    "HERO": 7996,
+    "other": 24
+  },
+  "contactProof": {
+    "path": "art/build/cloud-cliff-round1/contact-replay-v11/contact-audit.json",
+    "sha256": "96b5c0f0bec769afdd9000c8712f255cc811cf42826f8c88cec8d6ca456406a5",
+    "bytes": 118751
+  },
+  "contactSummary": {
+    "passed": true,
+    "groups": 18,
+    "literalGuardsMetres": {
+      "gap": 0.002,
+      "penetration": 0.005
+    },
+    "geometryFingerprint": "06915cf7ef1386e96999bea2b3186352a8b885d0b9c184deae40b6a9ef98935a",
+    "dynamicGeometryFingerprint": "9808bbf5436e05d5f31b0c653a0506b8b011e35dca901a6f2c75cbd3a3c31436",
+    "extraRawInputs": [
+      {
+        "path": "art/build/cloud-cliff-round1/contact-replay-v11/cloud-cliff-storm.raw.glb",
+        "sha256": "d4dd6f3f5c7ae11e96a4a73896329964e39567d1f822981fcb8bff92b52bbb19"
+      }
+    ]
+  },
+  "guardProof": {
+    "path": "art/build/cloud-cliff-round1/contact-replay-v11/guard/guard-proof.json",
+    "sha256": "4300cf456336d0b83adce8443956555ed5a4bd620b6354e921e7105429a0d4a5",
+    "bytes": 4030
+  },
+  "mappingProof": {
+    "path": "art/build/cloud-cliff-round1/prepared-v11/prepared-mapping-proof.json",
+    "sha256": "dfde20dd0a3f8f943f8de51a4f0a286ecfaa7c7d452a78c9981575bd90cd004d",
+    "bytes": 9333
+  },
+  "uvCoverage": {
+    "cliff": {
+      "charts": 283,
+      "representedCharts": 283,
+      "subpixelCharts": 0,
+      "representedSurfaceAreaFraction": 1.0,
+      "triangleWithNativeTexelSurfaceAreaFraction": 0.9973721908502776,
+      "surfaceAreaInChartsWithAtLeast16CoreTexelsFraction": 0.9841527884487764,
+      "totalSurfaceAreaSquareMetres": 744.5335596474818,
+      "provenOccludedSurfaceAreaSquareMetres": 601.8556819100895,
+      "provenOccludedPolygons": 1740,
+      "coreTexels": 25094,
+      "overlappingCorePixels": 0,
+      "coverageMeaning": "World-space mapped surface-area weighted; proven enclosed geometry is reported separately. A represented chart may contain subpixel triangles; their native-texel area is also reported. Camera-visible sampled coverage is separate.",
+      "sameChartDistinctWorldPositionOverlaps": 0,
+      "zeroAreaGeometryRetainedPolygons": 0,
+      "sameChartOverlapAudit": "Not required for legacy topology-generated charts.",
+      "maximumSharedSampleWorldDifferenceMetres": 0.0,
+      "maximumSharedSampleNumericToleranceMetres": 1e-05,
+      "sampledVisiblePixels": 215,
+      "representedVisiblePixels": 215,
+      "provenOccludedVisiblePixels": 0,
+      "referenceCameras": [
+        "Reference_cover-desktop",
+        "Reference_cover-phone",
+        "Reference_lantern-detail",
+        "Reference_hanging-contact",
+        "Reference_candle-contact"
+      ],
+      "perCamera": {
+        "Reference_cover-desktop": {
+          "sampledVisiblePixels": 0,
+          "representedVisiblePixels": 0,
+          "provenOccludedVisiblePixels": 0,
+          "representedCameraVisibleFraction": null
+        },
+        "Reference_cover-phone": {
+          "sampledVisiblePixels": 0,
+          "representedVisiblePixels": 0,
+          "provenOccludedVisiblePixels": 0,
+          "representedCameraVisibleFraction": null
+        },
+        "Reference_lantern-detail": {
+          "sampledVisiblePixels": 157,
+          "representedVisiblePixels": 157,
+          "provenOccludedVisiblePixels": 0,
+          "representedCameraVisibleFraction": 1.0
+        },
+        "Reference_hanging-contact": {
+          "sampledVisiblePixels": 9,
+          "representedVisiblePixels": 9,
+          "provenOccludedVisiblePixels": 0,
+          "representedCameraVisibleFraction": 1.0
+        },
+        "Reference_candle-contact": {
+          "sampledVisiblePixels": 49,
+          "representedVisiblePixels": 49,
+          "provenOccludedVisiblePixels": 0,
+          "representedCameraVisibleFraction": 1.0
+        }
+      },
+      "representedCameraVisibleFraction": 1.0,
+      "samplesPerCamera": [
+        96,
+        60
+      ],
+      "scope": "Coarse first-hit geometry visibility over the source reference cameras; excludes sky. Features smaller than the sampling grid and shading/noise quality are not verified by this metric."
+    },
+    "cover": {
+      "charts": 898,
+      "representedCharts": 898,
+      "subpixelCharts": 0,
+      "representedSurfaceAreaFraction": 1.0,
+      "triangleWithNativeTexelSurfaceAreaFraction": 0.7596514951331892,
+      "surfaceAreaInChartsWithAtLeast16CoreTexelsFraction": 0.9961581259814253,
+      "totalSurfaceAreaSquareMetres": 1310.9825673443988,
+      "provenOccludedSurfaceAreaSquareMetres": 448.76972080170987,
+      "provenOccludedPolygons": 16070,
+      "coreTexels": 58534,
+      "overlappingCorePixels": 0,
+      "coverageMeaning": "World-space mapped surface-area weighted; proven enclosed geometry is reported separately. A represented chart may contain subpixel triangles; their native-texel area is also reported. Camera-visible sampled coverage is separate.",
+      "sameChartDistinctWorldPositionOverlaps": 0,
+      "zeroAreaGeometryRetainedPolygons": 1264,
+      "sameChartOverlapAudit": "All occupied native core samples reconstructed to world position. Shared triangle edges use10micrometres plus2norm(float32 ULP(world)) for stored-sample/interpolation rounding; no distinct physical surfaces may overlap.",
+      "maximumSharedSampleWorldDifferenceMetres": 9.293993464245506e-07,
+      "maximumSharedSampleNumericToleranceMetres": 1.437028458894929e-05,
+      "sampledVisiblePixels": 18057,
+      "representedVisiblePixels": 18057,
+      "provenOccludedVisiblePixels": 0,
+      "referenceCameras": [
+        "Reference_cover-desktop",
+        "Reference_cover-phone",
+        "Reference_lantern-detail",
+        "Reference_hanging-contact",
+        "Reference_candle-contact"
+      ],
+      "perCamera": {
+        "Reference_cover-desktop": {
+          "sampledVisiblePixels": 1929,
+          "representedVisiblePixels": 1929,
+          "provenOccludedVisiblePixels": 0,
+          "representedCameraVisibleFraction": 1.0
+        },
+        "Reference_cover-phone": {
+          "sampledVisiblePixels": 2423,
+          "representedVisiblePixels": 2423,
+          "provenOccludedVisiblePixels": 0,
+          "representedCameraVisibleFraction": 1.0
+        },
+        "Reference_lantern-detail": {
+          "sampledVisiblePixels": 4306,
+          "representedVisiblePixels": 4306,
+          "provenOccludedVisiblePixels": 0,
+          "representedCameraVisibleFraction": 1.0
+        },
+        "Reference_hanging-contact": {
+          "sampledVisiblePixels": 4413,
+          "representedVisiblePixels": 4413,
+          "provenOccludedVisiblePixels": 0,
+          "representedCameraVisibleFraction": 1.0
+        },
+        "Reference_candle-contact": {
+          "sampledVisiblePixels": 4986,
+          "representedVisiblePixels": 4986,
+          "provenOccludedVisiblePixels": 0,
+          "representedCameraVisibleFraction": 1.0
+        }
+      },
+      "representedCameraVisibleFraction": 1.0,
+      "samplesPerCamera": [
+        96,
+        60
+      ],
+      "scope": "Coarse first-hit geometry visibility over the source reference cameras; excludes sky. Features smaller than the sampling grid and shading/noise quality are not verified by this metric."
+    },
+    "far": {
+      "charts": 2,
+      "representedCharts": 2,
+      "subpixelCharts": 0,
+      "representedSurfaceAreaFraction": 1.0,
+      "triangleWithNativeTexelSurfaceAreaFraction": 0.6550377026108546,
+      "surfaceAreaInChartsWithAtLeast16CoreTexelsFraction": 1.0,
+      "totalSurfaceAreaSquareMetres": 826836.465061128,
+      "provenOccludedSurfaceAreaSquareMetres": 0.0,
+      "provenOccludedPolygons": 0,
+      "coreTexels": 15472,
+      "overlappingCorePixels": 0,
+      "coverageMeaning": "World-space mapped surface-area weighted; proven enclosed geometry is reported separately. A represented chart may contain subpixel triangles; their native-texel area is also reported. Camera-visible sampled coverage is separate.",
+      "sameChartDistinctWorldPositionOverlaps": 0,
+      "zeroAreaGeometryRetainedPolygons": 0,
+      "sameChartOverlapAudit": "All occupied native core samples reconstructed to world position. Shared triangle edges use10micrometres plus2norm(float32 ULP(world)) for stored-sample/interpolation rounding; no distinct physical surfaces may overlap.",
+      "maximumSharedSampleWorldDifferenceMetres": 1.4495582819901441e-05,
+      "maximumSharedSampleNumericToleranceMetres": 0.00014669184747617692,
+      "sampledVisiblePixels": 2594,
+      "representedVisiblePixels": 2594,
+      "provenOccludedVisiblePixels": 0,
+      "referenceCameras": [
+        "Reference_cover-desktop",
+        "Reference_cover-phone",
+        "Reference_lantern-detail",
+        "Reference_hanging-contact",
+        "Reference_candle-contact"
+      ],
+      "perCamera": {
+        "Reference_cover-desktop": {
+          "sampledVisiblePixels": 857,
+          "representedVisiblePixels": 857,
+          "provenOccludedVisiblePixels": 0,
+          "representedCameraVisibleFraction": 1.0
+        },
+        "Reference_cover-phone": {
+          "sampledVisiblePixels": 989,
+          "representedVisiblePixels": 989,
+          "provenOccludedVisiblePixels": 0,
+          "representedCameraVisibleFraction": 1.0
+        },
+        "Reference_lantern-detail": {
+          "sampledVisiblePixels": 244,
+          "representedVisiblePixels": 244,
+          "provenOccludedVisiblePixels": 0,
+          "representedCameraVisibleFraction": 1.0
+        },
+        "Reference_hanging-contact": {
+          "sampledVisiblePixels": 380,
+          "representedVisiblePixels": 380,
+          "provenOccludedVisiblePixels": 0,
+          "representedCameraVisibleFraction": 1.0
+        },
+        "Reference_candle-contact": {
+          "sampledVisiblePixels": 124,
+          "representedVisiblePixels": 124,
+          "provenOccludedVisiblePixels": 0,
+          "representedCameraVisibleFraction": 1.0
+        }
+      },
+      "representedCameraVisibleFraction": 1.0,
+      "samplesPerCamera": [
+        96,
+        60
+      ],
+      "scope": "Coarse first-hit geometry visibility over the source reference cameras; excludes sky. Features smaller than the sampling grid and shading/noise quality are not verified by this metric."
+    }
+  },
+  "fixedViewAllocationProof": {
+    "path": "art/build/cloud-cliff-round1/prepared-v11/fixed-view-allocation.json",
+    "sha256": "9b99e3d1d28a4ed2f3cc1f300ee8829dda6701abed4fb1e3c705087a54a7e086",
+    "sourceBlendSha256": "484438a4514352e70d7ffe0408306b4127660316c1422f3248f0ff33f5e0e565",
+    "evaluatedGeometrySha256": "60c813afd03ee3814734e86554fed0717046cb88b28b79456c71b19aa06c494e",
+    "excludedPolygons": 9598,
+    "totalEvaluatedPolygons": 40273,
+    "scope": {
+      "cameras": [
+        "Reference_cover-desktop",
+        "Reference_cover-phone",
+        "Reference_lantern-detail",
+        "Reference_hanging-contact",
+        "Reference_candle-contact"
+      ],
+      "positionEnvelopeMetres": 0.03,
+      "orientationEnvelopeDegrees": 2,
+      "supportedScope": "Fixed home cover and source lantern/contact diagnostics only. No walking or orbit camera is supported."
+    },
+    "geometryRetained": true
+  },
+  "actualPBRExportProof": {
+    "path": "art/build/cloud-cliff-round1/material-proof-v11/material-role-proof.json",
+    "sha256": "ebfbcee84ffd5ea54d042f033d3ad907c589fe6258dd1baf8568b3f73e2dd8f0",
+    "bytes": 9295
+  },
+  "nativePreviews": {
+    "night": {
+      "desktop": {
+        "image": {
+          "path": "art/build/cloud-cliff-round1/source-v11-preview/desktop/Reference_cover-desktop.png",
+          "sha256": "51cd666bbd30a62a491109777a4926e57b7f0a717f942b345551de6368949c84",
+          "bytes": 1375687
+        },
+        "metadata": {
+          "path": "art/build/cloud-cliff-round1/source-v11-preview/desktop/preview.json",
+          "sha256": "11efad5dbfc2065ab52ef03fcf47700efd16e1c94dcf157a60b2beda67ac18cb",
+          "bytes": 1604
+        },
+        "size": [
+          1440,
+          900
+        ],
+        "device": "METAL",
+        "devices": [
+          "Apple M1 (GPU - 8 cores)"
+        ],
+        "denoiser": "OPENIMAGEDENOISE",
+        "denoisingUseGPU": true,
+        "samples": 8,
+        "renderedBlendSha256": "484438a4514352e70d7ffe0408306b4127660316c1422f3248f0ff33f5e0e565",
+        "authoredSourceBlendSha256": "484438a4514352e70d7ffe0408306b4127660316c1422f3248f0ff33f5e0e565",
+        "lampBasisOn": true,
+        "transientLookClone": false
+      },
+      "phone": {
+        "image": {
+          "path": "art/build/cloud-cliff-round1/source-v11-preview/phone/Reference_cover-phone.png",
+          "sha256": "d3873b0e3e066463b18c95ab1805bff59c4551b0dacfd639b9e4f3d621ed2ee0",
+          "bytes": 372025
+        },
+        "metadata": {
+          "path": "art/build/cloud-cliff-round1/source-v11-preview/phone/preview.json",
+          "sha256": "d496348746d6b1ee0964049e9ffb8e06471aa1fcb70f32d4836b6808db850d73",
+          "bytes": 1597
+        },
+        "size": [
+          390,
+          844
+        ],
+        "device": "METAL",
+        "devices": [
+          "Apple M1 (GPU - 8 cores)"
+        ],
+        "denoiser": "OPENIMAGEDENOISE",
+        "denoisingUseGPU": true,
+        "samples": 8,
+        "renderedBlendSha256": "484438a4514352e70d7ffe0408306b4127660316c1422f3248f0ff33f5e0e565",
+        "authoredSourceBlendSha256": "484438a4514352e70d7ffe0408306b4127660316c1422f3248f0ff33f5e0e565",
+        "lampBasisOn": true,
+        "transientLookClone": false
+      }
+    },
+    "dusk": {
+      "desktop": {
+        "image": {
+          "path": "art/build/cloud-cliff-round1/source-v11-dusk-preview/desktop/Reference_cover-desktop.png",
+          "sha256": "d6907778b9959193bb3dbc4d94f08d67b94a47442c2a1bbf366962b3cff8b2c4",
+          "bytes": 1423611
+        },
+        "metadata": {
+          "path": "art/build/cloud-cliff-round1/source-v11-dusk-preview/desktop/preview.json",
+          "sha256": "9b1819c028f205cc48257d8c6fcf83e7daeba94b93b87793a1ec27bf489f185d",
+          "bytes": 2128
+        },
+        "size": [
+          1440,
+          900
+        ],
+        "device": "METAL",
+        "devices": [
+          "Apple M1 (GPU - 8 cores)"
+        ],
+        "denoiser": "OPENIMAGEDENOISE",
+        "denoisingUseGPU": true,
+        "samples": 8,
+        "renderedBlendSha256": "a788bc0b749f8ce39ee2f4af5c8fe0fbafd61bb1c1917d108fc91559a4fe8e8e",
+        "authoredSourceBlendSha256": "484438a4514352e70d7ffe0408306b4127660316c1422f3248f0ff33f5e0e565",
+        "lampBasisOn": true,
+        "transientLookClone": true
+      },
+      "phone": {
+        "image": {
+          "path": "art/build/cloud-cliff-round1/source-v11-dusk-preview/phone/Reference_cover-phone.png",
+          "sha256": "06bd906e89bc35ca3dc0a0a7eaf5e513e7f081ddb25d62280a30e2d0147aedcb",
+          "bytes": 389660
+        },
+        "metadata": {
+          "path": "art/build/cloud-cliff-round1/source-v11-dusk-preview/phone/preview.json",
+          "sha256": "4eb590dad382e1101eefdb01939bba7ad68af648dd16de6384469808b426a848",
+          "bytes": 2121
+        },
+        "size": [
+          390,
+          844
+        ],
+        "device": "METAL",
+        "devices": [
+          "Apple M1 (GPU - 8 cores)"
+        ],
+        "denoiser": "OPENIMAGEDENOISE",
+        "denoisingUseGPU": true,
+        "samples": 8,
+        "renderedBlendSha256": "a788bc0b749f8ce39ee2f4af5c8fe0fbafd61bb1c1917d108fc91559a4fe8e8e",
+        "authoredSourceBlendSha256": "484438a4514352e70d7ffe0408306b4127660316c1422f3248f0ff33f5e0e565",
+        "lampBasisOn": true,
+        "transientLookClone": true
+      }
+    },
+    "day": {
+      "desktop": {
+        "image": {
+          "path": "art/build/cloud-cliff-round1/source-v11-day-preview/desktop/Reference_cover-desktop.png",
+          "sha256": "dd86cd0dcd8a8a79f8f2e2c1db1336f92adcec151ab4116a87bf4626cd8e7daf",
+          "bytes": 1504261
+        },
+        "metadata": {
+          "path": "art/build/cloud-cliff-round1/source-v11-day-preview/desktop/preview.json",
+          "sha256": "f47749dd6c33b754c43fa95f9d2306e1032857e3e779fe965e2f0c5996176408",
+          "bytes": 2116
+        },
+        "size": [
+          1440,
+          900
+        ],
+        "device": "METAL",
+        "devices": [
+          "Apple M1 (GPU - 8 cores)"
+        ],
+        "denoiser": "OPENIMAGEDENOISE",
+        "denoisingUseGPU": true,
+        "samples": 8,
+        "renderedBlendSha256": "1532675a30499d9a2938dac5582021991a75d3ab261af50db507e75605ba4fe2",
+        "authoredSourceBlendSha256": "484438a4514352e70d7ffe0408306b4127660316c1422f3248f0ff33f5e0e565",
+        "lampBasisOn": true,
+        "transientLookClone": true
+      },
+      "phone": {
+        "image": {
+          "path": "art/build/cloud-cliff-round1/source-v11-day-preview/phone/Reference_cover-phone.png",
+          "sha256": "ed8cce16029eeed068db0f88ace5f7a24db7b479e69e01da52148334dec95ba9",
+          "bytes": 416835
+        },
+        "metadata": {
+          "path": "art/build/cloud-cliff-round1/source-v11-day-preview/phone/preview.json",
+          "sha256": "07d40d6ee4f21c4d11755f396934bcdd2bd3e9d26c2f2fd75a8b5b8e01d1c26a",
+          "bytes": 2109
+        },
+        "size": [
+          390,
+          844
+        ],
+        "device": "METAL",
+        "devices": [
+          "Apple M1 (GPU - 8 cores)"
+        ],
+        "denoiser": "OPENIMAGEDENOISE",
+        "denoisingUseGPU": true,
+        "samples": 8,
+        "renderedBlendSha256": "1532675a30499d9a2938dac5582021991a75d3ab261af50db507e75605ba4fe2",
+        "authoredSourceBlendSha256": "484438a4514352e70d7ffe0408306b4127660316c1422f3248f0ff33f5e0e565",
+        "lampBasisOn": true,
+        "transientLookClone": true
+      }
+    }
+  },
+  "pipelineSnapshot": [
+    {
+      "path": "art/blender/cloud_cliff.py",
+      "sha256": "e9bdd5366a9a9ea7343ec395ed3b16bb21e467a6a7b5343e98c0f8cee1ebb81b",
+      "bytes": 48556
+    },
+    {
+      "path": "art/blender/bake_export.py",
+      "sha256": "c342c3edd732192b99534122b325a775cd1331818a7979f5f4adf83535dfee40",
+      "bytes": 103755
+    },
+    {
+      "path": "art/blender/fixed_view_allocation.py",
+      "sha256": "e587e75be3c015e501dd82d9b8f0f87807ebf8fefb7265b51dc766178a879030",
+      "bytes": 7838
+    },
+    {
+      "path": "art/blender/contact_fingerprints.py",
+      "sha256": "8d682bc1e19a8063498755287d55e351787868215f0f1baab9cabb29b000f07a",
+      "bytes": 1781
+    },
+    {
+      "path": "art/blender/audit_prepared_resting_contacts.py",
+      "sha256": "cd70353c5db4b8e49f713d3bcea4e9e8b568bd101b8dcd20db120aaa23415251",
+      "bytes": 19251
+    },
+    {
+      "path": "art/blender/audit_cloud_preparation.py",
+      "sha256": "a160da085d8997125cb417ccba4b8beacd9fc748a7d2d66ae923faf35a1520af",
+      "bytes": 3616
+    },
+    {
+      "path": "art/blender/audit_cloud_materials.py",
+      "sha256": "6f08a74d0eadfc77b6e42e70721cd70c52fb3683ff79e54fc4807da4c8e9e465",
+      "bytes": 3905
+    },
+    {
+      "path": "art/blender/preview.py",
+      "sha256": "9e3599339c2541e570ced936b409fcebe4d262a077dadeb522f8291fa4aee947",
+      "bytes": 6626
+    },
+    {
+      "path": "art/blender/preview_cloud_cliff.py",
+      "sha256": "a915cdcc68b0d0931ee26246705aae746a17cd0590c20e7b244925201c9bda16",
+      "bytes": 2889
+    },
+    {
+      "path": "scripts/pack-blender-assets.mjs",
+      "sha256": "0cbacd49765f6397fccf41e883202091712a40125ede58eb254123cd238c8867",
+      "bytes": 47779
+    },
+    {
+      "path": "web/src/engine/places/cloud-cliff-baked.js",
+      "sha256": "798c80b345ad98e4a805ab90620bba8460f9f851907ff363fc61624e8eda9f74",
+      "bytes": 6587
+    }
+  ],
+  "all12ProductionMapsCompleted": true,
+  "productionPackagePublished": false,
+  "publicAssetsChanged": false,
+  "scopeLimit": "The static UV allocation is certified for the two cover views and three source lantern/contact detail views with a3cm/2degree camera envelope. No walking/orbit views are supported. Physical geometry and UV0 remain intact. Only lateral cone planes and full convex planar-occluder inequalities exclude allocation; render sampling is a separate audit.",
+  "productionInputLedger": "art/build/cloud-cliff-round1/production/input-ledger.json",
+  "deliveryLedger": "docs/evidence/cloud-cliff-round1/delivery-ledger.json"
+}

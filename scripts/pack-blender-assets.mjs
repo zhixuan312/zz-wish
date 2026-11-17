@@ -23,6 +23,10 @@ if (args.includes('--help')) {
   --geometry-only               Stage geometry/materials; write no manifest.
   --lightmaps-only              Stage available maps; write no manifest.
   --lightmap-passes gate-night   Comma-separated stage subset; requires --lightmaps-only.
+  --max-bytes N                 Enforce complete payload budget; source budget is default.
+  --reserve-bytes N             Reserve budget for later runtime framebuffer posters.
+  --position-format float32     Preserve actual source FLOAT32 positions.
+  --normal-format float32       Preserve genuine FLOAT32 vertex normals (requires F32 positions).
 Mobile/ETC1S candidates require a separate explicit output directory.
 Run encoders only after capture releases CPU timing.`);
   process.exit(0);
@@ -32,6 +36,10 @@ const source = resolve(option('--source', 'art/build/snow-roof'));
 const out = resolve(option('--out', 'web/public/places/snow-roof'));
 const materialProfile = option('--material-profile', 'quality');
 const lightmapCodec = option('--lightmap-codec', 'uastc');
+const requestedPositionFormat = option('--position-format', 'auto');
+if(!['auto','uint16','float32'].includes(requestedPositionFormat))throw new Error('Expected --position-format auto|uint16|float32.');
+const normalFormat=option('--normal-format','byte8');
+if(!['byte8','float32'].includes(normalFormat))throw new Error('Expected --normal-format byte8|float32 (geometric NORMAL, independent of normal-map codec).');
 const screenBasePattern = option('--screen-base-pattern', 'chinese_screen_panels_diff_1k');
 const screenBaseSize = Number(option('--screen-base-size', '1024'));
 const lightmapSelection = option('--lightmap-passes', '').split(',').filter(Boolean);
@@ -76,11 +84,41 @@ if (args.includes('--unwrap')) {
   const watlas = await import(pathToFileURL(watlasPath).href);
   await watlas.Initialize();
   const atlas = new watlas.Atlas();
-  const positions = new Float32Array(input.positions), indices = new Uint32Array(input.indices);
-  atlas.addMesh({ vertexPositionData: positions, vertexCount: positions.length / 3, vertexPositionStride: 12, indexData: indices, indexCount: indices.length, epsilon: .00001 });
+  let positions = new Float32Array(input.positions), indices = new Uint32Array(input.indices);
+  const originalIndices = indices, originalPositions = positions;
+  let weldedIndex = null;
+  let sourceReferences = input.sourceVertexReferences, vertexUvs = input.vertexUvs ? new Float32Array(input.vertexUvs) : null;
+  if (vertexUvs && sourceReferences) {
+    const bits = new Uint32Array(vertexUvs.buffer), unique = [], uvs = [], references = [], lookup = new Map(), remap = new Uint32Array(sourceReferences.length);
+    for (let i = 0; i < sourceReferences.length; i++) {
+      const key = `${sourceReferences[i]}/${bits[i*2]}/${bits[i*2+1]}`;
+      let id = lookup.get(key);
+      if (id === undefined) { id = references.length; lookup.set(key,id); unique.push(...positions.subarray(i*3,i*3+3));uvs.push(...vertexUvs.subarray(i*2,i*2+2));references.push(sourceReferences[i]); }
+      remap[i]=id;
+    }
+    positions = new Float32Array(unique);vertexUvs = new Float32Array(uvs);indices = Uint32Array.from(indices,index=>remap[index]);sourceReferences = references;
+  }
+  if (input.weldExactPositions) {
+    const bits = new Uint32Array(positions.buffer), lookup = new Map(), unique = [];
+    weldedIndex = new Uint32Array(positions.length / 3);
+    for (let i = 0; i < weldedIndex.length; i++) {
+      const key = `${bits[i*3]}/${bits[i*3+1]}/${bits[i*3+2]}`;
+      let id = lookup.get(key);
+      if (id === undefined) { id = unique.length / 3; lookup.set(key,id); unique.push(...positions.subarray(i*3,i*3+3)); }
+      weldedIndex[i] = id;
+    }
+    positions = new Float32Array(unique);
+    indices = Uint32Array.from(originalIndices, index => weldedIndex[index]);
+    console.log('UV2_EXACT_POSITION_TOPOLOGY_WELD', originalPositions.length/3, positions.length/3, 'Actual source geometry/UV0 are not changed.');
+  }
+  if(input.packAuthoredCharts) {
+    if(!vertexUvs)throw new Error('Authored chart packing requires source corner UVs.');
+    atlas.addUvMesh({vertexUvData:vertexUvs,vertexCount:positions.length/3,vertexStride:8,indexData:indices,indexCount:indices.length,faceMaterialData:new Uint32Array(input.faceOwners)});
+  } else atlas.addMesh({ vertexPositionData: positions, vertexCount: positions.length / 3, vertexPositionStride: 12, indexData: indices, indexCount: indices.length, epsilon: .00001, ...(vertexUvs ? { vertexUvData: vertexUvs, vertexUvStride: 8 } : {}) });
   const began = performance.now();
   const packOptions = { resolution, padding: 8, bilinear: true, blockAlign: true, rotateCharts: true };
-  atlas.generate({ normalSeamWeight: 0, textureSeamWeight: 0, useInputMeshUvs: false, maxIterations: 2 }, packOptions);
+  const chartOptions = { normalSeamWeight: 0, textureSeamWeight: 0, useInputMeshUvs: false, maxIterations: 2, ...(input.chartOptions ?? {}) };
+  atlas.generate(chartOptions, packOptions);
   const attempts = [];
   // xatlas estimates density from surface area before padding. With thousands of
   // small charts that estimate can produce an atlas much larger than resolution.
@@ -100,8 +138,51 @@ if (args.includes('--unwrap')) {
   if (atlas.atlasCount !== 1 || atlas.width > resolution || atlas.height > resolution) throw new Error(`xatlas requires ${atlas.atlasCount} atlases at ${atlas.width}x${atlas.height}; raise this region's resolution.`);
   const vertices = [];
   for (let i = 0; i < mesh.vertexCount; i++) { const v = mesh.getVertex(i); vertices.push([v.xref, v.uv[0] / resolution, v.uv[1] / resolution, v.chartIndex]); }
+  let deliveredVertices = vertices, deliveredIndices = [...result];
+  if(input.packAuthoredCharts) {
+    const chartByFace = new Int32Array(indices.length/3).fill(-1);
+    for(let ci=0;ci<mesh.chartCount;ci++){
+      const chart=mesh.getChart(ci),faces=new Uint32Array(chart.faceCount);chart.getFaceArray(faces);
+      for(const face of faces){if(chartByFace[face]!==-1)throw new Error('Authored source triangle belongs to multiple charts.');chartByFace[face]=ci;}
+    }
+    if(chartByFace.some(chart=>chart<0))throw new Error('Authored source triangle lacks a packed chart.');
+    const pending=new Map();
+    for(let i=0;i<indices.length;i+=3){const key=[...indices.subarray(i,i+3)].sort((a,b)=>a-b).join('/'),queue=pending.get(key)??[];queue.push(i/3);pending.set(key,queue);}
+    deliveredVertices=[];deliveredIndices=[];
+    for(let i=0;i<result.length;i+=3){
+      const corners=[...result.subarray(i,i+3)].map(index=>vertices[index]),key=corners.map(c=>c[0]).sort((a,b)=>a-b).join('/');
+      const queue=pending.get(key);if(!queue?.length)throw new Error('Packed authored chart triangle correspondence lost.');const chart=chartByFace[queue.pop()];
+      for(const corner of corners){deliveredIndices.push(deliveredVertices.length);deliveredVertices.push([...corner.slice(0,3),chart]);}
+    }
+    if([...pending.values()].some(queue=>queue.length))throw new Error('Packed authored chart omitted triangles.');
+  }
+  if (weldedIndex) {
+    const pending = new Map();
+    for (let i = 0; i < originalIndices.length; i += 3) {
+      const original = [...originalIndices.subarray(i,i+3)];
+      const key = original.map(index=>weldedIndex[index]).sort((a,b)=>a-b).join('/');
+      const queue = pending.get(key) ?? []; queue.push(original); pending.set(key,queue);
+    }
+    deliveredVertices = []; deliveredIndices = [];
+    for (let i = 0; i < result.length; i += 3) {
+      const corners = [...result.subarray(i,i+3)].map(index=>vertices[index]);
+      const key = corners.map(c=>c[0]).sort((a,b)=>a-b).join('/');
+      const queue=pending.get(key); if(!queue?.length)throw new Error('Exact topology weld lost a source triangle.');
+      const sourceCorners=queue.pop(), unused=new Set([0,1,2]);
+      for(const corner of corners){
+        const slot=[...unused].find(j=>weldedIndex[sourceCorners[j]]===corner[0]);
+        if(slot===undefined)throw new Error('Exact topology weld lost triangle-corner ownership.');
+        unused.delete(slot);deliveredIndices.push(deliveredVertices.length);deliveredVertices.push([sourceCorners[slot],...corner.slice(1)]);
+      }
+    }
+    if([...pending.values()].some(queue=>queue.length))throw new Error('Exact topology weld omitted source triangles.');
+  }
+  if (sourceReferences) deliveredVertices = deliveredVertices.map(vertex => [sourceReferences[vertex[0]], ...vertex.slice(1)]);
   const report = { width: atlas.width, height: atlas.height, atlasCount: atlas.atlasCount, chartCount: atlas.chartCount, texelsPerUnit: atlas.texelsPerUnit, seconds: (performance.now() - began) / 1000, padding: 8, resolution, attempts, unwrapSignature, sourceVertexCount: positions.length / 3, outputVertexCount: vertices.length };
-  await writeFile(output, JSON.stringify({ vertices, indices: [...result], report }));
+  report.topologyOnlyExactPositionWeld = input.weldExactPositions ? { originalVertices: originalPositions.length/3, uniqueVertices: positions.length/3, preservedSourceTriangleCorners: originalIndices.length } : false;
+  report.chartOptions = chartOptions;
+  report.authoredChartPacking = !!input.packAuthoredCharts;
+  await writeFile(output, JSON.stringify({ vertices: deliveredVertices, indices: deliveredIndices, report }));
   console.log('XATLAS_UV', report);
   atlas.delete();
   process.exit(0);
@@ -122,11 +203,62 @@ if (!(await exists(toktx))) {
 }
 const env = { ...process.env, PATH: `${dirname(toktx)}:${process.env.PATH}` };
 const gltf = async (...parameters) => run(cli, parameters, { env });
-const raw = join(source, 'snow-roof.raw.glb');
+const manifest = JSON.parse(await readFile(join(source, 'manifest.json'), 'utf8'));
+const placeId = manifest.place ?? 'snow-roof';
+const positionFormat = requestedPositionFormat === 'auto' ? (manifest.bake?.fixedViewAllocationProof || placeId === 'cloud-cliff' ? 'float32' : 'uint16') : requestedPositionFormat;
+if(normalFormat==='float32'&&positionFormat!=='float32')throw new Error('Genuine F32 NORMAL delivery also requires --position-format float32.');
+if(manifest.bake?.fixedViewAllocationProof&&positionFormat!=='float32')throw new Error('Fixed-view exclusion cones require the actual lossless FLOAT32 positions; quantized delivery needs a separately proved error envelope.');
+const sceneName = manifest.scene ?? `${placeId}.glb`;
+const stem = sceneName.replace(/\.glb$/, '');
+if (!/^[a-z0-9][a-z0-9-]*$/.test(stem)) throw new Error('Invalid source output basename.');
+const raw = join(source, manifest.sourceScene ?? `${stem}.raw.glb`);
+async function meshoptFloatPositions(input, output, preserveNormals=false) {
+  const modules=[];
+  for(const name of ['@gltf-transform/core','@gltf-transform/extensions','@gltf-transform/functions','meshoptimizer']){
+    const folder=join(toolsPrefix,'node_modules',name),metadata=JSON.parse(await readFile(join(folder,'package.json'),'utf8'));
+    modules.push(await import(pathToFileURL(join(folder,metadata.module??metadata.main)).href));
+  }
+  const [{NodeIO},{ALL_EXTENSIONS,EXTMeshoptCompression},{reorder,quantize},{MeshoptEncoder,MeshoptDecoder}]=modules;
+  await Promise.all([MeshoptEncoder.ready,MeshoptDecoder.ready]);
+  const io=new NodeIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({'meshopt.encoder':MeshoptEncoder,'meshopt.decoder':MeshoptDecoder}),doc=await io.read(input);
+  const positions=document=>document.getRoot().listMeshes().flatMap(mesh=>mesh.listPrimitives().map(primitive=>{
+    const accessor=primitive.getAttribute('POSITION'),array=accessor.getArray();
+    if(accessor.getComponentType()!==5126||accessor.getNormalized()||!(array instanceof Float32Array))throw new Error('Actual pre-Meshopt FLOAT32 POSITION input required.');
+    return digest(Buffer.from(array.buffer,array.byteOffset,array.byteLength));
+  }));
+  const normals=document=>document.getRoot().listMeshes().flatMap(mesh=>mesh.listPrimitives().map(primitive=>{
+    const accessor=primitive.getAttribute('NORMAL'),array=accessor?.getArray();
+    if(accessor?.getComponentType()!==5126||accessor.getNormalized()||!(array instanceof Float32Array))throw new Error('Actual unquantized pre-Meshopt FLOAT32 NORMAL input required; decoded BYTE/SHORT is never precision restoration.');
+    return digest(Buffer.from(array.buffer,array.byteOffset,array.byteLength));
+  }));
+  if(preserveNormals)normals(doc);
+  const ownership=document=>JSON.stringify(document.getRoot().listNodes().map(node=>({name:node.getName(),matrix:node.getMatrix(),extras:node.getExtras(),children:node.listChildren().map(child=>child.getName())})));
+  const originalOwnership=ownership(doc),images=document=>document.getRoot().listTextures().map(texture=>digest(texture.getImage()));
+  const originalImages=images(doc);
+  await doc.transform(reorder({encoder:MeshoptEncoder,target:'size'}));const before=positions(doc),normalBefore=preserveNormals?normals(doc):null;
+  await doc.transform(quantize({pattern:/^(TEXCOORD|JOINTS|WEIGHTS|COLOR)(_\d+)?$/,patternTargets:/^(TEXCOORD|JOINTS|WEIGHTS|COLOR|NORMAL|TANGENT)(_\d+)?$/,quantizeTexcoord:16,quantizeColor:8,quantizeWeight:8,quantizeGeneric:12}));
+  if(JSON.stringify(before)!==JSON.stringify(positions(doc)))throw new Error('Nonposition quantization changed authored positions.');
+  if(preserveNormals&&JSON.stringify(normalBefore)!==JSON.stringify(normals(doc)))throw new Error('UV/color quantization changed actual F32 normals.');
+  doc.createExtension(EXTMeshoptCompression).setRequired(true).setEncoderOptions({method:preserveNormals?EXTMeshoptCompression.EncoderMethod.QUANTIZE:EXTMeshoptCompression.EncoderMethod.FILTER});
+  const bytes=await io.writeBinary(doc),decoded=await io.readBinary(bytes);
+  if(JSON.stringify(before)!==JSON.stringify(positions(decoded)))throw new Error('Lossless FLOAT32 Meshopt roundtrip changed positions.');
+  if(preserveNormals&&JSON.stringify(normalBefore)!==JSON.stringify(normals(decoded)))throw new Error('Lossless FLOAT32 Meshopt roundtrip changed normals.');
+  if(ownership(decoded)!==originalOwnership||JSON.stringify(images(decoded))!==JSON.stringify(originalImages))throw new Error('FLOAT32 Meshopt changed actual node transforms/ownership or material image payloads.');
+  await writeFile(output,bytes);
+}
 function glbJSON(data) { if (data.readUInt32LE(0) !== 0x46546c67) throw new Error('Not glTF binary'); const length = data.readUInt32LE(12); return JSON.parse(data.subarray(20, 20 + length).toString()); }
-function verifyUV(data) {
+function materialParameters(data){
+  const json=glbJSON(data);
+  const clean=(value,path='')=>{
+    if(Array.isArray(value))return value.map(child=>clean(child,path));
+    if(!value||typeof value!=='object')return value;
+    return Object.fromEntries(Object.keys(value).sort().filter(key=>key!=='name'&&!(key==='index'&&/Texture$/.test(path))).map(key=>[key,clean(value[key],key)]));
+  };
+  return json.meshes.flatMap(mesh=>mesh.primitives.map(primitive=>clean(json.materials?.[primitive.material]??{})));
+}
+function verifyUV(data, lightmapRequired = true) {
   const json = glbJSON(data); const missing = [];
-  for (const [index, mesh] of (json.meshes || []).entries()) for (const primitive of mesh.primitives) if (primitive.attributes.TEXCOORD_0 === undefined || primitive.attributes.TEXCOORD_1 === undefined) missing.push(index);
+  for (const [index, mesh] of (json.meshes || []).entries()) for (const primitive of mesh.primitives) if (primitive.attributes.TEXCOORD_0 === undefined || lightmapRequired && primitive.attributes.TEXCOORD_1 === undefined) missing.push(index);
   if (missing.length) throw new Error(`Material or lightmap UV set missing from primitives: ${missing.join(', ')}`);
   return { meshes: json.meshes.length, primitives: json.meshes.reduce((n, mesh) => n + mesh.primitives.length, 0), colourPrimitives: json.meshes.reduce((n, mesh) => n + mesh.primitives.filter(primitive => primitive.attributes.COLOR_0 !== undefined).length, 0), sceneExtras: (json.scenes || []).map(scene => ({name: scene.name, extras: scene.extras || {}})), regions: [...new Set((json.nodes || []).map(node => node.extras?.lightmap_region).filter(Boolean))].sort(), roughnessClamps: (json.materials || []).filter(material => material.extras?.one_light_min_roughness !== undefined).map(material => ({ name: material.name, minimum: material.extras.one_light_min_roughness })), primitiveRoughness: json.meshes.flatMap((mesh, meshIndex) => mesh.primitives.map((primitive, index) => ({ key: `${meshIndex}/${index}`, material: json.materials?.[primitive.material]?.name ?? null, minimum: json.materials?.[primitive.material]?.extras?.one_light_min_roughness ?? null }))), extensions: json.extensionsUsed || [] };
 }
@@ -139,6 +271,7 @@ function verifyPreserved(rawInfo, packedInfo) {
     if (!after || after.minimum !== sourcePrimitive.minimum) throw new Error(`Compression changed the roughness constraint on primitive ${sourcePrimitive.key} (${sourcePrimitive.material}).`);
   }
 }
+function verifyMaterialValues(before,after){if(JSON.stringify(materialParameters(before))!==JSON.stringify(materialParameters(after)))throw new Error('Compression changed actual material factors/extensions/texture-coordinate settings.');}
 function imageReport(data) {
   const json = glbJSON(data), bin = 28 + data.readUInt32LE(12);
   const uses = new Map();
@@ -148,7 +281,7 @@ function imageReport(data) {
       const slot = path ? `${path}.${key}` : key;
       if (key.endsWith('Texture') && Number.isInteger(child?.index)) {
         const texture = json.textures[child.index];
-        const image = texture.extensions?.KHR_texture_basisu?.source ?? texture.source;
+        const image = texture.extensions?.KHR_texture_basisu?.source ?? texture.extensions?.EXT_texture_webp?.source ?? texture.extensions?.EXT_texture_avif?.source ?? texture.source;
         const entries = uses.get(image) ?? [];
         entries.push({ material, slot, texture: child.index }); uses.set(image, entries);
       } else visit(child, material, slot);
@@ -170,12 +303,12 @@ function imageReport(data) {
     return { image: index, name: image.name ?? '', roles, references, width, height, mipLevels, transfer, codec, bytes: view.byteLength, sha256: digest(payload) };
   });
 }
-function materialAttributeDigest(data) {
+function materialAttributeDigest(data, extraSemantics=[]) {
   const json = glbJSON(data), bin = 28 + data.readUInt32LE(12), result = [];
   const components = { SCALAR: 1, VEC2: 2, VEC3: 3, VEC4: 4 }, sizes = { 5120: 1, 5121: 1, 5122: 2, 5123: 2, 5125: 4, 5126: 4 };
   for (const [meshIndex, mesh] of json.meshes.entries()) for (const [primitiveIndex, primitive] of mesh.primitives.entries()) {
     const attributes = {};
-    for (const semantic of ['TEXCOORD_0', 'TEXCOORD_1', 'COLOR_0']) {
+    for (const semantic of ['TEXCOORD_0', 'TEXCOORD_1', 'COLOR_0',...extraSemantics]) {
       const index = primitive.attributes[semantic];
       if (index === undefined) { attributes[semantic] = null; continue; }
       const accessor = json.accessors[index], view = json.bufferViews[accessor.bufferView];
@@ -203,12 +336,37 @@ function verifyMobileImages(images) {
   }
 }
 const rawData = await readFile(raw), rawInfo = verifyUV(rawData); console.log('RAW_UV_INFO', rawInfo);
+const sourceImageRoles = imageReport(rawData);
+const sourceHasRetainedScreen = sourceImageRoles.some(image=>image.name===screenBasePattern&&image.roles.includes('baseColorTexture'));
+const needsRasterNormalization = glbJSON(rawData).images?.some(image=>image.mimeType==='image/webp');
+async function normalizeRasterInputs(input,output){
+  const load=async name=>{const folder=join(toolsPrefix,'node_modules',name),metadata=JSON.parse(await readFile(join(folder,'package.json'),'utf8'));return import(pathToFileURL(join(folder,metadata.module??metadata.main)).href);};
+  const [{NodeIO},{ALL_EXTENSIONS},sharpModule]=await Promise.all([load('@gltf-transform/core'),load('@gltf-transform/extensions'),load('sharp')]);
+  const sharp=sharpModule.default,io=new NodeIO().registerExtensions(ALL_EXTENSIONS),document=await io.read(input),conversions=[];
+  for(const texture of document.getRoot().listTextures())if(texture.getMimeType()==='image/webp'){
+    const original=texture.getImage(),pixels=await sharp(original).ensureAlpha().raw().toBuffer(),png=await sharp(original).png().toBuffer();
+    const decoded=await sharp(png).ensureAlpha().raw().toBuffer();
+    if(!pixels.equals(decoded))throw new Error('Lossless WebP input normalization changed decoded pixels.');
+    conversions.push({name:texture.getName(),sourceMime:'image/webp',sourceSha256:digest(original),pngSha256:digest(png),decodedRGBASha256:digest(pixels),decodedPixelsBitExact:true});
+    texture.setImage(new Uint8Array(png)).setMimeType('image/png');
+  }
+  document.getRoot().listExtensionsUsed().find(extension=>extension.extensionName==='EXT_texture_webp')?.dispose();
+  await io.write(output,document);return conversions;
+}
 const materialRecipe = {
   profile: materialProfile, sourceRawGLB: basename(raw), sourceRawGLBSha256: digest(rawData), originalPixelInput: true,
   gltfTransform: '4.5.1', ktxSoftware: '4.4.2', metadataSource: 'Actual GLB material/image bindings and embedded KTX2 DFD/header; codec and dimensions are not inferred from filenames.',
   ...(materialProfile === 'mobile' ? { normals: { codec: 'UASTC', maximumSize: 512, quality: 2, rdo: false, slotPattern: '*normal*', retainedAsNormalData: true }, otherMaps: { codec: 'ETC1S', maximumSize: 512, quality: 255, compression: 4, endpointRdo: false, selectorRdo: false }, screenBase: { sourceImageName: screenBasePattern, maximumSize: screenBaseSize, codec: 'ETC1S' } } : { textureCLI: ['uastc', '--level', '2', '--rdo', '2', '--zstd', '18', '--jobs', '2'] }),
 };
-const manifest = JSON.parse(await readFile(join(source, 'manifest.json'), 'utf8'));
+if(materialProfile==='mobile'&&!sourceHasRetainedScreen)materialRecipe.screenBase={retained:false,reason:'No matching screen-base image is used by this source.'};
+if(manifest.bake?.cameraPreExposure!==undefined){
+ const exposure=manifest.bake.cameraPreExposure;
+ if(!Number.isFinite(exposure)||exposure<=0||Math.abs(manifest.bake.threeLightMapIrradianceMultiplier-Math.PI*exposure)>1e-10)throw Error('Source camera normalization and irradiance units disagree');
+ if(manifest.bake.lampPassQuantity==='indirect-diffuse-radiance-per-unit-albedo'){
+  if(JSON.stringify(manifest.bake.passesByLook?.lamp)!==JSON.stringify(['INDIRECT']))throw Error('Lamp indirect quantity requires the actual INDIRECT bake recipe');
+  for(const maps of Object.values(manifest.lightmaps))if(maps.lamp&&(JSON.stringify(maps.lamp.passFilter)!==JSON.stringify(['INDIRECT'])||maps.lamp.quantity!==manifest.bake.lampPassQuantity||maps.lamp.cameraPreExposure!==exposure))throw Error('Actual lamp map provenance disagrees with its runtime quantity');
+ }
+}
 const availableLightmaps = new Set(Object.values(manifest.lightmaps).flatMap(passes => Object.values(passes).map(entry => entry.uri.replace(/\.ktx2$/, ''))));
 for (const name of lightmapSelection) if (!availableLightmaps.has(name)) throw new Error(`Unknown completed lightmap: ${name}`);
 const preview = args.includes('--preview');
@@ -235,63 +393,76 @@ if (preview) {
 } else {
   delete manifest.partialPreview; delete manifest.missingAmbientLooks; delete manifest.missingLightmaps;
 }
-const profileTag = materialProfile === 'quality' ? '' : '.mobile';
-const deduplicated = join(source, `snow-roof${profileTag}.deduplicated.glb`);
-const textured = join(source, `snow-roof${profileTag}.textures.glb`);
-const geometryCache = join(source, `snow-roof${profileTag}.packed.glb`);
+const profileTag = (materialProfile === 'quality' ? '' : '.mobile')+(normalFormat==='float32'?'.vertex-normal-f32':'');
+const deduplicated = join(source, `${stem}${profileTag}.deduplicated.glb`);
+const textured = join(source, `${stem}${profileTag}.textures.glb`);
+const geometryCache = join(source, `${stem}${profileTag}.packed.glb`);
 const geometryReceipt = join(source, `geometry-stage${profileTag}.json`);
 const geometryKey = materialProfile === 'quality'
   ? `dedup-uastc2-rdo2-zstd18-meshopt16-16-12-v1:${digest(rawData)}`
   : `mobile-v1-normal512-uastc2-colour512-etc1s255c4-screen${screenBaseSize}-${screenBasePattern}-meshopt16-16-12:${digest(rawData)}`;
+const actualGeometryKey = `${normalFormat==='float32'?'genuine-float32-normal-NONE-v1:':''}${needsRasterNormalization?'webp-to-lossless-png-v1:':''}${positionFormat === 'float32' ? 'float32-position-NONE-v1:' : ''}${geometryKey}`;
 let cached = false;
 if (await exists(geometryReceipt) && await exists(geometryCache)) {
   const receipt = JSON.parse(await readFile(geometryReceipt, 'utf8'));
-  cached = receipt.key === geometryKey && receipt.sha256 === digest(await readFile(geometryCache));
+  cached = receipt.key === actualGeometryKey && receipt.sha256 === digest(await readFile(geometryCache));
 }
 // Meshopt must run last: a later texture transform decodes geometry while reading.
 if (!cached) {
-  await gltf('dedup', raw, deduplicated);
+  let input=raw;
+  if(needsRasterNormalization){
+    input=join(source,`${stem}.raster-normalized.glb`);const conversions=await normalizeRasterInputs(raw,input);
+    verifyPreserved(rawInfo,verifyUV(await readFile(input)));
+    if(materialAttributeDigest(rawData)!==materialAttributeDigest(await readFile(input)))throw new Error('Raster normalization changed original UV/color streams.');
+    await writeFile(join(source,'raster-normalization.json'),JSON.stringify({sourceSha256:digest(rawData),outputSha256:digest(await readFile(input)),conversions,scope:'Lossless decodedRGBA WebP→PNG input adaptation before Basis encoding; actual source is immutable.'},null,2)+'\n');
+  }
+  await gltf('dedup', input, deduplicated);
   if (materialProfile === 'quality') await gltf('uastc', deduplicated, textured, '--level', '2', '--rdo', '2', '--zstd', '18', '--jobs', '2');
   else {
-    const sourceImages = imageReport(rawData);
+    const sourceImages = sourceImageRoles;
     for (const image of sourceImages) if (image.roles.some(role => /normalTexture$/i.test(role)) && image.roles.some(role => !/normalTexture$/i.test(role))) throw new Error(`A source image shares normal and non-normal roles: ${image.name}`);
-    if (screenBaseSize === 1024 && !sourceImages.some(image => image.name === screenBasePattern && image.roles.includes('baseColorTexture'))) throw new Error('The retained screen base image was not found; refusing to silently resize its painted detail.');
-    const normals = join(source, 'snow-roof.mobile.normals.glb');
-    const screen = join(source, 'snow-roof.mobile.screen.glb');
+    const hasRetainedScreen = sourceImages.some(image => image.name === screenBasePattern && image.roles.includes('baseColorTexture'));
+    if (screenBaseSize === 1024 && !hasRetainedScreen && (placeId === 'snow-roof' || args.includes('--screen-base-pattern'))) throw new Error('The retained screen base image was not found; refusing to silently resize its painted detail.');
+    const normals = join(source, `${stem}${profileTag}.normalmaps.glb`);
+    const screen = join(source, `${stem}${profileTag}.screen.glb`);
     await gltf('uastc', deduplicated, normals, '--slots', '*normal*', '--resize', '512', '--level', '2', '--rdo', 'false', '--zstd', '18', '--jobs', '2');
     // Already-Basis normal/screen images are explicitly skipped by subsequent
     // glTF-Transform texture transforms. The source pixels are never overwritten.
-    if (screenBaseSize === 1024) await gltf('etc1s', normals, screen, '--pattern', screenBasePattern, '--resize', '1024', '--quality', '255', '--compression', '4', '--rdo', 'false', '--jobs', '2');
-    await gltf('etc1s', screenBaseSize === 1024 ? screen : normals, textured, '--resize', '512', '--quality', '255', '--compression', '4', '--rdo', 'false', '--jobs', '2');
+    if (screenBaseSize === 1024 && hasRetainedScreen) await gltf('etc1s', normals, screen, '--pattern', screenBasePattern, '--resize', '1024', '--quality', '255', '--compression', '4', '--rdo', 'false', '--jobs', '2');
+    await gltf('etc1s', screenBaseSize === 1024 && hasRetainedScreen ? screen : normals, textured, '--resize', '512', '--quality', '255', '--compression', '4', '--rdo', 'false', '--jobs', '2');
   }
   const texturedData = await readFile(textured);
+  verifyMaterialValues(rawData,texturedData);
   verifyPreserved(rawInfo, verifyUV(texturedData));
   const sourceAttributes = materialAttributeDigest(rawData), materialAttributes = materialAttributeDigest(texturedData);
   if (sourceAttributes !== materialAttributes) throw new Error('Material compression changed TEXCOORD_0, TEXCOORD_1 or COLOR_0 before Meshopt.');
+  if(normalFormat==='float32'&&materialAttributeDigest(rawData,['POSITION','NORMAL'])!==materialAttributeDigest(texturedData,['POSITION','NORMAL']))throw new Error('Material stage changed genuine source POSITION/NORMAL arrays.');
   if (materialProfile === 'mobile') verifyMobileImages(imageReport(texturedData));
-  await gltf('meshopt', textured, geometryCache, '--level', 'high', '--quantize-position', '16', '--quantize-texcoord', '16', '--quantize-normal', '12');
+  if(positionFormat==='float32')await meshoptFloatPositions(textured,geometryCache,normalFormat==='float32');
+  else await gltf('meshopt', textured, geometryCache, '--level', 'high', '--quantize-position', '16', '--quantize-texcoord', '16', '--quantize-normal', '12');
   const data = await readFile(geometryCache);
   const info = verifyUV(data);
   verifyPreserved(rawInfo, info);
   if (!info.extensions.includes('EXT_meshopt_compression') || !info.extensions.includes('KHR_texture_basisu')) throw new Error('Geometry stage lost Meshopt or Basis textures.');
   const images = imageReport(data);
   if (materialProfile === 'mobile') verifyMobileImages(images);
-  await writeFile(geometryReceipt, JSON.stringify({ key: geometryKey, profile: materialProfile, materialRecipe, sha256: digest(data), bytes: data.length, preMeshoptAttributeSha256: sourceAttributes, uvVerification: info, images, uniqueImageBytes: images.reduce((sum, image) => sum + image.bytes, 0) }, null, 2) + '\n');
-} else console.log('GEOMETRY_STAGE_REUSED', geometryKey);
+  await writeFile(geometryReceipt, JSON.stringify({ key: actualGeometryKey, profile: materialProfile, positionFormat, normalFormat, normalFilter:normalFormat==='float32'?'NONE':'OCTAHEDRAL-byte8', positionFilter:positionFormat==='float32'?'NONE':'quantized', materialRecipe, sha256: digest(data), bytes: data.length, preMeshoptAttributeSha256: sourceAttributes, uvVerification: info, images, uniqueImageBytes: images.reduce((sum, image) => sum + image.bytes, 0) }, null, 2) + '\n');
+} else console.log('GEOMETRY_STAGE_REUSED', actualGeometryKey);
 verifyPreserved(rawInfo, verifyUV(await readFile(geometryCache)));
+verifyMaterialValues(rawData,await readFile(geometryCache));
 if (cached && materialProfile === 'mobile') {
   const receipt = JSON.parse(await readFile(geometryReceipt, 'utf8'));
   receipt.materialRecipe = materialRecipe;
   await writeFile(geometryReceipt, JSON.stringify(receipt, null, 2) + '\n');
 }
 if (geometryOnly) {
-  await copyFile(geometryCache, join(out, 'snow-roof.glb'));
+  await copyFile(geometryCache, join(out, sceneName));
   await copyFile(geometryReceipt, join(out, 'geometry-stage.json'));
   console.log('GEOMETRY_STAGE_READY', geometryCache, 'No delivery manifest was written.');
   process.exit(0);
 }
-if (!lightmapsOnly) await copyFile(geometryCache, join(out, 'snow-roof.glb'));
-manifest.scene = 'snow-roof.glb'; manifest.files = [];
+if (!lightmapsOnly) await copyFile(geometryCache, join(out, sceneName));
+manifest.scene = sceneName; manifest.files = [];
 const sampling = manifest.bake?.sampling ?? { mipLevels: 3, gutterPixels: 8, anisotropy: 1, maxLod: 2 };
 manifest.sampling = sampling;
 for (const maps of Object.values(manifest.lightmaps)) for (const entry of Object.values(maps)) {
@@ -334,18 +505,83 @@ if (lightmapsOnly) {
   console.log('LIGHTMAP_STAGE_READY', manifest.files, 'No delivery manifest was written.');
   process.exit(0);
 }
-const packed = await readFile(join(out, 'snow-roof.glb')); const packedInfo = verifyUV(packed);
+const packed = await readFile(join(out, sceneName)); const packedInfo = verifyUV(packed);
 verifyPreserved(rawInfo, packedInfo);
 if (!packedInfo.extensions.includes('EXT_meshopt_compression')) throw new Error('Meshopt extension missing');
 if (!packedInfo.extensions.includes('KHR_texture_basisu')) throw new Error('KTX2 material textures missing');
-manifest.files.unshift({ uri: 'snow-roof.glb', bytes: packed.length, sha256: digest(packed) });
+manifest.files.unshift({ uri: sceneName, bytes: packed.length, sha256: digest(packed) });
+for (const [id, hero] of Object.entries(manifest.heroes ?? {})) {
+  if (!/^[a-z0-9][a-z0-9-]*$/.test(id) || !hero.source || !hero.uri) throw new Error(`Invalid authored hero contract: ${id}`);
+  const input = join(source, hero.source), bytes = await readFile(input), before = verifyUV(bytes, false);
+  const base = `${stem}-${id}${profileTag}`, dedup = join(source, `${base}.deduplicated.glb`), textures = join(source, `${base}.textures.glb`), output = join(source, `${base}.packed.glb`), receiptPath = join(source, `${base}.geometry-stage.json`);
+  const key = `${normalFormat==='float32'?'genuine-float32-position-normal-NONE-v1:':''}hero-live-pbr-dedup-uastc2-no-rdo-meshopt16-v1:${digest(bytes)}`;
+  let reuse = false;
+  if (await exists(output) && await exists(receiptPath)) { const receipt = JSON.parse(await readFile(receiptPath, 'utf8')); reuse = receipt.key === key && receipt.sha256 === digest(await readFile(output)); }
+  if (!reuse) {
+    await gltf('dedup', input, dedup);
+    await gltf('uastc', dedup, textures, '--resize', '512', '--level', '2', '--rdo', 'false', '--zstd', '18', '--jobs', '2');
+    verifyPreserved(before, verifyUV(await readFile(textures), false));
+    if (materialAttributeDigest(bytes) !== materialAttributeDigest(await readFile(textures))) throw new Error(`Hero material transform changed actual source UV/color: ${id}`);
+    if(normalFormat==='float32'){
+      if(materialAttributeDigest(bytes,['POSITION','NORMAL'])!==materialAttributeDigest(await readFile(textures),['POSITION','NORMAL']))throw new Error('Hero material stage changed genuine source POSITION/NORMAL arrays.');
+      await meshoptFloatPositions(textures,output,true);
+    }else await gltf('meshopt', textures, output, '--level', 'high', '--quantize-position', '16', '--quantize-texcoord', '16', '--quantize-normal', '12');
+  }
+  const data = await readFile(output), info = verifyUV(data, false);
+  verifyPreserved(before, info);
+  verifyMaterialValues(bytes,data);
+  if (!info.extensions.includes('EXT_meshopt_compression')) throw new Error(`Hero Meshopt extension missing: ${id}`);
+  const receipt = { key, source: hero.source, sourceSha256: digest(bytes), sha256: digest(data), bytes: data.length, positionFormat:normalFormat==='float32'?'float32':'uint16',normalFormat,normalFilter:normalFormat==='float32'?'NONE':'OCTAHEDRAL-byte8',materialLighting: 'live-PBR', transformOrder: ['dedup','uastc-512',normalFormat==='float32'?'reorder-UV-color-quantize-lossless-F32-position-normal':'meshopt'], uvVerification: info, images: imageReport(data) };
+  await writeFile(receiptPath, JSON.stringify(receipt, null, 2) + '\n');
+  await copyFile(output, join(out, hero.uri));
+  hero.compression = receipt;
+  manifest.files.push({ uri: hero.uri, bytes: data.length, sha256: digest(data), role: 'live-PBR-hero' });
+}
+if (await exists(join(source, 'posters.json'))) {
+  const receipt = JSON.parse(await readFile(join(source, 'posters.json'), 'utf8'));
+  if (receipt.sourceBlendSha256 !== manifest.bake?.sourceBlendSha256 || receipt.partialPreview && !preview) throw new Error('Native cover poster identity/completeness does not match the source delivery.');
+  manifest.posters = receipt.posters;
+  manifest.posterProvenance = { sourceBlendSha256: receipt.sourceBlendSha256, codec: receipt.codec, quality: receipt.quality, receiptSha256: digest(await readFile(join(source, 'posters.json'))) };
+  for (const file of receipt.files) {
+    const data = await readFile(join(source, file.uri));
+    if (data.length !== file.bytes || digest(data) !== file.sha256) throw new Error('Native cover poster changed: ' + file.uri);
+    await copyFile(join(source, file.uri), join(out, file.uri)); manifest.files.push(file);
+  }
+}
 manifest.totalBytes = manifest.files.reduce((n, file) => n + file.bytes, 0);
 const images = imageReport(packed);
 if (materialProfile === 'mobile') verifyMobileImages(images);
 const bytesByRoleUnion = {};
 for (const image of images) { const key = image.roles.join('+') || 'unused'; bytesByRoleUnion[key] = (bytesByRoleUnion[key] ?? 0) + image.bytes; }
 manifest.compression = { gltfTransform: '4.5.1', ktxSoftware: '4.4.2', mesh: 'EXT_meshopt_compression', textures: 'KHR_texture_basisu', materialProfile, materialRecipe, lightmapCodec, lightmaps: `${lightmapCodec === 'uastc' ? 'Basis UASTC + Zstandard' : 'Basis ETC1S / BasisLZ'}, per-pass log2 HDR in linear KTX2 samples; decode logRange/logGain before lighting`, transformOrder: materialProfile === 'quality' ? ['dedup', 'uastc', 'meshopt'] : ['dedup', 'uastc-normal-512', `etc1s-screen-${screenBaseSize}`, 'etc1s-other-512', 'meshopt'], uvVerification: packedInfo, images, uniqueMaterialImageBytes: images.reduce((sum, image) => sum + image.bytes, 0), bytesByRoleUnion };
-await writeFile(join(out, 'manifest.json'), JSON.stringify(manifest, null, 2) + '\n');
+manifest.compression.positionFormat = positionFormat;
+manifest.compression.normalFormat = normalFormat;
+manifest.compression.normalFilter = normalFormat==='float32'?'NONE':'OCTAHEDRAL-byte8';
+manifest.compression.generatorSha256=digest(await readFile(new URL(import.meta.url)));
+manifest.compression.positionFilter = positionFormat==='float32'?'NONE':'quantized';
+manifest.compression.transformOrder = [
+  ...(needsRasterNormalization?['lossless-WebP-to-PNG']:[]),'dedup',
+  ...(materialProfile==='quality'?['uastc']:['uastc-normal-512',...(sourceHasRetainedScreen&&screenBaseSize===1024?['etc1s-screen-1024']:[]),'etc1s-other-512']),
+  positionFormat==='float32'?(normalFormat==='float32'?'reorder-UV-color-quantize-meshopt-position-normal-NONE':'reorder-nonposition-quantize-meshopt-position-NONE'):'meshopt',
+];
+if(needsRasterNormalization){const receipt=await readFile(join(source,'raster-normalization.json'));manifest.compression.rasterNormalization={receiptSha256:digest(receipt),...JSON.parse(receipt.toString())};}
+const budget = Number(option('--max-bytes', manifest.budget?.completePackageBytesMaximum ?? 0));
+const reservedBytes = Number(option('--reserve-bytes', 0));
+if (!Number.isFinite(budget) || budget < 0) throw new Error('Invalid complete delivery budget.');
+if (!Number.isSafeInteger(reservedBytes) || reservedBytes < 0) throw new Error('Invalid reserved poster budget.');
+manifest.payloadBytes = manifest.totalBytes;
+manifest.budget = { ...(manifest.budget ?? {}), ...(budget ? { completePackageBytesMaximum: budget } : {}), reservedPosterBytes: reservedBytes };
+// Include the manifest itself in the complete package cap, not only GPU assets.
+let serialized;manifest.manifestBytes=0;
+for (let i = 0; i < 8; i++) {
+  serialized=JSON.stringify(manifest,null,2)+'\n';const length=Buffer.byteLength(serialized);
+  if(manifest.manifestBytes===length&&manifest.completePackageBytes===manifest.totalBytes+length)break;
+  manifest.manifestBytes=length;manifest.completePackageBytes=manifest.totalBytes+length;
+}
+serialized = JSON.stringify(manifest, null, 2) + '\n';
+if(manifest.manifestBytes!==Buffer.byteLength(serialized))throw new Error('Manifest byte accounting did not converge.');
+if (budget && manifest.completePackageBytes+reservedBytes > budget) throw new Error(`Complete ${placeId} package ${manifest.completePackageBytes} B plus${reservedBytes} B reserved exceeds its ${budget} B cap; no delivery manifest published.`);
+await writeFile(join(out, 'manifest.json'), serialized);
 const reportTag = `${profileTag}${lightmapCodec === 'uastc' ? '' : '.etc1s'}`;
 await writeFile(join(source, `delivery-report${reportTag}.json`), JSON.stringify({ ...manifest.compression, partialPreview: preview, missingAmbientLooks: manifest.missingAmbientLooks ?? [], files: manifest.files, totalBytes: manifest.totalBytes, targetBytes: 8 * 1024 * 1024, withinTarget: manifest.totalBytes <= 8 * 1024 * 1024 }, null, 2) + '\n');
 console.log('DELIVERY', manifest.totalBytes, 'bytes; target', 8 * 1024 * 1024);

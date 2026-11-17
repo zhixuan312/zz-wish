@@ -1,0 +1,949 @@
+{
+  "status": "Source15 morphology accepted for actual-app LOW8 only. All16 fresh8-sample native maps completed terminal0 in304.635s; actual decoded47-contact/precision proofs pass. Staged gzip quality-control bundle19,925,634B explicitly FAILS15MB. Full64/public installation remain unapproved.",
+  "source": {
+    "path": "art/build/snow-roof-round1/source-v15.blend",
+    "sha256": "26ca35d8303937c88372f2c7a4b34d3308935f332f2d3918f2caef11a89e5bb1"
+  },
+  "sourceGeometry": {
+    "regions": {
+      "hall": {
+        "objects": 1286,
+        "vertices": 69709,
+        "triangles": 121326,
+        "worldAreaM2": 2191.466232799318
+      },
+      "altar": {
+        "objects": 99,
+        "vertices": 24228,
+        "triangles": 32600,
+        "worldAreaM2": 82.42379081278742
+      },
+      "gate": {
+        "objects": 113,
+        "vertices": 19348,
+        "triangles": 31000,
+        "worldAreaM2": 421.09496750852236
+      },
+      "court": {
+        "objects": 374,
+        "vertices": 86660,
+        "triangles": 145850,
+        "worldAreaM2": 7272.049900164131
+      }
+    },
+    "totalTriangles": 330776,
+    "totalObjects": 1872,
+    "largestContributors": [
+      {
+        "object": "Continuous snowfield footprints and stair-edge drifts",
+        "region": "court",
+        "vertices": 16587,
+        "triangles": 32284,
+        "worldAreaM2": 4376.767107214006
+      },
+      {
+        "object": "Scanned console altar chinese_console_table",
+        "region": "altar",
+        "vertices": 13228,
+        "triangles": 13648,
+        "worldAreaM2": 6.548058093901933
+      },
+      {
+        "object": "Winter tree irregular trunk boughs and twigs",
+        "region": "court",
+        "vertices": 2532,
+        "triangles": 4748,
+        "worldAreaM2": 20.16124339992438
+      },
+      {
+        "object": "Side wall clay coping soft wind-shaped snow",
+        "region": "court",
+        "vertices": 1890,
+        "triangles": 3776,
+        "worldAreaM2": 58.917528292596266
+      },
+      {
+        "object": "Side wall clay coping soft wind-shaped snow.001",
+        "region": "court",
+        "vertices": 1890,
+        "triangles": 3776,
+        "worldAreaM2": 58.764941601333526
+      },
+      {
+        "object": "Back wall clay coping soft wind-shaped snow",
+        "region": "court",
+        "vertices": 1638,
+        "triangles": 3272,
+        "worldAreaM2": 50.50528723900168
+      },
+      {
+        "object": "Winter tree irregular trunk boughs and twigs.002",
+        "region": "court",
+        "vertices": 1626,
+        "triangles": 2968,
+        "worldAreaM2": 7.215526712421058
+      },
+      {
+        "object": "Winter tree irregular trunk boughs and twigs.003",
+        "region": "court",
+        "vertices": 1626,
+        "triangles": 2968,
+        "worldAreaM2": 9.888499007746516
+      },
+      {
+        "object": "Main hall concave pan tile rows",
+        "region": "hall",
+        "vertices": 2625,
+        "triangles": 2800,
+        "worldAreaM2": 19.2580487313854
+      },
+      {
+        "object": "Main hall concave pan tile rows.001",
+        "region": "hall",
+        "vertices": 2625,
+        "triangles": 2800,
+        "worldAreaM2": 19.25804462305319
+      },
+      {
+        "object": "Main hall convex cover tile rows",
+        "region": "hall",
+        "vertices": 2580,
+        "triangles": 2752,
+        "worldAreaM2": 12.960929432734046
+      },
+      {
+        "object": "Main hall convex cover tile rows.001",
+        "region": "hall",
+        "vertices": 2580,
+        "triangles": 2752,
+        "worldAreaM2": 12.960927137014599
+      },
+      {
+        "object": "Side hall concave pan tile rows",
+        "region": "court",
+        "vertices": 2355,
+        "triangles": 2512,
+        "worldAreaM2": 14.526491694333675
+      },
+      {
+        "object": "Side hall concave pan tile rows.001",
+        "region": "court",
+        "vertices": 2355,
+        "triangles": 2512,
+        "worldAreaM2": 14.526491556982304
+      },
+      {
+        "object": "Side hall concave pan tile rows.002",
+        "region": "court",
+        "vertices": 2355,
+        "triangles": 2512,
+        "worldAreaM2": 14.526492067843867
+      },
+      {
+        "object": "Side hall concave pan tile rows.003",
+        "region": "court",
+        "vertices": 2355,
+        "triangles": 2512,
+        "worldAreaM2": 14.526491195400146
+      },
+      {
+        "object": "Side hall convex cover tile rows",
+        "region": "court",
+        "vertices": 2310,
+        "triangles": 2464,
+        "worldAreaM2": 9.557274839209589
+      },
+      {
+        "object": "Side hall convex cover tile rows.001",
+        "region": "court",
+        "vertices": 2310,
+        "triangles": 2464,
+        "worldAreaM2": 9.557275006882655
+      },
+      {
+        "object": "Side hall convex cover tile rows.002",
+        "region": "court",
+        "vertices": 2310,
+        "triangles": 2464,
+        "worldAreaM2": 9.557275250465791
+      },
+      {
+        "object": "Side hall convex cover tile rows.003",
+        "region": "court",
+        "vertices": 2310,
+        "triangles": 2464,
+        "worldAreaM2": 9.557274615797759
+      },
+      {
+        "object": "Side hall continuous curved exposed rafters",
+        "region": "court",
+        "vertices": 1176,
+        "triangles": 2268,
+        "worldAreaM2": 13.341833934907037
+      },
+      {
+        "object": "Side hall continuous curved exposed rafters.001",
+        "region": "court",
+        "vertices": 1176,
+        "triangles": 2268,
+        "worldAreaM2": 13.34183397529978
+      },
+      {
+        "object": "Side hall continuous curved exposed rafters.002",
+        "region": "court",
+        "vertices": 1176,
+        "triangles": 2268,
+        "worldAreaM2": 13.341833971559831
+      },
+      {
+        "object": "Side hall continuous curved exposed rafters.003",
+        "region": "court",
+        "vertices": 1176,
+        "triangles": 2268,
+        "worldAreaM2": 13.341833938452739
+      },
+      {
+        "object": "Winter tree irregular trunk boughs and twigs.001",
+        "region": "court",
+        "vertices": 1164,
+        "triangles": 2212,
+        "worldAreaM2": 7.360648871857012
+      },
+      {
+        "object": "Side hall curved settled snow cap",
+        "region": "court",
+        "vertices": 1088,
+        "triangles": 2172,
+        "worldAreaM2": 67.1446682841088
+      },
+      {
+        "object": "Side hall curved settled snow cap.001",
+        "region": "court",
+        "vertices": 1088,
+        "triangles": 2172,
+        "worldAreaM2": 66.58746231899076
+      },
+      {
+        "object": "Side hall curved settled snow cap.002",
+        "region": "court",
+        "vertices": 1088,
+        "triangles": 2172,
+        "worldAreaM2": 67.14466885380361
+      },
+      {
+        "object": "Side hall curved settled snow cap.003",
+        "region": "court",
+        "vertices": 1088,
+        "triangles": 2172,
+        "worldAreaM2": 66.58746267961584
+      },
+      {
+        "object": "Main hall continuous curved exposed rafters",
+        "region": "hall",
+        "vertices": 1120,
+        "triangles": 2160,
+        "worldAreaM2": 10.044040864658058
+      },
+      {
+        "object": "Main hall continuous curved exposed rafters.001",
+        "region": "hall",
+        "vertices": 1120,
+        "triangles": 2160,
+        "worldAreaM2": 10.044042518864005
+      },
+      {
+        "object": "Court side wall",
+        "region": "court",
+        "vertices": 1062,
+        "triangles": 2120,
+        "worldAreaM2": 176.40494812945786
+      },
+      {
+        "object": "Court side wall.001",
+        "region": "court",
+        "vertices": 1062,
+        "triangles": 2120,
+        "worldAreaM2": 176.40494812945786
+      },
+      {
+        "object": "Main hall curved settled snow cap",
+        "region": "hall",
+        "vertices": 1054,
+        "triangles": 2104,
+        "worldAreaM2": 172.9793082858861
+      },
+      {
+        "object": "Main hall curved settled snow cap.001",
+        "region": "hall",
+        "vertices": 1054,
+        "triangles": 2104,
+        "worldAreaM2": 170.56353206535113
+      }
+    ],
+    "reductionPolicy": "Explicit paver edge profiles; no degenerate lathe poles; only snow-exposed tile courses and barge edges; aggregate winter branch meshes; one continuous snowfield/bank surface."
+  },
+  "strictSourceContacts": {
+    "groups": 47,
+    "passed": true,
+    "inventory": {
+      "candidateObjects": 234,
+      "registeredGroups": 47,
+      "unregisteredCandidates": [],
+      "classification": {
+        "registeredGroups": [
+          "scanned console altar",
+          "small personal offering bowl",
+          "folded personal offering note",
+          "turned pedestal -1.45",
+          "turned pedestal 1.45",
+          "wall-mounted screen bearing rail",
+          "mounted screen leaf 0",
+          "mounted screen leaf 1",
+          "mounted screen leaf 2",
+          "screen edge molding -2.34",
+          "screen edge molding 2.34",
+          "altar -1.45",
+          "altar -0.95",
+          "altar 0.95",
+          "altar 1.45",
+          "burner ash",
+          "charred incense 0",
+          "charred incense 1",
+          "charred incense 2",
+          "charred incense 3",
+          "charred incense 4",
+          "charred incense 5",
+          "charred incense 6",
+          "charred incense 7",
+          "charred incense 8",
+          "smouldering incense 0",
+          "smouldering incense 1",
+          "smouldering incense 2",
+          "smouldering incense 3",
+          "altar burner assembly",
+          "altar spilled incense ash",
+          "kneeling cushion -1",
+          "kneeling cushion 1",
+          "leaning broom",
+          "stacked bowl 0",
+          "stacked bowl 1",
+          "stacked bowl 2",
+          "stacked bowl assembly",
+          "gate -1",
+          "gate 1",
+          "court lantern oil cup",
+          "court stone lantern foundation",
+          "court incense ash",
+          "court spent incense 0",
+          "court spent incense 1",
+          "court spent incense 2",
+          "court incense stand"
+        ],
+        "mountedSupport": "Raised scanned screen leaves and edge molding bear on a real wall-fastened rail with actual fastener/wall intersections.",
+        "fixedArchitecture": "Columns, column drums, built-in masonry benches, thresholds, roof snow and bough snow are construction/settled weather volumes, not loose table/floor props. Their embedded bearing is intentional; no loose prop is exempted."
+      }
+    },
+    "challengeMatricesRestoredExact": true
+  },
+  "scope": {
+    "addedObjects": [],
+    "removedObjects": [],
+    "registeredPropGeometryUVNormalTintViolations": [],
+    "lightingWorldExposureByteValueExact": true,
+    "allRuntimeAnchorConfigFieldsByteValueExact": true,
+    "literalCrossRevisionEvaluatedUVGatePassed": false,
+    "rawExactSupplement": {
+      "allRawAuthoredMeshUVLayersNormalsModifiersTransformsExact": true,
+      "affectedObjects": [
+        "Side hall porch column",
+        "Side hall porch column.001",
+        "Side hall porch column.002",
+        "Side hall porch column.003"
+      ],
+      "evaluatedBevelUVMaximumError": 1.9073486328125e-06,
+      "changedAreaM2": 0.008670712214381354,
+      "errorAt1024Pixels": 0.001953125,
+      "source15ToPreparedGuardUnchanged": 1e-06
+    }
+  },
+  "doorClearance": {
+    "objects": 84,
+    "minimumAbsoluteLeafXMetres": 1.5852158069610596,
+    "minimumLeafZMetres": 2.42521595954895,
+    "walkingOpeningWidthMetres": 3.1,
+    "walkingOpeningX": [
+      -1.55,
+      1.55
+    ],
+    "outerJambFaceZ": 2.41,
+    "plankBottomY": 0.6700000762939453,
+    "plankTopY": 4.090000152587891,
+    "thresholdTopY": 0.65,
+    "allLeavesOutsideWalkingOpening": true,
+    "allLeavesBeyondOuterJambFace": true
+  },
+  "trees": [
+    {
+      "object": "Winter tree irregular trunk boughs and twigs",
+      "originEngine": [
+        -3,
+        0.05,
+        22
+      ],
+      "metadata": {
+        "seed": 39422,
+        "heightMetres": 6.6,
+        "style": "older broad winter crown",
+        "branchPaths": 79,
+        "majorLimbCount": 6,
+        "secondaryLimbCount": 24,
+        "outerForkCount": 48,
+        "primaryRadiusRangesMetres": [
+          [
+            0.12677234157159503,
+            0.041190908055248915
+          ],
+          [
+            0.09891813779498014,
+            0.03689528273949956
+          ],
+          [
+            0.12737929051333666,
+            0.030759095914400833
+          ],
+          [
+            0.13283028628612148,
+            0.03934651539910164
+          ],
+          [
+            0.10838257205571288,
+            0.03889898421309523
+          ],
+          [
+            0.12128719280370805,
+            0.04006132028654301
+          ]
+        ],
+        "secondaryRadiusRangesMetres": [
+          [
+            0.04599905712649973,
+            0.01730568866815822
+          ],
+          [
+            0.05405631986834132,
+            0.02134688560167381
+          ],
+          [
+            0.04918805078956998,
+            0.01640402340252197
+          ],
+          [
+            0.059097591413747014,
+            0.02180701625512102
+          ],
+          [
+            0.04490987658192187,
+            0.015113714845825785
+          ],
+          [
+            0.04943872460500412,
+            0.019847409751768262
+          ],
+          [
+            0.05646645910408804,
+            0.014317993917817504
+          ],
+          [
+            0.053983010094337154,
+            0.015114831632069144
+          ],
+          [
+            0.0458530666417152,
+            0.01808998082398186
+          ],
+          [
+            0.05042524076329653,
+            0.018537572180757467
+          ],
+          [
+            0.05084132109062345,
+            0.02036352205507227
+          ],
+          [
+            0.03715649859825285,
+            0.017906614811825754
+          ],
+          [
+            0.04126800959023921,
+            0.01618624502050804
+          ],
+          [
+            0.04065890323641218,
+            0.016529413251631073
+          ],
+          [
+            0.052903527184348376,
+            0.017481939211789983
+          ],
+          [
+            0.043992693433942937,
+            0.014121391464138027
+          ],
+          [
+            0.042733600208991446,
+            0.016235233497436004
+          ],
+          [
+            0.05075348466991709,
+            0.02069096302562359
+          ],
+          [
+            0.05242787683898022,
+            0.018744937074376824
+          ],
+          [
+            0.0399841767128293,
+            0.016854934495607904
+          ],
+          [
+            0.055452427030117324,
+            0.014228848293874823
+          ],
+          [
+            0.041201855328342085,
+            0.018565418156470375
+          ],
+          [
+            0.05169127754460864,
+            0.021589596929901762
+          ],
+          [
+            0.05404762107508933,
+            0.01858890660053989
+          ]
+        ],
+        "minimumTerminalRadiusMetres": 0.004,
+        "branchPolicy": "Visible crooked primary/secondary fork mass; trunk terminates in unequal crown orders; building-facing low limbs pruned by open-forecourt growth directions.",
+        "originEngine": [
+          -3,
+          0.05,
+          22
+        ]
+      },
+      "framing": [
+        {
+          "viewport": "desktop-en",
+          "pixelBounds": {
+            "x": [
+              46.62517329393929,
+              315.6558672641229
+            ],
+            "y": [
+              26.078021998707758,
+              343.2172348643356
+            ]
+          },
+          "allCrownAndSnowVerticesInsideFraction": 1.0,
+          "mainTrunkVertices": 132,
+          "mainTrunkVerticesInsideFraction": 1.0
+        },
+        {
+          "viewport": "phone-zh",
+          "pixelBounds": {
+            "x": [
+              -140.29237456870317,
+              147.36781787109237
+            ],
+            "y": [
+              148.63011511352136,
+              487.5703221150125
+            ]
+          },
+          "allCrownAndSnowVerticesInsideFraction": 0.6448669201520912,
+          "mainTrunkVertices": 132,
+          "mainTrunkVerticesInsideFraction": 1.0
+        }
+      ],
+      "gateArchitectureIntersectingTrianglePairs": 0,
+      "minimumEvaluatedVertexToGateSurfaceGapMetres": 1.8744421005249023,
+      "positiveZSeparationLowerBoundMetres": 1.5650177001953125,
+      "protectedPortalBodyViewIntersectingTriangles": 0
+    },
+    {
+      "object": "Winter tree irregular trunk boughs and twigs.001",
+      "originEngine": [
+        4.1,
+        0.05,
+        20.6
+      ],
+      "metadata": {
+        "seed": 39628,
+        "heightMetres": 5.0,
+        "style": "offset smaller forecourt companion",
+        "branchPaths": 29,
+        "majorLimbCount": 4,
+        "secondaryLimbCount": 12,
+        "outerForkCount": 12,
+        "primaryRadiusRangesMetres": [
+          [
+            0.08419568410796817,
+            0.02610385587217966
+          ],
+          [
+            0.06700607963328634,
+            0.028260543101956387
+          ],
+          [
+            0.08604234845599748,
+            0.02559632496655036
+          ],
+          [
+            0.07867824567216508,
+            0.030984976995010433
+          ]
+        ],
+        "secondaryRadiusRangesMetres": [
+          [
+            0.029721877009631237,
+            0.014062837936024041
+          ],
+          [
+            0.04047958720295409,
+            0.014412867959765712
+          ],
+          [
+            0.027679355058737237,
+            0.013693043857037825
+          ],
+          [
+            0.034639170219956286,
+            0.012790930660603939
+          ],
+          [
+            0.035983169562143764,
+            0.01325529729240968
+          ],
+          [
+            0.03389158107749933,
+            0.01292708493506563
+          ],
+          [
+            0.0405094466409896,
+            0.012973056490239844
+          ],
+          [
+            0.041305096500378294,
+            0.016468955398278418
+          ],
+          [
+            0.04018538979987922,
+            0.012428899343648452
+          ],
+          [
+            0.028509606710574245,
+            0.01602904857892884
+          ],
+          [
+            0.03810848698455105,
+            0.015148792734458974
+          ],
+          [
+            0.041882227657490584,
+            0.01531370459628031
+          ]
+        ],
+        "minimumTerminalRadiusMetres": 0.004,
+        "branchPolicy": "Visible crooked primary/secondary fork mass; trunk terminates in unequal crown orders; building-facing low limbs pruned by open-forecourt growth directions.",
+        "originEngine": [
+          4.1,
+          0.05,
+          20.6
+        ]
+      },
+      "framing": [
+        {
+          "viewport": "desktop-en",
+          "pixelBounds": {
+            "x": [
+              437.05630286717326,
+              631.00597842593
+            ],
+            "y": [
+              120.1585564750394,
+              340.0784727448008
+            ]
+          },
+          "allCrownAndSnowVerticesInsideFraction": 1.0,
+          "mainTrunkVertices": 132,
+          "mainTrunkVerticesInsideFraction": 1.0
+        },
+        {
+          "viewport": "phone-zh",
+          "pixelBounds": {
+            "x": [
+              277.2053217188935,
+              483.93730617890554
+            ],
+            "y": [
+              251.21652248092377,
+              484.3096582631347
+            ]
+          },
+          "allCrownAndSnowVerticesInsideFraction": 0.572959604286892,
+          "mainTrunkVertices": 132,
+          "mainTrunkVerticesInsideFraction": 1.0
+        }
+      ],
+      "gateArchitectureIntersectingTrianglePairs": 0,
+      "minimumEvaluatedVertexToGateSurfaceGapMetres": 0.9842914938926697,
+      "positiveZSeparationLowerBoundMetres": 0.2550697326660156,
+      "protectedPortalBodyViewIntersectingTriangles": 0
+    }
+  ],
+  "visitorBasis": {
+    "position": [
+      -3.35,
+      2.8,
+      1.2
+    ],
+    "watts": 45,
+    "pointRadiusMetres": 0.03999999910593033,
+    "additionPolicy": "Source14 measured actual light.data.shadow_soft_size; physical light is unchanged."
+  },
+  "source14RetainedImprovements": [
+    "Calm painted-timber COLOR_0 plus actual exported photograph-derived matte roughness/fine normal.",
+    "164-degree outward door leaves with real pins/knuckles/jamb straps; plank bottom .67 andtop4.09.",
+    "Actual irregular two-course foundation masonry, coping/weathering, variable roof-snow fringe.",
+    "Exact held pixel327,306 source ray identified left continuous-field drift; only that uplift was removed, retaining physical base snow/right drift."
+  ],
+  "native": {
+    "device": "METAL",
+    "devices": [
+      "Apple M1 (GPU - 8 cores)"
+    ],
+    "denoiser": "OPENIMAGEDENOISE",
+    "gpuDenoising": true,
+    "threads": "AUTO",
+    "samples": 8,
+    "images": [
+      {
+        "path": "art/build/snow-roof-round1/native-v15/desktop-en/place.png",
+        "sha256": "b50fc07e064ad86fbcd08b7016f46edcbd301468cfce4092364a44b3f2f4c9a5"
+      },
+      {
+        "path": "art/build/snow-roof-round1/native-v15/phone-zh/place.png",
+        "sha256": "0638531551f8b3f3c6f17408daf071fccecfcbbd2be7015463a6d013f234af7d"
+      }
+    ],
+    "sourceByteUnchanged": true
+  },
+  "remainingLimits": [
+    "Trees are authored geometry, not photographed assets; low8 native approval is not literal photorealism acceptance.",
+    "Source15 actual app material/visitor/camera/contact/16-look delivery review remains required.",
+    "Current Source12 delivery is over15MB and lacks dusk/day; its budget studies do not bind Source15.",
+    "Full16-look map pixels are fresh; no Source12 GI reuse is authorized."
+  ],
+  "proofs": [
+    {
+      "path": "art/build/snow-roof-round1/source-v15.audit.json",
+      "sha256": "a3904d4379ceb5a81ffa77dd5a098c2a68ea54c54f12ef66ed7926d308bd4de2",
+      "bytes": 341766
+    },
+    {
+      "path": "art/build/snow-roof-round1/source-v15-scope.json",
+      "sha256": "02d7fdec0985d694e56f9e6323cbffd6a52f5b8829b399a2a278dc50342a0fcd",
+      "bytes": 44743
+    },
+    {
+      "path": "art/build/snow-roof-round1/source-v15-bevel-uv-supplement.json",
+      "sha256": "eb855bffb57a873951e82435bf8cf29ca111272c48d1158c9c48f755eafb0a5f",
+      "bytes": 14290
+    },
+    {
+      "path": "art/build/snow-roof-round1/source-v15-material-probe/material-audit.json",
+      "sha256": "e88ac534d2079409ef8ef2b93f71b8b02914980c208e2c608f593b498e45a274",
+      "bytes": 639405
+    },
+    {
+      "path": "art/build/snow-roof-round1/source-v15-portal-probe/probe.json",
+      "sha256": "d559adc98ab432cdb110ce44d1c55bf5dc184c300934384f1569469b8b1bfdf6",
+      "bytes": 23512
+    },
+    {
+      "path": "art/build/snow-roof-round1/native-v15/preview.json",
+      "sha256": "500a8eff04bad1840a50c20b2622cee7d5a58939270383d4d30bb75f05f691c4",
+      "bytes": 19670
+    },
+    {
+      "path": "art/build/snow-roof-round1/source-v15-native-input-ledger.json",
+      "sha256": "23ffd3298839121e04df2789c63f30253c0b24ff07883a9ee81a04c521686b9f",
+      "bytes": 4062
+    },
+    {
+      "path": "art/build/snow-roof-round1/source-v15-hidden-tiles.json",
+      "sha256": "9b83230c907ac637ca4529a0a428f6d9a9ed1d82fad1a04e71ff91faf0a1a00b",
+      "bytes": 516546
+    },
+    {
+      "path": "art/build/snow-roof-round1/contact-replay-v15/mapping-proof.json",
+      "sha256": "a431b30f5f653110619505ad26eb1970d075f408bf85b26d6fa03b3a323b4d63",
+      "bytes": 43675
+    },
+    {
+      "path": "art/build/snow-roof-round1/contact-replay-v15/contact-audit.json",
+      "sha256": "5bafc677c13fdcdd7e54f9603e27a4adee014a34cd32636770d0f8dcf0986193",
+      "bytes": 136753
+    },
+    {
+      "path": "art/build/snow-roof-round1/contact-replay-v15/guard/guard-proof.json",
+      "sha256": "252dd7570a1d78d1faecff06113d5435054a980e9c6f5cb69b436e50cd92b794",
+      "bytes": 4050
+    },
+    {
+      "path": "art/build/snow-roof-round1/contact-replay-v15/normal-guard.json",
+      "sha256": "59419bf66e5ef4e2984ab942dcaba82c641d661c0e2b60773e02ec365fcdf416",
+      "bytes": 5153
+    },
+    {
+      "path": "art/build/snow-roof-round1/contact-replay-v15/independent-raw-normal-proof.json",
+      "sha256": "1b3b19e76cbec6e461599c59012d75ec30649426c1f89948323340363a7f968f",
+      "bytes": 10743
+    },
+    {
+      "path": "art/build/snow-roof-round1/contact-replay-v15/current-camera-coverage.json",
+      "sha256": "71e102352250b239876021228564ff73db6a0679bae9f8cde375c463ba1cef03",
+      "bytes": 8014
+    },
+    {
+      "path": "art/build/snow-roof-round1/face-reference-v15/raw-correspondence.json",
+      "sha256": "7d297412c14f896c4c76ffb807cbb9ca6f84d873e09095712f25b3fdbea5344c",
+      "bytes": 32144
+    }
+  ],
+  "activeLow8Batch": {
+    "session": 62450,
+    "log": "/tmp/snow-roof-round1-preview15-all16.log",
+    "ledger": "art/build/snow-roof-round1/preview15-all16-input-ledger.json",
+    "ledgerSha256": "ca424342f47d9edf2a8dd2f671f951fefe9bb9560b011874b2560a19c1de0cb1",
+    "samples": 8,
+    "passes": [
+      "night",
+      "dusk",
+      "day",
+      "lamp"
+    ],
+    "regions": {
+      "hall": 2048,
+      "altar": 1024,
+      "gate": 1024,
+      "court": 2048
+    },
+    "mapCount": 16,
+    "noPreviousGIPixelsReused": true
+  },
+  "completedPreview15": {
+    "nativeSession": 62450,
+    "exitCode": 0,
+    "exportDoneSeconds": 304.635,
+    "samples": 8,
+    "looks": [
+      "night",
+      "dusk",
+      "day",
+      "lamp"
+    ],
+    "regions": {
+      "hall": 2048,
+      "altar": 1024,
+      "gate": 1024,
+      "court": 2048
+    },
+    "bakeDevice": "METAL",
+    "denoiseDevice": "METAL",
+    "threads": "AUTO",
+    "sourceUnchanged": true,
+    "inputLedger": {
+      "path": "art/build/snow-roof-round1/preview15-all16-input-ledger.json",
+      "sha256": "ca424342f47d9edf2a8dd2f671f951fefe9bb9560b011874b2560a19c1de0cb1",
+      "bytes": 5638
+    },
+    "postbatchPrepared": {
+      "path": "art/build/snow-roof-round1/postbatch-preview15/snow-roof-prepared.blend",
+      "sha256": "03e5f4ede0dbbe7174f0a8ef292e95cede90bc4b17581af77e5a88bc7cdc9baa",
+      "bytes": 24068552
+    },
+    "postbatchRaw": {
+      "path": "art/build/snow-roof-round1/postbatch-preview15/snow-roof.raw.glb",
+      "sha256": "b335462375883ef65b3caf94fa9a20ba5278560efe45737e75a655f11beef54e",
+      "bytes": 39498700
+    },
+    "freshActual47ContactProof": {
+      "path": "art/build/snow-roof-round1/postbatch-preview15/contact-audit.json",
+      "sha256": "de2d295f2960185df74fae422a8d541cda76864a969d2f2f3131f3931bfa6438",
+      "bytes": 136755
+    },
+    "rawCorrespondence": {
+      "path": "art/build/snow-roof-round1/postbatch-preview15/raw-correspondence.json",
+      "sha256": "0c51b72b53321785d6fcf73cca05cc64b9ae68764de7fe784bf13ec408508ed7",
+      "bytes": 1807
+    }
+  },
+  "stagedPreview15": {
+    "manifest": {
+      "path": "art/build/snow-roof-round1/preview15-quality-control-gzip/manifest.json",
+      "sha256": "46240aa1bf69f7048cde4550bc068563c202e5b43e8f4e256e8e62e53ec6543b",
+      "bytes": 254023
+    },
+    "completePackageBytes": 19925634,
+    "within15000000Bytes": false,
+    "realLightmaps": 16,
+    "lightmapBytes": 12875015,
+    "modelEncoded": {
+      "path": "art/build/snow-roof-round1/preview15-quality-control-gzip/snow-roof.glb.gzip",
+      "sha256": "221fa760768dcd2e7ae4ce92d6845d29f1efcb34e3a57c27bae2ce343962b098",
+      "bytes": 6405354
+    },
+    "modelDecoded": {
+      "path": "art/build/snow-roof-round1/preview15-short16-u8-normal256/snow-roof.glb",
+      "sha256": "68feb4f6ea06481e67323f73c4b73b16abb634fe581f5a8a703cb375b2366bc6",
+      "bytes": 10471684
+    },
+    "retainedTriangles": 319560,
+    "removedCertifiedHiddenTriangles": 11216,
+    "physicalPositions": "genuine original FLOAT32 exact",
+    "normalPrecision": "original F32 to normalized SHORT16, maximum world component error1.978622028e-5",
+    "uv0": "U16 affine only if delivery error<=.125texel AND actual original source-image error<=.25texel; four broad primitives retainF32",
+    "maximumOriginalSourceTexelError": 0.2109375,
+    "maximumLightmapBaseTexelError": 0.015625,
+    "colours": "normalized U8; zero clamped source components; maximum linear error.00196077847",
+    "materialNormals": "Six architectural normal images256; table/screen512 and bronze256 retained byte-exact",
+    "proofs": {
+      "retainedF32": {
+        "path": "art/build/snow-roof-round1/preview15-optimized-f32/independent-geometry-proof.json",
+        "sha256": "301aa9304c9cf26f3408ca89aedd4b459368a682aa03600fa22c64a683fb99a5",
+        "bytes": 1086
+      },
+      "metadata": {
+        "path": "art/build/snow-roof-round1/preview15-optimized-f32/metadata.receipt.json",
+        "sha256": "bf08329294eb0f4485f4c0acb7d7f600146be7fa63f19ac73812499ca668dc25",
+        "bytes": 2415
+      },
+      "precision": {
+        "path": "art/build/snow-roof-round1/preview15-short16-u8-normal256/independent-precision-proof.json",
+        "sha256": "1c2dca21166a2bcd8c404fe7e68dff97d11eca88d6ec8aa8f93dd9c09a77f0c6",
+        "bytes": 4389
+      },
+      "decoder": {
+        "path": "art/build/snow-roof-round1/preview15-short16-u8-normal256/decoder.json",
+        "sha256": "855d5c2a8b3de971a9472dce203b857ae426bee03492bf13c9a70c8fbd5ba25c",
+        "bytes": 865
+      },
+      "decoded47Contacts": {
+        "path": "art/build/snow-roof-round1/preview15-short16-u8-normal256/contact-audit.json",
+        "sha256": "b456f11ecff9bfb2a9a99ec25190059044ec86f4683c028fa7fa4dc236352417",
+        "bytes": 136826
+      }
+    },
+    "adoption": "Diagnostic staging only; no public write or optical/performance/budget acceptance"
+  }
+}

@@ -1,0 +1,605 @@
+{
+  "scope": "ActualboundedDIRECT/INDIRECTnight32source17diagnostic. BothMetal/Metaljobs terminal0, unchanged68pins, physicalpayloaddiffersfromfixedfullONLYactualnightpasscomponent. No productionopticalacceptance/full16/publicinstall.",
+  "references": {
+    "ledger": {
+      "path": "art/build/snow-roof-round1/diagnostic17-component32-input-ledger.json",
+      "sha256": "2faf27435f6b02706975989ded6a894c05c46f0ce1faa5c7bc4c1ab7830f2c30",
+      "bytes": 25441
+    },
+    "wrapper": {
+      "path": "art/blender/bake_snow_transport_component.py",
+      "sha256": "5b8738fefbad51c2aff78a1a08e6cc72dad49e2c77d1ebbec5f34b7f517f5e9e",
+      "bytes": 5948
+    },
+    "directPreflight": {
+      "path": "art/build/snow-roof-round1/component32-direct-preflight-v17/preflight.json",
+      "sha256": "12551c072bdfdd73880919bf7a52440e501b06f43d2f3930e4ec5c2e6ee16438",
+      "bytes": 2164
+    },
+    "indirectPreflight": {
+      "path": "art/build/snow-roof-round1/component32-indirect-preflight-v17/preflight.json",
+      "sha256": "4f5136aca11a6d5645912cb865f18647547d14ea7975d31611a02844a4863af1",
+      "bytes": 2168
+    },
+    "nativeTerminal": {
+      "path": "art/build/snow-roof-round1/diagnostic17-component32-terminal.json",
+      "sha256": "33d79a6efee134c8d4756b10a9a2b698161206aa6c58cf25e6dd9a14bc326c30",
+      "bytes": 1583
+    },
+    "actualSameUvComparison": {
+      "path": "art/build/snow-roof-round1/source17-component32-variance-comparison/comparison.json",
+      "sha256": "8b7bb3473001466390c6f6febcb0931e7c802cff5d44995e84083a4f559b241a",
+      "bytes": 122318
+    },
+    "analysisRecipe": {
+      "path": "art/blender/compare_snow_diffuse_components.py",
+      "sha256": "cbc7b605c6d6ccdc3774cb03854aa8bc3ae824df50d9eda23db43f326a7a15dd",
+      "bytes": 5787
+    },
+    "sourceNormalBasisFlags": {
+      "path": "art/build/snow-roof-round1/source17-paint-normal-basis-audit.json",
+      "sha256": "62d9e8b86642c7e9c4cf4ee0679938d74cdca0a72bdfa66abc0755e29fbbbf9a",
+      "bytes": 23740
+    },
+    "sourceNormalAuditRecipe": {
+      "path": "art/blender/audit_snow_paint_normal_basis.py",
+      "sha256": "5b43299ed02a57d35a1da12950f9657027862ee2eeac06a2a4e7bff6b72b2070",
+      "bytes": 5652
+    }
+  },
+  "selectedPoints": [
+    {
+      "xy": [
+        462,
+        91
+      ],
+      "sourceOwner": "Hall longitudinal carrying beam.001",
+      "components32": {
+        "direct": {
+          "raw": [
+            0.0006059574851906756,
+            0.0005142021485819692,
+            0.0004201073823179131
+          ],
+          "denoised": [
+            0.0005986263938046625,
+            0.0005095425001609192,
+            0.00041646662536085055
+          ]
+        },
+        "indirect": {
+          "raw": [
+            0.0009203650140704705,
+            0.0005059210634362264,
+            0.0001537432437521052
+          ],
+          "denoised": [
+            0.0008428384776446424,
+            0.00046913827247900834,
+            0.00015341245033996233
+          ]
+        }
+      },
+      "directRawRedFractionOfIndependent32Sum": 0.3970048829680518,
+      "fullRawFixed256RedMinusIndependent32Sum": 9.331431983330084e-05
+    },
+    {
+      "xy": [
+        655,
+        110
+      ],
+      "sourceOwner": "Hall longitudinal carrying beam.001",
+      "components32": {
+        "direct": {
+          "raw": [
+            0.0018692018248727777,
+            0.001475167645808477,
+            0.001103606749437983
+          ],
+          "denoised": [
+            0.0017987946941531163,
+            0.0014211011816047687,
+            0.0010667720713595967
+          ]
+        },
+        "indirect": {
+          "raw": [
+            0.00014883920156032236,
+            8.395354795074077e-05,
+            5.914236269723e-05
+          ],
+          "denoised": [
+            9.125199423936966e-05,
+            7.372212047725461e-05,
+            6.0104528285871326e-05
+          ]
+        }
+      },
+      "directRawRedFractionOfIndependent32Sum": 0.9262457008500979,
+      "fullRawFixed256RedMinusIndependent32Sum": 0.00022448424644860984
+    },
+    {
+      "xy": [
+        643,
+        110
+      ],
+      "sourceOwner": "Hall longitudinal carrying beam.001",
+      "components32": {
+        "direct": {
+          "raw": [
+            0.0018302926698671115,
+            0.0014252248654468248,
+            0.0010380311340323534
+          ],
+          "denoised": [
+            0.0016608773654250173,
+            0.0013147051095802954,
+            0.0009822401124153606
+          ]
+        },
+        "indirect": {
+          "raw": [
+            0.00012581583667032776,
+            7.732178895534234e-05,
+            5.084749102272995e-05
+          ],
+          "denoised": [
+            0.00012118050208679632,
+            6.942487237499178e-05,
+            4.7453875626280455e-05
+          ]
+        }
+      },
+      "directRawRedFractionOfIndependent32Sum": 0.9356805431550227,
+      "fullRawFixed256RedMinusIndependent32Sum": 0.00010727810992814443
+    },
+    {
+      "xy": [
+        490,
+        350
+      ],
+      "sourceOwner": "Round entasis red timber column.003",
+      "components32": {
+        "direct": {
+          "raw": [
+            0.008659558787060182,
+            0.006164005181276157,
+            0.0037625689095141315
+          ],
+          "denoised": [
+            0.006800749789814597,
+            0.004865932535882215,
+            0.003086836833260345
+          ]
+        },
+        "indirect": {
+          "raw": [
+            8.426687720383176e-05,
+            6.0499721526897574e-05,
+            3.951165198733317e-05
+          ],
+          "denoised": [
+            0.00010492876426284085,
+            7.233113452990579e-05,
+            4.6688445160146244e-05
+          ]
+        }
+      },
+      "directRawRedFractionOfIndependent32Sum": 0.9903626992989774,
+      "fullRawFixed256RedMinusIndependent32Sum": -0.0008850576846593534
+    }
+  ],
+  "fullChartStatistics": [
+    {
+      "denseChartLabel": 555,
+      "owners": [
+        "Round entasis red timber column.001"
+      ],
+      "coreTexels": 1178,
+      "sameChart3x3InteriorTexels": 1020,
+      "components32": {
+        "direct": {
+          "raw": {
+            "wholeChartRed": {
+              "count": 1178,
+              "mean": 0.0003779968828894198,
+              "standardDeviation": 0.00039089337224140763,
+              "p50": 0.0002341319341212511,
+              "p95": 0.0010477115865796804,
+              "maximum": 0.0036054886877536774
+            },
+            "highPassRed": {
+              "count": 1020,
+              "mean": 2.3205593606689945e-06,
+              "standardDeviation": 0.00023516433429904282,
+              "p50": 0.0,
+              "p95": 0.00027044391026720405,
+              "maximum": 0.002675730036571622
+            }
+          },
+          "denoised": {
+            "wholeChartRed": {
+              "count": 1178,
+              "mean": 0.00036819709930568933,
+              "standardDeviation": 0.0003348687314428389,
+              "p50": 0.00024390335602220148,
+              "p95": 0.0009334373171441257,
+              "maximum": 0.002322068437933922
+            },
+            "highPassRed": {
+              "count": 1020,
+              "mean": 2.2319381969282404e-06,
+              "standardDeviation": 0.00012519877054728568,
+              "p50": -3.9297387566250563e-10,
+              "p95": 0.00014247979561332613,
+              "maximum": 0.001321780844591558
+            }
+          }
+        },
+        "indirect": {
+          "raw": {
+            "wholeChartRed": {
+              "count": 1178,
+              "mean": 0.000139660740387626,
+              "standardDeviation": 0.00018459295097272843,
+              "p50": 0.00010204700083704665,
+              "p95": 0.00036586803616955876,
+              "maximum": 0.002652615075930953
+            },
+            "highPassRed": {
+              "count": 1020,
+              "mean": -1.1228976859456452e-07,
+              "standardDeviation": 0.00016991251322906464,
+              "p50": -1.5771362086525187e-05,
+              "p95": 0.000190055463463068,
+              "maximum": 0.0022356435656547546
+            }
+          },
+          "denoised": {
+            "wholeChartRed": {
+              "count": 1178,
+              "mean": 0.000127132807392627,
+              "standardDeviation": 7.748991629341617e-05,
+              "p50": 0.0001307249185629189,
+              "p95": 0.00022090469428803772,
+              "maximum": 0.0007341229356825352
+            },
+            "highPassRed": {
+              "count": 1020,
+              "mean": -5.24883660091291e-07,
+              "standardDeviation": 3.744223067769781e-05,
+              "p50": -1.0467554147908231e-06,
+              "p95": 4.7075398470042273e-05,
+              "maximum": 0.0004027720424346626
+            }
+          }
+        }
+      },
+      "fullFixed256": {
+        "raw": {
+          "wholeChartRed": {
+            "count": 1178,
+            "mean": 0.0005085981101728976,
+            "standardDeviation": 0.0003712231118697673,
+            "p05": 0.0,
+            "p50": 0.0004278220294509083,
+            "p95": 0.0011301691411063075,
+            "p99": 0.0012711139861494303,
+            "maximum": 0.002423240104690194
+          },
+          "highPassRed": {
+            "count": 1020,
+            "mean": 2.9453158276737668e-06,
+            "standardDeviation": 9.914681868394837e-05,
+            "p05": -0.00012094229168724269,
+            "p50": -3.6483147596300114e-06,
+            "p95": 0.00014718074817210436,
+            "p99": 0.0002842142421286553,
+            "maximum": 0.0013536229962483048
+          }
+        },
+        "denoised": {
+          "wholeChartRed": {
+            "count": 1178,
+            "mean": 0.0005074767977930605,
+            "standardDeviation": 0.0003664458927232772,
+            "p05": 5.2807454409276033e-08,
+            "p50": 0.00043058727169409394,
+            "p95": 0.0011178548447787762,
+            "p99": 0.0012244769604876637,
+            "maximum": 0.0024098840076476336
+          },
+          "highPassRed": {
+            "count": 1020,
+            "mean": 3.0379960662685335e-06,
+            "standardDeviation": 8.18271073512733e-05,
+            "p05": -9.718275396153331e-05,
+            "p50": -1.946973497979343e-06,
+            "p95": 0.00011744169023586437,
+            "p99": 0.00024106926866807044,
+            "maximum": 0.001341507537290454
+          }
+        }
+      }
+    },
+    {
+      "denseChartLabel": 604,
+      "owners": [
+        "Round entasis red timber column.003"
+      ],
+      "coreTexels": 1280,
+      "sameChart3x3InteriorTexels": 1116,
+      "components32": {
+        "direct": {
+          "raw": {
+            "wholeChartRed": {
+              "count": 1280,
+              "mean": 0.0013337443815544248,
+              "standardDeviation": 0.0026568148750811815,
+              "p50": 0.00024037178081925958,
+              "p95": 0.0070634749718010426,
+              "maximum": 0.02118636481463909
+            },
+            "highPassRed": {
+              "count": 1116,
+              "mean": 1.5940909179334994e-06,
+              "standardDeviation": 0.0013758107088506222,
+              "p50": -6.6901093305204995e-06,
+              "p95": 0.0018960465677082539,
+              "maximum": 0.01311514526605606
+            }
+          },
+          "denoised": {
+            "wholeChartRed": {
+              "count": 1280,
+              "mean": 0.0012505417689681053,
+              "standardDeviation": 0.002095320960506797,
+              "p50": 0.00025288909091614187,
+              "p95": 0.006584246177226305,
+              "maximum": 0.00994918029755354
+            },
+            "highPassRed": {
+              "count": 1116,
+              "mean": 1.3104885283610201e-06,
+              "standardDeviation": 0.00025637171347625554,
+              "p50": -6.41057113170973e-07,
+              "p95": 0.0004675873788073659,
+              "maximum": 0.0012019125279039145
+            }
+          }
+        },
+        "indirect": {
+          "raw": {
+            "wholeChartRed": {
+              "count": 1280,
+              "mean": 0.00015994055138435215,
+              "standardDeviation": 0.00021559649030677974,
+              "p50": 0.00010588364966679364,
+              "p95": 0.0004868140094913542,
+              "maximum": 0.002211020328104496
+            },
+            "highPassRed": {
+              "count": 1116,
+              "mean": 1.0327513564334367e-06,
+              "standardDeviation": 0.00020316905283834785,
+              "p50": -2.810367732308805e-05,
+              "p95": 0.0002955191594082862,
+              "maximum": 0.0018080654554069042
+            }
+          },
+          "denoised": {
+            "wholeChartRed": {
+              "count": 1280,
+              "mean": 0.00013947871048003435,
+              "standardDeviation": 0.00011470400204416364,
+              "p50": 0.00012348276504781097,
+              "p95": 0.00031485778163187206,
+              "maximum": 0.0011528714094311
+            },
+            "highPassRed": {
+              "count": 1116,
+              "mean": 6.297777304098418e-07,
+              "standardDeviation": 8.275210711872205e-05,
+              "p50": -7.365180863416754e-06,
+              "p95": 0.00012697887723334134,
+              "maximum": 0.0008706065127626061
+            }
+          }
+        }
+      },
+      "fullFixed256": {
+        "raw": {
+          "wholeChartRed": {
+            "count": 1280,
+            "mean": 0.0015132586704567075,
+            "standardDeviation": 0.0023116234224289656,
+            "p05": 0.0,
+            "p50": 0.00038154132198542356,
+            "p95": 0.007201362866908312,
+            "p99": 0.01009419560432434,
+            "maximum": 0.0115966796875
+          },
+          "highPassRed": {
+            "count": 1116,
+            "mean": 2.2778683614887996e-06,
+            "standardDeviation": 0.0003944862401112914,
+            "p05": -0.0005506487214006484,
+            "p50": -1.6383839465561323e-05,
+            "p95": 0.0006963792257010937,
+            "p99": 0.0015612168936058879,
+            "maximum": 0.002973866183310747
+          }
+        },
+        "denoised": {
+          "wholeChartRed": {
+            "count": 1280,
+            "mean": 0.001510008005425334,
+            "standardDeviation": 0.0023078566882759333,
+            "p05": 8.141032736830311e-08,
+            "p50": 0.0003730096505023539,
+            "p95": 0.007147570606321096,
+            "p99": 0.010055866092443466,
+            "maximum": 0.011510627344250679
+          },
+          "highPassRed": {
+            "count": 1116,
+            "mean": 2.189024826293462e-06,
+            "standardDeviation": 0.00037935489672236145,
+            "p05": -0.000539270113222301,
+            "p50": -1.3417127775028348e-05,
+            "p95": 0.0005975965759716928,
+            "p99": 0.0014875485794618726,
+            "maximum": 0.002940954640507698
+          }
+        }
+      }
+    },
+    {
+      "denseChartLabel": 875,
+      "owners": [
+        "Hall longitudinal carrying beam.001"
+      ],
+      "coreTexels": 2096,
+      "sameChart3x3InteriorTexels": 808,
+      "components32": {
+        "direct": {
+          "raw": {
+            "wholeChartRed": {
+              "count": 2096,
+              "mean": 0.0004942560917697847,
+              "standardDeviation": 0.0008236083667725325,
+              "p50": 1.4255831047194079e-05,
+              "p95": 0.001955464482307434,
+              "maximum": 0.006139059085398912
+            },
+            "highPassRed": {
+              "count": 808,
+              "mean": 1.200699080072809e-05,
+              "standardDeviation": 0.000598105660174042,
+              "p50": -1.5799547554706805e-06,
+              "p95": 0.0008120582206174731,
+              "maximum": 0.0045896125957369804
+            }
+          },
+          "denoised": {
+            "wholeChartRed": {
+              "count": 2096,
+              "mean": 0.00048321575741283596,
+              "standardDeviation": 0.0007762018358334899,
+              "p50": 1.543493999633938e-05,
+              "p95": 0.0019677213858813047,
+              "maximum": 0.005361577961593866
+            },
+            "highPassRed": {
+              "count": 808,
+              "mean": 9.107185178436339e-06,
+              "standardDeviation": 0.0005034753121435642,
+              "p50": -2.2248484299325355e-07,
+              "p95": 0.0007565700216218829,
+              "maximum": 0.0033529072534292936
+            }
+          }
+        },
+        "indirect": {
+          "raw": {
+            "wholeChartRed": {
+              "count": 2096,
+              "mean": 0.00013621085963677615,
+              "standardDeviation": 0.0005266047082841396,
+              "p50": 7.63585849199444e-05,
+              "p95": 0.0003922241448890418,
+              "maximum": 0.02120223455131054
+            },
+            "highPassRed": {
+              "count": 808,
+              "mean": -9.930251508194488e-06,
+              "standardDeviation": 0.000194785330677405,
+              "p50": -1.4966597518650815e-05,
+              "p95": 0.00021228015248198062,
+              "maximum": 0.0009761906694620848
+            }
+          },
+          "denoised": {
+            "wholeChartRed": {
+              "count": 2096,
+              "mean": 0.00012461573351174593,
+              "standardDeviation": 0.0002624641638249159,
+              "p50": 7.542148523498327e-05,
+              "p95": 0.00037404653267003596,
+              "maximum": 0.0085913622751832
+            },
+            "highPassRed": {
+              "count": 808,
+              "mean": -3.7736654121545143e-06,
+              "standardDeviation": 0.00011963934957748279,
+              "p50": -1.1957921742578037e-05,
+              "p95": 0.00019402874750085175,
+              "maximum": 0.0007485814276151359
+            }
+          }
+        }
+      },
+      "fullFixed256": {
+        "raw": {
+          "wholeChartRed": {
+            "count": 2096,
+            "mean": 0.0006236457847990096,
+            "standardDeviation": 0.0007629713509231806,
+            "p05": 0.0,
+            "p50": 0.0001490530266892165,
+            "p95": 0.002102017868310213,
+            "p99": 0.002780056092888117,
+            "maximum": 0.0054238648153841496
+          },
+          "highPassRed": {
+            "count": 808,
+            "mean": 6.776956979592796e-06,
+            "standardDeviation": 0.00021092771203257143,
+            "p05": -0.00022130012803245336,
+            "p50": -3.862547600874677e-06,
+            "p95": 0.00024097204732242972,
+            "p99": 0.0004827733209822327,
+            "maximum": 0.003145841183140874
+          }
+        },
+        "denoised": {
+          "wholeChartRed": {
+            "count": 2096,
+            "mean": 0.0006222341326065361,
+            "standardDeviation": 0.0007602320401929319,
+            "p05": 1.470448207641084e-08,
+            "p50": 0.0001454563025617972,
+            "p95": 0.002097401535138488,
+            "p99": 0.002749326406046748,
+            "maximum": 0.005299771670252085
+          },
+          "highPassRed": {
+            "count": 808,
+            "mean": 6.8183353505446576e-06,
+            "standardDeviation": 0.00019521662034094334,
+            "p05": -0.00021512257808353752,
+            "p50": -2.6218704078928567e-06,
+            "p95": 0.00023302886984311044,
+            "p99": 0.0004517681372817606,
+            "maximum": 0.003030670341104269
+          }
+        }
+      }
+    }
+  ],
+  "findings": [
+    "Atcolumn490,350direct32R.00865956versusindirect32R.000084267:99.04%ofindependentlyestimated32sumisdirect. Broadpatchalreadydirect,notprimarilyindirectorOIDNcreation.",
+    "Beam655,110and643,110are92.62%and93.57%direct;462,91ismixed39.70%direct.",
+    "AllthreepaintNormalMapnodesuseemptytangentuv_map,imageVectornamedUVMap. PreparedactiveLightmapdoesnotchangeactive_renderUVMap. Defaulttangentsemanticsareanindependentbackendstudy.",
+    "Actual1024normalimageand~2.38to3.11UVpermetrecreate~163to213originalnormalpixelsacrossa6.7cmGItexel. SourceNormalMapsampling/derivativesanddirectshadowremaincandidates; runtimeNormalMapOFFcontroldidnotalterthebakedsource."
+  ],
+  "limits": [
+    "Independent32sample components do not exactly sum to a256sample estimator.",
+    "Selected peaks come from the original8sample frame; full-chart statistics remain separate.",
+    "Radiance attribution alone does not prove caustics, mapped-normal aliasing, or shadow geometry as its cause."
+  ],
+  "remaining": "Boundedsource-normal/shadowcausalcontrolafterRootdecision. No morewhole-sceneGIuntilactualcause/fixaccepted.",
+  "sourceOrMastersChanged": false,
+  "allOwnedJobsTerminal": true,
+  "gpuLeaseReleased": true
+}

@@ -1,0 +1,290 @@
+{
+  "status": "All native, encoder, decoder and independent proof jobs terminal. No public installation requested by this receipt.",
+  "sourceBlendSha256": "484438a4514352e70d7ffe0408306b4127660316c1422f3248f0ff33f5e0e565",
+  "candidate": "art/build/cloud-cliff-round1/delivery-normal-corrected-f32",
+  "manifestSha256": "2ed96ec74059775b6904775eb77b21143b19e9b9260d503b5e634ed5d6be5260",
+  "manifestBytes": 349354,
+  "completePackageBytes": 7430570,
+  "payloadBytes": 7081216,
+  "runtimeFileCountIncludingManifest": 15,
+  "reservedPosterBytes": 400000,
+  "completePlusPosterReserveBytes": 7830570,
+  "runtimeFieldsPreserved": [
+    "bake.sourceNightLighting",
+    "bake.presets"
+  ],
+  "nativeSeconds": 88.535,
+  "all12Maps": [
+    {
+      "region": "cliff",
+      "look": "night",
+      "seconds": 5.939,
+      "bakeSeconds": 3.702,
+      "denoiseSeconds": 2.19,
+      "samples": 64,
+      "bakeDevice": "METAL",
+      "denoiseDevice": "METAL"
+    },
+    {
+      "region": "cliff",
+      "look": "dusk",
+      "seconds": 5.297,
+      "bakeSeconds": 3.696,
+      "denoiseSeconds": 1.556,
+      "samples": 64,
+      "bakeDevice": "METAL",
+      "denoiseDevice": "METAL"
+    },
+    {
+      "region": "cliff",
+      "look": "day",
+      "seconds": 5.215,
+      "bakeSeconds": 3.638,
+      "denoiseSeconds": 1.532,
+      "samples": 64,
+      "bakeDevice": "METAL",
+      "denoiseDevice": "METAL"
+    },
+    {
+      "region": "cliff",
+      "look": "lamp",
+      "seconds": 4.297,
+      "bakeSeconds": 3.076,
+      "denoiseSeconds": 1.173,
+      "samples": 64,
+      "bakeDevice": "METAL",
+      "denoiseDevice": "METAL"
+    },
+    {
+      "region": "cover",
+      "look": "night",
+      "seconds": 14.315,
+      "bakeSeconds": 8.371,
+      "denoiseSeconds": 5.802,
+      "samples": 64,
+      "bakeDevice": "METAL",
+      "denoiseDevice": "METAL"
+    },
+    {
+      "region": "cover",
+      "look": "dusk",
+      "seconds": 14.192,
+      "bakeSeconds": 8.617,
+      "denoiseSeconds": 5.433,
+      "samples": 64,
+      "bakeDevice": "METAL",
+      "denoiseDevice": "METAL"
+    },
+    {
+      "region": "cover",
+      "look": "day",
+      "seconds": 14.059,
+      "bakeSeconds": 8.519,
+      "denoiseSeconds": 5.398,
+      "samples": 64,
+      "bakeDevice": "METAL",
+      "denoiseDevice": "METAL"
+    },
+    {
+      "region": "cover",
+      "look": "lamp",
+      "seconds": 11.438,
+      "bakeSeconds": 7.19,
+      "denoiseSeconds": 4.095,
+      "samples": 64,
+      "bakeDevice": "METAL",
+      "denoiseDevice": "METAL"
+    },
+    {
+      "region": "far",
+      "look": "night",
+      "seconds": 2.169,
+      "bakeSeconds": 1.846,
+      "denoiseSeconds": 0.308,
+      "samples": 64,
+      "bakeDevice": "METAL",
+      "denoiseDevice": "METAL"
+    },
+    {
+      "region": "far",
+      "look": "dusk",
+      "seconds": 1.928,
+      "bakeSeconds": 1.873,
+      "denoiseSeconds": 0.04,
+      "samples": 64,
+      "bakeDevice": "METAL",
+      "denoiseDevice": "METAL"
+    },
+    {
+      "region": "far",
+      "look": "day",
+      "seconds": 1.937,
+      "bakeSeconds": 1.87,
+      "denoiseSeconds": 0.052,
+      "samples": 64,
+      "bakeDevice": "METAL",
+      "denoiseDevice": "METAL"
+    },
+    {
+      "region": "far",
+      "look": "lamp",
+      "seconds": 2.127,
+      "bakeSeconds": 2.05,
+      "denoiseSeconds": 0.062,
+      "samples": 64,
+      "bakeDevice": "METAL",
+      "denoiseDevice": "METAL"
+    }
+  ],
+  "evidence": {
+    "input-ledger.json": {
+      "path": "art/build/cloud-cliff-round1/production-normal-corrected/input-ledger.json",
+      "sha256": "7b78b0ab106c35cd0bf984799106208c6e2e5b86a7c149fa49a9375982d7a755"
+    },
+    "native-completion.json": {
+      "path": "art/build/cloud-cliff-round1/production-normal-corrected/native-completion.json",
+      "sha256": "130f9156a65903c98c412e702ef0ec36b2a3d10ccc69b4d769d9b8eec642544f"
+    },
+    "postbatch-raw-correspondence.json": {
+      "path": "art/build/cloud-cliff-round1/production-normal-corrected/postbatch-raw-correspondence.json",
+      "sha256": "411425fdff173a24bd42ba3aaf3e3063f801a332b184306269b94df946b5c695"
+    },
+    "delivery-image-audit.json": {
+      "path": "art/build/cloud-cliff-round1/production-normal-corrected/delivery-image-audit.json",
+      "sha256": "5ee4316d425f2c75e02025ab0a1ccbd0347e4fc95a056854896045a3b1a8fbeb"
+    },
+    "independent-raw-normal-proof.json": {
+      "path": "art/build/cloud-cliff-round1/production-normal-corrected/independent-raw-normal-proof.json",
+      "sha256": "d6daa8f7f06173d9b1b75ff499c27664bd2d0dbede396742cbd140a3d6334e32"
+    },
+    "independent-hero-raw-normal-proof.json": {
+      "path": "art/build/cloud-cliff-round1/production-normal-corrected/independent-hero-raw-normal-proof.json",
+      "sha256": "478be4b927193f6c641822024f9ebd36a2b5472a6098cf8a862b1cf87b25b13b"
+    },
+    "independent-f32-delivery-proof.json": {
+      "path": "art/build/cloud-cliff-round1/independent-delivery-normal-corrected-f32-proof.json",
+      "sha256": "24fcb8bda58609c680cf334c06b4b4709a059ca04c6c730f40694934df2a6fa4"
+    },
+    "normal-guard-proof.json": {
+      "path": "art/build/cloud-cliff-round1/contact-replay-v13-normal8/normal-guard-proof.json",
+      "sha256": "e703b91746d1f187b762cca457f89c4e35bb8ffb8a858c5ef99c31398136f81b"
+    },
+    "contact-guard-proof.json": {
+      "path": "art/build/cloud-cliff-round1/contact-replay-v13-normal8/guard/guard-proof.json",
+      "sha256": "7978ef8241c195a4ef5c423eed9d831435553de2e061a16e12751ad7d4f33603"
+    },
+    "mapping-proof.json": {
+      "path": "art/build/cloud-cliff-round1/contact-replay-v13-normal8/mapping-proof.json",
+      "sha256": "b2c2206780d6261d9b3bbb729b774343f3ff8f81471c356798de1f26ed2be1b7"
+    }
+  },
+  "runtimeFiles": [
+    {
+      "uri": "cloud-cliff.glb",
+      "bytes": 5005108,
+      "sha256": "f33efcb078b21107faa31eb72acc5236305e5fbfddded4bdc9b617c673db384e"
+    },
+    {
+      "uri": "cliff-night.ktx2",
+      "bytes": 153952,
+      "sha256": "e24a7ced28387296c1ef4cbe3320e57c8d28e129606359ee91d200da7ae862f8",
+      "codec": "uastc",
+      "mipLevels": 3,
+      "transfer": "linear"
+    },
+    {
+      "uri": "cliff-dusk.ktx2",
+      "bytes": 151116,
+      "sha256": "ea0e945531c1a184df093e03b760f4366c6aee13169b287a0fce061f278e3014",
+      "codec": "uastc",
+      "mipLevels": 3,
+      "transfer": "linear"
+    },
+    {
+      "uri": "cliff-day.ktx2",
+      "bytes": 147225,
+      "sha256": "ebd4d22dafc20280a80c37ca9644fee2a8cc9fc93dae2c773418dd4cb4c7cdea",
+      "codec": "uastc",
+      "mipLevels": 3,
+      "transfer": "linear"
+    },
+    {
+      "uri": "cliff-lamp.ktx2",
+      "bytes": 23576,
+      "sha256": "cb8f258f0eecb988a599de8ef8ea33c721fc2dac64e5a24afeffe9fcef283c26",
+      "codec": "uastc",
+      "mipLevels": 3,
+      "transfer": "linear"
+    },
+    {
+      "uri": "cover-night.ktx2",
+      "bytes": 350328,
+      "sha256": "5a08d58e0152b10de22644f7845494e2a7427448be0963d60bdccf469a4f0564",
+      "codec": "uastc",
+      "mipLevels": 3,
+      "transfer": "linear"
+    },
+    {
+      "uri": "cover-dusk.ktx2",
+      "bytes": 347952,
+      "sha256": "1adefe9e736674516aca0aa10160513914974c9b40f0f048f4befe57bfb2b92d",
+      "codec": "uastc",
+      "mipLevels": 3,
+      "transfer": "linear"
+    },
+    {
+      "uri": "cover-day.ktx2",
+      "bytes": 347025,
+      "sha256": "84b330ec2252de04dac9760cae8bf75b6729f8372e9d473af232a6e7f3d00714",
+      "codec": "uastc",
+      "mipLevels": 3,
+      "transfer": "linear"
+    },
+    {
+      "uri": "cover-lamp.ktx2",
+      "bytes": 125920,
+      "sha256": "0872dae5e0d2aba986e34baddca075a76f02299a4b598ec70934670c0b9f7862",
+      "codec": "uastc",
+      "mipLevels": 3,
+      "transfer": "linear"
+    },
+    {
+      "uri": "far-night.ktx2",
+      "bytes": 15603,
+      "sha256": "4e97ad9e9d6b8939e729ae5eae7619e8ed9bc256eb36cba03125ac73499a7721",
+      "codec": "uastc",
+      "mipLevels": 3,
+      "transfer": "linear"
+    },
+    {
+      "uri": "far-dusk.ktx2",
+      "bytes": 15291,
+      "sha256": "a63f6e2764d6df7336d161ca27095671b62e64f721d592b2ec866733824865b6",
+      "codec": "uastc",
+      "mipLevels": 3,
+      "transfer": "linear"
+    },
+    {
+      "uri": "far-day.ktx2",
+      "bytes": 14235,
+      "sha256": "1010fd04048d2d209204a58584e95e04bd2fd5ca340c9f703269f8ce0b11b8c3",
+      "codec": "uastc",
+      "mipLevels": 3,
+      "transfer": "linear"
+    },
+    {
+      "uri": "far-lamp.ktx2",
+      "bytes": 437,
+      "sha256": "fe7c2f57ac346c6523a6d89d142de123d06fbb06a6f93fca95e67fe8259c4016",
+      "codec": "uastc",
+      "mipLevels": 3,
+      "transfer": "linear"
+    },
+    {
+      "uri": "cloud-cliff-storm.glb",
+      "bytes": 383448,
+      "sha256": "926252de61d3e1f013d3f495ea3533637a5246a495ff00e740b03b36cf5890b4",
+      "role": "live-PBR-hero"
+    }
+  ]
+}

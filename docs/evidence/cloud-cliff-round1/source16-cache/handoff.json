@@ -1,0 +1,495 @@
+{
+  "version": 1,
+  "status": "Source16 LOW8 t0 cache feasibility and bounded tiny GPU control. NOT final source/motion/optical/FPS/public acceptance.",
+  "source": {
+    "path": "/Users/xuan/Documents/code/zz-wish/art/build/cloud-cliff-round1/cloud-cliff-source-v16.blend",
+    "sha256": "e1fab71cd2500b53a0c3d925b579352c428f023506567266f9b1c7f078cc85a5"
+  },
+  "package": {
+    "path": "/Users/xuan/Documents/code/zz-wish/art/build/cloud-cliff-round1/runtime-v16-cache-dda-delivery",
+    "manifestSha256": "b4acfedd9423bcc405e69fa665b67e6f394ac84fefd1a8ce285c9238a7a1e4ac",
+    "requestedFileCount": 21,
+    "completeBytes": 9514554,
+    "with400kPosterReserve": 9914554,
+    "cacheLogicalGpuTexelBytes": 30066004,
+    "cpuDecodedTextureBytes": 30066004,
+    "gpuDriverAllocationNotQueried": true
+  },
+  "sourceReference": {
+    "path": "artifacts/full-review/round-1/cloud-source16-arithmetic/diagnosis.json",
+    "sha256": "dd72baf7d5a7bc2d3c11829244841eeb700cf925013c9510e462dc418d7c0278",
+    "originalDoubleFailuresPreserved": true,
+    "sourceDagF32ExplicitFmaLimit": 0.000001,
+    "nativeGpuFmaIsInference": true
+  },
+  "density": {
+    "globalSpacing": 2,
+    "dimensions": [
+      558,
+      36,
+      649
+    ],
+    "nearSpacing": 1,
+    "nearBounds": {
+      "min": [
+        -48,
+        -56,
+        -420
+      ],
+      "max": [
+        176,
+        2,
+        -80
+      ]
+    },
+    "nearDimensions": [
+      224,
+      58,
+      340
+    ],
+    "nearBlend": {
+      "widthMetres": 8,
+      "rule": "smoothstep(0,8,min distance to ROI faces); bankDensity=mix(global2m,near1m,weight)"
+    },
+    "sourceNodeTransferMax": 3.7066638469696045e-7,
+    "global2mMaximumRayAlphaError": 0.03558233731314697,
+    "nestedMaximumRayAlphaError": 0.006161168904211589,
+    "pointInterpolationApproximation": true,
+    "noCache1e6Claim": true
+  },
+  "lighting": {
+    "reference": {
+      "primarySpacing": 0.25,
+      "lightSpacing": 0.5,
+      "opacityMassPerCell": 0.015625,
+      "maxCells": 61,
+      "convergenceSubsetSpacing": 0.25,
+      "convergenceSubsetMaximumTError": 0.004159795768038266,
+      "convergenceSubsetOpacityWeightedTError": 0.00036944497873360417
+    },
+    "twentyRayRGB": [
+      {
+        "mode": "t8",
+        "weightedMeanAbsoluteT": 0.027710475894957367,
+        "maxT": 0.5604969120881882,
+        "maxLinearRGBError": 0.0031468798022987604,
+        "meanLinearRGBError": 0.0005287975001672264,
+        "maxRelativeLuminance": 0.06957095990221643
+      },
+      {
+        "mode": "tau16",
+        "weightedMeanAbsoluteT": 0.026700559397715935,
+        "maxT": 0.5892538077417269,
+        "maxLinearRGBError": 0.0035994460886122764,
+        "meanLinearRGBError": 0.0006145775860462241,
+        "maxRelativeLuminance": 0.07657064012131146
+      },
+      {
+        "mode": "logtau8",
+        "weightedMeanAbsoluteT": 0.02503218488344654,
+        "maxT": 0.5679850696262081,
+        "maxLinearRGBError": 0.0028158801167733616,
+        "meanLinearRGBError": 0.0005468721043214666,
+        "maxRelativeLuminance": 0.06396230614686864
+      }
+    ],
+    "selection": "T8 for first optical control; same6axisHG/sourceworld/SUN/albedo, no gain. τ alternatives measured rather than assumed superior."
+  },
+  "dda": {
+    "cap": 256,
+    "bankStep": "min(4,.5+.003*distance+.005*max(0,distance-250))",
+    "substrateStep": 8,
+    "maximumActualFieldSamples": 226,
+    "maximumActualIterations": 245,
+    "visibleCapCount": 0,
+    "maximumSourceAlphaError": 0.023612017329795676,
+    "maximumCachedFineAlphaError": 0.02361201380051614,
+    "knownOpaqueStop": "Actual held-ray terrain end from prior source16 study; actual post scene-depth still unresolved/I11FAIL.",
+    "occupancy": {
+      "dimensions": [
+        70,
+        5,
+        82
+      ],
+      "bytes": 28700,
+      "hash": "0f367421922f267ff646faa8141693e958e75f827202824d3f35fce3c79ba10c",
+      "emptyPointChallenges": 96317,
+      "failures": 0,
+      "construction": "Every nonzero original cached density texel marks all cells intersecting its closed trilinear support box; both actual global2m and near1m arrays included. This certifies only cached zero-space, not original analytic subquantum density."
+    },
+    "noPrivateDynamicArrays": true,
+    "noChildSlabSearches": true,
+    "noSecondaryMarch": true
+  },
+  "gpu": {
+    "path": "artifacts/full-review/round-1/cloud-cache-dda-controls/report.json",
+    "sha256": "cdb95885c61ff0e67fb80a19c833313ad66b503abaf17eb7026468a87e07ba77",
+    "browserClosed": true,
+    "allInputsUnchanged": true,
+    "aggregateBefore": "bb99c4887bf348a94c54d327f5d23c62c93a4bb76b89e1d5fa72937cf9c7bf86",
+    "aggregateAfter": "bb99c4887bf348a94c54d327f5d23c62c93a4bb76b89e1d5fa72937cf9c7bf86",
+    "errors": [],
+    "rows": [
+      {
+        "mode": "constant",
+        "width": 16,
+        "target": [
+          16,
+          16
+        ],
+        "gpuMs": [
+          14.906874,
+          15.514541,
+          16.842874
+        ],
+        "capture": {
+          "frame": 424,
+          "contextLost": false,
+          "actualGlViewport": [
+            0,
+            0,
+            1440,
+            900
+          ],
+          "method": "toDataURL synchronously inside existing after-render hook; preserveDrawingBuffer=false supported"
+        },
+        "png": "a0b9085e516d09117fbbd953ac3f99ca67b7ca61110cbe44d1f3e936c22c7bb0"
+      },
+      {
+        "mode": "source",
+        "width": 16,
+        "target": [
+          16,
+          16
+        ],
+        "gpuMs": [
+          13.100999,
+          13.57075,
+          6.09325
+        ],
+        "capture": {
+          "frame": 683,
+          "contextLost": false,
+          "actualGlViewport": [
+            0,
+            0,
+            1440,
+            900
+          ],
+          "method": "toDataURL synchronously inside existing after-render hook; preserveDrawingBuffer=false supported"
+        },
+        "png": "773af1ecb9d4b0356a4a6e90c9bde3fae3d1218d3774794e6c254b797886249f"
+      },
+      {
+        "mode": "constant",
+        "width": 64,
+        "target": [
+          64,
+          40
+        ],
+        "gpuMs": [
+          18.452,
+          15.899916,
+          16.915791
+        ],
+        "capture": {
+          "frame": 1039,
+          "contextLost": false,
+          "actualGlViewport": [
+            0,
+            0,
+            1440,
+            900
+          ],
+          "method": "toDataURL synchronously inside existing after-render hook; preserveDrawingBuffer=false supported"
+        },
+        "png": "f1d9cdbcf09a63ee38d18c48bb68c1f148fe4456e1c57fd71b9e842ecf47da68"
+      },
+      {
+        "mode": "source",
+        "width": 64,
+        "target": [
+          64,
+          40
+        ],
+        "gpuMs": [
+          8.796041,
+          9.179249,
+          10.081958
+        ],
+        "capture": {
+          "frame": 1250,
+          "contextLost": false,
+          "actualGlViewport": [
+            0,
+            0,
+            1440,
+            900
+          ],
+          "method": "toDataURL synchronously inside existing after-render hook; preserveDrawingBuffer=false supported"
+        },
+        "png": "7d46a4743710741a8fbfe488dd6d4b919e4f02522b802f268111ed449ead7349"
+      },
+      {
+        "mode": "constant",
+        "width": 128,
+        "target": [
+          128,
+          80
+        ],
+        "gpuMs": [
+          12.340291,
+          12.095874,
+          12.103
+        ],
+        "capture": {
+          "frame": 1478,
+          "contextLost": false,
+          "actualGlViewport": [
+            0,
+            0,
+            1440,
+            900
+          ],
+          "method": "toDataURL synchronously inside existing after-render hook; preserveDrawingBuffer=false supported"
+        },
+        "png": "0aad1a76713f80eedbfcf4d3855532132dfb7a40d51e1eb76d2c35c88db265c8"
+      },
+      {
+        "mode": "source",
+        "width": 128,
+        "target": [
+          128,
+          80
+        ],
+        "gpuMs": [
+          17.072416,
+          14.740583,
+          13.167833
+        ],
+        "capture": {
+          "frame": 1770,
+          "contextLost": false,
+          "actualGlViewport": [
+            0,
+            0,
+            1440,
+            900
+          ],
+          "method": "toDataURL synchronously inside existing after-render hook; preserveDrawingBuffer=false supported"
+        },
+        "png": "0e05473faf1d7cef98115cd67efee67c6889b9fd16a3440d00f290c2ecdca108"
+      }
+    ],
+    "interpretation": "Constant-only16/64/128 draws retain12–18ms non-pixel-proportional overhead; these query durations cannot support linear area projection or isolated-integration/FPS claim. All actual draws<=100ms, context/viewport/FBO/after-render/source gates passed."
+  },
+  "rejectedHistory": [
+    {
+      "path": "artifacts/full-review/round-1/cloud-cache-t0-tiny/report.json",
+      "sha256": "04f2f1597ebbe10c56cb75e5dab680f27e2609af29e78978e7a8de68db6361ed",
+      "reason": "Invalid generated GLSL negative subtraction literal."
+    },
+    {
+      "path": "artifacts/full-review/round-1/cloud-cache-t0-tiny-v2/report.json",
+      "sha256": "89605217ba92c1e937eb00b003ca1555e4cdc5198140e7336bc92f22bc8ba6c8",
+      "reason": "Invalid generated GLSL integer/float operand literals."
+    },
+    {
+      "path": "artifacts/full-review/round-1/cloud-cache-t0-tiny-v3/report.json",
+      "sha256": "31fd70993bdf63a9aaa36a98b548b36d58a1768ec37d5aa830dd0f95fcd2dec8",
+      "reason": "Valid shader stopped by original16pixel area extrapolation; no32/64 attempted."
+    },
+    {
+      "path": "artifacts/full-review/round-1/cloud-cache-dda-tiny/report.json",
+      "sha256": "41e863a8b1088443849c71c9fc32730103b307063bfbc7263de7ebffde167541",
+      "reason": "Outside-RAF toDataURL black read is invalid/unknown with preserveDrawingBufferfalse; actual after-render acquisition fixes this without renderer change."
+    }
+  ],
+  "source17Proposal": {
+    "path": "art/build/cloud-cliff-round1/source17-post-medium-proposal/proposal.json",
+    "sha256": "618c927e93e415c319f5125816df5bd6262c4bf34b910e504e23b167efca0de6",
+    "highestY": -3,
+    "cameraClearance": 4.8,
+    "byHeight": [
+      {
+        "height": -2,
+        "nominalExtinctionFactor": 0.7,
+        "transmittanceRange": [
+          1,
+          1
+        ],
+        "extinctionEnvelopeRange": [
+          1,
+          1
+        ]
+      },
+      {
+        "height": -4,
+        "nominalExtinctionFactor": 0.7,
+        "transmittanceRange": [
+          0.9941179321710008,
+          1
+        ],
+        "extinctionEnvelopeRange": [
+          0.9916076492981611,
+          1
+        ]
+      },
+      {
+        "height": -6,
+        "nominalExtinctionFactor": 0.7,
+        "transmittanceRange": [
+          0.8736458212694609,
+          1
+        ],
+        "extinctionEnvelopeRange": [
+          0.8245052669317378,
+          1
+        ]
+      },
+      {
+        "height": -8,
+        "nominalExtinctionFactor": 0.7,
+        "transmittanceRange": [
+          0.6732753879527956,
+          0.9974282389732985
+        ],
+        "extinctionEnvelopeRange": [
+          0.5682782775709179,
+          0.998529611405083
+        ]
+      },
+      {
+        "height": -10,
+        "nominalExtinctionFactor": 0.7,
+        "transmittanceRange": [
+          0.5064380132809535,
+          0.9563897220793196
+        ],
+        "extinctionEnvelopeRange": [
+          0.3783508457971523,
+          0.974841992632581
+        ]
+      },
+      {
+        "height": -12,
+        "nominalExtinctionFactor": 0.7,
+        "transmittanceRange": [
+          0.39959579632153724,
+          0.8726183227589893
+        ],
+        "extinctionEnvelopeRange": [
+          0.2697037689707815,
+          0.9250928624769682
+        ]
+      },
+      {
+        "height": "bottom",
+        "nominalExtinctionFactor": 0.7,
+        "transmittanceRange": [
+          0.3264884384066125,
+          0.7063840930887717
+        ],
+        "extinctionEnvelopeRange": [
+          0.20208097941884068,
+          0.8198561586321045
+        ]
+      }
+    ],
+    "status": "Not authored, geometry/lighting/source16 immutable."
+  },
+  "inputs": [
+    {
+      "path": "art/build/cloud-cliff-round1/cache-photometry-v1/study.json",
+      "sha256": "083eaade9bcf0d788114630d3b0888cb82b74ef837132889391b1872c2233237"
+    },
+    {
+      "path": "art/build/cloud-cliff-round1/texture-prototype-step2/prototype.json",
+      "sha256": "ff057f29813d2317dd8f21f06560856a264add868761414282bb1b7bd5a9c989"
+    },
+    {
+      "path": "art/build/cloud-cliff-round1/texture-prototype-nested1/prototype.json",
+      "sha256": "9d75fbcb93b36d20df8c559966e4b847369e021eb3468004f7b8011cdafd6d24"
+    },
+    {
+      "path": "art/build/cloud-cliff-round1/cache-encoded-prototypes/encoding-receipt.json",
+      "sha256": "ac595945af5e38ef035d8fcf973b64e05cc712f553d584e199bf0608f7dddc58"
+    },
+    {
+      "path": "art/build/cloud-cliff-round1/cache-dda-piecewise4-study/study.json",
+      "sha256": "906ec774fea62c1978021d9f2c667e40d2081446678afe7c55925727584137ab"
+    },
+    {
+      "path": "art/build/cloud-cliff-round1/runtime-v16-cache-dda-stage/receipt.json",
+      "sha256": "11a809e0e780a286b4cb41cc363bdd13a4e17f9c70e3aceee1bae1f5a281849e"
+    },
+    {
+      "path": "art/build/cloud-cliff-round1/cloud-post-medium-proof.json",
+      "sha256": "e48958ba068d9566438f9afe8c521bfa2a277502d8abe95d27bd2188f99af6e8"
+    }
+  ],
+  "scripts": [
+    {
+      "path": "scripts/prototype-cloud-textures.mjs",
+      "sha256": "fdb4367454a764a5aa3be48f0fb0ccc67ad25810d3753fdb6a2f70120c62c6c3"
+    },
+    {
+      "path": "scripts/derive-cloud-transport-encodings.mjs",
+      "sha256": "368c7d1d3866aa3c6653b8689da3a547f0405df242f1192e7dee5ace77e9f19f"
+    },
+    {
+      "path": "scripts/prototype-cloud-near-cache.mjs",
+      "sha256": "9ccf028ba93f236f4755864b39afcaebf1f5b863b4eaa0f7c303b6987c8a1aa0"
+    },
+    {
+      "path": "scripts/study-cloud-cache-photometry.mjs",
+      "sha256": "f91bcb231e5d1d4d3cff846ebea3a6c5525230232010cadccaab1ca7abbec62d"
+    },
+    {
+      "path": "scripts/pack-cloud-cache-prototype.mjs",
+      "sha256": "e52278057f84e67b8adf25d9c01fecff07fc6b3c420d1484ae5c1ad77a37bbee"
+    },
+    {
+      "path": "scripts/study-cloud-cache-dda.mjs",
+      "sha256": "f9f0cdfc479fbffa9edf9edfad8cd367ffa76d8d0ca142b447720c1589d9ea6d"
+    },
+    {
+      "path": "scripts/stage-cloud-cache-dda.mjs",
+      "sha256": "ffd743cb6d600b9a4fb9c70c41935790a6fc206bbfed12bdbff60ef5c2f523e9"
+    },
+    {
+      "path": "scripts/propose-cloud-post-medium.mjs",
+      "sha256": "df163d056109a71f404a735ce640c21718f7f1788b7b44e57949a21f498f8d8d"
+    },
+    {
+      "path": "scripts/instrument-cloud-cache-budget.mjs",
+      "sha256": "24e30202d6d56e8bcadf30d2b23970d84e829ffdb657735272e06b49fef4862e"
+    },
+    {
+      "path": "scripts/instrument-cloud-cache-control.mjs",
+      "sha256": "bc24529f0ebd2e248d6f1e3da62eb5595142450625be56b3f93c49141360cbb5"
+    },
+    {
+      "path": "tests/visual/cloud-cache-budget-lab.mjs",
+      "sha256": "712820af5ef10d029f721d4ff5419ec9d9425d2ad75bf65e21400b72ca30a3c1"
+    },
+    {
+      "path": "tests/visual/cloud-cache-control-budget.mjs",
+      "sha256": "94256f764cfb872eacc99875dc6511f0a7af594dfd835462f6634b57710e529a"
+    },
+    {
+      "path": "web/src/engine/places/cloud-cache-v1.js",
+      "sha256": "8565d88fe729116293bec30bf981a24749a47822a7da5b67a2398f4f85c6078a"
+    },
+    {
+      "path": "web/src/engine/places/cloud-cache-primary-v2.js",
+      "sha256": "ee5d97eccfcc640925d5c89f63af6298c0672c53684ff059cf01ebc7b0d7ab7e"
+    }
+  ],
+  "unresolved": [
+    "Source16 morphology/I6scan cut tops/bottoms and I11zero medium nearposts remain rejected source limitations.",
+    "Motion is a frozen t0 diagnostic, no static/live contract adoption.",
+    "No fullsize360×225 target or phone/WebKit cache optical/runtime/performance gate.",
+    "No Source17/full64/public installation."
+  ]
+}

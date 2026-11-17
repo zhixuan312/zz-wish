@@ -12,6 +12,7 @@ its body, flame, fuel level, smoke and moving shadow remain runtime objects.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import math
 import random
@@ -24,6 +25,10 @@ from mathutils import Vector, Matrix, noise
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from resting_contacts import RestingContacts, engine as engine_point
+from snow_round1_details import tube_path, append_mesh, soft_ribbon, winter_tree_meshes, mature_winter_tree_meshes
+from snow_bronze_maps import bronze_maps
+from snow_paint_maps import painted_finish_maps
+from snow_lightmap_charts import source_uv, box_net, lathe_uv, beam_uv, tube_coordinates, grid_uv, closed_grid_uv, planar_uv, profile_uv, torus_uv, complete_source_charts
 MATERIALS = ROOT / 'web/public/materials/scans'
 RNG = random.Random(61903)
 STATIC = None
@@ -99,7 +104,7 @@ def uv_world(obj, metres=1.6):
 def bevel(obj, amount=.018, segments=2):
     modifier = obj.modifiers.new('Worn eased edges', 'BEVEL')
     modifier.width = amount
-    modifier.segments = segments
+    modifier.segments = min(segments, 2)
     modifier.affect = 'EDGES'
     modifier.limit_method = 'ANGLE'
     modifier.angle_limit = .35
@@ -115,10 +120,11 @@ def box(name, dimensions, location, material, edge=.015, rotation=0, region=None
     vertices=[(-w,-h,-d),(w,-h,-d),(w,h,-d),(-w,h,-d),(-w,-h,d),(w,-h,d),(w,h,d),(-w,h,d)]
     faces=[(0,3,2,1),(4,5,6,7),(0,1,5,4),(3,7,6,2),(0,4,7,3),(1,2,6,5)]
     obj=mesh_object(name,vertices,faces,material,region)
+    box_net(obj,dimensions)
     obj.location=point(location);obj.rotation_euler[2]=rotation
     obj.matrix_world = obj.matrix_basis
     uv_world(obj)
-    if edge:bevel(obj,edge)
+    if edge and min(dimensions)>.045:bevel(obj,edge)
     return obj
 
 
@@ -129,20 +135,35 @@ def cylinder(name, radius, depth, location, material, vertices=24, edge=.006, re
 
 
 def lathe(name, profile, location, material, segments=32, region=None):
-    vertices, faces = [], []
+    vertices, faces, rings = [], [], []
     for radius, height in profile:
-        vertices.extend((location[0] + math.cos(i / segments * math.tau) * radius,
-                         location[1] + height,
-                         location[2] + math.sin(i / segments * math.tau) * radius)
-                        for i in range(segments))
+        ring=[]
+        for i in range(1 if abs(radius)<1e-9 else segments):
+            ring.append(len(vertices))
+            vertices.append((location[0]+math.cos(i/segments*math.tau)*radius,location[1]+height,location[2]+math.sin(i/segments*math.tau)*radius))
+        rings.append(ring)
     for row in range(len(profile) - 1):
+        a,b=rings[row],rings[row+1]
         for i in range(segments):
             j = (i + 1) % segments
-            faces.append((row * segments + i, (row + 1) * segments + i,
-                          (row + 1) * segments + j, row * segments + j))
+            if len(a)==1 and len(b)==1:break
+            if len(a)==1:faces.append((a[0],b[i],b[j]))
+            elif len(b)==1:faces.append((a[i],b[0],a[j]))
+            else:faces.append((a[i],b[i],b[j],a[j]))
     obj = mesh_object(name, vertices, faces, material, region)
+    lathe_uv(obj,profile,rings,segments)
+    if material and material.get('one_light_cast_bronze_uv'):
+        uv=obj.data.uv_layers['UVMap'].data;circumference=math.tau*max(r for r,h in profile)
+        for polygon in obj.data.polygons:
+            values=[]
+            for li in polygon.loop_indices:
+                p=obj.data.vertices[obj.data.loops[li].vertex_index].co
+                u=(math.atan2(-p.y-location[2],p.x-location[0])/math.tau)%1
+                values.append((li,u,(p.z-location[1])/.22))
+            seam=max(v[1] for v in values)-min(v[1] for v in values)>.5
+            for li,u,v in values:uv[li].uv=(((u+1 if seam and u<.5 else u)*circumference/.22),v)
     for polygon in obj.data.polygons:
-        polygon.use_smooth = True
+        polygon.use_smooth = abs(polygon.normal.z)<.995
     return obj
 
 
@@ -160,6 +181,11 @@ def close_turning_top(obj, segments):
     bm.free()
     obj.data.update()
     uv_world(obj)
+    # The added physical bearing cap has its own real circular source chart.
+    uv=obj.data.uv_layers['SourceLightmap'];face=obj.data.polygons[-1]
+    for li in face.loop_indices:
+        p=obj.data.vertices[obj.data.loops[li].vertex_index].co
+        uv.data[li].uv=(p.x+20,p.y+20)
     obj['physical_bearing_top'] = 'Closed actual top-rim face; no bounding-box support surrogate.'
     return obj
 
@@ -177,11 +203,50 @@ def beam(name, a, b, radius, material, end_radius=None, region=None):
         j=(i+1)%segments;faces.append((i,j,segments+j,segments+i))
     faces.extend([tuple(reversed(range(segments))),tuple(range(segments,segments*2))])
     obj=mesh_object(name,vertices,faces,material,region)
+    beam_uv(obj,a,b,radius,end_radius if end_radius is not None else radius*.8,segments)
     for polygon in obj.data.polygons:polygon.use_smooth=len(polygon.vertices)==4
     return obj
 
 
+def curved_tube(name,points,radii,mat,radial=10,closed=False,region=None):
+    vertices,faces=tube_path(points,radii,radial,closed)
+    obj=mesh_object(name,vertices,faces,mat,region)
+    source_uv(obj,tube_coordinates(points,radii,radial,closed),'Connected tube body and cap charts; metre scale.')
+    for face in obj.data.polygons:face.use_smooth=True
+    if mat.get('one_light_cast_bronze_uv'):uv_world(obj,.22)
+    return obj
+
+
+def cast_bronze_material(mat):
+    if mat.get('one_light_cast_bronze_uv'):return
+    maps,recipe=bronze_maps(ROOT);nodes,links=mat.node_tree.nodes,mat.node_tree.links;bsdf=nodes.get('Principled BSDF')
+    uv=nodes.new('ShaderNodeUVMap');uv.uv_map='UVMap'
+    orm=nodes.new('ShaderNodeTexImage');orm.image=bpy.data.images.load(str(maps['orm']['path']),check_existing=True);orm.image.colorspace_settings.name='Non-Color';orm.label='Authored cast bronze roughness and oxide metal fraction'
+    links.new(uv.outputs['UV'],orm.inputs['Vector']);channels=nodes.new('ShaderNodeSeparateColor');links.new(orm.outputs['Color'],channels.inputs[0]);links.new(channels.outputs['Green'],bsdf.inputs['Roughness']);links.new(channels.outputs['Blue'],bsdf.inputs['Metallic'])
+    texture=nodes.new('ShaderNodeTexImage');texture.image=bpy.data.images.load(str(maps['normal']['path']),check_existing=True);texture.image.colorspace_settings.name='Non-Color';texture.label='Authored fine cast pitting Normal GL'
+    links.new(uv.outputs['UV'],texture.inputs['Vector']);normal=nodes.new('ShaderNodeNormalMap');normal.inputs['Strength'].default_value=.34;links.new(texture.outputs['Color'],normal.inputs['Color']);links.new(normal.outputs['Normal'],bsdf.inputs['Normal'])
+    mat['one_light_cast_bronze_uv']=True;mat['one_light_authored_material_recipe']=recipe
+    mat['one_light_authored_pbr_maps']=json.dumps({key:{'path':str(value['path'].relative_to(ROOT)),'sha256':value['sha256'],'bytes':value['bytes']} for key,value in maps.items()})
+
+
+def snow_coping(name,length,width,height,location,mat,turn=False,seed=1):
+    vertices,faces=soft_ribbon(length,width,height,seed)
+    vertices=[(location[0]+(z if turn else x),location[1]+y,location[2]+(x if turn else z)) for x,y,z in vertices]
+    obj=mesh_object(name,vertices,faces,mat)
+    steps=max(8,int(length/.27));closed_grid_uv(obj,9,steps+1,length,width)
+    for face in obj.data.polygons:face.use_smooth=True
+    obj['snow_volume_closed']=True
+    return obj
+
+
 def color(value):
+    """Authored CSS-like albedo/emission hex decoded once into scene-linear."""
+    values=linear_light_color(value)
+    return tuple(v/12.92 if v<=.04045 else ((v+.055)/1.055)**2.4 for v in values[:3])+(values[3],)
+
+
+def linear_light_color(value):
+    """Explicit legacy scene-linear light chromaticities; no lighting retune."""
     if isinstance(value, str):
         value = int(value.lstrip('#'), 16)
     return ((value >> 16 & 255) / 255, (value >> 8 & 255) / 255, (value & 255) / 255, 1)
@@ -197,6 +262,10 @@ def material(name, tint='#ffffff', scan=None, rough=.8, metal=0, emission=0):
     bsdf.inputs['Base Color'].default_value = color(tint)
     bsdf.inputs['Roughness'].default_value = rough
     bsdf.inputs['Metallic'].default_value = metal
+    mat['one_light_basecolor_linear']=list(color(tint))
+    mat['one_light_export_basecolor_factor']=list(color(tint))
+    mat['one_light_authored_srgb_hex']=tint
+    mat['one_light_albedo_policy']='CSS-like authored hex -> IEC sRGB inverse transfer once; image sRGB decoded by image color space; imported factors unchanged.'
     if emission:
         bsdf.inputs['Emission Color'].default_value = color(tint)
         bsdf.inputs['Emission Strength'].default_value = emission
@@ -217,12 +286,13 @@ def material(name, tint='#ffffff', scan=None, rough=.8, metal=0, emission=0):
             uv.uv_map = 'UVMap'
             links.new(uv.outputs['UV'], texture.inputs['Vector'])
             if socket == 'Base Color':
-                multiply = nodes.new('ShaderNodeMixRGB')
+                multiply = nodes.new('ShaderNodeMix')
+                multiply.data_type = 'RGBA'
                 multiply.blend_type = 'MULTIPLY'
                 multiply.inputs[0].default_value = 1
-                multiply.inputs[2].default_value = color(tint)
-                links.new(texture.outputs['Color'], multiply.inputs[1])
-                links.new(multiply.outputs[0], bsdf.inputs[socket])
+                multiply.inputs[7].default_value = color(tint)
+                links.new(texture.outputs['Color'], multiply.inputs[6])
+                links.new(multiply.outputs[2], bsdf.inputs[socket])
             elif socket == 'Normal':
                 normal = nodes.new('ShaderNodeNormalMap')
                 normal.inputs['Strength'].default_value = .6
@@ -231,18 +301,9 @@ def material(name, tint='#ffffff', scan=None, rough=.8, metal=0, emission=0):
             else:
                 links.new(texture.outputs['Color'], bsdf.inputs[socket])
     if name.startswith('Snow'):
-        noise = nodes.new('ShaderNodeTexNoise')
-        noise.inputs['Scale'].default_value = 210
-        noise.inputs['Detail'].default_value = 2
-        bump = nodes.new('ShaderNodeBump')
-        bump.inputs['Strength'].default_value = .23
-        bump.inputs['Distance'].default_value = .015
-        links.new(noise.outputs['Fac'], bump.inputs['Height'])
-        existing = list(bsdf.inputs['Normal'].links)
-        if existing:
-            links.new(existing[0].from_socket, bump.inputs['Normal'])
-        links.new(bump.outputs['Normal'], bsdf.inputs['Normal'])
-        bsdf.inputs['Subsurface Weight'].default_value = .055
+        # Real scan normals export to glTF. The former Generated bump stretched
+        # centimetre grain across thin caps and did not survive PBR export.
+        bsdf.inputs['Subsurface Weight'].default_value = .025
     CACHE[name] = mat
     return mat
 
@@ -261,16 +322,42 @@ def vertex_tint_shader(mat):
     nodes,links=mat.node_tree.nodes,mat.node_tree.links
     bsdf=nodes.get('Principled BSDF');existing=list(bsdf.inputs['Base Color'].links)
     vertex=nodes.new('ShaderNodeVertexColor');vertex.layer_name='SurfaceTint';vertex.label='Exported COLOR_0: weathering and soot'
-    mix=nodes.new('ShaderNodeMixRGB');mix.blend_type='MULTIPLY';mix.inputs[0].default_value=1
-    if existing:links.new(existing[0].from_socket,mix.inputs[1])
-    else:mix.inputs[1].default_value=bsdf.inputs['Base Color'].default_value
-    links.new(vertex.outputs['Color'],mix.inputs[2]);links.new(mix.outputs[0],bsdf.inputs['Base Color'])
+    mix=nodes.new('ShaderNodeMix');mix.data_type='RGBA';mix.blend_type='MULTIPLY';mix.inputs[0].default_value=1
+    if existing:
+        previous=existing[0].from_node
+        if previous.type=='MIX' and previous.inputs[6].is_linked and not previous.inputs[7].is_linked:
+            # One supported image×COLOR_0 multiply. Bake the constant tint into
+            # actual vertex colours instead of nesting exporter-sensitive mixes.
+            mat['one_light_vertex_base_tint']=list(previous.inputs[7].default_value[:3])
+            mat['one_light_export_basecolor_factor']=[1.,1.,1.,1.]
+            links.new(previous.inputs[6].links[0].from_socket,mix.inputs[6])
+        else:links.new(existing[0].from_socket,mix.inputs[6])
+    else:mix.inputs[6].default_value=bsdf.inputs['Base Color'].default_value
+    links.new(vertex.outputs['Color'],mix.inputs[7]);links.new(mix.outputs[2],bsdf.inputs['Base Color'])
     mat['one_light_surface_tint']=True
     mat['one_light_vertex_color']='SurfaceTint / glTF COLOR_0 multiply'
 
 
 def weather_plaster(mat):
     vertex_tint_shader(mat);mat['one_light_base_weathering']=True
+
+
+def painted_timber_finish(mat):
+    """Actual image roughness and fine scan normal survive ordinary glTF PBR."""
+    nodes,links=mat.node_tree.nodes,mat.node_tree.links;bsdf=nodes.get('Principled BSDF')
+    mapped=painted_finish_maps(ROOT)
+    uv=nodes.new('ShaderNodeUVMap');uv.uv_map='UVMap'
+    texture=nodes.new('ShaderNodeTexImage');texture.image=bpy.data.images.load(str(mapped['path']),check_existing=True)
+    texture.image.colorspace_settings.name='Non-Color';texture.label='CC0 timber scan remapped to matte paint roughness .73–.91'
+    links.new(uv.outputs['UV'],texture.inputs['Vector']);links.new(texture.outputs['Color'],bsdf.inputs['Roughness'])
+    bsdf.inputs['Roughness'].default_value=1
+    normal_texture=nodes.new('ShaderNodeTexImage');normal_texture.image=bpy.data.images.load(str(MATERIALS/'weathered_planks/normal.jpg'),check_existing=True)
+    normal_texture.image.colorspace_settings.name='Non-Color';normal_texture.label='Fine photographed timber grain under aged paint'
+    normal=nodes.new('ShaderNodeNormalMap');normal.inputs['Strength'].default_value=.12
+    links.new(uv.outputs['UV'],normal_texture.inputs['Vector']);links.new(normal_texture.outputs['Color'],normal.inputs['Color']);links.new(normal.outputs['Normal'],bsdf.inputs['Normal'])
+    mat['one_light_painted_fine_finish']=True
+    mat['one_light_paint_map_provenance']=json.dumps({k:str(v) for k,v in mapped.items()})
+    stable_roughness(mat,.70,True)
 
 
 def soot_stains(mat, stains, strength):
@@ -285,8 +372,8 @@ def apply_surface_tints():
         if obj.type!='MESH' or not any(m and m.get('one_light_surface_tint') for m in obj.data.materials):continue
         # Refine the existing opaque surface, not a second coplanar decal mesh.
         target=None
-        if obj.name.startswith('Gate plaster pier'):target=(1,-1,.13)
-        if obj.name.startswith('Dark boarded ceiling'):target=(2,-1,.17)
+        if obj.name.startswith('Gate plaster pier'):target=(1,-1,.18)
+        if obj.name.startswith('Inset blue green ceiling panel') and obj.location.y>4:target=(2,-1,.20)
         if target:
             bm=bmesh.new();bm.from_mesh(obj.data)
             axis,sign,spacing=target
@@ -303,11 +390,31 @@ def apply_surface_tints():
             for loop_index in polygon.loop_indices:
                 vertex=obj.data.vertices[obj.data.loops[loop_index].vertex_index]
                 world=obj.matrix_world@vertex.co;engine=(world.x,world.z,-world.y)
-                tint=[1.0,1.0,1.0]
+                tint=list(mat.get('one_light_vertex_base_tint',[1.0,1.0,1.0])) if mat else [1.,1.,1.]
                 if mat and mat.get('one_light_base_weathering'):
-                    damp=max(0,1-engine[1]/1.15)**1.5*.32
-                    variation=.75+.25*noise.noise(Vector((world.x*.8,world.y*.8,1.3)))
-                    for k,dark in enumerate([.42,.39,.32]):tint[k]*=1-damp*variation*(1-dark)
+                    damp=max(0,1-engine[1]/1.25)**1.3*.56
+                    variation=.72+.25*noise.noise(Vector((world.x*1.15,world.y*1.15,1.3)))
+                    for k,dark in enumerate([.28,.30,.25]):tint[k]*=1-damp*variation*(1-dark)
+                    patch=.92+.075*noise.noise(Vector((world.x*.72,world.y*.72,world.z*1.7)))
+                    for k in range(3):tint[k]*=patch
+                if mat and mat.get('one_light_bronze_patina'):
+                    mottled=noise.noise(Vector((world.x*18.7,world.y*18.7,world.z*18.7)))
+                    fine=noise.noise(Vector((world.x*71,world.y*71,world.z*71)))
+                    patina=max(0,min(.72,(mottled+.24)*.72))
+                    for k,value in enumerate([.38,.68,.56]):tint[k]*=(1-patina+patina*value)*(.91+.08*fine)
+                if mat and mat.get('one_light_painted_timber'):
+                    grain=.985+.008*math.sin(world.z*53+world.x*.6)+.006*noise.noise(world*18)
+                    tint=[grain,grain,grain]
+                if obj.get('footprint_centres_engine') and abs(engine[0])<.65:
+                    qmin=10
+                    for px,pz,angle in json.loads(obj['footprint_centres_engine']):
+                        if abs(engine[2]-pz)>.4:continue
+                        dx,dz=engine[0]-px,engine[2]-pz
+                        u=dx*math.cos(angle)-dz*math.sin(angle);v=dx*math.sin(angle)+dz*math.cos(angle)
+                        q=min((u/.092)**2+((v+.105)/.13)**2,(u/.108)**2+((v-.065)/.17)**2)
+                        qmin=min(qmin,q)
+                    packed=.30*math.exp(-qmin*1.5)
+                    tint=[tint[0]*(1-packed),tint[1]*(1-packed*.85),tint[2]*(1-packed*.64)]
                 amount=0
                 for cx,cy,cz,rx,ry,rz in stains:
                     q=((engine[0]-cx)/rx)**2+((engine[1]-cy)/ry)**2+((engine[2]-cz)/rz)**2
@@ -315,6 +422,18 @@ def apply_surface_tints():
                 for k in range(3):tint[k]*=1-min(.72,amount)*.84
                 attr.data[loop_index].color=(*tint,1)
         obj['surface_tint_export']='Preserve active SurfaceTint as glTF COLOR_0; multiply original base color/texture.'
+        if any(m and m.get('one_light_painted_fine_finish') for m in obj.data.materials):
+            # Grain follows the actual longest timber axis. Material UV0 only;
+            # separately authored SourceLightmap charts retain their own layout.
+            spans=[max(v.co[k] for v in obj.data.vertices)-min(v.co[k] for v in obj.data.vertices) for k in range(3)]
+            long_axis=max(range(3),key=lambda k:spans[k]);uv=obj.data.uv_layers['UVMap'].data
+            for polygon in obj.data.polygons:
+                dominant=max(range(3),key=lambda k:abs(polygon.normal[k]));axes=[k for k in range(3) if k!=dominant]
+                if long_axis in axes:axes=[next(k for k in axes if k!=long_axis),long_axis]
+                for li in polygon.loop_indices:
+                    p=obj.data.vertices[obj.data.loops[li].vertex_index].co
+                    uv[li].uv=(p[axes[0]]/.42,p[axes[1]]/.42)
+            obj['paint_finish_uv_policy']='Fine photograph-derived grain repeats at .42m; V follows actual longest timber axis.'
 
 
 def kneeling_cushion(x,y,z):
@@ -338,6 +457,11 @@ def kneeling_cushion(x,y,z):
     obj=mesh_object('Soft sewn kneeling cushion',vertices,faces,cloth)
     import bmesh
     bm=bmesh.new();bm.from_mesh(obj.data);bmesh.ops.recalc_face_normals(bm,faces=list(bm.faces));bm.to_mesh(obj.data);bm.free()
+    coordinates=[]
+    for polygon in obj.data.polygons:
+        cols=[vi%segments for vi in polygon.vertices];wrap=max(cols)-min(cols)>segments/2
+        coordinates.append([((segments if wrap and vi%segments==0 else vi%segments)/segments*w*math.pi,vi//segments/rings*d*math.pi/2) for vi in polygon.vertices])
+    source_uv(obj,coordinates,'Connected cushion meridians; no material UV change.')
     for polygon in obj.data.polygons:polygon.use_smooth=True
     for i in range(segments):
         a=i/segments*math.tau;b=(i+1)/segments*math.tau
@@ -348,29 +472,43 @@ def kneeling_cushion(x,y,z):
 
 def brass_burner(location,bronze,soot):
     x,y,z=location
-    body=lathe('Brass incense burner with rolled lip',[(0,0),(.10,0),(.12,.02),(.13,.055),(.185,.12),(.18,.17),(.15,.185),(.137,.17),(.135,.12),(0,.11)],location,bronze,48)
+    body=lathe('Brass incense burner with rolled lip',[(0,.085),(.10,.085),(.145,.108),(.18,.16),(.196,.245),(.202,.275),(.195,.293),(.181,.298),(.17,.286),(.17,.27),(.165,.25),(.14,.19),(0,.19)],location,bronze,64)
+    bright=material('Burnished bronze high points','#ba9756',rough=.39,metal=.88)
+    stable_roughness(bright,.39,True)
+    cast_bronze_material(bright)
+    lathe('Brass burner worn rim band',[(.186,.278),(.201,.282),(.202,.292),(.193,.301),(.183,.299)],location,bright,64)
+    lathe('Brass burner cast belly band',[(.175,.155),(.185,.164),(.187,.173),(.181,.179)],location,bright,64)
     for i in range(3):
         a=i/3*math.tau
-        beam('Brass burner foot',(x+math.cos(a)*.105,y+.035,z+math.sin(a)*.105),(x+math.cos(a)*.125,y,z+math.sin(a)*.125),.013,bronze,.017)
+        path=[(x+math.cos(a)*r,y+h,z+math.sin(a)*r) for r,h in [(.115,.145),(.137,.105),(.145,.045),(.174,.016),(.184,.019)]]
+        curved_tube('Brass burner cast curved leg',path,[.025,.024,.019,.024,.019],bronze,10)
+    for side in [-1,1]:
+        path=[(x+side*(.184+.105*math.sin(t*math.pi)),y+.185+.105*math.cos(t*math.pi),z+.006*math.sin(t*math.tau)) for t in [i/14 for i in range(15)]]
+        curved_tube('Brass burner raised ring handle',path,[.015]*len(path),bronze,10)
     ash=material('Soft cold incense ash','#8e8880',rough=1)
-    vertices=[(x,y+.134,z)];faces=[];n=48
+    vertex_tint_shader(ash)
+    vertices=[(x,y+.249,z)];faces=[];n=40
     for i in range(n):
         a=i/n*math.tau
-        vertices.append((x+math.cos(a)*.133,y+.121+.002*math.sin(a*7),z+math.sin(a)*.133))
-    for i in range(n):faces.append((0,1+(i+1)%n,1+i))
+        vertices.append((x+math.cos(a)*.145,y+.227+.006*math.sin(a*7)+.003*math.sin(a*17),z+math.sin(a)*.145))
+    for i in range(n):faces.append((0,1+i,1+(i+1)%n))
+    bottom=len(vertices)
+    for xx,yy,zz in vertices.copy():vertices.append((xx,resting_contact_height(xx,zz,[body])+.0001,zz))
+    for i in range(n):
+        a=1+i;b=1+(i+1)%n;faces.extend([(a,b,b+bottom,a+bottom),(bottom,b+bottom,a+bottom)])
     with CONTACTS.group('burner ash', [body]):
         ash_surface=mesh_object('Ash mound in brass burner',vertices,faces,ash)
     for i in range(9):
         a=i*2.39;r=.022+.065*((i*7)%9)/9
         with CONTACTS.group('charred incense '+str(i), [ash_surface]):
-            beam('Charred incense end in ash',(x+math.cos(a)*r,y+.133,z+math.sin(a)*r),(x+math.cos(a)*r+.01,y+.134,z+math.sin(a)*r+.008),.0018,soot,.0015)
+            beam('Charred incense end in ash',(x+math.cos(a)*r,y+.25,z+math.sin(a)*r),(x+math.cos(a)*r+.01,y+.251,z+math.sin(a)*r+.008),.0018,soot,.0015)
     return ash_surface
 
 
 def light(name, location, energy, tint, radius=.1, role='fixture'):
     data = bpy.data.lights.new(name, 'POINT')
     data.energy = energy
-    data.color = color(tint)[:3]
+    data.color = linear_light_color(tint)[:3]
     data.shadow_soft_size = radius
     obj = bpy.data.objects.new(name, data)
     bpy.data.collections['LIGHTS'].objects.link(obj)
@@ -395,24 +533,26 @@ def window(name, x, y, z, width, height, wood, paper, facing=1):
 def profile_arm(name, x, y, z, reach, width, thickness, mat, turn=False):
     # A carved, cambered solid timber arm: broad at the bearing, thin at the
     # rising tails. Successive arms pass across one another at their housings.
-    samples=16
+    samples=10
     upper=[];lower=[]
     for i in range(samples+1):
         u=-reach+2*reach*i/samples
         tail=abs(u/reach)
         upper.append((u,.06+.065*tail**3))
         lower.append((u,.06+.065*tail**3-thickness*(1-.45*tail)))
-    contour=upper+list(reversed(lower));vertices=[]
-    for side in [-1,1]:
+    contour=upper+list(reversed(lower));vertices=[];n=len(contour)
+    middle=sum(v for u,v in contour)/n
+    for lateral,inset in [(-width/2,True),(-width/2+.008,False),(width/2-.008,False),(width/2,True)]:
         for u,v in contour:
-            vertices.append((x+u if turn else x+side*width/2,y+v,z+side*width/2 if turn else z+u))
-    n=len(contour);faces=[tuple(reversed(range(n))),tuple(range(n,n*2))]
-    for i in range(n):faces.append((i,(i+1)%n,(i+1)%n+n,i+n))
+            if inset:u*=.989;v=middle+(v-middle)*.87
+            vertices.append((x+u if turn else x+lateral,y+v,z+lateral if turn else z+u))
+    faces=[tuple(reversed(range(n))),tuple(range(n*3,n*4))]
+    for row in range(3):
+        for i in range(n):faces.append((row*n+i,row*n+(i+1)%n,(row+1)*n+(i+1)%n,(row+1)*n+i))
     obj=mesh_object(name,vertices,faces,mat)
-    # Recalculate this closed solid independently of its chosen arm direction.
     import bmesh
     bm=bmesh.new();bm.from_mesh(obj.data);bmesh.ops.recalc_face_normals(bm,faces=list(bm.faces));bm.to_mesh(obj.data);bm.free()
-    bevel(obj,.012,3)
+    profile_uv(obj,n,4,{0,1},2 if turn else 0)
     return obj
 
 
@@ -444,7 +584,7 @@ def roof_surface(cx,y_eave,ridge_z,width,half_depth,rise,x,t,side):
 def tiled_roof(name,cx,y_eave,ridge_z,width,half_depth,rise,tile,wood,snow,region=None):
     for side in [-1,1]:
         # The underside and snow follow the same continuous curved surface.
-        nx,ny=max(16,int(width/.3)),24
+        nx,ny=max(16,int(width/.40)),14
         vertices=[];faces=[]
         for row in range(ny+1):
             for col in range(nx+1):
@@ -454,16 +594,21 @@ def tiled_roof(name,cx,y_eave,ridge_z,width,half_depth,rise,tile,wood,snow,regio
             for col in range(nx):
                 i=row*(nx+1)+col;faces.append((i,i+1,i+nx+2,i+nx+1))
         if side>0:faces=[tuple(reversed(face)) for face in faces]
-        mesh_object(name+' curved roof boarding',vertices,faces,wood,region)
+        boarding=mesh_object(name+' curved roof boarding',vertices,faces,wood,region)
+        grid_uv(boarding,nx+1,width,math.hypot(half_depth,rise))
         cols=max(10,int(width/.255));rows=max(8,int(math.hypot(half_depth,rise)/.345))
         # Wide concave pan tiles alternate with narrow convex covers over their
         # seams. Every row has a real overlapping lip and curved eave-end shell.
         for cover in [False,True]:
-            vertices=[];faces=[];across=6 if not cover else 5;along=2
+            vertices=[];faces=[];across=4;along=1
             count=cols if not cover else cols-1
             for row in range(rows):
                 t0=max(0,(row-.04)/rows);t1=min(1.018,(row+1.13)/rows)
                 for col in range(count):
+                    # Deep snow permanently encloses the upper courses. Keep
+                    # the exposed eave courses and both barge edges; closed
+                    # boarding remains the physical hidden roof/occluder.
+                    if row<rows-3 and col not in [0,count-1]:continue
                     center=cx-width/2+(col+(.5 if not cover else 1))*width/cols
                     radius=(width/cols*.49) if not cover else .063
                     start=len(vertices)
@@ -489,67 +634,92 @@ def tiled_roof(name,cx,y_eave,ridge_z,width,half_depth,rise,tile,wood,snow,regio
                     for k in range(across):faces.append((end+k,end+k+1,lower+k+1,lower+k))
             if side>0:faces=[tuple(reversed(face)) for face in faces]
             obj=mesh_object(name+(' convex cover tile rows' if cover else ' concave pan tile rows'),vertices,faces,tile,region)
+            stride=(along+2)*(across+1);tile_uv=[]
+            for polygon in obj.data.polygons:
+                values=[]
+                for vi in polygon.vertices:
+                    local=vi%stride;rr=local//(across+1);cc=local%(across+1)
+                    values.append((cc/across*width/cols*(.43 if cover else .90),min(rr,along)/along*half_depth/rows+(.012 if rr>along else 0)))
+                tile_uv.append(values)
+            source_uv(obj,tile_uv,'Connected tile pan/cover patch and downturned lip per component.')
             for polygon in obj.data.polygons:polygon.use_smooth=True
         # Closed, soft snow volume. Its TOP stays above every tile/lip rather
         # than intersecting the periodic tile rows. Only the irregular outer
         # boundary thins down into the roof, so it cannot produce striped holes.
-        vertices=[];faces=[];base_positions=[]
-        for row in range(ny+1):
-            q=row/ny
+        vertices=[];faces=[];base_positions=[];snow_rows=16
+        for row in range(snow_rows+1):
+            q=(row/snow_rows)**.73
             for col in range(nx+1):
                 xx=cx-width/2+.09+(width-.18)*col/nx
                 fringe=noise.noise(Vector((xx*.64,side*.7,2.31)))
                 detail=noise.noise(Vector((xx*1.73,side*1.4,7.0)))
-                tmax=.885+.035*fringe+.014*detail
+                # A wind-scoured, nonperiodic margin reveals real tile courses
+                # instead of making every eave end an identical isolated dot.
+                tmax=.930+.043*math.sin(xx*.79+side*1.3)+.018*fringe+.012*detail
                 t=q*tmax
                 p=roof_surface(cx,y_eave,ridge_z,width,half_depth,rise,xx,t,side)
                 n=noise.noise(Vector((xx*.65,p[2]*.55,4.2)))
                 n2=noise.noise(Vector((xx*1.4,p[2]*1.1,1.8)))
-                edge=max(0,(q-.86)/.14);edge=edge*edge*(3-2*edge)
+                edge=max(0,(q-.79)/.21);edge=edge*edge*(3-2*edge)
                 ridge=max(0,1-t/.15);ridge=ridge*ridge*(3-2*ridge)
-                depth=.26+.025*n+.014*n2-.035*edge+.10*ridge
+                drift=.20*math.exp(-((xx-cx-width*.19)/(width*.24))**2)*math.sin(math.pi*q)**.7
+                overhang_drop=max(0,t-1)*half_depth*.65
+                body=max(.23,.34+.090*n+.050*n2+.15*ridge+drift)
+                # The thin fringe enters the real pan-tile valleys locally;
+                # only the deep body certifies fully enclosed hidden courses.
+                depth=body*(1-edge)+.006*edge-overhang_drop
                 vertices.append((p[0],p[1]+depth,p[2]))
                 # The hidden underside embeds in the solid roof; no floating
                 # snow lip or duplicate surface lies on the visible tile skin.
-                base_positions.append((p[0],p[1]-.008,p[2]))
+                base_positions.append((p[0],p[1]-.008-min(.10,overhang_drop),p[2]))
         top_count=len(vertices);vertices.extend(base_positions)
         top_faces=[]
-        for row in range(ny):
+        for row in range(snow_rows):
             for col in range(nx):
                 i=row*(nx+1)+col;top_faces.append((i,i+1,i+nx+2,i+nx+1))
         if side>0:top_faces=[tuple(reversed(face)) for face in top_faces]
         faces.extend(top_faces)
         faces.extend(tuple(i+top_count for i in reversed(face)) for face in top_faces)
-        boundary=list(range(nx+1))+[r*(nx+1)+nx for r in range(1,ny+1)]+[ny*(nx+1)+c for c in range(nx-1,-1,-1)]+[r*(nx+1) for r in range(ny-1,0,-1)]
+        boundary=list(range(nx+1))+[r*(nx+1)+nx for r in range(1,snow_rows+1)]+[snow_rows*(nx+1)+c for c in range(nx-1,-1,-1)]+[r*(nx+1) for r in range(snow_rows-1,0,-1)]
         for i,a in enumerate(boundary):
             b=boundary[(i+1)%len(boundary)]
             faces.append((a,b,b+top_count,a+top_count))
         cap=mesh_object(name+' curved settled snow cap',vertices,faces,snow,region)
         import bmesh
         bm=bmesh.new();bm.from_mesh(cap.data);bmesh.ops.recalc_face_normals(bm,faces=list(bm.faces));bm.to_mesh(cap.data);bm.free()
+        closed_grid_uv(cap,nx+1,snow_rows+1,width,math.hypot(half_depth,rise))
         for polygon in cap.data.polygons:polygon.use_smooth=True
-        cap['minimum_top_offset_metres']=.18
+        cap['snow_deep_body_minimum_offset_metres']=.23
+        cap['snow_fringe_policy']='Only the q>.79 soft feather enters tile valleys. Fresh actual BVH enclosure proof required; no uniform hidden-tile assumption.'
         cap['snow_volume_closed']=True
         # Curved exposed rafters and transverse purlins support the roof rather
         # than a single rectangular fascia floating under it.
-        for i in range(max(8,int(width/.4))):
-            xx=cx-width/2+(i+.5)*.4
-            for j in range(9):
-                a=roof_surface(cx,y_eave,ridge_z,width,half_depth,rise,xx,j/9,side)
-                b=roof_surface(cx,y_eave,ridge_z,width,half_depth,rise,xx,(j+1)/9,side)
-                beam(name+' curved exposed rafter',(a[0],a[1]-.11,a[2]),(b[0],b[1]-.11,b[2]),.042,wood,.042,region)
+        timber=([],[]);timber_uv=[];count=max(8,int(width/.60))
+        start_t=.72 if name=='Main hall' else (.50 if name=='Court gate' else 0)
+        for i in range(count):
+            xx=cx-width/2+(i+.5)*width/count;path=[]
+            for j in range(7):
+                p=roof_surface(cx,y_eave,ridge_z,width,half_depth,rise,xx,start_t+(1-start_t)*j/6,side)
+                path.append((p[0],p[1]-.11,p[2]))
+            vv,ff=tube_path(path,[.042]*len(path),8);append_mesh(timber,vv,ff)
+            timber_uv.extend(tube_coordinates(path,[.042]*len(path),8))
+        rafter=mesh_object(name+' continuous curved exposed rafters',*timber,wood,region)
+        source_uv(rafter,timber_uv,'Connected curved rafter strips with end caps.')
+        for polygon in rafter.data.polygons:polygon.use_smooth=True
         for t in [.3,.6,.84]:
             p=roof_surface(cx,y_eave,ridge_z,width,half_depth,rise,cx,t,side)
             beam(name+' round roof purlin',(cx-width/2,p[1]-.19,p[2]),(cx+width/2,p[1]-.19,p[2]),.085,wood,.085,region)
         # Flying fascia is a shaped solid following the raised corners.
-        for i in range(nx):
-            a=roof_surface(cx,y_eave,ridge_z,width,half_depth,rise,cx-width/2+width*i/nx,1,side)
-            b=roof_surface(cx,y_eave,ridge_z,width,half_depth,rise,cx-width/2+width*(i+1)/nx,1,side)
-            beam(name+' curved eave fascia',(a[0],a[1]-.06,a[2]),(b[0],b[1]-.06,b[2]),.07,wood,.07,region)
+        path=[]
+        for i in range(nx+1):
+            p=roof_surface(cx,y_eave,ridge_z,width,half_depth,rise,cx-width/2+width*i/nx,1,side)
+            path.append((p[0],p[1]-.06,p[2]))
+        curved_tube(name+' continuous curved eave fascia',path,[.07]*len(path),wood,8,region=region)
     # Individual half-round ridge caps overlap along the ridge. Plain curled end
     # profiles are construction pieces, without figures or ranked ornaments.
     ridge_y=y_eave+rise+.12;segments=max(8,int(width/.32));vertices=[];faces=[]
     for col in range(segments):
+        if col not in [0,1,segments-2,segments-1]:continue
         x0=cx-width/2+col*width/segments;x1=x0+width/segments+.025;start=len(vertices)
         for xx in [x0,x1]:
             for j in range(9):
@@ -590,150 +760,25 @@ def worn_step(name,width,height,depth,location,mat):
     return obj
 
 
-def stair_snow_banks(mat):
-    """Two connected snow banks wrap the outer stair edges into ground snow."""
-    from mathutils.bvhtree import BVHTree
-    bpy.context.view_layer.update()
-    graph=bpy.context.evaluated_depsgraph_get()
-    ground=[o for o in STATIC.objects if o.name.startswith('Snow with physically depressed footprint track')]
-    stone=[o for o in STATIC.objects if o.name.startswith('Chipped and worn granite step') or o.name=='Front terrace']
-    if len(ground)!=1 or len(stone)!=4:raise RuntimeError('Stair-bank support geometry is missing')
-
-    def support_tree(objects):
-        vertices=[];faces=[]
-        for obj in objects:
-            evaluated=obj.evaluated_get(graph);mesh=evaluated.data;offset=len(vertices)
-            vertices.extend(evaluated.matrix_world@v.co for v in mesh.vertices)
-            faces.extend(tuple(offset+i for i in face.vertices) for face in mesh.polygons)
-        return BVHTree.FromPolygons(vertices,faces,all_triangles=False)
-
-    ground_tree=support_tree(ground)
-    # Measure the actual evaluated stone, including bevel/nosing extrema.
-    terrace=next(o for o in stone if o.name=='Front terrace')
-    terrace_eval=terrace.evaluated_get(graph)
-    terrace_points=[terrace_eval.matrix_world@v.co for v in terrace_eval.data.vertices]
-    terrace_top=max(v.z for v in terrace_points)
-    terrace_front=max(-v.y for v in terrace_points)
-    step_bounds=[]
-    for obj in stone:
-        if not obj.name.startswith('Chipped and worn granite step'):continue
-        evaluated=obj.evaluated_get(graph)
-        points=[evaluated.matrix_world@v.co for v in evaluated.data.vertices]
-        step_bounds.append((max(-v.y for v in points),max(v.z for v in points)))
-    step_bounds.sort()
-    ground_texspace=(ground[0].data.texspace_location.copy(),ground[0].data.texspace_size.copy())
-    def height(tree,x,z):
-        hit=tree.ray_cast(point((x,2,z)),Vector((0,0,-1)),4)[0]
-        if hit is None:raise RuntimeError('Stair-bank footprint left its support surface')
-        return hit.z
-    def smooth(a,b,value):
-        q=max(0,min(1,(value-a)/(b-a)))
-        return q*q*(3-2*q)
-    banks=[]
-    for side in [-1,1]:
-        # Every shape decision uses this local generator, never the scene RNG.
-        seed=241701+(97 if side>0 else 0);rng=random.Random(seed)
-        phases=[rng.uniform(0,math.tau) for _ in range(5)]
-        peak=rng.uniform(.078,.108)
-        start_z=terrace_front-.85+rng.uniform(-.035,.015)
-        end_z=7.05+rng.uniform(-.035,.055)
-        rows,across=88,32
-        vertices=[];faces=[];row_ids=[];ground_heights=[]
-        for row in range(rows+1):
-            t=row/rows;z=start_z+(end_z-start_z)*t
-            center=1.52+.035*math.sin(t*4.7+phases[0])
-            envelope=math.sin(math.pi*t)**.43
-            inner=.93+.050*math.sin(t*8.3+phases[1])+.025*math.sin(t*17.1+phases[2])
-            outer=2.43+.085*math.sin(t*6.1+phases[3])+.035*math.sin(t*13.4+phases[0])
-            columns=[across//2] if row in [0,rows] else range(across+1)
-            ids=[]
-            for column in columns:
-                u=column/across
-                x=side*(center+((inner+(outer-inner)*u)-center)*envelope)
-                zz=z+.025*math.sin(math.pi*t)*math.sin(math.pi*u)*math.sin(u*5+phases[4])
-                ground_y=height(ground_tree,x,zz)
-                # This exposed envelope is continuous across the terrace edge.
-                # The old ray-hit support blend jumped 0.6m at that edge and
-                # pulled triangles through the cap. The rear seam now starts
-                # deeply beneath stone; the full cap clears measured extrema.
-                first,second,last=step_bounds
-                stairs=max(terrace_top,first[1])-(first[1]-second[1])*smooth(first[0],first[0]+.18,zz)
-                stairs-=(second[1]-last[1])*smooth(second[0],second[0]+.18,zz)
-                stairs=stairs*(1-smooth(last[0],last[0]+.26,zz))+ground_y*smooth(last[0],last[0]+.26,zz)
-                wrap=1-smooth(1.60,2.40,abs(x))
-                rolled=ground_y+(stairs-ground_y)*wrap
-                rolled=max(rolled,ground_y+(terrace_top-ground_y)*(1-smooth(terrace_front,terrace_front+.65,zz)))
-                accumulation=peak*(1+.23*math.sin(t*7.7+phases[2])+.11*math.sin(t*16.3+phases[4]))
-                accumulation*=.88+.12*math.cos((u-.45)*math.pi)
-                coverage=smooth(0,.17,u)*(1-smooth(.73,1,u))*smooth(0,.14,t)*(1-smooth(.70,1,t))
-                # A signed cubic meets the unchanged field tangentially at one
-                # contour, then continues 80mm below it; no visible shell rim.
-                q=(coverage-.16)/.84
-                delta=(max(0,rolled-ground_y)+accumulation)*q**3 if q>=0 else -.08*((.16-coverage)/.16)**3
-                top=ground_y+delta
-                ids.append(len(vertices));vertices.append((x,top,zz));ground_heights.append(ground_y)
-            row_ids.append(ids)
-        for j in range(across):faces.append((row_ids[0][0],row_ids[1][j],row_ids[1][j+1]))
-        for row in range(1,rows-1):
-            for j in range(across):faces.append((row_ids[row][j],row_ids[row+1][j],row_ids[row+1][j+1],row_ids[row][j+1]))
-        for j in range(across):faces.append((row_ids[-1][0],row_ids[-2][j+1],row_ids[-2][j]))
-        if side<0:faces=[tuple(reversed(face)) for face in faces]
-        top_faces=len(faces)
-        # Derive a single perimeter from the top disk, then close its volume
-        # below the existing ground field. No six-piece overlaps or flat decals.
-        edge_faces={}
-        for face in faces:
-            for i,a in enumerate(face):
-                b=face[(i+1)%len(face)];key=tuple(sorted((a,b)))
-                edge_faces.setdefault(key,[]).append((a,b))
-        boundary=[edges[0] for edges in edge_faces.values() if len(edges)==1]
-        bottom={}
-        for a,b in boundary:
-            for index in [a,b]:
-                if index not in bottom:
-                    x,y,z=vertices[index];bottom[index]=len(vertices)
-                    vertices.append((x,ground_heights[index]-.09,z))
-        bottom_center=len(vertices)
-        vertices.append((side*1.52,min(ground_heights)-.12,(start_z+end_z)/2))
-        for a,b in boundary:
-            faces.append((b,a,bottom[a],bottom[b]))
-            faces.append((bottom_center,bottom[b],bottom[a]))
-        label='left' if side<0 else 'right'
-        obj=mesh_object('Continuous stair-edge snow bank '+label,vertices,faces,mat,'hall')
-        for polygon in obj.data.polygons:polygon.use_smooth=polygon.index<top_faces or (polygon.index-top_faces)%2==0
-        # Snow's existing Generated-coordinate grain must use the same world
-        # texture space on both sides of the join. Materials stay untouched.
-        obj.data.use_auto_texspace=False
-        obj.data.texspace_location=ground_texspace[0]
-        grain_size=ground_texspace[1].copy()
-        # Keep the field's horizontal grain density while avoiding its very
-        # thin vertical bounding box, which creates compressed grain stripes.
-        grain_size.z=(abs(grain_size.x)+abs(grain_size.y))*.5
-        obj.data.texspace_size=grain_size
-        obj['step_snow_shape']='One closed connected bank across all treads/risers, wrapping over the outer edge and merging below the existing ground snow.'
-        obj['step_snow_top_faces']=top_faces
-        obj['step_snow_seed']=seed;obj['step_snow_side']=side
-        obj['step_snow_peak_metres']=peak
-        obj['step_snow_center_clearance_metres']=.85
-        obj['step_snow_ground_overlap']='Tangent cubic taper crosses below ground; outer/end rim buried80mm and closed bottom at least90mm below field.'
-        obj['step_snow_terrace_cap']='Continuous envelope above measured terrace/step extrema; rear seam starts850mm behind terrace front inside stone.'
-        obj['step_snow_texture_space']='Matches unchanged ground snow Generated coordinates; no material edits.'
-        banks.append(obj)
-    return banks
-
-
 def irregular_paver(name,x,z,width,depth,height,mat):
-    outline=[(-.5,-.5),(.4,-.5),(.5,-.37),(.5,.43),(.40,.5),(-.43,.5),(-.5,.39)]
-    vertices=[]
-    for yy in [height-.13,height]:
-        for px,pz in outline:
-            vertices.append((x+px*width+RNG.uniform(-.008,.008),yy+RNG.uniform(-.002,.002),z+pz*depth+RNG.uniform(-.008,.008)))
-    n=len(outline);faces=[tuple(range(n)),tuple(reversed(range(n,n*2)))]
-    for i in range(n):faces.append((i,(i+1)%n,(i+1)%n+n,i+n))
+    rng=random.Random(int((x+20)*17381+(z+20)*4199))
+    coarse=[(-.5,-.5),(.4,-.5),(.5,-.37),(.5,.43),(.40,.5),(-.43,.5),(-.5,.39)]
+    outline=[]
+    for i,p in enumerate(coarse):
+        for other in [coarse[i-1],coarse[(i+1)%len(coarse)]]:
+            outline.append((p[0]*.91+other[0]*.09+rng.uniform(-.007,.007),p[1]*.91+other[1]*.09+rng.uniform(-.007,.007)))
+    vertices=[];n=len(outline);settlement=[rng.uniform(-.0015,.0015) for _ in outline]
+    for level,(yy,inset) in enumerate([(height-.13,0),(height-.017,0),(height,.013)]):
+        for j,(px,pz) in enumerate(outline):
+            vertices.append((x+px*(width-2*inset),yy+settlement[j],z+pz*(depth-2*inset)))
+    faces=[tuple(reversed(range(n))),tuple(2*n+i for i in range(n))]
+    for row in range(2):
+        for i in range(n):faces.append((row*n+i,row*n+(i+1)%n,(row+1)*n+(i+1)%n,(row+1)*n+i))
     obj=mesh_object(name,vertices,faces,mat)
     import bmesh
     bm=bmesh.new();bm.from_mesh(obj.data);bmesh.ops.recalc_face_normals(bm,faces=list(bm.faces));bm.to_mesh(obj.data);bm.free()
-    bevel(obj,.015,3)
+    profile_uv(obj,n,3,{0,1},1)
+    obj['efficient_profile']='Actual clipped corners and rounded two-band nosing, no evaluated bevel microfaces.'
     return obj
 
 
@@ -764,83 +809,305 @@ def import_prop(name,path,location,target_height,select_mesh=None):
         if obj.data.uv_layers:obj.data.uv_layers[0].name='UVMap'
         obj['source_asset']=str(path);obj['source_license']='CC0-1.0'
         for mat in obj.data.materials:
-            if mat:stable_roughness(mat,.36,True)
+            if mat:
+                stable_roughness(mat,.36,True)
+                if 'chinese_console_table' in str(path):
+                    # Preserve the photographed albedo and UV0/normal detail,
+                    # but remove the blotchy mirror response of the old ARM.
+                    stable_roughness(mat,.58,False)
+                    mat['lacquer_finish']='Worn broad satin lacquer; original albedo/normal UVs retained, constant .58 roughness.'
     for obj in imported:
         if obj not in meshes:bpy.data.objects.remove(obj,do_unlink=True)
     return meshes
 
 
 def snow_field(material_snow):
-    # A non-uniform grid concentrates real geometry along the walked line. There
-    # are no footprint props, decals or floating dark polygons above this snow.
-    xs = sorted(set([float(i) for i in range(-26, 27, 2)] + [-1.6, -1.3, 1.3, 1.6] + [round(-1.2 + i * .08, 4) for i in range(31)]))
-    zs = sorted(set([float(i) for i in range(-13, 6)] + [round(5 + i * .12, 4) for i in range(326)] + [float(i) for i in range(45, 54)]))
-    nx, nz = len(xs), len(zs)
-    vertices, faces, prints = [], [], []
-    for i in range(78):
-        zz = 43 - i * .47
-        xx = (.13 if i % 2 else -.13) + .06 * math.sin(i * .13)
-        prints.append((xx, zz, (-.13 if i % 2 else .13)))
+    """One continuous snowfield, real footprints and outer stair-edge drifts.
+
+    There is no overlapping bank shell, tangent ground contact or hidden-zero
+    texel boundary between two snow owners. The centre walking line stays clear.
+    """
+    def smooth(a,b,v):
+        q=max(0,min(1,(v-a)/(b-a)));return q*q*(3-2*q)
+    prints=[((.15 if i%2 else -.15)+.045*math.sin(i*.13),43-i*.49,(-.13 if i%2 else .13)) for i in range(77)]
+    def terrain(x,z):
+        base=.11+.020*math.sin(x*1.7+z*.23)+.014*math.cos(z*.8-x*.33)
+        if -10.5<z<18.5:base+=.23*math.exp(-((abs(x)-11.8)/.82)**2)
+        if abs(x)>1.7:base+=(.28+.06*math.sin(x*.63))*math.exp(-((z-17.8)/.84)**2)
+        base+=.16*math.exp(-((z+9.8)/.85)**2)
+        if abs(x)<.58:
+            base-=.021*math.exp(-(x/.45)**6)
+            for px,pz,angle in prints:
+                if abs(z-pz)>.48:continue
+                dx,dz=x-px,z-pz;u=dx*math.cos(angle)-dz*math.sin(angle);v=dx*math.sin(angle)+dz*math.cos(angle)
+                q=min((u/.092)**2+((v+.105)/.13)**2,(u/.108)**2+((v-.065)/.17)**2)
+                if q<3:base-=.088*math.exp(-q*2);base+=.010*math.exp(-((math.sqrt(q)-1.08)/.23)**2)
+        # Embedded beneath the built floor/terrace; no white object occupies
+        # the doorway and no snow lies across the cleared central steps.
+        if abs(x)<5.7 and -7<z<4.58:base=-.09
+        # Held place pixel327,306 certified the former LEFT uplift as the
+        # portal mound (worldx−2.168,z6.657). The swept left connection now
+        # remains the original continuous base field; only the right drift
+        # accumulates beside the steps. No buried cut or separate shell.
+        if 1.55<x<3.25 and 4.85<z<7.50:
+            support=.60-.20*smooth(4.98,5.18,z)-.20*smooth(5.38,5.58,z)
+            support=support*(1-smooth(5.78,6.18,z))+base*smooth(5.78,6.18,z)
+            cross=smooth(1.55,1.86,abs(x))*(1-smooth(2.03,3.25,abs(x)))
+            along=smooth(4.85,5.35,z)*(1-smooth(6.20,7.50,z))
+            drift=.060+.016*math.sin(z*7+abs(x)*3)+.009*math.sin(z*15-abs(x)*5)
+            bank_top=min(.31,support+drift)
+            base+=max(0,bank_top-base)*cross*along
+        return base
+    coarse=[-26,-21,-17,-13,-12,-10,-8,-6,-5.7,-3.3,-2.8,-1.7,-.62,.62,1.7,2.8,3.3,5.7,6,8,10,12,13,17,21,26]
+    zs=sorted(set([-30,-22,-16,-13,-10,-7,-3,0,2,3.4]+[round(3.4+i*.10,4) for i in range(408)]+[45,49,54]))
+    vertices=[];faces=[];rows=[]
     for z in zs:
-        candidates = [p for p in prints if abs(z - p[1]) < .55]
-        for x in xs:
-            height = .11 + .025 * math.sin(x * 1.7 + z * .23) + .02 * math.cos(z * .8 - x * .33)
-            if -10.5 < z < 18.5:
-                height += .16 * math.exp(-((abs(x)-11.75)/.75)**2)
-            if abs(x)>1.7:
-                height += .11*math.exp(-((z-17.8)/.65)**2)
-            height += .09*math.exp(-((z+9.8)/.65)**2)
-            if abs(x) < .55:
-                for px, pz, angle in candidates:
-                    dx, dz = x - px, z - pz
-                    u, vv = dx * math.cos(angle) - dz * math.sin(angle), dx * math.sin(angle) + dz * math.cos(angle)
-                    # Rounded toe and narrower heel overlap into one boot-shaped depression.
-                    q = min((u / .078) ** 2 + ((vv + .105) / .125) ** 2,
-                            (u / .10) ** 2 + ((vv - .065) / .17) ** 2)
-                    if q < 2.5:
-                        height -= .067 * math.exp(-q * 2.2)
-                        height += .008 * math.exp(-((math.sqrt(q) - 1.08) / .22) ** 2)
-            if abs(x) < 5.7 and -7 < z < 4.8:
-                height = -.03
-            vertices.append((x, height, z))
-    for row in range(nz - 1):
-        for col in range(nx - 1):
-            i = row * nx + col
-            faces.append((i + nx, i + nx + 1, i + 1, i))
-    obj = mesh_object('Snow with physically depressed footprint track', vertices, faces, material_snow, 'court')
-    for polygon in obj.data.polygons:
-        polygon.use_smooth = True
+        xs=list(coarse)
+        if 5.9<z<44.2:xs += [-.50,-.36,-.25,-.16,-.08,0,.08,.16,.25,.36,.50]
+        if 3.4<z<7.5:xs += [side*(.82+i*.13) for side in [-1,1] for i in range(17)]+[-.45,0,.45]
+        xs=sorted(set(xs));row=[]
+        for x in xs:row.append(len(vertices));vertices.append((x,terrain(x,z),z))
+        rows.append(row)
+    for previous,current in zip(rows,rows[1:]):
+        i=j=0
+        while i<len(previous)-1 or j<len(current)-1:
+            ax=vertices[previous[i+1]][0] if i<len(previous)-1 else float('inf')
+            bx=vertices[current[j+1]][0] if j<len(current)-1 else float('inf')
+            if abs(ax-bx)<.000001:faces.append((previous[i],current[j],current[j+1],previous[i+1]));i+=1;j+=1
+            elif ax<bx:faces.append((previous[i],current[j],previous[i+1]));i+=1
+            else:faces.append((previous[i],current[j],current[j+1]));j+=1
+    obj=mesh_object('Continuous snowfield footprints and stair-edge drifts',vertices,faces,material_snow,'court')
+    planar_uv(obj)
+    for polygon in obj.data.polygons:polygon.use_smooth=True
+    vertex_tint_shader(material_snow)
+    obj['footprint_centres_engine']=json.dumps(prints)
+    obj['snow_surface_policy']='One connected top mesh across field and stair-edge banks; no snow/snow contact seam or separate buried bank shell.'
+    return obj
+    obj['footprint_policy']='Single alternating walking line: real88mm depressions and compacted-snow vertex tint, not decals.'
+    return obj
 
 
-def small_fixture(name, x, y, z, bronze, warm, role='fixture'):
-    foot=lathe(name + ' bronze foot', [(0, 0), (.065, 0), (.07, .018), (.04, .045), (.045, .06), (0, .06)], (x, y, z), bronze)
-    bowl=lathe(name + ' shallow bowl', [(0, .05), (.04, .05), (.07, .08), (.074, .11), (.065, .12), (.058, .08), (0, .075)], (x, y, z), bronze)
-    wick=cylinder(name + ' warm wick', .012, .04, (x, y + .12, z), warm, 12, 0)
-    spill=light(name + ' warm spill', (x, y + .19, z), 8, '#ffad66', .07, role)
-    return {'foot':foot,'bowl':bowl,'wick':wick,'light':spill}
+def small_fixture(name,x,y,z,bronze,warm,role='fixture',kind='bronze oil cup',size=1,fuel=.65,lit=True,watts=16):
+    bright=material('Burnished bronze high points','#ba9756',rough=.39,metal=.88)
+    cast_bronze_material(bright)
+    dark=material('Oil-blackened rim and wick','#29231c',rough=.88)
+    is_wax='candle' in kind;is_clay='clay' in kind
+    body_mat=material('Unglazed old brown oil clay','#514438',rough=.91) if is_clay else bronze
+    profile=[(0,0),(.048,0),(.065,.009),(.067,.022),(.052,.032),(.035,.038),(.034,.060),(.065,.073),(.083,.092),(.087,.119),(.083,.130),(.073,.134),(.067,.123),(.062,.098),(0,.094)]
+    if is_clay:profile=[(0,0),(.068,0),(.09,.012),(.10,.025),(.115,.05),(.118,.064),(.11,.072),(.098,.068),(.09,.036),(0,.026)]
+    profile=[(r*size,h*size) for r,h in profile]
+    foot=lathe(name+' bronze foot',profile,(x,y,z),body_mat,64)
+    rim=[(.108,.062),(.118,.066),(.116,.073),(.108,.075),(.10,.07)] if is_clay else [(.078,.124),(.087,.126),(.088,.132),(.081,.138),(.073,.136)]
+    bowl=lathe(name+' cast rolled rim',[(r*size,h*size) for r,h in rim],(x,y,z),bright if not is_clay else body_mat,64)
+    # Used interiors are oil/soot stained; only the narrow rolled crest remains
+    # burnished. Material assignment changes no vessel/contact geometry.
+    inner=material('Oil-sooted used clay interior' if is_clay else 'Oil-sooted used bronze interior','#211b12',rough=.80 if is_clay else .74,metal=0 if is_clay else .35)
+    vertex_tint_shader(inner);inner['one_light_bronze_patina']=True;inner['one_light_used_inner']=True
+    for obj,first_row in [(foot,6 if is_clay else 10),(bowl,3)]:
+        obj.data.materials.append(inner);inner_index=len(obj.data.materials)-1
+        for polygon in obj.data.polygons:
+            if polygon.index//64>=first_row:polygon.material_index=inner_index
+    floor_y=y+size*(.026 if is_clay else .094)
+    fuel_y=y+size*((.034+.022*fuel) if is_clay else (.101+.017*fuel))
+    fuel_mat=material('Old ivory candle wax','#b5a17d',rough=.88) if is_wax else material('Dark pooled lamp oil','#0f0b05',rough=.10)
+    if not is_wax:fuel_mat['one_light_absorbed_oil']=True
+    fuel_depth=max(.005,fuel_y-floor_y)
+    fuel_obj=cylinder(name+(' remaining wax' if is_wax else ' pooled oil'),(.08 if is_clay else .059)*size,fuel_depth,(x,floor_y+fuel_depth/2,z),fuel_mat,48,0)
+    wick_height=(.033 if is_clay else .024 if lit else .014)*size
+    # The used fibre remains dark below the live runtime flame. The point
+    # fixture supplies baked illumination; an entire glowing post is physical
+    # neither as wick material nor as a substitute static flame body.
+    wick=cylinder(name+' warm wick',.0065*size,wick_height,(x,fuel_y+wick_height*.42,z),dark,16,0)
+    # Actual material volumes attach to the vessel, without floating decals.
+    for j in range(2 if not is_wax else 3):
+        angle=.7+j*2.14+size
+        profile_drip=[(.114,.070),(.117,.056),(.103,.032),(.089,.021)] if is_clay else [(.083,.127),(.085,.107),(.073,.083),(.052,.071)]
+        path=[(x+math.cos(angle)*r*size,y+h*size,z+math.sin(angle)*r*size) for r,h in profile_drip]
+        curved_tube(name+(' wax drip' if is_wax else ' dark oil drip'),path,[.004,.005,.003,.001],fuel_mat if is_wax else dark,6)
+    spill=light(name+' warm spill',(x,fuel_y+.075*size,z),watts if lit else 0,'#ffb46c',.010*size,role)
+    return {'foot':foot,'bowl':bowl,'wick':wick,'light':spill,'lit':lit,'kind':kind,'actualWatts':watts if lit else 0,'fuelLevel':fuel}
 
 
-def bare_tree(x, z, height, bark, snow):
-    base = (x, .08, z)
-    top = (x + RNG.uniform(-.2, .2), height, z + RNG.uniform(-.2, .2))
-    beam('Winter tree trunk', base, top, .16, bark, .055)
-    for i in range(10):
-        t = .35 + i / 10 * .5
-        angle = i * 2.39 + RNG.uniform(-.25, .25)
-        origin = (x, height * t, z)
-        length = (1 - t) * height * .7
-        middle = (x + math.cos(angle) * length * .6, height * t + .45, z + math.sin(angle) * length * .6)
-        end = (x + math.cos(angle) * length, height * t + 1.0, z + math.sin(angle) * length)
-        beam('Bare winter bough', origin, middle, .045, bark, .025)
-        beam('Bare winter bough tip', middle, end, .025, bark, .009)
-        for j in range(3):
-            q = .25 + j * .25
-            a = angle + (1 if j % 2 else -1) * .65
-            start = tuple(middle[k] * (1 - q) + end[k] * q for k in range(3))
-            terminal = (start[0] + math.cos(a) * .55, start[1] + .45, start[2] + math.sin(a) * .55)
-            beam('Winter fine twig', start, terminal, .009, bark, .003)
-        if i % 2 == 0:
-            beam('Snow resting on bough', (origin[0], origin[1] + .035, origin[2]), (middle[0], middle[1] + .035, middle[2]), .032, snow, .016)
+def bare_tree(x, z, height, bark, snow, seed=None,crown_style=None):
+    if seed is None:seed=int((x+70)*107+(z+90)*271+height*103)
+    if crown_style:
+        timber,caps,meta=mature_winter_tree_meshes((x,.05,z),height,seed,companion=crown_style=='companion')
+    else:timber,caps,meta=winter_tree_meshes((x,.05,z),height,seed,detail=abs(x)<12 and z>-12)
+    bark_uv=meta.pop('barkChartUV');snow_uv=meta.pop('snowChartUV')
+    meta['originEngine']=[x,.05,z]
+    obj=mesh_object('Winter tree irregular trunk boughs and twigs',*timber,bark,'court')
+    source_uv(obj,bark_uv,'Connected winter tree branch strips; original bark UV unchanged.')
+    for polygon in obj.data.polygons:polygon.use_smooth=True
+    obj['winter_tree_geometry']=json.dumps(meta)
+    if caps[0]:
+        cap=mesh_object('Winter tree soft supported branch snow',*caps,snow,'court')
+        source_uv(cap,snow_uv,'Connected supported branch snow strips.')
+        for polygon in cap.data.polygons:polygon.use_smooth=True
+
+
+def wall_coping(name,length,location,width,wood,snow,turn=False,seed=1):
+    clay=material('Old grey wall coping clay','#626962','grey_roof_tiles',rough=.91)
+    vertices=[];faces=[];count=max(2,int(length/.32));across=6
+    for j in range(count):
+        start=len(vertices);x0=-length/2+j*length/count;x1=x0+length/count+.018
+        for xx in [x0,x1]:
+            for k in range(across+1):
+                a=(k/across-.5)*math.pi;zz=math.sin(a)*width*.5;yy=.035+math.cos(a)*.10
+                vertices.append((location[0]+(zz if turn else xx),location[1]+yy,location[2]+(xx if turn else zz)))
+        for k in range(across):faces.append((start+k,start+k+1,start+across+2+k,start+across+1+k))
+    obj=mesh_object(name,vertices,faces,clay)
+    for p in obj.data.polygons:p.use_smooth=True
+    snow_coping(name+' soft wind-shaped snow',length+.14,width+.17,.21,(location[0],location[1]+.13,location[2]),snow,turn,seed)
+
+
+def courtyard_wall(name,length,location,plaster,turn=False):
+    nx=max(2,int(length/.48));ny=8;vertices=[];faces=[];w=.55;h=2.55
+    for side in [-1,1]:
+        for row in range(ny+1):
+            yy=-h/2+h*row/ny
+            for col in range(nx+1):
+                xx=-length/2+length*col/nx;zz=side*w/2
+                vertices.append((location[0]+(zz if turn else xx),location[1]+yy,location[2]+(xx if turn else zz)))
+    count=(nx+1)*(ny+1)
+    for row in range(ny):
+        for col in range(nx):
+            i=row*(nx+1)+col
+            faces.extend([(i,i+nx+1,i+nx+2,i+1),(i+count,i+1+count,i+nx+2+count,i+nx+1+count)])
+    boundary=list(range(nx+1))+[r*(nx+1)+nx for r in range(1,ny+1)]+[ny*(nx+1)+c for c in range(nx-1,-1,-1)]+[r*(nx+1) for r in range(ny-1,0,-1)]
+    for i,a in enumerate(boundary):
+        b=boundary[(i+1)%len(boundary)];faces.append((a,b,b+count,a+count))
+    obj=mesh_object(name,vertices,faces,plaster,'court')
+    import bmesh
+    bm=bmesh.new();bm.from_mesh(obj.data);bmesh.ops.recalc_face_normals(bm,faces=list(bm.faces));bm.to_mesh(obj.data);bm.free()
+    box_net(obj,(w,h,length) if turn else (length,h,w),location)
+    return obj
+
+
+def masonry_base(name,length,location,stone,turn=False,seed=1,height=.78,region='court'):
+    """Two staggered courses with irregular eased faces, not uniform box rows."""
+    rng=random.Random(seed);axis=0 if turn else 2
+    for course in range(2):
+        a=-length/2;row_height=height*(.48 if course==0 else .52)
+        bottom=0 if course==0 else height*.48
+        while a<length/2-.03:
+            width=min(rng.uniform(.66,1.21),length/2-a)
+            if width<.07:break
+            halfw=(width-.022)/2;halfh=(row_height-.022)/2;cut=min(.045,width*.12)
+            outline=[(-halfw+cut,-halfh), (halfw-cut*.7,-halfh), (halfw,-halfh+cut*.8),
+                     (halfw,halfh-cut), (halfw-cut,halfh+rng.uniform(-.012,.012)),
+                     (-halfw+cut*.8,halfh+rng.uniform(-.012,.012)),(-halfw,halfh-cut),(-halfw,-halfh+cut)]
+            centre=a+width/2;yy=bottom+row_height/2;vertices=[];faces=[]
+            # A broad face, small inset front chamfer and recessed mortar edge.
+            for depth,scale in [(-.315,1),(.310+rng.uniform(-.009,.009),1),(.352+rng.uniform(-.009,.009),.94)]:
+                for u,v in outline:
+                    u=centre+u*scale;v=yy+v*scale
+                    vertices.append((location[0]+(depth if turn else u),location[1]+v,location[2]+(u if turn else depth)))
+            faces=[tuple(reversed(range(8))),tuple(range(16,24))]
+            for ring in range(2):
+                for k in range(8):faces.append((ring*8+k,ring*8+(k+1)%8,(ring+1)*8+(k+1)%8,(ring+1)*8+k))
+            obj=mesh_object(name,vertices,faces,stone,region)
+            import bmesh
+            bm=bmesh.new();bm.from_mesh(obj.data);bmesh.ops.recalc_face_normals(bm,faces=list(bm.faces));bm.to_mesh(obj.data);bm.free()
+            profile_uv(obj,8,3,[0,1],axis)
+            obj['masonry_course']=course;obj['masonry_local_seed']=seed
+            obj['masonry_finish']='Actual staggered irregular stone outlines, recessed mortar gaps and eased projecting face.'
+            a+=width
+
+
+def far_snow_roof(x,z,width,plaster,wood,snow):
+    box('Distant courtyard building',(width,2.5,5.5),(x,1.25,z),plaster,.02)
+    vertices=[];faces=[];nx=8;nz=12
+    for row in range(nz+1):
+        zz=-3.3+6.6*row/nz
+        for col in range(nx+1):
+            xx=-width/2-.35+(width+.7)*col/nx
+            yy=2.7+1.55*max(0,1-abs(zz)/3.3)**1.3+.24+.035*math.sin(xx*1.7+zz)
+            vertices.append((x+xx,yy,z+zz))
+    for row in range(nz):
+        for col in range(nx):
+            i=row*(nx+1)+col;faces.append((i,i+nx+1,i+nx+2,i+1))
+    obj=mesh_object('Distant snow-covered roof silhouette',vertices,faces,snow,'court')
+    for face in obj.data.polygons:face.use_smooth=True
+    for side in [-1,1]:beam('Distant roof dark eave',(x-width/2-.35,2.76,z+side*3.3),(x+width/2+.35,2.76,z+side*3.3),.085,wood,.085,'court')
+
+
+def court_lantern(ground,granite,bronze,warm,snow):
+    x,z=-5.5,11.4;y=.12
+    with CONTACTS.group('court stone lantern foundation',[ground]):
+        base=lathe('Court stone lantern base',[(0,0),(.29,0),(.31,.06),(.28,.14),(.21,.19),(0,.19)],(x,y,z),granite,24)
+        for vertex in base.data.vertices:
+            if vertex.co.z<=y+.0001:
+                vertex.co.z=resting_contact_height(vertex.co.x,-vertex.co.y,[ground])+.0003
+        lathe('Court stone lantern post',[(.16,0),(.12,.05),(.095,.64),(.16,.74),(.22,.79)],(x,y+.18,z),granite,24)
+        shelf=box('Court stone lantern chamber shelf',(.48,.10,.48),(x,y+1.0,z),granite,.025)
+        for dx in [-.20,.20]:
+            for dz in [-.20,.20]:box('Court stone lantern chamber post',(.055,.38,.055),(x+dx,y+1.24,z+dz),granite,.015)
+        roof=mesh_object('Court stone lantern hipped cap',[(x+dx,y+h,z+dz) for dx,h,dz in [(-.40,1.43,-.40),(.40,1.43,-.40),(.40,1.43,.40),(-.40,1.43,.40),(-.07,1.70,-.07),(.07,1.70,-.07),(.07,1.70,.07),(-.07,1.70,.07)]],[(0,1,5,4),(1,2,6,5),(2,3,7,6),(3,0,4,7),(4,5,6,7),(3,2,1,0)],granite)
+        bevel(roof,.018,2)
+        cap=snow_coping('Court lantern soft roof snow',.86,.86,.28,(x,y+1.47,z),snow,seed=901)
+        for vertex in cap.data.vertices:
+            dx=vertex.co.x-x;dz=-vertex.co.y-z
+            roof_y=y+1.70-.27*max(abs(dx),abs(dz))/.40
+            if vertex.co.z>y+1.401:vertex.co.z=roof_y+.115+.02*math.sin(dx*9+dz*7)
+            else:vertex.co.z=min(vertex.co.z,roof_y-.02)
+        with CONTACTS.group('court lantern oil cup',[shelf]):
+            fixture=small_fixture('Court lantern oil cup',x,y+1.05,z,bronze,warm,kind='court bronze oil dish',size=.75,fuel=.58,watts=12)
+        FIXED_LAMPS.append({'name':'court lantern','group':'court lantern oil cup',**fixture})
+
+
+def court_incense_stand(ground,stone,soot):
+    x,y,z=4.6,.12,9.5
+    with CONTACTS.group('court incense stand',[ground]):
+        base=lathe('Court incense stand stone base',[(0,0),(.28,0),(.30,.055),(.23,.15),(.13,.19),(.13,.62),(.26,.67),(.28,.73),(.26,.77),(.22,.77),(.21,.72),(0,.70)],(x,y,z),stone,32)
+        for v in base.data.vertices:
+            if v.co.z<=y+.0001:v.co.z=resting_contact_height(v.co.x,-v.co.y,[ground])+.0003
+        with CONTACTS.group('court incense ash',[base]):
+            ash=cylinder('Court incense cold ash',.17,.016,(x,y+.71,z),material('Court cold incense ash','#6a6861',rough=1),32,0)
+        for i in range(3):
+            with CONTACTS.group('court spent incense '+str(i),[ash]):
+                beam('Court spent incense',(x-.06+i*.055,y+.73,z-.03+i*.02),(x-.01+i*.04,y+.735,z+.04+i*.01),.0025,soot,.002)
+
+
+def scene_geometry_report(scene):
+    """Actual evaluated counts/bounds for camera routing and package planning."""
+    graph=bpy.context.evaluated_depsgraph_get();regions={};objects=[];bounds={}
+    for obj in STATIC.objects:
+        if obj.type!='MESH':continue
+        evaluated=obj.evaluated_get(graph);mesh=evaluated.to_mesh(preserve_all_data_layers=True,depsgraph=graph);mesh.calc_loop_triangles()
+        world=[evaluated.matrix_world@v.co for v in mesh.vertices]
+        area=sum((world[t.vertices[1]]-world[t.vertices[0]]).cross(world[t.vertices[2]]-world[t.vertices[0]]).length*.5 for t in mesh.loop_triangles)
+        row={'object':obj.name,'region':obj.get('region'),'vertices':len(mesh.vertices),'triangles':len(mesh.loop_triangles),'worldAreaM2':area};objects.append(row)
+        region=regions.setdefault(row['region'],{'objects':0,'vertices':0,'triangles':0})
+        for key in ['vertices','triangles']:region[key]+=row[key]
+        region['worldAreaM2']=region.get('worldAreaM2',0)+area
+        region['objects']+=1
+        if obj.name.startswith(('Main door jamb','Red door plank','Round entasis red timber column','Porch entasis column','Stone door threshold','Door head lintel','Visitor lantern suspension')):
+            points=[engine_point(evaluated.matrix_world@v.co) for v in mesh.vertices]
+            bounds[obj.name]={'min':[min(p[k] for p in points) for k in range(3)],'max':[max(p[k] for p in points) for k in range(3)]}
+        evaluated.to_mesh_clear()
+    report={'regions':regions,'totalTriangles':sum(o['triangles'] for o in objects),'totalObjects':len(objects),'largestContributors':sorted(objects,key=lambda o:o['triangles'],reverse=True)[:35],
+            'reductionPolicy':'Explicit paver edge profiles; no degenerate lathe poles; only snow-exposed tile courses and barge edges; aggregate winter branch meshes; one continuous snowfield/bank surface.'}
+    scene['source_geometry_budget']=json.dumps(report)
+    scene['architecture_bounds_engine']=json.dumps({'evaluatedObjects':bounds,'mainDoorClearWidthMetres':3.10,'mainDoorPlaneZ':2.2,'mainDoorOpeningTopY':4.11,
+        'visitorLampAttachment':[-3.35,3.22,1.2],'visitorFlameBasis':[-3.35,2.80,1.2],'preferredBurningEye':[-4.05,2.40,1.8]})
+    return report
+
+
+
+def material_delivery_report(scene):
+    rows=[]
+    materials=sorted(set(m for o in STATIC.objects if o.type=='MESH' for m in o.data.materials if m),key=lambda m:m.name)
+    for mat in materials:
+        if not mat.use_nodes:continue
+        bsdf=next((n for n in mat.node_tree.nodes if n.type=='BSDF_PRINCIPLED'),None)
+        if not bsdf:continue
+        rows.append({'material':mat.name,'surfaceTintExported':bool(mat.get('one_light_surface_tint')),
+            'roughness':float(bsdf.inputs['Roughness'].default_value),'metallic':float(bsdf.inputs['Metallic'].default_value),
+            'expectedExportBaseColorFactor':list(mat.get('one_light_export_basecolor_factor',bsdf.inputs['Base Color'].default_value)),
+            'minRuntimeRoughness':mat.get('one_light_min_roughness'),
+            'images':[{'path':n.image.filepath,'role':n.label,'colorSpace':n.image.colorspace_settings.name} for n in mat.node_tree.nodes if n.type=='TEX_IMAGE' and n.image],
+            'nonExportingProceduralTextures':[n.type for n in mat.node_tree.nodes if n.type in ['TEX_NOISE','TEX_VORONOI','TEX_WAVE','TEX_MUSGRAVE']]})
+    scene['source_material_delivery']=json.dumps({'policy':'Patina, paint grain, soot and weathering are frozen SurfaceTint. Image tint is frozen into COLOR_0 when needed; linked shader multiplication uses supported ShaderNodeMix RGBA. Scanned UV0/albedo/normal maps retained; table roughness is .58.','materials':rows})
 
 
 def build_scene():
@@ -875,28 +1142,34 @@ def build_scene():
     scene.world = bpy.data.worlds.new('Cold winter sky')
     scene.world.use_nodes = True
     scene.world.node_tree.nodes['Background'].inputs['Color'].default_value = (.19, .28, .47, 1)
-    scene.world.node_tree.nodes['Background'].inputs['Strength'].default_value = .15
+    scene.world.node_tree.nodes['Background'].inputs['Strength'].default_value = .22
 
     granite = material('Worn granite', '#9d9d94', 'stone_pavers', .92)
+    base_stone = material('Exposed weathered foundation granite','#d4cbb6','stone_pavers',.96)
     paving = [material('Dark hall paving %d' % i, c, 'stone_pavers', .68) for i, c in enumerate(['#4c4d4a', '#555450', '#434542'])]
     walk_paving=material('Walk-polished worn dark stone','#41443f','stone_pavers',.48)
     brick = material('Weathered brick footings', '#9b8f81', 'dark_brick_wall', .9)
     plaster = material('Patched lime plaster', '#c4c0b5', 'white_plaster_rough_01', .95)
-    red = material('Aged red painted timber', '#9b3d2c', 'weathered_planks', .65)
+    red = material('Aged red painted timber', '#a74330', rough=.61)
     dark_wood = material('Dark old timber', '#69503a', 'weathered_planks', .78)
-    teal = material('Faded teal beam paint', '#406c68', 'weathered_planks', .72)
+    teal = material('Faded teal beam paint', '#477d75', rough=.72)
     gold = material('Tarnished gilded edges', '#b89b55', rough=.39, metal=.76)
     screen_gold = material('Gilded screen panels', '#aa8b44', 'weathered_planks', .5, .62)
     snow = material('Snow settled dry grains', '#e3eaf2', 'snow_004', rough=.93)
-    paper = material('Ivory window paper', '#c3b49b', rough=.92)
+    paper = material('Ivory window paper', '#bfb39a', rough=.98,emission=.035)
     warm = material('Other lamps warm wick', '#ffbc78', rough=.5, emission=3)
-    bronze = material('Aged bronze', '#746041', rough=.42, metal=.78)
+    bronze = material('Aged bronze', '#977044', rough=.46, metal=.88)
     soot = material('Soot-darkened clay', '#36312a', rough=.97)
+    for painted in [red,teal]:
+        vertex_tint_shader(painted);painted['one_light_painted_timber']=True;painted_timber_finish(painted)
+    vertex_tint_shader(bronze);bronze['one_light_bronze_patina']=True
     weather_plaster(plaster)
     soot_stains(plaster,[(side*2.0,2.18,19.215,.20,.56,.045) for side in [-1,1]],.48)
     soot_stains(dark_wood,[(xx,5.025,-4.75,.28,.045,.35) for xx in [-1.45,-.95,.95,1.45]],.35)
+    soot_stains(teal,[(xx,5.008,-4.75,.40,.065,.52) for xx in [-1.45,-.82,.71,1.475]],.33)
     stable_roughness(gold,.45)
     stable_roughness(bronze,.48)
+    cast_bronze_material(bronze)
     for mat in paving:stable_roughness(mat,.58)
     stable_roughness(walk_paving,.43)
 
@@ -917,42 +1190,58 @@ def build_scene():
     rear_wall=box('Hall rear wall', (10.6,4.5,.32), (0,2.85,-6.6), plaster, .025)
     for side in [-1,1]:
         box('Hall side wall', (.34,4.5,8.8), (side*5.3,2.85,-2.3), plaster, .025)
-        box('Front lower wall', (3.95,1.0,.32), (side*3.125,1.1,2.2), plaster, .025)
-        box('Front upper wall', (3.95,1.8,.32), (side*3.125,4.2,2.2), plaster, .025)
-        for xx,ww in [(side*1.725,1.15),(side*4.5,1.2)]:
-            box('Window jamb plaster', (ww,1.7,.32), (xx,2.45,2.2), plaster, .02)
-        window('Main hall lattice', side*3.1,2.45,2.2,1.6,1.7,red,paper)
-    box('Door head lintel', (2.3,1.5,.38), (0,4.35,2.2), red, .025)
-    for xx in [-1.03,1.03]:box('Main door jamb',(.16,3.05,.38),(xx,2.125,2.2),red,.022)
-    box('Stone door threshold', (2.0,.14,.48), (0,.67,2.28), granite, .025)
+        box('Front lower wall', (3.52,1.2,.32), (side*3.54,1.2,2.2), plaster, .025)
+        box('Front upper wall', (3.52,.85,.32), (side*3.54,4.65,2.2), plaster, .025)
+        for xx,ww in [(side*1.97,.38),(side*4.97,.66)]:
+            box('Window jamb plaster', (ww,2.55,.32), (xx,2.875,2.2), plaster, .02)
+        window('Main hall lattice', side*3.45,2.83,2.2,2.16,2.10,red,paper)
+        box('Facade painted window header',(3.5,.22,.39),(side*3.54,4.10,2.2),teal,.018)
+    box('Door head lintel', (3.52,.55,.42), (0,4.52,2.2), red, .025)
+    box('Door framed transom backing',(3.12,.19,.10),(0,4.205,2.2),dark_wood,.01)
+    for xx in [-1.0,-.5,0,.5,1.0]:box('Transom vertical joinery',(.038,.23,.12),(xx,4.205,2.18),teal,.005)
+    for xx in [-1.65,1.65]:box('Main door jamb',(.20,3.95,.42),(xx,2.575,2.2),red,.022)
+    box('Stone door threshold', (3.1,.09,.48), (0,.605,2.28), granite, .018)
     # Open leaves are genuine constructed boards with battens and iron rings.
     for side in [-1,1]:
         hinge = bpy.data.objects.new('Open door hinge', None)
         STATIC.objects.link(hinge)
-        hinge.location = point((side*.98,.6,2.14))
-        hinge.rotation_euler[2] = side*1.22
+        # The pin is physically outside the outer jamb face. Wide outward
+        # leaves fold beside the facade rather than occluding the diagonal
+        # hall-to-blue-court sightline or narrowing the walking opening.
+        hinge.location = point((side*1.62,.6,2.46))
+        hinge.rotation_euler[2] = side*2.86
         tag(hinge,'hall')
-        for board in range(5):
-            obj=box('Red door plank',(.185,2.91,.07),(side*(.1+board*.19),2.1,2.14),red,.012)
+        hinge['hinge_policy']='Actual outer-jamb pin; outward164-degree leaf against exterior facade.'
+        for hh in [.44,1.65,3.06]:
+            box('Door jamb fixed hinge plate',(.15,.34,.025),(side*1.65,.6+hh,2.420),bronze,.008)
+            cylinder('Door hinge full vertical pin',.017,.40,(side*1.62,.6+hh,2.46),bronze,16,0)
+            for dy in [-.14,.14]:
+                lathe('Door fixed jamb hinge knuckle',[(.020,-.045),(.035,-.045),(.035,.045),(.020,.045),(.020,-.045)],(side*1.62,.6+hh+dy,2.46),bronze,16)
+            beam('Door hinge plate to pin lug',(side*1.65,.6+hh,2.425),(side*1.62,.6+hh,2.46),.019,bronze,.018)
+            obj=lathe('Door leaf revolving hinge knuckle',[(.020,-.086),(.035,-.086),(.035,.086),(.020,.086),(.020,-.086)],(0,0,0),bronze,16)
+            obj.parent=hinge;obj.location=Vector((0,0,hh))
+        for board in range(7):
+            obj=box('Red door plank',(.215,3.42,.075),(0,0,0),red,.010)
             matrix=obj.matrix_world.copy();obj.parent=hinge;obj.matrix_world=matrix
             # Keep the leaf hinged at its jamb; board local coordinates run toward the centre when shut.
-            obj.location=Vector((-side*(.1+board*.19),0,1.5));obj.rotation_euler=(0,0,0)
-        for hh in [.45,1.45,2.45]:
-            obj=box('Door rear batten',(.92,.10,.10),(0,0,0),dark_wood,.012)
-            obj.parent=hinge;obj.location=Vector((-side*.48,-.06,hh))
+            obj.location=Vector((-side*(.11+board*.22),0,1.78));obj.rotation_euler=(0,0,0)
+        for hh in [.45,1.65,3.0]:
+            obj=box('Door rear batten',(1.54,.12,.10),(0,0,0),dark_wood,.012)
+            obj.parent=hinge;obj.location=Vector((-side*.77,.065,hh))
         for row in range(6):
-            for col in range(3):
+            for col in range(4):
                 obj=lathe('Worn bronze door stud',[(0,0),(.023,0),(.024,.007),(.018,.021),(0,.027)],(0,0,0),bronze,16)
-                obj.parent=hinge;obj.location=Vector((-side*(.19+col*.28),-.033,.40+row*.42));obj.rotation_euler=(math.pi/2,0,0)
-        for hh in [.44,1.45,2.46]:
+                obj.parent=hinge;obj.location=Vector((-side*(.22+col*.35),-.039,.42+row*.54));obj.rotation_euler=(math.pi/2,0,0)
+        for hh in [.44,1.65,3.06]:
             obj=box('Forged door hinge strap',(.075,.27,.022),(0,0,0),bronze,.012)
-            obj.parent=hinge;obj.location=Vector((-side*.04,-.043,hh))
+            obj.parent=hinge;obj.location=Vector((-side*.04,.043,hh))
         obj=lathe('Door ring backplate',[(0,0),(.067,0),(.07,.009),(.06,.016),(0,.016)],(0,0,0),bronze,24)
-        obj.parent=hinge;obj.location=Vector((-side*.72,-.034,1.43));obj.rotation_euler=(math.pi/2,0,0)
+        obj.parent=hinge;obj.location=Vector((-side*1.22,-.041,1.11));obj.rotation_euler=(math.pi/2,0,0)
         # A real loose metal ring, not a painted circle on the leaf.
         bpy.ops.mesh.primitive_torus_add(major_radius=.077,minor_radius=.008,major_segments=28,minor_segments=8)
         obj=move_to_static(bpy.context.object,'hall');obj.name='Forged door pull ring';obj.data.materials.append(bronze)
-        obj.parent=hinge;obj.location=Vector((-side*.72,-.063,1.36));obj.rotation_euler=(math.pi/2,0,0);uv_world(obj)
+        obj.parent=hinge;obj.location=Vector((-side*1.22,-.07,1.04));obj.rotation_euler=(math.pi/2,0,0);uv_world(obj)
+        torus_uv(obj,.077,.008)
     # Columns stand on granite drums, with visible timber shoulders and bracket sets.
     for xx,zz in [(-2.7,1.0),(2.7,1.0),(-2.7,-4.2),(2.7,-4.2)]:
         lathe('Carved granite column base',[(.28,0),(.29,.025),(.28,.075),(.24,.10),(.255,.14),(.24,.18),(.205,.23)],(xx,.6,zz),granite,40)
@@ -964,6 +1253,22 @@ def build_scene():
         lathe('Porch entasis column',[(.18,0),(.185,.2),(.19,1.6),(.17,3.5),(.16,4.05)],(xx,.82,3.55),red,36)
         bracket_set(xx,4.69,3.55,dark_wood,teal,gold)
     box('Dark boarded ceiling',(10.6,.16,8.8),(0,5.12,-2.3),dark_wood,.012)
+    for xx in [-3.5,0,3.5]:
+        for zz in [-4.7,-2.4,-.1]:
+            box('Inset blue green ceiling panel',(3.12,.035,1.95),(xx,5.025,zz),teal,.006)
+            for side in [-1,1]:
+                box('Ceiling panel red longitudinal frame',(.11,.12,2.16),(xx+side*1.62,4.99,zz),red,.01)
+                box('Ceiling panel red cross frame',(3.35,.12,.10),(xx,4.99,zz+side*1.04),red,.01)
+                beam('Ceiling abstract ochre lozenge',(xx-.42,4.947,zz),(xx,4.947,zz+side*.27),.012,gold,.012)
+                beam('Ceiling abstract ochre lozenge',(xx,4.947,zz+side*.27),(xx+.42,4.947,zz),.012,gold,.012)
+    for side in [-1,1]:
+        box('Hall longitudinal carrying beam',(.25,.32,7.8),(side*2.7,4.65,-2.0),red,.025)
+        for zz in [-4.6,-1.65,1.15]:
+            box('Wall engaged timber post',(.17,3.75,.22),(side*5.09,2.52,zz),red,.015)
+            bracket_set(side*5.02,4.55,zz,dark_wood,teal,gold)
+        for zz in [-4.65,-1.65]:
+            box('Side wall timber lower rail',(.12,.13,2.6),(side*5.10,1.12,zz),dark_wood,.01)
+            box('Side wall painted upper rail',(.13,.17,2.6),(side*5.10,3.72,zz),teal,.01)
     for zz in [1.1,-.5,-2.3,-4.1]:
         box('Painted transverse beam',(10.4,.28,.24),(0,4.85,zz),teal,.025)
         for yy in [4.73,4.98]:box('Worn gilded beam rule',(10.3,.025,.255),(0,yy,zz),gold,.004)
@@ -981,9 +1286,10 @@ def build_scene():
         worn_step('Chipped and worn granite step',3.2,.2,.43,(0,.5-i*.2,4.8+i*.4),granite)
     # Narrow icicles hang from the sheltered edge rather than floating over the court.
     ice=material('Cloudy icicle ice','#ccdbe5',rough=.38)
-    for i in range(47):
-        xx=-5.8+i*.25+RNG.uniform(-.035,.035)
-        length=.06+RNG.random()**2*.29
+    ice_rng=random.Random(18731)
+    for i in range(29):
+        xx=-5.65+i*.40+ice_rng.uniform(-.15,.15)
+        length=.09+ice_rng.random()**1.5*.34
         edge=roof_surface(0,5.15,-2.3,12,6.7,2.65,xx,1,1)
         beam('Eave icicle',(xx,edge[1]-.03,edge[2]),(xx,edge[1]-.03-length,edge[2]),.014+length*.02,ice,.001)
 
@@ -992,6 +1298,10 @@ def build_scene():
     floor_supports=[obj for obj in STATIC.objects if obj.name.startswith('Settled irregular paving stone')]
     with CONTACTS.group('scanned console altar', floor_supports):
         console=import_prop('Scanned console altar','web/public/models/chinese_console_table/chinese_console_table.gltf',(0,.6,-4.85),1.03)
+    with CONTACTS.group('small personal offering bowl',console):
+        lathe('Offering worn ceramic bowl',[(0,0),(.040,0),(.046,.009),(.073,.049),(.075,.061),(.063,.062),(.053,.021),(0,.017)],(-.35,1.63,-4.65),material('Old glazed offering ceramic','#807863',rough=.72),32)
+    with CONTACTS.group('folded personal offering note',console):
+        box('Offering folded paper note',(.13,.004,.095),(.33,1.63,-4.66),material('Aged folded offering paper','#c4b599',rough=.99),.001,rotation=.12)
     # Pedestals themselves rest on the actual irregular paving. Their top
     # profiles require a bearing cap: the old open rim cannot support a lamp.
     pedestals={}
@@ -1011,10 +1321,14 @@ def build_scene():
     for xx in [-2.34,2.34]:
         with CONTACTS.group('screen edge molding '+str(xx), [screen_rail]):
             lathe('Gilded screen edge molding',[(.028,0),(.038,.04),(.028,3.5),(.045,3.58),(.045,3.62)],(xx,1.3,-6.23),gold,16)
-    for xx in [-1.45,-.95,.95,1.45]:
+    fixture_specs=[(-1.45,-.045,-.08,'bronze pedestal oil lamp',1.20,.81,True,18),
+                   (-.95,.13,.10,'brown clay oil dish',.91,.34,True,14),
+                   (.95,-.24,-.065,'spent bronze candle cup',.80,.08,False,0),
+                   (1.45,.025,.11,'small bronze oil lamp',1.04,.55,True,17)]
+    for xx,dx,dz,kind,size,fuel,lit,watts in fixture_specs:
         support=[pedestals[xx]] if xx in pedestals else console
         with CONTACTS.group('altar '+str(xx), support):
-            fixture=small_fixture('Other altar lamp',xx,1.63,-4.75,bronze,warm)
+            fixture=small_fixture('Other altar lamp',xx+dx,1.63,-4.75+dz,bronze,warm,kind=kind,size=size,fuel=fuel,lit=lit,watts=watts)
         FIXED_LAMPS.append({'name':'altar '+str(xx),'group':'altar '+str(xx),**fixture})
     with CONTACTS.group('altar burner assembly', console):
         ash_surface=brass_burner((0,1.63,-4.85),bronze,soot)
@@ -1022,6 +1336,14 @@ def build_scene():
             with CONTACTS.group('smouldering incense '+str(i), [ash_surface]):
                 rod=beam('Smouldering incense',(i*.025-.04,1.75,-4.85),(i*.028-.04,1.98+RNG.uniform(-.015,.015),-4.85),.0028,dark_wood,.0028)
             INCENSE.append(rod)
+    spill_rng=random.Random(57122)
+    with CONTACTS.group('altar spilled incense ash',console):
+        ash_mat=material('Spilled cool grey incense ash','#847e72',rough=1)
+        for i in range(12):
+            xx=spill_rng.uniform(-.12,.18);zz=spill_rng.uniform(-4.63,-4.61)
+            yy=resting_contact_height(xx,zz,console)+.0002
+            radius=spill_rng.uniform(.006,.014)
+            lathe('Spilled incense ash clump',[(0,0),(radius,0),(radius*.80,.003),(radius*.27,.006),(0,.005)],(xx,yy,zz),ash_mat,10)
     for side in [-1,1]:
         with CONTACTS.group('kneeling cushion '+str(side), floor_supports):
             kneeling_cushion(side*.85,.661,-3.3)
@@ -1035,18 +1357,20 @@ def build_scene():
             with CONTACTS.group('stacked bowl '+str(i), [previous] if previous else floor_supports):
                 previous=lathe('Stacked plain bowls',[(0,0),(.11,0),(.15,.09),(.14,.11),(.1,.03),(0,.02)],(4.62,.6+i*.055,-4.9),soot)
     # The suspension and fixed anchor are static; the person's red gauze lantern is not part of this export.
-    beam('Visitor lantern suspension',(0,4.73,-.5),(0,3.25,-.5),.007,bronze,.007)
+    beam('Visitor lantern suspension',(-3.35,4.73,1.2),(-3.35,3.22,1.2),.007,bronze,.007)
     anchor=bpy.data.objects.new('Visitor_Lamp_Anchor',None)
     bpy.data.collections['RUNTIME'].objects.link(anchor)
-    anchor.location=point((0,3.22,-.5))
+    anchor.location=point((-3.35,3.22,1.2))
     anchor['runtime_lamp']='gauze';anchor['runtime_owned']=True
-    light('Visitor flame bake basis',(0,2.99,-.5),45,'#ffbd78',.04,'lamp')
+    visitor_basis=light('Visitor flame bake basis',(-3.35,2.80,1.2),45,'#ffbd78',.04,'lamp')
     light('Cool court light entering doorway',(0,2.2,4.4),65,'#b4cdf6',1.4,'ambient')
+    light('Soft warm hall interreflection',(0,3.8,-3.6),12,'#eac297',1.8,'ambient')
 
     REGION='gate'
     for side in [-1,1]:
         box('Gate plaster pier',(2.6,3.7,2.4),(side*2.7,1.85,18),plaster,.045)
-        box('Weathered gate stone plinth',(2.72,.4,2.52),(side*2.7,.2,18),granite,.035)
+        box('Weathered gate stone plinth',(2.72,.65,2.52),(side*2.7,.325,18),granite,.035)
+        masonry_base('Gate exposed irregular foundation course',2.70,(side*2.7,0,18.97),base_stone,seed=820+side,height=.76,region='gate')
     box('Gate lintel',(2.8,.48,2.4),(0,3.48,18),dark_wood,.025)
     for side in [-1,1]:
         lathe('Gate round stone drum',[(.24,0),(.26,.04),(.23,.14),(.17,.20)],(side*1.64,.1,19.35),granite,32)
@@ -1056,38 +1380,61 @@ def build_scene():
     for side in [-1,1]:
         box('Gate red door jamb',(.2,2.9,.18),(side*1.48,1.45,19.23),red,.025)
         box('Gate threshold end',(.45,.13,1.2),(side*1.55,.065,18),granite,.04)
-    # Two unobtrusive fixed gate lamps provide warm pools while leaving the blue snow dominant.
+    # Gate lamps light the actual passage and carved returns from both ends.
     for side in [-1,1]:
         shelf=box('Gate lamp shelf',(.38,.10,.33),(side*2.0,1.55,19.25),granite,.02)
         with CONTACTS.group('gate '+str(side), [shelf]):
-            fixture=small_fixture('Gate shelf lamp',side*2.0,1.6,19.25,bronze,warm)
+            fixture=small_fixture('Gate shelf lamp',side*2.0,1.6,19.25,bronze,warm,kind='gate bronze oil cup',size=1.10 if side<0 else .98,fuel=.72 if side<0 else .46,watts=19)
         FIXED_LAMPS.append({'name':'gate '+str(side),'group':'gate '+str(side),**fixture})
 
     REGION='court'
-    snow_field(snow)
-    stair_snow_banks(snow)
+    ground_snow=snow_field(snow)
+    light('Moon and court reflected into gate passage',(0,2.15,17.0),28,'#a4bedf',1.5,'ambient')
     for side in [-1,1]:
-        box('Court front wall',(8.0,2.55,.55),(side*8,1.275,18),plaster,.035)
-        box('Front wall coping snow',(8.2,.17,.72),(side*8,2.63,18),snow,.055)
-        box('Court side wall',(.55,2.55,28),(side*12,1.275,4),plaster,.035)
-        box('Side wall coping snow',(.72,.17,28.2),(side*12,2.63,4),snow,.055)
-        for k in range(7):
-            box('Front wall base stone',(1.10,.4,.66),(side*(4.5+k*1.13),.2,18),granite,.022)
-        for k in range(25):
-            box('Side wall base stone',(.66,.4,1.1),(side*12,.2,-9.4+k*1.13),granite,.022)
-        # Low side halls use plain roofs and shallow porches at the same construction scale as the main hall.
-        box('Side hall back',(.3,2.5,11),(side*10.7,1.4,3),plaster,.025)
+        courtyard_wall('Court front wall',8.0,(side*8,1.275,18),plaster)
+        wall_coping('Front wall clay coping',8.1,(side*8,2.55,18),.70,dark_wood,snow,seed=33+(side+1))
+        courtyard_wall('Court side wall',28,(side*12,1.275,4),plaster,turn=True)
+        wall_coping('Side wall clay coping',28.1,(side*12,2.55,4),.70,dark_wood,snow,turn=True,seed=72+(side+1))
+        masonry_base('Front wall exposed irregular foundation course',8.0,(side*8,0,18),base_stone,seed=840+side)
+        masonry_base('Side wall exposed irregular foundation course',28,(side*12,0,4),base_stone,turn=True,seed=870+side)
+        # A complete long side hall supports its roof in the correct direction.
+        box('Side hall back',(.3,2.5,11.4),(side*10.7,1.4,3),plaster,.025)
+        for zz in [-2.7,8.7]:box('Side hall gable wall',(2.05,2.5,.28),(side*9.9,1.4,zz),plaster,.025)
+        for zz in [-2.7,8.7]:
+            top=[]
+            for j in range(13):
+                gx=side*(8.875+2.05*j/12);offset=gx-side*10
+                roof=roof_surface(0,2.95,0,12.6,2.15,1.1,3-zz,abs(offset)/2.15,1 if offset>=0 else -1)
+                top.append((gx,roof[1]-.19,zz))
+            section=[(top[0][0],2.5),(top[-1][0],2.5)]+[(p[0],p[1]) for p in reversed(top)]
+            vertices=[(xx,yy,zz+d) for d in [-.14,.14] for xx,yy in section];n=len(section)
+            faces=[tuple(reversed(range(n))),tuple(range(n,n*2))]+[(k,(k+1)%n,(k+1)%n+n,k+n) for k in range(n)]
+            mesh_object('Side hall enclosed curved gable',vertices,faces,plaster,'court')
+            curved_tube('Side hall exposed gable timber',[(p[0],p[1]+.07,p[2]) for p in top],[.065]*len(top),dark_wood,8,region='court')
         for zz in [-2.3,1.1,4.5,7.9]:
-            cylinder('Side hall porch column',.11,2.6,(side*8.9,1.5,zz),red,24,.01)
-        tiled_roof('Side hall',side*10,2.95,3,4.7,6.5,.95,material('Side hall roof tiles','#666d72','grey_roof_tiles',rough=.85),dark_wood,snow,'court')
+            cylinder('Side hall porch column',.11,2.6,(side*8.25,1.5,zz),red,24,.01)
+        box('Side hall porch carrying beam',(.19,.21,11.2),(side*8.25,2.9,3),red,.015)
+        before=set(STATIC.objects)
+        tiled_roof('Side hall',0,2.95,0,12.6,2.15,1.1,material('Side hall roof tiles','#666d72','grey_roof_tiles',rough=.85),dark_wood,snow,'court')
+        transform=Matrix.Translation(point((side*10,0,3)))@Matrix.Rotation(math.pi/2,4,'Z')
+        for obj in set(STATIC.objects)-before:
+            if obj.type=='MESH':obj.data.transform(transform)
         for zz in [-.8,4.0]:
             box('Snow bench seat',(1.3,.15,.5),(side*7.0,.5,zz),granite,.025)
             for dx in [-.4,.4]:box('Stone bench leg',(.2,.4,.35),(side*7+dx,.2,zz),granite,.025)
-            box('Snow over bench',(1.3,.08,.5),(side*7,.61,zz),snow,.035)
-    box('Court back wall',(24,2.55,.55),(0,1.275,-10),plaster,.035)
-    for k in range(20):box('Back wall base stone',(1.18,.4,.66),(-11.4+k*1.2,.2,-10),granite,.022)
-    box('Back wall snow',(24.2,.17,.72),(0,2.63,-10),snow,.055)
-    for xx,zz,hh in [(-16,11,6.5),(17,6,7.5),(-15,-7,7.0),(16,-9,6.8)]:bare_tree(xx,zz,hh,dark_wood,snow)
+            snow_coping('Soft uneven snow over bench',1.30,.56,.095,(side*7,.575,zz),snow,seed=110+int(zz*3)+side)
+    courtyard_wall('Court back wall',24,(0,1.275,-10),plaster)
+    masonry_base('Back wall exposed irregular foundation course',24,(0,0,-10),base_stone,seed=902)
+    wall_coping('Back wall clay coping',24.2,(0,2.55,-10),.70,dark_wood,snow,seed=94)
+    bark=material('Rough winter bark','#534a3b',rough=.97)
+    # Preserve the reviewed crooked crown seeds while fitting the actual40m
+    # desktop camera and54-degree portrait view. Main trunks stay in frame.
+    bare_tree(-3,22,6.6,bark,snow,seed=39422,crown_style='older')
+    bare_tree(4.1,20.6,5.0,bark,snow,seed=39628,crown_style='companion')
+    for xx,zz,hh in [(-7.0,11.5,5.2),(7.4,7.8,6.0),(-16,-8,7.1),(17,-7,6.2),(-19,-19,5.8),(-10,-22,6.1),(2,-24,5.2),(12,-21,6.0),(22,-18,6.5)]:bare_tree(xx,zz,hh,bark,snow)
+    for xx,zz,width in [(-17,-14,8.5),(15,-18,10.0)]:far_snow_roof(xx,zz,width,plaster,dark_wood,snow)
+    court_lantern(ground_snow,granite,bronze,warm,snow)
+    court_incense_stand(ground_snow,granite,soot)
 
     # Actual source cameras make the spatial contract inspectable in Blender as well as in runtime captures.
     cameras={
@@ -1116,8 +1463,27 @@ def build_scene():
     sun_data=bpy.data.lights.new('Moon basis','SUN');sun_data.energy=.45;sun_data.color=(.60,.72,1.0);sun_data.angle=.11
     sun=bpy.data.objects.new('Moon basis',sun_data);bpy.data.collections['LIGHTS'].objects.link(sun)
     sun.rotation_euler=(math.radians(22),math.radians(-28),math.radians(-35));sun['bake_role']='ambient'
-    scene['one_light_place']='snow-roof';scene['runtime_origin']='glTF Y-up; metres';scene['visitor_lamp_anchor']=[0,3.22,-.5]
+    scene['one_light_place']='snow-roof';scene['runtime_origin']='glTF Y-up; metres';scene['visitor_lamp_anchor']=[-3.35,3.22,1.2]
+    scene['one_light_lamp_basis']=json.dumps({'position':[-3.35,2.80,1.2],'watts':45,'linearColor':list(linear_light_color('#ffbd78')[:3]),'pointRadiusMetres':float(visitor_basis.data.shadow_soft_size),'sourceObject':'Visitor flame bake basis'})
     scene['lightmap_contract']='UVMap is material UV; baker creates packed Lightmap as second channel.'
+    altar_members=set()
+    for entry in CONTACTS.entries:
+        if entry['name'].startswith(('scanned console','turned pedestal','wall-mounted screen','mounted screen','screen edge','altar ','burner ash','charred incense','smouldering incense','small personal offering','folded personal offering')):altar_members.update(entry['members'])
+    for obj in STATIC.objects:
+        if obj.type!='MESH':continue
+        altar_floor=False
+        if obj.name.startswith('Settled irregular paving stone'):
+            mean=sum((obj.matrix_world@v.co for v in obj.data.vertices),Vector())/len(obj.data.vertices)
+            altar_floor=abs(mean.x)<2.3 and -6.6<-mean.y<-3.9
+        if obj.name in altar_members or altar_floor:obj['region']='altar'
+    altar_prefixes=('scanned console','turned pedestal','wall-mounted screen','mounted screen','screen edge','altar','burner ash','charred incense','smouldering incense','small personal offering','folded personal offering')
+    altar_objects={name for entry in CONTACTS.entries if entry['name'].startswith(altar_prefixes) for name in entry['members']}
+    for obj in STATIC.objects:
+        if obj.type!='MESH':continue
+        if obj.name in altar_objects:obj['region']='altar'
+        elif obj.name.startswith('Settled irregular paving stone'):
+            centre=sum((obj.matrix_world@v.co for v in obj.data.vertices),Vector())/len(obj.data.vertices)
+            if abs(centre.x)<2.35 and -6.55<-centre.y<-3.7:obj['region']='altar'
     bpy.context.view_layer.update()
     apply_surface_tints()
     contact_audit=CONTACTS.audit(fail=True)
@@ -1134,7 +1500,9 @@ def build_scene():
                       'wickObject':fixture['wick'].name,'pointLightObject':fixture['light'].name,
                       'supportObjects':entries[fixture['group']]['supports'],
                       'wickCenter':engine_point(center),'wickTip':engine_point(tip),
-                      'flameAnchor':engine_point(flame),'pointLight':engine_point(fixture['light'].matrix_world.translation)})
+                      'flameAnchor':engine_point(flame),'pointLight':engine_point(fixture['light'].matrix_world.translation),
+                      'linearColor':list(fixture['light'].data.color),
+                      'lit':fixture['lit'],'kind':fixture['kind'],'watts':float(fixture['light'].data.energy),'actualWatts':float(fixture['light'].data.energy),'fuelLevel':fixture['fuelLevel'],'pointRadiusMetres':float(fixture['light'].data.shadow_soft_size)})
     tips=[]
     for rod in INCENSE:
         points=[p for _,_,p in CONTACTS.vertices([rod])]
@@ -1148,11 +1516,21 @@ def build_scene():
     scene['static_incense_tips_engine']=json.dumps(tips)
     scene['static_incense_smoke_engine']=json.dumps(list(smoke))
     scene['static_incense_smoke_source']=json.dumps({'objects':[rod.name for rod in INCENSE],'tipMeanOffsetEngine':[0,.006,0],'derivation':'Mean actual evaluated highest incense-tip vertices, plus6mm upward.'})
+    scene['static_incense_smoke_config']=json.dumps({'anchor':list(smoke),'strandCount':2,'riseMetres':.62,'widthMetres':.016,'opacity':.12,'speedMetresPerSecond':.032,'swayMetres':.022,'sourceObjects':[rod.name for rod in INCENSE]})
+    scene['static_dust_config']=json.dumps({'boundsMin':[-4.8,.9,-5.9],'boundsMax':[4.8,4.7,1.9],'count':24,'radiusMetres':.0012,'speedMetresPerSecond':.008,'opacity':.12,'warmLightWeighted':True})
+    scene['one_light_anchor_fields']=json.dumps(['static_lamp_wicks_engine','static_incense_tips_engine','static_incense_smoke_engine','static_incense_smoke_source','static_incense_smoke_config','static_dust_config','one_light_lamp_basis'])
     scene['resting_prop_inventory']=json.dumps({'registeredGroups':[entry['name'] for entry in CONTACTS.entries],
         'mountedSupport':'Raised scanned screen leaves and edge molding bear on a real wall-fastened rail with actual fastener/wall intersections.',
         'fixedArchitecture':'Columns, column drums, built-in masonry benches, thresholds, roof snow and bough snow are construction/settled weather volumes, not loose table/floor props. Their embedded bearing is intentional; no loose prop is exempted.'})
-    scene['static_stability_notes']=json.dumps({'roofSnowTopOffsetLowerBound':.186,'tileCoverAndLipOffsetUpperBound':.135,'minimumBlanketClearance':.051,'weathering':'SurfaceTint COLOR_0; opaque geometry only, no decal planes','metalMinRoughness':.45,'bronzeMinRoughness':.48,'propRuntimeMinRoughness':.36,'walkPolishRoughness':.48,'coplanarAudit':'Floor slabs are above foundation by80mm; snow caps are closed volumes with embedded undersides; door hardware and beam inlays embed in their support surfaces.'})
-    scene['static_floor_heights_engine']=json.dumps({'hallFloor':.6,'terrace':.6,'steps':[{'z':4.8,'depth':.43,'top':.6,'wornCenterNosing':.575},{'z':5.2,'depth':.43,'top':.4,'wornCenterNosing':.375},{'z':5.6,'depth':.43,'top':.2,'wornCenterNosing':.175}],'snowTrackRange':[.04,.15]})
+    scene['static_stability_notes']=json.dumps({'roofSnowDeepBodyTopOffsetLowerBound':.23,'roofFringePolicy':'Nonperiodic feather q>.79 deliberately enters tile valleys; hidden faces require actual geometry enclosure, never a uniform-depth assumption.','tileCoverAndLipOffsetUpperBound':.135,'weathering':'SurfaceTint COLOR_0; opaque geometry only, no decal planes','bronzeMinRoughness':.48,'wornBronzeHighlightMinRoughness':.39,'propRuntimeMinRoughness':.58,'walkPolishRoughness':.48,'paintFinish':'CC0 photograph-derived matte .73–.91 roughness and fine normal; tint variation under1.5%.','snowFieldPolicy':'Continuous field with low outer stair drifts; old two-bank contact-padding certificates are incompatible and retired.'})
+    scene['static_floor_heights_engine']=json.dumps({'hallFloor':.6,'terrace':.6,'thresholdTop':.65,'thresholdZ':2.28,'steps':[{'z':4.8,'depth':.43,'top':.6,'wornCenterNosing':.575},{'z':5.2,'depth':.43,'top':.4,'wornCenterNosing':.375},{'z':5.6,'depth':.43,'top':.2,'wornCenterNosing':.175}],'snowTrackRange':[.01,.15]})
+    scene['source_lightmap_charts']=json.dumps(complete_source_charts(list(STATIC.objects)))
+    scene['source_albedo_policy']='Authored CSS-like hex colors are IEC sRGB-decoded once to scene-linear. Image color spaces and imported PBR factors remain unchanged. Patina/soot COLOR_0 is linear multiplier data. World/exposure/watts and explicit scene-linear light chromaticities are unchanged.'
+    scene['source_authoring_helpers']=json.dumps(['art/blender/resting_contacts.py','art/blender/snow_round1_details.py','art/blender/snow_bronze_maps.py','art/blender/snow_paint_maps.py','art/blender/snow_lightmap_charts.py'])
+    scene['source_authoring_sha256']=json.dumps({str(path.relative_to(ROOT)):hashlib.sha256(path.read_bytes()).hexdigest() for path in [Path(__file__).resolve(),ROOT/'art/blender/resting_contacts.py',ROOT/'art/blender/snow_round1_details.py',ROOT/'art/blender/snow_bronze_maps.py',ROOT/'art/blender/snow_paint_maps.py',ROOT/'art/blender/snow_lightmap_charts.py']})
+    scene['authored_night_lighting']=json.dumps({'worldStrength':.22,'moonEnergy':.45,'fixtureWatts':[float(f['light'].data.energy) for f in FIXED_LAMPS],'warmInterreflectionWatts':12,'gateReflectedFillWatts':28})
+    material_delivery_report(scene)
+    scene_geometry_report(scene)
     return scene
 
 

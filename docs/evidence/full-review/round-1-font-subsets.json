@@ -1,0 +1,225 @@
+{
+  "version": 1,
+  "workflow": {
+    "path": "scripts/subset-fonts.py",
+    "sha256": "2154b20f93471c8f410a7ba451f9443f3f9cd89a1991bc82cca3de36f02e740e"
+  },
+  "method": "Run the existing workflow unchanged; preserve official TTF downloads and hash actual originals/WOFF2 outputs. Independently inspect final cmap for all literal UI characters (i18n/App/Panels/DrawPad/shared places/rules), and representative EN/ZH Intl date ranges across every month.",
+  "uiSourceInputs": [
+    {
+      "path": "web/src/i18n.ts",
+      "sha256": "39b6f474246f86aaacc0b1ea7f4b39e27b2d44971b3d35b557ed9896f46b3906"
+    },
+    {
+      "path": "web/src/App.tsx",
+      "sha256": "0d827d36c1a376961b9f9accc5762cbf5b6b637e4b53007287857600cc2e42ae"
+    },
+    {
+      "path": "web/src/Panels.tsx",
+      "sha256": "cba4231a7d724105f2a13a11728327101ca85b7fb92eea52aaa424eeaa4df3a9"
+    },
+    {
+      "path": "web/src/DrawPad.tsx",
+      "sha256": "0c2f5ff92e8da0dcf6bd899aa7994c895b38effb1f4ae8ec67cea70d289d8641"
+    },
+    {
+      "path": "shared/places.ts",
+      "sha256": "ebc40fee17719bf706b1066bd91dd7334789eb961eb6c31f21eabbad99e44080"
+    },
+    {
+      "path": "shared/rules.ts",
+      "sha256": "462f455832962c0d47bea2a30d47322606ec3d0eb78ba36f67c06aec7ed79201"
+    }
+  ],
+  "uiLiteralCorpusSha256": "45889b964a3024bcdea4f4f6cd3cc38d5aff8e29c736a87aebf7cdc7a9ce2057",
+  "representativeDateCorpusSha256": "3bee7635cbb90ba3459f6065e3cbc8c5159f442471bdd3308a28b5b398f3b90e",
+  "uiCodepoints": 394,
+  "sourceFonts": [
+    {
+      "url": "https://fonts.gstatic.com/s/notoserifsc/v36/H4cyBXePl9DZ0Xe7gG9cyOj7uK2-n-D2rd4FY7SCqyWv.ttf",
+      "original": "artifacts/full-review/round-1/fonts/originals/400.ttf",
+      "bytes": 14785412,
+      "sha256": "a513b97fa1503422d78ee1f40415db736926e2d0d8d99701bdcede8cf6f6058e"
+    },
+    {
+      "url": "https://fonts.gstatic.com/s/notoserifsc/v36/H4cyBXePl9DZ0Xe7gG9cyOj7uK2-n-D2rd4FY7RcrCWv.ttf",
+      "original": "artifacts/full-review/round-1/fonts/originals/600.ttf",
+      "bytes": 14784836,
+      "sha256": "a296d053443fb478924d9d7ef3b57054ac791acab0b1f48f56e1028478911562"
+    },
+    {
+      "url": "https://fonts.gstatic.com/s/notoserifsc/v36/H4cyBXePl9DZ0Xe7gG9cyOj7uK2-n-D2rd4FY7RlrCWv.ttf",
+      "original": "artifacts/full-review/round-1/fonts/originals/700.ttf",
+      "bytes": 14784324,
+      "sha256": "478964fe127eb4503248b057f675bbb26c67b2adf6a78643ff52549d28e0a3e9"
+    }
+  ],
+  "before": [
+    {
+      "path": "web/public/fonts/noto-serif-sc-400.woff2",
+      "bytes": 69204,
+      "sha256": "6987fcc8efa9384e520c33ff5b81a05c2cc24b8cb834799a78966ebc4103131b",
+      "glyphs": 453,
+      "encodedCodepoints": 419,
+      "missingUiCodepoints": [
+        "U+2304 ⌄",
+        "U+4EE5 以",
+        "U+5165 入",
+        "U+51B5 况",
+        "U+51C6 准",
+        "U+53E5 句",
+        "U+5907 备",
+        "U+5C55 展",
+        "U+5E03 布",
+        "U+5EA6 度",
+        "U+60C5 情",
+        "U+6162 慢",
+        "U+628A 把",
+        "U+786E 确",
+        "U+7ED9 给",
+        "U+7F6E 置",
+        "U+8BA4 认",
+        "U+8F6C 转",
+        "U+8F7D 载"
+      ],
+      "missingRepresentativeDateCodepoints": [
+        "U+2009  ",
+        "U+5E74 年",
+        "U+65E5 日",
+        "U+6708 月"
+      ]
+    },
+    {
+      "path": "web/public/fonts/noto-serif-sc-600.woff2",
+      "bytes": 70056,
+      "sha256": "49a2dd895cf5a56e79bdfcba1181c83ec726234f27a58ceb8a4baa140c2f71fd",
+      "glyphs": 453,
+      "encodedCodepoints": 419,
+      "missingUiCodepoints": [
+        "U+2304 ⌄",
+        "U+4EE5 以",
+        "U+5165 入",
+        "U+51B5 况",
+        "U+51C6 准",
+        "U+53E5 句",
+        "U+5907 备",
+        "U+5C55 展",
+        "U+5E03 布",
+        "U+5EA6 度",
+        "U+60C5 情",
+        "U+6162 慢",
+        "U+628A 把",
+        "U+786E 确",
+        "U+7ED9 给",
+        "U+7F6E 置",
+        "U+8BA4 认",
+        "U+8F6C 转",
+        "U+8F7D 载"
+      ],
+      "missingRepresentativeDateCodepoints": [
+        "U+2009  ",
+        "U+5E74 年",
+        "U+65E5 日",
+        "U+6708 月"
+      ]
+    },
+    {
+      "path": "web/public/fonts/noto-serif-sc-700.woff2",
+      "bytes": 70880,
+      "sha256": "70c51901724dfc4e0930c6dca222a7d075a17ff0ff45120ca012f34a9faca0b0",
+      "glyphs": 453,
+      "encodedCodepoints": 419,
+      "missingUiCodepoints": [
+        "U+2304 ⌄",
+        "U+4EE5 以",
+        "U+5165 入",
+        "U+51B5 况",
+        "U+51C6 准",
+        "U+53E5 句",
+        "U+5907 备",
+        "U+5C55 展",
+        "U+5E03 布",
+        "U+5EA6 度",
+        "U+60C5 情",
+        "U+6162 慢",
+        "U+628A 把",
+        "U+786E 确",
+        "U+7ED9 给",
+        "U+7F6E 置",
+        "U+8BA4 认",
+        "U+8F6C 转",
+        "U+8F7D 载"
+      ],
+      "missingRepresentativeDateCodepoints": [
+        "U+2009  ",
+        "U+5E74 年",
+        "U+65E5 日",
+        "U+6708 月"
+      ]
+    }
+  ],
+  "after": [
+    {
+      "path": "web/public/fonts/noto-serif-sc-400.woff2",
+      "bytes": 69068,
+      "sha256": "44c14c7404c7fbf3fac22c2c8edc9da696d7274bc92e6553558e209dad31c687",
+      "glyphs": 451,
+      "encodedCodepoints": 417,
+      "missingUiCodepoints": [
+        "U+2304 ⌄"
+      ],
+      "missingRepresentativeDateCodepoints": [
+        "U+2009  ",
+        "U+2013 –",
+        "U+5E74 年",
+        "U+65E5 日",
+        "U+6708 月"
+      ]
+    },
+    {
+      "path": "web/public/fonts/noto-serif-sc-600.woff2",
+      "bytes": 69892,
+      "sha256": "a2d579329e0d5e07b14406cca426eaec0ff97438b88ae7e08044b169b1c25153",
+      "glyphs": 451,
+      "encodedCodepoints": 417,
+      "missingUiCodepoints": [
+        "U+2304 ⌄"
+      ],
+      "missingRepresentativeDateCodepoints": [
+        "U+2009  ",
+        "U+2013 –",
+        "U+5E74 年",
+        "U+65E5 日",
+        "U+6708 月"
+      ]
+    },
+    {
+      "path": "web/public/fonts/noto-serif-sc-700.woff2",
+      "bytes": 70700,
+      "sha256": "8772c5e95818a0ec46d366c8397946f8026a9418d4bf8005e0423aad52a343d8",
+      "glyphs": 451,
+      "encodedCodepoints": 417,
+      "missingUiCodepoints": [
+        "U+2304 ⌄"
+      ],
+      "missingRepresentativeDateCodepoints": [
+        "U+2009  ",
+        "U+2013 –",
+        "U+5E74 年",
+        "U+65E5 日",
+        "U+6708 月"
+      ]
+    }
+  ],
+  "license": {
+    "id": "OFL-1.1",
+    "path": "web/public/fonts/OFL.txt",
+    "sha256": "5e0da210fb04058a8c0087985d2d456b931c2579811a49655721d3cf0c36b6d6"
+  },
+  "limitations": [
+    "This is actual cmap coverage, not a browser typography/line-wrap screenshot test.",
+    "A UI subset intentionally cannot cover every visitor-written wish; system font fallbacks remain for arbitrary user text.",
+    "The record chevron uses the system sans stack, so any unsupported decorative symbol in the broad literal corpus is reported explicitly. Representative date text also uses the system sans stack."
+  ],
+  "fontsOnlyChanged": true
+}

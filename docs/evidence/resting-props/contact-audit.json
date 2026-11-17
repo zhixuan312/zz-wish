@@ -1,0 +1,8 @@
+{
+  "archivedEvidence": true,
+  "path": "docs/evidence/resting-props/contact-audit.json",
+  "bytes": 292520,
+  "sha256": "1f722140f258eb74b02f6db1760960de056567dfe1fba64392d933d6d8a2a290",
+  "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/resting-props/contact-audit.json",
+  "note": "Full immutable evidence is preserved locally in the git-ignored archive; see docs/evidence/ARCHIVE.md."
+}

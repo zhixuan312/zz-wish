@@ -3,11 +3,11 @@ import ts from 'typescript-eslint';
 import globals from 'globals';
 
 export default [
-  { ignores: ['node_modules/**', 'web/dist/**', 'artifacts/**', 'archive/**'] },
+  { ignores: ['node_modules/**', 'web/dist/**', 'web/public/**', 'art/build/**', 'artifacts/**', 'archive/**'] },
   js.configs.recommended,
   ...ts.configs.recommended,
   { files: ['web/src/**/*.{js,ts,tsx}'], languageOptions: { globals: globals.browser } },
-  { files: ['server/**/*.ts', 'scripts/*.mjs', '*.js', 'web/vite.config.ts'], languageOptions: { globals: globals.node } },
+  { files: ['server/**/*.ts', 'scripts/*.mjs', 'docs/evidence/**/*.mjs', '*.js', 'web/vite.config.ts'], languageOptions: { globals: globals.node } },
   { files: ['tests/**/*.{ts,mjs}'], languageOptions: { globals: { ...globals.browser, ...globals.node } } },
   { files: ['**/*.{js,mjs}'], rules: { '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }] } },
   {

@@ -1,0 +1,141 @@
+{
+  "scope": "Diagnostic contact registry IDs, filenames and mathematical source-frustum/new-proxy checks only; product journey cameras unchanged. No image or whole-scene occlusion approval.",
+  "source": {
+    "path": "art/build/snow-roof-round1/source-v17.blend",
+    "sha256": "2990854d3c9a65bf18879511d865b6e36788f6e727339248d5746b67fb52dd64",
+    "bytes": 11717577
+  },
+  "sourceAudit": {
+    "path": "art/build/snow-roof-round1/source-v17.audit.json",
+    "sha256": "8b897b79ce2ad533d317399417c602468ee88747a70905ad86c5f533dd11a6aa",
+    "bytes": 351222
+  },
+  "oldRegistry": {
+    "path": "art/build/snow-roof-round1/source-v17-handoff/closeups.json",
+    "sha256": "eb02a589db42c9f4b18e93c03c0508e33e9cedc754f8ba89aa56bab674431a66",
+    "bytes": 29902
+  },
+  "newRegistry": {
+    "path": "art/build/snow-roof-round1/source-v17-handoff-v2/closeups.json",
+    "sha256": "c0aab1ad003b66fcd3fff57bbd572e47dc1c98fe6ec6a7271ce2db493aa525a1",
+    "bytes": 29938
+  },
+  "newSourceRegistryAudit": {
+    "path": "art/build/snow-roof-round1/source-v17-handoff-v2/camera-registry-audit.json",
+    "sha256": "d24ce9fb94cfb9893a547cff1e1bf26c38329e05d8eb8cfb297a832392762198",
+    "bytes": 138819
+  },
+  "independentOriginalRegistryRuntimeProxyAudit": {
+    "path": "art/build/snow-roof-round1/contact-replay-v17-c6/closeup-live-lantern-conflicts.json",
+    "sha256": "a0bb8fdfc343cdcf3791340aafec4324cdef87d158ad96352a1b4e6a91c475e6",
+    "bytes": 53414
+  },
+  "scripts": [
+    {
+      "path": "art/blender/snow_round1_report.py",
+      "sha256": "b0e23fd25c9b0096e683d04df05a8063a2b5778d5c0497e44b6074a55e7dc273",
+      "bytes": 6158
+    },
+    {
+      "path": "art/blender/audit_contact_camera_registry.py",
+      "sha256": "093c2a0ef967740f4deecc5f804b991d283943ab974b0defafad9e8da45a98bb",
+      "bytes": 6344
+    }
+  ],
+  "registeredGroups": 47,
+  "configuredViews": 52,
+  "actualDesktopPhonePoses": 104,
+  "oldDuplicateFilenameCounts": {
+    "contact-turned-pedestal-1-45": 2,
+    "contact-screen-edge-molding-2-34": 2,
+    "contact-altar-1-45": 2,
+    "contact-altar-0-95": 2,
+    "contact-kneeling-cushion-1": 2,
+    "contact-gate-1": 2
+  },
+  "newUniqueFilenameCount": 52,
+  "missingGroupIds": [],
+  "unknownGroupIds": [],
+  "allGroupsBearingInsideEachViewport": true,
+  "newProxyBearingRayHits": 0,
+  "diagnosticPoseChanges": [
+    {
+      "name": "screen-left-bearing",
+      "oldPhone": {
+        "position": [
+          -2.9,
+          1.1,
+          -5.1
+        ],
+        "look": [
+          -1.5,
+          1.3,
+          -6.31
+        ],
+        "fov": 82
+      },
+      "newPhone": {
+        "position": [
+          -2.9,
+          1.1,
+          -4.1
+        ],
+        "look": [
+          -1.5,
+          1.3,
+          -6.31
+        ],
+        "fov": 82
+      }
+    },
+    {
+      "name": "screen-right-bearing",
+      "oldPhone": {
+        "position": [
+          2.9,
+          1.1,
+          -5.1
+        ],
+        "look": [
+          1.5,
+          1.3,
+          -6.31
+        ],
+        "fov": 82
+      },
+      "newPhone": {
+        "position": [
+          2.9,
+          1.1,
+          -4.1
+        ],
+        "look": [
+          1.5,
+          1.3,
+          -6.31
+        ],
+        "fov": 82
+      }
+    }
+  ],
+  "namePolicy": "Numeric negative signs become minus- in filename slug; old actual registries remain immutable.",
+  "limits": [
+    "Bearing closeups intentionally crop the upper part of several tall pedestal/screen/lantern support groups.",
+    "Actual original-architecture occlusion/material readability and HUD placement still need real closeup capture.",
+    "Runtime-proxy checks use9central/near-central rays perpose and do not prove fullsilhouette/sway clearance."
+  ],
+  "sourceOrProductCameraChanged": false,
+  "renderBakeEncoderGpuJobs": 0,
+  "independentTwoChangedPhonePoseAddendum": {
+    "path": "art/build/snow-roof-round1/contact-replay-v17-c6/closeup-live-lantern-conflicts-v2-addendum.json",
+    "sha256": "f564f0a069621fb6d8db73b377672e76d1f276a2e3f4769ffb9c61bde564b014",
+    "bytes": 1643
+  },
+  "updatedPhonePoseRuntimeProxyCheck": {
+    "poses": 2,
+    "rays": 18,
+    "hits": 0,
+    "minimumCappedEyeClearanceMetres": 0.2,
+    "requiredClearanceMetres": 0.03
+  }
+}

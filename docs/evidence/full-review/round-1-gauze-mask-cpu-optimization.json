@@ -1,0 +1,214 @@
+{
+  "passed": true,
+  "scope": "CPU prototype only. This child did not edit production source, proxy geometry, shaders, GPU pixels or lighting. No GPU texture/material cache. Root may concurrently edit source; frozen baseline hash is authoritative for this run.",
+  "actualSourceSha256": "127fc4f8452ac46901e495ed5ef1c65fa431c27626824c17670fe68783b5e4e7",
+  "actualBuilderSha256": "0a24939afdab2c278ab2a7ded6f64b5469834f8363ccf01d67a0b26ac6356ad2",
+  "actualHelpersSha256": "275605bc7101cbd2026b05d58b0e5a571a545d72695ce407d89cb45681479373",
+  "baselineModuleSha256": "195ec4b3c9ea9dc0fd6bc80a128f4a64e8ff604e83150ef2fcbd2dea39cb2069",
+  "productionModuleSha256After": "195ec4b3c9ea9dc0fd6bc80a128f4a64e8ff604e83150ef2fcbd2dea39cb2069",
+  "baselineFunctionSha256": "b921a15121f6b4f779ef7b5c83b9396a07fd8afc86b7b1e426128fdee51103ce",
+  "helperSha256": "59ec6e0043b5e109cc2a2aa3e6a307e83e3ec869ea9158fb720b995e54f41169",
+  "resolution": [
+    128,
+    64
+  ],
+  "samplesPerPixel": 4,
+  "tolerances": {
+    "parallelDirection": 1e-15,
+    "determinant": 1e-14,
+    "barycentric": 1e-09,
+    "positiveRayDistance": 1e-06
+  },
+  "rows": [
+    {
+      "fixture": "drum/10",
+      "triangles": 12288,
+      "maskSha256": "e98c51562756076d24965cfdae0c4d308fa50bf93027c7d59155fc4c24ff3fbb",
+      "exactMaskBytes": true,
+      "fixedSubraysCompared": 32768,
+      "threeRaycasterControls": 1028,
+      "baselineMs": 52.826708000000025,
+      "optimizedFirstMs": 19.607208000000014,
+      "uncachedBuildMs": {
+        "min": 10.302542000000017,
+        "median": 10.569666999999981,
+        "max": 24.851999999999975
+      },
+      "cacheFirstGetMs": 16.913583000000017,
+      "cacheAlreadyContainedExactGeometry": false,
+      "cacheHitCloneGeometryMs": {
+        "min": 0.5557079999999814,
+        "median": 0.6027080000000069,
+        "max": 4.914499999999975
+      }
+    },
+    {
+      "fixture": "drum/1440",
+      "triangles": 12288,
+      "maskSha256": "e98c51562756076d24965cfdae0c4d308fa50bf93027c7d59155fc4c24ff3fbb",
+      "exactMaskBytes": true,
+      "fixedSubraysCompared": 32768,
+      "threeRaycasterControls": 1028,
+      "baselineMs": 55.05783299999996,
+      "optimizedFirstMs": 11.217374999999947,
+      "uncachedBuildMs": {
+        "min": 10.201749999999947,
+        "median": 10.449458999999933,
+        "max": 13.367916999999807
+      },
+      "cacheFirstGetMs": 1.1560829999998532,
+      "cacheAlreadyContainedExactGeometry": true,
+      "cacheHitCloneGeometryMs": {
+        "min": 0.5434999999999945,
+        "median": 0.6027919999999085,
+        "max": 0.8545830000000478
+      }
+    },
+    {
+      "fixture": "tall/10",
+      "triangles": 12288,
+      "maskSha256": "33a984937c2abcb23de32e3792042dc357ba8a042424dce7336ab817c481bc85",
+      "exactMaskBytes": true,
+      "fixedSubraysCompared": 32768,
+      "threeRaycasterControls": 1028,
+      "baselineMs": 39.35025000000019,
+      "optimizedFirstMs": 9.029374999999845,
+      "uncachedBuildMs": {
+        "min": 8.938874999999825,
+        "median": 9.04037500000004,
+        "max": 9.07241699999986
+      },
+      "cacheFirstGetMs": 9.445999999999913,
+      "cacheAlreadyContainedExactGeometry": false,
+      "cacheHitCloneGeometryMs": {
+        "min": 0.5819589999996424,
+        "median": 0.5921250000001237,
+        "max": 0.6800419999999576
+      }
+    },
+    {
+      "fixture": "tall/1440",
+      "triangles": 12288,
+      "maskSha256": "4693b82b42ce0515d532ddd5a7d2a1ed7c27c5e98122ace5c96208fdaf278193",
+      "exactMaskBytes": true,
+      "fixedSubraysCompared": 32768,
+      "threeRaycasterControls": 1028,
+      "baselineMs": 38.50279099999989,
+      "optimizedFirstMs": 9.750999999999749,
+      "uncachedBuildMs": {
+        "min": 9.187916999999743,
+        "median": 9.257624999999734,
+        "max": 9.846417000000201
+      },
+      "cacheFirstGetMs": 9.7052920000001,
+      "cacheAlreadyContainedExactGeometry": false,
+      "cacheHitCloneGeometryMs": {
+        "min": 0.5342089999999189,
+        "median": 0.5407079999999951,
+        "max": 0.6023329999998168
+      }
+    },
+    {
+      "fixture": "bell/10",
+      "triangles": 12288,
+      "maskSha256": "869b2899ca335d251b51439503896fa85febed044c4fe8c6aa8c67d6effda1c1",
+      "exactMaskBytes": true,
+      "fixedSubraysCompared": 32768,
+      "threeRaycasterControls": 1028,
+      "baselineMs": 40.89970799999992,
+      "optimizedFirstMs": 9.234375,
+      "uncachedBuildMs": {
+        "min": 9.071125000000393,
+        "median": 9.122125000000324,
+        "max": 9.267499999999927
+      },
+      "cacheFirstGetMs": 9.656124999999975,
+      "cacheAlreadyContainedExactGeometry": false,
+      "cacheHitCloneGeometryMs": {
+        "min": 0.5410829999996167,
+        "median": 0.571165999999721,
+        "max": 6.300083000000086
+      }
+    },
+    {
+      "fixture": "bell/1440",
+      "triangles": 12288,
+      "maskSha256": "43412144ee7b2f29ec8c5fad2eb8e483bdb6e55cfbca05986dcdfd5200bcc7f9",
+      "exactMaskBytes": true,
+      "fixedSubraysCompared": 32768,
+      "threeRaycasterControls": 1028,
+      "baselineMs": 40.855125000000044,
+      "optimizedFirstMs": 9.182416999999987,
+      "uncachedBuildMs": {
+        "min": 9.007834000000003,
+        "median": 9.048292000000401,
+        "max": 9.732582999999977
+      },
+      "cacheFirstGetMs": 18.3690830000005,
+      "cacheAlreadyContainedExactGeometry": false,
+      "cacheHitCloneGeometryMs": {
+        "min": 0.5358329999999114,
+        "median": 0.5407080000004498,
+        "max": 2.8487919999997757
+      }
+    }
+  ],
+  "cache": {
+    "hits": 148,
+    "misses": 5,
+    "entries": 5,
+    "bytes": 1534960,
+    "maxEntries": 6,
+    "maxBytes": 2097152
+  },
+  "cacheContractChecks": true,
+  "colourRebuilds": [
+    {
+      "shape": "drum",
+      "cacheHit": true,
+      "maskMilliseconds": 0.5677920000007362
+    },
+    {
+      "shape": "tall",
+      "cacheHit": true,
+      "maskMilliseconds": 0.5610829999995985
+    },
+    {
+      "shape": "bell",
+      "cacheHit": true,
+      "maskMilliseconds": 0.5641249999998763
+    }
+  ],
+  "defaultWarmMilliseconds": 0.5883749999993597,
+  "firstOptimizedInvocationMs": 19.607208000000014,
+  "command": "node art/build/gauze-mask-optimization/check-helper.mjs",
+  "comparisonCounts": {
+    "fixtures": 6,
+    "maskBytes": 49152,
+    "fixedSubrays": 196608,
+    "independentThreeRaycasterRays": 6168
+  },
+  "validation": {
+    "scopedEslint": "npx eslint web/src/engine/baked/gauzeMask.js --max-warnings 0: PASS",
+    "lruEntryLimit": true,
+    "lruByteLimit": true,
+    "lruEviction": true,
+    "exactOriginMutationMiss": true,
+    "exactGeometryMutationMiss": true,
+    "returnedDataCannotCorruptCache": true,
+    "freshActualColourBuilderHits": 3,
+    "productionModuleUnchangedDuringFinalCheck": true
+  },
+  "timingLimits": "CPU-local Node/M1 measurements. First optimized invocation 19.61 ms exceeds strict 15 ms goal; subsequent uncached medians 9.04\u201310.57 ms. Clone-hit medians 0.54\u20130.60 ms; individual GC/scheduler outliers up to 6.30 ms are retained in rows. Actual fresh colour-only mask rebuilds 0.561\u20130.568 ms, excluding geometry builder time. No GPU/FPS/lighting/seam claim.",
+  "environment": {
+    "machine": "arm64",
+    "platform": "macOS-27.2.1-arm64-arm-64bit-Mach-O",
+    "node": "v26.13.0"
+  },
+  "ownership": "New CPU helper only; root module/scene/shared tests not edited by this agent. Root adoption and browser checks remain pending.",
+  "implementation": "Float64 triangle predicates, in-place median partition, flat typed-array BVH, reusable traversal stack, exact coherent triangle retests. 128x64/four fixed rays/tolerances unchanged. CPU-only mask data LRU max6entries/max2MiB typed arrays+origin numbers; no geometry/material/texture/BVH entries; collision candidates checked by exact canonical values and exact origin.",
+  "harness": {
+    "path": "art/build/gauze-mask-optimization/check-helper.mjs",
+    "sha256": "e4e722715230284a35c97e693dc3024ea25e92ec10ae0b4cf05f8a9b14d6c461"
+  }
+}

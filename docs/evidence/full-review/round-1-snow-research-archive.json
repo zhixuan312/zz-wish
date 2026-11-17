@@ -1,0 +1,340 @@
+{
+  "createdAt": "2026-11-18T00:35:07.321143+08:00",
+  "purpose": "Root-authorized Round1 cleanup of completed inactive Snow/general research. Exact original bytes preserved with relative paths under ignored artifacts. Production/reproduction helpers, active and held scripts, runtime files and the Cloud agent archive were not moved.",
+  "selectionAudit": {
+    "path": "artifacts/round1-commit-selection-snow-2026-11-18.json",
+    "sha256": "8ca5a720e6e9e4f741eb170a147b0f6fa96d8f2a6eb0263471407f61c8e74955"
+  },
+  "archiveRoot": "artifacts/archive/round1-inactive-snow-general",
+  "candidateCount": 35,
+  "archivedFiles": 35,
+  "removedOriginals": 35,
+  "archivedOriginalBytes": 232102,
+  "skipped": [],
+  "guards": {
+    "auditedHashMatchedBeforeCopy": true,
+    "copiedBytesHashVerifiedBeforeUnlink": true,
+    "currentOriginalHashRecheckedBeforeUnlink": true,
+    "nonCandidateCodeReferenceScanBeforeAndAfterCopy": true,
+    "finalArchiveHashVerification": true,
+    "productionRuntimeEdited": false
+  },
+  "replayNote": "Historical programs may require restoring their original relative paths and the corresponding frozen input/snapshot. This archive preserves work; it does not make obsolete source recipes current or change any acceptance status.",
+  "entries": [
+    {
+      "path": "art/blender/audit_cycles_sampling_settings.py",
+      "bytes": 3097,
+      "sha256": "e93204e87466ecc964bc3e44c0eacfee0a61ac6837861ebbc9caba90cee0709a",
+      "group": "completed_paint_sampling_attribution",
+      "archivedPath": "artifacts/archive/round1-inactive-snow-general/art/blender/audit_cycles_sampling_settings.py",
+      "copyVerified": true,
+      "originalRemoved": true
+    },
+    {
+      "path": "art/blender/audit_snow_paint_normal_basis.py",
+      "bytes": 5652,
+      "sha256": "5b43299ed02a57d35a1da12950f9657027862ee2eeac06a2a4e7bff6b72b2070",
+      "group": "completed_paint_sampling_attribution",
+      "archivedPath": "artifacts/archive/round1-inactive-snow-general/art/blender/audit_snow_paint_normal_basis.py",
+      "copyVerified": true,
+      "originalRemoved": true
+    },
+    {
+      "path": "art/blender/bake_snow_paint_normal_control.py",
+      "bytes": 1408,
+      "sha256": "f98573b36113bd31ab9657e851a5d2c020e6aac443f4d8352c9d347f7318ff4c",
+      "group": "completed_paint_sampling_attribution",
+      "archivedPath": "artifacts/archive/round1-inactive-snow-general/art/blender/bake_snow_paint_normal_control.py",
+      "copyVerified": true,
+      "originalRemoved": true
+    },
+    {
+      "path": "art/blender/bake_snow_transport_component.py",
+      "bytes": 5948,
+      "sha256": "5b8738fefbad51c2aff78a1a08e6cc72dad49e2c77d1ebbec5f34b7f517f5e9e",
+      "group": "completed_paint_sampling_attribution",
+      "archivedPath": "artifacts/archive/round1-inactive-snow-general/art/blender/bake_snow_transport_component.py",
+      "copyVerified": true,
+      "originalRemoved": true
+    },
+    {
+      "path": "art/blender/compare_snow_diffuse_components.py",
+      "bytes": 5787,
+      "sha256": "cbc7b605c6d6ccdc3774cb03854aa8bc3ae824df50d9eda23db43f326a7a15dd",
+      "group": "completed_paint_sampling_attribution",
+      "archivedPath": "artifacts/archive/round1-inactive-snow-general/art/blender/compare_snow_diffuse_components.py",
+      "copyVerified": true,
+      "originalRemoved": true
+    },
+    {
+      "path": "art/blender/compare_snow_diffuse_samples.py",
+      "bytes": 7679,
+      "sha256": "e497b44a25e41ae2594e8d628d223aee18e49b0d395be479e401b523d72b5491",
+      "group": "completed_paint_sampling_attribution",
+      "archivedPath": "artifacts/archive/round1-inactive-snow-general/art/blender/compare_snow_diffuse_samples.py",
+      "copyVerified": true,
+      "originalRemoved": true
+    },
+    {
+      "path": "art/blender/compare_snow_fixed_sampling.py",
+      "bytes": 5436,
+      "sha256": "c7dcf9ed7130f398566dd85d58f4409d83db3dac5abba1becfa6afe200651726",
+      "group": "completed_paint_sampling_attribution",
+      "archivedPath": "artifacts/archive/round1-inactive-snow-general/art/blender/compare_snow_fixed_sampling.py",
+      "copyVerified": true,
+      "originalRemoved": true
+    },
+    {
+      "path": "art/blender/compare_snow_native_variance.py",
+      "bytes": 6372,
+      "sha256": "18413d303a28ccd8e4798c514196577a2e7ca3908ecfe3cc23ce3d23e0c0f15e",
+      "group": "completed_paint_sampling_attribution",
+      "archivedPath": "artifacts/archive/round1-inactive-snow-general/art/blender/compare_snow_native_variance.py",
+      "copyVerified": true,
+      "originalRemoved": true
+    },
+    {
+      "path": "art/blender/diagnose_snow_paint_materials.py",
+      "bytes": 6164,
+      "sha256": "c6dc43f8a18213c31de417a0872e3610831ca7c3b1abd693dedc5cd11303e8a6",
+      "group": "completed_paint_sampling_attribution",
+      "archivedPath": "artifacts/archive/round1-inactive-snow-general/art/blender/diagnose_snow_paint_materials.py",
+      "copyVerified": true,
+      "originalRemoved": true
+    },
+    {
+      "path": "art/blender/trace_snow_diffuse_pixels.py",
+      "bytes": 12987,
+      "sha256": "4508c199544fee2c578828c865ac7e3d8b4d824dc380bded7e7ac158e3a6f4dc",
+      "group": "completed_paint_sampling_attribution",
+      "archivedPath": "artifacts/archive/round1-inactive-snow-general/art/blender/trace_snow_diffuse_pixels.py",
+      "copyVerified": true,
+      "originalRemoved": true
+    },
+    {
+      "path": "art/blender/audit_bevel_mapping.py",
+      "bytes": 6287,
+      "sha256": "fe56eda47847c0e3cb3238b1e37d533e438459690abe4f1b057c550c6afe9b74",
+      "group": "rejected_or_superseded_geometry_codec_studies",
+      "archivedPath": "artifacts/archive/round1-inactive-snow-general/art/blender/audit_bevel_mapping.py",
+      "copyVerified": true,
+      "originalRemoved": true
+    },
+    {
+      "path": "art/blender/diagnose_uv_overlaps.py",
+      "bytes": 4116,
+      "sha256": "fb0825985f48ffcfd30f10dbd3fef3366d9a9b23c4db4f5c32f03c2bc13b5bb5",
+      "group": "rejected_or_superseded_geometry_codec_studies",
+      "archivedPath": "artifacts/archive/round1-inactive-snow-general/art/blender/diagnose_uv_overlaps.py",
+      "copyVerified": true,
+      "originalRemoved": true
+    },
+    {
+      "path": "art/blender/export_precision_protection.py",
+      "bytes": 3242,
+      "sha256": "3967598795602f60e6f59ea8b78be9fa112b7a75ec5aa3eceb57996b81332998",
+      "group": "rejected_or_superseded_geometry_codec_studies",
+      "archivedPath": "artifacts/archive/round1-inactive-snow-general/art/blender/export_precision_protection.py",
+      "copyVerified": true,
+      "originalRemoved": true
+    },
+    {
+      "path": "art/blender/probe_court_lightmap_resolution.py",
+      "bytes": 5280,
+      "sha256": "1c4449e8f654281503056204f92639d40f3355b72f096d132b333a530285df55",
+      "group": "rejected_or_superseded_geometry_codec_studies",
+      "archivedPath": "artifacts/archive/round1-inactive-snow-general/art/blender/probe_court_lightmap_resolution.py",
+      "copyVerified": true,
+      "originalRemoved": true
+    },
+    {
+      "path": "art/blender/probe_frozen_source_mapping.py",
+      "bytes": 6836,
+      "sha256": "00f4e47b4ce23a0b0858ed76aebb75710258751f90e3a3b9f91f8d69c66a7aed",
+      "group": "rejected_or_superseded_geometry_codec_studies",
+      "archivedPath": "artifacts/archive/round1-inactive-snow-general/art/blender/probe_frozen_source_mapping.py",
+      "copyVerified": true,
+      "originalRemoved": true
+    },
+    {
+      "path": "art/blender/probe_lightmap_chroma_alpha.py",
+      "bytes": 9888,
+      "sha256": "591a14892d94e01ff7c6bcd98153ee67466eade525973457d9d36e624ac4543e",
+      "group": "rejected_or_superseded_geometry_codec_studies",
+      "archivedPath": "artifacts/archive/round1-inactive-snow-general/art/blender/probe_lightmap_chroma_alpha.py",
+      "copyVerified": true,
+      "originalRemoved": true
+    },
+    {
+      "path": "art/blender/probe_lightmap_codecs.py",
+      "bytes": 8574,
+      "sha256": "9d253d8c81aa661b65e268cd414a9d6385aa9ff70c875a984525cb07e79ff98e",
+      "group": "rejected_or_superseded_geometry_codec_studies",
+      "archivedPath": "artifacts/archive/round1-inactive-snow-general/art/blender/probe_lightmap_codecs.py",
+      "copyVerified": true,
+      "originalRemoved": true
+    },
+    {
+      "path": "art/blender/probe_preserved_normals.py",
+      "bytes": 4698,
+      "sha256": "41d404498eeb224d527fe93dfa89cafed88fc7f251a7210c624a215fa771a33e",
+      "group": "rejected_or_superseded_geometry_codec_studies",
+      "archivedPath": "artifacts/archive/round1-inactive-snow-general/art/blender/probe_preserved_normals.py",
+      "copyVerified": true,
+      "originalRemoved": true
+    },
+    {
+      "path": "scripts/probe-half-lightmap-zstd.mjs",
+      "bytes": 7738,
+      "sha256": "79bf6464d4fe2491a7abe425d9e5fa98402d8ee2fcf8e429c15c2dd9af451fda",
+      "group": "rejected_or_superseded_geometry_codec_studies",
+      "archivedPath": "artifacts/archive/round1-inactive-snow-general/scripts/probe-half-lightmap-zstd.mjs",
+      "copyVerified": true,
+      "originalRemoved": true
+    },
+    {
+      "path": "scripts/probe-normal-budget.mjs",
+      "bytes": 9929,
+      "sha256": "085b7ffffa523e7812a900f614f8353bd1e5b0ef28d8c808692e6c16edc216a2",
+      "group": "rejected_or_superseded_geometry_codec_studies",
+      "archivedPath": "artifacts/archive/round1-inactive-snow-general/scripts/probe-normal-budget.mjs",
+      "copyVerified": true,
+      "originalRemoved": true
+    },
+    {
+      "path": "scripts/probe-position-grid.mjs",
+      "bytes": 10061,
+      "sha256": "ae745591d6c6566f7bdc3e72750748b6405dadd0bd1463dbfd8d3ee86cfc56d3",
+      "group": "rejected_or_superseded_geometry_codec_studies",
+      "archivedPath": "artifacts/archive/round1-inactive-snow-general/scripts/probe-position-grid.mjs",
+      "copyVerified": true,
+      "originalRemoved": true
+    },
+    {
+      "path": "scripts/probe-raw-lightmap-zstd.mjs",
+      "bytes": 12711,
+      "sha256": "26b45f880b72dd9a8857af1810f7202072ce551ee5766d90666114dc657dd800",
+      "group": "rejected_or_superseded_geometry_codec_studies",
+      "archivedPath": "artifacts/archive/round1-inactive-snow-general/scripts/probe-raw-lightmap-zstd.mjs",
+      "copyVerified": true,
+      "originalRemoved": true
+    },
+    {
+      "path": "art/blender/classify_camera_materials.py",
+      "bytes": 4382,
+      "sha256": "2f99a683d2568da9d92fe9daf6e0b09404c3a36faa573b3ebb6e492193fd3684",
+      "group": "superseded_framing_studies",
+      "archivedPath": "artifacts/archive/round1-inactive-snow-general/art/blender/classify_camera_materials.py",
+      "copyVerified": true,
+      "originalRemoved": true
+    },
+    {
+      "path": "art/blender/probe_snow_portal.py",
+      "bytes": 9650,
+      "sha256": "555e5d82173bacb51c206f4311961aa98d1b2789dc4efab98bfcea2e8004e13f",
+      "group": "superseded_framing_studies",
+      "archivedPath": "artifacts/archive/round1-inactive-snow-general/art/blender/probe_snow_portal.py",
+      "copyVerified": true,
+      "originalRemoved": true
+    },
+    {
+      "path": "art/blender/study_snow_open_air_framing.py",
+      "bytes": 12304,
+      "sha256": "f2d0edaed3b89f364bcdef34da86a1d8dcf3f22344ffb61906b9dd5b7f5c9dc9",
+      "group": "superseded_framing_studies",
+      "archivedPath": "artifacts/archive/round1-inactive-snow-general/art/blender/study_snow_open_air_framing.py",
+      "copyVerified": true,
+      "originalRemoved": true
+    },
+    {
+      "path": "art/blender/study_snow_wall_bays.py",
+      "bytes": 7166,
+      "sha256": "bd112d3a10f20c02fa5a78d818c4c1c2cb1e6049dac3885d9f762a112120a866",
+      "group": "superseded_framing_studies",
+      "archivedPath": "artifacts/archive/round1-inactive-snow-general/art/blender/study_snow_wall_bays.py",
+      "copyVerified": true,
+      "originalRemoved": true
+    },
+    {
+      "path": "scripts/audit-snow-open-air-cameras.mjs",
+      "bytes": 6064,
+      "sha256": "cc0a5994f9f8f536e3af5f2aaffe54ce06b8689717f38cf4103627cbbbe73f93",
+      "group": "superseded_framing_studies",
+      "archivedPath": "artifacts/archive/round1-inactive-snow-general/scripts/audit-snow-open-air-cameras.mjs",
+      "copyVerified": true,
+      "originalRemoved": true
+    },
+    {
+      "path": "tests/visual/capture-snow-open-air.mjs",
+      "bytes": 5136,
+      "sha256": "973f12b7f6a486a342bf6b91f5b8b9f82530a347a5ad40aab91e98503d7b3a38",
+      "group": "superseded_framing_studies",
+      "archivedPath": "artifacts/archive/round1-inactive-snow-general/tests/visual/capture-snow-open-air.mjs",
+      "copyVerified": true,
+      "originalRemoved": true
+    },
+    {
+      "path": "tests/visual/compare-snow-cameras.mjs",
+      "bytes": 5012,
+      "sha256": "f4913c7d0c0391b0b9babc69e93eccf54f714c47f24985d2a7671b6f371cc150",
+      "group": "superseded_framing_studies",
+      "archivedPath": "artifacts/archive/round1-inactive-snow-general/tests/visual/compare-snow-cameras.mjs",
+      "copyVerified": true,
+      "originalRemoved": true
+    },
+    {
+      "path": "tests/visual/export-snow-open-air-lamp.mjs",
+      "bytes": 3724,
+      "sha256": "0af0728f8daa5a2c693853bb4c398b75d090df9852526049b5bbfc03eae6e220",
+      "group": "superseded_framing_studies",
+      "archivedPath": "artifacts/archive/round1-inactive-snow-general/tests/visual/export-snow-open-air-lamp.mjs",
+      "copyVerified": true,
+      "originalRemoved": true
+    },
+    {
+      "path": "tests/visual/instrument-snow-open-air.mjs",
+      "bytes": 2737,
+      "sha256": "f396104a0007056ad7f911bd0b62f014fabf2f8642ae51b7882276461dd737b4",
+      "group": "superseded_framing_studies",
+      "archivedPath": "artifacts/archive/round1-inactive-snow-general/tests/visual/instrument-snow-open-air.mjs",
+      "copyVerified": true,
+      "originalRemoved": true
+    },
+    {
+      "path": "tests/visual/capture-gauze-optics.mjs",
+      "bytes": 5676,
+      "sha256": "96f762a8087044d7b0985b7d7f93458f43a963af078c2e55d2217d964e75fde8",
+      "group": "historic_capture_only_diagnostics",
+      "archivedPath": "artifacts/archive/round1-inactive-snow-general/tests/visual/capture-gauze-optics.mjs",
+      "copyVerified": true,
+      "originalRemoved": true
+    },
+    {
+      "path": "tests/visual/instrument-gauze-optics.mjs",
+      "bytes": 8311,
+      "sha256": "42bd1849b955684c4b310d61044c6271066dade3114d5672e35a8719521c130b",
+      "group": "historic_capture_only_diagnostics",
+      "archivedPath": "artifacts/archive/round1-inactive-snow-general/tests/visual/instrument-gauze-optics.mjs",
+      "copyVerified": true,
+      "originalRemoved": true
+    },
+    {
+      "path": "tests/visual/review-ending-smoke.mjs",
+      "bytes": 5166,
+      "sha256": "27eef0f1e10548c0d60f7ea719433447ddd781b6980f6f42b417b20144e8f778",
+      "group": "historic_capture_only_diagnostics",
+      "archivedPath": "artifacts/archive/round1-inactive-snow-general/tests/visual/review-ending-smoke.mjs",
+      "copyVerified": true,
+      "originalRemoved": true
+    },
+    {
+      "path": "tests/visual/review-gauze-clearance.mjs",
+      "bytes": 6884,
+      "sha256": "c6dfca3f6acd291c61b65e8ea56fe457d3344fbd426abf99c9b165e423bb7abc",
+      "group": "historic_capture_only_diagnostics",
+      "archivedPath": "artifacts/archive/round1-inactive-snow-general/tests/visual/review-gauze-clearance.mjs",
+      "copyVerified": true,
+      "originalRemoved": true
+    }
+  ]
+}

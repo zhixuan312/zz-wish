@@ -1,0 +1,488 @@
+{
+  "source": "Source19; Source20 explicitly cancelled",
+  "currentManifest": {
+    "path": "web/public/places/cloud-cliff/manifest.json",
+    "bytes": 198042,
+    "sha256": "4bb463f9f52e290f81ee9e475a5213f34619194dde10a62787a46677abc42a98"
+  },
+  "files": 26,
+  "payloadBytes": 7251133,
+  "manifestBytes": 198042,
+  "sharedVisualBytes": 116705,
+  "completePackageBytes": 7565880,
+  "maximumBytes": 10000000,
+  "allInstalledPayloadHashesVerified": true,
+  "models": [
+    {
+      "uri": "cloud-cliff.glb.gzip",
+      "bytes": 4139956,
+      "sha256": "ed63164062ca2e9ce24133d468f87c48d60ba4b76855043211e461d883085a91",
+      "encoding": "gzip",
+      "decodedBytes": 5299496,
+      "decodedSha256": "69f49377e2dbc9f8a235da3d84397dd76a726a9e0a1e7392e9d1c6452cd58d1c"
+    },
+    {
+      "uri": "cloud-cliff-storm.glb.gzip",
+      "bytes": 143629,
+      "sha256": "2a880f3d2a5eb5ae4df5502591c333155f30e78c942b969f051a24dba8d3dc92",
+      "role": "live-PBR-hero",
+      "encoding": "gzip",
+      "decodedBytes": 425264,
+      "decodedSha256": "c0379f6c7ae359e1b91db488db54f2200cfa8882986736d577b3f17df847a4c0"
+    }
+  ],
+  "sourceAndProofInputs": [
+    {
+      "path": "art/build/cloud-cliff-round1/cloud-cliff-source-v19.blend",
+      "bytes": 7263755,
+      "sha256": "ee3f9f065a72a102867d0bfe7ea9233761cd7db62e98711c993d38cba324bda0"
+    },
+    {
+      "path": "art/build/cloud-cliff-round1/prepared-v19/cloud-cliff-prepared.blend",
+      "bytes": 6385769,
+      "sha256": "c767940b9d40d89ca4fb7f8efa6beb23c48b5842eed2a6679a451ba56fa048ec"
+    },
+    {
+      "path": "art/build/cloud-cliff-round1/production-v19-final64/cloud-cliff-prepared.blend",
+      "bytes": 6388334,
+      "sha256": "8236767fba243d030606580ef5dfbe8a8005458f79eeaa8e652c48c8768656e0"
+    },
+    {
+      "path": "art/build/cloud-cliff-round1/production-v19-final64/cloud-cliff.raw.glb",
+      "bytes": 15786204,
+      "sha256": "7d18abc8362b153e504c9686b98f334324c1ae2f4384534e56b85e237f85a422"
+    },
+    {
+      "path": "art/build/cloud-cliff-round1/production-v19-final64/cloud-cliff-storm.raw.glb",
+      "bytes": 536512,
+      "sha256": "9ad0d2758634af5c1383d04673042144fdeb8c4dad58335523877a4e575aa7d4"
+    },
+    {
+      "path": "art/build/cloud-cliff-round1/production-v19-final64/launch-plan.json",
+      "bytes": 2248,
+      "sha256": "cd96709cee76eb9c885b07061f2a1f057ee6ba0c9160d55dc2c613524082d5b0"
+    },
+    {
+      "path": "art/build/cloud-cliff-round1/production-v19-final64/native-completion.json",
+      "bytes": 1114,
+      "sha256": "c8684481d9e82f220c0a87eae3b473accc0a7311962526b611d80191384352c5"
+    },
+    {
+      "path": "art/build/cloud-cliff-round1/contact-replay-v19/contact-audit.json",
+      "bytes": 119714,
+      "sha256": "37aa17041707b923a9074c7e6086b095d5b049ecc657f066c8b89d03a501cf04"
+    },
+    {
+      "path": "art/build/cloud-cliff-round1/contact-replay-v19/mapping-proof.json",
+      "bytes": 16020,
+      "sha256": "6bc498ad09049be84390a6594ee475edb6a152291a075d718cf30ae69e2cd6fd"
+    },
+    {
+      "path": "art/build/cloud-cliff-round1/source19-live-density-ktx/cloud-live-density.json",
+      "bytes": 6372,
+      "sha256": "0230e4422e8daad9b487ec4d2d930c0c856ba86e79f9303204a40efdb5842730"
+    }
+  ],
+  "runtimeAndRecipes": [
+    {
+      "path": "web/src/engine/places/cloud-cliff-baked.js",
+      "bytes": 11504,
+      "sha256": "351254d83921358bcc471b5d0b3e4990f2a9e2cb253f143b11d04078dfe373f2"
+    },
+    {
+      "path": "web/src/engine/places/cloud-volume-live.js",
+      "bytes": 13116,
+      "sha256": "aa090a2b6d334e38dcdf33ed2b6eb288403c5dad9315cef74b6613e3f693a720"
+    },
+    {
+      "path": "web/src/engine/places/cloud-live-cache-v1.js",
+      "bytes": 9770,
+      "sha256": "b262ed5c5ac8769792bb0cf0fb022258cba3b507496ef427a94735cb19fb3873"
+    },
+    {
+      "path": "web/src/engine/places/cloud-light-volume.js",
+      "bytes": 8797,
+      "sha256": "b0d078a9ba9d0177c88ce38a24a0eabd87dc1de1ef532006682683aa2e60a7ae"
+    },
+    {
+      "path": "web/src/engine/places/cloud-light-prefix-v1.js",
+      "bytes": 10827,
+      "sha256": "f5342dd669b1b890b0c2b9ecf69dcc4b12924cc60ff83800ee4f75533b421859"
+    },
+    {
+      "path": "web/src/engine/places/cloud-light-phase.js",
+      "bytes": 4792,
+      "sha256": "06927db8c229eaee1a067f9afb14a53f51fe73085626f4e2f4cd0ea7c37250ed"
+    },
+    {
+      "path": "web/src/engine/places/cloud-depth-composite.js",
+      "bytes": 6141,
+      "sha256": "590bcad829d6ae7fe406a1e8030dcf91b032f37a8c9bd69787cc40722201aaae"
+    },
+    {
+      "path": "web/src/engine/places/cloudOpaqueDepth.js",
+      "bytes": 15077,
+      "sha256": "426b1aca3e346eb6b9eaff4266a2c65d32478e9e1c7fe335001a5807a9c5ede2"
+    },
+    {
+      "path": "art/blender/cloud_cliff.py",
+      "bytes": 76891,
+      "sha256": "b068d236435e37bcb21ffe5cd0f12f06f5efe60e0c80817d468611fa7953f27f"
+    },
+    {
+      "path": "art/blender/build_cloud_source19.py",
+      "bytes": 9148,
+      "sha256": "f0b0188f4c05bfba79ac3b5db33d72ec19e2e027bde9700fb547a22eeeead384"
+    },
+    {
+      "path": "art/blender/export_cloud_field_metadata.py",
+      "bytes": 1664,
+      "sha256": "6b3005f7012777ca98d575d43221e08d24407d9abf5aba6492b979eb2739f5e5"
+    },
+    {
+      "path": "scripts/prototype-cloud-live-envelope.mjs",
+      "bytes": 12051,
+      "sha256": "d3b71ed9eee2e769254cfdb5c006fff4ccfa2b9b3717cd3379512b2c9503af63"
+    },
+    {
+      "path": "scripts/prove-cloud-hash-lattice.mjs",
+      "bytes": 4954,
+      "sha256": "1ed88a5fb31d207ecdb2d248779027d9f3a8471c99f0fb8c72f5cf99411dc01b"
+    },
+    {
+      "path": "scripts/pack-cloud-noise-lattice.mjs",
+      "bytes": 3436,
+      "sha256": "638d1f8f19578cf88eac51b6aa3638d853041ca482f48701c08d250400829b0b"
+    },
+    {
+      "path": "scripts/pack-cloud-live-density.mjs",
+      "bytes": 5706,
+      "sha256": "872abe723424401b8cfd5e139b3a90afcdb535aac3688d7a3973647beb9536e1"
+    },
+    {
+      "path": "scripts/attach-cloud-live-density.mjs",
+      "bytes": 5206,
+      "sha256": "28b872078258dc72d98a49e5b4ea0c7c4df4c114ffae078843fba1e54d29c144"
+    }
+  ],
+  "native": {
+    "exitCode": 0,
+    "wallSeconds": 450.0009651250439,
+    "allLaunchInputsUnchanged": true,
+    "sourceSha256": "ee3f9f065a72a102867d0bfe7ea9233761cd7db62e98711c993d38cba324bda0",
+    "device": "METAL",
+    "denoisingDevice": "METAL",
+    "samples": 64,
+    "threads": "AUTO",
+    "command": [
+      "/Applications/Blender.app/Contents/MacOS/Blender",
+      "--background",
+      "art/build/cloud-cliff-round1/prepared-v19/cloud-cliff-prepared.blend",
+      "--python",
+      "art/blender/bake_export.py",
+      "--",
+      "--out",
+      "art/build/cloud-cliff-round1/production-v19-final64",
+      "--resume",
+      "--samples",
+      "64",
+      "--resolution",
+      "1024",
+      "--region-resolutions",
+      "cover=1024,cliff=512,far=256",
+      "--device",
+      "METAL",
+      "--oidn-device",
+      "METAL",
+      "--resting-contact-audit",
+      "art/build/cloud-cliff-round1/contact-replay-v19/contact-audit.json",
+      "--prepared-preview-audit",
+      "art/build/cloud-cliff-round1/contact-replay-v19/mapping-proof.json",
+      "--passes",
+      "night,dusk,day,lamp"
+    ],
+    "manifestSha256": "48907e216ceffcb1f923ab1db4a246badf272a1823ed70ce8fed3e739e27d302"
+  },
+  "maps": [
+    {
+      "region": "cliff",
+      "look": "night",
+      "samples": 64,
+      "seconds": 26.563,
+      "bakeDevice": "METAL",
+      "denoiseDevice": "METAL",
+      "mipLevels": 3,
+      "gutterPixels": 8
+    },
+    {
+      "region": "cliff",
+      "look": "dusk",
+      "samples": 64,
+      "seconds": 25.767,
+      "bakeDevice": "METAL",
+      "denoiseDevice": "METAL",
+      "mipLevels": 3,
+      "gutterPixels": 8
+    },
+    {
+      "region": "cliff",
+      "look": "day",
+      "samples": 64,
+      "seconds": 25.838,
+      "bakeDevice": "METAL",
+      "denoiseDevice": "METAL",
+      "mipLevels": 3,
+      "gutterPixels": 8
+    },
+    {
+      "region": "cliff",
+      "look": "lamp",
+      "samples": 64,
+      "seconds": 25.598,
+      "bakeDevice": "METAL",
+      "denoiseDevice": "METAL",
+      "mipLevels": 3,
+      "gutterPixels": 8
+    },
+    {
+      "region": "cover",
+      "look": "night",
+      "samples": 64,
+      "seconds": 67.216,
+      "bakeDevice": "METAL",
+      "denoiseDevice": "METAL",
+      "mipLevels": 3,
+      "gutterPixels": 8
+    },
+    {
+      "region": "cover",
+      "look": "dusk",
+      "samples": 64,
+      "seconds": 67.15,
+      "bakeDevice": "METAL",
+      "denoiseDevice": "METAL",
+      "mipLevels": 3,
+      "gutterPixels": 8
+    },
+    {
+      "region": "cover",
+      "look": "day",
+      "samples": 64,
+      "seconds": 67.586,
+      "bakeDevice": "METAL",
+      "denoiseDevice": "METAL",
+      "mipLevels": 3,
+      "gutterPixels": 8
+    },
+    {
+      "region": "cover",
+      "look": "lamp",
+      "samples": 64,
+      "seconds": 38.049,
+      "bakeDevice": "METAL",
+      "denoiseDevice": "METAL",
+      "mipLevels": 3,
+      "gutterPixels": 8
+    },
+    {
+      "region": "far",
+      "look": "night",
+      "samples": 64,
+      "seconds": 25.827,
+      "bakeDevice": "METAL",
+      "denoiseDevice": "METAL",
+      "mipLevels": 3,
+      "gutterPixels": 8
+    },
+    {
+      "region": "far",
+      "look": "dusk",
+      "samples": 64,
+      "seconds": 25.903,
+      "bakeDevice": "METAL",
+      "denoiseDevice": "METAL",
+      "mipLevels": 3,
+      "gutterPixels": 8
+    },
+    {
+      "region": "far",
+      "look": "day",
+      "samples": 64,
+      "seconds": 25.863,
+      "bakeDevice": "METAL",
+      "denoiseDevice": "METAL",
+      "mipLevels": 3,
+      "gutterPixels": 8
+    },
+    {
+      "region": "far",
+      "look": "lamp",
+      "samples": 64,
+      "seconds": 25.752,
+      "bakeDevice": "METAL",
+      "denoiseDevice": "METAL",
+      "mipLevels": 3,
+      "gutterPixels": 8
+    }
+  ],
+  "runtimePosterCapture": "artifacts/full-review/round-1/cloud19-final-runtime-posters/inputs.json",
+  "runtimePosterReceipt": {
+    "path": "art/build/cloud-cliff-round1/production-v19-posters/posters.json",
+    "bytes": 3653,
+    "sha256": "5ff00657d0b6813649d5136b982fa0feffe12d14854987fdea77b1cbf4027dc7"
+  },
+  "phoneShortSmoke": {
+    "fps": 52.175649699333945,
+    "path": "artifacts/full-review/round-1/cloud19-v7-balanced-performance/phone.json",
+    "seconds": 4,
+    "physicalDevice": false
+  },
+  "desktopShortSmoke": {
+    "fps": 20.066889632107024,
+    "path": "artifacts/full-review/round-1/cloud19-v7-balanced-performance/desktop.json",
+    "seconds": 4,
+    "limitation": "Below30FPS; not hidden by phone result."
+  },
+  "limits": [
+    "Coarse128x64x128 source-medium directional transport; near1m light refinement and opaque-light occlusion are not active.",
+    "Live source simulation holds if its completed phase producer falls behind.",
+    "R8 envelope interpolation and delivered UV/tint/material codecs are declared approximations.",
+    "Full journey, stranger review, physical phone and all-look motion acceptance belong to Root final review."
+  ],
+  "webkitSixLooks": {
+    "inputs": "artifacts/full-review/round-1/cloud19-final-webkit-lights-r2/inputs.json",
+    "inputsSha256": "517f2a2095108e3722700deb80535b136b4d5eb5b50a8ac04384b95c9a157cb0",
+    "manifestSha256": "4bb463f9f52e290f81ee9e475a5213f34619194dde10a62787a46677abc42a98",
+    "sourceBlendSha256": "ee3f9f065a72a102867d0bfe7ea9233761cd7db62e98711c993d38cba324bda0",
+    "sourceFingerprintSha256": "dcbb80158bf2712b5e6ba416f355a6a3c65e5efe4031e85c07d5a26bc6fb7d36",
+    "errors": 0,
+    "rows": [
+      {
+        "look": "night",
+        "viewport": "desktop",
+        "png": "artifacts/full-review/round-1/cloud19-final-webkit-lights-r2/night-desktop.png",
+        "metadata": "artifacts/full-review/round-1/cloud19-final-webkit-lights-r2/night-desktop.json",
+        "pngSha256": "c4a52ab592fecbfaaba78dd57b9d629c877ed3677f3b04bb041f4ced6a63fdbf",
+        "camera": {
+          "pendingTweens": 0,
+          "position": [
+            5.2,
+            1.85,
+            4.7
+          ],
+          "look": [
+            5.8,
+            1.18,
+            -2.5
+          ],
+          "fov": 49
+        }
+      },
+      {
+        "look": "night",
+        "viewport": "phone",
+        "png": "artifacts/full-review/round-1/cloud19-final-webkit-lights-r2/night-phone.png",
+        "metadata": "artifacts/full-review/round-1/cloud19-final-webkit-lights-r2/night-phone.json",
+        "pngSha256": "da6b70ad3775739d1643686951323e5f7ff5122b9ab1f2b863a11513e2e6efa0",
+        "camera": {
+          "pendingTweens": 0,
+          "position": [
+            5.2,
+            1.45,
+            4.8
+          ],
+          "look": [
+            3.77,
+            0.62,
+            -5
+          ],
+          "fov": 49
+        }
+      },
+      {
+        "look": "dusk",
+        "viewport": "desktop",
+        "png": "artifacts/full-review/round-1/cloud19-final-webkit-lights-r2/dusk-desktop.png",
+        "metadata": "artifacts/full-review/round-1/cloud19-final-webkit-lights-r2/dusk-desktop.json",
+        "pngSha256": "5ba62c1979b7bf905e3b1773c4418c471d4f798604f66feefaabe8e581a4aca8",
+        "camera": {
+          "pendingTweens": 0,
+          "position": [
+            5.2,
+            1.85,
+            4.7
+          ],
+          "look": [
+            5.8,
+            1.18,
+            -2.5
+          ],
+          "fov": 49
+        }
+      },
+      {
+        "look": "dusk",
+        "viewport": "phone",
+        "png": "artifacts/full-review/round-1/cloud19-final-webkit-lights-r2/dusk-phone.png",
+        "metadata": "artifacts/full-review/round-1/cloud19-final-webkit-lights-r2/dusk-phone.json",
+        "pngSha256": "14e8e1be768884d64be5420b49ab8d0fbc2bb2f3a89ffed242c8b4fb4ddd5b10",
+        "camera": {
+          "pendingTweens": 0,
+          "position": [
+            5.2,
+            1.45,
+            4.8
+          ],
+          "look": [
+            3.77,
+            0.62,
+            -5
+          ],
+          "fov": 49
+        }
+      },
+      {
+        "look": "day",
+        "viewport": "desktop",
+        "png": "artifacts/full-review/round-1/cloud19-final-webkit-lights-r2/day-desktop.png",
+        "metadata": "artifacts/full-review/round-1/cloud19-final-webkit-lights-r2/day-desktop.json",
+        "pngSha256": "0078ec867bd7367222bbf1346e023961c2685a87f9120848177c1d7d5b689dc4",
+        "camera": {
+          "pendingTweens": 0,
+          "position": [
+            5.2,
+            1.85,
+            4.7
+          ],
+          "look": [
+            5.8,
+            1.18,
+            -2.5
+          ],
+          "fov": 49
+        }
+      },
+      {
+        "look": "day",
+        "viewport": "phone",
+        "png": "artifacts/full-review/round-1/cloud19-final-webkit-lights-r2/day-phone.png",
+        "metadata": "artifacts/full-review/round-1/cloud19-final-webkit-lights-r2/day-phone.json",
+        "pngSha256": "05b69a91620849faba6a785c2dcc6e77d80671c65733d35db7f69ff80e09e2e0",
+        "camera": {
+          "pendingTweens": 0,
+          "position": [
+            5.2,
+            1.45,
+            4.8
+          ],
+          "look": [
+            3.77,
+            0.62,
+            -5
+          ],
+          "fov": 49
+        }
+      }
+    ]
+  }
+}

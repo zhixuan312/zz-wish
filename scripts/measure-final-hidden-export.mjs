@@ -58,6 +58,7 @@ for (const node of rawDoc.getRoot().listNodes()) {
   if (list.length !== face.regions[region].matchedProvenTriangles) throw new Error('Raw proven source population changed.');
   sourceTriangles.set(region, list);
 }
+// eslint-disable-next-line no-useless-assignment -- Release the large decoded document before the next proof phase.
 rawDoc = null; global.gc?.();
 function primitiveHash(primitive) {
   const hash = createHash('sha256'), names = primitive.listSemantics().sort(), attributes = names.map((n) => primitive.getAttribute(n));

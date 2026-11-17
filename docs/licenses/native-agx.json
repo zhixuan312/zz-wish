@@ -1,0 +1,254 @@
+{
+  "asset": "native-agx-57-f16",
+  "title": "Blender 5.3 native AgX sRGB view, declared Float16 native 57\u00b3 lookup",
+  "recordDate": "2026-11-17",
+  "scope": "Provenance and retained notices for the native AgX view helper and repacked lookup data. This record does not make a determination of copyrightability or definitive legal coverage for all AgX contributions.",
+  "delivered": {
+    "path": "web/public/color/native-agx-57-f16.bin.zst",
+    "bytes": 116705,
+    "sha256": "bc942c1862956cb48aed8c259d2e410518a10c4b26775a27c3b326d539244463",
+    "url": "/color/native-agx-57-f16.bin.zst",
+    "encoding": "Zstd; reversible channel-wise modulo 2^16 second-difference/zigzag16 two-byte-planar encoding of IEEE754 Float16 words",
+    "precision": "Each original native Float32 LUT sample rounded once to Float16 nearest-even. No resampling, resizing, creative colour edits or polynomial substitution.",
+    "nativeGridSize": 57,
+    "interpolation": "Actual OCIO tetrahedral interpolation, NEAREST sampling of RGBA16F 3D texture",
+    "decodedBytes": 1111158,
+    "decodedSha256": "a78e822f6698a8cbc8969e9fa51d661f8b04641f6f717948f72a073dbe836703",
+    "reconstructedRGB16Bytes": 1111158,
+    "reconstructedRGB16Sha256": "0af4abfe1372ab918471829aeae211a8f99ef0411b02beca107f4a441c3559a0",
+    "gpuRGBA16FBytes": 1481544
+  },
+  "helper": {
+    "path": "web/src/engine/baked/nativeAgX.js",
+    "bytes": 15573,
+    "sha256": "1e6a35592672bd051b45e129dac9ae63d795fa306b16f57604d8a8c9501a84a8",
+    "declaration": {
+      "path": "web/src/engine/baked/nativeAgX.d.ts",
+      "bytes": 2164,
+      "sha256": "daaec35458fd9294bcb90212fa1fa9f0e8d0b1e1ca200d35bec4dabaf723e6fb"
+    },
+    "testedPrototype": {
+      "path": "art/build/snow-roof-round1/native-agx-prototype/nativeAgX.js",
+      "bytes": 15623,
+      "sha256": "aae6afa312921e1283b1f531d8528bdab50cb1482904743707036f620d42091a",
+      "productionDifference": "Comments and insignificant shader whitespace only; numerical operations, constants and shader tokens are preserved."
+    },
+    "input": "Scene-linear Rec.709",
+    "output": "Linear display sRGB; subsequent OutputPass performs sRGB OETF only",
+    "view": "AgX",
+    "look": "None",
+    "gamma": 1,
+    "exposure": "Explicit residual cameraExposureEV before native view. Runtime scene already includes cameraRadiometricMultiplier40 for Snow17; never multiply by40 again.",
+    "optimizedChain": "Actual OCIO optimized Rec.709\u2192FilmLight E-Gamut matrix, log2 allocation of 25 stops, native 57\u00b3 tetrahedral LUT, pow2.4"
+  },
+  "installedSources": [
+    {
+      "path": "/Applications/Blender.app/Contents/Resources/5.3/datafiles/colormanagement/config.ocio",
+      "bytes": 68502,
+      "sha256": "066a440ed1c02551fa3cacbb3af5d22d2efde7e4da5f2c14dffcca00c47751a0",
+      "exact_upstream_match": "https://github.com/blender/blender/blob/14837332fe1c7475ba9712620baf4fc46229505b/release/datafiles/colormanagement/config.ocio"
+    },
+    {
+      "path": "/Applications/Blender.app/Contents/Resources/5.3/datafiles/colormanagement/luts/AgX_Base_sRGB.cube",
+      "bytes": 2716206,
+      "sha256": "e707a36f3e90ee79bc342332febf91334c02ce3974cac700ece00ca9d4507491",
+      "lut_3d_size": 57,
+      "exact_upstream_match": "https://github.com/blender/blender/blob/e26d28752026ebe202163fff2a076f88890f270c/release/datafiles/colormanagement/luts/AgX_Base_sRGB.cube",
+      "also_matches": "https://github.com/EaryChow/AgX/blob/74852bd3ca64e6592c2f6315fda4bcb1f8821ac2/luts/AgX_Base_sRGB.cube"
+    },
+    {
+      "path": "/Applications/Blender.app/Contents/Resources/text/license/license.md",
+      "bytes": 186175,
+      "sha256": "8e95c341a29695beb0a08d078ec8e5b8a2d91ea006eef18a6d52e04153920c93",
+      "exact_upstream_match": "https://github.com/blender/blender/blob/14837332fe1c7475ba9712620baf4fc46229505b/release/license/license.md",
+      "observations": [
+        "Lists OpenColorIO library 2.5.0, Copyright Contributors to the OpenColorIO Project.",
+        "Contains neither AgX nor Filmic. Does not explicitly identify the AgX lookup data."
+      ]
+    }
+  ],
+  "credits": [
+    "Troy Sobotka",
+    "Zijun Eary Zhou",
+    "Mark Faderbauer",
+    "Sakari Kapanen"
+  ],
+  "sourceAttribution": {
+    "originalRepositories": [
+      "https://github.com/sobotka/AgX",
+      "https://github.com/sobotka/SB2383-Configuration-Generation"
+    ],
+    "versionRepository": "https://github.com/EaryChow/AgX",
+    "config": "https://github.com/blender/blender/blob/14837332fe1c7475ba9712620baf4fc46229505b/release/datafiles/colormanagement/config.ocio",
+    "lut": "https://github.com/blender/blender/blob/e26d28752026ebe202163fff2a076f88890f270c/release/datafiles/colormanagement/luts/AgX_Base_sRGB.cube",
+    "alsoByteIdenticalTo": "https://github.com/EaryChow/AgX/blob/74852bd3ca64e6592c2f6315fda4bcb1f8821ac2/luts/AgX_Base_sRGB.cube"
+  },
+  "dataLicense": {
+    "spdx": null,
+    "status": "Historical OCIO configuration notice retained; separate explicit AgX-specific grant from all named contributors was not found in the cited research.",
+    "historicalNotice": {
+      "path": "docs/licenses/native-agx-historical-ocio.txt",
+      "bytes": 1520,
+      "sha256": "e39e97c2149a821e3e3b3c07839f8cadf6a98fb0a816b8ed69f16dd8817066fc",
+      "name": "Sony Pictures Imageworks three-clause BSD notice",
+      "copyright": "Copyright (c) 2003-2010 Sony Pictures Imageworks Inc., et al. All Rights Reserved.",
+      "originalText": "https://github.com/blender/blender/blob/3237ae2855b6dbfad8ba9e86e6e7add0942403d7/release/text/ocio-license.txt",
+      "textAtExactLutRevision": "https://github.com/blender/blender/blob/e26d28752026ebe202163fff2a076f88890f270c/release/license/OpenColorIO.txt",
+      "termsSummary": [
+        "Permits redistribution and use in source and binary forms, with or without modification, subject to its conditions.",
+        "Source distributions retain copyright notice, conditions, and disclaimer.",
+        "Binary distributions reproduce copyright notice, conditions, and disclaimer in documentation or other materials.",
+        "Sony Pictures Imageworks and contributor names cannot endorse or promote derived products without prior written permission.",
+        "Includes warranty and liability disclaimer."
+      ]
+    },
+    "history": [
+      {
+        "date": "2016-03-29",
+        "commit": "3237ae2855b6dbfad8ba9e86e6e7add0942403d7",
+        "url": "https://github.com/blender/blender/commit/3237ae2855b6dbfad8ba9e86e6e7add0942403d7",
+        "fact": "Added as release/text/ocio-license.txt by commit titled Add license text for OCIO configuration, which also added the config filename reference. At that time the header identified ACES, nuke-default and SPI configuration ancestry."
+      },
+      {
+        "date": "2020-09-24",
+        "commit": "0434efa09ddc451675ce8f8e8e7df61f5cc34e89",
+        "url": "https://github.com/blender/blender/commit/0434efa09ddc451675ce8f8e8e7df61f5cc34e89",
+        "fact": "Renamed without content changes to release/license/OpenColorIO.txt. Config reference retained the old filename."
+      },
+      {
+        "date": "2023-08-22",
+        "commit": "a9053f7efbe8b25429b11bccd679dbe81ea60e3f",
+        "url": "https://github.com/blender/blender/commit/a9053f7efbe8b25429b11bccd679dbe81ea60e3f",
+        "fact": "Added AgX LUTs and credits; config retained the ocio-license.txt reference."
+      },
+      {
+        "date": "2023-10-06",
+        "commit": "e26d28752026ebe202163fff2a076f88890f270c",
+        "url": "https://github.com/blender/blender/commit/e26d28752026ebe202163fff2a076f88890f270c",
+        "fact": "Replaced AgX LUT with the exact 57-cubed LUT installed locally; commit describes increased resolution, efficient formatting, output clipping and differences from previously provided LUTs."
+      },
+      {
+        "date": "2024-10-18",
+        "commit": "0a4dbc57b80fec06b740e66f3846951e886aa735",
+        "url": "https://github.com/blender/blender/commit/0a4dbc57b80fec06b740e66f3846951e886aa735",
+        "fact": "Removed release/license/OpenColorIO.txt during make-license consolidation into license.md. Config filename reference survived."
+      }
+    ],
+    "scopeLimit": "The concrete config-to-notice reference and the notice present at the exact LUT revision are preserved. Sony copyright and the 2016 notice predate AgX; this record does not label every AgX contribution conclusively BSD-3-Clause or CC0. The current missing ocio-license.txt filename reflects a historical rename/removal documented here, not proof that no notice ever existed.",
+    "upstreamChecks": [
+      {
+        "repository": "EaryChow/AgX",
+        "snapshot": "74852bd3ca64e6592c2f6315fda4bcb1f8821ac2",
+        "fact": "Recursive tree has no license-named file; config repeats ocio-license.txt reference."
+      },
+      {
+        "repository": "EaryChow/AgX_LUT_Gen",
+        "snapshot": "8485072ffe81d67be10b87dd7e2dc2e73e1d9d3a",
+        "fact": "Recursive tree has no license-named file. AgXBasesRGB.py contains no license/copyright/redistribution declaration."
+      },
+      {
+        "repository": "sobotka/AgX",
+        "snapshot": "a66ad4b1e74952531d95634d60fe25de0025462e",
+        "fact": "Recursive tree has no license-named file; config contains no license/copyright/redistribution declaration."
+      },
+      {
+        "url": "https://github.com/sobotka/AgX/discussions/19",
+        "fact": "AgX License question dated 2024-01-20 is unanswered, with zero comments at research time. This is evidence of an unresolved question, not a license grant."
+      }
+    ],
+    "distinctions": [
+      "The OpenColorIO library license row does not explicitly identify AgX configuration or LUT data.",
+      "Historical config-to-notice reference is concrete provenance evidence; the Sony copyright and 2016 origin predate AgX. This research did not find a separate explicit AgX-specific grant from all named contributors, so it does not label all AgX data conclusively BSD-3-Clause.",
+      "Ordinary renders and user artwork are distinct from redistribution of a bundled LUT or a repacked copy of lookup samples. Blender official artwork policy is https://www.blender.org/about/license/ .",
+      "Blender repository README says Blender as a whole is GPL Version 3 and individual files may have a different compatible license. That general statement does not independently resolve the specific historical notice scope.",
+      "No third-party shader port was copied or added during this research."
+    ]
+  },
+  "softwareNotice": {
+    "component": "OpenColorIO GPU shader text generation used for the generated native view implementation",
+    "version": "2.5.0",
+    "sourceTag": "v2.5.0",
+    "referenceCommit": "592a122b37467c3376f2387fbbdbe7b571fad39f",
+    "spdx": "BSD-3-Clause",
+    "credit": "Copyright Contributors to the OpenColorIO Project.",
+    "notice": {
+      "path": "docs/licenses/OpenColorIO-2.5.0-BSD-3-Clause.txt",
+      "bytes": 1485,
+      "sha256": "82a40c52065ee968aa62015735e84378ac11425db7a233e6a2dcd2c83fc24276",
+      "source": "https://raw.githubusercontent.com/AcademySoftwareFoundation/OpenColorIO/592a122b37467c3376f2387fbbdbe7b571fad39f/LICENSE"
+    },
+    "sourceEvidence": [
+      {
+        "url": "https://github.com/AcademySoftwareFoundation/OpenColorIO/blob/592a122b37467c3376f2387fbbdbe7b571fad39f/src/OpenColorIO/GpuShaderDesc.cpp",
+        "sha256": "46e8126735d357dbd3872da2bfb17d1a8c06be71ca1b69d3f23a9693923312c5",
+        "fact": "GPU shader descriptor source has SPDX-License-Identifier: BSD-3-Clause and Contributor copyright header."
+      },
+      {
+        "url": "https://github.com/AcademySoftwareFoundation/OpenColorIO/blob/592a122b37467c3376f2387fbbdbe7b571fad39f/src/OpenColorIO/GpuShaderUtils.cpp",
+        "sha256": "eb12087b96067f57d9761b3e1aa946aed996242b6889dfb39cce26c3b41e67f5",
+        "fact": "GPU shader text generation utility source has SPDX-License-Identifier: BSD-3-Clause and Contributor copyright header."
+      },
+      {
+        "url": "https://github.com/AcademySoftwareFoundation/OpenColorIO/blob/592a122b37467c3376f2387fbbdbe7b571fad39f/README.md",
+        "fact": "Credits collaborative contributors; original development by Sony Pictures Imageworks and OCIO 2.0 design/development led by Autodesk."
+      },
+      {
+        "url": "https://github.com/AcademySoftwareFoundation/OpenColorIO/blob/592a122b37467c3376f2387fbbdbe7b571fad39f/THIRD-PARTY.md",
+        "fact": "Says main LICENSE is for original OpenColorIO code; imported third-party details are listed separately."
+      }
+    ],
+    "scopeLimit": "This software provenance supports preserving the OpenColorIO contributor notice for generated GPU shader implementation material. It is not a separate explicit grant for AgX lookup data and does not assert that every generated output inherits a license."
+  },
+  "process": {
+    "blender": "5.3.0",
+    "blenderBuild": "02f0899d78e3",
+    "pyOpenColorIO": "2.5.0",
+    "configSha256": "066a440ed1c02551fa3cacbb3af5d22d2efde7e4da5f2c14dffcca00c47751a0",
+    "lutSha256": "e707a36f3e90ee79bc342332febf91334c02ce3974cac700ece00ca9d4507491",
+    "generatedNativeShaderSha256": "bd358f4584c8e57cb0b07fdbde77b1540ba305a6ddb34541455a843e9d9556d2",
+    "nativeFloat32RGBSha256": "cb92475f7c9feb46b589847f26c9ce068c89f1d0a2f7a88aecd0857b42c7fe5f",
+    "steps": [
+      "Load the actual installed Blender config and AgX/None/sRGB reference at exposure0/gamma1.",
+      "Extract the losslessly optimized OCIO GLSL ES3 linear-output chain and actual native57\u00b3 texture data.",
+      "Preserve an exact Float32 reference in the ignored build artifacts.",
+      "Round each native sample to Float16 nearest-even once, then encode/reconstruct those Float16 words losslessly.",
+      "Retain historical config and OCIO software notices separately, preserving exact notice bytes."
+    ]
+  },
+  "validation": {
+    "cpuReceipt": {
+      "path": "docs/evidence/full-review/round-1-native-agx-cpu.json",
+      "bytes": 9872,
+      "sha256": "7c4c1a75e861d632e66b842a6c4b81adb1572b385cb065e9b31a781b828da4f8"
+    },
+    "gpuReceipt": {
+      "path": "docs/evidence/full-review/round-1-native-agx-gpu.json",
+      "bytes": 11738,
+      "sha256": "e36afa727b032554c93f2afb3cbb6fa9c8ae44fbc4a7ed47737c7609d469aaa1"
+    },
+    "cpuCases": 40413,
+    "maxF16DisplayCodeError255": 0.0642838142234825,
+    "conservativeLUTRoundingCodeBound255": 0.06680150712970255,
+    "gpu": "Chrome and WebKit actual native view + OETF-only OutputPass: 40,413 cases at 0.5/1/2 exposure each, all final RGB bytes within 1 display code of actual OCIO; browser readback hashes identical. No full-app performance claim."
+  },
+  "research": {
+    "main": {
+      "path": "artifacts/agx-provenance-research-2026-11-17.json",
+      "bytes": 7216,
+      "sha256": "a16a37a8f0764b8466a5718e767dd3ebc8e323ad93a242c17aba70fe95fac16a"
+    },
+    "softwareSupplement": {
+      "path": "artifacts/agx-ocio-notice-supplement-2026-11-17.json",
+      "bytes": 2971,
+      "sha256": "f02b3de4d09ca7ae7149b2c3796b09b4edd5328e79bc4f264d3be0f7a62c2436"
+    },
+    "networkRequestsInProductionStaging": 0
+  },
+  "limitations": [
+    "This package reproduces the specified SDR AgX/None/sRGB reference view; it does not provide other artistic looks, HDR display transforms or white-balance controls.",
+    "Float16 precision is declared and bounded by the linked CPU/GPU measurements; the asset is not an exact Float32 copy.",
+    "Pointwise view conversion may amplify existing image variation but does not originate the separate baked spatial star pattern.",
+    "Final scene tone/exposure handshake, thumbnails, complete shared transfer budget and app performance are integration checks owned separately.",
+    "Retained historical/config/software notices are not represented as an independent all-contributor AgX-specific license grant."
+  ]
+}

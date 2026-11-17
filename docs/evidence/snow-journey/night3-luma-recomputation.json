@@ -1,0 +1,8 @@
+{
+  "archivedEvidence": true,
+  "path": "docs/evidence/snow-journey/night3-luma-recomputation.json",
+  "bytes": 245449,
+  "sha256": "cf7d35223b430fd1ea45f8f46725f91c1a1e7553620751df53de05fc059db584",
+  "localArchive": "artifacts/archive/evidence-8df1301/docs/evidence/snow-journey/night3-luma-recomputation.json",
+  "note": "Full immutable evidence is preserved locally in the git-ignored archive; see docs/evidence/ARCHIVE.md."
+}

@@ -1,0 +1,7 @@
+{
+  "scope": "Unused prototype; no active code imports. The delivered cloud uses actual opaque view depth; this separate directional light visibility helper is not activated.",
+  "original": "web/src/engine/places/cloudOpaqueLightVisibility.js",
+  "archive": "artifacts/archive/round1-unused-cloud-light-helper/web/src/engine/places/cloudOpaqueLightVisibility.js",
+  "bytes": 17048,
+  "sha256": "15966f811ab09778c39948953842b96bd2bb1d39e994a48100a8c120ebef8953"
+}

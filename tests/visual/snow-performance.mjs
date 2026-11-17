@@ -1,14 +1,14 @@
 // Headed, no-video performance observation of a frozen Snow Roof checkout.
 // Requires capture-only beforeRender/afterRender hooks from performance-lab.mjs.
 // BASE_URL=http://127.0.0.1:5191 SOURCE_ROOT=/tmp/FROZEN EVIDENCE=final node tests/visual/snow-performance.mjs
-import { chromium } from '@playwright/test';
+import { chromium, webkit } from '@playwright/test';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { resolve, join } from 'node:path';
 import { fingerprintCaptureSource } from './capture-source-fingerprint.mjs';
 import { readCaptureManifest, assertServedSnapshot } from './capture-preflight.mjs';
 
 if (process.argv.includes('--help')) {
-  console.log('Set BASE_URL and SOURCE_ROOT for the frozen instrumented Vite/API snapshot. Optional EVIDENCE, VIEWPORT=desktop|phone, GPU_TIMERS=0, WARMUP_MS, LOCAL_HOUR and MEASURE_PHASES=burning-normal. This driver always uses headed Chrome Metal, ten-second render windows, no video and no pixel readback. Do not run while another capture or native GPU job owns the device.');
+  console.log('Set BASE_URL and SOURCE_ROOT for the frozen instrumented Vite/API snapshot. Optional BROWSERS=chromium,webkit (sequential; default chromium), EVIDENCE, VIEWPORT=desktop|phone, GPU_TIMERS=0, WARMUP_MS, LOCAL_HOUR and MEASURE_PHASES=burning-normal. Headed native browsers, ten-second actual-render windows, no video/pixel readback/audio analyser. Phone uses DSF2 at390×844 CSS. Supports old confirm and current direct-light UI. Only run with an exclusive idle-host GPU lease.');
   process.exit(0);
 }
 const base = process.env.BASE_URL || 'http://127.0.0.1:5191';
@@ -16,6 +16,8 @@ const source = process.env.SOURCE_ROOT;
 if (!source || !resolve(source).startsWith('/tmp/')) throw new Error('SOURCE_ROOT must identify the served frozen /tmp checkout.');
 if (!['127.0.0.1', 'localhost', '[::1]'].includes(new URL(base).hostname)) throw new Error('Use the local frozen Vite/API server.');
 const out = resolve('artifacts/snow-performance', process.env.EVIDENCE || 'prepared-final');
+const browserNames = (process.env.BROWSERS || 'chromium').split(',');
+if (browserNames.some(name => !['chromium','webkit'].includes(name))) throw new Error('BROWSERS accepts chromium,webkit.');
 const seconds = 10, warmupMs = Number(process.env.WARMUP_MS || 2000);
 const hasLocalHour = process.env.LOCAL_HOUR !== undefined, localHour = Number(process.env.LOCAL_HOUR ?? 22);
 if (!Number.isFinite(localHour) || localHour < 0 || localHour >= 24) throw new Error('LOCAL_HOUR must be in [0,24).');
@@ -32,28 +34,33 @@ const report = { createdAt: new Date().toISOString(), base, sourceStart, partial
   'CPU submit is wall time around composer.render(), not CPU utilization. GPU timing is unavailable when unsupported, disjoint, incomplete or disabled.',
   'Each window lasts ten seconds of actual rendering. Screenshots and settling waits occur outside timed windows.',
   `Local lighting clock is held at ${localHour}; fuel, flame, weather and other animation remain running. Camera drift is held for phase-to-phase comparisons.`,
-  'Phone is 390×844 CSS touch/viewport emulation on the M1 desktop GPU with deviceScaleFactor 2, exercising the balanced 1.25 renderer cap (about 488×1055 pixels; power saver 390×844). It is not physical-phone performance. Desktop uses deviceScaleFactor 1.',
+  'Phone is 390×844 CSS touch/viewport emulation on the desktop GPU with deviceScaleFactor 2, exercising the balanced 1.25 renderer cap (about 488×1055 pixels; power saver 390×844). It is not physical-phone performance. Desktop uses deviceScaleFactor 1.',
+  'Chrome and WebKit run sequentially. A browser without a supported GPU timer still reports actual compositor intervals and CPU submit; unsupported GPU timing is not reported as a measured GPU budget.',
   'Pre-burn views intentionally cap at 60 FPS. Burning power saver caps at 15 FPS; normal and restored burning detail cap at 30 FPS. Results must be judged against these source caps.',
 ] };
 if (mixedAtlasProbe) report.notes.push('Bounded worst live-atlas set probe: dawn uses night+dusk+day+lamp simultaneously. Only one normal-burning phone window is measured; this is M1 emulation, not physical-phone performance.');
 await mkdir(out, { recursive: true });
 const save = () => writeFile(join(out, 'report.json'), JSON.stringify(report, null, 2) + '\n');
-const browser = await chromium.launch({ channel: 'chrome', headless: false, args: ['--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist'] });
-report.runtime.browserVersion = browser.version();
 const re = (zh, en) => new RegExp(`${zh}|${en}`);
 const sizes = [{ name: 'desktop-en', width: 1440, height: 900, locale: 'en-US', phone: false }, { name: 'phone-zh', width: 390, height: 844, locale: 'zh-CN', phone: true }].filter(size => !process.env.VIEWPORT || size.name.startsWith(process.env.VIEWPORT));
 try {
+  for (const browserName of browserNames) {
+  const browser = await (browserName === 'webkit' ? webkit : chromium).launch(browserName === 'webkit' ? { headless: false } : { channel: 'chrome', headless: false, args: ['--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist'] });
+  report.runtime.versions ??= {}; report.runtime.versions[browserName] = browser.version();
+  if (browserNames.length === 1) report.runtime.browserVersion = browser.version();
+  try {
   for (const size of sizes) {
-    const dir = join(out, size.name); await mkdir(dir, { recursive: true });
+    const dir = join(out, ...(browserNames.length === 1 && browserName === 'chromium' ? [] : [browserName]), size.name); await mkdir(dir, { recursive: true });
+    const scope = { browser: browserName, viewport: size.name };
     const context = await browser.newContext({ viewport: { width: size.width, height: size.height }, deviceScaleFactor: size.phone?2:1, locale: size.locale, hasTouch: size.phone, isMobile: size.phone, reducedMotion: 'no-preference' });
     await context.addInitScript(({hour,fixedSeconds}) => { Date.prototype.getHours = () => Math.floor(hour); Date.prototype.getMinutes = () => Math.floor((hour%1)*60); if(fixedSeconds){Date.prototype.getSeconds=()=>0;Date.prototype.getMilliseconds=()=>0;} window.__visualFreezeCamera = true; }, {hour:localHour,fixedSeconds:hasLocalHour});
     const page = await context.newPage(); page.setDefaultTimeout(120000);
-    const act = locator => size.phone ? locator.tap() : locator.click();
+    const act = async locator => { if (await page.locator('.ui').getAttribute('data-controls-idle') === 'true') { if (size.phone) await page.touchscreen.tap(8, size.height / 2); else await page.mouse.move(8, size.height / 2); } return size.phone ? locator.tap() : locator.click(); };
     const button = name => page.getByRole('button', { name });
     let hasLit = false, cleanupDone = false;
-    page.on('pageerror', error => report.errors.push({ viewport: size.name, error: error.stack || String(error) }));
-    page.on('console', message => { if (message.type() === 'error') report.errors.push({ viewport: size.name, console: message.text(), location: message.location() }); });
-    page.on('response', response => { if (response.status() >= 400) report.resources.push({ viewport: size.name, url: response.url(), status: response.status() }); });
+    page.on('pageerror', error => report.errors.push({ ...scope, error: error.stack || String(error) }));
+    page.on('console', message => { if (message.type() === 'error') report.errors.push({ ...scope, console: message.text(), location: message.location() }); });
+    page.on('response', response => { if (response.status() >= 400) { const error = { ...scope, url: response.url(), status: response.status() }; report.resources.push(error); report.errors.push(error); } });
     const records = () => page.evaluate(async () => (await (await fetch('/api/me/candles')).json()).candles);
     const measure = async (name, intendedCapFPS) => {
       if (!wants(name)) return;
@@ -89,12 +96,12 @@ try {
       if (sample.deliveryStart?.diagnosticError || sample.deliveryEnd?.diagnosticError) issues.push('Delivery diagnostics failed outside the timing window.');
       if (name !== 'home' && (!sample.deliveryStart?.available || !sample.deliveryEnd?.available)) issues.push('The measured Snow Roof did not expose an active baked delivery.');
       const validation = { expectedSamples, targetSamples, expectedPixelRatio, expectedBuffer, issues };
-      report.samples.push({ viewport: size.name, name, intendedCapFPS, targetFrameBudgetMs: 1000 / intendedCapFPS, precondition: state, validation, ...sample });
-      for (const issue of issues) report.errors.push({ viewport: size.name, name, diagnostic: issue });
+      report.samples.push({ ...scope, name, intendedCapFPS, targetFrameBudgetMs: 1000 / intendedCapFPS, precondition: state, validation, ...sample });
+      for (const issue of issues) report.errors.push({ ...scope, name, diagnostic: issue });
       await writeFile(join(dir, `${name}.json`), JSON.stringify(sample, null, 2) + '\n');
       await page.screenshot({ path: join(dir, `${name}-after.png`) });
       await save();
-      console.log('PERFORMANCE', size.name, name, JSON.stringify({ valid: sample.valid, frames: sample.renderedFrames, fps: sample.fps, intervalP95: sample.intervals.p95Ms, cpuP95: sample.cpuSubmit.p95Ms, gpuStatus: sample.gpu.status, gpuP95: sample.gpu.p95Ms, ...validation }));
+      console.log('PERFORMANCE', browserName, size.name, name, JSON.stringify({ valid: sample.valid, frames: sample.renderedFrames, fps: sample.fps, intervalP95: sample.intervals.p95Ms, cpuP95: sample.cpuSubmit.p95Ms, gpuStatus: sample.gpu.status, gpuP95: sample.gpu.p95Ms, ...validation }));
     };
     const putOut = async () => {
       await act(button(re('^熄灭$', '^Put out$')));
@@ -102,7 +109,7 @@ try {
       await page.getByTestId('result-title').waitFor();
       const saved = await records();
       const ended = saved.find(record => record.status === 'went_out' && record.endReason === 'put_out');
-      report.cleanup.push({ viewport: size.name, actualUI: true, succeeded: !!ended, records: saved });
+      report.cleanup.push({ ...scope, actualUI: true, succeeded: !!ended, records: saved });
       if (!ended) throw new Error('Actual put-out action did not persist.');
       cleanupDone = true; hasLit = false;
       await page.screenshot({ path: join(dir, 'result-put-out.png') });
@@ -113,11 +120,13 @@ try {
       await page.waitForFunction(() => window.__ready === true && !!window.__performanceLab);
       await assertServedSnapshot(page, sourceStart);
       await page.evaluate(() => document.fonts.ready.then(() => true));
-      report.runtime[size.name] = await page.evaluate(() => {
+      const runtimeKey = `${browserName}/${size.name}`;
+      report.runtime[runtimeKey] = await page.evaluate(() => {
         const renderer = window.__renderer, gl = renderer.getContext(), debug = gl.getExtension('WEBGL_debug_renderer_info');
         return { userAgent: navigator.userAgent, devicePixelRatio, version: gl.getParameter(gl.VERSION), renderer: debug ? gl.getParameter(debug.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER), configuration: window.__performanceLab.configuration() };
       });
-      if (/SwiftShader|llvmpipe|software/i.test(report.runtime[size.name].renderer)) throw new Error('A software renderer was selected; this is not the requested Metal observation.');
+      if (browserNames.length === 1 && browserName === 'chromium') report.runtime[size.name] = report.runtime[runtimeKey];
+      if (/SwiftShader|llvmpipe|software/i.test(report.runtime[runtimeKey].renderer)) throw new Error('A software renderer was selected; this is not the requested native-GPU observation.');
       await measure('home', 60);
       await page.getByLabel(re('你的愿望', 'Your wish')).fill(size.phone ? '愿这一盏灯，陪伴安静的夜晚。' : 'May this lamp keep someone company tonight.');
       await act(button(re('许好了', 'Set my wish')));
@@ -129,7 +138,7 @@ try {
       await page.getByRole('tab', { name: re('现成的', 'Ready-made') }).waitFor();
       await act(page.locator('.sizes [role=radio]').first());
       await measure('choose', 60);
-      await act(button(re('选这一盏', 'Take this one')));
+      const confirm = button(re('选这一盏', 'Take this one')); if (await confirm.count()) await act(confirm);
       await button(re('点亮这一盏', 'Light it')).waitFor();
       await page.waitForTimeout(warmupMs);
       await act(button(re('点亮这一盏', 'Light it'))); hasLit = true;
@@ -145,18 +154,19 @@ try {
       }
       await putOut();
     } catch (error) {
-      report.errors.push({ viewport: size.name, fatal: error.stack || String(error) });
+      report.errors.push({ ...scope, fatal: error.stack || String(error) });
       await page.evaluate(() => window.__performanceLab?.stop('driver-error')).catch(() => {});
       await page.screenshot({ path: join(dir, 'failure.png') }).catch(() => {});
     } finally {
       if (hasLit && !cleanupDone) {
-        try { await putOut(); } catch (error) { report.cleanup.push({ viewport: size.name, actualUI: true, succeeded: false, error: String(error) }); }
+        try { await putOut(); } catch (error) { report.cleanup.push({ ...scope, actualUI: true, succeeded: false, error: String(error) }); }
       }
       await context.close(); await save();
     }
   }
+  } finally { await browser.close(); }
+  }
 } finally {
-  await browser.close();
   report.finishedAt = new Date().toISOString();
   report.sourceEnd = await fingerprintCaptureSource(source);
   report.sourceChanged = report.sourceStart.aggregateSha256 !== report.sourceEnd.aggregateSha256;

@@ -1,0 +1,610 @@
+{
+  "scope": "ActualSource17finalnative/decodedpackagecheckpoint.15genuine64maps+hall/night256, METAL/METAL, nooldGIreuse. Complete localpackagepasses15M; Rootnowownsimmutablecandidatefornativeviewattachmentandactualfinalcapture. Notpublicinstalledorbrowseracceptance.",
+  "references": {
+    "source": {
+      "path": "art/build/snow-roof-round1/source-v17.blend",
+      "sha256": "2990854d3c9a65bf18879511d865b6e36788f6e727339248d5746b67fb52dd64",
+      "bytes": 11717577
+    },
+    "sourceAudit": {
+      "path": "art/build/snow-roof-round1/source-v17.audit.json",
+      "sha256": "8b897b79ce2ad533d317399417c602468ee88747a70905ad86c5f533dd11a6aa",
+      "bytes": 351222
+    },
+    "nativeInputLedger": {
+      "path": "art/build/snow-roof-round1/final17-c6-normalized-input-ledger.json",
+      "sha256": "6e0ed2684e6026e83239ae8f36bb7740a16d6cba374dd5ce04064a489f0c4fa1",
+      "bytes": 24804
+    },
+    "native64Terminal": {
+      "path": "art/build/snow-roof-round1/final17-c6-normalized-native64-terminal.json",
+      "sha256": "8b0b026d2b497ade1f08eaf512ec645c8f91d3f9ee0cc5b0dbd3f8817a43d243",
+      "bytes": 1099
+    },
+    "native256Terminal": {
+      "path": "art/build/snow-roof-round1/final17-c6-normalized-hall256-terminal.json",
+      "sha256": "11afc58c871b7f438e278bc35161e68670c7c8f5651e55332a86cd33a1e341e0",
+      "bytes": 1213
+    },
+    "nativeMerge": {
+      "path": "art/build/snow-roof-round1/final17-c6-normalized-native-merged.merge-receipt.json",
+      "sha256": "0f1e35a9c38a7167d50c7d0220ac8c374dd7b55aae35b2b71f8d0340b531cbc2",
+      "bytes": 27282
+    },
+    "certifiedGeometryCache": {
+      "path": "art/build/snow-roof-round1/final17-c6-certified-geometry-cache-copy.json",
+      "sha256": "ccc6765b886bf2bb820f161aa22bb88e3ad227f08c1beade875a6018a9933777",
+      "bytes": 1454
+    },
+    "freshRawFaceCorrespondence": {
+      "path": "art/build/snow-roof-round1/final17-c6-packaged-staging/face-reference/raw-correspondence.json",
+      "sha256": "6eb7b662938de84c2b4b2c707a522664249173388468afe3a090245ead8c7b2a",
+      "bytes": 32207
+    },
+    "freshPrune": {
+      "path": "art/build/snow-roof-round1/final17-c6-packaged-staging/pruned/independent-geometry-proof.json",
+      "sha256": "7569db6300208836caae04a09cff5734fa13e16569992c05c081c20fe8b8712c",
+      "bytes": 1086
+    },
+    "metadataStrip": {
+      "path": "art/build/snow-roof-round1/final17-c6-packaged-staging/pruned/metadata-receipt.json",
+      "sha256": "c1a98c392b67342b8ce5a032962213d3b625ce592bd36ab59e3c344db3397462",
+      "bytes": 2448
+    },
+    "precision": {
+      "path": "art/build/snow-roof-round1/final17-c6-packaged-staging/normal256/independent-precision-proof.json",
+      "sha256": "0b83176fbb7836141816c831ef191974cf68d1792f0f5b8a32598d1a28502587",
+      "bytes": 4439
+    },
+    "decoded47Contacts": {
+      "path": "art/build/snow-roof-round1/final17-c6-packaged-staging/normal256/contact-audit.json",
+      "sha256": "4d49f487c49bd6a4cf656bb0ba0c92779b3886b6780b99e95af07ae4971be291",
+      "bytes": 136988
+    },
+    "packageReceipt": {
+      "path": "art/build/snow-roof-round1/final17-c6-packaged-staging/package-receipt.json",
+      "sha256": "8365d751d98a545ff30e2ec41487e7ca650099d9a1d4c4bd9fcdbab4f38c9144",
+      "bytes": 19455
+    },
+    "runtimeManifest": {
+      "path": "art/build/snow-roof-round1/final17-c6-packaged-staging/runtime/manifest.json",
+      "sha256": "c63fc73b8a21dface7cb97bcda94cbf32a18d25529c85642a52a7cb87462289b",
+      "bytes": 25362
+    },
+    "executedCode": {
+      "path": "art/build/snow-roof-round1/final17-c6-packaged-staging/executed-code.json",
+      "sha256": "ba039650eb897030ed364e18aebba28406a3d0478e96d8422a69d6ff2917436a",
+      "bytes": 5238
+    },
+    "cloud19Handoff": {
+      "path": "art/build/cloud-cliff-round1/contact-replay-v19/handoff.json",
+      "sha256": "bbfc194792ba68156c768e7d7717b69a42e57c46f5122d48f952b7d5a5553bd4",
+      "bytes": 1341
+    }
+  },
+  "runtimeOwnership": "TransferredtoRoot;mountain_courtswillnotmodifyassembledruntime",
+  "allOwnedJobsTerminal": true,
+  "gpuLeaseReleased": true,
+  "native": {
+    "mapCount": 16,
+    "actualSamplesByMap": {
+      "hall/night": 256,
+      "hall/dusk": 64,
+      "hall/day": 64,
+      "hall/lamp": 64,
+      "altar/night": 64,
+      "altar/dusk": 64,
+      "altar/day": 64,
+      "altar/lamp": 64,
+      "gate/night": 64,
+      "gate/dusk": 64,
+      "gate/day": 64,
+      "gate/lamp": 64,
+      "court/night": 64,
+      "court/dusk": 64,
+      "court/day": 64,
+      "court/lamp": 64
+    },
+    "all57PinsUnchanged": true,
+    "all64Seconds": 311.389,
+    "hall256Seconds": 52.703,
+    "totalNativeInvocationSeconds": 364.092,
+    "geometryFingerprint": "c6f493a4550c100e7074f77a1390909061860ff835b6da6db2665b9369fb0a8e",
+    "bakeFingerprint": "5737206aa09dfc39ad3174c5f0e99c047887ec5da7f81544afd068b72adb4ef5",
+    "sourceBlendSha256": "2990854d3c9a65bf18879511d865b6e36788f6e727339248d5746b67fb52dd64",
+    "raw64And256ByteExactToReviewedLow8": true,
+    "rawSha256": "6c8826d882c34524dd25a8d4aba113c070641fdd5977f846b5f274c1957971f3"
+  },
+  "proofResults": {
+    "sourcePreparedDecodedGroups": 47,
+    "preparedGroupsPassed": true,
+    "rawDecodedGroupsPassed": true,
+    "literalContactLimitsMetres": {
+      "gap": 0.002,
+      "penetration": 0.005
+    },
+    "runtimeAnchorsByteValueExact": true,
+    "physicalPositionsWindingTransformsOwnershipExact": true,
+    "sourceRawCornerNormalGate": {
+      "maximumComponentError": 1.7881393432617188e-07,
+      "limit": 1e-06
+    },
+    "deliveryNormalFormat": "originalF32\u2192normalizedSHORT16",
+    "deliveryNormalMaximumComponentError": 1.9786220281869937e-05,
+    "maximumOriginalSourceMaterialTexelError": 0.2109375,
+    "maximumLightmapBaseTexelError": 0.0107421875,
+    "colourPolicy": {
+      "type": "normalized U8",
+      "explicitPolicy": "reviewed-u8",
+      "maximumLinearComponentError": 0.0019607784701328734,
+      "unitRangeHalfStep": 0.00196078431372549,
+      "clampedSourceComponents": 0,
+      "clampingExplicitlyReported": true
+    },
+    "architecturalNormalImages": 256,
+    "protectedScanNormalImages": 512,
+    "noGeometryPositionGrid": true,
+    "onlyCertifiedHiddenTrianglesRemoved": 12916,
+    "retainedTriangles": 317824
+  },
+  "budget": {
+    "localCompletePackageBytes": 14715352,
+    "sharedNativeViewBytesToAttach": 116705,
+    "localPlusSharedBeforeAttachmentMetadata": 14832057,
+    "headroomBeforeAttachmentMetadata": 167943,
+    "finalAttachmentAccountingPendingRoot": true,
+    "model": {
+      "uri": "snow-roof.glb.zstd",
+      "bytes": 6101802,
+      "sha256": "eb8b0e1aaf86fa3a12b3d524cc7a796d92930e6f54da572e733774c16d16599a",
+      "encoding": "zstd",
+      "decodedBytes": 10409148,
+      "decodedSha256": "4f24fccf1cc57b6446abb55bf257f4dc3d4f13b36c9f78572ce62e5e5397774b"
+    },
+    "payloadBytes": 14689990,
+    "manifestBytes": 25362
+  },
+  "actualMaps": [
+    {
+      "region": "hall",
+      "look": "night",
+      "samples": 256,
+      "bakeDevice": "METAL",
+      "denoiseDevice": "METAL",
+      "quantity": "diffuse-radiance-per-unit-albedo",
+      "passFilter": [
+        "DIRECT",
+        "INDIRECT"
+      ],
+      "delivery": {
+        "path": "art/build/snow-roof-round1/final17-c6-packaged-staging/runtime/hall-night.ktx2",
+        "sha256": "2f48824ab8a91a1395be10374220d7e9767bec62627b4d683642a4311f687109",
+        "bytes": 1001903
+      },
+      "rawMaster": {
+        "path": "art/build/snow-roof-round1/final17-c6-normalized-native-merged/hall-night-raw.exr",
+        "sha256": "db1e7508da33b907f446c3ef388c87f346cf8e2ecb609f884a3447282622e5cd",
+        "bytes": 6664605
+      },
+      "denoisedMaster": {
+        "path": "art/build/snow-roof-round1/final17-c6-normalized-native-merged/hall-night.exr",
+        "sha256": "b2a83e1b6c7e6f9c567bb5d3236e6b421ccb316b0be7727027a7bfb303153625",
+        "bytes": 4336031
+      }
+    },
+    {
+      "region": "hall",
+      "look": "dusk",
+      "samples": 64,
+      "bakeDevice": "METAL",
+      "denoiseDevice": "METAL",
+      "quantity": "diffuse-radiance-per-unit-albedo",
+      "passFilter": [
+        "DIRECT",
+        "INDIRECT"
+      ],
+      "delivery": {
+        "path": "art/build/snow-roof-round1/final17-c6-packaged-staging/runtime/hall-dusk.ktx2",
+        "sha256": "62bd3c8ad04554c001fce4e78a73ad7bae08c892acfe76a3f6d18c34b556fdb5",
+        "bytes": 1005513
+      },
+      "rawMaster": {
+        "path": "art/build/snow-roof-round1/final17-c6-normalized-native-merged/hall-dusk-raw.exr",
+        "sha256": "a4c6d95a235a09b5f36c5225debcb9ffb9fdf39860575676acb01beae674f945",
+        "bytes": 6622367
+      },
+      "denoisedMaster": {
+        "path": "art/build/snow-roof-round1/final17-c6-normalized-native-merged/hall-dusk.exr",
+        "sha256": "fc39f41be1e1e528d99906ce0731287cff8120d4ecbb6b278504e0ce19b9ee79",
+        "bytes": 4316219
+      }
+    },
+    {
+      "region": "hall",
+      "look": "day",
+      "samples": 64,
+      "bakeDevice": "METAL",
+      "denoiseDevice": "METAL",
+      "quantity": "diffuse-radiance-per-unit-albedo",
+      "passFilter": [
+        "DIRECT",
+        "INDIRECT"
+      ],
+      "delivery": {
+        "path": "art/build/snow-roof-round1/final17-c6-packaged-staging/runtime/hall-day.ktx2",
+        "sha256": "f1a22f2f58a37126fbfc8982678aac5b3b61c1fec134f23aa9a9a5f7a06db1bd",
+        "bytes": 996742
+      },
+      "rawMaster": {
+        "path": "art/build/snow-roof-round1/final17-c6-normalized-native-merged/hall-day-raw.exr",
+        "sha256": "59a1555e9dca4c4e529f37343662fee35af95618691a7e9197d0e3a0c33d8da2",
+        "bytes": 6603741
+      },
+      "denoisedMaster": {
+        "path": "art/build/snow-roof-round1/final17-c6-normalized-native-merged/hall-day.exr",
+        "sha256": "32e50a4c6f6bdfde290848c4c0931f960ea12b0cc3b0f50a7586c5dc0ce87849",
+        "bytes": 4318699
+      }
+    },
+    {
+      "region": "hall",
+      "look": "lamp",
+      "samples": 64,
+      "bakeDevice": "METAL",
+      "denoiseDevice": "METAL",
+      "quantity": "indirect-diffuse-radiance-per-unit-albedo",
+      "passFilter": [
+        "INDIRECT"
+      ],
+      "delivery": {
+        "path": "art/build/snow-roof-round1/final17-c6-packaged-staging/runtime/hall-lamp.ktx2",
+        "sha256": "edbe98e124e2597ee9ff86ed22ec6ec156fe09b9ab706b873856f19288e82e79",
+        "bytes": 265311
+      },
+      "rawMaster": {
+        "path": "art/build/snow-roof-round1/final17-c6-normalized-native-merged/hall-lamp-raw.exr",
+        "sha256": "571b8d3b6fc51eda3423d553b80849da82b4dc3aad6335643a55a943b6a6cd37",
+        "bytes": 5049846
+      },
+      "denoisedMaster": {
+        "path": "art/build/snow-roof-round1/final17-c6-normalized-native-merged/hall-lamp.exr",
+        "sha256": "e0b8569b7d1c3c4b76de704c41c8729f94729964e7c76fd2b811c04aaeed5045",
+        "bytes": 3112444
+      }
+    },
+    {
+      "region": "altar",
+      "look": "night",
+      "samples": 64,
+      "bakeDevice": "METAL",
+      "denoiseDevice": "METAL",
+      "quantity": "diffuse-radiance-per-unit-albedo",
+      "passFilter": [
+        "DIRECT",
+        "INDIRECT"
+      ],
+      "delivery": {
+        "path": "art/build/snow-roof-round1/final17-c6-packaged-staging/runtime/altar-night.ktx2",
+        "sha256": "281eaa459e705baa37698cfb384c9b61c9b23ce3542663dd35b89ff046501ecf",
+        "bytes": 446211
+      },
+      "rawMaster": {
+        "path": "art/build/snow-roof-round1/final17-c6-normalized-native-merged/altar-night-raw.exr",
+        "sha256": "35875c999462bb946c46396c98a99b61295dc99aae5f2140d9290f621d4b083a",
+        "bytes": 3818869
+      },
+      "denoisedMaster": {
+        "path": "art/build/snow-roof-round1/final17-c6-normalized-native-merged/altar-night.exr",
+        "sha256": "47f339d631bde5b669ceb1d75de0e7f67cb5b45d732a01bb0828dbcb9b997e59",
+        "bytes": 2642518
+      }
+    },
+    {
+      "region": "altar",
+      "look": "dusk",
+      "samples": 64,
+      "bakeDevice": "METAL",
+      "denoiseDevice": "METAL",
+      "quantity": "diffuse-radiance-per-unit-albedo",
+      "passFilter": [
+        "DIRECT",
+        "INDIRECT"
+      ],
+      "delivery": {
+        "path": "art/build/snow-roof-round1/final17-c6-packaged-staging/runtime/altar-dusk.ktx2",
+        "sha256": "6beb935536929cecbb559ad03a5153182ef2af37f9258b55c14a1cb214619fde",
+        "bytes": 448817
+      },
+      "rawMaster": {
+        "path": "art/build/snow-roof-round1/final17-c6-normalized-native-merged/altar-dusk-raw.exr",
+        "sha256": "589b610e2f6b8e3254aedcf67d9992b5d81fb10483d8dc6c731729f92e96e7c1",
+        "bytes": 3811926
+      },
+      "denoisedMaster": {
+        "path": "art/build/snow-roof-round1/final17-c6-normalized-native-merged/altar-dusk.exr",
+        "sha256": "7c1cf7c48a7f40fd31372e722926bb6a68ea31cfd19dcc052771724714500e91",
+        "bytes": 2687520
+      }
+    },
+    {
+      "region": "altar",
+      "look": "day",
+      "samples": 64,
+      "bakeDevice": "METAL",
+      "denoiseDevice": "METAL",
+      "quantity": "diffuse-radiance-per-unit-albedo",
+      "passFilter": [
+        "DIRECT",
+        "INDIRECT"
+      ],
+      "delivery": {
+        "path": "art/build/snow-roof-round1/final17-c6-packaged-staging/runtime/altar-day.ktx2",
+        "sha256": "58734440f88eb68ca50d87eeac7079332d99b6419df70e94d53e663265b3b8da",
+        "bytes": 455562
+      },
+      "rawMaster": {
+        "path": "art/build/snow-roof-round1/final17-c6-normalized-native-merged/altar-day-raw.exr",
+        "sha256": "f6e77bf0fad7b02b8b4d6d88a0a3088c961b2e14087eb8a8c04f775dec71d07e",
+        "bytes": 3776196
+      },
+      "denoisedMaster": {
+        "path": "art/build/snow-roof-round1/final17-c6-normalized-native-merged/altar-day.exr",
+        "sha256": "ec8a15861de26dde72e4ef70ffec4168342c3289e3f97a59e9b1e25ce266124a",
+        "bytes": 2694423
+      }
+    },
+    {
+      "region": "altar",
+      "look": "lamp",
+      "samples": 64,
+      "bakeDevice": "METAL",
+      "denoiseDevice": "METAL",
+      "quantity": "indirect-diffuse-radiance-per-unit-albedo",
+      "passFilter": [
+        "INDIRECT"
+      ],
+      "delivery": {
+        "path": "art/build/snow-roof-round1/final17-c6-packaged-staging/runtime/altar-lamp.ktx2",
+        "sha256": "270ce5a658bd1369af73583afdb708499f45af17f7aa13c745fb6a31939f8a11",
+        "bytes": 213605
+      },
+      "rawMaster": {
+        "path": "art/build/snow-roof-round1/final17-c6-normalized-native-merged/altar-lamp-raw.exr",
+        "sha256": "d4dd15e1cda4ddd0f07d32d849555f8788a2457228c762b79ab02fe5b32bd488",
+        "bytes": 3855676
+      },
+      "denoisedMaster": {
+        "path": "art/build/snow-roof-round1/final17-c6-normalized-native-merged/altar-lamp.exr",
+        "sha256": "2093b2fbca8f9f99a553d2c4f56c97c3fcb57d87a903dd5390a7f053f089a5a5",
+        "bytes": 2411785
+      }
+    },
+    {
+      "region": "gate",
+      "look": "night",
+      "samples": 64,
+      "bakeDevice": "METAL",
+      "denoiseDevice": "METAL",
+      "quantity": "diffuse-radiance-per-unit-albedo",
+      "passFilter": [
+        "DIRECT",
+        "INDIRECT"
+      ],
+      "delivery": {
+        "path": "art/build/snow-roof-round1/final17-c6-packaged-staging/runtime/gate-night.ktx2",
+        "sha256": "5f9f01b18f8a6c2f0ec64cf2671db3d03f0da9b2b010a70edcd99cbd7432ce1a",
+        "bytes": 329728
+      },
+      "rawMaster": {
+        "path": "art/build/snow-roof-round1/final17-c6-normalized-native-merged/gate-night-raw.exr",
+        "sha256": "e79bc1d8d470ca0f7273e02430beac4d76304098a8ce798970386f1954e12573",
+        "bytes": 3274779
+      },
+      "denoisedMaster": {
+        "path": "art/build/snow-roof-round1/final17-c6-normalized-native-merged/gate-night.exr",
+        "sha256": "1f231c77929e5e33c4ee9e1e132e1f09d744f58ffb48969972837cf420553ec9",
+        "bytes": 2666193
+      }
+    },
+    {
+      "region": "gate",
+      "look": "dusk",
+      "samples": 64,
+      "bakeDevice": "METAL",
+      "denoiseDevice": "METAL",
+      "quantity": "diffuse-radiance-per-unit-albedo",
+      "passFilter": [
+        "DIRECT",
+        "INDIRECT"
+      ],
+      "delivery": {
+        "path": "art/build/snow-roof-round1/final17-c6-packaged-staging/runtime/gate-dusk.ktx2",
+        "sha256": "896a5af37566818acd4ae46a7bf510b205a56b34c8c97534c2de8fc8508731fc",
+        "bytes": 336846
+      },
+      "rawMaster": {
+        "path": "art/build/snow-roof-round1/final17-c6-normalized-native-merged/gate-dusk-raw.exr",
+        "sha256": "1c7688c384fcdf67d85ba8db1ff575134d78556293232639ba20e79d338d6983",
+        "bytes": 3272591
+      },
+      "denoisedMaster": {
+        "path": "art/build/snow-roof-round1/final17-c6-normalized-native-merged/gate-dusk.exr",
+        "sha256": "fae0a93019086ead4512b31845d7486fefca627d67a81331dfac868b3b52f53c",
+        "bytes": 2634817
+      }
+    },
+    {
+      "region": "gate",
+      "look": "day",
+      "samples": 64,
+      "bakeDevice": "METAL",
+      "denoiseDevice": "METAL",
+      "quantity": "diffuse-radiance-per-unit-albedo",
+      "passFilter": [
+        "DIRECT",
+        "INDIRECT"
+      ],
+      "delivery": {
+        "path": "art/build/snow-roof-round1/final17-c6-packaged-staging/runtime/gate-day.ktx2",
+        "sha256": "9a35a1dd39dbfd43684b0ec6fe1e5cce04cabe5bc3b908dd29f46998b5625cf0",
+        "bytes": 342539
+      },
+      "rawMaster": {
+        "path": "art/build/snow-roof-round1/final17-c6-normalized-native-merged/gate-day-raw.exr",
+        "sha256": "7d161cc6129e5098e6e522050feab15e3a315c68e32f3bcb35d2d35bdcd88d2e",
+        "bytes": 3280203
+      },
+      "denoisedMaster": {
+        "path": "art/build/snow-roof-round1/final17-c6-normalized-native-merged/gate-day.exr",
+        "sha256": "dedf91ed5a06809ae494c9173ec3936591eece54dc6ce9cf439b3d03c5696106",
+        "bytes": 2647680
+      }
+    },
+    {
+      "region": "gate",
+      "look": "lamp",
+      "samples": 64,
+      "bakeDevice": "METAL",
+      "denoiseDevice": "METAL",
+      "quantity": "indirect-diffuse-radiance-per-unit-albedo",
+      "passFilter": [
+        "INDIRECT"
+      ],
+      "delivery": {
+        "path": "art/build/snow-roof-round1/final17-c6-packaged-staging/runtime/gate-lamp.ktx2",
+        "sha256": "62d7a3b2fc9e3404cdd607fabd3cb43ead6774a5f00d5b8f245e04773bb0306c",
+        "bytes": 8138
+      },
+      "rawMaster": {
+        "path": "art/build/snow-roof-round1/final17-c6-normalized-native-merged/gate-lamp-raw.exr",
+        "sha256": "0b4f639e791cd3be3a7ba395f9e9a6e6c4a672fed98a8c5801db398dd67fc8c7",
+        "bytes": 2072907
+      },
+      "denoisedMaster": {
+        "path": "art/build/snow-roof-round1/final17-c6-normalized-native-merged/gate-lamp.exr",
+        "sha256": "0a233684995f2d199c7baf93b0f754d57da8ebc3a6bfa3b4fc38b48afaf82345",
+        "bytes": 1162085
+      }
+    },
+    {
+      "region": "court",
+      "look": "night",
+      "samples": 64,
+      "bakeDevice": "METAL",
+      "denoiseDevice": "METAL",
+      "quantity": "diffuse-radiance-per-unit-albedo",
+      "passFilter": [
+        "DIRECT",
+        "INDIRECT"
+      ],
+      "delivery": {
+        "path": "art/build/snow-roof-round1/final17-c6-packaged-staging/runtime/court-night.ktx2",
+        "sha256": "d41819ebe5f2fbba6e22b7ab705388cd2c19cbaff45a969e12fab5c21ceb622c",
+        "bytes": 757639
+      },
+      "rawMaster": {
+        "path": "art/build/snow-roof-round1/final17-c6-normalized-native-merged/court-night-raw.exr",
+        "sha256": "13e9591ffacdd35bb0aa1644971cf3d355fba88312eeb781ff2cd548dd8c0aeb",
+        "bytes": 7043183
+      },
+      "denoisedMaster": {
+        "path": "art/build/snow-roof-round1/final17-c6-normalized-native-merged/court-night.exr",
+        "sha256": "f16ac854bfaf7b200be1d7b1347f40c10051bf2c2883db655814e94f0cb73b4d",
+        "bytes": 4465749
+      }
+    },
+    {
+      "region": "court",
+      "look": "dusk",
+      "samples": 64,
+      "bakeDevice": "METAL",
+      "denoiseDevice": "METAL",
+      "quantity": "diffuse-radiance-per-unit-albedo",
+      "passFilter": [
+        "DIRECT",
+        "INDIRECT"
+      ],
+      "delivery": {
+        "path": "art/build/snow-roof-round1/final17-c6-packaged-staging/runtime/court-dusk.ktx2",
+        "sha256": "e4f021bb3fb40291f5ffce0855e25b0c1b90b4e251e2e2ebfc9675db811fe53f",
+        "bytes": 780658
+      },
+      "rawMaster": {
+        "path": "art/build/snow-roof-round1/final17-c6-normalized-native-merged/court-dusk-raw.exr",
+        "sha256": "f45beb8ef9ca9ff90df8c8e8269569dd5f248e9e2cef2c49e18722847ccd8f71",
+        "bytes": 7038682
+      },
+      "denoisedMaster": {
+        "path": "art/build/snow-roof-round1/final17-c6-normalized-native-merged/court-dusk.exr",
+        "sha256": "89a92a057cdd35f0ced8bd0bd3d6a0d38a871ff671fb1d8f7144adea8f7cec48",
+        "bytes": 4476908
+      }
+    },
+    {
+      "region": "court",
+      "look": "day",
+      "samples": 64,
+      "bakeDevice": "METAL",
+      "denoiseDevice": "METAL",
+      "quantity": "diffuse-radiance-per-unit-albedo",
+      "passFilter": [
+        "DIRECT",
+        "INDIRECT"
+      ],
+      "delivery": {
+        "path": "art/build/snow-roof-round1/final17-c6-packaged-staging/runtime/court-day.ktx2",
+        "sha256": "aa3e1e7b189cbff11ef212a08bdf82b516b88388a15a56960f69be1fc75f74e9",
+        "bytes": 797447
+      },
+      "rawMaster": {
+        "path": "art/build/snow-roof-round1/final17-c6-normalized-native-merged/court-day-raw.exr",
+        "sha256": "4e435138cdbd1da40d027f8f474fbf61f40214611657ab70f3903559ee7dca06",
+        "bytes": 7036337
+      },
+      "denoisedMaster": {
+        "path": "art/build/snow-roof-round1/final17-c6-normalized-native-merged/court-day.exr",
+        "sha256": "1419e3babdcf6ea42e27c86103c948eca2191d3a261dfa30dc53a8ac490cf43b",
+        "bytes": 4490006
+      }
+    },
+    {
+      "region": "court",
+      "look": "lamp",
+      "samples": 64,
+      "bakeDevice": "METAL",
+      "denoiseDevice": "METAL",
+      "quantity": "indirect-diffuse-radiance-per-unit-albedo",
+      "passFilter": [
+        "INDIRECT"
+      ],
+      "delivery": {
+        "path": "art/build/snow-roof-round1/final17-c6-packaged-staging/runtime/court-lamp.ktx2",
+        "sha256": "549537ccac7b88215b0b02c132fbaef9897cfc36823a87749a4398fbb4ea107e",
+        "bytes": 10287
+      },
+      "rawMaster": {
+        "path": "art/build/snow-roof-round1/final17-c6-normalized-native-merged/court-lamp-raw.exr",
+        "sha256": "82fddbb2d6e54bd048b78dc0a6c99a471350de277f42e40c5590226d4e89aef8",
+        "bytes": 2093004
+      },
+      "denoisedMaster": {
+        "path": "art/build/snow-roof-round1/final17-c6-normalized-native-merged/court-lamp.exr",
+        "sha256": "31ea7e5ee0e6f109025a720c98ba1e687ed25d6744db9f9234bf8d1dba9e0244",
+        "bytes": 1133656
+      }
+    }
+  ],
+  "remainingGate": "Rootattachment/accountingthenfinalsourceboundChrome/WebKitjourney/look/contact/audio/performancecapture. No physicalphoneclaim; photorealismorzeroresidualblotchclaimunsupported.",
+  "currentOpticalStatus": "D7REJECTED:actualfinal-appbeams/columnremainmottled;fixed-sampling/integrator-matchedCPUpreflightpending. Allactualpackage/source/masterbytesimmutable.",
+  "rootNativeViewDerivative": {
+    "path": "art/build/snow-roof-round1/final17-c6-runtime-native-view",
+    "manifestSha256": "baa77ea4c1dbcf864849990d5241eef322f92d144d1d42836d3eeec107763ac6",
+    "actualCompleteBytesIncludingSharedNativeView": 14832557,
+    "rootOwnsCandidate": true
+  },
+  "samplingQualification": {
+    "path": "docs/evidence/full-review/round-1-snow-diffuse-sampling.json",
+    "sha256": "2f38e4272688ea748301a6112b181fd2002eb31bbc592766409dcc473e255786",
+    "bytes": 16301
+  }
+}

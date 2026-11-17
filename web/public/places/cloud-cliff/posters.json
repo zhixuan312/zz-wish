@@ -1,0 +1,99 @@
+{
+  "version": 1,
+  "sourceBlendSha256": "ee3f9f065a72a102867d0bfe7ea9233761cd7db62e98711c993d38cba324bda0",
+  "streamedManifestSha256": "944c794aa408bf5e2d6c916302b3b85c1a56df05cf4e68e1b51137e11a2510ee",
+  "sourceFingerprintSha256": "5d0e1b8d40fd0cde1d4871f439ffe4843817d72663055f5b8274c68662fdaa02",
+  "posters": {
+    "night": {
+      "desktop": {
+        "uri": "cover-night-desktop.webp",
+        "width": 1440,
+        "height": 900,
+        "sourcePngSha256": "06877d27fec3d3f1f35d79fde48341c7feb8c1d54c9ed0479b43b88ca071a700",
+        "sourcePreviewSha256": "d005e5299f2fcad0a2cbeff3d5dcf7c2e6ef19f7e228c3344cd24ef74758fc65"
+      },
+      "phone": {
+        "uri": "cover-night-phone.webp",
+        "width": 390,
+        "height": 844,
+        "sourcePngSha256": "3bdec82ecb7178591c9bae25e453d253f7b87e25b8e35d4376b00acdd7ab2d8b",
+        "sourcePreviewSha256": "e41246031ec4d83050b107b90516837527492623534e673d824d7f0767e605d9"
+      }
+    },
+    "dusk": {
+      "desktop": {
+        "uri": "cover-dusk-desktop.webp",
+        "width": 1440,
+        "height": 900,
+        "sourcePngSha256": "60075559f09ad5460c4540f134a363a10700f18e27ec1e1c9b3d49e91aa5c85f",
+        "sourcePreviewSha256": "e306ad9ea8339f55324a068893e9b04bb87ba413cd07ad503dd99d1af2aa4c21"
+      },
+      "phone": {
+        "uri": "cover-dusk-phone.webp",
+        "width": 390,
+        "height": 844,
+        "sourcePngSha256": "e5c9c79232e308636b75cac862ac00dca797c734cb8df8dc33d6f6c862c1a80c",
+        "sourcePreviewSha256": "84361588ee98eff1c60ccb6ac31673c0794cd83c6983e1a4681657e7f930c546"
+      }
+    },
+    "day": {
+      "desktop": {
+        "uri": "cover-day-desktop.webp",
+        "width": 1440,
+        "height": 900,
+        "sourcePngSha256": "48783681c70cb8afbc170e34ee2155ef3f0eadbfced3676e8d3a4ff019934602",
+        "sourcePreviewSha256": "8f8b7f5c02b354affb18d6151457de731bc67a6962002efb9cd30cfb0fe4816a"
+      },
+      "phone": {
+        "uri": "cover-day-phone.webp",
+        "width": 390,
+        "height": 844,
+        "sourcePngSha256": "37bcc56930b84d35f4d7f00b5d615e0d1ba8e5a4d78e2fd749f0e3c81d40853c",
+        "sourcePreviewSha256": "1ee441acf369d1a4dbdc254d8a7e6605ce410be7b66b7ff4a234f43d8044ce4b"
+      }
+    }
+  },
+  "files": [
+    {
+      "uri": "cover-night-desktop.webp",
+      "bytes": 26994,
+      "sha256": "a00fa5605a92c46d640c8282409ce01b0fd1b1a77d648eabda9284681064bc22",
+      "role": "runtime-cover-poster"
+    },
+    {
+      "uri": "cover-night-phone.webp",
+      "bytes": 11634,
+      "sha256": "f31c63a96adc96f556df022e5cefbc1de5527f3dbdbcb7c94f6d59afb083a399",
+      "role": "runtime-cover-poster"
+    },
+    {
+      "uri": "cover-dusk-desktop.webp",
+      "bytes": 34116,
+      "sha256": "a683f7e8adeded5fd9fe1d0647062d37155387dd5d364725133a97abe26c95de",
+      "role": "runtime-cover-poster"
+    },
+    {
+      "uri": "cover-dusk-phone.webp",
+      "bytes": 14646,
+      "sha256": "9ac05d97fbc24ee21e9c51881fc36ed8809d9c501da689b748b12bd2fbfa60fb",
+      "role": "runtime-cover-poster"
+    },
+    {
+      "uri": "cover-day-desktop.webp",
+      "bytes": 44280,
+      "sha256": "0ad651f7b87d38ebfa2b55d3b4c9f71cc947214bae66183ac861c65cab7d7c3d",
+      "role": "runtime-cover-poster"
+    },
+    {
+      "uri": "cover-day-phone.webp",
+      "bytes": 18212,
+      "sha256": "71619f43784535645d891f99f018f43837cbc570cf6ab39c04d1188984930beb",
+      "role": "runtime-cover-poster"
+    }
+  ],
+  "totalBytes": 149882,
+  "quality": 88,
+  "codec": "WebP lossy cwebp",
+  "partialPreview": false,
+  "scope": "UI-free actual app framebuffer with source hero and live flame, encoded for the immediate first frame while the same scene streams."
+}

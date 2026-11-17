@@ -17,7 +17,10 @@ import sys
 import time
 import subprocess
 import os
+import importlib
+import inspect
 import bpy
+from mathutils import Vector
 
 PRESETS = {
     'night': {'sourceLighting': True, 'fixtures': 1},
@@ -34,6 +37,8 @@ def arguments():
     parser.add_argument('--hall-resolution', type=int)
     parser.add_argument('--court-resolution', type=int)
     parser.add_argument('--gate-resolution', type=int)
+    parser.add_argument('--region-resolutions', help='Named atlas overrides, e.g. cover=1024,cliff=512,far=256. Source lightmap_resolutions supplies defaults.')
+    parser.add_argument('--basename', help='Output stem; defaults to scene place_id, or legacy snow-roof.')
     parser.add_argument('--hidden-faces', type=Path, help='Source-hash-verified conservative UV exclusions; geometry stays in the scene.')
     parser.add_argument('--chart-cache', type=Path, help='Reuse only exact receiver/chart matches from this earlier preparation; never imports bake pixels.')
     parser.add_argument('--receiver-report', action='store_true', help='Write receiver/UV fingerprints for an existing prepared blend; no render, bake or export.')
@@ -54,10 +59,42 @@ def arguments():
     parser.add_argument('--log-gain', type=float, default=4096)
     return parser.parse_args(sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else [])
 
+
+def source_delivery_contract(scene, options):
+    """Source-authored identity and region sizing; preserve legacy Snow defaults."""
+    import re
+    place = str(scene.get('place_id', scene.get('one_light_place', 'snow-roof')))
+    stem = options.basename or place
+    if not re.fullmatch(r'[a-z0-9][a-z0-9-]*', place) or not re.fullmatch(r'[a-z0-9][a-z0-9-]*', stem):
+        raise RuntimeError('Place identity and output basename must be lowercase URL-safe names.')
+    sizes = json.loads(scene.get('lightmap_resolutions', '{}'))
+    if options.region_resolutions:
+        for pair in options.region_resolutions.split(','):
+            name, value = pair.split('=', 1)
+            sizes[name.strip()] = int(value)
+    for name, value in [('hall', options.hall_resolution), ('court', options.court_resolution), ('gate', options.gate_resolution)]:
+        if value is not None:
+            sizes[name] = value
+    if any(not isinstance(v, int) or v < 64 or v > 8192 or (v not in (1328, 1408, 1536) and v & (v - 1)) for v in sizes.values()):
+        raise RuntimeError('Atlas resolutions must be powers of two from 64 to 8192, or explicitly reviewed 1328/1408/1536 NPOT layouts with three mips.')
+    heroes = json.loads(scene.get('one_light_export_heroes', '[]'))
+    if len({hero['id'] for hero in heroes}) != len(heroes):
+        raise RuntimeError('Duplicate source hero identity.')
+    for hero in heroes:
+        if not re.fullmatch(r'[a-z0-9][a-z0-9-]*', hero['id']):
+            raise RuntimeError('Hero identity must be URL-safe.')
+        if not any(obj.type == 'MESH' and obj.get('one_light_dynamic') and obj.get('hero_id') == hero['id'] for obj in scene.objects):
+            raise RuntimeError('Hero metadata has no actual dynamic mesh: ' + hero['id'])
+    return place, stem, sizes, heroes
+
 def configure_cycles(scene, options):
     scene.render.engine = 'CYCLES'
     scene.render.threads_mode = 'AUTO'
     scene.cycles.samples = options.samples
+    # Rebased low-radiance scenes must not terminate at an inherited adaptive
+    # threshold before reaching the requested texture-bake budget.
+    scene.cycles.use_adaptive_sampling = False
+    scene.cycles.use_animated_seed = False
     scene.cycles.denoiser = 'OPENIMAGEDENOISE'
     if options.device == 'CPU' and not options.skip_bake and not options.export_only:
         raise RuntimeError('Current scope requires Cycles on Metal for every render/bake; CPU is not an allowed fallback.')
@@ -66,6 +103,7 @@ def configure_cycles(scene, options):
     scene.cycles.max_bounces = 6
     scene.cycles.diffuse_bounces = 4
     scene.cycles.glossy_bounces = 2
+    scene.cycles.transmission_bounces = 12
     scene.cycles.transparent_max_bounces = 4
     if options.device == 'METAL':
         prefs = bpy.context.preferences.addons['cycles'].preferences
@@ -116,12 +154,21 @@ def receiver_profile(obj):
     values(mesh.loops, 'vertex_index', 'i', len(mesh.loops), 'topology')
     values(mesh.polygons, 'material_index', 'i', len(mesh.polygons), 'materialIndices')
     values(mesh.corner_normals, 'vector', 'f', len(mesh.corner_normals) * 3, 'cornerNormals')
+    frozen_normals = mesh.attributes.get('one_light_source_world_normal')
+    if frozen_normals:
+        values(frozen_normals.data, 'vector', 'f', len(mesh.loops) * 3, 'frozenSourceWorldCornerNormals')
+    normal_references = mesh.attributes.get('one_light_source_normal_loop')
+    if normal_references:
+        values(normal_references.data, 'value', 'i', len(mesh.loops), 'originalSourceNormalLoopReferences')
     values(mesh.uv_layers['UVMap'].data, 'uv', 'f', len(mesh.loops) * 2, 'UVMap')
     tint = mesh.color_attributes.get('SurfaceTint')
     if tint:
         values(tint.data, 'color', 'f', len(tint.data) * 4, 'SurfaceTint')
     excluded = mesh.attributes.get('one_light_uv_excluded')
     record('provenHiddenMask', bytes(int(value.value) for value in excluded.data) if excluded else b'none')
+    zero_area = mesh.attributes.get('one_light_uv_zero_area')
+    if zero_area:
+        record('zeroAreaUVAllocationMask', bytes(int(value.value) for value in zero_area.data))
     record('materialSlots', json.dumps([material.name if material else None for material in mesh.materials]).encode())
     profile = {'receiverFingerprint': fingerprint.hexdigest(), 'vertices': len(mesh.vertices), 'polygons': len(mesh.polygons), 'loops': len(mesh.loops), 'fields': list(field_hashes), 'fieldSha256': field_hashes}
     if mesh.uv_layers.get('Lightmap'):
@@ -167,6 +214,24 @@ def validate_resting_contact_audit(scene, binding, receiver_profiles, geometry_f
         raw_path = Path(__file__).resolve().parents[2] / raw_path
     if not raw_path.is_file() or sha256(raw_path.read_bytes()).hexdigest() != raw.get('sha256'):
         raise RuntimeError('The actual frozen raw contact replay input changed.')
+    for extra in raw.get('extraSources', []):
+        extra_path = Path(extra['path'])
+        if not extra_path.is_absolute():
+            extra_path = Path(__file__).resolve().parents[2] / extra_path
+        if not extra_path.is_file() or sha256(extra_path.read_bytes()).hexdigest() != extra['sha256']:
+            raise RuntimeError('An actual frozen HERO raw contact input changed.')
+    if any(obj.type == 'MESH' and obj.get('one_light_dynamic') for obj in scene.objects):
+        import importlib.util
+        spec = importlib.util.spec_from_file_location('one_light_contact_fingerprints', Path(__file__).with_name('contact_fingerprints.py'))
+        helper = importlib.util.module_from_spec(spec); spec.loader.exec_module(helper)
+        dynamic, dynamic_hash = helper.dynamic_profiles(scene)
+        if (audit.get('dynamicProfiles') != dynamic or audit.get('dynamicGeometryFingerprint') != dynamic_hash
+                or audit.get('sourceDynamicProfiles') != dynamic or audit.get('sourceDynamicGeometryFingerprint') != dynamic_hash):
+            raise RuntimeError('Prepared/source dynamic HERO contact geometry changed.')
+        if not raw.get('extraSources'):
+            raise RuntimeError('Actual separate HERO raw contact replay is required.')
+        if not audit.get('preparedAnchorNodes') or not all(row.get('passed') is True for row in audit['preparedAnchorNodes']) or not all(row.get('passed') is True for row in raw.get('anchorNodes', [])):
+            raise RuntimeError('Actual source/prepared/raw HERO anchor correspondence is required.')
     for stage, measured in [('prepared', audit), ('raw', raw)]:
         groups = measured.get('groups', [])
         names = [group.get('name') for group in groups]
@@ -195,6 +260,142 @@ def validate_resting_contact_audit(scene, binding, receiver_profiles, geometry_f
 
 GENERATED_ATTRIBUTE = 'one_light_source_generated'
 GENERATED_POLICY = 'implicit-procedural-generated-evaluated-undeformed-source-texspace-v2'
+NORMAL_POLICY = 'evaluated-world-corner-free-float32-v1'
+SOURCE_NORMAL_ATTRIBUTE = 'one_light_source_world_normal'
+SOURCE_NORMAL_LOOP_ATTRIBUTE = 'one_light_source_normal_loop'
+
+
+def normal_export_recipe():
+    """Validate the installed Blender extractor before a scoped precision fix."""
+    extractor = importlib.import_module('io_scene_gltf2.blender.exp.primitive_extract')
+    method = extractor.PrimitiveCreator._PrimitiveCreator__get_normals
+    source = inspect.getsource(method)
+    if (bpy.app.version[:2] != (5, 3) or extractor.ROUNDING_DIGIT != 4
+            or str(inspect.signature(method)) != '(self)'
+            or 'self.normals = np.round(self.normals, ROUNDING_DIGIT)' not in source
+            or 'PrimitiveCreator.normalize_vecs(self.normals)' not in source):
+        raise RuntimeError('Installed glTF normal extractor differs; review its precision policy before export.')
+    path = Path(extractor.__file__)
+    return {'policy': 'blender53-scoped-normal-extractor-round8-v1', 'blender': bpy.app.version_string,
+            'module': 'io_scene_gltf2.blender.exp.primitive_extract', 'extractorSha256': sha256(path.read_bytes()).hexdigest(),
+            'method': 'PrimitiveCreator.__get_normals(self)', 'defaultRoundingDigits': 4, 'effectiveRoundingDigits': 8,
+            'standardStream': 'NORMAL', 'genericAttributeExport': False,
+            'scope': 'Per-export in-memory module override; restored in finally. Installed files, source and prepared directions stay unchanged.'}
+
+
+def export_precise_gltf(path, expected_recipe):
+    recipe = normal_export_recipe()
+    if recipe != expected_recipe:
+        raise RuntimeError('Actual glTF normal export recipe differs from the frozen transport identity.')
+    extractor = importlib.import_module(recipe['module'])
+    previous = extractor.ROUNDING_DIGIT
+    try:
+        extractor.ROUNDING_DIGIT = recipe['effectiveRoundingDigits']
+        bpy.ops.export_scene.gltf(filepath=str(path), export_format='GLB', use_selection=True, export_texcoords=True,
+            export_normals=True, export_attributes=False, export_materials='EXPORT', export_extras=True,
+            export_yup=True, export_cameras=False, export_lights=False)
+    finally:
+        extractor.ROUNDING_DIGIT = previous
+    if extractor.ROUNDING_DIGIT != recipe['defaultRoundingDigits']:
+        raise RuntimeError('glTF normal extractor precision was not restored.')
+    return {'file': path.name, 'recipePolicy': recipe['policy'], 'restoredRoundingDigits': extractor.ROUNDING_DIGIT}
+
+
+def set_free_corner_normals(mesh, vectors):
+    """Use Blender's float3 free normals, not packed tangent-space fan normals.
+
+    normals_split_custom_set can average nearby corner directions within smooth
+    fans and encodes them in a topology-dependent tangent basis. Free CORNER
+    normals preserve the actual evaluated shading without editing face flags.
+    """
+    previous = mesh.attributes.get('custom_normal')
+    if previous:
+        mesh.attributes.remove(previous)
+    custom = mesh.attributes.new(name='custom_normal', type='FLOAT_VECTOR', domain='CORNER')
+    custom.data.foreach_set('vector', array('f', [component for vector in vectors for component in vector]))
+    mesh.update()
+
+
+def freeze_evaluated_corner_normals(obj, mesh):
+    """Capture actual evaluated directions before joining or triangulating."""
+    normal_matrix = obj.matrix_world.to_3x3().inverted().transposed()
+    local = [Vector(normal.vector) for normal in mesh.corner_normals]
+    world = array('f', [component for normal in local for component in (normal_matrix @ normal).normalized()])
+    attribute = mesh.attributes.new(name=SOURCE_NORMAL_ATTRIBUTE, type='FLOAT_VECTOR', domain='CORNER')
+    attribute.data.foreach_set('vector', world)
+    references = mesh.attributes.new(name=SOURCE_NORMAL_LOOP_ATTRIBUTE, type='INT', domain='CORNER')
+    references.data.foreach_set('value', array('i', range(len(mesh.loops))))
+    set_free_corner_normals(mesh, local)
+    return world
+
+
+def restore_evaluated_corner_normals(obj, source_normals):
+    """Verify owner/original-loop provenance, then restore float3 directions."""
+    import numpy as np
+    mesh = obj.data
+    attribute = mesh.attributes.get(SOURCE_NORMAL_ATTRIBUTE)
+    references = mesh.attributes.get(SOURCE_NORMAL_LOOP_ATTRIBUTE)
+    owners = mesh.attributes.get('one_light_source_chart_owner')
+    if not attribute or not references or not owners:
+        raise RuntimeError('Source corner-normal provenance was lost: ' + obj.name)
+    actual = np.empty((len(mesh.loops), 3), dtype=np.float32)
+    attribute.data.foreach_get('vector', actual.ravel())
+    loop_refs = np.empty(len(mesh.loops), dtype=np.int32)
+    references.data.foreach_get('value', loop_refs)
+    face_owners = np.empty(len(mesh.polygons), dtype=np.int32)
+    owners.data.foreach_get('value', face_owners)
+    counts = np.empty(len(mesh.polygons), dtype=np.int32)
+    mesh.polygons.foreach_get('loop_total', counts)
+    loop_owners = np.repeat(face_owners, counts)
+    expected = np.empty_like(actual)
+    for owner, values in source_normals.items():
+        selected = loop_owners == owner
+        source = np.asarray(values, dtype=np.float32).reshape(-1, 3)
+        if np.any(loop_refs[selected] < 0) or np.any(loop_refs[selected] >= len(source)):
+            raise RuntimeError('Source normal-loop reference is out of range: ' + obj.name)
+        expected[selected] = source[loop_refs[selected]]
+    if set(np.unique(loop_owners)) - set(source_normals) or not np.array_equal(expected, actual):
+        raise RuntimeError('Source owner/loop corner-normal transfer differs: ' + obj.name)
+    to_local = obj.matrix_world.to_3x3().transposed()
+    set_free_corner_normals(mesh, [(to_local @ Vector(row)).normalized() for row in actual])
+    normal_matrix = obj.matrix_world.to_3x3().inverted().transposed()
+    measured = array('f', [component for normal in mesh.corner_normals for component in (normal_matrix @ normal.vector).normalized()])
+    measured_array = np.asarray(measured, dtype=np.float32).reshape(-1, 3)
+    maximum_error = float(np.max(np.abs(actual - measured_array))) if len(actual) else 0.0
+    if maximum_error > 1e-6:
+        raise RuntimeError('Prepared source-normal transfer exceeds1e-6: ' + obj.name + ' ' + str(maximum_error))
+    return {'loops': len(mesh.loops), 'sourceOwnerCount': len(source_normals), 'originalCornerAssociationPassed': True,
+            'sourceWorldNormalSha256': sha256(actual.tobytes()).hexdigest(), 'actualWorldNormalSha256': sha256(measured.tobytes()).hexdigest(),
+            'maximumWorldNormalComponentError': maximum_error, 'maximumAllowedWorldNormalComponentError': 1e-6,
+            'sourceLoopReferenceSha256': sha256(loop_refs.tobytes()).hexdigest(), 'sourceOwnerSha256': sha256(loop_owners.tobytes()).hexdigest(),
+            'storage': 'FLOAT_VECTOR CORNER custom_normal; face smooth/sharp flags preserved.'}
+
+
+def validate_prepared_normal_audit(scene, binding, receiver_profiles, transfer, proof):
+    """A fresh source/receiver-bound normal proof is mandatory before Cycles."""
+    if scene.get('one_light_normal_transfer_policy') != NORMAL_POLICY or not transfer or transfer.get('policy') != NORMAL_POLICY:
+        raise RuntimeError('Actual Cycles bake requires fresh evaluated free-normal preparation; legacy implicit normals are not reusable.')
+    if set(transfer.get('receivers', {})) != set(receiver_profiles):
+        raise RuntimeError('Prepared free-normal transfer receiver population differs.')
+    for region, profile in receiver_profiles.items():
+        row = transfer['receivers'][region]
+        if (row.get('originalCornerAssociationPassed') is not True or row.get('loops') != profile['loops']
+                or row.get('maximumWorldNormalComponentError', math.inf) > 1e-6
+                or row.get('sourceWorldNormalSha256') != profile['fieldSha256'].get('frozenSourceWorldCornerNormals')
+                or row.get('sourceLoopReferenceSha256') != profile['fieldSha256'].get('originalSourceNormalLoopReferences')):
+            raise RuntimeError('Prepared corner-normal provenance metadata differs from actual receiver: ' + region)
+    if (not proof or proof.get('passed') is not True
+            or proof.get('sourceMaterialUVTintNormalCorrespondencePassed') is not True
+            or proof.get('diagnosticOnlyNoUVPreparationClaim') is not False
+            or proof.get('sourceBlendSha256') != binding['sha256']
+            or proof.get('receiverProfiles') != receiver_profiles):
+        raise RuntimeError('Actual Cycles bake requires a passing source/prepared corner-normal mapping proof bound to current source/receiver/UV data.')
+    for obj in scene.objects:
+        if obj.type != 'MESH' or not obj.get('one_light_static') or obj.get('one_light_dynamic'):
+            continue
+        custom = obj.data.attributes.get('custom_normal')
+        if not custom or custom.domain != 'CORNER' or custom.data_type != 'FLOAT_VECTOR' or len(custom.data) != len(obj.data.loops):
+            raise RuntimeError('Actual receiver lacks full-precision free corner normals: ' + obj.name)
 
 
 def preserve_generated_coordinates(objects):
@@ -234,7 +435,7 @@ def preserve_generated_coordinates(objects):
     return audit
 
 
-def prepare_regions(resolution=1024, hall_resolution=None, output_dir=None, hidden_faces=None, court_resolution=None, gate_resolution=None, chart_cache=None):
+def prepare_regions(resolution=1024, hall_resolution=None, output_dir=None, hidden_faces=None, court_resolution=None, gate_resolution=None, chart_cache=None, region_resolutions=None, object_prefix='SnowRoof', weld_positions=False):
     exclusions = {}
     if hidden_faces:
         proof = json.loads(hidden_faces.read_text())
@@ -245,19 +446,27 @@ def prepare_regions(resolution=1024, hall_resolution=None, output_dir=None, hidd
         print('HIDDEN_UV_PROOF', proof['sourceSha256'], proof['summary'], flush=True)
     by_region = {}
     for obj in list(bpy.context.scene.objects):
-        if obj.type == 'MESH' and obj.get('one_light_static', False):
+        if obj.type == 'MESH' and obj.get('one_light_static', False) and not obj.get('one_light_dynamic', False):
             region = obj.get('lightmap_region', obj.get('region', 'court'))
             by_region.setdefault(region, []).append(obj)
     if not by_region:
         raise RuntimeError('Source contains no one_light_static meshes.')
     generated_audit = preserve_generated_coordinates([obj for objects in by_region.values() for obj in objects])
+    normal_audit = {'policy': NORMAL_POLICY, 'space': 'Evaluated Blender world normalized float32 corner directions.', 'sources': {}, 'receivers': {}}
+    normal_sources = {}
     # Evaluate construction modifiers once. Repeated modifier_apply operators rebuild the
     # entire 1000-object dependency graph for every bevel; a single graph avoids that quadratic cost.
     graph = bpy.context.evaluated_depsgraph_get()
     evaluated = []
-    for objects in by_region.values():
-        for obj in objects:
+    for region, objects in by_region.items():
+        normal_sources[region] = {}
+        for source_owner, obj in enumerate(objects):
             mesh = bpy.data.meshes.new_from_object(obj.evaluated_get(graph), preserve_all_data_layers=True, depsgraph=graph)
+            frozen_normals = freeze_evaluated_corner_normals(obj, mesh)
+            normal_sources[region][source_owner] = frozen_normals
+            normal_audit['sources'][obj.name] = {'region': region, 'owner': source_owner, 'loops': len(mesh.loops), 'worldCornerNormalSha256': sha256(frozen_normals.tobytes()).hexdigest()}
+            owner = mesh.attributes.new(name='one_light_source_chart_owner', type='INT', domain='FACE')
+            owner.data.foreach_set('value', array('i', [source_owner]) * len(mesh.polygons))
             if obj.name in generated_audit['objects']:
                 import numpy as np
                 attribute = mesh.attributes.get(GENERATED_ATTRIBUTE)
@@ -306,15 +515,23 @@ def prepare_regions(resolution=1024, hall_resolution=None, output_dir=None, hidd
     for obj, mesh in evaluated:
         obj.modifiers.clear()
         obj.data = mesh
+    if bpy.context.scene.get('one_light_fixed_view_uv_scope'):
+        import importlib.util
+        spec = importlib.util.spec_from_file_location('one_light_fixed_views', Path(__file__).with_name('fixed_view_allocation.py'))
+        fixed_views = importlib.util.module_from_spec(spec); spec.loader.exec_module(fixed_views)
+        fixed_views.allocate_fixed_views(bpy.context.scene, [obj for obj, _ in evaluated], output_dir)
     bpy.context.scene['one_light_generated_policy'] = GENERATED_POLICY
     regions = {}
     for region, objects in by_region.items():
+        source_scan_charts = all(obj.get('source_cc0_asset') for obj in objects)
+        authored_charts = not source_scan_charts and all(obj.data.uv_layers.get('SourceLightmap') for obj in objects)
         print('REGION_UNWRAP', region, len(objects), flush=True)
         select_only(objects)
         if len(objects) > 1:
             bpy.ops.object.join()
         obj = bpy.context.view_layer.objects.active
-        obj.name = 'SnowRoof_' + region
+        obj.name = object_prefix + '_' + region
+        obj['one_light_authored_uv2'] = bool(authored_charts)
         obj['one_light_static'] = True
         obj['lightmap_region'] = region
         # xatlas may put the two triangles of a quad into different charts. Give
@@ -327,6 +544,7 @@ def prepare_regions(resolution=1024, hall_resolution=None, output_dir=None, hidd
         triangulated = bpy.data.meshes.new_from_object(obj.evaluated_get(graph), preserve_all_data_layers=True, depsgraph=graph)
         obj.modifiers.clear()
         obj.data = triangulated
+        normal_audit['receivers'][region] = restore_evaluated_corner_normals(obj, normal_sources[region])
         generated = obj.data.attributes.get(GENERATED_ATTRIBUTE)
         if generated:
             coordinates = array('f', [0]) * (len(generated.data) * 3)
@@ -335,16 +553,33 @@ def prepare_regions(resolution=1024, hall_resolution=None, output_dir=None, hidd
         if len(obj.data.uv_layers) == 0:
             raise RuntimeError('Source region lacks UVMap: ' + region)
         obj.data.uv_layers[0].name = 'UVMap'
+        source_chart_uv = None
+        if authored_charts:
+            source_chart_uv = array('f', [0]) * (len(obj.data.loops) * 2)
+            obj.data.uv_layers['SourceLightmap'].data.foreach_get('uv', source_chart_uv)
         while len(obj.data.uv_layers) > 1:
             obj.data.uv_layers.remove(obj.data.uv_layers[-1])
         lightmap = obj.data.uv_layers.new(name='Lightmap')
         obj.data.uv_layers.active = lightmap
-        target_resolution = {'hall': hall_resolution, 'court': court_resolution, 'gate': gate_resolution}.get(region) or resolution
+        target_resolution = (region_resolutions or {}).get(region) or {'hall': hall_resolution, 'court': court_resolution, 'gate': gate_resolution}.get(region) or resolution
         # xatlas sees positions and topology only; source material UVs and shading seams are not constraints.
         # It creates connected curved charts, rather than one sliver per post-bevel normal cluster.
         obj.data.calc_loop_triangles()
         excluded = obj.data.attributes.get('one_light_uv_excluded')
-        triangles = [triangle for triangle in obj.data.loop_triangles if not excluded or not excluded.data[triangle.polygon_index].value]
+        zero_area = []
+        for triangle in obj.data.loop_triangles:
+            a,b,c = [obj.matrix_world @ obj.data.vertices[i].co for i in triangle.vertices]
+            if (b-a).cross(c-a).length_squared == 0:
+                zero_area.append(triangle.polygon_index)
+        if zero_area:
+            zero_attribute = obj.data.attributes.new(name='one_light_uv_zero_area', type='BOOLEAN', domain='FACE')
+            for index in zero_area:
+                zero_attribute.data[index].value = True
+                for loop in obj.data.polygons[index].loop_indices:
+                    lightmap.data[loop].uv = (0,0)
+        obj['one_light_zero_area_uv_exclusions'] = len(zero_area)
+        zero_indices = set(zero_area)
+        triangles = [triangle for triangle in obj.data.loop_triangles if triangle.polygon_index not in zero_indices and (not excluded or not excluded.data[triangle.polygon_index].value)]
         # (0,0) is outside chart cores and their filtered padding. Proven permanently
         # enclosed faces retain full geometry, UV0 and shadows, but allocate no UV2 area.
         if excluded:
@@ -356,7 +591,33 @@ def prepare_regions(resolution=1024, hall_resolution=None, output_dir=None, hidd
         indices = [index for triangle in triangles for index in triangle.vertices]
         input_path = output_dir / f'{region}-unwrap-input.json'
         output_path = output_dir / f'{region}-unwrap-output.json'
-        input_path.write_text(json.dumps({'positions': positions, 'indices': indices}))
+        unwrap_input = {'positions': positions, 'indices': indices}
+        if authored_charts:
+            source_owners = obj.data.attributes['one_light_source_chart_owner']
+            unwrap_input = {'positions': [component for triangle in triangles for vi in triangle.vertices for component in (obj.matrix_world @ obj.data.vertices[vi].co)],
+                            'indices': list(range(len(triangles) * 3)),
+                            'vertexUvs': [source_chart_uv[li*2+k] for triangle in triangles for li in triangle.loops for k in range(2)],
+                            'sourceVertexReferences': indices, 'packAuthoredCharts': True,
+                            'faceOwners': [source_owners.data[t.polygon_index].value for t in triangles]}
+        elif weld_positions and source_scan_charts:
+            # A scan already has its authored nonoverlapping chart topology.
+            # addMesh(useInputMeshUvs) still over-segments relief; addUvMesh
+            # packs the actual source charts directly. UV2-only input units
+            # avoid xatlas's tiny-UV triangle epsilon. UV0 stays untouched.
+            scan_uv_scale = 100.0
+            source_owners = obj.data.attributes['one_light_source_chart_owner']
+            obj['one_light_scan_uv2_policy'] = 'source-photo-uv-charts-pack100-v1'
+            obj['one_light_scan_uv2_input_scale'] = scan_uv_scale
+            unwrap_input = {'positions': [component for triangle in triangles for vi in triangle.vertices for component in (obj.matrix_world @ obj.data.vertices[vi].co)],
+                            'indices': list(range(len(triangles) * 3)),
+                            'vertexUvs': [component * scan_uv_scale for triangle in triangles for li in triangle.loops for component in obj.data.uv_layers['UVMap'].data[li].uv],
+                            'sourceVertexReferences': indices,
+                            'packAuthoredCharts': True,
+                            'faceOwners': [source_owners.data[t.polygon_index].value for t in triangles],
+                            'scanChartInputScale': scan_uv_scale}
+        elif weld_positions:
+            unwrap_input['weldExactPositions'] = True
+        input_path.write_text(json.dumps(unwrap_input))
         project_root = Path(__file__).resolve().parents[2]
         tools = os.environ.get('ONE_LIGHT_GLTF_TOOLS', '/tmp/one-light-gltf-tools')
         command = ['node', str(project_root / 'scripts/pack-blender-assets.mjs'), '--unwrap', str(input_path), str(output_path), '--resolution', str(target_resolution), '--tools', tools]
@@ -400,6 +661,11 @@ def prepare_regions(resolution=1024, hall_resolution=None, output_dir=None, hidd
         print('REGION_READY', region, len(obj.data.polygons), len(obj.data.uv_layers), flush=True)
     (output_dir / 'generated-coordinate-audit.json').write_text(json.dumps(generated_audit, indent=2) + '\n')
     bpy.context.scene['one_light_generated_audit_sha256'] = sha256((output_dir / 'generated-coordinate-audit.json').read_bytes()).hexdigest()
+    bpy.context.scene['one_light_generated_required'] = bool(generated_audit['remappedInputs'])
+    normal_path = output_dir / 'corner-normal-transfer-audit.json'
+    normal_path.write_text(json.dumps(normal_audit, indent=2) + '\n')
+    bpy.context.scene['one_light_normal_transfer_policy'] = NORMAL_POLICY
+    bpy.context.scene['one_light_normal_transfer'] = json.dumps({'policy': NORMAL_POLICY, 'auditSha256': sha256(normal_path.read_bytes()).hexdigest(), 'sourceObjects': len(normal_audit['sources']), 'receivers': normal_audit['receivers']})
     return regions
 
 
@@ -450,6 +716,26 @@ def source_binding(scene, prepared):
     return binding
 
 
+def cycles_integrator_settings(scene):
+    """Actual estimator settings; sample budget is recorded separately per map.
+
+    This permits different genuine fixed sample budgets to share transport
+    identity, while adaptive termination, caustics, clamping and seed changes
+    invalidate it. Do not infer realized sample counts from adaptive maxima.
+    """
+    names = ['use_adaptive_sampling', 'adaptive_threshold', 'adaptive_min_samples',
+             'sample_offset', 'seed', 'use_animated_seed', 'sampling_pattern',
+             'use_light_tree', 'use_guiding', 'guiding_training_samples',
+             'use_surface_guiding', 'use_volume_guiding',
+             'max_bounces', 'diffuse_bounces', 'glossy_bounces',
+             'transmission_bounces', 'transparent_max_bounces', 'volume_bounces',
+             'sample_clamp_direct', 'sample_clamp_indirect', 'blur_glossy',
+             'caustics_reflective', 'caustics_refractive',
+             'min_light_bounces', 'min_transparent_bounces',
+             'light_sampling_threshold', 'use_fast_gi', 'ao_bounces']
+    return {name: getattr(scene.cycles, name) for name in names}
+
+
 def transport_fingerprint(scene, regions, snapshot, binding, receiver_profiles):
     """Conservative scene-wide cache key; regional UV identity never reuses illumination."""
     images = {}
@@ -498,27 +784,76 @@ def transport_fingerprint(scene, regions, snapshot, binding, receiver_profiles):
     lights = []
     for obj, energy, colour in snapshot[0]:
         lights.append({'name': obj.name, 'role': obj.get('bake_role'), 'type': obj.data.type, 'energy': energy, 'colour': list(colour), 'worldMatrix': [list(row) for row in obj.matrix_world], 'shape': {name: clean(getattr(obj.data, name)) for name in ['shadow_soft_size', 'angle', 'shape', 'size', 'size_y', 'spot_size', 'spot_blend', 'use_shadow'] if hasattr(obj.data, name)}})
-    visibility = [{'name': obj.name, 'hidden': obj.hide_render, 'rays': {name: getattr(obj, name) for name in ['visible_camera', 'visible_diffuse', 'visible_glossy', 'visible_transmission', 'visible_shadow'] if hasattr(obj, name)}} for obj in scene.objects if obj.type == 'MESH']
-    auxiliary = {obj.name: {'positions': [[*vertex.co] for vertex in obj.data.vertices], 'polygons': [list(polygon.vertices) for polygon in obj.data.polygons], 'worldMatrix': [list(row) for row in obj.matrix_world]} for obj in scene.objects if obj.type == 'MESH' and obj not in regions.values()}
+    proxies = [obj for obj in scene.objects if obj.get('one_light_transport_proxy')]
+    if scene.get('one_light_gauze_transport') and not proxies:
+        raise RuntimeError('Source declares actual gauze transport but its physical filter meshes are missing.')
+    visibility = [{'name': obj.name, 'hidden': obj.hide_render if obj not in proxies else 'pass-controlled',
+                   **({'passVisibility': {'night': False, 'dusk': False, 'day': False, 'lamp': True}} if obj in proxies else {}),
+                   'rays': {name: getattr(obj, name) for name in ['visible_camera', 'visible_diffuse', 'visible_glossy', 'visible_transmission', 'visible_shadow'] if hasattr(obj, name)}} for obj in scene.objects if obj.type == 'MESH']
+    auxiliary = {obj.name: {'positions': [[*vertex.co] for vertex in obj.data.vertices], 'polygons': [list(polygon.vertices) for polygon in obj.data.polygons], 'worldMatrix': [list(row) for row in obj.matrix_world]} for obj in scene.objects if obj.type == 'MESH' and obj not in regions.values() and obj not in proxies}
     generated = {}
     for region, obj in sorted(regions.items()):
         attribute = obj.data.attributes.get(GENERATED_ATTRIBUTE)
         if not attribute:
-            raise RuntimeError('Prepared receiver lacks the preserved Generated attribute: ' + region)
+            # Image materials with explicit UVMap do not use Generated at all.
+            # Never manufacture a coordinate field or claim an emission proof.
+            if scene.get('one_light_generated_required', True):
+                raise RuntimeError('Prepared receiver lacks the preserved Generated attribute: ' + region)
+            generated[region] = {'required': False, 'reason': 'No implicit Generated procedural input; source material UVMap is unchanged.'}
+            continue
         coordinates = array('f', [0]) * (len(attribute.data) * 3)
         attribute.data.foreach_get('vector', coordinates)
         generated[region] = {'attribute': GENERATED_ATTRIBUTE, 'domain': attribute.domain, 'dataType': attribute.data_type, 'vertices': len(attribute.data), 'sha256': sha256(coordinates.tobytes()).hexdigest()}
     preview_audit = json.loads(scene.get('one_light_prepared_preview_audit', 'null'))
     if preview_audit and (preview_audit['sourceBlendSha256'] != binding['sha256'] or preview_audit['generatedReceivers'] != generated or preview_audit['mappingPolicy'] != scene.get('one_light_generated_policy')):
         raise RuntimeError('Prepared-preview mapping evidence does not match current source/Generated bytes.')
-    payload = {'policy': 'scene-wide-source-geometry-material-lighting-generated-v3', 'sourceBlendSha256': binding['sha256'], 'receivers': receiver_profiles, 'generatedCoordinates': {'policy': scene.get('one_light_generated_policy'), 'receivers': generated, 'preparationAuditSha256': scene.get('one_light_generated_audit_sha256')}, 'preparedPreviewAudit': preview_audit, 'preparedRestingContactAudit': scene.get('one_light_prepared_contact_audit_binding'), 'auxiliaryOccluders': auxiliary, 'visibility': visibility, 'world': graph(snapshot[2]), 'worldColour': list(snapshot[2].color) if snapshot[2] else None, 'lights': lights, 'materials': materials, 'images': images, 'presets': PRESETS,
-               'cycles': {name: getattr(scene.cycles, name) for name in ['max_bounces', 'diffuse_bounces', 'glossy_bounces', 'transmission_bounces', 'transparent_max_bounces', 'volume_bounces', 'sample_clamp_direct', 'sample_clamp_indirect']}, 'bake': {'passes': ['DIRECT', 'INDIRECT'], 'colour': False, 'oidn': 'Metal RT HDR HIGH per exact chart', 'gutterPixels': 8}}
+    normal_transfer = json.loads(scene.get('one_light_normal_transfer', 'null'))
+    if normal_transfer and (normal_transfer.get('policy') != NORMAL_POLICY or set(normal_transfer['receivers']) != set(regions)):
+        raise RuntimeError('Prepared corner-normal transfer metadata does not match current receivers.')
+    if normal_transfer and preview_audit and (not preview_audit.get('sourceMaterialUVTintNormalCorrespondencePassed') or preview_audit.get('receiverProfiles') != receiver_profiles):
+        raise RuntimeError('Prepared normal mapping proof is missing, failed or bound to other receiver/UV bytes.')
+    payload = {'policy': 'scene-wide-source-geometry-material-lighting-generated-normals-integrator-v5', 'sourceBlendSha256': binding['sha256'], 'receivers': receiver_profiles, 'normalTransfer': normal_transfer, 'normalExportRecipe': normal_export_recipe(), 'generatedCoordinates': {'policy': scene.get('one_light_generated_policy'), 'receivers': generated, 'preparationAuditSha256': scene.get('one_light_generated_audit_sha256')}, 'preparedPreviewAudit': preview_audit, 'preparedRestingContactAudit': scene.get('one_light_prepared_contact_audit_binding'), 'auxiliaryOccluders': auxiliary, 'visibility': visibility, 'world': graph(snapshot[2]), 'worldColour': list(snapshot[2].color) if snapshot[2] else None, 'lights': lights, 'materials': materials, 'images': images, 'presets': PRESETS,
+               'cycles': cycles_integrator_settings(scene), 'bake': {'passes': ['DIRECT', 'INDIRECT'], 'passesByLook': {name: sorted(light_pass_components(scene, name)) for name in PRESETS}, 'lampPassQuantity': lamp_pass_quantity(scene), 'cameraPreExposure': camera_pre_exposure(scene), 'colour': False, 'oidn': 'Metal RT HDR HIGH per exact chart', 'gutterPixels': 8}}
+    if scene.get('one_light_fixed_view_allocation_proof'):
+        payload['fixedViewAllocationProof'] = json.loads(scene['one_light_fixed_view_allocation_proof'])
+    if scene.get('one_light_export_heroes'):
+        payload['dynamicHeroes'] = json.loads(scene['one_light_export_heroes'])
+    if proxies:
+        spec = importlib.util.spec_from_file_location('one_light_lantern_transport', Path(__file__).with_name('snow_lantern_transport.py'))
+        transport_module = importlib.util.module_from_spec(spec); spec.loader.exec_module(transport_module)
+        actual = transport_module.proxy_profiles(scene)
+        compact = json.loads(scene.get(transport_module.META, '{}'))
+        digest = sha256(json.dumps(actual, sort_keys=True, separators=(',', ':')).encode()).hexdigest()
+        if compact.get('actualProxyGeometrySha256') != digest or compact.get('policy') != transport_module.POLICY:
+            raise RuntimeError('Actual lantern transport geometry differs from its compact source certificate.')
+        payload['visitorLanternTransport'] = {'configuration': compact, 'actualMeshProfiles': actual,
+            'helperSha256': sha256(Path(transport_module.__file__).read_bytes()).hexdigest(),
+            'scope': 'Actual lamp-pass-only auxiliary arrays are hashed, never duplicated as public JSON vertex arrays.'}
     encoded = json.dumps(payload, sort_keys=True, separators=(',', ':'))
     return sha256(encoded.encode()).hexdigest(), payload
 
 
+def camera_pre_exposure(scene):
+    value = float(scene.get('one_light_camera_pre_exposure', 1.))
+    if not math.isfinite(value) or value <= 0:
+        raise RuntimeError('Source camera pre-exposure must be finite and positive.')
+    return value
+
+
+def lamp_pass_quantity(scene):
+    value = scene.get('one_light_lamp_pass_quantity', 'diffuse-radiance-per-unit-albedo')
+    if value not in {'diffuse-radiance-per-unit-albedo', 'indirect-diffuse-radiance-per-unit-albedo'}:
+        raise RuntimeError('Unsupported source lamp-pass quantity: ' + str(value))
+    return value
+
+
+def light_pass_components(scene, name):
+    return {'INDIRECT'} if name == 'lamp' and lamp_pass_quantity(scene) == 'indirect-diffuse-radiance-per-unit-albedo' else {'DIRECT', 'INDIRECT'}
+
+
 def configure_light_pass(scene, name, snapshot):
     preset = PRESETS[name]
+    pre_exposure = camera_pre_exposure(scene)
     if name == 'night':
         scene.world = snapshot[2]
     else:
@@ -529,7 +864,7 @@ def configure_light_pass(scene, name, snapshot):
         nodes.clear()
         background = nodes.new('ShaderNodeBackground')
         background.inputs['Color'].default_value = (*preset['world'], 1)
-        background.inputs['Strength'].default_value = preset['strength']
+        background.inputs['Strength'].default_value = preset['strength'] / pre_exposure
         output = nodes.new('ShaderNodeOutputWorld')
         world.node_tree.links.new(background.outputs['Background'], output.inputs['Surface'])
     for obj, energy, color in snapshot[0]:
@@ -540,12 +875,19 @@ def configure_light_pass(scene, name, snapshot):
         elif name == 'night':
             obj.data.energy = energy
         elif role == 'ambient':
-            obj.data.energy = preset['energy'] if obj.data.type == 'SUN' else energy * preset['strength']
+            obj.data.energy = preset['energy'] / pre_exposure if obj.data.type == 'SUN' else energy * preset['strength']
             obj.data.color = preset['sun']
         else:
             obj.data.energy = energy * preset['fixtures']
     for socket, strength in snapshot[1]:
         socket.default_value = strength * preset['fixtures']
+    for obj in scene.objects:
+        if obj.get('one_light_transport_proxy'):
+            if (obj.type != 'MESH' or obj.get('one_light_transport_pass') != 'lamp'
+                    or not obj.get('one_light_export_excluded') or obj.get('one_light_static')
+                    or obj.get('one_light_dynamic')):
+                raise RuntimeError('Lantern transport proxy must remain lamp-only and export-excluded.')
+            obj.hide_render = name != 'lamp'
 
 
 def set_bake_image(obj, image):
@@ -731,7 +1073,7 @@ def reencode_existing(options):
             before = sha256(master.read_bytes()).hexdigest()
             image = bpy.data.images.load(str(master), check_existing=False)
             image.colorspace_settings.name = 'Non-Color'
-            encoded = save_linear(scene, image, source / f'{region}-{name}', valid, gain=options.log_gain, write_master=False)
+            encoded = save_linear(scene, image, source / f'{region}-{name}', valid, gain=options.log_gain * manifest.get('bake', {}).get('cameraPreExposure', 1.), write_master=False)
             bpy.data.images.remove(image)
             if sha256(master.read_bytes()).hexdigest() != before:
                 raise RuntimeError('Re-encoding changed a linear EXR master.')
@@ -739,7 +1081,7 @@ def reencode_existing(options):
             entry['masterSha256'] = before
             entry.pop('bytes', None)
             print('DELIVERY_REENCODED', region, name, options.log_gain, flush=True)
-    manifest['bake']['deliveryEncoding'] = {'encoding': 'log2-hdr', 'logGain': options.log_gain, 'note': 'Actual compressed-map comparison selected this gain to preserve deep night detail; EXR masters remain linear and unchanged.'}
+    manifest['bake']['deliveryEncoding'] = {'encoding': 'log2-hdr', 'logGain': options.log_gain * manifest.get('bake', {}).get('cameraPreExposure', 1.), 'normalizedLogGain': options.log_gain, 'note': 'Actual compressed-map comparison selected this gain to preserve deep night detail; EXR masters remain linear and unchanged.'}
     path.write_text(json.dumps(manifest, indent=2) + '\n')
 
 
@@ -884,7 +1226,8 @@ def uv_chart_mask(obj, size):
     mesh.calc_loop_triangles()
     uv = mesh.uv_layers['Lightmap'].data
     excluded = mesh.attributes.get('one_light_uv_excluded')
-    is_hidden = [bool(excluded and excluded.data[i].value) for i in range(len(mesh.polygons))]
+    zero_area = mesh.attributes.get('one_light_uv_zero_area')
+    is_hidden = [bool(excluded and excluded.data[i].value or zero_area and zero_area.data[i].value) for i in range(len(mesh.polygons))]
     authored_charts = mesh.attributes.get('one_light_uv_chart')
     parent = list(range(len(mesh.polygons)))
     def root(i):
@@ -915,13 +1258,19 @@ def uv_chart_mask(obj, size):
         numbering = {r: i + 1 for i, r in enumerate(roots)}
         polygon_chart = [0 if is_hidden[i] else numbering[root(i)] for i in range(len(parent))]
     labels = np.zeros((size, size), dtype=np.int32)
+    verify_authored = bool(obj.get('one_light_authored_uv2'))
+    world_samples = np.zeros((size, size, 3), dtype=np.float32) if verify_authored else None
     areas = np.zeros(len(roots) + 1, dtype=np.float64)
     overlaps = 0
+    same_chart_position_conflicts = 0
+    maximum_shared_position_difference = 0.0
+    maximum_shared_position_tolerance = .00001
     hidden_area = 0.0
     triangle_core_area = 0.0
     for triangle in mesh.loop_triangles:
         label = polygon_chart[triangle.polygon_index]
         a, b, c = [obj.matrix_world @ mesh.vertices[i].co for i in triangle.vertices]
+        world_corners = np.asarray([tuple(a), tuple(b), tuple(c)]) if verify_authored else None
         area = (b - a).cross(c - a).length * .5
         if label == 0:
             hidden_area += area
@@ -944,11 +1293,30 @@ def uv_chart_mask(obj, size):
             triangle_core_area += area
         view = labels[low[1]:high[1] + 1, low[0]:high[0] + 1]
         overlaps += int(np.count_nonzero(inside & (view != 0) & (view != label)))
+        if verify_authored:
+            world = u[..., None]*world_corners[0]+v[..., None]*world_corners[1]+(1-u-v)[..., None]*world_corners[2]
+            prior = world_samples[low[1]:high[1]+1, low[0]:high[0]+1]
+            shared = inside & (view == label)
+            differences = np.linalg.norm(prior-world, axis=2)
+            tolerance = .00001 + 2*np.linalg.norm(np.spacing(world.astype(np.float32)), axis=2)
+            if np.any(shared):
+                maximum_shared_position_difference = max(maximum_shared_position_difference, float(np.max(differences[shared])))
+                maximum_shared_position_tolerance = max(maximum_shared_position_tolerance, float(np.max(tolerance[shared])))
+            conflict = shared & (differences > tolerance)
+            same_chart_position_conflicts += int(np.count_nonzero(conflict))
+            prior[inside] = world[inside]
         view[inside] = label
     counts = np.bincount(labels.ravel(), minlength=len(areas))
     represented = counts > 0
     total_area = float(areas.sum())
     report = {'charts': len(roots), 'representedCharts': int(np.count_nonzero(represented[1:])), 'subpixelCharts': int(np.count_nonzero(~represented[1:])), 'representedSurfaceAreaFraction': float(areas[represented].sum() / total_area) if total_area else 1, 'triangleWithNativeTexelSurfaceAreaFraction': triangle_core_area / total_area if total_area else 1, 'surfaceAreaInChartsWithAtLeast16CoreTexelsFraction': float(areas[counts >= 16].sum() / total_area) if total_area else 1, 'totalSurfaceAreaSquareMetres': total_area, 'provenOccludedSurfaceAreaSquareMetres': hidden_area, 'provenOccludedPolygons': sum(is_hidden), 'coreTexels': int(np.count_nonzero(labels)), 'overlappingCorePixels': overlaps, 'coverageMeaning': 'World-space mapped surface-area weighted; proven enclosed geometry is reported separately. A represented chart may contain subpixel triangles; their native-texel area is also reported. Camera-visible sampled coverage is separate.'}
+    report['sameChartDistinctWorldPositionOverlaps'] = same_chart_position_conflicts
+    report['zeroAreaGeometryRetainedPolygons'] = obj.get('one_light_zero_area_uv_exclusions', 0)
+    report['sameChartOverlapAudit'] = 'All occupied native core samples reconstructed to world position. Shared triangle edges use10micrometres plus2norm(float32 ULP(world)) for stored-sample/interpolation rounding; no distinct physical surfaces may overlap.' if verify_authored else 'Not required for legacy topology-generated charts.'
+    report['maximumSharedSampleWorldDifferenceMetres'] = maximum_shared_position_difference
+    report['maximumSharedSampleNumericToleranceMetres'] = maximum_shared_position_tolerance
+    if same_chart_position_conflicts:
+        raise RuntimeError(f'{obj.name}: {same_chart_position_conflicts} same-chart UV samples map to distinct world surfaces; authored unwrap cannot be accepted.')
     if overlaps:
         raise RuntimeError(f'{obj.name}: {overlaps} overlapping chart-core pixels; atlas cannot be accepted.')
     return labels, polygon_chart, report
@@ -973,7 +1341,11 @@ def camera_visible_coverage(scene, regions, chart_maps, masks, width=96, height=
     totals = {region: {'sampledVisiblePixels': 0, 'representedVisiblePixels': 0, 'provenOccludedVisiblePixels': 0, 'referenceCameras': [camera.name for camera in cameras], 'perCamera': {}} for region in regions}
     for camera in cameras:
         camera_totals = {region: {'sampledVisiblePixels': 0, 'representedVisiblePixels': 0, 'provenOccludedVisiblePixels': 0} for region in regions}
+        saved_size = (scene.render.resolution_x, scene.render.resolution_y)
+        if camera.get('cover_viewport'):
+            scene.render.resolution_x, scene.render.resolution_y = json.loads(camera['cover_viewport'])
         frame = camera.data.view_frame(scene=scene)
+        scene.render.resolution_x, scene.render.resolution_y = saved_size
         x0, x1 = min(v.x for v in frame), max(v.x for v in frame)
         y0, y1 = min(v.y for v in frame), max(v.y for v in frame)
         z = frame[0].z
@@ -1202,6 +1574,7 @@ def main():
         reencode_existing(options)
         return
     scene = bpy.context.scene
+    place_id, output_stem, source_resolutions, heroes = source_delivery_contract(scene, options)
     if options.receiver_report:
         regions = {obj['lightmap_region']: obj for obj in scene.objects if obj.type == 'MESH' and obj.get('one_light_static') and obj.data.uv_layers.get('Lightmap')}
         if not regions:
@@ -1220,9 +1593,9 @@ def main():
     binding = source_binding(scene, prepared)
     if options.hidden_faces and json.loads(options.hidden_faces.read_text())['sourceSha256'] != binding['sha256']:
         raise RuntimeError('The hidden-face proof belongs to a different authored source.')
-    regions = {obj['lightmap_region']: obj for obj in scene.objects if obj.type == 'MESH' and obj.get('one_light_static')} if prepared else prepare_regions(options.resolution, options.hall_resolution, options.out, options.hidden_faces, options.court_resolution, options.gate_resolution, options.chart_cache)
+    regions = {obj['lightmap_region']: obj for obj in scene.objects if obj.type == 'MESH' and obj.get('one_light_static') and not obj.get('one_light_dynamic')} if prepared else prepare_regions(options.resolution, options.hall_resolution, options.out, options.hidden_faces, options.court_resolution, options.gate_resolution, options.chart_cache, source_resolutions, 'SnowRoof' if place_id == 'snow-roof' else place_id, place_id != 'snow-roof')
     if not prepared:
-        bpy.ops.wm.save_as_mainfile(filepath=str(options.out / 'snow-roof-uv-candidate.blend'))
+        bpy.ops.wm.save_as_mainfile(filepath=str(options.out / f'{output_stem}-uv-candidate.blend'))
     fingerprint = sha256()
     receiver_profiles = {}
     for region, obj in sorted(regions.items()):
@@ -1237,19 +1610,52 @@ def main():
         if resting_audit:
             scene['one_light_prepared_contact_audit_binding'] = json.dumps(resting_audit)
             print('PREPARED_CONTACT_GUARD_PASS', json.dumps(resting_audit), flush=True)
-    resolution_by_region = {region: {'hall': options.hall_resolution, 'court': options.court_resolution, 'gate': options.gate_resolution}.get(region) or options.resolution for region in regions}
+    resolution_by_region = {region: source_resolutions.get(region) or options.resolution for region in regions}
     snapshot = snapshot_lighting(scene)
     if options.prepared_preview_audit:
         scene['one_light_prepared_preview_audit'] = options.prepared_preview_audit.read_text()
     bake_fingerprint, transport_payload = transport_fingerprint(scene, regions, snapshot, binding, receiver_profiles)
+    if not options.skip_bake and not options.export_only:
+        validate_prepared_normal_audit(scene, binding, receiver_profiles, transport_payload['normalTransfer'], transport_payload['preparedPreviewAudit'])
     (options.out / 'bake-fingerprint.json').write_text(json.dumps(transport_payload, indent=2) + '\n')
     manifest = {'version': 1, 'place': 'snow-roof', 'scene': 'snow-roof.glb', 'lampAnchor': [0, 3.22, -.5], 'lampBasis': {'watts': 45, 'position': [0, 2.99, -.5], 'linearColor': [1, 189/255, 120/255]}, 'lightmaps': {}, 'bake': {'engine': 'Cycles', 'blender': bpy.app.version_string, 'samples': options.samples, 'resolution': options.resolution, 'resolutionByRegion': resolution_by_region, 'passes': ['DIRECT', 'INDIRECT'], 'colorExcluded': True, 'materialUV': 'TEXCOORD_0', 'lightmapUV': 'TEXCOORD_1', 'runtimeAlias': 'uv2', 'unwrap': 'xatlas/watlas1.0.1, topology-only input; UV0 preserved', 'quantity': 'diffuse-radiance-per-unit-albedo', 'threeLightMapIrradianceMultiplier': math.pi, 'denoising': {'backend': 'OpenImageDenoise RT HDR', 'device': 'CPU', 'isolation': 'Per-UV-chart with same-chart edge extension; subpixel charts excluded and reported'}, 'sampling': {'mipLevels': 3, 'gutterPixels': 8, 'anisotropy': 1, 'maxLod': 2}, 'presets': PRESETS}}
     manifest_path = options.out / 'manifest.json'
+    manifest['place'] = place_id
+    manifest['scene'] = f'{output_stem}.glb'
+    manifest['sourceScene'] = f'{output_stem}.raw.glb'
+    if scene.get('one_light_lamp_basis'):
+        manifest['lampBasis'] = json.loads(scene['one_light_lamp_basis'])
+        manifest['lampAnchor'] = json.loads(scene.get('one_light_lamp_anchor', json.dumps(manifest['lampBasis']['position'])))
+    elif place_id != 'snow-roof':
+        raise RuntimeError('A new place must author its actual lamp basis; Snow defaults are not transferable.')
+    if heroes:
+        manifest['heroes'] = {hero['id']: {**hero, 'uri': f'{output_stem}-{hero["id"]}.glb', 'source': f'{output_stem}-{hero["id"]}.raw.glb', 'materialLighting': 'live-PBR', 'bakeOccluder': True} for hero in heroes}
+    if scene.get('one_light_fixed_view_allocation_proof'):
+        manifest['bake']['fixedViewAllocationProof'] = json.loads(scene['one_light_fixed_view_allocation_proof'])
+    if scene.get('cloud_cliff_cover_views'):
+        manifest['views'] = json.loads(scene['cloud_cliff_cover_views'])
+    if scene.get('one_light_camera_far'):
+        manifest['cameraFar'] = scene['one_light_camera_far']
+    if scene.get('cloud_cliff_far_world_bounds'):
+        manifest['worldBounds'] = json.loads(scene['cloud_cliff_far_world_bounds'])
+    if scene.get('cloud_cliff_budget'):
+        manifest['budget'] = json.loads(scene['cloud_cliff_budget'])
+    manifest['bake']['cameraPreExposure'] = camera_pre_exposure(scene)
+    source_view = json.loads(scene.get('one_light_source_view_settings', '{}'))
+    manifest['bake']['residualCameraExposureEV'] = round(source_view.get('exposure', math.log2(camera_pre_exposure(scene))) - math.log2(camera_pre_exposure(scene)), 6)
+    manifest['bake']['integrator'] = cycles_integrator_settings(scene)
+    manifest['bake']['sampleBudgetMeaning'] = 'Configured fixed Cycles sample budget; adaptive stopping and animated seed are disabled. Sample count is recorded per map; invalid UV/padding texels are not path samples.'
+    manifest['bake']['lampPassQuantity'] = lamp_pass_quantity(scene)
+    manifest['bake']['passesByLook'] = {name: sorted(light_pass_components(scene, name)) for name in PRESETS}
+    manifest['bake']['threeLightMapIrradianceMultiplier'] = math.pi * camera_pre_exposure(scene)
+    manifest['bake']['rawRadiometry'] = 'EXR and decoded maps are raw source radiance. One explicit common camera pre-exposure normalizes irradiance, source lights and imported emission at runtime; native preview uses matching global EV.'
     manifest['bake']['denoising']['device'] = options.oidn_device
     manifest['bake']['sourceNightLighting'] = lighting_metadata(snapshot)
     manifest['bake']['sourceBlendSha256'] = binding['sha256']
     manifest['bake']['receiverProfiles'] = receiver_profiles
     manifest['bake']['generatedCoordinates'] = transport_payload['generatedCoordinates']
+    manifest['bake']['normalTransfer'] = transport_payload['normalTransfer']
+    manifest['bake']['normalExportRecipe'] = transport_payload['normalExportRecipe']
     manifest['bake']['preparedPreviewAudit'] = transport_payload['preparedPreviewAudit']
     if resting_audit:
         manifest['bake']['preparedContactAudit'] = resting_audit
@@ -1294,7 +1700,7 @@ def main():
         coverage[region].update(visible[region])
         print('VISIBLE_UV_COVERAGE', region, json.dumps(visible[region]), flush=True)
     manifest['bake']['coverage'] = coverage
-    bpy.ops.wm.save_as_mainfile(filepath=str(options.out / 'snow-roof-prepared.blend'))
+    bpy.ops.wm.save_as_mainfile(filepath=str(options.out / f'{output_stem}-prepared.blend'))
     if not options.skip_bake and not options.export_only:
         requested_regions = set(options.regions.split(',')) if options.regions else set(regions)
         if requested_regions - set(regions):
@@ -1320,7 +1726,8 @@ def main():
                 set_bake_image(obj, image)
                 print('BAKE_START', region, name, flush=True)
                 began = time.time()
-                bpy.ops.object.bake(type='DIFFUSE', pass_filter={'DIRECT', 'INDIRECT'}, use_clear=True, uv_layer='Lightmap', margin=4)
+                components = light_pass_components(scene, name)
+                bpy.ops.object.bake(type='DIFFUSE', pass_filter=components, use_clear=True, uv_layer='Lightmap', margin=4)
                 bake_seconds = time.time() - began
                 print('CYCLES_BAKE_DONE', region, name, round(bake_seconds, 3), flush=True)
                 # Preserve the noisy full-range master, then denoise only represented UV-chart cores.
@@ -1333,13 +1740,16 @@ def main():
                 denoise_started = time.time()
                 denoise_image(image, masks[region], denoiser)
                 denoise_seconds = time.time() - denoise_started
-                entry = save_linear(scene, image, options.out / f'{region}-{name}', masks[region] > 0, gain=options.log_gain)
+                entry = save_linear(scene, image, options.out / f'{region}-{name}', masks[region] > 0, gain=options.log_gain * camera_pre_exposure(scene))
                 entry['denoiseSeconds'] = round(denoise_seconds, 3)
                 entry['bakeSeconds'] = round(bake_seconds, 3)
                 entry['samples'] = options.samples
                 entry['bakeDevice'] = options.device
                 entry['denoiseDevice'] = options.oidn_device
                 entry['bakeFingerprint'] = bake_fingerprint
+                entry['passFilter'] = sorted(components)
+                entry['quantity'] = lamp_pass_quantity(scene) if name == 'lamp' else 'diffuse-radiance-per-unit-albedo'
+                entry['cameraPreExposure'] = camera_pre_exposure(scene)
                 entry['uri'] = f'{region}-{name}.ktx2'
                 entry['seconds'] = round(time.time() - began, 3)
                 manifest['lightmaps'].setdefault(region, {})[name] = entry
@@ -1358,9 +1768,18 @@ def main():
             node = material.node_tree.nodes.get('ONE_LIGHT_BAKE_TARGET')
             if node:
                 material.node_tree.nodes.remove(node)
+    scene['one_light_normal_export_recipe'] = json.dumps(transport_payload['normalExportRecipe'])
+    normal_exports = []
     select_only(list(regions.values()))
-    bpy.ops.export_scene.gltf(filepath=str(options.out / 'snow-roof.raw.glb'), export_format='GLB', use_selection=True, export_texcoords=True, export_normals=True, export_materials='EXPORT', export_extras=True, export_yup=True, export_cameras=False, export_lights=False)
-    bpy.ops.wm.save_as_mainfile(filepath=str(options.out / 'snow-roof-baked.blend'))
+    normal_exports.append(export_precise_gltf(options.out / f'{output_stem}.raw.glb', transport_payload['normalExportRecipe']))
+    for hero in heroes:
+        objects = [obj for obj in scene.objects if obj.get('one_light_dynamic') and obj.get('hero_id') == hero['id'] and obj.type in {'MESH', 'EMPTY'}]
+        if not objects or any(obj.get('one_light_static') for obj in objects):
+            raise RuntimeError('Hero export must contain independent actual dynamic geometry only: ' + hero['id'])
+        select_only(objects)
+        normal_exports.append(export_precise_gltf(options.out / manifest['heroes'][hero['id']]['source'], transport_payload['normalExportRecipe']))
+    manifest['bake']['normalExports'] = normal_exports
+    bpy.ops.wm.save_as_mainfile(filepath=str(options.out / f'{output_stem}-baked.blend'))
     manifest['bake']['totalSeconds'] = round(time.time() - started, 3)
     manifest_path.write_text(json.dumps(manifest, indent=2) + '\n')
     print('EXPORT_DONE', options.out, manifest['bake']['totalSeconds'], flush=True)

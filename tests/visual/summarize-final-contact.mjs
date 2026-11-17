@@ -9,7 +9,6 @@ const hash = async path => createHash('sha256').update(await readFile(path)).dig
 const demand = (condition, message) => { if (!condition) throw new Error(message); };
 const f = (value, digits = 2) => value.toFixed(digits);
 const link = path => `../../../${path}`;
-const corePath = 'artifacts/snow-journey/final-contact/report.json';
 const core = await read(`${folder}/final-contact-summary.json`);
 const recomputation = await read(`${folder}/final-contact-luma-recomputation.json`);
 const performance = await read('artifacts/snow-performance/final-contact/summary.json');

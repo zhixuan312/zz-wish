@@ -1,0 +1,892 @@
+{
+  "version": 1,
+  "createdAt": "2026-11-17T04:52:29.137Z",
+  "passed": true,
+  "source": {
+    "path": "art/build/cloud-cliff-round1/cloud-cliff-source-v11.blend",
+    "sha256": "484438a4514352e70d7ffe0408306b4127660316c1422f3248f0ff33f5e0e565"
+  },
+  "actualManifestSHA256": "2ed96ec74059775b6904775eb77b21143b19e9b9260d503b5e634ed5d6be5260",
+  "actualMain": {
+    "path": "/Users/xuan/Documents/code/zz-wish/art/build/cloud-cliff-round1/delivery-normal-corrected-f32/cloud-cliff.glb",
+    "sha256": "f33efcb078b21107faa31eb72acc5236305e5fbfddded4bdc9b617c673db384e"
+  },
+  "actualHero": {
+    "path": "/Users/xuan/Documents/code/zz-wish/art/build/cloud-cliff-round1/delivery-normal-corrected-f32/cloud-cliff-storm.glb",
+    "sha256": "926252de61d3e1f013d3f495ea3533637a5246a495ff00e740b03b36cf5890b4"
+  },
+  "decodedStreamProof": {
+    "path": "/Users/xuan/Documents/code/zz-wish/art/build/cloud-cliff-round1/independent-delivery-normal-corrected-f32/decoded-stream-proof.json",
+    "sha256": "1358d69b6dee05d796fedb0868091c3364449a9ce1102656aa133ef26e0d6dd8"
+  },
+  "decodedTriangleContactProof": {
+    "path": "/Users/xuan/Documents/code/zz-wish/art/build/cloud-cliff-round1/independent-delivery-normal-corrected-f32/decoded-contact-proof.json",
+    "sha256": "97b3b8ddc9ccf14ef1d2d39f34b1bb92b161620e89a5c079bee14a9539b3f4a9"
+  },
+  "replay": {
+    "seconds": 2.511,
+    "baseScript": {
+      "path": "/Users/xuan/Documents/code/zz-wish/art/blender/audit_prepared_resting_contacts.py",
+      "sha256": "cd70353c5db4b8e49f713d3bcea4e9e8b568bd101b8dcd20db120aaa23415251"
+    },
+    "derivedAuditScript": {
+      "path": "/Users/xuan/Documents/code/zz-wish/art/build/cloud-cliff-round1/independent-delivery-normal-corrected-f32/audit-decoded-contacts.py",
+      "sha256": "cd1a66728164ef39425d1fe1dcfdd0f4df4c46478ae767308a50d125fd97db47"
+    },
+    "associationToleranceMetres": 0.000005,
+    "associationReason": "Actual decoded HERO affine quantization bound plus 1µm numerical allowance. This affects source ownership association only; the actual measured triangle geometry is never moved or snapped.",
+    "literalContactGuardsMetres": {
+      "gap": 0.002,
+      "penetration": 0.005
+    },
+    "wickTipCoordinateGuardMetres": 0.000005
+  },
+  "genuineSourceFloat32Main": true,
+  "heroRemainsQuant16InActualDelivery": false,
+  "decodedFloatDerivativesAreAuditOnly": true,
+  "sourceAnchorMetadataByteExact": true,
+  "groups": [
+    {
+      "name": "structural post 0",
+      "mode": "resting",
+      "passed": true,
+      "contact": {
+        "member": "Long gallery post",
+        "pointEngine": [
+          -0.8500000238418579,
+          -14,
+          -6
+        ],
+        "supportPointEngine": [
+          -0.8500000238418579,
+          -14,
+          -6
+        ],
+        "supportObject": "Rock-fastened post bearing seat",
+        "gapMetres": 0
+      },
+      "measuredGapMetres": 0,
+      "maximumPenetrationMetres": 0,
+      "worstPenetrationContact": {
+        "member": "Long gallery post",
+        "pointEngine": [
+          -0.8500000238418579,
+          -14,
+          -6
+        ],
+        "supportPointEngine": [
+          -0.8500000238418579,
+          -14,
+          -6
+        ],
+        "supportObject": "Rock-fastened post bearing seat",
+        "gapMetres": 0
+      },
+      "sourceContactGapMetres": 0,
+      "sourceMaximumPenetrationMetres": 0
+    },
+    {
+      "name": "structural post 1",
+      "mode": "resting",
+      "passed": true,
+      "contact": {
+        "member": "Long gallery post.001",
+        "pointEngine": [
+          3.450000047683716,
+          -14,
+          -6
+        ],
+        "supportPointEngine": [
+          3.450000047683716,
+          -14,
+          -6
+        ],
+        "supportObject": "Rock-fastened post bearing seat.001",
+        "gapMetres": 0
+      },
+      "measuredGapMetres": 0,
+      "maximumPenetrationMetres": 0,
+      "worstPenetrationContact": {
+        "member": "Long gallery post.001",
+        "pointEngine": [
+          3.450000047683716,
+          -14,
+          -6
+        ],
+        "supportPointEngine": [
+          3.450000047683716,
+          -14,
+          -6
+        ],
+        "supportObject": "Rock-fastened post bearing seat.001",
+        "gapMetres": 0
+      },
+      "sourceContactGapMetres": 0,
+      "sourceMaximumPenetrationMetres": 0
+    },
+    {
+      "name": "structural post 2",
+      "mode": "resting",
+      "passed": true,
+      "contact": {
+        "member": "Long gallery post.002",
+        "pointEngine": [
+          -0.8500000238418579,
+          -14.479995727539062,
+          -2
+        ],
+        "supportPointEngine": [
+          -0.8500000238418579,
+          -14.479995727539062,
+          -2
+        ],
+        "supportObject": "Rock-fastened post bearing seat.002",
+        "gapMetres": 0
+      },
+      "measuredGapMetres": 0,
+      "maximumPenetrationMetres": 0,
+      "worstPenetrationContact": {
+        "member": "Long gallery post.002",
+        "pointEngine": [
+          -0.8500000238418579,
+          -14.479995727539062,
+          -2
+        ],
+        "supportPointEngine": [
+          -0.8500000238418579,
+          -14.479995727539062,
+          -2
+        ],
+        "supportObject": "Rock-fastened post bearing seat.002",
+        "gapMetres": 0
+      },
+      "sourceContactGapMetres": 0,
+      "sourceMaximumPenetrationMetres": 0
+    },
+    {
+      "name": "structural post 3",
+      "mode": "resting",
+      "passed": true,
+      "contact": {
+        "member": "Long gallery post.003",
+        "pointEngine": [
+          3.450000047683716,
+          -14.479995727539062,
+          -2
+        ],
+        "supportPointEngine": [
+          3.450000047683716,
+          -14.479995727539062,
+          -2
+        ],
+        "supportObject": "Rock-fastened post bearing seat.003",
+        "gapMetres": 0
+      },
+      "measuredGapMetres": 0,
+      "maximumPenetrationMetres": 0,
+      "worstPenetrationContact": {
+        "member": "Long gallery post.003",
+        "pointEngine": [
+          3.450000047683716,
+          -14.479995727539062,
+          -2
+        ],
+        "supportPointEngine": [
+          3.450000047683716,
+          -14.479995727539062,
+          -2
+        ],
+        "supportObject": "Rock-fastened post bearing seat.003",
+        "gapMetres": 0
+      },
+      "sourceContactGapMetres": 0,
+      "sourceMaximumPenetrationMetres": 0
+    },
+    {
+      "name": "structural post 4",
+      "mode": "resting",
+      "passed": true,
+      "contact": {
+        "member": "Long gallery post.004",
+        "pointEngine": [
+          -0.8500000238418579,
+          -14.960000038146973,
+          2
+        ],
+        "supportPointEngine": [
+          -0.8500000238418579,
+          -14.959999084472656,
+          2
+        ],
+        "supportObject": "Rock-fastened post bearing seat.004",
+        "gapMetres": -9.5367431640625e-7
+      },
+      "measuredGapMetres": -9.5367431640625e-7,
+      "maximumPenetrationMetres": 9.5367431640625e-7,
+      "worstPenetrationContact": {
+        "member": "Long gallery post.004",
+        "pointEngine": [
+          -0.8500000238418579,
+          -14.960000038146973,
+          2
+        ],
+        "supportPointEngine": [
+          -0.8500000238418579,
+          -14.959999084472656,
+          2
+        ],
+        "supportObject": "Rock-fastened post bearing seat.004",
+        "gapMetres": -9.5367431640625e-7
+      },
+      "sourceContactGapMetres": -9.5367431640625e-7,
+      "sourceMaximumPenetrationMetres": 9.5367431640625e-7
+    },
+    {
+      "name": "structural post 5",
+      "mode": "resting",
+      "passed": true,
+      "contact": {
+        "member": "Long gallery post.005",
+        "pointEngine": [
+          3.450000047683716,
+          -14.960000038146973,
+          2
+        ],
+        "supportPointEngine": [
+          3.450000047683716,
+          -14.959999084472656,
+          2
+        ],
+        "supportObject": "Rock-fastened post bearing seat.005",
+        "gapMetres": -9.5367431640625e-7
+      },
+      "measuredGapMetres": -9.5367431640625e-7,
+      "maximumPenetrationMetres": 9.5367431640625e-7,
+      "worstPenetrationContact": {
+        "member": "Long gallery post.005",
+        "pointEngine": [
+          3.450000047683716,
+          -14.960000038146973,
+          2
+        ],
+        "supportPointEngine": [
+          3.450000047683716,
+          -14.959999084472656,
+          2
+        ],
+        "supportObject": "Rock-fastened post bearing seat.005",
+        "gapMetres": -9.5367431640625e-7
+      },
+      "sourceContactGapMetres": -9.5367431640625e-7,
+      "sourceMaximumPenetrationMetres": 9.5367431640625e-7
+    },
+    {
+      "name": "structural post 6",
+      "mode": "resting",
+      "passed": true,
+      "contact": {
+        "member": "Long gallery post.006",
+        "pointEngine": [
+          -0.8500000238418579,
+          -15.44000244140625,
+          6
+        ],
+        "supportPointEngine": [
+          -0.8500000238418579,
+          -15.44000244140625,
+          6
+        ],
+        "supportObject": "Rock-fastened post bearing seat.006",
+        "gapMetres": 0
+      },
+      "measuredGapMetres": 0,
+      "maximumPenetrationMetres": 0,
+      "worstPenetrationContact": {
+        "member": "Long gallery post.006",
+        "pointEngine": [
+          -0.8500000238418579,
+          -15.44000244140625,
+          6
+        ],
+        "supportPointEngine": [
+          -0.8500000238418579,
+          -15.44000244140625,
+          6
+        ],
+        "supportObject": "Rock-fastened post bearing seat.006",
+        "gapMetres": 0
+      },
+      "sourceContactGapMetres": 0,
+      "sourceMaximumPenetrationMetres": 0
+    },
+    {
+      "name": "structural post 7",
+      "mode": "resting",
+      "passed": true,
+      "contact": {
+        "member": "Long gallery post.007",
+        "pointEngine": [
+          3.299999952316284,
+          -15.44000244140625,
+          6
+        ],
+        "supportPointEngine": [
+          3.299999952316284,
+          -15.439994812011719,
+          6
+        ],
+        "supportObject": "Rock-fastened post bearing seat.007",
+        "gapMetres": -0.00000762939453125
+      },
+      "measuredGapMetres": -0.00000762939453125,
+      "maximumPenetrationMetres": 0.00000762939453125,
+      "worstPenetrationContact": {
+        "member": "Long gallery post.007",
+        "pointEngine": [
+          3.299999952316284,
+          -15.44000244140625,
+          6
+        ],
+        "supportPointEngine": [
+          3.299999952316284,
+          -15.439994812011719,
+          6
+        ],
+        "supportObject": "Rock-fastened post bearing seat.007",
+        "gapMetres": -0.00000762939453125
+      },
+      "sourceContactGapMetres": 0,
+      "sourceMaximumPenetrationMetres": 0
+    },
+    {
+      "name": "structural post 8",
+      "mode": "resting",
+      "passed": true,
+      "contact": {
+        "member": "Long gallery post.008",
+        "pointEngine": [
+          -4.25,
+          -13.800000190734863,
+          -8.5
+        ],
+        "supportPointEngine": [
+          -4.25,
+          -13.799991607666016,
+          -8.5
+        ],
+        "supportObject": "Rock-fastened post bearing seat.008",
+        "gapMetres": -0.00000858306884765625
+      },
+      "measuredGapMetres": -0.00000858306884765625,
+      "maximumPenetrationMetres": 0.00000858306884765625,
+      "worstPenetrationContact": {
+        "member": "Long gallery post.008",
+        "pointEngine": [
+          -4.25,
+          -13.800000190734863,
+          -8.5
+        ],
+        "supportPointEngine": [
+          -4.25,
+          -13.799991607666016,
+          -8.5
+        ],
+        "supportObject": "Rock-fastened post bearing seat.008",
+        "gapMetres": -0.00000858306884765625
+      },
+      "sourceContactGapMetres": -9.5367431640625e-7,
+      "sourceMaximumPenetrationMetres": 9.5367431640625e-7
+    },
+    {
+      "name": "structural post 9",
+      "mode": "resting",
+      "passed": true,
+      "contact": {
+        "member": "Long gallery post.009",
+        "pointEngine": [
+          -4.25,
+          -13.800000190734863,
+          -4.5
+        ],
+        "supportPointEngine": [
+          -4.25,
+          -13.799991607666016,
+          -4.5
+        ],
+        "supportObject": "Rock-fastened post bearing seat.009",
+        "gapMetres": -0.00000858306884765625
+      },
+      "measuredGapMetres": -0.00000858306884765625,
+      "maximumPenetrationMetres": 0.00000858306884765625,
+      "worstPenetrationContact": {
+        "member": "Long gallery post.009",
+        "pointEngine": [
+          -4.25,
+          -13.800000190734863,
+          -4.5
+        ],
+        "supportPointEngine": [
+          -4.25,
+          -13.799991607666016,
+          -4.5
+        ],
+        "supportObject": "Rock-fastened post bearing seat.009",
+        "gapMetres": -0.00000858306884765625
+      },
+      "sourceContactGapMetres": -9.5367431640625e-7,
+      "sourceMaximumPenetrationMetres": 9.5367431640625e-7
+    },
+    {
+      "name": "structural post 10",
+      "mode": "resting",
+      "passed": true,
+      "contact": {
+        "member": "Long gallery post.010",
+        "pointEngine": [
+          0.5299038290977478,
+          -13.799995422363281,
+          -8.425000190734863
+        ],
+        "supportPointEngine": [
+          0.5299038290977478,
+          -13.799995422363281,
+          -8.425000190734863
+        ],
+        "supportObject": "Rock-fastened post bearing seat.010",
+        "gapMetres": 0
+      },
+      "measuredGapMetres": 0,
+      "maximumPenetrationMetres": 0,
+      "worstPenetrationContact": {
+        "member": "Long gallery post.010",
+        "pointEngine": [
+          0.5299038290977478,
+          -13.799995422363281,
+          -8.425000190734863
+        ],
+        "supportPointEngine": [
+          0.5299038290977478,
+          -13.799995422363281,
+          -8.425000190734863
+        ],
+        "supportObject": "Rock-fastened post bearing seat.010",
+        "gapMetres": 0
+      },
+      "sourceContactGapMetres": 0,
+      "sourceMaximumPenetrationMetres": 0
+    },
+    {
+      "name": "structural post 11",
+      "mode": "resting",
+      "passed": true,
+      "contact": {
+        "member": "Long gallery post.011",
+        "pointEngine": [
+          0.5299038290977478,
+          -13.799995422363281,
+          -4.425000190734863
+        ],
+        "supportPointEngine": [
+          0.5299038290977478,
+          -13.799995422363281,
+          -4.425000190734863
+        ],
+        "supportObject": "Rock-fastened post bearing seat.011",
+        "gapMetres": 0
+      },
+      "measuredGapMetres": 0,
+      "maximumPenetrationMetres": 0,
+      "worstPenetrationContact": {
+        "member": "Long gallery post.011",
+        "pointEngine": [
+          0.5299038290977478,
+          -13.799995422363281,
+          -4.425000190734863
+        ],
+        "supportPointEngine": [
+          0.5299038290977478,
+          -13.799995422363281,
+          -4.425000190734863
+        ],
+        "supportObject": "Rock-fastened post bearing seat.011",
+        "gapMetres": 0
+      },
+      "sourceContactGapMetres": 0,
+      "sourceMaximumPenetrationMetres": 0
+    },
+    {
+      "name": "structural post 12",
+      "mode": "resting",
+      "passed": true,
+      "contact": {
+        "member": "Long gallery post.012",
+        "pointEngine": [
+          -3.870096206665039,
+          -14.499992370605469,
+          -15.925000190734863
+        ],
+        "supportPointEngine": [
+          -3.870096206665039,
+          -14.499992370605469,
+          -15.925000190734863
+        ],
+        "supportObject": "Rock-fastened post bearing seat.012",
+        "gapMetres": 0
+      },
+      "measuredGapMetres": 0,
+      "maximumPenetrationMetres": 0,
+      "worstPenetrationContact": {
+        "member": "Long gallery post.012",
+        "pointEngine": [
+          -3.870096206665039,
+          -14.499992370605469,
+          -15.925000190734863
+        ],
+        "supportPointEngine": [
+          -3.870096206665039,
+          -14.499992370605469,
+          -15.925000190734863
+        ],
+        "supportObject": "Rock-fastened post bearing seat.012",
+        "gapMetres": 0
+      },
+      "sourceContactGapMetres": 0,
+      "sourceMaximumPenetrationMetres": 0
+    },
+    {
+      "name": "structural post 13",
+      "mode": "resting",
+      "passed": true,
+      "contact": {
+        "member": "Long gallery post.013",
+        "pointEngine": [
+          -3.870096206665039,
+          -14.499992370605469,
+          -12.425000190734863
+        ],
+        "supportPointEngine": [
+          -3.870096206665039,
+          -14.499992370605469,
+          -12.425000190734863
+        ],
+        "supportObject": "Rock-fastened post bearing seat.013",
+        "gapMetres": 0
+      },
+      "measuredGapMetres": 0,
+      "maximumPenetrationMetres": 0,
+      "worstPenetrationContact": {
+        "member": "Long gallery post.013",
+        "pointEngine": [
+          -3.870096206665039,
+          -14.499992370605469,
+          -12.425000190734863
+        ],
+        "supportPointEngine": [
+          -3.870096206665039,
+          -14.499992370605469,
+          -12.425000190734863
+        ],
+        "supportObject": "Rock-fastened post bearing seat.013",
+        "gapMetres": 0
+      },
+      "sourceContactGapMetres": 0,
+      "sourceMaximumPenetrationMetres": 0
+    },
+    {
+      "name": "structural post 14",
+      "mode": "resting",
+      "passed": true,
+      "contact": {
+        "member": "Long gallery post.014",
+        "pointEngine": [
+          0.22499999403953552,
+          -14.499992370605469,
+          -15.870096206665039
+        ],
+        "supportPointEngine": [
+          0.22499999403953552,
+          -14.499992370605469,
+          -15.870096206665039
+        ],
+        "supportObject": "Rock-fastened post bearing seat.014",
+        "gapMetres": 0
+      },
+      "measuredGapMetres": 0,
+      "maximumPenetrationMetres": 0,
+      "worstPenetrationContact": {
+        "member": "Long gallery post.014",
+        "pointEngine": [
+          0.22499999403953552,
+          -14.499992370605469,
+          -15.870096206665039
+        ],
+        "supportPointEngine": [
+          0.22499999403953552,
+          -14.499992370605469,
+          -15.870096206665039
+        ],
+        "supportObject": "Rock-fastened post bearing seat.014",
+        "gapMetres": 0
+      },
+      "sourceContactGapMetres": 0,
+      "sourceMaximumPenetrationMetres": 0
+    },
+    {
+      "name": "structural post 15",
+      "mode": "resting",
+      "passed": true,
+      "contact": {
+        "member": "Long gallery post.015",
+        "pointEngine": [
+          0.4299038052558899,
+          -14.499992370605469,
+          -12.574999809265137
+        ],
+        "supportPointEngine": [
+          0.4299038052558899,
+          -14.499992370605469,
+          -12.574999809265137
+        ],
+        "supportObject": "Rock-fastened post bearing seat.015",
+        "gapMetres": 0
+      },
+      "measuredGapMetres": 0,
+      "maximumPenetrationMetres": 0,
+      "worstPenetrationContact": {
+        "member": "Long gallery post.015",
+        "pointEngine": [
+          0.4299038052558899,
+          -14.499992370605469,
+          -12.574999809265137
+        ],
+        "supportPointEngine": [
+          0.4299038052558899,
+          -14.499992370605469,
+          -12.574999809265137
+        ],
+        "supportObject": "Rock-fastened post bearing seat.015",
+        "gapMetres": 0
+      },
+      "sourceContactGapMetres": 0,
+      "sourceMaximumPenetrationMetres": 0
+    },
+    {
+      "name": "storm glass shell",
+      "mode": "resting",
+      "passed": true,
+      "contact": {
+        "member": "Storm clear hurricane glass",
+        "pointEngine": [
+          4.412947177886963,
+          1.6300088167190552,
+          0.11344952881336212
+        ],
+        "supportPointEngine": [
+          4.412947177886963,
+          1.6300086975097656,
+          0.11344952881336212
+        ],
+        "supportObject": "Storm cast base and oil-wax cup",
+        "gapMetres": 1.1920928955078125e-7
+      },
+      "measuredGapMetres": 1.1920928955078125e-7,
+      "maximumPenetrationMetres": 0,
+      "worstPenetrationContact": {
+        "member": "Storm clear hurricane glass",
+        "pointEngine": [
+          4.412947177886963,
+          1.6300088167190552,
+          0.11344952881336212
+        ],
+        "supportPointEngine": [
+          4.412947177886963,
+          1.6300086975097656,
+          0.11344952881336212
+        ],
+        "supportObject": "Storm cast base and oil-wax cup",
+        "gapMetres": 1.1920928955078125e-7
+      },
+      "sourceContactGapMetres": 1.1920928955078125e-7,
+      "sourceMaximumPenetrationMetres": 0
+    },
+    {
+      "name": "storm candle and wick",
+      "mode": "resting",
+      "passed": true,
+      "contact": {
+        "member": "Storm used tallow candle",
+        "pointEngine": [
+          4.530764579772949,
+          1.6300050020217896,
+          0.020556097850203514
+        ],
+        "supportPointEngine": [
+          4.530764579772949,
+          1.6300048828125,
+          0.020556097850203514
+        ],
+        "supportObject": "Storm cast base and oil-wax cup",
+        "gapMetres": 1.1920928955078125e-7
+      },
+      "measuredGapMetres": 1.1920928955078125e-7,
+      "maximumPenetrationMetres": 0,
+      "worstPenetrationContact": {
+        "member": "Storm used tallow candle",
+        "pointEngine": [
+          4.530764579772949,
+          1.6300050020217896,
+          0.020556097850203514
+        ],
+        "supportPointEngine": [
+          4.530764579772949,
+          1.6300048828125,
+          0.020556097850203514
+        ],
+        "supportObject": "Storm cast base and oil-wax cup",
+        "gapMetres": 1.1920928955078125e-7
+      },
+      "sourceContactGapMetres": 1.1920928955078125e-7,
+      "sourceMaximumPenetrationMetres": 0
+    }
+  ],
+  "hangingPairs": [
+    {
+      "members": [
+        "Fixed forged hanging eye",
+        "Storm upper load link"
+      ],
+      "nearestActualTriangleSurfaceMetres": 0,
+      "limitMetres": 0.002,
+      "passed": true
+    },
+    {
+      "members": [
+        "Storm upper load link",
+        "Storm second load link"
+      ],
+      "nearestActualTriangleSurfaceMetres": 1.7627148543152953e-18,
+      "limitMetres": 0.002,
+      "passed": true
+    },
+    {
+      "members": [
+        "Storm second load link",
+        "Storm third load link"
+      ],
+      "nearestActualTriangleSurfaceMetres": 0,
+      "limitMetres": 0.002,
+      "passed": true
+    },
+    {
+      "members": [
+        "Storm third load link",
+        "Storm lower load link"
+      ],
+      "nearestActualTriangleSurfaceMetres": 1.763031664489903e-18,
+      "limitMetres": 0.002,
+      "passed": true
+    },
+    {
+      "members": [
+        "Storm lower load link",
+        "Storm bail eye"
+      ],
+      "nearestActualTriangleSurfaceMetres": 0,
+      "limitMetres": 0.002,
+      "passed": true
+    },
+    {
+      "members": [
+        "Storm bail eye",
+        "Storm swept brass bail"
+      ],
+      "nearestActualTriangleSurfaceMetres": 0.0006260534864850342,
+      "limitMetres": 0.002,
+      "passed": true
+    }
+  ],
+  "wickTips": [
+    {
+      "name": "storm",
+      "sourceObject": "Storm charred fibre wick",
+      "actualPreparedWickTip": [
+        4.500392913818359,
+        1.7925621271133423,
+        -9.184851316840576e-20
+      ],
+      "sourceMetadataWickTip": [
+        4.500392913818359,
+        1.7925620079040527,
+        -9.184851316840576e-20
+      ],
+      "maximumCoordinateErrorMetres": 1.1920928955078125e-7,
+      "passed": true
+    }
+  ],
+  "anchorNodes": [
+    {
+      "object": "Storm hanging pivot",
+      "path": "/Users/xuan/Documents/code/zz-wish/art/build/cloud-cliff-round1/independent-delivery-normal-corrected-f32/decoded-hero-audit.glb",
+      "positionEngine": [
+        4.5,
+        2.9100000858306885,
+        0
+      ],
+      "metadataEngine": [
+        4.5,
+        2.9100000858306885,
+        0
+      ],
+      "maximumCoordinateErrorMetres": 0,
+      "passed": true
+    }
+  ],
+  "actualDecodedAssociation": {
+    "method": "Actual evaluated source world-vertex membership; exact FLOAT32 keys first, native KD ownership association≤5.000000µm, bounded by independently decoded HERO quantization; original 5µm wick checks and literal 2mm/5mm contact guards retained. BVHs use actual raw triangles.",
+    "exactPreparedVertices": 8233,
+    "toleranceAssociatedVertices": 0,
+    "maximumAssociationErrorMetres": 0,
+    "missingSourceVertices": {}
+  },
+  "decodedStreams": [
+    {
+      "kind": "main",
+      "checks": {
+        "sceneExtrasExact": true,
+        "allTrianglesAndCyclicWindingMatched": true,
+        "allMaterialGraphsAndAssignmentsPreserved": true,
+        "mainPositionsAreGenuineFloat32": true,
+        "uv0WithinOne16bitStep": true,
+        "tintsWithinOne8bitStep": true,
+        "presentAuthoredAnchorNodesExact": true,
+        "standardNormalsGenuineFloat32AndWithinSourceGate": true
+      },
+      "totalTriangles": 73587,
+      "maximumWorldErrorMetres": 0,
+      "maximumAffineQuantizationBoundMetres": 0
+    },
+    {
+      "kind": "hero",
+      "checks": {
+        "sceneExtrasExact": true,
+        "allTrianglesAndCyclicWindingMatched": true,
+        "allMaterialGraphsAndAssignmentsPreserved": true,
+        "mainPositionsAreGenuineFloat32": true,
+        "uv0WithinOne16bitStep": true,
+        "tintsWithinOne8bitStep": true,
+        "presentAuthoredAnchorNodesExact": true,
+        "standardNormalsGenuineFloat32AndWithinSourceGate": true
+      },
+      "totalTriangles": 7996,
+      "maximumWorldErrorMetres": 0,
+      "maximumAffineQuantizationBoundMetres": 0
+    }
+  ],
+  "noSourcePreparedCandidateMutation": true,
+  "noRenderBakeEncodingOrGpuJobs": true,
+  "limitation": "Material factors/texture roles, UV0 and tints are measured here, with quantization errors explicit. This is not a perceptual texture-compression approval; the separate decoded KTX image audit and actual browser visual review remain required.",
+  "commands": [
+    "node scripts/audit-cloud-delivery.mjs",
+    "node scripts/audit-cloud-delivery-contacts.mjs"
+  ]
+}

@@ -4,7 +4,7 @@ export function createFlickerLab({ renderer, camera, grade, bloom, scene, flameP
   const hidden = new Map();
   const daylightHolds = new Map();
   // Flame halos remain with the flame control; weather, dust, mist and smoke are particles.
-  const isParticle = object => object.isPoints || object.isLineSegments || (object.isSprite && !object.userData.visualKeepForParticleControl);
+  const isParticle = object => object.userData.visualParticle || object.isPoints || object.isLineSegments || (object.isSprite && !object.userData.visualKeepForParticleControl);
   const gl = renderer.getContext();
   lab.prepare = () => {
     if (lab.hideParticles) scene().traverse(object => {

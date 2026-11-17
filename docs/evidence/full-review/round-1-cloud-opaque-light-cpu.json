@@ -1,0 +1,1156 @@
+{
+  "status": "CPU_PASS_GPU_PENDING",
+  "scope": "Actual Source19 standard raw GLTF static+HERO triangle rays and projection, mock-renderer one-draw lane/state/phase ownership, synthetic alpha/material/UV/geometry freeze. NoGPU texture pixels, raster-coverage approval or performance claim.",
+  "helper": {
+    "path": "web/src/engine/places/cloudOpaqueLightVisibility.js",
+    "bytes": 17030,
+    "sha256": "1b289f00e14b6097ca80f15d1f5bc2fb2367a94822cb7156b5533ee2338a53fe"
+  },
+  "reusedDepth": {
+    "path": "web/src/engine/places/cloudOpaqueDepth.js",
+    "bytes": 15077,
+    "sha256": "426b1aca3e346eb6b9eaff4266a2c65d32478e9e1c7fe335001a5807a9c5ede2"
+  },
+  "inputs": [
+    {
+      "path": "art/build/cloud-cliff-round1/prepared-v19/manifest.json",
+      "bytes": 35730,
+      "sha256": "e134776a50cc2fdd6c010fabb2d8a78dc794f33baccb4cea1452b5f37b51f38c"
+    },
+    {
+      "path": "art/build/cloud-cliff-round1/prepared-v19/cloud-cliff.raw.glb",
+      "bytes": 15768120,
+      "sha256": "e6eb21ef4810576cdbb9f29ad6094717b99cd0676d835ede6fe231d8065020a4"
+    },
+    {
+      "path": "art/build/cloud-cliff-round1/prepared-v19/cloud-cliff-storm.raw.glb",
+      "bytes": 518428,
+      "sha256": "0bfee8f0bdd003d08ba633bdd2c9285614c786b1cc916b931b9344aa8b18675b"
+    }
+  ],
+  "sourceIdentity": {
+    "sourceBlendSha256": "ee3f9f065a72a102867d0bfe7ea9233761cd7db62e98711c993d38cba324bda0",
+    "sourceFieldSha256": "6aacf69c6964989e485f3f1a78401a10133738aa491b7e5fd7b4d71975c26f47",
+    "staticRawSha256": "e6eb21ef4810576cdbb9f29ad6094717b99cd0676d835ede6fe231d8065020a4",
+    "heroRawSha256": "0bfee8f0bdd003d08ba633bdd2c9285614c786b1cc916b931b9344aa8b18675b"
+  },
+  "actualCapture": {
+    "ready": true,
+    "generation": 1,
+    "completedDirections": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ],
+    "sourceIdentity": {
+      "sourceBlendSha256": "ee3f9f065a72a102867d0bfe7ea9233761cd7db62e98711c993d38cba324bda0",
+      "sourceFieldSha256": "6aacf69c6964989e485f3f1a78401a10133738aa491b7e5fd7b4d71975c26f47",
+      "staticRawSha256": "e6eb21ef4810576cdbb9f29ad6094717b99cd0676d835ede6fe231d8065020a4",
+      "heroRawSha256": "0bfee8f0bdd003d08ba633bdd2c9285614c786b1cc916b931b9344aa8b18675b"
+    },
+    "directionContract": "World Y-up unit directions point TOWARD source, px/nx/py/ny/pz/nz/SUN. Visibility0 means actual opaque surface is sourceward of query.",
+    "fieldBounds": {
+      "min": [
+        -490,
+        -310,
+        -1570
+      ],
+      "max": [
+        810,
+        0.7000000000000028,
+        430
+      ]
+    },
+    "casterBounds": {
+      "min": [
+        -401.4725646972656,
+        -232.6359405517578,
+        -1303.911376953125
+      ],
+      "max": [
+        459.21136474609375,
+        185.1001739501953,
+        11
+      ]
+    },
+    "opaqueMeshes": 54,
+    "opaqueTriangles": 76207,
+    "excludedObjects": 0,
+    "excludedMaterialSlots": 1,
+    "frozenPhase": true,
+    "frozenGeometryBytes": 4919570,
+    "ownedMaterialClones": 16,
+    "ownedTextureWrappers": 0,
+    "retainedMapColourBytes": 7340032,
+    "retainedMapDepthRenderbufferBytesEstimate": 7340032,
+    "maps": [
+      {
+        "lane": "px",
+        "direction": [
+          1,
+          0,
+          0
+        ],
+        "resolution": [
+          512,
+          512
+        ],
+        "queryBounds": {
+          "min": [
+            -490,
+            -310,
+            -1570
+          ],
+          "max": [
+            810,
+            0.7000000000000028,
+            430
+          ]
+        },
+        "casterBounds": {
+          "min": [
+            -401.4725646972656,
+            -232.6359405517578,
+            -1303.911376953125
+          ],
+          "max": [
+            459.21136474609375,
+            185.1001739501953,
+            11
+          ]
+        },
+        "unionBounds": {
+          "min": [
+            -490,
+            -310,
+            -1570
+          ],
+          "max": [
+            810,
+            185.1001739501953,
+            430
+          ]
+        },
+        "basisWorldRows": [
+          [
+            0,
+            0,
+            -1
+          ],
+          [
+            0,
+            1,
+            0
+          ],
+          [
+            1,
+            0,
+            0
+          ]
+        ],
+        "cameraPosition": [
+          810.01,
+          -154.65,
+          -570
+        ],
+        "viewMatrix": [
+          2.220446049250313e-16,
+          0,
+          1,
+          0,
+          0,
+          1,
+          0,
+          0,
+          -1,
+          0,
+          2.220446049250313e-16,
+          0,
+          -570.0000000000002,
+          154.65,
+          -810.0099999999999,
+          1
+        ],
+        "clipFromWorld": [
+          2.220446049250313e-19,
+          0,
+          -0.0015384408286811524,
+          0,
+          0,
+          0.0064370775667846785,
+          0,
+          0,
+          -0.001,
+          0,
+          -3.4160248600504426e-19,
+          0,
+          -0.5700000000000003,
+          0.9954940457032505,
+          0.24614860953794837,
+          1
+        ],
+        "near": 0.0025,
+        "far": 1300.02,
+        "encodingRange": 2600.04,
+        "outsideCameraGuardMetres": 0.01,
+        "guardMeaning": "Camera placement outside the union only; never added to the point-versus-surface comparison.",
+        "footprintMetresPerTexel": [
+          3.90625,
+          0.6068359375
+        ],
+        "colourBytes": 1048576,
+        "depthRenderbufferBytesEstimate": 1048576,
+        "encodingFloat32StepMetres": 0.00015497446060180664,
+        "hardwareDepth24StepMetres": 0.00007748708128929138
+      },
+      {
+        "lane": "nx",
+        "direction": [
+          -1,
+          0,
+          0
+        ],
+        "resolution": [
+          512,
+          512
+        ],
+        "queryBounds": {
+          "min": [
+            -490,
+            -310,
+            -1570
+          ],
+          "max": [
+            810,
+            0.7000000000000028,
+            430
+          ]
+        },
+        "casterBounds": {
+          "min": [
+            -401.4725646972656,
+            -232.6359405517578,
+            -1303.911376953125
+          ],
+          "max": [
+            459.21136474609375,
+            185.1001739501953,
+            11
+          ]
+        },
+        "unionBounds": {
+          "min": [
+            -490,
+            -310,
+            -1570
+          ],
+          "max": [
+            810,
+            185.1001739501953,
+            430
+          ]
+        },
+        "basisWorldRows": [
+          [
+            0,
+            0,
+            1
+          ],
+          [
+            0,
+            1,
+            0
+          ],
+          [
+            -1,
+            0,
+            0
+          ]
+        ],
+        "cameraPosition": [
+          -490.01,
+          -154.65,
+          -570
+        ],
+        "viewMatrix": [
+          2.220446049250313e-16,
+          0,
+          -1,
+          0,
+          0,
+          1,
+          0,
+          0,
+          1,
+          0,
+          2.220446049250313e-16,
+          0,
+          570.0000000000001,
+          154.65,
+          -490.0099999999999,
+          1
+        ],
+        "clipFromWorld": [
+          2.220446049250313e-19,
+          0,
+          0.0015384408286811524,
+          0,
+          0,
+          0.0064370775667846785,
+          0,
+          0,
+          0.001,
+          0,
+          -3.4160248600504426e-19,
+          0,
+          0.5700000000000002,
+          0.9954940457032505,
+          -0.24615245564002042,
+          1
+        ],
+        "near": 0.0025,
+        "far": 1300.02,
+        "encodingRange": 2600.04,
+        "outsideCameraGuardMetres": 0.01,
+        "guardMeaning": "Camera placement outside the union only; never added to the point-versus-surface comparison.",
+        "footprintMetresPerTexel": [
+          3.90625,
+          0.6068359375
+        ],
+        "colourBytes": 1048576,
+        "depthRenderbufferBytesEstimate": 1048576,
+        "encodingFloat32StepMetres": 0.00015497446060180664,
+        "hardwareDepth24StepMetres": 0.00007748708128929138
+      },
+      {
+        "lane": "py",
+        "direction": [
+          0,
+          1,
+          0
+        ],
+        "resolution": [
+          512,
+          512
+        ],
+        "queryBounds": {
+          "min": [
+            -490,
+            -310,
+            -1570
+          ],
+          "max": [
+            810,
+            0.7000000000000028,
+            430
+          ]
+        },
+        "casterBounds": {
+          "min": [
+            -401.4725646972656,
+            -232.6359405517578,
+            -1303.911376953125
+          ],
+          "max": [
+            459.21136474609375,
+            185.1001739501953,
+            11
+          ]
+        },
+        "unionBounds": {
+          "min": [
+            -490,
+            -310,
+            -1570
+          ],
+          "max": [
+            810,
+            185.1001739501953,
+            430
+          ]
+        },
+        "basisWorldRows": [
+          [
+            0,
+            0,
+            1
+          ],
+          [
+            1,
+            0,
+            0
+          ],
+          [
+            0,
+            1,
+            0
+          ]
+        ],
+        "cameraPosition": [
+          160,
+          185.1101739501953,
+          -570
+        ],
+        "viewMatrix": [
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          1,
+          0,
+          0,
+          0,
+          570,
+          -160,
+          -185.1101739501953,
+          1
+        ],
+        "clipFromWorld": [
+          0,
+          0.0015384615384615385,
+          0,
+          0,
+          0,
+          0,
+          -0.0040394437630218456,
+          0,
+          0.001,
+          0,
+          0,
+          0,
+          0.5700000000000001,
+          -0.24615384615384617,
+          -0.2522679609744023,
+          1
+        ],
+        "near": 0.0025,
+        "far": 495.1201739501953,
+        "encodingRange": 990.2403479003906,
+        "outsideCameraGuardMetres": 0.01,
+        "guardMeaning": "Camera placement outside the union only; never added to the point-versus-surface comparison.",
+        "footprintMetresPerTexel": [
+          3.90625,
+          2.5390625
+        ],
+        "colourBytes": 1048576,
+        "depthRenderbufferBytesEstimate": 1048576,
+        "encodingFloat32StepMetres": 0.00005902292417886201,
+        "hardwareDepth24StepMetres": 0.000029511313077819067
+      },
+      {
+        "lane": "ny",
+        "direction": [
+          0,
+          -1,
+          0
+        ],
+        "resolution": [
+          512,
+          512
+        ],
+        "queryBounds": {
+          "min": [
+            -490,
+            -310,
+            -1570
+          ],
+          "max": [
+            810,
+            0.7000000000000028,
+            430
+          ]
+        },
+        "casterBounds": {
+          "min": [
+            -401.4725646972656,
+            -232.6359405517578,
+            -1303.911376953125
+          ],
+          "max": [
+            459.21136474609375,
+            185.1001739501953,
+            11
+          ]
+        },
+        "unionBounds": {
+          "min": [
+            -490,
+            -310,
+            -1570
+          ],
+          "max": [
+            810,
+            185.1001739501953,
+            430
+          ]
+        },
+        "basisWorldRows": [
+          [
+            0,
+            0,
+            -1
+          ],
+          [
+            1,
+            0,
+            0
+          ],
+          [
+            0,
+            -1,
+            0
+          ]
+        ],
+        "cameraPosition": [
+          160,
+          -310.01,
+          -570
+        ],
+        "viewMatrix": [
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          -1,
+          0,
+          -1,
+          0,
+          0,
+          0,
+          -570,
+          -160,
+          -310.01,
+          1
+        ],
+        "clipFromWorld": [
+          0,
+          0.0015384615384615385,
+          0,
+          0,
+          0,
+          0,
+          0.0040394437630218456,
+          0,
+          -0.001,
+          0,
+          0,
+          0,
+          -0.5700000000000001,
+          -0.24615384615384617,
+          0.2522578623649947,
+          1
+        ],
+        "near": 0.0025,
+        "far": 495.1201739501953,
+        "encodingRange": 990.2403479003906,
+        "outsideCameraGuardMetres": 0.01,
+        "guardMeaning": "Camera placement outside the union only; never added to the point-versus-surface comparison.",
+        "footprintMetresPerTexel": [
+          3.90625,
+          2.5390625
+        ],
+        "colourBytes": 1048576,
+        "depthRenderbufferBytesEstimate": 1048576,
+        "encodingFloat32StepMetres": 0.00005902292417886201,
+        "hardwareDepth24StepMetres": 0.000029511313077819067
+      },
+      {
+        "lane": "pz",
+        "direction": [
+          0,
+          0,
+          1
+        ],
+        "resolution": [
+          512,
+          512
+        ],
+        "queryBounds": {
+          "min": [
+            -490,
+            -310,
+            -1570
+          ],
+          "max": [
+            810,
+            0.7000000000000028,
+            430
+          ]
+        },
+        "casterBounds": {
+          "min": [
+            -401.4725646972656,
+            -232.6359405517578,
+            -1303.911376953125
+          ],
+          "max": [
+            459.21136474609375,
+            185.1001739501953,
+            11
+          ]
+        },
+        "unionBounds": {
+          "min": [
+            -490,
+            -310,
+            -1570
+          ],
+          "max": [
+            810,
+            185.1001739501953,
+            430
+          ]
+        },
+        "basisWorldRows": [
+          [
+            1,
+            0,
+            0
+          ],
+          [
+            0,
+            1,
+            0
+          ],
+          [
+            0,
+            0,
+            1
+          ]
+        ],
+        "cameraPosition": [
+          160,
+          -154.65,
+          430.01
+        ],
+        "viewMatrix": [
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          -160,
+          154.65,
+          -430.01,
+          1
+        ],
+        "clipFromWorld": [
+          0.0015384615384615385,
+          0,
+          0,
+          0,
+          0,
+          0.0064370775667846785,
+          0,
+          0,
+          0,
+          0,
+          -0.0009999912500765619,
+          0,
+          -0.24615384615384617,
+          0.9954940457032505,
+          -0.5699962625327029,
+          1
+        ],
+        "near": 0.0025,
+        "far": 2000.02,
+        "encodingRange": 4000.04,
+        "outsideCameraGuardMetres": 0.01,
+        "guardMeaning": "Camera placement outside the union only; never added to the point-versus-surface comparison.",
+        "footprintMetresPerTexel": [
+          2.5390625,
+          0.6068359375
+        ],
+        "colourBytes": 1048576,
+        "depthRenderbufferBytesEstimate": 1048576,
+        "encodingFloat32StepMetres": 0.0002384209632873535,
+        "hardwareDepth24StepMetres": 0.00011921033263206481
+      },
+      {
+        "lane": "nz",
+        "direction": [
+          0,
+          0,
+          -1
+        ],
+        "resolution": [
+          512,
+          512
+        ],
+        "queryBounds": {
+          "min": [
+            -490,
+            -310,
+            -1570
+          ],
+          "max": [
+            810,
+            0.7000000000000028,
+            430
+          ]
+        },
+        "casterBounds": {
+          "min": [
+            -401.4725646972656,
+            -232.6359405517578,
+            -1303.911376953125
+          ],
+          "max": [
+            459.21136474609375,
+            185.1001739501953,
+            11
+          ]
+        },
+        "unionBounds": {
+          "min": [
+            -490,
+            -310,
+            -1570
+          ],
+          "max": [
+            810,
+            185.1001739501953,
+            430
+          ]
+        },
+        "basisWorldRows": [
+          [
+            -1,
+            0,
+            0
+          ],
+          [
+            0,
+            1,
+            0
+          ],
+          [
+            0,
+            0,
+            -1
+          ]
+        ],
+        "cameraPosition": [
+          160,
+          -154.65,
+          -1570.01
+        ],
+        "viewMatrix": [
+          -1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          -1,
+          0,
+          160,
+          154.65,
+          -1570.01,
+          1
+        ],
+        "clipFromWorld": [
+          -0.0015384615384615385,
+          0,
+          0,
+          0,
+          0,
+          0.0064370775667846785,
+          0,
+          0,
+          0,
+          0,
+          0.0009999912500765619,
+          0,
+          0.24615384615384617,
+          0.9954940457032505,
+          0.5699937625545777,
+          1
+        ],
+        "near": 0.0025,
+        "far": 2000.02,
+        "encodingRange": 4000.04,
+        "outsideCameraGuardMetres": 0.01,
+        "guardMeaning": "Camera placement outside the union only; never added to the point-versus-surface comparison.",
+        "footprintMetresPerTexel": [
+          2.5390625,
+          0.6068359375
+        ],
+        "colourBytes": 1048576,
+        "depthRenderbufferBytesEstimate": 1048576,
+        "encodingFloat32StepMetres": 0.0002384209632873535,
+        "hardwareDepth24StepMetres": 0.00011921033263206481
+      },
+      {
+        "lane": "sun",
+        "direction": [
+          -0.6038826571606851,
+          0.7830613015446288,
+          0.14879762902607938
+        ],
+        "resolution": [
+          512,
+          512
+        ],
+        "queryBounds": {
+          "min": [
+            -490,
+            -310,
+            -1570
+          ],
+          "max": [
+            810,
+            0.7000000000000028,
+            430
+          ]
+        },
+        "casterBounds": {
+          "min": [
+            -401.4725646972656,
+            -232.6359405517578,
+            -1303.911376953125
+          ],
+          "max": [
+            459.21136474609375,
+            185.1001739501953,
+            11
+          ]
+        },
+        "unionBounds": {
+          "min": [
+            -490,
+            -310,
+            -1570
+          ],
+          "max": [
+            810,
+            185.1001739501953,
+            430
+          ]
+        },
+        "basisWorldRows": [
+          [
+            0.23924582003792763,
+            0,
+            0.9709590298227724
+          ],
+          [
+            0.7603204416395302,
+            0.6219445296995804,
+            -0.18734414322801166
+          ],
+          [
+            -0.6038826571606851,
+            0.7830613015446288,
+            0.14879762902607938
+          ]
+        ],
+        "cameraPosition": [
+          -327.56070817569054,
+          477.57534742289846,
+          -449.86428071320654
+        ],
+        "viewMatrix": [
+          0.2392458200379354,
+          0.7603204416395377,
+          -0.6038826571606724,
+          0,
+          -1.0005885009434223e-14,
+          0.6219445296995705,
+          0.7830613015446365,
+          0,
+          0.9709590298227706,
+          -0.18734414322801352,
+          0.1487976290260894,
+          0,
+          515.1673157929183,
+          -132.25371078424502,
+          -504.8402656195222,
+          1
+        ],
+        "clipFromWorld": [
+          0.00021238565800431092,
+          0.0009770602353784711,
+          0.0008214112486978244,
+          0,
+          -8.882522885069408e-18,
+          0.0007992383675365,
+          -0.0010651330252353746,
+          0,
+          0.0008619493222972008,
+          -0.00024074916660720517,
+          -0.00020239701341361112,
+          0,
+          0.4573294084287225,
+          -0.16995444908712956,
+          -0.31331126249413155,
+          1
+        ],
+        "near": 0.0025,
+        "far": 1470.3564989694614,
+        "encodingRange": 2940.712997938923,
+        "outsideCameraGuardMetres": 0.01,
+        "guardMeaning": "Camera placement outside the union only; never added to the point-versus-surface comparison.",
+        "footprintMetresPerTexel": [
+          4.4002688001852555,
+          3.0397324725880317
+        ],
+        "colourBytes": 1048576,
+        "depthRenderbufferBytesEstimate": 1048576,
+        "encodingFloat32StepMetres": 0.00017528015362852352,
+        "hardwareDepth24StepMetres": 0.00008763992780264982
+      }
+    ],
+    "limits": [
+      "Actual immutable source texture images are shared; UV/sampler/material properties and geometry arrays/world matrices are frozen at begin.",
+      "No arbitrary comparison bias, PCF, fabricated volume mask or medium extinction is included.",
+      "NEAREST projected texel footprint can miss thin geometry or alias a silhouette; use a separately bounded near footprint or measured higher resolution.",
+      "Packed float arithmetic and hardware depth ordering have finite precision; near-surface classifications need actual GPU error controls.",
+      "Runtime default castShadow=false is ignored; explicit userData.cast=false/source shadow flags and transmitting/additive/cloud/depthWritefalse materials are excluded.",
+      "Actual GLSL compile, alpha pixels, resource cost and integrated transport require an explicitly leased GPU gate."
+    ]
+  },
+  "rayControls": [
+    {
+      "region": "global",
+      "pointCount": 22,
+      "rays": 154,
+      "idealSameRayMismatch": 0,
+      "nearest512FootprintMismatch": 8,
+      "blocked": 65,
+      "sky": 56,
+      "maximumPackedDepthErrorMetres": 0.00005137689436196524,
+      "lanes": [
+        {
+          "rays": 22,
+          "blocked": 9,
+          "nearestFootprintMismatch": 2
+        },
+        {
+          "rays": 22,
+          "blocked": 11,
+          "nearestFootprintMismatch": 1
+        },
+        {
+          "rays": 22,
+          "blocked": 7,
+          "nearestFootprintMismatch": 1
+        },
+        {
+          "rays": 22,
+          "blocked": 5,
+          "nearestFootprintMismatch": 0
+        },
+        {
+          "rays": 22,
+          "blocked": 9,
+          "nearestFootprintMismatch": 2
+        },
+        {
+          "rays": 22,
+          "blocked": 16,
+          "nearestFootprintMismatch": 0
+        },
+        {
+          "rays": 22,
+          "blocked": 8,
+          "nearestFootprintMismatch": 2
+        }
+      ],
+      "footprintMetresPerTexel": [
+        [
+          3.90625,
+          0.6068359375
+        ],
+        [
+          3.90625,
+          0.6068359375
+        ],
+        [
+          3.90625,
+          2.5390625
+        ],
+        [
+          3.90625,
+          2.5390625
+        ],
+        [
+          2.5390625,
+          0.6068359375
+        ],
+        [
+          2.5390625,
+          0.6068359375
+        ],
+        [
+          4.4002688001852555,
+          3.0397324725880317
+        ]
+      ]
+    },
+    {
+      "region": "near",
+      "pointCount": 11,
+      "rays": 77,
+      "idealSameRayMismatch": 0,
+      "nearest512FootprintMismatch": 0,
+      "blocked": 50,
+      "sky": 8,
+      "maximumPackedDepthErrorMetres": 0.00002554017527245378,
+      "lanes": [
+        {
+          "rays": 11,
+          "blocked": 6,
+          "nearestFootprintMismatch": 0
+        },
+        {
+          "rays": 11,
+          "blocked": 6,
+          "nearestFootprintMismatch": 0
+        },
+        {
+          "rays": 11,
+          "blocked": 7,
+          "nearestFootprintMismatch": 0
+        },
+        {
+          "rays": 11,
+          "blocked": 5,
+          "nearestFootprintMismatch": 0
+        },
+        {
+          "rays": 11,
+          "blocked": 7,
+          "nearestFootprintMismatch": 0
+        },
+        {
+          "rays": 11,
+          "blocked": 11,
+          "nearestFootprintMismatch": 0
+        },
+        {
+          "rays": 11,
+          "blocked": 8,
+          "nearestFootprintMismatch": 0
+        }
+      ],
+      "footprintMetresPerTexel": [
+        [
+          0.25,
+          0.083984375
+        ],
+        [
+          0.25,
+          0.083984375
+        ],
+        [
+          0.25,
+          0.28125
+        ],
+        [
+          0.25,
+          0.28125
+        ],
+        [
+          0.28125,
+          0.083984375
+        ],
+        [
+          0.28125,
+          0.083984375
+        ],
+        [
+          0.3100276443413602,
+          0.31290978262960895
+        ]
+      ]
+    }
+  ],
+  "checks": {
+    "allArchitectureDespiteDefaultCastShadowFalse": true,
+    "opaqueHeroIncludedGlassExcluded": true,
+    "actualSevenSourcewardDirections": true,
+    "allCasterDepthUnion": true,
+    "oneOwnedDrawPerLane": true,
+    "completedLaneReadCacheNoDraw": true,
+    "sameFrozenHeroPhaseAcrossSevenDirections": true,
+    "geometryArraysFrozen": true,
+    "materialUVOpacitySideFrozen": true,
+    "originalTextureSourceVersionUnchanged": true,
+    "textureImageMutationDuringCaptureRejected": true,
+    "explicitCastFalseExcluded": true,
+    "mainGeometryMaterialCastUnchanged": true,
+    "rendererStateAndClippingRestored": true,
+    "errorDisablesReady": true,
+    "sourceIdentityMismatchFails": true,
+    "disposeIdempotent": true,
+    "disposeCancelsPendingPreparation": true,
+    "sourceInputsUnchanged": true,
+    "namedSevenSamplers": true,
+    "zeroWorldComparisonBias": true
+  },
+  "gpuRuns": 0,
+  "api": {
+    "create": "createCloudOpaqueLightVisibility({THREE,renderer})",
+    "prepare": "await begin({roots:[actualStaticGltf.scene,actualHeroGltf.scene],fieldBounds,directions,resolutionByDirection,sourceIdentity,exclude:[]})",
+    "capture": "renderDirection(index0..6): one owned opaque depth draw for an incomplete lane; completed lanes return cached metadata without a draw.",
+    "consume": "Wait for metadata.ready, then bind uniforms/glsl. Multiply medium-only directional T by cloudOpaqueLightVisibility(worldPoint,index) during T derivation, not in the primary rayloop.",
+    "dispose": "dispose() cancels pending preparation and owns all cloned phase data and all seven map resources."
+  },
+  "artifacts": {
+    "rawProof": {
+      "path": "art/build/cloud-opaque-light-prototype/cpu-proof.json",
+      "bytes": 25397,
+      "sha256": "5974704481367d1e28074257a625664b8a6730ea48d751b7e0024a936d548b4c"
+    },
+    "harness": {
+      "path": "art/build/cloud-opaque-light-prototype/check.mjs",
+      "bytes": 13645,
+      "sha256": "07e45d34c471239ad6c954682df18ae8c78c2b48723084d0f6ee88f3be6767ad"
+    },
+    "rawGeometryLoader": {
+      "path": "art/build/cloud-opaque-light-prototype/load-raw.mjs",
+      "bytes": 3108,
+      "sha256": "fcfd160469602c12e8bcca9cf9a4412a17f6923c056abd19941ab6a0d342dc55"
+    },
+    "readme": {
+      "path": "art/build/cloud-opaque-light-prototype/README.md",
+      "bytes": 4177,
+      "sha256": "a096275916895988c014ef55db480f6b26f039a5b3fb1b07f7a514b5652b2470"
+    }
+  },
+  "validation": {
+    "scopedEslint": "PASS",
+    "nodeSyntax": "PASS",
+    "gpuRuns": 0,
+    "rendererScope": "Mock only; no GPU commands. Inherits previously tested per-view cloudOpaqueDepth material/alpha/world behavior, while the new directional shader/capture integration remains unverified on GPU."
+  },
+  "pending": [
+    "Explicit Root GPU lease and tiny Chrome/WebKit actual seven-lane shader/alpha/map controls",
+    "Actual retained image/geometry/map memory and lane draw costs",
+    "Near/global visibility selection and full transport image/opacity-weighted error gate",
+    "Main Scene/descriptor/cache/prefix/composite integration by their owners"
+  ],
+  "geometryOrSourceEdits": 0
+}

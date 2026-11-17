@@ -8,3 +8,16 @@ artifacts/
 
 # Reproducible Blender working scenes and uncompressed Cycles masters
 art/build/
+
+# Visual/audio evidence belongs in the ignored artifact tree.
+docs/evidence/**/*.png
+docs/evidence/**/*.jpg
+docs/evidence/**/*.jpeg
+docs/evidence/**/*.webp
+docs/evidence/**/*.gif
+docs/evidence/**/*.mp4
+docs/evidence/**/*.webm
+docs/evidence/**/*.wav
+docs/evidence/**/*.npz
+docs/evidence/**/*.bin
+docs/evidence/**/*.gz

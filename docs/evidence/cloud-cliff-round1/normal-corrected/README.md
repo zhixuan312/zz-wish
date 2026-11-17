@@ -1,0 +1,13 @@
+# Corrected Cloud source delivery
+
+This candidate fixes evaluated normal transfer and the Blender exporter’s four-decimal normal rounding. Authored source `484438a4…` geometry, materials, UV0, tint and lighting are unchanged. The original implicit-normal/round4 outputs remain immutable historical candidates and are superseded for delivery.
+
+All 12 maps were freshly baked at 64 samples on Apple M1 Metal, with AUTO threads and explicit Metal OpenImageDenoise texture filtering. The batch completed with exit 0 in 88.535 seconds; every pinned input and native dependency remained byte-identical. The source/prepared/raw correspondence, 18 physical contacts, six hanging pairs, 19 contact-guard cases and 16 normal-guard cases pass at their unchanged limits.
+
+The staged package is `art/build/cloud-cliff-round1/delivery-normal-corrected-f32`. Its 15 runtime files total **7,430,570 bytes including the manifest**. Reserving 400,000 bytes for the six actual runtime framebuffer posters gives 7,830,570 bytes, below the 10,000,000-byte gate. Posters are not included or claimed complete here. The manifest and every delivered payload hash are recorded in [handoff.json](handoff.json).
+
+Both main and HERO now retain genuine unquantized standard F32 `POSITION` and `NORMAL` streams with Meshopt NONE filtering. They are derived from the actual unquantized round8 raw inputs; decoded BYTE8 vectors were never relabelled as restored precision. Independent packed proof reports exactly zero world-position/normal difference against those actual raw streams. All material definitions, UVs, tints, winding and anchors pass, with no redundant custom-normal stream. Photographic normal-map textures remain 512-pixel UASTC; vertex-normal precision is a separate field.
+
+All 12 UASTC lightmap payloads are byte-identical between the retained BYTE8-geometry candidate and the F32 candidate. The actual RGBA8 decoder audit compares all three linear-built mips against the original full-range EXRs. Cover/night dark-core mean absolute luminance error is 0.00009320, with p95 0.00048452. Six above-threshold base samples decode black, and 19 across all maps/mips. These are measured lossy-codec limits, not a claim of bit-exact visible radiance or final device ASTC quality. Originals and noisy/denoised masters remain untouched.
+
+The full `bake.sourceNightLighting` and `bake.presets` contract is retained for live atmosphere shading. Runtime optical/body-light acceptance, posters, first-frame behavior and performance remain separate review gates. The source preview has no emissive flame proxy: its white disc is the finite 35 mm Cycles point seen through/reflected by real glass; the 37 mm live flame is a runtime contract.

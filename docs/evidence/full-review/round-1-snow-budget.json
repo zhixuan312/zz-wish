@@ -1,0 +1,1149 @@
+{
+  "scope": "CPU-only isolated Snow source12 delivery budget study; no adoption, source edit, rendering, bake or public asset write. Full64 Snow remains unapproved. Only real night/lamp8 maps exist.",
+  "source": {
+    "path": "art/build/snow-roof-round1/source-v12.blend",
+    "sha256": "76a129450cd21e3af4a066a0880d13d6e5348f5e514bd1d03b6d9c90b25abf47"
+  },
+  "reviewedPreview": {
+    "manifest": {
+      "path": "art/build/snow-roof-round1/preview12-mobile-delivery/manifest.json",
+      "sha256": "d1bb8da6410e5cc52c1adc68b8ddd5c526ba157fb3de7ef77d5840cd48a1eb57",
+      "bytes": 231758
+    },
+    "model": {
+      "path": "art/build/snow-roof-round1/preview12-mobile-delivery/snow-roof.glb",
+      "sha256": "ace4d2f42586f7680113df496bb80d389ace55b6909c2ce382cff05b00483098",
+      "bytes": 10478320
+    },
+    "completeBytes": 15956719,
+    "materialImageBytes": 3568762,
+    "materialRoleUnionBytes": {
+      "normal": 2368885,
+      "baseColor": 831153,
+      "metallicRoughness": 368724
+    },
+    "actualNightLampMapBytes": 4855399,
+    "fabricBytes": 391242,
+    "missingLooks": [
+      "dusk",
+      "day"
+    ]
+  },
+  "uv16Reviewed": {
+    "candidate": {
+      "path": "art/build/snow-roof-round1/budget12-uv16-reviewed-v7/snow-roof.glb",
+      "sha256": "949139601db70acb98f0016ef6e498eaeecc4eaca521a2056c7916dfa46419af",
+      "bytes": 9802000,
+      "savedBytes": 676320
+    },
+    "originalArrayAssociationVertices": 358104,
+    "physicalPositionsActualByte8NormalsTintsImagesAndWindingExact": true,
+    "shaderPrecisionPolicy": "Actual source UV bounds include Float32 normalized-attribute conversion and both fused/nonfused affine evaluation. Existing repeats restored through explicit KHR_texture_transform. Whole primitive stays F32 if proposal exceeds1/16 material texel. No chart or island rearrangement.",
+    "maximumMaterialTexelError": 0.06219482421875,
+    "maximumOriginalUV1Error": 7.62939453125e-06,
+    "selectedMaterialBounds": [
+      {
+        "region": "altar",
+        "material": "chinese_console_table",
+        "UV0Quantized": false,
+        "actualMaximumMaterialTexelError": 0.00390625,
+        "proposalMaximumMaterialTexelError": 0.00775146484375,
+        "retainedF32Reason": null,
+        "maximumOriginalUV1Error": 7.62939453125e-06,
+        "lightmapMipBounds": [
+          {
+            "look": "night",
+            "size": [
+              1024,
+              1024
+            ],
+            "mips": [
+              {
+                "level": 0,
+                "maximumLightmapTexelError": 0.0078125
+              },
+              {
+                "level": 1,
+                "maximumLightmapTexelError": 0.00390625
+              },
+              {
+                "level": 2,
+                "maximumLightmapTexelError": 0.001953125
+              }
+            ]
+          },
+          {
+            "look": "lamp",
+            "size": [
+              1024,
+              1024
+            ],
+            "mips": [
+              {
+                "level": 0,
+                "maximumLightmapTexelError": 0.0078125
+              },
+              {
+                "level": 1,
+                "maximumLightmapTexelError": 0.00390625
+              },
+              {
+                "level": 2,
+                "maximumLightmapTexelError": 0.001953125
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "region": "altar",
+        "material": "chinese_screen_panels",
+        "UV0Quantized": false,
+        "actualMaximumMaterialTexelError": 0.0078125,
+        "proposalMaximumMaterialTexelError": 0.0146484375,
+        "retainedF32Reason": null,
+        "maximumOriginalUV1Error": 7.62939453125e-06,
+        "lightmapMipBounds": [
+          {
+            "look": "night",
+            "size": [
+              1024,
+              1024
+            ],
+            "mips": [
+              {
+                "level": 0,
+                "maximumLightmapTexelError": 0.0078125
+              },
+              {
+                "level": 1,
+                "maximumLightmapTexelError": 0.00390625
+              },
+              {
+                "level": 2,
+                "maximumLightmapTexelError": 0.001953125
+              }
+            ]
+          },
+          {
+            "look": "lamp",
+            "size": [
+              1024,
+              1024
+            ],
+            "mips": [
+              {
+                "level": 0,
+                "maximumLightmapTexelError": 0.0078125
+              },
+              {
+                "level": 1,
+                "maximumLightmapTexelError": 0.00390625
+              },
+              {
+                "level": 2,
+                "maximumLightmapTexelError": 0.001953125
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "region": "altar",
+        "material": "chinese_screen_panels",
+        "UV0Quantized": false,
+        "actualMaximumMaterialTexelError": 0.0078125,
+        "proposalMaximumMaterialTexelError": 0.01531982421875,
+        "retainedF32Reason": null,
+        "maximumOriginalUV1Error": 7.62939453125e-06,
+        "lightmapMipBounds": [
+          {
+            "look": "night",
+            "size": [
+              1024,
+              1024
+            ],
+            "mips": [
+              {
+                "level": 0,
+                "maximumLightmapTexelError": 0.0078125
+              },
+              {
+                "level": 1,
+                "maximumLightmapTexelError": 0.00390625
+              },
+              {
+                "level": 2,
+                "maximumLightmapTexelError": 0.001953125
+              }
+            ]
+          },
+          {
+            "look": "lamp",
+            "size": [
+              1024,
+              1024
+            ],
+            "mips": [
+              {
+                "level": 0,
+                "maximumLightmapTexelError": 0.0078125
+              },
+              {
+                "level": 1,
+                "maximumLightmapTexelError": 0.00390625
+              },
+              {
+                "level": 2,
+                "maximumLightmapTexelError": 0.001953125
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "region": "altar",
+        "material": "chinese_screen_panels",
+        "UV0Quantized": false,
+        "actualMaximumMaterialTexelError": 0.0078125,
+        "proposalMaximumMaterialTexelError": 0.0146484375,
+        "retainedF32Reason": null,
+        "maximumOriginalUV1Error": 7.62939453125e-06,
+        "lightmapMipBounds": [
+          {
+            "look": "night",
+            "size": [
+              1024,
+              1024
+            ],
+            "mips": [
+              {
+                "level": 0,
+                "maximumLightmapTexelError": 0.0078125
+              },
+              {
+                "level": 1,
+                "maximumLightmapTexelError": 0.00390625
+              },
+              {
+                "level": 2,
+                "maximumLightmapTexelError": 0.001953125
+              }
+            ]
+          },
+          {
+            "look": "lamp",
+            "size": [
+              1024,
+              1024
+            ],
+            "mips": [
+              {
+                "level": 0,
+                "maximumLightmapTexelError": 0.0078125
+              },
+              {
+                "level": 1,
+                "maximumLightmapTexelError": 0.00390625
+              },
+              {
+                "level": 2,
+                "maximumLightmapTexelError": 0.001953125
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "region": "court",
+        "material": "Snow settled dry grains",
+        "UV0Quantized": false,
+        "actualMaximumMaterialTexelError": 0,
+        "proposalMaximumMaterialTexelError": 0.20556640625,
+        "retainedF32Reason": "Measured material-pixel bound exceeded",
+        "maximumOriginalUV1Error": 7.62939453125e-06,
+        "lightmapMipBounds": [
+          {
+            "look": "night",
+            "size": [
+              2048,
+              2048
+            ],
+            "mips": [
+              {
+                "level": 0,
+                "maximumLightmapTexelError": 0.015625
+              },
+              {
+                "level": 1,
+                "maximumLightmapTexelError": 0.0078125
+              },
+              {
+                "level": 2,
+                "maximumLightmapTexelError": 0.00390625
+              }
+            ]
+          },
+          {
+            "look": "lamp",
+            "size": [
+              2048,
+              2048
+            ],
+            "mips": [
+              {
+                "level": 0,
+                "maximumLightmapTexelError": 0.015625
+              },
+              {
+                "level": 1,
+                "maximumLightmapTexelError": 0.0078125
+              },
+              {
+                "level": 2,
+                "maximumLightmapTexelError": 0.00390625
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "region": "court",
+        "material": "Patched lime plaster",
+        "UV0Quantized": false,
+        "actualMaximumMaterialTexelError": 0,
+        "proposalMaximumMaterialTexelError": 0.1015625,
+        "retainedF32Reason": "Measured material-pixel bound exceeded",
+        "maximumOriginalUV1Error": 7.62939453125e-06,
+        "lightmapMipBounds": [
+          {
+            "look": "night",
+            "size": [
+              2048,
+              2048
+            ],
+            "mips": [
+              {
+                "level": 0,
+                "maximumLightmapTexelError": 0.015625
+              },
+              {
+                "level": 1,
+                "maximumLightmapTexelError": 0.0078125
+              },
+              {
+                "level": 2,
+                "maximumLightmapTexelError": 0.00390625
+              }
+            ]
+          },
+          {
+            "look": "lamp",
+            "size": [
+              2048,
+              2048
+            ],
+            "mips": [
+              {
+                "level": 0,
+                "maximumLightmapTexelError": 0.015625
+              },
+              {
+                "level": 1,
+                "maximumLightmapTexelError": 0.0078125
+              },
+              {
+                "level": 2,
+                "maximumLightmapTexelError": 0.00390625
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "region": "court",
+        "material": "Old grey wall coping clay",
+        "UV0Quantized": false,
+        "actualMaximumMaterialTexelError": 0,
+        "proposalMaximumMaterialTexelError": 0.07421875,
+        "retainedF32Reason": "Measured material-pixel bound exceeded",
+        "maximumOriginalUV1Error": 7.62939453125e-06,
+        "lightmapMipBounds": [
+          {
+            "look": "night",
+            "size": [
+              2048,
+              2048
+            ],
+            "mips": [
+              {
+                "level": 0,
+                "maximumLightmapTexelError": 0.015625
+              },
+              {
+                "level": 1,
+                "maximumLightmapTexelError": 0.0078125
+              },
+              {
+                "level": 2,
+                "maximumLightmapTexelError": 0.00390625
+              }
+            ]
+          },
+          {
+            "look": "lamp",
+            "size": [
+              2048,
+              2048
+            ],
+            "mips": [
+              {
+                "level": 0,
+                "maximumLightmapTexelError": 0.015625
+              },
+              {
+                "level": 1,
+                "maximumLightmapTexelError": 0.0078125
+              },
+              {
+                "level": 2,
+                "maximumLightmapTexelError": 0.00390625
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "region": "court",
+        "material": "Worn granite",
+        "UV0Quantized": false,
+        "actualMaximumMaterialTexelError": 0,
+        "proposalMaximumMaterialTexelError": 0.074951171875,
+        "retainedF32Reason": "Measured material-pixel bound exceeded",
+        "maximumOriginalUV1Error": 7.62939453125e-06,
+        "lightmapMipBounds": [
+          {
+            "look": "night",
+            "size": [
+              2048,
+              2048
+            ],
+            "mips": [
+              {
+                "level": 0,
+                "maximumLightmapTexelError": 0.015625
+              },
+              {
+                "level": 1,
+                "maximumLightmapTexelError": 0.0078125
+              },
+              {
+                "level": 2,
+                "maximumLightmapTexelError": 0.00390625
+              }
+            ]
+          },
+          {
+            "look": "lamp",
+            "size": [
+              2048,
+              2048
+            ],
+            "mips": [
+              {
+                "level": 0,
+                "maximumLightmapTexelError": 0.015625
+              },
+              {
+                "level": 1,
+                "maximumLightmapTexelError": 0.0078125
+              },
+              {
+                "level": 2,
+                "maximumLightmapTexelError": 0.00390625
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "region": "court",
+        "material": "Dark old timber",
+        "UV0Quantized": false,
+        "actualMaximumMaterialTexelError": 0,
+        "proposalMaximumMaterialTexelError": 0.10498046875,
+        "retainedF32Reason": "Measured material-pixel bound exceeded",
+        "maximumOriginalUV1Error": 7.62939453125e-06,
+        "lightmapMipBounds": [
+          {
+            "look": "night",
+            "size": [
+              2048,
+              2048
+            ],
+            "mips": [
+              {
+                "level": 0,
+                "maximumLightmapTexelError": 0.015625
+              },
+              {
+                "level": 1,
+                "maximumLightmapTexelError": 0.0078125
+              },
+              {
+                "level": 2,
+                "maximumLightmapTexelError": 0.00390625
+              }
+            ]
+          },
+          {
+            "look": "lamp",
+            "size": [
+              2048,
+              2048
+            ],
+            "mips": [
+              {
+                "level": 0,
+                "maximumLightmapTexelError": 0.015625
+              },
+              {
+                "level": 1,
+                "maximumLightmapTexelError": 0.0078125
+              },
+              {
+                "level": 2,
+                "maximumLightmapTexelError": 0.00390625
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "preparedAndDecodedContactGroups": 47,
+    "preparedAndDecodedPassed": true,
+    "literalGuardsMetres": {
+      "gap": 0.002,
+      "penetration": 0.005
+    },
+    "actualDecodedMaximumGapMetres": 0.001241445541381836,
+    "actualDecodedMaximumPenetrationMetres": 0.00475001335144043,
+    "opticalReview": "pending"
+  },
+  "originalF32NormalAndTintVariant": {
+    "baselineBytes": 15054872,
+    "UV16Candidate": {
+      "path": "art/build/snow-roof-round1/budget12-uv16-original-f32-pruned-v2/snow-roof.glb",
+      "sha256": "e0456f0ed7775658ff6d7adbeac56b85391edb3891de8d73104d9f94b86601d3",
+      "bytes": 13587076,
+      "savedBytes": 1467796
+    },
+    "warning": "This retains genuine source F32 NORMAL and COLOR arrays; it is not decoded BYTE restoration. Same298526 visible triangles,373538 vertices. Not directly the reviewed BYTE8/U8 format."
+  },
+  "positionGridAllContacts": {
+    "output": {
+      "path": "art/build/snow-roof-round1/budget12-grid14-contacts/snow-roof.glb",
+      "sha256": "96639a4137da923ada103b00b5afb33885f83fb32781152e9fefad3605c7f605",
+      "bytes": 10030160,
+      "savedBytes": 448160
+    },
+    "vertices": 358104,
+    "changedVertices": 262992,
+    "protectedVertices": 95105,
+    "restoredVertices": 0,
+    "maximumWorldDisplacementMetres": 5.265232899593637e-05,
+    "grid": {
+      "stepMetres": 6.103515625e-05,
+      "exponent": 14,
+      "worldSpace": true,
+      "maximumAllowedWorldDisplacementMetres": 0.0001
+    }
+  },
+  "positionGridAnchorOnly": {
+    "output": {
+      "path": "art/build/snow-roof-round1/budget12-grid13-anchors/snow-roof.glb",
+      "sha256": "43d70842e4f23c0b5237a8633080859881fdca7c38cd18eb1a75b12328e0eb3a",
+      "bytes": 9585500,
+      "savedBytes": 892820
+    },
+    "vertices": 358104,
+    "changedVertices": 353785,
+    "protectedVertices": 3964,
+    "restoredVertices": 348,
+    "maximumWorldDisplacementMetres": 9.999620266128333e-05,
+    "grid": {
+      "stepMetres": 0.0001220703125,
+      "exponent": 13,
+      "worldSpace": true,
+      "maximumAllowedWorldDisplacementMetres": 0.0001
+    }
+  },
+  "positionGridLimitations": {
+    "allContacts": "All47 actual contact/anchor replays pass; optical gate remains pending.",
+    "anchorOnly": "No contact PASS claimed: moved supports/props require explicit correspondence replay before any use."
+  },
+  "codecs": {
+    "completedLooks": [
+      "lamp",
+      "night"
+    ],
+    "allEtc1sSavedBytes": 3340330,
+    "maps": {
+      "hall-night": {
+        "uastcBytes": 1560470,
+        "etc1sBytes": 457664,
+        "savedBytes": 1102806,
+        "actualSamples": 8,
+        "baseBands": {
+          "uastc": {
+            "dark": {
+              "texels": 364476,
+              "meanAbsoluteLuminanceError": 8.805069937011754e-05,
+              "p95AbsoluteLuminanceError": 0.0004646315203403141,
+              "p99AbsoluteLuminanceError": 0.0011309569039707284,
+              "maximumAbsoluteLuminanceError": 0.021189945984939194,
+              "meanAbsoluteRGBError": 0.00012762912917343836,
+              "meanRelativeLuminanceErrorAbove0001": 0.08551350805073607,
+              "nonzeroTexelsQuantizedToBlack": 117
+            },
+            "middle": {
+              "texels": 277663,
+              "meanAbsoluteLuminanceError": 0.0020063552649402052,
+              "p95AbsoluteLuminanceError": 0.006996771676658897,
+              "p99AbsoluteLuminanceError": 0.01559687772728987,
+              "maximumAbsoluteLuminanceError": 0.14596701394116574,
+              "meanAbsoluteRGBError": 0.0027133234124197196,
+              "meanRelativeLuminanceErrorAbove0001": 0.040789993997621656,
+              "nonzeroTexelsQuantizedToBlack": 0
+            },
+            "peak": {
+              "texels": 3,
+              "meanAbsoluteLuminanceError": 0.04539867790486418,
+              "p95AbsoluteLuminanceError": 0.05209218819165066,
+              "p99AbsoluteLuminanceError": 0.05230703683694918,
+              "maximumAbsoluteLuminanceError": 0.05236074899827381,
+              "meanAbsoluteRGBError": 0.10069206077983663,
+              "meanRelativeLuminanceErrorAbove0001": 0.03264315944930859,
+              "nonzeroTexelsQuantizedToBlack": 0
+            }
+          },
+          "etc1s": {
+            "dark": {
+              "texels": 364476,
+              "meanAbsoluteLuminanceError": 0.0002896934318903498,
+              "p95AbsoluteLuminanceError": 0.0015339407312179344,
+              "p99AbsoluteLuminanceError": 0.004170563251022542,
+              "maximumAbsoluteLuminanceError": 0.047913534368346264,
+              "meanAbsoluteRGBError": 0.0003374678160686892,
+              "meanRelativeLuminanceErrorAbove0001": 0.28494003649437044,
+              "nonzeroTexelsQuantizedToBlack": 1993
+            },
+            "middle": {
+              "texels": 277663,
+              "meanAbsoluteLuminanceError": 0.006172424564800504,
+              "p95AbsoluteLuminanceError": 0.022039871202228504,
+              "p99AbsoluteLuminanceError": 0.04966793002499461,
+              "maximumAbsoluteLuminanceError": 1.171418414316153,
+              "meanAbsoluteRGBError": 0.007165231754323541,
+              "meanRelativeLuminanceErrorAbove0001": 0.1332881192943749,
+              "nonzeroTexelsQuantizedToBlack": 0
+            },
+            "peak": {
+              "texels": 3,
+              "meanAbsoluteLuminanceError": 0.6401419861539773,
+              "p95AbsoluteLuminanceError": 0.834987089856611,
+              "p99AbsoluteLuminanceError": 0.8507097467001206,
+              "maximumAbsoluteLuminanceError": 0.854640410910998,
+              "meanAbsoluteRGBError": 0.730569373676657,
+              "meanRelativeLuminanceErrorAbove0001": 0.3842735303441824,
+              "nonzeroTexelsQuantizedToBlack": 0
+            }
+          }
+        }
+      },
+      "hall-lamp": {
+        "uastcBytes": 919315,
+        "etc1sBytes": 291278,
+        "savedBytes": 628037,
+        "actualSamples": 8,
+        "baseBands": {
+          "uastc": {
+            "dark": {
+              "texels": 591170,
+              "meanAbsoluteLuminanceError": 2.8467437625929012e-05,
+              "p95AbsoluteLuminanceError": 0.00014121224559392832,
+              "p99AbsoluteLuminanceError": 0.0005576917838258313,
+              "maximumAbsoluteLuminanceError": 0.011628438289800248,
+              "meanAbsoluteRGBError": 3.5378235020215656e-05,
+              "meanRelativeLuminanceErrorAbove0001": 0.0930067431852799,
+              "nonzeroTexelsQuantizedToBlack": 96
+            },
+            "middle": {
+              "texels": 50809,
+              "meanAbsoluteLuminanceError": 0.0031347823399708037,
+              "p95AbsoluteLuminanceError": 0.012732411202151577,
+              "p99AbsoluteLuminanceError": 0.030264391758440416,
+              "maximumAbsoluteLuminanceError": 0.19784737593151747,
+              "meanAbsoluteRGBError": 0.0035467712495572605,
+              "meanRelativeLuminanceErrorAbove0001": 0.04741578873313356,
+              "nonzeroTexelsQuantizedToBlack": 0
+            },
+            "peak": {
+              "texels": 163,
+              "meanAbsoluteLuminanceError": 0.07224881936836264,
+              "p95AbsoluteLuminanceError": 0.17241655186866517,
+              "p99AbsoluteLuminanceError": 0.662463088573826,
+              "maximumAbsoluteLuminanceError": 0.8247515012408502,
+              "meanAbsoluteRGBError": 0.07394345838547375,
+              "meanRelativeLuminanceErrorAbove0001": 0.04873417312566605,
+              "nonzeroTexelsQuantizedToBlack": 0
+            }
+          },
+          "etc1s": {
+            "dark": {
+              "texels": 591170,
+              "meanAbsoluteLuminanceError": 6.441234282955377e-05,
+              "p95AbsoluteLuminanceError": 0.0003258731752814057,
+              "p99AbsoluteLuminanceError": 0.001352168898407211,
+              "maximumAbsoluteLuminanceError": 0.012456088665131324,
+              "meanAbsoluteRGBError": 7.2260998224581e-05,
+              "meanRelativeLuminanceErrorAbove0001": 0.2036431776951348,
+              "nonzeroTexelsQuantizedToBlack": 603
+            },
+            "middle": {
+              "texels": 50809,
+              "meanAbsoluteLuminanceError": 0.008398401065798,
+              "p95AbsoluteLuminanceError": 0.03384174216585984,
+              "p99AbsoluteLuminanceError": 0.07461681803119381,
+              "maximumAbsoluteLuminanceError": 0.47115212569202664,
+              "meanAbsoluteRGBError": 0.008873427170230503,
+              "meanRelativeLuminanceErrorAbove0001": 0.1368626172526639,
+              "nonzeroTexelsQuantizedToBlack": 0
+            },
+            "peak": {
+              "texels": 163,
+              "meanAbsoluteLuminanceError": 0.18143296830371114,
+              "p95AbsoluteLuminanceError": 0.5783706193790409,
+              "p99AbsoluteLuminanceError": 1.0164815245029934,
+              "maximumAbsoluteLuminanceError": 1.4016286828324809,
+              "meanAbsoluteRGBError": 0.18363890495237956,
+              "meanRelativeLuminanceErrorAbove0001": 0.10934866764176905,
+              "nonzeroTexelsQuantizedToBlack": 0
+            }
+          }
+        }
+      },
+      "altar-night": {
+        "uastcBytes": 437680,
+        "etc1sBytes": 148803,
+        "savedBytes": 288877,
+        "actualSamples": 8,
+        "baseBands": {
+          "uastc": {
+            "dark": {
+              "texels": 100415,
+              "meanAbsoluteLuminanceError": 8.30011144803957e-05,
+              "p95AbsoluteLuminanceError": 0.00041937899753304546,
+              "p99AbsoluteLuminanceError": 0.00111790759825922,
+              "maximumAbsoluteLuminanceError": 0.01370317292096148,
+              "meanAbsoluteRGBError": 0.00011977730180719264,
+              "meanRelativeLuminanceErrorAbove0001": 0.0988189720502649,
+              "nonzeroTexelsQuantizedToBlack": 35
+            },
+            "middle": {
+              "texels": 52823,
+              "meanAbsoluteLuminanceError": 0.004221112356809326,
+              "p95AbsoluteLuminanceError": 0.015581934429206523,
+              "p99AbsoluteLuminanceError": 0.040436893760503474,
+              "maximumAbsoluteLuminanceError": 0.3570258165878787,
+              "meanAbsoluteRGBError": 0.005340363439290956,
+              "meanRelativeLuminanceErrorAbove0001": 0.05480372290488075,
+              "nonzeroTexelsQuantizedToBlack": 0
+            },
+            "peak": {
+              "texels": 325,
+              "meanAbsoluteLuminanceError": 2.378796843309241,
+              "p95AbsoluteLuminanceError": 12.487959130071411,
+              "p99AbsoluteLuminanceError": 17.167237360562602,
+              "maximumAbsoluteLuminanceError": 21.891883722229977,
+              "meanAbsoluteRGBError": 2.4444666785282467,
+              "meanRelativeLuminanceErrorAbove0001": 0.09262845555600964,
+              "nonzeroTexelsQuantizedToBlack": 0
+            }
+          },
+          "etc1s": {
+            "dark": {
+              "texels": 100415,
+              "meanAbsoluteLuminanceError": 0.00021350196254796739,
+              "p95AbsoluteLuminanceError": 0.0011784219429443964,
+              "p99AbsoluteLuminanceError": 0.0028356344723521843,
+              "maximumAbsoluteLuminanceError": 0.033366862113964585,
+              "meanAbsoluteRGBError": 0.00024874936161086,
+              "meanRelativeLuminanceErrorAbove0001": 0.250096520364117,
+              "nonzeroTexelsQuantizedToBlack": 147
+            },
+            "middle": {
+              "texels": 52823,
+              "meanAbsoluteLuminanceError": 0.013318681707708916,
+              "p95AbsoluteLuminanceError": 0.047484483828320025,
+              "p99AbsoluteLuminanceError": 0.14797382814329368,
+              "maximumAbsoluteLuminanceError": 3.033255914599393,
+              "meanAbsoluteRGBError": 0.015202146814525155,
+              "meanRelativeLuminanceErrorAbove0001": 0.1621702556533583,
+              "nonzeroTexelsQuantizedToBlack": 0
+            },
+            "peak": {
+              "texels": 325,
+              "meanAbsoluteLuminanceError": 9.406569827217155,
+              "p95AbsoluteLuminanceError": 50.341252171060376,
+              "p99AbsoluteLuminanceError": 92.50657843817149,
+              "maximumAbsoluteLuminanceError": 113.23619847493407,
+              "meanAbsoluteRGBError": 9.084746000474995,
+              "meanRelativeLuminanceErrorAbove0001": 0.37391228624141387,
+              "nonzeroTexelsQuantizedToBlack": 0
+            }
+          }
+        }
+      },
+      "altar-lamp": {
+        "uastcBytes": 419133,
+        "etc1sBytes": 135777,
+        "savedBytes": 283356,
+        "actualSamples": 8,
+        "baseBands": {
+          "uastc": {
+            "dark": {
+              "texels": 126858,
+              "meanAbsoluteLuminanceError": 4.628461720630646e-05,
+              "p95AbsoluteLuminanceError": 0.0002439319630417209,
+              "p99AbsoluteLuminanceError": 0.000610984254443422,
+              "maximumAbsoluteLuminanceError": 0.006434511288340735,
+              "meanAbsoluteRGBError": 5.455604479923383e-05,
+              "meanRelativeLuminanceErrorAbove0001": 0.05732719232775678,
+              "nonzeroTexelsQuantizedToBlack": 6
+            },
+            "middle": {
+              "texels": 26705,
+              "meanAbsoluteLuminanceError": 0.0004240467122688442,
+              "p95AbsoluteLuminanceError": 0.0013466862656964895,
+              "p99AbsoluteLuminanceError": 0.002661753074913595,
+              "maximumAbsoluteLuminanceError": 0.014945746331391934,
+              "meanAbsoluteRGBError": 0.0004913022198852861,
+              "meanRelativeLuminanceErrorAbove0001": 0.027231876045227345,
+              "nonzeroTexelsQuantizedToBlack": 0
+            }
+          },
+          "etc1s": {
+            "dark": {
+              "texels": 126858,
+              "meanAbsoluteLuminanceError": 0.00010602645913651871,
+              "p95AbsoluteLuminanceError": 0.000505327268901188,
+              "p99AbsoluteLuminanceError": 0.0015500429809556903,
+              "maximumAbsoluteLuminanceError": 0.010620806460280385,
+              "meanAbsoluteRGBError": 0.00012471855932752538,
+              "meanRelativeLuminanceErrorAbove0001": 0.13770361432596198,
+              "nonzeroTexelsQuantizedToBlack": 86
+            },
+            "middle": {
+              "texels": 26705,
+              "meanAbsoluteLuminanceError": 0.0009834883582402168,
+              "p95AbsoluteLuminanceError": 0.003645141313703788,
+              "p99AbsoluteLuminanceError": 0.009501767221022616,
+              "maximumAbsoluteLuminanceError": 0.09174331389832162,
+              "meanAbsoluteRGBError": 0.0013295264370660617,
+              "meanRelativeLuminanceErrorAbove0001": 0.056183313639917146,
+              "nonzeroTexelsQuantizedToBlack": 0
+            }
+          }
+        }
+      },
+      "gate-night": {
+        "uastcBytes": 294847,
+        "etc1sBytes": 93523,
+        "savedBytes": 201324,
+        "actualSamples": 8,
+        "baseBands": {
+          "uastc": {
+            "dark": {
+              "texels": 91606,
+              "meanAbsoluteLuminanceError": 9.617510551662169e-05,
+              "p95AbsoluteLuminanceError": 0.00046045953271449,
+              "p99AbsoluteLuminanceError": 0.0012026282691542781,
+              "maximumAbsoluteLuminanceError": 0.024449494276582537,
+              "meanAbsoluteRGBError": 0.0001222867495886923,
+              "meanRelativeLuminanceErrorAbove0001": 0.09971265806815828,
+              "nonzeroTexelsQuantizedToBlack": 25
+            },
+            "middle": {
+              "texels": 101593,
+              "meanAbsoluteLuminanceError": 0.004054077170673076,
+              "p95AbsoluteLuminanceError": 0.01322588164879101,
+              "p99AbsoluteLuminanceError": 0.024425494466108914,
+              "maximumAbsoluteLuminanceError": 0.48288588442701186,
+              "meanAbsoluteRGBError": 0.005062607395091005,
+              "meanRelativeLuminanceErrorAbove0001": 0.05386355003039247,
+              "nonzeroTexelsQuantizedToBlack": 0
+            },
+            "peak": {
+              "texels": 359,
+              "meanAbsoluteLuminanceError": 1.0366011520701275,
+              "p95AbsoluteLuminanceError": 4.8956601571876615,
+              "p99AbsoluteLuminanceError": 17.720485399812432,
+              "maximumAbsoluteLuminanceError": 31.23439099477247,
+              "meanAbsoluteRGBError": 1.1479850636575295,
+              "meanRelativeLuminanceErrorAbove0001": 0.0935122264397846,
+              "nonzeroTexelsQuantizedToBlack": 0
+            }
+          },
+          "etc1s": {
+            "dark": {
+              "texels": 91606,
+              "meanAbsoluteLuminanceError": 0.00018455040473688955,
+              "p95AbsoluteLuminanceError": 0.0009381436422521509,
+              "p99AbsoluteLuminanceError": 0.0027145106163813143,
+              "maximumAbsoluteLuminanceError": 0.013695571252701582,
+              "meanAbsoluteRGBError": 0.00023715545898375274,
+              "meanRelativeLuminanceErrorAbove0001": 0.19756745663912345,
+              "nonzeroTexelsQuantizedToBlack": 222
+            },
+            "middle": {
+              "texels": 101593,
+              "meanAbsoluteLuminanceError": 0.007855925491194559,
+              "p95AbsoluteLuminanceError": 0.0222694889702481,
+              "p99AbsoluteLuminanceError": 0.045380867945741574,
+              "maximumAbsoluteLuminanceError": 1.4772503376150001,
+              "meanAbsoluteRGBError": 0.01094080377186051,
+              "meanRelativeLuminanceErrorAbove0001": 0.11065767228121605,
+              "nonzeroTexelsQuantizedToBlack": 0
+            },
+            "peak": {
+              "texels": 359,
+              "meanAbsoluteLuminanceError": 4.3704049079397125,
+              "p95AbsoluteLuminanceError": 23.693846868536014,
+              "p99AbsoluteLuminanceError": 65.34955598668677,
+              "maximumAbsoluteLuminanceError": 119.14736725322086,
+              "meanAbsoluteRGBError": 4.145429031791632,
+              "meanRelativeLuminanceErrorAbove0001": 0.3202052660334863,
+              "nonzeroTexelsQuantizedToBlack": 0
+            }
+          }
+        }
+      },
+      "gate-lamp": {
+        "uastcBytes": 18371,
+        "etc1sBytes": 5865,
+        "savedBytes": 12506,
+        "actualSamples": 8,
+        "baseBands": {
+          "uastc": {
+            "dark": {
+              "texels": 193558,
+              "meanAbsoluteLuminanceError": 4.056837145177419e-07,
+              "p95AbsoluteLuminanceError": 2.8044433717083335e-06,
+              "p99AbsoluteLuminanceError": 5.7746092105975215e-06,
+              "maximumAbsoluteLuminanceError": 5.5891146270651594e-05,
+              "meanAbsoluteRGBError": 4.1186799459100445e-07,
+              "meanRelativeLuminanceErrorAbove0001": 0.03673748800624745,
+              "nonzeroTexelsQuantizedToBlack": 0
+            }
+          },
+          "etc1s": {
+            "dark": {
+              "texels": 193558,
+              "meanAbsoluteLuminanceError": 6.407477329128743e-07,
+              "p95AbsoluteLuminanceError": 4.653978574669962e-06,
+              "p99AbsoluteLuminanceError": 1.1335810816863826e-05,
+              "maximumAbsoluteLuminanceError": 0.0007586733320703101,
+              "meanAbsoluteRGBError": 6.846753208611301e-07,
+              "meanRelativeLuminanceErrorAbove0001": 0.16218765960986598,
+              "nonzeroTexelsQuantizedToBlack": 1
+            }
+          }
+        }
+      },
+      "court-night": {
+        "uastcBytes": 1170877,
+        "etc1sBytes": 370538,
+        "savedBytes": 800339,
+        "actualSamples": 8,
+        "baseBands": {
+          "uastc": {
+            "dark": {
+              "texels": 194112,
+              "meanAbsoluteLuminanceError": 9.233243780443214e-05,
+              "p95AbsoluteLuminanceError": 0.0004613955210325937,
+              "p99AbsoluteLuminanceError": 0.0013168053619649685,
+              "maximumAbsoluteLuminanceError": 0.019544135257387067,
+              "meanAbsoluteRGBError": 0.00012310695238968274,
+              "meanRelativeLuminanceErrorAbove0001": 0.11301614787084197,
+              "nonzeroTexelsQuantizedToBlack": 138
+            },
+            "middle": {
+              "texels": 529002,
+              "meanAbsoluteLuminanceError": 0.0026523491375144196,
+              "p95AbsoluteLuminanceError": 0.008235024206178292,
+              "p99AbsoluteLuminanceError": 0.015591966057772487,
+              "maximumAbsoluteLuminanceError": 0.3382359537408831,
+              "meanAbsoluteRGBError": 0.003332673361275534,
+              "meanRelativeLuminanceErrorAbove0001": 0.029542446419032413,
+              "nonzeroTexelsQuantizedToBlack": 0
+            },
+            "peak": {
+              "texels": 146,
+              "meanAbsoluteLuminanceError": 0.6586638175521785,
+              "p95AbsoluteLuminanceError": 4.839559360010008,
+              "p99AbsoluteLuminanceError": 6.51503132909196,
+              "maximumAbsoluteLuminanceError": 10.866040071429069,
+              "meanAbsoluteRGBError": 0.6295966409963442,
+              "meanRelativeLuminanceErrorAbove0001": 0.0771713327275604,
+              "nonzeroTexelsQuantizedToBlack": 0
+            }
+          },
+          "etc1s": {
+            "dark": {
+              "texels": 194112,
+              "meanAbsoluteLuminanceError": 0.0002271721016109867,
+              "p95AbsoluteLuminanceError": 0.0012610583150461435,
+              "p99AbsoluteLuminanceError": 0.0033815860102652524,
+              "maximumAbsoluteLuminanceError": 0.04153927024897412,
+              "meanAbsoluteRGBError": 0.0002795587403291599,
+              "meanRelativeLuminanceErrorAbove0001": 0.28564323859795954,
+              "nonzeroTexelsQuantizedToBlack": 1086
+            },
+            "middle": {
+              "texels": 529002,
+              "meanAbsoluteLuminanceError": 0.005675219947996725,
+              "p95AbsoluteLuminanceError": 0.014620918631542539,
+              "p99AbsoluteLuminanceError": 0.03291238160422949,
+              "maximumAbsoluteLuminanceError": 1.738755943676886,
+              "meanAbsoluteRGBError": 0.011396585093033448,
+              "meanRelativeLuminanceErrorAbove0001": 0.06874676583968309,
+              "nonzeroTexelsQuantizedToBlack": 0
+            },
+            "peak": {
+              "texels": 146,
+              "meanAbsoluteLuminanceError": 3.573470796241889,
+              "p95AbsoluteLuminanceError": 33.655739630188954,
+              "p99AbsoluteLuminanceError": 49.47317157991659,
+              "maximumAbsoluteLuminanceError": 52.6875320494581,
+              "meanAbsoluteRGBError": 4.01599385455079,
+              "meanRelativeLuminanceErrorAbove0001": 0.30772021824451734,
+              "nonzeroTexelsQuantizedToBlack": 0
+            }
+          }
+        }
+      },
+      "court-lamp": {
+        "uastcBytes": 34706,
+        "etc1sBytes": 11621,
+        "savedBytes": 23085,
+        "actualSamples": 8,
+        "baseBands": {
+          "uastc": {
+            "dark": {
+              "texels": 723260,
+              "meanAbsoluteLuminanceError": 1.7431965779213819e-07,
+              "p95AbsoluteLuminanceError": 1.0063644468828597e-06,
+              "p99AbsoluteLuminanceError": 3.9354055391978435e-06,
+              "maximumAbsoluteLuminanceError": 0.00011083572843511959,
+              "meanAbsoluteRGBError": 1.8438578972486845e-07,
+              "meanRelativeLuminanceErrorAbove0001": 0.05179344812236766,
+              "nonzeroTexelsQuantizedToBlack": 0
+            }
+          },
+          "etc1s": {
+            "dark": {
+              "texels": 723260,
+              "meanAbsoluteLuminanceError": 2.7005169462432137e-07,
+              "p95AbsoluteLuminanceError": 1.0594561866789893e-06,
+              "p99AbsoluteLuminanceError": 6.752896900767748e-06,
+              "maximumAbsoluteLuminanceError": 0.00300082297618861,
+              "meanAbsoluteRGBError": 3.22698703951654e-07,
+              "meanRelativeLuminanceErrorAbove0001": 0.08272885782961975,
+              "nonzeroTexelsQuantizedToBlack": 0
+            }
+          }
+        }
+      }
+    },
+    "decision": "Retain critical night/lamp UASTC; ETC1S raises peak errors and quantizes additional nonzero dark samples to black. No absent dusk/day savings claimed."
+  },
+  "placeVisualReview": {
+    "image": {
+      "path": "artifacts/full-review/round-1/snow-preview12-smoke/chromium/desktop-en/place.png",
+      "sha256": "bb007ab111cd910717016f48ed503503a13f940fd243e3001fc2433111e1b32d",
+      "bytes": 680261
+    },
+    "remaining": [
+      "E2 wall base courses/weathering still too weak to register; broad dark slab appearance.",
+      "E3 near-paired foreground trees retain long straight spear-like branches and narrow white snow rails.",
+      "E4 roof blanket remains uniform and eave repeats a dotted rhythm.",
+      "E7 distinct white mound intrudes into lower-left opening around pixel670,580."
+    ],
+    "sourceChanged": false
+  },
+  "proofs": [
+    {
+      "path": "art/build/snow-roof-round1/budget12-uv16-reviewed-v7/snow-roof.glb.receipt.json",
+      "sha256": "5dfe4f55fc465caba6cbf41561b753285da855b0334710cfcf1e6050760a2caf",
+      "bytes": 146561
+    },
+    {
+      "path": "art/build/snow-roof-round1/budget12-uv16-reviewed-v7/contact-audit.json",
+      "sha256": "e64184bd81e77a4ad831189534e341cb746000b45d674221c949a61d6a388bb5",
+      "bytes": 136836
+    },
+    {
+      "path": "art/build/snow-roof-round1/budget12-grid14-contacts/snow-roof.glb.receipt.json",
+      "sha256": "863334d3fc08591a519e0f83a006759536e63245af64395f91ad7285846b2ca0",
+      "bytes": 102235
+    },
+    {
+      "path": "art/build/snow-roof-round1/budget12-grid14-contacts/contact-audit.json",
+      "sha256": "80aac58060641657c901c3942514bc3ead6aedffcf5858e80815b70902b321c8",
+      "bytes": 136835
+    },
+    {
+      "path": "art/build/snow-roof-round1/budget12-grid13-anchors/snow-roof.glb.receipt.json",
+      "sha256": "1abdb74aaa71ebe1e3ef2146d5e6602ae1d249947807ef7f477b3d1f91d03994",
+      "bytes": 85942
+    },
+    {
+      "path": "art/build/snow-roof-round1/budget12-uv16-original-f32-pruned-v2/snow-roof.glb.receipt.json",
+      "sha256": "74bea75b0652ff9f7cf57a332f24d889732f3dfb305a9ef2952d45b0959a0a53",
+      "bytes": 147307
+    },
+    {
+      "path": "art/build/snow-roof-round1/budget12-original-f32-baseline/snow-roof.unstripped.receipt.json",
+      "sha256": "33e35e206fb7acd53c2ff324bc8592137df247ff9958542f65b5db532e65dfe7",
+      "bytes": 53827
+    },
+    {
+      "path": "art/build/snow-roof-round1/budget12-lightmap-codecs/codec-budget.json",
+      "sha256": "2fbc708ce43eebbf3049cc1f0e7726cd3349533bb0d7ca8141e11889be57a021",
+      "bytes": 73730
+    }
+  ],
+  "scripts": [
+    {
+      "path": "art/blender/export_precision_protection.py",
+      "sha256": "3967598795602f60e6f59ea8b78be9fa112b7a75ec5aa3eceb57996b81332998",
+      "bytes": 3242
+    },
+    {
+      "path": "scripts/probe-position-grid.mjs",
+      "sha256": "421b06711e34b61fb883526d4857d1945b24331fc79462c7f630962baa688963",
+      "bytes": 9853
+    },
+    {
+      "path": "scripts/probe-uv16-budget.mjs",
+      "sha256": "d43d1efe9f13b1f6217f9d32516f6d760e77322088819d2b99d7079a5e7352a8",
+      "bytes": 16026
+    },
+    {
+      "path": "art/blender/probe_lightmap_codecs.py",
+      "sha256": "7710de3714384c67dc17f4e1900e61c4dc2f3d6d17b2bf6ca189cb05c0dc7db7",
+      "bytes": 7352
+    }
+  ]
+}

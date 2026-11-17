@@ -1,132 +1,50 @@
-# Snow Roof Cycles pilot
+# Authored temple scenes and Cycles delivery
 
-The fictional architecture is authored in `snow_roof.py`. Scanned material/model sources, license URLs and file hashes are consolidated in `docs/assets.json`; `scripts/update-assets-manifest.py` refreshes that registry after delivery assets change. Full source scenes, raw/denoised EXRs, chart proofs and delivery intermediates stay under ignored `art/build/`.
+`snow_roof.py` and `cloud_cliff.py` author Snow Roof Court and the Cloud Cliff cover. CC0 material/model provenance is registered in `docs/assets.json`. Blends, EXRs, complete audits and intermediates stay under ignored `art/build/`; browser media stays under ignored `artifacts/`. Commit delivered assets and compact text evidence.
 
-## Device and review gates
+Round 1 is **in progress**. The full new-source browser journey, final budgets and stranger review are not accepted yet. The standing checklist is [the journey review](../../docs/review/snow-roof-review-2026-11-17.md). An old installed manifest never authorizes a new source or preparation recipe.
 
-Every current Cycles render and texture bake uses the Apple M1 Metal GPU. Do not select CPU Cycles or pass a fixed thread limit. Previews use eight samples and OpenImageDenoise; production atlases use 64 samples. Let genuine first-kernel compilation complete. The baker refuses a missing Metal device rather than silently falling back.
-
-`scene.cycles.use_denoising` does not denoise texture bakes. The pipeline explicitly filters each represented UV chart with bundled OpenImageDenoise RT, HDR, HIGH quality on Metal device type 5. Filter buffers are OIDN-owned Metal buffers. Each chart is extended from its own samples before filtering, so neighbouring islands never enter its denoiser input. This is distinct from Cycles rendering denoising.
-
-Geometry, lighting, material mapping and actual prepared/exported support contacts must pass review before full-quality bakes. The current resting-prop source is `art/build/snow-roof-resting-contacts-accepted.blend`, SHA256 `b31360516a2713a6451ca920f3f94d9fefd9bc191bc07fca63c8c5ddce5a0c86`. Its freshly executed roof proof is `proofs/snow-roof-resting-contacts-accepted-hidden-tiles.json`, SHA256 `cf525ebd5990e8487cc4e10f3a6110fc12d0deab152885889fe879991bbfba57`. The preceding delivered `6e9f59c9` source and its masters/profiles remain immutable. Do not edit old pins to accept a new source.
-
-To rebuild a separate source and inspect the authored lighting:
-
-```sh
-blender --background --python art/blender/snow_roof.py -- --output art/build/snow-roof-rebuild.blend
-blender --background --python art/blender/preview.py -- --scene art/build/snow-roof-rebuild.blend --cameras Reference_outside,Reference_walk-3 --look night --samples 8 --width 960 --height 600 --output art/build/snow-roof-rebuild-night-preview
-blender --background --python art/blender/preview.py -- --scene art/build/snow-roof-rebuild.blend --cameras Reference_outside,Reference_walk-3 --look dusk --samples 8 --width 960 --height 600 --output art/build/snow-roof-rebuild-dusk-preview
-blender --background --python art/blender/preview.py -- --scene art/build/snow-roof-rebuild.blend --cameras Reference_outside,Reference_walk-3 --look day --samples 8 --width 960 --height 600 --output art/build/snow-roof-rebuild-day-preview
-```
-
-A rebuilt `.blend` has its own identity. Generate a fresh hidden-face proof with `classify_hidden_tiles.py --source-blend ... --output ...`; retain the original proof. The classifier performs CPU geometry/BVH calculations only, with no render or geometry removal.
-
-## Receiver preparation and mapping
-
-The baker preserves original material `UVMap` and `SurfaceTint` COLOR_0, evaluates modifiers, joins receivers into `hall`, `court` and `gate`, and adds `Lightmap` as the second UV set. It sends triangulated positions/topology to xatlas/watlas 1.0.1; scanned prop UV0 is never an unwrap constraint or rewritten. Source-albedo texture maps remain in the exported material. COLOR_0 is retained because no albedo atlas bakes that tint into a second color source.
-
-Implicit procedural Generated inputs need explicit preservation before joining changes object texture space. Only those procedural inputs are remapped; image-texture UV inputs remain untouched. The frozen POINT/FLOAT_VECTOR attribute is computed from evaluated `MeshVertex.undeformed_co` using the **original** object's texture-space location and size. Generic POINT-attribute interpolation across bevels is not equivalent. `proofs/generated-coordinate-probe.py` records an actual one-sample Metal emission-bake comparison: evaluated undeformed mapping matched native Generated within `1.79e-7` maximum absolute error; generic interpolated coordinates differed by up to `0.184`. `generated-coordinate-audit.json` records original texspace, modifier handling, example coordinates and resulting receiver attribute hashes.
-
-The current source preparation invocation is:
-
-```sh
-blender --background art/build/snow-roof-resting-contacts-accepted.blend --python art/blender/bake_export.py -- --out art/build/snow-roof-resting-contacts-accepted-bake --resolution 2048 --hall-resolution 4096 --court-resolution 4096 --samples 64 --device METAL --oidn-device METAL --skip-bake --hidden-faces art/blender/proofs/snow-roof-resting-contacts-accepted-hidden-tiles.json --chart-cache art/build/snow-roof-resting-contacts-bake
-```
-
-`--skip-bake` prepares receivers, audits coverage and exports raw glTF without invoking a texture bake. Hall/court use 4096² atlases; gate uses 2048². Existing xatlas outputs are reused only when their exact topology/resolution/padding signature matches. `--chart-cache DIR` also checks an external receiver report. Chart reuse never imports irradiance pixels.
-
-Hidden-proof faces retain all physical geometry, material UVs and bake occlusion. Only proven completely snow-enclosed tile components omit unique lightmap allocation; their UV2 collapses to a protected empty point. Chart-isolation reports explicitly count subpixel islands rather than calling them safe. The current coverage gate represents 99.99955% of hall surface area and 100% of sampled visible hall area; court/gate represent approximately 100%. Hall has three subpixel charts; gate/court each have one zero-area chart. Zero atlas core overlaps and zero proven-hidden visible camera samples were observed. Per-triangle native-texel area is reported separately, because a represented chart can still contain very small triangles. The six reference-camera grid is a coarse visibility check, not proof of every view or shading quality.
-
-Prepared previews restore authored color management; use `--view-transform AgX` only for older prepared files that lack the stored source settings. The accepted bank preview and the native Generated proof are bound to actual source/generated hashes in `prepared-mapping-proof.json`.
-
-## Actual resting contacts before baking
-
-Sources carrying `resting_contact_groups` cannot start a real Cycles bake without `--resting-contact-audit`. The independent receipt measures both the actual prepared triangles and an immutable actual raw GLB, using the evaluated source members and declared support owners. Every resting group must meet literal gap ≤2 mm and penetration ≤5 mm. Source SHA, all receiver/UV fingerprints, combined geometry fingerprint, group population, source associations and anchor metadata must match. Prepared `.blend` byte hashes are descriptive; unrelated proof-metadata saves do not invalidate unchanged geometry.
-
-The accepted receipt is `art/build/resting-contacts-accepted-replay/contacts-unique-crowns.json`, SHA256 `c7339acd30137c33398c8df122516f31b0405a5093dbace21c072db931bc38dc`, bound to geometry `89d4085e7b4ed662ab952b1430e9217b3c9befad602e1c317ae3ea659d848821`. Both stages pass all 37 groups; maximum gap is 0.908315 mm and maximum penetration is 4.844189 mm. Wick and incense crown measurements deduplicate exported seam coordinates before computing centroids. Their maximum source correspondence error is 1.907 µm.
-
-`proofs/resting-contact-guard.py` invokes the actual validation function without rendering or baking. Its executed proof is `art/build/resting-contacts-accepted-replay/guard/guard-proof.json`, SHA256 `34a4af3325a871aff69ae84f4700fed95fe6025f04be5cdc20e63204a362f9b6`: a genuine receipt passes, all 19 missing/failed/stale/over-limit challenges fail before Cycles, and unrelated metadata remains acceptable with the same receiver fingerprints. Durable source, replay and guard evidence is in `docs/evidence/resting-props`.
-
-The prior `2ee18ea0` partial batch was stopped and rejected: prepared diagonals increased cushion penetration beyond 5 mm. It remains archived at `art/build/snow-roof-resting-contacts-bake/rejected-attempt.json`; its two completed maps are never reused. The corrected source raises only the two cushions by 0.2 mm. Its new scene identity requires all twelve fresh GI maps.
-
-## Baking and cache identity
-
-```sh
-blender --background art/build/snow-roof-resting-contacts-accepted-bake/snow-roof-prepared.blend --python art/blender/bake_export.py -- --out art/build/snow-roof-resting-contacts-accepted-bake --resolution 2048 --hall-resolution 4096 --court-resolution 4096 --samples 64 --device METAL --oidn-device METAL --resume --hidden-faces art/blender/proofs/snow-roof-resting-contacts-accepted-hidden-tiles.json --prepared-preview-audit art/build/snow-roof-resting-contacts-accepted-bake/prepared-mapping-proof.json --resting-contact-audit art/build/resting-contacts-accepted-replay/contacts-unique-crowns.json
-```
-
-All twelve real maps are required: night, dusk, day and visitor-lamp-only for each region. Bakes use DIFFUSE DIRECT + INDIRECT, excluding COLOR. Night restores the accepted source world, fixture energy/color and emissive strengths exactly, with only the visitor lamp excluded. Dusk/day use the recorded presets; day fixtures remain at factor 1, the same authored 8 W as night. Lamp-only disables all other lights, world and fixture emission. Its basis is 45 W at engine `[0,2.99,-0.5]`, linear RGB `[1,189/255,120/255]`.
-
-The current resting-contact batch completed all twelve maps with exit 0 in 2508.312 seconds (41 min 48 s including export). Every map records 64 samples, Cycles `METAL` and OIDN `METAL`; Cycles uses automatic thread selection. The actual post-batch identities match the independently checked staging inputs exactly:
-
-| Native output | SHA256 |
+| Current authored source (delivery/journey status below) | SHA-256 |
 | --- | --- |
-| `snow-roof-prepared.blend` | `a49fe4fec7dcb52022c720b5a47a8d9c187f06433fda48adf1324d5d65c75d28` |
-| `snow-roof.raw.glb` | `c3539702ab9c0a5eb244f4be25d57bd1c30f22bb31ecedd83674bd99642aef7b` |
+| `art/build/snow-roof-round1/source-v18.blend` | `5d3d015e7b01517d2edc237d9740f80c128d1bc4ad32b373fe9eef8566edc904` |
+| `art/build/cloud-cliff-round1/cloud-cliff-source-v19.blend` | `ee3f9f065a72a102867d0bfe7ea9233761cd7db62e98711c993d38cba324bda0` |
 
-The files are under `art/build/snow-roof-resting-contacts-accepted-bake/`. The raw hash authorizes the separately recorded F32/material/pruning stages; it does not authorize reuse of old GI pixels.
+The original 37-group floating-prop correction and its accepted twelve-map delivery are documented in [the historical guide](RESTING-CONTACTS-HISTORY.md). Those recipes belong to commit `8df1301` and preserved source/masters. Large comparison images now live in the ignored archive identified by `docs/evidence/resting-props/`; existing Git history is retained.
 
-The complete package is installed in `web/public/places/snow-roof/` and registered in `docs/assets.json`:
+## Device and mapping gates
 
-| Delivery | Value |
-| --- | --- |
-| Manifest SHA256 | `9beed7157a74e41096bfb7bd94f62834a30d6df89cf4cf3979c1ffca62b9fb53` |
-| Optimized GLB SHA256 | `49cbe07a5a0f407b3df31b82ef0c75e6995e471593d51527a276a3d22723ef88` |
-| Optimized GLB | 16,265,084 bytes; 649,213 vertices; 467,186 triangles |
-| Declared payload/proof files | 17; 59,674,555 bytes |
+Every Cycles render/bake uses the Apple M1 **Metal GPU**, automatic threads and OpenImageDenoise. Never select CPU Cycles or pass `-t 2`. Previews use eight samples; full maps use 64 after geometry, materials, lights and actual prepared/exported contacts are settled. Geometry audits, image I/O and encoding are CPU work.
 
-The runtime reads the exported wick tips, source point-light positions and incense smoke origin, converting world coordinates into the nook's frame. Source metadata is required. Executed recipes, all map/master hashes, per-map device timings and independent geometry/padding/codec receipts are in [the current delivery evidence](../../docs/evidence/blender-pilot/resting-contacts-delivery/README.md). Original masters remain under the local build directory.
+Bakes require explicit chart-isolated OIDN RT/HDR/HIGH filtering on Metal device type 5 with Metal-owned buffers; `scene.cycles.use_denoising` alone does not denoise texture bakes. Preserve actual device/sample/timing logs and immutable input/master hashes.
 
-The [desktop/phone before-and-after comparison](../../docs/evidence/resting-props/index.html) contains 24 committed PNGs and exact camera provenance. Both sizes show the lamp bases and burner feet seated on their supports. All 132 live source-anchor comparisons measure zero error. The [review](../../docs/evidence/resting-props/review.md) records the controlled capture conditions and the separate normal-phone pacing result.
+Source-to-prepared checks cover evaluated positions, winding, original UV0, tint, material inputs and **world corner normals**. Round 1 found join/triangulation changed smooth normals despite matching geometry/UVs. An exact free FLOAT_VECTOR CORNER `custom_normal` probe passes the independent full mapping audit; production integration and fresh complete proofs must pass before native work. A packed split-normal setter was insufficient. Include normals in the bake fingerprint and verify STANDARD NORMAL export without a redundant generic copy.
 
-The quantity is diffuse radiance per unit albedo, proven by a Lambertian bake/render probe. Three's lightMap receives irradiance, so multiply the decoded coefficient by π before its Lambert BRDF divides by π. The runtime's matching near PointLight basis is `45/(4π)` candela, using the same linear RGB.
+## Real contacts and runtime anchors
 
-Resume is strict: scene-wide source, receiver geometry/UVs/tint, actual preserved Generated bytes and policy, material graphs/images, lights, world, presets and prepared-mapping evidence enter the bake fingerprint. Any changed occluder invalidates every region's GI. An unchanged regional receiver only permits chart reuse. `--passes night,lamp` selects real passes; final packaging still rejects missing dusk/day. `--reencode-existing` regenerates delivery intermediates from denoised EXRs without changing master bytes or running Cycles/OIDN.
+`resting_contact_height` raycasts onto evaluated, explicitly owned support triangles. Scanned bounds describe size, not the contact surface. Every loose resting prop belongs to an audited semantic group. Gap above 2 mm or penetration above 5 mm fails; no UV, export or compression step may weaken these limits.
 
-## HDR encoding, mip limits and verification
+Current Snow has 47 groups. Cloud has 18 resting groups and six measured hanging pairs. Replay against actual prepared triangles and decoded delivery triangles. Real translated positive/negative challenges, source fingerprints, member populations and runtime anchors must pass before Cycles.
 
-Raw and denoised masters are scene-linear 32-bit EXR. Delivery intermediates are 16-bit PNG with **logarithmic HDR encoding**, gain 4096, per-pass power-of-two scale and `logRange = log2(1 + scale * logGain)`:
+Snow exports seven measured wick records, including one spent fixture. Lit flames use `wickTip`; specular lights use actual point position, watts and linear RGB. Incense starts at evaluated rod tips. Picture-approved Source18 places its finite 2 W source at `[-1.5, 2.25, -1.3]`, with linear RGB `[1,.43,.13]` and a 4 mm radius. Its real raised, offset cup and open-bottom gauze use reflection .35, transmission .065 and shadow throughput .022; these are separate coefficients, with absorbed energy retained. The actual ceiling contact is `[-1.4993, 5.039999962, -1.3]`, in engine Y-up metres. Common pre-exposure remains 40, with a further .35 EV view offset. Default light-node strengths remain one. These are authored source settings, not an lm/cd calibration. Runtime bodies/flames are excluded from the static mesh. All47 source and actual prepared/exported contact groups pass the unchanged 2 mm/5 mm limits.
 
-```text
-encoded = log2(1 + radiance * logGain) / logRange
-decoded = (exp2(sample * logRange) - 1) / logGain
-```
+## UVs, transport and final packing
 
-Decode each texture before blending ambient looks or lamp contributions, then apply the π unit conversion. Treat samples as linear data: no sRGB or AgX transfer. The old `sample * scale` encoding remains a compatibility fallback only when `logRange` is absent/zero; it is not the current delivery recommendation.
+Preserve UV0, original scan albedo/normal images and SurfaceTint. SourceLightmap charts use box nets, cylinder/torus strips and terrain grids; disconnected repeated components need distinct domains. Centimetre chart input prevents unwrap epsilon loss of tiny triangles; final UV2 remains normalized. Coverage and distinct-world overlap guards stay strict. Resolution does not prove readable shadows: inspect the actual low8 packaged app before full64.
 
-Each map has three explicit mips (base, half, quarter), built by averaging **linear radiance before log encoding**. Post-denoise edge extension uses eight base pixels; xatlas packs with eight-pixel padding. `mipLevels:3`, `maxLod:2`, `anisotropy:1` are declared and must be honored by the loader. Do not generate a full mip chain or apply generic material-map anisotropy. Chart isolation protects OIDN; atlas sampling and encoded-log interpolation still need runtime visual review. Filtering log samples can darken mixed bright/dark edges compared with filtering linear radiance.
+Fresh hidden-face proofs permit export removal only of proven enclosed roof faces; full bake occluders remain. Zero-world-area faces and fixed-cover visibility allocation have separate certificates. Old Snow bank-padding certificates are retired for the continuous snowfield.
 
-The packer verifies KTX2 linear transfer, codec and all three levels. For numerical delivery checks, use official `ktx transcode --target rgba8 input.ktx2 region-pass-decoded.ktx2`, then:
+Each region needs real night, dusk, day and lamp-only maps. Masters are linear 32-bit EXR. Delivery uses logarithmic HDR (gain 4096), three explicit mips averaged in linear radiance before encoding, eight-pixel gutters, LOD at most 2 and anisotropy 1. Decode before blending; multiply diffuse coefficients by pi for Three's irradiance/lightMap convention. Sources with an explicit `one_light_camera_pre_exposure` additionally apply that same factor once to maps, actual point intensities and imported emission. Native previews use the corresponding global EV. Raw EXRs keep source radiometry; captured hall radiance is already normalized and must not be multiplied again. The optional indirect-only lamp quantity keeps direct candle light live at every receiver distance and retains only true bounce in the lamp atlas; this recipe is included in transport fingerprints and per-map provenance. Official codec numerics and actual device/browser appearance are separate gates.
 
-```sh
-blender --background --python art/blender/bake_export.py -- --out PATH_TO_ISOLATED_EXR_COVERAGE_AND_DECODED_FILES --verify-delivery PATH_TO_MATCHING_MANIFEST
-```
+The packer preserves material factors, UV0/tints and texture roles before Meshopt. Keep genuine FLOAT32 positions where required; never relabel decoded quantized data as source-exact. Independently replay decoded geometry, contacts and anchors after pruning/compression. Missing COLOR_1 is legitimate without a Generated field; fabricate no channel to satisfy an obsolete guard.
 
-This performs image I/O and CPU numeric comparisons only. It compares decoded maps with actual denoised EXRs over dark/middle/peak ranges and all three mips; coarser mip masks require the complete footprint to remain one chart. It reports nonzero values quantized to black. Official RGBA8 transcode is not a claim about the eventual device's ASTC/BC7/ETC storage or screen interpolation.
+Complete-file budgets, including manifest/runtime assets, are **10,000,000 bytes Cloud** and **15,000,000 bytes Snow**. `attach-place-runtime-assets.mjs` verifies source-bound posters/fabric, rejects uncounted files and solves manifest self-size. Its `--native-view docs/licenses/native-agx.json` option additionally verifies and counts the shared116705-byte native AgX lookup in each scene's complete package. A narrow delivery-only audit-metadata strip requires exact removed-key hashes and immutable source receipts. Runtime anchors/config, region/material fields and source/license identity remain.
 
-## Packing and separate material candidates
+The main baked view and 3D lamp portraits use the actual Blender5.3 AgX/None/sRGB57³ tetrahedral view. Every lookup sample is rounded once to declared Float16 precision; CPU and Chrome/WebKit GPU reference errors are recorded in `docs/evidence/full-review/round-1-native-agx-{cpu,gpu}.json`. The pass follows linear HDR/bloom and precedes an OETF-only OutputPass. Scene values already include common camera pre-exposure; Source18 adds only its declared residual .35 EV once. Do not apply40 or5.321928 again. Exact upstream data, contributor credits and retained historical/software notices are in `docs/licenses/native-agx.json`.
 
-The packer pins glTF-Transform 4.5.1 and KTX-Software 4.4.2, downloading official tools into temporary prefixes if needed. The order is **dedup → material texture compression → Meshopt last**. It verifies original UV0/UV1/COLOR_0 bytes before Meshopt, region bindings, per-primitive roughness extras, required extensions and actual image-role/codec/byte metadata. Texture role unions come from GLB material bindings; shared screen images remain shared.
+## Evidence and finalization
 
-```sh
-node scripts/pack-blender-assets.mjs --source art/build/snow-roof-final --out art/build/snow-roof-final-quality --material-profile quality
-node scripts/pack-blender-assets.mjs --source art/build/snow-roof-final --out art/build/snow-roof-final-mobile --material-profile mobile --screen-base-size 1024
-```
+Compact ledgers: `docs/evidence/cloud-cliff-round1/` and `docs/evidence/full-review/`. Cloud Source19 is installed with all twelve fresh fixed 64 Metal/Metal-OIDN maps, genuine F32 positions/normals, the accepted live mist/teardrop and six source-bound actual-app posters. The complete package is **7,565,880 bytes** including its manifest and shared native view; manifest SHA-256 `4bb463f9f52e290f81ee9e475a5213f34619194dde10a62787a46677abc42a98`. Source SHA-256 remains `ee3f9f065a72a102867d0bfe7ea9233761cd7db62e98711c993d38cba324bda0`. The one final native batch completed in 448.997 seconds, AUTO threads, adaptive/animated seed off, residual EV 0. Source19 retains eighteen resting groups and six hanging pairs; Source20 was explicitly cancelled. See [the final Cloud ledger](../../docs/evidence/cloud-cliff-round1/source19/final-delivery/README.md) for exact source/prepared/raw/model hashes, commands, timings and declared runtime approximations. Phone emulation measured 52.2 FPS; desktop 20.1 FPS remains a limit. Cloud v11 and earlier poster candidates are historical controls, not this delivery. Whole-journey and stranger acceptance remain separate.
 
-Normal final packing rejects any missing pass. `--preview` is explicitly partial: it still requires real night/lamp maps for all regions, marks `partialPreview:true`, lists missing ambient looks and never invents maps. `--geometry-only` stages materials/geometry separately without writing a complete-delivery manifest. The live public scene is not changed by the two candidate paths above.
+Snow18 is installed with all sixteen fresh fixed64 Metal/OIDN maps from the single final batch, completed in340.377seconds with all90 frozen inputs unchanged. Its complete package is **14,970,553bytes** (14,827,000payload +26,848manifest +116,705shared native view), manifest SHA256 `1e90933194200dfd2d67ba2fbe207aba216b50a561e9b1da56060161eb6c5289`. The public folder contains exactly21 declared files; legacy unused assets were removed. Room light .9 W, doorway light .6 W, restrained .03 paint normals, hall-only floor albedo ×3 and removal of the blank east paper backing are part of this source. Fresh source/prepared/raw and decoded47-contact checks, material mapping/normal regression, hidden-only roof pruning, declared precision and lossless-Zstd verification pass. Final app journey/stranger acceptance remains separate. See [Source18 reproduction](../../docs/evidence/full-review/snow-source18/README.md) and [the compact final receipt](../../docs/evidence/full-review/round-1-snow-source18-package.json). Earlier Source17 adaptive/high-sample and component studies are rejected historical controls, not this delivery.
 
-Quality material textures use UASTC. The staged mobile profile retains 512 px UASTC normals and uses high-quality ETC1S for other 512 px maps, keeping the painted screen base at 1024 px. It uses original pixel inputs, separate cache keys/files and identical lightmaps. Adopt it only after a same-final-geometry browser comparison. All **lightmaps remain UASTC**: the actual gate-night ETC1S comparison saved bytes but raised dark relative error from 7.62% to 22.70% and newly black nonzero dark texels from 43 to 728. Evidence is `art/build/snow-roof-lightmap-codec-comparison.json`.
-
-Receipts record actual role bytes, settings, source raw hash, image hashes and payload totals. The approximately 8 MiB initial target has not been met; report real final bytes and visual/device results rather than asserting a smaller budget. Final proven-hidden export pruning uses `scripts/prune-validated-baked.mjs --profile quality|mobile` on separate staging copies, with actual FACE/raw/packed provenance and exact retained triangle/image invariants. The original `scripts/prune-baked-hidden.mjs` and its measured profile are retained for the original asset only. Full source and bake occluders remain intact. Actual receipts and the post-batch hash guard are documented in `docs/evidence/blender-pilot/final-export/README.md`.
-
-The preceding delivery's post-batch export guard is recorded in `docs/evidence/blender-pilot/final-export`: actual raw `0deec9fd...`, prepared `6ed42644...`, newly generated explicit profiles and executed `-optimized-postbatch` staging outputs. Those inputs and receipts remain historical; the current source has its own measured identities above. No pinned input hash was bypassed.
-
-## Genuine FLOAT32 contact-sampling candidate
-
-The F32 export path preserves authored positions through lossless Meshopt rather than quantizing near-tangent snow contacts. `scripts/prune-float32-baked.mjs` validates the actual raw F32 triangle positions and prepared FACE binaries before removing only proven enclosed roof faces and exact-welding the export copy. The preceding source reproduces with `--profile art/blender/proofs/snow-roof-final-float32-export-profile.json`; supply explicit input and new art/build output paths. Current source profiles and executed receipts are recorded in `docs/evidence/blender-pilot/resting-contacts-delivery`. `scripts/audit-float32-prune.mjs` independently checks decoded retained attributes/winding, transforms, materials and images. The preceding delivered source used 15,904,988 B, 648,780 vertices and 466,874 triangles. These are historical measurements, not the new source’s delivery size.
-
-`classify_snow_contact.py`, `certify_snow_contact_donors.py`, and `verify_contact_reproduction.py` retain the geometric recipient/donor recipes. `audit_contact_padding.py` checks only the derivative sampling domain and actual linear EXR invariants; it never renders, bakes, denoises or encodes. Input hashes, reproducible commands, compact permission masks, executed recipes and limitations are in `docs/evidence/blender-pilot/contact-sampling`. Original Cycles transport and source geometry stay unchanged. A faint contact seam remains in the first normal-sampler browser comparison.
-
-New F32 profiles require `--profile-out NEW_PROFILE.json --inputs ACTUAL_BINDINGS.json`; reproduction uses `--profile EXISTING_PROFILE.json`. The explicit bindings contain actual source, prepared, raw, hidden proof, FACE reference and F32 input paths/hashes. The helper checks complete FACE/marker position multiplicities before pruning, so a material dedup name change cannot authorize unrelated removal. No decoded SHORT position is cast back to float.
-
-Fresh contact classifiers require `--inputs` with actual source/prepared/raw/F32 correspondence and hall/court coverage-file hashes. `contact_padding.py` takes explicit `--source`, `--base`, `--classification`, `--donors` and `--donor-metadata`; its independent audit takes matching source/base/classification paths. Regenerate these certificates for every new source. Certified hidden recipients alone may copy the nearest permitted donor within eight base pixels in the same original chart and snow owner. Every other linear base RGBA bit remains unchanged; the original masters remain immutable. Derived delivery reuses each original scale/gain and builds three mips in linear radiance. Lossy KTX block neighborhoods are not claimed bit-exact.
+After final delivery, refresh the asset registry, this guide's source/delivery hashes and each checklist status/evidence path. Run `npm run check:evidence`; drive the complete desktop/phone Chrome/WebKit journey, contacts, static sequences and clean motion videos. Measure emulated phone timing without video/readback on an idle host. No physical phone has been tested. Complete the fresh stranger hunt and repeat every open checklist item until the requested stop condition is met.

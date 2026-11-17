@@ -1,0 +1,381 @@
+{
+  "scope": "Read-only actual Source17 source/raw/decoded paint material diagnosis and isolated optical controls. No GPU control capture or cause conclusion claimed.",
+  "actualInputs": {
+    "source": {
+      "path": "art/build/snow-roof-round1/source-v17.blend",
+      "sha256": "2990854d3c9a65bf18879511d865b6e36788f6e727339248d5746b67fb52dd64"
+    },
+    "raw": {
+      "path": "art/build/snow-roof-round1/preview17-c6-normalized-all16-native8/snow-roof.raw.glb",
+      "sha256": "6c8826d882c34524dd25a8d4aba113c070641fdd5977f846b5f274c1957971f3"
+    },
+    "decoded": {
+      "path": "art/build/snow-roof-round1/compact17-packaged-control/normal256/decoded.glb",
+      "sha256": "5b5e6aab0c3314e949a8c7b7721b5c27a32adaf7f417a9e4d63b6fd2156e8014"
+    }
+  },
+  "fullMaterialData": {
+    "path": "art/build/snow-roof-round1/source17-painted-material-diagnosis/material-diagnosis.json",
+    "sha256": "9a66ffc385d5e5f4d56971d636ef99c5fb27f347d6df3ce872d72562a200d610",
+    "bytes": 16536
+  },
+  "scripts": [
+    {
+      "path": "art/blender/diagnose_snow_paint_materials.py",
+      "sha256": "c6dc43f8a18213c31de417a0872e3610831ca7c3b1abd693dedc5cd11303e8a6",
+      "bytes": 6164
+    },
+    {
+      "path": "scripts/prepare-snow-material-controls.mjs",
+      "sha256": "2531cb4ee8a3b008859f051dedd63f4d4f31710d405ad33589f589f22aff7ca6",
+      "bytes": 7023
+    },
+    {
+      "path": "scripts/fixtures/snow-material-controls.js",
+      "sha256": "e080e722b3997f825d1e82be1fd2ebd7a71cf3facce9d84979186160feef1e9f",
+      "bytes": 8821
+    }
+  ],
+  "materials": [
+    {
+      "sourceMaterial": "Aged red painted timber",
+      "sourcePrincipled": {
+        "Roughness": {
+          "default": 1.0,
+          "linked": true
+        },
+        "Metallic": {
+          "default": 0.0,
+          "linked": false
+        },
+        "IOR": {
+          "default": 1.5,
+          "linked": false
+        },
+        "Specular IOR Level": {
+          "default": 0.5,
+          "linked": false
+        },
+        "Coat Weight": {
+          "default": 0.0,
+          "linked": false
+        }
+      },
+      "sourceNormalStrength": [
+        0.11999999731779099
+      ],
+      "raw": {
+        "name": "Aged red painted timber",
+        "baseColorFactor": [
+          0.38642942905426025,
+          0.05612849071621895,
+          0.02955683507025242,
+          1
+        ],
+        "metallicFactor": 0,
+        "roughnessFactor": 1,
+        "normalScale": 0.11999999731779099,
+        "minimumRuntimeRoughness": 0.7,
+        "roughnessImage": "raw-roughness:22",
+        "normalImage": "raw-normal:4",
+        "roughnessTransform": null,
+        "normalTransform": null,
+        "specularExtension": null,
+        "iorExtension": null
+      },
+      "decoded": [
+        {
+          "name": "Aged red painted timber",
+          "baseColorFactor": [
+            0.38642942905426025,
+            0.05612849071621895,
+            0.02955683507025242,
+            1
+          ],
+          "metallicFactor": 0,
+          "roughnessFactor": 1,
+          "normalScale": 0.11999999731779099,
+          "minimumRuntimeRoughness": 0.7,
+          "roughnessImage": "decoded-roughness:22",
+          "normalImage": "decoded-normal:4",
+          "roughnessTransform": null,
+          "normalTransform": null,
+          "specularExtension": null,
+          "iorExtension": null
+        },
+        {
+          "name": "Aged red painted timber UV16 hall 7",
+          "baseColorFactor": [
+            0.38642942905426025,
+            0.05612849071621895,
+            0.02955683507025242,
+            1
+          ],
+          "metallicFactor": 0,
+          "roughnessFactor": 1,
+          "normalScale": 0.11999999731779099,
+          "minimumRuntimeRoughness": 0.7,
+          "roughnessImage": "decoded-roughness:22",
+          "normalImage": "decoded-normal:4",
+          "roughnessTransform": {
+            "offset": [
+              -11.537020683288574,
+              -10.904762268066406
+            ],
+            "scale": [
+              23.07404136657715,
+              21.190476417541504
+            ]
+          },
+          "normalTransform": {
+            "offset": [
+              -11.537020683288574,
+              -10.904762268066406
+            ],
+            "scale": [
+              23.07404136657715,
+              21.190476417541504
+            ]
+          },
+          "specularExtension": null,
+          "iorExtension": null
+        }
+      ]
+    },
+    {
+      "sourceMaterial": "Faded teal beam paint",
+      "sourcePrincipled": {
+        "Roughness": {
+          "default": 1.0,
+          "linked": true
+        },
+        "Metallic": {
+          "default": 0.0,
+          "linked": false
+        },
+        "IOR": {
+          "default": 1.5,
+          "linked": false
+        },
+        "Specular IOR Level": {
+          "default": 0.5,
+          "linked": false
+        },
+        "Coat Weight": {
+          "default": 0.0,
+          "linked": false
+        }
+      },
+      "sourceNormalStrength": [
+        0.11999999731779099
+      ],
+      "raw": {
+        "name": "Faded teal beam paint",
+        "baseColorFactor": [
+          0.06301001459360123,
+          0.20507873594760895,
+          0.177888423204422,
+          1
+        ],
+        "metallicFactor": 0,
+        "roughnessFactor": 1,
+        "normalScale": 0.11999999731779099,
+        "minimumRuntimeRoughness": 0.7,
+        "roughnessImage": "raw-roughness:22",
+        "normalImage": "raw-normal:4",
+        "roughnessTransform": null,
+        "normalTransform": null,
+        "specularExtension": null,
+        "iorExtension": null
+      },
+      "decoded": [
+        {
+          "name": "Faded teal beam paint",
+          "baseColorFactor": [
+            0.06301001459360123,
+            0.20507873594760895,
+            0.177888423204422,
+            1
+          ],
+          "metallicFactor": 0,
+          "roughnessFactor": 1,
+          "normalScale": 0.11999999731779099,
+          "minimumRuntimeRoughness": 0.7,
+          "roughnessImage": "decoded-roughness:22",
+          "normalImage": "decoded-normal:4",
+          "roughnessTransform": null,
+          "normalTransform": null,
+          "specularExtension": null,
+          "iorExtension": null
+        },
+        {
+          "name": "Faded teal beam paint UV16 hall 8",
+          "baseColorFactor": [
+            0.06301001459360123,
+            0.20507873594760895,
+            0.177888423204422,
+            1
+          ],
+          "metallicFactor": 0,
+          "roughnessFactor": 1,
+          "normalScale": 0.11999999731779099,
+          "minimumRuntimeRoughness": 0.7,
+          "roughnessImage": "decoded-roughness:22",
+          "normalImage": "decoded-normal:4",
+          "roughnessTransform": {
+            "offset": [
+              -8.642857551574707,
+              -12.493809700012207
+            ],
+            "scale": [
+              21.500000953674316,
+              26.987619400024414
+            ]
+          },
+          "normalTransform": {
+            "offset": [
+              -8.642857551574707,
+              -12.493809700012207
+            ],
+            "scale": [
+              21.500000953674316,
+              26.987619400024414
+            ]
+          },
+          "specularExtension": null,
+          "iorExtension": null
+        }
+      ]
+    }
+  ],
+  "roughnessGreenRanges": {
+    "raw-roughness:22": {
+      "dimensions": [
+        256,
+        256
+      ],
+      "percentiles": {
+        "0": 0.8549020290374756,
+        "1": 0.8588235974311829,
+        "50": 0.8627451658248901,
+        "99": 0.8666667342185974,
+        "100": 0.8666667342185974
+      },
+      "embeddedSha256": "45e9e14faef6c236ae07f87ed4e470b491e99f5b5ab21609b14dbfc4a4096fbd"
+    },
+    "decoded-roughness:22": {
+      "dimensions": [
+        256,
+        256
+      ],
+      "percentiles": {
+        "0": 0.8588235974311829,
+        "1": 0.8588235974311829,
+        "50": 0.8588235974311829,
+        "99": 0.8705883026123047,
+        "100": 0.8705883026123047
+      },
+      "embeddedSha256": "7bdd066d1aa7887b5014f36d3ef409dd9c150c1eb9a20756d2224fbd280d6c23"
+    }
+  },
+  "normalImageRgbDiagnostic": {
+    "raw-normal:4": {
+      "dimensions": [
+        1024,
+        1024
+      ],
+      "actualInterpretation": {
+        "tiltDegreesPercentiles": {
+          "0": 0.03813045471906662,
+          "50": 0.24804751574993134,
+          "99": 8.999100685119629,
+          "100": 90.0
+        },
+        "negativeOrZeroZTexels": 87
+      },
+      "embeddedSha256": "5b4234eeddbe3b2a11d7b3fdf9429f13291b8eac0e376be25df153e764acf879"
+    },
+    "decoded-normal:4": {
+      "dimensions": [
+        256,
+        256
+      ],
+      "actualInterpretation": {
+        "tiltDegreesPercentiles": {
+          "0": 0.03813045471906662,
+          "50": 0.19216127693653107,
+          "99": 4.215890884399414,
+          "100": 47.53476333618164
+        },
+        "negativeOrZeroZTexels": 0
+      },
+      "embeddedSha256": "05279d38d405a7944c5103b6745bd3d3892bd071474ddd517aab954fec789de1"
+    }
+  },
+  "codeFindings": {
+    "sourceFixtureWattsScaledOnceBy40AtRuntime": true,
+    "normalized18WIntensityCandela": 1.432394487827058,
+    "staticFixturePointsCastShadow": false,
+    "bakedStaticFixtureDirectDiffuseRemovedButDirectSpecularRetained": true,
+    "staticLampShadowCoversOnlyVisitor": true,
+    "nativeMapsContainDiffuseTransportOnly": "Ambient DIRECT+INDIRECT; visitor INDIRECT-only",
+    "sourceNativeBeautyContainsVisibilityCorrectGlossyTransport": true
+  },
+  "isolatedControls": {
+    "directory": "/tmp/one-light-snow17-c6-material-controls",
+    "receipt": {
+      "path": "art/build/snow-roof-round1/source17-material-controls-preparation/material-controls-preparation.json",
+      "sha256": "50bdebfc46502695e6ab40c7f734072d4a1293bafea2f153fad3a527a953b826",
+      "bytes": 3261
+    },
+    "cpuContract": {
+      "path": "art/build/snow-roof-round1/source17-material-controls-preparation/material-controls-cpu-contract.json",
+      "sha256": "62f549d822bc67d9e8511f69377ac6d9fe84af498243d3ae0ee88c2f3daaec7c",
+      "bytes": 824
+    },
+    "api": "window.__captureSnowMaterialControls(mode, options)",
+    "modes": [
+      "metadata",
+      "normal",
+      "restore",
+      "fixture-spec-off",
+      "spec-off",
+      "paint-normal-off",
+      "fill"
+    ],
+    "fillCandidate": {
+      "intensity": 1.35,
+      "distance": 1,
+      "topOffset": 0.18,
+      "followCamera": true
+    },
+    "runtimeShadowAndMaterialHooksRetained": true,
+    "actualGpuCompileAndCapturePending": false
+  },
+  "sourceRuntimeOrPublicChanged": false,
+  "renderBakeEncoderGpuJobs": 0,
+  "originalRankedHypothesesBeforeGpuControls": [
+    "Added runtime fixture/IBL specular has different occlusion than the native beauty.",
+    "Low8 per-chart diffuse-bake denoising/log sampling can differ from image-space native OIDN.",
+    "Normal-map/material response may amplify either contribution; actual source/raw/final scalar factors and mapped roughness have not been lost."
+  ],
+  "subsequentActualGpuControls": {
+    "report": {
+      "path": "artifacts/full-review/round-1/snow17-material-controls/report.json",
+      "sha256": "11271b54f6e68be2f77bec6bd9b25aad7098fcb092c79570563bd7c9a4460fce",
+      "bytes": 857884
+    },
+    "rootOwnedBrowserCaptureTerminal": true,
+    "errors": [],
+    "sourceChanged": false,
+    "allOwnedBrowsersClosed": true,
+    "starsPersistInFixtureSpecOffAllStaticSpecOffAndPaintNormalOff": true,
+    "runtimeSpecularOrPaintNormalNotPrimarySpatialCause": true,
+    "actualSourceNightRawExrContainsPattern": true,
+    "actual8Versus32DiffuseAttribution": {
+      "path": "docs/evidence/full-review/round-1-snow-source17-diffuse-variance.json",
+      "sha256": "da628382e940b2e483ea1f48179bbce375307578b252a6e7d4184f110ba47e8f"
+    },
+    "remaining": "Spatial stars primarily arise in low-sample diffuse transport and per-chart filtering. The codec/tone path can alter/amplify them; actual higher-sample optical acceptance remains pending."
+  }
+}

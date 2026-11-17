@@ -1,0 +1,128 @@
+{
+  "scope": "Interim real UI verification; Snow source12 low8 partial maps, camera3 and actual cloth shader. Final source13 optical/production/stranger acceptance remains pending. This is not FPS or physical-phone proof.",
+  "report": "artifacts/full-review/round-1/ui-pass/report.json",
+  "reportSha256": "0a5b7ad8bf406da081de5a196b4a27677fe5f0e25eba6727ab611f78aba0f6fb",
+  "sourceFingerprint": "53e4e6f94d54a0bdede9a3ba4274468549a7a2ff7db5805d57b5b72d263937e1",
+  "coverage": [
+    "desktop-en",
+    "phone-zh"
+  ],
+  "frames": 218,
+  "sequences": 86,
+  "errors": [],
+  "httpErrors": [],
+  "sourceChanged": false,
+  "audioObservations": 50,
+  "audioIssues": [],
+  "wrappingOrOverflow": [],
+  "runtime": [
+    {
+      "browser": "webkit",
+      "viewport": "desktop-en",
+      "version": "27.2",
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/27.2 Safari/605.1.15",
+      "renderer": "Apple GPU",
+      "buffer": [
+        1440,
+        900
+      ]
+    },
+    {
+      "browser": "webkit",
+      "viewport": "phone-zh",
+      "version": "27.2",
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/27.2 Safari/605.1.15",
+      "renderer": "Apple GPU",
+      "buffer": [
+        390,
+        844
+      ]
+    },
+    {
+      "browser": "chromium",
+      "viewport": "desktop-en",
+      "version": "157.0.8103.39",
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36",
+      "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1, Unspecified Version)",
+      "buffer": [
+        1440,
+        900
+      ]
+    },
+    {
+      "browser": "chromium",
+      "viewport": "phone-zh",
+      "version": "157.0.8103.39",
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36",
+      "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1, Unspecified Version)",
+      "buffer": [
+        390,
+        844
+      ]
+    }
+  ],
+  "stages": [
+    "burnFar",
+    "burning",
+    "choose",
+    "choose-24-hours",
+    "colour-1",
+    "colour-2",
+    "colour-3",
+    "diagnostic-burning-fully-static",
+    "diagnostic-burning-normal",
+    "draw-empty",
+    "draw-large",
+    "draw-small",
+    "draw-undo",
+    "home",
+    "home-return",
+    "leave-warning",
+    "light-igniting",
+    "light-ignition",
+    "light-settled",
+    "light-spreading",
+    "light-walking",
+    "long-light-igniting",
+    "long-light-ignition",
+    "long-light-settled",
+    "long-light-spreading",
+    "long-light-walking",
+    "my-lamps",
+    "my-wishes",
+    "natural-last-ember",
+    "natural-late-burn",
+    "natural-light-igniting",
+    "natural-light-ignition",
+    "natural-light-settled",
+    "natural-light-spreading",
+    "natural-light-walking",
+    "place",
+    "record-expanded",
+    "result-burned-down",
+    "result-native-departure",
+    "result-put-out",
+    "result-went-out",
+    "shape-1",
+    "shape-2",
+    "shape-3",
+    "sound-muted",
+    "ten-lights",
+    "walk-1",
+    "walk-2",
+    "walk-3",
+    "walk-static-1",
+    "walk-static-2",
+    "walk-static-3",
+    "wish-empty-inline",
+    "wish-loading",
+    "wish-written"
+  ],
+  "limitations": [
+    "Main locale coverage is desktop English and phone Chinese; final full locale cross-product remains pending.",
+    "Static samples are one second, not the final ten-second diagnostics.",
+    "No clean motion video was recorded in this diagnostic pass.",
+    "No contact close-up registry was supplied in this interim pass.",
+    "The material lifetime fix was added after this frozen source; its separate before/after resource check is pending."
+  ]
+}

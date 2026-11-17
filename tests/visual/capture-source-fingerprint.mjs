@@ -23,10 +23,13 @@ async function files(path) {
 export async function fingerprintCaptureSource(root) {
   const sourcePaths = await files(join(root, 'web/src'));
   const sharedPaths = await files(join(root, 'shared'));
-  const assetPaths = await files(join(root, 'web/public/places/snow-roof'));
+  const snowPaths = await files(join(root, 'web/public/places/snow-roof'));
+  const coverPaths = await files(join(root, 'web/public/places/cloud-cliff'));
+  const colorPaths = await files(join(root, 'web/public/color'));
+  const assetPaths = [...snowPaths, ...coverPaths, ...colorPaths];
   const rows = [];
   for (const path of [...sourcePaths, ...sharedPaths, ...assetPaths]) rows.push({ path: relative(root, path), sha256: await digest(path) });
   let instrumentation = null;
   try { instrumentation = JSON.parse(await readFile(join(root, 'visual-instrumentation.json'), 'utf8')); } catch (error) { if (error.code !== 'ENOENT') throw error; }
-  return { root, sourceFiles: sourcePaths.length, sharedFiles: sharedPaths.length, deliveredSnowFiles: assetPaths.length, instrumentation, files: rows, aggregateSha256: createHash('sha256').update(JSON.stringify(rows)).digest('hex') };
+  return { root, sourceFiles: sourcePaths.length, sharedFiles: sharedPaths.length, deliveredSnowFiles: snowPaths.length, deliveredCoverFiles: coverPaths.length, sharedColorFiles:colorPaths.length, instrumentation, files: rows, aggregateSha256: createHash('sha256').update(JSON.stringify(rows)).digest('hex') };
 }

@@ -1,0 +1,15 @@
+{
+  "installedUTC": "2026-11-17T03:17:59.965669+00:00",
+  "source": "art/build/cloud-cliff-round1/delivery",
+  "target": "web/public/places/cloud-cliff",
+  "backup": null,
+  "manifestSha256": "e77f0f90114f83b1bc7d415afc4c17f51e91614edadc15e7bcdea568deb2c9f5",
+  "declaredPayloadFiles": 14,
+  "physicalFileCount": 15,
+  "payloadBytes": 6471553,
+  "manifestBytes": 318841,
+  "actualCompletePackageBytes": 6790394,
+  "reservedPosterBytes": 400000,
+  "postersNotYetInstalled": true,
+  "browserAcceptancePending": true
+}

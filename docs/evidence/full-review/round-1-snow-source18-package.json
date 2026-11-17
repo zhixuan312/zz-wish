@@ -1,0 +1,105 @@
+{
+  "scope": "Final Source18 installed delivery. Source/native/package/contact/budget checks pass; actual delivered-app journey and stranger acceptance are separate pending checks.",
+  "sourceSha256": "5d3d015e7b01517d2edc237d9740f80c128d1bc4ad32b373fe9eef8566edc904",
+  "prepared": {
+    "path": "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-round1/final18-native64/snow-roof-prepared.blend",
+    "sha256": "14afe2e56035249313af252581866cbcc54aa6707247e287f2a11d4886ceed61"
+  },
+  "raw": {
+    "path": "art/build/snow-roof-round1/final18-native64/snow-roof.raw.glb",
+    "sha256": "d476b0225a21c9dab180985672c1fa69cc08eb4342539d599a02c342dd31f754"
+  },
+  "manifest": {
+    "path": "web/public/places/snow-roof/manifest.json",
+    "sha256": "1e90933194200dfd2d67ba2fbe207aba216b50a561e9b1da56060161eb6c5289"
+  },
+  "model": {
+    "uri": "snow-roof.glb.zstd",
+    "bytes": 6104342,
+    "sha256": "704940667f50ae25d79488bac138cf83f5c4a14e3fba28163831eefe5c94baf3",
+    "encoding": "zstd",
+    "decodedBytes": 10411376,
+    "decodedSha256": "357cf7e509bad848c3d3c3e67a9adcee726ad445136fa16c95df4ca870e9ff05"
+  },
+  "native": {
+    "maps": 16,
+    "samplesEach": 64,
+    "device": "METAL",
+    "oidnDevice": "METAL",
+    "threads": "AUTO",
+    "seconds": 340.3770815000171,
+    "frozenInputsChanged": [],
+    "noPreviousGIReused": true
+  },
+  "packageBytes": {
+    "payloadBytes": 14827000,
+    "manifestBytes": 26848,
+    "sharedVisualBytes": 116705,
+    "completePackageBytes": 14970553
+  },
+  "budgetBytes": 15000000,
+  "headroomBytes": 29447,
+  "deliveredFiles": 21,
+  "legacyPublicAssetsRetained": false,
+  "contactGroups": 47,
+  "preparedRawAndDecodedContactsPassed": true,
+  "literalGuardsMetres": {
+    "gap": 0.002,
+    "penetration": 0.005
+  },
+  "physicalF32PositionsWindingTransformsExact": true,
+  "runtimeAnchorsExact": true,
+  "declaredDeliveryPrecision": {
+    "maximumOriginalSourceMaterialTexelError": 0.2109375,
+    "maximumLightmapBaseTexelError": 0.0107421875,
+    "maximumWorldNormalComponentError": 1.9786220281869937e-05,
+    "colourPolicy": {
+      "type": "normalized U8",
+      "explicitPolicy": "reviewed-u8",
+      "maximumLinearComponentError": 0.0019607784701328734,
+      "unitRangeHalfStep": 0.00196078431372549,
+      "clampedSourceComponents": 0,
+      "clampingExplicitlyReported": true
+    }
+  },
+  "archNormalImageResolution": 256,
+  "protectedScanNormalResolution": 512,
+  "removedTrianglesByRegion": {
+    "hall": 1784,
+    "altar": 0,
+    "gate": 2996,
+    "court": 8136
+  },
+  "proofReceipts": {
+    "native": {
+      "path": "art/build/snow-roof-round1/final18-native-completion.json",
+      "sha256": "34e92ff13b7ac9f55e9f3eaaa87156a4a516b0e930c54a3e6b62ebe7a5582aee"
+    },
+    "package": {
+      "path": "art/build/snow-roof-round1/final18-packaged/package-receipt.json",
+      "sha256": "659cbcc06cd48a900b2338c324f02a43d11f4277f80b88fb280054afa25d1e66"
+    },
+    "prune": {
+      "path": "art/build/snow-roof-round1/final18-packaged/pruned/snow-roof.unstripped.receipt.json",
+      "sha256": "f32a87106ee1b903feaa60d76b4c6f87d142b81d3fab285859b7d0c2ae074b50"
+    },
+    "independentGeometry": {
+      "path": "art/build/snow-roof-round1/final18-packaged/pruned/independent-geometry-proof.json",
+      "sha256": "ddd9ce0a07bdea774dd9101bff8bc4414eb8e57f797bb8649fc68372168818f0"
+    },
+    "precision": {
+      "path": "art/build/snow-roof-round1/final18-packaged/normal256/independent-precision-proof.json",
+      "sha256": "4f09b0c95723319fb47db9d4a42dc69411713df61d4a43800a74ff86caec7134"
+    },
+    "decodedContacts": {
+      "path": "art/build/snow-roof-round1/final18-packaged/normal256/contact-audit.json",
+      "sha256": "b1932a7ae7019a4831456c67cc44ced03a6601def3d45ced281e267cb9d88792"
+    },
+    "install": {
+      "path": "art/build/snow-roof-round1/final18-install-receipt.json",
+      "sha256": "1a1d01152fb21dd7149641d6fc1211329ce8a760cace552c2112d7492304878b"
+    }
+  },
+  "gpuOrEncoderJobsActive": false,
+  "browserJourneyPending": true
+}

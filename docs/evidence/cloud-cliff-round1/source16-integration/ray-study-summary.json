@@ -1,0 +1,111 @@
+{
+  "version": 1,
+  "scope": "CPU-only20 actual view rays, not an image render; source16 unchanged, no source17/bake/public install.",
+  "sourceSha256": "e1fab71cd2500b53a0c3d925b579352c428f023506567266f9b1c7f078cc85a5",
+  "study": {
+    "path": "art/build/cloud-cliff-round1/integration-ray-study-v4/ray-study.json",
+    "sha256": "c233ac7103e738f039c2da2170c40d291d606fe6c2abff15085274d82ca1507c",
+    "cpuSeconds": 0.527043791,
+    "densityCalls": 900429,
+    "allInputsUnchanged": true
+  },
+  "reference": {
+    "primaryStepMetres": 0.125,
+    "convergence025vs0125AlphaMaximum": 1.1164304672961478e-05,
+    "quantity": "Density optical depth/alpha and constant-unit-source scattering centroid. Secondary light transport tested separately.",
+    "opacityTermination": 0.025
+  },
+  "baseline48": {
+    "maxAlphaError": 0.03908082103599708,
+    "maxScatteringCentroidErrorMetres": 20.831376562273363
+  },
+  "selectedPrimary": {
+    "settings": {
+      "cap": 256,
+      "bankStep": 0.5,
+      "distanceStart": 0,
+      "distanceRate": 0.003,
+      "maxBankStep": 3,
+      "substrateStep": 8
+    },
+    "maximumPlannedSamples": 256,
+    "plannedCapRays": 6,
+    "unsafeVisibleCapRays": 0,
+    "maximumActualVisibleSamples": 244,
+    "maximumAlphaError": 0.0014371570716900095,
+    "maximumFullOpticalDepthError": 0.020666068333962784,
+    "maximumScatteringDepthErrorMetres": 1.8274199324326332
+  },
+  "secondary": {
+    "old12MaximumSingleDirectionTransmissionError": 0.7219958461339222,
+    "reference025vs0125MaximumTransmissionDifference": 0.0005891779964469768,
+    "sparseLightCandidates": [
+      {
+        "cap": 32,
+        "maximumActualSamples": 32,
+        "capPaths": 37,
+        "maximumTransmissionError": 0.49787440237890557
+      },
+      {
+        "cap": 48,
+        "maximumActualSamples": 48,
+        "capPaths": 20,
+        "maximumTransmissionError": 0.17822962936250517
+      },
+      {
+        "cap": 64,
+        "maximumActualSamples": 64,
+        "capPaths": 17,
+        "maximumTransmissionError": 0.15087677064817254
+      },
+      {
+        "cap": 96,
+        "maximumActualSamples": 96,
+        "capPaths": 8,
+        "maximumTransmissionError": 0.14662273266179246
+      }
+    ],
+    "adopted": false,
+    "note": "Exact substrate quadrature was studied numerically only; no secondary-light code changes are included in the staged primary candidate."
+  },
+  "staged": {
+    "receiptPath": "art/build/cloud-cliff-round1/runtime-v16-primary-v1-stage/staging-receipt.json",
+    "receiptSha256": "f4b6ca37d5025d1d76963ddf18a1dbea14e271045bbb6d866d622cd91f2a2447",
+    "descriptor": {
+      "path": "/Users/xuan/Documents/code/zz-wish/art/build/cloud-cliff-round1/runtime-v16-primary-v1-stage/cloud-cliff-baked.js",
+      "sha256": "f3c77347f65c809e32e2d0987deaabe8f56c2cf3d1b09ef7d25b49eebac826cc"
+    },
+    "primaryHelper": {
+      "path": "/Users/xuan/Documents/code/zz-wish/art/build/cloud-cliff-round1/runtime-v16-primary-v1-stage/cloud-primary-v1.js",
+      "sha256": "5c90c93c39a69a2155af16df42fb5a9e54d6f85957a92cf71e7a9de28009c4e5"
+    },
+    "fieldHelper": {
+      "path": "/Users/xuan/Documents/code/zz-wish/art/build/cloud-cliff-round1/runtime-v16-primary-v1-stage/cloud-field-v6.js",
+      "sha256": "387b0ce53d82e8ae0c529f62251875b77f2a705bea102b1f39a44141c2c85bc8"
+    },
+    "protectedLightFunctions": [
+      {
+        "name": "illuminationTransmission",
+        "byteExact": true,
+        "sha256": "f88f43f753c0f80631e7dc8de6e9cdde62b5d9c42963c64e07d5c4d50ce73ded"
+      },
+      {
+        "name": "scatteringPhase",
+        "byteExact": true,
+        "sha256": "992a1e49aad3b02ce804c95aa1394ee410cd766af8f2fd1e581fba71afd8bcad"
+      },
+      {
+        "name": "worldTransmission",
+        "byteExact": true,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ],
+    "hdrTerrainAirPointProbesHeroViewsByteExact": true
+  },
+  "limits": [
+    "20 rays do not prove all-view cap safety.",
+    "Alpha/centroid bounds are not RGB/native lighting equivalence.",
+    "Actual shader compile/continuity/cost need a bounded GPU review.",
+    "Secondary12-segment alias remains unchanged and can still produce lighting bands."
+  ]
+}

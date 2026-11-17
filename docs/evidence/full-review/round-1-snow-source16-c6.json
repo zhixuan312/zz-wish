@@ -1,0 +1,374 @@
+{
+  "scope": "Physically frozen Source16 C6/B4 candidate. Nominal2W/4mm is a low8 proposal, not optical approval. No native/GPU render, GI bake, runtime or public installation occurred.",
+  "source": {
+    "path": "art/build/snow-roof-round1/source-v16.blend",
+    "sha256": "8f414ee9c99550192a767ef1d1e498316f760863f949a2b417c43d701b428814",
+    "bytes": 11716544
+  },
+  "frozenBase": {
+    "path": "art/build/snow-roof-round1/source16-freeze-feasibility-v5/source-frozen.blend",
+    "sha256": "402d192bcd62e49f8ce827ef85c1c10b65164332abbd7ac86dcc8f1e5f4def55",
+    "bytes": 11136451
+  },
+  "originalRuntimeGeometry": {
+    "path": "art/build/snow-roof-round1/source16-gauze-proxy-default30.json",
+    "sha256": "4a8c0b97007b8fd2cba1d426e8d3f4e12fe5c2bc2eb61c33d40a7965b495b39e",
+    "bytes": 2260632
+  },
+  "buildAudit": {
+    "path": "art/build/snow-roof-round1/source-v16-transport-audit.json",
+    "sha256": "cfaa31095bf9b0a5c58fdf3c847d12d60f6a1e91251f53e3dc776ea305caa31a",
+    "bytes": 3596236
+  },
+  "savedSourceAudit": {
+    "path": "art/build/snow-roof-round1/source-v16-saved-transport-audit.json",
+    "sha256": "16b1708a5cb59973a7a4ac283354bdbf0de0db83f5f99c411fd87b237f83c834",
+    "bytes": 3494
+  },
+  "contactAudit": {
+    "path": "art/build/snow-roof-round1/source-v16.audit.json",
+    "sha256": "2119a1bfa1f8a8abf1bad0aed16c07b0f95986cd08fc9f91a72fba293a9b5173",
+    "bytes": 349497
+  },
+  "actualBasis": {
+    "position": [
+      -1.5,
+      2.25,
+      -1.2999999523162842
+    ],
+    "watts": 2.0,
+    "linearColor": [
+      1.0,
+      0.7411764860153198,
+      0.47058823704719543
+    ],
+    "pointRadiusMetres": 0.004000000189989805
+  },
+  "bodyAttachmentEngine": [
+    -1.4993000030517578,
+    2.838900089263916,
+    -1.2999999523162842
+  ],
+  "upwardSupport": {
+    "pointEngine": [
+      -1.4993000030517578,
+      5.039999961853027,
+      -1.2999999523162842
+    ],
+    "normalEngine": [
+      0.0,
+      -0.9999999403953552,
+      -0.0
+    ],
+    "distanceMetres": 2.2010996341705322,
+    "triangle": 57377,
+    "object": "Dark boarded ceiling",
+    "polygon": 48,
+    "material": "Dark old timber",
+    "rayOriginEngine": [
+      -1.4993000030517578,
+      2.838900089263916,
+      -1.2999999523162842
+    ],
+    "rayDirectionEngine": [
+      0,
+      1,
+      0
+    ]
+  },
+  "bodyClearance": {
+    "passed": true,
+    "minimumRequiredMetres": 1.2,
+    "certifiedWholeTriangleLowerBoundMetres": 1.445619693734803,
+    "closestBound": {
+      "proxyObject": "Actual gauze cord 38",
+      "triangleCenterEngine": [
+        -1.504509687423706,
+        2.059847116470337,
+        -1.3030952215194702
+      ],
+      "nearestArchitecturePointEngine": [
+        -1.508667230606079,
+        0.6043252348899841,
+        -1.305152177810669
+      ],
+      "nearestArchitectureTriangle": 10096,
+      "centerDistanceMetres": 1.4555292129516602,
+      "triangleRadiusMetres": 0.009909519216857333
+    },
+    "virtualTriangleSamples": 24284,
+    "method": "Distance-to-opaque-architecture is1-Lipschitz: actual BVH center distance minus triangle radius bounds every point. Ambiguous triangles subdivide virtually; actual geometry is unchanged."
+  },
+  "actualTopEmbeddingMetres": 0.0009999275207519531,
+  "actualCyclesShadowRGB": [
+    0.2199999988079071,
+    0.013008423149585724,
+    0.006524191703647375
+  ],
+  "maximumShadowRGBFloat32Error": 1.1920928966180355e-09,
+  "actualRuntimeCeilingExtension": {
+    "constructor": "THREE.CylinderGeometry(1,1,1,8)",
+    "unitGeometrySha256": "fc6a853d0af3b872dba34d413146902174ae4517d2af0d2b94a1d7a98b8d1eb3",
+    "constructorSourceSha256": "61e8c0e62ee8e924a9e125323919f479874ee3ad4eac3ac8c305751d7d859519",
+    "radiusMetres": 0.0025,
+    "lengthMetres": 2.2020999618530275,
+    "bottomEngine": [
+      -1.4993,
+      2.8389,
+      -1.3
+    ],
+    "topEngine": [
+      -1.4993,
+      5.040999961853028,
+      -1.3
+    ],
+    "cssHex": "#746041",
+    "metalness": 0.7,
+    "roughness": 0.5,
+    "topEmbeddingMetres": 0.001
+  },
+  "actualHangerPBR": {
+    "metalness": 0.699999988079071,
+    "roughness": 0.5
+  },
+  "geometry": {
+    "runtimeImportedParts": 56,
+    "runtimeImportedTriangles": 24284,
+    "totalProxyParts": 57,
+    "totalProxyTriangles": 24316,
+    "removedObsoleteStaticSuspension": {
+      "object": "Visitor lantern suspension",
+      "region": "hall",
+      "objects": 1,
+      "vertices": 20,
+      "triangles": 36,
+      "worldAreaM2": 0.0656139687954492
+    },
+    "remainingExportStaticObjects": 1871,
+    "remainingExportStaticTriangles": 330740,
+    "actualProxyGeometrySha256": "7c14cdfcb7375c12d559369faa1f73685c58b0af1a002c2a8b977fd64fdc7293",
+    "importProof": {
+      "parts": 57,
+      "allIndexedTopologyExact": true,
+      "maximumPositionComponentErrorMetres": 1.1920928955078125e-07,
+      "maximumWorldNormalComponentError": 9.658988109340072e-08,
+      "maximumUVComponentError": 0.0,
+      "zeroNormalVerticesOnlyOnExactlyDegenerateTriangles": 2,
+      "exactlyDegenerateIncidentTriangles": 2,
+      "nondegenerateNormalComponentLimit": 1e-06,
+      "perPartProofSha256": "19ef947438e04cc429f106ce0b8e3d61783e9ad04ab989fdc4fd15e948894ab5"
+    },
+    "noGeneratedSubstituteShellOrCap": true,
+    "allProxyGeometryExportExcluded": true
+  },
+  "invariants": {
+    "constructionExceptObsoleteSuspensionByteExact": true,
+    "all47ContactMeasurementsByteValueExact": true,
+    "allOriginalUsedMaterialGraphsExact": true,
+    "allOriginalImageIdentitiesExact": true,
+    "worldExposureCyclesExact": true,
+    "allOtherObjectTransformsAndPropertiesExact": true,
+    "allOtherLightsExact": true,
+    "candleSourceChromaticityExact": true,
+    "allOtherSceneMetadataExact": true
+  },
+  "afterSaveStaticGeometry": {
+    "allRemaining1871MeshesByteExact": true,
+    "maximumPositionComponentErrorMetres": 0.0,
+    "maximumUV0ComponentError": 0.0,
+    "maximumWorldNormalComponentError": 0.0,
+    "originalUsedMaterialGraphsExact": true,
+    "originalImageInputsExact": true
+  },
+  "contacts": {
+    "groups": 47,
+    "passed": true,
+    "sourceAnchorCorrespondencePassed": true,
+    "inventory": {
+      "candidateObjects": 234,
+      "registeredGroups": 47,
+      "unregisteredCandidates": [],
+      "classification": {
+        "registeredGroups": [
+          "scanned console altar",
+          "small personal offering bowl",
+          "folded personal offering note",
+          "turned pedestal -1.45",
+          "turned pedestal 1.45",
+          "wall-mounted screen bearing rail",
+          "mounted screen leaf 0",
+          "mounted screen leaf 1",
+          "mounted screen leaf 2",
+          "screen edge molding -2.34",
+          "screen edge molding 2.34",
+          "altar -1.45",
+          "altar -0.95",
+          "altar 0.95",
+          "altar 1.45",
+          "burner ash",
+          "charred incense 0",
+          "charred incense 1",
+          "charred incense 2",
+          "charred incense 3",
+          "charred incense 4",
+          "charred incense 5",
+          "charred incense 6",
+          "charred incense 7",
+          "charred incense 8",
+          "smouldering incense 0",
+          "smouldering incense 1",
+          "smouldering incense 2",
+          "smouldering incense 3",
+          "altar burner assembly",
+          "altar spilled incense ash",
+          "kneeling cushion -1",
+          "kneeling cushion 1",
+          "leaning broom",
+          "stacked bowl 0",
+          "stacked bowl 1",
+          "stacked bowl 2",
+          "stacked bowl assembly",
+          "gate -1",
+          "gate 1",
+          "court lantern oil cup",
+          "court stone lantern foundation",
+          "court incense ash",
+          "court spent incense 0",
+          "court spent incense 1",
+          "court spent incense 2",
+          "court incense stand"
+        ],
+        "mountedSupport": "Raised scanned screen leaves and edge molding bear on a real wall-fastened rail with actual fastener/wall intersections.",
+        "fixedArchitecture": "Columns, column drums, built-in masonry benches, thresholds, roof snow and bough snow are construction/settled weather volumes, not loose table/floor props. Their embedded bearing is intentional; no loose prop is exempted."
+      }
+    },
+    "gapLimitMetres": 0.002,
+    "penetrationLimitMetres": 0.005,
+    "challengeCount": 2,
+    "allChallengesCaught": true
+  },
+  "visibilityAndPower": [
+    {
+      "pass": "night",
+      "visibleProxyMeshes": 0,
+      "pointWatts": 0.0,
+      "actualGeometryProfilesExact": true
+    },
+    {
+      "pass": "dusk",
+      "visibleProxyMeshes": 0,
+      "pointWatts": 0.0,
+      "actualGeometryProfilesExact": true
+    },
+    {
+      "pass": "day",
+      "visibleProxyMeshes": 0,
+      "pointWatts": 0.0,
+      "actualGeometryProfilesExact": true
+    },
+    {
+      "pass": "lamp",
+      "visibleProxyMeshes": 57,
+      "pointWatts": 2.0,
+      "actualGeometryProfilesExact": true
+    }
+  ],
+  "proxyEmissionNodes": [],
+  "runtimeHandshake": {
+    "type": "actual-gauze",
+    "version": 1,
+    "geometrySha256": "017a715f37c2ab756f8bd2e8ec667145dd86652eb28b0595c02fed948957a0be",
+    "geometryFileSha256": "4a8c0b97007b8fd2cba1d426e8d3f4e12fe5c2bc2eb61c33d40a7965b495b39e",
+    "clothShadowTransmissionLinearRGB": [
+      0.22,
+      0.013008423338438501,
+      0.006524191775506214
+    ],
+    "clothCSSHex": "#a82a1c",
+    "formula": "linearCSS*.22/max(linearCSS)",
+    "proposalStatus": "nominal2W-4mm-low8-proposal-not-optically-approved",
+    "sourceRuntime": {
+      "sceneSha256": "98e00117aaf0dbd2066d9b0fa7e1f2201bf86329ba7b624de47d1471beecdfc5",
+      "builderSha256": "0a24939afdab2c278ab2a7ded6f64b5469834f8363ccf01d67a0b26ac6356ad2",
+      "helpersSha256": "275605bc7101cbd2026b05d58b0e5a571a545d72695ce407d89cb45681479373",
+      "wickPlumeSha256": "1546f79dddf39a499604d4802d675ba81f884f7b45af0f3b3d6f6fd7b1188e5c",
+      "exporterSha256": "de0fbec563a8b8b057a2bd9ad2ac05bc5ce2abc35d33a5727db61c16d7c9c48e"
+    }
+  },
+  "sourceRecipe": {
+    "frozenBase": {
+      "path": "art/build/snow-roof-round1/source16-freeze-feasibility-v5/source-frozen.blend",
+      "sha256": "402d192bcd62e49f8ce827ef85c1c10b65164332abbd7ac86dcc8f1e5f4def55",
+      "bytes": 11136451
+    },
+    "geometryInput": {
+      "path": "art/build/snow-roof-round1/source16-gauze-proxy-default30.json",
+      "sha256": "4a8c0b97007b8fd2cba1d426e8d3f4e12fe5c2bc2eb61c33d40a7965b495b39e",
+      "bytes": 2260632
+    },
+    "sourceFreezeHelper": {
+      "path": "art/blender/freeze_source_modifiers.py",
+      "sha256": "59c1a2bc060a49cc4413acc23765b25aaac0fe84a25e853c8edf89e9e50d7e31"
+    },
+    "transportHelper": {
+      "path": "art/blender/snow_lantern_transport.py",
+      "sha256": "6b84c4970ed2bf75d9454ccced95015ea529f574d5a2422f6eff4d6e2094b7dd"
+    },
+    "patcher": {
+      "path": "art/blender/patch_snow_lantern_transport.py",
+      "sha256": "755cacc5a6db5a576a8675a7ae8df8555acd8027baeb8c66f0ff960ab2cc401d"
+    }
+  },
+  "materialRecipe": {
+    "normalRays": "Nonemissive photographed weave, diffuse/translucent65%mix; selected linear CSS dye, yarn luminance/mean clamped.66..1.24, UVrepeat1.28/.96, actual normalmap strength.38 and actual roughnessmap.",
+    "shadowRays": "LightPath IsShadowRay selects TransparentBSDF RGB=linearCSS*.22/max(linearCSS). Opaque actual cap/cup/rib/spoke/hanger geometry remains fully shadowing.",
+    "sourceChromaticityUnchanged": true,
+    "proposalStatus": "Not optically approved"
+  },
+  "bakerSupport": {
+    "script": {
+      "path": "art/blender/bake_export.py",
+      "sha256": "c366d5503e7c69c3ec42b6cb83f978dd8bff46e9c81e663cba6ff005ffd4e2b5",
+      "bytes": 117982
+    },
+    "onlyTaggedPathChanges": true,
+    "proxyPasses": "night/dusk/day excluded;lamp included;authored full-scene preview includes the proxy with2W",
+    "transportIdentity": "Actual proxy geometry/normal/UV fields and material graphs hashed; source compact certificate has no vertex arrays.",
+    "oldSource15AndUntaggedCloudPathsUnmodified": true
+  },
+  "scripts": {
+    "art/blender/snow_lantern_transport.py": {
+      "path": "art/blender/snow_lantern_transport.py",
+      "sha256": "6b84c4970ed2bf75d9454ccced95015ea529f574d5a2422f6eff4d6e2094b7dd",
+      "bytes": 28064
+    },
+    "art/blender/patch_snow_lantern_transport.py": {
+      "path": "art/blender/patch_snow_lantern_transport.py",
+      "sha256": "755cacc5a6db5a576a8675a7ae8df8555acd8027baeb8c66f0ff960ab2cc401d",
+      "bytes": 9089
+    },
+    "art/blender/audit_snow_lantern_transport.py": {
+      "path": "art/blender/audit_snow_lantern_transport.py",
+      "sha256": "5b15b000e445918f2af9e8f0308135abe2b2f9337df92b71cf4c7f513791261c",
+      "bytes": 7703
+    },
+    "art/blender/freeze_source_modifiers.py": {
+      "path": "art/blender/freeze_source_modifiers.py",
+      "sha256": "59c1a2bc060a49cc4413acc23765b25aaac0fe84a25e853c8edf89e9e50d7e31",
+      "bytes": 14003
+    }
+  },
+  "pending": [
+    "Root-authorized low8 Metal/AUTO/OIDN source visual review of actual55/53degree compositions",
+    "Fresh source-bound hidden proof and actual unique-atlas preparation",
+    "Fresh direct source/prepared/raw mapping,47contact and19/16guard proofs",
+    "Fresh source16 lightmaps;noSource15 pixels reused",
+    "Actual Chrome/WebKit cloth/filter/baked-live seam and complete package/performance acceptance"
+  ],
+  "jobs": {
+    "terminal": true,
+    "CyclesRenderBakeGpuJobs": 0,
+    "runtimePublicSource15Changes": false,
+    "commits": 0
+  }
+}

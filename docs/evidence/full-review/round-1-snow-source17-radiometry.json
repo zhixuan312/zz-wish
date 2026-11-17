@@ -1,0 +1,967 @@
+{
+  "scope": "Saved Source17 radiometric rebase and actual fresh CPU preflight. This is a physical/geometry/transport input gate for an8-sample runtime optical preview, not final64 GI, browser delivery, photorealism or15MB budget approval.",
+  "files": [
+    {
+      "path": "art/build/snow-roof-round1/source-v16.blend",
+      "sha256": "8f414ee9c99550192a767ef1d1e498316f760863f949a2b417c43d701b428814",
+      "bytes": 11716544
+    },
+    {
+      "path": "art/build/snow-roof-round1/source-v17.blend",
+      "sha256": "2990854d3c9a65bf18879511d865b6e36788f6e727339248d5746b67fb52dd64",
+      "bytes": 11717577
+    },
+    {
+      "path": "art/build/snow-roof-round1/source-v17-radiometry-audit.json",
+      "sha256": "c9e8119376820838914ed2010a1202ebf4bd6417720ccf9686361fa352b7c4b7",
+      "bytes": 3539188
+    },
+    {
+      "path": "art/build/snow-roof-round1/source-v17-saved-radiometry-audit-v2.json",
+      "sha256": "c1fbef5ecc9c17c4f4ae4b8ff86f8c22719ea1ca7d0f5b974d7e8bac72a62269",
+      "bytes": 20984
+    },
+    {
+      "path": "art/build/snow-roof-round1/source-v17.audit.json",
+      "sha256": "8b897b79ce2ad533d317399417c602468ee88747a70905ad86c5f533dd11a6aa",
+      "bytes": 351222
+    },
+    {
+      "path": "art/build/snow-roof-round1/source-v17-hidden-faces-20mm.json",
+      "sha256": "8b27f8d34705f1cb7c674cbb04d3e419b9207cf835c378cd355579a2fdebdb4d",
+      "bytes": 918601
+    },
+    {
+      "path": "art/build/snow-roof-round1/prepared-v17-c6-priority/preparation-recipe.json",
+      "sha256": "57916f1628a71b0c529695c77ec0adf1eac71ec623b9a182321b6dc6c7b5dcab",
+      "bytes": 19114
+    },
+    {
+      "path": "art/build/snow-roof-round1/contact-replay-v17-c6/mapping-proof.json",
+      "sha256": "1743f2a82099beace116864e2004dc988ca4ea89cb8faf918ecfb80655e7a20e",
+      "bytes": 43589
+    },
+    {
+      "path": "art/build/snow-roof-round1/contact-replay-v17-c6/mapping-bake-binding.json",
+      "sha256": "9bf2bb364622639188162d2a3fe07dc1166f707c1b5d3643bca76fd9ab7c9177",
+      "bytes": 9555
+    },
+    {
+      "path": "art/build/snow-roof-round1/contact-replay-v17-c6/contact-audit.json",
+      "sha256": "5e98c0136d04d7ee2010d372822a06ee8e0416f1662ef54b54c8ed096186c9fc",
+      "bytes": 136842
+    },
+    {
+      "path": "art/build/snow-roof-round1/contact-replay-v17-c6/contact-guard/guard-proof.json",
+      "sha256": "9939cb778d0bc8be59b79b0649a493f60d8c4c940832c65617e2544f6c68949b",
+      "bytes": 4050
+    },
+    {
+      "path": "art/build/snow-roof-round1/contact-replay-v17-c6/normal-guard-compact.json",
+      "sha256": "5738400a563620e76005d1ecf5af3df732838987e9f6554887e4ebf64bb3db2c",
+      "bytes": 5176
+    },
+    {
+      "path": "art/build/snow-roof-round1/contact-replay-v17-c6/independent-raw-normal-proof.json",
+      "sha256": "ac33a16b23042c4359b7c3979d485ed155dfbc017e9318319d6359d63b940d32",
+      "bytes": 10763
+    },
+    {
+      "path": "art/build/snow-roof-round1/contact-replay-v17-c6/current-camera-coverage.json",
+      "sha256": "98d70091999fad308458395ad4ec2a9b3bfc96ece6df01e22f8e806871a37fbe",
+      "bytes": 16157
+    },
+    {
+      "path": "art/build/snow-roof-round1/contact-replay-v17-c6/pitch.json",
+      "sha256": "44e635b96f1f4bb74ecd3dafdf685737f485eb15ba8005524bc1655c3a1cdc69",
+      "bytes": 148259
+    },
+    {
+      "path": "art/build/snow-roof-round1/contact-replay-v17-c6/raw-radiometry-equality.json",
+      "sha256": "3684707234547a04a324d9fafad277ab411fecc37e635aa8160168c712e70160",
+      "bytes": 17599
+    },
+    {
+      "path": "art/build/snow-roof-round1/contact-replay-v17-c6/actual-before-pass-transport-compact.json",
+      "sha256": "23e5fe5684d1b8195c8478d67d739dd93cfec150a4dfb844070f6a0116823f69",
+      "bytes": 11480
+    },
+    {
+      "path": "art/build/snow-roof-round1/face-reference-v17-c6/reference.json",
+      "sha256": "e08f41b1116426d8bdcb4fa1b052617e9660409a64323b48901802df35d9436e",
+      "bytes": 4181
+    },
+    {
+      "path": "art/build/snow-roof-round1/face-reference-v17-c6/raw-correspondence.json",
+      "sha256": "908d34e0fe156217231ed221e71654a5818190723f064d5329913b77cc42a96d",
+      "bytes": 32172
+    },
+    {
+      "path": "art/build/snow-roof-round1/preview17-c6-normalized-input-ledger.json",
+      "sha256": "b3e409b88de827960666e48d663871af947bbab652a17453def27604cc6ba851",
+      "bytes": 13972
+    },
+    {
+      "path": "art/blender/rebase_snow_radiometry.py",
+      "sha256": "f3d6af6ecc35a6d70dc138eaee9375546d3908fc66db31eee19942e5233ff7fe",
+      "bytes": 14147
+    },
+    {
+      "path": "art/blender/audit_snow_radiometry.py",
+      "sha256": "d0610debcc5e25f3622f3f31191119f8f111e1045f254304ad64879022f306fa",
+      "bytes": 9036
+    },
+    {
+      "path": "art/blender/audit_transport_pass_visibility.py",
+      "sha256": "56901e559a646e1da3545b5b3b846886d3e0e4b147aca7b469a498cea81692bc",
+      "bytes": 7324
+    },
+    {
+      "path": "art/blender/compact_mapping_binding.py",
+      "sha256": "4ee58fe19470446b5d686d10209380f679fda0bde33d8f558502d92564ee891c",
+      "bytes": 4134
+    },
+    {
+      "path": "scripts/audit-snow-radiometry-raw.mjs",
+      "sha256": "a6e9646831969251fdbe009fd7a295a0cd391eeb0dcb05ce8eee741e73c5b155",
+      "bytes": 6342
+    }
+  ],
+  "source": {
+    "path": "art/build/snow-roof-round1/source-v17.blend",
+    "sha256": "2990854d3c9a65bf18879511d865b6e36788f6e727339248d5746b67fb52dd64",
+    "bytes": 11717577
+  },
+  "parent": {
+    "path": "art/build/snow-roof-round1/source-v16.blend",
+    "sha256": "8f414ee9c99550192a767ef1d1e498316f760863f949a2b417c43d701b428814",
+    "bytes": 11716544
+  },
+  "invariants": {
+    "allStaticEvaluatedArraysByteExact": true,
+    "allProxyPositionNormalUVMaterialSlotsByteExact": true,
+    "all47ContactsByteValueExact": true,
+    "allNonFluxGraphsExact": true,
+    "allOriginalImagePathsSizesColorSpacesAndBytesExact": true,
+    "allMaterialDiffuseFactorsPropertiesOwnershipExact": true,
+    "allOtherSceneMetadataExact": true,
+    "allObjectMatricesPropertiesOwnershipExact": true,
+    "allDefaultLightGraphsExact": true,
+    "allLightColorsTypesRadiiExact": true,
+    "nativeViewExceptExposureExact": true,
+    "cyclesSettingsExact": true
+  },
+  "staticObjects": 1871,
+  "staticTriangles": 330740,
+  "proxyMeshes": 57,
+  "proxyTriangles": 24316,
+  "remainingConstructionPositionUV0NormalMaxError": {
+    "positionMetres": 0.0,
+    "materialUV0": 0.0,
+    "worldNormalComponent": 0.0
+  },
+  "radiometry": {
+    "factor": 40,
+    "cameraPreExposure": 40,
+    "nativeEVBefore": 0.0,
+    "nativeEVAfter": 5.321928024291992,
+    "storedNativeSettings": {
+      "view_transform": "AgX",
+      "look": "None",
+      "exposure": 5.321928024291992,
+      "gamma": 1.0
+    },
+    "lampQuantity": "indirect-diffuse-radiance-per-unit-albedo",
+    "lights": [
+      {
+        "object": "Other altar lamp warm spill",
+        "data": "Other altar lamp warm spill",
+        "type": "POINT",
+        "before": 18.0,
+        "after": 0.44999998807907104,
+        "expected": 0.45,
+        "defaultUnitEmissionGraphPreserved": true,
+        "physicalSink": "Light.energy only; unit node multiplier unchanged"
+      },
+      {
+        "object": "Other altar lamp warm spill.001",
+        "data": "Other altar lamp warm spill.001",
+        "type": "POINT",
+        "before": 14.0,
+        "after": 0.3499999940395355,
+        "expected": 0.35,
+        "defaultUnitEmissionGraphPreserved": true,
+        "physicalSink": "Light.energy only; unit node multiplier unchanged"
+      },
+      {
+        "object": "Other altar lamp warm spill.002",
+        "data": "Other altar lamp warm spill.002",
+        "type": "POINT",
+        "before": 0.0,
+        "after": 0.0,
+        "expected": 0.0,
+        "defaultUnitEmissionGraphPreserved": true,
+        "physicalSink": "Light.energy only; unit node multiplier unchanged"
+      },
+      {
+        "object": "Other altar lamp warm spill.003",
+        "data": "Other altar lamp warm spill.003",
+        "type": "POINT",
+        "before": 17.0,
+        "after": 0.42500001192092896,
+        "expected": 0.425,
+        "defaultUnitEmissionGraphPreserved": true,
+        "physicalSink": "Light.energy only; unit node multiplier unchanged"
+      },
+      {
+        "object": "Visitor flame bake basis",
+        "data": "Visitor flame bake basis",
+        "type": "POINT",
+        "before": 2.0,
+        "after": 0.05000000074505806,
+        "expected": 0.05,
+        "defaultUnitEmissionGraphPreserved": true,
+        "physicalSink": "Light.energy only; unit node multiplier unchanged"
+      },
+      {
+        "object": "Cool court light entering doorway",
+        "data": "Cool court light entering doorway",
+        "type": "POINT",
+        "before": 65.0,
+        "after": 1.625,
+        "expected": 1.625,
+        "defaultUnitEmissionGraphPreserved": true,
+        "physicalSink": "Light.energy only; unit node multiplier unchanged"
+      },
+      {
+        "object": "Soft warm hall interreflection",
+        "data": "Soft warm hall interreflection",
+        "type": "POINT",
+        "before": 12.0,
+        "after": 0.30000001192092896,
+        "expected": 0.3,
+        "defaultUnitEmissionGraphPreserved": true,
+        "physicalSink": "Light.energy only; unit node multiplier unchanged"
+      },
+      {
+        "object": "Gate shelf lamp warm spill",
+        "data": "Gate shelf lamp warm spill",
+        "type": "POINT",
+        "before": 19.0,
+        "after": 0.4749999940395355,
+        "expected": 0.475,
+        "defaultUnitEmissionGraphPreserved": true,
+        "physicalSink": "Light.energy only; unit node multiplier unchanged"
+      },
+      {
+        "object": "Gate shelf lamp warm spill.001",
+        "data": "Gate shelf lamp warm spill.001",
+        "type": "POINT",
+        "before": 19.0,
+        "after": 0.4749999940395355,
+        "expected": 0.475,
+        "defaultUnitEmissionGraphPreserved": true,
+        "physicalSink": "Light.energy only; unit node multiplier unchanged"
+      },
+      {
+        "object": "Moon and court reflected into gate passage",
+        "data": "Moon and court reflected into gate passage",
+        "type": "POINT",
+        "before": 28.0,
+        "after": 0.699999988079071,
+        "expected": 0.7,
+        "defaultUnitEmissionGraphPreserved": true,
+        "physicalSink": "Light.energy only; unit node multiplier unchanged"
+      },
+      {
+        "object": "Court lantern oil cup warm spill",
+        "data": "Court lantern oil cup warm spill",
+        "type": "POINT",
+        "before": 12.0,
+        "after": 0.30000001192092896,
+        "expected": 0.3,
+        "defaultUnitEmissionGraphPreserved": true,
+        "physicalSink": "Light.energy only; unit node multiplier unchanged"
+      },
+      {
+        "object": "Moon basis",
+        "data": "Moon basis",
+        "type": "SUN",
+        "before": 0.44999998807907104,
+        "after": 0.011249999515712261,
+        "expected": 0.011249999701976775,
+        "defaultUnitEmissionGraphPreserved": true,
+        "physicalSink": "Light.energy only; unit node multiplier unchanged"
+      }
+    ],
+    "nonzeroMaterialWorldSinks": [
+      {
+        "owner": "material:Ivory window paper",
+        "node": "Principled BSDF",
+        "socket": "Emission Strength",
+        "linked": false,
+        "before": 0.03500000014901161,
+        "after": 0.0008750000270083547,
+        "expected": 0.0008750000037252903
+      },
+      {
+        "owner": "world:Cold winter sky.001",
+        "node": "Background",
+        "socket": "Strength",
+        "linked": false,
+        "before": 0.2199999988079071,
+        "after": 0.005499999970197678,
+        "expected": 0.005499999970197678
+      }
+    ],
+    "linkedStrengthCount": 0,
+    "lightNodePolicy": "All12 default two-node light graphs keep white Emission Strength1 unchanged; only Light.energy scales. Energy/Strength are independent multiplicative controls, so both must not be divided. Material/world strengths scale separately. SUN energy is irradiance; POINT/AREA energy is power.",
+    "runtimeNormalization": "One common40 multiplier on actual source lights, exported emission and decoded radiance. Lightmap irradiance multiplier pi*40. No independent cloth gain; raw EXR exposure0; effective encoding logGain=normalizedGain*40."
+  },
+  "physicalBasis": {
+    "position": [
+      -1.5,
+      2.25,
+      -1.2999999523162842
+    ],
+    "watts": 0.05000000074505806,
+    "linearColor": [
+      1.0,
+      0.7411764860153198,
+      0.47058823704719543
+    ],
+    "pointRadiusMetres": 0.004000000189989805
+  },
+  "suspension": {
+    "pointEngine": [
+      -1.4993000030517578,
+      5.039999961853027,
+      -1.2999999523162842
+    ],
+    "normalEngine": [
+      0.0,
+      -0.9999999403953552,
+      -0.0
+    ],
+    "distanceMetres": 2.2010996341705322,
+    "triangle": 57377,
+    "object": "Dark boarded ceiling",
+    "polygon": 48,
+    "material": "Dark old timber",
+    "rayOriginEngine": [
+      -1.4993000030517578,
+      2.838900089263916,
+      -1.2999999523162842
+    ],
+    "rayDirectionEngine": [
+      0,
+      1,
+      0
+    ]
+  },
+  "contactGuards": {
+    "gapMetres": 0.002,
+    "penetrationMetres": 0.005,
+    "sourceGroups": 47,
+    "preparedGroups": 47,
+    "rawGroups": 47,
+    "missingSourceVertices": {},
+    "maximumAssociationErrorMetres": 3.5762786865234375e-07,
+    "contactGuardCases": 19,
+    "normalGuardCases": 16
+  },
+  "contacts": [
+    {
+      "name": "scanned console altar",
+      "mode": "resting",
+      "preparedPassed": true,
+      "preparedGapMetres": -0.0001373291015625,
+      "preparedPenetrationMetres": 0.0001373291015625,
+      "rawPassed": true,
+      "rawGapMetres": -0.0001373291015625,
+      "rawPenetrationMetres": 0.0001373291015625
+    },
+    {
+      "name": "small personal offering bowl",
+      "mode": "resting",
+      "preparedPassed": true,
+      "preparedGapMetres": 0.0,
+      "preparedPenetrationMetres": 0.0,
+      "rawPassed": true,
+      "rawGapMetres": 0.0,
+      "rawPenetrationMetres": 0.0
+    },
+    {
+      "name": "folded personal offering note",
+      "mode": "resting",
+      "preparedPassed": true,
+      "preparedGapMetres": 0.0,
+      "preparedPenetrationMetres": 0.0,
+      "rawPassed": true,
+      "rawGapMetres": 0.0,
+      "rawPenetrationMetres": 0.0
+    },
+    {
+      "name": "turned pedestal -1.45",
+      "mode": "resting",
+      "preparedPassed": true,
+      "preparedGapMetres": -0.000301361083984375,
+      "preparedPenetrationMetres": 0.000301361083984375,
+      "rawPassed": true,
+      "rawGapMetres": -0.000301361083984375,
+      "rawPenetrationMetres": 0.000301361083984375
+    },
+    {
+      "name": "turned pedestal 1.45",
+      "mode": "resting",
+      "preparedPassed": true,
+      "preparedGapMetres": 6.103515625e-05,
+      "preparedPenetrationMetres": 0.0,
+      "rawPassed": true,
+      "rawGapMetres": 6.103515625e-05,
+      "rawPenetrationMetres": 0.0
+    },
+    {
+      "name": "wall-mounted screen bearing rail",
+      "mode": "mounted",
+      "preparedPassed": true,
+      "preparedGapMetres": null,
+      "preparedPenetrationMetres": null,
+      "rawPassed": true,
+      "rawGapMetres": null,
+      "rawPenetrationMetres": null
+    },
+    {
+      "name": "mounted screen leaf 0",
+      "mode": "resting",
+      "preparedPassed": true,
+      "preparedGapMetres": 3.814697265625e-06,
+      "preparedPenetrationMetres": 0.0,
+      "rawPassed": true,
+      "rawGapMetres": 3.814697265625e-06,
+      "rawPenetrationMetres": 0.0
+    },
+    {
+      "name": "mounted screen leaf 1",
+      "mode": "resting",
+      "preparedPassed": true,
+      "preparedGapMetres": 3.814697265625e-06,
+      "preparedPenetrationMetres": 0.0,
+      "rawPassed": true,
+      "rawGapMetres": 3.814697265625e-06,
+      "rawPenetrationMetres": 0.0
+    },
+    {
+      "name": "mounted screen leaf 2",
+      "mode": "resting",
+      "preparedPassed": true,
+      "preparedGapMetres": 7.152557373046875e-07,
+      "preparedPenetrationMetres": 0.0,
+      "rawPassed": true,
+      "rawGapMetres": 7.152557373046875e-07,
+      "rawPenetrationMetres": 0.0
+    },
+    {
+      "name": "screen edge molding -2.34",
+      "mode": "resting",
+      "preparedPassed": true,
+      "preparedGapMetres": 3.814697265625e-06,
+      "preparedPenetrationMetres": 0.0,
+      "rawPassed": true,
+      "rawGapMetres": 3.814697265625e-06,
+      "rawPenetrationMetres": 0.0
+    },
+    {
+      "name": "screen edge molding 2.34",
+      "mode": "resting",
+      "preparedPassed": true,
+      "preparedGapMetres": -3.0994415283203125e-06,
+      "preparedPenetrationMetres": 3.0994415283203125e-06,
+      "rawPassed": true,
+      "rawGapMetres": -3.0994415283203125e-06,
+      "rawPenetrationMetres": 3.0994415283203125e-06
+    },
+    {
+      "name": "altar -1.45",
+      "mode": "resting",
+      "preparedPassed": true,
+      "preparedGapMetres": 0.0,
+      "preparedPenetrationMetres": 0.0,
+      "rawPassed": true,
+      "rawGapMetres": 0.0,
+      "rawPenetrationMetres": 0.0
+    },
+    {
+      "name": "altar -0.95",
+      "mode": "resting",
+      "preparedPassed": true,
+      "preparedGapMetres": 0.0,
+      "preparedPenetrationMetres": 0.0,
+      "rawPassed": true,
+      "rawGapMetres": 0.0,
+      "rawPenetrationMetres": 0.0
+    },
+    {
+      "name": "altar 0.95",
+      "mode": "resting",
+      "preparedPassed": true,
+      "preparedGapMetres": 0.0,
+      "preparedPenetrationMetres": 0.0,
+      "rawPassed": true,
+      "rawGapMetres": 0.0,
+      "rawPenetrationMetres": 0.0
+    },
+    {
+      "name": "altar 1.45",
+      "mode": "resting",
+      "preparedPassed": true,
+      "preparedGapMetres": 3.814697265625e-06,
+      "preparedPenetrationMetres": 0.0,
+      "rawPassed": true,
+      "rawGapMetres": 3.814697265625e-06,
+      "rawPenetrationMetres": 0.0
+    },
+    {
+      "name": "burner ash",
+      "mode": "resting",
+      "preparedPassed": true,
+      "preparedGapMetres": 2.1457672119140625e-06,
+      "preparedPenetrationMetres": 9.298324584960938e-06,
+      "rawPassed": true,
+      "rawGapMetres": 2.1457672119140625e-06,
+      "rawPenetrationMetres": 9.298324584960938e-06
+    },
+    {
+      "name": "charred incense 0",
+      "mode": "resting",
+      "preparedPassed": true,
+      "preparedGapMetres": -5.4836273193359375e-06,
+      "preparedPenetrationMetres": 5.4836273193359375e-06,
+      "rawPassed": true,
+      "rawGapMetres": -5.4836273193359375e-06,
+      "rawPenetrationMetres": 5.4836273193359375e-06
+    },
+    {
+      "name": "charred incense 1",
+      "mode": "resting",
+      "preparedPassed": true,
+      "preparedGapMetres": -5.4836273193359375e-06,
+      "preparedPenetrationMetres": 0.000891566276550293,
+      "rawPassed": true,
+      "rawGapMetres": -5.4836273193359375e-06,
+      "rawPenetrationMetres": 0.000891566276550293
+    },
+    {
+      "name": "charred incense 2",
+      "mode": "resting",
+      "preparedPassed": true,
+      "preparedGapMetres": -1.6689300537109375e-06,
+      "preparedPenetrationMetres": 1.6689300537109375e-06,
+      "rawPassed": true,
+      "rawGapMetres": -1.6689300537109375e-06,
+      "rawPenetrationMetres": 1.6689300537109375e-06
+    },
+    {
+      "name": "charred incense 3",
+      "mode": "resting",
+      "preparedPassed": true,
+      "preparedGapMetres": 2.1457672119140625e-06,
+      "preparedPenetrationMetres": 0.0,
+      "rawPassed": true,
+      "rawGapMetres": 2.1457672119140625e-06,
+      "rawPenetrationMetres": 0.0
+    },
+    {
+      "name": "charred incense 4",
+      "mode": "resting",
+      "preparedPassed": true,
+      "preparedGapMetres": -1.6689300537109375e-06,
+      "preparedPenetrationMetres": 0.002035975456237793,
+      "rawPassed": true,
+      "rawGapMetres": -1.6689300537109375e-06,
+      "rawPenetrationMetres": 0.002035975456237793
+    },
+    {
+      "name": "charred incense 5",
+      "mode": "resting",
+      "preparedPassed": true,
+      "preparedGapMetres": 2.1457672119140625e-06,
+      "preparedPenetrationMetres": 0.0,
+      "rawPassed": true,
+      "rawGapMetres": 2.1457672119140625e-06,
+      "rawPenetrationMetres": 0.0
+    },
+    {
+      "name": "charred incense 6",
+      "mode": "resting",
+      "preparedPassed": true,
+      "preparedGapMetres": -5.4836273193359375e-06,
+      "preparedPenetrationMetres": 5.4836273193359375e-06,
+      "rawPassed": true,
+      "rawGapMetres": -5.4836273193359375e-06,
+      "rawPenetrationMetres": 5.4836273193359375e-06
+    },
+    {
+      "name": "charred incense 7",
+      "mode": "resting",
+      "preparedPassed": true,
+      "preparedGapMetres": -1.6689300537109375e-06,
+      "preparedPenetrationMetres": 9.810924530029297e-05,
+      "rawPassed": true,
+      "rawGapMetres": -1.6689300537109375e-06,
+      "rawPenetrationMetres": 9.810924530029297e-05
+    },
+    {
+      "name": "charred incense 8",
+      "mode": "resting",
+      "preparedPassed": true,
+      "preparedGapMetres": -1.6689300537109375e-06,
+      "preparedPenetrationMetres": 1.6689300537109375e-06,
+      "rawPassed": true,
+      "rawGapMetres": -1.6689300537109375e-06,
+      "rawPenetrationMetres": 1.6689300537109375e-06
+    },
+    {
+      "name": "smouldering incense 0",
+      "mode": "resting",
+      "preparedPassed": true,
+      "preparedGapMetres": -5.4836273193359375e-06,
+      "preparedPenetrationMetres": 5.4836273193359375e-06,
+      "rawPassed": true,
+      "rawGapMetres": -5.4836273193359375e-06,
+      "rawPenetrationMetres": 5.4836273193359375e-06
+    },
+    {
+      "name": "smouldering incense 1",
+      "mode": "resting",
+      "preparedPassed": true,
+      "preparedGapMetres": -5.4836273193359375e-06,
+      "preparedPenetrationMetres": 5.4836273193359375e-06,
+      "rawPassed": true,
+      "rawGapMetres": -5.4836273193359375e-06,
+      "rawPenetrationMetres": 5.4836273193359375e-06
+    },
+    {
+      "name": "smouldering incense 2",
+      "mode": "resting",
+      "preparedPassed": true,
+      "preparedGapMetres": -9.298324584960938e-06,
+      "preparedPenetrationMetres": 0.00034677982330322266,
+      "rawPassed": true,
+      "rawGapMetres": -9.298324584960938e-06,
+      "rawPenetrationMetres": 0.00034677982330322266
+    },
+    {
+      "name": "smouldering incense 3",
+      "mode": "resting",
+      "preparedPassed": true,
+      "preparedGapMetres": 2.1457672119140625e-06,
+      "preparedPenetrationMetres": 0.00036215782165527344,
+      "rawPassed": true,
+      "rawGapMetres": 2.1457672119140625e-06,
+      "rawPenetrationMetres": 0.00036215782165527344
+    },
+    {
+      "name": "altar burner assembly",
+      "mode": "resting",
+      "preparedPassed": true,
+      "preparedGapMetres": 0.0,
+      "preparedPenetrationMetres": 0.0,
+      "rawPassed": true,
+      "rawGapMetres": 0.0,
+      "rawPenetrationMetres": 0.0
+    },
+    {
+      "name": "altar spilled incense ash",
+      "mode": "resting",
+      "preparedPassed": true,
+      "preparedGapMetres": 0.0,
+      "preparedPenetrationMetres": 0.0,
+      "rawPassed": true,
+      "rawGapMetres": 0.0,
+      "rawPenetrationMetres": 0.0
+    },
+    {
+      "name": "kneeling cushion -1",
+      "mode": "resting",
+      "preparedPassed": true,
+      "preparedGapMetres": -4.57763671875e-05,
+      "preparedPenetrationMetres": 0.0030508041381835938,
+      "rawPassed": true,
+      "rawGapMetres": -4.57763671875e-05,
+      "rawPenetrationMetres": 0.0030508041381835938
+    },
+    {
+      "name": "kneeling cushion 1",
+      "mode": "resting",
+      "preparedPassed": true,
+      "preparedGapMetres": 0.001241445541381836,
+      "preparedPenetrationMetres": 0.00475001335144043,
+      "rawPassed": true,
+      "rawGapMetres": 0.001241445541381836,
+      "rawPenetrationMetres": 0.00475001335144043
+    },
+    {
+      "name": "leaning broom",
+      "mode": "resting",
+      "preparedPassed": true,
+      "preparedGapMetres": 0.0002104043960571289,
+      "preparedPenetrationMetres": 0.0,
+      "rawPassed": true,
+      "rawGapMetres": 0.0002104043960571289,
+      "rawPenetrationMetres": 0.0
+    },
+    {
+      "name": "stacked bowl 0",
+      "mode": "resting",
+      "preparedPassed": true,
+      "preparedGapMetres": -0.000576019287109375,
+      "preparedPenetrationMetres": 0.000576019287109375,
+      "rawPassed": true,
+      "rawGapMetres": -0.000576019287109375,
+      "rawPenetrationMetres": 0.000576019287109375
+    },
+    {
+      "name": "stacked bowl 1",
+      "mode": "resting",
+      "preparedPassed": true,
+      "preparedGapMetres": -3.814697265625e-06,
+      "preparedPenetrationMetres": 3.814697265625e-06,
+      "rawPassed": true,
+      "rawGapMetres": -3.814697265625e-06,
+      "rawPenetrationMetres": 3.814697265625e-06
+    },
+    {
+      "name": "stacked bowl 2",
+      "mode": "resting",
+      "preparedPassed": true,
+      "preparedGapMetres": 0.0,
+      "preparedPenetrationMetres": 0.0,
+      "rawPassed": true,
+      "rawGapMetres": 0.0,
+      "rawPenetrationMetres": 0.0
+    },
+    {
+      "name": "stacked bowl assembly",
+      "mode": "resting",
+      "preparedPassed": true,
+      "preparedGapMetres": -0.000576019287109375,
+      "preparedPenetrationMetres": 0.000576019287109375,
+      "rawPassed": true,
+      "rawGapMetres": -0.000576019287109375,
+      "rawPenetrationMetres": 0.000576019287109375
+    },
+    {
+      "name": "gate -1",
+      "mode": "resting",
+      "preparedPassed": true,
+      "preparedGapMetres": -3.814697265625e-06,
+      "preparedPenetrationMetres": 3.814697265625e-06,
+      "rawPassed": true,
+      "rawGapMetres": -3.814697265625e-06,
+      "rawPenetrationMetres": 3.814697265625e-06
+    },
+    {
+      "name": "gate 1",
+      "mode": "resting",
+      "preparedPassed": true,
+      "preparedGapMetres": -3.814697265625e-06,
+      "preparedPenetrationMetres": 3.814697265625e-06,
+      "rawPassed": true,
+      "rawGapMetres": -3.814697265625e-06,
+      "rawPenetrationMetres": 3.814697265625e-06
+    },
+    {
+      "name": "court lantern oil cup",
+      "mode": "resting",
+      "preparedPassed": true,
+      "preparedGapMetres": -6.318092346191406e-06,
+      "preparedPenetrationMetres": 6.318092346191406e-06,
+      "rawPassed": true,
+      "rawGapMetres": -6.318092346191406e-06,
+      "rawPenetrationMetres": 6.318092346191406e-06
+    },
+    {
+      "name": "court stone lantern foundation",
+      "mode": "resting",
+      "preparedPassed": true,
+      "preparedGapMetres": -0.000102996826171875,
+      "preparedPenetrationMetres": 0.000232696533203125,
+      "rawPassed": true,
+      "rawGapMetres": -0.000102996826171875,
+      "rawPenetrationMetres": 0.000232696533203125
+    },
+    {
+      "name": "court incense ash",
+      "mode": "resting",
+      "preparedPassed": true,
+      "preparedGapMetres": 5.185604095458984e-06,
+      "preparedPenetrationMetres": 0.0,
+      "rawPassed": true,
+      "rawGapMetres": 5.185604095458984e-06,
+      "rawPenetrationMetres": 0.0
+    },
+    {
+      "name": "court spent incense 0",
+      "mode": "resting",
+      "preparedPassed": true,
+      "preparedGapMetres": 1.3709068298339844e-06,
+      "preparedPenetrationMetres": 0.0,
+      "rawPassed": true,
+      "rawGapMetres": 1.3709068298339844e-06,
+      "rawPenetrationMetres": 0.0
+    },
+    {
+      "name": "court spent incense 1",
+      "mode": "resting",
+      "preparedPassed": true,
+      "preparedGapMetres": -2.4437904357910156e-06,
+      "preparedPenetrationMetres": 2.4437904357910156e-06,
+      "rawPassed": true,
+      "rawGapMetres": -2.4437904357910156e-06,
+      "rawPenetrationMetres": 2.4437904357910156e-06
+    },
+    {
+      "name": "court spent incense 2",
+      "mode": "resting",
+      "preparedPassed": true,
+      "preparedGapMetres": -2.4437904357910156e-06,
+      "preparedPenetrationMetres": 2.4437904357910156e-06,
+      "rawPassed": true,
+      "rawGapMetres": -2.4437904357910156e-06,
+      "rawPenetrationMetres": 2.4437904357910156e-06
+    },
+    {
+      "name": "court incense stand",
+      "mode": "resting",
+      "preparedPassed": true,
+      "preparedGapMetres": 0.0,
+      "preparedPenetrationMetres": 0.0,
+      "rawPassed": true,
+      "rawGapMetres": 0.0,
+      "rawPenetrationMetres": 0.0
+    }
+  ],
+  "mapping": {
+    "mode": "fresh direct frozen-authored-source to actual prepared corners; no historical Bevel certificate",
+    "passed": true,
+    "numericLimits": {
+      "worldPositionMetres": 5e-06,
+      "materialUV0": 1e-06,
+      "worldNormalComponent": 1e-06,
+      "linearSurfaceTintComponent": 1e-06
+    },
+    "materials": 41,
+    "maximumUV0Error": 0.0,
+    "maximumWorldNormalError": 1.1920928955078125e-07,
+    "actualReceiverUVFingerprintsExactToSource16": true,
+    "actualEntireRawBinaryPayloadExactToSource16": true,
+    "rawMetadataDifference": "Only scene physical/proof extras, exported window emission/40, and measured per-node unwrap timing seconds differ. Geometry/images/material factors otherwise exact."
+  },
+  "rawNormal": {
+    "triangles": 330740,
+    "coincidentGroups": 16,
+    "maximumComponentError": 1.7881393432617188e-07,
+    "unchangedLimit": 1e-06,
+    "standardF32NoCustomStream": true
+  },
+  "atlas": {
+    "resolutions": {
+      "hall": 1408,
+      "altar": 1024,
+      "gate": 1024,
+      "court": 1328
+    },
+    "gutterBasePixels": 8,
+    "mipLevels": 3,
+    "currentCoarseCamerasAllRepresented": true,
+    "pitchEvidence": "Separate per-camera/category weighted medians in referenced pitch.json. Approx6.7\u20136.9cm at key floor/columns/beams;10.8cm central route. Not a blanket whole-scene native-triangle claim."
+  },
+  "preBake": {
+    "actualCanonicalFirstGiFingerprint": "5737206aa09dfc39ad3174c5f0e99c047887ec5da7f81544afd068b72adb4ef5",
+    "skipPreparationFingerprint": "90e59becd1e90c2af5d37351968b42d0cf9987b603986b5fd0b0761281d3d472",
+    "legitimateBindingChanges": [
+      "preparedPreviewAudit",
+      "preparedRestingContactAudit"
+    ],
+    "actualOriginalPreparedDepthImagesValidated": true,
+    "all4VisibilityAndActualLightEmissionStatesVerified": true
+  },
+  "retired16CpuStudies": {
+    "copiedPreparedAtWrongDepth": "Preserved21scanimage-identity mismatch from a numeric replay copy one directory shallower. NoGI rendered there. Actual17 snapshots use correct same depth; native command uses original prepared path.",
+    "oldPassFingerprintAssertion": "Preserved false whole-hash assertion: legal per-look material emission changes alter actual graph values. Corrected audit checks actual expected pass states plus invariant physical proxy geometry; canonical prepass identity remains bound.",
+    "correctOriginalPathSource16FinalPass": {
+      "path": "art/build/snow-roof-round1/contact-replay-v16-c6/transport-pass-visibility-original-path-v3.json",
+      "sha256": "511f06bb1a805153dfc3877094f412fff270b7fc77de40b6a376e8c4c5debb50",
+      "bytes": 10272
+    },
+    "old2WSourceNoGiPlanned": true
+  },
+  "nativePlan": {
+    "command": [
+      "blender",
+      "--background",
+      "art/build/snow-roof-round1/prepared-v17-c6-priority/layout/snow-roof-prepared.blend",
+      "--python-exit-code",
+      "1",
+      "--python",
+      "art/blender/bake_export.py",
+      "--",
+      "--out",
+      "art/build/snow-roof-round1/preview17-c6-normalized-all16-native8",
+      "--resume",
+      "--samples",
+      "8",
+      "--device",
+      "METAL",
+      "--oidn-device",
+      "METAL",
+      "--region-resolutions",
+      "altar=1024,hall=1408,court=1328,gate=1024",
+      "--passes",
+      "night,dusk,day,lamp",
+      "--hidden-faces",
+      "art/build/snow-roof-round1/source-v17-hidden-faces-20mm.json",
+      "--prepared-preview-audit",
+      "art/build/snow-roof-round1/contact-replay-v17-c6/mapping-bake-binding.json",
+      "--resting-contact-audit",
+      "art/build/snow-roof-round1/contact-replay-v17-c6/contact-audit.json"
+    ],
+    "output": "art/build/snow-roof-round1/preview17-c6-normalized-all16-native8",
+    "samples": 8,
+    "device": "METAL",
+    "oidnDevice": "METAL",
+    "threads": "AUTO",
+    "looks": [
+      "night",
+      "dusk",
+      "day",
+      "lamp"
+    ],
+    "resolutions": {
+      "hall": 1408,
+      "altar": 1024,
+      "gate": 1024,
+      "court": 1328
+    },
+    "initialMapCount": 0,
+    "reusePriorGIPixels": false
+  },
+  "pinnedInputs": 57,
+  "allCpuPreflightJobsTerminal": true,
+  "full64Approved": false,
+  "publicInstalled": false,
+  "budgetApproved": false,
+  "sourceNativeOpticalEvidence": [
+    {
+      "path": "art/build/snow-roof-round1/native-v17-candle/desktop/preview.json",
+      "sha256": "bdd37de5101322850191995141aa4a508da98fb04a21f88f513613386dd88140",
+      "bytes": 1535
+    },
+    {
+      "path": "art/build/snow-roof-round1/native-v17-candle/phone/preview.json",
+      "sha256": "c894b4c8673910d2fd1cf34a1cec480da664580fb7934c6494c88ed4ff066d7f",
+      "bytes": 1530
+    }
+  ]
+}

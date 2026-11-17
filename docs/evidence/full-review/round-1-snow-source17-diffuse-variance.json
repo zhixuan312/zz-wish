@@ -1,0 +1,1183 @@
+{
+  "scope": "Actual Source17 diffuse-star attribution, actual native8/32 variance comparison and isolated one-map diagnostic. No source/light/material edit, full64, public installation or clean-convergence claim.",
+  "files": [
+    {
+      "path": "artifacts/full-review/round-1/snow17-material-controls/report.json",
+      "sha256": "11271b54f6e68be2f77bec6bd9b25aad7098fcb092c79570563bd7c9a4460fce",
+      "bytes": 857884
+    },
+    {
+      "path": "art/build/snow-roof-round1/source17-diffuse-pixel-attribution-v2/pixel-attribution.json",
+      "sha256": "b94f1266ae5d9792bc911dc7e803056e54030f2cfb4feddcdf50750803d92a04",
+      "bytes": 329466
+    },
+    {
+      "path": "art/build/snow-roof-round1/source17-diffuse-pixel-attribution-v2/actual-active-uv-normal-tangent.json",
+      "sha256": "dfc3aed58248324e63e0d9fa7216365e2156e0abaad24727296f661c968daec9",
+      "bytes": 170840
+    },
+    {
+      "path": "art/build/snow-roof-round1/source17-diffuse-8-vs32-comparison/comparison.json",
+      "sha256": "e866525d6359fd3145718c539962c4d07c80d2cd7b5438f11c2c6ba49dd0ae13",
+      "bytes": 132346
+    },
+    {
+      "path": "art/build/snow-roof-round1/diagnostic17-hall-night32-input-ledger.json",
+      "sha256": "d8fc43886164e1484e3bcf955adec117fcec9eaac64446c1b0063027c055482a",
+      "bytes": 15894
+    },
+    {
+      "path": "art/build/snow-roof-round1/diagnostic17-hall-night32-native/manifest.json",
+      "sha256": "6b9ed2ea516e80be16110340663c42d3f362f44fb754e46b005eb5627c7ff108",
+      "bytes": 54423
+    },
+    {
+      "path": "art/build/snow-roof-round1/diagnostic17-hall-night32-native/exact-geometry-cache-copy.json",
+      "sha256": "92a27ce660774ac0bf551192d5a8f09800502216dc7619d44bf279e070a0d621",
+      "bytes": 1054
+    },
+    {
+      "path": "art/build/snow-roof-round1/diagnostic17-hall-night32-native/hall-night.ktx2.json",
+      "sha256": "626d1e8cfa9b55c1372417d01e22781a85cfc8c69b4d0b2cad495e1588144a9b",
+      "bytes": 399
+    },
+    {
+      "path": "art/build/snow-roof-round1/diagnostic17-hall-night32-runtime.receipt.json",
+      "sha256": "83ffd7344aa4de395607777a5f9b91f5a756f56dc7fb7ec517153a9dd858a7ac",
+      "bytes": 7001
+    },
+    {
+      "path": "art/build/snow-roof-round1/diagnostic17-hall-night32-runtime/manifest.json",
+      "sha256": "8b5b63e8a22cc02e0f46d76a1ee13a41fffe71afc28e928dcc8c3b5ad2f6fb59",
+      "bytes": 25770
+    },
+    {
+      "path": "art/blender/trace_snow_diffuse_pixels.py",
+      "sha256": "4508c199544fee2c578828c865ac7e3d8b4d824dc380bded7e7ac158e3a6f4dc",
+      "bytes": 12987
+    },
+    {
+      "path": "art/blender/compare_snow_diffuse_samples.py",
+      "sha256": "e497b44a25e41ae2594e8d628d223aee18e49b0d395be479e401b523d72b5491",
+      "bytes": 7679
+    },
+    {
+      "path": "scripts/stage-snow-map-comparison.mjs",
+      "sha256": "bd61580ad4dfbf5ce88ab96073c5671af15a9093a11849e2766847a244fad119",
+      "bytes": 7273
+    }
+  ],
+  "sourceBlendSha256": "2990854d3c9a65bf18879511d865b6e36788f6e727339248d5746b67fb52dd64",
+  "bakeFingerprint": "5737206aa09dfc39ad3174c5f0e99c047887ec5da7f81544afd068b72adb4ef5",
+  "geometryFingerprint": "c6f493a4550c100e7074f77a1390909061860ff835b6da6db2665b9369fb0a8e",
+  "actualPixelSamplesMatchedToDecodedTriangleAndUv": 38,
+  "inputCamera": {
+    "pendingTweens": 0,
+    "position": [
+      -4.900000000000001,
+      2.3,
+      -1.600000000000001
+    ],
+    "look": [
+      1.0999999999999999,
+      1.75,
+      -2.124931981155544
+    ],
+    "fov": 55
+  },
+  "viewport": [
+    1440,
+    900
+  ],
+  "findings": {
+    "starsPersistActualSpecAndNormalControls": true,
+    "sourceAlbedoAndTintVariationsAtBeamPeaksLessThanOnePercent": true,
+    "starsPresentInRawNightExrBeforeOidnOrCodec": true,
+    "lampMapContributionAtSelectedBeamSamplesLessThanHalfPercent": true,
+    "actual32DataChangesStronglyWithSameSourceAndUv": true,
+    "sourceUv0TintNormalAndRawGeometryExactProofsRetained": true,
+    "actualPaintRenderUvMapUnchanged": "Source/prepared/baked active_RENDER isUVMap; UIactiveLightmap duringprepare isseparate. Explicitpaintimage coordinates useUVMap; no detectedimplicitGenerated albedo input."
+  },
+  "sameChartStatistics": [
+    {
+      "sourceOwners": [
+        "Round entasis red timber column.001"
+      ],
+      "chartRawValues": [
+        555
+      ],
+      "coreTexels": 1178,
+      "raw8Vs32PearsonRed": 0.4155407823278065,
+      "denoised8Vs32PearsonRed": 0.5958658519013244,
+      "statistics": {
+        "8": {
+          "raw": {
+            "wholeChartRed": {
+              "count": 1178,
+              "mean": 0.0004902145181589297,
+              "standardDeviation": 0.0006552469899688675,
+              "p05": 0.0,
+              "p50": 0.0002988704072777182,
+              "p95": 0.0014144363929517547,
+              "p99": 0.0031507461797446014,
+              "maximum": 0.011513300240039825
+            },
+            "sameChart3x3InteriorTexels": 1020,
+            "highPassRed": {
+              "count": 1020,
+              "mean": 2.988792444228647e-06,
+              "standardDeviation": 0.0005638739498702669,
+              "p05": -0.0005531904366863374,
+              "p50": -3.488983937434871e-05,
+              "p95": 0.0007015531491358867,
+              "p99": 0.002130876760719626,
+              "maximum": 0.009927434115120882
+            }
+          },
+          "denoised": {
+            "wholeChartRed": {
+              "count": 1178,
+              "mean": 0.00046411991749455324,
+              "standardDeviation": 0.00048498149363442646,
+              "p05": 6.418397830998402e-08,
+              "p50": 0.00031705459696240723,
+              "p95": 0.0013253771001473062,
+              "p99": 0.002304208739660682,
+              "maximum": 0.004619554616510868
+            },
+            "sameChart3x3InteriorTexels": 1020,
+            "highPassRed": {
+              "count": 1020,
+              "mean": 3.203440762321593e-06,
+              "standardDeviation": 0.0003469677748294859,
+              "p05": -0.0004327255301177501,
+              "p50": -2.5108176689375083e-05,
+              "p95": 0.0005608035717159507,
+              "p99": 0.0012975504062665557,
+              "maximum": 0.0033623516339705223
+            }
+          }
+        },
+        "32": {
+          "raw": {
+            "wholeChartRed": {
+              "count": 1178,
+              "mean": 0.0005176634657068734,
+              "standardDeviation": 0.0004622132726148566,
+              "p05": 0.0,
+              "p50": 0.00041159555257763714,
+              "p95": 0.0012567906931508332,
+              "p99": 0.0022971709584817296,
+              "maximum": 0.003679891349747777
+            },
+            "sameChart3x3InteriorTexels": 1020,
+            "highPassRed": {
+              "count": 1020,
+              "mean": 2.2161568912371917e-06,
+              "standardDeviation": 0.0002911623493681534,
+              "p05": -0.00037054198861975843,
+              "p50": -1.657673257998086e-05,
+              "p95": 0.00039798652481598155,
+              "p99": 0.0013817820782747294,
+              "maximum": 0.002611347855741365
+            }
+          },
+          "denoised": {
+            "wholeChartRed": {
+              "count": 1178,
+              "mean": 0.0005067667111135951,
+              "standardDeviation": 0.0004089946511593447,
+              "p05": 2.2001483372946502e-07,
+              "p50": 0.00042015817598439753,
+              "p95": 0.0011932996567338705,
+              "p99": 0.001829708018340173,
+              "maximum": 0.0026574507355690002
+            },
+            "sameChart3x3InteriorTexels": 1020,
+            "highPassRed": {
+              "count": 1020,
+              "mean": 1.9541989958536217e-06,
+              "standardDeviation": 0.00020020827456521684,
+              "p05": -0.000256208332171405,
+              "p50": -9.627307908507034e-06,
+              "p95": 0.00028300776482663225,
+              "p99": 0.000982872666295912,
+              "maximum": 0.001382342585000313
+            }
+          }
+        }
+      },
+      "rawHighPassStandardDeviationReduction": 0.48363929662800964,
+      "denoisedHighPassStandardDeviationReduction": 0.4229773221342894
+    },
+    {
+      "sourceOwners": [
+        "Round entasis red timber column.003"
+      ],
+      "chartRawValues": [
+        604
+      ],
+      "coreTexels": 1280,
+      "raw8Vs32PearsonRed": 0.39168513535767246,
+      "denoised8Vs32PearsonRed": 0.9192820113041256,
+      "statistics": {
+        "8": {
+          "raw": {
+            "wholeChartRed": {
+              "count": 1280,
+              "mean": 0.0014866969188808477,
+              "standardDeviation": 0.004447357122585373,
+              "p05": 0.0,
+              "p50": 0.00033148552756756544,
+              "p95": 0.006675637094303961,
+              "p99": 0.021690514292568054,
+              "maximum": 0.06289451569318771
+            },
+            "sameChart3x3InteriorTexels": 1116,
+            "highPassRed": {
+              "count": 1116,
+              "mean": 2.7659667952675208e-06,
+              "standardDeviation": 0.004118245411408503,
+              "p05": -0.0047042976051064524,
+              "p50": -7.425035110486539e-05,
+              "p95": 0.0032936965338497735,
+              "p99": 0.017984102430313544,
+              "maximum": 0.05075882107808462
+            }
+          },
+          "denoised": {
+            "wholeChartRed": {
+              "count": 1280,
+              "mean": 0.00131754569952751,
+              "standardDeviation": 0.0018999662424280352,
+              "p05": 4.786358346109411e-07,
+              "p50": 0.00037222998798824847,
+              "p95": 0.005528843007050453,
+              "p99": 0.007690136102028197,
+              "maximum": 0.010114269331097603
+            },
+            "sameChart3x3InteriorTexels": 1116,
+            "highPassRed": {
+              "count": 1116,
+              "mean": 1.0574602174310812e-06,
+              "standardDeviation": 0.00043539055038101514,
+              "p05": -0.0005379265860230793,
+              "p50": -1.6783681500795773e-05,
+              "p95": 0.000768883574184858,
+              "p99": 0.001825298940659385,
+              "maximum": 0.0025255236412501996
+            }
+          }
+        },
+        "32": {
+          "raw": {
+            "wholeChartRed": {
+              "count": 1280,
+              "mean": 0.0014936448335862718,
+              "standardDeviation": 0.0027090069731679697,
+              "p05": 0.0,
+              "p50": 0.0003863238962367177,
+              "p95": 0.007322738296352326,
+              "p99": 0.0135507200099528,
+              "maximum": 0.02185317501425743
+            },
+            "sameChart3x3InteriorTexels": 1116,
+            "highPassRed": {
+              "count": 1116,
+              "mean": 2.6288958662660534e-06,
+              "standardDeviation": 0.0013966151372885626,
+              "p05": -0.001515210583521467,
+              "p50": -3.7664630528726965e-05,
+              "p95": 0.0018735366126444812,
+              "p99": 0.0057858044669652975,
+              "maximum": 0.01292890324516015
+            }
+          },
+          "denoised": {
+            "wholeChartRed": {
+              "count": 1280,
+              "mean": 0.0014159939208154683,
+              "standardDeviation": 0.002180807631041599,
+              "p05": 5.304740469114226e-08,
+              "p50": 0.0003768046444747597,
+              "p95": 0.0068087334511801574,
+              "p99": 0.009595092153176669,
+              "maximum": 0.010877976194024086
+            },
+            "sameChart3x3InteriorTexels": 1116,
+            "highPassRed": {
+              "count": 1116,
+              "mean": 1.9876432811939384e-06,
+              "standardDeviation": 0.00028864389755949927,
+              "p05": -0.0004305012084336744,
+              "p50": -9.466480092454627e-06,
+              "p95": 0.0005112073526510755,
+              "p99": 0.001097046563801188,
+              "maximum": 0.0016919929637677139
+            }
+          }
+        }
+      },
+      "rawHighPassStandardDeviationReduction": 0.6608713182998731,
+      "denoisedHighPassStandardDeviationReduction": 0.33704602153881436
+    },
+    {
+      "sourceOwners": [
+        "Hall longitudinal carrying beam.001"
+      ],
+      "chartRawValues": [
+        875
+      ],
+      "coreTexels": 2096,
+      "raw8Vs32PearsonRed": 0.3752370815741447,
+      "denoised8Vs32PearsonRed": 0.523578708508868,
+      "statistics": {
+        "8": {
+          "raw": {
+            "wholeChartRed": {
+              "count": 2096,
+              "mean": 0.0005967424621315603,
+              "standardDeviation": 0.0013843616459255626,
+              "p05": 0.0,
+              "p50": 0.00011829091818071902,
+              "p95": 0.0021891711512580514,
+              "p99": 0.005494247120805131,
+              "maximum": 0.019796298816800117
+            },
+            "sameChart3x3InteriorTexels": 808,
+            "highPassRed": {
+              "count": 808,
+              "mean": 1.645704266858341e-05,
+              "standardDeviation": 0.0012859264838929049,
+              "p05": -0.0009654251236497657,
+              "p50": -2.697100032694127e-05,
+              "p95": 0.000741785464197164,
+              "p99": 0.004297574481202496,
+              "maximum": 0.015198215295741748
+            }
+          },
+          "denoised": {
+            "wholeChartRed": {
+              "count": 2096,
+              "mean": 0.0005389061460787308,
+              "standardDeviation": 0.0009980516178618713,
+              "p05": 4.904675887651422e-09,
+              "p50": 0.00011136675675516017,
+              "p95": 0.0020769985858350992,
+              "p99": 0.00456812244374306,
+              "maximum": 0.012283580377697945
+            },
+            "sameChart3x3InteriorTexels": 808,
+            "highPassRed": {
+              "count": 808,
+              "mean": 1.3820494990295636e-05,
+              "standardDeviation": 0.0007318485892101025,
+              "p05": -0.0007184121534616376,
+              "p50": -1.4844598303574861e-05,
+              "p95": 0.0006933842163157857,
+              "p99": 0.003437047550978566,
+              "maximum": 0.009072938765813079
+            }
+          }
+        },
+        "32": {
+          "raw": {
+            "wholeChartRed": {
+              "count": 2096,
+              "mean": 0.0006303374538065249,
+              "standardDeviation": 0.0010268548388465118,
+              "p05": 0.0,
+              "p50": 0.00015105304919416085,
+              "p95": 0.0022003792109899223,
+              "p99": 0.0045929524116218165,
+              "maximum": 0.022539736703038216
+            },
+            "sameChart3x3InteriorTexels": 808,
+            "highPassRed": {
+              "count": 808,
+              "mean": 2.0902292841612105e-06,
+              "standardDeviation": 0.0006241712816179412,
+              "p05": -0.000761994795312325,
+              "p50": -1.4978427063599363e-05,
+              "p95": 0.0008372731945807268,
+              "p99": 0.003361140999347979,
+              "maximum": 0.004493750939016334
+            }
+          },
+          "denoised": {
+            "wholeChartRed": {
+              "count": 2096,
+              "mean": 0.0006111608514160453,
+              "standardDeviation": 0.0008813508417060315,
+              "p05": 1.858122766762449e-08,
+              "p50": 0.00013918045442551374,
+              "p95": 0.002194468572270125,
+              "p99": 0.004162798170000323,
+              "maximum": 0.009069280698895454
+            },
+            "sameChart3x3InteriorTexels": 808,
+            "highPassRed": {
+              "count": 808,
+              "mean": 7.205619365815898e-06,
+              "standardDeviation": 0.0005434491506390127,
+              "p05": -0.0006960152659178932,
+              "p50": -1.061204720014746e-05,
+              "p95": 0.0007967205196716046,
+              "p99": 0.0025544070223824855,
+              "maximum": 0.004199031817380374
+            }
+          }
+        }
+      },
+      "rawHighPassStandardDeviationReduction": 0.5146135572786572,
+      "denoisedHighPassStandardDeviationReduction": 0.25742953030002114
+    }
+  ],
+  "representativeSamples": {
+    "beam-bright-0": {
+      "label": "beam-bright-0",
+      "xy": [
+        462,
+        91
+      ],
+      "sourceOwner": "Hall longitudinal carrying beam.001",
+      "chartRaw": 875,
+      "denseChartLabel": 875,
+      "uv2Blender": [
+        0.04793384230179545,
+        0.0720821345709397
+      ],
+      "screenshotSrgb8": [
+        120,
+        41,
+        23
+      ],
+      "albedoFactorTimesTint": [
+        0.38030740246645756,
+        0.05523927243556445,
+        0.029088579506502444
+      ],
+      "samples": {
+        "8": {
+          "rawExrLinearBilinear": [
+            0.01746311318078308,
+            0.012397573871482114,
+            0.007519197213188022
+          ],
+          "denoisedExrLinearBilinear": [
+            0.010767740834742787,
+            0.008414512226590396,
+            0.005160551808556981
+          ],
+          "actualPng16BaseLogBilinearRadiance": [
+            0.010632155425212408,
+            0.00830590940448843,
+            0.005102192639678676
+          ],
+          "actualKtxBaseLogBilinearRadiance": [
+            0.012367126321030653,
+            0.00893437545039261,
+            0.005588221794744603
+          ],
+          "oidnDeltaRGB": [
+            -0.006695372346040292,
+            -0.003983061644891718,
+            -0.002358645404631041
+          ],
+          "sourceLogSamplingDeltaRGB": [
+            -0.00013558540953037893,
+            -0.00010860282210196567,
+            -5.835916887830545e-05
+          ],
+          "codecOnlyDeltaRGB": [
+            0.0017349708958182448,
+            0.0006284660459041792,
+            0.0004860291550659269
+          ]
+        },
+        "32": {
+          "rawExrLinearBilinear": [
+            0.0015263142634512,
+            0.0010201189836848764,
+            0.0005738495555142548
+          ],
+          "denoisedExrLinearBilinear": [
+            0.0013163618091955036,
+            0.0009273732012580598,
+            0.0005877022249609083
+          ],
+          "actualPng16BaseLogBilinearRadiance": [
+            0.0013128393183193647,
+            0.0009249142406593219,
+            0.00058592629870766
+          ],
+          "actualKtxBaseLogBilinearRadiance": [
+            0.0014918316871785629,
+            0.0010755651257254516,
+            0.0007204068040358216
+          ],
+          "oidnDeltaRGB": [
+            -0.00020995245425569644,
+            -9.274578242681657e-05,
+            1.3852669446653455e-05
+          ],
+          "sourceLogSamplingDeltaRGB": [
+            -3.5224908761389423e-06,
+            -2.458960598737919e-06,
+            -1.7759262532482303e-06
+          ],
+          "codecOnlyDeltaRGB": [
+            0.00017899236885919817,
+            0.00015065088506612976,
+            0.00013448050532816156
+          ]
+        }
+      },
+      "night32Versus8": {
+        "rawRedRatio": 0.08740218583309653,
+        "denoisedRedRatio": 0.12225051005575656
+      }
+    },
+    "beam-bright-1": {
+      "label": "beam-bright-1",
+      "xy": [
+        655,
+        110
+      ],
+      "sourceOwner": "Hall longitudinal carrying beam.001",
+      "chartRaw": 875,
+      "denseChartLabel": 875,
+      "uv2Blender": [
+        0.03431780292884436,
+        0.08263594886120029
+      ],
+      "screenshotSrgb8": [
+        119,
+        39,
+        22
+      ],
+      "albedoFactorTimesTint": [
+        0.3833986100028543,
+        0.05568826725962116,
+        0.02932501675597593
+      ],
+      "samples": {
+        "8": {
+          "rawExrLinearBilinear": [
+            0.008873858510627133,
+            0.006435635397281264,
+            0.004070715168306633
+          ],
+          "denoisedExrLinearBilinear": [
+            0.010309230938450634,
+            0.008086806936694637,
+            0.005233720194423587
+          ],
+          "actualPng16BaseLogBilinearRadiance": [
+            0.010308768861520974,
+            0.008087052920033026,
+            0.005233454899943616
+          ],
+          "actualKtxBaseLogBilinearRadiance": [
+            0.010606217244872875,
+            0.008121518620159581,
+            0.005687995678421534
+          ],
+          "oidnDeltaRGB": [
+            0.0014353724278235013,
+            0.0016511715394133732,
+            0.001163005026116954
+          ],
+          "sourceLogSamplingDeltaRGB": [
+            -4.620769296602434e-07,
+            2.45983338389294e-07,
+            -2.652944799709511e-07
+          ],
+          "codecOnlyDeltaRGB": [
+            0.0002974483833519011,
+            3.446570012655484e-05,
+            0.00045454077847791735
+          ]
+        },
+        "32": {
+          "rawExrLinearBilinear": [
+            0.002018062281438132,
+            0.001559127144958525,
+            0.0011627494604911687
+          ],
+          "denoisedExrLinearBilinear": [
+            0.00190116922745628,
+            0.0014979699542773664,
+            0.001141199354634596
+          ],
+          "actualPng16BaseLogBilinearRadiance": [
+            0.001886329336828257,
+            0.0014885617587502339,
+            0.0011381092076072723
+          ],
+          "actualKtxBaseLogBilinearRadiance": [
+            0.0019881205899240284,
+            0.0015415941889036706,
+            0.0011487457280943661
+          ],
+          "oidnDeltaRGB": [
+            -0.00011689305398185205,
+            -6.115719068115863e-05,
+            -2.1550105856572594e-05
+          ],
+          "sourceLogSamplingDeltaRGB": [
+            -1.4839890628022935e-05,
+            -9.408195527132492e-06,
+            -3.090147027323773e-06
+          ],
+          "codecOnlyDeltaRGB": [
+            0.00010179125309577128,
+            5.303243015343669e-05,
+            1.0636520487093811e-05
+          ]
+        }
+      },
+      "night32Versus8": {
+        "rawRedRatio": 0.22741654929716834,
+        "denoisedRedRatio": 0.1844142631789763
+      }
+    },
+    "beam-neighbor-1--12": {
+      "label": "beam-neighbor-1--12",
+      "xy": [
+        643,
+        110
+      ],
+      "sourceOwner": "Hall longitudinal carrying beam.001",
+      "chartRaw": 875,
+      "denseChartLabel": 875,
+      "uv2Blender": [
+        0.03508278312952536,
+        0.08193879660158299
+      ],
+      "screenshotSrgb8": [
+        21,
+        0,
+        0
+      ],
+      "albedoFactorTimesTint": [
+        0.3833986100028543,
+        0.05568826725962116,
+        0.02932501675597593
+      ],
+      "samples": {
+        "8": {
+          "rawExrLinearBilinear": [
+            0.0011607958792006056,
+            0.0009875907422387045,
+            0.0007664125123765222
+          ],
+          "denoisedExrLinearBilinear": [
+            0.0016557983978473067,
+            0.0014003352884846795,
+            0.0010148814431243812
+          ],
+          "actualPng16BaseLogBilinearRadiance": [
+            0.0008799018287093368,
+            0.0008193773554140679,
+            0.0006713148892089968
+          ],
+          "actualKtxBaseLogBilinearRadiance": [
+            0.000889423776519073,
+            0.0008144708451697892,
+            0.0006828598864771169
+          ],
+          "oidnDeltaRGB": [
+            0.0004950025186467011,
+            0.00041274454624597493,
+            0.00024846893074785895
+          ],
+          "sourceLogSamplingDeltaRGB": [
+            -0.0007758965691379699,
+            -0.0005809579330706116,
+            -0.0003435665539153844
+          ],
+          "codecOnlyDeltaRGB": [
+            9.521947809736152e-06,
+            -4.906510244278737e-06,
+            1.1544997268120132e-05
+          ]
+        },
+        "32": {
+          "rawExrLinearBilinear": [
+            0.00195610801398627,
+            0.0015025467782027613,
+            0.0010888781250358737
+          ],
+          "denoisedExrLinearBilinear": [
+            0.001782230450771749,
+            0.0013845091667834628,
+            0.0010392405962228676
+          ],
+          "actualPng16BaseLogBilinearRadiance": [
+            0.0017821481459578553,
+            0.0013843798527265196,
+            0.0010390763970892687
+          ],
+          "actualKtxBaseLogBilinearRadiance": [
+            0.0017914958389814832,
+            0.00138899565454611,
+            0.0010766192221333196
+          ],
+          "oidnDeltaRGB": [
+            -0.00017387756321452083,
+            -0.00011803761141929853,
+            -4.963752881300613e-05
+          ],
+          "sourceLogSamplingDeltaRGB": [
+            -8.230481389373372e-08,
+            -1.2931405694318297e-07,
+            -1.6419913359891347e-07
+          ],
+          "codecOnlyDeltaRGB": [
+            9.347693023627895e-06,
+            4.6158018195904555e-06,
+            3.7542825044050874e-05
+          ]
+        }
+      },
+      "night32Versus8": {
+        "rawRedRatio": 1.685143830225659,
+        "denoisedRedRatio": 1.076357153798926
+      }
+    },
+    "column-490-350": {
+      "label": "column-490-350",
+      "xy": [
+        490,
+        350
+      ],
+      "sourceOwner": "Round entasis red timber column.003",
+      "chartRaw": 604,
+      "denseChartLabel": 604,
+      "uv2Blender": [
+        0.1356941816066319,
+        0.06981888870098385
+      ],
+      "screenshotSrgb8": [
+        91,
+        18,
+        5
+      ],
+      "albedoFactorTimesTint": [
+        0.3802675729610378,
+        0.05523348723946628,
+        0.029085533066365875
+      ],
+      "samples": {
+        "8": {
+          "rawExrLinearBilinear": [
+            0.0006486229508772737,
+            0.00046839658878066565,
+            0.0003355901822579578
+          ],
+          "denoisedExrLinearBilinear": [
+            0.005621678112357922,
+            0.004029286938206816,
+            0.002570617251502166
+          ],
+          "actualPng16BaseLogBilinearRadiance": [
+            0.00559296739679433,
+            0.004011575486133155,
+            0.0025646083907478563
+          ],
+          "actualKtxBaseLogBilinearRadiance": [
+            0.005564885186617294,
+            0.004067643175391628,
+            0.0026318797623843477
+          ],
+          "oidnDeltaRGB": [
+            0.004973055161480649,
+            0.0035608903494261505,
+            0.0022350270692442086
+          ],
+          "sourceLogSamplingDeltaRGB": [
+            -2.8710715563592254e-05,
+            -1.771145207366074e-05,
+            -6.008860754309897e-06
+          ],
+          "codecOnlyDeltaRGB": [
+            -2.808221017703595e-05,
+            5.6067689258473136e-05,
+            6.727137163649137e-05
+          ]
+        },
+        "32": {
+          "rawExrLinearBilinear": [
+            0.0087438258119709,
+            0.0062245050049373665,
+            0.0038020807592572567
+          ],
+          "denoisedExrLinearBilinear": [
+            0.007525749798628808,
+            0.0053565218446412245,
+            0.0033556448929028754
+          ],
+          "actualPng16BaseLogBilinearRadiance": [
+            0.007476196172166713,
+            0.005323146885227627,
+            0.0033282860775872255
+          ],
+          "actualKtxBaseLogBilinearRadiance": [
+            0.007279380357592307,
+            0.005446997637932295,
+            0.0033995051283925966
+          ],
+          "oidnDeltaRGB": [
+            -0.0012180760133420924,
+            -0.0008679831602961419,
+            -0.00044643586635438126
+          ],
+          "sourceLogSamplingDeltaRGB": [
+            -4.9553626462094796e-05,
+            -3.3374959413597256e-05,
+            -2.735881531564996e-05
+          ],
+          "codecOnlyDeltaRGB": [
+            -0.00019681581457440655,
+            0.0001238507527046677,
+            7.121905080537116e-05
+          ]
+        }
+      },
+      "night32Versus8": {
+        "rawRedRatio": 13.480598859699192,
+        "denoisedRedRatio": 1.3387016560206884
+      }
+    },
+    "column-490-450": {
+      "label": "column-490-450",
+      "xy": [
+        490,
+        450
+      ],
+      "sourceOwner": "Round entasis red timber column.003",
+      "chartRaw": 604,
+      "denseChartLabel": 604,
+      "uv2Blender": [
+        0.13602165576527675,
+        0.07920826297196615
+      ],
+      "screenshotSrgb8": [
+        107,
+        29,
+        12
+      ],
+      "albedoFactorTimesTint": [
+        0.3773369719000424,
+        0.05480782034642557,
+        0.028861380127422953
+      ],
+      "samples": {
+        "8": {
+          "rawExrLinearBilinear": [
+            0.015208826342061433,
+            0.010979406037677941,
+            0.00662361234981866
+          ],
+          "denoisedExrLinearBilinear": [
+            0.008221422993144718,
+            0.00621470824869705,
+            0.0034384985729832905
+          ],
+          "actualPng16BaseLogBilinearRadiance": [
+            0.008218960032280323,
+            0.006211795631744494,
+            0.0034371295297178695
+          ],
+          "actualKtxBaseLogBilinearRadiance": [
+            0.007600227012742241,
+            0.005898233888622232,
+            0.0038189007322170705
+          ],
+          "oidnDeltaRGB": [
+            -0.006987403348916715,
+            -0.004764697788980891,
+            -0.0031851137768353697
+          ],
+          "sourceLogSamplingDeltaRGB": [
+            -2.4629608643949447e-06,
+            -2.9126169525557633e-06,
+            -1.3690432654209564e-06
+          ],
+          "codecOnlyDeltaRGB": [
+            -0.0006187330195380827,
+            -0.00031356174312226204,
+            0.00038177120249920093
+          ]
+        },
+        "32": {
+          "rawExrLinearBilinear": [
+            0.00774219910471428,
+            0.00549434468133031,
+            0.0033332510724265753
+          ],
+          "denoisedExrLinearBilinear": [
+            0.00977351316823954,
+            0.006946012569607248,
+            0.004156233021293062
+          ],
+          "actualPng16BaseLogBilinearRadiance": [
+            0.009770393276716808,
+            0.006943655494216989,
+            0.004154111900950854
+          ],
+          "actualKtxBaseLogBilinearRadiance": [
+            0.010501944912453143,
+            0.007589113353347897,
+            0.004567574542698676
+          ],
+          "oidnDeltaRGB": [
+            0.00203131406352526,
+            0.0014516678882769384,
+            0.0008229819488664871
+          ],
+          "sourceLogSamplingDeltaRGB": [
+            -3.1198915227317187e-06,
+            -2.3570753902588462e-06,
+            -2.1211203422083144e-06
+          ],
+          "codecOnlyDeltaRGB": [
+            0.0007315516357363355,
+            0.0006454578591309074,
+            0.0004134626417478223
+          ]
+        }
+      },
+      "night32Versus8": {
+        "rawRedRatio": 0.5090596033240582,
+        "denoisedRedRatio": 1.18878607467211
+      }
+    }
+  },
+  "samplingPolicy": "The PNG16 and actual KTX log signals are bilinearly sampled BEFORE decoding, as runtime does at baseLOD. EXR references are bilinear in linear radiance. This separates codec changes from log-interpolation bias.",
+  "selectionCaveat": "Peak points were selected in the8-sample image, so8\u219232 peak regression alone is selection-biased. Full same-chart core and interior high-pass statistics are reported separately; neither is a claim of reference-quality ground truth.",
+  "mixedDiagnostic": {
+    "scope": "Explicit immutable mixed-sample optical diagnostic. One genuine newhall/night32 map replaces only baselinehall/night8; allother15maps/model/materials/fabric/geometry/anchors remain byteexact. No source/light/GI master mutation, extra render, bake, codec change or public installation.",
+    "base": {
+      "path": "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-round1/compact17-packaged-control/runtime",
+      "manifestSha256": "bd3199df18af1cee8a5bccc3ba45f257374c9f25c6efcad3e03193459850d6b8"
+    },
+    "native": {
+      "path": "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-round1/diagnostic17-hall-night32-native",
+      "manifestSha256": "6b9ed2ea516e80be16110340663c42d3f362f44fb754e46b005eb5627c7ff108",
+      "rawMasterSha256": "c1d2ddcc60b039761390e49e8a1964ec06c49de5c98e05ea0e798657b3508154",
+      "denoisedMasterSha256": "a880f3a16de7c99da14375befd0797f76f291f30d13649a466ebef00a88b5209"
+    },
+    "output": {
+      "path": "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-round1/diagnostic17-hall-night32-runtime",
+      "manifestSha256": "8b5b63e8a22cc02e0f46d76a1ee13a41fffe71afc28e928dcc8c3b5ad2f6fb59",
+      "completePackageBytes": 14371382
+    },
+    "changedOnlyMap": {
+      "uri": "hall-night.ktx2",
+      "oldBytes": 946933,
+      "newBytes": 980400,
+      "oldSha256": "aa2f496955e410b7fb795ef8f962d649fa4fb386a3dd8fffd1d205f525ed8fa9",
+      "newSha256": "c2885559d43c59b4bc4aa88f50efd958829d221674f22767c385bcaabd10c7c3",
+      "samplesBefore": 8,
+      "samplesAfter": 32,
+      "newActualRuntimeEntry": {
+        "scale": 0.0625,
+        "maximum": 0.03990756720304489,
+        "encoding": "log2-hdr",
+        "logRange": 13.32206897619609,
+        "logGain": 163840,
+        "mipLevels": 3,
+        "gutterPixels": 8,
+        "anisotropy": 1,
+        "maxLod": 2,
+        "samples": 32,
+        "bakeDevice": "METAL",
+        "denoiseDevice": "METAL",
+        "bakeFingerprint": "5737206aa09dfc39ad3174c5f0e99c047887ec5da7f81544afd068b72adb4ef5",
+        "passFilter": [
+          "DIRECT",
+          "INDIRECT"
+        ],
+        "quantity": "diffuse-radiance-per-unit-albedo",
+        "cameraPreExposure": 40,
+        "uri": "hall-night.ktx2",
+        "codec": "uastc",
+        "bytes": 980400,
+        "masterSha256": "a880f3a16de7c99da14375befd0797f76f291f30d13649a466ebef00a88b5209"
+      }
+    },
+    "unchangedPayloads": [
+      {
+        "uri": "snow-roof.glb.zstd",
+        "bytes": 6101802,
+        "sha256": "eb8b0e1aaf86fa3a12b3d524cc7a796d92930e6f54da572e733774c16d16599a",
+        "encoding": "zstd",
+        "decodedBytes": 10409148,
+        "decodedSha256": "4f24fccf1cc57b6446abb55bf257f4dc3d4f13b36c9f78572ce62e5e5397774b"
+      },
+      {
+        "uri": "hall-dusk.ktx2",
+        "bytes": 944516,
+        "sha256": "970dd0db42e91cb77a7d772199283d7af431e092f733973856ae4c5ce0ba9f65",
+        "codec": "uastc",
+        "mipLevels": 3,
+        "transfer": "linear"
+      },
+      {
+        "uri": "hall-day.ktx2",
+        "bytes": 938060,
+        "sha256": "1f5baa6fd3a1f97477d8934a8f309fd99f26dff6bf00b868842f0c7b479cf4c6",
+        "codec": "uastc",
+        "mipLevels": 3,
+        "transfer": "linear"
+      },
+      {
+        "uri": "hall-lamp.ktx2",
+        "bytes": 204824,
+        "sha256": "1043aab7c42147a3814f2fe05170fe03c81335c139a900e54c4bf2de1cd94644",
+        "codec": "uastc",
+        "mipLevels": 3,
+        "transfer": "linear"
+      },
+      {
+        "uri": "altar-night.ktx2",
+        "bytes": 437688,
+        "sha256": "2e16ddcbf942ec640dcdf96bca0006ab2f046c4133da90fe674431687cb46aea",
+        "codec": "uastc",
+        "mipLevels": 3,
+        "transfer": "linear"
+      },
+      {
+        "uri": "altar-dusk.ktx2",
+        "bytes": 425779,
+        "sha256": "c02c3d95dde12a9a2d7b4fad1fe0dd958876e8be6c3b0143e87bcf953172d41c",
+        "codec": "uastc",
+        "mipLevels": 3,
+        "transfer": "linear"
+      },
+      {
+        "uri": "altar-day.ktx2",
+        "bytes": 422524,
+        "sha256": "bda1375f4a7e696576b869ac9d5b1b08639f826e08e23e0d305712bcc415accd",
+        "codec": "uastc",
+        "mipLevels": 3,
+        "transfer": "linear"
+      },
+      {
+        "uri": "altar-lamp.ktx2",
+        "bytes": 173058,
+        "sha256": "54a93c6ac5881066dea507574ded1751ee3f313f038555f6cf0ec7049a7c9451",
+        "codec": "uastc",
+        "mipLevels": 3,
+        "transfer": "linear"
+      },
+      {
+        "uri": "gate-night.ktx2",
+        "bytes": 325017,
+        "sha256": "4fbc6545bf01aa340168aa8f9987fd5c8ca756f7a8a966e72058eef5b1eff4bf",
+        "codec": "uastc",
+        "mipLevels": 3,
+        "transfer": "linear"
+      },
+      {
+        "uri": "gate-dusk.ktx2",
+        "bytes": 333221,
+        "sha256": "f38205db2467dc743fd3d9d0ef486ae25865e8bb23147d90d05c997ea71991d9",
+        "codec": "uastc",
+        "mipLevels": 3,
+        "transfer": "linear"
+      },
+      {
+        "uri": "gate-day.ktx2",
+        "bytes": 340530,
+        "sha256": "05ad384c1e9cc54fdff4ce5d1e361ae5692a0959626ff4d0c707ada14490e866",
+        "codec": "uastc",
+        "mipLevels": 3,
+        "transfer": "linear"
+      },
+      {
+        "uri": "gate-lamp.ktx2",
+        "bytes": 4772,
+        "sha256": "2b98eeebf8e6203827b0606ea1ce1e24c219125dc3b1c2f099bb08845ca4503a",
+        "codec": "uastc",
+        "mipLevels": 3,
+        "transfer": "linear"
+      },
+      {
+        "uri": "court-night.ktx2",
+        "bytes": 743968,
+        "sha256": "b4c0b192586c978b62a2c6fbf64610528b74d370ca903cefd330714bbb046d69",
+        "codec": "uastc",
+        "mipLevels": 3,
+        "transfer": "linear"
+      },
+      {
+        "uri": "court-dusk.ktx2",
+        "bytes": 774737,
+        "sha256": "1f37dc460e153d76393cb523189a8f2b5996e1e486258f5b988dd0e1f0516a6d",
+        "codec": "uastc",
+        "mipLevels": 3,
+        "transfer": "linear"
+      },
+      {
+        "uri": "court-day.ktx2",
+        "bytes": 791240,
+        "sha256": "439e55590f9fb5c8e3935b76f38a74ae1e2d7e39f0fc328228b4a5cac79b931b",
+        "codec": "uastc",
+        "mipLevels": 3,
+        "transfer": "linear"
+      },
+      {
+        "uri": "court-lamp.ktx2",
+        "bytes": 12234,
+        "sha256": "23a4e6c3a03aaa2f52ef56eeb34e93c2994096f0ed0087d47132711ddff3e39f",
+        "codec": "uastc",
+        "mipLevels": 3,
+        "transfer": "linear"
+      },
+      {
+        "uri": "gauze-weave.webp",
+        "bytes": 41290,
+        "sha256": "5008bae957c0c26a4323356b5c8922c4559d28e3d192c3fc725ba87db57c98b6",
+        "role": "runtime-visitor-fabric"
+      },
+      {
+        "uri": "gauze-normal.webp",
+        "bytes": 349898,
+        "sha256": "599ba576df8863b328f96c543c1485ea2af14f02b2ca99bd2d735ac89c5b332f",
+        "role": "runtime-visitor-fabric"
+      },
+      {
+        "uri": "gauze-roughness.webp",
+        "bytes": 54,
+        "sha256": "aa1de52d1bf84dd3fee42fd55e7ba2c56da6df22232f820453ca9dba453aec33",
+        "role": "runtime-visitor-fabric"
+      }
+    ],
+    "sourceBlendSha256": "2990854d3c9a65bf18879511d865b6e36788f6e727339248d5746b67fb52dd64",
+    "bakeFingerprint": "5737206aa09dfc39ad3174c5f0e99c047887ec5da7f81544afd068b72adb4ef5",
+    "geometryFingerprint": "c6f493a4550c100e7074f77a1390909061860ff835b6da6db2665b9369fb0a8e",
+    "allUnaffectedPayloadsByteExact": true,
+    "publicInstalled": false,
+    "full64": false,
+    "scriptSha256": "bd61580ad4dfbf5ce88ab96073c5671af15a9093a11849e2766847a244fad119"
+  },
+  "oneMapEncoding": {
+    "actualSharedPacker": true,
+    "recipe": "UASTCquality2/RDO1/Zstd18,linear,3explicit mips,8px gutters; exactly the existing driver recipe",
+    "geometryStageReusedOnlyAfterActualRawShaByteEquality": "Actual8and32rawGLB both6c8826d882c34524dd25a8d4aba113c070641fdd5977f846b5f274c1957971f3",
+    "actualEncoderCalls": 1,
+    "modelOrMaterialEncodingCalls": 0,
+    "nativeMasterAndOriginal8PackageUnchanged": true
+  },
+  "sourceGeometryMaterialLightingUnchanged": true,
+  "allOwnedCpuEncoderAndAuditJobsTerminal": true,
+  "full64Approved": false,
+  "remaining": [
+    "Actual matching-camera mixed8/32 optical stills",
+    "Full64 approval andactual finalbyte/performance checks",
+    "Tone response differences are a separate CPUOCIOstudy, not a source ofspatialstar noise"
+  ]
+}

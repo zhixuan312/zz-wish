@@ -1,0 +1,401 @@
+{
+  "scope": "Actual completed Source17 ALL16 LOW8 staged package, independent geometry/precision/contact replay and actual byte gate. Not public, not full64, not browser optical or performance approval.",
+  "files": [
+    {
+      "path": "art/build/snow-roof-round1/source-v17.blend",
+      "sha256": "2990854d3c9a65bf18879511d865b6e36788f6e727339248d5746b67fb52dd64",
+      "bytes": 11717577
+    },
+    {
+      "path": "art/build/snow-roof-round1/source-v17.audit.json",
+      "sha256": "8b897b79ce2ad533d317399417c602468ee88747a70905ad86c5f533dd11a6aa",
+      "bytes": 351222
+    },
+    {
+      "path": "art/build/snow-roof-round1/source-v17-hidden-faces-20mm.json",
+      "sha256": "8b27f8d34705f1cb7c674cbb04d3e419b9207cf835c378cd355579a2fdebdb4d",
+      "bytes": 918601
+    },
+    {
+      "path": "art/build/snow-roof-round1/preview17-c6-normalized-input-ledger.json",
+      "sha256": "b3e409b88de827960666e48d663871af947bbab652a17453def27604cc6ba851",
+      "bytes": 13972
+    },
+    {
+      "path": "art/build/snow-roof-round1/postbatch-v17-c6/identity.json",
+      "sha256": "b053f1e386cb7e9066185b8719c54e66d8ef4bc230002b04e327e5d7802f2acd",
+      "bytes": 9768
+    },
+    {
+      "path": "art/build/snow-roof-round1/postbatch-v17-c6/raw-chain-correspondence.json",
+      "sha256": "c33d8597bf9da8138841aef68b5f12b14ca348df6ba86ccd42287f77bb041a0a",
+      "bytes": 1838
+    },
+    {
+      "path": "art/build/snow-roof-round1/compact17-packaged-control/package-receipt.json",
+      "sha256": "7931b48140c283f7312a563075deac00b9d8db154d384390afc459bdd0f006b2",
+      "bytes": 19310
+    },
+    {
+      "path": "art/build/snow-roof-round1/compact17-packaged-control/runtime/manifest.json",
+      "sha256": "bd3199df18af1cee8a5bccc3ba45f257374c9f25c6efcad3e03193459850d6b8",
+      "bytes": 25178
+    },
+    {
+      "path": "art/build/snow-roof-round1/compact17-packaged-control/face-reference/reference.json",
+      "sha256": "812fb5a0444bab73801de4b3a91e24403698ab2fd248b4081f126fb03c7c63f4",
+      "bytes": 4190
+    },
+    {
+      "path": "art/build/snow-roof-round1/compact17-packaged-control/face-reference/raw-correspondence.json",
+      "sha256": "7ad0870674297a00221dc93e9d5c983d1c5b9975d2d96364f4e7bd8150d3c646",
+      "bytes": 32210
+    },
+    {
+      "path": "art/build/snow-roof-round1/compact17-packaged-control/pruned/export-profile.json",
+      "sha256": "721109ae5c0c736f2c34d0de9e4d472d9655745011ab12a3ee9d415cbeb56f66",
+      "bytes": 55147
+    },
+    {
+      "path": "art/build/snow-roof-round1/compact17-packaged-control/pruned/independent-geometry-proof.json",
+      "sha256": "d5065315544296bbb77d07bb0a8809c4e8210051918d0d277f64680a3ea4448e",
+      "bytes": 1086
+    },
+    {
+      "path": "art/build/snow-roof-round1/compact17-packaged-control/pruned/metadata-receipt.json",
+      "sha256": "8613e45916e29a20c53992257c93f74a6a758ee561cf8972299cdb362abe586a",
+      "bytes": 2445
+    },
+    {
+      "path": "art/build/snow-roof-round1/compact17-packaged-control/normal256/independent-precision-proof.json",
+      "sha256": "c2e88913b386c123246041d37ee06938c44d7a3dd7f0c587f760aefb070dc65c",
+      "bytes": 4434
+    },
+    {
+      "path": "art/build/snow-roof-round1/compact17-packaged-control/normal256/contact-audit.json",
+      "sha256": "2f01eea482905118a2fcf8c9b8718f7827eb8731c0d32588b73910513f050e0d",
+      "bytes": 136989
+    },
+    {
+      "path": "art/build/snow-roof-round1/compact17-packaged-control/normal256/decoder.json",
+      "sha256": "33d9fda6a8b486b47c19ac96ca0bbc283d5228f7afc83c7782770b106aeb2aa0",
+      "bytes": 877
+    },
+    {
+      "path": "art/build/snow-roof-round1/compact17-packaged-control/manifest-projection.json",
+      "sha256": "cb3817c1c47cb7de00b655b6b51e6ddff843442bcf8e834598a6a470660a8548",
+      "bytes": 24080
+    },
+    {
+      "path": "art/build/snow-roof-round1/compact17-packaged-control/executed-code/scripts/package-snow-compact-preview.py",
+      "sha256": "8bcad483f2e242575109faa1a99fb9c0a0883d6cc50c06d20bb6c7a6cf41e2df",
+      "bytes": 8094,
+      "originalExecutedRepositoryPath": "scripts/package-snow-compact-preview.py"
+    },
+    {
+      "path": "scripts/gzip-place-models.mjs",
+      "sha256": "7adfbdc3506f1f7b9938e8965d8a9281d4f5d9d68cfd21f51b5d857028396f32",
+      "bytes": 4722
+    },
+    {
+      "path": "scripts/compact-place-manifest.mjs",
+      "sha256": "1b2ee486a9534a6213749359567a9f94516b204151598eddc75cfd9d0c1c95dd",
+      "bytes": 5307
+    }
+  ],
+  "runtimeDirectory": "art/build/snow-roof-round1/compact17-packaged-control/runtime",
+  "allNativePinsUnchanged": true,
+  "nativeActualSeconds": 204.696,
+  "nativeExitCode": 0,
+  "packageExitCode": 0,
+  "sourceBlendSha256": "2990854d3c9a65bf18879511d865b6e36788f6e727339248d5746b67fb52dd64",
+  "bakeFingerprint": "5737206aa09dfc39ad3174c5f0e99c047887ec5da7f81544afd068b72adb4ef5",
+  "geometryFingerprint": "c6f493a4550c100e7074f77a1390909061860ff835b6da6db2665b9369fb0a8e",
+  "cameraPreExposure": 40,
+  "actualLampWatts": 0.05000000074505806,
+  "lampPassQuantity": "indirect-diffuse-radiance-per-unit-albedo",
+  "passesByLook": {
+    "night": [
+      "DIRECT",
+      "INDIRECT"
+    ],
+    "dusk": [
+      "DIRECT",
+      "INDIRECT"
+    ],
+    "day": [
+      "DIRECT",
+      "INDIRECT"
+    ],
+    "lamp": [
+      "INDIRECT"
+    ]
+  },
+  "all16MapsSamples8MetalMetal": true,
+  "packageBytes": {
+    "complete": 14337323,
+    "modelZstd": 6101802,
+    "all16Lightmaps": 7819101,
+    "photographedFabric": 391242,
+    "runtimeManifest": 25178,
+    "maximum": 15000000,
+    "margin": 662677,
+    "allActualFileHashesAndByteLengthsChecked": true,
+    "model": {
+      "uri": "snow-roof.glb.zstd",
+      "bytes": 6101802,
+      "sha256": "eb8b0e1aaf86fa3a12b3d524cc7a796d92930e6f54da572e733774c16d16599a",
+      "encoding": "zstd",
+      "decodedBytes": 10409148,
+      "decodedSha256": "4f24fccf1cc57b6446abb55bf257f4dc3d4f13b36c9f78572ce62e5e5397774b"
+    }
+  },
+  "allDeclaredRuntimeFiles": [
+    {
+      "uri": "snow-roof.glb.zstd",
+      "bytes": 6101802,
+      "sha256": "eb8b0e1aaf86fa3a12b3d524cc7a796d92930e6f54da572e733774c16d16599a",
+      "encoding": "zstd",
+      "decodedBytes": 10409148,
+      "decodedSha256": "4f24fccf1cc57b6446abb55bf257f4dc3d4f13b36c9f78572ce62e5e5397774b"
+    },
+    {
+      "uri": "hall-night.ktx2",
+      "bytes": 946933,
+      "sha256": "aa2f496955e410b7fb795ef8f962d649fa4fb386a3dd8fffd1d205f525ed8fa9",
+      "codec": "uastc",
+      "mipLevels": 3,
+      "transfer": "linear"
+    },
+    {
+      "uri": "hall-dusk.ktx2",
+      "bytes": 944516,
+      "sha256": "970dd0db42e91cb77a7d772199283d7af431e092f733973856ae4c5ce0ba9f65",
+      "codec": "uastc",
+      "mipLevels": 3,
+      "transfer": "linear"
+    },
+    {
+      "uri": "hall-day.ktx2",
+      "bytes": 938060,
+      "sha256": "1f5baa6fd3a1f97477d8934a8f309fd99f26dff6bf00b868842f0c7b479cf4c6",
+      "codec": "uastc",
+      "mipLevels": 3,
+      "transfer": "linear"
+    },
+    {
+      "uri": "hall-lamp.ktx2",
+      "bytes": 204824,
+      "sha256": "1043aab7c42147a3814f2fe05170fe03c81335c139a900e54c4bf2de1cd94644",
+      "codec": "uastc",
+      "mipLevels": 3,
+      "transfer": "linear"
+    },
+    {
+      "uri": "altar-night.ktx2",
+      "bytes": 437688,
+      "sha256": "2e16ddcbf942ec640dcdf96bca0006ab2f046c4133da90fe674431687cb46aea",
+      "codec": "uastc",
+      "mipLevels": 3,
+      "transfer": "linear"
+    },
+    {
+      "uri": "altar-dusk.ktx2",
+      "bytes": 425779,
+      "sha256": "c02c3d95dde12a9a2d7b4fad1fe0dd958876e8be6c3b0143e87bcf953172d41c",
+      "codec": "uastc",
+      "mipLevels": 3,
+      "transfer": "linear"
+    },
+    {
+      "uri": "altar-day.ktx2",
+      "bytes": 422524,
+      "sha256": "bda1375f4a7e696576b869ac9d5b1b08639f826e08e23e0d305712bcc415accd",
+      "codec": "uastc",
+      "mipLevels": 3,
+      "transfer": "linear"
+    },
+    {
+      "uri": "altar-lamp.ktx2",
+      "bytes": 173058,
+      "sha256": "54a93c6ac5881066dea507574ded1751ee3f313f038555f6cf0ec7049a7c9451",
+      "codec": "uastc",
+      "mipLevels": 3,
+      "transfer": "linear"
+    },
+    {
+      "uri": "gate-night.ktx2",
+      "bytes": 325017,
+      "sha256": "4fbc6545bf01aa340168aa8f9987fd5c8ca756f7a8a966e72058eef5b1eff4bf",
+      "codec": "uastc",
+      "mipLevels": 3,
+      "transfer": "linear"
+    },
+    {
+      "uri": "gate-dusk.ktx2",
+      "bytes": 333221,
+      "sha256": "f38205db2467dc743fd3d9d0ef486ae25865e8bb23147d90d05c997ea71991d9",
+      "codec": "uastc",
+      "mipLevels": 3,
+      "transfer": "linear"
+    },
+    {
+      "uri": "gate-day.ktx2",
+      "bytes": 340530,
+      "sha256": "05ad384c1e9cc54fdff4ce5d1e361ae5692a0959626ff4d0c707ada14490e866",
+      "codec": "uastc",
+      "mipLevels": 3,
+      "transfer": "linear"
+    },
+    {
+      "uri": "gate-lamp.ktx2",
+      "bytes": 4772,
+      "sha256": "2b98eeebf8e6203827b0606ea1ce1e24c219125dc3b1c2f099bb08845ca4503a",
+      "codec": "uastc",
+      "mipLevels": 3,
+      "transfer": "linear"
+    },
+    {
+      "uri": "court-night.ktx2",
+      "bytes": 743968,
+      "sha256": "b4c0b192586c978b62a2c6fbf64610528b74d370ca903cefd330714bbb046d69",
+      "codec": "uastc",
+      "mipLevels": 3,
+      "transfer": "linear"
+    },
+    {
+      "uri": "court-dusk.ktx2",
+      "bytes": 774737,
+      "sha256": "1f37dc460e153d76393cb523189a8f2b5996e1e486258f5b988dd0e1f0516a6d",
+      "codec": "uastc",
+      "mipLevels": 3,
+      "transfer": "linear"
+    },
+    {
+      "uri": "court-day.ktx2",
+      "bytes": 791240,
+      "sha256": "439e55590f9fb5c8e3935b76f38a74ae1e2d7e39f0fc328228b4a5cac79b931b",
+      "codec": "uastc",
+      "mipLevels": 3,
+      "transfer": "linear"
+    },
+    {
+      "uri": "court-lamp.ktx2",
+      "bytes": 12234,
+      "sha256": "23a4e6c3a03aaa2f52ef56eeb34e93c2994096f0ed0087d47132711ddff3e39f",
+      "codec": "uastc",
+      "mipLevels": 3,
+      "transfer": "linear"
+    },
+    {
+      "uri": "gauze-weave.webp",
+      "bytes": 41290,
+      "sha256": "5008bae957c0c26a4323356b5c8922c4559d28e3d192c3fc725ba87db57c98b6",
+      "role": "runtime-visitor-fabric"
+    },
+    {
+      "uri": "gauze-normal.webp",
+      "bytes": 349898,
+      "sha256": "599ba576df8863b328f96c543c1485ea2af14f02b2ca99bd2d735ac89c5b332f",
+      "role": "runtime-visitor-fabric"
+    },
+    {
+      "uri": "gauze-roughness.webp",
+      "bytes": 54,
+      "sha256": "aa1de52d1bf84dd3fee42fd55e7ba2c56da6df22232f820453ca9dba453aec33",
+      "role": "runtime-visitor-fabric"
+    }
+  ],
+  "nativeMasterHashesUnchanged": true,
+  "declaredDeliveryPrecision": {
+    "positions": "Original authored FLOAT32 retained byte-exact, no position grid or SHORT position substitution",
+    "normal": "Original actual F32 NORMAL to normalized SHORT16, measured lossy storage",
+    "uv": "Affine U16 only when error<=.25original-source material texels; otherwise original F32. UV1 normalized U16 with no chart remap.",
+    "colors": {
+      "type": "normalized U8",
+      "explicitPolicy": "reviewed-u8",
+      "maximumLinearComponentError": 0.0019607784701328734,
+      "unitRangeHalfStep": 0.00196078431372549,
+      "clampedSourceComponents": 0,
+      "clampingExplicitlyReported": true
+    },
+    "actualMaximumWorldNormalComponentError": 1.9786220281869937e-05,
+    "actualMaximumOriginalSourceMaterialTexelError": 0.2109375,
+    "actualMaximumLightmapBaseTexelError": 0.0107421875,
+    "architecturalNormalImages": 256,
+    "scanTableScreenNormalImages": 512
+  },
+  "independentRetainedFaceProof": {
+    "regions": {
+      "altar": {
+        "removedFACEProvenTriangles": 0,
+        "retainedTriangles": 32600
+      },
+      "court": {
+        "removedFACEProvenTriangles": 8136,
+        "retainedTriangles": 137714
+      },
+      "gate": {
+        "removedFACEProvenTriangles": 2996,
+        "retainedTriangles": 28004
+      },
+      "hall": {
+        "removedFACEProvenTriangles": 1784,
+        "retainedTriangles": 119506
+      }
+    },
+    "allOriginalRetainedArraysAndWindingExactBeforeDeclaredPrecision": true,
+    "allMaterialJsonEmbeddedImagesExactAtPruneStage": true,
+    "hiddenOnlyTrianglesRemoved": 12916,
+    "retainedTriangles": 317824,
+    "originalNativeGeometryKept": true
+  },
+  "decodedPhysicalReplay": {
+    "passed": true,
+    "preparedGroups": 47,
+    "actualDecodedGroups": 47,
+    "allPassed": true,
+    "sourceAndActualRuntimeAnchorsByteValueExact": true,
+    "literalGuardsMetres": {
+      "gap": 0.002,
+      "penetration": 0.005
+    }
+  },
+  "metadataPolicy": {
+    "approvedRemovedSceneKeys": [
+      "source_lightmap_charts",
+      "resting_contact_audit",
+      "resting_contact_groups"
+    ],
+    "removedFullSourceAuditValuesShaBoundInReceipt": true,
+    "sourceAndRuntimeAnchorConfigRetained": true,
+    "runtimeManifestProjectionSavedBytes": 134047,
+    "allRuntimePayloadBytesAndHashesUnchangedByProjection": true
+  },
+  "runtimeNormalizationRetained": {
+    "cameraPreExposure": 40,
+    "threeLightMapIrradianceMultiplier": 125.66370614359172,
+    "lampIndirectOnlyProvenance": true
+  },
+  "publicWrites": 0,
+  "sourceAuthoredOrNativeMasterEdits": 0,
+  "remainingGates": [
+    "Actual current app optical/cloth/rib/shadow/contacts review in Chrome and WebKit",
+    "Real mobile performance and full journey checks on chosen package",
+    "Fresh full64 only after optical approval; final complete15MB bytes must be measured again"
+  ],
+  "preservedExecutedPreviewCodeReceipt": {
+    "path": "art/build/snow-roof-round1/compact17-packaged-control/executed-code/receipt.json",
+    "sha256": "fa20432b08e51cb759e20ba6583009078d7d1fd583a33e82824103652bfafbe8",
+    "bytes": 1241
+  },
+  "subsequentFinalModeEvolution": {
+    "currentDefaultPreviewPayloadByteExactVerified": true,
+    "proof": {
+      "path": "art/build/snow-roof-round1/package-final-mode-guard17-v2/guard-proof.json",
+      "sha256": "7fddfa2c537ab6642328bd1d90504e3cbd000ba92673fade6eef1e94f77ad7d7",
+      "bytes": 5088
+    },
+    "allOriginalActualPreviewOutputsAndReceiptUnmodified": true
+  }
+}

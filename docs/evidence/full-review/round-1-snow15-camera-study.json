@@ -1,0 +1,47 @@
+{
+  "scope": "Exploratory actual Source15 LOW8 Chrome camera holds; no geometry/light/material alteration, not final full journey validation.",
+  "runs": [
+    {
+      "path": "artifacts/full-review/round-1/snow15-camera-study/report.json",
+      "sha256": "e2d0791305cd1d75b05d7c6c5db5c5e0aa324e32250d1f72b877d3d229b6b521",
+      "frames": 8,
+      "errors": [],
+      "sourceChanged": false
+    },
+    {
+      "path": "artifacts/full-review/round-1/snow15-camera-study2/report.json",
+      "sha256": "ece73e59ef7b8e5cd29926b7a92264b51662806152982ed4a2718e12bee14187",
+      "frames": 6,
+      "errors": [],
+      "sourceChanged": false
+    },
+    {
+      "path": "artifacts/full-review/round-1/snow15-camera-study3/report.json",
+      "sha256": "517dce2e8c44ae056dc0ac4e84644202eafebf705399c056edb81cb4002b0879",
+      "frames": 8,
+      "errors": [],
+      "sourceChanged": false
+    }
+  ],
+  "adoptedPhoneWorld": {
+    "position": [
+      -3.8,
+      2.3,
+      2.05
+    ],
+    "look": [
+      -1.8,
+      2.9,
+      -2.1
+    ],
+    "fov": 75
+  },
+  "adoptedPhoneCapture": "artifacts/full-review/round-1/snow15-camera-study3/phone-burn-phone-left-clear.png",
+  "desktop": "Original authored product pose retained after actual desktop comparison.",
+  "desktopCapture": "artifacts/full-review/round-1/snow15-camera-study3/desktop-burn-actual.png",
+  "beforePhoneCapture": "artifacts/full-review/round-1/snow15-plume-review/chromium/phone-zh/burning.png",
+  "remaining": [
+    "Verify new phone burnFar and continuous route against actual prepared geometry and UI.",
+    "Material rib-mark diagnosis and final Metal64/delivery/browser/stability/30fps gates remain open."
+  ]
+}

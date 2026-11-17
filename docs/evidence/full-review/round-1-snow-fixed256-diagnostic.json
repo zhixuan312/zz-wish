@@ -1,0 +1,269 @@
+{
+  "scope": "Boundedactualfixed256hall/nightdiagnosticONLY; nofull16approval orpublicinstall. SameSource17physicalscene; newestimatorfp. Oldadaptivepackagesandmastersimmutable.",
+  "references": {
+    "nativeLedger": {
+      "path": "art/build/snow-roof-round1/diagnostic17-fixed256-input-ledger.json",
+      "sha256": "47a53fec44ec44d56f43471fd82fedab99d1d14067d3fc134817acdea534f54f",
+      "bytes": 24671
+    },
+    "actualPreflight": {
+      "path": "art/build/snow-roof-round1/fixed256-preflight-v17/preflight.json",
+      "sha256": "0557c88a2dd790e67f8630297272c23932495ebae0e71d310d5b5fa798b26f8b",
+      "bytes": 5195
+    },
+    "contact19Guard": {
+      "path": "art/build/snow-roof-round1/fixed256-guards-v17/contact/guard-proof.json",
+      "sha256": "bce6589cec5c5becb0af5299297faf43312988b5cbc0d2ed2b740a79808122b1",
+      "bytes": 4050
+    },
+    "normal16Guard": {
+      "path": "art/build/snow-roof-round1/fixed256-guards-v17/normal.json",
+      "sha256": "e3700e6fbc4758f501136ad23bece5be442f95c36848967b77dc9a0dae92fdf8",
+      "bytes": 5176
+    },
+    "actualTerminal": {
+      "path": "art/build/snow-roof-round1/diagnostic17-fixed256-terminal.json",
+      "sha256": "b319f71d1891da3e02443017f4a9ba1eb379e3b9f0e90a197dba43f1c678a78d",
+      "bytes": 2639
+    },
+    "actualNativeManifest": {
+      "path": "art/build/snow-roof-round1/diagnostic17-hall-night256-fixed-native/manifest.json",
+      "sha256": "162a470fcdd3bc56e4342b34f3e3ecba4ca5529ec75e3876349f66ce9e0f5acd",
+      "bytes": 55575
+    },
+    "source": {
+      "path": "art/build/snow-roof-round1/source-v17.blend",
+      "sha256": "2990854d3c9a65bf18879511d865b6e36788f6e727339248d5746b67fb52dd64",
+      "bytes": 11717577
+    },
+    "sameUvAndFullChartComparison": {
+      "path": "art/build/snow-roof-round1/source17-fixed256-variance-comparison/comparison.json",
+      "sha256": "b40918959b68732bae86cb14e9b4c55164073ef74131c740ed4933a3712e1ee5",
+      "bytes": 110842
+    },
+    "comparisonRecipe": {
+      "path": "art/blender/compare_snow_fixed_sampling.py",
+      "sha256": "c7dcf9ed7130f398566dd85d58f4409d83db3dac5abba1becfa6afe200651726",
+      "bytes": 5436
+    },
+    "preflightRecipe": {
+      "path": "art/blender/audit_fixed_sampling_preflight.py",
+      "sha256": "c378e1ad6374e6d284b3cdba479bfe96ea108417cae6d48bab9e5f21fcaaa9dc",
+      "bytes": 7903
+    },
+    "codecReceipt": {
+      "path": "art/build/snow-roof-round1/diagnostic17-hall-night256-fixed-native/hall-night.ktx2.json",
+      "sha256": "7bfc46fa67252dca8d7f0baa6e3c931b83b6885a6035fdfd95aea368bf62161e",
+      "bytes": 400
+    }
+  },
+  "actualEstimator": {
+    "use_adaptive_sampling": false,
+    "adaptive_threshold": 0.009999999776482582,
+    "adaptive_min_samples": 0,
+    "sample_offset": 0,
+    "seed": 0,
+    "use_animated_seed": false,
+    "sampling_pattern": "AUTOMATIC",
+    "use_light_tree": true,
+    "use_guiding": false,
+    "guiding_training_samples": 128,
+    "use_surface_guiding": true,
+    "use_volume_guiding": true,
+    "max_bounces": 6,
+    "diffuse_bounces": 4,
+    "glossy_bounces": 2,
+    "transmission_bounces": 12,
+    "transparent_max_bounces": 4,
+    "volume_bounces": 0,
+    "sample_clamp_direct": 0.0,
+    "sample_clamp_indirect": 10.0,
+    "blur_glossy": 1.0,
+    "caustics_reflective": true,
+    "caustics_refractive": true,
+    "min_light_bounces": 0,
+    "min_transparent_bounces": 0,
+    "light_sampling_threshold": 0.009999999776482582,
+    "use_fast_gi": false,
+    "ao_bounces": 1
+  },
+  "newBakeFingerprint": "4f4b6a7a269cd9e73649e18882aad9838adfac2ae4f45ce581ff8cb1dd0f6093",
+  "geometryFingerprint": "c6f493a4550c100e7074f77a1390909061860ff835b6da6db2665b9369fb0a8e",
+  "sampleBudgetMeaning": "Configured fixed Cycles sample budget; adaptive stopping and animated seed are disabled. Sample count is recorded per map; invalid UV/padding texels are not path samples.",
+  "samples": 256,
+  "device": "METAL",
+  "oidn": "METAL",
+  "nativeSeconds": 79.466,
+  "cyclesSeconds": 40.243,
+  "oidnSeconds": 13.545,
+  "codec": {
+    "uri": "art/build/snow-roof-round1/diagnostic17-hall-night256-fixed-native/hall-night.ktx2",
+    "sha256": "9ea8e8bbc5e7d3a011818b523d0302881ef15aafe368747862f3592e3ba794bf",
+    "bytes": 1014483,
+    "actualRecipe": "UASTC2/RDO1/Zstd18,linear3mips8pxgutters"
+  },
+  "allJobsTerminal": true,
+  "gpuReleased": true,
+  "comparison": {
+    "sameUvPoints": 38,
+    "fullChartStatistics": [
+      {
+        "chart": 555,
+        "owners": [
+          "Round entasis red timber column.001"
+        ],
+        "coreTexels": 1178,
+        "interiorTexels": 1020,
+        "statistics": {
+          "raw": {
+            "adaptiveHighPassSD": 0.0001964300537475875,
+            "fixedHighPassSD": 9.914681868394837e-05,
+            "fixedOverAdaptiveHighPassRatio": 0.50474363160004,
+            "adaptiveWholeMean": 0.0005180092858038478,
+            "fixedWholeMean": 0.0005085981101728976
+          },
+          "denoised": {
+            "adaptiveHighPassSD": 8.485295689877363e-05,
+            "fixedHighPassSD": 8.18271073512733e-05,
+            "fixedOverAdaptiveHighPassRatio": 0.9643400812642268,
+            "adaptiveWholeMean": 0.0005070591459733365,
+            "fixedWholeMean": 0.0005074767977930605
+          }
+        }
+      },
+      {
+        "chart": 604,
+        "owners": [
+          "Round entasis red timber column.003"
+        ],
+        "coreTexels": 1280,
+        "interiorTexels": 1116,
+        "statistics": {
+          "raw": {
+            "adaptiveHighPassSD": 0.0007691804075248995,
+            "fixedHighPassSD": 0.0003944862401112914,
+            "fixedOverAdaptiveHighPassRatio": 0.5128656895729905,
+            "adaptiveWholeMean": 0.0014951800239250356,
+            "fixedWholeMean": 0.0015132586704567075
+          },
+          "denoised": {
+            "adaptiveHighPassSD": 0.0006882124047013683,
+            "fixedHighPassSD": 0.00037935489672236145,
+            "fixedOverAdaptiveHighPassRatio": 0.5512177550577173,
+            "adaptiveWholeMean": 0.0014833160059946897,
+            "fixedWholeMean": 0.001510008005425334
+          }
+        }
+      },
+      {
+        "chart": 875,
+        "owners": [
+          "Hall longitudinal carrying beam.001"
+        ],
+        "coreTexels": 2096,
+        "interiorTexels": 808,
+        "statistics": {
+          "raw": {
+            "adaptiveHighPassSD": 0.00039006587810064687,
+            "fixedHighPassSD": 0.00021092771203257143,
+            "fixedOverAdaptiveHighPassRatio": 0.5407489449209057,
+            "adaptiveWholeMean": 0.0006215916952425271,
+            "fixedWholeMean": 0.0006236457847990096
+          },
+          "denoised": {
+            "adaptiveHighPassSD": 0.000373538014920833,
+            "fixedHighPassSD": 0.00019521662034094334,
+            "fixedOverAdaptiveHighPassRatio": 0.5226151356571224,
+            "adaptiveWholeMean": 0.0006187521861368135,
+            "fixedWholeMean": 0.0006222341326065361
+          }
+        }
+      }
+    ],
+    "sourceMasterHashesUnchanged": true,
+    "finding": "Fixed256approximatelyhalvesrawhighpassvariationonbothcolumnsandthebeam. Broadcolumnpatchpersistsandbrightensinalreadyrawdata; OIDNisnottheonlycause. Notcleanconvergenceoropticalacceptance.",
+    "selectedColumnPoint490_350": {
+      "label": "column-490-350",
+      "xy": [
+        490,
+        350
+      ],
+      "sourceOwner": "Round entasis red timber column.003",
+      "uv2Blender": [
+        0.1356941816066319,
+        0.06981888870098385
+      ],
+      "denseChartLabel": 604,
+      "samples": {
+        "8": {
+          "raw": [
+            0.0006486229508772737,
+            0.00046839658878066565,
+            0.0003355901822579578
+          ],
+          "denoised": [
+            0.005621678112357922,
+            0.004029286938206816,
+            0.002570617251502166
+          ]
+        },
+        "32": {
+          "raw": [
+            0.0087438258119709,
+            0.0062245050049373665,
+            0.0038020807592572567
+          ],
+          "denoised": [
+            0.007525749798628808,
+            0.0053565218446412245,
+            0.0033556448929028754
+          ]
+        },
+        "64": {
+          "raw": [
+            0.007747708471135158,
+            0.005455197124099495,
+            0.0033315937469189116
+          ],
+          "denoised": [
+            0.007074850263747616,
+            0.004954696006360304,
+            0.0030071383570421106
+          ]
+        },
+        "256": {
+          "raw": [
+            0.006330724328661897,
+            0.004513903101664695,
+            0.0027688713449382013
+          ],
+          "denoised": [
+            0.006389061065573294,
+            0.004520714581481305,
+            0.0027718200754279516
+          ]
+        }
+      },
+      "fixed256": {
+        "raw": [
+          0.00785876797960466,
+          0.005572462836277437,
+          0.0033926902376064045
+        ],
+        "denoised": [
+          0.00786908761059923,
+          0.005573339213907945,
+          0.0033880093375392856
+        ]
+      }
+    },
+    "limits": [
+      "Points were chosen in the8-sample image: peak regression is selection-biased.",
+      "Whole-chart statistics use every core and same-chart3x3interior texel; spatial variation includes real gradients and OIDN structure.",
+      "No count is ground truth; lower high-pass spatial deviation alone is not convergence, correctness or removal of broad blotches.",
+      "No runtime image, albedo, KTX, tone mapping or perceived-result equivalence is asserted.",
+      "Fixed256 is another finite estimator, not ground truth. No optical acceptance or causal isolation beyond the actual estimator change is asserted."
+    ]
+  },
+  "requiredNext": "Rootintegrator-matchednative8andactualmixed-estimatorpartialappcomparison. NooldGIboundtonewFP; nofullsceneproductionbatchuntilvisualcause/fixaccepted."
+}

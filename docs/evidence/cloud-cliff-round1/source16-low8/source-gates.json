@@ -1,0 +1,77 @@
+{
+  "version": 1,
+  "purpose": "Source16 fresh all12 LOW8 runtime evaluation; no64 or public adoption",
+  "sourceSha256": "e1fab71cd2500b53a0c3d925b579352c428f023506567266f9b1c7f078cc85a5",
+  "geometryFingerprint": "faa90e23fe4549eb3f8033093ce9a589f744801eed972193638b1c27a30d6617",
+  "actualGates": {
+    "mapping-proof": {
+      "path": "art/build/cloud-cliff-round1/contact-replay-v16/mapping-proof.json",
+      "bytes": 21176,
+      "sha256": "aea77c7fd935a072c47d0d0414d6b2505d6db32e86fadc9cadbf677cbe4cebc4"
+    },
+    "raw-normal-proof": {
+      "path": "art/build/cloud-cliff-round1/contact-replay-v16/raw-normal-proof.json",
+      "bytes": 4030,
+      "sha256": "e0f8f7e05a63ad748d7284b84d335271663c9267654829bb91a02b54eb812fba"
+    },
+    "hero-raw-normal-proof": {
+      "path": "art/build/cloud-cliff-round1/contact-replay-v16/hero-raw-normal-proof.json",
+      "bytes": 7579,
+      "sha256": "8f87a6e009a0894d09d80b36efa6cd372880ab8182c352e971152bcb0da43407"
+    },
+    "contact-audit": {
+      "path": "art/build/cloud-cliff-round1/contact-replay-v16/contact-audit.json",
+      "bytes": 119688,
+      "sha256": "c366159fd20f9bf02cac0af347bc811152786082812957fd181d3df180efddd4"
+    },
+    "normal-guard": {
+      "path": "art/build/cloud-cliff-round1/contact-replay-v16/normal-guard.json",
+      "bytes": 5078,
+      "sha256": "9a983a6ab495f010568fbc403edf7fb44e3bac1a97ef8cbf9884122cc98b4d13"
+    },
+    "pbr-material-proof": {
+      "path": "art/build/cloud-cliff-round1/contact-replay-v16/pbr-material-proof.json",
+      "bytes": 5327,
+      "sha256": "c90dacaf4970b09c9e1d26f0978d719f87907d278e07d72158f18fc4310db6c3"
+    },
+    "contact-guard": {
+      "path": "art/build/cloud-cliff-round1/contact-replay-v16/contact-guard/guard-proof.json",
+      "bytes": 4030,
+      "sha256": "83ba724b696d17f8000e2740fa513cb351b072d2b5c1ff75e338bb2cf628838b"
+    },
+    "runtime-cpu-port": {
+      "path": "art/build/cloud-cliff-round1/runtime-field-v6-proof/cpu-port-proof.json",
+      "bytes": 2007,
+      "sha256": "6fb17811d45794562148ec35b1460c8427a3b9f19294f48e37bd34c80b829d43"
+    },
+    "silhouette": {
+      "path": "art/build/cloud-cliff-round1/source-v16-silhouette/silhouette.json",
+      "bytes": 875400,
+      "sha256": "ce3745576d9eac51980ea5c9874547305f2e02e2dd3b95f9e246cd8c86a5a209"
+    }
+  },
+  "regions": {
+    "cover": {
+      "resolution": 1024,
+      "charts": 898
+    },
+    "cliff": {
+      "resolution": 512,
+      "charts": 51
+    },
+    "far": {
+      "resolution": 256,
+      "charts": 72,
+      "nativeTriangleTexelSurfaceAreaFraction": 0.2966685726673158
+    }
+  },
+  "limits": [
+    "Far sub-triangle lighting detail remains coarse; complete chart/camera coverage is not a shading-quality proof.",
+    "Source morphology only selected for a low8 app study. Broad heads/cut scan tops remain risks.",
+    "Runtime field GPU equality/performance is not established by CPU/node agreement."
+  ],
+  "launchPlan": {
+    "path": "art/build/cloud-cliff-round1/runtime-eval-v16-native8/launch-plan.json",
+    "sha256": "a20c8bd98af1add9858fb7d66b9374bb461335df82d62b7fbddfcd15477dbe61"
+  }
+}

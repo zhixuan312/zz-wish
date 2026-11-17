@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import * as engine from './engine/index.ts';
 import { placeById, type Locale, type PlaceId } from '../../shared/places.ts';
 import { DEFAULT_PLACE, VISIBLE_PLACES, isVisiblePlace } from './visiblePlaces.ts';
@@ -38,9 +38,27 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
 
   // What the person is making.
   const [wish, setWish] = useState('');
+  const wishField = useRef<HTMLTextAreaElement>(null);
+  const [wishHint, setWishHint] = useState(false);
   const [wishId, setWishId] = useState<string | null>(null);
   const [placeId, setPlaceId] = useState<PlaceId>(DEFAULT_PLACE.id);
   const place = placeById(placeId)!;
+  const [placeLoad, setPlaceLoad] = useState<{ stage: 'loading' | 'preparing' | 'ready' | 'error'; loadedBytes: number; totalBytes: number | null; ratio: number | null }>({ stage: 'loading', loadedBytes: 0, totalBytes: null, ratio: null });
+  const loadTask = useRef<{ id: PlaceId; task: Promise<void> } | null>(null);
+  const loadVersion = useRef(0);
+  const preparePlace = useCallback((id: PlaceId, retry = false) => {
+    if (!retry && loadTask.current?.id === id) return loadTask.current.task;
+    const version = ++loadVersion.current;
+    setPlaceLoad({ stage: 'loading', loadedBytes: 0, totalBytes: null, ratio: null });
+    const task = engine.prefetchPlace(id, (progress) => { if (version === loadVersion.current) setPlaceLoad((current) => {
+      const percent = (ratio: number | null) => ratio === null ? null : Math.round(ratio * 100);
+      return current.stage === progress.stage && percent(current.ratio) === percent(progress.ratio) ? current : progress;
+    }); })
+      .then(() => { if (version === loadVersion.current) setPlaceLoad((value) => ({ ...value, stage: 'ready', ratio: 1 })); })
+      .catch((error: unknown) => { if (version === loadVersion.current) { loadTask.current = null; setPlaceLoad((value) => ({ ...value, stage: 'error' })); } throw error; });
+    loadTask.current = { id, task }; return task;
+  }, []);
+  useEffect(() => { if (wish.trim()) void preparePlace(placeId).catch(() => {}); }, [wish, placeId, preparePlace]);
   // The place decides the kind of lamp. The person picks a shape and a time (the shape grows with the time),
   // or draws one: the bigger the drawing, the longer it burns.
   const kind: Kind = ({ wax: 'candle', oil: 'oil', shade: 'shade' } as const)[place.vessel];
@@ -76,7 +94,7 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
     }
   }), []);
   useEffect(() => {
-    if (['place', 'travel', 'candle', 'confirm'].includes(screen)) { setLiveCount(null); presence.watch(placeId); }
+    if (['place', 'travel', 'candle'].includes(screen)) { setLiveCount(null); presence.watch(placeId); }
   }, [screen, placeId]);
   const [placeStats, setPlaceStats] = useState<Stats | null>(null);
   useEffect(() => {
@@ -94,7 +112,26 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
   const [askLeave, setAskLeave] = useState<Overlay>(null);
   const [showWish, setShowWish] = useState(true);
   const [showLeft, setShowLeft] = useState(false);
+  const [caught, setCaught] = useState(false);
+  const [controlsIdle, setControlsIdle] = useState(false);
+  const [travelTitle, setTravelTitle] = useState(false);
   const afterSettle = useRef<Overlay>(null);
+
+  useEffect(() => {
+    if (screen !== 'travel') { setTravelTitle(false); return; }
+    setTravelTitle(true); const timer = window.setTimeout(() => setTravelTitle(false), 4000);
+    return () => clearTimeout(timer);
+  }, [screen]);
+  useEffect(() => {
+    setControlsIdle(false);
+    if (screen !== 'burning' || !caught || askPutOut || askLeave || overlay) return;
+    let timer = 0;
+    const show = () => { setControlsIdle(false); clearTimeout(timer); timer = window.setTimeout(() => setControlsIdle(true), 5500); };
+    show();
+    const events = ['pointermove', 'pointerdown', 'keydown', 'focusin'] as const;
+    events.forEach((event) => window.addEventListener(event, show, { passive: true }));
+    return () => { clearTimeout(timer); events.forEach((event) => window.removeEventListener(event, show)); };
+  }, [screen, caught, askPutOut, askLeave, overlay]);
 
   useEffect(() => {
     if (screen !== 'burning') return;
@@ -103,8 +140,8 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
   }, [screen]);
 
   const light = async () => {
-    if (!shape || !allowed || busy) return;
-    setLightError(null); setAskPutOut(false);
+    if (!shape || !allowed || busy || burnRef.current) return;
+    setLightError(null); setAskPutOut(false); setCaught(false); setControlsIdle(false);
     const lightPlace = placeId;
     const b = new Burn(minutes! * 60_000, (s: Settlement) => {
       presence.stopBurning(); sound.stop();
@@ -118,44 +155,59 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
     });
     burnRef.current = b; setBusy(true);
     b.keepScreenOn();
-    setScreen('burning'); setShowLeft(false); sound.start(lightPlace); engine.ignite();
+    setShowLeft(false); sound.prepare(); sound.start(lightPlace);
     try {
       const c = await api.light({ runId: b.runId, placeId: lightPlace, shape, ...(wishId ? { wishId } : { wishText: wish.trim() }) });
       setWishId(c.wishId);
       b.confirm(c);
-      if (!b.isSettled) presence.burn(lightPlace, c.id, () => b.elapsed());
+      if (!b.isSettled) {
+        presence.burn(lightPlace, c.id, () => b.elapsed()); setScreen('burning');
+        void engine.ignite({ onCatch: () => { if (burnRef.current === b && !b.isSettled) setCaught(true); } })
+          .catch(() => { if (!b.isSettled) b.settle('put_out'); });
+      }
     } catch (e) {
       if (!b.isSettled) {
-        b.abort(); sound.stop(); burnRef.current = null; engine.snuff(); setScreen('confirm');
+        b.abort(); sound.stop(); burnRef.current = null; setScreen('candle');
         setLightError(e instanceof ApiError && e.code === 'already_burning' ? t.alreadyBurning : t.lightFailed);
       }
     } finally { setBusy(false); }
   };
 
-  const open = (o: Overlay) => { if (screen === 'burning' && burnRef.current) setAskLeave(o); else setOverlay(o); };
+  const open = (o: Overlay) => { if (burnRef.current && !burnRef.current.isSettled) setAskLeave(o); else setOverlay(o); };
   const leaveAndOpen = () => { afterSettle.current = askLeave; setAskLeave(null); burnRef.current?.settle('navigated'); };
 
   // Navigation between steps; the scene moves with them.
-  const toPlace = () => { setScreen('place'); run(() => engine.previewPlace(placeId)); };
-  const pickPlace = (id: PlaceId) => { if (!isVisiblePlace(id)) return; setPlaceId(id); if (placeById(id)!.vessel !== place.vessel) { setTab('preset'); setPresetShape(0); setStrokes([]); setColor(1); } engine.previewPlace(id); };
+  const showPlace = () => {
+    setWishHint(false); setScreen('place');
+    void run(async () => { await preparePlace(placeId); await engine.previewPlace(placeId); }).catch(() => setPlaceLoad((value) => ({ ...value, stage: 'error' })));
+  };
+  const toPlace = () => {
+    if (!wish.trim()) { setWishHint(true); wishField.current?.focus(); return; }
+    showPlace();
+  };
+  const pickPlace = (id: PlaceId) => { if (!isVisiblePlace(id)) return; setPlaceId(id); if (placeById(id)!.vessel !== place.vessel) { setTab('preset'); setPresetShape(0); setStrokes([]); setColor(1); } void run(async () => { await preparePlace(id); await engine.previewPlace(id); }).catch(() => setPlaceLoad((value) => ({ ...value, stage: 'error' }))); };
   const goTravel = () => run(async () => {
     engine.setOffer(shape); setScreen('travel');
     await engine.travel(placeId); setScreen('candle');
   });
   const backToPlace = () => { engine.setOffer(null); toPlace(); };
-  const toConfirm = () => run(async () => { setLightError(null); await engine.closeUp(); setScreen('confirm'); setTimeout(() => sound.prepare(), 500); });
-  const backToCandle = () => run(async () => { setScreen('candle'); await engine.backToChoose(); });
-  const again = (id: string | null, text: string) => { setOverlay(null); setWishId(id); setWish(text); setResult(null); backToPlace(); };
-  const startOver = () => { setWish(''); setWishId(null); setStrokes([]); setResult(null); setScreen('wish'); run(() => engine.toCover()); };
+  const again = (id: string | null, text: string) => { setOverlay(null); setWishId(id); setWish(text); setStrokes([]); setDrawingMinutes(null); setTab('preset'); setResult(null); engine.setOffer(null); showPlace(); };
+  const startOver = () => { setWish(''); setWishId(null); setStrokes([]); setDrawingMinutes(null); setTab('preset'); setPresetShape(0); setPreset(DEFAULT_MINUTES); setColor(1); setWishHint(false); setResult(null); setScreen('wish'); run(() => engine.toCover()); };
   const backToWish = () => { setScreen('wish'); run(() => engine.toCover()); };
 
   const displayMinutes = drawingMinutes ?? minutes;
   const dLabel = displayMinutes !== null ? fmtDuration(displayMinutes * 60_000, t) : '—';
   const b = burnRef.current;
   const pill = online ? (liveCount === null ? null : t.presence(liveCount, screen === 'burning')) : t.presenceOff;
+  const loadingLabel = placeLoad.stage === 'ready' ? (busy && screen === 'place' ? t.courtOpening : t.courtReady) : placeLoad.stage === 'error' ? t.courtLoadFailed : placeLoad.stage === 'preparing' ? t.courtPreparingScene : t.courtLoading(placeLoad.ratio === null ? null : Math.round(placeLoad.ratio * 100));
+  const loading = (compact = false) => <div className={`court-loading${compact ? ' compact' : ''}`} data-stage={placeLoad.stage} aria-live="polite">
+    <span>{loadingLabel}</span>
+    {(placeLoad.stage === 'loading' || placeLoad.stage === 'preparing') && <progress aria-label={t.courtLoadingLabel} aria-valuetext={loadingLabel} max={1} {...(placeLoad.stage === 'preparing' || placeLoad.ratio === null ? {} : { value: placeLoad.ratio })} />}
+    {placeLoad.stage === 'error' && <button className="btn small" onClick={() => { void run(async () => { await preparePlace(placeId, true); if (screen === 'place') await engine.previewPlace(placeId); }).catch(() => setPlaceLoad((value) => ({ ...value, stage: 'error' }))); }}>{t.retry}</button>}
+  </div>;
 
   return (
-    <div className="ui" data-screen={screen}>
+    <div className="ui" data-screen={screen} data-controls-idle={controlsIdle} data-caught={caught}>
       <header className="topbar">
         <span className="brand"><span lang="zh-CN">一盏</span><span lang="en">One Light</span></span>
         <nav>
@@ -165,8 +217,8 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
         </nav>
       </header>
 
-      {pill && ['place', 'candle', 'confirm', 'burning'].includes(screen) && <div className="pill" role="status" data-testid="presence">{pill}</div>}
-      {toast && <div className="toast" role="status">{t.toastLit} <button className="btn small" onClick={() => { setToastMuted(true); setToast(false); }}>{t.toastMute}</button></div>}
+      {pill && ['place', 'candle', 'burning'].includes(screen) && (screen !== 'burning' || caught) && <div className="pill" role="status" data-testid="presence">{pill}</div>}
+      {toast && (screen !== 'burning' || caught) && <div className="toast" role="status">{t.toastLit} <button className="btn small" onClick={() => { setToastMuted(true); setToast(false); }}>{t.toastMute}</button></div>}
 
       {screen === 'wish' && (
         <section className="sheet">
@@ -174,11 +226,13 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
             <div className="eyebrow">{t.wishEyebrow}</div>
             <h1>{t.wishTitle}</h1><div className="parallel" lang={locale === 'zh' ? 'en' : 'zh-CN'}>{DICTS[locale === 'zh' ? 'en' : 'zh'].wishTitle}</div>
             <p>{t.wishLead}</p>
-            <textarea value={wish} maxLength={60} rows={2} placeholder={t.wishPlaceholder} aria-label={t.wishLabel}
-              onChange={(e) => { setWish(e.target.value); setWishId(null); }} />
+            <textarea ref={wishField} value={wish} maxLength={60} rows={2} placeholder={t.wishPlaceholder} aria-label={t.wishLabel} aria-invalid={wishHint} aria-describedby={wishHint ? 'wish-hint' : undefined}
+              onChange={(e) => { setWish(e.target.value); setWishId(null); if (e.target.value.trim()) setWishHint(false); }} />
             <div className="counter">{wish.length} / 60</div>
+            {wishHint && <p className="error field-hint" id="wish-hint" role="alert">{t.wishMissing}</p>}
             <p className="note">{t.wishRules}</p>
-            <button className="btn primary" disabled={!wish.trim() || busy} onClick={toPlace}>{t.wishNext}</button>
+            <button className="btn primary" disabled={busy} onClick={toPlace}>{t.wishNext}</button>
+            {wish.trim() && loading(true)}
           </div>
         </section>
       )}
@@ -202,9 +256,10 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
               })}
             </div>}
             <p className="note place-invitation">{t.placeLead}</p>
+            {loading()}
             <div className="row place-actions">
               <button className="btn link" onClick={backToWish} disabled={busy}>{t.placeBack}</button>
-              <button className="btn primary" onClick={goTravel} disabled={busy}>{t.placeGo}</button>
+              <button className="btn primary" onClick={goTravel} disabled={busy || placeLoad.stage !== 'ready'} aria-busy={busy || placeLoad.stage === 'loading' || placeLoad.stage === 'preparing'}>{busy || placeLoad.stage === 'loading' || placeLoad.stage === 'preparing' ? t.courtPreparing : t.placeGo}</button>
             </div>
           </div>
         </section>
@@ -212,13 +267,13 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
 
       {screen === 'travel' && (
         <>
-          <div className="travel"><div className="go">{t.travelGo}</div><div className="big">{place.name[locale]}</div><div className="where">{place.lamp[locale]}</div></div>
+          {travelTitle && <div className="travel"><div className="go">{t.travelGo}</div><div className="big">{place.name[locale]}</div><div className="where">{place.lamp[locale]}</div></div>}
           <button className="btn small skip" onClick={() => engine.skip()}>{t.skip}</button>
         </>
       )}
 
       {screen === 'candle' && (
-        <section className="sheet">
+        <section className="sheet candle-sheet">
           <div className="inner">
             <div className="eyebrow">{t.candleEyebrow}</div>
             <h2>{t.stepTitle[kind]}</h2>
@@ -226,11 +281,12 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
               <button role="tab" className="tab" aria-selected={tab === 'preset'} onClick={() => setTab('preset')}>{t.tabPresets}</button>
               <button role="tab" className="tab" aria-selected={tab === 'draw'} onClick={() => setTab('draw')}>{t.tabDraw}</button>
             </div>
+            <div className="design-options">
             {tab === 'preset' ? (
               <div className="shapes" role="radiogroup" aria-label={t.tabPresets}>
                 {PRESET_SHAPES[kind].map((p, i) => (
                   <button key={p.id} role="radio" aria-checked={presetShape === i} className="shape" onClick={() => setPresetShape(i)}>
-                    <CandleThumb shape={{ kind, rows: sizedPreset(p.rows, preset), color: COLORS[kind][color] }} remaining={1} />
+                    <CandleThumb shape={{ kind, rows: sizedPreset(p.rows, preset), color: COLORS[kind][color] }} remaining={1} state="unlit" />
                     <span>{t.presetNames[kind][i]}</span>
                   </button>
                 ))}
@@ -247,11 +303,6 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
                 </div>
               </div>
             )}
-            <div className="swatches" role="radiogroup" aria-label={t.colorLabel}>
-              {COLORS[kind].map((c, i) => (
-                <button key={c} role="radio" aria-checked={color === i} aria-label={t.colorNames[kind][i]} className="swatch" style={{ background: `#${c.toString(16).padStart(6, '0')}` }} onClick={() => setColor(i)} />
-              ))}
-            </div>
             {tab === 'preset' && (
               <>
                 <div className="eyebrow">{t.durationLabel}</div>
@@ -262,45 +313,44 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
                 </div>
               </>
             )}
+            </div>
+            <div className="choice-readout">
+            <div className="swatches" role="radiogroup" aria-label={t.colorLabel}>
+              {COLORS[kind].map((c, i) => (
+                <button key={c} role="radio" aria-checked={color === i} aria-label={t.colorNames[kind][i]} className="swatch" style={{ background: `#${c.toString(16).padStart(6, '0')}` }} onClick={() => setColor(i)} />
+              ))}
+            </div>
             <div className="readout" aria-live="polite">
               <span className="note">{t.burnsFor}</span>
               <strong data-testid="duration">{dLabel}</strong>
               {minutes !== null && minutes < MIN_MINUTES && <span className="note">{t.tooSmall}</span>}
               {minutes === MAX_MINUTES && <span className="note">{t.atMax}</span>}
+              {minutes === null && <span className="note">{t.drawNeeded}</span>}
             </div>
-            <div className="row">
+            </div>
+            <div className="light-notes">
+              <p className="note light-rule">{t.lightRule}</p>
+              {minutes !== null && minutes >= 720 && <p className="note">{t.longLightNote}</p>}
+              {lightError && <p className="error" role="alert">{lightError}</p>}
+            </div>
+            <div className="row candle-actions">
               <button className="btn" onClick={backToPlace} disabled={busy}>{t.candleBack}</button>
-              <button className="btn primary" onClick={toConfirm} disabled={!allowed || busy}>{t.candleTake(dLabel)}</button>
+              <button className="btn primary" onClick={light} disabled={!allowed || busy} aria-busy={busy}>{busy ? t.lighting : t.light(dLabel)}</button>
             </div>
           </div>
         </section>
       )}
 
-      {screen === 'confirm' && (
-        <section className="sheet">
-          <div className="inner">
-            <h2>{t.confirmTitle}</h2>
-            <p className="quote">「{wish}」</p>
-            <p>{place.name[locale]} · {dLabel}</p>
-            <p className="note">{t.confirmRule}</p>
-            {minutes !== null && minutes >= 720 && <p className="note">{t.confirmLong}</p>}
-            {lightError && <p className="error" role="alert">{lightError}</p>}
-            <div className="row">
-              <button className="btn" onClick={backToCandle} disabled={busy}>{t.confirmBack}</button>
-              <button className="btn primary" onClick={light} disabled={busy}>{t.light(dLabel)}</button>
-            </div>
-          </div>
-        </section>
-      )}
-
-      {screen === 'burning' && b && (
+      {screen === 'burning' && b && caught && (
         <div className="hud">
           <div className="hud-top">{place.name[locale]} · {place.lamp[locale]}</div>
           <div className="hud-bottom">
-            {showWish && <div className="hud-wish">「{wish}」</div>}
+            {showWish && <div className="hud-wish">{`「${wish.trim()}」`}</div>}
+            <div className="hud-meta">
             <div className="hud-time" data-testid="with-you">{t.withYou(fmtDuration(b.elapsed(), t), fmtDuration(b.planned, t))}</div>
             {showLeft && <div className="hud-left">{t.remaining(fmtClock(b.planned - b.elapsed()))}</div>}
-            <div className="note">{b.wakeOn ? t.wakeOn : t.wakeOff}</div>
+            {!showLeft && <div className="note">{b.wakeOn ? t.wakeOn : t.wakeOff}</div>}
+            </div>
             {askPutOut ? (
               <div className="confirm-box">
                 <p>{t.putOutAsk}</p>
@@ -311,10 +361,10 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
               </div>
             ) : (
               <div className="row ctl">
-                <button className="btn small" aria-pressed={quiet} onClick={() => { sound.mute(!quiet); setQuiet(!quiet); }}>{quiet ? t.soundOn : t.soundOff}</button>
-                <button className="btn small" aria-pressed={powerSaver} onClick={() => setPowerSaver(!powerSaver)}>{powerSaver ? t.qualityOn : t.powerSaver}</button>
-                <button className="btn small" onClick={() => setShowWish(!showWish)}>{showWish ? t.hideWish : t.showWish}</button>
-                <button className="btn small" onClick={() => setShowLeft(!showLeft)}>{showLeft ? t.hideRemaining : t.showRemaining}</button>
+                <button className="btn small" aria-label={quiet ? t.soundOn : t.soundOff} aria-pressed={quiet} onClick={() => { sound.mute(!quiet); setQuiet(!quiet); }}>{quiet ? t.controlMuted : t.controlSound}</button>
+                <button className="btn small" aria-label={powerSaver ? t.qualityOn : t.powerSaver} aria-pressed={powerSaver} onClick={() => setPowerSaver(!powerSaver)}>{powerSaver ? t.controlSaver : t.controlDetail}</button>
+                <button className="btn small" aria-label={showWish ? t.hideWish : t.showWish} aria-pressed={showWish} onClick={() => setShowWish(!showWish)}>{t.controlWish}</button>
+                <button className="btn small" aria-label={showLeft ? t.hideRemaining : t.showRemaining} aria-pressed={showLeft} onClick={() => setShowLeft(!showLeft)}>{t.controlTime}</button>
                 <button className="btn small" onClick={() => setAskPutOut(true)}>{t.putOut}</button>
               </div>
             )}
@@ -336,7 +386,8 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
         <section className="sheet">
           <div className="inner">
             <h2 data-testid="result-title">{result.done ? t.doneTitle : t.outTitle}</h2>
-            <p>{result.done ? t.doneLead(fmtDuration(result.plannedMs, t)) : t.outLead(fmtDuration(result.burnedMs, t, true), fmtDuration(result.plannedMs, t))}</p>
+            <p>{result.done ? t.doneLead(fmtDuration(result.plannedMs, t)) : t.outLead(fmtDuration(result.burnedMs, t, true))}</p>
+            <p className="note">{result.done ? t.doneAfter : t.outAfter}</p>
             <p className="note">{result.saved === false ? t.saving : result.saved ? t.saved : ' '}</p>
             <button className="btn primary" onClick={() => again(wishId, wish)}>{t.again}</button>
             <p className="note">{t.againSmall}</p>

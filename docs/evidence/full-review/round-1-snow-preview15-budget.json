@@ -1,0 +1,903 @@
+{
+  "scope": "Source15 all16 actual eight-sample app-review preview. Staging only; budgetFAIL. No full64, public install, image/performance acceptance or agent commit. No masters/source/GI changed by these delivery experiments.",
+  "source": {
+    "path": "art/build/snow-roof-round1/source-v15.blend",
+    "sha256": "26ca35d8303937c88372f2c7a4b34d3308935f332f2d3918f2caef11a89e5bb1",
+    "bytes": 10794425
+  },
+  "native": {
+    "exitCode": 0,
+    "samples": 8,
+    "looks": [
+      "night",
+      "dusk",
+      "day",
+      "lamp"
+    ],
+    "regions": {
+      "hall": 2048,
+      "altar": 1024,
+      "gate": 1024,
+      "court": 2048
+    },
+    "device": "Apple M1 METAL",
+    "oidnDevice": "METAL",
+    "threads": "AUTO",
+    "seconds": 304.635,
+    "ledger": {
+      "path": "art/build/snow-roof-round1/preview15-all16-input-ledger.json",
+      "sha256": "ca424342f47d9edf2a8dd2f671f951fefe9bb9560b011874b2560a19c1de0cb1",
+      "bytes": 5638
+    }
+  },
+  "qualityControl": {
+    "manifest": {
+      "path": "art/build/snow-roof-round1/preview15-quality-control-gzip/manifest.json",
+      "sha256": "46240aa1bf69f7048cde4550bc068563c202e5b43e8f4e256e8e62e53ec6543b",
+      "bytes": 254023
+    },
+    "completePackageBytes": 19925634,
+    "payloadBytes": 19671611,
+    "fabricBytes": 391242,
+    "lightmapBytes": 12875015,
+    "modelEncodedBytes": 6405354,
+    "modelDecodedBytes": 10471684,
+    "retainedTriangles": 319560,
+    "removedCertifiedHiddenTriangles": 11216,
+    "targetBytes": 15000000,
+    "overBudgetBytes": 4925634,
+    "budgetPassed": false
+  },
+  "precision": {
+    "position": "genuine original FLOAT32 exact",
+    "normal": "genuine original F32 to normalized SHORT16",
+    "maximumWorldNormalComponentError": 1.9786220281869937e-05,
+    "colour": "normalized U8, maximum linear component error.0019607784701328734,0clamped components",
+    "uv0": "U16 affine under both.125delivery/.25actual ORIGINAL source-image texel caps;4broad primitives retainF32",
+    "maximumOriginalSourceMaterialTexelError": 0.2109375,
+    "uv2": "U16, actual native charts unchanged",
+    "maximumLightmapBaseTexelError": 0.015625,
+    "materialImages": "Only6architectural normal images reduced to256 from original source pixels; scanned table/screen512 and bronze256 remain byte-exact"
+  },
+  "proofs": {
+    "sourceContacts": {
+      "path": "art/build/snow-roof-round1/source-v15.audit.json",
+      "sha256": "a3904d4379ceb5a81ffa77dd5a098c2a68ea54c54f12ef66ed7926d308bd4de2",
+      "bytes": 341766
+    },
+    "postbatch47Contacts": {
+      "path": "art/build/snow-roof-round1/postbatch-preview15/contact-audit.json",
+      "sha256": "de2d295f2960185df74fae422a8d541cda76864a969d2f2f3131f3931bfa6438",
+      "bytes": 136755
+    },
+    "rawCorrespondence": {
+      "path": "art/build/snow-roof-round1/postbatch-preview15/raw-correspondence.json",
+      "sha256": "0c51b72b53321785d6fcf73cca05cc64b9ae68764de7fe784bf13ec408508ed7",
+      "bytes": 1807
+    },
+    "retainedF32": {
+      "path": "art/build/snow-roof-round1/preview15-optimized-f32/independent-geometry-proof.json",
+      "sha256": "301aa9304c9cf26f3408ca89aedd4b459368a682aa03600fa22c64a683fb99a5",
+      "bytes": 1086
+    },
+    "approvedMetadataStrip": {
+      "path": "art/build/snow-roof-round1/preview15-optimized-f32/metadata.receipt.json",
+      "sha256": "bf08329294eb0f4485f4c0acb7d7f600146be7fa63f19ac73812499ca668dc25",
+      "bytes": 2415
+    },
+    "UVbounds": {
+      "path": "art/build/snow-roof-round1/preview15-uv16-source-bound/snow-roof.glb.receipt.json",
+      "sha256": "1ce133006e500bc8938cabaaff2c126cb5a987d8eece4e1efc568f3ad998c1ce",
+      "bytes": 278612
+    },
+    "normalAndColourBounds": {
+      "path": "art/build/snow-roof-round1/preview15-short16-u8/snow-roof.glb.receipt.json",
+      "sha256": "4dc185e13be239e6060792db11ccb96c1ea6103721037e4cde8b5a16965bcbf4",
+      "bytes": 50944
+    },
+    "normalImageScope": {
+      "path": "art/build/snow-roof-round1/preview15-short16-u8-normal256/snow-roof.glb.receipt.json",
+      "sha256": "3b9f9a048735158b89b326d6fd3988958d7998c541e28a558da4524f35ba1a0e",
+      "bytes": 8700
+    },
+    "independentPrecision": {
+      "path": "art/build/snow-roof-round1/preview15-short16-u8-normal256/independent-precision-proof.json",
+      "sha256": "1c2dca21166a2bcd8c404fe7e68dff97d11eca88d6ec8aa8f93dd9c09a77f0c6",
+      "bytes": 4389
+    },
+    "decoded47Contacts": {
+      "path": "art/build/snow-roof-round1/preview15-short16-u8-normal256/contact-audit.json",
+      "sha256": "b456f11ecff9bfb2a9a99ec25190059044ec86f4683c028fa7fa4dc236352417",
+      "bytes": 136826
+    }
+  },
+  "codecStudies": {
+    "logRGB_ETC1S": {
+      "receipt": {
+        "path": "art/build/snow-roof-round1/preview15-dusk-day-codecs/codec-budget.json",
+        "sha256": "a78f163d00c6a65335fbd721fcba34d5b56d36696ed2c21e08c384dcac340a1e",
+        "bytes": 89508
+      },
+      "maps": {
+        "hall-dusk": {
+          "referenceUastcBytes": 1694289,
+          "candidateBytes": 501255,
+          "savedBytes": 1193034,
+          "baseCoveredTexelMetrics": {
+            "uastc": {
+              "dark": {
+                "texels": 339510,
+                "meanAbsoluteLuminanceError": 8.538665063886294e-05,
+                "meanRelativeLuminanceErrorAbove0001": 0.10120452894923018
+              },
+              "middle": {
+                "texels": 292716,
+                "meanAbsoluteLuminanceError": 0.0033291904042976606,
+                "meanRelativeLuminanceErrorAbove0001": 0.04416846698329566
+              },
+              "peak": {
+                "texels": 3,
+                "meanAbsoluteLuminanceError": 0.1238690921916749,
+                "meanRelativeLuminanceErrorAbove0001": 0.05588563855339793
+              }
+            },
+            "etc1s": {
+              "dark": {
+                "texels": 339510,
+                "meanAbsoluteLuminanceError": 0.00032082110836303794,
+                "meanRelativeLuminanceErrorAbove0001": 0.374179875777061
+              },
+              "middle": {
+                "texels": 292716,
+                "meanAbsoluteLuminanceError": 0.010428547382031047,
+                "meanRelativeLuminanceErrorAbove0001": 0.14852478542888906
+              },
+              "peak": {
+                "texels": 3,
+                "meanAbsoluteLuminanceError": 1.0759669951584294,
+                "meanRelativeLuminanceErrorAbove0001": 0.4356270804219771
+              }
+            }
+          }
+        },
+        "hall-day": {
+          "referenceUastcBytes": 1726547,
+          "candidateBytes": 509528,
+          "savedBytes": 1217019,
+          "baseCoveredTexelMetrics": {
+            "uastc": {
+              "dark": {
+                "texels": 313719,
+                "meanAbsoluteLuminanceError": 8.536910753259602e-05,
+                "meanRelativeLuminanceErrorAbove0001": 0.10980353970685225
+              },
+              "middle": {
+                "texels": 285194,
+                "meanAbsoluteLuminanceError": 0.009425428514823185,
+                "meanRelativeLuminanceErrorAbove0001": 0.04961005293005048
+              },
+              "peak": {
+                "texels": 33316,
+                "meanAbsoluteLuminanceError": 0.02765525684439218,
+                "meanRelativeLuminanceErrorAbove0001": 0.025973427451457056
+              }
+            },
+            "etc1s": {
+              "dark": {
+                "texels": 313719,
+                "meanAbsoluteLuminanceError": 0.00034174508743593264,
+                "meanRelativeLuminanceErrorAbove0001": 0.4092717455400009
+              },
+              "middle": {
+                "texels": 285194,
+                "meanAbsoluteLuminanceError": 0.030730572830725795,
+                "meanRelativeLuminanceErrorAbove0001": 0.18269599011624169
+              },
+              "peak": {
+                "texels": 33316,
+                "meanAbsoluteLuminanceError": 0.054723360710519385,
+                "meanRelativeLuminanceErrorAbove0001": 0.05080594988674068
+              }
+            }
+          }
+        },
+        "altar-dusk": {
+          "referenceUastcBytes": 427609,
+          "candidateBytes": 143176,
+          "savedBytes": 284433,
+          "baseCoveredTexelMetrics": {
+            "uastc": {
+              "dark": {
+                "texels": 106780,
+                "meanAbsoluteLuminanceError": 8.683798888185795e-05,
+                "meanRelativeLuminanceErrorAbove0001": 0.09561489405074523
+              },
+              "middle": {
+                "texels": 46573,
+                "meanAbsoluteLuminanceError": 0.003718740093263008,
+                "meanRelativeLuminanceErrorAbove0001": 0.05437730091874243
+              },
+              "peak": {
+                "texels": 210,
+                "meanAbsoluteLuminanceError": 4.1467145432725125,
+                "meanRelativeLuminanceErrorAbove0001": 0.10445810175349053
+              }
+            },
+            "etc1s": {
+              "dark": {
+                "texels": 106780,
+                "meanAbsoluteLuminanceError": 0.00023271310220656752,
+                "meanRelativeLuminanceErrorAbove0001": 0.24699941115778692
+              },
+              "middle": {
+                "texels": 46573,
+                "meanAbsoluteLuminanceError": 0.010935914047877504,
+                "meanRelativeLuminanceErrorAbove0001": 0.14973398633289953
+              },
+              "peak": {
+                "texels": 210,
+                "meanAbsoluteLuminanceError": 12.166770592913766,
+                "meanRelativeLuminanceErrorAbove0001": 0.42519641455979823
+              }
+            }
+          }
+        },
+        "altar-day": {
+          "referenceUastcBytes": 423956,
+          "candidateBytes": 143173,
+          "savedBytes": 280783,
+          "baseCoveredTexelMetrics": {
+            "uastc": {
+              "dark": {
+                "texels": 100489,
+                "meanAbsoluteLuminanceError": 8.015579135938962e-05,
+                "meanRelativeLuminanceErrorAbove0001": 0.10380493813760207
+              },
+              "middle": {
+                "texels": 52778,
+                "meanAbsoluteLuminanceError": 0.004240032192081995,
+                "meanRelativeLuminanceErrorAbove0001": 0.05577485898652017
+              },
+              "peak": {
+                "texels": 296,
+                "meanAbsoluteLuminanceError": 2.546710955406792,
+                "meanRelativeLuminanceErrorAbove0001": 0.09489068141113031
+              }
+            },
+            "etc1s": {
+              "dark": {
+                "texels": 100489,
+                "meanAbsoluteLuminanceError": 0.00022015852532266813,
+                "meanRelativeLuminanceErrorAbove0001": 0.2619364836952043
+              },
+              "middle": {
+                "texels": 52778,
+                "meanAbsoluteLuminanceError": 0.012410303834651608,
+                "meanRelativeLuminanceErrorAbove0001": 0.15541103696429817
+              },
+              "peak": {
+                "texels": 296,
+                "meanAbsoluteLuminanceError": 14.126649804131068,
+                "meanRelativeLuminanceErrorAbove0001": 0.4282254610435761
+              }
+            }
+          }
+        },
+        "gate-dusk": {
+          "referenceUastcBytes": 329091,
+          "candidateBytes": 105834,
+          "savedBytes": 223257,
+          "baseCoveredTexelMetrics": {
+            "uastc": {
+              "dark": {
+                "texels": 84395,
+                "meanAbsoluteLuminanceError": 9.522235193923775e-05,
+                "meanRelativeLuminanceErrorAbove0001": 0.11068304508760027
+              },
+              "middle": {
+                "texels": 95823,
+                "meanAbsoluteLuminanceError": 0.005885595152825089,
+                "meanRelativeLuminanceErrorAbove0001": 0.05369955708664008
+              },
+              "peak": {
+                "texels": 269,
+                "meanAbsoluteLuminanceError": 0.7016917324867262,
+                "meanRelativeLuminanceErrorAbove0001": 0.06765358123758948
+              }
+            },
+            "etc1s": {
+              "dark": {
+                "texels": 84395,
+                "meanAbsoluteLuminanceError": 0.0001995629296386418,
+                "meanRelativeLuminanceErrorAbove0001": 0.2512425818700927
+              },
+              "middle": {
+                "texels": 95823,
+                "meanAbsoluteLuminanceError": 0.012850558498353403,
+                "meanRelativeLuminanceErrorAbove0001": 0.1263459468354898
+              },
+              "peak": {
+                "texels": 269,
+                "meanAbsoluteLuminanceError": 2.5679888704100304,
+                "meanRelativeLuminanceErrorAbove0001": 0.2813267362261815
+              }
+            }
+          }
+        },
+        "gate-day": {
+          "referenceUastcBytes": 336516,
+          "candidateBytes": 107680,
+          "savedBytes": 228836,
+          "baseCoveredTexelMetrics": {
+            "uastc": {
+              "dark": {
+                "texels": 71511,
+                "meanAbsoluteLuminanceError": 9.46850953785275e-05,
+                "meanRelativeLuminanceErrorAbove0001": 0.13170845620564545
+              },
+              "middle": {
+                "texels": 98782,
+                "meanAbsoluteLuminanceError": 0.01667475215278769,
+                "meanRelativeLuminanceErrorAbove0001": 0.05957886521135452
+              },
+              "peak": {
+                "texels": 10194,
+                "meanAbsoluteLuminanceError": 0.0654274501239942,
+                "meanRelativeLuminanceErrorAbove0001": 0.03809838931753183
+              }
+            },
+            "etc1s": {
+              "dark": {
+                "texels": 71511,
+                "meanAbsoluteLuminanceError": 0.00022293886881782432,
+                "meanRelativeLuminanceErrorAbove0001": 0.30556320721314034
+              },
+              "middle": {
+                "texels": 98782,
+                "meanAbsoluteLuminanceError": 0.040425502030443455,
+                "meanRelativeLuminanceErrorAbove0001": 0.15196531474094419
+              },
+              "peak": {
+                "texels": 10194,
+                "meanAbsoluteLuminanceError": 0.22894854330698244,
+                "meanRelativeLuminanceErrorAbove0001": 0.052935760599694834
+              }
+            }
+          }
+        },
+        "court-dusk": {
+          "referenceUastcBytes": 1330924,
+          "candidateBytes": 417899,
+          "savedBytes": 913025,
+          "baseCoveredTexelMetrics": {
+            "uastc": {
+              "dark": {
+                "texels": 182862,
+                "meanAbsoluteLuminanceError": 8.568303960040635e-05,
+                "meanRelativeLuminanceErrorAbove0001": 0.13366609435486385
+              },
+              "middle": {
+                "texels": 543967,
+                "meanAbsoluteLuminanceError": 0.004642046512576828,
+                "meanRelativeLuminanceErrorAbove0001": 0.03191912083470019
+              },
+              "peak": {
+                "texels": 119,
+                "meanAbsoluteLuminanceError": 0.6586173821597343,
+                "meanRelativeLuminanceErrorAbove0001": 0.06664418913813373
+              }
+            },
+            "etc1s": {
+              "dark": {
+                "texels": 182862,
+                "meanAbsoluteLuminanceError": 0.00023026828626141344,
+                "meanRelativeLuminanceErrorAbove0001": 0.3707884685425516
+              },
+              "middle": {
+                "texels": 543967,
+                "meanAbsoluteLuminanceError": 0.013480601661895937,
+                "meanRelativeLuminanceErrorAbove0001": 0.0934310874098346
+              },
+              "peak": {
+                "texels": 119,
+                "meanAbsoluteLuminanceError": 2.0920867843456206,
+                "meanRelativeLuminanceErrorAbove0001": 0.27199346152960613
+              }
+            }
+          }
+        },
+        "court-day": {
+          "referenceUastcBytes": 1377480,
+          "candidateBytes": 425883,
+          "savedBytes": 951597,
+          "baseCoveredTexelMetrics": {
+            "uastc": {
+              "dark": {
+                "texels": 164263,
+                "meanAbsoluteLuminanceError": 8.879957790686828e-05,
+                "meanRelativeLuminanceErrorAbove0001": 0.14465531300495102
+              },
+              "middle": {
+                "texels": 283317,
+                "meanAbsoluteLuminanceError": 0.019067077814619852,
+                "meanRelativeLuminanceErrorAbove0001": 0.0530749273957781
+              },
+              "peak": {
+                "texels": 279368,
+                "meanAbsoluteLuminanceError": 0.018404199715606973,
+                "meanRelativeLuminanceErrorAbove0001": 0.016631251952760513
+              }
+            },
+            "etc1s": {
+              "dark": {
+                "texels": 164263,
+                "meanAbsoluteLuminanceError": 0.0002665182462608911,
+                "meanRelativeLuminanceErrorAbove0001": 0.4163622722636837
+              },
+              "middle": {
+                "texels": 283317,
+                "meanAbsoluteLuminanceError": 0.049524513103444946,
+                "meanRelativeLuminanceErrorAbove0001": 0.16213349685298478
+              },
+              "peak": {
+                "texels": 279368,
+                "meanAbsoluteLuminanceError": 0.045128767684223435,
+                "meanRelativeLuminanceErrorAbove0001": 0.04051293195591954
+              }
+            }
+          }
+        }
+      },
+      "savedBytes": 5291984,
+      "adopted": false,
+      "result": "Rejected/held numerical diagnostic; reference quality retained. No optical PASS."
+    },
+    "logRGB_UASTC_RDO4": {
+      "receipt": {
+        "path": "art/build/snow-roof-round1/preview15-dusk-day-rdo4/codec-budget.json",
+        "sha256": "367d958fc625ddec6591de866cd7f6f2250373fc93764e137a4182383cfc1cdc",
+        "bytes": 90163
+      },
+      "maps": {
+        "hall-dusk": {
+          "referenceUastcBytes": 1694289,
+          "candidateBytes": 1639533,
+          "savedBytes": 54756,
+          "baseCoveredTexelMetrics": {
+            "uastc": {
+              "dark": {
+                "texels": 339510,
+                "meanAbsoluteLuminanceError": 8.538665063886294e-05,
+                "meanRelativeLuminanceErrorAbove0001": 0.10120452894923018
+              },
+              "middle": {
+                "texels": 292716,
+                "meanAbsoluteLuminanceError": 0.0033291904042976606,
+                "meanRelativeLuminanceErrorAbove0001": 0.04416846698329566
+              },
+              "peak": {
+                "texels": 3,
+                "meanAbsoluteLuminanceError": 0.1238690921916749,
+                "meanRelativeLuminanceErrorAbove0001": 0.05588563855339793
+              }
+            },
+            "uastc-rdo4": {
+              "dark": {
+                "texels": 339510,
+                "meanAbsoluteLuminanceError": 0.0001491657073274129,
+                "meanRelativeLuminanceErrorAbove0001": 0.18348615163656448
+              },
+              "middle": {
+                "texels": 292716,
+                "meanAbsoluteLuminanceError": 0.005109701986174106,
+                "meanRelativeLuminanceErrorAbove0001": 0.07023551035467043
+              },
+              "peak": {
+                "texels": 3,
+                "meanAbsoluteLuminanceError": 0.1238690921916749,
+                "meanRelativeLuminanceErrorAbove0001": 0.05588563855339793
+              }
+            }
+          }
+        },
+        "hall-day": {
+          "referenceUastcBytes": 1726547,
+          "candidateBytes": 1675392,
+          "savedBytes": 51155,
+          "baseCoveredTexelMetrics": {
+            "uastc": {
+              "dark": {
+                "texels": 313719,
+                "meanAbsoluteLuminanceError": 8.536910753259602e-05,
+                "meanRelativeLuminanceErrorAbove0001": 0.10980353970685225
+              },
+              "middle": {
+                "texels": 285194,
+                "meanAbsoluteLuminanceError": 0.009425428514823185,
+                "meanRelativeLuminanceErrorAbove0001": 0.04961005293005048
+              },
+              "peak": {
+                "texels": 33316,
+                "meanAbsoluteLuminanceError": 0.02765525684439218,
+                "meanRelativeLuminanceErrorAbove0001": 0.025973427451457056
+              }
+            },
+            "uastc-rdo4": {
+              "dark": {
+                "texels": 313719,
+                "meanAbsoluteLuminanceError": 0.0001362770017400375,
+                "meanRelativeLuminanceErrorAbove0001": 0.18583791048363135
+              },
+              "middle": {
+                "texels": 285194,
+                "meanAbsoluteLuminanceError": 0.015029866270227265,
+                "meanRelativeLuminanceErrorAbove0001": 0.0778653333573926
+              },
+              "peak": {
+                "texels": 33316,
+                "meanAbsoluteLuminanceError": 0.032422595528825544,
+                "meanRelativeLuminanceErrorAbove0001": 0.030388248405417182
+              }
+            }
+          }
+        },
+        "altar-dusk": {
+          "referenceUastcBytes": 427609,
+          "candidateBytes": 402158,
+          "savedBytes": 25451,
+          "baseCoveredTexelMetrics": {
+            "uastc": {
+              "dark": {
+                "texels": 106780,
+                "meanAbsoluteLuminanceError": 8.683798888185795e-05,
+                "meanRelativeLuminanceErrorAbove0001": 0.09561489405074523
+              },
+              "middle": {
+                "texels": 46573,
+                "meanAbsoluteLuminanceError": 0.003718740093263008,
+                "meanRelativeLuminanceErrorAbove0001": 0.05437730091874243
+              },
+              "peak": {
+                "texels": 210,
+                "meanAbsoluteLuminanceError": 4.1467145432725125,
+                "meanRelativeLuminanceErrorAbove0001": 0.10445810175349053
+              }
+            },
+            "uastc-rdo4": {
+              "dark": {
+                "texels": 106780,
+                "meanAbsoluteLuminanceError": 0.000198442404787905,
+                "meanRelativeLuminanceErrorAbove0001": 0.23553705680714646
+              },
+              "middle": {
+                "texels": 46573,
+                "meanAbsoluteLuminanceError": 0.006050248482471759,
+                "meanRelativeLuminanceErrorAbove0001": 0.09743889447146163
+              },
+              "peak": {
+                "texels": 210,
+                "meanAbsoluteLuminanceError": 4.981124794957404,
+                "meanRelativeLuminanceErrorAbove0001": 0.12320034599898894
+              }
+            }
+          }
+        },
+        "altar-day": {
+          "referenceUastcBytes": 423956,
+          "candidateBytes": 398385,
+          "savedBytes": 25571,
+          "baseCoveredTexelMetrics": {
+            "uastc": {
+              "dark": {
+                "texels": 100489,
+                "meanAbsoluteLuminanceError": 8.015579135938962e-05,
+                "meanRelativeLuminanceErrorAbove0001": 0.10380493813760207
+              },
+              "middle": {
+                "texels": 52778,
+                "meanAbsoluteLuminanceError": 0.004240032192081995,
+                "meanRelativeLuminanceErrorAbove0001": 0.05577485898652017
+              },
+              "peak": {
+                "texels": 296,
+                "meanAbsoluteLuminanceError": 2.546710955406792,
+                "meanRelativeLuminanceErrorAbove0001": 0.09489068141113031
+              }
+            },
+            "uastc-rdo4": {
+              "dark": {
+                "texels": 100489,
+                "meanAbsoluteLuminanceError": 0.0002012974530691604,
+                "meanRelativeLuminanceErrorAbove0001": 0.2560500528256574
+              },
+              "middle": {
+                "texels": 52778,
+                "meanAbsoluteLuminanceError": 0.007986777351767655,
+                "meanRelativeLuminanceErrorAbove0001": 0.1182243895702343
+              },
+              "peak": {
+                "texels": 296,
+                "meanAbsoluteLuminanceError": 4.787332626041884,
+                "meanRelativeLuminanceErrorAbove0001": 0.16014587497415533
+              }
+            }
+          }
+        },
+        "gate-dusk": {
+          "referenceUastcBytes": 329091,
+          "candidateBytes": 311859,
+          "savedBytes": 17232,
+          "baseCoveredTexelMetrics": {
+            "uastc": {
+              "dark": {
+                "texels": 84395,
+                "meanAbsoluteLuminanceError": 9.522235193923775e-05,
+                "meanRelativeLuminanceErrorAbove0001": 0.11068304508760027
+              },
+              "middle": {
+                "texels": 95823,
+                "meanAbsoluteLuminanceError": 0.005885595152825089,
+                "meanRelativeLuminanceErrorAbove0001": 0.05369955708664008
+              },
+              "peak": {
+                "texels": 269,
+                "meanAbsoluteLuminanceError": 0.7016917324867262,
+                "meanRelativeLuminanceErrorAbove0001": 0.06765358123758948
+              }
+            },
+            "uastc-rdo4": {
+              "dark": {
+                "texels": 84395,
+                "meanAbsoluteLuminanceError": 0.00019425638320883027,
+                "meanRelativeLuminanceErrorAbove0001": 0.20736489882752746
+              },
+              "middle": {
+                "texels": 95823,
+                "meanAbsoluteLuminanceError": 0.00940485559450421,
+                "meanRelativeLuminanceErrorAbove0001": 0.0948087235241123
+              },
+              "peak": {
+                "texels": 269,
+                "meanAbsoluteLuminanceError": 0.8609931462428261,
+                "meanRelativeLuminanceErrorAbove0001": 0.1318567606965142
+              }
+            }
+          }
+        },
+        "gate-day": {
+          "referenceUastcBytes": 336516,
+          "candidateBytes": 319200,
+          "savedBytes": 17316,
+          "baseCoveredTexelMetrics": {
+            "uastc": {
+              "dark": {
+                "texels": 71511,
+                "meanAbsoluteLuminanceError": 9.46850953785275e-05,
+                "meanRelativeLuminanceErrorAbove0001": 0.13170845620564545
+              },
+              "middle": {
+                "texels": 98782,
+                "meanAbsoluteLuminanceError": 0.01667475215278769,
+                "meanRelativeLuminanceErrorAbove0001": 0.05957886521135452
+              },
+              "peak": {
+                "texels": 10194,
+                "meanAbsoluteLuminanceError": 0.0654274501239942,
+                "meanRelativeLuminanceErrorAbove0001": 0.03809838931753183
+              }
+            },
+            "uastc-rdo4": {
+              "dark": {
+                "texels": 71511,
+                "meanAbsoluteLuminanceError": 0.00019416430153793954,
+                "meanRelativeLuminanceErrorAbove0001": 0.24062841346543057
+              },
+              "middle": {
+                "texels": 98782,
+                "meanAbsoluteLuminanceError": 0.028037117148698894,
+                "meanRelativeLuminanceErrorAbove0001": 0.11314192750501394
+              },
+              "peak": {
+                "texels": 10194,
+                "meanAbsoluteLuminanceError": 0.10930030724969338,
+                "meanRelativeLuminanceErrorAbove0001": 0.049944639954951006
+              }
+            }
+          }
+        },
+        "court-dusk": {
+          "referenceUastcBytes": 1330924,
+          "candidateBytes": 1276894,
+          "savedBytes": 54030,
+          "baseCoveredTexelMetrics": {
+            "uastc": {
+              "dark": {
+                "texels": 182862,
+                "meanAbsoluteLuminanceError": 8.568303960040635e-05,
+                "meanRelativeLuminanceErrorAbove0001": 0.13366609435486385
+              },
+              "middle": {
+                "texels": 543967,
+                "meanAbsoluteLuminanceError": 0.004642046512576828,
+                "meanRelativeLuminanceErrorAbove0001": 0.03191912083470019
+              },
+              "peak": {
+                "texels": 119,
+                "meanAbsoluteLuminanceError": 0.6586173821597343,
+                "meanRelativeLuminanceErrorAbove0001": 0.06664418913813373
+              }
+            },
+            "uastc-rdo4": {
+              "dark": {
+                "texels": 182862,
+                "meanAbsoluteLuminanceError": 0.00023003028415861967,
+                "meanRelativeLuminanceErrorAbove0001": 0.32374165760099227
+              },
+              "middle": {
+                "texels": 543967,
+                "meanAbsoluteLuminanceError": 0.006874536027769542,
+                "meanRelativeLuminanceErrorAbove0001": 0.0543281872929693
+              },
+              "peak": {
+                "texels": 119,
+                "meanAbsoluteLuminanceError": 2.0425960652579427,
+                "meanRelativeLuminanceErrorAbove0001": 0.1437842206291227
+              }
+            }
+          }
+        },
+        "court-day": {
+          "referenceUastcBytes": 1377480,
+          "candidateBytes": 1324505,
+          "savedBytes": 52975,
+          "baseCoveredTexelMetrics": {
+            "uastc": {
+              "dark": {
+                "texels": 164263,
+                "meanAbsoluteLuminanceError": 8.879957790686828e-05,
+                "meanRelativeLuminanceErrorAbove0001": 0.14465531300495102
+              },
+              "middle": {
+                "texels": 283317,
+                "meanAbsoluteLuminanceError": 0.019067077814619852,
+                "meanRelativeLuminanceErrorAbove0001": 0.0530749273957781
+              },
+              "peak": {
+                "texels": 279368,
+                "meanAbsoluteLuminanceError": 0.018404199715606973,
+                "meanRelativeLuminanceErrorAbove0001": 0.016631251952760513
+              }
+            },
+            "uastc-rdo4": {
+              "dark": {
+                "texels": 164263,
+                "meanAbsoluteLuminanceError": 0.00022492685410326098,
+                "meanRelativeLuminanceErrorAbove0001": 0.2967437403304992
+              },
+              "middle": {
+                "texels": 283317,
+                "meanAbsoluteLuminanceError": 0.03279337205397304,
+                "meanRelativeLuminanceErrorAbove0001": 0.10401057679929855
+              },
+              "peak": {
+                "texels": 279368,
+                "meanAbsoluteLuminanceError": 0.01956127885582983,
+                "meanRelativeLuminanceErrorAbove0001": 0.017677414110843635
+              }
+            }
+          }
+        }
+      },
+      "savedBytes": 298486,
+      "adopted": false,
+      "result": "Rejected/held numerical diagnostic; reference quality retained. No optical PASS."
+    },
+    "chroma_logAlpha_ETC1S": {
+      "receipt": {
+        "path": "art/build/snow-roof-round1/preview15-chroma-alpha-two-maps/chroma-alpha-budget.json",
+        "sha256": "52fc3d79aef26cce36fa91bcc560961beff24239416c50ac03cb9d8795bb1420",
+        "bytes": 28167
+      },
+      "maps": {
+        "hall-dusk": {
+          "referenceUastcBytes": 1694289,
+          "candidateBytes": 1122082,
+          "savedBytes": 572207,
+          "baseCoveredTexelMetrics": {
+            "uastc-logRGB": {
+              "dark": {
+                "texels": 339510,
+                "meanAbsoluteLuminanceError": 8.538666124164206e-05,
+                "meanRelativeLuminanceErrorAbove0001": 0.10120453559911737,
+                "p95RelativeLuminanceErrorAbove0001": 0.3048854514676001
+              },
+              "middle": {
+                "texels": 292716,
+                "meanAbsoluteLuminanceError": 0.0033291900877578536,
+                "meanRelativeLuminanceErrorAbove0001": 0.044168462446789084,
+                "p95RelativeLuminanceErrorAbove0001": 0.14366627733312265
+              },
+              "peak": {
+                "texels": 3,
+                "meanAbsoluteLuminanceError": 0.12386936844023382,
+                "meanRelativeLuminanceErrorAbove0001": 0.055885782771565064,
+                "p95RelativeLuminanceErrorAbove0001": 0.09914229155867184
+              }
+            },
+            "etc1s-chroma-logAlpha": {
+              "dark": {
+                "texels": 339510,
+                "meanAbsoluteLuminanceError": 0.000776034918087537,
+                "meanRelativeLuminanceErrorAbove0001": 1.0473190678050426,
+                "p95RelativeLuminanceErrorAbove0001": 3.3780556965937603
+              },
+              "middle": {
+                "texels": 292716,
+                "meanAbsoluteLuminanceError": 0.012503908653995293,
+                "meanRelativeLuminanceErrorAbove0001": 0.20420173470428588,
+                "p95RelativeLuminanceErrorAbove0001": 0.7443866395630354
+              },
+              "peak": {
+                "texels": 3,
+                "meanAbsoluteLuminanceError": 0.9223095382722125,
+                "meanRelativeLuminanceErrorAbove0001": 0.3709221205297597,
+                "p95RelativeLuminanceErrorAbove0001": 0.8199111847900737
+              }
+            }
+          }
+        },
+        "altar-day": {
+          "referenceUastcBytes": 423956,
+          "candidateBytes": 306738,
+          "savedBytes": 117218,
+          "baseCoveredTexelMetrics": {
+            "uastc-logRGB": {
+              "dark": {
+                "texels": 100489,
+                "meanAbsoluteLuminanceError": 8.015578944115693e-05,
+                "meanRelativeLuminanceErrorAbove0001": 0.1038049407440048,
+                "p95RelativeLuminanceErrorAbove0001": 0.309402056744746
+              },
+              "middle": {
+                "texels": 52778,
+                "meanAbsoluteLuminanceError": 0.004240032264979781,
+                "meanRelativeLuminanceErrorAbove0001": 0.05577486950358259,
+                "p95RelativeLuminanceErrorAbove0001": 0.16142310112707564
+              },
+              "peak": {
+                "texels": 296,
+                "meanAbsoluteLuminanceError": 2.5467130079182048,
+                "meanRelativeLuminanceErrorAbove0001": 0.09489068725401414,
+                "p95RelativeLuminanceErrorAbove0001": 0.26251450274683175
+              }
+            },
+            "etc1s-chroma-logAlpha": {
+              "dark": {
+                "texels": 100489,
+                "meanAbsoluteLuminanceError": 0.0003952090235574476,
+                "meanRelativeLuminanceErrorAbove0001": 0.44028879982002234,
+                "p95RelativeLuminanceErrorAbove0001": 1.3704750541774824
+              },
+              "middle": {
+                "texels": 52778,
+                "meanAbsoluteLuminanceError": 0.020164004089746796,
+                "meanRelativeLuminanceErrorAbove0001": 0.27285436369782623,
+                "p95RelativeLuminanceErrorAbove0001": 0.8226196997112403
+              },
+              "peak": {
+                "texels": 296,
+                "meanAbsoluteLuminanceError": 16.43757663944903,
+                "meanRelativeLuminanceErrorAbove0001": 0.5718623870933986,
+                "p95RelativeLuminanceErrorAbove0001": 1.6402162298185368
+              }
+            }
+          }
+        }
+      },
+      "savedBytes": 689425,
+      "adopted": false,
+      "result": "Rejected/held numerical diagnostic; reference quality retained. No optical PASS."
+    }
+  },
+  "nextDecision": "Current LOW8 quality reference is available for actual app review despite explicit budgetFAIL. RDO4 saves only298486B; chroma/logAlpha fails dark/peak error. Finer proven hidden-face exclusion is a proposal only; not executed. Any position-grid, codec or allocation change requires fresh actual proofs and app review."
+}

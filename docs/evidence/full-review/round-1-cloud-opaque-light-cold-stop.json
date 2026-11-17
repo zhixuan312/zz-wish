@@ -1,0 +1,180 @@
+{
+  "status": "STOPPED_BY_COLD_DRAW_BUDGET_NOT_NUMERICAL_CONTROL",
+  "firstDrawMsIncludingGpuFinish": 149.9000000357628,
+  "limitMs": 100,
+  "directionIndex": 0,
+  "directionName": "px",
+  "totalLeaseElapsedSeconds": 0.862,
+  "cameraAndMap": {
+    "lane": "px",
+    "direction": [
+      1,
+      0,
+      0
+    ],
+    "resolution": [
+      128,
+      128
+    ],
+    "queryBounds": {
+      "min": [
+        -8,
+        -4,
+        -14
+      ],
+      "max": [
+        10,
+        6,
+        6
+      ]
+    },
+    "casterBounds": {
+      "min": [
+        -2.5,
+        -1,
+        -0.5
+      ],
+      "max": [
+        4.708726406097412,
+        3,
+        0.5
+      ]
+    },
+    "unionBounds": {
+      "min": [
+        -8,
+        -4,
+        -14
+      ],
+      "max": [
+        10,
+        6,
+        6
+      ]
+    },
+    "basisWorldRows": [
+      [
+        0,
+        0,
+        -1
+      ],
+      [
+        0,
+        1,
+        0
+      ],
+      [
+        1,
+        0,
+        0
+      ]
+    ],
+    "cameraPosition": [
+      10.01,
+      1,
+      -4
+    ],
+    "viewMatrix": [
+      2.220446049250313e-16,
+      0,
+      1,
+      0,
+      0,
+      1,
+      0,
+      0,
+      -1,
+      0,
+      2.220446049250313e-16,
+      0,
+      -4.000000000000003,
+      -1,
+      -10.009999999999998,
+      1
+    ],
+    "clipFromWorld": [
+      2.2204460492503132e-17,
+      0,
+      -0.11100319134175109,
+      0,
+      0,
+      0.2,
+      0,
+      0,
+      -0.1,
+      0,
+      -2.4647659766896776e-17,
+      0,
+      -0.4000000000000003,
+      -0.2,
+      0.11086443735257356,
+      1
+    ],
+    "near": 0.0025,
+    "far": 18.02,
+    "encodingRange": 36.04,
+    "outsideCameraGuardMetres": 0.01,
+    "guardMeaning": "Camera placement outside the union only; never added to the point-versus-surface comparison.",
+    "footprintMetresPerTexel": [
+      0.15625,
+      0.078125
+    ],
+    "colourBytes": 65536,
+    "depthRenderbufferBytesEstimate": 65536,
+    "encodingFloat32StepMetres": 0.000002148151397705078,
+    "hardwareDepth24StepMetres": 0.0000010739266872406005
+  },
+  "fixture": {
+    "opaqueMeshes": 46,
+    "opaqueTriangles": 6668,
+    "frozenGeometryBytes": 111112,
+    "ownedMaterialClones": 47,
+    "ownedTextureWrappers": 2,
+    "casterBounds": {
+      "min": [
+        -2.5,
+        -1,
+        -0.5
+      ],
+      "max": [
+        4.708726406097412,
+        3,
+        0.5
+      ]
+    },
+    "fieldBounds": {
+      "min": [
+        -8,
+        -4,
+        -14
+      ],
+      "max": [
+        10,
+        6,
+        6
+      ]
+    }
+  },
+  "reached": {
+    "firstOpaqueDepthDraw": true,
+    "secondDirection": false,
+    "newVisibilityShaderCompile": false,
+    "numericalOracleOrPixelReadback": false,
+    "webkit": false
+  },
+  "knownFacts": [
+    "The threshold encloses renderer.render plus gl.finish, so it includes cold shader compilation, target/buffer/image uploads, command submission and GPU completion.",
+    "The first draw reused cloudOpaqueDepth; the new directional visibility sampling shader had not yet been compiled or rendered.",
+    "No numeric/camera or alpha classification failure was reached. No page/console/HTTP errors were recorded.",
+    "Four expected depth shader variants (solid front/double-side, map alphaTest, alphaMap alphaTest) are initially cold. Their individual time contribution was not measured.",
+    "The guard stopped immediately at149.9ms; no later directions/browser were run. Browsers/server closed, frozen helper/raw inputs unchanged.",
+    "Explicit per-resource cleanup was not reached on this stop; browser-context shutdown released the context."
+  ],
+  "causalLimit": "Without per-stage timestamps/timer data, no specific share of149.9ms can be assigned to compilation, upload or raster work. A source geometry/projection bug is not established by this timing stop.",
+  "retryPolicy": "No GPU retry without a new Root lease. Keep the100ms stop unchanged. A later stage-specific cold/warm diagnostic must report any compilation/warm-up cost explicitly rather than hiding it.",
+  "failedReceipt": {
+    "path": "artifacts/full-review/round-1/cloud-opaque-light-gpu-failed-cold-depth/report.json",
+    "sha256": "91dab19f32f41025f1623d3830abc64658e85c3b3c15f17d31740953e3c4c91a"
+  },
+  "snapshot": "/var/folders/y7/b30gx9v90z36h9vf5pvk27mh0000gn/T/one-light-cloud-opaque-light-RL4m7b"
+}

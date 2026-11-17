@@ -1,0 +1,978 @@
+{
+  "status": "Source12 real night/lamp8 preview complete and staged for app review; all source/prepared/raw/decoded-delivery proof gates pass. No full64 approval or public install.",
+  "source": {
+    "path": "art/build/snow-roof-round1/source-v12.blend",
+    "sha256": "76a129450cd21e3af4a066a0880d13d6e5348f5e514bd1d03b6d9c90b25abf47"
+  },
+  "files": {
+    "art/build/snow-roof-round1/source-v12.blend": {
+      "sha256": "76a129450cd21e3af4a066a0880d13d6e5348f5e514bd1d03b6d9c90b25abf47",
+      "bytes": 10331994
+    },
+    "art/build/snow-roof-round1/source-v12.audit.json": {
+      "sha256": "0b6bea29efd18721874a470c5f5fa41c7c8a057ac564d4aa4bcbb3bc94596849",
+      "bytes": 341616
+    },
+    "art/build/snow-roof-round1/source-v12-material-final-probe/material-audit.json": {
+      "sha256": "1ab7a9716e452f0da7df55d7869a5bf3d1ca1b4050d15eb049891eea8b023aeb",
+      "bytes": 583883
+    },
+    "art/build/snow-roof-round1/source-v12-hidden-tiles.json": {
+      "sha256": "89804e665fddf425d5fcfa787ef71ea6e61dd60a844d774be348dd95a1e4a920",
+      "bytes": 1089086
+    },
+    "art/build/snow-roof-round1/contact-replay-v12-normal8/mapping-proof.json": {
+      "sha256": "708f62b63b136e91f48e416b3ce797da9a324295f5e36cea736210e034c57356",
+      "bytes": 42851
+    },
+    "art/build/snow-roof-round1/contact-replay-v12-normal8/contact-audit.json": {
+      "sha256": "fa2dfa56c375942e47b524a483caa2e2749940aa584c1e47e4163a067ec4a5bd",
+      "bytes": 136769
+    },
+    "art/build/snow-roof-round1/contact-replay-v12-normal8/guard/guard-proof.json": {
+      "sha256": "a839b1ae34c8c3b61e2928b8cc8b1e30b5742d9e50f0be4a3efc22ebc14a0549",
+      "bytes": 4050
+    },
+    "art/build/snow-roof-round1/contact-replay-v12-normal8/independent-raw-normal-proof.json": {
+      "sha256": "ad3b444f4e42e8ad5c787f41f10f6d4029f0166a54cb824dfc5f233a6c59edf8",
+      "bytes": 10438
+    },
+    "art/build/snow-roof-round1/face-reference-v12-normal8/raw-correspondence.json": {
+      "sha256": "0481b4663b783dd38686172ea28b2d3cb5ea63b37fce824708fd3950786220fb",
+      "bytes": 31334
+    },
+    "art/build/snow-roof-round1/preview12-normal8-input-ledger.json": {
+      "sha256": "0eda7c515ff4e64527a3cdc12416c7271fa1c7416dcdaa6a63d9d104aab6f4f9",
+      "bytes": 3682
+    },
+    "art/blender/snow_roof.py": {
+      "sha256": "20674d87828a41416c713a6547f42fd6af28fa7bc549c2c0fb9284cf041858fd",
+      "bytes": 91049
+    },
+    "art/blender/snow_lightmap_charts.py": {
+      "sha256": "a69952095d136cc9993a3425fb4ad07724750d6fc20d078e95170f664e629f36",
+      "bytes": 13985
+    },
+    "art/blender/resting_contacts.py": {
+      "sha256": "163d80f6ecdfe1c9e20236971edbd6f3ab867ff58070f37d4a4543bd81bfd7fe",
+      "bytes": 11102
+    },
+    "art/blender/snow_round1_details.py": {
+      "sha256": "e06878c04f43206cbac8c19eca9078baddcfeda6724da63ea1ed6ac0b33ea0fe",
+      "bytes": 5842
+    },
+    "art/blender/snow_bronze_maps.py": {
+      "sha256": "1b05dbb90700de0b5236e46fe5a289efefb83f1a71c15b8bb0be6248fefc2c81",
+      "bytes": 2253
+    },
+    "art/blender/audit_prepared_mapping.py": {
+      "sha256": "bc627cb9e6c475ec16cb088d84e79e4801d5c801c2778603717880d843077938",
+      "bytes": 6687
+    },
+    "art/blender/export_face_reference.py": {
+      "sha256": "ce92f12088f68198b060b91b57668d7b46a082d3e987c0892af085d47dd0aab3",
+      "bytes": 6399
+    },
+    "scripts/strip-delivery-audit-metadata.mjs": {
+      "sha256": "9f095d09888c6e82b78449467b55d7b406b798f701d7c08ad6f4ab1561dcc0ae",
+      "bytes": 6313
+    },
+    "scripts/decode-baked-for-contact-audit.mjs": {
+      "sha256": "8722ccf0ad33ae1dba0631ec3e006a8eb21462b85b79a1f685f14620e6a4a71c",
+      "bytes": 3836
+    },
+    "art/build/snow-roof-round1/postbatch-preview12/contact-audit.json": {
+      "sha256": "31485784ad8f1390061110460f314c9ca3c171054c9f9413c65eb6a05b52e028",
+      "bytes": 136755
+    },
+    "art/build/snow-roof-round1/postbatch-preview12/mapping-proof.json": {
+      "sha256": "8acfe870ff7970e2cb7d27711986103fbee8f959f000bdb8aa21197dbcb82516",
+      "bytes": 42873
+    },
+    "art/build/snow-roof-round1/face-reference-preview12-postbatch/raw-correspondence.json": {
+      "sha256": "a72cdfaf83f78c86fdcf1ef8d2b5923111e060afe08181530c68968cbd6e3a56",
+      "bytes": 31328
+    },
+    "art/build/snow-roof-round1/preview12-mobile-optimized/independent-geometry-proof.json": {
+      "sha256": "a598353c321fadbc198354df448cc3d1d954bd69d84bb06a3a356e6678ad19f6",
+      "bytes": 1087
+    },
+    "art/build/snow-roof-round1/preview12-mobile-optimized/delivery-metadata.receipt.json": {
+      "sha256": "115e4cba695f01a2d8f14e1d08ce7c646e1b5180fdbe2bb1f25e421c70bf114e",
+      "bytes": 2433
+    },
+    "art/build/snow-roof-round1/preview12-mobile-optimized/independent-delivery-contact-audit.json": {
+      "sha256": "b59854be2612b1113539467c7f12f5a5dab082d876cc06d58bdb8966a7a248c3",
+      "bytes": 136846
+    }
+  },
+  "contact": {
+    "groups": 47,
+    "literalGuardsMetres": {
+      "gap": 0.002,
+      "penetration": 0.005
+    },
+    "sourcePassed": true,
+    "preparedPassed": true,
+    "actualExportedRawPassed": true,
+    "missingSourceVertices": {},
+    "maximumAssociationErrorMetres": 3.5762786865234375e-07,
+    "maxPenetrationPreparedMetres": 0.00475001335144043,
+    "maxPenetrationRawMetres": 0.00475001335144043,
+    "inventoryCandidates": 234,
+    "unregisteredCandidates": [],
+    "challengeMatricesRestoredExact": true
+  },
+  "geometry": {
+    "regions": {
+      "hall": {
+        "objects": 1250,
+        "vertices": 67649,
+        "triangles": 117854,
+        "worldAreaM2": 2213.8514394797708
+      },
+      "altar": {
+        "objects": 99,
+        "vertices": 24228,
+        "triangles": 32600,
+        "worldAreaM2": 82.42379081278742
+      },
+      "gate": {
+        "objects": 100,
+        "vertices": 18852,
+        "triangles": 30060,
+        "worldAreaM2": 402.0354472398593
+      },
+      "court": {
+        "objects": 252,
+        "vertices": 84827,
+        "triangles": 141900,
+        "worldAreaM2": 7129.782962965181
+      }
+    },
+    "totalTriangles": 322414,
+    "totalObjects": 1701,
+    "largestContributors": [
+      {
+        "object": "Continuous snowfield footprints and stair-edge drifts",
+        "region": "court",
+        "vertices": 16587,
+        "triangles": 32284,
+        "worldAreaM2": 4377.799306311064
+      },
+      {
+        "object": "Scanned console altar chinese_console_table",
+        "region": "altar",
+        "vertices": 13228,
+        "triangles": 13648,
+        "worldAreaM2": 6.548058093901933
+      },
+      {
+        "object": "Side wall clay coping soft wind-shaped snow",
+        "region": "court",
+        "vertices": 1890,
+        "triangles": 3776,
+        "worldAreaM2": 58.917528292596266
+      },
+      {
+        "object": "Side wall clay coping soft wind-shaped snow.001",
+        "region": "court",
+        "vertices": 1890,
+        "triangles": 3776,
+        "worldAreaM2": 58.764941601333526
+      },
+      {
+        "object": "Back wall clay coping soft wind-shaped snow",
+        "region": "court",
+        "vertices": 1638,
+        "triangles": 3272,
+        "worldAreaM2": 50.50528723900168
+      },
+      {
+        "object": "Winter tree irregular trunk boughs and twigs",
+        "region": "court",
+        "vertices": 1832,
+        "triangles": 3212,
+        "worldAreaM2": 10.302015569546635
+      },
+      {
+        "object": "Winter tree irregular trunk boughs and twigs.001",
+        "region": "court",
+        "vertices": 1832,
+        "triangles": 3212,
+        "worldAreaM2": 8.06620704698619
+      },
+      {
+        "object": "Winter tree irregular trunk boughs and twigs.002",
+        "region": "court",
+        "vertices": 1832,
+        "triangles": 3212,
+        "worldAreaM2": 7.160819228739371
+      },
+      {
+        "object": "Winter tree irregular trunk boughs and twigs.003",
+        "region": "court",
+        "vertices": 1832,
+        "triangles": 3212,
+        "worldAreaM2": 9.086262716446022
+      },
+      {
+        "object": "Main hall concave pan tile rows",
+        "region": "hall",
+        "vertices": 2625,
+        "triangles": 2800,
+        "worldAreaM2": 19.2580487313854
+      },
+      {
+        "object": "Main hall concave pan tile rows.001",
+        "region": "hall",
+        "vertices": 2625,
+        "triangles": 2800,
+        "worldAreaM2": 19.25804462305319
+      },
+      {
+        "object": "Main hall convex cover tile rows",
+        "region": "hall",
+        "vertices": 2580,
+        "triangles": 2752,
+        "worldAreaM2": 12.960929432734046
+      },
+      {
+        "object": "Main hall convex cover tile rows.001",
+        "region": "hall",
+        "vertices": 2580,
+        "triangles": 2752,
+        "worldAreaM2": 12.960927137014599
+      },
+      {
+        "object": "Side hall concave pan tile rows",
+        "region": "court",
+        "vertices": 2355,
+        "triangles": 2512,
+        "worldAreaM2": 14.526491694333675
+      },
+      {
+        "object": "Side hall concave pan tile rows.001",
+        "region": "court",
+        "vertices": 2355,
+        "triangles": 2512,
+        "worldAreaM2": 14.526491556982304
+      },
+      {
+        "object": "Side hall concave pan tile rows.002",
+        "region": "court",
+        "vertices": 2355,
+        "triangles": 2512,
+        "worldAreaM2": 14.526492067843867
+      },
+      {
+        "object": "Side hall concave pan tile rows.003",
+        "region": "court",
+        "vertices": 2355,
+        "triangles": 2512,
+        "worldAreaM2": 14.526491195400146
+      },
+      {
+        "object": "Side hall convex cover tile rows",
+        "region": "court",
+        "vertices": 2310,
+        "triangles": 2464,
+        "worldAreaM2": 9.557274839209589
+      },
+      {
+        "object": "Side hall convex cover tile rows.001",
+        "region": "court",
+        "vertices": 2310,
+        "triangles": 2464,
+        "worldAreaM2": 9.557275006882655
+      },
+      {
+        "object": "Side hall convex cover tile rows.002",
+        "region": "court",
+        "vertices": 2310,
+        "triangles": 2464,
+        "worldAreaM2": 9.557275250465791
+      },
+      {
+        "object": "Side hall convex cover tile rows.003",
+        "region": "court",
+        "vertices": 2310,
+        "triangles": 2464,
+        "worldAreaM2": 9.557274615797759
+      },
+      {
+        "object": "Side hall continuous curved exposed rafters",
+        "region": "court",
+        "vertices": 1176,
+        "triangles": 2268,
+        "worldAreaM2": 13.341833934907037
+      },
+      {
+        "object": "Side hall continuous curved exposed rafters.001",
+        "region": "court",
+        "vertices": 1176,
+        "triangles": 2268,
+        "worldAreaM2": 13.34183397529978
+      },
+      {
+        "object": "Side hall continuous curved exposed rafters.002",
+        "region": "court",
+        "vertices": 1176,
+        "triangles": 2268,
+        "worldAreaM2": 13.341833971559831
+      },
+      {
+        "object": "Side hall continuous curved exposed rafters.003",
+        "region": "court",
+        "vertices": 1176,
+        "triangles": 2268,
+        "worldAreaM2": 13.341833938452739
+      },
+      {
+        "object": "Main hall continuous curved exposed rafters",
+        "region": "hall",
+        "vertices": 1120,
+        "triangles": 2160,
+        "worldAreaM2": 10.044040864658058
+      },
+      {
+        "object": "Main hall continuous curved exposed rafters.001",
+        "region": "hall",
+        "vertices": 1120,
+        "triangles": 2160,
+        "worldAreaM2": 10.044042518864005
+      },
+      {
+        "object": "Side hall curved settled snow cap",
+        "region": "court",
+        "vertices": 960,
+        "triangles": 1916,
+        "worldAreaM2": 71.96511572902376
+      },
+      {
+        "object": "Side hall curved settled snow cap.001",
+        "region": "court",
+        "vertices": 960,
+        "triangles": 1916,
+        "worldAreaM2": 71.93665063983171
+      },
+      {
+        "object": "Side hall curved settled snow cap.002",
+        "region": "court",
+        "vertices": 960,
+        "triangles": 1916,
+        "worldAreaM2": 71.96511508641603
+      },
+      {
+        "object": "Side hall curved settled snow cap.003",
+        "region": "court",
+        "vertices": 960,
+        "triangles": 1916,
+        "worldAreaM2": 71.93664921321287
+      },
+      {
+        "object": "Main hall curved settled snow cap",
+        "region": "hall",
+        "vertices": 930,
+        "triangles": 1856,
+        "worldAreaM2": 183.6964774661149
+      },
+      {
+        "object": "Main hall curved settled snow cap.001",
+        "region": "hall",
+        "vertices": 930,
+        "triangles": 1856,
+        "worldAreaM2": 183.80143291982003
+      },
+      {
+        "object": "Court gate concave pan tile rows",
+        "region": "gate",
+        "vertices": 1725,
+        "triangles": 1840,
+        "worldAreaM2": 10.36792318997472
+      },
+      {
+        "object": "Court gate concave pan tile rows.001",
+        "region": "gate",
+        "vertices": 1725,
+        "triangles": 1840,
+        "worldAreaM2": 10.367925435386855
+      }
+    ],
+    "reductionPolicy": "Explicit paver edge profiles; no degenerate lathe poles; only snow-exposed tile courses and barge edges; aggregate winter branch meshes; one continuous snowfield/bank surface."
+  },
+  "uv": {
+    "resolutions": {
+      "hall": 2048,
+      "altar": 1024,
+      "gate": 1024,
+      "court": 2048
+    },
+    "coverage": {
+      "hall": {
+        "charts": 3411,
+        "representedCharts": 3411,
+        "subpixelCharts": 0,
+        "representedSurfaceAreaFraction": 1.0,
+        "representedCameraVisibleFraction": 1.0,
+        "overlappingCorePixels": 0,
+        "sameChartDistinctWorldPositionOverlaps": 0,
+        "triangleWithNativeTexelSurfaceAreaFraction": 0.9601313038216441,
+        "coreTexels": 642142
+      },
+      "altar": {
+        "charts": 726,
+        "representedCharts": 726,
+        "subpixelCharts": 0,
+        "representedSurfaceAreaFraction": 1.0,
+        "representedCameraVisibleFraction": 1.0,
+        "overlappingCorePixels": 0,
+        "sameChartDistinctWorldPositionOverlaps": 0,
+        "triangleWithNativeTexelSurfaceAreaFraction": 0.9633925953087362,
+        "coreTexels": 153563
+      },
+      "gate": {
+        "charts": 470,
+        "representedCharts": 470,
+        "subpixelCharts": 0,
+        "representedSurfaceAreaFraction": 1.0,
+        "representedCameraVisibleFraction": 1.0,
+        "overlappingCorePixels": 0,
+        "sameChartDistinctWorldPositionOverlaps": 0,
+        "triangleWithNativeTexelSurfaceAreaFraction": 0.9828270292020902,
+        "coreTexels": 193558
+      },
+      "court": {
+        "charts": 3408,
+        "representedCharts": 3407,
+        "subpixelCharts": 1,
+        "representedSurfaceAreaFraction": 0.9999915254617108,
+        "representedCameraVisibleFraction": 1.0,
+        "overlappingCorePixels": 0,
+        "sameChartDistinctWorldPositionOverlaps": 0,
+        "triangleWithNativeTexelSurfaceAreaFraction": 0.9273697753590852,
+        "coreTexels": 723260
+      }
+    }
+  },
+  "mapping": {
+    "passed": true,
+    "limits": {
+      "worldPositionMetres": 5e-06,
+      "materialUV0": 1e-06,
+      "worldNormalComponent": 1e-06,
+      "linearSurfaceTintComponent": 1e-06
+    },
+    "maxNormalComponentError": 1.1920928955078125e-07,
+    "normalPreparationPolicy": "Evaluated source free CORNER custom_normal float vectors survive join/triangulation; glTF normal extraction uses scoped8decimaloverride withfinallyrestore4. Generic custom attributes are excluded."
+  },
+  "materials": {
+    "actualSourceHexLinearFactorsAndPbrRolesPassed": true,
+    "actualExportedCharredWicks": [
+      {
+        "wickObject": "Other altar lamp warm wick",
+        "actualMaterialDefinitions": [
+          {
+            "material": "Oil-blackened rim and wick",
+            "baseColorLinear": [
+              0.022173885256052017,
+              0.016807375475764275,
+              0.011612244881689548,
+              1
+            ],
+            "emissiveFactor": [
+              0,
+              0,
+              0
+            ]
+          }
+        ],
+        "passed": true
+      },
+      {
+        "wickObject": "Other altar lamp warm wick.001",
+        "actualMaterialDefinitions": [
+          {
+            "material": "Oil-blackened rim and wick",
+            "baseColorLinear": [
+              0.022173885256052017,
+              0.016807375475764275,
+              0.011612244881689548,
+              1
+            ],
+            "emissiveFactor": [
+              0,
+              0,
+              0
+            ]
+          }
+        ],
+        "passed": true
+      },
+      {
+        "wickObject": "Other altar lamp warm wick.002",
+        "actualMaterialDefinitions": [
+          {
+            "material": "Oil-blackened rim and wick",
+            "baseColorLinear": [
+              0.022173885256052017,
+              0.016807375475764275,
+              0.011612244881689548,
+              1
+            ],
+            "emissiveFactor": [
+              0,
+              0,
+              0
+            ]
+          }
+        ],
+        "passed": true
+      },
+      {
+        "wickObject": "Other altar lamp warm wick.003",
+        "actualMaterialDefinitions": [
+          {
+            "material": "Oil-blackened rim and wick",
+            "baseColorLinear": [
+              0.022173885256052017,
+              0.016807375475764275,
+              0.011612244881689548,
+              1
+            ],
+            "emissiveFactor": [
+              0,
+              0,
+              0
+            ]
+          }
+        ],
+        "passed": true
+      },
+      {
+        "wickObject": "Gate shelf lamp warm wick",
+        "actualMaterialDefinitions": [
+          {
+            "material": "Oil-blackened rim and wick",
+            "baseColorLinear": [
+              0.022173885256052017,
+              0.016807375475764275,
+              0.011612244881689548,
+              1
+            ],
+            "emissiveFactor": [
+              0,
+              0,
+              0
+            ]
+          }
+        ],
+        "passed": true
+      },
+      {
+        "wickObject": "Gate shelf lamp warm wick.001",
+        "actualMaterialDefinitions": [
+          {
+            "material": "Oil-blackened rim and wick",
+            "baseColorLinear": [
+              0.022173885256052017,
+              0.016807375475764275,
+              0.011612244881689548,
+              1
+            ],
+            "emissiveFactor": [
+              0,
+              0,
+              0
+            ]
+          }
+        ],
+        "passed": true
+      },
+      {
+        "wickObject": "Court lantern oil cup warm wick",
+        "actualMaterialDefinitions": [
+          {
+            "material": "Oil-blackened rim and wick",
+            "baseColorLinear": [
+              0.022173885256052017,
+              0.016807375475764275,
+              0.011612244881689548,
+              1
+            ],
+            "emissiveFactor": [
+              0,
+              0,
+              0
+            ]
+          }
+        ],
+        "passed": true
+      }
+    ],
+    "projectAuthoredMapRecipe": "snow_bronze_maps.py outputs actual reproducible ORM+normal maps; authored data, not photographed scans."
+  },
+  "fixtures": [
+    {
+      "name": "altar -1.45",
+      "contactGroup": "altar -1.45",
+      "wickObject": "Other altar lamp warm wick",
+      "pointLightObject": "Other altar lamp warm spill",
+      "supportObjects": [
+        "Turned altar side lamp pedestal"
+      ],
+      "wickCenter": [
+        -1.494999885559082,
+        1.7845011949539185,
+        -4.8299994468688965
+      ],
+      "wickTip": [
+        -1.4950000047683716,
+        1.7989020347595215,
+        -4.829999923706055
+      ],
+      "flameAnchor": [
+        -1.4950000047683716,
+        1.8019020557403564,
+        -4.829999923706055
+      ],
+      "pointLight": [
+        -1.4950000047683716,
+        1.8624056577682495,
+        -4.829999923706055
+      ],
+      "linearColor": [
+        1.0,
+        0.7058823704719543,
+        0.42352941632270813
+      ],
+      "lit": true,
+      "kind": "bronze pedestal oil lamp",
+      "watts": 18.0,
+      "actualWatts": 18.0,
+      "fuelLevel": 0.81,
+      "pointRadiusMetres": 0.012000000104308128
+    },
+    {
+      "name": "altar -0.95",
+      "contactGroup": "altar -0.95",
+      "wickObject": "Other altar lamp warm wick.001",
+      "pointLightObject": "Other altar lamp warm spill.001",
+      "supportObjects": [
+        "Scanned console altar chinese_console_table"
+      ],
+      "wickCenter": [
+        -0.8199998736381531,
+        1.6374269723892212,
+        -4.65000057220459
+      ],
+      "wickTip": [
+        -0.8200000524520874,
+        1.6524410247802734,
+        -4.649999618530273
+      ],
+      "flameAnchor": [
+        -0.8200000524520874,
+        1.6554410457611084,
+        -4.649999618530273
+      ],
+      "pointLight": [
+        -0.8199999928474426,
+        1.693063497543335,
+        -4.650000095367432
+      ],
+      "linearColor": [
+        1.0,
+        0.7058823704719543,
+        0.42352941632270813
+      ],
+      "lit": true,
+      "kind": "brown clay oil dish",
+      "watts": 14.0,
+      "actualWatts": 14.0,
+      "fuelLevel": 0.34,
+      "pointRadiusMetres": 0.009100000374019146
+    },
+    {
+      "name": "altar 0.95",
+      "contactGroup": "altar 0.95",
+      "wickObject": "Other altar lamp warm wick.002",
+      "pointLightObject": "Other altar lamp warm spill.002",
+      "supportObjects": [
+        "Scanned console altar chinese_console_table"
+      ],
+      "wickCenter": [
+        0.7099999785423279,
+        1.6736631393432617,
+        -4.815000534057617
+      ],
+      "wickTip": [
+        0.7100000381469727,
+        1.6792622804641724,
+        -4.814999580383301
+      ],
+      "flameAnchor": [
+        0.7100000381469727,
+        1.6822623014450073,
+        -4.814999580383301
+      ],
+      "pointLight": [
+        0.7099999785423279,
+        1.7289584875106812,
+        -4.815000057220459
+      ],
+      "linearColor": [
+        1.0,
+        0.7058823704719543,
+        0.42352941632270813
+      ],
+      "lit": false,
+      "kind": "spent bronze candle cup",
+      "watts": 0.0,
+      "actualWatts": 0.0,
+      "fuelLevel": 0.08,
+      "pointRadiusMetres": 0.00800000037997961
+    },
+    {
+      "name": "altar 1.45",
+      "contactGroup": "altar 1.45",
+      "wickObject": "Other altar lamp warm wick.003",
+      "pointLightObject": "Other altar lamp warm spill.003",
+      "supportObjects": [
+        "Turned altar side lamp pedestal.001"
+      ],
+      "wickCenter": [
+        1.4749996662139893,
+        1.7575745582580566,
+        -4.639999866485596
+      ],
+      "wickTip": [
+        1.4750001430511475,
+        1.7700556516647339,
+        -4.639999866485596
+      ],
+      "flameAnchor": [
+        1.4750001430511475,
+        1.7730556726455688,
+        -4.639999866485596
+      ],
+      "pointLight": [
+        1.475000023841858,
+        1.825092077255249,
+        -4.639999866485596
+      ],
+      "linearColor": [
+        1.0,
+        0.7058823704719543,
+        0.42352941632270813
+      ],
+      "lit": true,
+      "kind": "small bronze oil lamp",
+      "watts": 17.0,
+      "actualWatts": 17.0,
+      "fuelLevel": 0.55,
+      "pointRadiusMetres": 0.010400000028312206
+    },
+    {
+      "name": "gate -1",
+      "contactGroup": "gate -1",
+      "wickObject": "Gate shelf lamp warm wick",
+      "pointLightObject": "Gate shelf lamp warm spill",
+      "supportObjects": [
+        "Gate lamp shelf"
+      ],
+      "wickCenter": [
+        -1.999999761581421,
+        1.7356548309326172,
+        19.25
+      ],
+      "wickTip": [
+        -2.0,
+        1.748854160308838,
+        19.25
+      ],
+      "flameAnchor": [
+        -2.0,
+        1.7518541812896729,
+        19.25
+      ],
+      "pointLight": [
+        -2.0,
+        1.8070663213729858,
+        19.25
+      ],
+      "linearColor": [
+        1.0,
+        0.7058823704719543,
+        0.42352941632270813
+      ],
+      "lit": true,
+      "kind": "gate bronze oil cup",
+      "watts": 19.0,
+      "actualWatts": 19.0,
+      "fuelLevel": 0.72,
+      "pointRadiusMetres": 0.010999999940395355
+    },
+    {
+      "name": "gate 1",
+      "contactGroup": "gate 1",
+      "wickObject": "Gate shelf lamp warm wick.001",
+      "pointLightObject": "Gate shelf lamp warm spill.001",
+      "supportObjects": [
+        "Gate lamp shelf.001"
+      ],
+      "wickCenter": [
+        2.0,
+        1.7165234088897705,
+        19.250001907348633
+      ],
+      "wickTip": [
+        2.0,
+        1.7282843589782715,
+        19.249998092651367
+      ],
+      "flameAnchor": [
+        2.0,
+        1.7312843799591064,
+        19.249998092651367
+      ],
+      "pointLight": [
+        2.0,
+        1.7801458835601807,
+        19.25
+      ],
+      "linearColor": [
+        1.0,
+        0.7058823704719543,
+        0.42352941632270813
+      ],
+      "lit": true,
+      "kind": "gate bronze oil cup",
+      "watts": 19.0,
+      "actualWatts": 19.0,
+      "fuelLevel": 0.46,
+      "pointRadiusMetres": 0.009800000116229057
+    },
+    {
+      "name": "court lantern",
+      "contactGroup": "court lantern oil cup",
+      "wickObject": "Court lantern oil cup warm wick",
+      "pointLightObject": "Court lantern oil cup warm spill",
+      "supportObjects": [
+        "Court stone lantern chamber shelf"
+      ],
+      "wickCenter": [
+        -5.5,
+        1.260406732559204,
+        11.399998664855957
+      ],
+      "wickTip": [
+        -5.500000953674316,
+        1.2694071531295776,
+        11.399999618530273
+      ],
+      "flameAnchor": [
+        -5.500000953674316,
+        1.2724071741104126,
+        11.399999618530273
+      ],
+      "pointLight": [
+        -5.5,
+        1.3090969324111938,
+        11.399999618530273
+      ],
+      "linearColor": [
+        1.0,
+        0.7058823704719543,
+        0.42352941632270813
+      ],
+      "lit": true,
+      "kind": "court bronze oil dish",
+      "watts": 12.0,
+      "actualWatts": 12.0,
+      "fuelLevel": 0.58,
+      "pointRadiusMetres": 0.007499999832361937
+    }
+  ],
+  "incenseSmoke": [
+    3.648921847343445e-06,
+    2.064269542694092,
+    -4.849999904632568
+  ],
+  "dustConfig": {
+    "boundsMin": [
+      -4.8,
+      0.9,
+      -5.9
+    ],
+    "boundsMax": [
+      4.8,
+      4.7,
+      1.9
+    ],
+    "count": 24,
+    "radiusMetres": 0.0012,
+    "speedMetresPerSecond": 0.008,
+    "opacity": 0.12,
+    "warmLightWeighted": true
+  },
+  "visitorLampAttachment": [
+    -3.35,
+    3.22,
+    1.2
+  ],
+  "visitorFlameBasis": [
+    -3.35,
+    2.8,
+    1.2
+  ],
+  "closeups": {
+    "path": "art/build/snow-roof-round1/source-v12-handoff/closeups.json",
+    "count": 52,
+    "all47GroupIdsCovered": true,
+    "viewportSpecificPhonePoses": true
+  },
+  "provisionalBudgetOnly": {
+    "sourceVersion": "v11 before free-normal correction; not source12 adoption",
+    "mobileF32UnprunedBytes": 12214588,
+    "prunedExactWeldBytes": 11259164,
+    "metadataSlimBytes": 10530568,
+    "materialImagesBytes": 3568762,
+    "metadataSavedBytes": 728596,
+    "fabricBytes": 391242,
+    "remainingTo15000000BytesBeforeGI": 4078190,
+    "actualEightMapBytesPending": true,
+    "actualMetadataStripped47ContactProof": "art/build/snow-roof-round1/geometry-v11-mobile-optimized/independent-delivery-contact-audit.json"
+  },
+  "stillRequired": [
+    "Actual desktop/phone runtime contact/material/visitor/camera review.",
+    "Meet final15000000byte package budget including all16maps,fabric,manifest,without visible loss.",
+    "Root approval before full64.",
+    "Actual complete finalassetpack/proofs after fullbatch.",
+    "Full Chrome/WebKit journey and independent stranger hunt."
+  ],
+  "actualPreview": {
+    "directory": "art/build/snow-roof-round1/preview12-mobile-delivery",
+    "manifestSha256": "d1bb8da6410e5cc52c1adc68b8ddd5c526ba157fb3de7ef77d5840cd48a1eb57",
+    "modelSha256": "ace4d2f42586f7680113df496bb80d389ace55b6909c2ce382cff05b00483098",
+    "modelBytes": 10478320,
+    "completePackageBytes": 15956719,
+    "payloadBytes": 15724961,
+    "manifestBytes": 231758,
+    "fabricBytes": 391242,
+    "realLightmaps": 8,
+    "samples": 8,
+    "device": "METAL",
+    "oidnDevice": "METAL",
+    "threads": "AUTO",
+    "nativeExitCode": 0,
+    "nativeSeconds": 133.269,
+    "within15000000Bytes": false,
+    "overBudgetBytes": 956719,
+    "missingLooks": [
+      "dusk",
+      "day"
+    ],
+    "publicInstalled": false
+  }
+}

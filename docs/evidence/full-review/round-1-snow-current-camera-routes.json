@@ -1,0 +1,3014 @@
+{
+  "raw": {
+    "path": "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-round1/contact-replay-v17-c6/layout/snow-roof.raw.glb",
+    "sha256": "d416e37ac3d821f8c739139cc160c2f6e89ef89d27404ef717236ac7045cde87"
+  },
+  "manifest": {
+    "path": "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-round1/contact-replay-v17-c6/layout/manifest.json",
+    "sha256": "6663f5ccfa77a7a9e33189108d0e4d9a776b9e62e5e545732b953840486e72ba",
+    "sourceBlendSha256": "2990854d3c9a65bf18879511d865b6e36788f6e727339248d5746b67fb52dd64",
+    "lampBasis": {
+      "position": [
+        -1.5,
+        2.25,
+        -1.2999999523162842
+      ],
+      "watts": 0.05000000074505806,
+      "linearColor": [
+        1,
+        0.7411764860153198,
+        0.47058823704719543
+      ],
+      "pointRadiusMetres": 0.004000000189989805,
+      "sourceObject": "Visitor flame bake basis",
+      "bodySuspensionTopEngine": [
+        -1.4993000030517578,
+        2.838900089263916,
+        -1.2999999523162842
+      ],
+      "ceilingAttachmentEngine": [
+        -1.4993000030517578,
+        5.039999961853027,
+        -1.2999999523162842
+      ],
+      "transport": {
+        "type": "actual-gauze",
+        "version": 1,
+        "geometrySha256": "017a715f37c2ab756f8bd2e8ec667145dd86652eb28b0595c02fed948957a0be",
+        "geometryFileSha256": "4a8c0b97007b8fd2cba1d426e8d3f4e12fe5c2bc2eb61c33d40a7965b495b39e",
+        "clothShadowTransmissionLinearRGB": [
+          0.22,
+          0.013008423338438501,
+          0.006524191775506214
+        ],
+        "clothCSSHex": "#a82a1c",
+        "formula": "linearCSS*.22/max(linearCSS)",
+        "proposalStatus": "physical-candle-0.05W-pre-exposure40-low8-proposal-not-optically-approved",
+        "sourceRuntime": {
+          "sceneSha256": "98e00117aaf0dbd2066d9b0fa7e1f2201bf86329ba7b624de47d1471beecdfc5",
+          "builderSha256": "0a24939afdab2c278ab2a7ded6f64b5469834f8363ccf01d67a0b26ac6356ad2",
+          "helpersSha256": "275605bc7101cbd2026b05d58b0e5a571a545d72695ce407d89cb45681479373",
+          "wickPlumeSha256": "1546f79dddf39a499604d4802d675ba81f884f7b45af0f3b3d6f6fd7b1188e5c",
+          "exporterSha256": "de0fbec563a8b8b057a2bd9ad2ac05bc5ce2abc35d33a5727db61c16d7c9c48e"
+        },
+        "quantity": "indirect-diffuse-radiance-per-unit-albedo",
+        "cameraPreExposure": 40
+      },
+      "cameraPreExposure": 40
+    }
+  },
+  "descriptorSha256": "66b1fa682e7a3f3c8953596b885c7ca3a3187688c58b920a2afd4df67f873a32",
+  "sceneSha256": "7b015bd75b4a1e172b9655e94ede977b2f5a42fa82e540ea3a394133ae4b9082",
+  "actualBuilderSha256": "0a24939afdab2c278ab2a7ded6f64b5469834f8363ccf01d67a0b26ac6356ad2",
+  "actualHelpersSha256": "275605bc7101cbd2026b05d58b0e5a571a545d72695ce407d89cb45681479373",
+  "fitShadeViewSha256": "96d9d9ae03965e03bf54f6978bc5f59f76fa1b0f0a0da70aed90de6a2bb75a35",
+  "burnViewSha256": "97915574172d23ee7ea38db5b58b543dd5b57f747623fdb78ce01a729b3aa5b0",
+  "spreadFovClauseSha256": "0b8064aa5ede8163f70c3811a598eec365f48f4a8e438633987b71a85964118d",
+  "method": "Actual current DOM-free lantern builder and exact extracted fitShadeView/burnView/ignition-FOV clauses; selected per-device approach and burn controls. Actual CatmullRom centripetal route locus against Source16 raw triangles. Numerical samples approximately10mm by runtime arc-length mapping plus chord crossing checks and at least10mm clearance allowance. Not a swept human-body or step-height simulation.",
+  "radiusMetres": 0.03,
+  "geometryDomain": {
+    "min": [
+      -5.1099999999999985,
+      1.510569555257351,
+      -1.7729930508854475
+    ],
+    "max": [
+      2.17,
+      2.472491559282467,
+      40.17
+    ],
+    "paddingMetres": 0.17,
+    "derivedFrom": "All actual fitted route samples; not fixed historical camera bounds."
+  },
+  "trianglesInCameraDomain": 10425,
+  "fixtures": [
+    {
+      "name": "desktop-drum-10",
+      "builderFrame": {
+        "h": 0.76,
+        "cy": -0.35000000000000003
+      },
+      "flameSize": 0.9,
+      "actualPointWorld": [
+        -1.5,
+        2.2499999999999996,
+        -1.2999999523162842
+      ],
+      "actualFrameCenterWorld": [
+        -1.4993,
+        2.4888999999999997,
+        -1.2999999523162842
+      ],
+      "choose": {
+        "positionWorld": [
+          -2.75,
+          2.22,
+          0.6499999999999999
+        ],
+        "lookWorld": [
+          -1.4993,
+          2.1523757360838984,
+          -1.2999999523162842
+        ],
+        "verticalFov": 55
+      },
+      "spread": {
+        "positionWorld": [
+          -2.95,
+          2.25,
+          0.55
+        ],
+        "lookWorld": [
+          -1.4993,
+          2.1523,
+          -1.3
+        ],
+        "verticalFov": 55
+      },
+      "burn": {
+        "positionWorld": [
+          -4.9,
+          2.3,
+          -1.6
+        ],
+        "lookWorld": [
+          1.1,
+          1.75,
+          -2.124931981155544
+        ],
+        "verticalFov": 55
+      },
+      "nominalBurnFar": {
+        "positionWorld": [
+          -4.94,
+          2.3,
+          -1.6
+        ],
+        "lookWorld": [
+          1.06,
+          1.75,
+          -2.124931981155544
+        ],
+        "verticalFov": 55
+      },
+      "chooseApproach": "chooseApproach",
+      "burnWalk": "burnWalk"
+    },
+    {
+      "name": "desktop-drum-1440",
+      "builderFrame": {
+        "h": 0.76,
+        "cy": -0.35000000000000003
+      },
+      "flameSize": 0.9,
+      "actualPointWorld": [
+        -1.5,
+        2.2499999999999996,
+        -1.2999999523162842
+      ],
+      "actualFrameCenterWorld": [
+        -1.4993,
+        2.4888999999999997,
+        -1.2999999523162842
+      ],
+      "choose": {
+        "positionWorld": [
+          -2.75,
+          2.22,
+          0.6499999999999999
+        ],
+        "lookWorld": [
+          -1.4993,
+          2.1523757360838984,
+          -1.2999999523162842
+        ],
+        "verticalFov": 55
+      },
+      "spread": {
+        "positionWorld": [
+          -2.95,
+          2.25,
+          0.55
+        ],
+        "lookWorld": [
+          -1.4993,
+          2.1523,
+          -1.3
+        ],
+        "verticalFov": 55
+      },
+      "burn": {
+        "positionWorld": [
+          -4.931910986729358,
+          2.3,
+          -1.6
+        ],
+        "lookWorld": [
+          1.0680890132706429,
+          1.75,
+          -2.124931981155544
+        ],
+        "verticalFov": 55
+      },
+      "nominalBurnFar": {
+        "positionWorld": [
+          -4.94,
+          2.3,
+          -1.6
+        ],
+        "lookWorld": [
+          1.06,
+          1.75,
+          -2.124931981155544
+        ],
+        "verticalFov": 55
+      },
+      "chooseApproach": "chooseApproach",
+      "burnWalk": "burnWalk"
+    },
+    {
+      "name": "desktop-tall-10",
+      "builderFrame": {
+        "h": 0.76,
+        "cy": -0.35000000000000003
+      },
+      "flameSize": 0.9,
+      "actualPointWorld": [
+        -1.5,
+        2.2499999999999996,
+        -1.2999999523162842
+      ],
+      "actualFrameCenterWorld": [
+        -1.4993,
+        2.4888999999999997,
+        -1.2999999523162842
+      ],
+      "choose": {
+        "positionWorld": [
+          -2.75,
+          2.22,
+          0.6499999999999999
+        ],
+        "lookWorld": [
+          -1.4993,
+          2.1523757360838984,
+          -1.2999999523162842
+        ],
+        "verticalFov": 55
+      },
+      "spread": {
+        "positionWorld": [
+          -2.95,
+          2.25,
+          0.55
+        ],
+        "lookWorld": [
+          -1.4993,
+          2.1523,
+          -1.3
+        ],
+        "verticalFov": 55
+      },
+      "burn": {
+        "positionWorld": [
+          -4.9,
+          2.3,
+          -1.6
+        ],
+        "lookWorld": [
+          1.1,
+          1.75,
+          -2.124931981155544
+        ],
+        "verticalFov": 55
+      },
+      "nominalBurnFar": {
+        "positionWorld": [
+          -4.94,
+          2.3,
+          -1.6
+        ],
+        "lookWorld": [
+          1.06,
+          1.75,
+          -2.124931981155544
+        ],
+        "verticalFov": 55
+      },
+      "chooseApproach": "chooseApproach",
+      "burnWalk": "burnWalk"
+    },
+    {
+      "name": "desktop-tall-1440",
+      "builderFrame": {
+        "h": 0.76,
+        "cy": -0.35000000000000003
+      },
+      "flameSize": 0.9,
+      "actualPointWorld": [
+        -1.5,
+        2.2499999999999996,
+        -1.2999999523162842
+      ],
+      "actualFrameCenterWorld": [
+        -1.4993,
+        2.4888999999999997,
+        -1.2999999523162842
+      ],
+      "choose": {
+        "positionWorld": [
+          -2.75,
+          2.22,
+          0.6499999999999999
+        ],
+        "lookWorld": [
+          -1.4993,
+          2.1523757360838984,
+          -1.2999999523162842
+        ],
+        "verticalFov": 55
+      },
+      "spread": {
+        "positionWorld": [
+          -2.95,
+          2.25,
+          0.55
+        ],
+        "lookWorld": [
+          -1.4993,
+          2.1523,
+          -1.3
+        ],
+        "verticalFov": 55
+      },
+      "burn": {
+        "positionWorld": [
+          -4.94,
+          2.3,
+          -1.6
+        ],
+        "lookWorld": [
+          1.06,
+          1.75,
+          -2.124931981155544
+        ],
+        "verticalFov": 55
+      },
+      "nominalBurnFar": {
+        "positionWorld": [
+          -4.94,
+          2.3,
+          -1.6
+        ],
+        "lookWorld": [
+          1.06,
+          1.75,
+          -2.124931981155544
+        ],
+        "verticalFov": 55
+      },
+      "chooseApproach": "chooseApproach",
+      "burnWalk": "burnWalk"
+    },
+    {
+      "name": "desktop-bell-10",
+      "builderFrame": {
+        "h": 0.76,
+        "cy": -0.35000000000000003
+      },
+      "flameSize": 0.9,
+      "actualPointWorld": [
+        -1.5,
+        2.2499999999999996,
+        -1.2999999523162842
+      ],
+      "actualFrameCenterWorld": [
+        -1.4993,
+        2.4888999999999997,
+        -1.2999999523162842
+      ],
+      "choose": {
+        "positionWorld": [
+          -2.75,
+          2.22,
+          0.6499999999999999
+        ],
+        "lookWorld": [
+          -1.4993,
+          2.1523757360838984,
+          -1.2999999523162842
+        ],
+        "verticalFov": 55
+      },
+      "spread": {
+        "positionWorld": [
+          -2.95,
+          2.25,
+          0.55
+        ],
+        "lookWorld": [
+          -1.4993,
+          2.1523,
+          -1.3
+        ],
+        "verticalFov": 55
+      },
+      "burn": {
+        "positionWorld": [
+          -4.9,
+          2.3,
+          -1.6
+        ],
+        "lookWorld": [
+          1.1,
+          1.75,
+          -2.124931981155544
+        ],
+        "verticalFov": 55
+      },
+      "nominalBurnFar": {
+        "positionWorld": [
+          -4.94,
+          2.3,
+          -1.6
+        ],
+        "lookWorld": [
+          1.06,
+          1.75,
+          -2.124931981155544
+        ],
+        "verticalFov": 55
+      },
+      "chooseApproach": "chooseApproach",
+      "burnWalk": "burnWalk"
+    },
+    {
+      "name": "desktop-bell-1440",
+      "builderFrame": {
+        "h": 0.76,
+        "cy": -0.35000000000000003
+      },
+      "flameSize": 0.9,
+      "actualPointWorld": [
+        -1.5,
+        2.2499999999999996,
+        -1.2999999523162842
+      ],
+      "actualFrameCenterWorld": [
+        -1.4993,
+        2.4888999999999997,
+        -1.2999999523162842
+      ],
+      "choose": {
+        "positionWorld": [
+          -2.75,
+          2.22,
+          0.6499999999999999
+        ],
+        "lookWorld": [
+          -1.4993,
+          2.1523757360838984,
+          -1.2999999523162842
+        ],
+        "verticalFov": 55
+      },
+      "spread": {
+        "positionWorld": [
+          -2.95,
+          2.25,
+          0.55
+        ],
+        "lookWorld": [
+          -1.4993,
+          2.1523,
+          -1.3
+        ],
+        "verticalFov": 55
+      },
+      "burn": {
+        "positionWorld": [
+          -4.935400787638732,
+          2.3,
+          -1.6
+        ],
+        "lookWorld": [
+          1.0645992123612689,
+          1.75,
+          -2.124931981155544
+        ],
+        "verticalFov": 55
+      },
+      "nominalBurnFar": {
+        "positionWorld": [
+          -4.94,
+          2.3,
+          -1.6
+        ],
+        "lookWorld": [
+          1.06,
+          1.75,
+          -2.124931981155544
+        ],
+        "verticalFov": 55
+      },
+      "chooseApproach": "chooseApproach",
+      "burnWalk": "burnWalk"
+    },
+    {
+      "name": "phone-drum-10",
+      "builderFrame": {
+        "h": 0.76,
+        "cy": -0.35000000000000003
+      },
+      "flameSize": 0.9,
+      "actualPointWorld": [
+        -1.5,
+        2.2499999999999996,
+        -1.2999999523162842
+      ],
+      "actualFrameCenterWorld": [
+        -1.4993,
+        2.4888999999999997,
+        -1.2999999523162842
+      ],
+      "choose": {
+        "positionWorld": [
+          -1.5,
+          2.2,
+          1.7000000000000002
+        ],
+        "lookWorld": [
+          -1.4993,
+          1.5708044704568174,
+          -1.2999999523162842
+        ],
+        "verticalFov": 55
+      },
+      "spread": {
+        "positionWorld": [
+          -1.5,
+          2.23,
+          1.45
+        ],
+        "lookWorld": [
+          -1.4993,
+          1.5699999999999998,
+          -1.3
+        ],
+        "verticalFov": 55
+      },
+      "burn": {
+        "positionWorld": [
+          -1.5,
+          2.2,
+          1.9
+        ],
+        "lookWorld": [
+          -0.9,
+          1.7000000000000002,
+          -2.3
+        ],
+        "verticalFov": 55
+      },
+      "nominalBurnFar": {
+        "positionWorld": [
+          -1.5,
+          2.2,
+          1.98
+        ],
+        "lookWorld": [
+          -1.1,
+          1.75,
+          -2.3
+        ],
+        "verticalFov": 55
+      },
+      "chooseApproach": "chooseApproachPhone",
+      "burnWalk": "burnWalkPhone"
+    },
+    {
+      "name": "phone-drum-1440",
+      "builderFrame": {
+        "h": 0.76,
+        "cy": -0.35000000000000003
+      },
+      "flameSize": 0.9,
+      "actualPointWorld": [
+        -1.5,
+        2.2499999999999996,
+        -1.2999999523162842
+      ],
+      "actualFrameCenterWorld": [
+        -1.4993,
+        2.4888999999999997,
+        -1.2999999523162842
+      ],
+      "choose": {
+        "positionWorld": [
+          -1.5,
+          2.2,
+          1.7000000000000002
+        ],
+        "lookWorld": [
+          -1.4993,
+          1.5708044704568174,
+          -1.2999999523162842
+        ],
+        "verticalFov": 55
+      },
+      "spread": {
+        "positionWorld": [
+          -1.5,
+          2.23,
+          1.45
+        ],
+        "lookWorld": [
+          -1.4993,
+          1.5699999999999998,
+          -1.3
+        ],
+        "verticalFov": 55
+      },
+      "burn": {
+        "positionWorld": [
+          -1.5,
+          2.2,
+          1.9638219734587146
+        ],
+        "lookWorld": [
+          -1.0595549336467864,
+          1.7398887334116966,
+          -2.3
+        ],
+        "verticalFov": 55
+      },
+      "nominalBurnFar": {
+        "positionWorld": [
+          -1.5,
+          2.2,
+          1.98
+        ],
+        "lookWorld": [
+          -1.1,
+          1.75,
+          -2.3
+        ],
+        "verticalFov": 55
+      },
+      "chooseApproach": "chooseApproachPhone",
+      "burnWalk": "burnWalkPhone"
+    },
+    {
+      "name": "phone-tall-10",
+      "builderFrame": {
+        "h": 0.76,
+        "cy": -0.35000000000000003
+      },
+      "flameSize": 0.9,
+      "actualPointWorld": [
+        -1.5,
+        2.2499999999999996,
+        -1.2999999523162842
+      ],
+      "actualFrameCenterWorld": [
+        -1.4993,
+        2.4888999999999997,
+        -1.2999999523162842
+      ],
+      "choose": {
+        "positionWorld": [
+          -1.5,
+          2.2,
+          1.7000000000000002
+        ],
+        "lookWorld": [
+          -1.4993,
+          1.5708044704568174,
+          -1.2999999523162842
+        ],
+        "verticalFov": 55
+      },
+      "spread": {
+        "positionWorld": [
+          -1.5,
+          2.23,
+          1.45
+        ],
+        "lookWorld": [
+          -1.4993,
+          1.5699999999999998,
+          -1.3
+        ],
+        "verticalFov": 55
+      },
+      "burn": {
+        "positionWorld": [
+          -1.5,
+          2.2,
+          1.9
+        ],
+        "lookWorld": [
+          -0.9,
+          1.7000000000000002,
+          -2.3
+        ],
+        "verticalFov": 55
+      },
+      "nominalBurnFar": {
+        "positionWorld": [
+          -1.5,
+          2.2,
+          1.98
+        ],
+        "lookWorld": [
+          -1.1,
+          1.75,
+          -2.3
+        ],
+        "verticalFov": 55
+      },
+      "chooseApproach": "chooseApproachPhone",
+      "burnWalk": "burnWalkPhone"
+    },
+    {
+      "name": "phone-tall-1440",
+      "builderFrame": {
+        "h": 0.76,
+        "cy": -0.35000000000000003
+      },
+      "flameSize": 0.9,
+      "actualPointWorld": [
+        -1.5,
+        2.2499999999999996,
+        -1.2999999523162842
+      ],
+      "actualFrameCenterWorld": [
+        -1.4993,
+        2.4888999999999997,
+        -1.2999999523162842
+      ],
+      "choose": {
+        "positionWorld": [
+          -1.5,
+          2.2,
+          1.7000000000000002
+        ],
+        "lookWorld": [
+          -1.4993,
+          1.5708044704568174,
+          -1.2999999523162842
+        ],
+        "verticalFov": 55
+      },
+      "spread": {
+        "positionWorld": [
+          -1.5,
+          2.23,
+          1.45
+        ],
+        "lookWorld": [
+          -1.4993,
+          1.5699999999999998,
+          -1.3
+        ],
+        "verticalFov": 55
+      },
+      "burn": {
+        "positionWorld": [
+          -1.5,
+          2.2,
+          1.98
+        ],
+        "lookWorld": [
+          -1.1,
+          1.75,
+          -2.3
+        ],
+        "verticalFov": 55
+      },
+      "nominalBurnFar": {
+        "positionWorld": [
+          -1.5,
+          2.2,
+          1.98
+        ],
+        "lookWorld": [
+          -1.1,
+          1.75,
+          -2.3
+        ],
+        "verticalFov": 55
+      },
+      "chooseApproach": "chooseApproachPhone",
+      "burnWalk": "burnWalkPhone"
+    },
+    {
+      "name": "phone-bell-10",
+      "builderFrame": {
+        "h": 0.76,
+        "cy": -0.35000000000000003
+      },
+      "flameSize": 0.9,
+      "actualPointWorld": [
+        -1.5,
+        2.2499999999999996,
+        -1.2999999523162842
+      ],
+      "actualFrameCenterWorld": [
+        -1.4993,
+        2.4888999999999997,
+        -1.2999999523162842
+      ],
+      "choose": {
+        "positionWorld": [
+          -1.5,
+          2.2,
+          1.7000000000000002
+        ],
+        "lookWorld": [
+          -1.4993,
+          1.5708044704568174,
+          -1.2999999523162842
+        ],
+        "verticalFov": 55
+      },
+      "spread": {
+        "positionWorld": [
+          -1.5,
+          2.23,
+          1.45
+        ],
+        "lookWorld": [
+          -1.4993,
+          1.5699999999999998,
+          -1.3
+        ],
+        "verticalFov": 55
+      },
+      "burn": {
+        "positionWorld": [
+          -1.5,
+          2.2,
+          1.9
+        ],
+        "lookWorld": [
+          -0.9,
+          1.7000000000000002,
+          -2.3
+        ],
+        "verticalFov": 55
+      },
+      "nominalBurnFar": {
+        "positionWorld": [
+          -1.5,
+          2.2,
+          1.98
+        ],
+        "lookWorld": [
+          -1.1,
+          1.75,
+          -2.3
+        ],
+        "verticalFov": 55
+      },
+      "chooseApproach": "chooseApproachPhone",
+      "burnWalk": "burnWalkPhone"
+    },
+    {
+      "name": "phone-bell-1440",
+      "builderFrame": {
+        "h": 0.76,
+        "cy": -0.35000000000000003
+      },
+      "flameSize": 0.9,
+      "actualPointWorld": [
+        -1.5,
+        2.2499999999999996,
+        -1.2999999523162842
+      ],
+      "actualFrameCenterWorld": [
+        -1.4993,
+        2.4888999999999997,
+        -1.2999999523162842
+      ],
+      "choose": {
+        "positionWorld": [
+          -1.5,
+          2.2,
+          1.7000000000000002
+        ],
+        "lookWorld": [
+          -1.4993,
+          1.5708044704568174,
+          -1.2999999523162842
+        ],
+        "verticalFov": 55
+      },
+      "spread": {
+        "positionWorld": [
+          -1.5,
+          2.23,
+          1.45
+        ],
+        "lookWorld": [
+          -1.4993,
+          1.5699999999999998,
+          -1.3
+        ],
+        "verticalFov": 55
+      },
+      "burn": {
+        "positionWorld": [
+          -1.5,
+          2.2,
+          1.9708015752774624
+        ],
+        "lookWorld": [
+          -1.0770039381936563,
+          1.744250984548414,
+          -2.3
+        ],
+        "verticalFov": 55
+      },
+      "nominalBurnFar": {
+        "positionWorld": [
+          -1.5,
+          2.2,
+          1.98
+        ],
+        "lookWorld": [
+          -1.1,
+          1.75,
+          -2.3
+        ],
+        "verticalFov": 55
+      },
+      "chooseApproach": "chooseApproachPhone",
+      "burnWalk": "burnWalkPhone"
+    }
+  ],
+  "routes": [
+    {
+      "name": "desktop-drum-10-walk",
+      "controlPointsWorld": [
+        [
+          2,
+          1.75,
+          40
+        ],
+        [
+          0.7,
+          1.7,
+          35
+        ],
+        [
+          0.1,
+          1.7,
+          27
+        ],
+        [
+          0,
+          1.7,
+          19
+        ],
+        [
+          0,
+          1.7,
+          13
+        ],
+        [
+          0,
+          1.7000000000000002,
+          10.5
+        ],
+        [
+          0,
+          1.7200000000000002,
+          5.95
+        ],
+        [
+          0,
+          1.79,
+          5.68
+        ],
+        [
+          0,
+          1.9899999999999998,
+          5.27
+        ],
+        [
+          0,
+          2.19,
+          4.87
+        ],
+        [
+          0,
+          2.22,
+          4.45
+        ],
+        [
+          0.2,
+          2.22,
+          3.25
+        ],
+        [
+          0,
+          2.22,
+          2.2
+        ],
+        [
+          -0.5,
+          2.22,
+          1.3
+        ],
+        [
+          -1.6,
+          2.22,
+          0.6499999999999999
+        ],
+        [
+          -2.75,
+          2.22,
+          0.6499999999999999
+        ]
+      ],
+      "lengthMetres": 41.63248680465411,
+      "samples": 4165,
+      "maximumSampleSpacing": 0.013460104048889483,
+      "curveSamplingAllowance": 0.013460104048889483,
+      "cappedMinimumSampleClearanceMetres": 0.15,
+      "conservativeClearanceMetres": 0.13653989595111052,
+      "chordIntersections": 0,
+      "passed": true,
+      "closest": null
+    },
+    {
+      "name": "desktop-drum-10-ignition-retreat",
+      "controlPointsWorld": [
+        [
+          -2.75,
+          2.22,
+          0.6499999999999999
+        ],
+        [
+          -2.95,
+          2.25,
+          0.55
+        ]
+      ],
+      "lengthMetres": 0.22561028345357056,
+      "samples": 24,
+      "maximumSampleSpacing": 0.009810393094677934,
+      "curveSamplingAllowance": 0.01,
+      "cappedMinimumSampleClearanceMetres": 0.15,
+      "conservativeClearanceMetres": 0.13999999999999999,
+      "chordIntersections": 0,
+      "passed": true,
+      "closest": null
+    },
+    {
+      "name": "desktop-drum-10-burn",
+      "controlPointsWorld": [
+        [
+          -2.95,
+          2.25,
+          0.55
+        ],
+        [
+          -3.2,
+          2.27,
+          0.09999999999999998
+        ],
+        [
+          -3.8,
+          2.3,
+          -0.5
+        ],
+        [
+          -4.5,
+          2.3,
+          -1.2
+        ],
+        [
+          -4.9,
+          2.3,
+          -1.6
+        ]
+      ],
+      "lengthMetres": 2.9215605083629343,
+      "samples": 294,
+      "maximumSampleSpacing": 0.009997837899798964,
+      "curveSamplingAllowance": 0.01,
+      "cappedMinimumSampleClearanceMetres": 0.10500011444091673,
+      "conservativeClearanceMetres": 0.09500011444091673,
+      "chordIntersections": 0,
+      "passed": true,
+      "closest": {
+        "sample": 293,
+        "position": [
+          -4.900000000000001,
+          2.3,
+          -1.600000000000001
+        ],
+        "surface": [
+          -5.005000114440918,
+          2.3000000000000003,
+          -1.600000000000001
+        ],
+        "region": "hall",
+        "material": "Aged red painted timber"
+      }
+    },
+    {
+      "name": "desktop-drum-1440-walk",
+      "controlPointsWorld": [
+        [
+          2,
+          1.75,
+          40
+        ],
+        [
+          0.7,
+          1.7,
+          35
+        ],
+        [
+          0.1,
+          1.7,
+          27
+        ],
+        [
+          0,
+          1.7,
+          19
+        ],
+        [
+          0,
+          1.7,
+          13
+        ],
+        [
+          0,
+          1.7000000000000002,
+          10.5
+        ],
+        [
+          0,
+          1.7200000000000002,
+          5.95
+        ],
+        [
+          0,
+          1.79,
+          5.68
+        ],
+        [
+          0,
+          1.9899999999999998,
+          5.27
+        ],
+        [
+          0,
+          2.19,
+          4.87
+        ],
+        [
+          0,
+          2.22,
+          4.45
+        ],
+        [
+          0.2,
+          2.22,
+          3.25
+        ],
+        [
+          0,
+          2.22,
+          2.2
+        ],
+        [
+          -0.5,
+          2.22,
+          1.3
+        ],
+        [
+          -1.6,
+          2.22,
+          0.6499999999999999
+        ],
+        [
+          -2.75,
+          2.22,
+          0.6499999999999999
+        ]
+      ],
+      "lengthMetres": 41.63248680465411,
+      "samples": 4165,
+      "maximumSampleSpacing": 0.013460104048889483,
+      "curveSamplingAllowance": 0.013460104048889483,
+      "cappedMinimumSampleClearanceMetres": 0.15,
+      "conservativeClearanceMetres": 0.13653989595111052,
+      "chordIntersections": 0,
+      "passed": true,
+      "closest": null
+    },
+    {
+      "name": "desktop-drum-1440-ignition-retreat",
+      "controlPointsWorld": [
+        [
+          -2.75,
+          2.22,
+          0.6499999999999999
+        ],
+        [
+          -2.95,
+          2.25,
+          0.55
+        ]
+      ],
+      "lengthMetres": 0.22561028345357056,
+      "samples": 24,
+      "maximumSampleSpacing": 0.009810393094677934,
+      "curveSamplingAllowance": 0.01,
+      "cappedMinimumSampleClearanceMetres": 0.15,
+      "conservativeClearanceMetres": 0.13999999999999999,
+      "chordIntersections": 0,
+      "passed": true,
+      "closest": null
+    },
+    {
+      "name": "desktop-drum-1440-burn",
+      "controlPointsWorld": [
+        [
+          -2.95,
+          2.25,
+          0.55
+        ],
+        [
+          -3.2,
+          2.27,
+          0.09999999999999998
+        ],
+        [
+          -3.8,
+          2.3,
+          -0.5
+        ],
+        [
+          -4.5,
+          2.3,
+          -1.2
+        ],
+        [
+          -4.9,
+          2.3,
+          -1.6
+        ],
+        [
+          -4.931910986729358,
+          2.3,
+          -1.6
+        ]
+      ],
+      "lengthMetres": 2.955273884729129,
+      "samples": 297,
+      "maximumSampleSpacing": 0.010024461200634768,
+      "curveSamplingAllowance": 0.010024461200634768,
+      "cappedMinimumSampleClearanceMetres": 0.07308912771155995,
+      "conservativeClearanceMetres": 0.06306466651092518,
+      "chordIntersections": 0,
+      "passed": true,
+      "closest": {
+        "sample": 296,
+        "position": [
+          -4.931910986729358,
+          2.3,
+          -1.6000000000000003
+        ],
+        "surface": [
+          -5.005000114440918,
+          2.3,
+          -1.6000000000000003
+        ],
+        "region": "hall",
+        "material": "Aged red painted timber"
+      }
+    },
+    {
+      "name": "desktop-tall-10-walk",
+      "controlPointsWorld": [
+        [
+          2,
+          1.75,
+          40
+        ],
+        [
+          0.7,
+          1.7,
+          35
+        ],
+        [
+          0.1,
+          1.7,
+          27
+        ],
+        [
+          0,
+          1.7,
+          19
+        ],
+        [
+          0,
+          1.7,
+          13
+        ],
+        [
+          0,
+          1.7000000000000002,
+          10.5
+        ],
+        [
+          0,
+          1.7200000000000002,
+          5.95
+        ],
+        [
+          0,
+          1.79,
+          5.68
+        ],
+        [
+          0,
+          1.9899999999999998,
+          5.27
+        ],
+        [
+          0,
+          2.19,
+          4.87
+        ],
+        [
+          0,
+          2.22,
+          4.45
+        ],
+        [
+          0.2,
+          2.22,
+          3.25
+        ],
+        [
+          0,
+          2.22,
+          2.2
+        ],
+        [
+          -0.5,
+          2.22,
+          1.3
+        ],
+        [
+          -1.6,
+          2.22,
+          0.6499999999999999
+        ],
+        [
+          -2.75,
+          2.22,
+          0.6499999999999999
+        ]
+      ],
+      "lengthMetres": 41.63248680465411,
+      "samples": 4165,
+      "maximumSampleSpacing": 0.013460104048889483,
+      "curveSamplingAllowance": 0.013460104048889483,
+      "cappedMinimumSampleClearanceMetres": 0.15,
+      "conservativeClearanceMetres": 0.13653989595111052,
+      "chordIntersections": 0,
+      "passed": true,
+      "closest": null
+    },
+    {
+      "name": "desktop-tall-10-ignition-retreat",
+      "controlPointsWorld": [
+        [
+          -2.75,
+          2.22,
+          0.6499999999999999
+        ],
+        [
+          -2.95,
+          2.25,
+          0.55
+        ]
+      ],
+      "lengthMetres": 0.22561028345357056,
+      "samples": 24,
+      "maximumSampleSpacing": 0.009810393094677934,
+      "curveSamplingAllowance": 0.01,
+      "cappedMinimumSampleClearanceMetres": 0.15,
+      "conservativeClearanceMetres": 0.13999999999999999,
+      "chordIntersections": 0,
+      "passed": true,
+      "closest": null
+    },
+    {
+      "name": "desktop-tall-10-burn",
+      "controlPointsWorld": [
+        [
+          -2.95,
+          2.25,
+          0.55
+        ],
+        [
+          -3.2,
+          2.27,
+          0.09999999999999998
+        ],
+        [
+          -3.8,
+          2.3,
+          -0.5
+        ],
+        [
+          -4.5,
+          2.3,
+          -1.2
+        ],
+        [
+          -4.9,
+          2.3,
+          -1.6
+        ]
+      ],
+      "lengthMetres": 2.9215605083629343,
+      "samples": 294,
+      "maximumSampleSpacing": 0.009997837899798964,
+      "curveSamplingAllowance": 0.01,
+      "cappedMinimumSampleClearanceMetres": 0.10500011444091673,
+      "conservativeClearanceMetres": 0.09500011444091673,
+      "chordIntersections": 0,
+      "passed": true,
+      "closest": {
+        "sample": 293,
+        "position": [
+          -4.900000000000001,
+          2.3,
+          -1.600000000000001
+        ],
+        "surface": [
+          -5.005000114440918,
+          2.3000000000000003,
+          -1.600000000000001
+        ],
+        "region": "hall",
+        "material": "Aged red painted timber"
+      }
+    },
+    {
+      "name": "desktop-tall-1440-walk",
+      "controlPointsWorld": [
+        [
+          2,
+          1.75,
+          40
+        ],
+        [
+          0.7,
+          1.7,
+          35
+        ],
+        [
+          0.1,
+          1.7,
+          27
+        ],
+        [
+          0,
+          1.7,
+          19
+        ],
+        [
+          0,
+          1.7,
+          13
+        ],
+        [
+          0,
+          1.7000000000000002,
+          10.5
+        ],
+        [
+          0,
+          1.7200000000000002,
+          5.95
+        ],
+        [
+          0,
+          1.79,
+          5.68
+        ],
+        [
+          0,
+          1.9899999999999998,
+          5.27
+        ],
+        [
+          0,
+          2.19,
+          4.87
+        ],
+        [
+          0,
+          2.22,
+          4.45
+        ],
+        [
+          0.2,
+          2.22,
+          3.25
+        ],
+        [
+          0,
+          2.22,
+          2.2
+        ],
+        [
+          -0.5,
+          2.22,
+          1.3
+        ],
+        [
+          -1.6,
+          2.22,
+          0.6499999999999999
+        ],
+        [
+          -2.75,
+          2.22,
+          0.6499999999999999
+        ]
+      ],
+      "lengthMetres": 41.63248680465411,
+      "samples": 4165,
+      "maximumSampleSpacing": 0.013460104048889483,
+      "curveSamplingAllowance": 0.013460104048889483,
+      "cappedMinimumSampleClearanceMetres": 0.15,
+      "conservativeClearanceMetres": 0.13653989595111052,
+      "chordIntersections": 0,
+      "passed": true,
+      "closest": null
+    },
+    {
+      "name": "desktop-tall-1440-ignition-retreat",
+      "controlPointsWorld": [
+        [
+          -2.75,
+          2.22,
+          0.6499999999999999
+        ],
+        [
+          -2.95,
+          2.25,
+          0.55
+        ]
+      ],
+      "lengthMetres": 0.22561028345357056,
+      "samples": 24,
+      "maximumSampleSpacing": 0.009810393094677934,
+      "curveSamplingAllowance": 0.01,
+      "cappedMinimumSampleClearanceMetres": 0.15,
+      "conservativeClearanceMetres": 0.13999999999999999,
+      "chordIntersections": 0,
+      "passed": true,
+      "closest": null
+    },
+    {
+      "name": "desktop-tall-1440-burn",
+      "controlPointsWorld": [
+        [
+          -2.95,
+          2.25,
+          0.55
+        ],
+        [
+          -3.2,
+          2.27,
+          0.09999999999999998
+        ],
+        [
+          -3.8,
+          2.3,
+          -0.5
+        ],
+        [
+          -4.5,
+          2.3,
+          -1.2
+        ],
+        [
+          -4.9,
+          2.3,
+          -1.6
+        ],
+        [
+          -4.94,
+          2.3,
+          -1.6
+        ]
+      ],
+      "lengthMetres": 2.9636605187130782,
+      "samples": 298,
+      "maximumSampleSpacing": 0.01004616174951937,
+      "curveSamplingAllowance": 0.01004616174951937,
+      "cappedMinimumSampleClearanceMetres": 0.06500011444091935,
+      "conservativeClearanceMetres": 0.054953952691399986,
+      "chordIntersections": 0,
+      "passed": true,
+      "closest": {
+        "sample": 297,
+        "position": [
+          -4.939999999999999,
+          2.3,
+          -1.6
+        ],
+        "surface": [
+          -5.005000114440918,
+          2.3,
+          -1.6
+        ],
+        "region": "hall",
+        "material": "Aged red painted timber"
+      }
+    },
+    {
+      "name": "desktop-bell-10-walk",
+      "controlPointsWorld": [
+        [
+          2,
+          1.75,
+          40
+        ],
+        [
+          0.7,
+          1.7,
+          35
+        ],
+        [
+          0.1,
+          1.7,
+          27
+        ],
+        [
+          0,
+          1.7,
+          19
+        ],
+        [
+          0,
+          1.7,
+          13
+        ],
+        [
+          0,
+          1.7000000000000002,
+          10.5
+        ],
+        [
+          0,
+          1.7200000000000002,
+          5.95
+        ],
+        [
+          0,
+          1.79,
+          5.68
+        ],
+        [
+          0,
+          1.9899999999999998,
+          5.27
+        ],
+        [
+          0,
+          2.19,
+          4.87
+        ],
+        [
+          0,
+          2.22,
+          4.45
+        ],
+        [
+          0.2,
+          2.22,
+          3.25
+        ],
+        [
+          0,
+          2.22,
+          2.2
+        ],
+        [
+          -0.5,
+          2.22,
+          1.3
+        ],
+        [
+          -1.6,
+          2.22,
+          0.6499999999999999
+        ],
+        [
+          -2.75,
+          2.22,
+          0.6499999999999999
+        ]
+      ],
+      "lengthMetres": 41.63248680465411,
+      "samples": 4165,
+      "maximumSampleSpacing": 0.013460104048889483,
+      "curveSamplingAllowance": 0.013460104048889483,
+      "cappedMinimumSampleClearanceMetres": 0.15,
+      "conservativeClearanceMetres": 0.13653989595111052,
+      "chordIntersections": 0,
+      "passed": true,
+      "closest": null
+    },
+    {
+      "name": "desktop-bell-10-ignition-retreat",
+      "controlPointsWorld": [
+        [
+          -2.75,
+          2.22,
+          0.6499999999999999
+        ],
+        [
+          -2.95,
+          2.25,
+          0.55
+        ]
+      ],
+      "lengthMetres": 0.22561028345357056,
+      "samples": 24,
+      "maximumSampleSpacing": 0.009810393094677934,
+      "curveSamplingAllowance": 0.01,
+      "cappedMinimumSampleClearanceMetres": 0.15,
+      "conservativeClearanceMetres": 0.13999999999999999,
+      "chordIntersections": 0,
+      "passed": true,
+      "closest": null
+    },
+    {
+      "name": "desktop-bell-10-burn",
+      "controlPointsWorld": [
+        [
+          -2.95,
+          2.25,
+          0.55
+        ],
+        [
+          -3.2,
+          2.27,
+          0.09999999999999998
+        ],
+        [
+          -3.8,
+          2.3,
+          -0.5
+        ],
+        [
+          -4.5,
+          2.3,
+          -1.2
+        ],
+        [
+          -4.9,
+          2.3,
+          -1.6
+        ]
+      ],
+      "lengthMetres": 2.9215605083629343,
+      "samples": 294,
+      "maximumSampleSpacing": 0.009997837899798964,
+      "curveSamplingAllowance": 0.01,
+      "cappedMinimumSampleClearanceMetres": 0.10500011444091673,
+      "conservativeClearanceMetres": 0.09500011444091673,
+      "chordIntersections": 0,
+      "passed": true,
+      "closest": {
+        "sample": 293,
+        "position": [
+          -4.900000000000001,
+          2.3,
+          -1.600000000000001
+        ],
+        "surface": [
+          -5.005000114440918,
+          2.3000000000000003,
+          -1.600000000000001
+        ],
+        "region": "hall",
+        "material": "Aged red painted timber"
+      }
+    },
+    {
+      "name": "desktop-bell-1440-walk",
+      "controlPointsWorld": [
+        [
+          2,
+          1.75,
+          40
+        ],
+        [
+          0.7,
+          1.7,
+          35
+        ],
+        [
+          0.1,
+          1.7,
+          27
+        ],
+        [
+          0,
+          1.7,
+          19
+        ],
+        [
+          0,
+          1.7,
+          13
+        ],
+        [
+          0,
+          1.7000000000000002,
+          10.5
+        ],
+        [
+          0,
+          1.7200000000000002,
+          5.95
+        ],
+        [
+          0,
+          1.79,
+          5.68
+        ],
+        [
+          0,
+          1.9899999999999998,
+          5.27
+        ],
+        [
+          0,
+          2.19,
+          4.87
+        ],
+        [
+          0,
+          2.22,
+          4.45
+        ],
+        [
+          0.2,
+          2.22,
+          3.25
+        ],
+        [
+          0,
+          2.22,
+          2.2
+        ],
+        [
+          -0.5,
+          2.22,
+          1.3
+        ],
+        [
+          -1.6,
+          2.22,
+          0.6499999999999999
+        ],
+        [
+          -2.75,
+          2.22,
+          0.6499999999999999
+        ]
+      ],
+      "lengthMetres": 41.63248680465411,
+      "samples": 4165,
+      "maximumSampleSpacing": 0.013460104048889483,
+      "curveSamplingAllowance": 0.013460104048889483,
+      "cappedMinimumSampleClearanceMetres": 0.15,
+      "conservativeClearanceMetres": 0.13653989595111052,
+      "chordIntersections": 0,
+      "passed": true,
+      "closest": null
+    },
+    {
+      "name": "desktop-bell-1440-ignition-retreat",
+      "controlPointsWorld": [
+        [
+          -2.75,
+          2.22,
+          0.6499999999999999
+        ],
+        [
+          -2.95,
+          2.25,
+          0.55
+        ]
+      ],
+      "lengthMetres": 0.22561028345357056,
+      "samples": 24,
+      "maximumSampleSpacing": 0.009810393094677934,
+      "curveSamplingAllowance": 0.01,
+      "cappedMinimumSampleClearanceMetres": 0.15,
+      "conservativeClearanceMetres": 0.13999999999999999,
+      "chordIntersections": 0,
+      "passed": true,
+      "closest": null
+    },
+    {
+      "name": "desktop-bell-1440-burn",
+      "controlPointsWorld": [
+        [
+          -2.95,
+          2.25,
+          0.55
+        ],
+        [
+          -3.2,
+          2.27,
+          0.09999999999999998
+        ],
+        [
+          -3.8,
+          2.3,
+          -0.5
+        ],
+        [
+          -4.5,
+          2.3,
+          -1.2
+        ],
+        [
+          -4.9,
+          2.3,
+          -1.6
+        ],
+        [
+          -4.935400787638732,
+          2.3,
+          -1.6
+        ]
+      ],
+      "lengthMetres": 2.9588954109494723,
+      "samples": 297,
+      "maximumSampleSpacing": 0.010038079331942139,
+      "curveSamplingAllowance": 0.010038079331942139,
+      "cappedMinimumSampleClearanceMetres": 0.06959932680218461,
+      "conservativeClearanceMetres": 0.059561247470242475,
+      "chordIntersections": 0,
+      "passed": true,
+      "closest": {
+        "sample": 296,
+        "position": [
+          -4.935400787638733,
+          2.3,
+          -1.6
+        ],
+        "surface": [
+          -5.005000114440918,
+          2.3,
+          -1.6
+        ],
+        "region": "hall",
+        "material": "Aged red painted timber"
+      }
+    },
+    {
+      "name": "phone-drum-10-walk",
+      "controlPointsWorld": [
+        [
+          2,
+          1.75,
+          40
+        ],
+        [
+          0.7,
+          1.7,
+          35
+        ],
+        [
+          0.1,
+          1.7,
+          27
+        ],
+        [
+          0,
+          1.7,
+          19
+        ],
+        [
+          0,
+          1.7,
+          13
+        ],
+        [
+          0,
+          1.7000000000000002,
+          10.5
+        ],
+        [
+          0,
+          1.7200000000000002,
+          5.95
+        ],
+        [
+          0,
+          1.79,
+          5.68
+        ],
+        [
+          0,
+          1.9899999999999998,
+          5.27
+        ],
+        [
+          0,
+          2.19,
+          4.87
+        ],
+        [
+          0,
+          2.22,
+          4.45
+        ],
+        [
+          0.05,
+          2.22,
+          3.25
+        ],
+        [
+          0,
+          2.22,
+          2.2
+        ],
+        [
+          -0.6,
+          2.22,
+          1.65
+        ],
+        [
+          -1.25,
+          2.22,
+          1.5
+        ],
+        [
+          -1.5,
+          2.2,
+          1.7000000000000002
+        ]
+      ],
+      "lengthMetres": 39.94731634317758,
+      "samples": 3996,
+      "maximumSampleSpacing": 0.01345149771536939,
+      "curveSamplingAllowance": 0.01345149771536939,
+      "cappedMinimumSampleClearanceMetres": 0.15,
+      "conservativeClearanceMetres": 0.1365485022846306,
+      "chordIntersections": 0,
+      "passed": true,
+      "closest": null
+    },
+    {
+      "name": "phone-drum-10-ignition-retreat",
+      "controlPointsWorld": [
+        [
+          -1.5,
+          2.2,
+          1.7000000000000002
+        ],
+        [
+          -1.5,
+          2.23,
+          1.45
+        ]
+      ],
+      "lengthMetres": 0.2517935662402838,
+      "samples": 27,
+      "maximumSampleSpacing": 0.009685287988579275,
+      "curveSamplingAllowance": 0.01,
+      "cappedMinimumSampleClearanceMetres": 0.15,
+      "conservativeClearanceMetres": 0.13999999999999999,
+      "chordIntersections": 0,
+      "passed": true,
+      "closest": null
+    },
+    {
+      "name": "phone-drum-10-burn",
+      "controlPointsWorld": [
+        [
+          -1.5,
+          2.23,
+          1.45
+        ],
+        [
+          -1.55,
+          2.25,
+          1.6
+        ],
+        [
+          -1.52,
+          2.25,
+          1.7999999999999998
+        ],
+        [
+          -1.5,
+          2.2,
+          1.9
+        ]
+      ],
+      "lengthMetres": 0.4776055036164943,
+      "samples": 49,
+      "maximumSampleSpacing": 0.009982260942161359,
+      "curveSamplingAllowance": 0.01,
+      "cappedMinimumSampleClearanceMetres": 0.11174646949621256,
+      "conservativeClearanceMetres": 0.10174646949621256,
+      "chordIntersections": 0,
+      "passed": true,
+      "closest": {
+        "sample": 48,
+        "position": [
+          -1.4999999999999996,
+          2.2,
+          1.8999999999999995
+        ],
+        "surface": [
+          -1.5564435720443726,
+          2.2,
+          1.996443748474121
+        ],
+        "region": "hall",
+        "material": "Aged red painted timber"
+      }
+    },
+    {
+      "name": "phone-drum-1440-walk",
+      "controlPointsWorld": [
+        [
+          2,
+          1.75,
+          40
+        ],
+        [
+          0.7,
+          1.7,
+          35
+        ],
+        [
+          0.1,
+          1.7,
+          27
+        ],
+        [
+          0,
+          1.7,
+          19
+        ],
+        [
+          0,
+          1.7,
+          13
+        ],
+        [
+          0,
+          1.7000000000000002,
+          10.5
+        ],
+        [
+          0,
+          1.7200000000000002,
+          5.95
+        ],
+        [
+          0,
+          1.79,
+          5.68
+        ],
+        [
+          0,
+          1.9899999999999998,
+          5.27
+        ],
+        [
+          0,
+          2.19,
+          4.87
+        ],
+        [
+          0,
+          2.22,
+          4.45
+        ],
+        [
+          0.05,
+          2.22,
+          3.25
+        ],
+        [
+          0,
+          2.22,
+          2.2
+        ],
+        [
+          -0.6,
+          2.22,
+          1.65
+        ],
+        [
+          -1.25,
+          2.22,
+          1.5
+        ],
+        [
+          -1.5,
+          2.2,
+          1.7000000000000002
+        ]
+      ],
+      "lengthMetres": 39.94731634317758,
+      "samples": 3996,
+      "maximumSampleSpacing": 0.01345149771536939,
+      "curveSamplingAllowance": 0.01345149771536939,
+      "cappedMinimumSampleClearanceMetres": 0.15,
+      "conservativeClearanceMetres": 0.1365485022846306,
+      "chordIntersections": 0,
+      "passed": true,
+      "closest": null
+    },
+    {
+      "name": "phone-drum-1440-ignition-retreat",
+      "controlPointsWorld": [
+        [
+          -1.5,
+          2.2,
+          1.7000000000000002
+        ],
+        [
+          -1.5,
+          2.23,
+          1.45
+        ]
+      ],
+      "lengthMetres": 0.2517935662402838,
+      "samples": 27,
+      "maximumSampleSpacing": 0.009685287988579275,
+      "curveSamplingAllowance": 0.01,
+      "cappedMinimumSampleClearanceMetres": 0.15,
+      "conservativeClearanceMetres": 0.13999999999999999,
+      "chordIntersections": 0,
+      "passed": true,
+      "closest": null
+    },
+    {
+      "name": "phone-drum-1440-burn",
+      "controlPointsWorld": [
+        [
+          -1.5,
+          2.23,
+          1.45
+        ],
+        [
+          -1.55,
+          2.25,
+          1.6
+        ],
+        [
+          -1.52,
+          2.25,
+          1.7999999999999998
+        ],
+        [
+          -1.5,
+          2.2,
+          1.9
+        ],
+        [
+          -1.5,
+          2.2,
+          1.9638219734587146
+        ]
+      ],
+      "lengthMetres": 0.5418738997558535,
+      "samples": 56,
+      "maximumSampleSpacing": 0.009856647014954447,
+      "curveSamplingAllowance": 0.01,
+      "cappedMinimumSampleClearanceMetres": 0.06519246145287093,
+      "conservativeClearanceMetres": 0.055192461452870926,
+      "chordIntersections": 0,
+      "passed": true,
+      "closest": {
+        "sample": 55,
+        "position": [
+          -1.5,
+          2.2,
+          1.9638219734587148
+        ],
+        "surface": [
+          -1.5564435720443726,
+          2.2,
+          1.996443748474121
+        ],
+        "region": "hall",
+        "material": "Aged red painted timber"
+      }
+    },
+    {
+      "name": "phone-tall-10-walk",
+      "controlPointsWorld": [
+        [
+          2,
+          1.75,
+          40
+        ],
+        [
+          0.7,
+          1.7,
+          35
+        ],
+        [
+          0.1,
+          1.7,
+          27
+        ],
+        [
+          0,
+          1.7,
+          19
+        ],
+        [
+          0,
+          1.7,
+          13
+        ],
+        [
+          0,
+          1.7000000000000002,
+          10.5
+        ],
+        [
+          0,
+          1.7200000000000002,
+          5.95
+        ],
+        [
+          0,
+          1.79,
+          5.68
+        ],
+        [
+          0,
+          1.9899999999999998,
+          5.27
+        ],
+        [
+          0,
+          2.19,
+          4.87
+        ],
+        [
+          0,
+          2.22,
+          4.45
+        ],
+        [
+          0.05,
+          2.22,
+          3.25
+        ],
+        [
+          0,
+          2.22,
+          2.2
+        ],
+        [
+          -0.6,
+          2.22,
+          1.65
+        ],
+        [
+          -1.25,
+          2.22,
+          1.5
+        ],
+        [
+          -1.5,
+          2.2,
+          1.7000000000000002
+        ]
+      ],
+      "lengthMetres": 39.94731634317758,
+      "samples": 3996,
+      "maximumSampleSpacing": 0.01345149771536939,
+      "curveSamplingAllowance": 0.01345149771536939,
+      "cappedMinimumSampleClearanceMetres": 0.15,
+      "conservativeClearanceMetres": 0.1365485022846306,
+      "chordIntersections": 0,
+      "passed": true,
+      "closest": null
+    },
+    {
+      "name": "phone-tall-10-ignition-retreat",
+      "controlPointsWorld": [
+        [
+          -1.5,
+          2.2,
+          1.7000000000000002
+        ],
+        [
+          -1.5,
+          2.23,
+          1.45
+        ]
+      ],
+      "lengthMetres": 0.2517935662402838,
+      "samples": 27,
+      "maximumSampleSpacing": 0.009685287988579275,
+      "curveSamplingAllowance": 0.01,
+      "cappedMinimumSampleClearanceMetres": 0.15,
+      "conservativeClearanceMetres": 0.13999999999999999,
+      "chordIntersections": 0,
+      "passed": true,
+      "closest": null
+    },
+    {
+      "name": "phone-tall-10-burn",
+      "controlPointsWorld": [
+        [
+          -1.5,
+          2.23,
+          1.45
+        ],
+        [
+          -1.55,
+          2.25,
+          1.6
+        ],
+        [
+          -1.52,
+          2.25,
+          1.7999999999999998
+        ],
+        [
+          -1.5,
+          2.2,
+          1.9
+        ]
+      ],
+      "lengthMetres": 0.4776055036164943,
+      "samples": 49,
+      "maximumSampleSpacing": 0.009982260942161359,
+      "curveSamplingAllowance": 0.01,
+      "cappedMinimumSampleClearanceMetres": 0.11174646949621256,
+      "conservativeClearanceMetres": 0.10174646949621256,
+      "chordIntersections": 0,
+      "passed": true,
+      "closest": {
+        "sample": 48,
+        "position": [
+          -1.4999999999999996,
+          2.2,
+          1.8999999999999995
+        ],
+        "surface": [
+          -1.5564435720443726,
+          2.2,
+          1.996443748474121
+        ],
+        "region": "hall",
+        "material": "Aged red painted timber"
+      }
+    },
+    {
+      "name": "phone-tall-1440-walk",
+      "controlPointsWorld": [
+        [
+          2,
+          1.75,
+          40
+        ],
+        [
+          0.7,
+          1.7,
+          35
+        ],
+        [
+          0.1,
+          1.7,
+          27
+        ],
+        [
+          0,
+          1.7,
+          19
+        ],
+        [
+          0,
+          1.7,
+          13
+        ],
+        [
+          0,
+          1.7000000000000002,
+          10.5
+        ],
+        [
+          0,
+          1.7200000000000002,
+          5.95
+        ],
+        [
+          0,
+          1.79,
+          5.68
+        ],
+        [
+          0,
+          1.9899999999999998,
+          5.27
+        ],
+        [
+          0,
+          2.19,
+          4.87
+        ],
+        [
+          0,
+          2.22,
+          4.45
+        ],
+        [
+          0.05,
+          2.22,
+          3.25
+        ],
+        [
+          0,
+          2.22,
+          2.2
+        ],
+        [
+          -0.6,
+          2.22,
+          1.65
+        ],
+        [
+          -1.25,
+          2.22,
+          1.5
+        ],
+        [
+          -1.5,
+          2.2,
+          1.7000000000000002
+        ]
+      ],
+      "lengthMetres": 39.94731634317758,
+      "samples": 3996,
+      "maximumSampleSpacing": 0.01345149771536939,
+      "curveSamplingAllowance": 0.01345149771536939,
+      "cappedMinimumSampleClearanceMetres": 0.15,
+      "conservativeClearanceMetres": 0.1365485022846306,
+      "chordIntersections": 0,
+      "passed": true,
+      "closest": null
+    },
+    {
+      "name": "phone-tall-1440-ignition-retreat",
+      "controlPointsWorld": [
+        [
+          -1.5,
+          2.2,
+          1.7000000000000002
+        ],
+        [
+          -1.5,
+          2.23,
+          1.45
+        ]
+      ],
+      "lengthMetres": 0.2517935662402838,
+      "samples": 27,
+      "maximumSampleSpacing": 0.009685287988579275,
+      "curveSamplingAllowance": 0.01,
+      "cappedMinimumSampleClearanceMetres": 0.15,
+      "conservativeClearanceMetres": 0.13999999999999999,
+      "chordIntersections": 0,
+      "passed": true,
+      "closest": null
+    },
+    {
+      "name": "phone-tall-1440-burn",
+      "controlPointsWorld": [
+        [
+          -1.5,
+          2.23,
+          1.45
+        ],
+        [
+          -1.55,
+          2.25,
+          1.6
+        ],
+        [
+          -1.52,
+          2.25,
+          1.7999999999999998
+        ],
+        [
+          -1.5,
+          2.2,
+          1.9
+        ],
+        [
+          -1.5,
+          2.2,
+          1.98
+        ]
+      ],
+      "lengthMetres": 0.5581271437819686,
+      "samples": 57,
+      "maximumSampleSpacing": 0.009971511195091473,
+      "curveSamplingAllowance": 0.01,
+      "cappedMinimumSampleClearanceMetres": 0.05843981998966688,
+      "conservativeClearanceMetres": 0.04843981998966688,
+      "chordIntersections": 0,
+      "passed": true,
+      "closest": {
+        "sample": 56,
+        "position": [
+          -1.5,
+          2.2,
+          1.9800000000000002
+        ],
+        "surface": [
+          -1.5539913847346827,
+          2.1999999999997635,
+          2.002363875667159
+        ],
+        "region": "hall",
+        "material": "Aged red painted timber"
+      }
+    },
+    {
+      "name": "phone-bell-10-walk",
+      "controlPointsWorld": [
+        [
+          2,
+          1.75,
+          40
+        ],
+        [
+          0.7,
+          1.7,
+          35
+        ],
+        [
+          0.1,
+          1.7,
+          27
+        ],
+        [
+          0,
+          1.7,
+          19
+        ],
+        [
+          0,
+          1.7,
+          13
+        ],
+        [
+          0,
+          1.7000000000000002,
+          10.5
+        ],
+        [
+          0,
+          1.7200000000000002,
+          5.95
+        ],
+        [
+          0,
+          1.79,
+          5.68
+        ],
+        [
+          0,
+          1.9899999999999998,
+          5.27
+        ],
+        [
+          0,
+          2.19,
+          4.87
+        ],
+        [
+          0,
+          2.22,
+          4.45
+        ],
+        [
+          0.05,
+          2.22,
+          3.25
+        ],
+        [
+          0,
+          2.22,
+          2.2
+        ],
+        [
+          -0.6,
+          2.22,
+          1.65
+        ],
+        [
+          -1.25,
+          2.22,
+          1.5
+        ],
+        [
+          -1.5,
+          2.2,
+          1.7000000000000002
+        ]
+      ],
+      "lengthMetres": 39.94731634317758,
+      "samples": 3996,
+      "maximumSampleSpacing": 0.01345149771536939,
+      "curveSamplingAllowance": 0.01345149771536939,
+      "cappedMinimumSampleClearanceMetres": 0.15,
+      "conservativeClearanceMetres": 0.1365485022846306,
+      "chordIntersections": 0,
+      "passed": true,
+      "closest": null
+    },
+    {
+      "name": "phone-bell-10-ignition-retreat",
+      "controlPointsWorld": [
+        [
+          -1.5,
+          2.2,
+          1.7000000000000002
+        ],
+        [
+          -1.5,
+          2.23,
+          1.45
+        ]
+      ],
+      "lengthMetres": 0.2517935662402838,
+      "samples": 27,
+      "maximumSampleSpacing": 0.009685287988579275,
+      "curveSamplingAllowance": 0.01,
+      "cappedMinimumSampleClearanceMetres": 0.15,
+      "conservativeClearanceMetres": 0.13999999999999999,
+      "chordIntersections": 0,
+      "passed": true,
+      "closest": null
+    },
+    {
+      "name": "phone-bell-10-burn",
+      "controlPointsWorld": [
+        [
+          -1.5,
+          2.23,
+          1.45
+        ],
+        [
+          -1.55,
+          2.25,
+          1.6
+        ],
+        [
+          -1.52,
+          2.25,
+          1.7999999999999998
+        ],
+        [
+          -1.5,
+          2.2,
+          1.9
+        ]
+      ],
+      "lengthMetres": 0.4776055036164943,
+      "samples": 49,
+      "maximumSampleSpacing": 0.009982260942161359,
+      "curveSamplingAllowance": 0.01,
+      "cappedMinimumSampleClearanceMetres": 0.11174646949621256,
+      "conservativeClearanceMetres": 0.10174646949621256,
+      "chordIntersections": 0,
+      "passed": true,
+      "closest": {
+        "sample": 48,
+        "position": [
+          -1.4999999999999996,
+          2.2,
+          1.8999999999999995
+        ],
+        "surface": [
+          -1.5564435720443726,
+          2.2,
+          1.996443748474121
+        ],
+        "region": "hall",
+        "material": "Aged red painted timber"
+      }
+    },
+    {
+      "name": "phone-bell-1440-walk",
+      "controlPointsWorld": [
+        [
+          2,
+          1.75,
+          40
+        ],
+        [
+          0.7,
+          1.7,
+          35
+        ],
+        [
+          0.1,
+          1.7,
+          27
+        ],
+        [
+          0,
+          1.7,
+          19
+        ],
+        [
+          0,
+          1.7,
+          13
+        ],
+        [
+          0,
+          1.7000000000000002,
+          10.5
+        ],
+        [
+          0,
+          1.7200000000000002,
+          5.95
+        ],
+        [
+          0,
+          1.79,
+          5.68
+        ],
+        [
+          0,
+          1.9899999999999998,
+          5.27
+        ],
+        [
+          0,
+          2.19,
+          4.87
+        ],
+        [
+          0,
+          2.22,
+          4.45
+        ],
+        [
+          0.05,
+          2.22,
+          3.25
+        ],
+        [
+          0,
+          2.22,
+          2.2
+        ],
+        [
+          -0.6,
+          2.22,
+          1.65
+        ],
+        [
+          -1.25,
+          2.22,
+          1.5
+        ],
+        [
+          -1.5,
+          2.2,
+          1.7000000000000002
+        ]
+      ],
+      "lengthMetres": 39.94731634317758,
+      "samples": 3996,
+      "maximumSampleSpacing": 0.01345149771536939,
+      "curveSamplingAllowance": 0.01345149771536939,
+      "cappedMinimumSampleClearanceMetres": 0.15,
+      "conservativeClearanceMetres": 0.1365485022846306,
+      "chordIntersections": 0,
+      "passed": true,
+      "closest": null
+    },
+    {
+      "name": "phone-bell-1440-ignition-retreat",
+      "controlPointsWorld": [
+        [
+          -1.5,
+          2.2,
+          1.7000000000000002
+        ],
+        [
+          -1.5,
+          2.23,
+          1.45
+        ]
+      ],
+      "lengthMetres": 0.2517935662402838,
+      "samples": 27,
+      "maximumSampleSpacing": 0.009685287988579275,
+      "curveSamplingAllowance": 0.01,
+      "cappedMinimumSampleClearanceMetres": 0.15,
+      "conservativeClearanceMetres": 0.13999999999999999,
+      "chordIntersections": 0,
+      "passed": true,
+      "closest": null
+    },
+    {
+      "name": "phone-bell-1440-burn",
+      "controlPointsWorld": [
+        [
+          -1.5,
+          2.23,
+          1.45
+        ],
+        [
+          -1.55,
+          2.25,
+          1.6
+        ],
+        [
+          -1.52,
+          2.25,
+          1.7999999999999998
+        ],
+        [
+          -1.5,
+          2.2,
+          1.9
+        ],
+        [
+          -1.5,
+          2.2,
+          1.9708015752774624
+        ]
+      ],
+      "lengthMetres": 0.5488871109354991,
+      "samples": 56,
+      "maximumSampleSpacing": 0.00998299835989684,
+      "curveSamplingAllowance": 0.01,
+      "cappedMinimumSampleClearanceMetres": 0.061995143933825325,
+      "conservativeClearanceMetres": 0.05199514393382532,
+      "chordIntersections": 0,
+      "passed": true,
+      "closest": {
+        "sample": 55,
+        "position": [
+          -1.5,
+          2.2000000000000006,
+          1.9708015752774624
+        ],
+        "surface": [
+          -1.5564435720443726,
+          2.2000000000000006,
+          1.996443748474121
+        ],
+        "region": "hall",
+        "material": "Aged red painted timber"
+      }
+    }
+  ],
+  "limits": [
+    "Arbitrary user drawings remain outside these six preset/duration envelopes.",
+    "Pose is rest-state; live suspension motion and visual occlusion need actual browser capture.",
+    "Actual continuous browser videos remain necessary for framing and motion.",
+    "Clearance is capped at0.15m; at least10mm is subtracted for numerical curve sampling."
+  ],
+  "passed": true,
+  "sceneSha256After": "7b015bd75b4a1e172b9655e94ede977b2f5a42fa82e540ea3a394133ae4b9082",
+  "scriptSha256": "83e3aa7e43334522e0718a848668c03c89b6c69015b2732d78327ac2274247c2",
+  "localRawReportSha256": "8d0552d4eae594486517f2ce8777b0691d8d6ce4d511373c1b4ec12d38711802"
+}

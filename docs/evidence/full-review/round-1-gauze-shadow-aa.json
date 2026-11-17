@@ -1,0 +1,35 @@
+{
+  "scope": "Bounded C1 shadow correction, not final C1/production/browser-parity/performance approval.",
+  "optical": {
+    "path": "artifacts/full-review/round-1/gauze-shadow-aa/analysis.json",
+    "sha256": "5768c8a327b988c4d171dd1d02735a9d084cddd7c6d9847c53397f47e2653fb3"
+  },
+  "cpu": {
+    "path": "artifacts/full-review/round-1/visitor-shadow-aa-production-cpu/report.json",
+    "sha256": "0db5f851196f84cae9afbfce9bb9757f430b0feb81c637f3adc87ee465393217"
+  },
+  "helper": {
+    "path": "web/src/engine/baked/visitorShadow.js",
+    "sha256": "a0d40bee1b43356dae2d6d52fbe6a40198b88cb0f1a8ffa11163f9c01b5f637b"
+  },
+  "light": {
+    "watts": 45,
+    "radiusMetres": 0.04,
+    "bias": -2e-05,
+    "normalBias": 0.0001
+  },
+  "before": "artifacts/full-review/round-1/gauze-shadow-aa/product-normal.png",
+  "after": "artifacts/full-review/round-1/gauze-shadow-aa/product-pixel-aa.png",
+  "closeAfter": "artifacts/full-review/round-1/gauze-shadow-aa/close-pixel-aa.png",
+  "changes": [
+    "Correct radial shadow bias below the measured rib/cloth gap.",
+    "Actual near-bound blocker distances,32 fixed physical-emitter/pixel-area samples and radial-depth derivative correction.",
+    "No-blocker search still filters pixel coverage; no temporal randomness or additional render targets."
+  ],
+  "maximumDepthFetches": 36,
+  "limits": [
+    "Residual fine marks remain.",
+    "Single-cube point-PCSS remains an approximation.",
+    "New phone framing, clean production WebKit, ten-second temporal and no-video30fps verification remain pending."
+  ]
+}

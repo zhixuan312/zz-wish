@@ -1,0 +1,279 @@
+{
+  "scope": "Bounded copied-input UV2 packing study only. Original Source15/prepared/masters/reviewed delivery unchanged. No new GI, grid, full64, installation or final UV/contact/mapping acceptance.",
+  "recipe": {
+    "path": "art/blender/refine_underside_lightmap.py",
+    "sha256": "d349853408c1f44dfbb2e1473b171e48e30ba376fa6a528dd39d2f9d0e8007d5",
+    "bytes": 11029
+  },
+  "privatePacker": {
+    "path": "art/build/snow-roof-round1/baker-v15-allocation-final/scripts/pack-blender-assets.mjs",
+    "sha256": "d240aad4b6e48ce039e0a37c239c653b40d4bebe0cd5727994e0df64398b3ef7",
+    "bytes": 52563
+  },
+  "actualReference": {
+    "path": "art/build/snow-roof-round1/priority15-quality-control-gzip/manifest.json",
+    "sha256": "e6381e00edfea018bed8461a501d45350489095f2b3329524da7398b9172a661",
+    "bytes": 147027
+  },
+  "hallRefinement": {
+    "receipt": {
+      "path": "art/build/snow-roof-round1/priority15-underside-rebalance/hall-input.json.refinement.json",
+      "sha256": "f571930e98e4a4e61bb22aa2d6b035f51b9240b2c2c61695b0c3eadde1948c70",
+      "bytes": 106240
+    },
+    "copiedInput": {
+      "path": "art/build/snow-roof-round1/priority15-underside-rebalance/hall-input.json",
+      "sha256": "a854b62806444147ff980edef444ddaa06b728e0df5e7f1bbc4995474e75428a",
+      "bytes": 37313226
+    },
+    "physicalPackingArraysUnchanged": true,
+    "downwardCapOwners": 181,
+    "downwardCapTriangles": 2164,
+    "downwardWorldAreaSquareMetres": 69.09572975199727,
+    "depthFactor": 0.05,
+    "sharedRealBodyEdgeExact": true,
+    "structureLinearPriorityRatio": 1.075
+  },
+  "cases": [
+    {
+      "name": "hall1408-underside",
+      "region": "hall",
+      "resolution": 1408,
+      "packed": {
+        "path": "art/build/snow-roof-round1/priority15-underside-uv/hall1408.json",
+        "sha256": "f3e8b5f510cdc96b47951ac6f86e3286fcafbd8f0c4040a48e0b1dbcecf66ec6",
+        "bytes": 20426071
+      },
+      "report": {
+        "path": "art/build/snow-roof-round1/priority15-underside-uv/hall1408.json.report.json",
+        "sha256": "da1165690cbdbacff5ff0ec5e5a0236e5dab48b397abd91726acf0c502630930",
+        "bytes": 1290
+      },
+      "charts": 2392,
+      "paddingPixels": 8,
+      "atlasCount": 1,
+      "texelsPerUnit": 0.03461535647511482,
+      "pitchFromActualPackedDensityMetres": {
+        "floor": 0.0664078763266674,
+        "column": 0.0718477644525773,
+        "beam": 0.07146050681066085
+      },
+      "criticalPitchTargetPassed": false
+    },
+    {
+      "name": "hall1376-underside",
+      "region": "hall",
+      "resolution": 1376,
+      "packed": {
+        "path": "art/build/snow-roof-round1/priority15-underside-uv/hall1376.json",
+        "sha256": "f00ba59a3bd9dd0d66fd0f7ed06c0a80d72b419dd372c52e87adb7dee6cf26fe",
+        "bytes": 20499691
+      },
+      "report": {
+        "path": "art/build/snow-roof-round1/priority15-underside-uv/hall1376.json.report.json",
+        "sha256": "6353fbc5262c58e860bde3fb520a1e390b63e36e9acbbfe1e462ce8f8334db65",
+        "bytes": 1293
+      },
+      "charts": 2392,
+      "paddingPixels": 8,
+      "atlasCount": 1,
+      "texelsPerUnit": 0.031406112015247345,
+      "pitchFromActualPackedDensityMetres": {
+        "floor": 0.0731937882246271,
+        "column": 0.07918955320730614,
+        "beam": 0.07876272350880216
+      },
+      "criticalPitchTargetPassed": false
+    },
+    {
+      "name": "hall1408-rebalanced",
+      "region": "hall",
+      "resolution": 1408,
+      "packed": {
+        "path": "art/build/snow-roof-round1/priority15-underside-rebalance/hall1408.json",
+        "sha256": "456e9a396660c43104aa026551cdbebd01ab427cfabba0e249f76872a63d5c22",
+        "bytes": 20434638
+      },
+      "report": {
+        "path": "art/build/snow-roof-round1/priority15-underside-rebalance/hall1408.json.report.json",
+        "sha256": "99d161ccab215cd9cda8b7d9d62846f9013b6dfc5ce911c207b811062afaafbc",
+        "bytes": 1293
+      },
+      "charts": 2392,
+      "paddingPixels": 8,
+      "atlasCount": 1,
+      "texelsPerUnit": 0.033544111996889114,
+      "pitchFromActualPackedDensityMetres": {
+        "floor": 0.0685286381113954,
+        "column": 0.06896953601419194,
+        "beam": 0.06859779195111039
+      },
+      "criticalPitchTargetPassed": true
+    },
+    {
+      "name": "court1312-original",
+      "region": "court",
+      "resolution": 1312,
+      "packed": {
+        "path": "art/build/snow-roof-round1/priority15-underside-uv/court1312.json",
+        "sha256": "8c684c768801d651c7e964b020ddcf62a2d9aede083ed2de4be72229829c11ae",
+        "bytes": 23638869
+      },
+      "report": {
+        "path": "art/build/snow-roof-round1/priority15-underside-uv/court1312.json.report.json",
+        "sha256": "386eac803b1680e987ecc07287b7cd927c69553d9dcb3022f903488b98e7f11d",
+        "bytes": 1282
+      },
+      "charts": 2002,
+      "paddingPixels": 8,
+      "atlasCount": 1,
+      "texelsPerUnit": 0.08940546959638596,
+      "pitchFromActualPackedDensityMetres": {
+        "route": 0.11168209891026142
+      },
+      "criticalPitchTargetPassed": false
+    },
+    {
+      "name": "court1328-original",
+      "region": "court",
+      "resolution": 1328,
+      "packed": {
+        "path": "art/build/snow-roof-round1/priority15-underside-uv/court1328.json",
+        "sha256": "57d02a8b91168fe7365b34326446b7869cf3bc803ea502216255c5439f4e5f69",
+        "bytes": 23630024
+      },
+      "report": {
+        "path": "art/build/snow-roof-round1/priority15-underside-uv/court1328.json.report.json",
+        "sha256": "41e34bb88588bc377af9488218b36d87f5a57d8cd4060d334b8f58ce78c46df9",
+        "bytes": 1280
+      },
+      "charts": 2002,
+      "paddingPixels": 8,
+      "atlasCount": 1,
+      "texelsPerUnit": 0.09231918305158615,
+      "pitchFromActualPackedDensityMetres": {
+        "route": 0.10815726665391448
+      },
+      "criticalPitchTargetPassed": true
+    },
+    {
+      "name": "court1344-original",
+      "region": "court",
+      "resolution": 1344,
+      "packed": {
+        "path": "art/build/snow-roof-round1/priority15-fit-court1344.json",
+        "sha256": "554ac7c161eabe4dfbfee817f36852ce7b79f891086d1e13bfeeb1ebc7bf23c1",
+        "bytes": 23570300
+      },
+      "report": {
+        "path": "art/build/snow-roof-round1/priority15-fit-court1344.json.report.json",
+        "sha256": "b1dcb8353e669000b23b2590ef25decf85aca1e352239a94c1dbadd59896d06d",
+        "bytes": 1327
+      },
+      "charts": 2002,
+      "paddingPixels": 8,
+      "atlasCount": 1,
+      "texelsPerUnit": 0.09741415083408356,
+      "pitchFromActualPackedDensityMetres": {
+        "route": 0.10250041100895546
+      },
+      "criticalPitchTargetPassed": true
+    },
+    {
+      "name": "court1280-outer-only",
+      "region": "court",
+      "resolution": 1280,
+      "packed": {
+        "path": "art/build/snow-roof-round1/priority15-outer-snow-uv/court1280.json",
+        "sha256": "fc59e5290f0eb2dcce0632f57e6895bce61fe5939086ba87fd1bcab5d3b11da9",
+        "bytes": 22144751
+      },
+      "report": {
+        "path": "art/build/snow-roof-round1/priority15-outer-snow-uv/court1280.json.report.json",
+        "sha256": "8410bcc90bf5b0231b8871792b44940fb5436905d6c2d86ce9c7dbe2faad7575",
+        "bytes": 1286
+      },
+      "charts": 2002,
+      "paddingPixels": 8,
+      "atlasCount": 1,
+      "texelsPerUnit": 0.08226633071899414,
+      "pitchFromActualPackedDensityMetres": {
+        "route": 0.1213739620001862
+      },
+      "criticalPitchTargetPassed": false
+    },
+    {
+      "name": "court1296-outer-only",
+      "region": "court",
+      "resolution": 1296,
+      "packed": {
+        "path": "art/build/snow-roof-round1/priority15-outer-snow-uv/court1296.json",
+        "sha256": "553b78e8e2d65be197c5e04388855e2c3f4232592b2042035e91333c20fdaab6",
+        "bytes": 23673984
+      },
+      "report": {
+        "path": "art/build/snow-roof-round1/priority15-outer-snow-uv/court1296.json.report.json",
+        "sha256": "2e54ae10b400b209f9d6907efae8f28b7c3d860c66f89adfb7348f4ef44dec74",
+        "bytes": 1286
+      },
+      "charts": 2002,
+      "paddingPixels": 8,
+      "atlasCount": 1,
+      "texelsPerUnit": 0.08670338243246078,
+      "pitchFromActualPackedDensityMetres": {
+        "route": 0.11516264093110716
+      },
+      "criticalPitchTargetPassed": false
+    }
+  ],
+  "recommendedNextCandidate": {
+    "hall": 1408,
+    "court": 1328,
+    "altar": 1024,
+    "gate": 1024,
+    "outerSnowAllocation": "Original unchanged",
+    "mapsCodec": "Existing allUASTC",
+    "losslessModelContainerStudy": "Zstd22, no loader adoption yet",
+    "pitchFromActualPackedDensityMetres": {
+      "floor": 0.0685286381113954,
+      "column": 0.06896953601419194,
+      "beam": 0.06859779195111039,
+      "route": 0.10815726665391448
+    },
+    "pixelCountScaledMapBytesEstimate": 8484197.677734375,
+    "pixelCountScaledCompleteBytesEstimateWithZstd": 15124691.677734375,
+    "estimatedOver15000000Bytes": 124691.677734375,
+    "estimateLimit": "Uses actual existing compressed bytes per pixel and actual unchanged-model Zstd bytes. Does not predict a new UV geometry-container byte count or changed GI entropy; not a measured package size."
+  },
+  "rejectedOuterSnowStudy": {
+    "receipt": {
+      "path": "art/build/snow-roof-round1/priority15-outer-snow-uv/court-input.json.refinement.json",
+      "sha256": "0093e4f2ee496d2bbbd4573e2edd070afefcc4250069c10267614fddfcafe924",
+      "bytes": 1315
+    },
+    "reason": "1280/1296 still miss11cm route pitch despite degrading remote blank snow allocation; retain original weighting."
+  },
+  "unchangedLimits": {
+    "sourceMappingNormalUV0": 1e-06,
+    "contactGapMetres": 0.002,
+    "contactPenetrationMetres": 0.005,
+    "atlasPaddingPixels": 8,
+    "explicitMipLevels": 3
+  },
+  "requiredBeforeAnyNewLow8": "Actual copied-prepared UV1 transfer, exact nonUV1 correspondence to original certified evaluated dataset, transitive mapping chain, actual overlap/chart/core/camera coverage,47contacts/anchors and19+16guard challenges; explicit new resolution allowance. No tolerance relaxation.",
+  "renderBakeGpuJobs": 0,
+  "recipeReproduction": {
+    "actualInputBytesReproducedExactly": true,
+    "currentRecipe": {
+      "path": "art/blender/refine_underside_lightmap.py",
+      "sha256": "d349853408c1f44dfbb2e1473b171e48e30ba376fa6a528dd39d2f9d0e8007d5",
+      "bytes": 11029
+    },
+    "receipt": {
+      "path": "art/build/snow-roof-round1/priority15-underside-rebalance/reproduced-hall-input.json.refinement.json",
+      "sha256": "e4571cd6120abd2c942eb1b5250a2d9b08262c4ae3f854458025508f05979195",
+      "bytes": 106251
+    },
+    "sameInputSha256": "a854b62806444147ff980edef444ddaa06b728e0df5e7f1bbc4995474e75428a"
+  }
+}

@@ -1,0 +1,237 @@
+{
+  "status": "Complete corrected all-F32 package; independent decoded/contact/normal proof passed. Staged only; runtime acceptance and actual posters remain pending.",
+  "createdUTC": "2026-11-17T04:53:16.735706+00:00",
+  "generator": {
+    "path": "scripts/pack-blender-assets.mjs",
+    "sha256": "a9edd6bbcf8c5ea56aedc0e52c9fd7c42bece10e20627a8b211b108a3518687b"
+  },
+  "nativeCompletionSha256": "130f9156a65903c98c412e702ef0ec36b2a3d10ccc69b4d769d9b8eec642544f",
+  "sourceBlendSha256": "484438a4514352e70d7ffe0408306b4127660316c1422f3248f0ff33f5e0e565",
+  "manifestSha256": "2ed96ec74059775b6904775eb77b21143b19e9b9260d503b5e634ed5d6be5260",
+  "manifestBytes": 349354,
+  "payloadBytes": 7081216,
+  "completePackageBytes": 7430570,
+  "reservedPosterBytes": 400000,
+  "completePlusPosterReserveBytes": 7830570,
+  "hardByteMaximum": 10000000,
+  "files": [
+    {
+      "uri": "cloud-cliff.glb",
+      "bytes": 5005108,
+      "sha256": "f33efcb078b21107faa31eb72acc5236305e5fbfddded4bdc9b617c673db384e"
+    },
+    {
+      "uri": "cliff-night.ktx2",
+      "bytes": 153952,
+      "sha256": "e24a7ced28387296c1ef4cbe3320e57c8d28e129606359ee91d200da7ae862f8",
+      "codec": "uastc",
+      "mipLevels": 3,
+      "transfer": "linear"
+    },
+    {
+      "uri": "cliff-dusk.ktx2",
+      "bytes": 151116,
+      "sha256": "ea0e945531c1a184df093e03b760f4366c6aee13169b287a0fce061f278e3014",
+      "codec": "uastc",
+      "mipLevels": 3,
+      "transfer": "linear"
+    },
+    {
+      "uri": "cliff-day.ktx2",
+      "bytes": 147225,
+      "sha256": "ebd4d22dafc20280a80c37ca9644fee2a8cc9fc93dae2c773418dd4cb4c7cdea",
+      "codec": "uastc",
+      "mipLevels": 3,
+      "transfer": "linear"
+    },
+    {
+      "uri": "cliff-lamp.ktx2",
+      "bytes": 23576,
+      "sha256": "cb8f258f0eecb988a599de8ef8ea33c721fc2dac64e5a24afeffe9fcef283c26",
+      "codec": "uastc",
+      "mipLevels": 3,
+      "transfer": "linear"
+    },
+    {
+      "uri": "cover-night.ktx2",
+      "bytes": 350328,
+      "sha256": "5a08d58e0152b10de22644f7845494e2a7427448be0963d60bdccf469a4f0564",
+      "codec": "uastc",
+      "mipLevels": 3,
+      "transfer": "linear"
+    },
+    {
+      "uri": "cover-dusk.ktx2",
+      "bytes": 347952,
+      "sha256": "1adefe9e736674516aca0aa10160513914974c9b40f0f048f4befe57bfb2b92d",
+      "codec": "uastc",
+      "mipLevels": 3,
+      "transfer": "linear"
+    },
+    {
+      "uri": "cover-day.ktx2",
+      "bytes": 347025,
+      "sha256": "84b330ec2252de04dac9760cae8bf75b6729f8372e9d473af232a6e7f3d00714",
+      "codec": "uastc",
+      "mipLevels": 3,
+      "transfer": "linear"
+    },
+    {
+      "uri": "cover-lamp.ktx2",
+      "bytes": 125920,
+      "sha256": "0872dae5e0d2aba986e34baddca075a76f02299a4b598ec70934670c0b9f7862",
+      "codec": "uastc",
+      "mipLevels": 3,
+      "transfer": "linear"
+    },
+    {
+      "uri": "far-night.ktx2",
+      "bytes": 15603,
+      "sha256": "4e97ad9e9d6b8939e729ae5eae7619e8ed9bc256eb36cba03125ac73499a7721",
+      "codec": "uastc",
+      "mipLevels": 3,
+      "transfer": "linear"
+    },
+    {
+      "uri": "far-dusk.ktx2",
+      "bytes": 15291,
+      "sha256": "a63f6e2764d6df7336d161ca27095671b62e64f721d592b2ec866733824865b6",
+      "codec": "uastc",
+      "mipLevels": 3,
+      "transfer": "linear"
+    },
+    {
+      "uri": "far-day.ktx2",
+      "bytes": 14235,
+      "sha256": "1010fd04048d2d209204a58584e95e04bd2fd5ca340c9f703269f8ce0b11b8c3",
+      "codec": "uastc",
+      "mipLevels": 3,
+      "transfer": "linear"
+    },
+    {
+      "uri": "far-lamp.ktx2",
+      "bytes": 437,
+      "sha256": "fe7c2f57ac346c6523a6d89d142de123d06fbb06a6f93fca95e67fe8259c4016",
+      "codec": "uastc",
+      "mipLevels": 3,
+      "transfer": "linear"
+    },
+    {
+      "uri": "cloud-cliff-storm.glb",
+      "bytes": 383448,
+      "sha256": "926252de61d3e1f013d3f495ea3533637a5246a495ff00e740b03b36cf5890b4",
+      "role": "live-PBR-hero"
+    }
+  ],
+  "geometryPrecision": {
+    "POSITION": "genuine unquantized source FLOAT32, Meshopt NONE",
+    "NORMAL": "genuine unquantized round8 source FLOAT32, Meshopt NONE",
+    "BYTE8CandidateRetained": "art/build/cloud-cliff-round1/delivery-normal-corrected",
+    "normalPrecisionIsIndependentOfPhotographicNormalMapCodec": true
+  },
+  "photographicNormalMaps": [
+    {
+      "name": "rock_face_01_nor_gl",
+      "roles": [
+        "normalTexture"
+      ],
+      "codec": "UASTC",
+      "width": 512,
+      "height": 512,
+      "bytes": 321846,
+      "sha256": "adcdc1a64e0711b70677599d04f30fecb0bb15017982bfc9c922e1e373b25e92"
+    },
+    {
+      "name": "rock_face_02_nor_gl",
+      "roles": [
+        "normalTexture"
+      ],
+      "codec": "UASTC",
+      "width": 512,
+      "height": 512,
+      "bytes": 326489,
+      "sha256": "11b167a88cdfc7edf4826cf609fdccfa9568544af05f5c96941efb2cc91c7d03"
+    },
+    {
+      "name": "normal",
+      "roles": [
+        "normalTexture"
+      ],
+      "codec": "UASTC",
+      "width": 512,
+      "height": 512,
+      "bytes": 285384,
+      "sha256": "a73758ab49c1ff7ef1f9879f98ba1b93c8b760b300f6c9d32e6ca716a8f9c166"
+    },
+    {
+      "name": "normal",
+      "roles": [
+        "normalTexture"
+      ],
+      "codec": "UASTC",
+      "width": 512,
+      "height": 512,
+      "bytes": 299588,
+      "sha256": "9938507048e8b99b60ad9a126bd4abe2d6bb72832b4b00cee5c8afe768f37082"
+    },
+    {
+      "name": "normal",
+      "roles": [
+        "normalTexture"
+      ],
+      "codec": "UASTC",
+      "width": 512,
+      "height": 512,
+      "bytes": 277475,
+      "sha256": "2d3274589f5abba8e246964c5cfdee38f64bc1497fdbedea80576d70ac381f51"
+    },
+    {
+      "name": "normal",
+      "roles": [
+        "normalTexture"
+      ],
+      "codec": "UASTC",
+      "width": 512,
+      "height": 512,
+      "bytes": 327383,
+      "sha256": "c34a29043922fdbaf31fa76656e271527fac23724e86877c95418240dbe5b64c"
+    }
+  ],
+  "all12LightmapFileHashesIdenticalToCorrectedBYTE8": true,
+  "imageAudit": {
+    "path": "art/build/cloud-cliff-round1/production-normal-corrected/delivery-image-audit.json",
+    "sha256": "5ee4316d425f2c75e02025ab0a1ccbd0347e4fc95a056854896045a3b1a8fbeb",
+    "scope": "Actual UASTC RGBA8 decoder error against original linear EXR, all12maps/3mips. Device ASTC sampling/runtime quality remain separate.",
+    "coverNightBaseDark": {
+      "texels": 38204,
+      "meanAbsoluteLuminanceError": 9.31982049474608e-05,
+      "p95AbsoluteLuminanceError": 0.0004845172105822707,
+      "meanAbsoluteRGBError": 0.00014321836351882666,
+      "meanRelativeLuminanceErrorAbove0001": 0.08074162053132283,
+      "nonzeroTexelsQuantizedToBlack": 6
+    },
+    "aboveThresholdNonzeroSamplesDecodedBlackAcrossAllMapsAndMips": 19
+  },
+  "command": [
+    "node",
+    "scripts/pack-blender-assets.mjs",
+    "--source",
+    "art/build/cloud-cliff-round1/production-normal-corrected",
+    "--out",
+    "art/build/cloud-cliff-round1/delivery-normal-corrected-f32",
+    "--material-profile",
+    "mobile",
+    "--position-format",
+    "float32",
+    "--normal-format",
+    "float32",
+    "--max-bytes",
+    "10000000",
+    "--reserve-bytes",
+    "400000"
+  ],
+  "independentF32DeliveryProof": {
+    "path": "art/build/cloud-cliff-round1/independent-delivery-normal-corrected-f32-proof.json",
+    "sha256": "24fcb8bda58609c680cf334c06b4b4709a059ca04c6c730f40694934df2a6fa4"
+  }
+}
