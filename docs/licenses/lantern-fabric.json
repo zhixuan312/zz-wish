@@ -123,5 +123,44 @@
     }
   ],
   "script": "scripts/stage-visitor-fabric.py",
-  "totalDeliveredBytes": 391242
+  "totalDeliveredBytes": 391242,
+  "cushionDerivatives": {
+    "sourceAsset": "https://polyhaven.com/a/rough_linen",
+    "license": "CC0-1.0",
+    "provenance": "Source20 cushion detail reuses the same licensed rough_linen asset.",
+    "items": [
+      {
+        "role": "cushion-albedo",
+        "sourceDeliveredPath": "web/public/places/snow-roof/gauze-weave.webp",
+        "sourceSha256": "5008bae957c0c26a4323356b5c8922c4559d28e3d192c3fc725ba87db57c98b6",
+        "derivedSourcePNG": "art/build/snow-roof-round2/materials/cushion-rough-linen-128.png",
+        "sha256": "4263a0d658296642a8e871f2516bb6302643186673d93d266c962357bfbe80eb",
+        "bytes": 19590,
+        "dimensions": [
+          128,
+          128
+        ],
+        "process": "Blender image resize to128x128; source sRGB colour space retained.",
+        "delivery": "Ignored source PNG; PBR derivative embedded/compressed in the final Snow GLB. No new photography."
+      },
+      {
+        "role": "cushion-normal",
+        "sourceDeliveredPath": "web/public/places/snow-roof/gauze-normal.webp",
+        "sourceSha256": "599ba576df8863b328f96c543c1485ea2af14f02b2ca99bd2d735ac89c5b332f",
+        "derivedSourcePNG": "art/build/snow-roof-round2/materials/cushion-rough-linen-normal-128.png",
+        "sha256": "72122e1d49be8d0d8c3f77157997fb72013450ea8006a5cd4ba6c1ed24447b7f",
+        "bytes": 17452,
+        "dimensions": [
+          128,
+          128
+        ],
+        "process": "Non-Color resize to128x128; decoded tangent vectors renormalized before PNG save. Shader strength.15; geometry/UVs unchanged.",
+        "delivery": "Ignored source PNG; PBR derivative embedded/compressed in the final Snow GLB. No new photography."
+      }
+    ],
+    "helpers": [
+      "art/blender/snow_round2_interior.py",
+      "art/blender/snow_round2_fixture_materials.py"
+    ]
+  }
 }

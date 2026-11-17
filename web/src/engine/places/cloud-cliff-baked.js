@@ -138,7 +138,8 @@ export default function createPlace(h) {
         // and give the graphic a readable flame-body width (about3:1 aspect).
         flame?.f?.flame.geometry.scale(1.7,1,1);
         if(flame?.f?.halo)flame.f.halo.visible=false;
-        const light = new THREE.PointLight(new THREE.Color().fromArray(basis.linearColor), basis.watts/(4*Math.PI), 12, 2);
+        const fixtureOutput=2;
+        const light = new THREE.PointLight(new THREE.Color().fromArray(basis.linearColor), basis.watts/(4*Math.PI)*fixtureOutput, 12, 2);
         light.position.copy(C.G.worldToLocal(V3(...basis.position))); C.G.add(light);
         light.castShadow = true; light.shadow.mapSize.set(512,512); light.shadow.camera.near = .02; light.shadow.camera.far = 12; light.shadow.normalBias = .001;
         const receivers=[];
@@ -150,10 +151,10 @@ export default function createPlace(h) {
           for(const material of materials)if(material.transmission>.5){material.depthWrite=false;material.thickness=.002;material.envMapIntensity=1.3;internalGlassPointSpecular(THREE,material,new THREE.Vector3(...basis.position));}
           if(materials.some(material=>material.transmission>.5||material.name==='Storm warm used tallow'))receivers.push(object);
         } });
-        C.cover = { g: hero, f: flame?.f, flameGroup: flame?.g, light, metadata, power: 1, lampPosition: V3(...basis.position) };
-        // Match the actual 45 W source in both the static bounce and realtime
-        // point before the one-shot probe observes the surrounding cup/crown.
-        baked.update(C.light,1,V3(...basis.position));
+        C.cover = { g: hero, f: flame?.f, flameGroup: flame?.g, light, metadata, power: fixtureOutput, lampPosition: V3(...basis.position) };
+        // Scale the authored transport and live point together before the
+        // local reflection probe observes the wood and glass around the lamp.
+        baked.update(C.light,fixtureOutput,V3(...basis.position));
         const probe=h.captureLocalEnvironment({root:C.root,environment:C.environment,fog:C.fog,position:[...metadata.wickTip],exclude:[...receivers,...(flame?.g?[flame.g]:[])],size:128,near:.004,far:30});
         for(const object of receivers)for(const material of [object.material].flat()){
           probeReceiverAmbient(THREE,material);material.envMap=probe.texture;material.needsUpdate=true;

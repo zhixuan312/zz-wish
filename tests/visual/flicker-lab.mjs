@@ -27,7 +27,7 @@ export function createFlickerLab({ renderer, camera, grade, bloom, scene, flameP
       { name: 'lower_floor', type: 'structure', x: .5, y: .86 },
       { name: 'upper_control', type: 'sky_or_structure', x: .82, y: .12 },
     ];
-    const flame = flamePosition?.();
+    const flame = flamePosition?.()?.clone();
     if (flame) { flame.project(camera); list.push({ name: 'flame_control', type: 'flame', x: (flame.x + 1) / 2, y: (1 - flame.y) / 2 }); }
     lab.result = null;
     const geometry = lampInfo?.() ?? null;
@@ -110,7 +110,7 @@ export function createFlickerLab({ renderer, camera, grade, bloom, scene, flameP
     return lab.flameHold ?? time;
   };
   lab.lampTime = time => {
-    if (!lab.freezeLampMotion) { lab.lampHold = time; return time; }
+    if (!lab.freezeLampMotion && !lab.freezeScene) { lab.lampHold = time; return time; }
     return lab.lampHold ?? time;
   };
   lab.applyBloom = value => { bloom.enabled = value && !lab.disableBloom; };

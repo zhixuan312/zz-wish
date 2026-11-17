@@ -1,0 +1,111 @@
+{
+  "scope": "Installed Source19 runtime-only coupled fixture output2 and refreshed actual-app posters. Root accepted the night comparison; no new authored source/geometry/light bake, no Source20.",
+  "public": "web/public/places/cloud-cliff",
+  "candidate": "art/build/cloud-cliff-round2/output2-delivery",
+  "originalPublicArchive": "art/build/cloud-cliff-round2/output1-public-live-replaced",
+  "manifestSha256": "b21e3749da7bc75ddca90b1e5c8f65985f714b7350867ec8419df19b3ce7b2ac",
+  "payloadFiles": 26,
+  "payloadBytes": 7263787,
+  "manifestBytes": 198628,
+  "sharedVisualBytes": 116705,
+  "completePackageBytes": 7579120,
+  "budgetBytes": 10000000,
+  "runtimeLighting": {
+    "fixtureOutputMultiplier": 2,
+    "sourceLampBasisWatts": 45,
+    "runtimeHeroPointWatts": 90,
+    "sourceLampMapsUnchanged": true,
+    "coupledOutputs": [
+      "authored lamp lightmap contribution",
+      "live HERO point light",
+      "reflection probe captured after the same coupled output"
+    ],
+    "descriptorSha256": "aee9cec9c32debfc9e46abdc30fb304f4d981ba593579a1db50eebadaab3ee60",
+    "scope": "Runtime coupled output control accepted from actual night frames. The original source45W transport and all native bake/device/source metadata are retained unchanged; no new native bake or geometry/light source version."
+  },
+  "sourceBlendSha256": "ee3f9f065a72a102867d0bfe7ea9233761cd7db62e98711c993d38cba324bda0",
+  "nativeTransport": "Original 12 fixed 64-sample METAL/MetalOIDN source 45W maps retained byte-identical; all original source/mapping/contact/normal/geometry/integrator evidence remains bound to unchanged pixels/meshes.",
+  "posterReceipt": {
+    "path": "art/build/cloud-cliff-round2/output2-posters/posters.json",
+    "sha256": "d8c91923cdf3c1ae569e461499d047e9e69872759bbe24d203fbcddc7a4d18ee",
+    "posterBytes": 162536,
+    "quality": 88,
+    "codec": "WebP lossy cwebp"
+  },
+  "capture": {
+    "root": "/tmp/one-light-round2-cloud19-output2",
+    "inputs": "artifacts/full-review/round-2/cloud19-output2-posters/inputs.json",
+    "inputsSha256": "7c0cb5b05651f6c79da114b5a236b1e7acad7712a0dcefeb7d36a3ce2c166fe7",
+    "sourceFingerprintSha256": "9d588fb7d972b3ed2ec68fa98f6c9e3248f8b5b2e9521fd72ad0619ff1f78861",
+    "streamedManifestSha256": "4bb463f9f52e290f81ee9e475a5213f34619194dde10a62787a46677abc42a98",
+    "browser": "chromium",
+    "views": [
+      {
+        "look": "night",
+        "viewport": "desktop",
+        "png": "night-desktop.png",
+        "captureMetadata": "night-desktop.json"
+      },
+      {
+        "look": "night",
+        "viewport": "phone",
+        "png": "night-phone.png",
+        "captureMetadata": "night-phone.json"
+      },
+      {
+        "look": "dusk",
+        "viewport": "desktop",
+        "png": "dusk-desktop.png",
+        "captureMetadata": "dusk-desktop.json"
+      },
+      {
+        "look": "dusk",
+        "viewport": "phone",
+        "png": "dusk-phone.png",
+        "captureMetadata": "dusk-phone.json"
+      },
+      {
+        "look": "day",
+        "viewport": "desktop",
+        "png": "day-desktop.png",
+        "captureMetadata": "day-desktop.json"
+      },
+      {
+        "look": "day",
+        "viewport": "phone",
+        "png": "day-phone.png",
+        "captureMetadata": "day-phone.json"
+      }
+    ],
+    "sourceBlendSha256": "ee3f9f065a72a102867d0bfe7ea9233761cd7db62e98711c993d38cba324bda0",
+    "captureParts": [
+      {
+        "inputs": "artifacts/full-review/round-2/cloud19-output2-runtime/inputs.json",
+        "sha256": "6d8255fe7af623bf250392461ab001376a06d3a19832d6d7ff9339fb398b73b5",
+        "scope": "Root-accepted night pair retained exactly."
+      },
+      {
+        "inputs": "inputs-four-view-capture.json",
+        "sha256": "7725c19554b17f3ddd8dff11ce02f6ff96b554ffbede84e8f8398ad83c0f5020",
+        "scope": "Subsequent dusk/day pair from exact same frozen source/manifest."
+      }
+    ],
+    "errors": []
+  },
+  "unchangedFromOutput1": [
+    "bake",
+    "lampBasis",
+    "lightmaps",
+    "geometryFingerprint",
+    "bakeFingerprint",
+    "heroes",
+    "cloudLiveDensity",
+    "liveCloudPolicy"
+  ],
+  "notes": [
+    "Original45W native transport is not relabelled as a90W rebake; runtime maps and point are multiplied together before the local reflection probe.",
+    "Accepted night PNG/metadata pair was retained exactly. Dusk/day desktop+phone were captured later against identical frozen source/manifest pins; existing encoder verified six unique actual framebuffers.",
+    "No new WebKit/FPS claim for this uniform-only gain. Root owns subsequent fulljourney and common asset registry.",
+    "No main runtime edits or commits were made by this handoff; the fixtureOutput2 descriptor was Root-owned and is hash-bound in runtimeLighting."
+  ]
+}

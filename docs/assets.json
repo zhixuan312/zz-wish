@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-17T17:08:57.031706+00:00",
+  "generatedAt": "2026-11-17T19:24:35.225531+00:00",
   "purpose": "Single provenance and license register for every delivered visual asset and shared decoder.",
   "assets": [
     {
@@ -731,18 +731,18 @@
       "files": [
         {
           "path": "web/public/fonts/noto-serif-sc-700.woff2",
-          "bytes": 70700,
-          "sha256": "8772c5e95818a0ec46d366c8397946f8026a9418d4bf8005e0423aad52a343d8"
+          "bytes": 71056,
+          "sha256": "deedada003745b9810cf11feeeec9be53e4d5bb7f21d6026dd362b8682a56315"
         },
         {
           "path": "web/public/fonts/noto-serif-sc-600.woff2",
-          "bytes": 69892,
-          "sha256": "a2d579329e0d5e07b14406cca426eaec0ff97438b88ae7e08044b169b1c25153"
+          "bytes": 70320,
+          "sha256": "685764134cf1032a02cf9ba0bce2003c22610df66729efae7c0634d98e2822dc"
         },
         {
           "path": "web/public/fonts/noto-serif-sc-400.woff2",
-          "bytes": 69068,
-          "sha256": "44c14c7404c7fbf3fac22c2c8edc9da696d7274bc92e6553558e209dad31c687"
+          "bytes": 69376,
+          "sha256": "6d6c2fc168045c79229a0ca4c6f790d937d76ac1d5f0977d1a884d674c7e886e"
         }
       ]
     },
@@ -777,13 +777,13 @@
       "files": [
         {
           "path": "web/src/engine/scene.js",
-          "bytes": 160048,
-          "sha256": "d74bf656e45aa0e81f0a147e889bffa7314b5294896af83306633ecc3d9a5ce1"
+          "bytes": 161367,
+          "sha256": "b7941862edf88c31e08582e17a918565d21e3e486cf60cbd4492489feadec36d"
         },
         {
           "path": "web/src/engine/WickPlume.js",
-          "bytes": 12526,
-          "sha256": "74d4e71d057dc324a39bba77520fe27f66e039dc69f349b7bcacf8d1194dad2d"
+          "bytes": 12537,
+          "sha256": "e7cda72cde5f720b81c0c1ba2c5dcb200d4bf213ab6d1fa3d31e64e3926d197f"
         },
         {
           "path": "web/src/engine/baked/loadPlace.js",
@@ -807,18 +807,18 @@
         },
         {
           "path": "web/src/engine/baked/gauzeTransmission.js",
-          "bytes": 5116,
-          "sha256": "832d7275cfc44082f5dab85659395ceeac22f91bd32e87c94ed439a6a258e0d3"
+          "bytes": 5332,
+          "sha256": "9dea08c2d6dcf8ba014f58572dcd7bec9de55c3e0d8900d3c7f6eb90d9eb465a"
         },
         {
           "path": "web/src/engine/baked/gauzeMask.js",
-          "bytes": 10509,
-          "sha256": "59ec6e0043b5e109cc2a2aa3e6a307e83e3ec869ea9158fb720b995e54f41169"
+          "bytes": 16432,
+          "sha256": "f9a8677d630eb8b32d95771f3947f1dd84ed481794f5a2d0d8146e9f3f03607b"
         },
         {
           "path": "web/src/engine/baked/staticLampShadow.js",
-          "bytes": 15188,
-          "sha256": "2a161104aafd3713fd969a132731823ee4b056c828f48a95099eab3176861474"
+          "bytes": 16247,
+          "sha256": "d8aae4ba5bad0404e0ce658c55e84f012b0e60a50ad9e19dc2e31751af5cacf6"
         },
         {
           "path": "web/src/engine/baked/nativeAgX.js",
@@ -827,13 +827,13 @@
         },
         {
           "path": "web/src/engine/places/snow-roof-baked.js",
-          "bytes": 8001,
-          "sha256": "01cc7adacca4dbbdda7bdb091b71238d64cbc0c6b8fc7d6b51c4106a452777b0"
+          "bytes": 8044,
+          "sha256": "1e5a3435693fb1e36cbd098e61470e6fabeb3137aa375bd5d977dbacffad73d5"
         },
         {
           "path": "web/src/engine/places/cloud-cliff-baked.js",
-          "bytes": 11504,
-          "sha256": "351254d83921358bcc471b5d0b3e4990f2a9e2cb253f143b11d04078dfe373f2"
+          "bytes": 11569,
+          "sha256": "aee9cec9c32debfc9e46abdc30fb304f4d981ba593579a1db50eebadaab3ee60"
         },
         {
           "path": "web/src/engine/places/cloud-volume-live.js",
@@ -979,7 +979,46 @@
           "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Textures/png/1k/rough_linen/rough_linen_rough_1k.png",
           "sourceSha256": "040eeef8041e3c619e5a17a76bb5f376416ce17f1ac42a04003a67952cc206a3"
         }
-      ]
+      ],
+      "cushionDerivatives": {
+        "sourceAsset": "https://polyhaven.com/a/rough_linen",
+        "license": "CC0-1.0",
+        "provenance": "Source20 cushion detail reuses the same licensed rough_linen asset.",
+        "items": [
+          {
+            "role": "cushion-albedo",
+            "sourceDeliveredPath": "web/public/places/snow-roof/gauze-weave.webp",
+            "sourceSha256": "5008bae957c0c26a4323356b5c8922c4559d28e3d192c3fc725ba87db57c98b6",
+            "derivedSourcePNG": "art/build/snow-roof-round2/materials/cushion-rough-linen-128.png",
+            "sha256": "4263a0d658296642a8e871f2516bb6302643186673d93d266c962357bfbe80eb",
+            "bytes": 19590,
+            "dimensions": [
+              128,
+              128
+            ],
+            "process": "Blender image resize to128x128; source sRGB colour space retained.",
+            "delivery": "Ignored source PNG; PBR derivative embedded/compressed in the final Snow GLB. No new photography."
+          },
+          {
+            "role": "cushion-normal",
+            "sourceDeliveredPath": "web/public/places/snow-roof/gauze-normal.webp",
+            "sourceSha256": "599ba576df8863b328f96c543c1485ea2af14f02b2ca99bd2d735ac89c5b332f",
+            "derivedSourcePNG": "art/build/snow-roof-round2/materials/cushion-rough-linen-normal-128.png",
+            "sha256": "72122e1d49be8d0d8c3f77157997fb72013450ea8006a5cd4ba6c1ed24447b7f",
+            "bytes": 17452,
+            "dimensions": [
+              128,
+              128
+            ],
+            "process": "Non-Color resize to128x128; decoded tangent vectors renormalized before PNG save. Shader strength.15; geometry/UVs unchanged.",
+            "delivery": "Ignored source PNG; PBR derivative embedded/compressed in the final Snow GLB. No new photography."
+          }
+        ],
+        "helpers": [
+          "art/blender/snow_round2_interior.py",
+          "art/blender/snow_round2_fixture_materials.py"
+        ]
+      }
     },
     {
       "id": "snow-roof-original-architecture",
@@ -1031,7 +1070,13 @@
         "art/blender/priority_lightmap_allocation.py",
         "art/blender/refine_underside_lightmap.py",
         "scripts/export-gauze-transport.mjs",
-        "scripts/load-gauze-geometry.mjs"
+        "scripts/load-gauze-geometry.mjs",
+        "art/blender/preview_snow_round2_pool_candidate.py",
+        "art/blender/preview_snow_round2_combined.py",
+        "art/blender/snow_round2_interior.py",
+        "art/blender/snow_round2_exterior.py",
+        "art/blender/snow_round2_fixture_materials.py",
+        "art/blender/preview_snow_round2_fixtures.py"
       ],
       "sourceFileHashes": [
         {
@@ -1121,8 +1166,8 @@
         },
         {
           "path": "scripts/probe-material-normal-budget.mjs",
-          "bytes": 7374,
-          "sha256": "ff19343fc4c5fac8f3d244a4e38dd828b4010e3395b3a35f7567df52a4b0a384"
+          "bytes": 7717,
+          "sha256": "7f4be0589a145a6efcb1d0718722caa2f28fdf0fff2635d0f3b1013597c36119"
         },
         {
           "path": "art/blender/snow_round1_details.py",
@@ -1151,8 +1196,8 @@
         },
         {
           "path": "art/blender/snow_lantern_transport.py",
-          "bytes": 28499,
-          "sha256": "4a089d9b43d5f2f5537feca2777ce8fe9dc5e62ab96171ed171cdd9bd9d0e4c8"
+          "bytes": 29849,
+          "sha256": "18bbd839ea002724c4f21e43258b0597d5871c98499891db913dcdb003204db0"
         },
         {
           "path": "art/blender/patch_snow_lantern_transport.py",
@@ -1181,13 +1226,43 @@
         },
         {
           "path": "scripts/export-gauze-transport.mjs",
-          "bytes": 4283,
-          "sha256": "de0fbec563a8b8b057a2bd9ad2ac05bc5ce2abc35d33a5727db61c16d7c9c48e"
+          "bytes": 4659,
+          "sha256": "ba72912f64c0726df45b5e46974735fc4b9287e2b8a68e0ac446c48b9ea3d06d"
         },
         {
           "path": "scripts/load-gauze-geometry.mjs",
           "bytes": 2236,
           "sha256": "6adf28bfd8918b731c742658d445ce4d0a60209afc18ebd98bdbaf088bb2bb52"
+        },
+        {
+          "path": "art/blender/preview_snow_round2_pool_candidate.py",
+          "bytes": 8732,
+          "sha256": "d366a1b8855768c1aebeafbb119d300c2bb6742af88c1f31dcf9d4fd48adee08"
+        },
+        {
+          "path": "art/blender/preview_snow_round2_combined.py",
+          "bytes": 9357,
+          "sha256": "9d37550f222e53912538ec36caee01bc7155626f74cb2d5e088ecbd41915b128"
+        },
+        {
+          "path": "art/blender/snow_round2_interior.py",
+          "bytes": 20179,
+          "sha256": "1ed19ba6832f79da74e61b627cd4c3fa559275822f9a617416aca2a76ed18d6f"
+        },
+        {
+          "path": "art/blender/snow_round2_exterior.py",
+          "bytes": 15655,
+          "sha256": "dff648a60502c18547c72b505661fc448e7f12dbf7d70108ae6b25d829824614"
+        },
+        {
+          "path": "art/blender/snow_round2_fixture_materials.py",
+          "bytes": 3834,
+          "sha256": "a1238ac60cf48a91bdfbe5e8fa1ac292e18dfae0ddcd0bce7dd8138e292f260d"
+        },
+        {
+          "path": "art/blender/preview_snow_round2_fixtures.py",
+          "bytes": 4945,
+          "sha256": "58f99f715a00027d34b79f32062646d22a69f9c9a31568fe7b13cf6a41f285cb"
         }
       ],
       "bake": {
@@ -1440,7 +1515,7 @@
               "name": "Visitor flame bake basis",
               "role": "lamp",
               "type": "POINT",
-              "energy": 2,
+              "energy": 0.800000011920929,
               "linearColour": [
                 1,
                 0.4300000071525574,
@@ -1506,7 +1581,7 @@
               "name": "Gate shelf lamp warm spill",
               "role": "fixture",
               "type": "POINT",
-              "energy": 0.4749999940395355,
+              "energy": 0.07124999910593033,
               "linearColour": [
                 1,
                 0.7058823704719543,
@@ -1528,7 +1603,7 @@
               "name": "Gate shelf lamp warm spill.001",
               "role": "fixture",
               "type": "POINT",
-              "energy": 0.4749999940395355,
+              "energy": 0.07124999910593033,
               "linearColour": [
                 1,
                 0.7058823704719543,
@@ -1572,7 +1647,7 @@
               "name": "Court lantern oil cup warm spill",
               "role": "fixture",
               "type": "POINT",
-              "energy": 0.30000001192092896,
+              "energy": 0.04500000178813934,
               "linearColour": [
                 1,
                 0.7058823704719543,
@@ -1636,9 +1711,10 @@
             0,
             0,
             0,
-            0,
-            0,
             0.0008750000270083547,
+            0,
+            0,
+            0,
             0,
             0,
             0,
@@ -1671,7 +1747,7 @@
           ],
           "meaning": "Authored accepted source lighting, restored exactly for night except visitor lamp omitted. Positions/rotations use Blender coordinates; source socket colours are linear."
         },
-        "sourceBlendSha256": "5d3d015e7b01517d2edc237d9740f80c128d1bc4ad32b373fe9eef8566edc904",
+        "sourceBlendSha256": "b44a73486d43212881bea678bedb3cad82907e26d9ba6d2910ba052e5593d0fb",
         "normalExportRecipe": {
           "policy": "blender53-scoped-normal-extractor-round8-v1",
           "blender": "5.3.0",
@@ -1684,7 +1760,7 @@
           "genericAttributeExport": false,
           "scope": "Per-export in-memory module override; restored in finally. Installed files, source and prepared directions stay unchanged."
         },
-        "totalSeconds": 339.285
+        "totalSeconds": 343.665
       },
       "compression": {
         "gltfTransform": "4.5.1",
@@ -1695,7 +1771,7 @@
         "materialRecipe": {
           "profile": "mobile",
           "sourceRawGLB": "snow-roof.raw.glb",
-          "sourceRawGLBSha256": "d476b0225a21c9dab180985672c1fa69cc08eb4342539d599a02c342dd31f754",
+          "sourceRawGLBSha256": "9ee70d7363339b2010c7ae2b0802fcab8289fe8ee9bdeed0744898ddf8196049",
           "originalPixelInput": true,
           "gltfTransform": "4.5.1",
           "ktxSoftware": "4.4.2",
@@ -1731,10 +1807,10 @@
           "etc1s-other-512",
           "reorder-UV-color-quantize-meshopt-position-normal-NONE"
         ],
-        "uniqueMaterialImageBytes": 3569841,
+        "uniqueMaterialImageBytes": 3584555,
         "bytesByRoleUnion": {
-          "normalTexture": 2368885,
-          "baseColorTexture": 831153,
+          "normalTexture": 2382133,
+          "baseColorTexture": 832619,
           "metallicRoughnessTexture": 369803
         },
         "positionFormat": "float32",
@@ -1744,12 +1820,12 @@
         "positionFilter": "NONE",
         "geometryVerificationScope": "Source-F32 retained-face proof, approved metadata derivative, and actual decoded precision-chain/contact proof. Positions and winding exact; normals, UVs, colors and six architectural normal images have the declared delivery precision.",
         "geometryOptimization": {
-          "inputSha256": "790b817ac73cb990273cb642d99f3ec860f542b9fc1aab91428e51ab4848a07c",
-          "outputSha256": "357cf7e509bad848c3d3c3e67a9adcee726ad445136fa16c95df4ca870e9ff05",
-          "geometryProofSha256": "ddd9ce0a07bdea774dd9101bff8bc4414eb8e57f797bb8649fc68372168818f0",
-          "metadataReceiptSha256": "d1722d04d0a0d162e8215d1e5bd093abbae27af1f40b643513f6e751d9d7f5e0",
-          "actualDecodedContactProofSha256": "b1932a7ae7019a4831456c67cc44ced03a6601def3d45ced281e267cb9d88792",
-          "sourceBlendSha256": "5d3d015e7b01517d2edc237d9740f80c128d1bc4ad32b373fe9eef8566edc904",
+          "inputSha256": "6184f62e11e79edfa83888aadd3ebd4a5a6a42bba70331d564aa2d0deaa5ed62",
+          "outputSha256": "6142b1d2db98de88e1dd0f5b4b8a226b6ecae04c5d780c897b4741a256fe53c0",
+          "geometryProofSha256": "fc65e9d90175f9c33609d61f05772588afced71b5e66ceb1c981f9814e36e1cf",
+          "metadataReceiptSha256": "fb0e4684646c12ede93a7de40fe07b8e41d90dcacaebf6bca5a86c9c4567a0b3",
+          "actualDecodedContactProofSha256": "61438f69d59774db237281950589b863563ebfdbe13bd0a68c234a504d949259",
+          "sourceBlendSha256": "b44a73486d43212881bea678bedb3cad82907e26d9ba6d2910ba052e5593d0fb",
           "all47ActualGroupsPassed": true,
           "positionPrecision": "genuine authored FLOAT32/NONE",
           "metadataRemovedKeys": [
@@ -1757,11 +1833,11 @@
             "resting_contact_audit",
             "resting_contact_groups"
           ],
-          "metadataSavedBytes": 765592,
+          "metadataSavedBytes": 747304,
           "deliveryPrecision": {
             "scope": "Independent decoder-only actual delivery proof. Original F32 positions and all retained cyclic winding are exact; NORMAL/UV/colors have only the explicit measured lossy storage policies. Six architectural normal images are intentionally256px. Source/GI unchanged; optical and performance review pending.",
-            "proofSha256": "4f09b0c95723319fb47db9d4a42dc69411713df61d4a43800a74ff86caec7134",
-            "decoderReceiptSha256": "fd06055c9841601a3a99c4101f70036e3359aa1832dc80cb0e9e138a005439ff",
+            "proofSha256": "dd27137fc72c62b9cf43d2f9b8048767719e05e1322cf18c78d5757f178bcdae",
+            "decoderReceiptSha256": "6e7ef810717ddcc53bd76877d8183a3cd8a6c16218b8f48fab9f20e901586edb",
             "normal": "genuine original F32 to normalized SHORT16",
             "maximumWorldNormalComponentError": 1.9786220281869937e-05,
             "uv0": "Affine U16 where original-source error<=.25texel; otherwise original F32",
@@ -1785,16 +1861,16 @@
           "level": 22,
           "decodedBytesAndSha256Verified": true,
           "threeWasmRoundTripVerified": true,
-          "inputManifestSha256": "393a0bacd48b7ef9c3f2bc42a6fd2c10d0d3a6d709d248a540028aa9dbdbf651",
+          "inputManifestSha256": "b4dfd996d49f566e1cb815b83753b32c50c1e03a75ae11d83badc36aed65c446",
           "models": [
             {
               "originalUri": "snow-roof.glb",
               "uri": "snow-roof.glb.zstd",
-              "bytes": 6104342,
-              "sha256": "704940667f50ae25d79488bac138cf83f5c4a14e3fba28163831eefe5c94baf3",
+              "bytes": 6085016,
+              "sha256": "ad89904f03d25d8d61a69d8767ddf826ecb7c67695a26bcc6525961acd8bc627",
               "encoding": "zstd",
-              "decodedBytes": 10411376,
-              "decodedSha256": "357cf7e509bad848c3d3c3e67a9adcee726ad445136fa16c95df4ca870e9ff05"
+              "decodedBytes": 10294072,
+              "decodedSha256": "6142b1d2db98de88e1dd0f5b4b8a226b6ecae04c5d780c897b4741a256fe53c0"
             }
           ]
         }
@@ -1802,93 +1878,93 @@
       "files": [
         {
           "path": "web/public/places/snow-roof/manifest.json",
-          "bytes": 26848,
-          "sha256": "1e90933194200dfd2d67ba2fbe207aba216b50a561e9b1da56060161eb6c5289"
+          "bytes": 26896,
+          "sha256": "0ffd1c87dc92720346c47d62f99b1fcb02a2fa61872fd49cbd7f5f8682c4730d"
         },
         {
           "path": "web/public/places/snow-roof/snow-roof.glb.zstd",
-          "bytes": 6104342,
-          "sha256": "704940667f50ae25d79488bac138cf83f5c4a14e3fba28163831eefe5c94baf3"
+          "bytes": 6085016,
+          "sha256": "ad89904f03d25d8d61a69d8767ddf826ecb7c67695a26bcc6525961acd8bc627"
         },
         {
           "path": "web/public/places/snow-roof/hall-night.ktx2",
-          "bytes": 997595,
-          "sha256": "c12ae8a3068063bf615d6ff0b4723da405f9c6e48a13255f4dd246767ab8fc4b"
+          "bytes": 982503,
+          "sha256": "a3bd25c7f5170ff433f0c56435f2ff57a05d5f68e916c0dcafb3df8192466df0"
         },
         {
           "path": "web/public/places/snow-roof/hall-dusk.ktx2",
-          "bytes": 999422,
-          "sha256": "3802d47dced70a9a1abe097f7c46195bf1032096cd9814a10bd2475264edd6b3"
+          "bytes": 993530,
+          "sha256": "521b055c65dbbacb286646e01d1dd335b18dc521ec65d66a4c5a380fc1b92f00"
         },
         {
           "path": "web/public/places/snow-roof/hall-day.ktx2",
-          "bytes": 1001292,
-          "sha256": "3ed115e7bdb8a703fc2c3426bbc11c35abe5912b31142849a841379dff84718b"
+          "bytes": 986928,
+          "sha256": "3fb2c0c95e66545f56f82da8561d793fa7621ffd67c14795ca04fda9f423152d"
         },
         {
           "path": "web/public/places/snow-roof/hall-lamp.ktx2",
-          "bytes": 345053,
-          "sha256": "cf4ca0d07a93f60bc9251d242ebf06389a41357eb0aba97f64ad0e4edf7c4529"
+          "bytes": 289950,
+          "sha256": "31b83125ddabce452a4df9372fb11a2e8fd4a4271d689a338a54330cff9e2c7b"
         },
         {
           "path": "web/public/places/snow-roof/altar-night.ktx2",
-          "bytes": 444378,
-          "sha256": "88d7c6930f32cb3686c6b9d2869842d220a94e54a4b27eb1fa4f9faed5fcff6f"
+          "bytes": 438713,
+          "sha256": "57dbdf916ae9587b911ff6f5a54a3dafebda8898a4a8b32f5a9d745b8d6493d6"
         },
         {
           "path": "web/public/places/snow-roof/altar-dusk.ktx2",
-          "bytes": 444029,
-          "sha256": "70d28fa05d4001aac322511559585ba28a1a2d944d1428ffb09231a47d05a55b"
+          "bytes": 431942,
+          "sha256": "b19e19c06e49e3f878b25283ba298a397ca77668991174862b384b8b58e3a320"
         },
         {
           "path": "web/public/places/snow-roof/altar-day.ktx2",
-          "bytes": 452142,
-          "sha256": "8b6f0a118c8b803a8497a2eaa8dad7a081bdee9e9948f4d2271cd8476c85dc8e"
+          "bytes": 446769,
+          "sha256": "96d56dcc7c6a5dae9fd288530bfec78d238de35da9e141b73c8970571d232bc5"
         },
         {
           "path": "web/public/places/snow-roof/altar-lamp.ktx2",
-          "bytes": 256089,
-          "sha256": "25df447fb7b3cf4b8e6ae671a31658f27d2932af8803aa9e84f20233eea25d7b"
+          "bytes": 218291,
+          "sha256": "7ab5fc82697c34f6c3a9cad4f4c65dba65eba2ce86490ecf9ae128508c2d5da6"
         },
         {
           "path": "web/public/places/snow-roof/gate-night.ktx2",
-          "bytes": 330050,
-          "sha256": "887e51782f6c55c978347fa37447aeb7c1d5b07cc813e68283297837d8eb7ccc"
+          "bytes": 340854,
+          "sha256": "07ec5f999675f27ecaa159de9fb302eb8974ae3b54e2504e2ffc33f931aa8b15"
         },
         {
           "path": "web/public/places/snow-roof/gate-dusk.ktx2",
-          "bytes": 337238,
-          "sha256": "2d5986415ea43136216c69a88dbded030a46c310ba22e9c809486d48db60425d"
+          "bytes": 343467,
+          "sha256": "582c579542c418de5334af7a8411ec890a34702cfd77fff71c83a0140824c159"
         },
         {
           "path": "web/public/places/snow-roof/gate-day.ktx2",
-          "bytes": 343593,
-          "sha256": "4c573127bf40779e34ddc73f5ed2b665470cfa9a994331a4a38f895892f6598d"
+          "bytes": 355662,
+          "sha256": "b9944b388012e4ddbef04b8bc3541618210982f0c614d6f9b4f3529be60362e0"
         },
         {
           "path": "web/public/places/snow-roof/gate-lamp.ktx2",
-          "bytes": 20492,
-          "sha256": "2ad6ee6df33b58c53c5b46f60465f3d690fd6871f4934e63a62ce0852f573ff3"
+          "bytes": 13045,
+          "sha256": "609345ccdc83e9f689001aa333fba8a4be4faefa4d44e5195f05e52c7442c651"
         },
         {
           "path": "web/public/places/snow-roof/court-night.ktx2",
-          "bytes": 755856,
-          "sha256": "1784e289e8fbc8440fe2cf13d0c960285edb74b94cb38d5f9e608aa8cbd2dc98"
+          "bytes": 782246,
+          "sha256": "aeac45c657a993abba1aaf4cdfb79aaf5780ba986630ba38b4bbffb2d132441a"
         },
         {
           "path": "web/public/places/snow-roof/court-dusk.ktx2",
-          "bytes": 780114,
-          "sha256": "134e95da4a81896067b8a09b7bbca982b3d2f60132b656c78e71cfcf4e770ff4"
+          "bytes": 802477,
+          "sha256": "f35475e7e521f1cd027b1bfc4288e6ea81e85d488e038738308b5048c286be08"
         },
         {
           "path": "web/public/places/snow-roof/court-day.ktx2",
-          "bytes": 797325,
-          "sha256": "fca55293634e12391cbc748d5226a48358d13a9eaee776f6353cc51a476accfb"
+          "bytes": 811918,
+          "sha256": "225910e3e9075704795ebd1db9c62ba70472d1036efb924a95b580d28afe82b8"
         },
         {
           "path": "web/public/places/snow-roof/court-lamp.ktx2",
-          "bytes": 26748,
-          "sha256": "55d2ff1a509cb5b2fee3cdea573decf8ed209514c202bcd9a922ba3c07d4870c"
+          "bytes": 10789,
+          "sha256": "3f9773625b55b1f866c4bd0d1ebe31520ae598c4ce23eddcde861f2e956b44fc"
         },
         {
           "path": "web/public/places/snow-roof/gauze-weave.webp",
@@ -2494,8 +2570,8 @@
       "files": [
         {
           "path": "web/public/places/cloud-cliff/manifest.json",
-          "bytes": 198042,
-          "sha256": "4bb463f9f52e290f81ee9e475a5213f34619194dde10a62787a46677abc42a98"
+          "bytes": 198628,
+          "sha256": "b21e3749da7bc75ddca90b1e5c8f65985f714b7350867ec8419df19b3ce7b2ac"
         },
         {
           "path": "web/public/places/cloud-cliff/cloud-cliff.glb.gzip",
@@ -2594,38 +2670,38 @@
         },
         {
           "path": "web/public/places/cloud-cliff/cover-night-desktop.webp",
-          "bytes": 26994,
-          "sha256": "a00fa5605a92c46d640c8282409ce01b0fd1b1a77d648eabda9284681064bc22"
+          "bytes": 31090,
+          "sha256": "2846eb8928bda5370025667c0b4c2628c96d450b2194b01d5c65858f1fc04715"
         },
         {
           "path": "web/public/places/cloud-cliff/cover-night-phone.webp",
-          "bytes": 11634,
-          "sha256": "f31c63a96adc96f556df022e5cefbc1de5527f3dbdbcb7c94f6d59afb083a399"
+          "bytes": 12726,
+          "sha256": "17570ffaddad8cb7b7c4ebc4430881a7df98fd8a01f92caf3d34997e63559366"
         },
         {
           "path": "web/public/places/cloud-cliff/cover-dusk-desktop.webp",
-          "bytes": 34116,
-          "sha256": "a683f7e8adeded5fd9fe1d0647062d37155387dd5d364725133a97abe26c95de"
+          "bytes": 37348,
+          "sha256": "d1357a94026ee86a9639b0e64df4e9d630defaed4bdcd84722a1ac5c44c01883"
         },
         {
           "path": "web/public/places/cloud-cliff/cover-dusk-phone.webp",
-          "bytes": 14646,
-          "sha256": "9ac05d97fbc24ee21e9c51881fc36ed8809d9c501da689b748b12bd2fbfa60fb"
+          "bytes": 15828,
+          "sha256": "d9588a842dab6226a7a8d3df25d02ccd170505bfeaaba38c8dc47282240887d8"
         },
         {
           "path": "web/public/places/cloud-cliff/cover-day-desktop.webp",
-          "bytes": 44280,
-          "sha256": "0ad651f7b87d38ebfa2b55d3b4c9f71cc947214bae66183ac861c65cab7d7c3d"
+          "bytes": 46354,
+          "sha256": "6a4ceeb373ddf428ac9c892dd74aa92abb47129aa25714e0a1e0e2acef942135"
         },
         {
           "path": "web/public/places/cloud-cliff/cover-day-phone.webp",
-          "bytes": 18212,
-          "sha256": "71619f43784535645d891f99f018f43837cbc570cf6ab39c04d1188984930beb"
+          "bytes": 19190,
+          "sha256": "5e1c419cf1e154e192aa534b4f978e74cf7afe958ad542f27487c588149e8bbd"
         },
         {
           "path": "web/public/places/cloud-cliff/posters.json",
           "bytes": 3653,
-          "sha256": "5ff00657d0b6813649d5136b982fa0feffe12d14854987fdea77b1cbf4027dc7"
+          "sha256": "d8c91923cdf3c1ae569e461499d047e9e69872759bbe24d203fbcddc7a4d18ee"
         }
       ]
     }

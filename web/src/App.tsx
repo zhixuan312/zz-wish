@@ -217,7 +217,7 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
         </nav>
       </header>
 
-      {pill && ['place', 'candle', 'burning'].includes(screen) && (screen !== 'burning' || caught) && <div className="pill" role="status" data-testid="presence">{pill}</div>}
+      {pill && ['place', 'burning'].includes(screen) && (screen !== 'burning' || caught) && <div className="pill" role="status" data-testid="presence">{pill}</div>}
       {toast && (screen !== 'burning' || caught) && <div className="toast" role="status">{t.toastLit} <button className="btn small" onClick={() => { setToastMuted(true); setToast(false); }}>{t.toastMute}</button></div>}
 
       {screen === 'wish' && (

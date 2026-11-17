@@ -63,7 +63,7 @@ export function gauzeRibGeometry(profile,angle){
   }
   geometry.computeVertexNormals();return geometry;
 }
-export function addGauzeVent(group,{radius,topY,material,cordMaterial}){
+export function addGauzeVent(group,{radius,topY,material,cordMaterial,cordRadius=.0015}){
   const hole=.006,hub=.0024,sectorRadius=.0042,spokeWidth=.0008,outer=Math.max(radius+.004,.010);
   const add=(geometry,mat,x=0,y=0,z=0)=>{const object=new THREE.Mesh(geometry,mat);object.position.set(x,y,z);object.castShadow=object.receiveShadow=true;group.add(object);return object;};
   // A true annulus, not an alpha mask. Four load-bearing spokes join the
@@ -73,7 +73,7 @@ export function addGauzeVent(group,{radius,topY,material,cordMaterial}){
   for(let i=0;i<4;i++){
     const angle=i*Math.PI/2,length=hole+.001-hub,object=add(new THREE.BoxGeometry(length,.0015,spokeWidth),material,Math.cos(angle)*(hub+length/2),topY+.014,Math.sin(angle)*(hub+length/2));object.rotation.y=-angle;object.userData.wickVent='load-bearing-spoke';
   }
-  return {topY,holeRadius:hole,hubRadius:hub,spokeWidth,cordRadius:.0015,cordBottomY:-.06,sectorAngle:Math.PI/4,sectorRadius,exit:[sectorRadius/Math.SQRT2,topY+.017,sectorRadius/Math.SQRT2],outerRadius:outer};
+  return {topY,holeRadius:hole,hubRadius:hub,spokeWidth,cordRadius,cordBottomY:-.06,sectorAngle:Math.PI/4,sectorRadius,exit:[sectorRadius/Math.SQRT2,topY+.017,sectorRadius/Math.SQRT2],outerRadius:outer};
 }
 export function createGauzeSmokePath(profile,wickTip,vent){
   const points=[],clearances=[];

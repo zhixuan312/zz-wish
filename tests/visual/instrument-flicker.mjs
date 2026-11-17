@@ -66,7 +66,7 @@ inject('Expose pending camera/tween state for settled static captures', 'const t
 inject('Expose controlled physical state for material-only A/B', /let clockTime = 0, lastRender = 0,[^\n]+;/, `$&
 window.__captureSetPhysicalState=({time=17,fuel=1}={})=>{const previous={time:clockTime,fuel:level,targetFuel:targetLevel};clockTime=time;level=targetLevel=fuel;if(mine.g.visible&&mine.offer){mine.setLevel(level);mine.update(time);}return previous;};`);
 inject('Remove camera drift', /const a = ([^\n;]+);(\n\s+camera.position.copy\(rig.pos\))/, 'const a = flickerLab.lockCamera ? 0 : ($1);$2');
-inject('Freeze lamp fuel and animation', 'if (mine.g.visible && mine.offer) { mine.setLevel(level); mine.update(time); }', 'if (mine.g.visible && mine.offer && !flickerLab.freezeScene) { mine.setLevel(level); mine.update(time); }');
+inject('Hold lamp animation time while retaining functional updates', 'if (mine.g.visible && mine.offer) { mine.setLevel(level); mine.update(time); }', 'if (mine.g.visible && mine.offer) { mine.setLevel(level); mine.update(flickerLab.lampTime(time)); }');
 inject('Freeze flame clocks before intensity and graphics updates', 'tick(time, power, lightMax, wax, topY) {', 'tick(time, power, lightMax, wax, topY) {\n      time = flickerLab.flameTime(time);');
 inject('Freeze shared flame graphic time', 'for (const m of flameMats) m.uniforms.uTime.value = time;', 'for (const m of flameMats) m.uniforms.uTime.value = flickerLab.flameTime(time);');
 inject('Retain flame halo during particle control', 'g.add(halo);', "halo.userData.visualKeepForParticleControl = true; g.add(halo);");

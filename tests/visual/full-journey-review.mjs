@@ -21,9 +21,10 @@ const output = process.env.OUTPUT || 'artifacts/full-review/round-1/before-journ
 const dbFile = process.env.DB_FILE || '/tmp/one-light-round1.db';
 if (!source.startsWith('/tmp/') || !dbFile.startsWith('/tmp/')) throw new Error('Use the isolated frozen source and visual API database.');
 const seconds = Number(process.env.STATIC_SECONDS || 10), detailSeconds = Number(process.env.DETAIL_SECONDS || seconds), smoke = process.env.FLOW === 'smoke', motion = process.env.FLOW === 'motion', shortFlow = smoke || motion;
+const fullyStaticSeconds = Number(process.env.FULLY_STATIC_SECONDS || seconds);
 const recordVideo = process.env.VIDEO !== '0', recordAfterReady = recordVideo && process.env.VIDEO_START === 'ready', screenshotVideo = recordVideo && process.env.VIDEO_START === 'screenshots', contextVideo = recordVideo && !recordAfterReady && !screenshotVideo;
 if (screenshotVideo && !process.env.FFMPEG_PATH) throw new Error('VIDEO_START=screenshots requires an explicit FFMPEG_PATH.');
-if (![seconds, detailSeconds].every(value => Number.isFinite(value) && value > 0)) throw new Error('Static/detail capture durations must be positive.');
+if (![seconds, detailSeconds, fullyStaticSeconds].every(value => Number.isFinite(value) && value > 0)) throw new Error('Static/detail capture durations must be positive.');
 const names = (process.env.BROWSERS || 'webkit,chromium').split(',');
 if (names.some(name => !['webkit', 'chromium'].includes(name))) throw new Error('Unknown browser.');
 const fingerprint = await fingerprintCaptureSource(source);
@@ -113,7 +114,7 @@ const heldWalkReplay = async (browser, name, size) => {
     const old = button(re('选这一盏|带上这支', 'Take this one')); if (await old.count()) await act(old);
     await act(button(re('点亮这一盏|点亮这支', 'Light it'))); activeLamp = true;
     await page.waitForFunction(() => window.__visualIgnition?.state === 'settled' && window.__visualIgnition.progress === 1);
-    await record('diagnostic-burning-normal'); await record('diagnostic-burning-fully-static', { freezeScene: true, freezeGrade: true, freezeDaylight: true, freezeFuel: true, hideParticles: true });
+    await record('diagnostic-burning-normal'); await record('diagnostic-burning-fully-static', { freezeScene: true, freezeGrade: true, freezeDaylight: true, freezeFuel: true, hideParticles: true }, !process.env.DETAIL_VIEWPORTS || process.env.DETAIL_VIEWPORTS.split(',').includes(size.name) ? fullyStaticSeconds : seconds);
     await captureDetails(page, size, record);
     if (name === 'chromium') await setFocusEmulation(page, false);
     const eventIndex = await page.evaluate(() => window.__journeyEvents.length), background = await context.newPage(); await background.goto('about:blank'); await background.bringToFront(); await background.waitForTimeout(700); await page.bringToFront(); await background.close();

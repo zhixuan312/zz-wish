@@ -1,0 +1,80 @@
+{
+  "scope": "Source19 Round2 actual-app LOW8 candidate, not final/public installation or64 approval.",
+  "sourceSha256": "e79133edbf4cd59eb0b010a18c75886fb15563f45d9b5cdb59e87c1cea848446",
+  "artifacts": {
+    "source": {
+      "path": "art/build/snow-roof-round2/source-v19.blend",
+      "sha256": "e79133edbf4cd59eb0b010a18c75886fb15563f45d9b5cdb59e87c1cea848446"
+    },
+    "sourceAudit": {
+      "path": "art/build/snow-roof-round2/source-v19.audit.json",
+      "sha256": "c770ab6e0a5242aa786a6db4291a0e83c265769053ade4c7ce2bf444f449baaa"
+    },
+    "hiddenRoofProof": {
+      "path": "art/build/snow-roof-round2/source-v19-hidden-faces-20mm.json",
+      "sha256": "3ff9c5dce632e3b0d1997e9bdf066d280eee6d3561a9747f7f59d5b68b3c9752"
+    },
+    "approvedPicture": {
+      "path": "art/build/snow-roof-round2/combined-native8/preview.json",
+      "sha256": "b7c9f7312d80d2fd42fa74708ba2b082a5e03f444ef3b5a1c565773705c24b19"
+    },
+    "preparedContacts": {
+      "path": "art/build/snow-roof-round2/contact-replay-v19/contacts.json",
+      "sha256": "a7e773a620f4e961a95623ab91f28157c393066a57517902cd430a408c5cbcca"
+    },
+    "mapping": {
+      "path": "art/build/snow-roof-round2/contact-replay-v19/mapping.json",
+      "sha256": "76fdca4e69d11cf490e10a1472eab9e66b40010ddab7510a1f03e361141947f2"
+    },
+    "rawNormal": {
+      "path": "art/build/snow-roof-round2/contact-replay-v19/raw-normal.json",
+      "sha256": "942be59f8c181f8a1b5963a861e0f225d63758595c0a16f2ca00e61f6e0c53cb"
+    },
+    "low8Completion": {
+      "path": "art/build/snow-roof-round2/preview19-native-completion.json",
+      "sha256": "455c30bbabdbe7ba7c515956998668f61318e4c90bf260a5b4c51c81fa82375c"
+    },
+    "package": {
+      "path": "art/build/snow-roof-round2/preview19-packaged/package-receipt.json",
+      "sha256": "bd8b33623d45ecd6084bbe0399e6a4c57c0f5ba782b84ce5a0ceb8e409f383ec"
+    }
+  },
+  "runtime": {
+    "path": "art/build/snow-roof-round2/preview19-packaged/runtime",
+    "manifestSha256": "8eb557645e899a4562d2474f8180a0b5b7edb9e3549856355f2e649b5af28b40",
+    "localCompleteBytes": 14398533,
+    "sharedNativeViewBytesSeparately": 116705,
+    "partialPreview": true,
+    "maps": 16,
+    "samplesEach": 8
+  },
+  "contactGroupsPassed": 47,
+  "sourcePreparedRawAndDecodedContactsPassed": true,
+  "normalUVTintGuardsPassed": true,
+  "staticTrianglesBefore": 330728,
+  "staticTrianglesAfter": 329326,
+  "candidate": {
+    "watts": 0.8,
+    "radiusMetres": 0.03,
+    "clothReflection": 0.35,
+    "clothTransmission": 0.065,
+    "shadowTransmission": 0.022,
+    "floorAlbedoFromSource18": 1.8,
+    "floorNormalStrength": 0,
+    "extraFillLights": 0
+  },
+  "reusableLayers": [
+    "art/blender/snow_round2_interior.py",
+    "art/blender/snow_round2_exterior.py"
+  ],
+  "newImage": "128px derivative of already-licensed PolyHaven rough_linen; sourceLicense docs/licenses/lantern-fabric.json",
+  "oldGIPixelsOrPackedUVLayoutReused": false,
+  "sourceGeometryInheritedFromFrozenSource18": true,
+  "source18PublicUnchanged": true,
+  "actualAppReviewPending": false,
+  "allJobsTerminal": true,
+  "disposition": "Not installed. Actual four-context80-frame review exposed gate-wall/court-roof glare; the final source revision lowers those fixtures and adds a modest licensed linen cushion normal. Floor rings were isolated and corrected in runtime static-depth sampling without a source geometry change.",
+  "actualAppCapture": "artifacts/full-review/round-2/source19-low8-picture-gate/report.json",
+  "runtimeRingCorrection": "docs/evidence/full-review/round-2-snow-floor-shadow-fix.md",
+  "final64MapsProducedForThisSource": 0
+}

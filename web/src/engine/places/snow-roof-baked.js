@@ -64,7 +64,7 @@ export default function createPlace(h){
   };
   const addFixture=(C,wick)=>{
     if(!wick.lit)return;
-    const flame=h.liveFlame(...localPoint(C.G,wick.wickTip),{size:wick.kind.includes('clay')?.65:wick.name==='court lantern'?.7:.9});
+    const flame=h.liveFlame(...localPoint(C.G,wick.wickTip),{size:wick.kind.includes('clay')?.65:wick.name==='court lantern'?.7:.9,radiance:.55,halo:false});
     h.fixtureSpecular(...localPoint(C.G,wick.pointLight),(wick.actualWatts??wick.watts)*C.baked.cameraPreExposure,wick.linearColor??[1,180/255,108/255]);
     C.up.push(()=>{flame.power=.86*C.baked.fixturePower();});
   };
@@ -101,12 +101,12 @@ export default function createPlace(h){
       choosePhone:{pos:V3(-1.5,1.6,2.2),look:V3(-1.4993,.97,-.8),fov:55},
       spread:{pos:V3(-2.95,1.65,1.05),look:V3(-1.4993,1.5523,-.8),fov:55},
       spreadPhone:{pos:V3(-1.5,1.63,1.95),look:V3(-1.4993,.97,-.8),fov:55},
-      burn:{pos:V3(-4.9,1.75,-1.65),look:V3(1.09794395,.6,-1.49293831),fov:55},
-      burnPhone:{pos:V3(-1.5,1.6,2.4),look:V3(-.9,1.1,-1.8),fov:55},
-      burnFar:{pos:V3(-4.94,1.75,-1.65),look:V3(1.05794395,.6,-1.49293831),fov:55},
-      burnFarPhone:{pos:V3(-1.5,1.6,2.48),look:V3(-1.1,1.15,-1.8),fov:55},
+      burn:{pos:V3(-4.9,1.75,-1.65),look:V3(1.09794395,1.05,-1.49293831),fov:45},
+      burnPhone:{pos:V3(-2.3,1.25,2.4),look:V3(-.850851599,1.1,-1.8),fov:55},
+      burnFar:{pos:V3(-4.94,1.75,-1.65),look:V3(1.05794395,1.05,-1.49293831),fov:45},
+      burnFarPhone:{pos:V3(-2.3,1.25,2.48),look:V3(-.850851599,1.1,-1.8),fov:55},
       burnWalk:[V3(-3.2,1.67,.6),V3(-3.8,1.72,-.3),V3(-4.5,1.75,-1)],
-      burnWalkPhone:[V3(-1.55,1.65,2.1),V3(-1.52,1.65,2.3)],
+      burnWalkPhone:[V3(-1.65,1.53,2.1),V3(-2.1,1.35,2.3)],
       async build(){
         const C=h.context;
         C.G.updateMatrixWorld(true);

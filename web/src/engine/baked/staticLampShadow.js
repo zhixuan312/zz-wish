@@ -15,15 +15,30 @@ ${cubeToUV}
 float staticLampDepth(vec3 direction){
  return unpackRGBAToDepth(texture2D(uStaticLampDepth,staticLampCubeToUV(direction,.5/uStaticLampFaceSize)));
 }
+vec3 staticLampTexelDirection(vec2 uv){
+ vec2 tile=floor(uv*vec2(4.,2.)),p=fract(uv*vec2(4.,2.))*2.-1.;
+ if(tile.y<.5)return normalize(tile.x<2.?vec3(p.x,-1.,-p.y):vec3(p.x,1.,p.y));
+ if(tile.x<.5)return normalize(vec3(-1.,p.y,-p.x));
+ if(tile.x<1.5)return normalize(vec3(p.x,p.y,-1.));
+ if(tile.x<2.5)return normalize(vec3(1.,p.y,p.x));
+ return normalize(vec3(-p.x,p.y,1.));
+}
 float staticLampPlaneSample(vec3 direction,vec3 normal,float planeDistance,float receiverDistance){
- float denominator=dot(normal,direction);
+ // The packed depth belongs to the nearest atlas texel's camera ray. Compare
+ // the receiver plane on that same ray, including cubeToUV's seam contraction.
+ vec2 atlasSize=vec2(4.,2.)*uStaticLampFaceSize;
+ vec2 uv=(floor(staticLampCubeToUV(direction,.5/uStaticLampFaceSize)*atlasSize)+.5)/atlasSize;
+ float denominator=dot(normal,staticLampTexelDirection(uv));
  float planeReceiver=abs(denominator)>.000001?planeDistance/denominator:receiverDistance;
  float distanceToReceiver=planeReceiver>0.?planeReceiver:receiverDistance;
  float depth=(distanceToReceiver-uStaticLampNearFar.x)/(uStaticLampNearFar.y-uStaticLampNearFar.x);
- return step(depth,staticLampDepth(direction));
+ return step(depth,unpackRGBAToDepth(texture2D(uStaticLampDepth,uv)));
 }
 float getStaticLampVisibility(vec3 worldPos,vec3 worldNormal){
- vec3 normal=normalize(worldNormal),toLight=uStaticLampPoint-worldPos;
+ // Smooth bevel normals describe shading, while depth was rasterized on the
+ // actual triangle plane. Derivatives recover that plane without a larger bias.
+ vec3 planeNormal=cross(dFdx(worldPos),dFdy(worldPos));
+ vec3 normal=dot(planeNormal,planeNormal)>1e-16?normalize(planeNormal):normalize(worldNormal),toLight=uStaticLampPoint-worldPos;
  normal*=dot(normal,toLight)<0.?-1.:1.;
  vec3 delta=worldPos+normal*uStaticLampNormalBias-uStaticLampPoint;
  float receiverDistance=max(length(delta),.000001);
@@ -34,7 +49,7 @@ float getStaticLampVisibility(vec3 worldPos,vec3 worldNormal){
  if(uStaticLampEnabled<.5||receiverDistance<=uStaticLampNearFar.x||receiverDistance>=uStaticLampNearFar.y)return 1.;
  float range=uStaticLampNearFar.y-uStaticLampNearFar.x;
  float blockerDistance=uStaticLampNearFar.x+staticLampDepth(direction)*range;
- // The four-millimetre source angle follows actual cached blocker depth.
+ // The authored finite source angle follows actual cached blocker depth.
  // One atlas texel supplies a resolution-derived minimum coverage footprint.
  float physicalAngle=uStaticLampSourceRadius*max(0.,receiverDistance-blockerDistance)/(receiverDistance*max(uStaticLampNearFar.x,blockerDistance));
  float angle=max(physicalAngle,1./uStaticLampFaceSize);
@@ -69,7 +84,7 @@ export function createStaticLampShadow({lightWorld,sourceRadius,resolution=512,n
  if(!Number.isFinite(sourceRadius)||sourceRadius<0||!Number.isInteger(resolution)||resolution<16||resolution>1024||!Number.isFinite(near)||near<=0||!Number.isFinite(far)||far<=near||!Number.isFinite(normalBias)||normalBias<0||!Number.isFinite(matchTolerance)||matchTolerance<=0)throw RangeError('Invalid static lamp-shadow physical parameters');
  const basis=lightWorld.clone(),uniforms={uStaticLampDepth:{value:null},uStaticLampPoint:{value:basis},uStaticLampLivePoint:{value:lightWorld},uStaticLampNearFar:{value:new Vector2(near,far)},uStaticLampEnabled:{value:0},uStaticLampFaceSize:{value:resolution},uStaticLampSourceRadius:{value:sourceRadius},uStaticLampNormalBias:{value:normalBias},uStaticLampMatchTolerance:{value:matchTolerance}};
  let texture=null,ownedTarget=null,disposed=false,capturing=false;
- const metadata={method:'Frozen actual static geometry; native Three160 PointLightShadow RGBA radial-depth atlas',basisWorld:basis.toArray(),sourceRadiusMetres:sourceRadius,normalBiasMetres:normalBias,nearMetres:near,farMetres:far,requestedFaceResolution:resolution,filter:{blockerDepthFetches:1,visibilityDepthFetches:4,temporalNoise:false,receiverPlaneDepthCorrection:true,sourceAngle:'R*(dReceiver-dBlocker)/(dReceiver*dBlocker), using actual cached center depth',minimumCoverageAngle:'1/actual face resolution'},captured:false,limits:['Static visibility is frozen at the authored source basis; live suspension sway uses this nearby basis approximation.','Rays outside near/far return visible; choose a far bound covering all significant receivers.','GPU capture, packed copy, bias, PCF quality, memory and FPS require real browser verification.']};
+ const metadata={method:'Frozen actual static geometry; native Three160 PointLightShadow RGBA radial-depth atlas',basisWorld:basis.toArray(),sourceRadiusMetres:sourceRadius,normalBiasMetres:normalBias,nearMetres:near,farMetres:far,requestedFaceResolution:resolution,filter:{blockerDepthFetches:1,visibilityDepthFetches:4,temporalNoise:false,receiverPlaneDepthCorrection:'Actual triangle plane at nearest atlas texel camera ray',sourceAngle:'R*(dReceiver-dBlocker)/(dReceiver*dBlocker), using actual cached center depth',minimumCoverageAngle:'1/actual face resolution'},captured:false,limits:['Static visibility is frozen at the authored source basis; live suspension sway uses this nearby basis approximation.','Rays outside near/far return visible; choose a far bound covering all significant receivers.','GPU capture, packed copy, bias, PCF quality, memory and FPS require real browser verification.']};
  const state={uniforms,metadata,get texture(){return texture;},
   async capture(renderer,staticRoot,{copyFramebuffer=true}={}){
    if(disposed||capturing)throw Error('Static lamp-shadow state is disposed or capturing');
@@ -150,7 +165,7 @@ export function createStaticLampShadow({lightWorld,sourceRadius,resolution=512,n
       if(distance(pointLight.position,staticLampVisitorView)<uStaticLampMatchTolerance)
        directLight.color*=getStaticLampVisibility(vStaticLampWorld,normalize(vStaticLampWorldNormal));}`);
    };
-   material.customProgramCacheKey=()=>key+'-static-lamp-radial-depth-pcf4-v1';material.needsUpdate=true;installed.set(material,state);return material;
+   material.customProgramCacheKey=()=>key+'-static-lamp-radial-depth-pcf4-texel-plane-v2';material.needsUpdate=true;installed.set(material,state);return material;
   },
   dispose(){disposed=true;uniforms.uStaticLampEnabled.value=0;uniforms.uStaticLampDepth.value=null;if(ownedTarget)ownedTarget.dispose();else texture?.dispose();texture=null;ownedTarget=null;},
  };

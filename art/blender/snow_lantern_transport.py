@@ -208,8 +208,18 @@ def photo_cloth_material(cloth, fabric_descriptor):
     links.new(textures['normal'].outputs['Color'], normal.inputs['Color'])
     diffuse = nodes.new('ShaderNodeBsdfDiffuse')
     translucent = nodes.new('ShaderNodeBsdfTranslucent')
-    for shader in [diffuse, translucent]:
-        links.new(color, shader.inputs['Color'])
+    weights = [(diffuse, float(cloth.get('diffuseReflectionWeight', .35)), .35),
+               (translucent, float(cloth.get('diffuseTransmissionWeight', .65)), .65)]
+    if sum(weight for shader, weight, reference in weights) > 1 or any(weight < 0 for shader, weight, reference in weights):
+        raise RuntimeError('Physical cloth diffuse weights must include any absorbed remainder')
+    for shader, weight, reference in weights:
+        shaded_color = color
+        if weight != reference:
+            scale = nodes.new('ShaderNodeMix'); scale.data_type = 'RGBA'; scale.blend_type = 'MULTIPLY'
+            scale.inputs[0].default_value = 1
+            scale.inputs[7].default_value = (weight / reference,) * 3 + (1.,)
+            links.new(color, scale.inputs[6]); shaded_color = scale.outputs[2]
+        links.new(shaded_color, shader.inputs['Color'])
         links.new(normal.outputs['Normal'], shader.inputs['Normal'])
     links.new(textures['roughness'].outputs['Color'], diffuse.inputs['Roughness'])
     cloth_mix = nodes.new('ShaderNodeMixShader'); cloth_mix.inputs[0].default_value = .65
@@ -227,18 +237,22 @@ def photo_cloth_material(cloth, fabric_descriptor):
 
 
 def opaque_material(role):
+    if role in {'cord', 'ceiling-hanger-extension'}:
+        existing = bpy.data.materials.get('Visitor transport matte hemp suspension')
+        if existing:
+            return existing
     colors = {'wick': (.006, .005, .004), 'clay-cup': (.045, .024, .012),
               'bamboo-rib': (.075, .035, .014), 'cord': (.065, .042, .022)}
     color = colors.get(role, (.10, .018, .009))
-    if role == 'ceiling-hanger-extension':
+    if role in {'cord', 'ceiling-hanger-extension'}:
         srgb = [int('746041'[i:i+2], 16)/255 for i in (0, 2, 4)]
         color = [value/12.92 if value <= .04045 else ((value+.055)/1.055)**2.4 for value in srgb]
-    material = bpy.data.materials.new('Visitor transport opaque ' + role)
+    material = bpy.data.materials.new('Visitor transport matte hemp suspension' if role in {'cord', 'ceiling-hanger-extension'} else 'Visitor transport opaque ' + role)
     material.use_nodes = True
     shader = material.node_tree.nodes.get('Principled BSDF')
     shader.inputs['Base Color'].default_value = (*color, 1)
-    shader.inputs['Roughness'].default_value = .5 if role == 'ceiling-hanger-extension' else .85
-    shader.inputs['Metallic'].default_value = .7 if role == 'ceiling-hanger-extension' else 0
+    shader.inputs['Roughness'].default_value = .95 if role in {'cord', 'ceiling-hanger-extension'} else .85
+    shader.inputs['Metallic'].default_value = 0
     return material
 
 
@@ -265,7 +279,7 @@ indices:Array.from(g.index.array)}));"""
         'constructorSourceSha256': sha(ROOT/'node_modules/three/src/geometries/CylinderGeometry.js'),
         'radiusMetres': .0025, 'lengthMetres': length, 'bottomEngine': attachment,
         'topEngine': [attachment[0], top, attachment[2]], 'cssHex': '#746041',
-        'metalness': .7, 'roughness': .5, 'topEmbeddingMetres': .001}
+        'metalness': 0, 'roughness': .95, 'topEmbeddingMetres': .001}
 
 
 def apply_transport(scene, geometry_path, basis, expected_sha256, *, watts=2., radius=.004,
@@ -283,11 +297,12 @@ def apply_transport(scene, geometry_path, basis, expected_sha256, *, watts=2., r
     linear = [value/12.92 if value <= .04045 else ((value+.055)/1.055)**2.4 for value in srgb]
     if len(css) != 6 or max(abs(a-b) for a, b in zip(linear, color)) > 1e-10:
         raise RuntimeError('Cloth linear RGB differs from its actual selected CSS colour')
-    expected_throughput = [.22 * value / max(color) for value in color]
+    shadow_scale = float(cloth.get('shadowTransmissionScale', .22))
+    expected_throughput = [shadow_scale * value / max(color) for value in color]
     if max(abs(a-b) for a, b in zip(expected_throughput, cloth['shadowTransmissionLinearRGB'])) > 1e-10:
         raise RuntimeError('Cloth throughput is not the actual normalized selected linear colour')
-    if not math.isfinite(watts) or watts <= 0 or radius != .004:
-        raise RuntimeError('The picture-selected candle needs positive power and the actual4mm source radius')
+    if not math.isfinite(watts) or watts <= 0 or not math.isfinite(radius) or radius <= 0:
+        raise RuntimeError('The picture-selected candle needs positive finite power and radius')
     basis = list(map(float, basis))
     attachment = [a+b for a, b in zip(basis, data['suspensionTopRelativeToPoint'])]
     tree, owners = architecture_bvh(scene)
@@ -414,7 +429,10 @@ def apply_transport(scene, geometry_path, basis, expected_sha256, *, watts=2., r
     lamp_basis['transport'] = {'type': 'actual-gauze', 'version': 1,
         'geometrySha256': data['geometrySha256'], 'geometryFileSha256': expected_sha256,
         'clothShadowTransmissionLinearRGB': cloth['shadowTransmissionLinearRGB'],
-        'clothCSSHex': cloth['cssHex'], 'formula': 'linearCSS*.22/max(linearCSS)',
+        'clothCSSHex': cloth['cssHex'], 'formula': f'linearCSS*{shadow_scale}/max(linearCSS)',
+        'shadowTransmissionScale': shadow_scale,
+        'diffuseReflectionWeight': float(cloth.get('diffuseReflectionWeight', .35)),
+        'diffuseTransmissionWeight': float(cloth.get('diffuseTransmissionWeight', .65)),
         'proposalStatus': 'finite-candle-picture-candidate-not-optically-approved',
         'sourceRuntime': data['source']}
     if scene.get('one_light_camera_pre_exposure'):

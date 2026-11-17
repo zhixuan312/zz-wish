@@ -203,7 +203,7 @@ void main(){
   gl_Position = projectionMatrix * viewMatrix * vec4(wp, 1.);
 }`;
 const flameFS = `
-uniform float uTime; uniform float uPower; uniform float uWind; uniform float uSoft;
+uniform float uTime; uniform float uPower; uniform float uWind; uniform float uSoft; uniform float uRadiance;
 varying vec2 vUv; varying float vSeed;
 float h1(float n){ return fract(sin(n) * 43758.5453); }
 float vn(vec2 x){ vec2 p = floor(x), f = fract(x); f = f * f * (3. - 2. * f); float n = p.x + p.y * 57.;
@@ -236,11 +236,11 @@ void main(){
   vec4 c=flameAt(vUv+.25*(-dx+dy)),d=flameAt(vUv-.25*(dx+dy));
   float alpha=.25*(a.a+b.a+c.a+d.a);
   vec3 premultiplied=.25*(a.rgb*a.a+b.rgb*b.a+c.rgb*c.a+d.rgb*d.a);
-  gl_FragColor=vec4(alpha>0.?premultiplied/alpha:vec3(0.),alpha);
+  gl_FragColor=vec4((alpha>0.?premultiplied/alpha:vec3(0.))*uRadiance,alpha);
 }`;
 function flameMaterial(instanced) {
   return new THREE.ShaderMaterial({ vertexShader: flameVS, fragmentShader: flameFS, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
-    uniforms: { uTime: { value: 0 }, uWind: { value: 0 }, uPower: { value: instanced ? .52 : 0 }, uScale: { value: .06 }, uSeedU: { value: .37 }, uSoft: { value: 0 } } });
+    uniforms: { uTime: { value: 0 }, uWind: { value: 0 }, uPower: { value: instanced ? .52 : 0 }, uScale: { value: .06 }, uSeedU: { value: .37 }, uSoft: { value: 0 },uRadiance:{value:1} } });
 }
 const flameMats = [];
 
@@ -285,6 +285,7 @@ const outside = new THREE.Scene();
 const previewFill = new THREE.DirectionalLight(0xe4dbc2, 0); previewFill.position.set(1, 2, 2); previewFill.layers.enableAll(); outside.add(previewFill);
 const previewFillTarget=new THREE.Object3D();outside.add(previewFillTarget);previewFill.target=previewFillTarget;
 const gauzePreviewIntensity=2.5;
+let gauzePreviewBlend=0;
 function aimGauzePreview(light,target,centre,eye){
   const offset=eye.clone().sub(centre).normalize().add(V3(0,.18,0)).normalize();
   light.position.copy(light.parent.worldToLocal(centre.clone().add(offset)));
@@ -585,6 +586,8 @@ const LAMPS = {
     // Preserve every drawn profile proportion within a real hanging envelope.
     const width=Math.max(...o.rows.map(row=>row.r+Math.abs(row.cx-topCx)));
     const size=o.liveBaked?Math.min(.56/Math.max(.0001,o.rows.at(-1).y),.21/Math.max(.0001,width)):shadeScale(o.rows,3.8,.02);
+    const lacquer=o.liveBaked?lacquerBlack.clone():lacquerBlack,suspension=o.liveBaked?cordMat.clone():cordMat;
+    if(o.liveBaked){lacquer.userData.lampOwned=true;suspension.userData.lampOwned=true;suspension.color.setHex(0x746041);suspension.roughness=.95;}
     const g = new THREE.Group(), P = scaled(o.rows,size), H = P[P.length - 1][1], y0 = -.066 - H;
     const centerAt=y=>{const q=ringAt(o.rows,Math.max(0,Math.min(H,(y-y0)))/size);return(q.cx-topCx)*size;};
     const bottomCx=centerAt(y0);
@@ -595,8 +598,8 @@ const LAMPS = {
     const prof=outline.getPoints(Math.max(64,P.length*2)).map(p=>[Math.max(.002,p.x),p.y]);
     const rTop=prof.at(-1)[0],rBot=prof[0][0];
     const smokeProfile=prof.map(([r,y])=>[r,y,centerAt(y)]);
-    solid(g, new THREE.CylinderGeometry(.0015, .0015, .06, 6), cordMat, 0, -.03, 0);
-    const vent=addGauzeVent(g,{radius:rTop,topY:prof.at(-1)[1],material:lacquerBlack,cordMaterial:cordMat});
+    solid(g, new THREE.CylinderGeometry(o.liveBaked?.0025:.0015, o.liveBaked?.0025:.0015, .06, 8), suspension, 0, -.03, 0);
+    const vent=addGauzeVent(g,{radius:rTop,topY:prof.at(-1)[1],material:lacquer,cordMaterial:suspension,cordRadius:o.liveBaked?.0025:.0015});
     const shell = shellMaterial(o.color, { map: gauzeTex, glow: 0xffb070, reach: 18, rough: .82, base: .025, strength: 1.05, cloth:true });
     const fabric=lathe(prof,96),fp=fabric.attributes.position;
     for(let i=0;i<fp.count;i++){
@@ -612,7 +615,7 @@ const LAMPS = {
     // The bottom stays open. Three thin risers carry the small internal cup
     // from this bearing ring, leaving real paths for warm light around it.
     const bottomOpening=Math.max(.003,rBot-.008);
-    const bottomRing=solid(g,lathe([[bottomOpening,y0],[rBot+.004,y0],[rBot+.008,y0-.01],[rBot+.004,y0-.018],[bottomOpening,y0-.018],[bottomOpening,y0]],48),lacquerBlack,bottomCx);
+    const bottomRing=solid(g,lathe([[bottomOpening,y0],[rBot+.004,y0],[rBot+.008,y0-.01],[rBot+.004,y0-.018],[bottomOpening,y0-.018],[bottomOpening,y0]],48),lacquer,bottomCx);
     bottomRing.userData.gauzeTransportRole='bottom-ring';
     solid(g, new THREE.CylinderGeometry(.002, .002, .05, 6), cordMat, bottomCx, y0 - .043, 0);
     solid(g,new THREE.SphereGeometry(.0045,12,8),cordMat,bottomCx,y0-.066,0);
@@ -643,14 +646,14 @@ const LAMPS = {
         return V3(centerAt(y)+cupOffset*t+Math.cos(a)*r,y,Math.sin(a)*r);
       });
       const path=new THREE.CurvePath();for(let j=1;j<points.length;j++)path.add(new THREE.LineCurve3(points[j-1],points[j]));
-      const riser=solid(g,new THREE.TubeGeometry(path,48,.0008,6),lacquerBlack);riser.userData.gauzeTransportRole='cup-bearing-spoke';riser.userData.gauzeSupportKind='interior-riser-wire';
+      const riser=solid(g,new THREE.TubeGeometry(path,48,.0008,6),lacquer);riser.userData.gauzeTransportRole='cup-bearing-spoke';riser.userData.gauzeSupportKind='interior-riser-wire';
     }
     const wickMaterial=new THREE.MeshStandardMaterial({color:0x15100c,roughness:1});wickMaterial.userData.lampOwned=true;
     const wickPoints=Array.from({length:12},(_,i)=>{const t=i/11,y=THREE.MathUtils.lerp(cupTop-.001,wickTip.y,t);return V3(centerAt(y)+(cupOffset-cupRadius*.82)*(1-t),y,0);});
     const wickMesh=solid(g,new THREE.TubeGeometry(new THREE.CatmullRomCurve3(wickPoints),24,.00065,6),wickMaterial);
     const smokePath=createGauzeSmokePath(smokeProfile,wickTip,vent);
     const flameSize=gauzeFlameSize(smokeProfile,wick,vent.topY);
-    return { g, kind: 'shade', shells: [shell], wick: { at:wick },wickMesh,smokePath, frame: { h: H + .2, cy: -.07 - H * .5 }, lightMax: .9, flame: flameSize, light: 0xff6a3a, hang: true };
+    return { g, kind: 'shade', shells: [shell], wick: { at:wick },wickMesh,smokePath,suspensionMaterial:suspension, frame: { h: H + .2, cy: -.07 - H * .5 }, lightMax: .9, flame: flameSize, light: 0xff6a3a, hang: true };
   },
   // A square lattice lamp with paper panels on a low wooden stand; its outline, turned square, is the person's.
   lattice(o = presetOf('shade')) {
@@ -720,7 +723,8 @@ const mine = (() => {
   const oilGlow = waxMaterial(0xb0761e, { roughness: .05, clearcoat: 1, glow: 0xffa040, fall: 30 });
   const oilBody = new THREE.Mesh(new THREE.BufferGeometry(), oilGlow); oilBody.renderOrder = 1; g.add(oilBody);
   const f = flameParts(g);
-  const hanger=new THREE.Mesh(new THREE.CylinderGeometry(1,1,1,8),new THREE.MeshStandardMaterial({color:0x746041,metalness:.7,roughness:.5}));
+  const defaultSuspensionMaterial=new THREE.MeshStandardMaterial({color:0x746041,roughness:.95});
+  const hanger=new THREE.Mesh(new THREE.CylinderGeometry(1,1,1,8),defaultSuspensionMaterial);
   hanger.visible=false;g.add(hanger);
   // Keep depth offsets below the measured submillimetre rib/cloth separation.
   f.light.castShadow = true; f.light.shadow.mapSize.set(1024, 1024); f.light.shadow.bias = -.00002; f.light.shadow.normalBias = .0001; f.light.shadow.radius = 2; f.light.shadow.camera.near = .008; f.light.shadow.camera.far = 6;
@@ -736,6 +740,7 @@ const api = { g, parts: null, partsKey: null, type: null, power: 0, lightPower: 
       if (this.parts) { g.remove(this.parts.g); disposeTree(this.parts.g); }
       const input=drawn?{...o,liveBaked}:this.type==='gauze'?{...presetOf('shade'),liveBaked}:undefined;
       const p = input ? LAMPS[this.type](input) : LAMPS[this.type](); this.parts = p; this.partsKey = key; g.add(p.g);
+      hanger.material=p.suspensionMaterial??defaultSuspensionMaterial;
       f.wick.visible=!p.wickMesh;
       f.light.color.setHex(p.light ?? 0xffba78); f.size = p.flame ?? 1; mirror.size = f.size;
       g.traverse((c) => { c.layers.set(0); warmReflections(c); }); f.light.layers.enableAll();
@@ -753,7 +758,7 @@ const api = { g, parts: null, partsKey: null, type: null, power: 0, lightPower: 
         let cloth;p.g.traverse(object=>{if(object.userData.visitorCloth)cloth=object;});
         const pointLocal=p.wick.at.clone().add(V3(0,.019*(p.flame??1),0));
         cloth.material.sheen=0;cloth.material.specularIntensity=0;cloth.material.needsUpdate=true;
-        place.baked.gauzeTransmission.configure({cloth,pointLocal,colour:input.color,shadowTransmissionScale:place.baked.manifest.lampBasis.transport.shadowTransmissionScale??.22,frame:g});
+        place.baked.gauzeTransmission.configure({cloth,pointLocal,colour:input.color,shadowTransmissionScale:place.baked.manifest.lampBasis.transport.shadowTransmissionScale??.22,emitterRadius:place.baked.manifest.lampBasis.pointRadiusMetres??0,frame:g});
       }else place?.baked?.gauzeTransmission?.disable();
     },
     setType(type) {
@@ -814,13 +819,20 @@ const api = { g, parts: null, partsKey: null, type: null, power: 0, lightPower: 
         g.position.set(basis.x-this.top.x,basis.y-.019*(p.flame??1)-this.top.y,basis.z-this.top.z);
         const hook=place.nookG.worldToLocal(V3(...(place.P.nook.hangingPoint??[place.baked.manifest.lampBasis.position[0],3.22,place.baked.manifest.lampBasis.position[2]])));
         if(pivot)hook.sub(pivot.position);
-        const length=Math.max(0,hook.y-g.position.y);
-        hanger.visible=length>.001;hanger.position.set(0,length/2,0);hanger.scale.set(.0025,length,.0025);
+        const suspensionEnd=hook.clone().sub(g.position),length=suspensionEnd.length();
+        hanger.visible=length>.001;hanger.position.copy(suspensionEnd).multiplyScalar(.5);hanger.scale.set(.0025,length,.0025);
+        if(hanger.visible)hanger.quaternion.setFromUnitVectors(V3(0,1,0),suspensionEnd.normalize());
       }
       f.place(this.top.x, this.top.y, this.top.z);
     },
     flameWorld() { g.updateWorldMatrix(true, false); return g.localToWorld(world.copy(this.top)); },
-    setShadowFar(far){f.light.shadow.camera.far=far;f.light.shadow.camera.updateProjectionMatrix();},
+    setShadowFar(far){
+      f.light.shadow.camera.far=far;
+      // Preserve the original0.12mm world bias when the indirect-light route
+      // extends the shadow range. A fixed normalized bias hid thin rib shadows.
+      f.light.shadow.bias=-.00012/(far-f.light.shadow.camera.near);
+      f.light.shadow.camera.updateProjectionMatrix();
+    },
     lightWorld() { f.light.updateWorldMatrix(true,false);return f.light.getWorldPosition(world); },
     update(time) {
       const p = this.parts; if (!p) return;
@@ -1475,6 +1487,8 @@ function bell(x, y, z, s, m) { put(lathe([[0, 0], [.42, 0], [.44, .08], [.38, .3
 function liveFlame(x,y,z,options={}){
   const g=new THREE.Group();C.G.add(g);g.position.set(x,y,z);
   const f=flameParts(g,{light:false,size:options.size??1.3});f.soft=true;f.place(0,0,0);
+  f.fm.uniforms.uRadiance.value=options.radiance??1;
+  if(options.halo===false)f.halo.visible=false;
   const state={g,f,power:options.power??.86,flameWorld:()=>g.getWorldPosition(V3())};
   C.up.push((dt,time)=>{
     f.tick(time,state.power,0,[],0);
@@ -1843,7 +1857,8 @@ async function drawLampThumbnail(shape,{state,remaining,width,height}){
   const bounds=new THREE.Box3().setFromObject(parts.g),size=bounds.getSize(V3()),center=bounds.getCenter(V3());
   const tangent=Math.tan(Math.PI/12),distance=Math.max(size.y/(2*tangent*.82),size.x/(2*tangent*(w/h)*.82));
   stage.camera.aspect=w/h;stage.camera.position.copy(center).add(V3(distance*.25,distance*.10,distance));stage.camera.lookAt(center);stage.camera.updateProjectionMatrix();
-  stage.soft.visible=shape.kind!=='shade';stage.gauzeKey.visible=shape.kind==='shade'&&state==='unlit';
+  stage.soft.visible=shape.kind!=='shade';stage.gauzeKey.visible=shape.kind==='shade'&&state!=='burning';
+  stage.gauzeKey.intensity=gauzePreviewIntensity*(state==='unlit'?1:.55);
   if(stage.gauzeKey.visible)aimGauzePreview(stage.gauzeKey,stage.gauzeTarget,center,stage.camera.position);
   stage.flame.flame.quaternion.copy(stage.camera.quaternion);
   stage.linear.setSize(w,h);stage.mapped.setSize(w,h);stage.output.setSize(w,h);
@@ -2125,7 +2140,9 @@ function frame(stamp = performance.now()) {
       const centre=mine.g.localToWorld(V3(0,mine.parts.frame.cy,0));
       aimGauzePreview(previewFill,previewFillTarget,centre,camera.position);
     }else{previewFill.position.set(1,2,2);previewFillTarget.position.set(0,0,0);}
-    previewFill.intensity = phase === 'candle' ? (P.bakedLighting ? gauzePreviewIntensity : .7) : P.bakedLighting ? gauzePreviewIntensity*ignitionFill : 0;
+    const previewTarget=mine.g.visible&&atLamp?(phase==='candle'?1:!lit?.55:ignitionFill):0;
+    gauzePreviewBlend+=(previewTarget-gauzePreviewBlend)*(1-Math.exp(-dt*5));
+    previewFill.intensity=P.bakedLighting?gauzePreviewIntensity*gauzePreviewBlend:phase==='candle'?.7:0;
     wickPlume.update(time);
     dust.visible = !!N.dust && atLamp && !powerSaver && !reducedMotion.matches;
     dust.material.userData.soft.value=P.bakedLighting?1:0;

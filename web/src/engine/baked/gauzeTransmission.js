@@ -2,7 +2,7 @@ import {DataTexture,RedFormat,UnsignedByteType,LinearFilter,LinearMipmapLinearFi
 import {makeGauzeMaskData} from './gauzeMask.js';
 
 const boundMaterials=new WeakMap();
-export const GAUZE_CANDLE_REFERENCE=Object.freeze({watts:2,cameraPreExposure:40,cameraExposureEV:.35,revision:4,pointRadiusMetres:.004,linearColor:Object.freeze([1,.43,.13]),diffuseTransmissionWeight:.065,diffuseReflectionWeight:.35,shadowTransmissionScale:.022});
+export const GAUZE_CANDLE_REFERENCE=Object.freeze({watts:.8,cameraPreExposure:40,cameraExposureEV:.35,revision:5,pointRadiusMetres:.03,linearColor:Object.freeze([1,.43,.13]),diffuseTransmissionWeight:.065,diffuseReflectionWeight:.35,shadowTransmissionScale:.022});
 export function gauzeTransmissionColour(cssColour,scale=.22){
  const c=new Color(cssColour),peak=Math.max(c.r,c.g,c.b,1e-8);
  return new Vector3(c.r,c.g,c.b).multiplyScalar(scale/peak);
@@ -11,8 +11,8 @@ export function gauzeTransmissionColour(cssColour,scale=.22){
 // A small CPU BVH of the actual deformed cloth triangles. The light is inside
 // the shade: a ray meeting cloth is filtered; a ray leaving a true aperture is
 // unfiltered. Caps/ribs/cup remain ordinary opaque point-shadow casters.
-export function makeGauzeDirectionMask(geometry,origin,{width=128,height=64}={}){
- const result=makeGauzeMaskData(geometry,origin,{width,height});
+export function makeGauzeDirectionMask(geometry,origin,{width=128,height=64,emitterRadius=0}={}){
+ const result=makeGauzeMaskData(geometry,origin,{width,height,emitterRadius});
  const {data}=result;
  const texture=new DataTexture(data,width,height,RedFormat,UnsignedByteType);texture.colorSpace=NoColorSpace;
  texture.wrapS=RepeatWrapping;texture.wrapT=ClampToEdgeWrapping;texture.magFilter=LinearFilter;texture.minFilter=LinearMipmapLinearFilter;texture.generateMipmaps=true;texture.needsUpdate=true;
@@ -43,13 +43,13 @@ export function createGauzeTransmission(){
  const uniforms={uGauzeFilterEnabled:{value:0},uGauzeFilterPoint:{value:new Vector3()},uGauzeFilterRGB:{value:new Vector3(1,1,1)},uGauzeWorldInverse:{value:new Matrix4()},uGauzeDirectionMask:{value:null}};
  let mask=null,frame=null;
  const state={uniforms,
-  configure({cloth,pointLocal,colour,shadowTransmissionScale=.22,frame:actualFrame}){
+  configure({cloth,pointLocal,colour,shadowTransmissionScale=.22,emitterRadius=0,frame:actualFrame}){
    if(!cloth?.isMesh||!actualFrame?.isObject3D||!pointLocal?.isVector3)throw Error('Actual cloth mesh, local point and lantern frame required');
    actualFrame.updateWorldMatrix(true,true);cloth.updateWorldMatrix(true,false);
    const localPoint=cloth.worldToLocal(actualFrame.localToWorld(pointLocal.clone()));
-   const next=makeGauzeDirectionMask(cloth.geometry,localPoint);mask?.texture.dispose();mask=next;frame=cloth;
+   const next=makeGauzeDirectionMask(cloth.geometry,localPoint,{emitterRadius});mask?.texture.dispose();mask=next;frame=cloth;
    uniforms.uGauzeDirectionMask.value=mask.texture;uniforms.uGauzeFilterRGB.value.copy(gauzeTransmissionColour(colour,shadowTransmissionScale));uniforms.uGauzeFilterEnabled.value=1;
-   return{width:mask.width,height:mask.height,triangles:mask.triangles,texelBytes:mask.data.length,throughput:uniforms.uGauzeFilterRGB.value.toArray(),scope:mask.scope};
+   return{width:mask.width,height:mask.height,triangles:mask.triangles,texelBytes:mask.data.length,requestedEmitterRadius:mask.requestedEmitterRadius,emitterRadius:mask.emitterRadius,clothClearance:mask.clothClearance,emitterSamples:mask.emitterSamples,throughput:uniforms.uGauzeFilterRGB.value.toArray(),scope:mask.scope};
   },
   update(light){
    if(!frame||!light)return;frame.updateWorldMatrix(true,false);uniforms.uGauzeWorldInverse.value.copy(frame.matrixWorld).invert();light.updateWorldMatrix(true,false);light.getWorldPosition(uniforms.uGauzeFilterPoint.value);

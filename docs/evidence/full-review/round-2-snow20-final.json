@@ -1,0 +1,118 @@
+{
+  "scope": "Installed Source20 final Round2 delivery; actual final app/performance/stranger checks remain separate.",
+  "source": {
+    "path": "art/build/snow-roof-round2/source-v20.blend",
+    "sha256": "b44a73486d43212881bea678bedb3cad82907e26d9ba6d2910ba052e5593d0fb"
+  },
+  "prepared": {
+    "path": "/Users/xuan/Documents/code/zz-wish/art/build/snow-roof-round2/final20-native64/snow-roof-prepared.blend",
+    "sha256": "e1c66d1059fdaaadebe253b9dc43742eb6d7c75d6f64ce9315fa976e1ff28942"
+  },
+  "raw": {
+    "path": "art/build/snow-roof-round2/final20-native64/snow-roof.raw.glb",
+    "sha256": "9ee70d7363339b2010c7ae2b0802fcab8289fe8ee9bdeed0744898ddf8196049"
+  },
+  "manifest": {
+    "path": "web/public/places/snow-roof/manifest.json",
+    "sha256": "0ffd1c87dc92720346c47d62f99b1fcb02a2fa61872fd49cbd7f5f8682c4730d"
+  },
+  "model": {
+    "uri": "snow-roof.glb.zstd",
+    "bytes": 6085016,
+    "sha256": "ad89904f03d25d8d61a69d8767ddf826ecb7c67695a26bcc6525961acd8bc627",
+    "encoding": "zstd",
+    "decodedBytes": 10294072,
+    "decodedSha256": "6142b1d2db98de88e1dd0f5b4b8a226b6ecae04c5d780c897b4741a256fe53c0"
+  },
+  "completeBytes": {
+    "payloadBytes": 14725342,
+    "manifestBytes": 26896,
+    "sharedVisualBytes": 116705,
+    "completePackageBytes": 14868943
+  },
+  "budget": 15000000,
+  "budgetHeadroom": 131057,
+  "declaredFiles": 21,
+  "noUnusedOldPublicFiles": true,
+  "native": {
+    "maps": 16,
+    "fixedSamplesEach": 64,
+    "bakeDevice": "METAL",
+    "denoiseDevice": "METAL",
+    "threads": "AUTO",
+    "seconds": 344.8369523330475,
+    "frozenInputsChanged": [],
+    "previousGIReused": false
+  },
+  "contacts": {
+    "groups": 47,
+    "sourcePreparedRawAndDecodedPassed": true,
+    "gapLimitMetres": 0.002,
+    "penetrationLimitMetres": 0.005
+  },
+  "geometry": {
+    "staticTriangles": 329326,
+    "sourceF32PositionsWindingTransformsExact": true,
+    "runtimeAnchorsExact": true
+  },
+  "declaredPrecision": {
+    "maximumOriginalSourceMaterialTexelError": 0.2109375,
+    "maximumLightmapBaseTexelError": 0.0107421875,
+    "maximumWorldNormalComponentError": 1.9786220281869937e-05,
+    "colourPolicy": {
+      "type": "normalized U8",
+      "explicitPolicy": "reviewed-u8",
+      "maximumLinearComponentError": 0.0019607784701328734,
+      "unitRangeHalfStep": 0.00196078431372549,
+      "clampedSourceComponents": 0,
+      "clampingExplicitlyReported": true
+    }
+  },
+  "normalImages": "Six larger architectural normals downsampled256; already128 linen normal retained byte-exact, table/screen/bronze protections retained.",
+  "packageRecovery": "Original completed stages retained. Helper corrected to treat256 as a cap, preserving the legitimate128px source; no source/native/GI change or rebake. Resume recipe records actual commands and hashes.",
+  "provenance": "docs/licenses/lantern-fabric.json records both128px derivatives of already-licensed rough_linen.",
+  "receipts": {
+    "sourceAudit": {
+      "path": "art/build/snow-roof-round2/source-v20.audit.json",
+      "sha256": "8d4cddb864403af2da3247318ccc5c03a730e4f9fcd0796583344f8613eb0119"
+    },
+    "hiddenRoofProof": {
+      "path": "art/build/snow-roof-round2/source-v20-hidden-faces-20mm.json",
+      "sha256": "45cbaf8c4e154e42280258c737da27fbd38bd09e74cd3067d341b01e13ac10b3"
+    },
+    "acceptedNativePictures": {
+      "path": "art/build/snow-roof-round2/fixture-material-native8/preview.json",
+      "sha256": "4a25cde3be9890107cc254d042ebd26082acd8732c9a88aef7eec46dfe52ccb2"
+    },
+    "native": {
+      "path": "art/build/snow-roof-round2/final20-native-completion.json",
+      "sha256": "47c3da3524262cf494af37157e7e43bc38a238363172dcb6a4032379e7a368eb"
+    },
+    "package": {
+      "path": "art/build/snow-roof-round2/final20-packaged/package-receipt.json",
+      "sha256": "df7ed34323b1548ef799a5839dd06ae8ef6a729113b935b291943dcf9e59ef3c"
+    },
+    "packageResumeRecipe": {
+      "path": "art/build/snow-roof-round2/final20-packaged/resume-recipe.json",
+      "sha256": "e07da86b1145d7b065959cdbb7add1e0fa8f1f1ee24e723417420b5e4502c0a5"
+    },
+    "retainedGeometry": {
+      "path": "art/build/snow-roof-round2/final20-packaged/pruned/independent-geometry-proof.json",
+      "sha256": "fc65e9d90175f9c33609d61f05772588afced71b5e66ceb1c981f9814e36e1cf"
+    },
+    "decodedPrecision": {
+      "path": "art/build/snow-roof-round2/final20-packaged/normal256/independent-precision-proof.json",
+      "sha256": "dd27137fc72c62b9cf43d2f9b8048767719e05e1322cf18c78d5757f178bcdae"
+    },
+    "decodedContacts": {
+      "path": "art/build/snow-roof-round2/final20-packaged/normal256/contact-audit.json",
+      "sha256": "61438f69d59774db237281950589b863563ebfdbe13bd0a68c234a504d949259"
+    },
+    "install": {
+      "path": "art/build/snow-roof-round2/final20-install-receipt.json",
+      "sha256": "4f4f8e12f650f8a8b7b4368d552ac18b216870d67118533ab0440acdf3c08eca"
+    }
+  },
+  "gpuNativeEncoderJobsActive": false,
+  "finalAppAcceptancePending": true
+}

@@ -58,6 +58,8 @@ fabric_path = ROOT / 'docs/licenses/lantern-fabric.json'
 if fabric_path.exists():
     fabric = json.loads(fabric_path.read_text())
     assets.append({'id': 'visitor-lantern-rough-linen', 'kind': 'Photographed fabric material', 'provider': 'Poly Haven', 'license': fabric['license'], 'licenseUrl': fabric['licenseURL'], 'sourceUrl': fabric['assetPage'], 'authors': fabric['authors'], 'transformation': fabric['process'], 'runtimeUse': 'Photographed yarn luminance modulates the chosen cloth dye; normal and roughness maps remain linear data.', 'provenanceFile': 'docs/licenses/lantern-fabric.json', 'files': [{**file_info(m['derived']['path']), 'role': m['role'], 'sourceUrl': m['source']['url'], 'sourceSha256': m['source']['sha256']} for m in fabric['maps']]})
+    if fabric.get('cushionDerivatives'):
+        assets[-1]['cushionDerivatives'] = fabric['cushionDerivatives']
 for place_id, script in [('snow-roof', 'snow_roof'), ('cloud-cliff', 'cloud_cliff')]:
     source = ROOT / f'art/blender/{script}.py'
     if source.exists():
@@ -80,6 +82,15 @@ for place_id, script in [('snow-roof', 'snow_roof'), ('cloud-cliff', 'cloud_clif
         'scripts/attach-place-runtime-assets.mjs',
     ]
     source_files += (['art/blender/preview_snow_room_candidate.py', 'scripts/prepare-snow-priority-atlas.py', 'scripts/package-snow-compact-preview.py', 'scripts/assemble-snow-preview.mjs', 'scripts/probe-uv16-budget.mjs', 'scripts/probe-normal16-budget.mjs', 'scripts/probe-material-normal-budget.mjs', 'art/blender/snow_round1_details.py', 'art/blender/snow_bronze_maps.py', 'art/blender/snow_paint_maps.py', 'art/blender/snow_lightmap_charts.py', 'art/blender/freeze_source_modifiers.py', 'art/blender/snow_lantern_transport.py', 'art/blender/patch_snow_lantern_transport.py', 'art/blender/rebase_snow_radiometry.py', 'art/blender/join_tube_lightmap_charts.py', 'art/blender/priority_lightmap_allocation.py', 'art/blender/refine_underside_lightmap.py', 'scripts/export-gauze-transport.mjs', 'scripts/load-gauze-geometry.mjs'] if place_id == 'snow-roof' else ['art/blender/fixed_view_allocation.py', 'art/blender/build_cloud_source19.py', 'art/blender/export_cloud_field_metadata.py', 'scripts/prototype-cloud-live-envelope.mjs', 'scripts/prove-cloud-hash-lattice.mjs', 'scripts/pack-cloud-noise-lattice.mjs', 'scripts/pack-cloud-live-density.mjs'])
+    if place_id == 'snow-roof':
+        source_files += [
+            'art/blender/preview_snow_round2_pool_candidate.py',
+            'art/blender/preview_snow_round2_combined.py',
+            'art/blender/snow_round2_interior.py',
+            'art/blender/snow_round2_exterior.py',
+            'art/blender/snow_round2_fixture_materials.py',
+            'art/blender/preview_snow_round2_fixtures.py',
+        ]
     files = [file_info(str(delivery.relative_to(ROOT)))]
     for f in d['files']:
         actual = file_info(f'web/public/places/{place_id}/' + f['uri'])
