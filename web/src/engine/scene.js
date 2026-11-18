@@ -192,23 +192,54 @@ uniform float uScale; uniform float uSeedU; uniform float uPineFlame;
 #ifdef USE_INSTANCING
 attribute float aSeed; attribute float aScale;
 #endif
-varying vec2 vUv; varying float vSeed;
+varying vec2 vUv; varying float vSeed; varying float vViewSlope;
 void main(){
   vUv = uv; float sc = uScale; float sd = uSeedU; vec4 c = modelMatrix * vec4(0., 0., 0., 1.);
   #ifdef USE_INSTANCING
   sc = aScale; sd = aSeed; c = modelMatrix * instanceMatrix * vec4(0., 0., 0., 1.);
   #endif
   vSeed = sd;
+  vec3 eye = cameraPosition - c.xyz;
+  vViewSlope = clamp(eye.y / max(length(eye.xz), .001), -.9, .9);
   vec3 r = normalize(vec3(viewMatrix[0][0], 0., viewMatrix[2][0]));
   vec3 wp = c.xyz + r * position.x * sc * mix(.5, .66, uPineFlame) + vec3(0., 1., 0.) * (position.y + .5) * sc;
   gl_Position = projectionMatrix * viewMatrix * vec4(wp, 1.);
 }`;
 const flameFS = `
 uniform float uTime; uniform float uPower; uniform float uWind; uniform float uSoft; uniform float uRadiance; uniform float uPineFlame;
-varying vec2 vUv; varying float vSeed;
+varying vec2 vUv; varying float vSeed; varying float vViewSlope;
 float h1(float n){ return fract(sin(n) * 43758.5453); }
 float vn(vec2 x){ vec2 p = floor(x), f = fract(x); f = f * f * (3. - 2. * f); float n = p.x + p.y * 57.;
   return mix(mix(h1(n), h1(n + 1.), f.x), mix(h1(n + 57.), h1(n + 58.), f.x), f.y); }
+// Integrate emission through a swaying volume. The blue base rims a cooler,
+// fuel-rich interior just above the wick.
+vec3 pineFlameVolume(vec2 uv) {
+  float t = uTime + vSeed * 6.;
+  float h = .91 + .125 * vn(vec2(t * 2.9, vSeed));
+  float sway = (vn(vec2(t * 1.56, vSeed * 2.1)) - .5) * .16 + uWind * .28;
+  float flutter = .91 + .16 * vn(vec2(t * 6.7, vSeed + 11.));
+  vec3 emission = vec3(0.);
+  float transmission = 1.;
+  for (int i = 0; i < 7; ++i) {
+    float z = (float(i) - 3.) * .083;
+    float y = (uv.y + z * vViewSlope * .66 - .064) / h;
+    float v = clamp(y, 0., 1.);
+    float x = uv.x - .5 - sway * v * v - .05 * v;
+    float radius = .249 * smoothstep(-.048, .15, y) * pow(max(1. - v, 0.), .76);
+    float r = length(vec2(x, z * .92)) / max(radius, .007);
+    float envelope = (1. - smoothstep(.78, 1.03, r)) * smoothstep(-.042, .035, y);
+    float inner = (1. - smoothstep(.37, .72, r)) * (1. - smoothstep(.24, .56, y));
+    float blue = (1. - smoothstep(.13, .31, y)) * (.65 + .35 * smoothstep(.25, .9, r));
+    float skirt = smoothstep(.49, .99, r);
+    vec3 gold = mix(vec3(3.9, 2.0, .51), vec3(1.63, .52, .105), skirt);
+    gold *= mix(.064, 1., 1. - inner);
+    vec3 spectrum = mix(gold, vec3(.10, .39, 1.18) * (1. - .65 * inner), blue);
+    float density = envelope * (.66 + .34 * skirt);
+    emission += spectrum * transmission * density * .30;
+    transmission *= 1. - density * .16;
+  }
+  return emission * uRadiance * flutter;
+}
 vec4 flameAt(vec2 sampleUv){
   if(sampleUv.x<0.||sampleUv.x>1.||sampleUv.y<=0.||sampleUv.y>=1.)return vec4(0.);
   float t = uTime * mix(1., .32, uSoft) + vSeed * 17.;
@@ -237,6 +268,10 @@ vec4 flameAt(vec2 sampleUv){
   return vec4(col * (1.15 + core * 1.1) * (.85 + .15 * vn(vec2(t * 3.7, vSeed * 5.))), alpha);
 }
 void main(){
+  if (uPineFlame > .5) {
+    gl_FragColor = vec4(pineFlameVolume(vUv), uPower);
+    return;
+  }
   vec2 dx=dFdx(vUv),dy=dFdy(vUv);
   vec4 a=flameAt(vUv+.25*(dx+dy)),b=flameAt(vUv+.25*(dx-dy));
   vec4 c=flameAt(vUv+.25*(-dx+dy)),d=flameAt(vUv-.25*(dx+dy));
@@ -464,7 +499,9 @@ function flameParts(g, o = {}) {
       const f = this.soft ? .975 + .025 * noise2((time + seed * 17) * .48, seed * 5) : .85 + .15 * noise2((time + seed * 17) * 3.7, seed * 5);
       fm.uniforms.uSoft.value = this.soft ? 1 : 0;
       fm.uniforms.uTime.value = time; fm.uniforms.uPower.value = power; fm.uniforms.uScale.value = .038 * this.size * (.85 + .15 * f) * Math.max(.15, Math.sqrt(power));
-      const field=this.soft?1:f;
+      const pine = fm.uniforms.uPineFlame.value > .5;
+      const field = pine ? .90 + .10 * noise2(time * 6.7 + seed * 17, seed * 5)
+        : this.soft ? 1 : f;
       if (light) light.intensity = lightMax * power * field;
       halo.material.opacity = .025 * power * f; ember.visible = power > .02;
       for (const m of wax) { m.userData.u.uTop.value = topY; m.userData.u.uGlow.value = 1.1 * power * field; }
@@ -803,7 +840,7 @@ const api = { g, parts: null, partsKey: null, type: null, power: 0, lightPower: 
       f.light.distance = p.pineWax && liveBaked ? .42 : 0;
       f.fm.uniforms.uPineFlame.value = p.pineWax && liveBaked ? 1 : 0;
       f.fm.uniforms.uRadiance.value = p.pineWax && liveBaked ? .83 : 1;
-      f.ember.scale.setScalar(p.pineWax && liveBaked ? .72 : 1);
+      f.ember.scale.setScalar(p.pineWax && liveBaked ? .49 : 1);
       f.light.color.setHex(p.light ?? 0xffba78); f.size = p.flame ?? 1; mirror.size = f.size;
       g.traverse((c) => { c.layers.set(0); warmReflections(c); }); f.light.layers.enableAll();
       if(liveBaked&&place?.visitorEnvironment){
@@ -896,7 +933,9 @@ const api = { g, parts: null, partsKey: null, type: null, power: 0, lightPower: 
       if (p.pineWax) {
         f.ember.position.copy(p.pineWax.wickTip);
         if (place?.P.bakedLighting) {
-          f.flame.position.y = p.pineWax.wickTip.y - .0035;
+          f.ember.position.y += .0002;
+          f.flame.position.copy(p.pineWax.wickTip);
+          f.flame.position.y -= .0025;
           f.light.position.y = p.pineWax.wickTip.y + .0175;
         }
       }
@@ -926,7 +965,7 @@ const api = { g, parts: null, partsKey: null, type: null, power: 0, lightPower: 
       const power = this.power * (lit ? Math.min(1, level * 25) : 1);
       const fw = this.flameWorld(), k = f.tick(time, power, p.lightMax * keep * this.lightBoost, p.pineWax?.materials ?? [wax, poolMat, oilGlow], fw.y);
       if (p.pineWax) {
-        p.pineWax.updateLight(f.light, place?.baked?.manifest.lampBasis?.pointRadiusMetres);
+        p.pineWax.updateLight(f.light, place?.baked?.manifest.lampBasis?.pointRadiusMetres, time, wind);
         if (f.light.intensity > .0001) {
           f.light.getWorldPosition(pineShadowPoint);
           // Only wick movement changes the shadow of the static stone niche.
@@ -968,7 +1007,7 @@ const api = { g, parts: null, partsKey: null, type: null, power: 0, lightPower: 
       if (p.pineWax && place?.P.bakedLighting && !embering) {
         f.halo.material.opacity *= .35;
         f.halo.scale.set(.11, .15, 1);
-        f.ember.material.color.setRGB(.92, .21, .045);
+        f.ember.material.color.setRGB(.95 * k, .12 * k, .020 * k);
       }
       if (p.kind === 'shade') f.halo.material.opacity *= .3;
       // The reflection: same flame, flipped about the water, broken up a little by ripples.
