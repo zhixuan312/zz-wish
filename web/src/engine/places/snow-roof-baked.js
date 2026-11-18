@@ -95,8 +95,12 @@ export default function createPlace(h){
       wide:{pos:V3(.2,1.62,3.75),look:V3(0,1.75,-3),fov:40},
       widePhone:{pos:V3(.05,1.62,3.75),look:V3(0,1.9,-3),fov:56},
       // Follow the doorway into the open bay; every view uses the nook frame.
-      chooseApproach:[V3(0,1.62,2.7),V3(-.5,1.62,1.8),V3(-1.6,1.62,1.15)],
-      chooseApproachPhone:[V3(0,1.62,2.7),V3(-.6,1.62,2.15),V3(-1.25,1.62,2)],
+      // The approach must close on the lamp monotonically: an earlier middle point
+      // sat closer to the shade than the chooser position did, so the last metres
+      // backed away and the shade shrank. These points lie on the line from the
+      // doorway to the chooser spot, so the distance only falls.
+      chooseApproach:[V3(0,1.62,2.7),V3(-1.4,1.62,1.9)],
+      chooseApproachPhone:[V3(0,1.62,2.7),V3(-1.4,1.62,1.9)],
       choose:{pos:V3(-2.75,1.62,1.15),look:V3(-1.4993,1.5523,-.8),fov:55},
       choosePhone:{pos:V3(-1.5,1.6,2.2),look:V3(-1.4993,.97,-.8),fov:55},
       spread:{pos:V3(-2.95,1.65,1.05),look:V3(-1.4993,1.5523,-.8),fov:55},

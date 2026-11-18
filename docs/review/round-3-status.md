@@ -201,50 +201,69 @@ reversal appears in either series.
 
 ### Approach series
 
-Captured through the real walk with no Skip and no held camera. Each frame's clip follows the
-lamp's own page-space rectangle, the true PNG size is read from each file header, and every
-mean is taken after converting CSS to capture pixels with scale = PNG size / clip size. Both
-viewports record scale 2 (devicePixelRatio 2), so a CSS box indexes only half a capture and
-is never used directly. 140 frames per viewport; desktop walk progress 0→0.97, phone 0→0.55
-when the chooser appeared.
+Captured through the real walk with no Skip and no held camera, on both viewports, through
+to walk progress 1.00 and fifteen frames of the chooser that follows. Each frame's clip
+follows the lamp's page-space rectangle, the true PNG size is read from the file header, and
+every mean converts CSS to capture pixels with scale = PNG size / clip size; both viewports
+record scale 2, so a CSS box is never used against a 2x capture. 164 desktop and 267 phone
+frames.
 
 Two regions per frame: **whole** covers the lamp rectangle (cloth, ribs, gaps and the rim);
 **inner** covers its middle half, keeping the cloth body and excluding the cord and edges.
 
-| viewport | interval median / max / over 250 ms | inner range | inner median step | inner p95 step | largest inner step |
-|---|---|---|---|---|---|
-| desktop-en | 199 / 250 / **0** | 10.4-31.5 | 1.2% | 14.5% | 55.4% (025→026) |
-| phone-zh | 117 / 122 / **0** | 16.2-31.7 | 2.0% | 22.4% | 51.9% (041→042) |
+| viewport | interval median / max / over 250 ms | lamp width | inner range | inner median | inner p95 | inner steps over 15% |
+|---|---|---|---|---|---|---|
+| desktop-en | 203 / 283 / 1 | 33→629 px | 15.2-29.8 | 1.0% | 10.4% | 2 |
+| phone-zh | 117 / 227 / 0 | 31→323 px | 14.9-32.7 | 1.4% | 11.1% | 11 |
 
-The intervals above come from in-page timestamps; an earlier capture of this segment had six
-desktop intervals over 250 ms with a 275 ms maximum, and the run above replaces it. Every
-number is recomputable from `j6-j2/approach-series-{desktop-en,phone-zh}.json`, which records
-each frame's scale, image pixel size, lamp rectangle in pixels, progress, and both means.
-Timestamps, clip and page-space rectangle are in `j6-j2/approach-timestamps.json`.
+The lamp grows monotonically through the walk on both viewports; the only shrink is 2 px at
+the final frame of the desktop walk and 12 px on phone, where the camera settles into the
+chooser pose.
 
-**What was fixed.** The previous capture showed a 26.6% inner step at frame 132→133 on
-desktop, with the hall behind the lamp visibly jumping. Cause: the walk's turn from its
-walking heading to the chooser heading was compressed into the last 7% of a 30 s walk
-(`smooth(.93,1,e)` for the look target, `smooth(.91,1,e)` for the field of view), and the
-unlit-lamp fill arrived at 5/s, so within one 200 ms sample the look blend moved 15% and the
-fill most of its range. `travel()` now spreads the turn over `smooth(.84,1,e)` and
-`smooth(.80,1,e)`, halving the per-frame change, and the fill ramps at 0.6/s. Re-captured on
-the same segment, frame 132→133 measures **0.2%** instead of 26.6%.
+### What was fixed, with the cause
 
-**What is still open.** The largest steps now sit at the very end of the walk and in the
-small-shade opening frames: desktop 55.4% at 25→26 (shade 31x43 px) and 39.5% at 138→139
-(shade 409x545 px, where the rim highlight first enters the lamp rectangle), phone 51.9% at
-41→42 (shade 31x31 px). At 138→139 the inner red channel rises with the luma (53.3→57.9),
-which is a real lit-rim highlight rather than measurement noise. These are recorded here as
-open: the item stays **partly** done.
+Two camera-path defects produced the earlier pop, both inside `travel()`:
 
-Frames kept: `j6-j2/approach-desktop-en-{024,025,026,138,139}.png`,
-`j6-j2/approach-phone-zh-{041,042}.png`.
+1. **The closing turn was compressed.** The look target swung to the chooser heading over the
+   last 7% of a 30 s walk and the field of view widened over the last 9%, so one 200 ms sample
+   carried a 15% look blend and an 11% fov blend. The background swept sideways between two
+   frames. The turn now spreads over `smooth(.84,1,e)` and the fov is held at its walking value
+   for the whole walk.
+2. **The approach overshot the lamp.** `chooseApproach` ended 1.95 m from the shade while the
+   chooser pose stood 2.32 m away, so the last metres backed off and the shade shrank from
+   419 to 345 px. The waypoints now lie on the line from the doorway to the chooser spot,
+   giving 3.81 → 2.70 → 2.32 m, and the width rises instead of falling.
 
-There is no "wider than 60 px is safe" claim: on the desktop only 13 frames have a shade
-wider than 200 capture pixels, and their largest inner step is 39.5%, which is the transition
-frame above. The phone shade is 30-36 capture pixels wide in every one of its 140 frames, so
-no size band is claimed for it.
+The unlit-lamp fill was also eased, but only on the walk-to-chooser rise: the target steps
+from .55 to 1 there, and at five per second that step crossed half its range in one sample.
+Ignition and put-out keep their original `dt * 5` behaviour, so their timing is unchanged;
+`dt * 5` is restored for every other transition.
+
+### Every remaining step over 15%
+
+Reading `j6-j2/approach-series-{desktop-en,phone-zh}.json`:
+
+- desktop, frame 0→1 (shade 33 px): the first sampled frame catches the fill still rising from
+  the cover; it is the run's start-up, not a walk event.
+- desktop, frame 24→25 (shade 39 px): the same aliasing the phone series shows.
+- phone, eleven steps between frames 20 and 137, all with a 31-37 px shade: at that size one
+  capture pixel is about 3% of the shade's width, so a sub-pixel camera move swings the mean.
+  They alternate up and down (24.1→30.9→24.5) which is aliasing, not a one-way flash.
+- phone, frame 136→137 (shade 37 px, 16.2→18.9, red 53.2→55.8): the same small-shade aliasing.
+
+No step above 15% occurs once the shade is wider than 50 capture pixels on either viewport.
+
+### Why the item is still partly done
+
+The cloth never brightens step-by-step at a readable size, so the J2 requirement is met where
+a person can actually see the shade. The opening frames, where the shade is 31-39 px, still
+move by up to 50% between frames and are explained as pixel sampling rather than proven
+harmless: separating "aliasing on a tiny shade" from "a real flash on a tiny shade" needs a
+higher capture scale or a closer fixed camera, which this run does not have. Recorded, not
+claimed as passing.
+
+Frames kept: `j6-j2/approach-desktop-en-{036,136,137,147,148,150}.png` and
+`j6-j2/approach-phone-zh-{036,150}.png`.
 
 ## T9: J5 the desktop burning lantern size
 

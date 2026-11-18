@@ -285,7 +285,7 @@ const outside = new THREE.Scene();
 const previewFill = new THREE.DirectionalLight(0xe4dbc2, 0); previewFill.position.set(1, 2, 2); previewFill.layers.enableAll(); outside.add(previewFill);
 const previewFillTarget=new THREE.Object3D();outside.add(previewFillTarget);previewFill.target=previewFillTarget;
 const gauzePreviewIntensity=2.5;
-let gauzePreviewBlend=0;
+let gauzePreviewBlend=0, previewFloor=0;
 function aimGauzePreview(light,target,centre,eye){
   const offset=eye.clone().sub(centre).normalize().add(V3(0,.18,0)).normalize();
   light.position.copy(light.parent.worldToLocal(centre.clone().add(offset)));
@@ -1995,8 +1995,11 @@ export async function travel(id) {
       // by roughly 70 CSS px per frame and read as a cut.
       target.lerp(arrival.look,smooth(.70,.86,e));target.lerp(end.look,smooth(.84,1,e));
       rig.look.lerpVectors(l0,target,Math.min(1,e*7));rig.amp=0;
-      const contextFov=THREE.MathUtils.lerp(f0,arrival.fov??f0,smooth(.64,.82,e));
-      rig.fov=THREE.MathUtils.lerp(contextFov,end.fov??f0,smooth(.80,1,e));
+      // The field of view must not widen while the walk closes on the lamp: a wider
+      // fov makes the shade shrink on screen, so the lamp would appear to back away
+      // on the last metres. Hold the walking fov and let the chooser's fov arrive
+      // with its own fill rise once the walk is over.
+      rig.fov=f0;
     }else{
       rig.look.lerpVectors(l0,target,Math.min(1,e*4));rig.amp=a0*(1-Math.min(1,k*3))+.006;
     }
@@ -2023,7 +2026,7 @@ function makeIgnitionTaper(){
 export async function ignite({onCatch}={}) {
   const journey=++cameraJourneyVersion;
   const mark=(state,progress)=>{if(import.meta.env.DEV)window.__visualIgnition={state,progress,journey,position:rig.pos.toArray(),look:rig.look.toArray(),fov:rig.fov??camera.fov};};
-  lit=true;emberUntil=0;wickPlume.clear();shadeCoolingUntil=0;shadeCoolingGlow=0;shadeCoolingStart=0;shadeCoolingTau=0;roomLight=1;ignitionFill=place.P.bakedLighting?1:0;mark('igniting',0);
+  lit=true;emberUntil=0;wickPlume.clear();shadeCoolingUntil=0;shadeCoolingGlow=0;shadeCoolingStart=0;shadeCoolingTau=0;roomLight=1;ignitionFill=place.P.bakedLighting?1:0;previewFloor=1;mark('igniting',0);
   if(!place.P.bakedLighting){
     let caught=false;
     await tween(1.6,k=>{if(lit&&journey===cameraJourneyVersion){mine.power=k<.18?k*.35:Math.min(1.15,ease((k-.18)/.82)+Math.sin(k*Math.PI)*.22);if(!caught&&k>=.28){caught=true;onCatch?.();}}});if(lit&&journey===cameraJourneyVersion)mark('settled',1);return;
@@ -2184,12 +2187,16 @@ function frame(stamp = performance.now()) {
       const centre=mine.g.localToWorld(V3(0,mine.parts.frame.cy,0));
       aimGauzePreview(previewFill,previewFillTarget,centre,camera.position);
     }else{previewFill.position.set(1,2,2);previewFillTarget.position.set(0,0,0);}
-    // The chosen lamp is lit by a small fill so its cloth and rim read while it is
-    // unlit. That fill must arrive with the walk, not in one frame: at five per
-    // second it crossed most of its range inside a single 200 ms sample, which
-    // flashed the rim and the cloth as the camera settled into the chooser.
+    // The chosen lamp keeps a small fill so its cloth and rim read while unlit. When
+    // the walk ends and the chooser takes over, the target steps from .55 to 1; at
+    // five per second that step covers half its range inside one 200 ms sample and
+    // the rim flashes. Only the walk-to-chooser rise is eased at the target, so
+    // ignition and put-out keep their own timing.
     const previewTarget=mine.g.visible&&atLamp?(phase==='candle'?1:!lit?.55:ignitionFill):0;
-    gauzePreviewBlend+=(previewTarget-gauzePreviewBlend)*(1-Math.exp(-dt*.6));
+    const risingToChooser=phase==='candle'&&!lit;
+    if(risingToChooser)previewFloor+=(previewTarget-previewFloor)*(1-Math.exp(-dt*1.2));
+    else previewFloor=previewTarget;
+    gauzePreviewBlend+=(previewFloor-gauzePreviewBlend)*(1-Math.exp(-dt*5));
     previewFill.intensity=P.bakedLighting?gauzePreviewIntensity*gauzePreviewBlend:phase==='candle'?.7:0;
     wickPlume.update(time);
     dust.visible = !!N.dust && atLamp && !powerSaver && !reducedMotion.matches;
