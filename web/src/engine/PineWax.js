@@ -44,6 +44,7 @@ function materialCoordinates(shader) {
 function refinedWaxMaterial(light, layer) {
   const wet = layer === 'pool';
   const shaft = layer === 'body';
+  const remnant = layer === 'remnant';
   const style = {
     body: { roughness: .43, clearcoat: .09, specularIntensity: .52, diffuse: .91, scatter: 1.68 },
     pool: { roughness: .13, clearcoat: .42, specularIntensity: .75, diffuse: .34, scatter: .045 },
@@ -51,7 +52,8 @@ function refinedWaxMaterial(light, layer) {
   }[layer];
   const material = new THREE.MeshPhysicalMaterial({ color: 0xffffff, ior: 1.43,
     roughness: style.roughness, clearcoat: style.clearcoat, clearcoatRoughness: wet ? .15 : .32,
-    specularIntensity: style.specularIntensity, envMapIntensity: wet ? .62 : .42 });
+    specularIntensity: style.specularIntensity, envMapIntensity: wet ? .62 : .42,
+    transparent: remnant, depthWrite: !remnant });
   material.onBeforeCompile = shader => {
     materialCoordinates(shader);
     Object.assign(shader.uniforms, light);
@@ -105,13 +107,41 @@ function refinedWaxMaterial(light, layer) {
       reflectedLight.directDiffuse *= mix(1., .22, dryLip);
       reflectedLight.indirectDiffuse *= mix(1., .68, dryLip);
       reflectedLight.directSpecular *= mix(1., .50, dryLip);`);
-    if (layer === 'remnant') shader.fragmentShader = shader.fragmentShader.replace('#include <lights_fragment_end>', `#include <lights_fragment_end>
-      // The thin wax at the foot sits under the main candle's spill shadow.
-      // Keep its pigment through direct light rather than bleaching the rim.
-      reflectedLight.directDiffuse *= .28;
-      reflectedLight.directSpecular *= .56;`);
+    if (remnant) {
+      shader.fragmentShader = `
+        uniform vec3 uPineTraceSection;
+        uniform float uPineTraceRadius, uPineTraceThickness;
+        ${shader.fragmentShader}`;
+      // Light passes through the thin edge of the cooled spill and exposes
+      // some of the stone under it. Full-thickness wax keeps its pigment.
+      shader.fragmentShader = shader.fragmentShader.replace('#include <alphamap_fragment>', `#include <alphamap_fragment>
+        float waxThickness = vPineLocal.y * uPineTraceThickness;
+        diffuseColor.a *= smoothstep(.000025, .00038, waxThickness);`);
+      const pointInfo = 'getPointLightInfo( pointLight, geometryPosition, directLight );';
+      const pointLighting = THREE.ShaderChunk.lights_fragment_begin.replace(pointInfo, `${pointInfo}
+        directLight.color *= mix(1., traceVisibility, 1. - smoothstep(.001, .003, length(pointLight.position - traceWickInView)));`);
+      shader.fragmentShader = shader.fragmentShader.replace('#include <lights_fragment_begin>', `
+        // Transmit the visitor's finite wick light only along rays that miss
+        // the remaining wax. One profile section is enough at the footprint.
+        float traceVisibility = 1.;
+        if (uPineTraceRadius > 0. && uPineCandela > .0001) {
+          float rayT = (uPineTraceSection.y - vPineWorld.y) / max(toSource.y, .0001);
+          if (rayT > 0. && rayT < 1.) {
+            vec2 hit = (vPineWorld + toSource * rayT).xz;
+            float penumbra = .0005 + rayT * uPineSourceRadius;
+            float lightLeak = smoothstep(uPineTraceRadius - penumbra, uPineTraceRadius + penumbra,
+              length(hit - uPineTraceSection.xz));
+            traceVisibility = mix(1., .07 + .93 * lightLeak, smoothstep(.0001, .012, uPineCandela));
+          }
+        }
+        vec3 traceWickInView = (viewMatrix * vec4(uPineSourcePosition, 1.)).xyz;
+        ${pointLighting}`)
+        .replace('#include <lights_fragment_end>', `#include <lights_fragment_end>
+          reflectedLight.directDiffuse *= .28;
+          reflectedLight.directSpecular *= .56;`);
+    }
   };
-  material.customProgramCacheKey = () => `pine-wax-${layer}-${layer === 'remnant' ? 5 : 4}`;
+  material.customProgramCacheKey = () => `pine-wax-${layer}-${remnant ? 6 : 4}`;
   return material;
 }
 
@@ -381,7 +411,11 @@ export function createPineWax(seat, waxMaterial, { refined = false } = {}) {
     uPineSourceRadius: { value: .007 },
     uPineCandela: { value: 0 },
     uPinePoolWet: { value: 0 },
+    uPineTraceSection: { value: vector(0, 0, 0) },
+    uPineTraceRadius: { value: 0 },
+    uPineTraceThickness: { value: 0 },
   } : null;
+  const traceSectionLocal = refined ? vector(0, 0, 0) : null;
   const bodyMaterial = refined ? refinedWaxMaterial(light, 'body')
     : waxMaterial(0xffffff, { roughness: .42, clearcoat: .28, fall: 92 });
   const poolMaterial = refined ? refinedWaxMaterial(light, 'pool')
@@ -493,6 +527,16 @@ export function createPineWax(seat, waxMaterial, { refined = false } = {}) {
         const traceRadius = base.r * (refined ? .84 + .32 * spread : .78 + .38 * spread);
         const spreadRadius = Math.min(traceRadius, (seat.traceRadius - Math.abs(base.cx)) / (refined ? 1.28 : 1.4));
         trace.scale.set(spreadRadius, traceHeight, spreadRadius);
+        if (refined) {
+          light.uPineTraceThickness.value = traceHeight;
+          light.uPineTraceRadius.value = 0;
+          if (trace.visible && state === 'burning' && cut > .003) {
+            const sectionY = cut * .46;
+            const section = ringAt(rows, sectionY);
+            traceSectionLocal.set(section.cx, sectionY, 0);
+            light.uPineTraceRadius.value = section.r;
+          }
+        }
         drips = runnels?.length ?? 0;
         if (!refined) {
           for (const drip of drops) {
@@ -521,6 +565,7 @@ export function createPineWax(seat, waxMaterial, { refined = false } = {}) {
       sourceLight.getWorldPosition(light.uPineSourcePosition.value);
       light.uPineWaxCrown.value.copy(wickTip);
       group.parent?.localToWorld(light.uPineWaxCrown.value);
+      if (light.uPineTraceRadius.value) group.localToWorld(light.uPineTraceSection.value.copy(traceSectionLocal));
     },
     fullHeight: () => fullHeight,
     profileBounds() {
