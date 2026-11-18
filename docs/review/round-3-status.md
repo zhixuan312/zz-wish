@@ -149,29 +149,41 @@ unnecessary and was reverted in `1d7ade2`; the measurement stays.
 
 ## T8: J2 the unlit and ended lantern
 
-Status: **done**. `a1b96a0` gives the bamboo ribs a small constant emissive term, so at
-100% crop the unlit and ended shade shows countable ribs instead of flat red. `e45ab80`
-keeps the put-out sudden for the flame, its point light, the halo and the smoke — all four
-still drop on the original `.12` s curve — and lets only the cloth hold heat, starting from
-the glow it had one frame earlier and decaying with a 2.6 s time constant.
+Status: **partly**. The ended half is measured; the approach half has no series yet.
 
-Evidence: a real put-out, no Skip and no held camera, captured through CDP into a clipped
-region with a timestamp taken inside the page before and after each frame
-(`artifacts/full-review/round-3/j6-j2/t8-timestamps.json`). Intervals: desktop median 166 ms
-(max 393 ms once, at the first CDP capture), phone median 234 ms (max 278 ms). Every later
-interval is under 250 ms.
+`a1b96a0` gives the bamboo ribs a small constant emissive term, so at 100% crop the unlit and
+ended shade shows countable ribs instead of flat red. `e45ab80` keeps the put-out sudden for
+the flame, its point light, the halo and the smoke — all four drop on the original `.12` s
+curve — and lets only the cloth hold heat: it starts from the glow it had one frame earlier
+and decays with a 2.6 s time constant.
 
-Mean shade brightness over 24 frames, one fixed mask:
+### Ended series
+
+Real put-out, no Skip and no held camera, captured through CDP into a clipped region with an
+in-page timestamp before and after each frame. Mask definition: the largest 4-connected
+saturated-red blob inside the central band (x from 0.36 to 0.56 of the frame, sampled every 2
+px), taken on frame 00 and then held fixed for every frame of the series. Desktop mask
+`x 321-401, y 418-658` = 19,521 px at 1x; phone mask `x 248-384, y 876-1264` = 53,293 px at
+2x. Every frame's mean is in `j6-j2/t8-series-{desktop,phone}.json`.
 
 | frame | 00 | 01 | 04 | 08 | 12 | 16 | 20 | 23 |
 |---|---|---|---|---|---|---|---|---|
 | desktop-en | 76.7 | 73.0 | 65.8 | 56.7 | 48.8 | 41.7 | 36.2 | 33.5 |
 | phone-zh | 89.1 | 86.7 | 75.2 | 61.4 | 50.5 | 41.5 | 35.4 | 32.1 |
 
-Both series fall monotonically with no rise anywhere (largest jump 0.2 out of 255) and no
-red flash. The largest adjacent-frame change is **4.8%** on desktop (frame 00 to 01) and
-**5.4%** on phone (frame 08 to 09), under the 10% bar. Frames and the timestamp record:
-`j6-j2/t8-{desktop-en,phone-zh}-{00,08,16,23}.png` and `j6-j2/t8-timestamps.json`.
+Cadence, from the in-page timestamps: desktop median 166 ms with one 393 ms first-frame
+outlier; phone median 234 ms with 278 ms and 253 ms on its first two intervals. Every
+interval after that is under 250 ms on both viewports. Both series fall at every step with no
+frame above its predecessor, and the largest adjacent drop is 4.8% (desktop, frame 00 to 01)
+and 5.4% (phone, frame 08 to 09). The unlit and ended cloth, with its ribs, is visible in
+`j6-j2/ended-*` and `j6-j2/t8-{desktop-en,phone-zh}-{00,08,16,23}.png`. No red flash or
+reversal appears in either series.
+
+### Still missing
+
+The approach into the court has not been sampled on this build, so the claim that no red pop
+appears while walking in is still unproven; a timestamped approach series is the next
+capture. Until it exists, this item stays partly done.
 
 ## T9: J5 the desktop burning lantern size
 
