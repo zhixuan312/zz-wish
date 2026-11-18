@@ -84,19 +84,20 @@ function refinedWaxMaterial(light, layer) {
         float scatter = sourceFraction * edge * (.13 + .87 * side) * ${style.scatter};
         totalEmissiveRadiance += uPineSourceColor * transmission * scatter;
         ${wet ? `
-        // Reflect the low, bright base of the flame in the curved liquid surface.
-        // The reflection moves with the view and disappears as the wax cools.
+        // The glowing wick and flame base are a finite source. Project that
+        // source across the curved meniscus so the reflection moves with the
+        // view and disappears as the wax cools.
         vec3 viewWorld = inverseTransformDirection(viewRay, viewMatrix);
         vec3 reflected = reflect(-viewWorld, worldNormal);
-        float reflectionDistance = (uPineWaxCrown.y - .0024 - vPineWorld.y) / max(.001, reflected.y);
+        float reflectionDistance = (uPineWaxCrown.y - .0039 - vPineWorld.y) / max(.001, reflected.y);
         vec2 reflectedOffset = fromCrown.xz + max(0., reflectionDistance) * reflected.xz;
-        float flameReflection = (1. - smoothstep(.00055, .0038, length(reflectedOffset)))
+        float flameReflection = (1. - smoothstep(.00075, .0044, length(reflectedOffset)))
           * smoothstep(.02, .09, reflected.y) * step(0., reflectionDistance);
         float fresnel = .09 + .91 * pow(1. - max(0., dot(worldNormal, viewWorld)), 4.);
         vec3 reflectionColor = mix(uPineSourceColor, vec3(1., .88, .70), .57);
-        totalEmissiveRadiance += reflectionColor * (fresnel * 1.9) * flameReflection * sourceFraction * uPinePoolWet;` : ''}`);
+        totalEmissiveRadiance += reflectionColor * (.25 + fresnel * 2.4) * flameReflection * sourceFraction * uPinePoolWet;` : ''}`);
   };
-  material.customProgramCacheKey = () => `pine-wax-${layer}-2`;
+  material.customProgramCacheKey = () => `pine-wax-${layer}-3`;
   return material;
 }
 
@@ -346,7 +347,7 @@ export function createPineWax(seat, waxMaterial, { refined = false } = {}) {
     : waxMaterial(0xffffff, { roughness: .45, clearcoat: .35, fall: 115 });
   const materials = refined ? [] : [bodyMaterial, poolMaterial, traceMaterial];
   const wickMaterial = new THREE.MeshStandardMaterial({ color: 0x665442, roughness: .98 });
-  const charMaterial = refined ? new THREE.MeshStandardMaterial({ color: 0x100c09, roughness: .94, envMapIntensity: .24 }) : null;
+  const charMaterial = refined ? new THREE.MeshPhysicalMaterial({ color: 0x0a0705, roughness: .98, specularIntensity: .08, envMapIntensity: .09 }) : null;
   for (const material of [bodyMaterial, poolMaterial, traceMaterial, wickMaterial, charMaterial]) {
     if (material) material.userData.lampOwned = true;
   }
