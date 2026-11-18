@@ -201,22 +201,20 @@ lamp reference, so the cloth covers 23.8% of frame height at 24 h, 19.2% at 2 h 
 
 ## T3: Round 3 full journey
 
-Status: **partly** — chromium complete, WebKit missing.
+Status: **done**. Both browsers covered all four contexts on this build.
 
-Chromium run on this build, `artifacts/full-review/round-3/after-journey/`:
-
-| context | frames |
+| browser / context | frames |
 |---|---|
-| `desktop-en` | 73 |
-| `desktop-zh` | 73 |
-| `phone-en` | 73 |
-| `phone-zh` | 73 |
+| chromium `desktop-en`, `desktop-zh`, `phone-en`, `phone-zh` | 73 each |
+| webkit `desktop-en`, `desktop-zh`, `phone-en`, `phone-zh` | 74 each |
 
-The journey exited with `frames 292, sequences 88, errors 0, httpErrors 0,
-sourceChanged false`; eight ending captures and sixteen records are present. Every stage in
-each context now has evidence, including `light-ignition`, `burning`, `burnFar`,
-`result-put-out`, `result-burned-down`, `ending-plume/*` and `my-lamps` — the two phone
-contexts no longer stop at the drawing step, which confirms the pad fix in `5fa247a`.
+The final WebKit run exited with `frames 288, sequences 84, errors 0, httpErrors 0, 8 ending
+captures, sourceChanged false`. Every context carries the same stage set through
+`light-ignition`, `burning`, `burnFar`, `result-put-out`, `result-burned-down`,
+`ending-plume/*` and `my-lamps`. The two phone contexts complete here, which confirms the pad
+fix in `5fa247a` and the draw step in the journey.
+
+### A superseded WebKit attempt
 
 An earlier WebKit attempt is recorded at
 `artifacts/full-review/round-3/after-journey-webkit/report.json` (created 02:42:45 SGT). It
@@ -237,10 +235,8 @@ try again."; the report's last `desktop-en` frame records `screen: candle` with
 `ignition: null`; and its `errors[2]` is a `/api/candles` `Could not connect to the server`.
 Server death is consistent with the console log's presence WebSocket loss while the page
 still reported `contextLost: false` and a live render frame counter, but the server's own log
-from that run was overwritten, so what stopped it is undetermined.
-
-That run predates `5fa247a`, so it says nothing about the current build. WebKit's four
-contexts still need the same journey on this build; T3 closes when they finish.
+from that run was overwritten, so what stopped it is undetermined. That attempt predates
+`5fa247a` and is superseded by the run above.
 
 ## Items for Boss
 
@@ -250,5 +246,5 @@ contexts still need the same journey on this build; T3 closes when they finish.
 
 ## Items that still need GPU captures
 
-- The WebKit half of the round 3 journey: all four contexts, on this build.
+- The timestamped approach series for J2, to show the shade does not flash red on the way in.
 
