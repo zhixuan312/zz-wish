@@ -745,6 +745,15 @@ def source_lighting(scene):
     caster.location = mesh.point((-9, 15, 14))
     caster.rotation_euler = (mesh.point((0, 4, 1)) - caster.location).to_track_quat('-Z', 'Y').to_euler()
     caster['bake_role'] = 'ambient'
+    # Model the diffuse sky bounce off the front sill as a broad, weak source.
+    # The ambient role keeps the visitor's lamp-only atlas independent.
+    bounce = bpy.data.lights.new('Cool diffuse bounce from the niche lip', 'AREA')
+    bounce.energy, bounce.color, bounce.shape, bounce.size = .004, (.86, .92, 1.), 'DISK', .22
+    emitter = bpy.data.objects.new(bounce.name, bounce)
+    bpy.data.collections['LIGHTS'].objects.link(emitter)
+    emitter.location = mesh.point((-1.88, 5.23, 1.04))
+    emitter.rotation_euler = (mesh.point((-1.91, 5.23, .758)) - emitter.location).to_track_quat('-Z', 'Y').to_euler()
+    emitter['bake_role'] = 'ambient'
     for p, watts in [((.98, 6.38, .62), 1.98), ((.15, 6.25, -4.8), 2.1)]:
         mesh.light('Hidden warm reflected temple light', p, watts / PRE_EXPOSURE, '#f5b27e', .26)
     point = mesh.light('Visitor candle indirect bounce basis', LAMP, .20, '#ffc88a', .007, 'lamp')
