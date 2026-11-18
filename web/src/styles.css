@@ -118,7 +118,9 @@ textarea[aria-invalid=true] { border-color:#f0b69a; }
 .hud { position:absolute; inset:0; pointer-events:none; }
 .hud-top { display:none; }
 .hud-bottom { position:absolute; inset:auto 0 0; display:grid; justify-items:center; gap:6px; padding:14px 16px max(16px,env(safe-area-inset-bottom)); text-align:center; background:linear-gradient(0deg,#080d0cee,#080d0c90 75%,transparent); transition:opacity .6s,transform .6s; }
-.hud-wish { max-width:42em; font:14px/1.4 var(--serif); color:#e3ddcb; overflow-wrap:anywhere; pointer-events:auto; }
+.hud-wish { max-width:42em; font:14px/1.4 var(--serif); color:#e3ddcb; overflow-wrap:anywhere; pointer-events:auto; display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; line-clamp:2; overflow:hidden; }
+/* A wish longer than the two-line burning box is clipped with a visible
+   ellipsis rather than silently cut, and never grows past its container. */
 .hud-meta { display:flex; justify-content:center; align-items:center; flex-wrap:wrap; gap:4px 14px; }
 .hud-time,.hud-left { font:12px/1.4 var(--sans); color:var(--dim); font-variant-numeric:tabular-nums; }
 .hud-meta .note { font-size:11px; }
@@ -199,7 +201,12 @@ textarea[aria-invalid=true] { border-color:#f0b69a; }
   .readout > .note { display:none; }
   .readout > .note:last-child:not(:first-child) { display:block; max-width:170px; font-size:10px; }
   .swatch { width:36px; height:36px; }
-  .pad { width:150px; } .draw { gap:12px; }
+  /* The phone pad must stay a usable drawing target: at least 320 px wide,
+     one column so it is not squeezed beside the side panel. Its 2:3 shape
+     keeps the stroke-to-metre mapping identical to the desktop pad. */
+  .design-options:has(.draw) { height:auto; }
+  .draw { grid-template-columns:1fr; gap:10px; }
+  .pad { width:100%; max-width:420px; }
   .draw-side .note { font-size:11px; } .draw-side .btn { padding:8px 10px; }
   .light-notes { min-height:40px; gap:3px; } .light-notes .note { font-size:11px; line-height:1.4; }
   .candle-actions .btn { font-size:14px; padding:10px 8px; }

@@ -13,7 +13,7 @@ import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeom
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import { mergeGeometries, mergeVertices } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { COLORS, PRESET_SHAPES } from '../../../shared/rules.ts';
+import { COLORS, PRESET_SHAPES, lanternHeightMetres, shapeMinutes } from '../../../shared/rules.ts';
 import { GAUZE_CANDLE_REFERENCE } from './baked/gauzeTransmission.js';
 import { acquireNativeAgX, NativeAgXPass } from './baked/nativeAgX.js';
 import visitorFabric from './baked/visitor-fabric.json';
@@ -582,10 +582,12 @@ const LAMPS = {
   // A gauze lantern hanging under the eaves, ribbed with bamboo, a tassel below; its outline is the person's.
   gauze(o = presetOf('shade')) {
     const topCx=o.rows[o.rows.length-1].cx;
-    // Fuel duration does not push a larger shade through its ceiling beam.
-    // Preserve every drawn profile proportion within a real hanging envelope.
+    // The shade grows with the burning time the person chose: ten minutes
+    // hangs 0.35 m, a full day 0.56 m, and the ceiling beam clears both. The
+    // drawn outline keeps its proportions inside that envelope.
     const width=Math.max(...o.rows.map(row=>row.r+Math.abs(row.cx-topCx)));
-    const size=o.liveBaked?Math.min(.56/Math.max(.0001,o.rows.at(-1).y),.21/Math.max(.0001,width)):shadeScale(o.rows,3.8,.02);
+    const envelope=lanternHeightMetres(shapeMinutes({ rows: o.rows })) / .56;
+    const size=o.liveBaked?envelope*Math.min(.56/Math.max(.0001,o.rows.at(-1).y),.21/Math.max(.0001,width)):shadeScale(o.rows,3.8,.02);
     const lacquer=o.liveBaked?lacquerBlack.clone():lacquerBlack,suspension=o.liveBaked?cordMat.clone():cordMat;
     if(o.liveBaked){lacquer.userData.lampOwned=true;suspension.userData.lampOwned=true;suspension.color.setHex(0x746041);suspension.roughness=.95;}
     const g = new THREE.Group(), P = scaled(o.rows,size), H = P[P.length - 1][1], y0 = -.066 - H;
