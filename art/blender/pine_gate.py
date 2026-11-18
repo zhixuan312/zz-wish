@@ -793,7 +793,7 @@ def build(output):
     scene['one_light_lamp_anchor'] = json.dumps(ANCHOR)
     scene['one_light_lamp_pass_quantity'] = 'indirect-diffuse-radiance-per-unit-albedo'
     scene['one_light_camera_pre_exposure'] = PRE_EXPOSURE
-    scene['lightmap_resolutions'] = json.dumps({'approach': 1536, 'gate': 1024, 'niche': 512})
+    scene['lightmap_resolutions'] = json.dumps({'approach': 2048, 'gate': 1024, 'niche': 512})
     scene['one_light_anchor_fields'] = json.dumps(['one_light_lamp_anchor', 'one_light_lamp_basis'])
     audit = contacts.audit()
     scene['resting_prop_inventory'] = json.dumps({'registeredGroups': [entry['name'] for entry in contacts.entries],

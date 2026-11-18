@@ -26,7 +26,8 @@ blender -b "$working/preflight/pine-gate-prepared.blend" --python-exit-code 1 \
   --prepared-preview-audit "$working/mapping.json" --resting-contact-audit "$working/prepared-contact.json"
 node scripts/pack-blender-assets.mjs \
   --source "$working/final64" --out "$working/delivery" --tools "$ONE_LIGHT_GLTF_TOOLS" \
-  --material-profile mobile --position-format float32 --normal-format float32 --max-bytes 15000000
+  --material-profile mobile --screen-base-pattern pine-niche-granite-gray --screen-base-size 1024 \
+  --position-format float32 --normal-format float32 --max-bytes 15000000
 node scripts/attach-place-runtime-assets.mjs \
   --out "$working/delivery" --native-view docs/licenses/native-agx.json
 node scripts/decode-baked-for-contact-audit.mjs \
@@ -52,3 +53,11 @@ The candidate uses 9,476,158 on-disk bytes across the manifest, GLB and twelve K
 The revised candidate lifts cool sky fill and directs soft moonlight toward the stairs. Warm timber light remains near the gate. Crossed, alpha-masked needle sprays use an original packed RGBA atlas, and the broken stone curb carries local moss shading. The close stone uses a continuous material UV, reduced normal strength, deeper mortar and an irregular worn shelf with wax discoloration in its surface tint.
 
 Revised source `5308e00c7311f5de65f56811fb830be01460164668bdb149caaf44c6fd8c99ef` produced twelve eight-sample Metal and Metal OIDN maps in 118.643 seconds. The prepared, raw and decoded geometry independently passed all six contact groups with a maximum 0.003815 mm gap and 0.639677 mm penetration. The packed GLB retains the needle material's two-sided alpha mask. The candidate occupies 9,496,433 bytes, with manifest SHA-256 `a21c603fa89c5335bc628e77c5790703a9519aaba1a6ab89b41746fe516150f1`.
+
+## Third eight-sample candidate
+
+The small amber gate guide combines a fixed bronze support, emissive paper and local spill across the right gate. Exposed pine roots, uneven slate and clustered understory break up the banks. The niche's rear cheeks extend behind its soot-darkened, hand-dressed back wall so the joints stay closed. The shelf's old wax discoloration is part of its vertex tint.
+
+The review uses a 2048² approach atlas to fit 4,849 charts with eight-pixel padding, plus the earlier 1024² gate and 512² niche atlases. The delivered 1024² niche albedo retains the photographic relief from the CC0 `rock_pitted_mossy` diffuse map. The authoring script converts its channels to neutral gray luminance with a small cool bias. The compressed albedo is 253,938 bytes and the remaining mobile maps retain their 512-pixel limit.
+
+Source `af5a5f58c0a063270dc921f8ab842a06e1ce95d67c3d3add2aeb22edc3f8c6dc` produced the twelve fixed eight-sample maps in 106.354 seconds. The 12,000,867-byte package has manifest SHA-256 `59f98939c452c4da8447b9894d3960f53431be0033d69872145335579506a7e1`. All six source, prepared, raw and decoded contacts passed. Prepared and decoded maximum gap remained 0.003815 mm and penetration 0.639677 mm. The candidate remains a preview for app review.
