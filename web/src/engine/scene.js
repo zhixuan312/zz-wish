@@ -1706,7 +1706,7 @@ const LANTERN_REFERENCE = { h: .76, cy: -.35 };
 // `exact` places the camera at the distance the reference demands, so the
 // cloth fills the requested fraction of the frame. Without it the authored
 // viewpoint only pulls back if it would otherwise be too close.
-function fitShadeView(v,desktopFraction=.45,desktopSubjectY=.36,exact=false){
+function fitShadeView(v,desktopFraction=.45,desktopSubjectY=.36,exact=false,phoneYaw=0){
   if(!place.P.bakedLighting||!mine.parts?.frame)return v;
   const c=mine.g.localToWorld(V3(0,LANTERN_REFERENCE.cy,0));
   const offset=V3(v.pos.x-c.x,0,v.pos.z-c.z),base=offset.length();
@@ -1718,14 +1718,21 @@ function fitShadeView(v,desktopFraction=.45,desktopSubjectY=.36,exact=false){
   const tangent=Math.tan(THREE.MathUtils.degToRad(v.fov/2));
   const wanted=LANTERN_REFERENCE.h/(2*tangent*fraction);
   const distance=exact?wanted:Math.max(base,wanted);offset.setLength(distance);
+  // The phone stand sits directly under the shade, so raising the subject cannot
+  // separate them. Swing the camera around the lamp instead: the shade and its
+  // tassel move off the stand's screen column while the stand stays put.
+  if(narrow()&&phoneYaw)offset.applyAxisAngle(V3(0,1,0),phoneYaw);
   v.pos.x=c.x+offset.x;v.pos.z=c.z+offset.z;
   const pitch=Math.atan2(c.y-v.pos.y,distance)-Math.atan((1-2*subjectY)*tangent);
   v.look.set(c.x,v.pos.y+Math.tan(pitch)*distance,c.z);return v;
 }
+// B5: the phone choose view swings this far around the lamp so the shade and
+// its tassel clear the altar stand's screen column.
+const CHOOSE_PHONE_YAW=.22;
 const chooseView = () => {
   const N=place.P.nook,v=viewOf((narrow()&&N.choosePhone)||N.choose||N.wide);
   if(narrow()&&!place.P.bakedLighting)v.look.y-=v.pos.distanceTo(v.look)*.10;
-  return fitShadeView(v);
+  return fitShadeView(v,undefined,undefined,false,CHOOSE_PHONE_YAW);
 };
 function burnView(){
   const N=place.P.nook,v=viewOf((narrow()&&N.burnPhone)||N.burn);
