@@ -1990,10 +1990,13 @@ export async function travel(id) {
     if(P.bakedLighting){
       const forward=curve.getTangentAt(Math.min(.999,e));
       target.copy(rig.pos).addScaledVector(forward,6);target.y=rig.pos.y+.08;
-      target.lerp(arrival.look,smooth(.78,.92,e));target.lerp(end.look,smooth(.93,1,e));
+      // The turn from the walking heading to the chooser heading is spread over the
+      // last fifth of the walk; compressed into the final second it swung the camera
+      // by roughly 70 CSS px per frame and read as a cut.
+      target.lerp(arrival.look,smooth(.70,.86,e));target.lerp(end.look,smooth(.84,1,e));
       rig.look.lerpVectors(l0,target,Math.min(1,e*7));rig.amp=0;
-      const contextFov=THREE.MathUtils.lerp(f0,arrival.fov??f0,smooth(.72,.88,e));
-      rig.fov=THREE.MathUtils.lerp(contextFov,end.fov??f0,smooth(.91,1,e));
+      const contextFov=THREE.MathUtils.lerp(f0,arrival.fov??f0,smooth(.64,.82,e));
+      rig.fov=THREE.MathUtils.lerp(contextFov,end.fov??f0,smooth(.80,1,e));
     }else{
       rig.look.lerpVectors(l0,target,Math.min(1,e*4));rig.amp=a0*(1-Math.min(1,k*3))+.006;
     }
@@ -2181,8 +2184,12 @@ function frame(stamp = performance.now()) {
       const centre=mine.g.localToWorld(V3(0,mine.parts.frame.cy,0));
       aimGauzePreview(previewFill,previewFillTarget,centre,camera.position);
     }else{previewFill.position.set(1,2,2);previewFillTarget.position.set(0,0,0);}
+    // The chosen lamp is lit by a small fill so its cloth and rim read while it is
+    // unlit. That fill must arrive with the walk, not in one frame: at five per
+    // second it crossed most of its range inside a single 200 ms sample, which
+    // flashed the rim and the cloth as the camera settled into the chooser.
     const previewTarget=mine.g.visible&&atLamp?(phase==='candle'?1:!lit?.55:ignitionFill):0;
-    gauzePreviewBlend+=(previewTarget-gauzePreviewBlend)*(1-Math.exp(-dt*5));
+    gauzePreviewBlend+=(previewTarget-gauzePreviewBlend)*(1-Math.exp(-dt*.6));
     previewFill.intensity=P.bakedLighting?gauzePreviewIntensity*gauzePreviewBlend:phase==='candle'?.7:0;
     wickPlume.update(time);
     dust.visible = !!N.dust && atLamp && !powerSaver && !reducedMotion.matches;

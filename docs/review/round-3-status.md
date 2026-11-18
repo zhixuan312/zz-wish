@@ -159,8 +159,9 @@ unnecessary and was reverted in `1d7ade2`; the measurement stays.
 
 ## T8: J2 the unlit and ended lantern
 
-Status: **partly**. The ended half is measured and the desktop approach series is clean; the
-phone approach could not be measured (see below), so the item does not close.
+Status: **partly**. The ended half is measured; the approach series is measured on both
+viewports, one walk-end framing pop was fixed, and the remaining large steps are recorded
+below rather than claimed as clean.
 
 `a1b96a0` gives the bamboo ribs a small constant emissive term, so at 100% crop the unlit and
 ended shade shows countable ribs instead of flat red. `e45ab80` keeps the put-out sudden for
@@ -201,41 +202,49 @@ reversal appears in either series.
 ### Approach series
 
 Captured through the real walk with no Skip and no held camera. Each frame's clip follows the
-lamp's own page-space rectangle, the true PNG size is read from each file's header, and the
-mean is taken inside that rectangle after converting CSS to capture pixels with
-scale = PNG size / clip size. Both viewports record scale 2 (devicePixelRatio 2), so a CSS
-box indexes only half of a capture and is never used directly. 140 frames per viewport;
-desktop walk progress 0→1.00 and phone 0→0.55 before the chooser appeared.
+lamp's own page-space rectangle, the true PNG size is read from each file header, and every
+mean is taken after converting CSS to capture pixels with scale = PNG size / clip size. Both
+viewports record scale 2 (devicePixelRatio 2), so a CSS box indexes only half a capture and
+is never used directly. 140 frames per viewport; desktop walk progress 0→0.97, phone 0→0.55
+when the chooser appeared.
 
-Two regions are measured on every frame: **whole** covers the lamp rectangle (cloth, ribs,
-gaps and the rim), **inner** covers its middle half, which keeps the cloth body and excludes
-the cord above and the frame edges.
+Two regions per frame: **whole** covers the lamp rectangle (cloth, ribs, gaps and the rim);
+**inner** covers its middle half, keeping the cloth body and excluding the cord and edges.
 
-| viewport | interval median / max | whole range | inner range | inner median step | inner p95 step | largest inner step |
-|---|---|---|---|---|---|---|
-| desktop-en | 207 / 275 ms | 12.2-33.4 | 13.7-27.8 | 1.3% | 12.8% | 30.1% (24→25) |
-| phone-zh | 117 / 120 ms | 23.1-39.6 | 16.1-32.1 | 2.0% | 21.3% | 49.6% (41→42) |
+| viewport | interval median / max / over 250 ms | inner range | inner median step | inner p95 step | largest inner step |
+|---|---|---|---|---|---|
+| desktop-en | 199 / 250 / **0** | 10.4-31.5 | 1.2% | 14.5% | 55.4% (025→026) |
+| phone-zh | 117 / 122 / **0** | 16.2-31.7 | 2.0% | 22.4% | 51.9% (041→042) |
 
-Every number is recomputable from `j6-j2/approach-series-{desktop-en,phone-zh}.json`, which
-carries each frame's scale, image pixel size, the lamp rectangle in pixels, its progress and
-both means. Timestamps, clip and page-space rectangle are in `j6-j2/approach-timestamps.json`.
+The intervals above come from in-page timestamps; an earlier capture of this segment had six
+desktop intervals over 250 ms with a 275 ms maximum, and the run above replaces it. Every
+number is recomputable from `j6-j2/approach-series-{desktop-en,phone-zh}.json`, which records
+each frame's scale, image pixel size, lamp rectangle in pixels, progress, and both means.
+Timestamps, clip and page-space rectangle are in `j6-j2/approach-timestamps.json`.
 
-What the largest steps are: at frame 24→25 on desktop and 41→42 on phone the shade is still
-31x51 and 39x51 capture pixels, and in every case the inner red channel rises with the inner
-luma (47.7→54.2 and 46.0→57.1). Once the shade is wider than 60 capture pixels the largest
-inner step is 7.9% on desktop and, on the phone series, the only larger steps are in the same
-small-shade opening stretch. Frames: `j6-j2/approach-desktop-en-{000,024,025,100,120,132,133,139}.png`
-and `j6-j2/approach-phone-zh-{000,041,042,120,139}.png`.
+**What was fixed.** The previous capture showed a 26.6% inner step at frame 132→133 on
+desktop, with the hall behind the lamp visibly jumping. Cause: the walk's turn from its
+walking heading to the chooser heading was compressed into the last 7% of a 30 s walk
+(`smooth(.93,1,e)` for the look target, `smooth(.91,1,e)` for the field of view), and the
+unlit-lamp fill arrived at 5/s, so within one 200 ms sample the look blend moved 15% and the
+fill most of its range. `travel()` now spreads the turn over `smooth(.84,1,e)` and
+`smooth(.80,1,e)`, halving the per-frame change, and the fill ramps at 0.6/s. Re-captured on
+the same segment, frame 132→133 measures **0.2%** instead of 26.6%.
 
-On the desktop 125→129 range raised in review: with the corrected rectangle the inner luma
-reads 16.0, 16.0, 15.8, 15.8, 15.9, 15.6 — flat and slightly falling, and the red channel
-reads 55.0, 55.0, 55.0, 55.1, 55.2, 54.2. There is no rise there; the earlier rise came from
-the mis-scaled box including a moving orange background stripe.
+**What is still open.** The largest steps now sit at the very end of the walk and in the
+small-shade opening frames: desktop 55.4% at 25→26 (shade 31x43 px) and 39.5% at 138→139
+(shade 409x545 px, where the rim highlight first enters the lamp rectangle), phone 51.9% at
+41→42 (shade 31x31 px). At 138→139 the inner red channel rises with the luma (53.3→57.9),
+which is a real lit-rim highlight rather than measurement noise. These are recorded here as
+open: the item stays **partly** done.
 
-So across the whole approach the cloth never brightens step by step once it is more than 60
-capture pixels wide, which is the claim J2 needs. The opening frames, where the lamp is
-30-50 px, still show single-frame changes up to 30% and 50% that are not fully explained;
-that is why the item stays **partly** done.
+Frames kept: `j6-j2/approach-desktop-en-{024,025,026,138,139}.png`,
+`j6-j2/approach-phone-zh-{041,042}.png`.
+
+There is no "wider than 60 px is safe" claim: on the desktop only 13 frames have a shade
+wider than 200 capture pixels, and their largest inner step is 39.5%, which is the transition
+frame above. The phone shade is 30-36 capture pixels wide in every one of its 140 frames, so
+no size band is claimed for it.
 
 ## T9: J5 the desktop burning lantern size
 
