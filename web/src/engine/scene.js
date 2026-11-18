@@ -2297,7 +2297,10 @@ function frame(stamp = performance.now()) {
     } else if (pineDiagnosticView === 'contact') {
       const seat = mine.g.localToWorld(V3(0, mine.parts.seat.y, 0));
       detail.look.lerp(seat, .78);
-      lens = detail.fov * .63;
+      const dishRadius = .059 * mine.parts.holder.scale.x;
+      const nearEdge = Math.max(detail.pos.distanceTo(seat) - dishRadius, .001);
+      const dishFov = THREE.MathUtils.radToDeg(2 * Math.atan(dishRadius / (nearEdge * camera.aspect * .86)));
+      lens = Math.max(detail.fov * .63, dishFov);
     } else {
       lens = detail.fov * .48;
     }
