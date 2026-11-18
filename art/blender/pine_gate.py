@@ -20,6 +20,12 @@ from snow_lightmap_charts import box_net, closed_grid_uv, profile_uv, source_uv
 ROOT = Path(__file__).resolve().parents[2]
 ANCHOR = (-1.8, 5.0, .9)
 LAMP = (-1.8, 5.076, .9)
+GATE_DEPTH = 6.32
+TERRACE_EDGE = -1.24
+WATERCOURSE = ((2.62, 4.02, 5.38), (2.32, 3.55, 10.45), (2.27, 3.01, 15.75),
+               (2.16, 2.63, 19.25), (1.20, 2.24, 21.91), (-.62, 2.13, 22.55),
+               (-1.98, 1.99, 23.41), (-2.16, 1.85, 25.85), (-1.93, 1.41, 30.25),
+               (-2.38, .84, 36.1), (-2.6, .45, 40.6), (-2.37, .11, 45.0))
 PRE_EXPOSURE = 6
 RANDOM = random.Random(21594)
 SHELF_WAX_DEPOSITS = (
@@ -56,15 +62,15 @@ def neutral_granite_albedo():
 
 
 def palette():
-    stone = [mesh.material(f'Wet granite {i}', color, 'stone_pavers', .86)
-             for i, color in enumerate(('#90897b', '#817d72', '#827d70', '#9d998a', '#6f7569'))]
+    stone = [mesh.material(f'Rain-darkened granite {i}', color, 'stone_pavers', .62)
+             for i, color in enumerate(('#9a9b89', '#7d857b', '#879180', '#a7a89b', '#627159'))]
     rock = mesh.material('Iron-gray granite and soft moss', '#748381', 'rock_pitted_mossy', .96)
-    ground = mesh.material('Damp mountain soil', '#353d30', 'rock_pitted_mossy', .98)
-    wood = mesh.material('Weathered cypress', '#79513a', 'weathered_planks', .83)
-    red = [mesh.material(f'Aged cinnabar {i}', color, 'weathered_planks', .72)
-           for i, color in enumerate(('#a35443', '#8c4839', '#9e5943', '#884b3d'))]
-    tiles = [mesh.material(f'Glazed shadow tile {i}', color, 'grey_roof_tiles', .75)
-             for i, color in enumerate(('#45494b', '#393d3d', '#484742'))]
+    ground = mesh.material('Damp mountain soil', '#60654b', 'rock_pitted_mossy', .92)
+    wood = mesh.material('Bare silvered cypress', '#a59277', 'weathered_planks', .83)
+    timber = [mesh.material(f'Rain-aged bare timber {i}', color, 'weathered_planks', .82)
+              for i, color in enumerate(('#9a8a72', '#685e50', '#7c7968', '#82725f'))]
+    tiles = [mesh.material(f'Wet unglazed clay tile {i}', color, 'grey_roof_tiles', .58)
+             for i, color in enumerate(('#797c74', '#646b66', '#87877c'))]
     bark = mesh.material('Rough pine bark', '#562f24', 'weathered_planks', .97)
     pine = [mesh.material(f'Woodland understory {i}', color, rough=.97)
             for i, color in enumerate(('#293626', '#3d4930', '#37452a', '#424c35', '#50603b'))]
@@ -97,7 +103,7 @@ def palette():
         links.new(texture.outputs['Color'], occlusion.inputs['Occlusion'])
     for material in [*stone, rock, ground, soot, ledge, reveal]:
         mesh.vertex_tint_shader(material)
-    return stone, rock, ground, wood, red, tiles, bark, pine, iron, clay, soot, ledge, reveal
+    return stone, rock, ground, wood, timber, tiles, bark, pine, iron, clay, soot, ledge, reveal
 
 
 def terrain_height(x, z):
@@ -106,13 +112,17 @@ def terrain_height(x, z):
     fold = .16 * math.sin(x * .67 + z * .24) + .09 * math.sin(x * 1.12 - z * .41)
     far_slope = max(0., min(1., (-z - 4) / 16)) * max(0., min(1., (abs(x) - 3.4) / 7))
     ridge = far_slope * (.57 + .31 * math.sin(x * .43 + z * .17))
-    return rise - .10 + bank + fold * min(1., bank) + ridge
+    # Beyond the stone retaining wall the saddle drops into the valley. The
+    # flanking ground still rises toward the two wooded shoulders.
+    valley = max(0., -z - .55)
+    valley_floor = min(32., .39 * valley + .079 * valley * valley)
+    return rise - .10 + bank + fold * min(1., bank) + ridge - valley_floor
 
 
 def terrain(material):
     xs = [-31, -24, -19, -14, -11, -8, -6, -4.5, -3.2, -2.12, 0,
           2.12, 3.2, 4.5, 6, 8, 11, 14, 19, 24, 31]
-    zs = list(range(-30, 67, 3))
+    zs = sorted(set(range(-45, 67, 3)) | {-1.45, TERRACE_EDGE, -.72, 1.18, 4.88, GATE_DEPTH})
     points = [(x, terrain_height(x, z), z) for z in zs for x in xs]
     faces = []
     for j in range(len(zs) - 1):
@@ -160,9 +170,10 @@ def hewn_block(name, width, height, depth, location, material, region):
 def landing_bed(material):
     # Recess the bedding under the flagstones. The approach apron and the
     # gate threshold keep the original stone landing height at both ends.
-    profile = ((.04, 4.), (.82, 4.), (1.15, 3.970), (5.70, 3.970), (6.08, 4.), (6.34, 4.))
+    profile = ((TERRACE_EDGE, 3.97), (.82, 3.97), (1.15, 3.970), (5.70, 3.970),
+               (6.08, 4.), (6.68, 4.))
     points = [(x, y, z) for z, top in profile
-              for x, y in ((-2.6, 3.6), (2.6, 3.6), (2.6, top), (-2.6, top))]
+              for x, y in ((-2.6, 2.68), (2.6, 2.68), (2.6, top), (-2.6, top))]
     last = 4 * (len(profile) - 1)
     faces = [(0, 3, 2, 1), (last, last + 1, last + 2, last + 3)]
     for first in range(0, last, 4):
@@ -170,7 +181,7 @@ def landing_bed(material):
             a, b = first + side, first + (side + 1) % 4
             faces.append((a, b, b + 4, a + 4))
     landing = mesh.mesh_object('Broad stone landing', points, faces, material, 'gate')
-    box_net(landing, (5.2, .40, 6.3), (0, 3.80, 3.19))
+    box_net(landing, (5.2, 1.32, 7.92), (0, 3.34, 2.72))
     mesh.uv_world(landing)
     mesh.bevel(landing, .045)
 
@@ -179,17 +190,30 @@ def climbing_steps(stone):
     for i in range(50):
         z = 45.6 - .8 * i
         top = (i + 1) * .08
-        widths = [1.37 + RANDOM.uniform(-.24, .17), 1.40 + RANDOM.uniform(-.19, .22)]
-        widths.append(4.28 - sum(widths))
-        edge = -2.14
+        if 21.17 < z < 23.16:
+            continue
+        # Laid in short runs around tree roots. A shallow camber takes rain
+        # away from the worn center and toward the open right-hand drain.
+        bend = .23 * math.sin(i * .11) - .15 * math.sin(i * .27)
+        span = 2.85 + .34 * math.cos(i * .18) + .009 * i
+        widths = [.85 + RANDOM.uniform(-.21, .14), .99 + RANDOM.uniform(-.26, .16)]
+        widths.append(span - sum(widths))
+        edge = bend - span / 2
         for j, width in enumerate(widths):
-            hewn_block(f'Step {i + 1:02} block {j + 1}', width - .012, .24, .818,
-                       (edge + width / 2, top + RANDOM.uniform(-.007, .004),
-                        z + RANDOM.uniform(-.007, .007)), RANDOM.choice(stone), 'approach')
+            block = hewn_block(f'Step {i + 1:02} block {j + 1}', width - .018, .24,
+                               .82 + RANDOM.uniform(-.043, .039),
+                               (edge + width / 2, top + RANDOM.uniform(-.010, .009) - .008 * j,
+                                z + RANDOM.uniform(-.027, .031)), RANDOM.choice(stone), 'approach')
+            block['moss_edge'] = j != 1 or i % 7 == 0
             edge += width
+        drain_x = bend + span / 2 + .139
+        invert = hewn_block(f'Open rainwater channel {i + 1:02}', .27, .16, .805,
+                            (drain_x, top - .068, z), stone[4], 'approach')
+        invert['moss_edge'] = True
         for direction in (-1, 1):
-            curb = hewn_block(f'Stair drain curb {direction} {i + 1:02}', .23, .14, .782,
-                              (direction * 2.26, top + .05, z), stone[4], 'approach')
+            x = bend + direction * (span / 2 + (.24 if direction > 0 else .09))
+            curb = hewn_block(f'Stair drain curb {direction} {i + 1:02}', .17, .16, .782,
+                              (x, top + .035, z), stone[4], 'approach')
             curb['moss_edge'] = True
             if (i // 5 + direction) % 4 and i < 47:
                 for row in range(2 + int(i > 31)):
@@ -197,12 +221,50 @@ def climbing_steps(stone):
                                (direction * (2.64 + row * .070), top + row * .244 + .02,
                                 z + (.24 if row % 2 else 0)), RANDOM.choice(stone), 'approach')
     landing_bed(stone[2])
-    for row in range(7):
-        z = 1.51 + row * .64
+    for row in range(11):
+        z = -.70 + row * .64
         for col in range(6):
             x = (col - 2.5) * .84 + .045 * (row % 2)
             hewn_block(f'Landing flagstone {row} {col}', .829, .092, .628,
                        (x, 4.00 + RANDOM.uniform(-.003, .003), z), RANDOM.choice(stone), 'gate')
+
+
+def saddle_water(stone):
+    water = mesh.material('Spring water on a slate bed', '#4a6865', rough=.20, metal=.24)
+    points = []
+    for index, (x, y, z) in enumerate(WATERCOURSE):
+        before = Vector(WATERCOURSE[max(0, index - 1)])
+        after = Vector(WATERCOURSE[min(index + 1, len(WATERCOURSE) - 1)])
+        tangent = (after - before).normalized()
+        half_width = .18 + .12 * math.sin(index * .53) ** 2
+        across = Vector((tangent.z, 0, -tangent.x)).normalized() * half_width
+        points.extend([tuple(Vector((x, y, z)) - across), tuple(Vector((x, y, z)) + across)])
+    faces = [(i, i + 1, i + 3, i + 2) for i in range(0, len(points) - 2, 2)]
+    channel = mesh.mesh_object('Spring runnel through the saddle', points, faces, water, 'approach')
+    source_uv(channel, [[(points[i][0], points[i][2]) for i in face] for face in faces],
+              'Meter-scale stream ribbon.')
+    for index, (x, y, z) in enumerate(WATERCOURSE[1:-1]):
+        rock = hewn_block(f'Water-cut stream bank {index + 1}', .59, .25, .74,
+                          (x - .28, y + .11, z + .13), stone[index % len(stone)], 'approach')
+        rock['moss_edge'] = True
+    spring = hewn_block('Spring head emerging under a granite cap', .77, .46, .9,
+                        (2.77, 4.41, 5.08), stone[4], 'gate')
+    spring['moss_edge'] = True
+    # One low crossing standing on two rubble abutments. The water is still
+    # visible outside the near edge before and after crossing.
+    for z in (21.02, 23.23):
+        mesh.box('Granite crossing abutment', (2.92, .44, .29), (0, 2.23, z),
+                 stone[2], .045, region='approach')
+    for index in range(5):
+        z = 21.07 + index * .54
+        slab = hewn_block(f'Bridge decking slab {index + 1}', 2.91, .21, .56,
+                          (.09, 2.51 - index * .052, z), stone[index % len(stone)], 'approach')
+        slab['moss_edge'] = True
+    for side in (-1, 1):
+        for index in range(4):
+            mesh.box('Low bridge parapet block', (.22, .23, .66),
+                     (side * 1.41, 2.61 - index * .066, 21.18 + index * .64),
+                     stone[(index + 2) % len(stone)], .037, region='approach')
 
 
 def understory(ground, foliage):
