@@ -1789,7 +1789,7 @@ function burnView(){
     const bodyHeight = candle.fullHeight();
     const subjectHeight = bodyHeight + .040;
     const center = mine.g.localToWorld(V3((profile.min.x + profile.max.x) / 2,
-      mine.parts.seat.y + subjectHeight / 2, 0));
+      mine.parts.seat.y + subjectHeight * (bodyHeight < .028 ? .43 : .5), 0));
     const direction = v.pos.clone().sub(center).normalize();
     const bodyFacingCamera = bodyHeight * Math.hypot(direction.x, direction.z);
     const halfFov = THREE.MathUtils.degToRad(v.fov / 2);
@@ -1798,7 +1798,7 @@ function burnView(){
     // Compose from the original wax alone. Reserve space for the intact flame,
     // and keep very wide hand-drawn shapes inside the phone's narrower frame.
     const tangent = Math.max(bodyFacingCamera / (2 * distance * fraction),
-      (profile.max.x - profile.min.x) / (2 * distance * camera.aspect * .79), subjectHeight / (2 * distance * .78));
+      (profile.max.x - profile.min.x) / (2 * distance * camera.aspect * .79), subjectHeight / (2 * distance * .84));
     v.fov = THREE.MathUtils.radToDeg(2 * Math.atan(tangent));
     v.pos.copy(center).addScaledVector(direction, distance);
     v.look.copy(center);

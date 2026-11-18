@@ -20,6 +20,7 @@ if (process.argv.includes('--help')) {
     'CAPTURE_MILESTONE=m1 runs desktop-en and phone-zh on Chrome.',
     'CAPTURE_MILESTONE=m3 runs both viewports and languages on Chrome and WebKit.',
     'CAPTURE_MILESTONE=quality captures a desktop and phone review set. Use QUALITY_PASS=preview or final.',
+    'QUALITY_LABEL selects the quality output directory and defaults to QUALITY_PASS.',
     'CAPTURE_BROWSER and CAPTURE_ONLY can select a single context. PINE_HOUR defaults to 22.',
   ].join('\n'));
   process.exit(0);
@@ -34,6 +35,8 @@ const quality = mode === 'quality';
 const fullJourney = mode !== 'm1';
 const qualityPass = process.env.QUALITY_PASS ?? 'preview';
 assert(['preview', 'final'].includes(qualityPass), 'QUALITY_PASS must be preview or final.');
+const reviewLabel = process.env.QUALITY_LABEL ?? qualityPass;
+assert(reviewLabel.length <= 48 && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(reviewLabel), 'Use a lowercase hyphenated QUALITY_LABEL.');
 const base = new URL(process.env.BASE_URL ?? 'http://127.0.0.1:8953/');
 assert(base.protocol === 'http:' && ['127.0.0.1', 'localhost'].includes(base.hostname)
   && Number(base.port) >= 8950 && Number(base.port) <= 8999, 'Use an isolated capture server on ports 8950–8999.');
@@ -59,7 +62,7 @@ const sizes = [
 }).filter(size => !contextOnly || size.label === contextOnly);
 assert(suite.length && sizes.length, 'No matching capture context.');
 const output = quality
-  ? join(outputRoot, 'quality', qualityPass, 'pine')
+  ? join(outputRoot, 'quality', reviewLabel, 'pine')
   : join(outputRoot, mode === 'm3' && (contextOnly || browserOnly || hour !== 22)
     ? ['m3-smoke', browserOnly, contextOnly, 'hour-' + hour].filter(Boolean).join('-') : mode);
 let delivery = null;
@@ -78,6 +81,7 @@ if (fullJourney) {
 await mkdir(output, { recursive: true });
 const report = {
   mode,
+  ...(quality ? { reviewLabel } : {}),
   delivery,
   clock: 'Local visual hour ' + hour + ' held constant. Controlled client and matching isolated server start times accelerate progress; render animation uses real frame timestamps.',
   viewport: 'Phone is viewport and touch emulation. WebKit freehand uses a trusted mouse stroke.',
@@ -187,32 +191,41 @@ async function capture(browser, browserName, size) {
 
     const button = name => page.getByRole('button', { name });
     const radio = name => page.getByRole('radio', { name });
-    const act = async locator => {
-      if (await page.locator('.ui').getAttribute('data-controls-idle') === 'true') {
-        if (phone) await page.touchscreen.tap(8, height / 2);
-        else await page.mouse.move(8, height / 2);
+    const wakeControls = async () => {
+      if (await page.locator('.ui').getAttribute('data-controls-idle') !== 'true') return;
+      if (phone) await page.touchscreen.tap(8, height / 2);
+      else {
+        await page.mouse.move(8, height / 2);
+        await page.mouse.move(12, height / 2);
       }
+    };
+    const act = async locator => {
+      await wakeControls();
       return phone ? locator.tap() : locator.click();
     };
     const lightButton = button(bi('^Light it', '^点亮这一盏'));
     const { wish, label: wishLabel, place } = scenarios[language];
     const captureShot = async (name, extra = {}) => {
       await assertCaptureGpuHealthy(page);
-      const snapshot = await page.evaluate(() => ({
-        screen: document.querySelector('.ui')?.dataset.screen,
-        result: document.querySelector('[data-testid="result-title"]')?.textContent?.trim(),
-        elapsedLabel: document.querySelector('[data-testid="with-you"]')?.textContent?.trim(),
-        wax: window.__visualPineWax?.() ?? null,
-        smoke: window.__visualWickPlume?.() ?? null,
-        walk: window.__walkProgress ?? null,
-        ignition: window.__visualIgnition ?? null,
-        canvas: [window.__renderer.domElement.width, window.__renderer.domElement.height],
-        viewportOverflow: [...document.querySelectorAll('.ui button, .ui textarea, .ui h1, .ui h2')]
-          .filter(item => {
-            const rect = item.getBoundingClientRect();
-            return rect.width > 0 && rect.height > 0 && (rect.left < -2 || rect.right > innerWidth + 2);
-          }).map(item => item.textContent.trim()),
-      }));
+      const snapshot = await page.evaluate(() => {
+        const hud = document.querySelector('.hud-bottom');
+        return {
+          screen: document.querySelector('.ui')?.dataset.screen,
+          controlsVisible: !!hud?.querySelector('.ctl') && Number(getComputedStyle(hud).opacity) > .99,
+          result: document.querySelector('[data-testid="result-title"]')?.textContent?.trim(),
+          elapsedLabel: document.querySelector('[data-testid="with-you"]')?.textContent?.trim(),
+          wax: window.__visualPineWax?.() ?? null,
+          smoke: window.__visualWickPlume?.() ?? null,
+          walk: window.__walkProgress ?? null,
+          ignition: window.__visualIgnition ?? null,
+          canvas: [window.__renderer.domElement.width, window.__renderer.domElement.height],
+          viewportOverflow: [...document.querySelectorAll('.ui button, .ui textarea, .ui h1, .ui h2')]
+            .filter(item => {
+              const rect = item.getBoundingClientRect();
+              return rect.width > 0 && rect.height > 0 && (rect.left < -2 || rect.right > innerWidth + 2);
+            }).map(item => item.textContent.trim()),
+        };
+      });
       const file = join(path, name + '.png');
       if (fullJourney && snapshot.wax) assert.equal(snapshot.wax.baked, true, 'Active Pine Gate scene must be baked.');
       const bytes = await page.screenshot({ path: file, scale: 'css' });
@@ -351,6 +364,13 @@ async function capture(browser, browserName, size) {
     await waitProgress(0);
     const early = await captureShot('burn-00', { targetProgress: 0 });
     await measureBurnCadence();
+    if (fullJourney) {
+      await wakeControls();
+      await expect(page.locator('.ui')).toHaveAttribute('data-controls-idle', 'false');
+      await expect.poll(() => page.locator('.hud-bottom').evaluate(hud => Number(getComputedStyle(hud).opacity))).toBeGreaterThan(.99);
+      const burning = await captureShot('burn-controls', { targetProgress: 0 });
+      assert(burning.controlsVisible, 'The burning screenshot must show the actual controls.');
+    }
     if (quality) {
       const signal = await sampleLiveAudio(page, { samples: 12, intervalMs: 150 });
       const meters = signal.readings.flatMap(reading => reading.contexts.flatMap(
