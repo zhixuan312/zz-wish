@@ -149,17 +149,29 @@ unnecessary and was reverted in `1d7ade2`; the measurement stays.
 
 ## T8: J2 the unlit and ended lantern
 
-Status: **partly**. What changed and what is still missing:
+Status: **done**. `a1b96a0` gives the bamboo ribs a small constant emissive term, so at
+100% crop the unlit and ended shade shows countable ribs instead of flat red. `e45ab80`
+keeps the put-out sudden for the flame, its point light, the halo and the smoke — all four
+still drop on the original `.12` s curve — and lets only the cloth hold heat, starting from
+the glow it had one frame earlier and decaying with a 2.6 s time constant.
 
-`a1b96a0` gives the bamboo ribs a small constant emissive term, so at 100% crop the unlit
-and ended shade shows countable ribs instead of flat red. `e45ab80` keeps the put-out sudden
-for the flame, its light and the smoke, and lets only the cloth cool: the cloth starts from
-the glow it had one frame earlier and decays with a 2.6 s time constant, which is about a 9%
-fall per 250 ms frame.
+Evidence: a real put-out, no Skip and no held camera, captured through CDP into a clipped
+region with a timestamp taken inside the page before and after each frame
+(`artifacts/full-review/round-3/j6-j2/t8-timestamps.json`). Intervals: desktop median 166 ms
+(max 393 ms once, at the first CDP capture), phone median 234 ms (max 278 ms). Every later
+interval is under 250 ms.
 
-The 250 ms frame series with real timestamps, and its measured maximum adjacent-frame
-change, are still to be captured on this build. The earlier 100 ms series was taken at a
-screenshot cadence that could not hold the interval, so its numbers are not used here.
+Mean shade brightness over 24 frames, one fixed mask:
+
+| frame | 00 | 01 | 04 | 08 | 12 | 16 | 20 | 23 |
+|---|---|---|---|---|---|---|---|---|
+| desktop-en | 76.7 | 73.0 | 65.8 | 56.7 | 48.8 | 41.7 | 36.2 | 33.5 |
+| phone-zh | 89.1 | 86.7 | 75.2 | 61.4 | 50.5 | 41.5 | 35.4 | 32.1 |
+
+Both series fall monotonically with no rise anywhere (largest jump 0.2 out of 255) and no
+red flash. The largest adjacent-frame change is **4.8%** on desktop (frame 00 to 01) and
+**5.4%** on phone (frame 08 to 09), under the 10% bar. Frames and the timestamp record:
+`j6-j2/t8-{desktop-en,phone-zh}-{00,08,16,23}.png` and `j6-j2/t8-timestamps.json`.
 
 ## T9: J5 the desktop burning lantern size
 
