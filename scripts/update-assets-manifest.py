@@ -14,6 +14,7 @@ assets = []
 scan = json.loads((ROOT / 'docs/licenses/polyhaven-scans.json').read_text())
 for asset in scan['assets']:
     assets.append({'id': asset['id'], 'kind': 'PBR material', 'provider': 'Poly Haven', 'license': scan['license'], 'licenseUrl': scan['licenseUrl'], 'sourceUrl': asset['assetUrl'], 'authors': asset['authors'], 'files': [{**file_info(m['path']), 'sourceUrl': m['sourceUrl'], 'sourceSha256': m['sourceSha256'], 'map': m['map'], 'encoding': m['encoding']} for m in asset['maps']]})
+assets.extend(json.loads((ROOT / 'docs/licenses/pine-gate-scans.json').read_text()))
 model = json.loads((ROOT / 'web/public/models/manifest.json').read_text())
 for asset in model['assets']:
     assets.append({'id': asset['sourcePage'].rsplit('/', 1)[-1], 'kind': 'Scanned natural model', 'provider': 'Poly Haven', 'license': model['license'], 'licenseUrl': model['licenseSource'], 'sourceUrl': asset['sourcePage'], 'authors': asset.get('authors', {}), 'files': [{**file_info('web/public/models/' + f['local']), 'sourceUrl': f['sourceUrl'], 'sourceMd5': f.get('sourceMd5'), 'transformation': 'Geometry unchanged; source JPEGs encoded WebP at original1k resolution where recorded.'} for f in asset['files']]})

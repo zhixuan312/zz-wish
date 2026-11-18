@@ -14,6 +14,7 @@ from mathutils import Matrix, Vector, noise
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import snow_roof as mesh
+from pine_materials import apply_scan
 from resting_contacts import RestingContacts, engine
 from snow_lightmap_charts import box_net, closed_grid_uv, profile_uv, source_uv
 
@@ -64,14 +65,16 @@ def neutral_granite_albedo():
 def palette():
     stone = [mesh.material(f'Rain-darkened granite {i}', color, 'stone_pavers', .62)
              for i, color in enumerate(('#9a9b89', '#7d857b', '#879180', '#a7a89b', '#627159'))]
-    rock = mesh.material('Iron-gray granite and soft moss', '#748381', 'rock_pitted_mossy', .96)
-    ground = mesh.material('Damp mountain soil', '#60654b', 'rock_pitted_mossy', .92)
+    rock = apply_scan(mesh.material('Scanned lichened rock', '#92998a'), 'mossy_rock', .69)
+    ground = apply_scan(mesh.material('Damp pine needle litter', '#8d8874'), 'forrest_ground_03', .63)
     wood = mesh.material('Bare silvered cypress', '#a59277', 'weathered_planks', .83)
     timber = [mesh.material(f'Rain-aged bare timber {i}', color, 'weathered_planks', .82)
               for i, color in enumerate(('#9a8a72', '#685e50', '#7c7968', '#82725f'))]
+    for material in (wood, *timber):
+        apply_scan(material, 'weathered_planks')
     tiles = [mesh.material(f'Wet unglazed clay tile {i}', color, 'grey_roof_tiles', .58)
              for i, color in enumerate(('#797c74', '#646b66', '#87877c'))]
-    bark = mesh.material('Rough pine bark', '#562f24', 'weathered_planks', .97)
+    bark = apply_scan(mesh.material('Knotted pine bark', '#c1b49f'), 'knotted_pine_bark', .83)
     pine = [mesh.material(f'Woodland understory {i}', color, rough=.97)
             for i, color in enumerate(('#293626', '#3d4930', '#37452a', '#424c35', '#50603b'))]
     iron = mesh.material('Aged black iron', '#3d3831', rough=.65, metal=.35)
@@ -964,6 +967,7 @@ def build(output):
     scene['source_authoring_helpers'] = json.dumps([
         'art/blender/snow_roof.py', 'art/blender/snow_round1_details.py',
         'art/blender/snow_lightmap_charts.py', 'art/blender/resting_contacts.py',
+        'art/blender/pine_materials.py', 'docs/licenses/pine-gate-scans.json',
     ])
     scene['source_authoring_sha256'] = json.dumps({
         name: sha256((ROOT / name).read_bytes()).hexdigest()

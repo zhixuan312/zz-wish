@@ -1,6 +1,8 @@
 # Pine Gate Steps bake
 
-The uphill path, forest, cypress gate and hewn stone niche are original architecture for a fictional mountain temple. The only external surface inputs are the CC0 `stone_pavers`, `rock_pitted_mossy`, `weathered_planks` and `grey_roof_tiles` maps listed in [the asset register](../assets.json).
+The first final bake covers an original mountain path, forest, timber gate and carved candle recess. It uses the CC0 `stone_pavers`, `rock_pitted_mossy`, `weathered_planks` and `grey_roof_tiles` maps listed in [the asset register](../assets.json).
+
+The current Blender source also uses verified Poly Haven scans for bark, lichened stone, needle litter and timber ambient occlusion. Run `python3 art/blender/pine_materials.py` before authoring or baking to verify and populate the ignored scan cache. The mesh export receives sRGB albedo and linear normal, roughness and occlusion. The existing 64-sample package predates those materials.
 
 The static dish support is at world metres `[-1.8, 5.0, .9]`. Its height is read back from the evaluated shelf triangles. The visitor lamp owns the 8 mm dish seat, wax, wick, pool, runnels, flame and smoke. The lamp atlas supplies indirect bounce from a reference source at `[-1.8, 5.076, .9]` with an authored power of 0.20 W. Live direct light and its local shadows follow the moving wick. The bake applies a camera pre-exposure of 6 once. The source point uses an authored radiant scale without photometric calibration.
 
