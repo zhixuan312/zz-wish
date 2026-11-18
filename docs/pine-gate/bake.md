@@ -61,3 +61,9 @@ The small amber gate guide combines a fixed bronze support, emissive paper and l
 The review uses a 2048² approach atlas to fit 4,849 charts with eight-pixel padding, plus the earlier 1024² gate and 512² niche atlases. The delivered 1024² niche albedo retains the photographic relief from the CC0 `rock_pitted_mossy` diffuse map. The authoring script converts its channels to neutral gray luminance with a small cool bias. The compressed albedo is 253,938 bytes and the remaining mobile maps retain their 512-pixel limit.
 
 Source `af5a5f58c0a063270dc921f8ab842a06e1ce95d67c3d3add2aeb22edc3f8c6dc` produced the twelve fixed eight-sample maps in 106.354 seconds. The 12,000,867-byte package has manifest SHA-256 `59f98939c452c4da8447b9894d3960f53431be0033d69872145335579506a7e1`. All six source, prepared, raw and decoded contacts passed. Prepared and decoded maximum gap remained 0.003815 mm and penetration 0.639677 mm. The candidate remains a preview for app review.
+
+## Niche bounce calibration
+
+The dark left-corner sample in the third preview lies on the same back-wall chart as the adjacent stone. Its measured camera ray reaches neutral granite without a geometry blocker. The raw night master already had four zero radiance texels in the affected strip, before denoising or packing. The adjacent reveal intercepts the directional moonlight.
+
+A broad 0.004 W ambient disk lifted the affected packed linear-red night sample from 0.000742 to 0.001370. The neighboring stone also lifted from 0.004880 to 0.007537, leaving a visible-risk ratio of 18%. This candidate passed the prepared and decoded contact audits and weighed 12,006,306 bytes. It stayed in the archive with manifest SHA-256 `ec74b75e7600bb3f88ddd45e815ea7e8cf1c163fdbeb119d9e933c28eebdf6da`. All three lamp-only KTX2 atlases were byte-identical to the third candidate.
