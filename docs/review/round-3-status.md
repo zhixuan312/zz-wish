@@ -159,9 +159,12 @@ unnecessary and was reverted in `1d7ade2`; the measurement stays.
 
 ## T8: J2 the unlit and ended lantern
 
-Status: **partly**. The ended half is measured; the approach series is measured on both
-viewports, one walk-end framing pop was fixed, and the remaining large steps are recorded
-below rather than claimed as clean.
+Status: **done**, on the acceptance the owner set: once the shade is wider than 50 capture
+pixels it shows no inner step above 15%, and its width grows monotonically through the walk.
+Measured on the merged data: 119 desktop and 96 phone frames sit above that width, and **0**
+inner steps exceed 15% there; width drop from peak is 1.7% desktop and 0% phone. The 31-39 px
+opening frames still wobble up and down by up to 20%, which is pixel aliasing at that size and
+is accepted as such rather than chased with a higher capture scale.
 
 `a1b96a0` gives the bamboo ribs a small constant emissive term, so at 100% crop the unlit and
 ended shade shows countable ribs instead of flat red. `e45ab80` keeps the put-out sudden for
