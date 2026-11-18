@@ -89,3 +89,11 @@ The forest floor uses 112 rooted understory tufts in asymmetric groups. Taller f
 Source `ee0551fbb72f1b16637a013a05f31f2c8736e9d1d9838c8973cebc7064ffe5b4` produced twelve fixed eight-sample Metal Cycles and Metal OpenImageDenoise maps in 145.977 seconds. The approach fits 4,994 charts in one 2048² atlas. All three atlases retain eight-pixel gutters and the prepared correspondence proof passed. The 12,160,946-byte preview has manifest SHA-256 `d148647c224e0c14bdb80de1de422baccd7159ab680c1bd5f046814d957596ec`.
 
 All six groups passed source, prepared, raw and decoded resting contact measurements. The decoded maximum gap was 0.003815 mm and maximum penetration was 1.159191 mm. Replaying the 17 old obstruction rays on the compressed delivery now reaches granite first. Across the same twelve stair treads, median linear night lightmap luminance rose by 28% at entry, 37% on the lower stair, 28% on the middle stair and 38% on the upper stair. App review will confirm how the stone and lighting read at both screen sizes.
+
+## Fifth app preview source
+
+Camera rays in the fourth app preview locate the horizontal black stripe on the face where the two right reveal blocks met. The left upper corner reached the downturned bevel of the first arch stone. Each reveal is now a continuous dressed through-stone. It narrows into the existing spring, where the first arch stone has a deeper bevel. This removes the old interior end caps and places the front edges of the jamb and arch within the same depth band.
+
+The soot stain starts low enough to enter the regular burning frame above the wick. The denser rear stone mesh carries its irregular boundary in vertex tint. Wider ochre wax marks and alternating polished stone along the worn lip share the same shelf mesh and stay clear of the fixed dish seat.
+
+The approach references match the new desktop and phone entrance cameras, with updated walking, ignition and burning views in the coverage checks. Twelve rooted pines in two rows add depth behind the wall using the existing needle and bark assets. Broad ground folds, lower fern pockets and varied slate colors break up the open banks.

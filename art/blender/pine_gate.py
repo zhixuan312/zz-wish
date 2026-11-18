@@ -87,7 +87,10 @@ def palette():
 def terrain_height(x, z):
     rise = min(4, max(0, (46 - z) * .1))
     bank = max(0, min(3., (abs(x) - 2.18) * .27))
-    return rise - .10 + bank + .12 * math.sin(x * .95 + z * .25) * min(1., bank)
+    fold = .16 * math.sin(x * .67 + z * .24) + .09 * math.sin(x * 1.12 - z * .41)
+    far_slope = max(0., min(1., (-z - 4) / 16)) * max(0., min(1., (abs(x) - 3.4) / 7))
+    ridge = far_slope * (.57 + .31 * math.sin(x * .43 + z * .17))
+    return rise - .10 + bank + fold * min(1., bank) + ridge
 
 
 def terrain(material):
@@ -338,7 +341,37 @@ def pine_tree(label, x, z, height, bark, needles, ground, roots=False):
                 [(leader, upward, height * .14, height * .095, roll) for roll in (0, 1.1, 2.2)], needles)
 
 
-def forest(ground, rock, bark, pine):
+def distant_pines(ground, bark, needles):
+    # Stagger rooted trunks beyond the retaining wall. At this distance a few
+    # rising forks and the same cutout needle sprays give the crowns depth.
+    trees = [(-4.2, -3.6, 6.9), (-6.6, -5.2, 9.4), (-9.5, -7.0, 7.9),
+             (4.0, -5.1, 8.3), (6.7, -3.8, 6.7), (9.8, -7.2, 8.8),
+             (-4.9, -13.6, 8.5), (-8.3, -16.2, 10.2), (-12.7, -19.8, 8.8),
+             (4.7, -15.0, 9.4), (8.4, -18.2, 8.3), (12.1, -14.4, 10.1)]
+    for i, (x, z, height) in enumerate(trees):
+        y = supports_height(x, z, [ground]) - .13
+        lean = .45 * math.sin(i * 2.01)
+        phase = i * 2.39
+        positions = [Vector((x + lean * t * t, y + height * t, z + .2 * math.sin(phase) * t))
+                     for t in (0., .38, .58, .76, .89, 1.)]
+        label = f'Layered ridge pine {i + 1}'
+        mesh.curved_tube(f'{label} tapered trunk', positions,
+                         [height * scale for scale in (.014, .012, .009, .006, .004, .001)],
+                         bark, radial=6, region='approach')
+        sprays = []
+        for tier, base in enumerate(positions[1:-1]):
+            angle = phase + tier * 2.21
+            direction = Vector((math.cos(angle), .18 + tier * .072, math.sin(angle)))
+            reach = height * (.205 - .026 * tier)
+            bend, end = base + direction * reach * .47, base + direction * reach
+            mesh.curved_tube(f'{label} bough {tier + 1}', [base, bend, end],
+                             [reach * scale for scale in (.048, .029, .005)], bark, radial=5, region='approach')
+            for offset, roll in ((.26, .05), (.56, 1.19)):
+                sprays.append((bend.lerp(end, offset), direction, reach * .85, reach * .70, roll))
+        pine_sprays(f'{label} needle silhouette', sprays, needles)
+
+
+def forest(ground, rock, stone, bark, pine):
     needles = needle_material()
     for i, z in enumerate((7, 14, 21, 29, 36, 43, 49)):
         for s in (-1, 1):
@@ -348,6 +381,7 @@ def forest(ground, rock, bark, pine):
     for i, (x, z, h) in enumerate(((-10, 0, 10), (12, -3, 9), (8, -14, 7), (-7, -10, 8),
                                    (-4, -6, 7), (4, -8, 8), (15, 18, 9), (-17, 19, 9))):
         pine_tree(f'Back ridge pine {i + 1}', x, z, h, bark, needles, ground)
+    distant_pines(ground, bark, needles)
     understory(ground, pine)
     # These iron-gray outcrops are part of the bank. Their lower bands extend
     # below the terrain and their exposed corners interrupt the bare slope.
@@ -358,7 +392,8 @@ def forest(ground, rock, bark, pine):
         y = supports_height(x, z, [ground])
         slab = hewn_block(f'Exposed slate seam {i + 1}', radius * RANDOM.uniform(1.4, 2.6),
                           radius * .71, radius * RANDOM.uniform(.92, 1.46),
-                          (x, y + radius * (.12 + .025 * (i % 3)), z), rock, 'approach')
+                          (x, y + radius * (.12 + .025 * (i % 3)), z),
+                          (rock, stone[4], stone[1])[i % 3], 'approach')
         slab['moss_edge'] = True
         for vertex in slab.data.vertices:
             vx, vz = vertex.co.x - x, -vertex.co.y - z
@@ -368,7 +403,8 @@ def forest(ground, rock, bark, pine):
         y = supports_height(x, z, [ground])
         profile = [(0, 0), (r * .52, 0), (r, r * .28), (r * .76, r * .49), (r * .40, r * .64), (0, r * .68)]
         with contacts.group(f'Loose ridge stone {i + 1}', [ground]):
-            obj = mesh.lathe(f'Weathered ridge stone {i + 1}', profile, (x, y, z), rock, 9, 'approach')
+            obj = mesh.lathe(f'Weathered ridge stone {i + 1}', profile, (x, y, z),
+                             (rock, stone[2], stone[4], rock)[i], 9, 'approach')
             obj['weather_stone'] = True
             obj['moss_edge'] = True
             for vertex in obj.data.vertices:
@@ -808,7 +844,7 @@ def build(output):
     stone, rock, ground, wood, red, tiles, bark, needle, iron, clay, soot, ledge, reveal = palette()
     support = terrain(ground)
     climbing_steps(stone)
-    forest(support, rock, bark, needle)
+    forest(support, rock, stone, bark, needle)
     gate(stone, tiles, wood, red, iron)
     candle_niche(stone, rock, soot, clay, iron, ledge, reveal)
     paint_stone()
