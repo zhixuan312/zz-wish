@@ -97,20 +97,6 @@ function mountainRanges(look) {
       }
     }
   }
-  // Low roof silhouettes are separate from the three isolated light points;
-  // the small group reads as shelters along the opposite approach.
-  const ridge = RANGES[1], sun = new THREE.Color(0x565f63), moon = new THREE.Color(0x394d56);
-  for (const x of [1, 7, 13]) {
-    const [cx, floor, z] = hillside(ridge, x, 5.2), base = points.length / 3;
-    const w = .93, d = .84, eave = floor + 1.2, crown = eave + .53;
-    for (const point of [[cx - w, floor - .35, z + d], [cx + w, floor - .35, z + d],
-      [cx - w * 1.1, eave, z + d * 1.15], [cx + w * 1.1, eave, z + d * 1.15],
-      [cx - w, crown, z], [cx + w, crown, z], [cx - w * 1.1, eave, z - d * 1.15],
-      [cx + w * 1.1, eave, z - d * 1.15]]) add(point, sun, moon, 1);
-    indices.push(base, base + 1, base + 2, base + 1, base + 3, base + 2,
-      base + 2, base + 3, base + 4, base + 3, base + 5, base + 4,
-      base + 4, base + 5, base + 6, base + 5, base + 7, base + 6);
-  }
   const geometry = new THREE.BufferGeometry();
   geometry.setAttribute('position', new THREE.Float32BufferAttribute(points, 3));
   geometry.setAttribute('dayColor', new THREE.Float32BufferAttribute(day, 3));
@@ -213,7 +199,7 @@ function waterfall(look) {
       uniform vec3 uDayWater, uNightWater;
       varying vec2 vUv;
       void main() {
-        float curtain = pow(sin(3.14159 * vUv.x), .58);
+        float curtain = pow(max(0., sin(3.14159 * vUv.x)), .58);
         float falls = .82 + .11 * sin(vUv.y * 102. - uTime * 2.9 + 3. * vUv.x)
           + .07 * sin(vUv.y * 48. - uTime * 1.6);
         float edge = smoothstep(0., .075, vUv.y) * (1. - smoothstep(.84, 1., vUv.y));
@@ -226,42 +212,11 @@ function waterfall(look) {
   return object;
 }
 
-function otherRidgeLights(look) {
-  const points = [1, 7, 13].flatMap(x => {
-    const [px, y, z] = hillside(RANGES[1], x, 5.2);
-    return [px + .24, y + .71, z + .86];
-  });
-  const geometry = new THREE.BufferGeometry();
-  geometry.setAttribute('position', new THREE.Float32BufferAttribute(points, 3));
-  const material = new THREE.ShaderMaterial({
-    uniforms: look, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
-    vertexShader: `
-      void main() {
-        vec4 view = modelViewMatrix * vec4(position, 1.);
-        gl_Position = projectionMatrix * view;
-        gl_PointSize = clamp(470. / max(1., -view.z), 1.6, 3.4);
-      }
-    `,
-    fragmentShader: `
-      uniform float uNight, uDusk;
-      void main() {
-        float radius = length(gl_PointCoord * 2. - 1.);
-        float pool = 1. - smoothstep(.03, 1., radius);
-        float dusk = clamp(uNight + uDusk * .7, 0., 1.);
-        gl_FragColor = vec4(vec3(.93, .46, .14), pool * dusk * .89);
-      }
-    `,
-  });
-  const object = new THREE.Points(geometry, material);
-  object.name = 'Three shelter lights across the valley';
-  return object;
-}
-
 export function createPineGateVista(initialLight = { n: 1, g: 0 }) {
   const look = { uNight: { value: initialLight.n }, uDusk: { value: initialLight.g }, uTime: { value: 0 } };
   const group = new THREE.Group();
   group.name = 'Pine Gate valley vista';
-  group.add(mountainRanges(look), cloudSea(look), waterfall(look), otherRidgeLights(look));
+  group.add(mountainRanges(look), cloudSea(look), waterfall(look));
   return {
     group,
     update(time, light = initialLight) {
