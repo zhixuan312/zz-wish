@@ -32,6 +32,14 @@ export function shapeMinutes(shape: Shape): number {
 }
 export const isAllowedMinutes = (m: number) => m >= MIN_MINUTES && m <= MAX_MINUTES;
 
+// The hanging gauze lantern grows with its burning time: the visitor sees a
+// taller shade for a longer wish. Logarithmic in time between the ten-minute
+// preset and the full day, inside the envelope that clears the ceiling beam.
+export function lanternHeightMetres(minutes: number): number {
+  const t = Math.log(Math.min(MAX_MINUTES, Math.max(10, minutes)) / 10) / Math.log(MAX_MINUTES / 10);
+  return 0.35 + (0.56 - 0.35) * t;
+}
+
 // Volume of a stack of frustums: how much wax or oil a profile holds.
 export function waxVolume(rows: Row[]): number {
   let v = 0;

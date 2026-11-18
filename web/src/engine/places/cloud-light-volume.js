@@ -36,8 +36,16 @@ export async function createCloudLightVolume({THREE,renderer,density,sourceIdent
   };
   const scheduler=createCloudLightPhase({backend,sourceIdentity,phaseStepSeconds:4}),nextFrame=()=>new Promise(resolve=>requestAnimationFrame(resolve));
   // Prewarm offscreen while the real-app poster remains visible. No missing
-  // directional pass is exposed as a completed field.
-  while(!scheduler.sample().ready){await scheduler.tick(0);await nextFrame();}
+  // directional pass is exposed as a completed field. Each frame runs as many
+  // passes as a small time budget allows before yielding, because one pass per
+  // animation frame stretched this prewarm to 5.6 s and held every place
+  // preparation behind it.
+  const prewarmBudgetMs = 12;
+  while(!scheduler.sample().ready){
+    const frameStart=performance.now();
+    do{await scheduler.tick(0);}while(!scheduler.sample().ready&&performance.now()-frameStart<prewarmBudgetMs);
+    if(!scheduler.sample().ready)await nextFrame();
+  }
   const [nx,ny,nz]=dimensions,grid=axis.grid,box=grid.worldBounds,dyLow=(-88-box.min[1])/grid.lowerCount,dyHigh=(box.max[1]+88)/(ny-grid.lowerCount),a=grid.atlas;
   const f=n=>Number.isInteger(n)?`${n}.0`:String(n),v=values=>`vec3(${values.map(f).join(',')})`;
   const glsl=`
