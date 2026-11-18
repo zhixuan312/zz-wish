@@ -6,14 +6,16 @@ export default function createPlace(h) {
   const { V3 } = h;
   return {
     bakedLighting: true, exposure: 1, shade: .3,
-    sky: { top: 0x060a0e, horizon: 0x222a2e, ground: 0x0c0f10, sun: 0xd8e2e6, dir: [.6, .3, -1], glow: .2, clouds: .62, lit: 0x3a4448, dark: 0x0e1214, stars: .2, disc: 1.2 },
-    fog: [0x1a2124, .014], sunL: [0xc5d4db, .68], hemi: [0x47545c, 0x10150e, .48], bloom: [.25, 1.1],
+    sky: { top: 0x0c121b, horizon: 0x364653, ground: 0x0c0f10, sun: 0xd8e2e6, dir: [.6, .3, -1], glow: .2, clouds: .62, lit: 0x506070, dark: 0x182127, stars: .2, disc: 1.2 },
+    fog: [0x273843, .013], sunL: [0xc5d4db, .68], hemi: [0x47545c, 0x10150e, .48], bloom: [.25, 1.1],
     // The same place by day; the scene blends toward it by the visitor's local time.
     day: { exposure: 1, sky: { top: 0x587090, horizon: 0xdadee2, ground: 0xc8ccd2, sun: 0xfff4e0, dir: [.6, .3, -1], glow: .6, clouds: .35, lit: 0xffffff, dark: 0xa8b0bc }, fog: [0xc6ced6, .0055], sunL: [0xfff2dc, 2], hemi: [0xc0d0e0, 0x384030, .85], bloom: [.2, 1.3] },
-    view: { pos: V3(3.8, 2.3, 52), look: V3(-.4, 5.4, 1) },
-    viewPhone: { pos: V3(3.8, 2.3, 52), look: V3(-.4, 4.3, 1), fov: 48 },
+    // Start between the trunks with several flights still ahead. The gate
+    // and its guide are visible above the controls in both aspect ratios.
+    view: { pos: V3(.97, 2.96, 33.7), look: V3(-.12, 4.55, 1), fov: 30 },
+    viewPhone: { pos: V3(.62, 2.91, 34.05), look: V3(-.11, 4.42, 1), fov: 40 },
     walkSeconds: 30,
-    walk: [V3(.2, 1.7, 46), V3(-.15, 2.65, 36), V3(.2, 3.65, 26), V3(0, 4.65, 16), V3(.1, 5.65, 6)], doors: V3(-.3, 5.6, .8),
+    walk: [V3(.30, 3.34, 29.5), V3(-.08, 3.90, 24), V3(.12, 4.70, 16), V3(.10, 5.65, 6)], doors: V3(-.3, 5.6, .8),
     async build() {
       const context = h.context;
       const baked = await loadBakedPlace('pine-gate', h.renderer, context.light);
