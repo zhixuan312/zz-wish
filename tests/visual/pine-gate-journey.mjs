@@ -8,6 +8,7 @@ import { chromium, expect, webkit } from '@playwright/test';
 import Database from 'better-sqlite3';
 import { remainingFuel, waxCutHeight } from '../../shared/wax.ts';
 import { assertCaptureGpuHealthy, installCaptureGpuGuard } from './capture-preflight.mjs';
+import { installLiveAudioAudit, sampleLiveAudio } from './live-audio-audit.mjs';
 
 if (process.argv.includes('--help')) {
   console.log([
@@ -18,6 +19,7 @@ if (process.argv.includes('--help')) {
     'OUTPUT overrides the default output root, artifacts/pine-gate in the worktree.',
     'CAPTURE_MILESTONE=m1 runs desktop-en and phone-zh on Chrome.',
     'CAPTURE_MILESTONE=m3 runs both viewports and languages on Chrome and WebKit.',
+    'CAPTURE_MILESTONE=quality captures a desktop and phone review set. Use QUALITY_PASS=preview or final.',
     'CAPTURE_BROWSER and CAPTURE_ONLY can select a single context. PINE_HOUR defaults to 22.',
   ].join('\n'));
   process.exit(0);
@@ -27,7 +29,11 @@ const worktree = fileURLToPath(new URL('../../', import.meta.url));
 const outputRoot = resolve(process.env.OUTPUT ?? join(worktree, 'artifacts/pine-gate'));
 const lockPath = resolve(process.env.GPU_LOCK_DIR ?? join(worktree, '../gpu.lock'));
 const mode = process.env.CAPTURE_MILESTONE ?? 'm1';
-assert(['m1', 'm3'].includes(mode), 'CAPTURE_MILESTONE must be m1 or m3.');
+assert(['m1', 'm3', 'quality'].includes(mode), 'CAPTURE_MILESTONE must be m1, m3 or quality.');
+const quality = mode === 'quality';
+const fullJourney = mode !== 'm1';
+const qualityPass = process.env.QUALITY_PASS ?? 'preview';
+assert(['preview', 'final'].includes(qualityPass), 'QUALITY_PASS must be preview or final.');
 const base = new URL(process.env.BASE_URL ?? 'http://127.0.0.1:8953/');
 assert(base.protocol === 'http:' && ['127.0.0.1', 'localhost'].includes(base.hostname)
   && Number(base.port) >= 8950 && Number(base.port) <= 8999, 'Use an isolated capture server on ports 8950–8999.');
@@ -52,11 +58,27 @@ const sizes = [
   return languages.map(language => ({ ...size, language, label: size.name + '-' + language }));
 }).filter(size => !contextOnly || size.label === contextOnly);
 assert(suite.length && sizes.length, 'No matching capture context.');
-const output = join(outputRoot, mode === 'm3' && (contextOnly || browserOnly || hour !== 22)
-  ? ['m3-smoke', browserOnly, contextOnly, 'hour-' + hour].filter(Boolean).join('-') : mode);
+const output = quality
+  ? join(outputRoot, 'quality', qualityPass, 'pine')
+  : join(outputRoot, mode === 'm3' && (contextOnly || browserOnly || hour !== 22)
+    ? ['m3-smoke', browserOnly, contextOnly, 'hour-' + hour].filter(Boolean).join('-') : mode);
+let delivery = null;
+if (fullJourney) {
+  const manifestUrl = new URL('/places/pine-gate/manifest.json', base);
+  const response = await fetch(manifestUrl);
+  assert(response.ok, 'Pine Gate bake manifest is missing.');
+  const bytes = Buffer.from(await response.arrayBuffer());
+  const manifest = JSON.parse(bytes.toString('utf8'));
+  const preview = quality && qualityPass === 'preview';
+  const samples = manifest.bake?.samples;
+  assert.equal(Boolean(manifest.partialPreview), preview, 'Capture mode does not match the active bake delivery.');
+  assert.equal(samples, preview ? 8 : 64, 'Unexpected Pine Gate bake sample count.');
+  delivery = { preview, samples, manifestSha256: createHash('sha256').update(bytes).digest('hex') };
+}
 await mkdir(output, { recursive: true });
 const report = {
   mode,
+  delivery,
   clock: 'Local visual hour ' + hour + ' held constant. Controlled client and matching isolated server start times accelerate progress; render animation uses real frame timestamps.',
   viewport: 'Phone is viewport and touch emulation. WebKit freehand uses a trusted mouse stroke.',
   runs: [],
@@ -124,6 +146,7 @@ async function capture(browser, browserName, size) {
   await mkdir(path, { recursive: true });
   try {
     await context.addInitScript(installCaptureGpuGuard);
+    if (quality) await context.addInitScript(installLiveAudioAudit);
     await context.addInitScript(hour => {
       Date.prototype.getHours = () => Math.floor(hour);
       Date.prototype.getMinutes = () => Math.floor((hour % 1) * 60);
@@ -182,6 +205,7 @@ async function capture(browser, browserName, size) {
         wax: window.__visualPineWax?.() ?? null,
         smoke: window.__visualWickPlume?.() ?? null,
         walk: window.__walkProgress ?? null,
+        ignition: window.__visualIgnition ?? null,
         canvas: [window.__renderer.domElement.width, window.__renderer.domElement.height],
         viewportOverflow: [...document.querySelectorAll('.ui button, .ui textarea, .ui h1, .ui h2')]
           .filter(item => {
@@ -190,7 +214,7 @@ async function capture(browser, browserName, size) {
           }).map(item => item.textContent.trim()),
       }));
       const file = join(path, name + '.png');
-      if (mode === 'm3' && snapshot.wax) assert.equal(snapshot.wax.baked, true, 'Active Pine Gate scene must be baked.');
+      if (fullJourney && snapshot.wax) assert.equal(snapshot.wax.baked, true, 'Active Pine Gate scene must be baked.');
       const bytes = await page.screenshot({ path: file, scale: 'css' });
       run.shots.push({ file: relative(output, file), sha256: createHash('sha256').update(bytes).digest('hex'), ...snapshot, ...extra });
       console.log(browserName, label, name, JSON.stringify(snapshot.wax));
@@ -199,6 +223,7 @@ async function capture(browser, browserName, size) {
     };
     const waitWax = (fn, arg) => page.waitForFunction(fn, arg, { polling: 50, timeout: 15_000 });
     const travel = async (skip, journey = false) => {
+      const started = performance.now();
       await act(button(bi('^Step inside$', '^走进院里$')));
       if (skip) await act(button(bi('^Skip$', '^跳过$')));
       if (journey) {
@@ -211,25 +236,33 @@ async function capture(browser, browserName, size) {
         }
       }
       await matchStage(page, 'candle');
+      if (journey) run.walkDurationMs = performance.now() - started;
     };
-    const choose = async (custom = false) => {
+    const choose = async (custom = false, long = false) => {
       if (custom) {
         await act(page.getByRole('tab', { name: bi('^Draw$', '^自己画$') }));
         await drawProfile(context, page, phone, browserName);
       } else {
         await act(radio(bi('^Pillar$', '^方墩$')));
-        await act(radio(bi('^1 h$', '^1 小时$')));
+        await act(radio(long ? bi('^24 h$', '^24 小时$') : bi('^1 h$', '^1 小时$')));
       }
       await act(radio(custom ? bi('^Beeswax$', '^蜂蜡$') : bi('^Ivory$', '^象牙$')));
       await expect(lightButton).toBeEnabled();
       await waitWax(() => window.__visualPineWax?.()?.remaining === 1);
-      if (phone || mode === 'm3') await page.waitForTimeout(1300);
+      if (phone || fullJourney) await page.waitForTimeout(1300);
       await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
     };
-    const light = async () => {
+    const light = async (captureChoreography = false) => {
       await act(lightButton);
+      if (captureChoreography) {
+        await waitWax(() => window.__visualIgnition?.state === 'igniting' && window.__visualIgnition.progress >= .085);
+        await captureShot('ignition');
+        await waitWax(() => window.__visualIgnition?.state === 'spreading');
+        await captureShot('spreading');
+      }
       await expect(page.getByTestId('with-you')).toBeVisible();
-      await waitWax(() => window.__visualIgnition?.state === 'settled');
+      await page.waitForFunction(() => window.__visualIgnition?.state === 'settled', null, { timeout: 30_000, polling: 50 });
+      if (captureChoreography) await captureShot('settled');
       const active = await activeCandle(page);
       assert.equal(active.shape.kind, 'candle');
       return active;
@@ -295,30 +328,51 @@ async function capture(browser, browserName, size) {
       return debug ? gl.getParameter(debug.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER);
     });
     await page.evaluate(() => document.fonts.ready);
-    if (mode === 'm3') await captureShot('home');
+    if (fullJourney) await captureShot('home');
     await page.getByLabel(wishLabel).fill(wish);
     await act(button(bi('^Set my wish$', '^许好了$')));
     const pineRadio = radio(new RegExp('^' + place));
+    const selectStarted = performance.now();
     await act(pineRadio);
     await expect(pineRadio).toHaveAttribute('aria-checked', 'true');
-    if (mode === 'm3') {
+    if (fullJourney) {
       await expect(button(bi('^Step inside$', '^走进院里$'))).toBeEnabled({ timeout: 60_000 });
+      run.placeReadyMs = performance.now() - selectStarted;
       await captureShot('place');
     }
-    await travel(mode === 'm1', mode === 'm3');
-    await choose(phone);
-    const unlit = await captureShot('unlit', { choice: phone ? 'freehand' : 'preset' });
+    await travel(!fullJourney, fullJourney);
+    const freehand = phone && !quality;
+    await choose(freehand);
+    const unlit = await captureShot('unlit', { choice: freehand ? 'freehand' : 'preset' });
     assert.equal(unlit.wax.state, 'unlit');
 
-    const complete = await light();
-    assert.equal(complete.shape.rows.length > 2, phone);
+    const complete = await light(fullJourney);
+    assert.equal(complete.shape.rows.length > 2, freehand);
     await waitProgress(0);
     const early = await captureShot('burn-00', { targetProgress: 0 });
     await measureBurnCadence();
+    if (quality) {
+      const signal = await sampleLiveAudio(page, { samples: 12, intervalMs: 150 });
+      const meters = signal.readings.flatMap(reading => reading.contexts.flatMap(
+        context => context.masters.map(master => master.meter).filter(Boolean)));
+      const rms = Math.sqrt(meters.reduce((sum, meter) => sum + meter.rms ** 2, 0) / (meters.length || 1));
+      run.audio = { ...signal, rms };
+      assert(signal.running && signal.connectedMasters && signal.peak > 0, 'No live Pine Gate ambience was observed.');
+      assert(signal.peak < .99, 'Pine Gate audio peaked near clipping.');
+    }
     const half = Math.round(complete.durationMs * .5);
     const late = Math.round(complete.durationMs * .95);
     await advanceVisibleBurn(complete, half, .5);
     const middle = await captureShot('burn-50', { targetProgress: .5 });
+    if (quality) {
+      await page.evaluate(() => window.__visualPineCloseup());
+      try {
+        await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+        await captureShot('candle-closeup');
+      } finally {
+        await page.evaluate(() => window.__visualPineCloseupRestore());
+      }
+    }
     await advanceVisibleBurn(complete, late - half, .95);
     const final = await captureShot('burn-95', { targetProgress: .95 });
     assert(early.wax.bodyHeight > middle.wax.bodyHeight && middle.wax.bodyHeight > final.wax.bodyHeight && final.wax.bodyHeight > 0);
@@ -334,8 +388,9 @@ async function capture(browser, browserName, size) {
 
     await act(button(bi('^Another lamp for this wish$', '^再为此愿点一盏$')));
     await travel(true);
-    await choose(!phone);
+    await choose(!phone && !quality, quality);
     const extinguished = await light();
+    if (quality) await captureShot('burn-far');
     const partial = Math.round(extinguished.durationMs * .42);
     await advance(extinguished, partial);
     await waitProgress(.42);
@@ -353,7 +408,7 @@ async function capture(browser, browserName, size) {
     const savedCut = waxCutHeight(stopped.shape.rows, remainingFuel(stopped.burnedMs, stopped.durationMs));
     assert.equal(out.wax.state, 'went_out');
     assert(Math.abs(out.wax.cutHeight - savedCut) < .00001, 'The settled cut and record cut must agree.');
-    if (mode === 'm3') {
+    if (fullJourney) {
       await waitWax(() => !window.__visualWickPlume?.());
       await captureShot('went-out-cooled');
     }
