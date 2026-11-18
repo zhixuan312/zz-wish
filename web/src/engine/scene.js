@@ -368,6 +368,12 @@ function visitorRibMaterial(color){
   const material=lampWood.clone(),cloth=new THREE.Color(color),maximum=Math.max(.0001,cloth.r,cloth.g,cloth.b);
   const throughput=new THREE.Color().setRGB(...[cloth.r,cloth.g,cloth.b].map(c=>.06*Math.pow(c/maximum,.7)));
   material.roughness=.9;material.envMapIntensity=.1;
+  // An unlit or ended shade is backlit by nothing, so its bamboo ribs used to
+  // flatten into a red silhouette. Give the ribs a small constant term of their
+  // own colour: enough to count them at 100% crop, small enough that a burning
+  // shade still reads as cloth glowing from within.
+  material.emissive=new THREE.Color(color).multiplyScalar(.16);
+  material.emissiveIntensity=1;
   material.onBeforeCompile=shader=>{
     shader.uniforms.uClothThroughput={value:throughput};
     shader.fragmentShader='uniform vec3 uClothThroughput;\n'+shader.fragmentShader.replace('#include <lights_fragment_begin>',THREE.ShaderChunk.lights_fragment_begin.replace('getPointLightInfo( pointLight, geometryPosition, directLight );',`getPointLightInfo( pointLight, geometryPosition, directLight );
@@ -375,7 +381,7 @@ function visitorRibMaterial(color){
       if(flameDistance2<1.)directLight.color*=uClothThroughput*flameDistance2/(flameDistance2+.0016);}`));
   };
   material.userData.lampOwned=true;
-  material.customProgramCacheKey=()=> 'visitor-gauze-transmitted-ribs-1';return material;
+  material.customProgramCacheKey=()=> 'visitor-gauze-transmitted-ribs-2';return material;
 }
 
 // A shade lit from inside: paper, gauze or pottery that glows most where the flame is near.
