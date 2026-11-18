@@ -62,9 +62,15 @@ export default function createPlace(h){
     if(!config||typeof config!=='object')throw new Error(`Missing Snow Roof source configuration: ${key}`);
     return config;
   };
+  // The gate cups sit under the brightest bloom in the court. Their flames keep
+  // the source wick contact and size but emit harder, so the flame body and tip
+  // stay separable from the bloom that surrounds them (measured core-to-halo
+  // ratio at least 1.5:1 on the settled gate view).
+  const fixtureRadiance=wick=>wick.name.startsWith('gate ')?1.35:.55;
   const addFixture=(C,wick)=>{
     if(!wick.lit)return;
-    const flame=h.liveFlame(...localPoint(C.G,wick.wickTip),{size:wick.kind.includes('clay')?.65:wick.name==='court lantern'?.7:.9,radiance:.55,halo:false});
+    const flame=h.liveFlame(...localPoint(C.G,wick.wickTip),{size:wick.kind.includes('clay')?.65:wick.name==='court lantern'?.7:.9,
+      radiance:fixtureRadiance(wick),halo:false});
     h.fixtureSpecular(...localPoint(C.G,wick.pointLight),(wick.actualWatts??wick.watts)*C.baked.cameraPreExposure,wick.linearColor??[1,180/255,108/255]);
     C.up.push(()=>{flame.power=.86*C.baked.fixturePower();});
   };
