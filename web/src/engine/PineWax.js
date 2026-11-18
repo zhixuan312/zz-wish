@@ -43,8 +43,9 @@ function materialCoordinates(shader) {
 
 function refinedWaxMaterial(light, layer) {
   const wet = layer === 'pool';
+  const shaft = layer === 'body';
   const style = {
-    body: { roughness: .47, clearcoat: .11, specularIntensity: .58, diffuse: .91, scatter: .92 },
+    body: { roughness: .43, clearcoat: .09, specularIntensity: .52, diffuse: .91, scatter: 1.68 },
     pool: { roughness: .13, clearcoat: .42, specularIntensity: .75, diffuse: .34, scatter: .045 },
     remnant: { roughness: .47, clearcoat: .10, specularIntensity: .49, diffuse: .74, scatter: .08 },
   }[layer];
@@ -77,12 +78,13 @@ function refinedWaxMaterial(light, layer) {
         float side = 1. - abs(worldNormal.y);
         // The flame lights the rim from within. Wavelength-dependent absorption
         // leaves the lower wax cooler and keeps the original pigments readable.
-        float path = .0012 + depth * .69 + length(fromCrown.xz) * .16;
-        vec3 absorption = vec3(54., 100., 175.) - 29. * log(clamp(diffuse, .055, 1.));
+        float path = .0012 + depth * .83 + length(fromCrown.xz) * .12;
+        vec3 absorption = vec3(49., 88., 155.) - 29. * log(clamp(diffuse, .055, 1.));
         vec3 transmission = exp(-absorption * path);
         float edge = .71 + .29 * pow(1. - abs(dot(normal, viewRay)), 1.45);
-        float scatter = sourceFraction * edge * (.13 + .87 * side) * ${style.scatter};
-        totalEmissiveRadiance += uPineSourceColor * transmission * scatter;
+        float crownFalloff = 1. - smoothstep(.006, .046, depth);
+        float scatter = sourceFraction * edge * (.08 + .92 * side) * ${style.scatter};
+        totalEmissiveRadiance += uPineSourceColor * transmission * scatter * crownFalloff;
         ${wet ? `
         // The glowing wick and flame base are a finite source. Project that
         // source across the curved meniscus so the reflection moves with the
@@ -96,8 +98,15 @@ function refinedWaxMaterial(light, layer) {
         float fresnel = .09 + .91 * pow(1. - max(0., dot(worldNormal, viewWorld)), 4.);
         vec3 reflectionColor = mix(uPineSourceColor, vec3(1., .88, .70), .57);
         totalEmissiveRadiance += reflectionColor * (.25 + fresnel * 2.4) * flameReflection * sourceFraction * uPinePoolWet;` : ''}`);
+    if (shaft) shader.fragmentShader = shader.fragmentShader.replace('#include <lights_fragment_end>', `#include <lights_fragment_end>
+      // The convex dry lip scatters broadly while the concave wet surface
+      // retains the sharp reflection. Preserve the dry folds in the light.
+      float dryLip = smoothstep(.13, .85, worldNormal.y) * crownFalloff * uPinePoolWet;
+      reflectedLight.directDiffuse *= mix(1., .22, dryLip);
+      reflectedLight.indirectDiffuse *= mix(1., .68, dryLip);
+      reflectedLight.directSpecular *= mix(1., .50, dryLip);`);
   };
-  material.customProgramCacheKey = () => `pine-wax-${layer}-3`;
+  material.customProgramCacheKey = () => `pine-wax-${layer}-4`;
   return material;
 }
 
@@ -259,7 +268,9 @@ const RUNNEL_ROWS = 26;
 
 function bodySurface(mesh, rows, cut, melt, runnels) {
   const top = ringAt(rows, cut);
-  const depth = Math.min(cut * .24, top.r * .27, .0036) * melt;
+  const refined = runnels !== null;
+  const depth = (refined ? Math.min(cut * .42, top.r * .40, .0068)
+    : Math.min(cut * .24, top.r * .27, .0036)) * melt;
   const bevel = Math.min(cut * .2, top.r * .09, .0014);
   const uneven = a => melt * Math.min(top.r * .09, cut * .13, .0011) * (.65 * Math.sin(a * 3 + .8) + .35 * Math.sin(a * 7 - .3));
   const grain = (y, radius) => runnels ? runnelContour(y, radius, runnels)
@@ -288,9 +299,15 @@ function bodySurface(mesh, rows, cut, melt, runnels) {
   const shoulder = ringAt(rows, shoulderY);
   writeRing(mesh, row++, shoulder.cx, shoulder.r, shoulderY, grain(runnels ? shoulderY : cut, shoulder.r));
   writeRing(mesh, row++, top.cx, top.r * .99, cut - bevel * .25, grain(runnels ? cut - bevel * .25 : cut, top.r), a => uneven(a) * .4);
-  writeRing(mesh, row++, top.cx, top.r * .92, cut, grain(cut, top.r), uneven);
-  writeRing(mesh, row++, top.cx, top.r * .77, cut - depth * .55, grain(cut, top.r), a => uneven(a) * .3);
-  writeRing(mesh, row++, top.cx, top.r * .61, cut - depth, grain(cut, top.r));
+  if (refined && melt > 0) {
+    writeRing(mesh, row++, top.cx, top.r * .94, cut, grain(cut, top.r), uneven);
+    writeRing(mesh, row++, top.cx, top.r * .865, cut - depth * .20, grain(cut, top.r), a => uneven(a) * .45);
+    writeRing(mesh, row++, top.cx, top.r * .717, cut - depth, grain(cut, top.r));
+  } else {
+    writeRing(mesh, row++, top.cx, top.r * .92, cut, grain(cut, top.r), uneven);
+    writeRing(mesh, row++, top.cx, top.r * .77, cut - depth * .55, grain(cut, top.r), a => uneven(a) * .3);
+    writeRing(mesh, row++, top.cx, top.r * .61, cut - depth, grain(cut, top.r));
+  }
   const used = row + 1;
   // The unused rings collapse onto the cap centre so they contribute no normals.
   for (; row < mesh.rings; row++) writeRing(mesh, row, top.cx, 0, cut - depth);
@@ -437,8 +454,10 @@ export function createPineWax(seat, waxMaterial, { refined = false } = {}) {
         pool.visible = !spent && melted > 0;
         if (refined) {
           const depth = top.depth ?? 0;
-          if (pool.visible) fillPool(poolMesh, top.r * (.65 + .065 * melted), Math.min(.00038, depth * .21));
-          pool.position.set(top.cx, cut - depth * .80 + Math.min(cut * .04, .00012), 0);
+          // Place the meniscus below the dry lip. Its outer rings meet the
+          // curved inner wall; the centre stays below them around the wick.
+          if (pool.visible) fillPool(poolMesh, top.r * .802, Math.min(.00044, depth * .17));
+          pool.position.set(top.cx, cut - depth * .72, 0);
           poolMaterial.roughness = state === 'burning' ? .13 : .38;
           light.uPinePoolWet.value = state === 'burning' ? 1 : 0;
         } else {
