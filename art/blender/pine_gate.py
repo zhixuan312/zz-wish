@@ -420,7 +420,12 @@ def gate(stone, tiles, wood, red, iron):
                 mesh.box(f'Shoulder wall {s} {i} {j}', (.84, .41, .49),
                          (x + s * .09 * (j % 2), 4.205 + j * .40, .44),
                          stone[(i + j) % len(stone)], .024, region='gate')
-            mesh.box(f'Wall cap {s} {i}', (.88, .12, .67), (x, 5.27, .44), tiles[i % len(tiles)], .024, region='gate')
+            cap_width, cap_x = .88, x
+            if s < 0 and i == 0:
+                # Keep the outer end and stop the glazed cap inside the solid jamb.
+                cap_width, cap_x = .80, x - .04
+            mesh.box(f'Wall cap {s} {i}', (cap_width, .12, .67), (cap_x, 5.27, .44),
+                     tiles[i % len(tiles)], .024, region='gate')
     gate_guide(wood, iron)
     roof(z=.08, x=0, y=7.26, w=5.15, d=1.34, h=.87, tiles=tiles, wood=wood, label='Gate', region='gate')
     mesh.box('Inner shrine stone platform', (5.7, .31, 4.2), (.17, 4.05, -5.0), stone[1], .038, region='gate')
@@ -754,15 +759,6 @@ def source_lighting(scene):
     caster.location = mesh.point((-9, 15, 14))
     caster.rotation_euler = (mesh.point((0, 4, 1)) - caster.location).to_track_quat('-Z', 'Y').to_euler()
     caster['bake_role'] = 'ambient'
-    # Model the diffuse sky bounce off the front sill as a broad, weak source.
-    # The ambient role keeps the visitor's lamp-only atlas independent.
-    bounce = bpy.data.lights.new('Cool diffuse bounce from the niche lip', 'AREA')
-    bounce.energy, bounce.color, bounce.shape, bounce.size = .018, (.86, .92, 1.), 'DISK', .15
-    emitter = bpy.data.objects.new(bounce.name, bounce)
-    bpy.data.collections['LIGHTS'].objects.link(emitter)
-    emitter.location = mesh.point((-1.932, 5.266, .925))
-    emitter.rotation_euler = (mesh.point((-1.972, 5.264, .758)) - emitter.location).to_track_quat('-Z', 'Y').to_euler()
-    emitter['bake_role'] = 'ambient'
     for p, watts in [((.98, 6.38, .62), 1.98), ((.15, 6.25, -4.8), 2.1)]:
         mesh.light('Hidden warm reflected temple light', p, watts / PRE_EXPOSURE, '#f5b27e', .26)
     point = mesh.light('Visitor candle indirect bounce basis', LAMP, .20, '#ffc88a', .007, 'lamp')
