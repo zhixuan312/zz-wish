@@ -59,13 +59,13 @@ function refinedWaxMaterial(light, layer) {
     Object.assign(shader.uniforms, light);
     shader.fragmentShader = `
       uniform vec3 uPineSourcePosition, uPineSourceColor, uPineWaxCrown;
-      uniform float uPineCandela, uPineSourceRadius, uPinePoolWet;
+      uniform float uPineCandela, uPineSourceRadius, uPinePoolWet, uPineWaxCooling, uPineWaxHeight;
       ${shader.fragmentShader}`;
     shader.fragmentShader = shader.fragmentShader.replace('#include <map_fragment>', `#include <map_fragment>
       vec3 grains = vPineLocal * 720.;
       float grainCoverage = 1. - smoothstep(.12, .65, length(fwidth(grains)));
       float waxGrain = sin(dot(grains, vec3(1.31, .62, .95))) * sin(dot(grains, vec3(-.18, 1.84, .54))) * grainCoverage;
-      diffuseColor.rgb *= ${style.diffuse} * (1. + .013 * waxGrain);`)
+      diffuseColor.rgb *= ${wet ? `mix(${style.diffuse}, .82, uPineWaxCooling)` : style.diffuse} * (1. + .013 * waxGrain);`)
       .replace('#include <roughnessmap_fragment>', `#include <roughnessmap_fragment>
         roughnessFactor = clamp(roughnessFactor + .018 * waxGrain, .1, 1.);`)
       .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
@@ -106,7 +106,19 @@ function refinedWaxMaterial(light, layer) {
       float dryLip = smoothstep(.13, .85, worldNormal.y) * crownFalloff * uPinePoolWet;
       reflectedLight.directDiffuse *= mix(1., .22, dryLip);
       reflectedLight.indirectDiffuse *= mix(1., .68, dryLip);
-      reflectedLight.directSpecular *= mix(1., .50, dryLip);`);
+      reflectedLight.directSpecular *= mix(1., .50, dryLip);
+      // Diffuse return from the shelf and opening keeps the wax pigment
+      // readable below the transmitted amber without following the camera.
+      float shaftHeight = vPineLocal.y / max(uPineWaxHeight, .001);
+      float lowerWax = 1. - smoothstep(.40, .89, shaftHeight);
+      float flameBounce = (1. - exp(-uPineCandela * 12.)) * uPinePoolWet;
+      float reliefLight = .74 + .26 * dot(worldNormal, normalize(vec3(.34, .27, 1.)));
+      float waxBounce = flameBounce * (.045 + .18 * lowerWax)
+        + uPineWaxCooling * (.097 + .023 * lowerWax);
+      reflectedLight.indirectDiffuse += diffuseColor.rgb * vec3(.96, 1., 1.04) * waxBounce * reliefLight;`);
+    if (wet) shader.fragmentShader = shader.fragmentShader.replace('#include <lights_fragment_end>', `#include <lights_fragment_end>
+      // The solidified pool reflects the selected pigment as diffuse wax.
+      reflectedLight.indirectDiffuse += diffuseColor.rgb * vec3(.96, 1., 1.04) * .091 * uPineWaxCooling;`);
     if (remnant) {
       shader.fragmentShader = `
         uniform vec3 uPineTraceSection;
@@ -141,7 +153,7 @@ function refinedWaxMaterial(light, layer) {
           reflectedLight.directSpecular *= .56;`);
     }
   };
-  material.customProgramCacheKey = () => `pine-wax-${layer}-${remnant ? 6 : 4}`;
+  material.customProgramCacheKey = () => `pine-wax-${layer}-${remnant ? 6 : 5}`;
   return material;
 }
 
@@ -411,6 +423,8 @@ export function createPineWax(seat, waxMaterial, { refined = false } = {}) {
     uPineSourceRadius: { value: .007 },
     uPineCandela: { value: 0 },
     uPinePoolWet: { value: 0 },
+    uPineWaxCooling: { value: 0 },
+    uPineWaxHeight: { value: 0 },
     uPineTraceSection: { value: vector(0, 0, 0) },
     uPineTraceRadius: { value: 0 },
     uPineTraceThickness: { value: 0 },
@@ -510,8 +524,12 @@ export function createPineWax(seat, waxMaterial, { refined = false } = {}) {
           // curved inner wall; the centre stays below them around the wick.
           if (pool.visible) fillPool(poolMesh, top.r * .802, Math.min(.00044, depth * .17));
           pool.position.set(top.cx, cut - depth * .72, 0);
-          poolMaterial.roughness = state === 'burning' ? .13 : .38;
+          const cooled = state === 'went_out' || state === 'burned_down';
+          poolMaterial.roughness = state === 'burning' ? .13 : .44;
+          poolMaterial.color.copy(bodyMaterial.color).lerp(warmWax, cooled ? 0 : .06);
           light.uPinePoolWet.value = state === 'burning' ? 1 : 0;
+          light.uPineWaxCooling.value = cooled ? 1 : 0;
+          light.uPineWaxHeight.value = cut;
         } else {
           pool.scale.setScalar(top.r * (.56 + .086 * melted));
           pool.position.set(top.cx, cut - (top.depth ?? 0) + Math.min(cut * .04, .00016), 0);
