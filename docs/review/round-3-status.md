@@ -309,20 +309,29 @@ the same expectation.
 
 ## T3: Round 3 full journey
 
-Status: **partly**. Chromium's four contexts complete on the final code; WebKit's does not.
+Status: **partly**. Chromium is complete on this build in four independent runs; WebKit is not.
 
-Chromium, run on `ce3184c` (the tree that also carries `4ad1859` and `807b065`, both docs-only):
-`frames 287, errors 0, httpErrors 0` at the point the run was stopped at the GPU lease limit,
-with 55 top-level PNGs plus sequence frames in each of `desktop-en`, `desktop-zh`, `phone-en`
-and `phone-zh`. All four contexts carry the identical stage set, checked by comparing their
-sorted frame names. The run reported `frames 292` only after the stop, because WebKit had
-begun and its few frames were appended.
+Each batch ran in its own fresh output directory with its own `report.json`, on `8ba88cf`
+(the tree that also carries the docs-only `807b065`). No directory was reused and no earlier
+directory was deleted.
 
-WebKit was stopped at that same lease limit: five `desktop-en` frames exist in this run, so
-its four contexts still need the full journey on this build. `after-journey-webkit/` holds an
-older aborted attempt, described below.
+| batch | output | frames | PNGs | errors | httpErrors |
+|---|---|---|---|---|---|
+| chromium desktop-en | `artifacts/full-review/round-3/journey-r3-chromium-desktop-en/` | 73 | 73 | 0 | 0 |
+| chromium desktop-zh | `journey-r3-chromium-desktop-zh/` | 73 | 73 | 0 | 0 |
+| chromium phone-en | `journey-r3-chromium-phone-en/` | 73 | 73 | 0 | 0 |
+| chromium phone-zh | `journey-r3-chromium-phone-zh/` | 73 | 73 | 0 | 0 |
 
-Both phone contexts now run the full journey, which confirms the pad fix in `5fa247a`.
+All four `report.json` files agree with their own directories, and their stage sequences are
+identical field by field (73 of 73 positional matches), covering `home` through
+`light-ignition`, `burning`, `burnFar`, `ending-put-out-*`, `result-put-out`,
+`natural-*`, `my-lamps`, `record-expanded`, `my-wishes`, `ten-lights` and `home-return`.
+Every batch reported `sourceChanged: false`.
+
+WebKit still needs its four contexts on this build. The older
+`after-journey/` and `after-journey-webkit/` directories are kept as history but are **not**
+valid evidence for this build: their frames mix runs from different times, and their
+`report.json` files were overwritten by later runs that reused the same directory.
 
 ### A superseded WebKit attempt
 
@@ -361,12 +370,12 @@ so a true before/after pair is the exception rather than the rule.
 | B5 phone choose | `j6-j2` has no pre-fix frame; `choose-phone-zh-24h.png` was overwritten | `lantern-size/choose-phone-zh-{10min,2h,24h}.png` |
 | J15 phone pad | no before capture; pad was about 358 px wide and the tools were off-screen | `tests/tier1/e2e/phone-drawing.spec.ts` measures 200x300 CSS px |
 | J16 long wish | no before capture; the wish was cut without an ellipsis | `lantern-size/burning-phone-zh-10min.png` |
-| T5 | no before capture; badge was a bright 12 px accent line | `after-journey/chromium/desktop-en/place.png` |
+| T5 | no before capture; badge was a bright 12 px accent line | `journey-r3-chromium-desktop-en/chromium/desktop-en/place.png` |
 | T6 (J12) | **not done** — baked geometry needs a new bake | — |
 | T7 | `j6-j2/gate-shelf-{left,right}-desktop-en.png` | `j6-j2/gate-walk-{desktop-en,phone-zh}.png` |
 | T8 | `j6-j2/lantern-unlit-{desktop-en,phone-zh}.png` | `j6-j2/ended-desktop-en-{lit-0,lit-3,000,065,119}.png`, `j6-j2/ended-phone-zh-{lit-0,lit-3,000,083,119}.png` |
 | T9 | no before capture; about 13-15% of frame height at every duration | `lantern-size/burning-desktop-en-{10min,2h,24h}.png` |
-| T3 | no before capture | `after-journey/{chromium,webkit}/<context>/` |
+| T3 | no before capture | `journey-r3-chromium-{desktop-en,desktop-zh,phone-en,phone-zh}/chromium/<context>/` |
 
 Before numbers quoted above come from the measurements recorded in the T1, T2b and T9
 sections, not from a kept image. T9's after evidence is the three-duration burning set, not
