@@ -138,8 +138,8 @@ function refinedWaxMaterial(light, layer) {
         vec3 reflectionColor = mix(uPineSourceColor, vec3(1., .88, .70), .57);
         vec3 wickEmitter = uPineWaxCrown + vec3(flameDrift.x, .0026, flameDrift.y);
         vec3 highlightHalf = normalize(viewWorld + normalize(wickEmitter - vPineWorld));
-        float wetEdge = pow(max(dot(worldNormal, highlightHalf), 0.), 72.) * meniscus;
-        totalEmissiveRadiance += reflectionColor * ((.36 + fresnel * 2.8) * flameReflection + .66 * wetEdge)
+        float wetEdge = pow(max(dot(worldNormal, highlightHalf), 0.), 54.) * meniscus;
+        totalEmissiveRadiance += reflectionColor * ((.36 + fresnel * 2.8) * flameReflection + 1.48 * wetEdge)
           * sourceFraction * uPinePoolWet;` : ''}`);
     if (shaft) shader.fragmentShader = shader.fragmentShader.replace('#include <lights_fragment_end>', `#include <lights_fragment_end>
       // The convex dry lip scatters broadly while the concave wet surface
@@ -481,7 +481,9 @@ function bodySurface(mesh, rows, cut, melt, runnels) {
   const depth = (refined ? Math.min(cut * .42, top.r * .40, .0068)
     : Math.min(cut * .24, top.r * .27, .0036)) * melt;
   const bevel = Math.min(cut * .2, top.r * .09, .0014);
-  const uneven = a => melt * Math.min(top.r * .09, cut * .13, .0011) * (.65 * Math.sin(a * 3 + .8) + .35 * Math.sin(a * 7 - .3));
+  const lipRelief = refined && runnels.length ? .17 : .09;
+  const lipHeight = melt * Math.min(top.r * lipRelief, cut * .13, lipRelief * .013);
+  const uneven = a => lipHeight * (.61 * Math.sin(a * 3 + .8) + .30 * Math.sin(a * 7 - .3) + .09 * Math.cos(a * 11));
   const grain = (y, radius) => runnels ? runnelContour(y, radius, runnels)
     : a => 1 + .006 * Math.sin(a * 7 + y * 120) + .004 * Math.sin(a * 15 - y * 150);
   let row = 0;
@@ -692,7 +694,7 @@ export function createPineWax(seat, waxMaterial, { refined = false } = {}) {
           // Place the meniscus below the dry lip. Its outer rings meet the
           // curved inner wall; the centre stays below them around the wick.
           const poolRadius = top.r * .802;
-          if (pool.visible) fillPool(poolMesh, poolRadius, Math.min(.00049, depth * .20));
+          if (pool.visible) fillPool(poolMesh, poolRadius, Math.min(.00083, depth * .21));
           pool.position.set(top.cx, cut - depth * .72, 0);
           light.uPinePoolRadius.value = poolRadius;
           const cooled = state === 'went_out' || state === 'burned_down';
