@@ -461,9 +461,18 @@ def gate_guide(wood, iron):
         a, b = vertices[i], vertices[i + 8]
         mesh.beam('Fine metal rib on the guide', a, b, .0034, glaze, .0034, 'gate')
     mesh.light('Front emission spill from the suspended gate guide', (x + .15, y - .10, z + .21),
-               3.55 / PRE_EXPOSURE, '#ffca91', .13)
+               4.75 / PRE_EXPOSURE, '#ffca91', .13)
     mesh.light('Warm light spilling down the inside of the gate', (x - .10, y - .24, z - .045),
-               1.85 / PRE_EXPOSURE, '#ffc68e', .16)
+               2.40 / PRE_EXPOSURE, '#ffc68e', .16)
+    # The pale paving returns a broad, muted wash to the brackets and transom.
+    # A small area source leaves the roof and surrounding forest in cool shadow.
+    bounce = bpy.data.lights.new('Warm paving bounce under the gate guide', 'AREA')
+    bounce.energy, bounce.color, bounce.shape, bounce.size = .48, (1., .76, .54), 'DISK', .78
+    emitter = bpy.data.objects.new(bounce.name, bounce)
+    bpy.data.collections['LIGHTS'].objects.link(emitter)
+    emitter.location = mesh.point((.42, 6.06, 1.71))
+    emitter.rotation_euler = (mesh.point((.26, 6.89, .42)) - emitter.location).to_track_quat('-Z', 'Y').to_euler()
+    emitter['bake_role'] = 'fixture'
 
 
 def roof(z, x, y, w, d, h, tiles, wood, label, region):
