@@ -24,7 +24,7 @@ export default function createPlace(h) {
     // The gate pier at the top of the steps: a niche cut in the stone, the red gate leaf half open beside it.
     nook: {
       at: { pos: V3(-1.8, 4, .9), ry: 0 },
-      lamp: 'pineWax', y: 1.0, exposure: 1.1, bloom: [.32, 1],
+      lamp: 'pineWax', y: 1.0, exposure: 1.1, bloom: [.16, 1.35],
       approach: [V3(1.8, 1.65, 3.8), V3(1.2, 1.65, 2.7)],
       chooseApproach: [V3(.57, 1.55, 1.85), V3(.32, 1.41, 1.05)],
       wide: { pos: V3(.62, 1.62, 2.5), look: V3(.15, 1.22, 0) },

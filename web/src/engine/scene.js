@@ -188,7 +188,7 @@ function waxMaterial(color, o = {}) {
 
 // Flame: a camera-facing quad that stays upright, drawn by a shader (blue base, hot core, orange skirt).
 const flameVS = `
-uniform float uScale; uniform float uSeedU;
+uniform float uScale; uniform float uSeedU; uniform float uPineFlame;
 #ifdef USE_INSTANCING
 attribute float aSeed; attribute float aScale;
 #endif
@@ -200,11 +200,11 @@ void main(){
   #endif
   vSeed = sd;
   vec3 r = normalize(vec3(viewMatrix[0][0], 0., viewMatrix[2][0]));
-  vec3 wp = c.xyz + r * position.x * sc * .5 + vec3(0., 1., 0.) * (position.y + .5) * sc;
+  vec3 wp = c.xyz + r * position.x * sc * mix(.5, .66, uPineFlame) + vec3(0., 1., 0.) * (position.y + .5) * sc;
   gl_Position = projectionMatrix * viewMatrix * vec4(wp, 1.);
 }`;
 const flameFS = `
-uniform float uTime; uniform float uPower; uniform float uWind; uniform float uSoft; uniform float uRadiance;
+uniform float uTime; uniform float uPower; uniform float uWind; uniform float uSoft; uniform float uRadiance; uniform float uPineFlame;
 varying vec2 vUv; varying float vSeed;
 float h1(float n){ return fract(sin(n) * 43758.5453); }
 float vn(vec2 x){ vec2 p = floor(x), f = fract(x); f = f * f * (3. - 2. * f); float n = p.x + p.y * 57.;
@@ -228,6 +228,9 @@ vec4 flameAt(vec2 sampleUv){
   vec3 col = mix(vec3(1., .36, .06), vec3(1., .64, .24), 1. - smoothstep(.4, 1., d));
   col = mix(col, vec3(1., .92, .76), core);
   col = mix(col, vec3(.04, .12, .42), clamp(blue, 0., 1.) * .75);
+  float root = uPineFlame * (1. - smoothstep(.12, .34, y));
+  vec3 innerRoot = mix(vec3(.11, .055, .027), vec3(.23, .29, .50), smoothstep(.16, .8, abs(x) / wid));
+  col = mix(col, innerRoot, root);
   float alpha = a * uPower;
   return vec4(col * (1.15 + core * 1.1) * (.85 + .15 * vn(vec2(t * 3.7, vSeed * 5.))), alpha);
 }
@@ -241,7 +244,7 @@ void main(){
 }`;
 function flameMaterial(instanced) {
   return new THREE.ShaderMaterial({ vertexShader: flameVS, fragmentShader: flameFS, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
-    uniforms: { uTime: { value: 0 }, uWind: { value: 0 }, uPower: { value: instanced ? .52 : 0 }, uScale: { value: .06 }, uSeedU: { value: .37 }, uSoft: { value: 0 },uRadiance:{value:1} } });
+    uniforms: { uTime: { value: 0 }, uWind: { value: 0 }, uPower: { value: instanced ? .52 : 0 }, uScale: { value: .06 }, uSeedU: { value: .37 }, uSoft: { value: 0 },uRadiance:{value:1},uPineFlame:{value:0} } });
 }
 const flameMats = [];
 
@@ -544,7 +547,7 @@ const LAMPS = {
       shelfContact.scale.setScalar(contactRadius * holderScale);
     };
     return { g, kind: 'wax', seat, pineWax, holder, shelfContact, setShape,
-      frame: { h: .2, cy: .08 }, lightMax: .05, light: 0xffbc82, flame: 1.13 };
+      frame: { h: .2, cy: .08 }, lightMax: .05, light: 0xffbc82, flame: refined ? .91 : 1.13 };
   },
   // A brass-framed storm lantern hanging from a hook; the candle stands inside behind glass.
   lantern() {
@@ -781,6 +784,9 @@ const api = { g, parts: null, partsKey: null, type: null, power: 0, lightPower: 
       f.light.shadow.normalBias = p.pineWax && liveBaked ? .0024 : .0001;
       f.light.shadow.radius = p.pineWax ? 4 : 2;
       f.light.distance = p.pineWax && liveBaked ? .42 : 0;
+      f.fm.uniforms.uPineFlame.value = p.pineWax && liveBaked ? 1 : 0;
+      f.fm.uniforms.uRadiance.value = p.pineWax && liveBaked ? .83 : 1;
+      f.ember.scale.setScalar(p.pineWax && liveBaked ? .72 : 1);
       f.light.color.setHex(p.light ?? 0xffba78); f.size = p.flame ?? 1; mirror.size = f.size;
       g.traverse((c) => { c.layers.set(0); warmReflections(c); }); f.light.layers.enableAll();
       if(liveBaked&&place?.visitorEnvironment){
@@ -872,7 +878,10 @@ const api = { g, parts: null, partsKey: null, type: null, power: 0, lightPower: 
       f.place(this.top.x, this.top.y, this.top.z);
       if (p.pineWax) {
         f.ember.position.copy(p.pineWax.wickTip);
-        if (place?.P.bakedLighting) f.flame.position.y -= .002;
+        if (place?.P.bakedLighting) {
+          f.flame.position.y = p.pineWax.wickTip.y - .003;
+          f.light.position.y = p.pineWax.wickTip.y + .0175;
+        }
       }
     },
     flameWorld() { g.updateWorldMatrix(true, false); return g.localToWorld(world.copy(this.top)); },
@@ -937,6 +946,11 @@ const api = { g, parts: null, partsKey: null, type: null, power: 0, lightPower: 
       const embering = this.power < .02 && clockTime < emberUntil, fade = embering ? Math.max(0, (emberUntil - clockTime) / 2.5) : 0;
       f.halo.material.color.setHex(embering ? 0xff3a0a : 0xff8a3a);
       if (embering) { f.halo.material.opacity = .55 * fade; f.halo.scale.set(.02, .02, 1); } else f.halo.scale.set(.2, .26, 1);
+      if (p.pineWax && place?.P.bakedLighting && !embering) {
+        f.halo.material.opacity *= .35;
+        f.halo.scale.set(.11, .15, 1);
+        f.ember.material.color.setRGB(.92, .21, .045);
+      }
       if (p.kind === 'shade') f.halo.material.opacity *= .3;
       // The reflection: same flame, flipped about the water, broken up a little by ripples.
       const on = false; // Pond reflections use the scene reflection, including the real flame and rail.
