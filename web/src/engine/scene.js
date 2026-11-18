@@ -286,7 +286,7 @@ const outside = new THREE.Scene();
 const previewFill = new THREE.DirectionalLight(0xe4dbc2, 0); previewFill.position.set(1, 2, 2); previewFill.layers.enableAll(); outside.add(previewFill);
 const previewFillTarget=new THREE.Object3D();outside.add(previewFillTarget);previewFill.target=previewFillTarget;
 const gauzePreviewIntensity=2.5;
-let gauzePreviewBlend=0;
+let gauzePreviewBlend=0, pinePreviewFill=0;
 function aimGauzePreview(light,target,centre,eye){
   const offset=eye.clone().sub(centre).normalize().add(V3(0,.18,0)).normalize();
   light.position.copy(light.parent.worldToLocal(centre.clone().add(offset)));
@@ -2357,11 +2357,16 @@ function frame(stamp = performance.now()) {
     }else{previewFill.position.set(1,2,2);previewFillTarget.position.set(0,0,0);}
     const previewTarget=mine.g.visible&&atLamp?(phase==='candle'?1:!lit?.55:ignitionFill):0;
     gauzePreviewBlend+=(previewTarget-gauzePreviewBlend)*(1-Math.exp(-dt*5));
-    if (mine.parts?.pineWax && atLamp) {
-      const burningFill = P.bakedLighting ? .63 : .29;
-      previewFill.intensity = phase === 'candle' ? 1.35 : lit ? burningFill : .74;
+    if (P.bakedLighting && mine.parts?.pineWax && atLamp) {
+      const fillTarget = phase === 'candle' || lit
+        ? THREE.MathUtils.lerp(1.35, .19, THREE.MathUtils.clamp(mine.power, 0, 1))
+        : .34;
+      pinePreviewFill += (fillTarget - pinePreviewFill) * (1 - Math.exp(-dt * 2.5));
+      previewFill.intensity = pinePreviewFill;
     } else {
-      previewFill.intensity = P.bakedLighting ? gauzePreviewIntensity * gauzePreviewBlend : phase === 'candle' ? .7 : 0;
+      pinePreviewFill = 0;
+      if (mine.parts?.pineWax && atLamp) previewFill.intensity = phase === 'candle' ? 1.35 : lit ? .29 : .74;
+      else previewFill.intensity = P.bakedLighting ? gauzePreviewIntensity * gauzePreviewBlend : phase === 'candle' ? .7 : 0;
     }
     wickPlume.update(time);
     dust.visible = !!N.dust && atLamp && !powerSaver && !reducedMotion.matches;

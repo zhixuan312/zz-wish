@@ -137,12 +137,16 @@ export async function loadBakedPlace(id,renderer,initialLight={n:1,g:0}){
         // The static moon and sky already exist in the bake. Preserve direct
         // point lights for the visitor's nearest surfaces without doubling them.
         const directCall='RE_Direct( directLight, geometryPosition, geometryNormal, geometryViewDir, geometryClearcoatNormal, material, reflectedLight );';
+        const nicheFalloff = movingNicheLight ? `
+            float lightDistance = length(pointLight.position - geometryPosition);
+            float stoneSpill = .72 * (1. - smoothstep(.080, .255, lightDistance));
+            directLight.color *= mix(1., stoneSpill, isVisitor);` : '';
         const staticLights=THREE.ShaderChunk.lights_fragment_begin
           .replace('getDirectionalLightInfo( directionalLight, directLight );','getDirectionalLightInfo( directionalLight, directLight ); directLight.color=vec3(0.);')
           .replace(directCall,`{vec3 diffuseBeforeVisitor=reflectedLight.directDiffuse;
-            ${directCall}
             vec3 visitorView=(viewMatrix*vec4(uBakedLampAnchor,1.)).xyz;
-            float isVisitor=1.-step(.08,distance(pointLight.position,visitorView));
+            float isVisitor=1.-step(.08,distance(pointLight.position,visitorView));${nicheFalloff}
+            ${directCall}
             reflectedLight.directDiffuse=mix(diffuseBeforeVisitor,reflectedLight.directDiffuse,isVisitor*${indirectLamp?'1.':'(1.-smoothstep(.7,1.8,distance(vBakedWorld,uBakedLampAnchor)))'});}`);
         shader.fragmentShader=shader.fragmentShader.replace('#include <lights_fragment_begin>',staticLights);
         shader.fragmentShader=shader.fragmentShader.replace('#include <lights_fragment_maps>',`
@@ -151,7 +155,9 @@ export async function loadBakedPlace(id,renderer,initialLight={n:1,g:0}){
             if(uBakedWeights.x>.0001)baked+=decodeBaked(texture2D(uBakedNight,vLightMapUv).rgb,uBakedScales.x,uBakedLogRange.x,uBakedLogGain.x)*uBakedWeights.x;
             if(uBakedWeights.y>.0001)baked+=decodeBaked(texture2D(uBakedDusk,vLightMapUv).rgb,uBakedScales.y,uBakedLogRange.y,uBakedLogGain.y)*uBakedWeights.y;
             if(uBakedWeights.z>.0001)baked+=decodeBaked(texture2D(uBakedDay,vLightMapUv).rgb,uBakedScales.z,uBakedLogRange.z,uBakedLogGain.z)*uBakedWeights.z;
-            float away=${indirectLamp?'1.':'smoothstep(.7,1.8,distance(vBakedWorld,uBakedLampAnchor))'};
+            float away=${movingNicheLight
+              ? '.75 * (1. - smoothstep(.14, .34, distance(vBakedWorld,uBakedLampAnchor)))'
+              : indirectLamp?'1.':'smoothstep(.7,1.8,distance(vBakedWorld,uBakedLampAnchor))'};
             float movingShade=1.;
             #if defined(USE_SHADOWMAP) && NUM_POINT_LIGHT_SHADOWS > 0
             if(uLampPower>.0001${indirectLamp?'&&false':''}){
