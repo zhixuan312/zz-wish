@@ -1703,7 +1703,11 @@ function fitShadeView(v,desktopFraction=.45,desktopSubjectY=.36){
   if(!place.P.bakedLighting||!mine.parts?.frame)return v;
   const fr=mine.parts.frame,c=mine.g.localToWorld(V3(0,fr.cy,0));
   const offset=V3(v.pos.x-c.x,0,v.pos.z-c.z),base=offset.length();
-  const fraction=narrow()?.26:desktopFraction,subjectY=narrow()?.20:desktopSubjectY;
+  // On a phone the sheet covers the lower two thirds, so the lamp must sit in
+  // the visible band with its cord and tassel above the altar stand rather than
+  // over it. Raising the subject within the frame gives that gap without
+  // touching the stand, the shade or any asset.
+  const fraction=narrow()?.26:desktopFraction,subjectY=narrow()?.13:desktopSubjectY;
   const tangent=Math.tan(THREE.MathUtils.degToRad(v.fov/2));
   const distance=Math.max(base,fr.h/(2*tangent*fraction));offset.setLength(distance);
   v.pos.x=c.x+offset.x;v.pos.z=c.z+offset.z;
