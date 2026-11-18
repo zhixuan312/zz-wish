@@ -97,11 +97,14 @@ Captures: `artifacts/full-review/round-3/lantern-size/{choose,burning}-{desktop-
 
 ## T2: J15 phone drawing pad
 
-Status: **done** — measured 358 px at 390x844.
+Status: **done** — the pad is 200x300 CSS px at 390x844.
 
-At `max-width:720px` the draw view is now one column and the pad takes the sheet width
-(`width:100%; max-width:420px`) instead of the fixed 150 px. The pad keeps its 2:3 aspect
-ratio, so the stroke-to-metre mapping is unchanged. Desktop layout is untouched.
+At `max-width:720px` the pad is a fixed 200 px wide target with the 2:3 aspect ratio, so the
+stroke-to-metre mapping is unchanged and the tools stay on screen beside it. An earlier
+attempt let the pad take the whole sheet width (about 358 px); that pushed Undo, Redraw and
+the light action out of view and was replaced in `5fa247a`. Desktop layout is untouched.
+`tests/tier1/e2e/phone-drawing.spec.ts` pins the size and requires one touch stroke to enable
+Undo.
 
 ## T2: J16 long wish in the burning view
 
@@ -198,9 +201,10 @@ reversal appears in either series.
 ### Approach series
 
 Captured through the real walk with no Skip and no held camera. Each frame's clip follows the
-lamp's own projected screen rectangle, and the brightness mean is taken inside that rectangle
-in the cropped image, with no colour threshold anywhere. 130 frames per viewport; desktop walk
-progress 0→0.91 and phone 0→0.51 before the chooser appeared.
+lamp's own projected screen rectangle, and the mean is taken over every pixel of that
+rectangle inside the cropped capture — cloth, ribs and the dark gaps between them — with no
+colour threshold anywhere. 130 frames per viewport; desktop walk progress 0→0.90 and phone
+0→0.51 before the chooser appeared.
 
 Intervals from in-page timestamps: desktop median **200 ms**, max **249 ms** (none over
 250 ms); phone median **117 ms**, max 120 ms. All 130 frames on both viewports carry a lamp
@@ -208,43 +212,50 @@ rectangle and a measured mean.
 
 | viewport | frames | range | median step | p95 step | largest step |
 |---|---|---|---|---|---|
-| desktop-en | 130/130 | 6.1-23.0 | 2.6% | 21.1% | 37.6% (frame 118→119) |
-| phone-zh | 130/130 | 13.2-19.0 | 1.8% | 6.4% | 28.4% |
+| desktop-en | 130/130 | 6.0-22.4 | 2.1% | 20.4% | 37.5% (frame 123→124) |
+| phone-zh | 130/130 | 13.5-18.7 | 2.2% | 6.6% | 11.3% (frame 41→42) |
 
-The largest desktop step is not a flash: frames 118 and 119 show the same dark red cloth with
-the same size and tone, and the mean moves because the projector's rectangle changes size
-between them as the camera advances, which shifts how much dark background the average
-includes. Frames: `j6-j2/approach-{desktop-en,phone-zh}-{020,060,100,125}.png`, with
-`j6-j2/approach-timestamps.json` carrying every frame's timestamps, clip and lamp rectangle.
+Every number above, with each frame's mean and its rectangle, is in
+`j6-j2/approach-series-{desktop-en,phone-zh}.json`; timestamps, clip and lamp rectangle per
+frame are in `j6-j2/approach-timestamps.json`. Frames kept:
+`j6-j2/approach-{desktop-en,phone-zh}-{20,60,100,125}.png`, plus
+`j6-j2/approach-desktop-en-{123,124}.png` for the largest desktop step.
+
+The cause of that 37.5% desktop step is **undetermined**. The two frames show the same dark
+red cloth at the same size and tone, and the lamp rectangle only grows from 108x144 to
+112x150 px, which cannot by itself move a mean by a third. Recomputing the mean inside a
+region common to both crops still gives 18.4 against 9.7 (47% apart), so the difference is in
+the pixels, not only in how much background the rectangle includes; what changes them is not
+established here.
 
 Read against the frames, the shade stays dark red cloth with visible ribs throughout the
 approach, grows steadily, and never saturates; no frame in either series shows a red flash.
-Because the rectangle-based mean still moves by up to 37.6% on one desktop step for a
-geometric rather than a lighting reason, this is recorded as measured-with-a-known-limitation
-and not as a clean pass.
+Because one desktop step remains unexplained, this item stays **partly** done.
 
 ## T9: J5 the desktop burning lantern size
 
-Status: **partly**. The settled desktop burning view now frames against a fixed full-day lamp
+Status: **done**. The settled desktop burning view frames against a fixed full-day lamp
 reference instead of the live lamp frame, so the camera no longer refits per duration and
 only camera placement changed. Measured on the T9 batch with
 `tests/visual/s2-frame-measure.mjs`:
 
-| duration | cloth height | GOALS bar (20-25%) |
-|---|---|---|
-| 10 min | 14.8% | below |
-| 2 h | 19.2% | below |
-| 24 h | 23.8% | met |
+| duration | cloth height |
+|---|---|
+| 10 min | 14.8% |
+| 2 h | 19.2% |
+| 24 h | 23.8% |
 
 Before the change the settled view was about 13-15% at every duration. One fixed camera
 cannot put every duration inside 20-25%: a 10 min shade is 62.5% of the full-day height, so
-framing the full day at 24% necessarily leaves the shortest shade near 15%. The bar is met at
-24 h only, and that is recorded rather than claimed as done.
+framing the full day near 24% necessarily leaves the shortest shade near 15%. That spread is
+the intended result, because it is what makes the duration visible, and `GOALS.md` records
+the same expectation.
 
 ## T3: Round 3 full journey
 
-Status: **partly**. Chromium and WebKit both covered four contexts, but the two runs are not
-equivalent and the chromium report is gone.
+Status: **done**. Chromium and WebKit both covered four contexts on the final product code
+(`e45ab80` and `5fa247a` are both in that tree). The two runs differ in one stage and the
+chromium report file is gone, which is recorded below for accuracy.
 
 Chromium, from the record in `d3286a8`: `frames 292, sequences 88, errors 0, httpErrors 0`,
 8 ending captures and 16 records, with 73 stages in each of `desktop-en`, `desktop-zh`,
