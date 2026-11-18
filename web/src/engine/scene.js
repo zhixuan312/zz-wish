@@ -1913,8 +1913,7 @@ function coverLayers() { place?.cover?.g.traverse((o) => { if (!o.isLight) o.lay
 export function setPhase(next) { phase = next; coverLayers(); }
 export function setPowerSaver(on) { powerSaver = on; resize(); }
 
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-let level = 1, targetLevel = 1, lit = false, wanted = null, busy = false, skipNextTravel = false;
+let level = 1, targetLevel = 1, lit = false, wanted = null, previewTask = null, skipNextTravel = false;
 let waxFuel = null;
 
 function toOffer(shape) {
@@ -2061,10 +2060,15 @@ async function showPlace(id) {
   attachMine(); coverLayers();
 }
 /** Show a place from outside while it is being chosen. */
-export async function previewPlace(id) {
+export function previewPlace(id) {
   cameraJourneyVersion++;choiceCameraVersion++;
   wanted = id;
-  if (busy) return; busy = true;
+  // A new choice can arrive while an earlier fade is in progress. Keep both
+  // callers waiting for the scene that finally appears.
+  previewTask ??= Promise.resolve().then(showRequestedPreview);
+  return previewTask;
+}
+async function showRequestedPreview() {
   try {
     while (wanted && (place?.id !== wanted || rig.amp < 1)) {
       const w = wanted;
@@ -2076,13 +2080,13 @@ export async function previewPlace(id) {
       const p=PLACES[w],v=(narrow()&&p.viewPhone)||p.view;rig.pos.copy(v.pos);rig.look.copy(v.look);rig.amp=1;rig.fov=v.fov??null;
       await fadeTo(0, 400);
     }
-  } finally { busy = false; }
+  } finally { previewTask = null; }
 }
 
 /** Back to the cover: the cliff gallery over the clouds, one lamp already burning (the wish screen). */
 export async function toCover() {
   cameraJourneyVersion++;choiceCameraVersion++;
-  wanted = null; while (busy) await sleep(50); roomLight = 1;
+  wanted = null; while (previewTask) await previewTask.catch(() => {}); roomLight = 1;
   await fadeTo(1, 400);
   atLamp = false; mine.g.visible = false;
   await showPlace(COVER);
@@ -2094,7 +2098,7 @@ export async function toCover() {
 export async function travel(id) {
   cameraJourneyVersion++;
   skipNextTravel = false;
-  wanted = null; while (busy) await sleep(50);
+  wanted = null; while (previewTask) await previewTask.catch(() => {});
   if (place?.id !== id) {
     await fadeTo(1, 200); await showPlace(id);
     const p=PLACES[id],v=(narrow()&&p.viewPhone)||p.view;rig.pos.copy(v.pos);rig.look.copy(v.look);rig.amp=1;rig.fov=v.fov??null;await fadeTo(0,267);
