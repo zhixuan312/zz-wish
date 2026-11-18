@@ -35,9 +35,8 @@ def supports_height(x, z, supports):
 def palette():
     stone = [mesh.material(f'Wet granite {i}', color, 'stone_pavers', .86)
              for i, color in enumerate(('#90897b', '#817d72', '#827d70', '#9d998a', '#6f7569'))]
-    rock = mesh.material('Iron-gray granite and soft moss', '#a39a84', 'rock_pitted_mossy', .96)
+    rock = mesh.material('Iron-gray granite and soft moss', '#748381', 'rock_pitted_mossy', .96)
     ground = mesh.material('Damp mountain soil', '#353d30', 'rock_pitted_mossy', .98)
-    moss = mesh.material('Feather moss', '#444e32', rough=.98)
     wood = mesh.material('Weathered cypress', '#79513a', 'weathered_planks', .83)
     red = [mesh.material(f'Aged cinnabar {i}', color, 'weathered_planks', .72)
            for i, color in enumerate(('#a35443', '#8c4839', '#9e5943', '#884b3d'))]
@@ -49,10 +48,17 @@ def palette():
     iron = mesh.material('Aged black iron', '#3d3831', rough=.65, metal=.35)
     clay = mesh.material('Gray green celadon', '#786c49', rough=.37)
     soot = mesh.material('Chisel-faced granite beneath soot', '#a99c8b', 'rock_pitted_mossy', .92)
-    aged_wax = mesh.material('Old wax worked into the ledge', '#887860', rough=.77)
-    for material in [*stone, rock, soot]:
+    ledge = mesh.material('Worn fine granite on the wick shelf', '#918878', 'rock_pitted_mossy', .82)
+    for material, amount in ((soot, .14), (ledge, .18)):
+        for node in material.node_tree.nodes:
+            if node.type == 'NORMAL_MAP':
+                node.inputs['Strength'].default_value = amount
+        bsdf = material.node_tree.nodes.get('Principled BSDF')
+        for link in list(bsdf.inputs['Roughness'].links):
+            material.node_tree.links.remove(link)
+    for material in [*stone, rock, soot, ledge]:
         mesh.vertex_tint_shader(material)
-    return stone, rock, ground, moss, wood, red, tiles, bark, pine, iron, clay, soot, aged_wax
+    return stone, rock, ground, wood, red, tiles, bark, pine, iron, clay, soot, ledge
 
 
 def terrain_height(x, z):
@@ -109,7 +115,7 @@ def hewn_block(name, width, height, depth, location, material, region):
     return obj
 
 
-def climbing_steps(stone, moss):
+def climbing_steps(stone):
     for i in range(50):
         z = 45.6 - .8 * i
         top = (i + 1) * .08
@@ -122,9 +128,9 @@ def climbing_steps(stone, moss):
                         z + RANDOM.uniform(-.007, .007)), RANDOM.choice(stone), 'approach')
             edge += width
         for direction in (-1, 1):
-            material = moss if i % 4 in (1, 2) else stone[4]
-            mesh.box(f'Stair drain curb {direction} {i + 1:02}', (.23, .14, .782),
-                     (direction * 2.26, top - .018, z), material, .017, region='approach')
+            curb = hewn_block(f'Stair drain curb {direction} {i + 1:02}', .23, .14, .782,
+                              (direction * 2.26, top + .05, z), stone[4], 'approach')
+            curb['moss_edge'] = True
             if (i // 5 + direction) % 4 and i < 47:
                 for row in range(2 + int(i > 31)):
                     hewn_block(f'Stair retaining course {direction} {i} {row}', .46, .25, .798,
@@ -165,78 +171,140 @@ def understory(ground, foliage):
                   'Individual folded forest leaves.')
 
 
-def pine_crown(name, center, width, depth, thickness, angle, materials):
-    count = 10
-    vx, vy, vz = center
-    points = []
-    for row, factor in enumerate((.68, 1., .66)):
-        for i in range(count):
-            a = i * math.tau / count
-            radial = factor * RANDOM.uniform(.70, 1.20)
-            px = width * radial * math.cos(a)
-            pz = depth * radial * math.sin(a)
-            y = vy + thickness * ((-.4, -.03, .55)[row] + RANDOM.uniform(-.20, .20))
-            points.append((vx + px * math.cos(angle) - pz * math.sin(angle), y,
-                           vz + px * math.sin(angle) + pz * math.cos(angle)))
-    faces = [tuple(range(count))]
-    for row in range(2):
-        a = row * count
-        b = a + count
-        for i in range(count):
-            j = (i + 1) % count
-            faces.append((a + i, b + i, b + j, a + j))
-    faces.append(tuple(reversed(range(count * 2, count * 3))))
-    obj = mesh.mesh_object(name, points, faces, RANDOM.choice(materials), 'approach')
-    # Close the two caps with separate planar charts and keep all bands joined.
-    circumference = math.tau * math.sqrt(width * depth)
-    charts = [[(points[i][0] - vx, points[i][2] - vz) for i in faces[0]]]
-    for row in range(2):
-        for i in range(count):
-            s, t = i * circumference / count, (i + 1) * circumference / count
-            charts.append([(s, 3 * depth + row * thickness), (s, 3 * depth + (row + 1) * thickness),
-                           (t, 3 * depth + (row + 1) * thickness), (t, 3 * depth + row * thickness)])
-    charts.append([(points[i][0] - vx, points[i][2] - vz + 7 * depth) for i in faces[-1]])
-    source_uv(obj, charts, 'Pine branch pads with annular bands and separated canopy caps.')
+def needle_material():
+    import numpy as np
+
+    # Author one radial spray in RGBA, down to the individual needle. The
+    # byte image is packed with the Blender source and reused by every bough.
+    size = 384
+    rgba = np.zeros((size, size, 4), dtype=np.float32)
+    rng = random.Random(6278)
+
+    def stroke(a, b, radius, color):
+        start, end = np.asarray(a) * size, np.asarray(b) * size
+        lo = np.maximum(0, np.floor(np.minimum(start, end) - radius - 1).astype(int))
+        hi = np.minimum(size, np.ceil(np.maximum(start, end) + radius + 1).astype(int))
+        xx, yy = np.meshgrid(np.arange(lo[0], hi[0]) + .5, np.arange(lo[1], hi[1]) + .5)
+        axis = end - start
+        along = np.clip(((xx - start[0]) * axis[0] + (yy - start[1]) * axis[1]) / np.dot(axis, axis), 0, 1)
+        distance = np.hypot(xx - start[0] - along * axis[0], yy - start[1] - along * axis[1])
+        coverage = np.clip(radius + .55 - distance, 0, 1)
+        patch = rgba[lo[1]:hi[1], lo[0]:hi[0]]
+        fresher = coverage >= patch[..., 3]
+        patch[fresher, :3] = color
+        patch[fresher, 3] = coverage[fresher]
+
+    stroke((.5, .018), (.49, .98), 1.5, (.115, .079, .050))
+    shades = [(0.109, .185, .112), (.152, .216, .126), (.207, .249, .151), (.123, .204, .14)]
+    for i in range(74):
+        y = .08 + .83 * i / 74 + rng.uniform(-.014, .014)
+        sign = -1 if i % 2 else 1
+        spread = .33 * math.sin(math.pi * y) ** .65 * rng.uniform(.64, 1.24)
+        end = (.50 + sign * spread, min(.98, y + rng.uniform(.064, .17)))
+        stroke((.5, y), end, rng.uniform(.65, 1.37), shades[i % 4])
+        for j in range(5):
+            f = .24 + .145 * j
+            sx, sy = .50 + (end[0] - .50) * f, y + (end[1] - y) * f
+            needle = (sx + sign * rng.uniform(.017, .057), min(.995, sy + rng.uniform(.041, .12)))
+            stroke((sx, sy), needle, rng.uniform(.62, 1.21), shades[(i + j + 1) % 4])
+    image = bpy.data.images.new('Pine needle spray RGBA', width=size, height=size, alpha=True)
+    image.alpha_mode = 'STRAIGHT'
+    image.pixels.foreach_set(rgba.ravel())
+    image.pack()
+    material = mesh.material('Open pine needle sprays', '#ffffff', rough=.94)
+    nodes, links = material.node_tree.nodes, material.node_tree.links
+    bsdf = nodes.get('Principled BSDF')
+    texture = nodes.new('ShaderNodeTexImage')
+    texture.image = image
+    texture.extension = 'CLIP'
+    uv = nodes.new('ShaderNodeUVMap')
+    uv.uv_map = 'UVMap'
+    links.new(uv.outputs['UV'], texture.inputs['Vector'])
+    links.new(texture.outputs['Color'], bsdf.inputs['Base Color'])
+    cutoff = nodes.new('ShaderNodeMath')
+    cutoff.operation = 'GREATER_THAN'
+    cutoff.inputs[1].default_value = .29
+    links.new(texture.outputs['Alpha'], cutoff.inputs[0])
+    links.new(cutoff.outputs[0], bsdf.inputs['Alpha'])
+    return material
+
+
+def pine_sprays(name, sprays, tint):
+    points, faces, chart = [], [], []
+    for start, direction, length, width, roll in sprays:
+        a, axis = Vector(start), Vector(direction).normalized()
+        side = axis.cross(Vector((0, 1, 0)))
+        if side.length < .01:
+            side = axis.cross(Vector((1, 0, 0)))
+        side.normalize()
+        side.rotate(Matrix.Rotation(roll, 3, axis))
+        b = a + axis * length
+        n = len(points)
+        points.extend([a - side * width / 2, a + side * width / 2,
+                       b + side * width / 2, b - side * width / 2])
+        faces.append((n, n + 1, n + 2, n + 3))
+        chart.append([(0, 0), (width, 0), (width, length), (0, length)])
+    obj = mesh.mesh_object(name, points, faces, tint, 'approach')
+    source_uv(obj, chart, 'Separate rectilinear charts for anchored pine needle sprays.')
+    uv = obj.data.uv_layers['UVMap']
     for face in obj.data.polygons:
-        face.use_smooth = True
+        for j, i in enumerate(face.loop_indices):
+            uv.data[i].uv = [(0, 0), (1, 0), (1, 1), (0, 1)][j]
 
 
 def pine_tree(label, x, z, height, bark, needles):
     y = terrain_height(x, z) - .26
-    drift = RANDOM.uniform(-.62, .62)
-    side = RANDOM.uniform(-.35, .35)
-    centres = [(x + drift * j * j / 16, y + height * j / 4, z + side * j / 4) for j in range(5)]
-    mesh.curved_tube(f'{label} crooked trunk', centres,
-                     [height * r for r in (.035, .025, .019, .011, .003)],
-                     bark, radial=9, region='approach')
+    drift = RANDOM.uniform(-.95, .95)
+    side = RANDOM.uniform(-.49, .49)
     phase = RANDOM.uniform(0, math.tau)
+    def at(f):
+        return Vector((x + drift * f * f + .23 * math.sin(f * 5 + phase) * f,
+                       y + height * f, z + side * f - .19 * math.sin(f * 4.2 + phase) * f))
+    centres = [at(j / 7) for j in range(8)]
+    mesh.curved_tube(f'{label} crooked trunk', centres,
+                     [height * (.004 + .023 * (1 - j / 7) ** .84) for j in range(8)],
+                     bark, radial=10, region='approach')
     for i in range(7):
-        h = .41 + .09 * i
-        angle = phase + i * 2.4 + RANDOM.uniform(-.3, .3)
-        root = (x + drift * h * h, y + height * h, z + side * h)
-        extension = height * (.28 - i * .024) * RANDOM.uniform(.8, 1.2)
-        dx, dz = extension * math.cos(angle), extension * math.sin(angle)
-        foot = (root[0] + dx * .67, root[1] + extension * .17, root[2] + dz * .67)
-        tip = (root[0] + dx, root[1] + extension * .29, root[2] + dz)
-        mesh.curved_tube(f'{label} inclined bough {i + 1}', [root, foot, tip],
-                         [.09 * extension, .041 * extension, .015 * extension],
-                         bark, radial=6, region='approach')
-        for k in range(2):
-            p = (tip[0] - dx * .33 * k, tip[1] + .12 + extension * .18 * k, tip[2] - dz * .33 * k)
-            pine_crown(f'{label} needle pad {i + 1}.{k + 1}', p, extension * .65,
-                       extension * .49, max(.19, extension * .25), angle, needles)
-    pine_crown(f'{label} crown', centres[-1], .55, .48, .49, phase, needles)
+        f = .42 + .082 * i
+        for bough in range(2):
+            a = phase + i * 2.4 + bough * 2.7 + RANDOM.uniform(-.28, .28)
+            radial = Vector((math.cos(a), 0, math.sin(a)))
+            normal = Vector((-radial.z, 0, radial.x))
+            root = at(f + bough * .012)
+            reach = height * (.24 - i * .019) * RANDOM.uniform(.76, 1.24) * (1 if bough == 0 else .78)
+            # The thicker bough dips outward, then the terminal shoots turn to light.
+            joint = root + radial * reach * .42 + Vector((0, -.064 * reach, 0))
+            bridge = root + radial * reach * .78 + normal * (.11 * reach) + Vector((0, .014 * reach, 0))
+            tip = root + radial * reach + normal * (.16 * reach) + Vector((0, .11 * reach, 0))
+            mesh.curved_tube(f'{label} articulated bough {i} {bough}', [root, joint, bridge, tip],
+                             [reach * t for t in (.07, .048, .028, .009)], bark, radial=6, region='approach')
+            sprays = []
+            for q in range(3):
+                attachment = joint.lerp(tip, (.28, .67, .94)[q])
+                along = radial * RANDOM.uniform(.60, .87) + normal * (-1 if q % 2 else 1) * RANDOM.uniform(.36, .62)
+                along.y = .19 + RANDOM.random() * .39
+                length = (.32 + reach * .44) * RANDOM.uniform(.89, 1.25)
+                width = length * RANDOM.uniform(.74, 1.04)
+                roll = RANDOM.uniform(-.50, .42)
+                sprays.append((attachment, along, length, width, roll))
+                sprays.append((attachment, along, length * .88, width * .83, roll + 1.18))
+            pine_sprays(f'{label} crossed needle sprays {i} {bough}', sprays, needles)
+    leader = at(.89)
+    upward = at(1.) - leader
+    pine_sprays(f'{label} upright leader',
+                [(leader, upward, height * .14, height * .095, roll) for roll in (0, 1.1, 2.2)], needles)
 
 
 def forest(ground, rock, bark, pine):
+    needles = needle_material()
     for i, z in enumerate((7, 14, 21, 29, 36, 43, 49)):
         for s in (-1, 1):
             x = s * RANDOM.uniform(4.50 if z > 42 else 3.35, 5.8)
             pine_tree(f'Old pine {i + 1} {s}', x, z + RANDOM.uniform(-1.6, 1.6),
-                      RANDOM.uniform(6.1, 10.4), bark, pine)
+                      RANDOM.uniform(6.1, 10.4), bark, needles)
     for i, (x, z, h) in enumerate(((-10, 0, 10), (12, -3, 9), (8, -14, 7), (-7, -10, 8),
                                    (-4, -6, 7), (4, -8, 8), (15, 18, 9), (-17, 19, 9))):
-        pine_tree(f'Back ridge pine {i + 1}', x, z, h, bark, pine)
+        pine_tree(f'Back ridge pine {i + 1}', x, z, h, bark, needles)
     understory(ground, pine)
     for i, (x, z, r) in enumerate(((-3.1, 34, .64), (3.6, 25, .76), (-3.7, 12, .51), (4.6, 6.9, .52))):
         y = supports_height(x, z, [ground])
@@ -371,9 +439,9 @@ def hewn_back(x, y, z, material):
     for row in range(count):
         for col in range(count):
             u, v = col / (count - 1), row / (count - 1)
-            px, py = x + (u - .5) * .605, y + v * .60 - .022
-            chip = noise.noise(Vector((px * 77, py * 63, .6))) * .0019
-            chiselled = math.sin(py * 810 + px * 12) * .00048
+            px, py = x + (u - .5) * .803, y + v * .74 - .036
+            chip = noise.noise(Vector((px * 29, py * 34, .6))) * .0016
+            chiselled = math.sin(py * 103 + px * 12) * .00015
             vertices.append((px, py, z + chip + chiselled))
     faces = [(row * count + col, row * count + col + 1, (row + 1) * count + col + 1, (row + 1) * count + col)
              for row in range(count - 1) for col in range(count - 1)]
@@ -385,29 +453,48 @@ def hewn_back(x, y, z, material):
     return back
 
 
-def old_wax_mark(name, x, y, z, radius, material):
-    vertices = [(x, y + .0008, z)]
-    for i in range(12):
-        theta = i / 12 * math.tau
-        amount = radius * RANDOM.uniform(.63, 1.30)
-        vertices.append((x + math.cos(theta) * amount, y + .00025, z + math.sin(theta) * amount * .61))
-    faces = [(0, (i + 1) % 12 + 1, i + 1) for i in range(12)]
-    obj = mesh.mesh_object(name, vertices, faces, material, 'niche')
-    source_uv(obj, [[(vertices[i][0], vertices[i][2]) for i in face] for face in faces],
-              'Thin wax residue bonded to the shelf.')
-    for face in obj.data.polygons:
-        face.use_smooth = True
+def wick_shelf(x, y, z, material):
+    # A flat dish seat is surrounded by a hand-worn lip. The weathered top,
+    # bevel band and face belong to one closed slab with a single material.
+    columns, rows = 33, 29
+    points = []
+    for top in (True, False):
+        for i in range(rows):
+            v = i / (rows - 1)
+            for j in range(columns):
+                u = j / (columns - 1)
+                dx = (u - .5) * .70
+                dz = (v - .5) * .61
+                tip = min(1., max(0., (v - .83) / .17)) ** 3
+                rim = tip * (.006 + .004 * math.sin(dx * 64) + .0025 * math.sin(dx * 121))
+                points.append((x + dx, y - rim if top else y - .115, z + .031 + dz - (rim * .63 if top else 0)))
+    size = columns * rows
+    faces = []
+    for i in range(rows - 1):
+        for j in range(columns - 1):
+            a = i * columns + j
+            face = (a, a + columns, a + columns + 1, a + 1)
+            faces.append(face)
+            faces.append(tuple(size + v for v in reversed(face)))
+    outline = ([j for j in range(columns)] + [i * columns + columns - 1 for i in range(1, rows)]
+               + [(rows - 1) * columns + j for j in range(columns - 2, -1, -1)]
+               + [i * columns for i in range(rows - 2, 0, -1)])
+    for a, b in zip(outline, outline[1:] + outline[:1]):
+        faces.append((a, b, b + size, a + size))
+    shelf = mesh.mesh_object('Single hewn wick shelf', points, faces, material, 'niche')
+    from snow_lightmap_charts import closed_grid_uv
+    closed_grid_uv(shelf, columns, rows, .70, .61)
+    return shelf
 
 
-def candle_niche(stone, rock, soot, clay, iron, aged_wax):
+def candle_niche(stone, rock, soot, clay, iron, ledge):
     x, y, z = ANCHOR
     # Opening is 0.398 m wide. The calibrated 5.000 m top of the real slab
     # directly bears the live stone dish; its 8 mm seat bears the runtime wax.
-    mesh.box('Single hewn wick shelf', (.70, .119, .61), (x, y - .0595, z + .031), rock, .028, region='niche')
+    wick_shelf(x, y, z, ledge)
     hewn_back(x, y, z - .147, soot)
-    mesh.box('Weathered pier behind the hewn sink', (.62, .61, .090), (x, y + .273, z - .200), stone[4], .014, region='niche')
-    for i, (dx, dz, radius) in enumerate(((-.104, .025, .020), (-.117, .037, .011), (.084, .017, .016), (.101, .018, .013), (.052, -.108, .009))):
-        old_wax_mark(f'Old wax stain {i + 1}', x + dx, y, z + dz, radius, aged_wax)
+    mesh.box('Solid dark lime mortar behind the arch joints', (1.06, .79, .104),
+             (x, y + .367, z - .225), stone[4], .012, region='niche')
     for s in (-1, 1):
         for i in range(2):
             mesh.box(f'Worn inner jamb {s} {i}', (.156, .142, .38),
@@ -446,10 +533,18 @@ def paint_stone():
         if close:
             # Keep enough source granite texels in the close view. Each piece
             # starts at a distinct texture offset, with UVs in its world plane.
-            mesh.uv_world(obj, RANDOM.uniform(.23, .35))
+            hero_plane = obj.name in ('Hand-chiselled niche back under old soot', 'Single hewn wick shelf')
+            mesh.uv_world(obj, RANDOM.uniform(.49, .57) if hero_plane else RANDOM.uniform(.32, .52))
             offset = Vector((RANDOM.uniform(-3, 3), RANDOM.uniform(-3, 3)))
-            for loop in obj.data.uv_layers['UVMap'].uv:
-                loop.vector += offset
+            uv = obj.data.uv_layers['UVMap'].uv
+            for face in obj.data.polygons:
+                for loop in face.loop_indices:
+                    co = obj.data.vertices[obj.data.loops[loop].vertex_index].co
+                    if obj.name.startswith('Hand-chiselled niche back'):
+                        uv[loop].vector = (co.x / .547, co.z / .547)
+                    elif obj.name == 'Single hewn wick shelf' and abs(face.normal.z) > .85:
+                        uv[loop].vector = (co.x / .481, -co.y / .481)
+                    uv[loop].vector += offset
         tint = obj.data.color_attributes.new(name='SurfaceTint', type='FLOAT_COLOR', domain='CORNER')
         obj.data.color_attributes.active_color = tint
         for face in obj.data.polygons:
@@ -460,16 +555,25 @@ def paint_stone():
                 shade = .88 + .15 * noise.noise(world * (22 if close else 3.5))
                 green_mix = 0.
                 if obj.get('weather_stone'):
-                    green_mix = max(0., min(.55, (noise.noise(world * 10) - .13) * .8))
+                    moss_outline = noise.noise(world * 7.9) + .21 * noise.noise(world * 33)
+                    green_mix = max(0., min(.65, (moss_outline + (.1 if obj.get('moss_edge') else -.11)) * .96))
                 if obj.name.startswith('Hand-chiselled niche back'):
                     dx = (world.x - ANCHOR[0] + .030 * math.sin(world.z * 9)) / .123
                     dy = (world.z - ANCHOR[1] - .31) / .25
                     black = math.exp(-dx * dx - dy * dy) * (.70 + .20 * noise.noise(world * 89))
                     shade *= 1 - black
-                tint.data[i].color = tuple(
-                    base[channel] * shade * (1 - green_mix * (1 - tone))
-                    for channel, tone in enumerate((.48, .73, .43))
-                ) + (1.,)
+                tint_color = [base[channel] * shade * (1 - green_mix * (1 - tone))
+                              for channel, tone in enumerate((.48, .73, .43))]
+                if obj.name == 'Single hewn wick shelf' and face.normal.z > .8:
+                    dx, dz = world.x - ANCHOR[0], -world.y - ANCHOR[2]
+                    flecks = 0.
+                    for px, pz, sx, sz in ((-.10, .025, .035, .018), (.095, .032, .030, .018),
+                                            (.048, -.083, .021, .018), (-.060, -.059, .018, .025)):
+                        flecks += math.exp(-((dx - px) / sx) ** 2 - ((dz - pz) / sz) ** 2)
+                    marks = min(.35, flecks * (.22 + .17 * noise.noise(world * 37)))
+                    for channel, worn in enumerate((.43, .30, .19)):
+                        tint_color[channel] += (worn - tint_color[channel]) * marks
+                tint.data[i].color = (*tint_color, 1.)
 
 
 def camera(name, p, look, fov, viewport):
@@ -489,18 +593,19 @@ def source_lighting(scene):
     scene.world = bpy.data.worlds.new('Pine Gate night world')
     scene.world.use_nodes = True
     bg = scene.world.node_tree.nodes.get('Background')
-    bg.inputs['Color'].default_value = (.35, .43, .57, 1)
-    bg.inputs['Strength'].default_value = .48 / PRE_EXPOSURE
+    bg.inputs['Color'].default_value = (.47, .55, .68, 1)
+    bg.inputs['Strength'].default_value = 1.18 / PRE_EXPOSURE
     sun = bpy.data.lights.new('Blue mountain sky direction', 'SUN')
-    sun.energy, sun.color, sun.angle = .49 / PRE_EXPOSURE, (.68, .78, 1), .14
+    sun.energy, sun.color, sun.angle = 1.42 / PRE_EXPOSURE, (.66, .77, 1), .22
     caster = bpy.data.objects.new(sun.name, sun)
     bpy.data.collections['LIGHTS'].objects.link(caster)
-    caster.rotation_euler = (math.radians(42), math.radians(-26), math.radians(17))
+    caster.location = mesh.point((-9, 15, 14))
+    caster.rotation_euler = (mesh.point((0, 4, 1)) - caster.location).to_track_quat('-Z', 'Y').to_euler()
     caster['bake_role'] = 'ambient'
-    for p, watts in [((-.75, 6.45, .6), 1.4), ((.98, 6.38, -.19), .88), ((.15, 6.25, -4.8), 2.1)]:
+    for p, watts in [((-.69, 6.45, 1.23), 2.65), ((.98, 6.38, .62), 1.98), ((.15, 6.25, -4.8), 2.1)]:
         mesh.light('Hidden warm reflected temple light', p, watts / PRE_EXPOSURE, '#f5b27e', .26)
     point = mesh.light('Visitor candle indirect bounce basis', LAMP, .20, '#ffc88a', .007, 'lamp')
-    point.data.color = (1, .54, .24)
+    point.data.color = (1, .67, .41)
     scene['one_light_lamp_basis'] = json.dumps({'position': list(LAMP), 'watts': float(point.data.energy),
         'linearColor': list(point.data.color), 'pointRadiusMetres': float(point.data.shadow_soft_size),
         'sourceObject': point.name})
@@ -516,12 +621,12 @@ def build(output):
         scene.collection.children.link(bpy.data.collections.new(name))
     mesh.STATIC = bpy.data.collections['STATIC']
     contacts = RestingContacts(height_query=supports_height)
-    stone, rock, ground, moss, wood, red, tiles, bark, needle, iron, clay, soot, aged_wax = palette()
+    stone, rock, ground, wood, red, tiles, bark, needle, iron, clay, soot, ledge = palette()
     support = terrain(ground)
-    climbing_steps(stone, moss)
+    climbing_steps(stone)
     forest(support, rock, bark, needle)
     gate(stone, tiles, wood, red, iron)
-    candle_niche(stone, rock, soot, clay, iron, aged_wax)
+    candle_niche(stone, rock, soot, clay, iron, ledge)
     paint_stone()
     scene.render.engine = 'CYCLES'
     scene.render.threads_mode = 'AUTO'
