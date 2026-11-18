@@ -104,3 +104,30 @@ test('refresh before the lighting response preserves the leave event', async ({ 
   const record = await openMyCandles(page);
   await expect(record.getByTestId('record-status')).toHaveText(re('已熄灭', 'Went out'));
 });
+
+test('a phone drawing lands on the first stroke and leaves its tools reachable', async ({ page, viewport }) => {
+  test.skip(viewport?.width !== 390, 'The drawing pad only changes size on the phone layout.');
+  await chooseTenMinutes(page, 'e2e: phone drawing');
+  await page.getByRole('tab', { name: re('自己画', 'Draw') }).click();
+  // The pad, both stroke tools and the light action must all be inside the viewport,
+  // and the pad must keep the 2:3 drawing area the stroke mapping assumes.
+  const pad = page.locator('.pad');
+  const box = (await pad.boundingBox())!;
+  expect(box.width).toBeGreaterThanOrEqual(200);
+  expect(Math.abs(box.height - box.width * 1.5)).toBeLessThanOrEqual(2);
+  for (const name of [re('撤销', 'Undo'), re('重画', 'Redraw'), re('点亮这一盏', 'Light it')]) {
+    const control = await page.getByRole('button', { name }).boundingBox();
+    expect(control, `${String(name)} is reachable`).not.toBeNull();
+    expect(control!.x).toBeGreaterThanOrEqual(0);
+    expect(control!.y + control!.height).toBeLessThanOrEqual(viewport!.height);
+  }
+  // One real touch stroke: Undo becomes usable and the stroke changes the duration.
+  await page.evaluate(({ x, y }) => {
+    const pad = document.querySelector('.pad') as HTMLCanvasElement;
+    const point = (type: string, px: number, py: number) => pad.dispatchEvent(new PointerEvent(type, { pointerId: 1, pointerType: 'touch', isPrimary: true, clientX: px, clientY: py, bubbles: true, buttons: 1 }));
+    point('pointerdown', x, y);
+    for (let i = 1; i <= 12; i++) point('pointermove', x, y + i * 12);
+    point('pointerup', x, y + 144);
+  }, { x: box.x + box.width * 0.5, y: box.y + box.height * 0.25 });
+  await expect(page.getByRole('button', { name: re('撤销', 'Undo') })).toBeEnabled();
+});
