@@ -1,4 +1,5 @@
 import { loadBakedPlace } from '../baked/loadPlace.js';
+import { createPineGateLife } from './pine-gate-life.js';
 
 // Pine Gate Steps: a long flight of stone steps between tall pines, the mountain gate half hidden at the top.
 // The lamp is a small candle in a stone niche cut into the gate pier, lighting the last few steps.
@@ -20,6 +21,25 @@ export default function createPlace(h) {
       const baked = await loadBakedPlace('pine-gate', h.renderer, context.light);
       context.G.add(baked.group);
       context.baked = baked;
+      // Living atmosphere rides on the place's own frame update: the engine calls
+      // baked.update once per frame, so wrapping it keeps scene.js untouched.
+      const life = createPineGateLife({
+        THREE: h.THREE, group: baked.group, scene: context.G, renderer: h.renderer,
+
+      });
+      // baked.update carries no frame delta, so the wrapper keeps its own clock.
+      const bakedUpdate = baked.update;
+      let lastMs = performance.now(), lifeTime = 0;
+      baked.update = function update(light, lampPower, lampPosition) {
+        bakedUpdate.call(baked, light, lampPower, lampPosition);
+        const now = performance.now();
+        const dt = Math.min(0.1, Math.max(0, (now - lastMs) / 1000));
+        lastMs = now;
+        lifeTime += dt;
+        life.update(dt, lifeTime);
+      };
+      baked.life = life;
+      context.disposers.push(() => { life.dispose(); });
     },
 
     // The gate pier at the top of the steps: a niche cut in the stone, the red gate leaf half open beside it.
