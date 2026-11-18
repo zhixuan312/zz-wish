@@ -4,7 +4,7 @@ import type { PlaceId } from '../../shared/places.ts';
 import { seamlessNoiseLoop } from './audio-loop.ts';
 const rooms: Record<PlaceId, { low: number; high: number; gain: number; swell: number; detail: 'drip' | 'bird' | 'air' | 'frog' | 'bell' }> = {
   // Pine wind high in the trees.
-  'pine-gate': { low: 380, high: 1400, gain: .045, swell: .07, detail: 'air' },
+  'pine-gate': { low: 380, high: 1400, gain: .006, swell: .07, detail: 'air' },
   // Rain on tiles, drops from the eaves.
   'bamboo-rain': { low: 900, high: 3200, gain: .05, swell: .13, detail: 'drip' },
   // Wind along the cliff.
@@ -91,7 +91,9 @@ export const sound = {
       loop.forEach((data, channel) => buffer.copyToChannel(data, channel));
       const source = c.createBufferSource(), filter = c.createBiquadFilter(), volume = c.createGain(), swell = c.createOscillator(), amount = c.createGain();
       source.buffer = buffer; source.loop = true; filter.type = 'bandpass'; filter.frequency.value = room.low; filter.Q.value = .35;
-      volume.gain.value = room.gain; swell.frequency.value = room.swell; amount.gain.value = room.gain * (id === 'snow-roof' ? .15 : .65);
+      // Keep the higher, clearer pine wind close to the level of the quiet snow bed.
+      const swellDepth = id === 'snow-roof' ? .15 : id === 'pine-gate' ? .28 : .65;
+      volume.gain.value = room.gain; swell.frequency.value = room.swell; amount.gain.value = room.gain * swellDepth;
       source.connect(filter).connect(volume).connect(master); swell.connect(amount).connect(volume.gain);
       filter.frequency.setValueAtTime(room.low, now); filter.frequency.exponentialRampToValueAtTime(room.high, now + 18);
       source.start(); swell.start(); nodes = [source, swell];
