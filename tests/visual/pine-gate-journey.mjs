@@ -154,10 +154,13 @@ async function observePlaceReadiness(radio) {
       });
       const pineEnds = resources.filter(resource => resource.selectedPlaceAsset && resource.endMs <= barrier - origin).map(resource => resource.endMs);
       const lastPineEnd = pineEnds.length ? Math.max(...pineEnds) : null;
+      const marks = performance.getEntriesByType('mark')
+        .filter(mark => /^one-light:(pine-gate|snow-roof):/.test(mark.name) && mark.startTime <= barrier)
+        .map(mark => ({ name: mark.name, elapsedMs: mark.startTime - origin }));
       return { clickAtMs: click, enabledAtMs: enabled, observedAtMs: observed,
         clickToEnabledMs: click !== null && enabled !== null ? enabled - click : null,
         lastPineResponseEndMs: lastPineEnd, afterLastPineResponseMs: lastPineEnd === null ? null : barrier - origin - lastPineEnd,
-        stages: stages.map(({ at, ...state }) => ({ elapsedMs: at - origin, ...state })), resources };
+        stages: stages.map(({ at, ...state }) => ({ elapsedMs: at - origin, ...state })), resources, marks };
     };
   });
 }
