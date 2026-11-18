@@ -51,13 +51,12 @@ After (`14c2c39`, same method): desktop-en 3793 / 3655 / 3789 ms and phone-zh
 3306 / 3130 / 3215 ms from fill to an enabled `Step inside`. `npm run test:tier1` reports
 14 passed including `flow.spec.ts:36`, whose 5 s assertion was not changed.
 
-Cover regression: phone-emulation cover renders at 59.9 FPS (median frame 16.7 ms) and
-`/tmp/one-light-s2-cover/{desktop,phone}-cover.png` show the same cloud field and lamp
-light as before the change.
+Cover regression: phone-emulation cover renders at 59.9 FPS (median frame 16.7 ms). Cover
+captures are kept in `artifacts/full-review/round-3/cover-check/`.
 
 ## T2b: the hanging shade grows with the chosen burning time
 
-Status: **done**. Captures in `artifacts/full-review/round-3/lantern-size/`.
+Status: **partly** — choose captures exist, the three-duration burning comparison does not.
 
 `lanternHeightMetres` in `shared/rules.ts` maps 10 minutes to 0.350 m and a full day to
 0.560 m, logarithmically in time, clamped outside that range. The `liveBaked` branch of
@@ -70,11 +69,11 @@ Computed envelope per preset: 10 min 0.625, 30 min 0.708, 1 h 0.760, 2 h 0.813,
 Unit tests in `tests/tier1/unit/rules.test.ts` pin both endpoints, the clamp outside the
 preset range, and strict growth across `PRESET_MINUTES`.
 
-Checked on real captures at desktop-en and phone-zh (`choose-10min`, `choose-2h`,
-`choose-24h`, `burning`): the shade changes size immediately when another duration is
-chosen, the cord stays continuous at all three sizes, no shade touches the ceiling beam,
-the columns or the table below, the flame and wick sit inside the shade, and 24 h matches
-the previous picture. No ground pool or shade-glow anomaly was visible at the small sizes.
+Checked so far on real choose captures at desktop-en and phone-zh (`choose-10min`,
+`choose-2h`, `choose-24h`): the shade changes size immediately when another duration is
+chosen, the cord stays continuous at all three sizes, and 24 h matches the previous
+picture. The three-duration burning comparison is still pending, so this item stays
+partly done.
 
 ## T2: J15 phone drawing pad
 
@@ -113,9 +112,9 @@ warm accent bullet. The wish text and the lamp are again the two loudest things 
 
 ## T6: J12 the stacked bowls and the leaning broom
 
-Status: **partly** — the props are inside `snow-roof.glb.zstd` and carry only baked
-lightmap irradiance; the runtime cannot brighten them without changing the bake or adding
-a fill light that would also raise their neighbours. Recorded as an owner item.
+Status: **not done, needs a new bake** — the props are merged into baked region geometry
+inside `snow-roof.glb.zstd` and carry only the hall lightmap; a runtime fill light was
+rejected because it would lift the whole hall floor with them.
 
 ## T7: J6 the gate flame and offering bowl under gate bloom
 
@@ -131,11 +130,11 @@ Status: **partly** — approach and ending continuity need the same held capture
 
 Status: **partial** — see the measured fraction below.
 
-## Items for the owner: these need a new Blender bake
+## Items for Boss
 
-- J12: readable stacked bowls and leaning broom. They are baked geometry lit only by the
-  hall lightmap; raising them needs either a new bake with more hall fill, or a runtime
-  fill light that also brightens the surrounding floor.
+- J12: readable stacked bowls and leaning broom. They are baked region geometry lit only by
+  the hall lightmap. A runtime fill light would also raise the surrounding floor, so this
+  needs a new bake with more hall fill; it is out of scope for this branch.
 
 ## Items that still need GPU captures
 
