@@ -1643,17 +1643,36 @@ function disposePlace(old) {
 
 const preparingPlaces = new Map();
 let preparationQueue = Promise.resolve();
-// Construction helpers share an authoring context, so build one candidate at a
-// time. The active court keeps rendering while the next one is decoded.
+function queuePlaceBuild(id) {
+  const pending = preparationQueue.then(() => buildPlaceNow({ id }));
+  preparationQueue = pending.catch(() => {});
+  return pending;
+}
+
+async function preparePineGate() {
+  const id = 'pine-gate';
+  PLACES[id] ??= (await placeModules[id]()).default(placeHelpers);
+  // The baked Pine Gate only loads its package, so it can decode without
+  // waiting for the shared procedural construction context.
+  return PLACES[id].bakedLighting ? buildPlaceNow({ id }, true) : queuePlaceBuild(id);
+}
+
 export function preparePlace(id) {
   if (cachedPlaces.has(id)) return Promise.resolve(cachedPlaces.get(id));
   if (!preparingPlaces.has(id)) {
-    const pending = preparationQueue.then(() => buildPlaceNow({ id }));
-    preparationQueue = pending.catch(() => {});
+    const pending = id === 'pine-gate' ? preparePineGate() : queuePlaceBuild(id);
     preparingPlaces.set(id, pending);
     pending.finally(() => preparingPlaces.delete(id)).catch(() => {});
   }
   return preparingPlaces.get(id);
+}
+function trimPlaceCache(protectedIds) {
+  while (cachedPlaces.size > 2) {
+    const id = [...cachedPlaces.keys()].find(id => !protectedIds.includes(id));
+    if (!id) break;
+    disposePlace(cachedPlaces.get(id));
+    cachedPlaces.delete(id);
+  }
 }
 async function buildPlace(t) {
   const next = await preparePlace(t.id);
@@ -1663,9 +1682,10 @@ async function buildPlace(t) {
   outside.add(place.G); outside.environment = place.env;
   outside.fog = new THREE.FogExp2(...place.P.fog);
   cachedPlaces.delete(t.id); cachedPlaces.set(t.id, place);
+  trimPlaceCache([t.id]);
   attachMine();
 }
-async function buildPlaceNow(t) {
+async function buildPlaceNow(t, isolated = false) {
   const light = daylight(), lightKey = JSON.stringify(light);
   if (cachedPlaces.has(t.id)) return cachedPlaces.get(t.id);
   PLACES[t.id] ??= (await placeModules[t.id]()).default(placeHelpers);
@@ -1674,10 +1694,13 @@ async function buildPlaceNow(t) {
   if(!PLACES[t.id].bakedLighting)await loadNaturalAssets();
   const P = { ...PLACES[t.id], ...blendPlace(PLACES[t.id], light) }, G = new THREE.Group();
   // `shade` dims the unlit pieces (backdrop ridges, mist, smoke, rain) to match the night light.
-  C = { G, root:G, disposers:[], up: [], others: [], cover: null, bat: new Map(), seed: seedOf(t.id), rnd: mulberry32(seedOf(t.id)), snow: P.snow ?? 0, shade: P.shade ?? 1, cam: P.view.pos, tgt: P.view.look, light };
-  C.materials = new Map();
-  C.stone = M(0x9c968c, .85, { map: pavingTex }); C.pave = M(0xa8a296, .85, { map: pavingTex });
-  C.red = M(0x8a2a1e, .9); C.col = M(0x6e1a12, .5); C.paint = M(0x2c4a52, .8); C.dark = M(0x1c1714, .6, { metalness: .5 });
+  const context = { G, root:G, disposers:[], up: [], others: [], cover: null, bat: new Map(), seed: seedOf(t.id), rnd: mulberry32(seedOf(t.id)), snow: P.snow ?? 0, shade: P.shade ?? 1, cam: P.view.pos, tgt: P.view.look, light };
+  if (!isolated) {
+    C = context;
+    C.materials = new Map();
+    C.stone = M(0x9c968c, .85, { map: pavingTex }); C.pave = M(0xa8a296, .85, { map: pavingTex });
+    C.red = M(0x8a2a1e, .9); C.col = M(0x6e1a12, .5); C.paint = M(0x2c4a52, .8); C.dark = M(0x1c1714, .6, { metalness: .5 });
+  }
   const s = P.sky, dir = V3(...s.dir).normalize(), col = (h) => new THREE.Color(h);
   const u = { uTop: { value: col(s.top) }, uHorizon: { value: col(s.horizon) }, uGround: { value: col(s.ground) }, uSun: { value: col(s.sun) }, uDir: { value: dir },
     uLit: { value: col(s.lit) }, uDark: { value: col(s.dark) }, uGlow: { value: s.glow }, uClouds: { value: s.clouds }, uStars: { value: s.stars ?? 0 }, uTime: { value: 0 }, uDisc: { value: s.disc ?? 5 } };
@@ -1686,25 +1709,26 @@ async function buildPlaceNow(t) {
   const skyScene = new THREE.Scene(); skyScene.add(new THREE.Mesh(sky.geometry, skyMat));
   await pauseBuild();
   const envTarget = pmrem.fromScene(skyScene, 0, .1, 1000), env = envTarget.texture;
-  C.environment=env;C.fog=new THREE.FogExp2(...P.fog);
-  const buildingContext = C;
+  context.environment=env;context.fog=new THREE.FogExp2(...P.fog);
   try {
   const sun = new THREE.DirectionalLight(P.sunL[0], P.sunL[1]); sun.position.copy(dir).multiplyScalar(100);
   sun.castShadow = !P.bakedLighting; sun.shadow.mapSize.set(innerWidth<720?1024:2048,innerWidth<720?1024:2048);
   Object.assign(sun.shadow.camera,{left:-45,right:45,top:45,bottom:-45,near:.5,far:260});
   sun.shadow.bias = -.00025; sun.shadow.normalBias = .025; sun.shadow.radius = 3; G.add(sun);
   const hemi = new THREE.HemisphereLight(...P.hemi); G.add(hemi);
-  await P.build(t); await finishBatch();
+  await P.build(t, context);
+  if (!isolated) await finishBatch();
   // The spot where the lamp is lit, built in its own frame and set into the place.
   const N = P.nook, nookG = new THREE.Group(); nookG.position.copy(N.at.pos); nookG.rotation.y = N.at.ry ?? 0; G.add(nookG); nookG.updateMatrixWorld(true);
-  C.G = nookG; C.bat = new Map(); C.cover = null;
-  await N.build(placeHelpers, C); await finishBatch();
+  context.G = nookG; context.bat = new Map(); context.cover = null;
+  await N.build(placeHelpers, context);
+  if (!isolated) await finishBatch();
   nookG.traverse((o) => { if (o.isMesh && !o.material.transparent && !o.isInstancedMesh) { o.receiveShadow = true; if (o.userData.cast !== false) o.castShadow = true; } if (o.isLight) o.layers.enableAll(); });
   G.traverse((o) => { if (o.isLight) o.layers.enableAll(); });
-  C.G = G;
-  C.up.push((dt, time) => { u.uTime.value = time; });
-  const candidate = { G, disposers:C.disposers, up: C.up, sky, env, envTarget, P, id: t.id, lightKey, nookG, others: C.others, cover: C.cover, baked:C.baked, reflectors:C.reflectors, hemi, sun, hemiBase: hemi.intensity, sunBase: sun.intensity };
-  if(C.baked?.staticLampShadow)await C.baked.staticLampShadow.capture(renderer,C.baked.group);
+  context.G = G;
+  context.up.push((dt, time) => { u.uTime.value = time; });
+  const candidate = { G, disposers:context.disposers, up: context.up, sky, env, envTarget, P, id: t.id, lightKey, nookG, others: context.others, cover: context.cover, baked:context.baked, reflectors:context.reflectors, hemi, sun, hemiBase: hemi.intensity, sunBase: sun.intensity };
+  if(context.baked?.staticLampShadow)await context.baked.staticLampShadow.capture(renderer,context.baked.group);
   const stage = new THREE.Scene(); stage.environment = env; stage.fog = new THREE.FogExp2(...P.fog); stage.add(G);
   stage.add(previewFill.clone());
   const stageCamera = camera.clone(); stageCamera.position.copy(P.view.pos); stageCamera.lookAt(P.view.look);
@@ -1717,7 +1741,7 @@ async function buildPlaceNow(t) {
     await renderer.compileAsync(stage, stageCamera);
     if (P.bakedLighting && P.nook.lamp === 'gauze') {
       visitorPreview = LAMPS.gauze({ ...presetOf('shade'), liveBaked: true });
-      const basis = C.baked.manifest.lampBasis.position;
+      const basis = context.baked.manifest.lampBasis.position;
       visitorPreview.g.position.set(...basis); stage.add(visitorPreview.g);
       const point = new THREE.PointLight(0xffb070, 1, 6, 2);
       point.position.set(...basis); point.castShadow = true; point.shadow.mapSize.set(512, 512); stage.add(point);
@@ -1730,24 +1754,23 @@ async function buildPlaceNow(t) {
     if(visitorPreview)disposeTree(visitorPreview.g);
     stage.traverse(object => object.shadow?.dispose());
   }
-  if(P.bakedLighting&&N.lamp==='gauze'&&C.baked){
-    const basis=C.baked.manifest.lampBasis.position;
-    C.baked.update(C.light,0,V3(...basis));
+  if(P.bakedLighting&&N.lamp==='gauze'&&context.baked){
+    const basis=context.baked.manifest.lampBasis.position;
+    context.baked.update(context.light,0,V3(...basis));
     // All hall programs are already warmed above. This bounded six-face
     // capture adds no light and keeps the visitor out of its own environment.
     candidate.visitorEnvironment=captureLocalEnvironment({root:G,environment:env,fog:stage.fog,position:[...basis],size:64,near:.01,far:30});
   }
   cachedPlaces.set(t.id, candidate);
-  // Retain a bounded two-place working set. Eviction releases every owned resource.
-  while (cachedPlaces.size > 2) {
-    const id = [...cachedPlaces.keys()].find(id => id !== place?.id && id !== t.id);
-    if (!id) break;
-    disposePlace(cachedPlaces.get(id)); cachedPlaces.delete(id);
-  }
+  // Preserve a prepared Pine Gate while the cover is still on screen.
+  // Attaching either choice trims the transitional cache back to two.
+  const protectedIds = [place?.id, t.id];
+  if (place?.id === COVER) protectedIds.push('pine-gate');
+  trimPlaceCache(protectedIds);
   return candidate;
   } catch (error) {
     cachedPlaces.delete(t.id);
-    disposePlace({ G, envTarget, disposers:buildingContext.disposers, baked: buildingContext.baked, reflectors: buildingContext.reflectors });
+    disposePlace({ G, envTarget, disposers:context.disposers, baked: context.baked, reflectors: context.reflectors });
     throw error;
   }
 }

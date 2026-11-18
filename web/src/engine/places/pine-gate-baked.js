@@ -16,8 +16,7 @@ export default function createPlace(h) {
     viewPhone: { pos: V3(.62, 2.91, 34.05), look: V3(-.11, 4.42, 1), fov: 40 },
     walkSeconds: 30,
     walk: [V3(.30, 3.34, 29.5), V3(-.08, 3.90, 24), V3(.12, 4.70, 16), V3(.10, 5.65, 6)], doors: V3(-.3, 5.6, .8),
-    async build() {
-      const context = h.context;
+    async build(_place, context) {
       const baked = await loadBakedPlace('pine-gate', h.renderer, context.light);
       context.G.add(baked.group);
       context.baked = baked;
