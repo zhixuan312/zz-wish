@@ -96,4 +96,4 @@ Camera rays in the fourth app preview locate the horizontal black stripe on the 
 
 The soot stain starts low enough to enter the regular burning frame above the wick. The denser rear stone mesh carries its irregular boundary in vertex tint. Wider ochre wax marks and alternating polished stone along the worn lip share the same shelf mesh and stay clear of the fixed dish seat.
 
-The approach references match the new desktop and phone entrance cameras, with updated walking, ignition and burning views in the coverage checks. Twelve rooted pines in two rows add depth behind the wall using the existing needle and bark assets. Broad ground folds, lower fern pockets and varied slate colors break up the open banks.
+The approach references match the new desktop and phone entrance cameras, with updated walking, ignition and burning views in the coverage checks. Twelve rooted pines in two rows add depth behind the wall using the existing needle and bark assets. Broad ground folds and varied slate colors break up the open banks.
