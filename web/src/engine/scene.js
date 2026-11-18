@@ -857,7 +857,9 @@ const api = { g, parts: null, partsKey: null, type: null, power: 0, lightPower: 
       place?.baked?.gauzeTransmission?.update(f.light);
       this.lightPower = power * k * keep;
       oilGlow.userData.u.uGlow.value = .4 * power * k;
-      const cooling=clockTime<shadeCoolingUntil?shadeCoolingGlow*Math.pow((shadeCoolingUntil-clockTime)/5.2,1.5):0;
+      // Burned down keeps its short power curve; a put-out shade cools on an
+      // exponential in time, which holds a steady fractional step per frame.
+      const cooling=clockTime<shadeCoolingUntil?(shadeCoolingTau>0?shadeCoolingGlow*Math.exp(-(clockTime-shadeCoolingStart)/shadeCoolingTau):shadeCoolingGlow*Math.pow((shadeCoolingUntil-clockTime)/5.2,1.5)):0;
       for (const m of p.shells ?? []) {
         const u=m.userData.u,transport=place?.baked?.gauzeTransmission;
         u.uFlame.value.copy(fw);u.uGlow.value=Math.max(2.4*m.userData.strength*power*k*keep,cooling*m.userData.strength);
@@ -1780,7 +1782,7 @@ const smokeTex = canvasTex(64, 64, (g, w, h) => {
 });
 const wickPlume=new WickPlume({scene:outside,map:smokeTex});
 if(import.meta.env.DEV)window.__visualWickPlume=()=>wickPlume.state();
-let shadeCoolingUntil=0,shadeCoolingGlow=0, emberUntil = 0, wind = 0, roomLight = 1, ignitionFill=0;
+let shadeCoolingUntil=0,shadeCoolingGlow=0,shadeCoolingStart=0,shadeCoolingTau=0, emberUntil = 0, wind = 0, roomLight = 1, ignitionFill=0;
 let pointerX = 0, pointerY = 0, previousPointerX = 0;
 window.addEventListener('pointermove', (e) => {
   pointerX = e.clientX / innerWidth * 2 - 1; pointerY = 1 - e.clientY / innerHeight * 2;
@@ -2018,7 +2020,7 @@ function makeIgnitionTaper(){
 export async function ignite({onCatch}={}) {
   const journey=++cameraJourneyVersion;
   const mark=(state,progress)=>{if(import.meta.env.DEV)window.__visualIgnition={state,progress,journey,position:rig.pos.toArray(),look:rig.look.toArray(),fov:rig.fov??camera.fov};};
-  lit=true;emberUntil=0;wickPlume.clear();shadeCoolingUntil=0;shadeCoolingGlow=0;roomLight=1;ignitionFill=place.P.bakedLighting?1:0;mark('igniting',0);
+  lit=true;emberUntil=0;wickPlume.clear();shadeCoolingUntil=0;shadeCoolingGlow=0;shadeCoolingStart=0;shadeCoolingTau=0;roomLight=1;ignitionFill=place.P.bakedLighting?1:0;mark('igniting',0);
   if(!place.P.bakedLighting){
     let caught=false;
     await tween(1.6,k=>{if(lit&&journey===cameraJourneyVersion){mine.power=k<.18?k*.35:Math.min(1.15,ease((k-.18)/.82)+Math.sin(k*Math.PI)*.22);if(!caught&&k>=.28){caught=true;onCatch?.();}}});if(lit&&journey===cameraJourneyVersion)mark('settled',1);return;
@@ -2082,13 +2084,13 @@ export async function snuff(done = false) {
   // Went out: sudden, and the place keeps less of its light. Burned down: it stays as it was.
   if (!done && !place.P.bakedLighting) void tween(1.6, (k) => { roomLight = 1 - .3 * ease(k); });
   const p0=done?Math.min(.24,Math.max(.015,lastPower)):mine.power;mine.power=p0;
-  // The cloth cools over seconds rather than vanishing in one frame: at a 200 ms
-  // sampling step the shade's mean brightness falls by under 10% between
-  // adjacent frames, so putting a lamp out never reads as a red flash or a cut.
-  // Linear in power, not an exponential tail: the shade's brightness then falls
-  // by a roughly constant amount per frame, so a 200 ms sample never sees a step
-  // larger than a tenth of the previous frame.
-  await tween(done?2.6:3.2,k=>{mine.power=p0*(1-k)*(done?.78+.22*Math.sin(k*17)**2:1);});mine.power=0;
+  // Putting a lamp out stays sudden for the flame, its light and the smoke: only
+  // the cloth holds heat. The cloth starts from the glow it had a frame before
+  // and cools exponentially, so it never flashes or cuts.
+  // The cloth's own glow is what cools, and it sits around 2.4 * strength * power
+  // while lit; start from that so the first cooled frame matches the last lit one.
+  if(!done){shadeCoolingStart=clockTime;shadeCoolingGlow=Math.max(.02,Math.min(2.4,lastGlow*.9));shadeCoolingUntil=clockTime+16;shadeCoolingTau=2.6;}
+  await tween(done?2.6:.12,k=>{mine.power=p0*Math.pow(1-k,done?1.35:1)*(done?.78+.22*Math.sin(k*17)**2:1);});mine.power=0;
 }
 
 function resize() {
