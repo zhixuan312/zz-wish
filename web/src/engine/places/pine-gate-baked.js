@@ -23,9 +23,15 @@ export default function createPlace(h) {
       context.baked = baked;
       // Living atmosphere rides on the place's own frame update: the engine calls
       // baked.update once per frame, so wrapping it keeps scene.js untouched.
+      // Every position comes from the place authored below, so a re-worked layout
+      // only changes this call and never the life module.
       const life = createPineGateLife({
         THREE: h.THREE, group: baked.group, scene: context.G, renderer: h.renderer,
-
+        nichePosition: [-1.8, 5.0, 0.9],
+        path: [
+          [0.97, 2.96, 33.7], [0.30, 3.34, 29.5], [-0.08, 3.90, 24],
+          [0.12, 4.70, 16], [0.10, 5.65, 6],
+        ],
       });
       // baked.update carries no frame delta, so the wrapper keeps its own clock.
       const bakedUpdate = baked.update;
@@ -39,6 +45,8 @@ export default function createPlace(h) {
         life.update(dt, lifeTime);
       };
       baked.life = life;
+      // Capture-only diagnostic: the sway statistics are otherwise unreadable.
+      if (import.meta.env.DEV) { window.__capturePineSway = () => life.describe?.() ?? null; window.__pineScene = baked.group; }
       context.disposers.push(() => { life.dispose(); });
     },
 
