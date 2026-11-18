@@ -229,8 +229,7 @@ function setOldWaxOnTray(tray) {
   const deposits = [
     { angle: 1.08, fromCenter: .0501, length: .0041, width: .00212, height: .00118, color: 0xa08a70 },
     { angle: 1.40, fromCenter: .0511, length: .00175, width: .00117, height: .00065, color: 0xb09a7a },
-    { angle: 2.03, fromCenter: .0503, length: .0037, width: .00182, height: .00095, color: 0xa88a69 },
-    { angle: -.57, fromCenter: .0505, length: .0026, width: .00146, height: .00084, color: 0x9d8064 },
+    { angle: 2.03, fromCenter: .0503, length: .0037, width: .00182, height: .00095, color: 0xa58a70 },
   ];
   const profile = [[0, -.18, 0], [.98, -.18, 0], [1, .042, .13], [.935, .18, .47],
     [.77, .44, .91], [.55, .72, 1], [.29, .94, 1], [0, 1, 1]];
@@ -247,7 +246,8 @@ function setOldWaxOnTray(tray) {
         const x = dx * r - dz * tangential, z = dz * r + dx * tangential;
         const support = traySurfaceAt(tray.geometry, x, z), i = row * mesh.sectors + side;
         mesh.positions.setXYZ(i, x, support + height * deposit.height, z);
-        rgba.setXYZW(i, color.r, color.g, color.b, opacity);
+        const age = .83 + .13 * (1 - radius) + .055 * Math.sin(angle * 7 + row * .57) * radius;
+        rgba.setXYZW(i, color.r * age, color.g * age, color.b * age, opacity);
       }
     }
     mesh.geometry.setAttribute('color', rgba);
@@ -276,6 +276,7 @@ export function createPineTray(seat) {
   material.onBeforeCompile = shader => {
     materialCoordinates(shader);
     shader.fragmentShader = `
+      ${RELIEF_GLSL}
       float pineStoneHash(vec3 p) { return fract(sin(dot(p, vec3(93.2, 43.9, 163.7))) * 28631.41); }
       float pineStoneValue(vec3 p) {
         vec3 q = floor(p), f = fract(p);
@@ -293,20 +294,22 @@ export function createPineTray(seat) {
       float grainCoverage = 1. - smoothstep(.44, 1.35, length(fwidth(mineralCoord)));
       float mineral = mix(.5, pineStoneValue(mineralCoord + vec3(48., 12., 9.)), grainCoverage);
       float fleck = smoothstep(.64, .9, mineral);
-      float soot = (1. - smoothstep(.012, .048, length(vPineLocal.xz))) * smoothstep(.37, .85, aggregate);
-      float scuffedRim = smoothstep(.049, .057, length(vPineLocal.xz)) * smoothstep(.006, .012, vPineLocal.y);
-      diffuseColor.rgb *= .65 + .40 * aggregate + .09 * fleck + .075 * scuffedRim - .28 * soot;`)
+      float trayRadius = length(vPineLocal.xz);
+      float soot = (1. - smoothstep(.012, .048, trayRadius)) * smoothstep(.37, .85, aggregate);
+      float scuffedRim = smoothstep(.049, .057, trayRadius) * smoothstep(.006, .012, vPineLocal.y);
+      float polish = scuffedRim * smoothstep(.32, .87, aggregate);
+      // A coarse throwing tool leaves nearly concentric traces. Their height
+      // varies around the dish and is filtered in the wider views.
+      float turningPhase = trayRadius * 2600. + vPineLocal.y * 487. + aggregate * 1.4;
+      float turningCoverage = (1. - smoothstep(.41, 1.6, fwidth(turningPhase))) * smoothstep(.011, .022, trayRadius);
+      float toolMark = sin(turningPhase) * (.35 + .65 * aggregate) * turningCoverage;
+      float ashSpecks = soot * smoothstep(.48, .76, mineral) * smoothstep(.19, .58, aggregate);
+      diffuseColor.rgb *= .65 + .40 * aggregate + .09 * fleck + .12 * polish - .28 * soot - .23 * ashSpecks + .042 * toolMark;`)
       .replace('#include <roughnessmap_fragment>', `#include <roughnessmap_fragment>
-        roughnessFactor = clamp(roughnessFactor + .14 * (aggregate - .5) - .10 * scuffedRim, .56, .98);`)
+        roughnessFactor = clamp(roughnessFactor + .14 * (aggregate - .5) - .22 * polish + .10 * ashSpecks, .56, .98);`)
       .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
-        float relief = .00043 * aggregate + .000055 * mineral;
-        vec3 viewDx = dFdx(-vViewPosition);
-        vec3 viewDy = dFdy(-vViewPosition);
-        vec3 surfaceX = cross(viewDy, normal);
-        vec3 surfaceY = cross(normal, viewDx);
-        float surfaceArea = dot(viewDx, surfaceX);
-        vec3 gradient = dFdx(relief) * surfaceX + dFdy(relief) * surfaceY;
-        normal = normalize(normal - sign(surfaceArea) * gradient / max(abs(surfaceArea), 1.e-10));`)
+        float relief = .00043 * aggregate + .000055 * mineral + .000044 * toolMark + .000033 * ashSpecks;
+        normal = pineRelief(normal, -vViewPosition, relief);`)
       .replace('#include <lights_fragment_end>', `#include <lights_fragment_end>
         reflectedLight.directDiffuse *= .84;
         reflectedLight.directSpecular *= .76;
@@ -319,7 +322,7 @@ export function createPineTray(seat) {
         reflectedLight.indirectDiffuse += diffuseColor.rgb * vec3(1.07, 1.03, .98)
           * (.26 * outerFoot * recessReturn);`);
   };
-  material.customProgramCacheKey = () => 'pine-hewn-stone-4';
+  material.customProgramCacheKey = () => 'pine-hewn-stone-5';
   material.userData.lampOwned = true;
   const tray = new THREE.Mesh(geometry, material);
   tray.receiveShadow = true;
