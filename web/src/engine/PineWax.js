@@ -84,7 +84,7 @@ function refinedWaxMaterial(light, layer) {
         vec3 absorption = vec3(49., 88., 155.) - 29. * log(clamp(diffuse, .055, 1.));
         vec3 transmission = exp(-absorption * path);
         float edge = .71 + .29 * pow(1. - abs(dot(normal, viewRay)), 1.45);
-        float crownFalloff = 1. - smoothstep(.006, .046, depth);
+        float crownFalloff = ${shaft ? 'exp(-depth * 13.)' : '1. - smoothstep(.006, .046, depth)'};
         float scatter = sourceFraction * edge * (.08 + .92 * side) * ${style.scatter};
         totalEmissiveRadiance += uPineSourceColor * transmission * scatter * crownFalloff;
         ${wet ? `
@@ -103,19 +103,20 @@ function refinedWaxMaterial(light, layer) {
     if (shaft) shader.fragmentShader = shader.fragmentShader.replace('#include <lights_fragment_end>', `#include <lights_fragment_end>
       // The convex dry lip scatters broadly while the concave wet surface
       // retains the sharp reflection. Preserve the dry folds in the light.
-      float dryLip = smoothstep(.13, .85, worldNormal.y) * crownFalloff * uPinePoolWet;
+      float dryLip = smoothstep(.13, .85, worldNormal.y) * (1. - smoothstep(.006, .019, depth)) * uPinePoolWet;
       reflectedLight.directDiffuse *= mix(1., .22, dryLip);
       reflectedLight.indirectDiffuse *= mix(1., .68, dryLip);
       reflectedLight.directSpecular *= mix(1., .50, dryLip);
       // Diffuse return from the shelf and opening keeps the wax pigment
       // readable below the transmitted amber without following the camera.
-      float shaftHeight = vPineLocal.y / max(uPineWaxHeight, .001);
-      float lowerWax = 1. - smoothstep(.40, .89, shaftHeight);
+      float shaftHeight = clamp(vPineLocal.y / max(uPineWaxHeight, .001), 0., 1.);
+      float fromBase = 1. - shaftHeight;
       float flameBounce = (1. - exp(-uPineCandela * 12.)) * uPinePoolWet;
-      float reliefLight = .74 + .26 * dot(worldNormal, normalize(vec3(.34, .27, 1.)));
-      float waxBounce = flameBounce * (.045 + .18 * lowerWax)
-        + uPineWaxCooling * (.097 + .023 * lowerWax);
-      reflectedLight.indirectDiffuse += diffuseColor.rgb * vec3(.96, 1., 1.04) * waxBounce * reliefLight;`);
+      float reliefLight = .78 + .22 * dot(worldNormal, normalize(vec3(.34, .27, 1.)));
+      vec3 litReturn = vec3(1.045, 1., .931) * flameBounce * (.049 + .235 * fromBase);
+      float cooledBody = 1. - smoothstep(.40, .89, shaftHeight);
+      vec3 cooledReturn = vec3(.96, 1., 1.04) * uPineWaxCooling * (.097 + .023 * cooledBody);
+      reflectedLight.indirectDiffuse += diffuseColor.rgb * (litReturn + cooledReturn) * reliefLight;`);
     if (wet) shader.fragmentShader = shader.fragmentShader.replace('#include <lights_fragment_end>', `#include <lights_fragment_end>
       // The solidified pool reflects the selected pigment as diffuse wax.
       reflectedLight.indirectDiffuse += diffuseColor.rgb * vec3(.96, 1., 1.04) * .091 * uPineWaxCooling;`);
@@ -155,7 +156,7 @@ function refinedWaxMaterial(light, layer) {
           reflectedLight.indirectDiffuse += diffuseColor.rgb * vec3(.96, 1., 1.04) * spillBounce;`);
     }
   };
-  material.customProgramCacheKey = () => `pine-wax-${layer}-${remnant ? 7 : 5}`;
+  material.customProgramCacheKey = () => `pine-wax-${layer}-${remnant ? 7 : shaft ? 6 : 5}`;
   return material;
 }
 
