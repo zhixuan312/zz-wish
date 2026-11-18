@@ -42,6 +42,7 @@ test('refresh ends the Pine Gate candle and restores the same wax in My Lamps', 
   const restoredImage = imageHash(await record.locator('img').getAttribute('src'));
   expect(restoredImage).toBeTruthy();
   await page.reload();
+  await page.waitForFunction(() => (window as Window & { __ready?: boolean }).__ready === true);
   await page.getByRole('button', { name: /^(我的灯|My Lamps)$/ }).click();
   const restoredThumbnail = record.locator('[data-lamp-state="went_out"][data-ready="true"] img');
   await expect(restoredThumbnail).toBeVisible();
