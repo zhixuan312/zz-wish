@@ -253,12 +253,13 @@ function runnelContour(y, radius, runnels) {
   for (const drip of runnels) {
     const k = (drip.crown - y) / drip.reach;
     if (k < 0 || k > 1) continue;
-    const taper = Math.sin(Math.PI * k) ** .5;
-    const bead = .34 + .78 * Math.exp(-((k - .78) ** 2) / .027);
-    const width = Math.min(drip.width, radius * .25) * drip.growth;
-    const angle = drip.angle + .18 * Math.sin(k * 4.4) + .07 * Math.sin(k * 7.2 + drip.angle) * k;
-    flows.push({ angle, height: width * (taper * bead + .29 * Math.exp(-k * 8)),
-      halfWidth: Math.max(.16, width / radius * (1.12 + .64 * taper)) });
+    const taper = Math.sin(Math.PI * k) ** 1.24;
+    const bead = .43 + .92 * Math.exp(-((k - .72) ** 2) / .037);
+    const width = Math.min(drip.width, radius * .23) * drip.growth;
+    // Gravity leaves one continuous rounded swath rather than a row of folds.
+    const angle = drip.angle + .082 * Math.sin(k * Math.PI) * Math.cos(drip.angle);
+    flows.push({ angle, height: width * (taper * bead + .16 * Math.exp(-k * 10)),
+      halfWidth: Math.max(.16, width / radius * (1.16 + .5 * taper)) });
   }
   return a => {
     let rise = 0;
