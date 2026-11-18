@@ -50,6 +50,8 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
   const [wishId, setWishId] = useState<string | null>(null);
   const [placeId, setPlaceId] = useState<PlaceId>(DEFAULT_PLACE.id);
   const place = placeById(placeId)!;
+  const placeEyebrow = placeId === 'pine-gate' ? t.pinePlaceEyebrow : t.placeEyebrow;
+  const placeLead = placeId === 'pine-gate' ? t.pinePlaceLead : t.placeLead;
   const [placeLoad, setPlaceLoad] = useState<{ stage: 'loading' | 'preparing' | 'ready' | 'error'; loadedBytes: number; totalBytes: number | null; ratio: number | null }>({ stage: 'loading', loadedBytes: 0, totalBytes: null, ratio: null });
   const loadTask = useRef<{ id: PlaceId; task: Promise<void> } | null>(null);
   const loadVersion = useRef(0);
@@ -267,10 +269,10 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
       {screen === 'place' && (
         <section className="sheet low">
           <div className="inner">
-            <div className="eyebrow">{t.placeEyebrow}</div>
+            <div className="eyebrow">{placeEyebrow}</div>
             <div className="tname">{place.name[locale]}<small lang={locale === 'zh' ? 'en' : 'zh-CN'}>{place.name[locale === 'zh' ? 'en' : 'zh']}</small></div>
             <p className="note">{place.lamp[locale]} · {place.line[locale]}</p>
-            {VISIBLE_PLACES.length > 1 && <div className="places" role="radiogroup" aria-label={t.placeEyebrow}>
+            {VISIBLE_PLACES.length > 1 && <div className="places" role="radiogroup" aria-label={placeEyebrow}>
               {VISIBLE_PLACES.map((p) => {
                 const now = placeStats?.places.find((s) => s.placeId === p.id)?.now ?? 0;
                 return (
@@ -282,7 +284,7 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
                 );
               })}
             </div>}
-            <p className="note place-invitation">{t.placeLead}</p>
+            <p className="note place-invitation">{placeLead}</p>
             {loading()}
             <div className="row place-actions">
               <button className="btn link" onClick={backToWish} disabled={busy}>{t.placeBack}</button>
