@@ -104,7 +104,8 @@ export function createGauzeSmokePath(profile,wickTip,vent){
 
 const configurations={natural:{delay:1.9,duration:1.5,rate:36,speed:.13,outsideLife:2.3,riseSpeed:.075,width:.0012,growth:.0032,curl:.004,opacity:.14},sudden:{delay:0,duration:.25,rate:96,speed:.32,outsideLife:1.4,riseSpeed:.17,width:.0012,growth:.018,curl:.014,opacity:.16}};
 const pineSudden = { delay: 0, duration: 1.04, rate: 88, speed: .19, outsideLife: 1.64,
-  riseSpeed: .105, width: .0015, growth: .011, curl: .014, opacity: .19, coherent: true };
+  riseSpeed: .105, width: .0015, growth: .011, curl: .014, opacity: .19,
+  rootFade: .018, rootClearance: .0008, coherent: true };
 export class WickPlume{
   constructor({scene,map,count=96}){
     this.parts=Array.from({length:count},(_,i)=>{
@@ -114,8 +115,16 @@ export class WickPlume{
   clear(){this.run=null;for(const p of this.parts){p.s.visible=false;p.exitWorld=null;}}
   start({time,done,frame,path,wickTip,variant,valid}){
     this.clear();frame.updateWorldMatrix(true,false);
-    if(!path){const end=wickTip.clone().add(new THREE.Vector3(0,.008,0));path={length:.008,vent:null,wickTip:wickTip.clone(),points:[wickTip.clone(),end],sample:(d,target)=>target.lerpVectors(wickTip,end,THREE.MathUtils.clamp(d/.008,0,1)),clearance:()=>.0006};}
     const config = !done && variant === 'pine' ? pineSudden : configurations[done ? 'natural' : 'sudden'];
+    if (!path) {
+      const length = .008;
+      const end = wickTip.clone().add(new THREE.Vector3(0, length, 0));
+      path = {
+        length, vent: null, wickTip: wickTip.clone(), points: [wickTip.clone(), end],
+        sample: (distance, target) => target.lerpVectors(wickTip, end, THREE.MathUtils.clamp(distance / length, 0, 1)),
+        clearance: () => config.rootClearance ?? .0006,
+      };
+    }
     const count=Math.min(this.parts.length,Math.ceil(config.rate*config.duration)),position=new THREE.Vector3(),quaternion=new THREE.Quaternion(),scale=new THREE.Vector3();frame.matrixWorld.decompose(position,quaternion,scale);
     this.run={time,done,frame,path,valid,config,count,transit:path.length/config.speed,previousTime:time,currentTime:time,previousPosition:position,previousQuaternion:quaternion,previousScale:scale};
   }
@@ -130,7 +139,10 @@ export class WickPlume{
       remaining=true;p.s.visible=true;
       let width,opacity;
       if(outside<0){
-        const distance=Math.max(0,age*config.speed);path.sample(distance,this.position).applyMatrix4(frame.matrixWorld);width=Math.min(config.width,path.clearance(distance)*1.2);opacity=config.opacity*smooth(0,.08,age);
+        const distance = Math.max(0, age * config.speed);
+        path.sample(distance, this.position).applyMatrix4(frame.matrixWorld);
+        width = Math.min(config.width, path.clearance(distance) * 1.2);
+        opacity = config.opacity * smooth(0, config.rootFade ?? .08, age);
       }else{
         if(!p.exitWorld){
           const exitTime=birth+run.transit,k=THREE.MathUtils.clamp((exitTime-run.previousTime)/(time-run.previousTime||1),0,1),matrix=new THREE.Matrix4().compose(run.previousPosition.clone().lerp(nowPosition,k),run.previousQuaternion.clone().slerp(nowQuaternion,k),run.previousScale.clone().lerp(nowScale,k));
