@@ -663,19 +663,31 @@ def wick_shelf(x, y, z, material):
                 points.append((x + dx, y - rim + height if top else y - .115, z + dz - (rim * .63 if top else 0)))
     size = columns * rows
     faces = []
+    charts = []
     for i in range(rows - 1):
         for j in range(columns - 1):
             a = i * columns + j
             face = (a, a + columns, a + columns + 1, a + 1)
+            bottom = tuple(size + v for v in reversed(face))
             faces.append(face)
-            faces.append(tuple(size + v for v in reversed(face)))
+            faces.append(bottom)
+            charts.append([(points[v][0] - x, points[v][2] - z) for v in face])
+            charts.append([(points[v][0] - x, points[v][2] - z + .72) for v in bottom])
     outline = ([j for j in range(columns)] + [i * columns + columns - 1 for i in range(1, rows)]
                + [(rows - 1) * columns + j for j in range(columns - 2, -1, -1)]
                + [i * columns for i in range(rows - 2, 0, -1)])
+    distance = 0.
+    skirt_base = 1.26
     for a, b in zip(outline, outline[1:] + outline[:1]):
+        ap, bp = points[a + size], points[b + size]
+        next_distance = distance + math.hypot(bp[0] - ap[0], bp[2] - ap[2])
         faces.append((a, b, b + size, a + size))
+        charts.append([(distance, skirt_base + points[a][1] - ap[1]),
+                       (next_distance, skirt_base + points[b][1] - bp[1]),
+                       (next_distance, skirt_base), (distance, skirt_base)])
+        distance = next_distance
     shelf = mesh.mesh_object('Single hewn wick shelf', points, faces, material, 'niche')
-    closed_grid_uv(shelf, columns, rows, .70, .61)
+    source_uv(shelf, charts, 'Metric shelf faces and unfolded perimeter skirt across the variable relief grid.')
     for index in range(0, 2 * (columns - 1) * (rows - 1), 2):
         shelf.data.polygons[index].use_smooth = True
     return shelf
