@@ -750,6 +750,8 @@ const mine = (() => {
   // A second flame, upside down in still water below, when the place has water.
   const mirror = flameParts(g, { light: false }); mirror.fm.uniforms.uSeedU.value = f.fm.uniforms.uSeedU.value; mirror.flame.visible = mirror.halo.visible = false; mirror.wick.visible = mirror.ember.visible = false;
   const world = V3(0, 0, 0);
+  const pineShadowPoint = V3(0, 0, 0);
+  const lastPineShadowPoint = V3(Infinity, Infinity, Infinity);
 const api = { g, parts: null, partsKey: null, type: null, power: 0, lightPower: 0, lightBoost: 1, lightTint: null, offer: null, top: V3(0, 0, 0), lastCut: -1, scale: 1, mirrorY: null, lastOil: -1,
     waxState: 'unlit',
     // Builds this place's vessel; a dish or a shade takes the person's outline and colour.
@@ -763,6 +765,7 @@ const api = { g, parts: null, partsKey: null, type: null, power: 0, lightPower: 
       this.parts = p; this.partsKey = key; g.add(p.g);
       hanger.material=p.suspensionMaterial??defaultSuspensionMaterial;
       f.wick.visible = !p.wickMesh && !p.pineWax;
+      f.light.shadow.autoUpdate = !p.pineWax;
       f.light.color.setHex(p.light ?? 0xffba78); f.size = p.flame ?? 1; mirror.size = f.size;
       g.traverse((c) => { c.layers.set(0); warmReflections(c); }); f.light.layers.enableAll();
       if(liveBaked&&place?.visitorEnvironment){
@@ -856,6 +859,7 @@ const api = { g, parts: null, partsKey: null, type: null, power: 0, lightPower: 
     },
     flameWorld() { g.updateWorldMatrix(true, false); return g.localToWorld(world.copy(this.top)); },
     setShadowFar(far){
+      lastPineShadowPoint.set(Infinity, Infinity, Infinity);
       f.light.shadow.camera.far=far;
       // Preserve the original0.12mm world bias when the indirect-light route
       // extends the shadow range. A fixed normalized bias hid thin rib shadows.
@@ -877,7 +881,18 @@ const api = { g, parts: null, partsKey: null, type: null, power: 0, lightPower: 
         : p.kind === 'wax' ? Math.min(1, ((this.top.y - (p.seat?.y ?? 0) + .03) / .2) ** 2) : 1;
       const power = this.power * (lit ? Math.min(1, level * 25) : 1);
       const fw = this.flameWorld(), k = f.tick(time, power, p.lightMax * keep * this.lightBoost, p.pineWax?.materials ?? [wax, poolMat, oilGlow], fw.y);
-      p.pineWax?.updateLight(f.light, place?.baked?.manifest.lampBasis.pointRadiusMetres);
+      if (p.pineWax) {
+        p.pineWax.updateLight(f.light, place?.baked?.manifest.lampBasis?.pointRadiusMetres);
+        // The niche and holder are static. Refresh the shadow only when the
+        // lit wick moves a measurable distance.
+        if (f.light.intensity > .0001) {
+          f.light.getWorldPosition(pineShadowPoint);
+          if (pineShadowPoint.distanceToSquared(lastPineShadowPoint) > .0008 ** 2) {
+            f.light.shadow.needsUpdate = true;
+            lastPineShadowPoint.copy(pineShadowPoint);
+          }
+        }
+      }
       for (const material of p.pineWax?.materials ?? []) material.userData.u.uGlow.value *= .52;
       place?.baked?.gauzeTransmission?.update(f.light);
       this.lightPower = power * k * keep;
