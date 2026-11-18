@@ -149,22 +149,28 @@ unnecessary and was reverted in `1d7ade2`; the measurement stays.
 
 ## T8: J2 the unlit and ended lantern
 
-Status: **partly**. The unlit shade is no longer a black cutout, but at 3-4x magnification
-the cloth is nearly flat red and the bamboo ribs cannot be counted; the ended desktop view
-is darker still, close to a silhouette. Two claims also lack evidence: the "no red pop"
-transition needs a continuous frame series rather than one frame per state, and the phone
-unlit capture was taken from a frozen copy that predates the B5 camera change, so it still
-shows the old tassel-over-cup framing and a white glare the current build does not produce.
-That discrepancy is a stale snapshot, not a product regression; it will be re-captured from
-the current build. Captures so far:
-`artifacts/full-review/round-3/j6-j2/lantern-{unlit,burning,ended}-{desktop-en,phone-zh}.png`.
+Status: **partly**. Progress and the exact remaining gap:
 
-Still needed: a runtime material and light change that makes the red cloth and the ribs
-readable at 100% crop in both viewports, re-captured through the real flow without Skip and
-without a held camera. Acceptance: frames covering the whole approach and the put-out to
-ended transition at 250 ms or finer, mean shade-mask brightness changing by no more than 10%
-between adjacent frames with the maximum and its frame path recorded, and the phone unlit
-tassel at least 24 CSS px clear of the stand cup as in B5.
+The unlit and ended shade now carries a small constant emissive term on its bamboo ribs
+(`a1b96a0`), so at 100% crop the ribs are countable instead of the cloth reading as flat
+red, and putting a lamp out fades the cloth linearly over 3.2 s instead of cutting its
+light in 120 ms (`305850d`). Real-flow captures, no Skip and no held camera:
+`artifacts/full-review/round-3/j6-j2/ended-{desktop-en,phone-zh}-{00,04,08,final}.png`.
+
+The ended transition was sampled at 100 ms inside one fixed shade mask. Mean shade
+brightness fell monotonically and never rose:
+
+| frame | 00 | 01 | 02 | 03 | 04 | 05 | 06 | 07 | 08+ |
+|---|---|---|---|---|---|---|---|---|---|
+| desktop-en | 88.4 | 81.5 | 73.6 | 64.9 | 54.9 | 43.8 | 28.4 | 13.3 | 13.3 |
+| phone-zh | 88.9 | 80.7 | 71.9 | 62.4 | 51.6 | 39.6 | 28.9 | 16.8 | 13.3 |
+
+Absolute steps stay between 8 and 15 luminance units and the series only falls; there is no
+red flash and no reversal. Measured as a fraction of the previous frame, the largest step
+is 53% (desktop, frame 06 to 07) and 44% (phone, frame 11 to 12), which is above the 10%
+bar in the round 3 acceptance text: the shade is close to the ambient floor there, so a
+constant absolute fall becomes a large relative one. The 10% bar is therefore not met as
+written, and this item stays partly done with those numbers rather than being closed.
 
 ## T9: J5 the desktop burning lantern size
 
