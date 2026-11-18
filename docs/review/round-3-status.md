@@ -132,13 +132,18 @@ rejected because it would lift the whole hall floor with them.
 
 ## T7: J6 the gate flame and offering bowl under gate bloom
 
-Status: **partly** — the gate flame is already a live runtime flame (`liveFlame` with
-`fixtureSpecular`), while the bowl silhouette is baked geometry. Judging the silhouette
-needs a gate-held capture that this run has not produced yet.
+Status: **done (verified, no code change needed)**. Held captures of the gate passage and
+of each shelf lamp from the court side show both bronze oil cups, their flames and the
+bowl rims clearly against the gate bloom: the bloom haloes them but never swallows the
+silhouette. Captures:
+`artifacts/full-review/round-3/j6-j2/gate-{passage,shelf-left,shelf-right}-{desktop-en,phone-zh}.png`.
 
 ## T8: J2 the unlit and ended lantern
 
-Status: **partly** — approach and ending continuity need the same held captures.
+Status: **done (verified, no code change needed)**. The unlit shade shows its red cloth,
+bamboo ribs, cord and tassel instead of reading as a black cutout, and the ended shade
+keeps the same readable cloth and ribs with no red flash. Captures:
+`artifacts/full-review/round-3/j6-j2/lantern-{unlit,burning,ended}-{desktop-en,phone-zh}.png`.
 
 ## T9: J5 the desktop burning lantern size
 
