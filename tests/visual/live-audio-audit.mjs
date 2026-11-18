@@ -91,3 +91,38 @@ export async function sampleLiveAudio(page, { samples = 4, intervalMs = 100 } = 
     connectedMasters: readings.at(-1)?.contexts?.reduce((sum, context) => sum + context.masters.filter(master => master.connectedToDestination).length, 0) ?? 0,
     note: 'Actual live AudioContext state/automation plus a parallel, non-audible analyser on each product master. This is an electrical signal check, not microphone/speaker proof or a performance window.' };
 }
+
+export async function sampleLiveAudioWindow(page, { startSeconds, durationSeconds, intervalMs }) {
+  // Anchor to the current master so viewport-specific work before the sample cannot shift the audio phase.
+  const endSeconds = startSeconds + durationSeconds;
+  const readings = await page.evaluate(({ startSeconds, endSeconds, intervalMs }) => new Promise(resolve => {
+    const samples = [];
+    const deadline = performance.now() + (endSeconds + 5) * 1000;
+    const timer = setInterval(() => {
+      const snapshot = window.__liveAudioAudit?.snapshot();
+      const context = snapshot?.contexts.findLast(entry => entry.state === 'running'
+        && entry.masters.some(master => master.connectedToDestination));
+      const master = context?.masters.findLast(entry => entry.connectedToDestination);
+      const start = master?.automation.find(entry => entry.method === 'setValueAtTime');
+      const age = start ? context.currentTime - start.audioTime : null;
+      if (age !== null && age >= startSeconds && age < endSeconds && master.meter) {
+        samples.push({ ageSeconds: age, sampleRate: context.sampleRate, masterGain: master.gainValue, ...master.meter });
+      }
+      if (age >= endSeconds || performance.now() >= deadline) {
+        clearInterval(timer);
+        resolve(samples);
+      }
+    }, intervalMs);
+  }), { startSeconds, endSeconds, intervalMs });
+  const firstAgeSeconds = readings[0]?.ageSeconds ?? null;
+  const lastAgeSeconds = readings.at(-1)?.ageSeconds ?? null;
+  const expectedReadings = durationSeconds * 1000 / intervalMs;
+  const complete = readings.length >= expectedReadings * .85
+    && firstAgeSeconds <= startSeconds + .5 && lastAgeSeconds >= endSeconds - .5;
+  return {
+    startSeconds, endSeconds, firstAgeSeconds, lastAgeSeconds, intervalMs, complete,
+    rms: readings.length ? Math.sqrt(readings.reduce((sum, reading) => sum + reading.rms ** 2, 0) / readings.length) : null,
+    peak: readings.length ? Math.max(...readings.map(reading => reading.peak)) : null,
+    readings,
+  };
+}

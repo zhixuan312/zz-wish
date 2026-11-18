@@ -9,7 +9,7 @@ import Database from 'better-sqlite3';
 import { remainingFuel, waxCutHeight } from '../../shared/wax.ts';
 import { DICTS, fmtDuration } from '../../web/src/i18n.ts';
 import { assertCaptureGpuHealthy, installCaptureGpuGuard } from './capture-preflight.mjs';
-import { installLiveAudioAudit, sampleLiveAudio } from './live-audio-audit.mjs';
+import { installLiveAudioAudit, sampleLiveAudio, sampleLiveAudioWindow } from './live-audio-audit.mjs';
 
 if (process.argv.includes('--help')) {
   console.log([
@@ -416,9 +416,12 @@ async function capture(browser, browserName, size) {
       const meters = signal.readings.flatMap(reading => reading.contexts.flatMap(
         context => context.masters.map(master => master.meter).filter(Boolean)));
       const rms = Math.sqrt(meters.reduce((sum, meter) => sum + meter.rms ** 2, 0) / (meters.length || 1));
-      run.audio = { ...signal, rms };
       assert(signal.running && signal.connectedMasters && signal.peak > 0, 'No live Pine Gate ambience was observed.');
       assert(signal.peak < .99, 'Pine Gate audio peaked near clipping.');
+      const matchedWindow = await sampleLiveAudioWindow(page, { startSeconds: 30, durationSeconds: 15, intervalMs: 125 });
+      run.audio = { ...signal, rms, matchedWindow };
+      if (matchedWindow.complete) assert(matchedWindow.peak < .99, 'Pine Gate audio peaked near clipping in the matched window.');
+      else console.warn(browserName, label, 'The matched audio window did not have full coverage.');
     }
     await advanceVisibleBurn(complete, .5);
     const middle = await captureShot('burn-50', { targetProgress: .5 });
