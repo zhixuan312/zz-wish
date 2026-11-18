@@ -83,8 +83,8 @@ and lower rims):
 
 | viewport | 10 min | 2 h | 24 h |
 |---|---|---|---|
-| desktop-en | 14.8% | 19.2% | 23.8% |
-| phone-zh | 22.2% | 24.3% | 26.5% |
+| desktop-en | 15.1% | 19.1% | 24.0% |
+| phone-zh | 10.8% | 14.1% | 17.1% |
 
 Captures: `artifacts/full-review/round-3/lantern-size/{choose,burning}-{desktop-en,phone-zh}-{10min,2h,24h}.png`.
 
@@ -111,11 +111,12 @@ wish on two full lines at 588x39 px.
 
 ## B5 regression (phone choose framing)
 
-Status: **done**. On a phone the sheet covers the lower two thirds, so the lamp's subject
-height and the fitted fraction were lowered until the tallest shade clears the top edge.
-At 10 min, 2 h and 24 h the cord is visible, the tassel keeps clear background under it,
-and nothing is cropped. Only the narrow-screen camera changed; the stand, the shade and
-every asset are untouched. Captures: `choose-phone-zh-{10min,2h,24h}.png`.
+Status: **done**. On a phone the lamp and the altar stand share one screen column, so
+raising the subject could not separate them. The phone choose view now swings 0.22 rad
+around the lamp: at 10 min, 2 h and 24 h the tassel sits well clear of the stand's cup,
+the cord is visible, the tallest shade is not cropped and the stand stays where it was.
+Only the narrow-screen camera changed. Captures:
+`choose-phone-zh-{10min,2h,24h}.png`.
 
 ## T5: J17 the presence badge
 
