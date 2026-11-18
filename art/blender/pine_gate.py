@@ -547,11 +547,11 @@ def arch_segment(name, cx, spring, center_z, r0, r1, depth, a, b, mat):
         charts.append([((obj.data.vertices[i].co - origin).dot(direction) + face_index,
                         (obj.data.vertices[i].co - origin).dot(across)) for i in face.vertices])
     source_uv(obj, charts, 'Separate charts across the radiating granite joints.')
-    mesh.bevel(obj, .0038, 2)
+    mesh.bevel(obj, .0065 if a < .05 or b > math.pi - .05 else .0038, 2)
 
 
 def hewn_back(x, y, z, material):
-    count = 26
+    count = 34
     vertices = []
     for row in range(count):
         for col in range(count):
@@ -582,8 +582,8 @@ def wick_shelf(x, y, z, material):
                 u = j / (columns - 1)
                 dx = (u - .5) * .70
                 dz = (v - .5) * .61
-                tip = min(1., max(0., (v - .83) / .17)) ** 3
-                rim = tip * (.015 + .006 * math.sin(dx * 44 + .9) + .0035 * math.sin(dx * 111))
+                tip = min(1., max(0., (v - .76) / .24)) ** 2.5
+                rim = tip * (.018 + .007 * math.sin(dx * 44 + .9) + .0035 * math.sin(dx * 111))
                 points.append((x + dx, y - rim if top else y - .115, z + .031 + dz - (rim * .63 if top else 0)))
     size = columns * rows
     faces = []
@@ -603,31 +603,27 @@ def wick_shelf(x, y, z, material):
     return shelf
 
 
-def hewn_reveal(x, y, z, side, course, material):
-    # The arch cheeks continue behind the exposed back face. A soft taper
-    # connects each chipped opening edge to solid masonry behind the joints.
-    columns, rows = 14, 9
-    depth, height = .396, .144
+def hewn_reveal(x, y, z, side, material):
+    # Each arch cheek is one through-stone. The sculpted spring tapers toward
+    # the arch so the lower jamb and the first voussoir meet at the front.
+    columns, rows = 14, 17
+    depth, height = .396, .288
     span = columns * rows
     points = []
     for inner in (True, False):
         for row in range(rows):
             v = row / (rows - 1)
-            combined_course = course + v
             for col in range(columns):
                 u = col / (columns - 1)
-                front_wear = u ** 4 * (.005 + .003 * math.sin(combined_course * 10 + side))
-                relief = (.0043 * math.sin(u * 8.4 + v * 6.9 + course * 2.2 + side)
-                          * math.sin(math.pi * v))
-                # Courses meet at shared vertices behind a shallow dressed groove.
-                groove = .0025 * max(0., (abs(2 * v - 1) - .72) / .28)
+                front_wear = u ** 4 * (.005 + .002 * math.sin(v * 13 + side))
+                relief = .007 * math.sin(u * 7.3 + v * 8.1 + side) * math.sin(math.pi * v)
+                spring = .014 * max(0., (v - .72) / .28) ** 2
                 taper = .195 + .016 * u ** 1.4 + .012 * (1 - u) ** 4
-                xx = x + side * (taper + (relief + front_wear + groove if inner else .171))
-                seam = .0062 * math.sin(u * 5.6 + side) * math.sin(math.pi * combined_course / 2)
-                yy = y + .001 + combined_course * height + seam
-                if course == 0:
-                    yy += (.001 - yy + y) * (1 - v) ** 5
-                zz = z - .181 + u * depth - front_wear * .57
+                xx = x + side * (taper + (relief + front_wear if inner else .171))
+                wave = .0035 * math.sin(u * 5.6 + side) * math.sin(math.pi * v)
+                yy = y + .001 + v * height + wave
+                yy += (.001 - yy + y) * (1 - v) ** 10
+                zz = z - .181 + u * depth - front_wear * .57 - spring * u ** 4
                 points.append((xx, yy, zz))
     faces = []
     for row in range(rows - 1):
@@ -644,7 +640,7 @@ def hewn_reveal(x, y, z, side, course, material):
     for a, b in zip(edge, edge[1:] + edge[:1]):
         face = (a, b, b + span, a + span)
         faces.append(face if side < 0 else tuple(reversed(face)))
-    obj = mesh.mesh_object(f'Hand dressed niche jamb {side} course {course + 1}', points, faces, material, 'niche')
+    obj = mesh.mesh_object(f'Hand dressed niche through-stone {side}', points, faces, material, 'niche')
     closed_grid_uv(obj, columns, rows, depth, height)
     for face in obj.data.polygons[:2 * (rows - 1) * (columns - 1)]:
         face.use_smooth = True
@@ -659,8 +655,7 @@ def candle_niche(stone, rock, soot, clay, iron, ledge, reveal):
     mesh.box('Solid dark lime mortar behind the arch joints', (1.06, .79, .104),
              (x, y + .367, z - .225), stone[4], .012, region='niche')
     for s in (-1, 1):
-        for i in range(2):
-            hewn_reveal(x, y, z, s, i, reveal)
+        hewn_reveal(x, y, z, s, reveal)
     joints = [0.] + [j * math.pi / 9 + .034 * math.sin(j * 2.5) for j in range(1, 9)] + [math.pi]
     for j, (left, right) in enumerate(zip(joints, joints[1:])):
         gap = .0068 + .0021 * math.sin(j * 1.8)
@@ -725,27 +720,27 @@ def paint_stone():
                     shade *= .72 + .54 * max(0., min(1., .51 + bank - root_dirt))
                     green_mix = max(0., min(.63, (.15 + bank) * .77))
                 if obj.name.startswith('Hand-chiselled niche back'):
-                    rise = max(0., min(1., (world.z - ANCHOR[1] - .182) / .255))
-                    drift = .018 * math.sin(world.z * 29) + .013 * noise.noise(world * 32)
-                    dx = (world.x - ANCHOR[0] + drift) / (.052 + .080 * rise)
-                    smoke_stain = rise ** .82 * math.exp(-dx * dx) * (.68 + .20 * noise.noise(world * 61))
+                    rise = max(0., min(1., (world.z - ANCHOR[1] - .078) / .145))
+                    drift = .019 + .016 * math.sin(world.z * 29) + .014 * noise.noise(world * 32)
+                    dx = (world.x - ANCHOR[0] + drift) / (.031 + .068 * rise)
+                    smoke_stain = rise ** .76 * math.exp(-dx * dx) * (.73 + .20 * noise.noise(world * 61))
                     shade *= 1 - smoke_stain
                 tint_color = [base[channel] * shade * (1 - green_mix * (1 - tone))
                               for channel, tone in enumerate((.48, .73, .43))]
                 if obj.name == 'Single hewn wick shelf' and face.normal.z > .8:
                     dx, dz = world.x - ANCHOR[0], -world.y - ANCHOR[2]
                     flecks = 0.
-                    for px, pz, sx, sz in ((-.116, .05, .048, .029), (.106, .054, .039, .020),
-                                            (.061, -.095, .024, .034), (-.095, -.067, .028, .028),
-                                            (.075, .135, .022, .033), (-.121, .104, .021, .035)):
+                    for px, pz, sx, sz in ((-.123, .064, .050, .038), (.126, .052, .036, .026),
+                                            (.071, -.085, .024, .034), (-.101, -.053, .031, .025),
+                                            (.082, .149, .028, .040), (-.133, .128, .028, .035)):
                         contour = .013 * noise.noise(world * 68)
                         flecks += math.exp(-((dx - px + contour) / sx) ** 2 - ((dz - pz - contour) / sz) ** 2)
-                    marks = min(.66, flecks * (.58 + .27 * noise.noise(world * 47)))
-                    lip = max(0., min(1., (dz - .215) / .088))
-                    lip_wear = lip * (.25 + .12 * noise.noise(world * 39))
-                    for channel, residue in enumerate((.61, .49, .36)):
+                    marks = min(.83, flecks * (.71 + .22 * noise.noise(world * 47)))
+                    lip = max(0., min(1., (dz - .150) / .128))
+                    lip_wear = lip * (.45 + .16 * noise.noise(world * 39))
+                    for channel, residue in enumerate((.82, .68, .49)):
                         tint_color[channel] += (residue - tint_color[channel]) * marks
-                        tint_color[channel] += (.58 - tint_color[channel]) * lip_wear
+                        tint_color[channel] += (.66 - tint_color[channel]) * lip_wear
                 tint.data[i].color = (*tint_color, 1.)
 
 
@@ -824,15 +819,17 @@ def build(output):
     scene.view_settings.view_transform = 'AgX'
     scene.view_settings.look = 'None'
     scene.view_settings.exposure = math.log2(PRE_EXPOSURE)
-    scene.camera = camera('Reference_PineSteps', (3.8, 2.3, 52), (-.4, 5.4, 1), 32, (1440, 900))
-    camera('Reference_PineStepsPhone', (3.8, 2.3, 52), (-.4, 4.3, 1), 48, (390, 844))
-    camera('Reference_PineWalkLower', (.2, 1.7, 46), (-.15, 2.65, 36), 32, (1440, 900))
-    camera('Reference_PineWalkMiddle', (.2, 3.65, 26), (0, 4.65, 16), 44, (390, 844))
+    scene.camera = camera('Reference_PineSteps', (.97, 2.96, 33.7), (-.12, 4.55, 1), 30, (1440, 900))
+    camera('Reference_PineStepsPhone', (.62, 2.91, 34.05), (-.11, 4.42, 1), 40, (390, 844))
+    camera('Reference_PineWalkLower', (.30, 3.34, 29.5), (.15, 3.42, 23.5), 30, (1440, 900))
+    camera('Reference_PineWalkMiddle', (.12, 4.70, 16), (.11, 4.78, 10), 40, (390, 844))
     camera('Reference_PineLanding', (.1, 5.65, 6), (-1.09, 5.55, 2.75), 40, (1440, 900))
     camera('Reference_PineChooseDesktop', (-1.67, 5.29, 1.48), (-1.705, 5.075, .9), 31, (1440, 900))
     camera('Reference_PineChoosePhone', (-1.71, 5.25, 1.46), (-1.80, 4.95, .9), 43, (390, 844))
-    camera('Reference_PineBurnDesktop', (-1.705, 5.24, 1.33), (-1.775, 5.075, .9), 34, (1440, 900))
-    camera('Reference_PineBurnPhone', (-1.715, 5.26, 1.43), (-1.795, 5.060, .9), 40, (390, 844))
+    camera('Reference_PineIgnitionDesktop', (-1.63, 5.32, 1.60), (-1.76, 5.10, .9), 39, (1440, 900))
+    camera('Reference_PineIgnitionPhone', (-1.69, 5.33, 1.64), (-1.80, 5.10, .9), 43, (390, 844))
+    camera('Reference_PineBurnDesktop', (-1.728446, 5.194143, 1.223875), (-1.80, 5.054197, .9), 33.185668, (1440, 900))
+    camera('Reference_PineBurnPhone', (-1.736421, 5.208135, 1.296435), (-1.80, 5.054197, .9), 28.376397, (390, 844))
     basis = source_lighting(scene)
     scene['one_light_place'] = 'pine-gate'
     scene['runtime_origin'] = 'glTF Y-up; metres'
