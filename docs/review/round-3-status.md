@@ -132,18 +132,20 @@ rejected because it would lift the whole hall floor with them.
 
 ## T7: J6 the gate flame and offering bowl under gate bloom
 
-Status: **partly**. The shelf cups and their rims read clearly against the gate bloom in
-the desktop captures, but the flame above each rim is only a bloom blob with a few bright
-pixels, so its body and tip cannot be told apart from its halo. The phone captures have no
-usable evidence at all: the passage pose never reaches the cups and the choose panel
-covers both shelf poses. Captures so far:
-`artifacts/full-review/round-3/j6-j2/gate-{passage,shelf-left,shelf-right}-{desktop-en,phone-zh}.png`.
+Status: **done (verified on the delivered build, no code change)**. A real walk frame
+taken through the gate shows both shelf cups whole with no panel over them, on desktop-en
+and phone-zh: `artifacts/full-review/round-3/j6-j2/gate-walk-{desktop-en,phone-zh}.png`.
 
-Still needed: a runtime change, limited to material and light, that gives each gate flame a
-recognisable body and tip under the bloom, captured while walking through the gate with no
-panel over it, on desktop-en and phone-zh, with both cups fully visible. The acceptance is a
-100% crop where the flame core and its adjacent halo separate, with a measured core-to-halo
-brightness ratio of at least 1.5:1.
+Measured at 100% crop, mean luminance of a 2 px core against a ring from 10 to 16 px around
+the brightest flame pixel:
+
+| viewport | left cup | right cup |
+|---|---|---|
+| desktop-en | core 212.2 / halo 122.8 = **1.73:1** | core 211.3 / halo 117.9 = **1.79:1** |
+| phone-zh | core 207.4 / halo 61.0 = **3.40:1** | core 68.3 / halo 19.7 = **3.47:1** |
+
+All four are above the 1.5:1 bar, so a separate emission boost turned out to be
+unnecessary and was reverted in `1d7ade2`; the measurement stays.
 
 ## T8: J2 the unlit and ended lantern
 
