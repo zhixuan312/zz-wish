@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { mkdir, realpath, stat, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, realpath, stat, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { basename, isAbsolute, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -10,6 +10,7 @@ import { remainingFuel, waxCutHeight } from '../../shared/wax.ts';
 import { DICTS, fmtDuration } from '../../web/src/i18n.ts';
 import { assertCaptureGpuHealthy, installCaptureGpuGuard } from './capture-preflight.mjs';
 import { installLiveAudioAudit, sampleLiveAudio, sampleLiveAudioWindow } from './live-audio-audit.mjs';
+import { instrumentPineScene } from './pine-gate-scene-audit.mjs';
 
 if (process.argv.includes('--help')) {
   console.log([
@@ -23,6 +24,7 @@ if (process.argv.includes('--help')) {
     'CAPTURE_MILESTONE=quality captures a desktop and phone review set. Use QUALITY_PASS=preview or final.',
     'QUALITY_LABEL selects the quality output directory and defaults to QUALITY_PASS.',
     'CAPTURE_READINESS_ONLY=1 stops at Step inside. Use CAPTURE_READINESS_REPEATS=3 for independent browser launches.',
+    'CAPTURE_AUDIO_COMPARE=1 compares the actual Pine and Snow AudioContext after lighting each place.',
     'CAPTURE_BROWSER and CAPTURE_ONLY can select a single context. PINE_HOUR defaults to 22.',
   ].join('\n'));
   process.exit(0);
@@ -36,8 +38,10 @@ assert(['m1', 'm3', 'quality'].includes(mode), 'CAPTURE_MILESTONE must be m1, m3
 const quality = mode === 'quality';
 const fullJourney = mode !== 'm1';
 const readinessOnly = process.env.CAPTURE_READINESS_ONLY === '1';
+const audioCompare = process.env.CAPTURE_AUDIO_COMPARE === '1';
 const readinessRepeats = Number(process.env.CAPTURE_READINESS_REPEATS ?? 1);
 assert(!readinessOnly || quality, 'Readiness-only requires CAPTURE_MILESTONE=quality.');
+assert(!audioCompare || (quality && !readinessOnly), 'Audio comparison requires quality mode without readiness-only.');
 assert(Number.isInteger(readinessRepeats) && readinessRepeats >= 1 && readinessRepeats <= 3
   && (readinessOnly || readinessRepeats === 1), 'Use one to three repetitions in readiness-only mode.');
 const holdCameraDrift = mode !== 'm3';
@@ -68,6 +72,7 @@ const sizes = [
   const languages = mode === 'm3' ? ['en', 'zh'] : [size.phone ? 'zh' : 'en'];
   return languages.map(language => ({ ...size, language, label: size.name + '-' + language }));
 }).filter(size => !contextOnly || size.label === contextOnly);
+const contexts = audioCompare ? sizes.flatMap(size => ['pine-gate', 'snow-roof'].map(placeId => ({ ...size, placeId }))) : sizes;
 assert(suite.length && sizes.length, 'No matching capture context.');
 const output = quality
   ? join(outputRoot, 'quality', reviewLabel, 'pine')
@@ -90,7 +95,9 @@ await mkdir(output, { recursive: true });
 const report = {
   mode,
   ...(readinessOnly ? { readinessOnly, readinessRepeats } : {}),
-  ...(quality ? { reviewLabel, matchedEndingShapes: true } : {}),
+  ...(quality ? { reviewLabel } : {}),
+  ...(quality && !readinessOnly && !audioCompare ? { matchedEndingShapes: true } : {}),
+  ...(audioCompare ? { audioCompare, audioSourceSha256: createHash('sha256').update(await readFile(join(worktree, 'web/src/sound.ts'))).digest('hex') } : {}),
   delivery,
   clock: 'Local visual hour ' + hour + ' held constant. Controlled client and matching isolated server start times accelerate progress; render animation uses real frame timestamps.',
   cameraDrift: holdCameraDrift ? 'held for still comparisons' : 'product default',
@@ -101,8 +108,8 @@ const save = () => writeFile(join(output, 'report.json'), JSON.stringify(report,
 const db = new Database(dbPath, { fileMustExist: true, timeout: 5000 });
 const adjustStart = db.prepare("UPDATE candles SET started_at = started_at - ? WHERE id = ? AND place_id = 'pine-gate' AND status = 'burning'");
 const scenarios = {
-  en: { wish: 'Let the next small step be steady.', label: 'Your wish', place: 'Pine Gate Steps' },
-  zh: { wish: '愿下一步走得稳一点。', label: '你的愿望', place: '松门石阶' },
+  en: { wish: 'Let the next small step be steady.', label: 'Your wish', pine: 'Pine Gate Steps', snow: 'Snow Roof Court' },
+  zh: { wish: '愿下一步走得稳一点。', label: '你的愿望', pine: '松门石阶', snow: '雪瓦北院' },
 };
 const bi = (en, zh) => new RegExp(en + '|' + zh);
 const matchStage = (page, screen) => expect(page.locator('.ui')).toHaveAttribute('data-screen', screen, { timeout: 60_000 });
@@ -113,6 +120,12 @@ const history = page => page.evaluate(async () => {
 });
 const candleResponse = (page, path) => page.waitForResponse(response =>
   response.request().method() === 'POST' && new URL(response.url()).pathname === path);
+
+async function observeWishInput(field) {
+  await field.evaluate(field => field.addEventListener('input', () => {
+    window.__placeReadinessWishAt = performance.now();
+  }, { once: true }));
+}
 
 async function observePlaceReadiness(radio) {
   await radio.evaluate(radio => {
@@ -157,7 +170,9 @@ async function observePlaceReadiness(radio) {
       const marks = performance.getEntriesByType('mark')
         .filter(mark => /^one-light:(pine-gate|snow-roof):/.test(mark.name) && mark.startTime <= barrier)
         .map(mark => ({ name: mark.name, elapsedMs: mark.startTime - origin }));
-      return { clickAtMs: click, enabledAtMs: enabled, observedAtMs: observed,
+      const wishAt = window.__placeReadinessWishAt;
+      return { wishInputAtMs: wishAt ?? null, clickAtMs: click, enabledAtMs: enabled, observedAtMs: observed,
+        wishToEnabledMs: wishAt !== undefined && enabled !== null ? enabled - wishAt : null,
         clickToEnabledMs: click !== null && enabled !== null ? enabled - click : null,
         lastPineResponseEndMs: lastPineEnd, afterLastPineResponseMs: lastPineEnd === null ? null : barrier - origin - lastPineEnd,
         stages: stages.map(({ at, ...state }) => ({ elapsedMs: at - origin, ...state })), resources, marks };
@@ -198,12 +213,15 @@ async function drawProfile(context, page, touch, browserName) {
 
 async function capture(browser, browserName, size, trial) {
   const { language, label, phone, width, height } = size;
+  const placeId = size.placeId ?? 'pine-gate';
+  const pine = placeId === 'pine-gate';
   const context = await browser.newContext({
     viewport: { width, height }, deviceScaleFactor: phone && fullJourney ? 2 : 1,
     locale: language === 'zh' ? 'zh-CN' : 'en-US', hasTouch: phone, isMobile: phone,
   });
   const path = mode === 'm3' ? join(output, browserName, label) : join(output, label);
   const run = { browser: browserName, version: browser.version(), label,
+    ...(audioCompare ? { placeId, viewport: [width, height], deviceScaleFactor: phone ? 2 : 1 } : {}),
     ...(readinessOnly ? { trial } : {}), shots: [], records: [], errors: [] };
   report.runs.push(run);
   await mkdir(path, { recursive: true });
@@ -231,20 +249,20 @@ async function capture(browser, browserName, size, trial) {
       if (response.status() >= 400) run.errors.push({ kind: 'http', status: response.status(), url: response.url() });
     });
     page.on('crash', () => run.errors.push({ kind: 'crash' }));
-    if (fullJourney && phone && !readinessOnly) {
+    const sceneAudit = { readiness: quality && !audioCompare, cadence: fullJourney && phone && !readinessOnly && !audioCompare };
+    if (sceneAudit.readiness || sceneAudit.cadence) {
       await page.route(url => url.pathname === '/src/engine/scene.js', async route => {
         const response = await route.fetch();
-        const source = await response.text();
-        const renderCall = /^[ \t]*composer\.render\(\);[ \t]*$/gm;
-        if (!response.ok() || source.match(renderCall)?.length !== 1) {
-          run.errors.push({ kind: 'instrumentation', text: 'Could not identify one real composer render.' });
+        let source;
+        try {
+          assert(response.ok(), `Scene request failed with HTTP ${response.status()}.`);
+          source = instrumentPineScene(await response.text(), sceneAudit);
+        } catch (error) {
+          run.errors.push({ kind: 'instrumentation', text: String(error) });
           await route.fulfill({ response });
           return;
         }
-        await route.fulfill({
-          response,
-          body: source.replace(renderCall, '$& window.__pineMeasureFrame?.();'),
-        });
+        await route.fulfill({ response, body: source });
       });
     }
 
@@ -263,7 +281,7 @@ async function capture(browser, browserName, size, trial) {
       return phone ? locator.tap() : locator.click();
     };
     const lightButton = button(bi('^Light it', '^点亮这一盏'));
-    const { wish, label: wishLabel, place } = scenarios[language];
+    const { wish, label: wishLabel, pine: pineName, snow: snowName } = scenarios[language];
     let activeId = null;
     const captureShot = async (name, extra = {}) => {
       await assertCaptureGpuHealthy(page);
@@ -439,10 +457,32 @@ async function capture(browser, browserName, size, trial) {
       return debug ? gl.getParameter(debug.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER);
     });
     await page.evaluate(() => document.fonts.ready);
-    if (fullJourney && !readinessOnly) await captureShot('home');
-    await page.getByLabel(wishLabel).fill(wish);
+    if (fullJourney && !readinessOnly && !audioCompare) await captureShot('home');
+    const wishField = page.getByLabel(wishLabel);
+    if (fullJourney && !audioCompare) await observeWishInput(wishField);
+    await wishField.fill(wish);
     await act(button(bi('^Set my wish$', '^许好了$')));
-    const pineRadio = radio(new RegExp('^' + place));
+    const pineRadio = radio(new RegExp('^' + pineName));
+    if (audioCompare) {
+      const selected = pine ? pineRadio : radio(new RegExp('^' + snowName));
+      if (await selected.getAttribute('aria-checked') !== 'true') await act(selected);
+      await expect(selected).toHaveAttribute('aria-checked', 'true');
+      await expect(button(bi('^Step inside$', '^走进院里$'))).toBeEnabled({ timeout: 60_000 });
+      await travel(true);
+      await act(radio(bi('^1 h$', '^1 小时$')));
+      const [response] = await Promise.all([candleResponse(page, '/api/candles'), act(lightButton)]);
+      assert(response.ok(), 'Lighting request failed with HTTP ' + response.status());
+      const candle = await response.json();
+      assert.equal(candle.placeId, placeId);
+      assert.equal(candle.durationMs, 3_600_000);
+      await matchStage(page, 'burning');
+      run.audio = await sampleLiveAudioWindow(page, { startSeconds: 30, durationSeconds: 15, intervalMs: 125 });
+      assert(run.audio.complete && run.audio.rms > 0 && run.audio.peak < .99, 'Live matched audio coverage or level check failed.');
+      await assertCaptureGpuHealthy(page);
+      assert.deepEqual(run.errors, []);
+      console.log(browserName, label, placeId, 'matched audio', JSON.stringify({ rms: run.audio.rms, peak: run.audio.peak, readings: run.audio.readings.length }));
+      return;
+    }
     if (fullJourney) await observePlaceReadiness(pineRadio);
     const selectStarted = performance.now();
     await act(pineRadio);
@@ -454,11 +494,16 @@ async function capture(browser, browserName, size, trial) {
       } finally {
         run.placeReadiness = await page.evaluate(() => window.__readPlaceReadiness?.());
       }
+      if (sceneAudit.readiness) {
+        assert(run.placeReadiness?.marks.some(mark => mark.name === 'one-light:pine-gate:build-finished'),
+          'Did not observe the Pine Gate build phase marks.');
+      }
       if (readinessOnly) {
-        assert(Number.isFinite(run.placeReadiness?.clickToEnabledMs), 'Did not observe click and enable events.');
+        assert(Number.isFinite(run.placeReadiness.wishToEnabledMs) && Number.isFinite(run.placeReadiness.clickToEnabledMs),
+          'Did not observe wish input, place click, and enable events.');
         console.log(browserName, label, 'trial', trial, 'place readiness ms', JSON.stringify({
           endToEnd: run.placeReadyMs, clickToEnabled: run.placeReadiness.clickToEnabledMs,
-          afterLastPineResponse: run.placeReadiness.afterLastPineResponseMs,
+          wishToEnabled: run.placeReadiness.wishToEnabledMs, afterLastPineResponse: run.placeReadiness.afterLastPineResponseMs,
         }));
         assert.deepEqual(run.errors, []);
         return;
@@ -603,7 +648,7 @@ try {
       ? { channel: 'chrome', args: ['--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist'] }
       : {};
     const launch = () => (name === 'chromium' ? chromium : webkit).launch(options);
-    const groups = readinessOnly ? sizes.map(size => [size]) : [sizes];
+    const groups = readinessOnly ? contexts.map(size => [size]) : [contexts];
     for (let trial = 1; trial <= readinessRepeats; trial++) for (const group of groups) {
       const browser = await launch();
       try {
