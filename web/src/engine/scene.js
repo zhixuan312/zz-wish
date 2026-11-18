@@ -1995,11 +1995,15 @@ export async function travel(id) {
       // by roughly 70 CSS px per frame and read as a cut.
       target.lerp(arrival.look,smooth(.70,.86,e));target.lerp(end.look,smooth(.84,1,e));
       rig.look.lerpVectors(l0,target,Math.min(1,e*7));rig.amp=0;
-      // The field of view must not widen while the walk closes on the lamp: a wider
-      // fov makes the shade shrink on screen, so the lamp would appear to back away
-      // on the last metres. Hold the walking fov and let the chooser's fov arrive
-      // with its own fill rise once the walk is over.
-      rig.fov=f0;
+      // Distance-driven fov: from the last stretch of the walk the field of view
+      // grows exactly as fast as the camera closes in, so the shade keeps a constant
+      // size on screen instead of shrinking, and it arrives at the chooser's fov by
+      // the time the walk ends. Clamped between the walking fov and the chooser fov.
+      const lampC=mine.g.getWorldPosition(V3()), dNow=Math.hypot(rig.pos.x-lampC.x,rig.pos.z-lampC.z);
+      const dEnd=Math.hypot(end.pos.x-lampC.x,end.pos.z-lampC.z);
+      const fovEnd=end.fov??f0;
+      const wanted=fovEnd===f0?f0:2*Math.atan(Math.tan(THREE.MathUtils.degToRad(fovEnd/2))*dEnd/Math.max(.001,dNow))*180/Math.PI;
+      rig.fov=Math.min(Math.max(f0,fovEnd),Math.max(Math.min(f0,fovEnd),wanted));
     }else{
       rig.look.lerpVectors(l0,target,Math.min(1,e*4));rig.amp=a0*(1-Math.min(1,k*3))+.006;
     }
