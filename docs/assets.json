@@ -777,8 +777,8 @@
       "files": [
         {
           "path": "web/src/engine/scene.js",
-          "bytes": 173823,
-          "sha256": "29f7a1df6f982ccd5f464c30a1b097ac5a6236306e30ddf7d9176a2b2a17c090"
+          "bytes": 174047,
+          "sha256": "d5d424a1f8b3183865a0a09958ed6346f61bb63bdd9ec0ff7d49a920a90fcc65"
         },
         {
           "path": "web/src/engine/WickPlume.js",
