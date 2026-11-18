@@ -43,8 +43,8 @@ def palette():
     tiles = [mesh.material(f'Glazed shadow tile {i}', color, 'grey_roof_tiles', .75)
              for i, color in enumerate(('#45494b', '#393d3d', '#484742'))]
     bark = mesh.material('Rough pine bark', '#562f24', 'weathered_planks', .97)
-    pine = [mesh.material(f'Pine needles {i}', color, rough=.97)
-            for i, color in enumerate(('#25392b', '#314638', '#344835', '#394d3c', '#455747'))]
+    pine = [mesh.material(f'Woodland understory {i}', color, rough=.97)
+            for i, color in enumerate(('#293626', '#3d4930', '#37452a', '#424c35', '#50603b'))]
     iron = mesh.material('Aged black iron', '#3d3831', rough=.65, metal=.35)
     clay = mesh.material('Gray green celadon', '#786c49', rough=.37)
     soot = mesh.material('Chisel-faced granite beneath soot', '#a99c8b', 'rock_pitted_mossy', .92)
@@ -56,7 +56,7 @@ def palette():
         bsdf = material.node_tree.nodes.get('Principled BSDF')
         for link in list(bsdf.inputs['Roughness'].links):
             material.node_tree.links.remove(link)
-    for material in [*stone, rock, soot, ledge]:
+    for material in [*stone, rock, ground, soot, ledge]:
         mesh.vertex_tint_shader(material)
     return stone, rock, ground, wood, red, tiles, bark, pine, iron, clay, soot, ledge
 
@@ -147,22 +147,26 @@ def climbing_steps(stone):
 
 def understory(ground, foliage):
     # Folded leaves rise out of the terrain. The roots are part of the bank.
-    for i in range(52):
-        direction = -1 if i % 2 else 1
-        x = direction * RANDOM.uniform(2.91, 6.2)
-        z = RANDOM.uniform(2.8, 46.3)
+    vents = [(s * x, z) for s in (-1, 1) for x, z in ((3.1, 6.9), (3.8, 16.8), (4.6, 27.3),
+                                                       (3.3, 33.1), (5.0, 40.6), (5.7, 47.8))]
+    for i in range(88):
+        cx, cz = vents[i % len(vents)]
+        x = cx + RANDOM.uniform(-.48, .48)
+        z = cz + RANDOM.uniform(-1.63, 1.63)
         y = supports_height(x, z, [ground]) - .018
         vertices, faces = [], []
-        for frond in range(5):
-            theta = frond * math.tau / 5 + RANDOM.uniform(-.40, .40)
-            length = RANDOM.uniform(.15, .31)
+        count = RANDOM.randint(4, 8)
+        for frond in range(count):
+            theta = frond * math.tau / count + RANDOM.uniform(-.40, .40)
+            length = RANDOM.uniform(.13, .40)
+            width = length * RANDOM.uniform(.10, .17)
             cs, sn = math.cos(theta), math.sin(theta)
             start = len(vertices)
             vertices.extend([(x, y, z),
-                             (x + length * .45 * cs - .036 * sn, y + length * .67, z + length * .45 * sn + .036 * cs),
-                             (x + length * .58 * cs, y + length * .80, z + length * .58 * sn),
-                             (x + length * .45 * cs + .036 * sn, y + length * .62, z + length * .45 * sn - .036 * cs),
-                             (x + length * cs, y + length * .62, z + length * sn)])
+                             (x + length * .45 * cs - width * sn, y + length * .56, z + length * .45 * sn + width * cs),
+                             (x + length * .58 * cs, y + length * .69, z + length * .58 * sn),
+                             (x + length * .45 * cs + width * sn, y + length * .53, z + length * .45 * sn - width * cs),
+                             (x + length * cs, y + length * .48, z + length * sn)])
             faces.extend([(start, start + 1, start + 2), (start, start + 2, start + 3),
                           (start + 1, start + 4, start + 2), (start + 2, start + 4, start + 3)])
         plant = mesh.mesh_object(f'Mountain fern tufts {i + 1}', vertices, faces, foliage[i % len(foliage)], 'approach')
@@ -252,7 +256,7 @@ def pine_sprays(name, sprays, tint):
             uv.data[i].uv = [(0, 0), (1, 0), (1, 1), (0, 1)][j]
 
 
-def pine_tree(label, x, z, height, bark, needles):
+def pine_tree(label, x, z, height, bark, needles, ground, roots=False):
     y = terrain_height(x, z) - .26
     drift = RANDOM.uniform(-.95, .95)
     side = RANDOM.uniform(-.49, .49)
@@ -264,6 +268,17 @@ def pine_tree(label, x, z, height, bark, needles):
     mesh.curved_tube(f'{label} crooked trunk', centres,
                      [height * (.004 + .023 * (1 - j / 7) ** .84) for j in range(8)],
                      bark, radial=10, region='approach')
+    if roots:
+        for i in range(3):
+            direction = phase + i * 2.2
+            vx, vz = math.cos(direction), math.sin(direction)
+            start = (x, supports_height(x, z, [ground]) + .08, z)
+            x1, z1 = x + vx * .43, z + vz * .43
+            x2, z2 = x + vx * .94, z + vz * .94
+            middle = (x1, supports_height(x1, z1, [ground]) + .035, z1)
+            end = (x2, supports_height(x2, z2, [ground]) - .044, z2)
+            mesh.curved_tube(f'{label} exposed buttress root', [start, middle, end],
+                             [.074, .038, .008], bark, radial=7, region='approach')
     for i in range(7):
         f = .42 + .082 * i
         for bough in range(2):
@@ -301,11 +316,25 @@ def forest(ground, rock, bark, pine):
         for s in (-1, 1):
             x = s * RANDOM.uniform(4.50 if z > 42 else 3.35, 5.8)
             pine_tree(f'Old pine {i + 1} {s}', x, z + RANDOM.uniform(-1.6, 1.6),
-                      RANDOM.uniform(6.1, 10.4), bark, needles)
+                      RANDOM.uniform(6.1, 10.4), bark, needles, ground, roots=z >= 14)
     for i, (x, z, h) in enumerate(((-10, 0, 10), (12, -3, 9), (8, -14, 7), (-7, -10, 8),
                                    (-4, -6, 7), (4, -8, 8), (15, 18, 9), (-17, 19, 9))):
-        pine_tree(f'Back ridge pine {i + 1}', x, z, h, bark, needles)
+        pine_tree(f'Back ridge pine {i + 1}', x, z, h, bark, needles, ground)
     understory(ground, pine)
+    # These iron-gray outcrops are part of the bank. Their lower bands extend
+    # below the terrain and their exposed corners interrupt the bare slope.
+    ledges = [(-5.3, 44.5, .46), (-4.4, 39.6, .52), (4.4, 42.8, .61), (5.05, 35.5, .48),
+              (4.7, 30.8, .58), (-5.4, 25.1, .43), (4.1, 17.5, .46), (-4.9, 11.8, .61),
+              (3.8, 9.9, .43), (-5.6, 6.7, .56)]
+    for i, (x, z, radius) in enumerate(ledges):
+        y = supports_height(x, z, [ground])
+        slab = hewn_block(f'Exposed slate seam {i + 1}', radius * RANDOM.uniform(1.4, 2.6),
+                          radius * .71, radius * RANDOM.uniform(.92, 1.46),
+                          (x, y + radius * .28, z), rock, 'approach')
+        slab['moss_edge'] = True
+        for vertex in slab.data.vertices:
+            vx, vz = vertex.co.x - x, -vertex.co.y - z
+            vertex.co.z += (.21 * vx - .12 * vz) * (-1 if i % 2 else 1)
     for i, (x, z, r) in enumerate(((-3.1, 34, .64), (3.6, 25, .76), (-3.7, 12, .51), (4.6, 6.9, .52))):
         y = supports_height(x, z, [ground])
         profile = [(0, 0), (r * .40, 0), (r, r * .36), (r * .78, r * .65), (r * .43, r * .82), (0, r * .88)]
@@ -369,12 +398,49 @@ def gate(stone, tiles, wood, red, iron):
                          (x + s * .09 * (j % 2), 4.205 + j * .40, .44),
                          stone[(i + j) % len(stone)], .024, region='gate')
             mesh.box(f'Wall cap {s} {i}', (.88, .12, .67), (x, 5.27, .44), tiles[i % len(tiles)], .024, region='gate')
+    gate_guide(wood, iron)
     roof(z=.08, x=0, y=7.26, w=5.15, d=1.34, h=.87, tiles=tiles, wood=wood, label='Gate', region='gate')
     mesh.box('Inner shrine stone platform', (5.7, .31, 4.2), (.17, 4.05, -5.0), stone[1], .038, region='gate')
     mesh.box('Inner shrine backdrop', (5.0, 2.53, .23), (.17, 5.47, -6.35), red[2], .023, region='gate')
     for x in (-2.11, -.61, .95, 2.45):
         mesh.box('Inner shrine cypress post', (.18, 2.45, .23), (x, 5.4, -3.62), red[1], .018, region='gate')
     roof(z=-4.95, x=.17, y=6.70, w=6.05, d=1.85, h=.97, tiles=tiles, wood=wood, label='Inner shrine', region='gate')
+
+
+def gate_guide(wood, iron):
+    # This small fixed guide belongs to the right gate bracket, away from the
+    # personal candle recess. A dark arm visibly carries its paper-and-metal box.
+    x, y, z = .91, 6.34, 1.12
+    paper = mesh.material('Amber mulberry paper gate guide', '#d99751', rough=.84,
+                          emission=1.25 / PRE_EXPOSURE)
+    glaze = mesh.material('Brown patina on gate guide metal', '#513a2e', rough=.52, metal=.54)
+    mesh.box('Guide mounting saddle fixed into gate post', (.28, .17, .12),
+             (1.23, 6.73, .272), wood, .012, region='gate')
+    mesh.curved_tube('Guide bracket forged into saddle',
+                     [(1.17, 6.73, .31), (.96, 6.79, .72), (x, 6.72, z), (x, 6.59, z)],
+                     [.023, .020, .016, .010], iron, radial=8, region='gate')
+    mesh.lathe('Guide roof and drip edge', [(0, -.018), (.156, -.018), (.157, .005),
+               (.092, .059), (.023, .073), (0, .073)], (x, y + .218, z), glaze, 8, 'gate')
+    mesh.lathe('Guide terminal bronze foot', [(0, -.044), (.066, -.044), (.134, -.013),
+               (.133, .013), (0, .013)], (x, y - .121, z), glaze, 8, 'gate')
+    radius = .117
+    vertices = []
+    for h in (.0, .333):
+        for i in range(8):
+            angle = math.pi / 8 + i * math.tau / 8
+            vertices.append((x + math.cos(angle) * radius, y - .12 + h, z + math.sin(angle) * radius))
+    faces = [(i, i + 8, (i + 1) % 8 + 8, (i + 1) % 8) for i in range(8)]
+    shell = mesh.mesh_object('Eight amber paper faces in the gate guide', vertices, faces, paper, 'gate')
+    chart = [(.0895 * i, .333) for i in range(9)]
+    source_uv(shell, [[(chart[i][0], 0), chart[i], chart[i + 1], (chart[i + 1][0], 0)]
+                      for i in range(8)], 'Continuous octagonal guide paper strip.')
+    for i in range(8):
+        a, b = vertices[i], vertices[i + 8]
+        mesh.beam('Fine metal rib on the guide', a, b, .0034, glaze, .0034, 'gate')
+    mesh.light('Front emission spill from the suspended gate guide', (x + .15, y - .10, z + .21),
+               3.55 / PRE_EXPOSURE, '#ffca91', .13)
+    mesh.light('Warm light spilling down the inside of the gate', (x - .10, y - .24, z - .045),
+               1.85 / PRE_EXPOSURE, '#ffc68e', .16)
 
 
 def roof(z, x, y, w, d, h, tiles, wood, label, region):
@@ -557,6 +623,11 @@ def paint_stone():
                 if obj.get('weather_stone'):
                     moss_outline = noise.noise(world * 7.9) + .21 * noise.noise(world * 33)
                     green_mix = max(0., min(.65, (moss_outline + (.1 if obj.get('moss_edge') else -.11)) * .96))
+                if obj.name == 'Continuous mountain shoulder':
+                    bank = noise.noise(world * .39) + .39 * noise.noise(world * 1.33)
+                    root_dirt = .13 * math.sin(world.x * .57 + world.y * .31)
+                    shade *= .78 + .42 * max(0., min(1., .49 + bank - root_dirt))
+                    green_mix = max(0., min(.55, (.18 + bank) * .62))
                 if obj.name.startswith('Hand-chiselled niche back'):
                     dx = (world.x - ANCHOR[0] + .030 * math.sin(world.z * 9)) / .123
                     dy = (world.z - ANCHOR[1] - .31) / .25
@@ -654,7 +725,7 @@ def build(output):
     scene['one_light_anchor_fields'] = json.dumps(['one_light_lamp_anchor', 'one_light_lamp_basis'])
     audit = contacts.audit()
     scene['resting_prop_inventory'] = json.dumps({'registeredGroups': [entry['name'] for entry in contacts.entries],
-        'fixedArchitecture': 'Pine roots enter terrain; stone courses, steps, niche and eaves are structural.'})
+        'fixedArchitecture': 'Pine roots and slate outcrops enter terrain. Stone courses, steps, niche and eaves are structural. The guide bracket is built into the right gate post.'})
     bpy.context.view_layer.update()
     anchor_height = supports_height(ANCHOR[0], ANCHOR[2], [bpy.data.objects['Single hewn wick shelf']])
     if abs(anchor_height - ANCHOR[1]) > 1e-6 or any(abs(a - b) > 1e-6 for a, b in zip(engine(basis.matrix_world.translation), LAMP)):
