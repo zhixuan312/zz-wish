@@ -201,32 +201,25 @@ lamp reference, so the cloth covers 23.8% of frame height at 24 h, 19.2% at 2 h 
 
 ## T3: Round 3 full journey
 
-Status: **partly**. The run was stopped at the 15-minute GPU lease limit.
+Status: **partly** — chromium complete, WebKit missing.
 
-Actual chromium coverage in `artifacts/full-review/round-3/after-journey/chromium/`:
+Chromium run on this build, `artifacts/full-review/round-3/after-journey/`:
 
-| context | frames | state |
-|---|---|---|
-| `desktop-en` | 73 | complete |
-| `desktop-zh` | 73 | complete |
-| `phone-en` | 25 | stops at draw/undo |
-| `phone-zh` | 25 | stops at draw/undo |
+| context | frames |
+|---|---|
+| `desktop-en` | 73 |
+| `desktop-zh` | 73 |
+| `phone-en` | 73 |
+| `phone-zh` | 73 |
 
-The two phone contexts did not fail a single step and continue: the journey ended at the
-draw/undo stage, so everything after it has no evidence there — `light-ignition`,
-`burning`, `burnFar`, `result-put-out`, `result-burned-down`, `ending-plume/*` and
-`my-lamps`. That is 48 fewer frames than each desktop context. No HTTP errors were
-recorded.
+The journey exited with `frames 292, sequences 88, errors 0, httpErrors 0,
+sourceChanged false`; eight ending captures and sixteen records are present. Every stage in
+each context now has evidence, including `light-ignition`, `burning`, `burnFar`,
+`result-put-out`, `result-burned-down`, `ending-plume/*` and `my-lamps` — the two phone
+contexts no longer stop at the drawing step, which confirms the pad fix in `5fa247a`.
 
-The cause was a product layout bug, now fixed in `5fa247a` and covered by
-`tests/tier1/e2e/phone-drawing.spec.ts`: the phone pad had grown to about 358x537 CSS px and
-pushed `Undo`, `Redraw` and the light action out of the sheet.
-
-WebKit had started: four `desktop-en` frames exist (home, empty wish, loading, written) and
-its other three contexts are missing.
-
-Round 3 closes only after the two phone contexts and all four WebKit contexts run through
-the complete journey on this build.
+WebKit has no round 3 run yet: its four contexts still need the same journey. T3 closes when
+they finish.
 
 ## Items for Boss
 
