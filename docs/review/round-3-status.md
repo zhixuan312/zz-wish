@@ -171,17 +171,30 @@ lamp reference, so the cloth covers 23.8% of frame height at 24 h, 19.2% at 2 h 
 
 Status: **partly**. The run was stopped at the 15-minute GPU lease limit.
 
-What exists: chromium covered all four contexts (`desktop-en`, `desktop-zh`, `phone-en`,
-`phone-zh`) with 200 frames and zero HTTP errors. WebKit had started and captured four
-`desktop-en` frames (home, empty-wish, loading, written) before the stop, and its other
-three contexts plus the rest of `desktop-en` are missing. Output:
-`artifacts/full-review/round-3/after-journey/`.
+Actual chromium coverage in `artifacts/full-review/round-3/after-journey/chromium/`:
 
-Two chromium contexts failed one step each: `phone-en` and `phone-zh` timed out waiting for
-the drawing pad's `Undo` to become enabled. The cause is a product layout bug, not a capture
-weakness: the phone pad had grown to about 358x537 CSS px and pushed `Undo`, `Redraw` and the
-light action out of the visible sheet. `5fa247a` fixes the pad to a 200x300 px target beside
-the tools and adds a phone-only Tier 1 test that requires the first stroke to enable `Undo`.
+| context | frames | state |
+|---|---|---|
+| `desktop-en` | 73 | complete |
+| `desktop-zh` | 73 | complete |
+| `phone-en` | 25 | stops at draw/undo |
+| `phone-zh` | 25 | stops at draw/undo |
+
+The two phone contexts did not fail a single step and continue: the journey ended at the
+draw/undo stage, so everything after it has no evidence there — `light-ignition`,
+`burning`, `burnFar`, `result-put-out`, `result-burned-down`, `ending-plume/*` and
+`my-lamps`. That is 48 fewer frames than each desktop context. No HTTP errors were
+recorded.
+
+The cause was a product layout bug, now fixed in `5fa247a` and covered by
+`tests/tier1/e2e/phone-drawing.spec.ts`: the phone pad had grown to about 358x537 CSS px and
+pushed `Undo`, `Redraw` and the light action out of the sheet.
+
+WebKit had started: four `desktop-en` frames exist (home, empty wish, loading, written) and
+its other three contexts are missing.
+
+Round 3 closes only after the two phone contexts and all four WebKit contexts run through
+the complete journey on this build.
 
 ## Items for Boss
 
