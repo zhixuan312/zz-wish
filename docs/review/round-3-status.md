@@ -226,13 +226,18 @@ aborted: `desktop-en` reached 21 frames and then threw `Error: Ignition did not 
 `page.goto: Could not connect to the server` — and the report carries 84 errors with 29 PNGs
 on disk.
 
-Cause: the capture server died during that run, not a product fault. The console log in the
-same report shows `WebSocket connection to 'ws://127.0.0.1:8923/?token=...' failed: The
-network connection was lost` followed by `Could not connect to the server` for every later
-context, while the page's own state still reported `contextLost: false` and a live render
-frame counter. With the presence socket gone the ignition sequence had nothing to settle
-against and the 120 s wait expired. The helper script launched Vite and the API server in the
-background without supervising them, which is what ended them.
+Mechanism: the capture server stopped during that run and every later request failed, so this
+is not a product fault. `POST /api/candles` could not reach the server, `light()` in
+`web/src/App.tsx` took its catch path, returned to the `candle` screen with `lightFailed`, and
+never called `engine.ignite`; `window.__visualIgnition` therefore stayed null and the
+journey's 120 s wait expired. The same failure explains the 90 s cleanup timeout: the
+`Put out` control only exists on the burning screen, which was never reached. Evidence:
+`after-journey-webkit/webkit/desktop-en/light-ignition.png` shows "Could not light it. Please
+try again."; the report's last `desktop-en` frame records `screen: candle` with
+`ignition: null`; and its `errors[2]` is a `/api/candles` `Could not connect to the server`.
+Server death is consistent with the console log's presence WebSocket loss while the page
+still reported `contextLost: false` and a live render frame counter, but the server's own log
+from that run was overwritten, so what stopped it is undetermined.
 
 That run predates `5fa247a`, so it says nothing about the current build. WebKit's four
 contexts still need the same journey on this build; T3 closes when they finish.
