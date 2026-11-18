@@ -98,6 +98,14 @@ The soot stain starts low enough to enter the regular burning frame above the wi
 
 The approach references match the new desktop and phone entrance cameras, with updated walking, ignition and burning views in the coverage checks. Twelve rooted pines in two rows add depth behind the wall using the existing needle and bark assets. Broad ground folds and varied slate colors break up the open banks.
 
+## Final shelf chart
+
+The old-wax relief introduces closely spaced vertices on the wick shelf. The first version unwrapped by grid index and assigned every cell the same UV width and depth. On the actual projected shelf, its UV-to-world ratios ranged from 0.561404 to 79.744817 along X and 0.518516 to 68.879855 along Z. Most of that density variation came from the narrowest relief cells.
+
+Commit `5ecff10` projects the top and bottom with their measured X and Z coordinates. The skirt unfolds by cumulative perimeter distance and physical height. Measured along each chart axis, the UV-to-world ratio is 1.000000–1.000000 on both faces and within 7×10⁻¹³ of 1 on the skirt. The maximum-to-minimum ratio rounds to 1.000000 for every chart. The 0.154 mm X cell and 0.164 mm Z cell have the same density as their surrounding cells.
+
+The prepared source `da9357e2aad177e932b8ab342def746e94b30794dfb6f09608dff450758fe052` represents all 5,270 approach, 562 gate and 74 niche charts. The distinct-world and chart-core overlap guards both report zero overlaps. All 11 camera checks pass with 17,093 approach, 5,738 gate and 35,792 niche visible samples covered. Prepared mapping and all six source, prepared and raw resting-contact groups pass. The physical candle seat remains at 5.000 m.
+
 Source `03ccfa3550ee2835809401ac79d2b96b090e5799e6e1571a124448017a59c76f` produced twelve fixed eight-sample Metal Cycles and Metal OpenImageDenoise maps in 159.586 seconds. The 11,390,985-byte preview has manifest SHA-256 `8c9ffca537d435f8810948c9acfc989fb05b5b0e3352870ba81a51533eda033b`. The approach fits 5,270 charts in one 2048² atlas. Across eleven reference cameras, the approach, gate and niche represented all 17,079, 5,752 and 35,792 visible samples respectively. The prepared mapping proof passed.
 
 The new terrain folds exposed a 15.789 mm gap under one loose ridge stone in the first source preflight. The recovered source fits each stone to the actual terrain triangles under its base. All six groups pass source, prepared, raw and decoded contact checks with the 2 mm gap limit and 5 mm penetration limit. The decoded maxima were 0.003815 mm gap and 0.011444 mm penetration.
