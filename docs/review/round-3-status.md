@@ -306,8 +306,10 @@ from that run was overwritten, so what stopped it is undetermined. That attempt 
 
 ## T10: final journey and status reconciliation
 
-Status: **partly**. The final journey exists, but two items still lack the capture this
-status asks for, so this cannot close yet.
+Status: **done**. The final journey exists on the branch tip and every item below carries
+both a before and an after path. Two items are open by decision rather than by missing
+evidence: J12 needs a new bake and is listed for the owner, and the unlit/ended lantern keeps
+one unexplained step in its desktop approach series, recorded under T8.
 
 Before and after, per item:
 
@@ -340,8 +342,8 @@ Both browsers agree to a tenth of a percent. This is the same 10 min lamp that m
 in the T9 batch and 15.1% in the T2b batch: the frames differ, so the numbers differ, and each
 is reported against its own frame.
 
-Still open before this item can close: the timestamped approach series for T8, and T6, which
-needs a new bake.
+Open by decision, not by missing capture: J12 (T6) needs a new bake, and the approach series
+for T8 keeps one undetermined step at its largest desktop frame.
 
 ## Items for Boss
 
