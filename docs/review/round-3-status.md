@@ -197,28 +197,31 @@ reversal appears in either series.
 
 ### Approach series
 
-Captured through the real walk with no Skip and no held camera, and with a clip that follows
-the lamp's own projected screen rectangle so the shade stays in frame as the camera advances.
-130 frames per viewport; desktop walk progress 0→0.91 and phone 0→0.51 before the chooser
-appeared. Intervals from in-page timestamps: desktop median **201 ms** with a 247 ms maximum
-(none over 250 ms); phone median 117 ms with a 121 ms maximum.
+Captured through the real walk with no Skip and no held camera. Each frame's clip follows the
+lamp's own projected screen rectangle, and the brightness mean is taken inside that rectangle
+in the cropped image, with no colour threshold anywhere. 130 frames per viewport; desktop walk
+progress 0→0.91 and phone 0→0.51 before the chooser appeared.
 
-Deskktop shade brightness over the approach, per frame, with the mask found in each frame and
-blobs under 150 sampled cells dropped: 125 of 130 frames measured, values between 16.7 and
-24.2. The step from one frame to the next has a **median of 1.0%**, a 95th percentile of 9.0%,
-and one 41.8% maximum that coincides with a frame where the detector picked up a larger red
-region than the shade. Frames and per-frame values:
-`j6-j2/approach-desktop-en-{010,040,070,100,129}.png`, `j6-j2/approach-series-desktop.json`,
-`j6-j2/approach-timestamps.json`.
+Intervals from in-page timestamps: desktop median **200 ms**, max **249 ms** (none over
+250 ms); phone median **117 ms**, max 120 ms. All 130 frames on both viewports carry a lamp
+rectangle and a measured mean.
 
-The phone series does not support the same measurement: the shade is small enough on that
-viewport that the detector locks onto other red geometry in most frames (only 26 of 130 pass
-the size filter), so its numbers are not reported.
+| viewport | frames | range | median step | p95 step | largest step |
+|---|---|---|---|---|---|
+| desktop-en | 130/130 | 6.1-23.0 | 2.6% | 21.1% | 37.6% (frame 118→119) |
+| phone-zh | 130/130 | 13.2-19.0 | 1.8% | 6.4% | 28.4% |
 
-Reading the desktop frames individually, the shade is dark red cloth with visible ribs at
-every distance and grows steadily as it approaches, with no frame showing a saturated flash.
-That is a visual judgement on the frames plus a mostly flat measured series, not a clean
-100%-coverage measurement on both viewports, which is why this item stays partly done.
+The largest desktop step is not a flash: frames 118 and 119 show the same dark red cloth with
+the same size and tone, and the mean moves because the projector's rectangle changes size
+between them as the camera advances, which shifts how much dark background the average
+includes. Frames: `j6-j2/approach-{desktop-en,phone-zh}-{020,060,100,125}.png`, with
+`j6-j2/approach-timestamps.json` carrying every frame's timestamps, clip and lamp rectangle.
+
+Read against the frames, the shade stays dark red cloth with visible ribs throughout the
+approach, grows steadily, and never saturates; no frame in either series shows a red flash.
+Because the rectangle-based mean still moves by up to 37.6% on one desktop step for a
+geometric rather than a lighting reason, this is recorded as measured-with-a-known-limitation
+and not as a clean pass.
 
 ## T9: J5 the desktop burning lantern size
 
