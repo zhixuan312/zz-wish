@@ -139,7 +139,7 @@ export async function loadBakedPlace(id,renderer,initialLight={n:1,g:0}){
         const directCall='RE_Direct( directLight, geometryPosition, geometryNormal, geometryViewDir, geometryClearcoatNormal, material, reflectedLight );';
         const nicheFalloff = movingNicheLight ? `
             float lightDistance = length(pointLight.position - geometryPosition);
-            float stoneSpill = .72 * (1. - smoothstep(.080, .255, lightDistance));
+            float stoneSpill = .72 * (1. - smoothstep(.065, .205, lightDistance));
             directLight.color *= mix(1., stoneSpill, isVisitor);` : '';
         const staticLights=THREE.ShaderChunk.lights_fragment_begin
           .replace('getDirectionalLightInfo( directionalLight, directLight );','getDirectionalLightInfo( directionalLight, directLight ); directLight.color=vec3(0.);')
@@ -156,7 +156,7 @@ export async function loadBakedPlace(id,renderer,initialLight={n:1,g:0}){
             if(uBakedWeights.y>.0001)baked+=decodeBaked(texture2D(uBakedDusk,vLightMapUv).rgb,uBakedScales.y,uBakedLogRange.y,uBakedLogGain.y)*uBakedWeights.y;
             if(uBakedWeights.z>.0001)baked+=decodeBaked(texture2D(uBakedDay,vLightMapUv).rgb,uBakedScales.z,uBakedLogRange.z,uBakedLogGain.z)*uBakedWeights.z;
             float away=${movingNicheLight
-              ? '.75 * (1. - smoothstep(.14, .34, distance(vBakedWorld,uBakedLampAnchor)))'
+              ? '.58 * (1. - smoothstep(.095, .275, distance(vBakedWorld,uBakedLampAnchor)))'
               : indirectLamp?'1.':'smoothstep(.7,1.8,distance(vBakedWorld,uBakedLampAnchor))'};
             float movingShade=1.;
             #if defined(USE_SHADOWMAP) && NUM_POINT_LIGHT_SHADOWS > 0
