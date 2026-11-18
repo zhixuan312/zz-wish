@@ -66,3 +66,11 @@ The before views are in `artifacts/pine-gate/quality/preview-02/pine/`. The afte
 | 9. Smoke at the wick | Extended staggered emission from the wick through a coherent rising path. | `went-out.png` | The desktop capture measures the nearest emitted sprite center 3.32 mm from the wick. The smoke is visibly stronger higher in the plume. The faint base still needs a tighter fade. |
 | 10. Taper contact | Calculated the approaching taper tip from the live candle's wick origin. | `ignition.png` | At the desktop ignition frame the measured taper-tip separation is 0 mm. |
 | 11. Dish crop and spent wax | Scaled the holder with candle footprint and kept a margin around the spent trace. | `burn-controls.png`, `burned-down.png` | The desktop dish is in frame and the trace sits inside the rim. |
+
+### Preview 03 lighting and candle follow-up
+
+The first broad fill passed the contact audits, but raised the packed night red channel at the center of the oval from 15.2% to only 18.2% of the adjacent stone. That bake remains a draft. The next source places a smaller disk closer to the occluded stone, where the measured rays from the emitter to the stone remain unobstructed. Both sources are excluded from the lamp-only atlas.
+
+Comparing Pine Gate's `walk-50.png` with Snow Roof's `walk-2.png` shows that the guide itself is visible, but the timber beneath the eaves still merges into silhouette. The revised pass adds a broad reflection off the paving below the guide to light the transom and brackets. It leaves the forest cool.
+
+The revised wax moves the local reflection into the pool, darkens the charred tip and lets the put-out smoke become visible closer to the wick. A dry run measured the nearest visible smoke particle at 0.86–2.16 mm over four points between 0.35 s and 0.95 s. The revised source, wax and smoke still need a paired browser capture.
