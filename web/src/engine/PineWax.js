@@ -126,7 +126,7 @@ function refinedWaxMaterial(light, layer) {
         // view and disappears as the wax cools.
         vec3 viewWorld = inverseTransformDirection(viewRay, viewMatrix);
         vec3 reflected = reflect(-viewWorld, worldNormal);
-        float reflectionDistance = (uPineWaxCrown.y - .0039 - vPineWorld.y) / max(.001, reflected.y);
+        float reflectionDistance = (uPineWaxCrown.y + .0026 - vPineWorld.y) / max(.001, reflected.y);
         vec2 flameDrift = vec2(.00062 * sin(uPineWaxTime * 3.17) + .0011 * uPineWaxWind,
           .00049 * sin(uPineWaxTime * 2.09 + .4));
         vec2 reflectedOffset = fromCrown.xz + max(0., reflectionDistance) * reflected.xz - flameDrift;
@@ -136,7 +136,11 @@ function refinedWaxMaterial(light, layer) {
         flameReflection *= smoothstep(.02, .10, reflected.y) * step(0., reflectionDistance);
         float fresnel = .07 + .93 * pow(1. - max(0., dot(worldNormal, viewWorld)), 4.);
         vec3 reflectionColor = mix(uPineSourceColor, vec3(1., .88, .70), .57);
-        totalEmissiveRadiance += reflectionColor * (.29 + fresnel * 2.65) * flameReflection * sourceFraction * uPinePoolWet;` : ''}`);
+        vec3 wickEmitter = uPineWaxCrown + vec3(flameDrift.x, .0026, flameDrift.y);
+        vec3 highlightHalf = normalize(viewWorld + normalize(wickEmitter - vPineWorld));
+        float wetEdge = pow(max(dot(worldNormal, highlightHalf), 0.), 72.) * meniscus;
+        totalEmissiveRadiance += reflectionColor * ((.36 + fresnel * 2.8) * flameReflection + .66 * wetEdge)
+          * sourceFraction * uPinePoolWet;` : ''}`);
     if (shaft) shader.fragmentShader = shader.fragmentShader.replace('#include <lights_fragment_end>', `#include <lights_fragment_end>
       // The convex dry lip scatters broadly while the concave wet surface
       // retains the sharp reflection. Preserve the dry folds in the light.
@@ -156,6 +160,8 @@ function refinedWaxMaterial(light, layer) {
       reflectedLight.indirectDiffuse += diffuseColor.rgb * (litReturn + cooledReturn) * reliefLight;`);
     if (wet) shader.fragmentShader = shader.fragmentShader.replace('#include <lights_fragment_end>', `#include <lights_fragment_end>
       // The solidified pool reflects the selected pigment as diffuse wax.
+      reflectedLight.indirectDiffuse *= mix(1., .63, uPinePoolWet);
+      reflectedLight.directDiffuse *= mix(1., .76, uPinePoolWet);
       reflectedLight.indirectDiffuse += diffuseColor.rgb * vec3(.96, 1., 1.04) * .091 * uPineWaxCooling;`);
     if (remnant) {
       shader.fragmentShader = `

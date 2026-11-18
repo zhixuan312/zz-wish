@@ -202,7 +202,8 @@ void main(){
   vec3 eye = cameraPosition - c.xyz;
   vViewSlope = clamp(eye.y / max(length(eye.xz), .001), -.9, .9);
   vec3 r = normalize(vec3(viewMatrix[0][0], 0., viewMatrix[2][0]));
-  vec3 wp = c.xyz + r * position.x * sc * mix(.5, .66, uPineFlame) + vec3(0., 1., 0.) * (position.y + .5) * sc;
+  vec3 wp = c.xyz + r * position.x * sc * mix(.5, .66, uPineFlame)
+    + vec3(0., 1., 0.) * (position.y + .5) * sc * mix(1., .86, uPineFlame);
   gl_Position = projectionMatrix * viewMatrix * vec4(wp, 1.);
 }`;
 const flameFS = `
@@ -213,30 +214,34 @@ float vn(vec2 x){ vec2 p = floor(x), f = fract(x); f = f * f * (3. - 2. * f); fl
   return mix(mix(h1(n), h1(n + 1.), f.x), mix(h1(n + 57.), h1(n + 58.), f.x), f.y); }
 // Integrate emission through a swaying volume. The blue base rims a cooler,
 // fuel-rich interior just above the wick.
+float pineRadius(float y) {
+  return .249 * smoothstep(-.052, .16, y) * pow(max(1. - clamp(y, 0., 1.), 0.), .76);
+}
 vec3 pineFlameVolume(vec2 uv) {
   float t = uTime + vSeed * 6.;
   float h = .91 + .125 * vn(vec2(t * 2.9, vSeed));
   float sway = (vn(vec2(t * 1.56, vSeed * 2.1)) - .5) * .16 + uWind * .28;
   float flutter = .91 + .16 * vn(vec2(t * 6.7, vSeed + 11.));
+  float span = max(.032, pineRadius((uv.y - .015) / h) * 1.36);
   vec3 emission = vec3(0.);
   float transmission = 1.;
   for (int i = 0; i < 7; ++i) {
-    float z = (float(i) - 3.) * .083;
-    float y = (uv.y + z * vViewSlope * .66 - .064) / h;
+    float z = (float(i) - 3.) * (span / 3.5);
+    float y = (uv.y + z * vViewSlope * .66 - .015) / h;
     float v = clamp(y, 0., 1.);
     float x = uv.x - .5 - sway * v * v - .05 * v;
-    float radius = .249 * smoothstep(-.048, .15, y) * pow(max(1. - v, 0.), .76);
-    float r = length(vec2(x, z * .92)) / max(radius, .007);
+    float r = length(vec2(x, z * .92)) / max(pineRadius(y), .007);
     float envelope = (1. - smoothstep(.78, 1.03, r)) * smoothstep(-.042, .035, y);
     float inner = (1. - smoothstep(.37, .72, r)) * (1. - smoothstep(.24, .56, y));
     float blue = (1. - smoothstep(.13, .31, y)) * (.65 + .35 * smoothstep(.25, .9, r));
     float skirt = smoothstep(.49, .99, r);
-    vec3 gold = mix(vec3(3.9, 2.0, .51), vec3(1.63, .52, .105), skirt);
+    vec3 gold = mix(vec3(5.9, 3.5, 1.10), vec3(1.63, .52, .105), skirt);
     gold *= mix(.064, 1., 1. - inner);
-    vec3 spectrum = mix(gold, vec3(.10, .39, 1.18) * (1. - .65 * inner), blue);
+    vec3 spectrum = mix(gold, vec3(.10, .39, 1.18) * (.32 + .68 * skirt) * (1. - .53 * inner), blue);
     float density = envelope * (.66 + .34 * skirt);
-    emission += spectrum * transmission * density * .30;
-    transmission *= 1. - density * .16;
+    float interval = span * density;
+    emission += spectrum * transmission * interval * 1.44;
+    transmission *= 1. - interval * .71;
   }
   return emission * uRadiance * flutter;
 }
@@ -935,7 +940,7 @@ const api = { g, parts: null, partsKey: null, type: null, power: 0, lightPower: 
         if (place?.P.bakedLighting) {
           f.ember.position.y += .0002;
           f.flame.position.copy(p.pineWax.wickTip);
-          f.flame.position.y -= .0025;
+          f.flame.position.y -= .0047;
           f.light.position.y = p.pineWax.wickTip.y + .0175;
         }
       }
@@ -1007,7 +1012,7 @@ const api = { g, parts: null, partsKey: null, type: null, power: 0, lightPower: 
       if (p.pineWax && place?.P.bakedLighting && !embering) {
         f.halo.material.opacity *= .35;
         f.halo.scale.set(.11, .15, 1);
-        f.ember.material.color.setRGB(.95 * k, .12 * k, .020 * k);
+        f.ember.material.color.setRGB(1.7 * k, .19 * k, .026 * k);
       }
       if (p.kind === 'shade') f.halo.material.opacity *= .3;
       // The reflection: same flame, flipped about the water, broken up a little by ripples.
