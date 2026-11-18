@@ -309,11 +309,11 @@ the same expectation.
 
 ## T3: Round 3 full journey
 
-Status: **partly**. Chromium is complete on this build in four independent runs; WebKit is not.
+Status: **done for both browsers on this build; the two differ in one stage.**
 
-Each batch ran in its own fresh output directory with its own `report.json`, on `8ba88cf`
-(the tree that also carries the docs-only `807b065`). No directory was reused and no earlier
-directory was deleted.
+Every batch ran in its own fresh output directory with its own `report.json`, on `8ba88cf`
+(the tree that also carries the docs-only `807b065` and `154f427`). No directory was reused and
+no earlier directory was deleted.
 
 | batch | output | frames | PNGs | errors | httpErrors |
 |---|---|---|---|---|---|
@@ -321,17 +321,25 @@ directory was deleted.
 | chromium desktop-zh | `journey-r3-chromium-desktop-zh/` | 73 | 73 | 0 | 0 |
 | chromium phone-en | `journey-r3-chromium-phone-en/` | 73 | 73 | 0 | 0 |
 | chromium phone-zh | `journey-r3-chromium-phone-zh/` | 73 | 73 | 0 | 0 |
+| webkit desktop-en | `journey-r3-webkit-desktop-en/` | 72 | 72 | 0 | 0 |
+| webkit desktop-zh | `journey-r3-webkit-desktop-zh/` | 72 | 72 | 0 | 0 |
+| webkit phone-en | `journey-r3-webkit-phone-en/` | 72 | 72 | 0 | 0 |
+| webkit phone-zh | `journey-r3-webkit-phone-zh/` | 72 | 72 | 0 | 0 |
 
-All four `report.json` files agree with their own directories, and their stage sequences are
-identical field by field (73 of 73 positional matches), covering `home` through
-`light-ignition`, `burning`, `burnFar`, `ending-put-out-*`, `result-put-out`,
-`natural-*`, `my-lamps`, `record-expanded`, `my-wishes`, `ten-lights` and `home-return`.
-Every batch reported `sourceChanged: false`.
+Every `report.json` agrees with its own directory's PNG count, reports no runtime or HTTP
+errors, and records `sourceChanged: false`. Within each browser the four contexts carry
+identical stage sequences (73 of 73 and 72 of 72 positional matches).
 
-WebKit still needs its four contexts on this build. The older
-`after-journey/` and `after-journey-webkit/` directories are kept as history but are **not**
-valid evidence for this build: their frames mix runs from different times, and their
-`report.json` files were overwritten by later runs that reused the same directory.
+**The one difference between the browsers:** chromium has a `result-native-departure` stage
+that WebKit does not, which is the single stage accounting for 73 versus 72. WebKit records a
+`native departure control` interaction whose `nativeEvents` list is empty, so its native
+tab/focus departure path was **not** exercised and remains unverified; that ending is the
+product's own settlement rather than a native departure. Record counts also differ, 4 on
+chromium and 3 on WebKit, from the same stage difference.
+
+The older `after-journey/` and `after-journey-webkit/` directories are kept as history but are
+**not** valid evidence: their frames mix runs from different times and their `report.json`
+files were overwritten by later runs that reused the same directory.
 
 ### A superseded WebKit attempt
 
@@ -375,7 +383,7 @@ so a true before/after pair is the exception rather than the rule.
 | T7 | `j6-j2/gate-shelf-{left,right}-desktop-en.png` | `j6-j2/gate-walk-{desktop-en,phone-zh}.png` |
 | T8 | `j6-j2/lantern-unlit-{desktop-en,phone-zh}.png` | `j6-j2/ended-desktop-en-{lit-0,lit-3,000,065,119}.png`, `j6-j2/ended-phone-zh-{lit-0,lit-3,000,083,119}.png` |
 | T9 | no before capture; about 13-15% of frame height at every duration | `lantern-size/burning-desktop-en-{10min,2h,24h}.png` |
-| T3 | no before capture | `journey-r3-chromium-{desktop-en,desktop-zh,phone-en,phone-zh}/chromium/<context>/` |
+| T3 | no before capture | `journey-r3-chromium-<context>/chromium/<context>/` and `journey-r3-webkit-<context>/webkit/<context>/` |
 
 Before numbers quoted above come from the measurements recorded in the T1, T2b and T9
 sections, not from a kept image. T9's after evidence is the three-duration burning set, not
