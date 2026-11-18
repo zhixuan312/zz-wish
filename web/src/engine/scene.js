@@ -528,12 +528,23 @@ const LAMPS = {
     // The nearly vertical flame point produced two hard discs. Keep contact
     // under the wax and dish with short, soft falloff at their actual bases.
     holder.castShadow = false;
-    const shelfContact = waxContactShadow(refined ? .069 : .082, .53);
+    const contactRadius = refined ? .069 : .082;
+    const shelfContact = waxContactShadow(contactRadius, .53);
     g.add(shelfContact);
     const pineWax = createPineWax(seat, waxMaterial, { refined });
     pineWax.group.visible = false;
     g.add(pineWax.group);
-    return { g, kind: 'wax', seat, pineWax, holder, shelfContact, frame: { h: .2, cy: .08 }, lightMax: .05, light: 0xffbc82, flame: 1.13 };
+    const setShape = shape => {
+      pineWax.setShape(shape);
+      if (!refined) return;
+      const bounds = pineWax.profileBounds();
+      const waxRadius = Math.max(-bounds.min.x, bounds.max.x);
+      const holderScale = THREE.MathUtils.clamp((waxRadius + .007) / seat.traceRadius, .76, 1);
+      holder.scale.set(holderScale, 1, holderScale);
+      shelfContact.scale.setScalar(contactRadius * holderScale);
+    };
+    return { g, kind: 'wax', seat, pineWax, holder, shelfContact, setShape,
+      frame: { h: .2, cy: .08 }, lightMax: .05, light: 0xffbc82, flame: 1.13 };
   },
   // A brass-framed storm lantern hanging from a hook; the candle stands inside behind glass.
   lantern() {
@@ -769,6 +780,7 @@ const api = { g, parts: null, partsKey: null, type: null, power: 0, lightPower: 
       f.light.shadow.autoUpdate = !p.pineWax;
       f.light.shadow.normalBias = p.pineWax && liveBaked ? .0024 : .0001;
       f.light.shadow.radius = p.pineWax ? 4 : 2;
+      f.light.distance = p.pineWax && liveBaked ? .42 : 0;
       f.light.color.setHex(p.light ?? 0xffba78); f.size = p.flame ?? 1; mirror.size = f.size;
       g.traverse((c) => { c.layers.set(0); warmReflections(c); }); f.light.layers.enableAll();
       if(liveBaked&&place?.visitorEnvironment){
@@ -802,7 +814,7 @@ const api = { g, parts: null, partsKey: null, type: null, power: 0, lightPower: 
       this.waxState = 'unlit';
       if (p.pineWax) {
         p.pineWax.group.visible = o.kind === 'candle';
-        if (p.pineWax.group.visible) p.pineWax.setShape(o);
+        if (p.pineWax.group.visible) p.setShape(o);
       }
       candleG.visible = isWax && !p.pineWax; oil.visible = p.kind === 'oil'; oilBody.visible = !!p.oilBody;
       drips.forEach(({ mesh }) => { mesh.visible = false; });
@@ -1928,7 +1940,7 @@ async function drawLampThumbnail(shape,{state,remaining,width,height}){
     stage.parts = shape.kind === 'shade' ? LAMPS.gauze(input) : shape.kind === 'oil' ? LAMPS.glass(input)
       : LAMPS.pineWax({ refined: import.meta.env.VITE_PINE_GATE_BAKE_PREVIEW === '1' });
     if (stage.parts.pineWax) {
-      stage.parts.pineWax.setShape(shape);
+      stage.parts.setShape(shape);
       stage.parts.pineWax.group.visible = true;
     }
     stage.group.add(stage.parts.g);stage.parts.g.traverse(warmReflections);stage.key=key;
