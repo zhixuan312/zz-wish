@@ -70,7 +70,10 @@ def terrain(material):
     for j in range(len(zs) - 1):
         for i in range(len(xs) - 1):
             a = j * len(xs) + i
-            faces.append((a, a + len(xs), a + len(xs) + 1, a + 1))
+            b = a + len(xs)
+            # The authored, contact-tested diagonal also reaches prepared and
+            # raw meshes. A warped terrain quad has two different support planes.
+            faces.extend([(a, b, b + 1), (a, b + 1, a + 1)])
     obj = mesh.mesh_object('Continuous mountain shoulder', points, faces, material, 'approach')
     source_uv(obj, [[(points[i][0], points[i][2]) for i in face] for face in faces],
               'Continuous mountain terrain grid.')
@@ -228,7 +231,7 @@ def pine_tree(label, x, z, height, bark, needles):
 def forest(ground, rock, bark, pine):
     for i, z in enumerate((7, 14, 21, 29, 36, 43, 49)):
         for s in (-1, 1):
-            x = s * RANDOM.uniform(3.35, 5.8)
+            x = s * RANDOM.uniform(4.50 if z > 42 else 3.35, 5.8)
             pine_tree(f'Old pine {i + 1} {s}', x, z + RANDOM.uniform(-1.6, 1.6),
                       RANDOM.uniform(6.1, 10.4), bark, pine)
     for i, (x, z, h) in enumerate(((-10, 0, 10), (12, -3, 9), (8, -14, 7), (-7, -10, 8),
@@ -528,7 +531,10 @@ def build(output):
     scene.view_settings.look = 'None'
     scene.view_settings.exposure = math.log2(PRE_EXPOSURE)
     scene.camera = camera('Reference_PineSteps', (3.8, 2.3, 52), (-.4, 5.4, 1), 32, (1440, 900))
-    camera('Reference_PineLanding', (.2, 4.65, 16), (-.4, 5.7, 1), 40, (1440, 900))
+    camera('Reference_PineStepsPhone', (3.8, 2.3, 52), (-.4, 4.3, 1), 48, (390, 844))
+    camera('Reference_PineWalkLower', (.2, 1.7, 46), (-.15, 2.65, 36), 32, (1440, 900))
+    camera('Reference_PineWalkMiddle', (.2, 3.65, 26), (0, 4.65, 16), 44, (390, 844))
+    camera('Reference_PineLanding', (.1, 5.65, 6), (-1.09, 5.55, 2.75), 40, (1440, 900))
     camera('Reference_PineChooseDesktop', (-1.67, 5.29, 1.48), (-1.705, 5.075, .9), 31, (1440, 900))
     camera('Reference_PineChoosePhone', (-1.71, 5.25, 1.46), (-1.80, 4.95, .9), 43, (390, 844))
     camera('Reference_PineBurnDesktop', (-1.705, 5.24, 1.33), (-1.775, 5.075, .9), 34, (1440, 900))
@@ -539,7 +545,7 @@ def build(output):
     scene['one_light_lamp_anchor'] = json.dumps(ANCHOR)
     scene['one_light_lamp_pass_quantity'] = 'indirect-diffuse-radiance-per-unit-albedo'
     scene['one_light_camera_pre_exposure'] = PRE_EXPOSURE
-    scene['lightmap_resolutions'] = json.dumps({'approach': 1024, 'gate': 1024, 'niche': 512})
+    scene['lightmap_resolutions'] = json.dumps({'approach': 1536, 'gate': 1024, 'niche': 512})
     scene['one_light_anchor_fields'] = json.dumps(['one_light_lamp_anchor', 'one_light_lamp_basis'])
     audit = contacts.audit()
     scene['resting_prop_inventory'] = json.dumps({'registeredGroups': [entry['name'] for entry in contacts.entries],
@@ -549,7 +555,8 @@ def build(output):
     if abs(anchor_height - ANCHOR[1]) > 1e-6 or any(abs(a - b) > 1e-6 for a, b in zip(engine(basis.matrix_world.translation), LAMP)):
         raise RuntimeError('Baked shelf and lamp basis must use their measured runtime locations.')
     scene['source_authoring_helpers'] = json.dumps([
-        'art/blender/snow_roof.py', 'art/blender/snow_lightmap_charts.py', 'art/blender/resting_contacts.py',
+        'art/blender/snow_roof.py', 'art/blender/snow_round1_details.py',
+        'art/blender/snow_lightmap_charts.py', 'art/blender/resting_contacts.py',
     ])
     scene['source_authoring_sha256'] = json.dumps({
         name: sha256((ROOT / name).read_bytes()).hexdigest()

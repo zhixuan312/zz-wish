@@ -29,7 +29,8 @@ assets.append({'id': 'noto-serif-sc-subsets', 'kind': 'Font', 'provider': 'Googl
 assets.append({'id': 'basis-universal-transcoder', 'kind': 'Shared texture runtime codec', 'provider': 'Binomial / three.js 0.160.0 distribution', 'license': 'Apache-2.0', 'licenseFile': 'web/public/codecs/basis/LICENSE.txt', 'distributionLicense': 'MIT', 'distributionLicenseFile': 'web/public/codecs/basis/THREE-LICENSE.txt', 'sourceUrl': 'https://github.com/mrdoob/three.js/tree/r160/examples/jsm/libs/basis', 'upstreamSourceUrl': 'https://github.com/BinomialLLC/basis_universal', 'files': [file_info('web/public/codecs/basis/' + n) for n in ['basis_transcoder.js', 'basis_transcoder.wasm']]})
 runtime_files = [
     'web/src/engine/scene.js', 'web/src/engine/WickPlume.js',
-    'web/src/engine/places/pine-gate.js', 'web/src/engine/PineWax.js',
+    'web/src/engine/places/pine-gate.js', 'web/src/engine/places/pine-gate-baked.js',
+    'web/src/engine/PineWax.js',
     'web/src/engine/baked/loadPlace.js', 'web/src/engine/baked/prefetchPlace.js',
     'web/src/engine/baked/sha256.js', 'web/src/engine/baked/visitorShadow.js',
     'web/src/engine/baked/gauzeTransmission.js', 'web/src/engine/baked/gauzeMask.js',
@@ -88,7 +89,7 @@ for place_id, script in [('snow-roof', 'snow_roof'), ('cloud-cliff', 'cloud_clif
         source_files += ['art/blender/fixed_view_allocation.py', 'art/blender/build_cloud_source19.py', 'art/blender/export_cloud_field_metadata.py', 'scripts/prototype-cloud-live-envelope.mjs', 'scripts/prove-cloud-hash-lattice.mjs', 'scripts/pack-cloud-noise-lattice.mjs', 'scripts/pack-cloud-live-density.mjs']
     else:
         source_files = [
-            'art/blender/pine_gate.py', 'art/blender/snow_roof.py',
+            'art/blender/pine_gate.py', 'art/blender/snow_roof.py', 'art/blender/snow_round1_details.py',
             'art/blender/snow_lightmap_charts.py', 'art/blender/resting_contacts.py',
             'art/blender/contact_fingerprints.py', 'art/blender/bake_export.py',
             'art/blender/audit_prepared_mapping.py', 'art/blender/audit_prepared_resting_contacts.py',

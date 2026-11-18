@@ -37,6 +37,14 @@ blender -b --python-exit-code 1 --python art/blender/audit_prepared_resting_cont
   --raw "$working/decoded-pine-gate.glb" --out "$working/decoded-contact.json"
 ```
 
-For the review candidate, use a distinct bake output and eight samples, then pack the four looks. The final runtime asset attacher requires all twelve maps to carry the fixed 64-sample Metal Cycles and Metal OpenImageDenoise receipts.
+For the review candidate, use a distinct bake output and eight samples, then pack the four looks with `--preview`. The final runtime asset attacher requires all twelve maps to carry the fixed 64-sample Metal Cycles and Metal OpenImageDenoise receipts.
 
 The source tests literal 2 mm gap and 5 mm penetration bounds, including translated 3 mm and 6 mm challenge cases. The downstream replay measures actual prepared, raw and decoded delivery triangles. The UV mapping proof checks world positions, material UVs, world corner normals and tint before the bake.
+
+## Eight-sample candidate
+
+The first complete candidate uses a 1536² approach atlas, a 1024² gate atlas and a 512² niche atlas. All regions retain eight-pixel chart gutters and show complete sampled coverage across nine authored desktop and phone reference cameras. The larger approach atlas fits 2,842 charts in one texture. Authored terrain triangles preserve the same supporting planes after preparation and export.
+
+Source `02077883d2bce1c45fc38b4a638c213042fe727090ea3ea2103321486d113a60` produced twelve fixed eight-sample maps in 90.649 seconds on the Apple M1 GPU with Metal OpenImageDenoise. The source, prepared and raw export contact audits passed all six groups. Prepared and raw measurements reached a maximum 0.003815 mm gap and 0.639677 mm penetration. The prepared UV0, tint and world-corner-normal mapping proof passed.
+
+The candidate uses 9,476,158 on-disk bytes across the manifest, GLB and twelve KTX2 maps. Manifest SHA-256 is `702521039ab303ed6814fef6d9d9cc96aaac107bb936dd30d19bac9190edb34d`. It is a preview pending app review. Final delivery also counts the already-shared native view lookup.
