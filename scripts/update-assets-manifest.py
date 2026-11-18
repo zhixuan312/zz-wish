@@ -29,7 +29,7 @@ assets.append({'id': 'noto-serif-sc-subsets', 'kind': 'Font', 'provider': 'Googl
 assets.append({'id': 'basis-universal-transcoder', 'kind': 'Shared texture runtime codec', 'provider': 'Binomial / three.js 0.160.0 distribution', 'license': 'Apache-2.0', 'licenseFile': 'web/public/codecs/basis/LICENSE.txt', 'distributionLicense': 'MIT', 'distributionLicenseFile': 'web/public/codecs/basis/THREE-LICENSE.txt', 'sourceUrl': 'https://github.com/mrdoob/three.js/tree/r160/examples/jsm/libs/basis', 'upstreamSourceUrl': 'https://github.com/BinomialLLC/basis_universal', 'files': [file_info('web/public/codecs/basis/' + n) for n in ['basis_transcoder.js', 'basis_transcoder.wasm']]})
 runtime_files = [
     'web/src/engine/scene.js', 'web/src/engine/WickPlume.js',
-    'web/src/engine/places/pine-gate.js', 'web/src/engine/places/pine-gate-baked.js',
+    'web/src/engine/places/pine-gate-baked.js',
     'web/src/engine/PineWax.js',
     'web/src/engine/baked/loadPlace.js', 'web/src/engine/baked/prefetchPlace.js',
     'web/src/engine/baked/sha256.js', 'web/src/engine/baked/visitorShadow.js',

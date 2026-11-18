@@ -1445,8 +1445,7 @@ function blendPlace(N, L) {
 
 // Each place: its weather, landmark and buildings, by day and by night, and the spot where its lamp is lit.
 const placeModules = {
-  'pine-gate': () => import.meta.env.VITE_PINE_GATE_BAKE_PREVIEW === '1'
-    ? import('./places/pine-gate-baked.js') : import('./places/pine-gate.js'),
+  'pine-gate': () => import('./places/pine-gate-baked.js'),
   'bamboo-rain': () => import('./places/bamboo-rain.js'),
   'cloud-cliff': () => import('./places/cloud-cliff-baked.js'),
   'lotus-pond': () => import('./places/lotus-pond.js'),
@@ -1649,18 +1648,11 @@ function queuePlaceBuild(id) {
   return pending;
 }
 
-async function preparePineGate() {
-  const id = 'pine-gate';
-  PLACES[id] ??= (await placeModules[id]()).default(placeHelpers);
-  // The baked Pine Gate only loads its package, so it can decode without
-  // waiting for the shared procedural construction context.
-  return PLACES[id].bakedLighting ? buildPlaceNow({ id }, true) : queuePlaceBuild(id);
-}
-
 export function preparePlace(id) {
   if (cachedPlaces.has(id)) return Promise.resolve(cachedPlaces.get(id));
   if (!preparingPlaces.has(id)) {
-    const pending = id === 'pine-gate' ? preparePineGate() : queuePlaceBuild(id);
+    // The baked package has its own construction context.
+    const pending = id === 'pine-gate' ? buildPlaceNow({ id }, true) : queuePlaceBuild(id);
     preparingPlaces.set(id, pending);
     pending.finally(() => preparingPlaces.delete(id)).catch(() => {});
   }
@@ -1979,7 +1971,7 @@ async function drawLampThumbnail(shape,{state,remaining,width,height}){
     }
     const input={...shape,liveBaked:true};
     stage.parts = shape.kind === 'shade' ? LAMPS.gauze(input) : shape.kind === 'oil' ? LAMPS.glass(input)
-      : LAMPS.pineWax({ refined: import.meta.env.VITE_PINE_GATE_BAKE_PREVIEW === '1' });
+      : LAMPS.pineWax({ refined: true });
     if (stage.parts.pineWax) {
       stage.parts.setShape(shape);
       stage.parts.pineWax.group.visible = true;
