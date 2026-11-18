@@ -756,7 +756,7 @@ def paint_stone():
                     shade *= .72 + .54 * max(0., min(1., .51 + bank - root_dirt))
                     green_mix = max(0., min(.63, (.15 + bank) * .77))
                 if obj.name.startswith('Hand-chiselled niche back'):
-                    rise = max(0., min(1., (world.z - ANCHOR[1] - .078) / .145))
+                    rise = max(0., min(1., (world.z - ANCHOR[1] - .064) / .072))
                     drift = .019 + .016 * math.sin(world.z * 29) + .014 * noise.noise(world * 32)
                     dx = (world.x - ANCHOR[0] + drift) / (.031 + .068 * rise)
                     smoke_stain = rise ** .76 * math.exp(-dx * dx) * (.73 + .20 * noise.noise(world * 61))
@@ -768,11 +768,13 @@ def paint_stone():
                     flecks = 0.
                     for px, pz, sx, sz in ((-.123, .064, .050, .038), (.126, .052, .036, .026),
                                             (.071, -.085, .024, .034), (-.101, -.053, .031, .025),
-                                            (.082, .149, .028, .040), (-.133, .128, .028, .035)):
+                                            (.082, .149, .028, .040), (-.133, .128, .028, .035),
+                                            (-.047, .078, .020, .019), (.056, .073, .015, .023),
+                                            (.018, .097, .018, .019)):
                         contour = .013 * noise.noise(world * 68)
                         flecks += math.exp(-((dx - px + contour) / sx) ** 2 - ((dz - pz - contour) / sz) ** 2)
                     marks = min(.83, flecks * (.71 + .22 * noise.noise(world * 47)))
-                    lip = max(0., min(1., (dz - .150) / .128))
+                    lip = max(0., min(1., (dz - .052) / .091))
                     lip_wear = lip * (.45 + .16 * noise.noise(world * 39))
                     for channel, residue in enumerate((.82, .68, .49)):
                         tint_color[channel] += (residue - tint_color[channel]) * marks
