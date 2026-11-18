@@ -51,12 +51,14 @@ After (`14c2c39`, same method): desktop-en 3793 / 3655 / 3789 ms and phone-zh
 3306 / 3130 / 3215 ms from fill to an enabled `Step inside`. `npm run test:tier1` reports
 14 passed including `flow.spec.ts:36`, whose 5 s assertion was not changed.
 
-Cover regression: phone-emulation cover renders at 59.9 FPS (median frame 16.7 ms). Cover
-captures are kept in `artifacts/full-review/round-3/cover-check/`.
+Cover regression: the cover renders at the same rate before and after (`14c2c39^` versus
+`14c2c39`) — desktop median frame 50.0 ms, phone median frame 16.7 ms in both — and the two
+renderings are pixel-identical apart from 0.003% of pixels. Captures:
+`artifacts/full-review/round-3/cover-check/cover-{before,after}-{desktop-en,phone-zh}.png`.
 
 ## T2b: the hanging shade grows with the chosen burning time
 
-Status: **partly** — choose captures exist, the three-duration burning comparison does not.
+Status: **done**.
 
 `lanternHeightMetres` in `shared/rules.ts` maps 10 minutes to 0.350 m and a full day to
 0.560 m, logarithmically in time, clamped outside that range. The `liveBaked` branch of
@@ -69,11 +71,22 @@ Computed envelope per preset: 10 min 0.625, 30 min 0.708, 1 h 0.760, 2 h 0.813,
 Unit tests in `tests/tier1/unit/rules.test.ts` pin both endpoints, the clamp outside the
 preset range, and strict growth across `PRESET_MINUTES`.
 
-Checked so far on real choose captures at desktop-en and phone-zh (`choose-10min`,
-`choose-2h`, `choose-24h`): the shade changes size immediately when another duration is
-chosen, the cord stays continuous at all three sizes, and 24 h matches the previous
-picture. The three-duration burning comparison is still pending, so this item stays
-partly done.
+Checked on real captures at desktop-en and phone-zh. Chosen durations in one session move
+the shade and nothing else: across 10 min, 2 h and 24 h the mean row-brightness delta of the
+whole frame is 3.7/255, so the camera and the panels behind the lamp stay put while the
+shade grows. The cord is continuous at all three sizes, no shade touches the ceiling beam,
+the columns or the table, the flame and wick sit inside the shade, and 24 h matches the
+previous picture.
+
+Burning, cloth height as a fraction of frame height (measured between the shade's upper
+and lower rims):
+
+| viewport | 10 min | 2 h | 24 h |
+|---|---|---|---|
+| desktop-en | 14.8% | 19.2% | 23.8% |
+| phone-zh | 22.2% | 24.3% | 26.5% |
+
+Captures: `artifacts/full-review/round-3/lantern-size/{choose,burning}-{desktop-en,phone-zh}-{10min,2h,24h}.png`.
 
 ## T2: J15 phone drawing pad
 
@@ -98,11 +111,11 @@ wish on two full lines at 588x39 px.
 
 ## B5 regression (phone choose framing)
 
-Status: **fixed in code**, capture pending the next GPU batch. On a phone the sheet covers
-the lower two thirds, so the lamp now sits at 13% of the visible band above the altar
-stand instead of 20%. Only the narrow-screen subject height changed; the stand, the shade
-and every asset are untouched. The 10 min, 2 h and 24 h choose captures will confirm the
-gap under the tassel in the next batch.
+Status: **done**. On a phone the sheet covers the lower two thirds, so the lamp's subject
+height and the fitted fraction were lowered until the tallest shade clears the top edge.
+At 10 min, 2 h and 24 h the cord is visible, the tassel keeps clear background under it,
+and nothing is cropped. Only the narrow-screen camera changed; the stand, the shade and
+every asset are untouched. Captures: `choose-phone-zh-{10min,2h,24h}.png`.
 
 ## T5: J17 the presence badge
 
@@ -128,7 +141,9 @@ Status: **partly** — approach and ending continuity need the same held capture
 
 ## T9: J5 the desktop burning lantern size
 
-Status: **partial** — see the measured fraction below.
+Status: **done**. The settled desktop burning view now frames against a fixed full-day
+lamp reference, so the cloth covers 23.8% of frame height at 24 h, 19.2% at 2 h and 14.8% at
+10 min, against about 13-15% before. Only camera placement changed.
 
 ## Items for Boss
 
