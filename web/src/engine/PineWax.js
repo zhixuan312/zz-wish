@@ -139,7 +139,14 @@ function refinedWaxMaterial(light, layer) {
         vec3 wickEmitter = uPineWaxCrown + vec3(flameDrift.x, .0026, flameDrift.y);
         vec3 highlightHalf = normalize(viewWorld + normalize(wickEmitter - vPineWorld));
         float wetEdge = pow(max(dot(worldNormal, highlightHalf), 0.), 54.) * meniscus;
-        totalEmissiveRadiance += reflectionColor * ((.36 + fresnel * 2.8) * flameReflection + 1.48 * wetEdge)
+        // A finite vertical flame also makes a long, weak streak on the near
+        // meniscus. Its narrow axis follows the viewing direction.
+        vec2 facing = normalize(viewWorld.xz + vec2(.0001));
+        vec2 streak = poolPoint - facing * (.49 * uPinePoolRadius) - flameDrift;
+        vec2 streakUV = vec2(dot(streak, vec2(-facing.y, facing.x)) * 800., dot(streak, facing) * 342.);
+        float meniscusStreak = exp(-dot(streakUV, streakUV)) * smoothstep(.1, .32, viewWorld.y);
+        totalEmissiveRadiance += reflectionColor
+          * ((.36 + fresnel * 2.8) * flameReflection + 1.48 * wetEdge + .43 * meniscusStreak)
           * sourceFraction * uPinePoolWet;` : ''}`);
     if (shaft) shader.fragmentShader = shader.fragmentShader.replace('#include <lights_fragment_end>', `#include <lights_fragment_end>
       // The convex dry lip scatters broadly while the concave wet surface
