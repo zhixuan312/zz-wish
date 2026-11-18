@@ -1699,11 +1699,11 @@ const viewOf = (v) => {
   return { pos: look.clone().add(pos.sub(look).multiplyScalar(1.45)), look };
 };
 const coverView = () => viewOf(narrow()&&place.P.nook.coverPhone?place.P.nook.coverPhone:place.P.nook.cover);
-function fitShadeView(v){
+function fitShadeView(v,desktopFraction=.45,desktopSubjectY=.36){
   if(!place.P.bakedLighting||!mine.parts?.frame)return v;
   const fr=mine.parts.frame,c=mine.g.localToWorld(V3(0,fr.cy,0));
   const offset=V3(v.pos.x-c.x,0,v.pos.z-c.z),base=offset.length();
-  const fraction=narrow()?.26:.45,subjectY=narrow()?.20:.36;
+  const fraction=narrow()?.26:desktopFraction,subjectY=narrow()?.20:desktopSubjectY;
   const tangent=Math.tan(THREE.MathUtils.degToRad(v.fov/2));
   const distance=Math.max(base,fr.h/(2*tangent*fraction));offset.setLength(distance);
   v.pos.x=c.x+offset.x;v.pos.z=c.z+offset.z;
@@ -1721,7 +1721,13 @@ function burnView(){
   const fuelProfile=mine.offer?.rows?.at(-1)?.y;
   const originalSize=fuelProfile?fuelProfile*3.8+.2:mine.parts.frame.h;
   const far=viewOf((narrow()&&N.burnFarPhone)||N.burnFar),k=THREE.MathUtils.clamp((originalSize-.45)/.32,0,1);
-  v.pos.lerp(far.pos,k);v.look.lerp(far.look,k);v.fov=THREE.MathUtils.lerp(v.fov,far.fov,k);return v;
+  v.pos.lerp(far.pos,k);v.look.lerp(far.look,k);v.fov=THREE.MathUtils.lerp(v.fov,far.fov,k);
+  // J5: on a wide screen the settled burning view showed the lantern at about
+  // 15% of frame height, so the floor dominated. Measure against the lamp's
+  // frame, whose cloth is about 68% of it, and aim for the 20-25% target on the
+  // cloth itself. The direction out of the altar and the horizon stay those of
+  // the authored burn camera.
+  return narrow()?v:fitShadeView(v,.33,.34);
 }
 // The person's lamp lives in the current place's spot.
 function attachMine() {
