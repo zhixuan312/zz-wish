@@ -412,13 +412,9 @@ def forest(ground, rock, stone, bark, pine):
                     vertex.co.x += RANDOM.uniform(-.11, .11) * r
                     vertex.co.y += RANDOM.uniform(-.15, .15) * r
                     vertex.co.z += RANDOM.uniform(-.07, .07) * r
-            # Turn the broad base onto the sampled terrain plane before the
-            # contact solver applies the final vertical settling correction.
-            tree, _ = contacts.support([ground])
-            loc = mesh.point((x, y, z))
-            _, normal, _, _ = tree.ray_cast(mesh.point((x, 50, z)), Vector((0, 0, -1)), 100)
-            turn = Vector((0, 0, 1)).rotation_difference(normal).to_matrix().to_4x4()
-            obj.matrix_world = Matrix.Translation(loc) @ turn @ Matrix.Translation(-loc)
+                # Dress the base to the actual adjoining terrain triangles.
+                # A single central normal misses the crease between them.
+                vertex.co.z += supports_height(vertex.co.x, -vertex.co.y, [ground]) - y
 
 
 def gate(stone, tiles, wood, red, iron):
