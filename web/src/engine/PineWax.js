@@ -173,7 +173,7 @@ export function createPineTray(seat) {
     positions.setXYZ(i, x * (1 + uneven), y + chip * clamp(y / .008, 0, 1), z * (1 + uneven));
   }
   geometry.computeVertexNormals();
-  const material = new THREE.MeshStandardMaterial({ color: 0x4c5661, roughness: .9, envMapIntensity: .32 });
+  const material = new THREE.MeshStandardMaterial({ color: 0x4b5158, roughness: .9, envMapIntensity: .38 });
   material.onBeforeCompile = shader => {
     materialCoordinates(shader);
     shader.fragmentShader = `
@@ -190,15 +190,17 @@ export function createPineTray(seat) {
       ${shader.fragmentShader}`;
     shader.fragmentShader = shader.fragmentShader.replace('#include <map_fragment>', `#include <map_fragment>
       float aggregate = pineStoneValue(vPineLocal * 226.);
-      float mineral = pineStoneValue(vPineLocal * 940. + vec3(48., 12., 9.));
+      vec3 mineralCoord = vPineLocal * 940.;
+      float grainCoverage = 1. - smoothstep(.44, 1.35, length(fwidth(mineralCoord)));
+      float mineral = mix(.5, pineStoneValue(mineralCoord + vec3(48., 12., 9.)), grainCoverage);
       float fleck = smoothstep(.64, .9, mineral);
       float soot = (1. - smoothstep(.012, .048, length(vPineLocal.xz))) * smoothstep(.37, .85, aggregate);
       float scuffedRim = smoothstep(.049, .057, length(vPineLocal.xz)) * smoothstep(.006, .012, vPineLocal.y);
-      diffuseColor.rgb *= .68 + .33 * aggregate + .09 * fleck + .075 * scuffedRim - .28 * soot;`)
+      diffuseColor.rgb *= .65 + .40 * aggregate + .09 * fleck + .075 * scuffedRim - .28 * soot;`)
       .replace('#include <roughnessmap_fragment>', `#include <roughnessmap_fragment>
         roughnessFactor = clamp(roughnessFactor + .14 * (aggregate - .5) - .10 * scuffedRim, .56, .98);`)
       .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
-        float relief = .00035 * aggregate + .000042 * mineral;
+        float relief = .00043 * aggregate + .000055 * mineral;
         vec3 viewDx = dFdx(-vViewPosition);
         vec3 viewDy = dFdy(-vViewPosition);
         vec3 surfaceX = cross(viewDy, normal);
@@ -207,12 +209,18 @@ export function createPineTray(seat) {
         vec3 gradient = dFdx(relief) * surfaceX + dFdy(relief) * surfaceY;
         normal = normalize(normal - sign(surfaceArea) * gradient / max(abs(surfaceArea), 1.e-10));`)
       .replace('#include <lights_fragment_end>', `#include <lights_fragment_end>
-        // Dense dark stone returns less of the visitor's direct flame light.
-        // Keep the cool environment contribution and worn relief visible.
-        reflectedLight.directDiffuse *= .72;
-        reflectedLight.directSpecular *= .76;`);
+        reflectedLight.directDiffuse *= .84;
+        reflectedLight.directSpecular *= .76;
+        // The outer foot faces the nearby niche walls, away from the wick.
+        // Their broad return is subtle and carries through the worn relief.
+        vec3 stoneNormal = inverseTransformDirection(normal, viewMatrix);
+        float outerFoot = smoothstep(.038, .054, length(vPineLocal.xz))
+          * (1. - smoothstep(.12, .74, stoneNormal.y));
+        float recessReturn = .48 + .37 * dot(stoneNormal, normalize(vec3(.37, .46, 1.)));
+        reflectedLight.indirectDiffuse += diffuseColor.rgb * vec3(1.07, 1.03, .98)
+          * (.26 * outerFoot * recessReturn);`);
   };
-  material.customProgramCacheKey = () => 'pine-hewn-stone-3';
+  material.customProgramCacheKey = () => 'pine-hewn-stone-4';
   material.userData.lampOwned = true;
   const tray = new THREE.Mesh(geometry, material);
   tray.receiveShadow = true;
