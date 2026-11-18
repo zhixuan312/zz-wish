@@ -1775,7 +1775,7 @@ async function buildPlaceNow(t, isolated = false) {
   G.traverse((o) => { if (o.isLight) o.layers.enableAll(); });
   context.G = G;
   context.up.push((dt, time) => { u.uTime.value = time; });
-  const candidate = { G, disposers:context.disposers, up: context.up, sky, env, envTarget, P, id: t.id, lightKey, nookG, others: context.others, cover: context.cover, baked:context.baked, reflectors:context.reflectors, hemi, sun, hemiBase: hemi.intensity, sunBase: sun.intensity };
+  const candidate = { G, disposers:context.disposers, up: context.up, sky, env, envTarget, P, id: t.id, lightKey, daylight: light, nookG, others: context.others, cover: context.cover, baked:context.baked, reflectors:context.reflectors, hemi, sun, hemiBase: hemi.intensity, sunBase: sun.intensity };
   if(context.baked?.staticLampShadow)await context.baked.staticLampShadow.capture(renderer,context.baked.group);
   const stage = new THREE.Scene(); stage.environment = env; stage.fog = new THREE.FogExp2(...P.fog); stage.add(G);
   stage.add(previewFill.clone());
@@ -2190,8 +2190,14 @@ export async function travel(id) {
   const lookPts = [P.doors.clone(), ...(N.approach ?? []).map((q) => toWorld(q.clone().add(V3(0, 0, -2)))), end.look];
   const l0 = rig.look.clone(), a0 = rig.amp,f0=rig.fov??camera.fov;
   atLamp = true; mine.g.visible = !!mine.offer;
+  const authoredWalk = P.createWalk?.({ pos: rig.pos.clone(), look: l0, fov: f0 }, end, narrow());
   if(import.meta.env.DEV)window.__walkProgress={id,progress:0,state:'walking',position:rig.pos.toArray()};
   const walk = tween(P.walkSeconds ?? 14, (k) => {
+    if (authoredWalk) {
+      authoredWalk(k, rig);
+      if(import.meta.env.DEV)window.__walkProgress={id,progress:k,state:'walking',position:rig.pos.toArray()};
+      return;
+    }
     // Arc length keeps each metre at the same walking speed. Short ramps start
     // and stop the walk without the rush through the middle of a cubic ease.
     const r=.08, steady=k<r?k*k/(2*r*(1-r)):k>1-r?1-(1-k)*(1-k)/(2*r*(1-r)):(k-r*.5)/(1-r);
@@ -2451,7 +2457,7 @@ function frame(stamp = performance.now()) {
       nextClockCheck=time+15;
       const light=daylight(),key=JSON.stringify(light);
       if(key!==place.lightKey){
-        place.P={...PLACES[place.id],...blendPlace(PLACES[place.id],light)};place.lightKey=key;
+        place.P={...PLACES[place.id],...blendPlace(PLACES[place.id],light)};place.lightKey=key;place.daylight=light;
         const p=place.P,u=place.sky.material.uniforms;
         for(const [name,value] of Object.entries({uTop:p.sky.top,uHorizon:p.sky.horizon,uGround:p.sky.ground,uSun:p.sky.sun,uLit:p.sky.lit,uDark:p.sky.dark}))u[name].value.setHex(value);
         u.uDir.value.set(...p.sky.dir).normalize();u.uGlow.value=p.sky.glow;u.uClouds.value=p.sky.clouds;u.uStars.value=p.sky.stars;u.uDisc.value=p.sky.disc;
@@ -2459,7 +2465,7 @@ function frame(stamp = performance.now()) {
       }
     }
     const P = place.P, N = P.nook;
-    for (const f of place.up) f(dt, time);
+    for (const f of place.up) f(dt, time, place.daylight);
     place.sky.position.copy(camera.position);
     for (const m of flameMats) m.uniforms.uTime.value = time;
     for (const o of place.others) o.tick(time);

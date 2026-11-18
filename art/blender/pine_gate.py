@@ -513,109 +513,6 @@ def forest(ground, rock, stone, bark, pine):
                 vertex.co.z += supports_height(vertex.co.x, -vertex.co.y, [ground]) - y
 
 
-def gate(stone, tiles, wood, red, iron):
-    # Layered lintels and deliberately uneven courses are fixed architecture.
-    for s in (-1, 1):
-        bx = s * 1.23
-        mesh.box(f'Gate column plinth {s}', (.66, .33, .70), (bx, 4.164, .05), stone[0], .038, region='gate')
-        mesh.box(f'Gate massive timber {s}', (.36, 2.75, .39), (bx, 5.64, .05), red[1], .027, region='gate')
-        mesh.box(f'Gate bracket lower block {s}', (.56, .23, .72), (bx, 6.92, .08), wood, .023, region='gate')
-        mesh.box(f'Gate bracket cantilever {s}', (.29, .16, 1.02), (bx, 7.08, .08), red[2], .018, region='gate')
-        mesh.box(f'Gate bracket ledge {s}', (.50, .12, 1.25), (bx, 7.22, .08), wood, .015, region='gate')
-    for side in (-1, 1):
-        x = side * 1.23
-        for tier, reach in enumerate((.32, .47, .64)):
-            y = 6.89 + tier * .135
-            for turn in (False, True):
-                arm = mesh.profile_arm(f'Interlocked pine gate bracket {side} {tier} {turn}', x,
-                                       y + .046 * turn, .08, reach * (.84 if turn else 1), .17,
-                                       .118 if turn else .143, wood if turn else red[(tier + 1) % len(red)], turn)
-                arm['region'] = 'gate'
-            for end in (-1, 1):
-                mesh.box('Exposed gate bracket end grain', (.13, .07, .046),
-                         (x, y + .061, .08 + end * reach), wood, .006, region='gate')
-    for x in (-1.78, -1.45, -1.11, -.77, -.41, 0, .41, .77, 1.11, 1.45, 1.78):
-        mesh.box('Exposed weathered rafter end', (.11, .15, .30),
-                 (x, 7.251 + .24 * abs(x / 2.58) ** 5, 1.36), wood, .008, region='gate')
-    mesh.box('Weathered gate threshold', (2.19, .16, .52), (0, 4.075, .29), stone[0], .026, region='gate')
-    mesh.box('Cypress transom', (3.27, .35, .46), (0, 6.76, .13), red[0], .034, region='gate')
-    mesh.box('Shallow shadow lintel', (3.63, .15, .65), (0, 7.08, .12), wood, .015, region='gate')
-    mesh.box('Old carved sign back', (.95, .26, .09), (0, 6.79, .42), wood, .016, region='gate')
-    mesh.box('Old carved sign inner panel', (.87, .20, .034), (0, 6.79, .472), red[1], .010, region='gate')
-    for i in range(5):
-        angle = math.radians(32)
-        x = .32 + i * .148
-        z = -.62 + i * .093
-        mesh.box(f'Open gate leaf plank {i + 1}', (.168, 2.35, .092), (x, 5.24, z), red[i % len(red)], .014, -angle, 'gate')
-    for y in (4.31, 5.00, 6.17):
-        mesh.box('Weathered gate door strap', (.83, .075, .12), (.62, y, -.40), iron, .008, math.radians(-32), 'gate')
-    for s in (-1, 1):
-        for i in range(6):
-            x = s * (2.42 + i * .83)
-            for j in range(3):
-                mesh.box(f'Shoulder wall {s} {i} {j}', (.84, .41, .49),
-                         (x + s * .09 * (j % 2), 4.205 + j * .40, .44),
-                         stone[(i + j) % len(stone)], .024, region='gate')
-            cap_width, cap_x = .88, x
-            if s < 0 and i == 0:
-                # Keep the outer end and stop the glazed cap inside the solid jamb.
-                cap_width, cap_x = .80, x - .04
-            mesh.box(f'Wall cap {s} {i}', (cap_width, .12, .67), (cap_x, 5.27, .44),
-                     tiles[i % len(tiles)], .024, region='gate')
-    gate_guide(wood, iron)
-    roof(z=.08, x=0, y=7.26, w=5.15, d=1.34, h=.87, tiles=tiles, wood=wood, label='Gate', region='gate')
-    mesh.box('Inner shrine stone platform', (5.7, .31, 4.2), (.17, 4.05, -5.0), stone[1], .038, region='gate')
-    mesh.box('Inner shrine backdrop', (5.0, 2.53, .23), (.17, 5.47, -6.35), red[2], .023, region='gate')
-    for x in (-2.11, -.61, .95, 2.45):
-        mesh.box('Inner shrine cypress post', (.18, 2.45, .23), (x, 5.4, -3.62), red[1], .018, region='gate')
-    roof(z=-4.95, x=.17, y=6.70, w=6.05, d=1.85, h=.97, tiles=tiles, wood=wood, label='Inner shrine', region='gate')
-
-
-def gate_guide(wood, iron):
-    # This small fixed guide belongs to the right gate bracket, away from the
-    # personal candle recess. A dark arm visibly carries its paper-and-metal box.
-    x, y, z = .91, 6.34, 1.12
-    paper = mesh.material('Amber mulberry paper gate guide', '#d99751', rough=.84,
-                          emission=1.25 / PRE_EXPOSURE)
-    glaze = mesh.material('Brown patina on gate guide metal', '#513a2e', rough=.52, metal=.54)
-    mesh.box('Guide mounting saddle fixed into gate post', (.28, .17, .12),
-             (1.23, 6.73, .272), wood, .012, region='gate')
-    mesh.curved_tube('Guide bracket forged into saddle',
-                     [(1.17, 6.73, .31), (.96, 6.79, .72), (x, 6.72, z), (x, 6.59, z)],
-                     [.023, .020, .016, .010], iron, radial=8, region='gate')
-    mesh.lathe('Guide roof and drip edge', [(0, -.018), (.156, -.018), (.157, .005),
-               (.092, .059), (.023, .073), (0, .073)], (x, y + .218, z), glaze, 8, 'gate')
-    mesh.lathe('Guide terminal bronze foot', [(0, -.044), (.066, -.044), (.134, -.013),
-               (.133, .013), (0, .013)], (x, y - .121, z), glaze, 8, 'gate')
-    radius = .117
-    vertices = []
-    for h in (.0, .333):
-        for i in range(8):
-            angle = math.pi / 8 + i * math.tau / 8
-            vertices.append((x + math.cos(angle) * radius, y - .12 + h, z + math.sin(angle) * radius))
-    faces = [(i, i + 8, (i + 1) % 8 + 8, (i + 1) % 8) for i in range(8)]
-    shell = mesh.mesh_object('Eight amber paper faces in the gate guide', vertices, faces, paper, 'gate')
-    chart = [(.0895 * i, .333) for i in range(9)]
-    source_uv(shell, [[(chart[i][0], 0), chart[i], chart[i + 1], (chart[i + 1][0], 0)]
-                      for i in range(8)], 'Continuous octagonal guide paper strip.')
-    for i in range(8):
-        a, b = vertices[i], vertices[i + 8]
-        mesh.beam('Fine metal rib on the guide', a, b, .0034, glaze, .0034, 'gate')
-    mesh.light('Front emission spill from the suspended gate guide', (x + .15, y - .10, z + .21),
-               4.75 / PRE_EXPOSURE, '#ffca91', .13)
-    mesh.light('Warm light spilling down the inside of the gate', (x - .10, y - .24, z - .045),
-               2.40 / PRE_EXPOSURE, '#ffc68e', .16)
-    # The pale paving returns a broad, muted wash to the brackets and transom.
-    # A small area source leaves the roof and surrounding forest in cool shadow.
-    bounce = bpy.data.lights.new('Warm paving bounce under the gate guide', 'AREA')
-    bounce.energy, bounce.color, bounce.shape, bounce.size = .88, (1., .76, .54), 'DISK', 1.04
-    emitter = bpy.data.objects.new(bounce.name, bounce)
-    bpy.data.collections['LIGHTS'].objects.link(emitter)
-    emitter.location = mesh.point((.42, 6.06, 1.71))
-    emitter.rotation_euler = (mesh.point((.26, 6.89, .42)) - emitter.location).to_track_quat('-Z', 'Y').to_euler()
-    emitter['bake_role'] = 'fixture'
-
-
 def roof(z, x, y, w, d, h, tiles, wood, label, region):
     lanes, rows = 19, 4
     for s in (-1, 1):
@@ -1004,8 +901,6 @@ def source_lighting(scene):
         source.location = mesh.point(location)
         source.rotation_euler = (mesh.point(aim) - source.location).to_track_quat('-Z', 'Y').to_euler()
         source['bake_role'] = 'ambient'
-    for p, watts in [((.98, 6.38, .62), 1.98), ((.15, 6.25, -4.8), 2.1)]:
-        mesh.light('Hidden warm reflected temple light', p, watts / PRE_EXPOSURE, '#f5b27e', .26)
     point = mesh.light('Visitor candle indirect bounce basis', LAMP, .20, '#ffc88a', .007, 'lamp')
     point.data.color = (1, .72, .47)
     scene['one_light_lamp_basis'] = json.dumps({'position': list(LAMP), 'watts': float(point.data.energy),
@@ -1023,11 +918,11 @@ def build(output):
         scene.collection.children.link(bpy.data.collections.new(name))
     mesh.STATIC = bpy.data.collections['STATIC']
     contacts = RestingContacts(height_query=supports_height)
-    stone, rock, ground, wood, red, tiles, bark, needle, iron, clay, soot, ledge, reveal = palette()
+    stone, rock, ground, wood, timber, tiles, bark, needle, iron, clay, soot, ledge, reveal = palette()
     support = terrain(ground)
     climbing_steps(stone)
     forest(support, rock, stone, bark, needle)
-    gate(stone, tiles, wood, red, iron)
+    saddle_water(stone)
     candle_niche(stone, soot, clay, iron, ledge, reveal)
     paint_stone()
     scene.render.engine = 'CYCLES'
@@ -1058,7 +953,7 @@ def build(output):
     scene['one_light_anchor_fields'] = json.dumps(['one_light_lamp_anchor', 'one_light_lamp_basis'])
     audit = contacts.audit()
     scene['resting_prop_inventory'] = json.dumps({'registeredGroups': [entry['name'] for entry in contacts.entries],
-        'fixedArchitecture': 'Pine roots and slate outcrops enter terrain. Stone courses, steps, niche and eaves are structural. The guide bracket is built into the right gate post.'})
+        'fixedArchitecture': 'Pine roots and slate outcrops enter terrain. Steps, bridge, shrine and terrace walls have structural support.'})
     bpy.context.view_layer.update()
     # Start close to this isolated bearing surface to preserve submicron
     # precision in the Float32 BVH intersection across the dense shelf grid.
