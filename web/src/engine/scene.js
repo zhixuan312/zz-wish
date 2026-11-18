@@ -13,7 +13,7 @@ import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeom
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import { mergeGeometries, mergeVertices } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { COLORS, PRESET_SHAPES } from '../../../shared/rules.ts';
+import { COLORS, PRESET_SHAPES, lanternHeightMetres, shapeMinutes } from '../../../shared/rules.ts';
 import { GAUZE_CANDLE_REFERENCE } from './baked/gauzeTransmission.js';
 import { acquireNativeAgX, NativeAgXPass } from './baked/nativeAgX.js';
 import visitorFabric from './baked/visitor-fabric.json';
@@ -291,7 +291,7 @@ const outside = new THREE.Scene();
 const previewFill = new THREE.DirectionalLight(0xe4dbc2, 0); previewFill.position.set(1, 2, 2); previewFill.layers.enableAll(); outside.add(previewFill);
 const previewFillTarget=new THREE.Object3D();outside.add(previewFillTarget);previewFill.target=previewFillTarget;
 const gauzePreviewIntensity=2.5;
-let gauzePreviewBlend=0, pinePreviewFill=0;
+let gauzePreviewBlend=0, previewFloor=0, pinePreviewFill=0;
 function aimGauzePreview(light,target,centre,eye){
   const offset=eye.clone().sub(centre).normalize().add(V3(0,.18,0)).normalize();
   light.position.copy(light.parent.worldToLocal(centre.clone().add(offset)));
@@ -374,6 +374,12 @@ function visitorRibMaterial(color){
   const material=lampWood.clone(),cloth=new THREE.Color(color),maximum=Math.max(.0001,cloth.r,cloth.g,cloth.b);
   const throughput=new THREE.Color().setRGB(...[cloth.r,cloth.g,cloth.b].map(c=>.06*Math.pow(c/maximum,.7)));
   material.roughness=.9;material.envMapIntensity=.1;
+  // An unlit or ended shade is backlit by nothing, so its bamboo ribs used to
+  // flatten into a red silhouette. Give the ribs a small constant term of their
+  // own colour: enough to count them at 100% crop, small enough that a burning
+  // shade still reads as cloth glowing from within.
+  material.emissive=new THREE.Color(color).multiplyScalar(.16);
+  material.emissiveIntensity=1;
   material.onBeforeCompile=shader=>{
     shader.uniforms.uClothThroughput={value:throughput};
     shader.fragmentShader='uniform vec3 uClothThroughput;\n'+shader.fragmentShader.replace('#include <lights_fragment_begin>',THREE.ShaderChunk.lights_fragment_begin.replace('getPointLightInfo( pointLight, geometryPosition, directLight );',`getPointLightInfo( pointLight, geometryPosition, directLight );
@@ -381,7 +387,7 @@ function visitorRibMaterial(color){
       if(flameDistance2<1.)directLight.color*=uClothThroughput*flameDistance2/(flameDistance2+.0016);}`));
   };
   material.userData.lampOwned=true;
-  material.customProgramCacheKey=()=> 'visitor-gauze-transmitted-ribs-1';return material;
+  material.customProgramCacheKey=()=> 'visitor-gauze-transmitted-ribs-2';return material;
 }
 
 // A shade lit from inside: paper, gauze or pottery that glows most where the flame is near.
@@ -617,12 +623,21 @@ const LAMPS = {
   // A gauze lantern hanging under the eaves, ribbed with bamboo, a tassel below; its outline is the person's.
   gauze(o = presetOf('shade')) {
     const topCx=o.rows[o.rows.length-1].cx;
-    // Fuel duration does not push a larger shade through its ceiling beam.
-    // Preserve every drawn profile proportion within a real hanging envelope.
+    // The shade grows with the burning time the person chose: ten minutes
+    // hangs 0.35 m, a full day 0.56 m, and the ceiling beam clears both. The
+    // drawn outline keeps its proportions inside that envelope.
     const width=Math.max(...o.rows.map(row=>row.r+Math.abs(row.cx-topCx)));
-    const size=o.liveBaked?Math.min(.56/Math.max(.0001,o.rows.at(-1).y),.21/Math.max(.0001,width)):shadeScale(o.rows,3.8,.02);
+    const envelope=lanternHeightMetres(shapeMinutes({ rows: o.rows })) / .56;
+    const size=o.liveBaked?envelope*Math.min(.56/Math.max(.0001,o.rows.at(-1).y),.21/Math.max(.0001,width)):shadeScale(o.rows,3.8,.02);
     const lacquer=o.liveBaked?lacquerBlack.clone():lacquerBlack,suspension=o.liveBaked?cordMat.clone():cordMat;
-    if(o.liveBaked){lacquer.userData.lampOwned=true;suspension.userData.lampOwned=true;suspension.color.setHex(0x746041);suspension.roughness=.95;}
+    if(o.liveBaked){
+      lacquer.userData.lampOwned=true;suspension.userData.lampOwned=true;suspension.color.setHex(0x746041);suspension.roughness=.95;
+      // The visitor's lacquer rim faces the bright hall, and its clearcoat caught the
+      // vent's specular as the walk swept past: the shade's measured mean brightness
+      // rose 31% in one frame and fell back. A matte finish spreads that highlight
+      // instead of concentrating it, without dimming the rim's own colour.
+      lacquer.roughness=Math.max(lacquer.roughness,.9);lacquer.clearcoat=0;lacquer.envMapIntensity=Math.min(lacquer.envMapIntensity??1,.25);
+    }
     const g = new THREE.Group(), P = scaled(o.rows,size), H = P[P.length - 1][1], y0 = -.066 - H;
     const centerAt=y=>{const q=ringAt(o.rows,Math.max(0,Math.min(H,(y-y0)))/size);return(q.cx-topCx)*size;};
     const bottomCx=centerAt(y0);
@@ -925,7 +940,9 @@ const api = { g, parts: null, partsKey: null, type: null, power: 0, lightPower: 
       place?.baked?.gauzeTransmission?.update(f.light);
       this.lightPower = power * k * keep;
       oilGlow.userData.u.uGlow.value = .4 * power * k;
-      const cooling=clockTime<shadeCoolingUntil?shadeCoolingGlow*Math.pow((shadeCoolingUntil-clockTime)/5.2,1.5):0;
+      // Burned down keeps its short power curve; a put-out shade cools on an
+      // exponential in time, which holds a steady fractional step per frame.
+      const cooling=clockTime<shadeCoolingUntil?(shadeCoolingTau>0?shadeCoolingGlow*Math.exp(-(clockTime-shadeCoolingStart)/shadeCoolingTau):shadeCoolingGlow*Math.pow((shadeCoolingUntil-clockTime)/5.2,1.5)):0;
       for (const m of p.shells ?? []) {
         const u=m.userData.u,transport=place?.baked?.gauzeTransmission;
         u.uFlame.value.copy(fw);u.uGlow.value=Math.max(2.4*m.userData.strength*power*k*keep,cooling*m.userData.strength);
@@ -1794,17 +1811,36 @@ const viewOf = (v) => {
   return { pos: look.clone().add(pos.sub(look).multiplyScalar(1.45)), look };
 };
 const coverView = () => viewOf(narrow()&&place.P.nook.coverPhone?place.P.nook.coverPhone:place.P.nook.cover);
-function fitShadeView(v){
+// Framing uses the full-day lamp as a fixed reference, so choosing a shorter
+// burn changes the shade but never moves the camera: the size difference stays
+// visible instead of being cancelled by a refit.
+const LANTERN_REFERENCE = { h: .76, cy: -.35 };
+// `exact` places the camera at the distance the reference demands, so the
+// cloth fills the requested fraction of the frame. Without it the authored
+// viewpoint only pulls back if it would otherwise be too close.
+function fitShadeView(v,desktopFraction=.45,desktopSubjectY=.36,exact=false,phoneYaw=0){
   if (!place.P.bakedLighting || place.P.nook.lamp !== 'gauze' || !mine.parts?.frame) return v;
-  const fr=mine.parts.frame,c=mine.g.localToWorld(V3(0,fr.cy,0));
+  const c=mine.g.localToWorld(V3(0,LANTERN_REFERENCE.cy,0));
   const offset=V3(v.pos.x-c.x,0,v.pos.z-c.z),base=offset.length();
-  const fraction=narrow()?.26:.45,subjectY=narrow()?.20:.36;
+  // On a phone the sheet covers the lower two thirds, so the lamp must sit in
+  // the visible band with its cord and tassel above the altar stand rather than
+  // over it. Raising the subject within the frame gives that gap without
+  // touching the stand, the shade or any asset.
+  const fraction=narrow()?.21:desktopFraction,subjectY=narrow()?.17:desktopSubjectY;
   const tangent=Math.tan(THREE.MathUtils.degToRad(v.fov/2));
-  const distance=Math.max(base,fr.h/(2*tangent*fraction));offset.setLength(distance);
+  const wanted=LANTERN_REFERENCE.h/(2*tangent*fraction);
+  const distance=exact?wanted:Math.max(base,wanted);offset.setLength(distance);
+  // The phone stand sits directly under the shade, so raising the subject cannot
+  // separate them. Swing the camera around the lamp instead: the shade and its
+  // tassel move off the stand's screen column while the stand stays put.
+  if(narrow()&&phoneYaw)offset.applyAxisAngle(V3(0,1,0),phoneYaw);
   v.pos.x=c.x+offset.x;v.pos.z=c.z+offset.z;
   const pitch=Math.atan2(c.y-v.pos.y,distance)-Math.atan((1-2*subjectY)*tangent);
   v.look.set(c.x,v.pos.y+Math.tan(pitch)*distance,c.z);return v;
 }
+// B5: the phone choose view swings this far around the lamp so the shade and
+// its tassel clear the altar stand's screen column.
+const CHOOSE_PHONE_YAW=.22;
 const chooseView = () => {
   const N = place.P.nook;
   if (N.lamp === 'pineWax' && narrow()) {
@@ -1822,7 +1858,7 @@ const chooseView = () => {
   }
   const v=viewOf((narrow()&&N.choosePhone)||N.choose||N.wide);
   if(narrow()&&!place.P.bakedLighting&&N.lamp!=='pineWax')v.look.y-=v.pos.distanceTo(v.look)*.10;
-  return fitShadeView(v);
+  return fitShadeView(v, undefined, undefined, false, CHOOSE_PHONE_YAW);
 };
 function burnView(){
   const N=place.P.nook,v=viewOf((narrow()&&N.burnPhone)||N.burn);
@@ -1851,7 +1887,13 @@ function burnView(){
   const fuelProfile=mine.offer?.rows?.at(-1)?.y;
   const originalSize=fuelProfile?fuelProfile*3.8+.2:mine.parts.frame.h;
   const far=viewOf((narrow()&&N.burnFarPhone)||N.burnFar),k=THREE.MathUtils.clamp((originalSize-.45)/.32,0,1);
-  v.pos.lerp(far.pos,k);v.look.lerp(far.look,k);v.fov=THREE.MathUtils.lerp(v.fov,far.fov,k);return v;
+  v.pos.lerp(far.pos,k);v.look.lerp(far.look,k);v.fov=THREE.MathUtils.lerp(v.fov,far.fov,k);
+  // J5: on a wide screen the settled burning view showed the lantern cloth at
+  // about 15% of frame height, so the floor dominated. The reference frame is
+  // 0.76 m tall and its cloth is the top 0.56 m, so requesting 0.33 of the
+  // frame puts the full-day cloth near 24% and the ten-minute cloth near 15%.
+  // Only the camera moves; the authored direction out of the altar stays.
+  return narrow()?v:fitShadeView(v,.33,.34,true);
 }
 // The person's lamp lives in the current place's spot.
 function attachMine() {
@@ -1897,7 +1939,7 @@ if (import.meta.env.DEV) {
   window.__visualPineContactView = () => { pineDiagnosticView = 'contact'; };
   window.__visualPineCloseupRestore = () => { pineDiagnosticView = null; };
 }
-let shadeCoolingUntil=0,shadeCoolingGlow=0, emberUntil = 0, wind = 0, roomLight = 1, ignitionFill=0;
+let shadeCoolingUntil=0,shadeCoolingGlow=0,shadeCoolingStart=0,shadeCoolingTau=0, emberUntil = 0, wind = 0, roomLight = 1, ignitionFill=0;
 let pointerX = 0, pointerY = 0, previousPointerX = 0;
 window.addEventListener('pointermove', (e) => {
   pointerX = e.clientX / innerWidth * 2 - 1; pointerY = 1 - e.clientY / innerHeight * 2;
@@ -2122,10 +2164,26 @@ export async function travel(id) {
     if(P.bakedLighting){
       const forward=curve.getTangentAt(Math.min(.999,e));
       target.copy(rig.pos).addScaledVector(forward,6);target.y=rig.pos.y+.08;
-      target.lerp(arrival.look,smooth(.78,.92,e));target.lerp(end.look,smooth(.93,1,e));
+      if (N.lamp === 'gauze') {
+        // The turn from the walking heading to the chooser heading is spread over the
+        // last fifth of the walk; compressed into the final second it swung the camera
+        // by roughly 70 CSS px per frame and read as a cut.
+        target.lerp(arrival.look,smooth(.70,.86,e));target.lerp(end.look,smooth(.84,1,e));
+        // Distance-driven fov: from the last stretch of the walk the field of view
+        // grows exactly as fast as the camera closes in, so the shade keeps a constant
+        // size on screen instead of shrinking, and it arrives at the chooser's fov by
+        // the time the walk ends. Clamped between the walking fov and the chooser fov.
+        const lampC=mine.g.getWorldPosition(V3()), dNow=Math.hypot(rig.pos.x-lampC.x,rig.pos.z-lampC.z);
+        const dEnd=Math.hypot(end.pos.x-lampC.x,end.pos.z-lampC.z);
+        const fovEnd=end.fov??f0;
+        const wanted=fovEnd===f0?f0:2*Math.atan(Math.tan(THREE.MathUtils.degToRad(fovEnd/2))*dEnd/Math.max(.001,dNow))*180/Math.PI;
+        rig.fov=Math.min(Math.max(f0,fovEnd),Math.max(Math.min(f0,fovEnd),wanted));
+      } else {
+        target.lerp(arrival.look,smooth(.78,.92,e));target.lerp(end.look,smooth(.93,1,e));
+        const contextFov=THREE.MathUtils.lerp(f0,arrival.fov??f0,smooth(.72,.88,e));
+        rig.fov=THREE.MathUtils.lerp(contextFov,end.fov??f0,smooth(.91,1,e));
+      }
       rig.look.lerpVectors(l0,target,Math.min(1,e*7));rig.amp=0;
-      const contextFov=THREE.MathUtils.lerp(f0,arrival.fov??f0,smooth(.72,.88,e));
-      rig.fov=THREE.MathUtils.lerp(contextFov,end.fov??f0,smooth(.91,1,e));
     }else{
       rig.look.lerpVectors(l0,target,Math.min(1,e*4));rig.amp=a0*(1-Math.min(1,k*3))+.006;
     }
@@ -2156,7 +2214,7 @@ export async function ignite({onCatch, remainingFuel}={}) {
     if (import.meta.env.DEV) window.__visualIgnition = { state, progress, journey,
       position: rig.pos.toArray(), look: rig.look.toArray(), fov: rig.fov ?? camera.fov, ...evidence };
   };
-  lit=true;emberUntil=0;wickPlume.clear();shadeCoolingUntil=0;shadeCoolingGlow=0;roomLight=1;ignitionFill=place.P.bakedLighting?1:0;mark('igniting',0);
+  lit=true;emberUntil=0;wickPlume.clear();shadeCoolingUntil=0;shadeCoolingGlow=0;shadeCoolingStart=0;shadeCoolingTau=0;roomLight=1;ignitionFill=place.P.bakedLighting?1:0;previewFloor=1;mark('igniting',0);
   const pine = !!mine.parts?.pineWax;
   if (pine) waxFuel = remainingFuel ?? null;
   if (!place.P.bakedLighting) {
@@ -2277,6 +2335,12 @@ export async function snuff(done = false, remaining) {
   // Went out: sudden, and the place keeps less of its light. Burned down: it stays as it was.
   if (!done && !place.P.bakedLighting) void tween(1.6, (k) => { roomLight = 1 - .3 * ease(k); });
   const p0=done?Math.min(.24,Math.max(.015,lastPower)):mine.power;mine.power=p0;
+  // Putting a lamp out stays sudden for the flame, its light and the smoke: only
+  // the cloth holds heat. The cloth starts from the glow it had a frame before
+  // and cools exponentially, so it never flashes or cuts.
+  // The cloth's own glow is what cools, and it sits around 2.4 * strength * power
+  // while lit; start from that so the first cooled frame matches the last lit one.
+  if(!done&&endingParts?.shells?.length){shadeCoolingStart=clockTime;shadeCoolingGlow=Math.max(.02,Math.min(2.4,lastGlow*.9));shadeCoolingUntil=clockTime+16;shadeCoolingTau=2.6;}
   await tween(done?2.6:.12,k=>{mine.power=p0*Math.pow(1-k,done?1.35:1)*(done?.78+.22*Math.sin(k*17)**2:1);});mine.power=0;
 }
 
@@ -2390,8 +2454,16 @@ function frame(stamp = performance.now()) {
       previewFill.position.copy(toWorld(V3(.24, 1.46, .83)));
       previewFillTarget.position.copy(toWorld(V3(0, 1.09, 0)));
     }else{previewFill.position.set(1,2,2);previewFillTarget.position.set(0,0,0);}
+    // The chosen lamp keeps a small fill so its cloth and rim read while unlit. When
+    // the walk ends and the chooser takes over, the target steps from .55 to 1; at
+    // five per second that step covers half its range inside one 200 ms sample and
+    // the rim flashes. Only the walk-to-chooser rise is eased at the target, so
+    // ignition and put-out keep their own timing.
     const previewTarget=mine.g.visible&&atLamp?(phase==='candle'?1:!lit?.55:ignitionFill):0;
-    gauzePreviewBlend+=(previewTarget-gauzePreviewBlend)*(1-Math.exp(-dt*5));
+    const risingToChooser=phase==='candle'&&!lit;
+    if(risingToChooser)previewFloor+=(previewTarget-previewFloor)*(1-Math.exp(-dt*1.2));
+    else previewFloor=previewTarget;
+    gauzePreviewBlend+=(previewFloor-gauzePreviewBlend)*(1-Math.exp(-dt*5));
     if (P.bakedLighting && mine.parts?.pineWax && atLamp) {
       const fillTarget = phase === 'candle' || lit
         ? THREE.MathUtils.lerp(1.35, .19, THREE.MathUtils.clamp(mine.power, 0, 1))

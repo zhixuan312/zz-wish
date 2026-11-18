@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { MAX_MINUTES, PAD, PRESET_MINUTES, PRESET_SHAPES, isAllowedMinutes, shapeMinutes, shapeSchema, sizedPreset } from '../../../shared/rules.ts';
+import { MAX_MINUTES, PAD, PRESET_MINUTES, PRESET_SHAPES, isAllowedMinutes, lanternHeightMetres, shapeMinutes, shapeSchema, sizedPreset } from '../../../shared/rules.ts';
 
 const cylinder = (r: number, h: number) => ({ kind: 'candle' as const, color: 0, rows: [{ y: 0, cx: 0, r }, { y: h, cx: 0, r }] });
 
@@ -21,5 +21,21 @@ describe('duration rule', () => {
   it('rejects anything under 5 minutes', () => {
     expect(isAllowedMinutes(shapeMinutes(cylinder(0.004, 0.02)))).toBe(false);
     expect(isAllowedMinutes(5)).toBe(true);
+  });
+});
+
+describe('hanging lantern envelope', () => {
+  it('spans the delivered ceiling beam envelope, from the ten-minute preset to the full day', () => {
+    expect(lanternHeightMetres(PRESET_MINUTES[0])).toBeCloseTo(0.35, 10);
+    expect(lanternHeightMetres(MAX_MINUTES)).toBeCloseTo(0.56, 10);
+  });
+  it('holds the envelope outside the preset range', () => {
+    for (const m of [-60, 0, 5, 9.9]) expect(lanternHeightMetres(m)).toBeCloseTo(0.35, 10);
+    for (const m of [1441, 2880, 100000]) expect(lanternHeightMetres(m)).toBeCloseTo(0.56, 10);
+  });
+  it('grows strictly with every longer preset, so a longer wish shows a taller shade', () => {
+    for (let i = 1; i < PRESET_MINUTES.length; i++) {
+      expect(lanternHeightMetres(PRESET_MINUTES[i])).toBeGreaterThan(lanternHeightMetres(PRESET_MINUTES[i - 1]));
+    }
   });
 });

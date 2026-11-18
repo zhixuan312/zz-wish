@@ -777,8 +777,8 @@
       "files": [
         {
           "path": "web/src/engine/scene.js",
-          "bytes": 174047,
-          "sha256": "d5d424a1f8b3183865a0a09958ed6346f61bb63bdd9ec0ff7d49a920a90fcc65"
+          "bytes": 179576,
+          "sha256": "fc784307411f28cf8eb750b737908d4128b0d6507190a56af56fa7b383521588"
         },
         {
           "path": "web/src/engine/WickPlume.js",
@@ -837,8 +837,8 @@
         },
         {
           "path": "web/src/engine/places/snow-roof-baked.js",
-          "bytes": 8044,
-          "sha256": "1e5a3435693fb1e36cbd098e61470e6fabeb3137aa375bd5d977dbacffad73d5"
+          "bytes": 8381,
+          "sha256": "26fc7dc3382b9c07c7843fb8db12663d3da0d6d3067e6ad39d0d529a96951f0f"
         },
         {
           "path": "web/src/engine/places/cloud-cliff-baked.js",
@@ -857,8 +857,8 @@
         },
         {
           "path": "web/src/engine/places/cloud-light-volume.js",
-          "bytes": 8797,
-          "sha256": "b0d078a9ba9d0177c88ce38a24a0eabd87dc1de1ef532006682683aa2e60a7ae"
+          "bytes": 9198,
+          "sha256": "ce7503a04eeffa03fa79567c3433271fab0a33a3b1ca83c676e26f2398a4f067"
         },
         {
           "path": "web/src/engine/places/cloud-light-prefix-v1.js",

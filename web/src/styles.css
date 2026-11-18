@@ -112,13 +112,18 @@ textarea[aria-invalid=true] { border-color:#f0b69a; }
 .pad { display:block; width:126px; aspect-ratio:2 / 3; border:1px dashed #bbc2a070; border-radius:3px; background:#121b1555; touch-action:none; cursor:crosshair; }
 .draw-side { display:grid; gap:10px; }
 .draw-side .row { flex-wrap:wrap; }
-.pill { position:absolute; top:83px; left:50%; transform:translateX(-50%); font:12px/1.4 var(--sans); color:#ccd1bc; text-shadow:0 2px 10px #000; white-space:nowrap; pointer-events:none; transition:opacity .6s; }
-.pill::before { content:''; display:inline-block; width:4px; height:4px; margin:0 9px 2px 0; background:#d7ba79; }
+/* The presence count is ambient context, not a status: it sits below the wish
+   text in emphasis, so it must not compete with the person's own words or the
+   lamp. Muted colour, small caps-free size and a hairline dot, no glow. */
+.pill { position:absolute; top:83px; left:50%; transform:translateX(-50%); font:11px/1.4 var(--sans); letter-spacing:.02em; color:#8d9584; text-shadow:none; white-space:nowrap; pointer-events:none; opacity:.72; transition:opacity .6s; }
+.pill::before { content:''; display:inline-block; width:3px; height:3px; margin:0 8px 2px 0; background:#8d9584; opacity:.7; }
 .toast { position:absolute; right:20px; top:110px; z-index:6; display:flex; align-items:center; gap:12px; padding:10px 14px; background:#111713e8; border:1px solid var(--line); font:13px var(--sans); pointer-events:auto; }
 .hud { position:absolute; inset:0; pointer-events:none; }
 .hud-top { display:none; }
 .hud-bottom { position:absolute; inset:auto 0 0; display:grid; justify-items:center; gap:6px; padding:14px 16px max(16px,env(safe-area-inset-bottom)); text-align:center; background:linear-gradient(0deg,#080d0cee,#080d0c90 75%,transparent); transition:opacity .6s,transform .6s; }
-.hud-wish { max-width:42em; font:14px/1.4 var(--serif); color:#e3ddcb; overflow-wrap:anywhere; pointer-events:auto; }
+.hud-wish { max-width:42em; font:14px/1.4 var(--serif); color:#e3ddcb; overflow-wrap:anywhere; pointer-events:auto; display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; line-clamp:2; overflow:hidden; }
+/* A wish longer than the two-line burning box is clipped with a visible
+   ellipsis rather than silently cut, and never grows past its container. */
 .hud-meta { display:flex; justify-content:center; align-items:center; flex-wrap:wrap; gap:4px 14px; }
 .hud-time,.hud-left { font:12px/1.4 var(--sans); color:var(--dim); font-variant-numeric:tabular-nums; }
 .hud-meta .note { font-size:11px; }
@@ -199,7 +204,13 @@ textarea[aria-invalid=true] { border-color:#f0b69a; }
   .readout > .note { display:none; }
   .readout > .note:last-child:not(:first-child) { display:block; max-width:170px; font-size:10px; }
   .swatch { width:36px; height:36px; }
-  .pad { width:150px; } .draw { gap:12px; }
+  /* The phone pad stays 200 px wide with its 2:3 shape. A full-width pad pushed
+     the draw tools and the light button below the visible sheet, which made the
+     first stroke and Undo unreachable; 200 px keeps the pad, Undo, Redo and the
+     light action all on screen while leaving a 200x300 CSS px drawing target. */
+  .design-options:has(.draw) { height:auto; }
+  .draw { grid-template-columns:auto minmax(0,1fr); gap:10px; align-items:start; }
+  .pad { width:200px; max-width:200px; }
   .draw-side .note { font-size:11px; } .draw-side .btn { padding:8px 10px; }
   .light-notes { min-height:40px; gap:3px; } .light-notes .note { font-size:11px; line-height:1.4; }
   .candle-actions .btn { font-size:14px; padding:10px 8px; }
