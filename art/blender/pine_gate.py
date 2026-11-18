@@ -32,6 +32,25 @@ def supports_height(x, z, supports):
     return float(hit.z)
 
 
+def neutral_granite_albedo():
+    """Keep photographed relief in a neutral, full-resolution niche albedo."""
+    import numpy as np
+
+    source = bpy.data.images.load(str(mesh.MATERIALS / 'rock_pitted_mossy' / 'diffuse.jpg'),
+                                  check_existing=True)
+    width, height = source.size
+    original = np.empty(width * height * 4, dtype=np.float32)
+    source.pixels.foreach_get(original)
+    rgba = original.reshape(height, width, 4)
+    lightness = rgba[..., :3] @ np.asarray((.2126, .7152, .0722), dtype=np.float32)
+    rgba[..., :3] = lightness[..., None] * np.asarray((.945, 1., 1.035), dtype=np.float32)
+    np.clip(rgba, 0., 1., out=rgba)
+    derivative = bpy.data.images.new('pine-niche-granite-gray', width=width, height=height, alpha=False)
+    derivative.pixels.foreach_set(rgba.ravel())
+    derivative.pack()
+    return derivative
+
+
 def palette():
     stone = [mesh.material(f'Wet granite {i}', color, 'stone_pavers', .86)
              for i, color in enumerate(('#90897b', '#817d72', '#827d70', '#9d998a', '#6f7569'))]
@@ -47,12 +66,15 @@ def palette():
             for i, color in enumerate(('#293626', '#3d4930', '#37452a', '#424c35', '#50603b'))]
     iron = mesh.material('Aged black iron', '#3d3831', rough=.65, metal=.35)
     clay = mesh.material('Gray green celadon', '#786c49', rough=.37)
-    soot = mesh.material('Chisel-faced granite beneath soot', '#a99c8b', 'rock_pitted_mossy', .92)
-    ledge = mesh.material('Worn fine granite on the wick shelf', '#918878', 'rock_pitted_mossy', .82)
-    for material, amount in ((soot, .14), (ledge, .18)):
+    soot = mesh.material('Chisel-faced granite beneath soot', '#a9b0bb', 'rock_pitted_mossy', .92)
+    ledge = mesh.material('Worn fine granite on the wick shelf', '#a1a7af', 'rock_pitted_mossy', .82)
+    close_albedo = neutral_granite_albedo()
+    for material, amount in ((soot, .18), (ledge, .22)):
         for node in material.node_tree.nodes:
             if node.type == 'NORMAL_MAP':
                 node.inputs['Strength'].default_value = amount
+            if node.type == 'TEX_IMAGE' and node.label.endswith('Base Color'):
+                node.image = close_albedo
         bsdf = material.node_tree.nodes.get('Principled BSDF')
         for link in list(bsdf.inputs['Roughness'].links):
             material.node_tree.links.remove(link)
@@ -676,7 +698,7 @@ def source_lighting(scene):
     for p, watts in [((-.69, 6.45, 1.23), 2.65), ((.98, 6.38, .62), 1.98), ((.15, 6.25, -4.8), 2.1)]:
         mesh.light('Hidden warm reflected temple light', p, watts / PRE_EXPOSURE, '#f5b27e', .26)
     point = mesh.light('Visitor candle indirect bounce basis', LAMP, .20, '#ffc88a', .007, 'lamp')
-    point.data.color = (1, .67, .41)
+    point.data.color = (1, .72, .47)
     scene['one_light_lamp_basis'] = json.dumps({'position': list(LAMP), 'watts': float(point.data.energy),
         'linearColor': list(point.data.color), 'pointRadiusMetres': float(point.data.shadow_soft_size),
         'sourceObject': point.name})
