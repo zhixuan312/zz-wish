@@ -209,9 +209,11 @@ async function capture(browser, browserName, size) {
       await assertCaptureGpuHealthy(page);
       const snapshot = await page.evaluate(() => {
         const hud = document.querySelector('.hud-bottom');
+        const hudOpacity = hud ? Number(getComputedStyle(hud).opacity) : null;
         return {
           screen: document.querySelector('.ui')?.dataset.screen,
-          controlsVisible: !!hud?.querySelector('.ctl') && Number(getComputedStyle(hud).opacity) > .99,
+          hudOpacity,
+          controlsVisible: !!hud?.querySelector('.ctl') && hudOpacity > .99,
           result: document.querySelector('[data-testid="result-title"]')?.textContent?.trim(),
           elapsedLabel: document.querySelector('[data-testid="with-you"]')?.textContent?.trim(),
           wax: window.__visualPineWax?.() ?? null,
@@ -385,10 +387,16 @@ async function capture(browser, browserName, size) {
     await advanceVisibleBurn(complete, half, .5);
     const middle = await captureShot('burn-50', { targetProgress: .5 });
     if (quality) {
+      await waitWax(() => {
+        const hud = document.querySelector('.hud-bottom');
+        return document.querySelector('.ui')?.dataset.controlsIdle === 'true'
+          && hud && Number(getComputedStyle(hud).opacity) < .01;
+      });
       await page.evaluate(() => window.__visualPineCloseup());
       try {
         await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
-        await captureShot('candle-closeup');
+        const closeup = await captureShot('candle-closeup');
+        assert(closeup.hudOpacity !== null && closeup.hudOpacity < .01, 'The candle close-up must be clear of the burning HUD.');
       } finally {
         await page.evaluate(() => window.__visualPineCloseupRestore());
       }
