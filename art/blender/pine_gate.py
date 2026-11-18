@@ -10,12 +10,12 @@ import random
 import sys
 
 import bpy
-from mathutils import Matrix, Vector
+from mathutils import Matrix, Vector, noise
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import snow_roof as mesh
 from resting_contacts import RestingContacts, engine
-from snow_lightmap_charts import source_uv
+from snow_lightmap_charts import profile_uv, source_uv
 
 ROOT = Path(__file__).resolve().parents[2]
 ANCHOR = (-1.8, 5.0, .9)
@@ -48,8 +48,11 @@ def palette():
             for i, color in enumerate(('#25392b', '#314638', '#344835', '#394d3c', '#455747'))]
     iron = mesh.material('Aged black iron', '#3d3831', rough=.65, metal=.35)
     clay = mesh.material('Gray green celadon', '#786c49', rough=.37)
-    soot = mesh.material('Old soot in chisel marks', '#4c463c', 'rock_pitted_mossy', .92)
-    return stone, rock, ground, moss, wood, red, tiles, bark, pine, iron, clay, soot
+    soot = mesh.material('Chisel-faced granite beneath soot', '#a99c8b', 'rock_pitted_mossy', .92)
+    aged_wax = mesh.material('Old wax worked into the ledge', '#887860', rough=.77)
+    for material in [*stone, rock, soot]:
+        mesh.vertex_tint_shader(material)
+    return stone, rock, ground, moss, wood, red, tiles, bark, pine, iron, clay, soot, aged_wax
 
 
 def terrain_height(x, z):
@@ -77,31 +80,86 @@ def terrain(material):
     return obj
 
 
+def hewn_block(name, width, height, depth, location, material, region):
+    # Chipped corners, worn toe and an irregular nose are physical geometry.
+    # Near the camera, the edge casts its own uneven soft shadow.
+    ring = [(-.45, -.50), (.41, -.50), (.5, -.41), (.5, .38), (.45, .47),
+            (.27, .50), (.04, .48), (-.19, .50), (-.38, .48), (-.5, .41), (-.5, -.39)]
+    x, y, z = location
+    variation = [(a + RANDOM.uniform(-.009, .009), b + RANDOM.uniform(-.013, .013)) for a, b in ring]
+    wear = [RANDOM.uniform(-.005, .004) - .011 * math.exp(-(a / .22) ** 2)
+            if b > .45 else RANDOM.uniform(-.003, .003) for a, b in ring]
+    points = []
+    for band, inset in ((-height, .018), (-.021, 0), (0, .016)):
+        for j, (a, b) in enumerate(variation):
+            points.append((x + a * (width - inset * 2), y + band + wear[j], z + b * (depth - inset * 2)))
+    n = len(ring)
+    faces = [tuple(range(n)), tuple(reversed(range(n * 2, n * 3)))]
+    for row in range(2):
+        for i in range(n):
+            a, b = row * n, (row + 1) * n
+            j = (i + 1) % n
+            faces.append((a + i, b + i, b + j, a + j))
+    obj = mesh.mesh_object(name, points, faces, material, region)
+    profile_uv(obj, n, 3, {0, 1}, 1)
+    obj['weather_stone'] = True
+    return obj
+
+
 def climbing_steps(stone, moss):
     for i in range(50):
         z = 45.6 - .8 * i
         top = (i + 1) * .08
-        # The long middle run is dry-laid in broad pieces. Each band varies
-        # independently while the walking line has a continuous bearing.
         widths = [1.37 + RANDOM.uniform(-.24, .17), 1.40 + RANDOM.uniform(-.19, .22)]
         widths.append(4.28 - sum(widths))
         edge = -2.14
         for j, width in enumerate(widths):
-            mesh.box(f'Step {i + 1:02} block {j + 1}', (width - .012, .24, .812),
-                     (edge + width / 2, top - .120 + RANDOM.uniform(-.007, .004),
-                      z + RANDOM.uniform(-.007, .007)), RANDOM.choice(stone), .018, region='approach')
+            hewn_block(f'Step {i + 1:02} block {j + 1}', width - .012, .24, .818,
+                       (edge + width / 2, top + RANDOM.uniform(-.007, .004),
+                        z + RANDOM.uniform(-.007, .007)), RANDOM.choice(stone), 'approach')
             edge += width
-        for s in (-1, 1):
+        for direction in (-1, 1):
             material = moss if i % 4 in (1, 2) else stone[4]
-            mesh.box(f'Stair drain curb {s} {i + 1:02}', (.23, .14, .782),
-                     (s * 2.26, top - .018, z), material, .017, region='approach')
+            mesh.box(f'Stair drain curb {direction} {i + 1:02}', (.23, .14, .782),
+                     (direction * 2.26, top - .018, z), material, .017, region='approach')
+            if (i // 5 + direction) % 4 and i < 47:
+                for row in range(2 + int(i > 31)):
+                    hewn_block(f'Stair retaining course {direction} {i} {row}', .46, .25, .798,
+                               (direction * (2.64 + row * .070), top + row * .244 + .02,
+                                z + (.24 if row % 2 else 0)), RANDOM.choice(stone), 'approach')
     mesh.box('Broad stone landing', (5.2, .40, 6.3), (0, 3.80, 3.19), stone[2], .045, region='gate')
     for row in range(7):
         z = 1.51 + row * .64
         for col in range(6):
             x = (col - 2.5) * .84 + .045 * (row % 2)
-            mesh.box(f'Landing flagstone {row} {col}', (.829, .092, .620),
-                     (x, 3.952, z), RANDOM.choice(stone), .018, region='gate')
+            hewn_block(f'Landing flagstone {row} {col}', .829, .092, .628,
+                       (x, 4.00 + RANDOM.uniform(-.003, .003), z), RANDOM.choice(stone), 'gate')
+
+
+def understory(ground, foliage):
+    # Folded leaves rise out of the terrain. The roots are part of the bank.
+    for i in range(52):
+        direction = -1 if i % 2 else 1
+        x = direction * RANDOM.uniform(2.91, 6.2)
+        z = RANDOM.uniform(2.8, 46.3)
+        y = supports_height(x, z, [ground]) - .018
+        vertices, faces = [], []
+        for frond in range(5):
+            theta = frond * math.tau / 5 + RANDOM.uniform(-.40, .40)
+            length = RANDOM.uniform(.15, .31)
+            cs, sn = math.cos(theta), math.sin(theta)
+            start = len(vertices)
+            vertices.extend([(x, y, z),
+                             (x + length * .45 * cs - .036 * sn, y + length * .67, z + length * .45 * sn + .036 * cs),
+                             (x + length * .58 * cs, y + length * .80, z + length * .58 * sn),
+                             (x + length * .45 * cs + .036 * sn, y + length * .62, z + length * .45 * sn - .036 * cs),
+                             (x + length * cs, y + length * .62, z + length * sn)])
+            faces.extend([(start, start + 1, start + 2), (start, start + 2, start + 3),
+                          (start + 1, start + 4, start + 2), (start + 2, start + 4, start + 3)])
+        plant = mesh.mesh_object(f'Mountain fern tufts {i + 1}', vertices, faces, foliage[i % len(foliage)], 'approach')
+        leaf_uv = [(0, 0), (.10, .10), (.15, .13), (.20, .10), (.15, .28)]
+        source_uv(plant, [[(leaf_uv[k % 5][0] + (k // 5) * .4, leaf_uv[k % 5][1]) for k in face] for face in faces],
+                  'Individual folded forest leaves.')
 
 
 def pine_crown(name, center, width, depth, thickness, angle, materials):
@@ -176,6 +234,7 @@ def forest(ground, rock, bark, pine):
     for i, (x, z, h) in enumerate(((-10, 0, 10), (12, -3, 9), (8, -14, 7), (-7, -10, 8),
                                    (-4, -6, 7), (4, -8, 8), (15, 18, 9), (-17, 19, 9))):
         pine_tree(f'Back ridge pine {i + 1}', x, z, h, bark, pine)
+    understory(ground, pine)
     for i, (x, z, r) in enumerate(((-3.1, 34, .64), (3.6, 25, .76), (-3.7, 12, .51), (4.6, 6.9, .52))):
         y = supports_height(x, z, [ground])
         profile = [(0, 0), (r * .40, 0), (r, r * .36), (r * .78, r * .65), (r * .43, r * .82), (0, r * .88)]
@@ -204,6 +263,21 @@ def gate(stone, tiles, wood, red, iron):
         mesh.box(f'Gate bracket lower block {s}', (.56, .23, .72), (bx, 6.92, .08), wood, .023, region='gate')
         mesh.box(f'Gate bracket cantilever {s}', (.29, .16, 1.02), (bx, 7.08, .08), red[2], .018, region='gate')
         mesh.box(f'Gate bracket ledge {s}', (.50, .12, 1.25), (bx, 7.22, .08), wood, .015, region='gate')
+    for side in (-1, 1):
+        x = side * 1.23
+        for tier, reach in enumerate((.32, .47, .64)):
+            y = 6.89 + tier * .135
+            for turn in (False, True):
+                arm = mesh.profile_arm(f'Interlocked pine gate bracket {side} {tier} {turn}', x,
+                                       y + .046 * turn, .08, reach * (.84 if turn else 1), .17,
+                                       .118 if turn else .143, wood if turn else red[(tier + 1) % len(red)], turn)
+                arm['region'] = 'gate'
+            for end in (-1, 1):
+                mesh.box('Exposed gate bracket end grain', (.13, .07, .046),
+                         (x, y + .061, .08 + end * reach), wood, .006, region='gate')
+    for x in (-1.78, -1.45, -1.11, -.77, -.41, 0, .41, .77, 1.11, 1.45, 1.78):
+        mesh.box('Exposed weathered rafter end', (.11, .15, .30),
+                 (x, 7.251 + .24 * abs(x / 2.58) ** 5, 1.36), wood, .008, region='gate')
     mesh.box('Weathered gate threshold', (2.19, .16, .52), (0, 4.075, .29), stone[0], .026, region='gate')
     mesh.box('Cypress transom', (3.27, .35, .46), (0, 6.76, .13), red[0], .034, region='gate')
     mesh.box('Shallow shadow lintel', (3.63, .15, .65), (0, 7.08, .12), wood, .015, region='gate')
@@ -288,12 +362,49 @@ def arch_segment(name, cx, spring, center_z, r0, r1, depth, a, b, mat):
     source_uv(obj, charts, 'Isolated planar true arch-wedge faces.')
 
 
-def candle_niche(stone, rock, soot, clay, iron):
+def hewn_back(x, y, z, material):
+    count = 18
+    vertices = []
+    for row in range(count):
+        for col in range(count):
+            u, v = col / (count - 1), row / (count - 1)
+            px, py = x + (u - .5) * .605, y + v * .60 - .022
+            chip = noise.noise(Vector((px * 77, py * 63, .6))) * .0019
+            chiselled = math.sin(py * 810 + px * 12) * .00048
+            vertices.append((px, py, z + chip + chiselled))
+    faces = [(row * count + col, row * count + col + 1, (row + 1) * count + col + 1, (row + 1) * count + col)
+             for row in range(count - 1) for col in range(count - 1)]
+    back = mesh.mesh_object('Hand-chiselled niche back under old soot', vertices, faces, material, 'niche')
+    source_uv(back, [[(vertices[i][0], vertices[i][1]) for i in face] for face in faces],
+              'Continuous hewn front plane with actual chisel relief.')
+    for face in back.data.polygons:
+        face.use_smooth = True
+    return back
+
+
+def old_wax_mark(name, x, y, z, radius, material):
+    vertices = [(x, y + .0008, z)]
+    for i in range(12):
+        theta = i / 12 * math.tau
+        amount = radius * RANDOM.uniform(.63, 1.30)
+        vertices.append((x + math.cos(theta) * amount, y + .00025, z + math.sin(theta) * amount * .61))
+    faces = [(0, (i + 1) % 12 + 1, i + 1) for i in range(12)]
+    obj = mesh.mesh_object(name, vertices, faces, material, 'niche')
+    source_uv(obj, [[(vertices[i][0], vertices[i][2]) for i in face] for face in faces],
+              'Thin wax residue bonded to the shelf.')
+    for face in obj.data.polygons:
+        face.use_smooth = True
+
+
+def candle_niche(stone, rock, soot, clay, iron, aged_wax):
     x, y, z = ANCHOR
     # Opening is 0.398 m wide. The calibrated 5.000 m top of the real slab
     # directly bears the live stone dish; its 8 mm seat bears the runtime wax.
-    mesh.box('Single hewn wick shelf', (.70, .119, .61), (x, y - .0595, z + .031), rock, .0, region='niche')
-    mesh.box('Niche soot-dark inner back', (.59, .59, .088), (x, y + .271, z - .189), soot, .019, region='niche')
+    mesh.box('Single hewn wick shelf', (.70, .119, .61), (x, y - .0595, z + .031), rock, .028, region='niche')
+    hewn_back(x, y, z - .147, soot)
+    mesh.box('Weathered pier behind the hewn sink', (.62, .61, .090), (x, y + .273, z - .200), stone[4], .014, region='niche')
+    for i, (dx, dz, radius) in enumerate(((-.104, .025, .020), (-.117, .037, .011), (.084, .017, .016), (.101, .018, .013), (.052, -.108, .009))):
+        old_wax_mark(f'Old wax stain {i + 1}', x + dx, y, z + dz, radius, aged_wax)
     for s in (-1, 1):
         for i in range(2):
             mesh.box(f'Worn inner jamb {s} {i}', (.156, .142, .38),
@@ -323,6 +434,41 @@ def candle_niche(stone, rock, soot, clay, iron):
                    (x - .59, 4.8755, z + .175), iron, 16, 'niche')
 
 
+def paint_stone():
+    for obj in mesh.STATIC.objects:
+        materials = list(obj.data.materials)
+        if not any(material.get('one_light_surface_tint') for material in materials):
+            continue
+        close = obj.get('region') == 'niche'
+        if close:
+            # Keep enough source granite texels in the close view. Each piece
+            # starts at a distinct texture offset, with UVs in its world plane.
+            mesh.uv_world(obj, RANDOM.uniform(.23, .35))
+            offset = Vector((RANDOM.uniform(-3, 3), RANDOM.uniform(-3, 3)))
+            for loop in obj.data.uv_layers['UVMap'].uv:
+                loop.vector += offset
+        tint = obj.data.color_attributes.new(name='SurfaceTint', type='FLOAT_COLOR', domain='CORNER')
+        obj.data.color_attributes.active_color = tint
+        for face in obj.data.polygons:
+            material = materials[face.material_index]
+            base = material.get('one_light_vertex_base_tint', (1., 1., 1.))
+            for i in face.loop_indices:
+                world = obj.matrix_world @ obj.data.vertices[obj.data.loops[i].vertex_index].co
+                shade = .88 + .15 * noise.noise(world * (22 if close else 3.5))
+                green_mix = 0.
+                if obj.get('weather_stone'):
+                    green_mix = max(0., min(.55, (noise.noise(world * 10) - .13) * .8))
+                if obj.name.startswith('Hand-chiselled niche back'):
+                    dx = (world.x - ANCHOR[0] + .030 * math.sin(world.z * 9)) / .123
+                    dy = (world.z - ANCHOR[1] - .31) / .25
+                    black = math.exp(-dx * dx - dy * dy) * (.70 + .20 * noise.noise(world * 89))
+                    shade *= 1 - black
+                tint.data[i].color = tuple(
+                    base[channel] * shade * (1 - green_mix * (1 - tone))
+                    for channel, tone in enumerate((.48, .73, .43))
+                ) + (1.,)
+
+
 def camera(name, p, look, fov, viewport):
     data = bpy.data.cameras.new(name)
     data.sensor_fit = 'VERTICAL'
@@ -350,7 +496,7 @@ def source_lighting(scene):
     caster['bake_role'] = 'ambient'
     for p, watts in [((-.75, 6.45, .6), 1.4), ((.98, 6.38, -.19), .88), ((.15, 6.25, -4.8), 2.1)]:
         mesh.light('Hidden warm reflected temple light', p, watts / PRE_EXPOSURE, '#f5b27e', .26)
-    point = mesh.light('Visitor candle indirect bounce basis', LAMP, .9, '#ffc88a', .007, 'lamp')
+    point = mesh.light('Visitor candle indirect bounce basis', LAMP, .20, '#ffc88a', .007, 'lamp')
     point.data.color = (1, .54, .24)
     scene['one_light_lamp_basis'] = json.dumps({'position': list(LAMP), 'watts': float(point.data.energy),
         'linearColor': list(point.data.color), 'pointRadiusMetres': float(point.data.shadow_soft_size),
@@ -367,12 +513,13 @@ def build(output):
         scene.collection.children.link(bpy.data.collections.new(name))
     mesh.STATIC = bpy.data.collections['STATIC']
     contacts = RestingContacts(height_query=supports_height)
-    stone, rock, ground, moss, wood, red, tiles, bark, needle, iron, clay, soot = palette()
+    stone, rock, ground, moss, wood, red, tiles, bark, needle, iron, clay, soot, aged_wax = palette()
     support = terrain(ground)
     climbing_steps(stone, moss)
     forest(support, rock, bark, needle)
     gate(stone, tiles, wood, red, iron)
-    candle_niche(stone, rock, soot, clay, iron)
+    candle_niche(stone, rock, soot, clay, iron, aged_wax)
+    paint_stone()
     scene.render.engine = 'CYCLES'
     scene.render.threads_mode = 'AUTO'
     scene.render.resolution_x = 1440

@@ -2,7 +2,7 @@
 
 The uphill path, forest, cypress gate and hewn stone niche are original architecture for a fictional mountain temple. The only external surface inputs are the CC0 `stone_pavers`, `rock_pitted_mossy`, `weathered_planks` and `grey_roof_tiles` maps listed in [the asset register](../assets.json).
 
-The static dish support is at world metres `[-1.8, 5.0, .9]`. Its height is read back from the evaluated shelf triangles. The runtime dish adds an 8 mm seat; the wax, wick, pool, runnels, flame and smoke belong to the visitor lamp. The lamp atlas supplies indirect bounce from a reference source at `[-1.8, 5.076, .9]`. Live direct light and its local shadows follow the moving wick. Camera pre-exposure is 6 and is applied once; the source point is an authored radiant scale without photometric calibration.
+The static dish support is at world metres `[-1.8, 5.0, .9]`. Its height is read back from the evaluated shelf triangles. The visitor lamp owns the 8 mm dish seat, wax, wick, pool, runnels, flame and smoke. The lamp atlas supplies indirect bounce from a reference source at `[-1.8, 5.076, .9]` with an authored power of 0.20 W. Live direct light and its local shadows follow the moving wick. The bake applies a camera pre-exposure of 6 once. The source point uses an authored radiant scale without photometric calibration.
 
 ## Reproduce the final delivery
 
