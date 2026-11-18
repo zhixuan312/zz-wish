@@ -225,7 +225,9 @@ edges.
 | desktop-en | 201 / 304 / 3 | 33→345 px | 1.7% | 0.9% | 5.1% | **0** | 2 |
 | phone-zh | 117 / 211 / 0 | 31→237 px | 0% | 1.0% | 5.9% | **0** | 1 |
 
-The chooser framing is 345 px desktop and 237 px phone. `maxDropFromPeakPct` compares every
+No overshoot remains: the camera's distance to the lamp never increases at any frame of either
+series, and its closest walking point equals the chooser distance exactly. The chooser framing
+is 345 px desktop and 237 px phone. `maxDropFromPeakPct` compares every
 frame with the best width seen so far across the whole series.
 
 ### Causes found and fixed
@@ -240,7 +242,17 @@ frame with the best width seen so far across the whole series.
 3. **The phone approach overshot.** `fitShadeView` moves the phone chooser pose off the
    doorway line, so the lateral waypoint passed closer than the final pose; phone now has a
    single doorway waypoint.
-4. **The lacquer rim flared.** One frame showed the shade's mean rising 31% and falling back
+4. **The approach overshot the lamp on `master` too.** On `ba78f1f` the last
+   `chooseApproach` waypoint stands 2.452 m from the hanging lamp while `choose` stands
+   2.751 m, so the walk closed 0.30 m too far and then backed off — the camera reaches its
+   closest point before the walk ends and the shade shrinks afterwards. That is visible in the
+   older captures as a width peak followed by a fall (436 px at frame 133 down to 362 px at
+   frame 139). The distance is computed straight from the authored waypoints and the hanging
+   point, so it does not depend on any capture. `9f4ca24` removed the overshoot by putting the
+   desktop waypoint on the line to the chooser pose and giving phone a single doorway point;
+   in the current series the camera's distance to the lamp never increases at any frame and its
+   closest walking point equals the chooser distance exactly (2.751 m desktop, 3.966 m phone).
+5. **The lacquer rim flared.** One frame showed the shade's mean rising 31% and falling back
    while the camera, fov and fill were identical either side, so the material was the
    remaining suspect: the visitor lamp's rim used the shared glossy lacquer (roughness 0.36,
    clearcoat 0.6, env 0.4) and its clearcoat caught the vent specular. The visitor copy is now
