@@ -43,7 +43,7 @@ def neutral_granite_albedo():
     source.pixels.foreach_get(original)
     rgba = original.reshape(height, width, 4)
     lightness = rgba[..., :3] @ np.asarray((.2126, .7152, .0722), dtype=np.float32)
-    rgba[..., :3] = lightness[..., None] * np.asarray((.945, 1., 1.035), dtype=np.float32)
+    rgba[..., :3] = lightness[..., None]
     np.clip(rgba, 0., 1., out=rgba)
     derivative = bpy.data.images.new('pine-niche-granite-gray', width=width, height=height, alpha=False)
     derivative.pixels.foreach_set(rgba.ravel())
@@ -66,9 +66,9 @@ def palette():
             for i, color in enumerate(('#293626', '#3d4930', '#37452a', '#424c35', '#50603b'))]
     iron = mesh.material('Aged black iron', '#3d3831', rough=.65, metal=.35)
     clay = mesh.material('Gray green celadon', '#786c49', rough=.37)
-    soot = mesh.material('Chisel-faced granite beneath soot', '#a9b0bb', 'rock_pitted_mossy', .92)
-    ledge = mesh.material('Worn fine granite on the wick shelf', '#a1a7af', 'rock_pitted_mossy', .82)
-    reveal = mesh.material('Dressed granite inside the arch', '#838a93', 'rock_pitted_mossy', .91)
+    soot = mesh.material('Chisel-faced granite beneath soot', '#aaa8a4', 'rock_pitted_mossy', .92)
+    ledge = mesh.material('Worn fine granite on the wick shelf', '#a6a49e', 'rock_pitted_mossy', .82)
+    reveal = mesh.material('Dressed granite inside the arch', '#85847f', 'rock_pitted_mossy', .91)
     close_albedo = neutral_granite_albedo()
     for material, amount in ((soot, .18), (ledge, .22), (reveal, .16)):
         for node in material.node_tree.nodes:
@@ -599,20 +599,24 @@ def hewn_reveal(x, y, z, side, course, material):
     # The arch cheeks continue behind the exposed back face. A soft taper
     # connects each chipped opening edge to solid masonry behind the joints.
     columns, rows = 14, 9
-    depth, height = .396, .141
+    depth, height = .396, .144
     span = columns * rows
     points = []
     for inner in (True, False):
         for row in range(rows):
             v = row / (rows - 1)
+            combined_course = course + v
             for col in range(columns):
                 u = col / (columns - 1)
-                front_wear = u ** 4 * (.005 + .003 * math.sin(v * 10 + side + course))
-                relief = .0043 * math.sin(u * 8.4 + v * 6.9 + course * 2.2 + side)
+                front_wear = u ** 4 * (.005 + .003 * math.sin(combined_course * 10 + side))
+                relief = (.0043 * math.sin(u * 8.4 + v * 6.9 + course * 2.2 + side)
+                          * math.sin(math.pi * v))
+                # Courses meet at shared vertices behind a shallow dressed groove.
+                groove = .0025 * max(0., (abs(2 * v - 1) - .72) / .28)
                 taper = .195 + .016 * u ** 1.4 + .012 * (1 - u) ** 4
-                xx = x + side * (taper + (relief + front_wear if inner else .171))
-                seam = .0062 * math.sin(u * 5.6 + side) * (.78 + .22 * v)
-                yy = y + .001 + course * .144 + v * height + seam
+                xx = x + side * (taper + (relief + front_wear + groove if inner else .171))
+                seam = .0062 * math.sin(u * 5.6 + side) * math.sin(math.pi * combined_course / 2)
+                yy = y + .001 + combined_course * height + seam
                 if course == 0:
                     yy += (.001 - yy + y) * (1 - v) ** 5
                 zz = z - .181 + u * depth - front_wear * .57
@@ -658,7 +662,7 @@ def candle_niche(stone, rock, soot, clay, iron, ledge, reveal):
         for j in range(5):
             m = stone[(j + (s > 0)) % len(stone)]
             p = (x + s * (.47 + .025 * (j % 2)), 4.227 + .329 * j, z - .047)
-            mesh.box(f'Massive gate-pier jamb {s} course {j + 1}', (.28, .323, .69), p, m, .028, region='niche')
+            mesh.box(f'Massive gate-pier jamb {s} course {j + 1}', (.28, .331, .69), p, m, .018, region='niche')
     mesh.box('Niche stone base course', (.75, .87, .64), (x, 4.445, z - .035), stone[1], .038, region='niche')
     mesh.box('Niche overarch granite header', (.93, .25, .70), (x, y + .771, z), stone[2], .028, region='niche')
     mesh.box('Niche upper pier', (.97, .43, .72), (x, y + 1.11, z), stone[4], .038, region='niche')
@@ -713,23 +717,27 @@ def paint_stone():
                     shade *= .78 + .42 * max(0., min(1., .49 + bank - root_dirt))
                     green_mix = max(0., min(.55, (.18 + bank) * .62))
                 if obj.name.startswith('Hand-chiselled niche back'):
-                    dx = (world.x - ANCHOR[0] + .014 * math.sin(world.z * 24)) / .108
-                    dy = (world.z - ANCHOR[1] - .37) / .265
-                    black = math.exp(-dx * dx - dy * dy) * (.78 + .16 * noise.noise(world * 44))
-                    shade *= 1 - black
+                    rise = max(0., min(1., (world.z - ANCHOR[1] - .182) / .255))
+                    drift = .018 * math.sin(world.z * 29) + .013 * noise.noise(world * 32)
+                    dx = (world.x - ANCHOR[0] + drift) / (.052 + .080 * rise)
+                    smoke_stain = rise ** .82 * math.exp(-dx * dx) * (.68 + .20 * noise.noise(world * 61))
+                    shade *= 1 - smoke_stain
                 tint_color = [base[channel] * shade * (1 - green_mix * (1 - tone))
                               for channel, tone in enumerate((.48, .73, .43))]
                 if obj.name == 'Single hewn wick shelf' and face.normal.z > .8:
                     dx, dz = world.x - ANCHOR[0], -world.y - ANCHOR[2]
                     flecks = 0.
-                    for px, pz, sx, sz in ((-.104, .035, .045, .021), (.095, .051, .036, .019),
-                                            (.052, -.086, .022, .031), (-.067, -.056, .024, .031),
-                                            (.074, .111, .016, .027)):
-                        contour = .008 * noise.noise(world * 68)
+                    for px, pz, sx, sz in ((-.116, .05, .048, .029), (.106, .054, .039, .020),
+                                            (.061, -.095, .024, .034), (-.095, -.067, .028, .028),
+                                            (.075, .135, .022, .033), (-.121, .104, .021, .035)):
+                        contour = .013 * noise.noise(world * 68)
                         flecks += math.exp(-((dx - px + contour) / sx) ** 2 - ((dz - pz - contour) / sz) ** 2)
-                    marks = min(.54, flecks * (.44 + .19 * noise.noise(world * 44)))
-                    for channel, worn in enumerate((.51, .39, .26)):
-                        tint_color[channel] += (worn - tint_color[channel]) * marks
+                    marks = min(.66, flecks * (.58 + .27 * noise.noise(world * 47)))
+                    lip = max(0., min(1., (dz - .215) / .088))
+                    lip_wear = lip * (.25 + .12 * noise.noise(world * 39))
+                    for channel, residue in enumerate((.61, .49, .36)):
+                        tint_color[channel] += (residue - tint_color[channel]) * marks
+                        tint_color[channel] += (.58 - tint_color[channel]) * lip_wear
                 tint.data[i].color = (*tint_color, 1.)
 
 
