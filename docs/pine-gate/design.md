@@ -17,3 +17,11 @@ M1 evidence uses the real UI and an isolated SQLite database. The client monoton
 - Bake ambient day, dusk and night light for the static receivers. Keep the wax body, wick, flame, smoke and the light following the wick at runtime. A fixed flame-light bake risks leaving a bright imprint after extinction or shifting the apparent source above a short wick. If the delivery requires a lamp pass, validate its response against all wax heights and both extinguished states before keeping it.
 - Cap the complete Pine Gate delivery at 15,000,000 bytes. Start with 5 MB for compressed geometry, 7 MB for lightmaps, 2 MB for materials and 1 MB for the manifest and other runtime assets. Place lightmap density on the recess and nearest stair risers. Measure the complete package, texture residency and the phone-emulation burning cadence.
 - Check low-light wax readability, shadow and bloom around the stone lip, thin smoke against both stone and sky, phone overlay clearance, seams at the tread edges and mobile decode cost. Register any external CC0 input in the asset registry.
+
+## Final baked delivery
+
+Pine Gate uses three baked regions with fixed 64-sample Cycles maps for day, dusk, night and the candle's indirect light. The native AgX view uses Blender's AgX None display transform. The direct candle light follows the wick, while its baked bounce fades over the recess and disappears at extinction. The indoor-facing stone has lower night and dusk ambience than the stairs and gate.
+
+The 30-second route keeps separate entrance and candle compositions for desktop and phone. Pine Gate decodes its baked assets outside Snow Roof's construction queue. The resting-contact audits replay the final decoded geometry, including the stone seat that bears the live tray. The final package totals 11,506,505 bytes, including the shared native view lookup.
+
+See the [bake receipts](bake.md), [visual comparisons](quality-log.md) and [asset registry](../assets.json).
