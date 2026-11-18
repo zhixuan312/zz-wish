@@ -58,7 +58,7 @@ export const setPowerSaver = (on: boolean) => { requested.powerSaver = on; updat
 export const previewPlace = (id: PlaceId) => initialize().then(s => s.previewPlace(id));
 export const prefetchPlace = async (id: PlaceId, onProgress?: (progress: PlaceLoadProgress) => void) => {
   let progress: PlaceLoadProgress = { loadedBytes: 0, totalBytes: 0, ratio: null, stage: 'preparing' };
-  if (id === 'pine-gate') onProgress?.(progress);
+  if (id === 'pine-gate' && import.meta.env.VITE_PINE_GATE_BAKE_PREVIEW !== '1') onProgress?.(progress);
   else {
     const { prefetchBakedPlace } = await import('./baked/prefetchPlace.js');
     await prefetchBakedPlace(id, value => {

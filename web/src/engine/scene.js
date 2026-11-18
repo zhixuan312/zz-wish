@@ -18,7 +18,7 @@ import { GAUZE_CANDLE_REFERENCE } from './baked/gauzeTransmission.js';
 import { acquireNativeAgX, NativeAgXPass } from './baked/nativeAgX.js';
 import visitorFabric from './baked/visitor-fabric.json';
 import { WickPlume, addGauzeVent, createGauzeSmokePath, gauzeFlameSize, gauzeRibGeometry, gauzeThroat } from './WickPlume.js';
-import { createPineWax, waxContactShadow } from './PineWax.js';
+import { createPineTray, createPineWax, waxContactShadow } from './PineWax.js';
 
 // ---------- Renderer ----------
 const canvas = document.getElementById('gl');
@@ -517,17 +517,19 @@ const LAMPS = {
     solid(g, lathe([[0, 0], [.042, 0], [.05, .004], [.052, .013], [.047, .015], [.043, .007], [0, .007]], 40), greyStoneMat);
     return { g, kind: 'wax', seat: { y: .007, maxR: .045, maxH: .16 }, frame: { h: .2, cy: .08 }, lightMax: .3 };
   },
-  pineWax() {
+  pineWax({ refined = false } = {}) {
     const g = new THREE.Group(), seat = { y: .008, maxR: .045, maxH: .16, traceRadius: .056 };
-    const dish = lathe([[0, 0], [.057, 0], [.067, .004], [.069, .009], [.065, .012],
-      [.06, .011], [.056, seat.y], [0, seat.y]], 56);
-    const holder = solid(g, dish, greyStoneMat);
+    const holder = refined ? createPineTray(seat)
+      : new THREE.Mesh(lathe([[0, 0], [.057, 0], [.067, .004], [.069, .009], [.065, .012],
+        [.06, .011], [.056, seat.y], [0, seat.y]], 56), greyStoneMat);
+    holder.receiveShadow = true;
+    g.add(holder);
     // The nearly vertical flame point produced two hard discs. Keep contact
     // under the wax and dish with short, soft falloff at their actual bases.
     holder.castShadow = false;
     const shelfContact = waxContactShadow(.082, .53);
     g.add(shelfContact);
-    const pineWax = createPineWax(seat, waxMaterial);
+    const pineWax = createPineWax(seat, waxMaterial, { refined });
     pineWax.group.visible = false;
     g.add(pineWax.group);
     return { g, kind: 'wax', seat, pineWax, holder, shelfContact, frame: { h: .2, cy: .08 }, lightMax: .05, light: 0xffbc82, flame: 1.13 };
@@ -756,7 +758,9 @@ const api = { g, parts: null, partsKey: null, type: null, power: 0, lightPower: 
       if (key === this.partsKey) return;
       if (this.parts) { g.remove(this.parts.g); disposeTree(this.parts.g); }
       const input=drawn?{...o,liveBaked}:this.type==='gauze'?{...presetOf('shade'),liveBaked}:undefined;
-      const p = input ? LAMPS[this.type](input) : LAMPS[this.type](); this.parts = p; this.partsKey = key; g.add(p.g);
+      const p = this.type === 'pineWax' ? LAMPS.pineWax({ refined: liveBaked })
+        : input ? LAMPS[this.type](input) : LAMPS[this.type]();
+      this.parts = p; this.partsKey = key; g.add(p.g);
       hanger.material=p.suspensionMaterial??defaultSuspensionMaterial;
       f.wick.visible = !p.wickMesh && !p.pineWax;
       f.light.color.setHex(p.light ?? 0xffba78); f.size = p.flame ?? 1; mirror.size = f.size;
@@ -861,7 +865,7 @@ const api = { g, parts: null, partsKey: null, type: null, power: 0, lightPower: 
     lightWorld() { f.light.updateWorldMatrix(true,false);return f.light.getWorldPosition(world); },
     update(time) {
       const p = this.parts; if (!p) return;
-      if(place?.P.bakedLighting){
+      if (place?.P.bakedLighting && !p.pineWax) {
         if(g.parent?.userData.visitorPivot){g.rotation.z=0;g.parent.rotation.z=Math.sin(time*.32)*.008;}
         else g.rotation.z=Math.sin(time*.32)*.0035;
       }
@@ -873,6 +877,7 @@ const api = { g, parts: null, partsKey: null, type: null, power: 0, lightPower: 
         : p.kind === 'wax' ? Math.min(1, ((this.top.y - (p.seat?.y ?? 0) + .03) / .2) ** 2) : 1;
       const power = this.power * (lit ? Math.min(1, level * 25) : 1);
       const fw = this.flameWorld(), k = f.tick(time, power, p.lightMax * keep * this.lightBoost, p.pineWax?.materials ?? [wax, poolMat, oilGlow], fw.y);
+      p.pineWax?.updateLight(f.light, place?.baked?.manifest.lampBasis.pointRadiusMetres);
       for (const material of p.pineWax?.materials ?? []) material.userData.u.uGlow.value *= .52;
       place?.baked?.gauzeTransmission?.update(f.light);
       this.lightPower = power * k * keep;
@@ -1392,7 +1397,8 @@ function blendPlace(N, L) {
 
 // Each place: its weather, landmark and buildings, by day and by night, and the spot where its lamp is lit.
 const placeModules = {
-  'pine-gate': () => import('./places/pine-gate.js'),
+  'pine-gate': () => import.meta.env.VITE_PINE_GATE_BAKE_PREVIEW === '1'
+    ? import('./places/pine-gate-baked.js') : import('./places/pine-gate.js'),
   'bamboo-rain': () => import('./places/bamboo-rain.js'),
   'cloud-cliff': () => import('./places/cloud-cliff-baked.js'),
   'lotus-pond': () => import('./places/lotus-pond.js'),
@@ -1726,7 +1732,7 @@ const viewOf = (v) => {
 };
 const coverView = () => viewOf(narrow()&&place.P.nook.coverPhone?place.P.nook.coverPhone:place.P.nook.cover);
 function fitShadeView(v){
-  if(!place.P.bakedLighting||!mine.parts?.frame)return v;
+  if (!place.P.bakedLighting || place.P.nook.lamp !== 'gauze' || !mine.parts?.frame) return v;
   const fr=mine.parts.frame,c=mine.g.localToWorld(V3(0,fr.cy,0));
   const offset=V3(v.pos.x-c.x,0,v.pos.z-c.z),base=offset.length();
   const fraction=narrow()?.26:.45,subjectY=narrow()?.20:.36;
@@ -1757,6 +1763,20 @@ const chooseView = () => {
 };
 function burnView(){
   const N=place.P.nook,v=viewOf((narrow()&&N.burnPhone)||N.burn);
+  if (place.P.bakedLighting && mine.parts?.pineWax) {
+    const candleHeight = mine.parts.pineWax.fullHeight();
+    const height = candleHeight + .040;
+    const center = mine.g.localToWorld(V3(0, mine.parts.seat.y + height / 2, 0));
+    const direction = v.pos.clone().sub(center).normalize();
+    // Keep framing anchored to the original candle while the wax retreats.
+    const angle = THREE.MathUtils.degToRad(v.fov / 2);
+    const far = candleHeight > .125;
+    const fraction = far ? .20 : .225;
+    const distance = Math.max(narrow() ? .39 : .36, height * .94 / (2 * Math.tan(angle) * fraction));
+    v.pos.copy(center).addScaledVector(direction, distance);
+    v.look.copy(center);
+    return v;
+  }
   if(!N.burnFar)return v;
   const fuelProfile=mine.offer?.rows?.at(-1)?.y;
   const originalSize=fuelProfile?fuelProfile*3.8+.2:mine.parts.frame.h;
@@ -1775,7 +1795,8 @@ function attachMine() {
   mine.g.position.set(0, N.y, 0);
   mine.g.rotation.set(0,0,0);
   mine.setType(N.lamp);
-  mine.setShadowFar(place.baked?.manifest.bake?.lampPassQuantity==='indirect-diffuse-radiance-per-unit-albedo'?80:6);
+  const fixedIndirectBasis = place.baked?.manifest.bake?.lampPassQuantity === 'indirect-diffuse-radiance-per-unit-albedo';
+  mine.setShadowFar(fixedIndirectBasis && N.lamp !== 'pineWax' ? 80 : 6);
   mine.mirrorY = N.mirror ?? null;
   mine.lightBoost = place.baked ? place.baked.lampCandela / mine.parts.lightMax : 1;
   mine.lightTint = place.baked?.lampColor ?? null;
@@ -1788,9 +1809,22 @@ const smokeTex = canvasTex(64, 64, (g, w, h) => {
   g.fillStyle = r; g.fillRect(0, 0, w, h);
 });
 const wickPlume=new WickPlume({scene:outside,map:smokeTex});
+let pineDiagnosticView = false;
 if (import.meta.env.DEV) {
   window.__visualWickPlume = () => wickPlume.state();
-  window.__visualPineWax = () => mine.g.visible && mine.offer?.kind === 'candle' ? mine.parts?.pineWax?.state() ?? null : null;
+  window.__visualPineWax = () => {
+    if (!mine.g.visible || mine.offer?.kind !== 'candle' || !mine.parts?.pineWax) return null;
+    const wax = mine.parts.pineWax;
+    const state = wax.state();
+    camera.updateMatrixWorld();
+    const foot = mine.g.localToWorld(V3(0, mine.parts.seat.y, 0)).project(camera);
+    const tip = wax.wickTip.clone();
+    if (lit) tip.y += .038 * (mine.parts.flame ?? 1) * Math.sqrt(mine.power);
+    const top = mine.g.localToWorld(tip).project(camera);
+    return { ...state, baked: !!place?.baked, framedFraction: Math.max(0, (top.y - foot.y) / 2) };
+  };
+  window.__visualPineCloseup = () => { pineDiagnosticView = true; };
+  window.__visualPineCloseupRestore = () => { pineDiagnosticView = false; };
 }
 let shadeCoolingUntil=0,shadeCoolingGlow=0, emberUntil = 0, wind = 0, roomLight = 1, ignitionFill=0;
 let pointerX = 0, pointerY = 0, previousPointerX = 0;
@@ -1865,7 +1899,8 @@ async function drawLampThumbnail(shape,{state,remaining,width,height}){
       disposeTree(stage.parts.g);
     }
     const input={...shape,liveBaked:true};
-    stage.parts=shape.kind==='shade'?LAMPS.gauze(input):shape.kind==='oil'?LAMPS.glass(input):LAMPS.pineWax();
+    stage.parts = shape.kind === 'shade' ? LAMPS.gauze(input) : shape.kind === 'oil' ? LAMPS.glass(input)
+      : LAMPS.pineWax({ refined: import.meta.env.VITE_PINE_GATE_BAKE_PREVIEW === '1' });
     if (stage.parts.pineWax) {
       stage.parts.pineWax.setShape(shape);
       stage.parts.pineWax.group.visible = true;
@@ -1889,6 +1924,7 @@ async function drawLampThumbnail(shape,{state,remaining,width,height}){
   if (reference) stage.flame.light.color.fromArray(reference.linearColor);
   else stage.flame.light.color.setHex(parts.light ?? 0xffba78);
   stage.flame.tick(17,power,reference?reference.watts*reference.cameraPreExposure/(4*Math.PI)*shadeKeep:(parts.lightMax??.9),parts.pineWax?.materials ?? [],wick.y);
+  parts.pineWax?.updateLight(stage.flame.light);
   for (const material of parts.pineWax?.materials ?? []) material.userData.u.uGlow.value *= .52;
   stage.flame.flame.visible=stage.flame.halo.visible=power>0;stage.flame.ember.visible=false;
   stage.flame.wick.material.color.setHex(state==='unlit'?0x4c3d2b:0x15100c);
@@ -2042,11 +2078,11 @@ export async function ignite({onCatch, remainingFuel}={}) {
   const journey=++cameraJourneyVersion;
   const mark=(state,progress)=>{if(import.meta.env.DEV)window.__visualIgnition={state,progress,journey,position:rig.pos.toArray(),look:rig.look.toArray(),fov:rig.fov??camera.fov};};
   lit=true;emberUntil=0;wickPlume.clear();shadeCoolingUntil=0;shadeCoolingGlow=0;roomLight=1;ignitionFill=place.P.bakedLighting?1:0;mark('igniting',0);
+  const pine = !!mine.parts?.pineWax;
+  if (pine) waxFuel = remainingFuel ?? null;
   if (!place.P.bakedLighting) {
-    const pine = !!mine.parts?.pineWax;
     const start = pine ? { pos: rig.pos.clone(), look: rig.look.clone(), fov: rig.fov } : null;
     const burn = pine ? burnView() : null;
-    if (pine) waxFuel = remainingFuel ?? null;
     let caught = false;
     await tween(1.6, k => {
       if (!lit || journey !== cameraJourneyVersion) return;
@@ -2083,7 +2119,11 @@ export async function ignite({onCatch, remainingFuel}={}) {
     else if(k<.58)g.position.copy(contact);
     else g.position.lerpVectors(contact,start.clone().add(V3(.12,-.35,.18)),ease((k-.58)/.42));
     const catchPower=smooth(.29,.57,k);
-    if(!caught&&catchPower>=.18){caught=true;onCatch?.();}
+    if (!caught && catchPower >= .18) {
+      caught = true;
+      if (pine) mine.waxState = 'burning';
+      onCatch?.();
+    }
     ignitionFill=1-catchPower;
     mine.power=catchPower*(1+.06*Math.sin(Math.PI*smooth(.3,.75,k)));
     f.tick(clockTime,k>.88?smooth(1,.88,k):1,0,[],0);
@@ -2093,10 +2133,15 @@ export async function ignite({onCatch, remainingFuel}={}) {
   if(!active())return;
   mine.power=1;mark('spreading',.18);
   await tween(.8,()=>{});if(!active())return;
-  const front=viewOf((narrow()&&N.burnPhone)||N.burn).pos;
-  const burnWalk=(narrow()&&N.burnWalkPhone)||N.burnWalk;
-  const route=new THREE.CatmullRomCurve3([rig.pos.clone(),...burnWalk.map(toWorld),...(burn.pos.distanceTo(front)>.01?[front]:[]),burn.pos],false,'centripetal');
-  const follow=mine.g.localToWorld(V3(0,mine.parts.frame.cy,0)),orbitLookStart=rig.look.clone();
+  const routeStart = rig.pos.clone();
+  const front = pine ? burn.pos : viewOf((narrow() && N.burnPhone) || N.burn).pos;
+  const burnWalk = pine ? [.34, .67].map((fraction, i) =>
+    routeStart.clone().lerp(burn.pos, fraction).add(V3((i === 0 ? .035 : .025), .012, 0)))
+    : ((narrow() && N.burnWalkPhone) || N.burnWalk).map(toWorld);
+  const route = new THREE.CatmullRomCurve3([routeStart, ...burnWalk,
+    ...(burn.pos.distanceTo(front) > .01 ? [front] : []), burn.pos], false, 'centripetal');
+  const follow = pine ? burn.look : mine.g.localToWorld(V3(0, mine.parts.frame.cy, 0));
+  const orbitLookStart = rig.look.clone();
   await tween(9,k=>{
     if(!active())return;
     const r=.08,e=k<r?k*k/(2*r*(1-r)):k>1-r?1-(1-k)*(1-k)/(2*r*(1-r)):(k-r*.5)/(1-r);
@@ -2184,7 +2229,13 @@ function frame(stamp = performance.now()) {
   const a = reducedMotion.matches || place?.P.bakedLighting || (import.meta.env.DEV && window.__visualFreezeCamera) ? 0 : rig.amp;
   camera.position.copy(rig.pos).add(tmp.set(Math.sin(time * .13) * a, Math.sin(time * .09) * a * .35, Math.cos(time * .11) * a * .5));
   camera.lookAt(rig.look);
-  const lens=rig.fov??(innerWidth/innerHeight<.8?44:32);
+  let lens = rig.fov ?? (innerWidth / innerHeight < .8 ? 44 : 32);
+  if (import.meta.env.DEV && pineDiagnosticView && mine.g.visible && mine.parts?.pineWax && atLamp) {
+    const detail = burnView();
+    camera.position.copy(detail.pos);
+    camera.lookAt(detail.look);
+    lens = detail.fov * .48;
+  }
   if(Math.abs(camera.fov-lens)>.001){camera.fov=lens;camera.updateProjectionMatrix();}
   if (place) {
     if(time>nextClockCheck){
@@ -2226,7 +2277,7 @@ function frame(stamp = performance.now()) {
     if (mine.g.visible && mine.offer) { mine.setLevel(level); mine.update(time); }
     const cover=!atLamp&&place.cover;
     place.baked?.update(daylight(new Date(),true),mine.g.visible?mine.lightPower:cover?(cover.power??1):0,mine.g.visible?mine.lightWorld():cover?.light?.getWorldPosition(V3()));
-    if(P.bakedLighting&&mine.parts?.frame){
+    if(P.bakedLighting&&mine.parts?.frame&&!mine.parts.pineWax){
       const centre=mine.g.localToWorld(V3(0,mine.parts.frame.cy,0));
       aimGauzePreview(previewFill,previewFillTarget,centre,camera.position);
     } else if (mine.parts?.pineWax) {
@@ -2235,9 +2286,11 @@ function frame(stamp = performance.now()) {
     }else{previewFill.position.set(1,2,2);previewFillTarget.position.set(0,0,0);}
     const previewTarget=mine.g.visible&&atLamp?(phase==='candle'?1:!lit?.55:ignitionFill):0;
     gauzePreviewBlend+=(previewTarget-gauzePreviewBlend)*(1-Math.exp(-dt*5));
-    previewFill.intensity = P.bakedLighting ? gauzePreviewIntensity * gauzePreviewBlend
-      : mine.parts?.pineWax && atLamp ? phase === 'candle' ? 1.35 : lit ? .29 : .74
-      : phase === 'candle' ? .7 : 0;
+    if (mine.parts?.pineWax && atLamp) {
+      previewFill.intensity = phase === 'candle' ? 1.35 : lit ? .29 : .74;
+    } else {
+      previewFill.intensity = P.bakedLighting ? gauzePreviewIntensity * gauzePreviewBlend : phase === 'candle' ? .7 : 0;
+    }
     wickPlume.update(time);
     dust.visible = !!N.dust && atLamp && !powerSaver && !reducedMotion.matches;
     dust.material.userData.soft.value=P.bakedLighting?1:0;

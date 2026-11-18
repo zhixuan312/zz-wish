@@ -71,7 +71,8 @@ export async function loadBakedPlace(id,renderer,initialLight={n:1,g:0}){
   if(!Number.isFinite(residualCameraExposureEV))throw Error('Invalid authored residual camera exposure');
   const anchor=new THREE.Vector3(...(basis.position??manifest.lampAnchor));
   const indirectLamp=manifest.bake?.lampPassQuantity==='indirect-diffuse-radiance-per-unit-albedo';
-  const staticLampShadow=indirectLamp?createStaticLampShadow({lightWorld:anchor,sourceRadius:basis.pointRadiusMetres,resolution:512,near:.008,far:80}):null;
+  const movingNicheLight = id === 'pine-gate';
+  const staticLampShadow=indirectLamp&&!movingNicheLight?createStaticLampShadow({lightWorld:anchor,sourceRadius:basis.pointRadiusMetres,resolution:512,near:.008,far:80}):null;
   const uniforms={uBakedWeights:{value:initialWeights.clone()},uLampPower:{value:0},uBakedLampAnchor:{value:anchor}};
   const visitorShadow=id==='snow-roof'?createVisitorShadow({lightWorld:anchor,sourceRadius:basis.pointRadiusMetres??0}):null;
   const gauzeTransmission=id==='snow-roof'&&basis.transport?.type==='actual-gauze'&&basis.transport.version===1?createGauzeTransmission():null;
@@ -110,7 +111,10 @@ export async function loadBakedPlace(id,renderer,initialLight={n:1,g:0}){
     // Static occlusion is already in both ambient and lamp atlases. The live
     // shadow cube contains the moving lantern ribs, rather than rebaking the
     // entire court six times per frame.
-    object.castShadow=false;object.receiveShadow=true;
+    // Pine Gate's light follows the melting wick. Cast from the nearby stone
+    // only, keeping the large approach and gate out of the live shadow map.
+    object.castShadow = movingNicheLight && region === 'niche';
+    object.receiveShadow = true;
     const convert=source=>{
       const material=source.clone();material.lightMap=empty;material.lightMapIntensity=1;material.envMapIntensity=.18;
       const perMaterial={...uniforms,

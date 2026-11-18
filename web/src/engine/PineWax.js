@@ -33,6 +33,135 @@ export function waxContactShadow(radius, opacity) {
   return contact;
 }
 
+function materialCoordinates(shader) {
+  shader.vertexShader = `varying vec3 vPineLocal; varying vec3 vPineWorld;\n${shader.vertexShader}`
+    .replace('#include <begin_vertex>', `#include <begin_vertex>
+      vPineLocal = transformed;
+      vPineWorld = (modelMatrix * vec4(transformed, 1.)).xyz;`);
+  shader.fragmentShader = `varying vec3 vPineLocal; varying vec3 vPineWorld;\n${shader.fragmentShader}`;
+}
+
+function refinedWaxMaterial(light, layer) {
+  const style = {
+    body: { roughness: .49, clearcoat: .10, specularIntensity: .58, diffuse: .79, scatter: .24 },
+    pool: { roughness: .22, clearcoat: .25, specularIntensity: .63, diffuse: .45, scatter: .052 },
+    remnant: { roughness: .47, clearcoat: .10, specularIntensity: .49, diffuse: .71, scatter: .065 },
+    runnel: { roughness: .35, clearcoat: .16, specularIntensity: .54, diffuse: .70, scatter: .18 },
+  }[layer];
+  const material = new THREE.MeshPhysicalMaterial({ color: 0xffffff, ior: 1.43,
+    roughness: style.roughness, clearcoat: style.clearcoat, clearcoatRoughness: .32,
+    specularIntensity: style.specularIntensity, envMapIntensity: .42 });
+  material.onBeforeCompile = shader => {
+    materialCoordinates(shader);
+    Object.assign(shader.uniforms, light);
+    shader.fragmentShader = `
+      uniform vec3 uPineSourcePosition, uPineSourceColor, uPineWaxCrown;
+      uniform float uPineCandela, uPineSourceRadius;
+      ${shader.fragmentShader}`;
+    shader.fragmentShader = shader.fragmentShader.replace('#include <map_fragment>', `#include <map_fragment>
+      float layerBand = sin(vPineLocal.y * 1430. + sin(vPineLocal.x * 125. + vPineLocal.z * 128.) * 1.4);
+      float waxGrain = sin(dot(vPineLocal, vec3(1873., 2301., -1223.))) * sin(dot(vPineLocal, vec3(201., -2971., 2009.)));
+      diffuseColor.rgb *= ${style.diffuse} * (1. + .018 * layerBand + .014 * waxGrain);`)
+      .replace('#include <roughnessmap_fragment>', `#include <roughnessmap_fragment>
+        roughnessFactor = clamp(roughnessFactor + .025 * layerBand + .019 * waxGrain, .1, 1.);`)
+      .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
+        // Approximate single scattering along a path from the warm crown. Red,
+        // green and blue travel different distances through pigmented wax.
+        vec3 fromCrown = vPineWorld - uPineWaxCrown;
+        float depth = max(0., -fromCrown.y);
+        float radius = max(.003, uPineSourceRadius);
+        vec3 toSource = uPineSourcePosition - vPineWorld;
+        float incident = uPineCandela / (dot(toSource, toSource) + radius * radius);
+        float path = .0016 + depth * .84 + length(fromCrown.xz) * .33;
+        vec3 absorption = vec3(64., 88., 132.) - 31. * log(clamp(diffuse, .055, 1.));
+        vec3 transmission = exp(-absorption * path);
+        float edge = .22 + .78 * pow(1. - abs(dot(normal, normalize(vViewPosition))), 1.45);
+        float scatter = (1. - exp(-incident * .007)) * edge * ${style.scatter};
+        totalEmissiveRadiance += uPineSourceColor * transmission * scatter;`);
+  };
+  material.customProgramCacheKey = () => `pine-wax-${layer}-1`;
+  return material;
+}
+
+export function createPineTray(seat) {
+  const points = [[0, 0], [.054, 0], [.060, .0014], [.066, .004], [.069, .0085],
+    [.068, .0115], [.0664, .014], [.0645, .0143], [.0624, .0131],
+    [.06, .0102], [.056, seat.y], [0, seat.y]];
+  const geometry = new THREE.LatheGeometry(points.map(([r, y]) => new THREE.Vector2(r, y)), 96);
+  const positions = geometry.attributes.position;
+  for (let i = 0; i < positions.count; i++) {
+    const x = positions.getX(i), y = positions.getY(i), z = positions.getZ(i);
+    const angle = Math.atan2(z, x), rim = clamp((Math.hypot(x, z) - .059) / .009, 0, 1);
+    const uneven = rim * (.0033 * Math.sin(angle * 17 + 1.8) + .0024 * Math.sin(angle * 29 - .9));
+    const chip = .00038 * rim * Math.sin(angle * 37 + .5) * Math.sin(angle * 11);
+    positions.setXYZ(i, x * (1 + uneven), y + chip * clamp(y / .008, 0, 1), z * (1 + uneven));
+  }
+  geometry.computeVertexNormals();
+  const material = new THREE.MeshStandardMaterial({ color: 0x6e6860, roughness: .89, envMapIntensity: .28 });
+  material.onBeforeCompile = shader => {
+    materialCoordinates(shader);
+    shader.fragmentShader = `
+      float pineStoneHash(vec3 p) { return fract(sin(dot(p, vec3(93.2, 43.9, 163.7))) * 28631.41); }
+      float pineStoneValue(vec3 p) {
+        vec3 q = floor(p), f = fract(p);
+        f = f * f * (3. - 2. * f);
+        return mix(
+          mix(mix(pineStoneHash(q), pineStoneHash(q + vec3(1., 0., 0.)), f.x),
+              mix(pineStoneHash(q + vec3(0., 1., 0.)), pineStoneHash(q + vec3(1., 1., 0.)), f.x), f.y),
+          mix(mix(pineStoneHash(q + vec3(0., 0., 1.)), pineStoneHash(q + vec3(1., 0., 1.)), f.x),
+              mix(pineStoneHash(q + vec3(0., 1., 1.)), pineStoneHash(q + vec3(1., 1., 1.)), f.x), f.y), f.z);
+      }
+      ${shader.fragmentShader}`;
+    shader.fragmentShader = shader.fragmentShader.replace('#include <map_fragment>', `#include <map_fragment>
+      float aggregate = pineStoneValue(vPineLocal * 226.);
+      float mineral = pineStoneValue(vPineLocal * 1170. + vec3(48., 12., 9.));
+      float fleck = smoothstep(.64, .9, mineral);
+      float soot = (1. - smoothstep(.012, .048, length(vPineLocal.xz))) * smoothstep(.37, .85, aggregate);
+      float scuffedRim = smoothstep(.058, .066, length(vPineLocal.xz)) * smoothstep(.006, .012, vPineLocal.y);
+      diffuseColor.rgb *= .72 + .32 * aggregate + .34 * fleck + .14 * scuffedRim - .34 * soot;`)
+      .replace('#include <roughnessmap_fragment>', `#include <roughnessmap_fragment>
+        roughnessFactor = clamp(roughnessFactor + .1 * (aggregate - .5) - .11 * scuffedRim, .56, .98);`);
+  };
+  material.customProgramCacheKey = () => 'pine-hewn-stone-1';
+  material.userData.lampOwned = true;
+  const tray = new THREE.Mesh(geometry, material);
+  tray.receiveShadow = true;
+  return tray;
+}
+
+function fillPool(mesh, radius, rise) {
+  const profile = [[1, 1], [.94, .48], [.88, .06], [.69, -.11], [.46, -.07], [.22, .025], [0, 0]];
+  const perimeter = angle => 1 + .022 * Math.sin(angle * 3 + .8) + .012 * Math.sin(angle * 7 - .3);
+  for (let i = 0; i < profile.length; i++) {
+    const [r, y] = profile[i];
+    const relief = angle => rise * r * (.09 * Math.sin(angle * 2 + .3) + .048 * Math.sin(angle * 5 - .6));
+    writeRing(mesh, i, 0, radius * r, rise * y, perimeter, relief);
+  }
+  finishSurface(mesh);
+}
+
+function makeBraidedWick(path, fiberMaterial, charMaterial) {
+  const group = new THREE.Group();
+  for (let i = 0; i < 3; i++) {
+    const phase = TAU * i / 3;
+    const points = Array.from({ length: 18 }, (_, j) => {
+      const t = j / 17;
+      const p = path.getPoint(t);
+      const twist = phase + t * TAU * 2.7;
+      return p.add(vector(Math.cos(twist) * .00029, 0, Math.sin(twist) * .00029));
+    });
+    group.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(points), 26, .000235, 5), fiberMaterial));
+  }
+  const tipPath = new THREE.CatmullRomCurve3([path.getPoint(.59), path.getPoint(.74), path.getPoint(.88), path.getPoint(1)]);
+  const char = new THREE.Mesh(new THREE.TubeGeometry(tipPath, 10, .00049, 7), charMaterial);
+  const charCap = new THREE.Mesh(new THREE.IcosahedronGeometry(.00048, 1), charMaterial);
+  charCap.position.copy(path.getPoint(1));
+  charCap.scale.set(1.13, .82, .92);
+  char.add(charCap);
+  group.add(char);
+  return { group, char };
+}
+
 function surface(rings, sectors) {
   const geometry = new THREE.BufferGeometry();
   const positions = new THREE.BufferAttribute(new Float32Array(rings * sectors * 3), 3);
@@ -98,17 +227,20 @@ function bodySurface(mesh, rows, cut, melt) {
   return { ...top, depth };
 }
 
-function makeTrace() {
-  const mesh = surface(5, 64);
+function makeTrace(refined) {
+  const mesh = surface(refined ? 8 : 5, 64);
   const contour = a => 1 + .11 * Math.sin(a * 3 + .2) + .06 * Math.sin(a * 7 - .8)
     + .22 * Math.max(0, Math.cos(a - 1.1)) ** 12 + .21 * Math.max(0, Math.cos(a - 4.4)) ** 18;
-  const profile = [[0, .04], [.94, .04], [1, .21], [.73, .58], [0, 1]];
-  profile.forEach(([r, y], i) => writeRing(mesh, i, 0, r, y, contour));
+  const profile = refined
+    ? [[0, .006], [.91, .014], [1, .075], [.98, .17], [.86, .23], [.66, .41], [.37, .66], [0, .81]]
+    : [[0, .04], [.94, .04], [1, .21], [.73, .58], [0, 1]];
+  profile.forEach(([r, y], i) => writeRing(mesh, i, 0, r, y, contour,
+    refined ? angle => y * r * (.12 * Math.sin(angle * 4 + i * .7) + .055 * Math.sin(angle * 11)) : null));
   finishSurface(mesh);
   return mesh.geometry;
 }
 
-function writeDrip(drip, rows, cut, growth) {
+function writeDrip(drip, rows, cut, growth, refined) {
   const mesh = drip.surface;
   const reach = Math.min(drip.reach * growth, cut * .8);
   drip.object.visible = reach > .0001;
@@ -117,12 +249,14 @@ function writeDrip(drip, rows, cut, growth) {
     const k = 1 - row / (mesh.rings - 1);
     const y = cut - reach * k - Math.min(cut * .04, .00045);
     const q = ringAt(rows, y);
-    const angle = drip.angle + .07 * Math.sin(k * 4.4);
+    const bend = .07 * Math.sin(k * 4.4);
+    const angle = drip.angle + bend + (refined ? .11 * Math.sin(k * 5.2 + drip.angle) * k : 0);
     const dx = Math.cos(angle), dz = Math.sin(angle);
     // The tear follows the actual outline, with its widest bead near its tip.
-    const width = Math.min(drip.width, q.r * .24) * Math.sqrt(growth)
-      * Math.sin(Math.PI * k) ** .45 * (.54 + .62 * Math.exp(-((k - .79) ** 2) / .014));
-    const r = q.r + width * .16;
+    const taper = Math.sin(Math.PI * k) ** .45 * (.54 + .62 * Math.exp(-((k - .79) ** 2) / .014));
+    const neck = refined ? .34 * Math.exp(-k * 14) : 0;
+    const width = Math.min(drip.width, q.r * .24) * Math.sqrt(growth) * (taper + neck);
+    const r = q.r + width * (refined ? -.18 : .16);
     for (let side = 0; side < mesh.sectors; side++) {
       const a = side * TAU / mesh.sectors;
       const radial = r + Math.cos(a) * width * .78;
@@ -134,15 +268,29 @@ function writeDrip(drip, rows, cut, growth) {
   finishSurface(mesh);
 }
 
-export function createPineWax(seat, waxMaterial) {
+export function createPineWax(seat, waxMaterial, { refined = false } = {}) {
   const group = new THREE.Group();
   group.position.y = seat.y;
-  const bodyMaterial = waxMaterial(0xffffff, { roughness: .42, clearcoat: .28, fall: 92 });
-  const poolMaterial = waxMaterial(0xffffff, { roughness: .14, clearcoat: .95, fall: 84 });
-  const traceMaterial = waxMaterial(0xffffff, { roughness: .45, clearcoat: .35, fall: 115 });
-  const materials = [bodyMaterial, poolMaterial, traceMaterial];
+  const light = refined ? {
+    uPineSourcePosition: { value: vector(0, 0, 0) },
+    uPineSourceColor: { value: new THREE.Color() },
+    uPineWaxCrown: { value: vector(0, 0, 0) },
+    uPineSourceRadius: { value: .007 },
+    uPineCandela: { value: 0 },
+  } : null;
+  const bodyMaterial = refined ? refinedWaxMaterial(light, 'body')
+    : waxMaterial(0xffffff, { roughness: .42, clearcoat: .28, fall: 92 });
+  const poolMaterial = refined ? refinedWaxMaterial(light, 'pool')
+    : waxMaterial(0xffffff, { roughness: .14, clearcoat: .95, fall: 84 });
+  const traceMaterial = refined ? refinedWaxMaterial(light, 'remnant')
+    : waxMaterial(0xffffff, { roughness: .45, clearcoat: .35, fall: 115 });
+  const runnelMaterial = refined ? refinedWaxMaterial(light, 'runnel') : traceMaterial;
+  const materials = refined ? [] : [bodyMaterial, poolMaterial, traceMaterial];
   const wickMaterial = new THREE.MeshStandardMaterial({ color: 0x665442, roughness: .98 });
-  for (const material of [...materials, wickMaterial]) material.userData.lampOwned = true;
+  const charMaterial = refined ? new THREE.MeshStandardMaterial({ color: 0x201911, roughness: .97 }) : null;
+  for (const material of new Set([bodyMaterial, poolMaterial, traceMaterial, runnelMaterial, wickMaterial, charMaterial])) {
+    if (material) material.userData.lampOwned = true;
+  }
 
   const add = (geometry, material) => {
     const object = new THREE.Mesh(geometry, material);
@@ -152,8 +300,10 @@ export function createPineWax(seat, waxMaterial) {
   };
   const body = add(new THREE.BufferGeometry(), bodyMaterial);
   body.frustumCulled = false; // Small, moving vertices do not need a new bounding sphere each frame.
-  const pool = add(new THREE.CircleGeometry(1, 48).rotateX(-Math.PI / 2), poolMaterial);
-  const trace = add(makeTrace(), traceMaterial);
+  const poolMesh = refined ? surface(7, 64) : null;
+  const pool = add(poolMesh?.geometry ?? new THREE.CircleGeometry(1, 48).rotateX(-Math.PI / 2), poolMaterial);
+  if (refined) pool.frustumCulled = false;
+  const trace = add(makeTrace(refined), traceMaterial);
   const contact = waxContactShadow(1, .42);
   group.add(contact);
   const drops = [
@@ -163,13 +313,16 @@ export function createPineWax(seat, waxMaterial) {
     { angle: 3.6, start: .24, reach: .026, width: .00175 },
     { angle: 5.1, start: .31, reach: .036, width: .00124 },
   ].map(spec => {
-    const mesh = surface(12, 10), object = add(mesh.geometry, traceMaterial);
+    const mesh = surface(refined ? 15 : 12, 10);
+    const object = add(mesh.geometry, runnelMaterial);
     object.frustumCulled = false;
     return { ...spec, surface: mesh, object };
   });
   const wickPath = new THREE.CatmullRomCurve3([vector(0, -.001, 0), vector(-.00015, .002, 0),
     vector(.00035, .0041, .00022), vector(.00135, .00575, .00058)]);
-  const wick = add(new THREE.TubeGeometry(wickPath, 10, .00068, 7, false), wickMaterial);
+  const braid = refined ? makeBraidedWick(wickPath, wickMaterial, charMaterial) : null;
+  const wick = braid ? braid.group : add(new THREE.TubeGeometry(wickPath, 10, .00068, 7, false), wickMaterial);
+  if (braid) group.add(wick);
   const wickTip = new THREE.Vector3();
   const wickEnd = wickPath.getPoint(1);
   const warmWax = new THREE.Color(0xffc07d);
@@ -186,11 +339,12 @@ export function createPineWax(seat, waxMaterial) {
       rows = source.map(q => ({ y: (q.y - base) * scale, cx: q.cx * scale, r: q.r * scale }));
       fullHeight = rows.at(-1).y;
       body.geometry.dispose();
-      bodyMesh = surface(rows.length + 7, 48);
+      bodyMesh = surface(rows.length + 7, refined ? 64 : 48);
       body.geometry = bodyMesh.geometry;
       bodyMaterial.color.setHex(shape.color);
-      poolMaterial.color.copy(bodyMaterial.color).lerp(warmWax, .12);
+      poolMaterial.color.copy(bodyMaterial.color).lerp(warmWax, refined ? .06 : .12);
       traceMaterial.color.copy(bodyMaterial.color).lerp(warmWax, .065);
+      if (refined) runnelMaterial.color.copy(bodyMaterial.color).lerp(warmWax, .03);
       lastFuel = undefined;
     },
     update(remaining, state, anchor) {
@@ -207,9 +361,16 @@ export function createPineWax(seat, waxMaterial) {
         const top = spent ? rows[0] : bodySurface(bodyMesh, rows, cut, melted);
         body.visible = !spent;
         pool.visible = !spent && melted > 0;
-        pool.scale.setScalar(top.r * (.56 + .086 * melted));
-        pool.position.set(top.cx, cut - (top.depth ?? 0) + Math.min(cut * .04, .00016), 0);
-        poolMaterial.roughness = state === 'burning' ? .14 : .29;
+        if (refined) {
+          const depth = top.depth ?? 0;
+          if (pool.visible) fillPool(poolMesh, top.r * (.65 + .065 * melted), Math.min(.00038, depth * .21));
+          pool.position.set(top.cx, cut - depth * .80 + Math.min(cut * .04, .00012), 0);
+          poolMaterial.roughness = state === 'burning' ? .22 : .38;
+        } else {
+          pool.scale.setScalar(top.r * (.56 + .086 * melted));
+          pool.position.set(top.cx, cut - (top.depth ?? 0) + Math.min(cut * .04, .00016), 0);
+          poolMaterial.roughness = state === 'burning' ? .14 : .29;
+        }
         const spread = Math.sqrt(Math.max(0, 1 - fuel));
         const base = rows[0];
         contact.position.x = base.cx;
@@ -221,10 +382,13 @@ export function createPineWax(seat, waxMaterial) {
         trace.scale.set(spreadRadius, traceHeight, spreadRadius);
         drips = 0;
         for (const drip of drops) {
-          writeDrip(drip, rows, cut, clamp((1 - fuel - drip.start) * 5, 0, 1));
+          writeDrip(drip, rows, cut, clamp((1 - fuel - drip.start) * 5, 0, 1), refined);
           drips += Number(drip.object.visible);
         }
-        wickMaterial.color.setHex(state === 'unlit' ? 0x665442 : 0x18110b);
+        if (braid) {
+          braid.char.visible = state !== 'unlit';
+          wickMaterial.color.setHex(state === 'unlit' ? 0x9b8966 : 0x514130);
+        } else wickMaterial.color.setHex(state === 'unlit' ? 0x665442 : 0x18110b);
         const spentWick = 1 - clamp(cut / Math.max(.002, traceHeight * 1.8), 0, 1);
         wick.scale.y = lerp(1, .56, spentWick);
         wick.position.set(top.cx, Math.max(pool.position.y, traceHeight * .9), 0);
@@ -232,6 +396,16 @@ export function createPineWax(seat, waxMaterial) {
         wickTip.y += seat.y;
       }
       anchor.set(wickTip.x, wickTip.y - .004, wickTip.z);
+    },
+    updateLight(sourceLight, emitterRadius = .007) {
+      if (!light) return;
+      light.uPineCandela.value = sourceLight.intensity;
+      if (!sourceLight.intensity) return;
+      light.uPineSourceRadius.value = emitterRadius;
+      light.uPineSourceColor.value.copy(sourceLight.color);
+      sourceLight.getWorldPosition(light.uPineSourcePosition.value);
+      light.uPineWaxCrown.value.copy(wickTip);
+      group.parent?.localToWorld(light.uPineWaxCrown.value);
     },
     fullHeight: () => fullHeight,
     profileBounds() {
