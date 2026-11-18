@@ -1848,7 +1848,7 @@ const smokeTex = canvasTex(64, 64, (g, w, h) => {
   g.fillStyle = r; g.fillRect(0, 0, w, h);
 });
 const wickPlume=new WickPlume({scene:outside,map:smokeTex});
-let pineDiagnosticView = false;
+let pineDiagnosticView = null;
 if (import.meta.env.DEV) {
   window.__visualWickPlume = () => wickPlume.state();
   window.__visualPineWax = () => {
@@ -1861,8 +1861,10 @@ if (import.meta.env.DEV) {
       mine.parts.seat.y + state.bodyHeight, wax.wickTip.z)).project(camera);
     return { ...state, baked: !!place?.baked, framedFraction: Math.max(0, (top.y - foot.y) / 2) };
   };
-  window.__visualPineCloseup = () => { pineDiagnosticView = true; };
-  window.__visualPineCloseupRestore = () => { pineDiagnosticView = false; };
+  window.__visualPineCloseup = () => { pineDiagnosticView = 'closeup'; };
+  window.__visualPineFarView = () => { pineDiagnosticView = 'far'; };
+  window.__visualPineContactView = () => { pineDiagnosticView = 'contact'; };
+  window.__visualPineCloseupRestore = () => { pineDiagnosticView = null; };
 }
 let shadeCoolingUntil=0,shadeCoolingGlow=0, emberUntil = 0, wind = 0, roomLight = 1, ignitionFill=0;
 let pointerX = 0, pointerY = 0, previousPointerX = 0;
@@ -2115,7 +2117,10 @@ function makeIgnitionTaper(){
 /** Light the flame (animation only; the burn clock lives in the UI). */
 export async function ignite({onCatch, remainingFuel}={}) {
   const journey=++cameraJourneyVersion;
-  const mark=(state,progress)=>{if(import.meta.env.DEV)window.__visualIgnition={state,progress,journey,position:rig.pos.toArray(),look:rig.look.toArray(),fov:rig.fov??camera.fov};};
+  const mark = (state, progress, evidence) => {
+    if (import.meta.env.DEV) window.__visualIgnition = { state, progress, journey,
+      position: rig.pos.toArray(), look: rig.look.toArray(), fov: rig.fov ?? camera.fov, ...evidence };
+  };
   lit=true;emberUntil=0;wickPlume.clear();shadeCoolingUntil=0;shadeCoolingGlow=0;roomLight=1;ignitionFill=place.P.bakedLighting?1:0;mark('igniting',0);
   const pine = !!mine.parts?.pineWax;
   if (pine) waxFuel = remainingFuel ?? null;
@@ -2149,15 +2154,22 @@ export async function ignite({onCatch, remainingFuel}={}) {
   // The moving lighting pole remains visible without stamping a stripe into
   // the Pine candle's cached static shadow map.
   for (const part of casters) part.castShadow = !pine;
-  const tip = mine.flameWorld().clone(), right = V3(1, 0, 0).applyQuaternion(camera.quaternion);
-  const start=tip.clone().addScaledVector(right,.27).add(V3(0,-.34,.22));
-  const contact=tip.clone().add(V3(.004,-.006,.012));mine.power=0;g.visible=true;
+  const wickWorld = () => pine ? mine.g.localToWorld(mine.parts.pineWax.wickTip.clone()) : mine.flameWorld().clone();
+  const tip = wickWorld();
+  const right = V3(1, 0, 0).applyQuaternion(camera.quaternion);
+  const start = tip.clone().addScaledVector(right, .27).add(V3(0, -.34, .22));
+  const contactOffset = pine ? f.flame.position.clone().applyQuaternion(g.quaternion).negate()
+    : V3(.004, -.006, .012);
+  mine.power = 0;
+  g.visible = true;
   let caught=false;
   await tween(3.2,k=>{
     if(!active())return;
     const retreat=ease(Math.min(1,k*3.2/1.0));
     rig.pos.lerpVectors(cameraStart,spread.pos,retreat);rig.look.lerpVectors(lookStart,spread.look,retreat);
     rig.fov=THREE.MathUtils.lerp(fovStart,spread.fov,retreat);
+    const wick = pine ? wickWorld() : tip;
+    const contact = wick.clone().add(contactOffset);
     if(k<.3)g.position.lerpVectors(start,contact,ease(k/.3));
     else if(k<.58)g.position.copy(contact);
     else g.position.lerpVectors(contact,start.clone().add(V3(.12,-.35,.18)),ease((k-.58)/.42));
@@ -2170,7 +2182,10 @@ export async function ignite({onCatch, remainingFuel}={}) {
     ignitionFill=1-catchPower;
     mine.power=catchPower*(1+.06*Math.sin(Math.PI*smooth(.3,.75,k)));
     f.tick(clockTime,k>.88?smooth(1,.88,k):1,0,[],0);
-    mark('igniting',k*.18);
+    const evidence = import.meta.env.DEV && pine ? {
+      wickContactMetres: f.flame.getWorldPosition(V3(0, 0, 0)).distanceTo(wick),
+    } : undefined;
+    mark('igniting', k * .18, evidence);
   });
   if(journey===cameraJourneyVersion)g.visible=false;
   if(!active())return;
@@ -2221,7 +2236,8 @@ export async function snuff(done = false, remaining) {
     }
   } else if (done) { level = targetLevel = 0; mine.setLevel(0); }
   const wickTip = endingParts?.pineWax?.wickTip.clone() ?? mine.top.clone().add(V3(.0007,.004,0));
-  wickPlume.start({time:clockTime,done,frame:mine.g,path:endingParts?.smokePath,wickTip,valid:()=>mine.parts===endingParts});
+  wickPlume.start({ time: clockTime, done, frame: mine.g, path: endingParts?.smokePath, wickTip,
+    variant: endingParts?.pineWax ? 'pine' : undefined, valid: () => mine.parts === endingParts });
   emberUntil = clockTime + (done ? 3.8 : .35);
   // Went out: sudden, and the place keeps less of its light. Burned down: it stays as it was.
   if (!done && !place.P.bakedLighting) void tween(1.6, (k) => { roomLight = 1 - .3 * ease(k); });
@@ -2275,9 +2291,18 @@ function frame(stamp = performance.now()) {
   let lens = rig.fov ?? (innerWidth / innerHeight < .8 ? 44 : 32);
   if (import.meta.env.DEV && pineDiagnosticView && mine.g.visible && mine.parts?.pineWax && atLamp) {
     const detail = burnView();
+    if (pineDiagnosticView === 'far') {
+      detail.pos.sub(detail.look).multiplyScalar(1.06).add(detail.look);
+      lens = detail.fov;
+    } else if (pineDiagnosticView === 'contact') {
+      const seat = mine.g.localToWorld(V3(0, mine.parts.seat.y, 0));
+      detail.look.lerp(seat, .78);
+      lens = detail.fov * .63;
+    } else {
+      lens = detail.fov * .48;
+    }
     camera.position.copy(detail.pos);
     camera.lookAt(detail.look);
-    lens = detail.fov * .48;
   }
   if(Math.abs(camera.fov-lens)>.001){camera.fov=lens;camera.updateProjectionMatrix();}
   if (place) {

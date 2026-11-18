@@ -103,6 +103,8 @@ export function createGauzeSmokePath(profile,wickTip,vent){
 }
 
 const configurations={natural:{delay:1.9,duration:1.5,rate:36,speed:.13,outsideLife:2.3,riseSpeed:.075,width:.0012,growth:.0032,curl:.004,opacity:.14},sudden:{delay:0,duration:.25,rate:96,speed:.32,outsideLife:1.4,riseSpeed:.17,width:.0012,growth:.018,curl:.014,opacity:.16}};
+const pineSudden = { delay: 0, duration: 1.04, rate: 88, speed: .19, outsideLife: 1.64,
+  riseSpeed: .105, width: .0015, growth: .011, curl: .014, opacity: .19, coherent: true };
 export class WickPlume{
   constructor({scene,map,count=96}){
     this.parts=Array.from({length:count},(_,i)=>{
@@ -110,10 +112,11 @@ export class WickPlume{
     });this.run=null;this.position=new THREE.Vector3();
   }
   clear(){this.run=null;for(const p of this.parts){p.s.visible=false;p.exitWorld=null;}}
-  start({time,done,frame,path,wickTip,valid}){
+  start({time,done,frame,path,wickTip,variant,valid}){
     this.clear();frame.updateWorldMatrix(true,false);
     if(!path){const end=wickTip.clone().add(new THREE.Vector3(0,.008,0));path={length:.008,vent:null,wickTip:wickTip.clone(),points:[wickTip.clone(),end],sample:(d,target)=>target.lerpVectors(wickTip,end,THREE.MathUtils.clamp(d/.008,0,1)),clearance:()=>.0006};}
-    const config=configurations[done?'natural':'sudden'],count=Math.min(this.parts.length,Math.ceil(config.rate*config.duration)),position=new THREE.Vector3(),quaternion=new THREE.Quaternion(),scale=new THREE.Vector3();frame.matrixWorld.decompose(position,quaternion,scale);
+    const config = !done && variant === 'pine' ? pineSudden : configurations[done ? 'natural' : 'sudden'];
+    const count=Math.min(this.parts.length,Math.ceil(config.rate*config.duration)),position=new THREE.Vector3(),quaternion=new THREE.Quaternion(),scale=new THREE.Vector3();frame.matrixWorld.decompose(position,quaternion,scale);
     this.run={time,done,frame,path,valid,config,count,transit:path.length/config.speed,previousTime:time,currentTime:time,previousPosition:position,previousQuaternion:quaternion,previousScale:scale};
   }
   update(time){
@@ -133,7 +136,7 @@ export class WickPlume{
           const exitTime=birth+run.transit,k=THREE.MathUtils.clamp((exitTime-run.previousTime)/(time-run.previousTime||1),0,1),matrix=new THREE.Matrix4().compose(run.previousPosition.clone().lerp(nowPosition,k),run.previousQuaternion.clone().slerp(nowQuaternion,k),run.previousScale.clone().lerp(nowScale,k));
           p.exitWorld=path.sample(path.length,new THREE.Vector3()).applyMatrix4(matrix);
         }
-        const fraction=outside/config.outsideLife,curl=config.curl*fraction*smooth(0,.2,outside),phase=run.done?birth*.8:p.phase;
+        const fraction=outside/config.outsideLife,curl=config.curl*fraction*smooth(0,.2,outside),phase = run.done || config.coherent ? birth * .8 : p.phase;
         this.position.copy(p.exitWorld);this.position.y+=config.riseSpeed*outside;
         this.position.x+=curl*(Math.sin(outside*2.1+phase)-Math.sin(phase));this.position.z+=curl*.65*(Math.cos(outside*1.6+phase)-Math.cos(phase));
         const exitWidth=Math.min(config.width,path.clearance(path.length)*1.2);
@@ -145,8 +148,16 @@ export class WickPlume{
   }
   state(){
     const r=this.run;if(!r)return null;let inside=0,exterior=0;
-    for(let i=0;i<r.count;i++)if(this.parts[i].s.visible){const age=r.currentTime-r.time-r.config.delay-i/r.config.rate;if(age<r.transit)inside++;else exterior++;}
-    return {mode:r.done?'natural':'sudden',startedAt:r.time,currentTime:r.currentTime,rate:r.config.rate,emissionDuration:r.config.duration,delay:r.config.delay,particleCount:r.count,pathLength:r.path.length,transitSeconds:r.transit,outsideVisibleSeconds:r.config.outsideLife,wickTipLocal:r.path.wickTip.toArray(),wickTipWorld:r.path.wickTip.clone().applyMatrix4(r.frame.matrixWorld).toArray(),vent:r.path.vent,ventWorld:r.path.sample(r.path.length,new THREE.Vector3()).applyMatrix4(r.frame.matrixWorld).toArray(),visibleSprites:inside+exterior,insideSprites:inside,exteriorSprites:exterior,layer:0,depthTest:true};
+    const wick = r.path.wickTip.clone().applyMatrix4(r.frame.matrixWorld);
+    let nearest = Infinity;
+    for (let i = 0; i < r.count; i++) {
+      const sprite = this.parts[i].s;
+      if (!sprite.visible) continue;
+      const age = r.currentTime - r.time - r.config.delay - i / r.config.rate;
+      if (age < r.transit) inside++; else exterior++;
+      if (sprite.material.opacity > .01) nearest = Math.min(nearest, sprite.position.distanceTo(wick));
+    }
+    return {mode:r.done?'natural':'sudden',startedAt:r.time,currentTime:r.currentTime,rate:r.config.rate,emissionDuration:r.config.duration,delay:r.config.delay,particleCount:r.count,pathLength:r.path.length,transitSeconds:r.transit,outsideVisibleSeconds:r.config.outsideLife,wickTipLocal:r.path.wickTip.toArray(),wickTipWorld:wick.toArray(),vent:r.path.vent,ventWorld:r.path.sample(r.path.length,new THREE.Vector3()).applyMatrix4(r.frame.matrixWorld).toArray(),visibleSprites:inside+exterior,insideSprites:inside,exteriorSprites:exterior,nearestSmokeMetres:Number.isFinite(nearest)?nearest:null,layer:0,depthTest:true};
   }
   dispose(){for(const p of this.parts){p.s.removeFromParent();p.s.material.dispose();}this.parts.length=0;this.run=null;}
 }
