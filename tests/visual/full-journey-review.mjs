@@ -251,17 +251,10 @@ for (const name of names) {
     const again = async minutes => { await act(button(re('为这个愿，再点一盏|再为此愿点一盏', 'Light a new one for this wish|Another lamp for this wish'))); await choose(minutes, true); await prepareLight(); };
     const draw = async contour => {
       const box = await page.locator('.pad').boundingBox(), points = contour.map(([x, y]) => ({ x: box.x + box.width * x, y: box.y + box.height * y }));
-      // A native touch sequence occasionally lands before the pad is hit-testable
-      // (panel still animating in), which leaves Undo disabled. Retry once after a
-      // short settle; the stroke itself is unchanged.
-      for (let attempt = 0; attempt < 2; attempt++) {
-        if (size.phone && name === 'chromium') { const cdp = await context.newCDPSession(page); await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [points[0]] });
-          for (let i = 1; i < points.length; i++) for (let j = 1; j <= 12; j++) await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: points[i - 1].x + (points[i].x - points[i - 1].x) * j / 12, y: points[i - 1].y + (points[i].y - points[i - 1].y) * j / 12 }] });
-          await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] }); await cdp.detach();
-        } else { await page.mouse.move(points[0].x, points[0].y); await page.mouse.down(); for (const point of points.slice(1)) await page.mouse.move(point.x, point.y, { steps: 15 }); await page.mouse.up(); }
-        if (await page.getByRole('button', { name: re('撤销', 'Undo') }).isEnabled()) break;
-        await page.waitForTimeout(600);
-      }
+      if (size.phone && name === 'chromium') { const cdp = await context.newCDPSession(page); await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [points[0]] });
+        for (let i = 1; i < points.length; i++) for (let j = 1; j <= 12; j++) await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: points[i - 1].x + (points[i].x - points[i - 1].x) * j / 12, y: points[i - 1].y + (points[i].y - points[i - 1].y) * j / 12 }] });
+        await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] }); await cdp.detach();
+      } else { await page.mouse.move(points[0].x, points[0].y); await page.mouse.down(); for (const point of points.slice(1)) await page.mouse.move(point.x, point.y, { steps: 15 }); await page.mouse.up(); }
       report.interactions.push({ ...scope, stage: 'drawing', pointer: size.phone && name === 'chromium' ? 'native touch protocol' : 'trusted mouse pointer', duration: await page.getByTestId('duration').innerText() });
     };
     try {
