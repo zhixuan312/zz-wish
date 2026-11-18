@@ -11,11 +11,12 @@ import { DICTS, fmtDuration } from '../../web/src/i18n.ts';
 import { assertCaptureGpuHealthy, installCaptureGpuGuard } from './capture-preflight.mjs';
 import { installLiveAudioAudit, sampleLiveAudio, sampleLiveAudioWindow } from './live-audio-audit.mjs';
 import { instrumentPineScene } from './pine-gate-scene-audit.mjs';
+import { pinePackagePath, readPinePreview, routePinePreview } from './pine-preview-delivery.mjs';
 
 if (process.argv.includes('--help')) {
   console.log([
     'Run the Pine Gate visual journey against a local Vite dev server with the real API.',
-    'Acquire the shared GPU lock with mkdir before running and release it afterward.',
+    'Use the official GPU lease helper before running and release the lease afterward.',
     'Set DB_FILE to the dedicated pine-gate-capture-*.sqlite database under TMPDIR.',
     'BASE_URL defaults to http://127.0.0.1:8953 and GPU_LOCK_DIR to ../gpu.lock relative to the worktree.',
     'OUTPUT overrides the default output root, artifacts/pine-gate in the worktree.',
@@ -26,6 +27,8 @@ if (process.argv.includes('--help')) {
     'CAPTURE_READINESS_ONLY=1 stops at Step inside. Use CAPTURE_READINESS_REPEATS=3 for independent browser launches.',
     'CAPTURE_AUDIO_COMPARE=1 compares the actual Pine and Snow AudioContext after lighting each place.',
     'CAPTURE_AMBIENT_ONLY=1 captures final-package place, unlit, burning, and mid-burn at PINE_HOUR.',
+    'CAPTURE_PREVIEW_DIR and CAPTURE_PREVIEW_SHA256 select an eight-sample package under art/build/pine-gate.',
+    'CAPTURE_DIRECTION_ONLY=1 saves four timed walk frames and the settled edge-niche frame under quality/direction/QUALITY_LABEL.',
     'CAPTURE_BROWSER and CAPTURE_ONLY can select a single context. PINE_HOUR defaults to 22.',
   ].join('\n'));
   process.exit(0);
@@ -41,14 +44,22 @@ const fullJourney = mode !== 'm1';
 const readinessOnly = process.env.CAPTURE_READINESS_ONLY === '1';
 const audioCompare = process.env.CAPTURE_AUDIO_COMPARE === '1';
 const ambientOnly = process.env.CAPTURE_AMBIENT_ONLY === '1';
+const directionOnly = process.env.CAPTURE_DIRECTION_ONLY === '1';
+const directionWalkFrames = [['forest-05s', 5], ['bridge-13s', 13], ['gate-tunnel-22s', 22], ['terrace-release-27s', 27]];
 const readinessRepeats = Number(process.env.CAPTURE_READINESS_REPEATS ?? 1);
 assert(!readinessOnly || quality, 'Readiness-only requires CAPTURE_MILESTONE=quality.');
 assert(!audioCompare || (quality && !readinessOnly), 'Audio comparison requires quality mode without readiness-only.');
 assert(Number.isInteger(readinessRepeats) && readinessRepeats >= 1 && readinessRepeats <= 3
   && (readinessOnly || readinessRepeats === 1), 'Use one to three repetitions in readiness-only mode.');
-const holdCameraDrift = mode !== 'm3';
+const holdCameraDrift = mode !== 'm3' && !directionOnly;
 const qualityPass = process.env.QUALITY_PASS ?? 'preview';
 assert(['preview', 'final'].includes(qualityPass), 'QUALITY_PASS must be preview or final.');
+const preview = quality && qualityPass === 'preview';
+const previewDir = process.env.CAPTURE_PREVIEW_DIR;
+const previewSha = process.env.CAPTURE_PREVIEW_SHA256;
+assert(preview || (!previewDir && !previewSha), 'The isolated preview override is available only for quality previews.');
+assert(!directionOnly || (preview && !readinessOnly && !audioCompare && !ambientOnly),
+  'Direction-only requires a quality preview on its own.');
 assert(!ambientOnly || (quality && qualityPass === 'final' && !readinessOnly && !audioCompare),
   'Ambient-only requires final quality mode without readiness or audio-only capture.');
 const reviewLabel = process.env.QUALITY_LABEL ?? qualityPass;
@@ -75,27 +86,38 @@ const sizes = [
 ].flatMap(size => {
   const languages = mode === 'm3' ? ['en', 'zh'] : [size.phone ? 'zh' : 'en'];
   return languages.map(language => ({ ...size, language, label: size.name + '-' + language }));
-}).filter(size => !contextOnly || size.label === contextOnly);
+}).filter(size => (!contextOnly || size.label === contextOnly) && (!directionOnly || size.label === 'desktop-en'));
 const contexts = audioCompare ? sizes.flatMap(size => ['pine-gate', 'snow-roof'].map(placeId => ({ ...size, placeId }))) : sizes;
 assert(suite.length && sizes.length, 'No matching capture context.');
-const output = quality
+const output = directionOnly ? join(outputRoot, 'quality', 'direction', reviewLabel)
+  : quality
   ? join(outputRoot, 'quality', reviewLabel, 'pine')
   : join(outputRoot, mode === 'm3' && (contextOnly || browserOnly || hour !== 22)
     ? ['m3-smoke', browserOnly, contextOnly, 'hour-' + hour].filter(Boolean).join('-') : mode);
 let delivery = null;
-if (fullJourney) {
-  const manifestUrl = new URL('/places/pine-gate/manifest.json', base);
+let previewPackage = null;
+const manifestUrl = new URL(`${pinePackagePath}manifest.json`, base);
+const hash = bytes => createHash('sha256').update(bytes).digest('hex');
+async function readPublicManifest() {
   const response = await fetch(manifestUrl);
-  assert(response.ok, 'Pine Gate bake manifest is missing.');
-  const bytes = Buffer.from(await response.arrayBuffer());
-  const manifest = JSON.parse(bytes.toString('utf8'));
-  const preview = quality && qualityPass === 'preview';
-  const samples = manifest.bake?.samples;
-  assert.equal(Boolean(manifest.partialPreview), preview, 'Capture mode does not match the active bake delivery.');
-  assert.equal(samples, preview ? 8 : 64, 'Unexpected Pine Gate bake sample count.');
-  delivery = { preview, samples, manifestSha256: createHash('sha256').update(bytes).digest('hex') };
+  assert(response.ok, 'The public Pine Gate bake manifest is missing.');
+  return Buffer.from(await response.arrayBuffer());
 }
-await mkdir(output, { recursive: true });
+if (fullJourney) {
+  const bytes = await readPublicManifest();
+  const manifest = JSON.parse(bytes.toString('utf8'));
+  assert(!manifest.partialPreview && manifest.bake?.samples === 64, 'The ordinary server must serve the final 64-sample package.');
+  const publicManifestSha256 = hash(bytes);
+  if (preview) {
+    previewPackage = await readPinePreview(worktree, previewDir, previewSha);
+    delivery = { preview, samples: previewPackage.samples, manifestSha256: previewPackage.manifestSha256,
+      publicManifestSha256, transport: 'Private Playwright request routes for the candidate Pine Gate files.' };
+  } else delivery = { preview, samples: 64, manifestSha256: publicManifestSha256 };
+}
+if (directionOnly) {
+  await mkdir(join(outputRoot, 'quality', 'direction'), { recursive: true });
+  await mkdir(output);
+} else await mkdir(output, { recursive: true });
 const report = {
   mode,
   hour,
@@ -103,7 +125,9 @@ const report = {
   ...(process.env.CAPTURE_CODE_SHA ? { codeSha256: process.env.CAPTURE_CODE_SHA } : {}),
   ...(readinessOnly ? { readinessOnly, readinessRepeats } : {}),
   ...(quality ? { reviewLabel } : {}),
-  ...(quality && !readinessOnly && !audioCompare && !ambientOnly ? { matchedEndingShapes: true } : {}),
+  ...(quality && !readinessOnly && !audioCompare && !ambientOnly && !directionOnly ? { matchedEndingShapes: true } : {}),
+  ...(directionOnly ? { directionOnly, frames: [...directionWalkFrames.map(([name]) => name), 'edge-niche-settled'],
+    directionMethod: 'Native 1440 × 900 desktop screenshots with normal product cameras and motion. Walk times use the linear tween clock, and panels are hidden only while taking each screenshot.' } : {}),
   ...(ambientOnly ? { ambientOnly } : {}),
   ...(audioCompare ? { audioCompare, audioSourceSha256: createHash('sha256').update(await readFile(join(worktree, 'web/src/sound.ts'))).digest('hex') } : {}),
   delivery,
@@ -257,10 +281,17 @@ async function capture(browser, browserName, size, trial) {
       if (response.status() >= 400) run.errors.push({ kind: 'http', status: response.status(), url: response.url() });
     });
     page.on('crash', () => run.errors.push({ kind: 'crash' }));
+    if (previewPackage) {
+      run.previewFetchedFiles = [];
+      await routePinePreview(page, base, previewPackage, text => run.errors.push({ kind: 'preview', text }), name => {
+        if (!run.previewFetchedFiles.includes(name)) run.previewFetchedFiles.push(name);
+      });
+    }
     const sceneAudit = {
       readiness: quality && !audioCompare,
       cadence: fullJourney && phone && !readinessOnly && !audioCompare && !ambientOnly,
-      lighting: !!delivery && !delivery.preview && !audioCompare && !readinessOnly,
+      lighting: !!delivery && !audioCompare && !readinessOnly,
+      walkClock: directionOnly,
     };
     if (Object.values(sceneAudit).some(Boolean)) {
       await page.route(url => url.pathname === '/src/engine/scene.js', async route => {
@@ -310,6 +341,7 @@ async function capture(browser, browserName, size, trial) {
           wax: window.__visualPineWax?.() ?? null,
           smoke: window.__visualWickPlume?.() ?? null,
           walk: window.__walkProgress ?? null,
+          walkClock: window.__pineCaptureWalkClock ?? null,
           ignition: window.__visualIgnition ?? null,
           canvas: [window.__renderer.domElement.width, window.__renderer.domElement.height],
           viewportOverflow: [...document.querySelectorAll('.ui button, .ui textarea, .ui h1, .ui h2')]
@@ -321,9 +353,17 @@ async function capture(browser, browserName, size, trial) {
       });
       const file = join(path, name + '.png');
       if (fullJourney && snapshot.wax) assert.equal(snapshot.wax.baked, true, 'Active Pine Gate scene must be baked.');
-      const bytes = await page.screenshot({ path: file, scale: 'css' });
+      const bytes = await page.screenshot({ path: file, scale: 'css',
+        ...(directionOnly ? { style: '.ui { visibility: hidden !important; }' } : {}) });
+      let directionProof = {};
+      if (directionOnly) {
+        const pixels = [bytes.readUInt32BE(16), bytes.readUInt32BE(20)];
+        const walkClockAfter = await page.evaluate(() => window.__pineCaptureWalkClock ?? null);
+        assert.deepEqual(pixels, [1440, 900]);
+        directionProof = { pixels, walkClockAfter };
+      }
       run.shots.push({ file: relative(output, file), sha256: createHash('sha256').update(bytes).digest('hex'),
-        candleId: activeId, ...snapshot, ...extra });
+        candleId: activeId, ...snapshot, ...extra, ...directionProof });
       console.log(browserName, label, name, JSON.stringify(snapshot.wax));
       await save();
       return snapshot;
@@ -348,7 +388,17 @@ async function capture(browser, browserName, size, trial) {
       const started = performance.now();
       await act(button(bi('^Step inside$', '^走进院里$')));
       if (skip) await act(button(bi('^Skip$', '^跳过$')));
-      if (journey) {
+      if (directionOnly) {
+        for (const [name, target] of directionWalkFrames) {
+          await page.waitForFunction(target => {
+            const clock = window.__pineCaptureWalkClock;
+            return clock?.id === 'pine-gate' && clock.seconds >= target && window.__walkProgress?.state === 'walking';
+          }, target, { timeout: 35_000, polling: 30 });
+          const shot = await captureShot(name, { targetWalkSeconds: target });
+          assert(shot.walkClock.seconds >= target && shot.walkClock.seconds <= target + .6, `Missed the ${target}s walk beat.`);
+          assert(shot.walkClockAfter.seconds <= target + .9, `The screenshot crossed the ${target}s walk beat.`);
+        }
+      } else if (journey) {
         for (const [name, target] of [['walk-25', .25], ['walk-50', .5], ['walk-75', .75]]) {
           await page.waitForFunction(target => {
             const state = window.__walkProgress;
@@ -358,7 +408,7 @@ async function capture(browser, browserName, size, trial) {
         }
       }
       await matchStage(page, 'candle');
-      if (journey) run.walkDurationMs = performance.now() - started;
+      if (journey || directionOnly) run.walkDurationMs = performance.now() - started;
     };
     const choose = async (custom = false) => {
       if (custom) {
@@ -469,7 +519,7 @@ async function capture(browser, browserName, size, trial) {
       return debug ? gl.getParameter(debug.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER);
     });
     await page.evaluate(() => document.fonts.ready);
-    if (fullJourney && !readinessOnly && !audioCompare && !ambientOnly) await captureShot('home');
+    if (fullJourney && !readinessOnly && !audioCompare && !ambientOnly && !directionOnly) await captureShot('home');
     const wishField = page.getByLabel(wishLabel);
     if (fullJourney && !audioCompare) await observeWishInput(wishField);
     await wishField.fill(wish);
@@ -510,6 +560,10 @@ async function capture(browser, browserName, size, trial) {
         assert(run.placeReadiness?.marks.some(mark => mark.name === 'one-light:pine-gate:build-finished'),
           'Did not observe the Pine Gate build phase marks.');
       }
+      if (previewPackage) {
+        assert(['manifest.json', previewPackage.scene].every(file => run.previewFetchedFiles.includes(file)),
+          'The browser did not request the isolated Pine preview manifest and model.');
+      }
       if (readinessOnly) {
         assert(Number.isFinite(run.placeReadiness.wishToEnabledMs) && Number.isFinite(run.placeReadiness.clickToEnabledMs),
           'Did not observe wish input, place click, and enable events.');
@@ -531,7 +585,18 @@ async function capture(browser, browserName, size, trial) {
             `Pine Gate must use the ${pass} bank at visual hour ${hour}.`);
         }
       }
-      await captureShot('place');
+      if (!directionOnly) await captureShot('place');
+    }
+    if (directionOnly) {
+      await travel(false);
+      await choose();
+      const candle = await light();
+      assert.equal(candle.durationMs, 3_600_000);
+      const niche = await captureShot('edge-niche-settled');
+      assert.equal(niche.wax.state, 'burning');
+      assert.deepEqual(run.shots.map(shot => basename(shot.file, '.png')), report.frames);
+      assert.deepEqual(run.errors, []);
+      return;
     }
     if (ambientOnly) {
       await travel(true);
@@ -700,6 +765,11 @@ try {
         await browser.close();
       }
     }
+  }
+  if (previewPackage) {
+    const publicAfter = hash(await readPublicManifest());
+    report.delivery.publicManifestUnchanged = publicAfter === report.delivery.publicManifestSha256;
+    assert(report.delivery.publicManifestUnchanged, 'The ordinary final Pine manifest changed during the isolated preview.');
   }
   console.log('Ran ' + report.runs.length + ' contexts, captured ' + report.runs.reduce((n, run) => n + run.shots.length, 0) + ' screenshots, ' + failures + ' failed contexts.');
   if (failures) process.exitCode = 1;
