@@ -217,8 +217,9 @@ rectangle and a measured mean.
 
 Every number above, with each frame's mean and its rectangle, is in
 `j6-j2/approach-series-{desktop-en,phone-zh}.json`; timestamps, clip and lamp rectangle per
-frame are in `j6-j2/approach-timestamps.json`. Frames kept:
-`j6-j2/approach-{desktop-en,phone-zh}-{20,60,100,125}.png`, plus
+frame are in `j6-j2/approach-timestamps.json`. Frames kept, five per viewport evenly spaced through the walk:
+`j6-j2/approach-phone-zh-{20,60,100,125,129}.png` for visual review, the matching
+`j6-j2/approach-desktop-en-{20,60,100,125,129}.png`, plus
 `j6-j2/approach-desktop-en-{123,124}.png` for the largest desktop step.
 
 The cause of that 37.5% desktop step is **undetermined**. The two frames show the same dark
