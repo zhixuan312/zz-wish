@@ -171,33 +171,23 @@ and decays with a 2.6 s time constant.
 
 ### Ended series
 
-Real put-out, no Skip and no held camera, captured through CDP into a clipped region with an
-in-page timestamp before and after each frame.
+Re-captured on the current build after the camera fixes, through the real flow with no Skip
+and no held camera: the lamp is lit, put out, and sampled for forty frames inside a clip that
+follows the lamp's own rectangle. 167 ms median interval on both viewports, one 389 ms first
+frame on desktop.
 
-Mask definition: on frame 00 the largest 4-connected saturated-red blob is found inside a
-central band from 0.36 to 0.56 of frame width, sampled every 2 px (colour test: r > 55,
-r-g > 22, r-b > 30). Its bounding rectangle is then fixed and reused for every frame, and
-mean luminance is taken over **all** pixels of that rectangle — the cloth, its dark ribs, the
-gaps between ribs and the unlit inside of the shade. It is not a per-pixel cloth mask, so the
-mean is lower than the cloth's own brightness and a dark rib influences it.
+| viewport | whole range | median step | p95 step | steps over 15% | lamp width |
+|---|---|---|---|---|---|
+| desktop-en | 33.9-12.2 | 2.6% | 3.6% | **0** | 239→243 px |
+| phone-zh | 53.1-30.7 | 1.4% | 1.9% | **0** | 215→215 px |
 
-Both captures are clipped regions rendered at devicePixelRatio 2, so the boxes below are in
-2x pixels: desktop `x 321-401, y 418-658` in a 720x920 image = 19,521 px; phone
-`x 248-384, y 876-1264` in a 688x1352 image = 53,293 px. Every frame's mean, the mask and its
-definition are in `j6-j2/t8-series-{desktop,phone}.json`.
+Both series fall monotonically from the lit level to the ambient floor with no step above 15%
+and no rise anywhere, and the width does not change, so the fade is the cloth cooling and not
+a framing change. Per-frame values: `j6-j2/ended-series-{desktop-en,phone-zh}.json`; frames
+`j6-j2/ended-{desktop-en,phone-zh}-{000,010,020,039}.png`.
 
-| frame | 00 | 01 | 04 | 08 | 12 | 16 | 20 | 23 |
-|---|---|---|---|---|---|---|---|---|
-| desktop-en | 76.7 | 73.0 | 65.8 | 56.7 | 48.8 | 42.3 | 37.0 | 33.5 |
-| phone-zh | 89.1 | 86.7 | 75.2 | 61.4 | 50.5 | 42.9 | 35.9 | 32.1 |
-
-Cadence, from the in-page timestamps: desktop median 166 ms with one 393 ms first-frame
-outlier; phone median 234 ms with 278 ms and 253 ms on its first two intervals. Every
-interval after that is under 250 ms on both viewports. Both series fall at every step with no
-frame above its predecessor, and the largest adjacent drop is 4.8% (desktop, frame 00 to 01)
-and 5.4% (phone, frame 08 to 09). The unlit and ended cloth, with its ribs, is visible in
-`j6-j2/ended-*` and `j6-j2/t8-{desktop-en,phone-zh}-{00,08,16,23}.png`. No red flash or
-reversal appears in either series.
+Ignition and put-out keep `dt * 5` for the fill, so their timing is unchanged from the run
+that produced these numbers.
 
 ### Approach series
 
