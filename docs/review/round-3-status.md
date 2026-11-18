@@ -160,16 +160,24 @@ and decays with a 2.6 s time constant.
 ### Ended series
 
 Real put-out, no Skip and no held camera, captured through CDP into a clipped region with an
-in-page timestamp before and after each frame. Mask definition: the largest 4-connected
-saturated-red blob inside the central band (x from 0.36 to 0.56 of the frame, sampled every 2
-px), taken on frame 00 and then held fixed for every frame of the series. Desktop mask
-`x 321-401, y 418-658` = 19,521 px at 1x; phone mask `x 248-384, y 876-1264` = 53,293 px at
-2x. Every frame's mean is in `j6-j2/t8-series-{desktop,phone}.json`.
+in-page timestamp before and after each frame.
+
+Mask definition: on frame 00 the largest 4-connected saturated-red blob is found inside a
+central band from 0.36 to 0.56 of frame width, sampled every 2 px (colour test: r > 55,
+r-g > 22, r-b > 30). Its bounding rectangle is then fixed and reused for every frame, and
+mean luminance is taken over **all** pixels of that rectangle — the cloth, its dark ribs, the
+gaps between ribs and the unlit inside of the shade. It is not a per-pixel cloth mask, so the
+mean is lower than the cloth's own brightness and a dark rib influences it.
+
+Both captures are clipped regions rendered at devicePixelRatio 2, so the boxes below are in
+2x pixels: desktop `x 321-401, y 418-658` in a 720x920 image = 19,521 px; phone
+`x 248-384, y 876-1264` in a 688x1352 image = 53,293 px. Every frame's mean, the mask and its
+definition are in `j6-j2/t8-series-{desktop,phone}.json`.
 
 | frame | 00 | 01 | 04 | 08 | 12 | 16 | 20 | 23 |
 |---|---|---|---|---|---|---|---|---|
-| desktop-en | 76.7 | 73.0 | 65.8 | 56.7 | 48.8 | 41.7 | 36.2 | 33.5 |
-| phone-zh | 89.1 | 86.7 | 75.2 | 61.4 | 50.5 | 41.5 | 35.4 | 32.1 |
+| desktop-en | 76.7 | 73.0 | 65.8 | 56.7 | 48.8 | 42.3 | 37.0 | 33.5 |
+| phone-zh | 89.1 | 86.7 | 75.2 | 61.4 | 50.5 | 42.9 | 35.9 | 32.1 |
 
 Cadence, from the in-page timestamps: desktop median 166 ms with one 393 ms first-frame
 outlier; phone median 234 ms with 278 ms and 253 ms on its first two intervals. Every
