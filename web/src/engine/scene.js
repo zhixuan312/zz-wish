@@ -215,7 +215,7 @@ float vn(vec2 x){ vec2 p = floor(x), f = fract(x); f = f * f * (3. - 2. * f); fl
 // Integrate emission through a swaying volume. The blue base rims a cooler,
 // fuel-rich interior just above the wick.
 float pineRadius(float y) {
-  return .249 * smoothstep(-.052, .16, y) * pow(max(1. - clamp(y, 0., 1.), 0.), .76);
+  return .234 * smoothstep(-.052, .18, y) * sqrt(1. - smoothstep(.18, 1.02, y));
 }
 vec3 pineFlameVolume(vec2 uv) {
   float t = uTime + vSeed * 6.;
@@ -231,7 +231,8 @@ vec3 pineFlameVolume(vec2 uv) {
     float v = clamp(y, 0., 1.);
     float x = uv.x - .5 - sway * v * v - .05 * v;
     float r = length(vec2(x, z * .92)) / max(pineRadius(y), .007);
-    float envelope = (1. - smoothstep(.78, 1.03, r)) * smoothstep(-.042, .035, y);
+    float envelope = (1. - smoothstep(.78, 1.03, r)) * smoothstep(-.042, .035, y)
+      * (1. - smoothstep(.92, 1.02, y));
     float inner = (1. - smoothstep(.37, .72, r)) * (1. - smoothstep(.24, .56, y));
     float blue = (1. - smoothstep(.13, .31, y)) * (.65 + .35 * smoothstep(.25, .9, r));
     float skirt = smoothstep(.49, .99, r);
