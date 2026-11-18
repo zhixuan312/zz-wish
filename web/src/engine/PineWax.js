@@ -41,6 +41,16 @@ function materialCoordinates(shader) {
   shader.fragmentShader = `varying vec3 vPineLocal; varying vec3 vPineWorld;\n${shader.fragmentShader}`;
 }
 
+const RELIEF_GLSL = `
+  vec3 pineRelief(vec3 n, vec3 position, float height) {
+    vec3 dx = dFdx(position), dy = dFdy(position);
+    vec3 sx = cross(dy, n), sy = cross(n, dx);
+    float area = dot(dx, sx);
+    vec3 gradient = dFdx(height) * sx + dFdy(height) * sy;
+    return normalize(n - sign(area) * gradient / max(abs(area), 1.e-10));
+  }
+`;
+
 function refinedWaxMaterial(light, layer) {
   const wet = layer === 'pool';
   const shaft = layer === 'body';
@@ -60,14 +70,37 @@ function refinedWaxMaterial(light, layer) {
     shader.fragmentShader = `
       uniform vec3 uPineSourcePosition, uPineSourceColor, uPineWaxCrown;
       uniform float uPineCandela, uPineSourceRadius, uPinePoolWet, uPineWaxCooling, uPineWaxHeight;
+      uniform float uPineWaxTime, uPineWaxWind, uPinePoolRadius;
+      ${RELIEF_GLSL}
       ${shader.fragmentShader}`;
     shader.fragmentShader = shader.fragmentShader.replace('#include <map_fragment>', `#include <map_fragment>
       vec3 grains = vPineLocal * 720.;
       float grainCoverage = 1. - smoothstep(.12, .65, length(fwidth(grains)));
       float waxGrain = sin(dot(grains, vec3(1.31, .62, .95))) * sin(dot(grains, vec3(-.18, 1.84, .54))) * grainCoverage;
-      diffuseColor.rgb *= ${wet ? `mix(${style.diffuse}, .82, uPineWaxCooling)` : style.diffuse} * (1. + .013 * waxGrain);`)
+      ${shaft ? `
+      // Sparse bubbles caught as the wax was poured. The derivative filter
+      // resolves them only where the actual candle occupies enough pixels.
+      vec3 bubbleCoords = vPineLocal * 645.;
+      vec3 bubbleCell = floor(bubbleCoords);
+      float poreSeed = fract(sin(dot(bubbleCell, vec3(92.1, 61.7, 157.3))) * 19471.43);
+      vec3 bubbleOffset = .32 + .36 * fract(vec3(17.71, 33.1, 69.8) * poreSeed);
+      float bubbleDistance = length(fract(bubbleCoords) - bubbleOffset);
+      float bubbleRadius = .14 + .115 * fract(29.51 * poreSeed);
+      float bubbleCoverage = (1. - smoothstep(.26, 1.15, length(fwidth(bubbleCoords)))) * step(.67, poreSeed);
+      float bubble = (1. - smoothstep(bubbleRadius * .46, bubbleRadius * .92, bubbleDistance)) * bubbleCoverage;
+      float poreLip = (1. - smoothstep(bubbleRadius * .70, bubbleRadius * 1.15, bubbleDistance)) * bubbleCoverage - bubble;
+      diffuseColor.rgb *= 1. - .085 * bubble + .029 * poreLip;` : ''}
+      diffuseColor.rgb *= ${wet ? `mix(${style.diffuse}, .82, uPineWaxCooling)` : style.diffuse} * (1. + .018 * waxGrain);`)
       .replace('#include <roughnessmap_fragment>', `#include <roughnessmap_fragment>
-        roughnessFactor = clamp(roughnessFactor + .018 * waxGrain, .1, 1.);`)
+        roughnessFactor = clamp(roughnessFactor + .026 * waxGrain ${shaft ? '+ .09 * bubble - .034 * poreLip' : ''}, .1, 1.);`)
+      .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
+        ${shaft ? `normal = pineRelief(normal, -vViewPosition, .000034 * waxGrain - .000105 * bubble + .000028 * poreLip);` : ''}
+        ${wet ? `
+        vec2 poolPoint = vPineLocal.xz;
+        float meniscus = smoothstep(.46, .97, length(poolPoint) / max(uPinePoolRadius, .001));
+        float ripple = sin(dot(poolPoint, vec2(475., 228.)) + uPineWaxTime * 2.2)
+          * cos(dot(poolPoint, vec2(-218., 513.)) - uPineWaxTime * 1.35);
+        normal = pineRelief(normal, -vViewPosition, .000049 * ripple * (.27 + .73 * meniscus) * uPinePoolWet);` : ''}`)
       .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
         vec3 fromCrown = vPineWorld - uPineWaxCrown;
         float depth = max(0., -fromCrown.y);
@@ -86,7 +119,7 @@ function refinedWaxMaterial(light, layer) {
         float edge = .71 + .29 * pow(1. - abs(dot(normal, viewRay)), 1.45);
         float crownFalloff = ${shaft ? 'exp(-depth * 13.)' : '1. - smoothstep(.006, .046, depth)'};
         float scatter = sourceFraction * edge * (.08 + .92 * side) * ${style.scatter};
-        totalEmissiveRadiance += uPineSourceColor * transmission * scatter * crownFalloff;
+        totalEmissiveRadiance += uPineSourceColor * transmission * scatter * crownFalloff ${shaft ? '* (1. + .12 * poreLip - .10 * bubble)' : ''};
         ${wet ? `
         // The glowing wick and flame base are a finite source. Project that
         // source across the curved meniscus so the reflection moves with the
@@ -94,12 +127,16 @@ function refinedWaxMaterial(light, layer) {
         vec3 viewWorld = inverseTransformDirection(viewRay, viewMatrix);
         vec3 reflected = reflect(-viewWorld, worldNormal);
         float reflectionDistance = (uPineWaxCrown.y - .0039 - vPineWorld.y) / max(.001, reflected.y);
-        vec2 reflectedOffset = fromCrown.xz + max(0., reflectionDistance) * reflected.xz;
-        float flameReflection = (1. - smoothstep(.00075, .0044, length(reflectedOffset)))
-          * smoothstep(.02, .09, reflected.y) * step(0., reflectionDistance);
-        float fresnel = .09 + .91 * pow(1. - max(0., dot(worldNormal, viewWorld)), 4.);
+        vec2 flameDrift = vec2(.00062 * sin(uPineWaxTime * 3.17) + .0011 * uPineWaxWind,
+          .00049 * sin(uPineWaxTime * 2.09 + .4));
+        vec2 reflectedOffset = fromCrown.xz + max(0., reflectionDistance) * reflected.xz - flameDrift;
+        float reflectionRadius = length(reflectedOffset * vec2(.67, 1.));
+        float flameReflection = (1. - smoothstep(.0008, .0039, reflectionRadius)) * .62
+          + (1. - smoothstep(.0002, .00122, reflectionRadius)) * .38;
+        flameReflection *= smoothstep(.02, .10, reflected.y) * step(0., reflectionDistance);
+        float fresnel = .07 + .93 * pow(1. - max(0., dot(worldNormal, viewWorld)), 4.);
         vec3 reflectionColor = mix(uPineSourceColor, vec3(1., .88, .70), .57);
-        totalEmissiveRadiance += reflectionColor * (.25 + fresnel * 2.4) * flameReflection * sourceFraction * uPinePoolWet;` : ''}`);
+        totalEmissiveRadiance += reflectionColor * (.29 + fresnel * 2.65) * flameReflection * sourceFraction * uPinePoolWet;` : ''}`);
     if (shaft) shader.fragmentShader = shader.fragmentShader.replace('#include <lights_fragment_end>', `#include <lights_fragment_end>
       // The convex dry lip scatters broadly while the concave wet surface
       // retains the sharp reflection. Preserve the dry folds in the light.
@@ -156,7 +193,7 @@ function refinedWaxMaterial(light, layer) {
           reflectedLight.indirectDiffuse += diffuseColor.rgb * vec3(.96, 1., 1.04) * spillBounce;`);
     }
   };
-  material.customProgramCacheKey = () => `pine-wax-${layer}-${remnant ? 7 : shaft ? 6 : 5}`;
+  material.customProgramCacheKey = () => `pine-wax-detail-${layer}-1`;
   return material;
 }
 
@@ -291,7 +328,7 @@ export function createPineTray(seat) {
 }
 
 function fillPool(mesh, radius, rise) {
-  const profile = [[1, 1], [.94, .48], [.88, .06], [.69, -.11], [.46, -.07], [.22, .025], [0, 0]];
+  const profile = [[1, 1], [.966, .75], [.924, .39], [.867, .12], [.72, -.045], [.47, -.068], [.23, -.021], [0, 0]];
   const perimeter = angle => 1 + .022 * Math.sin(angle * 3 + .8) + .012 * Math.sin(angle * 7 - .3);
   for (let i = 0; i < profile.length; i++) {
     const [r, y] = profile[i];
@@ -314,8 +351,21 @@ function makeBraidedWick(path, fiberMaterial, charMaterial) {
     group.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(points), 26, .000235, 5), fiberMaterial));
   }
   const tipPath = new THREE.CatmullRomCurve3([path.getPoint(.46), path.getPoint(.69), path.getPoint(.86), path.getPoint(1)]);
-  const char = new THREE.Mesh(new THREE.TubeGeometry(tipPath, 12, .00058, 8), charMaterial);
-  const charCap = new THREE.Mesh(new THREE.IcosahedronGeometry(.00062, 1), charMaterial);
+  const charGeometry = new THREE.TubeGeometry(tipPath, 12, .00058, 8);
+  const charVertices = charGeometry.attributes.position;
+  const point = new THREE.Vector3();
+  for (let row = 0; row <= 12; row++) {
+    const center = tipPath.getPointAt(row / 12);
+    for (let side = 0; side <= 8; side++) {
+      const index = row * 9 + side, turn = side / 8 * TAU;
+      const chips = 1 + .10 * Math.sin(turn * 3 + row * .77) + .068 * Math.cos(turn * 2 - row * 1.3);
+      point.fromBufferAttribute(charVertices, index).sub(center).multiplyScalar(chips).add(center);
+      charVertices.setXYZ(index, point.x, point.y, point.z);
+    }
+  }
+  charGeometry.computeVertexNormals();
+  const char = new THREE.Mesh(charGeometry, charMaterial);
+  const charCap = new THREE.Mesh(new THREE.IcosahedronGeometry(.00059, 1), charMaterial);
   charCap.position.copy(path.getPoint(1));
   charCap.scale.set(1.13, .82, .92);
   char.add(charCap);
@@ -497,6 +547,9 @@ export function createPineWax(seat, waxMaterial, { refined = false } = {}) {
     uPineSourceRadius: { value: .007 },
     uPineCandela: { value: 0 },
     uPinePoolWet: { value: 0 },
+    uPineWaxTime: { value: 0 },
+    uPineWaxWind: { value: 0 },
+    uPinePoolRadius: { value: .001 },
     uPineWaxCooling: { value: 0 },
     uPineWaxHeight: { value: 0 },
     uPineTraceSection: { value: vector(0, 0, 0) },
@@ -525,7 +578,7 @@ export function createPineWax(seat, waxMaterial, { refined = false } = {}) {
   };
   const body = add(new THREE.BufferGeometry(), bodyMaterial);
   body.frustumCulled = false; // Small, moving vertices do not need a new bounding sphere each frame.
-  const poolMesh = refined ? surface(7, 64) : null;
+  const poolMesh = refined ? surface(8, 64) : null;
   const pool = add(poolMesh?.geometry ?? new THREE.CircleGeometry(1, 48).rotateX(-Math.PI / 2), poolMaterial);
   if (refined) pool.frustumCulled = false;
   const trace = add(makeTrace(refined), traceMaterial);
@@ -604,8 +657,10 @@ export function createPineWax(seat, waxMaterial, { refined = false } = {}) {
           const depth = top.depth ?? 0;
           // Place the meniscus below the dry lip. Its outer rings meet the
           // curved inner wall; the centre stays below them around the wick.
-          if (pool.visible) fillPool(poolMesh, top.r * .802, Math.min(.00044, depth * .17));
+          const poolRadius = top.r * .802;
+          if (pool.visible) fillPool(poolMesh, poolRadius, Math.min(.00049, depth * .20));
           pool.position.set(top.cx, cut - depth * .72, 0);
+          light.uPinePoolRadius.value = poolRadius;
           const cooled = state === 'went_out' || state === 'burned_down';
           poolMaterial.roughness = state === 'burning' ? .13 : .44;
           poolMaterial.color.copy(bodyMaterial.color).lerp(warmWax, cooled ? 0 : .06);
@@ -656,8 +711,10 @@ export function createPineWax(seat, waxMaterial, { refined = false } = {}) {
       }
       anchor.set(wickTip.x, wickTip.y - .004, wickTip.z);
     },
-    updateLight(sourceLight, emitterRadius = .007) {
+    updateLight(sourceLight, emitterRadius = .007, time = 0, wind = 0) {
       if (!light) return;
+      light.uPineWaxTime.value = time;
+      light.uPineWaxWind.value = wind;
       light.uPineCandela.value = sourceLight.intensity;
       if (!sourceLight.intensity) return;
       light.uPineSourceRadius.value = emitterRadius;
