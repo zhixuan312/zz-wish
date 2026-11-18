@@ -74,3 +74,15 @@ The first broad fill passed the contact audits, but raised the packed night red 
 Comparing Pine Gate's `walk-50.png` with Snow Roof's `walk-2.png` shows that the guide itself is visible, but the timber beneath the eaves still merges into silhouette. The revised pass adds a broad reflection off the paving below the guide to light the transom and brackets. It leaves the forest cool.
 
 The revised wax moves the local reflection into the pool, darkens the charred tip and lets the put-out smoke become visible closer to the wick. A dry run measured the nearest visible smoke particle at 0.86–2.16 mm over four points between 0.35 s and 0.95 s. The revised source, wax and smoke still need a paired browser capture.
+
+### Preview 03 revised capture
+
+The revised R7 captures and 32 comparison sheets are in `artifacts/pine-gate/quality/preview-03-r2/`. The index at `comparison.json` preserves screenshots and candle IDs. The earlier desktop attempt is preserved at `artifacts/pine-gate/quality/preview-03/`.
+
+Both captures use one 1-hour Ivory Pillar for ignition, settled and far burning, and matched full profiles for the two endings. The normal burning frames measure 21.33% and 21.49% wax body height. The far frames measure 20.18% and 20.32%. The put-out results read 25 min 13 s in both languages and preserve about 57.97% of the wax. The taper tip contacts the wick at 0 mm in both recorded ignition frames. Visible smoke starts 1.16 mm and 1.15 mm from the wick. Regular and far phone frames retain the whole dish. The older phone contact crop omits its outer sides, while showing the resting wax.
+
+Step inside enabled in 3.82 s and 2.98 s. The walks lasted 30.13 s and 30.54 s. The phone delivered 300 real composer frames in 10.003 s, or 29.99 FPS, with a 36 ms 95th-percentile frame interval. Both journeys refreshed and ended without runtime or HTTP errors. The 12,006,780-byte bake passed all six source, prepared, raw and decoded resting contacts.
+
+The sharpened wick, pool reflection and cleared HUD read in the close views. The stone and tray still lose visual separation at the settled exposure, the upper wax needs more transmitted color, and the gate silhouette reads too dark at the place and first walk checkpoints. The two revised audio windows started at different points in the wind swell. The preview 04 audio audit will use matched audio ages.
+
+A full-scene ray from the recorded ignition camera found the black oval on the first left wall cap. The cap extends 12 mm in front of the granite at the failing pixels. The earlier probe considered the niche region alone and sampled the hidden granite. The R7 fill brightened the granite behind the cap. The visible pixel at (419, 166) stayed RGB (4, 3, 1), while the exposed stone at (443, 165) changed from (27, 26, 26) to (36, 39, 43). Trimming 80 mm from the cap exposes the original granite across all 17 obstruction samples in the offline camera replay. Commit `e4a6300` also removes the extra fill. The next full app pair will verify the geometry.
