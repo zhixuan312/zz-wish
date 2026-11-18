@@ -150,10 +150,12 @@ function refinedWaxMaterial(light, layer) {
         ${pointLighting}`)
         .replace('#include <lights_fragment_end>', `#include <lights_fragment_end>
           reflectedLight.directDiffuse *= .28;
-          reflectedLight.directSpecular *= .56;`);
+          reflectedLight.directSpecular *= .56;
+          float spillBounce = (1. - exp(-uPineCandela * 12.)) * uPinePoolWet * .042 + uPineWaxCooling * .045;
+          reflectedLight.indirectDiffuse += diffuseColor.rgb * vec3(.96, 1., 1.04) * spillBounce;`);
     }
   };
-  material.customProgramCacheKey = () => `pine-wax-${layer}-${remnant ? 6 : 5}`;
+  material.customProgramCacheKey = () => `pine-wax-${layer}-${remnant ? 7 : 5}`;
   return material;
 }
 
@@ -371,15 +373,16 @@ function bodySurface(mesh, rows, cut, melt, runnels) {
 const TRACE_CENTRE = .68;
 
 function makeTrace(refined) {
-  const mesh = surface(refined ? 10 : 5, 64);
+  const mesh = surface(refined ? 12 : 5, 64);
   const contour = refined
     ? a => 1 + .065 * Math.sin(a * 3 + .2) + .034 * Math.sin(a * 8 - .8)
       + .17 * Math.max(0, Math.cos(a - 1.1)) ** 12 + .14 * Math.max(0, Math.cos(a - 4.4)) ** 16
     : a => 1 + .11 * Math.sin(a * 3 + .2) + .06 * Math.sin(a * 7 - .8)
       + .22 * Math.max(0, Math.cos(a - 1.1)) ** 12 + .21 * Math.max(0, Math.cos(a - 4.4)) ** 18;
   const profile = refined
-    ? [[0, .012], [.96, .012], [1, .04], [.984, .10], [.927, .23],
-      [.80, .42], [.64, .58], [.44, .66], [.22, TRACE_CENTRE], [0, TRACE_CENTRE]]
+    // Close the underside, then roll the thin perimeter into the fuller wax.
+    ? [[0, .008], [.96, .008], [1, .018], [.991, .028], [.969, .064], [.931, .147],
+      [.88, .278], [.79, .438], [.64, .57], [.45, .65], [.22, TRACE_CENTRE], [0, TRACE_CENTRE]]
     : [[0, .04], [.94, .04], [1, .21], [.73, .58], [0, 1]];
   profile.forEach(([r, y], i) => writeRing(mesh, i, 0, r, y, contour,
     refined ? angle => y * r * (.06 * Math.sin(angle * 4 + i * .5) + .025 * Math.sin(angle * 11)) : null));
@@ -455,7 +458,8 @@ export function createPineWax(seat, waxMaterial, { refined = false } = {}) {
   const pool = add(poolMesh?.geometry ?? new THREE.CircleGeometry(1, 48).rotateX(-Math.PI / 2), poolMaterial);
   if (refined) pool.frustumCulled = false;
   const trace = add(makeTrace(refined), traceMaterial);
-  const contact = waxContactShadow(1, .42);
+  const contact = waxContactShadow(1, refined ? .36 : .42);
+  if (refined) contact.renderOrder = -1; // Draw the shadow on stone under the translucent wax.
   group.add(contact);
   const drops = [
     { angle: 1.12, start: .015, reach: .031, width: .00165 },
@@ -538,7 +542,7 @@ export function createPineWax(seat, waxMaterial, { refined = false } = {}) {
         const spread = Math.sqrt(Math.max(0, 1 - fuel));
         const base = rows[0];
         contact.position.x = base.cx;
-        contact.scale.setScalar(base.r * 1.48);
+        contact.scale.setScalar(base.r * (refined ? 1.38 : 1.48));
         const traceHeight = (refined ? Math.min(.0042, base.r * .24) : Math.min(.0052, base.r * .32)) * spread;
         trace.visible = spread > .04;
         trace.position.x = base.cx;
