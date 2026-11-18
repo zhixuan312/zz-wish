@@ -78,13 +78,20 @@ shade grows. The cord is continuous at all three sizes, no shade touches the cei
 the columns or the table, the flame and wick sit inside the shade, and 24 h matches the
 previous picture.
 
-Burning, cloth height as a fraction of frame height (measured between the shade's upper
-and lower rims):
+Burning, cloth height as a fraction of frame height, measured with
+`tests/visual/s2-frame-measure.mjs`: the largest saturated-red blob whose row count exceeds
+roughly a third of its widest row, taken between the shade's upper and lower rims. These are
+measurements, not targets.
 
 | viewport | 10 min | 2 h | 24 h |
 |---|---|---|---|
 | desktop-en | 15.1% | 19.1% | 24.0% |
 | phone-zh | 10.8% | 14.1% | 17.1% |
+
+A different frame and a looser colour threshold give 14.8% for the desktop 10 min lamp in the
+T9 batch below, and the journey's own `burning.png` gives 16.2% under the same tool on a
+smaller shade at a slightly different camera distance; each number names its own frame and
+method rather than being merged.
 
 Captures: `artifacts/full-review/round-3/lantern-size/{choose,burning}-{desktop-en,phone-zh}-{10min,2h,24h}.png`.
 
@@ -195,24 +202,48 @@ capture. Until it exists, this item stays partly done.
 
 ## T9: J5 the desktop burning lantern size
 
-Status: **done**. The settled desktop burning view now frames against a fixed full-day
-lamp reference, so the cloth covers 23.8% of frame height at 24 h, 19.2% at 2 h and 14.8% at
-10 min, against about 13-15% before. Only camera placement changed.
+Status: **partly**. The settled desktop burning view now frames against a fixed full-day lamp
+reference instead of the live lamp frame, so the camera no longer refits per duration and
+only camera placement changed. Measured on the T9 batch with
+`tests/visual/s2-frame-measure.mjs`:
+
+| duration | cloth height | GOALS bar (20-25%) |
+|---|---|---|
+| 10 min | 14.8% | below |
+| 2 h | 19.2% | below |
+| 24 h | 23.8% | met |
+
+Before the change the settled view was about 13-15% at every duration. One fixed camera
+cannot put every duration inside 20-25%: a 10 min shade is 62.5% of the full-day height, so
+framing the full day at 24% necessarily leaves the shortest shade near 15%. The bar is met at
+24 h only, and that is recorded rather than claimed as done.
 
 ## T3: Round 3 full journey
 
-Status: **done**. Both browsers covered all four contexts on this build.
+Status: **partly**. Chromium and WebKit both covered four contexts, but the two runs are not
+equivalent and the chromium report is gone.
 
-| browser / context | frames |
-|---|---|
-| chromium `desktop-en`, `desktop-zh`, `phone-en`, `phone-zh` | 73 each |
-| webkit `desktop-en`, `desktop-zh`, `phone-en`, `phone-zh` | 74 each |
+Chromium, from the record in `d3286a8`: `frames 292, sequences 88, errors 0, httpErrors 0`,
+8 ending captures and 16 records, with 73 stages in each of `desktop-en`, `desktop-zh`,
+`phone-en` and `phone-zh`. That machine-readable report was overwritten when the WebKit run
+reused the same `OUTPUT` directory, so the numbers survive only in that commit's message and
+in the status record it wrote; the chromium PNGs themselves are still on disk.
 
-The final WebKit run exited with `frames 288, sequences 84, errors 0, httpErrors 0, 8 ending
-captures, sourceChanged false`. Every context carries the same stage set through
-`light-ignition`, `burning`, `burnFar`, `result-put-out`, `result-burned-down`,
-`ending-plume/*` and `my-lamps`. The two phone contexts complete here, which confirms the pad
-fix in `5fa247a` and the draw step in the journey.
+WebKit, from `after-journey/report.json` (`createdAt` 03:24:11 SGT): `frames 288,
+sequences 84, errors 0, httpErrors 0`, 8 ending captures and **12** records, with
+72 stages in each context. Two extra files, `webkit/desktop-en/failure.png` and
+`held-walk-failure.png`, carry mtime 03:24:00-01, before this run started, and appear in no
+report entry: they are leftovers of a launch that failed at 03:24. What stopped that launch
+is undetermined, since its server log was overwritten.
+
+The two runs are not the same stage set. Chromium has one extra stage, `result-native-
+departure`, which WebKit lacks. WebKit instead records four `native departure control`
+interactions with empty `nativeEvents`, so its native tab/focus departure path was not
+exercised and is unverified; the accelerated ending it does capture is the product's own
+settlement, not a native departure.
+
+The two phone contexts complete in both browsers, which confirms the pad fix in `5fa247a` and
+the journey's draw step.
 
 ### A superseded WebKit attempt
 
@@ -240,23 +271,42 @@ from that run was overwritten, so what stopped it is undetermined. That attempt 
 
 ## T10: final journey and status reconciliation
 
-Status: **done**. The round 3 journey above is the final evidence run on this branch tip.
-Every item's closing capture lives under
-`artifacts/full-review/round-3/after-journey/{chromium,webkit}/<context>/`, and the per-item
-captures named in the sections above are in
-`artifacts/full-review/round-3/lantern-size/`, `cover-check/` and `j6-j2/`.
+Status: **partly**. The final journey exists, but two items still lack the capture this
+status asks for, so this cannot close yet.
 
-Measured on the final journey frames, shade height as a fraction of frame height:
+Before and after, per item:
 
-| context | `burning.png` (10 min lamp) |
+| item | before | after |
+|---|---|---|
+| T1 | measured 8525-9438 ms to an enabled `Step inside` | `j6-j2` captures plus 3130-3793 ms measured |
+| T2b choose | 0.56 m shade at every duration | `lantern-size/choose-{desktop-en,phone-zh}-{10min,2h,24h}.png` |
+| T2b burning | fixed 0.56 m shade | `lantern-size/burning-{desktop-en,phone-zh}-{10min,2h,24h}.png` |
+| B5 phone choose | `choose-phone-zh-24h.png` tassel on the cup | `lantern-size/choose-phone-zh-{10min,2h,24h}.png` |
+| T5 | bright 12 px accent badge | `after-journey/chromium/desktop-en/place.png` |
+| T7 | `j6-j2/gate-shelf-{left,right}-desktop-en.png` | `j6-j2/gate-walk-{desktop-en,phone-zh}.png` |
+| T8 | `j6-j2/lantern-unlit-{desktop-en,phone-zh}.png` | `j6-j2/t8-{desktop-en,phone-zh}-{00,08,16,23}.png` |
+| T9 | about 13-15% of frame height | `after-journey/*/desktop-en/burning.png` |
+| T3 | the 196-frame chromium-only run | `after-journey/{chromium,webkit}/<context>/` |
+
+Every path above is relative to `artifacts/full-review/round-3/`. The round 1 baselines these
+replace stay in `artifacts/full-review/round-1/after-journey/` and are not overwritten.
+
+Measured on the final journey frames with `tests/visual/s2-frame-measure.mjs`, shade height
+as a fraction of frame height for the 10 min lamp the journey lights:
+
+| context | `burning.png` |
 |---|---|
 | chromium `desktop-en` | 16.2% |
 | webkit `desktop-en` | 16.2% |
 | chromium `phone-zh` | 10.9% |
 | webkit `phone-zh` | 10.9% |
 
-The desktop burning view lands between the 10 min 15% and 24 h 24% targets recorded under T2b,
-and both browsers agree to a tenth of a percent.
+Both browsers agree to a tenth of a percent. This is the same 10 min lamp that measures 14.8%
+in the T9 batch and 15.1% in the T2b batch: the frames differ, so the numbers differ, and each
+is reported against its own frame.
+
+Still open before this item can close: the timestamped approach series for T8, and T6, which
+needs a new bake.
 
 ## Items for Boss
 
