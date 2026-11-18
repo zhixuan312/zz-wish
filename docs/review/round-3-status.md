@@ -175,7 +175,9 @@ Captured on this build through the real flow, no Skip and no held camera. The co
 prompt is opened first, because that is what moves the camera; four baseline frames are taken
 only after the lamp rectangle has held one width for twelve consecutive reads while the lamp is
 still **lit**, and only then is `Put out and end` pressed. 120 frames follow at a 167 ms median
-interval (desktop has five intervals over 250 ms, the longest 481 ms; phone's longest is 197 ms).
+interval. All five desktop intervals over 250 ms sit at the start: three inside the lit
+baseline (369, 372 and 375 ms), then lit-3→000 at 481 ms and 000→001 at 385 ms. Phone has none
+over 250 ms; its longest is 197 ms.
 
 | viewport | lit baseline (4 frames) | whole range | lit→first put-out | largest step | steps over 15% (whole / inner) |
 |---|---|---|---|---|---|
@@ -190,10 +192,10 @@ Neither series is strictly monotonic, and the two regions differ:
 - **inner**: 21 rises on desktop and 15 on phone, all sub-percent.
 
 No step exceeds 15% in either region at any point, including the lit-to-first-put-out
-transition. Both reach a plateau, defined as the first frame followed by ten consecutive
-whole-region steps below 0.5%: desktop frame 065, which is **12.7 s after the first lit
-baseline frame and 11.09 s after put-out frame 000**; phone frame 083, **14.6 s and 13.83 s**
-on the same two clocks.
+transition. Both reach a plateau, defined as the frame reached by the first of ten consecutive whole-region
+steps below 0.5%: desktop frame 065 (the step 064→065 is 0.431%), which is **12.7 s after the
+first lit baseline frame and 11.09 s after put-out frame 000**; phone frame 083 (082→083 is
+0.155%), **14.6 s and 13.83 s** on the same two clocks.
 
 Desktop's lamp rectangle is not simply 329→331: the sequence starts 329, 329, 329, 329, 331,
 331, 331, 331 and its minimum over the whole capture is **325 px**, 1.8% under the peak. Phone
@@ -250,15 +252,18 @@ frame with the best width seen so far across the whole series.
 The inner region has none. The whole-rectangle region still has two on desktop and one on
 phone, and inspecting the kept frames shows why they are background rather than lamp:
 
-- desktop frame 133→134 (35.0%, 341 px): the increase is concentrated at columns 380-385,
-  the brass pole, which contributes 29% of the positive change; the rest comes mostly from
-  the left pillar. Column-wise difference over the lamp rectangle, computed from the two kept
-  PNGs.
-- desktop frame 136→137 (35.7%, 339 px): the peacock screen and gilt cabinet enter the clip.
-  In both pairs the inner mean stays 15.6-16.9 while the whole mean climbs 13.9→25.9.
-- phone frame 246→247 (22.6%, 235 px): the strongest columns are 271-276, the brass pole,
-  contributing 57% of the positive change in the right eighth of the rectangle. The `EN`
-  label sits outside the rectangle (x 48-282) and plays no part.
+- desktop frame 133→134 (35.0%, 341 px): whole mean 13.88→18.73 while inner stays
+  15.90→16.94. Column-wise difference over the lamp rectangle, computed from the two kept
+  PNGs: the left pillar band (x 48-175) carries **64.4%** of the positive change and the brass
+  pole (x 377-388) **28.2%**; the narrow columns 380-385 alone are 16.7%. The pillar leads.
+- desktop frame 136→137 (35.7%, 339 px): whole 17.96→24.38, inner 15.77→16.57. The peacock
+  screen is already visible in frame 136 and keeps moving in with the pan together with the
+  gilt cabinet; x 260-386 carries **67.1%** of the change, and the pole has moved to x 120-140
+  and carries **20.4%**.
+- phone frame 246→247 (22.6%, 235 px): whole 15.1→18.5 while inner stays 15.9→16.1. The
+  strongest columns are 271-276, the brass pole, which carries 57% of the positive change in
+  the right eighth of the rectangle. The `EN` label sits outside the rectangle (x 48-282) and
+  plays no part.
 
 So the claim holds for what a person sees on the shade, and the whole-rectangle number is
 dominated by scenery moving into the rectangle as the camera pans. This is recorded as
