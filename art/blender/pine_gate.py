@@ -472,7 +472,7 @@ def gate_guide(wood, iron):
     # The pale paving returns a broad, muted wash to the brackets and transom.
     # A small area source leaves the roof and surrounding forest in cool shadow.
     bounce = bpy.data.lights.new('Warm paving bounce under the gate guide', 'AREA')
-    bounce.energy, bounce.color, bounce.shape, bounce.size = .48, (1., .76, .54), 'DISK', .78
+    bounce.energy, bounce.color, bounce.shape, bounce.size = .88, (1., .76, .54), 'DISK', 1.04
     emitter = bpy.data.objects.new(bounce.name, bounce)
     bpy.data.collections['LIGHTS'].objects.link(emitter)
     emitter.location = mesh.point((.42, 6.06, 1.71))
@@ -750,15 +750,31 @@ def source_lighting(scene):
     scene.world = bpy.data.worlds.new('Pine Gate night world')
     scene.world.use_nodes = True
     bg = scene.world.node_tree.nodes.get('Background')
-    bg.inputs['Color'].default_value = (.47, .55, .68, 1)
+    bg.inputs['Color'].default_value = (.55, .59, .65, 1)
     bg.inputs['Strength'].default_value = 1.18 / PRE_EXPOSURE
     sun = bpy.data.lights.new('Blue mountain sky direction', 'SUN')
-    sun.energy, sun.color, sun.angle = 1.42 / PRE_EXPOSURE, (.66, .77, 1), .22
+    sun.energy, sun.color, sun.angle = 1.42 / PRE_EXPOSURE, (.81, .87, .97), .22
     caster = bpy.data.objects.new(sun.name, sun)
     bpy.data.collections['LIGHTS'].objects.link(caster)
     caster.location = mesh.point((-9, 15, 14))
     caster.rotation_euler = (mesh.point((0, 4, 1)) - caster.location).to_track_quat('-Z', 'Y').to_euler()
     caster['bake_role'] = 'ambient'
+    # Broad skylight follows the breaks in the canopy over the stair run.
+    # The off-axis placements leave the outer banks and trunks in shadow.
+    openings = [
+        ('Lower stair skylight', (-1.6, 9.8, 43.8), (.35, .65, 42.), 36., 11.5),
+        ('Middle stair skylight', (2.0, 12.4, 28.5), (-.35, 1.9, 26.), 33., 12.5),
+        ('Upper stair skylight', (-.7, 12.3, 13.2), (.3, 3., 11.), 26., 10.2),
+        ('Soft sky over the gate front', (-.55, 10.0, 7.4), (0., 6.4, .7), 11., 6.5),
+    ]
+    for name, location, aim, energy, diameter in openings:
+        light = bpy.data.lights.new(name, 'AREA')
+        light.energy, light.color, light.shape, light.size = energy, (.76, .85, 1.), 'DISK', diameter
+        source = bpy.data.objects.new(name, light)
+        bpy.data.collections['LIGHTS'].objects.link(source)
+        source.location = mesh.point(location)
+        source.rotation_euler = (mesh.point(aim) - source.location).to_track_quat('-Z', 'Y').to_euler()
+        source['bake_role'] = 'ambient'
     for p, watts in [((.98, 6.38, .62), 1.98), ((.15, 6.25, -4.8), 2.1)]:
         mesh.light('Hidden warm reflected temple light', p, watts / PRE_EXPOSURE, '#f5b27e', .26)
     point = mesh.light('Visitor candle indirect bounce basis', LAMP, .20, '#ffc88a', .007, 'lamp')
