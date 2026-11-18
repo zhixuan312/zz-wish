@@ -25,6 +25,7 @@ if (process.argv.includes('--help')) {
     'QUALITY_LABEL selects the quality output directory and defaults to QUALITY_PASS.',
     'CAPTURE_READINESS_ONLY=1 stops at Step inside. Use CAPTURE_READINESS_REPEATS=3 for independent browser launches.',
     'CAPTURE_AUDIO_COMPARE=1 compares the actual Pine and Snow AudioContext after lighting each place.',
+    'CAPTURE_AMBIENT_ONLY=1 captures final-package place, unlit, burning, and mid-burn at PINE_HOUR.',
     'CAPTURE_BROWSER and CAPTURE_ONLY can select a single context. PINE_HOUR defaults to 22.',
   ].join('\n'));
   process.exit(0);
@@ -39,6 +40,7 @@ const quality = mode === 'quality';
 const fullJourney = mode !== 'm1';
 const readinessOnly = process.env.CAPTURE_READINESS_ONLY === '1';
 const audioCompare = process.env.CAPTURE_AUDIO_COMPARE === '1';
+const ambientOnly = process.env.CAPTURE_AMBIENT_ONLY === '1';
 const readinessRepeats = Number(process.env.CAPTURE_READINESS_REPEATS ?? 1);
 assert(!readinessOnly || quality, 'Readiness-only requires CAPTURE_MILESTONE=quality.');
 assert(!audioCompare || (quality && !readinessOnly), 'Audio comparison requires quality mode without readiness-only.');
@@ -47,6 +49,8 @@ assert(Number.isInteger(readinessRepeats) && readinessRepeats >= 1 && readinessR
 const holdCameraDrift = mode !== 'm3';
 const qualityPass = process.env.QUALITY_PASS ?? 'preview';
 assert(['preview', 'final'].includes(qualityPass), 'QUALITY_PASS must be preview or final.');
+assert(!ambientOnly || (quality && qualityPass === 'final' && !readinessOnly && !audioCompare),
+  'Ambient-only requires final quality mode without readiness or audio-only capture.');
 const reviewLabel = process.env.QUALITY_LABEL ?? qualityPass;
 assert(reviewLabel.length <= 48 && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(reviewLabel), 'Use a lowercase hyphenated QUALITY_LABEL.');
 const base = new URL(process.env.BASE_URL ?? 'http://127.0.0.1:8953/');
@@ -94,9 +98,13 @@ if (fullJourney) {
 await mkdir(output, { recursive: true });
 const report = {
   mode,
+  hour,
+  ...(process.env.CAPTURE_SOURCE_REV ? { sourceRev: process.env.CAPTURE_SOURCE_REV } : {}),
+  ...(process.env.CAPTURE_CODE_SHA ? { codeSha256: process.env.CAPTURE_CODE_SHA } : {}),
   ...(readinessOnly ? { readinessOnly, readinessRepeats } : {}),
   ...(quality ? { reviewLabel } : {}),
-  ...(quality && !readinessOnly && !audioCompare ? { matchedEndingShapes: true } : {}),
+  ...(quality && !readinessOnly && !audioCompare && !ambientOnly ? { matchedEndingShapes: true } : {}),
+  ...(ambientOnly ? { ambientOnly } : {}),
   ...(audioCompare ? { audioCompare, audioSourceSha256: createHash('sha256').update(await readFile(join(worktree, 'web/src/sound.ts'))).digest('hex') } : {}),
   delivery,
   clock: 'Local visual hour ' + hour + ' held constant. Controlled client and matching isolated server start times accelerate progress; render animation uses real frame timestamps.',
@@ -249,8 +257,12 @@ async function capture(browser, browserName, size, trial) {
       if (response.status() >= 400) run.errors.push({ kind: 'http', status: response.status(), url: response.url() });
     });
     page.on('crash', () => run.errors.push({ kind: 'crash' }));
-    const sceneAudit = { readiness: quality && !audioCompare, cadence: fullJourney && phone && !readinessOnly && !audioCompare };
-    if (sceneAudit.readiness || sceneAudit.cadence) {
+    const sceneAudit = {
+      readiness: quality && !audioCompare,
+      cadence: fullJourney && phone && !readinessOnly && !audioCompare && !ambientOnly,
+      lighting: !!delivery && !delivery.preview && !audioCompare && !readinessOnly,
+    };
+    if (Object.values(sceneAudit).some(Boolean)) {
       await page.route(url => url.pathname === '/src/engine/scene.js', async route => {
         const response = await route.fetch();
         let source;
@@ -457,7 +469,7 @@ async function capture(browser, browserName, size, trial) {
       return debug ? gl.getParameter(debug.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER);
     });
     await page.evaluate(() => document.fonts.ready);
-    if (fullJourney && !readinessOnly && !audioCompare) await captureShot('home');
+    if (fullJourney && !readinessOnly && !audioCompare && !ambientOnly) await captureShot('home');
     const wishField = page.getByLabel(wishLabel);
     if (fullJourney && !audioCompare) await observeWishInput(wishField);
     await wishField.fill(wish);
@@ -508,7 +520,31 @@ async function capture(browser, browserName, size, trial) {
         assert.deepEqual(run.errors, []);
         return;
       }
+      if (sceneAudit.lighting) {
+        run.lighting = await page.evaluate(() => window.__pineCaptureLighting?.());
+        const expected = { 13: ['day', 2], 18: ['dusk', 1], 22: ['night', 0] }[hour];
+        assert(run.lighting?.placeId === 'pine-gate' && run.lighting.agx && run.lighting.loadedPasses.includes('lamp'),
+          'Pine Gate must be active with native AgX and the lamp pass.');
+        if (expected) {
+          const [pass, index] = expected;
+          assert(run.lighting.loadedPasses.includes(pass) && run.lighting.weights[index] > .5,
+            `Pine Gate must use the ${pass} bank at visual hour ${hour}.`);
+        }
+      }
       await captureShot('place');
+    }
+    if (ambientOnly) {
+      await travel(true);
+      await choose();
+      const unlit = await captureShot('unlit');
+      assert.equal(unlit.wax.state, 'unlit');
+      const candle = await light();
+      await captureShot('burn-00', { targetProgress: 0 });
+      await advanceVisibleBurn(candle, .5);
+      await captureShot('burn-50', { targetProgress: .5 });
+      await captureDiagnostic('candle-contact', '__visualPineContactView');
+      assert.deepEqual(run.errors, []);
+      return;
     }
     await travel(!fullJourney, fullJourney);
     const freehand = phone && !quality;

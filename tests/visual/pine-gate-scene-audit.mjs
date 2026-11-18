@@ -18,13 +18,19 @@ const readinessAnchors = [
   ['build-finished', /^([ \t]*)cachedPlaces\.set\(t\.id,\s*candidate\);/gm, 't.id'],
 ];
 
-export function instrumentPineScene(source, { readiness, cadence }) {
+export function instrumentPineScene(source, { readiness, cadence, lighting }) {
   if (readiness) for (const [name, anchor, id, before] of readinessAnchors) {
     const mark = `if (${id} === 'pine-gate' || ${id} === 'snow-roof') performance.mark('one-light:' + ${id} + ':${name}');`;
     source = insertAt(source, anchor, name, mark, before);
   }
   if (cadence) {
     source = insertAt(source, /^([ \t]*)composer\.render\(\);[ \t]*$/gm, 'composer render', 'window.__pineMeasureFrame?.();');
+  }
+  if (lighting) {
+    source = insertAt(source, /^([ \t]*)function frame\(stamp\s*=\s*performance\.now\(\)\)\s*\{/gm, 'lighting state', `window.__pineCaptureLighting = () => {
+  const state = place?.baked?.lightingState();
+  return state ? { placeId: place.id, agx: !!nativeAgXPass?.enabled, ...state } : null;
+};`, true);
   }
   return source;
 }
