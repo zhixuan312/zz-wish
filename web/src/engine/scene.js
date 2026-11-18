@@ -1707,7 +1707,7 @@ function fitShadeView(v,desktopFraction=.45,desktopSubjectY=.36){
   // the visible band with its cord and tassel above the altar stand rather than
   // over it. Raising the subject within the frame gives that gap without
   // touching the stand, the shade or any asset.
-  const fraction=narrow()?.26:desktopFraction,subjectY=narrow()?.13:desktopSubjectY;
+  const fraction=narrow()?.21:desktopFraction,subjectY=narrow()?.17:desktopSubjectY;
   const tangent=Math.tan(THREE.MathUtils.degToRad(v.fov/2));
   const distance=Math.max(base,fr.h/(2*tangent*fraction));offset.setLength(distance);
   v.pos.x=c.x+offset.x;v.pos.z=c.z+offset.z;
@@ -1731,7 +1731,7 @@ function burnView(){
   // frame, whose cloth is about 68% of it, and aim for the 20-25% target on the
   // cloth itself. The direction out of the altar and the horizon stay those of
   // the authored burn camera.
-  return narrow()?v:fitShadeView(v,.33,.34);
+  return narrow()?v:fitShadeView(v,.28,.34);
 }
 // The person's lamp lives in the current place's spot.
 function attachMine() {
