@@ -42,3 +42,9 @@ The before set is `artifacts/pine-gate/quality/preview/pine/`. The after set is 
 The ready controls took 3.66 s and 2.46 s, and the uninterrupted walks took 30.12 s and 30.52 s. The far views frame the original wax body at 20.85% and 20.83%. Neither live audio sample clipped. The desktop and phone comparisons and their hashes are in `artifacts/pine-gate/quality/preview-02/pairs/` and `artifacts/pine-gate/quality/preview-02/comparison.json`.
 
 The third preview adds a visible, practical warm guide among the gate timbers and more varied forest-floor contacts. It also reduces the direct candle radius on the stone and scales the holder to the candle footprint. The remaining judgments need actual app frames.
+
+### Preview 02 capture comparability
+
+The differing ratios were caused by the capture sequence selecting two different sized candles. In both locales, the unlit, ignition, regular burn and natural ending used a 1-hour Ivory Pillar. Far burn and put-out used a new 24-hour Ivory Pillar. At the initial burn checkpoints the physical bodies were 52.2 mm and 150.0 mm tall. Both durations use the same sized flame, so switching the preset changed both the dish-to-body and flame-to-body ratios before any camera change.
+
+The 24-hour record ended after 36,302,479 ms on desktop and 36,302,281 ms on phone. Those values are about 10 hours and 5 minutes and match the visible put-out text. This was a real elapsed value for the second preset. The report and images are in `artifacts/pine-gate/quality/preview-02/pine/`. Preview 03 uses the same original candle for the regular and far camera frames and matches the entire 1-hour profile and color across the two separate endings.
