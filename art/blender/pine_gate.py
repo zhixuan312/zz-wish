@@ -15,13 +15,20 @@ from mathutils import Matrix, Vector, noise
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import snow_roof as mesh
 from resting_contacts import RestingContacts, engine
-from snow_lightmap_charts import closed_grid_uv, profile_uv, source_uv
+from snow_lightmap_charts import box_net, closed_grid_uv, profile_uv, source_uv
 
 ROOT = Path(__file__).resolve().parents[2]
 ANCHOR = (-1.8, 5.0, .9)
 LAMP = (-1.8, 5.076, .9)
 PRE_EXPOSURE = 6
 RANDOM = random.Random(21594)
+SHELF_WAX_DEPOSITS = (
+    (-.037, -.099, .0092, .0080, .0016),
+    (-.049, -.089, .0041, .0050, .0008),
+    (.036, -.096, .0100, .0068, .0017),
+    (.025, -.108, .0038, .0049, .0008),
+    (.008, .084, .0080, .0104, .0014),
+)
 
 
 def supports_height(x, z, supports):
@@ -141,6 +148,24 @@ def hewn_block(name, width, height, depth, location, material, region):
     return obj
 
 
+def landing_bed(material):
+    # Recess the bedding under the flagstones. The approach apron and the
+    # gate threshold keep the original stone landing height at both ends.
+    profile = ((.04, 4.), (.82, 4.), (1.15, 3.970), (5.70, 3.970), (6.08, 4.), (6.34, 4.))
+    points = [(x, y, z) for z, top in profile
+              for x, y in ((-2.6, 3.6), (2.6, 3.6), (2.6, top), (-2.6, top))]
+    last = 4 * (len(profile) - 1)
+    faces = [(0, 3, 2, 1), (last, last + 1, last + 2, last + 3)]
+    for first in range(0, last, 4):
+        for side in range(4):
+            a, b = first + side, first + (side + 1) % 4
+            faces.append((a, b, b + 4, a + 4))
+    landing = mesh.mesh_object('Broad stone landing', points, faces, material, 'gate')
+    box_net(landing, (5.2, .40, 6.3), (0, 3.80, 3.19))
+    mesh.uv_world(landing)
+    mesh.bevel(landing, .045)
+
+
 def climbing_steps(stone):
     for i in range(50):
         z = 45.6 - .8 * i
@@ -162,7 +187,7 @@ def climbing_steps(stone):
                     hewn_block(f'Stair retaining course {direction} {i} {row}', .46, .25, .798,
                                (direction * (2.64 + row * .070), top + row * .244 + .02,
                                 z + (.24 if row % 2 else 0)), RANDOM.choice(stone), 'approach')
-    mesh.box('Broad stone landing', (5.2, .40, 6.3), (0, 3.80, 3.19), stone[2], .045, region='gate')
+    landing_bed(stone[2])
     for row in range(7):
         z = 1.51 + row * .64
         for col in range(6):
@@ -579,7 +604,7 @@ def arch_segment(name, cx, spring, center_z, r0, r1, depth, a, b, mat):
         charts.append([((obj.data.vertices[i].co - origin).dot(direction) + face_index,
                         (obj.data.vertices[i].co - origin).dot(across)) for i in face.vertices])
     source_uv(obj, charts, 'Separate charts across the radiating granite joints.')
-    mesh.bevel(obj, .0065 if a < .05 or b > math.pi - .05 else .0038, 2)
+    mesh.bevel(obj, .0038, 2)
 
 
 def hewn_back(x, y, z, material):
@@ -602,21 +627,39 @@ def hewn_back(x, y, z, material):
     return back
 
 
+def old_wax_profile(x, z):
+    height = pigment = 0.
+    for i, (cx, cz, width, length, relief) in enumerate(SHELF_WAX_DEPOSITS):
+        dx, dz = (x - cx) / width, (z - cz) / length
+        angle = math.atan2(dz, dx)
+        edge = 1 + .095 * math.sin(angle * 3 + i) + .055 * math.cos(angle * 5 - i)
+        radius = math.hypot(dx, dz) / edge
+        meniscus = max(0., 1 - radius * radius)
+        height = max(height, relief * meniscus ** .79)
+        pigment = max(pigment, min(1., meniscus * 2.2))
+    return height, pigment
+
+
 def wick_shelf(x, y, z, material):
     # A flat dish seat is surrounded by a hand-worn lip. The weathered top,
-    # bevel band and face belong to one closed slab with a single material.
-    columns, rows = 33, 29
+    # wax menisci, bevel band and face are part of one closed stone surface.
+    xs = {round((j / 32 - .5) * .70, 7) for j in range(33)}
+    zs = {round(.031 + (i / 28 - .5) * .61, 7) for i in range(29)}
+    for cx, cz, width, length, _ in SHELF_WAX_DEPOSITS:
+        for step in (-1.17, -.64, 0., .64, 1.17):
+            xs.add(round(cx + step * width, 7))
+            zs.add(round(cz + step * length, 7))
+    xs, zs = sorted(xs), sorted(zs)
+    columns, rows = len(xs), len(zs)
     points = []
     for top in (True, False):
-        for i in range(rows):
-            v = i / (rows - 1)
-            for j in range(columns):
-                u = j / (columns - 1)
-                dx = (u - .5) * .70
-                dz = (v - .5) * .61
+        for dz in zs:
+            v = (dz - .031) / .61 + .5
+            for dx in xs:
                 tip = min(1., max(0., (v - .76) / .24)) ** 2.5
                 rim = tip * (.018 + .007 * math.sin(dx * 44 + .9) + .0035 * math.sin(dx * 111))
-                points.append((x + dx, y - rim if top else y - .115, z + .031 + dz - (rim * .63 if top else 0)))
+                height = old_wax_profile(dx, dz)[0] if top else 0.
+                points.append((x + dx, y - rim + height if top else y - .115, z + dz - (rim * .63 if top else 0)))
     size = columns * rows
     faces = []
     for i in range(rows - 1):
@@ -632,31 +675,44 @@ def wick_shelf(x, y, z, material):
         faces.append((a, b, b + size, a + size))
     shelf = mesh.mesh_object('Single hewn wick shelf', points, faces, material, 'niche')
     closed_grid_uv(shelf, columns, rows, .70, .61)
+    for index in range(0, 2 * (columns - 1) * (rows - 1), 2):
+        shelf.data.polygons[index].use_smooth = True
     return shelf
 
 
-def hewn_reveal(x, y, z, side, material):
-    # Each arch cheek is one through-stone. The sculpted spring tapers toward
-    # the arch so the lower jamb and the first voussoir meet at the front.
-    columns, rows = 14, 17
-    depth, height = .396, .288
+def hewn_reveal(x, y, z, side, sweep, material):
+    # Each arch cheek is one springer. It rises from the shelf and wraps into
+    # the circular intrados, where only the original radial masonry joint shows.
+    columns, leg_rows, arc_rows = 14, 17, 5
+    rows = leg_rows + arc_rows
+    depth, height = .396, .286
     span = columns * rows
     points = []
     for inner in (True, False):
-        for row in range(rows):
-            v = row / (rows - 1)
+        radius = .199 if inner else .352
+        for row in range(leg_rows):
+            v = row / (leg_rows - 1)
+            spring = max(0., (v - .57) / .43) ** 2
             for col in range(columns):
                 u = col / (columns - 1)
                 front_wear = u ** 4 * (.005 + .002 * math.sin(v * 13 + side))
-                relief = .007 * math.sin(u * 7.3 + v * 8.1 + side) * math.sin(math.pi * v)
-                spring = .014 * max(0., (v - .72) / .28) ** 2
+                relief = .006 * math.sin(u * 7.3 + v * 8.1 + side) * math.sin(math.pi * v)
                 taper = .195 + .016 * u ** 1.4 + .012 * (1 - u) ** 4
-                xx = x + side * (taper + (relief + front_wear if inner else .171))
+                width = taper + (relief + front_wear if inner else .171)
+                xx = x + side * (width + (radius - width) * spring)
                 wave = .0035 * math.sin(u * 5.6 + side) * math.sin(math.pi * v)
                 yy = y + .001 + v * height + wave
                 yy += (.001 - yy + y) * (1 - v) ** 10
-                zz = z - .181 + u * depth - front_wear * .57 - spring * u ** 4
+                zz = z - .181 + u * depth - front_wear * .57
+                zz += (z - .190 + u * .390 - zz) * spring
                 points.append((xx, yy, zz))
+        for row in range(1, arc_rows + 1):
+            theta = sweep * row / arc_rows
+            for col in range(columns):
+                u = col / (columns - 1)
+                wear = .0014 * math.sin(math.pi * row / arc_rows) * u ** 4
+                points.append((x + side * radius * math.cos(theta), y + .287 + radius * math.sin(theta),
+                               z - .190 + u * .390 - wear))
     faces = []
     for row in range(rows - 1):
         for col in range(columns - 1):
@@ -672,8 +728,8 @@ def hewn_reveal(x, y, z, side, material):
     for a, b in zip(edge, edge[1:] + edge[:1]):
         face = (a, b, b + span, a + span)
         faces.append(face if side < 0 else tuple(reversed(face)))
-    obj = mesh.mesh_object(f'Hand dressed niche through-stone {side}', points, faces, material, 'niche')
-    closed_grid_uv(obj, columns, rows, depth, height)
+    obj = mesh.mesh_object(f'Hand dressed niche springer {side}', points, faces, material, 'niche')
+    closed_grid_uv(obj, columns, rows, depth, height + .352 * math.sin(sweep))
     for face in obj.data.polygons[:2 * (rows - 1) * (columns - 1)]:
         face.use_smooth = True
 
@@ -686,13 +742,13 @@ def candle_niche(stone, rock, soot, clay, iron, ledge, reveal):
     hewn_back(x, y, z - .142, soot)
     mesh.box('Solid dark lime mortar behind the arch joints', (1.06, .79, .104),
              (x, y + .367, z - .225), stone[4], .012, region='niche')
-    for s in (-1, 1):
-        hewn_reveal(x, y, z, s, reveal)
     joints = [0.] + [j * math.pi / 9 + .034 * math.sin(j * 2.5) for j in range(1, 9)] + [math.pi]
-    for j, (left, right) in enumerate(zip(joints, joints[1:])):
-        gap = .0068 + .0021 * math.sin(j * 1.8)
-        arch_segment(f'Hewn niche voussoir {j + 1}', x, y + .287, z + .005, .199, .352,
-                     .390, left + gap, right - gap, reveal)
+    gaps = [.0068 + .0021 * math.sin(j * 1.8) for j in range(len(joints) - 1)]
+    hewn_reveal(x, y, z, 1, joints[1] - gaps[0], reveal)
+    hewn_reveal(x, y, z, -1, math.pi - joints[-2] - gaps[-1], reveal)
+    for j in range(1, len(joints) - 2):
+        arch_segment(f'Hewn niche voussoir {j + 1}', x, y + .287, z + .005, .199, .352, .390,
+                     joints[j] + gaps[j], joints[j + 1] - gaps[j], reveal)
     for s in (-1, 1):
         for j in range(5):
             m = stone[(j + (s > 0)) % len(stone)]
@@ -752,10 +808,10 @@ def paint_stone():
                     shade *= .72 + .54 * max(0., min(1., .51 + bank - root_dirt))
                     green_mix = max(0., min(.63, (.15 + bank) * .77))
                 if obj.name.startswith('Hand-chiselled niche back'):
-                    rise = max(0., min(1., (world.z - ANCHOR[1] - .064) / .072))
+                    rise = max(0., min(1., (world.z - ANCHOR[1] - .060) / .076))
                     drift = .019 + .016 * math.sin(world.z * 29) + .014 * noise.noise(world * 32)
-                    dx = (world.x - ANCHOR[0] + drift) / (.031 + .068 * rise)
-                    smoke_stain = rise ** .76 * math.exp(-dx * dx) * (.73 + .20 * noise.noise(world * 61))
+                    dx = (world.x - ANCHOR[0] + drift) / (.027 + .059 * rise)
+                    smoke_stain = rise ** .68 * math.exp(-dx * dx) * min(.87, .80 + .15 * noise.noise(world * 61))
                     shade *= 1 - smoke_stain
                 tint_color = [base[channel] * shade * (1 - green_mix * (1 - tone))
                               for channel, tone in enumerate((.48, .73, .43))]
@@ -775,6 +831,9 @@ def paint_stone():
                     for channel, residue in enumerate((.82, .68, .49)):
                         tint_color[channel] += (residue - tint_color[channel]) * marks
                         tint_color[channel] += (.66 - tint_color[channel]) * lip_wear
+                    pigment = old_wax_profile(dx, dz)[1]
+                    for channel, deposit in enumerate((.70, .53, .32)):
+                        tint_color[channel] += (deposit - tint_color[channel]) * pigment * .93
                 tint.data[i].color = (*tint_color, 1.)
 
 

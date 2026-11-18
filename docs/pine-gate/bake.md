@@ -103,3 +103,9 @@ Source `03ccfa3550ee2835809401ac79d2b96b090e5799e6e1571a124448017a59c76f` produc
 The new terrain folds exposed a 15.789 mm gap under one loose ridge stone in the first source preflight. The recovered source fits each stone to the actual terrain triangles under its base. All six groups pass source, prepared, raw and decoded contact checks with the 2 mm gap limit and 5 mm penetration limit. The decoded maxima were 0.003815 mm gap and 0.011444 mm penetration.
 
 The same three desktop ignition camera rays along the former dark stripe now sample packed night luminance of 0.09525–0.10032, up from 0.00299–0.00449. Two samples on the upper wall in the regular burning frame have 20–39% lower linear vertex tint. At the three new wax marks, the linear red vertex component rose from 0.304–0.357 to 0.568–0.624. The fifth app preview will confirm how these contrasts appear through the runtime lighting and effects.
+
+## Final bake source
+
+The fifth preview's walking camera exposes a backing plane through the paving. At pixel (484, 823), the nearest flagstone top is only 0.27 mm above the broad landing, while the neighboring stone at (476, 823) falls 0.10 mm below it. The backing now drops to 3.970 m under the paving. Its 13.077 mm minimum clearance is measured against all 378 decoded flagstone triangles. The gate threshold and upper stair apron retain their original height and the outer terrain shoulder still meets the sides of the landing.
+
+The two springers are continuous pieces from the shelf through the first arch segment. The remaining voussoirs retain their radial masonry joints. A darker, narrower soot plume enters the regular burning view. Five old wax residues rise by 0.8–1.7 mm directly from the shelf mesh. Their irregular edges fade into the stone tint and stay outside the level tray seat.
