@@ -234,6 +234,12 @@ export function createPineWax(seat, waxMaterial) {
       anchor.set(wickTip.x, wickTip.y - .004, wickTip.z);
     },
     fullHeight: () => fullHeight,
+    profileBounds() {
+      const minX = Math.min(...rows.map(row => row.cx - row.r));
+      const maxX = Math.max(...rows.map(row => row.cx + row.r));
+      const depth = Math.max(...rows.map(row => row.r));
+      return new THREE.Box3(vector(minX, seat.y, -depth), vector(maxX, seat.y + fullHeight + .006, depth));
+    },
     state: () => ({ remaining: lastFuel, cutHeight, bodyHeight, state: lastState, drips, trace: trace.visible }),
   };
 }

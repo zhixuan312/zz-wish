@@ -1843,6 +1843,9 @@ async function makeThumbnailStage(){
   scene.add(new THREE.HemisphereLight(0xdacbb9,0x30251d,.85));
   const soft=new THREE.PointLight(0xffd9ae,.65,0,2);soft.position.set(-.5,.7,.8);scene.add(soft);
   const gauzeKey=new THREE.DirectionalLight(0xe4dbc2,gauzePreviewIntensity),gauzeTarget=new THREE.Object3D();scene.add(gauzeKey,gauzeTarget);gauzeKey.target=gauzeTarget;
+  const waxKey = new THREE.DirectionalLight(0xf7e7d0, 2.2);
+  waxKey.position.set(-.55, .75, .9);
+  scene.add(waxKey);
   const rim=new THREE.PointLight(0xa4b6ca,.12,0,2);rim.position.set(.6,.4,-.5);scene.add(rim);
   const flame=flameParts(group);flame.soft=true;flame.fm.uniforms.uSeedU.value=2.1;
   const camera=new THREE.PerspectiveCamera(30,2/3,.005,20);
@@ -1850,7 +1853,7 @@ async function makeThumbnailStage(){
   const mapped=new THREE.WebGLRenderTarget(120,180,{type:THREE.HalfFloatType});
   const output=new THREE.WebGLRenderTarget(120,180);
   const pass=new OutputPass();pass.renderToScreen=false;
-  return{scene,group,flame,camera,soft,gauzeKey,gauzeTarget,linear,mapped,output,pass,view,parts:null,key:null};
+  return{scene,group,flame,camera,soft,gauzeKey,gauzeTarget,waxKey,linear,mapped,output,pass,view,parts:null,key:null};
 }
 async function drawLampThumbnail(shape,{state,remaining,width,height}){
   thumbnailStage??=await makeThumbnailStage();
@@ -1872,7 +1875,9 @@ async function drawLampThumbnail(shape,{state,remaining,width,height}){
   const parts=stage.parts,power=state==='burning'?1:0,fuel=Math.max(0,Math.min(1,remaining));
   stage.flame.wick.visible = !parts.wickMesh && !parts.pineWax;
   let wick=parts.wick?.at?.clone()??V3(0,.03,0);
+  const waxProfile = !!parts.pineWax && state === 'unlit';
   if (parts.pineWax) {
+    parts.holder.visible = parts.shelfContact.visible = !waxProfile;
     parts.pineWax.update(fuel, state, wick);
   } else if(parts.kind==='oil'&&parts.wick.float){
     const V=parts.vessel,[i,k]=findCum(V.cum,fuel*V.vol);wick=V3(0,THREE.MathUtils.lerp(V.ys[i-1],V.ys[i],k)+parts.wick.float,0);
@@ -1899,11 +1904,14 @@ async function drawLampThumbnail(shape,{state,remaining,width,height}){
   }
   stage.group.updateMatrixWorld(true);
   // Framing follows the original wax, so two portraits of the same candle show the height difference.
-  const bounds = parts.pineWax ? new THREE.Box3(V3(-.07, 0, -.07), V3(.07, parts.seat.y + parts.pineWax.fullHeight() + .043, .07))
+  const bounds = waxProfile ? parts.pineWax.profileBounds()
+    : parts.pineWax ? new THREE.Box3(V3(-.07, 0, -.07), V3(.07, parts.seat.y + parts.pineWax.fullHeight() + .043, .07))
     : new THREE.Box3().setFromObject(parts.g);
   const size=bounds.getSize(V3()),center=bounds.getCenter(V3());
   const tangent=Math.tan(Math.PI/12),distance=Math.max(size.y/(2*tangent*.82),size.x/(2*tangent*(w/h)*.82));
   stage.camera.aspect=w/h;stage.camera.position.copy(center).add(V3(distance*.25,distance*.10,distance));stage.camera.lookAt(center);stage.camera.updateProjectionMatrix();
+  stage.waxKey.visible = !!parts.pineWax && state !== 'burning';
+  stage.scene.background.setHex(parts.pineWax ? 0x25201d : 0x171410);
   stage.soft.visible=shape.kind!=='shade';stage.gauzeKey.visible=shape.kind==='shade'&&state!=='burning';
   stage.gauzeKey.intensity=gauzePreviewIntensity*(state==='unlit'?1:.55);
   if(stage.gauzeKey.visible)aimGauzePreview(stage.gauzeKey,stage.gauzeTarget,center,stage.camera.position);
