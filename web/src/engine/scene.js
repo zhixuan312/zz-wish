@@ -518,7 +518,8 @@ const LAMPS = {
     return { g, kind: 'wax', seat: { y: .007, maxR: .045, maxH: .16 }, frame: { h: .2, cy: .08 }, lightMax: .3 };
   },
   pineWax({ refined = false } = {}) {
-    const g = new THREE.Group(), seat = { y: .008, maxR: .045, maxH: .16, traceRadius: .056 };
+    const g = new THREE.Group();
+    const seat = { y: .008, maxR: refined ? .039 : .045, maxH: .16, traceRadius: refined ? .046 : .056 };
     const holder = refined ? createPineTray(seat)
       : new THREE.Mesh(lathe([[0, 0], [.057, 0], [.067, .004], [.069, .009], [.065, .012],
         [.06, .011], [.056, seat.y], [0, seat.y]], 56), greyStoneMat);
@@ -527,7 +528,7 @@ const LAMPS = {
     // The nearly vertical flame point produced two hard discs. Keep contact
     // under the wax and dish with short, soft falloff at their actual bases.
     holder.castShadow = false;
-    const shelfContact = waxContactShadow(.082, .53);
+    const shelfContact = waxContactShadow(refined ? .069 : .082, .53);
     g.add(shelfContact);
     const pineWax = createPineWax(seat, waxMaterial, { refined });
     pineWax.group.visible = false;
@@ -766,6 +767,8 @@ const api = { g, parts: null, partsKey: null, type: null, power: 0, lightPower: 
       hanger.material=p.suspensionMaterial??defaultSuspensionMaterial;
       f.wick.visible = !p.wickMesh && !p.pineWax;
       f.light.shadow.autoUpdate = !p.pineWax;
+      f.light.shadow.normalBias = p.pineWax && liveBaked ? .0024 : .0001;
+      f.light.shadow.radius = p.pineWax ? 4 : 2;
       f.light.color.setHex(p.light ?? 0xffba78); f.size = p.flame ?? 1; mirror.size = f.size;
       g.traverse((c) => { c.layers.set(0); warmReflections(c); }); f.light.layers.enableAll();
       if(liveBaked&&place?.visitorEnvironment){
@@ -855,7 +858,10 @@ const api = { g, parts: null, partsKey: null, type: null, power: 0, lightPower: 
         if(hanger.visible)hanger.quaternion.setFromUnitVectors(V3(0,1,0),suspensionEnd.normalize());
       }
       f.place(this.top.x, this.top.y, this.top.z);
-      if (p.pineWax) f.ember.position.copy(p.pineWax.wickTip);
+      if (p.pineWax) {
+        f.ember.position.copy(p.pineWax.wickTip);
+        if (place?.P.bakedLighting) f.flame.position.y -= .002;
+      }
     },
     flameWorld() { g.updateWorldMatrix(true, false); return g.localToWorld(world.copy(this.top)); },
     setShadowFar(far){
@@ -883,10 +889,9 @@ const api = { g, parts: null, partsKey: null, type: null, power: 0, lightPower: 
       const fw = this.flameWorld(), k = f.tick(time, power, p.lightMax * keep * this.lightBoost, p.pineWax?.materials ?? [wax, poolMat, oilGlow], fw.y);
       if (p.pineWax) {
         p.pineWax.updateLight(f.light, place?.baked?.manifest.lampBasis?.pointRadiusMetres);
-        // The niche and holder are static. Refresh the shadow only when the
-        // lit wick moves a measurable distance.
         if (f.light.intensity > .0001) {
           f.light.getWorldPosition(pineShadowPoint);
+          // Only wick movement changes the shadow of the static stone niche.
           if (pineShadowPoint.distanceToSquared(lastPineShadowPoint) > .0008 ** 2) {
             f.light.shadow.needsUpdate = true;
             lastPineShadowPoint.copy(pineShadowPoint);
@@ -1779,15 +1784,22 @@ const chooseView = () => {
 function burnView(){
   const N=place.P.nook,v=viewOf((narrow()&&N.burnPhone)||N.burn);
   if (place.P.bakedLighting && mine.parts?.pineWax) {
-    const candleHeight = mine.parts.pineWax.fullHeight();
-    const height = candleHeight + .040;
-    const center = mine.g.localToWorld(V3(0, mine.parts.seat.y + height / 2, 0));
+    const candle = mine.parts.pineWax;
+    const profile = candle.profileBounds();
+    const bodyHeight = candle.fullHeight();
+    const subjectHeight = bodyHeight + .040;
+    const center = mine.g.localToWorld(V3((profile.min.x + profile.max.x) / 2,
+      mine.parts.seat.y + subjectHeight / 2, 0));
     const direction = v.pos.clone().sub(center).normalize();
-    // Keep framing anchored to the original candle while the wax retreats.
-    const angle = THREE.MathUtils.degToRad(v.fov / 2);
-    const far = candleHeight > .125;
-    const fraction = far ? .20 : .225;
-    const distance = Math.max(narrow() ? .39 : .36, height * .94 / (2 * Math.tan(angle) * fraction));
+    const bodyFacingCamera = bodyHeight * Math.hypot(direction.x, direction.z);
+    const halfFov = THREE.MathUtils.degToRad(v.fov / 2);
+    const fraction = bodyHeight > .125 ? .211 : .225;
+    const distance = Math.max(narrow() ? .43 : .36, bodyFacingCamera / (2 * Math.tan(halfFov) * fraction));
+    // Compose from the original wax alone. Reserve space for the intact flame,
+    // and keep very wide hand-drawn shapes inside the phone's narrower frame.
+    const tangent = Math.max(bodyFacingCamera / (2 * distance * fraction),
+      (profile.max.x - profile.min.x) / (2 * distance * camera.aspect * .79), subjectHeight / (2 * distance * .78));
+    v.fov = THREE.MathUtils.radToDeg(2 * Math.atan(tangent));
     v.pos.copy(center).addScaledVector(direction, distance);
     v.look.copy(center);
     return v;
@@ -1833,9 +1845,8 @@ if (import.meta.env.DEV) {
     const state = wax.state();
     camera.updateMatrixWorld();
     const foot = mine.g.localToWorld(V3(0, mine.parts.seat.y, 0)).project(camera);
-    const tip = wax.wickTip.clone();
-    if (lit) tip.y += .038 * (mine.parts.flame ?? 1) * Math.sqrt(mine.power);
-    const top = mine.g.localToWorld(tip).project(camera);
+    const top = mine.g.localToWorld(V3(wax.wickTip.x,
+      mine.parts.seat.y + state.bodyHeight, wax.wickTip.z)).project(camera);
     return { ...state, baked: !!place?.baked, framedFraction: Math.max(0, (top.y - foot.y) / 2) };
   };
   window.__visualPineCloseup = () => { pineDiagnosticView = true; };
@@ -2083,10 +2094,11 @@ function makeIgnitionTaper(){
   solid(g,new THREE.CylinderGeometry(.003,.004,.19,12),new THREE.MeshStandardMaterial({color:0xdfc9a3,roughness:.86}),0,-.10,0);
   solid(g,new THREE.CylinderGeometry(.007,.008,.055,12),new THREE.MeshStandardMaterial({color:0x71563a,metalness:.65,roughness:.48}),0,-.2,0);
   solid(g,new THREE.CylinderGeometry(.005,.007,1.18,12),lampWood,0,-.8,0);
+  const casters = g.children.filter(child => child.castShadow);
   const f=flameParts(g,{light:false,size:.55});f.soft=true;f.place(0,0);
   // The lighting pole enters from the right; its grip remains beyond the frame.
   g.rotation.set(-.22,0,-.95);
-  return{g,f};
+  return { g, f, casters };
 }
 /** Light the flame (animation only; the burn clock lives in the UI). */
 export async function ignite({onCatch, remainingFuel}={}) {
@@ -2121,7 +2133,11 @@ export async function ignite({onCatch, remainingFuel}={}) {
   const cameraStart=rig.pos.clone(),lookStart=rig.look.clone(),fovStart=rig.fov??camera.fov;
   const active=()=>lit&&journey===cameraJourneyVersion;
   ignitionTaper??=makeIgnitionTaper();
-  const {g,f}=ignitionTaper,tip=mine.flameWorld().clone(),right=V3(1,0,0).applyQuaternion(camera.quaternion);
+  const { g, f, casters } = ignitionTaper;
+  // The moving lighting pole remains visible without stamping a stripe into
+  // the Pine candle's cached static shadow map.
+  for (const part of casters) part.castShadow = !pine;
+  const tip = mine.flameWorld().clone(), right = V3(1, 0, 0).applyQuaternion(camera.quaternion);
   const start=tip.clone().addScaledVector(right,.27).add(V3(0,-.34,.22));
   const contact=tip.clone().add(V3(.004,-.006,.012));mine.power=0;g.visible=true;
   let caught=false;
@@ -2302,7 +2318,8 @@ function frame(stamp = performance.now()) {
     const previewTarget=mine.g.visible&&atLamp?(phase==='candle'?1:!lit?.55:ignitionFill):0;
     gauzePreviewBlend+=(previewTarget-gauzePreviewBlend)*(1-Math.exp(-dt*5));
     if (mine.parts?.pineWax && atLamp) {
-      previewFill.intensity = phase === 'candle' ? 1.35 : lit ? .29 : .74;
+      const burningFill = P.bakedLighting ? .63 : .29;
+      previewFill.intensity = phase === 'candle' ? 1.35 : lit ? burningFill : .74;
     } else {
       previewFill.intensity = P.bakedLighting ? gauzePreviewIntensity * gauzePreviewBlend : phase === 'candle' ? .7 : 0;
     }

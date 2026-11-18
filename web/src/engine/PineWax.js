@@ -43,8 +43,8 @@ function materialCoordinates(shader) {
 
 function refinedWaxMaterial(light, layer) {
   const style = {
-    body: { roughness: .49, clearcoat: .10, specularIntensity: .58, diffuse: .79, scatter: .24 },
-    pool: { roughness: .22, clearcoat: .25, specularIntensity: .63, diffuse: .45, scatter: .052 },
+    body: { roughness: .47, clearcoat: .11, specularIntensity: .58, diffuse: .87, scatter: .65 },
+    pool: { roughness: .17, clearcoat: .27, specularIntensity: .63, diffuse: .48, scatter: .052 },
     remnant: { roughness: .47, clearcoat: .10, specularIntensity: .49, diffuse: .71, scatter: .065 },
     runnel: { roughness: .35, clearcoat: .16, specularIntensity: .54, diffuse: .70, scatter: .18 },
   }[layer];
@@ -75,7 +75,7 @@ function refinedWaxMaterial(light, layer) {
         float path = .0016 + depth * .84 + length(fromCrown.xz) * .33;
         vec3 absorption = vec3(64., 88., 132.) - 31. * log(clamp(diffuse, .055, 1.));
         vec3 transmission = exp(-absorption * path);
-        float edge = .22 + .78 * pow(1. - abs(dot(normal, normalize(vViewPosition))), 1.45);
+        float edge = .49 + .51 * pow(1. - abs(dot(normal, normalize(vViewPosition))), 1.45);
         float scatter = (1. - exp(-incident * .007)) * edge * ${style.scatter};
         totalEmissiveRadiance += uPineSourceColor * transmission * scatter;`);
   };
@@ -84,14 +84,14 @@ function refinedWaxMaterial(light, layer) {
 }
 
 export function createPineTray(seat) {
-  const points = [[0, 0], [.054, 0], [.060, .0014], [.066, .004], [.069, .0085],
-    [.068, .0115], [.0664, .014], [.0645, .0143], [.0624, .0131],
-    [.06, .0102], [.056, seat.y], [0, seat.y]];
+  const points = [[0, 0], [.038, 0], [.042, .001], [.045, .0035], [.052, .006],
+    [.057, .0105], [.058, .014], [.0565, .0165], [.054, .017], [.0515, .0144],
+    [.048, .0105], [.0465, seat.y], [0, seat.y]];
   const geometry = new THREE.LatheGeometry(points.map(([r, y]) => new THREE.Vector2(r, y)), 96);
   const positions = geometry.attributes.position;
   for (let i = 0; i < positions.count; i++) {
     const x = positions.getX(i), y = positions.getY(i), z = positions.getZ(i);
-    const angle = Math.atan2(z, x), rim = clamp((Math.hypot(x, z) - .059) / .009, 0, 1);
+    const angle = Math.atan2(z, x), rim = clamp((Math.hypot(x, z) - .046) / .012, 0, 1);
     const uneven = rim * (.0033 * Math.sin(angle * 17 + 1.8) + .0024 * Math.sin(angle * 29 - .9));
     const chip = .00038 * rim * Math.sin(angle * 37 + .5) * Math.sin(angle * 11);
     positions.setXYZ(i, x * (1 + uneven), y + chip * clamp(y / .008, 0, 1), z * (1 + uneven));
@@ -114,10 +114,10 @@ export function createPineTray(seat) {
       ${shader.fragmentShader}`;
     shader.fragmentShader = shader.fragmentShader.replace('#include <map_fragment>', `#include <map_fragment>
       float aggregate = pineStoneValue(vPineLocal * 226.);
-      float mineral = pineStoneValue(vPineLocal * 1170. + vec3(48., 12., 9.));
+      float mineral = pineStoneValue(vPineLocal * 940. + vec3(48., 12., 9.));
       float fleck = smoothstep(.64, .9, mineral);
       float soot = (1. - smoothstep(.012, .048, length(vPineLocal.xz))) * smoothstep(.37, .85, aggregate);
-      float scuffedRim = smoothstep(.058, .066, length(vPineLocal.xz)) * smoothstep(.006, .012, vPineLocal.y);
+      float scuffedRim = smoothstep(.049, .057, length(vPineLocal.xz)) * smoothstep(.006, .012, vPineLocal.y);
       diffuseColor.rgb *= .72 + .32 * aggregate + .34 * fleck + .14 * scuffedRim - .34 * soot;`)
       .replace('#include <roughnessmap_fragment>', `#include <roughnessmap_fragment>
         roughnessFactor = clamp(roughnessFactor + .1 * (aggregate - .5) - .11 * scuffedRim, .56, .98);`);
