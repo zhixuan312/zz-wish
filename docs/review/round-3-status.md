@@ -178,6 +178,19 @@ Status: **done**. The settled desktop burning view now frames against a fixed fu
 lamp reference, so the cloth covers 23.8% of frame height at 24 h, 19.2% at 2 h and 14.8% at
 10 min, against about 13-15% before. Only camera placement changed.
 
+## T3: Round 3 full journey
+
+Status: **partly**. Chromium covered all four contexts
+(`desktop-en`, `desktop-zh`, `phone-en`, `phone-zh`) with 200 frames and zero HTTP errors.
+The run was stopped at the 15-minute GPU lease limit before WebKit started, so WebKit's four
+contexts have no round 3 frames yet.
+
+Two chromium contexts failed one step: `phone-en` and `phone-zh` timed out waiting for the
+drawing pad's `Undo` control to become enabled, because the emulated stroke did not register
+in that context. Both then continued and their other frames exist. This is a capture-script
+weakness on emulated phone touch input, not a product change in this branch; it is reported
+rather than papered over. Output: `artifacts/full-review/round-3/after-journey/`.
+
 ## Items for Boss
 
 - J12: readable stacked bowls and leaning broom. They are baked region geometry lit only by
@@ -186,7 +199,6 @@ lamp reference, so the cloth covers 23.8% of frame height at 24 h, 19.2% at 2 h 
 
 ## Items that still need GPU captures
 
-- T7 and T8 held gate/approach/ending frames.
-- The round 3 eight-context journey (T3) and its report.
+- The WebKit half of the round 3 journey (T3) and its report.
 
 None recorded yet.
