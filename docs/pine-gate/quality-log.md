@@ -127,3 +127,18 @@ The before sheets are in `artifacts/pine-gate/quality/preview-04/pairs/`. The af
 | 11. Matched Snow Roof audio | `478383b` lights both real places in matching Chrome desktop and phone contexts and measures the live master at audio age 30–45 s. | `comparison.json`, plus `artifacts/pine-gate/quality/audio-preview-05-matched/pine/report.json` | Pine RMS is 1.34 dB lower on desktop and 1.46 dB lower on phone. All four windows completed at 48 kHz. The highest measured peak was 0.00166, and the two viewport differences are comparable. |
 
 The paired walks lasted 30.32 s and 30.53 s. Both completed refresh and both endings without runtime or HTTP errors. The regular body occupies 21.34% and 21.57% of the frame. Phone cadence was 29.99 FPS with a 36 ms 95th-percentile interval. The 11,390,985-byte preview passed all six contact groups through the final decoded geometry.
+
+## 64-sample final
+
+The before sheets are in `artifacts/pine-gate/quality/preview-05/pairs/`. The final sheets are in `artifacts/pine-gate/quality/final/pairs/`. The 32 comparisons, 38 Pine originals and their hashes are indexed in `artifacts/pine-gate/quality/final/comparison.json`.
+
+| Gap | Change | Before and after sheet | Verdict |
+| --- | --- | --- | --- |
+| 1. The recess competes with the flame | `8252f86` lowers only the baked night and dusk ambience of the niche. The moving warm point and its indirect falloff retain their existing range. | `settled.png`, `burning-controls.png`, `far-burning.png` | The upper sample on desktop drops from RGB (63, 59, 58) to (51, 48, 45), and the corresponding phone sample drops from (80, 70, 62) to (73, 63, 53). The stone nearest the tray remains warmer and brighter. |
+| 2. Abrupt shaft color transition | `0057fc1` changes the wax light response to a smooth absorption tail and returns warm light to the lower section. | `burning.png`, `closeup.png`, `put-out.png` | The amber crown grades into a warmer base. In both regular burning views the lower-shaft sample gains 14 red-channel levels. The dark wick and pool rim remain legible. |
+| 3. Soot and old wax | `8bff228` shapes the sooty upper stone and five raised shelf deposits. `bdd3654` places four wax pieces on the actual graphite tray. `5ecff10` gives the irregular shelf grid constant metre-scale UV density. | `burning-controls.png`, `candle-contact.png`, `ignition.png` | Tiny amber marks now stand off the shelf behind the tray and an old deposit catches light on the right lip from the ordinary burning camera. The wall retains an irregular darker area above the flame. |
+| 4. Landing overlap and hard reveal edges | `8bff228` drops the backing 13.077 mm below the lowest paving face and joins the arch spring to the dressed reveal. | `walk-3.png`, `ignition.png`, `spreading.png` | The old triangular slivers are gone. Flagstone joints remain visible and the niche opens into continuous chiseled stone. |
+
+The final 11,506,505-byte package contains the 12 fixed 64-sample maps and shared native AgX LUT. All six contact groups pass on the final decoded geometry. Both night captures confirm that native AgX is active with the night and lamp maps resident.
+
+From wish entry to Step inside, the paired captures take 3.48 s on desktop and 2.62 s on phone. The walks last 30.32 s and 30.49 s. The regular burning body takes 21.33% and 21.49% of the frame. Phone cadence is 29.99 FPS and 35.5 ms at the 95th percentile. Both contexts complete refresh and both endings with zero runtime or HTTP errors. The phone smoke starts at the wick and its upper end passes beyond the frame.
