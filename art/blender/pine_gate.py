@@ -31,9 +31,9 @@ SHELF_WAX_DEPOSITS = (
 )
 
 
-def supports_height(x, z, supports):
+def supports_height(x, z, supports, ray_start=50):
     tree, _ = contacts.support(supports)
-    hit, _, _, _ = tree.ray_cast(mesh.point((x, 50, z)), Vector((0, 0, -1)), 100)
+    hit, _, _, _ = tree.ray_cast(mesh.point((x, ray_start, z)), Vector((0, 0, -1)), 100)
     if hit is None:
         raise RuntimeError('Missing bearing surface for a Pine Gate prop.')
     return float(hit.z)
@@ -645,6 +645,7 @@ def wick_shelf(x, y, z, material):
     # wax menisci, bevel band and face are part of one closed stone surface.
     xs = {round((j / 32 - .5) * .70, 7) for j in range(33)}
     zs = {round(.031 + (i / 28 - .5) * .61, 7) for i in range(29)}
+    zs.add(0.)
     for cx, cz, width, length, _ in SHELF_WAX_DEPOSITS:
         for step in (-1.17, -.64, 0., .64, 1.17):
             xs.add(round(cx + step * width, 7))
@@ -935,9 +936,12 @@ def build(output):
     scene['resting_prop_inventory'] = json.dumps({'registeredGroups': [entry['name'] for entry in contacts.entries],
         'fixedArchitecture': 'Pine roots and slate outcrops enter terrain. Stone courses, steps, niche and eaves are structural. The guide bracket is built into the right gate post.'})
     bpy.context.view_layer.update()
-    anchor_height = supports_height(ANCHOR[0], ANCHOR[2], [bpy.data.objects['Single hewn wick shelf']])
-    if abs(anchor_height - ANCHOR[1]) > 1e-6 or any(abs(a - b) > 1e-6 for a, b in zip(engine(basis.matrix_world.translation), LAMP)):
-        raise RuntimeError('Baked shelf and lamp basis must use their measured runtime locations.')
+    # Start close to this isolated bearing surface to preserve submicron
+    # precision in the Float32 BVH intersection across the dense shelf grid.
+    anchor_height = supports_height(ANCHOR[0], ANCHOR[2], [bpy.data.objects['Single hewn wick shelf']], ANCHOR[1] + .5)
+    lamp_position = tuple(engine(basis.matrix_world.translation))
+    if abs(anchor_height - ANCHOR[1]) > 1e-6 or any(abs(a - b) > 1e-6 for a, b in zip(lamp_position, LAMP)):
+        raise RuntimeError(f'Baked shelf or lamp anchor differs from its runtime location: shelf {anchor_height}, lamp {lamp_position}.')
     scene['source_authoring_helpers'] = json.dumps([
         'art/blender/snow_roof.py', 'art/blender/snow_round1_details.py',
         'art/blender/snow_lightmap_charts.py', 'art/blender/resting_contacts.py',
