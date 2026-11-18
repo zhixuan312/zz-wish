@@ -194,11 +194,20 @@ and 5.4% (phone, frame 08 to 09). The unlit and ended cloth, with its ribs, is v
 `j6-j2/ended-*` and `j6-j2/t8-{desktop-en,phone-zh}-{00,08,16,23}.png`. No red flash or
 reversal appears in either series.
 
-### Still missing
+### Approach, attempted
 
-The approach into the court has not been sampled on this build, so the claim that no red pop
-appears while walking in is still unproven; a timestamped approach series is the next
-capture. Until it exists, this item stays partly done.
+A timestamped approach series was captured on this build with no Skip and no held camera:
+130 frames per viewport, walk progress 0→1.0 on desktop and 0→0.59 on phone. Intervals were
+median 232 ms on desktop (30 of 129 slightly over 250 ms) and 133 ms on phone (none over).
+The series is not usable as a red-pop measurement yet: the capture used one fixed clip
+rectangle, and as the camera walks in the shade leaves that rectangle, so 35 of 130 desktop
+frames contain no shade at all and a per-frame mask finds unrelated red geometry in others.
+
+What the frames do show, inspected one by one, is a shade that reads as dark red cloth with
+visible ribs at every distance, becoming larger and brighter as it approaches, with no frame
+showing a saturated flash. That is a visual judgement on individual frames, not a measured
+series, so the item stays partly done. A usable measurement needs a clip that follows the
+lamp, or full frames with a per-frame shade mask.
 
 ## T9: J5 the desktop burning lantern size
 
