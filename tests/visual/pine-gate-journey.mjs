@@ -34,6 +34,7 @@ const mode = process.env.CAPTURE_MILESTONE ?? 'm1';
 assert(['m1', 'm3', 'quality'].includes(mode), 'CAPTURE_MILESTONE must be m1, m3 or quality.');
 const quality = mode === 'quality';
 const fullJourney = mode !== 'm1';
+const holdCameraDrift = mode !== 'm3';
 const qualityPass = process.env.QUALITY_PASS ?? 'preview';
 assert(['preview', 'final'].includes(qualityPass), 'QUALITY_PASS must be preview or final.');
 const reviewLabel = process.env.QUALITY_LABEL ?? qualityPass;
@@ -85,6 +86,7 @@ const report = {
   ...(quality ? { reviewLabel, matchedEndingShapes: true } : {}),
   delivery,
   clock: 'Local visual hour ' + hour + ' held constant. Controlled client and matching isolated server start times accelerate progress; render animation uses real frame timestamps.',
+  cameraDrift: holdCameraDrift ? 'held for still comparisons' : 'product default',
   viewport: 'Phone is viewport and touch emulation. WebKit freehand uses a trusted mouse stroke.',
   runs: [],
 };
@@ -149,7 +151,7 @@ async function capture(browser, browserName, size) {
   try {
     await context.addInitScript(installCaptureGpuGuard);
     if (quality) await context.addInitScript(installLiveAudioAudit);
-    await context.addInitScript(hour => {
+    await context.addInitScript(({ hour, holdCameraDrift }) => {
       Date.prototype.getHours = () => Math.floor(hour);
       Date.prototype.getMinutes = () => Math.floor((hour % 1) * 60);
       Date.prototype.getSeconds = () => 0;
@@ -158,8 +160,8 @@ async function capture(browser, browserName, size) {
       let offset = 0;
       performance.now = () => nativeNow() + offset;
       window.__advanceVisualClock = delta => { offset += delta; };
-      window.__visualFreezeCamera = true;
-    }, hour);
+      if (holdCameraDrift) window.__visualFreezeCamera = true;
+    }, { hour, holdCameraDrift });
     const page = await context.newPage();
     page.setDefaultTimeout(65_000);
     page.on('pageerror', error => run.errors.push({ kind: 'runtime', text: error.stack ?? error.message }));
