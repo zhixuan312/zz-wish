@@ -165,3 +165,19 @@ The eight journeys at `artifacts/pine-gate/m3/report.json` share the merged app 
 | WebKit | Phone ZH | 1.994 s | 30.384 s | 29.991 | 0 | 0 | No |
 
 The supplemental app captures in `artifacts/pine-gate/quality/final-day/` and `artifacts/pine-gate/quality/final-dusk/` confirm native AgX and a resident lamp map at both screen sizes. Day contributes all of the ambient blend at 13:00. Dusk contributes 82.5% at 18:00. The final night comparisons exercise the night bank. The quiet presence line is faint against the brighter sky in the day and dusk place views. The merged app retained the previously measured Pine and Snow ambience mix. Phone measurements use browser emulation on the M1.
+
+## Candle optics while the site brief is under review
+
+The before and after frames use the same 1-hour Ivory Pillar at approximately 50% fuel. They use the existing baked environment so the comparison isolates the candle and dish. The native-pixel desktop crops and a real candle photograph are in `artifacts/pine-gate/quality/optics-reflection/candle-comparison.png`.
+
+| Gap | Change | Before and after evidence | Verdict |
+| --- | --- | --- | --- |
+| Wax and dish read as smooth plastic | `b6eb812`, `bdac17b` and `259ab97` add wax pores, raised runnels, a tool-marked dish, soot and grounded old wax. | `quality/final/pine/` and `quality/optics-reflection/pine/`, `candle-contact.png` | The detached pink mark is gone and small surface features read at native resolution. The photographed wax still has stronger contrasts and a more irregular spill. |
+| The flame floats over the wick | `2707995` integrates a narrow emitting volume. `3f6004a` moves its blue base onto the wick and `58faa3c` fades the tip. | `quality/optics-wip/pine/` and `quality/optics-reflection/pine/`, `candle-contact.png` | The first pass exposes a dark gap. The later desktop and phone views show the blue base across the wick and preserve a clear silhouette over the pool. |
+| The melt pool looks matte | `29b52ed` raises the inner meniscus and `bce3fe6` adds a grazing reflection controlled by flame drift. | `quality/optics-shaped-flame/pine/` and `quality/optics-reflection/pine/`, `candle-contact.png` | The pool basin has more visible depth. The narrow glint is still much subtler than the photograph in the captured pose. |
+
+The focused Chromium retest produced ten complete frames across desktop English and phone Chinese with zero runtime or HTTP errors. The existing package remains the baseline for this isolated work. A separate Blender GLB export verified albedo, normal, packed roughness and occlusion bindings for all four new or completed scans. The new site package is pending the setting review.
+
+- The close photograph shows a nearly spent candle. It anchors the blue base, softened upper flame and surface reflection comparison. [USER-62114, Burning-candle, CC0](https://commons.wikimedia.org/wiki/File:Burning-candle.jpg)
+- A blackened earthenware dish and the surface of unlit wax clarify the material separation. [SarKaLay, Wax Candle, CC0](https://commons.wikimedia.org/wiki/File:Wax_Candle.jpg)
+- The left panel shows a candle flame in normal gravity, with a dark inner root and a blue base at the wick. [NASA Glenn Research Center, GRC-1998-C-00485](https://science.nasa.gov/image-detail/amf-grc-1998-c-00485/)
