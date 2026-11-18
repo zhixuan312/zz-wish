@@ -413,18 +413,42 @@ function writeRing(mesh, row, cx, radius, height, contour, rise) {
   }
 }
 
+function shapedRunnels(rows, samples) {
+  let seed = 2166136261;
+  for (const row of rows) {
+    for (const value of [row.y, row.cx, row.r]) {
+      seed = Math.imul(seed ^ Math.round(value * 100000), 16777619);
+    }
+  }
+  const next = () => {
+    seed = Math.imul(seed, 1664525) + 1013904223 | 0;
+    return (seed >>> 0) / 4294967296;
+  };
+  return samples.map(droplet => ({
+    angle: (droplet.angle + (next() - .5) * .46 + TAU) % TAU,
+    start: Math.max(.007, droplet.start + (next() - .5) * .02),
+    reach: Math.min(.043, droplet.reach * (.78 + .38 * next())),
+    width: droplet.width * (.86 + .42 * next()),
+    speed: 4.0 + 2.0 * next(),
+    bead: .64 + .17 * next(),
+    bend: (next() - .5) * .29,
+    shoulder: .12 + .13 * next(),
+  }));
+}
+
 function runnelContour(y, radius, runnels) {
   const flows = [];
   for (const drip of runnels) {
     const k = (drip.crown - y) / drip.reach;
     if (k < 0 || k > 1) continue;
     const taper = Math.sin(Math.PI * k) ** 1.24;
-    const bead = .43 + .92 * Math.exp(-((k - .72) ** 2) / .037);
+    const bead = .38 + 1.02 * Math.exp(-((k - drip.bead) ** 2) / .025);
     const width = Math.min(drip.width, radius * .23) * drip.growth;
-    // Gravity leaves one continuous rounded swath rather than a row of folds.
-    const angle = drip.angle + .082 * Math.sin(k * Math.PI) * Math.cos(drip.angle);
-    flows.push({ angle, height: width * (taper * bead + .16 * Math.exp(-k * 10)),
-      halfWidth: Math.max(.16, width / radius * (1.16 + .5 * taper)) });
+    // Each trail rounds into its own bead and follows a smooth, slightly
+    // drifting course down the drawn profile.
+    const angle = drip.angle + drip.bend * Math.sin(k * Math.PI);
+    flows.push({ angle, height: width * (taper * bead + drip.shoulder * Math.exp(-k * 10)),
+      halfWidth: Math.max(.15, width / radius * (1.08 + .56 * taper)) });
   }
   return a => {
     let rise = 0;
@@ -607,7 +631,7 @@ export function createPineWax(seat, waxMaterial, { refined = false } = {}) {
   const wickEnd = wickPath.getPoint(1);
   const warmWax = new THREE.Color(0xffc07d);
   let source, rows, bodyMesh, lastFuel, lastState, fullHeight, cutHeight, bodyHeight;
-  let traceSeatRadius = seat.traceRadius;
+  let traceSeatRadius = seat.traceRadius, runnelLayout;
   let drips = 0;
 
   return {
@@ -624,6 +648,7 @@ export function createPineWax(seat, waxMaterial, { refined = false } = {}) {
         // inside its inner wall and the older deposits attached to that wall.
         const holderScale = clamp((width * scale + .007) / seat.traceRadius, .76, 1);
         traceSeatRadius = holderScale * seat.traceRadius - .00045;
+        runnelLayout = shapedRunnels(source, drops);
       }
       body.geometry.dispose();
       bodyMesh = surface(rows.length + 7 + (refined ? RUNNEL_ROWS : 0), refined ? 72 : 48);
@@ -645,8 +670,8 @@ export function createPineWax(seat, waxMaterial, { refined = false } = {}) {
         bodyHeight = cut;
         const spent = cut <= 0;
         const melted = state === 'unlit' ? 0 : Math.min(1, .54 + (1 - fuel) * 4);
-        const runnels = refined ? drops.map(drip => {
-          const amount = clamp((1 - fuel - drip.start) * 5, 0, 1);
+        const runnels = refined ? runnelLayout.map(drip => {
+          const amount = clamp((1 - fuel - drip.start) * drip.speed, 0, 1);
           return { ...drip, reach: Math.min(drip.reach * amount, cut * .8),
             growth: Math.sqrt(amount), crown: cut - Math.min(cut * .04, .0002) };
         }).filter(drip => drip.reach > .0001) : null;
