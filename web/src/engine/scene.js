@@ -1643,11 +1643,17 @@ function disposePlace(old) {
 
 const preparingPlaces = new Map();
 let preparationQueue = Promise.resolve();
+function markPlacePreparation(id, stage) {
+  if (import.meta.env.DEV && (id === 'pine-gate' || id === 'snow-roof')) {
+    performance.mark(`one-light:${id}:${stage}`);
+  }
+}
 // Construction helpers share an authoring context, so build one candidate at a
 // time. The active court keeps rendering while the next one is decoded.
 export function preparePlace(id) {
   if (cachedPlaces.has(id)) return Promise.resolve(cachedPlaces.get(id));
   if (!preparingPlaces.has(id)) {
+    markPlacePreparation(id, 'queued');
     const pending = preparationQueue.then(() => buildPlaceNow({ id }));
     preparationQueue = pending.catch(() => {});
     preparingPlaces.set(id, pending);
@@ -1668,6 +1674,7 @@ async function buildPlace(t) {
 async function buildPlaceNow(t) {
   const light = daylight(), lightKey = JSON.stringify(light);
   if (cachedPlaces.has(t.id)) return cachedPlaces.get(t.id);
+  markPlacePreparation(t.id, 'build-started');
   PLACES[t.id] ??= (await placeModules[t.id]()).default(placeHelpers);
   if(PLACES[t.id].bakedLighting)await ensureNativeAgX();
   if(t.id==='snow-roof')await ensureVisitorFabric();
@@ -1686,6 +1693,7 @@ async function buildPlaceNow(t) {
   const skyScene = new THREE.Scene(); skyScene.add(new THREE.Mesh(sky.geometry, skyMat));
   await pauseBuild();
   const envTarget = pmrem.fromScene(skyScene, 0, .1, 1000), env = envTarget.texture;
+  markPlacePreparation(t.id, 'environment-ready');
   C.environment=env;C.fog=new THREE.FogExp2(...P.fog);
   const buildingContext = C;
   try {
@@ -1695,6 +1703,7 @@ async function buildPlaceNow(t) {
   sun.shadow.bias = -.00025; sun.shadow.normalBias = .025; sun.shadow.radius = 3; G.add(sun);
   const hemi = new THREE.HemisphereLight(...P.hemi); G.add(hemi);
   await P.build(t); await finishBatch();
+  markPlacePreparation(t.id, 'assets-ready');
   // The spot where the lamp is lit, built in its own frame and set into the place.
   const N = P.nook, nookG = new THREE.Group(); nookG.position.copy(N.at.pos); nookG.rotation.y = N.at.ry ?? 0; G.add(nookG); nookG.updateMatrixWorld(true);
   C.G = nookG; C.bat = new Map(); C.cover = null;
@@ -1714,6 +1723,7 @@ async function buildPlaceNow(t) {
   let visitorPreview;
   const target = renderer.getRenderTarget(), warm = new THREE.WebGLRenderTarget(4, 4);
   try {
+    markPlacePreparation(t.id, 'compile-started');
     await renderer.compileAsync(stage, stageCamera);
     if (P.bakedLighting && P.nook.lamp === 'gauze') {
       visitorPreview = LAMPS.gauze({ ...presetOf('shade'), liveBaked: true });
@@ -1724,6 +1734,7 @@ async function buildPlaceNow(t) {
       await renderer.compileAsync(stage, stageCamera);
     }
     renderer.setRenderTarget(warm); renderer.render(stage, stageCamera);
+    markPlacePreparation(t.id, 'shaders-ready');
   }
   finally {
     renderer.setRenderTarget(target); warm.dispose(); stage.remove(G);
@@ -1738,6 +1749,7 @@ async function buildPlaceNow(t) {
     candidate.visitorEnvironment=captureLocalEnvironment({root:G,environment:env,fog:stage.fog,position:[...basis],size:64,near:.01,far:30});
   }
   cachedPlaces.set(t.id, candidate);
+  markPlacePreparation(t.id, 'build-finished');
   // Retain a bounded two-place working set. Eviction releases every owned resource.
   while (cachedPlaces.size > 2) {
     const id = [...cachedPlaces.keys()].find(id => id !== place?.id && id !== t.id);

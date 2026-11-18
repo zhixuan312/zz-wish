@@ -175,7 +175,7 @@ export async function loadBakedPlace(id,renderer,initialLight={n:1,g:0}){
             radiance+=getIBLRadiance(geometryViewDir,geometryNormal,material.roughness);
           #endif`);
       };
-      material.customProgramCacheKey=()=>`cycles-lightmap-1-${region}`;
+      material.customProgramCacheKey=()=>`${movingNicheLight ? 'pine-lightmap' : 'cycles-lightmap-1'}-${region}`;
       visitorShadow?.install(material);
       gauzeTransmission?.install(material);
       staticLampShadow?.install(material);
