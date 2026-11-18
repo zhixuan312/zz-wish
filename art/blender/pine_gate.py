@@ -15,7 +15,7 @@ from mathutils import Matrix, Vector, noise
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import snow_roof as mesh
 from resting_contacts import RestingContacts, engine
-from snow_lightmap_charts import profile_uv, source_uv
+from snow_lightmap_charts import closed_grid_uv, profile_uv, source_uv
 
 ROOT = Path(__file__).resolve().parents[2]
 ANCHOR = (-1.8, 5.0, .9)
@@ -68,8 +68,9 @@ def palette():
     clay = mesh.material('Gray green celadon', '#786c49', rough=.37)
     soot = mesh.material('Chisel-faced granite beneath soot', '#a9b0bb', 'rock_pitted_mossy', .92)
     ledge = mesh.material('Worn fine granite on the wick shelf', '#a1a7af', 'rock_pitted_mossy', .82)
+    reveal = mesh.material('Dressed granite inside the arch', '#838a93', 'rock_pitted_mossy', .91)
     close_albedo = neutral_granite_albedo()
-    for material, amount in ((soot, .18), (ledge, .22)):
+    for material, amount in ((soot, .18), (ledge, .22), (reveal, .16)):
         for node in material.node_tree.nodes:
             if node.type == 'NORMAL_MAP':
                 node.inputs['Strength'].default_value = amount
@@ -78,9 +79,9 @@ def palette():
         bsdf = material.node_tree.nodes.get('Principled BSDF')
         for link in list(bsdf.inputs['Roughness'].links):
             material.node_tree.links.remove(link)
-    for material in [*stone, rock, ground, soot, ledge]:
+    for material in [*stone, rock, ground, soot, ledge, reveal]:
         mesh.vertex_tint_shader(material)
-    return stone, rock, ground, wood, red, tiles, bark, pine, iron, clay, soot, ledge
+    return stone, rock, ground, wood, red, tiles, bark, pine, iron, clay, soot, ledge, reveal
 
 
 def terrain_height(x, z):
@@ -505,8 +506,13 @@ def roof(z, x, y, w, d, h, tiles, wood, label, region):
 
 def arch_segment(name, cx, spring, center_z, r0, r1, depth, a, b, mat):
     # Deep radial stone wedge with real front, intrados and jamb seams.
-    points = [(cx + r * math.cos(theta), spring + r * math.sin(theta), center_z + z)
-              for z in (-depth / 2, depth / 2) for r, theta in ((r0, a), (r1, a), (r1, b), (r0, b))]
+    points = []
+    for z in (-depth / 2, depth / 2):
+        for r, theta in ((r0, a), (r1, a), (r1, b), (r0, b)):
+            wear = (.002 + .0021 * math.sin(theta * 12.9)) if z > 0 else 0
+            real_radius = r + wear * (1 if r == r0 else -.52)
+            points.append((cx + real_radius * math.cos(theta), spring + real_radius * math.sin(theta),
+                           center_z + z - wear * (1 + .34 * math.cos(theta * 7))))
     faces = [(0, 3, 2, 1), (4, 5, 6, 7), (0, 1, 5, 4), (1, 2, 6, 5), (2, 3, 7, 6), (3, 0, 4, 7)]
     obj = mesh.mesh_object(name, points, faces, mat, 'niche')
     # These pieces are compact, nondegenerate convex prisms. Isolate the six
@@ -518,11 +524,12 @@ def arch_segment(name, cx, spring, center_z, r0, r1, depth, a, b, mat):
         across = face.normal.cross(direction)
         charts.append([((obj.data.vertices[i].co - origin).dot(direction) + face_index,
                         (obj.data.vertices[i].co - origin).dot(across)) for i in face.vertices])
-    source_uv(obj, charts, 'Isolated planar true arch-wedge faces.')
+    source_uv(obj, charts, 'Separate charts across the radiating granite joints.')
+    mesh.bevel(obj, .0038, 2)
 
 
 def hewn_back(x, y, z, material):
-    count = 18
+    count = 26
     vertices = []
     for row in range(count):
         for col in range(count):
@@ -554,7 +561,7 @@ def wick_shelf(x, y, z, material):
                 dx = (u - .5) * .70
                 dz = (v - .5) * .61
                 tip = min(1., max(0., (v - .83) / .17)) ** 3
-                rim = tip * (.006 + .004 * math.sin(dx * 64) + .0025 * math.sin(dx * 121))
+                rim = tip * (.015 + .006 * math.sin(dx * 44 + .9) + .0035 * math.sin(dx * 111))
                 points.append((x + dx, y - rim if top else y - .115, z + .031 + dz - (rim * .63 if top else 0)))
     size = columns * rows
     faces = []
@@ -570,28 +577,69 @@ def wick_shelf(x, y, z, material):
     for a, b in zip(outline, outline[1:] + outline[:1]):
         faces.append((a, b, b + size, a + size))
     shelf = mesh.mesh_object('Single hewn wick shelf', points, faces, material, 'niche')
-    from snow_lightmap_charts import closed_grid_uv
     closed_grid_uv(shelf, columns, rows, .70, .61)
     return shelf
 
 
-def candle_niche(stone, rock, soot, clay, iron, ledge):
+def hewn_reveal(x, y, z, side, course, material):
+    # The arch cheeks continue behind the exposed back face. A soft taper
+    # connects each chipped opening edge to solid masonry behind the joints.
+    columns, rows = 14, 9
+    depth, height = .396, .141
+    span = columns * rows
+    points = []
+    for inner in (True, False):
+        for row in range(rows):
+            v = row / (rows - 1)
+            for col in range(columns):
+                u = col / (columns - 1)
+                front_wear = u ** 4 * (.005 + .003 * math.sin(v * 10 + side + course))
+                relief = .0043 * math.sin(u * 8.4 + v * 6.9 + course * 2.2 + side)
+                taper = .195 + .016 * u ** 1.4 + .012 * (1 - u) ** 4
+                xx = x + side * (taper + (relief + front_wear if inner else .171))
+                seam = .0062 * math.sin(u * 5.6 + side) * (.78 + .22 * v)
+                yy = y + .001 + course * .144 + v * height + seam
+                if course == 0:
+                    yy += (.001 - yy + y) * (1 - v) ** 5
+                zz = z - .181 + u * depth - front_wear * .57
+                points.append((xx, yy, zz))
+    faces = []
+    for row in range(rows - 1):
+        for col in range(columns - 1):
+            a = row * columns + col
+            face = (a, a + 1, a + columns + 1, a + columns)
+            if side < 0:
+                face = tuple(reversed(face))
+            faces.append(face)
+            faces.append(tuple(span + n for n in reversed(face)))
+    edge = ([col for col in range(columns)] + [row * columns + columns - 1 for row in range(1, rows)]
+            + [(rows - 1) * columns + col for col in range(columns - 2, -1, -1)]
+            + [row * columns for row in range(rows - 2, 0, -1)])
+    for a, b in zip(edge, edge[1:] + edge[:1]):
+        face = (a, b, b + span, a + span)
+        faces.append(face if side < 0 else tuple(reversed(face)))
+    obj = mesh.mesh_object(f'Hand dressed niche jamb {side} course {course + 1}', points, faces, material, 'niche')
+    closed_grid_uv(obj, columns, rows, depth, height)
+    for face in obj.data.polygons[:2 * (rows - 1) * (columns - 1)]:
+        face.use_smooth = True
+
+
+def candle_niche(stone, rock, soot, clay, iron, ledge, reveal):
     x, y, z = ANCHOR
     # Opening is 0.398 m wide. The calibrated 5.000 m top of the real slab
     # directly bears the live stone dish; its 8 mm seat bears the runtime wax.
     wick_shelf(x, y, z, ledge)
-    hewn_back(x, y, z - .147, soot)
+    hewn_back(x, y, z - .142, soot)
     mesh.box('Solid dark lime mortar behind the arch joints', (1.06, .79, .104),
              (x, y + .367, z - .225), stone[4], .012, region='niche')
     for s in (-1, 1):
         for i in range(2):
-            mesh.box(f'Worn inner jamb {s} {i}', (.156, .142, .38),
-                     (x + s * .278, y + .072 + i * .144, z + .015),
-                     stone[(i + (s < 0)) % len(stone)], .011, region='niche')
-    for j in range(9):
-        a, b = j * math.pi / 9 + .011, (j + 1) * math.pi / 9 - .011
-        arch_segment(f'Hewn niche voussoir {j + 1}', x, y + .288, z + .025, .200, .351,
-                     .35, a, b, stone[(j + 2) % len(stone)])
+            hewn_reveal(x, y, z, s, i, reveal)
+    joints = [0.] + [j * math.pi / 9 + .034 * math.sin(j * 2.5) for j in range(1, 9)] + [math.pi]
+    for j, (left, right) in enumerate(zip(joints, joints[1:])):
+        gap = .0068 + .0021 * math.sin(j * 1.8)
+        arch_segment(f'Hewn niche voussoir {j + 1}', x, y + .287, z + .005, .199, .352,
+                     .390, left + gap, right - gap, reveal)
     for s in (-1, 1):
         for j in range(5):
             m = stone[(j + (s > 0)) % len(stone)]
@@ -651,20 +699,22 @@ def paint_stone():
                     shade *= .78 + .42 * max(0., min(1., .49 + bank - root_dirt))
                     green_mix = max(0., min(.55, (.18 + bank) * .62))
                 if obj.name.startswith('Hand-chiselled niche back'):
-                    dx = (world.x - ANCHOR[0] + .030 * math.sin(world.z * 9)) / .123
-                    dy = (world.z - ANCHOR[1] - .31) / .25
-                    black = math.exp(-dx * dx - dy * dy) * (.70 + .20 * noise.noise(world * 89))
+                    dx = (world.x - ANCHOR[0] + .014 * math.sin(world.z * 24)) / .108
+                    dy = (world.z - ANCHOR[1] - .37) / .265
+                    black = math.exp(-dx * dx - dy * dy) * (.78 + .16 * noise.noise(world * 44))
                     shade *= 1 - black
                 tint_color = [base[channel] * shade * (1 - green_mix * (1 - tone))
                               for channel, tone in enumerate((.48, .73, .43))]
                 if obj.name == 'Single hewn wick shelf' and face.normal.z > .8:
                     dx, dz = world.x - ANCHOR[0], -world.y - ANCHOR[2]
                     flecks = 0.
-                    for px, pz, sx, sz in ((-.10, .025, .035, .018), (.095, .032, .030, .018),
-                                            (.048, -.083, .021, .018), (-.060, -.059, .018, .025)):
-                        flecks += math.exp(-((dx - px) / sx) ** 2 - ((dz - pz) / sz) ** 2)
-                    marks = min(.35, flecks * (.22 + .17 * noise.noise(world * 37)))
-                    for channel, worn in enumerate((.43, .30, .19)):
+                    for px, pz, sx, sz in ((-.104, .035, .045, .021), (.095, .051, .036, .019),
+                                            (.052, -.086, .022, .031), (-.067, -.056, .024, .031),
+                                            (.074, .111, .016, .027)):
+                        contour = .008 * noise.noise(world * 68)
+                        flecks += math.exp(-((dx - px + contour) / sx) ** 2 - ((dz - pz - contour) / sz) ** 2)
+                    marks = min(.54, flecks * (.44 + .19 * noise.noise(world * 44)))
+                    for channel, worn in enumerate((.51, .39, .26)):
                         tint_color[channel] += (worn - tint_color[channel]) * marks
                 tint.data[i].color = (*tint_color, 1.)
 
@@ -695,7 +745,7 @@ def source_lighting(scene):
     caster.location = mesh.point((-9, 15, 14))
     caster.rotation_euler = (mesh.point((0, 4, 1)) - caster.location).to_track_quat('-Z', 'Y').to_euler()
     caster['bake_role'] = 'ambient'
-    for p, watts in [((-.69, 6.45, 1.23), 2.65), ((.98, 6.38, .62), 1.98), ((.15, 6.25, -4.8), 2.1)]:
+    for p, watts in [((.98, 6.38, .62), 1.98), ((.15, 6.25, -4.8), 2.1)]:
         mesh.light('Hidden warm reflected temple light', p, watts / PRE_EXPOSURE, '#f5b27e', .26)
     point = mesh.light('Visitor candle indirect bounce basis', LAMP, .20, '#ffc88a', .007, 'lamp')
     point.data.color = (1, .72, .47)
@@ -714,12 +764,12 @@ def build(output):
         scene.collection.children.link(bpy.data.collections.new(name))
     mesh.STATIC = bpy.data.collections['STATIC']
     contacts = RestingContacts(height_query=supports_height)
-    stone, rock, ground, wood, red, tiles, bark, needle, iron, clay, soot, ledge = palette()
+    stone, rock, ground, wood, red, tiles, bark, needle, iron, clay, soot, ledge, reveal = palette()
     support = terrain(ground)
     climbing_steps(stone)
     forest(support, rock, bark, needle)
     gate(stone, tiles, wood, red, iron)
-    candle_niche(stone, rock, soot, clay, iron, ledge)
+    candle_niche(stone, rock, soot, clay, iron, ledge, reveal)
     paint_stone()
     scene.render.engine = 'CYCLES'
     scene.render.threads_mode = 'AUTO'
