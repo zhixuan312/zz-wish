@@ -37,9 +37,13 @@ export function waxVolume(rows: Row[]): number {
   let v = 0;
   for (let i = 1; i < rows.length; i++) {
     const a = rows[i - 1], b = rows[i];
-    v += (Math.PI * (b.y - a.y) * (a.r * a.r + a.r * b.r + b.r * b.r)) / 3;
+    v += frustumVolume(b.y - a.y, a.r, b.r);
   }
   return v;
+}
+
+export function frustumVolume(height: number, lowerRadius: number, upperRadius: number): number {
+  return Math.PI * height * (lowerRadius ** 2 + lowerRadius * upperRadius + upperRadius ** 2) / 3;
 }
 
 // Ready-made shapes for each kind, as profiles from the bottom up (radius by height, metres).

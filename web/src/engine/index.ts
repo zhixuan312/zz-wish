@@ -57,12 +57,15 @@ export const setPhase = (phase: ScenePhase) => { requested.phase = phase; update
 export const setPowerSaver = (on: boolean) => { requested.powerSaver = on; updateState(s => s.setPowerSaver(on)); };
 export const previewPlace = (id: PlaceId) => initialize().then(s => s.previewPlace(id));
 export const prefetchPlace = async (id: PlaceId, onProgress?: (progress: PlaceLoadProgress) => void) => {
-  const { prefetchBakedPlace } = await import('./baked/prefetchPlace.js');
-  let progress: PlaceLoadProgress = { loadedBytes: 0, totalBytes: 0, ratio: null, stage: 'loading' };
-  await prefetchBakedPlace(id, value => {
-    progress = { ...value, stage: value.stage === 'ready' ? 'preparing' : value.stage };
-    onProgress?.(progress);
-  });
+  let progress: PlaceLoadProgress = { loadedBytes: 0, totalBytes: 0, ratio: null, stage: 'preparing' };
+  if (id === 'pine-gate') onProgress?.(progress);
+  else {
+    const { prefetchBakedPlace } = await import('./baked/prefetchPlace.js');
+    await prefetchBakedPlace(id, value => {
+      progress = { ...value, stage: value.stage === 'ready' ? 'preparing' : value.stage };
+      onProgress?.(progress);
+    });
+  }
   try {
     const s = await initialize();
     await s.preparePlace(id);
@@ -76,5 +79,5 @@ export const renderLampThumbnail = (shape: Shape, options: LampThumbnailOptions)
 export const travel = (id: PlaceId) => initialize().then(s => s.travel(id));
 export const toCover = () => initialize().then(s => s.toCover());
 export const ignite = (options: IgnitionOptions = {}) => initialize().then(s => s.ignite(options));
-export const snuff = (done = false) => initialize().then(s => s.snuff(done));
+export const snuff = (done = false, remaining?: number) => initialize().then(s => s.snuff(done, remaining));
 export const skip = () => { void initialize().then(s => s.skip()).catch(() => {}); };

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { Locale } from '../../shared/places.ts';
-import { DEFAULT_PLACE, VISIBLE_PLACES, isVisiblePlace, visiblePlaceById } from './visiblePlaces.ts';
+import { VISIBLE_PLACES, isVisiblePlace, visiblePlaceById } from './visiblePlaces.ts';
+import { remainingFuel } from '../../shared/wax.ts';
 import { api, type Candle, type Stats, type Totals, type WishSummary } from './api.ts';
 import { CandleThumb } from './CandleThumb.tsx';
 import { fmtDateRange, fmtDuration, type Dict } from './i18n.ts';
@@ -73,7 +74,7 @@ export function MyCandles({ t, locale, onClose, onAgain }: { t: Dict; locale: Lo
                 {list.map((c) => (
                   <li key={c.id} className={`record ${c.status}${selectedId === c.id ? ' expanded' : ''}`} data-testid="record">
                     <button className="record-summary" aria-label={`${t.recordDetails}: ${c.wish}`} aria-expanded={selectedId === c.id} onClick={() => setSelectedId(selectedId === c.id ? null : c.id)}>
-                      <CandleThumb shape={c.shape} remaining={1 - c.burnedMs / c.durationMs} state={c.status === 'ended_unexpectedly' ? 'went_out' : c.status} />
+                      <CandleThumb shape={c.shape} remaining={remainingFuel(c.burnedMs, c.durationMs)} state={c.status === 'ended_unexpectedly' ? 'went_out' : c.status} />
                       <span className="record-copy">
                         <span className="record-wish">{c.wish}</span>
                         <span className="record-state"><span className="tag" data-testid="record-status">{statusText(c, t)}</span><span className="record-chevron" aria-hidden="true">⌄</span></span>
@@ -117,16 +118,17 @@ export function TenLights({ t, locale, onClose }: { t: Dict; locale: Locale; onC
     const load = () => api.stats().then((s) => { setStats(s); setFailed(false); }).catch(() => setFailed(true));
     load(); const id = setInterval(load, 10_000); return () => clearInterval(id);
   }, []);
-  // With this one visible court, its own people count is exact. The server's global people
-  // count includes the hidden places and must not be presented as this court's count.
-  const summary = stats?.places.find((row) => row.placeId === DEFAULT_PLACE.id);
+  const courts = VISIBLE_PLACES.flatMap((place) => {
+    const summary = stats?.places.find((row) => row.placeId === place.id);
+    return summary ? [{ place, summary }] : [];
+  });
   return (
     <Panel title={t.statsTitle} onClose={onClose} closeLabel={t.close}>
       <p className="lead">{t.statsLead}</p>
       {failed && <p>{t.loadFailed}</p>}
-      {!stats ? !failed && <p>{t.loading}</p> : !summary ? <p>{t.statsEmpty}</p> : (
-        <section className="court-stats" data-testid={`stat-${DEFAULT_PLACE.id}`}>
-          <div className="court-stats-heading"><h3>{DEFAULT_PLACE.name[locale]}</h3><p>{DEFAULT_PLACE.line[locale]}</p></div>
+      {!stats ? !failed && <p>{t.loading}</p> : !courts.length ? <p>{t.statsEmpty}</p> : courts.map(({ place, summary }) => (
+        <section className="court-stats" key={place.id} data-testid={`stat-${place.id}`}>
+          <div className="court-stats-heading"><h3>{place.name[locale]}</h3><p>{place.line[locale]}</p></div>
           <div className="facts">
             <div><strong>{summary.now}</strong><span>{t.statsNow}</span></div>
             <div><strong>{summary.people}</strong><span>{t.statsPeople}</span></div>
@@ -138,7 +140,7 @@ export function TenLights({ t, locale, onClose }: { t: Dict; locale: Locale; onC
             <div><dt>{t.statsLongest}</dt><dd>{fmtDuration(summary.longestMs, t)}</dd></div>
           </dl>
         </section>
-      )}
+      ))}
     </Panel>
   );
 }

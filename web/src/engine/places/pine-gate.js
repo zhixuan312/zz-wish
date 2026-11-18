@@ -67,9 +67,14 @@ export default function createPlace(h) {
     // The gate pier at the top of the steps: a niche cut in the stone, the red gate leaf half open beside it.
     nook: {
       at: { pos: V3(-1.8, 4, .9), ry: 0 },
-      lamp: 'niche', y: 1.0, exposure: 1.1, bloom: [.36, 1],
+      lamp: 'pineWax', y: 1.0, exposure: 1.1, bloom: [.32, 1],
       approach: [V3(1.8, 1.65, 3.8), V3(1.2, 1.65, 2.3)],
       wide: { pos: V3(.62, 1.62, 2.5), look: V3(.15, 1.22, 0) },
+      // The close views keep the shelf visible, including the trace after the flame is gone.
+      choose: { pos: V3(.13, 1.29, .58), look: V3(.095, 1.075, 0), fov: 31 },
+      choosePhone: { pos: V3(.09, 1.25, .56), look: V3(0, .95, 0), fov: 43 },
+      burn: { pos: V3(.095, 1.24, .43), look: V3(.025, 1.075, 0), fov: 34 },
+      burnPhone: { pos: V3(.085, 1.26, .53), look: V3(.005, 1.060, 0), fov: 40 },
       async build(hh, C) {
         const stone = M(0x7e786c, .93, { map: pavingTex }), dark = M(0x4a463e, .95, { map: pavingTex }), red = M(0x6a1a12, .6), wood = M(0x3a2618, .75, { map: grainTex });
         // The pier, with the niche: a square opening under a round head, its back blackened by years of flames.

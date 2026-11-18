@@ -145,7 +145,9 @@ export async function buildApp(opts: AppOptions) {
     const reconcilable = c.status === 'ended_unexpectedly' && c.run_id === b.runId;
     if (c.status === 'burning' || reconcilable) {
       const burned = Math.min(b.burnedMs, now() - c.started_at + END_SLACK_MS, c.duration_ms);
-      const done = burned >= c.duration_ms - BURN_DOWN_TOLERANCE_MS;
+      // A Pine Gate candle put out just before the end still keeps its remaining wax.
+      const tolerance = c.place_id === 'pine-gate' && b.reason !== 'complete' ? 0 : BURN_DOWN_TOLERANCE_MS;
+      const done = burned >= c.duration_ms - tolerance;
       const finalBurned = done ? c.duration_ms : Math.floor(burned);
       q.settle.run(done ? 'burned_down' : 'went_out', c.started_at + finalBurned, finalBurned, done ? 'complete' : b.reason === 'complete' ? 'left' : b.reason, c.id);
     }

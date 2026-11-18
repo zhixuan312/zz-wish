@@ -18,6 +18,7 @@ import { GAUZE_CANDLE_REFERENCE } from './baked/gauzeTransmission.js';
 import { acquireNativeAgX, NativeAgXPass } from './baked/nativeAgX.js';
 import visitorFabric from './baked/visitor-fabric.json';
 import { WickPlume, addGauzeVent, createGauzeSmokePath, gauzeFlameSize, gauzeRibGeometry, gauzeThroat } from './WickPlume.js';
+import { createPineWax } from './PineWax.js';
 
 // ---------- Renderer ----------
 const canvas = document.getElementById('gl');
@@ -493,7 +494,7 @@ function dishMaterial(color, glass) {
   const clay = color === 0x8a5838;
   return new THREE.MeshPhysicalMaterial({ color, roughness: clay ? .9 : .14, bumpMap: clay ? patina : crackleTex, bumpScale: clay ? .0007 : .00012, clearcoat: clay ? 0 : 1, clearcoatRoughness: .06, envMapIntensity: clay ? .15 : 1, side: THREE.DoubleSide });
 }
-const WAX_LAMPS = new Set(['niche', 'lantern', 'lotus']);
+const WAX_LAMPS = new Set(['niche', 'pineWax', 'lantern', 'lotus']);
 // Metal, glaze and wax near a flame reflect a dark room with warm points, not the open sky.
 const nearMaterials = new WeakSet();
 function warmReflections(o) { for (const m of [o.material].flat()) if (m && 'envMap' in m && !nearMaterials.has(m)) { nearMaterials.add(m); m.envMap = spotEnv; m.needsUpdate = true; } }
@@ -515,6 +516,16 @@ const LAMPS = {
     const g = new THREE.Group();
     solid(g, lathe([[0, 0], [.042, 0], [.05, .004], [.052, .013], [.047, .015], [.043, .007], [0, .007]], 40), greyStoneMat);
     return { g, kind: 'wax', seat: { y: .007, maxR: .045, maxH: .16 }, frame: { h: .2, cy: .08 }, lightMax: .3 };
+  },
+  pineWax() {
+    const g = new THREE.Group(), seat = { y: .008, maxR: .045, maxH: .16, traceRadius: .056 };
+    const dish = lathe([[0, 0], [.057, 0], [.067, .004], [.069, .009], [.065, .012],
+      [.06, .011], [.056, seat.y], [0, seat.y]], 56);
+    solid(g, dish, greyStoneMat);
+    const pineWax = createPineWax(seat, waxMaterial);
+    pineWax.group.visible = false;
+    g.add(pineWax.group);
+    return { g, kind: 'wax', seat, pineWax, frame: { h: .2, cy: .08 }, lightMax: .095, light: 0xffbc82, flame: 1.13 };
   },
   // A brass-framed storm lantern hanging from a hook; the candle stands inside behind glass.
   lantern() {
@@ -733,6 +744,7 @@ const mine = (() => {
   const mirror = flameParts(g, { light: false }); mirror.fm.uniforms.uSeedU.value = f.fm.uniforms.uSeedU.value; mirror.flame.visible = mirror.halo.visible = false; mirror.wick.visible = mirror.ember.visible = false;
   const world = V3(0, 0, 0);
 const api = { g, parts: null, partsKey: null, type: null, power: 0, lightPower: 0, lightBoost: 1, lightTint: null, offer: null, top: V3(0, 0, 0), lastCut: -1, scale: 1, mirrorY: null, lastOil: -1,
+    waxState: 'unlit',
     // Builds this place's vessel; a dish or a shade takes the person's outline and colour.
     build(o) {
       const drawn = !WAX_LAMPS.has(this.type) && o,liveBaked=!!place?.P.bakedLighting,key = this.type + (liveBaked?'|cycles':'') + (drawn ? JSON.stringify([o.rows, o.color]) : '');
@@ -741,7 +753,7 @@ const api = { g, parts: null, partsKey: null, type: null, power: 0, lightPower: 
       const input=drawn?{...o,liveBaked}:this.type==='gauze'?{...presetOf('shade'),liveBaked}:undefined;
       const p = input ? LAMPS[this.type](input) : LAMPS[this.type](); this.parts = p; this.partsKey = key; g.add(p.g);
       hanger.material=p.suspensionMaterial??defaultSuspensionMaterial;
-      f.wick.visible=!p.wickMesh;
+      f.wick.visible = !p.wickMesh && !p.pineWax;
       f.light.color.setHex(p.light ?? 0xffba78); f.size = p.flame ?? 1; mirror.size = f.size;
       g.traverse((c) => { c.layers.set(0); warmReflections(c); }); f.light.layers.enableAll();
       if(liveBaked&&place?.visitorEnvironment){
@@ -772,9 +784,14 @@ const api = { g, parts: null, partsKey: null, type: null, power: 0, lightPower: 
       const p = this.parts; if (!p) return;
       f.soft = !!place?.P.bakedLighting;
       const isWax = p.kind === 'wax';
-      candleG.visible = isWax; oil.visible = p.kind === 'oil'; oilBody.visible = !!p.oilBody;
+      this.waxState = 'unlit';
+      if (p.pineWax) {
+        p.pineWax.group.visible = o.kind === 'candle';
+        if (p.pineWax.group.visible) p.pineWax.setShape(o);
+      }
+      candleG.visible = isWax && !p.pineWax; oil.visible = p.kind === 'oil'; oilBody.visible = !!p.oilBody;
       drips.forEach(({ mesh }) => { mesh.visible = false; });
-      if (isWax && o.kind === 'candle') {
+      if (isWax && !p.pineWax && o.kind === 'candle') {
         wax.color.setHex(o.color); poolMat.color.setHex(o.color).lerp(new THREE.Color(0xffd0a0), .18);
         const R = o.rows, w = Math.max(...R.map((q) => q.r + Math.abs(q.cx))), h = R[R.length - 1].y;
         // A drawn candle keeps its shape; inside a lantern it is scaled to fit behind the glass.
@@ -784,7 +801,9 @@ const api = { g, parts: null, partsKey: null, type: null, power: 0, lightPower: 
     },
     setLevel(L) {
       const o = this.offer, p = this.parts; if (!o || !p) return;
-      if (p.kind === 'wax' && o.kind === 'candle') {
+      if (p.pineWax && o.kind === 'candle') {
+        p.pineWax.update(L, this.waxState, this.top);
+      } else if (p.kind === 'wax' && o.kind === 'candle') {
         const R = o.rows, [i, k] = findCum(o.burn.cum, L * o.burn.total);
         const cut = Math.max(R[i - 1].y + (R[i].y - R[i - 1].y) * k, .002);
         if (Math.abs(cut - this.lastCut) > .0003) {
@@ -824,6 +843,7 @@ const api = { g, parts: null, partsKey: null, type: null, power: 0, lightPower: 
         if(hanger.visible)hanger.quaternion.setFromUnitVectors(V3(0,1,0),suspensionEnd.normalize());
       }
       f.place(this.top.x, this.top.y, this.top.z);
+      if (p.pineWax) f.ember.position.copy(p.pineWax.wickTip);
     },
     flameWorld() { g.updateWorldMatrix(true, false); return g.localToWorld(world.copy(this.top)); },
     setShadowFar(far){
@@ -843,9 +863,12 @@ const api = { g, parts: null, partsKey: null, type: null, power: 0, lightPower: 
       f.fm.uniforms.uWind.value = wind;
       if(this.lightTint)f.light.color.copy(this.lightTint);
       // A shaded lamp's light draws in as it burns; a candle's dims as it nears its holder.
-      const keep = p.kind === 'shade' ? .35 + .65 * Math.min(1, level * 1.4) : p.kind === 'wax' ? Math.min(1, ((this.top.y - (p.seat?.y ?? 0) + .03) / .2) ** 2) : 1;
+      const keep = p.pineWax ? .68 + .32 * Math.min(1, level * 3)
+        : p.kind === 'shade' ? .35 + .65 * Math.min(1, level * 1.4)
+        : p.kind === 'wax' ? Math.min(1, ((this.top.y - (p.seat?.y ?? 0) + .03) / .2) ** 2) : 1;
       const power = this.power * (lit ? Math.min(1, level * 25) : 1);
-      const fw = this.flameWorld(), k = f.tick(time, power, p.lightMax * keep * this.lightBoost, [wax, poolMat, oilGlow], fw.y);
+      const fw = this.flameWorld(), k = f.tick(time, power, p.lightMax * keep * this.lightBoost, p.pineWax?.materials ?? [wax, poolMat, oilGlow], fw.y);
+      for (const material of p.pineWax?.materials ?? []) material.userData.u.uGlow.value *= .52;
       place?.baked?.gauzeTransmission?.update(f.light);
       this.lightPower = power * k * keep;
       oilGlow.userData.u.uGlow.value = .4 * power * k;
@@ -1692,7 +1715,7 @@ const narrow = () => innerWidth < 720;
 const toWorld = (v) => place.nookG.localToWorld(v.clone());
 const viewOf = (v) => {
   const pos = toWorld(v.pos), look = toWorld(v.look);
-  if (!narrow() || place.P.bakedLighting) return { pos, look, fov:v.fov };
+  if (!narrow() || place.P.bakedLighting || place.P.nook.lamp === 'pineWax') return { pos, look, fov:v.fov };
   // A narrow screen pulls the same view back along its line.
   return { pos: look.clone().add(pos.sub(look).multiplyScalar(1.45)), look };
 };
@@ -1709,8 +1732,21 @@ function fitShadeView(v){
   v.look.set(c.x,v.pos.y+Math.tan(pitch)*distance,c.z);return v;
 }
 const chooseView = () => {
-  const N=place.P.nook,v=viewOf((narrow()&&N.choosePhone)||N.choose||N.wide);
-  if(narrow()&&!place.P.bakedLighting)v.look.y-=v.pos.distanceTo(v.look)*.10;
+  const N = place.P.nook;
+  if (N.lamp === 'pineWax' && narrow()) {
+    // The phone sheet starts 300 pixels down. Frame the front of the holder
+    // just above it, backing up only as much as the tallest profiles need.
+    const pos = N.choosePhone.pos.clone(), look = N.choosePhone.look.clone(), fov = N.choosePhone.fov;
+    const wax = mine.parts?.pineWax;
+    pos.z = Math.max(pos.z, (wax?.fullHeight() ?? .08) * 5.7);
+    const shelfPixel = Math.min(272, innerHeight * .38);
+    const elevation = Math.atan2(N.y + .008 - pos.y, Math.hypot(pos.x, pos.z - .065));
+    const screenAngle = Math.atan((1 - 2 * shelfPixel / innerHeight) * Math.tan(THREE.MathUtils.degToRad(fov / 2)));
+    look.y = pos.y + Math.tan(elevation - screenAngle) * Math.hypot(pos.x, pos.z);
+    return viewOf({ pos, look, fov });
+  }
+  const v=viewOf((narrow()&&N.choosePhone)||N.choose||N.wide);
+  if(narrow()&&!place.P.bakedLighting&&N.lamp!=='pineWax')v.look.y-=v.pos.distanceTo(v.look)*.10;
   return fitShadeView(v);
 };
 function burnView(){
@@ -1746,7 +1782,10 @@ const smokeTex = canvasTex(64, 64, (g, w, h) => {
   g.fillStyle = r; g.fillRect(0, 0, w, h);
 });
 const wickPlume=new WickPlume({scene:outside,map:smokeTex});
-if(import.meta.env.DEV)window.__visualWickPlume=()=>wickPlume.state();
+if (import.meta.env.DEV) {
+  window.__visualWickPlume = () => wickPlume.state();
+  window.__visualPineWax = () => mine.g.visible && mine.offer?.kind === 'candle' ? mine.parts?.pineWax?.state() ?? null : null;
+}
 let shadeCoolingUntil=0,shadeCoolingGlow=0, emberUntil = 0, wind = 0, roomLight = 1, ignitionFill=0;
 let pointerX = 0, pointerY = 0, previousPointerX = 0;
 window.addEventListener('pointermove', (e) => {
@@ -1765,6 +1804,7 @@ export function setPowerSaver(on) { powerSaver = on; resize(); }
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 let level = 1, targetLevel = 1, lit = false, wanted = null, busy = false, skipNextTravel = false;
+let waxFuel = null;
 
 function toOffer(shape) {
   if (!shape) return null;
@@ -1773,8 +1813,9 @@ function toOffer(shape) {
 /** Show the person's candle or lamp (or hide it with null), full. */
 export function setOffer(shape) {
   const o=toOffer(shape);level=targetLevel=1;mine.g.visible=!!o&&atLamp;
+  waxFuel = null;
   if(o)mine.setOffer(o);else mine.offer=null;
-  if(o&&place?.P.bakedLighting&&atLamp&&phase==='candle'){
+  if(o&&atLamp&&phase==='candle'&&(place?.P.bakedLighting||(mine.parts?.pineWax&&narrow()))){
     const v=chooseView(),version=++choiceCameraVersion;
     if(rig.pos.distanceTo(v.pos)>.015||rig.look.distanceTo(v.look)>.015){
       const p0=rig.pos.clone(),l0=rig.look.clone(),f0=rig.fov??camera.fov;
@@ -1815,32 +1856,29 @@ async function drawLampThumbnail(shape,{state,remaining,width,height}){
       disposeTree(stage.parts.g);
     }
     const input={...shape,liveBaked:true};
-    stage.parts=shape.kind==='shade'?LAMPS.gauze(input):shape.kind==='oil'?LAMPS.glass(input):LAMPS.standing();
-    if(shape.kind==='candle'){
-      const rows=shape.rows,scale=Math.min(1,stage.parts.seat.maxR/Math.max(...rows.map(row=>row.r+Math.abs(row.cx))),stage.parts.seat.maxH/rows.at(-1).y);
-      const material=waxMaterial(shape.color);material.userData.lampOwned=true;
-      const body=new THREE.Mesh(candleGeo(rows,rows.at(-1).y),material);body.scale.setScalar(scale);body.position.y=stage.parts.seat.y;
-      stage.parts.g.add(body);stage.parts.thumbnailWax={body,rows,scale,material};
+    stage.parts=shape.kind==='shade'?LAMPS.gauze(input):shape.kind==='oil'?LAMPS.glass(input):LAMPS.pineWax();
+    if (stage.parts.pineWax) {
+      stage.parts.pineWax.setShape(shape);
+      stage.parts.pineWax.group.visible = true;
     }
     stage.group.add(stage.parts.g);stage.parts.g.traverse(warmReflections);stage.key=key;
   }
   const parts=stage.parts,power=state==='burning'?1:0,fuel=Math.max(0,Math.min(1,remaining));
-  stage.flame.wick.visible=!parts.wickMesh;
+  stage.flame.wick.visible = !parts.wickMesh && !parts.pineWax;
   let wick=parts.wick?.at?.clone()??V3(0,.03,0);
-  if(parts.thumbnailWax){
-    const {body,rows,scale,material}=parts.thumbnailWax,burn=burnOf(rows),[i,k]=findCum(burn.cum,fuel*burn.total);
-    const cut=Math.max(.002,THREE.MathUtils.lerp(rows[i-1].y,rows[i].y,k));
-    body.geometry.dispose();body.geometry=candleGeo(rows,cut);wick=V3(ringAt(rows,cut).cx*scale,parts.seat.y+cut*scale,0);
-    material.userData.u.uTop.value=wick.y;material.userData.u.uGlow.value=1.1*power;
-  }else if(parts.kind==='oil'&&parts.wick.float){
+  if (parts.pineWax) {
+    parts.pineWax.update(fuel, state, wick);
+  } else if(parts.kind==='oil'&&parts.wick.float){
     const V=parts.vessel,[i,k]=findCum(V.cum,fuel*V.vol);wick=V3(0,THREE.MathUtils.lerp(V.ys[i-1],V.ys[i],k)+parts.wick.float,0);
   }
   stage.flame.place(wick.x,wick.y,wick.z);stage.flame.size=parts.flame??1;
   const reference=shape.kind==='shade'?GAUZE_CANDLE_REFERENCE:null;
   stage.view.uniforms.cameraExposureEV.value=reference?.cameraExposureEV??0;
   const shadeKeep=.35+.65*Math.min(1,fuel*1.4);
-  if(reference)stage.flame.light.color.fromArray(reference.linearColor);
-  stage.flame.tick(17,power,reference?reference.watts*reference.cameraPreExposure/(4*Math.PI)*shadeKeep:(parts.lightMax??.9),[],wick.y);
+  if (reference) stage.flame.light.color.fromArray(reference.linearColor);
+  else stage.flame.light.color.setHex(parts.light ?? 0xffba78);
+  stage.flame.tick(17,power,reference?reference.watts*reference.cameraPreExposure/(4*Math.PI)*shadeKeep:(parts.lightMax??.9),parts.pineWax?.materials ?? [],wick.y);
+  for (const material of parts.pineWax?.materials ?? []) material.userData.u.uGlow.value *= .52;
   stage.flame.flame.visible=stage.flame.halo.visible=power>0;stage.flame.ember.visible=false;
   stage.flame.wick.material.color.setHex(state==='unlit'?0x4c3d2b:0x15100c);
   stage.group.updateMatrixWorld(true);
@@ -1854,7 +1892,10 @@ async function drawLampThumbnail(shape,{state,remaining,width,height}){
     }
   }
   stage.group.updateMatrixWorld(true);
-  const bounds=new THREE.Box3().setFromObject(parts.g),size=bounds.getSize(V3()),center=bounds.getCenter(V3());
+  // Framing follows the original wax, so two portraits of the same candle show the height difference.
+  const bounds = parts.pineWax ? new THREE.Box3(V3(-.07, 0, -.07), V3(.07, parts.seat.y + parts.pineWax.fullHeight() + .043, .07))
+    : new THREE.Box3().setFromObject(parts.g);
+  const size=bounds.getSize(V3()),center=bounds.getCenter(V3());
   const tangent=Math.tan(Math.PI/12),distance=Math.max(size.y/(2*tangent*.82),size.x/(2*tangent*(w/h)*.82));
   stage.camera.aspect=w/h;stage.camera.position.copy(center).add(V3(distance*.25,distance*.10,distance));stage.camera.lookAt(center);stage.camera.updateProjectionMatrix();
   stage.soft.visible=shape.kind!=='shade';stage.gauzeKey.visible=shape.kind==='shade'&&state!=='burning';
@@ -1884,9 +1925,10 @@ async function drawLampThumbnail(shape,{state,remaining,width,height}){
 }
 /** Portraits use the same vessel builders and materials as the actual lamp. */
 export function renderLampThumbnail(shape,options){
-  const key=JSON.stringify([GAUZE_CANDLE_REFERENCE.revision,shape,options.state,Math.round(options.remaining*100),options.width,options.height]);
+  const fuelKey = shape.kind === 'candle' ? options.remaining : Math.round(options.remaining * 100);
+  const key=JSON.stringify([GAUZE_CANDLE_REFERENCE.revision,shape,options.state,fuelKey,options.width,options.height]);
   if(thumbnailCache.has(key))return thumbnailCache.get(key);
-  const request=thumbnailQueue.then(ensureVisitorFabric).then(()=>new Promise(resolve=>requestAnimationFrame(resolve))).then(()=>drawLampThumbnail(shape,options));
+  const request=thumbnailQueue.then(()=>{ if (shape.kind === 'shade') return ensureVisitorFabric(); }).then(()=>new Promise(resolve=>requestAnimationFrame(resolve))).then(()=>drawLampThumbnail(shape,options));
   thumbnailQueue=request.catch(()=>{});thumbnailCache.set(key,request);
   request.catch(()=>thumbnailCache.delete(key));
   while(thumbnailCache.size>64)thumbnailCache.delete(thumbnailCache.keys().next().value);
@@ -1982,13 +2024,32 @@ function makeIgnitionTaper(){
   return{g,f};
 }
 /** Light the flame (animation only; the burn clock lives in the UI). */
-export async function ignite({onCatch}={}) {
+export async function ignite({onCatch, remainingFuel}={}) {
   const journey=++cameraJourneyVersion;
   const mark=(state,progress)=>{if(import.meta.env.DEV)window.__visualIgnition={state,progress,journey,position:rig.pos.toArray(),look:rig.look.toArray(),fov:rig.fov??camera.fov};};
   lit=true;emberUntil=0;wickPlume.clear();shadeCoolingUntil=0;shadeCoolingGlow=0;roomLight=1;ignitionFill=place.P.bakedLighting?1:0;mark('igniting',0);
-  if(!place.P.bakedLighting){
-    let caught=false;
-    await tween(1.6,k=>{if(lit&&journey===cameraJourneyVersion){mine.power=k<.18?k*.35:Math.min(1.15,ease((k-.18)/.82)+Math.sin(k*Math.PI)*.22);if(!caught&&k>=.28){caught=true;onCatch?.();}}});if(lit&&journey===cameraJourneyVersion)mark('settled',1);return;
+  if (!place.P.bakedLighting) {
+    const pine = !!mine.parts?.pineWax;
+    const start = pine ? { pos: rig.pos.clone(), look: rig.look.clone(), fov: rig.fov } : null;
+    const burn = pine ? burnView() : null;
+    if (pine) waxFuel = remainingFuel ?? null;
+    let caught = false;
+    await tween(1.6, k => {
+      if (!lit || journey !== cameraJourneyVersion) return;
+      mine.power = k < .18 ? k * .35 : Math.min(1.15, ease((k - .18) / .82) + Math.sin(k * Math.PI) * .22);
+      if (burn) {
+        rig.pos.lerpVectors(start.pos, burn.pos, ease(k));
+        rig.look.lerpVectors(start.look, burn.look, ease(k));
+        rig.fov = THREE.MathUtils.lerp(start.fov ?? camera.fov, burn.fov, ease(k));
+      }
+      if (!caught && k >= .28) {
+        caught = true;
+        if (pine) mine.waxState = 'burning';
+        onCatch?.();
+      }
+    });
+    if (lit && journey === cameraJourneyVersion) mark('settled', 1);
+    return;
   }
   const N=place.P.nook,spread=viewOf((narrow()&&N.spreadPhone)||N.spread),burn=burnView();
   if(!narrow())spread.fov=Math.min(N.lampFovMax??Infinity,spread.fov+12*THREE.MathUtils.clamp((mine.parts.frame.h-.45)/.32,0,1));
@@ -2032,7 +2093,7 @@ export async function ignite({onCatch}={}) {
   if(active())mark('settled',1);
 }
 /** Put the flame out with a thread of smoke. */
-export async function snuff(done = false) {
+export async function snuff(done = false, remaining) {
   // Only visuals: settlement and persistence have already happened synchronously.
   const lastPower=mine.power*(lit?Math.min(1,level*25):1);
   const lastGlow=Math.max(0,...(mine.parts?.shells??[]).map(material=>material.userData.u.uGlow.value/material.userData.strength));
@@ -2042,8 +2103,15 @@ export async function snuff(done = false) {
   cameraJourneyVersion++;
   if(import.meta.env.DEV)window.__visualIgnition={state:'cancelled',journey:cameraJourneyVersion};
   if(ignitionTaper)ignitionTaper.g.visible=false;
-  if (done) { level = targetLevel = 0; mine.setLevel(0); }
-  const endingParts=mine.parts,wickTip=mine.top.clone().add(V3(.0007,.004,0));
+  const endingParts = mine.parts;
+  if (endingParts?.pineWax) {
+    const fuel = done ? 0 : THREE.MathUtils.clamp(remaining ?? waxFuel?.() ?? level, 0, 1);
+    waxFuel = null;
+    level = targetLevel = fuel;
+    mine.waxState = done ? 'burned_down' : 'went_out';
+    mine.setLevel(fuel);
+  } else if (done) { level = targetLevel = 0; mine.setLevel(0); }
+  const wickTip = endingParts?.pineWax?.wickTip.clone() ?? mine.top.clone().add(V3(.0007,.004,0));
   wickPlume.start({time:clockTime,done,frame:mine.g,path:endingParts?.smokePath,wickTip,valid:()=>mine.parts===endingParts});
   emberUntil = clockTime + (done ? 3.8 : .35);
   // Went out: sudden, and the place keeps less of its light. Burned down: it stays as it was.
@@ -2132,17 +2200,23 @@ function frame(stamp = performance.now()) {
     const wantNear = Math.min(.3, Math.max(.01, d * .012));
     const wantFar=P.cameraFar??1500;
     if (Math.abs(camera.near - wantNear) > .002||camera.far!==wantFar) { camera.near = wantNear; camera.far = wantFar; camera.updateProjectionMatrix(); }
-    level += (targetLevel-level)*(1-Math.exp(-dt*5));
+    if (mine.parts?.pineWax) level = THREE.MathUtils.clamp(waxFuel?.() ?? targetLevel, 0, 1);
+    else level += (targetLevel-level)*(1-Math.exp(-dt*5));
     if (mine.g.visible && mine.offer) { mine.setLevel(level); mine.update(time); }
     const cover=!atLamp&&place.cover;
     place.baked?.update(daylight(new Date(),true),mine.g.visible?mine.lightPower:cover?(cover.power??1):0,mine.g.visible?mine.lightWorld():cover?.light?.getWorldPosition(V3()));
     if(P.bakedLighting&&mine.parts?.frame){
       const centre=mine.g.localToWorld(V3(0,mine.parts.frame.cy,0));
       aimGauzePreview(previewFill,previewFillTarget,centre,camera.position);
+    } else if (mine.parts?.pineWax) {
+      previewFill.position.copy(toWorld(V3(.24, 1.46, .83)));
+      previewFillTarget.position.copy(toWorld(V3(0, 1.09, 0)));
     }else{previewFill.position.set(1,2,2);previewFillTarget.position.set(0,0,0);}
     const previewTarget=mine.g.visible&&atLamp?(phase==='candle'?1:!lit?.55:ignitionFill):0;
     gauzePreviewBlend+=(previewTarget-gauzePreviewBlend)*(1-Math.exp(-dt*5));
-    previewFill.intensity=P.bakedLighting?gauzePreviewIntensity*gauzePreviewBlend:phase==='candle'?.7:0;
+    previewFill.intensity = P.bakedLighting ? gauzePreviewIntensity * gauzePreviewBlend
+      : mine.parts?.pineWax && atLamp ? phase === 'candle' ? 1.35 : lit ? .29 : .74
+      : phase === 'candle' ? .7 : 0;
     wickPlume.update(time);
     dust.visible = !!N.dust && atLamp && !powerSaver && !reducedMotion.matches;
     dust.material.userData.soft.value=P.bakedLighting?1:0;

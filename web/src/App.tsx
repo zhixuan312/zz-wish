@@ -3,6 +3,7 @@ import * as engine from './engine/index.ts';
 import { placeById, type Locale, type PlaceId } from '../../shared/places.ts';
 import { DEFAULT_PLACE, VISIBLE_PLACES, isVisiblePlace } from './visiblePlaces.ts';
 import { COLORS, DEFAULT_MINUTES, MAX_MINUTES, MIN_MINUTES, PRESET_MINUTES, PRESET_SHAPES, isAllowedMinutes, shapeMinutes, sizedPreset, type Kind, type Shape } from '../../shared/rules.ts';
+import { remainingFuel } from '../../shared/wax.ts';
 import { api, ApiError, type EndReason, type Stats } from './api.ts';
 import { Burn, type Settlement } from './burn.ts';
 import { presence } from './presence.ts';
@@ -34,7 +35,13 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
   useEffect(() => { engine.setPowerSaver(powerSaver); }, [powerSaver]);
   const [overlay, setOverlay] = useState<Overlay>(null);
   const [busy, setBusy] = useState(false);
-  const run = async (fn: () => Promise<void>) => { setBusy(true); try { await fn(); } finally { setBusy(false); } };
+  const navigationVersion = useRef(0);
+  const run = async (fn: () => Promise<void>) => {
+    const version = ++navigationVersion.current;
+    setBusy(true);
+    try { await fn(); }
+    finally { if (version === navigationVersion.current) setBusy(false); }
+  };
 
   // What the person is making.
   const [wish, setWish] = useState('');
@@ -135,18 +142,19 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
 
   useEffect(() => {
     if (screen !== 'burning') return;
-    const id = setInterval(() => { const b = burnRef.current; if (b) engine.setLevel(1 - b.elapsed() / b.planned); setTick((n) => n + 1); }, 1000);
+    const id = setInterval(() => { const b = burnRef.current; if (b && kind !== 'candle') engine.setLevel(remainingFuel(b.elapsed(), b.planned)); setTick((n) => n + 1); }, 1000);
     return () => clearInterval(id);
-  }, [screen]);
+  }, [kind, screen]);
 
   const light = async () => {
     if (!shape || !allowed || busy || burnRef.current) return;
     setLightError(null); setAskPutOut(false); setCaught(false); setControlsIdle(false);
     const lightPlace = placeId;
+    const isWax = shape.kind === 'candle';
     const b = new Burn(minutes! * 60_000, (s: Settlement) => {
       presence.stopBurning(); sound.stop();
       burnRef.current = null;
-      engine.snuff(s.done);
+      void engine.snuff(s.done, isWax ? remainingFuel(Math.floor(s.burnedMs), b.planned) : undefined);
       setResult({ done: s.done, burnedMs: s.burnedMs, plannedMs: b.planned, reason: s.reason, saved: null });
       setScreen('result'); setAskLeave(null);
       s.saved.then((c) => setResult((r) => r && { ...r, saved: !!c }));
@@ -162,7 +170,10 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
       b.confirm(c);
       if (!b.isSettled) {
         presence.burn(lightPlace, c.id, () => b.elapsed()); setScreen('burning');
-        void engine.ignite({ onCatch: () => { if (burnRef.current === b && !b.isSettled) setCaught(true); } })
+        void engine.ignite({
+          ...(isWax ? { remainingFuel: () => remainingFuel(b.elapsed(), b.planned) } : {}),
+          onCatch: () => { if (burnRef.current === b && !b.isSettled) setCaught(true); },
+        })
           .catch(() => { if (!b.isSettled) b.settle('put_out'); });
       }
     } catch (e) {
@@ -177,15 +188,31 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
   const leaveAndOpen = () => { afterSettle.current = askLeave; setAskLeave(null); burnRef.current?.settle('navigated'); };
 
   // Navigation between steps; the scene moves with them.
+  const previewCourt = (id: PlaceId, retry = false) => {
+    void run(async () => {
+      await preparePlace(id, retry);
+      if (placeRef.current === id && screenRef.current === 'place') await engine.previewPlace(id);
+    }).catch(() => {
+      if (placeRef.current === id) setPlaceLoad((value) => ({ ...value, stage: 'error' }));
+    });
+  };
   const showPlace = () => {
-    setWishHint(false); setScreen('place');
-    void run(async () => { await preparePlace(placeId); await engine.previewPlace(placeId); }).catch(() => setPlaceLoad((value) => ({ ...value, stage: 'error' })));
+    setWishHint(false); screenRef.current = 'place'; setScreen('place');
+    previewCourt(placeId);
   };
   const toPlace = () => {
     if (!wish.trim()) { setWishHint(true); wishField.current?.focus(); return; }
     showPlace();
   };
-  const pickPlace = (id: PlaceId) => { if (!isVisiblePlace(id)) return; setPlaceId(id); if (placeById(id)!.vessel !== place.vessel) { setTab('preset'); setPresetShape(0); setStrokes([]); setColor(1); } void run(async () => { await preparePlace(id); await engine.previewPlace(id); }).catch(() => setPlaceLoad((value) => ({ ...value, stage: 'error' }))); };
+  const pickPlace = (id: PlaceId) => {
+    if (!isVisiblePlace(id) || id === placeRef.current) return;
+    placeRef.current = id;
+    setPlaceId(id);
+    if (placeById(id)!.vessel !== place.vessel) {
+      setTab('preset'); setPresetShape(0); setStrokes([]); setDrawingMinutes(null); setColor(1);
+    }
+    previewCourt(id);
+  };
   const goTravel = () => run(async () => {
     engine.setOffer(shape); setScreen('travel');
     await engine.travel(placeId); setScreen('candle');
@@ -203,7 +230,7 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
   const loading = (compact = false) => <div className={`court-loading${compact ? ' compact' : ''}`} data-stage={placeLoad.stage} aria-live="polite">
     <span>{loadingLabel}</span>
     {(placeLoad.stage === 'loading' || placeLoad.stage === 'preparing') && <progress aria-label={t.courtLoadingLabel} aria-valuetext={loadingLabel} max={1} {...(placeLoad.stage === 'preparing' || placeLoad.ratio === null ? {} : { value: placeLoad.ratio })} />}
-    {placeLoad.stage === 'error' && <button className="btn small" onClick={() => { void run(async () => { await preparePlace(placeId, true); if (screen === 'place') await engine.previewPlace(placeId); }).catch(() => setPlaceLoad((value) => ({ ...value, stage: 'error' }))); }}>{t.retry}</button>}
+    {placeLoad.stage === 'error' && <button className="btn small" onClick={() => previewCourt(placeId, true)}>{t.retry}</button>}
   </div>;
 
   return (
