@@ -47,7 +47,7 @@ function refinedWaxMaterial(light, layer) {
   const style = {
     body: { roughness: .43, clearcoat: .09, specularIntensity: .52, diffuse: .91, scatter: 1.68 },
     pool: { roughness: .13, clearcoat: .42, specularIntensity: .75, diffuse: .34, scatter: .045 },
-    remnant: { roughness: .47, clearcoat: .10, specularIntensity: .49, diffuse: .74, scatter: .08 },
+    remnant: { roughness: .40, clearcoat: .09, specularIntensity: .43, diffuse: .91, scatter: .04 },
   }[layer];
   const material = new THREE.MeshPhysicalMaterial({ color: 0xffffff, ior: 1.43,
     roughness: style.roughness, clearcoat: style.clearcoat, clearcoatRoughness: wet ? .15 : .32,
@@ -105,8 +105,13 @@ function refinedWaxMaterial(light, layer) {
       reflectedLight.directDiffuse *= mix(1., .22, dryLip);
       reflectedLight.indirectDiffuse *= mix(1., .68, dryLip);
       reflectedLight.directSpecular *= mix(1., .50, dryLip);`);
+    if (layer === 'remnant') shader.fragmentShader = shader.fragmentShader.replace('#include <lights_fragment_end>', `#include <lights_fragment_end>
+      // The thin wax at the foot sits under the main candle's spill shadow.
+      // Keep its pigment through direct light rather than bleaching the rim.
+      reflectedLight.directDiffuse *= .28;
+      reflectedLight.directSpecular *= .56;`);
   };
-  material.customProgramCacheKey = () => `pine-wax-${layer}-4`;
+  material.customProgramCacheKey = () => `pine-wax-${layer}-${layer === 'remnant' ? 5 : 4}`;
   return material;
 }
 
@@ -315,15 +320,21 @@ function bodySurface(mesh, rows, cut, melt, runnels) {
   return { ...top, depth };
 }
 
+const TRACE_CENTRE = .68;
+
 function makeTrace(refined) {
-  const mesh = surface(refined ? 8 : 5, 64);
-  const contour = a => 1 + .11 * Math.sin(a * 3 + .2) + .06 * Math.sin(a * 7 - .8)
-    + .22 * Math.max(0, Math.cos(a - 1.1)) ** 12 + .21 * Math.max(0, Math.cos(a - 4.4)) ** 18;
+  const mesh = surface(refined ? 10 : 5, 64);
+  const contour = refined
+    ? a => 1 + .065 * Math.sin(a * 3 + .2) + .034 * Math.sin(a * 8 - .8)
+      + .17 * Math.max(0, Math.cos(a - 1.1)) ** 12 + .14 * Math.max(0, Math.cos(a - 4.4)) ** 16
+    : a => 1 + .11 * Math.sin(a * 3 + .2) + .06 * Math.sin(a * 7 - .8)
+      + .22 * Math.max(0, Math.cos(a - 1.1)) ** 12 + .21 * Math.max(0, Math.cos(a - 4.4)) ** 18;
   const profile = refined
-    ? [[0, .006], [.91, .014], [1, .075], [.98, .17], [.86, .23], [.66, .41], [.37, .66], [0, .81]]
+    ? [[0, .012], [.96, .012], [1, .04], [.984, .10], [.927, .23],
+      [.80, .42], [.64, .58], [.44, .66], [.22, TRACE_CENTRE], [0, TRACE_CENTRE]]
     : [[0, .04], [.94, .04], [1, .21], [.73, .58], [0, 1]];
   profile.forEach(([r, y], i) => writeRing(mesh, i, 0, r, y, contour,
-    refined ? angle => y * r * (.12 * Math.sin(angle * 4 + i * .7) + .055 * Math.sin(angle * 11)) : null));
+    refined ? angle => y * r * (.06 * Math.sin(angle * 4 + i * .5) + .025 * Math.sin(angle * 11)) : null));
   finishSurface(mesh);
   return mesh.geometry;
 }
@@ -430,7 +441,8 @@ export function createPineWax(seat, waxMaterial, { refined = false } = {}) {
       body.geometry = bodyMesh.geometry;
       bodyMaterial.color.setHex(shape.color);
       poolMaterial.color.copy(bodyMaterial.color).lerp(warmWax, refined ? .06 : .12);
-      traceMaterial.color.copy(bodyMaterial.color).lerp(warmWax, .065);
+      traceMaterial.color.copy(bodyMaterial.color);
+      if (!refined) traceMaterial.color.lerp(warmWax, .065);
       lastFuel = undefined;
     },
     update(remaining, state, anchor) {
@@ -469,10 +481,11 @@ export function createPineWax(seat, waxMaterial, { refined = false } = {}) {
         const base = rows[0];
         contact.position.x = base.cx;
         contact.scale.setScalar(base.r * 1.48);
-        const traceHeight = Math.min(.0052, base.r * .32) * spread;
+        const traceHeight = (refined ? Math.min(.0042, base.r * .24) : Math.min(.0052, base.r * .32)) * spread;
         trace.visible = spread > .04;
         trace.position.x = base.cx;
-        const spreadRadius = Math.min(base.r * (.78 + .38 * spread), (seat.traceRadius - Math.abs(base.cx)) / 1.4);
+        const traceRadius = base.r * (refined ? .84 + .32 * spread : .78 + .38 * spread);
+        const spreadRadius = Math.min(traceRadius, (seat.traceRadius - Math.abs(base.cx)) / (refined ? 1.28 : 1.4));
         trace.scale.set(spreadRadius, traceHeight, spreadRadius);
         drips = runnels?.length ?? 0;
         if (!refined) {
@@ -487,7 +500,7 @@ export function createPineWax(seat, waxMaterial, { refined = false } = {}) {
         } else wickMaterial.color.setHex(state === 'unlit' ? 0x665442 : 0x18110b);
         const spentWick = 1 - clamp(cut / Math.max(.002, traceHeight * 1.8), 0, 1);
         wick.scale.y = lerp(1, .56, spentWick);
-        wick.position.set(top.cx, Math.max(pool.position.y, traceHeight * .9), 0);
+        wick.position.set(top.cx, Math.max(pool.position.y, traceHeight * (refined ? TRACE_CENTRE : .9)), 0);
         wickTip.copy(wickEnd).multiply(wick.scale).add(wick.position);
         wickTip.y += seat.y;
       }
