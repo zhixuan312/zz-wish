@@ -595,7 +595,14 @@ const LAMPS = {
     const envelope=lanternHeightMetres(shapeMinutes({ rows: o.rows })) / .56;
     const size=o.liveBaked?envelope*Math.min(.56/Math.max(.0001,o.rows.at(-1).y),.21/Math.max(.0001,width)):shadeScale(o.rows,3.8,.02);
     const lacquer=o.liveBaked?lacquerBlack.clone():lacquerBlack,suspension=o.liveBaked?cordMat.clone():cordMat;
-    if(o.liveBaked){lacquer.userData.lampOwned=true;suspension.userData.lampOwned=true;suspension.color.setHex(0x746041);suspension.roughness=.95;}
+    if(o.liveBaked){
+      lacquer.userData.lampOwned=true;suspension.userData.lampOwned=true;suspension.color.setHex(0x746041);suspension.roughness=.95;
+      // The visitor's lacquer rim faces the bright hall, and its clearcoat caught the
+      // vent's specular as the walk swept past: one frame flared to twice the cloth
+      // brightness. A rougher, duller finish spreads that highlight instead of
+      // concentrating it, without dimming the rim's own colour.
+      lacquer.roughness=Math.max(lacquer.roughness,.9);lacquer.clearcoat=0;lacquer.envMapIntensity=Math.min(lacquer.envMapIntensity??1,.25);
+    }
     const g = new THREE.Group(), P = scaled(o.rows,size), H = P[P.length - 1][1], y0 = -.066 - H;
     const centerAt=y=>{const q=ringAt(o.rows,Math.max(0,Math.min(H,(y-y0)))/size);return(q.cx-topCx)*size;};
     const bottomCx=centerAt(y0);
