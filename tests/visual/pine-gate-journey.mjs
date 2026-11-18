@@ -107,6 +107,54 @@ const history = page => page.evaluate(async () => {
 const candleResponse = (page, path) => page.waitForResponse(response =>
   response.request().method() === 'POST' && new URL(response.url()).pathname === path);
 
+async function observePlaceReadiness(radio) {
+  await radio.evaluate(radio => {
+    const place = radio.closest('.ui[data-screen="place"]');
+    const progress = place.querySelector('.court-loading');
+    const enter = place.querySelector('.place-actions .btn.primary');
+    const stages = [];
+    let click = null;
+    let enabled = null;
+    let previous = '';
+    const record = at => {
+      const snapshot = { stage: progress.dataset.stage, selected: radio.getAttribute('aria-checked') === 'true', enabled: !enter.disabled };
+      const key = JSON.stringify(snapshot);
+      if (key !== previous) stages.push({ at, ...snapshot });
+      previous = key;
+      if (snapshot.selected && snapshot.enabled) enabled ??= at;
+    };
+    const observer = new MutationObserver(() => { if (click !== null) record(performance.now()); });
+    radio.addEventListener('click', () => {
+      click = performance.now();
+      record(click);
+      observer.observe(place, { subtree: true, attributes: true, attributeFilter: ['aria-checked', 'data-stage', 'disabled'] });
+    }, { capture: true, once: true });
+    window.__readPlaceReadiness = () => {
+      observer.disconnect();
+      delete window.__readPlaceReadiness;
+      const observed = performance.now();
+      const barrier = enabled ?? observed;
+      const origin = click ?? observed;
+      const resources = performance.getEntriesByType('resource').flatMap(entry => {
+        const url = new URL(entry.name);
+        const selectedPlaceAsset = url.pathname.startsWith('/places/pine-gate/');
+        const otherPlaceWork = /^\/places\/snow-roof\//.test(url.pathname) && entry.responseEnd >= origin;
+        const loader = /(?:basis[_-]|ktx2|zstddec|meshopt|loadPlace|prefetchPlace|nativeAgX|places\/pine-gate\.js)/i.test(url.pathname);
+        if (entry.startTime > barrier || !(selectedPlaceAsset || otherPlaceWork || loader)) return [];
+        return [{ url: url.pathname, type: entry.initiatorType, startMs: entry.startTime - origin,
+          headersMs: entry.responseStart ? entry.responseStart - origin : null, endMs: entry.responseEnd - origin,
+          transferBytes: entry.transferSize, bodyBytes: entry.encodedBodySize, selectedPlaceAsset }];
+      });
+      const pineEnds = resources.filter(resource => resource.selectedPlaceAsset && resource.endMs <= barrier - origin).map(resource => resource.endMs);
+      const lastPineEnd = pineEnds.length ? Math.max(...pineEnds) : null;
+      return { clickAtMs: click, enabledAtMs: enabled, observedAtMs: observed,
+        clickToEnabledMs: click !== null && enabled !== null ? enabled - click : null,
+        lastPineResponseEndMs: lastPineEnd, afterLastPineResponseMs: lastPineEnd === null ? null : barrier - origin - lastPineEnd,
+        stages: stages.map(({ at, ...state }) => ({ elapsedMs: at - origin, ...state })), resources };
+    };
+  });
+}
+
 async function drawProfile(context, page, touch, browserName) {
   const pad = page.locator('.pad');
   await pad.scrollIntoViewIfNeeded();
@@ -384,12 +432,17 @@ async function capture(browser, browserName, size) {
     await page.getByLabel(wishLabel).fill(wish);
     await act(button(bi('^Set my wish$', '^许好了$')));
     const pineRadio = radio(new RegExp('^' + place));
+    if (fullJourney) await observePlaceReadiness(pineRadio);
     const selectStarted = performance.now();
     await act(pineRadio);
     await expect(pineRadio).toHaveAttribute('aria-checked', 'true');
     if (fullJourney) {
-      await expect(button(bi('^Step inside$', '^走进院里$'))).toBeEnabled({ timeout: 60_000 });
-      run.placeReadyMs = performance.now() - selectStarted;
+      try {
+        await expect(button(bi('^Step inside$', '^走进院里$'))).toBeEnabled({ timeout: 60_000 });
+        run.placeReadyMs = performance.now() - selectStarted;
+      } finally {
+        run.placeReadiness = await page.evaluate(() => window.__readPlaceReadiness?.());
+      }
       await captureShot('place');
     }
     await travel(!fullJourney, fullJourney);
