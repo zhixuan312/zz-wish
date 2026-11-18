@@ -59,6 +59,19 @@
             "mode": "L",
             "optimize": true
           }
+        },
+        {
+          "path": "web/public/materials/scans/rock_pitted_mossy/ao.jpg",
+          "bytes": 564275,
+          "sha256": "8ebcb37b071cac5ff09d0bcc90b6e778a324e4d2753e882a5deffb2d30ab5f88",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/rock_pitted_mossy/rock_pitted_mossy_ao_1k.jpg",
+          "sourceSha256": "8ebcb37b071cac5ff09d0bcc90b6e778a324e4d2753e882a5deffb2d30ab5f88",
+          "map": "ao",
+          "encoding": {
+            "format": "JPEG",
+            "mode": "L",
+            "sourceUnchanged": true
+          }
         }
       ]
     },
