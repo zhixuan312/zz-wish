@@ -160,6 +160,67 @@ function refinedWaxMaterial(light, layer) {
   return material;
 }
 
+function traySurfaceAt(geometry, x, z) {
+  const { points, segments } = geometry.parameters;
+  const turn = Math.atan2(x, z) / TAU;
+  const sector = Math.min(segments - 1, Math.floor((turn < 0 ? turn + 1 : turn) * segments));
+  const vertices = geometry.attributes.position, { index } = geometry;
+  // Only the inner wall and floor can bear wax. Interpolate their actual
+  // triangles so the aged deposits follow the chipped rim and dish slope.
+  for (let row = points.length - 5; row < points.length - 1; row++) {
+    const start = (sector * (points.length - 1) + row) * 6;
+    for (let face = start; face < start + 6; face += 3) {
+      const a = index.getX(face), b = index.getX(face + 1), c = index.getX(face + 2);
+      const ax = vertices.getX(a), az = vertices.getZ(a);
+      const ux = vertices.getX(b) - ax, uz = vertices.getZ(b) - az;
+      const vx = vertices.getX(c) - ax, vz = vertices.getZ(c) - az;
+      const det = ux * vz - uz * vx;
+      if (Math.abs(det) < 1e-12) continue;
+      const dx = x - ax, dz = z - az;
+      const u = (dx * vz - dz * vx) / det, v = (ux * dz - uz * dx) / det;
+      if (u < -1e-5 || v < -1e-5 || u + v > 1.00001) continue;
+      return (1 - u - v) * vertices.getY(a) + u * vertices.getY(b) + v * vertices.getY(c);
+    }
+  }
+  throw new Error('Aged wax must be supported by the inside of the tray.');
+}
+
+function setOldWaxOnTray(tray) {
+  const material = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .63,
+    envMapIntensity: .26, transparent: true, depthWrite: false });
+  material.userData.lampOwned = true;
+  const deposits = [
+    { angle: 1.08, fromCenter: .0501, length: .0041, width: .00212, height: .00118, color: 0xa08a70 },
+    { angle: 1.40, fromCenter: .0511, length: .00175, width: .00117, height: .00065, color: 0xb09a7a },
+    { angle: 2.03, fromCenter: .0503, length: .0037, width: .00182, height: .00095, color: 0xa88a69 },
+    { angle: -.57, fromCenter: .0505, length: .0026, width: .00146, height: .00084, color: 0x9d8064 },
+  ];
+  const profile = [[0, -.18, 0], [.98, -.18, 0], [1, .042, .13], [.935, .18, .47],
+    [.77, .44, .91], [.55, .72, 1], [.29, .94, 1], [0, 1, 1]];
+  for (const deposit of deposits) {
+    const mesh = surface(profile.length, 28), color = new THREE.Color(deposit.color);
+    const rgba = new THREE.Float32BufferAttribute(new Float32Array(profile.length * mesh.sectors * 4), 4);
+    const dx = Math.cos(deposit.angle), dz = Math.sin(deposit.angle);
+    for (const [row, [radius, height, opacity]] of profile.entries()) {
+      for (let side = 0; side < mesh.sectors; side++) {
+        const angle = side / mesh.sectors * TAU;
+        const wornEdge = 1 + .072 * Math.sin(angle * 3 + deposit.angle) + .036 * Math.sin(angle * 7 + .7);
+        const r = deposit.fromCenter + Math.cos(angle) * deposit.width * radius * wornEdge;
+        const tangential = Math.sin(angle) * deposit.length * radius * wornEdge;
+        const x = dx * r - dz * tangential, z = dz * r + dx * tangential;
+        const support = traySurfaceAt(tray.geometry, x, z), i = row * mesh.sectors + side;
+        mesh.positions.setXYZ(i, x, support + height * deposit.height, z);
+        rgba.setXYZW(i, color.r, color.g, color.b, opacity);
+      }
+    }
+    mesh.geometry.setAttribute('color', rgba);
+    finishSurface(mesh);
+    const wax = new THREE.Mesh(mesh.geometry, material);
+    wax.receiveShadow = true;
+    tray.add(wax);
+  }
+}
+
 export function createPineTray(seat) {
   const points = [[0, 0], [.038, 0], [.042, .001], [.045, .0035], [.052, .006],
     [.057, .0105], [.058, .014], [.0565, .0165], [.054, .017], [.0515, .0144],
@@ -225,6 +286,7 @@ export function createPineTray(seat) {
   material.userData.lampOwned = true;
   const tray = new THREE.Mesh(geometry, material);
   tray.receiveShadow = true;
+  setOldWaxOnTray(tray);
   return tray;
 }
 
@@ -492,6 +554,7 @@ export function createPineWax(seat, waxMaterial, { refined = false } = {}) {
   const wickEnd = wickPath.getPoint(1);
   const warmWax = new THREE.Color(0xffc07d);
   let source, rows, bodyMesh, lastFuel, lastState, fullHeight, cutHeight, bodyHeight;
+  let traceSeatRadius = seat.traceRadius;
   let drips = 0;
 
   return {
@@ -503,6 +566,12 @@ export function createPineWax(seat, waxMaterial, { refined = false } = {}) {
       const scale = Math.min(1, seat.maxR / width, seat.maxH / ((source.at(-1).y - base) || 1));
       rows = source.map(q => ({ y: (q.y - base) * scale, cx: q.cx * scale, r: q.r * scale }));
       fullHeight = rows.at(-1).y;
+      if (refined) {
+        // Match the runtime holder fit and leave the spill on the flat seat,
+        // inside its inner wall and the older deposits attached to that wall.
+        const holderScale = clamp((width * scale + .007) / seat.traceRadius, .76, 1);
+        traceSeatRadius = holderScale * seat.traceRadius - .00045;
+      }
       body.geometry.dispose();
       bodyMesh = surface(rows.length + 7 + (refined ? RUNNEL_ROWS : 0), refined ? 72 : 48);
       body.geometry = bodyMesh.geometry;
@@ -556,7 +625,7 @@ export function createPineWax(seat, waxMaterial, { refined = false } = {}) {
         trace.visible = spread > .04;
         trace.position.x = base.cx;
         const traceRadius = base.r * (refined ? .84 + .32 * spread : .78 + .38 * spread);
-        const spreadRadius = Math.min(traceRadius, (seat.traceRadius - Math.abs(base.cx)) / (refined ? 1.28 : 1.4));
+        const spreadRadius = Math.min(traceRadius, (traceSeatRadius - Math.abs(base.cx)) / (refined ? 1.28 : 1.4));
         trace.scale.set(spreadRadius, traceHeight, spreadRadius);
         if (refined) {
           light.uPineTraceThickness.value = traceHeight;
