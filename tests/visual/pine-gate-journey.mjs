@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url';
 import { chromium, expect, webkit } from '@playwright/test';
 import Database from 'better-sqlite3';
 import { remainingFuel, waxCutHeight } from '../../shared/wax.ts';
+import { DICTS, fmtDuration } from '../../web/src/i18n.ts';
 import { assertCaptureGpuHealthy, installCaptureGpuGuard } from './capture-preflight.mjs';
 import { installLiveAudioAudit, sampleLiveAudio } from './live-audio-audit.mjs';
 
@@ -81,7 +82,7 @@ if (fullJourney) {
 await mkdir(output, { recursive: true });
 const report = {
   mode,
-  ...(quality ? { reviewLabel } : {}),
+  ...(quality ? { reviewLabel, matchedEndingShapes: true } : {}),
   delivery,
   clock: 'Local visual hour ' + hour + ' held constant. Controlled client and matching isolated server start times accelerate progress; render animation uses real frame timestamps.',
   viewport: 'Phone is viewport and touch emulation. WebKit freehand uses a trusted mouse stroke.',
@@ -101,11 +102,8 @@ const history = page => page.evaluate(async () => {
   if (!response.ok) throw new Error('Record read failed: ' + response.status);
   return (await response.json()).candles;
 });
-const activeCandle = async page => {
-  const active = (await history(page)).find(candle => candle.status === 'burning' && candle.placeId === 'pine-gate');
-  assert(active, 'No active Pine Gate candle reached the server.');
-  return active;
-};
+const candleResponse = (page, path) => page.waitForResponse(response =>
+  response.request().method() === 'POST' && new URL(response.url()).pathname === path);
 
 async function drawProfile(context, page, touch, browserName) {
   const pad = page.locator('.pad');
@@ -141,7 +139,7 @@ async function drawProfile(context, page, touch, browserName) {
 async function capture(browser, browserName, size) {
   const { language, label, phone, width, height } = size;
   const context = await browser.newContext({
-    viewport: { width, height }, deviceScaleFactor: phone && mode === 'm3' ? 2 : 1,
+    viewport: { width, height }, deviceScaleFactor: phone && fullJourney ? 2 : 1,
     locale: language === 'zh' ? 'zh-CN' : 'en-US', hasTouch: phone, isMobile: phone,
   });
   const path = mode === 'm3' ? join(output, browserName, label) : join(output, label);
@@ -172,7 +170,7 @@ async function capture(browser, browserName, size) {
       if (response.status() >= 400) run.errors.push({ kind: 'http', status: response.status(), url: response.url() });
     });
     page.on('crash', () => run.errors.push({ kind: 'crash' }));
-    if (mode === 'm3' && phone) {
+    if (fullJourney && phone) {
       await page.route(url => url.pathname === '/src/engine/scene.js', async route => {
         const response = await route.fetch();
         const source = await response.text();
@@ -205,6 +203,7 @@ async function capture(browser, browserName, size) {
     };
     const lightButton = button(bi('^Light it', '^点亮这一盏'));
     const { wish, label: wishLabel, place } = scenarios[language];
+    let activeId = null;
     const captureShot = async (name, extra = {}) => {
       await assertCaptureGpuHealthy(page);
       const snapshot = await page.evaluate(() => {
@@ -215,6 +214,7 @@ async function capture(browser, browserName, size) {
           hudOpacity,
           controlsVisible: !!hud?.querySelector('.ctl') && hudOpacity > .99,
           result: document.querySelector('[data-testid="result-title"]')?.textContent?.trim(),
+          resultLead: document.querySelector('[data-testid="result-title"] + p')?.textContent?.trim(),
           elapsedLabel: document.querySelector('[data-testid="with-you"]')?.textContent?.trim(),
           wax: window.__visualPineWax?.() ?? null,
           smoke: window.__visualWickPlume?.() ?? null,
@@ -231,12 +231,28 @@ async function capture(browser, browserName, size) {
       const file = join(path, name + '.png');
       if (fullJourney && snapshot.wax) assert.equal(snapshot.wax.baked, true, 'Active Pine Gate scene must be baked.');
       const bytes = await page.screenshot({ path: file, scale: 'css' });
-      run.shots.push({ file: relative(output, file), sha256: createHash('sha256').update(bytes).digest('hex'), ...snapshot, ...extra });
+      run.shots.push({ file: relative(output, file), sha256: createHash('sha256').update(bytes).digest('hex'),
+        candleId: activeId, ...snapshot, ...extra });
       console.log(browserName, label, name, JSON.stringify(snapshot.wax));
       await save();
       return snapshot;
     };
     const waitWax = (fn, arg) => page.waitForFunction(fn, arg, { polling: 50, timeout: 15_000 });
+    const captureDiagnostic = async (name, view) => {
+      await waitWax(() => {
+        const hud = document.querySelector('.hud-bottom');
+        return document.querySelector('.ui')?.dataset.controlsIdle === 'true'
+          && hud && Number(getComputedStyle(hud).opacity) < .01;
+      });
+      await page.evaluate(view => window[view](), view);
+      try {
+        await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+        const diagnostic = await captureShot(name);
+        assert(diagnostic.hudOpacity !== null && diagnostic.hudOpacity < .01, 'The candle diagnostic must be clear of the burning HUD.');
+      } finally {
+        await page.evaluate(() => window.__visualPineCloseupRestore());
+      }
+    };
     const travel = async (skip, journey = false) => {
       const started = performance.now();
       await act(button(bi('^Step inside$', '^走进院里$')));
@@ -253,13 +269,13 @@ async function capture(browser, browserName, size) {
       await matchStage(page, 'candle');
       if (journey) run.walkDurationMs = performance.now() - started;
     };
-    const choose = async (custom = false, long = false) => {
+    const choose = async (custom = false) => {
       if (custom) {
         await act(page.getByRole('tab', { name: bi('^Draw$', '^自己画$') }));
         await drawProfile(context, page, phone, browserName);
       } else {
         await act(radio(bi('^Pillar$', '^方墩$')));
-        await act(radio(long ? bi('^24 h$', '^24 小时$') : bi('^1 h$', '^1 小时$')));
+        await act(radio(bi('^1 h$', '^1 小时$')));
       }
       await act(radio(custom ? bi('^Beeswax$', '^蜂蜡$') : bi('^Ivory$', '^象牙$')));
       await expect(lightButton).toBeEnabled();
@@ -268,26 +284,46 @@ async function capture(browser, browserName, size) {
       await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
     };
     const light = async (captureChoreography = false) => {
-      await act(lightButton);
+      const [response] = await Promise.all([candleResponse(page, '/api/candles'), act(lightButton)]);
+      assert(response.ok(), 'Lighting request failed with HTTP ' + response.status());
+      const active = await response.json();
+      assert.equal(active.placeId, 'pine-gate');
+      assert.equal(active.shape.kind, 'candle');
+      assert.equal(active.status, 'burning');
+      assert(active.id, 'The lighting response did not identify a candle.');
+      activeId = active.id;
       if (captureChoreography) {
-        await waitWax(() => window.__visualIgnition?.state === 'igniting' && window.__visualIgnition.progress >= .085);
-        await captureShot('ignition');
+        await waitWax(requireContact => {
+          const ignition = window.__visualIgnition;
+          if (ignition?.state !== 'igniting') return false;
+          if (!requireContact) return ignition.progress >= .085;
+          return ignition.progress >= .09 && ignition.progress <= .1044
+            && Number.isFinite(ignition.wickContactMetres) && ignition.wickContactMetres < .003;
+        }, quality);
+        const ignition = await captureShot('ignition');
+        if (quality) assert(Number.isFinite(ignition.ignition?.wickContactMetres)
+          && ignition.ignition.wickContactMetres < .003, 'The ignition flame must meet the actual wick.');
         await waitWax(() => window.__visualIgnition?.state === 'spreading');
         await captureShot('spreading');
       }
       await expect(page.getByTestId('with-you')).toBeVisible();
       await page.waitForFunction(() => window.__visualIgnition?.state === 'settled', null, { timeout: 30_000, polling: 50 });
       if (captureChoreography) await captureShot('settled');
-      const active = await activeCandle(page);
-      assert.equal(active.shape.kind, 'candle');
       return active;
     };
     const advance = async (active, delta) => {
       assert.equal(adjustStart.run(delta, active.id).changes, 1, 'The isolated active candle was not updated.');
       await page.evaluate(delta => window.__advanceVisualClock(delta), delta);
     };
+    const advanceToProgress = async (active, target) => {
+      const remaining = await page.evaluate(() => window.__visualPineWax?.()?.remaining);
+      assert(Number.isFinite(remaining), 'The active candle did not expose its remaining wax.');
+      const delta = Math.round((target - (1 - remaining)) * active.durationMs);
+      assert(delta > 0, 'The burn is already past the requested progress.');
+      await advance(active, delta);
+    };
     const measureBurnCadence = async () => {
-      if (mode !== 'm3' || !phone) return;
+      if (!fullJourney || !phone) return;
       await page.waitForTimeout(1000);
       await assertCaptureGpuHealthy(page);
       run.performance = await page.evaluate(() => new Promise(resolve => {
@@ -314,10 +350,10 @@ async function capture(browser, browserName, size) {
       const wax = window.__visualPineWax?.();
       return wax && Math.abs((1 - wax.remaining) - target) < .006;
     }, target);
-    const advanceVisibleBurn = async (active, delta, target) => {
+    const advanceVisibleBurn = async (active, target) => {
       const hud = page.getByTestId('with-you');
       const previous = await hud.textContent();
-      await advance(active, delta);
+      await advanceToProgress(active, target);
       await waitProgress(target);
       await expect(hud).not.toHaveText(previous);
     };
@@ -327,10 +363,9 @@ async function capture(browser, browserName, size) {
       assert.equal(settled?.status, status);
       assert.equal(settled.endReason, endReason);
       assert.deepEqual(settled.shape, active.shape);
-      run.records.push({
-        status, endReason, durationMs: active.durationMs, burnedMs: settled.burnedMs,
-        color: active.shape.color, rows: active.shape.rows.length,
-      });
+      assert.equal(settled.durationMs, active.durationMs);
+      run.records.push({ id: settled.id, status, endReason, durationMs: settled.durationMs,
+        burnedMs: settled.burnedMs, shape: settled.shape });
       return settled;
     };
 
@@ -366,6 +401,7 @@ async function capture(browser, browserName, size) {
     await waitProgress(0);
     const early = await captureShot('burn-00', { targetProgress: 0 });
     await measureBurnCadence();
+    if (quality) await captureDiagnostic('burn-far', '__visualPineFarView');
     if (fullJourney) {
       await wakeControls();
       await expect(page.locator('.ui')).toHaveAttribute('data-controls-idle', 'false');
@@ -382,29 +418,16 @@ async function capture(browser, browserName, size) {
       assert(signal.running && signal.connectedMasters && signal.peak > 0, 'No live Pine Gate ambience was observed.');
       assert(signal.peak < .99, 'Pine Gate audio peaked near clipping.');
     }
-    const half = Math.round(complete.durationMs * .5);
-    const late = Math.round(complete.durationMs * .95);
-    await advanceVisibleBurn(complete, half, .5);
+    await advanceVisibleBurn(complete, .5);
     const middle = await captureShot('burn-50', { targetProgress: .5 });
     if (quality) {
-      await waitWax(() => {
-        const hud = document.querySelector('.hud-bottom');
-        return document.querySelector('.ui')?.dataset.controlsIdle === 'true'
-          && hud && Number(getComputedStyle(hud).opacity) < .01;
-      });
-      await page.evaluate(() => window.__visualPineCloseup());
-      try {
-        await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
-        const closeup = await captureShot('candle-closeup');
-        assert(closeup.hudOpacity !== null && closeup.hudOpacity < .01, 'The candle close-up must be clear of the burning HUD.');
-      } finally {
-        await page.evaluate(() => window.__visualPineCloseupRestore());
-      }
+      await captureDiagnostic('candle-closeup', '__visualPineCloseup');
+      await captureDiagnostic('candle-contact', '__visualPineContactView');
     }
-    await advanceVisibleBurn(complete, late - half, .95);
+    await advanceVisibleBurn(complete, .95);
     const final = await captureShot('burn-95', { targetProgress: .95 });
     assert(early.wax.bodyHeight > middle.wax.bodyHeight && middle.wax.bodyHeight > final.wax.bodyHeight && final.wax.bodyHeight > 0);
-    await advance(complete, complete.durationMs - late + 1000);
+    await advanceToProgress(complete, 1 + 1000 / complete.durationMs);
     await expect(page.getByTestId('result-title')).toHaveText(bi('burned down', '燃尽了'));
     const burned = await settleRecord(complete, 'burned_down', 'complete');
     assert.equal(burned.burnedMs, complete.durationMs);
@@ -415,27 +438,51 @@ async function capture(browser, browserName, size) {
     assert(done.wax.trace);
 
     await act(button(bi('^Another lamp for this wish$', '^再为此愿点一盏$')));
+    activeId = null;
     await travel(true);
-    await choose(!phone && !quality, quality);
+    await choose(!phone && !quality);
     const extinguished = await light();
-    if (quality) await captureShot('burn-far');
-    const partial = Math.round(extinguished.durationMs * .42);
-    await advance(extinguished, partial);
+    assert.notEqual(extinguished.id, complete.id, 'Each ending needs its own actual candle.');
+    if (quality) {
+      assert.equal(complete.durationMs, 3600000, 'Quality comparisons use the one-hour preset.');
+      assert.equal(extinguished.durationMs, complete.durationMs);
+      assert.deepEqual(extinguished.shape, complete.shape);
+      run.matchedEndings = { burnedDownId: complete.id, putOutId: extinguished.id };
+    }
+    await advanceToProgress(extinguished, .42);
     await waitProgress(.42);
     await act(button(bi('^Put out$', '^熄灭$')));
     if (mode === 'm3') await captureShot('put-out-confirm');
-    await act(button(bi('^Put out and end$', '^熄灭并结束$')));
-    await waitWax(() => {
-      const plume = window.__visualWickPlume?.();
-      return plume?.mode === 'sudden' && plume.visibleSprites > 0 && plume.currentTime - plume.startedAt >= .65;
-    });
-    const out = await captureShot('went-out', { targetProgress: .42 });
+    const [endResponse, out] = await Promise.all([
+      candleResponse(page, '/api/candles/' + extinguished.id + '/end'),
+      (async () => {
+        await act(button(bi('^Put out and end$', '^熄灭并结束$')));
+        await waitWax(requireContact => {
+          const plume = window.__visualWickPlume?.();
+          if (plume?.mode !== 'sudden' || plume.visibleSprites <= 0) return false;
+          const age = plume.currentTime - plume.startedAt;
+          if (!requireContact) return age >= .65;
+          return age >= .7 && age <= .85 && Number.isFinite(plume.nearestSmokeMetres) && plume.nearestSmokeMetres < .008;
+        }, quality);
+        return captureShot('went-out', { targetProgress: .42 });
+      })(),
+    ]);
+    assert(endResponse.ok(), 'Put-out request failed with HTTP ' + endResponse.status());
+    const flight = await endResponse.json();
     await expect(page.getByTestId('result-title')).toHaveText(bi('went out', '就到这里'));
     const stopped = await settleRecord(extinguished, 'went_out', 'put_out');
-    assert(Math.abs(stopped.burnedMs / stopped.durationMs - .42) < .012, 'Went-out result diverged from remaining wax amount.');
-    const savedCut = waxCutHeight(stopped.shape.rows, remainingFuel(stopped.burnedMs, stopped.durationMs));
+    assert.deepEqual(stopped, flight, 'The put-out response and subsequent record must agree.');
+    assert(Math.abs(flight.burnedMs / flight.durationMs - .42) < .012, 'Went-out result diverged from remaining wax amount.');
+    const remaining = remainingFuel(flight.burnedMs, flight.durationMs);
+    const savedCut = waxCutHeight(flight.shape.rows, remaining);
     assert.equal(out.wax.state, 'went_out');
     assert(Math.abs(out.wax.cutHeight - savedCut) < .00001, 'The settled cut and record cut must agree.');
+    const dictionary = DICTS[language];
+    assert.equal(out.resultLead, dictionary.outLead(fmtDuration(flight.burnedMs, dictionary, true)));
+    if (quality) assert(Number.isFinite(out.smoke?.nearestSmokeMetres)
+      && out.smoke.nearestSmokeMetres < .008, 'The put-out smoke must stay connected to the actual wick.');
+    run.putOut = { candleId: flight.id, burnedMs: flight.burnedMs, durationMs: flight.durationMs,
+      resultLead: out.resultLead, remaining, waxCutMetres: savedCut };
     if (fullJourney) {
       await waitWax(() => !window.__visualWickPlume?.());
       await captureShot('went-out-cooled');
@@ -459,7 +506,7 @@ async function capture(browser, browserName, size) {
     run.refreshVerified = true;
     if (mode === 'm3') {
       await page.locator('.panel').evaluate(panel => panel.scrollTo({ top: 0 }));
-      await captureShot('my-lamps-after-refresh');
+      await captureShot('my-lamps-after-refresh', { candleId: null, candleIds: [complete.id, extinguished.id] });
     }
     assert.deepEqual(run.errors, []);
   } catch (error) {
