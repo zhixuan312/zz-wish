@@ -130,7 +130,7 @@ The paired walks lasted 30.32 s and 30.53 s. Both completed refresh and both end
 
 ## 64-sample final
 
-The before sheets are in `artifacts/pine-gate/quality/preview-05/pairs/`. The final sheets are in `artifacts/pine-gate/quality/final/pairs/`. The 32 comparisons, 38 Pine originals and their hashes are indexed in `artifacts/pine-gate/quality/final/comparison.json`.
+The before sheets are in `artifacts/pine-gate/quality/preview-05/pairs/`. The first final sheets and their measurements below are archived in `artifacts/pine-gate/quality/final-before-preview-drain/`. The merged app was recaptured separately.
 
 | Gap | Change | Before and after sheet | Verdict |
 | --- | --- | --- | --- |
@@ -142,3 +142,26 @@ The before sheets are in `artifacts/pine-gate/quality/preview-05/pairs/`. The fi
 The final 11,506,505-byte package contains the 12 fixed 64-sample maps and shared native AgX LUT. All six contact groups pass on the final decoded geometry. Both night captures confirm that native AgX is active with the night and lamp maps resident.
 
 From wish entry to Step inside, the paired captures take 3.48 s on desktop and 2.62 s on phone. The walks last 30.32 s and 30.49 s. The regular burning body takes 21.33% and 21.49% of the frame. Phone cadence is 29.99 FPS and 35.5 ms at the 95th percentile. Both contexts complete refresh and both endings with zero runtime or HTTP errors. The phone smoke starts at the wick and its upper end passes beyond the frame.
+
+## Final review after the Snow Roof merge
+
+The merged app at `468915b` reuses the final Pine Gate package SHA-256 `45c31e502dc4a645bdc4d9034a3b7fe106227a345c1e6bb81c79b916627b1c1f`. The review compared the first final sheets with the new 32 side-by-side sheets in `artifacts/pine-gate/quality/final/pairs/`. The new `comparison.json` indexes the sheets and 38 Pine originals.
+
+The merge could affect the approach turn, the preview fill and the burning and ending cameras. The new walk frames keep the same progression from the stair through the warm gate guide to the carved niche. In the ignition, settled and far frames, the same candle and tray remain in view as the light spreads. The close views retain the charred wick, the pool edge and the wax contacts. The two endings still show distinct wax remnants. The merged sheets passed visual review.
+
+In the paired captures, Step inside enabled in 3.047 s on desktop and 2.324 s on phone. The wax body occupies 21.33% and 21.49% of the regular burning frame. All six fresh readiness trials also stayed below five seconds. Desktop recorded 2.381, 2.551 and 2.408 s. Phone recorded 2.171, 2.401 and 2.431 s.
+
+The eight journeys at `artifacts/pine-gate/m3/report.json` share the merged app fingerprint `0f15134d9bcb634d349b9d27b6586c4c71b8ced8d1f70010d933a00bc9a2a3d4`. The journey records and the Vite logs show no source changes or reloads. Each context completed both endings and restored the stored candles after refresh. Desktop used the preset controls. Phone also completed a touch-drawn wax profile.
+
+| Browser | Context | Step inside | Walk | Phone burn FPS | Runtime errors | HTTP errors | Source changed |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | --- |
+| Chromium | Desktop EN | 3.032 s | 30.183 s | — | 0 | 0 | No |
+| Chromium | Desktop ZH | 3.073 s | 30.162 s | — | 0 | 0 | No |
+| Chromium | Phone EN | 2.067 s | 30.495 s | 29.998 | 0 | 0 | No |
+| Chromium | Phone ZH | 2.330 s | 30.508 s | 29.992 | 0 | 0 | No |
+| WebKit | Desktop EN | 2.009 s | 30.442 s | — | 0 | 0 | No |
+| WebKit | Desktop ZH | 2.689 s | 30.438 s | — | 0 | 0 | No |
+| WebKit | Phone EN | 1.982 s | 30.387 s | 29.997 | 0 | 0 | No |
+| WebKit | Phone ZH | 1.994 s | 30.384 s | 29.991 | 0 | 0 | No |
+
+The supplemental app captures in `artifacts/pine-gate/quality/final-day/` and `artifacts/pine-gate/quality/final-dusk/` confirm native AgX and a resident lamp map at both screen sizes. Day contributes all of the ambient blend at 13:00. Dusk contributes 82.5% at 18:00. The final night comparisons exercise the night bank. The quiet presence line is faint against the brighter sky in the day and dusk place views. The merged app retained the previously measured Pine and Snow ambience mix. Phone measurements use browser emulation on the M1.
