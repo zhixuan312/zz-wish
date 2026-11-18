@@ -193,8 +193,64 @@ export function createPineGateLife({
   }
   own(() => { for (const { sprite } of mist) { group.remove(sprite); sprite.material.dispose(); } });
 
-  let sky = null, elapsed = 0, disposed = false;
+  // ---------- Falling needles ----------
+  // A small instanced quad is enough at this distance; each needle spins as it falls
+  // and is recycled once it passes the stones below the path point it dropped from.
+  const NEEDLE_COUNT = 40;
+  const needleGeometry = new THREE.PlaneGeometry(0.011, 0.075);
+  const needleMaterial = new THREE.MeshBasicMaterial({
+    color: 0x40351f, side: THREE.DoubleSide, transparent: true, opacity: 0.8, depthWrite: false,
+  });
+  const needleMesh = new THREE.InstancedMesh(needleGeometry, needleMaterial, NEEDLE_COUNT);
+  needleMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+  needleMesh.frustumCulled = false;
+  needleMesh.count = 0;
+  group.add(needleMesh);
+  own(() => { group.remove(needleMesh); needleGeometry.dispose(); needleMaterial.dispose(); needleMesh.dispose(); });
+  const needles = Array.from({ length: NEEDLE_COUNT }, () => ({ alive: false, p: new THREE.Vector3(), spin: 0, fall: 0, sway: 0, seed: 0, floorY: 0 }));
+
+  // ---------- Dust in the candle niche ----------
+  const MOTE_COUNT = 60;
+  const moteTexture = (() => {
+    const size = 32, canvas = document.createElement('canvas');
+    canvas.width = canvas.height = size;
+    const g = canvas.getContext('2d'), half = size / 2;
+    const grad = g.createRadialGradient(half, half, 0, half, half, half);
+    grad.addColorStop(0, 'rgba(255,255,255,.9)');
+    grad.addColorStop(0.3, 'rgba(255,236,200,.35)');
+    grad.addColorStop(1, 'rgba(255,220,160,0)');
+    g.fillStyle = grad; g.fillRect(0, 0, size, size);
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.colorSpace = THREE.SRGBColorSpace;
+    return texture;
+  })();
+  own(() => moteTexture.dispose());
+  const motePositions = new Float32Array(MOTE_COUNT * 3);
+  const moteSeeds = Array.from({ length: MOTE_COUNT }, () => Math.random());
+  const moteGeometry = new THREE.BufferGeometry();
+  moteGeometry.setAttribute('position', new THREE.BufferAttribute(motePositions, 3));
+  const moteMaterial = new THREE.PointsMaterial({
+    map: moteTexture, color: 0xffcf96, size: 0.02, sizeAttenuation: true,
+    transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending, fog: true,
+  });
+  const motes = new THREE.Points(moteGeometry, moteMaterial);
+  motes.frustumCulled = false;
+  motes.visible = false;
+  group.add(motes);
+  own(() => { group.remove(motes); moteGeometry.dispose(); moteMaterial.dispose(); });
+
+  const nicheAt = new THREE.Vector3(..._nichePosition);
+  const pathPoints = _path.map((p) => new THREE.Vector3(...p));
+
+  let sky = null, elapsed = 0, dustBlend = 0, needleDebt = 0, disposed = false;
   const cameraAt = new THREE.Vector3(0, 0, 34);
+
+  // The needle band follows the walker: choose the path station nearest the eye.
+  const nearestStation = () => {
+    let best = pathPoints[0], bestD = Infinity;
+    for (const p of pathPoints) { const d = p.distanceToSquared(cameraAt); if (d < bestD) { bestD = d; best = p; } }
+    return best;
+  };
 
   return {
     update(dt, time) {
@@ -221,6 +277,63 @@ export function createPineGateLife({
         const distance = cameraAt.distanceTo(sprite.position);
         const near = Math.min(1, Math.max(0, (distance - 3.2) / 4.5));
         sprite.material.opacity = base * near * (0.75 + 0.25 * Math.sin(elapsed * 0.31 + phase));
+      }
+
+      // Needles: drop into a band a few metres ahead of the eye, then fall and spin.
+      const motesOn = !still && !saver;
+      if (motesOn) {
+        needleDebt += dt * 5.2;
+        const station = nearestStation();
+        while (needleDebt >= 1) {
+          needleDebt -= 1;
+          const free = needles.find((n) => !n.alive);
+          if (!free) break;
+          free.alive = true;
+          free.seed = Math.random() * 6.283;
+          free.fall = 0.13 + Math.random() * 0.15;
+          free.sway = 0.14 + Math.random() * 0.2;
+          free.spin = (Math.random() - 0.5) * 2.4;
+          free.floorY = station.y - 1.9;
+          free.p.set(
+            station.x + (Math.random() - 0.5) * 3.0,
+            station.y + 1.5 + Math.random() * 1.7,
+            station.z - 1.0 - Math.random() * 5.0,
+          );
+        }
+      }
+      let liveNeedles = 0;
+      if (motesOn) {
+        const matrix = new THREE.Matrix4(), quat = new THREE.Quaternion(), euler = new THREE.Euler();
+        for (const needle of needles) {
+          if (!needle.alive) continue;
+          needle.p.y -= needle.fall * dt;
+          needle.p.x += Math.sin(elapsed * 1.3 + needle.seed) * needle.sway * dt;
+          needle.p.z += Math.cos(elapsed * 0.9 + needle.seed * 1.7) * needle.sway * 0.6 * dt;
+          if (needle.p.y < needle.floorY) { needle.alive = false; continue; }
+          euler.set(elapsed * needle.spin, needle.seed + elapsed * needle.spin * 0.7, Math.sin(elapsed * 1.1 + needle.seed) * 0.8);
+          quat.setFromEuler(euler);
+          matrix.compose(needle.p, quat, { x: 1, y: 1, z: 1 });
+          needleMesh.setMatrixAt(liveNeedles++, matrix);
+        }
+      }
+      needleMesh.count = motesOn ? liveNeedles : 0;
+      needleMesh.visible = needleMesh.count > 0;
+      if (needleMesh.count) needleMesh.instanceMatrix.needsUpdate = true;
+
+      // Dust: appears only once the walker stands at the niche, lit by the candle.
+      const nearNiche = 1 - Math.min(1, Math.max(0, (cameraAt.distanceTo(nicheAt) - 1.9) / 2.2));
+      dustBlend += (((still || saver) ? 0 : nearNiche) - dustBlend) * (1 - Math.exp(-dt * 1.5));
+      motes.visible = dustBlend > 0.01;
+      if (motes.visible) {
+        for (let i = 0; i < MOTE_COUNT; i++) {
+          const seed = moteSeeds[i];
+          const drift = elapsed * (0.05 + seed * 0.05);
+          motePositions[i * 3] = nicheAt.x + Math.sin(drift + seed * 6.283) * (0.1 + seed * 0.45);
+          motePositions[i * 3 + 1] = nicheAt.y - 0.8 + ((seed * 1.7 + elapsed * (0.015 + seed * 0.02)) % 1.15);
+          motePositions[i * 3 + 2] = nicheAt.z + Math.cos(drift * 0.8 + seed * 4.1) * (0.09 + seed * 0.36);
+        }
+        moteGeometry.attributes.position.needsUpdate = true;
+        moteMaterial.opacity = 0.42 * dustBlend;
       }
     },
     dispose() {
