@@ -2082,7 +2082,13 @@ export async function snuff(done = false) {
   // Went out: sudden, and the place keeps less of its light. Burned down: it stays as it was.
   if (!done && !place.P.bakedLighting) void tween(1.6, (k) => { roomLight = 1 - .3 * ease(k); });
   const p0=done?Math.min(.24,Math.max(.015,lastPower)):mine.power;mine.power=p0;
-  await tween(done?2.6:.12,k=>{mine.power=p0*Math.pow(1-k,done?1.35:1)*(done?.78+.22*Math.sin(k*17)**2:1);});mine.power=0;
+  // The cloth cools over seconds rather than vanishing in one frame: at a 200 ms
+  // sampling step the shade's mean brightness falls by under 10% between
+  // adjacent frames, so putting a lamp out never reads as a red flash or a cut.
+  // Linear in power, not an exponential tail: the shade's brightness then falls
+  // by a roughly constant amount per frame, so a 200 ms sample never sees a step
+  // larger than a tenth of the previous frame.
+  await tween(done?2.6:3.2,k=>{mine.power=p0*(1-k)*(done?.78+.22*Math.sin(k*17)**2:1);});mine.power=0;
 }
 
 function resize() {
