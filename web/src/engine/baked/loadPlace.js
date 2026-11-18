@@ -103,6 +103,7 @@ export async function loadBakedPlace(id,renderer,initialLight={n:1,g:0}){
     if(!object.isMesh)return;
     const region=object.userData.lightmap_region??object.userData.region??object.parent?.userData.lightmap_region;
     const maps=regions[region];if(!maps)throw new Error(`Missing lightmaps for ${object.name} (${region})`);
+    const shelteredNiche = movingNicheLight && region === 'niche';
     const uv=object.geometry.getAttribute('uv1');
     if(!uv)throw new Error(`Missing exported second UV set on ${object.name}`);
     // glTF TEXCOORD_1 is named uv1 by three.js 0.160. Keep an explicit uv2 alias
@@ -152,8 +153,8 @@ export async function loadBakedPlace(id,renderer,initialLight={n:1,g:0}){
         shader.fragmentShader=shader.fragmentShader.replace('#include <lights_fragment_maps>',`
           #if defined(RE_IndirectDiffuse) && defined(USE_LIGHTMAP)
             vec3 baked=vec3(0.);
-            if(uBakedWeights.x>.0001)baked+=decodeBaked(texture2D(uBakedNight,vLightMapUv).rgb,uBakedScales.x,uBakedLogRange.x,uBakedLogGain.x)*uBakedWeights.x;
-            if(uBakedWeights.y>.0001)baked+=decodeBaked(texture2D(uBakedDusk,vLightMapUv).rgb,uBakedScales.y,uBakedLogRange.y,uBakedLogGain.y)*uBakedWeights.y;
+            if(uBakedWeights.x>.0001)baked+=decodeBaked(texture2D(uBakedNight,vLightMapUv).rgb,uBakedScales.x,uBakedLogRange.x,uBakedLogGain.x)*uBakedWeights.x${shelteredNiche ? ' * .55' : ''};
+            if(uBakedWeights.y>.0001)baked+=decodeBaked(texture2D(uBakedDusk,vLightMapUv).rgb,uBakedScales.y,uBakedLogRange.y,uBakedLogGain.y)*uBakedWeights.y${shelteredNiche ? ' * .78' : ''};
             if(uBakedWeights.z>.0001)baked+=decodeBaked(texture2D(uBakedDay,vLightMapUv).rgb,uBakedScales.z,uBakedLogRange.z,uBakedLogGain.z)*uBakedWeights.z;
             float away=${movingNicheLight
               ? '.58 * (1. - smoothstep(.095, .275, distance(vBakedWorld,uBakedLampAnchor)))'
