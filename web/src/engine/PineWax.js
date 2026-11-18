@@ -136,11 +136,20 @@ export function createPineTray(seat) {
       float fleck = smoothstep(.64, .9, mineral);
       float soot = (1. - smoothstep(.012, .048, length(vPineLocal.xz))) * smoothstep(.37, .85, aggregate);
       float scuffedRim = smoothstep(.049, .057, length(vPineLocal.xz)) * smoothstep(.006, .012, vPineLocal.y);
-      diffuseColor.rgb *= .72 + .32 * aggregate + .34 * fleck + .14 * scuffedRim - .34 * soot;`)
+      diffuseColor.rgb *= .67 + .31 * aggregate + .09 * fleck + .10 * scuffedRim - .30 * soot;`)
       .replace('#include <roughnessmap_fragment>', `#include <roughnessmap_fragment>
-        roughnessFactor = clamp(roughnessFactor + .1 * (aggregate - .5) - .11 * scuffedRim, .56, .98);`);
+        roughnessFactor = clamp(roughnessFactor + .14 * (aggregate - .5) - .10 * scuffedRim, .56, .98);`)
+      .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
+        float relief = .00026 * aggregate + .000024 * mineral;
+        vec3 viewDx = dFdx(-vViewPosition);
+        vec3 viewDy = dFdy(-vViewPosition);
+        vec3 surfaceX = cross(viewDy, normal);
+        vec3 surfaceY = cross(normal, viewDx);
+        float surfaceArea = dot(viewDx, surfaceX);
+        vec3 gradient = dFdx(relief) * surfaceX + dFdy(relief) * surfaceY;
+        normal = normalize(normal - sign(surfaceArea) * gradient / max(abs(surfaceArea), 1.e-10));`);
   };
-  material.customProgramCacheKey = () => 'pine-hewn-stone-1';
+  material.customProgramCacheKey = () => 'pine-hewn-stone-2';
   material.userData.lampOwned = true;
   const tray = new THREE.Mesh(geometry, material);
   tray.receiveShadow = true;

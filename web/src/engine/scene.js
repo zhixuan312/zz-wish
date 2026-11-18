@@ -528,8 +528,8 @@ const LAMPS = {
     // The nearly vertical flame point produced two hard discs. Keep contact
     // under the wax and dish with short, soft falloff at their actual bases.
     holder.castShadow = false;
-    const contactRadius = refined ? .069 : .082;
-    const shelfContact = waxContactShadow(contactRadius, .53);
+    const contactRadius = refined ? .064 : .082;
+    const shelfContact = waxContactShadow(contactRadius, refined ? .64 : .53);
     g.add(shelfContact);
     const pineWax = createPineWax(seat, waxMaterial, { refined });
     pineWax.group.visible = false;
