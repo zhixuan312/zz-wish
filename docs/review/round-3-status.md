@@ -132,18 +132,37 @@ rejected because it would lift the whole hall floor with them.
 
 ## T7: J6 the gate flame and offering bowl under gate bloom
 
-Status: **done (verified, no code change needed)**. Held captures of the gate passage and
-of each shelf lamp from the court side show both bronze oil cups, their flames and the
-bowl rims clearly against the gate bloom: the bloom haloes them but never swallows the
-silhouette. Captures:
+Status: **partly**. The shelf cups and their rims read clearly against the gate bloom in
+the desktop captures, but the flame above each rim is only a bloom blob with a few bright
+pixels, so its body and tip cannot be told apart from its halo. The phone captures have no
+usable evidence at all: the passage pose never reaches the cups and the choose panel
+covers both shelf poses. Captures so far:
 `artifacts/full-review/round-3/j6-j2/gate-{passage,shelf-left,shelf-right}-{desktop-en,phone-zh}.png`.
+
+Still needed: a runtime change, limited to material and light, that gives each gate flame a
+recognisable body and tip under the bloom, captured while walking through the gate with no
+panel over it, on desktop-en and phone-zh, with both cups fully visible. The acceptance is a
+100% crop where the flame core and its adjacent halo separate, with a measured core-to-halo
+brightness ratio of at least 1.5:1.
 
 ## T8: J2 the unlit and ended lantern
 
-Status: **done (verified, no code change needed)**. The unlit shade shows its red cloth,
-bamboo ribs, cord and tassel instead of reading as a black cutout, and the ended shade
-keeps the same readable cloth and ribs with no red flash. Captures:
+Status: **partly**. The unlit shade is no longer a black cutout, but at 3-4x magnification
+the cloth is nearly flat red and the bamboo ribs cannot be counted; the ended desktop view
+is darker still, close to a silhouette. Two claims also lack evidence: the "no red pop"
+transition needs a continuous frame series rather than one frame per state, and the phone
+unlit capture was taken from a frozen copy that predates the B5 camera change, so it still
+shows the old tassel-over-cup framing and a white glare the current build does not produce.
+That discrepancy is a stale snapshot, not a product regression; it will be re-captured from
+the current build. Captures so far:
 `artifacts/full-review/round-3/j6-j2/lantern-{unlit,burning,ended}-{desktop-en,phone-zh}.png`.
+
+Still needed: a runtime material and light change that makes the red cloth and the ribs
+readable at 100% crop in both viewports, re-captured through the real flow without Skip and
+without a held camera. Acceptance: frames covering the whole approach and the put-out to
+ended transition at 250 ms or finer, mean shade-mask brightness changing by no more than 10%
+between adjacent frames with the maximum and its frame path recorded, and the phone unlit
+tassel at least 24 CSS px clear of the stand cup as in B5.
 
 ## T9: J5 the desktop burning lantern size
 
