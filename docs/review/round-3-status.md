@@ -194,20 +194,30 @@ and 5.4% (phone, frame 08 to 09). The unlit and ended cloth, with its ribs, is v
 `j6-j2/ended-*` and `j6-j2/t8-{desktop-en,phone-zh}-{00,08,16,23}.png`. No red flash or
 reversal appears in either series.
 
-### Approach, attempted
+### Approach series
 
-A timestamped approach series was captured on this build with no Skip and no held camera:
-130 frames per viewport, walk progress 0→1.0 on desktop and 0→0.59 on phone. Intervals were
-median 232 ms on desktop (30 of 129 slightly over 250 ms) and 133 ms on phone (none over).
-The series is not usable as a red-pop measurement yet: the capture used one fixed clip
-rectangle, and as the camera walks in the shade leaves that rectangle, so 35 of 130 desktop
-frames contain no shade at all and a per-frame mask finds unrelated red geometry in others.
+Captured through the real walk with no Skip and no held camera, and with a clip that follows
+the lamp's own projected screen rectangle so the shade stays in frame as the camera advances.
+130 frames per viewport; desktop walk progress 0→0.91 and phone 0→0.51 before the chooser
+appeared. Intervals from in-page timestamps: desktop median **201 ms** with a 247 ms maximum
+(none over 250 ms); phone median 117 ms with a 121 ms maximum.
 
-What the frames do show, inspected one by one, is a shade that reads as dark red cloth with
-visible ribs at every distance, becoming larger and brighter as it approaches, with no frame
-showing a saturated flash. That is a visual judgement on individual frames, not a measured
-series, so the item stays partly done. A usable measurement needs a clip that follows the
-lamp, or full frames with a per-frame shade mask.
+Deskktop shade brightness over the approach, per frame, with the mask found in each frame and
+blobs under 150 sampled cells dropped: 125 of 130 frames measured, values between 16.7 and
+24.2. The step from one frame to the next has a **median of 1.0%**, a 95th percentile of 9.0%,
+and one 41.8% maximum that coincides with a frame where the detector picked up a larger red
+region than the shade. Frames and per-frame values:
+`j6-j2/approach-desktop-en-{010,040,070,100,129}.png`, `j6-j2/approach-series-desktop.json`,
+`j6-j2/approach-timestamps.json`.
+
+The phone series does not support the same measurement: the shade is small enough on that
+viewport that the detector locks onto other red geometry in most frames (only 26 of 130 pass
+the size filter), so its numbers are not reported.
+
+Reading the desktop frames individually, the shade is dark red cloth with visible ribs at
+every distance and grows steadily as it approaches, with no frame showing a saturated flash.
+That is a visual judgement on the frames plus a mostly flat measured series, not a clean
+100%-coverage measurement on both viewports, which is why this item stays partly done.
 
 ## T9: J5 the desktop burning lantern size
 
