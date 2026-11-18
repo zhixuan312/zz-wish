@@ -78,10 +78,10 @@ shade grows. The cord is continuous at all three sizes, no shade touches the cei
 the columns or the table, the flame and wick sit inside the shade, and 24 h matches the
 previous picture.
 
-Burning, cloth height as a fraction of frame height, measured with
-`tests/visual/s2-frame-measure.mjs`: the largest saturated-red blob whose row count exceeds
-roughly a third of its widest row, taken between the shade's upper and lower rims. These are
-measurements, not targets.
+Burning, cloth height as a fraction of frame height, measured by decoding each PNG and taking
+the vertical extent of the largest saturated-red region whose row count exceeds roughly a
+third of its widest row, between the shade's upper and lower rims. These are measurements,
+not targets.
 
 | viewport | 10 min | 2 h | 24 h |
 |---|---|---|---|
@@ -201,44 +201,48 @@ reversal appears in either series.
 ### Approach series
 
 Captured through the real walk with no Skip and no held camera. Each frame's clip follows the
-lamp's own projected screen rectangle, and the mean is taken over every pixel of that
-rectangle inside the cropped capture — cloth, ribs and the dark gaps between them — with no
-colour threshold anywhere. 130 frames per viewport; desktop walk progress 0→0.90 and phone
-0→0.51 before the chooser appeared.
+lamp's own page-space rectangle, the true PNG size is read from each file's header, and the
+mean is taken inside that rectangle after converting CSS to capture pixels with
+scale = PNG size / clip size. Both viewports record scale 2 (devicePixelRatio 2), so a CSS
+box indexes only half of a capture and is never used directly. 140 frames per viewport;
+desktop walk progress 0→1.00 and phone 0→0.55 before the chooser appeared.
 
-Intervals from in-page timestamps: desktop median **200 ms**, max **249 ms** (none over
-250 ms); phone median **117 ms**, max 120 ms. All 130 frames on both viewports carry a lamp
-rectangle and a measured mean.
+Two regions are measured on every frame: **whole** covers the lamp rectangle (cloth, ribs,
+gaps and the rim), **inner** covers its middle half, which keeps the cloth body and excludes
+the cord above and the frame edges.
 
-| viewport | frames | range | median step | p95 step | largest step |
-|---|---|---|---|---|---|
-| desktop-en | 130/130 | 6.0-22.4 | 2.1% | 20.4% | 37.5% (frame 123→124) |
-| phone-zh | 130/130 | 13.5-18.7 | 2.2% | 6.6% | 11.3% (frame 41→42) |
+| viewport | interval median / max | whole range | inner range | inner median step | inner p95 step | largest inner step |
+|---|---|---|---|---|---|---|
+| desktop-en | 207 / 275 ms | 12.2-33.4 | 13.7-27.8 | 1.3% | 12.8% | 30.1% (24→25) |
+| phone-zh | 117 / 120 ms | 23.1-39.6 | 16.1-32.1 | 2.0% | 21.3% | 49.6% (41→42) |
 
-Every number above, with each frame's mean and its rectangle, is in
-`j6-j2/approach-series-{desktop-en,phone-zh}.json`; timestamps, clip and lamp rectangle per
-frame are in `j6-j2/approach-timestamps.json`. Frames kept, five per viewport evenly spaced through the walk:
-`j6-j2/approach-phone-zh-{20,60,100,125,129}.png` for visual review, the matching
-`j6-j2/approach-desktop-en-{20,60,100,125,129}.png`, plus
-`j6-j2/approach-desktop-en-{123,124}.png` for the largest desktop step.
+Every number is recomputable from `j6-j2/approach-series-{desktop-en,phone-zh}.json`, which
+carries each frame's scale, image pixel size, the lamp rectangle in pixels, its progress and
+both means. Timestamps, clip and page-space rectangle are in `j6-j2/approach-timestamps.json`.
 
-The cause of that 37.5% desktop step is **undetermined**. The two frames show the same dark
-red cloth at the same size and tone, and the lamp rectangle only grows from 108x144 to
-112x150 px, which cannot by itself move a mean by a third. Recomputing the mean inside a
-region common to both crops still gives 18.4 against 9.7 (47% apart), so the difference is in
-the pixels, not only in how much background the rectangle includes; what changes them is not
-established here.
+What the largest steps are: at frame 24→25 on desktop and 41→42 on phone the shade is still
+31x51 and 39x51 capture pixels, and in every case the inner red channel rises with the inner
+luma (47.7→54.2 and 46.0→57.1). Once the shade is wider than 60 capture pixels the largest
+inner step is 7.9% on desktop and, on the phone series, the only larger steps are in the same
+small-shade opening stretch. Frames: `j6-j2/approach-desktop-en-{000,024,025,100,120,132,133,139}.png`
+and `j6-j2/approach-phone-zh-{000,041,042,120,139}.png`.
 
-Read against the frames, the shade stays dark red cloth with visible ribs throughout the
-approach, grows steadily, and never saturates; no frame in either series shows a red flash.
-Because one desktop step remains unexplained, this item stays **partly** done.
+On the desktop 125→129 range raised in review: with the corrected rectangle the inner luma
+reads 16.0, 16.0, 15.8, 15.8, 15.9, 15.6 — flat and slightly falling, and the red channel
+reads 55.0, 55.0, 55.0, 55.1, 55.2, 54.2. There is no rise there; the earlier rise came from
+the mis-scaled box including a moving orange background stripe.
+
+So across the whole approach the cloth never brightens step by step once it is more than 60
+capture pixels wide, which is the claim J2 needs. The opening frames, where the lamp is
+30-50 px, still show single-frame changes up to 30% and 50% that are not fully explained;
+that is why the item stays **partly** done.
 
 ## T9: J5 the desktop burning lantern size
 
 Status: **done**. The settled desktop burning view frames against a fixed full-day lamp
 reference instead of the live lamp frame, so the camera no longer refits per duration and
-only camera placement changed. Measured on the T9 batch with
-`tests/visual/s2-frame-measure.mjs`:
+only camera placement changed. Measured on the T9 batch by decoding each PNG and taking the
+vertical extent of the shade's saturated-red region between its rims:
 
 | duration | cloth height |
 |---|---|
@@ -306,30 +310,31 @@ from that run was overwritten, so what stopped it is undetermined. That attempt 
 
 ## T10: final journey and status reconciliation
 
-Status: **done**. The final journey exists on the branch tip and every item below carries
-both a before and an after path. Two items are open by decision rather than by missing
-evidence: J12 needs a new bake and is listed for the owner, and the unlit/ended lantern keeps
-one unexplained step in its desktop approach series, recorded under T8.
-
-Before and after, per item:
+Status: **partly**. The final journey exists, but most items have no before capture on disk,
+so a true before/after pair is the exception rather than the rule.
 
 | item | before | after |
 |---|---|---|
-| T1 | measured 8525-9438 ms to an enabled `Step inside` | `j6-j2` captures plus 3130-3793 ms measured |
-| T2b choose | 0.56 m shade at every duration | `lantern-size/choose-{desktop-en,phone-zh}-{10min,2h,24h}.png` |
-| T2b burning | fixed 0.56 m shade | `lantern-size/burning-{desktop-en,phone-zh}-{10min,2h,24h}.png` |
-| B5 phone choose | `choose-phone-zh-24h.png` tassel on the cup | `lantern-size/choose-phone-zh-{10min,2h,24h}.png` |
-| T5 | bright 12 px accent badge | `after-journey/chromium/desktop-en/place.png` |
+| T1 | no before capture; 8525-9438 ms measured on the pre-fix build | 3130-3793 ms measured; no capture |
+| T2b choose | no before capture; 0.56 m at every duration | `lantern-size/choose-{desktop-en,phone-zh}-{10min,2h,24h}.png` |
+| T2b burning | no before capture; 0.56 m at every duration | `lantern-size/burning-{desktop-en,phone-zh}-{10min,2h,24h}.png` |
+| B5 phone choose | `j6-j2` has no pre-fix frame; `choose-phone-zh-24h.png` was overwritten | `lantern-size/choose-phone-zh-{10min,2h,24h}.png` |
+| J15 phone pad | no before capture; pad was about 358 px wide and the tools were off-screen | `tests/tier1/e2e/phone-drawing.spec.ts` measures 200x300 CSS px |
+| J16 long wish | no before capture; the wish was cut without an ellipsis | `lantern-size/burning-phone-zh-10min.png` |
+| T5 | no before capture; badge was a bright 12 px accent line | `after-journey/chromium/desktop-en/place.png` |
+| T6 (J12) | **not done** — baked geometry needs a new bake | — |
 | T7 | `j6-j2/gate-shelf-{left,right}-desktop-en.png` | `j6-j2/gate-walk-{desktop-en,phone-zh}.png` |
-| T8 | `j6-j2/lantern-unlit-{desktop-en,phone-zh}.png` | `j6-j2/t8-{desktop-en,phone-zh}-{00,08,16,23}.png` |
-| T9 | about 13-15% of frame height | `after-journey/*/desktop-en/burning.png` |
-| T3 | the 196-frame chromium-only run | `after-journey/{chromium,webkit}/<context>/` |
+| T8 | `j6-j2/lantern-unlit-{desktop-en,phone-zh}.png` | `j6-j2/t8-{desktop-en,phone-zh}-{00,08,16,23}.png` and `j6-j2/approach-{desktop-en,phone-zh}-*.png` |
+| T9 | no before capture; about 13-15% of frame height at every duration | `lantern-size/burning-desktop-en-{10min,2h,24h}.png` |
+| T3 | no before capture | `after-journey/{chromium,webkit}/<context>/` |
 
-Every path above is relative to `artifacts/full-review/round-3/`. The round 1 baselines these
-replace stay in `artifacts/full-review/round-1/after-journey/` and are not overwritten.
+Before numbers quoted above come from the measurements recorded in the T1, T2b and T9
+sections, not from a kept image. T9's after evidence is the three-duration burning set, not
+only the 10 min journey frame. Every path is relative to
+`artifacts/full-review/round-3/`.
 
-Measured on the final journey frames with `tests/visual/s2-frame-measure.mjs`, shade height
-as a fraction of frame height for the 10 min lamp the journey lights:
+Measured on the final journey frames by decoding each PNG and taking the vertical extent of
+the shade's saturated-red region between its rims; this is the 10 min lamp the journey lights:
 
 | context | `burning.png` |
 |---|---|
@@ -338,20 +343,12 @@ as a fraction of frame height for the 10 min lamp the journey lights:
 | chromium `phone-zh` | 10.9% |
 | webkit `phone-zh` | 10.9% |
 
-Both browsers agree to a tenth of a percent. This is the same 10 min lamp that measures 14.8%
-in the T9 batch and 15.1% in the T2b batch: the frames differ, so the numbers differ, and each
-is reported against its own frame.
-
-Open by decision, not by missing capture: J12 (T6) needs a new bake, and the approach series
-for T8 keeps one undetermined step at its largest desktop frame.
+Open: J12 needs a new bake, and the opening frames of both approach series still carry
+single-frame changes that are not fully explained.
 
 ## Items for Boss
 
 - J12: readable stacked bowls and leaning broom. They are baked region geometry lit only by
   the hall lightmap. A runtime fill light would also raise the surrounding floor, so this
   needs a new bake with more hall fill; it is out of scope for this branch.
-
-## Items that still need GPU captures
-
-- The timestamped approach series for J2, to show the shade does not flash red on the way in.
 
