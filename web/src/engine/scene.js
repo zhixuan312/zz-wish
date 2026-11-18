@@ -18,7 +18,7 @@ import { GAUZE_CANDLE_REFERENCE } from './baked/gauzeTransmission.js';
 import { acquireNativeAgX, NativeAgXPass } from './baked/nativeAgX.js';
 import visitorFabric from './baked/visitor-fabric.json';
 import { WickPlume, addGauzeVent, createGauzeSmokePath, gauzeFlameSize, gauzeRibGeometry, gauzeThroat } from './WickPlume.js';
-import { createPineWax } from './PineWax.js';
+import { createPineWax, waxContactShadow } from './PineWax.js';
 
 // ---------- Renderer ----------
 const canvas = document.getElementById('gl');
@@ -521,11 +521,16 @@ const LAMPS = {
     const g = new THREE.Group(), seat = { y: .008, maxR: .045, maxH: .16, traceRadius: .056 };
     const dish = lathe([[0, 0], [.057, 0], [.067, .004], [.069, .009], [.065, .012],
       [.06, .011], [.056, seat.y], [0, seat.y]], 56);
-    solid(g, dish, greyStoneMat);
+    const holder = solid(g, dish, greyStoneMat);
+    // The nearly vertical flame point produced two hard discs. Keep contact
+    // under the wax and dish with short, soft falloff at their actual bases.
+    holder.castShadow = false;
+    const shelfContact = waxContactShadow(.082, .53);
+    g.add(shelfContact);
     const pineWax = createPineWax(seat, waxMaterial);
     pineWax.group.visible = false;
     g.add(pineWax.group);
-    return { g, kind: 'wax', seat, pineWax, frame: { h: .2, cy: .08 }, lightMax: .095, light: 0xffbc82, flame: 1.13 };
+    return { g, kind: 'wax', seat, pineWax, holder, shelfContact, frame: { h: .2, cy: .08 }, lightMax: .05, light: 0xffbc82, flame: 1.13 };
   },
   // A brass-framed storm lantern hanging from a hook; the candle stands inside behind glass.
   lantern() {
@@ -1738,9 +1743,10 @@ const chooseView = () => {
     // just above it, backing up only as much as the tallest profiles need.
     const pos = N.choosePhone.pos.clone(), look = N.choosePhone.look.clone(), fov = N.choosePhone.fov;
     const wax = mine.parts?.pineWax;
-    pos.z = Math.max(pos.z, (wax?.fullHeight() ?? .08) * 5.7);
+    pos.z = Math.max(pos.z, (wax?.fullHeight() ?? .08) * 6.5) * Math.max(1, innerHeight / 844);
     const shelfPixel = Math.min(272, innerHeight * .38);
-    const elevation = Math.atan2(N.y + .008 - pos.y, Math.hypot(pos.x, pos.z - .065));
+    const seatY = mine.parts?.seat?.y ?? .008;
+    const elevation = Math.atan2(N.y + seatY - pos.y, Math.hypot(pos.x, pos.z - .065));
     const screenAngle = Math.atan((1 - 2 * shelfPixel / innerHeight) * Math.tan(THREE.MathUtils.degToRad(fov / 2)));
     look.y = pos.y + Math.tan(elevation - screenAngle) * Math.hypot(pos.x, pos.z);
     return viewOf({ pos, look, fov });
@@ -2100,8 +2106,8 @@ export async function snuff(done = false, remaining) {
   lit = false;
   shadeCoolingUntil=done?clockTime+5.2:0;shadeCoolingGlow=done?Math.min(.65,Math.max(.12,lastGlow*.55)):0;
   ignitionFill=0;
-  cameraJourneyVersion++;
-  if(import.meta.env.DEV)window.__visualIgnition={state:'cancelled',journey:cameraJourneyVersion};
+  const journey = ++cameraJourneyVersion;
+  if(import.meta.env.DEV)window.__visualIgnition={state:'cancelled',journey};
   if(ignitionTaper)ignitionTaper.g.visible=false;
   const endingParts = mine.parts;
   if (endingParts?.pineWax) {
@@ -2110,6 +2116,13 @@ export async function snuff(done = false, remaining) {
     level = targetLevel = fuel;
     mine.waxState = done ? 'burned_down' : 'went_out';
     mine.setLevel(fuel);
+    if (narrow()) {
+      const start = rig.look.y;
+      const end = Math.min(start, burnView().look.y - .08);
+      void tween(.65, k => {
+        if (journey === cameraJourneyVersion) rig.look.y = THREE.MathUtils.lerp(start, end, ease(k));
+      });
+    }
   } else if (done) { level = targetLevel = 0; mine.setLevel(0); }
   const wickTip = endingParts?.pineWax?.wickTip.clone() ?? mine.top.clone().add(V3(.0007,.004,0));
   wickPlume.start({time:clockTime,done,frame:mine.g,path:endingParts?.smokePath,wickTip,valid:()=>mine.parts===endingParts});

@@ -6,6 +6,33 @@ const clamp = THREE.MathUtils.clamp;
 const lerp = THREE.MathUtils.lerp;
 const vector = (x, y, z) => new THREE.Vector3(x, y, z);
 
+export function waxContactShadow(radius, opacity) {
+  const material = new THREE.ShaderMaterial({
+    transparent: true, depthWrite: false,
+    uniforms: { uOpacity: { value: opacity } },
+    vertexShader: `
+      varying vec2 vUv;
+      void main() {
+        vUv = uv;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.);
+      }`,
+    fragmentShader: `
+      varying vec2 vUv;
+      uniform float uOpacity;
+      void main() {
+        float radial = length(vUv * 2. - 1.);
+        gl_FragColor = vec4(.013, .008, .005, uOpacity * (1. - smoothstep(.46, 1., radial)));
+        #include <tonemapping_fragment>
+        #include <colorspace_fragment>
+      }`,
+  });
+  material.userData.lampOwned = true;
+  const contact = new THREE.Mesh(new THREE.CircleGeometry(1, 48).rotateX(-Math.PI / 2), material);
+  contact.scale.setScalar(radius);
+  contact.position.y = .00016;
+  return contact;
+}
+
 function surface(rings, sectors) {
   const geometry = new THREE.BufferGeometry();
   const positions = new THREE.BufferAttribute(new Float32Array(rings * sectors * 3), 3);
@@ -124,10 +151,11 @@ export function createPineWax(seat, waxMaterial) {
     return object;
   };
   const body = add(new THREE.BufferGeometry(), bodyMaterial);
-  body.castShadow = true;
   body.frustumCulled = false; // Small, moving vertices do not need a new bounding sphere each frame.
   const pool = add(new THREE.CircleGeometry(1, 48).rotateX(-Math.PI / 2), poolMaterial);
   const trace = add(makeTrace(), traceMaterial);
+  const contact = waxContactShadow(1, .42);
+  group.add(contact);
   const drops = [
     { angle: 1.12, start: .015, reach: .031, width: .00165 },
     { angle: 2.16, start: .095, reach: .020, width: .00118 },
@@ -183,7 +211,10 @@ export function createPineWax(seat, waxMaterial) {
         pool.position.set(top.cx, cut - (top.depth ?? 0) + Math.min(cut * .04, .00016), 0);
         poolMaterial.roughness = state === 'burning' ? .14 : .29;
         const spread = Math.sqrt(Math.max(0, 1 - fuel));
-        const base = rows[0], traceHeight = Math.min(.0052, base.r * .32) * spread;
+        const base = rows[0];
+        contact.position.x = base.cx;
+        contact.scale.setScalar(base.r * 1.48);
+        const traceHeight = Math.min(.0052, base.r * .32) * spread;
         trace.visible = spread > .04;
         trace.position.x = base.cx;
         const spreadRadius = Math.min(base.r * (.78 + .38 * spread), (seat.traceRadius - Math.abs(base.cx)) / 1.4);
