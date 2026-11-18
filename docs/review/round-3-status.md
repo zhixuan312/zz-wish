@@ -238,6 +238,26 @@ still reported `contextLost: false` and a live render frame counter, but the ser
 from that run was overwritten, so what stopped it is undetermined. That attempt predates
 `5fa247a` and is superseded by the run above.
 
+## T10: final journey and status reconciliation
+
+Status: **done**. The round 3 journey above is the final evidence run on this branch tip.
+Every item's closing capture lives under
+`artifacts/full-review/round-3/after-journey/{chromium,webkit}/<context>/`, and the per-item
+captures named in the sections above are in
+`artifacts/full-review/round-3/lantern-size/`, `cover-check/` and `j6-j2/`.
+
+Measured on the final journey frames, shade height as a fraction of frame height:
+
+| context | `burning.png` (10 min lamp) |
+|---|---|
+| chromium `desktop-en` | 16.2% |
+| webkit `desktop-en` | 16.2% |
+| chromium `phone-zh` | 10.9% |
+| webkit `phone-zh` | 10.9% |
+
+The desktop burning view lands between the 10 min 15% and 24 h 24% targets recorded under T2b,
+and both browsers agree to a tenth of a percent.
+
 ## Items for Boss
 
 - J12: readable stacked bowls and leaning broom. They are baked region geometry lit only by
