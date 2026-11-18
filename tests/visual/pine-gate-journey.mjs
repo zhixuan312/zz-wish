@@ -22,6 +22,7 @@ if (process.argv.includes('--help')) {
     'CAPTURE_MILESTONE=m3 runs both viewports and languages on Chrome and WebKit.',
     'CAPTURE_MILESTONE=quality captures a desktop and phone review set. Use QUALITY_PASS=preview or final.',
     'QUALITY_LABEL selects the quality output directory and defaults to QUALITY_PASS.',
+    'CAPTURE_READINESS_ONLY=1 stops at Step inside. Use CAPTURE_READINESS_REPEATS=3 for independent browser launches.',
     'CAPTURE_BROWSER and CAPTURE_ONLY can select a single context. PINE_HOUR defaults to 22.',
   ].join('\n'));
   process.exit(0);
@@ -34,6 +35,11 @@ const mode = process.env.CAPTURE_MILESTONE ?? 'm1';
 assert(['m1', 'm3', 'quality'].includes(mode), 'CAPTURE_MILESTONE must be m1, m3 or quality.');
 const quality = mode === 'quality';
 const fullJourney = mode !== 'm1';
+const readinessOnly = process.env.CAPTURE_READINESS_ONLY === '1';
+const readinessRepeats = Number(process.env.CAPTURE_READINESS_REPEATS ?? 1);
+assert(!readinessOnly || quality, 'Readiness-only requires CAPTURE_MILESTONE=quality.');
+assert(Number.isInteger(readinessRepeats) && readinessRepeats >= 1 && readinessRepeats <= 3
+  && (readinessOnly || readinessRepeats === 1), 'Use one to three repetitions in readiness-only mode.');
 const holdCameraDrift = mode !== 'm3';
 const qualityPass = process.env.QUALITY_PASS ?? 'preview';
 assert(['preview', 'final'].includes(qualityPass), 'QUALITY_PASS must be preview or final.');
@@ -83,6 +89,7 @@ if (fullJourney) {
 await mkdir(output, { recursive: true });
 const report = {
   mode,
+  ...(readinessOnly ? { readinessOnly, readinessRepeats } : {}),
   ...(quality ? { reviewLabel, matchedEndingShapes: true } : {}),
   delivery,
   clock: 'Local visual hour ' + hour + ' held constant. Controlled client and matching isolated server start times accelerate progress; render animation uses real frame timestamps.',
@@ -186,14 +193,15 @@ async function drawProfile(context, page, touch, browserName) {
   }
 }
 
-async function capture(browser, browserName, size) {
+async function capture(browser, browserName, size, trial) {
   const { language, label, phone, width, height } = size;
   const context = await browser.newContext({
     viewport: { width, height }, deviceScaleFactor: phone && fullJourney ? 2 : 1,
     locale: language === 'zh' ? 'zh-CN' : 'en-US', hasTouch: phone, isMobile: phone,
   });
   const path = mode === 'm3' ? join(output, browserName, label) : join(output, label);
-  const run = { browser: browserName, version: browser.version(), label, shots: [], records: [], errors: [] };
+  const run = { browser: browserName, version: browser.version(), label,
+    ...(readinessOnly ? { trial } : {}), shots: [], records: [], errors: [] };
   report.runs.push(run);
   await mkdir(path, { recursive: true });
   try {
@@ -220,7 +228,7 @@ async function capture(browser, browserName, size) {
       if (response.status() >= 400) run.errors.push({ kind: 'http', status: response.status(), url: response.url() });
     });
     page.on('crash', () => run.errors.push({ kind: 'crash' }));
-    if (fullJourney && phone) {
+    if (fullJourney && phone && !readinessOnly) {
       await page.route(url => url.pathname === '/src/engine/scene.js', async route => {
         const response = await route.fetch();
         const source = await response.text();
@@ -428,7 +436,7 @@ async function capture(browser, browserName, size) {
       return debug ? gl.getParameter(debug.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER);
     });
     await page.evaluate(() => document.fonts.ready);
-    if (fullJourney) await captureShot('home');
+    if (fullJourney && !readinessOnly) await captureShot('home');
     await page.getByLabel(wishLabel).fill(wish);
     await act(button(bi('^Set my wish$', '^许好了$')));
     const pineRadio = radio(new RegExp('^' + place));
@@ -442,6 +450,15 @@ async function capture(browser, browserName, size) {
         run.placeReadyMs = performance.now() - selectStarted;
       } finally {
         run.placeReadiness = await page.evaluate(() => window.__readPlaceReadiness?.());
+      }
+      if (readinessOnly) {
+        assert(Number.isFinite(run.placeReadiness?.clickToEnabledMs), 'Did not observe click and enable events.');
+        console.log(browserName, label, 'trial', trial, 'place readiness ms', JSON.stringify({
+          endToEnd: run.placeReadyMs, clickToEnabled: run.placeReadiness.clickToEnabledMs,
+          afterLastPineResponse: run.placeReadiness.afterLastPineResponseMs,
+        }));
+        assert.deepEqual(run.errors, []);
+        return;
       }
       await captureShot('place');
     }
@@ -582,18 +599,22 @@ try {
     const options = name === 'chromium'
       ? { channel: 'chrome', args: ['--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist'] }
       : {};
-    const browser = await (name === 'chromium' ? chromium : webkit).launch(options);
-    try {
-      for (const size of sizes) {
-        try {
-          await capture(browser, name, size);
-        } catch (error) {
-          failures++;
-          console.error(name, size.label, error.stack ?? error.message);
+    const launch = () => (name === 'chromium' ? chromium : webkit).launch(options);
+    const groups = readinessOnly ? sizes.map(size => [size]) : [sizes];
+    for (let trial = 1; trial <= readinessRepeats; trial++) for (const group of groups) {
+      const browser = await launch();
+      try {
+        for (const size of group) {
+          try {
+            await capture(browser, name, size, trial);
+          } catch (error) {
+            failures++;
+            console.error(name, size.label, error.stack ?? error.message);
+          }
         }
+      } finally {
+        await browser.close();
       }
-    } finally {
-      await browser.close();
     }
   }
   console.log('Ran ' + report.runs.length + ' contexts, captured ' + report.runs.reduce((n, run) => n + run.shots.length, 0) + ' screenshots, ' + failures + ' failed contexts.');
