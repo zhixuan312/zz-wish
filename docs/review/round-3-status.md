@@ -156,7 +156,8 @@ unnecessary and was reverted in `1d7ade2`; the measurement stays.
 
 ## T8: J2 the unlit and ended lantern
 
-Status: **partly**. The ended half is measured; the approach half has no series yet.
+Status: **partly**. The ended half is measured and the desktop approach series is clean; the
+phone approach could not be measured (see below), so the item does not close.
 
 `a1b96a0` gives the bamboo ribs a small constant emissive term, so at 100% crop the unlit and
 ended shade shows countable ribs instead of flat red. `e45ab80` keeps the put-out sudden for
