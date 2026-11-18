@@ -225,9 +225,10 @@ edges.
 | desktop-en | 201 / 304 / 3 | 33→345 px | 1.7% | 0.9% | 5.1% | **0** | 2 |
 | phone-zh | 117 / 211 / 0 | 31→237 px | 0% | 1.0% | 5.9% | **0** | 1 |
 
-No overshoot remains: the camera's distance to the lamp never increases at any frame of either
-series, and its closest walking point equals the chooser distance exactly. The chooser framing
-is 345 px desktop and 237 px phone. `maxDropFromPeakPct` compares every
+Overshoot, computed from the authored route rather than from the series (the series JSON holds
+no camera positions): phone's curve minimum equals its chooser distance exactly, and desktop
+dips 4.7 mm past it at `e ≈ 0.9963` before settling, versus 0.381 m and 0.678 m on `master`.
+The chooser framing is 345 px desktop and 237 px phone. `maxDropFromPeakPct` compares every
 frame with the best width seen so far across the whole series.
 
 ### Causes found and fixed
@@ -242,16 +243,21 @@ frame with the best width seen so far across the whole series.
 3. **The phone approach overshot.** `fitShadeView` moves the phone chooser pose off the
    doorway line, so the lateral waypoint passed closer than the final pose; phone now has a
    single doorway waypoint.
-4. **The approach overshot the lamp on `master` too.** On `ba78f1f` the last
-   `chooseApproach` waypoint stands 2.452 m from the hanging lamp while `choose` stands
-   2.751 m, so the walk closed 0.30 m too far and then backed off — the camera reaches its
-   closest point before the walk ends and the shade shrinks afterwards. That is visible in the
-   older captures as a width peak followed by a fall (436 px at frame 133 down to 362 px at
-   frame 139). The distance is computed straight from the authored waypoints and the hanging
-   point, so it does not depend on any capture. `9f4ca24` removed the overshoot by putting the
-   desktop waypoint on the line to the chooser pose and giving phone a single doorway point;
-   in the current series the camera's distance to the lamp never increases at any frame and its
-   closest walking point equals the chooser distance exactly (2.751 m desktop, 3.966 m phone).
+4. **The approach overshot the lamp on `master` too.** All distances here are horizontal and
+   in one frame: the nook sits at `(0, .6, -.5)`, so the hanging lamp at world
+   `(-1.4993, 5.041, -1.3)` is at local `(-1.4993, -0.8)`. On `ba78f1f` the last desktop
+   `chooseApproach` waypoint stands **1.953 m** from the lamp while `choose` stands
+   **2.317 m**, and the centripetal curve's closest point is **1.936 m** — an overshoot of
+   **0.381 m** that the walk then gives back. Phone on `master` overshoots further:
+   `choose` is **3.476 m** and the curve reaches **2.798 m**, an overshoot of **0.678 m**.
+   Those are computed from the authored waypoints and the lamp anchor, so they need no
+   capture. `45989b8` put the desktop waypoint on the line to the chooser pose and `c57f9bb`
+   gave phone a single doorway point; on the current route the phone curve's minimum equals
+   its chooser distance exactly, and the desktop curve dips to **2.312 m** at `e ≈ 0.9963`
+   before returning to **2.317 m**, a **4.7 mm** rebound over roughly the last 0.36% of the
+   walk (frames 142-151 by progress). That rebound is computed from the curve, not measured
+   from the series: `approach-series-*.json` records brightness and rectangles, not camera
+   positions.
 5. **The lacquer rim flared.** One frame showed the shade's mean rising 31% and falling back
    while the camera, fov and fill were identical either side, so the material was the
    remaining suspect: the visitor lamp's rim used the shared glossy lacquer (roughness 0.36,
