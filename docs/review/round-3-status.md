@@ -149,28 +149,17 @@ unnecessary and was reverted in `1d7ade2`; the measurement stays.
 
 ## T8: J2 the unlit and ended lantern
 
-Status: **partly**. Progress and the exact remaining gap:
+Status: **partly**. What changed and what is still missing:
 
-The unlit and ended shade now carries a small constant emissive term on its bamboo ribs
-(`a1b96a0`), so at 100% crop the ribs are countable instead of the cloth reading as flat
-red, and putting a lamp out fades the cloth linearly over 3.2 s instead of cutting its
-light in 120 ms (`305850d`). Real-flow captures, no Skip and no held camera:
-`artifacts/full-review/round-3/j6-j2/ended-{desktop-en,phone-zh}-{00,04,08,final}.png`.
+`a1b96a0` gives the bamboo ribs a small constant emissive term, so at 100% crop the unlit
+and ended shade shows countable ribs instead of flat red. `e45ab80` keeps the put-out sudden
+for the flame, its light and the smoke, and lets only the cloth cool: the cloth starts from
+the glow it had one frame earlier and decays with a 2.6 s time constant, which is about a 9%
+fall per 250 ms frame.
 
-The ended transition was sampled at 100 ms inside one fixed shade mask. Mean shade
-brightness fell monotonically and never rose:
-
-| frame | 00 | 01 | 02 | 03 | 04 | 05 | 06 | 07 | 08+ |
-|---|---|---|---|---|---|---|---|---|---|
-| desktop-en | 88.4 | 81.5 | 73.6 | 64.9 | 54.9 | 43.8 | 28.4 | 13.3 | 13.3 |
-| phone-zh | 88.9 | 80.7 | 71.9 | 62.4 | 51.6 | 39.6 | 28.9 | 16.8 | 13.3 |
-
-Absolute steps stay between 8 and 15 luminance units and the series only falls; there is no
-red flash and no reversal. Measured as a fraction of the previous frame, the largest step
-is 53% (desktop, frame 06 to 07) and 44% (phone, frame 11 to 12), which is above the 10%
-bar in the round 3 acceptance text: the shade is close to the ambient floor there, so a
-constant absolute fall becomes a large relative one. The 10% bar is therefore not met as
-written, and this item stays partly done with those numbers rather than being closed.
+The 250 ms frame series with real timestamps, and its measured maximum adjacent-frame
+change, are still to be captured on this build. The earlier 100 ms series was taken at a
+screenshot cadence that could not hold the interval, so its numbers are not used here.
 
 ## T9: J5 the desktop burning lantern size
 
@@ -180,16 +169,19 @@ lamp reference, so the cloth covers 23.8% of frame height at 24 h, 19.2% at 2 h 
 
 ## T3: Round 3 full journey
 
-Status: **partly**. Chromium covered all four contexts
-(`desktop-en`, `desktop-zh`, `phone-en`, `phone-zh`) with 200 frames and zero HTTP errors.
-The run was stopped at the 15-minute GPU lease limit before WebKit started, so WebKit's four
-contexts have no round 3 frames yet.
+Status: **partly**. The run was stopped at the 15-minute GPU lease limit.
 
-Two chromium contexts failed one step: `phone-en` and `phone-zh` timed out waiting for the
-drawing pad's `Undo` control to become enabled, because the emulated stroke did not register
-in that context. Both then continued and their other frames exist. This is a capture-script
-weakness on emulated phone touch input, not a product change in this branch; it is reported
-rather than papered over. Output: `artifacts/full-review/round-3/after-journey/`.
+What exists: chromium covered all four contexts (`desktop-en`, `desktop-zh`, `phone-en`,
+`phone-zh`) with 200 frames and zero HTTP errors. WebKit had started and captured four
+`desktop-en` frames (home, empty-wish, loading, written) before the stop, and its other
+three contexts plus the rest of `desktop-en` are missing. Output:
+`artifacts/full-review/round-3/after-journey/`.
+
+Two chromium contexts failed one step each: `phone-en` and `phone-zh` timed out waiting for
+the drawing pad's `Undo` to become enabled. The cause is a product layout bug, not a capture
+weakness: the phone pad had grown to about 358x537 CSS px and pushed `Undo`, `Redraw` and the
+light action out of the visible sheet. `5fa247a` fixes the pad to a 200x300 px target beside
+the tools and adds a phone-only Tier 1 test that requires the first stroke to enable `Undo`.
 
 ## Items for Boss
 
