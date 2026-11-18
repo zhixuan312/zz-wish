@@ -217,7 +217,9 @@ vec4 flameAt(vec2 sampleUv){
   x -= (sway + uWind) * pow(y, 1.6);
   x += (vn(vec2(y * 7. - t * 3.1, t * .43)) - .5) * .07 * y;
   float stretch = (1. + (vn(vec2(t * 3.7, vSeed * 5.)) - .5) * mix(.16,.055,uSoft)) * mix(.35, 1., uPower);
-  float py = (y - .26) / stretch; float up = max(py, 0.);
+  // Pine's flame opens around the wick. Its darker root still needs
+  // geometric coverage below the brightest part of the teardrop.
+  float py = (y - mix(.26, .19, uPineFlame)) / stretch; float up = max(py, 0.);
   float wid = .4 * max(1. - up * 1.08, .02) * (1. + (vn(vec2(t * 2.3 - y * 4., vSeed)) - .5) * .15);
   vec2 q = vec2(x / wid, py > 0. ? py / .66 : py / .2);
   float d = length(q);
@@ -879,7 +881,7 @@ const api = { g, parts: null, partsKey: null, type: null, power: 0, lightPower: 
       if (p.pineWax) {
         f.ember.position.copy(p.pineWax.wickTip);
         if (place?.P.bakedLighting) {
-          f.flame.position.y = p.pineWax.wickTip.y - .003;
+          f.flame.position.y = p.pineWax.wickTip.y - .0035;
           f.light.position.y = p.pineWax.wickTip.y + .0175;
         }
       }
