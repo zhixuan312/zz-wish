@@ -129,7 +129,7 @@ export function createPineTray(seat) {
     positions.setXYZ(i, x * (1 + uneven), y + chip * clamp(y / .008, 0, 1), z * (1 + uneven));
   }
   geometry.computeVertexNormals();
-  const material = new THREE.MeshStandardMaterial({ color: 0x6e6860, roughness: .89, envMapIntensity: .28 });
+  const material = new THREE.MeshStandardMaterial({ color: 0x4c5661, roughness: .9, envMapIntensity: .32 });
   material.onBeforeCompile = shader => {
     materialCoordinates(shader);
     shader.fragmentShader = `
@@ -150,20 +150,25 @@ export function createPineTray(seat) {
       float fleck = smoothstep(.64, .9, mineral);
       float soot = (1. - smoothstep(.012, .048, length(vPineLocal.xz))) * smoothstep(.37, .85, aggregate);
       float scuffedRim = smoothstep(.049, .057, length(vPineLocal.xz)) * smoothstep(.006, .012, vPineLocal.y);
-      diffuseColor.rgb *= .67 + .31 * aggregate + .09 * fleck + .10 * scuffedRim - .30 * soot;`)
+      diffuseColor.rgb *= .68 + .33 * aggregate + .09 * fleck + .075 * scuffedRim - .28 * soot;`)
       .replace('#include <roughnessmap_fragment>', `#include <roughnessmap_fragment>
         roughnessFactor = clamp(roughnessFactor + .14 * (aggregate - .5) - .10 * scuffedRim, .56, .98);`)
       .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
-        float relief = .00026 * aggregate + .000024 * mineral;
+        float relief = .00035 * aggregate + .000042 * mineral;
         vec3 viewDx = dFdx(-vViewPosition);
         vec3 viewDy = dFdy(-vViewPosition);
         vec3 surfaceX = cross(viewDy, normal);
         vec3 surfaceY = cross(normal, viewDx);
         float surfaceArea = dot(viewDx, surfaceX);
         vec3 gradient = dFdx(relief) * surfaceX + dFdy(relief) * surfaceY;
-        normal = normalize(normal - sign(surfaceArea) * gradient / max(abs(surfaceArea), 1.e-10));`);
+        normal = normalize(normal - sign(surfaceArea) * gradient / max(abs(surfaceArea), 1.e-10));`)
+      .replace('#include <lights_fragment_end>', `#include <lights_fragment_end>
+        // Dense dark stone returns less of the visitor's direct flame light.
+        // Keep the cool environment contribution and worn relief visible.
+        reflectedLight.directDiffuse *= .72;
+        reflectedLight.directSpecular *= .76;`);
   };
-  material.customProgramCacheKey = () => 'pine-hewn-stone-2';
+  material.customProgramCacheKey = () => 'pine-hewn-stone-3';
   material.userData.lampOwned = true;
   const tray = new THREE.Mesh(geometry, material);
   tray.receiveShadow = true;
