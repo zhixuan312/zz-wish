@@ -174,15 +174,15 @@ async function capture(browser, browserName, size) {
       await page.route(url => url.pathname === '/src/engine/scene.js', async route => {
         const response = await route.fetch();
         const source = await response.text();
-        const target = '  composer.render();';
-        if (!response.ok() || source.split(target).length !== 2) {
+        const renderCall = /^[ \t]*composer\.render\(\);[ \t]*$/gm;
+        if (!response.ok() || source.match(renderCall)?.length !== 1) {
           run.errors.push({ kind: 'instrumentation', text: 'Could not identify one real composer render.' });
           await route.fulfill({ response });
           return;
         }
         await route.fulfill({
           response,
-          body: source.replace(target, target + ' window.__pineMeasureFrame?.();'),
+          body: source.replace(renderCall, '$& window.__pineMeasureFrame?.();'),
         });
       });
     }
