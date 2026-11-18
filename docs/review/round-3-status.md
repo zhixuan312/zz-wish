@@ -218,8 +218,24 @@ each context now has evidence, including `light-ignition`, `burning`, `burnFar`,
 `result-put-out`, `result-burned-down`, `ending-plume/*` and `my-lamps` — the two phone
 contexts no longer stop at the drawing step, which confirms the pad fix in `5fa247a`.
 
-WebKit has no round 3 run yet: its four contexts still need the same journey. T3 closes when
-they finish.
+An earlier WebKit attempt is recorded at
+`artifacts/full-review/round-3/after-journey-webkit/report.json` (created 02:42:45 SGT). It
+aborted: `desktop-en` reached 21 frames and then threw `Error: Ignition did not settle.`
+(`full-journey-review.mjs:231`), and its cleanup then timed out for 90 s waiting for the
+`Put out` control. `desktop-zh`, `phone-en` and `phone-zh` never loaded —
+`page.goto: Could not connect to the server` — and the report carries 84 errors with 29 PNGs
+on disk.
+
+Cause: the capture server died during that run, not a product fault. The console log in the
+same report shows `WebSocket connection to 'ws://127.0.0.1:8923/?token=...' failed: The
+network connection was lost` followed by `Could not connect to the server` for every later
+context, while the page's own state still reported `contextLost: false` and a live render
+frame counter. With the presence socket gone the ignition sequence had nothing to settle
+against and the 120 s wait expired. The helper script launched Vite and the API server in the
+background without supervising them, which is what ended them.
+
+That run predates `5fa247a`, so it says nothing about the current build. WebKit's four
+contexts still need the same journey on this build; T3 closes when they finish.
 
 ## Items for Boss
 
@@ -229,6 +245,5 @@ they finish.
 
 ## Items that still need GPU captures
 
-- The WebKit half of the round 3 journey (T3) and its report.
+- The WebKit half of the round 3 journey: all four contexts, on this build.
 
-None recorded yet.
