@@ -309,31 +309,20 @@ the same expectation.
 
 ## T3: Round 3 full journey
 
-Status: **done**. Chromium and WebKit both covered four contexts on the final product code
-(`e45ab80` and `5fa247a` are both in that tree). The two runs differ in one stage and the
-chromium report file is gone, which is recorded below for accuracy.
+Status: **partly**. Chromium's four contexts complete on the final code; WebKit's does not.
 
-Chromium, from the record in `d3286a8`: `frames 292, sequences 88, errors 0, httpErrors 0`,
-8 ending captures and 16 records, with 73 stages in each of `desktop-en`, `desktop-zh`,
-`phone-en` and `phone-zh`. That machine-readable report was overwritten when the WebKit run
-reused the same `OUTPUT` directory, so the numbers survive only in that commit's message and
-in the status record it wrote; the chromium PNGs themselves are still on disk.
+Chromium, run on `ce3184c` (the tree that also carries `4ad1859` and `807b065`, both docs-only):
+`frames 287, errors 0, httpErrors 0` at the point the run was stopped at the GPU lease limit,
+with 55 top-level PNGs plus sequence frames in each of `desktop-en`, `desktop-zh`, `phone-en`
+and `phone-zh`. All four contexts carry the identical stage set, checked by comparing their
+sorted frame names. The run reported `frames 292` only after the stop, because WebKit had
+begun and its few frames were appended.
 
-WebKit, from `after-journey/report.json` (`createdAt` 03:24:11 SGT): `frames 288,
-sequences 84, errors 0, httpErrors 0`, 8 ending captures and **12** records, with
-72 stages in each context. Two extra files, `webkit/desktop-en/failure.png` and
-`held-walk-failure.png`, carry mtime 03:24:00-01, before this run started, and appear in no
-report entry: they are leftovers of a launch that failed at 03:24. What stopped that launch
-is undetermined, since its server log was overwritten.
+WebKit was stopped at that same lease limit: five `desktop-en` frames exist in this run, so
+its four contexts still need the full journey on this build. `after-journey-webkit/` holds an
+older aborted attempt, described below.
 
-The two runs are not the same stage set. Chromium has one extra stage, `result-native-
-departure`, which WebKit lacks. WebKit instead records four `native departure control`
-interactions with empty `nativeEvents`, so its native tab/focus departure path was not
-exercised and is unverified; the accelerated ending it does capture is the product's own
-settlement, not a native departure.
-
-The two phone contexts complete in both browsers, which confirms the pad fix in `5fa247a` and
-the journey's draw step.
+Both phone contexts now run the full journey, which confirms the pad fix in `5fa247a`.
 
 ### A superseded WebKit attempt
 
