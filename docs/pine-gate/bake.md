@@ -77,3 +77,11 @@ Source `f4950ff1e844d97f852444f5d0296b7efff52b8942bec1cf77f76d0d314fd8ea` produc
 Matched desktop ignition captures showed that the black patch stayed at nearly identical RGB values after the bounce change while neighboring granite brightened. A camera ray through all three delivered regions hit the front bevel of `Wall cap -1 0`, a glazed shoulder-wall coping tile. At pixel (419, 117) the cap was 12.2 mm nearer than the hewn granite back wall. The earlier niche-only ray omitted the cap's gate region.
 
 The cap's inner end now stops at x = −2.060 m inside the granite jamb. Its outer end, bevel and material retain their authored values. The proposed cut clears the view to existing granite in all 17 tested rays across the black patch. The added niche bounce is removed and the gate's local warm reflection remains.
+
+## Fourth app preview source
+
+Broad, cool light at the canopy openings follows the lower, middle and upper stairs, with a separate soft bank of light across the gate face. The amber gate guide has a wider reflected pool under its transom. The baked night sky and moon light are less blue so that the niche reads as gray granite under the candle.
+
+The two courses of each carved reveal now meet along a continuous shallow groove. The outer masonry courses overlap by 2 mm inside their bevels. An irregular soot stain drifts up the rear stone, and the shelf carries pale lip wear and mottled old wax in its vertex tint. The material still uses the same full-resolution neutral granite albedo.
+
+The forest floor uses 112 rooted understory tufts in asymmetric groups. Taller fern fronds and low ground cover share the existing material palette. Slate ledges follow the actual terrain surface and extend below it. Darker moss edges and flatter loose stones break up the road banks.

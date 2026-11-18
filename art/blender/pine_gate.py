@@ -170,26 +170,31 @@ def climbing_steps(stone):
 
 def understory(ground, foliage):
     # Folded leaves rise out of the terrain. The roots are part of the bank.
-    vents = [(s * x, z) for s in (-1, 1) for x, z in ((3.1, 6.9), (3.8, 16.8), (4.6, 27.3),
-                                                       (3.3, 33.1), (5.0, 40.6), (5.7, 47.8))]
-    for i in range(88):
-        cx, cz = vents[i % len(vents)]
-        x = cx + RANDOM.uniform(-.48, .48)
-        z = cz + RANDOM.uniform(-1.63, 1.63)
+    pockets = [(-3.1, 6.9), (-4.7, 13.1), (-3.8, 17.4), (-6.1, 25.4), (-3.6, 29.8),
+               (-4.0, 35.7), (-6.5, 39.2), (-4.9, 44.1), (-7.0, 48.5),
+               (3.7, 8.6), (3.4, 15.8), (5.4, 19.2), (3.8, 24.9), (5.9, 28.8),
+               (4.9, 33.4), (3.8, 38.5), (6.2, 43.5), (4.5, 46.9)]
+    extra = random.Random(65274)
+    for i in range(112):
+        rng = RANDOM if i < 88 else extra
+        cx, cz = pockets[i % len(pockets)]
+        x = cx + rng.uniform(-.68, .68)
+        z = cz + rng.uniform(-1.46, 1.46)
         y = supports_height(x, z, [ground]) - .018
         vertices, faces = [], []
-        count = RANDOM.randint(4, 8)
+        count = rng.randint(4, 8)
+        height = .55 if i % 4 < 2 else 1.
         for frond in range(count):
-            theta = frond * math.tau / count + RANDOM.uniform(-.40, .40)
-            length = RANDOM.uniform(.13, .40)
-            width = length * RANDOM.uniform(.10, .17)
+            theta = frond * math.tau / count + rng.uniform(-.40, .40)
+            length = rng.uniform(.15, .43)
+            width = length * rng.uniform(.062, .119)
             cs, sn = math.cos(theta), math.sin(theta)
             start = len(vertices)
             vertices.extend([(x, y, z),
-                             (x + length * .45 * cs - width * sn, y + length * .56, z + length * .45 * sn + width * cs),
-                             (x + length * .58 * cs, y + length * .69, z + length * .58 * sn),
-                             (x + length * .45 * cs + width * sn, y + length * .53, z + length * .45 * sn - width * cs),
-                             (x + length * cs, y + length * .48, z + length * sn)])
+                             (x + length * .45 * cs - width * sn, y + length * .54 * height, z + length * .45 * sn + width * cs),
+                             (x + length * .58 * cs, y + length * .69 * height, z + length * .58 * sn),
+                             (x + length * .45 * cs + width * sn, y + length * .51 * height, z + length * .45 * sn - width * cs),
+                             (x + length * cs, y + length * .40 * height, z + length * sn)])
             faces.extend([(start, start + 1, start + 2), (start, start + 2, start + 3),
                           (start + 1, start + 4, start + 2), (start + 2, start + 4, start + 3)])
         plant = mesh.mesh_object(f'Mountain fern tufts {i + 1}', vertices, faces, foliage[i % len(foliage)], 'approach')
@@ -353,16 +358,19 @@ def forest(ground, rock, bark, pine):
         y = supports_height(x, z, [ground])
         slab = hewn_block(f'Exposed slate seam {i + 1}', radius * RANDOM.uniform(1.4, 2.6),
                           radius * .71, radius * RANDOM.uniform(.92, 1.46),
-                          (x, y + radius * .28, z), rock, 'approach')
+                          (x, y + radius * (.12 + .025 * (i % 3)), z), rock, 'approach')
         slab['moss_edge'] = True
         for vertex in slab.data.vertices:
             vx, vz = vertex.co.x - x, -vertex.co.y - z
-            vertex.co.z += (.21 * vx - .12 * vz) * (-1 if i % 2 else 1)
+            shoulder_y = supports_height(vertex.co.x, -vertex.co.y, [ground])
+            vertex.co.z += shoulder_y - y + (.07 * vx - .04 * vz) * (-1 if i % 2 else 1)
     for i, (x, z, r) in enumerate(((-3.1, 34, .64), (3.6, 25, .76), (-3.7, 12, .51), (4.6, 6.9, .52))):
         y = supports_height(x, z, [ground])
-        profile = [(0, 0), (r * .40, 0), (r, r * .36), (r * .78, r * .65), (r * .43, r * .82), (0, r * .88)]
+        profile = [(0, 0), (r * .52, 0), (r, r * .28), (r * .76, r * .49), (r * .40, r * .64), (0, r * .68)]
         with contacts.group(f'Loose ridge stone {i + 1}', [ground]):
             obj = mesh.lathe(f'Weathered ridge stone {i + 1}', profile, (x, y, z), rock, 9, 'approach')
+            obj['weather_stone'] = True
+            obj['moss_edge'] = True
             for vertex in obj.data.vertices:
                 if vertex.co.z > y + .001:
                     vertex.co.x += RANDOM.uniform(-.11, .11) * r
@@ -712,10 +720,10 @@ def paint_stone():
                     moss_outline = noise.noise(world * 7.9) + .21 * noise.noise(world * 33)
                     green_mix = max(0., min(.65, (moss_outline + (.1 if obj.get('moss_edge') else -.11)) * .96))
                 if obj.name == 'Continuous mountain shoulder':
-                    bank = noise.noise(world * .39) + .39 * noise.noise(world * 1.33)
+                    bank = noise.noise(world * .34) + .44 * noise.noise(world * 1.41)
                     root_dirt = .13 * math.sin(world.x * .57 + world.y * .31)
-                    shade *= .78 + .42 * max(0., min(1., .49 + bank - root_dirt))
-                    green_mix = max(0., min(.55, (.18 + bank) * .62))
+                    shade *= .72 + .54 * max(0., min(1., .51 + bank - root_dirt))
+                    green_mix = max(0., min(.63, (.15 + bank) * .77))
                 if obj.name.startswith('Hand-chiselled niche back'):
                     rise = max(0., min(1., (world.z - ANCHOR[1] - .182) / .255))
                     drift = .018 * math.sin(world.z * 29) + .013 * noise.noise(world * 32)
