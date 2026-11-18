@@ -1699,9 +1699,16 @@ const viewOf = (v) => {
   return { pos: look.clone().add(pos.sub(look).multiplyScalar(1.45)), look };
 };
 const coverView = () => viewOf(narrow()&&place.P.nook.coverPhone?place.P.nook.coverPhone:place.P.nook.cover);
-function fitShadeView(v,desktopFraction=.45,desktopSubjectY=.36){
+// Framing uses the full-day lamp as a fixed reference, so choosing a shorter
+// burn changes the shade but never moves the camera: the size difference stays
+// visible instead of being cancelled by a refit.
+const LANTERN_REFERENCE = { h: .76, cy: -.35 };
+// `exact` places the camera at the distance the reference demands, so the
+// cloth fills the requested fraction of the frame. Without it the authored
+// viewpoint only pulls back if it would otherwise be too close.
+function fitShadeView(v,desktopFraction=.45,desktopSubjectY=.36,exact=false){
   if(!place.P.bakedLighting||!mine.parts?.frame)return v;
-  const fr=mine.parts.frame,c=mine.g.localToWorld(V3(0,fr.cy,0));
+  const c=mine.g.localToWorld(V3(0,LANTERN_REFERENCE.cy,0));
   const offset=V3(v.pos.x-c.x,0,v.pos.z-c.z),base=offset.length();
   // On a phone the sheet covers the lower two thirds, so the lamp must sit in
   // the visible band with its cord and tassel above the altar stand rather than
@@ -1709,7 +1716,8 @@ function fitShadeView(v,desktopFraction=.45,desktopSubjectY=.36){
   // touching the stand, the shade or any asset.
   const fraction=narrow()?.21:desktopFraction,subjectY=narrow()?.17:desktopSubjectY;
   const tangent=Math.tan(THREE.MathUtils.degToRad(v.fov/2));
-  const distance=Math.max(base,fr.h/(2*tangent*fraction));offset.setLength(distance);
+  const wanted=LANTERN_REFERENCE.h/(2*tangent*fraction);
+  const distance=exact?wanted:Math.max(base,wanted);offset.setLength(distance);
   v.pos.x=c.x+offset.x;v.pos.z=c.z+offset.z;
   const pitch=Math.atan2(c.y-v.pos.y,distance)-Math.atan((1-2*subjectY)*tangent);
   v.look.set(c.x,v.pos.y+Math.tan(pitch)*distance,c.z);return v;
@@ -1726,12 +1734,12 @@ function burnView(){
   const originalSize=fuelProfile?fuelProfile*3.8+.2:mine.parts.frame.h;
   const far=viewOf((narrow()&&N.burnFarPhone)||N.burnFar),k=THREE.MathUtils.clamp((originalSize-.45)/.32,0,1);
   v.pos.lerp(far.pos,k);v.look.lerp(far.look,k);v.fov=THREE.MathUtils.lerp(v.fov,far.fov,k);
-  // J5: on a wide screen the settled burning view showed the lantern at about
-  // 15% of frame height, so the floor dominated. Measure against the lamp's
-  // frame, whose cloth is about 68% of it, and aim for the 20-25% target on the
-  // cloth itself. The direction out of the altar and the horizon stay those of
-  // the authored burn camera.
-  return narrow()?v:fitShadeView(v,.28,.34);
+  // J5: on a wide screen the settled burning view showed the lantern cloth at
+  // about 15% of frame height, so the floor dominated. The reference frame is
+  // 0.76 m tall and its cloth is the top 0.56 m, so requesting 0.33 of the
+  // frame puts the full-day cloth near 24% and the ten-minute cloth near 15%.
+  // Only the camera moves; the authored direction out of the altar stays.
+  return narrow()?v:fitShadeView(v,.33,.34,true);
 }
 // The person's lamp lives in the current place's spot.
 function attachMine() {
