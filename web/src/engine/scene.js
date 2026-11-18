@@ -598,9 +598,9 @@ const LAMPS = {
     if(o.liveBaked){
       lacquer.userData.lampOwned=true;suspension.userData.lampOwned=true;suspension.color.setHex(0x746041);suspension.roughness=.95;
       // The visitor's lacquer rim faces the bright hall, and its clearcoat caught the
-      // vent's specular as the walk swept past: one frame flared to twice the cloth
-      // brightness. A rougher, duller finish spreads that highlight instead of
-      // concentrating it, without dimming the rim's own colour.
+      // vent's specular as the walk swept past: the shade's measured mean brightness
+      // rose 31% in one frame and fell back. A matte finish spreads that highlight
+      // instead of concentrating it, without dimming the rim's own colour.
       lacquer.roughness=Math.max(lacquer.roughness,.9);lacquer.clearcoat=0;lacquer.envMapIntensity=Math.min(lacquer.envMapIntensity??1,.25);
     }
     const g = new THREE.Group(), P = scaled(o.rows,size), H = P[P.length - 1][1], y0 = -.066 - H;

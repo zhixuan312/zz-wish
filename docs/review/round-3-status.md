@@ -171,88 +171,104 @@ and decays with a 2.6 s time constant.
 
 ### Ended series
 
-Captured on this build through the real flow with no Skip and no held camera. Four baseline
-frames are taken while the lamp is still **lit**, then `Put out and end` is pressed and the
-series runs for ninety frames at a 167 ms median interval (desktop has five intervals over
-250 ms, the longest 456 ms, both at the start).
+Captured on this build through the real flow, no Skip and no held camera. The confirmation
+prompt is opened first, because that is what moves the camera; four baseline frames are then
+taken only after the lamp rectangle has held one width for twelve consecutive reads while the
+lamp is still **lit**, and only then is `Put out and end` pressed. 120 frames follow at a
+167 ms median interval (desktop has five intervals over 250 ms, the longest 481 ms; phone's
+longest is 197 ms).
 
-| viewport | lit baseline | whole range | lit→first put-out step | largest step | steps over 15% | lamp width |
+| viewport | lit baseline (4 frames) | whole range | lit→first put-out | largest step | steps over 15% (whole / inner) | lamp width |
 |---|---|---|---|---|---|---|
-| desktop-en | 38.2 | 38.2→8.9 | **8.7%** | 8.7% | **0** | 273→229 px |
-| phone-zh | 55.8 | 55.8→25.8 | **7.6%** | 7.6% | **0** | 215→211 px |
+| desktop-en | 329 px, luma 37.6 | 37.7→9.4 | **10.7%** | 10.7% | **0 / 0** | 329→331 px |
+| phone-zh | 205 px, luma 51.7 | 51.7→22.5 | **7.3%** | 7.3% | **0 / 0** | 205→205 px |
 
-Both series fall monotonically with no step above 15% at any point, including the lit-to-first
-put-out transition, and both reach a plateau: the first frame followed by ten consecutive
-steps below 0.5% is desktop frame 66 (12.8 s after the baseline) and phone frame 48 (8.8 s).
-The lamp rectangle itself shrinks slightly as the camera settles, 273→229 px on desktop and
-215→211 px on phone, so the width is not constant and the fade is read from the mean inside
-that moving rectangle.
+Both series fall monotonically with no step above 15% in either region at any point,
+including the lit-to-first-put-out transition, and both reach a plateau: the first frame
+followed by ten consecutive whole-region steps below 0.5% is desktop frame 065 at 12.7 s and
+phone frame 083 at 14.6 s. Desktop's lamp rectangle widens 329→331 px and phone's holds at
+205 px, so the width is essentially stable but not identical, and the fade is read from the
+mean inside that rectangle.
 
-Per-frame values, the plateau record and the step count: `j6-j2/ended-series-{desktop-en,phone-zh}.json`.
-Frames: `j6-j2/ended-{desktop-en,phone-zh}-lit-0.png` (lit baseline),
-`ended-desktop-en-{000,066,089}.png` and `ended-phone-zh-{000,048,089}.png`.
+Per-frame values, the plateau record and the over-15% lists:
+`j6-j2/ended-series-{desktop-en,phone-zh}.json`. Frames:
+`j6-j2/ended-{desktop-en,phone-zh}-lit-{0,3}.png` (settled lit baseline),
+`ended-desktop-en-{000,065,119}.png`, `ended-phone-zh-{000,083,119}.png`.
 
-The ignition and put-out fill timing is unchanged: `dt * 5` is in force for both, and the only
-eased transition is the walk-to-chooser rise described below.
+Ignition and put-out fill timing is unchanged: `dt * 5` is in force for both.
 
 ### Approach series
 
 Captured through the real walk with no Skip and no held camera, both viewports, through to
 walk progress 1.00 and fifteen frames of the chooser. Each frame's clip follows the lamp's
 page-space rectangle, the PNG size comes from the file header, and every mean converts CSS to
-capture pixels with scale = PNG size / clip size; both viewports record scale 2. 164 desktop and
-267 phone frames.
+capture pixels with scale = PNG size / clip size; both viewports record scale 2. 167 desktop
+and 269 phone frames.
 
-| viewport | interval median / max / over 250 ms | lamp width | max drop from peak | inner median | inner p95 | inner steps over 15% |
-|---|---|---|---|---|---|---|
-| desktop-en | 201 / 476 / 3 | 33→345 px | 1.7% | 0.9% | 7.1% | 1 |
-| phone-zh | 117 / 234 / 0 | 31→237 px | 0% | 1.1% | 6.3% | 1 |
+Two regions per frame: **whole** covers the lamp rectangle (cloth, ribs, gaps and the rim);
+**inner** covers its middle half, keeping the cloth body and excluding the cord and frame
+edges.
+
+| viewport | interval median / max / over 250 ms | lamp width | max drop from peak | inner median | inner p95 | inner steps over 15% | whole steps over 15% |
+|---|---|---|---|---|---|---|---|
+| desktop-en | 201 / 304 / 3 | 33→345 px | 1.7% | 0.9% | 5.1% | **0** | 2 |
+| phone-zh | 117 / 211 / 0 | 31→237 px | 0% | 1.0% | 5.9% | **0** | 1 |
 
 The chooser framing is 345 px desktop and 237 px phone. `maxDropFromPeakPct` compares every
-frame with the best width seen so far across the whole series and is stored per viewport in
-`j6-j2/approach-series-{desktop-en,phone-zh}.json` beside the per-frame drop series.
+frame with the best width seen so far across the whole series.
 
 ### Causes found and fixed
 
 1. **The closing turn was compressed.** The look target swung to the chooser heading over the
-   last 7% of a 30 s walk, so one 200 ms sample carried a 15% look blend and the background
-   swept sideways. It now spreads over `smooth(.84,1,e)`.
+   last 7% of a 30 s walk, so one 200 ms sample carried a 15% look blend. It now spreads over
+   `smooth(.84,1,e)`.
 2. **Holding the fov made the shade shrink.** Desktop walks at 32° and the chooser sits at 55°;
-   holding 32° then jumping shrank the shade 629→345 px, and tan(16°)/tan(27.5°) = 0.5508
-   predicts 346.5 px. The fov is now distance-driven inside the walk,
-   `2·atan(tan(end.fov/2)·dEnd/d)` clamped between the two, so the shade holds its screen size
-   from about 4.2 m inward and the walk arrives at the chooser fov.
+   holding then jumping shrank the shade 629→345 px, and tan(16°)/tan(27.5°) = 0.5508 predicts
+   346.5 px. The fov is now distance-driven during the walk,
+   `2·atan(tan(end.fov/2)·dEnd/d)` clamped between the two values.
 3. **The phone approach overshot.** `fitShadeView` moves the phone chooser pose off the
-   doorway line, so the lateral waypoint passed closer than the final pose and the shade shrank
-   323→241 px. Phone now has a single doorway waypoint.
-4. **The lacquer rim flared.** One frame showed the cloth mean rising 31% and falling back. The
-   camera, fov and fill were identical either side, which ruled those out, but left the
-   material. The visitor lamp's rim used `lacquerBlack` — roughness 0.36, clearcoat 0.6, env 0.4
-   — and its clearcoat caught the vent's specular as the view swept past. The visitor copy is
-   now matte (roughness 0.9, clearcoat 0, env 0.25). The shared `lacquerBlack` and every other
-   lamp are untouched, so the cover and the hall's other lanterns are unchanged. After the
-   change the largest desktop step at that point is gone.
+   doorway line, so the lateral waypoint passed closer than the final pose; phone now has a
+   single doorway waypoint.
+4. **The lacquer rim flared.** One frame showed the shade's mean rising 31% and falling back
+   while the camera, fov and fill were identical either side, so the material was the
+   remaining suspect: the visitor lamp's rim used the shared glossy lacquer (roughness 0.36,
+   clearcoat 0.6, env 0.4) and its clearcoat caught the vent specular. The visitor copy is now
+   matte (roughness 0.9, clearcoat 0, env 0.25); `lacquerBlack` itself and every other lamp are
+   untouched.
 
-### Remaining steps over 15%
+### The whole-region steps over 15%
 
-One per viewport, both on a tiny shade: desktop frame 21→22 (18.5%, shade 39 px) and phone
-frame 41→42 (20.8%, shade 31 px). At 31-39 capture px one pixel is about 3% of the shade's
-width, so a sub-pixel camera move swings the mean; neighbouring steps go both up and down,
-which is aliasing rather than a one-way flash. No step exceeds 15% once the shade is wider
-than 50 capture px on either viewport.
+The inner region has none. The whole-rectangle region still has two on desktop and one on
+phone, and inspecting the kept frames shows why they are background rather than lamp:
 
-Because those two opening-frame steps remain unexplained beyond aliasing, the item stays
-**partly** done. Frames: `j6-j2/approach-desktop-en-{139,140,141,150}.png`,
-`j6-j2/approach-phone-zh-{041,042,150}.png`.
+- desktop frame 133→134 (35.0%, 341 px): a lit wall strip enters the right edge of the clip.
+- desktop frame 136→137 (35.7%, 339 px): the peacock screen and gilt cabinet enter the clip.
+  In both pairs the inner mean stays 15.6-16.9 while the whole mean climbs 13.9→25.9.
+- phone frame 246→247 (22.6%, 235 px): the chooser panel's "EN" label enters the clip; the
+  inner mean is unchanged.
+
+So the claim holds for what a person sees on the shade, and the whole-rectangle number is
+dominated by scenery moving into the rectangle as the camera pans. This is recorded as
+region-specific rather than as a single blanket rule.
+
+### Why the item is still partly done
+
+Both viewports now have zero inner steps over 15% through the whole walk and the chooser, so
+the shade itself never flashes. The remaining whole-region steps are explained by background
+entering the clip. This item is kept **partly** only because the acceptance as originally
+worded (no step over 15% at a readable size) was written against the rectangle mean, which
+that scenery defeats; the shade-level evidence is complete.
+
+Frames: `j6-j2/approach-desktop-en-{133,134,136,137,150}.png`,
+`j6-j2/approach-phone-zh-{246,247,150}.png`.
 
 ### Background sweep in the walk's last stretch
 
 Over frames 134-146 the lamp rectangle's page-space x moves 528 → 626 CSS px with per-sample
-steps of 26, 21, 16, 13, 9, 6, 3, 2, 1, 1, 0, 0 — mean 8.2 px, maximum 26 px, decelerating to a
-stop — while the shade holds 339-345 px. In capture pixels that is a mean of 16.4 px per
+steps of 26, 21, 16, 13, 9, 6, 3, 2, 1, 1, 0, 0 — mean 8.2 px, maximum 26 px, decelerating to
+a stop — while the shade holds 339-345 px. In capture pixels that is a mean of 16.4 px per
 sample against a 339-345 px shade, so the background sweeps about one shade-width per twenty
-samples and comes to rest as the walk ends. Inspected frame by frame the last two metres read
-as a dolly-in, not a cut.
+samples and comes to rest. Frame by frame the last two metres read as a dolly-in, not a cut.
 
 ## T9: J5 the desktop burning lantern size
 
@@ -341,7 +357,7 @@ so a true before/after pair is the exception rather than the rule.
 | T5 | no before capture; badge was a bright 12 px accent line | `after-journey/chromium/desktop-en/place.png` |
 | T6 (J12) | **not done** — baked geometry needs a new bake | — |
 | T7 | `j6-j2/gate-shelf-{left,right}-desktop-en.png` | `j6-j2/gate-walk-{desktop-en,phone-zh}.png` |
-| T8 | `j6-j2/lantern-unlit-{desktop-en,phone-zh}.png` | `j6-j2/t8-{desktop-en,phone-zh}-{00,08,16,23}.png` and `j6-j2/approach-{desktop-en,phone-zh}-*.png` |
+| T8 | `j6-j2/lantern-unlit-{desktop-en,phone-zh}.png` | `j6-j2/ended-{desktop-en,phone-zh}-{lit-0,lit-3,000,065,083,119}.png` and `j6-j2/approach-{desktop-en,phone-zh}-*.png` |
 | T9 | no before capture; about 13-15% of frame height at every duration | `lantern-size/burning-desktop-en-{10min,2h,24h}.png` |
 | T3 | no before capture | `after-journey/{chromium,webkit}/<context>/` |
 
