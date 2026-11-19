@@ -1,4 +1,5 @@
 import { loadBakedPlace } from '../baked/loadPlace.js';
+import { createPineGateLife } from './pine-gate-life.js';
 import { createPineGateVista } from './pine-gate-vista.js';
 import path from '../../../../shared/pine-gate-path.json';
 
@@ -42,6 +43,20 @@ export default function createPlace(h) {
       context.G.add(vista.group);
       context.up.push((_, time, light) => vista.update(time, light));
       context.disposers.push(vista.dispose);
+      const life = createPineGateLife({
+        THREE, group: baked.group, scene: context.G, renderer: h.renderer,
+        nichePosition: [nookOrigin[0], nookOrigin[1] + 1, nookOrigin[2]],
+        path: [entrance.position, ...path.waypoints.filter(shot => shot.time <= 24).map(shot => shot.position)],
+        mistBands: [[-1.1, 31, .65], [.96, 23, .74], [-.86, 15, .70], [.94, 8.1, .86]],
+        mistY: 3.8,
+      });
+      context.up.push((dt, time) => life.update(dt, time));
+      baked.life = life;
+      if (import.meta.env.DEV) {
+        window.__capturePineSway = () => life.describe() ?? null;
+        window.__pineScene = baked.group;
+      }
+      context.disposers.push(life.dispose);
     },
 
     // The visitor lights the central recess. The right edge opens to the valley.
