@@ -48,6 +48,18 @@ def evaluate(plane, x, z):
     return plane[0] * x + plane[1] * z + plane[2]
 
 
+def triangle_weights(plan, point):
+    a, b, c = plan
+    area = signed_area(a, b, c)
+    # Clipping can round a point just beyond the face boundary. Keep the
+    # weights nonnegative so lowering a vertex cannot raise any overlap.
+    weights = [max(0., signed_area(b, c, point) / area),
+               max(0., signed_area(c, a, point) / area),
+               max(0., signed_area(a, b, point) / area)]
+    total = sum(weights)
+    return tuple(weight / total for weight in weights)
+
+
 def crown_triangles(stones):
     crowns = []
     for stone in stones:
@@ -74,17 +86,24 @@ def fit_joint_soil(points, sections, tread_rows):
             surface = surface_triangle([points[i] for i in face])
             if surface is None:
                 raise RuntimeError('Degenerate soil panel on the mountain stair.')
-            plan, (left, right, low, high), soil = surface
+            plan, (left, right, low, high), _ = surface
             for crown, (l, r, a, b), plane in neighbors:
                 if r < left or l > right or b < low or a > high:
                     continue
                 overlap = clipped_plan(plan, crown)
                 if not overlap:
                     continue
-                peak = max(evaluate(soil, x, z) - evaluate(plane, x, z) for x, z in overlap)
-                excess = max(0., peak + JOINT_CLEARANCE)
-                for i in face:
-                    heights[i] = min(heights[i], points[i][1] - excess)
+                for x, z in overlap:
+                    weights = triangle_weights(plan, (x, z))
+                    excess = sum(heights[i] * weight for i, weight in zip(face, weights))
+                    excess -= evaluate(plane, x, z) - JOINT_CLEARANCE
+                    if excess <= 0.:
+                        continue
+                    # Settle the part of the panel bearing under the edge
+                    # without sinking the open joint beside that stone.
+                    influence = sum(weight ** 3 for weight in weights)
+                    for i, weight in zip(face, weights):
+                        heights[i] -= excess * weight ** 2 / influence
                 overlaps.append((face, overlap, plane))
     fitted = [(x, y, z) for (x, _, z), y in zip(points, heights)]
     planes = {}
