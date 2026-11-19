@@ -1631,12 +1631,14 @@ def ancient_bark_contour(stem, centres, sides, phase):
     # Coarse flutes read across the walk. Finer fissures keep the relief
     # continuous with the scan when the visitor reaches the saddle.
     grooves = stem.data.attributes.new('AncientBarkGrooves', 'FLOAT', 'POINT')
+    stem['ancient_bark_foot'] = centres[0].y + .26
     outward = math.copysign(1., centres[0].x)
     for ring, centre in enumerate(centres):
         fraction = ring / (len(centres) - 1)
         origin = mesh.point(centre)
         lower = max(0., 1. - fraction / .38) ** .72
-        buttress = .48 * math.exp(-10.6 * fraction)
+        buttress = .61 * math.exp(-9.2 * fraction)
+        taper = .13 * math.exp(-((fraction - .20) / .10) ** 2)
         for index in range(sides):
             angle = math.tau * index / sides
             bend = phase + 1.75 * fraction + .31 * math.sin(fraction * 11.0)
@@ -1650,7 +1652,7 @@ def ancient_bark_contour(stem, centres, sides, phase):
             bank_side = max(0., .32 + .68 * outward * offset.x / offset.length)
             # Developed buttress wood stays on the bank side of the path.
             width = 1. + (rib + plate) * (1. - fraction * .72) - .19 * lower * recess
-            width += buttress * bank_side * (.68 + .32 * flute)
+            width += bank_side * (buttress * (.68 + .32 * flute) - taper)
             vertex.co = origin + offset * width
             grooves.data[vertex.index].value = lower * recess / 1.23
     stem.data.update()
@@ -1669,8 +1671,9 @@ def ancient_pine_roots(label, x, z, phase, bark, ground):
             zz = z + t * reach * vz + curl * math.sin(math.pi * t) * vx
             centres.append((xx, supports_height(xx, zz, [ground]) + lift, zz))
         width = .89 + reach * .18
-        bark_tube(f'{label} exposed buttress root {i + 1}', centres,
-                  [.25 * width, .153 * width, .090 * width, .046 * width, .010], bark, 7)
+        root = bark_tube(f'{label} exposed buttress root {i + 1}', centres,
+                         [.25 * width, .153 * width, .090 * width, .046 * width, .010], bark, 7)
+        root['ancient_bark_foot'] = bearing
 
 
 def roadside_bark_contour(stem, centres, sides, phase):
@@ -2075,6 +2078,12 @@ def paint_stone():
                     relief = (.76 + .28 * shield) * (1. - .48 * furrow)
                     tint_color = [channel * relief * (1. - loss * oxide)
                                   for channel, loss in zip(tint_color, (.035, .16, .23))]
+                    above_soil = max(0., world.z - obj.get('ancient_bark_foot', world.z - .98))
+                    damp = 1. - min(1., above_soil / .98)
+                    patches = .5 + .5 * noise.noise(Vector((world.x * 6.8, world.y * 6.8, world.z * 4.1)))
+                    moss = damp * max(0., min(1., (patches - .34) * 2.4)) * .82
+                    tint_color = [channel * (1. + moss * change)
+                                  for channel, change in zip(tint_color, (-.55, .13, -.46))]
                 if obj.name == 'Continuous mountain shoulder':
                     x, z = world.x, -world.y
                     creek_x, _, width = watercourse_at(z)
