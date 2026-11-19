@@ -464,11 +464,14 @@ def approach_joint_bedding(rows, material):
             samples = [x for x in samples if abs(x - centre) > .051]
             samples.extend((centre - .034, centre - .009, centre + .019))
         samples.sort()
-        along_course = (0., .057, .19, .40, .61, .79, .92, 1.)
+        along_course = (0., .057, .25, .49, .72, .901, .963, 1.)
         for along in along_course:
             z = low_z + (high_z - low_z) * along
             centre, width = section_at(z)
-            fall = max(0., (along - .86) / .14)
+            # Keep packed soil near the lip until the narrow fold down to
+            # the next course. The fit below clears the uneven stone crowns.
+            fall = max(0., (along - .901) / .099)
+            fall = fall * fall * (3 - 2 * fall)
             for sample in samples:
                 x = centre + (sample - bend) * (width + .045) / extent
                 settling = .008 * math.sin(8.8 * x + 5.1 * z) + .007 * math.sin(23 * x - 4.6 * z)
