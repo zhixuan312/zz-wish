@@ -7,6 +7,8 @@ from pathlib import Path
 import subprocess
 from tempfile import TemporaryDirectory
 
+import numpy as np
+
 from encode_pine_backdrop import digest, dilate_rgb, encode_scanlines, write_rgba_png
 
 
@@ -20,6 +22,23 @@ VISIBLE_BOUNDS = {
     11.7: (-9., 9., 7.65),
     8.4: (-9., 9., 8.25),
 }
+
+
+def balance_canopy_shade(rgba):
+    # Leave the sunlit needles and warm bark alone. The HDR sky reflects in
+    # shaded pinnae, where excess blue reads as cyan on a transparent layer.
+    # Keep linear luminance and coverage so the Cycles lighting still matches
+    # the adjoining near geometry and all native silhouette pixels survive.
+    rgb = (np.exp2(rgba[:, :, :3].astype(np.float32) * (np.log2(65.) / 255.)) - 1.) / 8.
+    red, green, blue = np.moveaxis(rgb, -1, 0)
+    cast = (blue - red) / np.maximum(green, .008)
+    weight = np.clip((cast - .04) / (.28 - .04), 0., 1.)
+    weight = .91 * weight ** 2 * (3. - 2. * weight)
+    corrected = rgb * np.array((1.23, 1., .51), dtype=np.float32)
+    luminance = np.array((.2126, .7152, .0722), dtype=np.float32)
+    corrected *= ((rgb @ luminance) / np.maximum(corrected @ luminance, 1e-6))[:, :, None]
+    rgb += (corrected - rgb) * weight[:, :, None]
+    rgba[:, :, :3] = np.rint(np.log2(1. + 8. * np.clip(rgb, 0., 8.)) * (255. / np.log2(65.)))
 
 
 def encode_forest(source, output, quality, alpha_quality, nearest):
@@ -55,13 +74,14 @@ def encode_forest(source, output, quality, alpha_quality, nearest):
                      centerY=original_top - (first_row + height) * .5 * metres_per_pixel)
         rgba, _, _ = encode_scanlines(master, width, height, pre_exposure)
         tile = rgba[first_row:, first_col:last_col].copy()
+        balance_canopy_shade(tile)
         dilate_rgb(tile)
         target = output / file['uri']
         with TemporaryDirectory(dir=output, prefix='encode-') as scratch:
             png = Path(scratch) / 'native-cropped-radiance.png'
             write_rgba_png(png, tile)
             subprocess.run(['cwebp', '-quiet', '-q', str(quality), '-alpha_q', str(alpha_quality),
-                            '-exact', '-m', '4', str(png), '-o', str(target)], check=True)
+                            '-exact', '-m', '6', '-sharp_yuv', '-af', str(png), '-o', str(target)], check=True)
         cropped.append({'uri': target.name, 'bytes': target.stat().st_size, 'sha256': digest(target),
                         'masterSha256': file['masterSha256'],
                         'crop': [first_col, first_row, target_width, target_height]})
@@ -70,6 +90,7 @@ def encode_forest(source, output, quality, alpha_quality, nearest):
         raise ValueError('The screened forest needs at least two visible distances.')
     forest['layers'] = visible_layers
     original.update(files=cropped, webpQuality=quality, alphaQuality=alpha_quality,
+                    colourCorrection='Selective canopy white balance at constant linear luminance.',
                     sourceReceiptSha256=digest(source / 'forest.json'), cropMode='Native texels of the camera sweep.')
     (output / 'forest.json').write_text(json.dumps(original, indent=2) + '\n')
     print(f'PINE_APPROACH_FOREST_BYTES {sum(file["bytes"] for file in cropped)}')

@@ -18,9 +18,9 @@ const fragmentShader = `
     vec4 encoded = texture2D(uPlate, vUv);
     vec2 border = min(vUv, 1. - vUv);
     float edge = smoothstep(0., .012, min(border.x, border.y));
-    // Fine leaves retain coverage; the live verge takes over before the
-    // camera gets close enough to resolve individual plate texels.
-    float mediumDistance = smoothstep(5.5, 8.0, cameraPosition.z - uStation);
+    // Keep cutouts behind the live boughs and verge. Nearer than 6.5 m,
+    // the desktop approach magnifies each plate texel over three pixels.
+    float mediumDistance = smoothstep(6.5, 9.0, cameraPosition.z - uStation);
     float coverage = smoothstep(.12, .71, encoded.a);
     float alpha = coverage * edge * uOpacity * mediumDistance;
     if (alpha < .002) discard;
