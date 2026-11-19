@@ -249,6 +249,28 @@ def candle_wax(name, color, roughness):
     return material
 
 
+def wax_spill_layer(locate, a, c, radius, direction, height, material, index):
+    extent = radius * (.66 + .12 * math.sin(index * 2.3))
+    x, y, z = locate(a + radius * .91 * math.cos(direction), 0, c + radius * .91 * math.sin(direction))
+    profile = [(0., -.00055), (extent * .99, -.00055), (extent, .00014),
+               (extent * .94, height * .35), (extent * .73, height * .81),
+               (extent * .38, height), (0., height * .81)]
+    layer = mesh.lathe(f'Older wax run fused underneath stub {index + 1}', profile, (x, y, z),
+                       material, 28, 'niche')
+    cos, sin = math.cos(direction), math.sin(direction)
+    for vertex in layer.data.vertices:
+        dx, dz = vertex.co.x - x, -vertex.co.y - z
+        angle = math.atan2(dz, dx)
+        ripple = 1. + .082 * math.sin(3 * angle + index) + .048 * math.cos(7 * angle - index)
+        along = (dx * cos + dz * sin) * (1.12 + .16 * math.cos(index))
+        across = (-dx * sin + dz * cos) * (.61 + .14 * math.sin(index))
+        vertex.co.x = x + (cos * along - sin * across) * ripple
+        vertex.co.y = -z - (sin * along + cos * across) * ripple
+    for face in layer.data.polygons:
+        face.use_smooth = True
+    mesh.uv_world(layer, .034)
+
+
 def spent_wax_on_sill(locate, iron, sculpt_normal):
     wax_materials = [candle_wax(f'Weathered cold wax tone {i + 1}', color, roughness)
                      for i, (color, roughness) in enumerate((('#b7aa90', .64), ('#ab9c80', .68),
@@ -309,6 +331,10 @@ def spent_wax_on_sill(locate, iron, sculpt_normal):
             face.use_smooth = True
         if sculpt_normal:
             mesh.uv_world(wax, .034)
+            if i % 2 == 0 or height >= .014:
+                spill_height = min(.0019, .45 * height)
+                wax_spill_layer(locate, a, c, radius, i * 2.11 - .28, spill_height,
+                                wax_materials[(i + 1) % len(wax_materials)], i)
         mesh.curved_tube(f'Extinguished charred wick {i + 1}',
                          [locate(a, height * .42 - .0006, c),
                           locate(a + .0005 * math.cos(i), height * .42 + .0018, c - .0003),
