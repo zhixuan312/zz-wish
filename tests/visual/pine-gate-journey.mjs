@@ -751,6 +751,9 @@ async function capture(browser, browserName, size, trial) {
         }
       }
       if (realismOnly) {
+        const burningWax = run.settledWax ?? run.shots.find(shot => basename(shot.file) === 'day-burning.png')?.wax;
+        assert(burningWax && burningWax.framedFraction >= .20 && burningWax.framedFraction <= .25,
+          'The visitor wax alone must occupy 20–25% of the burning frame height.');
         assert.deepEqual(run.obsoleteVistaRequests, [], 'Pine must not request the old DEM renderer or elevation field.');
         run.settledPineImages = await page.evaluate(() => window.__pineCaptureBackdrop());
         assertPineRuntimeImages(run.settledPineImages, previewPackage, run.previewFetchedFiles, true);
