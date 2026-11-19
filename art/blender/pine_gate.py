@@ -2113,7 +2113,7 @@ def crest_ribbons(label, trunk_at, cloth):
         hit, _, _, _ = bark_surface.ray_cast(mesh.point(point + radial * 1.3), mesh.point(-radial), 1.8)
         if hit is None:
             raise RuntimeError('Pine ribbon hangs outside the surveyed ancient trunk.')
-        return engine(hit)
+        return Vector(engine(hit))
 
     def cloth_strip(name, rows, cross_widths):
         width = len(cross_widths)
