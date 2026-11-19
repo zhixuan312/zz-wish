@@ -24,7 +24,7 @@ from pine_valley_hamlet import lower_village
 from pine_valley_near_terraces import NearTerraces
 from pine_valley_terrace_routes import near_terrace_routes
 from pine_valley_terrain import (
-    Batch, ELEVATION_SHA256, FAR_START, Landscape, ROOT, drainage, forest_points, paddies,
+    Batch, ELEVATION_SHA256, FAR_START, Landscape, ROOT, drainage, forest_points, grow_slope_understory, paddies,
 )
 
 PROJECTION = ROOT / 'shared/pine-gate-backdrop.json'
@@ -635,9 +635,14 @@ def build(scene, land, fields, near, near_fields, routes, village, river, forest
         collection = layers[name]
         terrain = mesh(collection, 'Far SRTM mountains' if far else 'Middle SRTM hills and river valley',
                        land.terrain(far, near.bounds), [surface['ground']], smooth=True)
-        trees = forest(collection, crown_library(library, surface, far), forests[name])
+        crowns = crown_library(library, surface, far)
+        trees = forest(collection, crowns, forests[name])
         if not far:
-            occluders = (terrain, trees)
+            # Keep the original Geometry Nodes mesh and its per-instance
+            # shading IDs. The rooted young trees are a separate field.
+            regrowth = forest(collection, crowns, forests['midRegrowth'])
+            regrowth.name = 'Young pines colonizing two open shoulders'
+            occluders = (terrain, trees, regrowth)
 
     earth, water, rice, _ = fields
     middle = layers['mid']
@@ -843,6 +848,7 @@ def main():
     house_clearance = tuple((house['centre'][0], house['centre'][1], 1.85) for house in village['receipt']['houses'])
     forests = {name: forest_points(land, name == 'far', near_terraces=near, clearings=house_clearance)
                for name in ('far', 'mid')}
+    forests['midRegrowth'] = grow_slope_understory(land, forests['mid'])
     metadata = {
         'projection': projection, 'width': width, 'height': height, 'samples': options.samples,
         'denoise': not options.no_denoise, 'requestedDevice': options.device,

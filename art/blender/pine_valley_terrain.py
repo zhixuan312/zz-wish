@@ -351,6 +351,49 @@ def forest_site(land, x, depth, height):
     return smooth(.14, .60, soil), exposed, pocket
 
 
+def grow_slope_understory(land, batches):
+    # Two exposed shoulders carry pockets of second-growth pines. Keep the
+    # drier diagonal runs through each opening and feather out among tall trees.
+    shoulders = ((3.7, 129.9, 6.7, 7.6, .36), (24.5, 111.7, 7.2, 8.1, -.49))
+    rng = random.Random(67191)
+    growth = [([], [], []) for _ in batches]
+    for cx, cd, width, length, diagonal in shoulders:
+        neighbours = [(x, depth) for points, _, _ in batches for x, depth, _ in points
+                      if abs(x - cx) < width + 4. and abs(depth - cd) < length + 2.]
+        pitch = .64
+        steps = math.ceil(length * 2 / pitch), math.ceil((width + abs(diagonal) * length) * 2 / pitch)
+        for row in range(steps[0]):
+            for col in range(steps[1]):
+                depth = cd - length + (row + rng.uniform(.09, .91)) * pitch
+                x = cx - width - abs(diagonal) * length + (col + rng.uniform(.09, .91)) * pitch
+                down = depth - cd
+                across = x - cx - diagonal * down
+                raggedness = climate(x, depth, 3.8, 583) - .5
+                extent = math.hypot(across / width, down / length) + raggedness * .34
+                edge = 1. - smooth(.35, 1.03, extent)
+                meadow = 1. - smooth(.25, 1.10, abs(across + 1.7 - .42 * down
+                                                      + .81 * math.sin(down * .64)))
+                recruitment = edge * (1. - .91 * meadow) * lerp(.71, 1., climate(x, depth, 2.37, 163))
+                if rng.random() >= recruitment:
+                    continue
+                river = land.east_water(depth)
+                if abs(x - river) < 1.38 or (FIELD_NEAR - 1.2 <= depth <= FIELD_FAR + 1.2
+                                          and land.edge(depth, 0, river) - 1.4 < x < land.edge(depth, 7, river) + 1.4):
+                    continue
+                if any((x - a) ** 2 + (depth - b) ** 2 < .24 ** 2 for a, b in neighbours):
+                    continue
+                y = land.height(x, depth)
+                age = rng.random()
+                height = lerp(.47, .91, age)
+                crown = min(1.68 * height, lerp(.63, 1.44, age) * rng.uniform(.84, 1.15))
+                points, scales, rotation = growth[2 if rng.random() < .67 else 0]
+                points.append((x, depth, y - .029))
+                scales.append((crown, crown, height))
+                rotation.append((rng.uniform(-.12, .12), rng.uniform(-.12, .12), rng.uniform(0., math.tau)))
+                neighbours.append((x, depth))
+    return growth
+
+
 def forest_points(land, far, variants=4, near_terraces=None, clearings=()):
     rng = random.Random(6624 + far)
     batches = [([], [], []) for _ in range(variants)]
