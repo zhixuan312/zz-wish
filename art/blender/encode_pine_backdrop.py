@@ -23,10 +23,21 @@ def digest(path):
         return file_digest(stream, 'sha256').hexdigest()
 
 
-def encode_scanlines(path, width, height, exposure):
-    rgba = np.empty((height, width, 4), dtype=np.uint8)
+def encode_scanlines(path, width, height, exposure, factor=1):
+    out_width, out_height = width // factor, height // factor
+    rgba = np.empty((out_height, out_width, 4), dtype=np.uint8)
+    filtered = np.zeros((out_height, out_width, 4), dtype=np.float32) if factor > 1 else None
     clipped = 0
     clipped_coverage = 0.
+
+    def encode(y, rgb, alpha):
+        nonlocal clipped, clipped_coverage
+        clipped_mask = (rgb.max(axis=1) > 8.) & (alpha > 0.)
+        clipped += int(np.count_nonzero(clipped_mask))
+        clipped_coverage += float(alpha[clipped_mask].sum(dtype=np.float64))
+        rgba[y, :, :3] = np.rint(np.log2(1 + 8 * np.clip(rgb, 0, 8)) * (255 / np.log2(65)))
+        rgba[y, :, 3] = np.rint(alpha * 255)
+
     with path.open('rb') as stream:
         header = read_header(stream)
         xmin, ymin, xmax, ymax = struct.unpack('<4i', header['dataWindow'])
@@ -47,11 +58,19 @@ def encode_scanlines(path, width, height, exposure):
             alpha, rgb = channels[0], channels[:0:-1].T * exposure
             if not np.isfinite(channels).all() or alpha.min() < 0 or alpha.max() > 1:
                 raise ValueError('Invalid radiance or alpha')
-            clipped_mask = (rgb.max(axis=1) > 8.) & (alpha > 0.)
-            clipped += int(np.count_nonzero(clipped_mask))
-            clipped_coverage += float(alpha[clipped_mask].sum(dtype=np.float64))
-            rgba[y - ymin, :, :3] = np.rint(np.log2(1 + 8 * np.clip(rgb, 0, 8)) * (255 / np.log2(65)))
-            rgba[y - ymin, :, 3] = np.rint(alpha * 255)
+            if filtered is None:
+                encode(y - ymin, rgb, alpha)
+            else:
+                # Filter scene-linear radiance in premultiplied form so thin
+                # needles, creek foam and cloud coverage keep their silhouette.
+                row = filtered[(y - ymin) // factor]
+                row[:, :3] += (rgb * alpha[:, None]).reshape(out_width, factor, 3).sum(axis=1)
+                row[:, 3] += alpha.reshape(out_width, factor).sum(axis=1)
+    if filtered is not None:
+        for y, row in enumerate(filtered):
+            weight = row[:, 3]
+            straight = np.divide(row[:, :3], weight[:, None], out=np.zeros_like(row[:, :3]), where=weight[:, None] > 0)
+            encode(y, straight, weight / (factor * factor))
     return rgba, clipped, clipped_coverage
 
 
@@ -96,6 +115,7 @@ def main():
     parser.add_argument('--input', type=Path, required=True)
     parser.add_argument('--out', type=Path, required=True)
     parser.add_argument('--quality', type=int, default=88)
+    parser.add_argument('--width', type=int, help='Optional integer downsample width; the Cycles master is left untouched.')
     parser.add_argument('--layers', choices=LAYERS, nargs='+', default=LAYERS)
     args = parser.parse_args()
     contract = json.loads((ROOT / 'shared/pine-gate-backdrop.json').read_text())
@@ -105,6 +125,10 @@ def main():
         raise ValueError('The input must cover the authored projection with the original aspect ratio.')
     if render['alpha'] != 'straight' or render['colorSpace'] != 'scene-linear Rec.709' or render['exposureAppliedStops'] != 0:
         raise ValueError('Expected straight-alpha scene-linear masters before camera exposure.')
+    output_width = width if args.width is None else args.width
+    if output_width <= 0 or width % output_width or height % (width // output_width):
+        raise ValueError('Output width must be an integer downsample of both master dimensions.')
+    factor = width // output_width
     if not 1 <= args.quality <= 100:
         raise ValueError('WebP quality must be between 1 and 100.')
     args.out.mkdir(parents=True, exist_ok=False)
@@ -112,9 +136,10 @@ def main():
     for name in dict.fromkeys(args.layers):
         spec = render['plates'][name]
         master = args.input / f'{name}.exr'
-        if spec['file'] != master.name or spec['bytes'] != master.stat().st_size:
+        master_hash = digest(master)
+        if spec['file'] != master.name or spec['bytes'] != master.stat().st_size or spec['sha256'] != master_hash:
             raise ValueError(f'Master for {name} differs from its render receipt.')
-        image, clipped, clipped_coverage = encode_scanlines(master, width, height, contract['preExposure'])
+        image, clipped, clipped_coverage = encode_scanlines(master, width, height, contract['preExposure'], factor)
         dilate_rgb(image)
         target = args.out / f'pine-vista-{name}.webp'
         with tempfile.TemporaryDirectory(dir=args.out, prefix='encode-') as scratch:
@@ -123,11 +148,13 @@ def main():
             subprocess.run(['cwebp', '-quiet', '-q', str(args.quality), '-alpha_q', '100', '-exact',
                             '-m', '4', str(png), '-o', str(target)], check=True)
         variants[name] = {'uri': target.name, 'bytes': target.stat().st_size, 'sha256': digest(target),
-                          'masterSha256': digest(master), 'clippedRadiancePixels': clipped,
+                          'masterSha256': master_hash, 'clippedRadiancePixels': clipped,
                           'clippedOpaquePixelEquivalent': round(clipped_coverage, 2)}
         print('PINE_BACKDROP_PLATE', name, json.dumps(variants[name]), flush=True)
     (args.out / 'encode.json').write_text(json.dumps({
-        'width': width, 'height': height, 'encoding': 'log2-8-8', 'preExposure': contract['preExposure'],
+        'width': output_width, 'height': height // factor, 'encoding': 'log2-8-8',
+        'masterWidth': width, 'masterHeight': height, 'filter': 'premultiplied-linear-box' if factor > 1 else 'none',
+        'preExposure': contract['preExposure'],
         'colorSpace': 'linear', 'alpha': 'straight', 'webpQuality': args.quality,
         'renderSha256': digest(args.input / 'render.json'), 'layers': variants,
     }, indent=2) + '\n')
