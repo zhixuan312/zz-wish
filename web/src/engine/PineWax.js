@@ -669,6 +669,7 @@ export function createPineWax(seat, waxMaterial, { refined = false } = {}) {
   const wickEnd = wickPath.getPoint(1);
   const warmWax = new THREE.Color(0xffc07d);
   let source, rows, bodyMesh, lastFuel, lastState, fullHeight, cutHeight, bodyHeight;
+  let lastPoolRadius, lastPoolRise;
   let traceSeatRadius = seat.traceRadius, runnelLayout;
   let drips = 0;
 
@@ -721,7 +722,13 @@ export function createPineWax(seat, waxMaterial, { refined = false } = {}) {
           // Place the meniscus below the dry lip. Its outer rings meet the
           // curved inner wall; the centre stays below them around the wick.
           const poolRadius = top.r * .802;
-          if (pool.visible) fillPool(poolMesh, poolRadius, Math.min(.00083, depth * .21));
+          const poolRise = Math.min(.00083, depth * .21);
+          // A straight candle's pool can translate without changing its shape.
+          if (pool.visible && (poolRadius !== lastPoolRadius || poolRise !== lastPoolRise)) {
+            fillPool(poolMesh, poolRadius, poolRise);
+            lastPoolRadius = poolRadius;
+            lastPoolRise = poolRise;
+          }
           pool.position.set(top.cx, cut - depth * .72, 0);
           light.uPinePoolRadius.value = poolRadius;
           const cooled = state === 'went_out' || state === 'burned_down';
