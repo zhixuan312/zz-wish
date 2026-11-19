@@ -18,7 +18,19 @@ const readinessAnchors = [
   ['build-finished', /^([ \t]*)cachedPlaces\.set\(t\.id,\s*candidate\);/gm, 't.id'],
 ];
 
-export function instrumentPineScene(source, { readiness, cadence, lighting, walkClock }) {
+const frameAnchor = /^([ \t]*)function frame\(stamp\s*=\s*performance\.now\(\)\)\s*\{/gm;
+
+export function readDirectionOverview(raw) {
+  assert(raw, 'Set CAPTURE_DIRECTION_OVERVIEW to the declared site overview pose.');
+  const view = JSON.parse(raw);
+  const isPoint = point => Array.isArray(point) && point.length === 3 && point.every(Number.isFinite);
+  assert(['world', 'nook-local'].includes(view?.space) && isPoint(view.position) && isPoint(view.look)
+    && view.position.some((axis, i) => axis !== view.look[i]) && Number.isFinite(view.fov) && view.fov >= 12 && view.fov <= 100,
+  'CAPTURE_DIRECTION_OVERVIEW must declare a world or nook-local pose with two distinct points and a 12–100 degree FOV.');
+  return view;
+}
+
+export function instrumentPineScene(source, { readiness, cadence, lighting, walkClock, directionCamera }) {
   if (readiness) for (const [name, anchor, id, before] of readinessAnchors) {
     const mark = `if (${id} === 'pine-gate' || ${id} === 'snow-roof') performance.mark('one-light:' + ${id} + ':${name}');`;
     source = insertAt(source, anchor, name, mark, before);
@@ -31,9 +43,33 @@ export function instrumentPineScene(source, { readiness, cadence, lighting, walk
       'physical walk time', 'window.__pineCaptureWalkClock = { id, seconds: k * (P.walkSeconds ?? 14), durationSeconds: P.walkSeconds ?? 14 };');
   }
   if (lighting) {
-    source = insertAt(source, /^([ \t]*)function frame\(stamp\s*=\s*performance\.now\(\)\)\s*\{/gm, 'lighting state', `window.__pineCaptureLighting = () => {
+    source = insertAt(source, frameAnchor, 'lighting state', `window.__pineCaptureLighting = () => {
   const state = place?.baked?.lightingState();
   return state ? { placeId: place.id, agx: !!nativeAgXPass?.enabled, ...state } : null;
+};`, true);
+  }
+  if (directionCamera) {
+    source = insertAt(source, frameAnchor, 'direction camera', `let pineCaptureRestoreView = null;
+window.__pineCaptureCamera = () => ({
+  phase, position: camera.position.toArray(), direction: camera.getWorldDirection(V3()).toArray(),
+  fov: camera.fov, overview: !!pineCaptureRestoreView,
+});
+window.__pineCaptureOverview = async (view) => {
+  if (place?.id !== 'pine-gate' || phase !== 'candle') throw new Error('Pine Gate overview requires the candle chooser.');
+  if (view) {
+    if (pineCaptureRestoreView) throw new Error('An overview is already active.');
+    pineCaptureRestoreView = { pos: rig.pos.clone(), look: rig.look.clone(), fov: rig.fov };
+    const convert = (point) => view.space === 'world' ? V3(...point) : toWorld(V3(...point));
+    const pos = convert(view.position), look = convert(view.look);
+    await moveCam(pos, look, .85, view.fov);
+    return { position: pos.toArray(), direction: look.sub(pos).normalize().toArray(), fov: view.fov };
+  } else {
+    const saved = pineCaptureRestoreView;
+    if (!saved) return;
+    await moveCam(saved.pos, saved.look, .85, saved.fov);
+    rig.fov = saved.fov;
+    pineCaptureRestoreView = null;
+  }
 };`, true);
   }
   return source;

@@ -10,7 +10,7 @@ import { remainingFuel, waxCutHeight } from '../../shared/wax.ts';
 import { DICTS, fmtDuration } from '../../web/src/i18n.ts';
 import { assertCaptureGpuHealthy, installCaptureGpuGuard } from './capture-preflight.mjs';
 import { installLiveAudioAudit, sampleLiveAudio, sampleLiveAudioWindow } from './live-audio-audit.mjs';
-import { instrumentPineScene } from './pine-gate-scene-audit.mjs';
+import { instrumentPineScene, readDirectionOverview } from './pine-gate-scene-audit.mjs';
 import { pinePackagePath, readPinePreview, routePinePreview } from './pine-preview-delivery.mjs';
 
 if (process.argv.includes('--help')) {
@@ -28,7 +28,8 @@ if (process.argv.includes('--help')) {
     'CAPTURE_AUDIO_COMPARE=1 compares the actual Pine and Snow AudioContext after lighting each place.',
     'CAPTURE_AMBIENT_ONLY=1 captures final-package place, unlit, burning, and mid-burn at PINE_HOUR.',
     'CAPTURE_PREVIEW_DIR and CAPTURE_PREVIEW_SHA256 select an eight-sample package under art/build/pine-gate.',
-    'CAPTURE_DIRECTION_ONLY=1 saves four timed walk frames and the settled edge-niche frame under quality/direction/QUALITY_LABEL.',
+    'CAPTURE_DIRECTION_ONLY=1 saves six site review frames from day and night under quality/direction/QUALITY_LABEL.',
+    'CAPTURE_DIRECTION_OVERVIEW is the JSON camera pose (space, position, look, fov) for the separate site overview.',
     'CAPTURE_BROWSER and CAPTURE_ONLY can select a single context. PINE_HOUR defaults to 22.',
   ].join('\n'));
   process.exit(0);
@@ -45,7 +46,12 @@ const readinessOnly = process.env.CAPTURE_READINESS_ONLY === '1';
 const audioCompare = process.env.CAPTURE_AUDIO_COMPARE === '1';
 const ambientOnly = process.env.CAPTURE_AMBIENT_ONLY === '1';
 const directionOnly = process.env.CAPTURE_DIRECTION_ONLY === '1';
-const directionWalkFrames = [['forest-05s', 5], ['bridge-13s', 13], ['gate-tunnel-22s', 22], ['terrace-release-27s', 27]];
+const directionWalkFrames = [['forest-06s', 6], ['ancient-pine-crest-24s', 24], ['terrace-reveal-28s', 28]];
+const directionPasses = [
+  { name: 'day', hour: 13, frames: [...directionWalkFrames.map(([name]) => name), 'shrine-pavilion', 'day-burning'] },
+  { name: 'night', hour: 22, frames: ['night-burning'] },
+];
+const directionOverview = directionOnly ? readDirectionOverview(process.env.CAPTURE_DIRECTION_OVERVIEW) : null;
 const readinessRepeats = Number(process.env.CAPTURE_READINESS_REPEATS ?? 1);
 assert(!readinessOnly || quality, 'Readiness-only requires CAPTURE_MILESTONE=quality.');
 assert(!audioCompare || (quality && !readinessOnly), 'Audio comparison requires quality mode without readiness-only.');
@@ -87,7 +93,8 @@ const sizes = [
   const languages = mode === 'm3' ? ['en', 'zh'] : [size.phone ? 'zh' : 'en'];
   return languages.map(language => ({ ...size, language, label: size.name + '-' + language }));
 }).filter(size => (!contextOnly || size.label === contextOnly) && (!directionOnly || size.label === 'desktop-en'));
-const contexts = audioCompare ? sizes.flatMap(size => ['pine-gate', 'snow-roof'].map(placeId => ({ ...size, placeId }))) : sizes;
+const contexts = directionOnly ? sizes.flatMap(size => directionPasses.map(direction => ({ ...size, direction })))
+  : audioCompare ? sizes.flatMap(size => ['pine-gate', 'snow-roof'].map(placeId => ({ ...size, placeId }))) : sizes;
 assert(suite.length && sizes.length, 'No matching capture context.');
 const output = directionOnly ? join(outputRoot, 'quality', 'direction', reviewLabel)
   : quality
@@ -120,18 +127,19 @@ if (directionOnly) {
 } else await mkdir(output, { recursive: true });
 const report = {
   mode,
-  hour,
+  ...(directionOnly ? { directionHours: directionPasses.map(pass => pass.hour) } : { hour }),
   ...(process.env.CAPTURE_SOURCE_REV ? { sourceRev: process.env.CAPTURE_SOURCE_REV } : {}),
   ...(process.env.CAPTURE_CODE_SHA ? { codeSha256: process.env.CAPTURE_CODE_SHA } : {}),
   ...(readinessOnly ? { readinessOnly, readinessRepeats } : {}),
   ...(quality ? { reviewLabel } : {}),
   ...(quality && !readinessOnly && !audioCompare && !ambientOnly && !directionOnly ? { matchedEndingShapes: true } : {}),
-  ...(directionOnly ? { directionOnly, frames: [...directionWalkFrames.map(([name]) => name), 'edge-niche-settled'],
-    directionMethod: 'Native 1440 × 900 desktop screenshots with normal product cameras and motion. Walk times use the linear tween clock, and panels are hidden only while taking each screenshot.' } : {}),
+  ...(directionOnly ? { directionOnly, frames: directionPasses.flatMap(pass => pass.frames), directionOverview,
+    directionMethod: 'Two independent 1440 × 900 desktop contexts use the same private eight-sample package. The walk and both burning views use product cameras, the site overview uses a declared pose, and panels are hidden only while taking each screenshot.' } : {}),
   ...(ambientOnly ? { ambientOnly } : {}),
   ...(audioCompare ? { audioCompare, audioSourceSha256: createHash('sha256').update(await readFile(join(worktree, 'web/src/sound.ts'))).digest('hex') } : {}),
   delivery,
-  clock: 'Local visual hour ' + hour + ' held constant. Controlled client and matching isolated server start times accelerate progress; render animation uses real frame timestamps.',
+  clock: directionOnly ? 'Local visual hours 13 and 22 are held constant in their respective contexts. Walk, ignition and candle age use real elapsed time.'
+    : 'Local visual hour ' + hour + ' held constant. Controlled client and matching isolated server start times accelerate progress; render animation uses real frame timestamps.',
   cameraDrift: holdCameraDrift ? 'held for still comparisons' : 'product default',
   viewport: 'Phone is viewport and touch emulation. WebKit freehand uses a trusted mouse stroke.',
   runs: [],
@@ -152,6 +160,13 @@ const history = page => page.evaluate(async () => {
 });
 const candleResponse = (page, path) => page.waitForResponse(response =>
   response.request().method() === 'POST' && new URL(response.url()).pathname === path);
+
+function assertNearestCamera(measured, expected) {
+  const distance = (a, b) => Math.hypot(...a.map((axis, i) => axis - b[i]));
+  assert(distance(measured.position, expected.position) < .015, 'Camera positions differ by at least 1.5 cm.');
+  assert(distance(measured.direction, expected.direction) < .015, 'Camera headings differ by at least 0.86 degrees.');
+  assert(Math.abs(measured.fov - expected.fov) < .05, 'Camera FOVs differ by at least 0.05 degrees.');
+}
 
 async function observeWishInput(field) {
   await field.evaluate(field => field.addEventListener('input', () => {
@@ -244,7 +259,8 @@ async function drawProfile(context, page, touch, browserName) {
 }
 
 async function capture(browser, browserName, size, trial) {
-  const { language, label, phone, width, height } = size;
+  const { language, label, phone, width, height, direction } = size;
+  const visualHour = direction?.hour ?? hour;
   const placeId = size.placeId ?? 'pine-gate';
   const pine = placeId === 'pine-gate';
   const context = await browser.newContext({
@@ -254,6 +270,7 @@ async function capture(browser, browserName, size, trial) {
   const path = mode === 'm3' ? join(output, browserName, label) : join(output, label);
   const run = { browser: browserName, version: browser.version(), label,
     ...(audioCompare ? { placeId, viewport: [width, height], deviceScaleFactor: phone ? 2 : 1 } : {}),
+    ...(direction ? { direction: direction.name, visualHour, viteUpdates: [] } : {}),
     ...(readinessOnly ? { trial } : {}), shots: [], records: [], errors: [] };
   report.runs.push(run);
   await mkdir(path, { recursive: true });
@@ -270,7 +287,7 @@ async function capture(browser, browserName, size, trial) {
       performance.now = () => nativeNow() + offset;
       window.__advanceVisualClock = delta => { offset += delta; };
       if (holdCameraDrift) window.__visualFreezeCamera = true;
-    }, { hour, holdCameraDrift });
+    }, { hour: visualHour, holdCameraDrift });
     const page = await context.newPage();
     page.setDefaultTimeout(65_000);
     page.on('pageerror', error => run.errors.push({ kind: 'runtime', text: error.stack ?? error.message }));
@@ -281,6 +298,19 @@ async function capture(browser, browserName, size, trial) {
       if (response.status() >= 400) run.errors.push({ kind: 'http', status: response.status(), url: response.url() });
     });
     page.on('crash', () => run.errors.push({ kind: 'crash' }));
+    if (direction) page.on('websocket', socket => {
+      if (new URL(socket.url()).host !== base.host) return;
+      socket.on('framereceived', ({ payload }) => {
+        const frame = typeof payload === 'string' ? payload : payload.toString('utf8');
+        if (!frame.startsWith('{')) return;
+        let message;
+        try { message = JSON.parse(frame); } catch { return; }
+        if (['update', 'full-reload', 'prune'].includes(message.type)) {
+          run.viteUpdates.push(message);
+          run.errors.push({ kind: 'source-drift', text: frame });
+        }
+      });
+    });
     if (previewPackage) {
       run.previewFetchedFiles = [];
       await routePinePreview(page, base, previewPackage, text => run.errors.push({ kind: 'preview', text }), name => {
@@ -291,7 +321,8 @@ async function capture(browser, browserName, size, trial) {
       readiness: quality && !audioCompare,
       cadence: fullJourney && phone && !readinessOnly && !audioCompare && !ambientOnly,
       lighting: !!delivery && !audioCompare && !readinessOnly,
-      walkClock: directionOnly,
+      walkClock: direction?.name === 'day',
+      directionCamera: !!direction,
     };
     if (Object.values(sceneAudit).some(Boolean)) {
       await page.route(url => url.pathname === '/src/engine/scene.js', async route => {
@@ -299,7 +330,13 @@ async function capture(browser, browserName, size, trial) {
         let source;
         try {
           assert(response.ok(), `Scene request failed with HTTP ${response.status()}.`);
-          source = instrumentPineScene(await response.text(), sceneAudit);
+          const servedSource = await response.text();
+          if (direction) {
+            const fingerprint = hash(servedSource);
+            run.sceneSha256 ??= fingerprint;
+            assert.equal(fingerprint, run.sceneSha256, 'Vite served drifted scene source during this context.');
+          }
+          source = instrumentPineScene(servedSource, sceneAudit);
         } catch (error) {
           run.errors.push({ kind: 'instrumentation', text: String(error) });
           await route.fulfill({ response });
@@ -343,6 +380,7 @@ async function capture(browser, browserName, size, trial) {
           walk: window.__walkProgress ?? null,
           walkClock: window.__pineCaptureWalkClock ?? null,
           ignition: window.__visualIgnition ?? null,
+          ...(window.__pineCaptureCamera ? { camera: window.__pineCaptureCamera() } : {}),
           canvas: [window.__renderer.domElement.width, window.__renderer.domElement.height],
           viewportOverflow: [...document.querySelectorAll('.ui button, .ui textarea, .ui h1, .ui h2')]
             .filter(item => {
@@ -356,7 +394,7 @@ async function capture(browser, browserName, size, trial) {
       const bytes = await page.screenshot({ path: file, scale: 'css',
         ...(directionOnly ? { style: '.ui { visibility: hidden !important; }' } : {}) });
       let directionProof = {};
-      if (directionOnly) {
+      if (direction) {
         const pixels = [bytes.readUInt32BE(16), bytes.readUInt32BE(20)];
         const walkClockAfter = await page.evaluate(() => window.__pineCaptureWalkClock ?? null);
         assert.deepEqual(pixels, [1440, 900]);
@@ -388,13 +426,15 @@ async function capture(browser, browserName, size, trial) {
       const started = performance.now();
       await act(button(bi('^Step inside$', '^走进院里$')));
       if (skip) await act(button(bi('^Skip$', '^跳过$')));
-      if (directionOnly) {
+      if (direction?.name === 'day') {
         for (const [name, target] of directionWalkFrames) {
           await page.waitForFunction(target => {
             const clock = window.__pineCaptureWalkClock;
             return clock?.id === 'pine-gate' && clock.seconds >= target && window.__walkProgress?.state === 'walking';
           }, target, { timeout: 35_000, polling: 30 });
           const shot = await captureShot(name, { targetWalkSeconds: target });
+          assert(shot.walkClock.durationSeconds === 30 && shot.walk.state === 'walking' && !shot.camera.overview,
+            'The walk frame must come from the unmodified thirty-second journey.');
           assert(shot.walkClock.seconds >= target && shot.walkClock.seconds <= target + .6, `Missed the ${target}s walk beat.`);
           assert(shot.walkClockAfter.seconds <= target + .9, `The screenshot crossed the ${target}s walk beat.`);
         }
@@ -576,25 +616,39 @@ async function capture(browser, browserName, size, trial) {
       }
       if (sceneAudit.lighting) {
         run.lighting = await page.evaluate(() => window.__pineCaptureLighting?.());
-        const expected = { 13: ['day', 2], 18: ['dusk', 1], 22: ['night', 0] }[hour];
+        const expected = { 13: ['day', 2], 18: ['dusk', 1], 22: ['night', 0] }[visualHour];
         assert(run.lighting?.placeId === 'pine-gate' && run.lighting.agx && run.lighting.loadedPasses.includes('lamp'),
           'Pine Gate must be active with native AgX and the lamp pass.');
         if (expected) {
           const [pass, index] = expected;
           assert(run.lighting.loadedPasses.includes(pass) && run.lighting.weights[index] > .5,
-            `Pine Gate must use the ${pass} bank at visual hour ${hour}.`);
+            `Pine Gate must use the ${pass} bank at visual hour ${visualHour}.`);
         }
       }
       if (!directionOnly) await captureShot('place');
     }
-    if (directionOnly) {
-      await travel(false);
+    if (direction) {
+      await travel(direction.name === 'night');
       await choose();
+      if (direction.name === 'day') {
+        const previous = await page.evaluate(() => window.__pineCaptureCamera());
+        const pose = await page.evaluate(view => window.__pineCaptureOverview(view), directionOverview);
+        try {
+          const overview = await captureShot('shrine-pavilion', { overviewPose: pose });
+          assert(overview.camera.overview && overview.camera.phase === 'candle');
+          assertNearestCamera(overview.camera, pose);
+        } finally {
+          await page.evaluate(() => window.__pineCaptureOverview(null));
+        }
+        assertNearestCamera(await page.evaluate(() => window.__pineCaptureCamera()), previous);
+      }
       const candle = await light();
       assert.equal(candle.durationMs, 3_600_000);
-      const niche = await captureShot('edge-niche-settled');
-      assert.equal(niche.wax.state, 'burning');
-      assert.deepEqual(run.shots.map(shot => basename(shot.file, '.png')), report.frames);
+      run.directionCandle = { id: candle.id, shape: candle.shape, durationMs: candle.durationMs };
+      const niche = await captureShot(`${direction.name}-burning`);
+      assert(niche.wax.state === 'burning' && niche.wax.remaining > .99 && niche.ignition.state === 'settled');
+      assert(niche.camera.phase === 'burning' && !niche.camera.overview);
+      assert.deepEqual(run.shots.map(shot => basename(shot.file, '.png')), direction.frames);
       assert.deepEqual(run.errors, []);
       return;
     }
@@ -770,6 +824,17 @@ try {
     const publicAfter = hash(await readPublicManifest());
     report.delivery.publicManifestUnchanged = publicAfter === report.delivery.publicManifestSha256;
     assert(report.delivery.publicManifestUnchanged, 'The ordinary final Pine manifest changed during the isolated preview.');
+  }
+  if (directionOnly && !failures) {
+    const [day, night] = report.runs;
+    assert(day?.direction === 'day' && night?.direction === 'night' && report.runs.length === 2);
+    assert.match(day.sceneSha256, /^[a-f0-9]{64}$/);
+    assert.equal(day.sceneSha256, night.sceneSha256, 'The day and night contexts loaded different Vite scene sources.');
+    assert.notEqual(day.directionCandle.id, night.directionCandle.id, 'Each lighting needs its own actual candle.');
+    assert.deepEqual(day.directionCandle.shape, night.directionCandle.shape);
+    assert.equal(day.directionCandle.durationMs, night.directionCandle.durationMs);
+    assertNearestCamera(day.shots.at(-1).camera, night.shots.at(-1).camera);
+    report.directionVerified = true;
   }
   console.log('Ran ' + report.runs.length + ' contexts, captured ' + report.runs.reduce((n, run) => n + run.shots.length, 0) + ' screenshots, ' + failures + ' failed contexts.');
   if (failures) process.exitCode = 1;
