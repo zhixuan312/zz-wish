@@ -1128,6 +1128,48 @@ def stream_shoal_sites():
             yield x, z, False, rng.uniform(.043, .088)
 
 
+SPRING_GRAVEL_BARS = ((17.15, 1), (18.48, 1), (19.68, 1), (24.45, -1), (26.97, -1), (28.88, -1), (31.18, -1))
+
+
+def stream_gravel_bars(ground, occupied):
+    rng = random.Random(585971)
+    shore = []
+    for index, (_, _, z) in enumerate(WATERCOURSE[1:-1]):
+        centre, _, width = watercourse_at(z)
+        shore.append((centre + (-1 if index % 3 else 1) * (width + .19), z, .29))
+    for station, side in SPRING_GRAVEL_BARS:
+        count = 0
+        for _ in range(280):
+            along = rng.uniform(-.38, .38)
+            z = station + along
+            centre, waterline, width = watercourse_at(z)
+            bank = width - .075 + .075 * (along / .38) ** 2 + rng.uniform(-.117, .129)
+            x = centre + side * bank
+            radius = rng.uniform(.049, .070) if count == 0 else rng.uniform(.022, .044)
+            footprint = radius * 1.16
+            if z + footprint >= 20.60 and z - footprint <= 23.80:
+                continue
+            path_x, path_width = section_at(z)
+            if abs(x - path_x) - footprint <= path_width + .27:
+                continue
+            spacing = min((math.hypot(x - px, z - pz) - footprint - extent
+                           for px, pz, extent in (*occupied, *shore)), default=math.inf)
+            # Place larger stones first; fit smaller gravel in the narrow
+            # spaces beside them without overlapping existing stone skirts.
+            if spacing < .004 or (count > 0 and spacing > .065):
+                continue
+            depth = waterline - supports_height(x, z, [ground])
+            shore_stone = depth < .023 or any(
+                watercourse_at(z + dz)[1] - supports_height(x + dx, z + dz, [ground]) < .010
+                for dx, dz in ((footprint, 0.), (-footprint, 0.), (0., footprint), (0., -footprint)))
+            yield x, z, shore_stone, radius
+            count += 1
+            if count == 8:
+                break
+        if count < 4:
+            raise RuntimeError(f'A spring gravel bar at z={station:.2f} has only {count} seated stones.')
+
+
 def spring_bank_rock_noses(ground, points, faces):
     # Exposed ribs of the creek bed reach into the current at different
     # angles. Their outer skirts stay in the terrain on wet and dry sides.
@@ -1177,8 +1219,27 @@ def spring_pebbles(ground, wet_gravel, submerged_gravel):
     rng = random.Random(59924)
     shore_points, shore_faces = [], []
     bed_points, bed_faces = [], []
-    sites = list(stream_gravel_sites(rng))
-    for x, z, shore, radius in (*sites, *stream_shoal_sites()):
+    occupied = []
+    spring_bank_rock_noses(ground, shore_points, shore_faces)
+    for start in range(0, len(shore_points), 17):
+        x, _, z = shore_points[start]
+        footprint = max(math.hypot(px - x, pz - z) for px, _, pz in shore_points[start + 9:start + 17])
+        occupied.append((x, z, footprint))
+
+    def sites():
+        for values in (*stream_gravel_sites(rng), *stream_shoal_sites()):
+            x, z, _, radius = values
+            channel, _, width = watercourse_at(z)
+            if any(abs(z - station) < .41 + radius and side * (x - channel) > width - .21 - radius
+                   for station, side in SPRING_GRAVEL_BARS):
+                continue
+            yield (*values, False)
+        for values in stream_gravel_bars(ground, occupied):
+            yield (*values, True)
+
+    skirts, underwater, clearance = [], [], []
+    grouped_count = 0
+    for x, z, shore, radius, grouped in sites():
         _, waterline, _ = watercourse_at(z)
         path_centre, path_half_width = section_at(z)
         if abs(x - path_centre) < path_half_width + .21 + radius:
@@ -1194,8 +1255,13 @@ def spring_pebbles(ground, wet_gravel, submerged_gravel):
         points, faces = (shore_points, shore_faces) if shore else (bed_points, bed_faces)
         start = len(points)
         points.append((x, bottom + lift if shore else min(bottom + lift, waterline - .003), z))
-        sides = 8
+        sides = 6 if grouped else 8
         perimeter = [radius * rng.uniform(.81, 1.16) for _ in range(sides)]
+        occupied.append((x, z, max(perimeter)))
+        if grouped:
+            grouped_count += 1
+            if not shore:
+                underwater.append(waterline - points[-1][1])
         for band, (spread, crest) in enumerate(((.61, .76), (1., 0.))):
             for j, scale in enumerate(perimeter):
                 a = j / sides * math.tau
@@ -1207,10 +1273,17 @@ def spring_pebbles(ground, wet_gravel, submerged_gravel):
                 if not shore:
                     y = min(y, watercourse_at(pz)[1] - .003)
                 points.append((px, y, pz))
+                if grouped and band:
+                    skirts.append(y - bed)
+                    clearance.append(abs(px - section_at(pz)[0]) - section_at(pz)[1])
         for j in range(sides):
             a, b = start + 1 + j, start + 1 + (j + 1) % sides
             faces.extend(((start, b, a), (a, b, b + sides, a + sides)))
-    spring_bank_rock_noses(ground, shore_points, shore_faces)
+    if not grouped_count or not underwater or max(skirts) > .002 or min(clearance) < .23:
+        raise RuntimeError('The spring gravel bars lack dry clearance, submerged crowns or terrain contact.')
+    print(f'PINE_SPRING_GRAVEL_BARS {grouped_count} grouped stones; {len(skirts)} seated skirt vertices; '
+          f'maximum signed gap {max(skirts):.6f} m. Minimum path clearance {min(clearance):.6f} m; '
+          f'{len(underwater)} underwater crowns with minimum water depth {min(underwater):.6f} m.')
     for description, points, faces, material in (
         ('Wet granite cobbles on the spring bank', shore_points, shore_faces, wet_gravel),
         ('Submerged granite cobbles in the spring bed', bed_points, bed_faces, submerged_gravel),

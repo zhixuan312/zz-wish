@@ -101,7 +101,7 @@ function installShallowRunnel(material, phase) {
   material.depthWrite = false;
   material.opacity = 1;
   material.envMapIntensity = .48;
-  material.customProgramCacheKey = () => key + '-transparent-pine-runnel';
+  material.customProgramCacheKey = () => key + '-clear-shallow-pine-runnel';
   material.onBeforeCompile = (shader, renderer) => {
     compile.call(material, shader, renderer);
     shader.uniforms.uPineCreekTime = phase;
@@ -130,28 +130,30 @@ function installShallowRunnel(material, phase) {
         float viewCos = clamp(dot(geometryViewDir, normal), .04, 1.);
         // The unresolved wave slopes contribute at grazing angles. Through
         // the broken reflection, the separate scanned bed remains visible.
-        float meanCos = viewCos + (1. - viewCos) * mix(.27, .15, pool);
+        float meanCos = viewCos + (1. - viewCos) * mix(.31, .21, pool);
         float fresnel = .0204 + .9796 * pow(1. - meanCos, 5.);
         // A shallow ray bends towards the normal inside water (n = 1.333).
         // Use that underwater path length for the weak in-water attenuation.
         vec3 transmitted = refract(-geometryViewDir, normal, .7502);
         float waterCos = max(.64, -dot(transmitted, normal));
-        float absorption = 1. - exp(-1.35 * max(0., waterDepth) / waterCos);
+        float absorption = 1. - exp(-.58 * max(0., waterDepth) / waterCos);
         float body = (1. - fresnel) * absorption;
         vec3 reflection = totalSpecular;
         #if defined(USE_ENVMAP) && defined(RE_IndirectSpecular)
           reflection = radiance;
           #if defined(RE_IndirectDiffuse) && defined(USE_LIGHTMAP)
             float skyExposure = dot(irradiance, vec3(.2126, .7152, .0722));
-            reflection *= mix(.22, .67, smoothstep(.3, 4.2, skyExposure));
+            reflection *= mix(.27, .58, smoothstep(.3, 4.2, skyExposure));
           #endif
         #endif
-        // A different part of the sky is reflected on the flanks of each
-        // ripple. Keep the moving glints locally broken by the gravel bars.
-        float crest = pow(max(0., run), 4.) * (.48 + .52 * riffle);
-        reflection *= .61 + .60 * crest + .13 * riffle;
-        diffuseColor.a = waterEdge * (fresnel + body);
-        outgoingLight = (reflection * fresnel + totalDiffuse * body) / max(.0204, fresnel + body);
+        // The banks keep most of the shallow run in shade. Short crests in
+        // the current pick up openings in the canopy as they pass the bars.
+        float crest = pow(max(0., .76 * run + .24 * rivulet), 8.);
+        float glint = crest * smoothstep(.41, .84, riffle) * smoothstep(.12, .67, across);
+        reflection *= .34 + .86 * glint;
+        float waterOpacity = fresnel + body;
+        diffuseColor.a = waterEdge * waterOpacity;
+        outgoingLight = (reflection * fresnel + totalDiffuse * body) / max(.0204, waterOpacity);
         #include <opaque_fragment>`);
   };
 }
