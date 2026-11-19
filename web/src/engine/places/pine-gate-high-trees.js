@@ -1,14 +1,20 @@
 import * as THREE from 'three';
 
-const prototypes = new Set(['PineRidgeNative', 'PineYoungNative']);
+const primaryMounts = ['PineRidgeNative', 'PineYoungNative'];
+const mountPrototypes = new Map([
+  ...primaryMounts.map(node => [node, node]),
+  ['PineShoulderNative', 'PineRidgeNative'],
+]);
 
 function readMounts(group) {
   const mounts = JSON.parse(group.userData.one_light_pine_native_mounts ?? '[]');
-  if (!Array.isArray(mounts) || mounts.length !== prototypes.size || new Set(mounts.map(mount => mount.node)).size !== prototypes.size) {
-    throw new Error('Pine Gate needs two distinct native tree mounts');
+  const nodes = new Set(Array.isArray(mounts) ? mounts.map(mount => mount?.node) : []);
+  if (!primaryMounts.every(node => nodes.has(node)) || nodes.size !== mounts.length) {
+    throw new Error('Pine Gate needs distinct native tree mounts for both valley trees');
   }
   return mounts.map(mount => {
-    if (!prototypes.has(mount.node) || mount.position?.length !== 3 || !mount.position.every(Number.isFinite)
+    const prototype = mountPrototypes.get(mount.node);
+    if (!prototype || (mount.prototype ?? mount.node) !== prototype || mount.position?.length !== 3 || !mount.position.every(Number.isFinite)
       || !Number.isFinite(mount.height) || mount.height <= 0 || !Number.isFinite(mount.yawRadians)
       || typeof mount.proxyMaterial !== 'string' || (mount.stemMaterial != null && typeof mount.stemMaterial !== 'string')) {
       throw new Error('Invalid Pine Gate native tree mount');
@@ -22,7 +28,7 @@ function readMounts(group) {
     if (!proxies.length || ![...names].every(name => proxies.some(proxy => [proxy.material].flat().some(material => material.name === name)))) {
       throw new Error('Missing Pine Gate native tree fallback');
     }
-    return { ...mount, proxies };
+    return { ...mount, prototype, proxies };
   });
 }
 
@@ -38,13 +44,15 @@ export function preparePineHighTrees(baked, file) {
     if (!detail || disposed || !canInstall()) return false;
 
     const trees = mounts.map(mount => {
-      const tree = detail.getObjectByName(mount.node);
-      if (!tree) throw new Error('Missing native tree prototype: ' + mount.node);
-      const box = new THREE.Box3().setFromObject(tree);
+      const prototype = detail.getObjectByName(mount.prototype);
+      if (!prototype) throw new Error('Missing native tree prototype: ' + mount.prototype);
+      const box = new THREE.Box3().setFromObject(prototype);
       const height = box.max.y - box.min.y;
       if (!Number.isFinite(height) || height <= 0 || Math.abs(box.min.y) > .005) {
         throw new Error('Invalid native tree root or height: ' + mount.node);
       }
+      const tree = prototype.clone();
+      tree.name = mount.node;
       tree.position.fromArray(mount.position);
       tree.quaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), mount.yawRadians);
       tree.scale.setScalar(mount.height / height);

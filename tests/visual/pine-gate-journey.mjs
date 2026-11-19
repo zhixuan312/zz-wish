@@ -758,14 +758,18 @@ async function capture(browser, browserName, size, trial) {
           }
           if (highTreeUri) {
             assert.deepEqual(run.readyPineImages.nativeTrees, [], 'Native trees installed before the walk.');
+            const mounts = run.readyPineImages.nativeTreeMounts;
+            assert(mounts.some(mount => mount.node === 'PineRidgeNative') && mounts.some(mount => mount.node === 'PineYoungNative'));
+            const expected = new Map(mounts.map(mount => [mount.node, mount.position]));
             for (const state of [...run.shots.map(shot => shot.pineImages), run.settledPineImages]) {
               const trees = state.nativeTrees;
               if (phone) {
                 assert.deepEqual(trees, [], 'Phone installed desktop tree geometry.');
                 continue;
               }
-              assert.deepEqual(trees.map(tree => tree.name).sort(), ['PineRidgeNative', 'PineYoungNative']);
-              assert(trees.every(tree => tree.triangles > 50_000 && tree.position.every(Number.isFinite) && tree.scale > 0),
+              assert.deepEqual(trees.map(tree => tree.name).sort(), [...expected.keys()].sort());
+              for (const tree of trees) assert.deepEqual(tree.position, expected.get(tree.name));
+              assert(trees.every(tree => tree.triangles > 50_000 && tree.scale > 0),
                 'The native crowns are missing geometry or an authored mount.');
             }
           }
