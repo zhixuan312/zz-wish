@@ -119,13 +119,18 @@ function refinedWaxMaterial(light, layer) {
       vec3 bloomPoint = vPineLocal * 318.;
       float waxBloom = sin(dot(bloomPoint, vec3(.72, .81, .36))
         + .75 * sin(dot(bloomPoint, vec3(.33, -1.42, .61)))) * sin(dot(bloomPoint, vec3(-.95, .31, 1.19)));
-      diffuseColor.rgb *= 1. - .105 * bubble + .034 * poreLip + .044 * waxBloom;` : ''}
+      // Lengthwise flow marks persist in the solid, cooler outer wax.
+      vec2 flowPoint = vPineLocal.xz * 272.;
+      float flowPhase = dot(flowPoint, vec2(.89, -.74)) + .83 * sin(vPineLocal.y * 74. + flowPoint.y);
+      float flowCoverage = 1. - smoothstep(.2, 1.1, fwidth(flowPhase));
+      float pouringFlow = sin(flowPhase) * cos(dot(flowPoint, vec2(.37, .63)) + vPineLocal.y * 48.) * flowCoverage;
+      diffuseColor.rgb *= 1. - .105 * bubble + .034 * poreLip + .044 * waxBloom + .056 * pouringFlow;` : ''}
       diffuseColor.rgb *= ${wet ? `mix(${style.diffuse}, .82, uPineWaxCooling)` : style.diffuse} * (1. + .018 * waxGrain);`)
       .replace('#include <roughnessmap_fragment>', `#include <roughnessmap_fragment>
-        roughnessFactor = clamp(roughnessFactor + .026 * waxGrain ${shaft ? '+ .09 * bubble - .034 * poreLip' : ''}, .1, 1.);`)
+        roughnessFactor = clamp(roughnessFactor + .026 * waxGrain ${shaft ? '+ .09 * bubble - .034 * poreLip + .037 * pouringFlow' : ''}, .1, 1.);`)
       .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
         ${shaft ? `normal = pineRelief(normal, -vViewPosition,
-          .000039 * waxGrain - .000105 * bubble + .000028 * poreLip + .000049 * waxBloom);` : ''}
+          .000039 * waxGrain - .000105 * bubble + .000028 * poreLip + .000049 * waxBloom + .00021 * pouringFlow);` : ''}
         ${wet ? `
         vec2 poolPoint = vPineLocal.xz;
         float meniscus = smoothstep(.46, .97, length(poolPoint) / max(uPinePoolRadius, .001));
@@ -719,7 +724,7 @@ export function createPineWax(seat, waxMaterial, { refined = false } = {}) {
         const runnels = refined ? runnelLayout.map((drip, index) => {
           // The first small flows wet the shoulder as the pool forms. Later
           // growth follows consumed fuel and leaves the burn height alone.
-          const shoulderMelt = index < 2 ? .058 * melted : 0;
+          const shoulderMelt = index < 2 ? .092 * melted : 0;
           const amount = clamp((1 - fuel - drip.start + shoulderMelt) * drip.speed, 0, 1);
           return { ...drip, reach: Math.min(drip.reach * amount, cut * .8),
             growth: Math.sqrt(amount), crown: cut - Math.min(cut * .04, .0002) };

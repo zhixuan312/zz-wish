@@ -251,15 +251,16 @@ def spent_wax_on_sill(locate, iron):
                      for i, (color, roughness) in enumerate((('#b2a080', .49), ('#827055', .58),
                                                              ('#c0b396', .41), ('#96866c', .54)))]
     # Keep the owner dish empty, with the larger remnants gathered at the sides.
-    remnants = ((-.170, -.034, .013, .015), (-.110, -.009, .011, .011),
-                (-.100, -.056, .007, .007), (-.109, .061, .011, .014),
-                (-.066, .076, .009, .006), (-.068, .115, .008, .012),
-                (.102, -.058, .009, .011), (.126, .004, .011, .017),
-                (.094, .050, .009, .006), (.071, .084, .008, .010),
+    remnants = ((-.170, -.034, .013, .015), (-.110, -.009, .011, .006),
+                (-.100, -.056, .007, .004), (-.109, .061, .011, .014),
+                (-.066, .076, .009, .004), (-.068, .115, .008, .010),
+                (.102, -.058, .009, .007), (.126, .004, .011, .017),
+                (.094, .050, .009, .006), (.071, .084, .008, .006),
                 (.126, .078, .009, .010))
     for i, (a, c, radius, height) in enumerate(remnants):
+        spill_roll = min(.00212, height * .31)
         profile = [(0, -.0004), (radius * 1.59, -.0004), (radius * 1.57, .00031),
-                   (radius * 1.48, .00085), (radius * 1.28, .00142), (radius * 1.10, .00212),
+                   (radius * 1.48, spill_roll * .40), (radius * 1.28, spill_roll * .67), (radius * 1.10, spill_roll),
                    (radius * .99, height * .39), (radius * .97, height * .72),
                    (radius * .91, height * .92), (radius * .84, height), (radius * .74, height * .98),
                    (radius * .66, height * .87), (radius * .57, height * .59),
