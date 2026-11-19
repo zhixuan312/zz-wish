@@ -23,9 +23,10 @@ test('ties a narrow red strip under the candle stand with two hanging tails', ()
   const ys = [];
   for (let i = 0; i < position.count; i++) ys.push(position.getY(i));
   const hanging = Math.max(...ys) - Math.min(...ys);
-  // Two tails of roughly six to eight centimetres.
-  expect(hanging).toBeGreaterThan(.055);
-  expect(hanging).toBeLessThan(.085);
+  // Two tails of roughly four to five centimetres: long enough to read as cloth, short
+  // enough that the burn camera keeps all of them in frame.
+  expect(hanging).toBeGreaterThan(.038);
+  expect(hanging).toBeLessThan(.055);
 
   // Narrow ribbon: each tail is no wider than a centimetre and a half.
   const xs = [];

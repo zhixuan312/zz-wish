@@ -39,9 +39,9 @@ export function createWishCloth({ THREE, anchor, seed = 1 }) {
   // Deterministic, restrained bends so the two tails differ without a randomised look.
   const bend = (t, phase) => .0018 * Math.sin(t * 5.2 + phase) + .0011 * Math.sin(t * 11.3 + phase * .7);
   const tails = [
-    [[0, -.002], [.0016, -.026], [.0004, -.048], [-.0012, -.068]].map(([x, y], i, all) =>
+    [[0, -.002], [.0014, -.018], [.0006, -.032], [-.0006, -.044]].map(([x, y], i, all) =>
       [x, y, .0055 + bend(i / (all.length - 1), seed * 1.7) + i * .0006]),
-    [[-.002, -.002], [-.0034, -.024], [-.0022, -.046], [-.0008, -.064]].map(([x, y], i, all) =>
+    [[-.002, -.002], [-.003, -.016], [-.0022, -.030], [-.0008, -.042]].map(([x, y], i, all) =>
       [x, y, -.0042 + bend(i / (all.length - 1), seed * 2.3) - i * .0004]),
   ];
   const { positions, indices } = strip(tails);

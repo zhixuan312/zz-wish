@@ -204,10 +204,14 @@ export default function createPlace(h) {
       if (import.meta.env.DEV) {
         window.__pineCandleSlot = () => ({ index: slots.index, current: slots.current() });
       }
-      // The candle sits at nook-local (0, N.y, 0); the strip hangs from the same stand, so it
-      // is placed in the nook group rather than in the glTF world.
+      // The candle sits at nook-local (0, N.y, 0) and the burn camera looks from +z, so the
+      // strip hangs just under the tray's front rim: tied to the stand, and not hidden beneath
+      // the tray from the product view.
+      // The refined tray is about .069 m across at the rim and its floor sits at seat y .008.
+      // The strip is tied to the front rim, just outside it and just under the lip, so the burn
+      // camera at +z sees it hanging against the tray face instead of inside the tray.
       const cloth = createWishCloth({
-        THREE, anchor: V3(0, .99, 0), seed: 3,
+        THREE, anchor: V3(0, 1.006, .104), seed: 3,
       });
       cloth.group.visible = false;
       // During build(), context.G is the nook group, so the strip lives in the same space as
@@ -224,6 +228,18 @@ export default function createPlace(h) {
             visible: cloth.group.visible,
             position: cloth.group.position.toArray(),
             anchor: [anchor.x, anchor.y, anchor.z],
+            bbox: (() => {
+              cloth.group.updateWorldMatrix(true, true);
+              const ribbon = cloth.group.getObjectByName('Visitor wish cloth tied under the candle stand');
+              if (!ribbon) return null;
+              ribbon.geometry.computeBoundingBox();
+              const b = ribbon.geometry.boundingBox.clone().applyMatrix4(ribbon.matrixWorld);
+              return { min: b.min.toArray().map(v => +v.toFixed(3)), max: b.max.toArray().map(v => +v.toFixed(3)) };
+            })(),
+            faces: (() => {
+              const ribbon = cloth.group.getObjectByName('Visitor wish cloth tied under the candle stand');
+              return ribbon ? { index: ribbon.geometry.index?.count ?? 0, verts: ribbon.geometry.attributes.position?.count ?? 0 } : null;
+            })(),
           };
         };
       }
