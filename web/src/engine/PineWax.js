@@ -41,6 +41,22 @@ function materialCoordinates(shader) {
   shader.fragmentShader = `varying vec3 vPineLocal; varying vec3 vPineWorld;\n${shader.fragmentShader}`;
 }
 
+function pineSunLighting(shader, sunShade) {
+  const lighting = THREE.ShaderChunk.lights_fragment_begin;
+  if (!sunShade) return lighting;
+  shader.uniforms.uPineSunDirection = sunShade.uPineSunDirection;
+  shader.uniforms.uPineSunVisibility = sunShade.uPineSunVisibility;
+  shader.fragmentShader = `uniform vec3 uPineSunDirection;
+    uniform float uPineSunVisibility;
+    ${shader.fragmentShader}`;
+  const directionalInfo = 'getDirectionalLightInfo( directionalLight, directLight );';
+  return lighting.replace(directionalInfo, `${directionalInfo}
+    // Three's light directions point toward the source in view space.
+    if (dot(directLight.direction, transformDirection(uPineSunDirection, viewMatrix)) > .9999) {
+      directLight.color *= uPineSunVisibility;
+    }`);
+}
+
 const POOL_PROFILE = [[1, 1], [.966, .75], [.924, .39], [.867, .12], [.72, -.045], [.47, -.068], [.23, -.021]];
 const WICK_FILM_PROFILE = [[1, 0], [.79, .052], [.61, .24], [.44, .52], [.29, .81], [.17, 1], [0, 1]];
 const POOL_RING_COUNT = POOL_PROFILE.length + WICK_FILM_PROFILE.length;
@@ -73,7 +89,7 @@ const SURFACE_NOISE_GLSL = `
   }
 `;
 
-function refinedWaxMaterial(light, layer, sculptNormal) {
+function refinedWaxMaterial(light, layer, sunShade, sculptNormal) {
   const wet = layer === 'pool';
   const shaft = layer === 'body';
   const remnant = layer === 'remnant';
@@ -89,6 +105,7 @@ function refinedWaxMaterial(light, layer, sculptNormal) {
   material.onBeforeCompile = shader => {
     materialCoordinates(shader);
     Object.assign(shader.uniforms, light);
+    const lighting = pineSunLighting(shader, sunShade);
     if (sculptNormal) {
       shader.uniforms.uPineSculptNormal = { value: sculptNormal };
       shader.vertexShader = `attribute vec2 aPineSculptCircle;
@@ -251,7 +268,7 @@ function refinedWaxMaterial(light, layer, sculptNormal) {
         float waxThickness = vPineLocal.y * uPineTraceThickness;
         diffuseColor.a *= smoothstep(.000025, .00038, waxThickness);`);
       const pointInfo = 'getPointLightInfo( pointLight, geometryPosition, directLight );';
-      const pointLighting = THREE.ShaderChunk.lights_fragment_begin.replace(pointInfo, `${pointInfo}
+      const pointLighting = lighting.replace(pointInfo, `${pointInfo}
         directLight.color *= mix(1., traceVisibility, 1. - smoothstep(.001, .003, length(pointLight.position - traceWickInView)));`);
       shader.fragmentShader = shader.fragmentShader.replace('#include <lights_fragment_begin>', `
         // Transmit the visitor's finite wick light only along rays that miss
@@ -274,9 +291,11 @@ function refinedWaxMaterial(light, layer, sculptNormal) {
           reflectedLight.directSpecular *= .56;
           float spillBounce = (1. - exp(-uPineCandela * 12.)) * uPinePoolWet * .042 + uPineWaxCooling * .045;
           reflectedLight.indirectDiffuse += diffuseColor.rgb * vec3(.96, 1., 1.04) * spillBounce;`);
+    } else if (sunShade) {
+      shader.fragmentShader = shader.fragmentShader.replace('#include <lights_fragment_begin>', lighting);
     }
   };
-  material.customProgramCacheKey = () => `pine-wax-detail-${layer}-${sculptNormal ? 'sculpt' : 'plain'}-4`;
+  material.customProgramCacheKey = () => `pine-wax-detail-${layer}-${sculptNormal ? 'sculpt' : 'plain'}-4${sunShade ? '-sun-shade' : ''}`;
   return material;
 }
 
@@ -341,7 +360,7 @@ function setOldWaxOnTray(tray) {
   }
 }
 
-export function createPineTray(seat) {
+export function createPineTray(seat, sunShade) {
   const points = [[0, 0], [.038, 0], [.042, .001], [.045, .0035], [.052, .006],
     [.057, .0105], [.058, .014], [.0565, .0165], [.054, .017], [.0515, .0144],
     [.048, .0105], [.0465, seat.y], [0, seat.y]];
@@ -407,8 +426,12 @@ export function createPineTray(seat) {
         float recessReturn = .48 + .37 * dot(stoneNormal, normalize(vec3(.37, .46, 1.)));
         reflectedLight.indirectDiffuse += diffuseColor.rgb * vec3(1.07, 1.03, .98)
           * (.26 * outerFoot * recessReturn);`);
+    if (sunShade) {
+      const lighting = pineSunLighting(shader, sunShade);
+      shader.fragmentShader = shader.fragmentShader.replace('#include <lights_fragment_begin>', lighting);
+    }
   };
-  material.customProgramCacheKey = () => 'pine-fired-glaze-2';
+  material.customProgramCacheKey = () => `pine-fired-glaze-2${sunShade ? '-sun-shade' : ''}`;
   material.userData.lampOwned = true;
   const tray = new THREE.Mesh(geometry, material);
   tray.receiveShadow = true;
@@ -688,7 +711,7 @@ function writeDrip(drip, rows, cut, growth) {
   finishSurface(mesh);
 }
 
-export function createPineWax(seat, waxMaterial, { refined = false, sculptNormal = null } = {}) {
+export function createPineWax(seat, waxMaterial, { refined = false, sculptNormal = null, sunShade = null } = {}) {
   const group = new THREE.Group();
   group.position.y = seat.y;
   const light = refined ? {
@@ -708,11 +731,11 @@ export function createPineWax(seat, waxMaterial, { refined = false, sculptNormal
     uPineTraceThickness: { value: 0 },
   } : null;
   const traceSectionLocal = refined ? vector(0, 0, 0) : null;
-  const bodyMaterial = refined ? refinedWaxMaterial(light, 'body', sculptNormal)
+  const bodyMaterial = refined ? refinedWaxMaterial(light, 'body', sunShade, sculptNormal)
     : waxMaterial(0xffffff, { roughness: .42, clearcoat: .28, fall: 92 });
-  const poolMaterial = refined ? refinedWaxMaterial(light, 'pool')
+  const poolMaterial = refined ? refinedWaxMaterial(light, 'pool', sunShade)
     : waxMaterial(0xffffff, { roughness: .14, clearcoat: .95, fall: 84 });
-  const traceMaterial = refined ? refinedWaxMaterial(light, 'remnant')
+  const traceMaterial = refined ? refinedWaxMaterial(light, 'remnant', sunShade)
     : waxMaterial(0xffffff, { roughness: .45, clearcoat: .35, fall: 115 });
   const materials = refined ? [] : [bodyMaterial, poolMaterial, traceMaterial];
   const wickMaterial = new THREE.MeshStandardMaterial({ color: 0x665442, roughness: .98 });
