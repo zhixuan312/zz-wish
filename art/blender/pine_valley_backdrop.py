@@ -29,6 +29,7 @@ from pine_valley_terrain import (
 
 PROJECTION = ROOT / 'shared/pine-gate-backdrop.json'
 DAYLIGHT = ROOT / 'shared/pine-gate-daylight.json'
+MOONLIGHT = ROOT / 'shared/pine-gate-moonlight.json'
 LAYERS = ('far', 'mid', 'cloud')
 AIR_EXTINCTION = .00061
 AIR_DEPTH_GRADIENT = .00000165
@@ -162,7 +163,7 @@ class Shader:
         return self.material
 
 
-def air_perspective():
+def air_perspective(airlight):
     # Apply L = surface * exp(-sigma*d) + air * (1 - exp(-sigma*d))
     # to opaque camera and specular reflection hits. Alpha remains a record
     # of actual terrain/crown coverage, and diffuse transport is untouched.
@@ -195,7 +196,7 @@ def air_perspective():
     directly_seen = math_node('SUBTRACT', 1., transmittance)
 
     scatter = nodes.new('ShaderNodeEmission')
-    scatter.inputs['Color'].default_value = (*AIR_SCATTER_RGB, 1.)
+    scatter.inputs['Color'].default_value = (*airlight, 1.)
     mixer = nodes.new('ShaderNodeMixShader')
     links.new(directly_seen, mixer.inputs[0])
     links.new(surface.outputs['Surface'], mixer.inputs[1])
@@ -562,8 +563,8 @@ def plunge_spray(collection, end):
         y - .55, y + 1.4, material)
 
 
-def set_world(scene, daylight, pre_exposure):
-    world = bpy.data.worlds.new('Pine Gate midday atmosphere')
+def set_world(scene, light, pre_exposure, name):
+    world = bpy.data.worlds.new(name)
     world.use_nodes = True
     scene.world = world
     sky = world.node_tree.nodes.new('ShaderNodeTexSky')
@@ -571,15 +572,52 @@ def set_world(scene, daylight, pre_exposure):
     sky.sun_disc = True
     for attribute, key in (('sun_elevation', 'solarElevationDegrees'),
                             ('sun_rotation', 'solarAzimuthDegrees'), ('sun_size', 'solarDiameterDegrees')):
-        setattr(sky, attribute, math.radians(daylight[key]))
+        setattr(sky, attribute, math.radians(light[key]))
     for attribute, key in (('sun_intensity', 'solarIntensity'), ('altitude', 'altitudeMetres'),
                             ('air_density', 'airDensity'), ('aerosol_density', 'aerosolDensity'),
                             ('ozone_density', 'ozoneDensity')):
-        setattr(sky, attribute, daylight[key])
+        setattr(sky, attribute, light[key])
     background = world.node_tree.nodes.get('Background')
-    background.inputs['Strength'].default_value = daylight['atmosphereStrength'] / pre_exposure
+    background.inputs['Strength'].default_value = light['atmosphereStrength'] / pre_exposure
     world.node_tree.links.new(sky.outputs['Color'], background.inputs['Color'])
     return background.inputs['Strength'].default_value
+
+
+def exposed_moon_sky(daylight, moon):
+    # Use the same scattering model and angular convention for the lunar
+    # source. The low radiance is exposed for a dark-adapted scene.
+    x, y, z = moon['directionEngine']
+    return {
+        **daylight,
+        'solarElevationDegrees': math.degrees(math.atan2(y, math.hypot(x, z))),
+        'solarAzimuthDegrees': math.degrees(math.atan2(-x, -z)) % 360.,
+        'solarDiameterDegrees': moon['apparentDiameterDegrees'],
+        'solarIntensity': moon['adaptedLunarDiscIntensity'],
+        'atmosphereStrength': moon['adaptedSkyStrength'],
+    }
+
+
+def lit_doorways(collection, village):
+    # Light visible through two existing partly closed doors. Keeping the
+    # source within the doorway stops it reading as a floating sky light.
+    glow = Shader('Amber lamplight within the hillside houses')
+    lamp = glow.nodes.new('ShaderNodeEmission')
+    lamp.inputs['Color'].default_value = (1., .53, .19, 1.)
+    lamp.inputs['Strength'].default_value = .91
+    glow.links.new(lamp.outputs['Emission'], glow.output.inputs['Surface'])
+    glow.material.cycles.emission_sampling = 'NONE'
+    openings = Batch()
+    doors = village['wood']
+    for door, left, right, base, top in ((0, .15, .51, .12, .81), (2, .57, .84, .18, .72)):
+        a, b, _, c = (Vector(doors.points[index]) for index in doors.faces[door])
+        across = b - a
+        up = c - a
+        outside = across.cross(up).normalized() * .002
+        first = len(openings.points)
+        openings.points.extend(tuple(a + across * u + up * v + outside)
+                               for u, v in ((left, base), (right, base), (right, top), (left, top)))
+        openings.faces.append(tuple(range(first, first + 4)))
+    mesh(collection, 'Two distant occupied doorways on the village lane', openings, [glow.material])
 
 
 def projection_camera(scene, projection):
@@ -645,13 +683,14 @@ def configure(scene, options, width, height):
     return set_device(scene, options.device)
 
 
-def build(scene, land, fields, near, near_fields, routes, village, river, forests, audit_paddy=False):
+def build(scene, land, fields, near, near_fields, routes, village, river, forests, airlight,
+          audit_paddy=False, night=False):
     layers = {name: bpy.data.collections.new(name) for name in LAYERS}
     for collection in layers.values():
         scene.collection.children.link(collection)
     library = bpy.data.collections.new('Pine crown prototypes outside camera range')
     scene.collection.children.link(library)
-    surface = materials(air_perspective(), audit_paddy)
+    surface = materials(air_perspective(airlight), audit_paddy)
     occluders = ()
     for name in ('far', 'mid'):
         far = name == 'far'
@@ -705,6 +744,8 @@ def build(scene, land, fields, near, near_fields, routes, village, river, forest
     ):
         part = mesh(middle, name, village[key], [surface[material]])
         occluders = (*occluders, part)
+    if night:
+        lit_doorways(middle, village)
     creek, falls, end, _ = river
     mesh(middle, 'D8 drainage on the measured valley floor', creek, [surface['creek']], smooth=True)
     mesh(middle, 'Free-falling sheet behind exposed terrain', falls, [surface['fall']], smooth=True)
@@ -844,6 +885,7 @@ def parse_args():
     parser.add_argument('--width', type=int)
     parser.add_argument('--samples', type=int, default=64)
     parser.add_argument('--cloud-samples', type=int, help='Override only the cloud plate sample limit.')
+    parser.add_argument('--lighting', choices=('day', 'night'), default='day')
     parser.add_argument('--device', choices=('CPU', 'METAL', 'CUDA', 'OPTIX', 'HIP', 'ONEAPI'), default='CPU')
     parser.add_argument('--layers', nargs='+', choices=(*LAYERS, 'composite'), default=LAYERS)
     parser.add_argument('--no-denoise', action='store_true')
@@ -864,6 +906,10 @@ def parse_args():
 def main():
     options = parse_args()
     projection, daylight = (json.loads(path.read_text()) for path in (PROJECTION, DAYLIGHT))
+    night = options.lighting == 'night'
+    moon = json.loads(MOONLIGHT.read_text()) if night else None
+    light = exposed_moon_sky(daylight, moon) if night else daylight
+    airlight = tuple(moon['aerialRadianceLinearRec709']) if night else AIR_SCATTER_RGB
     width = options.width or projection['width']
     if width < 2 or width * projection['height'] % projection['width']:
         raise ValueError('Plate dimensions must preserve the projection aspect ratio.')
@@ -885,8 +931,10 @@ def main():
         'alpha': 'straight', 'colorSpace': 'scene-linear Rec.709', 'exposureAppliedStops': 0.,
         'runtimePreExposureMultiplier': projection['preExposure'],
         'previewExposureStops': math.log2(projection['preExposure']),
-        'solarConfiguration': daylight,
-        'worldStrength': daylight['atmosphereStrength'] / projection['preExposure'],
+        'lighting': options.lighting,
+        'solarConfiguration': light,
+        'worldStrength': light['atmosphereStrength'] / projection['preExposure'],
+        **({'moonConfiguration': moon, 'moonSha256': digest(MOONLIGHT)} if night else {}),
         'terrainSource': 'USGS SRTM N23E102 Skadi, 204 x 175 quantised elevation grid',
         'terrainSha256': ELEVATION_SHA256,
         'projectionSha256': digest(PROJECTION),
@@ -897,7 +945,7 @@ def main():
                                       'pine_valley_terrace_routes.py', 'pine_valley_hamlet.py')},
         'terrainSplitDownrangeMetres': FAR_START,
         'atmosphere': {'model': 'Beer-Lambert aerial perspective at opaque camera and reflection hits',
-                       'rawLinearRec709Airlight': AIR_SCATTER_RGB, 'extinctionPerMetre': AIR_EXTINCTION,
+                       'rawLinearRec709Airlight': airlight, 'extinctionPerMetre': AIR_EXTINCTION,
                        'depthGradient': AIR_DEPTH_GRADIENT, 'clearNearMetres': AIR_NEAR_METRES},
         'paddyWindFaceSlopeRange': WIND_SLOPES,
         'westernPaddyWind': {'faceSlopeRange': WEST_WIND_SLOPES, 'bearing': WEST_WIND_BEARING},
@@ -928,10 +976,11 @@ def main():
     metadata['blender'] = bpy.app.version_string
     metadata['blenderBuildHash'] = bpy.app.build_hash.decode('ascii')
     metadata['devices'] = configure(scene, options, width, height)
-    metadata['worldStrength'] = set_world(scene, daylight, projection['preExposure'])
+    world = 'Pine Gate moonlit atmosphere' if night else 'Pine Gate midday atmosphere'
+    metadata['worldStrength'] = set_world(scene, light, projection['preExposure'], world)
     projection_camera(scene, projection)
     layers, occluders = build(scene, land, fields, near, near_fields, routes, village, river, forests,
-                              audit_paddy=options.paddy_audit)
+                              airlight, audit_paddy=options.paddy_audit, night=night)
     if options.paddy_audit:
         pools = Batch(points=fields[1].points + near_fields[1].points)
         render_paddy_transport(scene, layers, pools, options, metadata)

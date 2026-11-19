@@ -16,6 +16,7 @@ import { dressPineWetTreads } from './pine-wet-treads.js';
 import { pineDaySunDirection, pineDaySunDiscEdges } from './pine-gate-sun.js';
 import crestNeedleAnchors from './pine-crest-needle-anchors.json' with { type: 'json' };
 import path from '../../../../shared/pine-gate-path.json' with { type: 'json' };
+import moonlight from '../../../../shared/pine-gate-moonlight.json' with { type: 'json' };
 
 function restoreShrineFixtureFlames(h, context, niche, anchor) {
   const sources = [];
@@ -81,7 +82,7 @@ export default function createPlace(h) {
   };
   return {
     bakedLighting: true, exposure: 1.23, shade: .3,
-    sky: { top: 0x0a1628, horizon: 0x354b61, ground: 0x263144, sun: 0xe6edf1, dir: [.64, .41, -1], glow: .22, clouds: .5, lit: 0x394c66, dark: 0x213248, stars: .12, disc: 1.2 },
+    sky: { top: 0x0a1628, horizon: 0x354b61, ground: 0x263144, sun: 0xe6edf1, dir: moonlight.directionEngine, glow: .22, clouds: .5, lit: 0x394c66, dark: 0x213248, stars: .12, disc: 1.2 },
     fog: [0x4b626a, .024], sunL: [0xc5d4db, .68], hemi: [0x47545c, 0x10150e, .48], bloom: [.22, 1.1],
     // The same place by day; the scene blends toward it by the visitor's local time.
     day: { exposure: 1.28, sky: { top: 0x6895b9, horizon: 0xc3d5dc, ground: 0xaabdc5, sun: 0xfff4df, dir: pineDaySunDirection, discEdges: pineDaySunDiscEdges, glow: .52, clouds: .16, lit: 0xf9faff, dark: 0xa7bac7 }, fog: [0xb4c8cd, .012], sunL: [0xfff2dc, 2], hemi: [0xc0d0e0, 0x404937, .85], bloom: [.2, 1.3] },
