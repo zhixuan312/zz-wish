@@ -77,8 +77,8 @@ function refinedWaxMaterial(light, layer, sculptNormal) {
   const shaft = layer === 'body';
   const remnant = layer === 'remnant';
   const style = {
-    body: { roughness: .44, clearcoat: .10, specularIntensity: .52, diffuse: .91, scatter: 2.38 },
-    pool: { roughness: .10, clearcoat: .55, specularIntensity: .86, diffuse: .30, scatter: .045 },
+    body: { roughness: .44, clearcoat: .10, specularIntensity: .52, diffuse: .91, scatter: 2.85 },
+    pool: { roughness: .078, clearcoat: .55, specularIntensity: .86, diffuse: .23, scatter: .045 },
     remnant: { roughness: .40, clearcoat: .09, specularIntensity: .43, diffuse: .91, scatter: .04 },
   }[layer];
   const material = new THREE.MeshPhysicalMaterial({ color: 0xffffff, ior: 1.43,
@@ -209,7 +209,7 @@ function refinedWaxMaterial(light, layer, sculptNormal) {
         vec3 reflectedFlame = max(max(blue, transition), max(goldLow, max(goldCore, goldHigh)));
         float fresnel = .031 + .969 * pow(1. - clamp(dot(worldNormal, viewWorld), 0., 1.), 5.);
         float wickPool = exp(-4.7 * dot(fromCrown.xz, fromCrown.xz) / max(.0000001, uPinePoolRadius * uPinePoolRadius));
-        vec3 transmittedHalo = vec3(.25, .094, .023) * wickPool;
+        vec3 transmittedHalo = vec3(.35, .132, .031) * wickPool;
         totalEmissiveRadiance += (reflectedFlame * fresnel * smoothstep(.02, .10, reflected.y) + transmittedHalo)
           * sourceFraction * uPinePoolWet;` : ''}`);
     if (shaft) shader.fragmentShader = shader.fragmentShader.replace('#include <lights_fragment_end>', `#include <lights_fragment_end>
@@ -818,8 +818,8 @@ export function createPineWax(seat, waxMaterial, { refined = false, sculptNormal
           pool.position.set(top.cx, cut - depth * .72, 0);
           light.uPinePoolRadius.value = poolRadius;
           const cooled = state === 'went_out' || state === 'burned_down';
-          poolMaterial.roughness = state === 'burning' ? .10 : .44;
-          poolMaterial.color.copy(bodyMaterial.color).lerp(warmWax, cooled ? 0 : .06);
+          poolMaterial.roughness = state === 'burning' ? .078 : .44;
+          poolMaterial.color.copy(bodyMaterial.color).lerp(warmWax, cooled ? 0 : .13);
           light.uPinePoolWet.value = state === 'burning' ? 1 : 0;
           light.uPineWaxCooling.value = cooled ? 1 : 0;
           light.uPineWaxHeight.value = cut;
