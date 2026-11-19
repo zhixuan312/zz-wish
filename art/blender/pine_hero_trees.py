@@ -26,8 +26,8 @@ CROWNS = {
                        .172, .069, .124, .034),
     'ridge': PineCrown((.31, .43, .47, .52, .60, .64, .69, .76, .81, .87, .92),
                        .209, .102, .168, .105),
-    'old': PineCrown((.44, .49, .53, .59, .63, .65, .69, .72, .75, .79, .84, .89, .94),
-                     .254, .149, .216, .184),
+    'old': PineCrown((.42, .48, .55, .60, .64, .69, .72, .75, .78, .82, .86, .90, .94),
+                     .254, .135, .191, .184),
 }
 
 
@@ -52,21 +52,30 @@ def prototype_trunk(profile, height):
     return points, radii
 
 
-def needle_fascicle(anchor, following, spread, reach, rng, dense):
+def needle_fascicle(anchor, following, spread, reach, rng, dense, mature=False):
     axis = following.normalized()
     side = axis.cross(Vector((0., 1., 0.)))
     if side.length < .01:
         side = axis.cross(Vector((1., 0., 0.)))
     side.normalize()
     up = axis.cross(side)
-    for blade in range(7 if dense else 4):
-        angle = spread + blade * 2.39 + rng.uniform(-.32, .32)
+    if mature:
+        count = 8 if dense else 4
+        deviation = .16
+        widths = (.0010, .0023) if dense else (.0024, .0044)
+    else:
+        count = 7 if dense else 4
+        deviation = .32
+        widths = (.0016, .0042) if dense else (.0045, .0095)
+    for blade in range(count):
+        offset = (blade // 2 * 2.39 + blade % 2 * .31) if mature else blade * 2.39
+        angle = spread + offset + rng.uniform(-deviation, deviation)
         radial = math.cos(angle) * side + math.sin(angle) * up
         length = reach * rng.uniform(.71, 1.24)
         flare = rng.uniform(.44, .91)
         tip = anchor + axis * (length * rng.uniform(.75, 1.04)) + radial * (length * flare)
         shoulder = anchor + (tip - anchor) * .53 + radial * (length * rng.uniform(-.14, .06))
-        width = rng.uniform(.0016, .0042) if dense else rng.uniform(.0045, .0095)
+        width = rng.uniform(*widths)
         yield anchor, shoulder, tip, width
 
 
@@ -76,6 +85,7 @@ def grow_crown(name, profile, trunk, phase, bark, write_wood, *, dense=False):
     rng = random.Random(name)
     height = trunk[-1].y - trunk[0].y
     needles = []
+    old = profile == CROWNS['old']
     world_up = Vector((0., 1., 0.))
     for order, layer in enumerate(profile.levels):
         # Stagger the main limbs around the swept stem and turn the growing
@@ -86,9 +96,12 @@ def grow_crown(name, profile, trunk, phase, bark, write_wood, *, dense=False):
         forward = Vector((math.cos(angle), 0., math.sin(angle)))
         side = forward.cross(world_up)
         upper_crown = (layer - profile.levels[0]) / (1 - profile.levels[0])
-        reach = height * profile.reach * rng.uniform(.68, 1.24) * (1 - .76 * upper_crown ** 1.33)
-        if profile == CROWNS['old']:
-            reach *= .87 + .26 * math.cos(angle - phase - .48)
+        # Mature Masson pines spread their longer scaffold branches into an
+        # uneven umbrella. The two survey-rooted trees have different phases.
+        taper = 1 - .76 * upper_crown ** (2.05 if old else 1.33)
+        reach = height * profile.reach * rng.uniform(.68, 1.24) * taper
+        if old:
+            reach *= .91 + .24 * math.cos(angle - phase - .48)
         swivel = rng.uniform(-.32, .29)
         liftoff = profile.crown_lift * rng.uniform(.71, 1.66)
         sag = profile.branch_sag * rng.uniform(.63, 1.34)
@@ -98,9 +111,16 @@ def grow_crown(name, profile, trunk, phase, bark, write_wood, *, dense=False):
             for t in (0., .24, .57, .81, 1.)
         ]
         label = f'{name} asymmetric bough {order + 1}'
-        base_width = reach * rng.uniform(.029, .058)
+        base_width = reach * (rng.uniform(.044, .072) if old and order < 5 else rng.uniform(.029, .058))
         write_wood(label, branch, [base_width * f for f in (1., .75, .49, .27, .058)],
                    bark, 6 if dense else 5)
+        if old and order in (0, 2):
+            # Short dead leaders below the live umbrella show old storm damage.
+            root = branch[1]
+            hinge = root + reach * (forward * .16 - side * .096 - world_up * .038)
+            tip = hinge + reach * (forward * .15 - side * .057 - world_up * .068)
+            write_wood(f'{label} broken lower fork', [root, hinge, tip],
+                       [base_width * f for f in (.66, .39, .11)], bark, 5)
 
         divisions = (0., .24, .57, .81, 1.)
         for fork, t in enumerate((.18, .29, .43, .56, .68, .80, .93) if dense else (.19, .36, .53, .71, .9)):
@@ -134,17 +154,17 @@ def grow_crown(name, profile, trunk, phase, bark, write_wood, *, dense=False):
                                [leaf * .019, leaf * .006], bark, 3)
                     for f in (.47, .94):
                         needles.append(tuple(needle_fascicle(anchor.lerp(stem, f), younger, spread + f,
-                                                        leaf * .78, rng, dense)))
-                needles.append(tuple(needle_fascicle(anchor, younger, spread, leaf, rng, dense)))
+                                                        leaf * .78, rng, dense, old)))
+                needles.append(tuple(needle_fascicle(anchor, younger, spread, leaf, rng, dense, old)))
                 if not dense and bud == 3:
                     needles.append(tuple(needle_fascicle(anchor, younger + world_up * .24,
-                                                    spread + 1.1, leaf * .87, rng, dense)))
+                                                    spread + 1.1, leaf * .87, rng, dense, old)))
 
     for level in (.88, .91, .941, .966, .982):
         root = trunk_point(trunk, level)
         heading = phase + level * 75
         axis = (trunk[-1] - root).normalized() + Vector((.56 * math.cos(heading), .21, .56 * math.sin(heading)))
-        needles.append(tuple(needle_fascicle(root, axis, heading, height * .018, rng, dense)))
+        needles.append(tuple(needle_fascicle(root, axis, heading, height * .018, rng, dense, old)))
     return needles
 
 
