@@ -12,8 +12,10 @@ CONTOUR_LEVELS = (3.1, 2.1, 1.1, .1, -.9, -1.9, -2.9, -3.9, -4.9)
 FIELD_DEPTH = (39.7, 63.6)
 PORT_DEPTHS = (51.5, 58.5)
 BUND_HEIGHT = .123
-SKIRT_WIDTH = 1.7
+SKIRT_WIDTH = 2.7
 SPILL_HALF_WIDTH = .15
+GRADE_DATUM = -.9
+TERRACE_GRADE_FRACTION = .60
 
 
 @dataclass(frozen=True)
@@ -45,11 +47,15 @@ class NearTerraces:
     def __init__(self, land):
         self.land = land
         self.ponds = tuple(
-            Pond(.5 * (upper + lower) - PADDY_WATER_DEPTH,
+            # Carry cut from the high side into the lower shoulders. Keep the
+            # contour plan and use less abrupt retaining faces within it.
+            Pond(lerp(GRADE_DATUM, .5 * (upper + lower), TERRACE_GRADE_FRACTION)
+                 + irregularity - PADDY_WATER_DEPTH,
                  FIELD_DEPTH[0] + a, FIELD_DEPTH[1] - b)
-            for upper, lower, a, b in zip(CONTOUR_LEVELS, CONTOUR_LEVELS[1:],
+            for upper, lower, a, b, irregularity in zip(CONTOUR_LEVELS, CONTOUR_LEVELS[1:],
                 (1.05, .61, .49, .85, 1.14, 1.75, 2.05, 2.55),
-                (1.23, .74, .51, .77, 1.19, 1.66, 2.31, 2.88))
+                (1.23, .74, .51, .77, 1.19, 1.66, 2.31, 2.88),
+                (0., .08, -.014, -.05, .068, -.07, .04, 0.))
         )
         # Each bed lets out into its immediate neighbour. Alternating the
         # gaps makes water cross each basin before it goes on downstream.

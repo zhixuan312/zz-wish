@@ -142,13 +142,13 @@ def spring_stones(land, feeder, stones):
 
 def access_path(land, outlet):
     x, d, water_y = outlet
-    depth = d + 4.
+    depth, end = d + 5.6, d + 16.1
     lift = .36
     # Start east of the outlet headland, including where the bank flares.
     first = min(land.height(x + .44, depth), water_y - .92) + lift
     # A narrow contour traverse leads to the descending fold. The toe is
     # an unbuilt approach to the lower valley, beyond both sets of paddies.
-    trail = contour_run(land, depth, depth + 12.1, first, first - 1.46, lift)
+    trail = contour_run(land, depth, end, first, first - (end - depth) * .112, lift)
 
     tread, shoulders = Batch(), Batch()
     surfaces, banks_left, banks_right = [], [], []
@@ -193,7 +193,7 @@ def headland_steps(land, outlet, trail_head):
     run = end_depth - start
     count = max(2, math.ceil(run / .13))
     edges = stations(start, end_depth, count)
-    heights = []
+    treads = []
     for a, b in zip(edges, edges[1:]):
         center = lerp(x + .49, end_x, (.5 * (a + b) - start) / run)
         width = .172 + .017 * math.sin(a * 5.)
@@ -201,7 +201,13 @@ def headland_steps(land, outlet, trail_head):
         incident = max(land.height(cx, d) for d in stations(a, b, 4)
                        for cx in stations(center - width, center + width, 3))
         surface = max(incident + .03, end_height + .11 * (end_depth - b))
-        heights.append(surface)
+        treads.append((corners, surface))
+    authored_heights = [height for _, height in treads]
+    heights = [max(height - .197 * abs(index - other) for other, height in enumerate(authored_heights))
+               for index in range(count)]
+    if abs(heights[-1] - end_height) > .20:
+        raise ValueError('The headland steps cannot meet the lower footpath.')
+    for (corners, _surface), surface in zip(treads, heights):
         start_vertex = len(stones.points)
         stones.points.extend((cx, d, land.height(cx, d) - .071) for cx, d in corners)
         stones.points.extend((cx, d, surface) for cx, d in corners)
