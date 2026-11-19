@@ -608,16 +608,24 @@ function bodySurface(mesh, rows, cut, melt, runnels) {
   const softenedBand = Math.min(cut * .55, .0085);
   const sculpted = mesh.geometry.hasAttribute('aPineSculptCircle');
   const slump = sculpted ? Math.min(depth * .98, softenedBand * .49) : 0;
-  const collapsedLip = a => slump * Math.max(0, Math.cos(a - 1.7)) ** 4;
+  const retainedWax = sculpted ? Math.min(depth * 1.62, softenedBand * .53) : 0;
+  const rimRelief = angle => {
+    // The spent front edge opens over the liquid. Wax remains on the far
+    // half in two rounded lobes, where it makes a thin, translucent wall.
+    const front = Math.max(0, Math.cos(angle - 1.7));
+    const rear = Math.max(0, Math.cos(angle - 4.84));
+    const folds = .53 + .47 * Math.cos(2.5 * Math.sin(angle - 4.62)) ** 2;
+    return retainedWax * rear ** .7 * folds - slump * front ** 3;
+  };
   const shouldersAt = y => {
     if (slump === 0 || y <= cut - softenedBand) return undefined;
     const blend = THREE.MathUtils.smoothstep(y, cut - softenedBand, cut);
-    return a => -collapsedLip(a) * blend;
+    return angle => rimRelief(angle) * blend;
   };
   const uneven = a => {
     const lip = lipHeight * (.61 * Math.sin(a * 3 + .8) + .30 * Math.sin(a * 7 - .3) + .09 * Math.cos(a * 11));
     if (!refined || !melt) return lip;
-    if (sculpted) return lip * .64 - collapsedLip(a);
+    if (sculpted) return lip * .64 + rimRelief(a);
     const softenedEdge = Math.max(0, Math.cos(a - 1.18)) ** 14;
     return Math.max(-depth * .54, lip * .62 - depth * .69 * softenedEdge);
   };

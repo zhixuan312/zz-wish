@@ -58,12 +58,19 @@ test('the softened wax lip exposes the pool from the burning view without moving
         if (ray.intersectObjects([body, pool], false)[0]?.object === pool) visible++;
       }
     }
-    return { visible, anchor, cutHeight: wax.state().cutHeight };
+    const positions = body.geometry.attributes.position;
+    let backLip = -Infinity;
+    for (let vertex = 0; vertex < positions.count; vertex++) {
+      if (positions.getZ(vertex) < -.007) backLip = Math.max(backLip, positions.getY(vertex));
+    }
+    return { visible, anchor, cutHeight: wax.state().cutHeight, backLip };
   }
 
   const flat = sample(null);
   const softened = sample(new Texture());
   expect(softened.visible).toBeGreaterThan(flat.visible * 3);
+  expect(softened.visible).toBeGreaterThanOrEqual(40);
+  expect(softened.backLip - softened.cutHeight).toBeGreaterThan(.0025);
   expect(softened.anchor).toEqual(flat.anchor);
   expect(softened.cutHeight).toBe(flat.cutHeight);
 });
