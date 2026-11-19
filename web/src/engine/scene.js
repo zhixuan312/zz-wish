@@ -27,6 +27,7 @@ const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPrefere
 renderer.debug.checkShaderErrors = import.meta.env.DEV;
 if(import.meta.env.DEV){window.__renderer=renderer;window.__visualWalkAvailable=true;}
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+const touchPrimary = matchMedia('(pointer: coarse)');
 let quality = innerWidth < 720 ? 'balanced' : 'high', powerSaver = false, phase = 'wish';
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, quality === 'high' ? 1.75 : 1.25));
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -2248,7 +2249,7 @@ export async function travel(id) {
   }
   place.baked?.startWalkLightmaps?.();
   place.baked?.backdrop?.startWalk();
-  if (!narrow() && !powerSaver) {
+  if (!narrow() && !touchPrimary.matches && !powerSaver) {
     const entering = place, started = performance.now();
     entering.baked?.backdrop?.startDesktopHigh();
     // On the closed forest ascent the site across the ridge is still hidden.

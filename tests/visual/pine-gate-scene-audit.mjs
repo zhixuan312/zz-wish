@@ -32,9 +32,9 @@ export function readDirectionOverview(raw) {
 
 export function instrumentPineScene(source, { readiness, cadence, lighting, walkClock, directionCamera, solarProbe, backdropProbe, realismBaseOnly }) {
   if (realismBaseOnly) {
-    const anchor = /^([ \t]*)if \(!narrow\(\) && !powerSaver\) \{(?=\s+const entering = place, started = performance\.now\(\);)/gm;
+    const anchor = /^([ \t]*)if \(!narrow\(\) && !touchPrimary\.matches && !powerSaver\) \{(?=\s+const entering = place, started = performance\.now\(\);)/gm;
     assert.equal([...source.matchAll(anchor)].length, 1, 'Expected one scene audit anchor for desktop high-tier streaming.');
-    source = source.replace(anchor, "$1if (id !== 'pine-gate' && !narrow() && !powerSaver) {");
+    source = source.replace(anchor, "$1if (id !== 'pine-gate' && !narrow() && !touchPrimary.matches && !powerSaver) {");
   }
   if (readiness) for (const [name, anchor, id, before] of readinessAnchors) {
     const mark = `if (${id} === 'pine-gate' || ${id} === 'snow-roof') performance.mark('one-light:' + ${id} + ':${name}');`;
