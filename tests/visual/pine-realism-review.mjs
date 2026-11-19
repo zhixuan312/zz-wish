@@ -152,7 +152,7 @@ async function captureEvidence(directory, kind) {
     }
     const tile = join(output, `${key}-${kind}.png`);
     frames[key] = { source: relative(output, source), sha256: shot.sha256, camera: shot.camera };
-    tiles.push({ source, output: tile, rect: view.rect, sourceSize: imageSize });
+    tiles.push({ source, output: tile, rect: view.rect, sourceSize: imageSize, requireVisibleDaylight: true });
   }
   shots[kind] = { sourceRev: report.sourceRev, codeSha256: report.codeSha256,
     manifestSha256: report.delivery.manifestSha256, frames };

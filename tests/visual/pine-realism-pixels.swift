@@ -8,6 +8,7 @@ struct Tile: Decodable {
     let output: String
     let rect: [Int]
     let sourceSize: [Int]
+    let requireVisibleDaylight: Bool?
 }
 
 struct Pair: Decodable {
@@ -102,6 +103,17 @@ func crop(_ tile: Tile) throws {
         x + width <= image.width, y + height <= image.height
     else { throw PixelError.invalidCrop(tile.source) }
     let source = try pixels(image)
+    if tile.requireVisibleDaylight == true {
+        let area = image.width * image.height
+        var visible = 0
+        for pixel in 0..<area {
+            let i = pixel * 4
+            if max(source[i], max(source[i + 1], source[i + 2])) > 8 { visible += 1 }
+        }
+        guard Double(visible) / Double(area) >= 0.65 else {
+            throw PixelError.invalidPixels("Daylight capture is mostly black: " + tile.source)
+        }
+    }
     var cropped = Data(capacity: width * height * 4)
     for yOffset in 0..<height {
         cropped.append(row(source, y: y + yOffset, x: x, width: width, stride: image.width))

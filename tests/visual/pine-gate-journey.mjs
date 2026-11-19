@@ -51,9 +51,11 @@ const ambientOnly = process.env.CAPTURE_AMBIENT_ONLY === '1';
 const directionOnly = process.env.CAPTURE_DIRECTION_ONLY === '1';
 const realismOnly = process.env.CAPTURE_REALISM_ONLY === '1';
 const realismBaseOnly = process.env.CAPTURE_REALISM_BASE_ONLY === '1';
+const canvasDiagnostic = process.env.CAPTURE_REALISM_CANVAS_DIAGNOSTIC === '1';
 const requireBackdrop = process.env.CAPTURE_REQUIRE_BACKDROP === '1';
 assert(!realismOnly || directionOnly, 'The realism proof requires CAPTURE_DIRECTION_ONLY=1.');
 assert(!realismBaseOnly || realismOnly, 'The base-only proof requires CAPTURE_REALISM_ONLY=1.');
+assert(!canvasDiagnostic || realismOnly, 'The canvas diagnostic requires CAPTURE_REALISM_ONLY=1.');
 assert(!requireBackdrop || realismOnly, 'The backdrop requirement is available for realism captures.');
 const directionWalkFrames = realismOnly ? [['terrace-reveal-28s', 28]]
   : [['forest-06s', 6], ['ancient-pine-crest', 21.5], ['terrace-reveal-28s', 28]];
@@ -370,6 +372,7 @@ async function capture(browser, browserName, size, trial) {
       solarProbe: realismOnly && !phone,
       backdropProbe: realismOnly,
       realismBaseOnly: realismBaseOnly && !phone,
+      canvasDiagnostic: canvasDiagnostic && !phone,
     };
     if (Object.values(sceneAudit).some(Boolean)) {
       await page.route(url => url.pathname === '/src/engine/scene.js', async route => {
@@ -442,6 +445,14 @@ async function capture(browser, browserName, size, trial) {
       if (fullJourney && snapshot.wax) assert.equal(snapshot.wax.baked, true, 'Active Pine Gate scene must be baked.');
       const bytes = await page.screenshot({ path: file, scale: 'css',
         ...(directionOnly ? { style: '.ui { visibility: hidden !important; }' } : {}) });
+      if (canvasDiagnostic && !phone) {
+        const uri = await page.evaluate(() => new Promise(resolve => { window.__pineReadCanvas = resolve; }));
+        assert(uri.startsWith('data:image/png;base64,'), 'Could not read the composed Pine Gate canvas.');
+        const canvasFile = join(output, 'diagnostics', name + '-canvas.png');
+        const canvasBytes = Buffer.from(uri.slice('data:image/png;base64,'.length), 'base64');
+        await writeFile(canvasFile, canvasBytes);
+        extra.canvasDiagnostic = { file: relative(output, canvasFile), sha256: hash(canvasBytes) };
+      }
       let directionProof = {};
       if (direction) {
         const pixels = [bytes.readUInt32BE(16), bytes.readUInt32BE(20)];
