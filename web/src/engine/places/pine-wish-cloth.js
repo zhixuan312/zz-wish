@@ -69,6 +69,8 @@ export function createWishCloth({ THREE, anchor, seed = 1 }) {
   const local = new V3();
   return {
     group,
+    // The seat the strip hangs from, so a probe can compare the strip with the stand.
+    anchor: anchor.clone(),
     // A gentle sway that follows the same wind value the pines use, so the strip moves with
     // the gust and the ambient wind instead of standing still in a moving scene.
     update(wind = 0) {

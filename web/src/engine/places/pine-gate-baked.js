@@ -204,20 +204,28 @@ export default function createPlace(h) {
       if (import.meta.env.DEV) {
         window.__pineCandleSlot = () => ({ index: slots.index, current: slots.current() });
       }
+      // The candle sits at nook-local (0, N.y, 0); the strip hangs from the same stand, so it
+      // is placed in the nook group rather than in the glTF world.
       const cloth = createWishCloth({
-        THREE, anchor: V3(...baked.manifest.lampAnchor), seed: 3,
+        THREE, anchor: V3(0, .99, 0), seed: 3,
       });
       cloth.group.visible = false;
-      baked.group.add(cloth.group);
+      // During build(), context.G is the nook group, so the strip lives in the same space as
+      // the candle stand and moves with the place.
+      context.G.add(cloth.group);
       baked.wishCloth = cloth;
       if (import.meta.env.DEV) {
         // Read by the Tier 1 test: the strip must exist under the candle stand while burning
         // and stay after the ending.
-        window.__pineWishCloth = () => ({
-          visible: cloth.group.visible,
-          position: cloth.worldPosition().toArray(),
-          anchor: [baked.manifest.lampAnchor[0], baked.manifest.lampAnchor[1], baked.manifest.lampAnchor[2]],
-        });
+        window.__pineWishCloth = () => {
+          // Local to the nook group, which is where the candle stand lives too.
+          const anchor = cloth.anchor;
+          return {
+            visible: cloth.group.visible,
+            position: cloth.group.position.toArray(),
+            anchor: [anchor.x, anchor.y, anchor.z],
+          };
+        };
       }
       context.up.push(() => cloth.update(life.gust()));
       context.disposers.push(cloth.dispose);
