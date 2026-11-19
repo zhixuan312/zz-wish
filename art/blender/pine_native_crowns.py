@@ -15,6 +15,9 @@ NATIVE_MD5 = '597b4b8f29bc3c0baf9a7e05399b3fa7'
 NATIVE_SHA256 = '2878214412c985b91ff9cde7c6c3756cdb4bbc59864d39df33ac7f0bfffb4c96'
 OBJECTS = {'ridge': 'pine_sapling_medium_b_LOD0', 'young': 'pine_sapling_medium_c_LOD0'}
 TREE_OBJECT = re.compile(r'pine_sapling_medium_[abc]_LOD[012](?:\.\d+)?')
+# Match the source glTF's opaque LOD0 material assignments. Deadwood shares
+# the bark maps; the separate twig-alpha mask belongs to lower detail assets.
+MATERIAL_PREFIXES = {f'{ASSET}_bark': 'bark', f'{ASSET}_dead_branches': 'bark', f'{ASSET}_twig': 'twig'}
 TEXTURES = {
     'bark_diff': (5568559, '63688d7bcdd5ff5500f12bde192b197a'),
     'bark_disp': (1633203, 'a085234cf5c6697b53187347dafad026'),
@@ -37,6 +40,16 @@ def file_evidence(name, size, md5):
     return {'file': name, 'bytes': size, 'md5': md5}
 
 
+def texture_evidence(key):
+    return file_evidence(f'{ASSET}_{key}_1k.png', *TEXTURES[key])
+
+
+def material_evidence():
+    return {name: {'diffuse': texture_evidence(f'{prefix}_diff'),
+                   'roughness': texture_evidence(f'{prefix}_rough'), 'opacity': 'opaque LOD0 geometry'}
+            for name, prefix in MATERIAL_PREFIXES.items()}
+
+
 def asset_provenance():
     return {
         'asset': ASSET,
@@ -47,7 +60,7 @@ def asset_provenance():
         'authors': ['Rico Cilliers', 'Rob Tuytel'],
         'blend': {**file_evidence(NATIVE_FILENAME, NATIVE_BYTES, NATIVE_MD5),
                   'url': NATIVE_URL, 'sha256': NATIVE_SHA256},
-        'textures': [file_evidence(f'{ASSET}_{key}_1k.png', *value) for key, value in TEXTURES.items()],
+        'textures': [texture_evidence(key) for key in TEXTURES],
     }
 
 
@@ -86,19 +99,6 @@ def load_tree(scene, path, profile):
         raise ValueError(f'Expected to append only {name}. Found {sorted(variants)}')
     scene.collection.objects.link(tree)
 
-    for image in bpy.data.images:
-        if image.source != 'FILE':
-            continue
-        file = Path(image.filepath).name
-        match = next((key for key in TEXTURES if file == f'{ASSET}_{key}_1k.png'), None)
-        if match is None:
-            if image.users:
-                raise ValueError('Unexpected native tree image ' + file)
-            continue
-        # The Blender append may remap the original relative file path.
-        # Explicitly bind the official copy that passed the checksum check.
-        if image.packed_file is None:
-            image.filepath = str(path.parent / 'textures' / file)
     bpy.context.view_layer.update()
     return tree
 
@@ -176,7 +176,7 @@ class NativeSurface:
                 bounds = self.angle_bounds[angle]
                 bounds[0] = min(bounds[0], x)
                 bounds[1] = max(bounds[1], x)
-        self.materials = tuple(mesh.materials[i] for i in sorted(used_slots))
+        self.material_slots = {i: slots[i] for i in sorted(used_slots)}
         obj.matrix_world = normalized
         self.evidence = {
             'object': obj.name, 'lod': 0, 'mountBlenderMetres': list(mount),
@@ -191,3 +191,58 @@ class NativeSurface:
             return None, None, None, None
         world = self.world @ point
         return world, normal, index, (world - origin).dot(direction)
+
+
+
+def native_albedo(obj, path, surface):
+    import bpy
+
+    uv = next((layer for layer in obj.data.uv_layers if layer.active_render), obj.data.uv_layers.active)
+    if uv is None or not surface.material_slots or set(surface.material_slots.values()) != MATERIAL_PREFIXES.keys():
+        raise ValueError(f'{obj.name} is missing its authored UV or opaque source materials.')
+    maps = material_evidence()
+    images = {}
+    for prefix in set(MATERIAL_PREFIXES.values()):
+        address = path.parent / 'textures' / texture_evidence(prefix + '_diff')['file']
+        # A new image from the absolute verified path avoids the appended
+        # graph and its cached relative or packed image buffers.
+        image = bpy.data.images.load(str(address), check_existing=False)
+        image.colorspace_settings.name = 'sRGB'
+        image.alpha_mode = 'NONE'
+        if not all(image.size) or not len(image.pixels):
+            raise RuntimeError('No pixels in official pine diffuse image: ' + address.name)
+        images[prefix] = image
+
+    for slot, name in surface.material_slots.items():
+        original = obj.material_slots[slot].material
+        if original is None or original.name.lower() != name:
+            raise ValueError('The evaluated pine changed its source material slot: ' + name)
+        material = bpy.data.materials.new('Verified LOD0 albedo ' + name)
+        material.use_nodes = True
+        tree = material.node_tree
+        tree.nodes.clear()
+        nodes, links = tree.nodes, tree.links
+        image = nodes.new('ShaderNodeTexImage')
+        image.image = images[MATERIAL_PREFIXES[name]]
+        uv_node = nodes.new('ShaderNodeUVMap')
+        uv_node.uv_map = uv.name
+        links.new(uv_node.outputs['UV'], image.inputs['Vector'])
+        emission = nodes.new('ShaderNodeEmission')
+        emission.inputs['Strength'].default_value = 1.
+        links.new(image.outputs['Color'], emission.inputs['Color'])
+
+        world_position = nodes.new('ShaderNodeNewGeometry')
+        coordinates = nodes.new('ShaderNodeSeparateXYZ')
+        links.new(world_position.outputs['Position'], coordinates.inputs[0])
+        clip = nodes.new('ShaderNodeMath')
+        clip.operation = 'GREATER_THAN'
+        clip.inputs[1].default_value = surface.crown_floor
+        links.new(coordinates.outputs['Z'], clip.inputs[0])
+        alpha = nodes.new('ShaderNodeMixShader')
+        links.new(clip.outputs[0], alpha.inputs[0])
+        links.new(nodes.new('ShaderNodeBsdfTransparent').outputs[0], alpha.inputs[1])
+        links.new(emission.outputs[0], alpha.inputs[2])
+        links.new(alpha.outputs[0], nodes.new('ShaderNodeOutputMaterial').inputs['Surface'])
+        obj.material_slots[slot].material = material
+
+    surface.evidence.update({'uvMap': uv.name, 'materialMaps': maps})

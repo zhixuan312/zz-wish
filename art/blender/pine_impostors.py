@@ -7,7 +7,6 @@ the same Blender geometry. The scene keeps its original trunk and roots.
 """
 
 from argparse import ArgumentParser
-from array import array
 from hashlib import sha256
 import json
 import math
@@ -16,6 +15,7 @@ from statistics import median
 import struct
 import sys
 from types import SimpleNamespace
+from zlib import decompressobj
 
 import bpy
 from mathutils import Vector
@@ -23,7 +23,10 @@ from mathutils.bvhtree import BVHTree
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from pine_hero_trees import CROWNS, grow_crown, needle_mesh, prototype_trunk, trunk_point
-from pine_native_crowns import NativeSurface, NATIVE_SHA256, OBJECTS, asset_provenance, load_tree, loader_hash, verify_source
+from pine_native_crowns import (
+    NativeSurface, NATIVE_SHA256, OBJECTS, asset_provenance, load_tree, loader_hash, material_evidence,
+    native_albedo, verify_source,
+)
 
 PROTOTYPE_HEIGHTS = {'young': 7., 'ridge': 8.3, 'old': 11.}
 DEPTH_COLUMNS = 10
@@ -62,7 +65,8 @@ def load_impostors(path):
             if (source['object'] != OBJECTS.get(profile) or source['lod'] != 0
                     or len(mount) != 3 or not all(math.isfinite(v) for v in mount)
                     or not 0. <= source['crownCutMetres'] < source['heightMetres']
-                    or source['triangles']['foliage'] < 1_000_000):
+                    or source['triangles']['foliage'] < 1_000_000 or not source.get('uvMap')
+                    or source.get('materialMaps') != material_evidence()):
                 raise ValueError('Invalid measured native Pine profile: ' + profile)
         for view in rows:
             name = view['file']
@@ -75,12 +79,9 @@ def load_impostors(path):
             frame = view['frameMetres']
             height = source['heightMetres'] if native else PROTOTYPE_HEIGHTS[profile]
             if native:
-                width, length, bits, mode = struct.unpack_from('>IIBB', raw_image, 16)
-                coverage = view['coverage']
+                coverage, _ = alpha_measurement(raw_image, name)
                 if (view['nativeObject'] != source['object'] or view['alphaCutoff'] != NATIVE_CUTOFF
-                        or not 256 <= width <= 384 or length != round(width * 1.55) or bits != 8 or mode != 6
-                        or [width, length] != coverage['dimensions']
-                        or not 0 < coverage['opaqueFootprint'] < coverage['alphaBoundsPixels'] <= width * length):
+                        or coverage != view['coverage']):
                     raise ValueError('Pine native projection integrity check failed: ' + name)
             if (len(frame) != 4 or any(not math.isfinite(value) for value in frame)
                     or min(frame[2:]) <= 0 or view['prototypeHeightMetres'] != height):
@@ -164,76 +165,113 @@ def relief_crown(name, profile, trunk, camera, views, mesh, source_uv):
             material_uv[i].uv = uv[corner]
 
 
-def render_albedo_without_baked_lighting(material, floor=None):
+def render_albedo_without_baked_lighting(material):
     nodes, links = material.node_tree.nodes, material.node_tree.links
-    surfaces = [node for node in nodes if node.type == 'BSDF_PRINCIPLED' and node.outputs[0].is_linked]
-    if not surfaces:
-        raise ValueError('Pine albedo requires a connected Principled surface in ' + material.name)
-    clear = nodes.new('ShaderNodeBsdfTransparent')
-
-    def material_mask(surface, value):
-        mix = nodes.new('ShaderNodeMixShader')
-        if isinstance(value, bpy.types.NodeSocket):
-            links.new(value, mix.inputs[0])
-        else:
-            mix.inputs[0].default_value = value
-        links.new(clear.outputs[0], mix.inputs[1])
-        links.new(surface, mix.inputs[2])
-        return mix.outputs[0]
-
-    for bsdf in surfaces:
-        targets = [link.to_socket for link in bsdf.outputs[0].links]
-        colour = bsdf.inputs['Base Color']
-        unlit = nodes.new('ShaderNodeEmission')
-        if colour.is_linked:
-            links.new(colour.links[0].from_socket, unlit.inputs['Color'])
-        else:
-            unlit.inputs['Color'].default_value = colour.default_value
-        surface = unlit.outputs['Emission']
-        alpha = bsdf.inputs['Alpha']
-        if alpha.is_linked or alpha.default_value < 1.:
-            surface = material_mask(surface, alpha.links[0].from_socket if alpha.is_linked else alpha.default_value)
-        for target in targets:
-            links.new(surface, target)
-
-    if floor is not None:
-        output = next(node for node in nodes if node.type == 'OUTPUT_MATERIAL' and node.is_active_output)
-        socket = output.inputs['Surface']
-        position = nodes.new('ShaderNodeNewGeometry')
-        split = nodes.new('ShaderNodeSeparateXYZ')
-        links.new(position.outputs['Position'], split.inputs[0])
-        cut = nodes.new('ShaderNodeMath')
-        cut.operation = 'GREATER_THAN'
-        links.new(split.outputs['Z'], cut.inputs[0])
-        cut.inputs[1].default_value = floor
-        links.new(material_mask(socket.links[0].from_socket, cut.outputs[0]), socket)
+    colour = nodes.get('Principled BSDF').inputs['Base Color']
+    unlit = nodes.new('ShaderNodeEmission')
+    if colour.is_linked:
+        links.new(colour.links[0].from_socket, unlit.inputs['Color'])
+    else:
+        unlit.inputs['Color'].default_value = colour.default_value
+    links.new(unlit.outputs['Emission'], next(node for node in nodes if node.type == 'OUTPUT_MATERIAL').inputs['Surface'])
 
 
-def alpha_measurement(path):
-    image = bpy.data.images.load(str(path), check_existing=False)
-    try:
-        width, height = image.size
-        rgba = array('f', [0.]) * (width * height * 4)
-        image.pixels.foreach_get(rgba)
-        alpha = rgba[3::4]
-    finally:
-        bpy.data.images.remove(image)
-    footprint = []
-    for index, value in enumerate(alpha):
-        if value >= NATIVE_CUTOFF:
-            footprint.append((index % width, index // width))
-    if not footprint:
-        raise ValueError('Pine impostor has no visible LOD0 canopy.')
+def rgba_rows(raw, name):
+    # Native plates are single-view, non-interlaced RGBA8 PNG files. Read the
+    # encoded scanlines to check the published colour and alpha independently
+    # of Blender's image cache, display transform, or alpha association.
+    width, height, bits, mode, codec, filters, interlace = struct.unpack_from('>IIBBBBB', raw, 16)
+    if (not 256 <= width <= 384 or height != round(width * 1.55)
+            or (bits, mode, codec, filters, interlace) != (8, 6, 0, 0, 0)):
+        raise ValueError('Pine native plate is not an approved RGBA8 crop: ' + name)
+    position, compressed = 8, []
+    while position + 12 <= len(raw):
+        size, kind = struct.unpack_from('>I4s', raw, position)
+        end = position + 12 + size
+        if end > len(raw):
+            raise ValueError('Truncated native Pine PNG: ' + name)
+        if kind == b'IDAT':
+            compressed.append(raw[position + 8:end - 4])
+        if kind == b'IEND':
+            break
+        position = end
+    stride = width * 4
+    length = (stride + 1) * height
+    inflater = decompressobj()
+    data = inflater.decompress(b''.join(compressed), length + 1)
+    if len(data) != length or not inflater.eof:
+        raise ValueError('Pine native PNG has an invalid scanline length: ' + name)
+
+    def paeth(left, above, corner):
+        prediction = left + above - corner
+        dl, da, dc = (abs(prediction - value) for value in (left, above, corner))
+        return left if dl <= min(da, dc) else above if da <= dc else corner
+
+    previous = bytearray(stride)
+    for y in range(height):
+        start = y * (stride + 1)
+        mode, row = data[start], bytearray(data[start + 1:start + 1 + stride])
+        if mode > 4:
+            raise ValueError('Unknown Pine PNG filter: ' + name)
+        if mode:
+            for i, code in enumerate(row):
+                left = row[i - 4] if i >= 4 else 0
+                above = previous[i]
+                if mode == 1:
+                    predictor = left
+                elif mode == 2:
+                    predictor = above
+                elif mode == 3:
+                    predictor = (left + above) // 2
+                else:
+                    predictor = paeth(left, above, previous[i - 4] if i >= 4 else 0)
+                row[i] = (code + predictor) & 255
+        previous = row
+        yield width, height, row
+
+
+def alpha_measurement(raw, name):
+    footprint, alpha = [], bytearray()
+    total = bright = chromatic = 0
+    sums, peaks, luminance = [0, 0, 0], [0, 0, 0], []
+    cutoff = math.ceil(NATIVE_CUTOFF * 255)
+    for y, (width, height, row) in enumerate(rgba_rows(raw, name)):
+        alpha.extend(row[3::4])
+        for x in range(width):
+            r, g, b, a = row[x * 4:x * 4 + 4]
+            if a >= cutoff:
+                footprint.append((x, y))
+            if a < 60:
+                continue
+            total += 1
+            bright += max(r, g, b) >= 26
+            chromatic += max(r, g, b) - min(r, g, b) >= 8
+            luminance.append((54 * r + 183 * g + 19 * b + 128) >> 8)
+            for c, value in enumerate((r, g, b)):
+                sums[c] += value
+                peaks[c] = max(peaks[c], value)
+    if total < 256 or not footprint:
+        raise ValueError('Pine impostor has no measurable LOD0 albedo: ' + name)
     left, right = min(x for x, _ in footprint), max(x for x, _ in footprint)
     floor, top = min(y for _, y in footprint), max(y for _, y in footprint)
     bounds = (right - left + 1) * (top - floor + 1)
     if bounds <= len(footprint):
-        raise ValueError('Pine impostor alpha lacks porosity within its crop.')
-    evidence = {'dimensions': [width, height], 'opaqueFootprint': len(footprint),
-                'alphaBoundsPixels': bounds, 'antialiasedPixels': sum(0. < value < 1. for value in alpha)}
+        raise ValueError('Pine impostor alpha lacks porosity within its crop: ' + name)
+    luminance.sort()
+    p10, p90 = (luminance[math.floor((total - 1) * fraction)] for fraction in (.10, .90))
+    color = {'minAlphaByte': 60, 'pixels': total, 'meanRgb': [round(value / total, 4) for value in sums],
+             'maxRgb': peaks, 'brightFraction': round(bright / total, 5),
+             'chromaticFraction': round(chromatic / total, 5), 'lumaP10P90': [p10, p90]}
+    if bright / total < .55 or chromatic / total < .25 or p90 - p10 < 8:
+        raise ValueError(f'Pine native albedo is black, gray or flat: {name} {color}')
+    evidence = {'dimensions': [width, height], 'opaqueFootprint': len(footprint), 'alphaBoundsPixels': bounds,
+                'antialiasedPixels': sum(0 < value < 255 for value in alpha), 'albedoRgb8': color}
 
     def occupied(u, v):
-        return 0. <= u < 1. and 0. <= v < 1. and alpha[int(v * height) * width + int(u * width)] >= NATIVE_CUTOFF
+        if not (0. <= u < 1. and 0. <= v < 1.):
+            return False
+        y = height - 1 - int(v * height)
+        return alpha[y * width + int(u * width)] >= cutoff
 
     return evidence, occupied
 
@@ -315,9 +353,7 @@ def render_prototype(profile, angles, output, samples, width, native_path):
     if native_path is not None:
         obj = load_tree(scene, native_path, profile)
         native = NativeSurface(obj, {angle: azimuth_axes(angle)[0] for angle in angles})
-        for material in native.materials:
-            if material is not None:
-                render_albedo_without_baked_lighting(material, native.crown_floor)
+        native_albedo(obj, native_path, native)
         tree = native
         bottom, top, height = native.crown_floor, native.height, native.height
         triangle_count = sum(native.evidence['triangles'].values())
@@ -369,7 +405,7 @@ def render_prototype(profile, angles, output, samples, width, native_path):
             raise RuntimeError('Pine impostor render did not finish: ' + name)
         extra, occupied = {}, None
         if native:
-            coverage, occupied = alpha_measurement(image_path)
+            coverage, occupied = alpha_measurement(image_path.read_bytes(), name)
             extra = {'nativeObject': native.evidence['object'], 'alphaCutoff': NATIVE_CUTOFF,
                      'coverage': coverage}
         depths, hits = depth_from_actual_geometry(tree, right, toward, distance, frame, occupied=occupied)
