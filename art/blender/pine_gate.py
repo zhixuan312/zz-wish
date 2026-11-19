@@ -176,9 +176,15 @@ def watercourse_stations(spacing):
 def stream_ground(x, z, water_x, water_y, half_width, blend):
     original = terrain_height(x, z)
     edge = abs(x - water_x) - half_width
-    # Bank shelves are uneven along the water, but both audited rims keep a
-    # positive clearance. Leave the outer bank slopes on the original grade.
     wet_depth = .017 + .002 * math.sin(4.9 * z + 1.7 * x) + .002 * math.sin(9.3 * z - 2.6 * x)
+    # Alternating scour pockets and shelves move the wet contact inside the
+    # existing bank chart. Preserve the grade through the narrow bridge bend.
+    direction = math.copysign(1., x - water_x)
+    crossing = max(0., 1. - max(0., abs(z - 22.1) - 1.35) / 2.45)
+    shore = min(1., abs(x - water_x) / half_width)
+    bends = direction * (.66 * math.sin(.95 * z + .4) + .34 * math.sin(2.07 * z - .9))
+    pockets = .50 + .50 * bends
+    wet_depth += shore * (1. - crossing ** .45) * (-.011 + .038 * pockets ** 1.44)
     if edge <= 0:
         bed = water_y - wet_depth + .016 * edge / half_width
     elif edge <= STREAM_BANK_OFFSET:
@@ -808,25 +814,42 @@ def fit_stone_undersides(ground, stones, upper_clearances=None):
         rock['bank_ring_vertices'] = ring
 
 
-def spring_pebbles(stone, ground):
-    rng = random.Random(59924)
-    patches = [([], []) for _ in stone]
+def stream_gravel_sites(rng):
     for station, z in enumerate(watercourse_stations(.39)):
-        if not 5.65 <= z <= 44.5 or 20.67 <= z <= 23.74:
+        if station % 4 == 0 or not 5.65 <= z <= 44.5 or 20.67 <= z <= 23.74:
             continue
         z += rng.uniform(-.093, .091)
-        x, waterline, width = watercourse_at(z)
+        x, _, width = watercourse_at(z)
         shore = station % 4 == 1
         side = -1 if station % 2 else 1
         x += side * (width + rng.uniform(.014, .055)) if shore else width * rng.uniform(-.71, .71)
+        yield x, z, shore, rng.uniform(.042, .082)
+
+    # Loose gravel settles in broken arcs on the inside of the bends. A few
+    # larger, partly wet cobbles divide the edge of each densely sorted bar.
+    for origin, side in ((16.5, 1), (19.6, 1), (24.22, -1), (26.9, -1), (30.8, -1), (33.0, 1)):
+        for index in range(6):
+            t = index / 5
+            z = origin + (t - .5) * .56 + rng.uniform(-.027, .027)
+            x, _, width = watercourse_at(z)
+            x += side * (width - .036 + .12 * (2 * t - 1) ** 2 + rng.uniform(-.024, .024))
+            shore = index % 3 != 1
+            yield x, z, shore, rng.uniform(.072, .108) if index in (0, 3) else rng.uniform(.028, .065)
+
+
+def spring_pebbles(stone, ground):
+    rng = random.Random(59924)
+    patches = [([], []) for _ in stone]
+    sites = list(stream_gravel_sites(rng))
+    for x, z, shore, radius in sites:
+        _, waterline, _ = watercourse_at(z)
         path_centre, path_half_width = section_at(z)
-        if abs(x - path_centre) < path_half_width + .27:
+        if abs(x - path_centre) < path_half_width + .21 + radius:
             continue
         bottom = supports_height(x, z, [ground])
-        lift = rng.uniform(.020, .040) if shore else (waterline - bottom) * rng.uniform(.38, .77)
+        lift = radius * rng.uniform(.28, .54) if shore else (waterline - bottom) * rng.uniform(.38, .77)
         if lift <= .005:
             continue
-        radius = rng.uniform(.052, .096) if shore else rng.uniform(.032, .081)
         eccentricity = rng.uniform(.53, .90)
         angle = rng.uniform(0., math.tau)
         lean = rng.uniform(-.22, .22)
@@ -863,14 +886,53 @@ def spring_pebbles(stone, ground):
             face.use_smooth = True
 
 
-def saddle_water(stone, ground):
-    water = mesh.material('Clear spring runnel', '#564e3a', rough=.20)
+def stream_pine_roots(bark, ground):
+    # The largest roots start inside the actual trunk rather than being placed
+    # independently. At each bend the root follows the local bank grade.
+    stems = [obj for obj in mesh.STATIC.objects if obj.name.endswith('crooked trunk')
+             and obj.name.startswith(('Old pine', 'Low forest verge pine'))]
+    ends = []
+    for stem in stems:
+        ring = [engine(vertex.co) for vertex in stem.data.vertices[:10]]
+        x, _, z = (sum(components) / len(ring) for components in zip(*ring))
+        if not 16. <= z <= 34.5 or 20.0 <= z <= 24.35:
+            continue
+        centre, _, half_width = watercourse_at(z)
+        side = math.copysign(1., x - centre)
+        origin_clearance = abs(x - centre) - half_width
+        if not .53 < origin_clearance < 2.04:
+            continue
+        tip_z = z - .28 * side
+        tip_x = centre + side * (half_width + .085)
+        centres = []
+        radii = (.106, .082, .065, .045, .024, .009)
+        for step, (radius, height) in enumerate(zip(radii, (-.038, .015, .017, .010, -.019, -.026))):
+            t = step / (len(radii) - 1)
+            px = x + (tip_x - x) * t
+            pz = z + (tip_z - z) * t + .18 * side * math.sin(math.pi * t)
+            stair_x, stair_width = section_at(pz)
+            if abs(px - stair_x) < stair_width + .38 + radius:
+                break
+            centres.append((px, supports_height(px, pz, [ground]) + height, pz))
+        if len(centres) != len(radii):
+            continue
+        root = bark_tube(f'{stem.name.removesuffix(" crooked trunk")} spring-bank root', centres, radii, bark, 7)
+        for vertex in root.data.vertices[-7:]:
+            px, py, pz = engine(vertex.co)
+            ends.append(py - supports_height(px, pz, [ground]))
+    if not ends or max(ends) > .005:
+        raise RuntimeError('A spring-bank root lacks a buried tip.')
+    print(f'PINE_STREAM_ROOTS {len(ends) // 7} exposed roots; maximum signed tip gap {max(ends):.6f} m.')
+
+
+def saddle_water(stone, ground, bark):
+    water = mesh.material('Clear spring runnel over a gravel bed', '#564e3a', rough=.20)
     # Leave the gravel lit during the Cycles bake. Runtime alpha follows the
     # measured depth and grazing reflection across this same surface.
     water.node_tree.nodes.get('Principled BSDF').inputs['Alpha'].default_value = .065
     water.surface_render_method = 'BLENDED'
     points, profile = [], []
-    cross_section = (-1., -.70, -.35, 0., .35, .70, 1.)
+    cross_section = (-1., -.85, -.68, 0., .68, .85, 1.)
     stride = len(cross_section)
     for z in watercourse_stations(.32):
         centre, y, width = watercourse_at(z)
@@ -878,7 +940,7 @@ def saddle_water(stone, ground):
             x = centre + lateral * (width + STREAM_RIBBON_OVERLAP)
             depth = y - supports_height(x, z, [ground])
             points.append((x, y, z))
-            profile.append((max(0., min(1., depth / .08)), (lateral + 1.) * .5))
+            profile.append((max(0., min(1., .5 + depth / .16)), (lateral + 1.) * .5))
     faces = [(i + j, i + stride + j, i + stride + j + 1, i + j + 1)
              for i in range(0, len(points) - stride, stride) for j in range(stride - 1)]
     channel = mesh.mesh_object('Spring runnel through the saddle', points, faces, water, 'approach')
@@ -888,6 +950,7 @@ def saddle_water(stone, ground):
     source_uv(channel, [[(points[i][0], points[i][2]) for i in face] for face in faces],
               'Metre-scale chart for the water at its original surveyed level.')
     spring_pebbles(stone, ground)
+    stream_pine_roots(bark, ground)
     bank_stones, deck_slabs = [], []
     for index, (_, _, z) in enumerate(WATERCOURSE[1:-1]):
         x, _, width = watercourse_at(z)
@@ -1768,7 +1831,7 @@ def build(output, impostor_manifest=None, wax_sculpt=None):
         far_crown = (Vector(shoulder['position']), views, native_mounts)
         scene['one_light_pine_impostor_sha256'] = impostor_sha
     forest(support, rock, stone, bark, needle, far_crown)
-    stream_stones, deck_slabs = saddle_water(stone, support)
+    stream_stones, deck_slabs = saddle_water(stone, support, bark)
     audit_watercourse(support, stream_stones, deck_slabs, bridge_curbs)
     build_tea_shoulder(ANCHOR, stone, wood, tiles, clay, iron, ledge, contacts, wax_sculpt)
     paint_stone()

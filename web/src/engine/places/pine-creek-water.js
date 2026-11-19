@@ -1,16 +1,18 @@
 const clearRunnelName = 'Clear spring runnel';
+const gravelRunnelName = 'Clear spring runnel over a gravel bed';
 const oldRunnelName = 'Spring water on a slate bed';
 
 function installClearRunnel(material, phase) {
   const compile = material.onBeforeCompile;
   const key = material.customProgramCacheKey();
+  const signedDepth = material.name === gravelRunnelName;
   // Blend over the opaque, independently lit gravel and bank stones. The
   // water occupies its own transparent pass and never replaces their depth.
   material.transparent = true;
   material.depthWrite = false;
   material.opacity = 1;
   material.envMapIntensity = .52;
-  material.customProgramCacheKey = () => key + '-clear-pine-runnel';
+  material.customProgramCacheKey = () => key + (signedDepth ? '-gravel-pine-runnel' : '-clear-pine-runnel');
   material.onBeforeCompile = (shader, renderer) => {
     compile.call(material, shader, renderer);
     shader.uniforms.uPineCreekTime = phase;
@@ -30,16 +32,25 @@ function installClearRunnel(material, phase) {
       .replace('#include <opaque_fragment>', `
         // A dielectric reflects mostly at grazing angles. Away from that
         // angle, Beer-Lambert absorption depends on the submerged ray length.
-        float viewCos = clamp(dot(geometryViewDir, geometryNormal), .03, 1.);
+        float viewCos = clamp(dot(geometryViewDir, ${signedDepth ? 'nonPerturbedNormal' : 'geometryNormal'}), .03, 1.);
         float reflectance = .0204 + .9796 * pow(1. - viewCos, 5.);
-        float depth = vPineRunnelProfile.x * .08;
-        float body = (1. - reflectance) * (1. - exp(-4.0 * depth / max(.35, viewCos)));
+        float depth = ${signedDepth ? '(vPineRunnelProfile.x - .5) * .16' : 'vPineRunnelProfile.x * .08'};
+        float coverage = ${signedDepth ? 'smoothstep(-.001, .009, depth)' : '1.'};
+        float body = (1. - reflectance) * (1. - exp(-${signedDepth ? '3.0' : '4.0'} * max(0., depth) / max(.35, viewCos)));
         vec3 reflection = totalSpecular;
         #if defined(USE_ENVMAP)
-          reflection = getIBLRadiance(geometryViewDir, geometryNormal, material.roughness);
+          reflection = getIBLRadiance(geometryViewDir, normal, material.roughness);
+          ${signedDepth ? `
+          #if defined(RE_IndirectDiffuse) && defined(USE_LIGHTMAP)
+            // The distant sky probe has no local canopy. Use the baked
+            // irradiance as a proxy for sky occlusion in the narrow ravine.
+            float skyExposure = dot(irradiance, vec3(.2126, .7152, .0722));
+            reflection *= mix(.37, 1., smoothstep(.28, 2.4, skyExposure));
+          #endif` : ''}
         #endif
-        diffuseColor.a = reflectance + body;
-        outgoingLight = (reflection * reflectance + totalDiffuse * body) / max(.02, diffuseColor.a);
+        float waterOpacity = reflectance + body;
+        diffuseColor.a = coverage * waterOpacity;
+        outgoingLight = (reflection * reflectance + totalDiffuse * body) / max(.02, waterOpacity);
         #include <opaque_fragment>`);
   };
 }
@@ -79,12 +90,12 @@ export function animatePineCreek(group) {
     if (!object.isMesh) return;
     const materials = Array.isArray(object.material) ? object.material : [object.material];
     for (const material of materials) {
-      if (material?.name === clearRunnelName || material?.name === oldRunnelName) surfaces.add(material);
+      if ([clearRunnelName, gravelRunnelName, oldRunnelName].includes(material?.name)) surfaces.add(material);
     }
   });
   for (const material of surfaces) {
-    if (material.name === clearRunnelName) installClearRunnel(material, phase);
-    else installLegacyRunnel(material, phase);
+    if (material.name === oldRunnelName) installLegacyRunnel(material, phase);
+    else installClearRunnel(material, phase);
   }
   return (_dt, time) => { phase.value = time; };
 }
