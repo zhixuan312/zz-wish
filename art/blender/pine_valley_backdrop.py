@@ -15,10 +15,13 @@ from pathlib import Path
 import sys
 from tempfile import TemporaryDirectory
 from time import monotonic
+from types import SimpleNamespace
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from pine_valley_crowns import PROFILES, crown_mesh
 from pine_valley_exr import straighten
+from pine_valley_near_terraces import NearTerraces
+from pine_valley_terrace_routes import near_terrace_routes
 from pine_valley_terrain import (
     Batch, ELEVATION_SHA256, FAR_START, Landscape, ROOT, drainage, forest_points, paddies,
 )
@@ -334,6 +337,19 @@ def materials(air, audit_paddy=False):
     roughness = ground.between(bank_wetness, 0., 1., .88, .68, smooth=False)
     result = {'ground': ground.surface(surface, roughness, specular=.26, bump=(relief, .52, .19), air=air)}
 
+    revetment = Shader('Layered damp stone in the western paddy retaining walls')
+    point = revetment.coordinate()
+    quarry = revetment.noise(point, (4.8, 4.9, 13.6), detail=3.)
+    breakage = revetment.noise(point, (1.5, 1.7, 4.2), detail=3.)
+    rock_colour = revetment.blend((.018, .023, .019, 1.), (.087, .082, .064, 1.), quarry)
+    rock_colour = revetment.blend(rock_colour, (.023, .051, .019, 1.),
+                                 revetment.between(breakage, .42, .77, 0., .65))
+    result['revetment'] = revetment.surface(rock_colour, .85, bump=(quarry, .30, .048), air=air)
+    trail = Shader('Compacted clay and old grit on the village path')
+    footprints = trail.noise(trail.coordinate(), (3.4, 3.5, 5.9), detail=3.)
+    clay = trail.blend((.039, .029, .018, 1.), (.079, .067, .052, 1.), footprints)
+    result['trail'] = trail.surface(clay, .91, bump=(footprints, .27, .043), air=air)
+
     sediment = Shader('Waterlogged silt beneath the rice beds')
     silt = sediment.noise(sediment.coordinate(), (2.6, 2.2, 2.))
     mud = sediment.blend((.009, .013, .010, 1.), (.026, .029, .021, 1.), silt)
@@ -591,7 +607,7 @@ def configure(scene, options, width, height):
     return set_device(scene, options.device)
 
 
-def build(scene, land, fields, river, forests, audit_paddy=False):
+def build(scene, land, fields, near, near_fields, routes, river, forests, audit_paddy=False):
     layers = {name: bpy.data.collections.new(name) for name in LAYERS}
     for collection in layers.values():
         scene.collection.children.link(collection)
@@ -603,7 +619,7 @@ def build(scene, land, fields, river, forests, audit_paddy=False):
         far = name == 'far'
         collection = layers[name]
         terrain = mesh(collection, 'Far SRTM mountains' if far else 'Middle SRTM hills and river valley',
-                       land.terrain(far), [surface['ground']], smooth=True)
+                       land.terrain(far, near.bounds), [surface['ground']], smooth=True)
         trees = forest(collection, crown_library(library, surface, far), forests[name])
         if not far:
             occluders = (terrain, trees)
@@ -616,6 +632,25 @@ def build(scene, land, fields, river, forests, audit_paddy=False):
     occluders = (*occluders, banks)
     mesh(middle, 'Fourteen horizontal flooded rice beds', water, [surface['water']])
     mesh(middle, 'Sparse late-spring rice shoots', rice, [surface['rice']])
+    banks, water, rice, spills, _ = near_fields
+    patch = mesh(middle, 'Terraces held by old stone on the western slope', banks,
+                 [surface['ground'], surface['revetment']])
+    for face in patch.data.polygons:
+        if face.normal.z < .61 and min(banks.masks[v] for v in face.vertices) > .97:
+            face.material_index = 1
+    occluders = (*occluders, patch)
+    mesh(middle, 'Eight contour-fed flooded paddies on the nearer slope', water, [surface['water']])
+    mesh(middle, 'Young rice in the western spring fields', rice, [surface['rice']])
+    mesh(middle, 'Notched spillways and wetted inlet courses', spills, [surface['creek']], smooth=True)
+    mesh(middle, 'Spring feeder, covered intake and outgoing paddy drain', routes['channel'],
+         [surface['creek']], smooth=True)
+    for key, name in (('lining', 'Stone lining of the gravity-fed paddy channel'),
+                      ('intake', 'Covered inlet and spring collection stones'),
+                      ('stairs', 'Short stone treads at the western headland'),
+                      ('path_banks', 'Earth shoulder beneath the village approach')):
+        support = mesh(middle, name, routes[key], [surface['revetment']])
+        occluders = (*occluders, support)
+    mesh(middle, 'Narrow western terrace path toward the village', routes['path'], [surface['trail']])
     creek, falls, end, _ = river
     mesh(middle, 'D8 drainage on the measured valley floor', creek, [surface['creek']], smooth=True)
     mesh(middle, 'Free-falling sheet behind exposed terrain', falls, [surface['fall']], smooth=True)
@@ -775,7 +810,10 @@ def main():
     height = width * projection['height'] // projection['width']
     land = Landscape()
     fields, river = paddies(land), drainage(land)
-    forests = {name: forest_points(land, name == 'far') for name in ('far', 'mid')}
+    near = NearTerraces(land)
+    near_fields = near.meshes()
+    routes = near_terrace_routes(SimpleNamespace(height=near.ground_height), *near.ports())
+    forests = {name: forest_points(land, name == 'far', near_terraces=near) for name in ('far', 'mid')}
     metadata = {
         'projection': projection, 'width': width, 'height': height, 'samples': options.samples,
         'denoise': not options.no_denoise, 'requestedDevice': options.device,
@@ -790,7 +828,8 @@ def main():
         'solarSha256': digest(DAYLIGHT),
         'sourceSha256': {name: sha256(Path(__file__).with_name(name).read_bytes()).hexdigest()
                          for name in ('pine_valley_backdrop.py', 'pine_valley_terrain.py', 'pine_valley_exr.py',
-                                      'pine_valley_crowns.py')},
+                                      'pine_valley_crowns.py', 'pine_valley_near_terraces.py',
+                                      'pine_valley_terrace_routes.py')},
         'terrainSplitDownrangeMetres': FAR_START,
         'atmosphere': {'model': 'Beer-Lambert aerial perspective at opaque camera and reflection hits',
                        'rawLinearRec709Airlight': AIR_SCATTER_RGB, 'extinctionPerMetre': AIR_EXTINCTION,
@@ -805,6 +844,7 @@ def main():
                              'cloud': 'cloud sea with opaque middle terrain and forest as camera holdouts'},
         'forestInstances': {name: [len(batch[0]) for batch in batches] for name, batches in forests.items()},
         'terraces': fields[-1], 'waterfall': river[-1],
+        'westernTerraces': {'boundsMetres': near.bounds, **near_fields[-1], 'routes': routes['receipt']},
     }
     print(json.dumps(metadata, indent=2), flush=True)
     if options.inspect:
@@ -823,9 +863,10 @@ def main():
     metadata['devices'] = configure(scene, options, width, height)
     metadata['worldStrength'] = set_world(scene, daylight, projection['preExposure'])
     projection_camera(scene, projection)
-    layers, occluders = build(scene, land, fields, river, forests, audit_paddy=options.paddy_audit)
+    layers, occluders = build(scene, land, fields, near, near_fields, routes, river, forests, audit_paddy=options.paddy_audit)
     if options.paddy_audit:
-        render_paddy_transport(scene, layers, fields[1], options, metadata)
+        pools = Batch(points=fields[1].points + near_fields[1].points)
+        render_paddy_transport(scene, layers, pools, options, metadata)
         return
     if options.save_blend:
         options.save_blend.parent.mkdir(parents=True, exist_ok=True)

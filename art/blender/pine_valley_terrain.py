@@ -126,7 +126,7 @@ class Landscape:
         d = h[a + stride + 1]
         return d + (1. - u) * (h[a + stride] - d) + (1. - v) * (h[a + 1] - d)
 
-    def terrain(self, far):
+    def terrain(self, far, hole=None):
         cut = self.depths.index(FAR_START)
         rows = range(cut, len(self.depths)) if far else range(cut + 1)
         points, faces, normals = [], [], []
@@ -142,6 +142,10 @@ class Landscape:
                 normals.append((rx / length, ry / length, 1. / length))
         for j in range(len(rows) - 1):
             for i in range(stride - 1):
+                if hole and not far:
+                    x0, x1, d0, d1 = hole
+                    if x0 <= self.x[i] < x1 and d0 <= self.depths[j] < d1:
+                        continue
                 a = j * stride + i
                 b = a + stride
                 faces.extend(((a, a + 1, b), (a + 1, b + 1, b)))
@@ -347,7 +351,7 @@ def forest_site(land, x, depth, height):
     return smooth(.14, .60, soil), exposed, pocket
 
 
-def forest_points(land, far, variants=4):
+def forest_points(land, far, variants=4, near_terraces=None):
     rng = random.Random(6624 + far)
     batches = [([], [], []) for _ in range(variants)]
     start = FAR_START if far else 27.
@@ -400,10 +404,17 @@ def forest_points(land, far, variants=4):
                 height *= .83
                 width *= .86
             width = min(width, 1.85 * height)
+            euler = (rng.uniform(-.112, .112), rng.uniform(-.112, .112), rng.uniform(0., math.tau))
+            if near_terraces and not far:
+                clearance = near_terraces.forest_margin(x, depth)
+                if clearance < .48 + width * .28:
+                    continue
+                width *= lerp(.68, 1., smooth(.9, 2.9, clearance))
+                y = near_terraces.ground_height(x, depth)
             points, scales, rotation = batches[kind]
             points.append((x, depth, y - .029))
             scales.append((width, width, height))
-            rotation.append((rng.uniform(-.112, .112), rng.uniform(-.112, .112), rng.uniform(0., math.tau)))
+            rotation.append(euler)
         d0 += spacing
     return batches
 
