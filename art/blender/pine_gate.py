@@ -225,7 +225,7 @@ def stream_ground(x, z, water_x, water_y, half_width, blend):
     return original + (bed - original) * blend
 
 
-def terrain(material):
+def terrain(material, bed_material):
     outer_x = (4.32, 4.5, 6, 8, 11, 14, 19, 24, 31)
     offsets = (0, .40, SHOULDER_SETBACK, SHOULDER_SETBACK + .48, SHOULDER_SETBACK + 1.14)
     spring_start, spring_end = WATERCOURSE[0][2], WATERCOURSE[-1][2]
@@ -234,6 +234,7 @@ def terrain(material):
     zs = sorted(set(range(-45, 67, 3)) | set(watercourse_stations(.34)) | end_blends |
                 {-1.45, TERRACE_EDGE, -.72, 1.18, 4.88, 5.4, PINE_CREST, 10.5, 13.5, 16.5, 19.5})
     points, faces, previous = [], [], None
+    bed_faces = set()
     for z in zs:
         centre, half_span = section_at(z)
         verge = [half_span + offset for offset in offsets]
@@ -264,8 +265,18 @@ def terrain(material):
             for band, (before, after) in enumerate(zip(previous, bands)):
                 if band == 1:
                     for i in range(len(before) - 1):
-                        faces.extend(((before[i], after[i], after[i + 1]),
-                                      (before[i], after[i + 1], before[i + 1])))
+                        corners = (before[i], after[i], after[i + 1], before[i + 1])
+                        # The two inner strips are candidate bed. Check the
+                        # entire cell against the local water plane, not just
+                        # a centroid, and leave the graded banks intact.
+                        if i in (1, 2) and all(
+                            spring_start <= points[j][2] <= spring_end
+                            and watercourse_at(points[j][2])[1] - points[j][1] > .002
+                            for j in corners
+                        ):
+                            bed_faces.update((len(faces), len(faces) + 1))
+                        faces.extend(((corners[0], corners[1], corners[2]),
+                                      (corners[0], corners[2], corners[3])))
                     continue
                 i = j = 0
                 while i + 1 < len(before) or j + 1 < len(after):
@@ -279,11 +290,18 @@ def terrain(material):
                         i += 1
         previous = bands
     obj = mesh.mesh_object('Continuous mountain shoulder', points, faces, material, 'approach')
+    obj.data.materials.append(bed_material)
     source_uv(obj, [[(points[i][0], points[i][2]) for i in face] for face in faces],
               'Continuous mountain terrain grid.')
     mesh.uv_world(obj, 2.1)
+    uv = obj.data.uv_layers['UVMap']
     for face in obj.data.polygons:
         face.use_smooth = True
+        if face.index in bed_faces:
+            face.material_index = 1
+            for i in face.loop_indices:
+                x, _, z = points[obj.data.loops[i].vertex_index]
+                uv.data[i].uv = (x / .39, -z / .39)
     return obj
 
 
@@ -1382,7 +1400,7 @@ def stream_pine_roots(bark, ground):
     print(f'PINE_STREAM_ROOTS {len(ends) // 7} exposed roots; maximum signed tip gap {max(ends):.6f} m.')
 
 
-def saddle_water(stone, ground, bark, tread_granite):
+def saddle_water(stone, ground, bark, tread_granite, wet_gravel):
     water = mesh.material('Shallow spring runnel over washed gravel', '#4d4e3d', rough=.24)
     # Leave the gravel lit during the Cycles bake. Runtime alpha follows the
     # measured depth and grazing reflection across this same surface.
@@ -1406,11 +1424,7 @@ def saddle_water(stone, ground, bark, tread_granite):
         material_uv.data[loop.index].uv = profile[loop.vertex_index]
     source_uv(channel, [[(points[i][0], points[i][2]) for i in face] for face in faces],
               'Metre-scale chart for the water at its original surveyed level.')
-    # Share the existing four-map mossy rock scan with the bridge granite.
-    # Keep a separate draw for the small apparent shift of the submerged bed.
-    wet_gravel = tread_granite.copy()
-    wet_gravel.name = 'Water-darkened spring granite'
-    wet_gravel['one_light_vertex_base_tint'] = mesh.color('#7d847b')[:3]
+    # The loose underwater gravel retains its separate apparent shift.
     submerged_gravel = wet_gravel.copy()
     submerged_gravel.name = 'Refracted spring granite'
     spring_pebbles(ground, wet_gravel, submerged_gravel)
@@ -2421,6 +2435,29 @@ def forest(ground, rock, stone, bark, pine, far_crown=None):
                 vertex.co.z += supports_height(vertex.co.x, -vertex.co.y, [ground]) - y
 
 
+def spring_sediment_tint(tint, x, z, channel, width, bed):
+    # Match damp mineral colour on both sides of the submerged material
+    # seam, then grade into washed granite or undisturbed leaf mould.
+    if not WATERCOURSE[0][2] <= z <= WATERCOURSE[-1][2]:
+        return tint
+    offset = abs(x - channel) - width
+    moisture = .92 + .08 * math.sin(3.2 * z + 6.3 * x)
+    seam = (.042, .041, .031)
+    if bed:
+        t = min(1., max(0., -offset / width))
+        t *= t * (3. - 2. * t)
+        mineral = (.069, .065, .054)
+        # Divide by the mean linear albedo of the resident mossy_rock scan.
+        return [(a + (b - a) * t) * moisture / scan
+                for a, b, scan in zip(seam, mineral, (.165, .158, .103))]
+    t = 1. - min(1., max(0., offset / STREAM_BANK_OFFSET))
+    t *= t * (3. - 2. * t)
+    # The bank keeps its own map. Colour at the waterline converges on the
+    # same silt using the mean linear albedo of forrest_ground_03.
+    return [a + (b * moisture / scan - a) * t
+            for a, b, scan in zip(tint, seam, (.349, .227, .141))]
+
+
 def paint_stone():
     for obj in mesh.STATIC.objects:
         materials = list(obj.data.materials)
@@ -2491,6 +2528,7 @@ def paint_stone():
                     creek_x, _, width = watercourse_at(z)
                     tint_color = [channel * crest * bank for channel, crest, bank in zip(
                         tint_color, crest_soil_tint(x, z), inner_bank_tint(x, z, creek_x, width))]
+                    tint_color = spring_sediment_tint(tint_color, x, z, creek_x, width, face.material_index == 1)
                 tint.data[i].color = (*tint_color, 1.)
 
 
@@ -2581,7 +2619,11 @@ def build(output, impostor_manifest=None, wax_sculpt=None):
     contacts = RestingContacts(height_query=supports_height)
     stone, rock, ground, wood, tiles, bark, needle, iron, clay, ledge = palette()
     tread_granite = wet_approach_granite()
-    support = terrain(ground)
+    # The bed and the existing wet bank rock share one resident scan/material.
+    wet_gravel = tread_granite.copy()
+    wet_gravel.name = 'Water-darkened spring granite'
+    wet_gravel['one_light_vertex_base_tint'] = mesh.color('#7d847b')[:3]
+    support = terrain(ground, wet_gravel)
     audit_approach_clearance(support)
     bridge_curbs = climbing_steps(stone, support, ground, rock, tread_granite)
     route = json.loads((ROOT / 'shared/pine-gate-path.json').read_text())
@@ -2597,7 +2639,7 @@ def build(output, impostor_manifest=None, wax_sculpt=None):
         far_crown = (Vector(shoulder['position']), views, native_mounts)
         scene['one_light_pine_impostor_sha256'] = impostor_sha
     forest(support, rock, stone, bark, needle, far_crown)
-    stream_stones, deck_slabs = saddle_water(stone, support, bark, tread_granite)
+    stream_stones, deck_slabs = saddle_water(stone, support, bark, tread_granite, wet_gravel)
     audit_watercourse(support, stream_stones, deck_slabs, bridge_curbs)
     build_tea_shoulder(ANCHOR, stone, wood, tiles, clay, iron, ledge, contacts, wax_sculpt)
     paint_stone()
