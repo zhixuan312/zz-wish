@@ -226,7 +226,7 @@ def paddy_glass(audit=False):
     bump.inputs['Distance'].default_value = 1.
     bump.inputs['Strength'].default_value = .87
     calm_normal = bump.outputs['Normal']
-    roughness = water.between(gusts, .26, .75, .068, .116)
+    roughness = water.between(gusts, .26, .75, .034, .082)
     slope = water.between(gusts, .30, .73, *WIND_SLOPES)
     crest_share = water.between(gusts, .20, .80, .38, .71)
 

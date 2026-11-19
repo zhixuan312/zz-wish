@@ -95,6 +95,13 @@ class Landscape:
         spread = min(1.13 + .57 * smooth(90., 113., depth),
                      max(.56, (river - 1.95 - center) / (OFFSETS[-1] + 1.1)))
         bank = .81 * math.sin(depth * .26 + index * .71) + .40 * math.sin(depth * .62 - index * .83)
+        if 0 < index < len(OFFSETS) - 1:
+            # The surveyed outer grade holds the footprint. Let the inner
+            # bunds wrap in coherent bends around each side of the spur.
+            fraction = index / (len(OFFSETS) - 1)
+            swell = math.sin(math.pi * fraction)
+            bank += swell * (.93 * math.sin((depth - FIELD_NEAR) * .33 + fraction * 2.7)
+                             + .36 * math.sin((depth - FIELD_NEAR) * .69 - fraction * 3.1))
         return center + spread * OFFSETS[index] + bank
 
     def grade(self, x, depth, height, river):
@@ -223,6 +230,8 @@ def paddies(land):
         bed, outer_left, outer_right = [], [], []
         for depth in ticks:
             x0, x1 = land.edge(depth, index), land.edge(depth, index + 1)
+            if x1 - x0 <= .95:
+                raise ValueError(f'Paddy {index + 1} has no room for both banks at {depth:.3f} m.')
             cross = CROSS_BUND_RISE * clamp((.24 - min(abs(depth - c) for c in transverse)) / .155)
             crest = LONG_BUND_RISE + LONG_BUND_VARIATION * math.sin(depth * .41 + index * 1.21)
             profile = ((.24, 0), (.31, crest), (.37, crest), (.46, 0),
