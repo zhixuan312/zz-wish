@@ -779,7 +779,7 @@ HERO_PINE_CROWNS = {
 def use_native_valley_crown(label, profile, far_crown):
     # At the across-valley framing distances use the measured crown of a
     # scanned tree. Both ancient pines beside the path keep close geometry.
-    return (label in VALLEY_NODES and far_crown is not None
+    return (profile is not None and label in VALLEY_NODES and far_crown is not None
             and all(view.get('nativeObject') for view in far_crown[1][profile]))
 
 
@@ -1051,9 +1051,11 @@ def distant_pines(ground, bark, needles, modelled_needles, far_crown):
             camera, views, mounts = far_crown
             prototype = profile if use_native_crown else 'young' if height < 8. else 'ridge'
             relief_crown(label, prototype, positions, camera, views, mesh, source_uv)
-            if use_native_crown and mounts is not None:
+            if mounts is not None and label in VALLEY_NODES:
                 proxy = mesh.STATIC.objects[f'{label} depth-reconstructed crown']
-                add_native_mount(mounts, label, positions, camera, views[profile], proxy, stem)
+                # The left shoulder keeps its reviewed young relief and uses
+                # the ridge prototype's measured views for the shared high mesh.
+                add_native_mount(mounts, label, positions, camera, views[profile or 'ridge'], proxy, stem)
             continue
         sprays, shoots = [], []
         model_crown = label in MODELLED_PINE_CROWNS

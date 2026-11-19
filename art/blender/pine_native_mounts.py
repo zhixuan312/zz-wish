@@ -1,4 +1,4 @@
-"""Bind the two authored valley trees to optional native crown upgrades."""
+"""Bind authored valley trees to optional native crown upgrades."""
 
 from hashlib import sha256
 import json
@@ -9,7 +9,9 @@ NATIVE_MOUNTS_FIELD = 'one_light_pine_native_mounts'
 VALLEY_NODES = {
     'Layered ridge pine 4': 'PineRidgeNative',
     'Back ridge pine 5': 'PineYoungNative',
+    'Layered ridge pine 1': 'PineShoulderNative',
 }
+SHARED_PROTOTYPES = {'PineShoulderNative': 'PineRidgeNative'}
 
 
 def has_verified_native_receipt(path, verified_sha):
@@ -56,9 +58,11 @@ def add_native_mount(mounts, label, trunk, camera, views, proxy, stem):
         'proxyMaterial': private_material(proxy, f'Depth-reconstructed pine crown {node}', node, 'proxy'),
         'stemMaterial': private_material(stem, f'Knotted pine bark {node}', node, 'stem'),
     }
+    if node in SHARED_PROTOTYPES:
+        mounts[node]['prototype'] = SHARED_PROTOTYPES[node]
 
 
 def serialize_native_mounts(mounts):
     if set(mounts) != set(VALLEY_NODES.values()):
-        raise ValueError('Both authored Pine native mounts must exist.')
+        raise ValueError('All authored Pine native mounts must exist.')
     return json.dumps([mounts[node] for node in VALLEY_NODES.values()], separators=(',', ':'), allow_nan=False)
