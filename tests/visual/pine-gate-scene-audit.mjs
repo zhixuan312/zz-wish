@@ -62,7 +62,11 @@ export function instrumentPineScene(source, { readiness, cadence, lighting, walk
   const eye = camera.getWorldPosition(V3());
   const ray = camera.getWorldDirection(V3());
   const trees = place?.baked?.highTrees?.group;
+  const baseCrowns = place?.baked?.highTrees?.base;
   return {
+    baseCrowns: baseCrowns ? { visible: baseCrowns.visible, mounts: baseCrowns.children.map(tree => ({
+      name: tree.name, position: tree.position.toArray(), height: tree.scale.y,
+    })) } : null,
     nativeTreeMounts: trees ? JSON.parse(place.baked.group.userData.one_light_pine_native_mounts) : null,
     waxSunVisibility: place?.baked?.sunShade?.uPineSunVisibility.value ?? null,
     nativeTrees: trees ? trees.children.map(tree => {

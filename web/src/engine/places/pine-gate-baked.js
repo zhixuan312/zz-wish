@@ -101,6 +101,7 @@ export default function createPlace(h) {
       const highTrees = preparePineHighTrees(baked, readPineBackdrop(baked.manifest)?.high?.trees);
       if (highTrees) {
         baked.highTrees = highTrees;
+        if (highTrees.base) context.G.add(highTrees.base);
         context.G.add(highTrees.group);
         context.disposers.push(highTrees.dispose);
       }

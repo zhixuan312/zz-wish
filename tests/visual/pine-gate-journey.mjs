@@ -790,7 +790,15 @@ async function capture(browser, browserName, size, trial) {
             const mounts = run.readyPineImages.nativeTreeMounts;
             assert(mounts.some(mount => mount.node === 'PineRidgeNative') && mounts.some(mount => mount.node === 'PineYoungNative'));
             const expected = new Map(mounts.map(mount => [mount.node, mount.position]));
+            const baseCrowns = run.readyPineImages.baseCrowns;
+            if (baseCrowns) {
+              assert(baseCrowns.visible, 'The needle crowns must cover the three rooted positions before entry.');
+              assert.deepEqual(baseCrowns.mounts, mounts.map(mount => ({
+                name: mount.node, position: mount.position, height: mount.height,
+              })));
+            }
             for (const state of [...run.shots.map(shot => shot.pineImages), run.settledPineImages]) {
+              if (baseCrowns) assert.equal(state.baseCrowns.visible, baseOnly, 'Only one crown tier can be visible at the review cameras.');
               const trees = state.nativeTrees;
               if (baseOnly) {
                 assert.deepEqual(trees, [], 'The base-tier context installed desktop tree geometry.');

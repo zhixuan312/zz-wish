@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { preparePineBaseCrowns } from './pine-base-crowns.js';
 
 const primaryMounts = ['PineRidgeNative', 'PineYoungNative'];
 const mountPrototypes = new Map([
@@ -35,6 +36,7 @@ function readMounts(group) {
 export function preparePineHighTrees(baked, file) {
   if (!file) return null;
   const mounts = readMounts(baked.group);
+  const base = preparePineBaseCrowns(mounts, file);
   const group = new THREE.Group();
   group.name = 'Pine Gate native trees';
   let active = false, disposed = false, request;
@@ -60,12 +62,13 @@ export function preparePineHighTrees(baked, file) {
     });
     group.add(...trees);
     for (const mount of mounts) for (const proxy of mount.proxies) proxy.visible = false;
+    if (base) base.group.visible = false;
     active = true;
     return true;
   }
 
   return {
-    group,
+    group, base: base?.group,
     start(canInstall) {
       if (disposed || active) return;
       if (!request) request = load(canInstall).catch(() => false).finally(() => { request = null; });
@@ -76,6 +79,7 @@ export function preparePineHighTrees(baked, file) {
       group.removeFromParent();
       group.clear();
       if (active) for (const mount of mounts) for (const proxy of mount.proxies) proxy.visible = true;
+      base?.restore();
     },
   };
 }
