@@ -574,7 +574,7 @@ const LAMPS = {
   pineWax({ refined = false, sculptNormal = null, sunShade = null } = {}) {
     const g = new THREE.Group();
     const seat = { y: .008, maxR: refined ? .039 : .045, maxH: .16, traceRadius: refined ? .046 : .056 };
-    const holder = refined ? createPineTray(seat, { sunShade })
+    const holder = refined ? createPineTray(seat, sunShade)
       : new THREE.Mesh(lathe([[0, 0], [.057, 0], [.067, .004], [.069, .009], [.065, .012],
         [.06, .011], [.056, seat.y], [0, seat.y]], 56), greyStoneMat);
     holder.receiveShadow = true;
@@ -1785,8 +1785,8 @@ async function buildPlaceNow(t, isolated = false) {
   sun.shadow.bias = -.00025; sun.shadow.normalBias = .025; sun.shadow.radius = 3; G.add(sun);
   const hemi = new THREE.HemisphereLight(...P.hemi); G.add(hemi);
   await P.build(t, context);
-  context.baked?.updateWaxSun?.(dir);
   if (!isolated) await finishBatch();
+  context.baked?.updateWaxSun?.(dir);
   // The spot where the lamp is lit, built in its own frame and set into the place.
   const N = P.nook, nookG = new THREE.Group(); nookG.position.copy(N.at.pos); nookG.rotation.y = N.at.ry ?? 0; G.add(nookG); nookG.updateMatrixWorld(true);
   context.G = nookG; context.bat = new Map(); context.cover = null;

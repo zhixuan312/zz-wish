@@ -733,7 +733,22 @@ async function capture(browser, browserName, size, trial) {
         assert(niche.wax.state === 'burning' && niche.wax.remaining > .99 && niche.ignition.state === 'settled');
         assert(niche.camera.phase === 'burning' && !niche.camera.overview);
         assert.deepEqual(run.shots.map(shot => basename(shot.file, '.png')), direction.frames);
-        if (realismOnly) await captureSolarDiagnostic();
+        if (realismOnly) {
+          await captureSolarDiagnostic();
+          const portrait = await page.evaluate(async shape => {
+            const sceneUrl = '/src/engine/scene.js';
+            const { renderLampThumbnail } = await import(sceneUrl);
+            // This portrait uses the refined tray without a directional sun mask.
+            return renderLampThumbnail(shape, { state: 'burning', remaining: .65, width: 160, height: 200 });
+          }, candle.shape);
+          const png = Buffer.from(portrait.replace(/^data:image\/png;base64,/, ''), 'base64');
+          assert(png.subarray(0, 8).equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10])));
+          assert.equal(png.readUInt32BE(16), 160);
+          assert.equal(png.readUInt32BE(20), 200);
+          const file = join(path, 'refined-tray-portrait.png');
+          await writeFile(file, png);
+          run.trayPortrait = { file, width: 160, height: 200 };
+        }
       }
       if (realismOnly) {
         assert.deepEqual(run.obsoleteVistaRequests, [], 'Pine must not request the old DEM renderer or elevation field.');
