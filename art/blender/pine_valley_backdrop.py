@@ -590,7 +590,8 @@ def exposed_moon_sky(daylight, moon):
     return {
         **daylight,
         'solarElevationDegrees': math.degrees(math.atan2(y, math.hypot(x, z))),
-        'solarAzimuthDegrees': math.degrees(math.atan2(-x, -z)) % 360.,
+        # Cycles negates the authored rotation before evaluating the sky.
+        'solarAzimuthDegrees': math.degrees(math.atan2(x, -z)) % 360.,
         'solarDiameterDegrees': moon['apparentDiameterDegrees'],
         'solarIntensity': moon['adaptedLunarDiscIntensity'],
         'atmosphereStrength': moon['adaptedSkyStrength'],
