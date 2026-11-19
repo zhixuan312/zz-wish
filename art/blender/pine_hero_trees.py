@@ -88,13 +88,17 @@ def mature_terminal_sprays(hinge, tip, outward, up, length, seed):
     lateral = axis.cross(up).normalized()
     for shoot, t in enumerate((.30, .55, .78, 1.)):
         source = hinge.lerp(tip, t)
+        paired_sprays = []
         for sign in (-1, 1):
             offshoot = (axis * rng.uniform(.43, .78) + sign * lateral * rng.uniform(.34, 1.04) +
                         up * rng.uniform(.11, .50) + outward * .18).normalized()
             easing = 1. - .16 * t
             reach = length * easing * rng.uniform(.81, 1.27)
-            yield tuple(needle_fascicle(source, offshoot, rng.uniform(-math.pi, math.pi),
-                                        reach, rng, False, True, pairs=5 if shoot >= 2 else 4))
+            paired_sprays.extend(needle_fascicle(source, offshoot, rng.uniform(-math.pi, math.pi),
+                                                reach, rng, False, True, pairs=5 if shoot >= 2 else 4))
+        # The two opposed fans share a real attachment. Unwrap the full
+        # fascicle as one chart, without welding across separate branches.
+        yield tuple(paired_sprays)
 
 
 def grow_crown(name, profile, trunk, phase, bark, write_wood, *, dense=False):
@@ -157,6 +161,11 @@ def grow_crown(name, profile, trunk, phase, bark, write_wood, *, dense=False):
             write_wood(f'{label} lateral twig {fork + 1}', [root, elbow, tip],
                        [length * factor for factor in (.040, .023, .004)], bark, 5 if dense else 3)
 
+            if old and not dense:
+                needles.extend(mature_terminal_sprays(elbow, tip, forward, world_up,
+                                                      height * (.031 - .009 * upper_crown),
+                                                      f'{label} twig {fork}'))
+                continue
             buds = (.12, .21, .31, .42, .55, .65, .76, .87, .97) if dense else (.18, .36, .55, .72, .92)
             for bud, position in enumerate(buds):
                 # Alternate live shoots along the twig instead of making an
@@ -179,12 +188,6 @@ def grow_crown(name, profile, trunk, phase, bark, write_wood, *, dense=False):
                 if not dense and bud == 3:
                     needles.append(tuple(needle_fascicle(anchor, younger + world_up * .24,
                                                     spread + 1.1, leaf * .87, rng, dense, old)))
-            if old:
-                # Keep a clear opening below the first boughs. Most live
-                # needles belong to broad outer pads above the walking eye.
-                needles.extend(mature_terminal_sprays(elbow, tip, forward, world_up,
-                                                      height * (.031 - .009 * upper_crown),
-                                                      f'{label} twig {fork}'))
 
     for level in (.88, .91, .941, .966, .982):
         root = trunk_point(trunk, level)
