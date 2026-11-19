@@ -144,6 +144,18 @@ describe('phrase shuffle bag', () => {
 // until a cue takes it.
 const cueElements = () => FakeAudio.instances.filter((a) => a.src.startsWith('/music/'));
 
+// A restart reuses the same element, so counting elements cannot see it. Counting the
+// play() calls for one cue can.
+function countPlays(cue: string) {
+  const plays: string[] = [];
+  const original = FakeAudio.prototype.play;
+  FakeAudio.prototype.play = function play(this: FakeAudio) {
+    plays.push(this.src);
+    return original.call(this);
+  };
+  return { plays: () => plays.filter((src) => src === `/music/${cue}.m4a`).length };
+}
+
 describe('music playback', () => {
   const originalAudio = globalThis.Audio;
   const originalLocalStorage = globalThis.localStorage;
@@ -510,26 +522,44 @@ describe('music playback', () => {
       vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, json: async () => ({ cues: ['result_loop'] }) })));
       const music = createMusic({ createContext: () => new FakeContext() as unknown as AudioContext });
       await music.unlock();
+      const counter = countPlays('result_loop');
       const started = await music.play('endingPutOut', 'snow-roof');
       expect(started).toBe(false);
       expect(music.holdingFor('result')).toBe(false);
       if (effectFirst) {
-        // The result screen is reached first, then the settle callback sees that its
-        // ending never started and asks for the loop too.
-        const settling = music.play('endingPutOut', 'snow-roof');
+        // The screen effect and the settle fallback ask in the same tick, before either
+        // has finished starting.
+        const fallback = music.play('result', 'snow-roof');
         await music.play('result', 'snow-roof');
-        expect(await settling).toBe(false);
-        await music.play('result', 'snow-roof');
+        await fallback;
       } else {
-        // The settle callback finishes first and starts the loop; the screen effect then
-        // asks for the same stage.
-        await music.holdingFor('result');
+        // The settle fallback starts the loop first; the screen effect then asks again.
+        await music.play('result', 'snow-roof');
         await music.play('result', 'snow-roof');
       }
       await new Promise((r) => setTimeout(r, 1900));
-      expect(cueElements().filter((a) => a.src === '/music/result_loop.m4a')).toHaveLength(1);
+      // A second start reuses the same element, so the play count is the proof.
+      expect(counter.plays()).toBe(1);
       expect(music.describe().channels).toBe(1);
     }
+  });
+
+  it('keeps tracking a loop after the one-shot it replaced retires', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, json: async () => ({ cues: ['snow_walk', 'snow_choose_loop'] }) })));
+    const music = createMusic({ createContext: () => new FakeContext() as unknown as AudioContext });
+    await music.unlock();
+    const counter = countPlays('snow_choose_loop');
+    await music.play('walk', 'snow-roof');
+    const walk = cueElements().find((a) => a.src.includes('snow_walk'))!;
+    await music.play('choose', 'snow-roof');
+    // The replaced one-shot retires while the new loop is playing. If its release cleared
+    // the loop's tracking, the next ask would start the cue a second time.
+    walk.emit('ended');
+    await new Promise((r) => setTimeout(r, 4500));
+    await music.play('choose', 'snow-roof');
+    await new Promise((r) => setTimeout(r, 100));
+    expect(counter.plays()).toBe(1);
+    expect(music.describe().channels).toBe(1);
   });
 
   it('persists the mute choice', async () => {

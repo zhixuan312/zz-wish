@@ -244,7 +244,7 @@ export function createMusic(options: { createContext?: () => AudioContext } = {}
     channel.abort.abort();
     channels = channels.filter((c) => c !== channel);
     held = held.filter((c) => c !== channel);
-    if (liveOneShot === channel) { liveOneShot = null; cueStage = null; currentCue = null; currentChannel = null; }
+    if (liveOneShot === channel) { liveOneShot = null; cueStage = null; }
     if (currentChannel === channel) { currentCue = null; currentChannel = null; }
     if (channel.slot.owner === channel) channel.slot.owner = null;
     // Both ends of the edge go: disconnecting only the gain would leave the source
@@ -391,8 +391,10 @@ export function createMusic(options: { createContext?: () => AudioContext } = {}
       powerFade(channel.gain, 0, 0.6);
       channels = channels.filter((c) => c !== channel);
       const stillLive = liveOneShot === channel && cueStage === fromStage && stage === fromStage;
-      if (liveOneShot === channel) { liveOneShot = null; cueStage = null; currentCue = null; currentChannel = null; }
-    if (currentChannel === channel) { currentCue = null; currentChannel = null; }
+      if (liveOneShot === channel) { liveOneShot = null; cueStage = null; }
+      // A loop that replaced this one-shot owns the tracking now; clearing it here would
+      // re-enable a duplicate start of a cue that is already playing.
+      if (currentChannel === channel) { currentCue = null; currentChannel = null; }
       globalThis.setTimeout(() => releaseChannel(channel), 700);
       // A slow `walk` can end after the stage has moved on; only hand over while this
       // one-shot still owns the stage, or it would pull the game back to `choose`.
@@ -431,15 +433,16 @@ export function createMusic(options: { createContext?: () => AudioContext } = {}
     disposeChannels(isOneShot ? 0.6 : incoming);
     bucket = nextBucket;
     if (isOneShot) {
-      currentCue = cue;
-      currentChannel = null;
       const startedOneShot = playOneShot(cue, 0.8, NEXT_AFTER_ONE_SHOT[nextStage] ?? null, nextStage);
+      // A one-shot that never started must not take the tracking: the loop that follows it
+      // is asked for next, and the dedupe has to recognise it as already playing.
+      currentCue = startedOneShot ? cue : null;
       currentChannel = startedOneShot ? liveOneShot : null;
       return startedOneShot;
     }
     const started = startLoop(cue, incoming);
     currentCue = started ? cue : null;
-    currentChannel = started ? channels[channels.length - 1] : null;;
+    currentChannel = started ? channels[channels.length - 1] : null;
     // The burning watchers run even while this bucket's bed is missing, so a bed
     // delivered later still starts when the part of day changes.
     if (nextStage === 'burn') { startBucketWatch(); schedulePhrase(); }
