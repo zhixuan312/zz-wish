@@ -59,6 +59,7 @@ export function instrumentPineScene(source, { readiness, cadence, lighting, walk
   const trees = place?.baked?.highTrees?.group;
   return {
     nativeTreeMounts: trees ? JSON.parse(place.baked.group.userData.one_light_pine_native_mounts) : null,
+    waxSunVisibility: place?.baked?.sunShade?.uPineSunVisibility.value ?? null,
     nativeTrees: trees ? trees.children.map(tree => {
       let triangles = 0;
       tree.traverse(object => {

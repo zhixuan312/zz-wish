@@ -42,6 +42,30 @@ export default function createPlace(h) {
       const baked = await loadBakedPlace('pine-gate', h.renderer, context.light);
       context.G.add(baked.group);
       context.baked = baked;
+      const niche = baked.group.children.find(object => object.userData.lightmap_region === 'niche');
+      if (niche) {
+        baked.group.updateMatrixWorld(true);
+        const shelf = V3(...baked.manifest.lampAnchor);
+        const samples = [V3(0, .029, 0), V3(.032, .077, -.027), V3(-.032, .13, .027)]
+          .map(point => point.add(shelf));
+        const solarRay = new THREE.Raycaster(shelf, V3(0, 1, 0), .001, .9);
+        const sunShade = {
+          uPineSunDirection: { value: V3(0, 1, 0) },
+          uPineSunVisibility: { value: 1 },
+        };
+        baked.sunShade = sunShade;
+        // The baked granite also shelters the live candle. Raycast its actual
+        // exported stone when the sun direction changes, with no new shadow map.
+        baked.updateWaxSun = direction => {
+          sunShade.uPineSunDirection.value.copy(direction);
+          let visible = 0;
+          for (const point of samples) {
+            solarRay.set(point, direction);
+            if (!solarRay.intersectObject(niche, true).length) visible++;
+          }
+          sunShade.uPineSunVisibility.value = visible / samples.length;
+        };
+      }
       const backdrop = await loadPineGateBackdrop(baked, h.renderer, context.light);
       if (backdrop) {
         baked.backdrop = backdrop;

@@ -571,10 +571,10 @@ const LAMPS = {
     solid(g, lathe([[0, 0], [.042, 0], [.05, .004], [.052, .013], [.047, .015], [.043, .007], [0, .007]], 40), greyStoneMat);
     return { g, kind: 'wax', seat: { y: .007, maxR: .045, maxH: .16 }, frame: { h: .2, cy: .08 }, lightMax: .3 };
   },
-  pineWax({ refined = false, sculptNormal = null } = {}) {
+  pineWax({ refined = false, sculptNormal = null, sunShade = null } = {}) {
     const g = new THREE.Group();
     const seat = { y: .008, maxR: refined ? .039 : .045, maxH: .16, traceRadius: refined ? .046 : .056 };
-    const holder = refined ? createPineTray(seat)
+    const holder = refined ? createPineTray(seat, { sunShade })
       : new THREE.Mesh(lathe([[0, 0], [.057, 0], [.067, .004], [.069, .009], [.065, .012],
         [.06, .011], [.056, seat.y], [0, seat.y]], 56), greyStoneMat);
     holder.receiveShadow = true;
@@ -585,7 +585,7 @@ const LAMPS = {
     const contactRadius = refined ? .064 : .082;
     const shelfContact = waxContactShadow(contactRadius, refined ? .64 : .53);
     g.add(shelfContact);
-    const pineWax = createPineWax(seat, waxMaterial, { refined, sculptNormal });
+    const pineWax = createPineWax(seat, waxMaterial, { refined, sculptNormal, sunShade });
     pineWax.group.visible = false;
     g.add(pineWax.group);
     const setShape = shape => {
@@ -597,7 +597,7 @@ const LAMPS = {
       holder.scale.set(holderScale, 1, holderScale);
       shelfContact.scale.setScalar(contactRadius * holderScale);
     };
-    return { g, kind: 'wax', seat, pineWax, holder, shelfContact, setShape,
+    return { g, kind: 'wax', seat, pineWax, holder, shelfContact, setShape, sunShade,
       frame: { h: .2, cy: .08 }, lightMax: .05, light: 0xffbc82, flame: refined ? .91 : 1.13 };
   },
   // A brass-framed storm lantern hanging from a hook; the candle stands inside behind glass.
@@ -833,12 +833,14 @@ const api = { g, parts: null, partsKey: null, type: null, power: 0, lightPower: 
     build(o) {
       const drawn = !WAX_LAMPS.has(this.type) && o,liveBaked=!!place?.P.bakedLighting;
       const sculptNormal = this.type === 'pineWax' ? place?.baked?.waxNormal : null;
+      const sunShade = this.type === 'pineWax' ? place?.baked?.sunShade : null;
       const key = this.type + (liveBaked?'|cycles':'') + (sculptNormal ? `|sculpt-${sculptNormal.id}` : '')
+        + (sunShade ? '|shaded-sun' : '')
         + (drawn ? JSON.stringify([o.rows, o.color]) : '');
-      if (key === this.partsKey) return;
+      if (key === this.partsKey && (!sunShade || this.parts?.sunShade === sunShade)) return;
       if (this.parts) { g.remove(this.parts.g); disposeTree(this.parts.g); }
       const input=drawn?{...o,liveBaked}:this.type==='gauze'?{...presetOf('shade'),liveBaked}:undefined;
-      const p = this.type === 'pineWax' ? LAMPS.pineWax({ refined: liveBaked, sculptNormal })
+      const p = this.type === 'pineWax' ? LAMPS.pineWax({ refined: liveBaked, sculptNormal, sunShade })
         : input ? LAMPS[this.type](input) : LAMPS[this.type]();
       this.parts = p; this.partsKey = key; g.add(p.g);
       hanger.material=p.suspensionMaterial??defaultSuspensionMaterial;
@@ -1783,6 +1785,7 @@ async function buildPlaceNow(t, isolated = false) {
   sun.shadow.bias = -.00025; sun.shadow.normalBias = .025; sun.shadow.radius = 3; G.add(sun);
   const hemi = new THREE.HemisphereLight(...P.hemi); G.add(hemi);
   await P.build(t, context);
+  context.baked?.updateWaxSun?.(dir);
   if (!isolated) await finishBatch();
   // The spot where the lamp is lit, built in its own frame and set into the place.
   const N = P.nook, nookG = new THREE.Group(); nookG.position.copy(N.at.pos); nookG.rotation.y = N.at.ry ?? 0; G.add(nookG); nookG.updateMatrixWorld(true);
@@ -2487,7 +2490,10 @@ function frame(stamp = performance.now()) {
         for(const [name,value] of Object.entries({uTop:p.sky.top,uHorizon:p.sky.horizon,uGround:p.sky.ground,uSun:p.sky.sun,uLit:p.sky.lit,uDark:p.sky.dark}))u[name].value.setHex(value);
         u.uDir.value.set(...p.sky.dir).normalize();u.uGlow.value=p.sky.glow;u.uClouds.value=p.sky.clouds;u.uStars.value=p.sky.stars;u.uDisc.value=p.sky.disc;
         u.uDiscEdges.value.set(...p.sky.discEdges);
-        if (place.id === 'pine-gate') place.sun.position.copy(u.uDir.value).multiplyScalar(100);
+        if (place.id === 'pine-gate') {
+          place.sun.position.copy(u.uDir.value).multiplyScalar(100);
+          place.baked?.updateWaxSun?.(u.uDir.value);
+        }
         place.sun.color.setHex(p.sunL[0]);place.sunBase=p.sunL[1];place.hemi.color.setHex(p.hemi[0]);place.hemi.groundColor.setHex(p.hemi[1]);place.hemiBase=p.hemi[2];outside.fog.color.setHex(p.fog[0]);outside.fog.density=p.fog[1];
       }
     }
