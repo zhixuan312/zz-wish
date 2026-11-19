@@ -769,6 +769,8 @@ def render(scene, layers, occluders, options, metadata):
                 obj.is_holdout = holdout
                 obj.visible_camera = holdout or name == plate or plate == 'composite'
 
+        samples = options.cloud_samples if plate == 'cloud' and options.cloud_samples else options.samples
+        scene.cycles.samples = samples
         with TemporaryDirectory(dir=options.out, prefix=f'.{plate}-') as scratch:
             temporary = Path(scratch) / 'premultiplied.exr'
             scene.render.filepath = str(temporary)
@@ -778,7 +780,8 @@ def render(scene, layers, occluders, options, metadata):
             stats = straighten(temporary, metadata['width'], metadata['height'])
             target = options.out / f'{plate}.exr'
             plates[plate] = {'file': target.name, 'bytes': temporary.stat().st_size,
-                             'sha256': digest(temporary), 'seconds': round(monotonic() - start, 3), **stats}
+                             'sha256': digest(temporary), 'seconds': round(monotonic() - start, 3),
+                             'samples': samples, **stats}
             save_metadata()
             target.hardlink_to(temporary)
 
@@ -840,6 +843,7 @@ def parse_args():
     parser.add_argument('--out', type=Path)
     parser.add_argument('--width', type=int)
     parser.add_argument('--samples', type=int, default=64)
+    parser.add_argument('--cloud-samples', type=int, help='Override only the cloud plate sample limit.')
     parser.add_argument('--device', choices=('CPU', 'METAL', 'CUDA', 'OPTIX', 'HIP', 'ONEAPI'), default='CPU')
     parser.add_argument('--layers', nargs='+', choices=(*LAYERS, 'composite'), default=LAYERS)
     parser.add_argument('--no-denoise', action='store_true')
@@ -850,6 +854,8 @@ def parse_args():
     args = parser.parse_args(sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else None)
     if not args.inspect and (args.out is None or args.samples < 1):
         parser.error('Rendering requires --out and positive --samples.')
+    if args.cloud_samples is not None and args.cloud_samples < args.samples:
+        parser.error('--cloud-samples must be at least --samples.')
     if args.paddy_audit and (args.resume or args.save_blend):
         parser.error('--paddy-audit requires a fresh render directory.')
     return args
@@ -874,6 +880,7 @@ def main():
     forests['midRegrowth'] = grow_slope_understory(land, forests['mid'], river[:2])
     metadata = {
         'projection': projection, 'width': width, 'height': height, 'samples': options.samples,
+        'cloudSamples': options.cloud_samples or options.samples,
         'denoise': not options.no_denoise, 'requestedDevice': options.device,
         'alpha': 'straight', 'colorSpace': 'scene-linear Rec.709', 'exposureAppliedStops': 0.,
         'runtimePreExposureMultiplier': projection['preExposure'],
