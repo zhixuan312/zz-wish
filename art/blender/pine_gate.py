@@ -1212,11 +1212,12 @@ def stream_gravel_bars(ground, occupied):
 
 def spring_bank_rock_noses(ground, points, faces):
     # Exposed ribs of the creek bed reach into the current at different
-    # angles. Their outer skirts stay in the terrain on wet and dry sides.
+    # angles. At the bend, a detached boulder sits beside the bank outcrop.
+    # Its submerged skirt leaves a side channel along its outer shoulder.
     sites = ((16.57, 1, .044, .214, .29, .111, -.20),
              (17.62, 1, .048, .266, .33, .137, .27),
-             (18.04, 1, .060, .129, .148, .070, -.31),
-             (19.08, 1, .042, .222, .37, .090, -.17),
+             (18.92, 1, -.167, .090, .24, .062, -.17),
+             (18.89, 1, .095, .142, .27, .100, -.15),
              (20.12, 1, .032, .198, .235, .086, .22),
              (24.93, -1, .042, .214, .31, .098, .27),
              (26.36, -1, .049, .229, .275, .120, -.16),
@@ -1243,7 +1244,11 @@ def spring_bank_rock_noses(ground, points, faces):
                 if skirt:
                     margins.append(terrain - watercourse_at(pz)[1])
         wet_skirts.append(-min(margins))
-        dry_skirts.append(max(margins))
+        if setback < 0.:
+            if max(margins) >= 0. or points[start][1] <= watercourse_at(peak_z)[1]:
+                raise RuntimeError('The detached spring boulder must rise above a submerged skirt.')
+        else:
+            dry_skirts.append(max(margins))
         sides = len(border)
         for j in range(sides):
             a, b = start + 1 + j, start + 1 + (j + 1) % sides
