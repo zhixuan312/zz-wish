@@ -12,6 +12,7 @@ import { buildPineRidgeFascicles } from './pine-ridge-fascicles.js';
 import { buildPineBankVerge } from './pine-bank-verge.js';
 import { dressAncientPineBark } from './pine-ancient-bark.js';
 import { dressPineCrestCloth } from './pine-crest-cloth.js';
+import { dressPineWetTreads } from './pine-wet-treads.js';
 import { pineDaySunDirection, pineDaySunDiscEdges } from './pine-gate-sun.js';
 import crestNeedleAnchors from './pine-crest-needle-anchors.json' with { type: 'json' };
 import path from '../../../../shared/pine-gate-path.json' with { type: 'json' };
@@ -100,7 +101,10 @@ export default function createPlace(h) {
       for (const file of softFiles) void readBakedAsset('pine-gate', file).catch(() => {});
       const baked = await loadBakedPlace('pine-gate', h.renderer, context.light);
       context.G.add(baked.group);
-      if (baked.manifest.walkLightmaps) context.up.push(animatePineCreek(baked.group));
+      if (baked.manifest.walkLightmaps) {
+        context.up.push(animatePineCreek(baked.group));
+        dressPineWetTreads(baked.group);
+      }
       const gate = baked.group.children.find(object => object.userData.lightmap_region === 'gate');
       const spring = gate && animatePineSpringBasin(gate);
       if (spring) context.up.push(spring);
