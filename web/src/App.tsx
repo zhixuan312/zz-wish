@@ -18,6 +18,7 @@ type Overlay = 'mine' | 'stats' | null;
 interface Result { done: boolean; burnedMs: number; plannedMs: number; reason: EndReason; saved: boolean | null }
 
 const TOAST_GAP_MS = 5 * 60_000;
+const DEFAULT_PLACE_WARM_DELAY_MS = 1500;
 
 export function App({ initialLocale }: { initialLocale: Locale }) {
   const [locale, setLocaleState] = useState<Locale>(initialLocale);
@@ -55,19 +56,26 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
   const [placeLoad, setPlaceLoad] = useState<{ stage: 'loading' | 'preparing' | 'ready' | 'error'; loadedBytes: number; totalBytes: number | null; ratio: number | null }>({ stage: 'loading', loadedBytes: 0, totalBytes: null, ratio: null });
   const loadTask = useRef<{ id: PlaceId; task: Promise<void> } | null>(null);
   const loadVersion = useRef(0);
-  const preparePlace = useCallback((id: PlaceId, retry = false) => {
+  const preparePlace = useCallback((id: PlaceId, retry = false, speculative = false) => {
     if (!retry && loadTask.current?.id === id) return loadTask.current.task;
     const version = ++loadVersion.current;
+    // Download the default choice while the visitor writes. Give a visitor who
+    // goes straight to another place time to pick it before we tie up WebGL.
+    const deferWarm = speculative && id === DEFAULT_PLACE.id && VISIBLE_PLACES.length > 1;
+    const warmWindow = deferWarm ? new Promise<void>(resolve => setTimeout(resolve, DEFAULT_PLACE_WARM_DELAY_MS)) : null;
     setPlaceLoad({ stage: 'loading', loadedBytes: 0, totalBytes: null, ratio: null });
     const task = engine.prefetchPlace(id, (progress) => { if (version === loadVersion.current) setPlaceLoad((current) => {
       const percent = (ratio: number | null) => ratio === null ? null : Math.round(ratio * 100);
       return current.stage === progress.stage && percent(current.ratio) === percent(progress.ratio) ? current : progress;
-    }); })
-      .then(() => { if (version === loadVersion.current) setPlaceLoad((value) => ({ ...value, stage: 'ready', ratio: 1 })); })
+    }); }, warmWindow ? async () => {
+      await warmWindow;
+      return version === loadVersion.current;
+    } : undefined)
+      .then((prepared) => { if (prepared && version === loadVersion.current) setPlaceLoad((value) => ({ ...value, stage: 'ready', ratio: 1 })); })
       .catch((error: unknown) => { if (version === loadVersion.current) { loadTask.current = null; setPlaceLoad((value) => ({ ...value, stage: 'error' })); } throw error; });
     loadTask.current = { id, task }; return task;
   }, []);
-  useEffect(() => { if (wish.trim()) void preparePlace(placeId).catch(() => {}); }, [wish, placeId, preparePlace]);
+  useEffect(() => { if (wish.trim()) void preparePlace(placeId, false, true).catch(() => {}); }, [wish, placeId, preparePlace]);
   // The place decides the kind of lamp. The person picks a shape and a time (the shape grows with the time),
   // or draws one: the bigger the drawing, the longer it burns.
   const kind: Kind = ({ wax: 'candle', oil: 'oil', shade: 'shade' } as const)[place.vessel];

@@ -1,5 +1,6 @@
 import { loadBakedPlace } from '../baked/loadPlace.js';
 import { readPineBackdrop, readPineWaxNormal } from '../baked/pineManifest.js';
+import { readBakedAsset, readBakedManifest } from '../baked/prefetchPlace.js';
 import { preparePineHighTrees } from './pine-gate-high-trees.js';
 import { loadPineGateBackdrop } from './pine-gate-backdrop.js';
 import { createPineGateLife } from './pine-gate-life.js';
@@ -67,6 +68,13 @@ export default function createPlace(h) {
     walkSeconds: path.seconds,
     walk: [], doors: V3(-.17, 5.58, 6.32), createWalk,
     async build(_place, context) {
+      // Start the soft plates and wax normal while the mesh and lightmaps
+      // decode. Their regular texture loaders re-use the verified bytes.
+      const manifest = await readBakedManifest('pine-gate');
+      const softFiles = Object.values(readPineBackdrop(manifest)?.files ?? {});
+      const waxNormal = readPineWaxNormal(manifest);
+      if (waxNormal) softFiles.push(waxNormal);
+      for (const file of softFiles) void readBakedAsset('pine-gate', file).catch(() => {});
       const baked = await loadBakedPlace('pine-gate', h.renderer, context.light);
       context.G.add(baked.group);
       if (baked.manifest.walkLightmaps) context.up.push(animatePineCreek(baked.group));
@@ -114,7 +122,6 @@ export default function createPlace(h) {
         context.G.add(highTrees.group);
         context.disposers.push(highTrees.dispose);
       }
-      const waxNormal = readPineWaxNormal(baked.manifest);
       if (waxNormal) {
         baked.waxNormal = await baked.loadTexture(waxNormal.uri);
         if (baked.waxNormal.image.width !== 512 || baked.waxNormal.image.height !== 512) throw new Error('Wrong Pine Gate wax normal atlas dimensions');

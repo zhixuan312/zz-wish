@@ -56,7 +56,9 @@ export const setLevel = (level: number) => { requested.level = level; updateStat
 export const setPhase = (phase: ScenePhase) => { requested.phase = phase; updateState(s => s.setPhase(phase)); };
 export const setPowerSaver = (on: boolean) => { requested.powerSaver = on; updateState(s => s.setPowerSaver(on)); };
 export const previewPlace = (id: PlaceId) => initialize().then(s => s.previewPlace(id));
-export const prefetchPlace = async (id: PlaceId, onProgress?: (progress: PlaceLoadProgress) => void) => {
+export const prefetchPlace = async (
+  id: PlaceId, onProgress?: (progress: PlaceLoadProgress) => void, shouldWarm?: () => Promise<boolean>,
+) => {
   let progress: PlaceLoadProgress = { loadedBytes: 0, totalBytes: 0, ratio: null, stage: 'preparing' };
   // Pine Gate prepares with its current ambient look and the lamp pass. The
   // loader verifies every bank as it is needed, including later time-of-day changes.
@@ -69,9 +71,11 @@ export const prefetchPlace = async (id: PlaceId, onProgress?: (progress: PlaceLo
     });
   }
   try {
+    if (shouldWarm && !await shouldWarm()) return false;
     const s = await initialize();
     await s.preparePlace(id);
     onProgress?.({ ...progress, stage: 'ready', ratio: 1 });
+    return true;
   } catch (error) {
     onProgress?.({ ...progress, stage: 'error' });
     throw error;
