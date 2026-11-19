@@ -99,7 +99,9 @@ async function captureEvidence(directory, kind) {
     const budget = report.delivery.realismBase;
     assert(budget.totalBytes <= 15_000_000);
     if (budget.backdrop?.high) {
-      assert.equal(budget.highBytes, budget.backdrop.high.bytes);
+      const { bytes, treeBytes = 0, trees } = budget.backdrop.high;
+      assert.equal(treeBytes, trees?.bytes ?? 0);
+      assert.equal(budget.highBytes, bytes + treeBytes);
       assert.equal(budget.combinedBytes, budget.totalBytes + budget.highBytes);
       assert(budget.combinedBytes <= 40_000_000);
       assert.equal(phone.highBackdrop?.settled?.status, 'base');
