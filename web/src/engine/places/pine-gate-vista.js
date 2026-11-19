@@ -181,17 +181,60 @@ function tessellatedTerrain(field, look) {
   return mountain;
 }
 
-function strip(batch, span, left, right, steps = 42) {
+function stripStations(batch, stations, left, right) {
   const first = batch.points.length / 3;
-  for (let i = 0; i <= steps; i++) {
-    const u = i / steps, along = lerp(span[0], span[1], u);
+  for (const [i, along] of stations.entries()) {
     batch.points.push(...left(along), ...right(along));
-    batch.uv?.push(0, u, 1, u);
-    if (i < steps) {
+    batch.uv?.push(0, i / (stations.length - 1), 1, i / (stations.length - 1));
+    if (i < stations.length - 1) {
       const a = first + i * 2;
       batch.indices.push(a, a + 1, a + 2, a + 1, a + 3, a + 2);
     }
   }
+}
+
+function evenStations(span, steps) {
+  return Array.from({ length: steps + 1 }, (_, i) => lerp(span[0], span[1], i / steps));
+}
+
+function strip(batch, span, left, right, steps = 42) {
+  stripStations(batch, evenStations(span, steps), left, right);
+}
+
+function bundedBed(earth, full, spans, left, right, base, bed) {
+  const transverses = [spans[0][0] - .32, (spans[0][1] + spans[1][0]) * .5, spans[1][1] + .32];
+  const footprint = .235, crown = .075;
+  const stations = [...new Set([...evenStations(full, 42), ...transverses.flatMap(depth =>
+    [depth - footprint, depth - crown, depth + crown, depth + footprint])])].sort((a, b) => a - b);
+  const crossLift = depth => {
+    const distance = Math.min(...transverses.map(crest => Math.abs(depth - crest)));
+    return (.194 + .007 * Math.cos(bed * 1.19))
+      * clamp((footprint - distance) / (footprint - crown), 0, 1);
+  };
+
+  // One surface keeps the transverse crests joined to both lengthwise
+  // banks, including the shared bund separating the two flooded spans.
+  const rows = [
+    [0, false, false], [.059, false, true], [.105, false, true], [.147, false, false],
+    [.147, true, false], [.105, true, true], [.059, true, true], [0, true, false],
+  ];
+  const first = earth.points.length / 3, width = rows.length;
+  for (const [j, depth] of stations.entries()) {
+    const sideLift = .198 + .014 * Math.sin(depth * .41 + bed * 1.21);
+    const transverse = crossLift(depth);
+    for (const [i, [offset, highSide, crest]] of rows.entries()) {
+      const x = highSide ? right(depth)[0] - offset : left(depth)[0] + offset;
+      earth.points.push(x, base + Math.max(crest ? sideLift : 0, transverse), -depth);
+      if (i < width - 1 && j < stations.length - 1) {
+        const a = first + j * width + i;
+        earth.indices.push(a, a + 1, a + width, a + 1, a + width + 1, a + width);
+      }
+    }
+  }
+  // The adjoining risers use the same stations and edge heights, so the
+  // earth stays closed where a transverse bund reaches the bed boundary.
+  const boundary = line => depth => [line(depth)[0], base + crossLift(depth), -depth];
+  return { stations, left: boundary(left), right: boundary(right) };
 }
 
 function toGeometry(batch) {
@@ -223,16 +266,16 @@ function fieldSurfaces(field, look) {
   for (let i = 0; i < BEDS.length - 1; i++) {
     const y = BEDS[i][1], innerLeft = line(i, .24, y);
     const innerRight = line(i + 1, -.30, y);
-    if (i === 0) strip(earth, full, landscape(i, -3.6), innerLeft);
-    else strip(earth, full, line(i, 0, BEDS[i - 1][1] + .085), innerLeft);
-    strip(earth, full, innerLeft, innerRight);
-    strip(earth, full, innerRight, line(i + 1, 0, y + .085));
-    if (i === BEDS.length - 2) strip(earth, full, line(i + 1, 0, y + .085), landscape(i + 1, 3.6));
-
-    // Cross-bunds and curved corners break the individual water mirrors.
     const split = 99.1 + 1.6 * Math.sin(i * 1.57);
     const spans = [[FIELD_NEAR + .86 + 1.5 * Math.sin(i * .93) ** 2, split - .21],
       [split + .37, FIELD_FAR - 1.14 - 1.8 * Math.cos(i * 1.12) ** 2]];
+    const bunds = bundedBed(earth, full, spans, innerLeft, innerRight, y, i);
+    const rise = i === 0 ? landscape(i, -3.6) : line(i, 0, BEDS[i - 1][1] + .085);
+    stripStations(earth, bunds.stations, rise, bunds.left);
+    const outerRight = line(i + 1, 0, y + .085);
+    stripStations(earth, bunds.stations, bunds.right, outerRight);
+    if (i === BEDS.length - 2) stripStations(earth, bunds.stations, outerRight, landscape(i + 1, 3.6));
+
     for (const span of spans) {
       const margin = depth => {
         const fromEnd = Math.min(depth - span[0], span[1] - depth);
