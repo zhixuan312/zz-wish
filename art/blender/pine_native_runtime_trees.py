@@ -139,6 +139,7 @@ def uv_coordinates(mesh, slots):
 
 
 def prepare_mesh(source, name, scene, materials):
+    import bmesh
     import bpy
     from mathutils import Matrix, Vector
 
@@ -183,6 +184,23 @@ def prepare_mesh(source, name, scene, materials):
         mesh.materials.append(materials[role])
     mesh.polygons.foreach_set('material_index', face_indices)
 
+    # The scanned assets include deadwood below the standing trunk's root. Cut
+    # those buried portions at the root plane before mounting on the ridge.
+    crop = bmesh.new()
+    try:
+        crop.from_mesh(mesh)
+        bmesh.ops.bisect_plane(crop, geom=[*crop.verts, *crop.edges, *crop.faces], dist=.000001,
+                              plane_co=(0., 0., 0.), plane_no=(0., 0., 1.), clear_inner=True)
+        crop.to_mesh(mesh)
+    finally:
+        crop.free()
+    mesh.update()
+    clipped_counts = dict.fromkeys(ROLES, 0)
+    for polygon in mesh.polygons:
+        clipped_counts[ROLES[polygon.material_index]] += len(polygon.vertices) - 2
+    if any(clipped_counts[role] != counts[role] for role in ROLES[:2]) or clipped_counts[ROLES[2]] >= counts[ROLES[2]]:
+        raise ValueError('Root cut must preserve the bark and foliage and remove buried deadwood.')
+
     mesh.name = name
     tree = bpy.data.objects.new(name, mesh)
     scene.collection.objects.link(tree)
@@ -190,6 +208,7 @@ def prepare_mesh(source, name, scene, materials):
     tree['native_height_metres'] = height
     tree['root_local_metres'] = [0., 0., 0.]
     return tree, {'sourceObject': source_name, 'sourceVertices': vertex_count, 'sourceTriangles': counts,
+                  'rootClippedTriangles': clipped_counts,
                   'sourceObjectMatrixBlender': [list(row) for row in world],
                   'sourceMountBlenderMetres': list(mount), 'localRootMetres': [0., 0., 0.],
                   'heightMetres': height, 'stem': 'complete', 'uv': uv}
@@ -333,8 +352,8 @@ def verify_glb(path, prepared):
             triangles += data['accessors'][primitive['indices']]['count'] // 3
             lower_y = min(lower_y, position['min'][1])
             upper_y = max(upper_y, position['max'][1])
-        if triangles != sum(prepared[name]['sourceTriangles'].values()):
-            raise ValueError(f'{name} changed its original native triangles.')
+        if triangles != sum(prepared[name]['rootClippedTriangles'].values()):
+            raise ValueError(f'{name} changed the root-clipped native triangles.')
         if abs(upper_y - prepared[name]['heightMetres']) > 1e-4:
             raise ValueError(f'{name} changed its upright measured height.')
         if abs(lower_y) > .005:
