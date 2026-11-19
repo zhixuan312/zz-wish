@@ -29,6 +29,7 @@ STAIR_RUN = .8
 STAIR_RISE = .08
 STAIR_COUNT = 50
 SHOULDER_SETBACK = .86
+STREAM_BANK_OFFSET = .14
 WATERCOURSE = ((2.62, 4.02, 5.38), (2.32, 3.55, 10.45), (2.27, 3.01, 15.75),
                (2.16, 2.63, 19.25), (1.20, 2.24, 21.91), (-.62, 2.13, 22.55),
                (-1.98, 1.99, 23.41), (-2.16, 1.85, 25.85), (-1.93, 1.41, 30.25),
@@ -132,14 +133,17 @@ def terrain_height(x, z):
     crest_screen = math.exp(-((z - 13.7) / 5.3) ** 2)
     centre, half_span = section_at(z)
     outside = abs(x - centre) - half_span - SHOULDER_SETBACK
-    ridge_spur = math.exp(-((outside - .51) / .69) ** 2)
-    verge = min(1., max(0., outside / .23))
-    shoulder = crest_screen * ridge_spur * verge * (1.58 + .22 * math.sin(.91 * z + 2.4 * x))
+    ridge_spur = math.exp(-((outside - 1.70) / 1.22) ** 2)
+    verge = min(1., max(0., outside / 1.48))
+    verge = verge ** 2 * (3 - 2 * verge)
+    shoulder = crest_screen * ridge_spur * verge * (1.33 + .15 * math.sin(.71 * z + 1.6 * x))
     height = rise - .10 + bank + fold * min(1., bank) + ridge - valley_floor + shoulder
-    if abs(x) < 4.5 and TERRACE_EDGE <= z <= 5.4:
-        # Level ground below the laid slabs is what makes this a viable rest
-        # stop. Beyond the perimeter the original shoulders keep rising.
-        height = min(height, 3.76)
+    if TERRACE_EDGE <= z <= 6.8 and abs(x) < 5.62:
+        # The spring court is level under the slabs and meets the ridge
+        # gradually beyond the paved edge.
+        edge = max(0., (abs(x) - 4.32) / 1.3, (z - 5.4) / 1.4)
+        fade = 1. - edge ** 2 * (3 - 2 * edge)
+        height -= max(0., height - 3.76) * fade
     return height
 
 
@@ -159,11 +163,30 @@ def watercourse_stations(spacing):
     yield WATERCOURSE[-1][2]
 
 
+def stream_ground(x, z, water_x, water_y, half_width, blend):
+    original = terrain_height(x, z)
+    edge = abs(x - water_x) - half_width
+    if edge <= 0:
+        bed = water_y - .017 + .016 * edge / half_width
+    elif edge <= STREAM_BANK_OFFSET:
+        bed = water_y - .017 + .047 * edge / STREAM_BANK_OFFSET
+    else:
+        # The channel turns sharply across the road. Use a shallower slope
+        # there so the diagonal grade stays gentle as well as the crossfall.
+        crossing = max(0., 1 - abs(z - 22.) / 4.5)
+        rise = (.75 - .46 * crossing) * (edge - STREAM_BANK_OFFSET)
+        bank = water_y + .030
+        bed = min(bank + rise, max(original, bank - rise))
+    return original + (bed - original) * blend
+
+
 def terrain(material):
     outer_x = (4.32, 4.5, 6, 8, 11, 14, 19, 24, 31)
     offsets = (0, .40, SHOULDER_SETBACK, SHOULDER_SETBACK + .48, SHOULDER_SETBACK + 1.14)
     spring_start, spring_end = WATERCOURSE[0][2], WATERCOURSE[-1][2]
-    zs = sorted(set(range(-45, 67, 3)) | set(watercourse_stations(.48)) |
+    end_blends = {anchor + i * .28 * direction for anchor, direction in ((spring_start, -1), (spring_end, 1))
+                  for i in range(1, 6)}
+    zs = sorted(set(range(-45, 67, 3)) | set(watercourse_stations(.34)) | end_blends |
                 {-1.45, TERRACE_EDGE, -.72, 1.18, 4.88, 5.4, PINE_CREST, 10.5, 13.5, 16.5, 19.5})
     points, faces, previous = [], [], None
     for z in zs:
@@ -172,21 +195,21 @@ def terrain(material):
         xs = [*(-x for x in reversed(outer_x)), *(centre - t for t in reversed(verge)),
               centre, *(centre + t for t in verge), *outer_x]
         stream_x, water, width = watercourse_at(z)
-        cross_section = (-(width + .29), -(width + .14), -width, 0., width, width + .14, width + .29)
-        channel = [stream_x + t for t in cross_section]
-        cuts = {}
-        if spring_start <= z <= spring_end:
-            # The channel follows the water surface on both banks. Its dry
-            # outer edges meet the original hillside and retaining stones.
-            cuts = {channel[1]: max(terrain_height(channel[1], z), water + .045),
-                    channel[2]: min(terrain_height(channel[2], z), water - .061),
-                    channel[3]: min(terrain_height(channel[3], z), water - .093),
-                    channel[4]: min(terrain_height(channel[4], z), water - .061),
-                    channel[5]: max(terrain_height(channel[5], z), water + .045)}
+        distance_outside = max(0., spring_start - z, z - spring_end)
+        blend = max(0., 1 - distance_outside / 1.4)
+        blend *= blend * (3 - 2 * blend)
+        shore = width + STREAM_BANK_OFFSET
+        channel = [stream_x + t for t in (-shore, -width, 0., width, shore)]
+        # Extend the cut outward as a graded bank with metre-scale contours.
+        grades = [stream_x + side * (shore + amount) for side in (-1, 1)
+                  for amount in (.18, .40, .67, .97, 1.32, 1.73, 2.20) if blend > 0.]
+        for x in grades:
+            if all(abs(x - other) > .026 for other in xs):
+                xs.append(x)
         xs = [x for x in xs if x < channel[0] - 1e-6 or x > channel[-1] + 1e-6]
         x_coords = sorted([*xs, *channel])
         indexed = {x: len(points) + i for i, x in enumerate(x_coords)}
-        points.extend((x, cuts.get(x, terrain_height(x, z)), z) for x in x_coords)
+        points.extend((x, stream_ground(x, z, stream_x, water, width, blend), z) for x in x_coords)
         # Keep the two banks and the bed as continuous longitudinal strips,
         # even where the spring crosses from one side of the stair to the other.
         bands = [[indexed[x] for x in x_coords if x <= channel[0]],
@@ -326,21 +349,126 @@ def climbing_steps(stone):
                        (x, 4.00 + RANDOM.uniform(-.003, .003), z), RANDOM.choice(stone), 'gate')
 
 
-def audit_watercourse(ground):
+def terrain_bank_slopes(ground, depsgraph):
+    surface = ground.evaluated_get(depsgraph)
+    evaluated = surface.to_mesh()
+    slopes = []
+    try:
+        for face in evaluated.polygons:
+            x, _, z = engine(face.center)
+            if WATERCOURSE[0][2] <= z <= WATERCOURSE[-1][2]:
+                stream_x, _, width = watercourse_at(z)
+                if abs(x - stream_x) <= width + STREAM_BANK_OFFSET + 2.20:
+                    normal = face.normal
+                    slopes.append(math.degrees(math.atan2(math.hypot(normal.x, normal.y), normal.z)))
+    finally:
+        surface.to_mesh_clear()
+    return slopes
+
+
+def evaluated_undersides(objects, depsgraph):
+    for obj in objects:
+        surface = obj.evaluated_get(depsgraph)
+        evaluated = surface.to_mesh()
+        try:
+            # Without a fitted bank rim, the hewn block starts with eleven underside vertices.
+            count = obj.get('bank_ring_vertices', 11)
+            yield [engine(surface.matrix_world @ vertex.co) for vertex in evaluated.vertices[:count]]
+        finally:
+            surface.to_mesh_clear()
+
+
+def audit_watercourse(ground, bank_stones, deck_slabs):
     wet, dry = [], []
     for z in watercourse_stations(.23):
         x, y, width = watercourse_at(z)
         for offset in (-width, 0, width):
             wet.append(y - supports_height(x + offset, z, [ground]))
-        for offset in (-width - .14, width + .14):
+        for offset in (-width - STREAM_BANK_OFFSET, width + STREAM_BANK_OFFSET):
             dry.append(supports_height(x + offset, z, [ground]) - y)
     if min(wet) <= 0. or min(dry) <= 0.:
         raise RuntimeError(f'Pine Gate watercourse clearance fails: wet {min(wet):.6f} m, bank {min(dry):.6f} m.')
     print(f'PINE_WATERCOURSE_CLEARANCE {len(wet)} wet probes; minimum {min(wet):.6f} m. '
           f'{len(dry)} dry bank probes; minimum {min(dry):.6f} m.')
 
+    depsgraph = bpy.context.evaluated_depsgraph_get()
+    slopes = terrain_bank_slopes(ground, depsgraph)
+    stone_gaps = [y - supports_height(x, z, [ground])
+                  for bottom in evaluated_undersides(bank_stones, depsgraph) for x, y, z in bottom]
+    # All stream segments descend in z. The highest water anywhere under a
+    # slab's footprint is at the near end of its full longitudinal extent.
+    deck_gaps = [min(y for _, y, _ in bottom) - watercourse_at(min(z for _, _, z in bottom))[1]
+                 for bottom in evaluated_undersides(deck_slabs, depsgraph)]
+    maximum_slope, maximum_gap, minimum_deck = max(slopes), max(stone_gaps), min(deck_gaps)
+    if maximum_slope > 50. or maximum_gap > .005 or minimum_deck <= 0.:
+        raise RuntimeError(f'Pine Gate stream construction fails: slope {maximum_slope:.3f} degrees, '
+                           f'stone gap {maximum_gap:.6f} m, deck clearance {minimum_deck:.6f} m.')
+    print(f'PINE_STREAM_CONSTRUCTION {len(slopes)} bank faces; maximum {maximum_slope:.3f} degrees. '
+          f'{len(stone_gaps)} stone underside vertices; maximum signed gap {maximum_gap:.6f} m. '
+          f'{len(deck_gaps)} deck slabs; minimum water clearance {minimum_deck:.6f} m.')
+
 
 def saddle_water(stone, ground):
+    terrain_edges = [(ground.data.vertices[a].co, ground.data.vertices[b].co)
+                     for a, b in (edge.vertices for edge in ground.data.edges)]
+
+    def drape_bank(rock):
+        original = [vertex.co.copy() for vertex in rock.data.vertices]
+        count = len(original) // 3
+        bottom = original[:count]
+        bounds = ((min(v.x for v in bottom), max(v.x for v in bottom)),
+                  (min(v.y for v in bottom), max(v.y for v in bottom)))
+        nearby = [(a, b) for a, b in terrain_edges
+                  if min(a.x, b.x) <= bounds[0][1] and max(a.x, b.x) >= bounds[0][0]
+                  and min(a.y, b.y) <= bounds[1][1] and max(a.y, b.y) >= bounds[1][0]]
+        joins = []
+        for i, start in enumerate(bottom):
+            next_i = (i + 1) % count
+            span = bottom[next_i] - start
+            cuts = {0., 1.}
+            # The terrain height along this rim is linear between real
+            # triangle-edge intersections. A vertex-only fit leaves gaps.
+            for a, b in nearby:
+                edge = b - a
+                offset = a - start
+                divisor = span.x * edge.y - span.y * edge.x
+                if abs(divisor) < 1e-10:
+                    continue
+                t = (offset.x * edge.y - offset.y * edge.x) / divisor
+                u = (offset.x * span.y - offset.y * span.x) / divisor
+                if 0 < t < 1 and -1e-7 <= u <= 1 + 1e-7:
+                    cuts.add(t)
+            spacing = .0008 / math.hypot(span.x, span.y)
+            previous = 0.
+            joins.append((i, next_i, previous))
+            for t in sorted(cuts):
+                if previous + spacing < t < 1 - spacing:
+                    joins.append((i, next_i, t))
+                    previous = t
+
+        ring = len(joins)
+        points = []
+        for row, (emergence, rise) in enumerate(((-.002, 0.), (.069, .055), (.088, .014))):
+            for slot, (a, b, t) in enumerate(joins):
+                pos = original[row * count + a].lerp(original[row * count + b], t)
+                x, z = pos.x, -pos.y
+                surface = supports_height(x, z, [ground])
+                below = points[(row - 1) * ring + slot][1] if row else surface
+                height = max(pos.z, surface + emergence, below + rise) if row else surface + emergence
+                points.append((x, height, z))
+        faces = [tuple(range(ring)), tuple(reversed(range(ring * 2, ring * 3)))]
+        for row in range(2):
+            for i in range(ring):
+                a, b = row * ring, (row + 1) * ring
+                j = (i + 1) % ring
+                faces.append((a + i, b + i, b + j, a + j))
+        rock.data.clear_geometry()
+        rock.data.from_pydata([mesh.point(p) for p in points], [], faces)
+        rock.data.update()
+        mesh.uv_world(rock)
+        profile_uv(rock, ring, 3, {0, 1}, 1)
+        rock['bank_ring_vertices'] = ring
+
     water = mesh.material('Spring water on a slate bed', '#4a6865', rough=.20, metal=.24)
     points = []
     for i, (x, y, z) in enumerate(WATERCOURSE):
@@ -350,33 +478,50 @@ def saddle_water(stone, ground):
     channel = mesh.mesh_object('Spring runnel through the saddle', points, faces, water, 'approach')
     source_uv(channel, [[(points[i][0], points[i][2]) for i in face] for face in faces],
               'Meter-scale stream ribbon.')
+    bank_stones, deck_slabs = [], []
     for index, (_, _, z) in enumerate(WATERCOURSE[1:-1]):
         x, _, width = watercourse_at(z)
         x += (-1 if index % 3 else 1) * (width + .19)
         bank_y = supports_height(x, z, [ground])
         rock = hewn_block(f'Water-cut stream bank {index + 1}', .32, .19, .47,
                           (x, bank_y + .101, z), stone[index % len(stone)], 'approach')
-        if min(vertex.co.z for vertex in list(rock.data.vertices)[-11:]) <= bank_y:
-            raise RuntimeError(f'Pine Gate stream bank stone {index + 1} fails to emerge from the terrain.')
+        drape_bank(rock)
         rock['moss_edge'] = True
+        bank_stones.append(rock)
     spring = hewn_block('Spring head emerging under a granite cap', .77, .46, .9,
                         (2.77, 4.41, 5.08), stone[4], 'gate')
     spring['moss_edge'] = True
     # One low crossing standing on two rubble abutments. The water is still
     # visible outside the near edge before and after crossing.
-    for z in (21.02, 23.23):
-        mesh.box('Granite crossing abutment', (2.18, .44, .29), (0, 2.23, z),
-                 stone[2], .045, region='approach')
     for index in range(5):
         z = 21.07 + index * .54
         slab = hewn_block(f'Bridge decking slab {index + 1}', 2.17, .21, .56,
                           (.09, 2.51 - index * .052, z), stone[index % len(stone)], 'approach')
+        vertices = list(slab.data.vertices)
+        ring = len(vertices) // 3
+        # The runnel descends monotonically. Keep the underside at a level
+        # above the highest water across the full footprint, including seams.
+        water_limit = max(watercourse_at(-vertex.co.y)[1] for vertex in vertices) + .018
+        for vertex in vertices[:ring]:
+            vertex.co.z = max(vertex.co.z, water_limit)
+        slab.data.update()
+        profile_uv(slab, ring, 3, {0, 1}, 1)
+        mesh.uv_world(slab)
         slab['moss_edge'] = True
+        deck_slabs.append(slab)
+    for z, slab in ((21.02, deck_slabs[0]), (23.23, deck_slabs[-1])):
+        vertices = list(slab.data.vertices)
+        cap = max(vertex.co.z for vertex in vertices[:len(vertices) // 3]) + .012
+        footing = 2.01
+        height = cap - footing
+        mesh.box('Granite crossing abutment', (2.18, height, .29), (0, footing + height / 2, z),
+                 stone[2], min(.045, height * .25), region='approach')
     for side in (-1, 1):
         for index in range(4):
             mesh.box('Low bridge parapet block', (.22, .23, .66),
                      (side * 1.06, 2.61 - index * .066, 21.18 + index * .64),
                      stone[(index + 2) % len(stone)], .037, region='approach')
+    return bank_stones, deck_slabs
 
 
 def understory(ground, foliage):
@@ -741,10 +886,10 @@ def build(output):
     stone, rock, ground, wood, tiles, bark, needle, iron, clay, ledge = palette()
     support = terrain(ground)
     audit_approach_clearance(support)
-    audit_watercourse(support)
     climbing_steps(stone)
     forest(support, rock, stone, bark, needle)
-    saddle_water(stone, support)
+    stream_stones, deck_slabs = saddle_water(stone, support)
+    audit_watercourse(support, stream_stones, deck_slabs)
     build_tea_shoulder(ANCHOR, stone, wood, tiles, clay, iron, ledge, contacts)
     paint_stone()
     scene.render.engine = 'CYCLES'
