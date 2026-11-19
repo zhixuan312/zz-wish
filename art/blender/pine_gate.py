@@ -371,28 +371,28 @@ def worn_approach_tread(name, width, depth, centre, material, dressing):
 
 
 def approach_joint_bedding(rows, material):
-    # Packed earth forms uneven pockets near the lips of the joints. Where a
-    # grid cell passes under a stone, leave clearance for its worn hollow.
+    # A continuous hillside bed sits just under the worn stone. The lower
+    # end of each course folds into the next, so the rain-cut riser has earth
+    # behind it even where a stone nose has broken away.
     points, faces = [], []
-    for top, low_z, high_z, bend, half_span, treads in rows:
+    tree, _ = contacts.support([tread for _, _, _, treads in rows for tread in treads])
+    for top, low_z, high_z, _ in rows:
         start = len(points)
-        tree, _ = contacts.support(treads)
-        for row in range(7):
-            along = row / 6
+        for along in (0., .18, .37, .57, .76, .89, 1.):
             z = low_z + (high_z - low_z) * along
+            bend, half_span = section_at(z)
+            fall = max(0., (along - .76) / .24)
             for col in range(13):
                 across = col / 6 - 1
-                x = bend + across * (half_span - .022)
-                wave = math.sin(8.8 * x + 5.1 * z)
-                zz = z + .023 * math.sin(math.pi * along) * wave
-                settling = .009 * wave + .008 * math.sin(23 * x - 4.6 * z)
-                level = top - .040 + settling - .018 * abs(across)
-                for dx, dz in ((0, 0), (-.05, 0), (.05, 0), (0, -.037), (0, .037)):
-                    contact, _, _, _ = tree.ray_cast(mesh.point((x + dx, top + 1, zz + dz)),
+                x = bend + across * (half_span + .045)
+                settling = .006 * math.sin(8.8 * x + 5.1 * z) + .004 * math.sin(23 * x - 4.6 * z)
+                level = top - .022 + settling - STAIR_RISE * fall * fall
+                for dx, dz in ((0, 0), (-.048, 0), (.048, 0), (0, -.018), (0, .018)):
+                    contact, _, _, _ = tree.ray_cast(mesh.point((x + dx, top + .16, z + dz)),
                                                      Vector((0, 0, -1)), 2)
                     if contact is not None:
-                        level = min(level, contact.z - .021)
-                points.append((x, level, zz))
+                        level = min(level, contact.z - .013)
+                points.append((x, level, z))
         for row in range(6):
             for col in range(12):
                 a = start + row * 13 + col
@@ -400,7 +400,47 @@ def approach_joint_bedding(rows, material):
     bed = mesh.mesh_object('Dark earth and needle litter in the approach stone joints', points, faces, material, 'approach')
     mesh.uv_world(bed, .62)
     source_uv(bed, [[(points[i][0], points[i][2]) for i in face] for face in faces],
-              'Planar contiguous bedding under each course of approach stones.')
+              'Continuous earth bedding, including the retreat under each riser.')
+    return bed
+
+
+def audit_approach_tread_bearings(rows, bed, ground):
+    support, _ = contacts.support([bed, ground])
+    gaps = []
+    unseated = []
+    for _, _, _, treads in rows:
+        for tread in treads:
+            ring = tread.data.vertices[:(len(tread.data.vertices) - 1) // 4]
+            for vertex in ring:
+                x, bottom, z = engine(tread.matrix_world @ vertex.co)
+                hit, _, _, _ = support.ray_cast(mesh.point((x, bottom + .38, z)), Vector((0., 0., -1.)), .65)
+                gap = bottom - hit.z if hit is not None else math.inf
+                if gap > .005:
+                    unseated.append((gap, tread.name, x, z))
+                gaps.append(gap)
+    if unseated:
+        worst = ', '.join(f'{name} at ({x:.3f}, {z:.3f}): {gap:.4f} m'
+                          for gap, name, x, z in sorted(unseated, reverse=True)[:5])
+        raise RuntimeError(f'{len(unseated)} tread underside probes are unseated: {worst}.')
+    print(f'PINE_APPROACH_TREAD_BEARINGS {len(gaps)} probes; maximum underside gap {max(gaps):.6f} m.')
+
+
+def dress_retaining_stone(obj, ground, location, width, height, depth, heading, ripples, foundation):
+    x, y, z = location
+    count = len(obj.data.vertices) // 3
+    for band in range(3):
+        for j, vertex in enumerate(obj.data.vertices[band * count:(band + 1) * count]):
+            px, py, pz = engine(vertex.co)
+            across = (px - x) * width / .46
+            along = (pz - z) * depth / .798
+            vertex.co.x = x + across - heading * along
+            vertex.co.y = -z - along - heading * across
+            vertex.co.z = y + (py - y) * height / .25 + ripples[j] * (band / 2)
+            if foundation and band == 0:
+                earth = supports_height(vertex.co.x, -vertex.co.y, [ground])
+                vertex.co.z = min(vertex.co.z, earth - .018)
+    obj.data.update()
+    profile_uv(obj, count, 3, {0, 1}, 1)
 
 
 def landing_bed(material):
@@ -499,6 +539,7 @@ def climbing_steps(stone, ground, bedding_material):
     bridge_curbs = []
     worn_cap = random.Random(38365)
     dressing = random.Random(498721)
+    masonry = random.Random(286243)
     bedding_rows = []
     deck_far = BRIDGE_DECK_CENTRES[0] - BRIDGE_DECK_DEPTH / 2 - BRIDGE_TREAD_MARGIN
     deck_near = BRIDGE_DECK_CENTRES[-1] + BRIDGE_DECK_DEPTH / 2 + BRIDGE_TREAD_MARGIN
@@ -540,9 +581,9 @@ def climbing_steps(stone, ground, bedding_material):
                 treads.append(tread)
             edge += width
         if treads:
-            low_z = deck_near if i == 27 else z - .407
-            high_z = deck_far if i == 31 else z + .408
-            bedding_rows.append((top, low_z, high_z, bend, half_span, treads))
+            low_z = deck_near if i == 27 else z - STAIR_RUN / 2
+            high_z = deck_far if i == 31 else z + STAIR_RUN / 2 + (.08 if i == 0 else 0.)
+            bedding_rows.append((top, low_z, high_z, treads))
         drain_x = bend + span / 2 + .139
         invert = hewn_block(f'Open rainwater channel {i + 1:02}', .27, .16, .805,
                             (drain_x, top - .068, z), stone[4], 'approach')
@@ -557,21 +598,33 @@ def climbing_steps(stone, ground, bedding_material):
             if (i // 5 + direction) % 4 and i < 47:
                 cap = 1 + int(i > 31)
                 for row in range(cap + 1):
+                    position = (bend + direction * (span / 2 + .38 + row * .070),
+                                top + row * .244 + .02, z + (.24 if row % 2 else 0))
                     retaining = hewn_block(f'Stair retaining course {direction} {i} {row}', .46, .25, .798,
-                                           (bend + direction * (span / 2 + .38 + row * .070), top + row * .244 + .02,
-                                            z + (.24 if row % 2 else 0)), RANDOM.choice(stone), 'approach')
+                                           position, RANDOM.choice(stone), 'approach')
+                    rim = len(retaining.data.vertices) // 3
+                    wear = [masonry.uniform(-.040, .015) for _ in range(rim)]
+                    # Headers tuck into the hill, lower stones carry the
+                    # irregular capstones. Vary each joint from course to course.
+                    wave = .095 * math.sin(.93 * i + 1.7 * row + direction)
+                    length = .805 + .13 * math.cos(i * 1.14 + row * 2.8 + direction)
+                    (x, y, zz) = position
+                    offset = direction * masonry.uniform(.015, .065)
+                    for vertex in retaining.data.vertices:
+                        vertex.co.x += offset
+                        vertex.co.y -= wave
                     if row == cap:
-                        rim = len(retaining.data.vertices) // 3
-                        wear = [worn_cap.uniform(.009, .051) for _ in range(rim)]
+                        losses = [worn_cap.uniform(.009, .051) for _ in range(rim)]
                         settling = dressing.uniform(.025, .111)
-                        for ring, fraction in ((1, .61), (2, 1.)):
-                            for j, loss in enumerate(wear):
-                                vertex = retaining.data.vertices[ring * rim + j]
-                                vertex.co.z -= settling + fraction * loss
-                        retaining.data.update()
-                        profile_uv(retaining, rim, 3, {0, 1}, 1)
-                        retaining['moss_edge'] = worn_cap.random() < .46
-    approach_joint_bedding(bedding_rows, bedding_material)
+                        wear = [dip - settling - loss for dip, loss in zip(wear, losses)]
+                        retaining['moss_edge'] = worn_cap.random() < .72
+                    else:
+                        retaining['moss_edge'] = True
+                    dress_retaining_stone(retaining, ground, (x + offset, y, zz + wave),
+                                          masonry.uniform(.45, .60), .305 if row else .28, length,
+                                          masonry.uniform(-.075, .075), wear, row == 0)
+    bed = approach_joint_bedding(bedding_rows, bedding_material)
+    audit_approach_tread_bearings(bedding_rows, bed, ground)
     landing_bed(stone[2])
     landing_flagstones(stone)
     fit_stone_undersides(ground, bridge_curbs)
