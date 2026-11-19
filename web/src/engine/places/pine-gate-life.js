@@ -7,46 +7,24 @@
 
 const WIND_MATERIALS = ['Open pine needle sprays', ...[0, 1, 2, 3, 4].map((i) => `Woodland understory ${i}`)];
 
-// Layout defaults. The owner may move the steps and the niche, so every position
-// below is a parameter with its current value as the default: nothing in this file
-// hard-codes world coordinates that a re-authored place would invalidate.
-const DEFAULT_MIST_BANDS = [
-  // [x, z, lateral drift amplitude] along the flight of steps.
-  [1.1, 31.5, 1.4], [2.4, 28.0, 1.2], [0.8, 24.5, 1.6], [3.1, 21.0, 1.0],
-  [1.6, 17.5, 1.3], [2.7, 14.0, 1.5], [0.9, 10.5, 1.1], [2.2, 7.0, 1.4],
-];
-const DEFAULT_MIST_Y = 0.55;
-const DEFAULT_NICHE_POSITION = [-1.8, 5.0, 0.9];
-const DEFAULT_PATH = [
-  // [x, y, z] stations the needles fall around, low end to gate.
-  [0.97, 2.96, 33.7], [0.30, 3.34, 29.5], [-0.08, 3.90, 24], [0.12, 4.70, 16], [0.10, 5.65, 6],
-];
-
+// The authored place supplies the path, niche and mist stations so the
+// effects follow its layout as the stairs and terrace move.
 export function createPineGateLife({
-  THREE, group, scene, renderer,
-  mistBands = DEFAULT_MIST_BANDS,
-  mistY = DEFAULT_MIST_Y,
-  nichePosition: _nichePosition = DEFAULT_NICHE_POSITION,
-  path: _path = DEFAULT_PATH,
+  THREE, group, scene, renderer, mistBands, mistY, nichePosition, path,
 }) {
   if (!THREE || !group) throw new Error('Pine Gate life needs THREE and the baked group.');
+  if (!mistBands || !Number.isFinite(mistY) || !nichePosition || !path) {
+    throw new Error('Pine Gate life needs the authored mist, niche and path layout.');
+  }
   const disposers = [];
   const own = (fn) => disposers.push(fn);
   const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   // ---------- Wind ----------
-  // A per-vertex sway weight comes from the geometry itself, not from world height:
-  // an absolute height test would move every island bodily, because pine sprays all
-  // sit metres above the ground. Each connected island is found inside the group of
-  // triangles that carries the wind material, its root vertex is the lowest one, and
-  // the weight rises from 0 at that root to 1 at the island's furthest tip.
-  //
-  // For the undergrowth the lowest vertex is its root, which is what meets the soil.
-  // For the pine sprays the lowest vertex is not necessarily the attach end, so the
-  // root is taken as the vertex closest to the island's dominant neighbour direction
-  // (the side that carries the most other spray islands), falling back to the lowest
-  // vertex when no neighbour is nearer. That keeps the sprayed branch end still while
-  // the tips travel.
+  // Wind bends each connected island. Undergrowth stays pinned at its
+  // lowest vertex, where the blade meets the soil.
+  // Pine spray cards stay pinned along their authored branch edge. Blender
+  // v=0 becomes glTF v=1; the opposite edge is the moving tip.
   const swayStats = [];
 
   function islandWeights(geometry, start, count, isSpray) {
@@ -66,43 +44,42 @@ export function createPineGateLife({
     const islands = new Map();
     for (const v of seen) { const r = find(v); if (!islands.has(r)) islands.set(r, []); islands.get(r).push(v); }
     const weights = new Float32Array(position.count);
-    const stats = { islands: islands.size, rootsAboveTolerance: 0, minRootHeight: Infinity };
-    const v3 = new THREE.Vector3();
-    const roots = [];
+    const stats = { islands: islands.size, rootsAboveTolerance: 0, minRootHeight: Infinity,
+      attachEdgeVertices: 0, maxAttachEdgeWeight: null };
+    const uv = geometry.attributes.uv;
+    if (isSpray && !uv) throw new Error('Pine needle sprays require their authored UVs.');
+    const vertex = new THREE.Vector3(), root = new THREE.Vector3();
     for (const verts of islands.values()) {
-      let lowest = verts[0];
-      let lowestY = Infinity, cx = 0, cz = 0;
-      for (const v of verts) {
-        v3.fromBufferAttribute(position, v);
-        cx += v3.x; cz += v3.z;
-        if (v3.y < lowestY) { lowestY = v3.y; lowest = v; }
-      }
-      cx /= verts.length; cz /= verts.length;
-      let root = lowest;
       if (isSpray) {
-        // The attach end points back toward the trunk: the vertex nearest the island
-        // centroid's outward direction from the spray mass is the branch end, so pick
-        // the vertex with the shortest distance to any other island's centroid.
-        let best = Infinity;
+        // The whole edge shares v=1, even when the two corners sit at
+        // different heights or a rolled card points down.
         for (const v of verts) {
-          v3.fromBufferAttribute(position, v);
-          const d = Math.hypot(v3.x - cx, v3.z - cz);
-          if (d < best) { best = d; root = v; }
+          const along = uv.getY(v);
+          const t = Math.max(0, Math.min(1, 1 - along));
+          weights[v] = t * t * (3 - 2 * t);
+          if (along === 1) {
+            stats.attachEdgeVertices++;
+            stats.maxAttachEdgeWeight = Math.max(stats.maxAttachEdgeWeight ?? 0, weights[v]);
+            stats.minRootHeight = Math.min(stats.minRootHeight, position.getY(v));
+            if (weights[v] > .02) stats.rootsAboveTolerance++;
+          }
         }
+        continue;
       }
-      const rootPos = new THREE.Vector3().fromBufferAttribute(position, root);
-      roots.push({ root, rootPos, verts });
-      stats.minRootHeight = Math.min(stats.minRootHeight, rootPos.y);
-    }
-    for (const { root, rootPos, verts } of roots) {
+      const lowest = verts.reduce((a, b) => position.getY(a) <= position.getY(b) ? a : b);
+      root.fromBufferAttribute(position, lowest);
+      stats.minRootHeight = Math.min(stats.minRootHeight, root.y);
       let maxD = 0;
-      for (const v of verts) { v3.fromBufferAttribute(position, v); maxD = Math.max(maxD, v3.distanceTo(rootPos)); }
       for (const v of verts) {
-        v3.fromBufferAttribute(position, v);
-        const t = maxD > 1e-6 ? Math.min(1, v3.distanceTo(rootPos) / maxD) : 0;
+        vertex.fromBufferAttribute(position, v);
+        maxD = Math.max(maxD, vertex.distanceTo(root));
+      }
+      for (const v of verts) {
+        vertex.fromBufferAttribute(position, v);
+        const t = maxD > 1e-6 ? Math.min(1, vertex.distanceTo(root) / maxD) : 0;
         weights[v] = t * t * (3 - 2 * t);
       }
-      if (weights[root] > 0.02) stats.rootsAboveTolerance++;
+      if (weights[lowest] > .02) stats.rootsAboveTolerance++;
     }
     if (!Number.isFinite(stats.minRootHeight)) stats.minRootHeight = null;
     return { weights, stats };
@@ -239,8 +216,8 @@ export function createPineGateLife({
   group.add(motes);
   own(() => { group.remove(motes); moteGeometry.dispose(); moteMaterial.dispose(); });
 
-  const nicheAt = new THREE.Vector3(..._nichePosition);
-  const pathPoints = _path.map((p) => new THREE.Vector3(...p));
+  const nicheAt = new THREE.Vector3(...nichePosition);
+  const pathPoints = path.map((p) => new THREE.Vector3(...p));
 
   let sky = null, elapsed = 0, dustBlend = 0, needleDebt = 0, disposed = false;
   const cameraAt = new THREE.Vector3(0, 0, 34);
@@ -341,7 +318,10 @@ export function createPineGateLife({
       disposed = true;
       for (const dispose of disposers.splice(0)) { try { dispose(); } catch { /* already released */ } }
     },
-    // Exposed for the capture harness and for diagnostics, not used by the engine.
-    describe: () => ({ windMaterials: windUniforms.length, sway: swayStats, cameraProxy: sky ? 'sky' : 'fallback' }),
+    describe() {
+      const attachWeights = swayStats.flatMap(row => row.maxAttachEdgeWeight ?? []);
+      return { windMaterials: windUniforms.length, sway: swayStats, cameraProxy: sky ? 'sky' : 'fallback',
+        maxAttachEdgeWeight: attachWeights.length ? Math.max(...attachWeights) : null };
+    },
   };
 }

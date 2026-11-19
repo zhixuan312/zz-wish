@@ -52,10 +52,6 @@ export default function createPlace(h) {
       });
       context.up.push((dt, time) => life.update(dt, time));
       baked.life = life;
-      if (import.meta.env.DEV) {
-        window.__capturePineSway = () => life.describe() ?? null;
-        window.__pineScene = baked.group;
-      }
       context.disposers.push(life.dispose);
     },
 
