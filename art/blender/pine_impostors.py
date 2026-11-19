@@ -153,7 +153,18 @@ def relief_crown(name, profile, trunk, camera, views, mesh, source_uv):
         coordinates.uv_map = 'UVMap'
         links.new(coordinates.outputs['UV'], texture.inputs['Vector'])
         surface = nodes.get('Principled BSDF')
-        links.new(texture.outputs['Color'], surface.inputs['Base Color'])
+        albedo = texture.outputs['Color']
+        if view.get('nativeObject'):
+            # Adapt the light-temperate crown palette to wet, deep-green
+            # Pine Gate needles. The original albedo variation stays visible.
+            tint = nodes.new('ShaderNodeMix')
+            tint.data_type = 'RGBA'
+            tint.blend_type = 'MULTIPLY'
+            tint.inputs[0].default_value = 1.
+            tint.inputs[7].default_value = (.27, .48, .34, 1.)
+            links.new(albedo, tint.inputs[6])
+            albedo = tint.outputs[2]
+        links.new(albedo, surface.inputs['Base Color'])
         cutoff = nodes.new('ShaderNodeMath')
         cutoff.operation = 'GREATER_THAN'
         cutoff.inputs[1].default_value = view.get('alphaCutoff', .22)
