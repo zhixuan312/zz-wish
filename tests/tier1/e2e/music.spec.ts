@@ -364,6 +364,17 @@ test('the mute control is fully visible on a phone and its state survives a relo
     return !!hit && !!button && (hit === button || button.contains(hit));
   }, { x: box!.x + box!.width / 2, y: box!.y + box!.height / 2 });
   expect(hitsMute).toBe(true);
+  // The other controls in the top bar must not overlap it either, which the hit test alone
+  // cannot prove when a neighbour is larger but inset.
+  const overlaps = await page.evaluate((own) => {
+    const buttons = [...document.querySelectorAll('header button, nav button, .topbar button')] as HTMLElement[];
+    return buttons
+      .filter((b) => !b.classList.contains('mute') && b.offsetParent !== null)
+      .map((b) => b.getBoundingClientRect())
+      .filter((r) => r.left < own.right && r.right > own.left && r.top < own.bottom && r.bottom > own.top)
+      .length;
+  }, { left: box!.x, top: box!.y, right: box!.x + box!.width, bottom: box!.y + box!.height });
+  expect(overlaps).toBe(0);
   await mute.click();
   await page.reload();
   await page.waitForFunction(() => (window as Window & { __ready?: boolean }).__ready === true, null, { timeout: 60_000 });

@@ -251,11 +251,11 @@ export function createMusic(options: { createContext?: () => AudioContext } = {}
     if (liveOneShot === channel) { liveOneShot = null; cueStage = null; }
     if (currentChannel === channel) { currentCue = null; currentChannel = null; }
     if (channel.slot.owner === channel) channel.slot.owner = null;
-    // Both ends of the edge go: disconnecting only the gain would leave the source
-    // feeding a node nothing hears, and a 24-hour burn would pile up one per turnover.
-    // The source node itself stays with its element, because createMediaElementSource
-    // may run only once per element.
-    try { channel.source.disconnect(); } catch { /* already gone */ }
+    // Both ends of this edge go. Dropping only the gain would leave the source connected to
+    // a node nothing hears, so every reuse of the element would leave one more connection.
+    // The edge is named explicitly, and the source node itself stays with its element
+    // because createMediaElementSource may run only once per element.
+    try { channel.source.disconnect(channel.gain); } catch { /* already gone */ }
     try { channel.gain.disconnect(); } catch { /* already gone */ }
   }
 

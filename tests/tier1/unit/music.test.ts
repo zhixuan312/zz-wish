@@ -15,15 +15,25 @@ class FakeGain {
     setValueCurveAtTime: vi.fn(),
   };
   disconnected = false;
-  connect(target: FakeGain | FakeContext) { return target; }
-  disconnect() { this.disconnected = true; }
+  connected = new Set<unknown>();
+  connect(target: FakeGain | FakeContext) { this.connected.add(target); return target; }
+  disconnect(target?: unknown) {
+    if (target) this.connected.delete(target);
+    else this.connected.clear();
+    this.disconnected = true;
+  }
 }
 class FakeSource {
   static instances: FakeSource[] = [];
-  disconnected = false;
+  // A real source may be connected to several nodes; retiring a channel must drop exactly
+  // the edge to that channel's gain and keep any other.
+  connected = new Set<FakeGain>();
   constructor() { FakeSource.instances.push(this); }
-  connect() { return new FakeGain(); }
-  disconnect() { this.disconnected = true; }
+  connect(target: FakeGain) { this.connected.add(target); return target; }
+  disconnect(target?: FakeGain) {
+    if (target) this.connected.delete(target);
+    else this.connected.clear();
+  }
 }
 class FakeContext {
   currentTime = 0;
@@ -489,13 +499,18 @@ describe('music playback', () => {
     await music.play('home', 'snow-roof');
     await music.play('choose', 'snow-roof');
     await new Promise((r) => setTimeout(r, 1700));
-    // The cue that was replaced must be detached at both ends; the live one keeps
-    // playing. A burn that turns over beds all night would otherwise keep one live
-    // source per turnover.
-    const retired = FakeSource.instances.filter((s) => s.disconnected);
-    expect(retired).toHaveLength(1);
-    expect(FakeGain.instances.filter((g) => g.disconnected)).toHaveLength(1);
+    // The replaced cue's gain is fully detached, and its source no longer feeds it. Only
+    // the edge to its own gain may be cut: the source keeps any other connection.
+    const live = FakeGain.instances.filter((g) => g.connected.size > 0 || !g.disconnected);
+    const retiredGains = FakeGain.instances.filter((g) => g.disconnected);
+    expect(retiredGains).toHaveLength(1);
+    // Every source holds edges only to gains that are still live: one per playing cue.
+    const edgesToRetired = FakeSource.instances
+      .flatMap((src) => [...src.connected])
+      .filter((g) => retiredGains.includes(g));
+    expect(edgesToRetired).toEqual([]);
     expect(music.describe().channels).toBe(1);
+    void live;
   });
 
   it('lets an ending play out before the result loop starts', async () => {
@@ -736,6 +751,23 @@ describe('music playback', () => {
     const srcs = cueElements().map((a) => a.src);
     expect(srcs.some((src) => src.includes('snow_burn_bed_'))).toBe(true);
     expect(music.describe().stage).toBe('burn');
+  });
+
+  it('leaves each reused element connected only to the gain of the cue playing on it', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, json: async () => ({ cues: ['home_loop', 'snow_place_loop', 'snow_choose_loop', 'result_loop'] }) })));
+    const music = createMusic({ createContext: () => new FakeContext() as unknown as AudioContext });
+    await music.unlock();
+    // Six stage changes reuse the same four elements several times over.
+    for (const stage of ['home', 'place', 'choose', 'result', 'choose', 'home'] as const) {
+      await music.play(stage, 'snow-roof', 0.1);
+    }
+    await new Promise((r) => setTimeout(r, 400));
+    // A source that kept every edge would grow by one per reuse; with the edge cut, each
+    // source holds at most the one gain of the cue it is playing.
+    for (const src of FakeSource.instances) {
+      expect(src.connected.size).toBeLessThanOrEqual(1);
+    }
+    expect(music.describe().channels).toBe(1);
   });
 
   it('persists the mute choice', async () => {
