@@ -656,9 +656,9 @@ def approach_stone_spans(course, widths):
 
 
 def landing_bed(material):
-    # Recess the bedding under the flagstones. The approach apron and the
-    # gate threshold keep the original stone landing height at both ends.
-    profile = ((TERRACE_EDGE, 3.97), (.82, 3.97), (1.15, 3.970), (5.70, 3.970),
+    # Compact the old bedding close under the stones while leaving the
+    # original apron and threshold height at the approach.
+    profile = ((TERRACE_EDGE, 3.983), (.82, 3.983), (1.15, 3.983), (5.70, 3.983),
                (6.08, 4.), (6.68, 4.))
     points = [(x, y, z) for z, top in profile
               for x, y in ((-4.32, 2.68), (4.32, 2.68), (4.32, top), (-4.32, top))]
@@ -670,31 +670,30 @@ def landing_bed(material):
             faces.append((a, b, b + 4, a + 4))
     landing = mesh.mesh_object('Broad stone landing', points, faces, material, 'gate')
     box_net(landing, (8.64, 1.32, 7.92), (0, 3.34, 2.72))
-    mesh.uv_world(landing)
+    mesh.uv_world(landing, .42)
     mesh.bevel(landing, .045)
     landing['weather_stone'] = landing['moss_edge'] = True
 
 
 def landing_joint_fill(seams, material):
-    # Rain packs local pockets of fine gravel into the gaps. The tapered
-    # footprints rise from the existing bedding and stay below the stone faces.
+    # Long pockets of damp grit ride the plane of the old bedding. The
+    # settlement varies along each seam and follows the skew of the paving.
     settle = random.Random(919)
     points, faces = [], []
     for x, z, length, along_x in seams:
-        if settle.random() < .43:
-            continue
-        depth = settle.uniform(.009, .021)
-        offset = settle.uniform(.13, .42) * length
-        span = min(length - offset, settle.uniform(.18, .55))
+        depth = settle.uniform(.012, .029)
+        offset = settle.uniform(.03, .17) * length
+        span = length * settle.uniform(.67, .81)
         begin = len(points)
-        for i, fraction in enumerate((0., .18, .41, .63, .83, 1.)):
+        for i, fraction in enumerate((0., .15, .36, .61, .82, 1.)):
             sweep = offset + span * fraction
             crest = math.sin(fraction * math.pi)
-            line = settle.uniform(-.005, .005)
+            line = settle.uniform(-.003, .003)
             for side in (-1, 1):
                 across = line + side * depth * (.19 + .81 * crest) * settle.uniform(.81, 1.19)
-                y = 3.970 + crest * (settle.uniform(.008, .016) - .002 * i / 5)
-                points.append((x + sweep, y, z + across) if along_x else (x + across, y, z + sweep))
+                px, pz = (x + sweep, z + across) if along_x else (x + across, z + sweep)
+                y = 3.982 + crest * settle.uniform(.004, .009)
+                points.append((px + landing_splay(pz), y, pz))
             if i:
                 a = begin + (i - 1) * 2
                 face = (a, a + 2, a + 3, a + 1)
@@ -702,11 +701,71 @@ def landing_joint_fill(seams, material):
     grit = mesh.mesh_object('Worn gravel bed in the landing joints', points, faces, material, 'gate')
     source_uv(grit, [[(points[i][0], points[i][2]) for i in face] for face in faces],
               'Tapered settlement patches projected in metres onto the bedding.')
-    mesh.uv_world(grit, .24)
+    mesh.uv_world(grit, .19)
+    grit['weather_stone'] = grit['moss_edge'] = True
+
+
+def landing_splay(z):
+    return .064 * math.sin(1.6 * z) + .026 * math.sin(3.85 * z)
+
+
+def landing_stone(name, width, depth, centre, stone, dressing):
+    x, y, z = centre
+    outline, wear = hewn_outline()
+    run = dressing.uniform(-.017, .016)
+    crossfall = dressing.uniform(-.015, .015)
+    offset = dressing.uniform(.45, 1.94)
+    ring = []
+    for i, ((a, b), age) in enumerate(zip(outline, wear)):
+        # Corners split off in a different direction on each slab, but the
+        # remaining stone stays inside its own fitted footprint.
+        side = dressing.uniform(.946, 1.)
+        a = min(.5, max(-.5, a * side))
+        b = min(.5, max(-.5, b * side))
+        dip = .0044 * math.sin(i * 2.39 + offset * 3.2) + .47 * age
+        ring.append((a * width, b * depth, dip))
+
+    points = []
+    for lower, inset in ((-.115, .018), (-.018, 0), (0, .009)):
+        for u, v, dip in ring:
+            roundness = inset * (.70 + .3 * math.sin(17.7 * u + 5.8 * v + offset))
+            px = u * (1. - 2 * roundness / width)
+            pz = v * (1. - 2 * roundness / depth)
+            height = y + lower + run * v + crossfall * u + dip
+            points.append((x + px + landing_splay(z + pz), height, z + pz))
+    # The hand-worn middle wanders slightly off centre.
+    crown = len(points)
+    points.append((x + landing_splay(z), y - dressing.uniform(.002, .008), z))
+    n = len(ring)
+    faces = [tuple(range(n))]
+    for band in range(2):
+        for i in range(n):
+            a, b, j = band * n, (band + 1) * n, (i + 1) % n
+            faces.append((a + i, b + i, b + j, a + j))
+    first_top = len(faces)
+    for i in range(n):
+        faces.append((crown, 2 * n + (i + 1) % n, 2 * n + i))
+    slab = mesh.mesh_object(name, points, faces, stone, 'gate')
+    profile_uv(slab, n, 3, {0, *range(first_top, len(faces))}, 1)
+    uv = slab.data.uv_layers['UVMap']
+    metres = dressing.uniform(.37, .61)
+    cosine, sine = math.cos(offset), math.sin(offset)
+    for face in slab.data.polygons:
+        face.use_smooth = face.index >= first_top
+        for loop in face.loop_indices:
+            position = points[slab.data.loops[loop].vertex_index]
+            u, v = position[0] - x, position[2] - z
+            if 0 < face.index < first_top:
+                v = position[1] - y + v * .37
+            uv.data[loop].uv = ((cosine * u - sine * v) / metres + offset,
+                                (sine * u + cosine * v) / metres - offset)
+    slab['weather_stone'] = True
+    return slab
 
 
 def landing_flagstones(stone):
     joint = random.Random(5917)
+    dressing = random.Random(2816)
     seams = []
     course_edges = [-1.02] + [-1.02 + row * .64 + joint.uniform(-.145, .145) for row in range(1, 11)] + [6.02]
     for row, (front, back) in enumerate(zip(course_edges, course_edges[1:])):
@@ -715,10 +774,11 @@ def landing_flagstones(stone):
                            for col in range(1, 10)] + [4.20]
         for col, (left, right) in enumerate(zip(edges, edges[1:])):
             x, z = (left + right) * .5, (front + back) * .5
-            gap = joint.uniform(.011, .031)
+            gap = joint.uniform(.009, .020)
             settle = joint.uniform(-.009, .008) * (.44 if abs(x) < .8 else 1.)
-            slab = hewn_block(f'Landing flagstone {row} {col}', right - left - gap, .092, back - front - gap,
-                              (x, 4. + settle + RANDOM.uniform(-.003, .003), z), RANDOM.choice(stone), 'gate')
+            slab = landing_stone(f'Landing flagstone {row} {col}', right - left - gap, back - front - gap,
+                                 (x, 4.004 + settle + RANDOM.uniform(-.003, .003), z),
+                                 RANDOM.choice(stone), dressing)
             slab['moss_edge'] = joint.random() < (.26 if abs(x) < 1.2 else .57)
             if front < 3.70:
                 if col and right < 4.:

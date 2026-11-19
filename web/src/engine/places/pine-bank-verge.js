@@ -56,9 +56,17 @@ const westBankSites = [
   [-4.64, 18.81, 1.07, 3.72, litterProfile], [-4.12, 20.02, 1.00, 3.37, litterProfile],
   [-4.62, 20.15, 1.10, 3.43, litterProfile], [-3.46, 20.64, .85, 2.84, litterProfile],
   [-4.52, 21.12, .95, 3.21, litterProfile], [-4.11, 21.76, .87, 3.08, litterProfile],
-  [-1.97, 21.02, .75, 2.40, litterProfile], [-1.78, 21.41, .67, 2.38, litterProfile],
+  [-2.25, 21.02, .75, 2.40, litterProfile], [-1.90, 21.51, .67, 2.36, litterProfile],
   [-1.62, 21.77, .62, 2.32, litterProfile], [-1.68, 22.04, .71, 2.30, litterProfile],
   [-1.81, 22.22, .76, 2.30, litterProfile],
+];
+
+const pavilionVergeSites = [
+  [4.78, 2.37, 1.02, 3.966, 0], [5.22, 2.13, 1.16, 4.234, evergreenProfile],
+  [4.51, 3.05, .67, 3.802, 1], [5.01, 2.92, .78, 4.106, evergreenProfile],
+  [5.56, 2.68, 1.25, 4.440, 1], [5.28, 3.63, 1.03, 4.263, 0],
+  [4.64, 4.10, .72, 3.893, evergreenProfile], [5.93, 3.14, 1.22, 4.663, evergreenProfile],
+  [5.53, 4.14, .83, 4.412, 1], [5.15, 4.68, .82, 4.299, evergreenProfile],
 ];
 
 const around = 2 * Math.PI;
@@ -116,6 +124,10 @@ function dressForestFloor(material) {
       diffuseColor.rgb *= mix(vec3(1.), shadedGround, max(westSlope, westernVerge));
       vec3 mossAtBridge = mix(vec3(.82, .90, .81), vec3(.48, .83, .55), liveCover);
       diffuseColor.rgb *= mix(vec3(1.), mossAtBridge, bridgeShelf * .86);
+      float pavilionBank = smoothstep(4.36, 4.84, forestFloor.x)
+        * (1. - smoothstep(6.41, 7.3, forestFloor.x))
+        * smoothstep(.4, 1.96, forestFloor.y) * (1. - smoothstep(4.75, 5.61, forestFloor.y));
+      diffuseColor.rgb *= mix(vec3(1.), shadedGround, pavilionBank);
       float pineLitter = smoothstep(.37, .78, pineFloorNoise(forestFloor * 13.3));
       diffuseColor.rgb *= mix(vec3(.83, .87, .89), vec3(1.08, 1.07, 1.02), pineLitter * .65);
     `);
@@ -322,7 +334,7 @@ export function buildPineBankVerge(bakedGroup) {
   const profiles = [() => fernProfile(frondSeeds[0], 6), () => fernProfile(frondSeeds[1], 7),
     evergreenShoots, fallenNeedles];
   const accepted = profiles.map(() => []);
-  const allBanks = [...bankSites, ...groundcoverSites, ...westBankSites];
+  const allBanks = [...bankSites, ...groundcoverSites, ...westBankSites, ...pavilionVergeSites];
   for (const [i, [x, z, size, searchY, siteProfile]] of allBanks.entries()) {
     origin.set(x, searchY + .50, z);
     ray.set(origin, down);

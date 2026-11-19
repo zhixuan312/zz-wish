@@ -9,7 +9,6 @@ import bpy
 from mathutils import Vector
 
 from pine_materials import apply_scan
-
 import snow_roof as mesh
 from snow_lightmap_charts import lathe_uv, profile_uv, source_uv
 
@@ -42,7 +41,125 @@ def prism(name, points, material):
     return obj
 
 
-def small_roof(name, locate, width, depth, base, wood, tiles, repair):
+def pavilion_timber_grain(obj, axis):
+    along = mesh.point(axis).normalized()
+    vertices = [obj.matrix_world @ v.co for v in obj.data.vertices]
+    length_min = min(v.dot(along) for v in vertices)
+    length_max = max(v.dot(along) for v in vertices)
+    span = min(.344, (length_max - length_min) * .73)
+    seed = int.from_bytes(sha256(obj.name.encode()).digest()[:2], 'big')
+    boards = ((80, 157), (187, 271), (302, 388), (417, 501), (537, 616),
+              (649, 730), (765, 846), (886, 957))
+    scan = obj.data.uv_layers['UVMap'].data
+    for face in obj.data.polygons:
+        normal = obj.matrix_world.to_3x3() @ face.normal
+        cross = along.cross(normal)
+        if cross.length < .20:
+            # The end uses a small part of the same weathered board.
+            across = mesh.point((1., 0., 0.)) if abs(along.x) < .80 else mesh.point((0., 1., 0.))
+            cross = normal.cross(across)
+            grain = cross.cross(normal).normalized()
+        else:
+            grain = along
+        cross.normalize()
+        points = [vertices[i] for i in face.vertices]
+        width_min = min(v.dot(cross) for v in points)
+        width = max(v.dot(cross) for v in points) - width_min
+        grain_min = length_min if grain is along else min(v.dot(grain) for v in points)
+        grain_span = length_max - length_min if grain is along else max(v.dot(grain) for v in points) - grain_min
+        lo, hi = boards[(seed + face.index * 3) % len(boards)]
+        top = .323 + (1 + math.sin(seed + face.index * 2.4)) * (.342 - span) * .5
+        for loop, v in zip(face.loop_indices, points):
+            u = (lo + (hi - lo) * (v.dot(cross) - width_min) / max(width, 1e-6)) / 1024
+            w = top + span * (v.dot(grain) - grain_min) / max(grain_span, 1e-6)
+            scan[loop].uv = (u, w)
+
+
+# The photo scan includes joints. Each real roof piece uses the interior of
+# one photographed tile, keeping those old joints out of the new geometry.
+PAVILION_TILE_PATCHES = ((71, 101, 151, 211), (162, 196, 309, 366), (235, 273, 531, 589),
+                         (373, 410, 719, 773), (497, 529, 826, 872), (615, 648, 614, 684),
+                         (776, 811, 387, 438), (937, 967, 848, 900))
+
+
+def pavilion_tile(name, grid, width, length, thickness, side, material, patch):
+    rows, columns = len(grid), len(grid[0])
+    upper = [point for row in grid for point in row]
+    count = len(upper)
+    points = upper + [(x, y - thickness, z) for x, y, z in upper]
+    uv = [(width * column / (columns - 1), length * row / (rows - 1))
+          for row in range(rows) for column in range(columns)]
+    faces = []
+    for row in range(rows - 1):
+        for column in range(columns - 1):
+            a = row * columns + column
+            face = (a, a + 1, a + columns + 1, a + columns)
+            faces.append(tuple(reversed(face)) if side > 0 else face)
+    visible = len(faces)
+    charts = [[uv[i] for i in face] for face in faces]
+    for face in faces[:visible]:
+        other = tuple(reversed(face))
+        faces.append(tuple(i + count for i in other))
+        charts.append([(uv[i][0] + width + .026, uv[i][1]) for i in other])
+    rim = (list(range(columns - 1)) + [row * columns + columns - 1 for row in range(rows - 1)]
+           + [count - 1 - column for column in range(columns - 1)]
+           + [row * columns for row in range(rows - 1, 0, -1)])
+    if side > 0:
+        rim.reverse()
+    edge = length + .028
+    run = 0.
+    for a, b in zip(rim, rim[1:] + rim[:1]):
+        following = run + math.dist(points[a], points[b])
+        faces.append((b, a, a + count, b + count))
+        charts.append([(following, edge), (run, edge), (run, edge + thickness), (following, edge + thickness)])
+        run = following
+    tile = mesh.mesh_object(name, points, faces, material, 'gate')
+    source_uv(tile, charts, 'Sloped ceramic faces and their joined cut clay edges. Metres.')
+    scan = tile.data.uv_layers['UVMap'].data
+    u0, u1, v0, v1 = PAVILION_TILE_PATCHES[patch % len(PAVILION_TILE_PATCHES)]
+    for polygon in tile.data.polygons:
+        polygon.use_smooth = polygon.index < 2 * visible
+        for loop, vertex, chart in zip(polygon.loop_indices, polygon.vertices, charts[polygon.index]):
+            w, t = uv[vertex % count]
+            if polygon.index < 2 * visible:
+                u, v = w / width, t / length
+            else:
+                u, v = chart[0] / run, .42 + .15 * (chart[1] - edge) / thickness
+            scan[loop].uv = ((u0 + (u1 - u0) * u) / 1024, 1 - (v0 + (v1 - v0) * v) / 1024)
+    return tile
+
+
+def pavilion_pan(name, surface, side, lane, course, x0, x1, t0, t1, depth, material):
+    grid = []
+    for row in (0., .58, 1.):
+        rail = []
+        for section in (0., .25, .5, .75, 1.):
+            nicks = .005 * row ** 3 * (.5 + .5 * math.sin(section * 13.3 + lane * 5 + 3 * course))
+            x, y, z = surface(x0 + (x1 - x0) * section, t0 + (t1 - t0) * row - nicks, side)
+            trough = (.013 + .0022 * math.sin(lane * 2.7 + course * 4.3)) * math.sin(math.pi * section)
+            rail.append((x, y - trough - .006 * course, z))
+        grid.append(rail)
+    return pavilion_tile(name, grid, x1 - x0, (t1 - t0) * depth, .016, side, material, lane * 5 + course * 3 + side)
+
+
+def pavilion_cover(name, surface, side, lane, x, depth, material):
+    for course, (start, finish) in enumerate(((.035, .374), (.349, .694), (.674, .994))):
+        grid = []
+        for row in (0., .46, 1.):
+            t = start + (finish - start) * row
+            section = []
+            for u in (0., .166, .333, .5, .667, .834, 1.):
+                angle = math.pi * u
+                px, y, z = surface(x - (.022 + t * .001) * math.cos(angle), t, side)
+                lip = .0055 * row ** 4
+                section.append((px, y + .002 + (.020 - .003 * row) * math.sin(angle) + lip - .006 * course, z))
+            grid.append(section)
+        tile = pavilion_tile(f'{name} {course + 1}', grid, .064, (finish - start) * depth, .008, side,
+                              material, lane * 3 + course * 5 + side)
+        tile['weather_stone'] = tile['moss_edge'] = True
+
+
+def small_roof(name, locate, width, depth, base, wood, tiles, repair, pavilion=False):
     def surface(x, t, side):
         bow = .032 * ((x / width) ** 2 - .6)
         y = base + .27 * (1 - t) ** 1.13 + bow + .018 * t ** 4
@@ -51,8 +168,10 @@ def small_roof(name, locate, width, depth, base, wood, tiles, repair):
     for lane in range(6):
         x = (lane / 5 * 2 - 1) * width * .92
         points = [surface(x, t, side) for side, t in ((-1, 1), (-1, .58), (-1, .26), (1, 0), (1, .31), (1, .66), (1, 1))]
-        mesh.curved_tube(f'{name} exposed cedar rafter {lane + 1}', [(x, y - .049, z) for x, y, z in points],
-                         [.025] * len(points), wood, radial=5, region='gate')
+        rafter = mesh.curved_tube(f'{name} exposed cedar rafter {lane + 1}', [(x, y - .049, z) for x, y, z in points],
+                                  [.025] * len(points), wood, radial=5, region='gate')
+        if pavilion:
+            pavilion_timber_grain(rafter, (0., 0., 1.))
 
     for side in (-1, 1):
         for lane in range(9):
@@ -60,19 +179,27 @@ def small_roof(name, locate, width, depth, base, wood, tiles, repair):
             x1 = -width + (lane + .925) * width * 2 / 9
             for course in range(3):
                 t0, t1 = course * .319, min(1, (course + 1) * .319 + .064)
-                upper = [surface(x, t, side) for x, t in ((x0, t0), (x1, t0), (x1, t1), (x0, t1))]
-                if side > 0:
-                    upper.reverse()
                 tile = tiles[(lane + course * 2) % len(tiles)]
                 if (lane, course, side) in ((1, 1, 1), (4, 1, 1), (4, 2, 1), (7, 0, -1), (8, 0, -1)):
                     tile = repair
-                panel = prism(f'{name} clay pan tile {side} {lane} {course}',
-                              upper + [(x, y - .018, z) for x, y, z in upper], tile)
+                label = f'{name} clay pan tile {side} {lane} {course}'
+                if pavilion:
+                    panel = pavilion_pan(label, surface, side, lane, course, x0, x1, t0, t1, depth, tile)
+                else:
+                    upper = [surface(x, t, side) for x, t in ((x0, t0), (x1, t0), (x1, t1), (x0, t1))]
+                    if side > 0:
+                        upper.reverse()
+                    panel = prism(label, upper + [(x, y - .018, z) for x, y, z in upper], tile)
                 panel['weather_stone'] = panel['moss_edge'] = True
             if lane:
-                rail = [surface(-width + lane * width * 2 / 9, t, side) for t in (.035, .35, .65, .994)]
-                mesh.curved_tube(f'{name} clay cover tile {side} {lane}', [(x, y + .011, z) for x, y, z in rail],
-                                 [.020, .022, .022, .018], tiles[lane % len(tiles)], radial=5, region='gate')
+                x = -width + lane * width * 2 / 9
+                label = f'{name} clay cover tile {side} {lane}'
+                if pavilion:
+                    pavilion_cover(label, surface, side, lane, x, depth, tiles[lane % len(tiles)])
+                else:
+                    rail = [surface(x, t, side) for t in (.035, .35, .65, .994)]
+                    mesh.curved_tube(label, [(x, y + .011, z) for x, y, z in rail],
+                                     [.020, .022, .022, .018], tiles[lane % len(tiles)], radial=5, region='gate')
     ridge = [surface(width * (i / 6 * 2 - 1), 0, 1) for i in range(7)]
     mesh.curved_tube(f'{name} old clay ridge', [(x, y + .022, z) for x, y, z in ridge],
                      [.038, .035, .032, .030, .032, .034, .037], tiles[1], radial=6, region='gate')
@@ -285,14 +412,17 @@ def tea_pavilion(stone, wood, tiles, repair, clay, iron, contacts):
             x, z = side * .737, row * .56
             mesh.box('Shaped stone footing of pavilion post', (.28, .149, .275), locate(x, .070, z),
                      stone[4], .030, region='gate')
-            mesh.box('Bare tea-pavilion timber post', (.134, 1.67, .146), locate(x, .97, z),
-                     wood, .015, region='gate')
-            mesh.beam('Timber bracket under pavilion eave', locate(x, 1.516, z),
-                      locate(x - side * .29, 1.760, z), .041, wood, .035, 'gate')
+            post = mesh.box('Bare tea-pavilion timber post', (.134, 1.67, .146), locate(x, .97, z),
+                            wood, .015, region='gate')
+            pavilion_timber_grain(post, (0., 1., 0.))
+            bracket = mesh.beam('Timber bracket under pavilion eave', locate(x, 1.516, z),
+                                locate(x - side * .29, 1.760, z), .041, wood, .035, 'gate')
+            pavilion_timber_grain(bracket, (-side * .29, .244, 0.))
     for row in (-1, 1):
-        mesh.box('Tea pavilion open-side eave beam', (1.88, .160, .171), locate(0, 1.824, row * .64),
-                 wood, .013, region='gate')
-    small_roof('Tea pavilion', locate, 1.06, .841, 1.90, wood, tiles, repair)
+        eave = mesh.box('Tea pavilion open-side eave beam', (1.88, .160, .171), locate(0, 1.824, row * .64),
+                        wood, .013, region='gate')
+        pavilion_timber_grain(eave, (1., 0., 0.))
+    small_roof('Tea pavilion', locate, 1.06, .841, 1.90, wood, tiles, repair, pavilion=True)
     storm_lantern(iron, clay)
 
     table = mesh.box('Worn low granite tea table', (.91, .088, .60), locate(.043, .638, -.04),
@@ -300,11 +430,13 @@ def tea_pavilion(stone, wood, tiles, repair, clay, iron, contacts):
     for side in (-1, 1):
         mesh.box('Stone support under tea table', (.196, .60, .396), locate(side * .329, .299, -.04),
                  stone[2], .017, region='gate')
-        mesh.box('Simple tea pavilion bench seat', (.243, .074, .658), locate(side * .58, .394, -.04),
-                 wood, .013, region='gate')
+        seat = mesh.box('Simple tea pavilion bench seat', (.243, .074, .658), locate(side * .58, .394, -.04),
+                        wood, .013, region='gate')
+        pavilion_timber_grain(seat, (0., 0., 1.))
         for row in (-1, 1):
-            mesh.box('Bench bearing leg', (.137, .37, .136), locate(side * .58, .178, -.04 + row * .224),
-                     wood, .014, region='gate')
+            leg = mesh.box('Bench bearing leg', (.137, .37, .136), locate(side * .58, .178, -.04 + row * .224),
+                           wood, .014, region='gate')
+            pavilion_timber_grain(leg, (0., 1., 0.))
     bowls = [(0, 0), (.024, 0), (.031, .009), (.045, .039), (.049, .052),
              (.046, .056), (.042, .052), (.037, .031), (.024, .010), (0, .009)]
     with contacts.group('Tea pavilion coarse bowls', [table]):
