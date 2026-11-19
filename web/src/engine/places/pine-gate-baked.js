@@ -9,6 +9,7 @@ import { animatePineCreek } from './pine-creek-water.js';
 import { buildPineCrestNeedles } from './pine-crest-needles.js';
 import { buildPineBankVerge } from './pine-bank-verge.js';
 import { dressAncientPineBark } from './pine-ancient-bark.js';
+import { dressPineCrestCloth } from './pine-crest-cloth.js';
 import { pineDaySunDirection, pineDaySunDiscEdges } from './pine-gate-sun.js';
 import crestNeedleAnchors from './pine-crest-needle-anchors.json' with { type: 'json' };
 import path from '../../../../shared/pine-gate-path.json' with { type: 'json' };
@@ -100,6 +101,7 @@ export default function createPlace(h) {
       if (baked.manifest.walkLightmaps) context.up.push(animatePineCreek(baked.group));
       context.baked = baked;
       dressAncientPineBark(baked.group);
+      dressPineCrestCloth(baked.group);
       const crest = buildPineCrestNeedles(baked.manifest.geometryFingerprint, crestNeedleAnchors);
       if (crest) {
         context.G.add(crest.group);

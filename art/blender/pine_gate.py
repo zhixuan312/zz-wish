@@ -1974,34 +1974,93 @@ def distant_pines(ground, bark, needles, modelled_needles, far_crown):
 def crest_ribbons(label, trunk_at, cloth):
     trunk = mesh.STATIC.objects[f'{label} crooked trunk']
     bark_surface, _ = contacts.support([trunk])
+    up = Vector((0., 1., 0.))
+
+    def bark_at(point, radial):
+        hit, _, _, _ = bark_surface.ray_cast(mesh.point(point + radial * 1.3), mesh.point(-radial), 1.8)
+        if hit is None:
+            raise RuntimeError('Pine ribbon hangs outside the surveyed ancient trunk.')
+        return engine(hit)
+
+    def cloth_strip(name, rows, cross_widths):
+        width = len(cross_widths)
+        vertices = [point for row in rows for point in row]
+        distance = 0.
+        uv, faces = [], []
+        for index, row in enumerate(rows):
+            if index:
+                distance += (row[width // 2] - rows[index - 1][width // 2]).length
+                previous = (index - 1) * width
+                faces.extend((previous + side, previous + side + 1, previous + side + width + 1,
+                              previous + side + width) for side in range(width - 1))
+            uv.extend((across, distance) for across in cross_widths)
+        ribbon = mesh.mesh_object(name, vertices, faces, cloth, 'approach')
+        source_uv(ribbon, [[uv[i] for i in face] for face in faces],
+                  'Folded cloth unwrapped along the warp, in metres.')
+        weave = ribbon.data.uv_layers['UVMap'].data
+        for face in ribbon.data.polygons:
+            face.use_smooth = True
+            for loop, vertex in zip(face.loop_indices, face.vertices):
+                weave[loop].uv = uv[vertex]
+
     for index, (fraction, heading, length) in enumerate(((.172, .82, .33), (.202, .49, .28), (.228, 1.09, .36))):
-        knot = trunk_at(fraction)
+        axis = trunk_at(fraction)
         outward = Vector((math.cos(heading), 0., math.sin(heading)))
         tangent = Vector((-outward.z, 0., outward.x))
-        cast_direction = mesh.point(-outward)
-        vertices, uv, faces = [], [], []
-        for row in range(7):
-            t = row / 6
-            centre = knot - Vector((0., length * t, 0.))
-            centre += tangent * (.047 * t + .009 * math.sin(t * 8.))
-            width = (.017 + .026 * min(1., 3.2 * t)) * (1. - .17 * t ** 3)
-            for side in (-1, 0, 1):
-                spot = centre + tangent * (side * width)
-                if row == 6:
-                    spot.y += .011 if side == 0 else -.004 * side
-                hit, _, _, _ = bark_surface.ray_cast(mesh.point(spot + outward * 1.3), cast_direction, 1.8)
-                if hit is None:
-                    raise RuntimeError('Pine ribbon hangs outside the surveyed ancient trunk.')
-                lift = .0015 + t * (.039 + .042 * t + .013 * (1 - abs(side)))
-                vertices.append(engine(hit + mesh.point(outward) * lift))
-                uv.append((side * width + .047 * t, length * t))
-            if row:
-                base = (row - 1) * 3
-                faces.extend((base + side, base + side + 1, base + side + 4, base + side + 3)
-                             for side in range(2))
-        ribbon = mesh.mesh_object(f'Weathered ribbon on crest pine {index + 1}', vertices, faces, cloth, 'approach')
-        source_uv(ribbon, [[uv[i] for i in face] for face in faces],
-                  'A sewn strip departing from an evaluated contact on the bark.')
+        knot = bark_at(axis, outward)
+        name = f'Tied red cloth on crest pine {index + 1}'
+
+        # The cinched band runs under the knot and follows the real bark.
+        band_widths = (-.017, -.006, .006, .017)
+        band = []
+        for step in range(49):
+            turn = .040 + (math.tau - .080) * step / 48
+            radial = Vector((math.cos(heading + turn), 0., math.sin(heading + turn)))
+            centre = axis + up * (.013 * math.sin(turn) + .006 * math.sin(turn * 3 + index))
+            band.append([bark_at(centre + up * side, radial) + radial * (.003 + .003 * (1 - abs(side) / .017))
+                         for side in band_widths])
+        cloth_strip(f'{name} cinched band', band, band_widths)
+
+        # One flattened loop crosses the other. Both ends disappear under
+        # the cinch rather than ending in an exposed edge on the trunk.
+        loop_widths = (-.014, -.007, 0., .007, .014)
+        loops = (
+            ((-.039, .014, .005), (-.020, .017, .018), (.001, .005, .024),
+             (.024, -.010, .015), (.040, -.007, .005)),
+            ((.025, .024, .006), (.016, .030, .029), (-.003, .014, .040),
+             (-.014, -.011, .035), (-.011, -.031, .014)),
+        )
+        for turn, path in enumerate(loops):
+            folded = []
+            for j, (across, raised, height) in enumerate(path):
+                left, right = path[max(0, j - 1)], path[min(len(path) - 1, j + 1)]
+                edge = (tangent * (left[1] - right[1]) + up * (right[0] - left[0])).normalized()
+                centre = knot + tangent * across + up * raised + outward * height
+                folded.append([centre + edge * side + outward * (.005 * (1 - abs(side) / .014))
+                               for side in loop_widths])
+            cloth_strip(f'{name} knot fold {turn + 1}', folded, loop_widths)
+
+        for tail, (sign, drop, maximum_width) in enumerate(((1, length, .040), (-1, length * .58, .032))):
+            across_fractions = (-1., -.91, -.59, 0., .61, .91, 1.)
+            hanging = []
+            for row in range(14):
+                t = row / 13
+                sway = sign * (.015 + .068 * t) + .014 * math.sin(t * 5.8 + index) * t
+                half_width = (.011 + (maximum_width - .011) * min(1., 3.1 * t)) * (1 - .14 * t ** 3)
+                skew = sign * (.22 + .54 * t) + .29 * math.sin(t * 6 + tail)
+                depth = .023 + t * (.014 + .027 * math.sin(2.6 * t + index * .17))
+                cut = t ** 8
+                fold_row = []
+                for side in across_fractions:
+                    laid = -drop * t + cut * (.012 * math.sin(side * 6 + index) + .007 * side)
+                    width = side * half_width * (1 - .066 * cut * math.cos(side * 9))
+                    lift = depth + half_width * side * math.sin(skew)
+                    lift += half_width * (.16 * math.cos(side * 7 + t * 4 + tail) + .068 * abs(side) ** 7)
+                    spot = knot + tangent * (sway + width) + up * laid
+                    surface = bark_at(spot, outward)
+                    fold_row.append(spot + outward * max(lift, (surface - spot).dot(outward) + .003))
+                hanging.append(fold_row)
+            cloth_strip(f'{name} tail {tail + 1}', hanging, [side * maximum_width for side in across_fractions])
 
 
 def forest(ground, rock, stone, bark, pine, far_crown=None):
@@ -2023,7 +2082,8 @@ def forest(ground, rock, stone, bark, pine, far_crown=None):
     pine_tree('Ancient eastern pine at the saddle', 1.82, PINE_CREST - .32, 11.4,
               bark, needles, ground, roots=True, lean=-2.68, modelled_needles=modelled_needles,
               trunk_bark=old_bark)
-    cloth = mesh.material('Sun-faded red cloth on the old pine', '#a35a4b', rough=.93)
+    cloth = mesh.material('Earth-red cotton ties on the old pine', '#913c32', rough=.92)
+    cloth['one_light_crest_cloth'] = True
     crest_ribbons(west_label, low, cloth)
     for i, (x, z, h) in enumerate(((-10, 0, 10), (12, -3, 9), (8, -14, 7), (-7, -10, 8),
                                    (-4, -6, 7), (4, -8, 8), (15, 18, 9), (-17, 19, 9))):
