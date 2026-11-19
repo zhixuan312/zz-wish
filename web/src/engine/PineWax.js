@@ -58,6 +58,7 @@ function pineSunLighting(shader, sunShade) {
 }
 
 const POOL_PROFILE = [[1, 1], [.966, .75], [.924, .39], [.867, .12], [.72, -.045], [.47, -.068], [.23, -.021]];
+const SCULPT_POOL_PROFILE = [...POOL_PROFILE.slice(0, -1), [.31, -.021]];
 const WICK_FILM_PROFILE = [[1, 0], [.79, .052], [.61, .24], [.44, .52], [.29, .81], [.17, 1], [0, 1]];
 const POOL_RING_COUNT = POOL_PROFILE.length + WICK_FILM_PROFILE.length;
 const REFINED_BODY_SECTORS = 72;
@@ -473,17 +474,18 @@ function fillSculptPool(mesh, body, top, plane, rise) {
     const x = lerp(body.positions.getX(lo), body.positions.getX(hi), embed) - top.cx;
     const z = lerp(body.positions.getZ(lo), body.positions.getZ(hi), embed);
     minimumRadius = Math.min(minimumRadius, Math.hypot(x, z));
-    for (let row = 0; row < POOL_PROFILE.length; row++) {
-      const [r, y] = POOL_PROFILE[row];
+    for (let row = 0; row < SCULPT_POOL_PROFILE.length; row++) {
+      const [r, y] = SCULPT_POOL_PROFILE[row];
       mesh.positions.setXYZ(row * mesh.sectors + side, x * r, meniscus * y, z * r);
     }
   }
 
-  // Keep a single level centre and the smaller curved film up the wick.
-  const filmRadius = Math.min(minimumRadius * .226, .00215);
-  const filmHeight = Math.min(.00092, rise * 1.25, filmRadius * .49);
+  // The wet wax climbs the wick. A wider curved film turns more of the
+  // liquid toward the actual flame while the centre of the pool stays level.
+  const filmRadius = Math.min(minimumRadius * .30, .0031);
+  const filmHeight = Math.min(.00112, rise * 1.55, filmRadius * .43);
   for (const [i, [r, y]] of WICK_FILM_PROFILE.entries()) {
-    writeRing(mesh, POOL_PROFILE.length + i, 0, filmRadius * r, filmHeight * y - .021 * rise * r);
+    writeRing(mesh, SCULPT_POOL_PROFILE.length + i, 0, filmRadius * r, filmHeight * y - .021 * rise * r);
   }
   finishSurface(mesh);
   return minimumRadius;
