@@ -88,9 +88,11 @@ const detailViews = siteDetails.map(({ name, ...view }) => {
 const siteFrames = [...(siteDayOnly || siteNightOnly ? ['entrance'] : []),
   ...directionWalkFrames.map(([name]) => name), ...(realismOnly ? [] : ['shrine-pavilion']),
   ...detailViews.map(({ name }) => name)];
-const dayFrames = [...siteFrames, 'day-burning'];
+// The site proof records the whole ignition: the taper reaching the wick, the spread and the
+// settled frame, then the burning view.
+const dayFrames = [...siteFrames, 'ignition', 'spreading', 'settled', 'day-burning'];
 const directionPasses = siteNightOnly
-  ? [{ name: 'night', hour: 22, frames: [...siteFrames, 'night-burning'] }]
+  ? [{ name: 'night', hour: 22, frames: [...siteFrames, 'ignition', 'spreading', 'settled', 'night-burning'] }]
   : [
     { name: 'day', hour: 13, frames: dayFrames },
     ...(realismOnly || siteDayOnly ? [] : [{ name: 'night', hour: 22, frames: ['night-burning'] }]),
@@ -786,7 +788,9 @@ async function capture(browser, browserName, size, trial) {
           assertNearestCamera(await page.evaluate(() => window.__pineCaptureCamera()), previous);
         }
       }
-      const candle = await light();
+      // The site proof also records the taper at the wick, which is the beat the owner asked to
+      // see: the strip must not claim a contact the geometry does not make.
+      const candle = await light(siteDayOnly || siteNightOnly);
       assert.equal(candle.durationMs, 3_600_000);
       run.directionCandle = { id: candle.id, shape: candle.shape, durationMs: candle.durationMs };
       if (run.realismPerformanceOnly) {
