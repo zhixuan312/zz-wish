@@ -208,6 +208,14 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
   const showPlace = () => {
     setWishHint(false); setScreen('place');
     void run(async () => { await preparePlace(placeId); await engine.previewPlace(placeId); }).catch(() => setPlaceLoad((value) => ({ ...value, stage: 'error' })));
+    // Hand the engine this visitor's own finished lamps for the court they return to.
+    // It stores them; a court without past lamp slots draws nothing.
+    void api.myCandles().then(({ candles }) => engine.setOwnPastLamps(
+      candles.filter((c) => c.placeId === placeId && c.status !== 'burning').map((c) => ({
+        shape: c.shape, color: c.shape.color, status: c.status,
+        remaining: c.durationMs > 0 ? Math.max(0, 1 - c.burnedMs / c.durationMs) : 0,
+      })),
+    )).catch(() => {});
   };
   const toPlace = () => {
     if (!wish.trim()) { setWishHint(true); wishField.current?.focus(); return; }

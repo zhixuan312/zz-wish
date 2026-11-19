@@ -31,3 +31,4 @@ describe('day part', () => {
     expect(musicBucket('night')).toBe('night');
   });
 });
+

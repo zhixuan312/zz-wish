@@ -78,3 +78,7 @@ export const toCover = () => initialize().then(s => s.toCover());
 export const ignite = (options: IgnitionOptions = {}) => initialize().then(s => s.ignite(options));
 export const snuff = (done = false) => initialize().then(s => s.snuff(done));
 export const skip = () => { void initialize().then(s => s.skip()).catch(() => {}); };
+// The visitor's own past lamps: stored for the active place, drawn only where a
+// court defines past lamp slots.
+export const setOwnPastLamps = (list: Parameters<Scene['setOwnPastLamps']>[0]) =>
+  initialize().then(s => s.setOwnPastLamps(list));
