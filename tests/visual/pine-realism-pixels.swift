@@ -19,6 +19,24 @@ struct Pair: Decodable {
 struct Work: Decodable {
     let tiles: [Tile]
     let pairs: [Pair]
+    let solar: Solar?
+}
+
+struct Solar: Decodable {
+    let source: String
+    let output: String
+    let expected: [Double]
+}
+
+struct SolarPixels: Encodable {
+    let ambient: Double
+    let peak: Double
+    let cutoff: Double
+    let contrast: Double
+    let area: Int
+    let centroid: [Double]?
+    let equivalentRadius: Double?
+    let touchesSearchEdge: Bool
 }
 
 enum PixelError: Error {
@@ -106,11 +124,70 @@ func pair(_ spec: Pair) throws {
     try encodePixels(result, width: width, height: h, output: spec.output)
 }
 
+func measureSun(_ spec: Solar) throws {
+    let image = try open(spec.source)
+    let source = [UInt8](try pixels(image))
+    let radius = 72, ring = 94
+    guard spec.expected.count == 2, spec.expected.allSatisfy({ $0.isFinite }) else {
+        throw PixelError.invalidPixels(spec.source)
+    }
+    let (centreX, centreY) = (Int(spec.expected[0].rounded()), Int(spec.expected[1].rounded()))
+    guard centreX >= ring && centreX + ring < image.width && centreY >= ring && centreY + ring < image.height
+    else { throw PixelError.invalidPixels(spec.source) }
+    func luma(_ x: Int, _ y: Int) -> Double {
+        let i = (y * image.width + x) * 4
+        return 0.2126 * Double(source[i]) + 0.7152 * Double(source[i + 1]) + 0.0722 * Double(source[i + 2])
+    }
+    let stride = 2 * radius + 1
+    var samples = Array(repeating: -1.0, count: stride * stride)
+    var ambient = [Double]()
+    var peak = -1.0, seed = 0
+    for y in -ring...ring {
+        for x in -ring...ring {
+            let r2 = x * x + y * y
+            if r2 > ring * ring { continue }
+            let value = luma(centreX + x, centreY + y)
+            if r2 > radius * radius { ambient.append(value); continue }
+            let i = (y + radius) * stride + x + radius
+            samples[i] = value
+            if value > peak { peak = value; seed = i }
+        }
+    }
+    ambient.sort()
+    let background = ambient[ambient.count / 2]
+    let contrast = peak - background
+    let cutoff = background + contrast * 0.55
+    var queue = contrast >= 12 ? [seed] : []
+    var visited = Set(queue), next = 0
+    var sumX = 0.0, sumY = 0.0, weight = 0.0, touchesEdge = false
+    while next < queue.count {
+        let i = queue[next]
+        next += 1
+        let x = i % stride, y = i / stride
+        let dx = x - radius, dy = y - radius
+        let k = samples[i] - cutoff
+        sumX += (Double(centreX + dx) + 0.5) * k
+        sumY += (Double(centreY + dy) + 0.5) * k
+        weight += k
+        touchesEdge = touchesEdge || dx * dx + dy * dy >= (radius - 1) * (radius - 1)
+        for (xx, yy) in [(x - 1, y), (x + 1, y), (x, y - 1), (x, y + 1)] {
+            guard xx >= 0 && xx < stride && yy >= 0 && yy < stride else { continue }
+            let neighbor = yy * stride + xx
+            if samples[neighbor] > cutoff && visited.insert(neighbor).inserted { queue.append(neighbor) }
+        }
+    }
+    let report = SolarPixels(ambient: background, peak: peak, cutoff: cutoff, contrast: contrast,
+        area: queue.count, centroid: weight > 0 ? [sumX / weight, sumY / weight] : nil,
+        equivalentRadius: queue.isEmpty ? nil : sqrt(Double(queue.count) / Double.pi), touchesSearchEdge: touchesEdge)
+    try JSONEncoder().encode(report).write(to: URL(fileURLWithPath: spec.output), options: .atomic)
+}
+
 do {
     let spec = URL(fileURLWithPath: CommandLine.arguments[1])
     let work = try JSONDecoder().decode(Work.self, from: Data(contentsOf: spec))
     for tile in work.tiles { try autoreleasepool { try crop(tile) } }
     for item in work.pairs { try autoreleasepool { try pair(item) } }
+    if let solar = work.solar { try autoreleasepool { try measureSun(solar) } }
     print("Verified \(work.tiles.count) pixel-exact native crops and \(work.pairs.count) native side-by-sides.")
 } catch {
     FileHandle.standardError.write(Data("Image verification failed: \(error)\n".utf8))

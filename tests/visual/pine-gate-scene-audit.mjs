@@ -30,7 +30,7 @@ export function readDirectionOverview(raw) {
   return view;
 }
 
-export function instrumentPineScene(source, { readiness, cadence, lighting, walkClock, directionCamera }) {
+export function instrumentPineScene(source, { readiness, cadence, lighting, walkClock, directionCamera, solarProbe }) {
   if (readiness) for (const [name, anchor, id, before] of readinessAnchors) {
     const mark = `if (${id} === 'pine-gate' || ${id} === 'snow-roof') performance.mark('one-light:' + ${id} + ':${name}');`;
     source = insertAt(source, anchor, name, mark, before);
@@ -69,6 +69,45 @@ window.__pineCaptureOverview = async (view) => {
     await moveCam(saved.pos, saved.look, .85, saved.fov);
     rig.fov = saved.fov;
     pineCaptureRestoreView = null;
+  }
+};`, true);
+  }
+  if (solarProbe) {
+    source = insertAt(source, frameAnchor, 'solar direction and diagnostic camera', `let pineSolarRestoreView = null;
+window.__pineCaptureSolar = () => {
+  if (place?.id !== 'pine-gate') throw new Error('Solar proof requires the live Pine Gate scene.');
+  const uniforms = place.sky.material.uniforms;
+  const skyUniform = uniforms.uDir.value.clone();
+  const skyDirection = skyUniform.clone().applyQuaternion(place.sky.getWorldQuaternion(new THREE.Quaternion())).normalize();
+  const lightPosition = place.sun.getWorldPosition(V3());
+  const lightTarget = place.sun.target.getWorldPosition(V3());
+  const towardLight = lightPosition.clone().sub(lightTarget).normalize();
+  const project = (direction) => camera.getWorldDirection(V3()).dot(direction) <= 0 ? null
+    : camera.getWorldPosition(V3()).addScaledVector(direction, 400).project(camera).toArray().slice(0, 2);
+  return {
+    phase, diagnostic: !!pineSolarRestoreView, bakedLighting: !!place.P.bakedLighting,
+    skyUniform: skyUniform.toArray(), skyDirection: skyDirection.toArray(), discStrength: uniforms.uDisc.value,
+    lightType: place.sun.type, lightPosition: lightPosition.toArray(), lightTarget: lightTarget.toArray(),
+    towardLight: towardLight.toArray(), lightToTarget: towardLight.clone().negate().toArray(),
+    lightIntensity: place.sun.intensity, liveCastShadow: place.sun.castShadow,
+    projectedSky: project(skyDirection), projectedLight: project(towardLight),
+  };
+};
+window.__pineCaptureSolarView = async (enable) => {
+  if (place?.id !== 'pine-gate' || phase !== 'burning') throw new Error('Solar view requires settled Pine Gate burning.');
+  if (enable) {
+    if (pineSolarRestoreView) throw new Error('Solar diagnostic camera is already active.');
+    pineSolarRestoreView = { pos: rig.pos.clone(), look: rig.look.clone(), fov: rig.fov };
+    const skyDirection = V3(...window.__pineCaptureSolar().skyDirection);
+    const eye = rig.pos.clone().add(V3(0, 36, 0));
+    const look = eye.clone().add(skyDirection.applyAxisAngle(V3(0, 1, 0), .065).add(V3(0, -.045, 0)));
+    await moveCam(eye, look, .65, 12);
+  } else {
+    const saved = pineSolarRestoreView;
+    if (!saved) return;
+    await moveCam(saved.pos, saved.look, .65, saved.fov);
+    rig.fov = saved.fov;
+    pineSolarRestoreView = null;
   }
 };`, true);
   }

@@ -57,7 +57,7 @@ const directionPasses = [
   ...(realismOnly ? [] : [{ name: 'night', hour: 22, frames: ['night-burning'] }]),
 ];
 const directionMethod = realismOnly
-  ? 'The 28 s release and settled daytime burning use native product cameras and real elapsed time at 1440 × 900. A separate phone context measures readiness and render cadence. Panels are hidden only while taking screenshots.'
+  ? 'The 28 s release and settled daytime burning use native product cameras and real elapsed time at 1440 × 900. A separate pointed sky camera records the rendered solar disc after the main frames. A phone context measures readiness and render cadence. Panels are hidden only while taking screenshots.'
   : 'Two independent 1440 × 900 desktop contexts use the same private eight-sample package. The walk and both burning views use product cameras, the site overview uses a declared pose, and panels are hidden only while taking each screenshot.';
 const directionOverview = directionOnly && !realismOnly ? readDirectionOverview(process.env.CAPTURE_DIRECTION_OVERVIEW) : null;
 const readinessRepeats = Number(process.env.CAPTURE_READINESS_REPEATS ?? 1);
@@ -114,6 +114,8 @@ let delivery = null;
 let previewPackage = null;
 const manifestUrl = new URL(`${pinePackagePath}manifest.json`, base);
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
+const solarConfigPath = 'shared/pine-gate-daylight.json';
+const solarConfigBytes = realismOnly ? await readFile(join(worktree, solarConfigPath)) : null;
 async function readPublicManifest() {
   const response = await fetch(manifestUrl);
   assert(response.ok, 'The public Pine Gate bake manifest is missing.');
@@ -145,6 +147,7 @@ const report = {
   ...(quality && !readinessOnly && !audioCompare && !ambientOnly && !directionOnly ? { matchedEndingShapes: true } : {}),
   ...(directionOnly ? { directionOnly, frames: directionPasses.flatMap(pass => pass.frames), directionOverview, directionMethod } : {}),
   ...(realismOnly ? { realismOnly } : {}),
+  ...(solarConfigBytes ? { solarConfig: { file: solarConfigPath, sha256: hash(solarConfigBytes), ...JSON.parse(solarConfigBytes) } } : {}),
   ...(ambientOnly ? { ambientOnly } : {}),
   ...(audioCompare ? { audioCompare, audioSourceSha256: createHash('sha256').update(await readFile(join(worktree, 'web/src/sound.ts'))).digest('hex') } : {}),
   delivery,
@@ -339,6 +342,7 @@ async function capture(browser, browserName, size, trial) {
       lighting: !!delivery && !audioCompare && !readinessOnly,
       walkClock: direction?.name === 'day' && !phone,
       directionCamera: !!direction,
+      solarProbe: realismOnly && !phone,
     };
     if (Object.values(sceneAudit).some(Boolean)) {
       await page.route(url => url.pathname === '/src/engine/scene.js', async route => {
@@ -397,6 +401,7 @@ async function capture(browser, browserName, size, trial) {
           walkClock: window.__pineCaptureWalkClock ?? null,
           ignition: window.__visualIgnition ?? null,
           ...(window.__pineCaptureCamera ? { camera: window.__pineCaptureCamera() } : {}),
+          ...(window.__pineCaptureSolar ? { solar: window.__pineCaptureSolar() } : {}),
           canvas: [window.__renderer.domElement.width, window.__renderer.domElement.height],
           viewportOverflow: [...document.querySelectorAll('.ui button, .ui textarea, .ui h1, .ui h2')]
             .filter(item => {
@@ -421,6 +426,30 @@ async function capture(browser, browserName, size, trial) {
       console.log(browserName, label, name, JSON.stringify(snapshot.wax));
       await save();
       return { ...snapshot, ...directionProof };
+    };
+    const captureSolarDiagnostic = async () => {
+      const original = await page.evaluate(() => window.__pineCaptureCamera());
+      const diagnostic = join(output, 'diagnostics');
+      await mkdir(diagnostic, { recursive: true });
+      const file = join(diagnostic, 'solar-disc.png');
+      await page.evaluate(() => window.__pineCaptureSolarView(true));
+      try {
+        await assertCaptureGpuHealthy(page);
+        const readSolar = () => page.evaluate(() => ({ camera: window.__pineCaptureCamera(), solar: window.__pineCaptureSolar() }));
+        const before = await readSolar();
+        const png = await page.screenshot({ path: file, scale: 'css', style: '.ui { visibility: hidden !important; }' });
+        const after = await readSolar();
+        const pixels = [png.readUInt32BE(16), png.readUInt32BE(20)];
+        run.solarDiagnostic = { file: relative(output, file), sha256: hash(png), pixels, before, after };
+        assert.deepEqual(pixels, [1440, 900]);
+        assert(before.solar.diagnostic && after.solar.diagnostic);
+        assertNearestCamera(before.camera, after.camera);
+      } finally {
+        await page.evaluate(() => window.__pineCaptureSolarView(false));
+        const restored = await page.evaluate(() => window.__pineCaptureCamera());
+        if (run.solarDiagnostic) run.solarDiagnostic.restoredCamera = restored;
+        assertNearestCamera(restored, original);
+      }
     };
     const waitWax = (fn, arg) => page.waitForFunction(fn, arg, { polling: 50, timeout: 15_000 });
     const captureDiagnostic = async (name, view) => {
@@ -671,6 +700,7 @@ async function capture(browser, browserName, size, trial) {
         assert(niche.wax.state === 'burning' && niche.wax.remaining > .99 && niche.ignition.state === 'settled');
         assert(niche.camera.phase === 'burning' && !niche.camera.overview);
         assert.deepEqual(run.shots.map(shot => basename(shot.file, '.png')), direction.frames);
+        if (realismOnly) await captureSolarDiagnostic();
       }
       if (realismOnly) {
         assert(run.elevationModuleLoaded, 'The R1 runtime did not fetch the verified elevation module.');
