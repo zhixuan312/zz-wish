@@ -1588,21 +1588,49 @@ def bark_tube(name, points, radii, bark, radial):
 
 
 def ancient_bark_contour(stem, centres, sides, phase):
-    # Keep the scanned bark's metre scale UVs. Shape the large longitudinal
-    # fissures into the silhouette, with depth receding into the live crown.
+    # Coarse flutes read across the walk. Finer fissures keep the relief
+    # continuous with the scan when the visitor reaches the saddle.
+    grooves = stem.data.attributes.new('AncientBarkGrooves', 'FLOAT', 'POINT')
+    outward = math.copysign(1., centres[0].x)
     for ring, centre in enumerate(centres):
         fraction = ring / (len(centres) - 1)
         origin = mesh.point(centre)
+        lower = max(0., 1. - fraction / .38) ** .72
+        buttress = .48 * math.exp(-10.6 * fraction)
         for index in range(sides):
             angle = math.tau * index / sides
             bend = phase + 1.75 * fraction + .31 * math.sin(fraction * 11.0)
             rib = .089 * math.sin(angle * 7 + bend) + .044 * math.sin(angle * 11 - bend * .61)
             plate = .036 * math.sin(angle * 5 + fraction * 54.0 + phase)
             plate += .026 * math.sin(angle * 9 + bend + .68 * math.sin(fraction * 49.))
-            width = 1 + (rib + plate) * (1 - fraction * .72)
+            flute = .72 * math.cos(3 * angle + bend) + .28 * math.sin(2 * angle - bend * .67)
+            recess = max(0., .23 - flute)
             vertex = stem.data.vertices[ring * sides + index]
-            vertex.co = origin + (vertex.co - origin) * width
+            offset = vertex.co - origin
+            bank_side = max(0., .32 + .68 * outward * offset.x / offset.length)
+            # Developed buttress wood stays on the bank side of the path.
+            width = 1. + (rib + plate) * (1. - fraction * .72) - .19 * lower * recess
+            width += buttress * bank_side * (.68 + .32 * flute)
+            vertex.co = origin + offset * width
+            grooves.data[vertex.index].value = lower * recess / 1.23
     stem.data.update()
+
+
+def ancient_pine_roots(label, x, z, phase, bark, ground):
+    outward = math.copysign(1., x)
+    bearing = supports_height(x, z, [ground])
+    for i, (turn, reach) in enumerate(((-1.14, 1.49), (-.43, 1.73), (.35, 1.92), (1.17, 1.58))):
+        angle = turn + .10 * math.sin(phase + 2.4 * i)
+        vx, vz = outward * math.cos(angle), math.sin(angle)
+        curl = .13 * math.sin(phase + i * 2.9)
+        centres = [(x, bearing + .35, z)]
+        for t, lift in ((.31, .16), (.61, .085), (.83, .026), (1., -.063)):
+            xx = x + t * reach * vx - curl * math.sin(math.pi * t) * vz
+            zz = z + t * reach * vz + curl * math.sin(math.pi * t) * vx
+            centres.append((xx, supports_height(xx, zz, [ground]) + lift, zz))
+        width = .89 + reach * .18
+        bark_tube(f'{label} exposed buttress root {i + 1}', centres,
+                  [.25 * width, .153 * width, .090 * width, .046 * width, .010], bark, 7)
 
 
 def roadside_bark_contour(stem, centres, sides, phase):
@@ -1665,11 +1693,13 @@ def pine_tree(label, x, z, height, bark, needles, ground, roots=False, lean=None
         ancient_bark_contour(stem, centres, sides, phase)
     if roadside:
         roadside_bark_contour(stem, centres, sides, phase)
-    if roots:
-        for i in range(4 if ancient else 3):
+    if roots and ancient:
+        ancient_pine_roots(label, x, z, phase, bark if trunk_bark is None else trunk_bark, ground)
+    if roots and not ancient:
+        for i in range(3):
             direction = phase + i * 2.2
             vx, vz = math.cos(direction), math.sin(direction)
-            reach_scale = 1.53 if ancient else .95 + .13 * math.sin(phase + i * 2.6) if roadside else 1.
+            reach_scale = .95 + .13 * math.sin(phase + i * 2.6) if roadside else 1.
             start = (x, y + .34, z)
             bend = .12 * math.sin(phase + i * 2.4) if roadside else 0.
             x1, z1 = x + vx * .43 * reach_scale - vz * bend, z + vz * .43 * reach_scale + vx * bend
@@ -1983,11 +2013,11 @@ def paint_stone():
                 tint_color = [base[channel] * shade * (1 - green_mix * (1 - tone))
                               for channel, tone in enumerate((.48, .73, .43))]
                 if material.get('one_light_ancient_pine_bark'):
-                    # Oxidised plates and darker sheltered fissures over the
-                    # same bark scan, visible from the foot of the walk.
                     shield = .5 + .5 * noise.noise(Vector((world.x * 9., world.y * 9., world.z * 3.3)))
                     oxide = .5 + .5 * noise.noise(Vector((world.x * 4.6, world.y * 4.6, world.z * 1.9)))
-                    relief = .76 + .28 * shield
+                    grooves = obj.data.attributes.get('AncientBarkGrooves')
+                    furrow = grooves.data[obj.data.loops[i].vertex_index].value if grooves is not None else 0.
+                    relief = (.76 + .28 * shield) * (1. - .48 * furrow)
                     tint_color = [channel * relief * (1. - loss * oxide)
                                   for channel, loss in zip(tint_color, (.035, .16, .23))]
                 if obj.name == 'Continuous mountain shoulder':
