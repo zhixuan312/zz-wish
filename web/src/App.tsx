@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import * as engine from './engine/index.ts';
 import { placeById, type Locale, type PlaceId } from '../../shared/places.ts';
 import { DEFAULT_PLACE, VISIBLE_PLACES, isVisiblePlace } from './visiblePlaces.ts';
-import { COLORS, DEFAULT_MINUTES, MAX_MINUTES, MIN_MINUTES, PRESET_MINUTES, PRESET_SHAPES, isAllowedMinutes, shapeMinutes, sizedPreset, type Kind, type Shape } from '../../shared/rules.ts';
+import { COLORS, DEFAULT_COLOR, DEFAULT_MINUTES, MAX_MINUTES, MIN_MINUTES, PRESET_MINUTES, PRESET_SHAPES, isAllowedMinutes, shapeMinutes, sizedPreset, type Kind, type Shape } from '../../shared/rules.ts';
 import { remainingFuel } from '../../shared/wax.ts';
 import { api, ApiError, type EndReason, type Stats } from './api.ts';
 import { Burn, type Settlement } from './burn.ts';
@@ -84,7 +84,15 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
   const [preset, setPreset] = useState<number>(DEFAULT_MINUTES);
   const [strokes, setStrokes] = useState<Pt[][]>([]);
   const [drawingMinutes, setDrawingMinutes] = useState<number | null>(null);
-  const [color, setColor] = useState(1);
+  const [color, setColor] = useState(DEFAULT_COLOR.candle);
+  // A different kind starts on its own default colour; a chosen colour does not carry across
+  // kinds, because the rows differ and the same index means a different wax.
+  const colorKind = useRef<Kind>(kind);
+  useEffect(() => {
+    if (colorKind.current === kind) return;
+    colorKind.current = kind;
+    setColor(DEFAULT_COLOR[kind]);
+  }, [kind]);
   const shape: Shape | null = useMemo(() => {
     const rows = tab === 'preset' ? sizedPreset(PRESET_SHAPES[kind][presetShape].rows, preset) : rowsFromStrokes(strokes);
     return rows ? { kind, rows, color: COLORS[kind][color] } : null;
@@ -224,7 +232,7 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
     placeRef.current = id;
     setPlaceId(id);
     if (placeById(id)!.vessel !== place.vessel) {
-      setTab('preset'); setPresetShape(0); setStrokes([]); setDrawingMinutes(null); setColor(1);
+      setTab('preset'); setPresetShape(0); setStrokes([]); setDrawingMinutes(null); setColor(DEFAULT_COLOR[kind]);
     }
     previewCourt(id);
   };
@@ -234,7 +242,7 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
   });
   const backToPlace = () => { engine.setOffer(null); toPlace(); };
   const again = (id: string | null, text: string) => { setOverlay(null); setWishId(id); setWish(text); setStrokes([]); setDrawingMinutes(null); setTab('preset'); setResult(null); engine.setOffer(null); showPlace(); };
-  const startOver = () => { setWish(''); setWishId(null); setStrokes([]); setDrawingMinutes(null); setTab('preset'); setPresetShape(0); setPreset(DEFAULT_MINUTES); setColor(1); setWishHint(false); setResult(null); setScreen('wish'); run(() => engine.toCover()); };
+  const startOver = () => { setWish(''); setWishId(null); setStrokes([]); setDrawingMinutes(null); setTab('preset'); setPresetShape(0); setPreset(DEFAULT_MINUTES); setColor(DEFAULT_COLOR[kind]); setWishHint(false); setResult(null); setScreen('wish'); run(() => engine.toCover()); };
   const backToWish = () => { setScreen('wish'); run(() => engine.toCover()); };
 
   const displayMinutes = drawingMinutes ?? minutes;
