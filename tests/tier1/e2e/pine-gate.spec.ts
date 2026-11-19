@@ -86,15 +86,27 @@ test('the candle chooser starts on ivory, and switching places keeps each defaul
   // Pine Gate is a wax place: the checked swatch is Ivory.
   await expect(page.getByRole('radio', { name: /^象牙$|^Ivory$/ })).toBeChecked();
   // Back to the place screen and over to Snow Roof; its shade stays red.
-  await page.getByRole('button', { name: /回到院前|Back to the court/ }).click();
+  await page.getByRole('button', { name: /回到院前|Back outside/ }).click();
   await page.getByRole('radio', { name: /雪瓦北院|Snow Roof Court/ }).click();
   await page.getByRole('button', { name: /走进院里|Step inside/ }).click();
   await page.getByRole('button', { name: /跳过|Skip/ }).click();
   await expect(page.getByRole('radio', { name: /^红纱$|^Red gauze$/ })).toBeChecked();
   // And back to Pine Gate: ivory again.
-  await page.getByRole('button', { name: /回到院前|Back to the court/ }).click();
+  await page.getByRole('button', { name: /回到院前|Back outside/ }).click();
   await page.getByRole('radio', { name: /松门石阶|Pine Gate Steps/ }).click();
   await page.getByRole('button', { name: /走进院里|Step inside/ }).click();
   await page.getByRole('button', { name: /跳过|Skip/ }).click();
   await expect(page.getByRole('radio', { name: /^象牙$|^Ivory$/ })).toBeChecked();
+});
+
+test('the opening place, Snow Roof, starts on red gauze without touching the place picker', async ({ page }) => {
+  await page.goto('/');
+  await page.getByLabel(/你的愿望|Your wish/).fill('The default court.');
+  await page.getByRole('button', { name: /许好了|Set my wish/ }).click();
+  // No place is chosen: the opening place is Snow Roof, whose lantern is a shade.
+  await page.getByRole('button', { name: /走进院里|Step inside/ }).click();
+  await page.getByRole('button', { name: /跳过|Skip/ }).click();
+  await expect(page.getByRole('radio', { name: /^红纱$|^Red gauze$/ })).toBeChecked();
+  // Ivory gauze exists in the row but is not the default.
+  await expect(page.getByRole('radio', { name: /^素纱$|^Ivory gauze$/ })).not.toBeChecked();
 });

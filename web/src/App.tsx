@@ -84,7 +84,9 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
   const [preset, setPreset] = useState<number>(DEFAULT_MINUTES);
   const [strokes, setStrokes] = useState<Pt[][]>([]);
   const [drawingMinutes, setDrawingMinutes] = useState<number | null>(null);
-  const [color, setColor] = useState(DEFAULT_COLOR.candle);
+  // The opening place decides the kind, so the first colour must be read from it: the default
+  // place is Snow Roof, a shade place, and its lantern is red gauze.
+  const [color, setColor] = useState(() => DEFAULT_COLOR[kind]);
   // A different kind starts on its own default colour; a chosen colour does not carry across
   // kinds, because the rows differ and the same index means a different wax.
   const colorKind = useRef<Kind>(kind);
