@@ -5,7 +5,7 @@
 // sky sphere the engine pins to it every frame, and power saver from the renderer's
 // shadow-map flag, which the engine clears only in that mode.
 
-const PINE_NEEDLE_MATERIALS = ['Open pine needle sprays', 'Modelled pine needles'];
+const PINE_NEEDLE_MATERIALS = ['Open pine needle sprays', 'Modelled pine needles', 'Ridge pine needle fascicles'];
 const WIND_MATERIALS = [...PINE_NEEDLE_MATERIALS, ...[0, 1, 2, 3, 4].map((i) => `Woodland understory ${i}`)];
 
 // The authored place supplies the path, niche and mist stations so the

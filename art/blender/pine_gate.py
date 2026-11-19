@@ -1633,6 +1633,39 @@ def near_pine_fascicles(name, sprays, material):
     pine_fascicles(name, needles, material)
 
 
+# Use resolved needles where the crest review sees the old spray shells closest.
+RIDGE_FASCICLE_LEVELS = {
+    'Old pine 1 1': (0, 1, 2, 3, 4, 5, 6),
+    'Old pine 1 -1': (0, 2, 3, 6),
+    'Old pine 2 -1': (0, 1, 2, 3, 4, 5, 6),
+    'Old pine 2 1': (5, 6),
+    'Old pine 3 -1': (3, 6),
+    'Low forest verge pine 3': (6,),
+}
+
+
+def ridge_pine_fascicles(name, sprays, material):
+    rng = random.Random(name)
+    needles = []
+    for root, direction, length, diameter, roll in sprays:
+        axis = direction.normalized()
+        reach = length * .66
+        radius = max(.006, diameter * .20 - .006)
+
+        def fitted(point):
+            offset = point - root
+            along = axis * offset.dot(axis)
+            radial = offset - along
+            return root + along + radial * min(1., radius / max(.0001, radial.length))
+
+        # Each fascicle shares the surveyed attachment and axis of the old
+        # wrapped spray. Individual blades fit inside its radial envelope.
+        blades = needle_fascicle(root, axis, roll, reach, rng, dense=True, mature=True, pairs=3)
+        needles.append(tuple((root, fitted(bend), fitted(tip), max(.0033, width * 2.4))
+                             for _, bend, tip, width in blades))
+    pine_fascicles(name, needles, material)
+
+
 def ancient_scaffold_wood(name, centres, radii, material):
     sides = 8
     bough = bark_tube(name, centres, radii, material, sides)
@@ -1945,7 +1978,8 @@ def pine_bough(name, root, outward, reach, drift, droop, lift, bark, radial=5):
 
 
 def pine_tree(label, x, z, height, bark, needles, ground, roots=False, lean=None, crown_start=.38,
-              modelled_needles=None, far_crown=None, trunk_bark=None, near_needles=None):
+              modelled_needles=None, far_crown=None, trunk_bark=None, near_needles=None, ridge_needles=None):
+    ridge_levels = RIDGE_FASCICLE_LEVELS.get(label, ())
     ancient = lean is not None
     roadside = not ancient and z >= 12. and abs(x) < 5.
     y = supports_height(x, z, [ground]) - .26
@@ -2047,6 +2081,8 @@ def pine_tree(label, x, z, height, bark, needles, ground, roots=False, lean=None
             name = f'{label} needle clusters {i} {bough}'
             if near_needles is not None and i < 2:
                 near_pine_fascicles(name, sprays, near_needles)
+            elif ridge_needles is not None and i in ridge_levels:
+                ridge_pine_fascicles(name, sprays, ridge_needles)
             else:
                 pine_sprays(name, sprays, needles, close=carries_forks or z < 3)
     if profile and not use_native_crown:
@@ -2067,7 +2103,11 @@ def pine_tree(label, x, z, height, bark, needles, ground, roots=False, lean=None
         length = height * (.117 - .020 * order)
         leader.append((origin, axis, length, length * 1.12, roll))
     if modelled_needles is None:
-        pine_sprays(f'{label} short leader growth', leader, needles, close=carries_forks or z < 3)
+        name = f'{label} short leader growth'
+        if ridge_needles is not None and 6 in ridge_levels:
+            ridge_pine_fascicles(name, leader, ridge_needles)
+        else:
+            pine_sprays(name, leader, needles, close=carries_forks or z < 3)
     else:
         shoots.extend((root, axis, .51 * length, .20 * length, roll) for root, axis, length, _, roll in leader)
         canopy = shoulder_pine_needles if shoulder_crown else pine_needles
@@ -2264,11 +2304,13 @@ def crest_ribbons(label, trunk_at, cloth):
 def forest(ground, rock, stone, bark, pine, far_crown=None):
     needles = needle_material()
     modelled_needles = mesh.material('Modelled pine needles', '#587541', rough=.78)
+    ridge_needles = mesh.material('Ridge pine needle fascicles', '#526b3e', rough=.82)
     for i, z in enumerate((13, 17, 22, 27, 32, 38, 44, 49)):
         for s in (-1, 1):
             x = s * RANDOM.uniform(3.95 if z > 42 else 2.58, 4.46)
             pine_tree(f'Old pine {i + 1} {s}', x, z + RANDOM.uniform(-1.6, 1.6),
-                      RANDOM.uniform(6.1, 10.4), bark, needles, ground, roots=z >= 14)
+                      RANDOM.uniform(6.1, 10.4), bark, needles, ground, roots=z >= 14,
+                      ridge_needles=ridge_needles)
     west_label = 'Ancient western pine at the saddle'
     old_bark = apply_scan(mesh.material('Fissured bark on the ancient saddle pines', '#af9684'),
                           'knotted_pine_bark', .91)
@@ -2295,7 +2337,7 @@ def forest(ground, rock, stone, bark, pine, far_crown=None):
                                            (3.12, 16.1, 4.8), (-3.36, 13.1, 5.05))):
         label = f'Low forest verge pine {index + 1}'
         trunk_at = pine_tree(label, x, z, height, bark, needles, ground, roots=True, crown_start=.19,
-                             near_needles=modelled_needles if index < 2 else None)
+                             near_needles=modelled_needles if index < 2 else None, ridge_needles=ridge_needles)
         if index >= 2:
             # The mid-slope pines carry separate, asymmetrical overhead
             # branches. Their twigs screen the valley until the walker reaches
