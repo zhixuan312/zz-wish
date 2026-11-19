@@ -726,6 +726,103 @@ def pine_sprays(name, sprays, tint, *, close=False):
             uv.data[i].uv = coordinate
 
 
+MODELLED_PINE_CROWNS = {
+    'Back ridge pine 5', 'Back ridge pine 6',
+    'Layered ridge pine 1', 'Layered ridge pine 2', 'Layered ridge pine 4',
+    'Layered ridge pine 5', 'Layered ridge pine 6',
+}
+
+
+def pine_needles(name, shoots, material):
+    points, faces, charts, wind_uv = [], [], [], []
+    rng = random.Random(name)
+    samples = (0., .24, .51, .79)
+    for start, direction, length, radius, roll in shoots:
+        axis = Vector(direction).normalized()
+        side = axis.cross(Vector((0., 1., 0.)))
+        if side.length < .01:
+            side = axis.cross(Vector((1., 0., 0.)))
+        side.normalize()
+        side.rotate(Matrix.Rotation(roll, 3, axis))
+        up = axis.cross(side)
+        curve = rng.uniform(.12, .34)
+        first_vertex = len(points)
+        layout, sway = [], []
+        # A thin stem connects every curved needle in the chart. No part
+        # spans a whole tuft and none of the needle tips share a cut edge.
+        for f in samples:
+            center = start + axis * (length * f) + up * (length * curve * f * f)
+            half = max(.0025, radius * .035) * (1. - .63 * f)
+            for sign in (-1, 1):
+                points.append(center + side * (half * sign))
+                layout.append((half * sign, length * f))
+                sway.append(((sign + 1) * .5, .92 * f))
+
+        def surface(corners):
+            faces.append(tuple(first_vertex + j for j in corners))
+            charts.append([layout[j] for j in corners])
+
+        for i, (a, b) in enumerate(zip(samples, samples[1:])):
+            left, right, next_left, next_right = range(i * 2, i * 2 + 4)
+            surface((left, right, next_right, next_left))
+            for sign, root, next_root in ((-1, left, next_left), (1, right, next_right)):
+                root_pos = points[first_vertex + root].lerp(points[first_vertex + next_root], .43)
+                reach = radius * rng.uniform(.66, 1.26) * (1. - .39 * a)
+                slant = rng.uniform(-1.09, 1.22)
+                outward = side * (sign * math.cos(slant)) + up * math.sin(slant)
+                middle = root_pos + outward * (reach * .72) + axis * (reach * rng.uniform(.47, .73))
+                tip = root_pos + outward * (reach * .99) + axis * (reach * rng.uniform(.86, 1.31))
+                j = len(layout)
+                points.extend((middle, tip))
+                root_u = layout[root][0]
+                layout.extend(((root_u + sign * reach * .64, length * (a * .72 + b * .28)),
+                               (root_u + sign * reach * .96, length * (a * .22 + b * .78))))
+                sway.extend((((sign + 1) * .5, .99 * a + .24), ((sign + 1) * .5, .98 * a + .42)))
+                if sign == -1:
+                    surface((root, next_root, j + 1))
+                    surface((root, j + 1, j))
+                else:
+                    surface((next_root, root, j))
+                    surface((next_root, j, j + 1))
+        wind_uv.extend(sway)
+
+    canopy = mesh.mesh_object(name, points, faces, material, 'approach')
+    source_uv(canopy, charts, 'Connected metre-scale pine stem and needle charts.')
+    uv = canopy.data.uv_layers['UVMap']
+    for face in canopy.data.polygons:
+        face.use_smooth = True
+        for i, vertex in zip(face.loop_indices, face.vertices):
+            uv.data[i].uv = wind_uv[vertex]
+
+
+def pine_branch_shoots(name, branch, reach, rng, bark):
+    joint, bend, tip = branch[1:]
+    axis = (tip - joint).normalized()
+    side = axis.cross(Vector((0., 1., 0.))).normalized()
+    up = Vector((0., 1., 0.))
+    spread = rng.choice((-1., 1.))
+    scale = min(1.05, .68 + reach * .18)
+    anchor = joint.lerp(bend, rng.uniform(.40, .68))
+    twig_axis = (axis + side * (spread * rng.uniform(.43, .85)) + up * rng.uniform(.07, .28)).normalized()
+    twig_length = min(.53, reach * rng.uniform(.25, .36))
+    elbow = anchor + twig_axis * (twig_length * .58)
+    twig_tip = anchor + twig_axis * twig_length + up * (twig_length * .17)
+    bark_tube(f'{name} short foliage fork', [anchor, elbow, twig_tip], [.012 * scale, .007 * scale, .0025], bark, 3)
+    # Stagger growth along the bough and around its short lateral fork.
+    stems = [
+        (joint.lerp(bend, rng.uniform(.21, .47)), axis - side * (spread * .62), 1.0),
+        (anchor.lerp(elbow, .68), twig_axis + up * .32, .96),
+        (elbow.lerp(twig_tip, .64), twig_axis + side * (spread * .49) + up * .13, .88),
+        (bend.lerp(tip, rng.uniform(.27, .48)), axis - side * (spread * .63) + up * .18, .94),
+        (bend.lerp(tip, rng.uniform(.63, .87)), axis + up * .31, .70),
+    ]
+    if reach > 1.20:
+        stems.append((joint.lerp(bend, .72), axis + side * (spread * .53) + up * .36, .84))
+    return [(root, direction + up * rng.uniform(-.18, .21), rng.uniform(.36, .57) * scale * age,
+             rng.uniform(.23, .36) * scale * age, rng.uniform(-2.5, 2.5))
+            for root, direction, age in stems]
+
+
 def bark_tube(name, points, radii, bark, radial):
     # Reuse the tube's axial unwrapping so the scanned grain follows the
     # length of the trunk and the curved boughs, across their front faces.
@@ -747,7 +844,8 @@ def pine_bough(name, root, outward, reach, drift, droop, lift, bark, radial=5):
     return points
 
 
-def pine_tree(label, x, z, height, bark, needles, ground, roots=False, lean=None, crown_start=.38):
+def pine_tree(label, x, z, height, bark, needles, ground, roots=False, lean=None, crown_start=.38,
+              modelled_needles=None):
     ancient = lean is not None
     y = supports_height(x, z, [ground]) - .26
     drift = RANDOM.uniform(-.95, .95) if lean is None else lean
@@ -779,6 +877,8 @@ def pine_tree(label, x, z, height, bark, needles, ground, roots=False, lean=None
             bark_tube(f'{label} exposed buttress root', [start, middle, end],
                       [.074 * reach_scale, .038 * reach_scale, .008], bark, 7)
     carries_forks = ancient or (z < 3 and abs(x) < 8)
+    shoots = []
+    crown_rng = random.Random(label)
     if not ancient and z < 3:
         crown_start = min(crown_start, .28)
     for i in range(7):
@@ -799,6 +899,9 @@ def pine_tree(label, x, z, height, bark, needles, ground, roots=False, lean=None
             branch = pine_bough(f'{label} rising bough {i} {bough}', root, direction, reach,
                                 (turn - .5) * .47, .035 + droop * .106, .11 + lift * .20, bark,
                                 radial=6 if ancient else 5)
+            if modelled_needles is not None:
+                shoots.extend(pine_branch_shoots(f'{label} bough {i}.{bough}', branch, reach, crown_rng, bark))
+                continue
             inner = branch[1].lerp(branch[2], .22 + lower * .55)
             inner_axis = direction + side_vector * (fork - .5) * .88 + Vector((0, .23 + .33 * leader, 0))
             outer = branch[2].lerp(branch[3], .25 + upper * .42)
@@ -824,12 +927,16 @@ def pine_tree(label, x, z, height, bark, needles, ground, roots=False, lean=None
         axis = (trunk_at(1.) - origin).normalized() + Vector((.57 * math.cos(angle), 0, .57 * math.sin(angle)))
         length = height * (.117 - .020 * order)
         leader.append((origin, axis, length, length * 1.12, roll))
-    pine_sprays(f'{label} short leader growth', leader, needles, close=carries_forks or z < 3)
+    if modelled_needles is None:
+        pine_sprays(f'{label} short leader growth', leader, needles, close=carries_forks or z < 3)
+    else:
+        shoots.extend((root, axis, .51 * length, .20 * length, roll) for root, axis, length, _, roll in leader)
+        pine_needles(f'{label} modelled live needles', shoots, modelled_needles)
     if ancient:
         return at
 
 
-def distant_pines(ground, bark, needles):
+def distant_pines(ground, bark, needles, modelled_needles):
     # Keep the staggered ridge positions; narrow older leaders disappear
     # among irregular live crowns rather than sticking above a few bare arms.
     trees = [(-4.2, -3.6, 6.9), (-6.6, -5.2, 9.4), (-9.5, -7.0, 7.9),
@@ -847,7 +954,9 @@ def distant_pines(ground, bark, needles):
         label = f'Layered ridge pine {i + 1}'
         bark_tube(f'{label} tapered trunk', positions,
                   [height * (.00065 + .0155 * (1. - t) ** 1.21) for t in levels], bark, 7)
-        sprays = []
+        sprays, shoots = [], []
+        model_crown = label in MODELLED_PINE_CROWNS
+        crown_rng = random.Random(label)
         for tier in range(len(levels) - 2):
             stems = 2 if (i < 6 and tier < 4) or tier in (1, 3) else 1
             for bough in range(stems):
@@ -863,17 +972,24 @@ def distant_pines(ground, bark, needles):
                 along.y += rng.uniform(.13, .37)
                 length = .33 + reach * rng.uniform(.55, .74)
                 sprays.append((origin, along, length, length * rng.uniform(1.12, 1.47), rng.uniform(-.7, 1.7)))
+                if model_crown:
+                    shoots.extend(pine_branch_shoots(f'{label} bough {tier + 1}.{bough + 1}', branch, reach, crown_rng, bark))
         for order, roll in enumerate((.27, -.42)):
             origin = positions[-3].lerp(positions[-2], .28 + order * .43)
             axis = (positions[-1] - origin).normalized()
             axis += Vector((.48 * math.cos(phase + order * 1.8), 0, .48 * math.sin(phase + order * 1.8)))
             length = height * (.140 - .027 * order)
             sprays.append((origin, axis, length, length * 1.13, roll))
-        pine_sprays(f'{label} needle crown', sprays, needles, close=True)
+        if model_crown:
+            shoots.extend((root, axis, .52 * length, .22 * length, roll) for root, axis, length, _, roll in sprays[-2:])
+            pine_needles(f'{label} modelled live needles', shoots, modelled_needles)
+        else:
+            pine_sprays(f'{label} needle crown', sprays, needles, close=True)
 
 
 def forest(ground, rock, stone, bark, pine):
     needles = needle_material()
+    modelled_needles = mesh.material('Modelled pine needles', '#587541', rough=.78)
     for i, z in enumerate((13, 17, 22, 27, 32, 38, 44, 49)):
         for s in (-1, 1):
             x = s * RANDOM.uniform(3.95 if z > 42 else 2.58, 4.46)
@@ -892,14 +1008,16 @@ def forest(ground, rock, stone, bark, pine):
         source_uv(ribbon, [[(0., 0.), (.068, 0.), (.068, .21), (0., .21)]], 'A loose ribbon beside its knot.')
     for i, (x, z, h) in enumerate(((-10, 0, 10), (12, -3, 9), (8, -14, 7), (-7, -10, 8),
                                    (-4, -6, 7), (4, -8, 8), (15, 18, 9), (-17, 19, 9))):
-        pine_tree(f'Back ridge pine {i + 1}', x, z, h, bark, needles, ground)
+        label = f'Back ridge pine {i + 1}'
+        pine_tree(label, x, z, h, bark, needles, ground,
+                  modelled_needles=modelled_needles if label in MODELLED_PINE_CROWNS else None)
     # Shorter pines overhang the older stone and screen the buildings
     # through the middle approach. Their crowns open up at the saddle.
     for index, (x, z, height) in enumerate(((-2.73, 26.8, 5.5), (2.65, 25.1, 5.8),
                                            (3.12, 16.1, 4.8), (-3.36, 13.1, 5.05))):
         pine_tree(f'Low forest verge pine {index + 1}', x, z, height, bark, needles, ground,
                   roots=True, crown_start=.19)
-    distant_pines(ground, bark, needles)
+    distant_pines(ground, bark, needles, modelled_needles)
     understory(ground, pine)
     # These iron-gray outcrops are part of the bank. Their lower bands extend
     # below the terrain and their exposed corners interrupt the bare slope.

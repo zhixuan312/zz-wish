@@ -5,7 +5,8 @@
 // sky sphere the engine pins to it every frame, and power saver from the renderer's
 // shadow-map flag, which the engine clears only in that mode.
 
-const WIND_MATERIALS = ['Open pine needle sprays', ...[0, 1, 2, 3, 4].map((i) => `Woodland understory ${i}`)];
+const PINE_NEEDLE_MATERIALS = ['Open pine needle sprays', 'Modelled pine needles'];
+const WIND_MATERIALS = [...PINE_NEEDLE_MATERIALS, ...[0, 1, 2, 3, 4].map((i) => `Woodland understory ${i}`)];
 
 // The authored place supplies the path, niche and mist stations so the
 // effects follow its layout as the stairs and terrace move.
@@ -23,11 +24,11 @@ export function createPineGateLife({
   // ---------- Wind ----------
   // Wind bends each connected island. Undergrowth stays pinned at its
   // lowest vertex, where the blade meets the soil.
-  // Pine spray cards stay pinned along their authored branch edge. Blender
-  // v=0 becomes glTF v=1; the opposite edge is the moving tip.
+  // Pine needle meshes stay pinned along their authored branch edge. Blender
+  // v=0 becomes glTF v=1. The UV progression controls sway toward the tips.
   const swayStats = [];
 
-  function islandWeights(geometry, start, count, isSpray) {
+  function islandWeights(geometry, start, count, isNeedle) {
     const position = geometry.attributes.position;
     const index = geometry.index;
     const triangles = count / 3;
@@ -47,10 +48,10 @@ export function createPineGateLife({
     const stats = { islands: islands.size, rootsAboveTolerance: 0, minRootHeight: Infinity,
       attachEdgeVertices: 0, maxAttachEdgeWeight: null };
     const uv = geometry.attributes.uv;
-    if (isSpray && !uv) throw new Error('Pine needle sprays require their authored UVs.');
+    if (isNeedle && !uv) throw new Error('Pine needles require their authored UVs.');
     const vertex = new THREE.Vector3(), root = new THREE.Vector3();
     for (const verts of islands.values()) {
-      if (isSpray) {
+      if (isNeedle) {
         // The whole edge shares v=1, even when the two corners sit at
         // different heights or a rolled card points down.
         for (const v of verts) {
@@ -99,8 +100,8 @@ export function createPineGateLife({
       const material = part.material;
       if (!material || !WIND_MATERIALS.includes(material.name) || material.userData.pineWind) continue;
       material.userData.pineWind = true;
-      const isSpray = material.name === 'Open pine needle sprays';
-      const { weights, stats } = islandWeights(object.geometry, part.start, part.count, isSpray);
+      const isNeedle = PINE_NEEDLE_MATERIALS.includes(material.name);
+      const { weights, stats } = islandWeights(object.geometry, part.start, part.count, isNeedle);
       const attribute = new THREE.BufferAttribute(weights, 1);
       attribute.setUsage(THREE.StaticDrawUsage);
       object.geometry.setAttribute('aPineSway', attribute);
