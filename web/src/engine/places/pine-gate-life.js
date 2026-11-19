@@ -172,10 +172,16 @@ export function createPineGateLife({
   own(() => { for (const { sprite } of mist) { group.remove(sprite); sprite.material.dispose(); } });
 
   // ---------- Falling needles ----------
-  // A small instanced quad is enough at this distance; each needle spins as it falls
-  // and is recycled once it passes the stones below the path point it dropped from.
+  // A tapered needle bends in two axes so its silhouette stays slender as it turns.
   const NEEDLE_COUNT = 40;
-  const needleGeometry = new THREE.PlaneGeometry(0.011, 0.075);
+  const needleGeometry = new THREE.BufferGeometry();
+  needleGeometry.setAttribute('position', new THREE.Float32BufferAttribute([
+    -.00045, -.037, 0, .00045, -.037, 0,
+    -.0001, -.013, .002, .0015, -.013, .002,
+    .0028, .012, .006, .0041, .012, .006,
+    .0089, .037, .012,
+  ], 3));
+  needleGeometry.setIndex([0, 1, 2, 2, 1, 3, 2, 3, 4, 4, 3, 5, 4, 5, 6]);
   const needleMaterial = new THREE.MeshBasicMaterial({
     color: 0x40351f, side: THREE.DoubleSide, transparent: true, opacity: 0.8, depthWrite: false,
   });
@@ -282,15 +288,18 @@ export function createPineGateLife({
       let liveNeedles = 0;
       if (motesOn) {
         const matrix = new THREE.Matrix4(), quat = new THREE.Quaternion(), euler = new THREE.Euler();
+        const needleScale = new THREE.Vector3();
         for (const needle of needles) {
           if (!needle.alive) continue;
           needle.p.y -= needle.fall * dt;
           needle.p.x += Math.sin(elapsed * 1.3 + needle.seed) * needle.sway * dt;
           needle.p.z += Math.cos(elapsed * 0.9 + needle.seed * 1.7) * needle.sway * 0.6 * dt;
           if (needle.p.y < needle.floorY) { needle.alive = false; continue; }
+          const eyeClearance = THREE.MathUtils.smoothstep(needle.p.distanceToSquared(cameraAt), .85 ** 2, 1.55 ** 2);
+          if (eyeClearance === 0) continue;
           euler.set(elapsed * needle.spin, needle.seed + elapsed * needle.spin * 0.7, Math.sin(elapsed * 1.1 + needle.seed) * 0.8);
           quat.setFromEuler(euler);
-          matrix.compose(needle.p, quat, { x: 1, y: 1, z: 1 });
+          matrix.compose(needle.p, quat, needleScale.setScalar(eyeClearance));
           needleMesh.setMatrixAt(liveNeedles++, matrix);
         }
       }
