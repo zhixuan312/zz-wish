@@ -221,24 +221,39 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
   const open = (o: Overlay) => { if (burnRef.current && !burnRef.current.isSettled) setAskLeave(o); else setOverlay(o); };
   const leaveAndOpen = () => { afterSettle.current = askLeave; setAskLeave(null); burnRef.current?.settle('navigated'); };
 
+  // The engine keeps one place's past lamps at a time, so the request is keyed on the
+  // place and a slower reply for a court already left is dropped rather than applied.
+  const pastLampVersion = useRef(0);
+  const loadPastLamps = useCallback((id: PlaceId) => {
+    const version = ++pastLampVersion.current;
+    void api.myCandles().then(({ candles }) => {
+      if (version !== pastLampVersion.current) return;
+      engine.setOwnPastLamps(
+        candles.filter((c) => c.placeId === id && c.status !== 'burning').map((c) => ({
+          shape: c.shape, color: c.shape.color, status: c.status,
+          remaining: c.durationMs > 0 ? Math.max(0, 1 - c.burnedMs / c.durationMs) : 0,
+        })),
+      );
+    }).catch(() => {});
+  }, []);
+
   // Navigation between steps; the scene moves with them.
   const showPlace = () => {
     setWishHint(false); setScreen('place');
     void run(async () => { await preparePlace(placeId); await engine.previewPlace(placeId); }).catch(() => setPlaceLoad((value) => ({ ...value, stage: 'error' })));
-    // Hand the engine this visitor's own finished lamps for the court they return to.
-    // It stores them; a court without past lamp slots draws nothing.
-    void api.myCandles().then(({ candles }) => engine.setOwnPastLamps(
-      candles.filter((c) => c.placeId === placeId && c.status !== 'burning').map((c) => ({
-        shape: c.shape, color: c.shape.color, status: c.status,
-        remaining: c.durationMs > 0 ? Math.max(0, 1 - c.burnedMs / c.durationMs) : 0,
-      })),
-    )).catch(() => {});
+    loadPastLamps(placeId);
   };
   const toPlace = () => {
     if (!wish.trim()) { setWishHint(true); wishField.current?.focus(); return; }
     showPlace();
   };
-  const pickPlace = (id: PlaceId) => { if (!isVisiblePlace(id)) return; setPlaceId(id); if (placeById(id)!.vessel !== place.vessel) { setTab('preset'); setPresetShape(0); setStrokes([]); setColor(1); } void run(async () => { await preparePlace(id); await engine.previewPlace(id); }).catch(() => setPlaceLoad((value) => ({ ...value, stage: 'error' }))); };
+  const pickPlace = (id: PlaceId) => {
+    if (!isVisiblePlace(id)) return;
+    setPlaceId(id);
+    if (placeById(id)!.vessel !== place.vessel) { setTab('preset'); setPresetShape(0); setStrokes([]); setColor(1); }
+    loadPastLamps(id);
+    void run(async () => { await preparePlace(id); await engine.previewPlace(id); }).catch(() => setPlaceLoad((value) => ({ ...value, stage: 'error' })));
+  };
   const goTravel = () => run(async () => {
     engine.setOffer(shape); setScreen('travel');
     await engine.travel(placeId); setScreen('candle');
