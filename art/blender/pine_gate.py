@@ -597,11 +597,15 @@ def understory(ground, foliage):
         source_uv(plant, charts, 'Connected metre-scale charts for individual rooted leaves.')
 
 
+NEEDLE_AROUND = (0., .31, .69, 1.)
+
+
 def needle_material():
     import numpy as np
 
-    # Every card has a whole branch of overlapping needle fascicles, with
-    # ragged live tips and small openings for light within the crown.
+    # Three neighbouring banks of fascicles wrap different sides of a twig.
+    # Leave the stem to the geometry. A prominent painted spine gives every
+    # spray the silhouette of a single broad frond.
     size = 384
     rgba = np.zeros((size, size, 4), dtype=np.float32)
     rgba[..., :3] = (.070, .131, .062)
@@ -621,47 +625,25 @@ def needle_material():
         patch[fresher, :3] = color
         patch[fresher, 3] = coverage[fresher]
 
-    bark_tone = (.104, .072, .040)
-    shades = [(.064, .111, .046), (.072, .137, .058), (.104, .174, .066),
-              (.132, .203, .083), (.151, .218, .091), (.091, .157, .075)]
-
-    def shoot(start, end, strength, count):
-        dx, dy = end[0] - start[0], end[1] - start[1]
-        heading = math.atan2(dx, dy)
-        stroke(start, end, strength, bark_tone)
-        for cluster in range(count):
-            t = .11 + .89 * cluster / (count - 1)
-            x = start[0] + dx * t
-            y = start[1] + dy * t
-            open_length = (.038 + .073 * math.sin(math.pi * t * .82)) * rng.uniform(.66, 1.22)
-            for needle in range(9):
-                side = -1 if needle % 2 else 1
-                a = heading + side * rng.uniform(.19, 1.16)
-                length = open_length * rng.uniform(.42, 1.13)
-                vx, vy = math.sin(a), math.cos(a)
-                # Shorten individual needles near the atlas margin. Trimming the
-                # whole image creates a row of abruptly flat tips in the crown.
-                max_x = (.961 - x) / vx if vx > 0 else (.039 - x) / min(vx, -1e-8)
-                max_y = (.957 - y) / vy if vy > 0 else (.034 - y) / min(vy, -1e-8)
-                length = min(length, max_x * rng.uniform(.87, 1.), max_y * rng.uniform(.87, 1.))
-                if length > .003:
-                    tip = (x + length * vx, y + length * vy)
-                    stroke((x, y), tip, rng.uniform(.52, 1.26),
-                           shades[(cluster + needle + int(t * 9)) % len(shades)])
-
-    stroke((.5, .027), (.520, .51), 1.35, bark_tone)
-    stroke((.520, .51), (.47, .86), .87, bark_tone)
-    for tier in range(11):
-        y = .115 + .062 * tier
-        width = (.11 + .27 * math.sin(math.pi * (y - .10) / .73) ** .76) * rng.uniform(.71, 1.14)
-        for side in (-1, 1):
-            root = (.50 + .026 * math.sin((y - .07) * 7), y + rng.uniform(-.014, .026))
-            tip = (.50 + side * width * rng.uniform(.66, 1.03),
-                   min(.886, y + rng.uniform(.093, .170)))
-            fork = (root[0] * .44 + tip[0] * .56, root[1] * .55 + tip[1] * .45)
-            shoot(root, tip, rng.uniform(.53, .92), 8)
-            shoot(fork, (tip[0] * .78 + root[0] * .22, tip[1] + rng.uniform(.032, .064)), .60, 7)
-    shoot((.516, .57), (.47, .879), .82, 10)
+    shades = [(.032, .062, .025), (.048, .091, .033), (.057, .115, .033),
+              (.080, .139, .046), (.102, .169, .051), (.073, .117, .041)]
+    for panel, (lo, hi) in enumerate(zip(NEEDLE_AROUND, NEEDLE_AROUND[1:])):
+        span = hi - lo
+        for whorl in range(12):
+            y = .093 + whorl * .060 + panel * .009 + rng.uniform(-.038, .038)
+            arch = math.sin(math.pi * (.16 + .76 * whorl / 11))
+            stem = .49 + .11 * math.sin(y * 6.2 + 2.2 * panel)
+            for side in (-1, 1):
+                root = lo + span * (stem + side * rng.uniform(.025, .12))
+                rise = rng.uniform(.081, .177)
+                reach = span * arch * rng.uniform(.21, .39)
+                for _ in range(12):
+                    v = y + rng.uniform(-.028, .045)
+                    u = root + span * rng.uniform(-.051, .051)
+                    free = hi - u if side == 1 else u - lo
+                    sideways = min(reach * rng.uniform(.33, 1.18), max(0., free - span * .044) * rng.uniform(.78, .98))
+                    forward = min(rise * rng.uniform(.49, 1.2), (.954 - v) * rng.uniform(.87, .99))
+                    stroke((u, v), (u + side * sideways, v + forward), rng.uniform(.67, 1.32), rng.choice(shades))
 
     image = bpy.data.images.new('Pine needle spray RGBA', width=size, height=size, alpha=True)
     image.alpha_mode = 'STRAIGHT'
@@ -685,37 +667,46 @@ def needle_material():
     return material
 
 
-def pine_sprays(name, sprays, tint, *, curved=False):
+def pine_sprays(name, sprays, tint, *, close=False):
     points, faces, charts, material_uvs = [], [], [], []
-    # The silhouettes around the court get one more bend along the shoot.
-    # Each shoot still uses one chart and the whole v=0 edge stays pinned.
-    sections = ((0, .51), (.43, 1.18), (1, .43)) if curved else ((0, .95), (1, .78))
-    for index, (start, direction, length, width, roll) in enumerate(sprays):
+    # A tuft wraps around its twig in three curved panels. The base row is
+    # pinned for wind; the higher rows bend in different directions.
+    rows = ((0., .18), (.46, 1.), (1., .37)) if close else ((0., .39), (1., .63))
+    for index, (start, direction, length, diameter, roll) in enumerate(sprays):
         a, axis = Vector(start), Vector(direction).normalized()
         side = axis.cross(Vector((0, 1, 0)))
         if side.length < .01:
             side = axis.cross(Vector((1, 0, 0)))
         side.normalize()
         side.rotate(Matrix.Rotation(roll, 3, axis))
-        normal = axis.cross(side)
-        bend = .083 * length * (1 if index % 2 else -1)
+        up = axis.cross(side)
+        radius = diameter * .32
+        sweep = math.radians(286)
+        perimeter = 2 * radius * sum(math.sin(sweep * (b - a) / 2)
+                                     for a, b in zip(NEEDLE_AROUND, NEEDLE_AROUND[1:]))
         n = len(points)
         shape, local_uvs = [], []
-        for t, width_scale in sections:
-            spread = width * width_scale / 2
-            curved_side = side.copy()
-            curved_side.rotate(Matrix.Rotation((t - .38) * .56, 3, axis))
-            center = a + axis * (length * t) + normal * (bend * math.sin(t * math.pi))
-            points.extend((center - curved_side * spread, center + curved_side * spread))
-            shape.extend(((-spread, length * t), (spread, length * t)))
-            local_uvs.extend(((1 if index % 2 else 0, t), (0 if index % 2 else 1, t)))
-        for row in range(len(sections) - 1):
-            corners = (row * 2, row * 2 + 1, row * 2 + 3, row * 2 + 2)
-            faces.append(tuple(n + j for j in corners))
-            charts.append([shape[j] for j in corners])
-            material_uvs.append([local_uvs[j] for j in corners])
+        for t, spread in rows:
+            bend = ((.44 if index % 2 else -.42) * math.sin(t * 2.7)) * radius
+            center = a + axis * (length * t) + up * bend
+            for s in NEEDLE_AROUND:
+                angle = (s - .5) * sweep + t * .43
+                lean = .88 + .15 * math.sin(index * 2.4 + s * 6 + t * 2)
+                offset = side * math.cos(angle) + up * (math.sin(angle) * lean)
+                points.append(center + offset * (spread * radius))
+                shape.append(((s - .5) * perimeter * spread, length * t))
+                local_uvs.append((s if index % 2 else 1. - s, t))
+        columns = len(NEEDLE_AROUND)
+        for row in range(len(rows) - 1):
+            for column in range(columns - 1):
+                i = row * columns + column
+                # Increasing azimuth followed by axial travel faces out.
+                corners = (i, i + 1, i + columns + 1, i + columns)
+                faces.append(tuple(n + j for j in corners))
+                charts.append([shape[j] for j in corners])
+                material_uvs.append([local_uvs[j] for j in corners])
     obj = mesh.mesh_object(name, points, faces, tint, 'approach')
-    source_uv(obj, charts, 'Connected tapered charts for anchored pine needle sprays.')
+    source_uv(obj, charts, 'Connected metre-scale wrapping charts for rooted pine fascicles.')
     uv = obj.data.uv_layers['UVMap']
     for face, corners in zip(obj.data.polygons, material_uvs):
         face.use_smooth = True
@@ -732,6 +723,16 @@ def bark_tube(name, points, radii, bark, radial):
     for target, axial in zip(material.data, source.data):
         target.uv = (axial.uv.x / .88, axial.uv.y / 1.46)
     return obj
+
+
+def pine_bough(name, root, outward, reach, drift, droop, lift, bark, radial=5):
+    side = Vector((-outward.z, 0, outward.x))
+    points = [root + outward * (reach * t) +
+              side * (reach * drift * t * (.48 + .52 * t)) +
+              Vector((0, reach * (lift * t ** 3 - droop * t), 0))
+              for t in (0., .26, .61, 1.)]
+    bark_tube(name, points, [reach * r for r in (.050, .037, .019, .0025)], bark, radial)
+    return points
 
 
 def pine_tree(label, x, z, height, bark, needles, ground, roots=False, lean=None, crown_start=.38):
@@ -767,54 +768,51 @@ def pine_tree(label, x, z, height, bark, needles, ground, roots=False, lean=None
                       [.074 * reach_scale, .038 * reach_scale, .008], bark, 7)
     carries_forks = ancient or (z < 3 and abs(x) < 8)
     if not ancient and z < 3:
-        crown_start = min(crown_start, .29)
+        crown_start = min(crown_start, .28)
     for i in range(7):
-        f = (.31 + .095 * i) if ancient else (crown_start + (.90 - crown_start) * i / 6)
+        height_fraction = (.31 + .095 * i) if ancient else crown_start + (.89 - crown_start) * i / 6
         for bough in range(2):
-            a = phase + i * 2.4 + bough * 2.7 + RANDOM.uniform(-.28, .28)
-            radial = Vector((math.cos(a), 0, math.sin(a)))
-            normal = Vector((-radial.z, 0, radial.x))
-            root = trunk_at(f + bough * .012)
-            reach = height * (.208 - i * .0165) * RANDOM.uniform(.76, 1.24) * (1 if bough == 0 else .78)
-            # Successive forks bend gradually. Needles start along the wood,
-            # rather than appearing only where a long bare branch runs out.
-            sag = -.077 + .009 * i
-            joint = root + radial * reach * .34 + Vector((0, sag * reach, 0))
-            bridge = root + radial * reach * .68 + normal * (.085 * reach) + Vector((0, sag * .44 * reach, 0))
-            tip = root + radial * reach + normal * (.16 * reach) + Vector((0, .093 * reach, 0))
-            bark_tube(f'{label} articulated bough {i} {bough}', [root, joint, bridge, tip],
-                      [reach * t for t in (.070, .047, .026, .003)], bark, 6)
-            sprays = []
-            for q, (start, finish) in enumerate(((root, joint), (joint, bridge), (bridge, tip))):
-                attachment = start.lerp(finish, (.73, .51, .49)[q])
-                second_attachment = start.lerp(finish, (.91, .73, .77)[q])
-                side_sign = -1 if q % 2 else 1
-                along = radial * RANDOM.uniform(.60, .87) + normal * side_sign * RANDOM.uniform(.36, .62)
-                along.y = .17 + RANDOM.random() * .48
-                length = (.33 + reach * .42) * RANDOM.uniform(.89, 1.25)
-                width = length * RANDOM.uniform(.72, .97)
-                roll = RANDOM.uniform(-.50, .42)
-                if carries_forks and q == 1:
-                    fork_length = length * .35
-                    fork_axis = along.normalized()
-                    fork_mid = attachment + fork_axis * (fork_length * .44) + Vector((0, -.022 * length, 0))
-                    fork_tip = attachment + fork_axis * fork_length + Vector((0, .051 * length, 0))
-                    bark_tube(f'{label} lateral fork {i} {bough}', [attachment, fork_mid, fork_tip],
-                              [fork_length * t for t in (.043, .023, .004)], bark, 5)
-                    attachment, second_attachment = fork_mid, fork_mid.lerp(fork_tip, .62)
-                    along = (fork_tip - fork_mid).normalized()
-                natural_roll = roll * .67 + .41
-                other_axis = along + normal * (-side_sign * .59) + Vector((0, .24, 0))
-                sprays.extend([(attachment, along, length, width, natural_roll),
-                               (second_attachment, other_axis, length * .86, width * .78, natural_roll - .77)])
-            pine_sprays(f'{label} needle clusters {i} {bough}', sprays, needles, curved=carries_forks or z < 3)
+            heading = RANDOM.uniform(-.29, .29)
+            growth = RANDOM.uniform(.77, 1.20)
+            (side_turn, shoulder, taper, droop, lift, turn, fork, lower, upper,
+             spread, roll, leader, outer_turn, outer_lift, size, fork_reach, inner_width, outer_size) = [
+                RANDOM.random() for _ in range(18)
+            ]
+            heading += phase + i * 2.38 + bough * (2.34 + .95 * side_turn)
+            direction = Vector((math.cos(heading), 0, math.sin(heading)))
+            side_vector = Vector((-direction.z, 0, direction.x))
+            f = height_fraction + (shoulder - .5) * .047 + bough * (.009 + .030 * taper)
+            root = trunk_at(f)
+            reach = height * (.186 - .012 * i) * growth * (1. if bough == 0 else .65 + .27 * spread)
+            branch = pine_bough(f'{label} rising bough {i} {bough}', root, direction, reach,
+                                (turn - .5) * .47, .035 + droop * .106, .11 + lift * .20, bark,
+                                radial=6 if ancient else 5)
+            inner = branch[1].lerp(branch[2], .22 + lower * .55)
+            inner_axis = direction + side_vector * (fork - .5) * .88 + Vector((0, .23 + .33 * leader, 0))
+            outer = branch[2].lerp(branch[3], .25 + upper * .42)
+            outer_axis = (branch[3] - branch[2]).normalized() + side_vector * (-.26 - outer_turn * .17)
+            outer_axis.y += .14 + outer_lift * .39
+            length = (.34 + reach * .44) * (.86 + .23 * size)
+            if carries_forks:
+                # A short lateral fork carries the lower tuft into the volume
+                # around the main bough, the way a growing pine fills a gap.
+                fork_axis = inner_axis.normalized()
+                fork_end = inner + fork_axis * (length * (.31 + .15 * fork_reach))
+                elbow = inner.lerp(fork_end, .52) + Vector((0, -.021 * length, 0))
+                bark_tube(f'{label} lateral fork {i} {bough}', [inner, elbow, fork_end],
+                          [length * r for r in (.018, .010, .002)], bark, 5)
+                inner = elbow.lerp(fork_end, .25)
+            sprays = [(inner, inner_axis, length, length * (1.04 + inner_width * .36), roll - .5),
+                      (outer, outer_axis, length * (.76 + outer_size * .20), length * 1.02, roll + .82)]
+            pine_sprays(f'{label} needle clusters {i} {bough}', sprays, needles, close=carries_forks or z < 3)
     leader = []
     for order, roll in enumerate((.33, -.27, .67)):
-        origin = trunk_at(.83 + .041 * order)
-        axis = (trunk_at(1.) - origin).normalized() + Vector((.18 * math.cos(phase + order * 2.1), 0,
-                                                               .18 * math.sin(phase + order * 2.1)))
-        leader.append((origin, axis, height * (.148 - .032 * order), height * .075, roll))
-    pine_sprays(f'{label} upright leader', leader, needles, curved=carries_forks or z < 3)
+        origin = trunk_at(.83 + .044 * order)
+        angle = phase + order * 2.18
+        axis = (trunk_at(1.) - origin).normalized() + Vector((.57 * math.cos(angle), 0, .57 * math.sin(angle)))
+        length = height * (.117 - .020 * order)
+        leader.append((origin, axis, length, length * 1.12, roll))
+    pine_sprays(f'{label} short leader growth', leader, needles, close=carries_forks or z < 3)
     if ancient:
         return at
 
@@ -822,8 +820,8 @@ def pine_tree(label, x, z, height, bark, needles, ground, roots=False, lean=None
 def distant_pines(ground, bark, needles):
     # Keep the staggered ridge positions; narrow older leaders disappear
     # among irregular live crowns rather than sticking above a few bare arms.
-    trees = [(-4.2, -3.6, 6.9), (-6.6, -5.2, 9.4), (-9.5, -7.0, 7.9),
-             (4.0, -5.1, 8.3), (6.7, -3.8, 6.7), (9.8, -7.2, 8.8),
+    trees = [(-5.08, -3.82, 7.2), (-6.6, -5.2, 9.4), (-9.5, -7.0, 7.9),
+             (4.59, -5.17, 8.3), (6.7, -3.8, 6.7), (9.8, -7.2, 8.8),
              (-4.9, -13.6, 8.5), (-8.3, -16.2, 10.2), (-12.7, -19.8, 8.8),
              (4.7, -15.0, 9.4), (8.4, -18.2, 8.3), (12.1, -14.4, 10.1)]
     for i, (x, z, height) in enumerate(trees):
@@ -838,34 +836,28 @@ def distant_pines(ground, bark, needles):
         bark_tube(f'{label} tapered trunk', positions,
                   [height * (.00065 + .0155 * (1. - t) ** 1.21) for t in levels], bark, 7)
         sprays = []
-        for tier, base in enumerate(positions[1:-1]):
-            # Paired lower boughs fill the middle distance. Their offset and
-            # variable lengths avoid evenly spaced spokes in silhouette.
+        for tier in range(len(levels) - 2):
             stems = 2 if (i < 6 and tier < 4) or tier in (1, 3) else 1
-            for fork in range(stems):
-                angle = phase + tier * 2.28 + fork * 2.61 + rng.uniform(-.24, .24)
-                direction = Vector((math.cos(angle), .0, math.sin(angle)))
+            for bough in range(stems):
+                angle = phase + tier * 2.29 + bough * rng.uniform(2.24, 3.26) + rng.uniform(-.42, .42)
+                direction = Vector((math.cos(angle), 0, math.sin(angle)))
                 side = Vector((-direction.z, 0, direction.x))
-                reach = height * (.205 - .023 * tier) * rng.uniform(.74, 1.19) * (.74 if fork else 1)
-                joint = base + direction * reach * .46 + Vector((0, -.088 * reach, 0))
-                end = base + direction * reach + side * (.12 * reach) + Vector((0, .11 * reach, 0))
-                bark_tube(f'{label} bough {tier + 1}.{fork + 1}', [base, joint, end],
-                          [reach * scale for scale in (.052, .029, .003)], bark, 5)
-                # Stagger the two tips along different pieces of the bough,
-                # setting the lower fan below the lifted terminal growth.
-                length = reach * .70 + .24
-                start = base.lerp(joint, .84)
-                along = direction + side * .46 + Vector((0, .27, 0))
-                sprays.append((start, along, length, length * .82, .41))
-                start = joint.lerp(end, .61)
-                along = (end - joint).normalized() - side * .32 + Vector((0, .19, 0))
-                sprays.append((start, along, length * .91, length * .78, -.29))
+                base = positions[tier + 1].lerp(positions[tier + 2], rng.uniform(.02, .28))
+                reach = height * (.181 - .016 * tier) * rng.uniform(.78, 1.18) * (.79 if bough else 1.)
+                branch = pine_bough(f'{label} bough {tier + 1}.{bough + 1}', base, direction, reach,
+                                    rng.uniform(-.22, .25), rng.uniform(.03, .14), rng.uniform(.11, .27), bark)
+                origin = branch[1].lerp(branch[2], rng.uniform(.28, .78))
+                along = (branch[3] - branch[2]).normalized() + side * rng.uniform(-.26, .38)
+                along.y += rng.uniform(.13, .37)
+                length = .33 + reach * rng.uniform(.55, .74)
+                sprays.append((origin, along, length, length * rng.uniform(1.12, 1.47), rng.uniform(-.7, 1.7)))
         for order, roll in enumerate((.27, -.42)):
             origin = positions[-3].lerp(positions[-2], .28 + order * .43)
             axis = (positions[-1] - origin).normalized()
-            axis += Vector((.14 * math.cos(phase), 0, .14 * math.sin(phase + order * 2.1)))
-            sprays.append((origin, axis, height * (.171 - .031 * order), height * .092, roll))
-        pine_sprays(f'{label} needle silhouette', sprays, needles, curved=True)
+            axis += Vector((.48 * math.cos(phase + order * 1.8), 0, .48 * math.sin(phase + order * 1.8)))
+            length = height * (.140 - .027 * order)
+            sprays.append((origin, axis, length, length * 1.13, roll))
+        pine_sprays(f'{label} needle crown', sprays, needles, close=True)
 
 
 def forest(ground, rock, stone, bark, pine):
