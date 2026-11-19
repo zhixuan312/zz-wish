@@ -131,7 +131,13 @@ function installShallowRunnel(material, phase) {
         // The unresolved wave slopes contribute at grazing angles. Through
         // the broken reflection, the separate scanned bed remains visible.
         float meanCos = viewCos + (1. - viewCos) * mix(.29, .19, pool);
-        float fresnel = .0204 + .9796 * pow(1. - meanCos, 5.);
+        float stillFresnel = .0204 + .9796 * pow(1. - meanCos, 5.);
+        float crest = pow(max(0., .76 * run + .24 * rivulet), 4.);
+        float glint = crest * smoothstep(.35, .80, riffle) * smoothstep(.10, .66, across);
+        float grazing = 1. - smoothstep(.38, .80, viewCos);
+        // Only the moving ripple crests count toward this additional
+        // reflected area. In their troughs the immersed stones stay visible.
+        float fresnel = mix(stillFresnel, .67, glint * mix(.12, .35, grazing));
         // A shallow ray bends towards the normal inside water (n = 1.333).
         // Use that underwater path length for the weak in-water attenuation.
         vec3 transmitted = refract(-geometryViewDir, normal, .7502);
@@ -148,10 +154,7 @@ function installShallowRunnel(material, phase) {
         #endif
         // The banks keep most of the shallow run in shade. Short crests in
         // the current pick up openings in the canopy as they pass the bars.
-        float crest = pow(max(0., .76 * run + .24 * rivulet), 5.);
-        float glint = crest * smoothstep(.41, .84, riffle) * smoothstep(.12, .67, across);
-        float grazing = 1. - smoothstep(.38, .80, viewCos);
-        reflection *= mix(.34, .51, grazing) + .79 * glint;
+        reflection *= mix(.34, .51, grazing) + .60 * glint;
         float waterOpacity = fresnel + body;
         diffuseColor.a = waterEdge * waterOpacity;
         outgoingLight = (reflection * fresnel + totalDiffuse * body) / max(.0204, waterOpacity);
