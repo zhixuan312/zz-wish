@@ -347,9 +347,9 @@ def materials(air, audit_paddy=False):
     point = revetment.coordinate()
     quarry = revetment.noise(point, (4.8, 4.9, 13.6), detail=3.)
     breakage = revetment.noise(point, (1.5, 1.7, 4.2), detail=3.)
-    rock_colour = revetment.blend((.033, .030, .022, 1.), (.123, .095, .066, 1.), quarry)
-    rock_colour = revetment.blend(rock_colour, (.032, .069, .027, 1.),
-                                 revetment.between(breakage, .31, .72, .05, .82))
+    rock_colour = revetment.blend((.054, .040, .020, 1.), (.159, .116, .062, 1.), quarry)
+    rock_colour = revetment.blend(rock_colour, (.038, .083, .025, 1.),
+                                 revetment.between(breakage, .27, .69, .08, .94))
     result['revetment'] = revetment.surface(rock_colour, .85, bump=(quarry, .30, .048), air=air)
     trail = Shader('Compacted clay and old grit on the village path')
     footprints = trail.noise(trail.coordinate(), (3.4, 3.5, 5.9), detail=3.)

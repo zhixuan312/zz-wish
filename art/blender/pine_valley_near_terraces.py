@@ -221,18 +221,12 @@ class NearTerraces:
                 if rng.random() < .22 or any(abs(depth - notch) < .24 for notch in (*PORT_DEPTHS, *self.spill_depths)):
                     continue
                 left, right = self.edges(depth)[index:index + 2]
-                x = lerp(left, right, rng.uniform(.91, .981))
-                for blade in range(rng.randint(5, 9)):
-                    cluster = depth + rng.uniform(-.083, .083)
-                    base = self.ground_height(x, cluster) - .009
-                    angle = rng.uniform(.0, math.tau)
-                    dx, dz = math.cos(angle), math.sin(angle)
-                    offset, height = rng.uniform(.006, .017), rng.uniform(.075, .169)
-                    first = len(grass.points)
-                    grass.points.extend(((x - dz * offset, cluster + dx * offset, base),
-                                         (x + dz * offset, cluster - dx * offset, base),
-                                         (x + dx * .034, cluster + dz * .034, base + height)))
-                    grass.faces.append((first, first + 1, first + 2))
+                self.grass_tuft(grass, rng, lerp(left, right, rng.uniform(.91, .981)), depth, (.075, .169))
+                # The wall has breaks of bare masonry between the grass that
+                # has rooted on its lower shelves. Keep the young rice clear.
+                succession = math.sin(depth * 1.72 + index * .86) + .41 * math.sin(depth * 3.65)
+                if index and succession > -.38:
+                    self.grass_tuft(grass, rng, lerp(left, right, rng.uniform(.068, .138)), depth, (.16, .29))
 
         courses = [(self.spill, i, d) for i, d in enumerate(self.spill_depths)]
         courses.extend((self.opening, i, d) for i, d in enumerate(PORT_DEPTHS))
@@ -247,6 +241,19 @@ class NearTerraces:
             spills.loft(rows, reverse=True)
 
         return earth, floods, shoots, spills, grass, self.audit(audit, spills)
+
+    def grass_tuft(self, grass, rng, x, depth, height_range):
+        for _ in range(rng.randint(5, 9)):
+            site = depth + rng.uniform(-.083, .083)
+            base = self.ground_height(x, site) - .009
+            angle = rng.uniform(0., math.tau)
+            dx, dz = math.cos(angle), math.sin(angle)
+            offset, height = rng.uniform(.006, .017), rng.uniform(*height_range)
+            first = len(grass.points)
+            grass.points.extend(((x - dz * offset, site + dx * offset, base),
+                                 (x + dz * offset, site - dx * offset, base),
+                                 (x + dx * .041, site + dz * .041, base + height)))
+            grass.faces.append((first, first + 1, first + 2))
 
     def audit(self, beds, spills):
         depths, crests = [], []
