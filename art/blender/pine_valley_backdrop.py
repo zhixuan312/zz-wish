@@ -232,17 +232,17 @@ def paddy_glass(air, audit=False, west=False):
     # The bunds leave quiet pools and irregular wind lanes at metre scales.
     # Mixed facet directions let some reflections return the wooded slope
     # and others return the bright overcast sky.
-    fetch = water.noise(position, (.071, .125, .35), detail=2.5)
+    fetch = water.noise(position, (.15, .37, .24), detail=2.5, roughness=.62)
     geom = water.nodes.new('ShaderNodeNewGeometry')
     bump = water.nodes.new('ShaderNodeBump')
     water.input(bump.inputs['Height'], wave)
     bump.inputs['Distance'].default_value = 1.
     bump.inputs['Strength'].default_value = .87
     calm_normal = bump.outputs['Normal']
-    roughness = water.between(fetch, .23, .77, .026, .099)
+    roughness = water.between(fetch, .28, .74, .020, .104)
     slope = water.product(water.between(gusts, .30, .73, *(WEST_WIND_SLOPES if west else WIND_SLOPES)),
-                          water.between(fetch, .23, .75, .28, 1.07))
-    crest_share = water.between(fetch, .23, .77, .21, .72)
+                          water.between(fetch, .28, .74, .35, 1.20))
+    crest_share = water.between(fetch, .28, .74, .16, .73)
 
     def vector(operation, a, b):
         math_node = water.nodes.new('ShaderNodeVectorMath')
@@ -332,8 +332,8 @@ def materials(air, audit_paddy=False):
     mottled = ground.math('ADD', ground.product(fern, .58), ground.product(grove, .42))
     cover = ground.between(mottled, .26, .81)
     litter = ground.blend((.007, .012, .007, 1.), (.020, .031, .014, 1.), grain)
-    brush = ground.blend((.012, .027, .016, 1.), (.022, .052, .021, 1.), grove)
-    canopy_shade = ground.math('ADD', ground.product(cover, .86), ground.product(crown, .14))
+    brush = ground.blend((.010, .022, .014, 1.), (.020, .040, .021, 1.), grove)
+    canopy_shade = ground.math('ADD', ground.product(cover, .95), ground.product(crown, .05))
     hillside = ground.blend(litter, brush, canopy_shade)
     stone = ground.blend((.035, .039, .033, 1.), (.073, .068, .052, 1.), cracks)
     rock = ground.product(exposure, ground.between(cracks, .59, .83),
@@ -352,8 +352,8 @@ def materials(air, audit_paddy=False):
     cultivated.attribute_name = 'cultivated'
     soil_mask = cultivated.outputs['Fac']
     surface = ground.blend(hillside, soil, soil_mask)
-    forest_relief = ground.math('ADD', ground.math('ADD', ground.product(fern, .21), ground.product(crown, .60)),
-                                  ground.product(grain, .19))
+    forest_relief = ground.math('ADD', ground.math('ADD', ground.product(fern, .56), ground.product(crown, .27)),
+                                  ground.product(grain, .17))
     relief = ground.math('ADD', ground.product(forest_relief, ground.math('SUBTRACT', 1., soil_mask)),
                          ground.product(grain, soil_mask))
     bank_wetness = ground.product(soil_mask, wet)
@@ -495,21 +495,21 @@ def cloud_sea(collection):
     point = shader.coordinate()
     axes = shader.xyz(point)
     x, depth, y = axes['X'], axes['Y'], axes['Z']
-    billows = shader.noise(point, (.095, .13, .21), detail=4.)
-    veins = shader.noise(point, (.053, .117, .44), detail=3.)
-    fine = shader.noise(point, (.26, .30, .38), detail=3.)
-    body = shader.math('ADD', shader.product(billows, .68), shader.product(fine, .32))
-    head = shader.math('ADD', shader.product(billows, .48), shader.product(veins, .52))
-    wisps = shader.between(head, .32, .77, .35, 1.)
+    billows = shader.noise(point, (.079, .105, .155), detail=2.4)
+    veins = shader.noise(point, (.039, .092, .26), detail=2.)
+    fine = shader.noise(point, (.19, .24, .29), detail=2.)
+    body = shader.math('ADD', shader.product(billows, .81), shader.product(fine, .19))
+    head = shader.math('ADD', shader.product(billows, .54), shader.product(veins, .46))
+    wisps = shader.between(head, .28, .78, .22, 1.)
     masses = []
     for near, rise, crest_d, far, cx, half, lo, base, opaque_top, top, extinction in CLOUD_LAYERS:
         reach = shader.product(shader.between(depth, near, rise), shader.between(depth, far, crest_d))
         crown_height = shader.between(body, .27, .8, opaque_top - .65, top + .29)
-        upper = shader.between(shader.math('SUBTRACT', crown_height, y), 0., 2.2)
+        upper = shader.between(shader.math('SUBTRACT', crown_height, y), 0., 3.35)
         lower = shader.between(y, lo, base)
         drift = shader.math('ADD', cx, shader.product(shader.math('SUBTRACT', depth, rise), .185))
         across = shader.math('ABSOLUTE', shader.math('SUBTRACT', x, drift))
-        edges = shader.between(across, half, half * .36)
+        edges = shader.between(across, half, half * .27)
         masses.append(shader.product(reach, upper, lower, edges, wisps, extinction))
     density = shader.math('ADD', *masses)
     mat = shader.volume((.93, .949, .985, 1.), density, .32)
@@ -525,9 +525,9 @@ def upper_hillside_mist(collection):
     axes = cloud.xyz(point)
     x, downrange, height = axes['X'], axes['Y'], axes['Z']
     drift = cloud.product(x, .23)
-    width_noise = cloud.noise(point, (.031, .035, .13), detail=3.)
-    crown = cloud.noise(point, (.057, .098, .19), detail=4.)
-    fringe = cloud.noise(point, (.087, .128, .44), detail=2.)
+    width_noise = cloud.noise(point, (.031, .035, .13), detail=2.)
+    crown = cloud.noise(point, (.057, .079, .14), detail=2.1)
+    fringe = cloud.noise(point, (.087, .113, .27), detail=1.8)
     centreline = cloud.math('ADD', cloud.math('ADD', 145., drift),
                             cloud.between(width_noise, .18, .82, -9., 13.))
     distance = cloud.math('ABSOLUTE', cloud.math('SUBTRACT', downrange, centreline))
@@ -536,8 +536,8 @@ def upper_hillside_mist(collection):
     base = cloud.math('ADD', cloud.math('ADD', 31., cloud.product(x, .021)),
                       cloud.between(width_noise, .23, .81, -.8, 3.8))
     ceiling = cloud.math('ADD', base, cloud.between(crown, .25, .79, 2.4, 10.5))
-    lower = cloud.between(cloud.math('SUBTRACT', height, base), 0., 3.)
-    upper = cloud.between(cloud.math('SUBTRACT', ceiling, height), 0., 4.)
+    lower = cloud.between(cloud.math('SUBTRACT', height, base), 0., 3.9)
+    upper = cloud.between(cloud.math('SUBTRACT', ceiling, height), 0., 5.2)
     texture = cloud.product(cloud.between(crown, .28, .68, .16, 1.),
                             cloud.between(fringe, .25, .72, .38, 1.))
     density = cloud.product(reach, lateral, lower, upper, texture, .29)

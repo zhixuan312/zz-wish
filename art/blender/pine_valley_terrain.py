@@ -424,7 +424,7 @@ def forest_points(land, far, variants=4, near_terraces=None, clearings=()):
                 field_side = min(abs(x - left), abs(x - right))
 
             grove, exposed, pocket = forest_site(land, x, depth, y)
-            density = lerp(.56, .99, grove) - .12 * exposed * (1. - grove)
+            density = lerp(.70, .99, grove) - .17 * exposed * (1. - grove)
             if rng.random() > density:
                 continue
 
@@ -432,7 +432,8 @@ def forest_points(land, far, variants=4, near_terraces=None, clearings=()):
             live_edge = min(smooth(.43, 2.2, from_stream), smooth(.8, 3.8, field_side))
             age = clamp(.56 * grove + .44 * rng.random() - .22 * (1. - live_edge))
             height = lerp(.57, 1.83, age) * (1. - .17 * exposed) * far_pitch ** .78
-            width = lerp(.60, 2.71, grove) * lerp(.78, 1.20, .55 * age + .45 * pocket)
+            width = lerp(.68, 2.68, grove) * lerp(.72, 1.24, .48 * age + .52 * pocket)
+            aspect = lerp(.73, 1., clamp(.63 * pocket + .37 * age))
             width *= lerp(.51, 1., live_edge) * far_pitch ** .95
             variety = rng.random()
             if variety < lerp(.48, .07, grove):
@@ -459,7 +460,7 @@ def forest_points(land, far, variants=4, near_terraces=None, clearings=()):
                 y = near_terraces.ground_height(x, depth)
             points, scales, rotation = batches[kind]
             points.append((x, depth, y - .029))
-            scales.append((width, width, height))
+            scales.append((width, width * aspect, height))
             rotation.append(euler)
         d0 += spacing
     return batches

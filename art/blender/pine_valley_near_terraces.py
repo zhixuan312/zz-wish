@@ -117,9 +117,11 @@ class NearTerraces:
                 profile.append((left, pond.floor + BUND_HEIGHT))
             else:
                 rise = self.ponds[index - 1].floor - pond.floor
-                wear = .024 * math.sin(depth * 2.73 + index * 1.56)
+                wear = (.017 * math.sin(depth * 2.73 + index * 1.56)
+                        + .014 * math.sin(depth * 5.14 + index * 2.31))
                 for fraction, course in ((.041, .92), (.074, .68), (.104, .56), (.139, .17)):
-                    profile.append((lerp(left, right, fraction),
+                    displacement = .009 * math.sin(depth * 1.43 + index * .97 + fraction * 12.)
+                    profile.append((lerp(left, right, fraction + displacement),
                                     pond.floor + rise * course + .109 + wear))
             for fraction, rise in ((.16, .111), (.25, 0.), (.33, 0.), (.72, 0.), (.77, 0.),
                                    (.89, .117), (.96, .115), (1., BUND_HEIGHT)):
@@ -221,12 +223,12 @@ class NearTerraces:
                 if rng.random() < .22 or any(abs(depth - notch) < .24 for notch in (*PORT_DEPTHS, *self.spill_depths)):
                     continue
                 left, right = self.edges(depth)[index:index + 2]
-                self.grass_tuft(grass, rng, lerp(left, right, rng.uniform(.91, .981)), depth, (.075, .169))
+                self.grass_tuft(grass, rng, lerp(left, right, rng.uniform(.91, .981)), depth, (.08, .21))
                 # The wall has breaks of bare masonry between the grass that
                 # has rooted on its lower shelves. Keep the young rice clear.
                 succession = math.sin(depth * 1.72 + index * .86) + .41 * math.sin(depth * 3.65)
                 if index and succession > -.38:
-                    self.grass_tuft(grass, rng, lerp(left, right, rng.uniform(.068, .138)), depth, (.16, .29))
+                    self.grass_tuft(grass, rng, lerp(left, right, rng.uniform(.065, .141)), depth, (.15, .34))
 
         courses = [(self.spill, i, d) for i, d in enumerate(self.spill_depths)]
         courses.extend((self.opening, i, d) for i, d in enumerate(PORT_DEPTHS))
