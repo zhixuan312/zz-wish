@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { sha256 } from './sha256.js';
-import { readPineBackdrop, readPineWaxNormal } from './pineManifest.js';
+import { readPineBackdrop, readPineWalkLightmaps, readPineWaxNormal } from './pineManifest.js';
 
 // FileLoader and KTX2Loader consume these same verified ArrayBuffers, so typing
 // a wish can download the next court without constructing or showing its scene.
@@ -106,6 +106,10 @@ export function prefetchBakedPlace(id, onProgress) {
       const backdrop = id === 'pine-gate' ? readPineBackdrop(manifest) : null;
       const lateFiles = new Set(Object.values(backdrop?.walk?.files ?? {}));
       if (backdrop?.high?.trees) lateFiles.add(backdrop.high.trees);
+      const walkLightmaps = id === 'pine-gate' ? readPineWalkLightmaps(manifest) : null;
+      for (const region of Object.values(walkLightmaps ?? {})) {
+        for (const { full } of Object.values(region)) lateFiles.add(full);
+      }
       const files = manifest.files.filter(file => !lateFiles.has(file) && /\.(?:glb(?:\.(?:gz|gzip|zstd))?|ktx2)$/.test(file.uri));
       if (id === 'pine-gate') {
         const waxNormal = readPineWaxNormal(manifest);

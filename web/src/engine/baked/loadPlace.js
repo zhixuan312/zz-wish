@@ -6,6 +6,7 @@ import { readBakedManifest,readBakedAsset } from './prefetchPlace.js';
 import { createVisitorShadow } from './visitorShadow.js';
 import { createGauzeTransmission } from './gauzeTransmission.js';
 import { createStaticLampShadow } from './staticLampShadow.js';
+import { readPineWalkLightmaps } from './pineManifest.js';
 
 // The scene renderer outlives the places. Share its transcoder pool, including
 // the compiled Basis decoder, across the cover, the selected place and previews.
@@ -24,6 +25,7 @@ function textureTranscoder(renderer) {
 export async function loadBakedPlace(id,renderer,initialLight={n:1,g:0}){
   const base=`/places/${id}/`;
   const manifest=await readBakedManifest(id);
+  const walkLightmaps=id==='pine-gate'?readPineWalkLightmaps(manifest):null;
   const versions=new Map((manifest.files??[]).map(file=>[file.uri,file.sha256]));
   const assetUrl=uri=>base+uri+(versions.get(uri)?`${uri.includes('?')?'&':'?'}v=${versions.get(uri)}`:'');
   const verifyBytes=uri=>{
@@ -35,6 +37,7 @@ export async function loadBakedPlace(id,renderer,initialLight={n:1,g:0}){
   const ktx=textureTranscoder(renderer);
   const loader=new GLTFLoader().setKTX2Loader(ktx).setMeshoptDecoder(MeshoptDecoder);
   const ambientPasses=['night','dusk','day'];
+  const allPasses=[...ambientPasses,'lamp'];
   const weightsFor=light=>{
     const dusk=Math.max(0,Math.min(1,light.g??0)),night=Math.max(0,Math.min(1,light.n??1));
     const d=dusk*(1-night*.35),n=night*(1-d),day=(1-night)*(1-d);
@@ -48,13 +51,22 @@ export async function loadBakedPlace(id,renderer,initialLight={n:1,g:0}){
   for(const [region,passes] of Object.entries(manifest.lightmaps)){
     for(const pass of ['night','lamp'])if(!passes[pass])throw new Error(`Missing ${region}/${pass} lightmap`);
     regions[region]={};
-    for(const pass of [...ambientPasses,'lamp']){
+    for(const pass of allPasses){
       if(!passes[pass]&&!manifest.partialPreview)throw new Error(`Incomplete final place: missing ${region}/${pass}`);
-      regions[region][pass]={...(passes[pass]??passes.night),texture:empty,scale:(passes[pass]??passes.night).scale??1};
+      const soft=walkLightmaps?.[region]?.[pass].soft;
+      regions[region][pass]={...(passes[pass]??passes.night),texture:empty,scale:(passes[pass]??passes.night).scale??1,
+        ...(soft?{soft,native:false}:{})};
     }
   }
   let disposed=false,lastUpdate=performance.now();
   const imageBitmaps=new Set();
+  async function loadOwnedKtx(bytes){
+    // The worker transfers its input buffer. Retain the verified bytes for
+    // later visits and give the current place ownership of its texture.
+    const url=URL.createObjectURL(new Blob([bytes],{type:'image/ktx2'}));
+    try{return await ktx.loadAsync(url);}
+    finally{THREE.Cache.remove(url);URL.revokeObjectURL(url);}
+  }
   const loadTexture=async uri=>{
     if(uri.endsWith('.ktx2')){
       const {astcSupported,etc2Supported,dxtSupported,bptcSupported,pvrtcSupported}=ktx.workerConfig;
@@ -63,20 +75,13 @@ export async function loadBakedPlace(id,renderer,initialLight={n:1,g:0}){
       if(!(uastc&&astcSupported)&&!etc2Supported&&!dxtSupported&&!bptcSupported&&!pvrtcSupported){
         throw new Error(`GPU compression unavailable for ${uri}`);
       }
-      // The worker transfers its input buffer. Keep the verified cache intact
-      // and give each place ownership of its own transcoded texture.
-      const url=URL.createObjectURL(new Blob([bytes],{type:'image/ktx2'}));
-      try{
-        const texture=await ktx.loadAsync(url);
-        if(disposed||!texture.isCompressedTexture||texture.format===THREE.RGBAFormat){
-          texture.dispose();
-          throw new Error(`GPU compression unavailable for ${uri}`);
-        }
-        texture.name=uri;texture.colorSpace=THREE.NoColorSpace;textures.add(texture);
-        return texture;
-      }finally{
-        THREE.Cache.remove(url);URL.revokeObjectURL(url);
+      const texture=await loadOwnedKtx(bytes);
+      if(disposed||!texture.isCompressedTexture||texture.format===THREE.RGBAFormat){
+        texture.dispose();
+        throw new Error(`GPU compression unavailable for ${uri}`);
       }
+      texture.name=uri;texture.colorSpace=THREE.NoColorSpace;textures.add(texture);
+      return texture;
     }
     const fileType=uri.endsWith('.webp')?'image/webp':uri.endsWith('.png')?'image/png':null;
     if(!fileType)throw new Error(`Unsupported ${id} image ${uri}`);
@@ -98,19 +103,100 @@ export async function loadBakedPlace(id,renderer,initialLight={n:1,g:0}){
     if(imageBitmaps.delete(texture.image))texture.image.close();
   };
   const pending={},ready={},retryAt={};
+  const verifiedDetail=new Set();
+  const detailPending=new Map(),detailFadeStart=new Map();
+  const detailMix={value:new THREE.Vector4(1,1,1,1)};
+  let walkLightmapRequest;
+  function updateSampler(pass){
+    const uniform='uBaked'+pass[0].toUpperCase()+pass.slice(1);
+    for(const {maps,uniforms} of bindings)uniforms[uniform].value=maps[pass].texture;
+  }
+  async function loadLightmap(item,uri){
+    const texture=item.soft?await loadOwnedKtx(await verifyBytes(uri)):await ktx.loadAsync(await verified(uri));
+    const expectedLevels=uri===item.soft?.uri?1:item.mipLevels;
+    if(item.soft&&texture.mipmaps.length!==expectedLevels){
+      texture.dispose();
+      throw new Error(`Invalid Pine Gate lightmap mip chain: ${uri}`);
+    }
+    texture.name=uri;
+    texture.colorSpace=THREE.NoColorSpace;texture.channel=2;texture.flipY=false;
+    texture.anisotropy=Math.min(item.anisotropy??1,renderer.capabilities.getMaxAnisotropy());
+    texture.needsUpdate=true;
+    return texture;
+  }
+  function upgradePass(pass){
+    if(disposed||!ready[pass]||!verifiedDetail.has(pass))return;
+    if(detailPending.has(pass))return detailPending.get(pass);
+    const items=Object.values(regions).map(maps=>maps[pass]).filter(item=>item.soft&&!item.native);
+    if(!items.length)return;
+    const request=Promise.allSettled(items.map(item=>loadLightmap(item,item.uri))).then(results=>{
+      if(disposed||results.some(result=>result.status==='rejected')){
+        for(const result of results)if(result.status==='fulfilled')result.value.dispose();
+        return false;
+      }
+      // Upload before rebinding. Native mip2 is the same set of blocks that
+      // the standalone coarse map used, so one sampler can fade in detail.
+      try{
+        if(ready[pass])for(const result of results)renderer.initTexture(result.value);
+      }catch{
+        for(const result of results)result.value.dispose();
+        return false;
+      }
+      for(const [index,item] of items.entries()){
+        disposeTexture(item.texture);
+        item.texture=results[index].value;
+        item.native=true;
+        textures.add(item.texture);
+      }
+      if(ready[pass]){
+        detailMix.value.setComponent(allPasses.indexOf(pass),0);
+        detailFadeStart.set(pass,performance.now());
+        updateSampler(pass);
+      }
+      return true;
+    }).finally(()=>detailPending.delete(pass));
+    detailPending.set(pass,request);
+    return request;
+  }
+  function startWalkLightmaps(){
+    if(disposed||!walkLightmaps)return;
+    if(!walkLightmapRequest)walkLightmapRequest=Promise.all(allPasses.map(async pass=>{
+      try{
+        await Promise.all(Object.values(walkLightmaps).map(maps=>verifyBytes(maps[pass].full.uri)));
+        if(disposed)return false;
+        verifiedDetail.add(pass);
+        return await upgradePass(pass)!==false;
+      }catch{return false;}
+    })).then(results=>{
+      const complete=results.every(Boolean);
+      if(!complete)walkLightmapRequest=null;
+      return complete;
+    });
+    return walkLightmapRequest;
+  }
   const ensurePass=pass=>{
     if(ready[pass])return Promise.resolve();
     if(pending[pass])return pending[pass];
     pending[pass]=Promise.all(Object.values(regions).map(async maps=>{
-      const item=maps[pass],texture=item.texture!==empty?item.texture:await ktx.loadAsync(await verified(item.uri));
+      const item=maps[pass];
+      let uri=item.soft&&!verifiedDetail.has(pass)?item.soft.uri:item.uri;
+      let texture=item.texture;
+      if(texture===empty){
+        try{texture=await loadLightmap(item,uri);}
+        catch(error){
+          if(disposed||!item.soft||uri===item.soft.uri)throw error;
+          uri=item.soft.uri;
+          texture=await loadLightmap(item,uri);
+        }
+      }
       if(disposed){texture.dispose();return;}
-      texture.colorSpace=THREE.NoColorSpace;texture.channel=2;texture.flipY=false;
-      texture.anisotropy=Math.min(item.anisotropy??1,renderer.capabilities.getMaxAnisotropy());
+      if(item.soft&&item.texture===empty)item.native=uri===item.uri;
       texture.needsUpdate=true;item.texture=texture;textures.add(texture);
     })).then(()=>{
       if(disposed)return;
       ready[pass]=true;
-      for(const {maps,uniforms} of bindings)uniforms['uBaked'+pass[0].toUpperCase()+pass.slice(1)].value=maps[pass].texture;
+      updateSampler(pass);
+      upgradePass(pass);
     });
     return pending[pass];
   };
@@ -159,6 +245,7 @@ export async function loadBakedPlace(id,renderer,initialLight={n:1,g:0}){
     if(!object.isMesh)return;
     const region=object.userData.lightmap_region??object.userData.region??object.parent?.userData.lightmap_region;
     const maps=regions[region];if(!maps)throw new Error(`Missing lightmaps for ${object.name} (${region})`);
+    const walkRegion=!!walkLightmaps?.[region];
     const shelteredNiche = movingNicheLight && region === 'niche';
     const uv=object.geometry.getAttribute('uv1');
     if(!uv)throw new Error(`Missing exported second UV set on ${object.name}`);
@@ -183,23 +270,35 @@ export async function loadBakedPlace(id,renderer,initialLight={n:1,g:0}){
         uBakedWaxSill:{value:manifest.lampAnchor?.[1]??anchor.y},
         uBakedScales:{value:new THREE.Vector4(maps.night.scale,maps.dusk.scale,maps.day.scale,maps.lamp.scale)},
         uBakedLogRange:{value:new THREE.Vector4(...['night','dusk','day','lamp'].map(p=>maps[p].logRange??0))},
-        uBakedLogGain:{value:new THREE.Vector4(...['night','dusk','day','lamp'].map(p=>maps[p].logGain??16))}};
+        uBakedLogGain:{value:new THREE.Vector4(...allPasses.map(p=>maps[p].logGain??16))},
+        ...(walkRegion?{uBakedWalkMix:detailMix}:{})};
       bindings.push({maps,uniforms:perMaterial});
       if(material.emissive)material.emissiveIntensity*=cameraPreExposure;
       material.onBeforeCompile=shader=>{
+        const decoded=(sample,map,uv,scale,range,gain,mix)=>{
+          const native=`decodeBaked(${sample}.rgb,${scale},${range},${gain})`;
+          return walkRegion?`blendWalkMip(${native},${map},${uv},${scale},${range},${gain},${mix})`:native;
+        };
+        const ambient=(pass,component)=>`ambientSample(uBaked${pass},vLightMapUv,uBakedScales.${component},uBakedLogRange.${component},uBakedLogGain.${component}${walkRegion?`,uBakedWalkMix.${component}`:''})`;
         Object.assign(shader.uniforms,perMaterial);
         shader.vertexShader='varying vec3 vBakedWorld;\n'+shader.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nvBakedWorld=(modelMatrix*vec4(transformed,1.)).xyz;');
         shader.fragmentShader=`varying vec3 vBakedWorld;
           uniform sampler2D uBakedNight,uBakedDusk,uBakedDay,uBakedLamp;
           uniform vec3 uBakedWeights,uBakedLampAnchor;uniform vec4 uBakedScales,uBakedLogRange,uBakedLogGain;uniform float uLampPower,uBakedIrradianceFactor,uBakedMinRoughness,uBakedWaxSill;
           vec3 decodeBaked(vec3 v,float scale,float range,float gain){return range>0.?(exp2(v*range)-1.)/gain:v*scale;}
-          vec3 ambientSample(sampler2D map,vec2 uv,float scale,float range,float gain){
-            vec3 surface=decodeBaked(texture2D(map,uv).rgb,scale,range,gain);
+          ${walkRegion?`uniform vec4 uBakedWalkMix;
+          vec3 blendWalkMip(vec3 refined, sampler2D map, vec2 uv, float scale, float range, float gain, float fade){
+            if(fade>=1.)return refined;
+            vec3 coarse=decodeBaked(textureLod(map,uv,2.).rgb,scale,range,gain);
+            return mix(coarse,refined,fade);
+          }`:''}
+          vec3 ambientSample(sampler2D map,vec2 uv,float scale,float range,float gain${walkRegion?',float fade':''}){
+            vec3 surface=${decoded('texture2D(map,uv)','map','uv','scale','range','gain','fade')};
             ${cooledWax ? `
             // The wax redistributes local ambient light. Leave the low film
             // against the sill and the separate live flame response intact.
             float depth=smoothstep(.0015,.0045,vBakedWorld.y-uBakedWaxSill);
-            vec3 scattered=decodeBaked(textureLod(map,uv,1.).rgb,scale,range,gain);
+            vec3 scattered=${decoded('textureLod(map,uv,1.)','map','uv','scale','range','gain','fade')};
             return mix(surface,scattered,depth*vec3(.74,.65,.56));` : 'return surface;'}
           }
           ${spentWax ? `
@@ -248,9 +347,9 @@ export async function loadBakedPlace(id,renderer,initialLight={n:1,g:0}){
         shader.fragmentShader=shader.fragmentShader.replace('#include <lights_fragment_maps>',`
           #if defined(RE_IndirectDiffuse) && defined(USE_LIGHTMAP)
             vec3 baked=vec3(0.);
-            if(uBakedWeights.x>.0001)baked+=ambientSample(uBakedNight,vLightMapUv,uBakedScales.x,uBakedLogRange.x,uBakedLogGain.x)*uBakedWeights.x${shelteredNiche ? ' * .55' : ''};
-            if(uBakedWeights.y>.0001)baked+=ambientSample(uBakedDusk,vLightMapUv,uBakedScales.y,uBakedLogRange.y,uBakedLogGain.y)*uBakedWeights.y${shelteredNiche ? ' * .78' : ''};
-            if(uBakedWeights.z>.0001)baked+=ambientSample(uBakedDay,vLightMapUv,uBakedScales.z,uBakedLogRange.z,uBakedLogGain.z)*uBakedWeights.z;
+            if(uBakedWeights.x>.0001)baked+=${ambient('Night','x')}*uBakedWeights.x${shelteredNiche ? ' * .55' : ''};
+            if(uBakedWeights.y>.0001)baked+=${ambient('Dusk','y')}*uBakedWeights.y${shelteredNiche ? ' * .78' : ''};
+            if(uBakedWeights.z>.0001)baked+=${ambient('Day','z')}*uBakedWeights.z;
             float away=${movingNicheLight
               ? '.58 * (1. - smoothstep(.095, .275, distance(vBakedWorld,uBakedLampAnchor)))'
               : indirectLamp?'1.':'smoothstep(.7,1.8,distance(vBakedWorld,uBakedLampAnchor))'};
@@ -264,14 +363,14 @@ export async function loadBakedPlace(id,renderer,initialLight={n:1,g:0}){
               movingShade=mix(1.,mix(.65,1.,ribShadow),withinShadow);
             }
             #endif
-            if(uLampPower>.0001)baked+=decodeBaked(texture2D(uBakedLamp,vLightMapUv).rgb,uBakedScales.w,uBakedLogRange.w,uBakedLogGain.w)*uLampPower*away*movingShade;
+            if(uLampPower>.0001)baked+=${decoded('texture2D(uBakedLamp,vLightMapUv)','uBakedLamp','vLightMapUv','uBakedScales.w','uBakedLogRange.w','uBakedLogGain.w','uBakedWalkMix.w')}*uLampPower*away*movingShade;
             irradiance=baked*uBakedIrradianceFactor;
           #endif
           #if defined(USE_ENVMAP) && defined(RE_IndirectSpecular)
             radiance+=getIBLRadiance(geometryViewDir,geometryNormal,material.roughness);
           #endif`);
       };
-      material.customProgramCacheKey=()=>`${movingNicheLight ? 'pine-lightmap' : 'cycles-lightmap-1'}-${region}${spentWax ? '-spent-wax' : cooledWax ? '-wax' : ''}`;
+      material.customProgramCacheKey=()=>`${movingNicheLight ? 'pine-lightmap' : 'cycles-lightmap-1'}-${region}${spentWax ? '-spent-wax' : cooledWax ? '-wax' : ''}${walkRegion?'-walk-mip':''}`;
       visitorShadow?.install(material);
       gauzeTransmission?.install(material);
       staticLampShadow?.install(material);
@@ -302,14 +401,22 @@ export async function loadBakedPlace(id,renderer,initialLight={n:1,g:0}){
   }
   for(const maps of Object.values(regions))for(const pass of Object.values(maps))textures.add(pass.texture);
   return{
-    group:gltf.scene,manifest,heroes,visitorShadow,gauzeTransmission,staticLampShadow,cameraPreExposure,residualCameraExposureEV,loadTexture,disposeTexture,loadDetailModel,
-    lightingState(){return {weights:uniforms.uBakedWeights.value.toArray(),residentPasses:Object.keys(ready).filter(pass=>ready[pass]),pendingPasses:Object.keys(pending).filter(pass=>pending[pass]&&!ready[pass]),loadedPasses:[...ambientPasses,'lamp'].filter(pass=>Object.values(regions).every(maps=>maps[pass].texture!==empty))};},
+    group:gltf.scene,manifest,heroes,visitorShadow,gauzeTransmission,staticLampShadow,cameraPreExposure,residualCameraExposureEV,loadTexture,disposeTexture,loadDetailModel,startWalkLightmaps,
+    lightingState(){return {weights:uniforms.uBakedWeights.value.toArray(),residentPasses:Object.keys(ready).filter(pass=>ready[pass]),pendingPasses:Object.keys(pending).filter(pass=>pending[pass]&&!ready[pass]),loadedPasses:allPasses.filter(pass=>Object.values(regions).every(maps=>maps[pass].texture!==empty)),
+      ...(walkLightmaps?{walkLightmaps:{available:allPasses.filter(pass=>verifiedDetail.has(pass)),
+        native:allPasses.filter(pass=>Object.keys(walkLightmaps).every(region=>regions[region][pass].native)),
+        mix:detailMix.value.toArray()}}:{})};},
     // Historical name: pre-exposed radiant intensity in engine units; no lm/cd calibration.
     lampCandela:basis.watts*cameraPreExposure/(4*Math.PI),lampColor:new THREE.Color().fromArray(basis.linearColor),
     fixturePower(){const w=uniforms.uBakedWeights.value,p=manifest.bake?.presets;return w.x*(p?.night.fixtures??1)+w.y*(p?.dusk.fixtures??.8)+w.z*(p?.day.fixtures??.12);},
     update(light,lampPower,lampPosition){
       if(lampPosition)uniforms.uBakedLampAnchor.value.copy(lampPosition);
       const requested=weightsFor(light),wanted=requested.clone(),now=performance.now(),dt=Math.min(.25,(now-lastUpdate)/1000);lastUpdate=now;
+      for(const [pass,start] of detailFadeStart){
+        const mix=THREE.MathUtils.smoothstep(now,start,start+800);
+        detailMix.value.setComponent(allPasses.indexOf(pass),mix);
+        if(mix===1)detailFadeStart.delete(pass);
+      }
       ambientPasses.forEach((pass,i)=>{
         const weight=wanted.getComponent(i);
         if(weight>.0001&&!ready[pass]&&!pending[pass]&&now>=(retryAt[pass]??0))ensurePass(pass).catch(error=>{

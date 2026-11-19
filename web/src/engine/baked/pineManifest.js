@@ -57,3 +57,33 @@ export function readPineWaxNormal(manifest) {
   if (manifest.waxSculpt === undefined) return null;
   return pineFile(manifest, manifest.waxSculpt?.normal, '.png');
 }
+
+export function readPineWalkLightmaps(manifest) {
+  const declared = manifest.walkLightmaps;
+  if (declared === undefined) return null;
+  const regions = ['gate', 'niche'];
+  const passes = ['night', 'dusk', 'day', 'lamp'];
+  const backdrop = readPineBackdrop(manifest);
+  if (!backdrop?.walk || !declared || Object.keys(declared).length !== regions.length) {
+    throw new Error('Pine Gate walk lightmaps require the walk tier and two deferred regions');
+  }
+  const used = new Set(Object.values(backdrop.walk.files).map(file => file.uri));
+  for (const pass of passes) used.add(manifest.lightmaps?.approach?.[pass]?.uri);
+  return Object.fromEntries(regions.map(region => {
+    if (!declared[region] || Object.keys(declared[region]).length !== passes.length) {
+      throw new Error(`Missing Pine Gate soft lightmaps for ${region}`);
+    }
+    return [region, Object.fromEntries(passes.map(pass => {
+      const authored = manifest.lightmaps?.[region]?.[pass];
+      const full = pineFile(manifest, authored?.uri, '.ktx2');
+      const soft = pineFile(manifest, declared[region][pass], '.ktx2');
+      if (used.has(full.uri) || used.has(soft.uri) || full.uri === soft.uri
+        || !Number.isInteger(authored.mipLevels) || authored.mipLevels < 3) {
+        throw new Error(`Invalid Pine Gate full and soft lightmaps for ${region}/${pass}`);
+      }
+      used.add(full.uri);
+      used.add(soft.uri);
+      return [pass, { full, soft }];
+    }))];
+  }));
+}
