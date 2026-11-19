@@ -10,7 +10,7 @@ import { buildPineCrestNeedles } from './pine-crest-needles.js';
 import { buildPineBankVerge } from './pine-bank-verge.js';
 import { pineDaySunDirection, pineDaySunDiscEdges } from './pine-gate-sun.js';
 import crestNeedleAnchors from './pine-crest-needle-anchors.json' with { type: 'json' };
-import path from '../../../../shared/pine-gate-path.json';
+import path from '../../../../shared/pine-gate-path.json' with { type: 'json' };
 
 function restoreShrineFixtureFlames(h, context, niche, anchor) {
   const sources = [];
@@ -41,11 +41,25 @@ function restoreShrineFixtureFlames(h, context, niche, anchor) {
 export default function createPlace(h) {
   const { V3, THREE } = h;
   const entrance = path.entrance;
+  const { lerp, smoothstep } = THREE.MathUtils;
+  function liftAt(seconds, phone) {
+    // The wider vertical phone lens already shows more canopy at the entrance.
+    const lift = phone ? lerp(.10, .38, smoothstep(seconds, 0, 6)) : .56;
+    return lift * (1 - smoothstep(seconds, 6, 12));
+  }
+  const entranceLook = phone => {
+    const aim = V3(...entrance.look);
+    aim.y += liftAt(0, phone);
+    return aim;
+  };
   const nookOrigin = [-1.8, 4, .9];
   const createWalk = (start, end, phone) => {
     const times = [0, ...path.waypoints.map(shot => shot.time), path.seconds];
     const positions = [start.pos.toArray(), ...path.waypoints.map(shot => shot.position), end.pos.toArray()];
-    const looks = [start.look.toArray(), ...path.waypoints.map(shot => shot.look), end.look.toArray()];
+    const startLook = start.look.toArray();
+    // Add the entrance lift back after interpolation so it fades before the crest.
+    startLook[1] -= liftAt(0, phone);
+    const looks = [startLook, ...path.waypoints.map(shot => shot.look), end.look.toArray()];
     const fovs = [start.fov, ...path.waypoints.map(shot => phone ? shot.phoneFov : shot.desktopFov), end.fov ?? start.fov];
     const smooth = THREE.InterpolateSmooth;
     const position = new THREE.VectorKeyframeTrack('position', times, positions.flat(), smooth).createInterpolant();
@@ -55,6 +69,7 @@ export default function createPlace(h) {
       const at = progress * path.seconds;
       rig.pos.fromArray(position.evaluate(at));
       rig.look.fromArray(look.evaluate(at));
+      rig.look.y += liftAt(at, phone);
       rig.fov = fov.evaluate(at)[0];
       rig.amp = 0;
     };
@@ -65,8 +80,8 @@ export default function createPlace(h) {
     fog: [0x4b626a, .024], sunL: [0xc5d4db, .68], hemi: [0x47545c, 0x10150e, .48], bloom: [.22, 1.1],
     // The same place by day; the scene blends toward it by the visitor's local time.
     day: { exposure: 1.28, sky: { top: 0x6895b9, horizon: 0xc3d5dc, ground: 0xaabdc5, sun: 0xfff4df, dir: pineDaySunDirection, discEdges: pineDaySunDiscEdges, glow: .52, clouds: .16, lit: 0xf9faff, dark: 0xa7bac7 }, fog: [0xb4c8cd, .012], sunL: [0xfff2dc, 2], hemi: [0xc0d0e0, 0x404937, .85], bloom: [.2, 1.3] },
-    view: { pos: V3(...entrance.position), look: V3(...entrance.look), fov: entrance.desktopFov },
-    viewPhone: { pos: V3(...entrance.phonePosition), look: V3(...entrance.look), fov: entrance.phoneFov },
+    view: { pos: V3(...entrance.position), look: entranceLook(false), fov: entrance.desktopFov },
+    viewPhone: { pos: V3(...entrance.phonePosition), look: entranceLook(true), fov: entrance.phoneFov },
     walkSeconds: path.seconds,
     walk: [], doors: V3(-.17, 5.58, 6.32), createWalk,
     async build(_place, context) {
