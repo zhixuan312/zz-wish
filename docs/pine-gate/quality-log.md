@@ -504,3 +504,11 @@ The reference is the seated approach at `quality/direction/p2-r2-approach-03-sea
 - The far silhouettes resolve to the two actual crest trunks. Deeper channels, dark bark plates and slope-side roots remain on the original centers. The darker needles are easier to distinguish from the previous yellow canopy, although the closest offline branches still look soft. All 130 crest pad positions are unchanged.
 
 The 8-sample preview uses 14,825,680 bytes for entry, 29,411,350 bytes on phone and 36,817,070 bytes on desktop. Chromium desktop enabled Step inside 2.6765 seconds after wish input, reached the native valley at 20.0325 seconds and logged no runtime errors, failing HTTP responses or source reloads. This pass still falls below the photographic bar because of the dark joints and bright stone. The next capture tests fitted surface infill and a subdued granite finish.
+
+The independent Chromium run at `quality/r1/p2-r2-approach-04-runtime/report.json` records Step inside at 2.741 seconds on desktop and 2.137 seconds in phone emulation, with the native valley active at 20.033 seconds in both. Both contexts log zero runtime errors, HTTP errors or source reloads. The phone holds 29.99 FPS in burning. Physical iOS memory remains unmeasured.
+
+The distant trunk rays and the crest frame use identical bark maps. At the six-second pose one screen pixel covers about 6–10 source texels, while the crest sees individual fissures. The reference photograph has larger, higher-contrast bark plates. More near-texture pixels alone would leave that difference in place.
+
+### Fitted grit and package size
+
+The initial fitted-joint export clears 39,298 projected crown intersections by at least 6 mm. Its projected mesh follows the exposed gaps between the actual stone lips and retains the 14 stair rises. However, its 15,247,092-byte entry tier fails the 15,000,000-byte budget. That candidate never reached app capture. The new geometry adds 24,636 exported vertices to the dirt primitive while using exactly the same image bytes as review 04. Closely spaced stations generated narrow triangles and their individual normals and projections kept many vertex copies. The next export shares surface normals and one planar material projection across each strip while preserving the scan and its sampling scale.
