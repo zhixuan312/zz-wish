@@ -60,7 +60,7 @@ function refinedWaxMaterial(light, layer) {
   const shaft = layer === 'body';
   const remnant = layer === 'remnant';
   const style = {
-    body: { roughness: .43, clearcoat: .09, specularIntensity: .52, diffuse: .91, scatter: 1.68 },
+    body: { roughness: .40, clearcoat: .13, specularIntensity: .52, diffuse: .91, scatter: 1.68 },
     pool: { roughness: .13, clearcoat: .42, specularIntensity: .75, diffuse: .34, scatter: .045 },
     remnant: { roughness: .40, clearcoat: .09, specularIntensity: .43, diffuse: .91, scatter: .04 },
   }[layer];
@@ -115,12 +115,17 @@ function refinedWaxMaterial(light, layer) {
       float bubbleCoverage = (1. - smoothstep(.26, 1.15, length(fwidth(bubbleCoords)))) * step(.67, poreSeed);
       float bubble = (1. - smoothstep(bubbleRadius * .46, bubbleRadius * .92, bubbleDistance)) * bubbleCoverage;
       float poreLip = (1. - smoothstep(bubbleRadius * .70, bubbleRadius * 1.15, bubbleDistance)) * bubbleCoverage - bubble;
-      diffuseColor.rgb *= 1. - .085 * bubble + .029 * poreLip;` : ''}
+      // Soft, nonperiodic-looking density variations on the scale of a wax flake.
+      vec3 bloomPoint = vPineLocal * 318.;
+      float waxBloom = sin(dot(bloomPoint, vec3(.72, .81, .36))
+        + .75 * sin(dot(bloomPoint, vec3(.33, -1.42, .61)))) * sin(dot(bloomPoint, vec3(-.95, .31, 1.19)));
+      diffuseColor.rgb *= 1. - .105 * bubble + .034 * poreLip + .044 * waxBloom;` : ''}
       diffuseColor.rgb *= ${wet ? `mix(${style.diffuse}, .82, uPineWaxCooling)` : style.diffuse} * (1. + .018 * waxGrain);`)
       .replace('#include <roughnessmap_fragment>', `#include <roughnessmap_fragment>
         roughnessFactor = clamp(roughnessFactor + .026 * waxGrain ${shaft ? '+ .09 * bubble - .034 * poreLip' : ''}, .1, 1.);`)
       .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
-        ${shaft ? `normal = pineRelief(normal, -vViewPosition, .000034 * waxGrain - .000105 * bubble + .000028 * poreLip);` : ''}
+        ${shaft ? `normal = pineRelief(normal, -vViewPosition,
+          .000039 * waxGrain - .000105 * bubble + .000028 * poreLip + .000049 * waxBloom);` : ''}
         ${wet ? `
         vec2 poolPoint = vPineLocal.xz;
         float meniscus = smoothstep(.46, .97, length(poolPoint) / max(uPinePoolRadius, .001));
@@ -139,7 +144,8 @@ function refinedWaxMaterial(light, layer) {
         float side = 1. - abs(worldNormal.y);
         // The flame lights the rim from within. Wavelength-dependent absorption
         // leaves the lower wax cooler and keeps the original pigments readable.
-        float path = .0012 + depth * .83 + length(fromCrown.xz) * .12;
+        float localDensity = ${shaft ? '1. + .065 * waxBloom' : '1.'};
+        float path = (.0012 + depth * .83 + length(fromCrown.xz) * .12) * localDensity;
         vec3 absorption = vec3(49., 88., 155.) - 29. * log(clamp(diffuse, .055, 1.));
         vec3 transmission = exp(-absorption * path);
         float edge = .71 + .29 * pow(1. - abs(dot(normal, viewRay)), 1.45);
@@ -482,7 +488,7 @@ function runnelContour(y, radius, runnels) {
     const width = Math.min(drip.width, radius * .23) * drip.growth;
     // Each trail rounds into its own bead and follows a smooth, slightly
     // drifting course down the drawn profile.
-    const angle = drip.angle + drip.bend * Math.sin(k * Math.PI);
+    const angle = (drip.angle + drip.bend * Math.sin(k * Math.PI) + TAU) % TAU;
     flows.push({ angle, height: width * (taper * bead + drip.shoulder * Math.exp(-k * 10)),
       halfWidth: Math.max(.15, width / radius * (1.08 + .56 * taper)) });
   }
@@ -495,7 +501,8 @@ function runnelContour(y, radius, runnels) {
       const blend = Math.cos(distance / flow.halfWidth * Math.PI * .5);
       rise += flow.height * blend ** 2;
     }
-    return 1 + .0035 * Math.sin(a * 7 + y * 29) + .0016 * Math.sin(a * 13 - y * 42) + rise / radius;
+    return 1 + .012 * Math.sin(a * 3 + y * 95) + .005 * Math.sin(a * 7 + y * 29)
+      + .003 * Math.sin(a * 13 - y * 42) + rise / radius;
   };
 }
 
@@ -709,8 +716,11 @@ export function createPineWax(seat, waxMaterial, { refined = false } = {}) {
         bodyHeight = cut;
         const spent = cut <= 0;
         const melted = state === 'unlit' ? 0 : Math.min(1, .54 + (1 - fuel) * 4);
-        const runnels = refined ? runnelLayout.map(drip => {
-          const amount = clamp((1 - fuel - drip.start) * drip.speed, 0, 1);
+        const runnels = refined ? runnelLayout.map((drip, index) => {
+          // The first small flows wet the shoulder as the pool forms. Later
+          // growth follows consumed fuel and leaves the burn height alone.
+          const shoulderMelt = index < 2 ? .058 * melted : 0;
+          const amount = clamp((1 - fuel - drip.start + shoulderMelt) * drip.speed, 0, 1);
           return { ...drip, reach: Math.min(drip.reach * amount, cut * .8),
             growth: Math.sqrt(amount), crown: cut - Math.min(cut * .04, .0002) };
         }).filter(drip => drip.reach > .0001) : null;
