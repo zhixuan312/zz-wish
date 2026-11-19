@@ -1044,12 +1044,12 @@ def spring_bank_rock_noses(ground, points, faces):
           f'minimum submerged reach {min(wet_skirts):.6f} m and dry reach {min(dry_skirts):.6f} m.')
 
 
-def spring_pebbles(stone, ground):
+def spring_pebbles(ground, wet_gravel, submerged_gravel):
     rng = random.Random(59924)
-    patches = [([], []) for _ in stone]
+    shore_points, shore_faces = [], []
+    bed_points, bed_faces = [], []
     sites = list(stream_gravel_sites(rng))
-    for site, (x, z, shore, radius) in enumerate((*sites, *stream_shoal_sites())):
-        shoal = site >= len(sites)
+    for x, z, shore, radius in (*sites, *stream_shoal_sites()):
         _, waterline, _ = watercourse_at(z)
         path_centre, path_half_width = section_at(z)
         if abs(x - path_centre) < path_half_width + .21 + radius:
@@ -1061,8 +1061,8 @@ def spring_pebbles(stone, ground):
         eccentricity = rng.uniform(.53, .90)
         angle = rng.uniform(0., math.tau)
         lean = rng.uniform(-.22, .22)
-        patch = rng.randrange(len(patches))
-        points, faces = patches[2 if shoal else patch]
+        rng.randrange(5)  # Preserve the former palette stream and the measured stone profiles.
+        points, faces = (shore_points, shore_faces) if shore else (bed_points, bed_faces)
         start = len(points)
         points.append((x, bottom + lift if shore else min(bottom + lift, waterline - .003), z))
         sides = 8
@@ -1081,19 +1081,15 @@ def spring_pebbles(stone, ground):
         for j in range(sides):
             a, b = start + 1 + j, start + 1 + (j + 1) % sides
             faces.extend(((start, b, a), (a, b, b + sides, a + sides)))
-    spring_bank_rock_noses(ground, *patches[2])
-    wet_gravel = stone[2].copy()
-    wet_gravel.name = 'Water-darkened spring gravel'
-    wet_gravel['one_light_vertex_base_tint'] = mesh.color('#888c84')[:3]
-    for index, (points, faces) in enumerate(patches):
-        if not points:
-            continue
-        material = wet_gravel if index == 2 else stone[index]
-        pebbles = mesh.mesh_object(f'Water-worn pebbles in spring gravel {index + 1}', points,
-                                   faces, material, 'approach')
+    spring_bank_rock_noses(ground, shore_points, shore_faces)
+    for description, points, faces, material in (
+        ('Wet granite cobbles on the spring bank', shore_points, shore_faces, wet_gravel),
+        ('Submerged granite cobbles in the spring bed', bed_points, bed_faces, submerged_gravel),
+    ):
+        pebbles = mesh.mesh_object(description, points, faces, material, 'approach')
         pebbles['weather_stone'] = True
-        pebbles['moss_edge'] = index == 4
-        mesh.uv_world(pebbles, .53)
+        pebbles['moss_edge'] = material == wet_gravel
+        mesh.uv_world(pebbles, .38)
         source_uv(pebbles, [[(points[i][0], points[i][2]) for i in face] for face in faces],
                   'Separate plan charts for rounded, bed-fitted pebbles.')
         for face in pebbles.data.polygons:
@@ -1163,7 +1159,14 @@ def saddle_water(stone, ground, bark, tread_granite):
         material_uv.data[loop.index].uv = profile[loop.vertex_index]
     source_uv(channel, [[(points[i][0], points[i][2]) for i in face] for face in faces],
               'Metre-scale chart for the water at its original surveyed level.')
-    spring_pebbles(stone, ground)
+    # Share the existing four-map mossy rock scan with the bridge granite.
+    # Keep a separate draw for the small apparent shift of the submerged bed.
+    wet_gravel = tread_granite.copy()
+    wet_gravel.name = 'Water-darkened spring granite'
+    wet_gravel['one_light_vertex_base_tint'] = mesh.color('#7d847b')[:3]
+    submerged_gravel = wet_gravel.copy()
+    submerged_gravel.name = 'Refracted spring granite'
+    spring_pebbles(ground, wet_gravel, submerged_gravel)
     stream_pine_roots(bark, ground)
     bank_stones, deck_slabs = [], []
     for index, (_, _, z) in enumerate(WATERCOURSE[1:-1]):
@@ -1171,10 +1174,12 @@ def saddle_water(stone, ground, bark, tread_granite):
         x += (-1 if index % 3 else 1) * (width + .19)
         bank_y = supports_height(x, z, [ground])
         rock = hewn_block(f'Water-cut stream bank {index + 1}', .32, .19, .47,
-                          (x, bank_y + .101, z), stone[index % len(stone)], 'approach')
+                          (x, bank_y + .101, z), wet_gravel, 'approach')
         rock['moss_edge'] = True
         bank_stones.append(rock)
     fit_stone_undersides(ground, bank_stones, ((.069, .055), (.088, .014)))
+    for rock in bank_stones:
+        mesh.uv_world(rock, .46)
     spring = hewn_block('Spring head emerging under a granite cap', .77, .46, .9,
                         (2.77, 4.41, 5.08), stone[4], 'gate')
     spring['moss_edge'] = True
