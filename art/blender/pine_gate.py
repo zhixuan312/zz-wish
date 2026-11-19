@@ -629,7 +629,7 @@ def forest(ground, rock, stone, bark, pine):
             vx, vz = vertex.co.x - x, -vertex.co.y - z
             shoulder_y = supports_height(vertex.co.x, -vertex.co.y, [ground])
             vertex.co.z += shoulder_y - y + (.07 * vx - .04 * vz) * (-1 if i % 2 else 1)
-    for i, (x, z, r) in enumerate(((-3.1, 34, .64), (3.6, 25, .76), (-3.7, 12, .51), (4.6, 6.9, .52))):
+    for i, (x, z, r) in enumerate(((-3.76, 34, .64), (3.6, 25, .76), (-3.7, 12, .51), (4.6, 6.9, .52))):
         y = supports_height(x, z, [ground])
         profile = [(0, 0), (r * .52, 0), (r, r * .28), (r * .76, r * .49), (r * .40, r * .64), (0, r * .68)]
         with contacts.group(f'Loose ridge stone {i + 1}', [ground]):
