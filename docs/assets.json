@@ -462,6 +462,124 @@
       "files": []
     },
     {
+      "id": "pine-gate-source-pine_sapling_medium",
+      "name": "Pine Sapling Medium",
+      "kind": "Blender model authoring source",
+      "provider": "Poly Haven",
+      "sourceUrl": "https://polyhaven.com/a/pine_sapling_medium",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://polyhaven.com/license",
+      "authors": {
+        "Rico Cilliers": "Modeling",
+        "Rob Tuytel": "Photography"
+      },
+      "filesApi": "https://api.polyhaven.com/files/pine_sapling_medium",
+      "sourceSelection": "blend.1k.blend",
+      "sourceBytes": 223837378,
+      "authoringUse": "Variants B and C supply pine crown shapes for near geometry and offline impostor bakes at the existing Pine Gate tree placements. Poly Haven publishes the asset as generic pine.",
+      "sourceGeometry": {
+        "referenceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/pine_sapling_medium/pine_sapling_medium_1k.gltf",
+        "foliageAlphaMode": "OPAQUE",
+        "lod0FoliageTriangles": 6003836,
+        "notes": "All three published LOD0 variants use triangulated opaque foliage geometry. Byte-range samples of the B and C twig meshes confirm three-dimensional geometry.",
+        "shapeSources": [
+          {
+            "variant": "pine_sapling_medium_b_LOD0",
+            "foliageTriangles": 1861176,
+            "crownDimensionsMetresXYZ": [
+              4.76,
+              8.55,
+              5.41
+            ],
+            "crownTopMetres": 8.91
+          },
+          {
+            "variant": "pine_sapling_medium_c_LOD0",
+            "foliageTriangles": 1493745,
+            "crownDimensionsMetresXYZ": [
+              3.82,
+              6.24,
+              3.52
+            ],
+            "crownTopMetres": 6.8
+          }
+        ]
+      },
+      "sourceFiles": [
+        {
+          "cachePath": "pine_sapling_medium_1k.blend",
+          "bytes": 200355596,
+          "sourceMd5": "597b4b8f29bc3c0baf9a7e05399b3fa7",
+          "sha256": "2878214412c985b91ff9cde7c6c3756cdb4bbc59864d39df33ac7f0bfffb4c96",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/blend/1k/pine_sapling_medium/pine_sapling_medium_1k.blend"
+        },
+        {
+          "cachePath": "textures/pine_sapling_medium_bark_diff_1k.png",
+          "bytes": 5568559,
+          "sourceMd5": "63688d7bcdd5ff5500f12bde192b197a",
+          "sha256": "91e79e9bd1d5d68922262b4eee752808c49c55c2941b531a65b586dae8984bc9",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/png/1k/pine_sapling_medium/pine_sapling_medium_bark_diff_1k.png"
+        },
+        {
+          "cachePath": "textures/pine_sapling_medium_bark_disp_1k.png",
+          "bytes": 1633203,
+          "sourceMd5": "a085234cf5c6697b53187347dafad026",
+          "sha256": "8cce79758590f833bd8435c428110bcd656ff8e242c899acbd416b6eeb7e8606",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/png/1k/pine_sapling_medium/pine_sapling_medium_bark_disp_1k.png"
+        },
+        {
+          "cachePath": "textures/pine_sapling_medium_bark_nor_gl_1k.png",
+          "bytes": 5640903,
+          "sourceMd5": "a0e2bfeda173e20c494d79c6125effa5",
+          "sha256": "d0cdc8ff2f74da8023a1f18512f9db643284d94a698a4ac491f63c4c11c95211",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/png/1k/pine_sapling_medium/pine_sapling_medium_bark_nor_gl_1k.png"
+        },
+        {
+          "cachePath": "textures/pine_sapling_medium_bark_rough_1k.png",
+          "bytes": 2488380,
+          "sourceMd5": "dca69b84d7846af93fbb31d0c1dafd2e",
+          "sha256": "63c3785c47a2f4193e5054d9f8481da0bd41bc2bfc1a993cd8785fad6339fe97",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/png/1k/pine_sapling_medium/pine_sapling_medium_bark_rough_1k.png"
+        },
+        {
+          "cachePath": "textures/pine_sapling_medium_twig_alpha_1k.png",
+          "bytes": 351928,
+          "sourceMd5": "641911a5a3f543911dad04ebb26e7bca",
+          "sha256": "6f91aa99f2c27108d6f817f874954aa7df8bfbb4dea2673e9322555a6ae79d99",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/png/1k/pine_sapling_medium/pine_sapling_medium_twig_alpha_1k.png"
+        },
+        {
+          "cachePath": "textures/pine_sapling_medium_twig_diff_1k.png",
+          "bytes": 3208228,
+          "sourceMd5": "a4fa4a55aab9231915a4023ea9841577",
+          "sha256": "d02c031de64b8ad671f3dd0da19870fa4783d912ae6674aeab0702871deeaeaa",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/png/1k/pine_sapling_medium/pine_sapling_medium_twig_diff_1k.png"
+        },
+        {
+          "cachePath": "textures/pine_sapling_medium_twig_mask_1k.png",
+          "bytes": 226541,
+          "sourceMd5": "8a2b451afa2ef9f5c548ae9772ffbcf0",
+          "sha256": "75724986737faf6ea4d03eccce896eb59fb42636e12dfa72c0ed16f13a37e277",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/png/1k/pine_sapling_medium/pine_sapling_medium_twig_mask_1k.png"
+        },
+        {
+          "cachePath": "textures/pine_sapling_medium_twig_nor_gl_1k.png",
+          "bytes": 3021524,
+          "sourceMd5": "1c437201b679e4b5e6a10af8e9b9b523",
+          "sha256": "4b79eda7fe8843d71f9289bd0d3897a1b0a7310b1872b390a589a04b510b0597",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/png/1k/pine_sapling_medium/pine_sapling_medium_twig_nor_gl_1k.png"
+        },
+        {
+          "cachePath": "textures/pine_sapling_medium_twig_rough_1k.png",
+          "bytes": 1342516,
+          "sourceMd5": "8ef8f0d1cbd36b1e4578eb729fa6f0b7",
+          "sha256": "c12da3dd6c1588f50307d96807d78115757f110bc562811369d90b86bd6fddc7",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/png/1k/pine_sapling_medium/pine_sapling_medium_twig_rough_1k.png"
+        }
+      ],
+      "files": []
+    },
+    {
       "id": "rock_face_01",
       "kind": "Scanned natural model",
       "provider": "Poly Haven",
