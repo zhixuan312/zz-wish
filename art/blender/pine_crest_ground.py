@@ -18,6 +18,16 @@ def crest_soil_tint(x, z):
     return 1. - .44 * strength, 1. - .24 * strength, 1. - .09 * strength
 
 
+def inner_bank_tint(x, z, channel_x, width):
+    approach = max(0., min(1., (z - 15.) / 3.6, (34. - z) / 4.7))
+    distance = max(0., abs(x - channel_x) - width)
+    damp = math.exp(-(distance / .50) ** 2)
+    patch = .50 + .26 * math.sin(4.23 * x + 1.18 * z) + .22 * math.sin(2.81 * x - 2.35 * z)
+    forest = max(0., min(1., (abs(x) - 1.3) / .62, (6. - abs(x)) / 1.6))
+    strength = approach * (.46 * damp + .40 * patch * forest)
+    return 1. - .59 * strength, 1. - .38 * strength, 1. - .30 * strength
+
+
 def tinted_mesh(name, material, points, faces, charts, colors, method, *, smooth=False, uv_scale=None):
     obj = mesh.mesh_object(name, points, faces, material, 'approach')
     source_uv(obj, charts, method)
@@ -223,3 +233,30 @@ def build_crest_ground(ground, rock, bark, section, spring, height, pines, bark_
     tinted_mesh('Rooted crest sedges', grass, *bank_grass(sites[1::2], height, rng),
                 'A radial chart for each rooted sedge clump and its folded blades.')
     crest_roots(pines, height, bark, bark_tube)
+
+
+def build_inner_banks(ground, rock, section, spring, height):
+    rng = random.Random(3843)
+    sites = []
+    # The forest views look along the inner banks rather than the upper slope.
+    for side in (-1, 1):
+        for station in range(13):
+            z = 17.8 + station * 1.06 + rng.uniform(-.31, .31)
+            stream_x, _, width = spring(z)
+            x = side * rng.uniform(2.46, 3.35)
+            if side * stream_x > 0.:
+                x = side * max(abs(x), abs(stream_x) + width + rng.uniform(.34, .63))
+            clearance = land_clearance(x, z, section, spring)
+            if clearance >= .12:
+                damp = math.exp(-((abs(x - stream_x) - width) / .83) ** 2)
+                sites.append((x, z, clearance, damp))
+    mats = [(x, z, min(.86 * clear, rng.uniform(.25, .47))) for x, z, clear, _ in sites[::2]]
+    stones = [(x, z, min(.74 * clear, rng.uniform(.10, .27))) for x, z, clear, _ in sites[1::4]]
+    tinted_mesh('Wet moss in pockets beside the inner stair', ground, *surface_islands(mats, height, rng, False),
+                'Conformal moss with its outside rim below the soil.', smooth=True, uv_scale=.41)
+    tinted_mesh('Small exposed schist in the spring banks', rock, *surface_islands(stones, height, rng, True),
+                'Planar charts with exterior rims embedded in the banks.', uv_scale=.59)
+    grass = mesh.material('Damp bank sedge and dry tips', '#ffffff', rough=.93)
+    mesh.vertex_tint_shader(grass)
+    tinted_mesh('Rooted sedges between the spring and forest banks', grass, *bank_grass(sites[1::2], height, rng),
+                'An unfolding radial chart for each rooted clump.')

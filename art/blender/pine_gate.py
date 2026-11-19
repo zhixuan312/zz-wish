@@ -14,7 +14,7 @@ from mathutils import Matrix, Vector, noise
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import snow_roof as mesh
-from pine_crest_ground import build_crest_ground, crest_soil_tint
+from pine_crest_ground import build_crest_ground, build_inner_banks, crest_soil_tint, inner_bank_tint
 from pine_hero_trees import CROWNS, grow_crown, needle_fascicle, needle_mesh
 from pine_impostors import load_impostors, relief_crown
 from pine_materials import apply_scan
@@ -36,6 +36,7 @@ STAIR_RISE = .08
 STAIR_COUNT = 50
 SHOULDER_SETBACK = .86
 STREAM_BANK_OFFSET = .14
+STREAM_RIBBON_OVERLAP = .10
 WATERCOURSE = ((2.62, 4.02, 5.38), (2.32, 3.55, 10.45), (2.27, 3.01, 15.75),
                (2.16, 2.63, 19.25), (1.20, 2.24, 21.91), (-.62, 2.13, 22.55),
                (-1.98, 1.99, 23.41), (-2.16, 1.85, 25.85), (-1.93, 1.41, 30.25),
@@ -175,7 +176,11 @@ def stream_ground(x, z, water_x, water_y, half_width, blend):
     if edge <= 0:
         bed = water_y - .017 + .016 * edge / half_width
     elif edge <= STREAM_BANK_OFFSET:
-        bed = water_y - .017 + .047 * edge / STREAM_BANK_OFFSET
+        t = edge / STREAM_BANK_OFFSET
+        # Erosion varies the shoreline while keeping both audited edges at
+        # their original elevations and preserving the bed and bank profiles.
+        broken_edge = (.005 * math.sin(4.9 * z + 1.7 * x) + .004 * math.sin(9.3 * z - 2.6 * x))
+        bed = water_y - .017 + .047 * t + broken_edge * math.sin(t * math.pi)
     else:
         # The channel turns sharply across the road. Use a shallower slope
         # there so the diagonal grade stays gentle as well as the crossfall.
@@ -205,7 +210,8 @@ def terrain(material):
         blend = max(0., 1 - distance_outside / 1.4)
         blend *= blend * (3 - 2 * blend)
         shore = width + STREAM_BANK_OFFSET
-        channel = [stream_x + t for t in (-shore, -width, 0., width, shore)]
+        waterline = width + .052
+        channel = [stream_x + t for t in (-shore, -waterline, -width, 0., width, waterline, shore)]
         # Extend the cut outward as a graded bank with metre-scale contours.
         grades = [stream_x + side * (shore + amount) for side in (-1, 1)
                   for amount in (.18, .40, .67, .97, 1.32, 1.73, 2.20) if blend > 0.]
@@ -368,6 +374,7 @@ def audit_approach_clearance(ground):
 
 def climbing_steps(stone, ground):
     bridge_curbs = []
+    worn_cap = random.Random(38365)
     for i in range(STAIR_COUNT):
         z = STAIR_START - STAIR_RUN * i
         top = (i + 1) * STAIR_RISE
@@ -399,10 +406,21 @@ def climbing_steps(stone, ground):
             if (i, direction) in ((28, -1), (31, 1)):
                 bridge_curbs.append(curb)
             if (i // 5 + direction) % 4 and i < 47:
-                for row in range(2 + int(i > 31)):
-                    hewn_block(f'Stair retaining course {direction} {i} {row}', .46, .25, .798,
-                               (bend + direction * (span / 2 + .38 + row * .070), top + row * .244 + .02,
-                                z + (.24 if row % 2 else 0)), RANDOM.choice(stone), 'approach')
+                cap = 1 + int(i > 31)
+                for row in range(cap + 1):
+                    retaining = hewn_block(f'Stair retaining course {direction} {i} {row}', .46, .25, .798,
+                                           (bend + direction * (span / 2 + .38 + row * .070), top + row * .244 + .02,
+                                            z + (.24 if row % 2 else 0)), RANDOM.choice(stone), 'approach')
+                    if row == cap:
+                        rim = len(retaining.data.vertices) // 3
+                        wear = [worn_cap.uniform(.009, .051) for _ in range(rim)]
+                        for ring, fraction in ((1, .61), (2, 1.)):
+                            for j, loss in enumerate(wear):
+                                vertex = retaining.data.vertices[ring * rim + j]
+                                vertex.co.z -= fraction * loss
+                        retaining.data.update()
+                        profile_uv(retaining, rim, 3, {0, 1}, 1)
+                        retaining['moss_edge'] = worn_cap.random() < .46
     landing_bed(stone[2])
     landing_flagstones(stone)
     fit_stone_undersides(ground, bridge_curbs)
@@ -450,6 +468,15 @@ def audit_watercourse(ground, bank_stones, deck_slabs, bridge_curbs):
         raise RuntimeError(f'Pine Gate watercourse clearance fails: wet {min(wet):.6f} m, bank {min(dry):.6f} m.')
     print(f'PINE_WATERCOURSE_CLEARANCE {len(wet)} wet probes; minimum {min(wet):.6f} m. '
           f'{len(dry)} dry bank probes; minimum {min(dry):.6f} m.')
+    hidden_edges = []
+    for z in watercourse_stations(.11):
+        x, y, width = watercourse_at(z)
+        for direction in (-1, 1):
+            edge_x = x + direction * (width + STREAM_RIBBON_OVERLAP)
+            hidden_edges.append(supports_height(edge_x, z, [ground]) - y)
+    if min(hidden_edges) <= 0.:
+        raise RuntimeError(f'Visible cut edge on the Pine Gate stream: {min(hidden_edges):.6f} m.')
+    print(f'PINE_STREAM_EDGE {len(hidden_edges)} concealed edge probes; minimum {min(hidden_edges):.6f} m.')
 
     depsgraph = bpy.context.evaluated_depsgraph_get()
     slopes = terrain_bank_slopes(ground, depsgraph)
@@ -551,8 +578,11 @@ def fit_stone_undersides(ground, stones, upper_clearances=None):
 def saddle_water(stone, ground):
     water = mesh.material('Spring water on a slate bed', '#4a6865', rough=.20, metal=.24)
     points = []
-    for i, (x, y, z) in enumerate(WATERCOURSE):
-        half_width = .18 + .12 * math.sin(i * .53) ** 2
+    for z in watercourse_stations(.32):
+        x, y, width = watercourse_at(z)
+        # Extend beneath the higher banks so the terrain, not the end of
+        # the water ribbon, defines the edge of the stream.
+        half_width = width + STREAM_RIBBON_OVERLAP
         points.extend(((x - half_width, y, z), (x + half_width, y, z)))
     faces = [(i, i + 2, i + 3, i + 1) for i in range(0, len(points) - 2, 2)]
     channel = mesh.mesh_object('Spring runnel through the saddle', points, faces, water, 'approach')
@@ -1301,7 +1331,10 @@ def paint_stone():
                 tint_color = [base[channel] * shade * (1 - green_mix * (1 - tone))
                               for channel, tone in enumerate((.48, .73, .43))]
                 if obj.name == 'Continuous mountain shoulder':
-                    tint_color = [channel * tint for channel, tint in zip(tint_color, crest_soil_tint(world.x, -world.y))]
+                    x, z = world.x, -world.y
+                    creek_x, _, width = watercourse_at(z)
+                    tint_color = [channel * crest * bank for channel, crest, bank in zip(
+                        tint_color, crest_soil_tint(x, z), inner_bank_tint(x, z, creek_x, width))]
                 tint.data[i].color = (*tint_color, 1.)
 
 
@@ -1413,6 +1446,7 @@ def build(output, impostor_manifest=None, wax_sculpt=None):
     paint_stone()
     build_crest_ground(ground, rock, bark, section_at, watercourse_at, lambda x, z: supports_height(x, z, [support]),
                        ((-1.88, PINE_CREST + .08), (1.82, PINE_CREST - .32)), bark_tube)
+    build_inner_banks(ground, rock, section_at, watercourse_at, lambda x, z: supports_height(x, z, [support]))
     scene.render.engine = 'CYCLES'
     scene.render.threads_mode = 'AUTO'
     scene.render.resolution_x = 1440
