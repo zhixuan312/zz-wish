@@ -204,15 +204,9 @@ class NearTerraces:
                     if rng.random() > .65:
                         continue
                     x = lerp(left, right, across) + rng.uniform(-.05, .05)
-                    y = pond.floor + .016
-                    for j in range(3):
+                    for _ in range(3):
                         angle, blade = rng.uniform(0., math.tau), rng.uniform(.09, .16)
-                        dx, dy = math.cos(angle), math.sin(angle)
-                        p = len(shoots.points)
-                        shoots.points.extend(((x - dy * .009, d + dx * .009, y),
-                                              (x + dy * .009, d - dx * .009, y),
-                                              (x + dx * .055, d + dy * .055, y + blade)))
-                        shoots.faces.append((p, p + 1, p + 2))
+                        self.rooted_blade(shoots, x, d, angle, .009, .055, blade)
                 d += rng.uniform(.39, .56)
             audit.append({'bed': index + 1, 'waterLevelMetres': pond.level, 'waterDepthMetres': PADDY_WATER_DEPTH,
                           'minimumWidthMetres': min(widths), 'maximumWidthMetres': max(widths),
@@ -240,22 +234,25 @@ class NearTerraces:
                 rows.append(row)
             spills.loft(rows, reverse=True)
 
-        return earth, floods, shoots, spills, grass, self.audit(audit, spills)
+        return earth, floods, shoots, spills, grass, self.audit(audit, spills, shoots, grass)
 
     def grass_tuft(self, grass, rng, x, depth, height_range):
         for _ in range(rng.randint(5, 9)):
             site = depth + rng.uniform(-.083, .083)
-            base = self.ground_height(x, site) - .009
             angle = rng.uniform(0., math.tau)
-            dx, dz = math.cos(angle), math.sin(angle)
             offset, height = rng.uniform(.006, .017), rng.uniform(*height_range)
-            first = len(grass.points)
-            grass.points.extend(((x - dz * offset, site + dx * offset, base),
-                                 (x + dz * offset, site - dx * offset, base),
-                                 (x + dx * .041, site + dz * .041, base + height)))
-            grass.faces.append((first, first + 1, first + 2))
+            self.rooted_blade(grass, x, site, angle, offset, .041, height)
 
-    def audit(self, beds, spills):
+    def rooted_blade(self, plants, x, depth, angle, width, lean, height):
+        dx, dz = math.cos(angle), math.sin(angle)
+        first = len(plants.points)
+        roots = [(x + side * dz * width, depth - side * dx * width) for side in (-1, 1)]
+        root_heights = [self.ground_height(px, pd) - .005 for px, pd in roots]
+        plants.points.extend((px, pd, y) for (px, pd), y in zip(roots, root_heights))
+        plants.points.append((x + dx * lean, depth + dz * lean, max(root_heights) + height))
+        plants.faces.append((first, first + 1, first + 2))
+
+    def audit(self, beds, spills, shoots, grass):
         depths, crests = [], []
         for index, pond in enumerate(self.ponds):
             for depth in stations(pond.start + .30, pond.end - .30, 36):
@@ -270,13 +267,18 @@ class NearTerraces:
                 for fraction in (.26, .5, .75):
                     crests.append(self.ground_height(lerp(left, right, fraction), end) - pond.level)
         supported = [height - self.ground_height(x, depth) for x, depth, height in spills.points]
+        root_gaps = [height - self.ground_height(x, depth) for batch in (shoots, grass)
+                     for i, (x, depth, height) in enumerate(batch.points) if i % 3 != 2]
         if min(depths) < .033 or min(crests) < .040:
             raise ValueError('The evaluated western terraces do not hold their shallow water.')
         if min(supported) < .005 or max(supported) > .058:
             raise ValueError(f'The evaluated western spill courses are not supported: {min(supported)} to {max(supported)} m.')
+        if max(root_gaps) > .002:
+            raise ValueError('A new western rice or grass blade has a visible root gap.')
         return {'beds': beds, 'waterDepthChecks': len(depths), 'minimumWaterMetres': min(depths),
                 'crestChecks': len(crests), 'minimumCrestMetres': min(crests),
-                'spillChecks': len(supported), 'spillWaterOverCourseMetres': [min(supported), max(supported)]}
+                'spillChecks': len(supported), 'spillWaterOverCourseMetres': [min(supported), max(supported)],
+                'rootChecks': len(root_gaps), 'maximumRootGapMetres': max(root_gaps)}
 
     def ground_height(self, x, depth):
         if not self.x0 < x < self.x1 or not self.d0 < depth < self.d1:
