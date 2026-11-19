@@ -48,3 +48,30 @@ test('refresh ends the Pine Gate candle and restores the same wax in My Lamps', 
   await expect(restoredThumbnail).toBeVisible();
   expect(imageHash(await restoredThumbnail.getAttribute('src'))).toBe(restoredImage);
 });
+
+test('the visitor wish cloth is under the candle stand while burning and after the ending', async ({ page }) => {
+  await page.goto('/');
+  await page.getByLabel(/你的愿望|Your wish/).fill('A strip of red cloth.');
+  await page.getByRole('button', { name: /许好了|Set my wish/ }).click();
+  await page.getByRole('radio', { name: /松门石阶|Pine Gate Steps/ }).click();
+  await page.getByRole('button', { name: /走进院里|Step inside/ }).click();
+  await page.getByRole('button', { name: /跳过|Skip/ }).click();
+  await page.getByRole('radio', { name: /^(10 分钟|10 min)$/ }).click();
+  await page.getByRole('button', { name: /点亮这一盏|Light it/ }).click();
+  await expect(page.getByTestId('with-you')).toBeVisible();
+
+  const read = () => page.evaluate(() => (window as Window & { __pineWishCloth?: () => unknown }).__pineWishCloth?.());
+  await expect.poll(async () => (await read() as { visible?: boolean } | undefined)?.visible, { timeout: 15_000 }).toBe(true);
+  const burning = await read() as { position: number[]; anchor: number[] };
+  // Just under the candle stand, on the same vertical.
+  expect(burning.position[0]).toBeCloseTo(burning.anchor[0], 2);
+  expect(burning.position[2]).toBeCloseTo(burning.anchor[2], 2);
+  expect(burning.position[1]).toBeLessThan(burning.anchor[1]);
+
+  await page.getByRole('button', { name: /^(熄灭|Put out)$/ }).click();
+  await page.getByRole('button', { name: /熄灭并结束|Put out and end/ }).click();
+  await expect(page.getByTestId('result-title')).toBeVisible({ timeout: 20_000 });
+  // The ending does not remove it: it becomes part of the shrine with the older wax.
+  const after = await read() as { visible: boolean };
+  expect(after.visible).toBe(true);
+});
