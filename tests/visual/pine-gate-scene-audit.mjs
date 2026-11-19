@@ -66,9 +66,11 @@ export function instrumentPineScene(source, { readiness, cadence, lighting, walk
         const { width, height } = plane.geometry.parameters;
         const distance = center.clone().sub(eye).dot(front) / ray.dot(front);
         const hit = distance > camera.near && distance < camera.far ? plane.worldToLocal(eye.clone().addScaledVector(ray, distance)) : null;
+        const uniforms = plane.material.uniforms;
         return {
-          name: plane.name, ...image(plane.material.uniforms.uPlate.value),
-          opacity: plane.material.uniforms.uDayOpacity.value,
+          name: plane.name, ...image(uniforms.uPlate.value),
+          opacity: uniforms.uDayOpacity.value,
+          ...(uniforms.uHighPlate && uniforms.uHighMix ? { high: { ...image(uniforms.uHighPlate.value), mix: uniforms.uHighMix.value } } : {}),
           position: center.toArray(), front: front.toArray(), size: [width, height],
           viewportCenterUv: hit ? [.5 + hit.x / width, .5 + hit.y / height] : null,
           depthTest: plane.material.depthTest, depthWrite: plane.material.depthWrite,

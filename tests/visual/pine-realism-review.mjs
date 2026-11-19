@@ -96,12 +96,24 @@ async function captureEvidence(directory, kind) {
     assert.deepEqual(report.frames, Object.values(sizes).map(view => view.stage));
     const phone = report.runs.find(run => run.realismPerformanceOnly);
     assert(phone?.label === 'phone-zh' && phone.visualHour === 13 && phone.performance.fps > 0);
-    assert(report.delivery.realismBase.totalBytes <= 15_000_000);
+    const budget = report.delivery.realismBase;
+    assert(budget.totalBytes <= 15_000_000);
+    if (budget.backdrop?.high) {
+      assert.equal(budget.highBytes, budget.backdrop.high.bytes);
+      assert.equal(budget.combinedBytes, budget.totalBytes + budget.highBytes);
+      assert(budget.combinedBytes <= 40_000_000);
+      assert.equal(phone.highBackdrop?.settled?.status, 'base');
+      assert.deepEqual(phone.highBackdropRequests, []);
+    }
     assert.deepEqual(phone.shots, []);
   }
   const run = report.runs.find(run => run.direction === 'day' && run.label === 'desktop-en');
   assert(run?.visualHour === 13 && run.label === 'desktop-en' && run.lighting.agx);
   assert(run.lighting.loadedPasses.includes('day'));
+  if (kind === 'candidate' && report.delivery.realismBase.backdrop?.high) {
+    assert.equal(run.highBackdrop?.beforeEntry?.status, 'base');
+    assert.equal(run.highBackdrop?.shots?.['day-burning.png']?.status, 'active');
+  }
   const frames = {};
   for (const [key, view] of Object.entries(sizes)) {
     const file = `desktop-en/${view.stage}.png`;

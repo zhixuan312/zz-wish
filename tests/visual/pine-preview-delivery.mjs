@@ -61,16 +61,22 @@ export async function measurePineRealismBase(worktree, preview, ordinaryManifest
   assert.equal(sharedBytes.length, shared.bytes);
   assert.equal(sha256(sharedBytes), shared.sha256);
 
-  const packageBytes = [...preview.assets.values()].reduce((bytes, asset) => bytes + asset.body.length, 0);
-  // All declared private image payloads are already included in packageBytes.
-  // Pine no longer imports the old DEM module or charges for its source bytes.
-  const plates = Object.values(preview.backdrop?.files ?? {});
-  const backdropBytes = plates.reduce((bytes, file) => bytes + preview.assets.get(file.uri).body.length, 0);
+  const combinedPackageBytes = [...preview.assets.values()].reduce((bytes, asset) => bytes + asset.body.length, 0);
+  const { high, ...base } = preview.backdrop ?? {};
+  const imageBytes = tier => Object.values(tier?.files ?? {}).reduce((bytes, file) => bytes + preview.assets.get(file.uri).body.length, 0);
+  // The entire manifest, all ambient banks and the shared LUT belong to base.
+  // Only the separately declared and verified optional high plate bodies can be deferred.
+  const highBytes = imageBytes(high);
+  const packageBytes = combinedPackageBytes - highBytes;
   const totalBytes = packageBytes + sharedBytes.length;
   const limitBytes = 15_000_000;
   assert(totalBytes <= limitBytes, `R1 base payload is ${totalBytes} bytes and exceeds ${limitBytes} bytes.`);
+  const combinedBytes = combinedPackageBytes + sharedBytes.length;
+  const combinedLimitBytes = 40_000_000;
+  assert(combinedBytes <= combinedLimitBytes, `Pine Gate combined payload is ${combinedBytes} bytes and exceeds ${combinedLimitBytes} bytes.`);
   return { totalBytes, limitBytes, packageBytes, sharedAgXBytes: sharedBytes.length,
-    backdrop: preview.backdrop ? { ...preview.backdrop, bytes: backdropBytes } : null,
+    backdrop: preview.backdrop ? { ...base, bytes: imageBytes(base), ...(high ? { high: { ...high, bytes: highBytes } } : {}) } : null,
+    ...(high ? { combinedBytes, combinedLimitBytes, combinedPackageBytes, highBytes } : {}),
     waxNormal: preview.waxNormal };
 }
 
@@ -104,8 +110,33 @@ export function assertPineRuntimeImages(state, preview, fetched, checkView = fal
   }
 }
 
+export function inspectPineHighBackdrop(state, preview, fetched) {
+  const tier = preview.backdrop?.high;
+  if (!tier) return null;
+  const planes = state.backdrop.planes;
+  const mix = planes[0].high?.mix;
+  assert(Number.isFinite(mix) && mix >= 0 && mix <= 1, 'Missing bounded high backdrop mix.');
+  let loaded = 0;
+  for (const plane of planes) {
+    const { high } = plane;
+    assert.equal(high?.mix, mix, 'High backdrop layers must transition together.');
+    if (high.uri === tier.files[plane.name].uri) {
+      assert.deepEqual(high.pixels, [tier.width, tier.height]);
+      loaded++;
+    } else {
+      assert.equal(high.uri, plane.uri, 'A high backdrop slot sampled an unverified image.');
+      assert.deepEqual(high.pixels, plane.pixels);
+    }
+  }
+  assert(loaded === 0 || loaded === planes.length, 'High backdrop samplers were swapped partially.');
+  assert(mix === 0 || loaded === planes.length, 'High backdrop mixed before the full tier was ready.');
+  const requested = Object.values(tier.files).map(file => file.uri).filter(uri => fetched.includes(uri));
+  if (loaded) assert.equal(requested.length, planes.length, 'A high backdrop plate was used before its verified request.');
+  return { status: mix === 1 ? 'active' : loaded ? 'transitioning' : requested.length ? 'base-fallback' : 'base', mix, requested };
+}
+
 export async function routePinePreview(page, base, preview, onError, onServed) {
-  const imageUris = new Set(Object.values(preview.backdrop?.files ?? {}).map(file => file.uri));
+  const imageUris = new Set([...Object.values(preview.backdrop?.files ?? {}), ...Object.values(preview.backdrop?.high?.files ?? {})].map(file => file.uri));
   if (preview.waxNormal) imageUris.add(preview.waxNormal.uri);
   await page.route(url => url.origin === base.origin && url.pathname.startsWith(pinePackagePath), async route => {
     const url = new URL(route.request().url());

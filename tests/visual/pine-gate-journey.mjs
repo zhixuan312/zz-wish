@@ -11,7 +11,7 @@ import { DICTS, fmtDuration } from '../../web/src/i18n.ts';
 import { assertCaptureGpuHealthy, installCaptureGpuGuard } from './capture-preflight.mjs';
 import { installLiveAudioAudit, sampleLiveAudio, sampleLiveAudioWindow } from './live-audio-audit.mjs';
 import { instrumentPineScene, readDirectionOverview } from './pine-gate-scene-audit.mjs';
-import { assertPineRuntimeImages, measurePineRealismBase, pinePackagePath, readPinePreview, routePinePreview } from './pine-preview-delivery.mjs';
+import { assertPineRuntimeImages, inspectPineHighBackdrop, measurePineRealismBase, pinePackagePath, readPinePreview, routePinePreview } from './pine-preview-delivery.mjs';
 
 if (process.argv.includes('--help')) {
   console.log([
@@ -316,6 +316,17 @@ async function capture(browser, browserName, size, trial) {
       if (message.type() === 'error') run.errors.push({ kind: 'console', text: message.text() });
     });
     if (realismOnly) run.obsoleteVistaRequests = [];
+    const highUris = new Set(Object.values(previewPackage?.backdrop?.high?.files ?? {}).map(file => file.uri));
+    let entryStartedAt = null;
+    if (realismOnly && highUris.size) {
+      run.highBackdropRequests = [];
+      page.on('request', request => {
+        const url = new URL(request.url());
+        if (url.origin !== base.origin || !url.pathname.startsWith(pinePackagePath)) return;
+        const uri = url.pathname.slice(pinePackagePath.length);
+        if (highUris.has(uri)) run.highBackdropRequests.push({ uri, afterEntryMs: entryStartedAt === null ? null : performance.now() - entryStartedAt });
+      });
+    }
     page.on('response', response => {
       if (response.status() >= 400) run.errors.push({ kind: 'http', status: response.status(), url: response.url() });
       if (realismOnly && response.ok()) {
@@ -478,6 +489,7 @@ async function capture(browser, browserName, size, trial) {
     };
     const travel = async (skip, journey = false) => {
       const started = performance.now();
+      entryStartedAt = started;
       await act(button(bi('^Step inside$', '^走进院里$')));
       if (skip) await act(button(bi('^Skip$', '^跳过$')));
       if (direction?.name === 'day' && !phone) {
@@ -661,6 +673,12 @@ async function capture(browser, browserName, size, trial) {
       if (realismOnly) {
         run.readyPineImages = await page.evaluate(() => window.__pineCaptureBackdrop());
         assertPineRuntimeImages(run.readyPineImages, previewPackage, run.previewFetchedFiles);
+        const beforeEntry = inspectPineHighBackdrop(run.readyPineImages, previewPackage, run.previewFetchedFiles);
+        if (beforeEntry) {
+          run.highBackdrop = { beforeEntry };
+          assert.equal(beforeEntry.status, 'base', 'High backdrop must not load before Step inside.');
+          assert.deepEqual(run.highBackdropRequests, [], 'High backdrop must not request assets before Step inside.');
+        }
       }
       if (readinessOnly) {
         assert(Number.isFinite(run.placeReadiness.wishToEnabledMs) && Number.isFinite(run.placeReadiness.clickToEnabledMs),
@@ -720,6 +738,23 @@ async function capture(browser, browserName, size, trial) {
         run.settledPineImages = await page.evaluate(() => window.__pineCaptureBackdrop());
         assertPineRuntimeImages(run.settledPineImages, previewPackage, run.previewFetchedFiles, true);
         for (const shot of run.shots) assertPineRuntimeImages(shot.pineImages, previewPackage, run.previewFetchedFiles, true);
+        if (run.highBackdrop) {
+          const inspectHigh = state => inspectPineHighBackdrop(state, previewPackage, run.previewFetchedFiles);
+          const settled = inspectHigh(run.settledPineImages);
+          // The per-shot samplers distinguish a base reveal or burn from a later successful upgrade.
+          const shots = Object.fromEntries(run.shots.map(shot => [basename(shot.file), inspectHigh(shot.pineImages)]));
+          Object.assign(run.highBackdrop, { settled, shots });
+          if (phone) {
+            assert.equal(settled.status, 'base', 'Phone must remain on the base backdrop.');
+            assert.deepEqual(run.highBackdropRequests, [], 'Phone must never request high backdrop assets.');
+          }
+          else {
+            assert(run.highBackdropRequests.every(request => request.afterEntryMs !== null), 'High backdrop requested before entering.');
+            assert.deepEqual(new Set(run.highBackdropRequests.map(request => request.uri)), highUris);
+            assert.equal(settled.status, 'active', 'Desktop did not finish the optional high backdrop upgrade.');
+            assert.equal(shots['day-burning.png'].status, 'active', 'Desktop burning was captured before the high backdrop upgrade finished.');
+          }
+        }
         assert(Number.isFinite(run.placeReadiness.wishToEnabledMs) && run.placeReadiness.wishToEnabledMs > 0);
         if (requireBackdrop) assert(run.placeReadiness.wishToEnabledMs <= 5000, 'Wish to Step inside took more than 5 seconds.');
       }
