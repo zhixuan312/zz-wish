@@ -184,7 +184,7 @@ def render_plates(options):
     output.mkdir(parents=True, exist_ok=False)
     report = {'format': 'Pine approach forest layers', 'descriptor': descriptor, 'files': [],
               'source': source, 'samples': options.samples, 'device': 'METAL', 'denoiser': 'Metal OIDN',
-              'encoding': 'log2-8-8', 'alpha': 'straight', 'webpQuality': options.quality}
+              'encoding': 'log2-8-8', 'alpha': 'straight', 'webpQuality': options.quality, 'preExposure': PRE_EXPOSURE}
     for index, station in enumerate(STATIONS):
         rng = random.Random(6143 + 107 * index)
         layer = bpy.data.collections.new(f'Forest approach depth {station:g} m')

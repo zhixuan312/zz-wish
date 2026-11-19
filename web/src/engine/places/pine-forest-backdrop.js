@@ -43,6 +43,16 @@ export function readPineForestBackdrop(manifest) {
       || !/^[a-z0-9][a-z0-9._-]*\.webp$/.test(uri) || files.has(uri)) {
       throw new Error('Invalid Pine Gate approach forest layer.');
     }
+    const {
+      width: pixelWidth = width, height: pixelHeight = height, centerX = 0,
+      widthMetres: planeWidth = widthMetres, heightMetres: planeHeight = heightMetres, centerY: planeY = centerY,
+    } = layer;
+    if (![pixelWidth, pixelHeight].every(value => Number.isSafeInteger(value) && value > 0)
+      || ![planeWidth, planeHeight].every(value => Number.isFinite(value) && value > 0)
+      || ![centerX, planeY].every(Number.isFinite)
+      || Math.abs(pixelWidth - pixelHeight * planeWidth / planeHeight) > 1) {
+      throw new Error(`Invalid Pine Gate crop geometry for ${uri}.`);
+    }
     const rows = manifest.files.filter(file => file.uri === uri);
     const [file] = rows;
     if (rows.length !== 1 || !Number.isSafeInteger(file.bytes) || file.bytes <= 0 || !/^[a-f0-9]{64}$/.test(file.sha256)) {
@@ -50,20 +60,20 @@ export function readPineForestBackdrop(manifest) {
     }
     depths.add(z);
     files.add(uri);
-    return { z, file };
+    return { z, file, pixelWidth, pixelHeight, planeWidth, planeHeight, centerX, planeY };
   });
   return { width, height, centerY, widthMetres, heightMetres, plates: plates.sort((a, b) => a.z - b.z) };
 }
 
 export async function loadPineForestBackdrop(baked, renderer, light, descriptor) {
   if (!descriptor) return null;
-  const { width, height, centerY, widthMetres, heightMetres, plates } = descriptor;
-  if (Math.max(width, height) > renderer.capabilities.maxTextureSize) {
+  const { plates } = descriptor;
+  if (plates.some(plate => Math.max(plate.pixelWidth, plate.pixelHeight) > renderer.capabilities.maxTextureSize)) {
     throw new Error('Pine Gate approach forest exceeds the device texture limit.');
   }
-  const textures = await Promise.all(plates.map(async ({ file }) => {
+  const textures = await Promise.all(plates.map(async ({ file, pixelWidth, pixelHeight }) => {
     const texture = await baked.loadTexture(file.uri);
-    if (texture.image.width !== width || texture.image.height !== height) {
+    if (texture.image.width !== pixelWidth || texture.image.height !== pixelHeight) {
       baked.disposeTexture(texture);
       throw new Error(`Wrong Pine Gate approach forest dimensions for ${file.uri}.`);
     }
@@ -72,11 +82,10 @@ export async function loadPineForestBackdrop(baked, renderer, light, descriptor)
 
   const group = new THREE.Group();
   group.name = 'Pine Gate layered approach forest';
-  const geometry = new THREE.PlaneGeometry(widthMetres, heightMetres);
   const uOpacity = { value: 1 };
   // Facing the approach, the cutouts pass behind the camera naturally.
   // Render farther cutouts first and let nearby opaque terrain occlude them.
-  for (const [index, { z, file }] of plates.entries()) {
+  for (const [index, { z, file, planeWidth, planeHeight, centerX, planeY }] of plates.entries()) {
     const texture = textures[index];
     renderer.initTexture(texture);
     const material = new THREE.ShaderMaterial({
@@ -84,9 +93,9 @@ export async function loadPineForestBackdrop(baked, renderer, light, descriptor)
       vertexShader, fragmentShader, side: THREE.FrontSide,
       transparent: true, depthWrite: false, toneMapped: false,
     });
-    const plane = new THREE.Mesh(geometry, material);
+    const plane = new THREE.Mesh(new THREE.PlaneGeometry(planeWidth, planeHeight), material);
     plane.name = file.uri;
-    plane.position.set(0, centerY, z);
+    plane.position.set(centerX, planeY, z);
     plane.renderOrder = -20 + index;
     group.add(plane);
   }
@@ -103,8 +112,7 @@ export async function loadPineForestBackdrop(baked, renderer, light, descriptor)
     group, update,
     dispose() {
       group.removeFromParent();
-      geometry.dispose();
-      for (const plane of group.children) plane.material.dispose();
+      for (const plane of group.children) { plane.geometry.dispose(); plane.material.dispose(); }
       for (const texture of textures) baked.disposeTexture(texture);
       group.clear();
     },
