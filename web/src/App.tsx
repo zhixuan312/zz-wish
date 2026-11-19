@@ -41,8 +41,10 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
   // The candle screen asks for nothing: either the 36-second walk cue reaches it and
   // hands over on `ended`, or Skip cuts to `choose` first. Starting `choose` here
   // would fade out the walk's authored tail.
+  // The result screen and the panels opened over it share one cue: the journey is over,
+  // so the afterglow loop is what should play either way.
   const stageForScreen = (value: Screen, overlayValue: Overlay): MusicStage | null =>
-    overlayValue ? 'result' :
+    value === 'result' || overlayValue ? 'result' :
     value === 'wish' ? 'home' :
     value === 'place' ? 'place' :
     value === 'travel' ? 'walk' : null;

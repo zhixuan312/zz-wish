@@ -216,6 +216,12 @@ test('a walk cue that is not shipped stays silent and choose still starts', asyn
 // The whole journey in order: every screen asks for its own cue, and the one-shot cues
 // hand over to the loop that follows them.
 test('the full journey asks for each cue in order', async ({ page }) => {
+  // The walk runs 36 s and ignite 20 s, so the authored timing alone outlasts the
+  // default per-test timeout.
+  test.setTimeout(240_000);
+  const errors: string[] = [];
+  page.on('pageerror', (error) => errors.push(String(error)));
+  page.on('console', (message) => { if (message.type() === 'error') errors.push(message.text()); });
   const cues = recordCues(page);
   await serveMusic(page, [
     'home_loop', 'snow_place_loop', 'snow_walk', 'snow_choose_loop',
@@ -224,18 +230,26 @@ test('the full journey asks for each cue in order', async ({ page }) => {
   ]);
   await page.goto('/');
   await page.waitForFunction(() => (window as Window & { __ready?: boolean }).__ready === true, null, { timeout: 60_000 });
-  // The first tap is what unlocks sound, so home follows it rather than the load.
-  await page.getByLabel(re('你的愿望', 'Your wish')).fill('A whole journey of music.');
+  // The first gesture is what unlocks sound, so home follows a real click rather than
+  // the load; fill() alone dispatches no pointer event.
+  await page.getByLabel(re('你的愿望', 'Your wish')).click();
   await expect.poll(() => cues.some((c) => c.cue === 'home_loop'), { timeout: 15_000 }).toBe(true);
+  await page.getByLabel(re('你的愿望', 'Your wish')).fill('A whole journey of music.');
   await page.getByRole('button', { name: re('许好了', 'Set my wish') }).click();
   await page.getByRole('button', { name: re('走进院里', 'Step inside') }).click();
   await page.getByRole('button', { name: re('跳过', 'Skip') }).click();
   await page.getByRole('radio', { name: re('^10 分钟$', '^10 min$') }).click({ timeout: 30_000 });
   await page.getByRole('button', { name: re('点亮这一盏', 'Light it') }).click({ timeout: 15_000 });
   await expect(page.getByTestId('with-you')).toBeVisible({ timeout: 20_000 });
+  // Ignite is a 20-second one-shot and hands over to the bed when it ends; putting the
+  // lamp out first would mean the bed is never asked for, so wait for the hand-over.
+  await expect.poll(() => cues.some((c) => c.cue.startsWith('snow_burn_bed_')), { timeout: 40_000 }).toBe(true);
   await page.getByRole('button', { name: re('^熄灭$', '^Put out$') }).click();
   await page.getByRole('button', { name: re('熄灭并结束', 'Put out and end') }).click();
   await expect(page.getByTestId('result-title')).toBeVisible({ timeout: 20_000 });
+  // ending_putout is a one-shot that starts at settlement and result_loop hands over
+  // after it, so both arrive just after the result screen appears.
+  await expect.poll(() => cues.some((c) => c.cue === 'result_loop'), { timeout: 20_000 }).toBe(true);
   const order = cues.map((c) => c.cue);
   const firstOf = (name: string) => order.indexOf(name);
   expect(firstOf('home_loop')).toBeGreaterThanOrEqual(0);
@@ -247,6 +261,7 @@ test('the full journey asks for each cue in order', async ({ page }) => {
   expect(bed).toBeGreaterThan(firstOf('snow_ignite'));
   expect(firstOf('snow_ending_putout')).toBeGreaterThan(bed);
   expect(firstOf('result_loop')).toBeGreaterThan(firstOf('snow_ending_putout'));
+  expect(errors).toEqual([]);
 });
 
 test('an empty manifest plays the whole journey in silence with no errors', async ({ page }) => {
@@ -264,6 +279,11 @@ test('an empty manifest plays the whole journey in silence with no errors', asyn
   await page.getByRole('radio', { name: re('^10 分钟$', '^10 min$') }).click({ timeout: 30_000 });
   await page.getByRole('button', { name: re('点亮这一盏', 'Light it') }).click({ timeout: 15_000 });
   await expect(page.getByTestId('with-you')).toBeVisible({ timeout: 20_000 });
+  // The journey has to end, not stop at the burning screen: a missing cue must never
+  // block the result.
+  await page.getByRole('button', { name: re('^熄灭$', '^Put out$') }).click();
+  await page.getByRole('button', { name: re('熄灭并结束', 'Put out and end') }).click();
+  await expect(page.getByTestId('result-title')).toBeVisible({ timeout: 20_000 });
   expect(cues).toHaveLength(0);
   expect(errors).toEqual([]);
 });
@@ -283,6 +303,14 @@ test('the mute control is fully visible on a phone and its state survives a relo
   expect(box!.y).toBeGreaterThanOrEqual(0);
   expect(box!.x + box!.width).toBeLessThanOrEqual(390);
   expect(box!.y + box!.height).toBeLessThanOrEqual(844);
+  // Inside the viewport is not enough: another control could cover it. Ask the document
+  // what a tap at the button's centre actually reaches.
+  const hitsMute = await page.evaluate(({ x, y }) => {
+    const hit = document.elementFromPoint(x, y);
+    const button = document.querySelector('button.mute');
+    return !!hit && !!button && (hit === button || button.contains(hit));
+  }, { x: box!.x + box!.width / 2, y: box!.y + box!.height / 2 });
+  expect(hitsMute).toBe(true);
   await mute.click();
   await page.reload();
   await page.waitForFunction(() => (window as Window & { __ready?: boolean }).__ready === true, null, { timeout: 60_000 });

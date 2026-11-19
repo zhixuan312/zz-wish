@@ -239,6 +239,11 @@ export function createMusic(options: { createContext?: () => AudioContext } = {}
     held = held.filter((c) => c !== channel);
     if (liveOneShot === channel) { liveOneShot = null; cueStage = null; }
     if (channel.slot.owner === channel) channel.slot.owner = null;
+    // Both ends of the edge go: disconnecting only the gain would leave the source
+    // feeding a node nothing hears, and a 24-hour burn would pile up one per turnover.
+    // The source node itself stays with its element, because createMediaElementSource
+    // may run only once per element.
+    try { channel.source.disconnect(); } catch { /* already gone */ }
     try { channel.gain.disconnect(); } catch { /* already gone */ }
   }
 

@@ -15,7 +15,13 @@ class FakeGain {
   connect(target: FakeGain | FakeContext) { return target; }
   disconnect() { /* no graph */ }
 }
-class FakeSource { connect() { return new FakeGain(); } disconnect() { /* detached */ } }
+class FakeSource {
+  static instances: FakeSource[] = [];
+  disconnected = false;
+  constructor() { FakeSource.instances.push(this); }
+  connect() { return new FakeGain(); }
+  disconnect() { this.disconnected = true; }
+}
 class FakeContext {
   currentTime = 0;
   destination = new FakeGain();
@@ -452,6 +458,20 @@ describe('music playback', () => {
     // The playing cue must not be reset to the primer.
     expect(cueEl.src).toBe('/music/home_loop.m4a');
     expect(cueElements()).toHaveLength(1);
+  });
+
+  it('disconnects both ends of a retired cue so the graph does not grow', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, json: async () => ({ cues: ['home_loop', 'snow_choose_loop'] }) })));
+    const music = createMusic({ createContext: () => new FakeContext() as unknown as AudioContext });
+    await music.unlock();
+    await music.play('home', 'snow-roof');
+    await music.play('choose', 'snow-roof');
+    await new Promise((r) => setTimeout(r, 1700));
+    // The cue that was replaced must be detached at both ends; the live one keeps
+    // playing. A burn that turns over beds all night would otherwise keep one live
+    // source per turnover.
+    expect(FakeSource.instances.filter((s) => s.disconnected).length).toBeGreaterThanOrEqual(1);
+    expect(music.describe().channels).toBe(1);
   });
 
   it('persists the mute choice', async () => {
