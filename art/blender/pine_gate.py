@@ -2000,6 +2000,7 @@ def paint_stone():
             mesh.uv_world(obj, .40 if obj.name == 'Single hewn wick shelf' else .52)
         stair_block = obj.get('approach_tread') or obj.get('rubble_stone') or obj.get('bridge_masonry')
         crown = max(vertex.co.z for vertex in obj.data.vertices) if stair_block else 0.
+        polish = obj.get('passage_polish')
         tint = obj.data.color_attributes.new(name='SurfaceTint', type='FLOAT_COLOR', domain='CORNER')
         obj.data.color_attributes.active_color = tint
         for face in obj.data.polygons:
@@ -2020,6 +2021,12 @@ def paint_stone():
                     path_surface = obj.get('approach_tread') or obj.get('bridge_masonry')
                     shade *= obj.get('step_tone', .76) * (1. - (.17 if path_surface else .31) * wet_base)
                     green_mix = max(green_mix, wet_base * (.30 if obj.get('moss_edge') else .16))
+                    if polish is not None:
+                        x, z, width, depth = polish
+                        radius = ((world.x - x) / width) ** 2 + ((-world.y - z) / depth) ** 2
+                        wear = math.exp(-radius) * (1 - wet_base)
+                        shade *= 1. + .24 * wear
+                        green_mix *= 1. - .8 * wear
                 if obj.get('wet_tread_joints'):
                     flecks = .5 + .5 * noise.noise(world * 18.4)
                     lichens = .5 + .5 * noise.noise(world * 7.3)
@@ -2030,9 +2037,10 @@ def paint_stone():
                     root_dirt = .13 * math.sin(world.x * .57 + world.y * .31)
                     shade *= .72 + .54 * max(0., min(1., .51 + bank - root_dirt))
                     green_mix = max(0., min(.63, (.15 + bank) * .77))
-        polish = obj.get('passage_polish')
                 tint_color = [base[channel] * shade * (1 - green_mix * (1 - tone))
                               for channel, tone in enumerate((.48, .73, .43))]
+                if obj.get('wet_tread_joints'):
+                    tint_color = [v * factor for v, factor in zip(tint_color, (.86, 1.18, 1.04))]
                 if material.get('one_light_ancient_pine_bark'):
                     shield = .5 + .5 * noise.noise(Vector((world.x * 9., world.y * 9., world.z * 3.3)))
                     oxide = .5 + .5 * noise.noise(Vector((world.x * 4.6, world.y * 4.6, world.z * 1.9)))
@@ -2051,12 +2059,6 @@ def paint_stone():
 
 def camera(name, p, look, fov, viewport):
     data = bpy.data.cameras.new(name)
-                    if polish is not None:
-                        x, z, width, depth = polish
-                        radius = ((world.x - x) / width) ** 2 + ((-world.y - z) / depth) ** 2
-                        wear = math.exp(-radius) * (1 - wet_base)
-                        shade *= 1. + .24 * wear
-                        green_mix *= 1. - .8 * wear
     data.sensor_fit = 'VERTICAL'
     data.sensor_height = 24
     data.lens = 12 / math.tan(math.radians(fov / 2))
@@ -2068,8 +2070,6 @@ def camera(name, p, look, fov, viewport):
     return obj
 
 
-                if obj.get('wet_tread_joints'):
-                    tint_color = [v * factor for v, factor in zip(tint_color, (.86, 1.18, 1.04))]
 def daylight_world():
     daylight = json.loads((ROOT / 'shared/pine-gate-daylight.json').read_text())
     day = bpy.data.worlds.new('Pine Gate midday atmosphere')
