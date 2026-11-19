@@ -186,12 +186,13 @@ function refinedWaxMaterial(light, layer, sculptNormal) {
         // The flame lights the rim from within. Wavelength-dependent absorption
         // leaves the lower wax cooler and keeps the original pigments readable.
         float localDensity = ${shaft ? '1. + .065 * waxBloom' : '1.'};
-        float path = (.0012 + depth * .83 + length(fromCrown.xz) * .12) * localDensity;
+        float thinLip = ${sculptNormal ? '1. - smoothstep(.002, .009, uPineWaxHeight - vPineLocal.y)' : '0.'};
+        float path = (.0012 + depth * .83 + length(fromCrown.xz) * .12) * localDensity * (1. - .29 * thinLip);
         vec3 absorption = vec3(49., 88., 155.) - 29. * log(clamp(diffuse, .055, 1.));
         vec3 transmission = exp(-absorption * path);
         float edge = .71 + .29 * pow(1. - abs(dot(normal, viewRay)), 1.45);
         float crownFalloff = ${shaft ? 'exp(-depth * 13.)' : '1. - smoothstep(.006, .046, depth)'};
-        float scatter = sourceFraction * edge * (.08 + .92 * side) * float(${style.scatter});
+        float scatter = sourceFraction * edge * (.08 + .92 * side + .15 * thinLip) * float(${style.scatter});
         totalEmissiveRadiance += uPineSourceColor * transmission * scatter * crownFalloff ${shaft ? '* (1. + .12 * poreLip - .10 * bubble)' : ''};
         ${wet ? `
         // The film climbing the wick turns a narrow part of the liquid surface
@@ -207,7 +208,9 @@ function refinedWaxMaterial(light, layer, sculptNormal) {
         vec3 goldHigh = vec3(1.95, 1.60, 1.05) * flameSlice(fromCrown, reflected, invRise, .012, .00424);
         vec3 reflectedFlame = max(max(blue, transition), max(goldLow, max(goldCore, goldHigh)));
         float fresnel = .031 + .969 * pow(1. - clamp(dot(worldNormal, viewWorld), 0., 1.), 5.);
-        totalEmissiveRadiance += reflectedFlame * fresnel * smoothstep(.02, .10, reflected.y)
+        float wickPool = exp(-4.7 * dot(fromCrown.xz, fromCrown.xz) / max(.0000001, uPinePoolRadius * uPinePoolRadius));
+        vec3 transmittedHalo = vec3(.25, .094, .023) * wickPool;
+        totalEmissiveRadiance += (reflectedFlame * fresnel * smoothstep(.02, .10, reflected.y) + transmittedHalo)
           * sourceFraction * uPinePoolWet;` : ''}`);
     if (shaft) shader.fragmentShader = shader.fragmentShader.replace('#include <lights_fragment_end>', `#include <lights_fragment_end>
       // The convex dry lip scatters broadly while the concave wet surface
@@ -792,7 +795,7 @@ export function createPineWax(seat, waxMaterial, { refined = false, sculptNormal
         const runnels = refined ? runnelLayout.map((drip, index) => {
           // The first small flows wet the shoulder as the pool forms. Later
           // growth follows consumed fuel and leaves the burn height alone.
-          const shoulderMelt = index === 0 ? .14 * melted : 0;
+          const shoulderMelt = index === 0 ? (sculptNormal ? .22 : .14) * melted : 0;
           const amount = clamp((1 - fuel - drip.start + shoulderMelt) * drip.speed, 0, 1);
           return { ...drip, reach: Math.min(drip.reach * amount, cut * .8),
             growth: Math.sqrt(amount), crown: cut - Math.min(cut * .04, .0002) };
