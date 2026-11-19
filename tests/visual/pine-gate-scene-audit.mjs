@@ -30,7 +30,7 @@ export function readDirectionOverview(raw) {
   return view;
 }
 
-export function instrumentPineScene(source, { readiness, cadence, lighting, walkClock, directionCamera, solarProbe, backdropProbe, realismBaseOnly, canvasDiagnostic }) {
+export function instrumentPineScene(source, { readiness, cadence, lighting, walkClock, directionCamera, solarProbe, backdropProbe, realismBaseOnly }) {
   if (realismBaseOnly) {
     const anchor = /^([ \t]*)if \(!narrow\(\) && !powerSaver\) \{(?=\s+const entering = place, started = performance\.now\(\);)/gm;
     assert.equal([...source.matchAll(anchor)].length, 1, 'Expected one scene audit anchor for desktop high-tier streaming.');
@@ -42,21 +42,6 @@ export function instrumentPineScene(source, { readiness, cadence, lighting, walk
   }
   if (cadence) {
     source = insertAt(source, /^([ \t]*)composer\.render\(\);[ \t]*$/gm, 'composer render', 'window.__pineMeasureFrame?.();');
-  }
-  if (canvasDiagnostic) {
-    source = insertAt(source, /^([ \t]*)composer\.render\(\);[ \t]*$/gm, 'composed canvas sample', `
-      if (window.__pineReadCanvas) {
-        const read = window.__pineReadCanvas;
-        window.__pineReadCanvas = null;
-        const normal = renderer.domElement.toDataURL();
-        const wasEnabled = bloom.enabled;
-        bloom.enabled = false;
-        composer.render();
-        const withoutBloom = renderer.domElement.toDataURL();
-        bloom.enabled = wasEnabled;
-        composer.render();
-        read({ normal, withoutBloom });
-      }`);
   }
   if (walkClock) {
     source = insertAt(source, /^([ \t]*)const walk\s*=\s*tween\(P\.walkSeconds\s*\?\?\s*14,\s*(?:\(k\)|k)\s*=>\s*\{/gm,
