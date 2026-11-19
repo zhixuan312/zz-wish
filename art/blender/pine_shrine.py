@@ -1,4 +1,4 @@
-"""The abandoned Pine Gate shrine shelter and its unlit stone lamp places."""
+"""The Pine Gate shrine shelter built and maintained by villagers."""
 
 import json
 import math
