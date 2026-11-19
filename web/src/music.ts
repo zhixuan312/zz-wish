@@ -114,12 +114,20 @@ export function createMusic(options: { createContext?: () => AudioContext } = {}
 
   // Only cues the manifest declares are ever requested, so a missing file is silent
   // rather than a 404.
+  // A pending or broken manifest must never hold up the game: it settles to "no
+  // cues" after a short bound, and any later cue simply stays silent.
+  const MANIFEST_TIMEOUT_MS = 4000;
   function loadManifest(): Promise<void> {
     if (manifestRequest) return manifestRequest;
-    manifestRequest = fetch(MANIFEST_URL)
-      .then((r) => (r.ok ? r.json() as Promise<Manifest> : { cues: [] }))
-      .then((m) => { cues = new Set(Array.isArray(m?.cues) ? m.cues : []); })
-      .catch(() => { cues = new Set(); });
+    manifestRequest = Promise.race([
+      fetch(MANIFEST_URL)
+        .then((r) => (r.ok ? r.json() as Promise<Manifest> : { cues: [] }))
+        .then((m) => { cues = new Set(Array.isArray(m?.cues) ? m.cues : []); })
+        .catch(() => { cues = new Set(); }),
+      new Promise<void>((resolve) => {
+        globalThis.setTimeout(() => { cues ??= new Set(); resolve(); }, MANIFEST_TIMEOUT_MS);
+      }),
+    ]).then(() => { cues ??= new Set(); });
     return manifestRequest;
   }
 
@@ -238,6 +246,8 @@ export function createMusic(options: { createContext?: () => AudioContext } = {}
 
   async function play(nextStage: MusicStage, placeId: PlaceId, fadeSeconds?: number): Promise<boolean> {
     if (!context) return false;
+    // The manifest settles within a few seconds even when the network hangs, so this
+    // wait is bounded; callers that drive gameplay still never await it.
     await loadManifest();
     stage = nextStage;
     place = placeId;

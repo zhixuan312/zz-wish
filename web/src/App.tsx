@@ -256,14 +256,18 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
   };
   const goTravel = () => run(async () => {
     engine.setOffer(shape);
-    // Start the walk cue before the screen moves, so a missing `walk` is known here:
-    // then the candle screen starts `choose` itself instead of waiting for a
-    // hand-over that will never come.
-    const walkStarted = await music.play('walk', placeId);
+    // Travel never waits for music: the walk must start even if a slow network is
+    // still fetching the cue list. Claiming the stage here also stops the screen
+    // effect from asking for `walk` a second time.
+    stageRef.current = 'walk';
+    void music.play('walk', placeId).then((walkStarted) => {
+      // Only the cue's own `ended` hands over. When it was never delivered nothing
+      // will end, so the candle screen starts `choose` itself.
+      if (!walkStarted && screenRef.current === 'candle') { stageRef.current = 'choose'; void music.play('choose', placeId); }
+    });
     setScreen('travel');
     await engine.travel(placeId);
     setScreen('candle');
-    if (!walkStarted) { stageRef.current = 'choose'; void music.play('choose', placeId); }
   });
   const backToPlace = () => { engine.setOffer(null); toPlace(); };
   const again = (id: string | null, text: string) => { setOverlay(null); setWishId(id); setWish(text); setStrokes([]); setDrawingMinutes(null); setTab('preset'); setResult(null); engine.setOffer(null); showPlace(); };
