@@ -1395,19 +1395,35 @@ def use_native_valley_crown(label, profile, far_crown):
             and all(view.get('nativeObject') for view in far_crown[1][profile]))
 
 
-def hero_pine_crown(label, trunk, phase, bark, material):
-    profile = CROWNS[HERO_PINE_CROWNS[label]]
-    if label == 'Back ridge pine 5':
-        phase += .9
-    needles = grow_crown(label, profile, trunk, phase, bark, bark_tube)
+def pine_fascicles(name, needles, material):
     points, faces, charts, wind = needle_mesh(needles, compact=True)
-    canopy = mesh.mesh_object(f'{label} hero needle fascicles', points, faces, material, 'approach')
+    canopy = mesh.mesh_object(name, points, faces, material, 'approach')
     source_uv(canopy, charts, 'Separate needle section nets in metres, with pinned stem UV0.')
     uv = canopy.data.uv_layers['UVMap'].data
     for face in canopy.data.polygons:
         face.use_smooth = True
         for loop, vertex in zip(face.loop_indices, face.vertices):
             uv[loop].uv = wind[vertex]
+
+
+def near_pine_fascicles(name, sprays, material):
+    rng = random.Random(name)
+    needles = []
+    for root, axis, length, _, roll in sprays:
+        # Three paired clusters turn around the exposed bough instead of sharing
+        # a cutout surface. The woody bough already retains each attachment.
+        reach = min(.185, max(.118, length * .42))
+        blades = needle_fascicle(root, axis, roll, reach, rng, dense=True, mature=True, pairs=3)
+        needles.append(tuple((base, bend, tip, max(.0026, width * 1.65)) for base, bend, tip, width in blades))
+    pine_fascicles(name, needles, material)
+
+
+def hero_pine_crown(label, trunk, phase, bark, material):
+    profile = CROWNS[HERO_PINE_CROWNS[label]]
+    if label == 'Back ridge pine 5':
+        phase += .9
+    needles = grow_crown(label, profile, trunk, phase, bark, bark_tube)
+    pine_fascicles(f'{label} hero needle fascicles', needles, material)
 
 
 MODELLED_PINE_CROWNS = {
@@ -1685,7 +1701,7 @@ def pine_bough(name, root, outward, reach, drift, droop, lift, bark, radial=5):
 
 
 def pine_tree(label, x, z, height, bark, needles, ground, roots=False, lean=None, crown_start=.38,
-              modelled_needles=None, far_crown=None, trunk_bark=None):
+              modelled_needles=None, far_crown=None, trunk_bark=None, near_needles=None):
     ancient = lean is not None
     roadside = not ancient and z >= 12. and abs(x) < 5.
     y = supports_height(x, z, [ground]) - .26
@@ -1784,7 +1800,11 @@ def pine_tree(label, x, z, height, bark, needles, ground, roots=False, lean=None
                 inner = elbow.lerp(fork_end, .25)
             sprays = [(inner, inner_axis, length, length * (1.04 + inner_width * .36), roll - .5),
                       (outer, outer_axis, length * (.76 + outer_size * .20), length * 1.02, roll + .82)]
-            pine_sprays(f'{label} needle clusters {i} {bough}', sprays, needles, close=carries_forks or z < 3)
+            name = f'{label} needle clusters {i} {bough}'
+            if near_needles is not None and i < 2:
+                near_pine_fascicles(name, sprays, near_needles)
+            else:
+                pine_sprays(name, sprays, needles, close=carries_forks or z < 3)
     if profile and not use_native_crown:
         hero_pine_crown(label, centres, phase, bark, modelled_needles)
         return at if ancient else None
@@ -1944,7 +1964,8 @@ def forest(ground, rock, stone, bark, pine, far_crown=None):
     for index, (x, z, height) in enumerate(((-2.73, 26.8, 5.5), (2.65, 25.1, 5.8),
                                            (3.12, 16.1, 4.8), (-3.36, 13.1, 5.05))):
         label = f'Low forest verge pine {index + 1}'
-        trunk_at = pine_tree(label, x, z, height, bark, needles, ground, roots=True, crown_start=.19)
+        trunk_at = pine_tree(label, x, z, height, bark, needles, ground, roots=True, crown_start=.19,
+                             near_needles=modelled_needles if index < 2 else None)
         if index >= 2:
             # The mid-slope pines carry separate, asymmetrical overhead
             # branches. Their twigs screen the valley until the walker reaches
