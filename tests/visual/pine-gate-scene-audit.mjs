@@ -30,7 +30,7 @@ export function readDirectionOverview(raw) {
   return view;
 }
 
-export function instrumentPineScene(source, { readiness, cadence, lighting, walkClock, directionCamera, solarProbe }) {
+export function instrumentPineScene(source, { readiness, cadence, lighting, walkClock, directionCamera, solarProbe, backdropProbe }) {
   if (readiness) for (const [name, anchor, id, before] of readinessAnchors) {
     const mark = `if (${id} === 'pine-gate' || ${id} === 'snow-roof') performance.mark('one-light:' + ${id} + ':${name}');`;
     source = insertAt(source, anchor, name, mark, before);
@@ -46,6 +46,37 @@ export function instrumentPineScene(source, { readiness, cadence, lighting, walk
     source = insertAt(source, frameAnchor, 'lighting state', `window.__pineCaptureLighting = () => {
   const state = place?.baked?.lightingState();
   return state ? { placeId: place.id, agx: !!nativeAgXPass?.enabled, ...state } : null;
+};`, true);
+  }
+  if (backdropProbe) {
+    source = insertAt(source, frameAnchor, 'offline backdrop state', `window.__pineCaptureBackdrop = () => {
+  const group = place?.baked?.backdrop?.group;
+  const wax = place?.baked?.waxNormal;
+  if (!group && !wax) return null;
+  const image = (texture) => ({ uri: texture.name, pixels: [texture.image.width, texture.image.height] });
+  const eye = camera.getWorldPosition(V3());
+  const ray = camera.getWorldDirection(V3());
+  return {
+    waxNormal: wax ? image(wax) : null,
+    backdrop: group ? {
+      visible: group.visible,
+      planes: group.children.map(plane => {
+        const center = plane.getWorldPosition(V3());
+        const front = V3(0, 0, 1).applyQuaternion(plane.getWorldQuaternion(new THREE.Quaternion()));
+        const { width, height } = plane.geometry.parameters;
+        const distance = center.clone().sub(eye).dot(front) / ray.dot(front);
+        const hit = distance > camera.near && distance < camera.far ? plane.worldToLocal(eye.clone().addScaledVector(ray, distance)) : null;
+        return {
+          name: plane.name, ...image(plane.material.uniforms.uPlate.value),
+          opacity: plane.material.uniforms.uDayOpacity.value,
+          position: center.toArray(), front: front.toArray(), size: [width, height],
+          viewportCenterUv: hit ? [.5 + hit.x / width, .5 + hit.y / height] : null,
+          depthTest: plane.material.depthTest, depthWrite: plane.material.depthWrite,
+          renderOrder: plane.renderOrder,
+        };
+      }),
+    } : null,
+  };
 };`, true);
   }
   if (directionCamera) {

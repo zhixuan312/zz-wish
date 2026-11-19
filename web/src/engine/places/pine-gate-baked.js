@@ -1,6 +1,7 @@
 import { loadBakedPlace } from '../baked/loadPlace.js';
+import { readPineWaxNormal } from '../baked/pineManifest.js';
+import { loadPineGateBackdrop } from './pine-gate-backdrop.js';
 import { createPineGateLife } from './pine-gate-life.js';
-import { createPineGateVista } from './pine-gate-vista.js';
 import { pineDaySunDirection, pineDaySunDiscEdges } from './pine-gate-sun.js';
 import path from '../../../../shared/pine-gate-path.json';
 
@@ -40,10 +41,19 @@ export default function createPlace(h) {
       const baked = await loadBakedPlace('pine-gate', h.renderer, context.light);
       context.G.add(baked.group);
       context.baked = baked;
-      const vista = createPineGateVista(context.light);
-      context.G.add(vista.group);
-      context.up.push((_, time, light) => vista.update(time, light));
-      context.disposers.push(vista.dispose);
+      const backdrop = await loadPineGateBackdrop(baked, h.renderer, context.light);
+      if (backdrop) {
+        baked.backdrop = backdrop;
+        context.G.add(backdrop.group);
+        context.up.push((_dt, _time, light) => backdrop.update(light));
+        context.disposers.push(backdrop.dispose);
+      }
+      const waxNormal = readPineWaxNormal(baked.manifest);
+      if (waxNormal) {
+        baked.waxNormal = await baked.loadTexture(waxNormal.uri);
+        if (baked.waxNormal.image.width !== 512 || baked.waxNormal.image.height !== 512) throw new Error('Wrong Pine Gate wax normal atlas dimensions');
+        h.renderer.initTexture(baked.waxNormal);
+      }
       const life = createPineGateLife({
         THREE, group: baked.group, scene: context.G, renderer: h.renderer,
         nichePosition: [nookOrigin[0], nookOrigin[1] + 1, nookOrigin[2]],

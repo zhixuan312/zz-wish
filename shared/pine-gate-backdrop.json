@@ -1,0 +1,13 @@
+{
+  "position": [-0.38352492451667786, 5.643411159515381, 4.3730974197387695],
+  "direction": [0, 0, -1],
+  "verticalFov": 64,
+  "width": 8192,
+  "height": 4096,
+  "preExposure": 6,
+  "distances": {
+    "far": 510,
+    "mid": 117,
+    "cloud": 80
+  }
+}

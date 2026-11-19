@@ -14,11 +14,12 @@ export async function loadBakedPlace(id,renderer,initialLight={n:1,g:0}){
   const manifest=await readBakedManifest(id);
   const versions=new Map((manifest.files??[]).map(file=>[file.uri,file.sha256]));
   const assetUrl=uri=>base+uri+(versions.get(uri)?`${uri.includes('?')?'&':'?'}v=${versions.get(uri)}`:'');
-  const verified=async uri=>{
+  const verifyBytes=uri=>{
     const file=manifest.files.find(file=>file.uri===uri);
     if(!file)throw new Error(`Undeclared ${id} asset ${uri}`);
-    await readBakedAsset(id,file);return assetUrl(uri);
+    return readBakedAsset(id,file);
   };
+  const verified=async uri=>{await verifyBytes(uri);return assetUrl(uri);};
   const ktx=new KTX2Loader().setTranscoderPath('/codecs/basis/').detectSupport(renderer);
   const loader=new GLTFLoader().setKTX2Loader(ktx).setMeshoptDecoder(MeshoptDecoder);
   const ambientPasses=['night','dusk','day'];
@@ -41,6 +42,22 @@ export async function loadBakedPlace(id,renderer,initialLight={n:1,g:0}){
     }
   }
   let disposed=false,lastUpdate=performance.now();
+  const imageBitmaps=new Set();
+  const loadTexture=async uri=>{
+    const fileType=uri.endsWith('.webp')?'image/webp':uri.endsWith('.png')?'image/png':null;
+    if(!fileType)throw new Error(`Unsupported ${id} image ${uri}`);
+    const bytes=await verifyBytes(uri);
+    // Match a Three Texture's usual bottom-up UVs. Ignore the file's color
+    // profile and keep independent RGB and alpha for shader-decoded data.
+    const bitmap=await createImageBitmap(new Blob([bytes],{type:fileType}),{
+      imageOrientation:'flipY',colorSpaceConversion:'none',premultiplyAlpha:'none',
+    });
+    if(disposed){bitmap.close();throw new Error(`Disposed ${id} while loading ${uri}`);}
+    const texture=new THREE.Texture(bitmap);
+    texture.name=uri;texture.colorSpace=THREE.NoColorSpace;texture.needsUpdate=true;
+    imageBitmaps.add(bitmap);textures.add(texture);
+    return texture;
+  };
   const pending={},ready={},retryAt={};
   const ensurePass=pass=>{
     if(ready[pass])return Promise.resolve();
@@ -187,7 +204,7 @@ export async function loadBakedPlace(id,renderer,initialLight={n:1,g:0}){
   });
   for(const maps of Object.values(regions))for(const pass of Object.values(maps))textures.add(pass.texture);
   return{
-    group:gltf.scene,manifest,heroes,visitorShadow,gauzeTransmission,staticLampShadow,cameraPreExposure,residualCameraExposureEV,
+    group:gltf.scene,manifest,heroes,visitorShadow,gauzeTransmission,staticLampShadow,cameraPreExposure,residualCameraExposureEV,loadTexture,
     lightingState(){return {weights:uniforms.uBakedWeights.value.toArray(),residentPasses:Object.keys(ready).filter(pass=>ready[pass]),pendingPasses:Object.keys(pending).filter(pass=>pending[pass]&&!ready[pass]),loadedPasses:[...ambientPasses,'lamp'].filter(pass=>Object.values(regions).every(maps=>maps[pass].texture!==empty))};},
     // Historical name: pre-exposed radiant intensity in engine units; no lm/cd calibration.
     lampCandela:basis.watts*cameraPreExposure/(4*Math.PI),lampColor:new THREE.Color().fromArray(basis.linearColor),
@@ -222,6 +239,6 @@ export async function loadBakedPlace(id,renderer,initialLight={n:1,g:0}){
       uniforms.uBakedWeights.value.divideScalar(Math.max(.0001,uniforms.uBakedWeights.value.manhattanLength()));
       uniforms.uLampPower.value=Math.max(0,lampPower);
     },
-    dispose(){disposed=true;staticLampShadow?.dispose();gauzeTransmission?.dispose();for(const m of materials)m.dispose();for(const g of geometries)g.dispose();for(const t of textures)t.dispose();ktx.dispose();},
+    dispose(){disposed=true;staticLampShadow?.dispose();gauzeTransmission?.dispose();for(const m of materials)m.dispose();for(const g of geometries)g.dispose();for(const t of textures)t.dispose();for(const bitmap of imageBitmaps)bitmap.close();ktx.dispose();},
   };
 }

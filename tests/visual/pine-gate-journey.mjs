@@ -11,7 +11,7 @@ import { DICTS, fmtDuration } from '../../web/src/i18n.ts';
 import { assertCaptureGpuHealthy, installCaptureGpuGuard } from './capture-preflight.mjs';
 import { installLiveAudioAudit, sampleLiveAudio, sampleLiveAudioWindow } from './live-audio-audit.mjs';
 import { instrumentPineScene, readDirectionOverview } from './pine-gate-scene-audit.mjs';
-import { measurePineRealismBase, pinePackagePath, readPinePreview, routePinePreview } from './pine-preview-delivery.mjs';
+import { assertPineRuntimeImages, measurePineRealismBase, pinePackagePath, readPinePreview, routePinePreview } from './pine-preview-delivery.mjs';
 
 if (process.argv.includes('--help')) {
   console.log([
@@ -31,6 +31,7 @@ if (process.argv.includes('--help')) {
     'CAPTURE_DIRECTION_ONLY=1 saves six site review frames from day and night under quality/direction/QUALITY_LABEL.',
     'CAPTURE_DIRECTION_OVERVIEW is the JSON camera pose (space, position, look, fov) for the separate site overview.',
     'CAPTURE_REALISM_ONLY=1 captures two daytime desktop frames and records phone performance under quality/r1/QUALITY_LABEL.',
+    'CAPTURE_REQUIRE_BACKDROP=1 requires the offline Cycles plates and readiness under 5 seconds in both realism contexts.',
     'CAPTURE_BROWSER and CAPTURE_ONLY can select a single context. PINE_HOUR defaults to 22.',
   ].join('\n'));
   process.exit(0);
@@ -48,7 +49,9 @@ const audioCompare = process.env.CAPTURE_AUDIO_COMPARE === '1';
 const ambientOnly = process.env.CAPTURE_AMBIENT_ONLY === '1';
 const directionOnly = process.env.CAPTURE_DIRECTION_ONLY === '1';
 const realismOnly = process.env.CAPTURE_REALISM_ONLY === '1';
+const requireBackdrop = process.env.CAPTURE_REQUIRE_BACKDROP === '1';
 assert(!realismOnly || directionOnly, 'The realism proof requires CAPTURE_DIRECTION_ONLY=1.');
+assert(!requireBackdrop || realismOnly, 'The backdrop requirement is available for realism captures.');
 const directionWalkFrames = realismOnly ? [['terrace-reveal-28s', 28]]
   : [['forest-06s', 6], ['ancient-pine-crest', 21.5], ['terrace-reveal-28s', 28]];
 const dayFrames = [...directionWalkFrames.map(([name]) => name), ...(realismOnly ? [] : ['shrine-pavilion']), 'day-burning'];
@@ -116,6 +119,8 @@ const manifestUrl = new URL(`${pinePackagePath}manifest.json`, base);
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
 const solarConfigPath = 'shared/pine-gate-daylight.json';
 const solarConfigBytes = realismOnly ? await readFile(join(worktree, solarConfigPath)) : null;
+const backdropConfigPath = 'shared/pine-gate-backdrop.json';
+const backdropConfigBytes = realismOnly ? await readFile(join(worktree, backdropConfigPath)) : null;
 async function readPublicManifest() {
   const response = await fetch(manifestUrl);
   assert(response.ok, 'The public Pine Gate bake manifest is missing.');
@@ -128,6 +133,7 @@ if (fullJourney) {
   const publicManifestSha256 = hash(bytes);
   if (preview) {
     previewPackage = await readPinePreview(worktree, previewDir, previewSha);
+    if (requireBackdrop) assert(previewPackage.backdrop, 'The approved preview must declare the offline Cycles backdrop.');
     delivery = { preview, samples: previewPackage.samples, manifestSha256: previewPackage.manifestSha256,
       publicManifestSha256, transport: 'Private Playwright request routes for the candidate Pine Gate files.' };
     if (realismOnly) delivery.realismBase = await measurePineRealismBase(worktree, previewPackage, manifest);
@@ -148,6 +154,7 @@ const report = {
   ...(directionOnly ? { directionOnly, frames: directionPasses.flatMap(pass => pass.frames), directionOverview, directionMethod } : {}),
   ...(realismOnly ? { realismOnly } : {}),
   ...(solarConfigBytes ? { solarConfig: { file: solarConfigPath, sha256: hash(solarConfigBytes), ...JSON.parse(solarConfigBytes) } } : {}),
+  ...(backdropConfigBytes ? { backdropConfig: { file: backdropConfigPath, sha256: hash(backdropConfigBytes), ...JSON.parse(backdropConfigBytes) } } : {}),
   ...(ambientOnly ? { ambientOnly } : {}),
   ...(audioCompare ? { audioCompare, audioSourceSha256: createHash('sha256').update(await readFile(join(worktree, 'web/src/sound.ts'))).digest('hex') } : {}),
   delivery,
@@ -308,12 +315,12 @@ async function capture(browser, browserName, size, trial) {
     page.on('console', message => {
       if (message.type() === 'error') run.errors.push({ kind: 'console', text: message.text() });
     });
+    if (realismOnly) run.obsoleteVistaRequests = [];
     page.on('response', response => {
       if (response.status() >= 400) run.errors.push({ kind: 'http', status: response.status(), url: response.url() });
       if (realismOnly && response.ok()) {
         const url = new URL(response.url());
-        const modulePath = '/' + delivery.realismBase.elevation.file.slice('web/'.length);
-        if (url.origin === base.origin && url.pathname === modulePath) run.elevationModuleLoaded = true;
+        if (url.origin === base.origin && /\/pine-gate-(?:vista|elevation\.data)\.js$/.test(url.pathname)) run.obsoleteVistaRequests.push(url.pathname);
       }
     });
     page.on('crash', () => run.errors.push({ kind: 'crash' }));
@@ -343,6 +350,7 @@ async function capture(browser, browserName, size, trial) {
       walkClock: direction?.name === 'day' && !phone,
       directionCamera: !!direction,
       solarProbe: realismOnly && !phone,
+      backdropProbe: realismOnly,
     };
     if (Object.values(sceneAudit).some(Boolean)) {
       await page.route(url => url.pathname === '/src/engine/scene.js', async route => {
@@ -402,6 +410,7 @@ async function capture(browser, browserName, size, trial) {
           ignition: window.__visualIgnition ?? null,
           ...(window.__pineCaptureCamera ? { camera: window.__pineCaptureCamera() } : {}),
           ...(window.__pineCaptureSolar ? { solar: window.__pineCaptureSolar() } : {}),
+          ...(window.__pineCaptureBackdrop ? { pineImages: window.__pineCaptureBackdrop() } : {}),
           canvas: [window.__renderer.domElement.width, window.__renderer.domElement.height],
           viewportOverflow: [...document.querySelectorAll('.ui button, .ui textarea, .ui h1, .ui h2')]
             .filter(item => {
@@ -649,6 +658,10 @@ async function capture(browser, browserName, size, trial) {
         assert(['manifest.json', previewPackage.scene].every(file => run.previewFetchedFiles.includes(file)),
           'The browser did not request the isolated Pine preview manifest and model.');
       }
+      if (realismOnly) {
+        run.readyPineImages = await page.evaluate(() => window.__pineCaptureBackdrop());
+        assertPineRuntimeImages(run.readyPineImages, previewPackage, run.previewFetchedFiles);
+      }
       if (readinessOnly) {
         assert(Number.isFinite(run.placeReadiness.wishToEnabledMs) && Number.isFinite(run.placeReadiness.clickToEnabledMs),
           'Did not observe wish input, place click, and enable events.');
@@ -703,8 +716,12 @@ async function capture(browser, browserName, size, trial) {
         if (realismOnly) await captureSolarDiagnostic();
       }
       if (realismOnly) {
-        assert(run.elevationModuleLoaded, 'The R1 runtime did not fetch the verified elevation module.');
+        assert.deepEqual(run.obsoleteVistaRequests, [], 'Pine must not request the old DEM renderer or elevation field.');
+        run.settledPineImages = await page.evaluate(() => window.__pineCaptureBackdrop());
+        assertPineRuntimeImages(run.settledPineImages, previewPackage, run.previewFetchedFiles, true);
+        for (const shot of run.shots) assertPineRuntimeImages(shot.pineImages, previewPackage, run.previewFetchedFiles, true);
         assert(Number.isFinite(run.placeReadiness.wishToEnabledMs) && run.placeReadiness.wishToEnabledMs > 0);
+        if (requireBackdrop) assert(run.placeReadiness.wishToEnabledMs <= 5000, 'Wish to Step inside took more than 5 seconds.');
       }
       assert.deepEqual(run.errors, []);
       return;
