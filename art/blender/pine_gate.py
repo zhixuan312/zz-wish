@@ -143,29 +143,73 @@ def terrain_height(x, z):
     return height
 
 
+def watercourse_at(z):
+    index = next((i for i, end in enumerate(WATERCOURSE[1:]) if z <= end[2]), len(WATERCOURSE) - 2)
+    start, end = WATERCOURSE[index:index + 2]
+    t = min(1., max(0., (z - start[2]) / (end[2] - start[2])))
+    x, y = (a + (b - a) * t for a, b in zip(start[:2], end[:2]))
+    width = .18 + .12 * ((1 - t) * math.sin(index * .53) ** 2 + t * math.sin((index + 1) * .53) ** 2)
+    return x, y, width
+
+
+def watercourse_stations(spacing):
+    for (_, _, start), (_, _, end) in zip(WATERCOURSE, WATERCOURSE[1:]):
+        count = math.ceil((end - start) / spacing)
+        yield from (start + (end - start) * j / count for j in range(count))
+    yield WATERCOURSE[-1][2]
+
+
 def terrain(material):
     outer_x = (4.32, 4.5, 6, 8, 11, 14, 19, 24, 31)
     offsets = (0, .40, SHOULDER_SETBACK, SHOULDER_SETBACK + .48, SHOULDER_SETBACK + 1.14)
-    zs = sorted(set(range(-45, 67, 3)) |
+    spring_start, spring_end = WATERCOURSE[0][2], WATERCOURSE[-1][2]
+    zs = sorted(set(range(-45, 67, 3)) | set(watercourse_stations(.48)) |
                 {-1.45, TERRACE_EDGE, -.72, 1.18, 4.88, 5.4, PINE_CREST, 10.5, 13.5, 16.5, 19.5})
-    points = []
+    points, faces, previous = [], [], None
     for z in zs:
         centre, half_span = section_at(z)
-        # Each row follows the stair into its bend. The outer retaining edge
-        # has a vertex on each side before the ground climbs into the bank.
         verge = [half_span + offset for offset in offsets]
         xs = [*(-x for x in reversed(outer_x)), *(centre - t for t in reversed(verge)),
               centre, *(centre + t for t in verge), *outer_x]
-        points.extend((x, terrain_height(x, z), z) for x in xs)
-    columns = len(points) // len(zs)
-    faces = []
-    for j in range(len(zs) - 1):
-        for i in range(columns - 1):
-            a = j * columns + i
-            b = a + columns
-            # The authored, contact-tested diagonal also reaches prepared and
-            # raw meshes. A warped terrain quad has two different support planes.
-            faces.extend([(a, b, b + 1), (a, b + 1, a + 1)])
+        stream_x, water, width = watercourse_at(z)
+        cross_section = (-(width + .29), -(width + .14), -width, 0., width, width + .14, width + .29)
+        channel = [stream_x + t for t in cross_section]
+        cuts = {}
+        if spring_start <= z <= spring_end:
+            # The channel follows the water surface on both banks. Its dry
+            # outer edges meet the original hillside and retaining stones.
+            cuts = {channel[1]: max(terrain_height(channel[1], z), water + .045),
+                    channel[2]: min(terrain_height(channel[2], z), water - .061),
+                    channel[3]: min(terrain_height(channel[3], z), water - .093),
+                    channel[4]: min(terrain_height(channel[4], z), water - .061),
+                    channel[5]: max(terrain_height(channel[5], z), water + .045)}
+        xs = [x for x in xs if x < channel[0] - 1e-6 or x > channel[-1] + 1e-6]
+        x_coords = sorted([*xs, *channel])
+        indexed = {x: len(points) + i for i, x in enumerate(x_coords)}
+        points.extend((x, cuts.get(x, terrain_height(x, z)), z) for x in x_coords)
+        # Keep the two banks and the bed as continuous longitudinal strips,
+        # even where the spring crosses from one side of the stair to the other.
+        bands = [[indexed[x] for x in x_coords if x <= channel[0]],
+                 [indexed[x] for x in channel],
+                 [indexed[x] for x in x_coords if x >= channel[-1]]]
+        if previous:
+            for band, (before, after) in enumerate(zip(previous, bands)):
+                if band == 1:
+                    for i in range(len(before) - 1):
+                        faces.extend(((before[i], after[i], after[i + 1]),
+                                      (before[i], after[i + 1], before[i + 1])))
+                    continue
+                i = j = 0
+                while i + 1 < len(before) or j + 1 < len(after):
+                    use_after = i + 1 == len(before) or (
+                        j + 1 < len(after) and points[after[j + 1]][0] <= points[before[i + 1]][0])
+                    if use_after:
+                        faces.append((before[i], after[j], after[j + 1]))
+                        j += 1
+                    else:
+                        faces.append((before[i], after[j], before[i + 1]))
+                        i += 1
+        previous = bands
     obj = mesh.mesh_object('Continuous mountain shoulder', points, faces, material, 'approach')
     source_uv(obj, [[(points[i][0], points[i][2]) for i in face] for face in faces],
               'Continuous mountain terrain grid.')
@@ -282,23 +326,38 @@ def climbing_steps(stone):
                        (x, 4.00 + RANDOM.uniform(-.003, .003), z), RANDOM.choice(stone), 'gate')
 
 
-def saddle_water(stone):
+def audit_watercourse(ground):
+    wet, dry = [], []
+    for z in watercourse_stations(.23):
+        x, y, width = watercourse_at(z)
+        for offset in (-width, 0, width):
+            wet.append(y - supports_height(x + offset, z, [ground]))
+        for offset in (-width - .14, width + .14):
+            dry.append(supports_height(x + offset, z, [ground]) - y)
+    if min(wet) <= 0. or min(dry) <= 0.:
+        raise RuntimeError(f'Pine Gate watercourse clearance fails: wet {min(wet):.6f} m, bank {min(dry):.6f} m.')
+    print(f'PINE_WATERCOURSE_CLEARANCE {len(wet)} wet probes; minimum {min(wet):.6f} m. '
+          f'{len(dry)} dry bank probes; minimum {min(dry):.6f} m.')
+
+
+def saddle_water(stone, ground):
     water = mesh.material('Spring water on a slate bed', '#4a6865', rough=.20, metal=.24)
     points = []
-    for index, (x, y, z) in enumerate(WATERCOURSE):
-        before = Vector(WATERCOURSE[max(0, index - 1)])
-        after = Vector(WATERCOURSE[min(index + 1, len(WATERCOURSE) - 1)])
-        tangent = (after - before).normalized()
-        half_width = .18 + .12 * math.sin(index * .53) ** 2
-        across = Vector((tangent.z, 0, -tangent.x)).normalized() * half_width
-        points.extend([tuple(Vector((x, y, z)) - across), tuple(Vector((x, y, z)) + across)])
-    faces = [(i, i + 1, i + 3, i + 2) for i in range(0, len(points) - 2, 2)]
+    for i, (x, y, z) in enumerate(WATERCOURSE):
+        half_width = .18 + .12 * math.sin(i * .53) ** 2
+        points.extend(((x - half_width, y, z), (x + half_width, y, z)))
+    faces = [(i, i + 2, i + 3, i + 1) for i in range(0, len(points) - 2, 2)]
     channel = mesh.mesh_object('Spring runnel through the saddle', points, faces, water, 'approach')
     source_uv(channel, [[(points[i][0], points[i][2]) for i in face] for face in faces],
               'Meter-scale stream ribbon.')
-    for index, (x, y, z) in enumerate(WATERCOURSE[1:-1]):
-        rock = hewn_block(f'Water-cut stream bank {index + 1}', .59, .25, .74,
-                          (x - .28, y + .11, z + .13), stone[index % len(stone)], 'approach')
+    for index, (_, _, z) in enumerate(WATERCOURSE[1:-1]):
+        x, _, width = watercourse_at(z)
+        x += (-1 if index % 3 else 1) * (width + .19)
+        bank_y = supports_height(x, z, [ground])
+        rock = hewn_block(f'Water-cut stream bank {index + 1}', .32, .19, .47,
+                          (x, bank_y + .101, z), stone[index % len(stone)], 'approach')
+        if min(vertex.co.z for vertex in list(rock.data.vertices)[-11:]) <= bank_y:
+            raise RuntimeError(f'Pine Gate stream bank stone {index + 1} fails to emerge from the terrain.')
         rock['moss_edge'] = True
     spring = hewn_block('Spring head emerging under a granite cap', .77, .46, .9,
                         (2.77, 4.41, 5.08), stone[4], 'gate')
@@ -682,9 +741,10 @@ def build(output):
     stone, rock, ground, wood, tiles, bark, needle, iron, clay, ledge = palette()
     support = terrain(ground)
     audit_approach_clearance(support)
+    audit_watercourse(support)
     climbing_steps(stone)
     forest(support, rock, stone, bark, needle)
-    saddle_water(stone)
+    saddle_water(stone, support)
     build_tea_shoulder(ANCHOR, stone, wood, tiles, clay, iron, ledge, contacts)
     paint_stone()
     scene.render.engine = 'CYCLES'
