@@ -74,3 +74,34 @@ test('the softened wax lip exposes the pool from the burning view without moving
   expect(softened.anchor).toEqual(flat.anchor);
   expect(softened.cutHeight).toBe(flat.cutHeight);
 });
+
+test('the sculpted meniscus meets the uneven inner wall as the candle burns down', () => {
+  const shapes = [
+    [{ ...base, r: .0128 }, { ...crown, r: .0128, y: .0524 }],
+    [{ ...base, r: .01 }, { ...crown, r: .023, cx: .006 }],
+    [{ ...base, r: .026, cx: -.006 }, { ...crown, r: .009, cx: .008 }],
+  ];
+  const ray = new Raycaster();
+  const normal = new Texture();
+  const direction = new Vector3(0, -1, 0);
+  const point = new Vector3();
+  for (const rows of shapes) {
+    const wax = createPineWax(seat, undefined, { refined: true, sculptNormal: normal });
+    wax.setShape({ rows, color: 0xe9ddc3 });
+    wax.group.updateMatrixWorld(true);
+    const [body, pool] = wax.group.children;
+    for (const fuel of [.996, .25, .0000001]) {
+      wax.update(fuel, 'burning', point);
+      wax.group.updateMatrixWorld(true);
+      const positions = pool.geometry.attributes.position;
+      for (let sector = 0; sector < 72; sector++) {
+        pool.localToWorld(point.fromBufferAttribute(positions, sector));
+        ray.set(point.clone().addScaledVector(direction, -.02), direction);
+        const hit = ray.intersectObject(body, false)[0];
+        expect(hit?.point.y).toBeGreaterThanOrEqual(point.y - 1e-8);
+      }
+    }
+    wax.update(0, 'burned_down', point);
+    expect(pool.visible).toBe(false);
+  }
+});

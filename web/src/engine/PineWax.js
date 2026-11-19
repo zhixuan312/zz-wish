@@ -60,6 +60,7 @@ function pineSunLighting(shader, sunShade) {
 const POOL_PROFILE = [[1, 1], [.966, .75], [.924, .39], [.867, .12], [.72, -.045], [.47, -.068], [.23, -.021]];
 const WICK_FILM_PROFILE = [[1, 0], [.79, .052], [.61, .24], [.44, .52], [.29, .81], [.17, 1], [0, 1]];
 const POOL_RING_COUNT = POOL_PROFILE.length + WICK_FILM_PROFILE.length;
+const REFINED_BODY_SECTORS = 72;
 const CHARRED_WICK_HEIGHT = .00405;
 
 const RELIEF_GLSL = `
@@ -456,6 +457,38 @@ function fillPool(mesh, radius, rise) {
   finishSurface(mesh);
 }
 
+function fillSculptPool(mesh, body, top, plane, rise) {
+  // Intersect the capillary rise with the actual sloping wax wall at each
+  // sector, then extend it a fraction of the way into the solid wax.
+  const [upper, lower] = top.poolWalls;
+  let minimumRadius = Infinity;
+  for (let side = 0; side < mesh.sectors; side++) {
+    const hi = upper * mesh.sectors + side;
+    const lo = lower * mesh.sectors + side;
+    const high = body.positions.getY(hi) - plane;
+    const low = body.positions.getY(lo) - plane;
+    const meniscus = Math.min(rise, high * .72);
+    const t = (meniscus - low) / (high - low);
+    const embed = t + Math.min(.045, (1 - t) * .30);
+    const x = lerp(body.positions.getX(lo), body.positions.getX(hi), embed) - top.cx;
+    const z = lerp(body.positions.getZ(lo), body.positions.getZ(hi), embed);
+    minimumRadius = Math.min(minimumRadius, Math.hypot(x, z));
+    for (let row = 0; row < POOL_PROFILE.length; row++) {
+      const [r, y] = POOL_PROFILE[row];
+      mesh.positions.setXYZ(row * mesh.sectors + side, x * r, meniscus * y, z * r);
+    }
+  }
+
+  // Keep a single level centre and the smaller curved film up the wick.
+  const filmRadius = Math.min(minimumRadius * .226, .00215);
+  const filmHeight = Math.min(.00092, rise * 1.25, filmRadius * .49);
+  for (const [i, [r, y]] of WICK_FILM_PROFILE.entries()) {
+    writeRing(mesh, POOL_PROFILE.length + i, 0, filmRadius * r, filmHeight * y - .021 * rise * r);
+  }
+  finishSurface(mesh);
+  return minimumRadius;
+}
+
 function makeBraidedWick(path, fiberMaterial, charMaterial) {
   const group = new THREE.Group();
   for (let i = 0; i < 3; i++) {
@@ -659,7 +692,7 @@ function bodySurface(mesh, rows, cut, melt, runnels) {
   if (refined && melt > 0) {
     writeRing(mesh, row++, top.cx, top.r * .94, cut, grain(cut, top.r), uneven);
     writeRing(mesh, row++, top.cx, top.r * .865, cut - depth * .20, grain(cut, top.r),
-      sculpted ? a => Math.max(-depth * .65, uneven(a) * .94) : a => uneven(a) * .45);
+      sculpted ? a => Math.max(-depth * .42, uneven(a) * .94) : a => uneven(a) * .45);
     writeRing(mesh, row++, top.cx, top.r * .717, cut - depth, grain(cut, top.r));
   } else {
     writeRing(mesh, row++, top.cx, top.r * .92, cut, grain(cut, top.r), uneven);
@@ -670,7 +703,8 @@ function bodySurface(mesh, rows, cut, melt, runnels) {
   // The unused rings collapse onto the cap centre so they contribute no normals.
   for (; row < mesh.rings; row++) writeRing(mesh, row, top.cx, 0, cut - depth);
   finishSurface(mesh, used);
-  return { ...top, depth };
+  const poolWalls = sculpted && melt > 0 ? [used - 3, used - 2] : null;
+  return { ...top, depth, poolWalls };
 }
 
 const TRACE_CENTRE = .68;
@@ -760,7 +794,7 @@ export function createPineWax(seat, waxMaterial, { refined = false, sculptNormal
   };
   const body = add(new THREE.BufferGeometry(), bodyMaterial);
   body.frustumCulled = false; // Small, moving vertices do not need a new bounding sphere each frame.
-  const poolMesh = refined ? surface(POOL_RING_COUNT, 64) : null;
+  const poolMesh = refined ? surface(POOL_RING_COUNT, sculptNormal ? REFINED_BODY_SECTORS : 64) : null;
   const pool = add(poolMesh?.geometry ?? new THREE.CircleGeometry(1, 48).rotateX(-Math.PI / 2), poolMaterial);
   if (refined) pool.frustumCulled = false;
   const trace = add(makeTrace(refined), traceMaterial);
@@ -811,7 +845,7 @@ export function createPineWax(seat, waxMaterial, { refined = false, sculptNormal
         runnelLayout = shapedRunnels(source, drops);
       }
       body.geometry.dispose();
-      bodyMesh = surface(rows.length + 7 + (refined ? RUNNEL_ROWS : 0), refined ? 72 : 48, refined && !!sculptNormal);
+      bodyMesh = surface(rows.length + 7 + (refined ? RUNNEL_ROWS : 0), refined ? REFINED_BODY_SECTORS : 48, refined && !!sculptNormal);
       body.geometry = bodyMesh.geometry;
       bodyMaterial.color.setHex(shape.color);
       poolMaterial.color.copy(bodyMaterial.color).lerp(warmWax, refined ? .06 : .12);
@@ -843,18 +877,21 @@ export function createPineWax(seat, waxMaterial, { refined = false, sculptNormal
         pool.visible = !spent && melted > 0;
         if (refined) {
           const depth = top.depth ?? 0;
-          // Place the meniscus below the dry lip. Its outer rings meet the
-          // curved inner wall; the centre stays below them around the wick.
-          const poolRadius = top.r * .802;
+          const plane = cut - depth * .72;
           const poolRise = Math.min(.00083, depth * .21);
-          // A straight candle's pool can translate without changing its shape.
-          if (pool.visible && (poolRadius !== lastPoolRadius || poolRise !== lastPoolRise)) {
-            fillPool(poolMesh, poolRadius, poolRise);
-            lastPoolRadius = poolRadius;
-            lastPoolRise = poolRise;
+          pool.position.set(top.cx, plane, 0);
+          if (pool.visible && top.poolWalls) {
+            light.uPinePoolRadius.value = fillSculptPool(poolMesh, bodyMesh, top, plane, poolRise);
+          } else {
+            const poolRadius = top.r * .802;
+            // A straight candle's pool can translate without changing its shape.
+            if (pool.visible && (poolRadius !== lastPoolRadius || poolRise !== lastPoolRise)) {
+              fillPool(poolMesh, poolRadius, poolRise);
+              lastPoolRadius = poolRadius;
+              lastPoolRise = poolRise;
+            }
+            light.uPinePoolRadius.value = poolRadius;
           }
-          pool.position.set(top.cx, cut - depth * .72, 0);
-          light.uPinePoolRadius.value = poolRadius;
           const cooled = state === 'went_out' || state === 'burned_down';
           poolMaterial.roughness = state === 'burning' ? .078 : .44;
           poolMaterial.color.copy(bodyMaterial.color).lerp(warmWax, cooled ? 0 : .13);
