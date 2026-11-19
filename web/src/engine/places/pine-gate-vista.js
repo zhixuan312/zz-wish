@@ -219,14 +219,17 @@ function tessellatedTerrain(field, look) {
         float grove = softNoise(ground * .061 + vec2(12.8, 7.2));
         float scrub = softNoise(ground * .20 + vWorld.y * .062);
         float rockDetail = softNoise(ground * .75 + vWorld.y * .37);
-        vec4 crowns = texture2D(uCanopy, ground / 18.4 + vec2(scrub, grove) * .16);
+        mat2 turn = mat2(.80, -.60, .60, .80);
+        vec2 offset = vec2(scrub, grove) * .16;
+        vec4 crowns = mix(texture2D(uCanopy, ground / 16.7 + offset),
+          texture2D(uCanopy, turn * ground / 10.1 - offset), .46);
         vec2 relief = crowns.gb * 2. - 1.;
-        vec3 leavesUp = normalize(normal + vec3(relief.x, .26, relief.y) * .92);
+        vec3 leavesUp = normalize(normal + vec3(relief.x, .26, relief.y) * .53);
         float trees = smoothstep(.21, .72, grove * .74 + scrub * .26);
         float rock = smoothstep(.32, .66, 1. - normal.y + (scrub - .5) * .26 - vBasin * .11);
         vec3 grass = mix(vec3(.052, .077, .028), vec3(.098, .121, .041), scrub);
         vec3 needles = mix(vec3(.017, .034, .019), vec3(.058, .104, .039), trees);
-        needles *= .54 + .85 * crowns.r;
+        needles *= (.62 + .69 * crowns.r) * mix(.88, 1.13, scrub);
         vec3 woods = hillsideLight(needles, leavesUp, vBasin);
         vec3 groundcover = hillsideLight(grass, normal, vBasin);
         float bedrock = .5 + .5 * sin(vWorld.y * 1.46 + ground.x * .077 + ground.y * .084 + scrub * 2.8);
@@ -372,7 +375,7 @@ function fieldSurfaces(field, look) {
         float roots = softNoise(vWorld.xz * 2.1 + vWorld.y * .58);
         float grass = smoothstep(.22, .76, normal.y * .69 + verge * .56);
         vec3 clay = mix(vec3(.088, .045, .025), vec3(.179, .107, .053), verge);
-        vec3 shoots = mix(vec3(.111, .147, .038), vec3(.225, .291, .060), verge);
+        vec3 shoots = mix(vec3(.084, .127, .040), vec3(.157, .212, .049), verge);
         vec3 loam = mix(clay, shoots, grass);
         vec3 color = hillsideLight(loam * (.77 + roots * .43), normal, .17);
         gl_FragColor = vec4(ridgeAir(color, vWorld), 1.);

@@ -207,7 +207,7 @@ export function createPineGateLife({
   const moteGeometry = new THREE.BufferGeometry();
   moteGeometry.setAttribute('position', new THREE.BufferAttribute(motePositions, 3));
   const moteMaterial = new THREE.PointsMaterial({
-    map: moteTexture, color: 0xffcf96, size: 0.02, sizeAttenuation: true,
+    map: moteTexture, color: 0xffcf96, size: 0.011, sizeAttenuation: true,
     transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending, fog: true,
   });
   const motes = new THREE.Points(moteGeometry, moteMaterial);
@@ -230,7 +230,7 @@ export function createPineGateLife({
   };
 
   return {
-    update(dt, time) {
+    update(dt, time, daylight) {
       if (disposed) return;
       if (!sky && scene) sky = scene.children.find((o) => o.material?.uniforms?.uHorizon) ?? null;
       if (sky) cameraAt.copy(sky.position);
@@ -310,7 +310,8 @@ export function createPineGateLife({
           motePositions[i * 3 + 2] = nicheAt.z + Math.cos(drift * 0.8 + seed * 4.1) * (0.09 + seed * 0.36);
         }
         moteGeometry.attributes.position.needsUpdate = true;
-        moteMaterial.opacity = 0.42 * dustBlend;
+        // Backlit particles read against a dark niche. In sunlight they are faint.
+        moteMaterial.opacity = (0.045 + 0.375 * (daylight?.n ?? 1)) * dustBlend;
       }
     },
     dispose() {

@@ -51,7 +51,7 @@ export default function createPlace(h) {
         mistBands: [[-1.1, 31, .65], [.96, 23, .74], [-.86, 15, .70], [.94, 8.1, .86]],
         mistY: 3.8,
       });
-      context.up.push((dt, time) => life.update(dt, time));
+      context.up.push((dt, time, daylight) => life.update(dt, time, daylight));
       baked.life = life;
       context.disposers.push(life.dispose);
     },
