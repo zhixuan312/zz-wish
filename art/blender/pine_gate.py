@@ -390,7 +390,7 @@ def pine_sprays(name, sprays, tint):
             uv.data[i].uv = [(0, 0), (1, 0), (1, 1), (0, 1)][j]
 
 
-def pine_tree(label, x, z, height, bark, needles, ground, roots=False, lean=None):
+def pine_tree(label, x, z, height, bark, needles, ground, roots=False, lean=None, crown_start=.38):
     ancient = lean is not None
     y = supports_height(x, z, [ground]) - .26
     drift = RANDOM.uniform(-.95, .95) if lean is None else lean
@@ -417,7 +417,7 @@ def pine_tree(label, x, z, height, bark, needles, ground, roots=False, lean=None
             mesh.curved_tube(f'{label} exposed buttress root', [start, middle, end],
                              [.074 * reach_scale, .038 * reach_scale, .008], bark, radial=7, region='approach')
     for i in range(7):
-        f = (.31 + .095 * i) if ancient else (.38 + .087 * i)
+        f = (.31 + .095 * i) if ancient else (crown_start + (.90 - crown_start) * i / 6)
         for bough in range(2):
             a = phase + i * 2.4 + bough * 2.7 + RANDOM.uniform(-.28, .28)
             radial = Vector((math.cos(a), 0, math.sin(a)))
@@ -504,7 +504,8 @@ def forest(ground, rock, stone, bark, pine):
     # through the middle approach. Their crowns open up at the saddle.
     for index, (x, z, height) in enumerate(((-2.1, 26.8, 5.5), (2.05, 25.1, 5.8),
                                            (1.76, 16.1, 4.8), (-1.65, 13.1, 5.05))):
-        pine_tree(f'Low forest verge pine {index + 1}', x, z, height, bark, needles, ground, roots=True)
+        pine_tree(f'Low forest verge pine {index + 1}', x, z, height, bark, needles, ground,
+                  roots=True, crown_start=.19)
     distant_pines(ground, bark, needles)
     understory(ground, pine)
     # These iron-gray outcrops are part of the bank. Their lower bands extend
