@@ -285,6 +285,23 @@ def landing_bed(material):
     box_net(landing, (8.64, 1.32, 7.92), (0, 3.34, 2.72))
     mesh.uv_world(landing)
     mesh.bevel(landing, .045)
+    landing['weather_stone'] = landing['moss_edge'] = True
+
+
+def landing_flagstones(stone):
+    joint = random.Random(5917)
+    course_edges = [-1.02] + [-1.02 + row * .64 + joint.uniform(-.145, .145) for row in range(1, 11)] + [6.02]
+    for row, (front, back) in enumerate(zip(course_edges, course_edges[1:])):
+        stagger = (.12 if row % 2 else -.11) + joint.uniform(-.08, .08)
+        edges = [-4.20] + [-4.20 + col * .84 + stagger + joint.uniform(-.23, .23)
+                           for col in range(1, 10)] + [4.20]
+        for col, (left, right) in enumerate(zip(edges, edges[1:])):
+            x, z = (left + right) * .5, (front + back) * .5
+            gap = joint.uniform(.011, .031)
+            settle = joint.uniform(-.009, .008) * (.44 if abs(x) < .8 else 1.)
+            slab = hewn_block(f'Landing flagstone {row} {col}', right - left - gap, .092, back - front - gap,
+                              (x, 4. + settle + RANDOM.uniform(-.003, .003), z), RANDOM.choice(stone), 'gate')
+            slab['moss_edge'] = joint.random() < (.26 if abs(x) < 1.2 else .57)
 
 
 def audit_approach_clearance(ground):
@@ -344,12 +361,7 @@ def climbing_steps(stone, ground):
                                (bend + direction * (span / 2 + .38 + row * .070), top + row * .244 + .02,
                                 z + (.24 if row % 2 else 0)), RANDOM.choice(stone), 'approach')
     landing_bed(stone[2])
-    for row in range(11):
-        z = -.70 + row * .64
-        for col in range(10):
-            x = (col - 4.5) * .84 + .045 * (row % 2)
-            hewn_block(f'Landing flagstone {row} {col}', .829, .092, .628,
-                       (x, 4.00 + RANDOM.uniform(-.003, .003), z), RANDOM.choice(stone), 'gate')
+    landing_flagstones(stone)
     fit_stone_undersides(ground, bridge_curbs)
     return bridge_curbs
 
@@ -943,6 +955,8 @@ def paint_stone():
                 if obj.get('weather_stone'):
                     moss_outline = noise.noise(world * 7.9) + .21 * noise.noise(world * 33)
                     green_mix = max(0., min(.65, (moss_outline + (.1 if obj.get('moss_edge') else -.11)) * .96))
+                if obj.get('matched_granite'):
+                    shade = .94 + .36 * (shade - .94)
                 if obj.name == 'Continuous mountain shoulder':
                     bank = noise.noise(world * .34) + .44 * noise.noise(world * 1.41)
                     root_dirt = .13 * math.sin(world.x * .57 + world.y * .31)

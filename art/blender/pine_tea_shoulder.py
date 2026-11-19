@@ -248,8 +248,8 @@ def candle_wax(name, color, roughness):
 
 def spent_wax_on_sill(locate, iron):
     wax_materials = [candle_wax(f'Weathered cold wax tone {i + 1}', color, roughness)
-                     for i, (color, roughness) in enumerate((('#b2a080', .49), ('#827055', .58),
-                                                             ('#c0b396', .41), ('#96866c', .54)))]
+                     for i, (color, roughness) in enumerate((('#b6aa91', .51), ('#9e9077', .59),
+                                                             ('#c2b8a0', .46), ('#ada38b', .54)))]
     # Keep the owner dish empty, with the larger remnants gathered at the sides.
     remnants = ((-.170, -.034, .013, .015), (-.110, -.009, .011, .006),
                 (-.100, -.056, .007, .004), (-.109, .061, .011, .014),
@@ -258,13 +258,16 @@ def spent_wax_on_sill(locate, iron):
                 (.094, .050, .009, .006), (.071, .084, .008, .006),
                 (.126, .078, .009, .010))
     for i, (a, c, radius, height) in enumerate(remnants):
-        spill_roll = min(.00212, height * .31)
-        profile = [(0, -.0004), (radius * 1.59, -.0004), (radius * 1.57, .00031),
-                   (radius * 1.48, spill_roll * .40), (radius * 1.28, spill_roll * .67), (radius * 1.10, spill_roll),
-                   (radius * .99, height * .39), (radius * .97, height * .72),
-                   (radius * .91, height * .92), (radius * .84, height), (radius * .74, height * .98),
-                   (radius * .66, height * .87), (radius * .57, height * .59),
-                   (radius * .35, height * .43), (radius * .14, height * .42), (0, height * .42)]
+        spill = min(.0024, height * .30)
+        taper = .60 + .055 * (i % 5)
+        profile = [(0, -.0004), (radius * 1.61, -.0004), (radius * 1.57, spill * .14),
+                   (radius * 1.47, spill * .31), (radius * 1.39, spill * .25),
+                   (radius * 1.31, spill * .49), (radius * 1.18, spill * .56),
+                   (radius * 1.08, spill), (radius * .99, height * .39),
+                   (radius * .96, height * .67), (radius * .91, height * .91),
+                   (radius * taper, height), (radius * (taper - .09), height * .96),
+                   (radius * .47, height * .68), (radius * .29, height * .48),
+                   (radius * .13, height * .42), (0, height * .42)]
         x, y, z = locate(a, 0, c)
         wax = mesh.lathe(f'Burnt-out candle fused to the sill {i + 1}', profile, (x, y, z),
                          wax_materials[i % len(wax_materials)], 28, 'niche')
@@ -272,13 +275,16 @@ def spent_wax_on_sill(locate, iron):
             dx, dz = vertex.co.x - x, -vertex.co.y - z
             elevation = vertex.co.z - y
             angle = math.atan2(dx, dz)
-            scallop = .058 * math.sin(angle * 3 + i * 1.81) + .047 * math.sin(angle * 5 - i * .51)
-            spill = 1 - min(1., max(0., elevation) / .0044)
-            drift = .11 * math.sin(angle + i) + .16 * math.cos(angle * 2 - i)
-            vertex.co.x = x + dx * (1 + scallop + spill * drift)
-            vertex.co.y = -z - dz * (1 + scallop + spill * drift)
-            mouth = min(1., max(0., (elevation / height - .43) / .47))
-            vertex.co.z += height * mouth * (.15 * math.sin(angle * 3 + i) + .045 * math.cos(angle * 5))
+            tide = 1 - min(1., max(0., elevation) / (spill + .0012))
+            flow = max(0., math.cos(angle - i * 2.11)) ** 4
+            old_edge = .11 * math.sin(angle + i * 1.73) - .095 * math.cos(angle * 2. - i * .39)
+            rim = .037 * math.sin(angle * 2. + i) + .022 * math.cos(angle * 5. + i * .52)
+            scale = 1. + rim + tide * (old_edge + .10 * flow)
+            vertex.co.x = x + dx * scale
+            vertex.co.y = -z - dz * scale
+            mouth = max(0., (elevation / height - .43) / .57)
+            collapse = max(0., math.cos(angle + i * 2.12 + .2)) ** (3 + i % 4)
+            vertex.co.z += height * mouth * (.055 * math.sin(angle * 2. - i) - (.18 + .08 * (i % 3)) * collapse)
         for face in wax.data.polygons:
             face.use_smooth = True
         mesh.curved_tube(f'Extinguished charred wick {i + 1}',
@@ -288,16 +294,13 @@ def spent_wax_on_sill(locate, iron):
                          [.00076, .00066, .0004], iron, radial=7, region='niche')
 
 
-def carved_shrine_pier(locate, x, z, material, seed):
+def dressed_shrine_stone(name, locate, x, z, material, profile, seed):
     section = ((-.72, -1), (.70, -1), (1, -.70), (1, .68),
                (.69, 1), (-.73, 1), (-1, .70), (-1, -.76))
-    profile = ((-.002, .043), (.015, .044), (.031, .041), (.045, .035),
-               (.053, .036), (.122, .034), (.210, .033), (.254, .035),
-               (.266, .037), (.282, .041), (.306, .042), (.320, .041))
     width = len(section)
-    points = [locate(x + u * (radius + .0015 * math.sin(i * 2.3 + seed)), height,
-                     z + v * (radius + .0019 * math.cos(i * 1.6 + row * .27 - seed)))
-              for row, (height, radius) in enumerate(profile) for i, (u, v) in enumerate(section)]
+    points = [locate(x + u * (half_width + .0015 * math.sin(i * 2.3 + seed)), height,
+                     z + v * (half_depth + .0019 * math.cos(i * 1.6 + row * .27 - seed)))
+              for row, (height, half_width, half_depth) in enumerate(profile) for i, (u, v) in enumerate(section)]
     last = (len(profile) - 1) * width
     faces = [tuple(range(width)), tuple(reversed(range(last, last + width)))]
     for row in range(len(profile) - 1):
@@ -305,27 +308,40 @@ def carved_shrine_pier(locate, x, z, material, seed):
         for i in range(width):
             j = (i + 1) % width
             faces.append((first + i, second + i, second + j, first + j))
-    pier = mesh.mesh_object('Chisel-dressed granite pier in the pierced shrine', points, faces, material, 'niche')
-    profile_uv(pier, width, len(profile), {0, 1}, 1)
-    pier['weather_stone'] = pier['moss_edge'] = True
+    stone = mesh.mesh_object(name, points, faces, material, 'niche')
+    profile_uv(stone, width, len(profile), {0, 1}, 1)
+    return stone
 
 
 def pierced_lamp_shrine(anchor, stone, ledge, iron, contacts):
     locate = frame(anchor[0], anchor[1], anchor[2])
-    mesh.box('Broad foundation of the freestanding stone lamp shrine', (.67, .209, .57),
-             locate(0, -.897, 0), stone[4], .041, region='niche')
-    mesh.lathe('Worn octagonal stem of pierced stone lamp shrine', [(0, 0), (.208, 0), (.201, .06),
-               (.137, .123), (.112, .283), (.123, .548), (.203, .743), (.218, .806), (0, .806)],
-               locate(0, -.892, 0), stone[2], 8, 'niche')
+    foundation = dressed_shrine_stone('Broad coursed foundation of the stone lamp shrine', locate, 0, 0,
+                                      stone[4], ((-1.003, .310, .274), (-.981, .331, .291),
+                                                 (-.842, .328, .286), (-.815, .314, .274),
+                                                 (-.791, .272, .244)), 5.1)
+    foundation['weather_stone'] = foundation['moss_edge'] = True
+    shaft = dressed_shrine_stone('Battered rectangular shaft of the pierced lamp shrine', locate, 0, 0,
+                                stone[2], ((-.793, .242, .205), (-.774, .249, .212),
+                                           (-.728, .237, .201), (-.700, .214, .189),
+                                           (-.319, .188, .157), (-.162, .180, .149),
+                                           (-.135, .213, .182), (-.111, .235, .199),
+                                           (-.091, .229, .191)), 1.7)
+    shaft['weather_stone'] = True
     shelf = mesh.box('Single hewn wick shelf', (.552, .092, .469), locate(0, -.046, 0), ledge, .024, region='niche')
+    pier_profile = ((-.002, .045, .044), (.017, .046, .044), (.033, .044, .041),
+                    (.054, .040, .037), (.118, .040, .036), (.210, .039, .036),
+                    (.250, .040, .037), (.277, .044, .041), (.304, .045, .042))
     for side in (-1, 1):
         for row in (-1, 1):
-            carved_shrine_pier(locate, side * .211, row * .177, ledge, side * 1.7 + row * 3.2)
+            pier = dressed_shrine_stone('Chisel-dressed granite pier in the pierced shrine', locate,
+                                       side * .211, row * .177, ledge, pier_profile, side * 1.7 + row * 3.2)
+            pier['matched_granite'] = True
     mesh.box('Weathered stone lintel around the open crown', (.551, .069, .472), locate(0, .337, 0),
              stone[2], .026, region='niche')
-    mesh.lathe('Rain-worn shallow stone canopy over the pierced lamp', [(0, 0), (.257, 0), (.277, .044),
-               (.255, .065), (.197, .087), (.132, .130), (.057, .153), (0, .165)],
-               locate(0, .349, 0), stone[3], 12, 'niche')
+    roof = dressed_shrine_stone('Four pitched sides of the hewn lantern roof', locate, 0, 0, stone[3],
+                               ((.370, .270, .227), (.388, .296, .250), (.407, .308, .263),
+                                (.428, .301, .257), (.495, .251, .066), (.511, .216, .049)), 4.8)
+    roof['weather_stone'] = roof['moss_edge'] = True
     mesh.beam('Old iron peg for wishes below the centre seat', locate(-.078, -.081, .208),
               locate(-.078, -.081, .244), .005, iron, .004, 'niche')
     with contacts.group('Spent wax fused to the wick shelf', [shelf]):
