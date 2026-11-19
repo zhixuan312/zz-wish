@@ -306,7 +306,8 @@ def audit_approach_clearance(ground):
     print(f'PINE_APPROACH_CLEARANCE {len(margins)} probes; minimum clearance {min(margins):.6f} m')
 
 
-def climbing_steps(stone):
+def climbing_steps(stone, ground):
+    bridge_curbs = []
     for i in range(STAIR_COUNT):
         z = STAIR_START - STAIR_RUN * i
         top = (i + 1) * STAIR_RISE
@@ -335,6 +336,8 @@ def climbing_steps(stone):
             curb = hewn_block(f'Stair drain curb {direction} {i + 1:02}', .17, .16, .782,
                               (x, top + .035, z), stone[4], 'approach')
             curb['moss_edge'] = True
+            if (i, direction) in ((28, -1), (31, 1)):
+                bridge_curbs.append(curb)
             if (i // 5 + direction) % 4 and i < 47:
                 for row in range(2 + int(i > 31)):
                     hewn_block(f'Stair retaining course {direction} {i} {row}', .46, .25, .798,
@@ -347,6 +350,8 @@ def climbing_steps(stone):
             x = (col - 4.5) * .84 + .045 * (row % 2)
             hewn_block(f'Landing flagstone {row} {col}', .829, .092, .628,
                        (x, 4.00 + RANDOM.uniform(-.003, .003), z), RANDOM.choice(stone), 'gate')
+    fit_stone_undersides(ground, bridge_curbs)
+    return bridge_curbs
 
 
 def terrain_bank_slopes(ground, depsgraph):
@@ -371,14 +376,14 @@ def evaluated_undersides(objects, depsgraph):
         surface = obj.evaluated_get(depsgraph)
         evaluated = surface.to_mesh()
         try:
-            # Without a fitted bank rim, the hewn block starts with eleven underside vertices.
+            # Without a fitted rim, the hewn block starts with eleven underside vertices.
             count = obj.get('bank_ring_vertices', 11)
             yield [engine(surface.matrix_world @ vertex.co) for vertex in evaluated.vertices[:count]]
         finally:
             surface.to_mesh_clear()
 
 
-def audit_watercourse(ground, bank_stones, deck_slabs):
+def audit_watercourse(ground, bank_stones, deck_slabs, bridge_curbs):
     wet, dry = [], []
     for z in watercourse_stations(.23):
         x, y, width = watercourse_at(z)
@@ -407,12 +412,25 @@ def audit_watercourse(ground, bank_stones, deck_slabs):
           f'{len(stone_gaps)} stone underside vertices; maximum signed gap {maximum_gap:.6f} m. '
           f'{len(deck_gaps)} deck slabs; minimum water clearance {minimum_deck:.6f} m.')
 
+    if len(bridge_curbs) != 2:
+        raise RuntimeError(f'Pine Gate expects two fitted bridge curbs; found {len(bridge_curbs)}.')
+    curb_bottoms = list(evaluated_undersides(bridge_curbs, depsgraph))
+    curb_vertices = [p for rim in curb_bottoms for p in rim]
+    curb_midpoints = [tuple((a + b) * .5 for a, b in zip(p, q))
+                      for rim in curb_bottoms for p, q in zip(rim, rim[1:] + rim[:1])]
+    maximum_curb_gap = max(abs(y - supports_height(x, z, [ground]))
+                           for x, y, z in curb_vertices + curb_midpoints)
+    if maximum_curb_gap > .005:
+        raise RuntimeError(f'Pine Gate bridge curbs exceed the 5 mm underside-contact limit: {maximum_curb_gap:.6f} m.')
+    print(f'PINE_BRIDGE_CURB_CONTACT {len(bridge_curbs)} curbs; {len(curb_vertices)} evaluated underside vertices; '
+          f'{len(curb_midpoints)} edge midpoints; maximum absolute gap {maximum_curb_gap:.6f} m.')
 
-def saddle_water(stone, ground):
+
+def fit_stone_undersides(ground, stones, upper_clearances=None):
     terrain_edges = [(ground.data.vertices[a].co, ground.data.vertices[b].co)
                      for a, b in (edge.vertices for edge in ground.data.edges)]
 
-    def drape_bank(rock):
+    for rock in stones:
         original = [vertex.co.copy() for vertex in rock.data.vertices]
         count = len(original) // 3
         bottom = original[:count]
@@ -448,13 +466,18 @@ def saddle_water(stone, ground):
 
         ring = len(joins)
         points = []
-        for row, (emergence, rise) in enumerate(((-.002, 0.), (.069, .055), (.088, .014))):
+        for row in range(3):
             for slot, (a, b, t) in enumerate(joins):
                 pos = original[row * count + a].lerp(original[row * count + b], t)
                 x, z = pos.x, -pos.y
-                surface = supports_height(x, z, [ground])
-                below = points[(row - 1) * ring + slot][1] if row else surface
-                height = max(pos.z, surface + emergence, below + rise) if row else surface + emergence
+                height = pos.z
+                if row == 0:
+                    height = supports_height(x, z, [ground]) - .002
+                elif upper_clearances is not None:
+                    emergence, rise = upper_clearances[row - 1]
+                    surface = supports_height(x, z, [ground])
+                    below = points[(row - 1) * ring + slot][1]
+                    height = max(height, surface + emergence, below + rise)
                 points.append((x, height, z))
         faces = [tuple(range(ring)), tuple(reversed(range(ring * 2, ring * 3)))]
         for row in range(2):
@@ -469,6 +492,8 @@ def saddle_water(stone, ground):
         profile_uv(rock, ring, 3, {0, 1}, 1)
         rock['bank_ring_vertices'] = ring
 
+
+def saddle_water(stone, ground):
     water = mesh.material('Spring water on a slate bed', '#4a6865', rough=.20, metal=.24)
     points = []
     for i, (x, y, z) in enumerate(WATERCOURSE):
@@ -485,9 +510,9 @@ def saddle_water(stone, ground):
         bank_y = supports_height(x, z, [ground])
         rock = hewn_block(f'Water-cut stream bank {index + 1}', .32, .19, .47,
                           (x, bank_y + .101, z), stone[index % len(stone)], 'approach')
-        drape_bank(rock)
         rock['moss_edge'] = True
         bank_stones.append(rock)
+    fit_stone_undersides(ground, bank_stones, ((.069, .055), (.088, .014)))
     spring = hewn_block('Spring head emerging under a granite cap', .77, .46, .9,
                         (2.77, 4.41, 5.08), stone[4], 'gate')
     spring['moss_edge'] = True
@@ -886,10 +911,10 @@ def build(output):
     stone, rock, ground, wood, tiles, bark, needle, iron, clay, ledge = palette()
     support = terrain(ground)
     audit_approach_clearance(support)
-    climbing_steps(stone)
+    bridge_curbs = climbing_steps(stone, support)
     forest(support, rock, stone, bark, needle)
     stream_stones, deck_slabs = saddle_water(stone, support)
-    audit_watercourse(support, stream_stones, deck_slabs)
+    audit_watercourse(support, stream_stones, deck_slabs, bridge_curbs)
     build_tea_shoulder(ANCHOR, stone, wood, tiles, clay, iron, ledge, contacts)
     paint_stone()
     scene.render.engine = 'CYCLES'
