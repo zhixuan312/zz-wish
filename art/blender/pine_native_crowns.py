@@ -116,21 +116,25 @@ class NativeSurface:
             raise ValueError(f'{obj.name} did not evaluate to an LOD0 mesh.')
         world = evaluated.matrix_world.copy()
         slots = [material.name.lower() if material else '' for material in mesh.materials]
-        bark_slots = {i for i, name in enumerate(slots) if 'bark' in name or 'dead_branch' in name}
+        bark_slots = {i for i, name in enumerate(slots) if 'bark' in name}
+        dead_slots = {i for i, name in enumerate(slots) if 'dead_branch' in name}
         foliage_slots = {i for i, name in enumerate(slots) if 'twig' in name or 'needle' in name}
         if not bark_slots or not foliage_slots:
             raise ValueError(f'{obj.name} requires measured bark and needle slots: {slots}')
 
         # Count the actual triangulated polygons without building a Python
         # triangle list for the million-triangle crown.
-        bark_vertices, used_slots = set(), set()
-        counts = {'bark': 0, 'foliage': 0}
+        bark_vertices, dead_vertices, used_slots = set(), set(), set()
+        counts = {'bark': 0, 'deadBranches': 0, 'foliage': 0}
         for polygon in mesh.polygons:
             triangle_count = len(polygon.vertices) - 2
             used_slots.add(polygon.material_index)
             if polygon.material_index in bark_slots:
                 bark_vertices.update(polygon.vertices)
                 counts['bark'] += triangle_count
+            elif polygon.material_index in dead_slots:
+                dead_vertices.update(polygon.vertices)
+                counts['deadBranches'] += triangle_count
             elif polygon.material_index in foliage_slots:
                 counts['foliage'] += triangle_count
             else:
@@ -138,7 +142,10 @@ class NativeSurface:
         if counts['bark'] < 3000 or counts['foliage'] < 1_000_000:
             raise ValueError(f'{obj.name} is below the expected opaque LOD0 geometry: {counts}')
 
+        # Use only the trunk bark for the footprint. Loose dry branches
+        # may reach lower than the photographed standing mount.
         roots = [world @ mesh.vertices[i].co for i in bark_vertices]
+        wood_vertices = bark_vertices | dead_vertices
         bottom = min(p.z for p in roots)
         foot = [p for p in roots if p.z <= bottom + .025]
         mount = Vector((median(p.x for p in foot), median(p.y for p in foot), bottom))
@@ -152,7 +159,7 @@ class NativeSurface:
         crown_floor, canopy_top = math.inf, -math.inf
         for vertex in mesh.vertices:
             point = normalized @ vertex.co
-            if vertex.index not in bark_vertices:
+            if vertex.index not in wood_vertices:
                 crown_floor = min(crown_floor, point.z)
             canopy_top = max(canopy_top, point.z)
         if not 0. < canopy_top or not 0. < crown_floor < canopy_top:
