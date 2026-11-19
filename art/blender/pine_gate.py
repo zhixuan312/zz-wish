@@ -1406,7 +1406,6 @@ SHOULDER_PINE_CROWNS = {
 def pine_needles(name, shoots, material):
     points, faces, charts, wind_uv = [], [], [], []
     rng = random.Random(name)
-    samples = (0., .24, .51, .79)
     for start, direction, length, radius, roll in shoots:
         axis = Vector(direction).normalized()
         side = axis.cross(Vector((0., 1., 0.)))
@@ -1418,11 +1417,16 @@ def pine_needles(name, shoots, material):
         curve = rng.uniform(.12, .34)
         first_vertex = len(points)
         layout, sway = [], []
-        # A thin stem connects every curved needle in the chart. No part
-        # spans a whole tuft and none of the needle tips share a cut edge.
+        # Leave bare twig between each pair of needles. The two section rings
+        # at a bud define the small attachment edge for narrow needle blades.
+        half_attachment = min(.035, .0024 / length)
+        samples = [0.]
+        for bud in (.104, .356, .630):
+            samples.extend((bud - half_attachment, bud + half_attachment))
+        samples.append(.79)
         for f in samples:
             center = start + axis * (length * f) + up * (length * curve * f * f)
-            half = max(.0025, radius * .035) * (1. - .63 * f)
+            half = min(.006, max(.0025, radius * .035)) * (1. - .63 * f)
             for sign in (-1, 1):
                 points.append(center + side * (half * sign))
                 layout.append((half * sign, length * f))
@@ -1435,6 +1439,8 @@ def pine_needles(name, shoots, material):
         for i, (a, b) in enumerate(zip(samples, samples[1:])):
             left, right, next_left, next_right = range(i * 2, i * 2 + 4)
             surface((left, right, next_right, next_left))
+            if i % 2 == 0:
+                continue
             for sign, root, next_root in ((-1, left, next_left), (1, right, next_right)):
                 root_pos = points[first_vertex + root].lerp(points[first_vertex + next_root], .43)
                 reach = radius * rng.uniform(.66, 1.26) * (1. - .39 * a)

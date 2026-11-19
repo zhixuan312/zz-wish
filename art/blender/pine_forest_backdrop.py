@@ -39,8 +39,30 @@ def tree_prototypes(source):
         local = source.parent / 'textures' / Path(image.filepath).name
         if not image.packed_file and local.is_file():
             image.filepath = str(local)
+    set_forest_needle_pigment(bpy.data.materials['pine_sapling_medium_twig'])
     return [(tree, min(point[2] for point in tree.bound_box), max(point[2] for point in tree.bound_box))
             for tree in selected.objects]
+
+
+def set_forest_needle_pigment(material):
+    """Cool the old-growth needles while retaining the scanned stem and cone colors."""
+    nodes = material.node_tree.nodes
+    links = material.node_tree.links
+    scans = {Path(node.image.filepath).name: node.outputs['Color'] for node in nodes
+             if node.type == 'TEX_IMAGE' and node.image}
+    diffuse = scans['pine_sapling_medium_twig_diff_1k.png']
+    needle_only = scans['pine_sapling_medium_twig_mask_1k.png']
+    # The native mask identifies the chlorophyll-bearing surfaces. Feed the
+    # same pigment to the diffuse and backlit parts of the scanned shader.
+    receivers = [link.to_socket for link in diffuse.links]
+    pigment = nodes.new('ShaderNodeMixRGB')
+    pigment.label = 'Cool mature Masson pine pigment'
+    pigment.blend_type = 'MULTIPLY'
+    pigment.inputs[2].default_value = (.58, .83, .91, 1.)
+    links.new(needle_only, pigment.inputs[0])
+    links.new(diffuse, pigment.inputs[1])
+    for receiver in receivers:
+        links.new(pigment.outputs[0], receiver)
 
 
 def forest_trees(layer, station, index, prototypes, rng):
@@ -182,6 +204,9 @@ def render_plates(options):
     image.linear_colorspace_settings.name = 'Linear Rec.709'
     scene.cycles.use_denoising = True
     scene.cycles.denoising_use_gpu = True
+    # Subpixel separations in the native needle silhouettes survive better
+    # with a ray reconstruction footprint close to one native plate pixel.
+    scene.cycles.filter_width = 1.125
     scene.world = daylight_world()
     prototypes = tree_prototypes(options.pines)
     foliage = understory_materials()
@@ -191,7 +216,8 @@ def render_plates(options):
     output.mkdir(parents=True, exist_ok=False)
     report = {'format': 'Pine approach forest layers', 'descriptor': descriptor, 'files': [],
               'source': source, 'samples': options.samples, 'device': 'METAL', 'denoiser': 'Metal OIDN',
-              'encoding': 'log2-8-8', 'alpha': 'straight', 'webpQuality': options.quality, 'preExposure': PRE_EXPOSURE}
+              'encoding': 'log2-8-8', 'alpha': 'straight', 'webpQuality': options.quality,
+              'preExposure': PRE_EXPOSURE, 'pixelFilterWidth': scene.cycles.filter_width}
     for index, station in enumerate(STATIONS):
         if station > options.nearest:
             continue
