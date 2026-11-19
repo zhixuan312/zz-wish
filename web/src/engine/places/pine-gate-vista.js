@@ -6,8 +6,8 @@ const { clamp, lerp, smoothstep } = THREE.MathUtils;
 const FIELD_NEAR = 87;
 const FIELD_FAR = 116;
 const BEDS = [
-  [-10.4, -8.40], [-7.6, -7.77], [-4.8, -7.14], [-1.7, -6.51],
-  [1.7, -5.88], [4.8, -5.25], [7.8, -4.62], [10.6, -4.62],
+  [-10.4, -7.31], [-7.6, -6.68], [-4.8, -6.05], [-1.7, -5.42],
+  [1.7, -4.79], [4.8, -4.16], [7.8, -3.53], [10.6, -3.53],
 ];
 
 function interval(axis, value) {
@@ -26,18 +26,37 @@ function fieldCenter(depth) {
   return lerp(terraceAxis[i][1], terraceAxis[i + 1][1], clamp(range - i, 0, 1));
 }
 
-function fieldEdge(depth, i) {
-  const curve = .58 * Math.sin(depth * .26 + i * .71) + .29 * Math.sin(depth * .62 - i * .83);
-  return fieldCenter(depth) + BEDS[i][0] + curve;
+function eastDrain(depth) {
+  let leftBank = Infinity;
+  const channel = drains[0];
+  for (let i = 1; i < channel.length; i++) {
+    const [x0, z0] = channel[i - 1], [x1, z1] = channel[i];
+    if (depth > Math.max(-z0, -z1) || depth < Math.min(-z0, -z1)) continue;
+    const x = z0 !== z1 ? lerp(x0, x1, (depth + z0) / (z0 - z1)) : Math.min(x0, x1);
+    leftBank = Math.min(leftBank, x);
+  }
+  return leftBank;
+}
+
+function fieldEdge(depth, i, river = eastDrain(depth)) {
+  const center = fieldCenter(depth) + 2.8;
+  const curve = .81 * Math.sin(depth * .26 + i * .71) + .40 * Math.sin(depth * .62 - i * .83);
+  const spread = 1.13 + .57 * smoothstep(depth, 90, 113);
+  const upperLimit = (river - 1.95 - center) / (BEDS.at(-1)[0] + 1.1);
+  return center + Math.min(spread, Math.max(.56, upperLimit)) * BEDS[i][0] + curve;
 }
 
 function gradeShoulder(x, depth, height) {
-  if (depth <= FIELD_NEAR - 5 || depth >= FIELD_FAR + 8) return height;
-  const left = fieldEdge(depth, 0), right = fieldEdge(depth, BEDS.length - 1);
-  const edge = smoothstep(x, left - 5.1, left) * (1 - smoothstep(x, right, right + 5.8));
+  if (x < -60 || x > 90 || depth <= FIELD_NEAR - 5 || depth >= FIELD_FAR + 17) return height;
+  const river = eastDrain(depth);
+  const left = fieldEdge(depth, 0, river), right = fieldEdge(depth, BEDS.length - 1, river);
+  // The grading runs out into the slope and ends before the channel. A long,
+  // asymmetric transition avoids a bright artificial scarp behind the beds.
+  const east = Math.min(right + 17, river - .68);
+  const edge = smoothstep(x, left - 8.2, left) * (1 - smoothstep(x, right, Math.max(right + .4, east)));
   const ends = smoothstep(depth, FIELD_NEAR - 5, FIELD_NEAR)
-    * (1 - smoothstep(depth, FIELD_FAR, FIELD_FAR + 8));
-  const grade = lerp(-9.02, -4.96, clamp((x - left) / (right - left), 0, 1));
+    * (1 - smoothstep(depth, FIELD_FAR, FIELD_FAR + 17));
+  const grade = lerp(-7.93, -3.87, clamp((x - left) / (right - left), 0, 1));
   return lerp(height, grade, edge * ends);
 }
 
@@ -150,17 +169,19 @@ const ATMOSPHERE = `
   }
   vec3 ridgeAir(vec3 color, vec3 world) {
     float range = distance(cameraPosition, world);
-    float scattering = 1. - exp(-pow(range / mix(385., 349., uNight), 1.34));
-    float groundMist = (1. - smoothstep(-13., -3., world.y)) * smoothstep(38., 177., range) * .12;
-    float air = clamp(scattering * .94 + groundMist + climbHaze(), 0., .97);
-    return mix(color, hazeColor(), air);
+    float lowAir = 1. - smoothstep(-10., 19., .5 * (world.y + cameraPosition.y));
+    float rangeDepth = pow(range / mix(322., 319., uNight), 1.42);
+    float opticalDepth = rangeDepth + lowAir * range * .00032;
+    vec3 transmission = exp(-opticalDepth * vec3(.79, .98, 1.24));
+    vec3 aerial = color * transmission + hazeColor() * (1. - transmission);
+    return mix(aerial, hazeColor(), climbHaze());
   }
 `;
 
 const TERRAIN_LIGHT = `
   uniform vec3 uDaySun;
   vec3 hillsideLight(vec3 pigment, vec3 normal, float shelter) {
-    float sky = .43 + .57 * max(0., normal.y);
+    float sky = (.43 + .57 * max(0., normal.y)) * mix(1., .57, shelter);
     float sun = max(0., dot(normal, uDaySun));
     float duskSun = max(0., dot(normal, normalize(vec3(-.62, .24, .72))));
     float moon = max(0., dot(normal, normalize(vec3(.48, .58, -.66))));
@@ -175,14 +196,15 @@ const TERRAIN_LIGHT = `
 function tessellatedTerrain(field, look) {
   const stride = columns.length, indices = [];
   const positions = new Float32Array(field.heights.length * 3);
-  const concavity = new Float32Array(field.heights.length);
+  const concavity = new Uint8Array(field.heights.length);
   for (let j = 0; j < depths.length; j++) {
     for (let i = 0; i < stride; i++) {
       const index = j * stride + i, x = columns[i], depth = depths[j], y = field.heights[index];
       positions.set([x, y, -depth], index * 3);
-      const above = (field.surfaceAt(x - 3.2, depth) + field.surfaceAt(x + 3.2, depth)
-        + field.surfaceAt(x, depth - 3.2) + field.surfaceAt(x, depth + 3.2)) * .25 - y;
-      concavity[index] = smoothstep(above, -.15, 1.12);
+      const neighbours = [field.surfaceAt(x - 12, depth), field.surfaceAt(x + 12, depth),
+        field.surfaceAt(x, depth - 12), field.surfaceAt(x, depth + 12)];
+      const crestHeight = neighbours.reduce((sum, h) => sum + Math.max(0, h - y), 0) * .25;
+      concavity[index] = Math.round(255 * smoothstep(crestHeight, .22, 5.2));
       if (i < stride - 1 && j < depths.length - 1) {
         indices.push(index, index + 1, index + stride, index + 1, index + stride + 1, index + stride);
       }
@@ -190,7 +212,7 @@ function tessellatedTerrain(field, look) {
   }
   const geometry = new THREE.BufferGeometry();
   geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-  geometry.setAttribute('basinShade', new THREE.BufferAttribute(concavity, 1));
+  geometry.setAttribute('basinShade', new THREE.BufferAttribute(concavity, 1, true));
   geometry.setIndex(indices);
   geometry.computeVertexNormals();
   const material = new THREE.ShaderMaterial({
@@ -225,7 +247,7 @@ function tessellatedTerrain(field, look) {
           texture2D(uCanopy, turn * ground / 10.1 - offset), .46);
         vec2 relief = crowns.gb * 2. - 1.;
         vec3 leavesUp = normalize(normal + vec3(relief.x, .26, relief.y) * .53);
-        float trees = smoothstep(.21, .72, grove * .74 + scrub * .26);
+        float trees = smoothstep(.22, .70, grove * .48 + scrub * .27 + vBasin * .25);
         float rock = smoothstep(.32, .66, 1. - normal.y + (scrub - .5) * .26 - vBasin * .11);
         vec3 grass = mix(vec3(.052, .077, .028), vec3(.098, .121, .041), scrub);
         vec3 needles = mix(vec3(.017, .034, .019), vec3(.058, .104, .039), trees);
@@ -383,42 +405,46 @@ function fieldSurfaces(field, look) {
     `,
   }));
   soil.name = 'Cut earthen banks on the DEM shoulder';
-  const pools = new THREE.Mesh(toGeometry(water), new THREE.ShaderMaterial({
-    uniforms: look,
-    vertexShader: SURFACE_VERTEX,
-    fragmentShader: `
-      uniform float uTime;
-      varying vec3 vWorld;
-      varying vec2 vUv;
-      ${ATMOSPHERE}
-      ${TERRAIN_LIGHT}
-      ${NOISE}
-      void main() {
-        vec2 p = vWorld.xz;
-        float du = sin(p.x * 4.6 + p.y * 1.2 + uTime * .82) * .021;
-        float dv = sin(p.y * 4.9 - p.x * 1.2 - uTime * .58) * .017;
-        vec3 normal = normalize(vec3(du, 1., dv));
-        vec3 eye = normalize(cameraPosition - vWorld);
-        float edge = min(min(vUv.x, 1. - vUv.x), min(vUv.y * 3., (1. - vUv.y) * 3.));
-        float facing = max(0., dot(normal, eye));
-        float fresnel = .0204 + .84 * pow(1. - facing, 4.);
-        float brokenSky = softNoise(p * .055 + vec2(uTime * .009, -uTime * .003));
-        vec3 haze = mix(vec3(.53, .68, .72), vec3(.062, .120, .173), uNight);
-        haze *= .69 + .36 * brokenSky;
-        vec3 bed = hillsideLight(vec3(.108, .127, .047), normal, .34);
-        float light = pow(max(0., dot(normal, normalize(eye + uDaySun))), 91.);
-        vec3 sheen = vec3(.20, .22, .23) * light * (1. - uNight) * .29;
-        vec3 water = mix(bed, haze, fresnel * mix(.46, 1., smoothstep(0., .19, edge))) + sheen;
-        gl_FragColor = vec4(ridgeAir(water, vWorld), 1.);
-      }
-    `,
-  }));
+  const poolGeometry = toGeometry(water);
+  poolGeometry.computeVertexNormals();
+  // The outside scene already has a CubeUV convolution of its actual sky.
+  // Use standard dielectric IBL here, without a new reflection pass.
+  const poolMaterial = new THREE.MeshPhysicalMaterial({
+    color: 0x695f35, roughness: .17, ior: 1.333, metalness: 0, fog: false,
+    envMapIntensity: 1, specularIntensity: 1,
+  });
+  poolMaterial.onBeforeCompile = shader => {
+    Object.assign(shader.uniforms, look);
+    const coordinates = 'varying vec3 vPaddyWorld; varying vec2 vPaddyUV;';
+    shader.vertexShader = coordinates + '\n' + shader.vertexShader.replace('#include <begin_vertex>',
+      '#include <begin_vertex>\nvPaddyWorld = (modelMatrix * vec4(transformed, 1.)).xyz; vPaddyUV = uv;');
+    shader.fragmentShader = coordinates + '\nuniform float uTime;\n' + ATMOSPHERE + shader.fragmentShader
+      .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
+        vec2 paddyP = vPaddyWorld.xz;
+        float footprint = length(fwidth(paddyP));
+        float ripple = 1. - smoothstep(.25, .79, footprint);
+        vec2 waves = vec2(sin(paddyP.x * 5.12 + paddyP.y * 2.41 + uTime * 1.17),
+          sin(paddyP.y * 4.23 - paddyP.x * 1.64 - uTime * .82));
+        vec3 surfaceNormal = normalize(vec3(waves.x * .036 * ripple, 1., waves.y * .023 * ripple));
+        normal = normalize(mat3(viewMatrix) * surfaceNormal);`)
+      .replace('#include <roughnessmap_fragment>', `#include <roughnessmap_fragment>
+        vec2 shoreUV = min(vPaddyUV, 1. - vPaddyUV);
+        float shore = 1. - smoothstep(.005, .20, min(shoreUV.x, shoreUV.y * 4.));
+        roughnessFactor = clamp(roughnessFactor + .22 * shore, 0., 1.);`)
+      .replace('#include <lights_fragment_end>', `#include <lights_fragment_end>
+        reflectedLight.directDiffuse *= .49;
+        reflectedLight.indirectDiffuse *= .68;`)
+      .replace('#include <opaque_fragment>', `outgoingLight = ridgeAir(outgoingLight, vPaddyWorld);
+        #include <opaque_fragment>`);
+  };
+  poolMaterial.customProgramCacheKey = () => 'pine-sky-reflecting-paddies';
+  const pools = new THREE.Mesh(poolGeometry, poolMaterial);
   pools.name = 'Level flooded beds reflecting the sky';
   return [soil, pools];
 }
 
 function fallingWater(field, look) {
-  const batch = { points: [], uv: [], indices: [] }, streams = [];
+  const batch = { points: [], uv: [], indices: [] }, streams = [], waterKind = [];
   for (const [branch, route] of drains.entries()) {
     const plan = new THREE.CatmullRomCurve3(route.map(([x, z]) => new THREE.Vector3(x, 0, z)));
     const samples = Math.ceil(plan.getLength() * 2.4);
@@ -442,21 +468,61 @@ function fallingWater(field, look) {
       const fall = field.surfaceAt(from.x, -from.z) - field.surfaceAt(to.x, -to.z);
       const rapid = smoothstep(fall / Math.max(.001, from.distanceTo(to)), .40, .96);
       streams.push(rapid, rapid);
+      waterKind.push(0, 0);
     }
+
+    if (branch !== 0) continue;
+    // Find a sustained measured drop, then release a narrow jet over the lip.
+    // The subdued stream underneath continues along the original drainage.
+    const heightAt = point => field.surfaceAt(point.x, -point.z);
+    let selected = null;
+    const run = 4.8 / plan.getLength();
+    for (let i = Math.ceil(samples * .28); i < samples * .78; i++) {
+      const t = i / samples, start = current(t), end = current(t + run);
+      const y = heightAt(start), floor = heightAt(end), drop = y - floor;
+      if (floor > -8.5 && drop > Math.max(2.2, selected?.drop ?? 0)) {
+        selected = { start, end, y, floor, drop };
+      }
+    }
+    if (!selected) continue;
+    const { start, end, y, floor, drop } = selected;
+    const heading = end.clone().sub(start).normalize();
+    const lane = side => t => {
+      const point = start.clone().lerp(end, t);
+      const width = .25 - .075 * Math.sin(t * Math.PI) + .09 * t;
+      const x = point.x - heading.z * width * side, z = point.z + heading.x * width * side;
+      const freefall = y - drop * t ** 1.6 + .078;
+      return [x, Math.max(field.surfaceAt(x, -z) + .064, freefall), z];
+    };
+    strip(batch, [0, 1], lane(-1), lane(1), 22);
+    streams.push(...Array(46).fill(1));
+    waterKind.push(...Array(46).fill(1));
+
+    // Spray rises from the landing, in the same transparent draw.
+    const first = batch.points.length / 3;
+    const px = end.x, pz = end.z + .12;
+    batch.points.push(px - 1.20, floor - .10, pz, px + 1.20, floor - .10, pz,
+      px - .83, floor + 1.45, pz, px + .83, floor + 1.45, pz);
+    batch.uv.push(0, 0, 1, 0, 0, 1, 1, 1);
+    batch.indices.push(first, first + 1, first + 2, first + 1, first + 3, first + 2);
+    streams.push(0, 0, 0, 0);
+    waterKind.push(2, 2, 2, 2);
   }
   const geometry = toGeometry(batch);
   geometry.setAttribute('rapid', new THREE.Float32BufferAttribute(streams, 1));
+  geometry.setAttribute('waterKind', new THREE.Uint8BufferAttribute(waterKind, 1));
   const object = new THREE.Mesh(geometry, new THREE.ShaderMaterial({
     uniforms: look, transparent: true, depthWrite: false, side: THREE.DoubleSide, forceSinglePass: true,
     vertexShader: `
-      attribute float rapid;
-      varying float vRapid;
+      attribute float rapid, waterKind;
+      varying float vRapid, vKind;
       varying vec3 vWorld;
       varying vec2 vUv;
       void main() {
         vWorld = (modelMatrix * vec4(position, 1.)).xyz;
         vUv = uv;
         vRapid = rapid;
+        vKind = waterKind;
         gl_Position = projectionMatrix * viewMatrix * vec4(vWorld, 1.);
       }
     `,
@@ -464,21 +530,35 @@ function fallingWater(field, look) {
       uniform float uTime;
       varying vec3 vWorld;
       varying vec2 vUv;
-      varying float vRapid;
+      varying float vRapid, vKind;
       ${NOISE}
       ${ATMOSPHERE}
       void main() {
-        float sides = 1. - smoothstep(.20, .50, abs(vUv.x - .5));
+        float light = mix(1., .39, uNight);
+        float distanceVeil = 1. - climbHaze();
+        if (vKind > 1.5) {
+          vec2 shape = (vUv - vec2(.5, .38)) * vec2(2.12, 1.69);
+          float cloud = softNoise(vUv * vec2(5., 6.) - vec2(uTime * .31, uTime * .43));
+          float edge = (1. - smoothstep(.25, 1., length(shape) + .20 * (.5 - cloud)))
+            * smoothstep(.01, .23, vUv.y);
+          vec3 spray = ridgeAir(vec3(.48, .57, .61) * light, vWorld);
+          gl_FragColor = vec4(spray, edge * cloud * distanceVeil * .37);
+          return;
+        }
+        float sides = 1. - smoothstep(.17, .50, abs(vUv.x - .5));
         float ends = smoothstep(0., .085, vUv.y) * (1. - smoothstep(.86, 1., vUv.y));
         float plunge = smoothstep(-12.4, -7., vWorld.y);
-        float ledge = softNoise(vec2(vUv.y * 41.7 + 2.8, vUv.x * 2.6));
-        float streak = .5 + .5 * sin(vUv.y * 176. - uTime * 5.6 + vUv.x * 14.5);
-        float aerated = smoothstep(.33, .84, vRapid) * smoothstep(.42, .78, ledge + streak * .14);
-        vec3 stream = mix(vec3(.047, .102, .107), vec3(.142, .247, .258), streak * .63);
-        vec3 foam = vec3(.56, .65, .65) * (.81 + .19 * streak);
-        vec3 water = mix(stream, foam, aerated) * mix(1., .40, uNight);
-        float opacity = sides * ends * (1. - climbHaze()) * plunge * (.12 + .57 * aerated);
-        gl_FragColor = vec4(ridgeAir(water, vWorld), opacity);
+        float streak = .5 + .5 * sin(vUv.y * 124. - uTime * 6.3 + vUv.x * 14.5);
+        float broken = softNoise(vec2(vUv.y * 27.3 + 3.8, vUv.x * 3.2));
+        float aerated = smoothstep(.33, .84, vRapid) * smoothstep(.44, .78, broken + streak * .12);
+        vec3 water = mix(vec3(.046, .094, .107), vec3(.43, .55, .59), aerated);
+        float opacity = sides * ends * distanceVeil * plunge * (.09 + .20 * aerated);
+        if (vKind > .5) {
+          float ribbons = smoothstep(.20, .84, .57 * broken + .43 * streak);
+          water = mix(vec3(.22, .35, .39), vec3(.77, .83, .81), ribbons);
+          opacity = sides * ends * distanceVeil * (.56 + .28 * ribbons);
+        }
+        gl_FragColor = vec4(ridgeAir(water * light, vWorld), opacity);
       }
     `,
   }));
@@ -486,8 +566,8 @@ function fallingWater(field, look) {
   return object;
 }
 
-function cloudBanks(look) {
-  const batch = { points: [], indices: [] }, layers = [];
+function cloudBanks(field, look) {
+  const batch = { points: [], indices: [] }, layers = [], terrainGaps = [];
   const width = 65, length = 47;
   for (const [layer, y] of [-16, -11.6, -8.0].entries()) {
     const first = batch.points.length / 3;
@@ -500,6 +580,7 @@ function cloudBanks(look) {
         const lift = layer === 2 ? 4.1 * smoothstep(depth, 111, 195) : 0;
         batch.points.push(x, y + lift, -depth);
         layers.push(layer);
+        terrainGaps.push(y + lift - field.surfaceAt(x, depth));
         if (i < width - 1 && row < length - 1) {
           const a = first + row * width + i;
           batch.indices.push(a, a + 1, a + width, a + 1, a + width + 1, a + width);
@@ -509,25 +590,28 @@ function cloudBanks(look) {
   }
   const geometry = toGeometry(batch);
   geometry.setAttribute('layer', new THREE.Float32BufferAttribute(layers, 1));
+  geometry.setAttribute('terrainGap', new THREE.Float32BufferAttribute(terrainGaps, 1));
   const object = new THREE.Mesh(geometry, new THREE.ShaderMaterial({
     uniforms: look, transparent: true, depthWrite: false,
     vertexShader: `
       uniform float uTime;
-      attribute float layer;
+      attribute float layer, terrainGap;
       varying vec3 vWorld;
-      varying float vLayer;
+      varying float vLayer, vTerrainGap;
       void main() {
         vWorld = (modelMatrix * vec4(position, 1.)).xyz;
         vLayer = layer;
         float ripple = sin(vWorld.x * .081 + uTime * .034 + layer) * sin(vWorld.z * .069 - uTime * .027);
-        vWorld.y += ripple * 1.19 + .43 * sin(vWorld.z * .21 + vWorld.x * .043 + uTime * .029);
+        float lift = ripple * 1.19 + .43 * sin(vWorld.z * .21 + vWorld.x * .043 + uTime * .029);
+        vWorld.y += lift;
+        vTerrainGap = terrainGap + lift;
         gl_Position = projectionMatrix * viewMatrix * vec4(vWorld, 1.);
       }
     `,
     fragmentShader: `
       uniform float uTime;
       varying vec3 vWorld;
-      varying float vLayer;
+      varying float vLayer, vTerrainGap;
       ${NOISE}
       ${ATMOSPHERE}
       void main() {
@@ -540,10 +624,13 @@ function cloudBanks(look) {
         float coverage = smoothstep(.30, .64, bank + uDusk * .073 - vLayer * .044);
         float lift = smoothstep(.31, .72, bank * .69 + .31 * fold);
         vec3 dark = mix(vec3(.21, .29, .34), vec3(.034, .058, .092), uNight);
-        vec3 bright = mix(vec3(.65, .71, .70), vec3(.103, .161, .225), uNight);
+        vec3 bright = mix(vec3(.47, .58, .63), vec3(.103, .161, .225), uNight);
         vec3 cloud = mix(dark, bright, lift) * mix(vec3(1.), vec3(1.10, .97, .87), uDusk * .32);
         float shore = smoothstep(18., 38., -vWorld.z) * (1. - smoothstep(491., 640., -vWorld.z));
-        float opacity = coverage * shore * (.48 - vLayer * .055) * (1. - climbHaze() * .64);
+        float aboveLand = smoothstep(.11, 3.5, vTerrainGap);
+        float grazed = smoothstep(.015, .134, normalize(cameraPosition - vWorld).y);
+        float opacity = coverage * shore * aboveLand * mix(.67, 1., grazed)
+          * (.43 - vLayer * .052) * (1. - climbHaze() * .64);
         gl_FragColor = vec4(ridgeAir(cloud, vWorld), opacity);
       }
     `,
@@ -558,11 +645,11 @@ function cloudBanks(look) {
 export function createPineGateVista(initialLight = { n: 1, g: 0 }) {
   const daySun = new THREE.Vector3(...pineDaySunDirection), canopy = canopyTexture();
   const look = { uNight: { value: initialLight.n }, uDusk: { value: initialLight.g }, uTime: { value: 0 },
-    uDaySun: { value: daySun }, uCanopy: { value: canopy }, uHazeDay: { value: new THREE.Color(0x8ba6bb) },
+    uDaySun: { value: daySun }, uCanopy: { value: canopy }, uHazeDay: { value: new THREE.Color(0x8aaaca) },
     uHazeNight: { value: new THREE.Color(0x2a4057) }, uHazeDusk: { value: new THREE.Color(0xa095a2) } };
   const field = createTerrainField(), group = new THREE.Group();
   group.name = 'Pine Gate valley vista';
-  group.add(tessellatedTerrain(field, look), ...fieldSurfaces(field, look), cloudBanks(look), fallingWater(field, look));
+  group.add(tessellatedTerrain(field, look), ...fieldSurfaces(field, look), cloudBanks(field, look), fallingWater(field, look));
   return {
     group,
     update(time, light = initialLight) {
