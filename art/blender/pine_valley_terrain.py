@@ -314,6 +314,27 @@ def climate(x, depth, size, salt):
     return lerp(lerp(patch(ix, iz), patch(ix + 1, iz), u), lerp(patch(ix, iz + 1), patch(ix + 1, iz + 1), u), v)
 
 
+def forest_site(land, x, depth, height):
+    dx = (land.height(x + .65, depth) - land.height(x - .65, depth)) / 1.3
+    down = (land.height(x, depth + .65) - land.height(x, depth - .65)) / 1.3
+    steep = smooth(.68, 2.65, math.hypot(dx, down))
+    # Shallow hollows retain moisture; outward shoulders with a sun-facing
+    # slope dry faster. Sample far enough apart to cross the SRTM triangles.
+    ring = 4.8
+    hollow = (land.height(x - ring, depth) + land.height(x + ring, depth)
+              + land.height(x, depth - ring) + land.height(x, depth + ring)) * .25 - height
+    shelter = smooth(-.81, .76, hollow)
+    exposed = .60 * steep + .25 * smooth(.13, 1.62, .62 * dx + .38 * down) + .15 * (1. - shelter)
+
+    # Bend stand boundaries across the underlying lattice. Small pockets
+    # distinguish regeneration gaps from the broader pattern of mature trees.
+    warp = 12. * (climate(x, depth, 35., 6287) - .5)
+    stand = climate(x + warp, depth - .61 * warp, 19., 197)
+    pocket = climate(x - .57 * warp, depth + warp, 8.4, 2197)
+    soil = .42 * stand + .36 * pocket + .22 * shelter - .13 * exposed
+    return smooth(.14, .60, soil), exposed, pocket
+
+
 def forest_points(land, far, variants=4):
     rng = random.Random(6624 + far)
     batches = [([], [], []) for _ in range(variants)]
@@ -322,6 +343,7 @@ def forest_points(land, far, variants=4):
     d0 = start
     while d0 < end:
         spacing = forest_spacing(d0, far)
+        far_pitch = max(1., spacing / .90) if far else 1.
         lateral = min(land.x[-1] - 2., 1.34 * (d0 + 8.))
         for col in range(math.ceil(lateral * 2. / spacing)):
             depth = d0 + rng.uniform(.045, .955) * spacing
@@ -335,28 +357,37 @@ def forest_points(land, far, variants=4):
             from_stream = abs(x - river)
             if from_stream < .28 + .18 * (.5 + .5 * math.cos(depth * 1.04)):
                 continue
-            if not far and 84. < depth < 119. and land.edge(depth, 0, river) - .86 < x < land.edge(depth, 7, river) + .80:
-                continue
+            field_side = math.inf
+            if not far and 84. < depth < 119.:
+                left, right = land.edge(depth, 0, river), land.edge(depth, 7, river)
+                if left - .86 < x < right + .80:
+                    continue
+                field_side = min(abs(x - left), abs(x - right))
 
-            steep = math.hypot(land.height(x + .65, depth) - land.height(x - .65, depth),
-                               land.height(x, depth + .65) - land.height(x, depth - .65)) / 1.3
-            wet = climate(x, depth, 16., 197)
-            patch = climate(x, depth, 4.7, 331)
-            ridge = smooth(.88, 2.8, steep)
-            density = lerp(.80, .995, .64 * wet + .36 * patch) * lerp(1., .65, ridge)
+            grove, exposed, pocket = forest_site(land, x, depth, y)
+            density = lerp(.56, .99, grove) - .12 * exposed * (1. - grove)
             if rng.random() > density:
                 continue
 
-            stream_shrub = 1. - smooth(.43, 1.35, from_stream)
-            age = clamp(.64 * rng.random() + .36 * wet - .06 * ridge - .36 * stream_shrub)
-            height = lerp(.40, 1.20, age ** .95)
-            width = lerp(.82, 1.28, patch) * height * (1. + .24 * stream_shrub)
-            if age < .32:
+            # Preserve the rice and watercourse edges when mature crowns widen.
+            live_edge = min(smooth(.43, 2.2, from_stream), smooth(.8, 3.8, field_side))
+            age = clamp(.56 * grove + .44 * rng.random() - .22 * (1. - live_edge))
+            height = lerp(.57, 1.83, age) * (1. - .17 * exposed) * far_pitch ** .78
+            width = lerp(.60, 2.71, grove) * lerp(.78, 1.20, .55 * age + .45 * pocket)
+            width *= lerp(.51, 1., live_edge) * far_pitch ** .95
+            variety = rng.random()
+            if variety < lerp(.48, .07, grove):
                 kind = 0
-            elif ridge > .39 or (wet > .58 and patch < .48):
+            elif exposed > .55 and variety > .64:
                 kind = 2
+            elif variety < lerp(.69, .49, grove):
+                kind = 1
             else:
-                kind = rng.choice((1, 1, 3))
+                kind = 3 if variety < .79 else 2
+            if kind == 0:
+                height *= .83
+                width *= .86
+            width = min(width, 1.85 * height)
             points, scales, rotation = batches[kind]
             points.append((x, depth, y - .029))
             scales.append((width, width, height))
