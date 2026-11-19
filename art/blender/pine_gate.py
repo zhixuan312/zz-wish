@@ -17,6 +17,9 @@ import snow_roof as mesh
 from pine_hero_trees import CROWNS, grow_crown, needle_mesh
 from pine_impostors import load_impostors, relief_crown
 from pine_materials import apply_scan
+from pine_native_mounts import (
+    NATIVE_MOUNTS_FIELD, VALLEY_NODES, add_native_mount, has_verified_native_receipt, serialize_native_mounts,
+)
 from pine_tea_shoulder import build_tea_shoulder
 from resting_contacts import RestingContacts, engine
 from snow_lightmap_charts import box_net, profile_uv, source_uv
@@ -776,7 +779,7 @@ HERO_PINE_CROWNS = {
 def use_native_valley_crown(label, profile, far_crown):
     # At the across-valley framing distances use the measured crown of a
     # scanned tree. Both ancient pines beside the path keep close geometry.
-    return (label in {'Back ridge pine 5', 'Layered ridge pine 4'} and far_crown is not None
+    return (label in VALLEY_NODES and far_crown is not None
             and all(view.get('nativeObject') for view in far_crown[1][profile]))
 
 
@@ -932,7 +935,7 @@ def pine_tree(label, x, z, height, bark, needles, ground, roots=False, lean=None
     radii = [height * (.004 + .047 * (1 - j / 7) ** .84) if ancient and j < 5
              else height * (.00065 + (.057 if ancient else .027) * (1 - j / 7) ** 1.16)
              for j in range(8)]
-    bark_tube(f'{label} crooked trunk', centres, radii, bark, 14 if ancient else 10)
+    stem = bark_tube(f'{label} crooked trunk', centres, radii, bark, 14 if ancient else 10)
     if roots:
         reach_scale = 1.53 if ancient else 1.
         for i in range(4 if ancient else 3):
@@ -999,8 +1002,11 @@ def pine_tree(label, x, z, height, bark, needles, ground, roots=False, lean=None
         hero_pine_crown(label, centres, phase, bark, modelled_needles)
         return at if ancient else None
     if far_crown:
-        camera, views = far_crown
+        camera, views, mounts = far_crown
         relief_crown(label, profile if use_native_crown else 'ridge', centres, camera, views, mesh, source_uv)
+        if use_native_crown and mounts is not None:
+            proxy = mesh.STATIC.objects[f'{label} depth-reconstructed crown']
+            add_native_mount(mounts, label, centres, camera, views[profile], proxy, stem)
         return None
     leader = []
     for order, roll in enumerate((.33, -.27, .67)):
@@ -1034,17 +1040,20 @@ def distant_pines(ground, bark, needles, modelled_needles, far_crown):
         positions = [Vector((x + lean * t * t + .12 * math.sin(phase + t * 5.0) * t,
                              y + height * t, z + .25 * math.sin(phase) * t)) for t in levels]
         label = f'Layered ridge pine {i + 1}'
-        bark_tube(f'{label} tapered trunk', positions,
-                  [height * (.00065 + .0155 * (1. - t) ** 1.21) for t in levels], bark, 7)
+        stem = bark_tube(f'{label} tapered trunk', positions,
+                         [height * (.00065 + .0155 * (1. - t) ** 1.21) for t in levels], bark, 7)
         profile = HERO_PINE_CROWNS.get(label)
         use_native_crown = use_native_valley_crown(label, profile, far_crown)
         if profile and not use_native_crown:
             hero_pine_crown(label, positions, phase, bark, modelled_needles)
             continue
         if far_crown:
-            camera, views = far_crown
+            camera, views, mounts = far_crown
             prototype = profile if use_native_crown else 'young' if height < 8. else 'ridge'
             relief_crown(label, prototype, positions, camera, views, mesh, source_uv)
+            if use_native_crown and mounts is not None:
+                proxy = mesh.STATIC.objects[f'{label} depth-reconstructed crown']
+                add_native_mount(mounts, label, positions, camera, views[profile], proxy, stem)
             continue
         sprays, shoots = [], []
         model_crown = label in MODELLED_PINE_CROWNS
@@ -1269,12 +1278,15 @@ def build(output, impostor_manifest=None, wax_sculpt=None):
     bridge_curbs = climbing_steps(stone, support)
     route = json.loads((ROOT / 'shared/pine-gate-path.json').read_text())
     far_crown = None
+    native_mounts = None
     if impostor_manifest is not None:
         views, impostor_sha = load_impostors(impostor_manifest)
         if not {'young', 'ridge'} <= views.keys():
             raise ValueError('Pine Gate needs both the young and the ridge crown views.')
         shoulder = next(shot for shot in route['waypoints'] if shot['time'] == 27.9)
-        far_crown = (Vector(shoulder['position']), views)
+        if has_verified_native_receipt(impostor_manifest, impostor_sha):
+            native_mounts = {}
+        far_crown = (Vector(shoulder['position']), views, native_mounts)
         scene['one_light_pine_impostor_sha256'] = impostor_sha
     forest(support, rock, stone, bark, needle, far_crown)
     stream_stones, deck_slabs = saddle_water(stone, support)
@@ -1308,7 +1320,11 @@ def build(output, impostor_manifest=None, wax_sculpt=None):
     scene['one_light_lamp_pass_quantity'] = 'indirect-diffuse-radiance-per-unit-albedo'
     scene['one_light_camera_pre_exposure'] = PRE_EXPOSURE
     scene['lightmap_resolutions'] = json.dumps({'approach': 2048, 'gate': 1024, 'niche': 512})
-    scene['one_light_anchor_fields'] = json.dumps(['one_light_lamp_anchor', 'one_light_lamp_basis'])
+    anchor_fields = ['one_light_lamp_anchor', 'one_light_lamp_basis']
+    if native_mounts is not None:
+        scene[NATIVE_MOUNTS_FIELD] = serialize_native_mounts(native_mounts)
+        anchor_fields.append(NATIVE_MOUNTS_FIELD)
+    scene['one_light_anchor_fields'] = json.dumps(anchor_fields)
     audit = contacts.audit()
     scene['resting_prop_inventory'] = json.dumps({'registeredGroups': [entry['name'] for entry in contacts.entries],
         'fixedArchitecture': 'Pine roots and slate outcrops enter terrain. Steps, bridge, shrine and terrace walls have structural support.'})
@@ -1323,6 +1339,7 @@ def build(output, impostor_manifest=None, wax_sculpt=None):
         'art/blender/snow_roof.py', 'art/blender/snow_round1_details.py',
         'art/blender/snow_lightmap_charts.py', 'art/blender/resting_contacts.py',
         'art/blender/pine_materials.py', 'art/blender/pine_hero_trees.py', 'art/blender/pine_impostors.py',
+        'art/blender/pine_native_mounts.py',
         'art/blender/pine_tea_shoulder.py', 'docs/licenses/pine-gate-scans.json',
         'shared/pine-gate-path.json', 'shared/pine-gate-daylight.json',
     ])
