@@ -1,5 +1,7 @@
 const clearRunnelName = 'Clear spring runnel';
 const gravelRunnelName = 'Clear spring runnel over a gravel bed';
+const shallowRunnelName = 'Shallow spring runnel over washed gravel';
+const wetGravelName = 'Water-darkened spring gravel';
 const oldRunnelName = 'Spring water on a slate bed';
 
 function installClearRunnel(material, phase) {
@@ -83,6 +85,77 @@ function installLegacyRunnel(material, phase) {
   };
 }
 
+function installShallowRunnel(material, phase) {
+  const compile = material.onBeforeCompile;
+  const key = material.customProgramCacheKey();
+  material.transparent = true;
+  material.depthWrite = false;
+  material.opacity = 1;
+  material.envMapIntensity = .54;
+  material.customProgramCacheKey = () => key + '-shallow-pine-runnel';
+  material.onBeforeCompile = (shader, renderer) => {
+    compile.call(material, shader, renderer);
+    shader.uniforms.uPineCreekTime = phase;
+    shader.vertexShader = 'varying vec2 vPineRunnelProfile;\n' + shader.vertexShader
+      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvPineRunnelProfile = uv;');
+    shader.fragmentShader = 'varying vec2 vPineRunnelProfile; uniform float uPineCreekTime;\n' + shader.fragmentShader
+      .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
+        vec2 creek = vBakedWorld.xz;
+        float waterDepth = (vPineRunnelProfile.x - .5) * .16;
+        float across = 1. - abs(vPineRunnelProfile.y * 2. - 1.);
+        // Advection follows the surveyed downhill direction (+Z). Long
+        // uneven waves survive in the distant run; short ripples do not alias.
+        float drift = creek.y - uPineCreekTime * .29;
+        float runPhase = 8.7 * drift + 2.3 * sin(9.9 * creek.x + 1.1 * creek.y)
+          + .83 * sin(2.7 * creek.y - 3.1 * creek.x);
+        float rivuletPhase = 22.4 * (creek.y - uPineCreekTime * .43) + 4.8 * creek.x
+          + 1.3 * sin(20.4 * creek.x - 2.8 * creek.y);
+        float run = cos(runPhase) * (1. - smoothstep(.6, 2.1, fwidth(runPhase)));
+        float rivulet = cos(rivuletPhase) * (1. - smoothstep(.5, 1.8, fwidth(rivuletPhase)));
+        float riffle = .5 + .5 * sin(drift * 3.6 + 7.1 * creek.x + sin(13.3 * creek.x - 2.2 * creek.y));
+        float flowStrength = mix(.28, 1., smoothstep(.15, .86, across)) * mix(.60, 1., riffle);
+        vec3 ripple = vec3(-.031 * run + .018 * rivulet, 0., .080 * run + .038 * rivulet) * flowStrength;
+        normal = normalize(normal + mat3(viewMatrix) * ripple);`)
+      .replace('#include <opaque_fragment>', `
+        float waterEdge = smoothstep(-.001, .007, waterDepth);
+        float pool = smoothstep(.008, .050, waterDepth);
+        float viewCos = clamp(dot(geometryViewDir, normal), .04, 1.);
+        // The unresolved wave slopes contribute at grazing angles. Through
+        // the broken reflection, the separate scanned bed remains visible.
+        float meanCos = viewCos + (1. - viewCos) * mix(.21, .09, pool);
+        float fresnel = .0204 + .9796 * pow(1. - meanCos, 5.);
+        float absorption = 1. - exp(-1.85 * max(0., waterDepth) / max(.31, meanCos));
+        float body = (1. - fresnel) * absorption;
+        vec3 reflection = totalSpecular;
+        #if defined(USE_ENVMAP) && defined(RE_IndirectSpecular)
+          reflection = radiance;
+          #if defined(RE_IndirectDiffuse) && defined(USE_LIGHTMAP)
+            float skyExposure = dot(irradiance, vec3(.2126, .7152, .0722));
+            reflection *= mix(.33, .87, smoothstep(.3, 4.2, skyExposure));
+          #endif
+        #endif
+        // A different part of the sky is reflected on the flanks of each
+        // ripple. Keep the moving glints locally broken by the gravel bars.
+        float crest = pow(max(0., run), 4.) * (.48 + .52 * riffle);
+        reflection *= .80 + .37 * crest + .14 * riffle;
+        diffuseColor.a = waterEdge * (fresnel + body);
+        outgoingLight = (reflection * fresnel + totalDiffuse * body) / max(.0204, fresnel + body);
+        #include <opaque_fragment>`);
+  };
+}
+
+function installWetGravel(material) {
+  const compile = material.onBeforeCompile;
+  const key = material.customProgramCacheKey();
+  material.envMapIntensity = .26;
+  material.customProgramCacheKey = () => key + '-wet-pine-gravel';
+  material.onBeforeCompile = (shader, renderer) => {
+    compile.call(material, shader, renderer);
+    shader.fragmentShader = shader.fragmentShader.replace('#include <roughnessmap_fragment>',
+      '#include <roughnessmap_fragment>\nroughnessFactor = mix(.25, .56, roughnessFactor);');
+  };
+}
+
 export function animatePineCreek(group) {
   const phase = { value: 0 };
   const surfaces = new Set();
@@ -90,11 +163,14 @@ export function animatePineCreek(group) {
     if (!object.isMesh) return;
     const materials = Array.isArray(object.material) ? object.material : [object.material];
     for (const material of materials) {
-      if ([clearRunnelName, gravelRunnelName, oldRunnelName].includes(material?.name)) surfaces.add(material);
+      if ([clearRunnelName, gravelRunnelName, shallowRunnelName, wetGravelName,
+        oldRunnelName].includes(material?.name)) surfaces.add(material);
     }
   });
   for (const material of surfaces) {
     if (material.name === oldRunnelName) installLegacyRunnel(material, phase);
+    else if (material.name === shallowRunnelName) installShallowRunnel(material, phase);
+    else if (material.name === wetGravelName) installWetGravel(material);
     else installClearRunnel(material, phase);
   }
   return (_dt, time) => { phase.value = time; };

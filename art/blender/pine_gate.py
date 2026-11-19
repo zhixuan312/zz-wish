@@ -173,6 +173,10 @@ def watercourse_at(z):
     t = min(1., max(0., (z - start[2]) / (end[2] - start[2])))
     x, y = (a + (b - a) * t for a, b in zip(start[:2], end[:2]))
     width = .18 + .12 * ((1 - t) * math.sin(index * .53) ** 2 + t * math.sin((index + 1) * .53) ** 2)
+    if index in (1, 2, 7, 8):
+        # Shallow bend shelves alternate with narrow runs. They meet the
+        # unchanged surveyed stations and leave the bridge profile alone.
+        width += .053 * math.sin(math.pi * t) ** 2 * math.sin(math.tau * t + index * 1.42)
     return x, y, width
 
 
@@ -195,6 +199,7 @@ def stream_ground(x, z, water_x, water_y, half_width, blend):
     bends = direction * (.66 * math.sin(.95 * z + .4) + .34 * math.sin(2.07 * z - .9))
     pockets = .50 + .50 * bends
     wet_depth += shore * (1. - crossing ** .45) * (-.011 + .038 * pockets ** 1.44)
+    wet_depth += (1. - shore) * (1. - crossing) * (.011 * math.sin(1.6 * z) + .006 * math.sin(3.8 * z + .7))
     if edge <= 0:
         bed = water_y - wet_depth + .016 * edge / half_width
     elif edge <= STREAM_BANK_OFFSET:
@@ -916,6 +921,19 @@ def stream_gravel_sites(rng):
             yield x, z, shore, rng.uniform(.072, .108) if index in (0, 3) else rng.uniform(.028, .065)
 
 
+def stream_shoal_sites():
+    rng = random.Random(732465)
+    # Buried bars curve out across the shallows between the bigger rock ribs.
+    # Their isolated crowns remain below the water and away from the bridge.
+    for station, side in ((17.56, 1), (18.66, 1), (20.20, 1), (24.34, -1), (26.15, -1), (27.62, -1), (29.12, -1)):
+        for index in range(5):
+            t = index / 4
+            z = station + (t - .5) * .46 + rng.uniform(-.026, .026)
+            centre, _, width = watercourse_at(z)
+            x = centre + side * width * (.21 + .55 * (2 * t - 1) ** 2) + rng.uniform(-.021, .021)
+            yield x, z, False, rng.uniform(.043, .088)
+
+
 def spring_bank_rock_noses(ground, points, faces):
     # Exposed ribs of the creek bed reach into the current at different
     # angles. Their outer skirts stay in the terrain on wet and dry sides.
@@ -965,21 +983,23 @@ def spring_pebbles(stone, ground):
     rng = random.Random(59924)
     patches = [([], []) for _ in stone]
     sites = list(stream_gravel_sites(rng))
-    for x, z, shore, radius in sites:
+    for site, (x, z, shore, radius) in enumerate((*sites, *stream_shoal_sites())):
+        shoal = site >= len(sites)
         _, waterline, _ = watercourse_at(z)
         path_centre, path_half_width = section_at(z)
         if abs(x - path_centre) < path_half_width + .21 + radius:
             continue
         bottom = supports_height(x, z, [ground])
-        lift = radius * rng.uniform(.28, .54) if shore else (waterline - bottom) * rng.uniform(.38, .77)
+        lift = radius * rng.uniform(.28, .54) if shore else (waterline - bottom) * rng.uniform(.49, .83)
         if lift <= .005:
             continue
         eccentricity = rng.uniform(.53, .90)
         angle = rng.uniform(0., math.tau)
         lean = rng.uniform(-.22, .22)
-        points, faces = patches[rng.randrange(len(patches))]
+        patch = rng.randrange(len(patches))
+        points, faces = patches[2 if shoal else patch]
         start = len(points)
-        points.append((x, bottom + lift, z))
+        points.append((x, bottom + lift if shore else min(bottom + lift, waterline - .003), z))
         sides = 8
         perimeter = [radius * rng.uniform(.81, 1.16) for _ in range(sides)]
         for band, (spread, crest) in enumerate(((.61, .76), (1., 0.))):
@@ -996,12 +1016,16 @@ def spring_pebbles(stone, ground):
         for j in range(sides):
             a, b = start + 1 + j, start + 1 + (j + 1) % sides
             faces.extend(((start, b, a), (a, b, b + sides, a + sides)))
-    spring_bank_rock_noses(ground, *patches[4])
+    spring_bank_rock_noses(ground, *patches[2])
+    wet_gravel = stone[2].copy()
+    wet_gravel.name = 'Water-darkened spring gravel'
+    wet_gravel['one_light_vertex_base_tint'] = mesh.color('#888c84')[:3]
     for index, (points, faces) in enumerate(patches):
         if not points:
             continue
+        material = wet_gravel if index == 2 else stone[index]
         pebbles = mesh.mesh_object(f'Water-worn pebbles in spring gravel {index + 1}', points,
-                                   faces, stone[index], 'approach')
+                                   faces, material, 'approach')
         pebbles['weather_stone'] = True
         pebbles['moss_edge'] = index == 4
         mesh.uv_world(pebbles, .53)
@@ -1051,7 +1075,7 @@ def stream_pine_roots(bark, ground):
 
 
 def saddle_water(stone, ground, bark):
-    water = mesh.material('Clear spring runnel over a gravel bed', '#564e3a', rough=.20)
+    water = mesh.material('Shallow spring runnel over washed gravel', '#4d4e3d', rough=.24)
     # Leave the gravel lit during the Cycles bake. Runtime alpha follows the
     # measured depth and grazing reflection across this same surface.
     water.node_tree.nodes.get('Principled BSDF').inputs['Alpha'].default_value = .065
