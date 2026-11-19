@@ -68,8 +68,9 @@ def cover_stations(section, spring, rng):
                     yield x, z, clearance, damp
 
 
-def surface_islands(sites, height, rng, rock):
+def surface_islands(sites, height, rng, *, rock_tint=None):
     """Return draped moss cushions or shallow schist with buried outside rims."""
+    rock = rock_tint is not None
     points, faces, colors = [], [], []
     for x, z, radius in sites:
         start = len(points)
@@ -81,7 +82,10 @@ def surface_islands(sites, height, rng, rock):
         profiles = ((.39, .86), (.75, .63), (1., -.06)) if rock else ((.53, .86), (.84, .40), (1., -.012))
         rim = [(phase + step * math.tau / count + rng.uniform(-.11, .11), rng.uniform(.82, 1.04))
                for step in range(count)]
-        colors.extend([(.61, .68, .58) if rock else (.29, .69, .27)])
+        # These custom vertex colors must carry the scan's authored linear
+        # tint, which the glTF material exports as part of COLOR_0.
+        colors.append(tuple(base * shade for base, shade in zip(rock_tint, (.74, .74, .81)))
+                      if rock else (.29, .69, .27))
         points.append((x, centre_y + peak, z))
         for level, (fraction, relief) in enumerate(profiles):
             for angle, skew in rim:
@@ -93,8 +97,8 @@ def surface_islands(sites, height, rng, rock):
                     lift += .13 * (px - x) - .075 * (pz - z)
                 points.append((px, local_height + lift, pz))
                 if rock:
-                    shade = rng.uniform(.53, .91)
-                    colors.append((shade * .83, shade, shade * .87))
+                    shade = rng.uniform(.53, .91) * (1. if level < 2 else .79)
+                    colors.append(tuple(base * shade * tone for base, tone in zip(rock_tint, (.94, 1., 1.04))))
                 else:
                     shade = rng.uniform(.76, 1.07) * (1. if level == 0 else .75)
                     colors.append((.37 * shade, .76 * shade, .32 * shade))
@@ -218,9 +222,10 @@ def build_crest_ground(ground, rock, bark, section, spring, height, pines, bark_
             for i, (x, z, allowed, damp) in enumerate(sites) if i % 3 == 0 or (damp > .62 and i % 2)]
     schist = [(x, z, min(.70 * allowed, rng.uniform(.19, .46)))
              for x, z, allowed, _ in sites if allowed > .39 and rng.random() < .21]
-    tinted_mesh('Damp moss cushions under the old pines', ground, *surface_islands(moss, height, rng, False),
+    tinted_mesh('Damp moss cushions under the old pines', ground, *surface_islands(moss, height, rng),
                 'Terrain-projected moss islands with embedded margins.', smooth=True, uv_scale=.42)
-    tinted_mesh('Part-buried crest schist', rock, *surface_islands(schist, height, rng, True),
+    tinted_mesh('Part-buried crest schist', rock,
+                *surface_islands(schist, height, rng, rock_tint=rock['one_light_vertex_base_tint']),
                 'Terrain-projected schist with buried outer rims.', uv_scale=.69)
     needles = mesh.material('Fallen and weathered pine needles', '#ffffff', rough=.97)
     grass = mesh.material('Moist crest sedge and dry blade tips', '#ffffff', rough=.92)
@@ -252,7 +257,8 @@ def build_inner_banks(rock, section, spring, height):
                 damp = math.exp(-((abs(x - stream_x) - width) / .83) ** 2)
                 sites.append((x, z, clearance, damp))
     stones = [(x, z, min(.74 * clear, rng.uniform(.10, .27))) for x, z, clear, _ in sites[1::4]]
-    tinted_mesh('Small exposed schist in the spring banks', rock, *surface_islands(stones, height, rng, True),
+    tinted_mesh('Small exposed schist in the spring banks', rock,
+                *surface_islands(stones, height, rng, rock_tint=rock['one_light_vertex_base_tint']),
                 'Planar charts with exterior rims embedded in the banks.', uv_scale=.59)
     litter = mesh.material('Loose pine needles under the inner banks', '#ffffff', rough=.95)
     grass = mesh.material('Damp bank sedge and dry tips', '#ffffff', rough=.93)
