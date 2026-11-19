@@ -74,17 +74,20 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
   // Browsers refuse sound before a gesture. The device may open a moment after the
   // screen has already moved, so play whatever stage is current rather than home.
   useEffect(() => {
+    // A touch only counts as user activation on pointerup/touchend; pointerdown counts
+    // for a mouse alone. The listener stays until the context really runs, then goes,
+    // so a gesture the browser ignored still gets another chance on the next one.
+    const events = ['pointerdown', 'pointerup', 'touchend', 'keydown'] as const;
     const unlock = () => {
       void music.unlock().then(() => {
+        if (!music.isRunning()) return; // rejected: keep listening for a valid gesture
+        for (const name of events) window.removeEventListener(name, unlock, true);
         const stage = stageForScreen(screenRef.current, overlayRef.current);
         if (stage) void music.play(stage, placeIdRef.current);
       });
-      window.removeEventListener('pointerdown', unlock, true);
-      window.removeEventListener('keydown', unlock, true);
     };
-    window.addEventListener('pointerdown', unlock, true);
-    window.addEventListener('keydown', unlock, true);
-    return () => { window.removeEventListener('pointerdown', unlock, true); window.removeEventListener('keydown', unlock, true); };
+    for (const name of events) window.addEventListener(name, unlock, true);
+    return () => { for (const name of events) window.removeEventListener(name, unlock, true); };
   }, []);
   const [busy, setBusy] = useState(false);
   const run = async (fn: () => Promise<void>) => { setBusy(true); try { await fn(); } finally { setBusy(false); } };

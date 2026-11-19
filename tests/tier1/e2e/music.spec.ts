@@ -45,11 +45,15 @@ function secondsFor(cue: string): number {
   return 30;
 }
 
-async function serveMusic(page: Page, cues: string[]) {
+async function serveMusic(page: Page, cues: string[], broken: string[] = []) {
   await page.route('**/music/manifest.json', (route) => route.fulfill({ json: { cues } }));
   // One route per cue name: a wildcard on audio requests leaves Playwright's handler
   // pending while the element aborts and retries, which stalls the whole page.
   for (const cue of cues) {
+    if (broken.includes(cue)) {
+      await page.route(`**/music/${cue}.m4a`, (route) => route.fulfill({ status: 404, body: '' }));
+      continue;
+    }
     await page.route(`**/music/${cue}.m4a`, (route) => route.fulfill({ status: 200, contentType: 'audio/wav', body: silentWav(secondsFor(cue)) }));
   }
 }
@@ -151,6 +155,21 @@ test('a missing walk still starts choose once when the walk ends naturally', asy
   await page.waitForTimeout(2000);
   expect(cues.filter((c) => c.cue === 'snow_choose_loop')).toHaveLength(1);
   expect(errors).toEqual([]);
+});
+
+// A listed cue whose file 404s is the case a manifest check cannot catch: the element
+// fires error instead of ended, and that must still hand over.
+test('a listed walk that fails to load still starts choose', async ({ page }) => {
+  const cues = recordCues(page);
+  await serveMusic(page, ['snow_walk', 'snow_choose_loop', 'snow_place_loop'], ['snow_walk']);
+  await reachPlace(page);
+  for (let i = 0; i < 1200; i++) {
+    if (await page.getByRole('button', { name: re('走进院里', 'Step inside') }).isEnabled().catch(() => false)) break;
+    await page.waitForTimeout(50);
+  }
+  await page.getByRole('button', { name: re('走进院里', 'Step inside') }).click();
+  await expect.poll(() => cues.filter((c) => c.cue === 'snow_walk').length, { timeout: 15_000 }).toBe(1);
+  await expect.poll(() => cues.some((c) => c.cue === 'snow_choose_loop'), { timeout: 15_000 }).toBe(true);
 });
 
 test('a walk cue that is not shipped stays silent and choose still starts', async ({ page }) => {

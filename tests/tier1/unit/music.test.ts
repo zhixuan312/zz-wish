@@ -33,14 +33,48 @@ class FakeAudio {
   currentTime = 0;
   duration = 30;
   paused = true;
-  private handlers = new Map<string, () => void>();
+  // A real element keeps every listener for a type, so the fake must too: otherwise a new
+  // cue's handler would silently replace the old one and hide a missing abort signal.
+  private handlers = new Map<string, { fn: () => void; once: boolean; signal?: AbortSignal }[]>();
+  private fired = new Set<string>();
   constructor() { FakeAudio.instances.push(this); }
-  play() { this.paused = false; return Promise.resolve(); }
-  pause() { this.paused = true; }
+  // A pause during a pending play() rejects that promise with AbortError, as a real
+  // element does; that is the case the module must not read as a failed cue.
+  private pendingReject: ((reason: unknown) => void) | null = null;
+  play() {
+    this.paused = false;
+    return new Promise<void>((_resolve, reject) => { this.pendingReject = reject; });
+  }
+  settlePlay() { this.pendingReject?.(null); this.pendingReject = null; }
+  pause() {
+    this.paused = true;
+    if (this.pendingReject) {
+      const reject = this.pendingReject;
+      this.pendingReject = null;
+      reject(Object.assign(new Error('interrupted by pause'), { name: 'AbortError' }));
+    }
+  }
   load() { /* pool reuse */ }
   removeAttribute(name: string) { if (name === 'src') this.src = ''; }
-  addEventListener(type: string, handler: () => void) { this.handlers.set(type, handler); }
-  emit(type: string) { this.handlers.get(type)?.(); }
+  // The module relies on `signal` to drop a previous cue's listener, so the fake must
+  // honour it; otherwise a mutation that removes the signal would still pass.
+  addEventListener(type: string, handler: () => void, options?: { once?: boolean; signal?: AbortSignal }) {
+    if (options?.signal?.aborted) return;
+    const list = this.handlers.get(type) ?? [];
+    list.push({ fn: handler, once: options?.once ?? false, signal: options?.signal });
+    this.handlers.set(type, list);
+  }
+  listenerCount(type: string) { return (this.handlers.get(type) ?? []).filter((e) => !e.signal?.aborted).length; }
+  emit(type: string) {
+    const list = this.handlers.get(type) ?? [];
+    // Snapshot: a handler may add or remove listeners while it runs.
+    for (const entry of [...list]) {
+      if (entry.signal?.aborted) continue;
+      if (entry.once) this.handlers.set(type, (this.handlers.get(type) ?? []).filter((e) => e !== entry));
+      this.fired.add(type);
+      entry.fn();
+    }
+  }
 }
 
 describe('music cue table', () => {
@@ -192,7 +226,7 @@ describe('music playback', () => {
     // Five stage changes in a row: iOS would refuse the fifth fresh element.
     for (const stage of ['home', 'choose', 'burn', 'choose', 'home'] as const) await music.play(stage, 'snow-roof');
     await new Promise((r) => setTimeout(r, 1700));
-    expect(cueElements().length).toBeLessThanOrEqual(3);
+    expect(FakeAudio.instances.length).toBeLessThanOrEqual(3);
     expect(music.describe().channels).toBe(1);
   });
 
@@ -262,16 +296,30 @@ describe('music playback', () => {
   });
 
   it('does not fire a previous cue handler on a reused element', async () => {
-    vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, json: async () => ({ cues: ['snow_walk', 'snow_ignite', 'snow_choose_loop'] }) })));
+    vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, json: async () => ({ cues: ['snow_walk', 'snow_choose_loop', 'home_loop', 'snow_place_loop'] }) })));
     const music = createMusic({ createContext: () => new FakeContext() as unknown as AudioContext });
     await music.unlock();
     await music.play('walk', 'snow-roof');
     const walkEl = cueElements().find((a) => a.src.includes('snow_walk'))!;
-    // The walk's element is reused for ignite; its old ended handler must be gone.
-    await music.play('ignite', 'snow-roof');
+    // Fill the other two slots, then let choose take the oldest element, which is the
+    // walk's. A fresh element would trivially carry no old handler, so this reuse is the
+    // point of the test.
+    await music.play('home', 'snow-roof');
+    await music.play('place', 'snow-roof');
+    await music.play('choose', 'snow-roof');
+    const chooseEl = cueElements().find((a) => a.src.includes('snow_choose_loop'))!;
+    expect(chooseEl).toBe(walkEl);
+    // The walk's ended handler died with its channel: the shared element carries only the
+    // current cue's listener, so a stale timer cannot fire when this cue ends.
+    // choose is the current cue on this element, so it owns exactly one error listener;
+    // the walk's ended and error listeners both died with the walk's channel.
+    expect(walkEl.listenerCount('error')).toBe(1);
+    expect(walkEl.listenerCount('ended')).toBe(0);
+    // Emitting must not hand the game over to choose a second time.
+    const before = cueElements().filter((a) => a.src.includes('snow_choose_loop')).length;
     walkEl.emit('ended');
     await Promise.resolve();
-    expect(cueElements().map((a) => a.src)).not.toContain('/music/snow_choose_loop.m4a');
+    expect(cueElements().filter((a) => a.src.includes('snow_choose_loop')).length).toBe(before);
   });
 
   it('hands over when a listed cue fails to load', async () => {
@@ -309,6 +357,60 @@ describe('music playback', () => {
     doc.hidden = false;
     doc.dispatchEvent(new Event('visibilitychange'));
     expect(cue.paused).toBe(false);
+  });
+
+  it('restores full volume when a cue takes a primed element', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, json: async () => ({ cues: ['home_loop'] }) })));
+    const music = createMusic({ createContext: () => new FakeContext() as unknown as AudioContext });
+    await music.unlock();
+    // The primer mutes its element; a cue must bring the volume back or the graph is silent.
+    expect(FakeAudio.instances.every((a) => a.volume === 0)).toBe(true);
+    await music.play('home', 'snow-roof');
+    expect(cueElements()[0].volume).toBe(1);
+  });
+
+  it('treats a hidden-tab pause as a pause, not a failed cue', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, json: async () => ({ cues: ['snow_walk', 'snow_choose_loop', 'home_loop'] }) })));
+    const doc = new EventTarget() as EventTarget & { hidden: boolean };
+    doc.hidden = false;
+    vi.stubGlobal('document', doc);
+    const music = createMusic({ createContext: () => new FakeContext() as unknown as AudioContext });
+    await music.unlock();
+    // A play() that is still pending rejects with AbortError when the element is paused.
+    const original = FakeAudio.prototype.play;
+    FakeAudio.prototype.play = function play() {
+      this.paused = false;
+      return Promise.reject(Object.assign(new Error('interrupted by pause'), { name: 'AbortError' }));
+    };
+    await music.play('walk', 'snow-roof');
+    doc.hidden = true;
+    doc.dispatchEvent(new Event('visibilitychange'));
+    doc.hidden = false;
+    doc.dispatchEvent(new Event('visibilitychange'));
+    // Long enough for a wrongful hand-over to have created its channel.
+    await new Promise((r) => setTimeout(r, 50));
+    // No hand-over to choose: the walk did not fail, it was paused.
+    expect(cueElements().map((a) => a.src)).not.toContain('/music/snow_choose_loop.m4a');
+    FakeAudio.prototype.play = original;
+  });
+
+  it('keeps a loop alive across a hidden-tab pause', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, json: async () => ({ cues: ['home_loop'] }) })));
+    const doc = new EventTarget() as EventTarget & { hidden: boolean };
+    doc.hidden = false;
+    vi.stubGlobal('document', doc);
+    const music = createMusic({ createContext: () => new FakeContext() as unknown as AudioContext });
+    await music.unlock();
+    await music.play('home', 'snow-roof');
+    doc.hidden = true;
+    doc.dispatchEvent(new Event('visibilitychange'));
+    doc.hidden = false;
+    doc.dispatchEvent(new Event('visibilitychange'));
+    await Promise.resolve();
+    // The loop is back on the same element and no channel was dropped.
+    expect(cueElements()[0].paused).toBe(false);
+    expect(music.describe().channels).toBe(1);
+    expect(music.describe().stage).toBe('home');
   });
 
   it('persists the mute choice', async () => {

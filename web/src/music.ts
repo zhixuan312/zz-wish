@@ -19,8 +19,25 @@ const BUCKET_FADE = 8;
 const PHRASE_MIN_MINUTES = 3;
 const PHRASE_MAX_MINUTES = 8;
 const MUTE_KEY = 'one-light-muted';
-// A quarter-second of silence: enough for iOS to mark an element as user-primed.
-const PRIMER = { src: 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAgD4AAAB9AAACABAAZGF0YQAAAAA=' };
+// A quarter-second of real silence at 8 kHz: enough for iOS to mark an element as
+// user-primed. A zero-length data chunk does not count as playback there.
+function primerSrc(seconds = 0.25, rate = 8000): string {
+  const samples = Math.round(rate * seconds);
+  const buffer = new ArrayBuffer(44 + samples);
+  const view = new DataView(buffer);
+  const tag = (offset: number, text: string) => { for (let i = 0; i < text.length; i++) view.setUint8(offset + i, text.charCodeAt(i)); };
+  tag(0, 'RIFF'); view.setUint32(4, 36 + samples, true); tag(8, 'WAVE');
+  tag(12, 'fmt '); view.setUint32(16, 16, true); view.setUint16(20, 1, true);
+  view.setUint16(22, 1, true); view.setUint32(24, rate, true); view.setUint32(28, rate, true);
+  view.setUint16(32, 1, true); view.setUint16(34, 8, true);
+  tag(36, 'data'); view.setUint32(40, samples, true);
+  for (let i = 0; i < samples; i++) view.setUint8(44 + i, 128);
+  let binary = '';
+  const bytes = new Uint8Array(buffer);
+  for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+  return `data:audio/wav;base64,${globalThis.btoa?.(binary) ?? ''}`;
+}
+const PRIMER = { src: primerSrc() };
 
 const prefixOf = (placeId: PlaceId): 'snow' | 'pine' | null =>
   placeId === 'snow-roof' ? 'snow' : placeId === 'pine-gate' ? 'pine' : null;
@@ -48,6 +65,7 @@ export interface Music {
   stop(): void;
   setMuted(value: boolean): void;
   isMuted(): boolean;
+  isRunning(): boolean;
   describe(): { stage: MusicStage | null; place: PlaceId | null; bucket: MusicBucket | null; channels: number; muted: boolean; cuesReady: boolean };
 }
 
@@ -169,9 +187,12 @@ export function createMusic(options: { createContext?: () => AudioContext } = {}
 
   function urlFor(cue: CueName) { return `/music/${cue}.m4a`; }
 
-  // The cap is what iOS enforces, so when it is reached the oldest cue gives up its
-  // element: a new cue must never be dropped just because the previous one is still
-  // fading out.
+  // Pausing an element whose play() is still pending rejects that promise; it is a
+  // pause, not a failed cue.
+  function isAbort(reason: unknown) {
+    return typeof reason === 'object' && reason !== null && (reason as { name?: string }).name === 'AbortError';
+  }
+
   function newSlot(): Slot {
     const ctx = ensureContext();
     const el = new Audio();
@@ -209,6 +230,9 @@ export function createMusic(options: { createContext?: () => AudioContext } = {}
     const slot = takeSlot();
     if (!slot) return null;
     const el = slot.el;
+    // The primer mutes the element; a cue must bring it back, because element volume
+    // still applies to the Web Audio graph and a muted element would be silent.
+    el.volume = 1;
     el.loop = loop;
     el.src = urlFor(cue);
     const gain = ensureContext().createGain();
@@ -288,7 +312,7 @@ export function createMusic(options: { createContext?: () => AudioContext } = {}
       if (cue && cues?.has(cue)) {
         const channel = makeChannel(cue, false);
         if (channel) {
-          void channel.el.play().catch(() => {});
+          void channel.el.play().catch(() => { /* a hidden tab pauses it; it resumes */ });
           powerFade(channel.gain, 1, 1.2);
           channels.push(channel);
           const end = () => {
@@ -310,8 +334,14 @@ export function createMusic(options: { createContext?: () => AudioContext } = {}
     if (!cues?.has(cue)) return false;
     const channel = makeChannel(cue, true);
     if (!channel) return false;
-    const drop = () => { channels = channels.filter((c) => c !== channel); releaseChannel(channel); };
-    channel.el.addEventListener('error', drop, { once: true, signal: channel.abort.signal });
+    const drop = (reason?: unknown) => {
+      // A pause forced by a hidden tab rejects the pending play with AbortError; that is
+      // not a broken cue, and it resumes when the tab returns.
+      if (isAbort(reason)) return;
+      channels = channels.filter((c) => c !== channel);
+      releaseChannel(channel);
+    };
+    channel.el.addEventListener('error', () => drop(), { once: true, signal: channel.abort.signal });
     void channel.el.play().catch(drop);
     powerFade(channel.gain, 1, seconds);
     channels.push(channel);
@@ -341,7 +371,7 @@ export function createMusic(options: { createContext?: () => AudioContext } = {}
     const { signal } = channel.abort;
     channel.el.addEventListener('ended', finish, { once: true, signal });
     channel.el.addEventListener('error', finish, { once: true, signal });
-    void channel.el.play().catch(finish);
+    void channel.el.play().catch((reason: unknown) => { if (!isAbort(reason)) finish(); });
     powerFade(channel.gain, 1, seconds);
     channels.push(channel);
     liveOneShot = channel;
@@ -374,9 +404,6 @@ export function createMusic(options: { createContext?: () => AudioContext } = {}
     return started;
   }
 
-  // Hidden tabs must go quiet: a lamp burning in a background tab should not keep
-  // playing. Resuming restores whichever cue is current rather than restarting it, so a
-  // loop picks up where it left off.
   // A hidden tab must go quiet. Suspending the context alone only mutes the output:
   // the media elements keep running, a one-shot can still end, and iOS reports the
   // context as `interrupted` rather than `running`. So every playing element is paused
@@ -437,6 +464,7 @@ export function createMusic(options: { createContext?: () => AudioContext } = {}
       if (master && context) fade(master, value ? 0 : 1, 0.16);
     },
     isMuted: () => muted,
+    isRunning: () => context?.state === 'running',
     // Test seams: cue table and the shuffle bag are exercised without audio hardware.
     describe: () => ({ stage, place, bucket, channels: channels.length, muted, cuesReady: cues !== null }),
   };
