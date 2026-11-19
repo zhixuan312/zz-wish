@@ -1989,10 +1989,22 @@ if (import.meta.env.DEV) {
     const wax = mine.parts.pineWax;
     const state = wax.state();
     camera.updateMatrixWorld();
-    const foot = mine.g.localToWorld(V3(0, mine.parts.seat.y, 0)).project(camera);
-    const top = mine.g.localToWorld(V3(wax.wickTip.x,
-      mine.parts.seat.y + state.bodyHeight, wax.wickTip.z)).project(camera);
-    return { ...state, baked: !!place?.baked, framedFraction: Math.max(0, (top.y - foot.y) / 2) };
+    const body = wax.group.getObjectByName('Pine wax body');
+    let framedFraction = 0;
+    if (body.visible) {
+      body.updateWorldMatrix(true, false);
+      const positions = body.geometry.attributes.position;
+      const point = V3();
+      let bottom = Infinity, top = -Infinity;
+      for (let vertex = 0; vertex < positions.count; vertex++) {
+        const y = point.fromBufferAttribute(positions, vertex)
+          .applyMatrix4(body.matrixWorld).project(camera).y;
+        bottom = Math.min(bottom, y);
+        top = Math.max(top, y);
+      }
+      framedFraction = (top - bottom) / 2;
+    }
+    return { ...state, baked: !!place?.baked, framedFraction };
   };
   window.__visualPineCloseup = () => { pineDiagnosticView = 'closeup'; };
   window.__visualPineFarView = () => { pineDiagnosticView = 'far'; };

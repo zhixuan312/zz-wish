@@ -793,6 +793,7 @@ export function createPineWax(seat, waxMaterial, { refined = false, sculptNormal
     return object;
   };
   const body = add(new THREE.BufferGeometry(), bodyMaterial);
+  body.name = 'Pine wax body';
   body.frustumCulled = false; // Small, moving vertices do not need a new bounding sphere each frame.
   const poolMesh = refined ? surface(POOL_RING_COUNT, sculptNormal ? REFINED_BODY_SECTORS : 64) : null;
   const pool = add(poolMesh?.geometry ?? new THREE.CircleGeometry(1, 48).rotateX(-Math.PI / 2), poolMaterial);
