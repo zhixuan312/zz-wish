@@ -24,6 +24,14 @@ const walkManifest = () => {
   delivery.files.push(...[...Object.values(walkLayers), 'trees.glb'].map(file));
   return delivery;
 };
+const nightLayers = { far: 'night-far.webp', mid: 'night-mid.webp', cloud: 'night-cloud.webp' };
+const nightManifest = () => {
+  const delivery = walkManifest();
+  delivery.backdrop.night = { encoding: 'log2-8-8', width: 2048, height: 1024, layers: nightLayers,
+    encodedReceiptSha256: file('night-receipt.json').sha256 };
+  delivery.files.push(...Object.values(nightLayers).map(file));
+  return delivery;
+};
 
 afterEach(() => { vi.unstubAllGlobals(); vi.restoreAllMocks(); vi.resetModules(); });
 
@@ -40,7 +48,7 @@ test('a delivered Pine Gate backdrop and wax normal must be fully declared', () 
 });
 
 test('Pine Gate prefetch verifies and counts its declared backdrop and wax image bytes', async () => {
-  const delivery = walkManifest();
+  const delivery = nightManifest();
   const request = vi.fn(async url => {
     const [uri, version] = url.split('/').at(-1).split('?v=');
     if (uri === 'manifest.json') return Response.json(delivery);
@@ -57,6 +65,44 @@ test('Pine Gate prefetch verifies and counts its declared backdrop and wax image
   expect(new Uint8Array(await readBakedAsset('pine-gate', file(layers.mid)))).toEqual(bytesOf(layers.mid));
   expect(request).toHaveBeenCalledTimes(1 + baseUris.length);
   expect(readPineBackdrop(delivery).high.trees).toEqual(file('trees.glb'));
+  expect(readPineBackdrop(delivery).night.files.far).toEqual(file(nightLayers.far));
+});
+
+test('moonlight arrives after entry without dropping the valley or repeating requests', async () => {
+  const delivery = nightManifest();
+  const { promise: holdCloud, resolve: releaseCloud } = Promise.withResolvers();
+  const loadTexture = vi.fn(async uri => {
+    if (uri === nightLayers.cloud) await holdCloud;
+    const tier = uri.endsWith('.ktx2') ? delivery.backdrop.walk : delivery.backdrop;
+    const texture = new THREE.Texture({ width: tier.width, height: tier.height });
+    texture.name = uri;
+    return texture;
+  });
+  const baked = { manifest: delivery, cameraPreExposure: projection.preExposure, loadTexture, disposeTexture: vi.fn() };
+  const renderer = { capabilities: { maxTextureSize: 8192 }, initTexture: vi.fn() };
+  const clock = vi.spyOn(performance, 'now').mockReturnValue(1000);
+  const day = { n: 0, g: 0 };
+  const night = { n: 1, g: 0 };
+  const backdrop = await loadPineGateBackdrop(baked, renderer, day);
+  const uniforms = backdrop.group.children.map(plane => plane.material.uniforms);
+  expect(await backdrop.startWalk()).toBe(true);
+  expect(loadTexture.mock.calls.flat()).toEqual([...Object.values(layers), ...Object.values(walkLayers)]);
+  backdrop.update(night);
+  backdrop.update(night);
+  expect(backdrop.group.visible).toBe(true);
+  expect(uniforms.every(u => u.uNightWeight.value === 1 && u.uNightMix.value === 0)).toBe(true);
+  releaseCloud();
+  await vi.waitFor(() => expect(uniforms.map(u => u.uNightPlate.value.name)).toEqual(Object.values(nightLayers)));
+  clock.mockReturnValue(1400);
+  backdrop.update(night);
+  expect(uniforms.every(u => u.uNightMix.value === .5)).toBe(true);
+  clock.mockReturnValue(1800);
+  backdrop.update(day);
+  expect(uniforms.every(u => u.uNightWeight.value === 0)).toBe(true);
+  backdrop.update(night);
+  expect(uniforms.every(u => u.uNightWeight.value === 1 && u.uNightMix.value === 1)).toBe(true);
+  expect(loadTexture.mock.calls.flat()).toEqual([...Object.values(layers), ...Object.values(walkLayers), ...Object.values(nightLayers)]);
+  backdrop.dispose();
 });
 
 test('a pending walk tier leaves the soft backdrop running and releases it after the shared fade', async () => {

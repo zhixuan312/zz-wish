@@ -8,8 +8,8 @@ const vertexShader = `varying vec2 vUv;
     gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.);
   }`;
 
-const fragmentShader = `uniform sampler2D uPlate, uHighPlate;
-  uniform float uDayOpacity, uHighMix;
+const fragmentShader = `uniform sampler2D uPlate, uHighPlate, uNightPlate;
+  uniform float uDayOpacity, uHighMix, uNightWeight, uNightMix;
   uniform vec2 uNativePlateSize;
   varying vec2 vUv;
   vec4 plate(sampler2D image) {
@@ -30,14 +30,23 @@ const fragmentShader = `uniform sampler2D uPlate, uHighPlate;
       + premultipliedPlate(vUv + b) + premultipliedPlate(vUv - b)) * .25;
     return vec4(box.rgb / max(box.a, .0001), box.a);
   }
+  vec4 mixPlates(vec4 a, vec4 b, float weight) {
+    float alpha = mix(a.a, b.a, weight);
+    vec3 radiance = mix(a.rgb * a.a, b.rgb * b.a, weight);
+    return vec4(radiance / max(alpha, .0001), alpha);
+  }
   void main() {
     vec2 dx = dFdx(vUv), dy = dFdy(vUv);
     vec4 color = uHighMix >= 1. ? nativePlate(dx, dy) : plate(uPlate);
     if (uHighMix > 0. && uHighMix < 1.) {
-      vec4 high = nativePlate(dx, dy);
-      float alpha = mix(color.a, high.a, uHighMix);
-      vec3 radiance = mix(color.rgb * color.a, high.rgb * high.a, uHighMix);
-      color = vec4(radiance / max(alpha, .0001), alpha);
+      color = mixPlates(color, nativePlate(dx, dy), uHighMix);
+    }
+    if (uNightWeight > 0.) {
+      // A soft silhouette covers the valley during a slow request. The
+      // separately rendered lunar light takes over as the set arrives.
+      vec4 dark = vec4(color.rgb * vec3(.071, .089, .127), color.a);
+      if (uNightMix > 0.) dark = mixPlates(dark, plate(uNightPlate), uNightMix);
+      color = mixPlates(color, dark, uNightWeight);
     }
     vec2 border = min(vUv, 1. - vUv);
     float edge = smoothstep(0., .015, min(border.x, border.y));
@@ -47,7 +56,7 @@ const fragmentShader = `uniform sampler2D uPlate, uHighPlate;
 export async function loadPineGateBackdrop(baked, renderer, initialLight) {
   const descriptor = readPineBackdrop(baked.manifest);
   if (!descriptor) return null;
-  const { files, width, height, walk, high } = descriptor;
+  const { files, width, height, walk, high, night } = descriptor;
   if (baked.cameraPreExposure !== projection.preExposure) throw new Error('Pine Gate backdrop exposure does not match the place bake');
   const maximumSize = renderer.capabilities.maxTextureSize;
   if (Math.max(width, height) > maximumSize) throw new Error('Pine Gate backdrop exceeds the device texture limit');
@@ -69,7 +78,10 @@ export async function loadPineGateBackdrop(baked, renderer, initialLight) {
   const group = new THREE.Group();
   const uDayOpacity = { value: 1 };
   const uHighMix = { value: 0 };
+  const uNightWeight = { value: 0 };
+  const uNightMix = { value: 0 };
   let disposed = false, upgradedAt = null, request;
+  let walkStarted = false, nightAt = null, nightRequest, retryNightAt = 0;
   group.name = 'Pine Gate Cycles backdrop';
   // Render the transparent plates over the sky from far to near. The depth
   // test still lets any nearer solid terrain or shrine occlude them.
@@ -79,7 +91,8 @@ export async function loadPineGateBackdrop(baked, renderer, initialLight) {
     const planeHeight = 2 * distance * slope;
     const material = new THREE.ShaderMaterial({
       vertexShader, fragmentShader, uniforms: {
-        uPlate: { value: texture }, uHighPlate: { value: texture }, uDayOpacity, uHighMix,
+        uPlate: { value: texture }, uHighPlate: { value: texture }, uNightPlate: { value: texture },
+        uDayOpacity, uHighMix, uNightWeight, uNightMix,
         uNativePlateSize: { value: new THREE.Vector2() },
       },
       transparent: true, depthWrite: false, toneMapped: false,
@@ -92,10 +105,9 @@ export async function loadPineGateBackdrop(baked, renderer, initialLight) {
     group.add(plane);
   }
 
-  async function loadUpgrade(tier) {
-    // Upload sequentially after entry. The transition starts only when every
-    // layer is ready, so colour, parallax and silhouette agree during the fade.
+  async function loadSet(tier, install) {
     const upgrades = [];
+    let complete = false;
     try {
       for (const plane of group.children) {
         if (disposed) return false;
@@ -104,22 +116,30 @@ export async function loadPineGateBackdrop(baked, renderer, initialLight) {
         if (disposed) return false;
         renderer.initTexture(texture);
       }
+      install(upgrades);
+      complete = true;
+      return true;
+    } finally {
+      if (!complete) {
+        for (const [, texture] of upgrades) baked.disposeTexture(texture);
+      }
+    }
+  }
+
+  function loadUpgrade(tier) {
+    // Upload sequentially after entry. Only fade after the whole set arrives.
+    return loadSet(tier, upgrades => {
       for (const [plane, texture] of upgrades) {
         const { uHighPlate, uNativePlateSize } = plane.material.uniforms;
         uHighPlate.value = texture;
-        // Sample the screen footprint of the single-level forest and cloud
-        // textures. Averaging in premultiplied form preserves their soft edges.
+        // Averaging the native forest and cloud in premultiplied form
+        // preserves their edges when a screen pixel covers many texels.
         if (texture.isCompressedTexture && (plane.name === 'mid' || plane.name === 'cloud')) {
           uNativePlateSize.value.set(tier.width, tier.height);
         }
       }
       upgradedAt = performance.now();
-      return true;
-    } finally {
-      if (upgradedAt === null) {
-        for (const [, texture] of upgrades) baked.disposeTexture(texture);
-      }
-    }
+    });
   }
 
   function start(tier) {
@@ -131,12 +151,30 @@ export async function loadPineGateBackdrop(baked, renderer, initialLight) {
     return request;
   }
 
+  function startNight(now) {
+    if (disposed || nightRequest || now < retryNightAt || Math.max(night.width, night.height) > maximumSize) return;
+    nightRequest = loadSet(night, plates => {
+      for (const [plane, texture] of plates) plane.material.uniforms.uNightPlate.value = texture;
+      nightAt = performance.now();
+    }).catch(() => {
+      retryNightAt = performance.now() + 30_000;
+      nightRequest = null;
+    });
+  }
+
   function update(light) {
-    const day = (1 - light.n) * (1 - light.g);
-    uDayOpacity.value = THREE.MathUtils.smoothstep(day, .4, .95);
+    const now = performance.now();
+    if (night) {
+      uNightWeight.value = THREE.MathUtils.smoothstep(light.n, .13, .97);
+      if (walkStarted && uNightWeight.value > 0) startNight(now);
+      if (nightAt !== null) uNightMix.value = THREE.MathUtils.smoothstep(now, nightAt, nightAt + 800);
+    } else {
+      const day = (1 - light.n) * (1 - light.g);
+      uDayOpacity.value = THREE.MathUtils.smoothstep(day, .4, .95);
+    }
     group.visible = uDayOpacity.value > 0;
     if (upgradedAt !== null && uHighMix.value < 1) {
-      uHighMix.value = THREE.MathUtils.smoothstep(performance.now(), upgradedAt, upgradedAt + 800);
+      uHighMix.value = THREE.MathUtils.smoothstep(now, upgradedAt, upgradedAt + 800);
       if (walk && uHighMix.value === 1) {
         for (const plane of group.children) {
           const { uPlate, uHighPlate } = plane.material.uniforms;
@@ -148,7 +186,13 @@ export async function loadPineGateBackdrop(baked, renderer, initialLight) {
   }
   update(initialLight);
   return {
-    group, update, startWalk: () => start(walk), startDesktopHigh: () => start(high),
+    group, update,
+    startWalk() {
+      walkStarted = true;
+      if (night && uNightWeight.value > 0) startNight(performance.now());
+      return start(walk);
+    },
+    startDesktopHigh: () => start(high),
     dispose() {
       disposed = true;
       group.removeFromParent();
