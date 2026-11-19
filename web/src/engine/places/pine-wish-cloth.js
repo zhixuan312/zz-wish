@@ -38,13 +38,17 @@ export function createWishCloth({ THREE, anchor, seed = 1 }) {
 
   // Deterministic, restrained bends so the two tails differ without a randomised look.
   const bend = (t, phase) => .0018 * Math.sin(t * 5.2 + phase) + .0011 * Math.sin(t * 11.3 + phase * .7);
+  // Two narrow tails, 30 mm across at the knot and tapering a little; wide enough to read as
+  // cloth from the burn camera instead of a few pixels.
+  // Two tails that splay apart as they fall, so they read as two separate strips of cloth
+  // rather than one block, and the gap between them lets the stone show through.
   const tails = [
-    [[0, -.002], [.0014, -.018], [.0006, -.032], [-.0006, -.044]].map(([x, y], i, all) =>
-      [x, y, .0055 + bend(i / (all.length - 1), seed * 1.7) + i * .0006]),
-    [[-.002, -.002], [-.003, -.016], [-.0022, -.030], [-.0008, -.042]].map(([x, y], i, all) =>
-      [x, y, -.0042 + bend(i / (all.length - 1), seed * 2.3) - i * .0004]),
+    [[.0036, -.001], [.0046, -.019], [.0052, -.035], [.0056, -.052]].map(([x, y], i, all) =>
+      [x, y, .0028 + bend(i / (all.length - 1), seed * 1.7) + i * .0006]),
+    [[-.0032, -.001], [-.0042, -.018], [-.0050, -.034], [-.0054, -.050]].map(([x, y], i, all) =>
+      [x, y, -.0028 + bend(i / (all.length - 1), seed * 2.3) - i * .0004]),
   ];
-  const { positions, indices } = strip(tails);
+  const { positions, indices } = strip(tails, .0095);
   const ribbon = new THREE.BufferGeometry();
   ribbon.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
   ribbon.setIndex(indices);
@@ -56,12 +60,17 @@ export function createWishCloth({ THREE, anchor, seed = 1 }) {
   group.add(cloth);
 
   // The fold over the ledge and the knot itself, so the strip reads as tied, not draped.
-  const fold = new THREE.Mesh(new THREE.BoxGeometry(.017, .0035, .021), material);
-  fold.position.set(0, .0012, .0006);
+  // Keep both close to the ribbon's own size; a thick box reads as a block.
+  const fold = new THREE.Mesh(new THREE.BoxGeometry(.013, .0016, .005), material);
+  fold.position.set(0, .0010, 0);
+  // A slight tilt only: the ribbon hangs nearly vertical, and the burn camera looks almost
+  // level, so its face is what the viewer sees. A large tilt lays the tails flat and reads
+  // as a block lying on the stone.
+  group.rotation.x = -.07;
   fold.castShadow = true;
   group.add(fold);
-  const knot = new THREE.Mesh(new THREE.SphereGeometry(.0052, 12, 9), knotMaterial);
-  knot.scale.set(1.15, .86, 1);
+  const knot = new THREE.Mesh(new THREE.SphereGeometry(.0046, 12, 9), knotMaterial);
+  knot.scale.set(1.2, .82, .8);
   knot.position.set(-.0006, -.0032, .0004);
   knot.castShadow = true;
   group.add(knot);

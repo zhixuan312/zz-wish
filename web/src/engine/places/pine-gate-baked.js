@@ -207,16 +207,18 @@ export default function createPlace(h) {
       // The candle sits at nook-local (0, N.y, 0) and the burn camera looks from +z, so the
       // strip hangs just under the tray's front rim: tied to the stand, and not hidden beneath
       // the tray from the product view.
-      // The refined tray is about .069 m across at the rim and its floor sits at seat y .008.
-      // The strip is tied to the front rim, just outside it and just under the lip, so the burn
-      // camera at +z sees it hanging against the tray face instead of inside the tray.
+      // The candle stand sits at the world lamp anchor. Placement here runs before the nook
+      // group exists, so the strip is added to the world group and positioned in world metres:
+      // just outside the tray's front rim (about 69 mm radius) on the burn camera's side.
+      const anchor = baked.manifest.lampAnchor;
+      // The tray rim reaches about 69 mm from the anchor; tie the strip just inside the front
+      // lip so it hangs against the tray face instead of lying on the paving.
       const cloth = createWishCloth({
-        THREE, anchor: V3(0, 1.006, .104), seed: 3,
+        THREE, anchor: V3(anchor[0], anchor[1] + .005, anchor[2] + .0525), seed: 3,
       });
       cloth.group.visible = false;
-      // During build(), context.G is the nook group, so the strip lives in the same space as
-      // the candle stand and moves with the place.
-      context.G.add(cloth.group);
+      // The glTF place group is in world metres, the same space as the lamp anchor.
+      baked.group.add(cloth.group);
       baked.wishCloth = cloth;
       if (import.meta.env.DEV) {
         // Read by the Tier 1 test: the strip must exist under the candle stand while burning

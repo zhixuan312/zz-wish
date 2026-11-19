@@ -23,15 +23,17 @@ test('ties a narrow red strip under the candle stand with two hanging tails', ()
   const ys = [];
   for (let i = 0; i < position.count; i++) ys.push(position.getY(i));
   const hanging = Math.max(...ys) - Math.min(...ys);
-  // Two tails of roughly four to five centimetres: long enough to read as cloth, short
-  // enough that the burn camera keeps all of them in frame.
-  expect(hanging).toBeGreaterThan(.038);
-  expect(hanging).toBeLessThan(.055);
+  // Two tails of about five centimetres: long enough to read as cloth, short enough that the
+  // burn camera keeps all of them in frame.
+  expect(hanging).toBeGreaterThan(.045);
+  expect(hanging).toBeLessThan(.060);
 
-  // Narrow ribbon: each tail is no wider than a centimetre and a half.
+  // Each tail is under a centimetre wide and the two splay apart, so the whole strip spans
+  // well under three centimetres.
   const xs = [];
   for (let i = 0; i < position.count; i++) xs.push(position.getX(i));
-  expect(Math.max(...xs) - Math.min(...xs)).toBeLessThan(.02);
+  expect(Math.max(...xs) - Math.min(...xs)).toBeLessThan(.03);
+  expect(Math.max(...xs) - Math.min(...xs)).toBeGreaterThan(.012);
 
   // Fresh cloth, distinct from the faded strips on the pine.
   expect(ribbon.material.color.getHex()).toBe(0xb8231d);
