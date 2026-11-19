@@ -2,6 +2,8 @@
 
 import math
 
+import bpy
+
 import snow_roof as mesh
 from snow_lightmap_charts import source_uv
 
@@ -76,6 +78,20 @@ def small_flame(name, base, height, region='gate'):
                (height * .118, height * .69), (0, height)], base, warm, 9, region)
 
 
+def shrine_daylight(locate):
+    source = bpy.data.lights.new('Soft daylight returned from the earth shrine threshold', 'AREA')
+    source.energy = .56
+    source.color = (.80, .85, .88)
+    source.shape = 'RECTANGLE'
+    source.size, source.size_y = .54, .42
+    bounce = bpy.data.objects.new(source.name, source)
+    bpy.data.collections['LIGHTS'].objects.link(bounce)
+    bounce.location = mesh.point(locate(0, 1.0, .42))
+    aim = mesh.point(locate(0, .54, -.32))
+    bounce.rotation_euler = (aim - bounce.location).to_track_quat('-Z', 'Y').to_euler()
+    bounce['bake_role'] = 'ambient'
+
+
 def earth_shrine(stone, wood, tiles, repair, clay, iron, contacts):
     yaw = .70
     locate = frame(-3., 4., 3., yaw)
@@ -117,6 +133,7 @@ def earth_shrine(stone, wood, tiles, repair, clay, iron, contacts):
         mesh.beam('Cloth wick on the ordinary shrine lamp', (-3.18, 4.588, 3.49), (-3.18, 4.604, 3.501),
                   .0017, iron, .0012, 'gate')
     small_flame('Low flame in the earth shrine oil lamp', (-3.18, 4.604, 3.501), .028)
+    shrine_daylight(locate)
 
 
 def storm_lantern(iron, clay):
@@ -217,14 +234,47 @@ def spring_basin(stone, wood):
               jade, .003, 'gate')
 
 
-def pierced_lamp_shrine(anchor, stone, ledge, iron):
+def spent_wax_on_sill(locate, iron):
+    wax_materials = [mesh.material(f'Weathered cold wax tone {i + 1}', color, rough=.79)
+                     for i, color in enumerate(('#c5b59a', '#a99476', '#d0c3aa', '#a39c87'))]
+    # Keep the owner dish empty, with the larger remnants gathered at the sides.
+    remnants = ((-.170, -.034, .013, .015), (-.110, -.009, .011, .011),
+                (-.100, -.056, .007, .007), (-.109, .061, .011, .014),
+                (-.066, .076, .009, .006), (-.068, .115, .008, .012),
+                (.102, -.058, .009, .011), (.126, .004, .011, .017),
+                (.094, .050, .009, .006), (.071, .084, .008, .010),
+                (.126, .078, .009, .010))
+    for i, (a, c, radius, height) in enumerate(remnants):
+        profile = [(0, -.0004), (radius * 1.63, -.0004), (radius * 1.56, .0005),
+                   (radius * 1.34, .0012), (radius * 1.08, .0021), (radius * 1.01, height * .62),
+                   (radius * .95, height), (radius * .74, height * .96),
+                   (radius * .58, height * .48), (radius * .29, height * .42), (0, height * .42)]
+        x, y, z = locate(a, 0, c)
+        wax = mesh.lathe(f'Burnt-out candle fused to the sill {i + 1}', profile, (x, y, z),
+                         wax_materials[i % len(wax_materials)], 14, 'niche')
+        for vertex in wax.data.vertices:
+            dx, dz = vertex.co.x - x, -vertex.co.y - z
+            elevation = vertex.co.z - y
+            angle = math.atan2(dx, dz)
+            scallop = .11 * math.sin(angle * 3 + i * 1.81) + .069 * math.sin(angle * 7 - i * .51)
+            spill = 1 - min(1., max(0., elevation) / .0035)
+            vertex.co.x = x + dx * (1 + scallop + spill * .13 * math.sin(angle + i))
+            vertex.co.y = -z - dz * (1 + scallop + spill * .21 * math.cos(angle * 2 - i))
+            if elevation > .003:
+                vertex.co.z += height * (.08 * math.sin(angle * 6 + i) + .047 * math.cos(angle * 3))
+        mesh.beam(f'Extinguished charred wick {i + 1}', locate(a, height * .42 - .0006, c),
+                  locate(a + .0016 * math.cos(i), height * .42 + .0030, c - .0012),
+                  .00115, iron, .00070, 'niche')
+
+
+def pierced_lamp_shrine(anchor, stone, ledge, iron, contacts):
     locate = frame(anchor[0], anchor[1], anchor[2])
     mesh.box('Broad foundation of the freestanding stone lamp shrine', (.67, .209, .57),
              locate(0, -.897, 0), stone[4], .041, region='niche')
     mesh.lathe('Worn octagonal stem of pierced stone lamp shrine', [(0, 0), (.208, 0), (.201, .06),
                (.137, .123), (.112, .283), (.123, .548), (.203, .743), (.218, .806), (0, .806)],
                locate(0, -.892, 0), stone[2], 8, 'niche')
-    mesh.box('Single hewn wick shelf', (.552, .092, .469), locate(0, -.046, 0), ledge, .024, region='niche')
+    shelf = mesh.box('Single hewn wick shelf', (.552, .092, .469), locate(0, -.046, 0), ledge, .024, region='niche')
     for side in (-1, 1):
         for row in (-1, 1):
             post = mesh.box('Solid carved corner of the pierced stone opening', (.070, .321, .068),
@@ -237,16 +287,16 @@ def pierced_lamp_shrine(anchor, stone, ledge, iron):
                locate(0, .349, 0), stone[3], 12, 'niche')
     mesh.beam('Old iron peg for wishes below the centre seat', locate(-.078, -.081, .208),
               locate(-.078, -.081, .244), .005, iron, .004, 'niche')
-    wax = mesh.material('Cold wax remnants on the pierced stone sill', '#a29476', rough=.77)
-    for i, (a, c, h, radius) in enumerate(((-.143, -.105, .026, .014), (.139, -.081, .019, .012),
-                                         (-.168, .097, .041, .014), (.154, .114, .012, .013))):
-        mesh.lathe('Earlier candle stub on the outer sill', [(0, 0), (radius * 1.33, 0),
+    with contacts.group('Spent wax fused to the wick shelf', [shelf]):
+        spent_wax_on_sill(locate, iron)
+    wax = mesh.material('Wax of the two remaining short candles', '#a29476', rough=.77)
+    for a, c, h, radius in ((-.143, -.105, .026, .014), (.139, -.081, .019, .012)):
+        mesh.lathe('Earlier candle still burning on the outer sill', [(0, 0), (radius * 1.33, 0),
                    (radius, .005), (radius * .91, h), (radius * .58, h * .93), (0, h * .88)],
                    locate(a, .0002, c), wax, 12, 'niche')
-        if i < 2:
-            mesh.beam('Black wick of an earlier wish', locate(a, h * .9, c), locate(a + .001, h + .005, c),
-                      .0011, iron, .0009, 'niche')
-            small_flame('Short earlier wish still burning on the outer sill', locate(a + .001, h + .005, c), .017, 'niche')
+        mesh.beam('Black wick of an earlier wish', locate(a, h * .9, c), locate(a + .001, h + .005, c),
+                  .0011, iron, .0009, 'niche')
+        small_flame('Short earlier wish still burning on the outer sill', locate(a + .001, h + .005, c), .017, 'niche')
 
 
 def build_tea_shoulder(anchor, stone, wood, tiles, clay, iron, ledge, contacts):
@@ -254,4 +304,4 @@ def build_tea_shoulder(anchor, stone, wood, tiles, clay, iron, ledge, contacts):
     earth_shrine(stone, wood, tiles, repair, clay, iron, contacts)
     tea_pavilion(stone, wood, tiles, repair, clay, iron, contacts)
     spring_basin(stone, wood)
-    pierced_lamp_shrine(anchor, stone, ledge, iron)
+    pierced_lamp_shrine(anchor, stone, ledge, iron, contacts)
