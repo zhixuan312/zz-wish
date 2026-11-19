@@ -78,9 +78,13 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
     // for a mouse alone. The listener stays until the context really runs, then goes,
     // so a gesture the browser ignored still gets another chance on the next one.
     const events = ['pointerdown', 'pointerup', 'touchend', 'keydown'] as const;
+    // One tap fires several of these events, and each unlock() resolves on its own; the
+    // flag is what keeps a single gesture from starting the same cue once per event.
+    let started = false;
     const unlock = () => {
       void music.unlock().then(() => {
-        if (!music.isRunning()) return; // rejected: keep listening for a valid gesture
+        if (started || !music.isRunning()) return; // rejected: keep listening
+        started = true;
         for (const name of events) window.removeEventListener(name, unlock, true);
         const stage = stageForScreen(screenRef.current, overlayRef.current);
         if (stage) void music.play(stage, placeIdRef.current);

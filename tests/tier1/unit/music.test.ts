@@ -22,7 +22,10 @@ class FakeContext {
   state = 'running';
   createGain() { return new FakeGain(); }
   createMediaElementSource() { return new FakeSource(); }
-  resume() { return Promise.resolve(); }
+  // A real context flips to suspended and resolves; a fake that lacks suspend made the
+  // visibility handler throw, which failed the whole run even when every test passed.
+  suspend() { this.state = 'suspended'; return Promise.resolve(); }
+  resume() { this.state = 'running'; return Promise.resolve(); }
 }
 class FakeAudio {
   static instances: FakeAudio[] = [];
@@ -411,6 +414,43 @@ describe('music playback', () => {
     expect(cueElements()[0].paused).toBe(false);
     expect(music.describe().channels).toBe(1);
     expect(music.describe().stage).toBe('home');
+  });
+
+  it('retries priming on a later gesture and leaves cues alone', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, json: async () => ({ cues: ['home_loop'] }) })));
+    // The first attempt is refused, as a touch's pointerdown is; the second must retry.
+    let allow = false;
+    const started = new Map<FakeAudio, number>();
+    FakeAudio.prototype.play = function play(this: FakeAudio) {
+      this.paused = false;
+      if (!allow) return Promise.reject(Object.assign(new Error('no activation'), { name: 'NotAllowedError' }));
+      started.set(this, (started.get(this) ?? 0) + 1);
+      return Promise.resolve();
+    };
+    const music = createMusic({ createContext: () => new FakeContext() as unknown as AudioContext });
+    await music.unlock();
+    await Promise.resolve();
+    await Promise.resolve();
+    allow = true;
+    await music.unlock();
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(FakeAudio.instances).toHaveLength(3);
+    // Every pool element actually started on the second gesture; a slot that recorded the
+    // refused attempt as done would never retry and would show no success here.
+    expect(FakeAudio.instances.every((a) => (started.get(a) ?? 0) === 1)).toBe(true);
+  });
+
+  it('does not re-prime a slot a cue is using', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, json: async () => ({ cues: ['home_loop'] }) })));
+    const music = createMusic({ createContext: () => new FakeContext() as unknown as AudioContext });
+    await music.unlock();
+    await music.play('home', 'snow-roof');
+    const cueEl = cueElements()[0];
+    await music.unlock();
+    // The playing cue must not be reset to the primer.
+    expect(cueEl.src).toBe('/music/home_loop.m4a');
+    expect(cueElements()).toHaveLength(1);
   });
 
   it('persists the mute choice', async () => {

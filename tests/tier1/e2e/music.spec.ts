@@ -66,6 +66,25 @@ async function reachPlace(page: Page) {
   await page.getByRole('button', { name: re('走进院里', 'Step inside') }).waitFor({ state: 'visible', timeout: 90_000 });
 }
 
+// A touch fires pointerdown, pointerup and touchend, and each one runs the unlock
+// handler. The cue for the current stage must start once, not once per event.
+test.describe('one tap', () => {
+  test.use({ hasTouch: true, isMobile: true });
+  test('starts the current cue once per tap, not once per touch event', async ({ page }) => {
+    const cues = recordCues(page);
+    await serveMusic(page, ['home_loop', 'snow_place_loop']);
+    await page.goto('/');
+    await page.waitForFunction(() => (window as Window & { __ready?: boolean }).__ready === true, null, { timeout: 60_000 });
+    // One real tap on the wish field: the browser dispatches all three touch events.
+    const box = await page.getByLabel(re('你的愿望', 'Your wish')).boundingBox();
+    if (!box) throw new Error('wish field not found');
+    await page.touchscreen.tap(box.x + box.width / 2, box.y + box.height / 2);
+    await expect.poll(() => cues.filter((c) => c.cue === 'home_loop').length, { timeout: 15_000 }).toBe(1);
+    await page.waitForTimeout(2000);
+    expect(cues.filter((c) => c.cue === 'home_loop')).toHaveLength(1);
+  });
+});
+
 test('the walk cue is requested exactly once when the walk starts', async ({ page }) => {
   const cues = recordCues(page);
   await serveMusic(page, ['snow_walk', 'snow_choose_loop', 'snow_place_loop']);

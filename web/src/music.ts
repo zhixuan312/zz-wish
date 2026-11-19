@@ -97,7 +97,7 @@ export function phraseBag(count = 8): { next: () => number; remaining: () => num
 // elements are reused instead of allocated per cue. A source node can only be made
 // once per element, so the pair lives together in the pool.
 const POOL_LIMIT = 3;
-type Slot = { el: HTMLAudioElement; source: MediaElementAudioSourceNode; owner: Channel | null };
+type Slot = { el: HTMLAudioElement; source: MediaElementAudioSourceNode; owner: Channel | null; primed: boolean };
 type Channel = {
   el: HTMLAudioElement;
   source: MediaElementAudioSourceNode;
@@ -193,11 +193,25 @@ export function createMusic(options: { createContext?: () => AudioContext } = {}
     return typeof reason === 'object' && reason !== null && (reason as { name?: string }).name === 'AbortError';
   }
 
+  // Starts the silent primer inside the current gesture and records whether the browser
+  // accepted it. A slot already playing a cue is left alone.
+  function primePool() {
+    for (const slot of pool) {
+      if (slot.primed || slot.owner !== null) continue;
+      slot.el.volume = 0;
+      slot.el.src = PRIMER.src;
+      void slot.el.play().then(
+        () => { slot.primed = true; },
+        () => { slot.primed = false; },
+      );
+    }
+  }
+
   function newSlot(): Slot {
     const ctx = ensureContext();
     const el = new Audio();
     el.preload = 'auto';
-    const slot: Slot = { el, source: ctx.createMediaElementSource(el), owner: null };
+    const slot: Slot = { el, source: ctx.createMediaElementSource(el), owner: null, primed: false };
     pool.push(slot);
     return slot;
   }
@@ -439,14 +453,12 @@ export function createMusic(options: { createContext?: () => AudioContext } = {}
   return {
     async unlock() {
       const ctx = ensureContext();
-      // iOS only lets elements play if they were created and primed inside the
-      // gesture itself, so the whole pool is made and started here, before any await.
-      while (pool.length < POOL_LIMIT) {
-        const slot = newSlot();
-        slot.el.src = PRIMER.src;
-        slot.el.volume = 0;
-        void slot.el.play().catch(() => {});
-      }
+      // iOS only lets an element play if it was created and started inside a real user
+      // activation. A touch's first pointerdown carries none, so that attempt is
+      // rejected; each later unlock retries only the slots that never succeeded, and
+      // never touches one a cue is using.
+      while (pool.length < POOL_LIMIT) newSlot();
+      primePool();
       if (ctx.state === 'suspended' || (ctx.state as string) === 'interrupted') {
         try { await ctx.resume(); } catch { /* gesture may be rejected */ }
       }
