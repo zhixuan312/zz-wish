@@ -301,7 +301,10 @@ def terrain(material, bed_material):
             face.material_index = 1
             for i in face.loop_indices:
                 x, _, z = points[obj.data.loops[i].vertex_index]
-                uv.data[i].uv = (x / .39, -z / .39)
+                # Use small sediment grains along the flow instead of exposing
+                # whole fractured faces from the rock scan across the bed.
+                uv.data[i].uv = (x / .23 + .12 * math.sin(3.1 * z),
+                                 -z / .27 + .10 * math.sin(5.9 * x + 1.3 * z))
     return obj
 
 
@@ -2454,11 +2457,15 @@ def spring_sediment_tint(tint, x, z, channel, width, bed):
         return tint
     offset = abs(x - channel) - width
     moisture = .92 + .08 * math.sin(3.2 * z + 6.3 * x)
-    seam = (.042, .041, .031)
+    seam = (.024, .023, .018)
     if bed:
         t = min(1., max(0., -offset / width))
         t *= t * (3. - 2. * t)
-        mineral = (.069, .065, .054)
+        # Recesses retain dark silt. Uneven gravel bars lift its colour
+        # locally, without a bright stripe running down the whole channel.
+        pockets = noise.noise(Vector((x * 4.6, z * 3.2, 12.)))
+        bars = max(0., min(1., (pockets + .13) * 2.1))
+        mineral = (.027 + .018 * bars, .026 + .016 * bars, .021 + .013 * bars)
         # Divide by the mean linear albedo of the resident mossy_rock scan.
         return [(a + (b - a) * t) * moisture / scan
                 for a, b, scan in zip(seam, mineral, (.165, .158, .103))]
