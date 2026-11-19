@@ -1665,6 +1665,26 @@ function liveFlame(x,y,z,options={}){
   });
   return state;
 }
+function pineFixtureFlame(context, position, height, seed) {
+  const material = flameMaterial(false);
+  material.blending = THREE.CustomBlending;
+  material.blendSrc = THREE.OneFactor;
+  material.blendDst = THREE.OneMinusSrcAlphaFactor;
+  const uniforms = material.uniforms;
+  uniforms.uPineFlame.value = 1;
+  uniforms.uPower.value = .82;
+  uniforms.uRadiance.value = .69;
+  uniforms.uSeedU.value = seed;
+  uniforms.uScale.value = height / (.86 * .80);
+  const flame = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), material);
+  flame.position.copy(position);
+  flame.frustumCulled = false;
+  flame.name = 'Pine shrine fixture flame';
+  context.G.add(flame);
+  context.up.push((_dt, time) => {
+    uniforms.uTime.value = time * .52;
+  });
+}
 function fixtureSpecular(x,y,z,watts=8,linearColor=[1,173/255,102/255]){
   const baked=C.baked,light=new THREE.PointLight(new THREE.Color().fromArray(linearColor),watts/(4*Math.PI),12,2);
   light.intensity*=baked?.fixturePower()??1;
@@ -1706,7 +1726,7 @@ function captureLocalEnvironment({context=C,root=context.root,environment=contex
   return{texture:target.texture,dispose,metadata:{position:[...position],size,near,far,format:'linear RGBA16F cube → PMREM',sourceRoot:root.name,excluded:exclude.map(object=>object.name),scope:'One local reflection/indirect approximation from actual lit geometry; no extra light, exposure, gain or SH.'}};
 }
 const placeHelpers = { THREE, V3, V2, M, roofMat, ground, pave, hallB, gateB, compound, rock, trees, peak, ridges, mist, burnerAt, postLanterns, pagoda, stairs, paifang, wallRun, water, archBridge, lotus, box, city, fall, lanterns, put, tower, smokeAt, pavingTex, petalTex, pauseBuild, eave, col, rail, wallWithHoles, cloudSea, footprints, bell, otherLamp, lathe, hexMix, addStump:(x,y,z,scale,yaw)=>addScannedStump(C.G,x,y,z,scale,yaw),
-  liveFlame,fixtureSpecular,captureLocalEnvironment,loessTex, brickTex, plasterTex, papercutTex, grainTex, latticeTex, sootTex, windowsTex, get renderer() { return renderer; }, get context() { return C; } };
+  liveFlame,pineFixtureFlame,fixtureSpecular,captureLocalEnvironment,loessTex, brickTex, plasterTex, papercutTex, grainTex, latticeTex, sootTex, windowsTex, get renderer() { return renderer; }, get context() { return C; } };
 const cachedPlaces = new Map();
 const sharedTextures = new Set([needleTex, leafTex, pavingTex, grainTex, tileTex, waterTex, latticeTex, softTex, petalTex, windowsTex, patina, crackleTex, holesTex, gauzeTex,gauzeNormal,gauzeRoughness, paperLatticeTex, loessTex, brickTex, plasterTex, papercutTex, sootTex]);
 // Materials are left to the garbage collector rather than disposed: disposing them would also

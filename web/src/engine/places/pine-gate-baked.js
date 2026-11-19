@@ -6,6 +6,31 @@ import { createPineGateLife } from './pine-gate-life.js';
 import { pineDaySunDirection, pineDaySunDiscEdges } from './pine-gate-sun.js';
 import path from '../../../../shared/pine-gate-path.json';
 
+function restoreShrineFixtureFlames(h, context, niche, anchor) {
+  const sources = [];
+  const bounds = [new h.THREE.Box3(), new h.THREE.Box3()];
+  const point = h.V3();
+  niche.traverse(object => {
+    if (!object.isMesh || object.material.name !== 'Small warm flames in the shoulder fixtures') return;
+    sources.push(object);
+    const positions = object.geometry.getAttribute('position');
+    for (let index = 0; index < positions.count; index++) {
+      object.localToWorld(point.fromBufferAttribute(positions, index));
+      bounds[Number(point.x > anchor[0])].expandByPoint(point);
+    }
+  });
+  // Keep the authored mesh if this package does not contain the two short
+  // stubs. The lightmaps still carry their original illumination.
+  if (bounds.some(box => box.isEmpty() || box.max.y - box.min.y < .009 || box.max.y - box.min.y > .026
+    || Math.max(box.max.x - box.min.x, box.max.z - box.min.z) > .012)) return;
+  for (const source of sources) source.visible = false;
+  for (const [index, box] of bounds.entries()) {
+    box.getCenter(point);
+    point.y = box.min.y;
+    h.pineFixtureFlame(context, point, box.max.y - box.min.y, 2.2 + index * 2.5);
+  }
+}
+
 // The old road reaches a sudden break in the forest at a spring on the ridge.
 export default function createPlace(h) {
   const { V3, THREE } = h;
@@ -84,6 +109,7 @@ export default function createPlace(h) {
         baked.waxNormal = await baked.loadTexture(waxNormal.uri);
         if (baked.waxNormal.image.width !== 512 || baked.waxNormal.image.height !== 512) throw new Error('Wrong Pine Gate wax normal atlas dimensions');
         h.renderer.initTexture(baked.waxNormal);
+        if (niche) restoreShrineFixtureFlames(h, context, niche, baked.manifest.lampAnchor);
       }
       const life = createPineGateLife({
         THREE, group: baked.group, scene: context.G, renderer: h.renderer,
