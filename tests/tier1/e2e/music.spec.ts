@@ -216,9 +216,6 @@ test('a walk cue that is not shipped stays silent and choose still starts', asyn
 // The whole journey in order: every screen asks for its own cue, and the one-shot cues
 // hand over to the loop that follows them.
 test('the full journey asks for each cue in order', async ({ page }) => {
-  // The walk runs 36 s and ignite 20 s, so the authored timing alone outlasts the
-  // default per-test timeout.
-  test.setTimeout(240_000);
   const errors: string[] = [];
   page.on('pageerror', (error) => errors.push(String(error)));
   page.on('console', (message) => { if (message.type() === 'error') errors.push(message.text()); });
@@ -247,9 +244,12 @@ test('the full journey asks for each cue in order', async ({ page }) => {
   await page.getByRole('button', { name: re('^熄灭$', '^Put out$') }).click();
   await page.getByRole('button', { name: re('熄灭并结束', 'Put out and end') }).click();
   await expect(page.getByTestId('result-title')).toBeVisible({ timeout: 20_000 });
-  // ending_putout is a one-shot that starts at settlement and result_loop hands over
-  // after it, so both arrive just after the result screen appears.
-  await expect.poll(() => cues.some((c) => c.cue === 'result_loop'), { timeout: 20_000 }).toBe(true);
+  // ending_putout starts at settlement and must be heard out; the result screen is
+  // reached at once, so no request for the loop may appear while the ending plays.
+  await expect.poll(() => cues.some((c) => c.cue === 'snow_ending_putout'), { timeout: 20_000 }).toBe(true);
+  expect(cues.some((c) => c.cue === 'result_loop')).toBe(false);
+  // After its own end it hands over, exactly once.
+  await expect.poll(() => cues.filter((c) => c.cue === 'result_loop').length, { timeout: 40_000 }).toBe(1);
   const order = cues.map((c) => c.cue);
   const firstOf = (name: string) => order.indexOf(name);
   expect(firstOf('home_loop')).toBeGreaterThanOrEqual(0);

@@ -70,7 +70,11 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
   useEffect(() => {
     const stage = stageForScreen(screen, overlay);
     if (!stage || stage === stageRef.current) return;
+    // An ending one-shot hands over to the result loop when it ends; starting that loop
+    // here would fade the ending out a moment after it began. Its own end starts it, so
+    // the stage is still recorded to keep this effect from asking again.
     stageRef.current = stage;
+    if (music.holdingFor(stage)) return;
     void music.play(stage, placeIdRef.current);
   }, [screen, overlay]);
   // Browsers refuse sound before a gesture. The device may open a moment after the
@@ -208,7 +212,11 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
     const b = new Burn(minutes! * 60_000, (s: Settlement) => {
       presence.stopBurning(); sound.stop();
       burnRef.current = null;
-      void music.play(s.done ? 'endingBurned' : 'endingPutOut', lightPlace);
+      const ending: MusicStage = s.done ? 'endingBurned' : 'endingPutOut';
+      void music.play(ending, lightPlace).then((started) => {
+        // No ending cue, or one that failed to load, still has to reach the afterglow.
+        if (!started) void music.play('result', lightPlace);
+      });
       engine.snuff(s.done);
       setResult({ done: s.done, burnedMs: s.burnedMs, plannedMs: b.planned, reason: s.reason, saved: null });
       setScreen('result'); setAskLeave(null);

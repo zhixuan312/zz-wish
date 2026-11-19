@@ -66,6 +66,9 @@ export interface Music {
   setMuted(value: boolean): void;
   isMuted(): boolean;
   isRunning(): boolean;
+  // True while a one-shot is playing and its own end will start `stage`. The screen
+  // effect asks this so arriving at the result screen cannot fade out the ending.
+  holdingFor(stage: MusicStage): boolean;
   describe(): { stage: MusicStage | null; place: PlaceId | null; bucket: MusicBucket | null; channels: number; muted: boolean; cuesReady: boolean };
 }
 
@@ -484,6 +487,7 @@ export function createMusic(options: { createContext?: () => AudioContext } = {}
     },
     isMuted: () => muted,
     isRunning: () => context?.state === 'running',
+    holdingFor: (next: MusicStage) => liveOneShot !== null && cueStage !== null && NEXT_AFTER_ONE_SHOT[cueStage] === next,
     // Test seams: cue table and the shuffle bag are exercised without audio hardware.
     describe: () => ({ stage, place, bucket, channels: channels.length, muted, cuesReady: cues !== null }),
   };

@@ -5,6 +5,8 @@ import { musicBucket } from '../../../shared/dayPart.ts';
 // A fake media element and audio context: the music module must work without a real
 // device, and the test asserts behaviour rather than sound.
 class FakeGain {
+  static instances: FakeGain[] = [];
+  constructor() { FakeGain.instances.push(this); }
   gain = {
     value: 1,
     setValueAtTime: vi.fn(),
@@ -12,8 +14,9 @@ class FakeGain {
     cancelScheduledValues: vi.fn(),
     setValueCurveAtTime: vi.fn(),
   };
+  disconnected = false;
   connect(target: FakeGain | FakeContext) { return target; }
-  disconnect() { /* no graph */ }
+  disconnect() { this.disconnected = true; }
 }
 class FakeSource {
   static instances: FakeSource[] = [];
@@ -147,6 +150,8 @@ describe('music playback', () => {
 
   beforeEach(() => {
     FakeAudio.instances = [];
+    FakeSource.instances = [];
+    FakeGain.instances = [];
     vi.stubGlobal('Audio', FakeAudio);
     const store = new Map<string, string>();
     vi.stubGlobal('localStorage', {
@@ -470,8 +475,40 @@ describe('music playback', () => {
     // The cue that was replaced must be detached at both ends; the live one keeps
     // playing. A burn that turns over beds all night would otherwise keep one live
     // source per turnover.
-    expect(FakeSource.instances.filter((s) => s.disconnected).length).toBeGreaterThanOrEqual(1);
+    const retired = FakeSource.instances.filter((s) => s.disconnected);
+    expect(retired).toHaveLength(1);
+    expect(FakeGain.instances.filter((g) => g.disconnected)).toHaveLength(1);
     expect(music.describe().channels).toBe(1);
+  });
+
+  it('lets an ending play out before the result loop starts', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, json: async () => ({ cues: ['snow_ending_putout', 'result_loop'] }) })));
+    const music = createMusic({ createContext: () => new FakeContext() as unknown as AudioContext });
+    await music.unlock();
+    await music.play('endingPutOut', 'snow-roof');
+    const ending = cueElements().find((a) => a.src.includes('snow_ending_putout'))!;
+    expect(ending.loop).toBe(false);
+    // The result screen is reached at once, while the ending is still playing.
+    expect(music.holdingFor('result')).toBe(true);
+    // Nothing has started the loop while the ending owns the stage.
+    expect(cueElements().map((a) => a.src)).not.toContain('/music/result_loop.m4a');
+    ending.emit('ended');
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(cueElements().map((a) => a.src)).toContain('/music/result_loop.m4a');
+    expect(music.holdingFor('result')).toBe(false);
+  });
+
+  it('starts the result loop when the ending cue is missing', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, json: async () => ({ cues: ['result_loop'] }) })));
+    const music = createMusic({ createContext: () => new FakeContext() as unknown as AudioContext });
+    await music.unlock();
+    const started = await music.play('endingPutOut', 'snow-roof');
+    expect(started).toBe(false);
+    // The caller uses that false to start the loop itself, and nothing is held.
+    expect(music.holdingFor('result')).toBe(false);
+    await music.play('result', 'snow-roof');
+    expect(cueElements().map((a) => a.src)).toContain('/music/result_loop.m4a');
   });
 
   it('persists the mute choice', async () => {
