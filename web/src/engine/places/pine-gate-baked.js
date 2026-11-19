@@ -1,7 +1,7 @@
 import { loadBakedPlace } from '../baked/loadPlace.js';
 import { createPineGateLife } from './pine-gate-life.js';
 import { createPineGateVista } from './pine-gate-vista.js';
-import daylight from '../../../../shared/pine-gate-daylight.json';
+import { pineDaySunDirection } from './pine-gate-sun.js';
 import path from '../../../../shared/pine-gate-path.json';
 
 // The old road reaches a sudden break in the forest at a spring on the ridge.
@@ -9,9 +9,6 @@ export default function createPlace(h) {
   const { V3, THREE } = h;
   const entrance = path.entrance;
   const nookOrigin = [-1.8, 4, .9];
-  const elevation = THREE.MathUtils.degToRad(daylight.solarElevationDegrees);
-  const azimuth = THREE.MathUtils.degToRad(daylight.solarAzimuthDegrees);
-  const sun = [Math.cos(elevation) * Math.cos(azimuth), Math.sin(elevation), -Math.cos(elevation) * Math.sin(azimuth)];
   const createWalk = (start, end, phone) => {
     const times = [0, ...path.waypoints.map(shot => shot.time), path.seconds];
     const positions = [start.pos.toArray(), ...path.waypoints.map(shot => shot.position), end.pos.toArray()];
@@ -34,7 +31,7 @@ export default function createPlace(h) {
     sky: { top: 0x0a1628, horizon: 0x354b61, ground: 0x263144, sun: 0xe6edf1, dir: [.64, .41, -1], glow: .22, clouds: .5, lit: 0x394c66, dark: 0x213248, stars: .12, disc: 1.2 },
     fog: [0x4b626a, .024], sunL: [0xc5d4db, .68], hemi: [0x47545c, 0x10150e, .48], bloom: [.22, 1.1],
     // The same place by day; the scene blends toward it by the visitor's local time.
-    day: { exposure: 1.28, sky: { top: 0x6895b9, horizon: 0xc3d5dc, ground: 0xaabdc5, sun: 0xfff4df, dir: sun, glow: .52, clouds: .16, lit: 0xf9faff, dark: 0xa7bac7 }, fog: [0xb4c8cd, .012], sunL: [0xfff2dc, 2], hemi: [0xc0d0e0, 0x404937, .85], bloom: [.2, 1.3] },
+    day: { exposure: 1.28, sky: { top: 0x6895b9, horizon: 0xc3d5dc, ground: 0xaabdc5, sun: 0xfff4df, dir: pineDaySunDirection, glow: .52, clouds: .16, lit: 0xf9faff, dark: 0xa7bac7 }, fog: [0xb4c8cd, .012], sunL: [0xfff2dc, 2], hemi: [0xc0d0e0, 0x404937, .85], bloom: [.2, 1.3] },
     view: { pos: V3(...entrance.position), look: V3(...entrance.look), fov: entrance.desktopFov },
     viewPhone: { pos: V3(...entrance.phonePosition), look: V3(...entrance.look), fov: entrance.phoneFov },
     walkSeconds: path.seconds,

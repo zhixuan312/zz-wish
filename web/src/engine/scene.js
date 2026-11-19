@@ -2467,6 +2467,7 @@ function frame(stamp = performance.now()) {
         const p=place.P,u=place.sky.material.uniforms;
         for(const [name,value] of Object.entries({uTop:p.sky.top,uHorizon:p.sky.horizon,uGround:p.sky.ground,uSun:p.sky.sun,uLit:p.sky.lit,uDark:p.sky.dark}))u[name].value.setHex(value);
         u.uDir.value.set(...p.sky.dir).normalize();u.uGlow.value=p.sky.glow;u.uClouds.value=p.sky.clouds;u.uStars.value=p.sky.stars;u.uDisc.value=p.sky.disc;
+        if (place.id === 'pine-gate') place.sun.position.copy(u.uDir.value).multiplyScalar(100);
         place.sun.color.setHex(p.sunL[0]);place.sunBase=p.sunL[1];place.hemi.color.setHex(p.hemi[0]);place.hemi.groundColor.setHex(p.hemi[1]);place.hemiBase=p.hemi[2];outside.fog.color.setHex(p.fog[0]);outside.fog.density=p.fog[1];
       }
     }
