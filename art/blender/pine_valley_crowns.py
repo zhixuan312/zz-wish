@@ -54,6 +54,7 @@ def add_wood(batch, marks, bends, radii, sides):
 def fascicle(batch, marks, root, direction, length, phase, rng, far):
     across = unit(cross(direction, (0., 1., 0.) if abs(direction[2]) > .92 else (0., 0., 1.)))
     up = cross(direction, across)
+    blade_width = (.20, .32) if far else (.11, .20)
     for blade in range(3 if far else 4):
         angle = phase + blade * 2.39 + rng.uniform(-.31, .31)
         out = plus(tuple(v * math.cos(angle) for v in across), up, math.sin(angle))
@@ -62,7 +63,7 @@ def fascicle(batch, marks, root, direction, length, phase, rng, far):
         extent = length * rng.uniform(.67, 1.23)
         tip = plus(plus(root, spine, extent), (0., 0., 1.), extent * rng.uniform(-.13, .24))
         mid = plus(plus(root, spine, extent * .43), out, extent * .068)
-        breadth = extent * rng.uniform(.20, .32)
+        breadth = extent * rng.uniform(*blade_width)
         i = len(batch.points)
         batch.points.extend((root, plus(mid, side, breadth), tip,
                              plus(mid, side, -breadth), plus(mid, out, breadth * .49)))
@@ -92,6 +93,38 @@ def spray_canopy(batch, marks, anchor, heading, span, breadth, roll):
             marks.append(0)
 
 
+def tufted_canopy(batch, marks, anchor, heading, span, breadth, roll):
+    """Two tapered envelopes group the needles along separate live shoots."""
+    forward = unit(heading)
+    crosswise = unit((-forward[1], forward[0], 0.))
+    up = cross(forward, crosswise)
+    # Needles fan out from the twig itself. Small differences in branch
+    # angle and cluster length break up the repeated sunlit surfaces.
+    for position, length, width, opening, pitch in (
+        (.07, .78, .64, -.42, .25),
+        (.32, .57, .57, .57, .47),
+    ):
+        root = plus(anchor, forward, position * span)
+        axis = unit(plus(plus(forward, crosswise, opening * breadth / span), up, pitch * breadth / span))
+        across = unit(cross((0., 0., 1.), axis))
+        normal = cross(axis, across)
+        middle = plus(root, axis, length * span * .52)
+        first = len(batch.points)
+        sides = 5
+        batch.points.append(root)
+        for side in range(sides):
+            angle = side * math.tau / sides + roll * .7
+            radius = breadth * width * (1. + .18 * math.sin(2.1 * angle + roll * 4.))
+            rim = plus(plus(middle, across, math.cos(angle) * radius), normal, math.sin(angle) * radius * .57)
+            batch.points.append(rim)
+        tip = len(batch.points)
+        batch.points.append(plus(root, axis, span * length))
+        for side in range(sides):
+            a, b = first + 1 + side, first + 1 + (side + 1) % sides
+            batch.faces.extend(((first, b, a), (a, b, tip)))
+            marks.extend((2, 2))
+
+
 def crown_mesh(index, far):
     rng = random.Random(5273 + index * 23)
     lower, reach, lean, asymmetry = PROFILES[index]
@@ -105,6 +138,7 @@ def crown_mesh(index, far):
     add_wood(batch, marks, [stem(z) for z in ring_positions],
              [.002 + .022 * (1. - min(z, 1.)) ** 1.4 for z in ring_positions], 4 if far else 6)
     layers = 10 if far else 15
+    cluster = spray_canopy if far else tufted_canopy
     for i in range(layers):
         f = max(.001, (i + rng.uniform(-.14, .53)) / layers)
         z = lower + f * (1. - lower)
@@ -122,7 +156,7 @@ def crown_mesh(index, far):
         add_wood(batch, marks, (basis, elbow, end), (length * .042, length * .019, length * .004),
                  3 if far else 4)
         if f < .72:
-            spray_canopy(batch, marks, basis, forward, length * .98, length * .29, swivel * 5.)
+            cluster(batch, marks, basis, forward, length * .98, length * .29, swivel * 5.)
         for j, t in enumerate((.52, .79, 1.) if not far else (.61, .97)):
             root = lerp_point(basis, elbow, t / .54) if t <= .54 else lerp_point(elbow, end, (t - .54) / .46)
             sign = (-1.) ** (i + j)
@@ -130,7 +164,7 @@ def crown_mesh(index, far):
             tip = plus(root, direction, length * rng.uniform(.20, .40))
             add_wood(batch, marks, (root, tip), (length * .011, max(.001, length * .002)), 3)
             if f < .83:
-                spray_canopy(batch, marks, root, direction, length * .68, length * .24, sign * .37)
+                cluster(batch, marks, root, direction, length * .68, length * .24, sign * .37)
             buds = (.30, .73, 1.) if not far else (.43, .96)
             for t in buds:
                 anchor = lerp_point(root, tip, t)

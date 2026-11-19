@@ -367,6 +367,12 @@ def materials(air, audit_paddy=False):
     tint = leaf.math('ADD', leaf.product(instance, .57), leaf.product(grain, .43))
     pigment = leaf.blend((.012, .030, .015, 1.), (.055, .097, .033, 1.), tint)
     result['pine'] = leaf.surface(pigment, .82, specular=.25, air=air)
+    needles = Shader('Overlapping current and older needles on the middle ridge')
+    instance = needles.nodes.new('ShaderNodeObjectInfo').outputs['Random']
+    grain = needles.noise(needles.coordinate(), (6.1, 6.9, 5.7), detail=2.)
+    tint = needles.math('ADD', needles.product(instance, .30), needles.product(grain, .70))
+    pigment = needles.blend((.016, .035, .018, 1.), (.043, .071, .031, 1.), tint)
+    result['pineMid'] = needles.surface(pigment, .89, specular=.16, air=air)
     result['bark'] = Shader('Weathered pine bark').surface((.067, .044, .029, 1.), .9, air=air)
     seedling = Shader('Translucent green rice shoots')
     result['rice'] = seedling.surface((.084, .19, .046, 1.), .54)
@@ -406,12 +412,12 @@ def crown_library(collection, surface, far):
     for index, _ in enumerate(PROFILES):
         batch, indices = crown_mesh(index, far)
         model = mesh(library, f'Branching pine crown {index + 1}', batch,
-                     (surface['pine'], surface['bark']))
+                     (surface['pine' if far else 'pineMid'], surface['bark']))
         # Source meshes stay evaluable but stand behind the projection camera.
         model.location = (0., -2600. - 12. * index, 0.)
-        for face, material in zip(model.data.polygons, indices):
-            face.material_index = material
-            face.use_smooth = material == 1
+        for face, kind in zip(model.data.polygons, indices):
+            face.material_index = int(kind == 1)
+            face.use_smooth = kind in (1, 2)
     return library
 
 
