@@ -636,15 +636,16 @@ function bodySurface(mesh, rows, cut, melt, runnels) {
   const top = ringAt(rows, cut);
   const refined = runnels !== null;
   const sculpted = mesh.geometry.hasAttribute('aPineSculptCircle');
-  const depth = (sculpted ? Math.min(cut * .42, top.r * .59, .0092)
-    : refined ? Math.min(cut * .42, top.r * .40, .0068)
+  const depth = (refined ? Math.min(cut * .42, top.r * .40, .0068)
     : Math.min(cut * .24, top.r * .27, .0036)) * melt;
+  // The deeper sculpted well leaves the liquid and wick at the same height.
+  const wellFloor = cut - depth * (sculpted ? 1.30 : 1);
   const bevel = Math.min(cut * .2, top.r * .09, .0014);
   const lipRelief = refined && runnels.length ? .17 : .09;
   const lipHeight = melt * Math.min(top.r * lipRelief, cut * .13, lipRelief * .013);
   const softenedBand = Math.min(cut * .55, .011);
-  const slump = sculpted ? Math.min(depth * .94, softenedBand * .48) : 0;
-  const retainedWax = sculpted ? Math.min(depth * .51, softenedBand * .38) : 0;
+  const slump = sculpted ? Math.min(depth * .98, softenedBand * .48) : 0;
+  const retainedWax = sculpted ? Math.min(depth * .92, softenedBand * .40) : 0;
   const rimRelief = angle => {
     // Gravity opens a wide notch between two unequal retained folds.
     const front = Math.max(0, Math.cos(angle - 1.48));
@@ -702,7 +703,7 @@ function bodySurface(mesh, rows, cut, melt, runnels) {
     writeRing(mesh, row++, top.cx, top.r * .94, cut, grain(cut, top.r), uneven);
     writeRing(mesh, row++, top.cx, top.r * (sculpted ? .884 : .865), cut - depth * .20, grain(cut, top.r),
       sculpted ? a => Math.max(-depth * .49, uneven(a) * .89) : a => uneven(a) * .45);
-    writeRing(mesh, row++, top.cx, top.r * .717, cut - depth, grain(cut, top.r));
+    writeRing(mesh, row++, top.cx, top.r * .717, wellFloor, grain(cut, top.r));
   } else {
     writeRing(mesh, row++, top.cx, top.r * .92, cut, grain(cut, top.r), uneven);
     writeRing(mesh, row++, top.cx, top.r * .77, cut - depth * .55, grain(cut, top.r), a => uneven(a) * .3);
@@ -710,7 +711,7 @@ function bodySurface(mesh, rows, cut, melt, runnels) {
   }
   const used = row + 1;
   // The unused rings collapse onto the cap centre so they contribute no normals.
-  for (; row < mesh.rings; row++) writeRing(mesh, row, top.cx, 0, cut - depth);
+  for (; row < mesh.rings; row++) writeRing(mesh, row, top.cx, 0, wellFloor);
   finishSurface(mesh, used);
   const poolWalls = sculpted && melt > 0 ? [used - 3, used - 2] : null;
   return { ...top, depth, poolWalls };

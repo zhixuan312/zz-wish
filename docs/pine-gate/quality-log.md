@@ -366,7 +366,7 @@ Capture source `b14c5b5` uses preview manifest `01a965953a05e033a71a85b04f3aed12
 
 ### Molten crown and shrine reflections
 
-The fixed-camera sheets in `review-06-shrine-reflections/comparison/` compare the grade-native app capture against a wider opening between two uneven folds and a deeper wax pool. Two runnels now start at the crown. The first route still has the horizontal fuel cut and the original profile below the softened shoulder. The updated meniscus meets the solid wall at all 3,888 sampled sectors across 54 preset, duration and fuel cases. The smallest measured overlap is 0.005 mm at nearly exhausted fuel.
+The fixed-camera sheets in `review-06-shrine-reflections/comparison/` compare the grade-native app capture against a wider opening between two uneven folds and a deeper wax pool. Two runnels now start at the crown. The live body still follows the horizontal fuel cut and the original profile below the softened shoulder. The updated meniscus meets the solid wall at all 3,888 sampled sectors across 54 preset, duration and fuel cases. The smallest measured overlap is 0.005 mm at nearly exhausted fuel.
 
 In the matched 1440 × 900 burning frames, the bright warm flame spans 94 rows in the preceding grade-native shot and 67 in the shrine-reflection shot. The measurement only counts warm bright pixels above the wax within the flame crop. The mean red–blue separation there rises from 40.6 to 48.9 display levels. Both frames sample a single moment of the flicker. The upper wax reads more unevenly, and the wick remains legible over the liquid.
 
