@@ -136,13 +136,7 @@ def stone_figure_piece(name, locate, material, profile, sectors, relief, form=1.
         face.use_smooth = face.index >= 2
 
 
-def carved_earth_god(locate):
-    granite = mesh.material('Weathered pale granite of the small earth god', '#bbb3a3',
-                            'rock_pitted_mossy', .82)
-    for node in granite.node_tree.nodes:
-        if node.type == 'NORMAL_MAP':
-            node.inputs['Strength'].default_value = .32
-
+def carved_earth_god(locate, granite):
     # The unchanged feet of the figure bear directly on the existing dais.
     def seated(x, y, z):
         return locate(x, .379 + y, -.25 + z)
@@ -220,7 +214,7 @@ def shrine_daylight(locate):
     bounce['bake_role'] = 'threshold-bounce'
 
 
-def earth_shrine(stone, wood, tiles, repair, clay, iron, contacts):
+def earth_shrine(stone, wood, tiles, repair, clay, iron, statue_granite, contacts):
     yaw = .70
     locate = frame(-3., 4., 3., yaw)
     plaster = mesh.material('Earth shrine weathered ochre limewash', '#aa8d60', 'stone_pavers', .92)
@@ -248,7 +242,7 @@ def earth_shrine(stone, wood, tiles, repair, clay, iron, contacts):
              locate(0, .287, .31), stone[2], .024, yaw, 'gate')
     mesh.box('Stone dais inside the little earth shrine', (.625, .226, .52), locate(0, .266, -.248),
              stone[4], .026, yaw, 'gate')
-    carved_earth_god(locate)
+    carved_earth_god(locate, statue_granite)
     with contacts.group('Earth shrine oil lamp', [altar]):
         mesh.lathe('Plain earthen oil lamp before the image', [(0, 0), (.019, 0), (.030, .006), (.038, .017),
                    (.032, .023), (.025, .014), (0, .014)], (-3.18, 4.568, 3.47), clay, 18, 'gate')
@@ -555,7 +549,7 @@ def load_old_wax_normal(sculpt_dir):
 
 def build_tea_shoulder(anchor, stone, wood, tiles, clay, iron, ledge, contacts, sculpt_dir=None):
     repair = mesh.material('Small unglazed replacement tiles on old roofs', '#a7a395', 'grey_roof_tiles', .73)
-    earth_shrine(stone, wood, tiles, repair, clay, iron, contacts)
+    earth_shrine(stone, wood, tiles, repair, clay, iron, ledge, contacts)
     tea_pavilion(stone, wood, tiles, repair, clay, iron, contacts)
     spring_basin(stone, wood)
     pierced_lamp_shrine(anchor, stone, ledge, iron, contacts, load_old_wax_normal(sculpt_dir) if sculpt_dir else None)
