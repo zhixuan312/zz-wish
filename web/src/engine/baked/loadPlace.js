@@ -7,6 +7,18 @@ import { createVisitorShadow } from './visitorShadow.js';
 import { createGauzeTransmission } from './gauzeTransmission.js';
 import { createStaticLampShadow } from './staticLampShadow.js';
 
+// The scene renderer outlives the places. Share its transcoder pool, including
+// the compiled Basis decoder, across the cover, the selected place and previews.
+const renderTranscoders = new WeakMap();
+function textureTranscoder(renderer) {
+  let transcoder = renderTranscoders.get(renderer);
+  if (!transcoder) {
+    transcoder = new KTX2Loader().setTranscoderPath('/codecs/basis/').detectSupport(renderer);
+    renderTranscoders.set(renderer, transcoder);
+  }
+  return transcoder;
+}
+
 // Static construction receives Cycles irradiance. Only the nearby visitor lamp
 // adds direct realtime light, so its own vessel and closest surfaces keep moving shadows.
 export async function loadBakedPlace(id,renderer,initialLight={n:1,g:0}){
@@ -20,7 +32,7 @@ export async function loadBakedPlace(id,renderer,initialLight={n:1,g:0}){
     return readBakedAsset(id,file);
   };
   const verified=async uri=>{await verifyBytes(uri);return assetUrl(uri);};
-  const ktx=new KTX2Loader().setTranscoderPath('/codecs/basis/').detectSupport(renderer);
+  const ktx=textureTranscoder(renderer);
   const loader=new GLTFLoader().setKTX2Loader(ktx).setMeshoptDecoder(MeshoptDecoder);
   const ambientPasses=['night','dusk','day'];
   const weightsFor=light=>{
@@ -276,6 +288,6 @@ export async function loadBakedPlace(id,renderer,initialLight={n:1,g:0}){
       uniforms.uBakedWeights.value.divideScalar(Math.max(.0001,uniforms.uBakedWeights.value.manhattanLength()));
       uniforms.uLampPower.value=Math.max(0,lampPower);
     },
-    dispose(){disposed=true;staticLampShadow?.dispose();gauzeTransmission?.dispose();for(const m of materials)m.dispose();for(const g of geometries)g.dispose();for(const t of textures)t.dispose();for(const bitmap of imageBitmaps)bitmap.close();ktx.dispose();},
+    dispose(){disposed=true;staticLampShadow?.dispose();gauzeTransmission?.dispose();for(const m of materials)m.dispose();for(const g of geometries)g.dispose();for(const t of textures)t.dispose();for(const bitmap of imageBitmaps)bitmap.close();},
   };
 }
