@@ -130,7 +130,7 @@ function installShallowRunnel(material, phase) {
         float viewCos = clamp(dot(geometryViewDir, normal), .04, 1.);
         // The unresolved wave slopes contribute at grazing angles. Through
         // the broken reflection, the separate scanned bed remains visible.
-        float meanCos = viewCos + (1. - viewCos) * mix(.31, .21, pool);
+        float meanCos = viewCos + (1. - viewCos) * mix(.29, .19, pool);
         float fresnel = .0204 + .9796 * pow(1. - meanCos, 5.);
         // A shallow ray bends towards the normal inside water (n = 1.333).
         // Use that underwater path length for the weak in-water attenuation.
@@ -143,14 +143,15 @@ function installShallowRunnel(material, phase) {
           reflection = radiance;
           #if defined(RE_IndirectDiffuse) && defined(USE_LIGHTMAP)
             float skyExposure = dot(irradiance, vec3(.2126, .7152, .0722));
-            reflection *= mix(.27, .58, smoothstep(.3, 4.2, skyExposure));
+            reflection *= mix(.40, .63, smoothstep(.3, 4.2, skyExposure));
           #endif
         #endif
         // The banks keep most of the shallow run in shade. Short crests in
         // the current pick up openings in the canopy as they pass the bars.
-        float crest = pow(max(0., .76 * run + .24 * rivulet), 8.);
+        float crest = pow(max(0., .76 * run + .24 * rivulet), 5.);
         float glint = crest * smoothstep(.41, .84, riffle) * smoothstep(.12, .67, across);
-        reflection *= .34 + .86 * glint;
+        float grazing = 1. - smoothstep(.38, .80, viewCos);
+        reflection *= mix(.34, .51, grazing) + .79 * glint;
         float waterOpacity = fresnel + body;
         diffuseColor.a = waterEdge * waterOpacity;
         outgoingLight = (reflection * fresnel + totalDiffuse * body) / max(.0204, waterOpacity);
