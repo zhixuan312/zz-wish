@@ -48,6 +48,25 @@ export async function readPinePreview(worktree, candidateDir, expectedSha) {
   return { assets, scene: manifest.scene, samples: manifest.bake.samples, manifestSha256: expectedSha };
 }
 
+export async function measurePineRealismBase(worktree, preview, ordinaryManifest) {
+  const sharedUrl = '/color/native-agx-57-f16.bin.zst';
+  const shared = ordinaryManifest.sharedVisualAssets?.find(asset => asset.url === sharedUrl);
+  assert(shared, 'Missing native AgX declaration in the ordinary manifest.');
+  const sharedBytes = await readFile(join(worktree, 'web/public', sharedUrl.slice(1)));
+  assert.equal(sharedBytes.length, shared.bytes);
+  assert.equal(sha256(sharedBytes), shared.sha256);
+
+  const elevationPath = 'web/src/engine/places/pine-gate-elevation.data.js';
+  const elevation = await readFile(join(worktree, elevationPath));
+  assert(elevation.length > 0, 'Missing the R1 elevation payload.');
+  const packageBytes = [...preview.assets.values()].reduce((bytes, asset) => bytes + asset.body.length, 0);
+  const totalBytes = packageBytes + sharedBytes.length + elevation.length;
+  const limitBytes = 15_000_000;
+  assert(totalBytes <= limitBytes, `R1 base payload is ${totalBytes} bytes and exceeds ${limitBytes} bytes.`);
+  return { totalBytes, limitBytes, packageBytes, sharedAgXBytes: sharedBytes.length,
+    elevation: { file: elevationPath, bytes: elevation.length, sha256: sha256(elevation) } };
+}
+
 export async function routePinePreview(page, base, preview, onError, onServed) {
   await page.route(url => url.origin === base.origin && url.pathname.startsWith(pinePackagePath), async route => {
     const url = new URL(route.request().url());

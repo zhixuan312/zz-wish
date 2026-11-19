@@ -11,7 +11,7 @@ import { DICTS, fmtDuration } from '../../web/src/i18n.ts';
 import { assertCaptureGpuHealthy, installCaptureGpuGuard } from './capture-preflight.mjs';
 import { installLiveAudioAudit, sampleLiveAudio, sampleLiveAudioWindow } from './live-audio-audit.mjs';
 import { instrumentPineScene, readDirectionOverview } from './pine-gate-scene-audit.mjs';
-import { pinePackagePath, readPinePreview, routePinePreview } from './pine-preview-delivery.mjs';
+import { measurePineRealismBase, pinePackagePath, readPinePreview, routePinePreview } from './pine-preview-delivery.mjs';
 
 if (process.argv.includes('--help')) {
   console.log([
@@ -30,6 +30,7 @@ if (process.argv.includes('--help')) {
     'CAPTURE_PREVIEW_DIR and CAPTURE_PREVIEW_SHA256 select an eight-sample package under art/build/pine-gate.',
     'CAPTURE_DIRECTION_ONLY=1 saves six site review frames from day and night under quality/direction/QUALITY_LABEL.',
     'CAPTURE_DIRECTION_OVERVIEW is the JSON camera pose (space, position, look, fov) for the separate site overview.',
+    'CAPTURE_REALISM_ONLY=1 captures two daytime desktop frames and records phone performance under quality/r1/QUALITY_LABEL.',
     'CAPTURE_BROWSER and CAPTURE_ONLY can select a single context. PINE_HOUR defaults to 22.',
   ].join('\n'));
   process.exit(0);
@@ -46,12 +47,19 @@ const readinessOnly = process.env.CAPTURE_READINESS_ONLY === '1';
 const audioCompare = process.env.CAPTURE_AUDIO_COMPARE === '1';
 const ambientOnly = process.env.CAPTURE_AMBIENT_ONLY === '1';
 const directionOnly = process.env.CAPTURE_DIRECTION_ONLY === '1';
-const directionWalkFrames = [['forest-06s', 6], ['ancient-pine-crest', 21.5], ['terrace-reveal-28s', 28]];
+const realismOnly = process.env.CAPTURE_REALISM_ONLY === '1';
+assert(!realismOnly || directionOnly, 'The realism proof requires CAPTURE_DIRECTION_ONLY=1.');
+const directionWalkFrames = realismOnly ? [['terrace-reveal-28s', 28]]
+  : [['forest-06s', 6], ['ancient-pine-crest', 21.5], ['terrace-reveal-28s', 28]];
+const dayFrames = [...directionWalkFrames.map(([name]) => name), ...(realismOnly ? [] : ['shrine-pavilion']), 'day-burning'];
 const directionPasses = [
-  { name: 'day', hour: 13, frames: [...directionWalkFrames.map(([name]) => name), 'shrine-pavilion', 'day-burning'] },
-  { name: 'night', hour: 22, frames: ['night-burning'] },
+  { name: 'day', hour: 13, frames: dayFrames },
+  ...(realismOnly ? [] : [{ name: 'night', hour: 22, frames: ['night-burning'] }]),
 ];
-const directionOverview = directionOnly ? readDirectionOverview(process.env.CAPTURE_DIRECTION_OVERVIEW) : null;
+const directionMethod = realismOnly
+  ? 'The 28 s release and settled daytime burning use native product cameras and real elapsed time at 1440 × 900. A separate phone context measures readiness and render cadence. Panels are hidden only while taking screenshots.'
+  : 'Two independent 1440 × 900 desktop contexts use the same private eight-sample package. The walk and both burning views use product cameras, the site overview uses a declared pose, and panels are hidden only while taking each screenshot.';
+const directionOverview = directionOnly && !realismOnly ? readDirectionOverview(process.env.CAPTURE_DIRECTION_OVERVIEW) : null;
 const readinessRepeats = Number(process.env.CAPTURE_READINESS_REPEATS ?? 1);
 assert(!readinessOnly || quality, 'Readiness-only requires CAPTURE_MILESTONE=quality.');
 assert(!audioCompare || (quality && !readinessOnly), 'Audio comparison requires quality mode without readiness-only.');
@@ -92,11 +100,12 @@ const sizes = [
 ].flatMap(size => {
   const languages = mode === 'm3' ? ['en', 'zh'] : [size.phone ? 'zh' : 'en'];
   return languages.map(language => ({ ...size, language, label: size.name + '-' + language }));
-}).filter(size => (!contextOnly || size.label === contextOnly) && (!directionOnly || size.label === 'desktop-en'));
+}).filter(size => (!contextOnly || size.label === contextOnly) && (!directionOnly || realismOnly || size.label === 'desktop-en'));
 const contexts = directionOnly ? sizes.flatMap(size => directionPasses.map(direction => ({ ...size, direction })))
   : audioCompare ? sizes.flatMap(size => ['pine-gate', 'snow-roof'].map(placeId => ({ ...size, placeId }))) : sizes;
 assert(suite.length && sizes.length, 'No matching capture context.');
-const output = directionOnly ? join(outputRoot, 'quality', 'direction', reviewLabel)
+const siteReviewRoot = join(outputRoot, 'quality', realismOnly ? 'r1' : 'direction');
+const output = directionOnly ? join(siteReviewRoot, reviewLabel)
   : quality
   ? join(outputRoot, 'quality', reviewLabel, 'pine')
   : join(outputRoot, mode === 'm3' && (contextOnly || browserOnly || hour !== 22)
@@ -119,10 +128,11 @@ if (fullJourney) {
     previewPackage = await readPinePreview(worktree, previewDir, previewSha);
     delivery = { preview, samples: previewPackage.samples, manifestSha256: previewPackage.manifestSha256,
       publicManifestSha256, transport: 'Private Playwright request routes for the candidate Pine Gate files.' };
+    if (realismOnly) delivery.realismBase = await measurePineRealismBase(worktree, previewPackage, manifest);
   } else delivery = { preview, samples: 64, manifestSha256: publicManifestSha256 };
 }
 if (directionOnly) {
-  await mkdir(join(outputRoot, 'quality', 'direction'), { recursive: true });
+  await mkdir(siteReviewRoot, { recursive: true });
   await mkdir(output);
 } else await mkdir(output, { recursive: true });
 const report = {
@@ -133,12 +143,12 @@ const report = {
   ...(readinessOnly ? { readinessOnly, readinessRepeats } : {}),
   ...(quality ? { reviewLabel } : {}),
   ...(quality && !readinessOnly && !audioCompare && !ambientOnly && !directionOnly ? { matchedEndingShapes: true } : {}),
-  ...(directionOnly ? { directionOnly, frames: directionPasses.flatMap(pass => pass.frames), directionOverview,
-    directionMethod: 'Two independent 1440 × 900 desktop contexts use the same private eight-sample package. The walk and both burning views use product cameras, the site overview uses a declared pose, and panels are hidden only while taking each screenshot.' } : {}),
+  ...(directionOnly ? { directionOnly, frames: directionPasses.flatMap(pass => pass.frames), directionOverview, directionMethod } : {}),
+  ...(realismOnly ? { realismOnly } : {}),
   ...(ambientOnly ? { ambientOnly } : {}),
   ...(audioCompare ? { audioCompare, audioSourceSha256: createHash('sha256').update(await readFile(join(worktree, 'web/src/sound.ts'))).digest('hex') } : {}),
   delivery,
-  clock: directionOnly ? 'Local visual hours 13 and 22 are held constant in their respective contexts. Walk, ignition and candle age use real elapsed time.'
+  clock: directionOnly ? `Local visual hours ${directionPasses.map(pass => pass.hour).join(' and ')} are held constant in their respective contexts. Walk, ignition and candle age use real elapsed time.`
     : 'Local visual hour ' + hour + ' held constant. Controlled client and matching isolated server start times accelerate progress; render animation uses real frame timestamps.',
   cameraDrift: holdCameraDrift ? 'held for still comparisons' : 'product default',
   viewport: 'Phone is viewport and touch emulation. WebKit freehand uses a trusted mouse stroke.',
@@ -271,9 +281,10 @@ async function capture(browser, browserName, size, trial) {
   const run = { browser: browserName, version: browser.version(), label,
     ...(audioCompare ? { placeId, viewport: [width, height], deviceScaleFactor: phone ? 2 : 1 } : {}),
     ...(direction ? { direction: direction.name, visualHour, viteUpdates: [] } : {}),
+    ...(realismOnly && phone ? { realismPerformanceOnly: true, viewport: [width, height], deviceScaleFactor: 2 } : {}),
     ...(readinessOnly ? { trial } : {}), shots: [], records: [], errors: [] };
   report.runs.push(run);
-  await mkdir(path, { recursive: true });
+  if (!run.realismPerformanceOnly) await mkdir(path, { recursive: true });
   try {
     await context.addInitScript(installCaptureGpuGuard);
     if (quality) await context.addInitScript(installLiveAudioAudit);
@@ -296,6 +307,11 @@ async function capture(browser, browserName, size, trial) {
     });
     page.on('response', response => {
       if (response.status() >= 400) run.errors.push({ kind: 'http', status: response.status(), url: response.url() });
+      if (realismOnly && response.ok()) {
+        const url = new URL(response.url());
+        const modulePath = '/' + delivery.realismBase.elevation.file.slice('web/'.length);
+        if (url.origin === base.origin && url.pathname === modulePath) run.elevationModuleLoaded = true;
+      }
     });
     page.on('crash', () => run.errors.push({ kind: 'crash' }));
     if (direction) page.on('websocket', socket => {
@@ -321,7 +337,7 @@ async function capture(browser, browserName, size, trial) {
       readiness: quality && !audioCompare,
       cadence: fullJourney && phone && !readinessOnly && !audioCompare && !ambientOnly,
       lighting: !!delivery && !audioCompare && !readinessOnly,
-      walkClock: direction?.name === 'day',
+      walkClock: direction?.name === 'day' && !phone,
       directionCamera: !!direction,
     };
     if (Object.values(sceneAudit).some(Boolean)) {
@@ -426,7 +442,7 @@ async function capture(browser, browserName, size, trial) {
       const started = performance.now();
       await act(button(bi('^Step inside$', '^走进院里$')));
       if (skip) await act(button(bi('^Skip$', '^跳过$')));
-      if (direction?.name === 'day') {
+      if (direction?.name === 'day' && !phone) {
         for (const [name, target] of directionWalkFrames) {
           await page.waitForFunction(target => {
             const clock = window.__pineCaptureWalkClock;
@@ -628,9 +644,9 @@ async function capture(browser, browserName, size, trial) {
       if (!directionOnly) await captureShot('place');
     }
     if (direction) {
-      await travel(direction.name === 'night');
+      await travel(direction.name === 'night' || run.realismPerformanceOnly);
       await choose();
-      if (direction.name === 'day') {
+      if (directionOverview && direction.name === 'day') {
         const previous = await page.evaluate(() => window.__pineCaptureCamera());
         const pose = await page.evaluate(view => window.__pineCaptureOverview(view), directionOverview);
         try {
@@ -645,10 +661,21 @@ async function capture(browser, browserName, size, trial) {
       const candle = await light();
       assert.equal(candle.durationMs, 3_600_000);
       run.directionCandle = { id: candle.id, shape: candle.shape, durationMs: candle.durationMs };
-      const niche = await captureShot(`${direction.name}-burning`);
-      assert(niche.wax.state === 'burning' && niche.wax.remaining > .99 && niche.ignition.state === 'settled');
-      assert(niche.camera.phase === 'burning' && !niche.camera.overview);
-      assert.deepEqual(run.shots.map(shot => basename(shot.file, '.png')), direction.frames);
+      if (run.realismPerformanceOnly) {
+        await measureBurnCadence();
+        run.settledWax = await page.evaluate(() => window.__visualPineWax?.());
+        assert(run.settledWax?.baked && run.settledWax.state === 'burning');
+        assert.deepEqual(run.shots, []);
+      } else {
+        const niche = await captureShot(`${direction.name}-burning`);
+        assert(niche.wax.state === 'burning' && niche.wax.remaining > .99 && niche.ignition.state === 'settled');
+        assert(niche.camera.phase === 'burning' && !niche.camera.overview);
+        assert.deepEqual(run.shots.map(shot => basename(shot.file, '.png')), direction.frames);
+      }
+      if (realismOnly) {
+        assert(run.elevationModuleLoaded, 'The R1 runtime did not fetch the verified elevation module.');
+        assert(Number.isFinite(run.placeReadiness.wishToEnabledMs) && run.placeReadiness.wishToEnabledMs > 0);
+      }
       assert.deepEqual(run.errors, []);
       return;
     }
@@ -826,14 +853,20 @@ try {
     assert(report.delivery.publicManifestUnchanged, 'The ordinary final Pine manifest changed during the isolated preview.');
   }
   if (directionOnly && !failures) {
-    const [day, night] = report.runs;
-    assert(day?.direction === 'day' && night?.direction === 'night' && report.runs.length === 2);
+    const [day, second] = report.runs;
+    assert.equal(report.runs.length, 2);
+    assert.equal(day?.direction, 'day');
     assert.match(day.sceneSha256, /^[a-f0-9]{64}$/);
-    assert.equal(day.sceneSha256, night.sceneSha256, 'The day and night contexts loaded different Vite scene sources.');
-    assert.notEqual(day.directionCandle.id, night.directionCandle.id, 'Each lighting needs its own actual candle.');
-    assert.deepEqual(day.directionCandle.shape, night.directionCandle.shape);
-    assert.equal(day.directionCandle.durationMs, night.directionCandle.durationMs);
-    assertNearestCamera(day.shots.at(-1).camera, night.shots.at(-1).camera);
+    assert.equal(day.sceneSha256, second.sceneSha256, 'The two contexts loaded different Vite scene sources.');
+    assert.notEqual(day.directionCandle.id, second.directionCandle.id, 'Each lighting needs its own actual candle.');
+    assert.deepEqual(day.directionCandle.shape, second.directionCandle.shape);
+    assert.equal(day.directionCandle.durationMs, second.directionCandle.durationMs);
+    if (realismOnly) {
+      assert(second.realismPerformanceOnly && second.direction === 'day' && second.performance.visible);
+    } else {
+      assert.equal(second.direction, 'night');
+      assertNearestCamera(day.shots.at(-1).camera, second.shots.at(-1).camera);
+    }
     report.directionVerified = true;
   }
   console.log('Ran ' + report.runs.length + ' contexts, captured ' + report.runs.reduce((n, run) => n + run.shots.length, 0) + ' screenshots, ' + failures + ' failed contexts.');
