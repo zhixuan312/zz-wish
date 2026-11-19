@@ -745,9 +745,9 @@ async function capture(browser, browserName, size, trial) {
           assert(png.subarray(0, 8).equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10])));
           assert.equal(png.readUInt32BE(16), 160);
           assert.equal(png.readUInt32BE(20), 200);
-          const file = join(path, 'refined-tray-portrait.png');
+          const file = join(output, 'diagnostics', 'refined-tray-portrait.png');
           await writeFile(file, png);
-          run.trayPortrait = { file, width: 160, height: 200 };
+          run.trayPortrait = { file: relative(output, file), width: 160, height: 200 };
         }
       }
       if (realismOnly) {
