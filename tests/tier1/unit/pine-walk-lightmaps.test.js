@@ -8,7 +8,7 @@ vi.mock('../../../web/src/engine/baked/prefetchPlace.js', () => ({
   readBakedManifest: async () => state.manifest,
   readBakedAsset: async (_id, file) => {
     await state.download(file.uri);
-    return new TextEncoder().encode(file.uri).buffer;
+    return new globalThis.TextEncoder().encode(file.uri).buffer;
   },
 }));
 vi.mock('three/examples/jsm/loaders/GLTFLoader.js', () => ({
@@ -23,7 +23,7 @@ vi.mock('three/examples/jsm/loaders/KTX2Loader.js', () => ({
     setTranscoderPath() { return this; }
     detectSupport() { return this; }
     async loadAsync(url) {
-      const uri = url.startsWith('blob:') ? await fetch(url).then(response => response.text())
+      const uri = url.startsWith('blob:') ? await globalThis.fetch(url).then(response => response.text())
         : url.split('/').at(-1).split('?')[0];
       state.decode(uri);
       const texture = new THREE.Texture();
@@ -77,7 +77,7 @@ test('the Pine walk contract rejects an alias of a full native map', () => {
 
 test('walk lightmaps keep a visible coarse sampler until the verified native mip can fade in', async () => {
   const { renderer } = fixture();
-  const clock = vi.spyOn(performance, 'now').mockReturnValue(1000);
+  const clock = vi.spyOn(globalThis.performance, 'now').mockReturnValue(1000);
   const { promise: held, resolve: release } = Promise.withResolvers();
   state.download.mockImplementation(uri => fullDeferred.has(uri) ? held : undefined);
   const place = await loadBakedPlace('pine-gate', renderer, day);

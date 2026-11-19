@@ -3,7 +3,7 @@ import { createHash } from 'node:crypto';
 import { lstat, readFile, realpath } from 'node:fs/promises';
 import { isAbsolute, join, relative } from 'node:path';
 import projection from '../../shared/pine-gate-backdrop.json' with { type: 'json' };
-import { readPineBackdrop, readPineWaxNormal } from '../../web/src/engine/baked/pineManifest.js';
+import { readPineBackdrop, readPineWalkLightmaps, readPineWaxNormal } from '../../web/src/engine/baked/pineManifest.js';
 
 export const pinePackagePath = '/places/pine-gate/';
 const sha256 = data => createHash('sha256').update(data).digest('hex');
@@ -30,6 +30,7 @@ export async function readPinePreview(worktree, candidateDir, expectedSha) {
   const files = new Map(manifest.files.map(file => [file.uri, file]));
   assert.equal(files.size, manifest.files.length, 'Duplicate declared preview URI.');
   const backdrop = readPineBackdrop(manifest);
+  const walkLightmaps = readPineWalkLightmaps(manifest);
   const waxNormal = readPineWaxNormal(manifest);
   const regions = Object.keys(manifest.lightmaps).sort();
   assert.deepEqual(regions, ['approach', 'gate', 'niche']);
@@ -50,7 +51,11 @@ export async function readPinePreview(worktree, candidateDir, expectedSha) {
     const contentType = name.endsWith('.webp') ? 'image/webp' : name.endsWith('.png') ? 'image/png' : 'application/octet-stream';
     assets.set(name, { body, version: file.sha256, contentType });
   }
-  return { assets, scene: manifest.scene, samples: manifest.bake.samples, manifestSha256: expectedSha, backdrop, waxNormal };
+  return { assets, scene: manifest.scene, samples: manifest.bake.samples, manifestSha256: expectedSha, backdrop, walkLightmaps, waxNormal };
+}
+
+export function walkLightmapFiles(preview) {
+  return Object.values(preview.walkLightmaps ?? {}).flatMap(region => Object.values(region));
 }
 
 export async function measurePineRealismBase(worktree, preview, ordinaryManifest) {
@@ -68,7 +73,8 @@ export async function measurePineRealismBase(worktree, preview, ordinaryManifest
   // The two streaming tiers are separately declared and verified.
   const highTreeBytes = high?.trees ? preview.assets.get(high.trees.uri).body.length : 0;
   const highBytes = imageBytes(high) + highTreeBytes;
-  const walkBytes = imageBytes(walk);
+  const walkLightmapBytes = walkLightmapFiles(preview).reduce((bytes, { full }) => bytes + preview.assets.get(full.uri).body.length, 0);
+  const walkBytes = imageBytes(walk) + walkLightmapBytes;
   const packageBytes = combinedPackageBytes - highBytes - walkBytes;
   const totalBytes = packageBytes + sharedBytes.length;
   const limitBytes = 15_000_000;
@@ -80,9 +86,9 @@ export async function measurePineRealismBase(worktree, preview, ordinaryManifest
   if (walk) assert(phoneBytes <= phoneLimitBytes, `Pine Gate phone payload is ${phoneBytes} bytes and exceeds ${phoneLimitBytes} bytes.`);
   assert(combinedBytes <= combinedLimitBytes, `Pine Gate combined payload is ${combinedBytes} bytes and exceeds ${combinedLimitBytes} bytes.`);
   return { totalBytes, limitBytes, packageBytes, sharedAgXBytes: sharedBytes.length,
-    backdrop: preview.backdrop ? { ...base, bytes: imageBytes(base), ...(walk ? { walk: { ...walk, bytes: walkBytes } } : {}),
+    backdrop: preview.backdrop ? { ...base, bytes: imageBytes(base), ...(walk ? { walk: { ...walk, bytes: imageBytes(walk) } } : {}),
       ...(high ? { high: { ...high, bytes: imageBytes(high), ...(highTreeBytes ? { treeBytes: highTreeBytes } : {}) } } : {}) } : null,
-    ...(walk ? { walkBytes, phoneBytes, phoneLimitBytes } : {}),
+    ...(walk ? { walkBytes, walkLightmapBytes, phoneBytes, phoneLimitBytes } : {}),
     ...(walk || high ? { combinedBytes, combinedLimitBytes, combinedPackageBytes, highBytes } : {}),
     waxNormal: preview.waxNormal };
 }
@@ -159,8 +165,10 @@ function inspectBackdropUpgrade(state, tier, fetched, expectCompressed = false) 
 }
 
 export async function routePinePreview(page, base, preview, onError, onServed, waitForWalk) {
-  const walkUris = new Set(Object.values(preview.backdrop?.walk?.files ?? {}).map(file => file.uri));
+  const walkMaps = walkLightmapFiles(preview);
+  const walkUris = new Set([...Object.values(preview.backdrop?.walk?.files ?? {}).map(file => file.uri), ...walkMaps.map(({ full }) => full.uri)]);
   const imageUris = new Set([...walkUris, ...[...Object.values(preview.backdrop?.files ?? {}), ...Object.values(preview.backdrop?.high?.files ?? {})].map(file => file.uri)]);
+  for (const { soft } of walkMaps) imageUris.add(soft.uri);
   if (preview.waxNormal) imageUris.add(preview.waxNormal.uri);
   if (preview.backdrop?.high?.trees) imageUris.add(preview.backdrop.high.trees.uri);
   await page.route(url => url.origin === base.origin && url.pathname.startsWith(pinePackagePath), async route => {
