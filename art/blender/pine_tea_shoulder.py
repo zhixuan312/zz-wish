@@ -251,8 +251,8 @@ def candle_wax(name, color, roughness):
 
 def spent_wax_on_sill(locate, iron, sculpt_normal):
     wax_materials = [candle_wax(f'Weathered cold wax tone {i + 1}', color, roughness)
-                     for i, (color, roughness) in enumerate((('#b6aa91', .51), ('#9e9077', .59),
-                                                             ('#c2b8a0', .46), ('#ada38b', .54)))]
+                     for i, (color, roughness) in enumerate((('#b7aa90', .64), ('#ab9c80', .68),
+                                                             ('#c0b398', .57), ('#b0a184', .63)))]
     if sculpt_normal:
         for material in wax_materials:
             nodes = material.node_tree.nodes
@@ -260,7 +260,7 @@ def spent_wax_on_sill(locate, iron, sculpt_normal):
             image = nodes.new('ShaderNodeTexImage')
             image.image = sculpt_normal
             normal = nodes.new('ShaderNodeNormalMap')
-            normal.inputs['Strength'].default_value = .55
+            normal.inputs['Strength'].default_value = .31
             links.new(image.outputs['Color'], normal.inputs['Color'])
             links.new(normal.outputs['Normal'], nodes.get('Principled BSDF').inputs['Normal'])
     # Keep the owner dish empty, with the larger remnants gathered at the sides.
@@ -271,33 +271,40 @@ def spent_wax_on_sill(locate, iron, sculpt_normal):
                 (.094, .050, .009, .006), (.071, .084, .008, .006),
                 (.126, .078, .009, .010))
     for i, (a, c, radius, height) in enumerate(remnants):
-        spill = min(.0024, height * .30)
-        taper = .60 + .055 * (i % 5)
-        profile = [(0, -.0004), (radius * 1.61, -.0004), (radius * 1.57, spill * .14),
-                   (radius * 1.47, spill * .31), (radius * 1.39, spill * .25),
-                   (radius * 1.31, spill * .49), (radius * 1.18, spill * .56),
-                   (radius * 1.08, spill), (radius * .99, height * .39),
-                   (radius * .96, height * .67), (radius * .91, height * .91),
-                   (radius * taper, height), (radius * (taper - .09), height * .96),
-                   (radius * .47, height * .68), (radius * .29, height * .48),
-                   (radius * .13, height * .42), (0, height * .42)]
+        spill = min(.0017, height * .24)
+        taper = .58 + .068 * (i % 5)
+        spread = 1.17 + .063 * (i % 4)
+        profile = [(0, -.0004), (radius * spread, -.0004), (radius * spread, spill * .17),
+                   (radius * (spread - .05), spill * .28), (radius * (spread - .09), spill * .41),
+                   (radius * (spread - .12), spill * .50), (radius * 1.03, spill),
+                   (radius * 1.01, height * .28), (radius * .99, height * .49),
+                   (radius * .97, height * .67), (radius * .93, height * .87),
+                   (radius * .88, height * .96), (radius * taper, height),
+                   (radius * (taper - .09), height * .93),
+                   (radius * .46, height * .69), (radius * .23, height * .47), (0, height * .42)]
         x, y, z = locate(a, 0, c)
         wax = mesh.lathe(f'Burnt-out candle fused to the sill {i + 1}', profile, (x, y, z),
-                         wax_materials[i % len(wax_materials)], 28, 'niche')
+                         wax_materials[i % len(wax_materials)], 48, 'niche')
         for vertex in wax.data.vertices:
             dx, dz = vertex.co.x - x, -vertex.co.y - z
+            radial = math.hypot(dx, dz) / radius
             elevation = vertex.co.z - y
+            age = max(0., elevation / height)
             angle = math.atan2(dx, dz)
             tide = 1 - min(1., max(0., elevation) / (spill + .0012))
-            flow = max(0., math.cos(angle - i * 2.11)) ** 4
-            old_edge = .11 * math.sin(angle + i * 1.73) - .095 * math.cos(angle * 2. - i * .39)
-            rim = .037 * math.sin(angle * 2. + i) + .022 * math.cos(angle * 5. + i * .52)
-            scale = 1. + rim + tide * (old_edge + .10 * flow)
+            main_flow = max(0., math.cos(angle - i * 2.11)) ** 7
+            old_flow = max(0., math.cos(angle - i * 1.73 - 1.64)) ** 10
+            flow = .18 * main_flow + .12 * old_flow
+            lobes = .026 * math.sin(angle * 3 + i * 1.63) + .043 * math.sin(angle * 2 - i * 1.7)
+            vertical = max(0., 1. - age) ** .4
+            surface = min(1., max(0., (radial - .60) / .34))
+            scale = 1. + lobes + surface * (tide * (1.5 * flow - .060) + vertical * flow)
             vertex.co.x = x + dx * scale
             vertex.co.y = -z - dz * scale
-            mouth = max(0., (elevation / height - .43) / .57)
+            mouth = max(0., (age - .43) / .57)
             collapse = max(0., math.cos(angle + i * 2.12 + .2)) ** (3 + i % 4)
-            vertex.co.z += height * mouth * (.055 * math.sin(angle * 2. - i) - (.18 + .08 * (i % 3)) * collapse)
+            lobe = math.sin(angle * 5. + i * .8) * .018 + .045 * math.sin(angle * 2. - i)
+            vertex.co.z += height * mouth * (lobe - (.27 + .08 * (i % 3)) * collapse)
         for face in wax.data.polygons:
             face.use_smooth = True
         if sculpt_normal:
