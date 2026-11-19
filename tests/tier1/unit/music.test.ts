@@ -499,18 +499,16 @@ describe('music playback', () => {
     await music.play('home', 'snow-roof');
     await music.play('choose', 'snow-roof');
     await new Promise((r) => setTimeout(r, 1700));
-    // The replaced cue's gain is fully detached, and its source no longer feeds it. Only
-    // the edge to its own gain may be cut: the source keeps any other connection.
-    const live = FakeGain.instances.filter((g) => g.connected.size > 0 || !g.disconnected);
+    // What this proves: the replaced cue's gain is detached, and no source still feeds it.
+    // It does not prove that a source keeps some other connection through retire(), because
+    // retire() always runs before the slot is reused.
     const retiredGains = FakeGain.instances.filter((g) => g.disconnected);
     expect(retiredGains).toHaveLength(1);
-    // Every source holds edges only to gains that are still live: one per playing cue.
     const edgesToRetired = FakeSource.instances
       .flatMap((src) => [...src.connected])
       .filter((g) => retiredGains.includes(g));
     expect(edgesToRetired).toEqual([]);
     expect(music.describe().channels).toBe(1);
-    void live;
   });
 
   it('lets an ending play out before the result loop starts', async () => {
