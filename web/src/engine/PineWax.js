@@ -97,12 +97,12 @@ function refinedWaxMaterial(light, layer, sunShade, sculptNormal) {
   const remnant = layer === 'remnant';
   const style = {
     body: { roughness: .44, clearcoat: .10, specularIntensity: .52, diffuse: .91, scatter: 2.85 },
-    pool: { roughness: .078, clearcoat: .55, specularIntensity: .86, diffuse: .23, scatter: .045 },
+    pool: { roughness: .062, clearcoat: .72, specularIntensity: .98, diffuse: .23, scatter: .045 },
     remnant: { roughness: .40, clearcoat: .09, specularIntensity: .43, diffuse: .91, scatter: .04 },
   }[layer];
   const material = new THREE.MeshPhysicalMaterial({ color: 0xffffff, ior: 1.43,
     roughness: style.roughness, clearcoat: style.clearcoat, clearcoatRoughness: wet ? .15 : .32,
-    specularIntensity: style.specularIntensity, envMapIntensity: wet ? .75 : .42,
+    specularIntensity: style.specularIntensity, envMapIntensity: wet ? .97 : .42,
     transparent: remnant, depthWrite: !remnant });
   material.onBeforeCompile = shader => {
     materialCoordinates(shader);
@@ -607,7 +607,7 @@ function runnelContour(y, radius, runnels) {
     const k = (drip.crown - y) / drip.reach;
     if (k < 0 || k > 1) continue;
     const taper = Math.sin(Math.PI * k) ** 1.24;
-    const bead = .38 + 1.02 * Math.exp(-((k - drip.bead) ** 2) / .025);
+    const bead = .42 + 1.19 * Math.exp(-((k - drip.bead) ** 2) / .019);
     const width = Math.min(drip.width, radius * .23) * drip.growth;
     // Each trail rounds into its own bead and follows a smooth, slightly
     // drifting course down the drawn profile.
@@ -813,8 +813,8 @@ export function createPineWax(seat, waxMaterial, { refined = false, sculptNormal
   if (refined) contact.renderOrder = -1; // Draw the shadow on stone under the translucent wax.
   group.add(contact);
   const drops = [
-    { angle: 1.12, start: .015, reach: .031, width: .00165 },
-    { angle: 2.16, start: .095, reach: .020, width: .00118 },
+    { angle: 1.12, start: .015, reach: .034, width: .00205 },
+    { angle: 2.16, start: .095, reach: .023, width: .00152 },
     { angle: .18, start: .18, reach: .043, width: .00141 },
     { angle: 3.6, start: .24, reach: .026, width: .00175 },
     { angle: 5.1, start: .31, reach: .036, width: .00124 },
