@@ -3,6 +3,7 @@ import { readPineBackdrop, readPineWaxNormal } from '../baked/pineManifest.js';
 import { readBakedAsset, readBakedManifest } from '../baked/prefetchPlace.js';
 import { preparePineHighTrees } from './pine-gate-high-trees.js';
 import { loadPineGateBackdrop } from './pine-gate-backdrop.js';
+import { loadPineForestBackdrop, readPineForestBackdrop } from './pine-forest-backdrop.js';
 import { createPineGateLife } from './pine-gate-life.js';
 import { animatePineCreek } from './pine-creek-water.js';
 import { buildPineCrestNeedles } from './pine-crest-needles.js';
@@ -72,6 +73,8 @@ export default function createPlace(h) {
       // decode. Their regular texture loaders re-use the verified bytes.
       const manifest = await readBakedManifest('pine-gate');
       const softFiles = Object.values(readPineBackdrop(manifest)?.files ?? {});
+      const forestDescriptor = readPineForestBackdrop(manifest);
+      if (forestDescriptor) softFiles.push(...forestDescriptor.plates.map(({ file }) => file));
       const waxNormal = readPineWaxNormal(manifest);
       if (waxNormal) softFiles.push(waxNormal);
       for (const file of softFiles) void readBakedAsset('pine-gate', file).catch(() => {});
@@ -114,6 +117,12 @@ export default function createPlace(h) {
         context.G.add(backdrop.group);
         context.up.push((_dt, _time, light) => backdrop.update(light));
         context.disposers.push(backdrop.dispose);
+      }
+      const forest = await loadPineForestBackdrop(baked, h.renderer, context.light, forestDescriptor);
+      if (forest) {
+        context.G.add(forest.group);
+        context.up.push((_dt, _time, light) => forest.update(light));
+        context.disposers.push(forest.dispose);
       }
       const highTrees = preparePineHighTrees(baked, readPineBackdrop(baked.manifest)?.high?.trees);
       if (highTrees) {
