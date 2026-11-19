@@ -163,6 +163,139 @@ function cloudSea(look) {
   return object;
 }
 
+const PADDY_CONTOURS = [
+  [7, 15, -82.4, 1.26], [6.3, 16, -79.8, .65], [5.5, 17.6, -76.9, -1.0],
+  [4.8, 18.1, -73.9, -2.66], [4.1, 18, -70.6, -4.3], [3.4, 17.5, -67, -5.94],
+  [2.7, 16.7, -63.3, -7.58], [2.2, 15.6, -59.6, -9.24], [2, 15, -55.8, -11.15],
+];
+
+function paddyContour(level, t, y = PADDY_CONTOURS[level][3], offset = 0) {
+  const [cx, width, z] = PADDY_CONTOURS[level];
+  const curve = (3.1 + .55 * Math.sin(level * .9)) * t * t;
+  return [cx + width * t, y, z + offset - curve + .58 * Math.sin(t * 3 + level * .44)];
+}
+
+function terraceStrip(batch, rear, front, segments = 28, min = -1, max = 1) {
+  const first = batch.points.length / 3;
+  for (let i = 0; i <= segments; i++) {
+    const u = i / segments, t = THREE.MathUtils.lerp(min, max, u);
+    batch.points.push(...rear(t), ...front(t));
+    batch.uv?.push(u, 0, u, 1);
+    if (i < segments) {
+      const a = first + i * 2;
+      batch.indices.push(a, a + 1, a + 2, a + 1, a + 3, a + 2);
+    }
+  }
+}
+
+function floodedTerraces(look) {
+  const earth = { points: [], indices: [] }, water = { points: [], uv: [], indices: [] };
+  const day = [], night = [];
+  function bank(rear, front, toneA, toneB) {
+    const first = earth.points.length / 3;
+    terraceStrip(earth, rear, front);
+    for (let i = first; i < earth.points.length / 3; i++) {
+      const tint = (i % 2 === 0 ? toneA : toneB) * (.95 + .05 * Math.sin(earth.points[i * 3] * .73));
+      day.push(.112 * tint, .163 * tint, .113 * tint);
+      night.push(.041 * tint, .063 * tint, .055 * tint);
+    }
+  }
+  for (let level = 1; level < PADDY_CONTOURS.length; level++) {
+    const y = PADDY_CONTOURS[level][3];
+    const rear = t => paddyContour(level - 1, t, y, .47);
+    const innerBank = t => paddyContour(level, t, y, -.42);
+    const crest = t => paddyContour(level, t, y + .20, -.18);
+    const lip = t => paddyContour(level, t, y + .12, .08);
+    const foot = t => paddyContour(level, t, PADDY_CONTOURS[level + 1]?.[3] ?? -15.32, .47);
+    bank(rear, innerBank, .92, .84);
+    bank(innerBank, crest, .84, 1.30);
+    bank(crest, lip, 1.30, 1.04);
+    bank(lip, foot, 1.04, .47);
+
+    // Continue the shoulders under the waterline and cloud so neither the
+    // paddy ends nor the last retaining wall look like floating cards.
+    for (const side of [-1, 1]) {
+      const edge = [rear(side), innerBank(side), crest(side), lip(side), foot(side)];
+      const grade = (t, outside) => {
+        const row = (t + 1) * .5 * (edge.length - 1);
+        const i = Math.min(Math.floor(row), edge.length - 2), u = row - i;
+        const a = edge[i], b = edge[i + 1];
+        return [THREE.MathUtils.lerp(a[0], b[0], u) + outside * side * 4.2,
+          THREE.MathUtils.lerp(a[1], b[1], u) - outside * 3.8,
+          THREE.MathUtils.lerp(a[2], b[2], u) + outside * 1.4];
+      };
+      bank(t => grade(t, 0), t => grade(t, 1), .81, .54);
+    }
+    if (y < -10.0) continue;
+    const poolEdge = (t, back) => {
+      const a = rear(t), b = innerBank(t);
+      const taper = THREE.MathUtils.smoothstep(Math.abs(t), .57, 1) * .22;
+      const depth = back ? .11 + taper : .91 - taper;
+      return [THREE.MathUtils.lerp(a[0], b[0], depth), y + .044, THREE.MathUtils.lerp(a[2], b[2], depth)];
+    };
+    const breakAt = .32 * Math.sin(level * 1.64);
+    for (const [min, max] of [[-.95, breakAt - .028], [breakAt + .025, .96]]) {
+      terraceStrip(water, t => poolEdge(t, true), t => poolEdge(t, false), 14, min, max);
+    }
+  }
+  bank(t => paddyContour(0, t, -12.5, -7.7), t => paddyContour(0, t, 1.35, -.20), .59, .90);
+  bank(t => paddyContour(0, t, 1.35, -.20), t => paddyContour(0, t, .65, .47), .90, .92);
+
+  const geometryOf = batch => {
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', new THREE.Float32BufferAttribute(batch.points, 3));
+    geometry.setIndex(batch.indices);
+    return geometry;
+  };
+  const slopes = geometryOf(earth);
+  slopes.setAttribute('dayColor', new THREE.Float32BufferAttribute(day, 3));
+  slopes.setAttribute('nightColor', new THREE.Float32BufferAttribute(night, 3));
+  const bankMaterial = new THREE.ShaderMaterial({
+    uniforms: look, vertexShader: toneVertex, fragmentShader: toneFragment, side: THREE.DoubleSide,
+  });
+  const berms = new THREE.Mesh(slopes, bankMaterial);
+  berms.name = 'Curved banks on the valley shoulder';
+
+  const pools = geometryOf(water);
+  pools.setAttribute('uv', new THREE.Float32BufferAttribute(water.uv, 2));
+  const waterMaterial = new THREE.ShaderMaterial({
+    uniforms: { ...look,
+      uSkyDay: { value: new THREE.Color(0xc5d8dd) }, uSkyNight: { value: new THREE.Color(0x77929e) },
+      uBedDay: { value: new THREE.Color(0x596f57) }, uBedNight: { value: new THREE.Color(0x2d433a) },
+    },
+    vertexShader: `
+      varying vec2 vWet;
+      varying vec3 vWorld;
+      void main() {
+        vWet = uv;
+        vWorld = (modelMatrix * vec4(position, 1.)).xyz;
+        gl_Position = projectionMatrix * viewMatrix * vec4(vWorld, 1.);
+      }
+    `,
+    fragmentShader: `
+      uniform float uNight, uDusk, uTime;
+      uniform vec3 uSkyDay, uSkyNight, uBedDay, uBedNight;
+      varying vec2 vWet;
+      varying vec3 vWorld;
+      void main() {
+        vec3 eye = normalize(cameraPosition - vWorld);
+        float ripple = sin(vWorld.x * .71 + vWorld.z * 1.72 + uTime * .27)
+          * cos(vWorld.x * .39 - vWorld.z * 2.06 - uTime * .19);
+        float facing = clamp(eye.y + ripple * .021, 0., 1.);
+        float reflection = .025 + .83 * pow(1. - facing, 4.);
+        float shore = min(min(vWet.x, 1. - vWet.x), min(vWet.y, 1. - vWet.y));
+        vec3 bed = mix(uBedDay, uBedNight, uNight);
+        vec3 sky = mix(uSkyDay, uSkyNight, uNight) * mix(vec3(1.), vec3(1.15, 1.02, .91), uDusk * .48);
+        vec3 wet = mix(bed, sky, reflection * mix(.66, 1., smoothstep(0., .18, shore)));
+        gl_FragColor = vec4(wet, 1.);
+      }
+    `,
+  });
+  const flooded = new THREE.Mesh(pools, waterMaterial);
+  flooded.name = 'Spring paddies reflecting the open sky';
+  return [berms, flooded];
+}
+
 function waterfall(look) {
   const range = RANGES[3], points = [], uv = [], indices = [];
   for (const branch of [{ x: 28.6, width: .59, start: 6.7, end: 2.95 }, { x: 29.45, width: .27, start: 5.64, end: 3.37 }]) {
@@ -216,7 +349,7 @@ export function createPineGateVista(initialLight = { n: 1, g: 0 }) {
   const look = { uNight: { value: initialLight.n }, uDusk: { value: initialLight.g }, uTime: { value: 0 } };
   const group = new THREE.Group();
   group.name = 'Pine Gate valley vista';
-  group.add(mountainRanges(look), cloudSea(look), waterfall(look));
+  group.add(mountainRanges(look), cloudSea(look), waterfall(look), ...floodedTerraces(look));
   return {
     group,
     update(time, light = initialLight) {
