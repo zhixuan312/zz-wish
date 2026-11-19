@@ -217,7 +217,7 @@ def paddy_aov(shader, name, value):
     shader.input(output.inputs['Value'], value)
 
 
-def paddy_glass(audit=False):
+def paddy_glass(air, audit=False):
     water = Shader('Clear flooded beds with Fresnel wind-wave reflections')
     wave, gusts = water_ripples(water, water.coordinate())
     geom = water.nodes.new('ShaderNodeNewGeometry')
@@ -272,7 +272,13 @@ def paddy_glass(audit=False):
     seen = water.math('ADD', wind_area, calm_area)
     weight = water.math('DIVIDE', wind_area, water.math('MAXIMUM', .0001, seen))
     surface = mix(glass(calm_normal), wind_pair, weight)
-    water.links.new(surface, water.output.inputs['Surface'])
+    # The view to the water travels through the same distance of air as the
+    # terraces and trees. Light transmitted through the water can still reach silt.
+    water.material.cycles.emission_sampling = 'NONE'
+    aerial = water.nodes.new('ShaderNodeGroup')
+    aerial.node_tree = air
+    water.links.new(surface, aerial.inputs['Surface'])
+    water.links.new(aerial.outputs['Surface'], water.output.inputs['Surface'])
     if audit:
         paddy_aov(water, 'PaddySurface', 1.)
         paddy_aov(water, 'PaddyWindWeight', weight)
@@ -340,7 +346,7 @@ def materials(air, audit_paddy=False):
     seedling = Shader('Translucent green rice shoots')
     result['rice'] = seedling.surface((.084, .19, .046, 1.), .54)
 
-    result['water'] = paddy_glass(audit_paddy)
+    result['water'] = paddy_glass(air, audit_paddy)
     if audit_paddy:
         paddy_aov(ground, 'PaddyBund', soil_mask)
         paddy_aov(sediment, 'PaddySilt', 1.)
