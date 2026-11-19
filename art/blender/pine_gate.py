@@ -511,8 +511,11 @@ def approach_joint_infill(rows, soil):
         for left, right in zip(lips, lips[1:]):
             lo = max(min(p.z for p in left), min(p.z for p in right)) + .032
             hi = min(max(p.z for p in left), max(p.z for p in right)) - .032
-            cuts = sorted({p.z for p in left + right if lo < p.z < hi})
-            cuts = [lo, *cuts, hi]
+            cuts = [lo]
+            for z in sorted({p.z for p in left + right if lo < p.z < hi}):
+                if z - cuts[-1] >= .045 and hi - z >= .045:
+                    cuts.append(z)
+            cuts.append(hi)
             fill_strip(faces, ((lip_edge([left], 2, z, max), lip_edge([right], 2, z, min))
                                for z in cuts), 0)
         if not index or abs(rows[index - 1][2] - rows[index][3]) > .02:
@@ -534,10 +537,14 @@ def approach_joint_infill(rows, soil):
     points = fit_joint_soil(points, sections, [stones for _, _, _, _, stones in rows])
     faces = [f for row in sections for f in row]
     joint = mesh.mesh_object('Packed wet stone grit and pine litter between treads', points, faces, soil, 'approach')
-    mesh.uv_world(joint, .24)
+    uv = joint.data.uv_layers['UVMap']
+    coordinates = [[(points[i][0], points[i][2]) for i in f] for f in faces]
+    for face, chart in zip(joint.data.polygons, coordinates):
+        face.use_smooth = True
+        for index, (x, z) in zip(face.loop_indices, chart):
+            uv.data[index].uv = (x / .24, z / .24)
     joint['wet_tread_joints'] = True
-    source_uv(joint, [[(points[i][0], points[i][2]) for i in f] for f in faces],
-              'Laid-in joint strips fitted between the stone lips in metres.')
+    source_uv(joint, coordinates, 'Laid-in joint strips fitted between the stone lips in metres.')
 
 
 def audit_approach_tread_bearings(rows, bed, ground):
