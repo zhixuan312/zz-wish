@@ -34,20 +34,38 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
   useEffect(() => { sound.mute(quiet); music.setMuted(quiet); }, [quiet]);
   const [powerSaver, setPowerSaver] = useState(false);
   useEffect(() => { engine.setPhase(screen); }, [screen]);
+  useEffect(() => { engine.setPowerSaver(powerSaver); }, [powerSaver]);
+  const [overlay, setOverlay] = useState<Overlay>(null);
   // Music follows the same screens the engine does; burning and its endings are
   // started by the light and settlement paths below, which know the outcome.
+  // `travel` starts its own cue and is left alone here, because the walk owns its
+  // 36-second tail and must reach the chooser by finishing, not by being cut off.
+  const stageForScreen = (value: Screen, overlayValue: Overlay): MusicStage | null =>
+    overlayValue ? 'result' :
+    value === 'wish' ? 'home' :
+    value === 'place' ? 'place' :
+    value === 'candle' ? 'choose' : null;
+  const stageRef = useRef<MusicStage | null>(null);
+  const screenRef = useRef<Screen>(screen);
+  const overlayRef = useRef<Overlay>(null);
+  // The place is chosen further down; this ref is updated as soon as it is known.
+  const placeIdRef = useRef<PlaceId>(DEFAULT_PLACE.id);
+  screenRef.current = screen; overlayRef.current = overlay;
   useEffect(() => {
-    const stage: MusicStage | null =
-      screen === 'wish' ? 'home' :
-      screen === 'place' ? 'place' :
-      screen === 'travel' ? 'walk' :
-      screen === 'candle' ? 'choose' : null;
-    if (stage) void music.play(stage, placeRef.current);
-  }, [screen]);
-  // Browsers refuse sound before a gesture: the first one opens the device and starts home.
+    if (screen === 'travel') return;
+    const stage = stageForScreen(screen, overlay);
+    if (!stage || stage === stageRef.current) return;
+    stageRef.current = stage;
+    void music.play(stage, placeIdRef.current);
+  }, [screen, overlay]);
+  // Browsers refuse sound before a gesture. The device may open a moment after the
+  // screen has already moved, so play whatever stage is current rather than home.
   useEffect(() => {
     const unlock = () => {
-      void music.unlock().then(() => music.play('home', placeRef.current));
+      void music.unlock().then(() => {
+        const stage = stageForScreen(screenRef.current, overlayRef.current);
+        if (stage) void music.play(stage, placeIdRef.current);
+      });
       window.removeEventListener('pointerdown', unlock, true);
       window.removeEventListener('keydown', unlock, true);
     };
@@ -55,8 +73,6 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
     window.addEventListener('keydown', unlock, true);
     return () => { window.removeEventListener('pointerdown', unlock, true); window.removeEventListener('keydown', unlock, true); };
   }, []);
-  useEffect(() => { engine.setPowerSaver(powerSaver); }, [powerSaver]);
-  const [overlay, setOverlay] = useState<Overlay>(null);
   const [busy, setBusy] = useState(false);
   const run = async (fn: () => Promise<void>) => { setBusy(true); try { await fn(); } finally { setBusy(false); } };
 
@@ -106,8 +122,8 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
   const [toast, setToast] = useState(false);
   const [toastMuted, setToastMuted] = useState(false);
   const lastToast = useRef(0);
-  const screenRef = useRef(screen); screenRef.current = screen;
   const placeRef = useRef(placeId); placeRef.current = placeId;
+  placeIdRef.current = placeId;
   const mutedRef = useRef(toastMuted); mutedRef.current = toastMuted;
   useEffect(() => { setOnline(presence.online); }, []); // the socket may have opened before this component subscribed
   useEffect(() => presence.on((e) => {
@@ -187,9 +203,10 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
       b.confirm(c);
       if (!b.isSettled) {
         presence.burn(lightPlace, c.id, () => b.elapsed()); setScreen('burning');
-        void music.play('ignite', lightPlace);
         void engine.ignite({ onCatch: () => {
-          if (burnRef.current === b && !b.isSettled) { setCaught(true); void music.play('burn', lightPlace); }
+          // The ignite cue is timed to the flame catching, and its own end hands over
+          // to the burning bed; starting the bed here would cut it off.
+          if (burnRef.current === b && !b.isSettled) { setCaught(true); void music.play('ignite', lightPlace); }
         } })
           .catch(() => { if (!b.isSettled) b.settle('put_out'); });
       }
