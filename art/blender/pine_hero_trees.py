@@ -58,14 +58,14 @@ def needle_fascicle(anchor, following, spread, reach, rng, dense):
         side = axis.cross(Vector((1., 0., 0.)))
     side.normalize()
     up = axis.cross(side)
-    for blade in range(5 if dense else 3):
-        angle = spread + blade * 2.39 + rng.uniform(-.49, .49)
+    for blade in range(7 if dense else 6):
+        angle = spread + blade * 2.39 + rng.uniform(-.32, .32)
         radial = math.cos(angle) * side + math.sin(angle) * up
         length = reach * rng.uniform(.71, 1.24)
         flare = rng.uniform(.44, .91)
         tip = anchor + axis * (length * rng.uniform(.75, 1.04)) + radial * (length * flare)
         shoulder = anchor + (tip - anchor) * .53 + radial * (length * rng.uniform(-.14, .06))
-        width = rng.uniform(.0025, .0049) if dense else rng.uniform(.024, .038)
+        width = rng.uniform(.0016, .0042) if dense else rng.uniform(.0045, .0095)
         yield anchor, shoulder, tip, width
 
 
@@ -81,7 +81,7 @@ def grow_crown(name, profile, trunk, phase, bark, write_wood, *, dense=False):
         # crown toward the open side of the ridge.
         f = layer + rng.uniform(-.019, .017)
         origin = trunk_point(trunk, f)
-        angle = phase + order * 2.34 + rng.uniform(-.54, .54)
+        angle = phase + order * 2.34 + .81 * math.sin(order * 1.41) + rng.uniform(-.42, .42)
         forward = Vector((math.cos(angle), 0., math.sin(angle)))
         side = forward.cross(world_up)
         upper_crown = (layer - profile.levels[0]) / (1 - profile.levels[0])
@@ -102,7 +102,7 @@ def grow_crown(name, profile, trunk, phase, bark, write_wood, *, dense=False):
                    bark, 6 if dense else 5)
 
         divisions = (0., .24, .57, .81, 1.)
-        for fork, t in enumerate((.25, .42, .59, .73, .89) if dense else (.42, .69, .88)):
+        for fork, t in enumerate((.18, .29, .43, .56, .68, .80, .93)):
             t += rng.uniform(-.039, .035)
             lower = next(i for i, end in enumerate(divisions[1:]) if t <= end)
             blend = (t - divisions[lower]) / (divisions[lower + 1] - divisions[lower])
@@ -110,13 +110,13 @@ def grow_crown(name, profile, trunk, phase, bark, write_wood, *, dense=False):
             sign = -1 if (fork + order) % 2 else 1
             axis = (forward * rng.uniform(.47, .97) + side * sign * rng.uniform(.37, .89) +
                     world_up * rng.uniform(.04, .68)).normalized()
-            length = reach * rng.uniform(.34, .58) * (1 - .54 * t)
+            length = reach * rng.uniform(.40, .66) * (1 - .48 * t)
             elbow = root + axis * (length * .48) - world_up * (length * .035)
             tip = root + axis * length + world_up * (length * rng.uniform(.07, .21))
             write_wood(f'{label} lateral twig {fork + 1}', [root, elbow, tip],
                        [length * factor for factor in (.040, .023, .004)], bark, 5 if dense else 3)
 
-            buds = (.14, .29, .44, .56, .68, .81, .96) if dense else (.20, .39, .61, .78, .96)
+            buds = (.12, .21, .31, .42, .55, .65, .76, .87, .97) if dense else (.18, .36, .55, .72, .92)
             for bud, position in enumerate(buds):
                 # Alternate live shoots along the twig instead of making an
                 # umbrella with a separate flat bundle at the end.
@@ -126,7 +126,7 @@ def grow_crown(name, profile, trunk, phase, bark, write_wood, *, dense=False):
                 younger += world_up * rng.uniform(-.16, .43)
                 spread = rng.uniform(-math.pi, math.pi)
                 length_scale = min(1.26, max(.72, height / 8))
-                leaf = rng.uniform(.164, .256) * length_scale * (1 - .34 * upper_crown)
+                leaf = rng.uniform(.102, .212) * length_scale * (1 - .29 * upper_crown)
                 if dense and bud in (1, 3, 5):
                     stem = anchor + younger.normalized() * (leaf * rng.uniform(.45, .76))
                     write_wood(f'{label} new shoot {fork + 1}.{bud + 1}', [anchor, stem],
@@ -135,6 +135,9 @@ def grow_crown(name, profile, trunk, phase, bark, write_wood, *, dense=False):
                         needles.extend(needle_fascicle(anchor.lerp(stem, f), younger, spread + f,
                                                         leaf * .78, rng, dense))
                 needles.extend(needle_fascicle(anchor, younger, spread, leaf, rng, dense))
+                if not dense and bud == 3:
+                    needles.extend(needle_fascicle(anchor, younger + world_up * .24,
+                                                    spread + 1.1, leaf * .87, rng, dense))
 
     for level in (.88, .91, .941, .966, .982):
         root = trunk_point(trunk, level)
@@ -144,8 +147,8 @@ def grow_crown(name, profile, trunk, phase, bark, write_wood, *, dense=False):
     return needles
 
 
-def needle_mesh(needles):
-    """Tapered triangular needle sections, metric UV1, and rooted wind UV0."""
+def needle_mesh(needles, *, compact=False):
+    """Tapered needle sections, metric UV1, and rooted wind UV0."""
 
     points, faces, charts, wind = [], [], [], []
     for root, shoulder, tip, width in needles:
@@ -156,6 +159,17 @@ def needle_mesh(needles):
         across.normalize()
         around = axis.cross(across)
         start = len(points)
+        terminal = (tip - shoulder).length
+        stem = (shoulder - root).length
+        if compact:
+            # Two bent faces keep each sub-centimetre needle attached while the
+            # lower triangle budget buys several times as many live fascicles.
+            points.extend((root, shoulder - across * width, shoulder + across * width, tip))
+            wind.extend(((.5, 0.), (0., .52), (1., .52), (.5, 1.)))
+            faces.extend(((start, start + 2, start + 1), (start + 1, start + 2, start + 3)))
+            charts.extend((((0., -stem), (width, 0.), (-width, 0.)),
+                           ((-width, 0.), (width, 0.), (0., terminal))))
+            continue
         for center, scale, extent in ((root, .45, 0.), (shoulder, 1., .52)):
             for index in range(3):
                 angle = index * math.tau / 3
@@ -164,8 +178,7 @@ def needle_mesh(needles):
                 wind.append((index / 2, extent))
         points.append(tip)
         wind.append((.5, 1.))
-        terminal = (tip - shoulder).length
-        span = (shoulder - root).length + terminal
+        span = stem + terminal
         net = []
         # Unroll all three sides about one tip, with a seam on the back.
         # The two rings follow their actual taper and share each net edge.

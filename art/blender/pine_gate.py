@@ -741,7 +741,7 @@ def hero_pine_crown(label, trunk, phase, bark, material):
     if label == 'Back ridge pine 5':
         phase += .9
     needles = grow_crown(label, profile, trunk, phase, bark, bark_tube)
-    points, faces, charts, wind = needle_mesh(needles)
+    points, faces, charts, wind = needle_mesh(needles, compact=True)
     canopy = mesh.mesh_object(f'{label} hero needle fascicles', points, faces, material, 'approach')
     source_uv(canopy, charts, 'Separate needle section nets in metres, with pinned stem UV0.')
     uv = canopy.data.uv_layers['UVMap'].data
