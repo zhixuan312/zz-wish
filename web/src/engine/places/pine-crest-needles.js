@@ -23,7 +23,7 @@ function randomFrom(seed) {
 
 function makeProfile(seed, shoots) {
   const random = randomFrom(seed);
-  const positions = [], colors = [], indices = [];
+  const positions = [], colors = [], indices = [], bendWeights = [];
   const deepGreen = new THREE.Color(0x2c4522);
   const youngGreen = new THREE.Color(0x647944);
   const twigBrown = new THREE.Color(0x55492b);
@@ -31,8 +31,9 @@ function makeProfile(seed, shoots) {
   const root = shoot.clone(), needle = shoot.clone(), tip = shoot.clone();
   const shoulder = shoot.clone(), side = shoot.clone(), point = shoot.clone();
   const color = deepGreen.clone();
-  const add = (point, light) => {
+  const add = (point, light, weight) => {
     positions.push(point.x, point.y, point.z);
+    bendWeights.push(weight);
     colors.push(color.r * light, color.g * light, color.b * light);
   };
 
@@ -50,6 +51,11 @@ function makeProfile(seed, shoots) {
       return target.copy(shoot).multiplyScalar(length * t)
         .addScaledVector(across, bend * arc).addScaledVector(above, lift * arc);
     };
+    const elbowWeight = twigAt(point, elbow).z ** 2, tipWeight = twigAt(point, 1).z ** 2;
+    // Interpolate the bent twig between the same two bearings used by
+    // the mesh so both needles still meet it after the instance bends.
+    const bendWeightAt = t => t < elbow ? elbowWeight * t / elbow
+      : elbowWeight + (tipWeight - elbowWeight) * (t - elbow) / (1 - elbow);
     const twigStart = positions.length / 3;
     color.copy(twigBrown);
     for (const [t, radius] of [[0, .009], [elbow, .006]]) {
@@ -58,10 +64,10 @@ function makeProfile(seed, shoots) {
         const angle = phase + edge * 2 * Math.PI / 3;
         point.copy(root).addScaledVector(across, radius * Math.cos(angle))
           .addScaledVector(above, radius * Math.sin(angle));
-        add(point, .84 + t * .16);
+        add(point, .84 + t * .16, bendWeightAt(t));
       }
     }
-    add(twigAt(root, 1), 1);
+    add(twigAt(root, 1), 1, tipWeight);
     for (let edge = 0; edge < 3; edge++) {
       const a = twigStart + edge, b = twigStart + (edge + 1) % 3;
       indices.push(a, b, b + 3, a, b + 3, a + 3, a + 3, b + 3, twigStart + 6);
@@ -72,6 +78,8 @@ function makeProfile(seed, shoots) {
       const age = (pair + random() * .72) / pairCount;
       const at = .28 + .71 * (.52 * age + .48 * Math.sqrt(age));
       twigAt(root, at);
+      const bias = bendWeightAt(at) - root.z ** 2;
+      const addNeedle = (point, light) => add(point, light, point.z ** 2 + bias);
       const sheath = phase + pair * 2.39996 + (random() - .5) * .33;
       const bent = (twig + pair) % 3 === 0;
       for (const sign of [-1, 1]) {
@@ -87,26 +95,27 @@ function makeProfile(seed, shoots) {
         tip.copy(root).addScaledVector(needle, reach).addScaledVector(above, curl);
         color.copy(deepGreen).lerp(youngGreen, .15 + .66 * random());
         const start = positions.length / 3;
-        // Short tapered strips add overlap between the bent needles.
+        // Tapered strips add overlap between the bent needles.
         // Both forms share a sheath on the twig.
-        add(root, .72);
+        addNeedle(root, .72);
         shoulder.copy(root).addScaledVector(needle, reach * .32).addScaledVector(above, curl * .10);
-        add(shoulder.addScaledVector(side, width), .92);
+        addNeedle(shoulder.addScaledVector(side, width), .92);
         shoulder.copy(root).addScaledVector(needle, reach * .47).addScaledVector(above, curl * .22);
-        add(shoulder.addScaledVector(side, -width * .97), .94);
+        addNeedle(shoulder.addScaledVector(side, -width * .97), .94);
         indices.push(start, start + 1, start + 2, start + 1, start + 3, start + 2);
         if (bent) {
           shoulder.copy(root).addScaledVector(needle, reach * .70).addScaledVector(above, curl * .49);
-          add(shoulder.addScaledVector(side, width * .54), 1.02);
+          addNeedle(shoulder.addScaledVector(side, width * .54), 1.02);
           indices.push(start + 3, start + 4, start + 2);
         }
-        add(tip, 1.13);
+        addNeedle(tip, 1.13);
       }
     }
   }
   const geometry = new THREE.BufferGeometry();
   geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
   geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+  geometry.setAttribute('pineCrestWeight', new THREE.Float32BufferAttribute(bendWeights, 1));
   geometry.setIndex(indices);
   geometry.computeVertexNormals();
   geometry.computeBoundingSphere();
@@ -133,12 +142,12 @@ export function buildPineCrestNeedles(geometryFingerprint, authoring) {
   });
   material.onBeforeCompile = shader => {
     // Small seeded bends distinguish the pads without moving their mounts.
-    shader.vertexShader = 'attribute vec2 pineCrestBend;\n' + shader.vertexShader
+    shader.vertexShader = 'attribute vec2 pineCrestBend;\nattribute float pineCrestWeight;\n' + shader.vertexShader
       .replace('#include <beginnormal_vertex>', `#include <beginnormal_vertex>
         objectNormal.z -= 2. * position.z * dot(pineCrestBend, objectNormal.xy);
       `)
       .replace('#include <begin_vertex>', `#include <begin_vertex>
-        transformed.xy += pineCrestBend * position.z * position.z;
+        transformed.xy += pineCrestBend * pineCrestWeight;
       `);
   };
   const group = new THREE.Group();
