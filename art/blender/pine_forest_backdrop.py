@@ -26,6 +26,8 @@ from snow_roof import color, point
 STATIONS = (29., 23., 17., 11.7, 8.4)
 # The middle canopy still fills the first uphill view after the near plane fades.
 DETAIL_PLATE_WIDTH = {17.: 1764}
+SHADED_UNDERSTORY_STATION = 17.
+LEAF_AXIAL_PIGMENT = 'Leaf axial pigment'
 PLATE_WIDTH = 18.
 PLATE_HEIGHT = 14.
 CENTER_Y = 6.9
@@ -92,7 +94,7 @@ def forest_trees(layer, station, index, prototypes, rng):
             layer.objects.link(tree)
 
 
-def leaf_material(name, hex_color, roughness):
+def leaf_material(name, hex_color, roughness, matte):
     material = bpy.data.materials.new(name)
     material.diffuse_color = color(hex_color)
     material.use_nodes = True
@@ -101,11 +103,28 @@ def leaf_material(name, hex_color, roughness):
     shader.inputs['Roughness'].default_value = roughness
     shader.inputs['Subsurface Weight'].default_value = .11
     shader.inputs['Subsurface Radius'].default_value = (.03, .06, .02)
+    if matte:
+        shader.inputs['Roughness'].default_value = .66
+        shader.inputs['Specular IOR Level'].default_value = .26
+        nodes, links = material.node_tree.nodes, material.node_tree.links
+        blade = nodes.new('ShaderNodeAttribute')
+        blade.attribute_name = LEAF_AXIAL_PIGMENT
+        pigment = nodes.new('ShaderNodeValToRGB')
+        pigment.label = 'Matte pinna margins and lit midrib'
+        ramp = pigment.color_ramp
+        ramp.interpolation = 'EASE'
+        rgb = material.diffuse_color[:3]
+        for stop, position, multiplier in zip(ramp.elements, (.12, .81),
+                                             ((.58, .65, .52), (.90, .96, .86)), strict=True):
+            stop.position = position
+            stop.color = (*(channel * scale for channel, scale in zip(rgb, multiplier, strict=True)), 1.)
+        links.new(blade.outputs['Fac'], pigment.inputs['Fac'])
+        links.new(pigment.outputs['Color'], shader.inputs['Base Color'])
     return material
 
 
-def understory_materials():
-    return [leaf_material(name, tint, roughness) for name, tint, roughness in (
+def understory_materials(matte=False):
+    return [leaf_material(name, tint, roughness, matte) for name, tint, roughness in (
         ('Mature shaded fern', '#455532', .47),
         ('Fern pinnae in open gaps', '#6c7945', .43),
         ('New fern growth', '#788752', .46),
@@ -170,6 +189,11 @@ def forest_undergrowth(layer, station, index, materials, rng):
 
     data = bpy.data.meshes.new(f'Forest slice {index + 1} fern pinnae and wild leaves')
     data.from_pydata(points, [], faces)
+    if station == SHADED_UNDERSTORY_STATION:
+        # Each blade lists its base, two margins alternating with the tip,
+        # and then its midrib. The pigment leaves geometry and coverage intact.
+        axial_pigment = data.attributes.new(LEAF_AXIAL_PIGMENT, 'FLOAT', 'POINT')
+        axial_pigment.data.foreach_set('value', (1., 0., 1., 0., 1.) * (len(points) // 5))
     for material in materials:
         data.materials.append(material)
     data.polygons.foreach_set('material_index', slots)
@@ -224,13 +248,14 @@ def render_plates(options):
               'encoding': 'log2-8-8', 'alpha': 'straight', 'webpQuality': options.quality,
               'preExposure': PRE_EXPOSURE, 'pixelFilterWidth': scene.cycles.filter_width}
     for index, station in enumerate(STATIONS):
-        if station > options.nearest:
+        if station > options.nearest or (options.station is not None and station != options.station):
             continue
         rng = random.Random(6143 + 107 * index)
         layer = bpy.data.collections.new(f'Forest approach depth {station:g} m')
         scene.collection.children.link(layer)
         forest_trees(layer, station, index, prototypes, rng)
-        forest_undergrowth(layer, station, index, foliage, rng)
+        materials = understory_materials(matte=True) if station == SHADED_UNDERSTORY_STATION else foliage
+        forest_undergrowth(layer, station, index, materials, rng)
         camera.location = point((0., CENTER_Y, station + 22.))
         camera.data.clip_end = 36.
         width = max(options.width, DETAIL_PLATE_WIDTH.get(station, options.width))
@@ -270,5 +295,6 @@ if __name__ == '__main__':
     parser.add_argument('--samples', type=int, default=8)
     parser.add_argument('--quality', type=int, default=76)
     parser.add_argument('--nearest', type=float, default=29.)
+    parser.add_argument('--station', type=float, choices=STATIONS, help='Render just this depth in metres.')
     options = parser.parse_args(sys.argv[sys.argv.index('--') + 1:])
     render_plates(options)
