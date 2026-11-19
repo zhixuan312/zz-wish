@@ -165,7 +165,7 @@ function refinedWaxMaterial(light, layer) {
         vec3 transmission = exp(-absorption * path);
         float edge = .71 + .29 * pow(1. - abs(dot(normal, viewRay)), 1.45);
         float crownFalloff = ${shaft ? 'exp(-depth * 13.)' : '1. - smoothstep(.006, .046, depth)'};
-        float scatter = sourceFraction * edge * (.08 + .92 * side) * ${style.scatter};
+        float scatter = sourceFraction * edge * (.08 + .92 * side) * float(${style.scatter});
         totalEmissiveRadiance += uPineSourceColor * transmission * scatter * crownFalloff ${shaft ? '* (1. + .12 * poreLip - .10 * bubble)' : ''};
         ${wet ? `
         // The film climbing the wick turns a narrow part of the liquid surface
