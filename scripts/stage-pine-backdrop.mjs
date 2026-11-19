@@ -3,6 +3,8 @@ import { createHash } from 'node:crypto';
 import { copyFile, mkdir, readFile, stat, writeFile } from 'node:fs/promises';
 import { basename, join, resolve } from 'node:path';
 import { parseArgs } from 'node:util';
+import { read as readKtx, KHR_DF_MODEL_ETC1S, KHR_DF_PRIMARIES_BT709, KHR_DF_TRANSFER_LINEAR,
+  KHR_SUPERCOMPRESSION_BASISLZ, KHR_SUPERCOMPRESSION_ZSTD } from 'three/examples/jsm/libs/ktx-parse.module.js';
 import projection from '../shared/pine-gate-backdrop.json' with { type: 'json' };
 import { readPineBackdrop, readPineWaxNormal } from '../web/src/engine/baked/pineManifest.js';
 
@@ -20,6 +22,19 @@ if (highTrees && !high && !walk) throw new Error('High trees require a backdrop 
 if ([near, plates, sculpt, high, walk, highTrees].includes(out)) throw new Error('Use a new staging directory.');
 const readJSON = async path => JSON.parse(await readFile(path, 'utf8'));
 const digest = data => createHash('sha256').update(data).digest('hex');
+function checkWalkPlate(body, uri) {
+  const ktx = readKtx(body);
+  const [format] = ktx.dataFormatDescriptor;
+  // Basis UASTC has model ID 166. KTX2Loader targets a hardware block format.
+  const basis = ktx.supercompressionScheme === KHR_SUPERCOMPRESSION_BASISLZ && format.colorModel === KHR_DF_MODEL_ETC1S;
+  const uastc = ktx.supercompressionScheme === KHR_SUPERCOMPRESSION_ZSTD && format.colorModel === 166;
+  if (ktx.vkFormat !== 0 || ktx.pixelWidth !== projection.width || ktx.pixelHeight !== projection.height
+    || ktx.pixelDepth || ktx.layerCount || ktx.faceCount !== 1 || ktx.levels.length !== 1 || !(basis || uastc)
+    || ktx.keyValue.KTXorientation !== 'ru' || format.colorPrimaries !== KHR_DF_PRIMARIES_BT709
+    || format.transferFunction !== KHR_DF_TRANSFER_LINEAR || format.flags !== 0) {
+    throw new Error(`Expected a bottom-up, linear, single-level native Basis KTX2 walk asset: ${uri}`);
+  }
+}
 const nearManifest = await readFile(join(near, 'manifest.json'));
 const manifest = JSON.parse(nearManifest);
 if (manifest.place !== 'pine-gate' || manifest.backdrop || manifest.waxSculpt) {
@@ -96,11 +111,7 @@ for (const [directory, file, source = file.uri] of sourceFiles) {
   if (basename(file.uri) !== file.uri || basename(source) !== source) throw new Error('Delivery expects a local asset name.');
   const body = await readFile(join(directory, source));
   if (body.length !== file.bytes || digest(body) !== file.sha256) throw new Error(`Stale delivery asset ${file.uri}`);
-  if (directory === walk && (body.length < 104 || body.subarray(0, 12).toString('hex') !== 'ab4b5458203230bb0d0a1a0a'
-    || body.readUInt32LE(12) !== 0 || body.readUInt32LE(20) !== projection.width || body.readUInt32LE(24) !== projection.height
-    || body.readUInt32LE(36) !== 1 || body.readUInt32LE(40) !== 1 || ![1, 2].includes(body.readUInt32LE(44)))) {
-    throw new Error(`Expected a single-level native Basis KTX2 walk asset: ${file.uri}`);
-  }
+  if (directory === walk) checkWalkPlate(body, file.uri);
 }
 
 manifest.payloadBytes = manifest.files.reduce((sum, { bytes }) => sum + bytes, 0);

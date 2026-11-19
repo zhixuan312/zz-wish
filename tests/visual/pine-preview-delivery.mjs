@@ -62,22 +62,28 @@ export async function measurePineRealismBase(worktree, preview, ordinaryManifest
   assert.equal(sha256(sharedBytes), shared.sha256);
 
   const combinedPackageBytes = [...preview.assets.values()].reduce((bytes, asset) => bytes + asset.body.length, 0);
-  const { high, ...base } = preview.backdrop ?? {};
+  const { walk, high, ...base } = preview.backdrop ?? {};
   const imageBytes = tier => Object.values(tier?.files ?? {}).reduce((bytes, file) => bytes + preview.assets.get(file.uri).body.length, 0);
   // The entire manifest, all ambient banks and the shared LUT belong to base.
-  // Only separately declared and verified desktop bodies can be deferred.
+  // The two streaming tiers are separately declared and verified.
   const highTreeBytes = high?.trees ? preview.assets.get(high.trees.uri).body.length : 0;
   const highBytes = imageBytes(high) + highTreeBytes;
-  const packageBytes = combinedPackageBytes - highBytes;
+  const walkBytes = imageBytes(walk);
+  const packageBytes = combinedPackageBytes - highBytes - walkBytes;
   const totalBytes = packageBytes + sharedBytes.length;
   const limitBytes = 15_000_000;
   assert(totalBytes <= limitBytes, `R1 base payload is ${totalBytes} bytes and exceeds ${limitBytes} bytes.`);
   const combinedBytes = combinedPackageBytes + sharedBytes.length;
   const combinedLimitBytes = 40_000_000;
+  const phoneBytes = totalBytes + walkBytes;
+  const phoneLimitBytes = 30_000_000;
+  if (walk) assert(phoneBytes <= phoneLimitBytes, `Pine Gate phone payload is ${phoneBytes} bytes and exceeds ${phoneLimitBytes} bytes.`);
   assert(combinedBytes <= combinedLimitBytes, `Pine Gate combined payload is ${combinedBytes} bytes and exceeds ${combinedLimitBytes} bytes.`);
   return { totalBytes, limitBytes, packageBytes, sharedAgXBytes: sharedBytes.length,
-    backdrop: preview.backdrop ? { ...base, bytes: imageBytes(base), ...(high ? { high: { ...high, bytes: imageBytes(high), ...(highTreeBytes ? { treeBytes: highTreeBytes } : {}) } } : {}) } : null,
-    ...(high ? { combinedBytes, combinedLimitBytes, combinedPackageBytes, highBytes } : {}),
+    backdrop: preview.backdrop ? { ...base, bytes: imageBytes(base), ...(walk ? { walk: { ...walk, bytes: walkBytes } } : {}),
+      ...(high ? { high: { ...high, bytes: imageBytes(high), ...(highTreeBytes ? { treeBytes: highTreeBytes } : {}) } } : {}) } : null,
+    ...(walk ? { walkBytes, phoneBytes, phoneLimitBytes } : {}),
+    ...(walk || high ? { combinedBytes, combinedLimitBytes, combinedPackageBytes, highBytes } : {}),
     waxNormal: preview.waxNormal };
 }
 
@@ -103,8 +109,9 @@ export function assertPineRuntimeImages(state, preview, fetched, checkView = fal
     assert(plane.front.every((value, axis) => Math.abs(value + forward[axis]) < 1e-8), `${plane.name} projection rotated.`);
     assert(Math.abs(plane.size[1] - height) < 1e-8 && Math.abs(plane.size[0] - height * projection.width / projection.height) < 1e-8,
       `${plane.name} projection aperture changed.`);
-    assert.equal(plane.uri, backdrop.files[plane.name].uri);
-    assert.deepEqual(plane.pixels, [backdrop.width, backdrop.height]);
+    const plate = backdrop.walk && plane.high?.mix === 1 ? backdrop.walk : backdrop;
+    assert.equal(plane.uri, plate.files[plane.name].uri);
+    assert.deepEqual(plane.pixels, [plate.width, plate.height]);
     assert(plane.opacity === 1 && plane.depthTest && !plane.depthWrite, `${plane.name} daytime compositing changed.`);
     if (checkView) assert(plane.viewportCenterUv?.every(value => value > .015 && value < .985), `${plane.name} is outside the product camera aperture.`);
     if (index > 0) assert(plane.renderOrder > state.backdrop.planes[index - 1].renderOrder, 'Backdrops must composite far to near.');
@@ -112,17 +119,29 @@ export function assertPineRuntimeImages(state, preview, fetched, checkView = fal
 }
 
 export function inspectPineHighBackdrop(state, preview, fetched) {
-  const tier = preview.backdrop?.high;
-  if (!tier) return null;
+  return inspectBackdropUpgrade(state, preview.backdrop?.high, fetched);
+}
+
+export function inspectPineWalkBackdrop(state, preview, fetched) {
+  return inspectBackdropUpgrade(state, preview.backdrop?.walk, fetched, true);
+}
+
+function inspectBackdropUpgrade(state, tier, fetched, expectCompressed = false) {
+  if (!tier?.files) return null;
   const planes = state.backdrop.planes;
   const mix = planes[0].high?.mix;
   assert(Number.isFinite(mix) && mix >= 0 && mix <= 1, 'Missing bounded high backdrop mix.');
-  let loaded = 0;
+  let loaded = 0, gpuBytes = 0;
   for (const plane of planes) {
     const { high } = plane;
     assert.equal(high?.mix, mix, 'High backdrop layers must transition together.');
     if (high.uri === tier.files[plane.name].uri) {
       assert.deepEqual(high.pixels, [tier.width, tier.height]);
+      if (expectCompressed) {
+        assert(high.compressed && Number.isSafeInteger(high.gpuBytes) && high.gpuBytes > 0,
+          'Walk plates must remain compressed on the GPU.');
+        gpuBytes += high.gpuBytes;
+      }
       loaded++;
     } else {
       assert.equal(high.uri, plane.uri, 'A high backdrop slot sampled an unverified image.');
@@ -133,11 +152,15 @@ export function inspectPineHighBackdrop(state, preview, fetched) {
   assert(mix === 0 || loaded === planes.length, 'High backdrop mixed before the full tier was ready.');
   const requested = Object.values(tier.files).map(file => file.uri).filter(uri => fetched.includes(uri));
   if (loaded) assert.equal(requested.length, planes.length, 'A high backdrop plate was used before its verified request.');
-  return { status: mix === 1 ? 'active' : loaded ? 'transitioning' : requested.length ? 'base-fallback' : 'base', mix, requested };
+  if (expectCompressed) assert(gpuBytes <= tier.width * tier.height * planes.length,
+    'Walk plates exceed one compressed byte per native texel.');
+  return { status: mix === 1 ? 'active' : loaded ? 'transitioning' : requested.length ? 'base-fallback' : 'base', mix, requested,
+    ...(expectCompressed ? { gpuBytes } : {}) };
 }
 
-export async function routePinePreview(page, base, preview, onError, onServed) {
-  const imageUris = new Set([...Object.values(preview.backdrop?.files ?? {}), ...Object.values(preview.backdrop?.high?.files ?? {})].map(file => file.uri));
+export async function routePinePreview(page, base, preview, onError, onServed, waitForWalk) {
+  const walkUris = new Set(Object.values(preview.backdrop?.walk?.files ?? {}).map(file => file.uri));
+  const imageUris = new Set([...walkUris, ...[...Object.values(preview.backdrop?.files ?? {}), ...Object.values(preview.backdrop?.high?.files ?? {})].map(file => file.uri)]);
   if (preview.waxNormal) imageUris.add(preview.waxNormal.uri);
   if (preview.backdrop?.high?.trees) imageUris.add(preview.backdrop.high.trees.uri);
   await page.route(url => url.origin === base.origin && url.pathname.startsWith(pinePackagePath), async route => {
@@ -151,6 +174,7 @@ export async function routePinePreview(page, base, preview, onError, onServed) {
       await route.abort('blockedbyclient');
       return;
     }
+    if (walkUris.has(key)) await waitForWalk;
     await route.fulfill({ status: 200, body: asset.body, contentType: asset.contentType, headers: { 'cache-control': 'no-store' } });
     onServed(key);
   });

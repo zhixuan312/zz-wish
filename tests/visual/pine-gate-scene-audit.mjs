@@ -58,7 +58,9 @@ export function instrumentPineScene(source, { readiness, cadence, lighting, walk
   const group = place?.baked?.backdrop?.group;
   const wax = place?.baked?.waxNormal;
   if (!group && !wax) return null;
-  const image = (texture) => ({ uri: texture.name, pixels: [texture.image.width, texture.image.height] });
+  const image = (texture) => ({ uri: texture.name, pixels: [texture.image.width, texture.image.height],
+    ...(texture.isCompressedTexture ? { compressed: texture.format !== THREE.RGBAFormat,
+      gpuBytes: texture.mipmaps.reduce((total, mip) => total + mip.data.byteLength, 0) } : {}) });
   const eye = camera.getWorldPosition(V3());
   const ray = camera.getWorldDirection(V3());
   const trees = place?.baked?.highTrees?.group;

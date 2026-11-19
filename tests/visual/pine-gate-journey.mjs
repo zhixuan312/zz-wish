@@ -12,6 +12,7 @@ import { assertCaptureGpuHealthy, installCaptureGpuGuard } from './capture-prefl
 import { installLiveAudioAudit, sampleLiveAudio, sampleLiveAudioWindow } from './live-audio-audit.mjs';
 import { instrumentPineScene, readDirectionOverview } from './pine-gate-scene-audit.mjs';
 import { assertPineRuntimeImages, inspectPineHighBackdrop, measurePineRealismBase, pinePackagePath, readPinePreview, routePinePreview } from './pine-preview-delivery.mjs';
+import { watchPineWalkTier } from './pine-walk-tier-audit.mjs';
 
 if (process.argv.includes('--help')) {
   console.log([
@@ -34,6 +35,8 @@ if (process.argv.includes('--help')) {
     'CAPTURE_REALISM_ONLY=1 captures two daytime desktop frames and records phone performance under quality/r1/QUALITY_LABEL.',
     'CAPTURE_REALISM_BASE_ONLY=1 pins the realism desktop frames to base assets by disabling desktop high-tier requests.',
     'CAPTURE_REQUIRE_BACKDROP=1 requires the offline Cycles plates and readiness under 5 seconds in both realism contexts.',
+    'CAPTURE_WALK_TIER=1 audits native streaming at 20 seconds in daytime site or realism captures.',
+    'CAPTURE_WALK_TIER_SLOW=1 holds native responses through the full walk and checks the actual fade.',
     'CAPTURE_BROWSER and CAPTURE_ONLY can select a single context. PINE_HOUR defaults to 22.',
   ].join('\n'));
   process.exit(0);
@@ -54,10 +57,15 @@ const siteDayOnly = process.env.CAPTURE_SITE_DAY_ONLY === '1';
 const realismOnly = process.env.CAPTURE_REALISM_ONLY === '1';
 const realismBaseOnly = process.env.CAPTURE_REALISM_BASE_ONLY === '1';
 const requireBackdrop = process.env.CAPTURE_REQUIRE_BACKDROP === '1';
+const walkTierAudit = process.env.CAPTURE_WALK_TIER === '1';
+const slowWalkTier = process.env.CAPTURE_WALK_TIER_SLOW === '1';
 assert(!realismOnly || directionOnly, 'The realism proof requires CAPTURE_DIRECTION_ONLY=1.');
 assert(!siteDayOnly || (directionOnly && !realismOnly), 'The daytime site proof requires the site direction mode.');
 assert(!realismBaseOnly || realismOnly, 'The base-only proof requires CAPTURE_REALISM_ONLY=1.');
 assert(!requireBackdrop || realismOnly, 'The backdrop requirement is available for realism captures.');
+assert(!walkTierAudit || ((siteDayOnly || realismOnly) && !realismBaseOnly),
+  'The walk tier proof requires a daytime site or unpinned realism capture.');
+assert(!slowWalkTier || walkTierAudit, 'The slow walk test requires the walk tier proof.');
 const directionWalkFrames = realismOnly ? [['terrace-reveal-28s', 28]]
   : [['forest-06s', 6], ['ancient-pine-crest', 21.5], ['terrace-reveal-28s', 28]];
 const dayFrames = [...(siteDayOnly ? ['entrance'] : []), ...directionWalkFrames.map(([name]) => name),
@@ -145,7 +153,8 @@ if (fullJourney) {
     if (realismBaseOnly) assert(previewPackage.backdrop?.high, 'The base-only proof requires a candidate with the desktop high tier.');
     delivery = { preview, samples: previewPackage.samples, manifestSha256: previewPackage.manifestSha256,
       publicManifestSha256, transport: 'Private Playwright request routes for the candidate Pine Gate files.' };
-    if (realismOnly) delivery.realismBase = await measurePineRealismBase(worktree, previewPackage, manifest);
+    if (realismOnly || walkTierAudit) delivery.realismBase = await measurePineRealismBase(worktree, previewPackage, manifest);
+    if (walkTierAudit) assert(previewPackage.backdrop?.walk, 'Expected a walk-tier candidate.');
   } else delivery = { preview, samples: 64, manifestSha256: publicManifestSha256 };
 }
 if (directionOnly) {
@@ -306,6 +315,7 @@ async function capture(browser, browserName, size, trial) {
     ...(readinessOnly ? { trial } : {}), shots: [], records: [], errors: [] };
   report.runs.push(run);
   if (!run.realismPerformanceOnly) await mkdir(path, { recursive: true });
+  let walkAudit;
   try {
     await context.addInitScript(installCaptureGpuGuard);
     if (quality) await context.addInitScript(installLiveAudioAudit);
@@ -363,18 +373,19 @@ async function capture(browser, browserName, size, trial) {
     });
     if (previewPackage) {
       run.previewFetchedFiles = [];
+      if (walkTierAudit) walkAudit = watchPineWalkTier(page, base, previewPackage, run, { slow: slowWalkTier, phone });
       await routePinePreview(page, base, previewPackage, text => run.errors.push({ kind: 'preview', text }), name => {
         if (!run.previewFetchedFiles.includes(name)) run.previewFetchedFiles.push(name);
-      });
+      }, walkAudit?.waitForResponses);
     }
     const sceneAudit = {
       readiness: quality && !audioCompare,
       cadence: fullJourney && phone && !readinessOnly && !audioCompare && !ambientOnly,
       lighting: !!delivery && !audioCompare && !readinessOnly,
-      walkClock: direction?.name === 'day' && !phone,
+      walkClock: direction?.name === 'day' && (!phone || !!walkAudit),
       directionCamera: !!direction,
       solarProbe: realismOnly && !phone,
-      backdropProbe: realismOnly,
+      backdropProbe: realismOnly || !!walkAudit,
       realismBaseOnly: realismBaseOnly && !phone,
     };
     if (Object.values(sceneAudit).some(Boolean)) {
@@ -502,12 +513,18 @@ async function capture(browser, browserName, size, trial) {
       }
     };
     const travel = async (skip, journey = false) => {
+      await walkAudit?.enter();
       const started = performance.now();
       entryStartedAt = started;
       await act(button(bi('^Step inside$', '^走进院里$')));
-      if (skip) await act(button(bi('^Skip$', '^跳过$')));
+      if (skip && !walkAudit) await act(button(bi('^Skip$', '^跳过$')));
       if (direction?.name === 'day' && !phone) {
+        let observeCrest = !!walkAudit;
         for (const [name, target] of directionWalkFrames) {
+          if (observeCrest && target >= 20) {
+            await walkAudit.crest();
+            observeCrest = false;
+          }
           await page.waitForFunction(target => {
             const clock = window.__pineCaptureWalkClock;
             return clock?.id === 'pine-gate' && clock.seconds >= target && window.__walkProgress?.state === 'walking';
@@ -518,6 +535,8 @@ async function capture(browser, browserName, size, trial) {
           assert(shot.walkClock.seconds >= target && shot.walkClock.seconds <= target + .6, `Missed the ${target}s walk beat.`);
           assert(shot.walkClockAfter.seconds <= target + .9, `The screenshot crossed the ${target}s walk beat.`);
         }
+      } else if (walkAudit) {
+        await walkAudit.crest();
       } else if (journey) {
         for (const [name, target] of [['walk-25', .25], ['walk-50', .5], ['walk-75', .75]]) {
           await page.waitForFunction(target => {
@@ -529,6 +548,10 @@ async function capture(browser, browserName, size, trial) {
       }
       await matchStage(page, 'candle');
       if (journey || directionOnly) run.walkDurationMs = performance.now() - started;
+      if (walkAudit) {
+        assert(run.walkDurationMs < 33_000, 'The walk waited for native backdrop delivery.');
+        await walkAudit.settled();
+      }
     };
     const choose = async (custom = false) => {
       if (custom) {
@@ -717,6 +740,7 @@ async function capture(browser, browserName, size, trial) {
       }
       if (siteDayOnly) await captureShot('entrance');
       else if (!directionOnly) await captureShot('place');
+      if (walkAudit) assert(run.placeReadiness.wishToEnabledMs <= 5000, 'Wish to Step inside took more than 5 seconds.');
     }
     if (direction) {
       await travel(direction.name === 'night' || run.realismPerformanceOnly);
@@ -963,6 +987,7 @@ async function capture(browser, browserName, size, trial) {
     run.errors.push({ kind: 'capture', text: error.stack ?? String(error) });
     throw error;
   } finally {
+    walkAudit?.release();
     await context.close();
     await save();
   }
