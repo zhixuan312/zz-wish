@@ -679,6 +679,7 @@ def render_paddy_transport(scene, layers, pools, options, metadata):
     render.use_crop_to_border = True
     render.border_min_x, render.border_max_x = x0 / width, x1 / width
     render.border_min_y, render.border_max_y = y0 / height, y1 / height
+    render.image_settings.media_type = 'MULTI_LAYER_IMAGE'
     render.image_settings.file_format = 'OPEN_EXR_MULTILAYER'
     render.image_settings.color_depth = '32'
     render.image_settings.use_exr_interleave = True
