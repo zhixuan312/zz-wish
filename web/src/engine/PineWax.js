@@ -41,6 +41,10 @@ function materialCoordinates(shader) {
   shader.fragmentShader = `varying vec3 vPineLocal; varying vec3 vPineWorld;\n${shader.fragmentShader}`;
 }
 
+const POOL_PROFILE = [[1, 1], [.966, .75], [.924, .39], [.867, .12], [.72, -.045], [.47, -.068], [.23, -.021]];
+const WICK_FILM_PROFILE = [[1, 0], [.79, .052], [.61, .24], [.44, .52], [.29, .81], [.17, 1], [0, 1]];
+const POOL_RING_COUNT = POOL_PROFILE.length + WICK_FILM_PROFILE.length;
+
 const RELIEF_GLSL = `
   vec3 pineRelief(vec3 n, vec3 position, float height) {
     vec3 dx = dFdx(position), dy = dFdy(position);
@@ -72,6 +76,28 @@ function refinedWaxMaterial(light, layer) {
       uniform float uPineCandela, uPineSourceRadius, uPinePoolWet, uPineWaxCooling, uPineWaxHeight;
       uniform float uPineWaxTime, uPineWaxWind, uPinePoolRadius;
       ${RELIEF_GLSL}
+      ${wet ? `
+      // Approximate the short braided wick as a tapered stem so it can
+      // interrupt the reflected ray while the light above it remains visible.
+      float wickClearance(vec3 fromWick, vec3 ray, float travel, float invRise) {
+        float toTip = clamp(-fromWick.y * invRise, 0., travel);
+        vec3 end = fromWick + toTip * ray;
+        vec2 rootOffset = vec2(.00135, .00058);
+        vec2 startXZ = fromWick.xz + rootOffset * clamp(-fromWick.y / .00575, 0., 1.);
+        vec2 endXZ = end.xz + rootOffset * clamp(-end.y / .00575, 0., 1.);
+        vec2 segment = endXZ - startXZ;
+        float nearest = clamp(-dot(startXZ, segment) / max(dot(segment, segment), 1.e-10), 0., 1.);
+        return smoothstep(.00033, .00067, length(startXZ + nearest * segment));
+      }
+      float flameSlice(vec3 fromWick, vec3 ray, float invRise, float height, float radius) {
+        float travel = max(0., (height - fromWick.y) * invRise);
+        float bend = max(0., height);
+        vec2 drift = vec2((.00014 + bend * .046) * sin(uPineWaxTime * 2.3)
+          + bend * .23 * uPineWaxWind, .00020 * sin(uPineWaxTime * 1.57 + .4));
+        float radial = length(fromWick.xz + travel * ray.xz - drift) / radius;
+        return (1. - smoothstep(.25, 1., radial)) * step(1.e-6, travel)
+          * wickClearance(fromWick, ray, travel, invRise);
+      }` : ''}
       ${shader.fragmentShader}`;
     shader.fragmentShader = shader.fragmentShader.replace('#include <map_fragment>', `#include <map_fragment>
       vec3 grains = vPineLocal * 720.;
@@ -121,32 +147,20 @@ function refinedWaxMaterial(light, layer) {
         float scatter = sourceFraction * edge * (.08 + .92 * side) * ${style.scatter};
         totalEmissiveRadiance += uPineSourceColor * transmission * scatter * crownFalloff ${shaft ? '* (1. + .12 * poreLip - .10 * bubble)' : ''};
         ${wet ? `
-        // The glowing wick and flame base are a finite source. Project that
-        // source across the curved meniscus so the reflection moves with the
-        // view and disappears as the wax cools.
+        // The film climbing the wick turns a narrow part of the liquid surface
+        // toward the fire. Reflect finite slices of its blue, transition and
+        // gold volumes, sized to the same flame that sits above the wick.
         vec3 viewWorld = inverseTransformDirection(viewRay, viewMatrix);
         vec3 reflected = reflect(-viewWorld, worldNormal);
-        float reflectionDistance = (uPineWaxCrown.y + .0026 - vPineWorld.y) / max(.001, reflected.y);
-        vec2 flameDrift = vec2(.00062 * sin(uPineWaxTime * 3.17) + .0011 * uPineWaxWind,
-          .00049 * sin(uPineWaxTime * 2.09 + .4));
-        vec2 reflectedOffset = fromCrown.xz + max(0., reflectionDistance) * reflected.xz - flameDrift;
-        float reflectionRadius = length(reflectedOffset * vec2(.67, 1.));
-        float flameReflection = (1. - smoothstep(.0008, .0039, reflectionRadius)) * .62
-          + (1. - smoothstep(.0002, .00122, reflectionRadius)) * .38;
-        flameReflection *= smoothstep(.02, .10, reflected.y) * step(0., reflectionDistance);
-        float fresnel = .07 + .93 * pow(1. - max(0., dot(worldNormal, viewWorld)), 4.);
-        vec3 reflectionColor = mix(uPineSourceColor, vec3(1., .88, .70), .57);
-        vec3 wickEmitter = uPineWaxCrown + vec3(flameDrift.x, .0026, flameDrift.y);
-        vec3 highlightHalf = normalize(viewWorld + normalize(wickEmitter - vPineWorld));
-        float wetEdge = pow(max(dot(worldNormal, highlightHalf), 0.), 54.) * meniscus;
-        // A finite vertical flame also makes a long, weak streak on the near
-        // meniscus. Its narrow axis follows the viewing direction.
-        vec2 facing = normalize(viewWorld.xz + vec2(.0001));
-        vec2 streak = poolPoint - facing * (.49 * uPinePoolRadius) - flameDrift;
-        vec2 streakUV = vec2(dot(streak, vec2(-facing.y, facing.x)) * 800., dot(streak, facing) * 342.);
-        float meniscusStreak = exp(-dot(streakUV, streakUV)) * smoothstep(.1, .32, viewWorld.y);
-        totalEmissiveRadiance += reflectionColor
-          * ((.36 + fresnel * 2.8) * flameReflection + 1.48 * wetEdge + .43 * meniscusStreak)
+        float invRise = 1. / max(.001, reflected.y);
+        vec3 blue = vec3(.085, .16, .28) * flameSlice(fromCrown, reflected, invRise, -.0019, .00320);
+        vec3 transition = vec3(.41, .41, .60) * flameSlice(fromCrown, reflected, invRise, .0015, .00490);
+        vec3 goldLow = vec3(1.33, .91, .54) * flameSlice(fromCrown, reflected, invRise, .0044, .00507);
+        vec3 goldCore = vec3(2.10, 1.69, 1.11) * flameSlice(fromCrown, reflected, invRise, .0085, .00482);
+        vec3 goldHigh = vec3(1.95, 1.60, 1.05) * flameSlice(fromCrown, reflected, invRise, .012, .00424);
+        vec3 reflectedFlame = max(max(blue, transition), max(goldLow, max(goldCore, goldHigh)));
+        float fresnel = .031 + .969 * pow(1. - clamp(dot(worldNormal, viewWorld), 0., 1.), 5.);
+        totalEmissiveRadiance += reflectedFlame * fresnel * smoothstep(.02, .10, reflected.y)
           * sourceFraction * uPinePoolWet;` : ''}`);
     if (shaft) shader.fragmentShader = shader.fragmentShader.replace('#include <lights_fragment_end>', `#include <lights_fragment_end>
       // The convex dry lip scatters broadly while the concave wet surface
@@ -206,7 +220,7 @@ function refinedWaxMaterial(light, layer) {
           reflectedLight.indirectDiffuse += diffuseColor.rgb * vec3(.96, 1., 1.04) * spillBounce;`);
     }
   };
-  material.customProgramCacheKey = () => `pine-wax-detail-${layer}-1`;
+  material.customProgramCacheKey = () => `pine-wax-detail-${layer}-2`;
   return material;
 }
 
@@ -344,12 +358,18 @@ export function createPineTray(seat) {
 }
 
 function fillPool(mesh, radius, rise) {
-  const profile = [[1, 1], [.966, .75], [.924, .39], [.867, .12], [.72, -.045], [.47, -.068], [.23, -.021], [0, 0]];
   const perimeter = angle => 1 + .022 * Math.sin(angle * 3 + .8) + .012 * Math.sin(angle * 7 - .3);
-  for (let i = 0; i < profile.length; i++) {
-    const [r, y] = profile[i];
+  const write = (row, r, y) => {
     const relief = angle => rise * r * (.09 * Math.sin(angle * 2 + .3) + .048 * Math.sin(angle * 5 - .6));
-    writeRing(mesh, i, 0, radius * r, rise * y, perimeter, relief);
+    writeRing(mesh, row, 0, radius * r, y, perimeter, relief);
+  };
+  for (const [i, [r, y]] of POOL_PROFILE.entries()) write(i, r, rise * y);
+  // The wax wets the wick and falls back to the level pool. Keep that small
+  // meniscus inside the flat centre and below the dry lip even on thin stubs.
+  const filmRadius = Math.min(radius * .226, .00215);
+  const filmHeight = Math.min(.00092, rise * 1.25, filmRadius * .49);
+  for (const [i, [r, y]] of WICK_FILM_PROFILE.entries()) {
+    write(POOL_PROFILE.length + i, filmRadius * r / radius, filmHeight * y - .021 * rise * r);
   }
   finishSurface(mesh);
 }
@@ -620,7 +640,7 @@ export function createPineWax(seat, waxMaterial, { refined = false } = {}) {
   };
   const body = add(new THREE.BufferGeometry(), bodyMaterial);
   body.frustumCulled = false; // Small, moving vertices do not need a new bounding sphere each frame.
-  const poolMesh = refined ? surface(8, 64) : null;
+  const poolMesh = refined ? surface(POOL_RING_COUNT, 64) : null;
   const pool = add(poolMesh?.geometry ?? new THREE.CircleGeometry(1, 48).rotateX(-Math.PI / 2), poolMaterial);
   if (refined) pool.frustumCulled = false;
   const trace = add(makeTrace(refined), traceMaterial);
