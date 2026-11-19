@@ -16,6 +16,7 @@ ELEVATION = ROOT / 'web/src/engine/places/pine-gate-elevation.data.js'
 ELEVATION_SHA256 = '08775a297288efb8bf5d10cda9e83f5933fad67a893cc9a593d9e634b3e1c70b'
 FIELD_NEAR, FIELD_FAR = 87., 116.
 PADDY_WATER_DEPTH = .056
+PADDY_LEFT_WATER_MARGIN, PADDY_RIGHT_WATER_MARGIN = .336, .341
 LONG_BUND_RISE, LONG_BUND_VARIATION, CROSS_BUND_RISE = .106, .012, .104
 FAR_START = 214.
 OFFSETS = (-10.4, -7.6, -4.8, -1.7, 1.7, 4.8, 7.8, 10.6)
@@ -197,7 +198,8 @@ def bank_moisture(land, banks, spans):
         if depth not in ranges:
             river = land.east_water(depth)
             edges = [land.edge(depth, i, river) for i in range(len(OFFSETS))]
-            ranges[depth] = [(edges[bed['bed'] - 1] + .452, edges[bed['bed']] - .487,
+            ranges[depth] = [(edges[bed['bed'] - 1] + PADDY_LEFT_WATER_MARGIN,
+                              edges[bed['bed']] - PADDY_RIGHT_WATER_MARGIN,
                               max(0., bed['start'] - depth, depth - bed['end']), bed['water']) for bed in spans]
         candidates = ranges[depth]
         falloff = 0.
@@ -230,13 +232,13 @@ def paddies(land):
         bed, outer_left, outer_right = [], [], []
         for depth in ticks:
             x0, x1 = land.edge(depth, index), land.edge(depth, index + 1)
-            if x1 - x0 <= .95:
+            if x1 - x0 <= PADDY_LEFT_WATER_MARGIN + PADDY_RIGHT_WATER_MARGIN + .02:
                 raise ValueError(f'Paddy {index + 1} has no room for both banks at {depth:.3f} m.')
             cross = CROSS_BUND_RISE * clamp((.24 - min(abs(depth - c) for c in transverse)) / .155)
             crest = LONG_BUND_RISE + LONG_BUND_VARIATION * math.sin(depth * .41 + index * 1.21)
-            profile = ((.24, 0), (.31, crest), (.37, crest), (.46, 0),
-                       (x1 - x0 - .49, 0), (x1 - x0 - .41, crest), (x1 - x0 - .36, crest),
-                       (x1 - x0 - .30, 0))
+            profile = ((.15, 0), (.216, crest), (.267, crest), (.343, 0),
+                       (x1 - x0 - .345, 0), (x1 - x0 - .274, crest), (x1 - x0 - .225, crest),
+                       (x1 - x0 - .166, 0))
             row = [(x0 + offset, depth, base + max(h, cross)) for offset, h in profile]
             bed.append(row)
             if index:
@@ -266,7 +268,8 @@ def paddies(land):
         water_height = base + PADDY_WATER_DEPTH
         for a, b in spans:
             def edges(depth):
-                return land.edge(depth, index) + .452, land.edge(depth, index + 1) - .487
+                return (land.edge(depth, index) + PADDY_LEFT_WATER_MARGIN,
+                        land.edge(depth, index + 1) - PADDY_RIGHT_WATER_MARGIN)
 
             rows = []
             for depth in stations(a, b, 48):
