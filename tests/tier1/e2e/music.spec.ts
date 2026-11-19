@@ -97,6 +97,22 @@ test('a natural walk keeps its cue until it ends, then hands over to choose', as
   expect(cues.filter((c) => c.cue === 'snow_walk')).toHaveLength(1);
 });
 
+test('a manifest that never answers does not hold up the walk', async ({ page }) => {
+  const cues = recordCues(page);
+  // The cue list hangs forever: the request is accepted and never answered.
+  await page.route('**/music/manifest.json', () => new Promise(() => {}));
+  await reachPlace(page);
+  for (let i = 0; i < 1200; i++) {
+    if (await page.getByRole('button', { name: re('走进院里', 'Step inside') }).isEnabled().catch(() => false)) break;
+    await page.waitForTimeout(50);
+  }
+  await page.getByRole('button', { name: re('走进院里', 'Step inside') }).click();
+  // The game reaches the chooser with no cue list at all, and stays silent because
+  // it never learned which cues exist.
+  await page.getByRole('tab', { name: re('现成的', 'Ready-made') }).waitFor({ timeout: 60_000 });
+  expect(cues).toHaveLength(0);
+});
+
 test('Skip cuts the walk cue short and starts choose', async ({ page }) => {
   const cues = recordCues(page);
   await serveMusic(page, ['snow_walk', 'snow_choose_loop', 'snow_place_loop']);
