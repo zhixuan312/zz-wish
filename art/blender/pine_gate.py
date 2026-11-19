@@ -14,6 +14,8 @@ from mathutils import Matrix, Vector, noise
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import snow_roof as mesh
+from pine_hero_trees import CROWNS, grow_crown, needle_mesh
+from pine_impostors import load_impostors, relief_crown
 from pine_materials import apply_scan
 from pine_tea_shoulder import build_tea_shoulder
 from resting_contacts import RestingContacts, engine
@@ -726,6 +728,29 @@ def pine_sprays(name, sprays, tint, *, close=False):
             uv.data[i].uv = coordinate
 
 
+HERO_PINE_CROWNS = {
+    'Ancient western pine at the saddle': 'old',
+    'Ancient eastern pine at the saddle': 'old',
+    'Back ridge pine 5': 'young',
+    'Layered ridge pine 4': 'ridge',
+}
+
+
+def hero_pine_crown(label, trunk, phase, bark, material):
+    profile = CROWNS[HERO_PINE_CROWNS[label]]
+    if label == 'Back ridge pine 5':
+        phase += .9
+    needles = grow_crown(label, profile, trunk, phase, bark, bark_tube)
+    points, faces, charts, wind = needle_mesh(needles)
+    canopy = mesh.mesh_object(f'{label} hero needle fascicles', points, faces, material, 'approach')
+    source_uv(canopy, charts, 'Separate needle section nets in metres, with pinned stem UV0.')
+    uv = canopy.data.uv_layers['UVMap'].data
+    for face in canopy.data.polygons:
+        face.use_smooth = True
+        for loop, vertex in zip(face.loop_indices, face.vertices):
+            uv[loop].uv = wind[vertex]
+
+
 MODELLED_PINE_CROWNS = {
     'Back ridge pine 5', 'Back ridge pine 6',
     'Layered ridge pine 1', 'Layered ridge pine 2', 'Layered ridge pine 4',
@@ -845,7 +870,7 @@ def pine_bough(name, root, outward, reach, drift, droop, lift, bark, radial=5):
 
 
 def pine_tree(label, x, z, height, bark, needles, ground, roots=False, lean=None, crown_start=.38,
-              modelled_needles=None):
+              modelled_needles=None, far_crown=None):
     ancient = lean is not None
     y = supports_height(x, z, [ground]) - .26
     drift = RANDOM.uniform(-.95, .95) if lean is None else lean
@@ -876,6 +901,7 @@ def pine_tree(label, x, z, height, bark, needles, ground, roots=False, lean=None
             end = (x2, supports_height(x2, z2, [ground]) - .044, z2)
             bark_tube(f'{label} exposed buttress root', [start, middle, end],
                       [.074 * reach_scale, .038 * reach_scale, .008], bark, 7)
+    profile = HERO_PINE_CROWNS.get(label)
     carries_forks = ancient or (z < 3 and abs(x) < 8)
     shoots = []
     crown_rng = random.Random(label)
@@ -890,6 +916,10 @@ def pine_tree(label, x, z, height, bark, needles, ground, roots=False, lean=None
              spread, roll, leader, outer_turn, outer_lift, size, fork_reach, inner_width, outer_size) = [
                 RANDOM.random() for _ in range(18)
             ]
+            if profile or far_crown:
+                # Keep the shared RNG cursor stable for unswapped trees and
+                # undergrowth that follow this crown in the source.
+                continue
             heading += phase + i * 2.38 + bough * (2.34 + .95 * side_turn)
             direction = Vector((math.cos(heading), 0, math.sin(heading)))
             side_vector = Vector((-direction.z, 0, direction.x))
@@ -920,6 +950,13 @@ def pine_tree(label, x, z, height, bark, needles, ground, roots=False, lean=None
             sprays = [(inner, inner_axis, length, length * (1.04 + inner_width * .36), roll - .5),
                       (outer, outer_axis, length * (.76 + outer_size * .20), length * 1.02, roll + .82)]
             pine_sprays(f'{label} needle clusters {i} {bough}', sprays, needles, close=carries_forks or z < 3)
+    if profile:
+        hero_pine_crown(label, centres, phase, bark, modelled_needles)
+        return at if ancient else None
+    if far_crown:
+        camera, views = far_crown
+        relief_crown(label, 'ridge', centres, camera, views, mesh, source_uv)
+        return None
     leader = []
     for order, roll in enumerate((.33, -.27, .67)):
         origin = trunk_at(.83 + .044 * order)
@@ -936,7 +973,7 @@ def pine_tree(label, x, z, height, bark, needles, ground, roots=False, lean=None
         return at
 
 
-def distant_pines(ground, bark, needles, modelled_needles):
+def distant_pines(ground, bark, needles, modelled_needles, far_crown):
     # Keep the staggered ridge positions; narrow older leaders disappear
     # among irregular live crowns rather than sticking above a few bare arms.
     trees = [(-4.2, -3.6, 6.9), (-6.6, -5.2, 9.4), (-9.5, -7.0, 7.9),
@@ -954,6 +991,13 @@ def distant_pines(ground, bark, needles, modelled_needles):
         label = f'Layered ridge pine {i + 1}'
         bark_tube(f'{label} tapered trunk', positions,
                   [height * (.00065 + .0155 * (1. - t) ** 1.21) for t in levels], bark, 7)
+        if label in HERO_PINE_CROWNS:
+            hero_pine_crown(label, positions, phase, bark, modelled_needles)
+            continue
+        if far_crown:
+            camera, views = far_crown
+            relief_crown(label, 'young' if height < 8. else 'ridge', positions, camera, views, mesh, source_uv)
+            continue
         sprays, shoots = [], []
         model_crown = label in MODELLED_PINE_CROWNS
         crown_rng = random.Random(label)
@@ -987,7 +1031,7 @@ def distant_pines(ground, bark, needles, modelled_needles):
             pine_sprays(f'{label} needle crown', sprays, needles, close=True)
 
 
-def forest(ground, rock, stone, bark, pine):
+def forest(ground, rock, stone, bark, pine, far_crown=None):
     needles = needle_material()
     modelled_needles = mesh.material('Modelled pine needles', '#587541', rough=.78)
     for i, z in enumerate((13, 17, 22, 27, 32, 38, 44, 49)):
@@ -996,9 +1040,9 @@ def forest(ground, rock, stone, bark, pine):
             pine_tree(f'Old pine {i + 1} {s}', x, z + RANDOM.uniform(-1.6, 1.6),
                       RANDOM.uniform(6.1, 10.4), bark, needles, ground, roots=z >= 14)
     low = pine_tree('Ancient western pine at the saddle', -1.88, PINE_CREST + .08, 10.6,
-                    bark, needles, ground, roots=True, lean=2.43)
+                    bark, needles, ground, roots=True, lean=2.43, modelled_needles=modelled_needles)
     pine_tree('Ancient eastern pine at the saddle', 1.82, PINE_CREST - .32, 11.4,
-              bark, needles, ground, roots=True, lean=-2.68)
+              bark, needles, ground, roots=True, lean=-2.68, modelled_needles=modelled_needles)
     cloth = mesh.material('Sun-faded red cloth on the old pine', '#874b42', rough=.93)
     for index, fraction in enumerate((.181, .209, .238)):
         x, y, z = low(fraction)
@@ -1010,14 +1054,15 @@ def forest(ground, rock, stone, bark, pine):
                                    (-4, -6, 7), (4, -8, 8), (15, 18, 9), (-17, 19, 9))):
         label = f'Back ridge pine {i + 1}'
         pine_tree(label, x, z, h, bark, needles, ground,
-                  modelled_needles=modelled_needles if label in MODELLED_PINE_CROWNS else None)
+                  modelled_needles=modelled_needles if label in MODELLED_PINE_CROWNS else None,
+                  far_crown=far_crown if z < 0 else None)
     # Shorter pines overhang the older stone and screen the buildings
     # through the middle approach. Their crowns open up at the saddle.
     for index, (x, z, height) in enumerate(((-2.73, 26.8, 5.5), (2.65, 25.1, 5.8),
                                            (3.12, 16.1, 4.8), (-3.36, 13.1, 5.05))):
         pine_tree(f'Low forest verge pine {index + 1}', x, z, height, bark, needles, ground,
                   roots=True, crown_start=.19)
-    distant_pines(ground, bark, needles, modelled_needles)
+    distant_pines(ground, bark, needles, modelled_needles, far_crown)
     understory(ground, pine)
     # These iron-gray outcrops are part of the bank. Their lower bands extend
     # below the terrain and their exposed corners interrupt the bare slope.
@@ -1161,7 +1206,7 @@ def source_lighting(scene):
     return point
 
 
-def build(output):
+def build(output, impostor_manifest=None):
     global contacts
     bpy.ops.wm.read_factory_settings(use_empty=True)
     scene = bpy.context.scene
@@ -1174,7 +1219,16 @@ def build(output):
     support = terrain(ground)
     audit_approach_clearance(support)
     bridge_curbs = climbing_steps(stone, support)
-    forest(support, rock, stone, bark, needle)
+    route = json.loads((ROOT / 'shared/pine-gate-path.json').read_text())
+    far_crown = None
+    if impostor_manifest is not None:
+        views, impostor_sha = load_impostors(impostor_manifest)
+        if not {'young', 'ridge'} <= views.keys():
+            raise ValueError('Pine Gate needs both the young and the ridge crown views.')
+        shoulder = next(shot for shot in route['waypoints'] if shot['time'] == 27.9)
+        far_crown = (Vector(shoulder['position']), views)
+        scene['one_light_pine_impostor_sha256'] = impostor_sha
+    forest(support, rock, stone, bark, needle, far_crown)
     stream_stones, deck_slabs = saddle_water(stone, support)
     audit_watercourse(support, stream_stones, deck_slabs, bridge_curbs)
     build_tea_shoulder(ANCHOR, stone, wood, tiles, clay, iron, ledge, contacts)
@@ -1186,7 +1240,6 @@ def build(output):
     scene.view_settings.view_transform = 'AgX'
     scene.view_settings.look = 'None'
     scene.view_settings.exposure = math.log2(PRE_EXPOSURE)
-    route = json.loads((ROOT / 'shared/pine-gate-path.json').read_text())
     entry = route['entrance']
     scene.camera = camera('Reference_PineSteps', entry['position'], entry['look'], entry['desktopFov'], (1440, 900))
     camera('Reference_PineStepsPhone', entry['phonePosition'], entry['look'], entry['phoneFov'], (390, 844))
@@ -1221,7 +1274,8 @@ def build(output):
     scene['source_authoring_helpers'] = json.dumps([
         'art/blender/snow_roof.py', 'art/blender/snow_round1_details.py',
         'art/blender/snow_lightmap_charts.py', 'art/blender/resting_contacts.py',
-        'art/blender/pine_materials.py', 'art/blender/pine_tea_shoulder.py', 'docs/licenses/pine-gate-scans.json',
+        'art/blender/pine_materials.py', 'art/blender/pine_hero_trees.py', 'art/blender/pine_impostors.py',
+        'art/blender/pine_tea_shoulder.py', 'docs/licenses/pine-gate-scans.json',
         'shared/pine-gate-path.json', 'shared/pine-gate-daylight.json',
     ])
     scene['source_authoring_sha256'] = json.dumps({
@@ -1263,5 +1317,6 @@ def build(output):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output', default='art/build/pine-gate/pine-gate.blend', type=Path)
+    parser.add_argument('--impostors', type=Path, help='Explicit Cycles colour/depth manifest for the far crowns.')
     args = parser.parse_args(sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else [])
-    build(args.output.resolve())
+    build(args.output.resolve(), impostor_manifest=args.impostors.resolve() if args.impostors else None)
