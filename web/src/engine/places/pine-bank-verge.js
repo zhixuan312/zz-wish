@@ -68,6 +68,10 @@ const pavilionVergeSites = [
   [4.64, 4.10, .72, 3.893, evergreenProfile], [5.93, 3.14, 1.22, 4.663, evergreenProfile],
   [5.53, 4.14, .83, 4.412, 1], [5.15, 4.68, .82, 4.299, evergreenProfile],
 ];
+const detailedFernSites = new Set([
+  bankSites[3], bankSites[22], bankSites[31],
+  pavilionVergeSites[0], pavilionVergeSites[2], pavilionVergeSites[4], pavilionVergeSites[5], pavilionVergeSites[8],
+]);
 
 const around = 2 * Math.PI;
 const frondSeeds = [809, 1537];
@@ -324,7 +328,7 @@ function fallenNeedles() {
   return geometry;
 }
 
-export function buildPineBankVerge(bakedGroup) {
+export function buildPineBankVerge(bakedGroup, fern) {
   const terrain = approachTerrain(bakedGroup);
   if (!terrain.length) return null;
   for (const material of new Set(terrain.map(object => object.material))) dressForestFloor(material);
@@ -333,16 +337,25 @@ export function buildPineBankVerge(bakedGroup) {
   const normalMatrix = new THREE.Matrix3(), ray = new THREE.Raycaster(origin, down, 0, .68);
   const profiles = [() => fernProfile(frondSeeds[0], 6), () => fernProfile(frondSeeds[1], 7),
     evergreenShoots, fallenNeedles];
+  const nativeFern = fern?.getObjectByName('fern_02_a');
+  if (fern && !nativeFern?.isMesh) throw new Error('Missing Pine Gate fern prototype');
+  const detailProfile = profiles.length;
+  if (nativeFern) {
+    fern.updateMatrixWorld(true);
+    profiles.push(() => nativeFern.geometry);
+  }
   const accepted = profiles.map(() => []);
   const allBanks = [...bankSites, ...groundcoverSites, ...westBankSites, ...pavilionVergeSites];
-  for (const [i, [x, z, size, searchY, siteProfile]] of allBanks.entries()) {
+  for (const [i, site] of allBanks.entries()) {
+    const [x, z, size, searchY, siteProfile] = site;
     origin.set(x, searchY + .50, z);
     ray.set(origin, down);
     const hit = ray.intersectObjects(terrain, false).find(candidate => {
       normalMatrix.getNormalMatrix(candidate.object.matrixWorld);
       return normal.copy(candidate.face.normal).applyNormalMatrix(normalMatrix).y > .46;
     });
-    const profile = siteProfile ?? (i < bankSites.length ? i % frondSeeds.length : evergreenProfile);
+    const scanned = nativeFern && detailedFernSites.has(site);
+    const profile = scanned ? detailProfile : siteProfile ?? (i < bankSites.length ? i % frondSeeds.length : evergreenProfile);
     if (hit) accepted[profile].push({ i, root: hit.point, size, surface: normal.clone() });
   }
   if (accepted.every(profile => !profile.length)) return null;
@@ -355,7 +368,8 @@ export function buildPineBankVerge(bakedGroup) {
   const placement = new THREE.Object3D(), angle = new THREE.Quaternion();
   for (const [profile, sites] of accepted.entries()) {
     if (!sites.length) continue;
-    const sprouts = new THREE.InstancedMesh(profiles[profile](), material, sites.length);
+    const scanned = profile === detailProfile;
+    const sprouts = new THREE.InstancedMesh(profiles[profile](), scanned ? nativeFern.material : material, sites.length);
     for (const [instance, { i, root, size, surface }] of sites.entries()) {
       const random = randomFrom(Math.imul(i + 97, 9419));
       placement.position.copy(root);
@@ -368,8 +382,12 @@ export function buildPineBankVerge(bakedGroup) {
         placement.position.y -= .021;
         placement.rotation.set(0, azimuth, 0);
         placement.scale.set(size * (1.19 + .18 * random()), size * (.87 + .33 * random()), size * 1.19);
+        if (scanned && allBanks[i] !== pavilionVergeSites[4]) {
+          placement.scale.multiply(new THREE.Vector3(1.6, 1.25, 1.6));
+        }
       }
       placement.updateMatrix();
+      if (scanned) placement.matrix.multiply(nativeFern.matrixWorld);
       sprouts.setMatrixAt(instance, placement.matrix);
       const brightness = (profile < frondSeeds.length ? .62 : .83) + .25 * random();
       sprouts.setColorAt(instance, tint.setRGB(brightness * .97, brightness, brightness * (.87 + .11 * random())));
@@ -381,7 +399,10 @@ export function buildPineBankVerge(bakedGroup) {
     group,
     dispose() {
       group.removeFromParent();
-      for (const sprouts of group.children) { sprouts.dispose(); sprouts.geometry.dispose(); }
+      for (const sprouts of group.children) {
+        sprouts.dispose();
+        if (sprouts.geometry !== nativeFern?.geometry) sprouts.geometry.dispose();
+      }
       material.dispose();
       group.clear();
     },

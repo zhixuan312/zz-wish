@@ -6,11 +6,11 @@ import { parseArgs } from 'node:util';
 import { read as readKtx, write as writeKtx, KHR_DF_MODEL_ETC1S, KHR_DF_PRIMARIES_BT709, KHR_DF_TRANSFER_LINEAR,
   KHR_SUPERCOMPRESSION_BASISLZ, KHR_SUPERCOMPRESSION_ZSTD } from 'three/examples/jsm/libs/ktx-parse.module.js';
 import projection from '../shared/pine-gate-backdrop.json' with { type: 'json' };
-import { readPineBackdrop, readPineWaxNormal } from '../web/src/engine/baked/pineManifest.js';
+import { readPineBackdrop, readPineFernDetail, readPineWaxNormal } from '../web/src/engine/baked/pineManifest.js';
 import { readPineForestBackdrop } from '../web/src/engine/places/pine-forest-backdrop.js';
 
 const { values } = parseArgs({ options: Object.fromEntries(
-  [...['near', 'plates', 'sculpt', 'out', 'high', 'walk', 'high-trees', 'approach-forest'].map(name => [name, { type: 'string' }]),
+  [...['near', 'plates', 'sculpt', 'out', 'high', 'walk', 'high-trees', 'approach-forest', 'fern-detail'].map(name => [name, { type: 'string' }]),
     ['defer-near-lightmaps', { type: 'boolean' }]],
 ) });
 const required = ['near', 'plates', 'sculpt', 'out'];
@@ -20,10 +20,12 @@ const high = values.high === undefined ? null : resolve(values.high);
 const walk = values.walk === undefined ? null : resolve(values.walk);
 const highTrees = values['high-trees'] === undefined ? null : resolve(values['high-trees']);
 const forest = values['approach-forest'] === undefined ? null : resolve(values['approach-forest']);
+const fern = values['fern-detail'] === undefined ? null : resolve(values['fern-detail']);
 if (walk && high) throw new Error('Choose either a shared walk backdrop or the legacy desktop backdrop.');
 if (values['defer-near-lightmaps'] && !walk) throw new Error('Deferred lightmaps require the shared walk tier.');
 if (highTrees && !high && !walk) throw new Error('High trees require a backdrop upgrade.');
-if ([near, plates, sculpt, high, walk, highTrees, forest].includes(out)) throw new Error('Use a new staging directory.');
+if (fern && !forest) throw new Error('Pine fern detail requires the approach forest.');
+if ([near, plates, sculpt, high, walk, highTrees, forest, fern].includes(out)) throw new Error('Use a new staging directory.');
 const readJSON = async path => JSON.parse(await readFile(path, 'utf8'));
 const digest = data => createHash('sha256').update(data).digest('hex');
 function checkWalkPlate(body, uri) {
@@ -153,11 +155,19 @@ if (forest) {
   manifest.approachForest = { ...descriptor, receiptSha256: digest(receipt) };
   sourceFiles.push(...files.map(({ uri, bytes, sha256 }) => [forest, { uri, bytes, sha256 }]));
 }
+if (fern) {
+  const receipt = await readFile(join(fern, 'fern-detail.json'));
+  const { file } = JSON.parse(receipt);
+  if (file?.uri !== 'pine-fern-detail.glb') throw new Error('Expected the verified fern detail model.');
+  manifest.fernDetail = { model: file.uri, receiptSha256: digest(receipt) };
+  sourceFiles.push([fern, { uri: file.uri, bytes: file.bytes, sha256: file.sha256 }]);
+}
 manifest.files = sourceFiles.map(([, spec]) => spec);
 const backdrop = readPineBackdrop(manifest);
 if (high && !backdrop.high) throw new Error('Missing verified high backdrop declaration.');
 if (walk && !backdrop.walk) throw new Error('Missing verified walk backdrop declaration.');
 readPineWaxNormal(manifest);
+readPineFernDetail(manifest);
 const approachForest = readPineForestBackdrop(manifest);
 if (forest && sourceFiles.filter(([directory]) => directory === forest).length !== approachForest.plates.length) {
   throw new Error('The approach manifest needs an exact set of forest assets.');

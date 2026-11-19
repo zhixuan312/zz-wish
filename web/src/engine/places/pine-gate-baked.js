@@ -1,5 +1,5 @@
 import { loadBakedPlace } from '../baked/loadPlace.js';
-import { readPineBackdrop, readPineWaxNormal } from '../baked/pineManifest.js';
+import { readPineBackdrop, readPineFernDetail, readPineWaxNormal } from '../baked/pineManifest.js';
 import { readBakedAsset, readBakedManifest } from '../baked/prefetchPlace.js';
 import { preparePineHighTrees } from './pine-gate-high-trees.js';
 import { loadPineGateBackdrop } from './pine-gate-backdrop.js';
@@ -98,6 +98,8 @@ export default function createPlace(h) {
       if (forestDescriptor) softFiles.push(...forestDescriptor.plates.map(({ file }) => file));
       const waxNormal = readPineWaxNormal(manifest);
       if (waxNormal) softFiles.push(waxNormal);
+      const fernFile = readPineFernDetail(manifest);
+      if (fernFile) softFiles.push(fernFile);
       for (const file of softFiles) void readBakedAsset('pine-gate', file).catch(() => {});
       const baked = await loadBakedPlace('pine-gate', h.renderer, context.light);
       context.G.add(baked.group);
@@ -149,13 +151,16 @@ export default function createPlace(h) {
         context.up.push((_dt, _time, light) => backdrop.update(light));
         context.disposers.push(backdrop.dispose);
       }
-      const forest = await loadPineForestBackdrop(baked, h.renderer, context.light, forestDescriptor);
+      const [forest, fern] = await Promise.all([
+        loadPineForestBackdrop(baked, h.renderer, context.light, forestDescriptor),
+        fernFile && baked.loadDetailModel(fernFile.uri),
+      ]);
       if (forest) {
         baked.approachForest = forest;
         context.G.add(forest.group);
         context.up.push((_dt, _time, light) => forest.update(light));
         context.disposers.push(forest.dispose);
-        const verge = buildPineBankVerge(baked.group);
+        const verge = buildPineBankVerge(baked.group, fern);
         if (verge) {
           context.G.add(verge.group);
           context.disposers.push(verge.dispose);

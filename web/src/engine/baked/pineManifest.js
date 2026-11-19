@@ -58,6 +58,15 @@ export function readPineWaxNormal(manifest) {
   return pineFile(manifest, manifest.waxSculpt?.normal, '.png');
 }
 
+export function readPineFernDetail(manifest) {
+  if (manifest.fernDetail === undefined) return null;
+  const model = pineFile(manifest, manifest.fernDetail?.model, '.glb');
+  if (!manifest.approachForest || model.uri === manifest.scene || !/^[a-f0-9]{64}$/.test(manifest.fernDetail.receiptSha256)) {
+    throw new Error('Invalid Pine Gate fern detail declaration');
+  }
+  return model;
+}
+
 export function readPineWalkLightmaps(manifest) {
   const declared = manifest.walkLightmaps;
   if (declared === undefined) return null;
