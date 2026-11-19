@@ -8,15 +8,16 @@ Rendering is local. The only terrain input is the pinned derived USGS SRTM grid.
 """
 
 from argparse import ArgumentParser
-from hashlib import sha256
+from hashlib import file_digest, sha256
 import json
 import math
 from pathlib import Path
-import random
 import sys
+from tempfile import TemporaryDirectory
 from time import monotonic
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+from pine_valley_crowns import PROFILES, crown_mesh
 from pine_valley_exr import straighten
 from pine_valley_terrain import (
     Batch, ELEVATION_SHA256, FAR_START, Landscape, ROOT, drainage, forest_points, paddies,
@@ -25,6 +26,9 @@ from pine_valley_terrain import (
 PROJECTION = ROOT / 'shared/pine-gate-backdrop.json'
 DAYLIGHT = ROOT / 'shared/pine-gate-daylight.json'
 LAYERS = ('far', 'mid', 'cloud')
+AIR_EXTINCTION = .00152
+AIR_NEAR_METRES = 22.
+AIR_SCATTER_RGB = (.092, .132, .193)
 
 
 def mesh(collection, name, batch, materials=(), smooth=False):
@@ -110,7 +114,7 @@ class Shader:
     def coordinate(self):
         return self.nodes.new('ShaderNodeTexCoord').outputs['Object']
 
-    def surface(self, color, roughness, *, ior=1.45, transmission=0., bump=None):
+    def surface(self, color, roughness, *, ior=1.45, transmission=0., bump=None, air=None):
         node = self.nodes.new('ShaderNodeBsdfPrincipled')
         for name, value in (('Base Color', color), ('Roughness', roughness),
                             ('IOR', ior), ('Transmission Weight', transmission)):
@@ -122,7 +126,14 @@ class Shader:
             relief.inputs['Strength'].default_value = strength
             relief.inputs['Distance'].default_value = distance
             self.links.new(relief.outputs['Normal'], node.inputs['Normal'])
-        self.links.new(node.outputs[0], self.output.inputs['Surface'])
+        surface = node.outputs[0]
+        if air is not None:
+            self.material.cycles.emission_sampling = 'NONE'
+            aerial = self.nodes.new('ShaderNodeGroup')
+            aerial.node_tree = air
+            self.links.new(surface, aerial.inputs['Surface'])
+            surface = aerial.outputs['Surface']
+        self.links.new(surface, self.output.inputs['Surface'])
         return self.material
 
     def volume(self, color, density, anisotropy):
@@ -134,31 +145,81 @@ class Shader:
         return self.material
 
 
-def materials():
-    ground = Shader('SRTM ground, exposed slate and damp paddy soil')
+def air_perspective():
+    # Apply L = surface * exp(-sigma*d) + air * (1 - exp(-sigma*d))
+    # to opaque camera hits. The resulting RGB has atmospheric depth but
+    # the film records only actual terrain/crown coverage in alpha.
+    tree = bpy.data.node_groups.new('Deterministic spectral aerial perspective', 'ShaderNodeTree')
+    for direction in ('INPUT', 'OUTPUT'):
+        tree.interface.new_socket(name='Surface', in_out=direction, socket_type='NodeSocketShader')
+    nodes, links = tree.nodes, tree.links
+    surface = nodes.new('NodeGroupInput')
+    output = nodes.new('NodeGroupOutput')
+    gaze = nodes.new('ShaderNodeCameraData')
+    path = nodes.new('ShaderNodeLightPath')
+
+    def math_node(operation, a, b):
+        node = nodes.new('ShaderNodeMath')
+        node.operation = operation
+        for index, value in enumerate((a, b)):
+            if isinstance(value, bpy.types.NodeSocket):
+                links.new(value, node.inputs[index])
+            else:
+                node.inputs[index].default_value = value
+        return node.outputs[0]
+
+    extent = math_node('SUBTRACT', gaze.outputs['View Distance'], AIR_NEAR_METRES)
+    length = math_node('MAXIMUM', extent, 0.)
+    depth = math_node('MULTIPLY', length, -AIR_EXTINCTION)
+    transmittance = math_node('EXPONENT', depth, 0.)
+    fraction = math_node('SUBTRACT', 1., transmittance)
+    directly_seen = math_node('MULTIPLY', fraction, path.outputs['Is Camera Ray'])
+
+    scatter = nodes.new('ShaderNodeEmission')
+    scatter.inputs['Color'].default_value = (*AIR_SCATTER_RGB, 1.)
+    mixer = nodes.new('ShaderNodeMixShader')
+    links.new(directly_seen, mixer.inputs[0])
+    links.new(surface.outputs['Surface'], mixer.inputs[1])
+    links.new(scatter.outputs[0], mixer.inputs[2])
+    links.new(mixer.outputs[0], output.inputs['Surface'])
+    return tree
+
+
+def materials(air):
+    ground = Shader('Forest litter, understory, exposed stone and paddy soil')
     position = ground.coordinate()
-    band = ground.noise(position, (.27, .27, .19))
-    grain = ground.noise(position, (3.6, 3.6, 4.2), detail=2.)
+    grove = ground.noise(position, (.046, .052, .035), detail=3.)
+    bracken = ground.noise(position, (.61, .52, .42), detail=3.)
+    grain = ground.noise(position, (5.8, 5.4, 5.2), detail=2.)
     geology = ground.nodes.new('ShaderNodeNewGeometry').outputs['Normal']
-    moving = ground.math('ADD', ground.xyz(geology)['Z'], ground.product(band, .19))
-    slate = ground.blend((.070, .062, .056, 1.), (.157, .139, .121, 1.), band)
-    brush = ground.blend((.030, .062, .025, 1.), (.104, .141, .057, 1.), band)
-    hillside = ground.blend(slate, brush, ground.between(moving, .55, .94))
-    soil = ground.blend((.091, .074, .044, 1.), (.146, .155, .064, 1.), band)
+    normal = ground.xyz(geology)['Z']
+    exposure = ground.math('SUBTRACT', 1., ground.between(normal, .20, .76))
+    cracks = ground.noise(position, (.37, .42, 1.26), detail=3.)
+
+    mottled = ground.math('ADD', ground.product(grove, .59), ground.product(bracken, .41))
+    cover = ground.between(mottled, .24, .76)
+    litter = ground.blend((.030, .042, .019, 1.), (.063, .066, .031, 1.), grain)
+    brush = ground.blend((.026, .064, .027, 1.), (.080, .123, .049, 1.), groove)
+    hillside = ground.blend(litter, brush, cover)
+    stone = ground.blend((.068, .064, .052, 1.), (.114, .109, .087, 1.), cracks)
+    rock = ground.product(exposure, ground.between(cracks, .56, .79),
+                          ground.math('SUBTRACT', 1., ground.product(cover, .47)))
+    hillside = ground.blend(hillside, stone, rock)
+
+    soil = ground.blend((.091, .074, .044, 1.), (.146, .155, .064, 1.), bracken)
     cultivated = ground.nodes.new('ShaderNodeAttribute')
     cultivated.attribute_name = 'cultivated'
-    result = {
-        'ground': ground.surface(ground.blend(hillside, soil, cultivated.outputs['Fac']), .82,
-                                  bump=(grain, .34, .17)),
-    }
+    surface = ground.blend(hillside, soil, cultivated.outputs['Fac'])
+    relief = ground.math('ADD', ground.product(bracken, .75), ground.product(grain, .25))
+    result = {'ground': ground.surface(surface, .85, bump=(relief, .47, .16), air=air)}
 
-    leaf = Shader('Pine needles with individual crown variation')
+    leaf = Shader('Pine fascicles and fresh needle tips')
     instance = leaf.nodes.new('ShaderNodeObjectInfo').outputs['Random']
-    grain = leaf.noise(leaf.coordinate(), (23., 23., 32.), detail=2.)
-    tint = leaf.math('ADD', leaf.product(instance, .65), leaf.product(grain, .35))
-    pigment = leaf.blend((.036, .064, .023, 1.), (.096, .162, .052, 1.), tint)
-    result['pine'] = leaf.surface(pigment, .77, bump=(grain, .18, .06))
-    result['bark'] = Shader('Weathered pine bark').surface((.075, .048, .028, 1.), .87)
+    grain = leaf.noise(leaf.coordinate(), (17., 19., 16.), detail=2.)
+    tint = leaf.math('ADD', leaf.product(instance, .57), leaf.product(grain, .43))
+    pigment = leaf.blend((.016, .044, .023, 1.), (.082, .137, .047, 1.), tint)
+    result['pine'] = leaf.surface(pigment, .78, air=air)
+    result['bark'] = Shader('Weathered pine bark').surface((.067, .044, .029, 1.), .9, air=air)
     seedling = Shader('Translucent green rice shoots')
     result['rice'] = seedling.surface((.084, .19, .046, 1.), .54)
 
@@ -183,60 +244,18 @@ def materials():
     return result
 
 
-def ring_solid(batch, rings, sides, rng, material_index, face_materials):
-    first = len(batch.points)
-    for x, depth, height, rx, ry in rings:
-        for i in range(sides):
-            angle = math.tau * i / sides
-            wobble = rng.uniform(.83, 1.14)
-            batch.points.append((x + math.cos(angle) * rx * wobble,
-                                 depth + math.sin(angle) * ry * wobble, height))
-    start = first + (len(rings) - 1) * sides
-    batch.faces.append(tuple(first + i for i in reversed(range(sides))))
-    batch.faces.append(tuple(start + i for i in range(sides)))
-    face_materials.extend([material_index, material_index])
-    for j in range(len(rings) - 1):
-        for i in range(sides):
-            a = first + j * sides + i
-            b = first + j * sides + (i + 1) % sides
-            batch.faces.append((a, b, b + sides, a + sides))
-            face_materials.append(material_index)
-
-
 def crown_library(collection, surface, far):
     library = bpy.data.collections.new('Far crown variants' if far else 'Mid crown variants')
     collection.children.link(library)
-    for index, profile in enumerate(((.35, .29, .73), (.39, .36, .59), (.32, .31, .81))):
-        rng = random.Random(904 + index * 13 + far)
-        half, lower, taper = profile
-        batch, indices = Batch(), []
-        lean_x, lean_y = rng.uniform(-.078, .078), rng.uniform(-.069, .069)
-        ring_solid(batch, [(lean_x * t, lean_y * t, t, r, r)
-                           for t, r in ((-.028, .037), (.19, .024), (.57, .016), (.93, .006))],
-                   6 if far else 8, rng, 1, indices)
-        for layer in range(5 if far else 7):
-            z = lower + (1. - lower) * layer / (5 if far else 7)
-            breadth = half * (1. - z) ** taper
-            rotation = rng.uniform(0., math.tau)
-            for arm in range(3 if far else 4):
-                angle = rotation + arm * math.tau / (3 if far else 4)
-                x, y = math.cos(angle) * breadth, math.sin(angle) * breadth
-                lift = rng.uniform(-.026, .038)
-                r = breadth * rng.uniform(.63, .93)
-                rings = [(lean_x * z + x * u, lean_y * z + y * u, z + offset + lift,
-                          r * radius, r * radius * rng.uniform(.79, 1.09))
-                         for u, offset, radius in ((1.13, -.055, .07), (.93, -.012, 1.0),
-                                                   (.83, .028, .81), (.48, .110, .075))]
-                ring_solid(batch, rings, 5 if far else 7, rng, 0, indices)
-        ring_solid(batch, [(lean_x * t, lean_y * t, t, r, r) for t, r in
-                           ((.77, .069), (.86, .14), (.96, .065), (1.02, .008))],
-                   6, rng, 0, indices)
-        model = mesh(library, f'Tapered pine crown {index + 1}', batch,
-                     (surface['pine'], surface['bark']), smooth=True)
+    for index, _ in enumerate(PROFILES):
+        batch, indices = crown_mesh(index, far)
+        model = mesh(library, f'Branching pine crown {index + 1}', batch,
+                     (surface['pine'], surface['bark']))
         # Source meshes stay evaluable but stand behind the projection camera.
         model.location = (0., -2600. - 12. * index, 0.)
         for face, material in zip(model.data.polygons, indices):
             face.material_index = material
+            face.use_smooth = material == 1
     return library
 
 
@@ -312,12 +331,6 @@ def cloud_sea(collection):
     density = shader.product(shape, crown, lower, front, rear, .49)
     mat = shader.volume((.94, .952, .975, 1.), density, .38)
     box(collection, 'Foreground cloud sea, broken crowns and valley gaps', -270., 270., 36., 84., -29., .5, mat)
-
-
-def thin_air(collection, start, end, density):
-    haze = Shader('Aerial perspective ' + collection.name)
-    atmosphere = haze.volume((.64, .77, .955, 1.), density, .19)
-    box(collection, 'Air between the measured ridges', -840., 840., start, end, -82., 153., atmosphere)
 
 
 def plunge_spray(collection, end):
@@ -426,7 +439,7 @@ def build(scene, land, fields, river, forests):
         scene.collection.children.link(collection)
     library = bpy.data.collections.new('Pine crown prototypes outside camera range')
     scene.collection.children.link(library)
-    surface = materials()
+    surface = materials(air_perspective())
     occluders = ()
     for name in ('far', 'mid'):
         far = name == 'far'
@@ -446,39 +459,77 @@ def build(scene, land, fields, river, forests):
     mesh(middle, 'D8 drainage on the measured valley floor', creek, [surface['creek']], smooth=True)
     mesh(middle, 'Free-falling sheet behind exposed terrain', falls, [surface['fall']], smooth=True)
     plunge_spray(middle, end)
-    thin_air(middle, 128., FAR_START, .0010)
-    thin_air(layers['far'], FAR_START, 940., .00145)
     cloud_sea(layers['cloud'])
     return layers, occluders
 
 
+def digest(path):
+    with path.open('rb') as handle:
+        return file_digest(handle, 'sha256').hexdigest()
+
+
+def prepare_plates(out, resume, recipe):
+    report = out / 'render.json'
+    plates = {}
+    if report.exists():
+        if not resume:
+            raise ValueError('Use --resume to add layers to this render directory.')
+        previous = json.loads(report.read_text())
+        known = previous.pop('plates')
+        if json.dumps(previous, sort_keys=True) != json.dumps(recipe, sort_keys=True):
+            raise ValueError('Resume requires the exact original source, projection, and Cycles settings.')
+        for name, evidence in known.items():
+            if name not in (*LAYERS, 'composite') or evidence['file'] != f'{name}.exr':
+                raise ValueError(f'Invalid layer entry {name}.')
+            target = out / evidence['file']
+            if not target.exists():
+                # The earlier job may have stopped after recording the digest
+                # and before making the completed EXR visible.
+                continue
+            if target.stat().st_size != evidence['bytes'] or digest(target) != evidence['sha256']:
+                raise ValueError(f'Existing layer {name} differs from the recorded EXR.')
+            plates[name] = evidence
+    for name in (*LAYERS, 'composite'):
+        if (out / f'{name}.exr').exists() and name not in plates:
+            raise ValueError(f'Unrecorded layer {name}. Use a fresh --out directory.')
+    return plates
+
+
 def render(scene, layers, occluders, options, metadata):
     report = options.out / 'render.json'
+    pending = options.out / '.render.pending.json'
+    plates = prepare_plates(options.out, options.resume, metadata)
 
     def save_metadata():
-        report.write_text(json.dumps(metadata, indent=2) + '\n')
+        pending.write_text(json.dumps({**metadata, 'plates': plates}, indent=2) + '\n')
+        pending.replace(report)
 
     save_metadata()
     for plate in options.layers:
+        if plate in plates:
+            print(f'Verified existing {plate}.exr. Skipping render.', flush=True)
+            continue
         for name, collection in layers.items():
             for obj in collection.objects:
                 # Keep physical lighting and glossy reflections across the
-                # plates. In the cloud render, solid mid hills also stop rays
-                # from incorrectly showing vapor behind a nearer ridge.
+                # plates. The cloud capture uses mid terrain and forest as
+                # holdouts wherever those surfaces stand in front of vapor.
                 holdout = plate == 'cloud' and obj in occluders
                 obj.is_holdout = holdout
                 obj.visible_camera = holdout or name == plate or plate == 'composite'
-        temporary = options.out / f'.{plate}.premultiplied.exr'
-        scene.render.filepath = str(temporary)
-        start = monotonic()
-        if 'FINISHED' not in bpy.ops.render.render(write_still=True):
-            raise RuntimeError(f'Cycles did not finish plate {plate}.')
-        stats = straighten(temporary, metadata['width'], metadata['height'])
-        target = options.out / f'{plate}.exr'
-        temporary.replace(target)
-        metadata['plates'][plate] = {'file': target.name, 'bytes': target.stat().st_size,
-                                     'seconds': round(monotonic() - start, 3), **stats}
-        save_metadata()
+
+        with TemporaryDirectory(dir=options.out, prefix=f'.{plate}-') as scratch:
+            temporary = Path(scratch) / 'premultiplied.exr'
+            scene.render.filepath = str(temporary)
+            start = monotonic()
+            if 'FINISHED' not in bpy.ops.render.render(write_still=True):
+                raise RuntimeError(f'Cycles did not finish plate {plate}.')
+            stats = straighten(temporary, metadata['width'], metadata['height'])
+            target = options.out / f'{plate}.exr'
+            plates[plate] = {'file': target.name, 'bytes': temporary.stat().st_size,
+                             'sha256': digest(temporary), 'seconds': round(monotonic() - start, 3), **stats}
+            save_metadata()
+            target.hardlink_to(temporary)
 
 
 def parse_args():
@@ -489,6 +540,7 @@ def parse_args():
     parser.add_argument('--device', choices=('CPU', 'METAL', 'CUDA', 'OPTIX', 'HIP', 'ONEAPI'), default='CPU')
     parser.add_argument('--layers', nargs='+', choices=(*LAYERS, 'composite'), default=LAYERS)
     parser.add_argument('--no-denoise', action='store_true')
+    parser.add_argument('--resume', action='store_true', help='Verify the original recipe and add missing plates.')
     parser.add_argument('--save-blend', type=Path)
     parser.add_argument('--inspect', action='store_true', help='Check source geometry using standard Python; no render.')
     args = parser.parse_args(sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else None)
@@ -509,6 +561,7 @@ def main():
     forests = {name: forest_points(land, name == 'far') for name in ('far', 'mid')}
     metadata = {
         'projection': projection, 'width': width, 'height': height, 'samples': options.samples,
+        'denoise': not options.no_denoise, 'requestedDevice': options.device,
         'alpha': 'straight', 'colorSpace': 'scene-linear Rec.709', 'exposureAppliedStops': 0.,
         'runtimePreExposureMultiplier': projection['preExposure'],
         'previewExposureStops': math.log2(projection['preExposure']),
@@ -516,14 +569,20 @@ def main():
         'worldStrength': daylight['atmosphereStrength'] / projection['preExposure'],
         'terrainSource': 'USGS SRTM N23E102 Skadi, 204 x 175 quantised elevation grid',
         'terrainSha256': ELEVATION_SHA256,
-        'projectionSha256': sha256(PROJECTION.read_bytes()).hexdigest(),
+        'projectionSha256': digest(PROJECTION),
+        'solarSha256': digest(DAYLIGHT),
         'sourceSha256': {name: sha256(Path(__file__).with_name(name).read_bytes()).hexdigest()
-                         for name in ('pine_valley_backdrop.py', 'pine_valley_terrain.py', 'pine_valley_exr.py')},
+                         for name in ('pine_valley_backdrop.py', 'pine_valley_terrain.py', 'pine_valley_exr.py',
+                                      'pine_valley_crowns.py')},
         'terrainSplitDownrangeMetres': FAR_START,
-        'cameraVisibility': {'far': 'far ridge and its aerial haze', 'mid': 'middle ridge, fields, and waterfall',
+        'atmosphere': {'model': 'camera-hit Beer-Lambert aerial perspective',
+                       'rawLinearRec709Airlight': AIR_SCATTER_RGB, 'extinctionPerMetre': AIR_EXTINCTION,
+                       'clearNearMetres': AIR_NEAR_METRES},
+        'cameraVisibility': {'far': 'opaque SRTM ridges and geometrical pine crown coverage',
+                             'mid': 'middle ridge, fields, and waterfall',
                              'cloud': 'cloud sea with opaque middle terrain and forest as camera holdouts'},
         'forestInstances': {name: [len(batch[0]) for batch in batches] for name, batches in forests.items()},
-        'terraces': fields[-1], 'waterfall': river[-1], 'plates': {},
+        'terraces': fields[-1], 'waterfall': river[-1],
     }
     print(json.dumps(metadata, indent=2), flush=True)
     if options.inspect:
@@ -538,6 +597,7 @@ def main():
     bpy.ops.wm.read_factory_settings(use_empty=True)
     scene = bpy.context.scene
     metadata['blender'] = bpy.app.version_string
+    metadata['blenderBuildHash'] = bpy.app.build_hash.decode('ascii')
     metadata['devices'] = configure(scene, options, width, height)
     metadata['worldStrength'] = set_world(scene, daylight, projection['preExposure'])
     projection_camera(scene, projection)

@@ -258,39 +258,54 @@ def paddies(land):
     return banks, floods, seedlings, audit
 
 
-def forest_points(land, far, variants=3):
+def forest_spacing(depth, far):
+    if far:
+        return lerp(1.86, 4.75, smooth(FAR_START, 670., depth))
+    return lerp(.54, 1.44, smooth(34., FAR_START, depth))
+
+
+def forest_points(land, far, variants=4):
     rng = random.Random(6624 + far)
     batches = [([], [], []) for _ in range(variants)]
-    spacing = 4.6 if far else 2.15
-    start = FAR_START if far else 32.
+    start = FAR_START if far else 27.
     end = min(land.depths[-1], 810.) if far else FAR_START
-    for row in range(math.ceil((end - start) / spacing)):
-        d0 = start + row * spacing
+    near_edge = 84. if not far else -1.
+    d0 = start
+    while d0 < end:
+        spacing = forest_spacing(d0, far)
         lateral = min(land.x[-1] - 2., 1.34 * (d0 + 8.))
         for col in range(math.ceil(lateral * 2. / spacing)):
-            depth = d0 + rng.uniform(.03, .97) * spacing
-            x = -lateral + (col + rng.uniform(.04, .96)) * spacing
-            if depth >= end or x < land.x[0] + 2. or x >= land.x[-1] - 2.:
+            depth = d0 + rng.uniform(.06, .94) * spacing
+            x = -lateral + (col + rng.uniform(.03, .97)) * spacing
+            if depth >= end or not land.x[0] + 2. < x < land.x[-1] - 2.:
                 continue
             y = land.height(x, depth)
-            steep = math.hypot(land.height(x + 1., depth) - land.height(x - 1., depth),
-                               land.height(x, depth + 1.) - land.height(x, depth - 1.)) * .5
-            river = land.east_water(depth)
-            if abs(x - river) < (1.6 if not far else .7) or y < -29.:
+            if y < -28.6:
                 continue
-            if 84. < depth < 119. and land.edge(depth, 0, river) - 1.5 < x < land.edge(depth, 7, river) + 1.5:
+            river = math.inf if far else land.east_water(depth)
+            if abs(x - river) < 1.13:
                 continue
-            grove = .5 + .21 * math.sin(x * .041 + depth * .058) + .21 * math.sin(depth * .113 - x * .073)
-            if rng.random() > lerp(.88, .99, grove) * (1. - .65 * smooth(.84, 1.9, steep)):
+            if near_edge < depth < 119. and land.edge(depth, 0, river) - .76 < x < land.edge(depth, 7, river) + .80:
                 continue
-            height = rng.uniform(2.7, 5.8) * lerp(.67, 1.21, grove)
-            if far:
-                height *= 1.10
-            width = rng.uniform(.79, 1.23) * height
-            points, scales, rotation = batches[rng.randrange(variants)]
-            points.append((x, depth, y - .10))
+
+            steep = math.hypot(land.height(x + .65, depth) - land.height(x - .65, depth),
+                               land.height(x, depth + .65) - land.height(x, depth - .65)) / 1.3
+            wet = .5 + .24 * math.sin(x * .117 + depth * .058) + .22 * math.sin(depth * .223 - x * .168)
+            patch = .5 + .29 * math.sin(.39 * x - .29 * depth) + .17 * math.cos(.51 * depth + .44 * x)
+            ridge = smooth(.82, 2., steep)
+            density = lerp(.67, 1., .55 * wet + .45 * patch) * lerp(1., .64, ridge)
+            if rng.random() > density:
+                continue
+
+            age = clamp(.67 * rng.random() + .33 * wet - .12 * ridge)
+            height = lerp(.37, 1.21, age ** .94)
+            width = lerp(.61, 1.14, patch) * height
+            kind = 0 if age < .34 else 2 if ridge > .46 else rng.choice((1, 1, 3))
+            points, scales, rotation = batches[kind]
+            points.append((x, depth, y - .027))
             scales.append((width, width, height))
-            rotation.append((rng.uniform(-.10, .10), rng.uniform(-.10, .10), rng.uniform(0., math.tau)))
+            rotation.append((rng.uniform(-.13, .13), rng.uniform(-.13, .13), rng.uniform(0., math.tau)))
+        d0 += spacing
     return batches
 
 
