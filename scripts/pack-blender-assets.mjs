@@ -20,6 +20,7 @@ if (args.includes('--help')) {
   --material-profile mobile     Separate 512 px UASTC normals / ETC1S other maps.
   --screen-base-size 1024|512    Retained screen base maximum (default 1024).
   --lightmap-codec uastc|etc1s   Separate lightmap codec cache (default UASTC).
+  --lightmap-rdo REGION=LAMBDA   Tune UASTC compression for one region (default 1).
   --geometry-only               Stage geometry/materials; write no manifest.
   --lightmaps-only              Stage available maps; write no manifest.
   --lightmap-passes gate-night   Comma-separated stage subset; requires --lightmaps-only.
@@ -36,6 +37,9 @@ const source = resolve(option('--source', 'art/build/snow-roof'));
 const out = resolve(option('--out', 'web/public/places/snow-roof'));
 const materialProfile = option('--material-profile', 'quality');
 const lightmapCodec = option('--lightmap-codec', 'uastc');
+const rdoOption = option('--lightmap-rdo', '');
+const [, rdoRegion, rdoValue] = /^([a-z0-9][a-z0-9-]*)=(\d+(?:\.\d+)?)$/.exec(rdoOption) ?? [];
+const rdoLambda = Number(rdoValue);
 const requestedPositionFormat = option('--position-format', 'auto');
 if(!['auto','uint16','float32'].includes(requestedPositionFormat))throw new Error('Expected --position-format auto|uint16|float32.');
 const normalFormat=option('--normal-format','byte8');
@@ -45,6 +49,9 @@ const screenBaseSize = Number(option('--screen-base-size', '1024'));
 const lightmapSelection = option('--lightmap-passes', '').split(',').filter(Boolean);
 if (!['quality', 'mobile'].includes(materialProfile)) throw new Error('Expected --material-profile quality|mobile.');
 if (!['uastc', 'etc1s'].includes(lightmapCodec)) throw new Error('Expected --lightmap-codec uastc|etc1s.');
+if (args.includes('--lightmap-rdo') && (!rdoRegion || rdoLambda < .001 || rdoLambda > 10 || lightmapCodec !== 'uastc' || !args.includes('--out'))) {
+  throw new Error('Expected --lightmap-rdo REGION=LAMBDA (0.001–10) with UASTC and an explicit --out.');
+}
 if (![512, 1024].includes(screenBaseSize)) throw new Error('Expected --screen-base-size 512|1024.');
 if ((materialProfile !== 'quality' || lightmapCodec !== 'uastc') && (!args.includes('--out') || out === resolve('web/public/places/snow-roof'))) throw new Error('Compression candidates require an explicit separate --out; the live quality preview must remain intact.');
 if (lightmapSelection.length && !args.includes('--lightmaps-only')) throw new Error('--lightmap-passes is a staging comparison option and requires --lightmaps-only.');
@@ -204,6 +211,7 @@ if (!(await exists(toktx))) {
 const env = { ...process.env, PATH: `${dirname(toktx)}:${process.env.PATH}` };
 const gltf = async (...parameters) => run(cli, parameters, { env });
 const manifest = JSON.parse(await readFile(join(source, 'manifest.json'), 'utf8'));
+if (rdoRegion && !Object.hasOwn(manifest.lightmaps, rdoRegion)) throw new Error(`Unknown lightmap RDO region: ${rdoRegion}`);
 const placeId = manifest.place ?? 'snow-roof';
 const positionFormat = requestedPositionFormat === 'auto' ? (manifest.bake?.fixedViewAllocationProof || placeId === 'cloud-cliff' ? 'float32' : 'uint16') : requestedPositionFormat;
 if(normalFormat==='float32'&&positionFormat!=='float32')throw new Error('Genuine F32 NORMAL delivery also requires --position-format float32.');
@@ -465,14 +473,16 @@ if (!lightmapsOnly) await copyFile(geometryCache, join(out, sceneName));
 manifest.scene = sceneName; manifest.files = [];
 const sampling = manifest.bake?.sampling ?? { mipLevels: 3, gutterPixels: 8, anisotropy: 1, maxLod: 2 };
 manifest.sampling = sampling;
-for (const maps of Object.values(manifest.lightmaps)) for (const entry of Object.values(maps)) {
+for (const [region, maps] of Object.entries(manifest.lightmaps)) for (const entry of Object.values(maps)) {
   if (lightmapSelection.length && !lightmapSelection.includes(entry.uri.replace(/\.ktx2$/, ''))) continue;
   const mipmaps = (entry.pngMipmaps ?? [entry.png]).map(name => join(source, name));
   if (mipmaps.length !== sampling.mipLevels) throw new Error(`Expected ${sampling.mipLevels} explicit chart-safe mipmaps for ${entry.uri}; rebake with current pipeline.`);
   const deliveryUri = lightmapCodec === 'uastc' ? entry.uri : entry.uri.replace(/\.ktx2$/, '.etc1s.ktx2');
-  const output = join(source, deliveryUri);
+  const lambda = region === rdoRegion ? rdoLambda : 1;
+  const cacheUri = lambda === 1 ? deliveryUri : deliveryUri.replace(/\.ktx2$/, `.rdo-${lambda}.ktx2`);
+  const output = join(source, cacheUri);
   const receiptPath = output + '.json';
-  const codecKey = lightmapCodec === 'uastc' ? 'uastc2-rdo1-zstd18' : 'etc1s-q255-c4-no-rdo';
+  const codecKey = lightmapCodec === 'uastc' ? `uastc2-rdo${lambda}-zstd18` : 'etc1s-q255-c4-no-rdo';
   const mapKey = `${codecKey}-linear-${sampling.mipLevels}:` + (await Promise.all(mipmaps.map(async path => digest(await readFile(path))))).join(':');
   let reused = false;
   if (await exists(output) && await exists(receiptPath)) {
@@ -480,7 +490,7 @@ for (const maps of Object.values(manifest.lightmaps)) for (const entry of Object
     reused = receipt.key === mapKey && receipt.sha256 === digest(await readFile(output));
   }
   const codecParameters = lightmapCodec === 'uastc'
-    ? ['--encode', 'uastc', '--uastc_quality', '2', '--uastc_rdo_l', '1', '--uastc_rdo_m', '--zcmp', '18']
+    ? ['--encode', 'uastc', '--uastc_quality', '2', '--uastc_rdo_l', String(lambda), '--uastc_rdo_m', '--zcmp', '18']
     : ['--encode', 'etc1s', '--qlevel', '255', '--clevel', '4', '--no_endpoint_rdo', '--no_selector_rdo'];
   if (!reused) await run(toktx, ['--t2', ...codecParameters, '--threads', '2', '--assign_oetf', 'linear', '--assign_primaries', 'bt709', '--mipmap', '--levels', String(sampling.mipLevels), output, ...mipmaps]);
   else console.log('LIGHTMAP_STAGE_REUSED', deliveryUri);
@@ -556,6 +566,7 @@ for (const image of images) { const key = image.roles.join('+') || 'unused'; byt
 manifest.compression = { gltfTransform: '4.5.1', ktxSoftware: '4.4.2', mesh: 'EXT_meshopt_compression', textures: 'KHR_texture_basisu', materialProfile, materialRecipe, lightmapCodec, lightmaps: `${lightmapCodec === 'uastc' ? 'Basis UASTC + Zstandard' : 'Basis ETC1S / BasisLZ'}, per-pass log2 HDR in linear KTX2 samples; decode logRange/logGain before lighting`, transformOrder: materialProfile === 'quality' ? ['dedup', 'uastc', 'meshopt'] : ['dedup', 'uastc-normal-512', `etc1s-screen-${screenBaseSize}`, 'etc1s-other-512', 'meshopt'], uvVerification: packedInfo, images, uniqueMaterialImageBytes: images.reduce((sum, image) => sum + image.bytes, 0), bytesByRoleUnion };
 manifest.compression.positionFormat = positionFormat;
 manifest.compression.normalFormat = normalFormat;
+if (rdoRegion) manifest.compression.lightmapRdo = { region: rdoRegion, lambda: rdoLambda };
 manifest.compression.normalFilter = normalFormat==='float32'?'NONE':'OCTAHEDRAL-byte8';
 manifest.compression.generatorSha256=digest(await readFile(new URL(import.meta.url)));
 manifest.compression.positionFilter = positionFormat==='float32'?'NONE':'quantized';
@@ -582,7 +593,7 @@ serialized = JSON.stringify(manifest, null, 2) + '\n';
 if(manifest.manifestBytes!==Buffer.byteLength(serialized))throw new Error('Manifest byte accounting did not converge.');
 if (budget && manifest.completePackageBytes+reservedBytes > budget) throw new Error(`Complete ${placeId} package ${manifest.completePackageBytes} B plus${reservedBytes} B reserved exceeds its ${budget} B cap; no delivery manifest published.`);
 await writeFile(join(out, 'manifest.json'), serialized);
-const reportTag = `${profileTag}${lightmapCodec === 'uastc' ? '' : '.etc1s'}`;
+const reportTag = `${profileTag}${lightmapCodec === 'uastc' ? '' : '.etc1s'}${rdoRegion ? `.${rdoRegion}-rdo-${rdoLambda}` : ''}`;
 await writeFile(join(source, `delivery-report${reportTag}.json`), JSON.stringify({ ...manifest.compression, partialPreview: preview, missingAmbientLooks: manifest.missingAmbientLooks ?? [], files: manifest.files, totalBytes: manifest.totalBytes, targetBytes: 8 * 1024 * 1024, withinTarget: manifest.totalBytes <= 8 * 1024 * 1024 }, null, 2) + '\n');
 console.log('DELIVERY', manifest.totalBytes, 'bytes; target', 8 * 1024 * 1024);
 if (manifest.totalBytes > 8 * 1024 * 1024) console.warn('Place exceeds the reference budget; review atlas and material resolution before accepting.');
