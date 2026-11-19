@@ -469,7 +469,7 @@ def tread_lips(stones):
     lips = []
     for stone in stones:
         count = stone['bearing_vertices']
-        lips.append([engine(v.co) for v in stone.data.vertices[3 * count:4 * count]])
+        lips.append([Vector(engine(v.co)) for v in stone.data.vertices[3 * count:4 * count]])
     return lips
 
 
