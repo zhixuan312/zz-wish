@@ -24,7 +24,7 @@ from mathutils.bvhtree import BVHTree
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from pine_hero_trees import CROWNS, grow_crown, needle_mesh, prototype_trunk, trunk_point
 from pine_native_crowns import (
-    NativeSurface, NATIVE_SHA256, OBJECTS, asset_provenance, load_tree, loader_hash, material_evidence,
+    NativeSurface, NATIVE_SHA256, OBJECTS, UV_ATTRIBUTE, asset_provenance, load_tree, loader_hash, material_evidence,
     native_albedo, verify_source,
 )
 
@@ -62,11 +62,16 @@ def load_impostors(path):
         if native:
             source = native['profiles'][profile]
             mount = source['mountBlenderMetres']
+            attribute = source.get('uvAttribute', {})
+            transforms = source.get('materialUvTransforms', {})
             if (source['object'] != OBJECTS.get(profile) or source['lod'] != 0
                     or len(mount) != 3 or not all(math.isfinite(v) for v in mount)
                     or not 0. <= source['crownCutMetres'] < source['heightMetres']
-                    or source['triangles']['foliage'] < 1_000_000 or not source.get('uvMap')
-                    or source.get('materialMaps') != material_evidence()):
+                    or source['triangles']['foliage'] < 1_000_000 or source.get('uvMap') != UV_ATTRIBUTE
+                    or attribute.get('name') != UV_ATTRIBUTE or attribute.get('dataType') != 'FLOAT_VECTOR'
+                    or attribute.get('domain') != 'CORNER' or attribute.get('corners', 0) < 1_000_000
+                    or source.get('materialMaps') != material_evidence()
+                    or transforms.keys() != material_evidence().keys()):
                 raise ValueError('Invalid measured native Pine profile: ' + profile)
         for view in rows:
             name = view['file']

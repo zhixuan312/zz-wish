@@ -17,6 +17,7 @@ OBJECTS = {'ridge': 'pine_sapling_medium_b_LOD0', 'young': 'pine_sapling_medium_
 TREE_OBJECT = re.compile(r'pine_sapling_medium_[abc]_LOD[012](?:\.\d+)?')
 # Match the source glTF's opaque LOD0 material assignments. Deadwood shares
 # the bark maps; the separate twig-alpha mask belongs to lower detail assets.
+UV_ATTRIBUTE = 'UVMap'
 MATERIAL_PREFIXES = {f'{ASSET}_bark': 'bark', f'{ASSET}_dead_branches': 'bark', f'{ASSET}_twig': 'twig'}
 TEXTURES = {
     'bark_diff': (5568559, '63688d7bcdd5ff5500f12bde192b197a'),
@@ -114,6 +115,12 @@ class NativeSurface:
         mesh = evaluated.data
         if obj.type != 'MESH' or mesh is None:
             raise ValueError(f'{obj.name} did not evaluate to an LOD0 mesh.')
+        attribute = mesh.attributes.get(UV_ATTRIBUTE)
+        if (attribute is None or attribute.data_type != 'FLOAT_VECTOR' or attribute.domain != 'CORNER'
+                or len(attribute.data) != len(mesh.loops)):
+            raise ValueError(f'{obj.name} lost its authored {UV_ATTRIBUTE} corner vectors.')
+        self.attribute_evidence = {'name': UV_ATTRIBUTE, 'dataType': attribute.data_type,
+                                   'domain': attribute.domain, 'corners': len(mesh.loops)}
         world = evaluated.matrix_world.copy()
         slots = [material.name.lower() if material else '' for material in mesh.materials]
         bark_slots = {i for i, name in enumerate(slots) if 'bark' in name}
@@ -194,14 +201,36 @@ class NativeSurface:
 
 
 
+def material_mapping(material):
+    mappings = []
+    for node in material.node_tree.nodes:
+        if node.type != 'MAPPING':
+            continue
+        source = node.inputs['Vector']
+        if not source.is_linked:
+            continue
+        attribute = source.links[0].from_node
+        if (attribute.type == 'ATTRIBUTE' and attribute.attribute_type == 'GEOMETRY'
+                and attribute.attribute_name == UV_ATTRIBUTE):
+            mappings.append(node)
+    if len(mappings) != 1:
+        raise ValueError(f'{material.name} has no unique authored {UV_ATTRIBUTE} Mapping.')
+    mapping, = mappings
+    result = {'vectorType': mapping.vector_type}
+    for socket in ('Location', 'Rotation', 'Scale'):
+        value = mapping.inputs[socket]
+        if value.is_linked:
+            raise ValueError(f'{material.name} has an unexpected driven Mapping {socket}.')
+        result[socket.lower()] = list(value.default_value)
+    return result
+
+
 def native_albedo(obj, path, surface):
     import bpy
 
-    uv = next((layer for layer in obj.data.uv_layers if layer.active_render), obj.data.uv_layers.active)
-    if uv is None or not surface.material_slots or set(surface.material_slots.values()) != MATERIAL_PREFIXES.keys():
-        raise ValueError(f'{obj.name} is missing its authored UV or opaque source materials.')
-    maps = material_evidence()
-    images = {}
+    if set(surface.material_slots.values()) != MATERIAL_PREFIXES.keys():
+        raise ValueError(f'{obj.name} is missing its opaque source materials.')
+    maps, transforms, images = material_evidence(), {}, {}
     for prefix in set(MATERIAL_PREFIXES.values()):
         address = path.parent / 'textures' / texture_evidence(prefix + '_diff')['file']
         # A new image from the absolute verified path avoids the appended
@@ -217,6 +246,8 @@ def native_albedo(obj, path, surface):
         original = obj.material_slots[slot].material
         if original is None or original.name.lower() != name:
             raise ValueError('The evaluated pine changed its source material slot: ' + name)
+        transform = material_mapping(original)
+        transforms[name] = transform
         material = bpy.data.materials.new('Verified LOD0 albedo ' + name)
         material.use_nodes = True
         tree = material.node_tree
@@ -224,9 +255,15 @@ def native_albedo(obj, path, surface):
         nodes, links = tree.nodes, tree.links
         image = nodes.new('ShaderNodeTexImage')
         image.image = images[MATERIAL_PREFIXES[name]]
-        uv_node = nodes.new('ShaderNodeUVMap')
-        uv_node.uv_map = uv.name
-        links.new(uv_node.outputs['UV'], image.inputs['Vector'])
+        attribute = nodes.new('ShaderNodeAttribute')
+        attribute.attribute_type = 'GEOMETRY'
+        attribute.attribute_name = UV_ATTRIBUTE
+        mapping = nodes.new('ShaderNodeMapping')
+        mapping.vector_type = transform['vectorType']
+        for socket in ('Location', 'Rotation', 'Scale'):
+            mapping.inputs[socket].default_value = transform[socket.lower()]
+        links.new(attribute.outputs['Vector'], mapping.inputs['Vector'])
+        links.new(mapping.outputs['Vector'], image.inputs['Vector'])
         emission = nodes.new('ShaderNodeEmission')
         emission.inputs['Strength'].default_value = 1.
         links.new(image.outputs['Color'], emission.inputs['Color'])
@@ -245,4 +282,5 @@ def native_albedo(obj, path, surface):
         links.new(alpha.outputs[0], nodes.new('ShaderNodeOutputMaterial').inputs['Surface'])
         obj.material_slots[slot].material = material
 
-    surface.evidence.update({'uvMap': uv.name, 'materialMaps': maps})
+    surface.evidence.update({'uvMap': UV_ATTRIBUTE, 'uvAttribute': surface.attribute_evidence,
+                             'materialMaps': maps, 'materialUvTransforms': transforms})
