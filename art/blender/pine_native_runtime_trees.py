@@ -90,11 +90,11 @@ await writeFile(output, bytes);
 def source_objects(path):
     import bpy
 
-    names = [spec[0] for spec in MESHES.values()]
+    names = tuple(spec[0] for spec in MESHES.values())
     with bpy.data.libraries.load(str(path), link=False) as (catalog, result):
         if not set(names).issubset(catalog.objects):
             raise ValueError('The verified Poly Haven file lacks the B/C LOD2 variants.')
-        result.objects = names
+        result.objects = list(names)
     objects = {tree.name: tree for tree in result.objects if tree is not None}
     actual = {obj.name for obj in bpy.data.objects if TREE_OBJECT.fullmatch(obj.name)}
     if set(objects) != set(names) or actual != set(names):
