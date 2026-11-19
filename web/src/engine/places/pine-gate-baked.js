@@ -6,6 +6,7 @@ import { loadPineGateBackdrop } from './pine-gate-backdrop.js';
 import { loadPineForestBackdrop, readPineForestBackdrop } from './pine-forest-backdrop.js';
 import { createPineGateLife } from './pine-gate-life.js';
 import { animatePineCreek } from './pine-creek-water.js';
+import { animatePineSpringBasin } from './pine-spring-basin.js';
 import { buildPineCrestNeedles } from './pine-crest-needles.js';
 import { buildPineBankVerge } from './pine-bank-verge.js';
 import { dressAncientPineBark } from './pine-ancient-bark.js';
@@ -99,6 +100,9 @@ export default function createPlace(h) {
       const baked = await loadBakedPlace('pine-gate', h.renderer, context.light);
       context.G.add(baked.group);
       if (baked.manifest.walkLightmaps) context.up.push(animatePineCreek(baked.group));
+      const gate = baked.group.children.find(object => object.userData.lightmap_region === 'gate');
+      const spring = gate && animatePineSpringBasin(gate);
+      if (spring) context.up.push(spring);
       context.baked = baked;
       dressAncientPineBark(baked.group);
       dressPineCrestCloth(baked.group);
