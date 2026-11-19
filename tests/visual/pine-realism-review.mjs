@@ -138,12 +138,20 @@ if (candidate) {
 }
 
 const references = await readJson(join(referenceDir, 'manifest.json'));
+const photoFile = /^[a-z-]+\.jpg$/;
 for (const [key, view] of Object.entries(sizes)) {
   const reference = references[view.reference];
   assert(reference.author && reference.title && reference.license && /^https:\/\//.test(reference.sourceUrl)
-    && /^https:\/\//.test(reference.licenseUrl) && /^[a-z-]+\.jpg$/.test(reference.file));
+    && /^https:\/\//.test(reference.licenseUrl) && photoFile.test(reference.file));
   const source = join(referenceDir, reference.file);
   assert.equal(sha256(await readFile(source)), reference.sha256, `Reference changed: ${reference.file}`);
+  if (reference.original) {
+    const original = reference.original;
+    assert(photoFile.test(original.file) && original.file !== reference.file && /^https:\/\//.test(original.url));
+    const bytes = await readFile(join(referenceDir, original.file));
+    assert.equal(bytes.length, original.bytes, `Original photograph length changed: ${original.file}`);
+    assert.equal(sha256(bytes), original.sha256, `Original photograph changed: ${original.file}`);
+  }
   assert.deepEqual(reference.crop.slice(2), view.rect.slice(2));
   const referenceTile = join(output, `${key}-photo.png`);
   const baselineTile = join(output, `${key}-baseline.png`);
@@ -157,8 +165,10 @@ for (const [key, view] of Object.entries(sizes)) {
 }
 
 const candlePhoto = references.candle;
-tiles.push({ source: join(referenceDir, candlePhoto.file), output: join(output, 'wax-photo-flame.png'),
-  rect: candlePhoto.flameCrop, sourceSize: candlePhoto.dimensions });
+if (candlePhoto.flameCrop !== undefined) {
+  tiles.push({ source: join(referenceDir, candlePhoto.file), output: join(output, 'wax-photo-flame.png'),
+    rect: candlePhoto.flameCrop, sourceSize: candlePhoto.dimensions });
+}
 
 await mkdir(output);
 const temporary = await mkdtemp(join(tmpdir(), 'pine-realism-pixels-'));
