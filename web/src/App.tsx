@@ -205,8 +205,14 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
         presence.burn(lightPlace, c.id, () => b.elapsed()); setScreen('burning');
         void engine.ignite({ onCatch: () => {
           // The ignite cue is timed to the flame catching, and its own end hands over
-          // to the burning bed; starting the bed here would cut it off.
-          if (burnRef.current === b && !b.isSettled) { setCaught(true); void music.play('ignite', lightPlace); }
+          // to the burning bed; starting the bed here would cut it off. A missing ignite
+          // never ends, so the bed starts here instead of the burn staying silent.
+          if (burnRef.current === b && !b.isSettled) {
+            setCaught(true);
+            void music.play('ignite', lightPlace).then((started) => {
+              if (!started && burnRef.current === b && !b.isSettled) void music.play('burn', lightPlace);
+            });
+          }
         } })
           .catch(() => { if (!b.isSettled) b.settle('put_out'); });
       }

@@ -1,7 +1,8 @@
 // The game's music: long cues streamed through media elements into one gain stage.
 // Nothing is decoded into memory and nothing plays before the visitor's first
 // gesture. A missing cue is silent and never produces a request that 404s: only the
-// cues listed in /music/manifest.json are ever asked for.
+// cues listed in /music/manifest.json are ever asked for. Media elements come from a
+// small reusable pool, because iOS caps how many an audio context may own.
 import type { PlaceId } from '../../shared/places.ts';
 import { dayPart, musicBucket, type MusicBucket } from '../../shared/dayPart.ts';
 
@@ -72,7 +73,23 @@ export function phraseBag(count = 8): { next: () => number; remaining: () => num
   };
 }
 
-type Channel = { el: HTMLAudioElement; source: MediaElementAudioSourceNode; gain: GainNode };
+// iOS keeps a hard cap on media elements per context (historically one on iPhone), so
+// elements are reused instead of allocated per cue. A source node can only be made
+// once per element, so the pair lives together in the pool.
+const POOL_LIMIT = 3;
+type Slot = { el: HTMLAudioElement; source: MediaElementAudioSourceNode };
+type Channel = { el: HTMLAudioElement; source: MediaElementAudioSourceNode; gain: GainNode; slot: Slot };
+
+// Equal-power curve: the two gains cross on a circle, so the sum of their power stays
+// constant through the fade instead of dipping in the middle as linear ramps do.
+export function equalPowerCurve(rising: boolean, steps = 32): Float32Array {
+  const curve = new Float32Array(steps + 1);
+  for (let i = 0; i <= steps; i++) {
+    const x = i / steps;
+    curve[i] = rising ? Math.sin((x * Math.PI) / 2) : Math.cos((x * Math.PI) / 2);
+  }
+  return curve;
+}
 
 export function createMusic(options: { createContext?: () => AudioContext } = {}): Music {
   let context: AudioContext | null = null;
@@ -85,6 +102,10 @@ export function createMusic(options: { createContext?: () => AudioContext } = {}
   let place: PlaceId | null = null;
   let bucket: MusicBucket | null = null;
   let channels: Channel[] = [];
+  const pool: Slot[] = [];
+  // Every channel that still owns a slot, fading ones included: the pool needs them to
+  // know which element it may take back when it is at its cap.
+  let held: Channel[] = [];
   let stopping = false;
   // The one-shot currently allowed to hand over, and the stage that asked for it.
   let liveOneShot: Channel | null = null;
@@ -133,17 +154,70 @@ export function createMusic(options: { createContext?: () => AudioContext } = {}
 
   function urlFor(cue: CueName) { return `/music/${cue}.m4a`; }
 
+  // The cap is what iOS enforces, so when it is reached the oldest cue gives up its
+  // element: a new cue must never be dropped just because the previous one is still
+  // fading out.
+  function takeSlot(): Slot | null {
+    const busySlots = new Set(held.map((c) => c.slot));
+    const free = pool.find((s) => !busySlots.has(s));
+    if (free) return free;
+    if (pool.length < POOL_LIMIT) {
+      const ctx = ensureContext();
+      const el = new Audio();
+      el.preload = 'auto';
+      const slot: Slot = { el, source: ctx.createMediaElementSource(el) };
+      pool.push(slot);
+      return slot;
+    }
+    // At the cap the oldest cue gives up its element: a new cue must never be dropped
+    // just because the previous one is still fading out.
+    const oldest = held[0];
+    if (!oldest) return null;
+    channelFree(oldest);
+    return oldest.slot;
+  }
+
+  // Stops one channel's sound and returns its element without waiting for a fade.
+  function channelFree(channel: Channel) {
+    channels = channels.filter((c) => c !== channel);
+    held = held.filter((c) => c !== channel);
+    if (liveOneShot === channel) liveOneShot = null;
+    try { channel.el.pause(); channel.gain.disconnect(); } catch { /* already gone */ }
+  }
+
   function makeChannel(cue: CueName, loop: boolean): Channel | null {
-    const ctx = ensureContext();
-    const el = new Audio();
-    el.preload = 'auto';
+    const slot = takeSlot();
+    if (!slot) return null;
+    const el = slot.el;
     el.loop = loop;
     el.src = urlFor(cue);
-    const source = ctx.createMediaElementSource(el);
-    const gain = ctx.createGain();
+    const gain = ensureContext().createGain();
     gain.gain.value = 0;
-    source.connect(gain).connect(master!);
-    return { el, source, gain };
+    slot.source.connect(gain).connect(master!);
+    const channel: Channel = { el, source: slot.source, gain, slot };
+    held.push(channel);
+    return channel;
+  }
+
+  // Returning the element to the pool, not destroying it, is what keeps iOS under its
+  // cap; the source node stays attached to the same element for the next cue.
+  function releaseChannel(channel: Channel) {
+    try {
+      channel.el.pause();
+      channel.el.removeAttribute('src');
+      channel.el.load();
+      channel.gain.disconnect();
+    } catch { /* already gone */ }
+    held = held.filter((c) => c !== channel);
+  }
+
+  // Equal-power fade between the outgoing and incoming channels.
+  function powerFade(gain: GainNode, to: number, seconds: number) {
+    if (!context) return;
+    const now = context.currentTime;
+    gain.gain.cancelScheduledValues(now);
+    gain.gain.setValueAtTime(gain.gain.value, now);
+    gain.gain.setValueCurveAtTime(equalPowerCurve(to > 0), now, seconds);
   }
 
   function fade(gain: GainNode, to: number, seconds: number) {
@@ -158,8 +232,8 @@ export function createMusic(options: { createContext?: () => AudioContext } = {}
     const leaving = channels;
     channels = [];
     for (const channel of leaving) {
-      fade(channel.gain, 0, seconds);
-      globalThis.setTimeout(() => { try { channel.el.pause(); channel.el.src = ''; channel.source.disconnect(); channel.gain.disconnect(); } catch { /* already gone */ } }, seconds * 1000 + 80);
+      powerFade(channel.gain, 0, seconds);
+      globalThis.setTimeout(() => releaseChannel(channel), seconds * 1000 + 80);
     }
   }
 
@@ -193,11 +267,11 @@ export function createMusic(options: { createContext?: () => AudioContext } = {}
         const channel = makeChannel(cue, false);
         if (channel) {
           void channel.el.play().catch(() => {});
-          fade(channel.gain, 1, 1.2);
+          powerFade(channel.gain, 1, 1.2);
           channels.push(channel);
           const end = () => {
-            fade(channel.gain, 0, 2.4);
-            globalThis.setTimeout(() => { try { channel.el.pause(); channel.source.disconnect(); channel.gain.disconnect(); } catch { /* gone */ } }, 2600);
+            powerFade(channel.gain, 0, 2.4);
+            globalThis.setTimeout(() => releaseChannel(channel), 2600);
             channels = channels.filter((c) => c !== channel);
           };
           channel.el.addEventListener('ended', end, { once: true });
@@ -215,25 +289,26 @@ export function createMusic(options: { createContext?: () => AudioContext } = {}
     const channel = makeChannel(cue, true);
     if (!channel) return false;
     void channel.el.play().catch(() => {});
-    fade(channel.gain, 1, seconds);
+    powerFade(channel.gain, 1, seconds);
     channels.push(channel);
     return true;
   }
 
   function playOneShot(cue: CueName, seconds: number, handsOver: MusicStage | null, fromStage: MusicStage): boolean {
     // A missing one-shot stays silent rather than jumping straight to what would
-    // follow it; the screen that comes next starts its own cue.
+    // follow it; the screen that comes next starts its own cue. The caller uses the
+    // false return to start that cue itself, so a missing ignite still burns.
     if (!cues?.has(cue)) return false;
     const channel = makeChannel(cue, false);
     if (!channel) return false;
     void channel.el.play().catch(() => {});
-    fade(channel.gain, 1, seconds);
+    powerFade(channel.gain, 1, seconds);
     channels.push(channel);
     liveOneShot = channel;
     cueStage = fromStage;
     channel.el.addEventListener('ended', () => {
-      fade(channel.gain, 0, 0.6);
-      globalThis.setTimeout(() => { try { channel.el.pause(); channel.source.disconnect(); channel.gain.disconnect(); } catch { /* gone */ } }, 700);
+      powerFade(channel.gain, 0, 0.6);
+      globalThis.setTimeout(() => releaseChannel(channel), 700);
       const stillLive = liveOneShot === channel && cueStage === fromStage && stage === fromStage;
       channels = channels.filter((c) => c !== channel);
       if (liveOneShot === channel) liveOneShot = null;
@@ -268,6 +343,25 @@ export function createMusic(options: { createContext?: () => AudioContext } = {}
     if (nextStage === 'burn') { startBucketWatch(); schedulePhrase(); }
     return started;
   }
+
+  // Hidden tabs must go quiet: a lamp burning in a background tab should not keep
+  // playing. Resuming restores whichever cue is current rather than restarting it, so a
+  // loop picks up where it left off.
+  let hiddenPaused = false;
+  function installVisibilityPause() {
+    if (typeof document === 'undefined') return;
+    document.addEventListener('visibilitychange', () => {
+      if (!context) return;
+      if (document.hidden) {
+        hiddenPaused = context.state === 'running';
+        if (hiddenPaused) void context.suspend().catch(() => {});
+      } else if (hiddenPaused) {
+        hiddenPaused = false;
+        void context.resume().catch(() => {});
+      }
+    });
+  }
+  installVisibilityPause();
 
   return {
     async unlock() {

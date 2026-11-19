@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { createMusic, cueFor, phraseBag } from '../../../web/src/music.ts';
+import { createMusic, cueFor, equalPowerCurve, phraseBag } from '../../../web/src/music.ts';
 import { musicBucket } from '../../../shared/dayPart.ts';
 
 // A fake media element and audio context: the music module must work without a real
@@ -10,6 +10,7 @@ class FakeGain {
     setValueAtTime: vi.fn(),
     linearRampToValueAtTime: vi.fn(),
     cancelScheduledValues: vi.fn(),
+    setValueCurveAtTime: vi.fn(),
   };
   connect(target: FakeGain | FakeContext) { return target; }
   disconnect() { /* no graph */ }
@@ -174,6 +175,52 @@ describe('music playback', () => {
     walk.emit('ended');
     await Promise.resolve();
     expect(FakeAudio.instances.map((a) => a.src)).not.toContain('/music/snow_choose_loop.m4a');
+  });
+
+  it('reuses media elements instead of allocating one per cue', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, json: async () => ({ cues: ['snow_burn_bed_day', 'snow_burn_bed_golden', 'snow_choose_loop', 'home_loop'] }) })));
+    const music = createMusic({ createContext: () => new FakeContext() as unknown as AudioContext });
+    await music.unlock();
+    // Five stage changes in a row: iOS would refuse the fifth fresh element.
+    for (const stage of ['home', 'choose', 'burn', 'choose', 'home'] as const) await music.play(stage, 'snow-roof');
+    await new Promise((r) => setTimeout(r, 1700));
+    expect(FakeAudio.instances.length).toBeLessThanOrEqual(3);
+    expect(music.describe().channels).toBe(1);
+  });
+
+  it('crossfades on an equal-power curve, not a linear ramp', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, json: async () => ({ cues: ['home_loop'] }) })));
+    const music = createMusic({ createContext: () => new FakeContext() as unknown as AudioContext });
+    await music.unlock();
+    await music.play('home', 'snow-roof');
+    // The curve rises on a quarter circle: its midpoint is above a linear 0.5, which is
+    // what keeps the perceived loudness flat through the join.
+    const curve = equalPowerCurve(true, 4);
+    [0, Math.sin(Math.PI / 8), Math.SQRT1_2, Math.sin((3 * Math.PI) / 8), 1]
+      .forEach((value, i) => expect(curve[i]).toBeCloseTo(value, 6));
+    expect(curve[2]).toBeGreaterThan(0.5);
+    // The falling half is the mirror image, so the two gains never sum below one.
+    expect([...equalPowerCurve(false, 4)].map((v, i) => v * v + curve[i] * curve[i]).every((p) => Math.abs(p - 1) < 1e-6)).toBe(true);
+  });
+
+  it('pauses on a hidden tab and resumes the current cue on return', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, json: async () => ({ cues: ['home_loop'] }) })));
+    const ctx = new FakeContext();
+    const suspended: string[] = [];
+    const spy = ctx as unknown as { suspend: () => Promise<void>; resume: () => Promise<void> };
+    spy.suspend = () => { suspended.push('suspend'); ctx.state = 'suspended'; return Promise.resolve(); };
+    spy.resume = () => { suspended.push('resume'); ctx.state = 'running'; return Promise.resolve(); };
+    const doc = new EventTarget() as EventTarget & { hidden: boolean };
+    doc.hidden = false;
+    vi.stubGlobal('document', doc);
+    const music = createMusic({ createContext: () => ctx as unknown as AudioContext });
+    await music.unlock();
+    await music.play('home', 'snow-roof');
+    doc.hidden = true;
+    doc.dispatchEvent(new Event('visibilitychange'));
+    doc.hidden = false;
+    doc.dispatchEvent(new Event('visibilitychange'));
+    expect(suspended).toEqual(['suspend', 'resume']);
   });
 
   it('persists the mute choice', async () => {
