@@ -44,6 +44,7 @@ function materialCoordinates(shader) {
 const POOL_PROFILE = [[1, 1], [.966, .75], [.924, .39], [.867, .12], [.72, -.045], [.47, -.068], [.23, -.021]];
 const WICK_FILM_PROFILE = [[1, 0], [.79, .052], [.61, .24], [.44, .52], [.29, .81], [.17, 1], [0, 1]];
 const POOL_RING_COUNT = POOL_PROFILE.length + WICK_FILM_PROFILE.length;
+const CHARRED_WICK_HEIGHT = .00405;
 
 const RELIEF_GLSL = `
   vec3 pineRelief(vec3 n, vec3 position, float height) {
@@ -114,8 +115,8 @@ function refinedWaxMaterial(light, layer, sculptNormal) {
         float toTip = clamp(-fromWick.y * invRise, 0., travel);
         vec3 end = fromWick + toTip * ray;
         vec2 rootOffset = vec2(.00135, .00058);
-        vec2 startXZ = fromWick.xz + rootOffset * clamp(-fromWick.y / .00575, 0., 1.);
-        vec2 endXZ = end.xz + rootOffset * clamp(-end.y / .00575, 0., 1.);
+        vec2 startXZ = fromWick.xz + rootOffset * clamp(-fromWick.y / ${CHARRED_WICK_HEIGHT}, 0., 1.);
+        vec2 endXZ = end.xz + rootOffset * clamp(-end.y / ${CHARRED_WICK_HEIGHT}, 0., 1.);
         vec2 segment = endXZ - startXZ;
         float nearest = clamp(-dot(startXZ, segment) / max(dot(segment, segment), 1.e-10), 0., 1.);
         return smoothstep(.00033, .00067, length(startXZ + nearest * segment));
@@ -748,8 +749,9 @@ export function createPineWax(seat, waxMaterial, { refined = false, sculptNormal
     object.frustumCulled = false;
     return { ...spec, surface: mesh, object };
   });
-  const wickPath = new THREE.CatmullRomCurve3([vector(0, -.001, 0), vector(-.00015, .002, 0),
-    vector(.00035, .0041, .00022), vector(.00135, .00575, .00058)]);
+  const wickHeight = refined ? CHARRED_WICK_HEIGHT : .00575;
+  const wickPath = new THREE.CatmullRomCurve3([vector(0, -.001, 0), vector(-.00015, wickHeight * .348, 0),
+    vector(.00035, wickHeight * .713, .00022), vector(.00135, wickHeight, .00058)]);
   const braid = refined ? makeBraidedWick(wickPath, wickMaterial, charMaterial) : null;
   const wick = braid ? braid.group : add(new THREE.TubeGeometry(wickPath, 10, .00068, 7, false), wickMaterial);
   if (braid) group.add(wick);
