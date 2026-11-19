@@ -16,8 +16,8 @@ const fragmentShader = `uniform sampler2D uPlate, uHighPlate;
     return vec4((exp2(encoded.rgb * log2(65.)) - 1.) / 8., encoded.a);
   }
   void main() {
-    vec4 color = plate(uPlate);
-    if (uHighMix > 0.) {
+    vec4 color = uHighMix >= 1. ? plate(uHighPlate) : plate(uPlate);
+    if (uHighMix > 0. && uHighMix < 1.) {
       vec4 high = plate(uHighPlate);
       float alpha = mix(color.a, high.a, uHighMix);
       vec3 radiance = mix(color.rgb * color.a, high.rgb * high.a, uHighMix);
@@ -31,7 +31,7 @@ const fragmentShader = `uniform sampler2D uPlate, uHighPlate;
 export async function loadPineGateBackdrop(baked, renderer, initialLight) {
   const descriptor = readPineBackdrop(baked.manifest);
   if (!descriptor) return null;
-  const { files, width, height, high } = descriptor;
+  const { files, width, height, walk, high } = descriptor;
   if (baked.cameraPreExposure !== projection.preExposure) throw new Error('Pine Gate backdrop exposure does not match the place bake');
   const maximumSize = renderer.capabilities.maxTextureSize;
   if (Math.max(width, height) > maximumSize) throw new Error('Pine Gate backdrop exceeds the device texture limit');
@@ -53,7 +53,7 @@ export async function loadPineGateBackdrop(baked, renderer, initialLight) {
   const group = new THREE.Group();
   const uDayOpacity = { value: 1 };
   const uHighMix = { value: 0 };
-  let disposed = false, highLoadedAt = null, highRequest;
+  let disposed = false, upgradedAt = null, request;
   group.name = 'Pine Gate Cycles backdrop';
   // Render the transparent plates over the sky from far to near. The depth
   // test still lets any nearer solid terrain or shrine occlude them.
@@ -73,46 +73,55 @@ export async function loadPineGateBackdrop(baked, renderer, initialLight) {
     group.add(plane);
   }
 
-  async function loadHigh() {
+  async function loadUpgrade(tier) {
     // Upload sequentially after entry. The transition starts only when every
     // layer is ready, so colour, parallax and silhouette agree during the fade.
     const upgrades = [];
     try {
       for (const plane of group.children) {
         if (disposed) return false;
-        const texture = await load(high.files[plane.name], high);
+        const texture = await load(tier.files[plane.name], tier);
         upgrades.push([plane, texture]);
         if (disposed) return false;
         renderer.initTexture(texture);
       }
       for (const [plane, texture] of upgrades) plane.material.uniforms.uHighPlate.value = texture;
-      highLoadedAt = performance.now();
+      upgradedAt = performance.now();
       return true;
     } finally {
-      if (highLoadedAt === null) {
+      if (upgradedAt === null) {
         for (const [, texture] of upgrades) baked.disposeTexture(texture);
       }
     }
   }
 
-  function startDesktopHigh() {
-    if (disposed || !high || Math.max(high.width, high.height) > maximumSize) return;
-    if (!highRequest) highRequest = loadHigh().catch(() => false).then(ready => {
-      if (!ready) highRequest = null;
+  function start(tier) {
+    if (disposed || !tier?.files || Math.max(tier.width, tier.height) > maximumSize) return;
+    if (!request) request = loadUpgrade(tier).catch(() => false).then(ready => {
+      if (!ready) request = null;
       return ready;
     });
-    return highRequest;
+    return request;
   }
 
   function update(light) {
     const day = (1 - light.n) * (1 - light.g);
     uDayOpacity.value = THREE.MathUtils.smoothstep(day, .4, .95);
     group.visible = uDayOpacity.value > 0;
-    if (highLoadedAt !== null) uHighMix.value = THREE.MathUtils.smoothstep(performance.now(), highLoadedAt, highLoadedAt + 800);
+    if (upgradedAt !== null && uHighMix.value < 1) {
+      uHighMix.value = THREE.MathUtils.smoothstep(performance.now(), upgradedAt, upgradedAt + 800);
+      if (walk && uHighMix.value === 1) {
+        for (const plane of group.children) {
+          const { uPlate, uHighPlate } = plane.material.uniforms;
+          baked.disposeTexture(uPlate.value);
+          uPlate.value = uHighPlate.value;
+        }
+      }
+    }
   }
   update(initialLight);
   return {
-    group, update, startDesktopHigh,
+    group, update, startWalk: () => start(walk), startDesktopHigh: () => start(high),
     dispose() {
       disposed = true;
       group.removeFromParent();

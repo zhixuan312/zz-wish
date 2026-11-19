@@ -56,6 +56,28 @@ export async function loadBakedPlace(id,renderer,initialLight={n:1,g:0}){
   let disposed=false,lastUpdate=performance.now();
   const imageBitmaps=new Set();
   const loadTexture=async uri=>{
+    if(uri.endsWith('.ktx2')){
+      const {astcSupported,etc2Supported,dxtSupported,bptcSupported,pvrtcSupported}=ktx.workerConfig;
+      const bytes=await verifyBytes(uri);
+      const uastc=new DataView(bytes).getUint32(44,true)===2;
+      if(!(uastc&&astcSupported)&&!etc2Supported&&!dxtSupported&&!bptcSupported&&!pvrtcSupported){
+        throw new Error(`GPU compression unavailable for ${uri}`);
+      }
+      // The worker transfers its input buffer. Keep the verified cache intact
+      // and give each place ownership of its own transcoded texture.
+      const url=URL.createObjectURL(new Blob([bytes],{type:'image/ktx2'}));
+      try{
+        const texture=await ktx.loadAsync(url);
+        if(disposed||!texture.isCompressedTexture||texture.format===THREE.RGBAFormat){
+          texture.dispose();
+          throw new Error(`GPU compression unavailable for ${uri}`);
+        }
+        texture.name=uri;texture.colorSpace=THREE.NoColorSpace;textures.add(texture);
+        return texture;
+      }finally{
+        THREE.Cache.remove(url);URL.revokeObjectURL(url);
+      }
+    }
     const fileType=uri.endsWith('.webp')?'image/webp':uri.endsWith('.png')?'image/png':null;
     if(!fileType)throw new Error(`Unsupported ${id} image ${uri}`);
     const bytes=await verifyBytes(uri);
@@ -71,9 +93,9 @@ export async function loadBakedPlace(id,renderer,initialLight={n:1,g:0}){
     return texture;
   };
   const disposeTexture=texture=>{
-    if(!imageBitmaps.delete(texture.image))return;
-    textures.delete(texture);
-    texture.dispose();texture.image.close();
+    if(!textures.delete(texture))return;
+    texture.dispose();
+    if(imageBitmaps.delete(texture.image))texture.image.close();
   };
   const pending={},ready={},retryAt={};
   const ensurePass=pass=>{

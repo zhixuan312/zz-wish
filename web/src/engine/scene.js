@@ -2246,6 +2246,7 @@ export async function travel(id) {
     await fadeTo(1, 200); await showPlace(id);
     const p=PLACES[id],v=(narrow()&&p.viewPhone)||p.view;rig.pos.copy(v.pos);rig.look.copy(v.look);rig.amp=1;rig.fov=v.fov??null;await fadeTo(0,267);
   }
+  place.baked?.backdrop?.startWalk();
   if (!narrow() && !powerSaver) {
     const entering = place, started = performance.now();
     entering.baked?.backdrop?.startDesktopHigh();
