@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { writePineDaughter } from './pine-needle-shoot.js';
 
 const ridgeMaterial = 'Ridge pine needle fascicles';
-const maxMounts = 110;
+const maxMounts = 134;
 const up = new THREE.Vector3(0, 1, 0);
 const alternate = new THREE.Vector3(1, 0, 0);
 

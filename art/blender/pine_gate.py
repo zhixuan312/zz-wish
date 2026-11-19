@@ -1670,9 +1670,10 @@ RIDGE_FASCICLE_LEVELS = {
     'Old pine 1 1': (0, 1, 2, 3, 4, 5, 6),
     'Old pine 1 -1': (0, 2, 3, 6),
     'Old pine 2 -1': (0, 1, 2, 3, 4, 5, 6),
-    'Old pine 2 1': (5, 6),
+    'Old pine 2 1': (0, 1, 2, 3, 5, 6),
     'Old pine 3 -1': (3, 6),
     'Low forest verge pine 3': (6,),
+    'Back ridge pine 1': (0, 1),
 }
 
 
@@ -2362,7 +2363,7 @@ def forest(ground, rock, stone, bark, pine, far_crown=None):
         label = f'Back ridge pine {i + 1}'
         pine_tree(label, x, z, h, bark, needles, ground,
                   modelled_needles=modelled_needles if label in MODELLED_PINE_CROWNS | SHOULDER_PINE_CROWNS else None,
-                  far_crown=far_crown if z < 0 else None)
+                  far_crown=far_crown if z < 0 else None, ridge_needles=ridge_needles)
     # Shorter pines overhang the older stone and screen the buildings
     # through the middle approach. Their crowns open up at the saddle.
     for index, (x, z, height) in enumerate(((-2.73, 26.8, 5.5), (2.65, 25.1, 5.8),
