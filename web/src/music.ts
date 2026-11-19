@@ -378,11 +378,20 @@ export function createMusic(options: { createContext?: () => AudioContext } = {}
     return true;
   }
 
+  // A one-shot with a successor must still reach that successor when its own file never
+  // plays: a 24-hour burn with no bed is worse than a slightly early one.
+  function handOverIfLive(handsOver: MusicStage | null, fromStage: MusicStage, liveNow: boolean) {
+    if (!handsOver || !liveNow || stopping) return;
+    void play(handsOver, place!);
+  }
+
   function playOneShot(cue: CueName, seconds: number, handsOver: MusicStage | null, fromStage: MusicStage): boolean {
-    // A missing one-shot stays silent rather than jumping straight to what would
-    // follow it; the screen that comes next starts its own cue. The caller uses the
-    // false return to start that cue itself, so a missing ignite still burns.
-    if (!cues?.has(cue)) return false;
+    // A missing one-shot that has a successor hands over at once, because nothing will
+    // ever end. A missing cue with no successor simply stays silent.
+    if (!cues?.has(cue)) {
+      handOverIfLive(handsOver, fromStage, stage === fromStage);
+      return false;
+    }
     const channel = makeChannel(cue, false);
     if (!channel) return false;
     // One handler for every way the cue can end: its own end, a file that fails to load,
@@ -399,7 +408,7 @@ export function createMusic(options: { createContext?: () => AudioContext } = {}
       globalThis.setTimeout(() => releaseChannel(channel), 700);
       // A slow `walk` can end after the stage has moved on; only hand over while this
       // one-shot still owns the stage, or it would pull the game back to `choose`.
-      if (handsOver && stillLive && !stopping) void play(handsOver, place!);
+      handOverIfLive(handsOver, fromStage, stillLive);
     };
     const { signal } = channel.abort;
     channel.el.addEventListener('ended', finish, { once: true, signal });
@@ -455,11 +464,16 @@ export function createMusic(options: { createContext?: () => AudioContext } = {}
   // context as `interrupted` rather than `running`. So every playing element is paused
   // and remembered, and only those are resumed on return.
   let hiddenResume: Channel[] = [];
+  let hiddenWasBurning = false;
   function pauseForHidden() {
     hiddenResume = [];
     for (const channel of held) {
       if (!channel.el.paused) { hiddenResume.push(channel); channel.el.pause(); }
     }
+    // The phrase and part-of-day timers must not fire into a hidden tab: a phrase would
+    // start a cue nobody hears, and a bed turnover would fade out a paused element.
+    hiddenWasBurning = stage === 'burn';
+    clearTimers();
     if (context && context.state !== 'closed') void context.suspend().catch(() => {});
   }
   function resumeFromHidden() {
@@ -468,6 +482,10 @@ export function createMusic(options: { createContext?: () => AudioContext } = {}
       if (channel.slot.owner === channel) void channel.el.play().catch(() => {});
     }
     hiddenResume = [];
+    // The stage is untouched, so a one-shot that was paused resumes rather than restarts,
+    // and the burn watchers pick up where they left off.
+    if (hiddenWasBurning) { startBucketWatch(); schedulePhrase(); }
+    hiddenWasBurning = false;
     if (context && (context.state === 'suspended' || (context.state as string) === 'interrupted')) {
       void context.resume().catch(() => {});
     }

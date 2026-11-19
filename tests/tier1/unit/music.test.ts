@@ -586,6 +586,72 @@ describe('music playback', () => {
     counter.restore();
   });
 
+  it('stops the burn timers while hidden and restarts them on return', async () => {
+    vi.useFakeTimers();
+    try {
+      vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, json: async () => ({ cues: ['snow_burn_bed_day'] }) })));
+      const doc = new EventTarget() as EventTarget & { hidden: boolean };
+      doc.hidden = false;
+      vi.stubGlobal('document', doc);
+      const music = createMusic({ createContext: () => new FakeContext() as unknown as AudioContext });
+      await music.unlock();
+      await music.play('burn', 'snow-roof');
+      // A phrase falls due every 3-8 minutes; while hidden it must not be scheduled.
+      const burning = vi.getTimerCount();
+      expect(burning).toBeGreaterThan(0);
+      doc.hidden = true;
+      doc.dispatchEvent(new Event('visibilitychange'));
+      // The burn watchers are gone; only timers already queued by the fade may remain.
+      expect(vi.getTimerCount()).toBeLessThan(burning);
+      doc.hidden = false;
+      doc.dispatchEvent(new Event('visibilitychange'));
+      // On return the part-of-day watch is back, and the stage was not reset.
+      expect(vi.getTimerCount()).toBeGreaterThanOrEqual(burning);
+      expect(music.describe().stage).toBe('burn');
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('hands a missing ignite over to the bed at once', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, json: async () => ({ cues: ['snow_burn_bed_day'] }) })));
+    const music = createMusic({ createContext: () => new FakeContext() as unknown as AudioContext });
+    await music.unlock();
+    const started = await music.play('ignite', 'snow-roof');
+    expect(started).toBe(false);
+    // Nothing will ever end, so the bed must start now rather than never.
+    await new Promise((r) => setTimeout(r, 50));
+    expect(cueElements().map((a) => a.src)).toContain('/music/snow_burn_bed_day.m4a');
+  });
+
+  it('does not hand over from a missing ignite once the stage moved on', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, json: async () => ({ cues: ['snow_burn_bed_night'] }) })));
+    const music = createMusic({ createContext: () => new FakeContext() as unknown as AudioContext });
+    await music.unlock();
+    // The player put the lamp out before the bed could start; the stage is result.
+    const starting = music.play('ignite', 'snow-roof');
+    await music.play('result', 'snow-roof');
+    expect(await starting).toBe(false);
+    await new Promise((r) => setTimeout(r, 50));
+    expect(cueElements().map((a) => a.src)).not.toContain('/music/snow_burn_bed_night.m4a');
+  });
+
+  it('starts choose once when a missing walk hands over and the App fallback also asks', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, json: async () => ({ cues: ['snow_choose_loop'] }) })));
+    const music = createMusic({ createContext: () => new FakeContext() as unknown as AudioContext });
+    await music.unlock();
+    const counter = countPlays('snow_choose_loop');
+    // Music hands a missing walk over to choose by itself now, and the App does the same
+    // when its own ask reports false. Both must land on one element.
+    const walk = music.play('walk', 'snow-roof');
+    expect(await walk).toBe(false);
+    await music.play('choose', 'snow-roof');
+    await new Promise((r) => setTimeout(r, 300));
+    expect(counter.plays()).toBe(1);
+    expect(music.describe().channels).toBe(1);
+    counter.restore();
+  });
+
   it('persists the mute choice', async () => {
     const music = createMusic({ createContext: () => new FakeContext() as unknown as AudioContext });
     music.setMuted(true);
