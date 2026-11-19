@@ -1,4 +1,4 @@
-"""Pine Gate Steps. Original mountain temple exterior and stone candle niche."""
+"""Pine Gate Steps. A forest path and a spring shoulder with a tea pavilion and pierced lamp shrine."""
 from __future__ import annotations
 
 import argparse
@@ -111,7 +111,13 @@ def terrain_height(x, z):
     # flanking ground still rises toward the two wooded shoulders.
     valley = max(0., -z - .55)
     valley_floor = min(32., .39 * valley + .079 * valley * valley)
-    height = rise - .10 + bank + fold * min(1., bank) + ridge - valley_floor
+    # Low shoulders flank the upper approach. The old path bends between
+    # them before the spring buildings and the valley can be seen.
+    crest_screen = math.exp(-((z - 13.7) / 5.3) ** 2)
+    ridge_spur = math.exp(-((abs(x) - 1.69) / .59) ** 2)
+    verge = min(1., max(0., (abs(x) - .96) / .29))
+    shoulder = crest_screen * ridge_spur * verge * (1.27 + .19 * math.sin(.91 * z + 2.4 * x))
+    height = rise - .10 + bank + fold * min(1., bank) + ridge - valley_floor + shoulder
     if abs(x) < 4.5 and TERRACE_EDGE <= z <= 5.4:
         # Level ground below the laid slabs is what makes this a viable rest
         # stop. Beyond the perimeter the original shoulders keep rising.
@@ -120,9 +126,10 @@ def terrain_height(x, z):
 
 
 def terrain(material):
-    xs = [-31, -24, -19, -14, -11, -8, -6, -4.5, -4.32, -3.2, -2.12, 0,
-          2.12, 3.2, 4.32, 4.5, 6, 8, 11, 14, 19, 24, 31]
-    zs = sorted(set(range(-45, 67, 3)) | {-1.45, TERRACE_EDGE, -.72, 1.18, 4.88, 5.4, PINE_CREST})
+    xs = [-31, -24, -19, -14, -11, -8, -6, -4.5, -4.32, -3.2, -2.34, -1.72, -1.35, -1.01, 0,
+          1.01, 1.35, 1.72, 2.34, 3.2, 4.32, 4.5, 6, 8, 11, 14, 19, 24, 31]
+    zs = sorted(set(range(-45, 67, 3)) |
+                {-1.45, TERRACE_EDGE, -.72, 1.18, 4.88, 5.4, PINE_CREST, 10.5, 13.5, 16.5, 19.5})
     points = [(x, terrain_height(x, z), z) for z in zs for x in xs]
     faces = []
     for j in range(len(zs) - 1):
@@ -195,8 +202,8 @@ def climbing_steps(stone):
         # Laid in short runs around tree roots. A shallow camber takes rain
         # away from the worn center and toward the open right-hand drain.
         bend = .23 * math.sin(i * .11) - .15 * math.sin(i * .27)
-        span = 2.85 + .34 * math.cos(i * .18) + .009 * i
-        widths = [.85 + RANDOM.uniform(-.21, .14), .99 + RANDOM.uniform(-.26, .16)]
+        span = 1.91 + .23 * math.cos(i * .18) + .004 * i
+        widths = [span * .31 + RANDOM.uniform(-.10, .09), span * .35 + RANDOM.uniform(-.12, .10)]
         widths.append(span - sum(widths))
         edge = bend - span / 2
         for j, width in enumerate(widths):
@@ -218,7 +225,7 @@ def climbing_steps(stone):
             if (i // 5 + direction) % 4 and i < 47:
                 for row in range(2 + int(i > 31)):
                     hewn_block(f'Stair retaining course {direction} {i} {row}', .46, .25, .798,
-                               (direction * (2.64 + row * .070), top + row * .244 + .02,
+                               (bend + direction * (span / 2 + .38 + row * .070), top + row * .244 + .02,
                                 z + (.24 if row % 2 else 0)), RANDOM.choice(stone), 'approach')
     landing_bed(stone[2])
     for row in range(11):
@@ -253,17 +260,17 @@ def saddle_water(stone):
     # One low crossing standing on two rubble abutments. The water is still
     # visible outside the near edge before and after crossing.
     for z in (21.02, 23.23):
-        mesh.box('Granite crossing abutment', (2.92, .44, .29), (0, 2.23, z),
+        mesh.box('Granite crossing abutment', (2.18, .44, .29), (0, 2.23, z),
                  stone[2], .045, region='approach')
     for index in range(5):
         z = 21.07 + index * .54
-        slab = hewn_block(f'Bridge decking slab {index + 1}', 2.91, .21, .56,
+        slab = hewn_block(f'Bridge decking slab {index + 1}', 2.17, .21, .56,
                           (.09, 2.51 - index * .052, z), stone[index % len(stone)], 'approach')
         slab['moss_edge'] = True
     for side in (-1, 1):
         for index in range(4):
             mesh.box('Low bridge parapet block', (.22, .23, .66),
-                     (side * 1.41, 2.61 - index * .066, 21.18 + index * .64),
+                     (side * 1.06, 2.61 - index * .066, 21.18 + index * .64),
                      stone[(index + 2) % len(stone)], .037, region='approach')
 
 
@@ -493,6 +500,11 @@ def forest(ground, rock, stone, bark, pine):
     for i, (x, z, h) in enumerate(((-10, 0, 10), (12, -3, 9), (8, -14, 7), (-7, -10, 8),
                                    (-4, -6, 7), (4, -8, 8), (15, 18, 9), (-17, 19, 9))):
         pine_tree(f'Back ridge pine {i + 1}', x, z, h, bark, needles, ground)
+    # Shorter pines overhang the older stone and screen the buildings
+    # through the middle approach. Their crowns open up at the saddle.
+    for index, (x, z, height) in enumerate(((-2.1, 26.8, 5.5), (2.05, 25.1, 5.8),
+                                           (1.76, 16.1, 4.8), (-1.65, 13.1, 5.05))):
+        pine_tree(f'Low forest verge pine {index + 1}', x, z, height, bark, needles, ground, roots=True)
     distant_pines(ground, bark, needles)
     understory(ground, pine)
     # These iron-gray outcrops are part of the bank. Their lower bands extend
@@ -638,7 +650,7 @@ def build(output):
     entry = route['entrance']
     scene.camera = camera('Reference_PineSteps', entry['position'], entry['look'], entry['desktopFov'], (1440, 900))
     camera('Reference_PineStepsPhone', entry['phonePosition'], entry['look'], entry['phoneFov'], (390, 844))
-    for name, index in (('Forest', 0), ('Crest', 4), ('Shoulder', 6)):
+    for name, index in (('Forest', 0), ('Crest', 3), ('Shoulder', 6)):
         shot = route['waypoints'][index]
         camera('Reference_Pine' + name, shot['position'], shot['look'], shot['desktopFov'], (1440, 900))
     camera('Reference_PineTeaPavilion', (0, 6.50, 7.05), (-.50, 5.05, 1.93), 68, (1440, 900))
