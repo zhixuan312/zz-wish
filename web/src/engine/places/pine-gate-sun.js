@@ -1,7 +1,8 @@
 import daylight from '../../../../shared/pine-gate-daylight.json' with { type: 'json' };
 
 const elevation = daylight.solarElevationDegrees * Math.PI / 180;
-const azimuth = daylight.solarAzimuthDegrees * Math.PI / 180;
+// Cycles reverses the authored rotation before evaluating a scattering sky.
+const azimuth = -daylight.solarAzimuthDegrees * Math.PI / 180;
 const horizon = Math.cos(elevation);
 const angularRadius = daylight.solarDiameterDegrees * Math.PI / 360;
 
