@@ -29,6 +29,7 @@ if (process.argv.includes('--help')) {
     'CAPTURE_AMBIENT_ONLY=1 captures final-package place, unlit, burning, and mid-burn at PINE_HOUR.',
     'CAPTURE_PREVIEW_DIR and CAPTURE_PREVIEW_SHA256 select an eight-sample package under art/build/pine-gate.',
     'CAPTURE_DIRECTION_ONLY=1 saves six site review frames from day and night under quality/direction/QUALITY_LABEL.',
+    'CAPTURE_SITE_DAY_ONLY=1 saves the six distinct P1 views at 13:00, including the original entrance.',
     'CAPTURE_DIRECTION_OVERVIEW is the JSON camera pose (space, position, look, fov) for the separate site overview.',
     'CAPTURE_REALISM_ONLY=1 captures two daytime desktop frames and records phone performance under quality/r1/QUALITY_LABEL.',
     'CAPTURE_REALISM_BASE_ONLY=1 pins the realism desktop frames to base assets by disabling desktop high-tier requests.',
@@ -49,22 +50,26 @@ const readinessOnly = process.env.CAPTURE_READINESS_ONLY === '1';
 const audioCompare = process.env.CAPTURE_AUDIO_COMPARE === '1';
 const ambientOnly = process.env.CAPTURE_AMBIENT_ONLY === '1';
 const directionOnly = process.env.CAPTURE_DIRECTION_ONLY === '1';
+const siteDayOnly = process.env.CAPTURE_SITE_DAY_ONLY === '1';
 const realismOnly = process.env.CAPTURE_REALISM_ONLY === '1';
 const realismBaseOnly = process.env.CAPTURE_REALISM_BASE_ONLY === '1';
 const requireBackdrop = process.env.CAPTURE_REQUIRE_BACKDROP === '1';
 assert(!realismOnly || directionOnly, 'The realism proof requires CAPTURE_DIRECTION_ONLY=1.');
+assert(!siteDayOnly || (directionOnly && !realismOnly), 'The daytime site proof requires the site direction mode.');
 assert(!realismBaseOnly || realismOnly, 'The base-only proof requires CAPTURE_REALISM_ONLY=1.');
 assert(!requireBackdrop || realismOnly, 'The backdrop requirement is available for realism captures.');
 const directionWalkFrames = realismOnly ? [['terrace-reveal-28s', 28]]
   : [['forest-06s', 6], ['ancient-pine-crest', 21.5], ['terrace-reveal-28s', 28]];
-const dayFrames = [...directionWalkFrames.map(([name]) => name), ...(realismOnly ? [] : ['shrine-pavilion']), 'day-burning'];
+const dayFrames = [...(siteDayOnly ? ['entrance'] : []), ...directionWalkFrames.map(([name]) => name),
+  ...(realismOnly ? [] : ['shrine-pavilion']), 'day-burning'];
 const directionPasses = [
   { name: 'day', hour: 13, frames: dayFrames },
-  ...(realismOnly ? [] : [{ name: 'night', hour: 22, frames: ['night-burning'] }]),
+  ...(realismOnly || siteDayOnly ? [] : [{ name: 'night', hour: 22, frames: ['night-burning'] }]),
 ];
 const directionMethod = realismOnly
   ? 'The 28 s release and settled daytime burning use native product cameras and real elapsed time at 1440 × 900. A separate pointed sky camera records the rendered solar disc after the main frames. A phone context measures readiness and render cadence. Panels are hidden only while taking screenshots.'
-  : 'Two independent 1440 × 900 desktop contexts use the same private eight-sample package. The walk and both burning views use product cameras, the site overview uses a declared pose, and panels are hidden only while taking each screenshot.';
+  : siteDayOnly ? 'The six distinct P1 views use a private eight-sample package at 13:00. The entrance, walk and burning use product cameras. The site overview uses the approved declared pose.'
+    : 'Two independent 1440 × 900 desktop contexts use the same private eight-sample package. The walk and both burning views use product cameras, the site overview uses a declared pose, and panels are hidden only while taking each screenshot.';
 const directionOverview = directionOnly && !realismOnly ? readDirectionOverview(process.env.CAPTURE_DIRECTION_OVERVIEW) : null;
 const readinessRepeats = Number(process.env.CAPTURE_READINESS_REPEATS ?? 1);
 assert(!readinessOnly || quality, 'Readiness-only requires CAPTURE_MILESTONE=quality.');
@@ -156,6 +161,7 @@ const report = {
   ...(quality ? { reviewLabel } : {}),
   ...(quality && !readinessOnly && !audioCompare && !ambientOnly && !directionOnly ? { matchedEndingShapes: true } : {}),
   ...(directionOnly ? { directionOnly, frames: directionPasses.flatMap(pass => pass.frames), directionOverview, directionMethod } : {}),
+  ...(siteDayOnly ? { siteDayOnly } : {}),
   ...(realismOnly ? { realismOnly } : {}),
   ...(realismBaseOnly ? { realismBaseOnly } : {}),
   ...(solarConfigBytes ? { solarConfig: { file: solarConfigPath, sha256: hash(solarConfigBytes), ...JSON.parse(solarConfigBytes) } } : {}),
@@ -709,7 +715,8 @@ async function capture(browser, browserName, size, trial) {
             `Pine Gate must use the ${pass} bank at visual hour ${visualHour}.`);
         }
       }
-      if (!directionOnly) await captureShot('place');
+      if (siteDayOnly) await captureShot('entrance');
+      else if (!directionOnly) await captureShot('place');
     }
     if (direction) {
       await travel(direction.name === 'night' || run.realismPerformanceOnly);
@@ -990,7 +997,15 @@ try {
     report.delivery.publicManifestUnchanged = publicAfter === report.delivery.publicManifestSha256;
     assert(report.delivery.publicManifestUnchanged, 'The ordinary final Pine manifest changed during the isolated preview.');
   }
-  if (directionOnly && !failures) {
+  if (siteDayOnly && !failures) {
+    assert.equal(report.runs.length, 1);
+    const [day] = report.runs;
+    assert.equal(day.visualHour, 13);
+    assert.deepEqual(day.shots.map(shot => basename(shot.file, '.png')), dayFrames);
+    assert.match(day.sceneSha256, /^[a-f0-9]{64}$/);
+    assert.deepEqual(day.errors, []);
+    report.directionVerified = true;
+  } else if (directionOnly && !failures) {
     const [day, second] = report.runs;
     assert.equal(report.runs.length, 2);
     assert.equal(day?.direction, 'day');
