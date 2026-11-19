@@ -14,7 +14,8 @@ from mathutils import Matrix, Vector, noise
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import snow_roof as mesh
-from pine_hero_trees import CROWNS, grow_crown, needle_mesh
+from pine_crest_ground import build_crest_ground, crest_soil_tint
+from pine_hero_trees import CROWNS, grow_crown, needle_fascicle, needle_mesh
 from pine_impostors import load_impostors, relief_crown
 from pine_materials import apply_scan
 from pine_native_mounts import (
@@ -804,6 +805,16 @@ MODELLED_PINE_CROWNS = {
     'Layered ridge pine 5', 'Layered ridge pine 6',
 }
 
+# These trees still break the silhouette at the shoulder and tea pavilion.
+# Keep the distant reliefs and the three native scan mounts at their
+# existing roots. The near crowns need three-dimensional branches from
+# the uphill approach as well as from the valley-facing pavilion.
+SHOULDER_PINE_CROWNS = {
+    'Back ridge pine 4', 'Back ridge pine 6',
+    'Layered ridge pine 2', 'Layered ridge pine 3',
+    'Layered ridge pine 5', 'Layered ridge pine 6',
+}
+
 
 def pine_needles(name, shoots, material):
     points, faces, charts, wind_uv = [], [], [], []
@@ -867,6 +878,61 @@ def pine_needles(name, shoots, material):
             uv.data[i].uv = wind_uv[vertex]
 
 
+def shoulder_pine_needles(name, shoots, material):
+    rng = random.Random(name)
+    world_up = Vector((0., 1., 0.))
+    fascicles, stems = [], []
+    for start, direction, length, radius, roll in shoots:
+        axis = direction.normalized()
+        side = axis.cross(world_up)
+        if side.length < .01:
+            side = axis.cross(Vector((1., 0., 0.)))
+        side.normalize()
+        side.rotate(Matrix.Rotation(roll, 3, axis))
+        up = axis.cross(side)
+        stem = [start]
+        for station, turn in ((.25, 1.), (.72, -1.)):
+            distance = length * (station + rng.uniform(-.1, .09))
+            lift = length * .31 * station * station
+            root = start + axis * distance + up * lift
+            stem.append(root)
+            shoot = axis + side * (turn * rng.uniform(.21, .57)) + up * (.18 + .31 * station)
+            reach = radius * rng.uniform(.65, .87) * (1 - .23 * station)
+            angle = roll + rng.uniform(-1.1, 1.1)
+            # Two staggered fans meet on the same shoot. Individual bent
+            # needles leave gaps through the silhouette in every view.
+            first = tuple(needle_fascicle(root, shoot, angle, reach, rng, False))
+            second = tuple(needle_fascicle(root, shoot, angle + 1.14, reach * .89, rng, False))
+            fascicles.append(first + second)
+        stems.append((stem, side, up))
+    points, faces, charts, wind = needle_mesh(fascicles, compact=True)
+    for stem, side, up in stems:
+        start = len(points)
+        radial = [side * math.cos(i * math.tau / 3) + up * math.sin(i * math.tau / 3) for i in range(3)]
+        radii = (.006, .004, .0018)
+        for center, radius in zip(stem, radii):
+            points.extend(center + direction * radius for direction in radial)
+            wind.extend(((.5, 0.),) * 3)
+        height = 0.
+        for ring, (a, b) in enumerate(zip(stem, stem[1:])):
+            top = height + (b - a).length
+            low_width = radii[ring] * math.sqrt(3.)
+            top_width = radii[ring + 1] * math.sqrt(3.)
+            for column in range(3):
+                first, second = start + ring * 3 + column, start + ring * 3 + (column + 1) % 3
+                faces.append((first, second, second + 3, first + 3))
+                charts.append(((column * low_width, height), ((column + 1) * low_width, height),
+                               ((column + 1) * top_width, top), (column * top_width, top)))
+            height = top
+    canopy = mesh.mesh_object(name, points, faces, material, 'approach')
+    source_uv(canopy, charts, 'Rooted, tapered needle fans with metric charts.')
+    uv = canopy.data.uv_layers['UVMap'].data
+    for face in canopy.data.polygons:
+        face.use_smooth = True
+        for loop, vertex in zip(face.loop_indices, face.vertices):
+            uv[loop].uv = wind[vertex]
+
+
 def pine_branch_shoots(name, branch, reach, rng, bark):
     joint, bend, tip = branch[1:]
     axis = (tip - joint).normalized()
@@ -906,6 +972,23 @@ def bark_tube(name, points, radii, bark, radial):
     return obj
 
 
+def ancient_bark_contour(stem, centres, sides, phase):
+    # Keep the scanned bark's metre scale UVs. Shape the large longitudinal
+    # fissures into the silhouette, with depth receding into the live crown.
+    for ring, centre in enumerate(centres):
+        fraction = ring / (len(centres) - 1)
+        origin = mesh.point(centre)
+        for index in range(sides):
+            angle = math.tau * index / sides
+            bend = phase + 1.75 * fraction + .31 * math.sin(fraction * 11.0)
+            rib = .089 * math.sin(angle * 7 + bend) + .044 * math.sin(angle * 11 - bend * .61)
+            plate = .036 * math.sin(angle * 5 + fraction * 54.0 + phase)
+            width = 1 + (rib + plate) * (1 - fraction * .72)
+            vertex = stem.data.vertices[ring * sides + index]
+            vertex.co = origin + (vertex.co - origin) * width
+    stem.data.update()
+
+
 def pine_bough(name, root, outward, reach, drift, droop, lift, bark, radial=5):
     side = Vector((-outward.z, 0, outward.x))
     points = [root + outward * (reach * t) +
@@ -925,17 +1008,23 @@ def pine_tree(label, x, z, height, bark, needles, ground, roots=False, lean=None
     phase = RANDOM.uniform(0, math.tau)
     def at(f):
         sweep = (.26 * f + 1.04 * f * f) if ancient else f * f
+        cross = math.copysign(.86, drift) * f ** 2 if ancient else 0.
+        crook = .24 * (math.sin(f * 9.5 + phase) - math.sin(phase)) * f if ancient else 0.
         return Vector((x + drift * sweep + .23 * math.sin(f * 5 + phase) * f,
-                       y + height * f, z + side * f - .19 * math.sin(f * 4.2 + phase) * f))
-    centres = [at(j / 7) for j in range(8)]
+                       y + height * f, z + side * f - .19 * math.sin(f * 4.2 + phase) * f + cross + crook))
+    segments = 18 if ancient else 7
+    centres = [at(j / segments) for j in range(segments + 1)]
     def trunk_at(f):
-        j = min(6, int(f * 7))
-        return centres[j].lerp(centres[j + 1], f * 7 - j)
+        j = min(segments - 1, int(f * segments))
+        return centres[j].lerp(centres[j + 1], f * segments - j)
 
-    radii = [height * (.004 + .047 * (1 - j / 7) ** .84) if ancient and j < 5
-             else height * (.00065 + (.057 if ancient else .027) * (1 - j / 7) ** 1.16)
-             for j in range(8)]
-    stem = bark_tube(f'{label} crooked trunk', centres, radii, bark, 14 if ancient else 10)
+    radii = [height * (.0014 + .056 * (1 - j / segments) ** .96) if ancient
+             else height * (.00065 + .027 * (1 - j / segments) ** 1.16)
+             for j in range(segments + 1)]
+    sides = 24 if ancient else 10
+    stem = bark_tube(f'{label} crooked trunk', centres, radii, bark, sides)
+    if ancient:
+        ancient_bark_contour(stem, centres, sides, phase)
     if roots:
         reach_scale = 1.53 if ancient else 1.
         for i in range(4 if ancient else 3):
@@ -950,6 +1039,7 @@ def pine_tree(label, x, z, height, bark, needles, ground, roots=False, lean=None
                       [.074 * reach_scale, .038 * reach_scale, .008], bark, 7)
     profile = HERO_PINE_CROWNS.get(label)
     use_native_crown = use_native_valley_crown(label, profile, far_crown)
+    shoulder_crown = label in SHOULDER_PINE_CROWNS
     carries_forks = ancient or (z < 3 and abs(x) < 8)
     shoots = []
     crown_rng = random.Random(label)
@@ -964,7 +1054,7 @@ def pine_tree(label, x, z, height, bark, needles, ground, roots=False, lean=None
              spread, roll, leader, outer_turn, outer_lift, size, fork_reach, inner_width, outer_size) = [
                 RANDOM.random() for _ in range(18)
             ]
-            if profile or far_crown:
+            if profile or (far_crown and not shoulder_crown):
                 # Keep the shared RNG cursor stable for unswapped trees and
                 # undergrowth that follow this crown in the source.
                 continue
@@ -1001,7 +1091,7 @@ def pine_tree(label, x, z, height, bark, needles, ground, roots=False, lean=None
     if profile and not use_native_crown:
         hero_pine_crown(label, centres, phase, bark, modelled_needles)
         return at if ancient else None
-    if far_crown:
+    if far_crown and not shoulder_crown:
         camera, views, mounts = far_crown
         relief_crown(label, profile if use_native_crown else 'ridge', centres, camera, views, mesh, source_uv)
         if use_native_crown and mounts is not None:
@@ -1019,7 +1109,8 @@ def pine_tree(label, x, z, height, bark, needles, ground, roots=False, lean=None
         pine_sprays(f'{label} short leader growth', leader, needles, close=carries_forks or z < 3)
     else:
         shoots.extend((root, axis, .51 * length, .20 * length, roll) for root, axis, length, _, roll in leader)
-        pine_needles(f'{label} modelled live needles', shoots, modelled_needles)
+        canopy = shoulder_pine_needles if shoulder_crown else pine_needles
+        canopy(f'{label} modelled live needles', shoots, modelled_needles)
     if ancient:
         return at
 
@@ -1044,10 +1135,11 @@ def distant_pines(ground, bark, needles, modelled_needles, far_crown):
                          [height * (.00065 + .0155 * (1. - t) ** 1.21) for t in levels], bark, 7)
         profile = HERO_PINE_CROWNS.get(label)
         use_native_crown = use_native_valley_crown(label, profile, far_crown)
+        shoulder_crown = label in SHOULDER_PINE_CROWNS
         if profile and not use_native_crown:
             hero_pine_crown(label, positions, phase, bark, modelled_needles)
             continue
-        if far_crown:
+        if far_crown and not shoulder_crown:
             camera, views, mounts = far_crown
             prototype = profile if use_native_crown else 'young' if height < 8. else 'ridge'
             relief_crown(label, prototype, positions, camera, views, mesh, source_uv)
@@ -1058,7 +1150,7 @@ def distant_pines(ground, bark, needles, modelled_needles, far_crown):
                 add_native_mount(mounts, label, positions, camera, views[profile or 'ridge'], proxy, stem)
             continue
         sprays, shoots = [], []
-        model_crown = label in MODELLED_PINE_CROWNS
+        model_crown = shoulder_crown or label in MODELLED_PINE_CROWNS
         crown_rng = random.Random(label)
         for tier in range(len(levels) - 2):
             stems = 2 if (i < 6 and tier < 4) or tier in (1, 3) else 1
@@ -1085,7 +1177,8 @@ def distant_pines(ground, bark, needles, modelled_needles, far_crown):
             sprays.append((origin, axis, length, length * 1.13, roll))
         if model_crown:
             shoots.extend((root, axis, .52 * length, .22 * length, roll) for root, axis, length, _, roll in sprays[-2:])
-            pine_needles(f'{label} modelled live needles', shoots, modelled_needles)
+            canopy = shoulder_pine_needles if shoulder_crown else pine_needles
+            canopy(f'{label} modelled live needles', shoots, modelled_needles)
         else:
             pine_sprays(f'{label} needle crown', sprays, needles, close=True)
 
@@ -1113,7 +1206,7 @@ def forest(ground, rock, stone, bark, pine, far_crown=None):
                                    (-4, -6, 7), (4, -8, 8), (15, 18, 9), (-17, 19, 9))):
         label = f'Back ridge pine {i + 1}'
         pine_tree(label, x, z, h, bark, needles, ground,
-                  modelled_needles=modelled_needles if label in MODELLED_PINE_CROWNS else None,
+                  modelled_needles=modelled_needles if label in MODELLED_PINE_CROWNS | SHOULDER_PINE_CROWNS else None,
                   far_crown=far_crown if z < 0 else None)
     # Shorter pines overhang the older stone and screen the buildings
     # through the middle approach. Their crowns open up at the saddle.
@@ -1186,6 +1279,8 @@ def paint_stone():
                     green_mix = max(0., min(.63, (.15 + bank) * .77))
                 tint_color = [base[channel] * shade * (1 - green_mix * (1 - tone))
                               for channel, tone in enumerate((.48, .73, .43))]
+                if obj.name == 'Continuous mountain shoulder':
+                    tint_color = [channel * tint for channel, tint in zip(tint_color, crest_soil_tint(world.x, -world.y))]
                 tint.data[i].color = (*tint_color, 1.)
 
 
@@ -1295,6 +1390,8 @@ def build(output, impostor_manifest=None, wax_sculpt=None):
     audit_watercourse(support, stream_stones, deck_slabs, bridge_curbs)
     build_tea_shoulder(ANCHOR, stone, wood, tiles, clay, iron, ledge, contacts, wax_sculpt)
     paint_stone()
+    build_crest_ground(ground, rock, bark, section_at, watercourse_at, lambda x, z: supports_height(x, z, [support]),
+                       ((-1.88, PINE_CREST + .08), (1.82, PINE_CREST - .32)), bark_tube)
     scene.render.engine = 'CYCLES'
     scene.render.threads_mode = 'AUTO'
     scene.render.resolution_x = 1440
@@ -1342,6 +1439,7 @@ def build(output, impostor_manifest=None, wax_sculpt=None):
         'art/blender/snow_lightmap_charts.py', 'art/blender/resting_contacts.py',
         'art/blender/pine_materials.py', 'art/blender/pine_hero_trees.py', 'art/blender/pine_impostors.py',
         'art/blender/pine_native_mounts.py',
+        'art/blender/pine_crest_ground.py',
         'art/blender/pine_tea_shoulder.py', 'docs/licenses/pine-gate-scans.json',
         'shared/pine-gate-path.json', 'shared/pine-gate-daylight.json',
     ])

@@ -227,16 +227,22 @@ def paddy_aov(shader, name, value):
 def paddy_glass(air, audit=False, west=False):
     name = 'Glancing reflections across the western spring terraces' if west else 'Clear flooded beds with Fresnel wind-wave reflections'
     water = Shader(name)
-    wave, gusts = water_ripples(water, water.coordinate())
+    position = water.coordinate()
+    wave, gusts = water_ripples(water, position)
+    # The bunds leave quiet pools and irregular wind lanes at metre scales.
+    # Mixed facet directions let some reflections return the wooded slope
+    # and others return the bright overcast sky.
+    fetch = water.noise(position, (.071, .125, .35), detail=2.5)
     geom = water.nodes.new('ShaderNodeNewGeometry')
     bump = water.nodes.new('ShaderNodeBump')
     water.input(bump.inputs['Height'], wave)
     bump.inputs['Distance'].default_value = 1.
     bump.inputs['Strength'].default_value = .87
     calm_normal = bump.outputs['Normal']
-    roughness = water.between(gusts, .26, .75, .034, .082)
-    slope = water.between(gusts, .30, .73, *(WEST_WIND_SLOPES if west else WIND_SLOPES))
-    crest_share = water.between(gusts, .20, .80, .38, .71)
+    roughness = water.between(fetch, .23, .77, .026, .099)
+    slope = water.product(water.between(gusts, .30, .73, *(WEST_WIND_SLOPES if west else WIND_SLOPES)),
+                          water.between(fetch, .23, .75, .28, 1.07))
+    crest_share = water.between(fetch, .23, .77, .21, .72)
 
     def vector(operation, a, b):
         math_node = water.nodes.new('ShaderNodeVectorMath')
@@ -268,7 +274,12 @@ def paddy_glass(air, audit=False, west=False):
     # The short waves occupy both signs of slope. Each visible facet is
     # weighted by projected area, so the windward faces dominate at grazing
     # incidence. The wider lobes survive pixel filtering at valley distance.
-    ripple = vector('SCALE', WEST_WIND_BEARING if west else (-.21, -.978, 0.), slope)
+    rotate = water.nodes.new('ShaderNodeVectorRotate')
+    rotate.rotation_type = 'AXIS_ANGLE'
+    rotate.inputs['Vector'].default_value = WEST_WIND_BEARING if west else (-.21, -.978, 0.)
+    rotate.inputs['Axis'].default_value = (0., 0., 1.)
+    water.input(rotate.inputs['Angle'], water.between(fetch, .22, .80, -.58, .69))
+    ripple = vector('SCALE', rotate.outputs['Vector'], slope)
     positive = vector('NORMALIZE', vector('ADD', calm_normal, ripple), None)
     negative = vector('NORMALIZE', vector('SUBTRACT', calm_normal, ripple), None)
     front, back = area(positive), area(negative)
@@ -298,8 +309,14 @@ def paddy_glass(air, audit=False, west=False):
 def materials(air, audit_paddy=False):
     ground = Shader('Shaded pine groves, continuous understory and paddy soil')
     position = ground.coordinate()
-    grove = ground.noise(position, (.061, .071, .055), detail=3.)
-    fern = ground.noise(position, (.41, .48, .38), detail=3.)
+    drift = ground.noise(position, (.023, .032, .043), detail=2.)
+    bend = ground.nodes.new('ShaderNodeVectorMath')
+    bend.operation = 'ADD'
+    ground.input(bend.inputs[0], position)
+    ground.input(bend.inputs[1], ground.product(drift, 23.))
+    varied_position = bend.outputs['Vector']
+    grove = ground.noise(varied_position, (.047, .081, .059), detail=3.)
+    fern = ground.noise(varied_position, (.33, .53, .38), detail=3.)
     grain = ground.noise(position, (3.4, 3.1, 2.3), detail=2.)
     geology = ground.nodes.new('ShaderNodeNewGeometry').outputs['Normal']
     normal = ground.xyz(geology)['Z']
@@ -315,8 +332,8 @@ def materials(air, audit_paddy=False):
     mottled = ground.math('ADD', ground.product(fern, .58), ground.product(grove, .42))
     cover = ground.between(mottled, .26, .81)
     litter = ground.blend((.007, .012, .007, 1.), (.020, .031, .014, 1.), grain)
-    brush = ground.blend((.012, .032, .016, 1.), (.026, .064, .023, 1.), grove)
-    canopy_shade = ground.math('ADD', ground.product(cover, .72), ground.product(crown, .28))
+    brush = ground.blend((.012, .027, .016, 1.), (.022, .052, .021, 1.), grove)
+    canopy_shade = ground.math('ADD', ground.product(cover, .86), ground.product(crown, .14))
     hillside = ground.blend(litter, brush, canopy_shade)
     stone = ground.blend((.035, .039, .033, 1.), (.073, .068, .052, 1.), cracks)
     rock = ground.product(exposure, ground.between(cracks, .59, .83),

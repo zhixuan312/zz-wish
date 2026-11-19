@@ -26,8 +26,8 @@ CROWNS = {
                        .172, .069, .124, .034),
     'ridge': PineCrown((.31, .43, .47, .52, .60, .64, .69, .76, .81, .87, .92),
                        .209, .102, .168, .105),
-    'old': PineCrown((.42, .48, .55, .60, .64, .69, .72, .75, .78, .82, .86, .90, .94),
-                     .254, .135, .191, .184),
+    'old': PineCrown((.43, .51, .55, .59, .63, .66, .70, .73, .77, .80, .84, .88, .92),
+                     .327, .080, .146, .184),
 }
 
 
@@ -52,7 +52,7 @@ def prototype_trunk(profile, height):
     return points, radii
 
 
-def needle_fascicle(anchor, following, spread, reach, rng, dense, mature=False):
+def needle_fascicle(anchor, following, spread, reach, rng, dense, mature=False, pairs=None):
     axis = following.normalized()
     side = axis.cross(Vector((0., 1., 0.)))
     if side.length < .01:
@@ -60,7 +60,7 @@ def needle_fascicle(anchor, following, spread, reach, rng, dense, mature=False):
     side.normalize()
     up = axis.cross(side)
     if mature:
-        count = 8 if dense else 6
+        count = pairs * 2 if pairs is not None else 8 if dense else 6
         deviation = .16
         # The compact mesh represents each pair as a few visible needles
         # through the silhouette of the tuft at the first uphill views.
@@ -79,6 +79,22 @@ def needle_fascicle(anchor, following, spread, reach, rng, dense, mature=False):
         shoulder = anchor + (tip - anchor) * .53 + radial * (length * rng.uniform(-.14, .06))
         width = rng.uniform(*widths)
         yield anchor, shoulder, tip, width
+
+
+def mature_terminal_sprays(hinge, tip, outward, up, length, seed):
+    """Overlapping sprays on each twig read as pads, with gaps between boughs."""
+    rng = random.Random(seed)
+    axis = (tip - hinge).normalized()
+    lateral = axis.cross(up).normalized()
+    for shoot, t in enumerate((.30, .55, .78, 1.)):
+        source = hinge.lerp(tip, t)
+        for sign in (-1, 1):
+            offshoot = (axis * rng.uniform(.43, .78) + sign * lateral * rng.uniform(.34, 1.04) +
+                        up * rng.uniform(.11, .50) + outward * .18).normalized()
+            easing = 1. - .16 * t
+            reach = length * easing * rng.uniform(.81, 1.27)
+            yield tuple(needle_fascicle(source, offshoot, rng.uniform(-math.pi, math.pi),
+                                        reach, rng, False, True, pairs=5 if shoot >= 2 else 4))
 
 
 def grow_crown(name, profile, trunk, phase, bark, write_wood, *, dense=False):
@@ -100,10 +116,10 @@ def grow_crown(name, profile, trunk, phase, bark, write_wood, *, dense=False):
         upper_crown = (layer - profile.levels[0]) / (1 - profile.levels[0])
         # Mature Masson pines spread their longer scaffold branches into an
         # uneven umbrella. The two survey-rooted trees have different phases.
-        taper = 1 - .76 * upper_crown ** (2.05 if old else 1.33)
+        taper = 1 - .57 * upper_crown ** 2.8 if old else 1 - .76 * upper_crown ** 1.33
         reach = height * profile.reach * rng.uniform(.68, 1.24) * taper
         if old:
-            reach *= .91 + .24 * math.cos(angle - phase - .48)
+            reach *= .89 + .24 * math.cos(angle - phase - .48)
         swivel = rng.uniform(-.32, .29)
         liftoff = profile.crown_lift * rng.uniform(.71, 1.66)
         sag = profile.branch_sag * rng.uniform(.63, 1.34)
@@ -113,7 +129,7 @@ def grow_crown(name, profile, trunk, phase, bark, write_wood, *, dense=False):
             for t in (0., .24, .57, .81, 1.)
         ]
         label = f'{name} asymmetric bough {order + 1}'
-        base_width = reach * (rng.uniform(.044, .072) if old and order < 5 else rng.uniform(.029, .058))
+        base_width = reach * (rng.uniform(.062, .086) if old and order < 5 else rng.uniform(.029, .058))
         write_wood(label, branch, [base_width * f for f in (1., .75, .49, .27, .058)],
                    bark, 6 if dense else 5)
         if old and order in (0, 2):
@@ -131,8 +147,10 @@ def grow_crown(name, profile, trunk, phase, bark, write_wood, *, dense=False):
             blend = (t - divisions[lower]) / (divisions[lower + 1] - divisions[lower])
             root = branch[lower].lerp(branch[lower + 1], blend)
             sign = -1 if (fork + order) % 2 else 1
-            axis = (forward * rng.uniform(.47, .97) + side * sign * rng.uniform(.37, .89) +
-                    world_up * rng.uniform(.04, .68)).normalized()
+            advance = rng.uniform(.47, .97)
+            spread = rng.uniform(.37, .89)
+            climb = rng.uniform(.04, .31 if old else .68)
+            axis = (forward * advance + side * sign * spread + world_up * climb).normalized()
             length = reach * rng.uniform(.40, .66) * (1 - .48 * t)
             elbow = root + axis * (length * .48) - world_up * (length * .035)
             tip = root + axis * length + world_up * (length * rng.uniform(.07, .21))
@@ -150,8 +168,6 @@ def grow_crown(name, profile, trunk, phase, bark, write_wood, *, dense=False):
                 spread = rng.uniform(-math.pi, math.pi)
                 length_scale = min(1.26, max(.72, height / 8))
                 leaf = rng.uniform(.102, .212) * length_scale * (1 - .29 * upper_crown)
-                if old:
-                    leaf *= 1.30
                 if dense and bud in (1, 3, 5):
                     stem = anchor + younger.normalized() * (leaf * rng.uniform(.45, .76))
                     write_wood(f'{label} new shoot {fork + 1}.{bud + 1}', [anchor, stem],
@@ -163,6 +179,12 @@ def grow_crown(name, profile, trunk, phase, bark, write_wood, *, dense=False):
                 if not dense and bud == 3:
                     needles.append(tuple(needle_fascicle(anchor, younger + world_up * .24,
                                                     spread + 1.1, leaf * .87, rng, dense, old)))
+            if old:
+                # Keep a clear opening below the first boughs. Most live
+                # needles belong to broad outer pads above the walking eye.
+                needles.extend(mature_terminal_sprays(elbow, tip, forward, world_up,
+                                                      height * (.031 - .009 * upper_crown),
+                                                      f'{label} twig {fork}'))
 
     for level in (.88, .91, .941, .966, .982):
         root = trunk_point(trunk, level)
