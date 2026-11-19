@@ -46,7 +46,20 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
     value === 'wish' ? 'home' :
     value === 'place' ? 'place' :
     value === 'travel' ? 'walk' : null;
+  // A missing walk has nothing to end, so the candle screen must start `choose`. The two
+  // inputs (the cue answering, the player arriving) can happen in either order, so this
+  // runs from both and is idempotent.
+  const handOverOnce = () => {
+    if (walkRef.current !== 'missing' || !candleRef.current) return;
+    walkRef.current = 'taken';
+    stageRef.current = 'choose';
+    void music.play('choose', placeIdRef.current);
+  };
   const stageRef = useRef<MusicStage | null>(null);
+  // 'pending' until the walk cue answers; 'missing' means no cue will ever end and the
+  // candle screen must start `choose` itself; 'taken' means some code already did.
+  const walkRef = useRef<'pending' | 'started' | 'missing' | 'taken'>('taken');
+  const candleRef = useRef(false);
   const screenRef = useRef<Screen>(screen);
   const overlayRef = useRef<Overlay>(null);
   // The place is chosen further down; this ref is updated as soon as it is known.
@@ -266,14 +279,20 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
     // still fetching the cue list. Claiming the stage here also stops the screen
     // effect from asking for `walk` a second time.
     stageRef.current = 'walk';
+    walkRef.current = 'pending';
+    candleRef.current = false;
+    // Whether the walk was delivered and whether the player has arrived are two
+    // independent events, in either order; handOverOnce is what joins them.
     void music.play('walk', placeId).then((walkStarted) => {
-      // Only the cue's own `ended` hands over. When it was never delivered nothing
-      // will end, so the candle screen starts `choose` itself.
-      if (!walkStarted && screenRef.current === 'candle') { stageRef.current = 'choose'; void music.play('choose', placeId); }
+      if (walkRef.current !== 'pending') return; // Skip already took over.
+      walkRef.current = walkStarted ? 'started' : 'missing';
+      handOverOnce();
     });
     setScreen('travel');
     await engine.travel(placeId);
     setScreen('candle');
+    candleRef.current = true;
+    handOverOnce();
   });
   const backToPlace = () => { engine.setOffer(null); toPlace(); };
   const again = (id: string | null, text: string) => { setOverlay(null); setWishId(id); setWish(text); setStrokes([]); setDrawingMinutes(null); setTab('preset'); setResult(null); engine.setOffer(null); showPlace(); };
@@ -354,7 +373,7 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
       {screen === 'travel' && (
         <>
           {travelTitle && <div className="travel"><div className="go">{t.travelGo}</div><div className="big">{place.name[locale]}</div><div className="where">{place.lamp[locale]}</div></div>}
-          <button className="btn small skip" onClick={() => { engine.skip(); stageRef.current = 'choose'; void music.play('choose', placeIdRef.current); }}>{t.skip}</button>
+          <button className="btn small skip" onClick={() => { engine.skip(); walkRef.current = 'taken'; candleRef.current = false; stageRef.current = 'choose'; void music.play('choose', placeIdRef.current); }}>{t.skip}</button>
         </>
       )}
 

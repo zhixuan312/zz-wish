@@ -86,7 +86,7 @@ test('a natural walk keeps its cue until it ends, then hands over to choose', as
     await page.waitForTimeout(50);
   }
   await page.getByRole('button', { name: re('走进院里', 'Step inside') }).click();
-  await expect.poll(() => cues.filter((c) => c.cue === 'snow_walk').length, { timeout: 20_000 }).toBe(1);
+  await expect.poll(() => cues.filter((c) => c.cue === 'snow_walk').length, { timeout: 15_000 }).toBe(1);
   // Wait until the game has reached the candle screen, which is the moment the old
   // bug cut the walk cue: the chooser panel is what proves arrival.
   await page.getByRole('tab', { name: re('现成的', 'Ready-made') }).waitFor({ timeout: 120_000 });
@@ -130,6 +130,29 @@ test('Skip cuts the walk cue short and starts choose', async ({ page }) => {
   expect(chooseAt - walkAt).toBeLessThan(15_000);
 });
 
+// The natural path with no walk cue: the walk answers "missing" while the player is
+// still travelling, so the candle screen itself must start choose, exactly once.
+test('a missing walk still starts choose once when the walk ends naturally', async ({ page }) => {
+  const errors: string[] = [];
+  page.on('pageerror', (error) => errors.push(String(error)));
+  page.on('console', (message) => { if (message.type() === 'error') errors.push(message.text()); });
+  const cues = recordCues(page);
+  await serveMusic(page, ['snow_choose_loop', 'snow_place_loop']);
+  await reachPlace(page);
+  for (let i = 0; i < 1200; i++) {
+    if (await page.getByRole('button', { name: re('走进院里', 'Step inside') }).isEnabled().catch(() => false)) break;
+    await page.waitForTimeout(50);
+  }
+  await page.getByRole('button', { name: re('走进院里', 'Step inside') }).click();
+  // No Skip: the walk runs its authored length and the chooser arrives by itself.
+  await page.getByRole('tab', { name: re('现成的', 'Ready-made') }).waitFor({ timeout: 90_000 });
+  await expect.poll(() => cues.some((c) => c.cue === 'snow_choose_loop'), { timeout: 15_000 }).toBe(true);
+  expect(cues.some((c) => c.cue === 'snow_walk')).toBe(false);
+  await page.waitForTimeout(2000);
+  expect(cues.filter((c) => c.cue === 'snow_choose_loop')).toHaveLength(1);
+  expect(errors).toEqual([]);
+});
+
 test('a walk cue that is not shipped stays silent and choose still starts', async ({ page }) => {
   const errors: string[] = [];
   page.on('pageerror', (error) => errors.push(String(error)));
@@ -143,7 +166,7 @@ test('a walk cue that is not shipped stays silent and choose still starts', asyn
   }
   await page.getByRole('button', { name: re('走进院里', 'Step inside') }).click();
   await page.getByRole('button', { name: re('跳过', 'Skip') }).click({ timeout: 30_000 });
-  await expect.poll(() => cues.some((c) => c.cue === 'snow_choose_loop'), { timeout: 20_000 }).toBe(true);
+  await expect.poll(() => cues.some((c) => c.cue === 'snow_choose_loop'), { timeout: 15_000 }).toBe(true);
   // No request for a cue the manifest omits, so nothing can 404.
   expect(cues.some((c) => c.cue === 'snow_walk')).toBe(false);
   // Skip and the missing-cue fallback must not both start choose.
