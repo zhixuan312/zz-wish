@@ -144,6 +144,7 @@ describe('phrase shuffle bag', () => {
 // until a cue takes it.
 const cueElements = () => FakeAudio.instances.filter((a) => a.src.startsWith('/music/'));
 
+
 // A restart reuses the same element, so counting elements cannot see it. Counting the
 // play() calls for one cue can.
 function countPlays(cue: string) {
@@ -625,15 +626,28 @@ describe('music playback', () => {
   });
 
   it('does not hand over from a missing ignite once the stage moved on', async () => {
-    vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, json: async () => ({ cues: ['snow_burn_bed_night'] }) })));
-    const music = createMusic({ createContext: () => new FakeContext() as unknown as AudioContext });
-    await music.unlock();
-    // The player put the lamp out before the bed could start; the stage is result.
-    const starting = music.play('ignite', 'snow-roof');
-    await music.play('result', 'snow-roof');
-    expect(await starting).toBe(false);
-    await new Promise((r) => setTimeout(r, 50));
-    expect(cueElements().map((a) => a.src)).not.toContain('/music/snow_burn_bed_night.m4a');
+    // The bed named here is the one this bucket would ask for, in day and in night; a test
+    // that only listed the other bucket would pass without proving anything.
+    for (const hour of [10, 23]) {
+      FakeAudio.instances = [];
+      vi.useFakeTimers({ toFake: ['Date'] });
+      vi.setSystemTime(new Date(2026, 10, 19, hour, 0, 0));
+      try {
+        vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, json: async () => ({ cues: ['snow_burn_bed_day', 'snow_burn_bed_night', 'result_loop'] }) })));
+        const music = createMusic({ createContext: () => new FakeContext() as unknown as AudioContext });
+        await music.unlock();
+        // The player put the lamp out before the bed could start; the stage is result.
+        const starting = music.play('ignite', 'snow-roof');
+        await music.play('result', 'snow-roof');
+        expect(await starting).toBe(false);
+        await new Promise((r) => setTimeout(r, 50));
+        expect(music.describe().stage).toBe('result');
+        const beds = cueElements().map((a) => a.src).filter((src) => src.includes('snow_burn_bed_'));
+        expect(beds).toEqual([]);
+      } finally {
+        vi.useRealTimers();
+      }
+    }
   });
 
   it('starts choose once when a missing walk hands over and the App fallback also asks', async () => {
@@ -650,6 +664,78 @@ describe('music playback', () => {
     expect(counter.plays()).toBe(1);
     expect(music.describe().channels).toBe(1);
     counter.restore();
+  });
+
+  it('does not arm the burn timers while the page is hidden', async () => {
+    vi.useFakeTimers();
+    try {
+      vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, json: async () => ({ cues: ['snow_burn_bed_day'] }) })));
+      const doc = new EventTarget() as EventTarget & { hidden: boolean };
+      doc.hidden = false;
+      vi.stubGlobal('document', doc);
+      const music = createMusic({ createContext: () => new FakeContext() as unknown as AudioContext });
+      await music.unlock();
+      doc.hidden = true;
+      doc.dispatchEvent(new Event('visibilitychange'));
+      // A burn started while hidden must not arm the phrase clock or the bed watch. The
+      // fade's own release timer may still be queued, so the burn timers are identified by
+      // running an hour of fake time: nothing may turn the bed over.
+      const before = cueElements().length;
+      // The bed watch is the only interval this module creates, so a spy sees it exactly.
+      const spy = vi.spyOn(globalThis, 'setInterval');
+      await music.play('burn', 'snow-roof');
+      expect(cueElements().length).toBe(before + 1);
+      // A burn started while hidden must not arm the bed watch.
+      expect(spy).not.toHaveBeenCalled();
+      doc.hidden = false;
+      doc.dispatchEvent(new Event('visibilitychange'));
+      // Back on the watch: returning arms it.
+      expect(spy).toHaveBeenCalledTimes(1);
+      spy.mockRestore();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('does not re-arm the burn timers when the lamp went out while hidden', async () => {
+    vi.useFakeTimers();
+    try {
+      vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, json: async () => ({ cues: ['snow_burn_bed_day', 'result_loop'] }) })));
+      const doc = new EventTarget() as EventTarget & { hidden: boolean };
+      doc.hidden = false;
+      vi.stubGlobal('document', doc);
+      const music = createMusic({ createContext: () => new FakeContext() as unknown as AudioContext });
+      await music.unlock();
+      await music.play('burn', 'snow-roof');
+      doc.hidden = true;
+      doc.dispatchEvent(new Event('visibilitychange'));
+      // The lamp goes out while the tab is hidden.
+      await music.play('result', 'snow-roof');
+      // Nothing from the burn may come back: returning must not arm the bed watch, which
+      // is the only interval this module creates.
+      const spy = vi.spyOn(globalThis, 'setInterval');
+      doc.hidden = false;
+      doc.dispatchEvent(new Event('visibilitychange'));
+      expect(spy).not.toHaveBeenCalled();
+      spy.mockRestore();
+      expect(music.describe().stage).toBe('result');
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('hands a broken ignite over to the bed', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, json: async () => ({ cues: ['snow_ignite', 'snow_burn_bed_day', 'snow_burn_bed_golden', 'snow_burn_bed_night'] }) })));
+    const music = createMusic({ createContext: () => new FakeContext() as unknown as AudioContext });
+    await music.unlock();
+    await music.play('ignite', 'snow-roof');
+    const ignite = cueElements().find((a) => a.src.includes('snow_ignite'))!;
+    // The manifest lists it but the file 404s: without this hand-over the burn is silent.
+    ignite.emit('error');
+    await new Promise((r) => setTimeout(r, 50));
+    const srcs = cueElements().map((a) => a.src);
+    expect(srcs.some((src) => src.includes('snow_burn_bed_'))).toBe(true);
+    expect(music.describe().stage).toBe('burn');
   });
 
   it('persists the mute choice', async () => {

@@ -288,6 +288,30 @@ test('an empty manifest plays the whole journey in silence with no errors', asyn
   expect(errors).toEqual([]);
 });
 
+// A manifest with no ignite cue: the burn must still find its bed, which is the case that
+// used to leave a twenty-four hour burn silent.
+test('a missing ignite still reaches the burning bed', async ({ page }) => {
+  const cues = recordCues(page);
+  await serveMusic(page, [
+    'home_loop', 'snow_place_loop', 'snow_walk', 'snow_choose_loop',
+    'snow_burn_bed_day', 'snow_burn_bed_golden', 'snow_burn_bed_night',
+    'snow_ending_putout', 'result_loop',
+  ]);
+  await page.goto('/');
+  await page.waitForFunction(() => (window as Window & { __ready?: boolean }).__ready === true, null, { timeout: 60_000 });
+  await page.getByLabel(re('你的愿望', 'Your wish')).click();
+  await page.getByLabel(re('你的愿望', 'Your wish')).fill('No ignite cue.');
+  await page.getByRole('button', { name: re('许好了', 'Set my wish') }).click();
+  await page.getByRole('button', { name: re('走进院里', 'Step inside') }).click();
+  await page.getByRole('button', { name: re('跳过', 'Skip') }).click();
+  await page.getByRole('radio', { name: re('^10 分钟$', '^10 min$') }).click({ timeout: 30_000 });
+  await page.getByRole('button', { name: re('点亮这一盏', 'Light it') }).click({ timeout: 15_000 });
+  await expect(page.getByTestId('with-you')).toBeVisible({ timeout: 20_000 });
+  // No ignite request, and the bed starts anyway.
+  expect(cues.some((c) => c.cue === 'snow_ignite')).toBe(false);
+  await expect.poll(() => cues.some((c) => c.cue.startsWith('snow_burn_bed_')), { timeout: 20_000 }).toBe(true);
+});
+
 // No ending cue: the result loop must start exactly once even though both the settle
 // path and the result screen ask for it.
 test('a journey without an ending cue starts the result loop once', async ({ page }) => {
