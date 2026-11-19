@@ -45,7 +45,7 @@ function installClearRunnel(material, phase) {
             // The distant sky probe has no local canopy. Use the baked
             // irradiance as a proxy for sky occlusion in the narrow ravine.
             float skyExposure = dot(irradiance, vec3(.2126, .7152, .0722));
-            reflection *= mix(.37, 1., smoothstep(.28, 2.4, skyExposure));
+            reflection *= mix(.36, .91, smoothstep(.28, 4.2, skyExposure));
           #endif` : ''}
         #endif
         float waterOpacity = reflectance + body;
