@@ -326,7 +326,7 @@ def worn_approach_tread(name, width, depth, centre, material, dressing, outline,
     def fit_side(u):
         if abuts[int(u > 0.)]:
             inset = max(0., min(1., (abs(u) - .27) / .21))
-            u += (math.copysign(.499, u) - u) * inset ** 2 * .90
+            u += (math.copysign(.499, u) - u) * inset ** 2 * (.99 if set_stone else .90)
         return max(-.5, min(.5, u))
 
     for i, ((u, v), age) in enumerate(zip(old_rim, weather)):
@@ -360,8 +360,11 @@ def worn_approach_tread(name, width, depth, centre, material, dressing, outline,
         for (x, z), chip in zip(rim, chips):
             edge = min(.047, width * .082, depth * .11) * (1. + .50 * math.sin(13 * x + 11 * z))
             side_bevel = .53 if abuts[int(x > 0.)] else 1.18
+            if set_stone and abuts[int(x > 0.)]:
+                side_bevel = .24
             shoulder_x = x * (1. - side_bevel * edge / width)
-            shoulder_z = z * (1. - 2 * edge / depth)
+            nose_bevel = .70 if set_stone and z > 0. else 2.
+            shoulder_z = z * (1. - nose_bevel * edge / depth)
             if band == 0:
                 px, py, pz = x * .95, top - thickness, z * .96
             elif band == 1:
@@ -382,7 +385,7 @@ def worn_approach_tread(name, width, depth, centre, material, dressing, outline,
                 # overhanging tray edge that shadows the stone below it.
                 nose = max(0., z / (.5 * depth)) ** 2
                 scallop = .5 + .5 * math.sin(11.2 * (cx + x) + 4.7 * cz)
-                retreat = (.002, .009, .022 + .012 * scallop, .024 + .014 * scallop, .012)[band]
+                retreat = (.002, .006, .010 + .004 * scallop, .013 + .006 * scallop, .008)[band]
                 pz -= nose * retreat
                 if band in (1, 2):
                     py += nose * (.012 * math.sin(24.1 * x + cz * 4.3) - .006)
@@ -847,6 +850,9 @@ def climbing_steps(stone, ground, bedding_material, rubble_granite, tread_granit
                 depth, surface, centre_z, outline = original[original_index]
                 dressed_width = b - a - dressing.uniform(.003, .011)
                 low_z, high_z = centre_z - depth / 2, centre_z + depth / 2
+                # Let the exposed toe and its footing meet the next tread at
+                # the old course line. The tooling still rounds the top rim.
+                high_z += .016
                 if i == 27:
                     low_z = deck_near
                 if i == 31:
