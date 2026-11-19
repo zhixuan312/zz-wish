@@ -20,6 +20,7 @@ from pine_hero_trees import CROWNS, grow_crown, needle_fascicle, needle_mesh
 from pine_impostors import load_impostors, relief_crown
 from pine_materials import apply_scan
 from pine_stair_seating import fit_joint_soil
+from pine_scanned_tread import SCAN_TREAD_COURSES, scanned_tread_shoulder
 from pine_native_mounts import (
     NATIVE_MOUNTS_FIELD, VALLEY_NODES, add_native_mount, has_verified_native_receipt, serialize_native_mounts,
 )
@@ -832,6 +833,7 @@ def climbing_steps(stone, ground, bedding_material, rubble_granite, tread_granit
     dressing = random.Random(498721)
     masonry = random.Random(286243)
     bedding_rows = []
+    scanned_treads = []
     deck_far = BRIDGE_DECK_CENTRES[0] - BRIDGE_DECK_DEPTH / 2 - BRIDGE_TREAD_MARGIN
     deck_near = BRIDGE_DECK_CENTRES[-1] + BRIDGE_DECK_DEPTH / 2 + BRIDGE_TREAD_MARGIN
     for i in range(STAIR_COUNT):
@@ -873,12 +875,15 @@ def climbing_steps(stone, ground, bedding_material, rubble_granite, tread_granit
                     low_z = deck_near
                 if i == 31:
                     high_z = deck_far
+                centre = (bend - span / 2 + (a + b) / 2, surface, (low_z + high_z) / 2)
                 tread = worn_approach_tread(f'Step {i + 1:02} block {j + 1}', dressed_width, high_z - low_z,
-                                            (bend - span / 2 + (a + b) / 2, surface, (low_z + high_z) / 2),
+                                            centre,
                                             tread_granite, dressing, outline,
                                             abuts=(j > 0, j + 1 < len(spans)), set_stone=True)
                 tread['moss_edge'] = j != 1 or i % 7 == 0
                 treads.append(tread)
+                if i in SCAN_TREAD_COURSES:
+                    scanned_treads.append((i, j, tread, dressed_width, high_z - low_z, centre))
         if treads:
             low_z = deck_near if i == 27 else z - STAIR_RUN / 2
             high_z = deck_far if i == 31 else z + STAIR_RUN / 2 + (.08 if i == 0 else 0.)
@@ -928,9 +933,22 @@ def climbing_steps(stone, ground, bedding_material, rubble_granite, tread_granit
                                           masonry.uniform(.43, .66), .30 if row else .33, length,
                                           masonry.uniform(-.18, .18), wear, row == 0, settling)
     bed = approach_joint_bedding(bedding_rows, bedding_material)
+    pack_stair_grit(bedding_rows, bed, rubble_granite)
+    # Fit the exposed shoulders after laying the existing soil and gravel.
+    # Foot bearings, source charts and tread crowns keep their surveyed data.
+    if {course for course, *_ in scanned_treads} != set(SCAN_TREAD_COURSES):
+        raise RuntimeError('Scanned tread shoulders must cover the five surveyed courses.')
+    for course, block, tread, width, depth, centre in scanned_treads:
+        count = tread['bearing_vertices']
+        before = [tuple(engine(vertex.co)) for vertex in tread.data.vertices]
+        profile = scanned_tread_shoulder(before, count, width, depth, centre, course + 3 * block)
+        for index in range(count, 2 * count):
+            if profile[index] != before[index]:
+                tread.data.vertices[index].co = mesh.point(profile[index])
+        tread.data.update()
+    print(f'PINE_SCANNED_TREAD_SHOULDERS {len(scanned_treads)} stones in five surveyed courses.')
     audit_approach_tread_bearings(bedding_rows, bed, ground)
     audit_stair_course_rises(bedding_rows)
-    pack_stair_grit(bedding_rows, bed, rubble_granite)
     landing_bed(stone[2])
     landing_flagstones(stone)
     fit_stone_undersides(ground, bridge_curbs)
@@ -2627,7 +2645,7 @@ def build(output, impostor_manifest=None, wax_sculpt=None):
         'art/blender/snow_lightmap_charts.py', 'art/blender/resting_contacts.py',
         'art/blender/pine_materials.py', 'art/blender/pine_hero_trees.py', 'art/blender/pine_impostors.py',
         'art/blender/pine_native_mounts.py',
-        'art/blender/pine_crest_ground.py',
+        'art/blender/pine_crest_ground.py', 'art/blender/pine_scanned_tread.py',
         'art/blender/pine_tea_shoulder.py', 'docs/licenses/pine-gate-scans.json',
         'shared/pine-gate-path.json', 'shared/pine-gate-daylight.json',
     ])
