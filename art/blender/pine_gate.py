@@ -14,7 +14,7 @@ from mathutils import Matrix, Vector, noise
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import snow_roof as mesh
-from pine_crest_ground import build_crest_ground, build_inner_banks, crest_soil_tint, inner_bank_tint, tinted_mesh
+from pine_crest_ground import build_crest_ground, build_inner_banks, crest_soil_tint, inner_bank_tint
 from pine_hero_trees import CROWNS, grow_crown, needle_fascicle, needle_mesh
 from pine_impostors import load_impostors, relief_crown
 from pine_materials import apply_scan
@@ -253,20 +253,25 @@ def terrain(material):
     return obj
 
 
-def hewn_block(name, width, height, depth, location, material, region):
-    # Chipped corners, worn toe and an irregular nose are physical geometry.
-    # Near the camera, the edge casts its own uneven soft shadow.
+def hewn_outline():
     ring = [(-.45, -.50), (.41, -.50), (.5, -.41), (.5, .38), (.45, .47),
             (.27, .50), (.04, .48), (-.19, .50), (-.38, .48), (-.5, .41), (-.5, -.39)]
-    x, y, z = location
     variation = [(a + RANDOM.uniform(-.009, .009), b + RANDOM.uniform(-.013, .013)) for a, b in ring]
     wear = [RANDOM.uniform(-.005, .004) - .011 * math.exp(-(a / .22) ** 2)
             if b > .45 else RANDOM.uniform(-.003, .003) for a, b in ring]
+    return variation, wear
+
+
+def hewn_block(name, width, height, depth, location, material, region):
+    # Chipped corners, worn toe and an irregular nose are physical geometry.
+    # Near the camera, the edge casts its own uneven soft shadow.
+    x, y, z = location
+    variation, wear = hewn_outline()
     points = []
     for band, inset in ((-height, .018), (-.021, 0), (0, .016)):
         for j, (a, b) in enumerate(variation):
             points.append((x + a * (width - inset * 2), y + band + wear[j], z + b * (depth - inset * 2)))
-    n = len(ring)
+    n = len(variation)
     faces = [tuple(range(n)), tuple(reversed(range(n * 2, n * 3)))]
     for row in range(2):
         for i in range(n):
@@ -277,6 +282,111 @@ def hewn_block(name, width, height, depth, location, material, region):
     profile_uv(obj, n, 3, {0, 1}, 1)
     obj['weather_stone'] = True
     return obj
+
+
+def worn_approach_tread(name, width, depth, centre, material, dressing):
+    # Use the original hewn outline sequence so unrelated forest and landing
+    # placements keep the same deterministic random stream.
+    old_rim, weather = hewn_outline()
+    cx, top, cz = centre
+    rim, chips = [], []
+    for i, ((u, v), age) in enumerate(zip(old_rim, weather)):
+        corner = i in (0, 1, 2, 3, 4, 8, 9, 10)
+        radius = dressing.uniform(.91, 1.) if corner else dressing.uniform(.94, 1.)
+        rim.append((width * u * radius, depth * v * radius))
+        chips.append(age - dressing.uniform(.001, .014))
+        if i in (0, 2, 4, 7, 9):
+            uu, vv = old_rim[(i + 1) % len(old_rim)]
+            run = dressing.uniform(.27, .69)
+            inward = dressing.uniform(.88, .98)
+            rim.append((width * (u + (uu - u) * run) * inward,
+                        depth * (v + (vv - v) * run) * inward))
+            chips.append(dressing.uniform(-.020, -.006))
+    count = len(rim)
+    hollow_x = dressing.uniform(-.12, .14) * width
+    hollow_z = dressing.uniform(-.06, .16) * depth
+    worn = dressing.uniform(.015, .033)
+    pitch = dressing.uniform(-.022, .024)
+    variation = dressing.uniform(.008, .014)
+
+    def walking_surface(x, z):
+        dx = (x - hollow_x) / (width * .37)
+        dz = (z - hollow_z) / (depth * .38)
+        age = math.exp(-dx * dx - dz * dz)
+        relief = variation * (.56 * math.sin(8.0 * x + 13.0 * z) + .44 * math.sin(25.0 * x - 7.0 * z))
+        return top + pitch * z - worn * age + relief
+
+    points = []
+    for band in range(4):
+        for (x, z), chip in zip(rim, chips):
+            if band == 0:
+                px, py, pz = x * .93, top - .158, z * .95
+            elif band == 1:
+                px, pz = x, z
+                py = min(top - .036, walking_surface(x * .974, z * .981) - .006) + chip
+            elif band == 2:
+                px, pz = x * .974, z * .981
+                py = walking_surface(px, pz) + chip
+            else:
+                px, pz = hollow_x + .46 * (x - hollow_x), hollow_z + .43 * (z - hollow_z)
+                py = walking_surface(px, pz)
+            points.append((cx + px, py, cz + pz))
+    points.append((cx + hollow_x, walking_surface(hollow_x, hollow_z), cz + hollow_z))
+
+    # Keep precisely three source charts per stone. The walking face has a
+    # continuous planar chart through the shallow centre hollow rather than
+    # one independent chart for every triangle.
+    faces = [tuple(range(count))]
+    coordinates = [[(x, z + depth + .42) for x, z in rim]]
+    distance = [0.]
+    for i, (x, z) in enumerate(rim):
+        xx, zz = rim[(i + 1) % count]
+        distance.append(distance[-1] + math.hypot(xx - x, zz - z))
+    for band in range(3):
+        for i in range(count):
+            j = (i + 1) % count
+            a, b = band * count, (band + 1) * count
+            face = (a + i, b + i, b + j, a + j)
+            faces.append(face)
+            if band == 2:
+                coordinates.append([(points[index][0] - cx, points[index][2] - cz + .25 + depth * .5)
+                                    for index in faces[-1]])
+            else:
+                coordinates.append([(distance[k], points[index][1] - top + .17)
+                                    for k, index in zip((i, i, i + 1, i + 1), face)])
+    for i in range(count):
+        face = (len(points) - 1, 3 * count + (i + 1) % count, 3 * count + i)
+        faces.append(face)
+        coordinates.append([(points[index][0] - cx, points[index][2] - cz + .25 + depth * .5)
+                            for index in face])
+    obj = mesh.mesh_object(name, points, faces, material, 'approach')
+    mesh.uv_world(obj, .87)
+    source_uv(obj, coordinates, 'Measured course side strip and planar caps with a worn walking hollow.')
+    obj['weather_stone'] = True
+    return obj
+
+
+def approach_joint_bedding(rows, material):
+    # Moist earth and litter fill the low joints between stones. The bed
+    # continues beneath the slab shoulders instead of sitting on their tops.
+    points, faces = [], []
+    for top, z, bend, half_span in rows:
+        start = len(points)
+        for row in range(3):
+            dz = (-.407, .008, .408)[row]
+            for col in range(5):
+                across = col / 2 - 1
+                x = bend + across * (half_span - .022)
+                shade = .008 * math.sin(16 * x + 4.2 * z) + .005 * math.sin(27 * x - 2.3 * z)
+                points.append((x, top - .068 + shade - .016 * abs(across), z + dz))
+        for row in range(2):
+            for col in range(4):
+                a = start + row * 5 + col
+                faces.append((a, a + 5, a + 6, a + 1))
+    bed = mesh.mesh_object('Dark earth and needle litter in the approach stone joints', points, faces, material, 'approach')
+    mesh.uv_world(bed, .62)
+    source_uv(bed, [[(points[i][0], points[i][2]) for i in face] for face in faces],
+              'Planar contiguous bedding under each course of approach stones.')
 
 
 def landing_bed(material):
@@ -371,9 +481,11 @@ def audit_approach_clearance(ground):
     print(f'PINE_APPROACH_CLEARANCE {len(margins)} probes; minimum clearance {min(margins):.6f} m')
 
 
-def climbing_steps(stone, ground):
+def climbing_steps(stone, ground, bedding_material):
     bridge_curbs = []
     worn_cap = random.Random(38365)
+    dressing = random.Random(498721)
+    bedding_rows = []
     for i in range(STAIR_COUNT):
         z = STAIR_START - STAIR_RUN * i
         top = (i + 1) * STAIR_RISE
@@ -383,16 +495,23 @@ def climbing_steps(stone, ground):
         # away from the worn center and toward the open right-hand drain.
         bend, half_span = stair_section(i)
         span = half_span * 2
-        widths = [span * .31 + RANDOM.uniform(-.10, .09), span * .35 + RANDOM.uniform(-.12, .10)]
-        widths.append(span - sum(widths))
+        joint_a = span * .31 + RANDOM.uniform(-.10, .09) + dressing.uniform(-.24, .21)
+        joint_b = span * .66 + RANDOM.uniform(-.12, .10) + dressing.uniform(-.18, .24)
+        joint_a = max(.31, joint_a)
+        joint_b = min(span - .32, max(joint_a + .29, joint_b))
+        widths = (joint_a, joint_b - joint_a, span - joint_b)
         edge = bend - span / 2
         for j, width in enumerate(widths):
-            block = hewn_block(f'Step {i + 1:02} block {j + 1}', width - .018, .24,
-                               .82 + RANDOM.uniform(-.043, .039),
-                               (edge + width / 2, top + RANDOM.uniform(-.010, .009) - .008 * j,
-                                z + RANDOM.uniform(-.027, .031)), RANDOM.choice(stone), 'approach')
-            block['moss_edge'] = j != 1 or i % 7 == 0
+            depth = .82 + RANDOM.uniform(-.043, .039)
+            surface = top + RANDOM.uniform(-.010, .009) - .008 * j
+            centre_z = z + RANDOM.uniform(-.027, .031)
+            material = RANDOM.choice(stone)
+            tread = worn_approach_tread(f'Step {i + 1:02} block {j + 1}',
+                                       width - dressing.uniform(.010, .023), depth,
+                                       (edge + width / 2, surface, centre_z), material, dressing)
+            tread['moss_edge'] = j != 1 or i % 7 == 0
             edge += width
+        bedding_rows.append((top, z, bend, half_span))
         drain_x = bend + span / 2 + .139
         invert = hewn_block(f'Open rainwater channel {i + 1:02}', .27, .16, .805,
                             (drain_x, top - .068, z), stone[4], 'approach')
@@ -413,65 +532,19 @@ def climbing_steps(stone, ground):
                     if row == cap:
                         rim = len(retaining.data.vertices) // 3
                         wear = [worn_cap.uniform(.009, .051) for _ in range(rim)]
+                        settling = dressing.uniform(.025, .111)
                         for ring, fraction in ((1, .61), (2, 1.)):
                             for j, loss in enumerate(wear):
                                 vertex = retaining.data.vertices[ring * rim + j]
-                                vertex.co.z -= fraction * loss
+                                vertex.co.z -= settling + fraction * loss
                         retaining.data.update()
                         profile_uv(retaining, rim, 3, {0, 1}, 1)
                         retaining['moss_edge'] = worn_cap.random() < .46
+    approach_joint_bedding(bedding_rows, bedding_material)
     landing_bed(stone[2])
     landing_flagstones(stone)
     fit_stone_undersides(ground, bridge_curbs)
     return bridge_curbs
-
-
-def muddy_step_treads(stone):
-    rng = random.Random(16462)
-    points, faces, shades = [], [], []
-    outlines = (
-        ((-.040, .013), (-.047, .066), (-.032, .120), (-.006, .137), (.032, .128),
-         (.046, .100), (.044, .057), (.031, .012), (.006, .018), (-.014, .004)),
-        ((-.026, -.118), (-.032, -.080), (-.023, -.051), (.017, -.045), (.027, -.063),
-         (.026, -.112), (.007, -.129), (-.017, -.124)),
-    )
-    for step in (9, 11, 13, 21, 22, 25, 26, 29, 32, 34, 36, 42, 43):
-        tread = mesh.STATIC.objects.get(f'Step {step:02} block 2')
-        if tread is None:
-            continue
-        side = -1 if step % 2 else 1
-        bend, _ = stair_section(step - 1)
-        x = bend + side * rng.uniform(.076, .119)
-        z = STAIR_START - STAIR_RUN * (step - 1) + rng.uniform(-.041, .048)
-        yaw = side * rng.uniform(.12, .30)
-        scale = rng.uniform(.77, 1.03)
-        for part, outline in enumerate(outlines):
-            if part and rng.random() < .35:
-                continue
-            perimeter = []
-            for across, forward in outline:
-                across *= side * scale * rng.uniform(.81, 1.16)
-                forward *= scale * rng.uniform(.91, 1.06)
-                px = x + across * math.cos(yaw) + forward * math.sin(yaw)
-                pz = z + across * math.sin(yaw) - forward * math.cos(yaw)
-                perimeter.append((px, pz))
-            cx, cz = (sum(values) / len(values) for values in zip(*perimeter))
-            centre = len(points)
-            points.append((cx, supports_height(cx, cz, [tread]) + .0011, cz))
-            shades.append((.40, .32, .24))
-            for px, pz in perimeter:
-                points.append((px, supports_height(px, pz, [tread]) + .0007, pz))
-                tone = rng.uniform(.59, .91)
-                shades.append((tone, tone * .91, tone * .77))
-            count = len(perimeter)
-            clockwise = sum(px * qz - qx * pz for (px, pz), (qx, qz)
-                            in zip(perimeter, perimeter[1:] + perimeter[:1])) < 0
-            for i in range(count):
-                a, b = centre + 1 + i, centre + 1 + (i + 1) % count
-                faces.append((centre, a, b) if clockwise else (centre, b, a))
-    charts = [[(points[i][0], points[i][2]) for i in face] for face in faces]
-    tinted_mesh('Mud from repeated footfalls on the worn stair', stone, points, faces, charts, shades,
-                'Metre-scale sole and heel stamps on the evaluated treads.', uv_scale=.51)
 
 
 def terrain_bank_slopes(ground, depsgraph):
@@ -622,19 +695,86 @@ def fit_stone_undersides(ground, stones, upper_clearances=None):
         rock['bank_ring_vertices'] = ring
 
 
+def spring_pebbles(stone, ground):
+    rng = random.Random(59924)
+    patches = [([], []) for _ in stone]
+    for station, z in enumerate(watercourse_stations(.39)):
+        if not 5.65 <= z <= 44.5 or 20.67 <= z <= 23.74:
+            continue
+        z += rng.uniform(-.093, .091)
+        x, waterline, width = watercourse_at(z)
+        shore = station % 4 == 1
+        side = -1 if station % 2 else 1
+        x += side * (width + rng.uniform(.014, .055)) if shore else width * rng.uniform(-.71, .71)
+        path_centre, path_half_width = section_at(z)
+        if abs(x - path_centre) < path_half_width + .27:
+            continue
+        bottom = supports_height(x, z, [ground])
+        lift = rng.uniform(.020, .040) if shore else (waterline - bottom) * rng.uniform(.38, .77)
+        if lift <= .005:
+            continue
+        radius = rng.uniform(.052, .096) if shore else rng.uniform(.032, .081)
+        eccentricity = rng.uniform(.53, .90)
+        angle = rng.uniform(0., math.tau)
+        lean = rng.uniform(-.22, .22)
+        points, faces = patches[rng.randrange(len(patches))]
+        start = len(points)
+        points.append((x, bottom + lift, z))
+        sides = 8
+        perimeter = [radius * rng.uniform(.81, 1.16) for _ in range(sides)]
+        for band, (spread, crest) in enumerate(((.61, .76), (1., 0.))):
+            for j, scale in enumerate(perimeter):
+                a = j / sides * math.tau
+                dx, dz = spread * scale * math.cos(a), spread * scale * math.sin(a) * eccentricity
+                px = x + dx * math.cos(angle) - dz * math.sin(angle)
+                pz = z + dx * math.sin(angle) + dz * math.cos(angle)
+                bed = supports_height(px, pz, [ground])
+                y = bed - .006 if band else bed + lift * (crest + lean * math.cos(a))
+                if not shore:
+                    y = min(y, watercourse_at(pz)[1] - .003)
+                points.append((px, y, pz))
+        for j in range(sides):
+            a, b = start + 1 + j, start + 1 + (j + 1) % sides
+            faces.extend(((start, b, a), (a, b, b + sides, a + sides)))
+    for index, (points, faces) in enumerate(patches):
+        if not points:
+            continue
+        pebbles = mesh.mesh_object(f'Water-worn pebbles in spring gravel {index + 1}', points,
+                                   faces, stone[index], 'approach')
+        pebbles['weather_stone'] = True
+        pebbles['moss_edge'] = index == 4
+        mesh.uv_world(pebbles, .53)
+        source_uv(pebbles, [[(points[i][0], points[i][2]) for i in face] for face in faces],
+                  'Separate plan charts for rounded, bed-fitted pebbles.')
+        for face in pebbles.data.polygons:
+            face.use_smooth = True
+
+
 def saddle_water(stone, ground):
-    water = mesh.material('Spring water on a slate bed', '#4a6865', rough=.20, metal=.24)
-    points = []
+    water = mesh.material('Clear spring runnel', '#564e3a', rough=.20)
+    # Leave the gravel lit during the Cycles bake. Runtime alpha follows the
+    # measured depth and grazing reflection across this same surface.
+    water.node_tree.nodes.get('Principled BSDF').inputs['Alpha'].default_value = .065
+    water.surface_render_method = 'BLENDED'
+    points, profile = [], []
+    cross_section = (-1., -.70, -.35, 0., .35, .70, 1.)
+    stride = len(cross_section)
     for z in watercourse_stations(.32):
-        x, y, width = watercourse_at(z)
-        # Extend beneath the higher banks so the terrain, not the end of
-        # the water ribbon, defines the edge of the stream.
-        half_width = width + STREAM_RIBBON_OVERLAP
-        points.extend(((x - half_width, y, z), (x + half_width, y, z)))
-    faces = [(i, i + 2, i + 3, i + 1) for i in range(0, len(points) - 2, 2)]
+        centre, y, width = watercourse_at(z)
+        for lateral in cross_section:
+            x = centre + lateral * (width + STREAM_RIBBON_OVERLAP)
+            depth = y - supports_height(x, z, [ground])
+            points.append((x, y, z))
+            profile.append((max(0., min(1., depth / .08)), (lateral + 1.) * .5))
+    faces = [(i + j, i + stride + j, i + stride + j + 1, i + j + 1)
+             for i in range(0, len(points) - stride, stride) for j in range(stride - 1)]
     channel = mesh.mesh_object('Spring runnel through the saddle', points, faces, water, 'approach')
+    material_uv = channel.data.uv_layers['UVMap']
+    for loop in channel.data.loops:
+        material_uv.data[loop.index].uv = profile[loop.vertex_index]
     source_uv(channel, [[(points[i][0], points[i][2]) for i in face] for face in faces],
-              'Meter-scale stream ribbon.')
+              'Metre-scale chart for the water at its original surveyed level.')
+    spring_pebbles(stone, ground)
     bank_stones, deck_slabs = [], []
     for index, (_, _, z) in enumerate(WATERCOURSE[1:-1]):
         x, _, width = watercourse_at(z)
@@ -1502,7 +1642,7 @@ def build(output, impostor_manifest=None, wax_sculpt=None):
     stone, rock, ground, wood, tiles, bark, needle, iron, clay, ledge = palette()
     support = terrain(ground)
     audit_approach_clearance(support)
-    bridge_curbs = climbing_steps(stone, support)
+    bridge_curbs = climbing_steps(stone, support, ground)
     route = json.loads((ROOT / 'shared/pine-gate-path.json').read_text())
     far_crown = None
     native_mounts = None
@@ -1520,10 +1660,9 @@ def build(output, impostor_manifest=None, wax_sculpt=None):
     audit_watercourse(support, stream_stones, deck_slabs, bridge_curbs)
     build_tea_shoulder(ANCHOR, stone, wood, tiles, clay, iron, ledge, contacts, wax_sculpt)
     paint_stone()
-    muddy_step_treads(stone[1])
     build_crest_ground(ground, rock, bark, section_at, watercourse_at, lambda x, z: supports_height(x, z, [support]),
                        ((-1.88, PINE_CREST + .08), (1.82, PINE_CREST - .32)), bark_tube)
-    build_inner_banks(ground, rock, section_at, watercourse_at, lambda x, z: supports_height(x, z, [support]))
+    build_inner_banks(rock, section_at, watercourse_at, lambda x, z: supports_height(x, z, [support]))
     scene.render.engine = 'CYCLES'
     scene.render.threads_mode = 'AUTO'
     scene.render.resolution_x = 1440

@@ -24,8 +24,8 @@ def inner_bank_tint(x, z, channel_x, width):
     damp = math.exp(-(distance / .50) ** 2)
     patch = .50 + .26 * math.sin(4.23 * x + 1.18 * z) + .22 * math.sin(2.81 * x - 2.35 * z)
     forest = max(0., min(1., (abs(x) - 1.3) / .62, (6. - abs(x)) / 1.6))
-    strength = approach * (.46 * damp + .40 * patch * forest)
-    return 1. - .59 * strength, 1. - .38 * strength, 1. - .30 * strength
+    strength = approach * (.34 * damp + (.31 + .36 * patch) * forest)
+    return 1. - .67 * strength, 1. - .32 * strength, 1. - .45 * strength
 
 
 def tinted_mesh(name, material, points, faces, charts, colors, method, *, smooth=False, uv_scale=None):
@@ -235,7 +235,7 @@ def build_crest_ground(ground, rock, bark, section, spring, height, pines, bark_
     crest_roots(pines, height, bark, bark_tube)
 
 
-def build_inner_banks(ground, rock, section, spring, height):
+def build_inner_banks(rock, section, spring, height):
     rng = random.Random(3843)
     sites = []
     # The forest views look along the inner banks rather than the upper slope.
@@ -250,13 +250,14 @@ def build_inner_banks(ground, rock, section, spring, height):
             if clearance >= .12:
                 damp = math.exp(-((abs(x - stream_x) - width) / .83) ** 2)
                 sites.append((x, z, clearance, damp))
-    mats = [(x, z, min(.86 * clear, rng.uniform(.25, .47))) for x, z, clear, _ in sites[::2]]
     stones = [(x, z, min(.74 * clear, rng.uniform(.10, .27))) for x, z, clear, _ in sites[1::4]]
-    tinted_mesh('Wet moss in pockets beside the inner stair', ground, *surface_islands(mats, height, rng, False),
-                'Conformal moss with its outside rim below the soil.', smooth=True, uv_scale=.41)
     tinted_mesh('Small exposed schist in the spring banks', rock, *surface_islands(stones, height, rng, True),
                 'Planar charts with exterior rims embedded in the banks.', uv_scale=.59)
+    litter = mesh.material('Loose pine needles under the inner banks', '#ffffff', rough=.95)
     grass = mesh.material('Damp bank sedge and dry tips', '#ffffff', rough=.93)
+    mesh.vertex_tint_shader(litter)
     mesh.vertex_tint_shader(grass)
+    tinted_mesh('Rooted inner-bank pine litter', litter, *needle_litter(sites[::3], height, rng),
+                'Continuous planar charts from each fallen sheath into its two needles.')
     tinted_mesh('Rooted sedges between the spring and forest banks', grass, *bank_grass(sites[1::2], height, rng),
                 'An unfolding radial chart for each rooted clump.')
