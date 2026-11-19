@@ -641,7 +641,7 @@ def build(output):
     for name, index in (('Forest', 0), ('Crest', 4), ('Shoulder', 6)):
         shot = route['waypoints'][index]
         camera('Reference_Pine' + name, shot['position'], shot['look'], shot['desktopFov'], (1440, 900))
-    camera('Reference_PineTeaPavilion', (0, 6.43, 6.49), (-.33, 5.05, 1.93), 61, (1440, 900))
+    camera('Reference_PineTeaPavilion', (0, 6.50, 7.05), (-.50, 5.05, 1.93), 68, (1440, 900))
     camera('Reference_PineChooseDesktop', (-1.67, 5.29, 1.48), (-1.705, 5.075, .9), 31, (1440, 900))
     camera('Reference_PineChoosePhone', (-1.71, 5.25, 1.46), (-1.80, 4.95, .9), 43, (390, 844))
     camera('Reference_PineIgnitionDesktop', (-1.63, 5.32, 1.60), (-1.76, 5.10, .9), 39, (1440, 900))
