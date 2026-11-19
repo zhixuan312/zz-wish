@@ -26,6 +26,7 @@ def digest(path):
 def encode_scanlines(path, width, height, exposure):
     rgba = np.empty((height, width, 4), dtype=np.uint8)
     clipped = 0
+    clipped_coverage = 0.
     with path.open('rb') as stream:
         header = read_header(stream)
         xmin, ymin, xmax, ymax = struct.unpack('<4i', header['dataWindow'])
@@ -46,10 +47,12 @@ def encode_scanlines(path, width, height, exposure):
             alpha, rgb = channels[0], channels[:0:-1].T * exposure
             if not np.isfinite(channels).all() or alpha.min() < 0 or alpha.max() > 1:
                 raise ValueError('Invalid radiance or alpha')
-            clipped += int(np.count_nonzero((rgb.max(axis=1) > 8.) & (alpha > 0.)))
+            clipped_mask = (rgb.max(axis=1) > 8.) & (alpha > 0.)
+            clipped += int(np.count_nonzero(clipped_mask))
+            clipped_coverage += float(alpha[clipped_mask].sum(dtype=np.float64))
             rgba[y - ymin, :, :3] = np.rint(np.log2(1 + 8 * np.clip(rgb, 0, 8)) * (255 / np.log2(65)))
             rgba[y - ymin, :, 3] = np.rint(alpha * 255)
-    return rgba, clipped
+    return rgba, clipped, clipped_coverage
 
 
 def dilate_rgb(rgba):
@@ -93,6 +96,7 @@ def main():
     parser.add_argument('--input', type=Path, required=True)
     parser.add_argument('--out', type=Path, required=True)
     parser.add_argument('--quality', type=int, default=88)
+    parser.add_argument('--layers', choices=LAYERS, nargs='+', default=LAYERS)
     args = parser.parse_args()
     contract = json.loads((ROOT / 'shared/pine-gate-backdrop.json').read_text())
     render = json.loads((args.input / 'render.json').read_text())
@@ -105,12 +109,12 @@ def main():
         raise ValueError('WebP quality must be between 1 and 100.')
     args.out.mkdir(parents=True, exist_ok=False)
     variants = {}
-    for name in LAYERS:
+    for name in dict.fromkeys(args.layers):
         spec = render['plates'][name]
         master = args.input / f'{name}.exr'
         if spec['file'] != master.name or spec['bytes'] != master.stat().st_size:
             raise ValueError(f'Master for {name} differs from its render receipt.')
-        image, clipped = encode_scanlines(master, width, height, contract['preExposure'])
+        image, clipped, clipped_coverage = encode_scanlines(master, width, height, contract['preExposure'])
         dilate_rgb(image)
         target = args.out / f'pine-vista-{name}.webp'
         with tempfile.TemporaryDirectory(dir=args.out, prefix='encode-') as scratch:
@@ -119,7 +123,8 @@ def main():
             subprocess.run(['cwebp', '-quiet', '-q', str(args.quality), '-alpha_q', '100', '-exact',
                             '-m', '4', str(png), '-o', str(target)], check=True)
         variants[name] = {'uri': target.name, 'bytes': target.stat().st_size, 'sha256': digest(target),
-                          'masterSha256': digest(master), 'clippedRadiancePixels': clipped}
+                          'masterSha256': digest(master), 'clippedRadiancePixels': clipped,
+                          'clippedOpaquePixelEquivalent': round(clipped_coverage, 2)}
         print('PINE_BACKDROP_PLATE', name, json.dumps(variants[name]), flush=True)
     (args.out / 'encode.json').write_text(json.dumps({
         'width': width, 'height': height, 'encoding': 'log2-8-8', 'preExposure': contract['preExposure'],
