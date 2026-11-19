@@ -747,6 +747,15 @@ def landing_splay(z):
     return .064 * math.sin(1.6 * z) + .026 * math.sin(3.85 * z)
 
 
+# Interior windows in the existing 1K stone_pavers scan. The same window
+# selects colour, normal and roughness, with room for mip filtering.
+LANDING_SCAN_WINDOWS = (
+    (151, 24, 448, 230), (491, 23, 791, 232), (27, 283, 267, 484),
+    (315, 286, 609, 484), (658, 289, 937, 484), (141, 555, 425, 742),
+    (480, 554, 762, 744), (405, 809, 685, 984),
+)
+
+
 def landing_stone(name, width, depth, centre, stone, dressing):
     x, y, z = centre
     outline, wear = hewn_outline()
@@ -786,17 +795,20 @@ def landing_stone(name, width, depth, centre, stone, dressing):
     slab = mesh.mesh_object(name, points, faces, stone, 'gate')
     profile_uv(slab, n, 3, {0, *range(first_top, len(faces))}, 1)
     uv = slab.data.uv_layers['UVMap']
-    metres = dressing.uniform(.37, .61)
-    cosine, sine = math.cos(offset), math.sin(offset)
+    draw = dressing.random() * len(LANDING_SCAN_WINDOWS)
+    left, top, right, bottom = LANDING_SCAN_WINDOWS[int(draw)]
+    flip = -1 if draw % 1 < .5 else 1
     for face in slab.data.polygons:
         face.use_smooth = face.index >= first_top
+        side = 0 < face.index < first_top
         for loop in face.loop_indices:
-            position = points[slab.data.loops[loop].vertex_index]
-            u, v = position[0] - x, position[2] - z
-            if 0 < face.index < first_top:
-                v = position[1] - y + v * .37
-            uv.data[loop].uv = ((cosine * u - sine * v) / metres + offset,
-                                (sine * u + cosine * v) / metres - offset)
+            px, py, pz = points[slab.data.loops[loop].vertex_index]
+            u, v = (px - landing_splay(pz) - x) / width, (pz - z) / depth
+            if side:
+                u = v if abs(face.normal.x) > abs(face.normal.y) else u
+                v = (y - py) / .30
+            uv.data[loop].uv = ((left + (.5 + flip * .88 * u) * (right - left)) / 1024,
+                                1 - (top + (.5 + .88 * v) * (bottom - top)) / 1024)
     slab['weather_stone'] = True
     return slab
 
