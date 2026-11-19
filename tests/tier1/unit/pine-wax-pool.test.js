@@ -1,4 +1,4 @@
-import { Vector3 } from 'three';
+import { Raycaster, Texture, Vector3 } from 'three';
 import { expect, test } from 'vitest';
 import { createPineWax } from '../../../web/src/engine/PineWax.js';
 
@@ -34,4 +34,36 @@ test('moves a straight candle melt pool without replacing its unchanged buffers'
   wax.setShape({ rows: [{ ...base, r: .028 }, { ...crown, r: .028 }], color: 0xffe8c3 });
   wax.update(.002, 'burning', anchor);
   expect(versions()).toEqual(stubVersions.map(version => version + 1));
+});
+
+
+test('the softened wax lip exposes the pool from the burning view without moving the wick', () => {
+  const shape = { rows: [{ ...base, r: .0128 }, { ...crown, r: .0128, y: .0524 }], color: 0xe9ddc3 };
+  function sample(sculptNormal) {
+    const wax = createPineWax(seat, undefined, { refined: true, sculptNormal });
+    wax.setShape(shape);
+    const anchor = new Vector3();
+    wax.update(.996, 'burning', anchor);
+    wax.group.updateMatrixWorld(true);
+
+    const [body, pool] = wax.group.children;
+    const eye = new Vector3(-.047, .0864, .375);
+    const ray = new Raycaster();
+    let visible = 0;
+    for (let x = -4; x <= 4; x++) {
+      for (let z = -4; z <= 4; z++) {
+        if (x * x + z * z > 16) continue;
+        const point = new Vector3(x * .002, seat.y + pool.position.y, z * .002);
+        ray.set(eye, point.sub(eye).normalize());
+        if (ray.intersectObjects([body, pool], false)[0]?.object === pool) visible++;
+      }
+    }
+    return { visible, anchor, cutHeight: wax.state().cutHeight };
+  }
+
+  const flat = sample(null);
+  const softened = sample(new Texture());
+  expect(softened.visible).toBeGreaterThan(flat.visible * 3);
+  expect(softened.anchor).toEqual(flat.anchor);
+  expect(softened.cutHeight).toBe(flat.cutHeight);
 });
