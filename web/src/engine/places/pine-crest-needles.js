@@ -2,10 +2,15 @@ import * as THREE from 'three';
 
 const maxPads = 130;
 const profileSeeds = [73, 131, 243];
-const shoots = [
-  [-.65, -.10, .40], [-.46, .08, .82], [-.18, .04, 1.05],
-  [.21, .12, 1.11], [.51, -.01, .80], [.63, -.13, .48], [.04, -.19, .60],
+const crowns = [
+  [[-.57, -.08, .48], [-.38, .12, .89], [-.12, .05, 1.08],
+    [.22, .17, .94], [.50, -.04, .73], [.74, -.14, .53]],
+  [[-.68, -.20, .44], [-.51, .08, .73], [-.26, -.11, .85], [.04, .12, 1.12],
+    [.28, .06, 1.03], [.49, -.10, .68], [.51, -.17, .40]],
+  [[-.60, .02, .49], [-.52, -.12, .78], [-.29, .09, .92], [-.08, .17, 1.01],
+    [.15, .11, .91], [.37, .03, .89], [.54, -.12, .65], [.42, -.18, .42]],
 ];
+const pairsPerCrown = 112;
 const up = new THREE.Vector3(0, 1, 0);
 
 function randomFrom(seed) {
@@ -16,63 +21,92 @@ function randomFrom(seed) {
   };
 }
 
-function makeProfile(seed) {
+function makeProfile(seed, shoots) {
   const random = randomFrom(seed);
-  const positions = [], colors = [];
-  const deepGreen = new THREE.Color(0x304522);
-  const youngGreen = new THREE.Color(0x647b3e);
+  const positions = [], colors = [], indices = [];
+  const deepGreen = new THREE.Color(0x2c4522);
+  const youngGreen = new THREE.Color(0x647944);
+  const twigBrown = new THREE.Color(0x55492b);
   const shoot = new THREE.Vector3(), across = shoot.clone(), above = shoot.clone();
   const root = shoot.clone(), needle = shoot.clone(), tip = shoot.clone();
-  const shoulder = shoot.clone(), side = shoot.clone(), rib = shoot.clone();
-  const ring = [shoot.clone(), shoot.clone(), shoot.clone()];
+  const shoulder = shoot.clone(), side = shoot.clone(), point = shoot.clone();
   const color = deepGreen.clone();
   const add = (point, light) => {
     positions.push(point.x, point.y, point.z);
     colors.push(color.r * light, color.g * light, color.b * light);
   };
 
-  for (const [x, y, z] of shoots) {
+  for (const [twig, [x, y, z]] of shoots.entries()) {
     shoot.set(x + (random() - .5) * .11, y + (random() - .5) * .16, z * (.86 + random() * .25));
     const length = shoot.length();
     shoot.divideScalar(length);
     across.crossVectors(up, shoot).normalize();
     above.crossVectors(shoot, across);
     const phase = random() * Math.PI * 2;
+    const bend = (random() - .5) * .27, lift = (random() - .28) * .24;
+    const elbow = .58;
+    const twigAt = (target, t) => {
+      const arc = t < elbow ? elbow * t : elbow * elbow + (t - elbow) * (1 + elbow);
+      return target.copy(shoot).multiplyScalar(length * t)
+        .addScaledVector(across, bend * arc).addScaledVector(above, lift * arc);
+    };
+    const twigStart = positions.length / 3;
+    color.copy(twigBrown);
+    for (const [t, radius] of [[0, .009], [elbow, .006]]) {
+      twigAt(root, t);
+      for (let edge = 0; edge < 3; edge++) {
+        const angle = phase + edge * 2 * Math.PI / 3;
+        point.copy(root).addScaledVector(across, radius * Math.cos(angle))
+          .addScaledVector(above, radius * Math.sin(angle));
+        add(point, .84 + t * .16);
+      }
+    }
+    add(twigAt(root, 1), 1);
+    for (let edge = 0; edge < 3; edge++) {
+      const a = twigStart + edge, b = twigStart + (edge + 1) % 3;
+      indices.push(a, b, b + 3, a, b + 3, a + 3, a + 3, b + 3, twigStart + 6);
+    }
 
-    for (let pair = 0; pair < 9; pair++) {
-      const at = .34 + .62 * (pair + random() * .64) / 9;
-      root.copy(shoot).multiplyScalar(length * at);
-      root.addScaledVector(above, .13 * at * at + (random() - .5) * .15);
-      root.addScaledVector(across, (random() - .5) * .18);
+    const pairCount = Math.floor(pairsPerCrown / shoots.length) + Number(twig < pairsPerCrown % shoots.length);
+    for (let pair = 0; pair < pairCount; pair++) {
+      const age = (pair + random() * .72) / pairCount;
+      const at = .28 + .71 * (.52 * age + .48 * Math.sqrt(age));
+      twigAt(root, at);
+      const sheath = phase + pair * 2.39996 + (random() - .5) * .33;
       for (const sign of [-1, 1]) {
-        const angle = phase + pair * 2.39996 + sign * (.14 + random() * .31);
-        needle.copy(shoot).multiplyScalar(.52 + random() * .31);
-        needle.addScaledVector(across, Math.cos(angle) * .86).addScaledVector(above, Math.sin(angle) * .67);
+        const angle = sheath + sign * (.11 + random() * .24);
+        const spread = .52 + random() * .30;
+        needle.copy(shoot).multiplyScalar(.53 + random() * .33);
+        needle.addScaledVector(across, Math.cos(angle) * spread).addScaledVector(above, Math.sin(angle) * spread);
         needle.normalize();
-        const reach = (.29 + random() * .24) * (1 - .2 * at);
-        tip.copy(root).addScaledVector(needle, reach).addScaledVector(up, reach * (.01 + random() * .24));
-        shoulder.copy(root).addScaledVector(needle, reach * .45);
-        side.crossVectors(needle, up).normalize();
-        rib.crossVectors(needle, side);
-        const width = (.036 + random() * .020) * (1 - .24 * at);
-        ring[0].copy(shoulder).addScaledVector(side, width);
-        ring[1].copy(shoulder).addScaledVector(rib, width * .34);
-        ring[2].copy(shoulder).addScaledVector(side, -width).addScaledVector(rib, -width * .12);
-        color.copy(deepGreen).lerp(youngGreen, .12 + .74 * random());
-        // Each slender, bent needle has three tapered faces on both sides of
-        // its shoulder. Flat normals keep the tiny cross sections well defined.
-        for (let face = 0; face < ring.length; face++) {
-          const a = ring[face], b = ring[(face + 1) % ring.length];
-          add(root, .77); add(b, .92); add(a, .94);
-          add(tip, 1.09); add(a, .94); add(b, .92);
-        }
+        const reach = (.25 + random() * .19) * (1 - .18 * at);
+        const curl = reach * (-.12 + random() * .29);
+        const width = (.007 + random() * .005) * (1 - .16 * at);
+        side.crossVectors(needle, up).normalize().applyAxisAngle(needle, angle * .62);
+        tip.copy(root).addScaledVector(needle, reach).addScaledVector(above, curl);
+        color.copy(deepGreen).lerp(youngGreen, .15 + .66 * random());
+        const start = positions.length / 3;
+        // A shared sheath, staggered edges and curved tip keep each pair
+        // attached to the twig without turning the needles into solid leaves.
+        add(root, .72);
+        shoulder.copy(root).addScaledVector(needle, reach * .32).addScaledVector(above, curl * .10);
+        add(shoulder.addScaledVector(side, width), .92);
+        shoulder.copy(root).addScaledVector(needle, reach * .47).addScaledVector(above, curl * .22);
+        add(shoulder.addScaledVector(side, -width * .97), .94);
+        shoulder.copy(root).addScaledVector(needle, reach * .70).addScaledVector(above, curl * .49);
+        add(shoulder.addScaledVector(side, width * .54), 1.02);
+        add(tip, 1.13);
+        indices.push(start, start + 1, start + 2, start + 1, start + 3, start + 2, start + 3, start + 4, start + 2);
       }
     }
   }
   const geometry = new THREE.BufferGeometry();
   geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
   geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+  geometry.setIndex(indices);
   geometry.computeVertexNormals();
+  geometry.computeBoundingSphere();
+  geometry.boundingSphere.radius += .40;
   return geometry;
 }
 
@@ -90,7 +124,19 @@ export function buildPineCrestNeedles(geometryFingerprint, authoring) {
     const profile = Math.floor(random() * placements.length);
     placements[profile].push({ pad, random });
   }
-  const material = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .89, metalness: 0 });
+  const material = new THREE.MeshStandardMaterial({
+    vertexColors: true, roughness: .89, metalness: 0, side: THREE.DoubleSide,
+  });
+  material.onBeforeCompile = shader => {
+    // Small seeded bends distinguish the pads without moving their mounts.
+    shader.vertexShader = 'attribute vec2 pineCrestBend;\n' + shader.vertexShader
+      .replace('#include <beginnormal_vertex>', `#include <beginnormal_vertex>
+        objectNormal.z -= 2. * position.z * dot(pineCrestBend, objectNormal.xy);
+      `)
+      .replace('#include <begin_vertex>', `#include <begin_vertex>
+        transformed.xy += pineCrestBend * position.z * position.z;
+      `);
+  };
   const group = new THREE.Group();
   group.name = 'Authored Pine Crest terminal needle pads';
   const forward = new THREE.Vector3(), right = forward.clone(), normal = forward.clone();
@@ -98,8 +144,10 @@ export function buildPineCrestNeedles(geometryFingerprint, authoring) {
 
   for (const [profile, rows] of placements.entries()) {
     if (!rows.length) continue;
-    const geometry = makeProfile(profileSeeds[profile]);
+    const geometry = makeProfile(profileSeeds[profile], crowns[profile]);
     const mesh = new THREE.InstancedMesh(geometry, material, rows.length);
+    const bends = new THREE.InstancedBufferAttribute(new Float32Array(rows.length * 2), 2);
+    geometry.setAttribute('pineCrestBend', bends);
     for (const [index, { pad, random }] of rows.entries()) {
       forward.fromArray(pad.outward);
       forward.y *= .48;
@@ -119,6 +167,8 @@ export function buildPineCrestNeedles(geometryFingerprint, authoring) {
       mesh.setMatrixAt(index, matrix);
       const brightness = .72 + random() * .25;
       mesh.setColorAt(index, light.setRGB(brightness * .98, brightness, brightness * (.89 + random() * .14)));
+      const bend = randomFrom(Math.imul(pad.seed, 0x3c6ef35f));
+      bends.setXY(index, (bend() - .5) * .20, (bend() - .5) * .18);
     }
     mesh.computeBoundingSphere();
     group.add(mesh);
