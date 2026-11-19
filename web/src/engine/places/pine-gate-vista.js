@@ -2,14 +2,14 @@ import * as THREE from 'three';
 
 const RANGES = [
   {
-    day: 0x9daeb9, night: 0x536878, base: -56, length: 92, step: 6, seed: .2,
+    day: 0x9daeb9, night: 0x3c5366, base: -56, length: 92, step: 6, seed: .2,
     crest: [[-460, 34, -330], [-377, 64, -342], [-315, 47, -354], [-259, 74, -340], [-215, 50, -353],
       [-178, 68, -343], [-123, 49, -362], [-71, 62, -361], [-24, 34, -370], [28, 58, -365],
       [73, 82, -355], [107, 51, -357], [151, 68, -343], [215, 47, -349], [256, 67, -341],
       [304, 44, -342], [385, 58, -335], [454, 32, -327]],
   },
   {
-    day: 0x7f969f, night: 0x455d6b, base: -49, length: 67, step: 4.5, seed: 3.9,
+    day: 0x7f969f, night: 0x344d60, base: -49, length: 67, step: 4.5, seed: 3.9,
     crest: [[-288, 22, -191], [-231, 38, -187], [-198, 48, -170], [-164, 31, -177],
       [-146, 50, -165], [-120, 26, -168], [-98, 31, -173], [-83, 17, -183],
       [-52, 27, -177], [-30, 21, -181], [-12, 13, -190], [13, 19, -183], [34, 27, -178],
@@ -17,12 +17,12 @@ const RANGES = [
       [218, 36, -187], [275, 53, -192], [322, 30, -201]],
   },
   {
-    day: 0x526e71, night: 0x263d45, base: -42, length: 38, step: 3.2, seed: 7.4,
+    day: 0x526e71, night: 0x203747, base: -42, length: 38, step: 3.2, seed: 7.4,
     crest: [[-167, 18, -91], [-133, 31, -86], [-107, 25, -78], [-85, 35, -72], [-61, 22, -70],
       [-44, 31, -76], [-28, 15, -74], [-12, 3, -83], [-5, -15, -89]],
   },
   {
-    day: 0x5d7778, night: 0x2c424a, base: -44, length: 34, step: 2.8, seed: 11.6,
+    day: 0x5d7778, night: 0x233b4a, base: -44, length: 34, step: 2.8, seed: 11.6,
     crest: [[10, -16, -83], [16, 2, -85], [23, 20, -88], [31, 23, -90], [40, 20, -93],
       [49, 25, -96], [63, 34, -100], [78, 23, -104], [95, 31, -107], [113, 42, -113],
       [149, 29, -118], [192, 36, -130], [234, 21, -139], [296, 24, -146]],
@@ -53,10 +53,21 @@ function hillside(range, x, row) {
   return [x, THREE.MathUtils.lerp(range.base, crestY + folds, height), crestZ + along * (range.length + shoulder)];
 }
 
+const climbHaze = `
+  uniform vec3 uClimbHazeDay, uClimbHazeNight;
+  float climbVeil() {
+    return .89 * smoothstep(8., 24., cameraPosition.z);
+  }
+  vec3 throughClimbHaze(vec3 light, float night) {
+    return mix(light, mix(uClimbHazeDay, uClimbHazeNight, night), climbVeil());
+  }
+`;
+
 const toneVertex = `
   attribute vec3 dayColor, nightColor;
-  varying vec3 vDay, vNight;
+  varying vec3 vWorld, vDay, vNight;
   void main() {
+    vWorld = (modelMatrix * vec4(position, 1.)).xyz;
     vDay = dayColor;
     vNight = nightColor;
     gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.);
@@ -65,9 +76,11 @@ const toneVertex = `
 const toneFragment = `
   uniform float uNight, uDusk;
   varying vec3 vDay, vNight;
+  ${climbHaze}
   void main() {
     vec3 light = mix(vDay, vNight, uNight);
-    gl_FragColor = vec4(mix(light, light * vec3(1.13, .99, .90), uDusk * .4), 1.);
+    light = mix(light, light * vec3(1.13, .99, .90), uDusk * .4);
+    gl_FragColor = vec4(throughClimbHaze(light, uNight), 1.);
   }
 `;
 
@@ -114,8 +127,8 @@ function cloudSea(look) {
   geometry.translate(0, -12, -224);
   const material = new THREE.ShaderMaterial({
     uniforms: { ...look,
-      uNightDark: { value: new THREE.Color(0x304754) }, uNightLight: { value: new THREE.Color(0x738994) },
-      uDayDark: { value: new THREE.Color(0x8ca4b0) }, uDayLight: { value: new THREE.Color(0xe0e8e6) },
+      uNightDark: { value: new THREE.Color(0x243c49) }, uNightLight: { value: new THREE.Color(0x516976) },
+      uDayDark: { value: new THREE.Color(0x8ca4b0) }, uDayLight: { value: new THREE.Color(0xc8d6d7) },
     },
     vertexShader: `
       uniform float uTime;
@@ -131,6 +144,7 @@ function cloudSea(look) {
       uniform float uTime, uNight, uDusk;
       uniform vec3 uNightDark, uNightLight, uDayDark, uDayLight;
       varying vec3 vWorld;
+      ${climbHaze}
       float hashCloud(vec2 p) {
         vec3 q = fract(vec3(p.xyx) * .1031);
         q += dot(q, q.yzx + 33.33);
@@ -146,7 +160,7 @@ function cloudSea(look) {
         vec2 uv = vWorld.xz * vec2(.041, .052) + vec2(uTime * .009, uTime * .003);
         float banks = .58 * cloudNoise(uv) + .28 * cloudNoise(uv * 2.16 + 16.)
           + .14 * cloudNoise(uv * 4.35 - 3.);
-        float softLight = smoothstep(.29, .72, banks);
+        float softLight = smoothstep(.22, .79, banks);
         vec3 cool = mix(uDayDark, uNightDark, uNight);
         vec3 bright = mix(uDayLight, uNightLight, uNight);
         vec3 clouds = mix(cool, bright, softLight);
@@ -154,7 +168,7 @@ function cloudSea(look) {
         float distance = length(cameraPosition.xz - vWorld.xz);
         clouds = mix(clouds, horizon, smoothstep(208., 428., distance) * .83);
         clouds *= mix(vec3(1.), vec3(1.09, 1.01, .91), uDusk * .44);
-        gl_FragColor = vec4(clouds, 1.);
+        gl_FragColor = vec4(throughClimbHaze(clouds, uNight), 1.);
       }
     `,
   });
@@ -169,10 +183,14 @@ const PADDY_CONTOURS = [
   [2.7, 16.7, -63.3, -7.58], [2.2, 15.6, -59.6, -9.24], [2, 15, -55.8, -11.15],
 ];
 
+const paddyElevation = y => (y + 4.3) * .64 - 5.4;
+
 function paddyContour(level, t, y = PADDY_CONTOURS[level][3], offset = 0) {
   const [cx, width, z] = PADDY_CONTOURS[level];
-  const curve = (3.1 + .55 * Math.sin(level * .9)) * t * t;
-  return [cx + width * t, y, z + offset - curve + .58 * Math.sin(t * 3 + level * .44)];
+  const curve = (4.7 + .73 * Math.sin(level * .9)) * t * t;
+  const headland = 1.48 * Math.sin(level * 1.72) * THREE.MathUtils.smoothstep(-t, .60, 1);
+  return [4 + .79 * (cx + width * t + headland), paddyElevation(y),
+    -89 + 1.18 * (z + 71 + offset - curve + .76 * Math.sin(t * 3 + level * .44))];
 }
 
 function terraceStrip(batch, rear, front, segments = 28, min = -1, max = 1) {
@@ -196,21 +214,21 @@ function floodedTerraces(look) {
     terraceStrip(earth, rear, front);
     for (let i = first; i < earth.points.length / 3; i++) {
       const tint = (i % 2 === 0 ? toneA : toneB) * (.95 + .05 * Math.sin(earth.points[i * 3] * .73));
-      day.push(.112 * tint, .163 * tint, .113 * tint);
-      night.push(.041 * tint, .063 * tint, .055 * tint);
+      day.push(.112 * tint, .164 * tint, .142 * tint);
+      night.push(.036 * tint, .060 * tint, .059 * tint);
     }
   }
   for (let level = 1; level < PADDY_CONTOURS.length; level++) {
     const y = PADDY_CONTOURS[level][3];
     const rear = t => paddyContour(level - 1, t, y, .47);
     const innerBank = t => paddyContour(level, t, y, -.42);
-    const crest = t => paddyContour(level, t, y + .20, -.18);
-    const lip = t => paddyContour(level, t, y + .12, .08);
+    const crest = t => paddyContour(level, t, y + .095, -.18);
+    const lip = t => paddyContour(level, t, y + .065, .08);
     const foot = t => paddyContour(level, t, PADDY_CONTOURS[level + 1]?.[3] ?? -15.32, .47);
     bank(rear, innerBank, .92, .84);
-    bank(innerBank, crest, .84, 1.30);
-    bank(crest, lip, 1.30, 1.04);
-    bank(lip, foot, 1.04, .47);
+    bank(innerBank, crest, .84, 1.10);
+    bank(crest, lip, 1.10, .98);
+    bank(lip, foot, .98, .71);
 
     // Continue the shoulders under the waterline and cloud so neither the
     // paddy ends nor the last retaining wall look like floating cards.
@@ -220,9 +238,12 @@ function floodedTerraces(look) {
         const row = (t + 1) * .5 * (edge.length - 1);
         const i = Math.min(Math.floor(row), edge.length - 2), u = row - i;
         const a = edge[i], b = edge[i + 1];
-        return [THREE.MathUtils.lerp(a[0], b[0], u) + outside * side * 4.2,
-          THREE.MathUtils.lerp(a[1], b[1], u) - outside * 3.8,
-          THREE.MathUtils.lerp(a[2], b[2], u) + outside * 1.4];
+        const point = a.map((v, axis) => THREE.MathUtils.lerp(v, b[axis], u));
+        if (outside && side > 0) {
+          const [x, y, z] = hillside(RANGES[3], 27.1, 4.5 - (level - 1 + (t + 1) * .5) * .26);
+          return [x, y - .7, z];
+        }
+        return [point[0] + outside * side * 4.2, point[1] - outside * 3.8, point[2] + outside * 1.4];
       };
       bank(t => grade(t, 0), t => grade(t, 1), .81, .54);
     }
@@ -230,8 +251,8 @@ function floodedTerraces(look) {
     const poolEdge = (t, back) => {
       const a = rear(t), b = innerBank(t);
       const taper = THREE.MathUtils.smoothstep(Math.abs(t), .57, 1) * .22;
-      const depth = back ? .11 + taper : .91 - taper;
-      return [THREE.MathUtils.lerp(a[0], b[0], depth), y + .044, THREE.MathUtils.lerp(a[2], b[2], depth)];
+      const depth = back ? .07 + taper : .93 - taper;
+      return [THREE.MathUtils.lerp(a[0], b[0], depth), paddyElevation(y + .044), THREE.MathUtils.lerp(a[2], b[2], depth)];
     };
     const breakAt = .32 * Math.sin(level * 1.64);
     for (const [min, max] of [[-.95, breakAt - .028], [breakAt + .025, .96]]) {
@@ -250,8 +271,31 @@ function floodedTerraces(look) {
   const slopes = geometryOf(earth);
   slopes.setAttribute('dayColor', new THREE.Float32BufferAttribute(day, 3));
   slopes.setAttribute('nightColor', new THREE.Float32BufferAttribute(night, 3));
+  const fieldLight = { ...look, uMistDay: { value: new THREE.Color(0xa9bdc3) },
+    uMistNight: { value: new THREE.Color(0x425b6a) } };
+  const mistColour = `
+    uniform vec3 uMistDay, uMistNight;
+    ${climbHaze}
+    vec3 valleyMist(vec3 surface, float y, float night) {
+      float veil = .50 * (1. - smoothstep(-12.3, -5.6, y));
+      return throughClimbHaze(mix(surface, mix(uMistDay, uMistNight, night), veil), night);
+    }
+  `;
   const bankMaterial = new THREE.ShaderMaterial({
-    uniforms: look, vertexShader: toneVertex, fragmentShader: toneFragment, side: THREE.DoubleSide,
+    uniforms: fieldLight, side: THREE.DoubleSide,
+    vertexShader: toneVertex,
+    fragmentShader: `
+      uniform float uNight, uDusk;
+      varying vec3 vWorld, vDay, vNight;
+      ${mistColour}
+      void main() {
+        float grain = sin(vWorld.x * .78 + vWorld.z * .37) * sin(vWorld.x * .28 - vWorld.z * 1.07);
+        float patches = sin(vWorld.x * .24 + sin(vWorld.z * .22) * 1.9);
+        vec3 ground = mix(vDay, vNight, uNight) * (.96 + .06 * grain + .09 * patches);
+        ground = mix(ground, ground * vec3(1.13, .99, .90), uDusk * .4);
+        gl_FragColor = vec4(valleyMist(ground, vWorld.y, uNight), 1.);
+      }
+    `,
   });
   const berms = new THREE.Mesh(slopes, bankMaterial);
   berms.name = 'Curved banks on the valley shoulder';
@@ -259,8 +303,8 @@ function floodedTerraces(look) {
   const pools = geometryOf(water);
   pools.setAttribute('uv', new THREE.Float32BufferAttribute(water.uv, 2));
   const waterMaterial = new THREE.ShaderMaterial({
-    uniforms: { ...look,
-      uSkyDay: { value: new THREE.Color(0xc5d8dd) }, uSkyNight: { value: new THREE.Color(0x77929e) },
+    uniforms: { ...fieldLight,
+      uSkyDay: { value: new THREE.Color(0xc5d8dd) }, uSkyNight: { value: new THREE.Color(0x657e8d) },
       uBedDay: { value: new THREE.Color(0x596f57) }, uBedNight: { value: new THREE.Color(0x2d433a) },
     },
     vertexShader: `
@@ -275,6 +319,7 @@ function floodedTerraces(look) {
     fragmentShader: `
       uniform float uNight, uDusk, uTime;
       uniform vec3 uSkyDay, uSkyNight, uBedDay, uBedNight;
+      ${mistColour}
       varying vec2 vWet;
       varying vec3 vWorld;
       void main() {
@@ -287,7 +332,7 @@ function floodedTerraces(look) {
         vec3 bed = mix(uBedDay, uBedNight, uNight);
         vec3 sky = mix(uSkyDay, uSkyNight, uNight) * mix(vec3(1.), vec3(1.15, 1.02, .91), uDusk * .48);
         vec3 wet = mix(bed, sky, reflection * mix(.66, 1., smoothstep(0., .18, shore)));
-        gl_FragColor = vec4(wet, 1.);
+        gl_FragColor = vec4(valleyMist(wet, vWorld.y, uNight), 1.);
       }
     `,
   });
@@ -331,12 +376,13 @@ function waterfall(look) {
       uniform float uNight, uTime;
       uniform vec3 uDayWater, uNightWater;
       varying vec2 vUv;
+      ${climbHaze}
       void main() {
         float curtain = pow(max(0., sin(3.14159 * vUv.x)), .58);
         float falls = .82 + .11 * sin(vUv.y * 102. - uTime * 2.9 + 3. * vUv.x)
           + .07 * sin(vUv.y * 48. - uTime * 1.6);
         float edge = smoothstep(0., .075, vUv.y) * (1. - smoothstep(.84, 1., vUv.y));
-        gl_FragColor = vec4(mix(uDayWater, uNightWater, uNight), curtain * falls * edge * .84);
+        gl_FragColor = vec4(mix(uDayWater, uNightWater, uNight), curtain * falls * edge * .84 * (1. - climbVeil()));
       }
     `,
   });
@@ -346,7 +392,8 @@ function waterfall(look) {
 }
 
 export function createPineGateVista(initialLight = { n: 1, g: 0 }) {
-  const look = { uNight: { value: initialLight.n }, uDusk: { value: initialLight.g }, uTime: { value: 0 } };
+  const look = { uNight: { value: initialLight.n }, uDusk: { value: initialLight.g }, uTime: { value: 0 },
+    uClimbHazeDay: { value: new THREE.Color(0xa3b0b4) }, uClimbHazeNight: { value: new THREE.Color(0x344652) } };
   const group = new THREE.Group();
   group.name = 'Pine Gate valley vista';
   group.add(mountainRanges(look), cloudSea(look), waterfall(look), ...floodedTerraces(look));
