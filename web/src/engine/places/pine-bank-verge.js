@@ -37,6 +37,11 @@ const groundcoverSites = [
   [-1.93, 26.38, .63, 1.81], [-1.84, 18.43, .88, 2.71], [-1.72, 17.74, .64, 2.82],
   [1.76, 32.39, .93, 1.28], [1.93, 31.81, .72, 1.37], [1.72, 29.47, .62, 1.55],
   [1.70, 27.11, .86, 1.79], [1.94, 26.38, .65, 1.87], [1.88, 24.70, .73, 2.08],
+  // Evergreen pockets beneath the upper west stand, beyond the stone verge.
+  [-9.8, 8.95, 1.30, 5.76], [-8.04, 10.23, 1.39, 4.98], [-9.15, 11.71, 1.18, 5.20],
+  [-7.12, 11.90, 1.27, 4.53], [-10.2, 13.16, 1.22, 5.46], [-8.44, 13.81, 1.45, 4.65],
+  [-6.40, 14.41, 1.10, 4.12], [-7.62, 16.30, 1.36, 4.20], [-5.31, 17.58, 1.27, 3.86],
+  [-6.25, 19.43, 1.41, 3.69], [-4.78, 19.96, 1.03, 3.49], [-6.26, 21.38, 1.46, 3.58],
 ];
 
 const around = 2 * Math.PI;
@@ -80,6 +85,11 @@ function dressForestFloor(material) {
       float atVerge = smoothstep(.93, 2.35, abs(forestFloor.x));
       float mossThreads = smoothstep(.30, .71, liveCover) * alongBank * atVerge;
       diffuseColor.rgb *= mix(vec3(1.), vec3(.51, 1.02, .68), mossThreads * .88);
+      float westSlope = smoothstep(4.3, 6.3, -forestFloor.x)
+        * (1. - smoothstep(11.8, 14., -forestFloor.x))
+        * smoothstep(6.6, 8.3, forestFloor.y) * (1. - smoothstep(18.4, 23., forestFloor.y));
+      vec3 shadedGround = mix(vec3(.64, .79, .65), vec3(.36, .87, .48), smoothstep(.24, .66, liveCover));
+      diffuseColor.rgb *= mix(vec3(1.), shadedGround, westSlope);
       float pineLitter = smoothstep(.37, .78, pineFloorNoise(forestFloor * 13.3));
       diffuseColor.rgb *= mix(vec3(.83, .87, .89), vec3(1.08, 1.07, 1.02), pineLitter * .65);
     `);
