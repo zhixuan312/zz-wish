@@ -234,11 +234,11 @@ vec4 pineFlameVolume(vec2 uv) {
     float envelope = (1. - smoothstep(.78, 1.03, r)) * smoothstep(-.042, .035, y)
       * (1. - smoothstep(.92, 1.02, y));
     float inner = (1. - smoothstep(.37, .72, r)) * (1. - smoothstep(.24, .56, y));
-    float blue = (1. - smoothstep(.13, .31, y)) * (.65 + .35 * smoothstep(.25, .9, r));
-    float skirt = smoothstep(.49, .99, r);
-    vec3 gold = mix(vec3(4.15, 2.26, .57), vec3(1.58, .48, .078), skirt);
+    float blue = (1. - smoothstep(.068, .19, y)) * (.45 + .55 * smoothstep(.25, .9, r));
+    float skirt = smoothstep(.34, .84, r);
+    vec3 gold = mix(vec3(7.6, 6.1, 3.45), vec3(2.25, .74, .085), skirt);
     gold *= mix(.064, 1., 1. - inner);
-    vec3 spectrum = mix(gold, vec3(.10, .39, 1.18) * (.32 + .68 * skirt) * (1. - .53 * inner), blue);
+    vec3 spectrum = mix(gold, vec3(.07, .24, .78) * (.32 + .68 * skirt) * (1. - .53 * inner), blue);
     float density = envelope * (.66 + .34 * skirt);
     float interval = span * density;
     emission += spectrum * transmission * interval * 1.44;

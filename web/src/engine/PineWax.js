@@ -125,8 +125,12 @@ function refinedWaxMaterial(light, layer, sculptNormal) {
         float bend = max(0., height);
         vec2 drift = vec2((.00014 + bend * .046) * sin(uPineWaxTime * 2.3)
           + bend * .23 * uPineWaxWind, .00020 * sin(uPineWaxTime * 1.57 + .4));
-        float radial = length(fromWick.xz + travel * ray.xz - drift) / radius;
-        return (1. - smoothstep(.25, 1., radial)) * step(1.e-6, travel)
+        // A liquid microfacet covers a small angle around the perfect ray.
+        // Widen distant slices and conserve their reflected solid angle.
+        float extent = radius + travel * .075;
+        float radial = length(fromWick.xz + travel * ray.xz - drift) / extent;
+        float energy = radius / extent;
+        return (1. - smoothstep(.19, 1., radial)) * energy * energy * step(1.e-6, travel)
           * wickClearance(fromWick, ray, travel, invRise);
       }` : ''}
       ${shader.fragmentShader}`;
@@ -188,7 +192,8 @@ function refinedWaxMaterial(light, layer, sculptNormal) {
         float localDensity = ${shaft ? '1. + .065 * waxBloom' : '1.'};
         float thinLip = ${sculptNormal ? '1. - smoothstep(.002, .009, uPineWaxHeight - vPineLocal.y)' : '0.'};
         float path = (.0012 + depth * .83 + length(fromCrown.xz) * .12) * localDensity * (1. - .29 * thinLip);
-        vec3 absorption = vec3(49., 88., 155.) - 29. * log(clamp(diffuse, .055, 1.));
+        vec3 absorption = vec3(49., 88., 155.) - 29. * log(clamp(diffuse, .055, 1.))
+          + thinLip * vec3(0., 21., 49.);
         vec3 transmission = exp(-absorption * path);
         float edge = .71 + .29 * pow(1. - abs(dot(normal, viewRay)), 1.45);
         float crownFalloff = ${shaft ? 'exp(-depth * 13.)' : '1. - smoothstep(.006, .046, depth)'};
@@ -203,9 +208,9 @@ function refinedWaxMaterial(light, layer, sculptNormal) {
         float invRise = 1. / max(.001, reflected.y);
         vec3 blue = vec3(.085, .16, .28) * flameSlice(fromCrown, reflected, invRise, -.0019, .00320);
         vec3 transition = vec3(.41, .41, .60) * flameSlice(fromCrown, reflected, invRise, .0015, .00490);
-        vec3 goldLow = vec3(1.33, .91, .54) * flameSlice(fromCrown, reflected, invRise, .0044, .00507);
-        vec3 goldCore = vec3(2.10, 1.69, 1.11) * flameSlice(fromCrown, reflected, invRise, .0085, .00482);
-        vec3 goldHigh = vec3(1.95, 1.60, 1.05) * flameSlice(fromCrown, reflected, invRise, .012, .00424);
+        vec3 goldLow = vec3(2.2, 1.43, .55) * flameSlice(fromCrown, reflected, invRise, .0038, .00507);
+        vec3 goldCore = vec3(3.2, 2.52, 1.38) * flameSlice(fromCrown, reflected, invRise, .0085, .00482);
+        vec3 goldHigh = vec3(2.8, 2.23, 1.24) * flameSlice(fromCrown, reflected, invRise, .012, .00424);
         vec3 reflectedFlame = max(max(blue, transition), max(goldLow, max(goldCore, goldHigh)));
         float fresnel = .031 + .969 * pow(1. - clamp(dot(worldNormal, viewWorld), 0., 1.), 5.);
         float wickPool = exp(-4.7 * dot(fromCrown.xz, fromCrown.xz) / max(.0000001, uPinePoolRadius * uPinePoolRadius));
