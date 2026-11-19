@@ -736,6 +736,13 @@ HERO_PINE_CROWNS = {
 }
 
 
+def use_native_valley_crown(label, profile, far_crown):
+    # At the across-valley framing distances use the measured crown of a
+    # scanned tree. Both ancient pines beside the path keep close geometry.
+    return (label in {'Back ridge pine 5', 'Layered ridge pine 4'} and far_crown is not None
+            and all(view.get('nativeObject') for view in far_crown[1][profile]))
+
+
 def hero_pine_crown(label, trunk, phase, bark, material):
     profile = CROWNS[HERO_PINE_CROWNS[label]]
     if label == 'Back ridge pine 5':
@@ -902,6 +909,7 @@ def pine_tree(label, x, z, height, bark, needles, ground, roots=False, lean=None
             bark_tube(f'{label} exposed buttress root', [start, middle, end],
                       [.074 * reach_scale, .038 * reach_scale, .008], bark, 7)
     profile = HERO_PINE_CROWNS.get(label)
+    use_native_crown = use_native_valley_crown(label, profile, far_crown)
     carries_forks = ancient or (z < 3 and abs(x) < 8)
     shoots = []
     crown_rng = random.Random(label)
@@ -950,12 +958,12 @@ def pine_tree(label, x, z, height, bark, needles, ground, roots=False, lean=None
             sprays = [(inner, inner_axis, length, length * (1.04 + inner_width * .36), roll - .5),
                       (outer, outer_axis, length * (.76 + outer_size * .20), length * 1.02, roll + .82)]
             pine_sprays(f'{label} needle clusters {i} {bough}', sprays, needles, close=carries_forks or z < 3)
-    if profile:
+    if profile and not use_native_crown:
         hero_pine_crown(label, centres, phase, bark, modelled_needles)
         return at if ancient else None
     if far_crown:
         camera, views = far_crown
-        relief_crown(label, 'ridge', centres, camera, views, mesh, source_uv)
+        relief_crown(label, profile if use_native_crown else 'ridge', centres, camera, views, mesh, source_uv)
         return None
     leader = []
     for order, roll in enumerate((.33, -.27, .67)):
@@ -991,12 +999,15 @@ def distant_pines(ground, bark, needles, modelled_needles, far_crown):
         label = f'Layered ridge pine {i + 1}'
         bark_tube(f'{label} tapered trunk', positions,
                   [height * (.00065 + .0155 * (1. - t) ** 1.21) for t in levels], bark, 7)
-        if label in HERO_PINE_CROWNS:
+        profile = HERO_PINE_CROWNS.get(label)
+        use_native_crown = use_native_valley_crown(label, profile, far_crown)
+        if profile and not use_native_crown:
             hero_pine_crown(label, positions, phase, bark, modelled_needles)
             continue
         if far_crown:
             camera, views = far_crown
-            relief_crown(label, 'young' if height < 8. else 'ridge', positions, camera, views, mesh, source_uv)
+            prototype = profile if use_native_crown else 'young' if height < 8. else 'ridge'
+            relief_crown(label, prototype, positions, camera, views, mesh, source_uv)
             continue
         sprays, shoots = [], []
         model_crown = label in MODELLED_PINE_CROWNS
