@@ -107,8 +107,11 @@ export async function loadPineGateBackdrop(baked, renderer, initialLight) {
       for (const [plane, texture] of upgrades) {
         const { uHighPlate, uNativePlateSize } = plane.material.uniforms;
         uHighPlate.value = texture;
-        // The single-level forest plate has no hardware minification mips.
-        if (plane.name === 'mid' && texture.isCompressedTexture) uNativePlateSize.value.set(tier.width, tier.height);
+        // Sample the screen footprint of the single-level forest and cloud
+        // textures. Averaging in premultiplied form preserves their soft edges.
+        if (texture.isCompressedTexture && (plane.name === 'mid' || plane.name === 'cloud')) {
+          uNativePlateSize.value.set(tier.width, tier.height);
+        }
       }
       upgradedAt = performance.now();
       return true;
