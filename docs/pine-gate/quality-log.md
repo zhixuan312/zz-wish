@@ -193,3 +193,24 @@ The follow-up narrows the stair to 1.75–2.28 m and follows its bent footprint 
 The graded channel keeps the exact water coordinates and elevations. The evaluated Blender mesh caps all 6,592 bank faces at 48.870°. All 250 stair probes clear the terrain by at least 52.812 mm. The full set of 540 wet probes and 360 dry bank probes clears by 16.991 mm and 29.990 mm respectively. Every tested underside vertex on all ten bank stones sits 2.000 mm into the ground. The stones' underside contours follow the terrain triangle edges. All five slabs keep their walking surface with at least 20.677 mm of clearance between the underside and water.
 
 The two curbs immediately beyond the bridge retained their original upper edges and fitted their undersides to the new bank. On the evaluated Blender mesh, 63 underside vertices and 63 edge midpoints have a maximum absolute ground offset of 2.010 mm. The stair, watercourse, bank-slope and deck audits retain the preceding measurements.
+
+### Second in-app pass
+
+The review frames at `artifacts/pine-gate/quality/direction/p1-site-review-r2/` use source `73ddf9b` and the private eight-sample package `9ae4c5398b6edfddc41d6f23329763c4db253ab0945a99a2db974ea2574d698e`. The 13,758,170-byte package includes twelve lightmaps, the model and the manifest. All seven decoded contact groups pass. The daytime and nighttime runs load the same model and use native AgX. Both have zero runtime and HTTP errors. Readiness is 2.569 s at 13:00 and 2.787 s at 22:00. The walk lasts 30.080 s. The public package keeps its original manifest hash.
+
+| Review gap | Before in `quality/direction/p1-site-review/desktop-en/` | After in `quality/direction/p1-site-review-r2/desktop-en/` | Visual verdict |
+| --- | --- | --- | --- |
+| The crest lost one trunk | `ancient-pine-crest-24s.png` | `ancient-pine-crest.png` at 21.516 s | Both ancient trunks frame the threshold. |
+| The forest opened too early | `forest-06s.png` | `forest-06s.png` at 6.033 s | The narrower, shaded stair and spring crossing dominate. The distant views recede. Near pine crowns are mostly seen at the edge of the frame. |
+| The terraces floated over the cloud layer | `terrace-reveal-28s.png` | `terrace-reveal-28s.png` at 28.032 s | The farther field attaches to the east slope, but the flooded treads still look like pale lines between tall banks. The next pass targets their proportions and the cloud texture. |
+| Previous candles were hard to see | `day-burning.png` and `night-burning.png` | `day-burning.png` and `night-burning.png` | The spent wax now sits visibly around the open centre, with two older flames on the outside. |
+| Both hours looked similarly bright | `day-burning.png` and `night-burning.png` | `day-burning.png` and `night-burning.png` | The night sky reads deeper and cooler. The candle, dish and stone stay legible. |
+| The earth figure fell into shadow | `shrine-pavilion.png` | `shrine-pavilion.png` | Threshold fill reveals the seated figure and the oil lamp. The pavilion still reads as an open shelter with bowls and a separate storm lantern. |
+
+The current plan is `artifacts/pine-gate/quality/p1-plan/site-plan.png`. Its callouts show the crossing, the two pines, the earth shrine, the tea pavilion, the spring basin and the separate wish candle. The inset enlarges cross-slope spacing to leave room for the labels.
+
+### P1 review delivery
+
+The six review frames and `report.json` are in `artifacts/pine-gate/quality/direction/p1-site-review-r3/`. This pass captures source `c05db38b5d233d6006fe7e6f54a17cbefcb5b810` with the same eight-sample Metal/OIDN package. The fields use longer flooded treads separated by lower earthen banks. Compared with the second pass, `terrace-reveal-28s.png` shows broader water surfaces and distinct channels between the plots. Layered clouds soften the foot of the slope. `day-burning.png` and `night-burning.png` preserve the foreground candle and the distant waterfall while showing the lighter cloud bank to the left. The distant ridge silhouettes and the spent wax remain simple at this phase. The early forest shot favours the bridge and the climb, with pine needles at the edges of the frame.
+
+Both Chromium 1440 × 900 runs have zero runtime and HTTP errors and no source reloads. Native AgX holds at both times. Step inside enables in 2.920 s at 13:00 and 2.921 s at 22:00, and the full daytime walk lasts 30.121 s. Lint, type checking, the evidence gate and all 35 Tier 1 unit tests pass. The capture API and Vite processes exited, ports 8964 and 8965 have zero listeners, and the private browser processes are gone. S1 released its GPU lease. The remaining times, phone compositions, final lighting and full journey checks belong to later phases.
