@@ -7,6 +7,7 @@ import { loadPineForestBackdrop, readPineForestBackdrop } from './pine-forest-ba
 import { createPineGateLife } from './pine-gate-life.js';
 import { animatePineCreek } from './pine-creek-water.js';
 import { buildPineCrestNeedles } from './pine-crest-needles.js';
+import { buildPineBankVerge } from './pine-bank-verge.js';
 import { pineDaySunDirection, pineDaySunDiscEdges } from './pine-gate-sun.js';
 import crestNeedleAnchors from './pine-crest-needle-anchors.json' with { type: 'json' };
 import path from '../../../../shared/pine-gate-path.json';
@@ -124,6 +125,11 @@ export default function createPlace(h) {
         context.G.add(forest.group);
         context.up.push((_dt, _time, light) => forest.update(light));
         context.disposers.push(forest.dispose);
+        const verge = buildPineBankVerge(baked.group);
+        if (verge) {
+          context.G.add(verge.group);
+          context.disposers.push(verge.dispose);
+        }
       }
       const highTrees = preparePineHighTrees(baked, readPineBackdrop(baked.manifest)?.high?.trees);
       if (highTrees) {
