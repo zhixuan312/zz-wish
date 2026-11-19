@@ -22,7 +22,21 @@ def frame(x, y, z, yaw=0.):
     return locate
 
 
-def prism(name, points, material):
+# Interior rectangles on the original 1024 px grey clay scan. The extra
+# four-pixel inset keeps filtering away from the photographed tile seams.
+EARTH_SHRINE_CLAY_INTERIORS = (
+    (100, 139, 181, 258), (161, 199, 181, 257), (226, 264, 194, 258), (286, 327, 292, 355),
+    (350, 394, 387, 454), (414, 457, 485, 556), (540, 583, 484, 555), (666, 707, 389, 453),
+)
+
+
+def shrine_clay_uv(patch, u, v):
+    left, right, top, bottom = EARTH_SHRINE_CLAY_INTERIORS[patch % len(EARTH_SHRINE_CLAY_INTERIORS)]
+    return ((left + 4. + (right - left - 8.) * u) / 1024.,
+            1. - (top + 4. + (bottom - top - 8.) * v) / 1024.)
+
+
+def prism(name, points, material, scan_corners, scan_patch):
     faces = [(0, 1, 2, 3), (7, 6, 5, 4), (0, 4, 5, 1),
              (1, 5, 6, 2), (2, 6, 7, 3), (3, 7, 4, 0)]
     obj = mesh.mesh_object(name, points, faces, material, 'gate')
@@ -38,7 +52,31 @@ def prism(name, points, material):
         charts.append([(distance, 1.0), (distance, 1.018), (following, 1.018), (following, 1.0)])
         distance = following
     source_uv(obj, charts, 'Metre-scale planar faces and one joined edge strip on the ceramic tile.')
+    scan = obj.data.uv_layers['UVMap'].data
+    for polygon, chart in zip(obj.data.polygons, charts):
+        for loop, vertex, (u, v) in zip(polygon.loop_indices, polygon.vertices, chart):
+            local = scan_corners[vertex % 4] if polygon.index < 2 else (u / distance, .38 + .24 * (v - 1.) / .018)
+            scan[loop].uv = shrine_clay_uv(scan_patch, *local)
     return obj
+
+
+def shrine_cover_uv(obj, patch):
+    chart = obj.data.uv_layers['SourceLightmap'].data
+    scan = obj.data.uv_layers['UVMap'].data
+    body = obj.data.polygons[:-2]
+    circumference = max(chart[loop].uv.x for polygon in body for loop in polygon.loop_indices)
+    length = max(chart[loop].uv.y for polygon in body for loop in polygon.loop_indices)
+    for polygon in obj.data.polygons:
+        coordinates = [chart[loop].uv for loop in polygon.loop_indices]
+        if polygon.index < len(body):
+            local = [(u / circumference, v / length) for u, v in coordinates]
+        else:
+            low_u, low_v = (min(values) for values in zip(*coordinates))
+            high_u, high_v = (max(values) for values in zip(*coordinates))
+            local = [(.35 + .30 * (u - low_u) / (high_u - low_u), .35 + .30 * (v - low_v) / (high_v - low_v))
+                     for u, v in coordinates]
+        for loop, (u, v) in zip(polygon.loop_indices, local):
+            scan[loop].uv = shrine_clay_uv(patch, u, v)
 
 
 def pavilion_timber_grain(obj, axis):
@@ -187,9 +225,12 @@ def small_roof(name, locate, width, depth, base, wood, tiles, repair, pavilion=F
                     panel = pavilion_pan(label, surface, side, lane, course, x0, x1, t0, t1, depth, tile)
                 else:
                     upper = [surface(x, t, side) for x, t in ((x0, t0), (x1, t0), (x1, t1), (x0, t1))]
+                    scan_corners = [(0., 0.), (1., 0.), (1., 1.), (0., 1.)]
                     if side > 0:
                         upper.reverse()
-                    panel = prism(label, upper + [(x, y - .018, z) for x, y, z in upper], tile)
+                        scan_corners.reverse()
+                    panel = prism(label, upper + [(x, y - .018, z) for x, y, z in upper], tile,
+                                  scan_corners, lane * 5 + course * 3 + side)
                 panel['weather_stone'] = panel['moss_edge'] = True
             if lane:
                 x = -width + lane * width * 2 / 9
@@ -198,8 +239,9 @@ def small_roof(name, locate, width, depth, base, wood, tiles, repair, pavilion=F
                     pavilion_cover(label, surface, side, lane, x, depth, tiles[lane % len(tiles)])
                 else:
                     rail = [surface(x, t, side) for t in (.035, .35, .65, .994)]
-                    mesh.curved_tube(label, [(x, y + .011, z) for x, y, z in rail],
-                                     [.020, .022, .022, .018], tiles[lane % len(tiles)], radial=5, region='gate')
+                    cover = mesh.curved_tube(label, [(x, y + .011, z) for x, y, z in rail],
+                                            [.020, .022, .022, .018], tiles[lane % len(tiles)], radial=5, region='gate')
+                    shrine_cover_uv(cover, lane * 3 + side)
     ridge = [surface(width * (i / 6 * 2 - 1), 0, 1) for i in range(7)]
     mesh.curved_tube(f'{name} old clay ridge', [(x, y + .022, z) for x, y, z in ridge],
                      [.038, .035, .032, .030, .032, .034, .037], tiles[1], radial=6, region='gate')
