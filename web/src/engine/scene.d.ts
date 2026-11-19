@@ -3,7 +3,7 @@ import type { PlaceId } from '../../../shared/places.ts';
 export type ScenePhase = 'wish' | 'place' | 'travel' | 'candle' | 'burning' | 'result';
 export type PlaceLoadProgress = { loadedBytes: number; totalBytes: number; ratio: number | null; stage: 'loading' | 'preparing' | 'ready' | 'error' };
 export type LampThumbnailOptions = { state: 'unlit' | 'burning' | 'went_out' | 'burned_down'; remaining: number; width: number; height: number };
-export type IgnitionOptions = { onCatch?: () => void };
+export type IgnitionOptions = { onCatch?: () => void; remainingFuel?: () => number };
 export const ready: Promise<void>;
 export function ensureReady(): Promise<void>;
 export function setOffer(shape: Shape | null): void;
@@ -15,7 +15,7 @@ export function travel(id: PlaceId): Promise<void>;
 export function skip(): void;
 export function ignite(options?: IgnitionOptions): Promise<void>;
 export function renderLampThumbnail(shape: Shape, options: LampThumbnailOptions): Promise<string>;
-export function snuff(done?: boolean): Promise<void>;
+export function snuff(done?: boolean, remaining?: number): Promise<void>;
 
 // The visitor's own finished lamps for the current place. The engine stores them;
 // a court draws them only once it defines nook.pastLampSlots.

@@ -10,7 +10,7 @@ const hash=data=>createHash('sha256').update(data).digest('hex');
 const manifestPath=join(directory,'manifest.json'),manifest=JSON.parse(await readFile(manifestPath,'utf8'));
 if(manifest.partialPreview)throw new Error('Runtime assets may only finalize a complete baked delivery.');
 if(manifest.bake?.integrator?.use_adaptive_sampling!==false||manifest.bake.integrator.use_animated_seed!==false)throw Error('Final runtime assets require fingerprinted fixed sampling; legacy adaptive maxima are not final-quality approval');
-const regions=Object.values(manifest.lightmaps??{}),expectedRegions=manifest.place==='cloud-cliff'?3:manifest.place==='snow-roof'?4:0;
+const regions=Object.values(manifest.lightmaps??{}),expectedRegions={'cloud-cliff':3,'snow-roof':4,'pine-gate':3}[manifest.place];
 if(regions.length!==expectedRegions||!expectedRegions)throw new Error('Unexpected final lightmap regions.');
 for(const looks of regions)for(const look of ['night','dusk','day','lamp']){
   const map=looks[look];
@@ -81,7 +81,7 @@ for(let pass=0;pass<8;pass++){
 }
 serialized=JSON.stringify(manifest)+'\n';
 if(manifest.manifestBytes!==Buffer.byteLength(serialized)||manifest.completePackageBytes!==manifest.payloadBytes+Buffer.byteLength(serialized)+manifest.sharedVisualBytes)throw new Error('Manifest byte-count fixed point did not settle.');
-const cap=manifest.place==='cloud-cliff'?10000000:manifest.place==='snow-roof'?15000000:null;
+const cap={'cloud-cliff':10_000_000,'snow-roof':15_000_000,'pine-gate':15_000_000}[manifest.place];
 if(!cap||manifest.completePackageBytes>cap)throw new Error(`Complete ${manifest.place} package ${manifest.completePackageBytes}B exceeds its budget.`);
 await writeFile(manifestPath,serialized);
 console.log(JSON.stringify({place:manifest.place,files:manifest.files.length,payloadBytes:manifest.payloadBytes,manifestBytes:manifest.manifestBytes,sharedVisualBytes:manifest.sharedVisualBytes,completePackageBytes:manifest.completePackageBytes,manifestSha256:hash(Buffer.from(serialized))}));

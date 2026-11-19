@@ -3,6 +3,7 @@ import * as engine from './engine/index.ts';
 import { placeById, type Locale, type PlaceId } from '../../shared/places.ts';
 import { DEFAULT_PLACE, VISIBLE_PLACES, isVisiblePlace } from './visiblePlaces.ts';
 import { COLORS, DEFAULT_MINUTES, MAX_MINUTES, MIN_MINUTES, PRESET_MINUTES, PRESET_SHAPES, isAllowedMinutes, shapeMinutes, sizedPreset, type Kind, type Shape } from '../../shared/rules.ts';
+import { remainingFuel } from '../../shared/wax.ts';
 import { api, ApiError, type EndReason, type Stats } from './api.ts';
 import { Burn, type Settlement } from './burn.ts';
 import { presence } from './presence.ts';
@@ -18,6 +19,7 @@ type Overlay = 'mine' | 'stats' | null;
 interface Result { done: boolean; burnedMs: number; plannedMs: number; reason: EndReason; saved: boolean | null }
 
 const TOAST_GAP_MS = 5 * 60_000;
+const DEFAULT_PLACE_WARM_DELAY_MS = 1500;
 
 export function App({ initialLocale }: { initialLocale: Locale }) {
   const [locale, setLocaleState] = useState<Locale>(initialLocale);
@@ -100,7 +102,13 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
     return () => { for (const name of events) window.removeEventListener(name, unlock, true); };
   }, []);
   const [busy, setBusy] = useState(false);
-  const run = async (fn: () => Promise<void>) => { setBusy(true); try { await fn(); } finally { setBusy(false); } };
+  const navigationVersion = useRef(0);
+  const run = async (fn: () => Promise<void>) => {
+    const version = ++navigationVersion.current;
+    setBusy(true);
+    try { await fn(); }
+    finally { if (version === navigationVersion.current) setBusy(false); }
+  };
 
   // What the person is making.
   const [wish, setWish] = useState('');
@@ -109,22 +117,31 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
   const [wishId, setWishId] = useState<string | null>(null);
   const [placeId, setPlaceId] = useState<PlaceId>(DEFAULT_PLACE.id);
   const place = placeById(placeId)!;
+  const placeEyebrow = placeId === 'pine-gate' ? t.pinePlaceEyebrow : t.placeEyebrow;
+  const placeLead = placeId === 'pine-gate' ? t.pinePlaceLead : t.placeLead;
   const [placeLoad, setPlaceLoad] = useState<{ stage: 'loading' | 'preparing' | 'ready' | 'error'; loadedBytes: number; totalBytes: number | null; ratio: number | null }>({ stage: 'loading', loadedBytes: 0, totalBytes: null, ratio: null });
   const loadTask = useRef<{ id: PlaceId; task: Promise<void> } | null>(null);
   const loadVersion = useRef(0);
-  const preparePlace = useCallback((id: PlaceId, retry = false) => {
+  const preparePlace = useCallback((id: PlaceId, retry = false, speculative = false) => {
     if (!retry && loadTask.current?.id === id) return loadTask.current.task;
     const version = ++loadVersion.current;
+    // Download the default choice while the visitor writes. Give a visitor who
+    // goes straight to another place time to pick it before we tie up WebGL.
+    const deferWarm = speculative && id === DEFAULT_PLACE.id && VISIBLE_PLACES.length > 1;
+    const warmWindow = deferWarm ? new Promise<void>(resolve => setTimeout(resolve, DEFAULT_PLACE_WARM_DELAY_MS)) : null;
     setPlaceLoad({ stage: 'loading', loadedBytes: 0, totalBytes: null, ratio: null });
     const task = engine.prefetchPlace(id, (progress) => { if (version === loadVersion.current) setPlaceLoad((current) => {
       const percent = (ratio: number | null) => ratio === null ? null : Math.round(ratio * 100);
       return current.stage === progress.stage && percent(current.ratio) === percent(progress.ratio) ? current : progress;
-    }); })
-      .then(() => { if (version === loadVersion.current) setPlaceLoad((value) => ({ ...value, stage: 'ready', ratio: 1 })); })
+    }); }, warmWindow ? async () => {
+      await warmWindow;
+      return version === loadVersion.current;
+    } : undefined)
+      .then((prepared) => { if (prepared && version === loadVersion.current) setPlaceLoad((value) => ({ ...value, stage: 'ready', ratio: 1 })); })
       .catch((error: unknown) => { if (version === loadVersion.current) { loadTask.current = null; setPlaceLoad((value) => ({ ...value, stage: 'error' })); } throw error; });
     loadTask.current = { id, task }; return task;
   }, []);
-  useEffect(() => { if (wish.trim()) void preparePlace(placeId).catch(() => {}); }, [wish, placeId, preparePlace]);
+  useEffect(() => { if (wish.trim()) void preparePlace(placeId, false, true).catch(() => {}); }, [wish, placeId, preparePlace]);
   // The place decides the kind of lamp. The person picks a shape and a time (the shape grows with the time),
   // or draws one: the bigger the drawing, the longer it burns.
   const kind: Kind = ({ wax: 'candle', oil: 'oil', shade: 'shade' } as const)[place.vessel];
@@ -201,14 +218,15 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
 
   useEffect(() => {
     if (screen !== 'burning') return;
-    const id = setInterval(() => { const b = burnRef.current; if (b) engine.setLevel(1 - b.elapsed() / b.planned); setTick((n) => n + 1); }, 1000);
+    const id = setInterval(() => { const b = burnRef.current; if (b && kind !== 'candle') engine.setLevel(remainingFuel(b.elapsed(), b.planned)); setTick((n) => n + 1); }, 1000);
     return () => clearInterval(id);
-  }, [screen]);
+  }, [kind, screen]);
 
   const light = async () => {
     if (!shape || !allowed || busy || burnRef.current) return;
     setLightError(null); setAskPutOut(false); setCaught(false); setControlsIdle(false);
     const lightPlace = placeId;
+    const isWax = shape.kind === 'candle';
     const b = new Burn(minutes! * 60_000, (s: Settlement) => {
       presence.stopBurning(); sound.stop();
       burnRef.current = null;
@@ -217,7 +235,7 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
         // No ending cue, or one that failed to load, still has to reach the afterglow.
         if (!started) void music.play('result', lightPlace);
       });
-      engine.snuff(s.done);
+      void engine.snuff(s.done, isWax ? remainingFuel(Math.floor(s.burnedMs), b.planned) : undefined);
       setResult({ done: s.done, burnedMs: s.burnedMs, plannedMs: b.planned, reason: s.reason, saved: null });
       setScreen('result'); setAskLeave(null);
       s.saved.then((c) => setResult((r) => r && { ...r, saved: !!c }));
@@ -233,17 +251,20 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
       b.confirm(c);
       if (!b.isSettled) {
         presence.burn(lightPlace, c.id, () => b.elapsed()); setScreen('burning');
-        void engine.ignite({ onCatch: () => {
-          // The ignite cue is timed to the flame catching, and its own end hands over
-          // to the burning bed; starting the bed here would cut it off. A missing ignite
-          // never ends, so the bed starts here instead of the burn staying silent.
-          if (burnRef.current === b && !b.isSettled) {
-            setCaught(true);
-            void music.play('ignite', lightPlace).then((started) => {
-              if (!started && burnRef.current === b && !b.isSettled) void music.play('burn', lightPlace);
-            });
-          }
-        } })
+        void engine.ignite({
+          ...(isWax ? { remainingFuel: () => remainingFuel(b.elapsed(), b.planned) } : {}),
+          onCatch: () => {
+            // The ignite cue is timed to the flame catching, and its own end hands over
+            // to the burning bed; starting the bed here would cut it off. A missing ignite
+            // never ends, so the bed starts here instead of the burn staying silent.
+            if (burnRef.current === b && !b.isSettled) {
+              setCaught(true);
+              void music.play('ignite', lightPlace).then((started) => {
+                if (!started && burnRef.current === b && !b.isSettled) void music.play('burn', lightPlace);
+              });
+            }
+          },
+        })
           .catch(() => { if (!b.isSettled) b.settle('put_out'); });
       }
     } catch (e) {
@@ -274,9 +295,17 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
   }, []);
 
   // Navigation between steps; the scene moves with them.
+  const previewCourt = (id: PlaceId, retry = false) => {
+    void run(async () => {
+      await preparePlace(id, retry);
+      if (placeRef.current === id && screenRef.current === 'place') await engine.previewPlace(id);
+    }).catch(() => {
+      if (placeRef.current === id) setPlaceLoad((value) => ({ ...value, stage: 'error' }));
+    });
+  };
   const showPlace = () => {
-    setWishHint(false); setScreen('place');
-    void run(async () => { await preparePlace(placeId); await engine.previewPlace(placeId); }).catch(() => setPlaceLoad((value) => ({ ...value, stage: 'error' })));
+    setWishHint(false); screenRef.current = 'place'; setScreen('place');
+    previewCourt(placeId);
     loadPastLamps(placeId);
   };
   const toPlace = () => {
@@ -284,11 +313,14 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
     showPlace();
   };
   const pickPlace = (id: PlaceId) => {
-    if (!isVisiblePlace(id)) return;
+    if (!isVisiblePlace(id) || id === placeRef.current) return;
+    placeRef.current = id;
     setPlaceId(id);
-    if (placeById(id)!.vessel !== place.vessel) { setTab('preset'); setPresetShape(0); setStrokes([]); setColor(1); }
+    if (placeById(id)!.vessel !== place.vessel) {
+      setTab('preset'); setPresetShape(0); setStrokes([]); setDrawingMinutes(null); setColor(1);
+    }
     loadPastLamps(id);
-    void run(async () => { await preparePlace(id); await engine.previewPlace(id); }).catch(() => setPlaceLoad((value) => ({ ...value, stage: 'error' })));
+    previewCourt(id);
   };
   const goTravel = () => run(async () => {
     engine.setOffer(shape);
@@ -324,7 +356,7 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
   const loading = (compact = false) => <div className={`court-loading${compact ? ' compact' : ''}`} data-stage={placeLoad.stage} aria-live="polite">
     <span>{loadingLabel}</span>
     {(placeLoad.stage === 'loading' || placeLoad.stage === 'preparing') && <progress aria-label={t.courtLoadingLabel} aria-valuetext={loadingLabel} max={1} {...(placeLoad.stage === 'preparing' || placeLoad.ratio === null ? {} : { value: placeLoad.ratio })} />}
-    {placeLoad.stage === 'error' && <button className="btn small" onClick={() => { void run(async () => { await preparePlace(placeId, true); if (screen === 'place') await engine.previewPlace(placeId); }).catch(() => setPlaceLoad((value) => ({ ...value, stage: 'error' }))); }}>{t.retry}</button>}
+    {placeLoad.stage === 'error' && <button className="btn small" onClick={() => previewCourt(placeId, true)}>{t.retry}</button>}
   </div>;
 
   return (
@@ -362,10 +394,10 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
       {screen === 'place' && (
         <section className="sheet low">
           <div className="inner">
-            <div className="eyebrow">{t.placeEyebrow}</div>
+            <div className="eyebrow">{placeEyebrow}</div>
             <div className="tname">{place.name[locale]}<small lang={locale === 'zh' ? 'en' : 'zh-CN'}>{place.name[locale === 'zh' ? 'en' : 'zh']}</small></div>
             <p className="note">{place.lamp[locale]} · {place.line[locale]}</p>
-            {VISIBLE_PLACES.length > 1 && <div className="places" role="radiogroup" aria-label={t.placeEyebrow}>
+            {VISIBLE_PLACES.length > 1 && <div className="places" role="radiogroup" aria-label={placeEyebrow}>
               {VISIBLE_PLACES.map((p) => {
                 const now = placeStats?.places.find((s) => s.placeId === p.id)?.now ?? 0;
                 return (
@@ -377,7 +409,7 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
                 );
               })}
             </div>}
-            <p className="note place-invitation">{t.placeLead}</p>
+            <p className="note place-invitation">{placeLead}</p>
             {loading()}
             <div className="row place-actions">
               <button className="btn link" onClick={backToWish} disabled={busy}>{t.placeBack}</button>

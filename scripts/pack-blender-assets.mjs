@@ -26,7 +26,9 @@ if (args.includes('--help')) {
   --max-bytes N                 Enforce complete payload budget; source budget is default.
   --reserve-bytes N             Reserve budget for later runtime framebuffer posters.
   --position-format float32     Preserve actual source FLOAT32 positions.
-  --normal-format float32       Preserve genuine FLOAT32 vertex normals (requires F32 positions).
+  --normal-format byte8|float32|snorm16
+                                F32 normals are exact. SNORM16 audits decoded normal directions.
+                                Both require --position-format float32.
 Mobile/ETC1S candidates require a separate explicit output directory.
 Run encoders only after capture releases CPU timing.`);
   process.exit(0);
@@ -39,7 +41,9 @@ const lightmapCodec = option('--lightmap-codec', 'uastc');
 const requestedPositionFormat = option('--position-format', 'auto');
 if(!['auto','uint16','float32'].includes(requestedPositionFormat))throw new Error('Expected --position-format auto|uint16|float32.');
 const normalFormat=option('--normal-format','byte8');
-if(!['byte8','float32'].includes(normalFormat))throw new Error('Expected --normal-format byte8|float32 (geometric NORMAL, independent of normal-map codec).');
+if(!['byte8','float32','snorm16'].includes(normalFormat))throw new Error('Expected --normal-format byte8|float32|snorm16 (geometric NORMAL, independent of normal-map codec).');
+const useUnfilteredNormals = normalFormat !== 'byte8';
+const normalFilter = useUnfilteredNormals ? 'NONE' : 'OCTAHEDRAL-byte8';
 const screenBasePattern = option('--screen-base-pattern', 'chinese_screen_panels_diff_1k');
 const screenBaseSize = Number(option('--screen-base-size', '1024'));
 const lightmapSelection = option('--lightmap-passes', '').split(',').filter(Boolean);
@@ -206,13 +210,44 @@ const gltf = async (...parameters) => run(cli, parameters, { env });
 const manifest = JSON.parse(await readFile(join(source, 'manifest.json'), 'utf8'));
 const placeId = manifest.place ?? 'snow-roof';
 const positionFormat = requestedPositionFormat === 'auto' ? (manifest.bake?.fixedViewAllocationProof || placeId === 'cloud-cliff' ? 'float32' : 'uint16') : requestedPositionFormat;
-if(normalFormat==='float32'&&positionFormat!=='float32')throw new Error('Genuine F32 NORMAL delivery also requires --position-format float32.');
+if(useUnfilteredNormals&&positionFormat!=='float32')throw new Error(`--normal-format ${normalFormat} requires --position-format float32.`);
 if(manifest.bake?.fixedViewAllocationProof&&positionFormat!=='float32')throw new Error('Fixed-view exclusion cones require the actual lossless FLOAT32 positions; quantized delivery needs a separately proved error envelope.');
 const sceneName = manifest.scene ?? `${placeId}.glb`;
 const stem = sceneName.replace(/\.glb$/, '');
 if (!/^[a-z0-9][a-z0-9-]*$/.test(stem)) throw new Error('Invalid source output basename.');
 const raw = join(source, manifest.sourceScene ?? `${stem}.raw.glb`);
-async function meshoptFloatPositions(input, output, preserveNormals=false) {
+function auditSnorm16(sourceArrays, decodedPrimitives) {
+  const limitDegrees = .01;
+  let count = 0;
+  let maxDegrees = 0;
+  if (sourceArrays.length !== decodedPrimitives.length) throw new Error('SNORM16 changed NORMAL stream coverage.');
+  for (const [index, source] of sourceArrays.entries()) {
+    const accessor = decodedPrimitives[index].getAttribute('NORMAL');
+    const packed = accessor?.getArray();
+    if (!(packed instanceof Int16Array) || !accessor.getNormalized() || packed.length !== source.length) {
+      throw new Error(`Expected a decoded normalized SHORT NORMAL stream at primitive ${index}.`);
+    }
+    for (let i = 0; i < source.length; i += 3) {
+      const x = source[i], y = source[i + 1], z = source[i + 2];
+      // Signed normalized SHORT clamps the most negative code. The common
+      // 32767 divisor cancels from atan2(cross, dot).
+      const a = Math.max(-32767, packed[i]), b = Math.max(-32767, packed[i + 1]), c = Math.max(-32767, packed[i + 2]);
+      const dot = x * a + y * b + z * c;
+      const cross = Math.hypot(y * c - z * b, z * a - x * c, x * b - y * a);
+      if (!Number.isFinite(dot) || !Number.isFinite(cross) || (cross === 0 && dot === 0)) {
+        throw new Error(`Cannot audit a zero or non-finite NORMAL at primitive ${index}, vertex ${i / 3}.`);
+      }
+      maxDegrees = Math.max(maxDegrees, Math.atan2(cross, dot) * 180 / Math.PI);
+      count++;
+    }
+  }
+  if (count === 0 || maxDegrees > limitDegrees) {
+    throw new Error(`Decoded SNORM16 angular error ${maxDegrees}° exceeds ${limitDegrees}° or has no samples.`);
+  }
+  return { count, maxDegrees, limitDegrees };
+}
+
+async function meshoptFloatPositions(input, output) {
   const modules=[];
   for(const name of ['@gltf-transform/core','@gltf-transform/extensions','@gltf-transform/functions','meshoptimizer']){
     const folder=join(toolsPrefix,'node_modules',name),metadata=JSON.parse(await readFile(join(folder,'package.json'),'utf8'));
@@ -226,25 +261,34 @@ async function meshoptFloatPositions(input, output, preserveNormals=false) {
     if(accessor.getComponentType()!==5126||accessor.getNormalized()||!(array instanceof Float32Array))throw new Error('Actual pre-Meshopt FLOAT32 POSITION input required.');
     return digest(Buffer.from(array.buffer,array.byteOffset,array.byteLength));
   }));
-  const normals=document=>document.getRoot().listMeshes().flatMap(mesh=>mesh.listPrimitives().map(primitive=>{
+  const primitives=document=>document.getRoot().listMeshes().flatMap(mesh=>mesh.listPrimitives());
+  const normalArrays=document=>primitives(document).map(primitive=>{
     const accessor=primitive.getAttribute('NORMAL'),array=accessor?.getArray();
     if(accessor?.getComponentType()!==5126||accessor.getNormalized()||!(array instanceof Float32Array))throw new Error('Actual unquantized pre-Meshopt FLOAT32 NORMAL input required; decoded BYTE/SHORT is never precision restoration.');
-    return digest(Buffer.from(array.buffer,array.byteOffset,array.byteLength));
-  }));
-  if(preserveNormals)normals(doc);
+    return array;
+  });
+  const normals=document=>normalArrays(document).map(array=>digest(Buffer.from(array.buffer,array.byteOffset,array.byteLength)));
+  const preserveNormals = normalFormat === 'float32';
+  const quantizeNormals = normalFormat === 'snorm16';
+  if(useUnfilteredNormals)normalArrays(doc);
   const ownership=document=>JSON.stringify(document.getRoot().listNodes().map(node=>({name:node.getName(),matrix:node.getMatrix(),extras:node.getExtras(),children:node.listChildren().map(child=>child.getName())})));
   const originalOwnership=ownership(doc),images=document=>document.getRoot().listTextures().map(texture=>digest(texture.getImage()));
   const originalImages=images(doc);
   await doc.transform(reorder({encoder:MeshoptEncoder,target:'size'}));const before=positions(doc),normalBefore=preserveNormals?normals(doc):null;
-  await doc.transform(quantize({pattern:/^(TEXCOORD|JOINTS|WEIGHTS|COLOR)(_\d+)?$/,patternTargets:/^(TEXCOORD|JOINTS|WEIGHTS|COLOR|NORMAL|TANGENT)(_\d+)?$/,quantizeTexcoord:16,quantizeColor:8,quantizeWeight:8,quantizeGeneric:12}));
+  const sourceNormals = quantizeNormals ? normalArrays(doc).map(array=>array.slice()) : null;
+  const pattern = quantizeNormals ? /^(TEXCOORD|JOINTS|WEIGHTS|COLOR|NORMAL)(_\d+)?$/ : /^(TEXCOORD|JOINTS|WEIGHTS|COLOR)(_\d+)?$/;
+  await doc.transform(quantize({pattern,patternTargets:/^(TEXCOORD|JOINTS|WEIGHTS|COLOR|NORMAL|TANGENT)(_\d+)?$/,quantizeTexcoord:16,quantizeColor:8,quantizeWeight:8,quantizeGeneric:12,
+    ...(quantizeNormals ? { quantizeNormal:16 } : {})}));
   if(JSON.stringify(before)!==JSON.stringify(positions(doc)))throw new Error('Nonposition quantization changed authored positions.');
   if(preserveNormals&&JSON.stringify(normalBefore)!==JSON.stringify(normals(doc)))throw new Error('UV/color quantization changed actual F32 normals.');
-  doc.createExtension(EXTMeshoptCompression).setRequired(true).setEncoderOptions({method:preserveNormals?EXTMeshoptCompression.EncoderMethod.QUANTIZE:EXTMeshoptCompression.EncoderMethod.FILTER});
+  doc.createExtension(EXTMeshoptCompression).setRequired(true).setEncoderOptions({method:useUnfilteredNormals?EXTMeshoptCompression.EncoderMethod.QUANTIZE:EXTMeshoptCompression.EncoderMethod.FILTER});
   const bytes=await io.writeBinary(doc),decoded=await io.readBinary(bytes);
   if(JSON.stringify(before)!==JSON.stringify(positions(decoded)))throw new Error('Lossless FLOAT32 Meshopt roundtrip changed positions.');
   if(preserveNormals&&JSON.stringify(normalBefore)!==JSON.stringify(normals(decoded)))throw new Error('Lossless FLOAT32 Meshopt roundtrip changed normals.');
   if(ownership(decoded)!==originalOwnership||JSON.stringify(images(decoded))!==JSON.stringify(originalImages))throw new Error('FLOAT32 Meshopt changed actual node transforms/ownership or material image payloads.');
+  const normalAudit = sourceNormals ? auditSnorm16(sourceNormals, primitives(decoded)) : undefined;
   await writeFile(output,bytes);
+  return normalAudit;
 }
 function glbJSON(data) { if (data.readUInt32LE(0) !== 0x46546c67) throw new Error('Not glTF binary'); const length = data.readUInt32LE(12); return JSON.parse(data.subarray(20, 20 + length).toString()); }
 function materialParameters(data){
@@ -329,7 +373,8 @@ function verifyMobileImages(images) {
     const normal = image.roles.some(role => /normalTexture$/i.test(role));
     if (normal && image.roles.some(role => !/normalTexture$/i.test(role))) throw new Error(`Mixed normal/colour roles require separate source images: ${image.name}`);
     const retainedScreen = image.name === screenBasePattern && image.roles.includes('baseColorTexture');
-    const maximum = retainedScreen ? screenBaseSize : 512, expected = normal ? 'UASTC' : 'ETC1S';
+    const retainedCrown = pineCrownBaseImages.includes(image.name) && image.roles.includes("baseColorTexture");
+    const maximum = retainedCrown ? 1024 : retainedScreen ? screenBaseSize : 512, expected = normal ? 'UASTC' : 'ETC1S';
     if (image.codec !== expected || image.width > maximum || image.height > maximum) throw new Error(`Mobile material profile mismatch: ${image.name} (${image.roles.join(', ')}) expected ${expected} at most ${maximum}px.`);
     const colour = image.roles.some(role => /^(baseColorTexture|emissiveTexture)$/.test(role));
     if (image.transfer !== (colour ? 'sRGB' : 'linear')) throw new Error(`Mobile material transfer mismatch: ${image.name}.`);
@@ -337,6 +382,10 @@ function verifyMobileImages(images) {
 }
 const rawData = await readFile(raw), rawInfo = verifyUV(rawData); console.log('RAW_UV_INFO', rawInfo);
 const sourceImageRoles = imageReport(rawData);
+const pineCrownBaseImages = placeId === 'pine-gate' && materialProfile === 'mobile'
+  ? sourceImageRoles.filter(image => /^(?:ridge|young)-[+-]\d{2,3}$/.test(image.name)
+    && image.references.every(use => use.material.startsWith('Depth-reconstructed pine crown '))
+    && image.roles.includes('baseColorTexture')).map(image => image.name) : [];
 const sourceHasRetainedScreen = sourceImageRoles.some(image=>image.name===screenBasePattern&&image.roles.includes('baseColorTexture'));
 const needsRasterNormalization = glbJSON(rawData).images?.some(image=>image.mimeType==='image/webp');
 async function normalizeRasterInputs(input,output){
@@ -359,6 +408,9 @@ const materialRecipe = {
   ...(materialProfile === 'mobile' ? { normals: { codec: 'UASTC', maximumSize: 512, quality: 2, rdo: false, slotPattern: '*normal*', retainedAsNormalData: true }, otherMaps: { codec: 'ETC1S', maximumSize: 512, quality: 255, compression: 4, endpointRdo: false, selectorRdo: false }, screenBase: { sourceImageName: screenBasePattern, maximumSize: screenBaseSize, codec: 'ETC1S' } } : { textureCLI: ['uastc', '--level', '2', '--rdo', '2', '--zstd', '18', '--jobs', '2'] }),
 };
 if(materialProfile==='mobile'&&!sourceHasRetainedScreen)materialRecipe.screenBase={retained:false,reason:'No matching screen-base image is used by this source.'};
+if (pineCrownBaseImages.length) materialRecipe.pineCrownBase = {
+  sourceImageNames: pineCrownBaseImages, maximumSize: 1024, codec: 'ETC1S',
+};
 if(manifest.bake?.cameraPreExposure!==undefined){
  const exposure=manifest.bake.cameraPreExposure;
  if(!Number.isFinite(exposure)||exposure<=0||Math.abs(manifest.bake.threeLightMapIrradianceMultiplier-Math.PI*exposure)>1e-10)throw Error('Source camera normalization and irradiance units disagree');
@@ -393,7 +445,9 @@ if (preview) {
 } else {
   delete manifest.partialPreview; delete manifest.missingAmbientLooks; delete manifest.missingLightmaps;
 }
-const profileTag = (materialProfile === 'quality' ? '' : '.mobile')+(normalFormat==='float32'?'.vertex-normal-f32':'');
+const normalProfileTag = normalFormat === 'snorm16' ? '.vertex-normal-snorm16' : normalFormat === 'float32' ? '.vertex-normal-f32' : '';
+const normalCacheKey = normalFormat === 'snorm16' ? 'audited-snorm16-normal-NONE-v1:' : normalFormat === 'float32' ? 'genuine-float32-normal-NONE-v1:' : '';
+const profileTag = (materialProfile === 'quality' ? '' : '.mobile') + normalProfileTag;
 const deduplicated = join(source, `${stem}${profileTag}.deduplicated.glb`);
 const textured = join(source, `${stem}${profileTag}.textures.glb`);
 const geometryCache = join(source, `${stem}${profileTag}.packed.glb`);
@@ -401,7 +455,8 @@ const geometryReceipt = join(source, `geometry-stage${profileTag}.json`);
 const geometryKey = materialProfile === 'quality'
   ? `dedup-uastc2-rdo2-zstd18-meshopt16-16-12-v1:${digest(rawData)}`
   : `mobile-v1-normal512-uastc2-colour512-etc1s255c4-screen${screenBaseSize}-${screenBasePattern}-meshopt16-16-12:${digest(rawData)}`;
-const actualGeometryKey = `${normalFormat==='float32'?'genuine-float32-normal-NONE-v1:':''}${needsRasterNormalization?'webp-to-lossless-png-v1:':''}${positionFormat === 'float32' ? 'float32-position-NONE-v1:' : ''}${geometryKey}`;
+const pineCrownKey = pineCrownBaseImages.length ? `pine-crown-base1024-${pineCrownBaseImages.join(',')}:` : '';
+const actualGeometryKey = `${pineCrownKey}${normalCacheKey}${needsRasterNormalization?'webp-to-lossless-png-v1:':''}${positionFormat === 'float32' ? 'float32-position-NONE-v1:' : ''}${geometryKey}`;
 let cached = false;
 if (await exists(geometryReceipt) && await exists(geometryCache)) {
   const receipt = JSON.parse(await readFile(geometryReceipt, 'utf8'));
@@ -429,16 +484,23 @@ if (!cached) {
     // Already-Basis normal/screen images are explicitly skipped by subsequent
     // glTF-Transform texture transforms. The source pixels are never overwritten.
     if (screenBaseSize === 1024 && hasRetainedScreen) await gltf('etc1s', normals, screen, '--pattern', screenBasePattern, '--resize', '1024', '--quality', '255', '--compression', '4', '--rdo', 'false', '--jobs', '2');
-    await gltf('etc1s', screenBaseSize === 1024 && hasRetainedScreen ? screen : normals, textured, '--resize', '512', '--quality', '255', '--compression', '4', '--rdo', 'false', '--jobs', '2');
+    let colourInput = screenBaseSize === 1024 && hasRetainedScreen ? screen : normals;
+    for (const [index, name] of pineCrownBaseImages.entries()) {
+      const crown = join(source, `${stem}${profileTag}.pine-crown-${index}.glb`);
+      await gltf('etc1s', colourInput, crown, '--pattern', name, '--resize', '1024', '--quality', '255', '--compression', '4', '--rdo', 'false', '--jobs', '2');
+      colourInput = crown;
+    }
+    await gltf('etc1s', colourInput, textured, '--resize', '512', '--quality', '255', '--compression', '4', '--rdo', 'false', '--jobs', '2');
   }
   const texturedData = await readFile(textured);
   verifyMaterialValues(rawData,texturedData);
   verifyPreserved(rawInfo, verifyUV(texturedData));
   const sourceAttributes = materialAttributeDigest(rawData), materialAttributes = materialAttributeDigest(texturedData);
   if (sourceAttributes !== materialAttributes) throw new Error('Material compression changed TEXCOORD_0, TEXCOORD_1 or COLOR_0 before Meshopt.');
-  if(normalFormat==='float32'&&materialAttributeDigest(rawData,['POSITION','NORMAL'])!==materialAttributeDigest(texturedData,['POSITION','NORMAL']))throw new Error('Material stage changed genuine source POSITION/NORMAL arrays.');
+  if(useUnfilteredNormals&&materialAttributeDigest(rawData,['POSITION','NORMAL'])!==materialAttributeDigest(texturedData,['POSITION','NORMAL']))throw new Error('Material stage changed genuine source POSITION/NORMAL arrays.');
   if (materialProfile === 'mobile') verifyMobileImages(imageReport(texturedData));
-  if(positionFormat==='float32')await meshoptFloatPositions(textured,geometryCache,normalFormat==='float32');
+  let normalAngularAudit;
+  if(positionFormat==='float32')normalAngularAudit=await meshoptFloatPositions(textured,geometryCache);
   else await gltf('meshopt', textured, geometryCache, '--level', 'high', '--quantize-position', '16', '--quantize-texcoord', '16', '--quantize-normal', '12');
   const data = await readFile(geometryCache);
   const info = verifyUV(data);
@@ -446,7 +508,7 @@ if (!cached) {
   if (!info.extensions.includes('EXT_meshopt_compression') || !info.extensions.includes('KHR_texture_basisu')) throw new Error('Geometry stage lost Meshopt or Basis textures.');
   const images = imageReport(data);
   if (materialProfile === 'mobile') verifyMobileImages(images);
-  await writeFile(geometryReceipt, JSON.stringify({ key: actualGeometryKey, profile: materialProfile, positionFormat, normalFormat, normalFilter:normalFormat==='float32'?'NONE':'OCTAHEDRAL-byte8', positionFilter:positionFormat==='float32'?'NONE':'quantized', materialRecipe, sha256: digest(data), bytes: data.length, preMeshoptAttributeSha256: sourceAttributes, uvVerification: info, images, uniqueImageBytes: images.reduce((sum, image) => sum + image.bytes, 0) }, null, 2) + '\n');
+  await writeFile(geometryReceipt, JSON.stringify({ key: actualGeometryKey, profile: materialProfile, positionFormat, normalFormat, normalFilter, ...(normalAngularAudit ? { normalAngularAudit } : {}), positionFilter:positionFormat==='float32'?'NONE':'quantized', materialRecipe, sha256: digest(data), bytes: data.length, preMeshoptAttributeSha256: sourceAttributes, uvVerification: info, images, uniqueImageBytes: images.reduce((sum, image) => sum + image.bytes, 0) }, null, 2) + '\n');
 } else console.log('GEOMETRY_STAGE_REUSED', actualGeometryKey);
 verifyPreserved(rawInfo, verifyUV(await readFile(geometryCache)));
 verifyMaterialValues(rawData,await readFile(geometryCache));
@@ -514,24 +576,29 @@ for (const [id, hero] of Object.entries(manifest.heroes ?? {})) {
   if (!/^[a-z0-9][a-z0-9-]*$/.test(id) || !hero.source || !hero.uri) throw new Error(`Invalid authored hero contract: ${id}`);
   const input = join(source, hero.source), bytes = await readFile(input), before = verifyUV(bytes, false);
   const base = `${stem}-${id}${profileTag}`, dedup = join(source, `${base}.deduplicated.glb`), textures = join(source, `${base}.textures.glb`), output = join(source, `${base}.packed.glb`), receiptPath = join(source, `${base}.geometry-stage.json`);
-  const key = `${normalFormat==='float32'?'genuine-float32-position-normal-NONE-v1:':''}hero-live-pbr-dedup-uastc2-no-rdo-meshopt16-v1:${digest(bytes)}`;
+  const heroNormalKey = normalFormat === 'float32' ? 'genuine-float32-position-normal-NONE-v1:' : normalCacheKey;
+  const key = `${heroNormalKey}hero-live-pbr-dedup-uastc2-no-rdo-meshopt16-v1:${digest(bytes)}`;
   let reuse = false;
-  if (await exists(output) && await exists(receiptPath)) { const receipt = JSON.parse(await readFile(receiptPath, 'utf8')); reuse = receipt.key === key && receipt.sha256 === digest(await readFile(output)); }
+  let normalAngularAudit;
+  if (await exists(output) && await exists(receiptPath)) { const receipt = JSON.parse(await readFile(receiptPath, 'utf8')); reuse = receipt.key === key && receipt.sha256 === digest(await readFile(output)); if (reuse) normalAngularAudit = receipt.normalAngularAudit; }
   if (!reuse) {
     await gltf('dedup', input, dedup);
     await gltf('uastc', dedup, textures, '--resize', '512', '--level', '2', '--rdo', 'false', '--zstd', '18', '--jobs', '2');
     verifyPreserved(before, verifyUV(await readFile(textures), false));
     if (materialAttributeDigest(bytes) !== materialAttributeDigest(await readFile(textures))) throw new Error(`Hero material transform changed actual source UV/color: ${id}`);
-    if(normalFormat==='float32'){
+    if(useUnfilteredNormals){
       if(materialAttributeDigest(bytes,['POSITION','NORMAL'])!==materialAttributeDigest(await readFile(textures),['POSITION','NORMAL']))throw new Error('Hero material stage changed genuine source POSITION/NORMAL arrays.');
-      await meshoptFloatPositions(textures,output,true);
+      normalAngularAudit=await meshoptFloatPositions(textures,output);
     }else await gltf('meshopt', textures, output, '--level', 'high', '--quantize-position', '16', '--quantize-texcoord', '16', '--quantize-normal', '12');
   }
   const data = await readFile(output), info = verifyUV(data, false);
   verifyPreserved(before, info);
   verifyMaterialValues(bytes,data);
   if (!info.extensions.includes('EXT_meshopt_compression')) throw new Error(`Hero Meshopt extension missing: ${id}`);
-  const receipt = { key, source: hero.source, sourceSha256: digest(bytes), sha256: digest(data), bytes: data.length, positionFormat:normalFormat==='float32'?'float32':'uint16',normalFormat,normalFilter:normalFormat==='float32'?'NONE':'OCTAHEDRAL-byte8',materialLighting: 'live-PBR', transformOrder: ['dedup','uastc-512',normalFormat==='float32'?'reorder-UV-color-quantize-lossless-F32-position-normal':'meshopt'], uvVerification: info, images: imageReport(data) };
+  const heroGeometryStep = normalFormat === 'snorm16' ? 'reorder-UV-color-and-audited-snorm16-meshopt-lossless-F32-position'
+    : normalFormat === 'float32' ? 'reorder-UV-color-quantize-lossless-F32-position-normal' : 'meshopt';
+  const receipt = { key, source: hero.source, sourceSha256: digest(bytes), sha256: digest(data), bytes: data.length, positionFormat:useUnfilteredNormals?'float32':'uint16',normalFormat,normalFilter,
+    ...(normalAngularAudit ? { normalAngularAudit } : {}), materialLighting: 'live-PBR', transformOrder: ['dedup','uastc-512',heroGeometryStep], uvVerification: info, images: imageReport(data) };
   await writeFile(receiptPath, JSON.stringify(receipt, null, 2) + '\n');
   await copyFile(output, join(out, hero.uri));
   hero.compression = receipt;
@@ -556,13 +623,19 @@ for (const image of images) { const key = image.roles.join('+') || 'unused'; byt
 manifest.compression = { gltfTransform: '4.5.1', ktxSoftware: '4.4.2', mesh: 'EXT_meshopt_compression', textures: 'KHR_texture_basisu', materialProfile, materialRecipe, lightmapCodec, lightmaps: `${lightmapCodec === 'uastc' ? 'Basis UASTC + Zstandard' : 'Basis ETC1S / BasisLZ'}, per-pass log2 HDR in linear KTX2 samples; decode logRange/logGain before lighting`, transformOrder: materialProfile === 'quality' ? ['dedup', 'uastc', 'meshopt'] : ['dedup', 'uastc-normal-512', `etc1s-screen-${screenBaseSize}`, 'etc1s-other-512', 'meshopt'], uvVerification: packedInfo, images, uniqueMaterialImageBytes: images.reduce((sum, image) => sum + image.bytes, 0), bytesByRoleUnion };
 manifest.compression.positionFormat = positionFormat;
 manifest.compression.normalFormat = normalFormat;
-manifest.compression.normalFilter = normalFormat==='float32'?'NONE':'OCTAHEDRAL-byte8';
+manifest.compression.normalFilter = normalFilter;
+if (normalFormat === 'snorm16') {
+  const receipt = JSON.parse(await readFile(geometryReceipt, 'utf8'));
+  if (!receipt.normalAngularAudit) throw new Error('Missing decoded SNORM16 normal audit.');
+  manifest.compression.normalAngularAudit = receipt.normalAngularAudit;
+}
 manifest.compression.generatorSha256=digest(await readFile(new URL(import.meta.url)));
 manifest.compression.positionFilter = positionFormat==='float32'?'NONE':'quantized';
 manifest.compression.transformOrder = [
   ...(needsRasterNormalization?['lossless-WebP-to-PNG']:[]),'dedup',
-  ...(materialProfile==='quality'?['uastc']:['uastc-normal-512',...(sourceHasRetainedScreen&&screenBaseSize===1024?['etc1s-screen-1024']:[]),'etc1s-other-512']),
-  positionFormat==='float32'?(normalFormat==='float32'?'reorder-UV-color-quantize-meshopt-position-normal-NONE':'reorder-nonposition-quantize-meshopt-position-NONE'):'meshopt',
+  ...(materialProfile==='quality'?['uastc']:['uastc-normal-512',...(sourceHasRetainedScreen&&screenBaseSize===1024?['etc1s-screen-1024']:[]),...(pineCrownBaseImages.length?['etc1s-pine-crowns-native']:[]),'etc1s-other-512']),
+  normalFormat==='snorm16'?'reorder-UV-color-and-audited-snorm16-meshopt-position-NONE'
+    : positionFormat==='float32'?(normalFormat==='float32'?'reorder-UV-color-quantize-meshopt-position-normal-NONE':'reorder-nonposition-quantize-meshopt-position-NONE'):'meshopt',
 ];
 if(needsRasterNormalization){const receipt=await readFile(join(source,'raster-normalization.json'));manifest.compression.rasterNormalization={receiptSha256:digest(receipt),...JSON.parse(receipt.toString())};}
 const budget = Number(option('--max-bytes', manifest.budget?.completePackageBytesMaximum ?? 0));

@@ -47,6 +47,26 @@ test('a failed cover attempt can retry Snow preparation and resolve the original
   expect(scene.ensureReady).toHaveBeenCalledTimes(2);
 });
 
+test('files can finish without warming a default place the visitor has left', async () => {
+  const scene = mockScene(async () => {});
+  const download = mockPrefetch(), wait = deferred();
+  const engine = await import('../../../web/src/engine/index.ts');
+  engine.boot();
+  const stages: string[] = [];
+  const stale = engine.prefetchPlace('snow-roof', progress => stages.push(progress.stage), async () => {
+    await wait.promise;
+    return false;
+  });
+  await vi.waitFor(() => expect(stages).toEqual(['preparing']));
+  expect(download).toHaveBeenCalledOnce();
+  expect(scene.preparePlace).not.toHaveBeenCalled();
+  await expect(engine.prefetchPlace('pine-gate')).resolves.toBe(true);
+  wait.resolve();
+  await expect(stale).resolves.toBe(false);
+  expect(scene.preparePlace).toHaveBeenCalledExactlyOnceWith('pine-gate');
+  expect(stages).toEqual(['preparing']);
+});
+
 test('fire-and-forget effects survive failure and replay only their latest requested state', async () => {
   const first = deferred(), scene = mockScene(vi.fn().mockReturnValueOnce(first.promise).mockResolvedValue(undefined));
   mockPrefetch();

@@ -56,17 +56,26 @@ export const setLevel = (level: number) => { requested.level = level; updateStat
 export const setPhase = (phase: ScenePhase) => { requested.phase = phase; updateState(s => s.setPhase(phase)); };
 export const setPowerSaver = (on: boolean) => { requested.powerSaver = on; updateState(s => s.setPowerSaver(on)); };
 export const previewPlace = (id: PlaceId) => initialize().then(s => s.previewPlace(id));
-export const prefetchPlace = async (id: PlaceId, onProgress?: (progress: PlaceLoadProgress) => void) => {
-  const { prefetchBakedPlace } = await import('./baked/prefetchPlace.js');
-  let progress: PlaceLoadProgress = { loadedBytes: 0, totalBytes: 0, ratio: null, stage: 'loading' };
-  await prefetchBakedPlace(id, value => {
-    progress = { ...value, stage: value.stage === 'ready' ? 'preparing' : value.stage };
-    onProgress?.(progress);
-  });
+export const prefetchPlace = async (
+  id: PlaceId, onProgress?: (progress: PlaceLoadProgress) => void, shouldWarm?: () => Promise<boolean>,
+) => {
+  let progress: PlaceLoadProgress = { loadedBytes: 0, totalBytes: 0, ratio: null, stage: 'preparing' };
+  // Pine Gate prepares with its current ambient look and the lamp pass. The
+  // loader verifies every bank as it is needed, including later time-of-day changes.
+  if (id === 'pine-gate') onProgress?.(progress);
+  else {
+    const { prefetchBakedPlace } = await import('./baked/prefetchPlace.js');
+    await prefetchBakedPlace(id, value => {
+      progress = { ...value, stage: value.stage === 'ready' ? 'preparing' : value.stage };
+      onProgress?.(progress);
+    });
+  }
   try {
+    if (shouldWarm && !await shouldWarm()) return false;
     const s = await initialize();
     await s.preparePlace(id);
     onProgress?.({ ...progress, stage: 'ready', ratio: 1 });
+    return true;
   } catch (error) {
     onProgress?.({ ...progress, stage: 'error' });
     throw error;
@@ -76,7 +85,7 @@ export const renderLampThumbnail = (shape: Shape, options: LampThumbnailOptions)
 export const travel = (id: PlaceId) => initialize().then(s => s.travel(id));
 export const toCover = () => initialize().then(s => s.toCover());
 export const ignite = (options: IgnitionOptions = {}) => initialize().then(s => s.ignite(options));
-export const snuff = (done = false) => initialize().then(s => s.snuff(done));
+export const snuff = (done = false, remaining?: number) => initialize().then(s => s.snuff(done, remaining));
 export const skip = () => { void initialize().then(s => s.skip()).catch(() => {}); };
 // The visitor's own past lamps: stored for the active place, drawn only where a
 // court defines past lamp slots.

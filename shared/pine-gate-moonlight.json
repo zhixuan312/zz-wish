@@ -1,0 +1,7 @@
+{
+  "directionEngine": [0.64, 0.41, -1],
+  "apparentDiameterDegrees": 0.52,
+  "adaptedLunarDiscIntensity": 0.15,
+  "adaptedSkyStrength": 0.028,
+  "aerialRadianceLinearRec709": [0.0055, 0.0096, 0.018]
+}

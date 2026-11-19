@@ -50,6 +50,16 @@ describe('candles', () => {
     expect(done.status).toBe('burned_down');
   });
 
+  it('keeps the last wax when a Pine Gate candle is put out just before its time ends', async () => {
+    const v = await visitor();
+    const body = candle(10);
+    const c = (await v.call('POST', '/api/candles', body)).json();
+    const burnedMs = c.durationMs - 750;
+    clock += burnedMs;
+    const out = (await v.call('POST', `/api/candles/${c.id}/end`, { runId: body.runId, reason: 'put_out', burnedMs })).json();
+    expect(out).toMatchObject({ status: 'went_out', burnedMs, shape: c.shape });
+  });
+
   it('allows one burning candle per visitor while its page is live, and rejects under 5 minutes', async () => {
     const v = await visitor();
     const c = (await v.call('POST', '/api/candles', candle(30))).json();

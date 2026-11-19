@@ -1,0 +1,11 @@
+{
+  "solarElevationDegrees": 56,
+  "solarAzimuthDegrees": 231,
+  "solarDiameterDegrees": 0.545,
+  "solarIntensity": 0.4,
+  "altitudeMetres": 620,
+  "airDensity": 1,
+  "aerosolDensity": 1.9,
+  "ozoneDensity": 1,
+  "atmosphereStrength": 0.18
+}

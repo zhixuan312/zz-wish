@@ -14,6 +14,7 @@ assets = []
 scan = json.loads((ROOT / 'docs/licenses/polyhaven-scans.json').read_text())
 for asset in scan['assets']:
     assets.append({'id': asset['id'], 'kind': 'PBR material', 'provider': 'Poly Haven', 'license': scan['license'], 'licenseUrl': scan['licenseUrl'], 'sourceUrl': asset['assetUrl'], 'authors': asset['authors'], 'files': [{**file_info(m['path']), 'sourceUrl': m['sourceUrl'], 'sourceSha256': m['sourceSha256'], 'map': m['map'], 'encoding': m['encoding']} for m in asset['maps']]})
+assets.extend(json.loads((ROOT / 'docs/licenses/pine-gate-scans.json').read_text()))
 model = json.loads((ROOT / 'web/public/models/manifest.json').read_text())
 for asset in model['assets']:
     assets.append({'id': asset['sourcePage'].rsplit('/', 1)[-1], 'kind': 'Scanned natural model', 'provider': 'Poly Haven', 'license': model['license'], 'licenseUrl': model['licenseSource'], 'sourceUrl': asset['sourcePage'], 'authors': asset.get('authors', {}), 'files': [{**file_info('web/public/models/' + f['local']), 'sourceUrl': f['sourceUrl'], 'sourceMd5': f.get('sourceMd5'), 'transformation': 'Geometry unchanged; source JPEGs encoded WebP at original1k resolution where recorded.'} for f in asset['files']]})
@@ -29,6 +30,8 @@ assets.append({'id': 'noto-serif-sc-subsets', 'kind': 'Font', 'provider': 'Googl
 assets.append({'id': 'basis-universal-transcoder', 'kind': 'Shared texture runtime codec', 'provider': 'Binomial / three.js 0.160.0 distribution', 'license': 'Apache-2.0', 'licenseFile': 'web/public/codecs/basis/LICENSE.txt', 'distributionLicense': 'MIT', 'distributionLicenseFile': 'web/public/codecs/basis/THREE-LICENSE.txt', 'sourceUrl': 'https://github.com/mrdoob/three.js/tree/r160/examples/jsm/libs/basis', 'upstreamSourceUrl': 'https://github.com/BinomialLLC/basis_universal', 'files': [file_info('web/public/codecs/basis/' + n) for n in ['basis_transcoder.js', 'basis_transcoder.wasm']]})
 runtime_files = [
     'web/src/engine/scene.js', 'web/src/engine/WickPlume.js',
+    'web/src/engine/places/pine-gate-baked.js',
+    'web/src/engine/PineWax.js',
     'web/src/engine/baked/loadPlace.js', 'web/src/engine/baked/prefetchPlace.js',
     'web/src/engine/baked/sha256.js', 'web/src/engine/baked/visitorShadow.js',
     'web/src/engine/baked/gauzeTransmission.js', 'web/src/engine/baked/gauzeMask.js',
@@ -60,7 +63,7 @@ if fabric_path.exists():
     assets.append({'id': 'visitor-lantern-rough-linen', 'kind': 'Photographed fabric material', 'provider': 'Poly Haven', 'license': fabric['license'], 'licenseUrl': fabric['licenseURL'], 'sourceUrl': fabric['assetPage'], 'authors': fabric['authors'], 'transformation': fabric['process'], 'runtimeUse': 'Photographed yarn luminance modulates the chosen cloth dye; normal and roughness maps remain linear data.', 'provenanceFile': 'docs/licenses/lantern-fabric.json', 'files': [{**file_info(m['derived']['path']), 'role': m['role'], 'sourceUrl': m['source']['url'], 'sourceSha256': m['source']['sha256']} for m in fabric['maps']]})
     if fabric.get('cushionDerivatives'):
         assets[-1]['cushionDerivatives'] = fabric['cushionDerivatives']
-for place_id, script in [('snow-roof', 'snow_roof'), ('cloud-cliff', 'cloud_cliff')]:
+for place_id, script in [('snow-roof', 'snow_roof'), ('cloud-cliff', 'cloud_cliff'), ('pine-gate', 'pine_gate')]:
     source = ROOT / f'art/blender/{script}.py'
     if source.exists():
         assets.append({'id': place_id + '-original-architecture', 'kind': 'Original fictional architecture', 'provider': 'One Light project', 'license': 'Project-owned source; CC0 inputs registered separately', 'notes': 'Authored fictional timber architecture and setting; no monument replica.', 'files': [file_info(str(source.relative_to(ROOT)))]})
@@ -81,7 +84,19 @@ for place_id, script in [('snow-roof', 'snow_roof'), ('cloud-cliff', 'cloud_clif
         'scripts/compact-place-manifest.mjs',
         'scripts/attach-place-runtime-assets.mjs',
     ]
-    source_files += (['art/blender/preview_snow_room_candidate.py', 'scripts/prepare-snow-priority-atlas.py', 'scripts/package-snow-compact-preview.py', 'scripts/assemble-snow-preview.mjs', 'scripts/probe-uv16-budget.mjs', 'scripts/probe-normal16-budget.mjs', 'scripts/probe-material-normal-budget.mjs', 'art/blender/snow_round1_details.py', 'art/blender/snow_bronze_maps.py', 'art/blender/snow_paint_maps.py', 'art/blender/snow_lightmap_charts.py', 'art/blender/freeze_source_modifiers.py', 'art/blender/snow_lantern_transport.py', 'art/blender/patch_snow_lantern_transport.py', 'art/blender/rebase_snow_radiometry.py', 'art/blender/join_tube_lightmap_charts.py', 'art/blender/priority_lightmap_allocation.py', 'art/blender/refine_underside_lightmap.py', 'scripts/export-gauze-transport.mjs', 'scripts/load-gauze-geometry.mjs'] if place_id == 'snow-roof' else ['art/blender/fixed_view_allocation.py', 'art/blender/build_cloud_source19.py', 'art/blender/export_cloud_field_metadata.py', 'scripts/prototype-cloud-live-envelope.mjs', 'scripts/prove-cloud-hash-lattice.mjs', 'scripts/pack-cloud-noise-lattice.mjs', 'scripts/pack-cloud-live-density.mjs'])
+    if place_id == 'snow-roof':
+        source_files += ['art/blender/preview_snow_room_candidate.py', 'scripts/prepare-snow-priority-atlas.py', 'scripts/package-snow-compact-preview.py', 'scripts/assemble-snow-preview.mjs', 'scripts/probe-uv16-budget.mjs', 'scripts/probe-normal16-budget.mjs', 'scripts/probe-material-normal-budget.mjs', 'art/blender/snow_round1_details.py', 'art/blender/snow_bronze_maps.py', 'art/blender/snow_paint_maps.py', 'art/blender/snow_lightmap_charts.py', 'art/blender/freeze_source_modifiers.py', 'art/blender/snow_lantern_transport.py', 'art/blender/patch_snow_lantern_transport.py', 'art/blender/rebase_snow_radiometry.py', 'art/blender/join_tube_lightmap_charts.py', 'art/blender/priority_lightmap_allocation.py', 'art/blender/refine_underside_lightmap.py', 'scripts/export-gauze-transport.mjs', 'scripts/load-gauze-geometry.mjs']
+    elif place_id == 'cloud-cliff':
+        source_files += ['art/blender/fixed_view_allocation.py', 'art/blender/build_cloud_source19.py', 'art/blender/export_cloud_field_metadata.py', 'scripts/prototype-cloud-live-envelope.mjs', 'scripts/prove-cloud-hash-lattice.mjs', 'scripts/pack-cloud-noise-lattice.mjs', 'scripts/pack-cloud-live-density.mjs']
+    else:
+        source_files = [
+            'art/blender/pine_gate.py', 'art/blender/snow_roof.py', 'art/blender/snow_round1_details.py',
+            'art/blender/snow_lightmap_charts.py', 'art/blender/resting_contacts.py',
+            'art/blender/contact_fingerprints.py', 'art/blender/bake_export.py',
+            'art/blender/audit_prepared_mapping.py', 'art/blender/audit_prepared_resting_contacts.py',
+            'scripts/pack-blender-assets.mjs', 'scripts/decode-baked-for-contact-audit.mjs',
+            'scripts/attach-place-runtime-assets.mjs',
+        ]
     if place_id == 'snow-roof':
         source_files += [
             'art/blender/preview_snow_round2_pool_candidate.py',
@@ -98,6 +113,8 @@ for place_id, script in [('snow-roof', 'snow_roof'), ('cloud-cliff', 'cloud_clif
             raise ValueError(f"Stale {place_id} manifest entry: {f['uri']}")
         files.append(actual)
     assets.append({'id': place_id + '-delivery', 'kind': 'Baked/compressed derivative scene', 'provider': 'One Light project', 'license': 'Original architecture with CC0 surface inputs listed above', 'sourceFiles': source_files, 'sourceFileHashes': [file_info(path) for path in source_files], 'bake': d.get('bake'), 'compression': d.get('compression'), 'files': files})
+    if place_id == 'pine-gate':
+        assets[-1]['cc0SurfaceAssetIds'] = ['stone_pavers', 'rock_pitted_mossy', 'weathered_planks', 'grey_roof_tiles']
 result = {'version': 1, 'generatedAt': datetime.now(timezone.utc).isoformat(), 'purpose': 'Single provenance and license register for every delivered visual asset and shared decoder.', 'assets': assets}
 (ROOT / 'docs/assets.json').write_text(json.dumps(result, indent=2) + '\n')
 print(len(assets), 'registered assets')

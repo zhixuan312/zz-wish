@@ -1,0 +1,20 @@
+{
+  "seconds": 30,
+  "entrance": {
+    "position": [0.29, 2.96, 33.9],
+    "phonePosition": [0.22, 2.95, 34.15],
+    "look": [-0.18, 1.91, 28.9],
+    "desktopFov": 32,
+    "phoneFov": 42
+  },
+  "waypoints": [
+    { "time": 5, "position": [0.07, 3.38, 30.1], "look": [-0.44, 2.10, 24.85], "desktopFov": 33, "phoneFov": 43 },
+    { "time": 10, "position": [-0.29, 3.93, 24.7], "look": [0.10, 2.83, 19.58], "desktopFov": 33, "phoneFov": 43 },
+    { "time": 16, "position": [0.19, 4.66, 17.4], "look": [-0.21, 4.19, 10.8], "desktopFov": 34, "phoneFov": 43 },
+    { "time": 21, "position": [-0.12, 5.28, 10.43], "look": [-0.17, 5.45, 4.0], "desktopFov": 34, "phoneFov": 44 },
+    { "time": 24, "position": [-0.17, 5.54, 7.42], "look": [0.03, 5.96, 1.21], "desktopFov": 47, "phoneFov": 54 },
+    { "time": 26.1, "position": [-0.17, 5.63, 5.52], "look": [0.64, 5.34, -9.2], "desktopFov": 46, "phoneFov": 52 },
+    { "time": 27.9, "position": [-0.33, 5.66, 4.56], "look": [1.10, 5.10, -11.8], "desktopFov": 53, "phoneFov": 54 },
+    { "time": 29, "position": [-1.00, 5.43, 2.48], "look": [-1.64, 5.13, 0.82], "desktopFov": 39, "phoneFov": 46 }
+  ]
+}

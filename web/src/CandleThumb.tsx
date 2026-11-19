@@ -9,7 +9,7 @@ const pictures = new Map<string, Promise<string>>();
 
 export function CandleThumb({ shape, remaining, state }: { shape: Shape; remaining: number; state: ThumbnailState }) {
   const level = Math.max(0, Math.min(1, remaining));
-  const key = JSON.stringify({ shape, state, remaining: Math.round(level * 1000) / 1000 });
+  const key = JSON.stringify({ shape, state, remaining: shape.kind === 'candle' ? level : Math.round(level * 1000) / 1000 });
   const [picture, setPicture] = useState<{ key: string; url: string } | null>(null);
   const element = useRef<HTMLSpanElement>(null);
   const [visible, setVisible] = useState(false);
