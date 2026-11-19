@@ -1633,11 +1633,37 @@ def near_pine_fascicles(name, sprays, material):
     pine_fascicles(name, needles, material)
 
 
-def hero_pine_crown(label, trunk, phase, bark, material):
+def ancient_scaffold_wood(name, centres, radii, material):
+    sides = 8
+    bough = bark_tube(name, centres, radii, material, sides)
+    for ring, centre in enumerate(centres):
+        origin = mesh.point(centre)
+        fraction = ring / (len(centres) - 1)
+        for column in range(sides):
+            angle = math.tau * column / sides
+            swell = .097 * math.cos(2. * angle + fraction * 2.6)
+            flutes = .041 * math.cos(4. * angle + fraction * 2.1)
+            vertex = bough.data.vertices[ring * sides + column]
+            # Opposite samples share their radial scale. Ring centers,
+            # including the old attachment and end rings, stay exact.
+            amount = 1. + (swell + flutes) * (1. - .69 * fraction)
+            vertex.co = origin + (vertex.co - origin) * amount
+    bough.data.update()
+    return bough
+
+
+def hero_pine_crown(label, trunk, phase, bark, material, *, scaffold_bark=None):
     profile = CROWNS[HERO_PINE_CROWNS[label]]
     if label == 'Back ridge pine 5':
         phase += .9
-    needles = grow_crown(label, profile, trunk, phase, bark, bark_tube)
+
+    def write_wood(name, centres, radii, ordinary_bark, radial):
+        limb = name.removeprefix(f'{label} asymmetric bough ')
+        if scaffold_bark is not None and limb in ('1', '3', '1 broken lower fork', '3 broken lower fork'):
+            return ancient_scaffold_wood(name, centres, radii, scaffold_bark)
+        return bark_tube(name, centres, radii, ordinary_bark, radial)
+
+    needles = grow_crown(label, profile, trunk, phase, bark, write_wood)
     pine_fascicles(f'{label} hero needle fascicles', needles, material)
 
 
@@ -2024,7 +2050,7 @@ def pine_tree(label, x, z, height, bark, needles, ground, roots=False, lean=None
             else:
                 pine_sprays(name, sprays, needles, close=carries_forks or z < 3)
     if profile and not use_native_crown:
-        hero_pine_crown(label, centres, phase, bark, modelled_needles)
+        hero_pine_crown(label, centres, phase, bark, modelled_needles, scaffold_bark=trunk_bark)
         return at if ancient else None
     if far_crown and not shoulder_crown:
         camera, views, mounts = far_crown
