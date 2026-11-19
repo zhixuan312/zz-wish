@@ -871,7 +871,7 @@ def main():
     house_clearance = tuple((house['centre'][0], house['centre'][1], 1.85) for house in village['receipt']['houses'])
     forests = {name: forest_points(land, name == 'far', near_terraces=near, clearings=house_clearance)
                for name in ('far', 'mid')}
-    forests['midRegrowth'] = grow_slope_understory(land, forests['mid'])
+    forests['midRegrowth'] = grow_slope_understory(land, forests['mid'], river[:2])
     metadata = {
         'projection': projection, 'width': width, 'height': height, 'samples': options.samples,
         'denoise': not options.no_denoise, 'requestedDevice': options.device,

@@ -351,46 +351,130 @@ def forest_site(land, x, depth, height):
     return smooth(.14, .60, soil), exposed, pocket
 
 
-def grow_slope_understory(land, batches):
-    # Two exposed shoulders carry pockets of second-growth pines. Keep the
-    # drier diagonal runs through each opening and feather out among tall trees.
-    shoulders = ((3.7, 129.9, 6.7, 7.6, .36), (24.5, 111.7, 7.2, 8.1, -.49))
+def placed_crown(points, origin, scale, rotation):
+    sx, sy, sz = scale
+    rx, ry, rz = rotation
+    ax, ay, az = math.sin(rx), math.sin(ry), math.sin(rz)
+    bx, by, bz = math.cos(rx), math.cos(ry), math.cos(rz)
+    ox, oy, oz = origin
+    placed = []
+    for x, y, z in points:
+        x, y, z = x * sx, y * sy, z * sz
+        y, z = bx * y - ax * z, ax * y + bx * z
+        x, z = by * x + ay * z, -ay * x + by * z
+        placed.append((ox + bz * x - az * y, oy + az * x + bz * y, oz + z))
+    return placed
+
+
+def crown_cells(points, faces, pitch):
+    """Rasterize actual foliage triangles at ground-cell centres."""
+    cells = set()
+    for a, b, c in faces:
+        triangle = sorted((points[a], points[b], points[c]), key=lambda point: point[1])
+        left, middle, right = triangle
+        if right[1] == left[1]:
+            continue
+        long_slope = (right[0] - left[0]) / (right[1] - left[1])
+        for start, end in ((left, middle), (middle, right)):
+            if end[1] == start[1]:
+                continue
+            short_slope = (end[0] - start[0]) / (end[1] - start[1])
+            for row in range(math.ceil(start[1] / pitch - .5), math.ceil(end[1] / pitch - .5)):
+                y = (row + .5) * pitch
+                x1 = left[0] + (y - left[1]) * long_slope
+                x2 = start[0] + (y - start[1]) * short_slope
+                lo = math.ceil(min(x1, x2) / pitch - .5)
+                hi = math.floor(max(x1, x2) / pitch - .5)
+                cells.update((col, row) for col in range(lo, hi + 1))
+    return cells
+
+
+def understory_prototypes(count):
+    from pine_valley_crowns import crown_mesh
+
+    prototypes = []
+    for kind in range(count):
+        crown, material = crown_mesh(kind, False)
+        faces = [(face[0], face[i], face[i + 1]) for face, mark in zip(crown.faces, material)
+                 if mark != 1 for i in range(1, len(face) - 1)]
+        prototypes.append((crown.points, faces))
+    return prototypes
+
+
+def grow_slope_understory(land, batches, water_ribbons):
+    # The mature crowns in these two exposed shoulders leave
+    # irregular openings where seedlings can establish.
+    shoulder_bounds = ((-5.8, 15.3, 120.6, 138.0), (13.5, 35.5, 102.4, 122.5))
+    pitch = .10
+    prototypes = understory_prototypes(len(batches))
     rng = random.Random(67191)
     growth = [([], [], []) for _ in batches]
-    for cx, cd, width, length, diagonal in shoulders:
-        neighbours = [(x, depth) for points, _, _ in batches for x, depth, _ in points
-                      if abs(x - cx) < width + 4. and abs(depth - cd) < length + 2.]
-        pitch = .64
-        steps = math.ceil(length * 2 / pitch), math.ceil((width + abs(diagonal) * length) * 2 / pitch)
-        for row in range(steps[0]):
-            for col in range(steps[1]):
-                depth = cd - length + (row + rng.uniform(.09, .91)) * pitch
-                x = cx - width - abs(diagonal) * length + (col + rng.uniform(.09, .91)) * pitch
-                down = depth - cd
-                across = x - cx - diagonal * down
-                raggedness = climate(x, depth, 3.8, 583) - .5
-                extent = math.hypot(across / width, down / length) + raggedness * .34
-                edge = 1. - smooth(.35, 1.03, extent)
-                meadow = 1. - smooth(.25, 1.10, abs(across + 1.7 - .42 * down
-                                                      + .81 * math.sin(down * .64)))
-                recruitment = edge * (1. - .91 * meadow) * lerp(.71, 1., climate(x, depth, 2.37, 163))
-                if rng.random() >= recruitment:
+    water_points = [point for ribbon in water_ribbons for point in ribbon.points
+                    if 99. < point[1] < 140. and -8. < point[0] < 38.]
+
+    def stamp(kind, origin, scale, rotation):
+        points, faces = prototypes[kind]
+        return crown_cells(placed_crown(points, origin, scale, rotation), faces, pitch)
+
+    for x0, x1, d0, d1 in shoulder_bounds:
+        canopy, trunks = set(), {}
+        for forest in (batches, growth):
+            for kind, (points, scales, rotations) in enumerate(forest):
+                for origin, scale, rotation in zip(points, scales, rotations):
+                    x, depth, _ = origin
+                    if not x0 - 3. <= x <= x1 + 3. or not d0 - 3. <= depth <= d1 + 3.:
+                        continue
+                    canopy.update(stamp(kind, origin, scale, rotation))
+                    key = math.floor(x / .32), math.floor(depth / .32)
+                    trunks.setdefault(key, []).append((x, depth))
+
+        step = .28
+        candidates = [(x0 + (col + rng.uniform(.12, .88)) * step, d0 + (row + rng.uniform(.12, .88)) * step)
+                      for row in range(math.ceil((d1 - d0) / step)) for col in range(math.ceil((x1 - x0) / step))]
+        rng.shuffle(candidates)
+        for x, depth in candidates:
+            edge = min(x - x0, x1 - x, depth - d0, d1 - depth)
+            if edge <= 0 or rng.random() >= smooth(0., 2.2, edge):
+                continue
+            distance = min((math.hypot(x - wx, depth - wd) for wx, wd, _ in water_points), default=math.inf)
+            if distance < 1.38:
+                continue
+            if FIELD_NEAR - 1.2 <= depth <= FIELD_FAR + 1.2:
+                left, right = land.edge(depth, 0), land.edge(depth, 7)
+                if left - 1.4 < x < right + 1.4:
                     continue
-                river = land.east_water(depth)
-                if abs(x - river) < 1.38 or (FIELD_NEAR - 1.2 <= depth <= FIELD_FAR + 1.2
-                                          and land.edge(depth, 0, river) - 1.4 < x < land.edge(depth, 7, river) + 1.4):
-                    continue
-                if any((x - a) ** 2 + (depth - b) ** 2 < .24 ** 2 for a, b in neighbours):
-                    continue
-                y = land.height(x, depth)
-                age = rng.random()
-                height = lerp(.47, .91, age)
-                crown = min(1.68 * height, lerp(.63, 1.44, age) * rng.uniform(.84, 1.15))
-                points, scales, rotation = growth[2 if rng.random() < .67 else 0]
-                points.append((x, depth, y - .029))
-                scales.append((crown, crown, height))
-                rotation.append((rng.uniform(-.12, .12), rng.uniform(-.12, .12), rng.uniform(0., math.tau)))
-                neighbours.append((x, depth))
+            key = math.floor(x / .32), math.floor(depth / .32)
+            if any((x - tx) ** 2 + (depth - td) ** 2 < .25 ** 2
+                   for a in range(key[0] - 1, key[0] + 2) for b in range(key[1] - 1, key[1] + 2)
+                   for tx, td in trunks.get((a, b), ())):
+                continue
+
+            y = land.height(x, depth)
+            grove, exposure, pocket = forest_site(land, x, depth, y)
+            moisture = .57 * (1. - exposure) + .27 * pocket + .16 * grove
+            # On sunny ridges only sheltered, wetter hollows regenerate.
+            # Ground beside a channel stays open and the first trees are low.
+            bank = smooth(1.38, 3.2, distance)
+            if rng.random() > lerp(.65, .94, moisture) * lerp(.50, 1., bank):
+                continue
+            age = .43 * moisture + .57 * rng.random()
+            height = lerp(.58, 1.24, age) * lerp(.72, 1., bank)
+            width = min(1.78 * height, lerp(.96, 1.70, age) * rng.uniform(.89, 1.17))
+            kind = 0 if rng.random() > lerp(.40, .72, moisture) else 3
+            origin = (x, depth, y - .029)
+            scale = (width, width * rng.uniform(.82, 1.), height)
+            rotation = (rng.uniform(-.12, .12), rng.uniform(-.12, .12), rng.uniform(0., math.tau))
+            cover = stamp(kind, origin, scale, rotation)
+            # Interlocking edges are natural, but a shaded sapling below an
+            # already filled footprint will not break up an open slope.
+            if not cover or len(cover - canopy) < .57 * len(cover):
+                continue
+            points, scales, rotations = growth[kind]
+            points.append(origin)
+            scales.append(scale)
+            rotations.append(rotation)
+            canopy.update(cover)
+            trunks.setdefault(key, []).append((x, depth))
     return growth
 
 
