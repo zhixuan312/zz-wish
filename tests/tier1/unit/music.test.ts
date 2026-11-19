@@ -153,7 +153,11 @@ function countPlays(cue: string) {
     plays.push(this.src);
     return original.call(this);
   };
-  return { plays: () => plays.filter((src) => src === `/music/${cue}.m4a`).length };
+  return {
+    plays: () => plays.filter((src) => src === `/music/${cue}.m4a`).length,
+    // The wrapper must not outlive the test that installed it.
+    restore() { FakeAudio.prototype.play = original; },
+  };
 }
 
 describe('music playback', () => {
@@ -529,19 +533,38 @@ describe('music playback', () => {
       if (effectFirst) {
         // The screen effect and the settle fallback ask in the same tick, before either
         // has finished starting.
-        const fallback = music.play('result', 'snow-roof');
-        await music.play('result', 'snow-roof');
+        const fallback = music.play('result', 'snow-roof', 0.1);
+        await music.play('result', 'snow-roof', 0.1);
         await fallback;
       } else {
         // The settle fallback starts the loop first; the screen effect then asks again.
-        await music.play('result', 'snow-roof');
-        await music.play('result', 'snow-roof');
+        await music.play('result', 'snow-roof', 0.1);
+        await music.play('result', 'snow-roof', 0.1);
       }
-      await new Promise((r) => setTimeout(r, 1900));
-      // A second start reuses the same element, so the play count is the proof.
+      // A second start reuses the same element, so the play count is the proof. A short
+      // fade is passed so this settles quickly rather than sitting near the test timeout.
+      await new Promise((r) => setTimeout(r, 300));
       expect(counter.plays()).toBe(1);
       expect(music.describe().channels).toBe(1);
+      counter.restore();
     }
+  });
+
+  it('keeps tracking the loop when the replaced one-shot is disposed, not ended', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, json: async () => ({ cues: ['snow_walk', 'snow_choose_loop'] }) })));
+    const music = createMusic({ createContext: () => new FakeContext() as unknown as AudioContext });
+    await music.unlock();
+    const counter = countPlays('snow_choose_loop');
+    await music.play('walk', 'snow-roof');
+    // No `ended`: the walk is faded out by disposeChannels and reaches retire() instead,
+    // which is the path that used to clear the new loop's tracking.
+    await music.play('choose', 'snow-roof', 0.1);
+    await new Promise((r) => setTimeout(r, 300));
+    await music.play('choose', 'snow-roof');
+    await new Promise((r) => setTimeout(r, 100));
+    expect(counter.plays()).toBe(1);
+    expect(music.describe().channels).toBe(1);
+    counter.restore();
   });
 
   it('keeps tracking a loop after the one-shot it replaced retires', async () => {
@@ -551,15 +574,16 @@ describe('music playback', () => {
     const counter = countPlays('snow_choose_loop');
     await music.play('walk', 'snow-roof');
     const walk = cueElements().find((a) => a.src.includes('snow_walk'))!;
-    await music.play('choose', 'snow-roof');
+    await music.play('choose', 'snow-roof', 0.1);
     // The replaced one-shot retires while the new loop is playing. If its release cleared
     // the loop's tracking, the next ask would start the cue a second time.
     walk.emit('ended');
-    await new Promise((r) => setTimeout(r, 4500));
+    await new Promise((r) => setTimeout(r, 300));
     await music.play('choose', 'snow-roof');
     await new Promise((r) => setTimeout(r, 100));
     expect(counter.plays()).toBe(1);
     expect(music.describe().channels).toBe(1);
+    counter.restore();
   });
 
   it('persists the mute choice', async () => {
