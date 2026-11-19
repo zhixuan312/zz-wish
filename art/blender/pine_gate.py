@@ -1529,8 +1529,9 @@ def bark_tube(name, points, radii, bark, radial):
     obj = mesh.curved_tube(name, points, radii, bark, radial=radial, region='approach')
     source = obj.data.uv_layers['SourceLightmap']
     material = obj.data.uv_layers['UVMap']
+    repeat_width, repeat_height = (.81, 1.14) if bark.get('one_light_ancient_pine_bark') else (.88, 1.46)
     for target, axial in zip(material.data, source.data):
-        target.uv = (axial.uv.x / .88, axial.uv.y / 1.46)
+        target.uv = (axial.uv.x / repeat_width, axial.uv.y / repeat_height)
     return obj
 
 
@@ -1545,7 +1546,25 @@ def ancient_bark_contour(stem, centres, sides, phase):
             bend = phase + 1.75 * fraction + .31 * math.sin(fraction * 11.0)
             rib = .089 * math.sin(angle * 7 + bend) + .044 * math.sin(angle * 11 - bend * .61)
             plate = .036 * math.sin(angle * 5 + fraction * 54.0 + phase)
+            plate += .026 * math.sin(angle * 9 + bend + .68 * math.sin(fraction * 49.))
             width = 1 + (rib + plate) * (1 - fraction * .72)
+            vertex = stem.data.vertices[ring * sides + index]
+            vertex.co = origin + (vertex.co - origin) * width
+    stem.data.update()
+
+
+def roadside_bark_contour(stem, centres, sides, phase):
+    # Broad root ribs merge into the lower trunk before they disappear into
+    # the ground. Keep the ring centroid at the surveyed root.
+    for ring, centre in enumerate(centres):
+        fraction = ring / (len(centres) - 1)
+        origin = mesh.point(centre)
+        root_flare = .46 * math.exp(-15. * fraction)
+        for index in range(sides):
+            angle = math.tau * index / sides
+            rib = math.cos(3. * angle + phase + 1.2 * fraction)
+            grain = .044 * math.sin(4. * angle - phase + 3.7 * fraction)
+            width = 1. + root_flare * (1. + .57 * rib) + grain * (1. - .6 * fraction)
             vertex = stem.data.vertices[ring * sides + index]
             vertex.co = origin + (vertex.co - origin) * width
     stem.data.update()
@@ -1562,8 +1581,9 @@ def pine_bough(name, root, outward, reach, drift, droop, lift, bark, radial=5):
 
 
 def pine_tree(label, x, z, height, bark, needles, ground, roots=False, lean=None, crown_start=.38,
-              modelled_needles=None, far_crown=None):
+              modelled_needles=None, far_crown=None, trunk_bark=None):
     ancient = lean is not None
+    roadside = not ancient and z >= 12. and abs(x) < 5.
     y = supports_height(x, z, [ground]) - .26
     drift = RANDOM.uniform(-.95, .95) if lean is None else lean
     side = RANDOM.uniform(-.49, .49)
@@ -1572,9 +1592,13 @@ def pine_tree(label, x, z, height, bark, needles, ground, roots=False, lean=None
         sweep = (.26 * f + 1.04 * f * f) if ancient else f * f
         cross = math.copysign(.86, drift) * f ** 2 if ancient else 0.
         crook = .24 * (math.sin(f * 9.5 + phase) - math.sin(phase)) * f if ancient else 0.
-        return Vector((x + drift * sweep + .23 * math.sin(f * 5 + phase) * f,
-                       y + height * f, z + side * f - .19 * math.sin(f * 4.2 + phase) * f + cross + crook))
-    segments = 18 if ancient else 7
+        mid = math.sin(math.pi * f) if roadside else 0.
+        bow = math.copysign(mid * (.30 + .16 * math.sin(f * 6.4 + phase)), x)
+        warp = .28 * mid * math.cos(f * 5.3 - phase)
+        return Vector((x + drift * sweep + .23 * math.sin(f * 5 + phase) * f + bow,
+                       y + height * f,
+                       z + side * f - .19 * math.sin(f * 4.2 + phase) * f + cross + crook + warp))
+    segments = 18 if ancient else 9 if roadside else 7
     centres = [at(j / segments) for j in range(segments + 1)]
     def trunk_at(f):
         j = min(segments - 1, int(f * segments))
@@ -1584,21 +1608,26 @@ def pine_tree(label, x, z, height, bark, needles, ground, roots=False, lean=None
              else height * (.00065 + .027 * (1 - j / segments) ** 1.16)
              for j in range(segments + 1)]
     sides = 24 if ancient else 10
-    stem = bark_tube(f'{label} crooked trunk', centres, radii, bark, sides)
+    stem = bark_tube(f'{label} crooked trunk', centres, radii, bark if trunk_bark is None else trunk_bark, sides)
     if ancient:
         ancient_bark_contour(stem, centres, sides, phase)
+    if roadside:
+        roadside_bark_contour(stem, centres, sides, phase)
     if roots:
-        reach_scale = 1.53 if ancient else 1.
         for i in range(4 if ancient else 3):
             direction = phase + i * 2.2
             vx, vz = math.cos(direction), math.sin(direction)
-            start = (x, supports_height(x, z, [ground]) + .08, z)
-            x1, z1 = x + vx * .43 * reach_scale, z + vz * .43 * reach_scale
+            reach_scale = 1.53 if ancient else .95 + .13 * math.sin(phase + i * 2.6) if roadside else 1.
+            start = (x, y + .34, z)
+            bend = .12 * math.sin(phase + i * 2.4) if roadside else 0.
+            x1, z1 = x + vx * .43 * reach_scale - vz * bend, z + vz * .43 * reach_scale + vx * bend
             x2, z2 = x + vx * .94 * reach_scale, z + vz * .94 * reach_scale
             middle = (x1, supports_height(x1, z1, [ground]) + .035, z1)
             end = (x2, supports_height(x2, z2, [ground]) - .044, z2)
+            shoulder = .102 if roadside else .074
             bark_tube(f'{label} exposed buttress root', [start, middle, end],
-                      [.074 * reach_scale, .038 * reach_scale, .008], bark, 7)
+                      [shoulder * reach_scale, .046 * reach_scale if roadside else .038 * reach_scale, .008],
+                      bark if trunk_bark is None else trunk_bark, 7)
     profile = HERO_PINE_CROWNS.get(label)
     use_native_crown = use_native_valley_crown(label, profile, far_crown)
     shoulder_crown = label in SHOULDER_PINE_CROWNS
@@ -1786,10 +1815,16 @@ def forest(ground, rock, stone, bark, pine, far_crown=None):
             pine_tree(f'Old pine {i + 1} {s}', x, z + RANDOM.uniform(-1.6, 1.6),
                       RANDOM.uniform(6.1, 10.4), bark, needles, ground, roots=z >= 14)
     west_label = 'Ancient western pine at the saddle'
+    old_bark = apply_scan(mesh.material('Fissured bark on the ancient saddle pines', '#af9684'),
+                          'knotted_pine_bark', .91)
+    mesh.vertex_tint_shader(old_bark)
+    old_bark['one_light_ancient_pine_bark'] = True
     low = pine_tree(west_label, -1.88, PINE_CREST + .08, 10.6,
-                    bark, needles, ground, roots=True, lean=2.43, modelled_needles=modelled_needles)
+                    bark, needles, ground, roots=True, lean=2.43, modelled_needles=modelled_needles,
+                    trunk_bark=old_bark)
     pine_tree('Ancient eastern pine at the saddle', 1.82, PINE_CREST - .32, 11.4,
-              bark, needles, ground, roots=True, lean=-2.68, modelled_needles=modelled_needles)
+              bark, needles, ground, roots=True, lean=-2.68, modelled_needles=modelled_needles,
+              trunk_bark=old_bark)
     cloth = mesh.material('Sun-faded red cloth on the old pine', '#a35a4b', rough=.93)
     crest_ribbons(west_label, low, cloth)
     for i, (x, z, h) in enumerate(((-10, 0, 10), (12, -3, 9), (8, -14, 7), (-7, -10, 8),
@@ -1894,6 +1929,14 @@ def paint_stone():
                     green_mix = max(0., min(.63, (.15 + bank) * .77))
                 tint_color = [base[channel] * shade * (1 - green_mix * (1 - tone))
                               for channel, tone in enumerate((.48, .73, .43))]
+                if material.get('one_light_ancient_pine_bark'):
+                    # Oxidised plates and darker sheltered fissures over the
+                    # same bark scan, visible from the foot of the walk.
+                    shield = .5 + .5 * noise.noise(Vector((world.x * 9., world.y * 9., world.z * 3.3)))
+                    oxide = .5 + .5 * noise.noise(Vector((world.x * 4.6, world.y * 4.6, world.z * 1.9)))
+                    relief = .76 + .28 * shield
+                    tint_color = [channel * relief * (1. - loss * oxide)
+                                  for channel, loss in zip(tint_color, (.035, .16, .23))]
                 if obj.name == 'Continuous mountain shoulder':
                     x, z = world.x, -world.y
                     creek_x, _, width = watercourse_at(z)
