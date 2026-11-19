@@ -72,12 +72,12 @@ const SURFACE_NOISE_GLSL = `
   }
 `;
 
-function refinedWaxMaterial(light, layer) {
+function refinedWaxMaterial(light, layer, sculptNormal) {
   const wet = layer === 'pool';
   const shaft = layer === 'body';
   const remnant = layer === 'remnant';
   const style = {
-    body: { roughness: .44, clearcoat: .10, specularIntensity: .52, diffuse: .91, scatter: 2.0 },
+    body: { roughness: .44, clearcoat: .10, specularIntensity: .52, diffuse: .91, scatter: 2.38 },
     pool: { roughness: .10, clearcoat: .55, specularIntensity: .86, diffuse: .30, scatter: .045 },
     remnant: { roughness: .40, clearcoat: .09, specularIntensity: .43, diffuse: .91, scatter: .04 },
   }[layer];
@@ -88,6 +88,19 @@ function refinedWaxMaterial(light, layer) {
   material.onBeforeCompile = shader => {
     materialCoordinates(shader);
     Object.assign(shader.uniforms, light);
+    if (sculptNormal) {
+      shader.uniforms.uPineSculptNormal = { value: sculptNormal };
+      shader.vertexShader = `attribute vec2 aPineSculptCircle;
+        varying vec2 vPineSculptCircle;
+        varying vec3 vPineSculptTangent;
+        ${shader.vertexShader}`.replace('#include <begin_vertex>', `#include <begin_vertex>
+          vPineSculptCircle = aPineSculptCircle;
+          vPineSculptTangent = mat3(modelViewMatrix) * vec3(aPineSculptCircle.y, 0., -aPineSculptCircle.x);`);
+      shader.fragmentShader = `uniform sampler2D uPineSculptNormal;
+        varying vec2 vPineSculptCircle;
+        varying vec3 vPineSculptTangent;
+        ${shader.fragmentShader}`;
+    }
     shader.fragmentShader = `
       uniform vec3 uPineSourcePosition, uPineSourceColor, uPineWaxCrown;
       uniform float uPineCandela, uPineSourceRadius, uPinePoolWet, uPineWaxCooling, uPineWaxHeight;
@@ -141,6 +154,19 @@ function refinedWaxMaterial(light, layer) {
       .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
         ${shaft ? `normal = pineRelief(normal, -vViewPosition,
           -.000072 * bubble + .000021 * poreLip + .000047 * waxBloom);` : ''}
+        ${sculptNormal ? `
+        // The live profile and burn height carry the tangent atlas baked from
+        // the sculpt. The liquid surface and wick use their own geometry.
+        float wall = 1. - abs(inverseTransformDirection(normal, viewMatrix).y);
+        vec3 axis = vPineSculptTangent - normal * dot(normal, vPineSculptTangent);
+        if (wall > .12 && dot(axis, axis) > 1.e-8 && dot(vPineSculptCircle, vPineSculptCircle) > .08) {
+          vec3 tangent = normalize(axis);
+          vec3 bitangent = cross(normal, tangent);
+          float turn = atan(vPineSculptCircle.y, vPineSculptCircle.x);
+          float height = clamp(vPineLocal.y / max(uPineWaxHeight, .001), 0., 1.);
+          vec3 detail = texture2D(uPineSculptNormal, vec2(.5 - turn / 6.28318531, height)).rgb * 2. - 1.;
+          normal = normalize(normal + (tangent * detail.x + bitangent * detail.y) * (.74 * smoothstep(.12, .55, wall)));
+        }` : ''}
         ${wet ? `
         vec2 poolPoint = vPineLocal.xz;
         float meniscus = smoothstep(.46, .97, length(poolPoint) / max(uPinePoolRadius, .001));
@@ -241,7 +267,7 @@ function refinedWaxMaterial(light, layer) {
           reflectedLight.indirectDiffuse += diffuseColor.rgb * vec3(.96, 1., 1.04) * spillBounce;`);
     }
   };
-  material.customProgramCacheKey = () => `pine-wax-detail-${layer}-3`;
+  material.customProgramCacheKey = () => `pine-wax-detail-${layer}-${sculptNormal ? 'sculpt' : 'plain'}-4`;
   return material;
 }
 
@@ -431,11 +457,23 @@ function makeBraidedWick(path, fiberMaterial, charMaterial) {
   return { group, char };
 }
 
-function surface(rings, sectors) {
+function surface(rings, sectors, sculpt = false) {
   const geometry = new THREE.BufferGeometry();
   const positions = new THREE.BufferAttribute(new Float32Array(rings * sectors * 3), 3);
   positions.setUsage(THREE.DynamicDrawUsage);
   geometry.setAttribute('position', positions);
+  if (sculpt) {
+    const circle = new Float32Array(rings * sectors * 2);
+    for (let row = 0; row < rings; row++) {
+      for (let side = 0; side < sectors; side++) {
+        const angle = side * TAU / sectors;
+        const index = (row * sectors + side) * 2;
+        circle[index] = Math.cos(angle);
+        circle[index + 1] = Math.sin(angle);
+      }
+    }
+    geometry.setAttribute('aPineSculptCircle', new THREE.BufferAttribute(circle, 2));
+  }
   const indices = [];
   for (let row = 0; row < rings - 1; row++) {
     for (let side = 0; side < sectors; side++) {
@@ -627,7 +665,7 @@ function writeDrip(drip, rows, cut, growth) {
   finishSurface(mesh);
 }
 
-export function createPineWax(seat, waxMaterial, { refined = false } = {}) {
+export function createPineWax(seat, waxMaterial, { refined = false, sculptNormal = null } = {}) {
   const group = new THREE.Group();
   group.position.y = seat.y;
   const light = refined ? {
@@ -647,7 +685,7 @@ export function createPineWax(seat, waxMaterial, { refined = false } = {}) {
     uPineTraceThickness: { value: 0 },
   } : null;
   const traceSectionLocal = refined ? vector(0, 0, 0) : null;
-  const bodyMaterial = refined ? refinedWaxMaterial(light, 'body')
+  const bodyMaterial = refined ? refinedWaxMaterial(light, 'body', sculptNormal)
     : waxMaterial(0xffffff, { roughness: .42, clearcoat: .28, fall: 92 });
   const poolMaterial = refined ? refinedWaxMaterial(light, 'pool')
     : waxMaterial(0xffffff, { roughness: .14, clearcoat: .95, fall: 84 });
@@ -718,7 +756,7 @@ export function createPineWax(seat, waxMaterial, { refined = false } = {}) {
         runnelLayout = shapedRunnels(source, drops);
       }
       body.geometry.dispose();
-      bodyMesh = surface(rows.length + 7 + (refined ? RUNNEL_ROWS : 0), refined ? 72 : 48);
+      bodyMesh = surface(rows.length + 7 + (refined ? RUNNEL_ROWS : 0), refined ? 72 : 48, refined && !!sculptNormal);
       body.geometry = bodyMesh.geometry;
       bodyMaterial.color.setHex(shape.color);
       poolMaterial.color.copy(bodyMaterial.color).lerp(warmWax, refined ? .06 : .12);

@@ -1206,7 +1206,7 @@ def source_lighting(scene):
     return point
 
 
-def build(output, impostor_manifest=None):
+def build(output, impostor_manifest=None, wax_sculpt=None):
     global contacts
     bpy.ops.wm.read_factory_settings(use_empty=True)
     scene = bpy.context.scene
@@ -1231,7 +1231,7 @@ def build(output, impostor_manifest=None):
     forest(support, rock, stone, bark, needle, far_crown)
     stream_stones, deck_slabs = saddle_water(stone, support)
     audit_watercourse(support, stream_stones, deck_slabs, bridge_curbs)
-    build_tea_shoulder(ANCHOR, stone, wood, tiles, clay, iron, ledge, contacts)
+    build_tea_shoulder(ANCHOR, stone, wood, tiles, clay, iron, ledge, contacts, wax_sculpt)
     paint_stone()
     scene.render.engine = 'CYCLES'
     scene.render.threads_mode = 'AUTO'
@@ -1318,5 +1318,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output', default='art/build/pine-gate/pine-gate.blend', type=Path)
     parser.add_argument('--impostors', type=Path, help='Explicit Cycles colour/depth manifest for the far crowns.')
+    parser.add_argument('--wax-sculpt', type=Path, help='Directory containing audited wax normal bakes.')
     args = parser.parse_args(sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else [])
-    build(args.output.resolve(), impostor_manifest=args.impostors.resolve() if args.impostors else None)
+    build(args.output.resolve(), impostor_manifest=args.impostors.resolve() if args.impostors else None,
+          wax_sculpt=args.wax_sculpt.resolve() if args.wax_sculpt else None)

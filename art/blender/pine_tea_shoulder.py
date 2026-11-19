@@ -1,6 +1,9 @@
 """Site-approval geometry for the Pine Gate spring and tea shoulder."""
 
+from hashlib import sha256
+import json
 import math
+from pathlib import Path
 
 import bpy
 
@@ -246,10 +249,20 @@ def candle_wax(name, color, roughness):
     return material
 
 
-def spent_wax_on_sill(locate, iron):
+def spent_wax_on_sill(locate, iron, sculpt_normal):
     wax_materials = [candle_wax(f'Weathered cold wax tone {i + 1}', color, roughness)
                      for i, (color, roughness) in enumerate((('#b6aa91', .51), ('#9e9077', .59),
                                                              ('#c2b8a0', .46), ('#ada38b', .54)))]
+    if sculpt_normal:
+        for material in wax_materials:
+            nodes = material.node_tree.nodes
+            links = material.node_tree.links
+            image = nodes.new('ShaderNodeTexImage')
+            image.image = sculpt_normal
+            normal = nodes.new('ShaderNodeNormalMap')
+            normal.inputs['Strength'].default_value = .55
+            links.new(image.outputs['Color'], normal.inputs['Color'])
+            links.new(normal.outputs['Normal'], nodes.get('Principled BSDF').inputs['Normal'])
     # Keep the owner dish empty, with the larger remnants gathered at the sides.
     remnants = ((-.170, -.034, .013, .015), (-.110, -.009, .011, .006),
                 (-.100, -.056, .007, .004), (-.109, .061, .011, .014),
@@ -287,6 +300,8 @@ def spent_wax_on_sill(locate, iron):
             vertex.co.z += height * mouth * (.055 * math.sin(angle * 2. - i) - (.18 + .08 * (i % 3)) * collapse)
         for face in wax.data.polygons:
             face.use_smooth = True
+        if sculpt_normal:
+            mesh.uv_world(wax, .034)
         mesh.curved_tube(f'Extinguished charred wick {i + 1}',
                          [locate(a, height * .42 - .0006, c),
                           locate(a + .0005 * math.cos(i), height * .42 + .0018, c - .0003),
@@ -313,7 +328,7 @@ def dressed_shrine_stone(name, locate, x, z, material, profile, seed):
     return stone
 
 
-def pierced_lamp_shrine(anchor, stone, ledge, iron, contacts):
+def pierced_lamp_shrine(anchor, stone, ledge, iron, contacts, sculpt_normal):
     locate = frame(anchor[0], anchor[1], anchor[2])
     foundation = dressed_shrine_stone('Broad coursed foundation of the stone lamp shrine', locate, 0, 0,
                                       stone[4], ((-1.003, .310, .274), (-.981, .331, .291),
@@ -345,7 +360,7 @@ def pierced_lamp_shrine(anchor, stone, ledge, iron, contacts):
     mesh.beam('Old iron peg for wishes below the centre seat', locate(-.078, -.081, .208),
               locate(-.078, -.081, .244), .005, iron, .004, 'niche')
     with contacts.group('Spent wax fused to the wick shelf', [shelf]):
-        spent_wax_on_sill(locate, iron)
+        spent_wax_on_sill(locate, iron, sculpt_normal)
     wax = candle_wax('Wax of the two remaining short candles', '#a29476', .46)
     for a, c, h, radius in ((-.143, -.105, .026, .014), (.139, -.081, .019, .012)):
         stub = mesh.lathe('Earlier candle still burning on the outer sill', [(0, 0), (radius * 1.33, 0),
@@ -359,9 +374,25 @@ def pierced_lamp_shrine(anchor, stone, ledge, iron, contacts):
         small_flame('Short earlier wish still burning on the outer sill', locate(a + .001, h + .005, c), .017, 'niche')
 
 
-def build_tea_shoulder(anchor, stone, wood, tiles, clay, iron, ledge, contacts):
+def load_old_wax_normal(sculpt_dir):
+    receipt = json.loads((sculpt_dir / 'wax-sculpt.json').read_text())
+    sculpt_source = Path(__file__).with_name('pine_wax_sculpt.py')
+    if receipt['sourceSha256'] != sha256(sculpt_source.read_bytes()).hexdigest():
+        raise RuntimeError('The wax normal bake belongs to a different sculpt source.')
+    spec = receipt['normalMaps']['oldSpill']
+    image = sculpt_dir / 'pine-old-wax-normal.png'
+    if spec['uri'] != image.name or sha256(image.read_bytes()).hexdigest() != spec['sha256']:
+        raise RuntimeError('The baked old wax normal did not match its receipt.')
+    texture = bpy.data.images.load(str(image), check_existing=True)
+    texture.colorspace_settings.name = 'Non-Color'
+    texture.pack()
+    bpy.context.scene['pine_old_wax_sculpt_proof'] = json.dumps(spec)
+    return texture
+
+
+def build_tea_shoulder(anchor, stone, wood, tiles, clay, iron, ledge, contacts, sculpt_dir=None):
     repair = mesh.material('Small unglazed replacement tiles on old roofs', '#a7a395', 'grey_roof_tiles', .73)
     earth_shrine(stone, wood, tiles, repair, clay, iron, contacts)
     tea_pavilion(stone, wood, tiles, repair, clay, iron, contacts)
     spring_basin(stone, wood)
-    pierced_lamp_shrine(anchor, stone, ledge, iron, contacts)
+    pierced_lamp_shrine(anchor, stone, ledge, iron, contacts, load_old_wax_normal(sculpt_dir) if sculpt_dir else None)

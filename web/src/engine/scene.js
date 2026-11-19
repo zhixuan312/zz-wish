@@ -571,7 +571,7 @@ const LAMPS = {
     solid(g, lathe([[0, 0], [.042, 0], [.05, .004], [.052, .013], [.047, .015], [.043, .007], [0, .007]], 40), greyStoneMat);
     return { g, kind: 'wax', seat: { y: .007, maxR: .045, maxH: .16 }, frame: { h: .2, cy: .08 }, lightMax: .3 };
   },
-  pineWax({ refined = false } = {}) {
+  pineWax({ refined = false, sculptNormal = null } = {}) {
     const g = new THREE.Group();
     const seat = { y: .008, maxR: refined ? .039 : .045, maxH: .16, traceRadius: refined ? .046 : .056 };
     const holder = refined ? createPineTray(seat)
@@ -585,7 +585,7 @@ const LAMPS = {
     const contactRadius = refined ? .064 : .082;
     const shelfContact = waxContactShadow(contactRadius, refined ? .64 : .53);
     g.add(shelfContact);
-    const pineWax = createPineWax(seat, waxMaterial, { refined });
+    const pineWax = createPineWax(seat, waxMaterial, { refined, sculptNormal });
     pineWax.group.visible = false;
     g.add(pineWax.group);
     const setShape = shape => {
@@ -831,11 +831,14 @@ const api = { g, parts: null, partsKey: null, type: null, power: 0, lightPower: 
     waxState: 'unlit',
     // Builds this place's vessel; a dish or a shade takes the person's outline and colour.
     build(o) {
-      const drawn = !WAX_LAMPS.has(this.type) && o,liveBaked=!!place?.P.bakedLighting,key = this.type + (liveBaked?'|cycles':'') + (drawn ? JSON.stringify([o.rows, o.color]) : '');
+      const drawn = !WAX_LAMPS.has(this.type) && o,liveBaked=!!place?.P.bakedLighting;
+      const sculptNormal = this.type === 'pineWax' ? place?.baked?.waxNormal : null;
+      const key = this.type + (liveBaked?'|cycles':'') + (sculptNormal ? `|sculpt-${sculptNormal.id}` : '')
+        + (drawn ? JSON.stringify([o.rows, o.color]) : '');
       if (key === this.partsKey) return;
       if (this.parts) { g.remove(this.parts.g); disposeTree(this.parts.g); }
       const input=drawn?{...o,liveBaked}:this.type==='gauze'?{...presetOf('shade'),liveBaked}:undefined;
-      const p = this.type === 'pineWax' ? LAMPS.pineWax({ refined: liveBaked })
+      const p = this.type === 'pineWax' ? LAMPS.pineWax({ refined: liveBaked, sculptNormal })
         : input ? LAMPS[this.type](input) : LAMPS[this.type]();
       this.parts = p; this.partsKey = key; g.add(p.g);
       hanger.material=p.suspensionMaterial??defaultSuspensionMaterial;
