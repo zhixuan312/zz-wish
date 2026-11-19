@@ -329,7 +329,8 @@ function verifyMobileImages(images) {
     const normal = image.roles.some(role => /normalTexture$/i.test(role));
     if (normal && image.roles.some(role => !/normalTexture$/i.test(role))) throw new Error(`Mixed normal/colour roles require separate source images: ${image.name}`);
     const retainedScreen = image.name === screenBasePattern && image.roles.includes('baseColorTexture');
-    const maximum = retainedScreen ? screenBaseSize : 512, expected = normal ? 'UASTC' : 'ETC1S';
+    const retainedCrown = pineCrownBaseImages.includes(image.name) && image.roles.includes("baseColorTexture");
+    const maximum = retainedCrown ? 1024 : retainedScreen ? screenBaseSize : 512, expected = normal ? 'UASTC' : 'ETC1S';
     if (image.codec !== expected || image.width > maximum || image.height > maximum) throw new Error(`Mobile material profile mismatch: ${image.name} (${image.roles.join(', ')}) expected ${expected} at most ${maximum}px.`);
     const colour = image.roles.some(role => /^(baseColorTexture|emissiveTexture)$/.test(role));
     if (image.transfer !== (colour ? 'sRGB' : 'linear')) throw new Error(`Mobile material transfer mismatch: ${image.name}.`);
@@ -337,6 +338,10 @@ function verifyMobileImages(images) {
 }
 const rawData = await readFile(raw), rawInfo = verifyUV(rawData); console.log('RAW_UV_INFO', rawInfo);
 const sourceImageRoles = imageReport(rawData);
+const pineCrownBaseImages = placeId === 'pine-gate' && materialProfile === 'mobile'
+  ? sourceImageRoles.filter(image => /^(?:ridge|young)-[+-]\d{2,3}$/.test(image.name)
+    && image.references.every(use => use.material.startsWith('Depth-reconstructed pine crown '))
+    && image.roles.includes('baseColorTexture')).map(image => image.name) : [];
 const sourceHasRetainedScreen = sourceImageRoles.some(image=>image.name===screenBasePattern&&image.roles.includes('baseColorTexture'));
 const needsRasterNormalization = glbJSON(rawData).images?.some(image=>image.mimeType==='image/webp');
 async function normalizeRasterInputs(input,output){
@@ -359,6 +364,9 @@ const materialRecipe = {
   ...(materialProfile === 'mobile' ? { normals: { codec: 'UASTC', maximumSize: 512, quality: 2, rdo: false, slotPattern: '*normal*', retainedAsNormalData: true }, otherMaps: { codec: 'ETC1S', maximumSize: 512, quality: 255, compression: 4, endpointRdo: false, selectorRdo: false }, screenBase: { sourceImageName: screenBasePattern, maximumSize: screenBaseSize, codec: 'ETC1S' } } : { textureCLI: ['uastc', '--level', '2', '--rdo', '2', '--zstd', '18', '--jobs', '2'] }),
 };
 if(materialProfile==='mobile'&&!sourceHasRetainedScreen)materialRecipe.screenBase={retained:false,reason:'No matching screen-base image is used by this source.'};
+if (pineCrownBaseImages.length) materialRecipe.pineCrownBase = {
+  sourceImageNames: pineCrownBaseImages, maximumSize: 1024, codec: 'ETC1S',
+};
 if(manifest.bake?.cameraPreExposure!==undefined){
  const exposure=manifest.bake.cameraPreExposure;
  if(!Number.isFinite(exposure)||exposure<=0||Math.abs(manifest.bake.threeLightMapIrradianceMultiplier-Math.PI*exposure)>1e-10)throw Error('Source camera normalization and irradiance units disagree');
@@ -401,7 +409,8 @@ const geometryReceipt = join(source, `geometry-stage${profileTag}.json`);
 const geometryKey = materialProfile === 'quality'
   ? `dedup-uastc2-rdo2-zstd18-meshopt16-16-12-v1:${digest(rawData)}`
   : `mobile-v1-normal512-uastc2-colour512-etc1s255c4-screen${screenBaseSize}-${screenBasePattern}-meshopt16-16-12:${digest(rawData)}`;
-const actualGeometryKey = `${normalFormat==='float32'?'genuine-float32-normal-NONE-v1:':''}${needsRasterNormalization?'webp-to-lossless-png-v1:':''}${positionFormat === 'float32' ? 'float32-position-NONE-v1:' : ''}${geometryKey}`;
+const pineCrownKey = pineCrownBaseImages.length ? `pine-crown-base1024-${pineCrownBaseImages.join(',')}:` : '';
+const actualGeometryKey = `${pineCrownKey}${normalFormat==='float32'?'genuine-float32-normal-NONE-v1:':''}${needsRasterNormalization?'webp-to-lossless-png-v1:':''}${positionFormat === 'float32' ? 'float32-position-NONE-v1:' : ''}${geometryKey}`;
 let cached = false;
 if (await exists(geometryReceipt) && await exists(geometryCache)) {
   const receipt = JSON.parse(await readFile(geometryReceipt, 'utf8'));
@@ -429,7 +438,13 @@ if (!cached) {
     // Already-Basis normal/screen images are explicitly skipped by subsequent
     // glTF-Transform texture transforms. The source pixels are never overwritten.
     if (screenBaseSize === 1024 && hasRetainedScreen) await gltf('etc1s', normals, screen, '--pattern', screenBasePattern, '--resize', '1024', '--quality', '255', '--compression', '4', '--rdo', 'false', '--jobs', '2');
-    await gltf('etc1s', screenBaseSize === 1024 && hasRetainedScreen ? screen : normals, textured, '--resize', '512', '--quality', '255', '--compression', '4', '--rdo', 'false', '--jobs', '2');
+    let colourInput = screenBaseSize === 1024 && hasRetainedScreen ? screen : normals;
+    for (const [index, name] of pineCrownBaseImages.entries()) {
+      const crown = join(source, `${stem}${profileTag}.pine-crown-${index}.glb`);
+      await gltf('etc1s', colourInput, crown, '--pattern', name, '--resize', '1024', '--quality', '255', '--compression', '4', '--rdo', 'false', '--jobs', '2');
+      colourInput = crown;
+    }
+    await gltf('etc1s', colourInput, textured, '--resize', '512', '--quality', '255', '--compression', '4', '--rdo', 'false', '--jobs', '2');
   }
   const texturedData = await readFile(textured);
   verifyMaterialValues(rawData,texturedData);
@@ -561,7 +576,7 @@ manifest.compression.generatorSha256=digest(await readFile(new URL(import.meta.u
 manifest.compression.positionFilter = positionFormat==='float32'?'NONE':'quantized';
 manifest.compression.transformOrder = [
   ...(needsRasterNormalization?['lossless-WebP-to-PNG']:[]),'dedup',
-  ...(materialProfile==='quality'?['uastc']:['uastc-normal-512',...(sourceHasRetainedScreen&&screenBaseSize===1024?['etc1s-screen-1024']:[]),'etc1s-other-512']),
+  ...(materialProfile==='quality'?['uastc']:['uastc-normal-512',...(sourceHasRetainedScreen&&screenBaseSize===1024?['etc1s-screen-1024']:[]),...(pineCrownBaseImages.length?['etc1s-pine-crowns-native']:[]),'etc1s-other-512']),
   positionFormat==='float32'?(normalFormat==='float32'?'reorder-UV-color-quantize-meshopt-position-normal-NONE':'reorder-nonposition-quantize-meshopt-position-NONE'):'meshopt',
 ];
 if(needsRasterNormalization){const receipt=await readFile(join(source,'raster-normalization.json'));manifest.compression.rasterNormalization={receiptSha256:digest(receipt),...JSON.parse(receipt.toString())};}
