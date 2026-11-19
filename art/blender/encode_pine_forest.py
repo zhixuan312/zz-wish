@@ -48,10 +48,8 @@ def encode_forest(source, output, quality, alpha_quality, nearest):
     if original.get('preExposure', pre_exposure) != pre_exposure:
         raise ValueError('The forest plates disagree with the Pine Gate camera exposure.')
     forest = original['descriptor']
-    width, height = forest['width'], forest['height']
     metres_wide, metres_high = forest['widthMetres'], forest['heightMetres']
     centre = float(forest['centerY'])
-    metres_per_pixel = metres_wide / width
     original_left = -metres_wide / 2
     original_top = centre + metres_high / 2
     output.mkdir(parents=True, exist_ok=False)
@@ -63,6 +61,11 @@ def encode_forest(source, output, quality, alpha_quality, nearest):
         master = source / Path(file['uri']).with_suffix('.exr')
         if digest(master) != file['masterSha256'] or layer['uri'] != file['uri']:
             raise ValueError('Forest master or layer identity differs from the render receipt.')
+        width = layer.get('width', forest['width'])
+        height = layer.get('height', forest['height'])
+        if width <= 0 or height <= 0 or width * metres_high != height * metres_wide:
+            raise ValueError('Forest master does not match the shared 18:14 projection.')
+        metres_per_pixel = metres_wide / width
         left, right, top = VISIBLE_BOUNDS[layer['z']]
         first_col = max(0, math.floor((left - original_left) / metres_per_pixel))
         last_col = min(width, math.ceil((right - original_left) / metres_per_pixel))
@@ -83,7 +86,7 @@ def encode_forest(source, output, quality, alpha_quality, nearest):
             subprocess.run(['cwebp', '-quiet', '-q', str(quality), '-alpha_q', str(alpha_quality),
                             '-exact', '-m', '6', '-sharp_yuv', '-af', str(png), '-o', str(target)], check=True)
         cropped.append({'uri': target.name, 'bytes': target.stat().st_size, 'sha256': digest(target),
-                        'masterSha256': file['masterSha256'],
+                        'masterSha256': file['masterSha256'], 'masterPixels': [width, height],
                         'crop': [first_col, first_row, target_width, target_height]})
         visible_layers.append(layer)
     if len(visible_layers) < 2:

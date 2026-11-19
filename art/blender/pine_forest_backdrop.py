@@ -24,6 +24,8 @@ from snow_roof import color, point
 
 
 STATIONS = (29., 23., 17., 11.7, 8.4)
+# The middle canopy still fills the first uphill view after the near plane fades.
+DETAIL_PLATE_WIDTH = {17.: 1764}
 PLATE_WIDTH = 18.
 PLATE_HEIGHT = 14.
 CENTER_Y = 6.9
@@ -176,6 +178,13 @@ def forest_undergrowth(layer, station, index, materials, rng):
     layer.objects.link(obj)
 
 
+def plate_height(width):
+    height = width * PLATE_HEIGHT / PLATE_WIDTH
+    if width < 360 or not height.is_integer():
+        raise ValueError('Choose a width with an exact 18:14 raster and at least 360 pixels.')
+    return int(height)
+
+
 def render_plates(options):
     source = verify_source(options.pines)
     scene = bpy.context.scene
@@ -188,14 +197,10 @@ def render_plates(options):
     scene.collection.objects.link(camera)
     camera.rotation_euler = point((0, 0, -1)).to_track_quat('-Z', 'Y').to_euler()
     scene.camera = camera
-    count = math.gcd(int(PLATE_WIDTH), int(PLATE_HEIGHT))
-    vertical = options.width * int(PLATE_HEIGHT) // int(PLATE_WIDTH)
-    if options.width < 360 or options.width % (int(PLATE_WIDTH) // count):
-        raise ValueError('Choose a width with an exact 18:14 raster and at least 360 pixels.')
+    vertical = plate_height(options.width)
     configure_cycles(scene, SimpleNamespace(samples=options.samples, device='METAL',
                                             skip_bake=False, export_only=False))
     scene.render.film_transparent = True
-    scene.render.resolution_x, scene.render.resolution_y = options.width, vertical
     scene.render.resolution_percentage = 100
     scene.render.use_persistent_data = False
     image = scene.render.image_settings
@@ -228,14 +233,17 @@ def render_plates(options):
         forest_undergrowth(layer, station, index, foliage, rng)
         camera.location = point((0., CENTER_Y, station + 22.))
         camera.data.clip_end = 36.
+        width = max(options.width, DETAIL_PLATE_WIDTH.get(station, options.width))
+        height = plate_height(width)
+        scene.render.resolution_x, scene.render.resolution_y = width, height
         master = output / f'pine-approach-{index + 1}.exr'
         scene.render.filepath = str(master)
         started = monotonic()
         bpy.ops.render.render(write_still=True)
-        alpha = straighten(master, options.width, vertical)
+        alpha = straighten(master, width, height)
         if alpha['coveredPixels'] == 0:
             raise RuntimeError(f'No opaque forest was rendered in layer {index + 1}.')
-        rgba, clipped, _ = encode_scanlines(master, options.width, vertical, PRE_EXPOSURE)
+        rgba, clipped, _ = encode_scanlines(master, width, height, PRE_EXPOSURE)
         dilate_rgb(rgba)
         plate = output / f'pine-approach-{index + 1}.webp'
         with TemporaryDirectory(dir=output, prefix='encode-') as scratch:
@@ -243,7 +251,7 @@ def render_plates(options):
             write_rgba_png(png, rgba)
             subprocess.run(['cwebp', '-quiet', '-q', str(options.quality), '-alpha_q', '100',
                             '-exact', '-m', '4', str(png), '-o', str(plate)], check=True)
-        descriptor['layers'].append({'z': station, 'uri': plate.name})
+        descriptor['layers'].append({'z': station, 'uri': plate.name, 'width': width, 'height': height})
         report['files'].append({'uri': plate.name, 'bytes': plate.stat().st_size, 'sha256': digest(plate),
                                 'masterSha256': digest(master), 'seconds': round(monotonic() - started, 2),
                                 'clippedRadiancePixels': clipped, **alpha})

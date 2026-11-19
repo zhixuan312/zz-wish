@@ -44,9 +44,27 @@ const groundcoverSites = [
   [-6.25, 19.43, 1.41, 3.69], [-4.78, 19.96, 1.03, 3.49], [-6.26, 21.38, 1.46, 3.58],
 ];
 
+// The trunk shade on the west side continues down to the damp bridge shelf.
+// Reuse the fern and evergreen geometries, with small litter pockets below.
+const evergreenProfile = 2;
+const litterProfile = 3;
+const westBankSites = [
+  [-4.49, 18.43, .88, 3.80, 1], [-4.12, 19.52, .69, 3.46, 0], [-4.59, 20.33, .82, 3.45, 1],
+  [-3.70, 20.04, .91, 3.04, evergreenProfile], [-4.91, 21.13, 1.06, 3.33, evergreenProfile],
+  [-3.25, 21.64, .66, 2.75, 1], [-4.60, 21.91, .81, 3.11, 0], [-3.75, 22.14, .89, 2.69, evergreenProfile],
+  [-2.12, 21.07, .51, 2.39, evergreenProfile],
+  [-4.64, 18.81, 1.07, 3.72, litterProfile], [-4.12, 20.02, 1.00, 3.37, litterProfile],
+  [-4.62, 20.15, 1.10, 3.43, litterProfile], [-3.46, 20.64, .85, 2.84, litterProfile],
+  [-4.52, 21.12, .95, 3.21, litterProfile], [-4.11, 21.76, .87, 3.08, litterProfile],
+  [-1.97, 21.02, .75, 2.40, litterProfile], [-1.78, 21.41, .67, 2.38, litterProfile],
+  [-1.62, 21.77, .62, 2.32, litterProfile], [-1.68, 22.04, .71, 2.30, litterProfile],
+  [-1.81, 22.22, .76, 2.30, litterProfile],
+];
+
 const around = 2 * Math.PI;
 const frondSeeds = [809, 1537];
 const down = new THREE.Vector3(0, -1, 0);
+const up = new THREE.Vector3(0, 1, 0);
 
 function randomFrom(seed) {
   let state = seed;
@@ -89,7 +107,15 @@ function dressForestFloor(material) {
         * (1. - smoothstep(11.8, 14., -forestFloor.x))
         * smoothstep(6.6, 8.3, forestFloor.y) * (1. - smoothstep(18.4, 23., forestFloor.y));
       vec3 shadedGround = mix(vec3(.64, .79, .65), vec3(.36, .87, .48), smoothstep(.24, .66, liveCover));
-      diffuseColor.rgb *= mix(vec3(1.), shadedGround, westSlope);
+      float westernVerge = smoothstep(2.52, 3.64, -forestFloor.x)
+        * (1. - smoothstep(4.9, 5.9, -forestFloor.x))
+        * smoothstep(17.05, 18.3, forestFloor.y) * (1. - smoothstep(22.0, 23.1, forestFloor.y));
+      float bridgeShelf = smoothstep(1.27, 1.55, -forestFloor.x)
+        * (1. - smoothstep(1.88, 2.43, -forestFloor.x))
+        * smoothstep(20.45, 21.10, forestFloor.y) * (1. - smoothstep(22.10, 22.62, forestFloor.y));
+      diffuseColor.rgb *= mix(vec3(1.), shadedGround, max(westSlope, westernVerge));
+      vec3 mossAtBridge = mix(vec3(.82, .90, .81), vec3(.48, .83, .55), liveCover);
+      diffuseColor.rgb *= mix(vec3(1.), mossAtBridge, bridgeShelf * .86);
       float pineLitter = smoothstep(.37, .78, pineFloorNoise(forestFloor * 13.3));
       diffuseColor.rgb *= mix(vec3(.83, .87, .89), vec3(1.08, 1.07, 1.02), pineLitter * .65);
     `);
@@ -260,6 +286,32 @@ function evergreenShoots() {
   return geometry;
 }
 
+function fallenNeedles() {
+  const random = randomFrom(44129);
+  const positions = [], colors = [], indices = [];
+  const fresh = new THREE.Color(0x665840), worn = new THREE.Color(0x473b2c);
+  const color = new THREE.Color();
+  for (let i = 0; i < 28; i++) {
+    const bearing = random() * around, radius = .11 * Math.sqrt(random());
+    const x = radius * Math.cos(bearing), z = radius * Math.sin(bearing);
+    const angle = random() * around, length = .060 + .069 * random(), width = .0013 + .0012 * random();
+    const dx = Math.cos(angle), dz = Math.sin(angle), y = .0006 + .0032 * random();
+    const cx = x + dx * length * .56, cz = z + dz * length * .56;
+    const start = positions.length / 3;
+    positions.push(x, y, z, cx - dz * width, y + .002, cz + dx * width,
+      x + dx * length, y, z + dz * length, cx + dz * width, y + .001, cz - dx * width);
+    color.copy(worn).lerp(fresh, random());
+    for (let vertex = 0; vertex < 4; vertex++) colors.push(color.r, color.g, color.b);
+    indices.push(start, start + 1, start + 2, start, start + 2, start + 3);
+  }
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+  geometry.setIndex(indices);
+  geometry.computeVertexNormals();
+  return geometry;
+}
+
 export function buildPineBankVerge(bakedGroup) {
   const terrain = approachTerrain(bakedGroup);
   if (!terrain.length) return null;
@@ -267,18 +319,19 @@ export function buildPineBankVerge(bakedGroup) {
   bakedGroup.updateWorldMatrix(true, true);
   const origin = new THREE.Vector3(), normal = origin.clone(), tint = new THREE.Color();
   const normalMatrix = new THREE.Matrix3(), ray = new THREE.Raycaster(origin, down, 0, .68);
-  const profiles = [() => fernProfile(frondSeeds[0], 6), () => fernProfile(frondSeeds[1], 7), evergreenShoots];
+  const profiles = [() => fernProfile(frondSeeds[0], 6), () => fernProfile(frondSeeds[1], 7),
+    evergreenShoots, fallenNeedles];
   const accepted = profiles.map(() => []);
-  const allBanks = [...bankSites, ...groundcoverSites];
-  for (const [i, [x, z, size, searchY]] of allBanks.entries()) {
+  const allBanks = [...bankSites, ...groundcoverSites, ...westBankSites];
+  for (const [i, [x, z, size, searchY, siteProfile]] of allBanks.entries()) {
     origin.set(x, searchY + .50, z);
     ray.set(origin, down);
     const hit = ray.intersectObjects(terrain, false).find(candidate => {
       normalMatrix.getNormalMatrix(candidate.object.matrixWorld);
       return normal.copy(candidate.face.normal).applyNormalMatrix(normalMatrix).y > .46;
     });
-    const profile = i < bankSites.length ? i % frondSeeds.length : profiles.length - 1;
-    if (hit) accepted[profile].push({ i, root: hit.point, size });
+    const profile = siteProfile ?? (i < bankSites.length ? i % frondSeeds.length : evergreenProfile);
+    if (hit) accepted[profile].push({ i, root: hit.point, size, surface: normal.clone() });
   }
   if (accepted.every(profile => !profile.length)) return null;
 
@@ -287,16 +340,23 @@ export function buildPineBankVerge(bakedGroup) {
   const material = new THREE.MeshStandardMaterial({
     vertexColors: true, roughness: .80, metalness: 0, side: THREE.DoubleSide, envMapIntensity: .24,
   });
-  const placement = new THREE.Object3D();
+  const placement = new THREE.Object3D(), angle = new THREE.Quaternion();
   for (const [profile, sites] of accepted.entries()) {
     if (!sites.length) continue;
     const sprouts = new THREE.InstancedMesh(profiles[profile](), material, sites.length);
-    for (const [instance, { i, root, size }] of sites.entries()) {
+    for (const [instance, { i, root, size, surface }] of sites.entries()) {
       const random = randomFrom(Math.imul(i + 97, 9419));
       placement.position.copy(root);
-      placement.position.y -= .021;
-      placement.rotation.y = random() * around;
-      placement.scale.set(size * (1.19 + .18 * random()), size * (.87 + .33 * random()), size * 1.19);
+      const azimuth = random() * around;
+      if (profile === litterProfile) {
+        placement.position.addScaledVector(surface, .003);
+        placement.quaternion.setFromUnitVectors(up, surface).multiply(angle.setFromAxisAngle(up, azimuth));
+        placement.scale.set(size, size, size);
+      } else {
+        placement.position.y -= .021;
+        placement.rotation.set(0, azimuth, 0);
+        placement.scale.set(size * (1.19 + .18 * random()), size * (.87 + .33 * random()), size * 1.19);
+      }
       placement.updateMatrix();
       sprouts.setMatrixAt(instance, placement.matrix);
       const brightness = (profile < frondSeeds.length ? .62 : .83) + .25 * random();
