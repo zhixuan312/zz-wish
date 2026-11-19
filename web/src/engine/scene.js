@@ -1990,10 +1990,10 @@ if (import.meta.env.DEV) {
     const state = wax.state();
     camera.updateMatrixWorld();
     const body = wax.group.getObjectByName('Pine wax body');
+    const positions = body.geometry.getAttribute('position');
     let framedFraction = 0;
-    if (body.visible) {
+    if (body.visible && positions?.count) {
       body.updateWorldMatrix(true, false);
-      const positions = body.geometry.attributes.position;
       const point = V3();
       let bottom = Infinity, top = -Infinity;
       for (let vertex = 0; vertex < positions.count; vertex++) {
