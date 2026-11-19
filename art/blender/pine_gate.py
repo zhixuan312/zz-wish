@@ -19,6 +19,7 @@ from pine_crest_ground import build_crest_ground, build_inner_banks, crest_soil_
 from pine_hero_trees import CROWNS, grow_crown, needle_fascicle, needle_mesh
 from pine_impostors import load_impostors, relief_crown
 from pine_materials import apply_scan
+from pine_stair_seating import fit_joint_soil
 from pine_native_mounts import (
     NATIVE_MOUNTS_FIELD, VALLEY_NODES, add_native_mount, has_verified_native_receipt, serialize_native_mounts,
 )
@@ -400,7 +401,7 @@ def approach_joint_bedding(rows, material):
     # A continuous hillside bed sits just under the worn stone. The lower
     # end of each course folds into the next, so the rain-cut riser has earth
     # behind it even where a stone nose has broken away.
-    points, faces = [], []
+    points, sections = [], []
     tree, _ = contacts.support([tread for _, _, _, _, treads in rows for tread in treads])
     for top, rise, low_z, high_z, _ in rows:
         start = len(points)
@@ -419,10 +420,14 @@ def approach_joint_bedding(rows, material):
                     if contact is not None and normal.z > .49:
                         level = min(level, contact.z - .008)
                 points.append((x, level, z))
+        faces = []
         for row in range(6):
             for col in range(12):
                 a = start + row * 13 + col
-                faces.append((a, a + 13, a + 14, a + 1))
+                faces.extend(((a, a + 13, a + 14), (a, a + 14, a + 1)))
+        sections.append(faces)
+    points = fit_joint_soil(points, sections, [treads for _, _, _, _, treads in rows])
+    faces = [face for section in sections for face in section]
     bed = mesh.mesh_object('Dark earth and needle litter in the approach stone joints', points, faces, material, 'approach')
     mesh.uv_world(bed, .62)
     bed['wet_tread_joints'] = True
