@@ -117,6 +117,12 @@ export const sound = {
       detailTimer = window.setTimeout(detail, id === 'snow-roof' ? 14000 + Math.random() * 10000 : 2500 + Math.random() * 5000);
     } catch { /* Unsupported or denied audio must never block lighting. */ }
   },
+  /** A taper taking flame from the shrine lamp: a soft breath, then a small flicker. */
+  ignition() {
+    // Deliberately quiet: the sound says "it caught" beside the light, it does not announce it.
+    tone(320, .26, .012, .62);
+    window.setTimeout(() => tone(880, .12, .006, 1.35), 90);
+  },
   mute(value: boolean) { muted = value; if (master && context) fadeGain(master.gain, value ? 0 : .65, context.currentTime, .16); },
   stop() {
     generation++; clearTimeout(detailTimer);

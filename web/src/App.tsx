@@ -186,6 +186,8 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
         void engine.ignite({
           ...(isWax ? { remainingFuel: () => remainingFuel(b.elapsed(), b.planned) } : {}),
           onCatch: () => { if (burnRef.current === b && !b.isSettled) setCaught(true); },
+          // The taper takes its flame from the shrine lamp out of frame; the sound marks it.
+          onTaperLit: () => { if (lightPlace === 'pine-gate') sound.ignition(); },
         })
           .catch(() => { if (!b.isSettled) b.settle('put_out'); });
       }

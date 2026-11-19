@@ -19,6 +19,7 @@ import { acquireNativeAgX, NativeAgXPass } from './baked/nativeAgX.js';
 import visitorFabric from './baked/visitor-fabric.json';
 import { WickPlume, addGauzeVent, createGauzeSmokePath, gauzeFlameSize, gauzeRibGeometry, gauzeThroat } from './WickPlume.js';
 import { createPineTray, createPineWax, waxContactShadow } from './PineWax.js';
+import { TAPER_BEAT, taperHasReachedWick } from './places/pine-taper.js';
 
 // ---------- Renderer ----------
 const canvas = document.getElementById('gl');
@@ -2328,7 +2329,7 @@ function makeIgnitionTaper(){
   return { g, f, casters };
 }
 /** Light the flame (animation only; the burn clock lives in the UI). */
-export async function ignite({onCatch, remainingFuel}={}) {
+export async function ignite({onCatch, remainingFuel, onTaperLit}={}) {
   const journey=++cameraJourneyVersion;
   const mark = (state, progress, evidence) => {
     if (import.meta.env.DEV) window.__visualIgnition = { state, progress, journey,
@@ -2378,9 +2379,19 @@ export async function ignite({onCatch, remainingFuel}={}) {
   const start = tip.clone().addScaledVector(right, .27).add(V3(0, -.34, .22));
   const contactOffset = pine ? f.flame.position.clone().applyQuaternion(g.quaternion).negate()
     : V3(.004, -.006, .012);
+  // Pine Gate takes its flame from the shrine oil lamp, which sits behind the camera
+  // (local -1.38, .60, 2.60 against a spread camera at .17, 1.32, .70 looking the other way).
+  // The camera is frozen, so the taper enters from the shrine side, already lit, and the
+  // transfer happens out of frame: a warm moving glow and a soft ignition sound announce it.
+  const shrineSide = pine ? V3(-1, .06, 1).normalize() : null;
+  const behind = pine ? tip.clone().addScaledVector(shrineSide, 1.05).add(V3(0, -.10, 0)) : null;
+  const entry = pine ? tip.clone().addScaledVector(shrineSide, .30).add(V3(0, -.06, .02)) : start;
+  let snuffed = false;
   mine.power = 0;
-  g.visible = true;
+  g.visible = !pine;
   let caught=false;
+  // The transfer happens out of frame, so the caller marks it with a soft ignition cue.
+  if (pine) onTaperLit?.();
   await tween(3.2,k=>{
     if(!active())return;
     const retreat=ease(Math.min(1,k*3.2/1.0));
@@ -2388,20 +2399,35 @@ export async function ignite({onCatch, remainingFuel}={}) {
     rig.fov=THREE.MathUtils.lerp(fovStart,spread.fov,retreat);
     const wick = pine ? wickWorld() : tip;
     const contact = wick.clone().add(contactOffset);
-    if(k<.3)g.position.lerpVectors(start,contact,ease(k/.3));
+    if (pine) {
+      // Entry: the lit taper slides in from the shrine side during the first tenth.
+      const B = TAPER_BEAT;
+      if (k < B.entryEnd) g.position.lerpVectors(behind, entry, ease(k / B.entryEnd));
+      else if (k < B.contactEnd) g.position.lerpVectors(entry, contact, ease((k - B.entryEnd) / (B.contactEnd - B.entryEnd)));
+      else if (k < B.contactHold) g.position.copy(contact);
+      else if (k < B.retreatEnd) g.position.lerpVectors(contact, entry, ease((k - B.contactHold) / (B.retreatEnd - B.contactHold)));
+      else {
+        // Out again the way it came, its flame snuffed with a thread of smoke.
+        if (!snuffed) { snuffed = true; g.traverse((o) => { if (o.material?.emissive) o.material.emissiveIntensity = 0; }); }
+        g.position.lerpVectors(entry, behind, ease((k - B.retreatEnd) / (1 - B.retreatEnd)));
+      }
+      g.visible = k < B.exitEnd;
+    } else if(k<.3)g.position.lerpVectors(start,contact,ease(k/.3));
     else if(k<.58)g.position.copy(contact);
     else g.position.lerpVectors(contact,start.clone().add(V3(.12,-.35,.18)),ease((k-.58)/.42));
+    // The catch lands when the taper reaches the wick, not before.
     const catchPower=smooth(.29,.57,k);
-    if (!caught && catchPower >= .18) {
+    if (!caught && (pine ? taperHasReachedWick(k) : catchPower >= .18)) {
       caught = true;
       if (pine) mine.waxState = 'burning';
       onCatch?.();
     }
     ignitionFill=1-catchPower;
     mine.power=catchPower*(1+.06*Math.sin(Math.PI*smooth(.3,.75,k)));
-    f.tick(clockTime,k>.88?smooth(1,.88,k):1,0,[],0);
+    f.tick(clockTime,pine ? (k < TAPER_BEAT.snuffAt ? 1 : smooth(1,TAPER_BEAT.snuffAt,k)) : (k>.88?smooth(1,.88,k):1),0,[],0);
     const evidence = import.meta.env.DEV && pine ? {
       wickContactMetres: f.flame.getWorldPosition(V3(0, 0, 0)).distanceTo(wick),
+      taperToWickMetres: g.position.distanceTo(contact),
     } : undefined;
     mark('igniting', k * .18, evidence);
   });
