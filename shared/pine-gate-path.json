@@ -12,9 +12,9 @@
     { "time": 10, "position": [-0.29, 3.93, 24.7], "look": [0.05, 4.36, 17.1], "desktopFov": 33, "phoneFov": 43 },
     { "time": 16, "position": [0.19, 4.66, 17.4], "look": [-0.21, 5.06, 9.2], "desktopFov": 34, "phoneFov": 43 },
     { "time": 21, "position": [-0.12, 5.28, 10.43], "look": [-0.17, 5.45, 4.0], "desktopFov": 34, "phoneFov": 44 },
-    { "time": 24, "position": [-0.20, 5.54, 6.40], "look": [0.21, 5.95, -1.3], "desktopFov": 36, "phoneFov": 46 },
-    { "time": 26.1, "position": [-0.19, 5.61, 4.05], "look": [0.54, 5.23, -9.2], "desktopFov": 44, "phoneFov": 52 },
-    { "time": 27.9, "position": [-0.42, 5.57, 2.87], "look": [0.75, 5.01, -10.8], "desktopFov": 48, "phoneFov": 54 },
-    { "time": 29, "position": [-1.00, 5.42, 2.14], "look": [-1.75, 5.11, 0.8], "desktopFov": 38, "phoneFov": 45 }
+    { "time": 24, "position": [-0.17, 5.54, 7.42], "look": [0.03, 5.96, 1.21], "desktopFov": 47, "phoneFov": 54 },
+    { "time": 26.1, "position": [-0.17, 5.63, 5.52], "look": [0.64, 5.34, -9.2], "desktopFov": 46, "phoneFov": 52 },
+    { "time": 27.9, "position": [-0.33, 5.66, 4.56], "look": [1.10, 5.10, -11.8], "desktopFov": 53, "phoneFov": 54 },
+    { "time": 29, "position": [-1.00, 5.43, 2.48], "look": [-1.64, 5.13, 0.82], "desktopFov": 39, "phoneFov": 46 }
   ]
 }
