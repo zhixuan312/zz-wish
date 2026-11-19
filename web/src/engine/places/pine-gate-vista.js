@@ -193,6 +193,41 @@ const TERRAIN_LIGHT = `
   }
 `;
 
+function slopeShelter(field, x, y, depth) {
+  const neighbours = [field.surfaceAt(x - 12, depth), field.surfaceAt(x + 12, depth),
+    field.surfaceAt(x, depth - 12), field.surfaceAt(x, depth + 12)];
+  const crestHeight = neighbours.reduce((sum, h) => sum + Math.max(0, h - y), 0) * .25;
+  return smoothstep(crestHeight, .22, 5.2);
+}
+
+const HILLSIDE_SURFACE = `
+  uniform sampler2D uCanopy;
+  vec3 hillsideSurface(vec3 world, vec3 normal, float shelter) {
+    vec2 ground = world.xz;
+    float grove = softNoise(ground * .061 + vec2(12.8, 7.2));
+    float scrub = softNoise(ground * .20 + world.y * .062);
+    float rockDetail = softNoise(ground * .75 + world.y * .37);
+    mat2 turn = mat2(.80, -.60, .60, .80);
+    vec2 offset = vec2(scrub, grove) * .16;
+    vec4 crowns = mix(texture2D(uCanopy, ground / 16.7 + offset),
+      texture2D(uCanopy, turn * ground / 10.1 - offset), .46);
+    vec2 relief = crowns.gb * 2. - 1.;
+    vec3 leavesUp = normalize(normal + vec3(relief.x, .26, relief.y) * .53);
+    float trees = smoothstep(.22, .70, grove * .48 + scrub * .27 + shelter * .25);
+    float rock = smoothstep(.32, .66, 1. - normal.y + (scrub - .5) * .26 - shelter * .11);
+    vec3 grass = mix(vec3(.052, .077, .028), vec3(.098, .121, .041), scrub);
+    vec3 needles = mix(vec3(.017, .034, .019), vec3(.058, .104, .039), trees);
+    needles *= (.62 + .69 * crowns.r) * mix(.88, 1.13, scrub);
+    vec3 woods = hillsideLight(needles, leavesUp, shelter);
+    vec3 groundcover = hillsideLight(grass, normal, shelter);
+    float bedrock = .5 + .5 * sin(world.y * 1.46 + ground.x * .077 + ground.y * .084 + scrub * 2.8);
+    vec3 stone = mix(vec3(.077, .070, .058), vec3(.176, .156, .126), bedrock * .46 + rockDetail * .54);
+    vec3 exposed = hillsideLight(stone, normal, shelter * .51);
+    vec3 pigment = mix(mix(groundcover, woods, .55 + .45 * trees), exposed, rock);
+    return pigment;
+  }
+`;
+
 function tessellatedTerrain(field, look) {
   const stride = columns.length, indices = [];
   const positions = new Float32Array(field.heights.length * 3);
@@ -201,10 +236,7 @@ function tessellatedTerrain(field, look) {
     for (let i = 0; i < stride; i++) {
       const index = j * stride + i, x = columns[i], depth = depths[j], y = field.heights[index];
       positions.set([x, y, -depth], index * 3);
-      const neighbours = [field.surfaceAt(x - 12, depth), field.surfaceAt(x + 12, depth),
-        field.surfaceAt(x, depth - 12), field.surfaceAt(x, depth + 12)];
-      const crestHeight = neighbours.reduce((sum, h) => sum + Math.max(0, h - y), 0) * .25;
-      concavity[index] = Math.round(255 * smoothstep(crestHeight, .22, 5.2));
+      concavity[index] = Math.round(255 * slopeShelter(field, x, y, depth));
       if (i < stride - 1 && j < depths.length - 1) {
         indices.push(index, index + 1, index + stride, index + 1, index + stride + 1, index + stride);
       }
@@ -229,35 +261,15 @@ function tessellatedTerrain(field, look) {
       }
     `,
     fragmentShader: `
-      uniform sampler2D uCanopy;
       varying vec3 vWorld, vNormal;
       varying float vBasin;
       ${NOISE}
       ${ATMOSPHERE}
       ${TERRAIN_LIGHT}
+      ${HILLSIDE_SURFACE}
       void main() {
         vec3 normal = normalize(vNormal);
-        vec2 ground = vWorld.xz;
-        float grove = softNoise(ground * .061 + vec2(12.8, 7.2));
-        float scrub = softNoise(ground * .20 + vWorld.y * .062);
-        float rockDetail = softNoise(ground * .75 + vWorld.y * .37);
-        mat2 turn = mat2(.80, -.60, .60, .80);
-        vec2 offset = vec2(scrub, grove) * .16;
-        vec4 crowns = mix(texture2D(uCanopy, ground / 16.7 + offset),
-          texture2D(uCanopy, turn * ground / 10.1 - offset), .46);
-        vec2 relief = crowns.gb * 2. - 1.;
-        vec3 leavesUp = normalize(normal + vec3(relief.x, .26, relief.y) * .53);
-        float trees = smoothstep(.22, .70, grove * .48 + scrub * .27 + vBasin * .25);
-        float rock = smoothstep(.32, .66, 1. - normal.y + (scrub - .5) * .26 - vBasin * .11);
-        vec3 grass = mix(vec3(.052, .077, .028), vec3(.098, .121, .041), scrub);
-        vec3 needles = mix(vec3(.017, .034, .019), vec3(.058, .104, .039), trees);
-        needles *= (.62 + .69 * crowns.r) * mix(.88, 1.13, scrub);
-        vec3 woods = hillsideLight(needles, leavesUp, vBasin);
-        vec3 groundcover = hillsideLight(grass, normal, vBasin);
-        float bedrock = .5 + .5 * sin(vWorld.y * 1.46 + ground.x * .077 + ground.y * .084 + scrub * 2.8);
-        vec3 stone = mix(vec3(.077, .070, .058), vec3(.176, .156, .126), bedrock * .46 + rockDetail * .54);
-        vec3 exposed = hillsideLight(stone, normal, vBasin * .51);
-        vec3 pigment = mix(mix(groundcover, woods, .55 + .45 * trees), exposed, rock);
+        vec3 pigment = hillsideSurface(vWorld, normal, vBasin);
         gl_FragColor = vec4(ridgeAir(pigment, vWorld), 1.);
       }
     `,
@@ -331,24 +343,41 @@ function toGeometry(batch) {
   return geo;
 }
 
-const SURFACE_VERTEX = `
+const SOIL_VERTEX = `
+  attribute vec2 terrainJoin;
   varying vec3 vWorld;
-  varying vec2 vUv;
+  varying vec2 vTerrainJoin;
   void main() {
     vWorld = (modelMatrix * vec4(position, 1.)).xyz;
-    vUv = uv;
+    vTerrainJoin = terrainJoin;
     gl_Position = projectionMatrix * viewMatrix * vec4(vWorld, 1.);
   }
 `;
 
+function soilContact(earth, field, profile, across, width) {
+  const first = earth.points.length / 3, sections = 5;
+  const contacts = profile.map(([x, y, z]) => y - field.surfaceAt(x, -z));
+  for (let row = 0; row <= sections; row++) {
+    const t = row / sections, blend = smoothstep(t, 0., 1.);
+    for (const [i, point] of profile.entries()) {
+      const [x, depth] = across(point, width * t);
+      const land = field.surfaceAt(x, depth);
+      // Every apron row follows the terrain. Let its last row lie below
+      // the DEM rather than clipping a long planar strip through a hill.
+      earth.points.push(x, land + lerp(contacts[i], -.095, blend), -depth);
+      earth.fringe.push(blend, slopeShelter(field, x, land, depth));
+      if (row < sections && i < profile.length - 1) {
+        const a = first + row * profile.length + i, c = a + profile.length;
+        earth.indices.push(a, a + 1, c, a + 1, c + 1, c);
+      }
+    }
+  }
+}
+
 function fieldSurfaces(field, look) {
-  const earth = { points: [], indices: [] }, water = { points: [], uv: [], indices: [] };
-  const full = [FIELD_NEAR, FIELD_FAR];
+  const earth = { points: [], indices: [], fringe: [] }, water = { points: [], uv: [], indices: [] };
+  const full = [FIELD_NEAR, FIELD_FAR], ends = [[], []], sides = [];
   const line = (i, offset, height) => depth => [fieldEdge(depth, i) + offset, height, -depth];
-  const landscape = (i, offset) => depth => {
-    const x = fieldEdge(depth, i) + offset;
-    return [x, field.surfaceAt(x, depth) - .12, -depth];
-  };
   for (let i = 0; i < BEDS.length - 1; i++) {
     const y = BEDS[i][1], innerLeft = line(i, .24, y);
     const innerRight = line(i + 1, -.30, y);
@@ -356,11 +385,11 @@ function fieldSurfaces(field, look) {
     const spans = [[FIELD_NEAR + .86 + 1.5 * Math.sin(i * .93) ** 2, split - .21],
       [split + .37, FIELD_FAR - 1.14 - 1.8 * Math.cos(i * 1.12) ** 2]];
     const bunds = bundedBed(earth, full, spans, innerLeft, innerRight, y, i);
-    const rise = i === 0 ? landscape(i, -3.6) : line(i, 0, BEDS[i - 1][1] + .085);
-    stripStations(earth, bunds.stations, rise, bunds.left);
+    if (i === 0) sides.push(bunds.stations.map(bunds.left));
+    else stripStations(earth, bunds.stations, line(i, 0, BEDS[i - 1][1] + .085), bunds.left);
     const outerRight = line(i + 1, 0, y + .085);
     stripStations(earth, bunds.stations, bunds.right, outerRight);
-    if (i === BEDS.length - 2) stripStations(earth, bunds.stations, outerRight, landscape(i + 1, 3.6));
+    if (i === BEDS.length - 2) sides.push(bunds.stations.map(outerRight));
 
     for (const span of spans) {
       const margin = depth => {
@@ -372,24 +401,37 @@ function fieldSurfaces(field, look) {
       strip(water, span, left, right, 21);
     }
 
-    // Return the ends into the measured hillside. The nearest slope is
-    // part of the same ground instead of an exposed edge under a deck.
-    for (const [depth, direction] of [[FIELD_NEAR, -1], [FIELD_FAR, 1]]) {
-      const groundDepth = depth + direction * 3.8;
-      const limit = t => lerp(fieldEdge(depth, i) + .24, fieldEdge(depth, i + 1) - .30, t);
-      const bed = t => [limit(t), y, -depth];
-      const ground = t => [limit(t), field.surfaceAt(limit(t), groundDepth) - .18, -groundDepth];
-      strip(earth, [0, 1], direction < 0 ? bed : ground, direction < 0 ? ground : bed, 3);
+    // Build two shared headlands across the true stepped end profile.
+    // Include each riser edge so the joins do not leave rectangular caps.
+    for (const [end, depth] of full.entries()) {
+      const left = bunds.left(depth), right = bunds.right(depth);
+      ends[end].push(...evenStations([left[0], right[0]], 6).map(x => [x, y, -depth]), outerRight(depth));
     }
   }
-  const soil = new THREE.Mesh(toGeometry(earth), new THREE.ShaderMaterial({
+  const naturalStart = earth.points.length / 3;
+  for (const [i, side] of sides.entries()) {
+    soilContact(earth, field, side, ([x, , z], away) => [x + (i ? away : -away), -z], 1.06);
+  }
+  for (const [i, end] of ends.entries()) {
+    soilContact(earth, field, end, ([x, , z], away) => {
+      const depth = -z + (i ? away : -away);
+      return [x + fieldCenter(depth) - fieldCenter(-z), depth];
+    }, 1.62);
+  }
+  const soilGeometry = toGeometry(earth);
+  const fringe = new Uint8Array(soilGeometry.attributes.position.count * 2);
+  fringe.set(earth.fringe.map(value => Math.round(value * 255)), naturalStart * 2);
+  soilGeometry.setAttribute('terrainJoin', new THREE.Uint8BufferAttribute(fringe, 2, true));
+  const soil = new THREE.Mesh(soilGeometry, new THREE.ShaderMaterial({
     uniforms: look, side: THREE.DoubleSide,
-    vertexShader: SURFACE_VERTEX,
+    vertexShader: SOIL_VERTEX,
     fragmentShader: `
       varying vec3 vWorld;
+      varying vec2 vTerrainJoin;
       ${ATMOSPHERE}
       ${TERRAIN_LIGHT}
       ${NOISE}
+      ${HILLSIDE_SURFACE}
       void main() {
         vec3 normal = normalize(cross(dFdx(vWorld), dFdy(vWorld)));
         if (normal.y < 0.) normal = -normal;
@@ -400,6 +442,8 @@ function fieldSurfaces(field, look) {
         vec3 shoots = mix(vec3(.084, .127, .040), vec3(.157, .212, .049), verge);
         vec3 loam = mix(clay, shoots, grass);
         vec3 color = hillsideLight(loam * (.77 + roots * .43), normal, .17);
+        vec3 ground = hillsideSurface(vWorld, normal, vTerrainJoin.y);
+        color = mix(color, ground, vTerrainJoin.x);
         gl_FragColor = vec4(ridgeAir(color, vWorld), 1.);
       }
     `,
@@ -491,8 +535,9 @@ function fallingWater(field, look) {
       const point = start.clone().lerp(end, t);
       const width = .25 - .075 * Math.sin(t * Math.PI) + .09 * t;
       const x = point.x - heading.z * width * side, z = point.z + heading.x * width * side;
-      const freefall = y - drop * t ** 1.6 + .078;
-      return [x, Math.max(field.surfaceAt(x, -z) + .064, freefall), z];
+      const spill = .065 + .03 * Math.sin(t * Math.PI);
+      const freefall = y - drop * t ** 1.57 + spill - .14 * (1 - smoothstep(t, .04, .26));
+      return [x, freefall, z];
     };
     strip(batch, [0, 1], lane(-1), lane(1), 22);
     streams.push(...Array(46).fill(1));
@@ -554,9 +599,11 @@ function fallingWater(field, look) {
         vec3 water = mix(vec3(.046, .094, .107), vec3(.43, .55, .59), aerated);
         float opacity = sides * ends * distanceVeil * plunge * (.09 + .20 * aerated);
         if (vKind > .5) {
-          float ribbons = smoothstep(.20, .84, .57 * broken + .43 * streak);
-          water = mix(vec3(.22, .35, .39), vec3(.77, .83, .81), ribbons);
-          opacity = sides * ends * distanceVeil * (.56 + .28 * ribbons);
+          float sheet = softNoise(vec2(vUv.x * 7.7, vUv.y * 26.6 - uTime * .79));
+          float ribbons = smoothstep(.29, .89, .43 * sheet + .35 * broken + .22 * streak);
+          float edge = 1. - smoothstep(.16, .47, abs(vUv.x - .5 + (sheet - .5) * .15));
+          water = mix(vec3(.14, .26, .31), vec3(.60, .74, .77), ribbons);
+          opacity = edge * ends * distanceVeil * (.43 + .27 * ribbons);
         }
         gl_FragColor = vec4(ridgeAir(water * light, vWorld), opacity);
       }
