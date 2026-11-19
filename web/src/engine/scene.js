@@ -863,10 +863,15 @@ const api = { g, parts: null, partsKey: null, type: null, power: 0, lightPower: 
       f.light.color.setHex(p.light ?? 0xffba78); f.size = p.flame ?? 1; mirror.size = f.size;
       g.traverse((c) => { c.layers.set(0); warmReflections(c); }); f.light.layers.enableAll();
       if(liveBaked&&place?.visitorEnvironment){
-        // The cloth sees the actual lit hall, including its baked indirect
-        // light, rather than the generic warm-room reflection used elsewhere.
+        // Reflect the actual opening and its surroundings. Pine keeps its
+        // existing diffuse lighting. Snow samples ambient light from the hall.
         const materials=new Set();p.g.traverse(object=>{for(const material of [object.material].flat())if(material?.userData.lampOwned&&'envMap'in material)materials.add(material);});
-        for(const material of materials)actualHallEnvironment(material,place.visitorEnvironment.texture);
+        for(const material of materials) {
+          if (p.pineWax) {
+            material.envMap = place.visitorEnvironment.texture;
+            material.needsUpdate = true;
+          } else actualHallEnvironment(material,place.visitorEnvironment.texture);
+        }
       }
       if(liveBaked&&place?.baked?.visitorShadow){
         const materials=new Set();p.g.traverse(object=>{for(const material of [object.material].flat())if(material?.userData.lampOwned)materials.add(material);});
@@ -1670,10 +1675,10 @@ function fixtureSpecular(x,y,z,watts=8,linearColor=[1,173/255,102/255]){
 // A local reflection probe samples actual lit construction. Clone the scene
 // graph while sharing immutable geometry/materials so temporary visibility and
 // shadow maps never alter the active place. The cube remains scene-linear HDR.
-function captureLocalEnvironment({root=C.root,environment=C.environment,fog=C.fog,position,exclude=[],size=128,near=.004,far=30}){
+function captureLocalEnvironment({context=C,root=context.root,environment=context.environment,fog=context.fog,position,exclude=[],size=128,near=.004,far=30}){
   if(!root?.isObject3D||!Array.isArray(position)||position.length!==3||!position.every(Number.isFinite))throw new Error('A local probe requires an actual place and world position.');
   if(![64,128,256].includes(size)||near<=0||far<=near)throw new Error('Invalid bounded local probe.');
-  const context=C,scene=new THREE.Scene(),pairs=new Map();
+  const scene=new THREE.Scene(),pairs=new Map();
   root.updateWorldMatrix(true,true);
   const copy=root.clone(true);
   const pair=(original,clone)=>{pairs.set(original,clone);for(let i=0;i<original.children.length;i++)pair(original.children[i],clone.children[i]);};
@@ -1826,12 +1831,13 @@ async function buildPlaceNow(t, isolated = false) {
     if(visitorPreview)disposeTree(visitorPreview.g);
     stage.traverse(object => object.shadow?.dispose());
   }
-  if(P.bakedLighting&&N.lamp==='gauze'&&context.baked){
+  const pineOpening = N.lamp === 'pineWax' && context.baked?.waxNormal;
+  if(P.bakedLighting&&context.baked&&(N.lamp==='gauze'||pineOpening)){
     const basis=context.baked.manifest.lampBasis.position;
     context.baked.update(context.light,0,V3(...basis));
     // All hall programs are already warmed above. This bounded six-face
     // capture adds no light and keeps the visitor out of its own environment.
-    candidate.visitorEnvironment=captureLocalEnvironment({root:G,environment:env,fog:stage.fog,position:[...basis],size:64,near:.01,far:30});
+    candidate.visitorEnvironment=captureLocalEnvironment({context,root:G,environment:env,fog:stage.fog,position:[...basis],size:64,near:.01,far:pineOpening ? stageCamera.far : 30});
   }
   cachedPlaces.set(t.id, candidate);
   // Preserve a prepared Pine Gate while the cover is still on screen.
