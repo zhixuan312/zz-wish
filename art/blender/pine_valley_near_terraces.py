@@ -9,7 +9,7 @@ from pine_valley_terrain import Batch, PADDY_WATER_DEPTH, lerp, smooth, stations
 
 
 CONTOUR_LEVELS = (3.1, 2.1, 1.1, .1, -.9, -1.9, -2.9, -3.9, -4.9)
-FIELD_DEPTH = (42.5, 63.6)
+FIELD_DEPTH = (39.7, 63.6)
 PORT_DEPTHS = (51.5, 58.5)
 BUND_HEIGHT = .123
 SKIRT_WIDTH = 1.7
@@ -109,6 +109,12 @@ class NearTerraces:
             # face is a steep old stone revetment supporting the terrace.
             if not index:
                 profile.append((left, pond.floor + BUND_HEIGHT))
+            else:
+                rise = self.ponds[index - 1].floor - pond.floor
+                wear = .024 * math.sin(depth * 2.73 + index * 1.56)
+                for fraction, course in ((.041, .92), (.074, .68), (.104, .56), (.139, .17)):
+                    profile.append((lerp(left, right, fraction),
+                                    pond.floor + rise * course + .109 + wear))
             for fraction, rise in ((.16, .111), (.25, 0.), (.33, 0.), (.72, 0.), (.77, 0.),
                                    (.89, .117), (.96, .115), (1., BUND_HEIGHT)):
                 x = lerp(left, right, fraction)
@@ -153,7 +159,7 @@ class NearTerraces:
         return values, cultivated, moisture
 
     def meshes(self):
-        earth, floods, shoots, spills = Batch(), Batch(), Batch(), Batch()
+        earth, floods, shoots, spills, grass = Batch(), Batch(), Batch(), Batch(), Batch()
         steps = set(stations(self.d0, self.d1, 124)) | set(self.depths)
         steps.update(depth for depth in self.land.depths if self.d0 <= depth <= self.d1)
         for pond in self.ponds:
@@ -211,6 +217,22 @@ class NearTerraces:
             audit.append({'bed': index + 1, 'waterLevelMetres': pond.level, 'waterDepthMetres': PADDY_WATER_DEPTH,
                           'minimumWidthMetres': min(widths), 'maximumWidthMetres': max(widths),
                           'startDepthMetres': pond.start, 'endDepthMetres': pond.end})
+            for depth in stations(pond.start + .28, pond.end - .28, 93):
+                if rng.random() < .22 or any(abs(depth - notch) < .24 for notch in (*PORT_DEPTHS, *self.spill_depths)):
+                    continue
+                left, right = self.edges(depth)[index:index + 2]
+                x = lerp(left, right, rng.uniform(.91, .981))
+                for blade in range(rng.randint(5, 9)):
+                    cluster = depth + rng.uniform(-.083, .083)
+                    base = self.ground_height(x, cluster) - .009
+                    angle = rng.uniform(.0, math.tau)
+                    dx, dz = math.cos(angle), math.sin(angle)
+                    offset, height = rng.uniform(.006, .017), rng.uniform(.075, .169)
+                    first = len(grass.points)
+                    grass.points.extend(((x - dz * offset, cluster + dx * offset, base),
+                                         (x + dz * offset, cluster - dx * offset, base),
+                                         (x + dx * .034, cluster + dz * .034, base + height)))
+                    grass.faces.append((first, first + 1, first + 2))
 
         courses = [(self.spill, i, d) for i, d in enumerate(self.spill_depths)]
         courses.extend((self.opening, i, d) for i, d in enumerate(PORT_DEPTHS))
@@ -224,7 +246,7 @@ class NearTerraces:
                 rows.append(row)
             spills.loft(rows, reverse=True)
 
-        return earth, floods, shoots, spills, self.audit(audit, spills)
+        return earth, floods, shoots, spills, grass, self.audit(audit, spills)
 
     def audit(self, beds, spills):
         depths, crests = [], []

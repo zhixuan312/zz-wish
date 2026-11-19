@@ -20,6 +20,7 @@ from types import SimpleNamespace
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from pine_valley_crowns import PROFILES, crown_mesh
 from pine_valley_exr import straighten
+from pine_valley_hamlet import lower_village
 from pine_valley_near_terraces import NearTerraces
 from pine_valley_terrace_routes import near_terrace_routes
 from pine_valley_terrain import (
@@ -35,6 +36,8 @@ AIR_NEAR_METRES = 19.
 AIR_SCATTER_RGB = (.060, .101, .167)
 RIPPLES = ((.0026, .43, .21, .978), (.0011, .219, -.42, .908))
 WIND_SLOPES = (.28, .42)
+WEST_WIND_SLOPES = (.28, .42)
+WEST_WIND_BEARING = (-.21, -.978, 0.)
 CLOUD_LAYERS = ((29., 36., 47., 58., 14., 31., -14., -10.2, -6.6, -5.3, .155),
                 (39., 47., 57., 70., 18., 33., -8.6, -6.4, -4.3, -3.4, .208))
 UPPER_MIST_BOUNDS = (-173., 168., 72., 232., 25., 51.)
@@ -212,7 +215,7 @@ def water_ripples(water, position):
     return water.math('ADD', *phases), variation
 
 
-PADDY_AOVS = ('PaddySurface', 'PaddyWindWeight', 'PaddyBund', 'PaddySilt')
+PADDY_AOVS = ('PaddySurface', 'WestPaddySurface', 'PaddyWindWeight', 'PaddyBund', 'PaddySilt')
 
 
 def paddy_aov(shader, name, value):
@@ -221,8 +224,9 @@ def paddy_aov(shader, name, value):
     shader.input(output.inputs['Value'], value)
 
 
-def paddy_glass(air, audit=False):
-    water = Shader('Clear flooded beds with Fresnel wind-wave reflections')
+def paddy_glass(air, audit=False, west=False):
+    name = 'Glancing reflections across the western spring terraces' if west else 'Clear flooded beds with Fresnel wind-wave reflections'
+    water = Shader(name)
     wave, gusts = water_ripples(water, water.coordinate())
     geom = water.nodes.new('ShaderNodeNewGeometry')
     bump = water.nodes.new('ShaderNodeBump')
@@ -231,7 +235,7 @@ def paddy_glass(air, audit=False):
     bump.inputs['Strength'].default_value = .87
     calm_normal = bump.outputs['Normal']
     roughness = water.between(gusts, .26, .75, .034, .082)
-    slope = water.between(gusts, .30, .73, *WIND_SLOPES)
+    slope = water.between(gusts, .30, .73, *(WEST_WIND_SLOPES if west else WIND_SLOPES))
     crest_share = water.between(gusts, .20, .80, .38, .71)
 
     def vector(operation, a, b):
@@ -264,7 +268,7 @@ def paddy_glass(air, audit=False):
     # The short waves occupy both signs of slope. Each visible facet is
     # weighted by projected area, so the windward faces dominate at grazing
     # incidence. The wider lobes survive pixel filtering at valley distance.
-    ripple = vector('SCALE', (-.21, -.978, 0.), slope)
+    ripple = vector('SCALE', WEST_WIND_BEARING if west else (-.21, -.978, 0.), slope)
     positive = vector('NORMALIZE', vector('ADD', calm_normal, ripple), None)
     negative = vector('NORMALIZE', vector('SUBTRACT', calm_normal, ripple), None)
     front, back = area(positive), area(negative)
@@ -286,6 +290,8 @@ def paddy_glass(air, audit=False):
     if audit:
         paddy_aov(water, 'PaddySurface', 1.)
         paddy_aov(water, 'PaddyWindWeight', weight)
+        if west:
+            paddy_aov(water, 'WestPaddySurface', 1.)
     return water.material
 
 
@@ -341,9 +347,9 @@ def materials(air, audit_paddy=False):
     point = revetment.coordinate()
     quarry = revetment.noise(point, (4.8, 4.9, 13.6), detail=3.)
     breakage = revetment.noise(point, (1.5, 1.7, 4.2), detail=3.)
-    rock_colour = revetment.blend((.018, .023, .019, 1.), (.087, .082, .064, 1.), quarry)
-    rock_colour = revetment.blend(rock_colour, (.023, .051, .019, 1.),
-                                 revetment.between(breakage, .42, .77, 0., .65))
+    rock_colour = revetment.blend((.033, .030, .022, 1.), (.123, .095, .066, 1.), quarry)
+    rock_colour = revetment.blend(rock_colour, (.032, .069, .027, 1.),
+                                 revetment.between(breakage, .31, .72, .05, .82))
     result['revetment'] = revetment.surface(rock_colour, .85, bump=(quarry, .30, .048), air=air)
     trail = Shader('Compacted clay and old grit on the village path')
     footprints = trail.noise(trail.coordinate(), (3.4, 3.5, 5.9), detail=3.)
@@ -364,8 +370,17 @@ def materials(air, audit_paddy=False):
     result['bark'] = Shader('Weathered pine bark').surface((.067, .044, .029, 1.), .9, air=air)
     seedling = Shader('Translucent green rice shoots')
     result['rice'] = seedling.surface((.084, .19, .046, 1.), .54)
+    tuft = Shader('Spring grass on the raised earthen banks')
+    blades = tuft.noise(tuft.coordinate(), (3.6, 5.7, 8.2), detail=2.)
+    green = tuft.blend((.032, .063, .017, 1.), (.110, .159, .036, 1.), blades)
+    result['bundGrass'] = tuft.surface(green, .74, air=air)
+    result['houseWall'] = Shader('Old earthen village walls').surface((.19, .143, .090, 1.), .91, air=air)
+    result['slateRoof'] = Shader('Weathered slate at the village edge').surface((.077, .086, .079, 1.), .81, air=air)
+    result['tileRoof'] = Shader('Dull old village terracotta').surface((.132, .079, .054, 1.), .83, air=air)
+    result['doorway'] = Shader('Dark timber at the village edge').surface((.028, .022, .014, 1.), .92, air=air)
 
     result['water'] = paddy_glass(air, audit_paddy)
+    result['westWater'] = paddy_glass(air, audit_paddy, west=True)
     if audit_paddy:
         paddy_aov(ground, 'PaddyBund', soil_mask)
         paddy_aov(sediment, 'PaddySilt', 1.)
@@ -607,7 +622,7 @@ def configure(scene, options, width, height):
     return set_device(scene, options.device)
 
 
-def build(scene, land, fields, near, near_fields, routes, river, forests, audit_paddy=False):
+def build(scene, land, fields, near, near_fields, routes, village, river, forests, audit_paddy=False):
     layers = {name: bpy.data.collections.new(name) for name in LAYERS}
     for collection in layers.values():
         scene.collection.children.link(collection)
@@ -632,15 +647,16 @@ def build(scene, land, fields, near, near_fields, routes, river, forests, audit_
     occluders = (*occluders, banks)
     mesh(middle, 'Fourteen horizontal flooded rice beds', water, [surface['water']])
     mesh(middle, 'Sparse late-spring rice shoots', rice, [surface['rice']])
-    banks, water, rice, spills, _ = near_fields
+    banks, water, rice, spills, grass, _ = near_fields
     patch = mesh(middle, 'Terraces held by old stone on the western slope', banks,
                  [surface['ground'], surface['revetment']])
     for face in patch.data.polygons:
         if face.normal.z < .61 and min(banks.masks[v] for v in face.vertices) > .97:
             face.material_index = 1
     occluders = (*occluders, patch)
-    mesh(middle, 'Eight contour-fed flooded paddies on the nearer slope', water, [surface['water']])
+    mesh(middle, 'Eight contour-fed flooded paddies on the nearer slope', water, [surface['westWater']])
     mesh(middle, 'Young rice in the western spring fields', rice, [surface['rice']])
+    mesh(middle, 'Short grass rooted on the western paddy crests', grass, [surface['bundGrass']])
     mesh(middle, 'Notched spillways and wetted inlet courses', spills, [surface['creek']], smooth=True)
     mesh(middle, 'Spring feeder, covered intake and outgoing paddy drain', routes['channel'],
          [surface['creek']], smooth=True)
@@ -651,6 +667,16 @@ def build(scene, land, fields, near, near_fields, routes, river, forests, audit_
         support = mesh(middle, name, routes[key], [surface['revetment']])
         occluders = (*occluders, support)
     mesh(middle, 'Narrow western terrace path toward the village', routes['path'], [surface['trail']])
+    for key, material, name in (
+        ('path', 'trail', 'Western hamlet foot lane'),
+        ('foundations', 'revetment', 'Surveyed stone footings at the lower hamlet'),
+        ('earth_walls', 'houseWall', 'Earth walls of the three hillside houses'),
+        ('slate_roofs', 'slateRoof', 'Dull slate roofs at the village edge'),
+        ('tile_roofs', 'tileRoof', 'Weathered terracotta at the village edge'),
+        ('wood', 'doorway', 'Shadowed timber doorways'),
+    ):
+        part = mesh(middle, name, village[key], [surface[material]])
+        occluders = (*occluders, part)
     creek, falls, end, _ = river
     mesh(middle, 'D8 drainage on the measured valley floor', creek, [surface['creek']], smooth=True)
     mesh(middle, 'Free-falling sheet behind exposed terrain', falls, [surface['fall']], smooth=True)
@@ -813,7 +839,10 @@ def main():
     near = NearTerraces(land)
     near_fields = near.meshes()
     routes = near_terrace_routes(SimpleNamespace(height=near.ground_height), *near.ports())
-    forests = {name: forest_points(land, name == 'far', near_terraces=near) for name in ('far', 'mid')}
+    village = lower_village(land, routes['receipt']['path']['villageTrailEnd'])
+    house_clearance = tuple((house['centre'][0], house['centre'][1], 1.85) for house in village['receipt']['houses'])
+    forests = {name: forest_points(land, name == 'far', near_terraces=near, clearings=house_clearance)
+               for name in ('far', 'mid')}
     metadata = {
         'projection': projection, 'width': width, 'height': height, 'samples': options.samples,
         'denoise': not options.no_denoise, 'requestedDevice': options.device,
@@ -829,12 +858,13 @@ def main():
         'sourceSha256': {name: sha256(Path(__file__).with_name(name).read_bytes()).hexdigest()
                          for name in ('pine_valley_backdrop.py', 'pine_valley_terrain.py', 'pine_valley_exr.py',
                                       'pine_valley_crowns.py', 'pine_valley_near_terraces.py',
-                                      'pine_valley_terrace_routes.py')},
+                                      'pine_valley_terrace_routes.py', 'pine_valley_hamlet.py')},
         'terrainSplitDownrangeMetres': FAR_START,
         'atmosphere': {'model': 'Beer-Lambert aerial perspective at opaque camera and reflection hits',
                        'rawLinearRec709Airlight': AIR_SCATTER_RGB, 'extinctionPerMetre': AIR_EXTINCTION,
                        'depthGradient': AIR_DEPTH_GRADIENT, 'clearNearMetres': AIR_NEAR_METRES},
         'paddyWindFaceSlopeRange': WIND_SLOPES,
+        'westernPaddyWind': {'faceSlopeRange': WEST_WIND_SLOPES, 'bearing': WEST_WIND_BEARING},
         'paddyRippleTrains': [{'amplitudeMetres': a, 'wavelengthMetres': length,
                                'windDirection': [x, depth]} for a, length, x, depth in RIPPLES],
         'cloudDownrangeBands': [[band[0], band[3]] for band in CLOUD_LAYERS],
@@ -844,7 +874,8 @@ def main():
                              'cloud': 'cloud sea with opaque middle terrain and forest as camera holdouts'},
         'forestInstances': {name: [len(batch[0]) for batch in batches] for name, batches in forests.items()},
         'terraces': fields[-1], 'waterfall': river[-1],
-        'westernTerraces': {'boundsMetres': near.bounds, **near_fields[-1], 'routes': routes['receipt']},
+        'westernTerraces': {'boundsMetres': near.bounds, **near_fields[-1], 'routes': routes['receipt'],
+                            'village': village['receipt']},
     }
     print(json.dumps(metadata, indent=2), flush=True)
     if options.inspect:
@@ -863,7 +894,8 @@ def main():
     metadata['devices'] = configure(scene, options, width, height)
     metadata['worldStrength'] = set_world(scene, daylight, projection['preExposure'])
     projection_camera(scene, projection)
-    layers, occluders = build(scene, land, fields, near, near_fields, routes, river, forests, audit_paddy=options.paddy_audit)
+    layers, occluders = build(scene, land, fields, near, near_fields, routes, village, river, forests,
+                              audit_paddy=options.paddy_audit)
     if options.paddy_audit:
         pools = Batch(points=fields[1].points + near_fields[1].points)
         render_paddy_transport(scene, layers, pools, options, metadata)

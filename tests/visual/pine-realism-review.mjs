@@ -25,6 +25,7 @@ const signature = Buffer.from('89504e470d0a1a0a', 'hex');
 const tiles = [];
 const pairs = [];
 const shots = {};
+let baselineLabel = 'p1';
 
 function distance(a, b) {
   return Math.hypot(...a.map((value, i) => value - b[i]));
@@ -90,6 +91,7 @@ async function captureEvidence(directory, kind) {
   assert(report.directionVerified && report.delivery.preview && report.delivery.publicManifestUnchanged);
   assert.equal(report.cameraDrift, 'product default');
   assert(!report.runs.some(run => run.errors.length || run.viteUpdates.length), 'Capture contains errors or source drift.');
+  if (kind === 'baseline' && report.realismOnly) baselineLabel = 'previous';
   if (kind === 'candidate') {
     assert(report.realismOnly);
     assert.equal(report.runs.length, 2);
@@ -170,11 +172,18 @@ for (const [key, view] of Object.entries(sizes)) {
   const referenceTile = join(output, `${key}-photo.png`);
   const baselineTile = join(output, `${key}-baseline.png`);
   tiles.push({ source, output: referenceTile, rect: reference.crop, sourceSize: reference.dimensions });
-  pairs.push({ left: referenceTile, right: baselineTile, output: join(output, `${key}-photo-vs-p1.png`) });
+  pairs.push({ left: referenceTile, right: baselineTile, output: join(output, `${key}-photo-vs-${baselineLabel}.png`) });
   if (candidate) {
     const candidateTile = join(output, `${key}-candidate.png`);
     pairs.push({ left: referenceTile, right: candidateTile, output: join(output, `${key}-photo-vs-r1.png`) });
-    pairs.push({ left: baselineTile, right: candidateTile, output: join(output, `${key}-p1-vs-r1.png`) });
+    pairs.push({ left: baselineTile, right: candidateTile, output: join(output, `${key}-${baselineLabel}-vs-r1.png`) });
+    if (baselineLabel === 'previous') {
+      pairs.push({
+        left: resolve(output, shots.baseline.frames[key].source),
+        right: resolve(output, shots.candidate.frames[key].source),
+        output: join(output, `${key}-previous-vs-r1-full.png`),
+      });
+    }
   }
 }
 

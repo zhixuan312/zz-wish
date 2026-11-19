@@ -351,7 +351,7 @@ def forest_site(land, x, depth, height):
     return smooth(.14, .60, soil), exposed, pocket
 
 
-def forest_points(land, far, variants=4, near_terraces=None):
+def forest_points(land, far, variants=4, near_terraces=None, clearings=()):
     rng = random.Random(6624 + far)
     batches = [([], [], []) for _ in range(variants)]
     start = FAR_START if far else 27.
@@ -405,6 +405,9 @@ def forest_points(land, far, variants=4, near_terraces=None):
                 width *= .86
             width = min(width, 1.85 * height)
             euler = (rng.uniform(-.112, .112), rng.uniform(-.112, .112), rng.uniform(0., math.tau))
+            if not far and any((x - cx) ** 2 + (depth - d) ** 2 < (r + .22 * width) ** 2
+                               for cx, d, r in clearings):
+                continue
             if near_terraces and not far:
                 clearance = near_terraces.forest_margin(x, depth)
                 if clearance < .48 + width * .28:
