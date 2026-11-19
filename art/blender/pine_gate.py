@@ -34,6 +34,9 @@ STAIR_START = 45.6
 STAIR_RUN = .8
 STAIR_RISE = .08
 STAIR_COUNT = 50
+BRIDGE_DECK_CENTRES = tuple(21.07 + index * .54 for index in range(5))
+BRIDGE_DECK_DEPTH = .56
+BRIDGE_TREAD_MARGIN = .015
 SHOULDER_SETBACK = .86
 STREAM_BANK_OFFSET = .14
 STREAM_RIBBON_OVERLAP = .10
@@ -293,14 +296,14 @@ def worn_approach_tread(name, width, depth, centre, material, dressing):
     for i, ((u, v), age) in enumerate(zip(old_rim, weather)):
         corner = i in (0, 1, 2, 3, 4, 8, 9, 10)
         radius = dressing.uniform(.91, 1.) if corner else dressing.uniform(.94, 1.)
-        rim.append((width * u * radius, depth * v * radius))
+        rim.append((width * u * radius, depth * max(-.5, min(.5, v)) * radius))
         chips.append(age - dressing.uniform(.001, .014))
         if i in (0, 2, 4, 7, 9):
             uu, vv = old_rim[(i + 1) % len(old_rim)]
             run = dressing.uniform(.27, .69)
             inward = dressing.uniform(.88, .98)
-            rim.append((width * (u + (uu - u) * run) * inward,
-                        depth * (v + (vv - v) * run) * inward))
+            across = max(-.5, min(.5, v + (vv - v) * run))
+            rim.append((width * (u + (uu - u) * run) * inward, depth * across * inward))
             chips.append(dressing.uniform(-.020, -.006))
     count = len(rim)
     hollow_x = dressing.uniform(-.12, .14) * width
@@ -363,26 +366,37 @@ def worn_approach_tread(name, width, depth, centre, material, dressing):
     mesh.uv_world(obj, .87)
     source_uv(obj, coordinates, 'Measured course side strip and planar caps with a worn walking hollow.')
     obj['weather_stone'] = True
+    obj['approach_tread'] = True
     return obj
 
 
 def approach_joint_bedding(rows, material):
-    # Moist earth and litter fill the low joints between stones. The bed
-    # continues beneath the slab shoulders instead of sitting on their tops.
+    # Packed earth forms uneven pockets near the lips of the joints. Where a
+    # grid cell passes under a stone, leave clearance for its worn hollow.
     points, faces = [], []
-    for top, z, bend, half_span in rows:
+    for top, low_z, high_z, bend, half_span, treads in rows:
         start = len(points)
-        for row in range(3):
-            dz = (-.407, .008, .408)[row]
-            for col in range(5):
-                across = col / 2 - 1
+        tree, _ = contacts.support(treads)
+        for row in range(7):
+            along = row / 6
+            z = low_z + (high_z - low_z) * along
+            for col in range(13):
+                across = col / 6 - 1
                 x = bend + across * (half_span - .022)
-                shade = .008 * math.sin(16 * x + 4.2 * z) + .005 * math.sin(27 * x - 2.3 * z)
-                points.append((x, top - .068 + shade - .016 * abs(across), z + dz))
-        for row in range(2):
-            for col in range(4):
-                a = start + row * 5 + col
-                faces.append((a, a + 5, a + 6, a + 1))
+                wave = math.sin(8.8 * x + 5.1 * z)
+                zz = z + .023 * math.sin(math.pi * along) * wave
+                settling = .009 * wave + .008 * math.sin(23 * x - 4.6 * z)
+                level = top - .040 + settling - .018 * abs(across)
+                for dx, dz in ((0, 0), (-.05, 0), (.05, 0), (0, -.037), (0, .037)):
+                    contact, _, _, _ = tree.ray_cast(mesh.point((x + dx, top + 1, zz + dz)),
+                                                     Vector((0, 0, -1)), 2)
+                    if contact is not None:
+                        level = min(level, contact.z - .021)
+                points.append((x, level, zz))
+        for row in range(6):
+            for col in range(12):
+                a = start + row * 13 + col
+                faces.append((a, a + 13, a + 14, a + 1))
     bed = mesh.mesh_object('Dark earth and needle litter in the approach stone joints', points, faces, material, 'approach')
     mesh.uv_world(bed, .62)
     source_uv(bed, [[(points[i][0], points[i][2]) for i in face] for face in faces],
@@ -486,6 +500,8 @@ def climbing_steps(stone, ground, bedding_material):
     worn_cap = random.Random(38365)
     dressing = random.Random(498721)
     bedding_rows = []
+    deck_far = BRIDGE_DECK_CENTRES[0] - BRIDGE_DECK_DEPTH / 2 - BRIDGE_TREAD_MARGIN
+    deck_near = BRIDGE_DECK_CENTRES[-1] + BRIDGE_DECK_DEPTH / 2 + BRIDGE_TREAD_MARGIN
     for i in range(STAIR_COUNT):
         z = STAIR_START - STAIR_RUN * i
         top = (i + 1) * STAIR_RISE
@@ -501,17 +517,32 @@ def climbing_steps(stone, ground, bedding_material):
         joint_b = min(span - .32, max(joint_a + .29, joint_b))
         widths = (joint_a, joint_b - joint_a, span - joint_b)
         edge = bend - span / 2
+        treads = []
         for j, width in enumerate(widths):
             depth = .82 + RANDOM.uniform(-.043, .039)
             surface = top + RANDOM.uniform(-.010, .009) - .008 * j
             centre_z = z + RANDOM.uniform(-.027, .031)
             material = RANDOM.choice(stone)
-            tread = worn_approach_tread(f'Step {i + 1:02} block {j + 1}',
-                                       width - dressing.uniform(.010, .023), depth,
-                                       (edge + width / 2, surface, centre_z), material, dressing)
-            tread['moss_edge'] = j != 1 or i % 7 == 0
+            dressed_width = width - dressing.uniform(.010, .023)
+            if i == 28:
+                # The end deck already fills this course. Retain the side
+                # drainage below, and keep the random stream for the site.
+                hewn_outline()
+            else:
+                low_z, high_z = centre_z - depth / 2, centre_z + depth / 2
+                if i == 27:
+                    low_z = deck_near
+                if i == 31:
+                    high_z = deck_far
+                tread = worn_approach_tread(f'Step {i + 1:02} block {j + 1}', dressed_width, high_z - low_z,
+                                            (edge + width / 2, surface, (low_z + high_z) / 2), material, dressing)
+                tread['moss_edge'] = j != 1 or i % 7 == 0
+                treads.append(tread)
             edge += width
-        bedding_rows.append((top, z, bend, half_span))
+        if treads:
+            low_z = deck_near if i == 27 else z - .407
+            high_z = deck_far if i == 31 else z + .408
+            bedding_rows.append((top, low_z, high_z, bend, half_span, treads))
         drain_x = bend + span / 2 + .139
         invert = hewn_block(f'Open rainwater channel {i + 1:02}', .27, .16, .805,
                             (drain_x, top - .068, z), stone[4], 'approach')
@@ -576,6 +607,34 @@ def evaluated_undersides(objects, depsgraph):
             surface.to_mesh_clear()
 
 
+def audit_bridge_tread_transition(deck_slabs, depsgraph):
+    def z_bounds(obj):
+        surface = obj.evaluated_get(depsgraph)
+        evaluated = surface.to_mesh()
+        try:
+            z = [engine(surface.matrix_world @ vertex.co)[2] for vertex in evaluated.vertices]
+            return min(z), max(z)
+        finally:
+            surface.to_mesh_clear()
+
+    deck_bounds = [z_bounds(slab) for slab in deck_slabs]
+    far = min(low for low, _ in deck_bounds)
+    near = max(high for _, high in deck_bounds)
+    margins = {'far': [], 'near': []}
+    for tread in (obj for obj in mesh.STATIC.objects if obj.get('approach_tread')):
+        low, high = z_bounds(tread)
+        if high <= far:
+            margins['far'].append(far - high)
+        elif low >= near:
+            margins['near'].append(low - near)
+        else:
+            raise RuntimeError(f'{tread.name} enters the deck interval {far:.6f}–{near:.6f} m.')
+    for side, values in margins.items():
+        if not values or not .001 <= min(values) <= .09:
+            raise RuntimeError(f'Invalid stone-to-deck {side} seam: {min(values, default=math.inf):.6f} m.')
+    print(f'PINE_BRIDGE_TREAD_SEAMS far {min(margins["far"]):.6f} m; near {min(margins["near"]):.6f} m.')
+
+
 def audit_watercourse(ground, bank_stones, deck_slabs, bridge_curbs):
     wet, dry = [], []
     for z in watercourse_stations(.23):
@@ -599,6 +658,7 @@ def audit_watercourse(ground, bank_stones, deck_slabs, bridge_curbs):
     print(f'PINE_STREAM_EDGE {len(hidden_edges)} concealed edge probes; minimum {min(hidden_edges):.6f} m.')
 
     depsgraph = bpy.context.evaluated_depsgraph_get()
+    audit_bridge_tread_transition(deck_slabs, depsgraph)
     slopes = terrain_bank_slopes(ground, depsgraph)
     stone_gaps = [y - supports_height(x, z, [ground])
                   for bottom in evaluated_undersides(bank_stones, depsgraph) for x, y, z in bottom]
@@ -790,9 +850,8 @@ def saddle_water(stone, ground):
     spring['moss_edge'] = True
     # One low crossing standing on two rubble abutments. The water is still
     # visible outside the near edge before and after crossing.
-    for index in range(5):
-        z = 21.07 + index * .54
-        slab = hewn_block(f'Bridge decking slab {index + 1}', 2.17, .21, .56,
+    for index, z in enumerate(BRIDGE_DECK_CENTRES):
+        slab = hewn_block(f'Bridge decking slab {index + 1}', 2.17, .21, BRIDGE_DECK_DEPTH,
                           (.09, 2.51 - index * .052, z), stone[index % len(stone)], 'approach')
         vertices = list(slab.data.vertices)
         ring = len(vertices) // 3
