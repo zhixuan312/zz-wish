@@ -19,6 +19,8 @@ const BUCKET_FADE = 8;
 const PHRASE_MIN_MINUTES = 3;
 const PHRASE_MAX_MINUTES = 8;
 const MUTE_KEY = 'one-light-muted';
+// A quarter-second of silence: enough for iOS to mark an element as user-primed.
+const PRIMER = { src: 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAgD4AAAB9AAACABAAZGF0YQAAAAA=' };
 
 const prefixOf = (placeId: PlaceId): 'snow' | 'pine' | null =>
   placeId === 'snow-roof' ? 'snow' : placeId === 'pine-gate' ? 'pine' : null;
@@ -77,16 +79,29 @@ export function phraseBag(count = 8): { next: () => number; remaining: () => num
 // elements are reused instead of allocated per cue. A source node can only be made
 // once per element, so the pair lives together in the pool.
 const POOL_LIMIT = 3;
-type Slot = { el: HTMLAudioElement; source: MediaElementAudioSourceNode };
-type Channel = { el: HTMLAudioElement; source: MediaElementAudioSourceNode; gain: GainNode; slot: Slot };
+type Slot = { el: HTMLAudioElement; source: MediaElementAudioSourceNode; owner: Channel | null };
+type Channel = {
+  el: HTMLAudioElement;
+  source: MediaElementAudioSourceNode;
+  gain: GainNode;
+  slot: Slot;
+  // Every listener dies with its channel, so a reused element never fires the previous
+  // cue's handler.
+  abort: AbortController;
+};
 
 // Equal-power curve: the two gains cross on a circle, so the sum of their power stays
 // constant through the fade instead of dipping in the middle as linear ramps do.
-export function equalPowerCurve(rising: boolean, steps = 32): Float32Array {
+// `from` is the gain the curve starts at, so a fade interrupted halfway continues from
+// where the ear is rather than jumping to a full-scale curve.
+export function equalPowerCurve(rising: boolean, steps = 32, from = 0): Float32Array {
   const curve = new Float32Array(steps + 1);
   for (let i = 0; i <= steps; i++) {
-    const x = i / steps;
-    curve[i] = rising ? Math.sin((x * Math.PI) / 2) : Math.cos((x * Math.PI) / 2);
+    const angle = (i / steps) * (Math.PI / 2);
+    // Rising runs 0 to 1 on the sine; falling runs 1 to 0 on the cosine, scaled by the
+    // gain it starts from, so a fade interrupted halfway continues where it was. With
+    // from 0 and 1 the two are exact partners: their squares sum to one throughout.
+    curve[i] = rising ? from + (1 - from) * Math.sin(angle) : from * Math.cos(angle);
   }
   return curve;
 }
@@ -157,32 +172,37 @@ export function createMusic(options: { createContext?: () => AudioContext } = {}
   // The cap is what iOS enforces, so when it is reached the oldest cue gives up its
   // element: a new cue must never be dropped just because the previous one is still
   // fading out.
+  function newSlot(): Slot {
+    const ctx = ensureContext();
+    const el = new Audio();
+    el.preload = 'auto';
+    const slot: Slot = { el, source: ctx.createMediaElementSource(el), owner: null };
+    pool.push(slot);
+    return slot;
+  }
+
+  // The cap is what iOS enforces, so at the cap the oldest cue gives up its element: a
+  // new cue must never be dropped just because the previous one is still fading out.
   function takeSlot(): Slot | null {
-    const busySlots = new Set(held.map((c) => c.slot));
-    const free = pool.find((s) => !busySlots.has(s));
+    const free = pool.find((s) => s.owner === null);
     if (free) return free;
-    if (pool.length < POOL_LIMIT) {
-      const ctx = ensureContext();
-      const el = new Audio();
-      el.preload = 'auto';
-      const slot: Slot = { el, source: ctx.createMediaElementSource(el) };
-      pool.push(slot);
-      return slot;
-    }
-    // At the cap the oldest cue gives up its element: a new cue must never be dropped
-    // just because the previous one is still fading out.
+    if (pool.length < POOL_LIMIT) return newSlot();
     const oldest = held[0];
     if (!oldest) return null;
-    channelFree(oldest);
+    retire(oldest);
     return oldest.slot;
   }
 
-  // Stops one channel's sound and returns its element without waiting for a fade.
-  function channelFree(channel: Channel) {
+  // Stops a channel and detaches it from its element at once. Ownership is the guard:
+  // every deferred release re-checks that the slot still belongs to this channel, so a
+  // timer left over from a stolen element cannot clear the cue that took it.
+  function retire(channel: Channel) {
+    channel.abort.abort();
     channels = channels.filter((c) => c !== channel);
     held = held.filter((c) => c !== channel);
-    if (liveOneShot === channel) liveOneShot = null;
-    try { channel.el.pause(); channel.gain.disconnect(); } catch { /* already gone */ }
+    if (liveOneShot === channel) { liveOneShot = null; cueStage = null; }
+    if (channel.slot.owner === channel) channel.slot.owner = null;
+    try { channel.gain.disconnect(); } catch { /* already gone */ }
   }
 
   function makeChannel(cue: CueName, loop: boolean): Channel | null {
@@ -194,7 +214,8 @@ export function createMusic(options: { createContext?: () => AudioContext } = {}
     const gain = ensureContext().createGain();
     gain.gain.value = 0;
     slot.source.connect(gain).connect(master!);
-    const channel: Channel = { el, source: slot.source, gain, slot };
+    const channel: Channel = { el, source: slot.source, gain, slot, abort: new AbortController() };
+    slot.owner = channel;
     held.push(channel);
     return channel;
   }
@@ -202,22 +223,23 @@ export function createMusic(options: { createContext?: () => AudioContext } = {}
   // Returning the element to the pool, not destroying it, is what keeps iOS under its
   // cap; the source node stays attached to the same element for the next cue.
   function releaseChannel(channel: Channel) {
+    if (channel.slot.owner !== channel) return; // the element moved on to another cue
+    retire(channel);
     try {
       channel.el.pause();
       channel.el.removeAttribute('src');
       channel.el.load();
-      channel.gain.disconnect();
     } catch { /* already gone */ }
-    held = held.filter((c) => c !== channel);
   }
 
   // Equal-power fade between the outgoing and incoming channels.
   function powerFade(gain: GainNode, to: number, seconds: number) {
     if (!context) return;
     const now = context.currentTime;
+    const from = gain.gain.value;
     gain.gain.cancelScheduledValues(now);
-    gain.gain.setValueAtTime(gain.gain.value, now);
-    gain.gain.setValueCurveAtTime(equalPowerCurve(to > 0), now, seconds);
+    gain.gain.setValueAtTime(from, now);
+    gain.gain.setValueCurveAtTime(equalPowerCurve(to > from, 32, from), now, seconds);
   }
 
   function fade(gain: GainNode, to: number, seconds: number) {
@@ -271,10 +293,10 @@ export function createMusic(options: { createContext?: () => AudioContext } = {}
           channels.push(channel);
           const end = () => {
             powerFade(channel.gain, 0, 2.4);
-            globalThis.setTimeout(() => releaseChannel(channel), 2600);
             channels = channels.filter((c) => c !== channel);
+            globalThis.setTimeout(() => releaseChannel(channel), 2600);
           };
-          channel.el.addEventListener('ended', end, { once: true });
+          channel.el.addEventListener('ended', end, { once: true, signal: channel.abort.signal });
         }
       }
       schedulePhrase();
@@ -288,7 +310,9 @@ export function createMusic(options: { createContext?: () => AudioContext } = {}
     if (!cues?.has(cue)) return false;
     const channel = makeChannel(cue, true);
     if (!channel) return false;
-    void channel.el.play().catch(() => {});
+    const drop = () => { channels = channels.filter((c) => c !== channel); releaseChannel(channel); };
+    channel.el.addEventListener('error', drop, { once: true, signal: channel.abort.signal });
+    void channel.el.play().catch(drop);
     powerFade(channel.gain, 1, seconds);
     channels.push(channel);
     return true;
@@ -301,21 +325,27 @@ export function createMusic(options: { createContext?: () => AudioContext } = {}
     if (!cues?.has(cue)) return false;
     const channel = makeChannel(cue, false);
     if (!channel) return false;
-    void channel.el.play().catch(() => {});
+    // One handler for every way the cue can end: its own end, a file that fails to load,
+    // or a play() the browser refuses. All of them must hand over, or a cue that never
+    // starts would leave the next screen silent forever.
+    const finish = () => {
+      powerFade(channel.gain, 0, 0.6);
+      channels = channels.filter((c) => c !== channel);
+      const stillLive = liveOneShot === channel && cueStage === fromStage && stage === fromStage;
+      if (liveOneShot === channel) { liveOneShot = null; cueStage = null; }
+      globalThis.setTimeout(() => releaseChannel(channel), 700);
+      // A slow `walk` can end after the stage has moved on; only hand over while this
+      // one-shot still owns the stage, or it would pull the game back to `choose`.
+      if (handsOver && stillLive && !stopping) void play(handsOver, place!);
+    };
+    const { signal } = channel.abort;
+    channel.el.addEventListener('ended', finish, { once: true, signal });
+    channel.el.addEventListener('error', finish, { once: true, signal });
+    void channel.el.play().catch(finish);
     powerFade(channel.gain, 1, seconds);
     channels.push(channel);
     liveOneShot = channel;
     cueStage = fromStage;
-    channel.el.addEventListener('ended', () => {
-      powerFade(channel.gain, 0, 0.6);
-      globalThis.setTimeout(() => releaseChannel(channel), 700);
-      const stillLive = liveOneShot === channel && cueStage === fromStage && stage === fromStage;
-      channels = channels.filter((c) => c !== channel);
-      if (liveOneShot === channel) liveOneShot = null;
-      // A slow `walk` can end after the stage has moved on; only hand over while this
-      // one-shot still owns the stage, or it would pull the game back to `choose`.
-      if (handsOver && stillLive && !stopping) void play(handsOver, place!);
-    }, { once: true });
     return true;
   }
 
@@ -347,26 +377,52 @@ export function createMusic(options: { createContext?: () => AudioContext } = {}
   // Hidden tabs must go quiet: a lamp burning in a background tab should not keep
   // playing. Resuming restores whichever cue is current rather than restarting it, so a
   // loop picks up where it left off.
-  let hiddenPaused = false;
+  // A hidden tab must go quiet. Suspending the context alone only mutes the output:
+  // the media elements keep running, a one-shot can still end, and iOS reports the
+  // context as `interrupted` rather than `running`. So every playing element is paused
+  // and remembered, and only those are resumed on return.
+  let hiddenResume: Channel[] = [];
+  function pauseForHidden() {
+    hiddenResume = [];
+    for (const channel of held) {
+      if (!channel.el.paused) { hiddenResume.push(channel); channel.el.pause(); }
+    }
+    if (context && context.state !== 'closed') void context.suspend().catch(() => {});
+  }
+  function resumeFromHidden() {
+    for (const channel of hiddenResume) {
+      // A channel that was retired while hidden must not come back.
+      if (channel.slot.owner === channel) void channel.el.play().catch(() => {});
+    }
+    hiddenResume = [];
+    if (context && (context.state === 'suspended' || (context.state as string) === 'interrupted')) {
+      void context.resume().catch(() => {});
+    }
+  }
   function installVisibilityPause() {
     if (typeof document === 'undefined') return;
     document.addEventListener('visibilitychange', () => {
       if (!context) return;
-      if (document.hidden) {
-        hiddenPaused = context.state === 'running';
-        if (hiddenPaused) void context.suspend().catch(() => {});
-      } else if (hiddenPaused) {
-        hiddenPaused = false;
-        void context.resume().catch(() => {});
-      }
+      if (document.hidden) pauseForHidden();
+      else resumeFromHidden();
     });
   }
   installVisibilityPause();
 
   return {
     async unlock() {
-      ensureContext();
-      if (context?.state === 'suspended') { try { await context.resume(); } catch { /* gesture may be rejected */ } }
+      const ctx = ensureContext();
+      // iOS only lets elements play if they were created and primed inside the
+      // gesture itself, so the whole pool is made and started here, before any await.
+      while (pool.length < POOL_LIMIT) {
+        const slot = newSlot();
+        slot.el.src = PRIMER.src;
+        slot.el.volume = 0;
+        void slot.el.play().catch(() => {});
+      }
+      if (ctx.state === 'suspended' || (ctx.state as string) === 'interrupted') {
+        try { await ctx.resume(); } catch { /* gesture may be rejected */ }
+      }
     },
     play,
     stop() {

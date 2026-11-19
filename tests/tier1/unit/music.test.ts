@@ -29,6 +29,7 @@ class FakeAudio {
   src = '';
   loop = false;
   preload = '';
+  volume = 1;
   currentTime = 0;
   duration = 30;
   paused = true;
@@ -36,6 +37,8 @@ class FakeAudio {
   constructor() { FakeAudio.instances.push(this); }
   play() { this.paused = false; return Promise.resolve(); }
   pause() { this.paused = true; }
+  load() { /* pool reuse */ }
+  removeAttribute(name: string) { if (name === 'src') this.src = ''; }
   addEventListener(type: string, handler: () => void) { this.handlers.set(type, handler); }
   emit(type: string) { this.handlers.get(type)?.(); }
 }
@@ -91,6 +94,10 @@ describe('phrase shuffle bag', () => {
   });
 });
 
+// Cue elements are the ones pointing at /music/; the unlocked pool holds a silent primer
+// until a cue takes it.
+const cueElements = () => FakeAudio.instances.filter((a) => a.src.startsWith('/music/'));
+
 describe('music playback', () => {
   const originalAudio = globalThis.Audio;
   const originalLocalStorage = globalThis.localStorage;
@@ -116,7 +123,7 @@ describe('music playback', () => {
     await music.unlock();
     await music.play('home', 'snow-roof');
     await music.play('burn', 'snow-roof');
-    expect(FakeAudio.instances).toHaveLength(0);
+    expect(cueElements()).toHaveLength(0);
     expect(music.describe().stage).toBe('burn');
   });
 
@@ -126,7 +133,7 @@ describe('music playback', () => {
     const music = createMusic({ createContext: () => new FakeContext() as unknown as AudioContext });
     await music.unlock();
     await music.play('choose', 'snow-roof');
-    expect(FakeAudio.instances).toHaveLength(0);
+    expect(cueElements()).toHaveLength(0);
   });
 
   it('plays a listed loop', async () => {
@@ -134,9 +141,10 @@ describe('music playback', () => {
     const music = createMusic({ createContext: () => new FakeContext() as unknown as AudioContext });
     await music.unlock();
     await music.play('home', 'snow-roof');
-    expect(FakeAudio.instances).toHaveLength(1);
-    expect(FakeAudio.instances[0].src).toBe('/music/home_loop.m4a');
-    expect(FakeAudio.instances[0].loop).toBe(true);
+    const cues = cueElements();
+    expect(cues).toHaveLength(1);
+    expect(cues[0].src).toBe('/music/home_loop.m4a');
+    expect(cues[0].loop).toBe(true);
   });
 
   it('hands a one-shot over to the loop that follows it', async () => {
@@ -144,11 +152,11 @@ describe('music playback', () => {
     const music = createMusic({ createContext: () => new FakeContext() as unknown as AudioContext });
     await music.unlock();
     await music.play('walk', 'snow-roof');
-    const [walk] = FakeAudio.instances;
+    const [walk] = cueElements();
     expect(walk.loop).toBe(false);
     walk.emit('ended');
     await Promise.resolve();
-    expect(FakeAudio.instances.map((a) => a.src)).toContain('/music/snow_choose_loop.m4a');
+    expect(cueElements().map((a) => a.src)).toContain('/music/snow_choose_loop.m4a');
   });
 
   it('keeps exactly one element for a loop across many passes, and releases it on stop', async () => {
@@ -157,12 +165,12 @@ describe('music playback', () => {
     await music.unlock();
     await music.play('burn', 'snow-roof');
     // Emulate six passes of a three-minute bed: a single looping element must persist.
-    const bed = FakeAudio.instances[0];
+    const bed = cueElements()[0];
     for (let pass = 0; pass < 6; pass++) { bed.currentTime = 0; bed.duration = 180; }
-    expect(FakeAudio.instances).toHaveLength(1);
+    expect(cueElements()).toHaveLength(1);
     expect(bed.loop).toBe(true);
     music.stop();
-    expect(FakeAudio.instances).toHaveLength(1);
+    expect(cueElements()).toHaveLength(1);
   });
 
   it('does not hand a late one-shot over once the stage has moved on', async () => {
@@ -170,11 +178,11 @@ describe('music playback', () => {
     const music = createMusic({ createContext: () => new FakeContext() as unknown as AudioContext });
     await music.unlock();
     await music.play('walk', 'snow-roof');
-    const walk = FakeAudio.instances.find((a) => a.src.includes('snow_walk'))!;
+    const walk = cueElements().find((a) => a.src.includes('snow_walk'))!;
     await music.play('ignite', 'snow-roof');
     walk.emit('ended');
     await Promise.resolve();
-    expect(FakeAudio.instances.map((a) => a.src)).not.toContain('/music/snow_choose_loop.m4a');
+    expect(cueElements().map((a) => a.src)).not.toContain('/music/snow_choose_loop.m4a');
   });
 
   it('reuses media elements instead of allocating one per cue', async () => {
@@ -184,7 +192,7 @@ describe('music playback', () => {
     // Five stage changes in a row: iOS would refuse the fifth fresh element.
     for (const stage of ['home', 'choose', 'burn', 'choose', 'home'] as const) await music.play(stage, 'snow-roof');
     await new Promise((r) => setTimeout(r, 1700));
-    expect(FakeAudio.instances.length).toBeLessThanOrEqual(3);
+    expect(cueElements().length).toBeLessThanOrEqual(3);
     expect(music.describe().channels).toBe(1);
   });
 
@@ -199,8 +207,14 @@ describe('music playback', () => {
     [0, Math.sin(Math.PI / 8), Math.SQRT1_2, Math.sin((3 * Math.PI) / 8), 1]
       .forEach((value, i) => expect(curve[i]).toBeCloseTo(value, 6));
     expect(curve[2]).toBeGreaterThan(0.5);
-    // The falling half is the mirror image, so the two gains never sum below one.
-    expect([...equalPowerCurve(false, 4)].map((v, i) => v * v + curve[i] * curve[i]).every((p) => Math.abs(p - 1) < 1e-6)).toBe(true);
+    // A crossfade is one gain rising from 0 and the other falling from 1; their power
+    // sums to one throughout, which is what keeps the join from dipping.
+    const rising = equalPowerCurve(true, 4, 0);
+    const falling = equalPowerCurve(false, 4, 1);
+    [...rising].forEach((value, i) => expect(value * value + falling[i] * falling[i]).toBeCloseTo(1, 6));
+    // An interrupted fade starts at the gain the ear already hears, not at full scale.
+    expect(equalPowerCurve(true, 4, 0.4)[0]).toBeCloseTo(0.4, 6);
+    expect(equalPowerCurve(false, 4, 0.4)[0]).toBeCloseTo(0.4, 6);
   });
 
   it('pauses on a hidden tab and resumes the current cue on return', async () => {
@@ -221,6 +235,80 @@ describe('music playback', () => {
     doc.hidden = false;
     doc.dispatchEvent(new Event('visibilitychange'));
     expect(suspended).toEqual(['suspend', 'resume']);
+  });
+
+  it('keeps the newest cue alive when the pool steals its oldest element', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, json: async () => ({ cues: ['home_loop', 'snow_place_loop', 'snow_choose_loop', 'result_loop'] }) })));
+    const music = createMusic({ createContext: () => new FakeContext() as unknown as AudioContext });
+    await music.unlock();
+    for (const stage of ['home', 'place', 'choose', 'result'] as const) await music.play(stage, 'snow-roof');
+    // The stale release timers from the stolen cues must not clear the cue that took them.
+    await new Promise((r) => setTimeout(r, 1800));
+    const live = cueElements().filter((a) => a.src !== '');
+    expect(live.map((a) => a.src)).toContain('/music/result_loop.m4a');
+    expect(music.describe().stage).toBe('result');
+  });
+
+  it('creates and primes the whole pool inside unlock', async () => {
+    let primed = 0;
+    vi.stubGlobal('Audio', class extends FakeAudio { play() { primed++; return super.play(); } });
+    const music = createMusic({ createContext: () => new FakeContext() as unknown as AudioContext });
+    await music.unlock();
+    // iOS only allows playback for elements made inside the gesture, so all of them
+    // must exist and have been started before unlock resolves.
+    expect(FakeAudio.instances).toHaveLength(3);
+    expect(primed).toBe(3);
+    expect(cueElements()).toHaveLength(0);
+  });
+
+  it('does not fire a previous cue handler on a reused element', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, json: async () => ({ cues: ['snow_walk', 'snow_ignite', 'snow_choose_loop'] }) })));
+    const music = createMusic({ createContext: () => new FakeContext() as unknown as AudioContext });
+    await music.unlock();
+    await music.play('walk', 'snow-roof');
+    const walkEl = cueElements().find((a) => a.src.includes('snow_walk'))!;
+    // The walk's element is reused for ignite; its old ended handler must be gone.
+    await music.play('ignite', 'snow-roof');
+    walkEl.emit('ended');
+    await Promise.resolve();
+    expect(cueElements().map((a) => a.src)).not.toContain('/music/snow_choose_loop.m4a');
+  });
+
+  it('hands over when a listed cue fails to load', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, json: async () => ({ cues: ['snow_walk', 'snow_choose_loop'] }) })));
+    const music = createMusic({ createContext: () => new FakeContext() as unknown as AudioContext });
+    await music.unlock();
+    await music.play('walk', 'snow-roof');
+    const walk = cueElements().find((a) => a.src.includes('snow_walk'))!;
+    // The manifest lists the cue but the file 404s: nothing will ever end, so the error
+    // path must hand over instead of leaving the next screen silent.
+    walk.emit('error');
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(cueElements().map((a) => a.src)).toContain('/music/snow_choose_loop.m4a');
+  });
+
+  it('pauses the playing elements while hidden and resumes only those', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, json: async () => ({ cues: ['home_loop'] }) })));
+    const doc = new EventTarget() as EventTarget & { hidden: boolean };
+    doc.hidden = false;
+    vi.stubGlobal('document', doc);
+    const ctx = new FakeContext();
+    const spy = ctx as unknown as { suspend: () => Promise<void>; resume: () => Promise<void> };
+    spy.suspend = () => { ctx.state = 'suspended'; return Promise.resolve(); };
+    spy.resume = () => { ctx.state = 'running'; return Promise.resolve(); };
+    const music = createMusic({ createContext: () => ctx as unknown as AudioContext });
+    await music.unlock();
+    await music.play('home', 'snow-roof');
+    const cue = cueElements()[0];
+    expect(cue.paused).toBe(false);
+    doc.hidden = true;
+    doc.dispatchEvent(new Event('visibilitychange'));
+    // Suspending the context only mutes output; the element itself must stop.
+    expect(cue.paused).toBe(true);
+    doc.hidden = false;
+    doc.dispatchEvent(new Event('visibilitychange'));
+    expect(cue.paused).toBe(false);
   });
 
   it('persists the mute choice', async () => {
