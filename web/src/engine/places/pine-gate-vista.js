@@ -1,406 +1,451 @@
 import * as THREE from 'three';
+import { pineDaySunDirection } from './pine-gate-sun.js';
+import { columns, depths, drains, elevations, heightStep, terraceAxis } from './pine-gate-elevation.data.js';
 
-const RANGES = [
-  {
-    day: 0x9daeb9, night: 0x3c5366, base: -56, length: 92, step: 6, seed: .2,
-    crest: [[-460, 34, -330], [-377, 64, -342], [-315, 47, -354], [-259, 74, -340], [-215, 50, -353],
-      [-178, 68, -343], [-123, 49, -362], [-71, 62, -361], [-24, 34, -370], [28, 58, -365],
-      [73, 82, -355], [107, 51, -357], [151, 68, -343], [215, 47, -349], [256, 67, -341],
-      [304, 44, -342], [385, 58, -335], [454, 32, -327]],
-  },
-  {
-    day: 0x7f969f, night: 0x344d60, base: -49, length: 67, step: 4.5, seed: 3.9,
-    crest: [[-288, 22, -191], [-231, 38, -187], [-198, 48, -170], [-164, 31, -177],
-      [-146, 50, -165], [-120, 26, -168], [-98, 31, -173], [-83, 17, -183],
-      [-52, 27, -177], [-30, 21, -181], [-12, 13, -190], [13, 19, -183], [34, 27, -178],
-      [60, 46, -171], [79, 37, -171], [104, 28, -178], [135, 44, -169], [176, 51, -178],
-      [218, 36, -187], [275, 53, -192], [322, 30, -201]],
-  },
-  {
-    day: 0x526e71, night: 0x203747, base: -42, length: 38, step: 3.2, seed: 7.4,
-    crest: [[-167, 18, -91], [-133, 31, -86], [-107, 25, -78], [-85, 35, -72], [-61, 22, -70],
-      [-44, 31, -76], [-28, 15, -74], [-12, 3, -83], [-5, -15, -89]],
-  },
-  {
-    day: 0x5d7778, night: 0x233b4a, base: -44, length: 34, step: 2.8, seed: 11.6,
-    crest: [[10, -16, -83], [16, 2, -85], [23, 20, -88], [31, 23, -90], [40, 20, -93],
-      [49, 25, -96], [63, 34, -100], [78, 23, -104], [95, 31, -107], [113, 42, -113],
-      [149, 29, -118], [192, 36, -130], [234, 21, -139], [296, 24, -146]],
-  },
+const { clamp, lerp, smoothstep } = THREE.MathUtils;
+const FIELD_NEAR = 87;
+const FIELD_FAR = 116;
+const BEDS = [
+  [-10.4, -8.40], [-7.6, -7.77], [-4.8, -7.14], [-1.7, -6.51],
+  [1.7, -5.88], [4.8, -5.25], [7.8, -4.62], [10.6, -4.62],
 ];
 
-// Front talus climbs into a narrow crest, then falls down the hidden side.
-// The east face has a steep exposed shoulder for the waterfall.
-const SLOPE = [[.94, 0], [.67, .16], [.48, .32], [.32, .53], [.25, .67],
-  [.18, .81], [.10, .94], [0, 1], [-.32, .63], [-.76, .19], [-1.04, 0]];
-
-function crestAt(range, x) {
-  const points = range.crest;
-  let i = 1;
-  while (i < points.length - 1 && points[i][0] < x) i++;
-  const a = points[i - 1], b = points[i];
-  const t = THREE.MathUtils.clamp((x - a[0]) / (b[0] - a[0]), 0, 1);
-  return [THREE.MathUtils.lerp(a[1], b[1], t), THREE.MathUtils.lerp(a[2], b[2], t)];
-}
-
-function hillside(range, x, row) {
-  const [crestY, crestZ] = crestAt(range, x);
-  const i = Math.min(SLOPE.length - 2, Math.floor(row)), t = row - i;
-  const [za, ya] = SLOPE[i], [zb, yb] = SLOPE[i + 1];
-  const along = THREE.MathUtils.lerp(za, zb, t), height = THREE.MathUtils.lerp(ya, yb, t);
-  const folds = Math.sin(x * .093 + range.seed) * 1.55 + Math.sin(x * .205 + range.seed * .78) * .92;
-  const shoulder = Math.sin(x * .113 + along * 3.1 + range.seed) * range.length * .05;
-  return [x, THREE.MathUtils.lerp(range.base, crestY + folds, height), crestZ + along * (range.length + shoulder)];
-}
-
-const climbHaze = `
-  uniform vec3 uClimbHazeDay, uClimbHazeNight;
-  float climbVeil() {
-    return .89 * smoothstep(8., 24., cameraPosition.z);
+function interval(axis, value) {
+  let left = 0, right = axis.length - 1;
+  while (right - left > 1) {
+    const center = (left + right) >>> 1;
+    if (value < axis[center]) right = center;
+    else left = center;
   }
-  vec3 throughClimbHaze(vec3 light, float night) {
-    return mix(light, mix(uClimbHazeDay, uClimbHazeNight, night), climbVeil());
+  return left;
+}
+
+function fieldCenter(depth) {
+  const range = (depth - terraceAxis[0][0]) / 4;
+  const i = clamp(Math.floor(range), 0, terraceAxis.length - 2);
+  return lerp(terraceAxis[i][1], terraceAxis[i + 1][1], clamp(range - i, 0, 1));
+}
+
+function fieldEdge(depth, i) {
+  const curve = .58 * Math.sin(depth * .26 + i * .71) + .29 * Math.sin(depth * .62 - i * .83);
+  return fieldCenter(depth) + BEDS[i][0] + curve;
+}
+
+function gradeShoulder(x, depth, height) {
+  if (depth <= FIELD_NEAR - 5 || depth >= FIELD_FAR + 8) return height;
+  const left = fieldEdge(depth, 0), right = fieldEdge(depth, BEDS.length - 1);
+  const edge = smoothstep(x, left - 5.1, left) * (1 - smoothstep(x, right, right + 5.8));
+  const ends = smoothstep(depth, FIELD_NEAR - 5, FIELD_NEAR)
+    * (1 - smoothstep(depth, FIELD_FAR, FIELD_FAR + 8));
+  const grade = lerp(-9.02, -4.96, clamp((x - left) / (right - left), 0, 1));
+  return lerp(height, grade, edge * ends);
+}
+
+function createTerrainField() {
+  const ascii = atob(elevations);
+  const stride = columns.length;
+  const heights = new Float32Array(stride * depths.length);
+  for (let j = 0; j < depths.length; j++) {
+    const depth = depths[j];
+    // The staged shoulder starts beyond the baked foreground. Bury the
+    // front boundary under the cloud and blend into the measured slopes.
+    const visible = smoothstep(depth, 18, 42);
+    for (let i = 0; i < stride; i++) {
+      const index = j * stride + i;
+      const encoded = ascii.charCodeAt(index * 2) | (ascii.charCodeAt(index * 2 + 1) << 8);
+      const elevation = ((encoded << 16) >> 16) * heightStep;
+      heights[index] = gradeShoulder(columns[i], depth, lerp(-29, elevation, visible));
+    }
+  }
+  function surfaceAt(x, depth) {
+    const i = interval(columns, x), j = interval(depths, depth), a = j * stride + i;
+    const u = clamp((x - columns[i]) / (columns[i + 1] - columns[i]), 0, 1);
+    const v = clamp((depth - depths[j]) / (depths[j + 1] - depths[j]), 0, 1);
+    // Use the triangle interpolation the rendered index buffer uses. Water
+    // planes and grading can then meet the actual terrain surface.
+    if (u + v <= 1) return heights[a] + u * (heights[a + 1] - heights[a])
+      + v * (heights[a + stride] - heights[a]);
+    const d = heights[a + stride + 1];
+    return d + (1 - u) * (heights[a + stride] - d) + (1 - v) * (heights[a + 1] - d);
+  }
+  return { heights, surfaceAt };
+}
+
+const NOISE = `
+  float hashVista(vec2 p) {
+    vec3 q = fract(vec3(p.xyx) * .1031);
+    q += dot(q, q.yzx + 33.33);
+    return fract((q.x + q.y) * q.z);
+  }
+  float softNoise(vec2 p) {
+    vec2 i = floor(p), f = fract(p);
+    f *= f * (3. - 2. * f);
+    return mix(mix(hashVista(i), hashVista(i + vec2(1., 0.)), f.x),
+      mix(hashVista(i + vec2(0., 1.)), hashVista(i + 1.), f.x), f.y);
   }
 `;
 
-const toneVertex = `
-  attribute vec3 dayColor, nightColor;
-  varying vec3 vWorld, vDay, vNight;
-  void main() {
-    vWorld = (modelMatrix * vec4(position, 1.)).xyz;
-    vDay = dayColor;
-    vNight = nightColor;
-    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.);
-  }
-`;
-const toneFragment = `
+const ATMOSPHERE = `
   uniform float uNight, uDusk;
-  varying vec3 vDay, vNight;
-  ${climbHaze}
-  void main() {
-    vec3 light = mix(vDay, vNight, uNight);
-    light = mix(light, light * vec3(1.13, .99, .90), uDusk * .4);
-    gl_FragColor = vec4(throughClimbHaze(light, uNight), 1.);
+  uniform vec3 uHazeDay, uHazeNight, uHazeDusk;
+  float climbHaze() {
+    return .88 * smoothstep(8., 25., cameraPosition.z);
+  }
+  vec3 hazeColor() {
+    return mix(mix(uHazeDay, uHazeNight, uNight), uHazeDusk, uDusk * .44);
+  }
+  vec3 ridgeAir(vec3 color, vec3 world) {
+    float range = distance(cameraPosition, world);
+    float scattering = 1. - exp(-range * mix(.00265, .00315, uNight));
+    float groundMist = (1. - smoothstep(-13., -3., world.y)) * smoothstep(26., 155., range) * .18;
+    float air = clamp(scattering * .94 + groundMist + climbHaze(), 0., .97);
+    return mix(color, hazeColor(), air);
   }
 `;
 
-function mountainRanges(look) {
-  const points = [], day = [], night = [], indices = [];
-  const add = (point, sun, moon, scale) => {
-    points.push(...point);
-    day.push(sun.r * scale, sun.g * scale, sun.b * scale);
-    night.push(moon.r * scale, moon.g * scale, moon.b * scale);
-  };
-  for (const range of RANGES) {
-    const sun = new THREE.Color(range.day), moon = new THREE.Color(range.night);
-    const start = range.crest[0][0], end = range.crest.at(-1)[0];
-    const columns = Math.ceil((end - start) / range.step), rows = SLOPE.length;
-    const offset = points.length / 3;
-    for (let i = 0; i <= columns; i++) {
-      const x = THREE.MathUtils.lerp(start, end, i / columns);
-      for (let row = 0; row < rows; row++) {
-        const point = hillside(range, x, row);
-        const strata = Math.sin(x * .146 + row * .52 + range.seed) * .065;
-        const tint = .77 + .23 * SLOPE[row][1] + strata;
-        add(point, sun, moon, tint);
-        if (i < columns && row < rows - 1) {
-          const a = offset + i * rows + row, b = a + rows;
-          indices.push(a, b, a + 1, b, b + 1, a + 1);
-        }
+const TERRAIN_LIGHT = `
+  uniform vec3 uDaySun;
+  vec3 hillsideLight(vec3 pigment, vec3 normal, float shelter) {
+    float sky = .43 + .57 * max(0., normal.y);
+    float sun = max(0., dot(normal, uDaySun));
+    float duskSun = max(0., dot(normal, normalize(vec3(-.62, .24, .72))));
+    float moon = max(0., dot(normal, normalize(vec3(.48, .58, -.66))));
+    vec3 dayLight = vec3(.36, .47, .61) * sky + vec3(1.07, .98, .82) * sun * .82;
+    vec3 duskLight = vec3(.23, .33, .49) * sky + vec3(1.19, .63, .35) * duskSun * .56;
+    vec3 nightLight = vec3(.17, .28, .49) * sky + vec3(.26, .39, .62) * moon * .26;
+    vec3 light = mix(mix(dayLight, nightLight, uNight), duskLight, uDusk * .62);
+    return pigment * light * mix(1., .69, shelter);
+  }
+`;
+
+function tessellatedTerrain(field, look) {
+  const stride = columns.length, indices = [];
+  const positions = new Float32Array(field.heights.length * 3);
+  const concavity = new Float32Array(field.heights.length);
+  for (let j = 0; j < depths.length; j++) {
+    for (let i = 0; i < stride; i++) {
+      const index = j * stride + i, x = columns[i], depth = depths[j], y = field.heights[index];
+      positions.set([x, y, -depth], index * 3);
+      const above = (field.surfaceAt(x - 3.2, depth) + field.surfaceAt(x + 3.2, depth)
+        + field.surfaceAt(x, depth - 3.2) + field.surfaceAt(x, depth + 3.2)) * .25 - y;
+      concavity[index] = smoothstep(above, -.15, 1.12);
+      if (i < stride - 1 && j < depths.length - 1) {
+        indices.push(index, index + 1, index + stride, index + 1, index + stride + 1, index + stride);
       }
     }
   }
   const geometry = new THREE.BufferGeometry();
-  geometry.setAttribute('position', new THREE.Float32BufferAttribute(points, 3));
-  geometry.setAttribute('dayColor', new THREE.Float32BufferAttribute(day, 3));
-  geometry.setAttribute('nightColor', new THREE.Float32BufferAttribute(night, 3));
+  geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  geometry.setAttribute('basinShade', new THREE.BufferAttribute(concavity, 1));
   geometry.setIndex(indices);
-  const material = new THREE.ShaderMaterial({ uniforms: look, vertexShader: toneVertex, fragmentShader: toneFragment });
-  const object = new THREE.Mesh(geometry, material);
-  object.name = 'Four distant mountain ranges';
-  return object;
-}
-
-function cloudSea(look) {
-  const geometry = new THREE.PlaneGeometry(770, 426, 54, 34);
-  geometry.rotateX(-Math.PI / 2);
-  geometry.translate(0, -9.1, -224);
+  geometry.computeVertexNormals();
   const material = new THREE.ShaderMaterial({
-    uniforms: { ...look,
-      uNightDark: { value: new THREE.Color(0x243c49) }, uNightLight: { value: new THREE.Color(0x516976) },
-      uDayDark: { value: new THREE.Color(0x687f8b) }, uDayLight: { value: new THREE.Color(0xb9c9cd) },
-    },
+    uniforms: look,
     vertexShader: `
-      uniform float uTime;
-      varying vec3 vWorld;
+      attribute float basinShade;
+      varying vec3 vWorld, vNormal;
+      varying float vBasin;
       void main() {
         vWorld = (modelMatrix * vec4(position, 1.)).xyz;
-        vWorld.y += 1.26 * sin(vWorld.x * .064 + uTime * .033) * sin(vWorld.z * .061 - uTime * .029)
-          + .53 * sin(vWorld.z * .128 + vWorld.x * .041 + uTime * .023);
+        vNormal = normalize(mat3(modelMatrix) * normal);
+        vBasin = basinShade;
         gl_Position = projectionMatrix * viewMatrix * vec4(vWorld, 1.);
       }
     `,
     fragmentShader: `
-      uniform float uTime, uNight, uDusk;
-      uniform vec3 uNightDark, uNightLight, uDayDark, uDayLight;
-      varying vec3 vWorld;
-      ${climbHaze}
-      float hashCloud(vec2 p) {
-        vec3 q = fract(vec3(p.xyx) * .1031);
-        q += dot(q, q.yzx + 33.33);
-        return fract((q.x + q.y) * q.z);
-      }
-      float cloudNoise(vec2 p) {
-        vec2 i = floor(p), f = fract(p);
-        f = f * f * (3. - 2. * f);
-        return mix(mix(hashCloud(i), hashCloud(i + vec2(1., 0.)), f.x),
-          mix(hashCloud(i + vec2(0., 1.)), hashCloud(i + 1.), f.x), f.y);
-      }
+      varying vec3 vWorld, vNormal;
+      varying float vBasin;
+      ${NOISE}
+      ${ATMOSPHERE}
+      ${TERRAIN_LIGHT}
       void main() {
-        vec2 drift = vec2(uTime * .011, uTime * .005);
-        vec2 broad = vWorld.xz * vec2(.044, .056) + drift;
-        vec2 fine = broad * 2.48 - drift * .67 + vec2(7.3, -9.7);
-        float banks = cloudNoise(broad + vec2(.24 * sin(broad.y * 1.8), .31 * sin(broad.x * 1.26)));
-        float wisps = cloudNoise(fine) * .72 + cloudNoise(fine * 1.9 + 3.) * .28;
-        float softLight = smoothstep(.35, .68, banks * .77 + wisps * .23);
-        vec3 cool = mix(uDayDark, uNightDark, uNight);
-        vec3 bright = mix(uDayLight, uNightLight, uNight);
-        vec3 clouds = mix(cool, bright, softLight);
-        vec3 horizon = mix(bright, cool, .45);
-        float distance = length(cameraPosition.xz - vWorld.xz);
-        clouds = mix(clouds, horizon, smoothstep(208., 428., distance) * .63);
-        clouds *= mix(vec3(1.), vec3(1.09, 1.01, .91), uDusk * .44);
-        gl_FragColor = vec4(throughClimbHaze(clouds, uNight), 1.);
+        vec3 normal = normalize(vNormal);
+        vec2 ground = vWorld.xz;
+        float canopy = softNoise(ground * .31);
+        float cover = softNoise(ground * .034 + vec2(12.8, 7.2));
+        float barkDetail = softNoise(ground * 1.30 + vWorld.y * .29);
+        float texel = length(fwidth(ground));
+        float crowns = (canopy - .5) * (1. - smoothstep(1.2, 4., texel));
+        float rocky = smoothstep(.29, .70, 1. - normal.y + (barkDetail - .5) * .19 - .09 * vBasin);
+        vec3 foliage = mix(vec3(.050, .076, .040), vec3(.119, .159, .082), cover);
+        foliage *= 1. + crowns * .39 + (barkDetail - .5) * .17 * (1. - smoothstep(.5, 1.6, texel));
+        float strata = .5 + .5 * sin(vWorld.y * 2.01 + ground.x * .13 + ground.y * .08 + canopy * 1.7);
+        vec3 granite = mix(vec3(.120, .116, .095), vec3(.203, .19, .156), strata * .63 + cover * .37);
+        vec3 pigment = mix(foliage, granite, rocky);
+        gl_FragColor = vec4(ridgeAir(hillsideLight(pigment, normal, vBasin), vWorld), 1.);
       }
     `,
   });
-  const object = new THREE.Mesh(geometry, material);
-  object.name = 'Moving cloud banks below the terrace';
-  return object;
+  const mountain = new THREE.Mesh(geometry, material);
+  mountain.name = 'SRTM ridges and river valley';
+  return mountain;
 }
 
-// The horizontal beds are several metres deep. Their contour lines vary with
-// each headland and the shallow retaining banks step down to the valley floor.
-const PADDY_CONTOURS = [
-  [13, 11.9, -111, -2.93], [12.1, 13.2, -104.2, -3.33], [11.3, 12.3, -97.2, -3.72],
-  [9.9, 13.4, -90.1, -4.12], [8.6, 12.7, -83.3, -4.53], [7.1, 11.5, -76.5, -4.96],
-  [8.0, 12.1, -69.7, -5.37], [6.2, 11.0, -63.3, -5.82], [6.5, 8.4, -57.2, -13.6],
-];
-
-function paddyContour(level, t, y = PADDY_CONTOURS[level][3], offset = 0) {
-  const [cx, width, z] = PADDY_CONTOURS[level];
-  const curve = (4.26 + .81 * Math.sin(level * 1.1)) * t * t;
-  const headland = 1.67 * Math.sin(level * 1.72) * THREE.MathUtils.smoothstep(-t, .60, 1);
-  return [cx + width * t + headland, y, z + offset - curve + .92 * Math.sin(t * 3 + level * .64)];
-}
-
-function terraceStrip(batch, rear, front, segments = 28, min = -1, max = 1) {
+function strip(batch, span, left, right, steps = 42) {
   const first = batch.points.length / 3;
-  for (let i = 0; i <= segments; i++) {
-    const u = i / segments, t = THREE.MathUtils.lerp(min, max, u);
-    batch.points.push(...rear(t), ...front(t));
-    batch.uv?.push(u, 0, u, 1);
-    if (i < segments) {
+  for (let i = 0; i <= steps; i++) {
+    const u = i / steps, along = lerp(span[0], span[1], u);
+    batch.points.push(...left(along), ...right(along));
+    batch.uv?.push(0, u, 1, u);
+    if (i < steps) {
       const a = first + i * 2;
       batch.indices.push(a, a + 1, a + 2, a + 1, a + 3, a + 2);
     }
   }
 }
 
-function floodedTerraces(look) {
+function toGeometry(batch) {
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.Float32BufferAttribute(batch.points, 3));
+  if (batch.uv) geo.setAttribute('uv', new THREE.Float32BufferAttribute(batch.uv, 2));
+  geo.setIndex(batch.indices);
+  return geo;
+}
+
+const SURFACE_VERTEX = `
+  varying vec3 vWorld;
+  varying vec2 vUv;
+  void main() {
+    vWorld = (modelMatrix * vec4(position, 1.)).xyz;
+    vUv = uv;
+    gl_Position = projectionMatrix * viewMatrix * vec4(vWorld, 1.);
+  }
+`;
+
+function fieldSurfaces(field, look) {
   const earth = { points: [], indices: [] }, water = { points: [], uv: [], indices: [] };
-  const day = [], night = [];
-  function bank(rear, front, toneA, toneB) {
-    const first = earth.points.length / 3;
-    terraceStrip(earth, rear, front);
-    for (let i = first; i < earth.points.length / 3; i++) {
-      const tint = (i % 2 === 0 ? toneA : toneB) * (.95 + .05 * Math.sin(earth.points[i * 3] * .73));
-      day.push(.112 * tint, .164 * tint, .142 * tint);
-      night.push(.036 * tint, .060 * tint, .059 * tint);
-    }
-  }
-  for (let level = 1; level < PADDY_CONTOURS.length - 1; level++) {
-    const y = PADDY_CONTOURS[level][3];
-    const rear = t => paddyContour(level - 1, t, y, .47);
-    const innerBank = t => paddyContour(level, t, y, -.42);
-    const crest = t => paddyContour(level, t, y + .080, -.24);
-    const lip = t => paddyContour(level, t, y + .042, .14);
-    const last = level === PADDY_CONTOURS.length - 2;
-    const foot = t => last ? paddyContour(level + 1, t) : paddyContour(level, t, PADDY_CONTOURS[level + 1][3], .47);
-    bank(rear, innerBank, .92, .84);
-    bank(innerBank, crest, .84, 1.10);
-    bank(crest, lip, 1.10, .98);
-    bank(lip, foot, .98, last ? .70 : .83);
-
-    // Continue the shoulders under the waterline and cloud so neither the
-    // paddy ends nor the last retaining wall look like floating cards.
-    for (const side of [-1, 1]) {
-      const edge = [rear(side), innerBank(side), crest(side), lip(side), foot(side)];
-      const grade = (t, outside) => {
-        const row = (t + 1) * .5 * (edge.length - 1);
-        const i = Math.min(Math.floor(row), edge.length - 2), u = row - i;
-        const a = edge[i], b = edge[i + 1];
-        const point = a.map((v, axis) => THREE.MathUtils.lerp(v, b[axis], u));
-        if (outside && side > 0) {
-          const [x, y, z] = hillside(RANGES[3], 27.1, 4.5 - (level - 1 + (t + 1) * .5) * .26);
-          return [x, y - .7, z];
-        }
-        const headland = 5.8 + .98 * Math.sin(level * 1.13 + t);
-        return [point[0] - outside * headland, point[1] - outside * 3.4, point[2] + outside * 1.5];
-      };
-      bank(t => grade(t, 0), t => grade(t, 1), .81, .54);
-    }
-    const poolEdge = (t, back) => {
-      const a = rear(t), b = innerBank(t);
-      const taper = THREE.MathUtils.smoothstep(Math.abs(t), .57, 1) * .22;
-      const depth = back ? .07 + taper : .93 - taper;
-      return [THREE.MathUtils.lerp(a[0], b[0], depth), y + .029, THREE.MathUtils.lerp(a[2], b[2], depth)];
-    };
-    const breakAt = .26 * Math.sin(level * 1.64) + .14 * Math.sin(level * 2.4);
-    for (const [min, max] of [[-.95, breakAt - .028], [breakAt + .025, .96]]) {
-      terraceStrip(water, t => poolEdge(t, true), t => poolEdge(t, false), 14, min, max);
-    }
-  }
-  const highBank = t => paddyContour(0, t, PADDY_CONTOURS[0][3] + .35 * Math.sin(t * 3), -.2);
-  bank(t => paddyContour(0, t, -10.6, -9.2), highBank, .65, .92);
-  bank(highBank, t => paddyContour(0, t, PADDY_CONTOURS[1][3], .47), .92, .90);
-
-  const geometryOf = batch => {
-    const geometry = new THREE.BufferGeometry();
-    geometry.setAttribute('position', new THREE.Float32BufferAttribute(batch.points, 3));
-    geometry.setIndex(batch.indices);
-    return geometry;
+  const full = [FIELD_NEAR, FIELD_FAR];
+  const line = (i, offset, height) => depth => [fieldEdge(depth, i) + offset, height, -depth];
+  const landscape = (i, offset) => depth => {
+    const x = fieldEdge(depth, i) + offset;
+    return [x, field.surfaceAt(x, depth) - .12, -depth];
   };
-  const slopes = geometryOf(earth);
-  slopes.setAttribute('dayColor', new THREE.Float32BufferAttribute(day, 3));
-  slopes.setAttribute('nightColor', new THREE.Float32BufferAttribute(night, 3));
-  const fieldLight = { ...look, uMistDay: { value: new THREE.Color(0xa9bdc3) },
-    uMistNight: { value: new THREE.Color(0x425b6a) } };
-  const mistColour = `
-    uniform vec3 uMistDay, uMistNight;
-    ${climbHaze}
-    vec3 valleyMist(vec3 surface, float y, float night) {
-      float veil = .62 * (1. - smoothstep(-9.6, -6.0, y));
-      return throughClimbHaze(mix(surface, mix(uMistDay, uMistNight, night), veil), night);
+  for (let i = 0; i < BEDS.length - 1; i++) {
+    const y = BEDS[i][1], innerLeft = line(i, .24, y);
+    const innerRight = line(i + 1, -.30, y);
+    if (i === 0) strip(earth, full, landscape(i, -3.6), innerLeft);
+    else strip(earth, full, line(i, 0, BEDS[i - 1][1] + .085), innerLeft);
+    strip(earth, full, innerLeft, innerRight);
+    strip(earth, full, innerRight, line(i + 1, 0, y + .085));
+    if (i === BEDS.length - 2) strip(earth, full, line(i + 1, 0, y + .085), landscape(i + 1, 3.6));
+
+    // Cross-bunds and curved corners break the individual water mirrors.
+    const split = 99.1 + 1.6 * Math.sin(i * 1.57);
+    const spans = [[FIELD_NEAR + .86 + 1.5 * Math.sin(i * .93) ** 2, split - .21],
+      [split + .37, FIELD_FAR - 1.14 - 1.8 * Math.cos(i * 1.12) ** 2]];
+    for (const span of spans) {
+      const margin = depth => {
+        const fromEnd = Math.min(depth - span[0], span[1] - depth);
+        return .18 + .51 * (1 - smoothstep(fromEnd, 0, 2.4));
+      };
+      const left = depth => [fieldEdge(depth, i) + .24 + margin(depth), y + .047, -depth];
+      const right = depth => [fieldEdge(depth, i + 1) - .30 - margin(depth), y + .047, -depth];
+      strip(water, span, left, right, 21);
     }
-  `;
-  const bankMaterial = new THREE.ShaderMaterial({
-    uniforms: fieldLight, side: THREE.DoubleSide,
-    vertexShader: toneVertex,
+
+    // Return the ends into the measured hillside. The nearest slope is
+    // part of the same ground instead of an exposed edge under a deck.
+    for (const [depth, direction] of [[FIELD_NEAR, -1], [FIELD_FAR, 1]]) {
+      const groundDepth = depth + direction * 3.8;
+      const limit = t => lerp(fieldEdge(depth, i) + .24, fieldEdge(depth, i + 1) - .30, t);
+      const bed = t => [limit(t), y, -depth];
+      const ground = t => [limit(t), field.surfaceAt(limit(t), groundDepth) - .18, -groundDepth];
+      strip(earth, [0, 1], direction < 0 ? bed : ground, direction < 0 ? ground : bed, 3);
+    }
+  }
+  const soil = new THREE.Mesh(toGeometry(earth), new THREE.ShaderMaterial({
+    uniforms: look, side: THREE.DoubleSide,
+    vertexShader: SURFACE_VERTEX,
     fragmentShader: `
-      uniform float uNight, uDusk;
-      varying vec3 vWorld, vDay, vNight;
-      ${mistColour}
+      varying vec3 vWorld;
+      ${ATMOSPHERE}
+      ${TERRAIN_LIGHT}
+      ${NOISE}
       void main() {
-        float grain = sin(vWorld.x * .78 + vWorld.z * .37) * sin(vWorld.x * .28 - vWorld.z * 1.07);
-        float patches = sin(vWorld.x * .24 + sin(vWorld.z * .22) * 1.9);
-        vec3 ground = mix(vDay, vNight, uNight) * (.96 + .06 * grain + .09 * patches);
-        ground = mix(ground, ground * vec3(1.13, .99, .90), uDusk * .4);
-        gl_FragColor = vec4(valleyMist(ground, vWorld.y, uNight), 1.);
+        vec3 normal = normalize(cross(dFdx(vWorld), dFdy(vWorld)));
+        if (normal.y < 0.) normal = -normal;
+        float grass = smoothstep(.19, .71, normal.y + softNoise(vWorld.xz * .48) * .33 - .31);
+        float soil = softNoise(vWorld.xz * 2.4 + vWorld.y * .62);
+        vec3 loam = mix(vec3(.077, .060, .041), vec3(.110, .149, .063), grass);
+        vec3 color = hillsideLight(loam * (.86 + soil * .28), normal, .21);
+        gl_FragColor = vec4(ridgeAir(color, vWorld), 1.);
       }
     `,
-  });
-  const berms = new THREE.Mesh(slopes, bankMaterial);
-  berms.name = 'Curved banks on the valley shoulder';
-
-  const pools = geometryOf(water);
-  pools.setAttribute('uv', new THREE.Float32BufferAttribute(water.uv, 2));
-  const waterMaterial = new THREE.ShaderMaterial({
-    uniforms: { ...fieldLight,
-      uSkyDay: { value: new THREE.Color(0xa2bbc6) }, uSkyNight: { value: new THREE.Color(0x657e8d) },
-      uBedDay: { value: new THREE.Color(0x527365) }, uBedNight: { value: new THREE.Color(0x2d433a) },
-    },
-    vertexShader: `
-      varying vec2 vWet;
+  }));
+  soil.name = 'Cut earthen banks on the DEM shoulder';
+  const pools = new THREE.Mesh(toGeometry(water), new THREE.ShaderMaterial({
+    uniforms: look,
+    vertexShader: SURFACE_VERTEX,
+    fragmentShader: `
+      uniform float uTime;
       varying vec3 vWorld;
+      varying vec2 vUv;
+      ${ATMOSPHERE}
+      ${TERRAIN_LIGHT}
+      ${NOISE}
       void main() {
-        vWet = uv;
+        vec2 p = vWorld.xz;
+        float du = sin(p.x * 4.6 + p.y * 1.2 + uTime * .82) * .021;
+        float dv = sin(p.y * 4.9 - p.x * 1.2 - uTime * .58) * .017;
+        vec3 normal = normalize(vec3(du, 1., dv));
+        vec3 eye = normalize(cameraPosition - vWorld);
+        float edge = min(min(vUv.x, 1. - vUv.x), min(vUv.y * 3., (1. - vUv.y) * 3.));
+        float facing = max(0., dot(normal, eye));
+        float fresnel = .0204 + .76 * pow(1. - facing, 4.);
+        float brokenSky = softNoise(p * .055 + vec2(uTime * .009, -uTime * .003));
+        vec3 haze = mix(vec3(.35, .48, .57), vec3(.065, .105, .157), uNight);
+        haze *= .74 + .27 * brokenSky;
+        vec3 bed = hillsideLight(vec3(.058, .084, .040), normal, .43);
+        float light = pow(max(0., dot(normal, normalize(eye + uDaySun))), 91.);
+        vec3 sheen = vec3(.20, .22, .23) * light * (1. - uNight) * .29;
+        vec3 water = mix(bed, haze, fresnel * mix(.68, 1., smoothstep(0., .15, edge))) + sheen;
+        gl_FragColor = vec4(ridgeAir(water, vWorld), 1.);
+      }
+    `,
+  }));
+  pools.name = 'Level flooded beds reflecting the sky';
+  return [soil, pools];
+}
+
+function fallingWater(field, look) {
+  const batch = { points: [], uv: [], indices: [] }, streams = [];
+  for (const [branch, route] of drains.entries()) {
+    const plan = new THREE.CatmullRomCurve3(route.map(([x, z]) => new THREE.Vector3(x, 0, z)));
+    const samples = Math.ceil(plan.getLength() * 2.4);
+    const current = t => plan.getPointAt(t);
+    const bank = edge => t => {
+      const point = current(t), ahead = current(Math.min(1, t + .006)), behind = current(Math.max(0, t - .006));
+      const direction = ahead.sub(behind).normalize();
+      const cells = route[Math.min(route.length - 1, Math.round(t * (route.length - 1)))][2];
+      const width = (.16 + .19 * Math.sqrt(Math.min(cells, 1600) / 1600)) * (branch ? .60 : 1);
+      const x = point.x - direction.z * edge * width, z = point.z + direction.x * edge * width;
+      return [x, field.surfaceAt(x, -z) + .079, z];
+    };
+    // This strip uses a separate, transverse mesh orientation.
+    strip(batch, [0, 1], bank(-1), bank(1), samples);
+    for (let i = 0; i <= samples; i++) {
+      const from = current(Math.max(0, (i - 1) / samples)), to = current(Math.min(1, (i + 1) / samples));
+      const fall = field.surfaceAt(from.x, -from.z) - field.surfaceAt(to.x, -to.z);
+      const rapid = smoothstep(fall / Math.max(.001, from.distanceTo(to)), .40, .96);
+      streams.push(rapid, rapid);
+    }
+  }
+  const geometry = toGeometry(batch);
+  geometry.setAttribute('rapid', new THREE.Float32BufferAttribute(streams, 1));
+  const object = new THREE.Mesh(geometry, new THREE.ShaderMaterial({
+    uniforms: look, transparent: true, depthWrite: false, side: THREE.DoubleSide, forceSinglePass: true,
+    vertexShader: `
+      attribute float rapid;
+      varying float vRapid;
+      varying vec3 vWorld;
+      varying vec2 vUv;
+      void main() {
         vWorld = (modelMatrix * vec4(position, 1.)).xyz;
+        vUv = uv;
+        vRapid = rapid;
         gl_Position = projectionMatrix * viewMatrix * vec4(vWorld, 1.);
       }
     `,
     fragmentShader: `
-      uniform float uNight, uDusk, uTime;
-      uniform vec3 uSkyDay, uSkyNight, uBedDay, uBedNight;
-      ${mistColour}
-      varying vec2 vWet;
+      uniform float uTime;
       varying vec3 vWorld;
+      varying vec2 vUv;
+      varying float vRapid;
+      ${ATMOSPHERE}
       void main() {
-        vec3 eye = normalize(cameraPosition - vWorld);
-        float ripple = sin(vWorld.x * .71 + vWorld.z * 1.72 + uTime * .27)
-          * cos(vWorld.x * .39 - vWorld.z * 2.06 - uTime * .19);
-        float facing = clamp(eye.y + ripple * .021, 0., 1.);
-        float reflection = .035 + .72 * pow(1. - facing, 4.);
-        float shore = min(min(vWet.x, 1. - vWet.x), min(vWet.y, 1. - vWet.y));
-        vec3 bed = mix(uBedDay, uBedNight, uNight);
-        vec3 sky = mix(uSkyDay, uSkyNight, uNight) * mix(vec3(1.), vec3(1.15, 1.02, .91), uDusk * .48);
-        float cloudReturn = .94 + .06 * sin(vWorld.x * .43 + vWorld.z * .32 + uTime * .13);
-        vec3 wet = mix(bed, sky * cloudReturn, reflection * mix(.76, 1., smoothstep(0., .16, shore)));
-        gl_FragColor = vec4(valleyMist(wet, vWorld.y, uNight), 1.);
+        float curtain = 1. - smoothstep(.25, .50, abs(vUv.x - .5));
+        float current = .58 + .23 * sin(vUv.y * 129. - uTime * 4. + vUv.x * 6.)
+          + .19 * sin(vUv.y * 214. - uTime * 6. - vUv.x * 9.1);
+        float ends = smoothstep(0., .085, vUv.y) * (1. - smoothstep(.86, 1., vUv.y));
+        float plunge = smoothstep(-12.4, -7., vWorld.y);
+        vec3 sheet = mix(vec3(.19, .28, .30), vec3(.56, .67, .69), vRapid * (.63 + .37 * current));
+        sheet *= mix(1., .38, uNight);
+        float opacity = curtain * ends * (1. - climbHaze()) * plunge * (.15 + .64 * vRapid * current);
+        gl_FragColor = vec4(ridgeAir(sheet, vWorld), opacity);
       }
     `,
-  });
-  const flooded = new THREE.Mesh(pools, waterMaterial);
-  flooded.name = 'Spring paddies reflecting the open sky';
-  return [berms, flooded];
+  }));
+  object.name = 'Drainage-fed hillside cascades';
+  return object;
 }
 
-function waterfall(look) {
-  const range = RANGES[3], points = [], uv = [], indices = [];
-  for (const branch of [{ x: 28.6, width: .59, start: 6.7, end: 2.95 }, { x: 29.45, width: .27, start: 5.64, end: 3.37 }]) {
-    const start = points.length / 3, steps = 32;
-    for (let i = 0; i <= steps; i++) {
-      const t = i / steps, row = THREE.MathUtils.lerp(branch.start, branch.end, t);
-      const x = branch.x + .5 * Math.sin(t * 3.6) - .37 * t;
-      const width = branch.width * (.59 + t * .48 + .21 * Math.sin(t * 11.4));
-      for (const edge of [-1, 1]) {
-        const [px, y, z] = hillside(range, x + edge * width, row);
-        points.push(px, y + .046, z + .25);
-        uv.push((edge + 1) / 2, t);
+function cloudBanks(look) {
+  const batch = { points: [], indices: [] }, layers = [];
+  const width = 65, length = 47;
+  for (const [layer, y] of [-16, -11.6, -8.0].entries()) {
+    const first = batch.points.length / 3;
+    for (let row = 0; row < length; row++) {
+      const depth = lerp(18, 640, (row / (length - 1)) ** 1.68);
+      for (let i = 0; i < width; i++) {
+        const x = lerp(-1, 1, i / (width - 1)) * Math.min(730, depth * 1.21 + 36);
+        // Wisps lift onto the far slopes while the denser banks stay in
+        // the river channel. Leave the near pools below the higher layer.
+        const lift = layer === 2 ? 4.1 * smoothstep(depth, 111, 195) : 0;
+        batch.points.push(x, y + lift, -depth);
+        layers.push(layer);
+        if (i < width - 1 && row < length - 1) {
+          const a = first + row * width + i;
+          batch.indices.push(a, a + 1, a + width, a + 1, a + width + 1, a + width);
+        }
       }
-      const base = start + i * 2;
-      if (i < steps) indices.push(base, base + 2, base + 1, base + 1, base + 2, base + 3);
     }
   }
-  const geometry = new THREE.BufferGeometry();
-  geometry.setAttribute('position', new THREE.Float32BufferAttribute(points, 3));
-  geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
-  geometry.setIndex(indices);
-  const material = new THREE.ShaderMaterial({
-    uniforms: { ...look, uDayWater: { value: new THREE.Color(0xcddce0) }, uNightWater: { value: new THREE.Color(0x748a99) } },
-    transparent: true, depthWrite: false, side: THREE.DoubleSide,
+  const geometry = toGeometry(batch);
+  geometry.setAttribute('layer', new THREE.Float32BufferAttribute(layers, 1));
+  const object = new THREE.Mesh(geometry, new THREE.ShaderMaterial({
+    uniforms: look, transparent: true, depthWrite: false,
     vertexShader: `
-      varying vec2 vUv;
+      uniform float uTime;
+      attribute float layer;
+      varying vec3 vWorld;
+      varying float vLayer;
       void main() {
-        vUv = uv;
-        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.);
+        vWorld = (modelMatrix * vec4(position, 1.)).xyz;
+        vLayer = layer;
+        float ripple = sin(vWorld.x * .081 + uTime * .034 + layer) * sin(vWorld.z * .069 - uTime * .027);
+        vWorld.y += ripple * 1.19 + .43 * sin(vWorld.z * .21 + vWorld.x * .043 + uTime * .029);
+        gl_Position = projectionMatrix * viewMatrix * vec4(vWorld, 1.);
       }
     `,
     fragmentShader: `
-      uniform float uNight, uTime;
-      uniform vec3 uDayWater, uNightWater;
-      varying vec2 vUv;
-      ${climbHaze}
+      uniform float uTime;
+      varying vec3 vWorld;
+      varying float vLayer;
+      ${NOISE}
+      ${ATMOSPHERE}
       void main() {
-        float curtain = pow(max(0., sin(3.14159 * vUv.x)), .58);
-        float falls = .82 + .11 * sin(vUv.y * 102. - uTime * 2.9 + 3. * vUv.x)
-          + .07 * sin(vUv.y * 48. - uTime * 1.6);
-        float edge = smoothstep(0., .075, vUv.y) * (1. - smoothstep(.84, 1., vUv.y));
-        gl_FragColor = vec4(mix(uDayWater, uNightWater, uNight), curtain * falls * edge * .84 * (1. - climbVeil()));
+        vec2 drift = vec2(uTime * (.013 + vLayer * .002), -uTime * .007);
+        vec2 world = vWorld.xz * vec2(.057, .041) + vec2(-3.8, 9.3) * vLayer + drift;
+        float billow = softNoise(world + vec2(.47 * sin(world.y), .35 * cos(world.x * 1.17)));
+        float fold = softNoise(world * 2.03 - drift * .42 + 5.3);
+        float wisp = softNoise(world * 4.21 + vec2(7.8, 3.2) * vLayer);
+        float bank = billow * .63 + fold * .31 + wisp * .06;
+        float coverage = smoothstep(.30, .64, bank + uDusk * .073 - vLayer * .044);
+        float lift = smoothstep(.31, .72, bank * .69 + .31 * fold);
+        vec3 dark = mix(vec3(.21, .29, .34), vec3(.034, .058, .092), uNight);
+        vec3 bright = mix(vec3(.65, .71, .70), vec3(.103, .161, .225), uNight);
+        vec3 cloud = mix(dark, bright, lift) * mix(vec3(1.), vec3(1.10, .97, .87), uDusk * .32);
+        float shore = smoothstep(18., 38., -vWorld.z) * (1. - smoothstep(491., 640., -vWorld.z));
+        float opacity = coverage * shore * (.48 - vLayer * .055) * (1. - climbHaze() * .64);
+        gl_FragColor = vec4(ridgeAir(cloud, vWorld), opacity);
       }
     `,
-  });
-  const object = new THREE.Mesh(geometry, material);
-  object.name = 'Distant falls on the east ridge';
+  }));
+  object.name = 'Separately drifting low cloud banks';
+  // Draw the low cloud after the cascades so passing wisps can veil the
+  // channel. The three strata share the same depth-tested mesh.
+  object.renderOrder = 1;
   return object;
 }
 
 export function createPineGateVista(initialLight = { n: 1, g: 0 }) {
+  const daySun = new THREE.Vector3(...pineDaySunDirection);
   const look = { uNight: { value: initialLight.n }, uDusk: { value: initialLight.g }, uTime: { value: 0 },
-    uClimbHazeDay: { value: new THREE.Color(0xa3b0b4) }, uClimbHazeNight: { value: new THREE.Color(0x344652) } };
-  const group = new THREE.Group();
+    uDaySun: { value: daySun }, uHazeDay: { value: new THREE.Color(0x9aafbf) },
+    uHazeNight: { value: new THREE.Color(0x2a4057) }, uHazeDusk: { value: new THREE.Color(0xa095a2) } };
+  const field = createTerrainField(), group = new THREE.Group();
   group.name = 'Pine Gate valley vista';
-  group.add(mountainRanges(look), cloudSea(look), waterfall(look), ...floodedTerraces(look));
+  group.add(tessellatedTerrain(field, look), ...fieldSurfaces(field, look), cloudBanks(look), fallingWater(field, look));
   return {
     group,
     update(time, light = initialLight) {
