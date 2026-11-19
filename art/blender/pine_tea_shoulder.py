@@ -6,9 +6,12 @@ import math
 from pathlib import Path
 
 import bpy
+from mathutils import Vector
+
+from pine_materials import apply_scan
 
 import snow_roof as mesh
-from snow_lightmap_charts import profile_uv, source_uv
+from snow_lightmap_charts import lathe_uv, profile_uv, source_uv
 
 
 def frame(x, y, z, yaw=0.):
@@ -328,26 +331,142 @@ def tea_pavilion(stone, wood, tiles, repair, clay, iron, contacts):
                   .006, bamboo, .005, 'gate')
 
 
-def spring_basin(stone, wood):
-    x, z = 2.20, 4.35
-    jade = mesh.material('Still spring water in the granite basin', '#708b78', rough=.19, metal=.19)
-    bamboo = mesh.material('Split green bamboo spring pipe', '#80925f', rough=.63)
-    bowl = [(0, 0), (.339, 0), (.426, .056), (.451, .207), (.439, .255),
-            (.374, .260), (.339, .217), (.321, .067), (0, .062)]
-    mesh.lathe('Low worn granite spring basin with a real hollow', bowl, (x, 3.988, z), stone[3], 28, 'gate')
-    mesh.lathe('Reflective water below the basin rim', [(0, 0), (.351, 0), (0, .0005)],
-               (x, 4.188, z), jade, 32, 'gate')
+def spring_basin(wood):
+    centre = (2.20, 3.988, 4.35)
+    waterline = 4.188
+    sectors = 48
+    angles = [math.tau * col / sectors for col in range(sectors)]
+    # The same irregular outline controls the wetted wall and the meniscus.
+    outline = [1 + .020 * math.sin(3 * a + .5) + .010 * math.cos(7 * a - .9)
+               + .006 * math.sin(13 * a + 1.7) for a in angles]
+
+    def turn(name, profile, material, rim_wear=False):
+        points, rings, faces = [], [], []
+        for radius, height in profile:
+            start = len(points)
+            for col in range(sectors if radius else 1):
+                a = angles[col]
+                r = radius * outline[col]
+                worn = (.006 * math.sin(4 * a - .4) + .003 * math.cos(11 * a)) if rim_wear and height >= .235 else 0
+                points.append((centre[0] + r * math.cos(a), centre[1] + height + worn, centre[2] + r * math.sin(a)))
+            rings.append(range(start, len(points)))
+        for first, last in zip(rings, rings[1:]):
+            for col in range(sectors):
+                following = (col + 1) % sectors
+                if len(first) == 1:
+                    faces.append((first[0], last[col], last[following]))
+                elif len(last) == 1:
+                    faces.append((first[col], last[0], first[following]))
+                else:
+                    faces.append((first[col], last[col], last[following], first[following]))
+        obj = mesh.mesh_object(name, points, faces, material, 'gate')
+        for polygon in obj.data.polygons:
+            polygon.use_smooth = True
+        return obj, points, rings, faces
+
+    granite = apply_scan(mesh.material('Wet carved granite of the spring basin', '#b2aea3'), 'mossy_rock', .54)
+    granite['pine_spring_waterline'] = (centre[0], waterline, centre[2])
+    inner_top = (.339, .217)
+    inner_bottom = (.321, .067)
+    bowl_profile = [(0, 0), (.337, 0), (.408, .036), (.429, .065), (.450, .199),
+                    (.447, .235), (.432, .255), (.395, .261), (.365, .252),
+                    (.351, .237), inner_top, inner_bottom, (.296, .063), (0, .062)]
+    bowl, _, rings, _ = turn('Low worn granite spring basin with a real hollow', bowl_profile, granite, rim_wear=True)
+    lathe_uv(bowl, bowl_profile, rings, sectors)
+    # A continuous meridian strip keeps the scan's grain the same size on
+    # the exterior and in the hollow. Keep the lightmap chart at metre scale.
+    chart = bowl.data.uv_layers['SourceLightmap']
+    for corner, material_uv in zip(chart.data, bowl.data.uv_layers['UVMap'].data):
+        material_uv.uv = corner.uv / .52
+
+    mouth_start = Vector((2.68, 4.506, 4.998))
+    mouth_end = Vector((2.355, 4.445, 4.566))
+    impact = (2.326, waterline, 4.536)
+    water = mesh.material('Clear water in the granite spring basin', '#99988b', rough=.105)
+    water['pine_spring_impact'] = impact
+    water['pine_spring_depth'] = waterline - centre[1] - bowl_profile[-1][1]
+    water.node_tree.nodes.get('Principled BSDF').inputs['Alpha'].default_value = .045
+    water.surface_render_method = 'BLENDED'
+    level = waterline - centre[1]
+    wall_slope = (inner_top[0] - inner_bottom[0]) / (inner_top[1] - inner_bottom[1])
+    radius_at_level = inner_bottom[0] + (level - inner_bottom[1]) * wall_slope
+    # The edge follows the interpolated inner wall at the meniscus height.
+    meniscus = ((.0004, .0019), (.0028, .0011), (.008, .00025), (.015, 0))
+    water_profile = [(radius_at_level + lift * wall_slope - inset, level + lift) for inset, lift in meniscus]
+    water_profile.extend(((.258, level), (0, level)))
+    liquid, points, rings, faces = turn('Water surface and curved meniscus below the spring basin rim',
+                                       water_profile, water)
+    source_uv(liquid, [[(points[i][0], points[i][2]) for i in face] for face in faces],
+              'Continuous plan chart through the shallow spring water and its curved meniscus.')
+    edge_coverage = {i: coverage for ring, coverage in zip(rings, (.48, .86, 1, 1, 1, 1)) for i in ring}
+    uv = liquid.data.uv_layers['UVMap'].data
+    for polygon in liquid.data.polygons:
+        for loop, index in zip(polygon.loop_indices, polygon.vertices):
+            uv[loop].uv = (edge_coverage[index], 0)
+
     mesh.box('Old wood support beneath the spring pipe', (.084, .388, .084), (2.56, 4.188, 4.786),
              wood, .011, region='gate')
-    a, b = (2.68, 4.506, 4.998), (2.355, 4.445, 4.566)
-    mesh.beam('Bamboo spring pipe descending into the basin', a, b, .032, bamboo, .027, 'gate')
-    for k in (.21, .63, .92):
-        inlet = tuple(x + (y - x) * k for x, y in zip(a, b))
-        outlet = tuple(x + (y - x) * (k + .018) for x, y in zip(a, b))
-        mesh.beam('Dark natural node around the spring bamboo', inlet, outlet, .034 - .004 * k,
-                  wood, .033 - .004 * k, 'gate')
-    mesh.beam('Thin stream directly beneath the bamboo outlet', b, (2.326, 4.190, 4.536), .005,
-              jade, .003, 'gate')
+    spring_spout(mouth_start, mouth_end, impact)
+
+
+def spring_spout(start, end, impact):
+    axis = (end - start).normalized()
+    side = axis.cross(Vector((0, 1, 0))).normalized()
+    down = axis.cross(side).normalized()
+    # A weathered bamboo node is a ridge in the tube, with an open bevel at
+    # the outlet and a dark inner wall, including the bottom of the cut.
+    profile = [(0., .032), (.201, .031), (.214, .033), (.229, .031),
+               (.620, .029), (.634, .031), (.649, .029), (.896, .0275),
+               (.913, .0292), (.929, .0275), (1., .027), (1., .022),
+               (.935, .022), (.14, .027), (0., .027)]
+    bamboo = mesh.material('Weathered hollow bamboo spring spout', '#a08d55', rough=.58)
+    points, faces, charts = [], [], []
+    sides = 18
+    length = (end - start).length
+    chart_stations = [0.]
+    for a, b in zip(profile, profile[1:] + profile[:1]):
+        chart_stations.append(chart_stations[-1] + math.hypot((b[0] - a[0]) * length, b[1] - a[1]))
+    for station, radius in profile:
+        for col in range(sides):
+            theta = math.tau * col / sides
+            cut = (.004 + .005 * math.sin(theta)) * max(0., (station - .94) / .06)
+            point = start.lerp(end, station) + cut * axis + radius * (math.cos(theta) * side + math.sin(theta) * down)
+            points.append(tuple(point))
+    circumference = math.tau * .032
+    for row in range(len(profile)):
+        following = (row + 1) % len(profile)
+        v, next_v = chart_stations[row:row + 2]
+        for col in range(sides):
+            next_col = (col + 1) % sides
+            faces.append((row * sides + col, row * sides + next_col,
+                          following * sides + next_col, following * sides + col))
+            u, next_u = col / sides * circumference, (col + 1) / sides * circumference
+            charts.append(((u, v), (next_u, v), (next_u, next_v), (u, next_v)))
+    pipe = mesh.mesh_object('Bamboo feed with an open cut, thick lip and raised nodes', points, faces, bamboo, 'gate')
+    source_uv(pipe, charts, 'Connected metre-scale bamboo wall, cut-end and inner wall.')
+    uv = pipe.data.uv_layers['UVMap'].data
+    for polygon, coordinates in zip(pipe.data.polygons, charts):
+        polygon.use_smooth = polygon.index // sides not in (10, 14)
+        for loop, (u, v) in zip(polygon.loop_indices, coordinates):
+            uv[loop].uv = (u / circumference, v / chart_stations[-1])
+    bamboo['pine_spring_bamboo_lip'] = chart_stations[10] / chart_stations[-1]
+    bamboo['pine_spring_bamboo_inner'] = chart_stations[11] / chart_stations[-1]
+
+    # The falling thread leaves the low inner edge and accelerates downwards
+    # under gravity. End it just below the sheet so the impact never gaps.
+    launch = end + axis * .007 + down * .0185
+    landing = Vector((impact[0], impact[1] - .0005, impact[2]))
+    jet = mesh.material('Running spring water below the bamboo spout', '#b3b1a3', rough=.11)
+    jet.node_tree.nodes.get('Principled BSDF').inputs['Alpha'].default_value = .11
+    jet.surface_render_method = 'BLENDED'
+    arc, radii = [], []
+    for i in range(10):
+        t = i / 9
+        point = launch.lerp(landing, t)
+        point.y = launch.y - (launch.y - landing.y) * (.12 * t + .88 * t * t)
+        arc.append(tuple(point))
+        radii.append(.0040 - .0012 * t)
+    mesh.curved_tube('Continuous curved spring jet into the basin', arc, radii, jet, radial=9, region='gate')
 
 
 def candle_wax(name, color, roughness):
@@ -551,5 +670,5 @@ def build_tea_shoulder(anchor, stone, wood, tiles, clay, iron, ledge, contacts, 
     repair = mesh.material('Small unglazed replacement tiles on old roofs', '#a7a395', 'grey_roof_tiles', .73)
     earth_shrine(stone, wood, tiles, repair, clay, iron, ledge, contacts)
     tea_pavilion(stone, wood, tiles, repair, clay, iron, contacts)
-    spring_basin(stone, wood)
+    spring_basin(wood)
     pierced_lamp_shrine(anchor, stone, ledge, iron, contacts, load_old_wax_normal(sculpt_dir) if sculpt_dir else None)
