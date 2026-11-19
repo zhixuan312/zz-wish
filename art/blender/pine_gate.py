@@ -314,7 +314,7 @@ def worn_approach_tread(name, width, depth, centre, material, dressing, outline)
     rim, chips = [], []
     for i, ((u, v), age) in enumerate(zip(old_rim, weather)):
         corner = i in (0, 1, 2, 3, 4, 8, 9, 10)
-        radius = dressing.uniform(.91, 1.) if corner else dressing.uniform(.94, 1.)
+        radius = dressing.uniform(.94, 1.) if corner else dressing.uniform(.96, 1.)
         rim.append((width * u * radius, depth * max(-.5, min(.5, v)) * radius))
         chips.append(age - dressing.uniform(.001, .014))
         if i in (0, 2, 4, 7, 9):
@@ -339,14 +339,17 @@ def worn_approach_tread(name, width, depth, centre, material, dressing, outline)
         return top + pitch * z - worn * age + relief
 
     points = []
-    for band in range(4):
+    for band in range(5):
         for (x, z), chip in zip(rim, chips):
             if band == 0:
                 px, py, pz = x * .93, top - .207, z * .94
             elif band == 1:
                 px, pz = x, z
-                py = walking_surface(x * .944, z * .947) - .040 + .65 * chip
+                py = walking_surface(x * .944, z * .947) - .057 + .65 * chip
             elif band == 2:
+                px, pz = x * .986, z * .990
+                py = walking_surface(px, pz) - .028 + .66 * chip
+            elif band == 3:
                 px, pz = x * .944, z * .947
                 py = walking_surface(px, pz) - .010 + .67 * chip
             else:
@@ -364,20 +367,20 @@ def worn_approach_tread(name, width, depth, centre, material, dressing, outline)
     for i, (x, z) in enumerate(rim):
         xx, zz = rim[(i + 1) % count]
         distance.append(distance[-1] + math.hypot(xx - x, zz - z))
-    for band in range(3):
+    for band in range(4):
         for i in range(count):
             j = (i + 1) % count
             a, b = band * count, (band + 1) * count
             face = (a + i, b + i, b + j, a + j)
             faces.append(face)
-            if band == 2:
+            if band == 3:
                 coordinates.append([(points[index][0] - cx, points[index][2] - cz + .25 + depth * .5)
                                     for index in faces[-1]])
             else:
                 coordinates.append([(distance[k], points[index][1] - top + .22)
                                     for k, index in zip((i, i, i + 1, i + 1), face)])
     for i in range(count):
-        face = (len(points) - 1, 3 * count + (i + 1) % count, 3 * count + i)
+        face = (len(points) - 1, 4 * count + (i + 1) % count, 4 * count + i)
         faces.append(face)
         coordinates.append([(points[index][0] - cx, points[index][2] - cz + .25 + depth * .5)
                             for index in face])
@@ -388,7 +391,8 @@ def worn_approach_tread(name, width, depth, centre, material, dressing, outline)
         face.use_smooth = True
     obj['weather_stone'] = True
     obj['approach_tread'] = True
-    obj['step_tone'] = dressing.uniform(.68, .94)
+    obj['bearing_vertices'] = count
+    obj['step_tone'] = dressing.uniform(.82, .99)
     return obj
 
 
@@ -408,7 +412,7 @@ def approach_joint_bedding(rows, material):
                 across = col / 6 - 1
                 x = bend + across * (half_span + .045)
                 settling = .006 * math.sin(8.8 * x + 5.1 * z) + .004 * math.sin(23 * x - 4.6 * z)
-                level = top - .012 + settling - rise * fall * fall
+                level = top - .008 + settling - rise * fall * fall
                 for dx, dz in ((0, 0), (-.031, 0), (.031, 0), (0, -.016), (0, .016)):
                     contact, normal, _, _ = tree.ray_cast(mesh.point((x + dx, top + .18, z + dz)),
                                                           Vector((0, 0, -1)), 2)
@@ -433,7 +437,7 @@ def audit_approach_tread_bearings(rows, bed, ground):
     unseated = []
     for _, _, _, _, treads in rows:
         for tread in treads:
-            ring = tread.data.vertices[:(len(tread.data.vertices) - 1) // 4]
+            ring = tread.data.vertices[:tread['bearing_vertices']]
             for vertex in ring:
                 x, bottom, z = engine(tread.matrix_world @ vertex.co)
                 hit, _, _, _ = support.ray_cast(mesh.point((x, bottom + .38, z)), Vector((0., 0., -1.)), .65)
@@ -463,7 +467,7 @@ def audit_stair_course_rises(rows):
     print(f'PINE_APPROACH_RISERS {len(rises)} measured rises; {min(rises):.6f}–{max(rises):.6f} m.')
 
 
-def dress_retaining_stone(obj, ground, location, width, height, depth, heading, ripples, foundation):
+def dress_retaining_stone(obj, ground, location, width, height, depth, heading, ripples, foundation, settling):
     x, y, z = location
     count = len(obj.data.vertices) // 3
     for band in range(3):
@@ -477,12 +481,18 @@ def dress_retaining_stone(obj, ground, location, width, height, depth, heading, 
             along = dz * depth / .798 * profile * corner
             vertex.co.x = x + across - heading * along
             vertex.co.y = -z - along - heading * across
-            vertex.co.z = y + (py - y) * height / .25 + ripples[j] * (band / 2)
+            if band == 0:
+                vertex.co.z = y - settling + (py - y) * height / .25
+            else:
+                # Lower the whole course when it settles. The shoulder must
+                # stay below the cap rather than turn into an upturned lip.
+                vertex.co.z = y - settling + ripples[j] + (-.042 if band == 1 else 0.)
             if foundation and band == 0:
                 earth = supports_height(vertex.co.x, -vertex.co.y, [ground])
                 vertex.co.z = min(vertex.co.z, earth - .018)
     obj.data.update()
     profile_uv(obj, count, 3, {0, 1}, 1)
+    mesh.uv_world(obj, .67)
     for face in obj.data.polygons:
         face.use_smooth = True
     obj['rubble_stone'] = True
@@ -617,7 +627,7 @@ def audit_approach_clearance(ground):
     print(f'PINE_APPROACH_CLEARANCE {len(margins)} probes; minimum clearance {min(margins):.6f} m')
 
 
-def climbing_steps(stone, ground, bedding_material, tread_granite):
+def climbing_steps(stone, ground, bedding_material, rubble_granite):
     bridge_curbs = []
     worn_cap = random.Random(38365)
     dressing = random.Random(498721)
@@ -647,14 +657,14 @@ def climbing_steps(stone, ground, bedding_material, tread_granite):
             depth = .82 + RANDOM.uniform(-.043, .039)
             surface = course_top + RANDOM.uniform(-.010, .009) - .005 * j
             centre_z = z + RANDOM.uniform(-.027, .031)
-            RANDOM.choice(stone)
-            original.append((depth, surface, centre_z, hewn_outline()))
+            material = RANDOM.choice(stone)
+            original.append((depth, surface, centre_z, material, hewn_outline()))
         treads = []
         # The end deck already fills course 28. The side drainage is retained.
         if i != 28:
             for j, (a, b, original_index) in enumerate(approach_stone_spans(i, widths)):
-                depth, surface, centre_z, outline = original[original_index]
-                dressed_width = b - a - dressing.uniform(.008, .019)
+                depth, surface, centre_z, material, outline = original[original_index]
+                dressed_width = b - a - dressing.uniform(.003, .011)
                 low_z, high_z = centre_z - depth / 2, centre_z + depth / 2
                 if i == 27:
                     low_z = deck_near
@@ -662,7 +672,7 @@ def climbing_steps(stone, ground, bedding_material, tread_granite):
                     high_z = deck_far
                 tread = worn_approach_tread(f'Step {i + 1:02} block {j + 1}', dressed_width, high_z - low_z,
                                             (bend - span / 2 + (a + b) / 2, surface, (low_z + high_z) / 2),
-                                            tread_granite, dressing, outline)
+                                            material, dressing, outline)
                 tread['moss_edge'] = j != 1 or i % 7 == 0
                 treads.append(tread)
         if treads:
@@ -690,7 +700,7 @@ def climbing_steps(stone, ground, bedding_material, tread_granite):
                                 top + row * .244 + .02, z + (.24 if row % 2 else 0))
                     RANDOM.choice(stone)
                     retaining = hewn_block(f'Stair retaining course {direction} {i} {row}', .46, .25, .798,
-                                           position, tread_granite, 'approach')
+                                           position, rubble_granite, 'approach')
                     rim = len(retaining.data.vertices) // 3
                     wear = [masonry.uniform(-.040, .015) for _ in range(rim)]
                     # Headers tuck into the hill, lower stones carry the
@@ -702,16 +712,17 @@ def climbing_steps(stone, ground, bedding_material, tread_granite):
                     for vertex in retaining.data.vertices:
                         vertex.co.x += offset
                         vertex.co.y -= wave
+                    settling = 0.
                     if row == cap:
                         losses = [worn_cap.uniform(.009, .051) for _ in range(rim)]
                         settling = dressing.uniform(.055, .132) + .13 * max(0., math.sin(i * 1.97 + direction)) ** 2
-                        wear = [dip - settling - loss for dip, loss in zip(wear, losses)]
+                        wear = [dip - loss * .45 for dip, loss in zip(wear, losses)]
                         retaining['moss_edge'] = worn_cap.random() < .72
                     else:
                         retaining['moss_edge'] = True
                     dress_retaining_stone(retaining, ground, (x + offset, y, zz + wave),
                                           masonry.uniform(.43, .66), .30 if row else .33, length,
-                                          masonry.uniform(-.18, .18), wear, row == 0)
+                                          masonry.uniform(-.18, .18), wear, row == 0, settling)
     bed = approach_joint_bedding(bedding_rows, bedding_material)
     audit_approach_tread_bearings(bedding_rows, bed, ground)
     audit_stair_course_rises(bedding_rows)
@@ -1920,7 +1931,7 @@ def paint_stone():
                     green_mix = max(green_mix, wet_base * (.30 if obj.get('moss_edge') else .16))
                 if obj.get('wet_tread_joints'):
                     flecks = .5 + .5 * noise.noise(world * 18.4)
-                    shade *= .57 + .08 * flecks
+                    shade *= .65 + .12 * flecks
                     green_mix = .42 + .31 * flecks
                 if obj.name == 'Continuous mountain shoulder':
                     bank = noise.noise(world * .34) + .44 * noise.noise(world * 1.41)
@@ -2033,7 +2044,7 @@ def build(output, impostor_manifest=None, wax_sculpt=None):
     stone, rock, ground, wood, tiles, bark, needle, iron, clay, ledge = palette()
     support = terrain(ground)
     audit_approach_clearance(support)
-    bridge_curbs = climbing_steps(stone, support, ground, ledge)
+    bridge_curbs = climbing_steps(stone, support, ground, rock)
     route = json.loads((ROOT / 'shared/pine-gate-path.json').read_text())
     far_crown = None
     native_mounts = None
