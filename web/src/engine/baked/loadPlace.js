@@ -58,6 +58,11 @@ export async function loadBakedPlace(id,renderer,initialLight={n:1,g:0}){
     imageBitmaps.add(bitmap);textures.add(texture);
     return texture;
   };
+  const disposeTexture=texture=>{
+    if(!imageBitmaps.delete(texture.image))return;
+    textures.delete(texture);
+    texture.dispose();texture.image.close();
+  };
   const pending={},ready={},retryAt={};
   const ensurePass=pass=>{
     if(ready[pass])return Promise.resolve();
@@ -204,7 +209,7 @@ export async function loadBakedPlace(id,renderer,initialLight={n:1,g:0}){
   });
   for(const maps of Object.values(regions))for(const pass of Object.values(maps))textures.add(pass.texture);
   return{
-    group:gltf.scene,manifest,heroes,visitorShadow,gauzeTransmission,staticLampShadow,cameraPreExposure,residualCameraExposureEV,loadTexture,
+    group:gltf.scene,manifest,heroes,visitorShadow,gauzeTransmission,staticLampShadow,cameraPreExposure,residualCameraExposureEV,loadTexture,disposeTexture,
     lightingState(){return {weights:uniforms.uBakedWeights.value.toArray(),residentPasses:Object.keys(ready).filter(pass=>ready[pass]),pendingPasses:Object.keys(pending).filter(pass=>pending[pass]&&!ready[pass]),loadedPasses:[...ambientPasses,'lamp'].filter(pass=>Object.values(regions).every(maps=>maps[pass].texture!==empty))};},
     // Historical name: pre-exposed radiant intensity in engine units; no lm/cd calibration.
     lampCandela:basis.watts*cameraPreExposure/(4*Math.PI),lampColor:new THREE.Color().fromArray(basis.linearColor),

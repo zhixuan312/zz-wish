@@ -17,7 +17,7 @@ const manifest = () => ({
   waxSculpt: { normal },
 });
 
-afterEach(() => { vi.unstubAllGlobals(); vi.resetModules(); });
+afterEach(() => { vi.unstubAllGlobals(); vi.restoreAllMocks(); vi.resetModules(); });
 
 test('a delivered Pine Gate backdrop and wax normal must be fully declared', () => {
   const valid = manifest();
@@ -85,5 +85,42 @@ test('fixed far, mid and cloud planes share the authored aperture and retain wor
   expect(backdrop.group.visible).toBe(false);
   backdrop.update({ n: 0, g: 0 });
   expect(backdrop.group.visible).toBe(true);
+  backdrop.dispose();
+});
+
+
+test('the desktop high plates start after entry and blend only after all three are ready', async () => {
+  const delivery = manifest();
+  const high = { far: 'high-far.webp', mid: 'high-mid.webp', cloud: 'high-cloud.webp' };
+  delivery.backdrop.high = { encoding: delivery.backdrop.encoding, width: 8192, height: 4096, layers: high };
+  delivery.files.push(...Object.values(high).map(file));
+  const loadTexture = vi.fn(async uri => {
+    const tier = Object.values(high).includes(uri) ? delivery.backdrop.high : delivery.backdrop;
+    const texture = new THREE.Texture({ width: tier.width, height: tier.height });
+    texture.name = uri;
+    return texture;
+  });
+  const baked = { manifest: delivery, cameraPreExposure: projection.preExposure, loadTexture };
+  const renderer = { capabilities: { maxTextureSize: 8192 }, initTexture: vi.fn() };
+  const clock = vi.spyOn(performance, 'now').mockReturnValue(1000);
+  const day = { n: 0, g: 0 };
+  const backdrop = await loadPineGateBackdrop(baked, renderer, day);
+  const uniforms = backdrop.group.children.map(plane => plane.material.uniforms);
+  expect(loadTexture.mock.calls.flat()).toEqual(Object.values(layers));
+  expect(uniforms.map(u => u.uHighPlate.value.name)).toEqual(Object.values(layers));
+  expect(uniforms.every(u => u.uHighMix.value === 0)).toBe(true);
+
+  const request = backdrop.startDesktopHigh();
+  expect(backdrop.startDesktopHigh()).toBe(request);
+  expect(await request).toBe(true);
+  expect(loadTexture.mock.calls.flat()).toEqual([...Object.values(layers), ...Object.values(high)]);
+  expect(uniforms.map(u => u.uHighPlate.value.name)).toEqual(Object.values(high));
+  expect(uniforms.every(u => u.uHighMix.value === 0)).toBe(true);
+  clock.mockReturnValue(1400);
+  backdrop.update(day);
+  expect(uniforms.every(u => u.uHighMix.value === .5)).toBe(true);
+  clock.mockReturnValue(1800);
+  backdrop.update(day);
+  expect(uniforms.every(u => u.uHighMix.value === 1)).toBe(true);
   backdrop.dispose();
 });
