@@ -441,6 +441,15 @@ def worn_approach_tread(name, width, depth, centre, material, dressing, outline,
     return obj
 
 
+def approach_tread_joints(stones):
+    edges = []
+    for stone in stones:
+        count = stone['bearing_vertices']
+        ring = stone.data.vertices[2 * count:3 * count]
+        edges.append((min(v.co.x for v in ring), max(v.co.x for v in ring)))
+    return [(right + left) * .5 for (_, right), (left, _) in zip(edges, edges[1:])]
+
+
 def approach_joint_bedding(rows, material):
     # A continuous hillside bed sits just under the worn stone. The lower
     # end of each course folds into the next, so the rain-cut riser has earth
@@ -451,14 +460,8 @@ def approach_joint_bedding(rows, material):
         start = len(points)
         bend, half_span = section_at((low_z + high_z) * .5)
         extent = half_span + .045
-        edges = []
-        for stone in stones:
-            count = stone['bearing_vertices']
-            ring = stone.data.vertices[2 * count:3 * count]
-            edges.append((min(v.co.x for v in ring), max(v.co.x for v in ring)))
-        joint_centres = [(right + left) * .5 for (_, right), (left, _) in zip(edges, edges[1:])]
         samples = [bend + extent * (col / 6 - 1) for col in range(13)]
-        for centre in joint_centres:
+        for centre in approach_tread_joints(stones):
             # Put a strip of triangles inside each actual fitted stone joint.
             # A uniform grid lowered entire cells beside a low, rounded toe.
             samples = [x for x in samples if abs(x - centre) > .051]
@@ -517,24 +520,27 @@ def pack_stair_grit(rows, bed, granite):
         stone, _, _, _ = masonry.ray_cast(start, down, .24)
         return soil.z if stone is None or stone.z < soil.z - .003 else None
 
-    for top, _, low, high, _ in rows:
+    for top, _, low, high, stones in rows:
         if not 7.6 <= (low + high) / 2 <= 36.1:
             continue
+        joints = approach_tread_joints(stones)
         seats = []
-        for attempt in range(160):
-            if attempt % 3:
-                # The shallow groove below the nose catches coarse grit washed
-                # from the tread. The rest settles in lengthwise joints.
-                z = rng.uniform(max(low + .02, high - .15), high - .008)
-            else:
+        for attempt in range(220):
+            longitudinal = bool(joints and attempt % 3 != 2)
+            if longitudinal:
                 z = rng.uniform(low + .02, high - .02)
-            bend, half_span = section_at(z)
-            x = bend + rng.uniform(-half_span, half_span)
+                x = rng.choice(joints) + rng.uniform(-.030, .030)
+            else:
+                # Fine grit washes into the lengthwise joints. The larger
+                # grains catch at the foot of the next stone course.
+                z = rng.uniform(max(low + .02, high - .15), high - .008)
+                bend, half_span = section_at(z)
+                x = bend + rng.uniform(-half_span, half_span)
             height = available(x, z, top + .07)
             if height is None:
                 continue
             angle = rng.uniform(0., math.tau)
-            extent = rng.uniform(.007, .029)
+            extent = rng.uniform(.005, .017) if longitudinal else rng.uniform(.009, .029)
             if any(math.hypot(x - px, z - pz) < extent + radius + .003 for px, pz, radius in seats):
                 continue
             perimeter = []
@@ -551,7 +557,7 @@ def pack_stair_grit(rows, bed, granite):
             points.extend(((x, height + rng.uniform(.005, .019), z), *perimeter))
             faces.extend((center, center + 1 + (i + 1) % 5, center + 1 + i) for i in range(5))
             seats.append((x, z, extent))
-            if len(seats) == 6:
+            if len(seats) == 14:
                 break
     if points:
         grit = mesh.mesh_object('Crushed lichen-bearing granite lodged in the footpath', points, faces,
