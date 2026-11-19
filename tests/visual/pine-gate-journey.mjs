@@ -31,6 +31,7 @@ if (process.argv.includes('--help')) {
     'CAPTURE_DIRECTION_ONLY=1 saves six site review frames from day and night under quality/direction/QUALITY_LABEL.',
     'CAPTURE_DIRECTION_OVERVIEW is the JSON camera pose (space, position, look, fov) for the separate site overview.',
     'CAPTURE_REALISM_ONLY=1 captures two daytime desktop frames and records phone performance under quality/r1/QUALITY_LABEL.',
+    'CAPTURE_REALISM_BASE_ONLY=1 pins the realism desktop frames to base assets by disabling desktop high-tier requests.',
     'CAPTURE_REQUIRE_BACKDROP=1 requires the offline Cycles plates and readiness under 5 seconds in both realism contexts.',
     'CAPTURE_BROWSER and CAPTURE_ONLY can select a single context. PINE_HOUR defaults to 22.',
   ].join('\n'));
@@ -49,8 +50,10 @@ const audioCompare = process.env.CAPTURE_AUDIO_COMPARE === '1';
 const ambientOnly = process.env.CAPTURE_AMBIENT_ONLY === '1';
 const directionOnly = process.env.CAPTURE_DIRECTION_ONLY === '1';
 const realismOnly = process.env.CAPTURE_REALISM_ONLY === '1';
+const realismBaseOnly = process.env.CAPTURE_REALISM_BASE_ONLY === '1';
 const requireBackdrop = process.env.CAPTURE_REQUIRE_BACKDROP === '1';
 assert(!realismOnly || directionOnly, 'The realism proof requires CAPTURE_DIRECTION_ONLY=1.');
+assert(!realismBaseOnly || realismOnly, 'The base-only proof requires CAPTURE_REALISM_ONLY=1.');
 assert(!requireBackdrop || realismOnly, 'The backdrop requirement is available for realism captures.');
 const directionWalkFrames = realismOnly ? [['terrace-reveal-28s', 28]]
   : [['forest-06s', 6], ['ancient-pine-crest', 21.5], ['terrace-reveal-28s', 28]];
@@ -134,6 +137,7 @@ if (fullJourney) {
   if (preview) {
     previewPackage = await readPinePreview(worktree, previewDir, previewSha);
     if (requireBackdrop) assert(previewPackage.backdrop, 'The approved preview must declare the offline Cycles backdrop.');
+    if (realismBaseOnly) assert(previewPackage.backdrop?.high, 'The base-only proof requires a candidate with the desktop high tier.');
     delivery = { preview, samples: previewPackage.samples, manifestSha256: previewPackage.manifestSha256,
       publicManifestSha256, transport: 'Private Playwright request routes for the candidate Pine Gate files.' };
     if (realismOnly) delivery.realismBase = await measurePineRealismBase(worktree, previewPackage, manifest);
@@ -153,6 +157,7 @@ const report = {
   ...(quality && !readinessOnly && !audioCompare && !ambientOnly && !directionOnly ? { matchedEndingShapes: true } : {}),
   ...(directionOnly ? { directionOnly, frames: directionPasses.flatMap(pass => pass.frames), directionOverview, directionMethod } : {}),
   ...(realismOnly ? { realismOnly } : {}),
+  ...(realismBaseOnly ? { realismBaseOnly } : {}),
   ...(solarConfigBytes ? { solarConfig: { file: solarConfigPath, sha256: hash(solarConfigBytes), ...JSON.parse(solarConfigBytes) } } : {}),
   ...(backdropConfigBytes ? { backdropConfig: { file: backdropConfigPath, sha256: hash(backdropConfigBytes), ...JSON.parse(backdropConfigBytes) } } : {}),
   ...(ambientOnly ? { ambientOnly } : {}),
@@ -364,6 +369,7 @@ async function capture(browser, browserName, size, trial) {
       directionCamera: !!direction,
       solarProbe: realismOnly && !phone,
       backdropProbe: realismOnly,
+      realismBaseOnly: realismBaseOnly && !phone,
     };
     if (Object.values(sceneAudit).some(Boolean)) {
       await page.route(url => url.pathname === '/src/engine/scene.js', async route => {
@@ -764,15 +770,20 @@ async function capture(browser, browserName, size, trial) {
           // The per-shot samplers distinguish a base reveal or burn from a later successful upgrade.
           const shots = Object.fromEntries(run.shots.map(shot => [basename(shot.file), inspectHigh(shot.pineImages)]));
           Object.assign(run.highBackdrop, { settled, shots });
-          if (phone) {
-            assert.equal(settled.status, 'base', 'Phone must remain on the base backdrop.');
-            assert.deepEqual(run.highBackdropRequests, [], 'Phone must never request high backdrop assets.');
-          }
-          else {
+          const baseOnly = phone || realismBaseOnly;
+          if (baseOnly) {
+            assert.equal(settled.status, 'base', 'The base-tier context must remain on the base backdrop.');
+            assert.deepEqual(run.highBackdropRequests, [], 'The base-tier context must never request any high-tier assets.');
+            for (const [name, state] of Object.entries(shots)) {
+              assert.equal(state.status, 'base', `${name} switched away from the base backdrop.`);
+            }
+          } else {
             assert(run.highBackdropRequests.every(request => request.afterEntryMs !== null), 'High backdrop requested before entering.');
             assert.deepEqual(new Set(run.highBackdropRequests.map(request => request.uri)), highUris);
             assert.equal(settled.status, 'active', 'Desktop did not finish the optional high backdrop upgrade.');
-            assert.equal(shots['day-burning.png'].status, 'active', 'Desktop burning was captured before the high backdrop upgrade finished.');
+            for (const [name, state] of Object.entries(shots)) {
+              assert.equal(state.status, 'active', `${name} was captured before the high backdrop upgrade finished.`);
+            }
           }
           if (highTreeUri) {
             assert.deepEqual(run.readyPineImages.nativeTrees, [], 'Native trees installed before the walk.');
@@ -781,8 +792,8 @@ async function capture(browser, browserName, size, trial) {
             const expected = new Map(mounts.map(mount => [mount.node, mount.position]));
             for (const state of [...run.shots.map(shot => shot.pineImages), run.settledPineImages]) {
               const trees = state.nativeTrees;
-              if (phone) {
-                assert.deepEqual(trees, [], 'Phone installed desktop tree geometry.');
+              if (baseOnly) {
+                assert.deepEqual(trees, [], 'The base-tier context installed desktop tree geometry.');
                 continue;
               }
               assert.deepEqual(trees.map(tree => tree.name).sort(), [...expected.keys()].sort());

@@ -26,6 +26,7 @@ const tiles = [];
 const pairs = [];
 const shots = {};
 let baselineLabel = 'p1';
+let candidateLabel = 'r1';
 
 function distance(a, b) {
   return Math.hypot(...a.map((value, i) => value - b[i]));
@@ -91,7 +92,10 @@ async function captureEvidence(directory, kind) {
   assert(report.directionVerified && report.delivery.preview && report.delivery.publicManifestUnchanged);
   assert.equal(report.cameraDrift, 'product default');
   assert(!report.runs.some(run => run.errors.length || run.viteUpdates.length), 'Capture contains errors or source drift.');
-  if (kind === 'baseline' && report.realismOnly) baselineLabel = 'previous';
+  if (kind === 'baseline' && report.realismOnly) {
+    baselineLabel = report.realismBaseOnly ? 'base' : 'previous';
+    if (report.realismBaseOnly) candidateLabel = 'high';
+  }
   if (kind === 'candidate') {
     assert(report.realismOnly);
     assert.equal(report.runs.length, 2);
@@ -114,9 +118,22 @@ async function captureEvidence(directory, kind) {
   const run = report.runs.find(run => run.direction === 'day' && run.label === 'desktop-en');
   assert(run?.visualHour === 13 && run.label === 'desktop-en' && run.lighting.agx);
   assert(run.lighting.loadedPasses.includes('day'));
+  if (report.realismBaseOnly) {
+    assert.equal(kind, 'baseline', 'Use the base-only capture as the baseline for the tier comparison.');
+    assert.equal(run.highBackdrop?.settled?.status, 'base');
+    assert.deepEqual(run.highBackdropRequests, []);
+    for (const { stage } of Object.values(sizes)) assert.equal(run.highBackdrop?.shots?.[`${stage}.png`]?.status, 'base');
+  }
+  if (kind === 'candidate' && baselineLabel === 'base') {
+    assert(report.delivery.realismBase.backdrop?.high, 'Use the streamed desktop tier for the other half of the comparison.');
+    assert.equal(report.delivery.manifestSha256, shots.baseline.manifestSha256, 'The two tiers must use the same package.');
+    assert.match(report.codeSha256, /^[a-f0-9]{64}$/);
+    assert.equal(report.codeSha256, shots.baseline.codeSha256, 'The two tiers must use the same runtime source.');
+  }
   if (kind === 'candidate' && report.delivery.realismBase.backdrop?.high) {
     assert.equal(run.highBackdrop?.beforeEntry?.status, 'base');
     assert.equal(run.highBackdrop?.shots?.['day-burning.png']?.status, 'active');
+    if (baselineLabel === 'base') assert.equal(run.highBackdrop?.shots?.['terrace-reveal-28s.png']?.status, 'active');
   }
   const frames = {};
   for (const [key, view] of Object.entries(sizes)) {
@@ -137,7 +154,8 @@ async function captureEvidence(directory, kind) {
     frames[key] = { source: relative(output, source), sha256: shot.sha256, camera: shot.camera };
     tiles.push({ source, output: tile, rect: view.rect, sourceSize: imageSize });
   }
-  shots[kind] = { sourceRev: report.sourceRev, manifestSha256: report.delivery.manifestSha256, frames };
+  shots[kind] = { sourceRev: report.sourceRev, codeSha256: report.codeSha256,
+    manifestSha256: report.delivery.manifestSha256, frames };
   if (kind === 'candidate') solar = await solarEvidence(directory, report, run);
 }
 
@@ -175,13 +193,13 @@ for (const [key, view] of Object.entries(sizes)) {
   pairs.push({ left: referenceTile, right: baselineTile, output: join(output, `${key}-photo-vs-${baselineLabel}.png`) });
   if (candidate) {
     const candidateTile = join(output, `${key}-candidate.png`);
-    pairs.push({ left: referenceTile, right: candidateTile, output: join(output, `${key}-photo-vs-r1.png`) });
-    pairs.push({ left: baselineTile, right: candidateTile, output: join(output, `${key}-${baselineLabel}-vs-r1.png`) });
-    if (baselineLabel === 'previous') {
+    pairs.push({ left: referenceTile, right: candidateTile, output: join(output, `${key}-photo-vs-${candidateLabel}.png`) });
+    pairs.push({ left: baselineTile, right: candidateTile, output: join(output, `${key}-${baselineLabel}-vs-${candidateLabel}.png`) });
+    if (baselineLabel !== 'p1') {
       pairs.push({
         left: resolve(output, shots.baseline.frames[key].source),
         right: resolve(output, shots.candidate.frames[key].source),
-        output: join(output, `${key}-previous-vs-r1-full.png`),
+        output: join(output, `${key}-${baselineLabel}-vs-${candidateLabel}-full.png`),
       });
     }
   }
