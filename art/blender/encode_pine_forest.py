@@ -22,7 +22,7 @@ VISIBLE_BOUNDS = {
 }
 
 
-def encode_forest(source, output, quality, alpha_quality):
+def encode_forest(source, output, quality, alpha_quality, nearest):
     original = json.loads((source / 'forest.json').read_text())
     projection = Path(__file__).resolve().parents[2] / 'shared/pine-gate-backdrop.json'
     pre_exposure = json.loads(projection.read_text())['preExposure']
@@ -37,7 +37,10 @@ def encode_forest(source, output, quality, alpha_quality):
     original_top = centre + metres_high / 2
     output.mkdir(parents=True, exist_ok=False)
     cropped = []
+    visible_layers = []
     for layer, file in zip(forest['layers'], original['files'], strict=True):
+        if layer['z'] > nearest:
+            continue
         master = source / Path(file['uri']).with_suffix('.exr')
         if digest(master) != file['masterSha256'] or layer['uri'] != file['uri']:
             raise ValueError('Forest master or layer identity differs from the render receipt.')
@@ -62,6 +65,10 @@ def encode_forest(source, output, quality, alpha_quality):
         cropped.append({'uri': target.name, 'bytes': target.stat().st_size, 'sha256': digest(target),
                         'masterSha256': file['masterSha256'],
                         'crop': [first_col, first_row, target_width, target_height]})
+        visible_layers.append(layer)
+    if len(visible_layers) < 2:
+        raise ValueError('The screened forest needs at least two visible distances.')
+    forest['layers'] = visible_layers
     original.update(files=cropped, webpQuality=quality, alphaQuality=alpha_quality,
                     sourceReceiptSha256=digest(source / 'forest.json'), cropMode='Native texels of the camera sweep.')
     (output / 'forest.json').write_text(json.dumps(original, indent=2) + '\n')
@@ -74,5 +81,6 @@ if __name__ == '__main__':
     parser.add_argument('--out', type=Path, required=True)
     parser.add_argument('--quality', type=int, default=76)
     parser.add_argument('--alpha-quality', type=int, default=100)
+    parser.add_argument('--nearest', type=float, default=29)
     arguments = parser.parse_args()
-    encode_forest(arguments.input, arguments.out, arguments.quality, arguments.alpha_quality)
+    encode_forest(arguments.input, arguments.out, arguments.quality, arguments.alpha_quality, arguments.nearest)

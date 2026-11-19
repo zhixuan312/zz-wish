@@ -56,8 +56,9 @@ export function instrumentPineScene(source, { readiness, cadence, lighting, walk
   if (backdropProbe) {
     source = insertAt(source, frameAnchor, 'offline backdrop state', `window.__pineCaptureBackdrop = () => {
   const group = place?.baked?.backdrop?.group;
+  const forest = place?.baked?.approachForest?.group;
   const wax = place?.baked?.waxNormal;
-  if (!group && !wax) return null;
+  if (!group && !wax && !forest) return null;
   const image = (texture) => ({ uri: texture.name, pixels: [texture.image.width, texture.image.height],
     ...(texture.isCompressedTexture ? { compressed: texture.format !== THREE.RGBAFormat,
       gpuBytes: texture.mipmaps.reduce((total, mip) => total + mip.data.byteLength, 0) } : {}) });
@@ -66,6 +67,15 @@ export function instrumentPineScene(source, { readiness, cadence, lighting, walk
   const trees = place?.baked?.highTrees?.group;
   const baseCrowns = place?.baked?.highTrees?.base;
   return {
+    approachForest: forest ? {
+      visible: forest.visible,
+      planes: forest.children.map(plane => ({
+        ...image(plane.material.uniforms.uPlate.value),
+        position: plane.position.toArray(),
+        size: [plane.geometry.parameters.width, plane.geometry.parameters.height],
+        depthTest: plane.material.depthTest, depthWrite: plane.material.depthWrite,
+      })),
+    } : null,
     baseCrowns: baseCrowns ? { visible: baseCrowns.visible, mounts: baseCrowns.children.map(tree => ({
       name: tree.name, position: tree.position.toArray(), height: tree.scale.y,
     })) } : null,

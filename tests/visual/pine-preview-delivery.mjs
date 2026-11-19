@@ -4,6 +4,7 @@ import { lstat, readFile, realpath } from 'node:fs/promises';
 import { isAbsolute, join, relative } from 'node:path';
 import projection from '../../shared/pine-gate-backdrop.json' with { type: 'json' };
 import { readPineBackdrop, readPineWalkLightmaps, readPineWaxNormal } from '../../web/src/engine/baked/pineManifest.js';
+import { readPineForestBackdrop } from '../../web/src/engine/places/pine-forest-backdrop.js';
 
 export const pinePackagePath = '/places/pine-gate/';
 const sha256 = data => createHash('sha256').update(data).digest('hex');
@@ -32,6 +33,7 @@ export async function readPinePreview(worktree, candidateDir, expectedSha) {
   const backdrop = readPineBackdrop(manifest);
   const walkLightmaps = readPineWalkLightmaps(manifest);
   const waxNormal = readPineWaxNormal(manifest);
+  const approachForest = readPineForestBackdrop(manifest);
   const regions = Object.keys(manifest.lightmaps).sort();
   assert.deepEqual(regions, ['approach', 'gate', 'niche']);
   const maps = regions.flatMap(region => ['day', 'dusk', 'night', 'lamp'].map(look => {
@@ -51,7 +53,8 @@ export async function readPinePreview(worktree, candidateDir, expectedSha) {
     const contentType = name.endsWith('.webp') ? 'image/webp' : name.endsWith('.png') ? 'image/png' : 'application/octet-stream';
     assets.set(name, { body, version: file.sha256, contentType });
   }
-  return { assets, scene: manifest.scene, samples: manifest.bake.samples, manifestSha256: expectedSha, backdrop, walkLightmaps, waxNormal };
+  return { assets, scene: manifest.scene, samples: manifest.bake.samples, manifestSha256: expectedSha,
+    backdrop, walkLightmaps, waxNormal, approachForest };
 }
 
 export function walkLightmapFiles(preview) {
@@ -121,6 +124,21 @@ export function assertPineRuntimeImages(state, preview, fetched, checkView = fal
     assert(plane.opacity === 1 && plane.depthTest && !plane.depthWrite, `${plane.name} daytime compositing changed.`);
     if (checkView) assert(plane.viewportCenterUv?.every(value => value > .015 && value < .985), `${plane.name} is outside the product camera aperture.`);
     if (index > 0) assert(plane.renderOrder > state.backdrop.planes[index - 1].renderOrder, 'Backdrops must composite far to near.');
+  }
+}
+
+export function assertPineApproachForest(state, preview, fetched) {
+  const forest = preview.approachForest;
+  assert(forest && state?.visible, 'The prepared Pine Gate should show the daytime approach forest.');
+  assert.equal(state.planes.length, forest.plates.length);
+  for (const [i, plate] of forest.plates.entries()) {
+    const actual = state.planes[i];
+    assert(fetched.includes(plate.file.uri), `The browser did not fetch approach forest plate ${plate.file.uri}.`);
+    assert.equal(actual.uri, plate.file.uri);
+    assert.deepEqual(actual.pixels, [plate.pixelWidth, plate.pixelHeight]);
+    assert.deepEqual(actual.position, [plate.centerX, plate.planeY, plate.z]);
+    assert.deepEqual(actual.size, [plate.planeWidth, plate.planeHeight]);
+    assert(actual.depthTest && !actual.depthWrite, 'The forest must respect opaque path and terrain depth.');
   }
 }
 

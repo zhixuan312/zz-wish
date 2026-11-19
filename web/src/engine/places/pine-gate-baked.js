@@ -120,6 +120,7 @@ export default function createPlace(h) {
       }
       const forest = await loadPineForestBackdrop(baked, h.renderer, context.light, forestDescriptor);
       if (forest) {
+        baked.approachForest = forest;
         context.G.add(forest.group);
         context.up.push((_dt, _time, light) => forest.update(light));
         context.disposers.push(forest.dispose);

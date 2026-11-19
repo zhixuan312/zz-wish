@@ -11,7 +11,7 @@ import { DICTS, fmtDuration } from '../../web/src/i18n.ts';
 import { assertCaptureGpuHealthy, installCaptureGpuGuard } from './capture-preflight.mjs';
 import { installLiveAudioAudit, sampleLiveAudio, sampleLiveAudioWindow } from './live-audio-audit.mjs';
 import { instrumentPineScene, readDirectionOverview } from './pine-gate-scene-audit.mjs';
-import { assertPineRuntimeImages, inspectPineHighBackdrop, measurePineRealismBase, pinePackagePath, readPinePreview, routePinePreview } from './pine-preview-delivery.mjs';
+import { assertPineApproachForest, assertPineRuntimeImages, inspectPineHighBackdrop, measurePineRealismBase, pinePackagePath, readPinePreview, routePinePreview } from './pine-preview-delivery.mjs';
 import { watchPineWalkTier } from './pine-walk-tier-audit.mjs';
 
 if (process.argv.includes('--help')) {
@@ -385,7 +385,7 @@ async function capture(browser, browserName, size, trial) {
       walkClock: direction?.name === 'day' && (!phone || !!walkAudit),
       directionCamera: !!direction,
       solarProbe: realismOnly && !phone,
-      backdropProbe: realismOnly || !!walkAudit,
+      backdropProbe: realismOnly || !!walkAudit || !!previewPackage?.approachForest,
       realismBaseOnly: realismBaseOnly && !phone,
     };
     if (Object.values(sceneAudit).some(Boolean)) {
@@ -706,6 +706,10 @@ async function capture(browser, browserName, size, trial) {
       if (previewPackage) {
         assert(['manifest.json', previewPackage.scene].every(file => run.previewFetchedFiles.includes(file)),
           'The browser did not request the isolated Pine preview manifest and model.');
+        if (visualHour === 13 && previewPackage.approachForest) {
+          run.readyApproachForest = await page.evaluate(() => window.__pineCaptureBackdrop().approachForest);
+          assertPineApproachForest(run.readyApproachForest, previewPackage, run.previewFetchedFiles);
+        }
       }
       if (realismOnly) {
         run.readyPineImages = await page.evaluate(() => window.__pineCaptureBackdrop());
