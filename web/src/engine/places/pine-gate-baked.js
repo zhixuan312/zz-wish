@@ -1,5 +1,6 @@
 import { loadBakedPlace } from '../baked/loadPlace.js';
-import { readPineWaxNormal } from '../baked/pineManifest.js';
+import { readPineBackdrop, readPineWaxNormal } from '../baked/pineManifest.js';
+import { preparePineHighTrees } from './pine-gate-high-trees.js';
 import { loadPineGateBackdrop } from './pine-gate-backdrop.js';
 import { createPineGateLife } from './pine-gate-life.js';
 import { pineDaySunDirection, pineDaySunDiscEdges } from './pine-gate-sun.js';
@@ -47,6 +48,12 @@ export default function createPlace(h) {
         context.G.add(backdrop.group);
         context.up.push((_dt, _time, light) => backdrop.update(light));
         context.disposers.push(backdrop.dispose);
+      }
+      const highTrees = preparePineHighTrees(baked, readPineBackdrop(baked.manifest)?.high?.trees);
+      if (highTrees) {
+        baked.highTrees = highTrees;
+        context.G.add(highTrees.group);
+        context.disposers.push(highTrees.dispose);
       }
       const waxNormal = readPineWaxNormal(baked.manifest);
       if (waxNormal) {

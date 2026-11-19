@@ -65,8 +65,9 @@ export async function measurePineRealismBase(worktree, preview, ordinaryManifest
   const { high, ...base } = preview.backdrop ?? {};
   const imageBytes = tier => Object.values(tier?.files ?? {}).reduce((bytes, file) => bytes + preview.assets.get(file.uri).body.length, 0);
   // The entire manifest, all ambient banks and the shared LUT belong to base.
-  // Only the separately declared and verified optional high plate bodies can be deferred.
-  const highBytes = imageBytes(high);
+  // Only separately declared and verified desktop bodies can be deferred.
+  const highTreeBytes = high?.trees ? preview.assets.get(high.trees.uri).body.length : 0;
+  const highBytes = imageBytes(high) + highTreeBytes;
   const packageBytes = combinedPackageBytes - highBytes;
   const totalBytes = packageBytes + sharedBytes.length;
   const limitBytes = 15_000_000;
@@ -75,7 +76,7 @@ export async function measurePineRealismBase(worktree, preview, ordinaryManifest
   const combinedLimitBytes = 40_000_000;
   assert(combinedBytes <= combinedLimitBytes, `Pine Gate combined payload is ${combinedBytes} bytes and exceeds ${combinedLimitBytes} bytes.`);
   return { totalBytes, limitBytes, packageBytes, sharedAgXBytes: sharedBytes.length,
-    backdrop: preview.backdrop ? { ...base, bytes: imageBytes(base), ...(high ? { high: { ...high, bytes: highBytes } } : {}) } : null,
+    backdrop: preview.backdrop ? { ...base, bytes: imageBytes(base), ...(high ? { high: { ...high, bytes: imageBytes(high), ...(highTreeBytes ? { treeBytes: highTreeBytes } : {}) } } : {}) } : null,
     ...(high ? { combinedBytes, combinedLimitBytes, combinedPackageBytes, highBytes } : {}),
     waxNormal: preview.waxNormal };
 }
@@ -138,6 +139,7 @@ export function inspectPineHighBackdrop(state, preview, fetched) {
 export async function routePinePreview(page, base, preview, onError, onServed) {
   const imageUris = new Set([...Object.values(preview.backdrop?.files ?? {}), ...Object.values(preview.backdrop?.high?.files ?? {})].map(file => file.uri));
   if (preview.waxNormal) imageUris.add(preview.waxNormal.uri);
+  if (preview.backdrop?.high?.trees) imageUris.add(preview.backdrop.high.trees.uri);
   await page.route(url => url.origin === base.origin && url.pathname.startsWith(pinePackagePath), async route => {
     const url = new URL(route.request().url());
     const key = url.pathname.slice(pinePackagePath.length);

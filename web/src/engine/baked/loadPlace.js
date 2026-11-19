@@ -207,9 +207,29 @@ export async function loadBakedPlace(id,renderer,initialLight={n:1,g:0}){
     };
     object.material=Array.isArray(object.material)?object.material.map(convert):convert(object.material);
   });
+  async function loadDetailModel(uri) {
+    const { scene } = await loader.loadAsync(await verified(uri));
+    const details = { geometries: new Set(), materials: new Set(), textures: new Set() };
+    scene.traverse(object => {
+      if (!object.isMesh) return;
+      details.geometries.add(object.geometry);
+      for (const material of [object.material].flat()) {
+        details.materials.add(material);
+        for (const value of Object.values(material)) if (value?.isTexture) details.textures.add(value);
+      }
+    });
+    if (disposed) {
+      for (const items of Object.values(details)) for (const item of items) item.dispose();
+      return null;
+    }
+    for (const geometry of details.geometries) geometries.add(geometry);
+    for (const material of details.materials) materials.add(material);
+    for (const texture of details.textures) textures.add(texture);
+    return scene;
+  }
   for(const maps of Object.values(regions))for(const pass of Object.values(maps))textures.add(pass.texture);
   return{
-    group:gltf.scene,manifest,heroes,visitorShadow,gauzeTransmission,staticLampShadow,cameraPreExposure,residualCameraExposureEV,loadTexture,disposeTexture,
+    group:gltf.scene,manifest,heroes,visitorShadow,gauzeTransmission,staticLampShadow,cameraPreExposure,residualCameraExposureEV,loadTexture,disposeTexture,loadDetailModel,
     lightingState(){return {weights:uniforms.uBakedWeights.value.toArray(),residentPasses:Object.keys(ready).filter(pass=>ready[pass]),pendingPasses:Object.keys(pending).filter(pass=>pending[pass]&&!ready[pass]),loadedPasses:[...ambientPasses,'lamp'].filter(pass=>Object.values(regions).every(maps=>maps[pass].texture!==empty))};},
     // Historical name: pre-exposed radiant intensity in engine units; no lm/cd calibration.
     lampCandela:basis.watts*cameraPreExposure/(4*Math.PI),lampColor:new THREE.Color().fromArray(basis.linearColor),

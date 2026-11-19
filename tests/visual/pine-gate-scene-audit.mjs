@@ -56,7 +56,15 @@ export function instrumentPineScene(source, { readiness, cadence, lighting, walk
   const image = (texture) => ({ uri: texture.name, pixels: [texture.image.width, texture.image.height] });
   const eye = camera.getWorldPosition(V3());
   const ray = camera.getWorldDirection(V3());
+  const trees = place?.baked?.highTrees?.group;
   return {
+    nativeTrees: trees ? trees.children.map(tree => {
+      let triangles = 0;
+      tree.traverse(object => {
+        if (object.isMesh) triangles += (object.geometry.index?.count ?? object.geometry.attributes.position.count) / 3;
+      });
+      return { name: tree.name, position: tree.position.toArray(), scale: tree.scale.x, triangles };
+    }) : null,
     waxNormal: wax ? image(wax) : null,
     backdrop: group ? {
       visible: group.visible,

@@ -7,13 +7,15 @@ import projection from '../shared/pine-gate-backdrop.json' with { type: 'json' }
 import { readPineBackdrop, readPineWaxNormal } from '../web/src/engine/baked/pineManifest.js';
 
 const { values } = parseArgs({ options: Object.fromEntries(
-  ['near', 'plates', 'sculpt', 'out', 'high'].map(name => [name, { type: 'string' }]),
+  ['near', 'plates', 'sculpt', 'out', 'high', 'high-trees'].map(name => [name, { type: 'string' }]),
 ) });
 const required = ['near', 'plates', 'sculpt', 'out'];
 if (required.some(name => !values[name])) throw new Error('Specify --near, --plates, --sculpt and --out.');
 const [near, plates, sculpt, out] = required.map(name => resolve(values[name]));
 const high = values.high === undefined ? null : resolve(values.high);
-if ([near, plates, sculpt, high].includes(out)) throw new Error('Use a new staging directory.');
+const highTrees = values['high-trees'] === undefined ? null : resolve(values['high-trees']);
+if (highTrees && !high) throw new Error('High trees require the desktop backdrop tier.');
+if ([near, plates, sculpt, high, highTrees].includes(out)) throw new Error('Use a new staging directory.');
 const readJSON = async path => JSON.parse(await readFile(path, 'utf8'));
 const digest = data => createHash('sha256').update(data).digest('hex');
 const nearManifest = await readFile(join(near, 'manifest.json'));
@@ -70,6 +72,14 @@ if (high) {
   };
   sourceFiles.push(...renamed.map(([, spec, uri]) => [high, { uri, bytes: spec.bytes, sha256: spec.sha256 }, spec.uri]));
 }
+if (highTrees) {
+  const receipt = await readFile(join(highTrees, 'pine-native-trees.json'));
+  const { file } = JSON.parse(receipt);
+  if (file?.uri !== 'pine-native-trees.glb') throw new Error('Expected the verified native tree model.');
+  manifest.backdrop.high.trees = file.uri;
+  manifest.backdrop.high.treeReceiptSha256 = digest(receipt);
+  sourceFiles.push([highTrees, { uri: file.uri, bytes: file.bytes, sha256: file.sha256 }]);
+}
 manifest.files = sourceFiles.map(([, spec]) => spec);
 const backdrop = readPineBackdrop(manifest);
 if (high && !backdrop.high) throw new Error('Missing verified high backdrop declaration.');
@@ -94,6 +104,7 @@ for (let pass = 0; pass < 12; pass++) {
 const serialized = encode();
 if (Buffer.byteLength(serialized) !== manifest.manifestBytes) throw new Error('Manifest bytes did not converge.');
 const highFiles = Object.values(backdrop.high?.files ?? {});
+if (backdrop.high?.trees) highFiles.push(backdrop.high.trees);
 const highBytes = highFiles.reduce((sum, file) => sum + file.bytes, 0);
 const combinedBytes = manifest.completePackageBytes + nativeAgXBytes;
 const baseBytes = combinedBytes - highBytes;
@@ -106,6 +117,7 @@ const budget = {
   ...(high ? {
     combinedBytes, combinedLimitBytes: 40_000_000, highBytes,
     highBackdropBytes: Object.fromEntries(Object.entries(backdrop.high.files).map(([name, file]) => [name, file.bytes])),
+    ...(backdrop.high.trees ? { highTreeBytes: backdrop.high.trees.bytes } : {}),
   } : {}),
 };
 console.log('PINE_BACKDROP_BUDGET', JSON.stringify(budget));

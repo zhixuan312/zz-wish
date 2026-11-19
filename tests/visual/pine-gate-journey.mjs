@@ -317,6 +317,8 @@ async function capture(browser, browserName, size, trial) {
     });
     if (realismOnly) run.obsoleteVistaRequests = [];
     const highUris = new Set(Object.values(previewPackage?.backdrop?.high?.files ?? {}).map(file => file.uri));
+    const highTreeUri = previewPackage?.backdrop?.high?.trees?.uri;
+    if (highTreeUri) highUris.add(highTreeUri);
     let entryStartedAt = null;
     if (realismOnly && highUris.size) {
       run.highBackdropRequests = [];

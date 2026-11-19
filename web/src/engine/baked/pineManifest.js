@@ -1,6 +1,6 @@
 import projection from '../../../../shared/pine-gate-backdrop.json' with { type: 'json' };
 
-function imageFile(manifest, uri, extension) {
+function pineFile(manifest, uri, extension) {
   if (typeof uri !== 'string' || !/^[a-z0-9][a-z0-9._-]*$/.test(uri) || !uri.endsWith(extension)) {
     throw new Error(`Invalid Pine Gate ${extension} asset name`);
   }
@@ -20,7 +20,7 @@ function backdropTier(manifest, tier) {
     || !layers || Object.keys(layers).length !== names.length || new Set(names.map(name => layers[name])).size !== names.length) {
     throw new Error('Invalid Pine Gate backdrop declaration');
   }
-  return { encoding, width, height, files: Object.fromEntries(names.map(name => [name, imageFile(manifest, layers[name], '.webp')])) };
+  return { encoding, width, height, files: Object.fromEntries(names.map(name => [name, pineFile(manifest, layers[name], '.webp')])) };
 }
 
 export function readPineBackdrop(manifest) {
@@ -33,10 +33,12 @@ export function readPineBackdrop(manifest) {
   if (high.width <= base.width || Object.values(high.files).some(file => baseFiles.has(file))) {
     throw new Error('Invalid Pine Gate high backdrop tier');
   }
-  return { ...base, high };
+  const trees = backdrop.high.trees === undefined ? null : pineFile(manifest, backdrop.high.trees, '.glb');
+  if (trees?.uri === manifest.scene) throw new Error('Pine Gate high trees must be a separate asset');
+  return { ...base, high: { ...high, trees } };
 }
 
 export function readPineWaxNormal(manifest) {
   if (manifest.waxSculpt === undefined) return null;
-  return imageFile(manifest, manifest.waxSculpt?.normal, '.png');
+  return pineFile(manifest, manifest.waxSculpt?.normal, '.png');
 }

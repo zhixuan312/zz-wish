@@ -103,9 +103,10 @@ export function prefetchBakedPlace(id, onProgress) {
     };
     entry.promise = (async () => {
       const manifest = await readBakedManifest(id);
-      const files = manifest.files.filter(file => /\.(?:glb(?:\.(?:gz|gzip|zstd))?|ktx2)$/.test(file.uri));
+      const backdrop = id === 'pine-gate' ? readPineBackdrop(manifest) : null;
+      const highTreeUri = backdrop?.high?.trees?.uri;
+      const files = manifest.files.filter(file => file.uri !== highTreeUri && /\.(?:glb(?:\.(?:gz|gzip|zstd))?|ktx2)$/.test(file.uri));
       if (id === 'pine-gate') {
-        const backdrop = readPineBackdrop(manifest);
         const waxNormal = readPineWaxNormal(manifest);
         files.push(...Object.values(backdrop?.files ?? {}));
         if (waxNormal) files.push(waxNormal);
