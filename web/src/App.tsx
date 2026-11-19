@@ -10,6 +10,7 @@ import { DrawPad, rowsFromStrokes, type Pt } from './DrawPad.tsx';
 import { MyCandles, TenLights } from './Panels.tsx';
 import { CandleThumb } from './CandleThumb.tsx';
 import { sound } from './sound.ts';
+import { music, type MusicStage } from './music.ts';
 import { DICTS, fmtClock, fmtDuration } from './i18n.ts';
 
 type Screen = engine.ScenePhase;
@@ -28,9 +29,32 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
   const switchLocale = () => { const next = locale === 'zh' ? 'en' : 'zh'; setLocaleState(next); api.setLocale(next).catch(() => {}); };
 
   const [screen, setScreen] = useState<Screen>('wish');
-  const [quiet, setQuiet] = useState(false);
+  // One mute governs both the ambient world and the music, and the choice survives.
+  const [quiet, setQuiet] = useState(() => music.isMuted());
+  useEffect(() => { sound.mute(quiet); music.setMuted(quiet); }, [quiet]);
   const [powerSaver, setPowerSaver] = useState(false);
   useEffect(() => { engine.setPhase(screen); }, [screen]);
+  // Music follows the same screens the engine does; burning and its endings are
+  // started by the light and settlement paths below, which know the outcome.
+  useEffect(() => {
+    const stage: MusicStage | null =
+      screen === 'wish' ? 'home' :
+      screen === 'place' ? 'place' :
+      screen === 'travel' ? 'walk' :
+      screen === 'candle' ? 'choose' : null;
+    if (stage) void music.play(stage, placeRef.current);
+  }, [screen]);
+  // Browsers refuse sound before a gesture: the first one opens the device and starts home.
+  useEffect(() => {
+    const unlock = () => {
+      void music.unlock().then(() => music.play('home', placeRef.current));
+      window.removeEventListener('pointerdown', unlock, true);
+      window.removeEventListener('keydown', unlock, true);
+    };
+    window.addEventListener('pointerdown', unlock, true);
+    window.addEventListener('keydown', unlock, true);
+    return () => { window.removeEventListener('pointerdown', unlock, true); window.removeEventListener('keydown', unlock, true); };
+  }, []);
   useEffect(() => { engine.setPowerSaver(powerSaver); }, [powerSaver]);
   const [overlay, setOverlay] = useState<Overlay>(null);
   const [busy, setBusy] = useState(false);
@@ -146,6 +170,7 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
     const b = new Burn(minutes! * 60_000, (s: Settlement) => {
       presence.stopBurning(); sound.stop();
       burnRef.current = null;
+      void music.play(s.done ? 'endingBurned' : 'endingPutOut', lightPlace);
       engine.snuff(s.done);
       setResult({ done: s.done, burnedMs: s.burnedMs, plannedMs: b.planned, reason: s.reason, saved: null });
       setScreen('result'); setAskLeave(null);
@@ -162,7 +187,10 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
       b.confirm(c);
       if (!b.isSettled) {
         presence.burn(lightPlace, c.id, () => b.elapsed()); setScreen('burning');
-        void engine.ignite({ onCatch: () => { if (burnRef.current === b && !b.isSettled) setCaught(true); } })
+        void music.play('ignite', lightPlace);
+        void engine.ignite({ onCatch: () => {
+          if (burnRef.current === b && !b.isSettled) { setCaught(true); void music.play('burn', lightPlace); }
+        } })
           .catch(() => { if (!b.isSettled) b.settle('put_out'); });
       }
     } catch (e) {
@@ -211,6 +239,7 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
       <header className="topbar">
         <span className="brand"><span lang="zh-CN">一盏</span><span lang="en">One Light</span></span>
         <nav>
+          <button className="btn small mute" aria-label={quiet ? t.soundOn : t.soundOff} aria-pressed={quiet} onClick={() => setQuiet(!quiet)}>{quiet ? t.controlMuted : t.controlSound}</button>
           {screen !== 'burning' && <button className="btn small" onClick={switchLocale} aria-label={t.langSwitchLabel}>{t.langSwitch}</button>}
           <button className="btn small" onClick={() => open('stats')}>{t.tenLights}</button>
           <button className="btn small" onClick={() => open('mine')}>{t.myCandles}</button>
@@ -361,7 +390,7 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
               </div>
             ) : (
               <div className="row ctl">
-                <button className="btn small" aria-label={quiet ? t.soundOn : t.soundOff} aria-pressed={quiet} onClick={() => { sound.mute(!quiet); setQuiet(!quiet); }}>{quiet ? t.controlMuted : t.controlSound}</button>
+                <button className="btn small" aria-label={quiet ? t.soundOn : t.soundOff} aria-pressed={quiet} onClick={() => setQuiet(!quiet)}>{quiet ? t.controlMuted : t.controlSound}</button>
                 <button className="btn small" aria-label={powerSaver ? t.qualityOn : t.powerSaver} aria-pressed={powerSaver} onClick={() => setPowerSaver(!powerSaver)}>{powerSaver ? t.controlSaver : t.controlDetail}</button>
                 <button className="btn small" aria-label={showWish ? t.hideWish : t.showWish} aria-pressed={showWish} onClick={() => setShowWish(!showWish)}>{t.controlWish}</button>
                 <button className="btn small" aria-label={showLeft ? t.hideRemaining : t.showRemaining} aria-pressed={showLeft} onClick={() => setShowLeft(!showLeft)}>{t.controlTime}</button>
