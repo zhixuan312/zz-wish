@@ -227,10 +227,10 @@ function refinedWaxMaterial(light, layer, sunShade, sculptNormal) {
         vec3 reflected = reflect(-viewWorld, worldNormal);
         float invRise = 1. / max(.001, reflected.y);
         vec3 blue = vec3(.085, .16, .28) * flameSlice(fromCrown, reflected, invRise, -.0019, .00320);
-        vec3 transition = vec3(.41, .41, .60) * flameSlice(fromCrown, reflected, invRise, .0015, .00490);
-        vec3 goldLow = vec3(2.2, 1.43, .55) * flameSlice(fromCrown, reflected, invRise, .0038, .00507);
-        vec3 goldCore = vec3(3.2, 2.52, 1.38) * flameSlice(fromCrown, reflected, invRise, .0085, .00482);
-        vec3 goldHigh = vec3(2.8, 2.23, 1.24) * flameSlice(fromCrown, reflected, invRise, .012, .00424);
+        vec3 transition = vec3(.42, .35, .51) * flameSlice(fromCrown, reflected, invRise, .0010, .00490);
+        vec3 goldLow = vec3(2.2, 1.23, .39) * flameSlice(fromCrown, reflected, invRise, .0029, .00507);
+        vec3 goldCore = vec3(3.05, 2.22, 1.04) * flameSlice(fromCrown, reflected, invRise, .0068, .00482);
+        vec3 goldHigh = vec3(2.43, 1.55, .54) * flameSlice(fromCrown, reflected, invRise, .0099, .00424);
         vec3 reflectedFlame = max(max(blue, transition), max(goldLow, max(goldCore, goldHigh)));
         float fresnel = .031 + .969 * pow(1. - clamp(dot(worldNormal, viewWorld), 0., 1.), 5.);
         float wickPool = exp(-4.7 * dot(fromCrown.xz, fromCrown.xz) / max(.0000001, uPinePoolRadius * uPinePoolRadius));
@@ -635,22 +635,24 @@ const RUNNEL_ROWS = 26;
 function bodySurface(mesh, rows, cut, melt, runnels) {
   const top = ringAt(rows, cut);
   const refined = runnels !== null;
-  const depth = (refined ? Math.min(cut * .42, top.r * .40, .0068)
+  const sculpted = mesh.geometry.hasAttribute('aPineSculptCircle');
+  const depth = (sculpted ? Math.min(cut * .42, top.r * .59, .0092)
+    : refined ? Math.min(cut * .42, top.r * .40, .0068)
     : Math.min(cut * .24, top.r * .27, .0036)) * melt;
   const bevel = Math.min(cut * .2, top.r * .09, .0014);
   const lipRelief = refined && runnels.length ? .17 : .09;
   const lipHeight = melt * Math.min(top.r * lipRelief, cut * .13, lipRelief * .013);
-  const softenedBand = Math.min(cut * .55, .0085);
-  const sculpted = mesh.geometry.hasAttribute('aPineSculptCircle');
-  const slump = sculpted ? Math.min(depth * .98, softenedBand * .49) : 0;
-  const retainedWax = sculpted ? Math.min(depth * .75, softenedBand * .53) : 0;
+  const softenedBand = Math.min(cut * .55, .011);
+  const slump = sculpted ? Math.min(depth * .94, softenedBand * .48) : 0;
+  const retainedWax = sculpted ? Math.min(depth * .51, softenedBand * .38) : 0;
   const rimRelief = angle => {
-    // The spent front edge opens over the liquid. Wax remains on the far
-    // half in two rounded lobes, where it makes a thin, translucent wall.
-    const front = Math.max(0, Math.cos(angle - 1.7));
-    const rear = Math.max(0, Math.cos(angle - 4.84));
-    const folds = .53 + .47 * Math.cos(2.5 * Math.sin(angle - 4.62)) ** 2;
-    return retainedWax * rear ** .7 * folds - slump * front ** 3;
+    // Gravity opens a wide notch between two unequal retained folds.
+    const front = Math.max(0, Math.cos(angle - 1.48));
+    const leftFold = Math.max(0, Math.cos(angle - 3.65)) ** 5;
+    const rightFold = Math.max(0, Math.cos(angle - 5.52)) ** 7;
+    const rearWall = Math.max(0, Math.cos(angle - 4.73)) ** 2;
+    return retainedWax * (.84 * leftFold + .59 * rightFold + .38 * rearWall)
+      - slump * front ** 1.65;
   };
   const shouldersAt = y => {
     if (slump === 0 || y <= cut - softenedBand) return undefined;
@@ -664,8 +666,13 @@ function bodySurface(mesh, rows, cut, melt, runnels) {
     const softenedEdge = Math.max(0, Math.cos(a - 1.18)) ** 14;
     return Math.max(-depth * .54, lip * .62 - depth * .69 * softenedEdge);
   };
-  const grain = (y, radius) => runnels ? runnelContour(y, radius, runnels)
-    : a => 1 + .006 * Math.sin(a * 7 + y * 120) + .004 * Math.sin(a * 15 - y * 150);
+  const grain = (y, radius) => {
+    if (!runnels) return a => 1 + .006 * Math.sin(a * 7 + y * 120) + .004 * Math.sin(a * 15 - y * 150);
+    const surfaceContour = runnelContour(y, radius, runnels);
+    if (!sculpted || !melt) return surfaceContour;
+    const shoulder = THREE.MathUtils.smoothstep(y, cut - softenedBand, cut) * melt;
+    return a => surfaceContour(a) + shoulder * (.031 * Math.sin(2 * a + .24) + .022 * Math.sin(3 * a - .67));
+  };
   let row = 0;
   writeRing(mesh, row++, rows[0].cx, 0, 0);
   const shoulderY = cut - bevel;
@@ -693,8 +700,8 @@ function bodySurface(mesh, rows, cut, melt, runnels) {
     sculpted ? a => uneven(a) * .92 : a => uneven(a) * .4);
   if (refined && melt > 0) {
     writeRing(mesh, row++, top.cx, top.r * .94, cut, grain(cut, top.r), uneven);
-    writeRing(mesh, row++, top.cx, top.r * .865, cut - depth * .20, grain(cut, top.r),
-      sculpted ? a => Math.max(-depth * .42, uneven(a) * .94) : a => uneven(a) * .45);
+    writeRing(mesh, row++, top.cx, top.r * (sculpted ? .884 : .865), cut - depth * .20, grain(cut, top.r),
+      sculpted ? a => Math.max(-depth * .49, uneven(a) * .89) : a => uneven(a) * .45);
     writeRing(mesh, row++, top.cx, top.r * .717, cut - depth, grain(cut, top.r));
   } else {
     writeRing(mesh, row++, top.cx, top.r * .92, cut, grain(cut, top.r), uneven);
@@ -868,9 +875,9 @@ export function createPineWax(seat, waxMaterial, { refined = false, sculptNormal
         const spent = cut <= 0;
         const melted = state === 'unlit' ? 0 : Math.min(1, .54 + (1 - fuel) * 4);
         const runnels = refined ? runnelLayout.map((drip, index) => {
-          // The first small flows wet the shoulder as the pool forms. Later
-          // growth follows consumed fuel and leaves the burn height alone.
-          const shoulderMelt = index === 0 ? (sculptNormal ? .22 : .14) * melted : 0;
+          // Two spill points form as the sculpted lip softens.
+          const earlySpill = sculptNormal ? [0.31, 0.25][index] ?? 0 : index === 0 ? .14 : 0;
+          const shoulderMelt = earlySpill * melted;
           const amount = clamp((1 - fuel - drip.start + shoulderMelt) * drip.speed, 0, 1);
           return { ...drip, reach: Math.min(drip.reach * amount, cut * .8),
             growth: Math.sqrt(amount), crown: cut - Math.min(cut * .04, .0002) };

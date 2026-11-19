@@ -219,7 +219,7 @@ float pineRadius(float y) {
 }
 vec4 pineFlameVolume(vec2 uv) {
   float t = uTime + vSeed * 6.;
-  float h = .91 + .125 * vn(vec2(t * 2.9, vSeed));
+  float h = .73 + .100 * vn(vec2(t * 2.9, vSeed));
   float sway = (vn(vec2(t * 1.56, vSeed * 2.1)) - .5) * .16 + uWind * .28;
   float flutter = .91 + .16 * vn(vec2(t * 6.7, vSeed + 11.));
   float span = max(.032, pineRadius((uv.y - .015) / h) * 1.36);
@@ -236,7 +236,10 @@ vec4 pineFlameVolume(vec2 uv) {
     float inner = (1. - smoothstep(.37, .72, r)) * (1. - smoothstep(.24, .56, y));
     float blue = (1. - smoothstep(.068, .19, y)) * (.45 + .55 * smoothstep(.25, .9, r));
     float skirt = smoothstep(.34, .84, r);
-    vec3 gold = mix(vec3(7.6, 6.1, 3.45), vec3(2.25, .74, .085), skirt);
+    float hottest = (v - .46) / .20;
+    float hot = exp(-hottest * hottest);
+    vec3 core = mix(vec3(4.25, 2.14, .61), vec3(6.65, 4.95, 2.45), hot);
+    vec3 gold = mix(core, vec3(2.60, .82, .095), skirt);
     gold *= mix(.064, 1., 1. - inner);
     vec3 spectrum = mix(gold, vec3(.07, .24, .78) * (.32 + .68 * skirt) * (1. - .53 * inner), blue);
     float density = envelope * (.66 + .34 * skirt);
