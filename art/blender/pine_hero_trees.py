@@ -60,9 +60,11 @@ def needle_fascicle(anchor, following, spread, reach, rng, dense, mature=False):
     side.normalize()
     up = axis.cross(side)
     if mature:
-        count = 8 if dense else 4
+        count = 8 if dense else 6
         deviation = .16
-        widths = (.0010, .0023) if dense else (.0024, .0044)
+        # The compact mesh represents each pair as a few visible needles
+        # through the silhouette of the tuft at the first uphill views.
+        widths = (.0010, .0023) if dense else (.0065, .0105)
     else:
         count = 7 if dense else 4
         deviation = .32
@@ -148,6 +150,8 @@ def grow_crown(name, profile, trunk, phase, bark, write_wood, *, dense=False):
                 spread = rng.uniform(-math.pi, math.pi)
                 length_scale = min(1.26, max(.72, height / 8))
                 leaf = rng.uniform(.102, .212) * length_scale * (1 - .29 * upper_crown)
+                if old:
+                    leaf *= 1.30
                 if dense and bud in (1, 3, 5):
                     stem = anchor + younger.normalized() * (leaf * rng.uniform(.45, .76))
                     write_wood(f'{label} new shoot {fork + 1}.{bud + 1}', [anchor, stem],
