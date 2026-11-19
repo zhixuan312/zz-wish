@@ -346,8 +346,8 @@ export function createPineTray(seat) {
     positions.setXYZ(i, x * (1 + uneven), y + chip * clamp(y / .008, 0, 1), z * (1 + uneven));
   }
   geometry.computeVertexNormals();
-  const material = new THREE.MeshPhysicalMaterial({ color: 0x677467, roughness: .36, clearcoat: .68,
-    clearcoatRoughness: .17, ior: 1.49, envMapIntensity: .68 });
+  const material = new THREE.MeshPhysicalMaterial({ color: 0x53604e, roughness: .30, clearcoat: .81,
+    clearcoatRoughness: .12, ior: 1.49, envMapIntensity: .73 });
   material.onBeforeCompile = shader => {
     materialCoordinates(shader);
     shader.fragmentShader = `
@@ -373,10 +373,12 @@ export function createPineTray(seat) {
       // The fired glaze pools inside the dish. The turned foot is bare clay.
       float glaze = smoothstep(.0024, .0052, vPineLocal.y) * (1. - .55 * wear);
       vec3 clay = vec3(.80, .64, .46);
-      vec3 firedGlaze = mix(vec3(.64, .77, .66), vec3(1.04, 1.13, .98), aggregate);
+      float glazeDepth = smoothstep(.007, .016, vPineLocal.y + .0017 * (aggregate - .5));
+      vec3 firedGlaze = mix(vec3(.55, .64, .60), vec3(.94, 1.12, .90),
+        .55 * aggregate + .45 * glazeDepth);
       diffuseColor.rgb *= mix(clay, firedGlaze, glaze) * (1. + .043 * fleck - .16 * soot - .13 * ashSpecks + .024 * toolMark);`)
       .replace('#include <roughnessmap_fragment>', `#include <roughnessmap_fragment>
-        roughnessFactor = clamp(mix(.79, roughnessFactor + .16 * (aggregate - .5), glaze) + .09 * ashSpecks, .22, .87);`)
+        roughnessFactor = clamp(mix(.79, roughnessFactor + .20 * (aggregate - .5), glaze) + .09 * ashSpecks, .17, .87);`)
       .replace('#include <lights_physical_fragment>', `#include <lights_physical_fragment>
         #ifdef USE_CLEARCOAT
           material.clearcoat *= glaze;
@@ -397,7 +399,7 @@ export function createPineTray(seat) {
         reflectedLight.indirectDiffuse += diffuseColor.rgb * vec3(1.07, 1.03, .98)
           * (.26 * outerFoot * recessReturn);`);
   };
-  material.customProgramCacheKey = () => 'pine-fired-glaze-1';
+  material.customProgramCacheKey = () => 'pine-fired-glaze-2';
   material.userData.lampOwned = true;
   const tray = new THREE.Mesh(geometry, material);
   tray.receiveShadow = true;
