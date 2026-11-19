@@ -19,13 +19,14 @@ def crest_soil_tint(x, z):
 
 
 def inner_bank_tint(x, z, channel_x, width):
-    approach = max(0., min(1., (z - 15.) / 3.6, (34. - z) / 4.7))
+    approach = max(0., min(1., (z - 13.8) / 4.3, (44. - z) / 9.2))
     distance = max(0., abs(x - channel_x) - width)
-    damp = math.exp(-(distance / .50) ** 2)
-    patch = .50 + .26 * math.sin(4.23 * x + 1.18 * z) + .22 * math.sin(2.81 * x - 2.35 * z)
-    forest = max(0., min(1., (abs(x) - 1.3) / .62, (6. - abs(x)) / 1.6))
-    strength = approach * (.34 * damp + (.31 + .36 * patch) * forest)
-    return 1. - .67 * strength, 1. - .32 * strength, 1. - .45 * strength
+    damp = math.exp(-(distance / .64) ** 2)
+    patch = .50 + .28 * math.sin(3.42 * x + 1.34 * z) + .22 * math.sin(1.84 * x - 2.73 * z)
+    forest = max(0., min(1., (abs(x) - 1.34) / .45, (7.8 - abs(x)) / 2.1))
+    cover = approach * forest * (.24 + .69 * patch)
+    moisture = approach * damp * (1. - .4 * cover)
+    return 1. - .55 * cover - .21 * moisture, 1. - .17 * cover - .17 * moisture, 1. - .41 * cover - .17 * moisture
 
 
 def tinted_mesh(name, material, points, faces, charts, colors, method, *, smooth=False, uv_scale=None):
@@ -235,7 +236,7 @@ def build_crest_ground(ground, rock, bark, section, spring, height, pines, bark_
     crest_roots(pines, height, bark, bark_tube)
 
 
-def build_inner_banks(rock, section, spring, height):
+def build_inner_banks(ground, rock, section, spring, height):
     rng = random.Random(3843)
     sites = []
     # The forest views look along the inner banks rather than the upper slope.
@@ -253,6 +254,9 @@ def build_inner_banks(rock, section, spring, height):
     stones = [(x, z, min(.74 * clear, rng.uniform(.10, .27))) for x, z, clear, _ in sites[1::4]]
     tinted_mesh('Small exposed schist in the spring banks', rock, *surface_islands(stones, height, rng, True),
                 'Planar charts with exterior rims embedded in the banks.', uv_scale=.59)
+    moss = [(x, z, min(.78 * clear, rng.uniform(.30, .66))) for x, z, clear, _ in sites]
+    tinted_mesh('Wet moss over needle litter at the path edge', ground, *surface_islands(moss, height, rng, False),
+                'Embedded moss held above the bank by the existing scanned relief.', smooth=True, uv_scale=.31)
     litter = mesh.material('Loose pine needles under the inner banks', '#ffffff', rough=.95)
     grass = mesh.material('Damp bank sedge and dry tips', '#ffffff', rough=.93)
     mesh.vertex_tint_shader(litter)

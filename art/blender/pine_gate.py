@@ -1837,7 +1837,7 @@ def build(output, impostor_manifest=None, wax_sculpt=None):
     paint_stone()
     build_crest_ground(ground, rock, bark, section_at, watercourse_at, lambda x, z: supports_height(x, z, [support]),
                        ((-1.88, PINE_CREST + .08), (1.82, PINE_CREST - .32)), bark_tube)
-    build_inner_banks(rock, section_at, watercourse_at, lambda x, z: supports_height(x, z, [support]))
+    build_inner_banks(ground, rock, section_at, watercourse_at, lambda x, z: supports_height(x, z, [support]))
     scene.render.engine = 'CYCLES'
     scene.render.threads_mode = 'AUTO'
     scene.render.resolution_x = 1440

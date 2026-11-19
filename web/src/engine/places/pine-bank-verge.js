@@ -19,6 +19,20 @@ const bankSites = [
   [3.17, 25.99, .82, 2.16], [3.52, 24.97, .86, 2.27], [2.85, 23.18, .65, 2.47],
   [2.88, 21.55, .64, 2.58], [3.45, 19.33, .74, 2.99],
 ];
+const groundcoverSites = [
+  [-2.0, 32.42, .65, 1.27], [-2.84, 32.7, 1.03, 1.46], [-3.76, 32.8, 1.26, 1.74],
+  [-2.1, 31.45, .86, 1.40], [-2.65, 30.04, .72, 1.63], [-3.48, 30.05, 1.32, 1.80],
+  [-2.42, 28.6, .76, 1.88], [-3.56, 28.2, 1.25, 2.24], [-4.2, 27.1, 1.12, 2.44],
+  [-2.9, 26.22, .89, 2.05], [-2.78, 25.05, .85, 2.18], [-3.14, 23.06, 1.03, 2.25],
+  [-2.3, 22.12, .84, 2.41], [-3.46, 21.10, 1.36, 2.55], [-2.88, 20.05, 1.16, 2.62],
+  [-3.41, 17.94, 1.31, 3.19], [-2.40, 18.08, .76, 2.93],
+  [2.04, 32.87, .69, 1.28], [2.77, 32.22, .97, 1.54], [3.89, 32.95, 1.12, 1.72],
+  [2.15, 30.62, .68, 1.48], [2.90, 29.27, 1.16, 1.64], [4.16, 29.75, 1.34, 1.98],
+  [2.42, 28.18, .78, 1.68], [3.68, 27.61, 1.21, 2.19], [3.19, 25.78, 1.08, 2.19],
+  [2.26, 24.25, .74, 2.17], [3.6, 24.18, 1.37, 2.42], [3.18, 22.91, 1.09, 2.41],
+  [2.86, 21.02, 1.09, 2.71], [3.92, 20.47, 1.23, 2.98], [3.38, 18.90, 1.13, 2.98],
+  [4.02, 17.64, 1.28, 3.35], [3.25, 16.90, 1.16, 3.37],
+];
 
 const around = 2 * Math.PI;
 const frondSeeds = [809, 1537];
@@ -132,33 +146,102 @@ function fernProfile(seed, frondCount) {
   return geometry;
 }
 
+function evergreenShoots() {
+  const random = randomFrom(21689);
+  const positions = [], colors = [], indices = [];
+  const leaf = new THREE.Color(0x68834a);
+  const tip = new THREE.Color(0x7f9452);
+  const stem = new THREE.Color(0x605742);
+  const tone = new THREE.Color();
+  const vertex = (point, color, weight = 1) => {
+    const i = positions.length / 3;
+    positions.push(point.x, point.y, point.z);
+    colors.push(color.r * weight, color.g * weight, color.b * weight);
+    return i;
+  };
+
+  for (let branch = 0; branch < 7; branch++) {
+    const heading = branch * 2.39996 + .25 * random();
+    const u = new THREE.Vector3(Math.cos(heading), 0, Math.sin(heading));
+    const side = new THREE.Vector3(-u.z, 0, u.x);
+    const extension = .22 + .28 * random();
+    const height = .14 + .25 * random();
+    const sprig = t => u.clone().multiplyScalar(extension * t).setY(-.012 + height * Math.sin(1.30 * t));
+    let last = null;
+    for (let section = 0; section <= 6; section++) {
+      const t = section / 6;
+      const point = sprig(t);
+      const diameter = .006 * (1 - t) + .0016;
+      const rib = [
+        vertex(point.clone().addScaledVector(side, diameter), stem),
+        vertex(point.clone().addScaledVector(side, -diameter), stem),
+        vertex(point.clone().add(new THREE.Vector3(0, diameter, 0)), stem),
+      ];
+      if (last) {
+        for (let edge = 0; edge < 3; edge++) {
+          const next = (edge + 1) % 3;
+          indices.push(last[edge], rib[edge], last[next], last[next], rib[edge], rib[next]);
+        }
+      }
+      last = rib;
+      if (section < 2) continue;
+      const attachment = sprig(t - .04);
+      for (const sign of [-1, 1]) {
+        const span = (.05 + .074 * random()) * (1.06 - .45 * t);
+        const end = attachment.clone().addScaledVector(u, span * .45)
+          .addScaledVector(side, sign * span);
+        end.y += span * (.07 + .26 * random());
+        const centre = attachment.clone().lerp(end, .46);
+        const edge = u.clone().addScaledVector(side, -.45 * sign).multiplyScalar(span * .27);
+        tone.copy(leaf).lerp(tip, .6 * random());
+        const start = vertex(attachment, tone, .77);
+        vertex(centre.clone().add(edge), tone, .82);
+        vertex(centre.clone().add(new THREE.Vector3(0, span * .11, 0)), tone, 1.05);
+        vertex(centre.clone().sub(edge), tone, .94);
+        vertex(end, tone);
+        indices.push(start, start + 1, start + 2, start, start + 2, start + 3,
+          start + 1, start + 4, start + 2, start + 2, start + 4, start + 3);
+      }
+    }
+  }
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+  geometry.setIndex(indices);
+  geometry.computeVertexNormals();
+  return geometry;
+}
+
 export function buildPineBankVerge(bakedGroup) {
   const terrain = approachTerrain(bakedGroup);
   if (!terrain.length) return null;
   bakedGroup.updateWorldMatrix(true, true);
   const origin = new THREE.Vector3(), normal = origin.clone(), tint = new THREE.Color();
   const normalMatrix = new THREE.Matrix3(), ray = new THREE.Raycaster(origin, down, 0, .68);
-  const accepted = frondSeeds.map(() => []);
-  for (const [i, [x, z, size, searchY]] of bankSites.entries()) {
-    origin.set(x, searchY + .34, z);
+  const profiles = [() => fernProfile(frondSeeds[0], 6), () => fernProfile(frondSeeds[1], 7), evergreenShoots];
+  const accepted = profiles.map(() => []);
+  const allBanks = [...bankSites, ...groundcoverSites];
+  for (const [i, [x, z, size, searchY]] of allBanks.entries()) {
+    origin.set(x, searchY + .50, z);
     ray.set(origin, down);
     const hit = ray.intersectObjects(terrain, false).find(candidate => {
       normalMatrix.getNormalMatrix(candidate.object.matrixWorld);
       return normal.copy(candidate.face.normal).applyNormalMatrix(normalMatrix).y > .46;
     });
-    if (hit) accepted[i % frondSeeds.length].push({ i, root: hit.point, size });
+    const profile = i < bankSites.length ? i % frondSeeds.length : profiles.length - 1;
+    if (hit) accepted[profile].push({ i, root: hit.point, size });
   }
   if (accepted.every(profile => !profile.length)) return null;
 
   const group = new THREE.Group();
-  group.name = 'Rooted bank wood ferns';
+  group.name = 'Rooted bank wood ferns and evergreen groundcover';
   const material = new THREE.MeshStandardMaterial({
     vertexColors: true, roughness: .80, metalness: 0, side: THREE.DoubleSide, envMapIntensity: .24,
   });
   const placement = new THREE.Object3D();
   for (const [profile, sites] of accepted.entries()) {
     if (!sites.length) continue;
-    const sprouts = new THREE.InstancedMesh(fernProfile(frondSeeds[profile], 6 + profile), material, sites.length);
+    const sprouts = new THREE.InstancedMesh(profiles[profile](), material, sites.length);
     for (const [instance, { i, root, size }] of sites.entries()) {
       const random = randomFrom(Math.imul(i + 97, 9419));
       placement.position.copy(root);
