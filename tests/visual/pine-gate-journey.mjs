@@ -46,7 +46,7 @@ const readinessOnly = process.env.CAPTURE_READINESS_ONLY === '1';
 const audioCompare = process.env.CAPTURE_AUDIO_COMPARE === '1';
 const ambientOnly = process.env.CAPTURE_AMBIENT_ONLY === '1';
 const directionOnly = process.env.CAPTURE_DIRECTION_ONLY === '1';
-const directionWalkFrames = [['forest-06s', 6], ['ancient-pine-crest-24s', 24], ['terrace-reveal-28s', 28]];
+const directionWalkFrames = [['forest-06s', 6], ['ancient-pine-crest', 21.5], ['terrace-reveal-28s', 28]];
 const directionPasses = [
   { name: 'day', hour: 13, frames: [...directionWalkFrames.map(([name]) => name), 'shrine-pavilion', 'day-burning'] },
   { name: 'night', hour: 22, frames: ['night-burning'] },
