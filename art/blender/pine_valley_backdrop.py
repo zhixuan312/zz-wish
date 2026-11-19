@@ -498,14 +498,14 @@ def cloud_sea(collection):
     billows = shader.noise(point, (.079, .105, .155), detail=2.4)
     veins = shader.noise(point, (.039, .092, .26), detail=2.)
     fine = shader.noise(point, (.19, .24, .29), detail=2.)
-    body = shader.math('ADD', shader.product(billows, .81), shader.product(fine, .19))
+    body = shader.math('ADD', shader.product(billows, .93), shader.product(fine, .07))
     head = shader.math('ADD', shader.product(billows, .54), shader.product(veins, .46))
     wisps = shader.between(head, .28, .78, .22, 1.)
     masses = []
     for near, rise, crest_d, far, cx, half, lo, base, opaque_top, top, extinction in CLOUD_LAYERS:
         reach = shader.product(shader.between(depth, near, rise), shader.between(depth, far, crest_d))
         crown_height = shader.between(body, .27, .8, opaque_top - .65, top + .29)
-        upper = shader.between(shader.math('SUBTRACT', crown_height, y), 0., 3.35)
+        upper = shader.between(shader.math('SUBTRACT', crown_height, y), -.55, 3.90)
         lower = shader.between(y, lo, base)
         drift = shader.math('ADD', cx, shader.product(shader.math('SUBTRACT', depth, rise), .185))
         across = shader.math('ABSOLUTE', shader.math('SUBTRACT', x, drift))
