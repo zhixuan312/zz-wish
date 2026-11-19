@@ -15,19 +15,42 @@ function recordCues(page: Page): CueLog {
   return log;
 }
 
-// A tiny silent WAV is enough for the element to load and report a duration; the
-// browser never needs real music for these cues to be requested.
-const SILENT = Buffer.from(
-  'UklGRiQAAABXQVZFZm10IBAAAAABAAEAgD4AAAB9AAACABAAZGF0YQAAAAA=',
-  'base64',
-);
+// A real WAV of the given length: 8 kHz, mono, 8-bit silence. The element must report
+// a real duration, because the hand-over under test happens when the cue ends.
+function silentWav(seconds: number): Buffer {
+  const rate = 8000, samples = Math.round(rate * seconds);
+  const data = Buffer.alloc(samples, 128);
+  const header = Buffer.alloc(44);
+  header.write('RIFF', 0);
+  header.writeUInt32LE(36 + samples, 4);
+  header.write('WAVE', 8);
+  header.write('fmt ', 12);
+  header.writeUInt32LE(16, 16);
+  header.writeUInt16LE(1, 20);
+  header.writeUInt16LE(1, 22);
+  header.writeUInt32LE(rate, 24);
+  header.writeUInt32LE(rate, 28);
+  header.writeUInt16LE(1, 32);
+  header.writeUInt16LE(8, 34);
+  header.write('data', 36);
+  header.writeUInt32LE(samples, 40);
+  return Buffer.concat([header, data]);
+}
+
+// Authored lengths, so the walk cue really outlives the arrival at the candle screen.
+function secondsFor(cue: string): number {
+  if (cue.endsWith('_walk')) return 36;
+  if (cue.endsWith('_ignite')) return 20;
+  if (cue.startsWith('ending_')) return 12;
+  return 30;
+}
 
 async function serveMusic(page: Page, cues: string[]) {
   await page.route('**/music/manifest.json', (route) => route.fulfill({ json: { cues } }));
   // One route per cue name: a wildcard on audio requests leaves Playwright's handler
   // pending while the element aborts and retries, which stalls the whole page.
   for (const cue of cues) {
-    await page.route(`**/music/${cue}.m4a`, (route) => route.fulfill({ status: 200, contentType: 'audio/wav', body: SILENT }));
+    await page.route(`**/music/${cue}.m4a`, (route) => route.fulfill({ status: 200, contentType: 'audio/wav', body: silentWav(secondsFor(cue)) }));
   }
 }
 
@@ -39,7 +62,7 @@ async function reachPlace(page: Page) {
   await page.getByRole('button', { name: re('走进院里', 'Step inside') }).waitFor({ state: 'visible', timeout: 90_000 });
 }
 
-test('the walk cue is requested when the walk starts', async ({ page }) => {
+test('the walk cue is requested exactly once when the walk starts', async ({ page }) => {
   const cues = recordCues(page);
   await serveMusic(page, ['snow_walk', 'snow_choose_loop', 'snow_place_loop']);
   await reachPlace(page);
@@ -49,6 +72,9 @@ test('the walk cue is requested when the walk starts', async ({ page }) => {
   }
   await page.getByRole('button', { name: re('走进院里', 'Step inside') }).click();
   await expect.poll(() => cues.some((c) => c.cue === 'snow_walk'), { timeout: 15_000 }).toBe(true);
+  // One travel run creates one walk channel: the stage effect must not ask again.
+  await page.waitForTimeout(2000);
+  expect(cues.filter((c) => c.cue === 'snow_walk')).toHaveLength(1);
 });
 
 test('a natural walk keeps its cue until it ends, then hands over to choose', async ({ page }) => {
@@ -60,10 +86,15 @@ test('a natural walk keeps its cue until it ends, then hands over to choose', as
     await page.waitForTimeout(50);
   }
   await page.getByRole('button', { name: re('走进院里', 'Step inside') }).click();
-  await expect.poll(() => cues.filter((c) => c.cue === 'snow_walk').length, { timeout: 15_000 }).toBe(1);
-  // The authored walk is 36 s: choose must not be asked for while it is still playing.
-  await page.waitForTimeout(20_000);
-  expect(cues.some((c) => c.cue === 'snow_choose_loop')).toBe(false);
+  await expect.poll(() => cues.filter((c) => c.cue === 'snow_walk').length, { timeout: 20_000 }).toBe(1);
+  // Wait until the game has reached the candle screen, which is the moment the old
+  // bug cut the walk cue: the chooser panel is what proves arrival.
+  await page.getByRole('tab', { name: re('现成的', 'Ready-made') }).waitFor({ timeout: 120_000 });
+  // Still inside the 36-second cue, so choose must not have been asked for yet.
+  expect(cues.filter((c) => c.cue === 'snow_choose_loop')).toHaveLength(0);
+  // After the cue ends it hands over, exactly once.
+  await expect.poll(() => cues.filter((c) => c.cue === 'snow_choose_loop').length, { timeout: 60_000 }).toBe(1);
+  expect(cues.filter((c) => c.cue === 'snow_walk')).toHaveLength(1);
 });
 
 test('Skip cuts the walk cue short and starts choose', async ({ page }) => {
@@ -96,8 +127,11 @@ test('a walk cue that is not shipped stays silent and choose still starts', asyn
   }
   await page.getByRole('button', { name: re('走进院里', 'Step inside') }).click();
   await page.getByRole('button', { name: re('跳过', 'Skip') }).click({ timeout: 30_000 });
-  await expect.poll(() => cues.some((c) => c.cue === 'snow_choose_loop'), { timeout: 15_000 }).toBe(true);
+  await expect.poll(() => cues.some((c) => c.cue === 'snow_choose_loop'), { timeout: 20_000 }).toBe(true);
   // No request for a cue the manifest omits, so nothing can 404.
   expect(cues.some((c) => c.cue === 'snow_walk')).toBe(false);
+  // Skip and the missing-cue fallback must not both start choose.
+  await page.waitForTimeout(2000);
+  expect(cues.filter((c) => c.cue === 'snow_choose_loop')).toHaveLength(1);
   expect(errors).toEqual([]);
 });
