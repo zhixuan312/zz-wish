@@ -32,6 +32,7 @@ if (process.argv.includes('--help')) {
     'CAPTURE_DIRECTION_ONLY=1 saves six site review frames from day and night under quality/direction/QUALITY_LABEL.',
     'CAPTURE_SITE_DAY_ONLY=1 saves the six distinct P1 views at 13:00, including the original entrance.',
     'CAPTURE_DIRECTION_OVERVIEW is the JSON camera pose (space, position, look, fov) for the separate site overview.',
+    'CAPTURE_SITE_DETAILS adds named JSON camera poses to a daytime site capture.',
     'CAPTURE_REALISM_ONLY=1 captures two daytime desktop frames and records phone performance under quality/r1/QUALITY_LABEL.',
     'CAPTURE_REALISM_BASE_ONLY=1 pins the realism desktop frames to base assets by disabling desktop high-tier requests.',
     'CAPTURE_REQUIRE_BACKDROP=1 requires the offline Cycles plates and readiness under 5 seconds in both realism contexts.',
@@ -68,8 +69,20 @@ assert(!walkTierAudit || ((siteDayOnly || realismOnly) && !realismBaseOnly),
 assert(!slowWalkTier || walkTierAudit, 'The slow walk test requires the walk tier proof.');
 const directionWalkFrames = realismOnly ? [['terrace-reveal-28s', 28]]
   : [['forest-06s', 6], ['ancient-pine-crest', 21.5], ['terrace-reveal-28s', 28]];
+const siteDetailsRaw = process.env.CAPTURE_SITE_DETAILS;
+assert(!siteDetailsRaw || siteDayOnly, 'Supplemental views require the daytime site capture.');
+const siteDetails = siteDetailsRaw ? JSON.parse(siteDetailsRaw) : [];
+assert(Array.isArray(siteDetails) && siteDetails.length <= 6, 'Supply up to six supplemental site views.');
+const reservedSiteStages = ['entrance', 'shrine-pavilion', 'day-burning', ...directionWalkFrames.map(([name]) => name)];
+const detailNames = new Set(reservedSiteStages);
+const detailViews = siteDetails.map(({ name, ...view }) => {
+  assert(typeof name === 'string' && name.length <= 48 && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(name)
+    && !detailNames.has(name), 'Supplemental site view names must be unique lowercase stage names.');
+  detailNames.add(name);
+  return { name, ...readDirectionOverview(JSON.stringify(view)) };
+});
 const dayFrames = [...(siteDayOnly ? ['entrance'] : []), ...directionWalkFrames.map(([name]) => name),
-  ...(realismOnly ? [] : ['shrine-pavilion']), 'day-burning'];
+  ...(realismOnly ? [] : ['shrine-pavilion']), ...detailViews.map(({ name }) => name), 'day-burning'];
 const directionPasses = [
   { name: 'day', hour: 13, frames: dayFrames },
   ...(realismOnly || siteDayOnly ? [] : [{ name: 'night', hour: 22, frames: ['night-burning'] }]),
@@ -170,6 +183,7 @@ const report = {
   ...(quality ? { reviewLabel } : {}),
   ...(quality && !readinessOnly && !audioCompare && !ambientOnly && !directionOnly ? { matchedEndingShapes: true } : {}),
   ...(directionOnly ? { directionOnly, frames: directionPasses.flatMap(pass => pass.frames), directionOverview, directionMethod } : {}),
+  ...(detailViews.length ? { detailViews } : {}),
   ...(siteDayOnly ? { siteDayOnly } : {}),
   ...(realismOnly ? { realismOnly } : {}),
   ...(realismBaseOnly ? { realismBaseOnly } : {}),
@@ -751,11 +765,13 @@ async function capture(browser, browserName, size, trial) {
       await choose();
       if (directionOverview && direction.name === 'day') {
         const previous = await page.evaluate(() => window.__pineCaptureCamera());
-        const pose = await page.evaluate(view => window.__pineCaptureOverview(view), directionOverview);
         try {
-          const overview = await captureShot('shrine-pavilion', { overviewPose: pose });
-          assert(overview.camera.overview && overview.camera.phase === 'candle');
-          assertNearestCamera(overview.camera, pose);
+          for (const { name, ...view } of [{ name: 'shrine-pavilion', ...directionOverview }, ...detailViews]) {
+            const pose = await page.evaluate(detail => window.__pineCaptureOverview(detail), view);
+            const overview = await captureShot(name, { overviewPose: pose });
+            assert(overview.camera.overview && overview.camera.phase === 'candle');
+            assertNearestCamera(overview.camera, pose);
+          }
         } finally {
           await page.evaluate(() => window.__pineCaptureOverview(null));
         }
