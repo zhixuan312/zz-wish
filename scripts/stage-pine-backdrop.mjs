@@ -3,13 +3,14 @@ import { createHash } from 'node:crypto';
 import { copyFile, mkdir, readFile, stat, writeFile } from 'node:fs/promises';
 import { basename, join, resolve } from 'node:path';
 import { parseArgs } from 'node:util';
-import { read as readKtx, KHR_DF_MODEL_ETC1S, KHR_DF_PRIMARIES_BT709, KHR_DF_TRANSFER_LINEAR,
+import { read as readKtx, write as writeKtx, KHR_DF_MODEL_ETC1S, KHR_DF_PRIMARIES_BT709, KHR_DF_TRANSFER_LINEAR,
   KHR_SUPERCOMPRESSION_BASISLZ, KHR_SUPERCOMPRESSION_ZSTD } from 'three/examples/jsm/libs/ktx-parse.module.js';
 import projection from '../shared/pine-gate-backdrop.json' with { type: 'json' };
 import { readPineBackdrop, readPineWaxNormal } from '../web/src/engine/baked/pineManifest.js';
 
 const { values } = parseArgs({ options: Object.fromEntries(
-  ['near', 'plates', 'sculpt', 'out', 'high', 'walk', 'high-trees'].map(name => [name, { type: 'string' }]),
+  [...['near', 'plates', 'sculpt', 'out', 'high', 'walk', 'high-trees'].map(name => [name, { type: 'string' }]),
+    ['defer-near-lightmaps', { type: 'boolean' }]],
 ) });
 const required = ['near', 'plates', 'sculpt', 'out'];
 if (required.some(name => !values[name])) throw new Error('Specify --near, --plates, --sculpt and --out.');
@@ -18,6 +19,7 @@ const high = values.high === undefined ? null : resolve(values.high);
 const walk = values.walk === undefined ? null : resolve(values.walk);
 const highTrees = values['high-trees'] === undefined ? null : resolve(values['high-trees']);
 if (walk && high) throw new Error('Choose either a shared walk backdrop or the legacy desktop backdrop.');
+if (values['defer-near-lightmaps'] && !walk) throw new Error('Deferred lightmaps require the shared walk tier.');
 if (highTrees && !high && !walk) throw new Error('High trees require a backdrop upgrade.');
 if ([near, plates, sculpt, high, walk, highTrees].includes(out)) throw new Error('Use a new staging directory.');
 const readJSON = async path => JSON.parse(await readFile(path, 'utf8'));
@@ -34,6 +36,24 @@ function checkWalkPlate(body, uri) {
     || format.transferFunction !== KHR_DF_TRANSFER_LINEAR || format.flags !== 0) {
     throw new Error(`Expected a bottom-up, linear, single-level native Basis KTX2 walk asset: ${uri}`);
   }
+}
+
+function softLightmap(body, uri) {
+  const source = readKtx(body);
+  const [format] = source.dataFormatDescriptor;
+  if (source.vkFormat !== 0 || source.levels.length !== 3 || source.pixelDepth || source.layerCount
+    || source.faceCount !== 1 || source.supercompressionScheme !== KHR_SUPERCOMPRESSION_ZSTD
+    || format.colorModel !== 166 || format.transferFunction !== KHR_DF_TRANSFER_LINEAR) {
+    throw new Error(`Expected a three-level linear UASTC lightmap: ${uri}`);
+  }
+  // Copy the already-audited GPU blocks. Preserve UVs, orientation and the
+  // radiometric calibration in the original full-map manifest entry.
+  return Buffer.from(writeKtx({
+    ...source,
+    pixelWidth: source.pixelWidth >> 2,
+    pixelHeight: source.pixelHeight >> 2,
+    levels: [source.levels[2]],
+  }));
 }
 const nearManifest = await readFile(join(near, 'manifest.json'));
 const manifest = JSON.parse(nearManifest);
@@ -56,6 +76,27 @@ const sourceFiles = [
   ...layers.map(([, spec]) => [plates, { uri: spec.uri, bytes: spec.bytes, sha256: spec.sha256 }]),
   [sculpt, { uri: wax.uri, bytes: wax.bytes, sha256: wax.sha256 }],
 ];
+const softBodies = new Map();
+const deferred = new Map();
+if (values['defer-near-lightmaps']) {
+  manifest.walkLightmaps = {};
+  for (const region of ['gate', 'niche']) {
+    manifest.walkLightmaps[region] = {};
+    for (const pass of ['night', 'dusk', 'day', 'lamp']) {
+      const uri = manifest.lightmaps[region]?.[pass]?.uri;
+      const file = manifest.files.find(file => file.uri === uri);
+      if (!file || uri !== `${region}-${pass}.ktx2`) throw new Error(`Missing canonical lightmap ${region}/${pass}.`);
+      const full = await readFile(join(near, uri));
+      if (full.length !== file.bytes || digest(full) !== file.sha256) throw new Error(`Stale lightmap ${uri}.`);
+      const soft = softLightmap(full, uri);
+      const softUri = `${region}-${pass}-soft.ktx2`;
+      manifest.walkLightmaps[region][pass] = softUri;
+      softBodies.set(softUri, soft);
+      deferred.set(uri, file.bytes);
+      sourceFiles.push([null, { uri: softUri, bytes: soft.length, sha256: digest(soft) }]);
+    }
+  }
+}
 const upgrade = walk ?? high;
 if (upgrade) {
   const tierName = walk ? 'walk' : 'high';
@@ -109,7 +150,7 @@ readPineWaxNormal(manifest);
 if (new Set(manifest.files.map(file => file.uri)).size !== sourceFiles.length) throw new Error('Duplicate delivery path.');
 for (const [directory, file, source = file.uri] of sourceFiles) {
   if (basename(file.uri) !== file.uri || basename(source) !== source) throw new Error('Delivery expects a local asset name.');
-  const body = await readFile(join(directory, source));
+  const body = directory === null ? softBodies.get(file.uri) : await readFile(join(directory, source));
   if (body.length !== file.bytes || digest(body) !== file.sha256) throw new Error(`Stale delivery asset ${file.uri}`);
   if (directory === walk) checkWalkPlate(body, file.uri);
 }
@@ -129,7 +170,8 @@ if (Buffer.byteLength(serialized) !== manifest.manifestBytes) throw new Error('M
 const highFiles = Object.values(backdrop.high?.files ?? {});
 if (backdrop.high?.trees) highFiles.push(backdrop.high.trees);
 const highBytes = highFiles.reduce((sum, file) => sum + file.bytes, 0);
-const walkBytes = Object.values(backdrop.walk?.files ?? {}).reduce((sum, file) => sum + file.bytes, 0);
+const walkLightmapBytes = [...deferred.values()].reduce((sum, bytes) => sum + bytes, 0);
+const walkBytes = Object.values(backdrop.walk?.files ?? {}).reduce((sum, file) => sum + file.bytes, walkLightmapBytes);
 const combinedBytes = manifest.completePackageBytes + nativeAgXBytes;
 const phoneBytes = combinedBytes - highBytes;
 const baseBytes = phoneBytes - walkBytes;
@@ -140,6 +182,7 @@ const budget = {
   backdropBytes: Object.fromEntries(layers.map(([name, spec]) => [name, spec.bytes])),
   waxNormalBytes: wax.bytes, width: encoded.width, height: encoded.height,
   ...(backdrop.walk ? { phoneBytes, phoneLimitBytes: 30_000_000, walkBytes } : {}),
+  ...(deferred.size ? { walkLightmapBytes, softLightmapBytes: [...softBodies.values()].reduce((sum, data) => sum + data.length, 0) } : {}),
   ...(upgrade ? {
     combinedBytes, combinedLimitBytes: 40_000_000, highBytes,
     ...(high ? { highBackdropBytes: Object.fromEntries(Object.entries(backdrop.high.files).map(([name, file]) => [name, file.bytes])) } : {}),
@@ -151,6 +194,9 @@ if (baseBytes > budget.limitBytes) throw new Error('The backdrop candidate excee
 if (walk && phoneBytes > budget.phoneLimitBytes) throw new Error('The backdrop candidate exceeds the combined Pine Gate phone asset budget.');
 if (combinedBytes > 40_000_000) throw new Error('The backdrop candidate exceeds the combined Pine Gate desktop asset budget.');
 await mkdir(out);
-for (const [directory, { uri }, source = uri] of sourceFiles) await copyFile(join(directory, source), join(out, uri));
+for (const [directory, { uri }, source = uri] of sourceFiles) {
+  if (directory === null) await writeFile(join(out, uri), softBodies.get(uri), { flag: 'wx' });
+  else await copyFile(join(directory, source), join(out, uri));
+}
 await writeFile(join(out, 'manifest.json'), serialized, { flag: 'wx' });
 console.log('PINE_BACKDROP_PACKAGE', digest(Buffer.from(serialized)));

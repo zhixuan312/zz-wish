@@ -4,7 +4,7 @@ import { mkdir, mkdtemp, readFile, rm, stat, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { KTX2Container, write as writeKtx } from 'three/examples/jsm/libs/ktx-parse.module.js';
+import { KTX2Container, read as readKtx, write as writeKtx } from 'three/examples/jsm/libs/ktx-parse.module.js';
 import { afterEach, expect, test } from 'vitest';
 import { measurePineRealismBase, readPinePreview } from '../../visual/pine-preview-delivery.mjs';
 
@@ -16,7 +16,8 @@ afterEach(async () => {
   await Promise.all(scratch.splice(0).map(path => rm(path, { recursive: true, force: true })));
 });
 
-async function fixture({ modelBytes = 4, farHighBytes = 8, changedMaster = false, farWalkBytes = 8, orientation = 'ru' } = {}) {
+async function fixture({ modelBytes = 4, farHighBytes = 8, changedMaster = false, farWalkBytes = 8, orientation = 'ru',
+  nearMips = false } = {}) {
   const worktree = await mkdtemp(join(tmpdir(), 'pine-high-delivery-'));
   scratch.push(worktree);
   const build = join(worktree, 'art/build/pine-gate');
@@ -30,6 +31,17 @@ async function fixture({ modelBytes = 4, farHighBytes = 8, changedMaster = false
       const texture = new KTX2Container();
       Object.assign(texture, { pixelWidth: 8192, pixelHeight: 4096, supercompressionScheme: 2,
         keyValue: { KTXorientation: orientation }, levels: [{ levelData: body, uncompressedByteLength: 33_554_432 }] });
+      Object.assign(texture.dataFormatDescriptor[0], { colorModel: 166, colorPrimaries: 1, transferFunction: 1 });
+      body = writeKtx(texture);
+    }
+    if (nearMips && root === near && /^(gate|niche)-\w+\.ktx2$/.test(uri)) {
+      const texture = new KTX2Container();
+      const size = uri.startsWith('gate-') ? 1024 : 512;
+      Object.assign(texture, { pixelWidth: size, pixelHeight: size, supercompressionScheme: 2,
+        keyValue: { KTXorientation: 'rd' }, levels: [0, 1, 2].map(level => ({
+          levelData: Buffer.alloc(160 >> level, uri.length + level),
+          uncompressedByteLength: (size >> level) ** 2,
+        })) });
       Object.assign(texture.dataFormatDescriptor[0], { colorModel: 166, colorPrimaries: 1, transferFunction: 1 });
       body = writeKtx(texture);
     }
@@ -61,15 +73,16 @@ async function fixture({ modelBytes = 4, farHighBytes = 8, changedMaster = false
     await json(root, 'encode.json', { width, height: width / 2, encoding: 'log2-8-8', preExposure: 6,
       colorSpace: 'linear', alpha: 'straight', renderSha256: sha('shared render'), layers });
   }
-  const stage = (label, useHigh = true) => {
+  const stage = (label, useHigh = true, defer = false) => {
     const output = join(build, label);
     const args = [join(repo, 'scripts/stage-pine-backdrop.mjs'), '--near', near, '--plates', plate, '--sculpt', sculpt, '--out', output];
     if (useHigh === 'walk') args.push('--walk', walk);
     else if (useHigh) args.push('--high', high);
+    if (defer) args.push('--defer-near-lightmaps');
     const result = spawnSync(process.execPath, args, { encoding: 'utf8' });
     return { ...result, output };
   };
-  return { worktree, high, stage };
+  return { worktree, near, high, stage };
 }
 
 test('the high payload is renamed and verified while only its bodies are outside the base budget', async () => {
@@ -108,6 +121,39 @@ test('the walk payload is shared by phone and desktop and stays outside the base
   expect(budget.phoneBytes).toBe(budget.totalBytes + budget.walkBytes);
   expect(budget.combinedBytes).toBe(budget.phoneBytes);
   expect(preview.backdrop.walk.files.mid.uri).toBe('pine-vista-walk-mid.ktx2');
+});
+
+test('the soft near lightmaps use the original mip blocks, preserve full maps, and count toward base', async () => {
+  const { near, stage } = await fixture({ nearMips: true });
+  const result = stage('deferred-walk', 'walk', true);
+  expect(result.status, result.stderr).toBe(0);
+  const suffix = result.stdout.split('\n').find(line => line.startsWith('PINE_BACKDROP_BUDGET '));
+  const budget = JSON.parse(suffix.slice('PINE_BACKDROP_BUDGET '.length));
+  const manifest = JSON.parse(await readFile(join(result.output, 'manifest.json')));
+  const fullFiles = [];
+  const softFiles = [];
+  for (const [region, lights] of Object.entries(manifest.walkLightmaps)) {
+    for (const [pass, softUri] of Object.entries(lights)) {
+      const fullUri = manifest.lightmaps[region][pass].uri;
+      const original = await readFile(join(near, fullUri));
+      const full = await readFile(join(result.output, fullUri));
+      const soft = await readFile(join(result.output, softUri));
+      expect(original).toEqual(full);
+      const originalKtx = readKtx(original);
+      const softKtx = readKtx(soft);
+      expect(softKtx.pixelWidth).toEqual(originalKtx.pixelWidth >> 2);
+      expect(softKtx.keyValue.KTXorientation).toBe(originalKtx.keyValue.KTXorientation);
+      expect(softKtx.levels).toEqual([originalKtx.levels[2]]);
+      expect(manifest.files.find(file => file.uri === softUri).sha256).toBe(sha(soft));
+      fullFiles.push(full.length);
+      softFiles.push(soft.length);
+    }
+  }
+  expect(fullFiles).toHaveLength(8);
+  expect(budget.walkLightmapBytes).toBe(fullFiles.reduce((a, b) => a + b, 0));
+  expect(budget.softLightmapBytes).toBe(softFiles.reduce((a, b) => a + b, 0));
+  expect(budget.phoneBytes).toBe(budget.baseBytes + budget.walkBytes);
+  expect(budget.baseBytes).toBe(manifest.completePackageBytes + budget.nativeAgXBytes - budget.walkBytes);
 });
 
 test.each([
