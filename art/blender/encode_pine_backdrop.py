@@ -157,6 +157,7 @@ def main():
         'preExposure': contract['preExposure'],
         'colorSpace': 'linear', 'alpha': 'straight', 'webpQuality': args.quality,
         'renderSha256': digest(args.input / 'render.json'), 'layers': variants,
+        **({'lighting': 'night', 'projectionSha256': render['projectionSha256']} if render.get('lighting') == 'night' else {}),
     }, indent=2) + '\n')
 
 

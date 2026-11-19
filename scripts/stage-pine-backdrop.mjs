@@ -10,7 +10,7 @@ import { readPineBackdrop, readPineFernDetail, readPineWaxNormal } from '../web/
 import { readPineForestBackdrop } from '../web/src/engine/places/pine-forest-backdrop.js';
 
 const { values } = parseArgs({ options: Object.fromEntries(
-  [...['near', 'plates', 'sculpt', 'out', 'high', 'walk', 'high-trees', 'approach-forest', 'fern-detail'].map(name => [name, { type: 'string' }]),
+  [...['near', 'plates', 'sculpt', 'out', 'high', 'walk', 'night', 'high-trees', 'approach-forest', 'fern-detail'].map(name => [name, { type: 'string' }]),
     ['defer-near-lightmaps', { type: 'boolean' }]],
 ) });
 const required = ['near', 'plates', 'sculpt', 'out'];
@@ -18,14 +18,16 @@ if (required.some(name => !values[name])) throw new Error('Specify --near, --pla
 const [near, plates, sculpt, out] = required.map(name => resolve(values[name]));
 const high = values.high === undefined ? null : resolve(values.high);
 const walk = values.walk === undefined ? null : resolve(values.walk);
+const night = values.night === undefined ? null : resolve(values.night);
 const highTrees = values['high-trees'] === undefined ? null : resolve(values['high-trees']);
 const forest = values['approach-forest'] === undefined ? null : resolve(values['approach-forest']);
 const fern = values['fern-detail'] === undefined ? null : resolve(values['fern-detail']);
 if (walk && high) throw new Error('Choose either a shared walk backdrop or the legacy desktop backdrop.');
+if (night && !walk) throw new Error('Night plates require the shared walk tier.');
 if (values['defer-near-lightmaps'] && !walk) throw new Error('Deferred lightmaps require the shared walk tier.');
 if (highTrees && !high && !walk) throw new Error('High trees require a backdrop upgrade.');
 if (fern && !forest) throw new Error('Pine fern detail requires the approach forest.');
-if ([near, plates, sculpt, high, walk, highTrees, forest, fern].includes(out)) throw new Error('Use a new staging directory.');
+if ([near, plates, sculpt, high, walk, night, highTrees, forest, fern].includes(out)) throw new Error('Use a new staging directory.');
 const readJSON = async path => JSON.parse(await readFile(path, 'utf8'));
 const digest = data => createHash('sha256').update(data).digest('hex');
 function checkWalkPlate(body, uri) {
@@ -137,6 +139,26 @@ if (upgrade) {
   };
   sourceFiles.push(...renamed.map(([, spec, uri]) => [upgrade, { uri, bytes: spec.bytes, sha256: spec.sha256 }, spec.uri]));
 }
+if (night) {
+  const receipt = await readFile(join(night, 'encode.json'));
+  const encodedNight = JSON.parse(receipt);
+  const projectionSource = await readFile(new URL('../shared/pine-gate-backdrop.json', import.meta.url));
+  if (encodedNight.lighting !== 'night' || encodedNight.projectionSha256 !== digest(projectionSource)
+    || encodedNight.preExposure !== projection.preExposure || encodedNight.colorSpace !== 'linear'
+    || encodedNight.alpha !== 'straight' || encodedNight.renderSha256 === encoded.renderSha256) {
+    throw new Error('Night plates must come from a separate moonlit render of the same projection.');
+  }
+  const renamed = Object.entries(encodedNight.layers).map(([name, spec]) => {
+    if (spec.uri !== `pine-vista-${name}.webp`) throw new Error(`Unexpected night backdrop source for ${name}.`);
+    return [name, spec, `pine-vista-night-${name}.webp`];
+  });
+  manifest.backdrop.night = {
+    encoding: encodedNight.encoding, width: encodedNight.width, height: encodedNight.height,
+    layers: Object.fromEntries(renamed.map(([name, , uri]) => [name, uri])),
+    encodedReceiptSha256: digest(receipt),
+  };
+  sourceFiles.push(...renamed.map(([, spec, uri]) => [night, { uri, bytes: spec.bytes, sha256: spec.sha256 }, spec.uri]));
+}
 if (highTrees) {
   const receipt = await readFile(join(highTrees, 'pine-native-trees.json'));
   const { file } = JSON.parse(receipt);
@@ -196,7 +218,8 @@ const highFiles = Object.values(backdrop.high?.files ?? {});
 if (backdrop.high?.trees) highFiles.push(backdrop.high.trees);
 const highBytes = highFiles.reduce((sum, file) => sum + file.bytes, 0);
 const walkLightmapBytes = [...deferred.values()].reduce((sum, bytes) => sum + bytes, 0);
-const walkBytes = Object.values(backdrop.walk?.files ?? {}).reduce((sum, file) => sum + file.bytes, walkLightmapBytes);
+const nightBytes = Object.values(backdrop.night?.files ?? {}).reduce((sum, file) => sum + file.bytes, 0);
+const walkBytes = Object.values(backdrop.walk?.files ?? {}).reduce((sum, file) => sum + file.bytes, walkLightmapBytes + nightBytes);
 const combinedBytes = manifest.completePackageBytes + nativeAgXBytes;
 const phoneBytes = combinedBytes - highBytes;
 const baseBytes = phoneBytes - walkBytes;
@@ -208,6 +231,7 @@ const budget = {
   waxNormalBytes: wax.bytes, width: encoded.width, height: encoded.height,
   ...(approachForest ? { approachForestBytes: approachForest.plates.reduce((sum, { file }) => sum + file.bytes, 0) } : {}),
   ...(backdrop.walk ? { phoneBytes, phoneLimitBytes: 30_000_000, walkBytes } : {}),
+  ...(night ? { nightBytes } : {}),
   ...(deferred.size ? { walkLightmapBytes, softLightmapBytes: [...softBodies.values()].reduce((sum, data) => sum + data.length, 0) } : {}),
   ...(upgrade ? {
     combinedBytes, combinedLimitBytes: 40_000_000, highBytes,

@@ -36,8 +36,17 @@ export function readPineBackdrop(manifest) {
       throw new Error('Pine Gate walk plates replace the desktop backdrop upgrade');
     }
     const trees = pineTrees(manifest, backdrop.high);
-    return { ...base, walk, high: trees ? { trees } : null };
+    const night = backdrop.night === undefined ? null : backdropTier(manifest, backdrop.night);
+    if (night) {
+      const existing = new Set([...Object.values(base.files), ...Object.values(walk.files)]);
+      if (!/^[a-f0-9]{64}$/.test(backdrop.night.encodedReceiptSha256)
+        || Object.values(night.files).some(file => existing.has(file))) {
+        throw new Error('Pine Gate night plates need a separate verified render.');
+      }
+    }
+    return { ...base, walk, high: trees ? { trees } : null, ...(night ? { night } : {}) };
   }
+  if (backdrop.night !== undefined) throw new Error('Pine Gate night plates require a shared walk tier.');
   if (backdrop.high === undefined) return { ...base, high: null };
   const high = backdropTier(manifest, backdrop.high);
   const baseFiles = new Set(Object.values(base.files));
