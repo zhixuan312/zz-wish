@@ -3,7 +3,10 @@ import { readPineBackdrop, readPineWaxNormal } from '../baked/pineManifest.js';
 import { preparePineHighTrees } from './pine-gate-high-trees.js';
 import { loadPineGateBackdrop } from './pine-gate-backdrop.js';
 import { createPineGateLife } from './pine-gate-life.js';
+import { animatePineCreek } from './pine-creek-water.js';
+import { buildPineCrestNeedles } from './pine-crest-needles.js';
 import { pineDaySunDirection, pineDaySunDiscEdges } from './pine-gate-sun.js';
+import crestNeedleAnchors from './pine-crest-needle-anchors.json' with { type: 'json' };
 import path from '../../../../shared/pine-gate-path.json';
 
 function restoreShrineFixtureFlames(h, context, niche, anchor) {
@@ -66,7 +69,13 @@ export default function createPlace(h) {
     async build(_place, context) {
       const baked = await loadBakedPlace('pine-gate', h.renderer, context.light);
       context.G.add(baked.group);
+      if (baked.manifest.walkLightmaps) context.up.push(animatePineCreek(baked.group));
       context.baked = baked;
+      const crest = buildPineCrestNeedles(baked.manifest.geometryFingerprint, crestNeedleAnchors);
+      if (crest) {
+        context.G.add(crest.group);
+        context.disposers.push(crest.dispose);
+      }
       const niche = baked.group.children.find(object => object.userData.lightmap_region === 'niche');
       if (niche) {
         baked.group.updateMatrixWorld(true);
