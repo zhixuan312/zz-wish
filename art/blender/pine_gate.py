@@ -119,6 +119,14 @@ def palette():
     return stone, rock, ground, wood, tiles, bark, pine, iron, clay, ledge
 
 
+def wet_approach_granite():
+    # Use the same registered four-map rock scan as the adjoining fieldstone.
+    # The paver scan records straight slab joints inside the texture itself.
+    granite = apply_scan(mesh.material('Wet granite on the old footpath', '#b6b7bd'), 'mossy_rock', .79)
+    mesh.vertex_tint_shader(granite)
+    return granite
+
+
 def stair_section(index):
     bend = .23 * math.sin(index * .11) - .15 * math.sin(index * .27)
     span = 1.91 + .23 * math.cos(index * .18) + .004 * index
@@ -632,7 +640,7 @@ def audit_approach_clearance(ground):
     print(f'PINE_APPROACH_CLEARANCE {len(margins)} probes; minimum clearance {min(margins):.6f} m')
 
 
-def climbing_steps(stone, ground, bedding_material, rubble_granite):
+def climbing_steps(stone, ground, bedding_material, rubble_granite, tread_granite):
     bridge_curbs = []
     worn_cap = random.Random(38365)
     dressing = random.Random(498721)
@@ -662,13 +670,13 @@ def climbing_steps(stone, ground, bedding_material, rubble_granite):
             depth = .82 + RANDOM.uniform(-.043, .039)
             surface = course_top + RANDOM.uniform(-.010, .009) - .005 * j
             centre_z = z + RANDOM.uniform(-.027, .031)
-            material = RANDOM.choice(stone)
-            original.append((depth, surface, centre_z, material, hewn_outline()))
+            RANDOM.choice(stone)
+            original.append((depth, surface, centre_z, hewn_outline()))
         treads = []
         # The end deck already fills course 28. The side drainage is retained.
         if i != 28:
             for j, (a, b, original_index) in enumerate(approach_stone_spans(i, widths)):
-                depth, surface, centre_z, material, outline = original[original_index]
+                depth, surface, centre_z, outline = original[original_index]
                 dressed_width = b - a - dressing.uniform(.003, .011)
                 low_z, high_z = centre_z - depth / 2, centre_z + depth / 2
                 if i == 27:
@@ -677,7 +685,7 @@ def climbing_steps(stone, ground, bedding_material, rubble_granite):
                     high_z = deck_far
                 tread = worn_approach_tread(f'Step {i + 1:02} block {j + 1}', dressed_width, high_z - low_z,
                                             (bend - span / 2 + (a + b) / 2, surface, (low_z + high_z) / 2),
-                                            material, dressing, outline)
+                                            tread_granite, dressing, outline)
                 tread['moss_edge'] = j != 1 or i % 7 == 0
                 treads.append(tread)
         if treads:
@@ -1090,7 +1098,7 @@ def stream_pine_roots(bark, ground):
     print(f'PINE_STREAM_ROOTS {len(ends) // 7} exposed roots; maximum signed tip gap {max(ends):.6f} m.')
 
 
-def saddle_water(stone, ground, bark):
+def saddle_water(stone, ground, bark, tread_granite):
     water = mesh.material('Shallow spring runnel over washed gravel', '#4d4e3d', rough=.24)
     # Leave the gravel lit during the Cycles bake. Runtime alpha follows the
     # measured depth and grazing reflection across this same surface.
@@ -1133,7 +1141,7 @@ def saddle_water(stone, ground, bark):
     # visible outside the near edge before and after crossing.
     for index, z in enumerate(BRIDGE_DECK_CENTRES):
         slab = hewn_block(f'Bridge decking slab {index + 1}', 2.17, .21, BRIDGE_DECK_DEPTH,
-                          (.09, 2.51 - index * .052, z), stone[index % len(stone)], 'approach')
+                          (.09, 2.51 - index * .052, z), tread_granite, 'approach')
         vertices = list(slab.data.vertices)
         ring = len(vertices) // 3
         # The runnel descends monotonically. Keep the underside at a level
@@ -1143,7 +1151,7 @@ def saddle_water(stone, ground, bark):
             vertex.co.z = max(vertex.co.z, water_limit)
         slab.data.update()
         profile_uv(slab, ring, 3, {0, 1}, 1)
-        mesh.uv_world(slab)
+        mesh.uv_world(slab, .56)
         slab['moss_edge'] = True
         deck_slabs.append(slab)
     for z, slab in ((21.02, deck_slabs[0]), (23.23, deck_slabs[-1])):
@@ -1152,12 +1160,12 @@ def saddle_water(stone, ground, bark):
         footing = 2.01
         height = cap - footing
         mesh.box('Granite crossing abutment', (2.18, height, .29), (0, footing + height / 2, z),
-                 stone[2], min(.045, height * .25), region='approach')
+                 tread_granite, min(.045, height * .25), region='approach')
     for side in (-1, 1):
         for index in range(4):
             mesh.box('Low bridge parapet block', (.22, .23, .66),
                      (side * 1.06, 2.61 - index * .066, 21.18 + index * .64),
-                     stone[(index + 2) % len(stone)], .037, region='approach')
+                     tread_granite, .037, region='approach')
     return bank_stones, deck_slabs
 
 
@@ -2047,9 +2055,10 @@ def build(output, impostor_manifest=None, wax_sculpt=None):
     mesh.STATIC = bpy.data.collections['STATIC']
     contacts = RestingContacts(height_query=supports_height)
     stone, rock, ground, wood, tiles, bark, needle, iron, clay, ledge = palette()
+    tread_granite = wet_approach_granite()
     support = terrain(ground)
     audit_approach_clearance(support)
-    bridge_curbs = climbing_steps(stone, support, ground, rock)
+    bridge_curbs = climbing_steps(stone, support, ground, rock, tread_granite)
     route = json.loads((ROOT / 'shared/pine-gate-path.json').read_text())
     far_crown = None
     native_mounts = None
@@ -2063,7 +2072,7 @@ def build(output, impostor_manifest=None, wax_sculpt=None):
         far_crown = (Vector(shoulder['position']), views, native_mounts)
         scene['one_light_pine_impostor_sha256'] = impostor_sha
     forest(support, rock, stone, bark, needle, far_crown)
-    stream_stones, deck_slabs = saddle_water(stone, support, bark)
+    stream_stones, deck_slabs = saddle_water(stone, support, bark, tread_granite)
     audit_watercourse(support, stream_stones, deck_slabs, bridge_curbs)
     build_tea_shoulder(ANCHOR, stone, wood, tiles, clay, iron, ledge, contacts, wax_sculpt)
     paint_stone()
