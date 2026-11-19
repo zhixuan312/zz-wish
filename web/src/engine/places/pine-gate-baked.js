@@ -83,9 +83,9 @@ export default function createPlace(h) {
       // The close views keep the shelf visible, including the trace after the flame is gone.
       choose: { pos: V3(.13, 1.29, .58), look: V3(.095, 1.075, 0), fov: 31 },
       choosePhone: { pos: V3(.09, 1.25, .56), look: V3(0, .95, 0), fov: 43 },
-      // The lower eye line keeps the day and night horizon visible through the stone posts.
-      burn: { pos: V3(-.055, 1.092, .44), look: V3(0, 1.074, -.045), fov: 34 },
-      burnPhone: { pos: V3(-.05, 1.104, .53), look: V3(0, 1.065, -.06), fov: 39 },
+      // See the liquid inside the wax rim and keep the horizon between the posts.
+      burn: { pos: V3(-.055, 1.118, .44), look: V3(0, 1.074, -.045), fov: 34 },
+      burnPhone: { pos: V3(-.05, 1.125, .53), look: V3(0, 1.065, -.06), fov: 39 },
       spread: { pos: V3(.17, 1.32, .70), look: V3(.04, 1.10, 0), fov: 39 },
       spreadPhone: { pos: V3(.11, 1.33, .74), look: V3(0, 1.10, 0), fov: 43 },
       async build() {},
