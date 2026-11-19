@@ -33,6 +33,20 @@ function readMounts(group) {
   });
 }
 
+function retainNeedleProfile(tree, needle, height) {
+  let replaced = false;
+  tree.traverse(mesh => {
+    if (mesh.isMesh && [mesh.material].flat().every(material => material.name === 'PineNativeNeedles')) {
+      mesh.visible = false;
+      replaced = true;
+    }
+  });
+  if (!replaced) throw new Error('Missing native needle layer: ' + tree.name);
+  const crown = needle.clone();
+  crown.scale.setScalar(height);
+  tree.add(crown);
+}
+
 export function preparePineHighTrees(baked, file) {
   if (!file) return null;
   const mounts = readMounts(baked.group);
@@ -58,6 +72,7 @@ export function preparePineHighTrees(baked, file) {
       tree.position.fromArray(mount.position);
       tree.quaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), mount.yawRadians);
       tree.scale.setScalar(mount.height / height);
+      if (base) retainNeedleProfile(tree, base.needles.get(mount.node), height);
       return tree;
     });
     group.add(...trees);
