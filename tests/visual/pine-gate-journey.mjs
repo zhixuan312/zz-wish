@@ -446,14 +446,18 @@ async function capture(browser, browserName, size, trial) {
       const bytes = await page.screenshot({ path: file, scale: 'css',
         ...(directionOnly ? { style: '.ui { visibility: hidden !important; }' } : {}) });
       if (canvasDiagnostic && !phone) {
-        const uri = await page.evaluate(() => new Promise(resolve => { window.__pineReadCanvas = resolve; }));
-        assert(uri.startsWith('data:image/png;base64,'), 'Could not read the composed Pine Gate canvas.');
+        const samples = await page.evaluate(() => new Promise(resolve => { window.__pineReadCanvas = resolve; }));
         const diagnostics = join(output, 'diagnostics');
         await mkdir(diagnostics, { recursive: true });
-        const canvasFile = join(diagnostics, name + '-canvas.png');
-        const canvasBytes = Buffer.from(uri.slice('data:image/png;base64,'.length), 'base64');
-        await writeFile(canvasFile, canvasBytes);
-        extra.canvasDiagnostic = { file: relative(output, canvasFile), sha256: hash(canvasBytes) };
+        extra.canvasDiagnostic = {};
+        for (const [variant, uri] of Object.entries(samples)) {
+          const prefix = 'data:image/png;base64,';
+          assert(uri.startsWith(prefix), 'Could not read the composed Pine Gate canvas.');
+          const canvasFile = join(diagnostics, `${name}-canvas-${variant}.png`);
+          const canvasBytes = Buffer.from(uri.slice(prefix.length), 'base64');
+          await writeFile(canvasFile, canvasBytes);
+          extra.canvasDiagnostic[variant] = { file: relative(output, canvasFile), sha256: hash(canvasBytes) };
+        }
       }
       let directionProof = {};
       if (direction) {

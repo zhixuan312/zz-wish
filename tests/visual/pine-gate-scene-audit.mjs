@@ -44,8 +44,19 @@ export function instrumentPineScene(source, { readiness, cadence, lighting, walk
     source = insertAt(source, /^([ \t]*)composer\.render\(\);[ \t]*$/gm, 'composer render', 'window.__pineMeasureFrame?.();');
   }
   if (canvasDiagnostic) {
-    source = insertAt(source, /^([ \t]*)composer\.render\(\);[ \t]*$/gm, 'composed canvas sample',
-      'if (window.__pineReadCanvas) { const read = window.__pineReadCanvas; window.__pineReadCanvas = null; read(renderer.domElement.toDataURL()); }');
+    source = insertAt(source, /^([ \t]*)composer\.render\(\);[ \t]*$/gm, 'composed canvas sample', `
+      if (window.__pineReadCanvas) {
+        const read = window.__pineReadCanvas;
+        window.__pineReadCanvas = null;
+        const normal = renderer.domElement.toDataURL();
+        const wasEnabled = bloom.enabled;
+        bloom.enabled = false;
+        composer.render();
+        const withoutBloom = renderer.domElement.toDataURL();
+        bloom.enabled = wasEnabled;
+        composer.render();
+        read({ normal, withoutBloom });
+      }`);
   }
   if (walkClock) {
     source = insertAt(source, /^([ \t]*)const walk\s*=\s*tween\(P\.walkSeconds\s*\?\?\s*14,\s*(?:\(k\)|k)\s*=>\s*\{/gm,
