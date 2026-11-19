@@ -756,6 +756,19 @@ async function capture(browser, browserName, size, trial) {
             assert.equal(settled.status, 'active', 'Desktop did not finish the optional high backdrop upgrade.');
             assert.equal(shots['day-burning.png'].status, 'active', 'Desktop burning was captured before the high backdrop upgrade finished.');
           }
+          if (highTreeUri) {
+            assert.deepEqual(run.readyPineImages.nativeTrees, [], 'Native trees installed before the walk.');
+            for (const state of [...run.shots.map(shot => shot.pineImages), run.settledPineImages]) {
+              const trees = state.nativeTrees;
+              if (phone) {
+                assert.deepEqual(trees, [], 'Phone installed desktop tree geometry.');
+                continue;
+              }
+              assert.deepEqual(trees.map(tree => tree.name).sort(), ['PineRidgeNative', 'PineYoungNative']);
+              assert(trees.every(tree => tree.triangles > 50_000 && tree.position.every(Number.isFinite) && tree.scale > 0),
+                'The native crowns are missing geometry or an authored mount.');
+            }
+          }
         }
         assert(Number.isFinite(run.placeReadiness.wishToEnabledMs) && run.placeReadiness.wishToEnabledMs > 0);
         if (requireBackdrop) assert(run.placeReadiness.wishToEnabledMs <= 5000, 'Wish to Step inside took more than 5 seconds.');
