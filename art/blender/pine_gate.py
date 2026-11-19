@@ -173,14 +173,14 @@ def watercourse_stations(spacing):
 def stream_ground(x, z, water_x, water_y, half_width, blend):
     original = terrain_height(x, z)
     edge = abs(x - water_x) - half_width
+    # Bank shelves are uneven along the water, but both audited rims keep a
+    # positive clearance. Leave the outer bank slopes on the original grade.
+    wet_depth = .017 + .002 * math.sin(4.9 * z + 1.7 * x) + .002 * math.sin(9.3 * z - 2.6 * x)
     if edge <= 0:
-        bed = water_y - .017 + .016 * edge / half_width
+        bed = water_y - wet_depth + .016 * edge / half_width
     elif edge <= STREAM_BANK_OFFSET:
         t = edge / STREAM_BANK_OFFSET
-        # Erosion varies the shoreline while keeping both audited edges at
-        # their original elevations and preserving the bed and bank profiles.
-        broken_edge = (.005 * math.sin(4.9 * z + 1.7 * x) + .004 * math.sin(9.3 * z - 2.6 * x))
-        bed = water_y - .017 + .047 * t + broken_edge * math.sin(t * math.pi)
+        bed = water_y - wet_depth * (1. - t) + .030 * t
     else:
         # The channel turns sharply across the road. Use a shallower slope
         # there so the diagonal grade stays gentle as well as the crossfall.
@@ -210,8 +210,7 @@ def terrain(material):
         blend = max(0., 1 - distance_outside / 1.4)
         blend *= blend * (3 - 2 * blend)
         shore = width + STREAM_BANK_OFFSET
-        waterline = width + .052
-        channel = [stream_x + t for t in (-shore, -waterline, -width, 0., width, waterline, shore)]
+        channel = [stream_x + t for t in (-shore, -width, 0., width, shore)]
         # Extend the cut outward as a graded bank with metre-scale contours.
         grades = [stream_x + side * (shore + amount) for side in (-1, 1)
                   for amount in (.18, .40, .67, .97, 1.32, 1.73, 2.20) if blend > 0.]
