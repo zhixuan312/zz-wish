@@ -139,6 +139,8 @@ export async function loadBakedPlace(id,renderer,initialLight={n:1,g:0}){
     object.castShadow = movingNicheLight && region === 'niche';
     object.receiveShadow = true;
     const convert=source=>{
+      const cooledWax = shelteredNiche && (/^Weathered cold wax tone [1-4]$/.test(source.name)
+        || source.name === 'Wax of the two remaining short candles');
       const material=source.clone();material.lightMap=empty;material.lightMapIntensity=1;material.envMapIntensity=.18;
       const perMaterial={...uniforms,
         uBakedNight:{value:maps.night.texture},uBakedDusk:{value:maps.dusk.texture},uBakedDay:{value:maps.day.texture},uBakedLamp:{value:maps.lamp.texture},
@@ -155,7 +157,22 @@ export async function loadBakedPlace(id,renderer,initialLight={n:1,g:0}){
         shader.fragmentShader=`varying vec3 vBakedWorld;
           uniform sampler2D uBakedNight,uBakedDusk,uBakedDay,uBakedLamp;
           uniform vec3 uBakedWeights,uBakedLampAnchor;uniform vec4 uBakedScales,uBakedLogRange,uBakedLogGain;uniform float uLampPower,uBakedIrradianceFactor,uBakedMinRoughness;
-          vec3 decodeBaked(vec3 v,float scale,float range,float gain){return range>0.?(exp2(v*range)-1.)/gain:v*scale;}\n`+shader.fragmentShader;
+          vec3 decodeBaked(vec3 v,float scale,float range,float gain){return range>0.?(exp2(v*range)-1.)/gain:v*scale;}
+          vec3 bakedSample(sampler2D map,vec2 uv,float scale,float range,float gain){
+            vec3 surface=decodeBaked(texture2D(map,uv).rgb,scale,range,gain);
+            ${cooledWax ? `
+            // Nearby irradiance scatters through the wax, softening small
+            // surface creases while retaining the larger stone shadow. The
+            // kernel stays inside the lightmap's eight-texel chart gutters.
+            vec2 stepUV=2.5/vec2(textureSize(map,0));
+            vec3 scattered=surface*4.;
+            for(int y=-1;y<=1;y++) for(int x=-1;x<=1;x++){
+              if(x==0&&y==0)continue;
+              float weight=(x==0||y==0)?2.:1.;
+              scattered+=weight*decodeBaked(texture2D(map,uv+vec2(float(x),float(y))*stepUV).rgb,scale,range,gain);
+            }
+            return mix(surface,scattered/16.,vec3(.82,.72,.58));` : 'return surface;'}
+          }\n`+shader.fragmentShader;
         shader.fragmentShader=shader.fragmentShader.replace('#include <roughnessmap_fragment>','#include <roughnessmap_fragment>\nroughnessFactor=max(roughnessFactor,uBakedMinRoughness);');
         // The static moon and sky already exist in the bake. Preserve direct
         // point lights for the visitor's nearest surfaces without doubling them.
@@ -175,9 +192,9 @@ export async function loadBakedPlace(id,renderer,initialLight={n:1,g:0}){
         shader.fragmentShader=shader.fragmentShader.replace('#include <lights_fragment_maps>',`
           #if defined(RE_IndirectDiffuse) && defined(USE_LIGHTMAP)
             vec3 baked=vec3(0.);
-            if(uBakedWeights.x>.0001)baked+=decodeBaked(texture2D(uBakedNight,vLightMapUv).rgb,uBakedScales.x,uBakedLogRange.x,uBakedLogGain.x)*uBakedWeights.x${shelteredNiche ? ' * .55' : ''};
-            if(uBakedWeights.y>.0001)baked+=decodeBaked(texture2D(uBakedDusk,vLightMapUv).rgb,uBakedScales.y,uBakedLogRange.y,uBakedLogGain.y)*uBakedWeights.y${shelteredNiche ? ' * .78' : ''};
-            if(uBakedWeights.z>.0001)baked+=decodeBaked(texture2D(uBakedDay,vLightMapUv).rgb,uBakedScales.z,uBakedLogRange.z,uBakedLogGain.z)*uBakedWeights.z;
+            if(uBakedWeights.x>.0001)baked+=bakedSample(uBakedNight,vLightMapUv,uBakedScales.x,uBakedLogRange.x,uBakedLogGain.x)*uBakedWeights.x${shelteredNiche ? ' * .55' : ''};
+            if(uBakedWeights.y>.0001)baked+=bakedSample(uBakedDusk,vLightMapUv,uBakedScales.y,uBakedLogRange.y,uBakedLogGain.y)*uBakedWeights.y${shelteredNiche ? ' * .78' : ''};
+            if(uBakedWeights.z>.0001)baked+=bakedSample(uBakedDay,vLightMapUv,uBakedScales.z,uBakedLogRange.z,uBakedLogGain.z)*uBakedWeights.z;
             float away=${movingNicheLight
               ? '.58 * (1. - smoothstep(.095, .275, distance(vBakedWorld,uBakedLampAnchor)))'
               : indirectLamp?'1.':'smoothstep(.7,1.8,distance(vBakedWorld,uBakedLampAnchor))'};
@@ -191,14 +208,14 @@ export async function loadBakedPlace(id,renderer,initialLight={n:1,g:0}){
               movingShade=mix(1.,mix(.65,1.,ribShadow),withinShadow);
             }
             #endif
-            if(uLampPower>.0001)baked+=decodeBaked(texture2D(uBakedLamp,vLightMapUv).rgb,uBakedScales.w,uBakedLogRange.w,uBakedLogGain.w)*uLampPower*away*movingShade;
+            if(uLampPower>.0001)baked+=bakedSample(uBakedLamp,vLightMapUv,uBakedScales.w,uBakedLogRange.w,uBakedLogGain.w)*uLampPower*away*movingShade;
             irradiance=baked*uBakedIrradianceFactor;
           #endif
           #if defined(USE_ENVMAP) && defined(RE_IndirectSpecular)
             radiance+=getIBLRadiance(geometryViewDir,geometryNormal,material.roughness);
           #endif`);
       };
-      material.customProgramCacheKey=()=>`${movingNicheLight ? 'pine-lightmap' : 'cycles-lightmap-1'}-${region}`;
+      material.customProgramCacheKey=()=>`${movingNicheLight ? 'pine-lightmap' : 'cycles-lightmap-1'}-${region}${cooledWax ? '-wax' : ''}`;
       visitorShadow?.install(material);
       gauzeTransmission?.install(material);
       staticLampShadow?.install(material);
