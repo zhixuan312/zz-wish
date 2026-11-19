@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { cueFor, phraseBag } from '../../../web/src/music.ts';
+import { createMusic, cueFor, phraseBag } from '../../../web/src/music.ts';
 import { musicBucket } from '../../../shared/dayPart.ts';
 
 // A fake media element and audio context: the music module must work without a real
@@ -111,7 +111,6 @@ describe('music playback', () => {
   });
 
   it('requests nothing when the manifest is empty, and never throws', async () => {
-    const { createMusic } = await import('../../../web/src/music.ts');
     const music = createMusic({ createContext: () => new FakeContext() as unknown as AudioContext });
     await music.unlock();
     await music.play('home', 'snow-roof');
@@ -123,7 +122,6 @@ describe('music playback', () => {
   it('never asks for a cue the manifest omits', async () => {
     const fetchMock = vi.fn(async () => ({ ok: true, json: async () => ({ cues: ['home_loop'] }) }));
     vi.stubGlobal('fetch', fetchMock);
-    const { createMusic } = await import('../../../web/src/music.ts');
     const music = createMusic({ createContext: () => new FakeContext() as unknown as AudioContext });
     await music.unlock();
     await music.play('choose', 'snow-roof');
@@ -132,7 +130,6 @@ describe('music playback', () => {
 
   it('plays a listed loop', async () => {
     vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, json: async () => ({ cues: ['home_loop'] }) })));
-    const { createMusic } = await import('../../../web/src/music.ts');
     const music = createMusic({ createContext: () => new FakeContext() as unknown as AudioContext });
     await music.unlock();
     await music.play('home', 'snow-roof');
@@ -143,19 +140,17 @@ describe('music playback', () => {
 
   it('hands a one-shot over to the loop that follows it', async () => {
     vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, json: async () => ({ cues: ['snow_walk', 'snow_choose_loop'] }) })));
-    const { createMusic } = await import('../../../web/src/music.ts');
     const music = createMusic({ createContext: () => new FakeContext() as unknown as AudioContext });
     await music.unlock();
     await music.play('walk', 'snow-roof');
     const [walk] = FakeAudio.instances;
     expect(walk.loop).toBe(false);
     walk.emit('ended');
-    await new Promise((r) => setTimeout(r, 0));
+    await Promise.resolve();
     expect(FakeAudio.instances.map((a) => a.src)).toContain('/music/snow_choose_loop.m4a');
   });
 
   it('persists the mute choice', async () => {
-    const { createMusic } = await import('../../../web/src/music.ts');
     const music = createMusic({ createContext: () => new FakeContext() as unknown as AudioContext });
     music.setMuted(true);
     expect(localStorage.getItem('one-light-muted')).toBe('true');

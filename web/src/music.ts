@@ -40,6 +40,15 @@ export function cueFor(stage: MusicStage, placeId: PlaceId, bucket: MusicBucket 
   }
 }
 
+export interface Music {
+  unlock(): Promise<void>;
+  play(stage: MusicStage, placeId: PlaceId): Promise<void>;
+  stop(): void;
+  setMuted(value: boolean): void;
+  isMuted(): boolean;
+  describe(): { stage: MusicStage | null; place: PlaceId | null; bucket: MusicBucket | null; channels: number; muted: boolean; cuesReady: boolean };
+}
+
 // One-shots hand over to the loop that follows them.
 const NEXT_AFTER_ONE_SHOT: Partial<Record<MusicStage, MusicStage>> = {
   walk: 'choose',
@@ -47,7 +56,7 @@ const NEXT_AFTER_ONE_SHOT: Partial<Record<MusicStage, MusicStage>> = {
   endingBurned: 'result',
   endingPutOut: 'result',
 };
-const ONE_SHOTS = new Set<MusicStage>(['walk', 'ignite', 'endingBurned', 'endingPutOut']);
+const ONE_SHOT: Record<string, true> = { walk: true, ignite: true, endingBurned: true, endingPutOut: true };
 
 // A phrase shuffle bag: all eight play once before any repeats.
 export function phraseBag(count = 8): { next: () => number; remaining: () => number } {
@@ -66,7 +75,7 @@ export function phraseBag(count = 8): { next: () => number; remaining: () => num
 
 type Channel = { el: HTMLAudioElement; source: MediaElementAudioSourceNode; gain: GainNode };
 
-export function createMusic(options: { createContext?: () => AudioContext } = {}) {
+export function createMusic(options: { createContext?: () => AudioContext } = {}): Music {
   let context: AudioContext | null = null;
   let master: GainNode | null = null;
   let muted = readMuted();
@@ -255,7 +264,7 @@ export function createMusic(options: { createContext?: () => AudioContext } = {}
     const nextBucket = musicBucket(dayPart(new Date()));
     const cue = cueFor(nextStage, placeId, nextBucket);
     if (!cue) { disposeChannels(CROSSFADE); return; }
-    const isOneShot = ONE_SHOTS.has(nextStage);
+    const isOneShot = ONE_SHOT[nextStage] === true;
     // Everything that loops crossfades in as the previous cue leaves.
     const incoming = fadeSeconds ?? CROSSFADE;
     disposeChannels(isOneShot ? 0.6 : incoming);
@@ -290,4 +299,3 @@ export function createMusic(options: { createContext?: () => AudioContext } = {}
 }
 
 export const music = createMusic();
-export type Music = ReturnType<typeof createMusic>;
