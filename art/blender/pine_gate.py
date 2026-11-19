@@ -716,34 +716,49 @@ def landing_bed(material):
     landing['weather_stone'] = landing['moss_edge'] = True
 
 
-def landing_joint_fill(seams, material):
-    # Long pockets of damp grit ride the plane of the old bedding. The
-    # settlement varies along each seam and follows the skew of the paving.
+def landing_joint_fill(seams, slabs, material):
+    # Fit the damp bedding to the dressed tops on either side of each joint.
+    # Where a broken corner opens up, the grit still bears on the landing.
     settle = random.Random(919)
+    stone_faces, _ = contacts.support(slabs)
+    bed_height = 3.983
     points, faces = [], []
+    fitted = 0
     for x, z, length, along_x in seams:
-        depth = settle.uniform(.012, .029)
-        offset = settle.uniform(.03, .17) * length
-        span = length * settle.uniform(.67, .81)
+        if length <= .02:
+            continue
         begin = len(points)
-        for i, fraction in enumerate((0., .15, .36, .61, .82, 1.)):
-            sweep = offset + span * fraction
-            crest = math.sin(fraction * math.pi)
-            line = settle.uniform(-.003, .003)
+        segments = math.ceil(length / .22)
+        for i in range(segments + 1):
+            sweep = length * i / segments
+            x0, z0 = (x + sweep, z) if along_x else (x, z + sweep)
+            rims = []
             for side in (-1, 1):
-                across = line + side * depth * (.19 + .81 * crest) * settle.uniform(.81, 1.19)
-                px, pz = (x + sweep, z + across) if along_x else (x + across, z + sweep)
-                y = 3.982 + crest * settle.uniform(.004, .009)
-                points.append((px + landing_splay(pz), y, pz))
+                for distance in (.027, .043, .066, .105):
+                    px, pz = (x0, z0 + side * distance) if along_x else (x0 + side * distance, z0)
+                    hit, _, _, _ = stone_faces.ray_cast(mesh.point((px + landing_splay(pz), 4.2, pz)),
+                                                        Vector((0, 0, -1)), .24)
+                    if hit is not None:
+                        rims.append(hit.z)
+                        break
+            grit_top = min(rims, default=3.995) - settle.uniform(.005, .009)
+            grit_top = max(bed_height - .002, min(grit_top, 3.999))
+            fitted += len(rims) == 2
+            width = settle.uniform(.032, .049)
+            for across, top in ((-width, bed_height - .002), (0, grit_top), (width, bed_height - .002)):
+                px, pz = (x0, z0 + across) if along_x else (x0 + across, z0)
+                points.append((px + landing_splay(pz), top, pz))
             if i:
-                a = begin + (i - 1) * 2
-                face = (a, a + 2, a + 3, a + 1)
-                faces.append(tuple(reversed(face)) if along_x else face)
+                a = begin + (i - 1) * 3
+                for column in range(2):
+                    face = (a + column, a + column + 3, a + column + 4, a + column + 1)
+                    faces.append(tuple(reversed(face)) if along_x else face)
     grit = mesh.mesh_object('Worn gravel bed in the landing joints', points, faces, material, 'gate')
     source_uv(grit, [[(points[i][0], points[i][2]) for i in face] for face in faces],
-              'Tapered settlement patches projected in metres onto the bedding.')
+              'Seated grit between the dressed rims, projected onto the bedding in metres.')
     mesh.uv_world(grit, .19)
     grit['weather_stone'] = grit['moss_edge'] = True
+    print(f'PINE_LANDING_JOINTS {len(points) // 3} sections; {fitted} fitted to both stone rims.')
 
 
 def landing_splay(z):
@@ -816,15 +831,20 @@ def landing_stone(name, width, depth, centre, stone, dressing):
     return slab
 
 
-def landing_flagstones(stone):
+def landing_flagstones(stone, gravel):
     joint = random.Random(5917)
     dressing = random.Random(2816)
-    seams = []
+    slabs = []
     course_edges = [-1.02] + [-1.02 + row * .64 + joint.uniform(-.145, .145) for row in range(1, 11)] + [6.02]
+    seams = [(-4.15, z, 8.30, True) for z in course_edges[1:-1] if z < 5.6]
     for row, (front, back) in enumerate(zip(course_edges, course_edges[1:])):
         stagger = (.12 if row % 2 else -.11) + joint.uniform(-.08, .08)
         edges = [-4.20] + [-4.20 + col * .84 + stagger + joint.uniform(-.23, .23)
                            for col in range(1, 10)] + [4.20]
+        if front < 5.5:
+            # Leave room for the continuous transverse bedding where joints meet.
+            span = min(back - .054, 5.61) - (front + .054)
+            seams.extend((x, front + .054, span, False) for x in edges[1:-1])
         for col, (left, right) in enumerate(zip(edges, edges[1:])):
             x, z = (left + right) * .5, (front + back) * .5
             gap = joint.uniform(.009, .020)
@@ -833,12 +853,8 @@ def landing_flagstones(stone):
                                  (x, 4.004 + settle + RANDOM.uniform(-.003, .003), z),
                                  RANDOM.choice(stone), dressing)
             slab['moss_edge'] = joint.random() < (.26 if abs(x) < 1.2 else .57)
-            if front < 3.70:
-                if col and right < 4.:
-                    seams.append((right, front, back - front, False))
-                if row:
-                    seams.append((left, front, right - left, True))
-    landing_joint_fill(seams, stone[4])
+            slabs.append(slab)
+    landing_joint_fill(seams, slabs, gravel)
 
 
 def audit_approach_clearance(ground):
@@ -983,7 +999,7 @@ def climbing_steps(stone, ground, bedding_material, rubble_granite, tread_granit
     audit_approach_tread_bearings(bedding_rows, bed, ground)
     audit_stair_course_rises(bedding_rows)
     landing_bed(stone[2])
-    landing_flagstones(stone)
+    landing_flagstones(stone, rubble_granite)
     fit_stone_undersides(ground, bridge_curbs)
     return bridge_curbs
 
