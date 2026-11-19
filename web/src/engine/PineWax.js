@@ -55,18 +55,35 @@ const RELIEF_GLSL = `
   }
 `;
 
+const SURFACE_NOISE_GLSL = `
+  float pineSurfaceHash(vec3 p) {
+    p = fract(p * .1031);
+    p += dot(p, p.yzx + 33.33);
+    return fract((p.x + p.y) * p.z);
+  }
+  float pineSurfaceNoise(vec3 p) {
+    vec3 q = floor(p), f = fract(p);
+    f *= f * (3. - 2. * f);
+    return mix(
+      mix(mix(pineSurfaceHash(q), pineSurfaceHash(q + vec3(1., 0., 0.)), f.x),
+          mix(pineSurfaceHash(q + vec3(0., 1., 0.)), pineSurfaceHash(q + vec3(1., 1., 0.)), f.x), f.y),
+      mix(mix(pineSurfaceHash(q + vec3(0., 0., 1.)), pineSurfaceHash(q + vec3(1., 0., 1.)), f.x),
+          mix(pineSurfaceHash(q + vec3(0., 1., 1.)), pineSurfaceHash(q + vec3(1., 1., 1.)), f.x), f.y), f.z);
+  }
+`;
+
 function refinedWaxMaterial(light, layer) {
   const wet = layer === 'pool';
   const shaft = layer === 'body';
   const remnant = layer === 'remnant';
   const style = {
-    body: { roughness: .40, clearcoat: .13, specularIntensity: .52, diffuse: .91, scatter: 1.68 },
-    pool: { roughness: .13, clearcoat: .42, specularIntensity: .75, diffuse: .34, scatter: .045 },
+    body: { roughness: .44, clearcoat: .10, specularIntensity: .52, diffuse: .91, scatter: 2.0 },
+    pool: { roughness: .10, clearcoat: .55, specularIntensity: .86, diffuse: .30, scatter: .045 },
     remnant: { roughness: .40, clearcoat: .09, specularIntensity: .43, diffuse: .91, scatter: .04 },
   }[layer];
   const material = new THREE.MeshPhysicalMaterial({ color: 0xffffff, ior: 1.43,
     roughness: style.roughness, clearcoat: style.clearcoat, clearcoatRoughness: wet ? .15 : .32,
-    specularIntensity: style.specularIntensity, envMapIntensity: wet ? .62 : .42,
+    specularIntensity: style.specularIntensity, envMapIntensity: wet ? .75 : .42,
     transparent: remnant, depthWrite: !remnant });
   material.onBeforeCompile = shader => {
     materialCoordinates(shader);
@@ -76,6 +93,7 @@ function refinedWaxMaterial(light, layer) {
       uniform float uPineCandela, uPineSourceRadius, uPinePoolWet, uPineWaxCooling, uPineWaxHeight;
       uniform float uPineWaxTime, uPineWaxWind, uPinePoolRadius;
       ${RELIEF_GLSL}
+      ${shaft ? SURFACE_NOISE_GLSL : ''}
       ${wet ? `
       // Approximate the short braided wick as a tapered stem so it can
       // interrupt the reflected ray while the light above it remains visible.
@@ -100,9 +118,6 @@ function refinedWaxMaterial(light, layer) {
       }` : ''}
       ${shader.fragmentShader}`;
     shader.fragmentShader = shader.fragmentShader.replace('#include <map_fragment>', `#include <map_fragment>
-      vec3 grains = vPineLocal * 720.;
-      float grainCoverage = 1. - smoothstep(.12, .65, length(fwidth(grains)));
-      float waxGrain = sin(dot(grains, vec3(1.31, .62, .95))) * sin(dot(grains, vec3(-.18, 1.84, .54))) * grainCoverage;
       ${shaft ? `
       // Sparse bubbles caught as the wax was poured. The derivative filter
       // resolves them only where the actual candle occupies enough pixels.
@@ -115,22 +130,17 @@ function refinedWaxMaterial(light, layer) {
       float bubbleCoverage = (1. - smoothstep(.26, 1.15, length(fwidth(bubbleCoords)))) * step(.67, poreSeed);
       float bubble = (1. - smoothstep(bubbleRadius * .46, bubbleRadius * .92, bubbleDistance)) * bubbleCoverage;
       float poreLip = (1. - smoothstep(bubbleRadius * .70, bubbleRadius * 1.15, bubbleDistance)) * bubbleCoverage - bubble;
-      // Soft, nonperiodic-looking density variations on the scale of a wax flake.
-      vec3 bloomPoint = vPineLocal * 318.;
-      float waxBloom = sin(dot(bloomPoint, vec3(.72, .81, .36))
-        + .75 * sin(dot(bloomPoint, vec3(.33, -1.42, .61)))) * sin(dot(bloomPoint, vec3(-.95, .31, 1.19)));
-      // Lengthwise flow marks persist in the solid, cooler outer wax.
-      vec2 flowPoint = vPineLocal.xz * 272.;
-      float flowPhase = dot(flowPoint, vec2(.89, -.74)) + .83 * sin(vPineLocal.y * 74. + flowPoint.y);
-      float flowCoverage = 1. - smoothstep(.2, 1.1, fwidth(flowPhase));
-      float pouringFlow = sin(flowPhase) * cos(dot(flowPoint, vec2(.37, .63)) + vPineLocal.y * 48.) * flowCoverage;
-      diffuseColor.rgb *= 1. - .105 * bubble + .034 * poreLip + .044 * waxBloom + .056 * pouringFlow;` : ''}
-      diffuseColor.rgb *= ${wet ? `mix(${style.diffuse}, .82, uPineWaxCooling)` : style.diffuse} * (1. + .018 * waxGrain);`)
+      // Small uneven patches in solidified wax, without an embossed pattern.
+      vec3 bloomPoint = vPineLocal * vec3(228., 146., 228.) + vec3(3.6, 20.7, 14.2);
+      float coverage = 1. - smoothstep(.32, 1.15, length(fwidth(bloomPoint)));
+      float waxBloom = (pineSurfaceNoise(bloomPoint) - .5) * coverage;
+      diffuseColor.rgb *= 1. - .066 * bubble + .019 * poreLip + .042 * waxBloom;` : ''}
+      diffuseColor.rgb *= ${wet ? `mix(${style.diffuse}, .82, uPineWaxCooling)` : style.diffuse};`)
       .replace('#include <roughnessmap_fragment>', `#include <roughnessmap_fragment>
-        roughnessFactor = clamp(roughnessFactor + .026 * waxGrain ${shaft ? '+ .09 * bubble - .034 * poreLip + .037 * pouringFlow' : ''}, .1, 1.);`)
+        ${shaft ? 'roughnessFactor = clamp(roughnessFactor + .07 * bubble - .029 * poreLip + .044 * waxBloom, .1, 1.);' : ''}`)
       .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
         ${shaft ? `normal = pineRelief(normal, -vViewPosition,
-          .000039 * waxGrain - .000105 * bubble + .000028 * poreLip + .000049 * waxBloom + .00021 * pouringFlow);` : ''}
+          -.000072 * bubble + .000021 * poreLip + .000047 * waxBloom);` : ''}
         ${wet ? `
         vec2 poolPoint = vPineLocal.xz;
         float meniscus = smoothstep(.46, .97, length(poolPoint) / max(uPinePoolRadius, .001));
@@ -231,7 +241,7 @@ function refinedWaxMaterial(light, layer) {
           reflectedLight.indirectDiffuse += diffuseColor.rgb * vec3(.96, 1., 1.04) * spillBounce;`);
     }
   };
-  material.customProgramCacheKey = () => `pine-wax-detail-${layer}-2`;
+  material.customProgramCacheKey = () => `pine-wax-detail-${layer}-3`;
   return material;
 }
 
@@ -310,47 +320,48 @@ export function createPineTray(seat) {
     positions.setXYZ(i, x * (1 + uneven), y + chip * clamp(y / .008, 0, 1), z * (1 + uneven));
   }
   geometry.computeVertexNormals();
-  const material = new THREE.MeshStandardMaterial({ color: 0x4b5158, roughness: .9, envMapIntensity: .38 });
+  const material = new THREE.MeshPhysicalMaterial({ color: 0x677467, roughness: .36, clearcoat: .68,
+    clearcoatRoughness: .17, ior: 1.49, envMapIntensity: .68 });
   material.onBeforeCompile = shader => {
     materialCoordinates(shader);
     shader.fragmentShader = `
       ${RELIEF_GLSL}
-      float pineStoneHash(vec3 p) { return fract(sin(dot(p, vec3(93.2, 43.9, 163.7))) * 28631.41); }
-      float pineStoneValue(vec3 p) {
-        vec3 q = floor(p), f = fract(p);
-        f = f * f * (3. - 2. * f);
-        return mix(
-          mix(mix(pineStoneHash(q), pineStoneHash(q + vec3(1., 0., 0.)), f.x),
-              mix(pineStoneHash(q + vec3(0., 1., 0.)), pineStoneHash(q + vec3(1., 1., 0.)), f.x), f.y),
-          mix(mix(pineStoneHash(q + vec3(0., 0., 1.)), pineStoneHash(q + vec3(1., 0., 1.)), f.x),
-              mix(pineStoneHash(q + vec3(0., 1., 1.)), pineStoneHash(q + vec3(1., 1., 1.)), f.x), f.y), f.z);
-      }
+      ${SURFACE_NOISE_GLSL}
       ${shader.fragmentShader}`;
     shader.fragmentShader = shader.fragmentShader.replace('#include <map_fragment>', `#include <map_fragment>
-      float aggregate = pineStoneValue(vPineLocal * 226.);
+      float aggregate = pineSurfaceNoise(vPineLocal * 194. + vec3(8., 14., 5.));
       vec3 mineralCoord = vPineLocal * 940.;
       float grainCoverage = 1. - smoothstep(.44, 1.35, length(fwidth(mineralCoord)));
-      float mineral = mix(.5, pineStoneValue(mineralCoord + vec3(48., 12., 9.)), grainCoverage);
+      float mineral = mix(.5, pineSurfaceNoise(mineralCoord + vec3(48., 12., 9.)), grainCoverage);
       float fleck = smoothstep(.64, .9, mineral);
       float trayRadius = length(vPineLocal.xz);
       float soot = (1. - smoothstep(.012, .048, trayRadius)) * smoothstep(.37, .85, aggregate);
       float scuffedRim = smoothstep(.049, .057, trayRadius) * smoothstep(.006, .012, vPineLocal.y);
-      float polish = scuffedRim * smoothstep(.32, .87, aggregate);
+      float wear = scuffedRim * smoothstep(.38, .91, aggregate);
       // A coarse throwing tool leaves nearly concentric traces. Their height
       // varies around the dish and is filtered in the wider views.
       float turningPhase = trayRadius * 2600. + vPineLocal.y * 487. + aggregate * 1.4;
       float turningCoverage = (1. - smoothstep(.41, 1.6, fwidth(turningPhase))) * smoothstep(.011, .022, trayRadius);
       float toolMark = sin(turningPhase) * (.35 + .65 * aggregate) * turningCoverage;
       float ashSpecks = soot * smoothstep(.48, .76, mineral) * smoothstep(.19, .58, aggregate);
-      diffuseColor.rgb *= .65 + .40 * aggregate + .09 * fleck + .12 * polish - .28 * soot - .23 * ashSpecks + .042 * toolMark;`)
+      // The fired glaze pools inside the dish. The turned foot is bare clay.
+      float glaze = smoothstep(.0024, .0052, vPineLocal.y) * (1. - .55 * wear);
+      vec3 clay = vec3(.80, .64, .46);
+      vec3 firedGlaze = mix(vec3(.64, .77, .66), vec3(1.04, 1.13, .98), aggregate);
+      diffuseColor.rgb *= mix(clay, firedGlaze, glaze) * (1. + .043 * fleck - .16 * soot - .13 * ashSpecks + .024 * toolMark);`)
       .replace('#include <roughnessmap_fragment>', `#include <roughnessmap_fragment>
-        roughnessFactor = clamp(roughnessFactor + .14 * (aggregate - .5) - .22 * polish + .10 * ashSpecks, .56, .98);`)
+        roughnessFactor = clamp(mix(.79, roughnessFactor + .16 * (aggregate - .5), glaze) + .09 * ashSpecks, .22, .87);`)
+      .replace('#include <lights_physical_fragment>', `#include <lights_physical_fragment>
+        #ifdef USE_CLEARCOAT
+          material.clearcoat *= glaze;
+          material.clearcoatRoughness += .20 * wear;
+        #endif`)
       .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
-        float relief = .00043 * aggregate + .000055 * mineral + .000044 * toolMark + .000033 * ashSpecks;
+        float relief = .00013 * aggregate + .000030 * mineral + .000060 * toolMark + .000025 * ashSpecks;
         normal = pineRelief(normal, -vViewPosition, relief);`)
       .replace('#include <lights_fragment_end>', `#include <lights_fragment_end>
         reflectedLight.directDiffuse *= .84;
-        reflectedLight.directSpecular *= .76;
+        reflectedLight.directSpecular *= .93;
         // The outer foot faces the nearby niche walls, away from the wick.
         // Their broad return is subtle and carries through the worn relief.
         vec3 stoneNormal = inverseTransformDirection(normal, viewMatrix);
@@ -360,7 +371,7 @@ export function createPineTray(seat) {
         reflectedLight.indirectDiffuse += diffuseColor.rgb * vec3(1.07, 1.03, .98)
           * (.26 * outerFoot * recessReturn);`);
   };
-  material.customProgramCacheKey = () => 'pine-hewn-stone-5';
+  material.customProgramCacheKey = () => 'pine-fired-glaze-1';
   material.userData.lampOwned = true;
   const tray = new THREE.Mesh(geometry, material);
   tray.receiveShadow = true;
@@ -522,7 +533,12 @@ function bodySurface(mesh, rows, cut, melt, runnels) {
   const bevel = Math.min(cut * .2, top.r * .09, .0014);
   const lipRelief = refined && runnels.length ? .17 : .09;
   const lipHeight = melt * Math.min(top.r * lipRelief, cut * .13, lipRelief * .013);
-  const uneven = a => lipHeight * (.61 * Math.sin(a * 3 + .8) + .30 * Math.sin(a * 7 - .3) + .09 * Math.cos(a * 11));
+  const uneven = a => {
+    const lip = lipHeight * (.61 * Math.sin(a * 3 + .8) + .30 * Math.sin(a * 7 - .3) + .09 * Math.cos(a * 11));
+    if (!refined || !melt) return lip;
+    const softenedEdge = Math.max(0, Math.cos(a - 1.18)) ** 14;
+    return Math.max(-depth * .54, lip * .62 - depth * .69 * softenedEdge);
+  };
   const grain = (y, radius) => runnels ? runnelContour(y, radius, runnels)
     : a => 1 + .006 * Math.sin(a * 7 + y * 120) + .004 * Math.sin(a * 15 - y * 150);
   let row = 0;
@@ -724,7 +740,7 @@ export function createPineWax(seat, waxMaterial, { refined = false } = {}) {
         const runnels = refined ? runnelLayout.map((drip, index) => {
           // The first small flows wet the shoulder as the pool forms. Later
           // growth follows consumed fuel and leaves the burn height alone.
-          const shoulderMelt = index < 2 ? .092 * melted : 0;
+          const shoulderMelt = index === 0 ? .14 * melted : 0;
           const amount = clamp((1 - fuel - drip.start + shoulderMelt) * drip.speed, 0, 1);
           return { ...drip, reach: Math.min(drip.reach * amount, cut * .8),
             growth: Math.sqrt(amount), crown: cut - Math.min(cut * .04, .0002) };
@@ -747,7 +763,7 @@ export function createPineWax(seat, waxMaterial, { refined = false } = {}) {
           pool.position.set(top.cx, cut - depth * .72, 0);
           light.uPinePoolRadius.value = poolRadius;
           const cooled = state === 'went_out' || state === 'burned_down';
-          poolMaterial.roughness = state === 'burning' ? .13 : .44;
+          poolMaterial.roughness = state === 'burning' ? .10 : .44;
           poolMaterial.color.copy(bodyMaterial.color).lerp(warmWax, cooled ? 0 : .06);
           light.uPinePoolWet.value = state === 'burning' ? 1 : 0;
           light.uPineWaxCooling.value = cooled ? 1 : 0;
