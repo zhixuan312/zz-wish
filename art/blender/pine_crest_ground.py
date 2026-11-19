@@ -236,7 +236,7 @@ def build_crest_ground(ground, rock, bark, section, spring, height, pines, bark_
     crest_roots(pines, height, bark, bark_tube)
 
 
-def build_inner_banks(ground, rock, section, spring, height):
+def build_inner_banks(rock, section, spring, height):
     rng = random.Random(3843)
     sites = []
     # The forest views look along the inner banks rather than the upper slope.
@@ -254,9 +254,6 @@ def build_inner_banks(ground, rock, section, spring, height):
     stones = [(x, z, min(.74 * clear, rng.uniform(.10, .27))) for x, z, clear, _ in sites[1::4]]
     tinted_mesh('Small exposed schist in the spring banks', rock, *surface_islands(stones, height, rng, True),
                 'Planar charts with exterior rims embedded in the banks.', uv_scale=.59)
-    moss = [(x, z, min(.78 * clear, rng.uniform(.30, .66))) for x, z, clear, _ in sites]
-    tinted_mesh('Wet moss over needle litter at the path edge', ground, *surface_islands(moss, height, rng, False),
-                'Embedded moss held above the bank by the existing scanned relief.', smooth=True, uv_scale=.31)
     litter = mesh.material('Loose pine needles under the inner banks', '#ffffff', rough=.95)
     grass = mesh.material('Damp bank sedge and dry tips', '#ffffff', rough=.93)
     mesh.vertex_tint_shader(litter)

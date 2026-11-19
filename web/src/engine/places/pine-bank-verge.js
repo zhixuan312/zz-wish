@@ -61,6 +61,39 @@ function approachTerrain(group) {
   return meshes;
 }
 
+function dressForestFloor(material) {
+  const compile = material.onBeforeCompile;
+  const cacheKey = material.customProgramCacheKey();
+  material.customProgramCacheKey = () => cacheKey + '-pine-forest-floor';
+  material.onBeforeCompile = (shader, renderer) => {
+    compile.call(material, shader, renderer);
+    shader.fragmentShader = shader.fragmentShader.replace('#include <map_fragment>', `#include <map_fragment>
+      vec2 forestFloor = vBakedWorld.xz;
+      float liveCover = pineFloorNoise(forestFloor * 1.6) * .56
+        + pineFloorNoise(forestFloor * 5.1) * .29 + pineFloorNoise(forestFloor * 16.3) * .15;
+      float alongBank = smoothstep(14., 17., forestFloor.y) * (1. - smoothstep(35., 44., forestFloor.y));
+      float atVerge = smoothstep(.93, 2.35, abs(forestFloor.x));
+      float mossThreads = smoothstep(.30, .71, liveCover) * alongBank * atVerge;
+      diffuseColor.rgb *= mix(vec3(1.), vec3(.51, 1.02, .68), mossThreads * .88);
+      float pineLitter = smoothstep(.37, .78, pineFloorNoise(forestFloor * 13.3));
+      diffuseColor.rgb *= mix(vec3(.83, .87, .89), vec3(1.08, 1.07, 1.02), pineLitter * .65);
+    `);
+    shader.fragmentShader = `
+      float pineFloorHash(vec2 cell) {
+        vec3 p = fract(vec3(cell.xyx) * .1031);
+        p += dot(p, p.yzx + 33.33);
+        return fract((p.x + p.y) * p.z);
+      }
+      float pineFloorNoise(vec2 p) {
+        vec2 cell = floor(p), f = fract(p);
+        f *= f * (3. - 2. * f);
+        return mix(mix(pineFloorHash(cell), pineFloorHash(cell + vec2(1., 0.)), f.x),
+          mix(pineFloorHash(cell + vec2(0., 1.)), pineFloorHash(cell + 1.), f.x), f.y);
+      }
+    ` + shader.fragmentShader;
+  };
+}
+
 function fernProfile(seed, frondCount) {
   const random = randomFrom(seed);
   const positions = [], colors = [], indices = [];
@@ -215,6 +248,7 @@ function evergreenShoots() {
 export function buildPineBankVerge(bakedGroup) {
   const terrain = approachTerrain(bakedGroup);
   if (!terrain.length) return null;
+  for (const material of new Set(terrain.map(object => object.material))) dressForestFloor(material);
   bakedGroup.updateWorldMatrix(true, true);
   const origin = new THREE.Vector3(), normal = origin.clone(), tint = new THREE.Color();
   const normalMatrix = new THREE.Matrix3(), ray = new THREE.Raycaster(origin, down, 0, .68);
@@ -250,7 +284,7 @@ export function buildPineBankVerge(bakedGroup) {
       placement.scale.set(size * (1.19 + .18 * random()), size * (.87 + .33 * random()), size * 1.19);
       placement.updateMatrix();
       sprouts.setMatrixAt(instance, placement.matrix);
-      const brightness = .58 + .26 * random();
+      const brightness = (profile < frondSeeds.length ? .62 : .83) + .25 * random();
       sprouts.setColorAt(instance, tint.setRGB(brightness * .97, brightness, brightness * (.87 + .11 * random())));
     }
     sprouts.computeBoundingSphere();

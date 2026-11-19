@@ -392,12 +392,12 @@ def approach_joint_bedding(rows, material):
                 across = col / 6 - 1
                 x = bend + across * (half_span + .045)
                 settling = .006 * math.sin(8.8 * x + 5.1 * z) + .004 * math.sin(23 * x - 4.6 * z)
-                level = top - .022 + settling - STAIR_RISE * fall * fall
+                level = top - .011 + settling - STAIR_RISE * fall * fall
                 for dx, dz in ((0, 0), (-.048, 0), (.048, 0), (0, -.018), (0, .018)):
                     contact, _, _, _ = tree.ray_cast(mesh.point((x + dx, top + .16, z + dz)),
                                                      Vector((0, 0, -1)), 2)
                     if contact is not None:
-                        level = min(level, contact.z - .013)
+                        level = min(level, contact.z - .010)
                 points.append((x, level, z))
         for row in range(6):
             for col in range(12):
@@ -1837,7 +1837,7 @@ def build(output, impostor_manifest=None, wax_sculpt=None):
     paint_stone()
     build_crest_ground(ground, rock, bark, section_at, watercourse_at, lambda x, z: supports_height(x, z, [support]),
                        ((-1.88, PINE_CREST + .08), (1.82, PINE_CREST - .32)), bark_tube)
-    build_inner_banks(ground, rock, section_at, watercourse_at, lambda x, z: supports_height(x, z, [support]))
+    build_inner_banks(rock, section_at, watercourse_at, lambda x, z: supports_height(x, z, [support]))
     scene.render.engine = 'CYCLES'
     scene.render.threads_mode = 'AUTO'
     scene.render.resolution_x = 1440

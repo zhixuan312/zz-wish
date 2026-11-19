@@ -18,9 +18,10 @@ const fragmentShader = `
     vec4 encoded = texture2D(uPlate, vUv);
     vec2 border = min(vUv, 1. - vUv);
     float edge = smoothstep(0., .012, min(border.x, border.y));
-    // Keep cutouts behind the live boughs and verge. Nearer than 6.5 m,
-    // the desktop approach magnifies each plate texel over three pixels.
-    float mediumDistance = smoothstep(6.5, 9.0, cameraPosition.z - uStation);
+    // The first cutout sits closest to the real boughs at the entrance.
+    // Let those branches set the silhouette before its texels get large.
+    vec2 fadeRange = uStation > 20. ? vec2(9.5, 13.) : vec2(6.5, 9.0);
+    float mediumDistance = smoothstep(fadeRange.x, fadeRange.y, cameraPosition.z - uStation);
     float coverage = smoothstep(.12, .71, encoded.a);
     float alpha = coverage * edge * uOpacity * mediumDistance;
     if (alpha < .002) discard;
