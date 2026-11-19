@@ -856,6 +856,51 @@ def stream_gravel_sites(rng):
             yield x, z, shore, rng.uniform(.072, .108) if index in (0, 3) else rng.uniform(.028, .065)
 
 
+def spring_bank_rock_noses(ground, points, faces):
+    # Exposed ribs of the creek bed reach into the current at different
+    # angles. Their outer skirts stay in the terrain on wet and dry sides.
+    sites = ((16.57, 1, .044, .214, .29, .111, -.20),
+             (17.62, 1, .048, .266, .33, .137, .27),
+             (18.04, 1, .060, .129, .148, .070, -.31),
+             (19.08, 1, .042, .222, .37, .090, -.17),
+             (20.12, 1, .032, .198, .235, .086, .22),
+             (24.93, -1, .042, .214, .31, .098, .27),
+             (26.36, -1, .049, .229, .275, .120, -.16),
+             (28.46, -1, .040, .178, .22, .090, .30))
+    outline = ((-.94, -.47), (-.39, -.96), (.39, -1.), (.89, -.51),
+               (1., .19), (.60, .84), (-.25, 1.), (-1., .40))
+    rng = random.Random(86413)
+    wet_skirts, dry_skirts = [], []
+    for z, side, setback, width, length, relief, rake in sites:
+        channel, _, half_width = watercourse_at(z)
+        x = channel + side * (half_width + setback)
+        start = len(points)
+        peak_x, peak_z = x + side * width * .18, z + length * rng.uniform(-.20, .20)
+        points.append((peak_x, supports_height(peak_x, peak_z, [ground]) + relief, peak_z))
+        margins = []
+        border = [(across * rng.uniform(.87, 1.07), along * rng.uniform(.88, 1.06), rng.uniform(.56, .89))
+                  for across, along in outline]
+        for spread, skirt in ((.62, False), (1., True)):
+            for across, along, height in border:
+                px = x + side * spread * (across * width + along * length * rake)
+                pz = z + spread * along * length
+                terrain = supports_height(px, pz, [ground])
+                points.append((px, terrain - .007 if skirt else terrain + relief * height, pz))
+                if skirt:
+                    margins.append(terrain - watercourse_at(pz)[1])
+        wet_skirts.append(-min(margins))
+        dry_skirts.append(max(margins))
+        sides = len(border)
+        for j in range(sides):
+            a, b = start + 1 + j, start + 1 + (j + 1) % sides
+            crown, shoulder = (start, b, a), (a, b, b + sides, a + sides)
+            faces.extend((crown, shoulder) if side > 0 else (crown[::-1], shoulder[::-1]))
+    if min(wet_skirts) <= 0. or min(dry_skirts) <= 0.:
+        raise RuntimeError('A spring bank rock nose misses the wet shoreline.')
+    print(f'PINE_STREAM_ROCK_NOSES {len(sites)} partially wet outcrops; '
+          f'minimum submerged reach {min(wet_skirts):.6f} m and dry reach {min(dry_skirts):.6f} m.')
+
+
 def spring_pebbles(stone, ground):
     rng = random.Random(59924)
     patches = [([], []) for _ in stone]
@@ -891,6 +936,7 @@ def spring_pebbles(stone, ground):
         for j in range(sides):
             a, b = start + 1 + j, start + 1 + (j + 1) % sides
             faces.extend(((start, b, a), (a, b, b + sides, a + sides)))
+    spring_bank_rock_noses(ground, *patches[4])
     for index, (points, faces) in enumerate(patches):
         if not points:
             continue
