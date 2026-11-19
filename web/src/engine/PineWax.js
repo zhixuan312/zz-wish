@@ -571,9 +571,19 @@ function bodySurface(mesh, rows, cut, melt, runnels) {
   const bevel = Math.min(cut * .2, top.r * .09, .0014);
   const lipRelief = refined && runnels.length ? .17 : .09;
   const lipHeight = melt * Math.min(top.r * lipRelief, cut * .13, lipRelief * .013);
+  const softenedBand = Math.min(cut * .55, .0085);
+  const sculpted = mesh.geometry.hasAttribute('aPineSculptCircle');
+  const slump = sculpted ? Math.min(depth * .98, softenedBand * .49) : 0;
+  const collapsedLip = a => slump * Math.max(0, Math.cos(a - 1.7)) ** 4;
+  const shouldersAt = y => {
+    if (slump === 0 || y <= cut - softenedBand) return undefined;
+    const blend = THREE.MathUtils.smoothstep(y, cut - softenedBand, cut);
+    return a => -collapsedLip(a) * blend;
+  };
   const uneven = a => {
     const lip = lipHeight * (.61 * Math.sin(a * 3 + .8) + .30 * Math.sin(a * 7 - .3) + .09 * Math.cos(a * 11));
     if (!refined || !melt) return lip;
+    if (sculpted) return lip * .64 - collapsedLip(a);
     const softenedEdge = Math.max(0, Math.cos(a - 1.18)) ** 14;
     return Math.max(-depth * .54, lip * .62 - depth * .69 * softenedEdge);
   };
@@ -583,13 +593,13 @@ function bodySurface(mesh, rows, cut, melt, runnels) {
   writeRing(mesh, row++, rows[0].cx, 0, 0);
   const shoulderY = cut - bevel;
   const firstRunnel = runnels?.length ? Math.min(...runnels.map(drip => drip.crown - drip.reach)) : shoulderY;
-  let detailY = Math.max(0, firstRunnel);
+  let detailY = Math.max(0, Math.min(firstRunnel, slump > 0 ? cut - softenedBand : shoulderY));
   const fillTo = y => {
     // Only subdivide the short band with raised wax. Keep every drawn row
     // and leave the lower body at its original profile resolution.
     while (detailY < y - 1e-6) {
       const q = ringAt(rows, detailY);
-      writeRing(mesh, row++, q.cx, q.r, detailY, grain(detailY, q.r));
+      writeRing(mesh, row++, q.cx, q.r, detailY, grain(detailY, q.r), shouldersAt(detailY));
       detailY += RUNNEL_ROW_STEP;
     }
     if (detailY <= y + 1e-6) detailY += RUNNEL_ROW_STEP;
@@ -597,15 +607,17 @@ function bodySurface(mesh, rows, cut, melt, runnels) {
   for (const q of rows) {
     if (q.y >= shoulderY) break;
     fillTo(q.y);
-    writeRing(mesh, row++, q.cx, q.r, q.y, grain(q.y, q.r));
+    writeRing(mesh, row++, q.cx, q.r, q.y, grain(q.y, q.r), shouldersAt(q.y));
   }
   fillTo(shoulderY);
   const shoulder = ringAt(rows, shoulderY);
-  writeRing(mesh, row++, shoulder.cx, shoulder.r, shoulderY, grain(runnels ? shoulderY : cut, shoulder.r));
-  writeRing(mesh, row++, top.cx, top.r * .99, cut - bevel * .25, grain(runnels ? cut - bevel * .25 : cut, top.r), a => uneven(a) * .4);
+  writeRing(mesh, row++, shoulder.cx, shoulder.r, shoulderY, grain(runnels ? shoulderY : cut, shoulder.r), shouldersAt(shoulderY));
+  writeRing(mesh, row++, top.cx, top.r * .99, cut - bevel * .25, grain(runnels ? cut - bevel * .25 : cut, top.r),
+    sculpted ? a => uneven(a) * .92 : a => uneven(a) * .4);
   if (refined && melt > 0) {
     writeRing(mesh, row++, top.cx, top.r * .94, cut, grain(cut, top.r), uneven);
-    writeRing(mesh, row++, top.cx, top.r * .865, cut - depth * .20, grain(cut, top.r), a => uneven(a) * .45);
+    writeRing(mesh, row++, top.cx, top.r * .865, cut - depth * .20, grain(cut, top.r),
+      sculpted ? a => Math.max(-depth * .65, uneven(a) * .94) : a => uneven(a) * .45);
     writeRing(mesh, row++, top.cx, top.r * .717, cut - depth, grain(cut, top.r));
   } else {
     writeRing(mesh, row++, top.cx, top.r * .92, cut, grain(cut, top.r), uneven);
