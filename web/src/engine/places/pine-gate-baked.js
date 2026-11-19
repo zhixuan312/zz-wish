@@ -8,6 +8,7 @@ import { createPineGateLife } from './pine-gate-life.js';
 import { animatePineCreek } from './pine-creek-water.js';
 import { animatePineSpringBasin } from './pine-spring-basin.js';
 import { buildPineCrestNeedles } from './pine-crest-needles.js';
+import { buildPineRidgeFascicles } from './pine-ridge-fascicles.js';
 import { buildPineBankVerge } from './pine-bank-verge.js';
 import { dressAncientPineBark } from './pine-ancient-bark.js';
 import { dressPineCrestCloth } from './pine-crest-cloth.js';
@@ -111,6 +112,8 @@ export default function createPlace(h) {
         context.G.add(crest.group);
         context.disposers.push(crest.dispose);
       }
+      const ridge = buildPineRidgeFascicles(baked.group);
+      if (ridge) context.disposers.push(ridge.dispose);
       const niche = baked.group.children.find(object => object.userData.lightmap_region === 'niche');
       if (niche) {
         baked.group.updateMatrixWorld(true);
