@@ -61,7 +61,8 @@ export function cueFor(stage: MusicStage, placeId: PlaceId, bucket: MusicBucket 
 
 export interface Music {
   unlock(): Promise<void>;
-  play(stage: MusicStage, placeId: PlaceId): Promise<boolean>;
+  // The fade is a test seam; gameplay always uses the authored crossfade.
+  play(stage: MusicStage, placeId: PlaceId, fadeSeconds?: number): Promise<boolean>;
   stop(): void;
   setMuted(value: boolean): void;
   isMuted(): boolean;
