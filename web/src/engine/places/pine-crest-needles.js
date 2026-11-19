@@ -10,7 +10,7 @@ const crowns = [
   [[-.60, .02, .49], [-.52, -.12, .78], [-.29, .09, .92], [-.08, .17, 1.01],
     [.15, .11, .91], [.37, .03, .89], [.54, -.12, .65], [.42, -.18, .42]],
 ];
-const pairsPerCrown = 112;
+const pairsPerCrown = 144;
 const up = new THREE.Vector3(0, 1, 0);
 
 function randomFrom(seed) {
@@ -73,30 +73,34 @@ function makeProfile(seed, shoots) {
       const at = .28 + .71 * (.52 * age + .48 * Math.sqrt(age));
       twigAt(root, at);
       const sheath = phase + pair * 2.39996 + (random() - .5) * .33;
+      const bent = (twig + pair) % 3 === 0;
       for (const sign of [-1, 1]) {
         const angle = sheath + sign * (.11 + random() * .24);
         const spread = .52 + random() * .30;
         needle.copy(shoot).multiplyScalar(.53 + random() * .33);
         needle.addScaledVector(across, Math.cos(angle) * spread).addScaledVector(above, Math.sin(angle) * spread);
         needle.normalize();
-        const reach = (.25 + random() * .19) * (1 - .18 * at);
+        const reach = (.26 + random() * .20) * (1 - .18 * at);
         const curl = reach * (-.12 + random() * .29);
-        const width = (.007 + random() * .005) * (1 - .16 * at);
+        const width = (.0073 + random() * .0054) * (1 - .16 * at);
         side.crossVectors(needle, up).normalize().applyAxisAngle(needle, angle * .62);
         tip.copy(root).addScaledVector(needle, reach).addScaledVector(above, curl);
         color.copy(deepGreen).lerp(youngGreen, .15 + .66 * random());
         const start = positions.length / 3;
-        // A shared sheath, staggered edges and curved tip keep each pair
-        // attached to the twig without turning the needles into solid leaves.
+        // Short tapered strips add overlap between the bent needles.
+        // Both forms share a sheath on the twig.
         add(root, .72);
         shoulder.copy(root).addScaledVector(needle, reach * .32).addScaledVector(above, curl * .10);
         add(shoulder.addScaledVector(side, width), .92);
         shoulder.copy(root).addScaledVector(needle, reach * .47).addScaledVector(above, curl * .22);
         add(shoulder.addScaledVector(side, -width * .97), .94);
-        shoulder.copy(root).addScaledVector(needle, reach * .70).addScaledVector(above, curl * .49);
-        add(shoulder.addScaledVector(side, width * .54), 1.02);
+        indices.push(start, start + 1, start + 2, start + 1, start + 3, start + 2);
+        if (bent) {
+          shoulder.copy(root).addScaledVector(needle, reach * .70).addScaledVector(above, curl * .49);
+          add(shoulder.addScaledVector(side, width * .54), 1.02);
+          indices.push(start + 3, start + 4, start + 2);
+        }
         add(tip, 1.13);
-        indices.push(start, start + 1, start + 2, start + 1, start + 3, start + 2, start + 3, start + 4, start + 2);
       }
     }
   }
