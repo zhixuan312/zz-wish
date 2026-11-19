@@ -317,7 +317,8 @@ def hewn_block(name, width, height, depth, location, material, region):
     return obj
 
 
-def worn_approach_tread(name, width, depth, centre, material, dressing, outline, thickness=.26, abuts=(False, False)):
+def worn_approach_tread(name, width, depth, centre, material, dressing, outline, thickness=.26,
+                        abuts=(False, False), set_stone=False):
     old_rim, weather = outline
     cx, top, cz = centre
     rim, chips = [], []
@@ -375,6 +376,16 @@ def worn_approach_tread(name, width, depth, centre, material, dressing, outline,
             else:
                 px, pz = hollow_x + .58 * (x - hollow_x), hollow_z + .55 * (z - hollow_z)
                 py = walking_surface(px, pz) + .13 * chip
+            if set_stone:
+                # The exposed face of a buried tread leans back into the
+                # hill. Its rough foot sits ahead of the worn lip, without an
+                # overhanging tray edge that shadows the stone below it.
+                nose = max(0., z / (.5 * depth)) ** 2
+                scallop = .5 + .5 * math.sin(11.2 * (cx + x) + 4.7 * cz)
+                retreat = (.002, .009, .022 + .012 * scallop, .024 + .014 * scallop, .012)[band]
+                pz -= nose * retreat
+                if band in (1, 2):
+                    py += nose * (.012 * math.sin(24.1 * x + cz * 4.3) - .006)
             points.append((cx + px, py, cz + pz))
     points.append((cx + hollow_x, walking_surface(hollow_x, hollow_z), cz + hollow_z))
 
@@ -422,6 +433,8 @@ def worn_approach_tread(name, width, depth, centre, material, dressing, outline,
     obj['bearing_vertices'] = count
     obj['step_tone'] = dressing.uniform(.82, .99)
     obj['passage_polish'] = (cx + hollow_x, cz + hollow_z, width * .36, depth * .39)
+    if set_stone:
+        obj['approach_tread'] = True
     return obj
 
 
@@ -480,6 +493,62 @@ def approach_joint_bedding(rows, material):
     bed['wet_tread_joints'] = True
     source_uv(bed, coordinates, 'Continuous earth bedding, including the retreat under each riser.')
     return bed
+
+
+def pack_stair_grit(rows, bed, granite):
+    """Seat small mossy stone fragments in the real open parts of the joints."""
+    rng = random.Random(209814)
+    ground, _ = contacts.support([bed])
+    masonry, _ = contacts.support([piece for _, _, _, _, stones in rows for piece in stones])
+    points, faces = [], []
+    down = Vector((0., 0., -1.))
+
+    def available(x, z, ceiling):
+        start = mesh.point((x, ceiling, z))
+        soil, _, _, _ = ground.ray_cast(start, down, .24)
+        if soil is None:
+            return None
+        stone, _, _, _ = masonry.ray_cast(start, down, .24)
+        return soil.z if stone is None or stone.z < soil.z - .003 else None
+
+    for top, _, low, high, _ in rows:
+        if not 7.6 <= (low + high) / 2 <= 36.1:
+            continue
+        placed = 0
+        for _ in range(21):
+            z = rng.uniform(low + .02, high - .02)
+            bend, half_span = section_at(z)
+            x = bend + rng.uniform(-half_span, half_span)
+            height = available(x, z, top + .07)
+            if height is None:
+                continue
+            angle = rng.uniform(0., math.tau)
+            extent = rng.uniform(.012, .031)
+            perimeter = []
+            for i in range(5):
+                a = angle + math.tau * i / 5
+                px = x + extent * math.cos(a) * rng.uniform(.78, 1.1)
+                pz = z + extent * .66 * math.sin(a)
+                foot = available(px, pz, top + .07)
+                if foot is not None:
+                    perimeter.append((px, foot - .002, pz))
+            if len(perimeter) != 5:
+                continue
+            center = len(points)
+            points.extend(((x, height + rng.uniform(.004, .014), z), *perimeter))
+            faces.extend((center, center + 1 + (i + 1) % 5, center + 1 + i) for i in range(5))
+            placed += 1
+            if placed == 2:
+                break
+    if points:
+        grit = mesh.mesh_object('Crushed lichen-bearing granite lodged in the footpath', points, faces,
+                                granite, 'approach')
+        mesh.uv_world(grit, .12)
+        grit['weather_stone'] = True
+        grit['moss_edge'] = True
+        source_uv(grit, [[(points[i][0], points[i][2]) for i in face] for face in faces],
+                  'Near-surface stone fragments seated in the packed earth.')
+        print(f'PINE_STAIR_GRIT {len(points) // 6} fragments set into visible bed contacts.')
 
 
 def audit_approach_tread_bearings(rows, bed, ground):
@@ -725,8 +794,7 @@ def climbing_steps(stone, ground, bedding_material, rubble_granite, tread_granit
                 tread = worn_approach_tread(f'Step {i + 1:02} block {j + 1}', dressed_width, high_z - low_z,
                                             (bend - span / 2 + (a + b) / 2, surface, (low_z + high_z) / 2),
                                             tread_granite, dressing, outline,
-                                            abuts=(j > 0, j + 1 < len(spans)))
-                tread['approach_tread'] = True
+                                            abuts=(j > 0, j + 1 < len(spans)), set_stone=True)
                 tread['moss_edge'] = j != 1 or i % 7 == 0
                 treads.append(tread)
         if treads:
@@ -780,6 +848,7 @@ def climbing_steps(stone, ground, bedding_material, rubble_granite, tread_granit
     bed = approach_joint_bedding(bedding_rows, bedding_material)
     audit_approach_tread_bearings(bedding_rows, bed, ground)
     audit_stair_course_rises(bedding_rows)
+    pack_stair_grit(bedding_rows, bed, rubble_granite)
     landing_bed(stone[2])
     landing_flagstones(stone)
     fit_stone_undersides(ground, bridge_curbs)
