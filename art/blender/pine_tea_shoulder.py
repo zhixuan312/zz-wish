@@ -81,6 +81,129 @@ def small_flame(name, base, height, region='gate'):
                (height * .118, height * .69), (0, height)], base, warm, 9, region)
 
 
+def stone_figure_piece(name, locate, material, profile, sectors, relief, form=1., interval=None):
+    # Each row is height, half-width, depth centre, and half-depth in metres.
+    rings = []
+    for first, second in zip(profile, profile[1:]):
+        count = math.ceil((second[0] - first[0]) / interval) if interval else 1
+        rings.extend(tuple(a + (b - a) * (j / count) for a, b in zip(first, second))
+                     for j in range(count))
+    rings.append(profile[-1])
+    points = []
+    for height, width, centre, depth in rings:
+        for col in range(sectors):
+            angle = -math.pi + math.tau * col / sectors
+            sine, cosine = math.sin(angle), math.cos(angle)
+            x = width * math.copysign(abs(sine) ** form, sine)
+            z = centre + depth * math.copysign(abs(cosine) ** form, cosine)
+            if cosine > 0:
+                z += relief(x, height) * cosine ** .6
+            # Small irregularities on the old carving are large enough to
+            # catch side light, without turning its silhouette into rubble.
+            wear = .0011 * math.sin(7 * angle + height * 100) * math.cos(11 * angle - height * 59)
+            points.append((x + wear * sine, height, z + wear * cosine))
+    faces = [tuple(reversed(range(sectors))), tuple(range(len(points) - sectors, len(points)))]
+    for row in range(len(rings) - 1):
+        for col in range(sectors):
+            a, b = row * sectors + col, row * sectors + (col + 1) % sectors
+            faces.append((a, b, b + sectors, a + sectors))
+    piece = mesh.mesh_object(name, [locate(*point) for point in points], faces, material, 'gate')
+    # Use the broadest ring for the side chart. A beard's narrow tip is a
+    # poor measure of the texel density needed farther up its length.
+    reference = max(range(len(rings)), key=lambda i: rings[i][1] + rings[i][3])
+    start = reference * sectors
+    circumference = [0.]
+    for col in range(sectors):
+        circumference.append(circumference[-1] + math.dist(points[start + col], points[start + (col + 1) % sectors]))
+    cap_v = 0.
+    charts = []
+    for cap in faces[:2]:
+        left = min(points[index][0] for index in cap)
+        near = min(points[index][2] for index in cap)
+        charts.append([(circumference[-1] + .03 + points[index][0] - left,
+                        cap_v + points[index][2] - near) for index in cap])
+        cap_v += max(points[index][2] for index in cap) - near + .03
+    for face in faces[2:]:
+        wraps = face[0] % sectors == sectors - 1
+        charts.append([(circumference[sectors if wraps and index % sectors == 0 else index % sectors],
+                        points[index][1] - rings[0][0]) for index in face])
+    source_uv(piece, charts, 'A rear-seam side strip and two planar caps, retaining metre-scale relief detail.')
+    chart = piece.data.uv_layers['SourceLightmap']
+    scan = piece.data.uv_layers['UVMap']
+    for source, target in zip(chart.data, scan.data):
+        target.uv = source.uv / .48
+    for face in piece.data.polygons:
+        face.use_smooth = face.index >= 2
+
+
+def carved_earth_god(locate):
+    granite = mesh.material('Weathered pale granite of the small earth god', '#bbb3a3',
+                            'rock_pitted_mossy', .82)
+    for node in granite.node_tree.nodes:
+        if node.type == 'NORMAL_MAP':
+            node.inputs['Strength'].default_value = .32
+
+    # The unchanged feet of the figure bear directly on the existing dais.
+    def seated(x, y, z):
+        return locate(x, .379 + y, -.25 + z)
+
+    def bell(value, at, width):
+        return math.exp(-((value - at) / width) ** 2)
+
+    def robe(x, y):
+        side = abs(x)
+        collar = bell(side, .032 + .30 * (y - .178), .012) * bell(y, .228, .053)
+        sleeves = bell(side, .089 + .11 * (y - .15), .046) * bell(y, .151, .052)
+        cuff = bell(y, .129 + .24 * side, .012) * bell(side, .082, .029)
+        sweep = bell(y, .073 + side * .17, .022) * bell(side, .093, .07)
+        wrists = bell(y, .133 - .13 * x, .021) * bell(side, .035, .052)
+        cut = bell(y, .128 + .36 * x, .005) * bell(x, .005, .034)
+        return .009 * collar + .023 * sleeves - .009 * cuff + .011 * sweep + .015 * wrists - .004 * cut
+
+    def face(x, y):
+        side = abs(x)
+        hollow = bell(side, .031, .020) * bell(y, .340 + side * .10, .010)
+        brow = bell(side, .032, .025) * bell(y, .354 - 3.3 * (side - .026) ** 2, .008)
+        eyelid = bell(side, .030, .021) * bell(y, .343 + side * .10, .0045)
+        nose = bell(x, -.002, .014) * (.012 * bell(y, .337, .024) + .017 * bell(y, .318, .010))
+        nostril = bell(side, .0105, .0065) * bell(y, .311, .0045)
+        cheeks = bell(side, .044, .020) * bell(y, .317, .026)
+        moustache = bell(side, .023, .022) * bell(y, .301 - side * .11, .006)
+        mouth = bell(y, .292 + 2.6 * x * x, .004) * bell(x, 0., .028)
+        return -.009 * hollow + .007 * brow + .004 * eyelid + nose - .005 * nostril + .006 * cheeks + .007 * moustache - .006 * mouth
+
+    def beard(x, y):
+        taper = (.299 - y) * x * 4.7
+        carved = math.cos((x + taper) * 306. + y * 29.) + .55 * math.cos(x * 136. - y * 38.)
+        return .0026 * carved * bell(y, .243, .055)
+
+    def hat(x, y):
+        return .008 * bell(abs(x), .071, .026) * bell(y, .385, .011)
+
+    # The broad felt cap, worn facial cuts, long tapered beard and lap are
+    # original relief shapes, carved from the same pale weathered stone.
+    stone_figure_piece('Earth god seated robe and folded sleeves', seated, granite,
+                       ((0., .151, -.009, .105), (.029, .171, -.008, .128), (.076, .174, -.004, .136),
+                        (.132, .161, -.008, .117), (.188, .132, -.014, .102),
+                        (.226, .128, -.018, .087), (.262, .092, -.012, .079), (.291, .048, .002, .048)),
+                       36, robe, .86, .014)
+    stone_figure_piece('Earth god rounded head with carved face and brows', seated, granite,
+                       ((.260, .039, .005, .043), (.281, .052, .012, .051), (.303, .063, .013, .061),
+                        (.332, .070, .010, .064), (.355, .066, .009, .058),
+                        (.371, .063, .004, .051), (.392, .047, .002, .041)),
+                       56, face, .96, .005)
+    stone_figure_piece('Earth god broad carved cap and worn brim', seated, granite,
+                       ((.366, .067, .001, .054), (.373, .085, .003, .071), (.381, .106, .004, .074),
+                        (.391, .105, .002, .073), (.402, .091, -.004, .067), (.427, .084, -.005, .061),
+                        (.447, .069, -.006, .053), (.455, .051, -.006, .042)),
+                       40, hat, .68)
+    stone_figure_piece('Earth god long carved beard at the chest', seated, granite,
+                       ((.171, .004, .109, .007), (.184, .025, .111, .014),
+                        (.211, .040, .106, .020), (.241, .051, .098, .024),
+                        (.269, .059, .085, .026), (.281, .054, .078, .020), (.293, .041, .065, .008)),
+                       40, beard, .86, .007)
+
+
 def shrine_daylight(locate):
     source = bpy.data.lights.new('Soft daylight returned from the earth shrine threshold', 'AREA')
     source.energy = .56
@@ -92,14 +215,15 @@ def shrine_daylight(locate):
     bounce.location = mesh.point(locate(0, 1.0, .42))
     aim = mesh.point(locate(0, .54, -.32))
     bounce.rotation_euler = (aim - bounce.location).to_track_quat('-Z', 'Y').to_euler()
-    bounce['bake_role'] = 'ambient'
+    # This local bounce remains in the authored daylight pass. The ambient
+    # role would remove it along with the fallback world and sun.
+    bounce['bake_role'] = 'threshold-bounce'
 
 
 def earth_shrine(stone, wood, tiles, repair, clay, iron, contacts):
     yaw = .70
     locate = frame(-3., 4., 3., yaw)
     plaster = mesh.material('Earth shrine weathered ochre limewash', '#aa8d60', 'stone_pavers', .92)
-    image = mesh.material('Unpainted earth god terracotta', '#846748', rough=.79)
     mesh.box('Small earth shrine old granite foundation', (1.76, .182, 1.52), locate(0, .081, 0),
              stone[3], .027, yaw, 'gate')
     for side in (-1, 1):
@@ -124,12 +248,7 @@ def earth_shrine(stone, wood, tiles, repair, clay, iron, contacts):
              locate(0, .287, .31), stone[2], .024, yaw, 'gate')
     mesh.box('Stone dais inside the little earth shrine', (.625, .226, .52), locate(0, .266, -.248),
              stone[4], .026, yaw, 'gate')
-    robe = [(0, 0), (.159, .0), (.176, .063), (.142, .154), (.112, .277),
-            (.081, .293), (.059, .306), (.052, .325), (.077, .348),
-            (.084, .395), (.071, .424), (.051, .445), (0, .455)]
-    mesh.lathe('Generic small seated image of the local earth god', robe, locate(0, .379, -.25), image, 18, 'gate')
-    mesh.box('Simple terracotta lap and folded hands', (.239, .072, .120), locate(0, .515, -.126),
-             image, .022, yaw, 'gate')
+    carved_earth_god(locate)
     with contacts.group('Earth shrine oil lamp', [altar]):
         mesh.lathe('Plain earthen oil lamp before the image', [(0, 0), (.019, 0), (.030, .006), (.038, .017),
                    (.032, .023), (.025, .014), (0, .014)], (-3.18, 4.568, 3.47), clay, 18, 'gate')
