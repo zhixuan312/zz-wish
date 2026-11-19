@@ -10,15 +10,31 @@ const vertexShader = `varying vec2 vUv;
 
 const fragmentShader = `uniform sampler2D uPlate, uHighPlate;
   uniform float uDayOpacity, uHighMix;
+  uniform vec2 uNativePlateSize;
   varying vec2 vUv;
   vec4 plate(sampler2D image) {
     vec4 encoded = texture2D(image, vUv);
     return vec4((exp2(encoded.rgb * log2(65.)) - 1.) / 8., encoded.a);
   }
+  vec4 premultipliedPlate(vec2 uv) {
+    vec4 encoded = texture2D(uHighPlate, uv);
+    vec3 radiance = (exp2(encoded.rgb * log2(65.)) - 1.) / 8.;
+    return vec4(radiance * encoded.a, encoded.a);
+  }
+  vec4 nativePlate(vec2 dx, vec2 dy) {
+    float footprint = max(length(dx * uNativePlateSize), length(dy * uNativePlateSize));
+    if (footprint <= 1.25) return plate(uHighPlate);
+    vec2 a = (dx + dy) * .25;
+    vec2 b = (dx - dy) * .25;
+    vec4 box = (premultipliedPlate(vUv + a) + premultipliedPlate(vUv - a)
+      + premultipliedPlate(vUv + b) + premultipliedPlate(vUv - b)) * .25;
+    return vec4(box.rgb / max(box.a, .0001), box.a);
+  }
   void main() {
-    vec4 color = uHighMix >= 1. ? plate(uHighPlate) : plate(uPlate);
+    vec2 dx = dFdx(vUv), dy = dFdy(vUv);
+    vec4 color = uHighMix >= 1. ? nativePlate(dx, dy) : plate(uPlate);
     if (uHighMix > 0. && uHighMix < 1.) {
-      vec4 high = plate(uHighPlate);
+      vec4 high = nativePlate(dx, dy);
       float alpha = mix(color.a, high.a, uHighMix);
       vec3 radiance = mix(color.rgb * color.a, high.rgb * high.a, uHighMix);
       color = vec4(radiance / max(alpha, .0001), alpha);
@@ -62,7 +78,10 @@ export async function loadPineGateBackdrop(baked, renderer, initialLight) {
     const distance = projection.distances[name];
     const planeHeight = 2 * distance * slope;
     const material = new THREE.ShaderMaterial({
-      vertexShader, fragmentShader, uniforms: { uPlate: { value: texture }, uHighPlate: { value: texture }, uDayOpacity, uHighMix },
+      vertexShader, fragmentShader, uniforms: {
+        uPlate: { value: texture }, uHighPlate: { value: texture }, uDayOpacity, uHighMix,
+        uNativePlateSize: { value: new THREE.Vector2() },
+      },
       transparent: true, depthWrite: false, toneMapped: false,
     });
     const plane = new THREE.Mesh(new THREE.PlaneGeometry(planeHeight * aspect, planeHeight), material);
@@ -85,7 +104,12 @@ export async function loadPineGateBackdrop(baked, renderer, initialLight) {
         if (disposed) return false;
         renderer.initTexture(texture);
       }
-      for (const [plane, texture] of upgrades) plane.material.uniforms.uHighPlate.value = texture;
+      for (const [plane, texture] of upgrades) {
+        const { uHighPlate, uNativePlateSize } = plane.material.uniforms;
+        uHighPlate.value = texture;
+        // The single-level forest plate has no hardware minification mips.
+        if (plane.name === 'mid' && texture.isCompressedTexture) uNativePlateSize.value.set(tier.width, tier.height);
+      }
       upgradedAt = performance.now();
       return true;
     } finally {
