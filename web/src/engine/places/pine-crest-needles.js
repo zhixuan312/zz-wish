@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { writePineDaughter } from './pine-needle-shoot.js';
 
 const maxPads = 130;
 const profileSeeds = [73, 131, 243];
@@ -31,6 +32,8 @@ function makeProfile(seed, shoots) {
   const root = shoot.clone(), needle = shoot.clone(), tip = shoot.clone();
   const shoulder = shoot.clone(), side = shoot.clone(), point = shoot.clone();
   const color = deepGreen.clone();
+  const daughterRandom = randomFrom(seed ^ 0x97c4a513);
+  const needleAcross = across.clone(), needleUp = above.clone();
   const add = (point, light, weight) => {
     positions.push(point.x, point.y, point.z);
     bendWeights.push(weight);
@@ -73,38 +76,58 @@ function makeProfile(seed, shoots) {
       indices.push(a, b, b + 3, a, b + 3, a + 3, a + 3, b + 3, twigStart + 6);
     }
 
+    // Spread young growth over two unequal lateral shoots. Open internodes
+    // let the underlying scaffold remain visible between the terminal pads.
+    const sideBias = twig % 2 === 0 ? 1 : -1;
+    const daughters = [0, 1].map(index => {
+      const sign = index === 0 ? sideBias : -sideBias;
+      const at = .45 + .19 * index + (daughterRandom() - .5) * .11;
+      const start = twigAt(new THREE.Vector3(), at);
+      const end = start.clone().addScaledVector(shoot, length * (.17 + .09 * daughterRandom()))
+        .addScaledVector(across, sign * (.11 + .10 * daughterRandom()))
+        .addScaledVector(above, index === 0 ? -.045 : .051);
+      return writePineDaughter(start, end, .0044, bendWeightAt(at), add, indices, positions.length / 3);
+    });
     const pairCount = Math.floor(pairsPerCrown / shoots.length) + Number(twig < pairsPerCrown % shoots.length);
     for (let pair = 0; pair < pairCount; pair++) {
       const age = (pair + random() * .72) / pairCount;
       const at = .28 + .71 * (.52 * age + .48 * Math.sqrt(age));
-      twigAt(root, at);
-      const bias = bendWeightAt(at) - root.z ** 2;
+      const daughter = (pair + twig) % 6 < 3 ? daughters[(pair + twig) % 2] : null;
+      const ageOnDaughter = .32 + .64 * age;
+      const needleAxis = daughter ? shoot.clone().lerp(daughter.axis, .44).normalize() : shoot;
+      const skinWeight = daughter ? daughter.weightAt(ageOnDaughter) : bendWeightAt(at);
+      if (daughter) root.copy(daughter.root).lerp(daughter.tip, ageOnDaughter);
+      else twigAt(root, at);
+      needleAcross.crossVectors(up, needleAxis).normalize();
+      needleUp.crossVectors(needleAxis, needleAcross);
+      const bias = skinWeight - root.z ** 2;
       const addNeedle = (point, light) => add(point, light, point.z ** 2 + bias);
       const sheath = phase + pair * 2.39996 + (random() - .5) * .33;
       const bent = (twig + pair) % 3 === 0;
       for (const sign of [-1, 1]) {
         const angle = sheath + sign * (.11 + random() * .24);
         const spread = .52 + random() * .30;
-        needle.copy(shoot).multiplyScalar(.53 + random() * .33);
-        needle.addScaledVector(across, Math.cos(angle) * spread).addScaledVector(above, Math.sin(angle) * spread);
+        needle.copy(needleAxis).multiplyScalar(.53 + random() * .33);
+        needle.addScaledVector(needleAcross, Math.cos(angle) * spread)
+          .addScaledVector(needleUp, Math.sin(angle) * spread);
         needle.normalize();
-        const reach = (.26 + random() * .20) * (1 - .18 * at);
+        const reach = (.26 + random() * .20) * (1 - .18 * at) * (daughter ? 0.81 : 1);
         const curl = reach * (-.12 + random() * .29);
-        const width = (.0073 + random() * .0054) * (1 - .16 * at);
+        const width = (.0073 + random() * .0054) * (1 - .16 * at) * (daughter ? 1.58 : 1);
         side.crossVectors(needle, up).normalize().applyAxisAngle(needle, angle * .62);
-        tip.copy(root).addScaledVector(needle, reach).addScaledVector(above, curl);
+        tip.copy(root).addScaledVector(needle, reach).addScaledVector(needleUp, curl);
         color.copy(deepGreen).lerp(youngGreen, .15 + .66 * random());
         const start = positions.length / 3;
         // Tapered strips add overlap between the bent needles.
         // Both forms share a sheath on the twig.
         addNeedle(root, .72);
-        shoulder.copy(root).addScaledVector(needle, reach * .32).addScaledVector(above, curl * .10);
+        shoulder.copy(root).addScaledVector(needle, reach * .32).addScaledVector(needleUp, curl * .10);
         addNeedle(shoulder.addScaledVector(side, width), .92);
-        shoulder.copy(root).addScaledVector(needle, reach * .47).addScaledVector(above, curl * .22);
+        shoulder.copy(root).addScaledVector(needle, reach * .47).addScaledVector(needleUp, curl * .22);
         addNeedle(shoulder.addScaledVector(side, -width * .97), .94);
         indices.push(start, start + 1, start + 2, start + 1, start + 3, start + 2);
         if (bent) {
-          shoulder.copy(root).addScaledVector(needle, reach * .70).addScaledVector(above, curl * .49);
+          shoulder.copy(root).addScaledVector(needle, reach * .70).addScaledVector(needleUp, curl * .49);
           addNeedle(shoulder.addScaledVector(side, width * .54), 1.02);
           indices.push(start + 3, start + 4, start + 2);
         }

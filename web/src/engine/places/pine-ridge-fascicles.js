@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { writePineDaughter } from './pine-needle-shoot.js';
 
 const ridgeMaterial = 'Ridge pine needle fascicles';
 const maxMounts = 110;
@@ -75,6 +76,9 @@ function makeRidgeProfile() {
   const tip = new THREE.Vector3(), root = tip.clone(), shoulder = tip.clone(), end = tip.clone(), tangent = tip.clone();
   const verdant = new THREE.Color(0x526b3e), spring = new THREE.Color(0x617943), bark = new THREE.Color(0x51462e);
   const tint = verdant.clone();
+  const shoots = [[.27, -.26, .21, .55], [.48, .35, -.20, .69]].map(([at, x, y, z]) => ({
+    at, end: new THREE.Vector3(x, y, z),
+  }));
   function add(point, factor) {
     locations.push(point.x, point.y, point.z);
     colors.push(tint.r * factor, tint.g * factor, tint.b * factor);
@@ -98,17 +102,30 @@ function makeRidgeProfile() {
     const next = (edge + 1) % 3;
     indices.push(edge, next, next + 3, edge, next + 3, edge + 3, edge + 3, next + 3, 6);
   }
+  const daughters = shoots.map(({ at, end }) => writePineDaughter(
+    twigAt(new THREE.Vector3(), at), end, .012, 0, add, indices, locations.length / 3,
+  ));
+
   for (let pair = 0; pair < 24; pair++) {
     const t = .052 + .68 * ((pair + random() * .65) / 24) ** .91;
-    twigAt(root, t);
+    const daughter = pair % 4 < 2 ? daughters[pair % 2] : null;
+    if (daughter) {
+      const local = (Math.floor(pair / 4) + .35) / 6;
+      root.copy(daughter.root).lerp(daughter.tip, .32 + .65 * local);
+    } else twigAt(root, t);
     const whorl = pair * 2.39996 + (random() - .5) * .63;
     for (const sign of [-1, 1]) {
       const angle = whorl + sign * (.08 + random() * .22);
       const radius = (.44 + random() * .52) * Math.sin(Math.PI * (.22 + .77 * t));
       const rise = .235 + random() * .31;
       tip.set(Math.cos(angle) * radius, Math.sin(angle) * radius, Math.min(.992, t + rise));
+      if (daughter) {
+        tip.x = root.x * .38 + tip.x * .91;
+        tip.y = root.y * .57 + tip.y * .91;
+        tip.z = Math.min(.992, root.z + rise * .85);
+      }
       tangent.set(-Math.sin(angle), Math.cos(angle), 0);
-      const width = .022 + random() * .016;
+      const width = (.022 + random() * .016) * (daughter ? 1.48 : 1);
       tint.copy(verdant).lerp(spring, random() * .69);
       const i = locations.length / 3;
       add(root, .75);
