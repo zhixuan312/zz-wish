@@ -71,6 +71,60 @@ function createTerrainField() {
   return { heights, surfaceAt };
 }
 
+function canopyTexture() {
+  const size = 128, cells = 39;
+  const random = (x, z, channel) => {
+    let hash = Math.imul(x + 37, 0x9e3779b1) ^ Math.imul(z + 53, 0x85ebca6b) ^ channel;
+    hash = Math.imul(hash ^ (hash >>> 16), 0x45d9f3b);
+    return ((hash ^ (hash >>> 16)) >>> 0) / 4294967296;
+  };
+  const crowns = Array.from({ length: cells * cells }, (_, i) => {
+    const x = i % cells, z = Math.floor(i / cells);
+    return {
+      x: .22 + .57 * random(x, z, 3), z: .22 + .57 * random(x, z, 61),
+      radius: .40 + .27 * random(x, z, 83), height: .18 + .39 * random(x, z, 41),
+      pigment: .37 + .63 * random(x, z, 103),
+    };
+  });
+  const pixels = new Uint8Array(size * size * 4);
+  for (let row = 0; row < size; row++) {
+    for (let col = 0; col < size; col++) {
+      const x = (col + .5) * cells / size, z = (row + .5) * cells / size;
+      const ix = Math.floor(x), iz = Math.floor(z);
+      let crownHeight = 0, pigment = .105, nx = 0, nz = 0;
+      for (let dz = -1; dz <= 1; dz++) {
+        for (let dx = -1; dx <= 1; dx++) {
+          const gx = ix + dx, gz = iz + dz;
+          const crown = crowns[((gz + cells) % cells) * cells + (gx + cells) % cells];
+          const u = (x - gx - crown.x) / crown.radius, v = (z - gz - crown.z) / crown.radius;
+          const square = u * u + v * v;
+          if (square >= 1) continue;
+          const cap = Math.sqrt(1 - square);
+          const height = crown.height + .49 * cap;
+          if (height <= crownHeight) continue;
+          crownHeight = height;
+          pigment = crown.pigment * (.47 + .53 * cap);
+          nx = u * .79;
+          nz = v * .79;
+        }
+      }
+      const at = (row * size + col) * 4;
+      pixels[at] = Math.round(pigment * 255);
+      pixels[at + 1] = Math.round((.5 + .5 * nx) * 255);
+      pixels[at + 2] = Math.round((.5 + .5 * nz) * 255);
+      pixels[at + 3] = 255;
+    }
+  }
+  const texture = new THREE.DataTexture(pixels, size, size, THREE.RGBAFormat);
+  texture.name = 'Mipmapped distant tree crowns';
+  texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+  texture.magFilter = THREE.LinearFilter;
+  texture.minFilter = THREE.LinearMipmapLinearFilter;
+  texture.generateMipmaps = true;
+  texture.needsUpdate = true;
+  return texture;
+}
+
 const NOISE = `
   float hashVista(vec2 p) {
     vec3 q = fract(vec3(p.xyx) * .1031);
@@ -96,8 +150,8 @@ const ATMOSPHERE = `
   }
   vec3 ridgeAir(vec3 color, vec3 world) {
     float range = distance(cameraPosition, world);
-    float scattering = 1. - exp(-range * mix(.00265, .00315, uNight));
-    float groundMist = (1. - smoothstep(-13., -3., world.y)) * smoothstep(26., 155., range) * .18;
+    float scattering = 1. - exp(-pow(range / mix(385., 349., uNight), 1.34));
+    float groundMist = (1. - smoothstep(-13., -3., world.y)) * smoothstep(38., 177., range) * .12;
     float air = clamp(scattering * .94 + groundMist + climbHaze(), 0., .97);
     return mix(color, hazeColor(), air);
   }
@@ -153,6 +207,7 @@ function tessellatedTerrain(field, look) {
       }
     `,
     fragmentShader: `
+      uniform sampler2D uCanopy;
       varying vec3 vWorld, vNormal;
       varying float vBasin;
       ${NOISE}
@@ -161,18 +216,24 @@ function tessellatedTerrain(field, look) {
       void main() {
         vec3 normal = normalize(vNormal);
         vec2 ground = vWorld.xz;
-        float canopy = softNoise(ground * .31);
-        float cover = softNoise(ground * .034 + vec2(12.8, 7.2));
-        float barkDetail = softNoise(ground * 1.30 + vWorld.y * .29);
-        float texel = length(fwidth(ground));
-        float crowns = (canopy - .5) * (1. - smoothstep(1.2, 4., texel));
-        float rocky = smoothstep(.29, .70, 1. - normal.y + (barkDetail - .5) * .19 - .09 * vBasin);
-        vec3 foliage = mix(vec3(.050, .076, .040), vec3(.119, .159, .082), cover);
-        foliage *= 1. + crowns * .39 + (barkDetail - .5) * .17 * (1. - smoothstep(.5, 1.6, texel));
-        float strata = .5 + .5 * sin(vWorld.y * 2.01 + ground.x * .13 + ground.y * .08 + canopy * 1.7);
-        vec3 granite = mix(vec3(.120, .116, .095), vec3(.203, .19, .156), strata * .63 + cover * .37);
-        vec3 pigment = mix(foliage, granite, rocky);
-        gl_FragColor = vec4(ridgeAir(hillsideLight(pigment, normal, vBasin), vWorld), 1.);
+        float grove = softNoise(ground * .061 + vec2(12.8, 7.2));
+        float scrub = softNoise(ground * .20 + vWorld.y * .062);
+        float rockDetail = softNoise(ground * .75 + vWorld.y * .37);
+        vec4 crowns = texture2D(uCanopy, ground / 18.4 + vec2(scrub, grove) * .16);
+        vec2 relief = crowns.gb * 2. - 1.;
+        vec3 leavesUp = normalize(normal + vec3(relief.x, .26, relief.y) * .92);
+        float trees = smoothstep(.21, .72, grove * .74 + scrub * .26);
+        float rock = smoothstep(.32, .66, 1. - normal.y + (scrub - .5) * .26 - vBasin * .11);
+        vec3 grass = mix(vec3(.052, .077, .028), vec3(.098, .121, .041), scrub);
+        vec3 needles = mix(vec3(.017, .034, .019), vec3(.058, .104, .039), trees);
+        needles *= .54 + .85 * crowns.r;
+        vec3 woods = hillsideLight(needles, leavesUp, vBasin);
+        vec3 groundcover = hillsideLight(grass, normal, vBasin);
+        float bedrock = .5 + .5 * sin(vWorld.y * 1.46 + ground.x * .077 + ground.y * .084 + scrub * 2.8);
+        vec3 stone = mix(vec3(.077, .070, .058), vec3(.176, .156, .126), bedrock * .46 + rockDetail * .54);
+        vec3 exposed = hillsideLight(stone, normal, vBasin * .51);
+        vec3 pigment = mix(mix(groundcover, woods, .55 + .45 * trees), exposed, rock);
+        gl_FragColor = vec4(ridgeAir(pigment, vWorld), 1.);
       }
     `,
   });
@@ -307,10 +368,13 @@ function fieldSurfaces(field, look) {
       void main() {
         vec3 normal = normalize(cross(dFdx(vWorld), dFdy(vWorld)));
         if (normal.y < 0.) normal = -normal;
-        float grass = smoothstep(.19, .71, normal.y + softNoise(vWorld.xz * .48) * .33 - .31);
-        float soil = softNoise(vWorld.xz * 2.4 + vWorld.y * .62);
-        vec3 loam = mix(vec3(.077, .060, .041), vec3(.110, .149, .063), grass);
-        vec3 color = hillsideLight(loam * (.86 + soil * .28), normal, .21);
+        float verge = softNoise(vWorld.xz * .69 + vWorld.y * .31);
+        float roots = softNoise(vWorld.xz * 2.1 + vWorld.y * .58);
+        float grass = smoothstep(.22, .76, normal.y * .69 + verge * .56);
+        vec3 clay = mix(vec3(.088, .045, .025), vec3(.179, .107, .053), verge);
+        vec3 shoots = mix(vec3(.111, .147, .038), vec3(.225, .291, .060), verge);
+        vec3 loam = mix(clay, shoots, grass);
+        vec3 color = hillsideLight(loam * (.77 + roots * .43), normal, .17);
         gl_FragColor = vec4(ridgeAir(color, vWorld), 1.);
       }
     `,
@@ -334,14 +398,14 @@ function fieldSurfaces(field, look) {
         vec3 eye = normalize(cameraPosition - vWorld);
         float edge = min(min(vUv.x, 1. - vUv.x), min(vUv.y * 3., (1. - vUv.y) * 3.));
         float facing = max(0., dot(normal, eye));
-        float fresnel = .0204 + .76 * pow(1. - facing, 4.);
+        float fresnel = .0204 + .84 * pow(1. - facing, 4.);
         float brokenSky = softNoise(p * .055 + vec2(uTime * .009, -uTime * .003));
-        vec3 haze = mix(vec3(.35, .48, .57), vec3(.065, .105, .157), uNight);
-        haze *= .74 + .27 * brokenSky;
-        vec3 bed = hillsideLight(vec3(.058, .084, .040), normal, .43);
+        vec3 haze = mix(vec3(.53, .68, .72), vec3(.062, .120, .173), uNight);
+        haze *= .69 + .36 * brokenSky;
+        vec3 bed = hillsideLight(vec3(.108, .127, .047), normal, .34);
         float light = pow(max(0., dot(normal, normalize(eye + uDaySun))), 91.);
         vec3 sheen = vec3(.20, .22, .23) * light * (1. - uNight) * .29;
-        vec3 water = mix(bed, haze, fresnel * mix(.68, 1., smoothstep(0., .15, edge))) + sheen;
+        vec3 water = mix(bed, haze, fresnel * mix(.46, 1., smoothstep(0., .19, edge))) + sheen;
         gl_FragColor = vec4(ridgeAir(water, vWorld), 1.);
       }
     `,
@@ -358,9 +422,13 @@ function fallingWater(field, look) {
     const current = t => plan.getPointAt(t);
     const bank = edge => t => {
       const point = current(t), ahead = current(Math.min(1, t + .006)), behind = current(Math.max(0, t - .006));
+      const grade = (field.surfaceAt(behind.x, -behind.z) - field.surfaceAt(ahead.x, -ahead.z))
+        / Math.max(.001, ahead.distanceTo(behind));
       const direction = ahead.sub(behind).normalize();
       const cells = route[Math.min(route.length - 1, Math.round(t * (route.length - 1)))][2];
-      const width = (.16 + .19 * Math.sqrt(Math.min(cells, 1600) / 1600)) * (branch ? .60 : 1);
+      const ledge = smoothstep(grade, .24, .89);
+      const width = (.16 + .19 * Math.sqrt(Math.min(cells, 1600) / 1600))
+        * lerp(1.42, .72, ledge) * (branch ? .60 : 1);
       const x = point.x - direction.z * edge * width, z = point.z + direction.x * edge * width;
       return [x, field.surfaceAt(x, -z) + .079, z];
     };
@@ -394,17 +462,20 @@ function fallingWater(field, look) {
       varying vec3 vWorld;
       varying vec2 vUv;
       varying float vRapid;
+      ${NOISE}
       ${ATMOSPHERE}
       void main() {
-        float curtain = 1. - smoothstep(.25, .50, abs(vUv.x - .5));
-        float current = .58 + .23 * sin(vUv.y * 129. - uTime * 4. + vUv.x * 6.)
-          + .19 * sin(vUv.y * 214. - uTime * 6. - vUv.x * 9.1);
+        float sides = 1. - smoothstep(.20, .50, abs(vUv.x - .5));
         float ends = smoothstep(0., .085, vUv.y) * (1. - smoothstep(.86, 1., vUv.y));
         float plunge = smoothstep(-12.4, -7., vWorld.y);
-        vec3 sheet = mix(vec3(.19, .28, .30), vec3(.56, .67, .69), vRapid * (.63 + .37 * current));
-        sheet *= mix(1., .38, uNight);
-        float opacity = curtain * ends * (1. - climbHaze()) * plunge * (.15 + .64 * vRapid * current);
-        gl_FragColor = vec4(ridgeAir(sheet, vWorld), opacity);
+        float ledge = softNoise(vec2(vUv.y * 41.7 + 2.8, vUv.x * 2.6));
+        float streak = .5 + .5 * sin(vUv.y * 176. - uTime * 5.6 + vUv.x * 14.5);
+        float aerated = smoothstep(.33, .84, vRapid) * smoothstep(.42, .78, ledge + streak * .14);
+        vec3 stream = mix(vec3(.047, .102, .107), vec3(.142, .247, .258), streak * .63);
+        vec3 foam = vec3(.56, .65, .65) * (.81 + .19 * streak);
+        vec3 water = mix(stream, foam, aerated) * mix(1., .40, uNight);
+        float opacity = sides * ends * (1. - climbHaze()) * plunge * (.12 + .57 * aerated);
+        gl_FragColor = vec4(ridgeAir(water, vWorld), opacity);
       }
     `,
   }));
@@ -482,9 +553,9 @@ function cloudBanks(look) {
 }
 
 export function createPineGateVista(initialLight = { n: 1, g: 0 }) {
-  const daySun = new THREE.Vector3(...pineDaySunDirection);
+  const daySun = new THREE.Vector3(...pineDaySunDirection), canopy = canopyTexture();
   const look = { uNight: { value: initialLight.n }, uDusk: { value: initialLight.g }, uTime: { value: 0 },
-    uDaySun: { value: daySun }, uHazeDay: { value: new THREE.Color(0x9aafbf) },
+    uDaySun: { value: daySun }, uCanopy: { value: canopy }, uHazeDay: { value: new THREE.Color(0x8ba6bb) },
     uHazeNight: { value: new THREE.Color(0x2a4057) }, uHazeDusk: { value: new THREE.Color(0xa095a2) } };
   const field = createTerrainField(), group = new THREE.Group();
   group.name = 'Pine Gate valley vista';
@@ -497,7 +568,9 @@ export function createPineGateVista(initialLight = { n: 1, g: 0 }) {
       look.uDusk.value = light.g;
     },
     dispose() {
+      if (!group.children.length) return;
       group.removeFromParent();
+      canopy.dispose();
       for (const object of group.children) {
         object.geometry.dispose();
         object.material.dispose();
