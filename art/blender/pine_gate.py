@@ -286,12 +286,12 @@ def terrain(material):
     return obj
 
 
-def hewn_outline():
+def hewn_outline(rng=RANDOM):
     ring = [(-.45, -.50), (.41, -.50), (.5, -.41), (.5, .38), (.45, .47),
             (.27, .50), (.04, .48), (-.19, .50), (-.38, .48), (-.5, .41), (-.5, -.39)]
-    variation = [(a + RANDOM.uniform(-.009, .009), b + RANDOM.uniform(-.013, .013)) for a, b in ring]
-    wear = [RANDOM.uniform(-.005, .004) - .011 * math.exp(-(a / .22) ** 2)
-            if b > .45 else RANDOM.uniform(-.003, .003) for a, b in ring]
+    variation = [(a + rng.uniform(-.009, .009), b + rng.uniform(-.013, .013)) for a, b in ring]
+    wear = [rng.uniform(-.005, .004) - .011 * math.exp(-(a / .22) ** 2)
+            if b > .45 else rng.uniform(-.003, .003) for a, b in ring]
     return variation, wear
 
 
@@ -407,7 +407,6 @@ def worn_approach_tread(name, width, depth, centre, material, dressing, outline,
     for face in obj.data.polygons[1:]:
         face.use_smooth = True
     obj['weather_stone'] = True
-    obj['approach_tread'] = True
     obj['bearing_vertices'] = count
     obj['step_tone'] = dressing.uniform(.82, .99)
     return obj
@@ -708,6 +707,7 @@ def climbing_steps(stone, ground, bedding_material, rubble_granite, tread_granit
                 tread = worn_approach_tread(f'Step {i + 1:02} block {j + 1}', dressed_width, high_z - low_z,
                                             (bend - span / 2 + (a + b) / 2, surface, (low_z + high_z) / 2),
                                             tread_granite, dressing, outline)
+                tread['approach_tread'] = True
                 tread['moss_edge'] = j != 1 or i % 7 == 0
                 treads.append(tread)
         if treads:
@@ -790,7 +790,7 @@ def evaluated_undersides(objects, depsgraph):
         evaluated = surface.to_mesh()
         try:
             # Without a fitted rim, the hewn block starts with eleven underside vertices.
-            count = obj.get('bank_ring_vertices', 11)
+            count = obj.get('bearing_vertices', obj.get('bank_ring_vertices', 11))
             yield [engine(surface.matrix_world @ vertex.co) for vertex in evaluated.vertices[:count]]
         finally:
             surface.to_mesh_clear()
@@ -1159,35 +1159,35 @@ def saddle_water(stone, ground, bark, tread_granite):
     spring = hewn_block('Spring head emerging under a granite cap', .77, .46, .9,
                         (2.77, 4.41, 5.08), stone[4], 'gate')
     spring['moss_edge'] = True
-    # One low crossing standing on two rubble abutments. The water is still
-    # visible outside the near edge before and after crossing.
+    # The bridge spans retain their full length across the water. Worn stone
+    # ends and uneven fieldstone shoulders share the old stair masonry.
+    crossing = random.Random(641728)
     for index, z in enumerate(BRIDGE_DECK_CENTRES):
-        slab = hewn_block(f'Bridge decking slab {index + 1}', 2.17, .21, BRIDGE_DECK_DEPTH,
-                          (.09, 2.51 - index * .052, z), tread_granite, 'approach')
-        vertices = list(slab.data.vertices)
-        ring = len(vertices) // 3
-        # The runnel descends monotonically. Keep the underside at a level
-        # above the highest water across the full footprint, including seams.
-        water_limit = max(watercourse_at(-vertex.co.y)[1] for vertex in vertices) + .018
-        for vertex in vertices[:ring]:
-            vertex.co.z = max(vertex.co.z, water_limit)
-        slab.data.update()
-        profile_uv(slab, ring, 3, {0, 1}, 1)
-        mesh.uv_world(slab, .56)
+        top = 2.51 - index * .052
+        water_limit = watercourse_at(z - BRIDGE_DECK_DEPTH / 2)[1] + .022
+        slab = worn_approach_tread(f'Bridge decking slab {index + 1}', 2.17, BRIDGE_DECK_DEPTH,
+                                  (.09, top, z), tread_granite, crossing, hewn_outline(),
+                                  thickness=min(.21, top - water_limit))
         slab['moss_edge'] = True
+        slab['bridge_masonry'] = True
         deck_slabs.append(slab)
     for z, slab in ((21.02, deck_slabs[0]), (23.23, deck_slabs[-1])):
-        vertices = list(slab.data.vertices)
-        cap = max(vertex.co.z for vertex in vertices[:len(vertices) // 3]) + .012
+        cap = max(v.co.z for v in slab.data.vertices[:slab['bearing_vertices']]) + .012
         footing = 2.01
         height = cap - footing
         mesh.box('Granite crossing abutment', (2.18, height, .29), (0, footing + height / 2, z),
                  tread_granite, min(.045, height * .25), region='approach')
     for side in (-1, 1):
         for index in range(4):
-            mesh.box('Low bridge parapet block', (.22, .23, .66),
-                     (side * 1.06, 2.61 - index * .066, 21.18 + index * .64),
-                     tread_granite, .037, region='approach')
+            x = .09 + side * crossing.uniform(.900, .938)
+            z = BRIDGE_DECK_CENTRES[index] + crossing.uniform(.008, .055)
+            width, depth = crossing.uniform(.22, .31), crossing.uniform(.36, .51)
+            support = supports_height(x, z, deck_slabs, 3.1)
+            parapet = worn_approach_tread(f'Fieldstone bridge shoulder {side} {index + 1}', width, depth,
+                                         (x, support + crossing.uniform(.14, .195), z),
+                                         tread_granite, crossing, hewn_outline(crossing), thickness=.23)
+            parapet['moss_edge'] = True
+            parapet['bridge_masonry'] = True
     return bank_stones, deck_slabs
 
 
@@ -1979,7 +1979,7 @@ def paint_stone():
         close = obj.get('region') == 'niche'
         if close:
             mesh.uv_world(obj, .40 if obj.name == 'Single hewn wick shelf' else .52)
-        stair_block = obj.get('approach_tread') or obj.get('rubble_stone')
+        stair_block = obj.get('approach_tread') or obj.get('rubble_stone') or obj.get('bridge_masonry')
         crown = max(vertex.co.z for vertex in obj.data.vertices) if stair_block else 0.
         tint = obj.data.color_attributes.new(name='SurfaceTint', type='FLOAT_COLOR', domain='CORNER')
         obj.data.color_attributes.active_color = tint
