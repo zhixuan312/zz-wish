@@ -32,8 +32,8 @@ AIR_NEAR_METRES = 19.
 AIR_SCATTER_RGB = (.060, .101, .167)
 RIPPLES = ((.0026, .43, .21, .978), (.0011, .219, -.42, .908))
 WIND_SLOPES = (.28, .42)
-CLOUD_LAYERS = ((29., 36., 47., 58., 14., 31., -14., -10.2, -6.6, -5.3, .21),
-                (39., 47., 57., 70., 18., 33., -8.6, -6.4, -4.3, -3.4, .30))
+CLOUD_LAYERS = ((29., 36., 47., 58., 14., 31., -14., -10.2, -6.6, -5.3, .155),
+                (39., 47., 57., 70., 18., 33., -8.6, -6.4, -4.3, -3.4, .208))
 
 
 def mesh(collection, name, batch, materials=(), smooth=False):
@@ -307,8 +307,8 @@ def materials(air, audit_paddy=False):
                           ground.math('SUBTRACT', 1., ground.product(cover, .47)))
     hillside = ground.blend(hillside, stone, rock)
 
-    crest_grass = ground.blend((.042, .058, .028, 1.), (.083, .102, .048, 1.), fern)
-    damp_soil = ground.blend((.023, .029, .018, 1.), (.049, .056, .033, 1.), grain)
+    crest_grass = ground.blend((.013, .024, .012, 1.), (.038, .061, .026, 1.), fern)
+    damp_soil = ground.blend((.007, .010, .006, 1.), (.021, .027, .016, 1.), grain)
     moisture = ground.nodes.new('ShaderNodeAttribute')
     moisture.attribute_name = 'paddyMoisture'
     wet = ground.product(moisture.outputs['Fac'], ground.between(fern, .22, .78, .61, .96))
