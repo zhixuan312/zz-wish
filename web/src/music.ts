@@ -15,7 +15,6 @@ type Manifest = { cues: CueName[] };
 const MANIFEST_URL = '/music/manifest.json';
 const CROSSFADE = 1.5;
 const BUCKET_FADE = 8;
-const BED_TAIL = 3;
 const PHRASE_MIN_MINUTES = 3;
 const PHRASE_MAX_MINUTES = 8;
 const MUTE_KEY = 'one-light-muted';
@@ -87,14 +86,13 @@ export function createMusic(options: { createContext?: () => AudioContext } = {}
   let bucket: MusicBucket | null = null;
   let channels: Channel[] = [];
   let stopping = false;
+  // The one-shot currently allowed to hand over, and the stage that asked for it.
+  let liveOneShot: Channel | null = null;
+  let cueStage: MusicStage | null = null;
 
-  // Loop crossfade state: a second element joins three seconds before the end.
   type Timer = ReturnType<typeof setTimeout> | 0;
-  let loopTimer: Timer = 0;
-  let bedTimer: Timer = 0;
   let bucketTimer: Timer = 0;
   let phraseTimer: Timer = 0;
-  let phraseClock = 0;
   const bag = phraseBag(8);
 
   function readMuted(): boolean {
@@ -158,34 +156,8 @@ export function createMusic(options: { createContext?: () => AudioContext } = {}
   }
 
   function clearTimers() {
-    globalThis.clearInterval(loopTimer); globalThis.clearInterval(bedTimer); globalThis.clearInterval(bucketTimer); globalThis.clearTimeout(phraseTimer);
-    loopTimer = bedTimer = bucketTimer = 0; phraseTimer = 0;
-  }
-
-  // A seamless loop is emulated by fading a second element in before the first ends.
-  function scheduleLoopCrossfade(channel: Channel, cue: CueName) {
-    globalThis.clearInterval(loopTimer);
-    loopTimer = globalThis.setInterval(() => {
-      if (!context || stopping) return;
-      const duration = channel.el.duration;
-      if (!Number.isFinite(duration) || duration <= BED_TAIL * 2) return;
-      const remaining = duration - channel.el.currentTime;
-      if (remaining > BED_TAIL || channel.gain.gain.value < 0.5) return;
-      const next = makeChannel(cue, true);
-      if (!next) return;
-      void next.el.play().catch(() => {});
-      const equalPower = (t: number) => Math.sin((t * Math.PI) / 2);
-      const now = context.currentTime;
-      next.gain.gain.setValueAtTime(0, now);
-      next.gain.gain.linearRampToValueAtTime(1, now + BED_TAIL);
-      channel.gain.gain.setValueAtTime(1, now);
-      channel.gain.gain.linearRampToValueAtTime(0, now + BED_TAIL);
-      void equalPower;
-      channels = channels.filter((c) => c !== channel);
-      channels.push(next);
-      globalThis.setTimeout(() => { try { channel.el.pause(); } catch { /* gone */ } }, BED_TAIL * 1000 + 100);
-      scheduleLoopCrossfade(next, cue);
-    }, 250);
+    globalThis.clearInterval(bucketTimer); globalThis.clearTimeout(phraseTimer);
+    bucketTimer = 0; phraseTimer = 0;
   }
 
   // Burning checks the part of day each minute and crossfades the bed when it changes.
@@ -225,9 +197,11 @@ export function createMusic(options: { createContext?: () => AudioContext } = {}
       }
       schedulePhrase();
     }, delayMs);
-    phraseClock++;
   }
 
+  // A loop is one media element with el.loop set: the cue is authored seamless, with
+  // its reverb tail already wrapped to the start, so overlapping two elements would
+  // shorten the music and repeat the join every pass.
   function startLoop(cue: CueName, seconds: number) {
     if (!cues?.has(cue)) return false;
     const channel = makeChannel(cue, true);
@@ -235,22 +209,27 @@ export function createMusic(options: { createContext?: () => AudioContext } = {}
     void channel.el.play().catch(() => {});
     fade(channel.gain, 1, seconds);
     channels.push(channel);
-    scheduleLoopCrossfade(channel, cue);
     return true;
   }
 
-  function playOneShot(cue: CueName, seconds: number, handsOver: MusicStage | null) {
+  function playOneShot(cue: CueName, seconds: number, handsOver: MusicStage | null, fromStage: MusicStage) {
     if (!cues?.has(cue)) { if (handsOver) void play(handsOver, place!); return; }
     const channel = makeChannel(cue, false);
     if (!channel) return;
     void channel.el.play().catch(() => {});
     fade(channel.gain, 1, seconds);
     channels.push(channel);
+    liveOneShot = channel;
+    cueStage = fromStage;
     channel.el.addEventListener('ended', () => {
       fade(channel.gain, 0, 0.6);
       globalThis.setTimeout(() => { try { channel.el.pause(); channel.source.disconnect(); channel.gain.disconnect(); } catch { /* gone */ } }, 700);
+      const stillLive = liveOneShot === channel && cueStage === fromStage && stage === fromStage;
       channels = channels.filter((c) => c !== channel);
-      if (handsOver && !stopping) void play(handsOver, place!);
+      if (liveOneShot === channel) liveOneShot = null;
+      // A slow `walk` can end after the stage has moved on; only hand over while this
+      // one-shot still owns the stage, or it would pull the game back to `choose`.
+      if (handsOver && stillLive && !stopping) void play(handsOver, place!);
     }, { once: true });
   }
 
@@ -269,10 +248,11 @@ export function createMusic(options: { createContext?: () => AudioContext } = {}
     const incoming = fadeSeconds ?? CROSSFADE;
     disposeChannels(isOneShot ? 0.6 : incoming);
     bucket = nextBucket;
-    if (isOneShot) playOneShot(cue, 0.8, NEXT_AFTER_ONE_SHOT[nextStage] ?? null);
-    else if (!startLoop(cue, incoming)) return;
+    if (isOneShot) playOneShot(cue, 0.8, NEXT_AFTER_ONE_SHOT[nextStage] ?? null, nextStage);
+    else startLoop(cue, incoming);
+    // The burning watchers run even while this bucket's bed is missing, so a bed
+    // delivered later still starts when the part of day changes.
     if (nextStage === 'burn') { startBucketWatch(); schedulePhrase(); }
-    void phraseClock;
   }
 
   return {

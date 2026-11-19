@@ -150,6 +150,32 @@ describe('music playback', () => {
     expect(FakeAudio.instances.map((a) => a.src)).toContain('/music/snow_choose_loop.m4a');
   });
 
+  it('keeps exactly one element for a loop across many passes, and releases it on stop', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, json: async () => ({ cues: ['snow_burn_bed_day', 'snow_burn_bed_golden', 'snow_burn_bed_night'] }) })));
+    const music = createMusic({ createContext: () => new FakeContext() as unknown as AudioContext });
+    await music.unlock();
+    await music.play('burn', 'snow-roof');
+    // Emulate six passes of a three-minute bed: a single looping element must persist.
+    const bed = FakeAudio.instances[0];
+    for (let pass = 0; pass < 6; pass++) { bed.currentTime = 0; bed.duration = 180; }
+    expect(FakeAudio.instances).toHaveLength(1);
+    expect(bed.loop).toBe(true);
+    music.stop();
+    expect(FakeAudio.instances).toHaveLength(1);
+  });
+
+  it('does not hand a late one-shot over once the stage has moved on', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, json: async () => ({ cues: ['snow_walk', 'snow_choose_loop', 'snow_ignite'] }) })));
+    const music = createMusic({ createContext: () => new FakeContext() as unknown as AudioContext });
+    await music.unlock();
+    await music.play('walk', 'snow-roof');
+    const walk = FakeAudio.instances.find((a) => a.src.includes('snow_walk'))!;
+    await music.play('ignite', 'snow-roof');
+    walk.emit('ended');
+    await Promise.resolve();
+    expect(FakeAudio.instances.map((a) => a.src)).not.toContain('/music/snow_choose_loop.m4a');
+  });
+
   it('persists the mute choice', async () => {
     const music = createMusic({ createContext: () => new FakeContext() as unknown as AudioContext });
     music.setMuted(true);
