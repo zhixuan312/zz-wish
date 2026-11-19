@@ -290,8 +290,39 @@ def landing_bed(material):
     landing['weather_stone'] = landing['moss_edge'] = True
 
 
+def landing_joint_fill(seams, material):
+    # Rain packs local pockets of fine gravel into the gaps. The tapered
+    # footprints rise from the existing bedding and stay below the stone faces.
+    settle = random.Random(919)
+    points, faces = [], []
+    for x, z, length, along_x in seams:
+        if settle.random() < .43:
+            continue
+        depth = settle.uniform(.009, .021)
+        offset = settle.uniform(.13, .42) * length
+        span = min(length - offset, settle.uniform(.18, .55))
+        begin = len(points)
+        for i, fraction in enumerate((0., .18, .41, .63, .83, 1.)):
+            sweep = offset + span * fraction
+            crest = math.sin(fraction * math.pi)
+            line = settle.uniform(-.005, .005)
+            for side in (-1, 1):
+                across = line + side * depth * (.19 + .81 * crest) * settle.uniform(.81, 1.19)
+                y = 3.970 + crest * (settle.uniform(.008, .016) - .002 * i / 5)
+                points.append((x + sweep, y, z + across) if along_x else (x + across, y, z + sweep))
+            if i:
+                a = begin + (i - 1) * 2
+                face = (a, a + 2, a + 3, a + 1)
+                faces.append(face if along_x else tuple(reversed(face)))
+    grit = mesh.mesh_object('Worn gravel bed in the landing joints', points, faces, material, 'gate')
+    source_uv(grit, [[(points[i][0], points[i][2]) for i in face] for face in faces],
+              'Tapered settlement patches projected in metres onto the bedding.')
+    mesh.uv_world(grit, .24)
+
+
 def landing_flagstones(stone):
     joint = random.Random(5917)
+    seams = []
     course_edges = [-1.02] + [-1.02 + row * .64 + joint.uniform(-.145, .145) for row in range(1, 11)] + [6.02]
     for row, (front, back) in enumerate(zip(course_edges, course_edges[1:])):
         stagger = (.12 if row % 2 else -.11) + joint.uniform(-.08, .08)
@@ -304,6 +335,12 @@ def landing_flagstones(stone):
             slab = hewn_block(f'Landing flagstone {row} {col}', right - left - gap, .092, back - front - gap,
                               (x, 4. + settle + RANDOM.uniform(-.003, .003), z), RANDOM.choice(stone), 'gate')
             slab['moss_edge'] = joint.random() < (.26 if abs(x) < 1.2 else .57)
+            if front < 3.70:
+                if col and right < 4.:
+                    seams.append((right, front, back - front, False))
+                if row:
+                    seams.append((left, front, right - left, True))
+    landing_joint_fill(seams, stone[4])
 
 
 def audit_approach_clearance(ground):
