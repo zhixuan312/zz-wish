@@ -293,10 +293,8 @@ def hewn_block(name, width, height, depth, location, material, region):
     return obj
 
 
-def worn_approach_tread(name, width, depth, centre, material, dressing):
-    # Use the original hewn outline sequence so unrelated forest and landing
-    # placements keep the same deterministic random stream.
-    old_rim, weather = hewn_outline()
+def worn_approach_tread(name, width, depth, centre, material, dressing, outline):
+    old_rim, weather = outline
     cx, top, cz = centre
     rim, chips = [], []
     for i, ((u, v), age) in enumerate(zip(old_rim, weather)):
@@ -449,6 +447,25 @@ def dress_retaining_stone(obj, ground, location, width, height, depth, heading, 
     profile_uv(obj, count, 3, {0, 1}, 1)
 
 
+def approach_stone_spans(course, widths):
+    edges = [0., widths[0], widths[0] + widths[1], sum(widths)]
+    spans = [(edges[i], edges[i + 1], i) for i in range(3)]
+    if course in (27, 28, 31):
+        return spans
+    layout = course % 11
+    if layout in (0, 4, 8):
+        # A broad slab bridges two positions in some of the old work.
+        merge = (course // 2) % 2
+        spans[merge:merge + 2] = [(edges[merge], edges[merge + 2], merge)]
+    if layout in (2, 6):
+        # Later repairs fit a splintered stone next to a shorter tread.
+        widest = max(range(3), key=widths.__getitem__)
+        a, b, _ = spans[widest]
+        split = a + (b - a) * (.36 + .13 * (course % 2))
+        spans[widest:widest + 1] = [(a, split, widest), (split, b, widest)]
+    return spans
+
+
 def landing_bed(material):
     # Recess the bedding under the flagstones. The approach apron and the
     # gate threshold keep the original stone landing height at both ends.
@@ -563,29 +580,31 @@ def climbing_steps(stone, ground, bedding_material):
         joint_a = max(.31, joint_a)
         joint_b = min(span - .32, max(joint_a + .29, joint_b))
         widths = (joint_a, joint_b - joint_a, span - joint_b)
-        edge = bend - span / 2
-        treads = []
-        for j, width in enumerate(widths):
+        original = []
+        # Consume the original sequence before varying the masonry. Trees
+        # and props farther uphill keep their surveyed transforms.
+        for j in range(3):
             depth = .82 + RANDOM.uniform(-.043, .039)
             surface = top + RANDOM.uniform(-.010, .009) - .008 * j
             centre_z = z + RANDOM.uniform(-.027, .031)
             material = RANDOM.choice(stone)
-            dressed_width = width - dressing.uniform(.010, .023)
-            if i == 28:
-                # The end deck already fills this course. Retain the side
-                # drainage below, and keep the random stream for the site.
-                hewn_outline()
-            else:
+            original.append((depth, surface, centre_z, material, hewn_outline()))
+        treads = []
+        # The end deck already fills course 28. The side drainage is retained.
+        if i != 28:
+            for j, (a, b, original_index) in enumerate(approach_stone_spans(i, widths)):
+                depth, surface, centre_z, material, outline = original[original_index]
+                dressed_width = b - a - dressing.uniform(.008, .019)
                 low_z, high_z = centre_z - depth / 2, centre_z + depth / 2
                 if i == 27:
                     low_z = deck_near
                 if i == 31:
                     high_z = deck_far
                 tread = worn_approach_tread(f'Step {i + 1:02} block {j + 1}', dressed_width, high_z - low_z,
-                                            (edge + width / 2, surface, (low_z + high_z) / 2), material, dressing)
+                                            (bend - span / 2 + (a + b) / 2, surface, (low_z + high_z) / 2),
+                                            material, dressing, outline)
                 tread['moss_edge'] = j != 1 or i % 7 == 0
                 treads.append(tread)
-            edge += width
         if treads:
             low_z = deck_near if i == 27 else z - STAIR_RUN / 2
             high_z = deck_far if i == 31 else z + STAIR_RUN / 2 + (.08 if i == 0 else 0.)
