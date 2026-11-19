@@ -1,0 +1,29 @@
+{
+  "position": [0, 3.32, 7],
+  "direction": [0.03406112, 0.08515281, -0.99578588],
+  "verticalFov": 64,
+  "width": 8192,
+  "height": 4096,
+  "preExposure": 6,
+  "distances": {
+    "far": 430,
+    "mid": 95,
+    "cloud": 165
+  },
+  "light": {
+    "day": {
+      "directionEngine": [-0.625, 0.710, 0.325],
+      "discDegrees": 0.53,
+      "discIntensity": 0.42,
+      "skyStrength": 0.18,
+      "airRadiance": [0.062, 0.105, 0.156]
+    },
+    "night": {
+      "directionEngine": [0.54, 0.41, 0.72],
+      "discDegrees": 0.52,
+      "discIntensity": 0.18,
+      "skyStrength": 0.040,
+      "airRadiance": [0.0084, 0.016, 0.029]
+    }
+  }
+}
