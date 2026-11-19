@@ -96,7 +96,9 @@ export function phraseBag(count = 8): { next: () => number; remaining: () => num
 // iOS keeps a hard cap on media elements per context (historically one on iPhone), so
 // elements are reused instead of allocated per cue. A source node can only be made
 // once per element, so the pair lives together in the pool.
-const POOL_LIMIT = 3;
+// Four is enough for the incoming loop, the one-shot handing over and the phrase, plus
+// one spare while a fade is still running.
+const POOL_LIMIT = 4;
 type Slot = { el: HTMLAudioElement; source: MediaElementAudioSourceNode; owner: Channel | null; primed: boolean };
 type Channel = {
   el: HTMLAudioElement;

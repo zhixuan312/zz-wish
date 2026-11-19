@@ -212,3 +212,79 @@ test('a walk cue that is not shipped stays silent and choose still starts', asyn
   expect(cues.filter((c) => c.cue === 'snow_choose_loop')).toHaveLength(1);
   expect(errors).toEqual([]);
 });
+
+// The whole journey in order: every screen asks for its own cue, and the one-shot cues
+// hand over to the loop that follows them.
+test('the full journey asks for each cue in order', async ({ page }) => {
+  const cues = recordCues(page);
+  await serveMusic(page, [
+    'home_loop', 'snow_place_loop', 'snow_walk', 'snow_choose_loop',
+    'snow_ignite', 'snow_burn_bed_day', 'snow_burn_bed_golden', 'snow_burn_bed_night',
+    'snow_ending_putout', 'snow_ending_burned', 'result_loop',
+  ]);
+  await page.goto('/');
+  await page.waitForFunction(() => (window as Window & { __ready?: boolean }).__ready === true, null, { timeout: 60_000 });
+  // The first tap is what unlocks sound, so home follows it rather than the load.
+  await page.getByLabel(re('你的愿望', 'Your wish')).fill('A whole journey of music.');
+  await expect.poll(() => cues.some((c) => c.cue === 'home_loop'), { timeout: 15_000 }).toBe(true);
+  await page.getByRole('button', { name: re('许好了', 'Set my wish') }).click();
+  await page.getByRole('button', { name: re('走进院里', 'Step inside') }).click();
+  await page.getByRole('button', { name: re('跳过', 'Skip') }).click();
+  await page.getByRole('radio', { name: re('^10 分钟$', '^10 min$') }).click({ timeout: 30_000 });
+  await page.getByRole('button', { name: re('点亮这一盏', 'Light it') }).click({ timeout: 15_000 });
+  await expect(page.getByTestId('with-you')).toBeVisible({ timeout: 20_000 });
+  await page.getByRole('button', { name: re('^熄灭$', '^Put out$') }).click();
+  await page.getByRole('button', { name: re('熄灭并结束', 'Put out and end') }).click();
+  await expect(page.getByTestId('result-title')).toBeVisible({ timeout: 20_000 });
+  const order = cues.map((c) => c.cue);
+  const firstOf = (name: string) => order.indexOf(name);
+  expect(firstOf('home_loop')).toBeGreaterThanOrEqual(0);
+  expect(firstOf('snow_place_loop')).toBeGreaterThan(firstOf('home_loop'));
+  expect(firstOf('snow_walk')).toBeGreaterThan(firstOf('snow_place_loop'));
+  expect(firstOf('snow_choose_loop')).toBeGreaterThan(firstOf('snow_walk'));
+  expect(firstOf('snow_ignite')).toBeGreaterThan(firstOf('snow_choose_loop'));
+  const bed = order.findIndex((c) => c.startsWith('snow_burn_bed_'));
+  expect(bed).toBeGreaterThan(firstOf('snow_ignite'));
+  expect(firstOf('snow_ending_putout')).toBeGreaterThan(bed);
+  expect(firstOf('result_loop')).toBeGreaterThan(firstOf('snow_ending_putout'));
+});
+
+test('an empty manifest plays the whole journey in silence with no errors', async ({ page }) => {
+  const errors: string[] = [];
+  page.on('pageerror', (error) => errors.push(String(error)));
+  page.on('console', (message) => { if (message.type() === 'error') errors.push(message.text()); });
+  const cues = recordCues(page);
+  await serveMusic(page, []);
+  await page.goto('/');
+  await page.waitForFunction(() => (window as Window & { __ready?: boolean }).__ready === true, null, { timeout: 60_000 });
+  await page.getByLabel(re('你的愿望', 'Your wish')).fill('Silence is fine.');
+  await page.getByRole('button', { name: re('许好了', 'Set my wish') }).click();
+  await page.getByRole('button', { name: re('走进院里', 'Step inside') }).click();
+  await page.getByRole('button', { name: re('跳过', 'Skip') }).click();
+  await page.getByRole('radio', { name: re('^10 分钟$', '^10 min$') }).click({ timeout: 30_000 });
+  await page.getByRole('button', { name: re('点亮这一盏', 'Light it') }).click({ timeout: 15_000 });
+  await expect(page.getByTestId('with-you')).toBeVisible({ timeout: 20_000 });
+  expect(cues).toHaveLength(0);
+  expect(errors).toEqual([]);
+});
+
+test('the mute control is fully visible on a phone and its state survives a reload', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await serveMusic(page, ['home_loop']);
+  await page.goto('/');
+  await page.waitForFunction(() => (window as Window & { __ready?: boolean }).__ready === true, null, { timeout: 60_000 });
+  await page.getByLabel(re('你的愿望', 'Your wish')).fill('Quiet please.');
+  const mute = page.getByRole('button', { name: re('^静音$', '^Mute$') });
+  await expect(mute).toBeVisible();
+  // Fully inside the viewport and not under any other control.
+  const box = await mute.boundingBox();
+  expect(box).not.toBeNull();
+  expect(box!.x).toBeGreaterThanOrEqual(0);
+  expect(box!.y).toBeGreaterThanOrEqual(0);
+  expect(box!.x + box!.width).toBeLessThanOrEqual(390);
+  expect(box!.y + box!.height).toBeLessThanOrEqual(844);
+  await mute.click();
+  await page.reload();
+  await page.waitForFunction(() => (window as Window & { __ready?: boolean }).__ready === true, null, { timeout: 60_000 });
+  await expect(page.getByRole('button', { name: re('^开启声音$', '^Sound on$') })).toBeVisible();
+});

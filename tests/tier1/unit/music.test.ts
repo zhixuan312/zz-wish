@@ -226,10 +226,10 @@ describe('music playback', () => {
     vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, json: async () => ({ cues: ['snow_burn_bed_day', 'snow_burn_bed_golden', 'snow_choose_loop', 'home_loop'] }) })));
     const music = createMusic({ createContext: () => new FakeContext() as unknown as AudioContext });
     await music.unlock();
-    // Five stage changes in a row: iOS would refuse the fifth fresh element.
-    for (const stage of ['home', 'choose', 'burn', 'choose', 'home'] as const) await music.play(stage, 'snow-roof');
+    // Six stage changes in a row: iOS would refuse fresh elements beyond the pool.
+    for (const stage of ['home', 'choose', 'burn', 'choose', 'home', 'choose'] as const) await music.play(stage, 'snow-roof');
     await new Promise((r) => setTimeout(r, 1700));
-    expect(FakeAudio.instances.length).toBeLessThanOrEqual(3);
+    expect(FakeAudio.instances.length).toBeLessThanOrEqual(4);
     expect(music.describe().channels).toBe(1);
   });
 
@@ -293,13 +293,13 @@ describe('music playback', () => {
     await music.unlock();
     // iOS only allows playback for elements made inside the gesture, so all of them
     // must exist and have been started before unlock resolves.
-    expect(FakeAudio.instances).toHaveLength(3);
-    expect(primed).toBe(3);
+    expect(FakeAudio.instances).toHaveLength(4);
+    expect(primed).toBe(4);
     expect(cueElements()).toHaveLength(0);
   });
 
   it('does not fire a previous cue handler on a reused element', async () => {
-    vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, json: async () => ({ cues: ['snow_walk', 'snow_choose_loop', 'home_loop', 'snow_place_loop'] }) })));
+    vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, json: async () => ({ cues: ['snow_walk', 'snow_choose_loop', 'home_loop', 'snow_place_loop', 'result_loop'] }) })));
     const music = createMusic({ createContext: () => new FakeContext() as unknown as AudioContext });
     await music.unlock();
     await music.play('walk', 'snow-roof');
@@ -309,6 +309,7 @@ describe('music playback', () => {
     // point of the test.
     await music.play('home', 'snow-roof');
     await music.play('place', 'snow-roof');
+    await music.play('result', 'snow-roof');
     await music.play('choose', 'snow-roof');
     const chooseEl = cueElements().find((a) => a.src.includes('snow_choose_loop'))!;
     expect(chooseEl).toBe(walkEl);
@@ -435,7 +436,7 @@ describe('music playback', () => {
     await music.unlock();
     await Promise.resolve();
     await Promise.resolve();
-    expect(FakeAudio.instances).toHaveLength(3);
+    expect(FakeAudio.instances).toHaveLength(4);
     // Every pool element actually started on the second gesture; a slot that recorded the
     // refused attempt as done would never retry and would show no success here.
     expect(FakeAudio.instances.every((a) => (started.get(a) ?? 0) === 1)).toBe(true);
