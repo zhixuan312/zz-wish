@@ -52,11 +52,18 @@ def forest_trees(layer, station, index, prototypes, rng):
             x = side * (offset + rng.uniform(-.20, .31))
             z = station + rng.uniform(-1.65, .15)
             height = rng.uniform(6.2, 10.0) * (1.12 if column in (1, 4) else .89)
+            canopy_gate = column == 0 and station <= 17.
+            if canopy_gate:
+                # A pair of older low boughs crosses above the route just
+                # behind the last shoulder. Both trunks remain off the tread.
+                x = side * (2.24 + rng.uniform(-.10, .18))
+                height = rng.uniform(5.9, 7.1)
             scale = height / (top - foot)
             tree = prototype.copy()
             tree.name = f'Forest slice {index + 1} pine {side:+} {column + 1}'
             tree.location = point((x, terrain_height(x, station) - foot * scale - .12, z))
-            tree.scale = (scale * rng.uniform(.88, 1.34), scale * rng.uniform(.86, 1.31), scale)
+            across = 1.68 if canopy_gate else 1.
+            tree.scale = (scale * across * rng.uniform(.88, 1.24), scale * rng.uniform(.86, 1.31), scale)
             tree.rotation_euler = (0., 0., rng.uniform(-math.pi, math.pi))
             layer.objects.link(tree)
 
@@ -75,10 +82,10 @@ def leaf_material(name, hex_color, roughness):
 
 def understory_materials():
     return [leaf_material(name, tint, roughness) for name, tint, roughness in (
-        ('Mature shaded fern', '#345338', .47),
-        ('Fern pinnae in open gaps', '#657848', .43),
+        ('Mature shaded fern', '#455532', .47),
+        ('Fern pinnae in open gaps', '#6c7945', .43),
         ('New fern growth', '#788752', .46),
-        ('Forest edge shrub leaves', '#41543b', .40),
+        ('Forest edge shrub leaves', '#4f5536', .40),
     )]
 
 
@@ -97,7 +104,7 @@ def forest_undergrowth(layer, station, index, materials, rng):
 
     for side in (-1, 1):
         for bush in range(25):
-            x = side * rng.uniform(1.89, 8.)
+            x = side * rng.uniform(2.63, 8.)
             z = station + rng.uniform(-.95, -.05)
             creek, _, creek_width = watercourse_at(station)
             if abs(x - creek) < creek_width + .28:
@@ -120,7 +127,7 @@ def forest_undergrowth(layer, station, index, materials, rng):
                     for flank in (-1, 1):
                         shape = lateral * (width * flank) + axis * (.40 * width)
                         tip = spine + shape + Vector((0., -.19 * width, 0.))
-                        leaf(spine, tip, width * rng.uniform(.16, .25), material)
+                        leaf(spine, tip, width * rng.uniform(.19, .29), material)
                 leaf(origin + axis * (.89 * length) + Vector((0., .83 * rise, 0.)),
                      origin + axis * length + Vector((0., .71 * rise, 0.)), .016, material)
         for shrub in range(17):
@@ -186,6 +193,8 @@ def render_plates(options):
               'source': source, 'samples': options.samples, 'device': 'METAL', 'denoiser': 'Metal OIDN',
               'encoding': 'log2-8-8', 'alpha': 'straight', 'webpQuality': options.quality, 'preExposure': PRE_EXPOSURE}
     for index, station in enumerate(STATIONS):
+        if station > options.nearest:
+            continue
         rng = random.Random(6143 + 107 * index)
         layer = bpy.data.collections.new(f'Forest approach depth {station:g} m')
         scene.collection.children.link(layer)
@@ -226,5 +235,6 @@ if __name__ == '__main__':
     parser.add_argument('--width', type=int, default=1008)
     parser.add_argument('--samples', type=int, default=8)
     parser.add_argument('--quality', type=int, default=76)
+    parser.add_argument('--nearest', type=float, default=29.)
     options = parser.parse_args(sys.argv[sys.argv.index('--') + 1:])
     render_plates(options)

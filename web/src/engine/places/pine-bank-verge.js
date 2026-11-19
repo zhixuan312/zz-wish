@@ -12,6 +12,12 @@ const bankSites = [
   [3.4, 26.8, .83, 2.16], [2.63, 25.19, .73, 2.12], [3.04, 23.78, .67, 2.42],
   [2.56, 22.56, .66, 2.39], [3.39, 21.93, .83, 2.81], [2.94, 20.35, .62, 2.84],
   [2.85, 18.65, .55, 2.87], [3.48, 18.45, .71, 3.31],
+  [-3.25, 30.83, .83, 1.67], [-3.61, 29.07, .81, 2.04], [-3.01, 27.54, .76, 1.87],
+  [-3.33, 26.15, .68, 1.98], [-2.60, 25.85, .66, 1.99], [-3.16, 23.97, .78, 2.25],
+  [-2.68, 22.51, .66, 2.42], [-3.92, 21.35, .89, 2.85],
+  [3.01, 31.02, .76, 1.67], [3.14, 28.34, .84, 1.96], [2.91, 27.14, .87, 2.12],
+  [3.17, 25.99, .82, 2.16], [3.52, 24.97, .86, 2.27], [2.85, 23.18, .65, 2.47],
+  [2.88, 21.55, .64, 2.58], [3.45, 19.33, .74, 2.99],
 ];
 
 const around = 2 * Math.PI;
@@ -100,7 +106,7 @@ function fernProfile(seed, frondCount) {
         const axis = tip.clone().sub(anchor).normalize();
         const margin = new THREE.Vector3(-axis.z, 0, axis.x).normalize();
         margin.y = side * (.12 + (random() - .5) * .38);
-        const breadth = length * (.096 + .072 * random());
+        const breadth = length * (.122 + .084 * random());
         const tone = color.copy(green).lerp(young, .08 + .62 * random() + row * .21);
         const first = vertex(anchor, tone, .68);
         for (const [part, width] of [[.31, .91], [.66, .67]]) {
@@ -158,7 +164,7 @@ export function buildPineBankVerge(bakedGroup) {
       placement.position.copy(root);
       placement.position.y -= .021;
       placement.rotation.y = random() * around;
-      placement.scale.set(size * (1 + .13 * random()), size * (.65 + .33 * random()), size);
+      placement.scale.set(size * (1.19 + .18 * random()), size * (.87 + .33 * random()), size * 1.19);
       placement.updateMatrix();
       sprouts.setMatrixAt(instance, placement.matrix);
       const brightness = .58 + .26 * random();
