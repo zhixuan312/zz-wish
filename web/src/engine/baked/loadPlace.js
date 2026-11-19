@@ -151,8 +151,8 @@ export async function loadBakedPlace(id,renderer,initialLight={n:1,g:0}){
     object.castShadow = movingNicheLight && region === 'niche';
     object.receiveShadow = true;
     const convert=source=>{
-      const cooledWax = shelteredNiche && (/^Weathered cold wax tone [1-4]$/.test(source.name)
-        || source.name === 'Wax of the two remaining short candles');
+      const spentWax = shelteredNiche && /^Weathered cold wax tone [1-4]$/.test(source.name);
+      const cooledWax = spentWax || (shelteredNiche && source.name === 'Wax of the two remaining short candles');
       const material=source.clone();material.lightMap=empty;material.lightMapIntensity=1;material.envMapIntensity=.18;
       const perMaterial={...uniforms,
         uBakedNight:{value:maps.night.texture},uBakedDusk:{value:maps.dusk.texture},uBakedDay:{value:maps.day.texture},uBakedLamp:{value:maps.lamp.texture},
@@ -179,8 +179,35 @@ export async function loadBakedPlace(id,renderer,initialLight={n:1,g:0}){
             float depth=smoothstep(.0015,.0045,vBakedWorld.y-uBakedWaxSill);
             vec3 scattered=decodeBaked(textureLod(map,uv,1.).rgb,scale,range,gain);
             return mix(surface,scattered,depth*vec3(.74,.65,.56));` : 'return surface;'}
-          }\n`+shader.fragmentShader;
+          }
+          ${spentWax ? `
+          float pineWaxGrain(vec2 p) {
+            vec2 cell = floor(p);
+            vec2 t = fract(p);
+            t = t * t * (3.0 - 2.0 * t);
+            vec4 x = vec4(cell.x, cell.x + 1.0, cell.x, cell.x + 1.0);
+            vec4 y = vec4(cell.y, cell.y, cell.y + 1.0, cell.y + 1.0);
+            vec4 n = fract(sin(x * 127.1 + y * 311.7) * 43758.5453);
+            return mix(mix(n.x, n.y, t.x), mix(n.z, n.w, t.x), t.y);
+          }` : ''}\n`+shader.fragmentShader;
         shader.fragmentShader=shader.fragmentShader.replace('#include <roughnessmap_fragment>','#include <roughnessmap_fragment>\nroughnessFactor=max(roughnessFactor,uBakedMinRoughness);');
+        if (spentWax) shader.fragmentShader=shader.fragmentShader.replace('#include <lights_physical_fragment>',`
+          // Broad oxidation varies between the remnants. Loose ash settles on upward faces.
+          vec2 waxPosition = vBakedWorld.xz;
+          float waxAge = smoothstep(.26, .75, pineWaxGrain(waxPosition * 52.0 + 11.0));
+          float waxHeight = max(0.0, vBakedWorld.y - uBakedWaxSill);
+          float waxUp = smoothstep(.28, .88, dot(nonPerturbedNormal, viewMatrix[1].xyz));
+          float waxMottle = pineWaxGrain(waxPosition * 215.0 + 28.0);
+          float waxFleck = pineWaxGrain(waxPosition * 570.0 + 42.0);
+          float waxAsh = waxUp * smoothstep(.43, .81, waxMottle)
+            * mix(.63, 1.0, waxFleck);
+          float waxDust = (1.0 - smoothstep(.001, .005, waxHeight))
+            * smoothstep(.33, .81, waxFleck);
+          vec3 waxPatina = mix(vec3(.98, .90, .72), vec3(.72, .52, .28), waxAge);
+          diffuseColor.rgb *= mix(waxPatina, vec3(.34, .31, .28), waxAsh * .87);
+          diffuseColor.rgb *= mix(vec3(1.0), vec3(.78, .74, .67), waxDust * .65);
+          roughnessFactor = mix(roughnessFactor, .88, max(waxAsh, waxDust * .58));
+          #include <lights_physical_fragment>`);
         // The static moon and sky already exist in the bake. Preserve direct
         // point lights for the visitor's nearest surfaces without doubling them.
         const directCall='RE_Direct( directLight, geometryPosition, geometryNormal, geometryViewDir, geometryClearcoatNormal, material, reflectedLight );';
@@ -222,7 +249,7 @@ export async function loadBakedPlace(id,renderer,initialLight={n:1,g:0}){
             radiance+=getIBLRadiance(geometryViewDir,geometryNormal,material.roughness);
           #endif`);
       };
-      material.customProgramCacheKey=()=>`${movingNicheLight ? 'pine-lightmap' : 'cycles-lightmap-1'}-${region}${cooledWax ? '-wax' : ''}`;
+      material.customProgramCacheKey=()=>`${movingNicheLight ? 'pine-lightmap' : 'cycles-lightmap-1'}-${region}${spentWax ? '-spent-wax' : cooledWax ? '-wax' : ''}`;
       visitorShadow?.install(material);
       gauzeTransmission?.install(material);
       staticLampShadow?.install(material);
