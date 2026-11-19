@@ -102,27 +102,34 @@ def needle_litter(sites, height, rng):
     points, faces, colors = [], [], []
     tones = [mesh.color(tone)[:3] for tone in ('#594836', '#665038', '#706044', '#75634a', '#94774f')]
     for x, z, clearance, _ in sites:
-        for _ in range(2):
-            x0, z0 = x + rng.uniform(-.045, .045), z + rng.uniform(-.043, .043)
-            heading = rng.uniform(0., math.tau)
-            tip_length = min(clearance - .055, rng.uniform(.102, .196))
-            if tip_length < .08:
-                continue
-            root = len(points)
-            tint = rng.choice(tones)
-            points.append((x0, height(x0, z0) + .007, z0))
+        heading = rng.uniform(0., math.tau)
+        tip_length = min(clearance - .055, rng.uniform(.125, .211))
+        if tip_length < .10:
+            continue
+        tint = rng.choice(tones)
+        # The two needles join at the fallen sheath, a single grounded chart.
+        root = len(points)
+        points.append((x, height(x, z) + .007, z))
+        colors.append(tint)
+        border = (-.91, .035, .98, math.pi)
+        for offset in border:
+            angle = heading + offset
+            px, pz = x + .0058 * math.cos(angle), z + .0058 * math.sin(angle)
+            points.append((px, height(px, pz) + .007, pz))
             colors.append(tint)
-            for offset in (-.29, .31, 2.4):
-                direction = heading + offset + rng.uniform(-.052, .052)
-                dx, dz = math.cos(direction), math.sin(direction)
-                reach = tip_length * rng.uniform(.68, 1.)
-                width = rng.uniform(.0034, .0061)
-                middle = len(points)
-                for along, across, lift in ((.46, width, .010), (.49, -width, .010), (1., 0., .005)):
-                    px, pz = x0 + reach * along * dx - across * dz, z0 + reach * along * dz + across * dx
-                    points.append((px, height(px, pz) + lift, pz))
-                    colors.append(tint)
-                faces.extend(((root, middle, middle + 1), (middle, middle + 2, middle + 1)))
+        faces.extend((root, root + 1 + (i + 1) % len(border), root + 1 + i) for i in range(len(border)))
+        for branch, offset in enumerate((-.438, .507)):
+            direction = heading + offset + rng.uniform(-.052, .052)
+            dx, dz = math.cos(direction), math.sin(direction)
+            reach = tip_length * rng.uniform(.76, 1.)
+            width = rng.uniform(.0041, .0065)
+            middle = len(points)
+            for along, across, lift in ((.43, -width, .010), (.52, width, .010), (1., 0., .005)):
+                px, pz = x + reach * along * dx - across * dz, z + reach * along * dz + across * dx
+                points.append((px, height(px, pz) + lift, pz))
+                colors.append(tint)
+            a, b = root + 1 + branch, root + 2 + branch
+            faces.extend(((a, b, middle), (b, middle + 1, middle), (middle, middle + 1, middle + 2)))
     charts = [[(points[i][0], points[i][2]) for i in face] for face in faces]
     return points, faces, charts, colors
 
@@ -133,29 +140,46 @@ def bank_grass(sites, height, rng):
     dry = mesh.color('#97886a')[:3]
     foot = mesh.color('#38412c')[:3]
     for x, z, clearance, damp in sites:
-        for blade in range(rng.randint(5, 9)):
-            direction = rng.uniform(0., math.tau)
+        reach_limit = clearance - .055
+        if reach_limit < .052:
+            continue
+        count = rng.randint(6, 10)
+        phase = rng.uniform(0., math.tau)
+        collar = rng.uniform(.019, .030)
+        base = len(points)
+        points.append((x, height(x, z) - .022, z))
+        colors.append(foot)
+        local_uv = [(0., 0.)]
+        border = [phase + i * math.tau / count + rng.uniform(-.09, .09) for i in range(count)]
+        border.append(border[0] + math.tau)
+        for angle in border[:-1]:
+            px, pz = x + collar * math.cos(angle), z + collar * math.sin(angle)
+            points.append((px, height(px, pz) - .015, pz))
+            local_uv.append((px - x, pz - z))
+            colors.append(foot)
+        for blade, (left, right) in enumerate(zip(border, border[1:])):
+            direction = .5 * (left + right)
             dx, dz = math.cos(direction), math.sin(direction)
-            x0, z0 = x + rng.uniform(-.06, .06), z + rng.uniform(-.06, .06)
-            reach = min(clearance - .08, rng.uniform(.065, .21))
-            if reach < .036:
-                continue
-            y0 = height(x0, z0)
+            reach = min(reach_limit, rng.uniform(.075, .22))
+            ground_y = height(x + collar * dx, z + collar * dz)
             tall = rng.uniform(.095, .255) * (.88 + .28 * damp)
             width = rng.uniform(.0062, .0127)
-            shape = ((0., 0., -.26), (0., 0., .39), (.34, .73, -.53), (.36, .76, .60), (1., .89, .16))
+            shape = ((.34, .73, -.53), (.36, .76, .60), (1., .89, rng.uniform(-.46, .42)))
             start = len(points)
             tint = dry if blade % 6 == 0 else young
             for index, (forward, lift, across) in enumerate(shape):
-                px = x0 + reach * forward * dx - width * across * dz
-                pz = z0 + reach * forward * dz + width * across * dx
-                points.append((px, y0 - .012 + tall * lift, pz))
-                weight = .14 if index < 2 else .77 if index < 4 else .98
+                offset = collar + reach * forward
+                px = x + offset * dx - width * across * dz
+                pz = z + offset * dz + width * across * dx
+                points.append((px, ground_y - .012 + tall * lift, pz))
+                arc = collar + math.hypot(reach * forward, tall * lift)
+                local_uv.append((arc * dx - width * across * dz, arc * dz + width * across * dx))
+                weight = .77 if index < 2 else .98
                 colors.append(tuple(a + (b - a) * weight for a, b in zip(foot, tint)))
-            for face in ((0, 1, 2), (1, 3, 2), (2, 3, 4)):
-                faces.append(tuple(start + j for j in face))
-                charts.append([(shape[j][2] * width, math.hypot(reach * shape[j][0], tall * shape[j][1]))
-                               for j in face])
+            a, b = base + 1 + blade, base + 1 + (blade + 1) % count
+            tuft_faces = ((base, b, a), (a, b, start), (b, start + 1, start), (start, start + 1, start + 2))
+            faces.extend(tuft_faces)
+            charts.extend([[local_uv[j - base] for j in face] for face in tuft_faces])
     return points, faces, charts, colors
 
 
@@ -179,8 +203,8 @@ def crest_roots(pines, height, bark, tube):
 def build_crest_ground(ground, rock, bark, section, spring, height, pines, bark_tube):
     rng = random.Random(27411)
     sites = list(cover_stations(section, spring, rng))
-    moss = [(x, z, min(allowed * .82, rng.uniform(.14, .39) * (1. + .36 * damp)))
-            for i, (x, z, allowed, damp) in enumerate(sites) if i % 3 != 1 or damp > .47]
+    moss = [(x, z, min(allowed * .82, rng.uniform(.23, .51) * (1. + .36 * damp)))
+            for i, (x, z, allowed, damp) in enumerate(sites) if i % 3 == 0 or (damp > .62 and i % 2)]
     schist = [(x, z, min(.70 * allowed, rng.uniform(.19, .46)))
              for x, z, allowed, _ in sites if allowed > .39 and rng.random() < .21]
     tinted_mesh('Damp moss cushions under the old pines', ground, *surface_islands(moss, height, rng, False),
@@ -191,8 +215,11 @@ def build_crest_ground(ground, rock, bark, section, spring, height, pines, bark_
     grass = mesh.material('Moist crest sedge and dry blade tips', '#ffffff', rough=.92)
     for material in (needles, grass):
         mesh.vertex_tint_shader(material)
-    tinted_mesh('Tapered fallen pine needles', needles, *needle_litter(sites[::2], height, rng),
-                'Conformal planar charts for fallen needles in paired shoots.')
+    # The existing forest-floor scan contains needle litter across the bank.
+    # Only the larger fallen pairs need separate silhouette geometry.
+    debris = [site for site in sites[::7] if site[2] > .19]
+    tinted_mesh('Tapered fallen pine needles', needles, *needle_litter(debris, height, rng),
+                'Conformal planar chart from each fallen sheath through the needle pair.')
     tinted_mesh('Rooted crest sedges', grass, *bank_grass(sites[1::2], height, rng),
-                'Separate longitudinal charts for folded sedge blades.')
+                'A radial chart for each rooted sedge clump and its folded blades.')
     crest_roots(pines, height, bark, bark_tube)

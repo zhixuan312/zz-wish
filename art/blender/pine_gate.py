@@ -881,7 +881,7 @@ def pine_needles(name, shoots, material):
 def shoulder_pine_needles(name, shoots, material):
     rng = random.Random(name)
     world_up = Vector((0., 1., 0.))
-    fascicles, stems = [], []
+    points, faces, charts, wind = [], [], [], []
     for start, direction, length, radius, roll in shoots:
         axis = direction.normalized()
         side = axis.cross(world_up)
@@ -890,42 +890,63 @@ def shoulder_pine_needles(name, shoots, material):
         side.normalize()
         side.rotate(Matrix.Rotation(roll, 3, axis))
         up = axis.cross(side)
-        stem = [start]
+        stem, attached = [start], {}
         for station, turn in ((.25, 1.), (.72, -1.)):
             distance = length * (station + rng.uniform(-.1, .09))
             lift = length * .31 * station * station
             root = start + axis * distance + up * lift
-            stem.append(root)
             shoot = axis + side * (turn * rng.uniform(.21, .57)) + up * (.18 + .31 * station)
             reach = radius * rng.uniform(.65, .87) * (1 - .23 * station)
             angle = roll + rng.uniform(-1.1, 1.1)
-            # Two staggered fans meet on the same shoot. Individual bent
-            # needles leave gaps through the silhouette in every view.
             first = tuple(needle_fascicle(root, shoot, angle, reach, rng, False))
             second = tuple(needle_fascicle(root, shoot, angle + 1.14, reach * .89, rng, False))
-            fascicles.append(first + second)
-        stems.append((stem, side, up))
-    points, faces, charts, wind = needle_mesh(fascicles, compact=True)
-    for stem, side, up in stems:
-        start = len(points)
-        radial = [side * math.cos(i * math.tau / 3) + up * math.sin(i * math.tau / 3) for i in range(3)]
-        radii = (.006, .004, .0018)
-        for center, radius in zip(stem, radii):
-            points.extend(center + direction * radius for direction in radial)
-            wind.extend(((.5, 0.),) * 3)
+            index = len(stem)
+            stem.extend(root + axis * (length * .16 * (i / 4 - .5)) for i in range(5))
+            attached.update((index + i, pair) for i, pair in enumerate(zip(first, second)))
+        stem_start = len(points)
+        uvs = []
+        half_width = .005
         height = 0.
-        for ring, (a, b) in enumerate(zip(stem, stem[1:])):
-            top = height + (b - a).length
-            low_width = radii[ring] * math.sqrt(3.)
-            top_width = radii[ring + 1] * math.sqrt(3.)
-            for column in range(3):
-                first, second = start + ring * 3 + column, start + ring * 3 + (column + 1) % 3
-                faces.append((first, second, second + 3, first + 3))
-                charts.append(((column * low_width, height), ((column + 1) * low_width, height),
-                               ((column + 1) * top_width, top), (column * top_width, top)))
-            height = top
+        for i, center in enumerate(stem):
+            if i:
+                height += (center - stem[i - 1]).length
+            points.extend((center - side * half_width, center + side * half_width))
+            wind.extend(((0., 0.), (1., 0.)))
+            uvs.append(((-half_width, height), (half_width, height)))
+            half_width *= .91
+        for i, (lower, higher) in enumerate(zip(uvs, uvs[1:])):
+            lower_left = stem_start + i * 2
+            lower_right, upper_left, upper_right = (lower_left + offset for offset in (1, 2, 3))
+            faces.append((lower_left, lower_right, upper_right, upper_left))
+            charts.append((lower[0], lower[1], higher[1], higher[0]))
+            if i not in attached:
+                continue
+            center = stem[i].lerp(stem[i + 1], .5)
+            for blade, low_edge, high_edge, low_uv, high_uv, sign in (
+                (attached[i][0], lower_left, upper_left, lower[0], higher[0], -1.),
+                (attached[i][1], lower_right, upper_right, lower[1], higher[1], 1.),
+            ):
+                root, shoulder, tip, width = blade
+                shift = center - root
+                flare = axis.cross(tip - root).normalized()
+                if flare.length < .1:
+                    flare = side
+                low_needle = len(points)
+                high_needle, end = low_needle + 1, low_needle + 2
+                points.extend((shoulder + shift - flare * width, shoulder + shift + flare * width, tip + shift))
+                wind.extend(((0., .52), (1., .52), (.5, 1.)))
+                v = (low_uv[1] + high_uv[1]) * .5
+                cross_width = min(width, (high_uv[1] - low_uv[1]) * .42)
+                x = sign * (max(abs(low_uv[0]), abs(high_uv[0])) + (shoulder - root).length)
+                low, high, endpoint = (x, v - cross_width), (x, v + cross_width), (x + sign * (tip - shoulder).length, v)
+                if sign < 0:
+                    faces.extend(((low_edge, high_edge, high_needle, low_needle), (low_needle, high_needle, end)))
+                    charts.extend(((low_uv, high_uv, high, low), (low, high, endpoint)))
+                else:
+                    faces.extend(((high_edge, low_edge, low_needle, high_needle), (high_needle, low_needle, end)))
+                    charts.extend(((high_uv, low_uv, low, high), (high, low, endpoint)))
     canopy = mesh.mesh_object(name, points, faces, material, 'approach')
-    source_uv(canopy, charts, 'Rooted, tapered needle fans with metric charts.')
+    source_uv(canopy, charts, 'One unfolded twig strip with physically attached needles per shoot.')
     uv = canopy.data.uv_layers['UVMap'].data
     for face in canopy.data.polygons:
         face.use_smooth = True
