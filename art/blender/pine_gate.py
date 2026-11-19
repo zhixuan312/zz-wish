@@ -14,7 +14,7 @@ from mathutils import Matrix, Vector, noise
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import snow_roof as mesh
-from pine_crest_ground import build_crest_ground, build_inner_banks, crest_soil_tint, inner_bank_tint
+from pine_crest_ground import build_crest_ground, build_inner_banks, crest_soil_tint, inner_bank_tint, tinted_mesh
 from pine_hero_trees import CROWNS, grow_crown, needle_fascicle, needle_mesh
 from pine_impostors import load_impostors, relief_crown
 from pine_materials import apply_scan
@@ -424,6 +424,54 @@ def climbing_steps(stone, ground):
     landing_flagstones(stone)
     fit_stone_undersides(ground, bridge_curbs)
     return bridge_curbs
+
+
+def muddy_step_treads(stone):
+    rng = random.Random(16462)
+    points, faces, shades = [], [], []
+    outlines = (
+        ((-.040, .013), (-.047, .066), (-.032, .120), (-.006, .137), (.032, .128),
+         (.046, .100), (.044, .057), (.031, .012), (.006, .018), (-.014, .004)),
+        ((-.026, -.118), (-.032, -.080), (-.023, -.051), (.017, -.045), (.027, -.063),
+         (.026, -.112), (.007, -.129), (-.017, -.124)),
+    )
+    for step in (9, 11, 13, 21, 22, 25, 26, 29, 32, 34, 36, 42, 43):
+        tread = mesh.STATIC.objects.get(f'Step {step:02} block 2')
+        if tread is None:
+            continue
+        side = -1 if step % 2 else 1
+        bend, _ = stair_section(step - 1)
+        x = bend + side * rng.uniform(.076, .119)
+        z = STAIR_START - STAIR_RUN * (step - 1) + rng.uniform(-.041, .048)
+        yaw = side * rng.uniform(.12, .30)
+        scale = rng.uniform(.77, 1.03)
+        for part, outline in enumerate(outlines):
+            if part and rng.random() < .35:
+                continue
+            perimeter = []
+            for across, forward in outline:
+                across *= side * scale * rng.uniform(.81, 1.16)
+                forward *= scale * rng.uniform(.91, 1.06)
+                px = x + across * math.cos(yaw) + forward * math.sin(yaw)
+                pz = z + across * math.sin(yaw) - forward * math.cos(yaw)
+                perimeter.append((px, pz))
+            cx, cz = (sum(values) / len(values) for values in zip(*perimeter))
+            centre = len(points)
+            points.append((cx, supports_height(cx, cz, [tread]) + .0011, cz))
+            shades.append((.40, .32, .24))
+            for px, pz in perimeter:
+                points.append((px, supports_height(px, pz, [tread]) + .0007, pz))
+                tone = rng.uniform(.59, .91)
+                shades.append((tone, tone * .91, tone * .77))
+            count = len(perimeter)
+            clockwise = sum(px * qz - qx * pz for (px, pz), (qx, qz)
+                            in zip(perimeter, perimeter[1:] + perimeter[:1])) < 0
+            for i in range(count):
+                a, b = centre + 1 + i, centre + 1 + (i + 1) % count
+                faces.append((centre, a, b) if clockwise else (centre, b, a))
+    charts = [[(points[i][0], points[i][2]) for i in face] for face in faces]
+    tinted_mesh('Mud from repeated footfalls on the worn stair', stone, points, faces, charts, shades,
+                'Metre-scale sole and heel stamps on the evaluated treads.', uv_scale=.51)
 
 
 def terrain_bank_slopes(ground, depsgraph):
@@ -1472,6 +1520,7 @@ def build(output, impostor_manifest=None, wax_sculpt=None):
     audit_watercourse(support, stream_stones, deck_slabs, bridge_curbs)
     build_tea_shoulder(ANCHOR, stone, wood, tiles, clay, iron, ledge, contacts, wax_sculpt)
     paint_stone()
+    muddy_step_treads(stone[1])
     build_crest_ground(ground, rock, bark, section_at, watercourse_at, lambda x, z: supports_height(x, z, [support]),
                        ((-1.88, PINE_CREST + .08), (1.82, PINE_CREST - .32)), bark_tube)
     build_inner_banks(ground, rock, section_at, watercourse_at, lambda x, z: supports_height(x, z, [support]))
