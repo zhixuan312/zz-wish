@@ -313,7 +313,7 @@ def landing_joint_fill(seams, material):
             if i:
                 a = begin + (i - 1) * 2
                 face = (a, a + 2, a + 3, a + 1)
-                faces.append(face if along_x else tuple(reversed(face)))
+                faces.append(tuple(reversed(face)) if along_x else face)
     grit = mesh.mesh_object('Worn gravel bed in the landing joints', points, faces, material, 'gate')
     source_uv(grit, [[(points[i][0], points[i][2]) for i in face] for face in faces],
               'Tapered settlement patches projected in metres onto the bedding.')
