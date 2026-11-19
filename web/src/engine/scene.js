@@ -217,7 +217,7 @@ float vn(vec2 x){ vec2 p = floor(x), f = fract(x); f = f * f * (3. - 2. * f); fl
 float pineRadius(float y) {
   return .234 * smoothstep(-.052, .18, y) * sqrt(1. - smoothstep(.18, 1.02, y));
 }
-vec3 pineFlameVolume(vec2 uv) {
+vec4 pineFlameVolume(vec2 uv) {
   float t = uTime + vSeed * 6.;
   float h = .91 + .125 * vn(vec2(t * 2.9, vSeed));
   float sway = (vn(vec2(t * 1.56, vSeed * 2.1)) - .5) * .16 + uWind * .28;
@@ -236,7 +236,7 @@ vec3 pineFlameVolume(vec2 uv) {
     float inner = (1. - smoothstep(.37, .72, r)) * (1. - smoothstep(.24, .56, y));
     float blue = (1. - smoothstep(.13, .31, y)) * (.65 + .35 * smoothstep(.25, .9, r));
     float skirt = smoothstep(.49, .99, r);
-    vec3 gold = mix(vec3(5.9, 3.5, 1.10), vec3(1.63, .52, .105), skirt);
+    vec3 gold = mix(vec3(4.15, 2.26, .57), vec3(1.58, .48, .078), skirt);
     gold *= mix(.064, 1., 1. - inner);
     vec3 spectrum = mix(gold, vec3(.10, .39, 1.18) * (.32 + .68 * skirt) * (1. - .53 * inner), blue);
     float density = envelope * (.66 + .34 * skirt);
@@ -244,7 +244,7 @@ vec3 pineFlameVolume(vec2 uv) {
     emission += spectrum * transmission * interval * 1.44;
     transmission *= 1. - interval * .71;
   }
-  return emission * uRadiance * flutter;
+  return vec4(emission * uRadiance * flutter, 1. - transmission);
 }
 vec4 flameAt(vec2 sampleUv){
   if(sampleUv.x<0.||sampleUv.x>1.||sampleUv.y<=0.||sampleUv.y>=1.)return vec4(0.);
@@ -275,7 +275,7 @@ vec4 flameAt(vec2 sampleUv){
 }
 void main(){
   if (uPineFlame > .5) {
-    gl_FragColor = vec4(pineFlameVolume(vUv), uPower);
+    gl_FragColor = pineFlameVolume(vUv) * uPower;
     return;
   }
   vec2 dx=dFdx(vUv),dy=dFdy(vUv);
@@ -847,7 +847,12 @@ const api = { g, parts: null, partsKey: null, type: null, power: 0, lightPower: 
       f.light.shadow.normalBias = p.pineWax && liveBaked ? .0024 : .0001;
       f.light.shadow.radius = p.pineWax ? 4 : 2;
       f.light.distance = p.pineWax && liveBaked ? .42 : 0;
-      f.fm.uniforms.uPineFlame.value = p.pineWax && liveBaked ? 1 : 0;
+      const volumeFlame = p.pineWax && liveBaked;
+      f.fm.uniforms.uPineFlame.value = volumeFlame ? 1 : 0;
+      f.fm.blending = volumeFlame ? THREE.CustomBlending : THREE.AdditiveBlending;
+      // The volume returns emitted light and the fraction of background light it absorbs.
+      f.fm.blendSrc = THREE.OneFactor;
+      f.fm.blendDst = THREE.OneMinusSrcAlphaFactor;
       f.fm.uniforms.uRadiance.value = p.pineWax && liveBaked ? .83 : 1;
       f.ember.scale.setScalar(p.pineWax && liveBaked ? .49 : 1);
       f.light.color.setHex(p.light ?? 0xffba78); f.size = p.flame ?? 1; mirror.size = f.size;
