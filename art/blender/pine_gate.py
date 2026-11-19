@@ -2012,13 +2012,36 @@ def crest_ribbons(label, trunk_at, cloth):
 
         # The cinched band runs under the knot and follows the real bark.
         band_widths = (-.017, -.006, .006, .017)
-        band = []
-        for step in range(49):
-            turn = .040 + (math.tau - .080) * step / 48
+        def wrap_row(turn):
             radial = Vector((math.cos(heading + turn), 0., math.sin(heading + turn)))
             centre = axis + up * (.013 * math.sin(turn) + .006 * math.sin(turn * 3 + index))
-            band.append([bark_at(centre + up * side, radial) + radial * (.003 + .003 * (1 - abs(side) / .017))
-                         for side in band_widths])
+            return [bark_at(centre + up * side, radial) + radial * (.003 + .003 * (1 - abs(side) / .017))
+                    for side in band_widths]
+
+        def wrap_span(start, left, end, right, splits):
+            # Resolve the bark ridges that would otherwise cross the cloth
+            # chord under a sparse polar sampling of the trunk.
+            for side in range(len(band_widths) - 1):
+                midpoint = (left[side] + right[side + 1]) * .5
+                offset = midpoint - axis
+                radial = Vector((offset.x, 0., offset.z)).normalized()
+                gap = (midpoint - bark_at(midpoint, radial)).dot(radial)
+                if gap < -.003 or gap > .010:
+                    if splits:
+                        centre = .5 * (start + end)
+                        row = wrap_row(centre)
+                        yield from wrap_span(start, left, centre, row, splits - 1)
+                        yield from wrap_span(centre, row, end, right, splits - 1)
+                        return
+                    if gap < -.005:
+                        raise RuntimeError('Pine tie crosses the bark between its sampled bearings.')
+            yield right
+
+        turns = [.040 + (math.tau - .080) * step / 48 for step in range(49)]
+        rows = [wrap_row(turn) for turn in turns]
+        band = [rows[0]]
+        for start, left, end, right in zip(turns, rows, turns[1:], rows[1:]):
+            band.extend(wrap_span(start, left, end, right, 3))
         cloth_strip(f'{name} cinched band', band, band_widths)
 
         # One flattened loop crosses the other. Both ends disappear under
