@@ -765,17 +765,17 @@ async function capture(browser, browserName, size, trial) {
       await choose();
       if (directionOverview && direction.name === 'day') {
         const previous = await page.evaluate(() => window.__pineCaptureCamera());
-        try {
-          for (const { name, ...view } of [{ name: 'shrine-pavilion', ...directionOverview }, ...detailViews]) {
-            const pose = await page.evaluate(detail => window.__pineCaptureOverview(detail), view);
+        for (const { name, ...view } of [{ ...directionOverview, name: 'shrine-pavilion' }, ...detailViews]) {
+          const pose = await page.evaluate(detail => window.__pineCaptureOverview(detail), view);
+          try {
             const overview = await captureShot(name, { overviewPose: pose });
             assert(overview.camera.overview && overview.camera.phase === 'candle');
             assertNearestCamera(overview.camera, pose);
+          } finally {
+            await page.evaluate(() => window.__pineCaptureOverview(null));
           }
-        } finally {
-          await page.evaluate(() => window.__pineCaptureOverview(null));
+          assertNearestCamera(await page.evaluate(() => window.__pineCaptureCamera()), previous);
         }
-        assertNearestCamera(await page.evaluate(() => window.__pineCaptureCamera()), previous);
       }
       const candle = await light();
       assert.equal(candle.durationMs, 3_600_000);
