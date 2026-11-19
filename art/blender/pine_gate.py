@@ -24,6 +24,11 @@ ANCHOR = (-1.8, 5.0, .9)
 LAMP = (-1.8, 5.076, .9)
 PINE_CREST = 6.04
 TERRACE_EDGE = -1.24
+STAIR_START = 45.6
+STAIR_RUN = .8
+STAIR_RISE = .08
+STAIR_COUNT = 50
+SHOULDER_SETBACK = .86
 WATERCOURSE = ((2.62, 4.02, 5.38), (2.32, 3.55, 10.45), (2.27, 3.01, 15.75),
                (2.16, 2.63, 19.25), (1.20, 2.24, 21.91), (-.62, 2.13, 22.55),
                (-1.98, 1.99, 23.41), (-2.16, 1.85, 25.85), (-1.93, 1.41, 30.25),
@@ -101,6 +106,17 @@ def palette():
     return stone, rock, ground, wood, tiles, bark, pine, iron, clay, ledge
 
 
+def stair_section(index):
+    bend = .23 * math.sin(index * .11) - .15 * math.sin(index * .27)
+    span = 1.91 + .23 * math.cos(index * .18) + .004 * index
+    return bend, span / 2
+
+
+def section_at(z):
+    index = max(0, min(STAIR_COUNT - 1, (STAIR_START - z) / STAIR_RUN))
+    return stair_section(index)
+
+
 def terrain_height(x, z):
     rise = min(4, max(0, (46 - z) * .1))
     bank = max(0, min(3., (abs(x) - 2.18) * .27))
@@ -114,9 +130,11 @@ def terrain_height(x, z):
     # Low shoulders flank the upper approach. The old path bends between
     # them before the spring buildings and the valley can be seen.
     crest_screen = math.exp(-((z - 13.7) / 5.3) ** 2)
-    ridge_spur = math.exp(-((abs(x) - 1.69) / .59) ** 2)
-    verge = min(1., max(0., (abs(x) - .96) / .29))
-    shoulder = crest_screen * ridge_spur * verge * (1.27 + .19 * math.sin(.91 * z + 2.4 * x))
+    centre, half_span = section_at(z)
+    outside = abs(x - centre) - half_span - SHOULDER_SETBACK
+    ridge_spur = math.exp(-((outside - .51) / .69) ** 2)
+    verge = min(1., max(0., outside / .23))
+    shoulder = crest_screen * ridge_spur * verge * (1.58 + .22 * math.sin(.91 * z + 2.4 * x))
     height = rise - .10 + bank + fold * min(1., bank) + ridge - valley_floor + shoulder
     if abs(x) < 4.5 and TERRACE_EDGE <= z <= 5.4:
         # Level ground below the laid slabs is what makes this a viable rest
@@ -126,16 +144,25 @@ def terrain_height(x, z):
 
 
 def terrain(material):
-    xs = [-31, -24, -19, -14, -11, -8, -6, -4.5, -4.32, -3.2, -2.34, -1.72, -1.35, -1.01, 0,
-          1.01, 1.35, 1.72, 2.34, 3.2, 4.32, 4.5, 6, 8, 11, 14, 19, 24, 31]
+    outer_x = (4.32, 4.5, 6, 8, 11, 14, 19, 24, 31)
+    offsets = (0, .40, SHOULDER_SETBACK, SHOULDER_SETBACK + .48, SHOULDER_SETBACK + 1.14)
     zs = sorted(set(range(-45, 67, 3)) |
                 {-1.45, TERRACE_EDGE, -.72, 1.18, 4.88, 5.4, PINE_CREST, 10.5, 13.5, 16.5, 19.5})
-    points = [(x, terrain_height(x, z), z) for z in zs for x in xs]
+    points = []
+    for z in zs:
+        centre, half_span = section_at(z)
+        # Each row follows the stair into its bend. The outer retaining edge
+        # has a vertex on each side before the ground climbs into the bank.
+        verge = [half_span + offset for offset in offsets]
+        xs = [*(-x for x in reversed(outer_x)), *(centre - t for t in reversed(verge)),
+              centre, *(centre + t for t in verge), *outer_x]
+        points.extend((x, terrain_height(x, z), z) for x in xs)
+    columns = len(points) // len(zs)
     faces = []
     for j in range(len(zs) - 1):
-        for i in range(len(xs) - 1):
-            a = j * len(xs) + i
-            b = a + len(xs)
+        for i in range(columns - 1):
+            a = j * columns + i
+            b = a + columns
             # The authored, contact-tested diagonal also reaches prepared and
             # raw meshes. A warped terrain quad has two different support planes.
             faces.extend([(a, b, b + 1), (a, b + 1, a + 1)])
@@ -193,16 +220,35 @@ def landing_bed(material):
     mesh.bevel(landing, .045)
 
 
+def audit_approach_clearance(ground):
+    margins = []
+    for index in range(STAIR_COUNT):
+        z = STAIR_START - STAIR_RUN * index
+        top = (index + 1) * STAIR_RISE
+        centre, half_span = stair_section(index)
+        # The limits sit below the lowest possible dressed surface after the
+        # three blocks' camber, worn nosing and setting variation.
+        probes = ((centre - half_span, top - .043), (centre + half_span, top - .043),
+                  (centre - half_span - .09, top + .018), (centre + half_span + .24, top + .018),
+                  (centre + half_span + .139, top - .085))
+        for x, floor in probes:
+            margin = floor - supports_height(x, z, [ground])
+            if margin < -1e-6:
+                raise RuntimeError(f'Pine Gate step {index + 1}, x={x:.3f}: terrain covers the stone by {-margin:.4f} m.')
+            margins.append(margin)
+    print(f'PINE_APPROACH_CLEARANCE {len(margins)} probes; minimum clearance {min(margins):.6f} m')
+
+
 def climbing_steps(stone):
-    for i in range(50):
-        z = 45.6 - .8 * i
-        top = (i + 1) * .08
+    for i in range(STAIR_COUNT):
+        z = STAIR_START - STAIR_RUN * i
+        top = (i + 1) * STAIR_RISE
         if 21.17 < z < 23.16:
             continue
         # Laid in short runs around tree roots. A shallow camber takes rain
         # away from the worn center and toward the open right-hand drain.
-        bend = .23 * math.sin(i * .11) - .15 * math.sin(i * .27)
-        span = 1.91 + .23 * math.cos(i * .18) + .004 * i
+        bend, half_span = stair_section(i)
+        span = half_span * 2
         widths = [span * .31 + RANDOM.uniform(-.10, .09), span * .35 + RANDOM.uniform(-.12, .10)]
         widths.append(span - sum(widths))
         edge = bend - span / 2
@@ -502,8 +548,8 @@ def forest(ground, rock, stone, bark, pine):
         pine_tree(f'Back ridge pine {i + 1}', x, z, h, bark, needles, ground)
     # Shorter pines overhang the older stone and screen the buildings
     # through the middle approach. Their crowns open up at the saddle.
-    for index, (x, z, height) in enumerate(((-2.1, 26.8, 5.5), (2.05, 25.1, 5.8),
-                                           (1.76, 16.1, 4.8), (-1.65, 13.1, 5.05))):
+    for index, (x, z, height) in enumerate(((-2.73, 26.8, 5.5), (2.65, 25.1, 5.8),
+                                           (3.12, 16.1, 4.8), (-3.36, 13.1, 5.05))):
         pine_tree(f'Low forest verge pine {index + 1}', x, z, height, bark, needles, ground,
                   roots=True, crown_start=.19)
     distant_pines(ground, bark, needles)
@@ -635,6 +681,7 @@ def build(output):
     contacts = RestingContacts(height_query=supports_height)
     stone, rock, ground, wood, tiles, bark, needle, iron, clay, ledge = palette()
     support = terrain(ground)
+    audit_approach_clearance(support)
     climbing_steps(stone)
     forest(support, rock, stone, bark, needle)
     saddle_water(stone)
