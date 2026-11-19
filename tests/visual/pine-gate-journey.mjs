@@ -404,7 +404,7 @@ async function capture(browser, browserName, size, trial) {
         candleId: activeId, ...snapshot, ...extra, ...directionProof });
       console.log(browserName, label, name, JSON.stringify(snapshot.wax));
       await save();
-      return snapshot;
+      return { ...snapshot, ...directionProof };
     };
     const waitWax = (fn, arg) => page.waitForFunction(fn, arg, { polling: 50, timeout: 15_000 });
     const captureDiagnostic = async (name, view) => {
