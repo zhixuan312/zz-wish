@@ -148,6 +148,10 @@ export function createMusic(options: { createContext?: () => AudioContext } = {}
   // The one-shot currently allowed to hand over, and the stage that asked for it.
   let liveOneShot: Channel | null = null;
   let cueStage: MusicStage | null = null;
+  // The cue the graph is currently playing. Two callers can ask for the same stage in the
+  // same tick (a screen effect and the settle path), and neither should restart it.
+  let currentCue: CueName | null = null;
+  let currentChannel: Channel | null = null;
 
   type Timer = ReturnType<typeof setTimeout> | 0;
   let bucketTimer: Timer = 0;
@@ -240,7 +244,8 @@ export function createMusic(options: { createContext?: () => AudioContext } = {}
     channel.abort.abort();
     channels = channels.filter((c) => c !== channel);
     held = held.filter((c) => c !== channel);
-    if (liveOneShot === channel) { liveOneShot = null; cueStage = null; }
+    if (liveOneShot === channel) { liveOneShot = null; cueStage = null; currentCue = null; currentChannel = null; }
+    if (currentChannel === channel) { currentCue = null; currentChannel = null; }
     if (channel.slot.owner === channel) channel.slot.owner = null;
     // Both ends of the edge go: disconnecting only the gain would leave the source
     // feeding a node nothing hears, and a 24-hour burn would pile up one per turnover.
@@ -386,7 +391,8 @@ export function createMusic(options: { createContext?: () => AudioContext } = {}
       powerFade(channel.gain, 0, 0.6);
       channels = channels.filter((c) => c !== channel);
       const stillLive = liveOneShot === channel && cueStage === fromStage && stage === fromStage;
-      if (liveOneShot === channel) { liveOneShot = null; cueStage = null; }
+      if (liveOneShot === channel) { liveOneShot = null; cueStage = null; currentCue = null; currentChannel = null; }
+    if (currentChannel === channel) { currentCue = null; currentChannel = null; }
       globalThis.setTimeout(() => releaseChannel(channel), 700);
       // A slow `walk` can end after the stage has moved on; only hand over while this
       // one-shot still owns the stage, or it would pull the game back to `choose`.
@@ -408,20 +414,32 @@ export function createMusic(options: { createContext?: () => AudioContext } = {}
     // The manifest settles within a few seconds even when the network hangs, so this
     // wait is bounded; callers that drive gameplay still never await it.
     await loadManifest();
+    const nextBucket = musicBucket(dayPart(new Date()));
+    const cue = cueFor(nextStage, placeId, nextBucket);
+    // Already playing exactly this cue: a second ask must not fade it out and start a new
+    // element, whatever order the callers ran in.
+    if (cue && cue === currentCue && stage === nextStage && place === placeId
+      && currentChannel !== null && channels.includes(currentChannel)) return true;
     stage = nextStage;
     place = placeId;
     clearTimers();
     stopping = false;
-    const nextBucket = musicBucket(dayPart(new Date()));
-    const cue = cueFor(nextStage, placeId, nextBucket);
-    if (!cue) { disposeChannels(CROSSFADE); return false; }
+    if (!cue) { currentCue = null; disposeChannels(CROSSFADE); return false; }
     const isOneShot = ONE_SHOT[nextStage] === true;
     // Everything that loops crossfades in as the previous cue leaves.
     const incoming = fadeSeconds ?? CROSSFADE;
     disposeChannels(isOneShot ? 0.6 : incoming);
     bucket = nextBucket;
-    if (isOneShot) return playOneShot(cue, 0.8, NEXT_AFTER_ONE_SHOT[nextStage] ?? null, nextStage);
+    if (isOneShot) {
+      currentCue = cue;
+      currentChannel = null;
+      const startedOneShot = playOneShot(cue, 0.8, NEXT_AFTER_ONE_SHOT[nextStage] ?? null, nextStage);
+      currentChannel = startedOneShot ? liveOneShot : null;
+      return startedOneShot;
+    }
     const started = startLoop(cue, incoming);
+    currentCue = started ? cue : null;
+    currentChannel = started ? channels[channels.length - 1] : null;;
     // The burning watchers run even while this bucket's bed is missing, so a bed
     // delivered later still starts when the part of day changes.
     if (nextStage === 'burn') { startBucketWatch(); schedulePhrase(); }
@@ -477,7 +495,7 @@ export function createMusic(options: { createContext?: () => AudioContext } = {}
     stop() {
       stopping = true;
       clearTimers();
-      stage = null; place = null; bucket = null;
+      stage = null; place = null; bucket = null; currentCue = null; currentChannel = null;
       disposeChannels(0.4);
     },
     setMuted(value: boolean) {

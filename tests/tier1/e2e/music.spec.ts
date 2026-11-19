@@ -288,6 +288,35 @@ test('an empty manifest plays the whole journey in silence with no errors', asyn
   expect(errors).toEqual([]);
 });
 
+// No ending cue: the result loop must start exactly once even though both the settle
+// path and the result screen ask for it.
+test('a journey without an ending cue starts the result loop once', async ({ page }) => {
+  const cues = recordCues(page);
+  await serveMusic(page, [
+    'home_loop', 'snow_place_loop', 'snow_walk', 'snow_choose_loop',
+    'snow_ignite', 'snow_burn_bed_day', 'snow_burn_bed_golden', 'snow_burn_bed_night',
+    'result_loop',
+  ]);
+  await page.goto('/');
+  await page.waitForFunction(() => (window as Window & { __ready?: boolean }).__ready === true, null, { timeout: 60_000 });
+  await page.getByLabel(re('你的愿望', 'Your wish')).click();
+  await page.getByLabel(re('你的愿望', 'Your wish')).fill('No ending cue here.');
+  await page.getByRole('button', { name: re('许好了', 'Set my wish') }).click();
+  await page.getByRole('button', { name: re('走进院里', 'Step inside') }).click();
+  await page.getByRole('button', { name: re('跳过', 'Skip') }).click();
+  await page.getByRole('radio', { name: re('^10 分钟$', '^10 min$') }).click({ timeout: 30_000 });
+  await page.getByRole('button', { name: re('点亮这一盏', 'Light it') }).click({ timeout: 15_000 });
+  await expect(page.getByTestId('with-you')).toBeVisible({ timeout: 20_000 });
+  await page.getByRole('button', { name: re('^熄灭$', '^Put out$') }).click();
+  await page.getByRole('button', { name: re('熄灭并结束', 'Put out and end') }).click();
+  await expect(page.getByTestId('result-title')).toBeVisible({ timeout: 20_000 });
+  await expect.poll(() => cues.filter((c) => c.cue === 'result_loop').length, { timeout: 15_000 }).toBe(1);
+  // Long enough for a second start to appear if one were coming.
+  await page.waitForTimeout(3000);
+  expect(cues.filter((c) => c.cue === 'result_loop')).toHaveLength(1);
+  expect(cues.some((c) => c.cue === 'snow_ending_putout')).toBe(false);
+});
+
 test('the mute control is fully visible on a phone and its state survives a reload', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await serveMusic(page, ['home_loop']);

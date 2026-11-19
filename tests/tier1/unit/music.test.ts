@@ -499,16 +499,37 @@ describe('music playback', () => {
     expect(music.holdingFor('result')).toBe(false);
   });
 
-  it('starts the result loop when the ending cue is missing', async () => {
-    vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, json: async () => ({ cues: ['result_loop'] }) })));
-    const music = createMusic({ createContext: () => new FakeContext() as unknown as AudioContext });
-    await music.unlock();
-    const started = await music.play('endingPutOut', 'snow-roof');
-    expect(started).toBe(false);
-    // The caller uses that false to start the loop itself, and nothing is held.
-    expect(music.holdingFor('result')).toBe(false);
-    await music.play('result', 'snow-roof');
-    expect(cueElements().map((a) => a.src)).toContain('/music/result_loop.m4a');
+  it('starts the result loop once when the ending cue is missing, in either order', async () => {
+    // The App has two callers for the result stage: the settle path starts the loop when
+    // its ending never began, and the screen effect starts it as the result screen
+    // appears. Their order is not fixed, and only one element may be created.
+    for (const effectFirst of [true, false]) {
+      FakeAudio.instances = [];
+      FakeGain.instances = [];
+      FakeSource.instances = [];
+      vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, json: async () => ({ cues: ['result_loop'] }) })));
+      const music = createMusic({ createContext: () => new FakeContext() as unknown as AudioContext });
+      await music.unlock();
+      const started = await music.play('endingPutOut', 'snow-roof');
+      expect(started).toBe(false);
+      expect(music.holdingFor('result')).toBe(false);
+      if (effectFirst) {
+        // The result screen is reached first, then the settle callback sees that its
+        // ending never started and asks for the loop too.
+        const settling = music.play('endingPutOut', 'snow-roof');
+        await music.play('result', 'snow-roof');
+        expect(await settling).toBe(false);
+        await music.play('result', 'snow-roof');
+      } else {
+        // The settle callback finishes first and starts the loop; the screen effect then
+        // asks for the same stage.
+        await music.holdingFor('result');
+        await music.play('result', 'snow-roof');
+      }
+      await new Promise((r) => setTimeout(r, 1900));
+      expect(cueElements().filter((a) => a.src === '/music/result_loop.m4a')).toHaveLength(1);
+      expect(music.describe().channels).toBe(1);
+    }
   });
 
   it('persists the mute choice', async () => {
