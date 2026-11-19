@@ -62,7 +62,7 @@ def fascicle(batch, marks, root, direction, length, phase, rng, far):
         extent = length * rng.uniform(.67, 1.23)
         tip = plus(plus(root, spine, extent), (0., 0., 1.), extent * rng.uniform(-.13, .24))
         mid = plus(plus(root, spine, extent * .43), out, extent * .068)
-        breadth = extent * rng.uniform(.119, .228)
+        breadth = extent * rng.uniform(.20, .32)
         i = len(batch.points)
         batch.points.extend((root, plus(mid, side, breadth), tip,
                              plus(mid, side, -breadth), plus(mid, out, breadth * .49)))
@@ -111,7 +111,7 @@ def crown_mesh(index, far):
             for t in buds:
                 anchor = lerp_point(root, tip, t)
                 twig = unit(plus(direction, (0., 0., .21), rng.uniform(.02, .9)))
-                leaf = rng.uniform(.054, .104) * (1. - .34 * f)
+                leaf = rng.uniform(.066, .121) * (1. - .31 * f)
                 fascicle(batch, marks, anchor, twig, leaf, rng.uniform(0., math.tau), rng, far)
 
     for level in (.89, .934, .969, .991):

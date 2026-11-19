@@ -26,9 +26,11 @@ from pine_valley_terrain import (
 PROJECTION = ROOT / 'shared/pine-gate-backdrop.json'
 DAYLIGHT = ROOT / 'shared/pine-gate-daylight.json'
 LAYERS = ('far', 'mid', 'cloud')
-AIR_EXTINCTION = .00152
-AIR_NEAR_METRES = 22.
-AIR_SCATTER_RGB = (.092, .132, .193)
+AIR_EXTINCTION = .00061
+AIR_DEPTH_GRADIENT = .00000165
+AIR_NEAR_METRES = 19.
+AIR_SCATTER_RGB = (.060, .101, .167)
+RIPPLES = ((.0064, .205, .21, .978), (.0023, .131, -.42, .908))
 
 
 def mesh(collection, name, batch, materials=(), smooth=False):
@@ -114,10 +116,10 @@ class Shader:
     def coordinate(self):
         return self.nodes.new('ShaderNodeTexCoord').outputs['Object']
 
-    def surface(self, color, roughness, *, ior=1.45, transmission=0., bump=None, air=None):
+    def surface(self, color, roughness, *, ior=1.45, specular=.5, transmission=0., bump=None, air=None):
         node = self.nodes.new('ShaderNodeBsdfPrincipled')
-        for name, value in (('Base Color', color), ('Roughness', roughness),
-                            ('IOR', ior), ('Transmission Weight', transmission)):
+        for name, value in (('Base Color', color), ('Roughness', roughness), ('IOR', ior),
+                            ('Specular IOR Level', specular), ('Transmission Weight', transmission)):
             self.input(node.inputs[name], value)
         if bump:
             noise, strength, distance = bump
@@ -147,8 +149,8 @@ class Shader:
 
 def air_perspective():
     # Apply L = surface * exp(-sigma*d) + air * (1 - exp(-sigma*d))
-    # to opaque camera hits. The resulting RGB has atmospheric depth but
-    # the film records only actual terrain/crown coverage in alpha.
+    # to opaque camera and specular reflection hits. Alpha remains a record
+    # of actual terrain/crown coverage, and diffuse transport is untouched.
     tree = bpy.data.node_groups.new('Deterministic spectral aerial perspective', 'ShaderNodeTree')
     for direction in ('INPUT', 'OUTPUT'):
         tree.interface.new_socket(name='Surface', in_out=direction, socket_type='NodeSocketShader')
@@ -168,12 +170,14 @@ def air_perspective():
                 node.inputs[index].default_value = value
         return node.outputs[0]
 
-    extent = math_node('SUBTRACT', gaze.outputs['View Distance'], AIR_NEAR_METRES)
-    length = math_node('MAXIMUM', extent, 0.)
-    depth = math_node('MULTIPLY', length, -AIR_EXTINCTION)
-    transmittance = math_node('EXPONENT', depth, 0.)
-    fraction = math_node('SUBTRACT', 1., transmittance)
-    directly_seen = math_node('MULTIPLY', fraction, path.outputs['Is Camera Ray'])
+    primary = path.outputs['Is Camera Ray']
+    mirror = math_node('MULTIPLY', path.outputs['Is Reflection Ray'], path.outputs['Is Glossy Ray'])
+    distant = math_node('ADD', math_node('MULTIPLY', primary, gaze.outputs['View Distance']),
+                        math_node('MULTIPLY', mirror, path.outputs['Ray Length']))
+    length = math_node('MAXIMUM', math_node('SUBTRACT', distant, AIR_NEAR_METRES), 0.)
+    extinction = math_node('ADD', AIR_EXTINCTION, math_node('MULTIPLY', AIR_DEPTH_GRADIENT, length))
+    transmittance = math_node('EXPONENT', math_node('MULTIPLY', length, math_node('MULTIPLY', extinction, -1.)), 0.)
+    directly_seen = math_node('SUBTRACT', 1., transmittance)
 
     scatter = nodes.new('ShaderNodeEmission')
     scatter.inputs['Color'].default_value = (*AIR_SCATTER_RGB, 1.)
@@ -185,51 +189,74 @@ def air_perspective():
     return tree
 
 
+def water_ripples(water, position):
+    axes = water.xyz(position)
+    variation = water.noise(position, (.91, 1.08, .4), detail=2.)
+    phases = []
+    for amplitude, wavelength, across, along in RIPPLES:
+        direction = water.math('ADD', water.product(axes['X'], across), water.product(axes['Y'], along))
+        phase = water.math('ADD', water.product(direction, math.tau / wavelength), water.product(variation, 4.1))
+        phases.append(water.product(water.math('SINE', phase), amplitude))
+    return water.math('ADD', *phases), variation
+
+
 def materials(air):
-    ground = Shader('Forest litter, understory, exposed stone and paddy soil')
+    ground = Shader('Shaded pine groves, continuous understory and paddy soil')
     position = ground.coordinate()
-    grove = ground.noise(position, (.046, .052, .035), detail=3.)
-    bracken = ground.noise(position, (.61, .52, .42), detail=3.)
-    grain = ground.noise(position, (5.8, 5.4, 5.2), detail=2.)
+    grove = ground.noise(position, (.061, .071, .055), detail=3.)
+    fern = ground.noise(position, (.41, .48, .38), detail=3.)
+    grain = ground.noise(position, (3.4, 3.1, 2.3), detail=2.)
     geology = ground.nodes.new('ShaderNodeNewGeometry').outputs['Normal']
     normal = ground.xyz(geology)['Z']
-    exposure = ground.math('SUBTRACT', 1., ground.between(normal, .20, .76))
-    cracks = ground.noise(position, (.37, .42, 1.26), detail=3.)
+    exposure = ground.math('SUBTRACT', 1., ground.between(normal, .19, .66))
+    cracks = ground.noise(position, (.38, .47, 1.31), detail=2.)
 
-    mottled = ground.math('ADD', ground.product(grove, .59), ground.product(bracken, .41))
-    cover = ground.between(mottled, .24, .76)
-    litter = ground.blend((.030, .042, .019, 1.), (.063, .066, .031, 1.), grain)
-    brush = ground.blend((.026, .064, .027, 1.), (.080, .123, .049, 1.), grove)
-    hillside = ground.blend(litter, brush, cover)
-    stone = ground.blend((.068, .064, .052, 1.), (.114, .109, .087, 1.), cracks)
-    rock = ground.product(exposure, ground.between(cracks, .56, .79),
+    # A low mat of fern and mixed sapling crowns joins the larger trees.
+    branches = ground.nodes.new('ShaderNodeTexVoronoi')
+    branches.inputs['Scale'].default_value = 1.32
+    branches.inputs['Randomness'].default_value = 1.
+    ground.input(branches.inputs['Vector'], position)
+    crown = ground.between(branches.outputs['Distance'], .07, .78, 1., 0.)
+    mottled = ground.math('ADD', ground.product(fern, .58), ground.product(grove, .42))
+    cover = ground.between(mottled, .26, .81)
+    litter = ground.blend((.007, .014, .007, 1.), (.030, .043, .017, 1.), grain)
+    brush = ground.blend((.015, .043, .016, 1.), (.047, .083, .031, 1.), grove)
+    canopy_shade = ground.math('ADD', ground.product(cover, .72), ground.product(crown, .28))
+    hillside = ground.blend(litter, brush, canopy_shade)
+    stone = ground.blend((.035, .039, .033, 1.), (.073, .068, .052, 1.), cracks)
+    rock = ground.product(exposure, ground.between(cracks, .59, .83),
                           ground.math('SUBTRACT', 1., ground.product(cover, .47)))
     hillside = ground.blend(hillside, stone, rock)
 
-    soil = ground.blend((.091, .074, .044, 1.), (.146, .155, .064, 1.), bracken)
+    soil = ground.blend((.061, .069, .035, 1.), (.109, .118, .049, 1.), fern)
     cultivated = ground.nodes.new('ShaderNodeAttribute')
     cultivated.attribute_name = 'cultivated'
-    surface = ground.blend(hillside, soil, cultivated.outputs['Fac'])
-    relief = ground.math('ADD', ground.product(bracken, .75), ground.product(grain, .25))
-    result = {'ground': ground.surface(surface, .85, bump=(relief, .47, .16), air=air)}
+    soil_mask = cultivated.outputs['Fac']
+    surface = ground.blend(hillside, soil, soil_mask)
+    forest_relief = ground.math('ADD', ground.product(fern, .43), ground.product(crown, .57))
+    relief = ground.math('ADD', ground.product(forest_relief, ground.math('SUBTRACT', 1., soil_mask)),
+                         ground.product(grain, soil_mask))
+    result = {'ground': ground.surface(surface, .88, specular=.26, bump=(relief, .52, .19), air=air)}
+
+    sediment = Shader('Waterlogged silt beneath the rice beds')
+    silt = sediment.noise(sediment.coordinate(), (2.6, 2.2, 2.))
+    mud = sediment.blend((.017, .026, .016, 1.), (.045, .050, .027, 1.), silt)
+    result['silt'] = sediment.surface(mud, .88, specular=.22, bump=(silt, .19, .022), air=air)
 
     leaf = Shader('Pine fascicles and fresh needle tips')
     instance = leaf.nodes.new('ShaderNodeObjectInfo').outputs['Random']
     grain = leaf.noise(leaf.coordinate(), (17., 19., 16.), detail=2.)
     tint = leaf.math('ADD', leaf.product(instance, .57), leaf.product(grain, .43))
-    pigment = leaf.blend((.016, .044, .023, 1.), (.082, .137, .047, 1.), tint)
-    result['pine'] = leaf.surface(pigment, .78, air=air)
+    pigment = leaf.blend((.012, .030, .015, 1.), (.055, .097, .033, 1.), tint)
+    result['pine'] = leaf.surface(pigment, .82, specular=.25, air=air)
     result['bark'] = Shader('Weathered pine bark').surface((.067, .044, .029, 1.), .9, air=air)
     seedling = Shader('Translucent green rice shoots')
     result['rice'] = seedling.surface((.084, .19, .046, 1.), .54)
 
-    water = Shader('Flooded paddies, reflected atmosphere and silt')
-    water_pos = water.coordinate()
-    ripples = water.noise(water_pos, (.85, 3.7, 3.3), detail=2.)
-    shallow = water.blend((.126, .145, .080, 1.), (.241, .218, .122, 1.),
-                          water.noise(water_pos, (.30, .45, .30)))
-    result['water'] = water.surface(shallow, water.between(ripples, .22, .82, .044, .097),
-                                    ior=1.333, transmission=.92, bump=(ripples, .20, .021))
+    water = Shader('Flooded paddies with grazing wind-ripple sky reflections')
+    wave, calm = water_ripples(water, water.coordinate())
+    result['water'] = water.surface((.72, .86, .80, 1.), water.between(calm, .25, .73, .041, .088),
+                                    ior=1.333, transmission=.97, bump=(wave, .90, 1.))
 
     flow = Shader('Broken falling water and pale aeration')
     p = flow.coordinate()
@@ -239,8 +266,10 @@ def materials(air):
     falling = flow.blend((.084, .140, .139, 1.), (.64, .73, .72, 1.), foam)
     result['fall'] = flow.surface(falling, .245, ior=1.333, transmission=.46,
                                    bump=(thin, .25, .018))
-    creek = Shader('Shadowed run of water over dark stone')
-    result['creek'] = creek.surface((.063, .096, .088, 1.), .30, ior=1.333, transmission=.63)
+    creek = Shader('Shallow stream, wet rock and broken highlights')
+    disturbance = creek.noise(creek.coordinate(), (7.1, 12., 3.8), detail=2.)
+    pool = creek.blend((.049, .085, .076, 1.), (.29, .37, .33, 1.), creek.between(disturbance, .57, .83))
+    result['creek'] = creek.surface(pool, .31, ior=1.333, transmission=.40, bump=(disturbance, .18, .012))
     return result
 
 
@@ -312,25 +341,36 @@ def box(collection, name, x0, x1, d0, d1, h0, h1, mat):
 
 
 def cloud_sea(collection):
-    shader = Shader('Sunlit vapor, full volumetric extinction')
+    shader = Shader('Sunlit valley cloud and elevated drifting wisps')
     point = shader.coordinate()
     axes = shader.xyz(point)
     x, depth, y = axes['X'], axes['Y'], axes['Z']
-    broad = shader.noise(point, (.031, .105, .102), detail=4.)
-    roll = shader.noise(point, (.083, .17, .23), detail=3.)
-    breakup = shader.noise(point, (.20, .32, .43), detail=3.)
-    curl = shader.math('ADD', broad, shader.product(roll, .31))
-    shape = shader.between(shader.math('ADD', curl, shader.product(breakup, .15)), .56, .89)
-    window = shader.between(shader.math('ABSOLUTE', shader.math('SUBTRACT', x, 5.)), 8., 39.)
-    high = shader.math('ADD', shader.between(broad, .22, .81, -13., -4.7), shader.product(window, 3.2))
-    distance_below_top = shader.math('SUBTRACT', high, y)
-    crown = shader.between(distance_below_top, 0., 3.8)
-    lower = shader.between(y, -28., -17.)
-    front = shader.between(depth, 37., 56.)
-    rear = shader.between(depth, 83., 69.)
-    density = shader.product(shape, crown, lower, front, rear, .49)
-    mat = shader.volume((.94, .952, .975, 1.), density, .38)
-    box(collection, 'Foreground cloud sea, broken crowns and valley gaps', -270., 270., 36., 84., -29., .5, mat)
+    broad = shader.noise(point, (.029, .054, .19), detail=4.)
+    swell = shader.noise(point, (.085, .12, .083), detail=3.)
+    wisps = shader.noise(point, (.054, .087, .48), detail=3.)
+    folds = shader.noise(point, (.28, .31, .43), detail=3.)
+
+    bulks = shader.math('ADD', shader.product(broad, .59), shader.product(swell, .29))
+    bulk_shape = shader.between(shader.math('ADD', bulks, shader.product(folds, .12)), .33, .71)
+    open_fields = shader.between(shader.math('ABSOLUTE', shader.math('SUBTRACT', x, 11.)), 13., 41.)
+    top = shader.math('ADD', shader.between(swell, .22, .82, -14.6, -7.9), shader.product(open_fields, 2.5))
+    volume_below_top = shader.between(shader.math('SUBTRACT', top, y), 0., 3.8)
+    lower = shader.between(y, -31., -19.)
+    near_envelope = shader.product(shader.between(depth, 36., 55.), shader.between(depth, 110., 77.))
+    near = shader.product(bulk_shape, volume_below_top, lower, near_envelope, .31)
+
+    # Less dense, thinner banks wrap the bend beyond the first cloud front.
+    crest = shader.between(swell, .18, .82, -14.3, -8.15)
+    from_crest = shader.math('SUBTRACT', y, crest)
+    upper_fade = shader.between(from_crest, 1.9, -.75)
+    lower_fade = shader.between(from_crest, -5., -1.8)
+    depth_envelope = shader.product(shader.between(depth, 70., 96.), shader.between(depth, 154., 119.))
+    broken = shader.between(shader.math('ADD', shader.product(wisps, .82), shader.product(folds, .18)), .39, .72)
+    bands = shader.product(upper_fade, lower_fade, depth_envelope, broken, .34)
+    side_fade = shader.between(shader.math('ABSOLUTE', shader.math('SUBTRACT', x, 7.)), 168., 102.)
+    density = shader.product(shader.math('ADD', near, bands), side_fade)
+    mat = shader.volume((.926, .947, .982, 1.), density, .33)
+    box(collection, 'Two volumetric cloud banks with irregular valley gaps', -170., 182., 35., 156., -32., -4.8, mat)
 
 
 def plunge_spray(collection, end):
@@ -452,7 +492,10 @@ def build(scene, land, fields, river, forests):
 
     earth, water, rice, _ = fields
     middle = layers['mid']
-    mesh(middle, 'Joined soil contours and raised bunds', earth, [surface['ground']])
+    banks = mesh(middle, 'Joined soil contours and raised bunds', earth, [surface['ground'], surface['silt']])
+    for index in earth.sediment_faces:
+        banks.data.polygons[index].material_index = 1
+    occluders = (*occluders, banks)
     mesh(middle, 'Fourteen horizontal flooded rice beds', water, [surface['water']])
     mesh(middle, 'Sparse late-spring rice shoots', rice, [surface['rice']])
     creek, falls, end, _ = river
@@ -575,9 +618,11 @@ def main():
                          for name in ('pine_valley_backdrop.py', 'pine_valley_terrain.py', 'pine_valley_exr.py',
                                       'pine_valley_crowns.py')},
         'terrainSplitDownrangeMetres': FAR_START,
-        'atmosphere': {'model': 'camera-hit Beer-Lambert aerial perspective',
+        'atmosphere': {'model': 'Beer-Lambert aerial perspective at opaque camera and reflection hits',
                        'rawLinearRec709Airlight': AIR_SCATTER_RGB, 'extinctionPerMetre': AIR_EXTINCTION,
-                       'clearNearMetres': AIR_NEAR_METRES},
+                       'depthGradient': AIR_DEPTH_GRADIENT, 'clearNearMetres': AIR_NEAR_METRES},
+        'paddyRippleTrains': [{'amplitudeMetres': a, 'wavelengthMetres': length,
+                               'windDirection': [x, depth]} for a, length, x, depth in RIPPLES],
         'cameraVisibility': {'far': 'opaque SRTM ridges and geometrical pine crown coverage',
                              'mid': 'middle ridge, fields, and waterfall',
                              'cloud': 'cloud sea with opaque middle terrain and forest as camera holdouts'},

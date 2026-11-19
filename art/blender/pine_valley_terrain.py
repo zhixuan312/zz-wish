@@ -144,6 +144,7 @@ class Batch:
     faces: list = field(default_factory=list)
     masks: list = field(default_factory=list)
     normals: list = field(default_factory=list)
+    sediment_faces: list = field(default_factory=list)
 
     def loft(self, rows, weights=None, reverse=False):
         start, width = len(self.points), len(rows[0])
@@ -203,7 +204,13 @@ def paddies(land):
             if index:
                 outer_left.append([(x0, depth, HEIGHTS[index - 1] + .085), row[0]])
             outer_right.append([row[-1], (x1, depth, base + .085)])
+        first = len(banks.faces)
         banks.loft(bed, [1.] * len(bed))
+        for j, (front, back) in enumerate(zip(bed, bed[1:])):
+            midpoint = .5 * (front[3][1] + back[3][1])
+            submerged = max(front[3][2], back[3][2]) < base + .056
+            if submerged and any(a <= midpoint <= b for a, b in spans):
+                banks.sediment_faces.append(first + 7 * j + 3)
         if outer_left:
             banks.loft(outer_left, [1.] * len(outer_left))
         else:
@@ -260,8 +267,20 @@ def paddies(land):
 
 def forest_spacing(depth, far):
     if far:
-        return lerp(1.86, 4.75, smooth(FAR_START, 670., depth))
-    return lerp(.54, 1.44, smooth(34., FAR_START, depth))
+        return lerp(1.02, 4.1, smooth(FAR_START, 660., depth))
+    return lerp(.49, .83, smooth(57., FAR_START, depth))
+
+
+def climate(x, depth, size, salt):
+    ix, iz = math.floor(x / size), math.floor(depth / size)
+
+    def patch(ax, az):
+        key = ((ax + 2009) * 0x9e3779b1 ^ (az + 1877) * 0x85ebca6b ^ salt) & 0xffffffff
+        key = ((key ^ (key >> 16)) * 0x45d9f3b) & 0xffffffff
+        return (key ^ (key >> 16)) / 4294967295.
+
+    u, v = smooth(0., 1., x / size - ix), smooth(0., 1., depth / size - iz)
+    return lerp(lerp(patch(ix, iz), patch(ix + 1, iz), u), lerp(patch(ix, iz + 1), patch(ix + 1, iz + 1), u), v)
 
 
 def forest_points(land, far, variants=4):
@@ -269,42 +288,48 @@ def forest_points(land, far, variants=4):
     batches = [([], [], []) for _ in range(variants)]
     start = FAR_START if far else 27.
     end = min(land.depths[-1], 810.) if far else FAR_START
-    near_edge = 84. if not far else -1.
     d0 = start
     while d0 < end:
         spacing = forest_spacing(d0, far)
         lateral = min(land.x[-1] - 2., 1.34 * (d0 + 8.))
         for col in range(math.ceil(lateral * 2. / spacing)):
-            depth = d0 + rng.uniform(.06, .94) * spacing
-            x = -lateral + (col + rng.uniform(.03, .97)) * spacing
+            depth = d0 + rng.uniform(.045, .955) * spacing
+            x = -lateral + (col + rng.uniform(.025, .975)) * spacing
             if depth >= end or not land.x[0] + 2. < x < land.x[-1] - 2.:
                 continue
             y = land.height(x, depth)
             if y < -28.6:
                 continue
             river = math.inf if far else land.east_water(depth)
-            if abs(x - river) < 1.13:
+            from_stream = abs(x - river)
+            if from_stream < .28 + .18 * (.5 + .5 * math.cos(depth * 1.04)):
                 continue
-            if near_edge < depth < 119. and land.edge(depth, 0, river) - .76 < x < land.edge(depth, 7, river) + .80:
+            if not far and 84. < depth < 119. and land.edge(depth, 0, river) - .86 < x < land.edge(depth, 7, river) + .80:
                 continue
 
             steep = math.hypot(land.height(x + .65, depth) - land.height(x - .65, depth),
                                land.height(x, depth + .65) - land.height(x, depth - .65)) / 1.3
-            wet = .5 + .24 * math.sin(x * .117 + depth * .058) + .22 * math.sin(depth * .223 - x * .168)
-            patch = .5 + .29 * math.sin(.39 * x - .29 * depth) + .17 * math.cos(.51 * depth + .44 * x)
-            ridge = smooth(.82, 2., steep)
-            density = lerp(.67, 1., .55 * wet + .45 * patch) * lerp(1., .64, ridge)
+            wet = climate(x, depth, 16., 197)
+            patch = climate(x, depth, 4.7, 331)
+            ridge = smooth(.88, 2.8, steep)
+            density = lerp(.80, .995, .64 * wet + .36 * patch) * lerp(1., .65, ridge)
             if rng.random() > density:
                 continue
 
-            age = clamp(.67 * rng.random() + .33 * wet - .12 * ridge)
-            height = lerp(.37, 1.21, age ** .94)
-            width = lerp(.61, 1.14, patch) * height
-            kind = 0 if age < .34 else 2 if ridge > .46 else rng.choice((1, 1, 3))
+            stream_shrub = 1. - smooth(.43, 1.35, from_stream)
+            age = clamp(.64 * rng.random() + .36 * wet - .06 * ridge - .36 * stream_shrub)
+            height = lerp(.40, 1.20, age ** .95)
+            width = lerp(.82, 1.28, patch) * height * (1. + .24 * stream_shrub)
+            if age < .32:
+                kind = 0
+            elif ridge > .39 or (wet > .58 and patch < .48):
+                kind = 2
+            else:
+                kind = rng.choice((1, 1, 3))
             points, scales, rotation = batches[kind]
-            points.append((x, depth, y - .027))
+            points.append((x, depth, y - .029))
             scales.append((width, width, height))
-            rotation.append((rng.uniform(-.13, .13), rng.uniform(-.13, .13), rng.uniform(0., math.tau)))
+            rotation.append((rng.uniform(-.112, .112), rng.uniform(-.112, .112), rng.uniform(0., math.tau)))
         d0 += spacing
     return batches
 
@@ -330,11 +355,16 @@ def drainage(land):
             before, after = expanded[max(0, i - 1)], expanded[min(len(expanded) - 1, i + 1)]
             dx, dd = after[0] - before[0], after[1] - before[1]
             segment = max(.001, math.hypot(dx, dd))
-            width = (.13 + .24 * math.sqrt(min(area, 1600.) / 1600.)) * (.67 if branch else 1.)
+            width = (.10 + .20 * math.sqrt(min(area, 1600.) / 1600.)) * (.64 if branch else 1.)
+            width *= .79 + .20 * math.sin(depth * 1.38 + .43 * x) + .10 * math.sin(depth * 4.29)
             row = []
-            for side in (-1., 0., 1.):
+            for side in (-1., -.67, -.30, 0., .34, .72, 1.):
                 edge, edge_depth = x + dd / segment * side * width, depth - dx / segment * side * width
-                row.append((edge, edge_depth, land.height(edge, edge_depth) + .061))
+                # Let narrow damp runnels meet the native bank by intersection.
+                # A raised edge draws a continuous artificial line on a steep slope.
+                lip = .033 + .011 * math.sin(depth * 2.2 + .8 * x)
+                lip -= .061 * smooth(.34, 1., abs(side))
+                row.append((edge, edge_depth, land.height(edge, edge_depth) + lip))
             rows.append(row)
             if branch or i < len(expanded) * .26 or i > len(expanded) * .78:
                 continue
@@ -367,4 +397,5 @@ def drainage(land):
     falls.loft(rows)
     occluded = sum(y < land.height(x, depth) for x, depth, y in falls.points)
     return creek, falls, end, {'dropMetres': drop, 'reachMetres': reach, 'occludedVertices': occluded,
-                               'vertices': len(falls.points)}
+                               'vertices': len(falls.points), 'buriedCreekBankVertices': sum(
+                                   y < land.height(x, depth) for x, depth, y in creek.points)}
