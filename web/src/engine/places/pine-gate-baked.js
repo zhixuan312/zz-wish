@@ -12,6 +12,8 @@ import { buildPineRidgeFascicles } from './pine-ridge-fascicles.js';
 import { buildPineBankVerge } from './pine-bank-verge.js';
 import { dressAncientPineBark } from './pine-ancient-bark.js';
 import { dressPineCrestCloth } from './pine-crest-cloth.js';
+import { createWishCloth } from './pine-wish-cloth.js';
+import { createCandleSlots } from './pine-candle-slots.js';
 import { dressPineWetTreads } from './pine-wet-treads.js';
 import { pineDaySunDirection, pineDaySunDiscEdges } from './pine-gate-sun.js';
 import crestNeedleAnchors from './pine-crest-needle-anchors.json' with { type: 'json' };
@@ -190,6 +192,35 @@ export default function createPlace(h) {
       context.up.push((dt, time, daylight) => life.update(dt, time, daylight));
       baked.life = life;
       context.disposers.push(life.dispose);
+
+      // The visitor's red cloth, tied under the candle stand. It lives with the place, not
+      // with the lamp, so rebuilding the candle never removes it and both endings keep it.
+      // Fixed, authored order of free places on the shrine shelf. The first candle takes the
+      // centre, and each later one moves to the next place while the earlier remnant stays.
+      // Coordinates are metres in the place group, offset from the lamp anchor.
+      const slots = createCandleSlots();
+      baked.candleOffset = slots.current;
+      baked.takeCandleSlot = slots.take;
+      if (import.meta.env.DEV) {
+        window.__pineCandleSlot = () => ({ index: slots.index, current: slots.current() });
+      }
+      const cloth = createWishCloth({
+        THREE, anchor: V3(...baked.manifest.lampAnchor), seed: 3,
+      });
+      cloth.group.visible = false;
+      baked.group.add(cloth.group);
+      baked.wishCloth = cloth;
+      if (import.meta.env.DEV) {
+        // Read by the Tier 1 test: the strip must exist under the candle stand while burning
+        // and stay after the ending.
+        window.__pineWishCloth = () => ({
+          visible: cloth.group.visible,
+          position: cloth.worldPosition().toArray(),
+          anchor: [baked.manifest.lampAnchor[0], baked.manifest.lampAnchor[1], baked.manifest.lampAnchor[2]],
+        });
+      }
+      context.up.push(() => cloth.update(life.gust()));
+      context.disposers.push(cloth.dispose);
     },
 
     // The visitor lights the central recess. The right edge opens to the valley.

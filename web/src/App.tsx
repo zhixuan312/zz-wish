@@ -164,7 +164,10 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
     const b = new Burn(minutes! * 60_000, (s: Settlement) => {
       presence.stopBurning(); sound.stop();
       burnRef.current = null;
-      void engine.snuff(s.done, isWax ? remainingFuel(Math.floor(s.burnedMs), b.planned) : undefined);
+      // Leaving the page on Pine Gate is the mountain gust: the flame is pushed aside
+      // before it dies, and the place's cloth and needles swing with it.
+      const gust = engine.isLeavingGust(lightPlace, s.reason);
+      void engine.snuff(s.done, isWax ? remainingFuel(Math.floor(s.burnedMs), b.planned) : undefined, gust);
       setResult({ done: s.done, burnedMs: s.burnedMs, plannedMs: b.planned, reason: s.reason, saved: null });
       setScreen('result'); setAskLeave(null);
       s.saved.then((c) => setResult((r) => r && { ...r, saved: !!c }));

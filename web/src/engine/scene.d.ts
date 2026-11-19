@@ -15,7 +15,7 @@ export function travel(id: PlaceId): Promise<void>;
 export function skip(): void;
 export function ignite(options?: IgnitionOptions): Promise<void>;
 export function renderLampThumbnail(shape: Shape, options: LampThumbnailOptions): Promise<string>;
-export function snuff(done?: boolean, remaining?: number): Promise<void>;
+export function snuff(done?: boolean, remaining?: number, gust?: boolean): Promise<void>;
 
 export function setPhase(phase: ScenePhase): void;
 export function setPowerSaver(on: boolean): void;

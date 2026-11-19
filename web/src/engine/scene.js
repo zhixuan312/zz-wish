@@ -1994,7 +1994,10 @@ function attachMine() {
     place.visitorPivot.position.copy(place.nookG.worldToLocal(V3(...(N.hangingPoint??[basis[0],3.22,basis[2]]))));
     place.visitorPivot.rotation.set(0,0,0);place.nookG.add(place.visitorPivot);place.visitorPivot.add(mine.g);
   }else place.nookG.add(mine.g);
-  mine.g.position.set(0, N.y, 0);
+  // Successive candles in one visit take the next fixed place on the shelf, leaving the
+  // earlier remnant visible where it stood.
+  const slot = place.baked?.candleOffset?.() ?? [0, 0, 0];
+  mine.g.position.set(slot[0], N.y + slot[1], slot[2]);
   mine.g.rotation.set(0,0,0);
   mine.setType(N.lamp);
   const fixedIndirectBasis = place.baked?.manifest.bake?.lampPassQuantity === 'indirect-diffuse-radiance-per-unit-albedo';
@@ -2332,6 +2335,11 @@ export async function ignite({onCatch, remainingFuel}={}) {
       position: rig.pos.toArray(), look: rig.look.toArray(), fov: rig.fov ?? camera.fov, ...evidence };
   };
   lit=true;emberUntil=0;wickPlume.clear();shadeCoolingUntil=0;shadeCoolingGlow=0;shadeCoolingStart=0;shadeCoolingTau=0;roomLight=1;ignitionFill=place.P.bakedLighting?1:0;previewFloor=1;mark('igniting',0);
+  // This candle has taken its place; the next lighting in the same visit moves on, leaving
+  // this remnant where it stands.
+  place?.baked?.takeCandleSlot?.();
+  // The wish strip is tied on when the lamp is lit and stays, through either ending.
+  if (place?.baked?.wishCloth) place.baked.wishCloth.group.visible = true;
   const pine = !!mine.parts?.pineWax;
   if (pine) waxFuel = remainingFuel ?? null;
   if (!place.P.bakedLighting) {
@@ -2419,9 +2427,16 @@ export async function ignite({onCatch, remainingFuel}={}) {
   });
   if(active())mark('settled',1);
 }
-/** Put the flame out with a thread of smoke. */
-export async function snuff(done = false, remaining) {
+/** Put the flame out with a thread of smoke. A `gust` bends the flame hard before it dies. */
+export async function snuff(done = false, remaining, gust = false) {
   // Only visuals: settlement and persistence have already happened synchronously.
+  // A mountain gust is the Pine Gate reason for a lamp going out when the visitor leaves:
+  // the flame is pushed aside, then dies, and the place's cloth and needles swing with it.
+  if (gust && !done && place?.baked?.life?.gustBlast) {
+    const journeyAtGust = cameraJourneyVersion;
+    await place.baked.life.gustBlast(1.5);
+    if (journeyAtGust !== cameraJourneyVersion) return;
+  }
   const lastPower=mine.power*(lit?Math.min(1,level*25):1);
   const lastGlow=Math.max(0,...(mine.parts?.shells??[]).map(material=>material.userData.u.uGlow.value/material.userData.strength));
   lit = false;

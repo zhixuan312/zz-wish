@@ -85,5 +85,6 @@ export const renderLampThumbnail = (shape: Shape, options: LampThumbnailOptions)
 export const travel = (id: PlaceId) => initialize().then(s => s.travel(id));
 export const toCover = () => initialize().then(s => s.toCover());
 export const ignite = (options: IgnitionOptions = {}) => initialize().then(s => s.ignite(options));
-export const snuff = (done = false, remaining?: number) => initialize().then(s => s.snuff(done, remaining));
+export const snuff = (done = false, remaining?: number, gust = false) => initialize().then(s => s.snuff(done, remaining, gust));
+export { isLeavingGust } from './places/pine-gust.ts';
 export const skip = () => { void initialize().then(s => s.skip()).catch(() => {}); };
