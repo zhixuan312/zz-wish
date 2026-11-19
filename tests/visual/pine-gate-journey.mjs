@@ -111,7 +111,7 @@ const browserOnly = process.env.CAPTURE_BROWSER;
 const contextOnly = process.env.CAPTURE_ONLY;
 const hour = Number(process.env.PINE_HOUR ?? 22);
 assert(Number.isFinite(hour) && hour >= 0 && hour < 24, 'PINE_HOUR must be in [0,24).');
-const suite = (mode === 'm3' ? ['chromium', 'webkit'] : ['chromium'])
+const suite = (mode === 'm3' || (walkTierAudit && browserOnly === 'webkit') ? ['chromium', 'webkit'] : ['chromium'])
   .filter(name => !browserOnly || name === browserOnly);
 const sizes = [
   { name: 'desktop', width: 1440, height: 900, phone: false },
