@@ -517,16 +517,23 @@ def pack_stair_grit(rows, bed, granite):
     for top, _, low, high, _ in rows:
         if not 7.6 <= (low + high) / 2 <= 36.1:
             continue
-        placed = 0
-        for _ in range(21):
-            z = rng.uniform(low + .02, high - .02)
+        seats = []
+        for attempt in range(160):
+            if attempt % 3:
+                # The shallow groove below the nose catches coarse grit washed
+                # from the tread. The rest settles in lengthwise joints.
+                z = rng.uniform(max(low + .02, high - .15), high - .008)
+            else:
+                z = rng.uniform(low + .02, high - .02)
             bend, half_span = section_at(z)
             x = bend + rng.uniform(-half_span, half_span)
             height = available(x, z, top + .07)
             if height is None:
                 continue
             angle = rng.uniform(0., math.tau)
-            extent = rng.uniform(.012, .031)
+            extent = rng.uniform(.007, .029)
+            if any(math.hypot(x - px, z - pz) < extent + radius + .003 for px, pz, radius in seats):
+                continue
             perimeter = []
             for i in range(5):
                 a = angle + math.tau * i / 5
@@ -538,10 +545,10 @@ def pack_stair_grit(rows, bed, granite):
             if len(perimeter) != 5:
                 continue
             center = len(points)
-            points.extend(((x, height + rng.uniform(.004, .014), z), *perimeter))
+            points.extend(((x, height + rng.uniform(.005, .019), z), *perimeter))
             faces.extend((center, center + 1 + (i + 1) % 5, center + 1 + i) for i in range(5))
-            placed += 1
-            if placed == 2:
+            seats.append((x, z, extent))
+            if len(seats) == 6:
                 break
     if points:
         grit = mesh.mesh_object('Crushed lichen-bearing granite lodged in the footpath', points, faces,
