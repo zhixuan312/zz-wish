@@ -1,3 +1,5 @@
+import { FrontSide } from 'three';
+
 const graniteName = 'Wet carved granite of the spring basin';
 const waterName = 'Clear water in the granite spring basin';
 const jetName = 'Running spring water below the bamboo spout';
@@ -24,6 +26,7 @@ function installBasinWater(material, phase) {
   const impact = material.userData.pine_spring_impact;
   const depth = material.userData.pine_spring_depth;
   blendWater(material);
+  material.side = FrontSide;
   decorate(material, shader => {
     shader.uniforms.uPineSpringTime = phase;
     shader.uniforms.uPineSpringImpact = { value: [impact[0], impact[2]] };
@@ -50,7 +53,11 @@ function installBasinWater(material, phase) {
         // A mostly transmitted view of the baked stone bottom and a moving
         // reflection of the sky. Refraction controls the in-water ray length.
         float facing = clamp(dot(geometryViewDir, normal), 0., 1.);
-        float reflectionWeight = .0204 + .9796 * pow(1. - facing, 5.);
+        float fresnel = .0204 + .9796 * pow(1. - facing, 5.);
+        // Unresolved slopes in the falling stream briefly turn additional
+        // wave crests toward the sky. Keep the quiet water mostly clear.
+        float brightCrest = pow(max(0., first), 4.) * decay;
+        float reflectionWeight = mix(fresnel, 1., brightCrest * .128);
         vec3 transmitted = refract(-geometryViewDir, normal, .7502);
         float pathLength = uPineSpringDepth / max(.65, -dot(transmitted, normal));
         float absorption = (1. - reflectionWeight) * (1. - exp(-.59 * pathLength));
@@ -59,7 +66,7 @@ function installBasinWater(material, phase) {
           reflection = radiance;
           #if defined(RE_IndirectDiffuse) && defined(USE_LIGHTMAP)
             float exposure = dot(irradiance, vec3(.2126, .7152, .0722));
-            reflection *= mix(.42, .88, smoothstep(.22, 3.6, exposure));
+            reflection *= mix(.60, .89, smoothstep(.22, 3.6, exposure));
           #endif
         #endif
         float opacity = reflectionWeight + absorption;
