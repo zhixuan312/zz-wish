@@ -59,18 +59,27 @@ function needleAnchors(primitive, height) {
 function branchSurface(primitive, height) {
   const positions = primitive.getAttribute('POSITION').getArray();
   const uv = primitive.getAttribute('TEXCOORD_0');
+  const normal = primitive.getAttribute('NORMAL');
   const coordinates = [0, 0];
+  const direction = [0, 0, 0];
   const [indices] = MeshoptSimplifier.simplify(Uint32Array.from(primitive.getIndices().getArray()),
     positions, 3, 3000, .006);
   const remap = new Map();
   const vertices = [];
   const surf = [];
+  const normals = [];
   for (const index of indices) {
     if (!remap.has(index)) {
       remap.set(index, remap.size);
       vertices.push(...positions.subarray(index * 3, index * 3 + 3).map(x => Math.round(x / height * 8192)));
       uv.getElement(index, coordinates);
       surf.push(...coordinates.map(value => Math.round(value * 2048)));
+      // Simplification can leave individual UV seam vertices with opposing
+      // incident faces. Keep the source shading basis across those seams.
+      normal.getElement(index, direction);
+      const length = Math.hypot(...direction);
+      assert(Number.isFinite(length) && length > .5, `Invalid bark source normal at vertex ${index}`);
+      normals.push(...direction.map(value => Math.round(value / length * 32767)));
     }
   }
   const encode = (values, signed) => {
@@ -81,7 +90,12 @@ function branchSurface(primitive, height) {
     }
     return data.toString('base64');
   };
-  return { positions: encode(vertices, true), uv: encode(surf, true), indices: encode([...indices].map(i => remap.get(i)), false) };
+  return {
+    positions: encode(vertices, true),
+    uv: encode(surf, true),
+    normals: encode(normals, true),
+    indices: encode([...indices].map(i => remap.get(i)), false),
+  };
 }
 
 const crowns = {};

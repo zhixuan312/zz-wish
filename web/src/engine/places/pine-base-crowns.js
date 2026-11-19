@@ -12,9 +12,9 @@ function barkGeometry(data) {
     Float32Array.from({ length: view.byteLength / 2 }, (_, i) => view.getInt16(i * 2, true) / scale), count);
   geometry.setAttribute('position', attribute(vertices, 3, 8192));
   geometry.setAttribute('uv', attribute(uv, 2, 2048));
+  geometry.setAttribute('normal', attribute(binary(data.normals), 3, 32767));
   geometry.setIndex(new THREE.BufferAttribute(
     Uint16Array.from({ length: indices.byteLength / 2 }, (_, i) => indices.getUint16(i * 2, true)), 1));
-  geometry.computeVertexNormals();
   return geometry;
 }
 
