@@ -448,7 +448,9 @@ async function capture(browser, browserName, size, trial) {
       if (canvasDiagnostic && !phone) {
         const uri = await page.evaluate(() => new Promise(resolve => { window.__pineReadCanvas = resolve; }));
         assert(uri.startsWith('data:image/png;base64,'), 'Could not read the composed Pine Gate canvas.');
-        const canvasFile = join(output, 'diagnostics', name + '-canvas.png');
+        const diagnostics = join(output, 'diagnostics');
+        await mkdir(diagnostics, { recursive: true });
+        const canvasFile = join(diagnostics, name + '-canvas.png');
         const canvasBytes = Buffer.from(uri.slice('data:image/png;base64,'.length), 'base64');
         await writeFile(canvasFile, canvasBytes);
         extra.canvasDiagnostic = { file: relative(output, canvasFile), sha256: hash(canvasBytes) };
