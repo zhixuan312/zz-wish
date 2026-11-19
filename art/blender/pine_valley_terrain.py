@@ -15,6 +15,8 @@ ROOT = Path(__file__).resolve().parents[2]
 ELEVATION = ROOT / 'web/src/engine/places/pine-gate-elevation.data.js'
 ELEVATION_SHA256 = '08775a297288efb8bf5d10cda9e83f5933fad67a893cc9a593d9e634b3e1c70b'
 FIELD_NEAR, FIELD_FAR = 87., 116.
+PADDY_WATER_DEPTH = .056
+LONG_BUND_RISE, LONG_BUND_VARIATION, CROSS_BUND_RISE = .106, .012, .104
 FAR_START = 214.
 OFFSETS = (-10.4, -7.6, -4.8, -1.7, 1.7, 4.8, 7.8, 10.6)
 HEIGHTS = (-7.31, -6.68, -6.05, -5.42, -4.79, -4.16, -3.53)
@@ -145,6 +147,7 @@ class Batch:
     masks: list = field(default_factory=list)
     normals: list = field(default_factory=list)
     sediment_faces: list = field(default_factory=list)
+    moisture: list = field(default_factory=list)
 
     def loft(self, rows, weights=None, reverse=False):
         start, width = len(self.points), len(rows[0])
@@ -175,6 +178,32 @@ def earth_contact(batch, land, edge, across, width, reverse=False):
     batch.loft(rows, weights, reverse)
 
 
+def bank_moisture(land, banks, spans):
+    # Follow the real wet footprint. A bank darkens above the waterline and
+    # dries out as it leaves the pond, including across the end bunds.
+    ranges = {}
+    result = []
+    for (x, depth, height), managed in zip(banks.points, banks.masks):
+        if managed < .002:
+            result.append(0.)
+            continue
+        if depth not in ranges:
+            river = land.east_water(depth)
+            edges = [land.edge(depth, i, river) for i in range(len(OFFSETS))]
+            ranges[depth] = [(edges[bed['bed'] - 1] + .452, edges[bed['bed']] - .487,
+                              max(0., bed['start'] - depth, depth - bed['end']), bed['water']) for bed in spans]
+        candidates = ranges[depth]
+        falloff = 0.
+        for left, right, along, water in candidates:
+            distance = math.hypot(max(0., left - x, x - right), along)
+            if distance >= .43 or abs(height - water) >= .19:
+                continue
+            near = (1. - smooth(.038, .43, distance)) * (1. - smooth(.019, .19, abs(height - water)))
+            falloff = max(falloff, near)
+        result.append(falloff)
+    return result
+
+
 def paddies(land):
     banks, floods, seedlings = Batch(), Batch(), Batch()
     ends = [[], []]
@@ -194,8 +223,8 @@ def paddies(land):
         bed, outer_left, outer_right = [], [], []
         for depth in ticks:
             x0, x1 = land.edge(depth, index), land.edge(depth, index + 1)
-            cross = .23 * clamp((.24 - min(abs(depth - c) for c in transverse)) / .155)
-            crest = .224 + .017 * math.sin(depth * .41 + index * 1.21)
+            cross = CROSS_BUND_RISE * clamp((.24 - min(abs(depth - c) for c in transverse)) / .155)
+            crest = LONG_BUND_RISE + LONG_BUND_VARIATION * math.sin(depth * .41 + index * 1.21)
             profile = ((.24, 0), (.31, crest), (.37, crest), (.46, 0),
                        (x1 - x0 - .49, 0), (x1 - x0 - .41, crest), (x1 - x0 - .36, crest),
                        (x1 - x0 - .30, 0))
@@ -208,7 +237,7 @@ def paddies(land):
         banks.loft(bed, [1.] * len(bed))
         for j, (front, back) in enumerate(zip(bed, bed[1:])):
             midpoint = .5 * (front[3][1] + back[3][1])
-            submerged = max(front[3][2], back[3][2]) < base + .056
+            submerged = max(front[3][2], back[3][2]) < base + PADDY_WATER_DEPTH
             if submerged and any(a <= midpoint <= b for a, b in spans):
                 banks.sediment_faces.append(first + 7 * j + 3)
         if outer_left:
@@ -225,7 +254,7 @@ def paddies(land):
             x1 = row[-1][0]
             ends[end].extend([(x, depth, base) for x in stations(x0, x1, 6)] + [outer[-1]])
 
-        water_height = base + .056
+        water_height = base + PADDY_WATER_DEPTH
         for a, b in spans:
             def edges(depth):
                 return land.edge(depth, index) + .452, land.edge(depth, index + 1) - .487
@@ -236,7 +265,8 @@ def paddies(land):
                 rows.append([(x0, depth, water_height), (x1, depth, water_height)])
             floods.loft(rows)
             audit.append({'bed': index + 1, 'start': a, 'end': b, 'water': water_height,
-                          'minimumCrestClearance': min(.23, .224 - .017) - .056})
+                          'minimumCrestClearance': min(CROSS_BUND_RISE, LONG_BUND_RISE - LONG_BUND_VARIATION)
+                          - PADDY_WATER_DEPTH})
 
             # The young rice leaves most of the water open to the sky.
             for depth in stations(a + .35, b - .35, max(1, round((b - a) / .46))):
@@ -262,6 +292,7 @@ def paddies(land):
             return x + land.center(shifted) - land.center(depth), shifted
 
         earth_contact(banks, land, profile, across, 1.9, reverse=not end)
+    banks.moisture = bank_moisture(land, banks, audit)
     return banks, floods, seedlings, audit
 
 

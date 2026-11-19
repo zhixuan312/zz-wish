@@ -52,6 +52,11 @@ def mesh(collection, name, batch, materials=(), smooth=False):
             raise ValueError(f'{name} has partial soil grading attributes.')
         mask = data.attributes.new('cultivated', 'FLOAT', 'POINT')
         mask.data.foreach_set('value', batch.masks)
+    if batch.moisture:
+        if len(batch.moisture) != len(batch.points):
+            raise ValueError(f'{name} has partial bank moisture attributes.')
+        damp = data.attributes.new('paddyMoisture', 'FLOAT', 'POINT')
+        damp.data.foreach_set('value', batch.moisture)
     obj = bpy.data.objects.new(name, data)
     collection.objects.link(obj)
     return obj
@@ -302,7 +307,12 @@ def materials(air, audit_paddy=False):
                           ground.math('SUBTRACT', 1., ground.product(cover, .47)))
     hillside = ground.blend(hillside, stone, rock)
 
-    soil = ground.blend((.061, .069, .035, 1.), (.109, .118, .049, 1.), fern)
+    crest_grass = ground.blend((.042, .058, .028, 1.), (.083, .102, .048, 1.), fern)
+    damp_soil = ground.blend((.023, .029, .018, 1.), (.049, .056, .033, 1.), grain)
+    moisture = ground.nodes.new('ShaderNodeAttribute')
+    moisture.attribute_name = 'paddyMoisture'
+    wet = ground.product(moisture.outputs['Fac'], ground.between(fern, .22, .78, .61, .96))
+    soil = ground.blend(crest_grass, damp_soil, wet)
     cultivated = ground.nodes.new('ShaderNodeAttribute')
     cultivated.attribute_name = 'cultivated'
     soil_mask = cultivated.outputs['Fac']
@@ -311,7 +321,9 @@ def materials(air, audit_paddy=False):
                                   ground.product(grain, .19))
     relief = ground.math('ADD', ground.product(forest_relief, ground.math('SUBTRACT', 1., soil_mask)),
                          ground.product(grain, soil_mask))
-    result = {'ground': ground.surface(surface, .88, specular=.26, bump=(relief, .52, .19), air=air)}
+    bank_wetness = ground.product(soil_mask, wet)
+    roughness = ground.between(bank_wetness, 0., 1., .88, .68, smooth=False)
+    result = {'ground': ground.surface(surface, roughness, specular=.26, bump=(relief, .52, .19), air=air)}
 
     sediment = Shader('Waterlogged silt beneath the rice beds')
     silt = sediment.noise(sediment.coordinate(), (2.6, 2.2, 2.))
