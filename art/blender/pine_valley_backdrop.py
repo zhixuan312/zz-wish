@@ -199,7 +199,7 @@ def materials(air):
     mottled = ground.math('ADD', ground.product(grove, .59), ground.product(bracken, .41))
     cover = ground.between(mottled, .24, .76)
     litter = ground.blend((.030, .042, .019, 1.), (.063, .066, .031, 1.), grain)
-    brush = ground.blend((.026, .064, .027, 1.), (.080, .123, .049, 1.), groove)
+    brush = ground.blend((.026, .064, .027, 1.), (.080, .123, .049, 1.), grove)
     hillside = ground.blend(litter, brush, cover)
     stone = ground.blend((.068, .064, .052, 1.), (.114, .109, .087, 1.), cracks)
     rock = ground.product(exposure, ground.between(cracks, .56, .79),
