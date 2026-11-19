@@ -647,3 +647,15 @@ Capture source `714a93d`, with all 130 crest mounts unchanged, uses isolated 32-
 Source `7be59e7` uses isolated 32-sample package `d3d82f8c`, with 14,989,662 entry bytes, 29,278,403 phone bytes and 36,684,123 desktop bytes. The independent Chromium run enables Step inside at 3.435 and 2.439 seconds, shows native valley layers by 20.033 and 20.016 seconds, and measures 29.99 FPS in phone burning. Captures record zero runtime errors, HTTP errors and source reloads. That source passed lint, typecheck, the evidence check and Tier 1 with 62 unit tests, 17 browser tests and one configured skip.
 
 `quality/direction/p2-r16-moon-first/` is an app prototype for the 22:00 gap. `c495763` and `0826517` give the same valley its own Cycles moonlit sky, aerial radiance, flooded field reflections, cloud transport and warm openings in two existing houses. `3736cee` shows the valley at night and crossfades to the independent lighting after the rest of the view has loaded. The first 2048-pixel package `d3c69357` adds 383,874 deferred bytes. The two desktop contexts took 3.364 and 3.419 seconds, with no runtime errors, HTTP errors or source reloads. All three night layers were requested in the night context and none by day. The dark ridge, cloud and some flooded beds now read in the night burning frame. Visible block compression remains on shadowed slopes, window light is unverified from the camera, and the prototype does not constitute a full night or final bake. See [handover.md](handover.md) for reproduction, rejected visual details and remaining verification.
+
+### S2 maintenance: wish cloth, candle places and the leaving gust
+
+`b814ca6` adds the visitor's red wish cloth under the candle stand and a fixed order of free
+places on the shrine shelf, and it also carries the leaving-gust work; the gust was written in
+the same working tree and staged with `git add -A`, which is recorded here rather than rewritten.
+The gust lives in `web/src/engine/places/pine-gust.ts` and its test is
+`tests/tier1/unit/pine-leaving-gust.test.js`. From now on each commit stages only the files that
+belong to that item.
+
+`05dcc31` adds the browser test that the cloth is present while burning and still present after
+the ending.
