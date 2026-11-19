@@ -70,14 +70,15 @@ export async function measurePineRealismBase(worktree, preview, ordinaryManifest
   assert.equal(sha256(sharedBytes), shared.sha256);
 
   const combinedPackageBytes = [...preview.assets.values()].reduce((bytes, asset) => bytes + asset.body.length, 0);
-  const { walk, high, ...base } = preview.backdrop ?? {};
+  const { walk, high, night, ...base } = preview.backdrop ?? {};
   const imageBytes = tier => Object.values(tier?.files ?? {}).reduce((bytes, file) => bytes + preview.assets.get(file.uri).body.length, 0);
   // The entire manifest, all ambient banks and the shared LUT belong to base.
   // The two streaming tiers are separately declared and verified.
   const highTreeBytes = high?.trees ? preview.assets.get(high.trees.uri).body.length : 0;
   const highBytes = imageBytes(high) + highTreeBytes;
   const walkLightmapBytes = walkLightmapFiles(preview).reduce((bytes, { full }) => bytes + preview.assets.get(full.uri).body.length, 0);
-  const walkBytes = imageBytes(walk) + walkLightmapBytes;
+  const nightBytes = imageBytes(night);
+  const walkBytes = imageBytes(walk) + walkLightmapBytes + nightBytes;
   const packageBytes = combinedPackageBytes - highBytes - walkBytes;
   const totalBytes = packageBytes + sharedBytes.length;
   const limitBytes = 15_000_000;
@@ -91,7 +92,7 @@ export async function measurePineRealismBase(worktree, preview, ordinaryManifest
   return { totalBytes, limitBytes, packageBytes, sharedAgXBytes: sharedBytes.length,
     backdrop: preview.backdrop ? { ...base, bytes: imageBytes(base), ...(walk ? { walk: { ...walk, bytes: imageBytes(walk) } } : {}),
       ...(high ? { high: { ...high, bytes: imageBytes(high), ...(highTreeBytes ? { treeBytes: highTreeBytes } : {}) } } : {}) } : null,
-    ...(walk ? { walkBytes, walkLightmapBytes, phoneBytes, phoneLimitBytes } : {}),
+    ...(walk ? { walkBytes, walkLightmapBytes, phoneBytes, phoneLimitBytes, ...(night ? { nightBytes } : {}) } : {}),
     ...(walk || high ? { combinedBytes, combinedLimitBytes, combinedPackageBytes, highBytes } : {}),
     waxNormal: preview.waxNormal };
 }
