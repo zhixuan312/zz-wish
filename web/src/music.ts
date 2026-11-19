@@ -41,7 +41,7 @@ export function cueFor(stage: MusicStage, placeId: PlaceId, bucket: MusicBucket 
 
 export interface Music {
   unlock(): Promise<void>;
-  play(stage: MusicStage, placeId: PlaceId): Promise<void>;
+  play(stage: MusicStage, placeId: PlaceId): Promise<boolean>;
   stop(): void;
   setMuted(value: boolean): void;
   isMuted(): boolean;
@@ -212,10 +212,12 @@ export function createMusic(options: { createContext?: () => AudioContext } = {}
     return true;
   }
 
-  function playOneShot(cue: CueName, seconds: number, handsOver: MusicStage | null, fromStage: MusicStage) {
-    if (!cues?.has(cue)) { if (handsOver) void play(handsOver, place!); return; }
+  function playOneShot(cue: CueName, seconds: number, handsOver: MusicStage | null, fromStage: MusicStage): boolean {
+    // A missing one-shot stays silent rather than jumping straight to what would
+    // follow it; the screen that comes next starts its own cue.
+    if (!cues?.has(cue)) return false;
     const channel = makeChannel(cue, false);
-    if (!channel) return;
+    if (!channel) return false;
     void channel.el.play().catch(() => {});
     fade(channel.gain, 1, seconds);
     channels.push(channel);
@@ -231,10 +233,11 @@ export function createMusic(options: { createContext?: () => AudioContext } = {}
       // one-shot still owns the stage, or it would pull the game back to `choose`.
       if (handsOver && stillLive && !stopping) void play(handsOver, place!);
     }, { once: true });
+    return true;
   }
 
-  async function play(nextStage: MusicStage, placeId: PlaceId, fadeSeconds?: number) {
-    if (!context) return;
+  async function play(nextStage: MusicStage, placeId: PlaceId, fadeSeconds?: number): Promise<boolean> {
+    if (!context) return false;
     await loadManifest();
     stage = nextStage;
     place = placeId;
@@ -242,17 +245,18 @@ export function createMusic(options: { createContext?: () => AudioContext } = {}
     stopping = false;
     const nextBucket = musicBucket(dayPart(new Date()));
     const cue = cueFor(nextStage, placeId, nextBucket);
-    if (!cue) { disposeChannels(CROSSFADE); return; }
+    if (!cue) { disposeChannels(CROSSFADE); return false; }
     const isOneShot = ONE_SHOT[nextStage] === true;
     // Everything that loops crossfades in as the previous cue leaves.
     const incoming = fadeSeconds ?? CROSSFADE;
     disposeChannels(isOneShot ? 0.6 : incoming);
     bucket = nextBucket;
-    if (isOneShot) playOneShot(cue, 0.8, NEXT_AFTER_ONE_SHOT[nextStage] ?? null, nextStage);
-    else startLoop(cue, incoming);
+    if (isOneShot) return playOneShot(cue, 0.8, NEXT_AFTER_ONE_SHOT[nextStage] ?? null, nextStage);
+    const started = startLoop(cue, incoming);
     // The burning watchers run even while this bucket's bed is missing, so a bed
     // delivered later still starts when the part of day changes.
     if (nextStage === 'burn') { startBucketWatch(); schedulePhrase(); }
+    return started;
   }
 
   return {

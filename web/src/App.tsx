@@ -38,13 +38,14 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
   const [overlay, setOverlay] = useState<Overlay>(null);
   // Music follows the same screens the engine does; burning and its endings are
   // started by the light and settlement paths below, which know the outcome.
-  // `travel` starts its own cue and is left alone here, because the walk owns its
-  // 36-second tail and must reach the chooser by finishing, not by being cut off.
+  // The candle screen asks for nothing: either the 36-second walk cue reaches it and
+  // hands over on `ended`, or Skip cuts to `choose` first. Starting `choose` here
+  // would fade out the walk's authored tail.
   const stageForScreen = (value: Screen, overlayValue: Overlay): MusicStage | null =>
     overlayValue ? 'result' :
     value === 'wish' ? 'home' :
     value === 'place' ? 'place' :
-    value === 'candle' ? 'choose' : null;
+    value === 'travel' ? 'walk' : null;
   const stageRef = useRef<MusicStage | null>(null);
   const screenRef = useRef<Screen>(screen);
   const overlayRef = useRef<Overlay>(null);
@@ -52,7 +53,6 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
   const placeIdRef = useRef<PlaceId>(DEFAULT_PLACE.id);
   screenRef.current = screen; overlayRef.current = overlay;
   useEffect(() => {
-    if (screen === 'travel') return;
     const stage = stageForScreen(screen, overlay);
     if (!stage || stage === stageRef.current) return;
     stageRef.current = stage;
@@ -255,8 +255,15 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
     void run(async () => { await preparePlace(id); await engine.previewPlace(id); }).catch(() => setPlaceLoad((value) => ({ ...value, stage: 'error' })));
   };
   const goTravel = () => run(async () => {
-    engine.setOffer(shape); setScreen('travel');
-    await engine.travel(placeId); setScreen('candle');
+    engine.setOffer(shape);
+    // Start the walk cue before the screen moves, so a missing `walk` is known here:
+    // then the candle screen starts `choose` itself instead of waiting for a
+    // hand-over that will never come.
+    const walkStarted = await music.play('walk', placeId);
+    setScreen('travel');
+    await engine.travel(placeId);
+    setScreen('candle');
+    if (!walkStarted) { stageRef.current = 'choose'; void music.play('choose', placeId); }
   });
   const backToPlace = () => { engine.setOffer(null); toPlace(); };
   const again = (id: string | null, text: string) => { setOverlay(null); setWishId(id); setWish(text); setStrokes([]); setDrawingMinutes(null); setTab('preset'); setResult(null); engine.setOffer(null); showPlace(); };
@@ -337,7 +344,7 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
       {screen === 'travel' && (
         <>
           {travelTitle && <div className="travel"><div className="go">{t.travelGo}</div><div className="big">{place.name[locale]}</div><div className="where">{place.lamp[locale]}</div></div>}
-          <button className="btn small skip" onClick={() => engine.skip()}>{t.skip}</button>
+          <button className="btn small skip" onClick={() => { engine.skip(); stageRef.current = 'choose'; void music.play('choose', placeIdRef.current); }}>{t.skip}</button>
         </>
       )}
 
