@@ -203,7 +203,16 @@ def water_ripples(water, position):
     return water.math('ADD', *phases), variation
 
 
-def paddy_glass():
+PADDY_AOVS = ('PaddySurface', 'PaddyWindWeight', 'PaddyBund', 'PaddySilt')
+
+
+def paddy_aov(shader, name, value):
+    output = shader.nodes.new('ShaderNodeOutputAOV')
+    output.aov_name = name
+    shader.input(output.inputs['Value'], value)
+
+
+def paddy_glass(audit=False):
     water = Shader('Clear flooded beds with Fresnel wind-wave reflections')
     wave, gusts = water_ripples(water, water.coordinate())
     geom = water.nodes.new('ShaderNodeNewGeometry')
@@ -259,10 +268,13 @@ def paddy_glass():
     weight = water.math('DIVIDE', wind_area, water.math('MAXIMUM', .0001, seen))
     surface = mix(glass(calm_normal), wind_pair, weight)
     water.links.new(surface, water.output.inputs['Surface'])
+    if audit:
+        paddy_aov(water, 'PaddySurface', 1.)
+        paddy_aov(water, 'PaddyWindWeight', weight)
     return water.material
 
 
-def materials(air):
+def materials(air, audit_paddy=False):
     ground = Shader('Shaded pine groves, continuous understory and paddy soil')
     position = ground.coordinate()
     grove = ground.noise(position, (.061, .071, .055), detail=3.)
@@ -316,7 +328,10 @@ def materials(air):
     seedling = Shader('Translucent green rice shoots')
     result['rice'] = seedling.surface((.084, .19, .046, 1.), .54)
 
-    result['water'] = paddy_glass()
+    result['water'] = paddy_glass(audit_paddy)
+    if audit_paddy:
+        paddy_aov(ground, 'PaddyBund', soil_mask)
+        paddy_aov(sediment, 'PaddySilt', 1.)
 
     flow = Shader('Broken falling water and pale aeration')
     p = flow.coordinate()
@@ -526,13 +541,13 @@ def configure(scene, options, width, height):
     return set_device(scene, options.device)
 
 
-def build(scene, land, fields, river, forests):
+def build(scene, land, fields, river, forests, audit_paddy=False):
     layers = {name: bpy.data.collections.new(name) for name in LAYERS}
     for collection in layers.values():
         scene.collection.children.link(collection)
     library = bpy.data.collections.new('Pine crown prototypes outside camera range')
     scene.collection.children.link(library)
-    surface = materials(air_perspective())
+    surface = materials(air_perspective(), audit_paddy)
     occluders = ()
     for name in ('far', 'mid'):
         far = name == 'far'
@@ -628,6 +643,57 @@ def render(scene, layers, occluders, options, metadata):
             target.hardlink_to(temporary)
 
 
+def render_paddy_transport(scene, layers, pools, options, metadata):
+    from bpy_extras.object_utils import world_to_camera_view
+
+    target = options.out / 'paddy-transport.exr'
+    receipt = options.out / 'paddy-audit.json'
+    if any(path.exists() for path in (target, receipt, options.out / 'render.json')):
+        raise ValueError('Use a fresh output directory for paddy transport diagnostics.')
+
+    for name, collection in layers.items():
+        for obj in collection.objects:
+            obj.visible_camera = name == 'mid'
+    view = bpy.context.view_layer
+    view.name = 'Paddy'
+    for name in PADDY_AOVS:
+        aov = view.aovs.add()
+        aov.name, aov.type = name, 'VALUE'
+    for transport in ('diffuse', 'glossy', 'transmission'):
+        for channel in ('direct', 'indirect', 'color'):
+            setattr(view, f'use_pass_{transport}_{channel}', True)
+    view.use_pass_position = True
+    view.use_pass_normal = True
+
+    bpy.context.view_layer.update()
+    points = [world_to_camera_view(scene, scene.camera, Vector(point)) for point in pools.points]
+    width, height = metadata['width'], metadata['height']
+    pad = max(12, round(width * .004))
+    x0 = max(0, math.floor(min(point.x for point in points) * width) - pad)
+    x1 = min(width, math.ceil(max(point.x for point in points) * width) + pad)
+    y0 = max(0, math.floor(min(point.y for point in points) * height) - pad)
+    y1 = min(height, math.ceil(max(point.y for point in points) * height) + pad)
+
+    render = scene.render
+    render.use_border = True
+    render.use_crop_to_border = True
+    render.border_min_x, render.border_max_x = x0 / width, x1 / width
+    render.border_min_y, render.border_max_y = y0 / height, y1 / height
+    render.image_settings.file_format = 'OPEN_EXR_MULTILAYER'
+    render.image_settings.color_depth = '32'
+    render.image_settings.use_exr_interleave = True
+    render.image_settings.exr_codec = 'NONE'
+    render.filepath = str(target)
+    start = monotonic()
+    if 'FINISHED' not in bpy.ops.render.render(write_still=True):
+        raise RuntimeError('Paddy transport diagnostic did not finish.')
+    audit = {**metadata, 'file': target.name, 'sha256': digest(target),
+             'seconds': round(monotonic() - start, 3),
+             'cropPixelsBottomLeft': [x0, y0, x1, y1], 'aovs': PADDY_AOVS,
+             'transport': 'Each RGB closure contribution is (Direct + Indirect) * Color.'}
+    receipt.write_text(json.dumps(audit, indent=2) + '\n')
+
+
 def parse_args():
     parser = ArgumentParser(description=__doc__)
     parser.add_argument('--out', type=Path)
@@ -637,11 +703,14 @@ def parse_args():
     parser.add_argument('--layers', nargs='+', choices=(*LAYERS, 'composite'), default=LAYERS)
     parser.add_argument('--no-denoise', action='store_true')
     parser.add_argument('--resume', action='store_true', help='Verify the original recipe and add missing plates.')
+    parser.add_argument('--paddy-audit', action='store_true', help='Render a cropped multilayer EXR of paddy transport.')
     parser.add_argument('--save-blend', type=Path)
     parser.add_argument('--inspect', action='store_true', help='Check source geometry using standard Python; no render.')
     args = parser.parse_args(sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else None)
     if not args.inspect and (args.out is None or args.samples < 1):
         parser.error('Rendering requires --out and positive --samples.')
+    if args.paddy_audit and (args.resume or args.save_blend):
+        parser.error('--paddy-audit requires a fresh render directory.')
     return args
 
 
@@ -701,7 +770,10 @@ def main():
     metadata['devices'] = configure(scene, options, width, height)
     metadata['worldStrength'] = set_world(scene, daylight, projection['preExposure'])
     projection_camera(scene, projection)
-    layers, occluders = build(scene, land, fields, river, forests)
+    layers, occluders = build(scene, land, fields, river, forests, audit_paddy=options.paddy_audit)
+    if options.paddy_audit:
+        render_paddy_transport(scene, layers, fields[1], options, metadata)
+        return
     if options.save_blend:
         options.save_blend.parent.mkdir(parents=True, exist_ok=True)
         bpy.ops.wm.save_as_mainfile(filepath=str(options.save_blend.resolve()))
