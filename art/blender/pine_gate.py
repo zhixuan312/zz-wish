@@ -1589,8 +1589,7 @@ def pine_tree(label, x, z, height, bark, needles, ground, roots=False, lean=None
         shoots.extend((root, axis, .51 * length, .20 * length, roll) for root, axis, length, _, roll in leader)
         canopy = shoulder_pine_needles if shoulder_crown else pine_needles
         canopy(f'{label} modelled live needles', shoots, modelled_needles)
-    if ancient:
-        return at
+    return at if ancient else trunk_at
 
 
 def distant_pines(ground, bark, needles, modelled_needles, far_crown):
@@ -1719,8 +1718,22 @@ def forest(ground, rock, stone, bark, pine, far_crown=None):
     # through the middle approach. Their crowns open up at the saddle.
     for index, (x, z, height) in enumerate(((-2.73, 26.8, 5.5), (2.65, 25.1, 5.8),
                                            (3.12, 16.1, 4.8), (-3.36, 13.1, 5.05))):
-        pine_tree(f'Low forest verge pine {index + 1}', x, z, height, bark, needles, ground,
-                  roots=True, crown_start=.19)
+        label = f'Low forest verge pine {index + 1}'
+        trunk_at = pine_tree(label, x, z, height, bark, needles, ground, roots=True, crown_start=.19)
+        if index >= 2:
+            # The mid-slope pines carry separate, asymmetrical overhead
+            # branches. Their twigs screen the valley until the walker reaches
+            # the actual saddle, while staying above the existing camera.
+            inward = Vector((-math.copysign(1., x), 0., -.32 if index == 2 else .17)).normalized()
+            rng = random.Random(label)
+            shoots = []
+            for tier, fraction in enumerate((.57, .73)):
+                reach = (2.17, 3.32)[index - 2] * (1 - tier * .23)
+                name = f'{label} overhead bough {tier + 1}'
+                branch = pine_bough(name, trunk_at(fraction), inward, reach, .12 - tier * .24,
+                                    .09, .17, bark, radial=6)
+                shoots.extend(pine_branch_shoots(name, branch, reach, rng, bark))
+            pine_needles(f'{label} overhead needles', shoots, modelled_needles)
     distant_pines(ground, bark, needles, modelled_needles, far_crown)
     understory(ground, pine)
     # These iron-gray outcrops are part of the bank. Their lower bands extend
