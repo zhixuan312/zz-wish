@@ -34,8 +34,7 @@ RIPPLES = ((.0026, .43, .21, .978), (.0011, .219, -.42, .908))
 WIND_SLOPES = (.28, .42)
 CLOUD_LAYERS = ((29., 36., 47., 58., 14., 31., -14., -10.2, -6.6, -5.3, .155),
                 (39., 47., 57., 70., 18., 33., -8.6, -6.4, -4.3, -3.4, .208))
-UPPER_MIST_CENTRE = (11.32, 148., 36.)
-UPPER_MIST_RADII = (14., 10., 4.3)
+UPPER_MIST_BOUNDS = (-173., 168., 72., 232., 25., 51.)
 
 
 def mesh(collection, name, batch, materials=(), smooth=False):
@@ -464,26 +463,32 @@ def cloud_sea(collection):
 
 
 def upper_hillside_mist(collection):
-    # A thin late-spring cloud above the sunlit slope. Some of the upward
-    # windward water normals see this volume above the ridge; flat water
-    # below it still reflects the shaded earth.
-    cloud = Shader('Thin terrain-following mist above the far hillside')
+    # Wind shears the upper vapor into a broad low stratus band. Its outer
+    # wisps continue across the ridges, and water sees part of it at grazing
+    # incidence from the slope below.
+    cloud = Shader('Wind-sheared mist above the opposite hillside')
     point = cloud.coordinate()
     axes = cloud.xyz(point)
-    profile = 0.
-    for axis, centre, radius in zip(('X', 'Y', 'Z'), UPPER_MIST_CENTRE, UPPER_MIST_RADII):
-        coordinate = cloud.math('SUBTRACT', axes[axis], centre)
-        offset = cloud.math('DIVIDE', coordinate, radius)
-        profile = cloud.math('ADD', profile, cloud.product(offset, offset))
-    spread = cloud.between(profile, 1., .15)
-    broad = cloud.noise(point, (.16, .16, .35), detail=4.)
-    fringe = cloud.noise(point, (.315, .32, .79), detail=3.)
-    density = cloud.product(spread, cloud.between(broad, .25, .72, .16, 1.),
-                            cloud.between(fringe, .26, .69, .37, 1.), .36)
+    x, downrange, height = axes['X'], axes['Y'], axes['Z']
+    drift = cloud.product(x, .23)
+    width_noise = cloud.noise(point, (.031, .035, .13), detail=3.)
+    crown = cloud.noise(point, (.057, .098, .19), detail=4.)
+    fringe = cloud.noise(point, (.087, .128, .44), detail=2.)
+    centreline = cloud.math('ADD', cloud.math('ADD', 145., drift),
+                            cloud.between(width_noise, .18, .82, -9., 13.))
+    distance = cloud.math('ABSOLUTE', cloud.math('SUBTRACT', downrange, centreline))
+    reach = cloud.between(distance, 28., 7.)
+    lateral = cloud.product(cloud.between(x, -173., -127.), cloud.between(x, 168., 125.))
+    base = cloud.math('ADD', cloud.math('ADD', 31., cloud.product(x, .021)),
+                      cloud.between(width_noise, .23, .81, -.8, 3.8))
+    ceiling = cloud.math('ADD', base, cloud.between(crown, .25, .79, 2.4, 10.5))
+    lower = cloud.between(cloud.math('SUBTRACT', height, base), 0., 3.)
+    upper = cloud.between(cloud.math('SUBTRACT', ceiling, height), 0., 4.)
+    texture = cloud.product(cloud.between(crown, .28, .68, .16, 1.),
+                            cloud.between(fringe, .25, .72, .38, 1.))
+    density = cloud.product(reach, lateral, lower, upper, texture, .29)
     material = cloud.volume((.969, .978, .994, 1.), density, .23)
-    bounds = [bound for centre, radius in zip(UPPER_MIST_CENTRE, UPPER_MIST_RADII)
-              for bound in (centre - radius, centre + radius)]
-    box(collection, 'Sunlit rising mist in the paddy reflection path', *bounds, material)
+    box(collection, 'Sunlit hillside vapor and its paddy reflections', *UPPER_MIST_BOUNDS, material)
 
 
 def plunge_spray(collection, end):
@@ -794,7 +799,7 @@ def main():
         'paddyRippleTrains': [{'amplitudeMetres': a, 'wavelengthMetres': length,
                                'windDirection': [x, depth]} for a, length, x, depth in RIPPLES],
         'cloudDownrangeBands': [[band[0], band[3]] for band in CLOUD_LAYERS],
-        'upperMist': {'centreMetres': UPPER_MIST_CENTRE, 'radiiMetres': UPPER_MIST_RADII},
+        'upperMistBoundsMetres': UPPER_MIST_BOUNDS,
         'cameraVisibility': {'far': 'opaque SRTM ridges and geometrical pine crown coverage',
                              'mid': 'middle ridge, fields, and waterfall',
                              'cloud': 'cloud sea with opaque middle terrain and forest as camera holdouts'},
