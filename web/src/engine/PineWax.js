@@ -641,7 +641,7 @@ function bodySurface(mesh, rows, cut, melt, runnels) {
   const softenedBand = Math.min(cut * .55, .0085);
   const sculpted = mesh.geometry.hasAttribute('aPineSculptCircle');
   const slump = sculpted ? Math.min(depth * .98, softenedBand * .49) : 0;
-  const retainedWax = sculpted ? Math.min(depth * 1.62, softenedBand * .53) : 0;
+  const retainedWax = sculpted ? Math.min(depth * .75, softenedBand * .53) : 0;
   const rimRelief = angle => {
     // The spent front edge opens over the liquid. Wax remains on the far
     // half in two rounded lobes, where it makes a thin, translucent wall.
