@@ -318,7 +318,9 @@ def materials(air, audit_paddy=False):
     moisture = ground.nodes.new('ShaderNodeAttribute')
     moisture.attribute_name = 'paddyMoisture'
     wet = ground.product(moisture.outputs['Fac'], ground.between(fern, .22, .78, .61, .96))
-    soil = ground.blend(crest_grass, damp_soil, wet)
+    # Spring irrigation darkens the entire bank, with a deeper wet margin at the pool.
+    soil_saturation = ground.between(wet, 0., 1., .46, 1., smooth=False)
+    soil = ground.blend(crest_grass, damp_soil, soil_saturation)
     cultivated = ground.nodes.new('ShaderNodeAttribute')
     cultivated.attribute_name = 'cultivated'
     soil_mask = cultivated.outputs['Fac']
