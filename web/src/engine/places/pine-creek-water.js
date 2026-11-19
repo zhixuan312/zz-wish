@@ -100,7 +100,7 @@ function installShallowRunnel(material, phase) {
   material.transparent = true;
   material.depthWrite = false;
   material.opacity = 1;
-  material.envMapIntensity = .48;
+  material.envMapIntensity = .91;
   material.customProgramCacheKey = () => key + '-clear-shallow-pine-runnel';
   material.onBeforeCompile = (shader, renderer) => {
     compile.call(material, shader, renderer);
@@ -126,12 +126,9 @@ function installShallowRunnel(material, phase) {
         normal = normalize(normal + mat3(viewMatrix) * ripple);`)
       .replace('#include <opaque_fragment>', `
         float waterEdge = smoothstep(-.001, .008, waterDepth);
-        float pool = smoothstep(.008, .050, waterDepth);
         float viewCos = clamp(dot(geometryViewDir, normal), .04, 1.);
-        // The unresolved wave slopes contribute at grazing angles. Through
-        // the broken reflection, the separate scanned bed remains visible.
-        float meanCos = viewCos + (1. - viewCos) * mix(.29, .19, pool);
-        float stillFresnel = .0204 + .9796 * pow(1. - meanCos, 5.);
+        // Fresnel follows the resolved surface normal and weakens head-on.
+        float stillFresnel = .0204 + .9796 * pow(1. - viewCos, 5.);
         float crest = pow(max(0., .76 * run + .24 * rivulet), 4.);
         float glint = crest * smoothstep(.35, .80, riffle) * smoothstep(.10, .66, across);
         float grazing = 1. - smoothstep(.38, .80, viewCos);
