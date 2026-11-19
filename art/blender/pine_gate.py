@@ -317,21 +317,28 @@ def hewn_block(name, width, height, depth, location, material, region):
     return obj
 
 
-def worn_approach_tread(name, width, depth, centre, material, dressing, outline, thickness=.26):
+def worn_approach_tread(name, width, depth, centre, material, dressing, outline, thickness=.26, abuts=(False, False)):
     old_rim, weather = outline
     cx, top, cz = centre
     rim, chips = [], []
+
+    def fit_side(u):
+        if abuts[int(u > 0.)]:
+            inset = max(0., min(1., (abs(u) - .27) / .21))
+            u += (math.copysign(.499, u) - u) * inset ** 2 * .90
+        return max(-.5, min(.5, u))
+
     for i, ((u, v), age) in enumerate(zip(old_rim, weather)):
         corner = i in (0, 1, 2, 3, 4, 8, 9, 10)
         radius = dressing.uniform(.95, 1.) if corner else dressing.uniform(.98, 1.)
-        rim.append((width * u * radius, depth * max(-.5, min(.5, v)) * radius))
+        rim.append((width * fit_side(u * radius), depth * max(-.5, min(.5, v)) * radius))
         chips.append(age - dressing.uniform(.001, .014))
         if i in (0, 2, 4, 7, 9):
             uu, vv = old_rim[(i + 1) % len(old_rim)]
             run = dressing.uniform(.27, .69)
             inward = dressing.uniform(.93, .99)
             across = max(-.5, min(.5, v + (vv - v) * run))
-            rim.append((width * (u + (uu - u) * run) * inward, depth * across * inward))
+            rim.append((width * fit_side((u + (uu - u) * run) * inward), depth * across * inward))
             chips.append(dressing.uniform(-.020, -.006))
     count = len(rim)
     hollow_x = dressing.uniform(-.12, .14) * width
@@ -351,12 +358,13 @@ def worn_approach_tread(name, width, depth, centre, material, dressing, outline,
     for band in range(5):
         for (x, z), chip in zip(rim, chips):
             edge = min(.047, width * .082, depth * .11) * (1. + .50 * math.sin(13 * x + 11 * z))
-            shoulder_x = x * (1. - 1.18 * edge / width)
+            side_bevel = .53 if abuts[int(x > 0.)] else 1.18
+            shoulder_x = x * (1. - side_bevel * edge / width)
             shoulder_z = z * (1. - 2 * edge / depth)
             if band == 0:
                 px, py, pz = x * .95, top - thickness, z * .96
             elif band == 1:
-                px, pz = x * .977, z * .986
+                px, pz = x * .993, z * .993
                 py = walking_surface(shoulder_x, shoulder_z) - .091 + .46 * chip
             elif band == 2:
                 px, pz = x, z
@@ -399,16 +407,21 @@ def worn_approach_tread(name, width, depth, centre, material, dressing, outline,
     obj = mesh.mesh_object(name, points, faces, material, 'approach')
     material_uv = obj.data.uv_layers['UVMap']
     offset_x, offset_y = cx * 2.31 + cz * .51, cz * 1.87 - cx * 1.11
-    scale = .535 + .105 * math.sin(cx * 6.13 + cz * 3.79)
+    phase = cx * 6.13 + cz * 3.79
+    scale = .535 + .105 * math.sin(phase)
+    rotation = phase % math.tau
+    cosine, sine = math.cos(rotation), math.sin(rotation)
     for polygon, chart in zip(obj.data.polygons, coordinates):
         for loop_index, (u, v) in zip(polygon.loop_indices, chart):
-            material_uv.data[loop_index].uv = (offset_x + u / scale, offset_y + v / scale)
+            material_uv.data[loop_index].uv = (offset_x + (u * cosine - v * sine) / scale,
+                                              offset_y + (u * sine + v * cosine) / scale)
     source_uv(obj, coordinates, 'Stone side strip and continuous curved tread crown.')
     for face in obj.data.polygons[1:]:
         face.use_smooth = True
     obj['weather_stone'] = True
     obj['bearing_vertices'] = count
     obj['step_tone'] = dressing.uniform(.82, .99)
+    obj['passage_polish'] = (cx + hollow_x, cz + hollow_z, width * .36, depth * .39)
     return obj
 
 
@@ -432,8 +445,8 @@ def approach_joint_bedding(rows, material):
         for centre in joint_centres:
             # Put a strip of triangles inside each actual fitted stone joint.
             # A uniform grid lowered entire cells beside a low, rounded toe.
-            samples = [x for x in samples if abs(x - centre) > .056]
-            samples.extend((centre - .029, centre + .029))
+            samples = [x for x in samples if abs(x - centre) > .051]
+            samples.extend((centre - .034, centre - .009, centre + .019))
         samples.sort()
         along_course = (0., .057, .19, .40, .61, .79, .92, 1.)
         for along in along_course:
@@ -443,10 +456,10 @@ def approach_joint_bedding(rows, material):
             for sample in samples:
                 x = centre + (sample - bend) * (width + .045) / extent
                 settling = .008 * math.sin(8.8 * x + 5.1 * z) + .007 * math.sin(23 * x - 4.6 * z)
-                level = top - .010 + settling - rise * fall
+                level = top - .004 + settling - rise * fall
                 contact, normal, _, _ = tree.ray_cast(mesh.point((x, top + .18, z)), Vector((0, 0, -1)), 2)
-                if contact is not None and normal.z > .49:
-                    level = min(level, contact.z - .008)
+                if contact is not None and normal.z > .35:
+                    level = min(level, contact.z - .006)
                 points.append((x, level, z))
         faces = []
         columns = len(samples)
@@ -458,93 +471,15 @@ def approach_joint_bedding(rows, material):
     points = fit_joint_soil(points, sections, [treads for _, _, _, _, treads in rows])
     faces = [face for section in sections for face in section]
     bed = mesh.mesh_object('Dark earth and needle litter in the approach stone joints', points, faces, material, 'approach')
-    mesh.uv_world(bed, .29)
-    bed['wet_tread_joints'] = True
-    source_uv(bed, [[(points[i][0], points[i][2]) for i in face] for face in faces],
-              'Continuous earth bedding, including the retreat under each riser.')
-    return bed
-
-
-def tread_lips(stones):
-    lips = []
-    for stone in stones:
-        count = stone['bearing_vertices']
-        lips.append([Vector(engine(v.co)) for v in stone.data.vertices[3 * count:4 * count]])
-    return lips
-
-
-def lip_edge(lips, across, position, select):
-    intersections = []
-    for lip in lips:
-        for a, b in zip(lip, lip[1:] + lip[:1]):
-            if min(a[across], b[across]) <= position < max(a[across], b[across]):
-                intersections.append(a.lerp(b, (position - a[across]) / (b[across] - a[across])))
-    return select(intersections, key=lambda point: point[2 - across], default=None)
-
-
-def approach_joint_infill(rows, soil):
-    points = []
-    sections = [[] for _ in rows]
-    outlines = [tread_lips(stones) for _, _, _, _, stones in rows]
-
-    def fill_strip(faces, edges, axis):
-        tail = None
-        for left, right in edges:
-            if left is None or right is None or right[axis] - left[axis] < .013:
-                tail = None
-                continue
-            start = len(points)
-            center = left.lerp(right, .50)
-            crest = .004 * math.sin(44 * center.x + 57 * center.z)
-            points.extend(((left.x, left.y - .014, left.z),
-                           (center.x, center.y - .019 + crest, center.z),
-                           (right.x, right.y - .014, right.z)))
-            if tail is not None:
-                for col in range(2):
-                    a, b = tail + col, start + col
-                    patches = ((a, b, b + 1), (a, b + 1, a + 1))
-                    faces.extend(patches if axis == 0 else (p[::-1] for p in patches))
-            tail = start
-
-    for index, lips in enumerate(outlines):
-        faces = sections[index]
-        for left, right in zip(lips, lips[1:]):
-            lo = max(min(p.z for p in left), min(p.z for p in right)) + .032
-            hi = min(max(p.z for p in left), max(p.z for p in right)) - .032
-            cuts = [lo]
-            for z in sorted({p.z for p in left + right if lo < p.z < hi}):
-                if z - cuts[-1] >= .045 and hi - z >= .045:
-                    cuts.append(z)
-            cuts.append(hi)
-            fill_strip(faces, ((lip_edge([left], 2, z, max), lip_edge([right], 2, z, min))
-                               for z in cuts), 0)
-        if not index or abs(rows[index - 1][2] - rows[index][3]) > .02:
-            continue
-        course = rows[index][3]
-        bend, half_span = section_at(course)
-        stations = [bend + half_span * (step / 8 - 1) for step in range(17)]
-        edges = []
-        for x in stations:
-            front = lip_edge(lips, 0, x, max)
-            back = lip_edge(outlines[index - 1], 0, x, min)
-            if front is not None and back is not None:
-                # Pack the transverse joint at the downhill lip. The higher
-                # riser remains exposed where the trail climbs.
-                front.y = min(front.y, back.y + .012)
-            edges.append((front, back))
-        fill_strip(faces, edges, 2)
-
-    points = fit_joint_soil(points, sections, [stones for _, _, _, _, stones in rows])
-    faces = [f for row in sections for f in row]
-    joint = mesh.mesh_object('Packed wet stone grit and pine litter between treads', points, faces, soil, 'approach')
-    uv = joint.data.uv_layers['UVMap']
-    coordinates = [[(points[i][0], points[i][2]) for i in f] for f in faces]
-    for face, chart in zip(joint.data.polygons, coordinates):
+    uv = bed.data.uv_layers['UVMap']
+    coordinates = [[(points[i][0], points[i][2]) for i in face] for face in faces]
+    for face, chart in zip(bed.data.polygons, coordinates):
         face.use_smooth = True
         for index, (x, z) in zip(face.loop_indices, chart):
-            uv.data[index].uv = (x / .24, z / .24)
-    joint['wet_tread_joints'] = True
-    source_uv(joint, coordinates, 'Laid-in joint strips fitted between the stone lips in metres.')
+            uv.data[index].uv = (x / .29, z / .29)
+    bed['wet_tread_joints'] = True
+    source_uv(bed, coordinates, 'Continuous earth bedding, including the retreat under each riser.')
+    return bed
 
 
 def audit_approach_tread_bearings(rows, bed, ground):
@@ -778,7 +713,8 @@ def climbing_steps(stone, ground, bedding_material, rubble_granite, tread_granit
         treads = []
         # The end deck already fills course 28. The side drainage is retained.
         if i != 28:
-            for j, (a, b, original_index) in enumerate(approach_stone_spans(i, widths)):
+            spans = approach_stone_spans(i, widths)
+            for j, (a, b, original_index) in enumerate(spans):
                 depth, surface, centre_z, outline = original[original_index]
                 dressed_width = b - a - dressing.uniform(.003, .011)
                 low_z, high_z = centre_z - depth / 2, centre_z + depth / 2
@@ -788,7 +724,8 @@ def climbing_steps(stone, ground, bedding_material, rubble_granite, tread_granit
                     high_z = deck_far
                 tread = worn_approach_tread(f'Step {i + 1:02} block {j + 1}', dressed_width, high_z - low_z,
                                             (bend - span / 2 + (a + b) / 2, surface, (low_z + high_z) / 2),
-                                            tread_granite, dressing, outline)
+                                            tread_granite, dressing, outline,
+                                            abuts=(j > 0, j + 1 < len(spans)))
                 tread['approach_tread'] = True
                 tread['moss_edge'] = j != 1 or i % 7 == 0
                 treads.append(tread)
@@ -841,7 +778,6 @@ def climbing_steps(stone, ground, bedding_material, rubble_granite, tread_granit
                                           masonry.uniform(.43, .66), .30 if row else .33, length,
                                           masonry.uniform(-.18, .18), wear, row == 0, settling)
     bed = approach_joint_bedding(bedding_rows, bedding_material)
-    approach_joint_infill(bedding_rows, bedding_material)
     audit_approach_tread_bearings(bedding_rows, bed, ground)
     audit_stair_course_rises(bedding_rows)
     landing_bed(stone[2])
@@ -2086,13 +2022,15 @@ def paint_stone():
                     green_mix = max(green_mix, wet_base * (.30 if obj.get('moss_edge') else .16))
                 if obj.get('wet_tread_joints'):
                     flecks = .5 + .5 * noise.noise(world * 18.4)
-                    shade *= .96 + .19 * flecks
-                    green_mix = .17 + .58 * flecks
+                    lichens = .5 + .5 * noise.noise(world * 7.3)
+                    shade *= 1.06 + .25 * flecks
+                    green_mix = .31 + .58 * lichens
                 if obj.name == 'Continuous mountain shoulder':
                     bank = noise.noise(world * .34) + .44 * noise.noise(world * 1.41)
                     root_dirt = .13 * math.sin(world.x * .57 + world.y * .31)
                     shade *= .72 + .54 * max(0., min(1., .51 + bank - root_dirt))
                     green_mix = max(0., min(.63, (.15 + bank) * .77))
+        polish = obj.get('passage_polish')
                 tint_color = [base[channel] * shade * (1 - green_mix * (1 - tone))
                               for channel, tone in enumerate((.48, .73, .43))]
                 if material.get('one_light_ancient_pine_bark'):
@@ -2113,6 +2051,12 @@ def paint_stone():
 
 def camera(name, p, look, fov, viewport):
     data = bpy.data.cameras.new(name)
+                    if polish is not None:
+                        x, z, width, depth = polish
+                        radius = ((world.x - x) / width) ** 2 + ((-world.y - z) / depth) ** 2
+                        wear = math.exp(-radius) * (1 - wet_base)
+                        shade *= 1. + .24 * wear
+                        green_mix *= 1. - .8 * wear
     data.sensor_fit = 'VERTICAL'
     data.sensor_height = 24
     data.lens = 12 / math.tan(math.radians(fov / 2))
@@ -2124,6 +2068,8 @@ def camera(name, p, look, fov, viewport):
     return obj
 
 
+                if obj.get('wet_tread_joints'):
+                    tint_color = [v * factor for v, factor in zip(tint_color, (.86, 1.18, 1.04))]
 def daylight_world():
     daylight = json.loads((ROOT / 'shared/pine-gate-daylight.json').read_text())
     day = bpy.data.worlds.new('Pine Gate midday atmosphere')
