@@ -832,8 +832,8 @@ def pine_tree(label, x, z, height, bark, needles, ground, roots=False, lean=None
 def distant_pines(ground, bark, needles):
     # Keep the staggered ridge positions; narrow older leaders disappear
     # among irregular live crowns rather than sticking above a few bare arms.
-    trees = [(-5.08, -3.82, 7.2), (-6.6, -5.2, 9.4), (-9.5, -7.0, 7.9),
-             (4.59, -5.17, 8.3), (6.7, -3.8, 6.7), (9.8, -7.2, 8.8),
+    trees = [(-4.2, -3.6, 6.9), (-6.6, -5.2, 9.4), (-9.5, -7.0, 7.9),
+             (4.0, -5.1, 8.3), (6.7, -3.8, 6.7), (9.8, -7.2, 8.8),
              (-4.9, -13.6, 8.5), (-8.3, -16.2, 10.2), (-12.7, -19.8, 8.8),
              (4.7, -15.0, 9.4), (8.4, -18.2, 8.3), (12.1, -14.4, 10.1)]
     for i, (x, z, height) in enumerate(trees):
