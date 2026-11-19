@@ -249,6 +249,14 @@ def candle_wax(name, color, roughness):
     return material
 
 
+def wax_lightmap_density(obj):
+    # The thin wax profiles fill the frame. Allocate more atlas space to their
+    # existing charts while keeping the sculpt's material UVs untouched.
+    chart = obj.data.uv_layers['SourceLightmap']
+    for corner in chart.data:
+        corner.uv *= 2.5
+
+
 def wax_spill_layer(locate, a, c, radius, direction, height, material, index):
     extent = radius * (.66 + .12 * math.sin(index * 2.3))
     x, y, z = locate(a + radius * .91 * math.cos(direction), 0, c + radius * .91 * math.sin(direction))
@@ -269,6 +277,7 @@ def wax_spill_layer(locate, a, c, radius, direction, height, material, index):
     for face in layer.data.polygons:
         face.use_smooth = True
     mesh.uv_world(layer, .034)
+    wax_lightmap_density(layer)
 
 
 def spent_wax_on_sill(locate, iron, sculpt_normal):
@@ -329,6 +338,7 @@ def spent_wax_on_sill(locate, iron, sculpt_normal):
             vertex.co.z += height * mouth * (lobe - (.27 + .08 * (i % 3)) * collapse)
         for face in wax.data.polygons:
             face.use_smooth = True
+        wax_lightmap_density(wax)
         if sculpt_normal:
             mesh.uv_world(wax, .034)
             if i % 2 == 0 or height >= .014:
@@ -402,6 +412,7 @@ def pierced_lamp_shrine(anchor, stone, ledge, iron, contacts, sculpt_normal):
                           (radius * .33, h * .88), (0, h * .88)], locate(a, .0002, c), wax, 28, 'niche')
         for face in stub.data.polygons:
             face.use_smooth = True
+        wax_lightmap_density(stub)
         mesh.beam('Black wick of an earlier wish', locate(a, h * .9, c), locate(a + .001, h + .005, c),
                   .0011, iron, .0009, 'niche')
         small_flame('Short earlier wish still burning on the outer sill', locate(a + .001, h + .005, c), .017, 'niche')
