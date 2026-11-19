@@ -1233,6 +1233,39 @@ def distant_pines(ground, bark, needles, modelled_needles, far_crown):
             pine_sprays(f'{label} needle crown', sprays, needles, close=True)
 
 
+def crest_ribbons(label, trunk_at, cloth):
+    trunk = mesh.STATIC.objects[f'{label} crooked trunk']
+    bark_surface, _ = contacts.support([trunk])
+    for index, (fraction, heading, length) in enumerate(((.172, .82, .33), (.202, .49, .28), (.228, 1.09, .36))):
+        knot = trunk_at(fraction)
+        outward = Vector((math.cos(heading), 0., math.sin(heading)))
+        tangent = Vector((-outward.z, 0., outward.x))
+        cast_direction = mesh.point(-outward)
+        vertices, uv, faces = [], [], []
+        for row in range(7):
+            t = row / 6
+            centre = knot - Vector((0., length * t, 0.))
+            centre += tangent * (.047 * t + .009 * math.sin(t * 8.))
+            width = (.017 + .026 * min(1., 3.2 * t)) * (1. - .17 * t ** 3)
+            for side in (-1, 0, 1):
+                spot = centre + tangent * (side * width)
+                if row == 6:
+                    spot.y += .011 if side == 0 else -.004 * side
+                hit, _, _, _ = bark_surface.ray_cast(mesh.point(spot + outward * 1.3), cast_direction, 1.8)
+                if hit is None:
+                    raise RuntimeError('Pine ribbon hangs outside the surveyed ancient trunk.')
+                lift = .0015 + t * (.039 + .042 * t + .013 * (1 - abs(side)))
+                vertices.append(engine(hit + mesh.point(outward) * lift))
+                uv.append((side * width + .047 * t, length * t))
+            if row:
+                base = (row - 1) * 3
+                faces.extend((base + side, base + side + 1, base + side + 4, base + side + 3)
+                             for side in range(2))
+        ribbon = mesh.mesh_object(f'Weathered ribbon on crest pine {index + 1}', vertices, faces, cloth, 'approach')
+        source_uv(ribbon, [[uv[i] for i in face] for face in faces],
+                  'A sewn strip departing from an evaluated contact on the bark.')
+
+
 def forest(ground, rock, stone, bark, pine, far_crown=None):
     needles = needle_material()
     modelled_needles = mesh.material('Modelled pine needles', '#587541', rough=.78)
@@ -1241,17 +1274,13 @@ def forest(ground, rock, stone, bark, pine, far_crown=None):
             x = s * RANDOM.uniform(3.95 if z > 42 else 2.58, 4.46)
             pine_tree(f'Old pine {i + 1} {s}', x, z + RANDOM.uniform(-1.6, 1.6),
                       RANDOM.uniform(6.1, 10.4), bark, needles, ground, roots=z >= 14)
-    low = pine_tree('Ancient western pine at the saddle', -1.88, PINE_CREST + .08, 10.6,
+    west_label = 'Ancient western pine at the saddle'
+    low = pine_tree(west_label, -1.88, PINE_CREST + .08, 10.6,
                     bark, needles, ground, roots=True, lean=2.43, modelled_needles=modelled_needles)
     pine_tree('Ancient eastern pine at the saddle', 1.82, PINE_CREST - .32, 11.4,
               bark, needles, ground, roots=True, lean=-2.68, modelled_needles=modelled_needles)
-    cloth = mesh.material('Sun-faded red cloth on the old pine', '#874b42', rough=.93)
-    for index, fraction in enumerate((.181, .209, .238)):
-        x, y, z = low(fraction)
-        vertices = [(x + .19, y, z + .30), (x + .257, y - .016, z + .32),
-                    (x + .275, y - .195 - .03 * index, z + .36), (x + .211, y - .19, z + .34)]
-        ribbon = mesh.mesh_object(f'Weathered ribbon on crest pine {index + 1}', vertices, [(0, 1, 2, 3)], cloth, 'approach')
-        source_uv(ribbon, [[(0., 0.), (.068, 0.), (.068, .21), (0., .21)]], 'A loose ribbon beside its knot.')
+    cloth = mesh.material('Sun-faded red cloth on the old pine', '#a35a4b', rough=.93)
+    crest_ribbons(west_label, low, cloth)
     for i, (x, z, h) in enumerate(((-10, 0, 10), (12, -3, 9), (8, -14, 7), (-7, -10, 8),
                                    (-4, -6, 7), (4, -8, 8), (15, 18, 9), (-17, 19, 9))):
         label = f'Back ridge pine {i + 1}'
