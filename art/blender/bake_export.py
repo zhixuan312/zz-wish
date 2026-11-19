@@ -29,6 +29,14 @@ PRESETS = {
     'lamp': {'world': [0, 0, 0], 'strength': 0, 'sun': [1, 1, 1], 'energy': 0, 'fixtures': 0},
 }
 
+
+def authored_ambient_worlds(scene):
+    names = json.loads(scene.get('one_light_ambient_worlds', '{}'))
+    if set(names) - {'day', 'dusk'}:
+        raise RuntimeError('An authored world may replace only a daytime or dusk preset.')
+    return {look: bpy.data.worlds[name] for look, name in names.items()}
+
+
 def arguments():
     parser = argparse.ArgumentParser()
     parser.add_argument('--out', type=Path, required=True)
@@ -769,6 +777,10 @@ def transport_fingerprint(scene, regions, snapshot, binding, receiver_profiles):
                 if hasattr(socket, 'default_value'):
                     inputs[socket.identifier] = clean(socket.default_value)
             properties = {name: clean(getattr(node, name)) for name in ['operation', 'blend_type', 'vector_type', 'uv_map', 'attribute_name', 'layer_name', 'space', 'distribution', 'interpolation', 'projection', 'extension', 'sky_type', 'sun_elevation', 'sun_rotation', 'altitude', 'air_density', 'dust_density', 'ozone_density'] if hasattr(node, name)}
+            if node.bl_idname == 'ShaderNodeTexSky':
+                properties.update({name: clean(getattr(node, name)) for name in
+                                   ('sun_disc', 'sun_size', 'sun_intensity', 'aerosol_density')
+                                   if hasattr(node, name)})
             if getattr(node, 'image', None):
                 properties['image'] = image_identity(node.image)
             nodes.append({'name': node.name, 'type': node.bl_idname, 'inputs': inputs, 'properties': properties})
@@ -814,6 +826,9 @@ def transport_fingerprint(scene, regions, snapshot, binding, receiver_profiles):
         raise RuntimeError('Prepared normal mapping proof is missing, failed or bound to other receiver/UV bytes.')
     payload = {'policy': 'scene-wide-source-geometry-material-lighting-generated-normals-integrator-v5', 'sourceBlendSha256': binding['sha256'], 'receivers': receiver_profiles, 'normalTransfer': normal_transfer, 'normalExportRecipe': normal_export_recipe(), 'generatedCoordinates': {'policy': scene.get('one_light_generated_policy'), 'receivers': generated, 'preparationAuditSha256': scene.get('one_light_generated_audit_sha256')}, 'preparedPreviewAudit': preview_audit, 'preparedRestingContactAudit': scene.get('one_light_prepared_contact_audit_binding'), 'auxiliaryOccluders': auxiliary, 'visibility': visibility, 'world': graph(snapshot[2]), 'worldColour': list(snapshot[2].color) if snapshot[2] else None, 'lights': lights, 'materials': materials, 'images': images, 'presets': PRESETS,
                'cycles': cycles_integrator_settings(scene), 'bake': {'passes': ['DIRECT', 'INDIRECT'], 'passesByLook': {name: sorted(light_pass_components(scene, name)) for name in PRESETS}, 'lampPassQuantity': lamp_pass_quantity(scene), 'cameraPreExposure': camera_pre_exposure(scene), 'colour': False, 'oidn': 'Metal RT HDR HIGH per exact chart', 'gutterPixels': 8}}
+    authored_worlds = authored_ambient_worlds(scene)
+    if authored_worlds:
+        payload['authoredAmbientWorlds'] = {look: graph(world) for look, world in authored_worlds.items()}
     if scene.get('one_light_fixed_view_allocation_proof'):
         payload['fixedViewAllocationProof'] = json.loads(scene['one_light_fixed_view_allocation_proof'])
     if scene.get('one_light_export_heroes'):
@@ -854,8 +869,11 @@ def light_pass_components(scene, name):
 def configure_light_pass(scene, name, snapshot):
     preset = PRESETS[name]
     pre_exposure = camera_pre_exposure(scene)
+    authored_world = authored_ambient_worlds(scene).get(name)
     if name == 'night':
         scene.world = snapshot[2]
+    elif authored_world:
+        scene.world = authored_world
     else:
         world = bpy.data.worlds.get('ONE_LIGHT_PASS_WORLD') or bpy.data.worlds.new('ONE_LIGHT_PASS_WORLD')
         scene.world = world
@@ -874,6 +892,9 @@ def configure_light_pass(scene, name, snapshot):
             obj.data.energy = energy if name == 'lamp' else 0
         elif name == 'night':
             obj.data.energy = energy
+        elif role == 'ambient' and authored_world:
+            # The authored world already supplies both sky and direct sun.
+            obj.data.energy = 0
         elif role == 'ambient':
             obj.data.energy = preset['energy'] / pre_exposure if obj.data.type == 'SUN' else energy * preset['strength']
             obj.data.color = preset['sun']
@@ -1620,6 +1641,8 @@ def main():
     (options.out / 'bake-fingerprint.json').write_text(json.dumps(transport_payload, indent=2) + '\n')
     manifest = {'version': 1, 'place': 'snow-roof', 'scene': 'snow-roof.glb', 'lampAnchor': [0, 3.22, -.5], 'lampBasis': {'watts': 45, 'position': [0, 2.99, -.5], 'linearColor': [1, 189/255, 120/255]}, 'lightmaps': {}, 'bake': {'engine': 'Cycles', 'blender': bpy.app.version_string, 'samples': options.samples, 'resolution': options.resolution, 'resolutionByRegion': resolution_by_region, 'passes': ['DIRECT', 'INDIRECT'], 'colorExcluded': True, 'materialUV': 'TEXCOORD_0', 'lightmapUV': 'TEXCOORD_1', 'runtimeAlias': 'uv2', 'unwrap': 'xatlas/watlas1.0.1, topology-only input; UV0 preserved', 'quantity': 'diffuse-radiance-per-unit-albedo', 'threeLightMapIrradianceMultiplier': math.pi, 'denoising': {'backend': 'OpenImageDenoise RT HDR', 'device': 'CPU', 'isolation': 'Per-UV-chart with same-chart edge extension; subpixel charts excluded and reported'}, 'sampling': {'mipLevels': 3, 'gutterPixels': 8, 'anisotropy': 1, 'maxLod': 2}, 'presets': PRESETS}}
     manifest_path = options.out / 'manifest.json'
+    if authored_worlds := authored_ambient_worlds(scene):
+        manifest['bake']['authoredAmbientWorlds'] = {look: world.name for look, world in authored_worlds.items()}
     manifest['place'] = place_id
     manifest['scene'] = f'{output_stem}.glb'
     manifest['sourceScene'] = f'{output_stem}.raw.glb'

@@ -944,7 +944,31 @@ def camera(name, p, look, fov, viewport):
     return obj
 
 
+def daylight_world():
+    daylight = json.loads((ROOT / 'shared/pine-gate-daylight.json').read_text())
+    day = bpy.data.worlds.new('Pine Gate midday atmosphere')
+    # Keep this world in the source file while the night world is active.
+    day.use_fake_user = True
+    day.use_nodes = True
+    sky = day.node_tree.nodes.new('ShaderNodeTexSky')
+    sky.sky_type = 'MULTIPLE_SCATTERING'
+    sky.sun_disc = True
+    sky.sun_size = math.radians(daylight['solarDiameterDegrees'])
+    sky.sun_intensity = daylight['solarIntensity']
+    sky.sun_elevation = math.radians(daylight['solarElevationDegrees'])
+    sky.sun_rotation = math.radians(daylight['solarAzimuthDegrees'])
+    sky.altitude = daylight['altitudeMetres']
+    sky.air_density = daylight['airDensity']
+    sky.aerosol_density = daylight['aerosolDensity']
+    sky.ozone_density = daylight['ozoneDensity']
+    day_bg = day.node_tree.nodes.get('Background')
+    day_bg.inputs['Strength'].default_value = daylight['atmosphereStrength'] / PRE_EXPOSURE
+    day.node_tree.links.new(sky.outputs['Color'], day_bg.inputs['Color'])
+    return day
+
+
 def source_lighting(scene):
+    scene['one_light_ambient_worlds'] = json.dumps({'day': daylight_world().name})
     scene.world = bpy.data.worlds.new('Pine Gate night world')
     scene.world.use_nodes = True
     bg = scene.world.node_tree.nodes.get('Background')
@@ -1044,7 +1068,7 @@ def build(output):
         'art/blender/snow_roof.py', 'art/blender/snow_round1_details.py',
         'art/blender/snow_lightmap_charts.py', 'art/blender/resting_contacts.py',
         'art/blender/pine_materials.py', 'art/blender/pine_tea_shoulder.py', 'docs/licenses/pine-gate-scans.json',
-        'shared/pine-gate-path.json',
+        'shared/pine-gate-path.json', 'shared/pine-gate-daylight.json',
     ])
     scene['source_authoring_sha256'] = json.dumps({
         name: sha256((ROOT / name).read_bytes()).hexdigest()
