@@ -5,6 +5,7 @@ tier models individual needles among denser secondary and tertiary growth.
 """
 
 from dataclasses import dataclass
+from itertools import chain
 import math
 import random
 
@@ -58,7 +59,7 @@ def needle_fascicle(anchor, following, spread, reach, rng, dense):
         side = axis.cross(Vector((1., 0., 0.)))
     side.normalize()
     up = axis.cross(side)
-    for blade in range(7 if dense else 6):
+    for blade in range(7 if dense else 4):
         angle = spread + blade * 2.39 + rng.uniform(-.32, .32)
         radial = math.cos(angle) * side + math.sin(angle) * up
         length = reach * rng.uniform(.71, 1.24)
@@ -102,7 +103,7 @@ def grow_crown(name, profile, trunk, phase, bark, write_wood, *, dense=False):
                    bark, 6 if dense else 5)
 
         divisions = (0., .24, .57, .81, 1.)
-        for fork, t in enumerate((.18, .29, .43, .56, .68, .80, .93)):
+        for fork, t in enumerate((.18, .29, .43, .56, .68, .80, .93) if dense else (.19, .36, .53, .71, .9)):
             t += rng.uniform(-.039, .035)
             lower = next(i for i, end in enumerate(divisions[1:]) if t <= end)
             blend = (t - divisions[lower]) / (divisions[lower + 1] - divisions[lower])
@@ -132,26 +133,81 @@ def grow_crown(name, profile, trunk, phase, bark, write_wood, *, dense=False):
                     write_wood(f'{label} new shoot {fork + 1}.{bud + 1}', [anchor, stem],
                                [leaf * .019, leaf * .006], bark, 3)
                     for f in (.47, .94):
-                        needles.extend(needle_fascicle(anchor.lerp(stem, f), younger, spread + f,
-                                                        leaf * .78, rng, dense))
-                needles.extend(needle_fascicle(anchor, younger, spread, leaf, rng, dense))
+                        needles.append(tuple(needle_fascicle(anchor.lerp(stem, f), younger, spread + f,
+                                                        leaf * .78, rng, dense)))
+                needles.append(tuple(needle_fascicle(anchor, younger, spread, leaf, rng, dense)))
                 if not dense and bud == 3:
-                    needles.extend(needle_fascicle(anchor, younger + world_up * .24,
-                                                    spread + 1.1, leaf * .87, rng, dense))
+                    needles.append(tuple(needle_fascicle(anchor, younger + world_up * .24,
+                                                    spread + 1.1, leaf * .87, rng, dense)))
 
     for level in (.88, .91, .941, .966, .982):
         root = trunk_point(trunk, level)
         heading = phase + level * 75
         axis = (trunk[-1] - root).normalized() + Vector((.56 * math.cos(heading), .21, .56 * math.sin(heading)))
-        needles.extend(needle_fascicle(root, axis, heading, height * .018, rng, dense))
+        needles.append(tuple(needle_fascicle(root, axis, heading, height * .018, rng, dense)))
     return needles
+
+
+def compact_fascicle(points, faces, charts, wind, blades):
+    """Each twig attachment is one connected lightmap chart with tapered arms."""
+
+    root = blades[0][0]
+    axis = sum((tip - root for _, _, tip, _ in blades), Vector((0., 0., 0.))).normalized()
+    if axis.length < .1:
+        axis = (blades[0][2] - root).normalized()
+    across = axis.cross(Vector((0., 1., 0.)))
+    if across.length < .01:
+        across = axis.cross(Vector((1., 0., 0.)))
+    across.normalize()
+    around = axis.cross(across)
+    ordered = sorted(blades, key=lambda blade:
+                     math.atan2((blade[2] - root).dot(around), (blade[2] - root).dot(across)))
+    angles = [math.atan2((tip - root).dot(around), (tip - root).dot(across)) for _, _, tip, _ in ordered]
+    bounds = [(angles[i] + (angles[i - 1] if i else angles[-1] - math.tau)) * .5
+              for i in range(len(angles))]
+    count = len(bounds)
+    base_radius = .0034
+    start = len(points)
+    points.append(root)
+    wind.append((.5, 0.))
+    for angle in bounds:
+        points.append(root + base_radius * (math.cos(angle) * across + math.sin(angle) * around))
+        wind.append((.5, 0.))
+    chart_step = math.tau / count
+    ring = [(base_radius * math.cos(i * chart_step), base_radius * math.sin(i * chart_step))
+            for i in range(count)]
+    for i, (_, shoulder, tip, width) in enumerate(ordered):
+        j = (i + 1) % count
+        first, last = start + 1 + i, start + 1 + j
+        front = len(points)
+        flare = axis.cross(tip - root).normalized()
+        if flare.length < .1:
+            flare = across
+        points.extend((shoulder - flare * width, shoulder + flare * width, tip))
+        wind.extend(((0., .52), (1., .52), (.5, 1.)))
+        faces.extend(((start, last, first), (first, last, front), (front, last, front + 1),
+                      (front, front + 1, front + 2)))
+        heading = (i + .5) * chart_step
+        radial = Vector((math.cos(heading), math.sin(heading)))
+        lateral = Vector((-radial.y, radial.x))
+        at = (shoulder - root).length + base_radius
+        tip_radius = at + (tip - shoulder).length
+        narrow = min(width, at * math.tan(chart_step * .38))
+        left, right = tuple(radial * at - lateral * narrow), tuple(radial * at + lateral * narrow)
+        charts.extend((((0., 0.), ring[j], ring[i]), (ring[i], ring[j], left),
+                       (left, ring[j], right), (left, right, tuple(radial * tip_radius))))
 
 
 def needle_mesh(needles, *, compact=False):
     """Tapered needle sections, metric UV1, and rooted wind UV0."""
 
     points, faces, charts, wind = [], [], [], []
-    for root, shoulder, tip, width in needles:
+    if compact:
+        for fascicle in needles:
+            compact_fascicle(points, faces, charts, wind, fascicle)
+        return points, faces, charts, wind
+
+    for root, shoulder, tip, width in chain.from_iterable(needles):
         axis = (tip - root).normalized()
         across = axis.cross(Vector((0., 1., 0.)))
         if across.length < .01:
@@ -161,15 +217,6 @@ def needle_mesh(needles, *, compact=False):
         start = len(points)
         terminal = (tip - shoulder).length
         stem = (shoulder - root).length
-        if compact:
-            # Two bent faces keep each sub-centimetre needle attached while the
-            # lower triangle budget buys several times as many live fascicles.
-            points.extend((root, shoulder - across * width, shoulder + across * width, tip))
-            wind.extend(((.5, 0.), (0., .52), (1., .52), (.5, 1.)))
-            faces.extend(((start, start + 2, start + 1), (start + 1, start + 2, start + 3)))
-            charts.extend((((0., -stem), (width, 0.), (-width, 0.)),
-                           ((-width, 0.), (width, 0.), (0., terminal))))
-            continue
         for center, scale, extent in ((root, .45, 0.), (shoulder, 1., .52)):
             for index in range(3):
                 angle = index * math.tau / 3
