@@ -2008,7 +2008,19 @@ function burnView(){
       (profile.max.x - profile.min.x) / (2 * distance * camera.aspect * .79), subjectHeight / (2 * distance * .84));
     v.fov = THREE.MathUtils.radToDeg(2 * Math.atan(tangent));
     v.pos.copy(center).addScaledVector(direction, distance);
+    // Frame the whole lit subject, not the bare wax column: aim between the tray's rim and the top
+    // of the flame. Aiming at the wax centre alone pointed the phone camera down at the stone
+    // whenever the candle was short, and put the flame above the frame.
+    const trayRim = mine.parts.seat.y + .021;
+    const flameTop = mine.parts.seat.y + subjectHeight + .052;
+    const aimY = (trayRim + flameTop) * .5;
     v.look.copy(center);
+    v.look.y = aimY;
+    // Widen enough that the tray's outer rim and the flame both fit the safe area, which a phone
+    // loses 300 px of at the bottom to its sheet.
+    const vertical = (flameTop - (mine.parts.seat.y - .004));
+    const needed = vertical / (2 * distance * (narrow() ? .58 : .74));
+    v.fov = Math.max(v.fov, THREE.MathUtils.radToDeg(2 * Math.atan(needed)));
     return v;
   }
   if(!N.burnFar)return v;
@@ -2480,6 +2492,7 @@ export async function ignite({onCatch, remainingFuel, onTaperLit}={}) {
     // wide spread pose within the first second and then crawled back for fifteen, which read as a
     // cut. The shrine camera instead drifts from the near choose pose towards the burning one, a
     // short, slow push that keeps the tray in view the whole way.
+    // Pine never retreats: after ignition the camera may only close in or hold still.
     const retreat = pine ? 0 : ease(Math.min(1,k*3.2/1.0));
     if (pine) {
       // The whole 3.2 s ignition covers this push, so the aim turns slowly enough to stay inside
@@ -2584,7 +2597,9 @@ export async function ignite({onCatch, remainingFuel, onTaperLit}={}) {
         rig.look.y = rig.pos.y + Math.tan(clamped) * reach;
       }
     }
-    rig.fov=THREE.MathUtils.lerp(spread.fov,burn.fov,smooth(.60,1,k));
+    // Pine's field of view only narrows onto the burn pose; it must not open to the wide spread
+    // value first, which is what read as a pull-back before the settle.
+    rig.fov=THREE.MathUtils.lerp(pine ? (rig.fov ?? spread.fov) : spread.fov, burn.fov, smooth(.60,1,k));
     mark('walking',.18+.82*k);
   });
   if(active())mark('settled',1);
