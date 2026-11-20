@@ -66,6 +66,14 @@ export default function createWinterCourt(h) {
         if (!object.isMesh) return;
         for (const material of [object.material].flat()) {
           if (material.name === 'Thin gauze over low flame') earlierCloth.add(material);
+          if (material.name === 'Thin pale storm lamp glass') {
+            // The thin windscreen shows the flame directly. Avoid a second
+            // scene render for screen-space refraction around this small lamp.
+            material.transmission = 0;
+            material.transparent = true;
+            material.opacity = .16;
+            material.depthWrite = false;
+          }
         }
       });
       for (const material of earlierCloth) material.emissiveIntensity *= .28;
