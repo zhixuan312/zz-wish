@@ -12,7 +12,7 @@
       "tile": "N33E107",
       "sha256": "c878cd7ebf7b60e148e5441e22f314c034d3c410dff3b97194d0b9ce1fb4b477",
       "origin": "NASA JPL and NGA SRTM, distributed by USGS EROS",
-      "transformation": "Sample two relief strips, map them to a fictional pass, and relight independently in Cycles. Native EXR masters are local, and only verified encoded planes are delivered.",
+      "transformation": "Sample a principal summit, a rear watershed and a wooded pass from the same tile. Reframe and relight the fictional terrain in Cycles. Native EXR masters are local, and only verified encoded planes are delivered.",
       "provenance": "docs/licenses/snow-court-elevation.md"
     },
     {
