@@ -531,7 +531,8 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
               </div>
             ) : (
               <div className="row ctl">
-                <button className="btn small" aria-label={quiet ? t.soundOn : t.soundOff} aria-pressed={quiet} onClick={() => setQuiet(!quiet)}>{quiet ? t.controlMuted : t.controlSound}</button>
+                {/* The top bar owns the only mute control: it persists the choice and mutes both the
+                    music and the ambience. A second one here collided with it by label. */}
                 <button className="btn small" aria-label={powerSaver ? t.qualityOn : t.powerSaver} aria-pressed={powerSaver} onClick={() => setPowerSaver(!powerSaver)}>{powerSaver ? t.controlSaver : t.controlDetail}</button>
                 <button className="btn small" aria-label={showWish ? t.hideWish : t.showWish} aria-pressed={showWish} onClick={() => setShowWish(!showWish)}>{t.controlWish}</button>
                 <button className="btn small" aria-label={showLeft ? t.hideRemaining : t.showRemaining} aria-pressed={showLeft} onClick={() => setShowLeft(!showLeft)}>{t.controlTime}</button>

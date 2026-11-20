@@ -139,16 +139,18 @@ test('muting Pine Gate silences the recorded ambience, and a missing recording t
   await page.getByRole('radio', { name: /^(10 分钟|10 min)$/ }).click();
   await page.getByRole('button', { name: /点亮这一盏|Light it/ }).click();
   await expect(page.getByTestId('with-you')).toBeVisible();
-  // The sound control lives on the burning screen; mute it there and let any scheduled layer
-  // have time to try to play.
-  await page.getByRole('button', { name: /^静音$|^Mute$/ }).click();
+  // The top bar owns the only mute control: it persists and covers music and ambience. Mute it
+  // there and let any scheduled layer have time to try to play.
+  const mute = page.getByRole('navigation').getByRole('button', { name: /^静音$|^Mute$/ });
+  await expect(page.getByRole('button', { name: /^静音$|^Mute$/ })).toHaveCount(1);
+  await mute.click();
   await page.waitForTimeout(3000);
   // No audio element is playing, and the mute state is recorded.
   const playing = await page.evaluate(() => [...document.querySelectorAll('audio')]
     .filter(audio => !audio.paused).length);
   expect(playing).toBe(0);
   // The sound control now offers to turn sound back on.
-  await expect(page.getByRole('button', { name: /^开启声音$|^Sound on$/ })).toBeVisible();
+  await expect(page.getByRole('navigation').getByRole('button', { name: /^开启声音$|^Sound on$/ })).toBeVisible();
   expect(failures).toEqual([]);
 });
 
