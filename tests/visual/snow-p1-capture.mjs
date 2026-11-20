@@ -189,7 +189,7 @@ function instrument(source) {
   const steps = [
     [/const light\s*=\s*daylight\(\),\s*lightKey\s*=\s*JSON\.stringify\(light\);/g, 'scene-build', true],
     [/await P\.build\(t,\s*context\);/g, 'assets-ready'],
-    [/if\s*\(context\.baked\?\.staticLampShadow\)\s*await context\.baked\.staticLampShadow\.capture\(renderer,\s*context\.baked\.group\);/g, 'static-shadow-ready'],
+    [/const stage = new THREE\.Scene\(\); stage\.environment = env;/g, 'before-stage', true],
     [/await renderer\.compileAsync\(stage,\s*stageCamera\);(?=\s*if\s*\(P\.bakedLighting)/g, 'first-compile-ready'],
     [/renderer\.setRenderTarget\(warm\);\s*renderer\.render\(stage,\s*stageCamera\);/g, 'warm-render-ready'],
     [/cachedPlaces\.set\(t\.id,\s*candidate\);/g, 'preview-ready', true],

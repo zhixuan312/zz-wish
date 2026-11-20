@@ -1832,7 +1832,15 @@ async function buildPlaceNow(t, isolated = false) {
   context.G = G;
   context.up.push((dt, time) => { u.uTime.value = time; });
   const candidate = { G, disposers:context.disposers, up: context.up, sky, env, envTarget, P, id: t.id, lightKey, daylight: light, nookG, others: context.others, cover: context.cover, baked:context.baked, reflectors:context.reflectors, hemi, sun, hemiBase: hemi.intensity, sunBase: sun.intensity };
-  if(context.baked?.staticLampShadow)await context.baked.staticLampShadow.capture(renderer,context.baked.group);
+  const streamsSnowInterior = t.id === 'snow-roof'
+    && context.baked?.manifest.snowCourt && context.baked.manifest.walkLightmaps;
+  if (context.baked?.staticLampShadow) {
+    const capture = () => context.baked.staticLampShadow.capture(renderer, context.baked.group);
+    // The road preview has no visitor light. Capture its indoor shadow as
+    // part of entry, before the visitor can light the lantern.
+    if (streamsSnowInterior) candidate.prepareStaticLampShadow = capture;
+    else await capture();
+  }
   const stage = new THREE.Scene(); stage.environment = env; stage.fog = new THREE.FogExp2(...P.fog); stage.add(G);
   stage.add(previewFill.clone());
   const stageCamera = camera.clone(); stageCamera.position.copy(P.view.pos); stageCamera.lookAt(P.view.look);
@@ -1841,8 +1849,6 @@ async function buildPlaceNow(t, isolated = false) {
   // frame must still reach its normal framebuffer while shaders link.
   let visitorPreview;
   const target = renderer.getRenderTarget(), warm = new THREE.WebGLRenderTarget(4, 4);
-  const streamsSnowInterior = t.id === 'snow-roof'
-    && context.baked?.manifest.snowCourt && context.baked.manifest.walkLightmaps;
   try {
     // A streamed Snow Court opens on the road. Its visitor lamp shaders can
     // link with the actual lamp when the player reaches the hall.
@@ -1898,7 +1904,20 @@ let cameraJourneyVersion=0;
 let choiceCameraVersion=0;
 const active = outside;
 const tweens = [];
-function tween(dur, fn) { if (reducedMotion.matches) { fn(1); return Promise.resolve(); } return new Promise((res) => { tweens.push({ t: 0, dur, fn, res, skip: false }); }); }
+function tween(dur, fn, finishWhenDue = false) {
+  if (reducedMotion.matches) { fn(1); return Promise.resolve(); }
+  return new Promise(res => {
+    const tw = { t: 0, dur, fn, res, skip: false };
+    tweens.push(tw);
+    if (finishWhenDue) tw.deadline = setTimeout(() => {
+      const index = tweens.indexOf(tw);
+      if (index === -1) return;
+      tweens.splice(index, 1);
+      fn(1);
+      res();
+    }, dur * 1000);
+  });
+}
 function skipTweens() { for (const tw of tweens) tw.skip = true; }
 function moveCam(pos, look, dur, fov) {
   const p0 = rig.pos.clone(), l0 = rig.look.clone(),f0=rig.fov??camera.fov,f1=fov??(narrow()?44:32);
@@ -2265,6 +2284,10 @@ export async function travel(id) {
     await fadeTo(1, 200); await showPlace(id);
     const p=PLACES[id],v=(narrow()&&p.viewPhone)||p.view;rig.pos.copy(v.pos);rig.look.copy(v.look);rig.amp=1;rig.fov=v.fov??null;await fadeTo(0,267);
   }
+  if (place.prepareStaticLampShadow) {
+    await place.prepareStaticLampShadow();
+    place.prepareStaticLampShadow = null;
+  }
   if (place.prepareVisitorEnvironment && !place.visitorEnvironment) {
     // Sample the hall after the road is usable and before the route moves.
     // Refresh the existing offer so it uses the same indoor reflection from
@@ -2349,7 +2372,9 @@ export async function travel(id) {
       rig.fov = THREE.MathUtils.lerp(entryFov, end.fov ?? entryFov, t);
     };
     if (skipNextTravel || reducedMotion.matches) settle(1);
-    else await tween(5.6, settle);
+    // Even when the last frame misses its display slot, finish the handoff
+    // at the authored pose so the chooser does not wait for another frame.
+    else await tween(5.6, settle, true);
   }
   if(!P.bakedLighting){const c = chooseView(); await moveCam(c.pos, c.look,2.4,c.fov);}
   if (P.offerAfterTravel && place?.P === P) {
@@ -2544,7 +2569,7 @@ function frame(stamp = performance.now()) {
     // Camera/story durations use elapsed wall time. Particle stability's100ms
     // step cap must not turn a slow browser frame into a slow-motion walk.
     const tw = tweens[i]; tw.t += Math.max(0,elapsed/1000); const k = tw.skip ? 1 : Math.min(1, tw.t / tw.dur); tw.fn(k);
-    if (k >= 1) { tweens.splice(i, 1); tw.res(); }
+    if (k >= 1) { clearTimeout(tw.deadline); tweens.splice(i, 1); tw.res(); }
   }
   // A slow drift so the view breathes like a held camera; wider outside.
   const a = reducedMotion.matches || place?.P.bakedLighting || (import.meta.env.DEV && window.__visualFreezeCamera) ? 0 : rig.amp;
