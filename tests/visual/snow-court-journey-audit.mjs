@@ -313,7 +313,7 @@ export function installSnowCourtJourneyAudit() {
       lowest = Math.min(lowest, projectedY);
       highest = Math.max(highest, projectedY);
     }
-    const centre = bounds.getCenter(world);
+    const centre = bounds.getCenter(new THREE.Vector3());
     if (!earlierBurnCloth) {
       const rowCentre = baked.manifest.lampBasis.position[0];
       earlierBurnCloth = new Map(rowSlots.map(slot => [slot, new Map()]));
