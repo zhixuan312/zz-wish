@@ -94,6 +94,7 @@ import { layersFor, recordedLayersFor } from './places/pine-ambience.ts';
 
 export { layersFor, recordedLayersFor, nextDelay, LEVELS, RECORDED } from './places/pine-ambience.ts';
 export { createRecordedSounds } from './places/pine-recorded-sounds.ts';
+export { PART_LIGHT, PART_ORDER, PART_START, lightAt, partProgress } from './places/pine-day-parts.ts';
 export type { RecordedSounds } from './places/pine-recorded-sounds.ts';
 
 /** One call for the UI: which layers this part of day enables, and which of them are recorded. */
