@@ -1865,10 +1865,18 @@ async function buildPlaceNow(t, isolated = false) {
   const pineOpening = N.lamp === 'pineWax' && context.baked?.waxNormal;
   if(P.bakedLighting&&context.baked&&(N.lamp==='gauze'||pineOpening)){
     const basis=context.baked.manifest.lampBasis.position;
-    context.baked.update(context.light,0,V3(...basis));
-    // All hall programs are already warmed above. This bounded six-face
-    // capture adds no light and keeps the visitor out of its own environment.
-    candidate.visitorEnvironment=captureLocalEnvironment({context,root:G,environment:env,fog:stage.fog,position:[...basis],size:64,near:.01,far:pineOpening ? stageCamera.far : 30});
+    const probe = () => {
+      context.baked.update(candidate.daylight, 0, V3(...basis));
+      // A prepared place may already own the hidden visitor pivot. Exclude
+      // it and the distant projection from the deferred room probe.
+      const exclude = streamsSnowInterior
+        ? [context.baked.backdrop.group, candidate.visitorPivot].filter(Boolean)
+        : [];
+      return captureLocalEnvironment({ context, root: G, environment: env, fog: stage.fog,
+        position: [...basis], exclude, size: 64, near: .01, far: pineOpening ? stageCamera.far : 30 });
+    };
+    if (streamsSnowInterior) candidate.prepareVisitorEnvironment = probe;
+    else candidate.visitorEnvironment = probe();
   }
   cachedPlaces.set(t.id, candidate);
   // Preserve a prepared Pine Gate while the cover is still on screen.
@@ -2256,6 +2264,16 @@ export async function travel(id) {
   if (place?.id !== id) {
     await fadeTo(1, 200); await showPlace(id);
     const p=PLACES[id],v=(narrow()&&p.viewPhone)||p.view;rig.pos.copy(v.pos);rig.look.copy(v.look);rig.amp=1;rig.fov=v.fov??null;await fadeTo(0,267);
+  }
+  if (place.prepareVisitorEnvironment && !place.visitorEnvironment) {
+    // Sample the hall after the road is usable and before the route moves.
+    // Refresh the existing offer so it uses the same indoor reflection from
+    // the first frame in the chooser.
+    place.visitorEnvironment = place.prepareVisitorEnvironment();
+    if (mine.offer) {
+      mine.partsKey = null;
+      mine.setOffer(mine.offer);
+    }
   }
   place.baked?.startWalkLightmaps?.();
   place.baked?.backdrop?.startWalk();
