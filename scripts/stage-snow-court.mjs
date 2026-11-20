@@ -33,15 +33,17 @@ if (!out.startsWith(scratch + sep) || inputs.some(input => out === input || out.
 const digest = data => createHash('sha256').update(data).digest('hex');
 const isHash = value => typeof value === 'string' && /^[a-f0-9]{64}$/.test(value);
 const localName = value => typeof value === 'string' && /^[a-z0-9][a-z0-9._-]*$/.test(value);
-const [projectionBytes, siteBytes, agxProvenance] = await Promise.all([
+const [projectionBytes, siteBytes, backdropSource, agxProvenance] = await Promise.all([
   readFile(new URL('../shared/snow-court-backdrop.json', import.meta.url)),
   readFile(new URL('../shared/snow-roof-court-site.json', import.meta.url)),
+  readFile(new URL('../art/blender/snow_court_backdrop.py', import.meta.url)),
   readFile(new URL('../docs/licenses/native-agx.json', import.meta.url)),
 ]);
 const projection = JSON.parse(projectionBytes);
 const { revision } = JSON.parse(siteBytes);
 const projectionSha256 = digest(projectionBytes);
 const siteSha256 = digest(siteBytes);
+const backdropSourceSha256 = digest(backdropSource);
 const layerNames = Object.keys(projection.distances);
 const limits = { base: 15_000_000, phone: 30_000_000, desktop: 40_000_000 };
 
@@ -158,6 +160,7 @@ async function backdrop(directory, tier, lighting, extensions) {
   const width = projection.width / preferredScale;
   const height = projection.height / preferredScale;
   if (spec.lighting !== lighting || spec.projectionSha256 !== projectionSha256 || spec.siteSha256 !== siteSha256
+    || spec.backdropSourceSha256 !== backdropSourceSha256
     || !isHash(spec.renderSha256) || spec.preExposure !== projection.preExposure || spec.alpha !== 'straight'
     || spec.colorSpace !== 'linear' || spec.encoding !== 'log2-8-8' || spec.width !== width || spec.height !== height
     || !Number.isSafeInteger(spec.masterWidth) || !Number.isSafeInteger(spec.masterHeight)

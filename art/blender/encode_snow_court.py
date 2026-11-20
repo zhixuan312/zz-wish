@@ -21,7 +21,9 @@ def main():
     receipt = args.input / 'render.json'
     render = json.loads(receipt.read_text())
     width, height = render['width'], render['height']
+    author = Path(__file__).with_name('snow_court_backdrop.py')
     if (render['projectionSha256'] != digest(PROJECTION) or render['siteSha256'] != digest(SITE)
+            or render['sources']['author'] != digest(author)
             or render['colorSpace'] != 'scene-linear Rec.709' or render['alpha'] != 'straight'
             or render['runtimePreExposureMultiplier'] != projection['preExposure']
             or render['exposureAppliedStops'] != 0 or render['lighting'] not in ('day', 'night')
@@ -58,6 +60,7 @@ def main():
         'colorSpace': 'linear', 'alpha': 'straight', 'webpQuality': args.quality,
         'lighting': render['lighting'], 'lightTransport': render['lightTransport'],
         'projectionSha256': render['projectionSha256'], 'siteSha256': render['siteSha256'],
+        'backdropSourceSha256': render['sources']['author'],
         'renderSha256': digest(receipt), 'layers': variants,
     }, indent=2) + '\n')
     print('SNOW_COURT_PLATES', sum(item['bytes'] for item in variants.values()), args.out)
