@@ -1,15 +1,15 @@
-"""Place a CC0 photogrammetric marble figure on the Snow Roof altar."""
+"""Place a CC0 scan of an anonymous seated figure on the Snow Roof altar."""
 
 from pathlib import Path
 
 import numpy as np
 
-SCAN_SOURCE = Path(__file__).resolve().parents[2] / 'art/assets/snow-court/seated-marble-scan.npz'
-ACCESSION = 'F1917.243'
-SCAN_CREATOR = 'Daniel Pett'
+SCAN_SOURCE = Path(__file__).resolve().parents[2] / 'art/assets/snow-court/seated-stone-scan.npz'
+SCAN_MODEL = '720673'
+SCAN_CREATOR = 'dohnni'
 SCAN_LICENSE = 'CC0-1.0'
-SCAN_RECORD = 'https://sketchfab.com/3d-models/seated-figure-of-buddha-a4d22eb6d3c44848bd49b89fb4c28759'
-SCAN_MATERIAL_ROUGHNESS = .87024
+SCAN_RECORD = 'https://www.printables.com/model/720673-sitting-buddha-statue'
+STONE_ROUGHNESS = .94
 
 
 def build(mesh, anchor, material):
@@ -19,28 +19,28 @@ def build(mesh, anchor, material):
         vertices = local + np.asarray(anchor)
         faces = data['faces']
         charts = data['charts']
-        captured = data['colors'] / 255.
+        stone = data['colors'] / 255.
 
-    figure = mesh.mesh_object('Seated weathered marble Buddha', vertices.tolist(), faces.tolist(), material)
-    # The scan colour is vertex-bound. Planar UV0 avoids unused atlas seams.
+    figure = mesh.mesh_object('Seated weathered stone Buddha', vertices.tolist(), faces.tolist(), material)
+    # The stone colour is vertex-bound. Planar UV0 avoids unused atlas seams.
     figure.data.uv_layers['UVMap'].data.foreach_set('uv', local[faces, :2].astype(np.float32).ravel())
-    mesh.source_uv(figure, charts.tolist(), 'Separate xatlas charts of the fitted photogrammetric surface.')
+    mesh.source_uv(figure, charts.tolist(), 'Nonoverlapping lightmap charts of the fitted scan, derived on a smoothed proxy.')
     for polygon in figure.data.polygons:
         polygon.use_smooth = True
     figure['source_cc0_asset'] = SCAN_RECORD
-    figure['source_scan_accession'] = ACCESSION
+    figure['source_scan_model'] = SCAN_MODEL
     figure['source_scan_creator'] = SCAN_CREATOR
     figure['source_scan_license'] = SCAN_LICENSE
-    linear = np.where(captured <= .04045, captured / 12.92, ((captured + .055) / 1.055) ** 2.4)
+    linear = np.where(stone <= .04045, stone / 12.92, ((stone + .055) / 1.055) ** 2.4)
     return figure, linear
 
 
 def apply_scan_color(carving):
-    """Restore the photographed colour after the standard tint pass."""
+    """Restore the scan-based stone colour after the standard tint pass."""
     figure, linear = carving
     layer = figure.data.color_attributes.get('SurfaceTint')
     if layer is None:
-        raise RuntimeError('Marble scan requires the exported SurfaceTint layer')
+        raise RuntimeError('The stone scan requires the exported SurfaceTint layer')
     for loop in figure.data.loops:
         layer.data[loop.index].color = (*linear[loop.vertex_index], 1.)
-    figure['surface_tint_export'] = 'Photogrammetric albedo, sRGB decoded once into glTF COLOR_0.'
+    figure['surface_tint_export'] = 'Vertex albedo from CC0 stone grain, sRGB decoded once into glTF COLOR_0.'

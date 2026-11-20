@@ -40,7 +40,7 @@ def palette(site):
         'bronze': mesh.material('Dull old lamp bronze', '#735438', rough=.63, metal=.71),
         'ash': mesh.material('Char and burned wick', '#272822', rough=.96),
         'oil': mesh.material('Dark clear seed oil', '#6b4628', rough=.22, metal=.03),
-        'figure': mesh.material('Matte weathered marble of the seated Buddha', rough=statue.SCAN_MATERIAL_ROUGHNESS),
+        'figure': mesh.material('Matte weathered stone of the seated Buddha', rough=statue.STONE_ROUGHNESS),
         'glow': mesh.material('Thin gauze over low flame', '#b96953', rough=.86, emission=.04),
         'bamboo': mesh.material('Split bamboo beneath faded linen', '#9a7350', rough=.94),
         'red_faded': mesh.material('Faded dusty rose gauze', '#ac6a63', rough=.94),
@@ -617,7 +617,7 @@ def hall(site, m, contact, fixtures):
     mesh.REGION = 'altar'
     plinth = mesh.box('Low stone altar supports the seated figure', (2.09, .52, .93),
                      (0, y + .260, back + .87), m['granite'], .027)
-    with contact.group('Seated marble Buddha on the stone altar', [plinth]):
+    with contact.group('Seated Buddha on the stone altar', [plinth]):
         carving = statue.build(mesh, (0, y + .52, back + .91), m['figure'])
     oil_lamp('Altar ordinary oil lamp', (.70, y + .52, back + 1.12), m, contact, plinth, 'hall', fixtures, .68)
     area('Warm reflected light on the seated figure and worn plinth', (1.20, y + .99, back + 2.11),
