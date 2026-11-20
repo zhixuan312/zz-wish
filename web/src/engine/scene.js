@@ -45,6 +45,9 @@ const camera = new THREE.PerspectiveCamera(34, 1, 0.01, 900);
 // The render camera, reachable by the browser suite so its projections use the same matrices the
 // frame is drawn with.
 if (import.meta.env.DEV || import.meta.env.VITE_E2E_HOOKS === '1') {
+  // Read-only record of which builds started and which stood down, so the browser suite can prove a
+  // switch really abandons the speculative build instead of inferring it from timing.
+  window.__placeBuilds = { started: [], superseded: [] };
   window.__pineRenderCamera = camera;
   // Hold the walking rig still while the browser suite measures a declared pose. Only the E2E build
   // carries it; a normal page never defines the flag.
@@ -1839,9 +1842,11 @@ async function buildPlace(t) {
 }
 // Called after every await a non-isolated build passes. A superseded build unwinds rather than
 // finishing: the caller gets PlaceBuildSuperseded and no cached place is left behind.
-function supersededAfterAwait(id, isolated, built = {}) {
+function supersededAfterAwait(id, isolated, built = {}, checkpoint = '') {
   if (isolated) return;
   if (wantedPlace === null || wantedPlace === id) return;
+  if (import.meta.env.DEV || import.meta.env.VITE_E2E_HOOKS === '1')
+    window.__placeBuilds?.superseded.push({ id, checkpoint });
   // Drop the pending promise first, so a switch back to this place starts a fresh build instead of
   // waiting on one that is about to reject.
   preparingPlaces.delete(id);
@@ -1860,16 +1865,17 @@ function supersededAfterAwait(id, isolated, built = {}) {
 }
 
 async function buildPlaceNow(t, isolated = false) {
+  if (import.meta.env.DEV || import.meta.env.VITE_E2E_HOOKS === '1') window.__placeBuilds?.started.push(t.id);
   PLACES[t.id] ??= (await placeModules[t.id]()).default(placeHelpers);
-  supersededAfterAwait(t.id, isolated);
+  supersededAfterAwait(t.id, isolated, {}, 'after placeModules');
   const light = placeLight(PLACES[t.id]), lightKey = JSON.stringify(light);
   if (cachedPlaces.has(t.id)) return cachedPlaces.get(t.id);
   if(PLACES[t.id].bakedLighting)await ensureNativeAgX();
-  supersededAfterAwait(t.id, isolated);
+  supersededAfterAwait(t.id, isolated, {}, 'after ensureNativeAgX');
   if(t.id==='snow-roof')await ensureVisitorFabric();
-  supersededAfterAwait(t.id, isolated);
+  supersededAfterAwait(t.id, isolated, {}, 'after ensureVisitorFabric');
   if(!PLACES[t.id].bakedLighting)await loadNaturalAssets();
-  supersededAfterAwait(t.id, isolated);
+  supersededAfterAwait(t.id, isolated, {}, 'after loadNaturalAssets');
   const P = { ...PLACES[t.id], ...blendPlace(PLACES[t.id], light) }, G = new THREE.Group();
   const C_before = isolated ? undefined : C;
   // `shade` dims the unlit pieces (backdrop ridges, mist, smoke, rain) to match the night light.
@@ -1888,7 +1894,7 @@ async function buildPlaceNow(t, isolated = false) {
   const sky = new THREE.Mesh(new THREE.SphereGeometry(500, 48, 24), skyMat); sky.renderOrder = -1; G.add(sky);
   const skyScene = new THREE.Scene(); skyScene.add(new THREE.Mesh(sky.geometry, skyMat));
   await pauseBuild();
-  const disposePartial = () => supersededAfterAwait(t.id, isolated, { C_before, G, context });
+  const disposePartial = () => supersededAfterAwait(t.id, isolated, { C_before, G, context }, 'after pauseBuild');
   disposePartial();
   const envTarget = pmrem.fromScene(skyScene, 0, .1, 1000), env = envTarget.texture;
   context.environment=env;context.fog=new THREE.FogExp2(...P.fog);
@@ -1899,7 +1905,7 @@ async function buildPlaceNow(t, isolated = false) {
   sun.shadow.bias = -.00025; sun.shadow.normalBias = .025; sun.shadow.radius = 3; G.add(sun);
   const hemi = new THREE.HemisphereLight(...P.hemi); G.add(hemi);
   await P.build(t, context);
-  supersededAfterAwait(t.id, isolated, { C_before, G, envTarget, context });
+  supersededAfterAwait(t.id, isolated, { C_before, G, envTarget, context }, 'after P.build');
   if (!isolated) await finishBatch();
   context.baked?.updateWaxSun?.(dir);
   // The spot where the lamp is lit, built in its own frame and set into the place.
@@ -1909,7 +1915,7 @@ async function buildPlaceNow(t, isolated = false) {
   context.world = G;
   context.G = nookG; context.bat = new Map(); context.cover = null;
   await N.build(placeHelpers, context);
-  supersededAfterAwait(t.id, isolated, { C_before, G, envTarget, context });
+  supersededAfterAwait(t.id, isolated, { C_before, G, envTarget, context }, 'after N.build');
   if (!isolated) await finishBatch();
   nookG.traverse((o) => { if (o.isMesh && !o.material.transparent && !o.isInstancedMesh) { o.receiveShadow = true; if (o.userData.cast !== false) o.castShadow = true; } if (o.isLight) o.layers.enableAll(); });
   G.traverse((o) => { if (o.isLight) o.layers.enableAll(); });
@@ -1922,7 +1928,7 @@ async function buildPlaceNow(t, isolated = false) {
   });
   const candidate = { G, disposers:context.disposers, up: context.up, sky, env, envTarget, P, id: t.id, lightKey, daylight: light, nookG, others: context.others, cover: context.cover, baked:context.baked, reflectors:context.reflectors, hemi, sun, hemiBase: hemi.intensity, sunBase: sun.intensity };
   if(context.baked?.staticLampShadow)await context.baked.staticLampShadow.capture(renderer,context.baked.group);
-  supersededAfterAwait(t.id, isolated, { C_before, G, envTarget, context });
+  supersededAfterAwait(t.id, isolated, { C_before, G, envTarget, context }, 'after staticLampShadow');
   const stage = new THREE.Scene(); stage.environment = env; stage.fog = new THREE.FogExp2(...P.fog); stage.add(G);
   stage.add(previewFill.clone());
   const stageCamera = camera.clone(); stageCamera.position.copy(P.view.pos); stageCamera.lookAt(P.view.look);
@@ -1933,7 +1939,7 @@ async function buildPlaceNow(t, isolated = false) {
   const target = renderer.getRenderTarget(), warm = new THREE.WebGLRenderTarget(4, 4);
   try {
     await renderer.compileAsync(stage, stageCamera);
-    supersededAfterAwait(t.id, isolated, { C_before, G, envTarget, context });
+    supersededAfterAwait(t.id, isolated, { C_before, G, envTarget, context }, 'after compileAsync 1');
     if (P.bakedLighting && P.nook.lamp === 'gauze') {
       visitorPreview = LAMPS.gauze({ ...presetOf('shade'), liveBaked: true });
       const basis = context.baked.manifest.lampBasis.position;
@@ -1941,7 +1947,7 @@ async function buildPlaceNow(t, isolated = false) {
       const point = new THREE.PointLight(0xffb070, 1, 6, 2);
       point.position.set(...basis); point.castShadow = true; point.shadow.mapSize.set(512, 512); stage.add(point);
       await renderer.compileAsync(stage, stageCamera);
-      supersededAfterAwait(t.id, isolated, { C_before, G, envTarget, context });
+      supersededAfterAwait(t.id, isolated, { C_before, G, envTarget, context }, 'after compileAsync 2');
     }
     renderer.setRenderTarget(warm); renderer.render(stage, stageCamera);
   }
