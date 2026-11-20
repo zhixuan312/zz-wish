@@ -217,7 +217,7 @@ export default function createPlace(h) {
       const cloth = createWishCloth({
         THREE, anchor: V3(anchor[0], anchor[1], anchor[2]), seed: 3,
       });
-      cloth.group.visible = false;
+      cloth.show(false);
       // The glTF place group is in world metres, the same space as the lamp anchor.
       baked.group.add(cloth.group);
       baked.wishCloth = cloth;

@@ -1,6 +1,6 @@
 import { Vector3 } from 'three';
 import { expect, test } from 'vitest';
-import { createWishCloth, wallRadius, CLOTH_SPEC, TRAY_PROFILE } from '../../../web/src/engine/places/pine-wish-cloth.js';
+import { createWishCloth, wallRadius, wishClothVisible, CLOTH_SPEC, TRAY_PROFILE } from '../../../web/src/engine/places/pine-wish-cloth.js';
 import * as THREE from 'three';
 
 const anchor = new Vector3(-1.8, 5, .9);
@@ -26,7 +26,23 @@ test('wallRadius follows the tray lathe profile', () => {
   expect(wallRadius(.5)).toBeCloseTo(.054, 6);
 });
 
-test('the cloth sits at the tray anchor and stays hidden until the lamp is lit', () => {
+test('the cloth is hidden until the lamp is lit and stays after either ending', () => {
+  // The place builds it hidden and the ignite path calls show(true); nothing ever hides it again.
+  expect(wishClothVisible(false)).toBe(false);
+  expect(wishClothVisible(true)).toBe(true);
+  const cloth = createWishCloth({ THREE, anchor });
+  expect(cloth.group.visible).toBe(false);
+  cloth.show(false);
+  expect(cloth.group.visible).toBe(false);
+  cloth.show(true);
+  expect(cloth.group.visible).toBe(true);
+  // Both endings keep it: no hide path exists, so showing twice stays shown.
+  cloth.show(true);
+  expect(cloth.group.visible).toBe(true);
+  cloth.dispose();
+});
+
+test('the cloth sits at the tray anchor', () => {
   const cloth = createWishCloth({ THREE, anchor });
   expect(cloth.group.position.x).toBeCloseTo(anchor.x, 6);
   expect(cloth.group.position.y).toBeCloseTo(anchor.y, 6);
@@ -37,17 +53,44 @@ test('the cloth sits at the tray anchor and stays hidden until the lamp is lit',
 
 test('no part of the cloth is buried in the stone or inside the tray wall', () => {
   const cloth = createWishCloth({ THREE, anchor });
-  const { out } = bandVertices(cloth);
-  expect(out.length).toBeGreaterThan(100);
+  const { band, out } = bandVertices(cloth);
+  // Vertices lie on the rings only; a straight span between two rings can still cut inside a
+  // convex wall, so every vertical edge is sampled between its own ring heights as well.
+  const position = band.geometry.attributes.position;
+  const ringYs = [...new Set(out.map(p => +p.y.toFixed(6)))].sort((a, b) => a - b);
+  expect(ringYs.length).toBeGreaterThanOrEqual(9);
+  const rings = ringYs.map((y, i) => {
+    const points = [];
+    for (let v = 0; v < position.count; v++) {
+      if (Math.abs(position.getY(v) - y) < 1e-6) {
+        points.push([position.getX(v), position.getZ(v)]);
+      }
+    }
+    return { y, points, index: i };
+  });
+  expect(rings.every(r => r.points.length > 0)).toBe(true);
+  // Pair the rings by their order round the band: the strip is built ring by ring.
+  const perRing = rings[0].points.length;
+  for (const ring of rings) expect(ring.points.length).toBe(perRing);
+  for (let r = 1; r < rings.length; r++) {
+    const lower = rings[r - 1], upper = rings[r];
+    for (let k = 0; k < Math.min(lower.points.length, upper.points.length); k++) {
+      const [x0, z0] = lower.points[k], [x1, z1] = upper.points[k];
+      for (let s = 0; s <= 4; s++) {
+        const t = s / 4;
+        const y = lower.y + (upper.y - lower.y) * t;
+        const x = x0 + (x1 - x0) * t, z = z0 + (z1 - z0) * t;
+        const radius = Math.hypot(x, z);
+        expect(radius, `edge sample at y ${y.toFixed(4)}`)
+          .toBeGreaterThanOrEqual(wallRadius(y) + .0005);
+        expect(radius, `edge sample at y ${y.toFixed(4)}`)
+          .toBeLessThanOrEqual(wallRadius(y) + .004);
+      }
+    }
+  }
   for (const point of out) {
-    // Nothing below the stone: the anchor is the stone surface.
     expect(point.y, `y ${point.y}`).toBeGreaterThanOrEqual(.0005);
     expect(point.y, `y ${point.y}`).toBeLessThanOrEqual(.017);
-    // It hugs the wall from outside, so it can never be inside the tray's stone.
-    expect(Math.hypot(point.x, point.z), `radius at y ${point.y}`)
-      .toBeGreaterThanOrEqual(wallRadius(point.y) + .0005);
-    expect(Math.hypot(point.x, point.z), `radius at y ${point.y}`)
-      .toBeLessThanOrEqual(wallRadius(point.y) + .004);
   }
   cloth.dispose();
 });
@@ -71,7 +114,10 @@ test('the band is a narrow upright ring that never exceeds the tray rim', () => 
     if (radial < .005) continue;
     const outward = (normals.getX(i) * pos.getX(i) + normals.getZ(i) * pos.getZ(i)) / radial;
     if (Math.abs(outward) < .2) continue;
-    expect(outward, 'band normal must point outward').toBeGreaterThan(.05);
+    // The wall's steepest span gives |outward| about .55; the measured band sits at .33 because
+    // consecutive wall profile points differ in slope. Radial must still dominate the brim
+    // case, where outward would be near zero.
+    expect(Math.abs(outward), 'band normal must be radial').toBeGreaterThan(.3);
     checked++;
   }
   expect(checked).toBeGreaterThan(100);

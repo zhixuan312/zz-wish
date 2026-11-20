@@ -35,29 +35,43 @@ export const CLOTH_SPEC = Object.freeze({
   band: { from: .004, to: .012, clearance: .0018, width: .008 },
 });
 
+// The strip exists from the moment the place loads, but is tied on only when the lamp is lit,
+// and it is never taken away afterwards: both endings leave it in place.
+export function wishClothVisible(lit) {
+  return lit === true;
+}
+
 export function createWishCloth({ THREE, anchor }) {
   const group = new THREE.Group();
   // The anchor is the stone surface; the tray sits on it and the cloth ties to the tray.
   group.position.set(anchor.x, anchor.y, anchor.z);
+  // Hidden until the lamp is lit; see wishClothVisible and the ignite path in scene.js.
+  group.visible = false;
 
   const { band } = CLOTH_SPEC;
   const material = new THREE.MeshStandardMaterial({
     color: CLOTH_COLOR, roughness: .97, metalness: 0, side: THREE.DoubleSide,
   });
 
-  // One upright ring round the wall: two rings joined into a quad strip. It follows the wall's
-  // flare so it stays in contact, which is why it is a shell rather than a flat ribbon.
+  // The tray wall is convex over this band, so a straight span between two rings would cut
+  // inside it. The band is therefore a stack of rings that each take the wall radius at their
+  // own height, and the strip between adjacent rings still stays outside the stone.
+  const RINGS = 12;
   const steps = 96;
   const positions = [], indices = [];
-  for (let i = 0; i <= steps; i++) {
-    const angle = (i / steps) * Math.PI * 2;
-    const rTop = wallRadius(band.to) + band.clearance;
-    const rBottom = wallRadius(band.from) + band.clearance;
-    positions.push(Math.sin(angle) * rTop, band.to, Math.cos(angle) * rTop);
-    positions.push(Math.sin(angle) * rBottom, band.from, Math.cos(angle) * rBottom);
-    if (i > 0) {
-      const a = (i - 1) * 2, b = i * 2;
-      indices.push(a, a + 1, b, a + 1, b + 1, b);
+  for (let r = 0; r < RINGS; r++) {
+    const y = band.from + (band.to - band.from) * (r / (RINGS - 1));
+    const radius = wallRadius(y) + band.clearance;
+    for (let i = 0; i < steps; i++) {
+      const angle = (i / steps) * Math.PI * 2;
+      positions.push(Math.sin(angle) * radius, y, Math.cos(angle) * radius);
+    }
+  }
+  for (let r = 1; r < RINGS; r++) {
+    for (let i = 0; i < steps; i++) {
+      const next = (i + 1) % steps;
+      const lower = (r - 1) * steps, upper = r * steps;
+      indices.push(lower + i, lower + next, upper + i, lower + next, upper + next, upper + i);
     }
   }
   const geometry = new THREE.BufferGeometry();
@@ -75,6 +89,7 @@ export function createWishCloth({ THREE, anchor }) {
     group,
     anchor: anchor.clone(),
     update() { /* A taut band on a ledge does not move. */ },
+    show(lit) { group.visible = wishClothVisible(lit); },
     worldPosition() { return group.getWorldPosition(local.clone()); },
     dispose() { geometry.dispose(); material.dispose(); },
   };

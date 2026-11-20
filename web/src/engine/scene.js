@@ -2340,7 +2340,7 @@ export async function ignite({onCatch, remainingFuel, onTaperLit}={}) {
   // this remnant where it stands.
   place?.baked?.takeCandleSlot?.();
   // The wish strip is tied on when the lamp is lit and stays, through either ending.
-  if (place?.baked?.wishCloth) place.baked.wishCloth.group.visible = true;
+  place?.baked?.wishCloth?.show(true);
   const pine = !!mine.parts?.pineWax;
   if (pine) waxFuel = remainingFuel ?? null;
   if (!place.P.bakedLighting) {
