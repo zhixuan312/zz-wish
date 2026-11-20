@@ -1948,6 +1948,14 @@ if (import.meta.env.DEV || import.meta.env.VITE_E2E_HOOKS === '1') {
       tray: { min: holderBox.min.toArray(), max: holderBox.max.toArray() },
       flame: { min: flameBox.min.toArray(), max: flameBox.max.toArray() },
       wick: { x: wick.x, y: wick.y, z: wick.z },
+      // The wax column the flame stands on, so a review can tell a camera move from a melting candle.
+      candleHeight: wax.fullHeight(),
+      // The pose, so a review can tell the candle being swapped from the camera moving.
+      pose: { x: rig.pos.x, y: rig.pos.y, z: rig.pos.z,
+        lx: rig.look.x, ly: rig.look.y, lz: rig.look.z,
+        fov: Number.isFinite(rig.fov) ? rig.fov : camera.fov },
+      // Also report the flame's own scale: a pop can come from the flame growing, not from the camera.
+      flameSize: mine.parts?.flame ?? 1,
       // Screen fractions, measured with the same clipped projection every review uses. Doing it here
       // keeps the browser test free of a TypeScript import of a plain module.
       screen: (safe = { left: 0, right: 1, top: 0, bottom: 1 }) => ({
