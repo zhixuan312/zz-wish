@@ -1846,6 +1846,12 @@ async function buildPlaceNow(t, isolated = false) {
       const point = new THREE.PointLight(0xffb070, 1, 6, 2);
       point.position.set(...basis); point.castShadow = true; point.shadow.mapSize.set(512, 512); stage.add(point);
       await renderer.compileAsync(stage, stageCamera);
+      if (t.id === 'snow-roof' && context.baked.manifest.snowCourt && context.baked.manifest.walkLightmaps) {
+        // Link the future visitor-light programs now. The place view has no
+        // visitor lamp, so its warm draw does not need a dummy shadow cube.
+        visitorPreview.g.visible = false;
+        point.visible = false;
+      }
     }
     renderer.setRenderTarget(warm); renderer.render(stage, stageCamera);
   }
