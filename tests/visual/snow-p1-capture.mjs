@@ -15,7 +15,7 @@ import { fingerprintCaptureSource } from './capture-source-fingerprint.mjs';
 import { instrumentPineScene } from './pine-gate-scene-audit.mjs';
 import { createSnowCourtCameraFrames } from './snow-court-camera-frames.mjs';
 import { createSnowCourtDrawLuminance } from './snow-court-draw-luminance.mjs';
-import { installSnowCourtLanternAudit, validateSnowCourtLanternAudit } from './snow-court-lantern-framing.mjs';
+import { installSnowCourtLanternAudit, validateSnowCourtLanternAudit, validateSnowCourtSettleCamera } from './snow-court-lantern-framing.mjs';
 import { installSnowCourtJourneyAudit, snowCourtBurnCompositionSummary, snowCourtJourneySummary,
   snowCourtPresentedLuminance } from './snow-court-journey-audit.mjs';
 
@@ -246,7 +246,7 @@ function instrument(source) {
             cell.after = window.__snowP1Capture();
           }
         }
-        window.__sampleSnowLanternAudit?.(THREE, camera, mine, place.baked, window.__visualIgnition?.state);
+        window.__sampleSnowLanternAudit?.(THREE, camera, mine, place.baked, window.__visualIgnition?.state, stamp);
         window.__sampleSnowCourtBurnComposition?.(THREE, camera, mine);
       }`);
   }
@@ -595,11 +595,14 @@ async function captureContext(browser, { hour, look, walk }) {
       const audit = await page.evaluate(() => window.__snowLanternAudit);
       const summary = validateSnowCourtLanternAudit(audit, viewport.width, viewport.height);
       const burnComposition = snowCourtBurnCompositionSummary(audit);
+      const settleCamera = validateSnowCourtSettleCamera(audit, phone);
       const file = `${look}-lantern-framing.json`;
-      await writeFile(join(output, file), JSON.stringify({ viewport, summary, burnComposition, ...audit }, null, 2) + '\n');
+      await writeFile(join(output, file), JSON.stringify({ viewport, summary, burnComposition, settleCamera, ...audit }, null, 2) + '\n');
       result.lanternAudit = { file, ...summary };
       result.burnComposition = { file, ...burnComposition, failures: burnComposition.failures.length };
+      result.settleCamera = { file, ...settleCamera, failures: settleCamera.failures.length };
       console.log('SNOW_COURT_BURN_COMPOSITION', size, look, JSON.stringify(result.burnComposition));
+      console.log('SNOW_COURT_SETTLE_CAMERA', size, look, JSON.stringify(result.settleCamera));
       console.log('SNOW_COURT_LANTERN', size, look, JSON.stringify({ ...summary, failures: summary.failures.length }));
       assert.equal(summary.failures.length, 0, 'Snow Roof lantern framing failed; see ' + file);
     }
@@ -648,9 +651,10 @@ try {
     }
     const failedChecks = report.contexts.flatMap(row => [
       ...(row.journeyAudit?.failures ? [row.journeyAudit.file] : []),
-      ...(row.burnComposition?.failures ? [row.burnComposition.file] : []),
+      ...(row.burnComposition?.failures ? [row.burnComposition.file + ':burnComposition'] : []),
+      ...(row.settleCamera?.failures ? [row.settleCamera.file + ':settleCamera'] : []),
     ]);
-    assert.deepEqual(failedChecks, [], 'Snow Court journey visibility or burn composition failed.');
+    assert.deepEqual(failedChecks, [], 'Snow Court journey visibility, settle camera or burn composition failed.');
   }
   assert.deepEqual(report.captures.map(frame => frame.name), expectedFrames);
   assert.deepEqual(report.readinessMisses, [], 'Step inside must become enabled within five seconds.');
