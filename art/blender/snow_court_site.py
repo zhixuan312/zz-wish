@@ -494,6 +494,27 @@ def scripture_shelf(front, y, m, contact):
                      (x + dx, base + height * .50, z + .078), cloth, .001, twist)
 
 
+def bedded_hall_paver(x, z, width, depth, height, material):
+    import bmesh
+
+    paver = mesh.irregular_paver('Worn hall floor stone', x, z, width, depth, height, material)
+    # The lowest bevel ring sits inside the solid platform, whose top is
+    # seven millimetres below the nominal floor. Keep the whole exposed
+    # upper nosing and top while removing the enclosed slab underneath.
+    data = paver.data
+    geometry = bmesh.new()
+    geometry.from_mesh(data)
+    buried = [vertex for vertex in geometry.verts if vertex.co.z < height - .07]
+    bmesh.ops.delete(geometry, geom=buried, context='VERTS')
+    geometry.to_mesh(data)
+    geometry.free()
+    data.update()
+    charts = [[(data.vertices[index].co.x - x, -data.vertices[index].co.y - z)
+               for index in polygon.vertices] for polygon in data.polygons]
+    mesh.source_uv(paver, charts, 'One planar chart for the full exposed upper paver and bevel.')
+    return paver
+
+
 def hall(site, m, contact, fixtures):
     mesh.REGION = 'hall'
     cfg = site['hall']
@@ -506,8 +527,8 @@ def hall(site, m, contact, fixtures):
         for i in range(12):
             px = left + (i + .5) * span / 12
             pz = back + (j + .5) * depth / 11
-            mesh.irregular_paver('Worn hall floor stone', px, pz, span / 12 - .008, depth / 11 - .008,
-                                 y + .007 * math.sin(i * 2.3 + j * .77), m['granite'])
+            bedded_hall_paver(px, pz, span / 12 - .008, depth / 11 - .008,
+                              y + .007 * math.sin(i * 2.3 + j * .77), m['granite'])
     for side in (-1, 1):
         mesh.box('Limewashed side wall inside the hall', (.21, wall_height, depth), (side * right, y + wall_height / 2, z),
                  m['plaster'], .019)
