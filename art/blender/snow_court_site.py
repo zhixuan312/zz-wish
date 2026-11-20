@@ -15,7 +15,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import snow_roof as mesh
 import pine_valley_backdrop as plates
 import snow_court_finish as finish
-from snow_court_statue import apply_relief as apply_statue_relief, build as build_statue
+import snow_court_statue as statue
 import snow_court_use as everyday
 from resting_contacts import RestingContacts, engine
 from snow_court_approach import build_approach
@@ -40,7 +40,7 @@ def palette(site):
         'bronze': mesh.material('Dull old lamp bronze', '#735438', rough=.63, metal=.71),
         'ash': mesh.material('Char and burned wick', '#272822', rough=.96),
         'oil': mesh.material('Dark clear seed oil', '#6b4628', rough=.22, metal=.03),
-        'figure': mesh.material('Matte grey stone of the seated Buddha', '#a9adad', rough=.97),
+        'figure': mesh.material('Matte weathered marble of the seated Buddha', rough=statue.SCAN_MATERIAL_ROUGHNESS),
         'glow': mesh.material('Thin gauze over low flame', '#b96953', rough=.86, emission=.04),
         'bamboo': mesh.material('Split bamboo beneath faded linen', '#9a7350', rough=.94),
         'red_faded': mesh.material('Faded dusty rose gauze', '#ac6a63', rough=.94),
@@ -617,8 +617,8 @@ def hall(site, m, contact, fixtures):
     mesh.REGION = 'altar'
     plinth = mesh.box('Low stone altar supports the seated figure', (2.09, .52, .93),
                      (0, y + .260, back + .87), m['granite'], .027)
-    with contact.group('Generic seated Buddha and lotus support', [plinth]):
-        carving = build_statue(mesh, (0, y + .52, back + .91), m['figure'])
+    with contact.group('Seated marble Buddha on the stone altar', [plinth]):
+        carving = statue.build(mesh, (0, y + .52, back + .91), m['figure'])
     oil_lamp('Altar ordinary oil lamp', (.70, y + .52, back + 1.12), m, contact, plinth, 'hall', fixtures, .68)
     area('Warm reflected light on the seated figure and worn plinth', (1.20, y + .99, back + 2.11),
          (0, y + 1.57, back + .91), 5.4, '#e2c69b', .73)
@@ -721,7 +721,7 @@ def build(site, projection):
     bpy.context.view_layer.update()
     scene['snow_court_fixtures_engine'] = json.dumps(painted_fixture_data(fixtures, contact))
     mesh.apply_surface_tints()
-    apply_statue_relief(carving)
+    statue.apply_scan_color(carving)
     scene['source_lightmap_charts'] = json.dumps(mesh.complete_source_charts(list(mesh.STATIC.objects)))
     return contact.audit(fail=True), foliage
 
@@ -736,7 +736,7 @@ def main():
     output.parent.mkdir(parents=True, exist_ok=True)
     scene = bpy.context.scene
     sources = (Path(__file__), Path(everyday.__file__), Path(finish.__file__), Path(__file__).with_name('snow_court_approach.py'),
-               Path(__file__).with_name('snow_court_backdrop.py'), SITE, PROJECTION)
+               Path(__file__).with_name('snow_court_backdrop.py'), Path(statue.__file__), statue.SCAN_SOURCE, SITE, PROJECTION)
     scene['source_authoring_sha256'] = json.dumps({
         str(path.resolve().relative_to(ROOT)): sha256(path.read_bytes()).hexdigest() for path in sources
     })
