@@ -134,8 +134,12 @@ test('the walk to the chooser stays inside the walking pace and the look limit',
       prev = p.clone(); prevAim = dir.clone();
     }
     peaks[phone ? 'phone' : 'desk'] = { peakSpeed, peakTurn, seconds };
-    const pace = hold.approachMetresPerSecond ?? 1.4;
-    expect(peakSpeed, `${phone ? 'phone' : 'desk'} peak speed`).toBeLessThanOrEqual(pace);
+    // The limit is fixed here, not read from the data: a place could otherwise widen its own budget
+    // and quietly loosen this test. The data must also stay inside it.
+    expect(hold.approachMetresPerSecond, 'approach pace declared by the place')
+      .toBeLessThanOrEqual(CAMERA_LIMITS.settleSpeedMetresPerSecond);
+    expect(peakSpeed, `${phone ? 'phone' : 'desk'} peak speed`)
+      .toBeLessThanOrEqual(CAMERA_LIMITS.settleSpeedMetresPerSecond);
     expect(peakTurn, `${phone ? 'phone' : 'desk'} peak look rate`)
       .toBeLessThanOrEqual(CAMERA_LIMITS.angularDegreesPerSecond);
   }

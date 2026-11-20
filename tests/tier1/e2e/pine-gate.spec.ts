@@ -209,12 +209,16 @@ test('each mud print draws its sole, not the whole quad', async ({ page }) => {
   });
   expect(boxes && boxes.length).toBe(6);
 
-  // Freeze the scene's own animation so the two frames show the same instant: mist and creek motion
-  // between captures would otherwise dwarf the decal's few levels of darkening.
   // Freeze the scene's own animation so the two frames show the same instant, and wait two frames so
-  // the frozen picture is on screen before the first capture.
+  // the frozen picture is on screen before the first capture. Mist and creek motion between captures
+  // would otherwise dwarf the decal's few levels of darkening.
   await page.evaluate(() => { (window as unknown as { __freezeScene?: boolean }).__freezeScene = true; });
-  await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+  await page.evaluate(() => new Promise(resolve => {
+    const done = () => resolve(true);
+    requestAnimationFrame(() => requestAnimationFrame(done));
+    // A frozen scene may not schedule the next frame; never let the capture wait on it forever.
+    setTimeout(done, 900);
+  }));
   const shot = async () => page.screenshot({ style: '.ui{visibility:hidden!important}' });
   const png = await shot();
   // Second frame with the decals hidden: whatever changes is the print itself.

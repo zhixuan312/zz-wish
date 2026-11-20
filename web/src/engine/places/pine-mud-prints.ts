@@ -171,7 +171,10 @@ export function createMudPrints({ THREE, surface, prints }: {
     // patch with a glowing rim. The mud is drawn as a flat stain, which is what a footprint is, and
     // its darkness then always comes from the pigment rather than the light.
     const material = new THREE.MeshBasicMaterial({
-      color: 0x0b0907,
+      // A stain on the tread right under the visitor: fog must not pull it towards the sky colour,
+      // which is exactly what was washing the print out.
+      fog: false,
+      color: 0x070605,
       alphaMap: maps?.alpha ?? null,
       transparent: true,
       opacity: Math.min(.98, .84 + .14 * print.weight),

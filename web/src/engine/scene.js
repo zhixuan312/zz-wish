@@ -5,6 +5,7 @@ import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 import { FocusBlur } from './FocusBlur.js';
+import { shrineApproach } from './places/pine-walk-curve.js';
 import { buildHall } from './architecture.js';
 import { createPineBatch } from './NaturalPines.js';
 import { loadNaturalAssets,scans,isScanTexture,naturalResources,addScannedRock,addScannedStump } from './NaturalAssets.js';
@@ -2381,6 +2382,9 @@ export async function travel(id) {
     // The route and its timing live in Pine's own module so the camera test measures the same code
     // the page walks.
     const { route, seconds, fromAim, toAim } = shrineApproach({ THREE, from, to, hold });
+    // Aim at a fixed distance: the reveal's target point is sixteen metres away and the chooser's
+    // under a metre, so interpolating between the two points swings the view far too fast.
+    const AIM_DISTANCE = 6;
     const aim = new THREE.Vector3();
     await tween(seconds, k => {
       const e = k * k * (3 - 2 * k);
