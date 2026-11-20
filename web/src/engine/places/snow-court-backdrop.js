@@ -47,7 +47,10 @@ const fragmentShader = `uniform sampler2D uPlate, uUpgradePlate, uNightPlate;
     }
     vec2 border = min(vUv, 1. - vUv);
     float edge = smoothstep(0., .015, min(border.x, border.y));
-    gl_FragColor = color * edge;
+    // Blowing snow in the sheltered cutting conceals the distant valley
+    // until the walker emerges from the gate onto the open court.
+    float valleyTransmission = 1. - smoothstep(9.5, 13.4, cameraPosition.z);
+    gl_FragColor = color * edge * valleyTransmission;
   }`;
 
 export async function loadSnowCourtBackdrop(baked, renderer, initialLight) {

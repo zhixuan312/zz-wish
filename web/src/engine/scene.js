@@ -1011,6 +1011,8 @@ const api = { g, parts: null, partsKey: null, type: null, power: 0, lightPower: 
         const u=m.userData.u,transport=place?.baked?.gauzeTransmission;
         u.uFlame.value.copy(fw);u.uGlow.value=Math.max(2.4*m.userData.strength*power*k*keep,cooling*m.userData.strength);
         if(m.userData.cloth){
+          const gauzeGlow=place?.P.nook.gauzeGlow;
+          if(gauzeGlow){u.uBase.value=gauzeGlow.base;u.uReach.value=gauzeGlow.reach;}
           u.uClothPhysical.value=transport?1:0;
           if(transport){
             const basis=place.baked.manifest.lampBasis,emberIntensity=place.baked.lampCandela*cooling/2.4;

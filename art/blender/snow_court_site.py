@@ -70,8 +70,22 @@ def courtyard(site, materials):
     x_count, z_count = 70, 79
     for row in range(z_count + 1):
         z = back + (front + .08 - back) * row / z_count
+        edge_center = min(path, key=lambda point: abs(point[1] - z))[0]
+        for a, b in zip(path, path[1:]):
+            if min(a[1], b[1]) <= z <= max(a[1], b[1]):
+                t = (z - a[1]) / (b[1] - a[1])
+                edge_center = a[0] + t * (b[0] - a[0])
+                break
+        width = .43 + .046 * math.sin(z * 1.94) + .017 * math.sin(z * 8.3)
+        left_edge = edge_center - width
+        right_edge = edge_center + width
         for col in range(x_count + 1):
-            x = left + (right - left) * col / x_count
+            if col <= 32:
+                x = left + (left_edge - left) * col / 32
+            elif col <= 38:
+                x = left_edge + (right_edge - left_edge) * (col - 32) / 6
+            else:
+                x = right_edge + (right - right_edge) * (col - 38) / 32
             distance = path_distance(x, z, path)
             rim = max(0., min(1., (distance - .61 - .09 * math.sin(z * 1.45)) / .68))
             rim = rim * rim * (3. - 2. * rim)
@@ -87,12 +101,13 @@ def courtyard(site, materials):
             vertices.append((x, relief, z))
             if col and row:
                 i = len(vertices) - 1
-                if distance < .43:
+                if 32 < col <= 38 and z >= min(point[1] for point in path) - .10:
                     exposed_faces.append(len(faces))
                 faces.append((i - x_count - 2, i - 1, i, i - x_count - 1))
     ground = mesh.mesh_object('One snow surface with a narrow swept passage', vertices, faces, materials['snow'])
     ground.data.materials.append(materials['granite'])
-    mesh.grid_uv(ground, x_count + 1, right - left, front + .08 - back)
+    mesh.source_uv(ground, [[(vertices[i][0], vertices[i][2]) for i in face] for face in faces],
+                   'Swept lane follows the connected snow chart in world metres.')
     mesh.uv_world(ground, 1.46)
     for face in ground.data.polygons:
         face.use_smooth = True
@@ -113,6 +128,36 @@ def courtyard(site, materials):
     mesh.wall_coping('Rear wall snowcap', right - left, (0, y + 1.61, back), .42,
                      materials['tile'], materials['snow'], seed=275)
     return floor, ground
+
+
+def gate_foothill(site, stone, snow):
+    mesh.REGION = 'gate'
+    edge = site['court']['front']
+    level = site['court']['level']
+    across = (-22, -14, -10, -8, -6, -4, -2.8, -1.7, -1, 0, 1, 1.7, 2.8, 4, 6, 8, 10, 14, 22)
+    depths = [edge - .22 + (14.35 - edge + .22) * i / 22 for i in range(23)]
+    vertices, faces = [], []
+    for row, z in enumerate(depths):
+        climb = (14.35 - z) / (14.35 - edge + .22)
+        for col, x in enumerate(across):
+            flank = min(1., max(0., (abs(x) - 1.7) / 1.1))
+            flank *= flank
+            relief = .033 * math.sin(x * 1.82 + z * 1.1) * math.sin(math.pi * climb)
+            y = 1.18 + (level - 1.193) * climb * flank + relief * flank
+            if z < 12.41:
+                y += (level - 1.25) * min(1., (12.41 - z) / 2.2) * (1 - flank)
+            vertices.append((x - .22 * (1 - climb), y, z))
+            if row and col:
+                i = len(vertices) - 1
+                faces.append((i - len(across) - 1, i - 1, i, i - len(across)))
+    slope = mesh.mesh_object('Snow shoulder carries the gate and court masonry', vertices, faces, snow)
+    mesh.source_uv(slope, [[(vertices[i][0], vertices[i][2]) for i in face] for face in faces],
+                   'Connected foothill cut in world metres.')
+    for face in slope.data.polygons:
+        face.use_smooth = True
+    for x in (-6.20, 6.20):
+        mesh.box('Buried granite footing beneath the gate-side wall', (7.25, .48, .55),
+                 (x, level - .233, edge), stone, .018)
 
 
 def area(name, location, target, energy, tint, size):
@@ -334,9 +379,11 @@ def hall(site, m, contact, fixtures):
               (xcord, ycord + .048, zcord), .006, m['rope'], .006)
     for x in (-2.8, 2.8):
         area('Paper lattice softly admits the open-snow sky', (x, y + 1.68, front - .16),
-             (x * .6, y + .55, front - 2.0), 2.76, '#e5d9bd', 1.13)
+             (x * .6, y + .55, front - 2.0), 13.8, '#d6e2ec', 1.48)
     area('Warm veranda lamp reflects from the pale hall ceiling', (1.6, y + 1.44, front - 2.21),
-         (0, y + 3.05, front - 3.4), 1.35, '#ffdcac', 1.16)
+         (0, y + 3.05, front - 3.4), 7.8, '#ffdcac', 1.36)
+    area('Warm reflected light beneath the lantern beam', (-1.21, y + 1.82, -6.72),
+         (-2.76, y + 1.24, -5.22), 4.1, '#f0c99c', 1.3)
     # The kit and practical lamp share the guest-scale height rather than altar height.
     table = mesh.box('Table where visitors find frames and separate oil cups', (1.53, .10, .69),
                      (-2.35, y + .679, -5.42), m['wood'], .018)
@@ -417,12 +464,13 @@ def build(site, projection):
     m = palette()
     foliage = build_approach(site, m)
     courtyard(site, m)
+    gate_foothill(site, m['granite'], m['snow'])
     fixtures = []
     gate(site, m, contact, fixtures)
     outbuildings(site, m, site['court'])
     hall(site, m, contact, fixtures)
     basis = [site['visitorCord'][0], 3.54, site['visitorCord'][2]]
-    source = mesh.light('Measured visitor wick transport basis', basis, .33, '#ffc583', .027, role='lamp')
+    source = mesh.light('Measured visitor wick transport basis', basis, .80, '#ffad68', .027, role='lamp')
     scene['place_id'] = scene['one_light_place'] = 'snow-roof'
     scene['snow_court_revision'] = site['revision']
     scene['lightmap_resolutions'] = json.dumps({'gate': 2048, 'court': 1024, 'hall': 1024, 'altar': 512})

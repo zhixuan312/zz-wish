@@ -71,7 +71,7 @@ export default function createWinterCourt(h) {
         if (fixture.kind === 'gauze shade') continue;
         const flame = h.liveFlame(...contact, { size: fixture.zone === 'gate' ? .58 : .43, radiance: .66, halo: false });
         h.fixtureSpecular(...fixture.pointLight, fixture.watts * baked.cameraPreExposure, fixture.linearColor);
-        context.up.push(() => { flame.power = .92 * baked.fixturePower(); });
+        context.up.push(() => { flame.power = .66 + .26 * baked.fixturePower(); });
       }
       const backdrop = await loadSnowCourtBackdrop(baked, h.renderer, context.light);
       if (!backdrop) throw new Error('Missing Snow Roof court backdrop.');
@@ -85,6 +85,7 @@ export default function createWinterCourt(h) {
     nook: {
       at: { pos: V3(0, 0, 0), ry: 0 }, lamp: 'gauze', y: 3.54,
       hangingPoint: site.visitorCord, exposure: 1.04, bloom: [.21, 1.22], dust: false,
+      gauzeGlow: { base: .18, reach: 8.5 },
       interior: { min: [site.hall.west, site.hall.floor, site.hall.rear],
         max: [site.hall.east, site.hall.eave, site.hall.front] },
       wide: arrival, widePhone: { ...arrival, fov: arrival.fov + 5 },
