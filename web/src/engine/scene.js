@@ -2681,7 +2681,6 @@ export async function ignite({onCatch, remainingFuel, onTaperLit}={}) {
   // The settled push is measured from the pose the visitor chose at, so record it before the
   // ignition stage moves anything.
   const settleStart = cameraStart.clone();
-  const settleLook = lookStart.clone();
   await tween(9,k=>{
     if(!active())return;
     const r=.08,e=k<r?k*k/(2*r*(1-r)):k>1-r?1-(1-k)*(1-k)/(2*r*(1-r)):(k-r*.5)/(1-r);

@@ -46,7 +46,6 @@ test('the walk never moves faster than a brisk pace and never snaps', () => {
 });
 
 test('the walk holds eye height above the stairs and keeps clear of every trunk', () => {
-  const report = measureCameraPath(walkSamples());
   // The authored steps: index = (STAIR_START - z) / STAIR_RUN, top = (index + 1) * STAIR_RISE, from
   // pine_gate.py (STAIR_START 45.6, STAIR_RUN .8, STAIR_RISE .08, STAIR_COUNT 50).
   const ground = z => {

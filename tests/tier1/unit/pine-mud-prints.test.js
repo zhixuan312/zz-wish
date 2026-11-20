@@ -18,7 +18,9 @@ function installCanvas() {
       const canvas = {
         width: 0, height: 0,
         getContext() {
-          const self = this;
+          // Name the canvas directly instead of aliasing `this`: the context keeps the pixels the
+          // module writes so a test can read them back.
+          const self = canvas;
           return {
             fillStyle: '', globalCompositeOperation: '',
             fillRect() {}, beginPath() {}, ellipse() {}, fill() {},
@@ -185,7 +187,6 @@ test('each print is an adult sole in metres: 24-26 cm long, 9-10 cm across the b
   mud.group.updateWorldMatrix(true, true);
 
   // Measure in the print's own frame, so a yawed or tilted print reports the sole's real size.
-  const local = new THREE.Vector3();
   for (const [index, mesh] of mud.group.children.entries()) {
     mesh.geometry.computeBoundingBox();
     const box = mesh.geometry.boundingBox;
