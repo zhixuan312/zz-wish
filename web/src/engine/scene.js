@@ -1837,21 +1837,19 @@ async function buildPlaceNow(t, isolated = false) {
   // frame must still reach its normal framebuffer while shaders link.
   let visitorPreview;
   const target = renderer.getRenderTarget(), warm = new THREE.WebGLRenderTarget(4, 4);
+  const streamsSnowInterior = t.id === 'snow-roof'
+    && context.baked?.manifest.snowCourt && context.baked.manifest.walkLightmaps;
   try {
+    // A streamed Snow Court opens on the road. Its visitor lamp shaders can
+    // link with the actual lamp when the player reaches the hall.
     await renderer.compileAsync(stage, stageCamera);
-    if (P.bakedLighting && P.nook.lamp === 'gauze') {
+    if (P.bakedLighting && P.nook.lamp === 'gauze' && !streamsSnowInterior) {
       visitorPreview = LAMPS.gauze({ ...presetOf('shade'), liveBaked: true });
       const basis = context.baked.manifest.lampBasis.position;
       visitorPreview.g.position.set(...basis); stage.add(visitorPreview.g);
       const point = new THREE.PointLight(0xffb070, 1, 6, 2);
       point.position.set(...basis); point.castShadow = true; point.shadow.mapSize.set(512, 512); stage.add(point);
       await renderer.compileAsync(stage, stageCamera);
-      if (t.id === 'snow-roof' && context.baked.manifest.snowCourt && context.baked.manifest.walkLightmaps) {
-        // Link the future visitor-light programs now. The place view has no
-        // visitor lamp, so its warm draw does not need a dummy shadow cube.
-        visitorPreview.g.visible = false;
-        point.visible = false;
-      }
     }
     renderer.setRenderTarget(warm); renderer.render(stage, stageCamera);
   }
