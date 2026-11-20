@@ -791,7 +791,11 @@ def pierced_lamp_shrine(anchor, stone, ledge, iron, contacts, sculpt_normal):
                                            (-.135, .213, .182), (-.111, .235, .199),
                                            (-.091, .229, .191)), 1.7)
     shaft['weather_stone'] = True
+    # Moss and lichen live on the foot of the shaft, up to 12 cm above the shrine's own base.
+    shaft['shrine_moss_base'] = anchor[1]
     shelf = mesh.box('Single hewn wick shelf', (.552, .092, .469), locate(0, -.046, 0), ledge, .024, region='niche')
+    # Spent wax runs over the shelf's front edge; masked into the same granite, not a new material.
+    shelf['shrine_wax_drip'] = True
     pier_profile = ((-.002, .045, .044), (.017, .046, .044), (.033, .044, .041),
                     (.054, .040, .037), (.118, .040, .036), (.210, .039, .036),
                     (.250, .040, .037), (.277, .044, .041), (.304, .045, .042))
@@ -800,16 +804,21 @@ def pierced_lamp_shrine(anchor, stone, ledge, iron, contacts, sculpt_normal):
             pier = dressed_shrine_stone('Chisel-dressed granite pier in the pierced shrine', locate,
                                        side * .211, row * .177, ledge, pier_profile, side * 1.7 + row * 3.2)
             pier['matched_granite'] = True
-    mesh.box('Weathered stone lintel around the open crown', (.551, .069, .472), locate(0, .337, 0),
-             stone[2], .026, region='niche')
+    lintel = mesh.box('Weathered stone lintel around the open crown', (.551, .069, .472), locate(0, .337, 0),
+                      stone[2], .026, region='niche')
+    # The visitor's flame deposits soot on the lintel underside directly above the wick.
+    lintel['shrine_soot'] = True
     roof = dressed_shrine_stone('Four pitched sides of the hewn lantern roof', locate, 0, 0, stone[3],
                                ((.370, .270, .227), (.388, .296, .250), (.407, .308, .263),
                                 (.428, .301, .257), (.495, .251, .066), (.511, .216, .049)), 4.8)
     roof['weather_stone'] = roof['moss_edge'] = True
+    # The roof's upper face holds the same lichen as the foundation, from its own top down.
+    roof['shrine_moss_base'] = anchor[1] + .30
     mesh.beam('Old iron peg for wishes below the centre seat', locate(-.078, -.081, .208),
               locate(-.078, -.081, .244), .005, iron, .004, 'niche')
     with contacts.group('Spent wax fused to the wick shelf', [shelf]):
         spent_wax_on_sill(locate, iron, sculpt_normal)
+        hanging_wax_on_shelf_edge(locate)
     wax = candle_wax('Wax of the two remaining short candles', '#a29476', .46)
     for a, c, h, radius in ((-.143, -.105, .026, .014), (.139, -.081, .019, .012)):
         stub = mesh.lathe('Earlier candle still burning on the outer sill', [(0, 0), (radius * 1.33, 0),
@@ -822,6 +831,34 @@ def pierced_lamp_shrine(anchor, stone, ledge, iron, contacts, sculpt_normal):
         mesh.beam('Black wick of an earlier wish', locate(a, h * .9, c), locate(a + .001, h + .005, c),
                   .0011, iron, .0009, 'niche')
         small_flame('Short earlier wish still burning on the outer sill', locate(a + .001, h + .005, c), .017, 'niche')
+
+
+def hanging_wax_on_shelf_edge(locate):
+    """Two or three old spills that ran over the shelf's front edge and set there.
+
+    They hang from the lip, well outside the centre where the visitor's own tray stands, so they never
+    cover the tray the burning view is composed around."""
+    wax = candle_wax('Cold wax run over the shelf lip', '#b3a68c', .66)
+    # (a, c, radius, drop) in the shrine's own frame: front of the shelf is z = +.2345, its top y = 0.
+    for index, (a, c, radius, drop) in enumerate(((-.196, .214, .0130, .030),
+                                                  (.171, .219, .0110, .026))):
+        # Keep the run cheap in the atlas: a short profile and twelve sides read as a set bead at the
+        # distances the burning view uses, and the approach atlas is already close to its one-atlas bound.
+        profile = [(0, 0), (radius, 0), (radius * .92, -.006),
+                   (radius * .62, -drop * .62), (radius * .30, -drop * .92), (0, -drop)]
+        x, y, z = locate(a, -.0034, c)
+        drip = mesh.lathe(f'Old wax run over the shelf edge {index + 1}', profile, (x, y, z), wax, 12, 'niche')
+        for vertex in drip.data.vertices:
+            dx, dz = vertex.co.x - x, -vertex.co.y - z
+            angle = math.atan2(dx, dz)
+            # Let the run wander a little as it set, rather than hanging as a symmetric bead.
+            wobble = .16 * math.sin(angle * 3. + index * 2.1) + .09 * math.sin(angle * 5. - index)
+            vertex.co.x = x + dx * (1. + wobble)
+            vertex.co.y = -z - dz * (1. + wobble)
+        for face in drip.data.polygons:
+            face.use_smooth = True
+        # The shelf's own charts already own this corner of the atlas; the run gets no extra claim on it.
+
 
 
 def load_old_wax_normal(sculpt_dir):

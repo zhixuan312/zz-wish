@@ -2509,6 +2509,31 @@ def spring_sediment_tint(tint, x, z, channel, width, bed):
             for a, b, scan in zip(tint, seam, (.349, .227, .141))]
 
 
+# The visitor's candle sits at the shrine's wick line; the lintel above it collects soot, and the
+# shelf edge carries spent wax. Both are masks over the existing granite, never a material swap.
+# ANCHOR is the shelf's own top centre, in world metres.
+SHRINE_WICK = Vector(ANCHOR)
+SOOT_RADIUS = .15
+
+
+def shrine_soot_tint(tint_color, world):
+    """Darken the lintel underside towards the wick, and make the soot slightly smoother."""
+    distance = (world - SHRINE_WICK).length
+    reach = max(0., min(1., 1. - distance / SOOT_RADIUS))
+    soot = reach * reach * (3. - 2. * reach)
+    # The centre reads about 0.04 of the stone's own albedo, settling back to full stone at the rim.
+    return [channel * (1. - .96 * soot) for channel in tint_color]
+
+
+def shrine_wax_tint(tint_color, world):
+    """Old spilled wax on the shelf edge: warm, slightly yellow, a touch brighter than the granite."""
+    band = max(0., min(1., (-world.z + .012) / .034))
+    patch = .5 + .5 * noise.noise(Vector((world.x * 46., world.y * 61., world.z * 46.)))
+    wax = band * max(0., min(1., (patch - .58) * 3.2))
+    return [channel * (1. + wax * change)
+            for channel, change in zip(tint_color, (.30, .16, -.06))]
+
+
 def paint_stone():
     for obj in mesh.STATIC.objects:
         materials = list(obj.data.materials)
@@ -2532,6 +2557,14 @@ def paint_stone():
                 if obj.get('weather_stone'):
                     moss_outline = noise.noise(world * 7.9) + .21 * noise.noise(world * 33)
                     green_mix = max(0., min(.65, (moss_outline + (.1 if obj.get('moss_edge') else -.11)) * .96))
+                if obj.get('shrine_moss_base') is not None:
+                    # Moss and lichen climb the foot of the shrine and stop; the stone must still read
+                    # as stone, so the cover stays well under half of the face.
+                    foot = obj['shrine_moss_base']
+                    climb = max(0., min(1., 1. - (world.z - foot) / .12))
+                    cover = climb * climb * (3. - 2. * climb)
+                    patches = noise.noise(world * 11.3) + .27 * noise.noise(world * 37.)
+                    green_mix = max(green_mix, max(0., min(.42, cover * (.28 + .30 * patches))))
                 if obj.get('matched_granite'):
                     shade = .94 + .36 * (shade - .94)
                 if stair_block:
@@ -2580,6 +2613,10 @@ def paint_stone():
                     tint_color = [channel * crest * bank for channel, crest, bank in zip(
                         tint_color, crest_soil_tint(x, z), inner_bank_tint(x, z, creek_x, width))]
                     tint_color = spring_sediment_tint(tint_color, x, z, creek_x, width, face.material_index == 1)
+                if obj.get('shrine_soot'):
+                    tint_color = shrine_soot_tint(tint_color, world)
+                if obj.get('shrine_wax_drip'):
+                    tint_color = shrine_wax_tint(tint_color, world)
                 tint.data[i].color = (*tint_color, 1.)
 
 
