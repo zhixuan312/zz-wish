@@ -155,19 +155,15 @@ export function createMudPrints({ THREE, surface, prints }: {
 // The trail itself: along the last steps to the shoulder, then a few prints turning aside to the
 // tea pavilion. Kept under twenty prints, as the brief asks, and each one is snapped to the stone.
 export const PINE_PRINTS: readonly PrintSpec[] = Object.freeze([
-  { x: .18, y: 5.10, z: 9.2, yaw: .10, length: .27, weight: .8 },
-  { x: -.06, y: 5.12, z: 8.6, yaw: -.06, length: .27, weight: .75 },
-  { x: .20, y: 5.16, z: 8.0, yaw: .12, length: .26, weight: .7 },
-  { x: -.08, y: 5.19, z: 7.4, yaw: -.05, length: .27, weight: .85 },
-  { x: .16, y: 5.22, z: 6.8, yaw: .08, length: .26, weight: .65 },
-  { x: -.10, y: 5.24, z: 6.2, yaw: -.10, length: .27, weight: .6 },
-  { x: .14, y: 5.27, z: 5.6, yaw: .06, length: .25, weight: .5 },
-  { x: -.12, y: 5.29, z: 5.0, yaw: -.08, length: .26, weight: .45 },
-  // Onto the level shoulder: the prints spread out and soften.
-  { x: .12, y: 5.31, z: 4.5, yaw: .05, length: .26, weight: .4 },
-  { x: -.14, y: 5.33, z: 4.1, yaw: -.12, length: .25, weight: .35 },
-  { x: .10, y: 5.35, z: 3.7, yaw: .02, length: .26, weight: .3 },
-  // Two that turn aside towards the tea pavilion.
-  { x: -.05, y: 5.36, z: 3.3, yaw: .75, length: .25, weight: .28 },
-  { x: -.22, y: 5.36, z: 3.0, yaw: 1.05, length: .25, weight: .22 },
+  // On the shoulder paving around the niche, where the raycast found stone at y = 5.00 and
+  // x -1.9..-1.74, z 0.85..1.01. The prints approach the shrine, then two turn aside.
+  { x: -1.88, y: 5.0, z: 1.02, yaw: .15, length: .27, weight: .8 },
+  { x: -1.79, y: 5.0, z: .98, yaw: -.10, length: .27, weight: .75 },
+  { x: -1.90, y: 5.0, z: .94, yaw: .08, length: .26, weight: .7 },
+  { x: -1.80, y: 5.0, z: .90, yaw: -.06, length: .27, weight: .85 },
+  { x: -1.89, y: 5.0, z: .86, yaw: .12, length: .26, weight: .65 },
+  { x: -1.78, y: 5.0, z: .82, yaw: -.12, length: .27, weight: .6 },
+  { x: -1.87, y: 5.0, z: .78, yaw: .05, length: .25, weight: .5 },
+  { x: -1.76, y: 5.0, z: .95, yaw: .9, length: .25, weight: .35 },
+  { x: -1.73, y: 5.0, z: .90, yaw: 1.2, length: .24, weight: .28 },
 ]);

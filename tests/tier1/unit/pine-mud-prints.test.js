@@ -41,10 +41,11 @@ test('the trail stays under twenty prints and follows the steps upward', () => {
     expect(print.weight).toBeGreaterThan(0);
     expect(print.weight).toBeLessThanOrEqual(1);
   }
-  // The trail climbs: z falls as y rises, so the prints go up the steps.
+  // The trail crosses the level shoulder: the prints walk inland (z falls) at one height, because
+  // the paving around the niche is flat rather than stepped.
   const first = PINE_PRINTS[0], last = PINE_PRINTS.at(-1);
   expect(last.z).toBeLessThan(first.z);
-  expect(last.y).toBeGreaterThan(first.y);
+  expect(Math.abs(last.y - first.y)).toBeLessThan(.02);
   // And some prints turn aside towards the pavilion rather than all pointing uphill.
   const yaws = PINE_PRINTS.map(print => print.yaw);
   expect(Math.max(...yaws) - Math.min(...yaws)).toBeGreaterThan(.8);
@@ -99,6 +100,28 @@ test('the prints are cheap: geometry only, no texture files', () => {
     // Colours come from the material; the alpha and normal are generated at runtime.
     expect(mesh.material.alphaMap).toBeTruthy();
     expect(mesh.material.normalMap).toBeTruthy();
+  }
+  mud.dispose();
+});
+
+test('the authored trail lies on the real shoulder paving', () => {
+  installCanvas();
+  // A plane at the shoulder's measured height (y = 5.00) covering the niche paving, which is where
+  // the raycast probe found stone. Every authored print must find it; a print wanting y 5.1 with
+  // stone at y 3.6 was the fault this guards.
+  const surface = new THREE.Mesh(new THREE.PlaneGeometry(1.2, 1.2), new THREE.MeshBasicMaterial());
+  surface.rotation.x = -Math.PI / 2;
+  surface.position.set(-1.82, 5.0, .9);
+  surface.updateMatrixWorld(true);
+  const mud = createMudPrints({ THREE, surface, prints: PINE_PRINTS });
+  expect(mud.count).toBe(PINE_PRINTS.length);
+  // And no print sits more than a centimetre off the paving.
+  mud.group.updateWorldMatrix(true, true);
+  for (const mesh of mud.group.children) {
+    mesh.geometry.computeBoundingBox();
+    const box = mesh.geometry.boundingBox.clone().applyMatrix4(mesh.matrixWorld);
+    expect(box.min.y).toBeGreaterThan(5.0 - .002);
+    expect(box.max.y).toBeLessThan(5.0 + .012);
   }
   mud.dispose();
 });

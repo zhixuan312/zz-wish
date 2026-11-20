@@ -135,6 +135,7 @@ export default function createPlace(h) {
         const mud = createMudPrints({ THREE, surface: stone, prints: PINE_PRINTS });
         if (mud.count) {
           context.G.add(mud.group);
+          // Read by the Tier 1 test: the trail must place at least some prints on real stone.
           if (import.meta.env.DEV) window.__pineMudPrints = () => mud.count;
           context.disposers.push(mud.dispose);
         }
