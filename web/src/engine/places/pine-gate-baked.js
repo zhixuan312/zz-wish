@@ -65,12 +65,17 @@ export default function createPlace(h) {
   };
   const nookOrigin = [-1.8, 4, .9];
   const createWalk = (start, end, phone) => {
+    // A phone frames a portrait crop, so its last approach needs its own pose: the desktop reveal
+    // puts the horizon high and a portrait crop fills with sky. The phone aims lower and a little
+    // wider so the shrine, the pavilion and the platform all sit in frame.
+    const shotPosition = shot => (phone && shot.phonePosition) || shot.position;
+    const shotLook = shot => (phone && shot.phoneLook) || shot.look;
     const times = [0, ...path.waypoints.map(shot => shot.time), path.seconds];
-    const positions = [start.pos.toArray(), ...path.waypoints.map(shot => shot.position), end.pos.toArray()];
+    const positions = [start.pos.toArray(), ...path.waypoints.map(shot => shotPosition(shot)), end.pos.toArray()];
     const startLook = start.look.toArray();
     // Add the entrance lift back after interpolation so it fades before the crest.
     startLook[1] -= liftAt(0, phone);
-    const looks = [startLook, ...path.waypoints.map(shot => shot.look), end.look.toArray()];
+    const looks = [startLook, ...path.waypoints.map(shot => shotLook(shot)), end.look.toArray()];
     const fovs = [start.fov, ...path.waypoints.map(shot => phone ? shot.phoneFov : shot.desktopFov), end.fov ?? start.fov];
     // A monotone cubic track, not three.js's smoothstep or uniform Catmull-Rom. Smoothstep eases to a
     // standstill at every keyframe, so the camera stopped and started at each beat; uniform
@@ -104,6 +109,11 @@ export default function createPlace(h) {
         position: [...path.waypoints.at(-1).position],
         look: [...path.waypoints.at(-1).look],
       },
+      // A portrait crop needs its own reveal aim, for the same reason the phone walk does.
+      phonePose: path.waypoints.at(-1).phoneLook ? {
+        position: [...(path.waypoints.at(-1).phonePosition ?? path.waypoints.at(-1).position)],
+        look: [...path.waypoints.at(-1).phoneLook],
+      } : undefined,
       seconds: 2.0,
       approachMetresPerSecond: 1.4,
     },
@@ -328,7 +338,9 @@ export default function createPlace(h) {
       choosePhone: { pos: V3(.09, 1.25, .56), look: V3(0, .95, 0), fov: 43 },
       // The low eye line keeps the day and night horizon visible through the stone posts.
       burn: { pos: V3(-.055, 1.092, .44), look: V3(0, 1.074, -.045), fov: 34 },
-      burnPhone: { pos: V3(-.05, 1.104, .53), look: V3(0, 1.065, -.06), fov: 39 },
+      // Portrait burning: back off far enough that the whole tray, the tied cloth, both older
+      // stubs and a sliver of valley stay in frame. At .53 m and 39 degrees the crop cut the tray.
+      burnPhone: { pos: V3(-.04, 1.128, .92), look: V3(0, 1.055, -.10), fov: 47 },
       spread: { pos: V3(.17, 1.32, .70), look: V3(.04, 1.10, 0), fov: 39 },
       spreadPhone: { pos: V3(.11, 1.33, .74), look: V3(0, 1.10, 0), fov: 43 },
       async build() {},

@@ -26,9 +26,10 @@ test('the walk keeps the brief length and its beats', () => {
   const times = path.waypoints.map(step => step.time);
   expect(times[0]).toBeGreaterThanOrEqual(4.9);
   expect(times.at(-1)).toBeLessThanOrEqual(30);
-  // The reveal is the last distinct position before the walk ends: the camera stops moving there.
-  const last = path.waypoints.at(-1).position, prior = path.waypoints.at(-2).position;
-  expect(Math.hypot(last[0] - prior[0], last[1] - prior[1], last[2] - prior[2])).toBeLessThan(0.01);
+  // The brief's total is fixed; the last authored pose must sit strictly before it so the track's
+  // times stay strictly increasing (a duplicate instant divides by zero and poisons the curve).
+  expect(times.at(-1)).toBeLessThan(path.seconds);
+  expect(times.every((t, i) => i === 0 || t > times[i - 1])).toBe(true);
 });
 
 test('the walk never moves faster than a brisk pace and never snaps', () => {
@@ -61,13 +62,21 @@ test('the walk holds eye height above the stairs and keeps clear of every trunk'
   // Trunks and posts the route must not brush. The two ancient saddle pines are authored at
   // (-1.88, PINE_CREST + .08) and (1.82, PINE_CREST - .32) with PINE_CREST 6.04 in pine_gate.py; the
   // gate posts and the shrine pillars stand on the shoulder around the lamp anchor at (-1.8, 5, .9).
+  // The shrine is one object, not four posts: its foundation runs x -1.003..0.274 and z -0.79..0.51
+  // around the lamp anchor at (-1.8, 5, .9), and the roof reaches y +0.51 (pine_tea_shoulder.py
+  // pierced_lamp_shrine). Envelope it as a stack of spheres so a route cannot slip between a post
+  // and the plinth.
+  const anchor = [-1.8, 5.0, .9];
+  const shrine = [];
+  for (let i = 0; i <= 4; i++) {
+    shrine.push({ name: `stone lamp shrine ${i}`, position: [anchor[0], anchor[1] + i * 0.125, anchor[2]], radius: 0.62 });
+  }
   const obstacles = [
     { name: 'ancient western pine', position: [-1.88, 6.12, 6.04], radius: .30 },
     { name: 'ancient eastern pine', position: [1.82, 6.12, 5.72], radius: .28 },
     { name: 'gate post west', position: [-1.45, 5.2, 4.88], radius: .16 },
     { name: 'gate post east', position: [1.45, 5.2, 4.88], radius: .16 },
-    { name: 'shrine pillar west', position: [-2.25, 5.4, 0.9], radius: .14 },
-    { name: 'shrine pillar east', position: [-1.35, 5.4, 0.9], radius: .14 },
+    ...shrine,
   ];
   const clearance = measureCameraPath(walkSamples(), obstacles).clearance.min;
   expect(clearance, `nearest trunk or post is ${clearance.toFixed(2)} m away`).toBeGreaterThanOrEqual(1.0);

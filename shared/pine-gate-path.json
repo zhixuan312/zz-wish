@@ -93,7 +93,17 @@
         1.21
       ],
       "desktopFov": 47,
-      "phoneFov": 54
+      "phoneFov": 58,
+      "phonePosition": [
+        -0.17,
+        5.548,
+        7.42
+      ],
+      "phoneLook": [
+        -0.67,
+        5.088,
+        3.2199999999999998
+      ]
     },
     {
       "time": 28.827,
@@ -108,22 +118,17 @@
         -11.8
       ],
       "desktopFov": 53,
-      "phoneFov": 54
-    },
-    {
-      "time": 30.0,
-      "position": [
+      "phoneFov": 58,
+      "phonePosition": [
         -0.33,
         5.65,
         4.56
       ],
-      "look": [
-        1.1,
-        5.1,
-        -11.8
-      ],
-      "desktopFov": 53,
-      "phoneFov": 54
+      "phoneLook": [
+        -0.8800000000000001,
+        5.23,
+        0.5599999999999996
+      ]
     }
   ]
 }

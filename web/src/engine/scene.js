@@ -2316,7 +2316,8 @@ export async function travel(id) {
   // A place may end its walk at a reveal pose, hold it, then approach its own end pose. Pine Gate
   // opts in; every other place walks straight into its end pose as before.
   const hold = P.walkHold;
-  const walkEnd = hold ? { pos: V3(...hold.pose.position), look: V3(...hold.pose.look), fov: end.fov } : end;
+  const holdPose = (hold && narrow() && hold.phonePose) ? hold.phonePose : hold?.pose;
+  const walkEnd = holdPose ? { pos: V3(...holdPose.position), look: V3(...holdPose.look), fov: end.fov } : end;
   const pts = [rig.pos.clone(), ...P.walk, ...(N.approach ?? []).map(toWorld), ...(P.bakedLighting&&arrival.pos.z>end.pos.z+.1?[arrival.pos]:[]),...(((narrow()&&N.chooseApproachPhone)||N.chooseApproach)??[]).map(toWorld),end.pos];
   const curve = new THREE.CatmullRomCurve3(pts, false, 'centripetal');
   const lookPts = [P.doors.clone(), ...(N.approach ?? []).map((q) => toWorld(q.clone().add(V3(0, 0, -2)))), end.look];
@@ -2394,10 +2395,17 @@ export async function travel(id) {
     const swing = THREE.MathUtils.radToDeg(Math.acos(THREE.MathUtils.clamp(fromAim.dot(toAim), -1, 1)));
     const turnLimit = 20;                          // deg/s, a margin under the 25 deg/s limit
     const seconds = Math.max(1.6, (metres * 1.5) / pace, (swing * 1.5) / turnLimit);
+    // Round the shrine, not past it. A straight line from the reveal to the choose pose grazes the
+    // lamp shrine's crown: its envelope is 1.24 m across at the anchor (-1.8, 5.0, .9). A waypoint
+    // out to the shrine's seaward side keeps a metre from its footprint the whole way.
+    const anchor = V3(-1.8, 5.0, .9);
+    const around = V3(to.pos.x + 1.05, to.pos.y + .10, to.pos.z + .55);
+    if (around.distanceTo(anchor) < 1.35) around.copy(anchor).add(V3(1.45, .10, .35));
+    const curve = new THREE.CatmullRomCurve3([from.pos.clone(), around, to.pos.clone()], false, 'centripetal');
     const aim = new THREE.Vector3();
     await tween(seconds, k => {
       const e = k * k * (3 - 2 * k);
-      rig.pos.lerpVectors(from.pos, to.pos, e);
+      rig.pos.copy(curve.getPointAt(e));
       aim.copy(fromAim).lerp(toAim, e).normalize();
       rig.look.copy(rig.pos).addScaledVector(aim, AIM_DISTANCE);
       rig.fov = THREE.MathUtils.lerp(from.fov, to.fov, e);
@@ -2495,7 +2503,19 @@ export async function ignite({onCatch, remainingFuel, onTaperLit}={}) {
       const push = ease(Math.min(1, k));
       const from = cameraStart, to = burn.pos;
       rig.pos.lerpVectors(from, to, push);
+      // A settled burn is a slow push, not a lift. Keep the eye within 0.15 m of where the chooser
+      // stood and the aim within 5 degrees of its pitch, or the sky appears between two and three
+      // seconds and the frame changes character mid-ignition.
+      rig.pos.y = THREE.MathUtils.clamp(rig.pos.y, from.y - .15, from.y + .15);
       rig.look.lerpVectors(lookStart, burn.look, push);
+      {
+        const reach = Math.hypot(rig.look.x - rig.pos.x, rig.look.z - rig.pos.z);
+        const basePitch = Math.atan2(lookStart.y - from.y, Math.hypot(lookStart.x - from.x, lookStart.z - from.z));
+        const pitch = Math.atan2(rig.look.y - rig.pos.y, reach);
+        const limit = THREE.MathUtils.degToRad(5);
+        const clamped = THREE.MathUtils.clamp(pitch, basePitch - limit, basePitch + limit);
+        if (clamped !== pitch) rig.look.y = rig.pos.y + Math.tan(clamped) * reach;
+      }
       rig.fov = THREE.MathUtils.lerp(fovStart, burn.fov, push);
     } else {
       rig.pos.lerpVectors(cameraStart,spread.pos,retreat);rig.look.lerpVectors(lookStart,spread.look,retreat);
@@ -2541,17 +2561,48 @@ export async function ignite({onCatch, remainingFuel, onTaperLit}={}) {
   await tween(.8,()=>{});if(!active())return;
   const routeStart = rig.pos.clone();
   const front = pine ? burn.pos : viewOf((narrow() && N.burnPhone) || N.burn).pos;
+  // From choose to the settled burn the eye only drifts forward: height changes by at most 0.15 m
+  // and the aim tilts by at most 5 degrees. A walk point that lifted the camera onto the shelf is
+  // what made the sky appear between two seconds and three.
   const burnWalk = pine ? [.34, .67].map((fraction, i) =>
-    routeStart.clone().lerp(burn.pos, fraction).add(V3((i === 0 ? .035 : .025), .012, 0)))
+    routeStart.clone().lerp(burn.pos, fraction).add(V3((i === 0 ? .035 : .025), 0, 0)))
     : ((narrow() && N.burnWalkPhone) || N.burnWalk).map(toWorld);
-  const route = new THREE.CatmullRomCurve3([routeStart, ...burnWalk,
-    ...(burn.pos.distanceTo(front) > .01 ? [front] : []), burn.pos], false, 'centripetal');
+  // Pine pushes straight to the burn pose; the extra `front` waypoint was a second stop that moved
+  // the eye far more than a push should.
+  const route = new THREE.CatmullRomCurve3(pine
+    ? [routeStart, ...burnWalk, burn.pos]
+    : [routeStart, ...burnWalk, ...(burn.pos.distanceTo(front) > .01 ? [front] : []), burn.pos],
+  false, 'centripetal');
   const follow = pine ? burn.look : mine.g.localToWorld(V3(0, mine.parts.frame.cy, 0));
   const orbitLookStart = rig.look.clone();
+  const orbitStart = rig.pos.clone();
+  // The settled push is measured from the pose the visitor chose at, so record it before the
+  // ignition stage moves anything.
+  const settleStart = cameraStart.clone();
+  const settleLook = lookStart.clone();
+  const orbitStartPitch = Math.atan2(orbitLookStart.y - orbitStart.y,
+    Math.hypot(orbitLookStart.x - orbitStart.x, orbitLookStart.z - orbitStart.z));
   await tween(9,k=>{
     if(!active())return;
     const r=.08,e=k<r?k*k/(2*r*(1-r)):k>1-r?1-(1-k)*(1-k)/(2*r*(1-r)):(k-r*.5)/(1-r);
-    rig.pos.copy(route.getPointAt(e));rig.look.lerpVectors(orbitLookStart,follow,smooth(0,.2,k)).lerp(burn.look,smooth(.75,1,k));
+    rig.pos.copy(route.getPointAt(e));
+    if (pine) {
+      // Clamp the eye and the aim against the pose the settle started from, so the move is a slow
+      // push and nothing else. 0.15 m of height and 5 degrees of pitch are the whole allowance.
+      rig.pos.y = THREE.MathUtils.clamp(rig.pos.y, settleStart.y - .15, settleStart.y + .15);
+    }
+    rig.look.lerpVectors(orbitLookStart,follow,smooth(0,.2,k)).lerp(burn.look,smooth(.75,1,k));
+    if (pine) {
+      const pitch = Math.atan2(rig.look.y - rig.pos.y, Math.hypot(rig.look.x - rig.pos.x, rig.look.z - rig.pos.z));
+      const base = Math.atan2(settleLook.y - settleStart.y,
+        Math.hypot(settleLook.x - settleStart.x, settleLook.z - settleStart.z));
+      const limit = THREE.MathUtils.degToRad(5);
+      const clamped = THREE.MathUtils.clamp(pitch, base - limit, base + limit);
+      if (clamped !== pitch) {
+        const reach = Math.hypot(rig.look.x - rig.pos.x, rig.look.z - rig.pos.z);
+        rig.look.y = rig.pos.y + Math.tan(clamped) * reach;
+      }
+    }
     rig.fov=THREE.MathUtils.lerp(spread.fov,burn.fov,smooth(.60,1,k));
     mark('walking',.18+.82*k);
   });

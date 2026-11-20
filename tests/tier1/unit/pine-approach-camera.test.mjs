@@ -18,8 +18,11 @@ for (const phone of [false, true]) {
     const end = { pos: choose.pos.clone().add(place.nook.at.pos), look: choose.look.clone().add(place.nook.at.pos), fov: choose.fov };
     const [positionKey, fovKey] = phone ? ['phonePosition', 'phoneFov'] : ['position', 'desktopFov'];
     const times = [0, ...path.waypoints.map(waypoint => waypoint.time), path.seconds];
-    const positions = [path.entrance[positionKey], ...path.waypoints.map(waypoint => waypoint.position), end.pos.toArray()];
-    const looks = [path.entrance.look, ...path.waypoints.map(waypoint => waypoint.look), end.look.toArray()];
+    // A phone carries its own reveal pose where the portrait crop needs one.
+    const positions = [path.entrance[positionKey],
+      ...path.waypoints.map(waypoint => (phone && waypoint.phonePosition) || waypoint.position), end.pos.toArray()];
+    const looks = [path.entrance.look,
+      ...path.waypoints.map(waypoint => (phone && waypoint.phoneLook) || waypoint.look), end.look.toArray()];
     const fovs = [path.entrance[fovKey], ...path.waypoints.map(waypoint => waypoint[fovKey]), end.fov];
     // The reference uses the same monotone track the runtime walks, so this test compares the
     // authored poses and the entrance lift, not a second interpolation scheme.
