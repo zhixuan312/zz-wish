@@ -47,6 +47,23 @@ function tuneEarlierGauze(material, opacity, sources, THREE, preExposure) {
   material.customProgramCacheKey = () => key() + '-snow-hall-gauze';
 }
 
+function tuneSweptSnow(material, THREE) {
+  const compile = material.onBeforeCompile.bind(material);
+  const key = material.customProgramCacheKey.bind(material);
+  const tint = new THREE.Color('#e2ebf3');
+  material.onBeforeCompile = (shader, renderer) => {
+    compile(shader, renderer);
+    shader.uniforms.uSweptSnowBase = { value: tint };
+    shader.fragmentShader = 'uniform vec3 uSweptSnowBase;\n' + shader.fragmentShader
+      .replace('#include <color_fragment>', `#include <color_fragment>
+        #if defined(USE_COLOR) || defined(USE_COLOR_ALPHA)
+          vec3 settledGrains = clamp(vColor.rgb / uSweptSnowBase, 0., 1.);
+          diffuseColor.rgb *= mix(vec3(1.), settledGrains, .66);
+        #endif`);
+  };
+  material.customProgramCacheKey = () => key() + '-snow-court-broom';
+}
+
 export default function createWinterCourt(h) {
   const { THREE, V3 } = h;
   const pose = ({ position, look, fov }) => ({ pos: V3(...position), look: V3(...look), fov });
@@ -112,11 +129,13 @@ export default function createWinterCourt(h) {
       if (earlierWicks.length !== 2) throw new Error('Expected two earlier wishes with measured wicks.');
 
       const earlierCloth = new Map();
+      const sweptSnow = new Set();
       baked.group.traverse(object => {
         if (!object.isMesh) return;
         for (const material of [object.material].flat()) {
           const opacity = agedGauzeOpacity.get(material.name);
           if (opacity !== undefined) earlierCloth.set(material, opacity);
+          if (material.name === 'Wind-packed snow with recent broom marks') sweptSnow.add(material);
           if (material.name === 'Thin pale storm lamp glass') {
             // The thin windscreen shows the flame directly. Avoid a second
             // scene render for screen-space refraction around this small lamp.
@@ -130,6 +149,7 @@ export default function createWinterCourt(h) {
       for (const [material, opacity] of earlierCloth) {
         tuneEarlierGauze(material, opacity, earlierWicks, THREE, baked.cameraPreExposure);
       }
+      for (const material of sweptSnow) tuneSweptSnow(material, THREE);
       const crownUri = baked.manifest.snowCourt.needles;
       if (crownUri !== 'snow-court-needles.glb.zstd') throw new Error('Missing authored Snow Roof needle crowns.');
       const crowns = await baked.loadDetailModel(crownUri);

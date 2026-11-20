@@ -13,10 +13,11 @@ const vertex = `
       .71 * age - .082 * air, -.28 * air + gust * age);
     vec4 view = modelViewMatrix * vec4(position + drift, 1.);
     gl_Position = projectionMatrix * view;
-    float metres = .09 + .24 * age;
+    float metres = .105 + .255 * age;
     gl_PointSize = uPointScale * projectionMatrix[1][1] * metres / max(1., -view.z);
     vAlpha = smoothstep(0., .1, age) * (1. - smoothstep(.36, length, age));
-    vAlpha *= smoothstep(-.22, .8, sin(pulse * 1.95 + .5 * aPuff.z));
+    // A light residual trail outlives the stronger short stove puffs.
+    vAlpha *= .19 + .81 * smoothstep(-.22, .8, sin(pulse * 1.95 + .5 * aPuff.z));
     vCurl = aPuff.z + age;
   }`;
 
@@ -53,14 +54,14 @@ export function buildSnowChimney({ THREE, renderer, group }, origin) {
   smoke.position.fromArray(origin);
   smoke.frustumCulled = false;
   group.add(smoke);
-  const day = new THREE.Color('#c0c7cb');
-  const night = new THREE.Color('#77869d');
+  const day = new THREE.Color('#b9c3cc').multiplyScalar(1.73);
+  const night = new THREE.Color('#8597ad').multiplyScalar(1.28);
   return {
     update(_dt, seconds, light) {
       uniforms.uTime.value = seconds;
       uniforms.uPointScale.value = renderer.domElement.height * .5;
       uniforms.uTint.value.copy(day).lerp(night, light.n);
-      uniforms.uOpacity.value = .37 - .12 * light.n;
+      uniforms.uOpacity.value = .48 - .15 * light.n;
     },
     dispose() {
       smoke.removeFromParent();
