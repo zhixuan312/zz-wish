@@ -46,12 +46,16 @@ def main():
         image, clipped, coverage = encode_scanlines(master, width, height, projection['preExposure'], factor)
         dilate_rgb(image)
         output = args.out / f'pine-vista-{name}.webp'
+        lossless = render['lighting'] == 'night' and name != 'cloud'
+        profile = (['-lossless', '-q', '100', '-m', '6'] if lossless
+                   else ['-q', str(args.quality), '-sharp_yuv', '-m', '4'])
         with TemporaryDirectory(dir=args.out, prefix='.raster-') as scratch:
             png = Path(scratch) / 'source.png'
             write_rgba_png(png, image)
-            subprocess.run(['cwebp', '-quiet', '-q', str(args.quality), '-alpha_q', '100', '-exact',
-                            '-sharp_yuv', '-m', '4', str(png), '-o', str(output)], check=True)
+            subprocess.run(['cwebp', '-quiet', *profile, '-alpha_q', '100', '-exact',
+                            str(png), '-o', str(output)], check=True)
         variants[name] = {'uri': output.name, 'bytes': output.stat().st_size, 'sha256': digest(output),
+                          'webpEncoding': 'VP8L' if lossless else 'VP8',
                           'masterSha256': master_hash, 'clippedRadiancePixels': clipped,
                           'clippedOpaquePixelEquivalent': round(coverage, 3)}
     (args.out / 'encode.json').write_text(json.dumps({
