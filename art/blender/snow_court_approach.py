@@ -71,6 +71,18 @@ WINTER_BRUSH = (
     (-1.34, 44.67), (1.44, 42.75), (-1.48, 41.24), (1.52, 38.02),
     (-1.51, 35.34), (1.47, 33.31), (-1.62, 29.87), (1.51, 27.41),
 )
+DRIFT_LIPS = (
+    # Trail offset, depth, windward run, crest half-width, crest rise.
+    (-1.78, 45.38, .74, .65, .118), (1.93, 44.57, 1.02, .92, .172),
+    (-1.62, 43.28, .63, .56, .138), (2.08, 42.34, .85, .81, .185),
+    (-1.93, 41.40, 1.05, 1.09, .204), (1.61, 39.64, .86, .76, .163),
+    (-1.57, 38.87, .84, 1.00, .194), (2.05, 37.82, .93, .72, .195),
+    (-1.85, 36.32, .73, .75, .149), (1.78, 35.59, .92, 1.04, .203),
+    (-2.25, 34.72, 1.15, .92, .164), (1.61, 33.02, .73, .62, .135),
+    (-1.76, 31.73, .91, .88, .153), (1.88, 29.87, .92, .80, .174),
+    (-1.93, 28.65, .78, .68, .151), (1.64, 26.30, .67, .81, .143),
+    (-1.76, 24.59, .85, .75, .145), (1.85, 23.19, .82, .66, .123),
+)
 
 
 def ease(a, b, value):
@@ -180,6 +192,124 @@ def surface_sampler(vertices):
     return height
 
 
+def drift_field(centerline):
+    """Short deposition tongues and windward scour in an exposed crosswind."""
+    def trail_x(offset, z):
+        return interpolate(centerline, z, smooth=True) + offset
+
+    crests = [(trail_x(offset, z), z, run, width, height) for offset, z, run, width, height in DRIFT_LIPS]
+    rocks = list(ROCKS)
+    rocks.extend((trail_x(offset, z), z, rx, ry, rz) for offset, z, rx, ry, rz in SCOURED_LEDGES)
+    feet = [(x, z, rx, rz, min(.157, .040 + .085 * ry)) for x, z, rx, ry, rz in rocks]
+    feet.extend((trail_x(offset, z), z, .31, .42, .074) for offset, z in WINTER_BRUSH)
+
+    def sample(x, z):
+        offset = abs(x - trail_x(0., z))
+        bank = ease(.91, 1.25, offset) * (1 - ease(4.3, 5.7, offset))
+        bank *= ease(17.6, 20., z) * (1 - ease(46.8, 49.6, z))
+        if bank <= 0.:
+            return 0., 0.
+        ridge, hard_edge, scour = 0., 0., 0.
+        for px, pz, run, width, rise in crests:
+            dx, dz = x - px, z - pz
+            cross = .31 * dx + .95 * dz
+            if abs(cross) >= width:
+                continue
+            waver = .122 * math.sin(4.7 * cross + px) + .039 * math.sin(13.3 * cross - pz)
+            wind = -.95 * dx + .31 * dz - waver
+            taper = 1 - ease(width * .23, width, abs(cross))
+            notches = .70 + .30 * ease(-.17, .58, math.sin(9.1 * cross + px) * math.cos(6.4 * cross - pz))
+            # A long compressed ramp reaches the narrow crest. Sheltered snow
+            # drops quickly on the lee side and breaks up across the wind.
+            ramp = ease(-run, -.10, wind)
+            slope = 1 - ease(.012, .222, wind)
+            thorn = ease(-.283, -.185, wind) * (1 - ease(-.145, -.049, wind))
+            ridge = max(ridge, taper * notches * (rise * ramp * slope + .040 * thorn))
+            hard_edge = max(hard_edge, taper * (1 - ease(.14, .39, abs(wind))) * notches)
+        for px, pz, rx, rz, depth in feet:
+            dx, dz = x - px, z - pz
+            if abs(dx) > 1.6 * rx or abs(dz) > 1.5 * rz:
+                continue
+            upwind = (.95 * dx - .31 * dz) / rx
+            cross = (.31 * dx + .95 * dz) / rz
+            # Flow around a protrusion strips the upstream toe and leaves
+            # two short crescents around the sides, before their lee joins.
+            toe = math.hypot((upwind - .73) / .70, cross / .84)
+            flank = math.hypot((upwind - .16) / .63, (abs(cross) - .69) / .41)
+            wash = max(1 - ease(.16, 1., toe), .68 * (1 - ease(.14, 1., flank)))
+            scour = max(scour, depth * wash)
+            hard_edge = max(hard_edge, .64 * wash)
+        return bank * (ridge - scour), bank * hard_edge
+
+    return sample
+
+
+def refine_wind_banks(vertices, faces, baseline, wind):
+    """Split shared edges near the visible scarp so the crest does not alias."""
+    for pitch, detail in ((.35, .08), (.16, .36)):
+        midpoints = {}
+        for face in faces:
+            for a, b in zip(face, (*face[1:], face[0])):
+                edge = tuple(sorted((a, b)))
+                if edge in midpoints:
+                    continue
+                midpoints[edge] = None
+                a, b = vertices[a], vertices[b]
+                if math.hypot(a[0] - b[0], a[2] - b[2]) <= pitch:
+                    continue
+                x, _, z = between(a, b, .5)
+                shift, active = wind(x, z)
+                if active > detail or (detail < .1 and abs(shift) > .022):
+                    midpoints[edge] = len(vertices)
+                    vertices.append((x, baseline(x, z) + shift, z))
+        refined = []
+        for face in faces:
+            mids = [midpoints.get(tuple(sorted((a, b)))) for a, b in zip(face, (*face[1:], face[0]))]
+            count = sum(m is not None for m in mids)
+            if count == 0:
+                refined.append(face)
+            elif count == 3:
+                a, b, c = face
+                ab, bc, ca = mids
+                refined.extend(((a, ab, ca), (ab, b, bc), (bc, c, ca), (ab, bc, ca)))
+            else:
+                start = mids.index(None) + 1 if count == 2 else next(i for i, m in enumerate(mids) if m is not None)
+                a, b, c = (face[(start + i) % 3] for i in range(3))
+                ab, bc = (mids[(start + i) % 3] for i in range(2))
+                if count == 2:
+                    refined.extend(((a, ab, c), (ab, b, bc), (ab, bc, c)))
+                else:
+                    refined.extend(((a, ab, c), (ab, b, c)))
+        faces = refined
+    return faces
+
+
+def triangulated_height(vertices, faces):
+    """Use the same refined support triangles for attached stones and plants."""
+    buckets = {}
+    for face in faces:
+        a, b, c = (vertices[i] for i in face)
+        ax, ay, az = a
+        dx, dy, dz = (q - p for p, q in zip(a, b))
+        ex, ey, ez = (q - p for p, q in zip(a, c))
+        det = dx * ez - dz * ex
+        triangle = ax, ay, az, dx, dy, dz, ex, ey, ez, 1 / det
+        for row in range(math.floor(min(az, b[2], c[2])), math.floor(max(az, b[2], c[2])) + 1):
+            for col in range(math.floor(min(ax, b[0], c[0])), math.floor(max(ax, b[0], c[0])) + 1):
+                buckets.setdefault((col, row), []).append(triangle)
+
+    def height(x, z):
+        for ax, ay, az, dx, dy, dz, ex, ey, ez, inverse in buckets.get((math.floor(x), math.floor(z)), ()):
+            qx, qz = x - ax, z - az
+            u = (qx * ez - qz * ex) * inverse
+            v = (dx * qz - dz * qx) * inverse
+            if min(u, v, 1 - u - v) >= -1e-8:
+                return ay + u * dy + v * ey
+        raise ValueError(f'Pass object at ({x:.3f}, {z:.3f}) lies beyond the snow support.')
+
+    return height
+
+
 def boot_trail(centerline):
     """Return an uphill set of older boot impressions on the brushed strip."""
     rng = random.Random(63906)
@@ -205,7 +335,11 @@ def worn_terrain(site, centerline):
     from snow_court_use import boot_relief, refine_sole_triangles
 
     vertices, faces = terrain_geometry(site, centerline)
-    support = surface_sampler(vertices.copy())
+    baseline = surface_sampler(vertices.copy())
+    wind = drift_field(centerline)
+    vertices[:] = [(x, y + wind(x, z)[0], z) for x, y, z in vertices]
+    faces = refine_wind_banks(vertices, faces, baseline, wind)
+    support = triangulated_height(vertices, faces)
     footprints = boot_trail(centerline)
     colours = []
 
@@ -231,28 +365,39 @@ def worn_terrain(site, centerline):
     for i, (x, _, z) in enumerate(vertices):
         sample(x, z, i)
     faces = refine_sole_triangles(vertices, faces, footprints, sample)
-    return vertices, faces, colours, support
+    return vertices, faces, colours, triangulated_height(vertices, faces)
 
 
-def trail_scan_uv(vertices, centerline):
+def trail_scan_uv(vertices):
     """Use one continuous scan projection, stretched by actual bank climb."""
     cols = len(CROSSING)
     ground_rows = [point[2] for point in vertices[::cols]]
     # The regular sections end before the adaptive footprint midpoints.
     stop = ground_rows.index(START)
     lengths = []
+    ground_rows = ground_rows[:stop + 1]
     center_col = CROSSING.index(0)
     for row in range(stop + 1):
         points = vertices[row * cols:(row + 1) * cols]
         station = [0.]
         for a, b in zip(points, points[1:]):
             station.append(station[-1] + math.dist(a, b))
-        lengths.extend(s - station[center_col] for s in station)
+        lengths.append([s - station[center_col] for s in station])
     tile = .91
-    return [(across / tile, -point[2] / tile) for across, point in zip(lengths, vertices)] + [
-        ((x - interpolate(centerline, z, smooth=True)) / tile, -z / tile)
-        for x, _, z in vertices[len(lengths):]
-    ]
+    uv = [(across / tile, -z / tile) for z, row in zip(ground_rows, lengths) for across in row]
+    for x, _, z in vertices[len(uv):]:
+        row = min(stop - 1, max(0, bisect_right(ground_rows, z) - 1))
+        t = (z - ground_rows[row]) / (ground_rows[row + 1] - ground_rows[row])
+        low = vertices[row * cols:(row + 1) * cols]
+        high = vertices[(row + 1) * cols:(row + 2) * cols]
+        boundaries = [mix(a[0], b[0], t) for a, b in zip(low, high)]
+        col = min(cols - 2, max(0, bisect_right(boundaries, x) - 1))
+        span = boundaries[col + 1] - boundaries[col]
+        offset = (x - boundaries[col]) / span
+        left = mix(lengths[row][col], lengths[row + 1][col], t)
+        right = mix(lengths[row][col + 1], lengths[row + 1][col + 1], t)
+        uv.append((mix(left, right, offset) / tile, -z / tile))
+    return uv
 
 
 def add(a, b):
@@ -639,7 +784,7 @@ def build_approach(site, materials):
 
     centerline = road_centerline(site)
     vertices, faces, shades, ground_height = worn_terrain(site, centerline)
-    scan_uv = trail_scan_uv(vertices, centerline)
+    scan_uv = trail_scan_uv(vertices)
     surface = materials['snow'].copy()
     surface.name = 'Wind-packed snow on the pass trail'
     for node in surface.node_tree.nodes:
