@@ -201,6 +201,14 @@ function instrument(source) {
     const call = `if(t.id === 'snow-roof') performance.mark('snow-p1:${label}');`;
     transformed = transformed.replace(pattern, statement => before ? `${call}\n  ${statement}` : `${statement}\n  ${call}`);
   }
+  const entrySteps = [
+    [/if\s*\(P\.createChooseEntry\)\s*\{/g, 'start'],
+    [/else\s+await tween\(P\.entrySeconds,\s*\(?progress\)?\s*=>\s*entry\(progress,\s*rig\),\s*true\);/g, 'end'],
+  ];
+  for (const [pattern, label] of entrySteps) {
+    assert.equal([...transformed.matchAll(pattern)].length, 1, 'Snow Court entry hook no longer matches: ' + label);
+    transformed = transformed.replace(pattern, statement => `${statement}\n  performance.mark('snow-p1:entry-${label}');`);
+  }
   const frame = /^([ \t]*)function frame\(stamp\s*=\s*performance\.now\(\)\)\s*\{/gm;
   assert.equal([...transformed.matchAll(frame)].length, 1, 'The Snow Roof scene identity hook no longer matches the app.');
   return transformed.replace(frame, match => `window.__snowP1Capture = () => ({
@@ -505,6 +513,18 @@ async function captureContext(browser, { hour, look, walk }) {
     assert.deepEqual(report.viteUpdates.filter(row => row.hour === hour), [], 'Vite reloaded during capture.');
   } catch (value) {
     error('capture', value);
+    result.lastState = await state().catch(() => null);
+    result.entryEvents = await page.evaluate(() => performance.getEntriesByType('mark')
+      .filter(mark => mark.name.startsWith('snow-p1:entry-')).map(({ name, startTime }) => ({ name, startTime }))).catch(() => []);
+    if (cameraFrames && walkStartTimestamp !== undefined) {
+      try {
+        const evidence = await cameraFrames.finish({ walkStartTimestamp });
+        result.presentedCameraFrames = evidence.manifest;
+      } catch (problem) {
+        error('camera-evidence', problem);
+      }
+      cameraFrames = null;
+    }
     throw value;
   } finally {
     await cameraFrames?.abort();
