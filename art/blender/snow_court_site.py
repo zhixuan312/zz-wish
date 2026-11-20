@@ -13,10 +13,10 @@ from mathutils import Vector
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import snow_roof as mesh
+import pine_valley_backdrop as plates
 from resting_contacts import RestingContacts, engine
 from snow_court_approach import build_approach
 from snow_court_backdrop import look_transport
-from pine_valley_backdrop import set_world
 
 ROOT = Path(__file__).resolve().parents[2]
 SITE = ROOT / 'shared/snow-roof-court-site.json'
@@ -400,6 +400,7 @@ def build(site, projection):
     mesh.STATIC = bpy.data.collections['STATIC']
     mesh.RNG = random.Random(60211)
     contact = RestingContacts(height_query=mesh.resting_contact_height)
+    mesh.CONTACTS = contact
     scene.unit_settings.system = 'METRIC'
     scene.render.engine = 'CYCLES'
     scene.view_settings.view_transform = 'AgX'
@@ -407,9 +408,10 @@ def build(site, projection):
     scene.render.resolution_x, scene.render.resolution_y = 1440, 900
     scene.render.resolution_percentage = 100
     pre_exposure = projection['preExposure']
-    set_world(scene, look_transport(projection['light']['day']), pre_exposure, 'Clear winter midday over the sheltered court')
+    plates.bpy = bpy
+    plates.set_world(scene, look_transport(projection['light']['day']), pre_exposure, 'Clear winter midday over the sheltered court')
     daylight = scene.world
-    set_world(scene, look_transport(projection['light']['night']), pre_exposure, 'Clear moonlit winter pass')
+    plates.set_world(scene, look_transport(projection['light']['night']), pre_exposure, 'Clear moonlit winter pass')
     scene['one_light_ambient_worlds'] = json.dumps({'day': daylight.name})
     m = palette()
     build_approach(site, m)

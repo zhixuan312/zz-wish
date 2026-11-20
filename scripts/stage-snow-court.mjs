@@ -15,19 +15,17 @@ const { values } = parseArgs({
   },
 });
 if (values.help) {
-  console.log('node scripts/stage-snow-court.mjs --near PACKED8 --day WEBP2048 --night WEBP2048 --out NEW_ART_BUILD_DIRECTORY [--walk KTX8192 | --high WEBP8192_OR_KTX8192]');
+  console.log('node scripts/stage-snow-court.mjs --near PACKED8 --day WEBP2048 --night WEBP2048 --out NEW_ART_BUILD_DIRECTORY [--walk KTX8192] [--high WEBP8192_OR_KTX8192]');
   process.exit(0);
 }
 if (required.some(name => !values[name])) throw new Error('Specify --near, --day, --night and --out.');
-if (values.walk && values.high) throw new Error('Choose one native day backdrop, --walk or --high.');
-const upgradeName = values.walk ? 'walk' : values.high ? 'high' : null;
-const [near, daySource, nightSource, upgradeSource] = await Promise.all([
+const [near, daySource, nightSource, walkSource, highSource] = await Promise.all([
   realpath(resolve(values.near)), realpath(resolve(values.day)), realpath(resolve(values.night)),
-  upgradeName && realpath(resolve(values[upgradeName])),
+  values.walk && realpath(resolve(values.walk)), values.high && realpath(resolve(values.high)),
 ]);
 const out = join(await realpath(dirname(resolve(values.out))), basename(resolve(values.out)));
 const scratch = await realpath(new URL('../art/build', import.meta.url));
-const inputs = [near, daySource, nightSource, upgradeSource].filter(Boolean);
+const inputs = [near, daySource, nightSource, walkSource, highSource].filter(Boolean);
 if (!out.startsWith(scratch + sep) || inputs.some(input => out === input || out.startsWith(input + sep))) {
   throw new Error('Use a new directory under art/build outside all inputs.');
 }
@@ -224,23 +222,26 @@ for (const region of regions) {
   }
 }
 
-const [day, night, upgrade] = await Promise.all([
+const [day, night, walk, high] = await Promise.all([
   backdrop(daySource, 'day', 'day', ['.webp']),
   backdrop(nightSource, 'night', 'night', ['.webp']),
-  upgradeName && backdrop(upgradeSource, upgradeName, 'day',
-    upgradeName === 'walk' ? ['.ktx2'] : ['.webp', '.ktx2']),
+  walkSource && backdrop(walkSource, 'walk', 'day', ['.ktx2']),
+  highSource && backdrop(highSource, 'high', 'day', ['.webp', '.ktx2']),
 ]);
 if (day.spec.renderSha256 === night.spec.renderSha256) throw new Error('Day and night require separate Cycles renders.');
-if (upgrade && (upgrade.spec.renderSha256 !== day.spec.renderSha256 || upgrade.spec.masterWidth !== day.spec.masterWidth
-  || layerNames.some(name => upgrade.spec.layers[name].masterSha256 !== day.spec.layers[name].masterSha256))) {
-  throw new Error(`The ${upgradeName} tier must use the exact day masters that produced the soft plates.`);
+for (const [tier, upgrade] of [['walk', walk], ['high', high]]) {
+  if (upgrade && (upgrade.spec.renderSha256 !== day.spec.renderSha256 || upgrade.spec.masterWidth !== day.spec.masterWidth
+    || layerNames.some(name => upgrade.spec.layers[name].masterSha256 !== day.spec.layers[name].masterSha256))) {
+    throw new Error(`The ${tier} tier must use the exact day masters that produced the soft plates.`);
+  }
 }
 manifest.snowCourt = { revision };
 manifest.backdrop = {
   ...day.descriptor, projectionSha256, siteSha256, night: night.descriptor,
-  ...(upgrade ? { [upgradeName]: upgrade.descriptor } : {}),
+  ...(walk ? { walk: walk.descriptor } : {}),
+  ...(high ? { high: high.descriptor } : {}),
 };
-const files = [...nearFiles, ...day.files, ...night.files, ...(upgrade?.files ?? [])];
+const files = [...nearFiles, ...day.files, ...night.files, ...(walk?.files ?? []), ...(high?.files ?? [])];
 manifest.files = files.map(file => file.spec);
 if (new Set(manifest.files.map(file => file.uri)).size !== files.length) {
   throw new Error('Duplicate delivery asset URI.');
@@ -267,8 +268,8 @@ manifest.nativeView = {
 
 const byteSum = items => items.reduce((bytes, file) => bytes + file.spec.bytes, 0);
 const nightBytes = byteSum(night.files);
-const walkBytes = upgradeName === 'walk' ? byteSum(upgrade.files) : 0;
-const highBytes = upgradeName === 'high' ? byteSum(upgrade.files) : 0;
+const walkBytes = walk ? byteSum(walk.files) : 0;
+const highBytes = high ? byteSum(high.files) : 0;
 manifest.payloadBytes = manifest.totalBytes = byteSum(files);
 manifest.manifestBytes = 0;
 const encode = () => Buffer.from(JSON.stringify(manifest) + '\n');

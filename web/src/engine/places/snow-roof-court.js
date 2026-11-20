@@ -85,7 +85,7 @@ export default function createWinterCourt(h) {
         max: [site.hall.east, site.hall.eave, site.hall.front] },
       wide: arrival, widePhone: { ...arrival, fov: arrival.fov + 5 },
       choose: pose(site.views.choose),
-      choosePhone: { pos: V3(-2, 3.65, -5.60), look: V3(...site.views.choose.look), fov: 54 },
+      choosePhone: { pos: V3(-2, 3.65, -5.35), look: V3(...site.views.choose.look), fov: 54 },
       spread: pose(site.views.burn), spreadPhone: pose(site.views.burnPhone),
       burn: pose(site.views.burn), burnPhone: pose(site.views.burnPhone),
       burnWalk: [V3(-1.87, 3.64, -5.14), V3(-2.05, 3.65, -6.5), V3(-1.78, 3.67, -7.59)],
