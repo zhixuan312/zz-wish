@@ -7,6 +7,25 @@ import { buildSnowDoorDrift, isWinterCourtSnow, tuneWinterCourtSnow } from './sn
 import projection from '../../../../shared/snow-court-backdrop.json' with { type: 'json' };
 import site from '../../../../shared/snow-roof-court-site.json' with { type: 'json' };
 
+function tuneHallLimewash(material, floor) {
+  const baseShader = material.onBeforeCompile.bind(material);
+  const baseKey = material.customProgramCacheKey.bind(material);
+  material.onBeforeCompile = shader => {
+    baseShader(shader);
+    // The reference is the midpoint of the measured dark and adjacent
+    // plaster medians for each Cycles diffuse pass. Spread that bounce
+    // into the high limewash, retaining the contact at the wall foot.
+    shader.fragmentShader = shader.fragmentShader.replace('float away=', `
+      vec3 roomBounce = uBakedWeights.x * vec3(.0802, .0670, .0562)
+                      + uBakedWeights.y * vec3(.0773, .0661, .0563)
+                      + uBakedWeights.z * vec3(.1023, .0882, .0706);
+      float bouncedPlaster = .76 * smoothstep(.16, .64, vBakedWorld.y - ${floor.toFixed(3)});
+      baked = mix(baked, roomBounce, bouncedPlaster);
+      float away=`);
+  };
+  material.customProgramCacheKey = () => baseKey() + '-hall-limewash';
+}
+
 export default function createWinterCourt(h) {
   const { THREE, V3 } = h;
   const pose = ({ position, look, fov }) => ({ pos: V3(...position), look: V3(...look), fov });
@@ -75,11 +94,13 @@ export default function createWinterCourt(h) {
 
       const earlierCloth = new Set();
       const winterSnow = new Set();
+      const limewash = new Set();
       baked.group.traverse(object => {
         if (!object.isMesh) return;
         for (const material of [object.material].flat()) {
           if (isEarlierGauze(material)) earlierCloth.add(material);
           if (isWinterCourtSnow(material)) winterSnow.add(material);
+          if (/^Worn hall limewash, (east|west) wall$/.test(material.name)) limewash.add(material);
           if (material.name === 'Thin pale storm lamp glass') {
             // The thin windscreen shows the flame directly. Avoid a second
             // scene render for screen-space refraction around this small lamp.
@@ -90,6 +111,7 @@ export default function createWinterCourt(h) {
           }
         }
       });
+      for (const material of limewash) tuneHallLimewash(material, site.hall.floor);
       for (const material of earlierCloth) {
         tuneEarlierGauze(material, earlierWicks, THREE, baked.cameraPreExposure, h.visitorCloth);
       }
