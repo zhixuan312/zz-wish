@@ -36,7 +36,7 @@ export default function createWinterCourt(h) {
   }
   const entrance = pose(site.walk[0]);
   return {
-    bakedLighting: true, cameraFar: 880, exposure: 1.02, shade: .55,
+    bakedLighting: true, cameraFar: 880, exposure: 1.11, shade: .55,
     sky: { top: 0x14243c, horizon: 0x59718a, ground: 0x212936, sun: 0xd9eaff,
       dir: projection.light.night.directionEngine, glow: .17, clouds: .04, lit: 0x889ab0,
       dark: 0x394c6c, stars: .075, disc: .64 },
@@ -92,7 +92,8 @@ export default function createWinterCourt(h) {
         }
         // Earlier gauze lamps glow through the shell. Their flame is inside it.
         if (fixture.kind === 'gauze shade') continue;
-        const flame = h.liveFlame(...contact, { size: fixture.zone === 'gate' ? .58 : .43, radiance: .66, halo: false });
+        const atGate = fixture.zone === 'gate';
+        const flame = h.liveFlame(...contact, { size: atGate ? .77 : .46, radiance: atGate ? .76 : .66, halo: false });
         h.fixtureSpecular(...fixture.pointLight, fixture.watts * baked.cameraPreExposure, fixture.linearColor);
         context.up.push(() => { flame.power = .66 + .26 * baked.fixturePower(); });
       }
