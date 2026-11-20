@@ -802,7 +802,9 @@ def landing_stone(name, width, depth, centre, stone, dressing):
         ring.append((a * width, b * depth, dip))
 
     points = []
-    for lower, inset in ((-.115, .018), (-.018, 0), (0, .009)):
+    # A dressed slab keeps a crisp arris: a small chamfer at the top and a plain side below it.
+    # The old .009 top inset rounded every corner enough to read as a cushion.
+    for lower, inset in ((-.115, .012), (-.018, 0), (0, .0034)):
         for u, v, dip in ring:
             roundness = inset * (.70 + .3 * math.sin(17.7 * u + 5.8 * v + offset))
             px = u * (1. - 2 * roundness / width)
@@ -842,7 +844,7 @@ def landing_stone(name, width, depth, centre, stone, dressing):
     return slab
 
 
-def landing_flagstones(stone, gravel):
+def landing_flagstones(stone, gravel, dressing_stone=None):
     joint = random.Random(5917)
     dressing = random.Random(2816)
     slabs = []
@@ -860,9 +862,12 @@ def landing_flagstones(stone, gravel):
             x, z = (left + right) * .5, (front + back) * .5
             gap = joint.uniform(.009, .020)
             settle = joint.uniform(-.009, .008) * (.44 if abs(x) < .8 else 1.)
+            # The landing shares the footpath's wet granite scan, so the paving and the worn
+            # treads are visibly the same stone rather than a smooth slab beside rough steps.
+            material = dressing_stone or RANDOM.choice(stone)
             slab = landing_stone(f'Landing flagstone {row} {col}', right - left - gap, back - front - gap,
                                  (x, 4.004 + settle + RANDOM.uniform(-.003, .003), z),
-                                 RANDOM.choice(stone), dressing)
+                                 material, dressing)
             slab['moss_edge'] = joint.random() < (.26 if abs(x) < 1.2 else .57)
             slabs.append(slab)
     landing_joint_fill(seams, slabs, gravel)
@@ -1009,8 +1014,8 @@ def climbing_steps(stone, ground, bedding_material, rubble_granite, tread_granit
     print(f'PINE_SCANNED_TREAD_SHOULDERS {len(scanned_treads)} stones in five surveyed courses.')
     audit_approach_tread_bearings(bedding_rows, bed, ground)
     audit_stair_course_rises(bedding_rows)
-    landing_bed(stone[2])
-    landing_flagstones(stone, rubble_granite)
+    landing_bed(tread_granite)
+    landing_flagstones(stone, rubble_granite, tread_granite)
     fit_stone_undersides(ground, bridge_curbs)
     return bridge_curbs
 
