@@ -104,24 +104,31 @@ test('the prints are cheap: geometry only, no texture files', () => {
   mud.dispose();
 });
 
-test('the authored trail lies on the real shoulder paving', () => {
+test('the authored trail lies on the real shoulder paving and clear of the shrine', () => {
   installCanvas();
-  // A plane at the shoulder's measured height (y = 5.00) covering the niche paving, which is where
-  // the raycast probe found stone. Every authored print must find it; a print wanting y 5.1 with
-  // stone at y 3.6 was the fault this guards.
-  const surface = new THREE.Mesh(new THREE.PlaneGeometry(1.2, 1.2), new THREE.MeshBasicMaterial());
-  surface.rotation.x = -Math.PI / 2;
-  surface.position.set(-1.82, 5.0, .9);
-  surface.updateMatrixWorld(true);
-  const mud = createMudPrints({ THREE, surface, prints: PINE_PRINTS });
+  // The paving measured from the declared overview camera: a plane at y 4.0 spanning x -1.31..0.43,
+  // z 0.03..2.53. The shrine plinth is separate, at y 5.0 and only 16 cm across.
+  const paving = new THREE.Mesh(new THREE.PlaneGeometry(1.74, 2.5), new THREE.MeshBasicMaterial());
+  paving.rotation.x = -Math.PI / 2;
+  paving.position.set(-0.44, 4.0, 1.28);
+  paving.updateMatrixWorld(true);
+  const mud = createMudPrints({ THREE, surface: paving, prints: PINE_PRINTS });
+  // Every print must find the paving, and none may sit on the plinth.
   expect(mud.count).toBe(PINE_PRINTS.length);
-  // And no print sits more than a centimetre off the paving.
   mud.group.updateWorldMatrix(true, true);
+  const plinth = new THREE.Box3(new THREE.Vector3(-1.90, 4.98, 0.85), new THREE.Vector3(-1.72, 5.02, 1.01));
   for (const mesh of mud.group.children) {
     mesh.geometry.computeBoundingBox();
     const box = mesh.geometry.boundingBox.clone().applyMatrix4(mesh.matrixWorld);
-    expect(box.min.y).toBeGreaterThan(5.0 - .002);
-    expect(box.max.y).toBeLessThan(5.0 + .012);
+    expect(box.min.y).toBeGreaterThan(4.0 - .002);
+    expect(box.max.y).toBeLessThan(4.0 + .012);
+    // Clear of the shrine plinth, which stands a metre higher.
+    expect(box.intersectsBox(plinth)).toBe(false);
+    // And inside the paving, not floating past its edge.
+    expect(box.min.x).toBeGreaterThan(-1.31);
+    expect(box.max.x).toBeLessThan(0.43);
+    expect(box.min.z).toBeGreaterThan(0.03);
+    expect(box.max.z).toBeLessThan(2.53);
   }
   mud.dispose();
 });

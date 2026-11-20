@@ -102,10 +102,12 @@ export function createMudPrints({ THREE, surface, prints }: {
     if (!hit) continue;
 
     const material = new THREE.MeshStandardMaterial({
-      // Wet mud is darker than the granite and slightly glossy, never black.
-      color: 0x2e2620,
-      roughness: .48 - .16 * print.weight,
+      // Wet mud is darker than the granite and slightly glossy, never black. The environment is
+      // bright here, and a stain should not pick up its colour, so keep the reflection low.
+      color: 0x1d1712,
+      roughness: .52 - .18 * print.weight,
       metalness: 0,
+      envMapIntensity: .12,
       alphaMap: maps?.alpha ?? null,
       normalMap: maps?.normal ?? null,
       normalScale: new THREE.Vector2(.9, .9),
@@ -155,15 +157,17 @@ export function createMudPrints({ THREE, surface, prints }: {
 // The trail itself: along the last steps to the shoulder, then a few prints turning aside to the
 // tea pavilion. Kept under twenty prints, as the brief asks, and each one is snapped to the stone.
 export const PINE_PRINTS: readonly PrintSpec[] = Object.freeze([
-  // On the shoulder paving around the niche, where the raycast found stone at y = 5.00 and
-  // x -1.9..-1.74, z 0.85..1.01. The prints approach the shrine, then two turn aside.
-  { x: -1.88, y: 5.0, z: 1.02, yaw: .15, length: .27, weight: .8 },
-  { x: -1.79, y: 5.0, z: .98, yaw: -.10, length: .27, weight: .75 },
-  { x: -1.90, y: 5.0, z: .94, yaw: .08, length: .26, weight: .7 },
-  { x: -1.80, y: 5.0, z: .90, yaw: -.06, length: .27, weight: .85 },
-  { x: -1.89, y: 5.0, z: .86, yaw: .12, length: .26, weight: .65 },
-  { x: -1.78, y: 5.0, z: .82, yaw: -.12, length: .27, weight: .6 },
-  { x: -1.87, y: 5.0, z: .78, yaw: .05, length: .25, weight: .5 },
-  { x: -1.76, y: 5.0, z: .95, yaw: .9, length: .25, weight: .35 },
-  { x: -1.73, y: 5.0, z: .90, yaw: 1.2, length: .24, weight: .28 },
+  // The shoulder paving measured from the declared overview camera: `Broad_stone_landing002*` at
+  // y 4.00-4.01, spanning x -1.31..0.43, z 0.03..2.53. These sit in the near half, where the framing
+  // shows big slabs, walking in toward the shrine with two prints turning aside to the pavilion.
+  { x: -0.55, y: 4.00, z: 2.35, yaw: .16, length: .27, weight: .85 },
+  { x: -0.28, y: 4.00, z: 2.18, yaw: -.08, length: .27, weight: .8 },
+  { x: -0.60, y: 4.00, z: 1.98, yaw: .12, length: .26, weight: .75 },
+  { x: -0.32, y: 4.00, z: 1.80, yaw: -.05, length: .27, weight: .7 },
+  { x: -0.64, y: 4.01, z: 1.62, yaw: .10, length: .26, weight: .6 },
+  { x: -0.36, y: 4.01, z: 1.44, yaw: -.12, length: .27, weight: .55 },
+  { x: -0.68, y: 4.00, z: 1.28, yaw: .06, length: .25, weight: .45 },
+  // Two turning towards the tea pavilion, which stands to the right.
+  { x: -0.05, y: 4.01, z: 1.70, yaw: 1.05, length: .25, weight: .35 },
+  { x: 0.22, y: 4.00, z: 1.88, yaw: 1.3, length: .24, weight: .28 },
 ]);
