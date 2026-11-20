@@ -603,7 +603,9 @@ describe('music playback', () => {
   it('stops the burn timers while hidden and restarts them on return', async () => {
     vi.useFakeTimers();
     try {
-      vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, json: async () => ({ cues: ['snow_burn_bed_day'] }) })));
+      // Every bed the bucket can name, so this test does not depend on which hour it runs at:
+      // afternoon and dusk ask for the golden bed, night for the night bed.
+      vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, json: async () => ({ cues: ['snow_burn_bed_day', 'snow_burn_bed_golden', 'snow_burn_bed_night'] }) })));
       const doc = new EventTarget() as EventTarget & { hidden: boolean };
       doc.hidden = false;
       vi.stubGlobal('document', doc);
@@ -628,14 +630,22 @@ describe('music playback', () => {
   });
 
   it('hands a missing ignite over to the bed at once', async () => {
-    vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, json: async () => ({ cues: ['snow_burn_bed_day'] }) })));
-    const music = createMusic({ createContext: () => new FakeContext() as unknown as AudioContext });
-    await music.unlock();
-    const started = await music.play('ignite', 'snow-roof');
-    expect(started).toBe(false);
-    // Nothing will ever end, so the bed must start now rather than never.
-    await new Promise((r) => setTimeout(r, 50));
-    expect(cueElements().map((a) => a.src)).toContain('/music/snow_burn_bed_day.m4a');
+    // The bed a stage asks for depends on the visitor's clock: afternoon and dusk take the
+    // golden bed. Pin the clock so the assertion names the bed this run actually requests.
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date(2026, 10, 19, 10, 0, 0));
+    try {
+      vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, json: async () => ({ cues: ['snow_burn_bed_day', 'snow_burn_bed_golden', 'snow_burn_bed_night'] }) })));
+      const music = createMusic({ createContext: () => new FakeContext() as unknown as AudioContext });
+      await music.unlock();
+      const started = await music.play('ignite', 'snow-roof');
+      expect(started).toBe(false);
+      // Nothing will ever end, so the bed must start now rather than never.
+      await vi.advanceTimersByTimeAsync(50);
+      expect(cueElements().map((a) => a.src)).toContain('/music/snow_burn_bed_day.m4a');
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('does not hand over from a missing ignite once the stage moved on', async () => {
@@ -680,7 +690,10 @@ describe('music playback', () => {
   });
 
   it('does not arm the burn timers while the page is hidden', async () => {
-    vi.useFakeTimers();
+    // Pin the clock as well as the timers: the stage's bed name, and therefore the timer count,
+    // changes with the hour, so an unpinned run would only pass in part of the day.
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'setInterval', 'clearInterval', 'Date'] });
+    vi.setSystemTime(new Date(2026, 10, 19, 10, 0, 0));
     try {
       vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, json: async () => ({ cues: ['snow_burn_bed_day'] }) })));
       const doc = new EventTarget() as EventTarget & { hidden: boolean };
@@ -711,7 +724,10 @@ describe('music playback', () => {
   });
 
   it('does not re-arm the burn timers when the lamp went out while hidden', async () => {
-    vi.useFakeTimers();
+    // Pin the clock too: which bed the burn asks for follows the hour, and this test walks the
+    // burn into a result, so an unpinned run would exercise a different cue set after 14:00.
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'setInterval', 'clearInterval', 'Date'] });
+    vi.setSystemTime(new Date(2026, 10, 19, 10, 0, 0));
     try {
       vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, json: async () => ({ cues: ['snow_burn_bed_day', 'result_loop'] }) })));
       const doc = new EventTarget() as EventTarget & { hidden: boolean };
