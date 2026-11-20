@@ -35,7 +35,7 @@ leaves the call to Boss.
 | Item | Status | Evidence | Change needed |
 | --- | --- | --- | --- |
 | Steps worn hollow | matches | `worn_approach_tread()` `pine_gate.py:342`, used for every climbing step; dressing is authored per tread | Confirm the hollow reads at product distance on a frame. |
-| Muddy footprints | missing | No authoring for prints in `pine_gate.py` or `pine_tea_shoulder.py`; the only "footprint" matches are geometric extents, not prints | Author wet prints on the approach near the shoulder, and on the pavilion floor. Needs a declared pose to review. |
+| Muddy footprints | matches | `web/src/engine/places/pine-mud-prints.ts` paints six wet prints as decals raycast onto the shoulder paving at `y 4.00`; gait, drying weights and the plinth-clearance bound are held by `tests/tier1/unit/pine-mud-prints.test.js`. Evidence: `4ca4002`, `9d1e518`, `99fbf58`; capture `quality/direction/s2-r20-day-04/` | None. Prints fade out towards the tea pavilion, as a walker's mud would. |
 | A bamboo broom | matches | `pine_tea_shoulder.py:501` broom handle, `:504` bound bristle | None. |
 | Coarse tea bowls | matches | `pine_tea_shoulder.py:486` | None. |
 | A small stove with warm ash | matches | `pine_tea_shoulder.py:490` stove, `:493` warm ash | Confirm the ash reads warm rather than grey on a frame. |
@@ -45,7 +45,7 @@ leaves the call to Boss.
 | A small oil lamp before the shrine's image | matches | `pine_tea_shoulder.py:418` lamp, `:423` its low flame | None. |
 | Stone ledges hold many burnt-out stubs over layers of old wax | matches | `spent_wax_on_sill()` `pine_tea_shoulder.py:689`: 11 remnants over four wax tones, with fused spill layers and charred wicks | The stubs were called improved at R15; judge the close-up again. |
 | Two or three short candles still burning | matches | `pine_tea_shoulder.py:815`–`:824`: two short candles, each with a wick and a `small_flame` | None. |
-| Red cloth strips tied to the old pine | matches | `crest_ribbons()` `pine_gate.py:2264`; surface detail in `web/src/engine/places/pine-crest-cloth.js` | Handover's open item says the three bands read like tape: vary dye, weave, wet sag, knot and ragged ends. This is a differs in appearance, not presence. |
+| Red cloth strips tied to the old pine | matches | `crest_ribbons()` `pine_gate.py:2264`; surface detail in `web/src/engine/places/pine-crest-cloth.js`. The visitor's own strip is the modelled asset `web/public/places/pine-gate/pine-visitor-cloth.glb`, mounted by `pine-wish-cloth.js` and tied to the live tray scale. Evidence: `324931f`, `0a6d7b6`, `20a63e2`, `8175603`; capture `quality/direction/s2-tray-crops/` | None. The strip is hidden until the lamp is lit and stays through both endings. |
 | The centre of the stone lamp shrine is free for the visitor | matches | `pierced stone lamp shrine` built in `pine_tea_shoulder.py`; remnants are deliberately gathered at the sides with an empty owner dish (comment at `:702`) | None. |
 
 ## 4. The walk

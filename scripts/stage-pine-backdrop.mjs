@@ -10,7 +10,7 @@ import { readPineBackdrop, readPineFernDetail, readPineWaxNormal } from '../web/
 import { readPineForestBackdrop } from '../web/src/engine/places/pine-forest-backdrop.js';
 
 const { values } = parseArgs({ options: Object.fromEntries(
-  [...['near', 'plates', 'sculpt', 'out', 'high', 'walk', 'night', 'high-trees', 'approach-forest', 'fern-detail'].map(name => [name, { type: 'string' }]),
+  [...['near', 'plates', 'sculpt', 'out', 'high', 'walk', 'night', 'high-trees', 'walk-trees', 'approach-forest', 'fern-detail'].map(name => [name, { type: 'string' }]),
     ['defer-near-lightmaps', { type: 'boolean' }]],
 ) });
 const required = ['near', 'plates', 'sculpt', 'out'];
@@ -20,6 +20,9 @@ const high = values.high === undefined ? null : resolve(values.high);
 const walk = values.walk === undefined ? null : resolve(values.walk);
 const night = values.night === undefined ? null : resolve(values.night);
 const highTrees = values['high-trees'] === undefined ? null : resolve(values['high-trees']);
+// The walk tier is loaded by every device, so a tree model mounted here is the one phone and
+// desktop both see. The high tier stays desktop-only for the plate upgrade.
+const walkTrees = values['walk-trees'] === undefined ? null : resolve(values['walk-trees']);
 const forest = values['approach-forest'] === undefined ? null : resolve(values['approach-forest']);
 const fern = values['fern-detail'] === undefined ? null : resolve(values['fern-detail']);
 if (walk && high) throw new Error('Choose either a shared walk backdrop or the legacy desktop backdrop.');
@@ -159,14 +162,19 @@ if (night) {
   };
   sourceFiles.push(...renamed.map(([, spec, uri]) => [night, { uri, bytes: spec.bytes, sha256: spec.sha256 }, spec.uri]));
 }
-if (highTrees) {
-  const receipt = await readFile(join(highTrees, 'pine-native-trees.json'));
+if (highTrees || walkTrees) {
+  if (!walk) throw new Error('Native trees need the shared walk tier so every device loads them.');
+  if (walkTrees && highTrees) throw new Error('Choose one tree tier: walk loads on every device.');
+  const treeSource = walkTrees ?? highTrees;
+  const receipt = await readFile(join(treeSource, 'pine-native-trees.json'));
   const { file } = JSON.parse(receipt);
   if (file?.uri !== 'pine-native-trees.glb') throw new Error('Expected the verified native tree model.');
-  manifest.backdrop.high ??= {};
-  manifest.backdrop.high.trees = file.uri;
-  manifest.backdrop.high.treeReceiptSha256 = digest(receipt);
-  sourceFiles.push([highTrees, { uri: file.uri, bytes: file.bytes, sha256: file.sha256 }]);
+  // One tree declaration either way; `walkTrees` names it in the walk tier so phones get it too.
+  manifest.backdrop[walkTrees ? 'walk' : 'high'] ??= {};
+  const tier = manifest.backdrop[walkTrees ? 'walk' : 'high'];
+  tier.trees = file.uri;
+  tier.treeReceiptSha256 = digest(receipt);
+  sourceFiles.push([treeSource, { uri: file.uri, bytes: file.bytes, sha256: file.sha256 }]);
 }
 if (forest) {
   const receipt = await readFile(join(forest, 'forest.json'));
@@ -215,11 +223,14 @@ for (let pass = 0; pass < 12; pass++) {
 const serialized = encode();
 if (Buffer.byteLength(serialized) !== manifest.manifestBytes) throw new Error('Manifest bytes did not converge.');
 const highFiles = Object.values(backdrop.high?.files ?? {});
+// Trees may be declared in the walk tier; when they are, they are not a desktop-only extra, so
+// they must not be counted against the high tier.
 if (backdrop.high?.trees) highFiles.push(backdrop.high.trees);
 const highBytes = highFiles.reduce((sum, file) => sum + file.bytes, 0);
 const walkLightmapBytes = [...deferred.values()].reduce((sum, bytes) => sum + bytes, 0);
 const nightBytes = Object.values(backdrop.night?.files ?? {}).reduce((sum, file) => sum + file.bytes, 0);
-const walkBytes = Object.values(backdrop.walk?.files ?? {}).reduce((sum, file) => sum + file.bytes, walkLightmapBytes + nightBytes);
+const walkBytes = Object.values(backdrop.walk?.files ?? {}).reduce((sum, file) => sum + file.bytes, walkLightmapBytes + nightBytes)
+  + (backdrop.walk?.trees?.bytes ?? 0);
 const combinedBytes = manifest.completePackageBytes + nativeAgXBytes;
 const phoneBytes = combinedBytes - highBytes;
 const baseBytes = phoneBytes - walkBytes;
@@ -237,6 +248,7 @@ const budget = {
     combinedBytes, combinedLimitBytes: 40_000_000, highBytes,
     ...(high ? { highBackdropBytes: Object.fromEntries(Object.entries(backdrop.high.files).map(([name, file]) => [name, file.bytes])) } : {}),
     ...(backdrop.high?.trees ? { highTreeBytes: backdrop.high.trees.bytes } : {}),
+    ...(backdrop.walk?.trees ? { walkTreeBytes: backdrop.walk.trees.bytes } : {}),
   } : {}),
 };
 console.log('PINE_BACKDROP_BUDGET', JSON.stringify(budget));

@@ -2278,10 +2278,12 @@ export async function travel(id) {
   }
   place.baked?.startWalkLightmaps?.();
   place.baked?.backdrop?.startWalk();
-  if (!narrow() && !touchPrimary.matches && !powerSaver) {
+  // The native tree model may live in the walk tier, which every device loads, so this is no
+  // longer gated on a wide pointer screen: phones must see the same trees. It still only swaps
+  // on the closed forest ascent, before the crest reveals the site.
+  {
     const entering = place, started = performance.now();
-    entering.baked?.backdrop?.startDesktopHigh();
-    // On the closed forest ascent the site across the ridge is still hidden.
+    if (!narrow() && !touchPrimary.matches && !powerSaver) entering.baked?.backdrop?.startDesktopHigh();
     entering.baked?.highTrees?.start(() => place === entering && phase === 'travel'
       && rig.pos.z > 14 && performance.now() - started < 8000);
   }

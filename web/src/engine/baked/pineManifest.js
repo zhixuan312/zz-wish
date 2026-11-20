@@ -28,14 +28,21 @@ export function readPineBackdrop(manifest) {
   if (backdrop === undefined) return null;
   const base = backdropTier(manifest, backdrop);
   if (backdrop.walk !== undefined) {
-    const walk = backdropTier(manifest, backdrop.walk, '.ktx2');
+    // A walk tier may also carry the native tree model, so every device loads it. Strip the tree
+    // keys before the plate check, then read the model from whichever tier declares it.
+    const walkPlateTier = { encoding: backdrop.walk.encoding, layers: backdrop.walk.layers,
+      width: backdrop.walk.width, height: backdrop.walk.height };
+    const walk = backdropTier(manifest, walkPlateTier, '.ktx2');
     if (walk.width !== projection.width || walk.height !== projection.height || walk.width <= base.width) {
       throw new Error('Pine Gate walk plates must use the native backdrop resolution');
     }
     if (backdrop.high && Object.keys(backdrop.high).some(key => !['trees', 'treeReceiptSha256'].includes(key))) {
       throw new Error('Pine Gate walk plates replace the desktop backdrop upgrade');
     }
-    const trees = pineTrees(manifest, backdrop.high);
+    if (backdrop.walk.trees !== undefined && backdrop.high?.trees !== undefined) {
+      throw new Error('Pine Gate native trees belong to exactly one tier');
+    }
+    const trees = pineTrees(manifest, backdrop.walk.trees !== undefined ? backdrop.walk : backdrop.high);
     const night = backdrop.night === undefined ? null : backdropTier(manifest, backdrop.night);
     if (night) {
       const existing = new Set([...Object.values(base.files), ...Object.values(walk.files)]);
@@ -44,7 +51,12 @@ export function readPineBackdrop(manifest) {
         throw new Error('Pine Gate night plates need a separate verified render.');
       }
     }
-    return { ...base, walk, high: trees ? { trees } : null, ...(night ? { night } : {}) };
+    // `high` keeps meaning the desktop-only plate upgrade. A tree model declared in the walk tier is
+    // therefore reported on `walk`, not smuggled into `high`, so byte accounting stays honest.
+    const treesInWalk = backdrop.walk.trees !== undefined;
+    return { ...base, walk: treesInWalk ? { ...walk, trees } : walk,
+      high: !treesInWalk && trees ? { trees } : null,
+      treesInWalk, ...(night ? { night } : {}) };
   }
   if (backdrop.night !== undefined) throw new Error('Pine Gate night plates require a shared walk tier.');
   if (backdrop.high === undefined) return { ...base, high: null };
