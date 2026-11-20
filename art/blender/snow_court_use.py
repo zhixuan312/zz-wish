@@ -27,15 +27,15 @@ def boot_relief(x, z, footprints):
         dx, dz = x - px, z - pz
         across = dx * math.cos(angle) - dz * math.sin(angle)
         along = dx * math.sin(angle) + dz * math.cos(angle)
-        heel = ((along - .072) / .084) ** 2 + (across / .066) ** 2
-        toe = ((along + .056) / .124) ** 2 + ((across - .011) / .088) ** 2
+        heel = ((along - .089) / .074) ** 2 + (across / .067) ** 2
+        toe = ((along + .069) / .105) ** 2 + ((across - .011) / .094) ** 2
         shape = min(heel, toe)
         # Wind fills the leeward side first. A few impressions have almost
         # disappeared, while others retain a heel or part of the toe.
-        filled = smoothrise(-.071, .063, across + age * .105 - along * .18)
-        depression = max(0., 1. - shape) ** 1.3 * (1. - .93 * filled) * (1. - .68 * age)
-        rim = math.exp(-((math.sqrt(shape) - 1.025) / .19) ** 2) * (1. - filled)
-        depth += .024 * depression - .005 * rim
+        filled = smoothrise(-.037, .040, across + age * .093 - along * .23)
+        depression = max(0., 1. - shape) ** .79 * (1. - .95 * filled) * (1. - .73 * age)
+        rim = math.exp(-((math.sqrt(shape) - 1.024) / .19) ** 2) * (1. - filled) * (1. - age)
+        depth += .036 * depression - .006 * rim
         tread = max(tread, depression)
     return depth, tread
 
@@ -46,10 +46,52 @@ def swept_tint(x, z, across, seam, exposure, fade, tread):
     edge = smoothrise(.16, .33, across) * (1. - smoothrise(.40, .54, across))
     tongue = .6 + .28 * math.sin(z * 1.59 + .7) + .12 * math.sin(z * 4.39)
     compacted *= fade * (1. - .56 * edge * tongue)
-    toe = fade * smoothrise(.065, .42, tread)
+    toe = fade * smoothrise(.055, .55, tread)
     grit = .046 * math.sin(x * 31.7 + z * 11.2) * math.sin(x * 18.4 - z * 12.2)
-    return tuple(1. - (1. - channel + grit) * compacted - .16 * toe
+    return tuple(1. - (1. - channel + grit) * compacted - .215 * toe
                  for channel in (.45, .44, .40))
+
+
+def refine_sole_triangles(vertices, faces, footprints, sample):
+    """Split shared edges locally, retaining the adjacent unswept triangles."""
+    # Deep, fresh impressions need the finest samples. A faint old sole
+    # retains the first split as its rim disappears under the drifting snow.
+    for age_limit, half_width, half_length in ((.76, .078, .144), (.36, .064, .123)):
+        new_edges = {}
+        for face in faces:
+            xs, _, zs = zip(*(vertices[i] for i in face))
+            left, right, near, far = min(xs), max(xs), min(zs), max(zs)
+            if not any(age < age_limit and left - half_width < x < right + half_width
+                       and near - half_length < z < far + half_length for x, z, _angle, age in footprints):
+                continue
+            for a, b in zip(face, (*face[1:], face[0])):
+                edge = tuple(sorted((a, b)))
+                if edge not in new_edges:
+                    x = (vertices[a][0] + vertices[b][0]) / 2
+                    z = (vertices[a][2] + vertices[b][2]) / 2
+                    new_edges[edge] = sample(x, z)
+        split = []
+        for face in faces:
+            edges = [new_edges.get(tuple(sorted((a, b))))
+                     for a, b in zip(face, (*face[1:], face[0]))]
+            count = sum(i is not None for i in edges)
+            if count == 0:
+                split.append(face)
+                continue
+            if count == 3:
+                a, b, c = face
+                ab, bc, ca = edges
+                split.extend(((a, ab, ca), (ab, b, bc), (bc, c, ca), (ab, bc, ca)))
+                continue
+            start = edges.index(None) + 1 if count == 2 else next(i for i, v in enumerate(edges) if v is not None)
+            a, b, c = (face[(start + i) % 3] for i in range(3))
+            ab, bc = (edges[(start + i) % 3] for i in range(2))
+            if count == 2:
+                split.extend(((a, ab, c), (ab, b, bc), (ab, bc, c)))
+            else:
+                split.extend(((a, ab, c), (ab, b, c)))
+        faces = split
+    return faces
 
 
 def swept_ground(mesh, site, materials):
@@ -75,34 +117,39 @@ def swept_ground(mesh, site, materials):
     far_cols = 21
     stride = 2 * far_cols + len(rim_offsets)
     vertices, colours, faces = [], [], []
+
+    def sample(x, z):
+        across = x - sweep_center(route, z)
+        fade = smoothrise(route[-1][1] - .24, route[-1][1] + .13, z)
+        exposure = .355 + .039 * math.sin(z * 2.34) + .021 * math.sin(z * 9.17)
+        lee = .08 * math.sin(z * 3.14 + x * 5.8) * math.sin(z * 1.49)
+        seam = abs(across + lee * .42)
+        ridge = 1. - fade * (1. - smoothrise(exposure, .82, seam))
+        drift = (.063 + .034 * math.sin(1.88 * x + 1.45 * z) * math.cos(z * .91)
+                 + .19 * math.exp(-((abs(x) - 9.1) / .91) ** 2))
+        depth, tread = boot_relief(x, z, footprints)
+        relief = .027 + drift * ridge - depth * fade
+        relief += .005 * math.sin(x * 13.1 + z * 8.6) * math.sin(x * 7.0 - z * 10.2)
+        vertices.append((x, level + max(.006, relief), z))
+        colours.append(swept_tint(x, z, across, seam, exposure, fade, tread))
+        return len(vertices) - 1
+
     for row, z in enumerate(sorted(stations)):
         center = sweep_center(route, z)
         rim_bend = .043 * math.sin(z * 2.41) + .027 * math.cos(z * 6.92)
-        fade = smoothrise(route[-1][1] - .24, route[-1][1] + .13, z)
         offsets = [offset * (1. + rim_bend) for offset in rim_offsets]
         row_x = [left + (center + offsets[0] - left) * i / far_cols for i in range(far_cols)]
         row_x.extend(center + offset for offset in offsets)
         row_x.extend(right + (center + offsets[-1] - right) * i / far_cols
                      for i in reversed(range(far_cols)))
         for column, x in enumerate(row_x):
-            across = x - center
-            exposure = .355 + .039 * math.sin(z * 2.34) + .021 * math.sin(z * 9.17)
-            lee = .08 * math.sin(z * 3.14 + x * 5.8) * math.sin(z * 1.49)
-            seam = abs(across + lee * .42)
-            ridge = 1. - fade * (1. - smoothrise(exposure, .82, seam))
-            drift = (.063 + .034 * math.sin(1.88 * x + 1.45 * z) * math.cos(z * .91)
-                     + .19 * math.exp(-((abs(x) - 9.1) / .91) ** 2))
-            depth, tread = boot_relief(x, z, footprints)
-            relief = .027 + drift * ridge - depth * fade
-            relief += .005 * math.sin(x * 13.1 + z * 8.6) * math.sin(x * 7.0 - z * 10.2)
-            vertices.append((x, level + max(.006, relief), z))
-            colours.append(swept_tint(x, z, across, seam, exposure, fade, tread))
+            i = sample(x, z)
             if row and column:
-                i = len(vertices) - 1
                 # Use one explicit diagonal for source support and glTF replay.
                 # A warped snow quad can otherwise settle props on a different surface.
                 a, b, c, d = i - stride - 1, i - 1, i, i - stride
                 faces.extend(((a, b, c), (a, c, d)))
+    faces = refine_sole_triangles(vertices, faces, footprints, sample)
     surface = materials['snow'].copy()
     surface.name = 'Wind-packed snow and swept mineral grit'
     mesh.vertex_tint_shader(surface)
