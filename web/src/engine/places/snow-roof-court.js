@@ -10,8 +10,9 @@ export default function createWinterCourt(h) {
   const settledDesktop = pose(site.views.burn);
   // Keep the closest earlier lamp at the edge of the frame. The free cord
   // and the doorway can still be read together in the settled view.
-  settledDesktop.look.x -= .24;
-  settledDesktop.fov = 36;
+  settledDesktop.pos.set(.20, 3.68, -8.23);
+  settledDesktop.look.set(.09, 3.68, -5.83);
+  settledDesktop.fov = 37;
   function createWalk(start, _end, phone) {
     const stops = site.walk.map(row => ({ time: row.time, ...pose(row) }));
     stops[0].pos.copy(start.pos);
@@ -59,6 +60,14 @@ export default function createWinterCourt(h) {
       }
       context.G.add(baked.group);
       context.baked = baked;
+      const earlierCloth = new Set();
+      baked.group.traverse(object => {
+        if (!object.isMesh) return;
+        for (const material of [object.material].flat()) {
+          if (material.name === 'Thin gauze over low flame') earlierCloth.add(material);
+        }
+      });
+      for (const material of earlierCloth) material.emissiveIntensity *= .28;
       const crownUri = baked.manifest.snowCourt.needles;
       if (crownUri !== 'snow-court-needles.glb.zstd') throw new Error('Missing authored Snow Roof needle crowns.');
       const crowns = await baked.loadDetailModel(crownUri);
