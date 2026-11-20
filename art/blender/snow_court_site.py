@@ -411,6 +411,7 @@ def build(site, projection):
     plates.bpy = bpy
     plates.set_world(scene, look_transport(projection['light']['day']), pre_exposure, 'Clear winter midday over the sheltered court')
     daylight = scene.world
+    daylight.use_fake_user = True
     plates.set_world(scene, look_transport(projection['light']['night']), pre_exposure, 'Clear moonlit winter pass')
     scene['one_light_ambient_worlds'] = json.dumps({'day': daylight.name})
     m = palette()
