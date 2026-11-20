@@ -60,21 +60,6 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
     void music.play('choose', placeIdRef.current);
   };
   const stageRef = useRef<MusicStage | null>(null);
-  // The phone sheet scrolls, and its action row is pinned to the foot. The scroller must reserve at
-  // least the bar's height so the last row clears it; the bar's own height depends on the locale and
-  // the safe-area inset, so it is measured rather than guessed.
-  const candleSheetRef = useRef<HTMLElement | null>(null);
-  useEffect(() => {
-    const sheet = candleSheetRef.current;
-    if (!sheet) return;
-    const bar = sheet.querySelector<HTMLElement>('.candle-actions');
-    if (!bar) return;
-    const observer = new ResizeObserver(() => {
-      sheet.style.setProperty('--candle-actions-h', `${Math.ceil(bar.getBoundingClientRect().height)}px`);
-    });
-    observer.observe(bar);
-    return () => observer.disconnect();
-  }, [screen]);
   // 'pending' until the walk cue answers; 'missing' means no cue will ever end and the
   // candle screen must start `choose` itself; 'taken' means some code already did.
   const walkRef = useRef<'pending' | 'started' | 'missing' | 'taken'>('taken');
@@ -458,8 +443,8 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
       )}
 
       {screen === 'candle' && (
-        <section className="sheet candle-sheet" ref={candleSheetRef}>
-          <div className="inner">
+        <section className="sheet candle-sheet">
+          <div className="inner candle-sheet-scroll">
             <div className="eyebrow">{t.candleEyebrow}</div>
             <h2>{t.stepTitle[kind]}</h2>
             <div className="tabs" role="tablist">
@@ -518,11 +503,11 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
               {minutes !== null && minutes >= 720 && <p className="note">{t.longLightNote}</p>}
               {lightError && <p className="error" role="alert">{lightError}</p>}
             </div>
+          </div>
             <div className="row candle-actions">
               <button className="btn" onClick={backToPlace} disabled={busy}>{t.candleBack}</button>
               <button className="btn primary" onClick={light} disabled={!allowed || busy} aria-busy={busy}>{busy ? t.lighting : t.light(dLabel)}</button>
             </div>
-          </div>
         </section>
       )}
 

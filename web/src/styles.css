@@ -208,9 +208,10 @@ textarea[aria-invalid=true] { border-color:#f0b69a; }
      bottom padding at least the bar's height plus 8 px, so when it is scrolled to the end the last
      content row — the colour swatches — clears the bar rather than hiding behind it. The bar keeps a
      divider and a solid backing, so the text that slides under it reads as content behind a footer. */
-  .candle-sheet .inner { gap:4px; overflow-y:auto; overscroll-behavior:contain; flex:1 1 auto; min-height:0;
-    padding-bottom:calc(var(--candle-actions-h, 56px) + 8px); }
-  .candle-sheet .candle-actions { position:sticky; bottom:0; flex:none; margin:0 -16px calc(-1 * max(14px,env(safe-area-inset-bottom)));
+  .candle-sheet .inner { gap:4px; overflow-y:auto; overscroll-behavior:contain; flex:1 1 auto; min-height:0; }
+  /* The action row is the sheet's own child, not part of the scroller: it keeps its place at the foot
+     while the content above scrolls, so it can never travel over the content or push it off screen. */
+  .candle-sheet .candle-actions { flex:none; margin:0 -16px calc(-1 * max(14px,env(safe-area-inset-bottom)));
     padding:6px 16px max(8px,env(safe-area-inset-bottom));
     border-top:1px solid #b8bc9b26; background:#080d0cf7; }
   .candle-sheet h2 { font-size:21px; line-height:1.25; }
