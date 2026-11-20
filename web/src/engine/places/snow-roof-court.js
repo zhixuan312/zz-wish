@@ -1,6 +1,7 @@
 import { loadBakedPlace } from '../baked/loadPlace.js';
 import { loadSnowCourtBackdrop } from './snow-court-backdrop.js';
 import { buildSnowChimney } from './snow-court-chimney.js';
+import { winterCourtWalk, winterCourtEntry, winterCourtEntrySeconds } from './snow-court-camera.js';
 import projection from '../../../../shared/snow-court-backdrop.json' with { type: 'json' };
 import site from '../../../../shared/snow-roof-court-site.json' with { type: 'json' };
 
@@ -87,33 +88,11 @@ function tuneSweptSnow(material, THREE, lightDirection, lightStrength) {
 export default function createWinterCourt(h) {
   const { THREE, V3 } = h;
   const pose = ({ position, look, fov }) => ({ pos: V3(...position), look: V3(...look), fov });
-  const arrival = pose(site.walk.at(-1));
-  const settledDesktop = pose(site.views.burn);
-  // Keep the closest earlier lamp at the edge of the frame. The free cord
-  // and the doorway can still be read together in the settled view.
-  settledDesktop.pos.set(.20, 3.68, -8.23);
-  settledDesktop.look.set(.09, 3.68, -5.83);
-  settledDesktop.fov = 37;
-  function createWalk(start, _end, phone) {
-    const stops = site.walk.map(row => ({ time: row.time, ...pose(row) }));
-    stops[0].pos.copy(start.pos);
-    stops[0].look.copy(start.look);
-    stops[0].fov = start.fov;
-    const time = stops.map(row => row.time);
-    const movement = new THREE.VectorKeyframeTrack('position', time, stops.flatMap(row => row.pos.toArray()),
-      THREE.InterpolateSmooth).createInterpolant();
-    const sightline = new THREE.VectorKeyframeTrack('look', time, stops.flatMap(row => row.look.toArray()),
-      THREE.InterpolateSmooth).createInterpolant();
-    const lens = new THREE.NumberKeyframeTrack('fov', time, stops.map(row => row.fov + (phone && row.time ? 5 : 0)),
-      THREE.InterpolateSmooth).createInterpolant();
-    return (progress, rig) => {
-      const seconds = progress * site.walkSeconds;
-      rig.pos.fromArray(movement.evaluate(seconds));
-      rig.look.fromArray(sightline.evaluate(seconds));
-      rig.fov = lens.evaluate(seconds)[0];
-      rig.amp = 0;
-    };
-  }
+  const arrival = pose(site.walk.at(-2));
+  // Leave the lamp clear of the desktop chooser and the narrow-screen sheet.
+  // The visitor keeps this view as the wick catches and the light spreads.
+  const lampDesktop = { pos: V3(.20, 3.68, -8.23), look: V3(-.49, 3.50, -5.83), fov: 40 };
+  const lampPhone = { pos: V3(.19, 3.66, -9.28), look: V3(-.11, 2.45, -6.09), fov: 62 };
   const entrance = pose(site.walk[0]);
   return {
     bakedLighting: true, cameraFar: 880, exposure: 1.11, shade: .55,
@@ -131,9 +110,11 @@ export default function createWinterCourt(h) {
       hemi: [0xdae6f1, 0x575359, .89], bloom: [.18, 1.26],
     },
     view: entrance, viewPhone: { ...entrance, fov: entrance.fov + 5 },
-    walk: [], walkSeconds: site.walkSeconds, createWalk,
+    walk: [], walkSeconds: site.walkSeconds,
+    createWalk: (start, _end, phone) => winterCourtWalk(THREE, site, start, phone),
     offerAfterTravel: true,
-    chooseEntry: site.chooseEntry.map(point => V3(...point)),
+    entrySeconds: winterCourtEntrySeconds,
+    createChooseEntry: (start, end) => winterCourtEntry(THREE, start, end),
     doors: V3(...site.gate.center),
     async build(_place, context) {
       const baked = await loadBakedPlace('snow-roof', h.renderer, context.light);
@@ -227,12 +208,9 @@ export default function createWinterCourt(h) {
       interior: { min: [site.hall.west, site.hall.floor, site.hall.rear],
         max: [site.hall.east, site.hall.eave, site.hall.front] },
       wide: arrival, widePhone: { ...arrival, fov: arrival.fov + 5 },
-      choose: pose(site.views.choose),
-      choosePhone: { pos: V3(-2, 3.65, -5.35), look: V3(...site.views.choose.look), fov: 54 },
-      spread: pose(site.views.burn), spreadPhone: pose(site.views.burnPhone),
-      burn: settledDesktop, burnPhone: pose(site.views.burnPhone),
-      burnWalk: [V3(-1.87, 3.64, -5.14), V3(-2.05, 3.65, -6.5), V3(-1.78, 3.67, -7.59)],
-      burnWalkPhone: [V3(-2.04, 3.6, -6.48), V3(-1.91, 3.64, -7.61)],
+      steadyIgnition: true,
+      choose: lampDesktop, choosePhone: lampPhone,
+      burn: lampDesktop, burnPhone: lampPhone,
       build() {},
     },
   };

@@ -1984,6 +1984,7 @@ const chooseView = () => {
     return viewOf({ pos, look, fov });
   }
   const v=viewOf((narrow()&&N.choosePhone)||N.choose||N.wide);
+  if (N.steadyIgnition) return v;
   if(narrow()&&!place.P.bakedLighting&&N.lamp!=='pineWax')v.look.y-=v.pos.distanceTo(v.look)*.10;
   return fitShadeView(v, undefined, undefined, false, CHOOSE_PHONE_YAW);
 };
@@ -2360,7 +2361,11 @@ export async function travel(id) {
   if (skipNextTravel) skipTweens();
   await walk;
   if(import.meta.env.DEV)window.__walkProgress={id,progress:1,state:'done',position:rig.pos.toArray()};
-  if (P.chooseEntry) {
+  if (P.createChooseEntry) {
+    const entry = P.createChooseEntry({ pos: rig.pos.clone(), look: rig.look.clone(), fov: rig.fov ?? camera.fov }, end);
+    if (skipNextTravel || reducedMotion.matches) entry(1, rig);
+    else await tween(P.entrySeconds, progress => entry(progress, rig), true);
+  } else if (P.chooseEntry) {
     // The court reveal belongs to the walk. Approaching the lamp table is a
     // separate, continuous move that keeps the doorway on the sightline.
     const entry = new THREE.CatmullRomCurve3([rig.pos.clone(), ...P.chooseEntry, end.pos],
@@ -2426,8 +2431,11 @@ export async function ignite({onCatch, remainingFuel}={}) {
     if (lit && journey === cameraJourneyVersion) mark('settled', 1);
     return;
   }
-  const N=place.P.nook,spread=viewOf((narrow()&&N.spreadPhone)||N.spread),burn=burnView();
-  if(!narrow())spread.fov=Math.min(N.lampFovMax??Infinity,spread.fov+12*THREE.MathUtils.clamp((mine.parts.frame.h-.45)/.32,0,1));
+  const N=place.P.nook,burn=burnView();
+  const spread = N.steadyIgnition ? burn : viewOf((narrow() && N.spreadPhone) || N.spread);
+  if (!N.steadyIgnition && !narrow()) {
+    spread.fov = Math.min(N.lampFovMax ?? Infinity, spread.fov + 12 * THREE.MathUtils.clamp((mine.parts.frame.h - .45) / .32, 0, 1));
+  }
   const cameraStart=rig.pos.clone(),lookStart=rig.look.clone(),fovStart=rig.fov??camera.fov;
   const active=()=>lit&&journey===cameraJourneyVersion;
   ignitionTaper??=makeIgnitionTaper();
@@ -2446,9 +2454,12 @@ export async function ignite({onCatch, remainingFuel}={}) {
   let caught=false;
   await tween(3.2,k=>{
     if(!active())return;
-    const retreat=ease(Math.min(1,k*3.2/1.0));
-    rig.pos.lerpVectors(cameraStart,spread.pos,retreat);rig.look.lerpVectors(lookStart,spread.look,retreat);
-    rig.fov=THREE.MathUtils.lerp(fovStart,spread.fov,retreat);
+    if (!N.steadyIgnition) {
+      const retreat = ease(Math.min(1, k * 3.2 / 1.0));
+      rig.pos.lerpVectors(cameraStart, spread.pos, retreat);
+      rig.look.lerpVectors(lookStart, spread.look, retreat);
+      rig.fov = THREE.MathUtils.lerp(fovStart, spread.fov, retreat);
+    }
     const wick = pine ? wickWorld() : tip;
     const contact = wick.clone().add(contactOffset);
     if(k<.3)g.position.lerpVectors(start,contact,ease(k/.3));
@@ -2472,6 +2483,11 @@ export async function ignite({onCatch, remainingFuel}={}) {
   if(!active())return;
   mine.power=1;mark('spreading',.18);
   await tween(.8,()=>{});if(!active())return;
+  if (N.steadyIgnition) {
+    await tween(9, k => { if (active()) mark('spreading', .18 + .82 * k); });
+    if (active()) mark('settled', 1);
+    return;
+  }
   const routeStart = rig.pos.clone();
   const front = pine ? burn.pos : viewOf((narrow() && N.burnPhone) || N.burn).pos;
   const burnWalk = pine ? [.34, .67].map((fraction, i) =>

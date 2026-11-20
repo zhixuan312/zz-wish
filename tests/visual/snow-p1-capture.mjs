@@ -9,6 +9,7 @@ import { chromium, expect } from '@playwright/test';
 import Database from 'better-sqlite3';
 import site from '../../shared/snow-roof-court-site.json' with { type: 'json' };
 import { readSnowCourtWalkLightmaps } from '../../web/src/engine/baked/snowCourtManifest.js';
+import { winterCourtEntrySeconds } from '../../web/src/engine/places/snow-court-camera.js';
 import { assertCaptureGpuHealthy, installCaptureGpuGuard } from './capture-preflight.mjs';
 import { fingerprintCaptureSource } from './capture-source-fingerprint.mjs';
 import { instrumentPineScene } from './pine-gate-scene-audit.mjs';
@@ -189,7 +190,7 @@ function instrument(source) {
   const steps = [
     [/const light\s*=\s*daylight\(\),\s*lightKey\s*=\s*JSON\.stringify\(light\);/g, 'scene-build', true],
     [/await P\.build\(t,\s*context\);/g, 'assets-ready'],
-    [/const stage = new THREE\.Scene\(\); stage\.environment = env;/g, 'before-stage', true],
+    [/const\s+stage\s*=\s*new THREE\.Scene\(\);\s*stage\.environment\s*=\s*env;/g, 'before-stage', true],
     [/await renderer\.compileAsync\(stage,\s*stageCamera\);(?=\s*if\s*\(P\.bakedLighting)/g, 'first-compile-ready'],
     [/renderer\.setRenderTarget\(warm\);\s*renderer\.render\(stage,\s*stageCamera\);/g, 'warm-render-ready'],
     [/cachedPlaces\.set\(t\.id,\s*candidate\);/g, 'preview-ready', true],
@@ -438,9 +439,13 @@ async function captureContext(browser, { hour, look, walk }) {
     } else {
       await button(/^Skip$/).click();
     }
-    // The 30-second walk ends at the court reveal. The real app then takes
-    // another 5.6 seconds to cross the court and stop at the choice table.
-    await expect(page.locator('.ui')).toHaveAttribute('data-screen', 'candle', { timeout: walk ? 7000 : 5000 });
+    // The authored entry begins after the two-second held reveal. Keep the
+    // same 1.4-second margin beyond its actual duration as the older replay.
+    const entryStarted = performance.now();
+    await expect(page.locator('.ui')).toHaveAttribute('data-screen', 'candle', {
+      timeout: walk ? Math.ceil((winterCourtEntrySeconds + 1.4) * 1000) : 5000,
+    });
+    result.chooserEntryMs = performance.now() - entryStarted;
     await page.getByRole('radio', { name: 'Red gauze', exact: true }).click();
     await page.getByRole('radio', { name: '1 h', exact: true }).click();
     const [posted] = await Promise.all([
