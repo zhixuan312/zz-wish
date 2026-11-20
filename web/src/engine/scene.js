@@ -1784,7 +1784,7 @@ async function buildPlace(t) {
 async function buildPlaceNow(t, isolated = false) {
   const light = daylight(), lightKey = JSON.stringify(light);
   if (cachedPlaces.has(t.id)) return cachedPlaces.get(t.id);
-  PLACES[t.id] ??= (await placeModules[t.id]()).default(placeHelpers);
+  PLACES[t.id] ??= await (await placeModules[t.id]()).default(placeHelpers);
   if(PLACES[t.id].bakedLighting)await ensureNativeAgX();
   if(t.id==='snow-roof')await ensureVisitorFabric();
   if(!PLACES[t.id].bakedLighting)await loadNaturalAssets();
@@ -2309,6 +2309,20 @@ export async function travel(id) {
   if (skipNextTravel) skipTweens();
   await walk;
   if(import.meta.env.DEV)window.__walkProgress={id,progress:1,state:'done',position:rig.pos.toArray()};
+  if (P.chooseEntry) {
+    // The court reveal belongs to the walk. Approaching the lamp table is a
+    // separate, continuous move that keeps the doorway on the sightline.
+    const entry = new THREE.CatmullRomCurve3([rig.pos.clone(), ...P.chooseEntry, end.pos],
+      false, 'centripetal');
+    const entryLook = rig.look.clone(), entryFov = rig.fov ?? camera.fov;
+    const settle = t => {
+      rig.pos.copy(entry.getPointAt(t));
+      rig.look.lerpVectors(entryLook, end.look, smooth(0, 1, t));
+      rig.fov = THREE.MathUtils.lerp(entryFov, end.fov ?? entryFov, t);
+    };
+    if (skipNextTravel || reducedMotion.matches) settle(1);
+    else await tween(5.6, settle);
+  }
   if(!P.bakedLighting){const c = chooseView(); await moveCam(c.pos, c.look,2.4,c.fov);}
 }
 export function skip() { skipNextTravel = true; skipTweens(); }

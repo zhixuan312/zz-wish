@@ -1,0 +1,95 @@
+import { loadBakedPlace } from '../baked/loadPlace.js';
+import { loadSnowCourtBackdrop } from './snow-court-backdrop.js';
+import projection from '../../../../shared/snow-court-backdrop.json' with { type: 'json' };
+import site from '../../../../shared/snow-roof-court-site.json' with { type: 'json' };
+
+export default function createWinterCourt(h) {
+  const { THREE, V3 } = h;
+  const pose = ({ position, look, fov }) => ({ pos: V3(...position), look: V3(...look), fov });
+  const arrival = pose(site.walk.at(-1));
+  function createWalk(start, _end, phone) {
+    const stops = site.walk.map(row => ({ time: row.time, ...pose(row) }));
+    stops[0].pos.copy(start.pos);
+    stops[0].look.copy(start.look);
+    stops[0].fov = start.fov;
+    const time = stops.map(row => row.time);
+    const movement = new THREE.VectorKeyframeTrack('position', time, stops.flatMap(row => row.pos.toArray()),
+      THREE.InterpolateSmooth).createInterpolant();
+    const sightline = new THREE.VectorKeyframeTrack('look', time, stops.flatMap(row => row.look.toArray()),
+      THREE.InterpolateSmooth).createInterpolant();
+    const lens = new THREE.NumberKeyframeTrack('fov', time, stops.map(row => row.fov + (phone && row.time ? 5 : 0)),
+      THREE.InterpolateSmooth).createInterpolant();
+    return (progress, rig) => {
+      const seconds = progress * site.walkSeconds;
+      rig.pos.fromArray(movement.evaluate(seconds));
+      rig.look.fromArray(sightline.evaluate(seconds));
+      rig.fov = lens.evaluate(seconds)[0];
+      rig.amp = 0;
+    };
+  }
+  const entrance = pose(site.walk[0]);
+  return {
+    bakedLighting: true, cameraFar: 880, exposure: 1.02, shade: .55,
+    sky: { top: 0x14243c, horizon: 0x59718a, ground: 0x212936, sun: 0xd9eaff,
+      dir: projection.light.night.directionEngine, glow: .17, clouds: .04, lit: 0x889ab0,
+      dark: 0x394c6c, stars: .075, disc: .64 },
+    fog: [0x7c8eae, .0039], sunL: [0xbdd3ff, .32],
+    hemi: [0x9aafd2, 0x414354, .59], bloom: [.20, 1.2],
+    day: {
+      exposure: 1.05,
+      sky: { top: 0x486e9c, horizon: 0xd6e4ea, ground: 0x65788c, sun: 0xffedce,
+        dir: projection.light.day.directionEngine, glow: .43, clouds: .05,
+        lit: 0xf1f5f9, dark: 0x9ab0bf, disc: 1.3 },
+      fog: [0xc5d4dd, .0035], sunL: [0xffeed9, 1.55],
+      hemi: [0xdae6f1, 0x575359, .89], bloom: [.18, 1.26],
+    },
+    view: entrance, viewPhone: { ...entrance, fov: entrance.fov + 5 },
+    walk: [], walkSeconds: site.walkSeconds, createWalk,
+    chooseEntry: site.chooseEntry.map(point => V3(...point)),
+    doors: V3(...site.gate.center),
+    async build(_place, context) {
+      const baked = await loadBakedPlace('snow-roof', h.renderer, context.light);
+      if (baked.group.userData.snow_court_revision !== site.revision) {
+        throw new Error('Snow Roof P1 package and authored court revision disagree.');
+      }
+      context.G.add(baked.group);
+      context.baked = baked;
+      const raw = baked.group.userData.snow_court_fixtures_engine;
+      const fixtures = typeof raw === 'string' ? JSON.parse(raw) : raw;
+      if (!Array.isArray(fixtures) || fixtures.length !== 6) throw new Error('Missing measured Snow Roof court lamp contacts.');
+      for (const fixture of fixtures) {
+        if (!fixture.lit) continue;
+        const contact = fixture.wickTip;
+        if (!Array.isArray(contact) || contact.length !== 3 || !contact.every(Number.isFinite)) {
+          throw new Error('Invalid Snow Roof court lamp wick contact.');
+        }
+        // Earlier gauze lamps glow through the shell. Their flame is inside it.
+        if (fixture.kind === 'gauze shade') continue;
+        const flame = h.liveFlame(...contact, { size: fixture.zone === 'gate' ? .58 : .43, radiance: .66, halo: false });
+        h.fixtureSpecular(...fixture.pointLight, fixture.watts * baked.cameraPreExposure, fixture.linearColor);
+        context.up.push(() => { flame.power = .92 * baked.fixturePower(); });
+      }
+      const backdrop = await loadSnowCourtBackdrop(baked, h.renderer, context.light);
+      if (!backdrop) throw new Error('Missing Snow Roof court backdrop.');
+      baked.backdrop = backdrop;
+      context.G.add(backdrop.group);
+      context.up.push((_dt, _time, light) => backdrop.update(light));
+      context.disposers.push(backdrop.dispose);
+      h.fall({ n: 1150, at: [.2, 6.1, 23], box: [32, 12, 66], color: 0xe5eef6,
+        size: .022, vy: .43, sway: .31, opacity: .58, softEdges: true });
+    },
+    nook: {
+      at: { pos: V3(0, 0, 0), ry: 0 }, lamp: 'gauze', y: 3.54,
+      hangingPoint: site.visitorCord, exposure: 1.04, bloom: [.21, 1.22], dust: false,
+      interior: { min: [site.hall.west, site.hall.floor, site.hall.rear],
+        max: [site.hall.east, site.hall.eave, site.hall.front] },
+      wide: arrival, widePhone: { ...arrival, fov: arrival.fov + 5 },
+      choose: pose(site.views.choose), choosePhone: { ...pose(site.views.choose), fov: 54 },
+      spread: pose(site.views.burn), spreadPhone: pose(site.views.burnPhone),
+      burn: pose(site.views.burn), burnPhone: pose(site.views.burnPhone),
+      burnWalk: [V3(-1.87, 3.64, -5.14), V3(-2.05, 3.65, -6.5), V3(-1.78, 3.67, -7.59)],
+      burnWalkPhone: [V3(-2.04, 3.6, -6.48), V3(-1.91, 3.64, -7.61)],
+      build() {},
+    },
+  };
+}

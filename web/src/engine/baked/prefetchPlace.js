@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { sha256 } from './sha256.js';
 import { readPineBackdrop, readPineWalkLightmaps, readPineWaxNormal } from './pineManifest.js';
+import { readSnowCourtBackdrop } from './snowCourtManifest.js';
 
 // FileLoader and KTX2Loader consume these same verified ArrayBuffers, so typing
 // a wish can download the next court without constructing or showing its scene.
@@ -103,16 +104,23 @@ export function prefetchBakedPlace(id, onProgress) {
     };
     entry.promise = (async () => {
       const manifest = await readBakedManifest(id);
-      const backdrop = id === 'pine-gate' ? readPineBackdrop(manifest) : null;
+      const snowCourt = id === 'snow-roof' && manifest.snowCourt?.revision === 'winter-pass-v1';
+      const backdrop = snowCourt ? readSnowCourtBackdrop(manifest)
+        : id === 'pine-gate' ? readPineBackdrop(manifest) : null;
       const lateFiles = new Set(Object.values(backdrop?.walk?.files ?? {}));
+      if (snowCourt) {
+        for (const tier of [backdrop?.night, backdrop?.high]) {
+          for (const file of Object.values(tier?.files ?? {})) lateFiles.add(file);
+        }
+      }
       if (backdrop?.high?.trees) lateFiles.add(backdrop.high.trees);
       const walkLightmaps = id === 'pine-gate' ? readPineWalkLightmaps(manifest) : null;
       for (const region of Object.values(walkLightmaps ?? {})) {
         for (const { full } of Object.values(region)) lateFiles.add(full);
       }
       const files = manifest.files.filter(file => !lateFiles.has(file) && /\.(?:glb(?:\.(?:gz|gzip|zstd))?|ktx2)$/.test(file.uri));
-      if (id === 'pine-gate') {
-        const waxNormal = readPineWaxNormal(manifest);
+      if (snowCourt || id === 'pine-gate') {
+        const waxNormal = id === 'pine-gate' ? readPineWaxNormal(manifest) : null;
         files.push(...Object.values(backdrop?.files ?? {}));
         if (waxNormal) files.push(waxNormal);
       }
