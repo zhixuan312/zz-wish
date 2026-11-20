@@ -6,7 +6,9 @@ import { join, resolve } from 'node:path';
 
 const epochNow = () => (performance.timeOrigin + performance.now()) / 1000;
 const rounded = value => Math.round(value * 1e6) / 1e6;
-const frameLimit = 1800;
+const pickedFrameLimit = 1800;
+const fullCaptureFrameLimit = 6500;
+const fullCaptureByteLimit = 200 * 1024 * 1024;
 const importantStages = new Set(['chooser', 'ignition', 'settled']);
 
 function nearest(ordered, target) {
@@ -31,7 +33,7 @@ function nearest(ordered, target) {
  * to the chosen walk origin. Non-integer samples prove brief UI states.
  */
 export async function createSnowCourtCameraFrames(page, {
-  outputDir, width = 720, height = 450, quality = 65, everyNthFrame = 6, maxOffsetSeconds = .35,
+  outputDir, width = 720, height = 450, quality = 65, everyNthFrame = 6, maxOffsetSeconds = .35, measurePresented,
 } = {}) {
   if (!outputDir) throw new Error('A Snow Court frame output directory is required.');
   const directory = resolve(outputDir);
@@ -44,6 +46,7 @@ export async function createSnowCourtCameraFrames(page, {
   let running = false;
   let closed = false;
   let dropped = 0;
+  let bufferedBytes = 0;
   let settleWaiter;
 
   const onFrame = ({ data, metadata, sessionId }) => {
@@ -52,13 +55,15 @@ export async function createSnowCourtCameraFrames(page, {
       if (!closed) errors.push(String(error));
     });
     if (!running) return;
-    if (received.length >= frameLimit) {
+    if (received.length >= (measurePresented ? fullCaptureFrameLimit : pickedFrameLimit)
+      || (measurePresented && bufferedBytes + data.length > fullCaptureByteLimit)) {
       dropped++;
       return;
     }
     const stamped = Number.isFinite(metadata?.timestamp) && metadata.timestamp > 0;
     const timestamp = stamped ? metadata.timestamp : epochNow();
     received.push({ data, timestamp, stamped });
+    bufferedBytes += data.length;
     settleWaiter?.(timestamp);
   };
   const onVisibility = ({ visible }) => visibility.push({ visible, timestamp: epochNow() });
@@ -112,7 +117,7 @@ export async function createSnowCourtCameraFrames(page, {
     });
   }
 
-  async function finish({ walkStartTimestamp, endTimestamp, settleWaitMs = 480 } = {}) {
+  async function finish({ walkStartTimestamp, endTimestamp, settleWaitMs = 480, assessFrames = true } = {}) {
     if (!running || closed) throw new Error('Start the Snow Court screencast before finishing.');
     const walk = boundaries.find(row => row.stage === 'walk');
     const origin = walkStartTimestamp ?? walk?.timestamp ?? started;
@@ -172,6 +177,31 @@ export async function createSnowCourtCameraFrames(page, {
         frameTimestamp: frame.timestamp, timestampSource: frame.stamped ? 'cdp-swap' : 'host-receive',
         sha256: createHash('sha256').update(body).digest('hex') });
     }
+    const presented = [];
+    let darkest;
+    if (measurePresented && assessFrames) {
+      const observed = received.filter(frame => frame.timestamp >= origin && frame.timestamp <= end);
+      for (let i = 0; i < observed.length; i += 48) {
+        const batch = observed.slice(i, i + 48);
+        const measurements = await measurePresented(batch.map(frame => frame.data));
+        if (measurements.length !== batch.length || !measurements.every(Number.isFinite)) {
+          throw new Error('Snow Court luminance audit missed a compositor frame.');
+        }
+        for (const [index, frame] of batch.entries()) {
+          const measurement = { timestamp: frame.timestamp, stamped: frame.stamped, stage: stageAt(frame.timestamp),
+            luminance: measurements[index] };
+          presented.push(measurement);
+          if (!darkest || measurement.luminance < darkest.measurement.luminance) darkest = { measurement, frame };
+        }
+      }
+    }
+    let darkestPresented;
+    if (darkest) {
+      const file = 'darkest-presented.jpg';
+      const body = Buffer.from(darkest.frame.data, 'base64');
+      await writeFile(join(directory, file), body, { flag: 'wx' });
+      darkestPresented = { file, sha256: createHash('sha256').update(body).digest('hex'), ...darkest.measurement };
+    }
     const manifest = join(directory, 'frames.json');
     const data = { version: 1, source: 'Chromium Page.startScreencast', outputFormat: 'jpeg',
       capture: { maxWidth: width, maxHeight: height, quality, everyNthFrame },
@@ -180,9 +210,9 @@ export async function createSnowCourtCameraFrames(page, {
         durationSeconds: rounded(extent), maxOffsetSeconds },
       stageBoundaries: marks.map(({ timestamp, ...state }) => ({ ...state, timestamp, t: rounded(timestamp - origin) })),
       visibility, receivedFrames: received.length, framesWithoutSwapTimestamp: received.filter(frame => !frame.stamped).length,
-      missing, frames: rows };
+      missing, frames: rows, ...(darkestPresented ? { darkestPresented } : {}) };
     await writeFile(manifest, JSON.stringify(data, null, 2) + '\n', { flag: 'wx' });
-    return { manifest, ...data };
+    return { manifest, ...data, ...(measurePresented ? { presented } : {}) };
   }
 
   return { start, mark, finish, abort: close };

@@ -15,6 +15,8 @@ import { fingerprintCaptureSource } from './capture-source-fingerprint.mjs';
 import { instrumentPineScene } from './pine-gate-scene-audit.mjs';
 import { createSnowCourtCameraFrames } from './snow-court-camera-frames.mjs';
 import { installSnowCourtLanternAudit, validateSnowCourtLanternAudit } from './snow-court-lantern-framing.mjs';
+import { installSnowCourtJourneyAudit, snowCourtJourneySummary, snowCourtNightBurnLuminance,
+  snowCourtPresentedLuminance } from './snow-court-journey-audit.mjs';
 
 const placeId = 'snow-roof';
 const packagePath = '/places/snow-roof/';
@@ -26,6 +28,8 @@ const regions = ['altar', 'court', 'gate', 'hall'];
 const passes = ['day', 'dusk', 'night', 'lamp'];
 const p2 = process.argv.includes('--p2');
 const milestone = p2 ? 'P2' : 'P1';
+const auditCamera = p2 && process.env.SNOW_COURT_FRAMES === '1';
+const journeyAudits = [];
 const contexts = [{ hour: 13, look: 'day', walk: true }, { hour: 22, look: 'night', walk: p2 }];
 const walkFrame = (look, name) => p2 ? `${look}-${name}` : name;
 const expectedFrames = p2 ? contexts.flatMap(({ look }) => [
@@ -41,7 +45,7 @@ const locker = join(worktreePath, '../gpu.lock');
 if (process.argv.includes('--help')) {
   console.log('BASE_URL=http://127.0.0.1:8965 DB_FILE=<private SQLite file under TMPDIR> OUTPUT=<new absolute directory> CAPTURE_PREVIEW_DIR=<staged LOW8 directory> CAPTURE_PREVIEW_SHA256=<manifest SHA-256> node tests/visual/snow-p1-capture.mjs [--p2]');
   console.log('Use --p2 for an entrance, full thirty-second walk and settled burning at both 13:00 and 22:00.');
-  console.log('Set SNOW_COURT_VIEWPORT=phone for 390×844, and SNOW_COURT_FRAMES=1 for the contact sheet and lantern projection audit.');
+  console.log('Set SNOW_COURT_VIEWPORT=phone for 390×844, and SNOW_COURT_FRAMES=1 for the contact sheets, lantern projection and journey audits.');
   console.log('Acquire the GPU lease as s1 before running. The local API and Vite must already be running.');
   process.exit(0);
 }
@@ -219,6 +223,8 @@ function instrument(source) {
     assert.equal([...transformed.matchAll(render)].length, 1, 'Snow Court evidence requires the live render loop.');
     transformed = transformed.replace(render, match => `${match}
       if (place?.id === 'snow-roof') {
+        window.__sampleSnowCourtJourneyAudit?.(THREE, camera, place.baked, mine, phase,
+          window.__walkProgress?.state, window.__visualIgnition?.state);
         if (snowWalkCapture && window.__pineCaptureWalkClock?.seconds >= snowWalkCapture.time) {
           const { time, resolve, reject } = snowWalkCapture;
           snowWalkCapture = null;
@@ -393,7 +399,10 @@ async function captureContext(browser, { hour, look, walk }) {
 
   try {
     await context.addInitScript(installCaptureGpuGuard);
-    if (p2 && process.env.SNOW_COURT_FRAMES === '1') await context.addInitScript(installSnowCourtLanternAudit);
+    if (auditCamera) {
+      await context.addInitScript(installSnowCourtLanternAudit);
+      await context.addInitScript(installSnowCourtJourneyAudit);
+    }
     await context.addInitScript(hour => {
       Date.prototype.getHours = () => hour;
       Date.prototype.getMinutes = () => 0;
@@ -486,13 +495,17 @@ async function captureContext(browser, { hour, look, walk }) {
     assert(!result.requested.some(({ name, afterEntry }) => !afterEntry && deferredPlates.includes(name)),
       'A deferred image was requested before entry.');
     if (walkMaps) assert(softMapUris.some(uri => served.has(uri)), 'No verified soft interior map arrived before entry.');
-    if (p2 && process.env.SNOW_COURT_FRAMES === '1') {
-      await page.evaluate(() => window.__startSnowLanternAudit());
-      if (look === 'day') {
-        cameraFrames = await createSnowCourtCameraFrames(page, { outputDir: join(output, 'camera-frames'),
-          width: phone ? viewport.width : 720, height: phone ? viewport.height : 450, everyNthFrame: 3 });
-        await cameraFrames.start();
-      }
+    if (auditCamera) {
+      await page.evaluate(() => {
+        window.__startSnowLanternAudit();
+        window.__startSnowCourtJourneyAudit();
+      });
+      cameraFrames = await createSnowCourtCameraFrames(page, {
+        outputDir: join(output, look === 'day' ? 'camera-frames' : 'camera-frames-night'),
+        width: phone ? viewport.width : 720, height: phone ? viewport.height : 450, everyNthFrame: 1,
+        measurePresented: frames => page.evaluate(snowCourtPresentedLuminance, frames),
+      });
+      await cameraFrames.start();
     }
     const walkStarted = performance.now();
     entered = true;
@@ -527,7 +540,7 @@ async function captureContext(browser, { hour, look, walk }) {
     result.chooserEntryMs = performance.now() - entryStarted;
     if (cameraFrames) {
       cameraFrames.mark('chooser', { snapshot: (await state()).camera });
-      await page.screenshot({ path: join(output, 'camera-chooser-with-controls.png'), scale: 'css' });
+      if (look === 'day') await page.screenshot({ path: join(output, 'camera-chooser-with-controls.png'), scale: 'css' });
     }
     await page.getByRole('radio', { name: 'Red gauze', exact: true }).click();
     await page.getByRole('radio', { name: '1 h', exact: true }).click();
@@ -549,7 +562,7 @@ async function captureContext(browser, { hour, look, walk }) {
     await page.waitForFunction(() => window.__visualIgnition?.state === 'settled' && window.__visualIgnition.progress === 1);
     if (cameraFrames) {
       cameraFrames.mark('settled', { snapshot: (await state()).camera });
-      await page.screenshot({ path: join(output, 'camera-burning-with-controls.png'), scale: 'css' });
+      if (look === 'day') await page.screenshot({ path: join(output, 'camera-burning-with-controls.png'), scale: 'css' });
     }
     if (look === 'night') {
       await page.waitForFunction(() => {
@@ -561,11 +574,20 @@ async function captureContext(browser, { hour, look, walk }) {
     assert(expectedPlates.every(uri => served.has(uri)), `The browser did not load the declared ${look} backdrop.`);
     await screenshot(`${look}-burning`);
     if (cameraFrames) {
-      const evidence = await cameraFrames.finish({ walkStartTimestamp });
+      await page.waitForFunction(() => window.__snowCourtJourneyComplete());
+      const timing = await page.evaluate(() => (performance.timeOrigin + performance.now()) / 1000);
+      // Stop the recorder before any CPU geometry work; use the draw trace
+      // to keep only display frames in the audited walk-to-settle interval.
+      const evidence = await cameraFrames.finish({ walkStartTimestamp, endTimestamp: timing });
       result.presentedCameraFrames = evidence.manifest;
       cameraFrames = null;
+      const geometry = await page.evaluate(() => window.__finishSnowCourtJourneyAudit());
+      assert(geometry.visitorClothFrames > 0, 'The Snow Court journey raycast missed the visible visitor cloth.');
+      const presented = evidence.presented.filter(frame => frame.timestamp >= geometry.frames[0].timestamp
+        && frame.timestamp <= geometry.frames.at(-1).timestamp);
+      journeyAudits.push({ result, geometry, presented });
     }
-    if (p2 && process.env.SNOW_COURT_FRAMES === '1') {
+    if (auditCamera) {
       await page.waitForFunction(() => window.__snowLanternAudit?.completed);
       const audit = await page.evaluate(() => window.__snowLanternAudit);
       const summary = validateSnowCourtLanternAudit(audit, viewport.width, viewport.height);
@@ -586,7 +608,7 @@ async function captureContext(browser, { hour, look, walk }) {
       .filter(mark => mark.name.startsWith('snow-p1:entry-')).map(({ name, startTime }) => ({ name, startTime }))).catch(() => []);
     if (cameraFrames && walkStartTimestamp !== undefined) {
       try {
-        const evidence = await cameraFrames.finish({ walkStartTimestamp });
+        const evidence = await cameraFrames.finish({ walkStartTimestamp, assessFrames: false });
         result.presentedCameraFrames = evidence.manifest;
       } catch (problem) {
         error('camera-evidence', problem);
@@ -607,6 +629,21 @@ try {
     args: ['--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist'] });
   report.browser = browser.version();
   for (const review of contexts) await captureContext(browser, review);
+  if (auditCamera) {
+    assert.equal(journeyAudits.length, 2, 'Both Snow Court light looks must be recorded.');
+    const night = journeyAudits.find(({ result }) => result.hour === 22);
+    const baseline = snowCourtNightBurnLuminance(night.presented, night.geometry.settledAt);
+    for (const { result, geometry, presented } of journeyAudits) {
+      const { presented: measured, ...summary } = snowCourtJourneySummary(geometry, presented, baseline);
+      const file = `${result.look}-journey-audit.json`;
+      await writeFile(join(output, file), JSON.stringify({ viewport, summary, ...geometry, presented: measured }, null, 2) + '\n', { flag: 'wx' });
+      const { unobservedDrawRanges, ...headline } = summary;
+      result.journeyAudit = { file, ...headline, unobservedDrawRanges: unobservedDrawRanges.length, failures: summary.failures.length };
+      console.log('SNOW_COURT_JOURNEY', size, result.look, JSON.stringify(result.journeyAudit));
+    }
+    assert(report.contexts.every(row => row.journeyAudit?.failures === 0),
+      'Snow Court journey visibility audit failed; see day-journey-audit.json and night-journey-audit.json.');
+  }
   assert.deepEqual(report.captures.map(frame => frame.name), expectedFrames);
   assert.deepEqual(report.readinessMisses, [], 'Step inside must become enabled within five seconds.');
   assert.notEqual(report.contexts[0].candle.id, report.contexts[1].candle.id, 'Use two actual independent lamps.');
