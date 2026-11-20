@@ -435,6 +435,65 @@ def waiting_lanterns(table, top, m, contact):
             ], (x, top, z), m['bronze'], 20)
 
 
+def longitudinal_beam(name, sizes, at, material, offset):
+    beam = mesh.box(name, sizes, at, material, .019)
+    # The scan contains separate nailed boards. Use the face of a single
+    # board along the timber axis so its joints and spalled knots do not
+    # repeat across the beam as dark seams and pale geometric marks.
+    uv = beam.data.uv_layers['UVMap'].data
+    for polygon in beam.data.polygons:
+        face_axis = max(range(3), key=lambda axis: abs(polygon.normal[axis]))
+        along = 0 if face_axis else 1
+        cross = 3 - face_axis - along
+        for loop in polygon.loop_indices:
+            point = beam.data.vertices[beam.data.loops[loop].vertex_index].co
+            uv[loop].uv = (.442 + point[cross] * .16, point[along] / 3.40 + offset)
+    return beam
+
+
+def hall_paper_and_lattice(x, y, front, m):
+    width, height = 2.61, 1.58
+    center = y + 1.51
+    mesh.window('Deep paper lattice at the hall front', x, center, front - .042,
+                width, height, m['wood'], m['paper'])
+    inner = front - .196
+    for side in (-1, 1):
+        mesh.box('Interior frame around the oiled paper', (.073, height + .11, .055),
+                 (x + side * (width / 2 + .019), center, inner), m['wood'], .008)
+        mesh.box('Interior paper sill and upper rail', (width + .11, .070, .058),
+                 (x, center + side * (height / 2 + .015), inner), m['wood'], .008)
+    for i in range(1, int(width / .16)):
+        inset = i * width / int(width / .16) - width / 2
+        mesh.box('Hand-cut inner upright of the paper lattice', (.023, height, .038),
+                 (x + inset, center, inner), m['wood'], .003)
+    for i in range(1, int(height / .22)):
+        inset = i * height / int(height / .22) - height / 2
+        mesh.box('Hand-cut inner crossbar of the paper lattice', (width, .022, .039),
+                 (x, center + inset, inner - .004), m['wood'], .003)
+
+
+def scripture_shelf(front, y, m, contact):
+    x, z = -2.14, front - .35
+    board_y = y + .44
+    board = mesh.box('Low scripture ledge below the paper window', (1.01, .062, .34),
+                     (x, board_y, z), m['wood'], .012)
+    for side in (-1, 1):
+        mesh.box('Pegged timber support beneath the scripture shelf', (.072, .24, .31),
+                 (x + side * .37, y + .303, z + .017), m['wood'], .009)
+    pages = mesh.material('Worn edges of the folded scripture paper', '#a68d65', rough=.94)
+    cloth = mesh.material('Dark indigo covers of the wrapped scriptures', '#50514e', rough=.94)
+    for index, (dx, width, height, twist) in enumerate(((-.29, .25, .066, -.047), (-.005, .22, .043, .052),
+                                                          (.26, .248, .082, -.018))):
+        base = board_y + .031
+        with contact.group(f'Wrapped scripture copy {index + 1} on the interior ledge', [board]):
+            mesh.box('Bound pages resting on the shelf', (width, height, .155),
+                     (x + dx, base + height * .50, z), pages, .001, twist)
+            mesh.box('Folded cloth fits the top of the scripture', (width + .010, .009, .164),
+                     (x + dx, base + height + .0035, z), cloth, .001, twist)
+            mesh.box('Folded cloth along the spine', (width, height - .001, .014),
+                     (x + dx, base + height * .50, z + .078), cloth, .001, twist)
+
+
 def hall(site, m, contact, fixtures):
     mesh.REGION = 'hall'
     cfg = site['hall']
@@ -457,8 +516,14 @@ def hall(site, m, contact, fixtures):
                        (side * (right - .17), y, zz), m['red'], 22)
         px = side * 2.75
         mesh.box('Hall front sill below the lattice', (2.72, .66, .225), (px, y + .32, front), m['plaster'], .016)
-        mesh.window('Deep paper lattice at the hall front', px, y + 1.51, front - .042, 2.61, 1.58, m['wood'], m['paper'])
+        hall_paper_and_lattice(px, y, front, m)
+        mesh.box('Low timber apron below the paper lattice', (2.66, .087, .091),
+                 (px, y + .542, front - .175), m['wood'], .010)
+        for zz in (back + 1.83, front - 1.98):
+            mesh.box('Old exposed timber on the side limewash', (.15, wall_height - .17, .127),
+                     (side * (right - .144), y + wall_height / 2, zz), m['wood'], .011)
         mesh.box('Front beam above the paper', (2.72, .46, .21), (px, y + 2.56, front), m['red'], .022)
+    scripture_shelf(front, y, m, contact)
     mesh.box('Subdued rear wall behind the Buddha', (span, wall_height, .22), (0, y + wall_height / 2, back),
              m['plaster'], .021)
     mesh.box('Two solid lintels support the half-open doors', (2.61, .27, .24), (0, eave - .17, front), m['red'], .021)
@@ -479,9 +544,9 @@ def hall(site, m, contact, fixtures):
         mesh.worn_step('Rounded short steps from court into hall', 2.61, height,
                        .368, (0, step - height / 2, front + .62 - index * .33), m['granite'])
     mesh.box('Plain room ceiling below the cold roof', (span, .085, depth), (0, eave + .008, z), m['plaster'], .012)
-    for zz in (-9.3, -7.46, -6.21, -4.66):
-        mesh.box('Old transverse beams carry the winter lanterns', (span, .242, .193),
-                 (0, eave - .27, zz), m['wood'], .019)
+    for index, zz in enumerate((-9.3, -7.46, -6.21, -5.44, -4.66)):
+        longitudinal_beam('Old transverse beams carry the winter lanterns', (span, .242, .193),
+                          (0, eave - .27, zz), m['wood'], index * .239)
     mesh.tiled_roof('Temple main hall', 0, eave, z, span + .97, depth / 2 + .64, 1.64,
                     m['tile'], m['wood'], m['snow'], 'hall')
     for px in (-3.41, 3.41):
