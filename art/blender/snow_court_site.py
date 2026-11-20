@@ -14,6 +14,7 @@ from mathutils import Vector
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import snow_roof as mesh
 import pine_valley_backdrop as plates
+import snow_court_use as everyday
 from resting_contacts import RestingContacts, engine
 from snow_court_approach import build_approach
 from snow_court_backdrop import look_transport
@@ -32,14 +33,16 @@ def palette():
         'red': mesh.material('Worn iron-oxide temple paint', '#81392f', rough=.77),
         'wood': mesh.material('Old structural timber', '#8d7863', 'weathered_planks', .83),
         'bark': mesh.material('Weathered brown winter pine bark', '#6b5648', 'weathered_planks', .88),
-        'needle': mesh.material('Winter pine needles', '#344943', rough=.86),
         'tile': mesh.material('Repaired northern grey roof tile', '#727579', 'grey_roof_tiles', .78),
         'paper': mesh.material('Warm oiled window paper', '#dfc597', rough=.8, emission=.18),
         'bronze': mesh.material('Dull old lamp bronze', '#735438', rough=.63, metal=.71),
         'ash': mesh.material('Char and burned wick', '#272822', rough=.96),
-        'glow': mesh.material('Thin gauze over low flame', '#d55a36', rough=.74, emission=.8),
-        'red_faded': mesh.material('Faded dull red gauze', '#995249', rough=.91),
-        'red_dust': mesh.material('Darker dusty gauze', '#753e38', rough=.94),
+        'oil': mesh.material('Dark clear seed oil', '#6b4628', rough=.22, metal=.03),
+        'figure': mesh.material('Aged cast bronze of the small seated figure', '#8b7453', rough=.66, metal=.27),
+        'glow': mesh.material('Thin gauze over low flame', '#aa6852', rough=.85, emission=.48),
+        'red_faded': mesh.material('Faded dusty rose gauze', '#b38c82', rough=.94),
+        'red_dust': mesh.material('Pink-white sun-faded gauze', '#c1a9a0', rough=.96),
+        'red_old': mesh.material('Faded iron-red gauze', '#92655b', rough=.92),
         'tag': mesh.material('Unvarnished wooden wish tag', '#bba17c', 'weathered_planks', .88),
         'rope': mesh.material('Rough suspension cord', '#8a7962', rough=.98),
     }
@@ -50,13 +53,35 @@ def palette():
     return materials
 
 
-def path_distance(x, z, line):
-    distance = math.inf
-    for (a, b), (c, d) in zip(line, line[1:]):
-        span = (c - a) ** 2 + (d - b) ** 2
-        fraction = max(0., min(1., ((x - a) * (c - a) + (z - b) * (d - b)) / span))
-        distance = min(distance, math.hypot(x - (a + (c - a) * fraction), z - (b + (d - b) * fraction)))
-    return distance
+def old_gauze_maps(materials):
+    """Use the same licensed linen study already used by the visitor shade."""
+    linen = ROOT / 'web/public/places/snow-roof'
+    for material in materials:
+        nodes, links = material.node_tree.nodes, material.node_tree.links
+        bsdf = nodes.get('Principled BSDF')
+        for filename, socket in (('gauze-weave.webp', 'Base Color'),
+                                 ('gauze-normal.webp', 'Normal'),
+                                 ('gauze-roughness.webp', 'Roughness')):
+            texture = nodes.new('ShaderNodeTexImage')
+            texture.image = bpy.data.images.load(str(linen / filename), check_existing=True)
+            texture.label = 'Photographed rough linen, Poly Haven CC0'
+            if socket == 'Base Color':
+                multiply = nodes.new('ShaderNodeMix')
+                multiply.data_type = 'RGBA'
+                multiply.blend_type = 'MULTIPLY'
+                multiply.inputs[0].default_value = 1
+                multiply.inputs[7].default_value = bsdf.inputs[socket].default_value
+                links.new(texture.outputs['Color'], multiply.inputs[6])
+                links.new(multiply.outputs[2], bsdf.inputs[socket])
+            elif socket == 'Normal':
+                texture.image.colorspace_settings.name = 'Non-Color'
+                normal = nodes.new('ShaderNodeNormalMap')
+                normal.inputs['Strength'].default_value = .35
+                links.new(texture.outputs['Color'], normal.inputs['Color'])
+                links.new(normal.outputs['Normal'], bsdf.inputs[socket])
+            else:
+                texture.image.colorspace_settings.name = 'Non-Color'
+                links.new(texture.outputs['Color'], bsdf.inputs[socket])
 
 
 def courtyard(site, materials):
@@ -65,54 +90,7 @@ def courtyard(site, materials):
     mesh.REGION = 'court'
     floor = mesh.box('Packed ground below the winter court', (right - left, .48, front - back),
                      (0, y - .24, (back + front) / 2), materials['granite'], .012)
-    path = site['sweptPath']
-    vertices, faces, exposed_faces = [], [], []
-    x_count, z_count = 70, 79
-    for row in range(z_count + 1):
-        z = back + (front + .08 - back) * row / z_count
-        edge_center = min(path, key=lambda point: abs(point[1] - z))[0]
-        for a, b in zip(path, path[1:]):
-            if min(a[1], b[1]) <= z <= max(a[1], b[1]):
-                t = (z - a[1]) / (b[1] - a[1])
-                edge_center = a[0] + t * (b[0] - a[0])
-                break
-        width = .43 + .046 * math.sin(z * 1.94) + .017 * math.sin(z * 8.3)
-        left_edge = edge_center - width
-        right_edge = edge_center + width
-        for col in range(x_count + 1):
-            if col <= 32:
-                x = left + (left_edge - left) * col / 32
-            elif col <= 38:
-                x = left_edge + (right_edge - left_edge) * (col - 32) / 6
-            else:
-                x = right_edge + (right - right_edge) * (col - 38) / 32
-            distance = path_distance(x, z, path)
-            rim = max(0., min(1., (distance - .61 - .09 * math.sin(z * 1.45)) / .68))
-            rim = rim * rim * (3. - 2. * rim)
-            drift = (.068 + .037 * math.sin(1.88 * x + 1.45 * z) * math.cos(z * .91)
-                     + .22 * math.exp(-((abs(x) - 9.1) / .91) ** 2))
-            relief = y + .006 + drift * rim
-            for i in range(24):
-                fz = 8.93 - i * .47
-                fx = -.54 + .48 * math.sin(fz * .27) + (-.095 if i % 2 else .095)
-                print_shape = ((x - fx) / .16) ** 2 + ((z - fz) / .205) ** 2
-                if print_shape < 1:
-                    relief -= .020 * (1 - print_shape) ** 1.55 * (.48 + .32 * math.cos(i * 1.8))
-            vertices.append((x, relief, z))
-            if col and row:
-                i = len(vertices) - 1
-                if 32 < col <= 38 and z >= min(point[1] for point in path) - .10:
-                    exposed_faces.append(len(faces))
-                faces.append((i - x_count - 2, i - 1, i, i - x_count - 1))
-    ground = mesh.mesh_object('One snow surface with a narrow swept passage', vertices, faces, materials['snow'])
-    ground.data.materials.append(materials['granite'])
-    mesh.source_uv(ground, [[(vertices[i][0], vertices[i][2]) for i in face] for face in faces],
-                   'Swept lane follows the connected snow chart in world metres.')
-    mesh.uv_world(ground, 1.46)
-    for face in ground.data.polygons:
-        face.use_smooth = True
-    for i in exposed_faces:
-        ground.data.polygons[i].material_index = 1
+    ground = everyday.swept_ground(mesh, site, materials)
     for wall_x in (left, right):
         mesh.box('Modest limewashed court side wall', (.41, 1.62, front - back),
                  (wall_x, y + .79, (front + back) / 2), materials['plaster'], .019)
@@ -179,15 +157,24 @@ def oil_lamp(name, position, material, contacts, support, zone, fixtures, watts=
     with contacts.group(name, [support]):
         mesh.lathe(f'{name} real oil cup', [(0, 0), (.092, 0), (.119, .041), (.124, .087),
                    (.113, .098), (.104, .076), (.082, .052), (0, .052)], position, material['bronze'], 20)
+        mesh.lathe(f'Meniscus within {name}', [(0, .064), (.086, .064), (.095, .070), (.097, .071)],
+                   position, material['oil'], 24)
         wick = mesh.lathe(f'{name} charred cotton wick', [(.007, 0), (.008, .028), (.004, .046), (0, .049)],
                          (x, y + .056, z), material['ash'], 9)
         if storm:
+            mesh.lathe('Storm lantern separate chimney rim and vent', [
+                (.105, .074), (.102, .105), (.103, .119), (.119, .116), (.124, .101), (.121, .080), (.105, .074),
+            ], position, material['bronze'], 20)
             for u in (-.078, .078):
                 for v in (-.078, .078):
                     mesh.beam('Storm lantern plain frame', (x + u, y + .072, z + v),
                               (x + u, y + .261, z + v), .006, material['bronze'], .006)
             mesh.lathe('Storm lantern hammered cap', [(.126, .24), (.127, .265), (.061, .309), (.008, .31), (0, .317)],
                        position, material['bronze'], 16)
+            mesh.curved_tube('Bent lifting handle over storm lamp', [
+                (x - .076, y + .269, z), (x - .066, y + .324, z), (x, y + .352, z),
+                (x + .066, y + .321, z), (x + .076, y + .268, z),
+            ], [.0048] * 5, material['bronze'], 7)
         source = mesh.light(f'{name} lamp light', (x, y + .14, z), watts, '#ffc27a', .032)
     fixtures.append((name, zone, wick, source, True, 'plain oil cup' if not storm else 'storm lantern'))
 
@@ -231,7 +218,7 @@ def gate(site, m, contacts, fixtures):
                     m['tile'], m['wood'], m['snow'], 'gate')
 
 
-def outbuildings(site, m, court):
+def outbuildings(site, m, court, ground, contact):
     mesh.REGION = 'court'
     for room in [*site['rooms'], {**site['kitchen'], 'name': 'Leeward kitchen', 'kitchen': True}]:
         left, right, back, front = (room[key] for key in ('west', 'east', 'rear', 'front'))
@@ -240,56 +227,102 @@ def outbuildings(site, m, court):
         y, eave = court['level'], 4.02 if room.get('kitchen') else 4.19
         label = room['name']
         mesh.box(label + ' masonry foundation', (width + .10, .24, depth + .08), (x, y + .05, z), m['brick'], .025)
-        for side in (left, right):
-            mesh.box(label + ' side enclosure', (.19, eave - y, depth), (side, (eave + y) / 2, z),
-                     m['plaster'], .018)
+        facing = -1 if x > 0 else 1
+        inner, outer = (left, right) if facing == -1 else (right, left)
+        mesh.box(label + ' outer side enclosure', (.19, eave - y, depth),
+                 (outer, (eave + y) / 2, z), m['plaster'], .018)
+        aperture_z = z + (.43 if room.get('kitchen') else .34)
+        opening, low, high, frame = everyday.side_aperture(
+            mesh, label, inner, aperture_z, back, front, y, eave, facing, m['wood'], m['plaster'])
+        if room.get('boarded'):
+            everyday.winter_boards(mesh, label + ' court-side opening', frame, aperture_z,
+                                   opening, low, high, True, m['wood'])
+        else:
+            everyday.warm_side_window(mesh, area, label, frame, aperture_z, opening, low, high,
+                                      facing, m['wood'], m['paper'])
         mesh.box(label + ' rear wall', (width, eave - y, .19), (x, (eave + y) / 2, back), m['plaster'], .014)
         for px in (left + .19, right - .19):
             mesh.box(label + ' front post', (.25, eave - y, .23), (px, (eave + y) / 2, front), m['wood'], .018)
         mesh.box(label + ' sill beneath the front screen', (width, .72, .19), (x, y + .36, front), m['plaster'], .020)
         mesh.box(label + ' carrying lintel', (width, .25, .24), (x, eave - .16, front), m['red'], .015)
         if room.get('boarded'):
-            for i in range(17):
-                px = left + .28 + .181 * i
-                mesh.box('Uneven boards winter-closing the west room', (.172, 1.54, .072),
-                         (px, y + 1.46 + .024 * math.sin(i * 1.8), front), m['wood'], .009)
-            for yy in (y + 1.15, y + 1.83):
-                mesh.box('Old bracing across the winter boards', (width - .32, .097, .066), (x, yy, front + .065), m['wood'], .008)
+            everyday.winter_boards(mesh, label + ' front opening', front, x,
+                                   width - .47, y + .72, eave - .28, False, m['wood'])
         else:
             mesh.window(label + ' paper screen', x, y + 1.48, front, width - .5, 1.46, m['wood'], m['paper'])
         mesh.tiled_roof(label, x, eave, z, width + .55, depth / 2 + .35, .79, m['tile'], m['wood'], m['snow'], 'court')
+        everyday.replace_roof_tiles(mesh, label, inner - .10 * facing, front + .35)
         if room.get('kitchen'):
-            mesh.box('Masonry kitchen chimney', (.43, .98, .38), (left + .63, eave + .58, z + .2), m['brick'], .028)
-            mesh.box('Chimney top slab', (.54, .11, .49), (left + .63, eave + 1.10, z + .2), m['granite'], .013)
-            for row in range(3):
-                for i in range(8):
-                    px = x - .69 + .196 * i + .057 * row
-                    yy = y + .24 + .149 * row
-                    mesh.beam('Split firewood stacked under cover', (px, yy, front - .57),
-                              (px + .047, yy + .014, front + .218), .073, m['wood'], .059)
+            cx, cz = left + .63, z + .2
+            for side in (-1, 1):
+                mesh.box('Masonry cheek of the kitchen flue', (.133, 1.0, .38),
+                         (cx + side * .15, eave + .59, cz), m['brick'], .018)
+                mesh.box('Masonry end of the open kitchen flue', (.176, 1.0, .126),
+                         (cx, eave + .59, cz + side * .127), m['brick'], .017)
+                mesh.box('Worn cover stone at the sides of the flue', (.17, .11, .49),
+                         (cx + side * .185, eave + 1.10, cz), m['granite'], .012)
+                mesh.box('Worn cover stone at the ends of the flue', (.20, .11, .145),
+                         (cx, eave + 1.10, cz + side * .1725), m['granite'], .012)
+            everyday.firewood_stack(mesh, site, room, ground, contact, m)
+            bpy.context.scene['snow_court_smoke_engine'] = json.dumps([cx, eave + 1.111, cz])
 
 
-def earlier_lantern(x, z, y, top, index, m, fixtures):
+def earlier_lantern(x, z, y, top, index, m, fixtures, lit=False):
     frame = m['wood']
-    fade = m['glow'] if index in (1, 5) else m['red_faded' if index % 3 else 'red_dust']
-    radius = .173 + .014 * math.sin(index * 2.3)
-    mesh.beam('Old taut lamp cord', (x, y + .49, z), (x + .012, top, z), .005, m['rope'], .005)
-    mesh.lathe('Aged red gauze around bent ribs', [(radius * r, bend) for r, bend in
-               ((.71, 0), (.88, .11), (1., .24), (.93, .376), (.66, .485))], (x, y, z), fade, 20)
-    for height in (0, .485):
-        mesh.lathe('Worn wooden lantern ring', [(radius * .72, height - .013), (radius * .73, height + .009),
-                   (radius * .67, height + .009), (radius * .66, height - .013), (radius * .72, height - .013)],
+    faded = m['glow' if lit else ('red_dust', 'red_faded', 'red_old')[index % 3]]
+    radius = .139 + .018 * math.sin(index * 2.3)
+    height = .377 + .056 * math.cos(index * 1.43)
+    phase = .17 * math.sin(index * 2.51)
+    rows, segments = 10, 27
+
+    def cloth_point(u, v):
+        angle = phase + math.tau * u
+        fullness = .71 + .292 * math.sin(math.pi * v)
+        ripples = .0048 * math.cos(9 * angle + .3 * math.sin(v * math.tau))
+        width = radius * fullness + ripples * math.sin(math.pi * v)
+        sag = .009 * math.sin(angle * 2. + index) * math.sin(math.pi * v)
+        return (x + width * math.cos(angle) + sag, y + v * height, z + width * math.sin(angle))
+
+    points = [cloth_point(col / segments, row / rows)
+              for row in range(rows + 1) for col in range(segments)]
+    faces, chart, fabric = [], [], []
+    tear = (20 + 2 * index) % segments
+    damaged_rows = {3: (0,), 4: (-1, 0, 1), 5: (0, 1), 6: (0,)}
+    circumference = math.tau * radius
+    for row in range(rows):
+        for col in range(segments):
+            if not lit and (col - tear) % segments in {d % segments for d in damaged_rows.get(row, ())}:
+                continue
+            right = (col + 1) % segments
+            faces.append((row * segments + col, (row + 1) * segments + col,
+                          (row + 1) * segments + right, row * segments + right))
+            uv = [(u / segments * circumference, v / rows * height)
+                  for u, v in ((col, row), (col, row + 1), (col + 1, row + 1), (col + 1, row))]
+            chart.append(uv)
+            fabric.append([(u / .27, v / .27) for u, v in uv])
+    shade = mesh.mesh_object('Worn gauze around the bowed wish-lantern ribs', points, faces, faded)
+    mesh.source_uv(shade, chart, 'Unrolled metre-scale cloth with a seam and open tears.')
+    surface_uv = shade.data.uv_layers['UVMap'].data
+    for polygon, uv in zip(shade.data.polygons, fabric):
+        polygon.use_smooth = True
+        for loop, coordinate in zip(polygon.loop_indices, uv):
+            surface_uv[loop].uv = coordinate
+
+    mesh.beam('Old taut lamp cord', (x, y + height, z), (x + .012, top, z), .005, m['rope'], .005)
+    for ring_height in (0, height):
+        mesh.lathe('Worn wooden lantern ring', [(radius * .72, ring_height - .013),
+                   (radius * .73, ring_height + .009), (radius * .67, ring_height + .009),
+                   (radius * .66, ring_height - .013), (radius * .72, ring_height - .013)],
                    (x, y, z), frame, 20)
     for rib in range(9):
-        turn = math.tau * rib / 9
-        profile = [(x + r * radius * math.cos(turn), y + hh, z + r * radius * math.sin(turn))
-                   for r, hh in ((.72, .005), (.96, .14), (1.006, .24), (.94, .375), (.67, .48))]
+        profile = [cloth_point(rib / 9, level) for level in (0, .23, .5, .77, 1)]
         mesh.curved_tube('Fine bowed rib of an earlier wish lantern', profile, [.003] * len(profile), frame, 5)
-    mesh.beam('Thin string holding the earlier wish tag', (x + .018, y - .007, z), (x + .043, y - .084, z + .011),
-              .0024, m['rope'], .0022)
-    mesh.box('Unlettered wooden wish tag', (.048, .119, .010), (x + .043, y - .137, z + .012),
-             m['tag'], 0., .08 * math.cos(index * 1.7))
-    if index in (1, 5):
+    for end in (-1, 1):
+        mesh.beam('Tied end of the tag string', (x + end * .011, y - .007, z),
+                  (x + .032 + end * .007, y - .066, z + .02), .0018, m['rope'], .0015)
+    mesh.box('Weathered wooden wish tag', (.053, .125, .008), (x + .032, y - .123, z + .02),
+             m['tag'], .002, .15 * math.cos(index * 1.7))
+    if lit:
         wick = mesh.lathe('Low wick in an earlier wish lantern', [(.005, 0), (.007, .022), (0, .030)],
                          (x, y + .083, z), m['ash'], 9)
         source = mesh.light('Soft bounce from an earlier glowing wish', (x, y + .116, z), .17, '#ffad67', .043)
@@ -297,7 +330,7 @@ def earlier_lantern(x, z, y, top, index, m, fixtures):
 
 
 def statue(x, y, z, m, contacts, platform):
-    bronze = m['bronze']
+    bronze = m['figure']
     with contacts.group('Generic seated Buddha and lotus support', [platform]):
         mesh.lathe('Seated figure low lotus plinth', [(0, 0), (.41, 0), (.45, .079), (.49, .135),
                    (.42, .19), (0, .19)], (x, y, z), bronze, 30)
@@ -314,6 +347,19 @@ def statue(x, y, z, m, contacts, platform):
             mesh.curved_tube('Resting forearm of the seated image', [(x + side * .197, y + .716, z + .019),
                              (x + side * .19, y + .50, z + .134), (x + side * .078, y + .421, z + .218)],
                              [.071, .063, .045], bronze, 10)
+            mesh.curved_tube('Lowered lid in the worn face', [
+                (x + side * .032, y + 1.022, z + .145), (x + side * .055, y + 1.016, z + .139),
+                (x + side * .079, y + 1.019, z + .126),
+            ], [.0042, .0055, .0034], bronze, 6)
+        mesh.curved_tube('Simple low nose relief', [(x, y + 1.039, z + .143),
+                         (x, y + .993, z + .158), (x, y + .978, z + .146)],
+                         [.013, .016, .014], bronze, 8)
+        mesh.curved_tube('Barely raised mouth in the cast face', [
+            (x - .026, y + .954, z + .134), (x, y + .950, z + .142), (x + .026, y + .954, z + .134),
+        ], [.005, .008, .005], bronze, 7)
+        mesh.curved_tube('Hands resting together over the robe', [(x - .084, y + .422, z + .206),
+                         (x - .025, y + .407, z + .246), (x + .030, y + .414, z + .245),
+                         (x + .082, y + .424, z + .209)], [.042, .031, .029, .040], bronze, 8)
         mesh.curved_tube('Fold along the plain robe', [(x - .154, y + .819, z + .103),
                          (x - .081, y + .706, z + .17), (x + .127, y + .535, z + .13)],
                          [.009, .010, .008], m['tag'], 8)
@@ -371,19 +417,25 @@ def hall(site, m, contact, fixtures):
     for px in (-3.41, 3.41):
         mesh.lathe('Slim front veranda post', [(.116, 0), (.124, .09), (.117, 1.1), (.104, 2.68)],
                    (px, y - .11, front + .52), m['red'], 20)
-    for index, (px, pz) in enumerate(((-2.2, -6.21), (-1.16, -6.21), (1.10, -6.21), (2.05, -6.21),
-                                      (-1.96, -4.68), (.61, -4.74), (2.3, -4.75), (2.8, -7.42))):
-        earlier_lantern(px, pz, 3.20 + .066 * math.sin(index * 1.82), 4.47, index, m, fixtures)
+    wish_positions = ((-2.2, -6.21), (-1.16, -6.21), (1.10, -6.21), (2.05, -6.21),
+                      (-2.75, -4.66), (-1.46, -4.66), (.61, -4.66), (2.3, -4.66),
+                      (-2.86, -7.46), (-1.76, -7.46), (1.96, -7.46), (2.8, -7.46))
+    for index, (px, pz) in enumerate(wish_positions):
+        earlier_lantern(px, pz, 3.20 + .066 * math.sin(index * 1.82), 4.449, index, m, fixtures, index in (5, 6))
     xcord, ycord, zcord = site['visitorCord']
     mesh.beam('One empty cord hanging from the centre beam', (xcord, ycord - .274, zcord),
               (xcord, ycord + .048, zcord), .006, m['rope'], .006)
     for x in (-2.8, 2.8):
         area('Paper lattice softly admits the open-snow sky', (x, y + 1.68, front - .16),
-             (x * .6, y + .55, front - 2.0), 13.8, '#d6e2ec', 1.48)
+             (x * .53, y + .54, front - 2.7), 20.0, '#dbdfdf', 1.48)
+        area('Snow bounce from below the lattice onto the aged hall beam', (x, y + .62, front - .15),
+             (x * .63, y + 2.61, front - 1.43), 13.8, '#e8dac4', 1.14)
     area('Warm veranda lamp reflects from the pale hall ceiling', (1.6, y + 1.44, front - 2.21),
          (0, y + 3.05, front - 3.4), 7.8, '#ffdcac', 1.36)
     area('Warm reflected light beneath the lantern beam', (-1.21, y + 1.82, -6.72),
          (-2.76, y + 1.24, -5.22), 4.1, '#f0c99c', 1.3)
+    area('Pale courtyard snow reflects through the half-open doorway', (.29, y + .22, front + .39),
+         (.06, y + 2.4, front - 2.26), 14.2, '#ccd8e1', .88)
     # The kit and practical lamp share the guest-scale height rather than altar height.
     table = mesh.box('Table where visitors find frames and separate oil cups', (1.53, .10, .69),
                      (-2.35, y + .679, -5.42), m['wood'], .018)
@@ -397,12 +449,6 @@ def hall(site, m, contact, fixtures):
                       (3.05, y + .7, front + .36), m['granite'], .020)
     mesh.box('Old masonry stand below the storm lamp', (.35, .69, .34), (3.05, y + .318, front + .36), m['brick'], .018)
     oil_lamp('Veranda everyday storm lantern', (3.05, y + .765, front + .36), m, contact, veranda, 'court', fixtures, .7, True)
-    mesh.beam('Broom left against the hall front', (-3.49, y - .215, front + .52),
-              (-3.62, y + 1.07, front + .17), .015, m['wood'], .012)
-    for i in range(15):
-        width = (i - 7) * .013
-        mesh.beam('Split grass broom fibre', (-3.49 + width, y - .264, front + .55 + .04 * math.sin(i)),
-                  (-3.49 + width * .2, y - .057, front + .48), .004, m['rope'], .003)
     mesh.REGION = 'altar'
     plinth = mesh.box('Low stone altar supports the seated figure', (2.09, .52, .93),
                      (0, y + .260, back + .87), m['granite'], .027)
@@ -462,12 +508,14 @@ def build(site, projection):
     plates.set_world(scene, look_transport(projection['light']['night']), pre_exposure, 'Clear moonlit winter pass')
     scene['one_light_ambient_worlds'] = json.dumps({'day': daylight.name})
     m = palette()
+    old_gauze_maps(m[key] for key in ('glow', 'red_faded', 'red_dust', 'red_old'))
     foliage = build_approach(site, m)
-    courtyard(site, m)
+    _, court_surface = courtyard(site, m)
     gate_foothill(site, m['granite'], m['snow'])
     fixtures = []
     gate(site, m, contact, fixtures)
-    outbuildings(site, m, site['court'])
+    outbuildings(site, m, site['court'], court_surface, contact)
+    everyday.broom(mesh, site, court_surface, contact, m)
     hall(site, m, contact, fixtures)
     basis = [site['visitorCord'][0], 3.54, site['visitorCord'][2]]
     source = mesh.light('Measured visitor wick transport basis', basis, .80, '#ffad68', .027, role='lamp')
@@ -481,7 +529,7 @@ def build(site, projection):
     scene['one_light_lamp_basis'] = json.dumps({'position': basis, 'watts': source.data.energy,
         'linearColor': list(source.data.color), 'pointRadiusMetres': source.data.shadow_soft_size,
         'sourceObject': source.name})
-    scene['one_light_anchor_fields'] = json.dumps(['snow_court_revision', 'snow_court_fixtures_engine',
+    scene['one_light_anchor_fields'] = json.dumps(['snow_court_revision', 'snow_court_fixtures_engine', 'snow_court_smoke_engine',
                                                    'one_light_lamp_basis', 'snow_court_needles_sha256'])
     scene.camera = reference_camera('Reference_SnowCourtEntrance', **{
         'position': site['walk'][0]['position'], 'look': site['walk'][0]['look'], 'fov': site['walk'][0]['fov'],

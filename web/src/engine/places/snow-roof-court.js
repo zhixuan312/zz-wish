@@ -1,5 +1,6 @@
 import { loadBakedPlace } from '../baked/loadPlace.js';
 import { loadSnowCourtBackdrop } from './snow-court-backdrop.js';
+import { buildSnowChimney } from './snow-court-chimney.js';
 import projection from '../../../../shared/snow-court-backdrop.json' with { type: 'json' };
 import site from '../../../../shared/snow-roof-court-site.json' with { type: 'json' };
 
@@ -93,8 +94,20 @@ export default function createWinterCourt(h) {
       context.G.add(backdrop.group);
       context.up.push((_dt, _time, light) => backdrop.update(light));
       context.disposers.push(backdrop.dispose);
-      h.fall({ n: 1150, at: [.2, 6.1, 23], box: [32, 12, 66], color: 0xe5eef6,
+      const outlet = baked.group.userData.snow_court_smoke_engine;
+      if (outlet) {
+        const origin = typeof outlet === 'string' ? JSON.parse(outlet) : outlet;
+        if (!Array.isArray(origin) || origin.length !== 3 || !origin.every(Number.isFinite)) {
+          throw new Error('Invalid authored Snow Roof chimney outlet.');
+        }
+        const smoke = buildSnowChimney({ THREE, renderer: h.renderer, group: context.G }, origin);
+        context.up.push(smoke.update);
+        context.disposers.push(smoke.dispose);
+      }
+      h.fall({ n: 1150, at: [.2, 6.1, 26.4], box: [32, 12, 60], color: 0xe5eef6,
         size: .022, vy: .43, sway: .31, opacity: .58, softEdges: true });
+      h.fall({ n: 96, at: [.9, 3.03, -2.2], box: [5.1, 2.9, 2.65], color: 0xe7eeff,
+        size: .017, vy: .29, sway: .42, wind: -.31, opacity: .78, softEdges: true });
     },
     nook: {
       at: { pos: V3(0, 0, 0), ry: 0 }, lamp: 'gauze', y: 3.54,
