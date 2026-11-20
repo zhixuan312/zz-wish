@@ -109,38 +109,58 @@ def tree_layout(profile, ground_height, index, road_clearance, local_centroid):
 
 
 def snow_mantle(blades, rng):
-    """Set a joined snow cap into the upper needles of each instanced shoot."""
-    samples = [tuple(root.lerp(v, fraction)) for root, middle, tip, _ in blades
-               for v in (middle, tip) for fraction in (.40, .64, .82, 1.)]
-    points, faces = [], []
-    rows, columns = 7, 5
-    for row in range(rows):
-        u = row / (rows - 1)
-        x = .075 + u * .492
-        width = (.047 + .105 * math.sin(u * math.pi) ** .71) * rng.uniform(.83, 1.17)
-        for col in range(columns):
-            side = 2. * col / (columns - 1) - 1.
-            z = side * width + .018 * math.sin(4.6 * u)
-            near = sorted(samples, key=lambda p: (p[0] - x) ** 2 + (p[2] - z) ** 2)[:10]
-            contact = max(point[1] for point in near)
-            body = max(0., 1. - side * side) * math.sin(u * math.pi) ** .62
-            points.append((x, contact + .054 * body + rng.uniform(-.007, .009), z))
-    for row in range(rows - 1):
-        for col in range(columns - 1):
-            a = row * columns + col
-            faces.append((a, a + 1, a + 1 + columns, a + columns))
-    rim = [*range(columns),
-           *(i * columns + columns - 1 for i in range(1, rows)),
-           *((rows - 1) * columns + i for i in reversed(range(columns - 1))),
-           *(i * columns for i in reversed(range(1, rows - 1)))]
-    offset = len(points)
-    for i in rim:
-        x, y, z = points[i]
-        points.append((x, y - rng.uniform(.025, .057), z))
-    for i, a in enumerate(rim):
-        j = (i + 1) % len(rim)
-        faces.append((rim[j], a, offset + i, offset + j))
-    faces.append(tuple(offset + i for i in reversed(range(len(rim)))))
+    """Loft a thin rounded load across the upper, load-bearing needles."""
+    samples = [tuple(a.lerp(b, fraction)) for root, middle, tip, _ in blades
+               for a, b in ((root, middle), (middle, tip)) for fraction in (.25, .60, 1.)]
+    start = rng.uniform(.070, .112)
+    length = rng.uniform(.396, .467)
+    broad = rng.uniform(.071, .108)
+    bend = rng.uniform(-.036, .036)
+    phase = rng.uniform(-.55, .55)
+    rings, radial = 6, 8
+
+    def backbone(u):
+        return start + length * u, bend * math.sin(u * math.pi)
+
+    # Individual needle tips must not determine snow height. Smooth the local
+    # bearing across the shoot so it reads as one settled load, with needles
+    # penetrating the lower edge and some tips escaping along the sides.
+    bearings = []
+    for row in range(rings + 2):
+        u = row / (rings + 1)
+        x, z = backbone(u)
+        nearby = sorted(samples, key=lambda p: (p[0] - x) ** 2 + 1.8 * (p[2] - z) ** 2)[:24]
+        heights = sorted(p[1] for p in nearby)
+        bearings.append(sum(heights[12:18]) / 6.)
+    points = []
+    for row in range(rings + 2):
+        u = row / (rings + 1)
+        x, z = backbone(u)
+        before, after = max(0, row - 1), min(rings + 1, row + 1)
+        bearing = .25 * bearings[before] + .50 * bearings[row] + .25 * bearings[after]
+        lobe = .50 + .50 * math.sin(u * math.tau * 1.70 + phase)
+        taper = math.sin(u * math.pi) ** .69
+        y = bearing + taper * (.016 + lobe * .008)
+        if row == 0 or row == rings + 1:
+            points.append((x, y, z))
+            continue
+        width = broad * taper * (.83 + .17 * lobe)
+        thickness = taper * (.025 + .013 * lobe)
+        for col in range(radial):
+            angle = math.tau * col / radial
+            points.append((x, y + thickness * math.cos(angle),
+                           z + width * math.sin(angle)))
+    faces = []
+    last_ring = 1 + (rings - 1) * radial
+    for col in range(radial):
+        nxt = (col + 1) % radial
+        faces.append((0, 1 + nxt, 1 + col))
+        faces.append((len(points) - 1, last_ring + col, last_ring + nxt))
+    for row in range(rings - 1):
+        a = 1 + row * radial
+        for col in range(radial):
+            nxt = (col + 1) % radial
+            faces.append((a + col, a + nxt, a + radial + nxt, a + radial + col))
     return points, faces
 
 
@@ -152,18 +172,21 @@ def shoot_profile(seed):
     rng = random.Random(seed)
     fascicles = []
     for i, position in enumerate((.025, .10, .18, .27, .36, .44, .51)):
-        fan_width = .120 * math.sin(math.pi * (i + 1) / 8.) ** .67
+        fan_width = .147 * math.sin(math.pi * (i + 1) / 8.) ** .67
         for side in (-1., 0., 1.):
-            if side == 0. and i != 3:
+            if side == 0. and i not in (1, 3, 5):
                 continue
-            root = Vector((position + rng.uniform(-.022, .028), rng.uniform(-.071, .045),
-                           side * fan_width * rng.uniform(.42, 1.15)))
-            axis = Vector((rng.uniform(.32, .82), rng.uniform(-.04, .76),
-                           side * rng.uniform(.38, .86)))
-            reach = rng.uniform(.128, .213) * (.85 if i >= 5 else 1.)
+            # The dense collar sits nearer the branch. Stagger the tips
+            # above and below it so individual clusters retain depth.
+            lift = .049 if i % 2 else -.026
+            root = Vector((position + rng.uniform(-.022, .028), lift + rng.uniform(-.027, .025),
+                           side * fan_width * rng.uniform(.35, .92)))
+            axis = Vector((rng.uniform(.33, .84), rng.uniform(-.24, .54),
+                           side * rng.uniform(.36, .82)))
+            reach = rng.uniform(.108, .185) * (.90 if i >= 5 else 1.)
             needles = needle_fascicle(root, axis, rng.uniform(0., math.tau), reach, rng,
                                       True, mature=True, pairs=3)
-            fascicles.append(tuple((base, middle, tip, max(.0052, width * 2.65))
+            fascicles.append(tuple((base, middle, tip, max(.0065, width * 3.35))
                                     for base, middle, tip, width in needles))
     points, faces, _, _ = needle_mesh(fascicles, compact=True)
     snow, snow_faces = snow_mantle([blade for fan in fascicles for blade in fan], rng)
