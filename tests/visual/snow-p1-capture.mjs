@@ -162,6 +162,7 @@ const report = {
     authoringBlendSha256: manifest.bake.sourceBlendSha256, bakeFingerprint: manifest.bakeFingerprint, maps, plateUris,
     budget: manifest.budget, totalCandidateBytes: [...assets.values()].reduce((total, asset) => total + asset.body.length, 0) },
   ordinaryManifestSha256: installedSha, viewport, captures: [], contexts: [], errors: [], httpErrors: [], viteUpdates: [],
+  readinessMisses: [],
 };
 await mkdir(dirname(output), { recursive: true });
 await mkdir(output);
@@ -323,8 +324,17 @@ async function captureContext(browser, { hour, look, walk }) {
     const court = page.getByRole('radio', { name: /^Snow Roof Court(?: ·|$)/ });
     if (await court.count() && await court.getAttribute('aria-checked') !== 'true') await court.click();
     const enter = button(/^Step inside$/);
-    await expect(enter).toBeEnabled();
-    result.stepInsideMs = performance.now() - start;
+    try {
+      await Promise.race([
+        expect(enter).toBeEnabled({ timeout: 30_000 }),
+        page.getByText('The court could not be prepared. Please try again.', { exact: true })
+          .waitFor({ timeout: 30_000 }).then(() => { throw new Error('The app reported that the Snow Roof preview could not be prepared.'); }),
+      ]);
+    } finally {
+      result.stepInsideMs = performance.now() - start;
+      result.placeUi = (await page.locator('.ui').innerText()).slice(0, 350);
+    }
+    if (result.stepInsideMs > 5000) report.readinessMisses.push({ hour, stepInsideMs: result.stepInsideMs });
     assert(served.has('manifest.json') && served.has(manifest.scene), 'The app did not request the verified candidate manifest and model.');
     const deferredPlates = [...plateUris.night, ...(plateUris.walk ?? []), ...(plateUris.high ?? [])];
     assert(!result.requested.some(({ name, afterEntry }) => !afterEntry && deferredPlates.includes(name)),
@@ -394,6 +404,7 @@ try {
   await captureContext(browser, { hour: 13, look: 'day', walk: true });
   await captureContext(browser, { hour: 22, look: 'night', walk: false });
   assert.deepEqual(report.captures.map(frame => frame.name), expectedFrames);
+  assert.deepEqual(report.readinessMisses, [], 'Step inside must become enabled within five seconds.');
   assert.notEqual(report.contexts[0].candle.id, report.contexts[1].candle.id, 'Use two actual independent lamps.');
   assert.deepEqual(report.contexts[0].candle.shape, report.contexts[1].candle.shape, 'Use the same red gauze design in both views.');
 } catch (value) {
