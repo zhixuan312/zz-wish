@@ -79,9 +79,12 @@ export async function measurePineRealismBase(worktree, preview, ordinaryManifest
   // The two streaming tiers are separately declared and verified.
   const highTreeBytes = high?.trees ? preview.assets.get(high.trees.uri).body.length : 0;
   const highBytes = imageBytes(high) + highTreeBytes;
+  // A tree model declared in the walk tier is delivered to every device, so it belongs to the walk
+  // payload; counting it as high would understate what a phone must download.
+  const walkTreeBytes = walk?.trees ? preview.assets.get(walk.trees.uri).body.length : 0;
   const walkLightmapBytes = walkLightmapFiles(preview).reduce((bytes, { full }) => bytes + preview.assets.get(full.uri).body.length, 0);
   const nightBytes = imageBytes(night);
-  const walkBytes = imageBytes(walk) + walkLightmapBytes + nightBytes;
+  const walkBytes = imageBytes(walk) + walkLightmapBytes + nightBytes + walkTreeBytes;
   const packageBytes = combinedPackageBytes - highBytes - walkBytes;
   const totalBytes = packageBytes + sharedBytes.length;
   const limitBytes = 15_000_000;
@@ -95,6 +98,7 @@ export async function measurePineRealismBase(worktree, preview, ordinaryManifest
   return { totalBytes, limitBytes, packageBytes, sharedAgXBytes: sharedBytes.length,
     backdrop: preview.backdrop ? { ...base, bytes: imageBytes(base), ...(walk ? { walk: { ...walk, bytes: imageBytes(walk) } } : {}),
       ...(high ? { high: { ...high, bytes: imageBytes(high), ...(highTreeBytes ? { treeBytes: highTreeBytes } : {}) } } : {}) } : null,
+    ...(walkTreeBytes ? { walkTreeBytes } : {}),
     ...(walk ? { walkBytes, walkLightmapBytes, phoneBytes, phoneLimitBytes, ...(night ? { nightBytes } : {}) } : {}),
     ...(walk || high ? { combinedBytes, combinedLimitBytes, combinedPackageBytes, highBytes } : {}),
     waxNormal: preview.waxNormal };
