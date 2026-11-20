@@ -14,10 +14,12 @@ import type * as THREE_NS from 'three';
 // heel, as a fraction of the print's length. For a 26 cm print these give a 9.5 cm forefoot, a 6 cm
 // arch and a 7 cm heel, which is an adult's grass or cloth sole. One smooth curve, so the print never
 // splits into two pieces.
+// Half-widths as fractions of the sole's length, for a 26 cm print: 9.5 cm across the ball,
+// 6.0 cm at the arch and 7.0 cm at the heel, which is an adult's grass or cloth sole.
 const SOLE_PROFILE: readonly (readonly [number, number])[] = Object.freeze([
-  [0.00, 0.000], [0.05, 0.110], [0.12, 0.175], [0.19, 0.186], [0.28, 0.172],
-  [0.38, 0.142], [0.47, 0.108], [0.55, 0.106], [0.64, 0.120], [0.74, 0.140],
-  [0.84, 0.148], [0.90, 0.153], [0.95, 0.148], [0.978, 0.122], [1.00, 0.000],
+  [0.00, 0.000], [0.05, 0.112], [0.12, 0.178], [0.19, 0.183], [0.28, 0.170],
+  [0.38, 0.140], [0.47, 0.118], [0.55, 0.116], [0.64, 0.124], [0.74, 0.132],
+  [0.84, 0.135], [0.90, 0.135], [0.95, 0.128], [0.978, 0.104], [1.00, 0.000],
 ]);
 
 function soleHalfWidth(t: number): number {
@@ -184,9 +186,10 @@ export function createMudPrints({ THREE, surface, prints }: {
       depthWrite: false,
     });
 
-    // The sole is about 9.5 cm across the ball; the map's widest row is the forefoot.
-    const width = print.length * .36;
-    const geometry = new THREE.PlaneGeometry(width, print.length);
+    // The alpha map is square and the sole fills its own length, so the quad is square too: the
+    // profile's half-widths are fractions of the print's length. Mapping a narrower quad squashed
+    // the sole to a third of its width, which read as a matchstick rather than a foot.
+    const geometry = new THREE.PlaneGeometry(print.length, print.length);
     const mesh = new THREE.Mesh(geometry, material);
     // Lift 2 mm along the stone's normal: enough to beat z-fighting, too little to see a gap.
     // A raycast can report the back face of a one-sided plane, which would point the print into the
@@ -230,10 +233,10 @@ export const PINE_PRINTS: readonly PrintSpec[] = Object.freeze([
   // The shoulder paving measured from the declared overview camera: `Broad_stone_landing002*` at
   // y 4.00-4.01, spanning x -1.31..0.43, z 0.03..2.53. Alternate feet fall about 9 cm either side of
   // the line at x -0.46, with a 65 cm stride and the toes turned out.
-  { x: -0.55, y: 4.00, z: 2.38, yaw: 0.22, length: .27, weight: .95 }, // right foot, wettest
+  { x: -0.55, y: 4.00, z: 2.33, yaw: 0.22, length: .27, weight: .95 }, // right foot, wettest
   { x: -0.37, y: 4.00, z: 1.72, yaw: -0.18, length: .27, weight: .86 }, // left
   { x: -0.55, y: 4.00, z: 1.08, yaw: 0.20, length: .26, weight: .70 }, // right, drying
-  { x: -0.37, y: 4.01, z: 0.42, yaw: -0.14, length: .27, weight: .52 }, // left, breaking up
+  { x: -0.37, y: 4.01, z: 0.47, yaw: -0.14, length: .27, weight: .52 }, // left, breaking up
   // Turning aside to the tea pavilion, which stands to the right of this frame.
   { x: -0.06, y: 4.01, z: 0.50, yaw: 1.12, length: .25, weight: .28 }, // a smudge
   { x: 0.28, y: 4.00, z: 0.66, yaw: 1.34, length: .24, weight: .12 }, // dry patch of the forefoot

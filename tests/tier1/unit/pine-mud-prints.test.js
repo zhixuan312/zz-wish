@@ -18,12 +18,18 @@ function installCanvas() {
       const canvas = {
         width: 0, height: 0,
         getContext() {
+          const self = this;
           return {
             fillStyle: '', globalCompositeOperation: '',
             fillRect() {}, beginPath() {}, ellipse() {}, fill() {},
             createImageData(w, h) { return { width: w, height: h, data: new Uint8ClampedArray(w * h * 4) }; },
-            putImageData() {},
-            getImageData(x, y, w, h) { return { data: new Uint8ClampedArray(w * h * 4).fill(255) }; },
+            // The module writes its generated sole into the canvas; hold those pixels so a test can
+            // measure the silhouette it actually drew.
+            putImageData(image) { self.stored = image; },
+            getImageData(x, y, w, h) {
+              if (self.stored && self.stored.width === w && self.stored.height === h) return self.stored;
+              return { data: new Uint8ClampedArray(w * h * 4) };
+            },
           };
         },
       };
@@ -165,5 +171,57 @@ test('the authored trail lies on the real shoulder paving and clear of the shrin
     expect(box.min.z).toBeGreaterThan(0.03);
     expect(box.max.z).toBeLessThan(2.53);
   }
+  mud.dispose();
+});
+
+test('each print is an adult sole in metres: 24-26 cm long, 9-10 cm across the ball', () => {
+  installCanvas();
+  const paving = new THREE.Mesh(new THREE.PlaneGeometry(4, 4), new THREE.MeshBasicMaterial());
+  paving.rotation.x = -Math.PI / 2;
+  paving.position.set(0, 4, 1);
+  paving.updateMatrixWorld(true);
+  const mud = createMudPrints({ THREE, surface: paving, prints: PINE_PRINTS });
+  expect(mud.count).toBe(PINE_PRINTS.length);
+  mud.group.updateWorldMatrix(true, true);
+
+  // Measure in the print's own frame, so a yawed or tilted print reports the sole's real size.
+  const local = new THREE.Vector3();
+  for (const [index, mesh] of mud.group.children.entries()) {
+    mesh.geometry.computeBoundingBox();
+    const box = mesh.geometry.boundingBox;
+    // A sole is longer than it is wide, and the quad is square: the alpha map, not the quad,
+    // decides the silhouette, so check the drawn outline rather than the bounding quad.
+    const width = box.max.x - box.min.x;
+    expect(width, `print ${index} quad width`).toBeCloseTo(PINE_PRINTS[index].length, 6);
+  }
+
+  // The silhouette itself: sample the generated alpha and convert texels to metres. The widest
+  // row is the forefoot; the narrowest run inside the middle is the arch.
+  const alpha = mud.group.children[0].material.alphaMap;
+  expect(alpha).toBeTruthy();
+  expect(alpha.image.width).toBe(alpha.image.height);
+  const size = alpha.image.width;
+  const context = alpha.image.getContext('2d');
+  const data = context.getImageData(0, 0, size, size).data;
+  const coverage = (x, y) => data[(y * size + x) * 4 + 1] / 255;
+  const length = PINE_PRINTS[0].length;
+  const widest = { texels: 0, t: 0 };
+  let archTexels = Infinity;
+  for (let y = 0; y < size; y++) {
+    const t = y / (size - 1);
+    let row = 0;
+    for (let x = 0; x < size; x++) if (coverage(x, y) > .35) row++;
+    if (row > widest.texels) Object.assign(widest, { texels: row, t });
+    if (t > .42 && t < .58 && row > 0) archTexels = Math.min(archTexels, row);
+  }
+  const metresPerTexel = length / size;
+  const forefootCm = widest.texels * metresPerTexel * 100;
+  const archCm = archTexels * metresPerTexel * 100;
+  // An adult sole: 9-10 cm at the ball, about 6 cm at the arch.
+  expect(forefootCm, 'forefoot width').toBeGreaterThan(8.8);
+  expect(forefootCm, 'forefoot width').toBeLessThan(10.4);
+  expect(archCm, 'arch width').toBeGreaterThan(4.8);
+  expect(archCm, 'arch width').toBeLessThan(6.6);
+  expect(forefootCm).toBeGreaterThan(archCm);
   mud.dispose();
 });
