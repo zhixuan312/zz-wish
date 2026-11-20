@@ -39,11 +39,11 @@ def palette():
         'ash': mesh.material('Char and burned wick', '#272822', rough=.96),
         'oil': mesh.material('Dark clear seed oil', '#6b4628', rough=.22, metal=.03),
         'figure': mesh.material('Aged cast bronze of the small seated figure', '#8b7453', rough=.66, metal=.27),
-        'glow': mesh.material('Thin gauze over low flame', '#b97c69', rough=.86, emission=.04),
+        'glow': mesh.material('Thin gauze over low flame', '#b96953', rough=.86, emission=.04),
         'bamboo': mesh.material('Split bamboo beneath faded linen', '#9a7350', rough=.94),
-        'red_faded': mesh.material('Faded dusty rose gauze', '#b38c82', rough=.94),
-        'red_dust': mesh.material('Pink-white sun-faded gauze', '#c1a9a0', rough=.96),
-        'red_old': mesh.material('Faded iron-red gauze', '#92655b', rough=.92),
+        'red_faded': mesh.material('Faded dusty rose gauze', '#ac6a63', rough=.94),
+        'red_dust': mesh.material('Sun-faded rose-red gauze', '#be8175', rough=.96),
+        'red_old': mesh.material('Faded iron-red gauze', '#9e5a4e', rough=.92),
         'new_gauze': mesh.material('Dry clean red gauze available at the guest table', '#a64433', rough=.83),
         'tag': mesh.material('Unvarnished wooden wish tag', '#bba17c', 'weathered_planks', .88),
         'rope': mesh.material('Rough suspension cord', '#8a7962', rough=.98),
@@ -324,8 +324,8 @@ def outbuildings(site, m, court, ground, contact):
 def earlier_lantern(x, z, y, top, index, m, fixtures, lit=False):
     frame = m['wood']
     faded = m['glow' if lit else ('red_dust', 'red_faded', 'red_old')[index % 3]]
-    radius = .138 + .009 * math.sin(index * 2.3)
-    height = .291 + .023 * math.cos(index * 1.43)
+    radius = .112 + .005 * math.sin(index * 2.3)
+    height = .288
     phase = .17 * math.sin(index * 2.51)
     rows, segments, ribs = 16, 48, 8
 
@@ -383,7 +383,7 @@ def earlier_lantern(x, z, y, top, index, m, fixtures, lit=False):
             dirt = .12 * math.sin(u * math.tau * 5. + 1.9 * v + index) ** 2 + .30 * v ** 6
             age = 1. - (dirt + moisture) * (.45 if lit else 1.)
             ageing.data[loop].color = (*(age * (d + (white - d) * fade) for d, white in
-                                         zip(dye, (.61, .51, .43))), 1.)
+                                         zip(dye, (.66, .34, .29))), 1.)
     mesh.beam('Old taut lamp cord', (x, y + height, z), (x + .012, top, z), .005, m['rope'], .005)
     for ring_height in (0, height):
         mesh.lathe('Worn wooden lantern ring', [(radius * .67, ring_height - .012),
@@ -618,19 +618,11 @@ def hall(site, m, contact, fixtures):
     for px in (-3.41, 3.41):
         mesh.lathe('Slim front veranda post', [(.116, 0), (.124, .09), (.117, 1.1), (.104, 2.68)],
                    (px, y - .11, front + .52), m['red'], 20)
-    # Keep the three working rows level, with a clear centre aisle to the free cord.
-    wishes = (
-        (-6.21, ((-1.65, 3.39), (-.77, 3.41), (.77, 3.40), (1.65, 3.38))),
-        (-5.44, ((-1.74, 3.57), (-.88, 3.55), (.88, 3.56), (1.74, 3.58))),
-        (-4.66, ((-2.64, 3.25), (-1.72, 3.23), (-.84, 3.24),
-                 (.84, 3.24), (1.72, 3.24), (2.64, 3.25))),
-    )
-    index = 0
-    for pz, lamps in wishes:
-        for px, py in lamps:
-            earlier_lantern(px, pz, py, 4.449, index, m, fixtures, index in (6, 10))
-            index += 1
     xcord, ycord, zcord = site['visitorCord']
+    # One tended row on the visitor's beam. The centre belongs to the visitor.
+    for index, offset in enumerate((-3, -2, -1, 1, 2, 3)):
+        earlier_lantern(xcord + .34 * offset, zcord, 3.50, ycord - .011,
+                        index, m, fixtures, offset in (-2, 2))
     free = mesh.material('Light worn hemp of the waiting suspension', '#b0a084', rough=.96)
     mesh.beam('One empty cord from the centre beam', (xcord, ycord - .247, zcord),
               (xcord, ycord + .048, zcord), .005, free, .004)
