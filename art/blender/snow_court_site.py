@@ -86,6 +86,34 @@ def gauze_maps(materials):
                 links.new(texture.outputs['Color'], bsdf.inputs[socket])
 
 
+def author_court_cap_charts(objects):
+    """Give every disconnected clay cap its own metric lightmap strip."""
+    coping = {'Snow on grey court coping', 'Gate-side grey coping', 'Rear wall snowcap'}
+    for obj in objects:
+        name = obj.name.split('.', 1)[0]
+        if name in coping:
+            samples = 7
+        elif name.endswith(' overlapping half-round ridge caps'):
+            samples = 9
+        else:
+            continue
+        # Each individual cap has two identical curved cross-sections.
+        # Measure along the curve rather than flattening it onto the snow.
+        vertices = obj.data.vertices
+        stride = samples * 2
+        if len(vertices) % stride:
+            raise RuntimeError('Unexpected Snow Court cap topology: ' + obj.name)
+        coordinates = []
+        for start in range(0, len(vertices), stride):
+            along = (vertices[start + samples].co - vertices[start].co).length
+            across = [0.]
+            for index in range(start + 1, start + samples):
+                across.append(across[-1] + (vertices[index].co - vertices[index - 1].co).length)
+            coordinates.extend((end, distance) for end in (0., along) for distance in across)
+        mesh.source_uv(obj, [[coordinates[index] for index in face.vertices] for face in obj.data.polygons],
+                       'Individual clay cap strips with measured length and arc.')
+
+
 def courtyard(site, materials):
     court = site['court']
     left, right, back, front, y = (court[k] for k in ('west', 'east', 'rear', 'front', 'level'))
@@ -697,6 +725,7 @@ def build(site, projection):
          (-7.30, court_floor + 1.14, 1.46), 9.1, '#d4dce2', 1.57)
     everyday.broom(mesh, site, court_surface, contact, m)
     hall(site, m, contact, fixtures)
+    author_court_cap_charts(mesh.STATIC.objects)
     basis = [site['visitorCord'][0], 3.54, site['visitorCord'][2]]
     source = mesh.light('Measured visitor wick transport basis', basis, .80, '#ffad68', .027, role='lamp')
     scene['place_id'] = scene['one_light_place'] = 'snow-roof'
