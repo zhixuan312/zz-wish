@@ -200,6 +200,9 @@ textarea[aria-invalid=true] { border-color:#f0b69a; }
   .candle-sheet { top:auto; bottom:0; left:0; right:0; width:auto; height:40vh; max-height:40vh; display:flex; flex-direction:column;
     padding:10px 16px max(14px,env(safe-area-inset-bottom)); border-width:1px 0 0; border-radius:0;
     background:linear-gradient(0deg,#080d0cfa 80%,#080d0cd9); }
+  /* The drawing pad is a 200x300 target that has to stay fully on screen with its tools, so that tab
+     needs a tall sheet. Choosing a preset still gets the compact one. */
+  .candle-sheet:has(.draw) { height:80vh; max-height:80vh; }
   /* The sheet scrolls; the action row is the last child and sticks to the foot. The scroller carries
      bottom padding at least the bar's height plus 8 px, so when it is scrolled to the end the last
      content row — the colour swatches — clears the bar rather than hiding behind it. The bar keeps a
