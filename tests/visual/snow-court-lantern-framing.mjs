@@ -4,6 +4,8 @@ import assert from 'node:assert/strict';
 export function installSnowCourtLanternAudit() {
   let audit;
   let occluders;
+  let testedVolume;
+  let nearbyTriangles;
   window.__startSnowLanternAudit = () => {
     audit = { frames: [], settledAt: null };
     window.__snowLanternAudit = audit;
@@ -88,9 +90,33 @@ export function installSnowCourtLanternAudit() {
       audit.earlierRow = { clothMeshes, bounds: [row.min.toArray(), row.max.toArray()] };
     }
     const segment = world.clone().expandByPoint(camera.position);
-    const candidates = occluders.filter(({ bounds }) => segment.intersectsBox(bounds));
-    const ray = new THREE.Raycaster();
+    for (const point of flamePoints) segment.expandByPoint(point);
+    if (!testedVolume?.containsBox(segment)) {
+      // The baked model combines many surfaces by material. Restrict those
+      // combined meshes to actual triangles in the lamp's sight corridor
+      // once, so checking each new frame does not stall the browser.
+      testedVolume = segment.clone().expandByScalar(.10);
+      nearbyTriangles = [];
+      const vertices = [new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()];
+      const triangleBounds = new THREE.Box3();
+      for (const { mesh, bounds } of occluders) {
+        if (!testedVolume.intersectsBox(bounds)) continue;
+        const { index, attributes } = mesh.geometry;
+        const count = index?.count ?? attributes.position.count;
+        for (let first = 0; first < count; first += 3) {
+          for (let vertex = 0; vertex < 3; vertex++) {
+            const position = index ? index.getX(first + vertex) : first + vertex;
+            vertices[vertex].fromBufferAttribute(attributes.position, position).applyMatrix4(mesh.matrixWorld);
+          }
+          if (testedVolume.intersectsBox(triangleBounds.setFromPoints(vertices))) {
+            nearbyTriangles.push({ mesh, vertices: vertices.map(point => point.clone()) });
+          }
+        }
+      }
+    }
+    const ray = new THREE.Ray();
     const direction = new THREE.Vector3();
+    const intersection = new THREE.Vector3();
     const extent = world.getSize(new THREE.Vector3()).multiplyScalar(.5);
     const cloth = lamp.parts.g.children.find(mesh => mesh.userData.visitorCloth);
     const targets = [...flamePoints];
@@ -112,13 +138,12 @@ export function installSnowCourtLanternAudit() {
     frame.visibilityRays = targets.length;
     for (const point of targets) {
       direction.subVectors(point, camera.position);
-      ray.far = direction.length() - .002;
+      const far = direction.length() - .002;
       ray.set(camera.position, direction.normalize());
-      for (const { mesh, bounds } of candidates) {
-        const entering = bounds.containsPoint(camera.position) ? camera.position : ray.ray.intersectBox(bounds, new THREE.Vector3());
-        if (!entering || entering.distanceTo(camera.position) > ray.far) continue;
-        const hit = ray.intersectObject(mesh, false)[0];
-        if (hit) frame.blockers.push({ name: mesh.name, material: hit.object.material.name, distance: hit.distance });
+      for (const { mesh, vertices: [a, b, c] } of nearbyTriangles) {
+        const hit = ray.intersectTriangle(a, b, c, false, intersection);
+        const distance = hit?.distanceTo(camera.position);
+        if (distance < far) frame.blockers.push({ name: mesh.name, material: mesh.material.name, distance });
       }
     }
     if (audit.completed) audit = null;
