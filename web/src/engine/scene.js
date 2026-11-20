@@ -2560,7 +2560,11 @@ export async function ignite({onCatch, remainingFuel, onTaperLit}={}) {
       rig.look.lerpVectors(lookStart, burn.look, push);
       {
         const reach = Math.hypot(rig.look.x - rig.pos.x, rig.look.z - rig.pos.z);
-        const basePitch = Math.atan2(lookStart.y - from.y, Math.hypot(lookStart.x - from.x, lookStart.z - from.z));
+        // Anchor the allowance on the settled burn pose, not on the chooser's lower eye line: the burn
+        // aims above the tray rim, and clamping against the chooser dragged the view down far enough
+        // to push the flame off the top of the frame for the first seconds.
+        const basePitch = Math.atan2(burn.look.y - burn.pos.y,
+          Math.hypot(burn.look.x - burn.pos.x, burn.look.z - burn.pos.z));
         const pitch = Math.atan2(rig.look.y - rig.pos.y, reach);
         const limit = THREE.MathUtils.degToRad(5);
         const clamped = THREE.MathUtils.clamp(pitch, basePitch - limit, basePitch + limit);
