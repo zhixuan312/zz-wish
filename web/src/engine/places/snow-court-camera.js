@@ -151,7 +151,11 @@ export function winterCourtEntry(THREE, start, end, phone) {
     const down = THREE.MathUtils.smoothstep(time, 15, duration);
     const pitch = THREE.MathUtils.lerp(pitch0 * (1 - approach), pitch1, down);
     lookAlong(THREE, rig, yaw, pitch, THREE.MathUtils.lerp(startDistance, endDistance, angle));
-    rig.fov = THREE.MathUtils.lerp(start.fov, end.fov, angle);
+    const lens = THREE.MathUtils.lerp(start.fov, end.fov, angle);
+    // Portrait needs a wider view to see the full beam through the doorway.
+    // Return to the chooser lens gradually before the visitor reaches the cord.
+    const wide = phone ? smoothWindow(THREE, time, 0, 8.25, 9.6, duration) : 0;
+    rig.fov = THREE.MathUtils.lerp(lens, 90, wide);
   };
 }
 
