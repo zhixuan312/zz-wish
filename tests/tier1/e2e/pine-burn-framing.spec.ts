@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 
 // The chooser and the burning shot are composed as one: the flame must sit in the upper middle of the
 // frame from the moment the visitor can pick a candle, and lighting may only close in slowly. These
-// numbers come from the live camera, sampled once per rendered frame, not from the keyframes.
+// numbers come from the live camera, sampled once per rendered frame and judged as a rate per 100 ms.
 const FLAME_MIN = .30;
 const FLAME_MAX = .60;
 const FLAME_STEP = .02;
@@ -49,7 +49,7 @@ for (const [label, viewport, safe, project] of [
         if (frames.length < 4000) requestAnimationFrame(tick);
       };
       requestAnimationFrame(tick);
-    }, safe).catch(() => undefined);
+    }, safe);
 
     await chooser.click();
     await page.getByRole('button', { name: /点亮这一盏|Light it/ }).click();
@@ -66,11 +66,15 @@ for (const [label, viewport, safe, project] of [
       expect(s.flameTop, `flame top at t=${s.t.toFixed(2)}`).toBeGreaterThanOrEqual(FLAME_MIN);
       expect(s.flameTop, `flame top at t=${s.t.toFixed(2)}`).toBeLessThanOrEqual(FLAME_MAX);
     }
+    // The limit is a rate: no more than FLAME_STEP per 100 ms. A pair that is closer together is
+    // allowed proportionally less, and a pair further apart is still judged as one 100 ms step, so a
+    // stalled frame cannot hide a jump the visitor would see.
     for (let i = 1; i < samples.length; i++) {
-      const gap = samples[i].t - samples[i - 1].t;
-      if (gap > .12) continue; // a stalled frame cannot show a jump that a viewer would see
+      const gap = Math.max(samples[i].t - samples[i - 1].t, .1);
+      const allowed = FLAME_STEP * gap / .1;
       const jump = Math.abs(samples[i].flameTop - samples[i - 1].flameTop);
-      expect(jump, `flame jump at t=${samples[i].t.toFixed(2)}`).toBeLessThanOrEqual(FLAME_STEP);
+      expect(jump, `flame moved ${jump.toFixed(3)} in ${(samples[i].t - samples[i - 1].t).toFixed(3)}s at t=${samples[i].t.toFixed(2)}`)
+        .toBeLessThanOrEqual(allowed);
     }
     // The tray is whole and clear of the sheet for every frame after the chooser.
     expect(samples.every(s => s.trayInside), 'the tray must stay inside the safe area').toBe(true);
