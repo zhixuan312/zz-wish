@@ -84,6 +84,20 @@ doc.createExtension(EXTMeshoptCompression).setRequired(true)
 // its alpha, which the foliage cutout needs.
 const { spawnSync } = await import('node:child_process');
 const { existsSync } = await import('node:fs');
+// The transfer function follows the role the texture has in the material, not its filename. Only a
+// colour texture is sRGB: three.js decodes anything the DFD marks sRGB, so marking a normal or a
+// roughness map sRGB would bend the normals and darken the roughness.
+const colourTextures = new Set();
+const nonColourTextures = new Set();
+for (const material of doc.getRoot().listMaterials()) {
+    const base = material.getBaseColorTexture();
+    if (base) colourTextures.add(base);
+    const emissive = material.getEmissiveTexture();
+    if (emissive) colourTextures.add(emissive);
+    for (const slot of [material.getNormalTexture(), material.getMetallicRoughnessTexture(), material.getOcclusionTexture()]) {
+        if (slot) nonColourTextures.add(slot);
+    }
+}
 for (const texture of doc.getRoot().listTextures()) {
     if (!texture.getMimeType().includes('png')) continue;
     const name = texture.getName() ?? '';
@@ -91,11 +105,13 @@ for (const texture of doc.getRoot().listTextures()) {
     await writeFile(source, texture.getImage());
     if (existsSync(target)) await (await import('node:fs/promises')).rm(target);
     const normal = /nor_gl/.test(name);
+    const srgb = colourTextures.has(texture) && !nonColourTextures.has(texture);
+    // The source PNGs carry an ICC profile, which toktx refuses, so the transfer curve is stated
+    // explicitly instead of being read from the file.
+    const oetf = srgb ? 'srgb' : 'linear';
     const args = normal
-        // The source PNGs carry an ICC profile, which toktx refuses; assign the sRGB transfer
-        // curve explicitly, which is what those profiles describe.
-        ? ['--t2', '--encode', 'uastc', '--uastc_quality', '2', '--zcmp', '18', '--assign_oetf', 'srgb', target, source]
-        : ['--t2', '--encode', 'etc1s', '--clevel', '4', '--qlevel', '255', '--assign_oetf', 'srgb', target, source];
+        ? ['--t2', '--encode', 'uastc', '--uastc_quality', '2', '--zcmp', '18', '--assign_oetf', oetf, target, source]
+        : ['--t2', '--encode', 'etc1s', '--clevel', '4', '--qlevel', '255', '--assign_oetf', oetf, target, source];
     const run = spawnSync(toktxPath, args, { encoding: 'utf8' });
     if (!existsSync(target)) {
         throw Error('toktx produced no texture for ' + name + ': ' + String(run.stderr).slice(0, 400));
@@ -345,7 +361,7 @@ def verify_glb(path, prepared):
                 source.seek(12)
                 json_bytes, = struct.unpack('<I', source.read(4))
                 source.seek(28 + json_bytes + view.get('byteOffset', 0))
-                header = source.read(48)
+                header = source.read(64)
             if not header.startswith(b'\xabKTX 20\xbb\r\n\x1a\n'):
                 raise ValueError('The exported needle texture is not a KTX2 container.')
             # The data format descriptor is at the byte offset the KTX2 index names, and its length
@@ -357,6 +373,61 @@ def verify_glb(path, prepared):
             descriptor_offset, descriptor_length = struct.unpack('<II', index)
             if descriptor_offset <= 0 or descriptor_length < 60:
                 raise ValueError('The needle KTX2 lost its alpha channel.')
+
+    # Every texture's transfer function must match its role: three.js decodes anything the data
+    # format descriptor marks sRGB, so a normal or roughness map marked sRGB would be bent or
+    # darkened on the GPU. The descriptor's transfer function sits 14 bytes into the DFD.
+    TRANSFER = {'linear': 1, 'srgb': 2}
+    colour_by_material = {}
+    for material in data['materials']:
+        pbr = material.get('pbrMetallicRoughness', {})
+        colour_by_material[material['name']] = {
+            'baseColor': pbr.get('baseColorTexture', {}).get('index'),
+            'normal': material.get('normalTexture', {}).get('index'),
+            'rough': pbr.get('metallicRoughnessTexture', {}).get('index'),
+            'occlusion': material.get('occlusionTexture', {}).get('index'),
+        }
+    def expect_transfer(material, slot):
+        roles = colour_by_material[material]
+        texture_index = roles[slot]
+        if texture_index is None:
+            return None
+        image = data['images'][data['textures'][texture_index]['source']]
+        if image.get('mimeType') != 'image/ktx2':
+            raise ValueError(f'{material} {slot} is not KTX2.')
+        view = data['bufferViews'][image['bufferView']]
+        if 'byteOffset' not in view or 'byteLength' not in view:
+            raise ValueError(f'{material} {slot} has no embedded image view.')
+        with path.open('rb') as source:
+            header = source.read(12)
+            if len(header) != 12:
+                raise ValueError(f'{material} {slot} is not a GLB.')
+            # The JSON chunk header follows the 12-byte file header.
+            source.seek(12)
+            json_length, json_kind = struct.unpack('<I4s', source.read(8))
+            if json_kind != b'JSON':
+                raise ValueError(f'{material} {slot} has no JSON chunk.')
+            # GLB: 12-byte header, a JSON chunk header, the JSON, then the BIN chunk header.
+            binary_start = 12 + 8 + json_length + 8
+            image_start = binary_start + view['byteOffset']
+            if image_start + 16 > path.stat().st_size or view['byteLength'] < 16:
+                raise ValueError(f'{material} {slot} image view is out of range: start={image_start} '
+                                 f'len={view["byteLength"]} size={path.stat().st_size} json={json_length} '
+                                 f'binary={binary_start}')
+            source.seek(image_start)
+            header = source.read(64)
+            if not header.startswith(b'\xabKTX 20\xbb\r\n\x1a\n'):
+                raise ValueError(f'{material} {slot} is not a KTX2 image.')
+            descriptor_offset = struct.unpack_from('<I', header, 48)[0]
+            source.seek(image_start + descriptor_offset + 14)
+            actual = struct.unpack('B', source.read(1))[0]
+        wanted = TRANSFER['srgb'] if slot == 'baseColor' else TRANSFER['linear']
+        if actual != wanted:
+            raise ValueError(f'{material} {slot} transfer function is {actual}, expected {wanted}.')
+
+    for material in colour_by_material:
+        for slot in ('baseColor', 'normal', 'rough', 'occlusion'):
+            expect_transfer(material, slot)
 
     result = {}
     for index in scene['nodes']:
