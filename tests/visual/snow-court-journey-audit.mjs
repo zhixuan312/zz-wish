@@ -12,6 +12,9 @@ const phoneMaximumEntryYawRate = 25;
 const angleEpsilon = 1e-8;
 const poseEpsilon = 1e-6;
 const poseDirectionEpsilon = 2e-6;
+// The renderer applies lens changes beyond .001 degrees. A resize can sync
+// the remaining fraction to the same authored lens on a chooser draw.
+const poseFovEpsilon = .001;
 const secondsEpsilon = 1e-8;
 const degreesPerRadian = 180 / Math.PI;
 const earlierLanternSlots = [-3, -2, -1, 1, 2, 3];
@@ -416,7 +419,7 @@ function viewAngle(a, b) {
 function sameEntryPose(a, b) {
   const offset = Math.hypot(...a.position.map((value, axis) => value - b.position[axis]));
   return offset <= poseEpsilon && viewAngle(a.direction, b.direction) <= poseDirectionEpsilon
-    && Math.abs(a.fovDegrees - b.fovDegrees) <= poseEpsilon;
+    && Math.abs(a.fovDegrees - b.fovDegrees) <= poseFovEpsilon;
 }
 
 function desktopEntryHold(frames, firstEntryDraw, boundaryEnd, firstChooserDraw, failures) {

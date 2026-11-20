@@ -129,9 +129,10 @@ describe('Snow Court entry from real draw indices and animation stamps', () => {
     ]);
   });
 
-  it('accepts subpixel direction rounding at the chooser boundary', () => {
+  it('accepts subpixel direction and lens rounding at the chooser boundary', () => {
     const summary = summarize(trace({ change: (frames, { end }) => {
       frames[end].direction = view(350, 1.08e-6);
+      frames[end + 2].fovDegrees += 5.8e-5;
     } }));
     expect(summary.failures).toEqual([]);
   });
