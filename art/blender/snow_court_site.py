@@ -250,7 +250,9 @@ def gate(site, m, contacts, fixtures):
         mesh.box('Pillar beneath the gate lamp shelf', (.32, 1.09, .32), (lx, wick_y - .739, lz - .02), m['brick'], .015)
         oil_lamp(f'Gate {"west" if side < 0 else "east"} oil lamp', (lx, wick_y - .109, lz), m, contacts, shelf, 'gate', fixtures, 1.27)
     for zz in (z - 1.13, z + 1.13):
-        mesh.box('Low transverse gate lintel', (width + .12, .242, .234), (0, eave - .295, zz), m['red'], .023)
+        # The raised lintel still laps the paired posts below the roof.
+        mesh.box('Transverse gate lintel seated high in the posts', (width + .12, .242, .234),
+                 (0, eave - .065, zz), m['red'], .023)
     mesh.box('Underside boards within the gate shadow', (width, .12, depth), (0, eave - .12, z), m['wood'], .015)
     mesh.tiled_roof('Winter pass gate', 0, eave, z, width + .73, depth / 2 + .46, .89,
                     m['tile'], m['wood'], m['snow'], 'gate')
