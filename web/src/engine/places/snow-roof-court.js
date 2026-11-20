@@ -5,18 +5,19 @@ import projection from '../../../../shared/snow-court-backdrop.json' with { type
 import site from '../../../../shared/snow-roof-court-site.json' with { type: 'json' };
 
 const agedGauzeOpacity = new Map([
-  ['Pink-white sun-faded gauze', .90],
-  ['Faded dusty rose gauze', .91],
-  ['Faded iron-red gauze', .92],
-  ['Thin gauze over low flame', .92],
+  ['Pink-white sun-faded gauze', .93],
+  ['Faded dusty rose gauze', .94],
+  ['Faded iron-red gauze', .94],
+  ['Thin gauze over low flame', .93],
 ]);
 
 function tuneEarlierGauze(material, opacity, sources, THREE, preExposure) {
-  // The far cloth softens the room behind it. The near cloth still lets
-  // the opaque ribs read through, without making the sleeve look like glass.
+  // The open sleeve retains its back-facing cloth at slits and torn lips.
+  // A single draw keeps both sides in one pass as the hall comes into view.
   material.transparent = true;
   material.depthWrite = false;
   material.side = THREE.DoubleSide;
+  material.forceSinglePass = true;
   material.opacity = opacity;
   material.normalScale.setScalar(.63);
   material.envMapIntensity = .07;
@@ -65,7 +66,7 @@ function tuneSweptSnow(material, THREE, lightDirection, lightStrength) {
       .replace('#include <color_fragment>', `#include <color_fragment>
         #if defined(USE_COLOR) || defined(USE_COLOR_ALPHA)
           vec3 settledGrains = clamp(vColor.rgb / uSweptSnowBase, 0., 1.);
-          diffuseColor.rgb *= mix(vec3(1.), settledGrains, .70);
+          diffuseColor.rgb *= mix(vec3(1.), settledGrains, .94);
         #endif`)
       .replace('#include <opaque_fragment>', `
         vec2 grains = vBakedWorld.xz * 73.;
