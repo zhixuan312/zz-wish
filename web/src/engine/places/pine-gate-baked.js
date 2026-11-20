@@ -250,6 +250,7 @@ export default function createPlace(h) {
             visible: cloth.group.visible,
             position: cloth.group.position.toArray(),
             anchor: [anchor.x, anchor.y, anchor.z],
+            ...cloth.report(),
             bbox: (() => {
               cloth.group.updateWorldMatrix(true, true);
               const ribbon = cloth.mesh;

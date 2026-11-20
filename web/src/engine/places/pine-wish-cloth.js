@@ -48,6 +48,8 @@ export function createWishCloth({ THREE, anchor, url = CLOTH_URL, loader = new G
   group.name = 'Visitor wish cloth tied under the candle stand';
 
   const resources = [];
+  // Last sky share written, so the hook can report what the strip is actually lit by.
+  let lastSky = 1;
   let mesh = null;
   let settled = false;
 
@@ -74,10 +76,14 @@ export function createWishCloth({ THREE, anchor, url = CLOTH_URL, loader = new G
           material.normalMap.wrapS = material.normalMap.wrapT = THREE.RepeatWrapping;
           material.normalMap.needsUpdate = true;
         }
-        if (material.sheen !== undefined) material.sheen = .28;
-        if (material.sheenColor) material.sheenColor.setRGB(.34, .012, .018);
-        material.envMapIntensity = .32;
-        material.roughness = .92;
+        // A dyed coarse weave has almost no sheen. The delivered white sheen at full strength, with
+        // the candle close by, made the strip read as a lit lamp of its own rather than cloth.
+        if (material.sheen !== undefined) material.sheen = .10;
+        if (material.sheenColor) material.sheenColor.setRGB(.20, .008, .012);
+        material.envMapIntensity = .12;
+        material.roughness = .96;
+        // Hold the dye dark: deep red cloth beside grey stone, not a bright orange ribbon.
+        if (material.color) material.color.setRGB(.30, .011, .017);
       }
       if (object.geometry) resources.push(object.geometry);
       for (const item of [material].flat()) if (item) resources.push(item);
@@ -116,11 +122,14 @@ export function createWishCloth({ THREE, anchor, url = CLOTH_URL, loader = new G
       if (!material) return;
       // A missing or malformed curve must not write NaN into the material, which blanks the frame.
       const lamp = Number.isFinite(daylight?.lamp) ? daylight.lamp : 1;
+      lastSky = 1 - Math.min(1, Math.max(0, lamp));
       const sky = 1 - Math.min(1, Math.max(0, lamp));
       material.envMapIntensity = .05 + .27 * sky;
     },
     show(lit) { group.visible = wishClothVisible(lit); },
     worldPosition() { return group.getWorldPosition(new V3()); },
+    /** Report for the browser test: the applied tray scale and the last sky share. */
+    report() { return { trayScale: group.scale.x, sky: lastSky, loaded: !!mesh }; },
     dispose() {
       for (const item of resources) item.dispose?.();
       group.clear();
