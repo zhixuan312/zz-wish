@@ -91,6 +91,7 @@ export default function createWinterCourt(h) {
   const lampDesktop = lampView(2.22, -8.97, -140, -3, 51);
   const lampPhone = lampView(2.22, -8.96, -144, -12, 80);
   const entrance = pose(site.walk[0]);
+  const gaze = V3();
   return {
     bakedLighting: true, cameraFar: 880, exposure: 1.11, shade: .55,
     sky: { top: 0x14243c, horizon: 0x59718a, ground: 0x212936, sun: 0xd9eaff,
@@ -107,12 +108,18 @@ export default function createWinterCourt(h) {
       hemi: [0xdae6f1, 0x575359, .89], bloom: [.18, 1.26],
     },
     view: entrance, viewPhone: { ...entrance, fov: entrance.fov + 5 },
-    cameraExposure(position) {
-      // Eyes adapt as the snowy court leaves the view through the deep door
-      // reveal. The lift tapers away well before the visitor reaches a lamp.
-      const depth = -position.z;
+    cameraExposure(camera, light) {
+      // Eyes adjust to the two deep door shadows and to the stone below the
+      // cloth while looking down to choose. Looking back up ends the lift.
+      const depth = -camera.position.z;
       const { smoothstep } = THREE.MathUtils;
-      return 1 + .68 * smoothstep(depth, .75, 3.1) * (1 - smoothstep(depth, 4.8, 8.1));
+      const hallShade = smoothstep(depth, .75, 3.1) * (1 - smoothstep(depth, 4.8, 8.1));
+      const gateZ = site.gate.center[2];
+      const gateShade = smoothstep(-depth, gateZ + 1.65, gateZ + 3.8)
+        * (1 - smoothstep(-depth, gateZ + 4.95, gateZ + 6.95));
+      const stoneFloor = smoothstep(depth, 7.5, 8.6)
+        * smoothstep(-camera.getWorldDirection(gaze).y, .39, .62);
+      return 1 + .68 * hallShade + .34 * light.n * gateShade + .22 * stoneFloor;
     },
     walk: [], walkSeconds: site.walkSeconds,
     createWalk: (start, _end, phone) => winterCourtWalk(THREE, site, start, phone),

@@ -2700,7 +2700,7 @@ function frame(stamp = performance.now()) {
     // Baked radiance, source lights and emission already include the common
     // camera pre-exposure. Only the remaining camera multiplier belongs here.
     const cameraMultiplier=roomLight*(P.exposure??1)*(1+((N.exposure??1)-1)*near)
-      *(P.cameraExposure?.(camera.position)??1);
+      *(P.cameraExposure?.(camera,place.daylight)??1);
     if(nativeAgXPass){
       nativeAgXPass.enabled=!!P.bakedLighting;
       nativeAgXPass.uniforms.cameraExposureEV.value=Math.log2(Math.max(1e-8,cameraMultiplier))+(place.baked?.residualCameraExposureEV??0);
