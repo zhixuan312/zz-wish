@@ -240,9 +240,9 @@ export default function createPlace(h) {
       // The glTF place group is in world metres, the same space as the lamp anchor.
       baked.group.add(cloth.group);
       baked.wishCloth = cloth;
-      if (import.meta.env.DEV) {
-        // Read by the Tier 1 test: the strip must exist under the candle stand while burning
-        // and stay after the ending.
+      // Read by the Tier 1 test, which runs against the production build: the strip must exist under
+      // the candle stand while burning and stay after the ending.
+      {
         window.__pineWishCloth = () => {
           // Local to the nook group, which is where the candle stand lives too.
           const anchor = cloth.anchor;

@@ -1,6 +1,7 @@
 import { Vector3 } from 'three';
 import { expect, test } from 'vitest';
 import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { createWishCloth, wallRadius, wishClothVisible, CLOTH_URL, TRAY_PROFILE } from '../../../web/src/engine/places/pine-wish-cloth.js';
 import * as THREE from 'three';
 
@@ -24,7 +25,7 @@ function stubLoader({ verts = 1200, name = 'One palm-width length of coarse red 
 
 // The shipped asset's own vertex count and bounds, read from the GLB header.
 function glbFacts() {
-  const file = new URL('../../../web/public/places/pine-gate/pine-visitor-cloth.glb', import.meta.url);
+  const file = fileURLToPath(new URL('../../../web/public/places/pine-gate/pine-visitor-cloth.glb', import.meta.url));
   const data = readFileSync(file);
   const length = data.readUInt32LE(8);
   let offset = 12, json = null;
