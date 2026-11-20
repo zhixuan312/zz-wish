@@ -2375,7 +2375,8 @@ export async function travel(id) {
   // shrine, then walks the last stretch at a plain pace. This is Pine-specific: other places keep
   // their own travel timing, which their reviews are pinned to.
   if (hold) {
-    await tween(hold.seconds ?? 2.0, () => {});
+    // A visitor who skips must not sit through the reveal hold.
+    if (!skipNextTravel) await tween(hold.seconds ?? 2.0, () => {});
     if (skipNextTravel) skipTweens();
     const from = { pos: rig.pos.clone(), look: rig.look.clone(), fov: rig.fov ?? camera.fov };
     const to = chooseView();
