@@ -273,6 +273,9 @@ def outbuildings(site, m, court, ground, contact):
                 mesh.box('Worn cover stone at the ends of the flue', (.20, .11, .145),
                          (cx, eave + 1.10, cz + side * .1725), m['granite'], .012)
             everyday.firewood_stack(mesh, site, room, ground, contact, m)
+            area('Indirect overcast light from the kitchen passage opening',
+                 (right + .59, y + 1.95, front - .82), (right + .27, y + .53, front - 1.28),
+                 9.2, '#d9e1e7', .73)
             bpy.context.scene['snow_court_smoke_engine'] = json.dumps([cx, eave + 1.111, cz])
 
 
@@ -560,8 +563,11 @@ def build(site, projection):
     fixtures = []
     gate(site, m, contact, fixtures)
     outbuildings(site, m, site['court'], court_surface, contact)
-    area('Blue snow bounce lights the winter-closed boards', (-2.91, site['court']['level'] + .16, 1.86),
-         (-5.49, site['court']['level'] + 1.14, -1.45), 12.3, '#cad4df', 1.38)
+    court_floor = site['court']['level']
+    area('Blue snow bounce lights the winter-closed boards', (-3.94, court_floor + .31, .14),
+         (-5.49, court_floor + 1.14, -1.45), 10.4, '#cad4df', 1.38)
+    area('Even snow bounce beneath the west room front eave', (-7.09, court_floor + .32, 3.11),
+         (-7.30, court_floor + 1.14, 1.46), 7.4, '#d4dce2', 1.57)
     everyday.broom(mesh, site, court_surface, contact, m)
     hall(site, m, contact, fixtures)
     basis = [site['visitorCord'][0], 3.54, site['visitorCord'][2]]
