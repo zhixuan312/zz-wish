@@ -11,7 +11,7 @@ export function installSnowCourtLanternAudit() {
     window.__snowLanternAudit = audit;
   };
 
-  window.__sampleSnowLanternAudit = (THREE, camera, lamp, baked, ignition) => {
+  window.__sampleSnowLanternAudit = (THREE, camera, lamp, baked, ignition, stamp) => {
     if (!audit) return;
     const screen = document.querySelector('.ui')?.dataset.screen;
     if (screen !== 'candle' && screen !== 'burning') return;
@@ -19,8 +19,14 @@ export function installSnowCourtLanternAudit() {
     if (ignition === 'settled') audit.settledAt ??= time;
     if (audit.settledAt !== null && time - audit.settledAt >= 10_000) audit.completed = true;
 
+    const forward = camera.getWorldDirection(new THREE.Vector3());
     const frame = { time, screen, ignition, visible: lamp.g.visible && !!lamp.parts?.g,
-      aspect: camera.aspect, position: camera.position.toArray(), blockers: [] };
+      stage: ignition ?? (screen === 'candle' ? 'chooser' : screen),
+      renderTimeMs: stamp, position: camera.getWorldPosition(new THREE.Vector3()).toArray(),
+      modelPosition: lamp.g.getWorldPosition(new THREE.Vector3()).toArray(),
+      yawDegrees: THREE.MathUtils.radToDeg(Math.atan2(forward.x, -forward.z)),
+      pitchDegrees: THREE.MathUtils.radToDeg(Math.asin(THREE.MathUtils.clamp(forward.y, -1, 1))),
+      fovDegrees: camera.fov, aspect: camera.aspect, blockers: [] };
     audit.frames.push(frame);
     if (!frame.visible) return;
 
@@ -189,4 +195,116 @@ export function validateSnowCourtLanternAudit(audit, width, height) {
   }
   return { frameCount: frames.length, settledSeconds: (frames.at(-1).time - settledAt) / 1000,
     minimumMargin, earlierRow: row, visibilityRays: frames.reduce((sum, frame) => sum + (frame.visibilityRays ?? 0), 0), failures };
+}
+
+
+// Evaluate the path independently of projected screen-space motion or the
+// elapsed time of the measurement itself. The renderer passes its actual
+// animation timestamp, which is also the time used to advance the tweens.
+export function validateSnowCourtSettleCamera(audit, phone) {
+  const desktopTranslationMetres = .1;
+  const spreadingSeconds = [13, 15];
+  const maximumSpeedMetresPerSecond = .35;
+  const maximumYawDegreesPerSecond = 10;
+  const maximumPitchRangeDegrees = 10;
+  const positionEpsilon = .000001;
+  const numericEpsilon = 1e-8;
+  const { frames } = audit;
+  const first = frames.findIndex(frame => frame.stage === 'chooser' && frame.visible);
+  const settled = frames.findIndex(frame => frame.stage === 'settled' && frame.screen === 'burning');
+  const spread = frames.findIndex(frame => frame.stage === 'spreading');
+  const failures = [];
+  const limits = phone ? { spreadingSeconds, maximumSpeedMetresPerSecond, maximumYawDegreesPerSecond,
+    maximumPitchRangeDegrees, monotonicDistance: true } : { desktopTranslationMetres };
+  if (first < 0 || spread <= first || settled <= spread) {
+    return { limits, failures: [{ kind: 'missingCameraStage', first, spread, settled }] };
+  }
+
+  const translation = (a, b) => Math.hypot(...a.map((axis, index) => axis - b[index]));
+  const wrappedYaw = (a, b) => ((a - b + 540) % 360) - 180;
+  const validPoint = point => point?.length === 3 && point.every(Number.isFinite);
+  const hasPose = frame => validPoint(frame.position) && validPoint(frame.modelPosition)
+    && [frame.renderTimeMs, frame.yawDegrees, frame.pitchDegrees, frame.fovDegrees, frame.distance].every(Number.isFinite);
+  if (!hasPose(frames[first]) || !hasPose(frames[spread]) || !hasPose(frames[settled])) {
+    return { limits, failures: [{ kind: 'missingCameraPose', indices: [first, spread, settled].filter(i => !hasPose(frames[i])) }] };
+  }
+  const pitch = [], lenses = [];
+  let previous, maxExcursion = 0, pathLength = 0, duplicateDraws = 0, measuredIntervals = 0;
+  let maxSpeed = 0, maxYawRate = 0, maxFovRate = 0, maxAdvance = 0, firstMotion, lastMotion;
+  for (let index = first; index <= settled; index++) {
+    const frame = frames[index];
+    if (!hasPose(frame)) {
+      failures.push({ kind: 'missingCameraPose', index });
+      continue;
+    }
+    pitch.push(frame.pitchDegrees);
+    lenses.push(frame.fovDegrees);
+    maxExcursion = Math.max(maxExcursion, translation(frame.position, frames[first].position));
+    if (!previous) {
+      previous = frame;
+      continue;
+    }
+
+    const dtSeconds = (frame.renderTimeMs - previous.renderTimeMs) / 1000;
+    const translationMetres = translation(frame.position, previous.position);
+    const yawDeltaDegrees = wrappedYaw(frame.yawDegrees, previous.yawDegrees);
+    if (dtSeconds <= 0) {
+      const changed = translationMetres > positionEpsilon || Math.abs(yawDeltaDegrees) > numericEpsilon
+        || Math.abs(frame.pitchDegrees - previous.pitchDegrees) > numericEpsilon
+        || Math.abs(frame.fovDegrees - previous.fovDegrees) > numericEpsilon;
+      if (dtSeconds < 0 || changed) failures.push({ kind: 'invalidCameraTimeStep', index, dtSeconds, changed });
+      else duplicateDraws++;
+      continue;
+    }
+
+    const speedMetresPerSecond = translationMetres / dtSeconds;
+    const yawDegreesPerSecond = yawDeltaDegrees / dtSeconds;
+    const fovDegreesPerSecond = (frame.fovDegrees - previous.fovDegrees) / dtSeconds;
+    const distanceDeltaMetres = frame.distance - previous.distance;
+    frame.cameraMotion = { dtSeconds, translationMetres, speedMetresPerSecond, yawDeltaDegrees,
+      yawDegreesPerSecond, fovDegreesPerSecond, distanceDeltaMetres };
+    measuredIntervals++;
+    pathLength += translationMetres;
+    maxSpeed = Math.max(maxSpeed, speedMetresPerSecond);
+    maxYawRate = Math.max(maxYawRate, Math.abs(yawDegreesPerSecond));
+    maxFovRate = Math.max(maxFovRate, Math.abs(fovDegreesPerSecond));
+    maxAdvance = Math.max(maxAdvance, distanceDeltaMetres);
+    if (translationMetres > positionEpsilon && index >= spread) {
+      firstMotion ??= previous.renderTimeMs;
+      lastMotion = frame.renderTimeMs;
+    }
+    if (phone) {
+      if (speedMetresPerSecond > maximumSpeedMetresPerSecond + numericEpsilon) {
+        failures.push({ kind: 'cameraSpeed', index, speedMetresPerSecond });
+      }
+      if (Math.abs(yawDegreesPerSecond) > maximumYawDegreesPerSecond + numericEpsilon) {
+        failures.push({ kind: 'cameraYawRate', index, yawDegreesPerSecond });
+      }
+      if (distanceDeltaMetres > positionEpsilon) failures.push({ kind: 'cameraDistanceIncreased', index, distanceDeltaMetres });
+      if (translationMetres > positionEpsilon && index < spread) failures.push({ kind: 'cameraMovedBeforeSpreading', index, translationMetres });
+    }
+    previous = frame;
+  }
+
+  const chooserToSettledMetres = translation(frames[settled].position, frames[first].position);
+  const spreadingPhaseSeconds = (frames[settled].renderTimeMs - frames[spread].renderTimeMs) / 1000;
+  const movingSeconds = firstMotion === undefined ? 0 : (lastMotion - firstMotion) / 1000;
+  const pitchRange = Math.max(...pitch) - Math.min(...pitch);
+  if (phone) {
+    if (spreadingPhaseSeconds < spreadingSeconds[0] || spreadingPhaseSeconds > spreadingSeconds[1]) {
+      failures.push({ kind: 'spreadingDuration', spreadingPhaseSeconds });
+    }
+    if (movingSeconds < spreadingSeconds[0] || movingSeconds > spreadingSeconds[1]) {
+      failures.push({ kind: 'cameraMotionDuration', movingSeconds });
+    }
+    if (pitchRange > maximumPitchRangeDegrees + numericEpsilon) failures.push({ kind: 'cameraPitchRange', pitchRange });
+  } else if (Math.max(chooserToSettledMetres, maxExcursion, pathLength) > desktopTranslationMetres + numericEpsilon) {
+    failures.push({ kind: 'desktopCameraTranslation', chooserToSettledMetres, maxExcursion, pathLength });
+  }
+  return { limits, first, spread, settled, measuredIntervals, duplicateDraws, chooserToSettledMetres, maxExcursion,
+    pathLength, spreadingPhaseSeconds, movingSeconds, maxSpeed, maxYawRate, pitchRange,
+    fovRange: Math.max(...lenses) - Math.min(...lenses), maxFovRate,
+    startDistanceMetres: frames[first].distance, settledDistanceMetres: frames[settled].distance, maxAdvance,
+    method: 'Chronological animation timestamps and post-render camera positions. Rates use unmodified elapsed time. Yaw rate is the shortest signed horizontal delta. Distance uses the fixed lamp basis.',
+    failures };
 }
