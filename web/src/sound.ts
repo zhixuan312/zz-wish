@@ -2,6 +2,7 @@
 // device is opened from the light gesture; preparation before then never produces sound.
 import type { PlaceId } from '../../shared/places.ts';
 import { seamlessNoiseLoop } from './audio-loop.ts';
+import { ambienceFor, createRecordedSounds, type RecordedSounds } from './engine/index.ts';
 const rooms: Record<PlaceId, { low: number; high: number; gain: number; swell: number; detail: 'drip' | 'bird' | 'air' | 'frog' | 'bell' }> = {
   // Pine wind high in the trees.
   'pine-gate': { low: 380, high: 1400, gain: .006, swell: .07, detail: 'air' },
@@ -56,6 +57,24 @@ let nodes: AudioScheduledSourceNode[] = [];
 let detailTimer = 0;
 let muted = false;
 let generation = 0;
+// Pine Gate's four recorded layers ride on the same context, master gain and generation token,
+// so mute, stop and the background pause cover them without a second audio path.
+let recorded: RecordedSounds | null = null;
+let recordedFor: PlaceId | null = null;
+let hidden = false;
+if (typeof document !== 'undefined') {
+  // A hidden tab must be silent: stop the occasional recordings and re-arm them on return.
+  document.addEventListener('visibilitychange', () => {
+    hidden = document.hidden === true;
+    if (!recorded) return;
+    if (hidden) recorded.stop();
+    else if (recordedFor === 'pine-gate') {
+      const part = ambienceFor(new Date());
+      recorded.prepare(part.recorded);
+      recorded.schedule(part.recorded);
+    }
+  });
+}
 function tone(frequency: number, duration: number, volume: number, glide = .45) {
   if (!context || !master) return;
   const c = context, oscillator = c.createOscillator(), envelope = c.createGain(), now = c.currentTime;
@@ -106,8 +125,29 @@ export const sound = {
         flame.connect(warmth).connect(breath).connect(master); flame.start(); nodes.push(flame);
         flame.onended = () => { flame.disconnect(); warmth.disconnect(); breath.disconnect(); };
       }
+      if (id === 'pine-gate') {
+        recorded?.stop();
+        recorded = createRecordedSounds({
+          context: () => context,
+          destination: () => master,
+        });
+        recordedFor = 'pine-gate';
+        const part = ambienceFor(new Date());
+        recorded.prepare(part.recorded);
+        recorded.schedule(part.recorded);
+      } else {
+        recorded?.stop();
+        recorded = null;
+        recordedFor = null;
+      }
       const detail = () => {
         if (token !== generation) return;
+        // The part of day may have turned over while the visitor stayed: re-arm the recordings.
+        if (recorded && recordedFor === id && !hidden) {
+          const part = ambienceFor(new Date());
+          recorded.prepare(part.recorded);
+          recorded.schedule(part.recorded);
+        }
         if (room.detail === 'drip') tone(1500 + Math.random() * 1000, .1, .018);
         if (room.detail === 'bird') { tone(2200 + Math.random() * 1100, .14, .012, 1.7); }
         if (room.detail === 'frog') { tone(420 + Math.random() * 80, .08, .01, 1.3); tone(400 + Math.random() * 80, .07, .008, 1.3); }
@@ -117,9 +157,16 @@ export const sound = {
       detailTimer = window.setTimeout(detail, id === 'snow-roof' ? 14000 + Math.random() * 10000 : 2500 + Math.random() * 5000);
     } catch { /* Unsupported or denied audio must never block lighting. */ }
   },
+  /** A taper taking flame from the shrine lamp: a soft breath, then a small flicker. */
+  ignition() {
+    // Deliberately quiet: the sound says "it caught" beside the light, it does not announce it.
+    tone(320, .26, .012, .62);
+    window.setTimeout(() => tone(880, .12, .006, 1.35), 90);
+  },
   mute(value: boolean) { muted = value; if (master && context) fadeGain(master.gain, value ? 0 : .65, context.currentTime, .16); },
   stop() {
     generation++; clearTimeout(detailTimer);
+    recorded?.stop(); recorded = null; recordedFor = null;
     const oldMaster = master;
     if (oldMaster && context) fadeGain(oldMaster.gain, 0, context.currentTime, .3);
     for (const node of nodes) { try { node.stop((context?.currentTime ?? 0) + .32); } catch { /* Already stopped. */ } }

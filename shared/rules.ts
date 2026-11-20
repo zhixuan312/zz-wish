@@ -89,3 +89,12 @@ export const COLORS: Record<Kind, readonly number[]> = {
   oil: [0x6f9a8a, 0x8a5838, 0xe2dccf],
   shade: [0xf2e4c4, 0xa82a1c, 0x6a4030],
 };
+
+// The colour each kind starts on. A plain candle is ivory, as the older candles in the place
+// are and as the world bible's basket of ordinary candles implies. A red gauze lantern stays
+// red for Snow Roof. The visitor can still choose any colour in the row.
+export const DEFAULT_COLOR: Record<Kind, number> = {
+  candle: 0,
+  oil: 1,
+  shade: 1,
+};

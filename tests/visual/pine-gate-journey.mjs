@@ -55,6 +55,9 @@ const audioCompare = process.env.CAPTURE_AUDIO_COMPARE === '1';
 const ambientOnly = process.env.CAPTURE_AMBIENT_ONLY === '1';
 const directionOnly = process.env.CAPTURE_DIRECTION_ONLY === '1';
 const siteDayOnly = process.env.CAPTURE_SITE_DAY_ONLY === '1';
+// The night proof replays the same six approved poses at 22:00; the approved day proof only
+// ever captured the burning view at night.
+const siteNightOnly = process.env.CAPTURE_SITE_NIGHT_ONLY === '1';
 const realismOnly = process.env.CAPTURE_REALISM_ONLY === '1';
 const realismBaseOnly = process.env.CAPTURE_REALISM_BASE_ONLY === '1';
 const requireBackdrop = process.env.CAPTURE_REQUIRE_BACKDROP === '1';
@@ -62,6 +65,7 @@ const walkTierAudit = process.env.CAPTURE_WALK_TIER === '1';
 const slowWalkTier = process.env.CAPTURE_WALK_TIER_SLOW === '1';
 assert(!realismOnly || directionOnly, 'The realism proof requires CAPTURE_DIRECTION_ONLY=1.');
 assert(!siteDayOnly || (directionOnly && !realismOnly), 'The daytime site proof requires the site direction mode.');
+assert(!siteNightOnly || (directionOnly && !realismOnly && !siteDayOnly), 'The night site proof requires the direction mode without the daytime flag.');
 assert(!realismBaseOnly || realismOnly, 'The base-only proof requires CAPTURE_REALISM_ONLY=1.');
 assert(!requireBackdrop || realismOnly, 'The backdrop requirement is available for realism captures.');
 assert(!walkTierAudit || ((siteDayOnly || realismOnly) && !realismBaseOnly),
@@ -70,7 +74,7 @@ assert(!slowWalkTier || walkTierAudit, 'The slow walk test requires the walk tie
 const directionWalkFrames = realismOnly ? [['terrace-reveal-28s', 28]]
   : [['forest-06s', 6], ['ancient-pine-crest', 21.5], ['terrace-reveal-28s', 28]];
 const siteDetailsRaw = process.env.CAPTURE_SITE_DETAILS;
-assert(!siteDetailsRaw || siteDayOnly, 'Supplemental views require the daytime site capture.');
+assert(!siteDetailsRaw || siteDayOnly || siteNightOnly, 'Supplemental views require a site capture.');
 const siteDetails = siteDetailsRaw ? JSON.parse(siteDetailsRaw) : [];
 assert(Array.isArray(siteDetails) && siteDetails.length <= 6, 'Supply up to six supplemental site views.');
 const reservedSiteStages = ['entrance', 'shrine-pavilion', 'day-burning', ...directionWalkFrames.map(([name]) => name)];
@@ -81,12 +85,18 @@ const detailViews = siteDetails.map(({ name, ...view }) => {
   detailNames.add(name);
   return { name, ...readDirectionOverview(JSON.stringify(view)) };
 });
-const dayFrames = [...(siteDayOnly ? ['entrance'] : []), ...directionWalkFrames.map(([name]) => name),
-  ...(realismOnly ? [] : ['shrine-pavilion']), ...detailViews.map(({ name }) => name), 'day-burning'];
-const directionPasses = [
-  { name: 'day', hour: 13, frames: dayFrames },
-  ...(realismOnly || siteDayOnly ? [] : [{ name: 'night', hour: 22, frames: ['night-burning'] }]),
-];
+const siteFrames = [...(siteDayOnly || siteNightOnly ? ['entrance'] : []),
+  ...directionWalkFrames.map(([name]) => name), ...(realismOnly ? [] : ['shrine-pavilion']),
+  ...detailViews.map(({ name }) => name)];
+// The site proof records the whole ignition: the taper reaching the wick, the spread and the
+// settled frame, then the burning view.
+const dayFrames = [...siteFrames, 'ignition', 'spreading', 'settled', 'day-burning'];
+const directionPasses = siteNightOnly
+  ? [{ name: 'night', hour: 22, frames: [...siteFrames, 'ignition', 'spreading', 'settled', 'night-burning'] }]
+  : [
+    { name: 'day', hour: 13, frames: dayFrames },
+    ...(realismOnly || siteDayOnly ? [] : [{ name: 'night', hour: 22, frames: ['night-burning'] }]),
+  ];
 const directionMethod = realismOnly
   ? 'The 28 s release and settled daytime burning use native product cameras and real elapsed time at 1440 × 900. A separate pointed sky camera records the rendered solar disc after the main frames. A phone context measures readiness and render cadence. Panels are hidden only while taking screenshots.'
   : siteDayOnly ? 'The six distinct P1 views use a private eight-sample package at 13:00. The entrance, walk and burning use product cameras. The site overview uses the approved declared pose.'
@@ -334,14 +344,22 @@ async function capture(browser, browserName, size, trial) {
     await context.addInitScript(installCaptureGpuGuard);
     if (quality) await context.addInitScript(installLiveAudioAudit);
     await context.addInitScript(({ hour, holdCameraDrift }) => {
-      Date.prototype.getHours = () => Math.floor(hour);
-      Date.prototype.getMinutes = () => Math.floor((hour % 1) * 60);
+      // The wall clock stays at the review hour unless a test moves it; the light curve reads Date,
+      // so this is what decides the part of day.
+      let clockShift = 0;
+      const clockHour = () => hour + clockShift / 3600000;
+      Date.prototype.getHours = () => Math.floor(clockHour()) % 24;
+      Date.prototype.getMinutes = () => Math.floor((clockHour() % 1) * 60);
       Date.prototype.getSeconds = () => 0;
       Date.prototype.getMilliseconds = () => 0;
       const nativeNow = performance.now.bind(performance);
       let offset = 0;
       performance.now = () => nativeNow() + offset;
       window.__advanceVisualClock = delta => { offset += delta; };
+      // Move the wall clock too, for the proof that a burning scene crosses a part boundary without
+      // jumping.
+      window.__advanceWallClock = ms => { clockShift += ms; };
+      window.__visualClockHour = () => clockHour();
       if (holdCameraDrift) window.__visualFreezeCamera = true;
     }, { hour: visualHour, holdCameraDrift });
     const page = await context.newPage();
@@ -396,7 +414,7 @@ async function capture(browser, browserName, size, trial) {
       readiness: quality && !audioCompare,
       cadence: fullJourney && phone && !readinessOnly && !audioCompare && !ambientOnly,
       lighting: !!delivery && !audioCompare && !readinessOnly,
-      walkClock: direction?.name === 'day' && (!phone || !!walkAudit),
+      walkClock: (direction?.name === 'day' || siteNightOnly) && (!phone || !!walkAudit),
       directionCamera: !!direction,
       solarProbe: realismOnly && !phone,
       backdropProbe: realismOnly || !!walkAudit || !!previewPackage?.approachForest,
@@ -532,7 +550,7 @@ async function capture(browser, browserName, size, trial) {
       entryStartedAt = started;
       await act(button(bi('^Step inside$', '^走进院里$')));
       if (skip && !walkAudit) await act(button(bi('^Skip$', '^跳过$')));
-      if (direction?.name === 'day' && !phone) {
+      if ((direction?.name === 'day' || siteNightOnly) && !phone) {
         let observeCrest = !!walkAudit;
         for (const [name, target] of directionWalkFrames) {
           if (observeCrest && target >= 20) {
@@ -756,14 +774,15 @@ async function capture(browser, browserName, size, trial) {
             `Pine Gate must use the ${pass} bank at visual hour ${visualHour}.`);
         }
       }
-      if (siteDayOnly) await captureShot('entrance');
+      if (siteDayOnly || siteNightOnly) await captureShot('entrance');
       else if (!directionOnly) await captureShot('place');
       if (walkAudit) assert(run.placeReadiness.wishToEnabledMs <= 5000, 'Wish to Step inside took more than 5 seconds.');
     }
     if (direction) {
-      await travel(direction.name === 'night' || run.realismPerformanceOnly);
+      // The night proof replays the whole walk at 22:00, so its frames are the same six views.
+      await travel(direction.name === 'night' && !siteNightOnly || run.realismPerformanceOnly);
       await choose();
-      if (directionOverview && direction.name === 'day') {
+      if (directionOverview && (direction.name === 'day' || siteNightOnly)) {
         const previous = await page.evaluate(() => window.__pineCaptureCamera());
         for (const { name, ...view } of [{ ...directionOverview, name: 'shrine-pavilion' }, ...detailViews]) {
           const pose = await page.evaluate(detail => window.__pineCaptureOverview(detail), view);
@@ -777,7 +796,9 @@ async function capture(browser, browserName, size, trial) {
           assertNearestCamera(await page.evaluate(() => window.__pineCaptureCamera()), previous);
         }
       }
-      const candle = await light();
+      // The site proof also records the taper at the wick, which is the beat the owner asked to
+      // see: the strip must not claim a contact the geometry does not make.
+      const candle = await light(siteDayOnly || siteNightOnly);
       assert.equal(candle.durationMs, 3_600_000);
       run.directionCandle = { id: candle.id, shape: candle.shape, durationMs: candle.durationMs };
       if (run.realismPerformanceOnly) {
@@ -1042,11 +1063,12 @@ try {
     report.delivery.publicManifestUnchanged = publicAfter === report.delivery.publicManifestSha256;
     assert(report.delivery.publicManifestUnchanged, 'The ordinary final Pine manifest changed during the isolated preview.');
   }
-  if (siteDayOnly && !failures) {
+  if ((siteDayOnly || siteNightOnly) && !failures) {
     assert.equal(report.runs.length, 1);
     const [day] = report.runs;
-    assert.equal(day.visualHour, 13);
-    assert.deepEqual(day.shots.map(shot => basename(shot.file, '.png')), dayFrames);
+    assert.equal(day.visualHour, siteNightOnly ? 22 : 13);
+    assert.deepEqual(day.shots.map(shot => basename(shot.file, '.png')),
+      siteNightOnly ? directionPasses[0].frames : dayFrames);
     assert.match(day.sceneSha256, /^[a-f0-9]{64}$/);
     assert.deepEqual(day.errors, []);
     report.directionVerified = true;

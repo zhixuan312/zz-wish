@@ -12,6 +12,10 @@ import { buildPineRidgeFascicles } from './pine-ridge-fascicles.js';
 import { buildPineBankVerge } from './pine-bank-verge.js';
 import { dressAncientPineBark } from './pine-ancient-bark.js';
 import { dressPineCrestCloth } from './pine-crest-cloth.js';
+import { createWishCloth } from './pine-wish-cloth.js';
+import { createCandleSlots } from './pine-candle-slots.js';
+import { createMudPrints, PINE_PRINTS } from './pine-mud-prints.ts';
+import { blendInputsAt as pineBlendInputsAt } from './pine-day-parts.ts';
 import { dressPineWetTreads } from './pine-wet-treads.js';
 import { pineDaySunDirection, pineDaySunDiscEdges } from './pine-gate-sun.js';
 import crestNeedleAnchors from './pine-crest-needle-anchors.json' with { type: 'json' };
@@ -85,10 +89,13 @@ export default function createPlace(h) {
     sky: { top: 0x0a1628, horizon: 0x354b61, ground: 0x263144, sun: 0xe6edf1, dir: moonlight.directionEngine, glow: .22, clouds: .5, lit: 0x394c66, dark: 0x213248, stars: .12, disc: 1.2 },
     fog: [0x4b626a, .024], sunL: [0xc5d4db, .68], hemi: [0x47545c, 0x10150e, .48], bloom: [.22, 1.1],
     // The same place by day; the scene blends toward it by the visitor's local time.
-    day: { exposure: 1.28, sky: { top: 0x6895b9, horizon: 0xc3d5dc, ground: 0xaabdc5, sun: 0xfff4df, dir: pineDaySunDirection, discEdges: pineDaySunDiscEdges, glow: .52, clouds: .16, lit: 0xf9faff, dark: 0xa7bac7 }, fog: [0xb4c8cd, .012], sunL: [0xfff2dc, 2], hemi: [0xc0d0e0, 0x404937, .85], bloom: [.2, 1.3] },
+    day: { exposure: 1.28, sky: { top: 0x6895b9, horizon: 0xc3d5dc, ground: 0xaabdc5, sun: 0xfff4df, dir: pineDaySunDirection, discEdges: pineDaySunDiscEdges, glow: .52, clouds: .16, lit: 0xf9faff, dark: 0xa7bac7 }, fog: [0xb4c8cd, .0085], sunL: [0xfff2dc, 2], hemi: [0xc0d0e0, 0x404937, .85], bloom: [.2, 1.3] },
     view: { pos: V3(...entrance.position), look: entranceLook(false), fov: entrance.desktopFov },
     viewPhone: { pos: V3(...entrance.phonePosition), look: entranceLook(true), fov: entrance.phoneFov },
     walkSeconds: path.seconds,
+    // Optional per-place lighting override: the scene uses this instead of the shared day keys
+    // when a place provides it. Pine Gate needs its own six-part curve; Snow Roof does not.
+    lightAt: clock => pineBlendInputsAt(clock),
     walk: [], doors: V3(-.17, 5.58, 6.32), createWalk,
     async build(_place, context) {
       // Start the soft plates and wax normal while the mesh and lightmaps
@@ -118,6 +125,20 @@ export default function createPlace(h) {
       if (crest) {
         context.G.add(crest.group);
         context.disposers.push(crest.dispose);
+      }
+      // Wet mud prints on the last steps and the shoulder: decals snapped onto the real stone, so
+      // they follow each tread rather than floating. They add geometry only, no texture file.
+      // The steps are spread across several glTF meshes, not one; raycast the whole baked group and
+      // let each print find whichever stone is under it.
+      const stone = baked.group;
+      {
+        const mud = createMudPrints({ THREE, surface: stone, prints: PINE_PRINTS });
+        if (mud.count) {
+          context.G.add(mud.group);
+          // Read by the Tier 1 test: the trail must place every print on real paving.
+          if (import.meta.env.DEV) window.__pineMudPrints = () => mud.count;
+          context.disposers.push(mud.dispose);
+        }
       }
       const ridge = buildPineRidgeFascicles(baked.group);
       if (ridge) context.disposers.push(ridge.dispose);
@@ -190,6 +211,71 @@ export default function createPlace(h) {
       context.up.push((dt, time, daylight) => life.update(dt, time, daylight));
       baked.life = life;
       context.disposers.push(life.dispose);
+
+      // The visitor's red cloth, tied under the candle stand. It lives with the place, not
+      // with the lamp, so rebuilding the candle never removes it and both endings keep it.
+      // Fixed, authored order of free places on the shrine shelf. The first candle takes the
+      // centre, and each later one moves to the next place while the earlier remnant stays.
+      // Coordinates are metres in the place group, offset from the lamp anchor.
+      const slots = createCandleSlots();
+      baked.candleOffset = slots.current;
+      baked.takeCandleSlot = slots.take;
+      if (import.meta.env.DEV) {
+        window.__pineCandleSlot = () => ({ index: slots.index, current: slots.current() });
+      }
+      // The candle sits at nook-local (0, N.y, 0) and the burn camera looks from +z, so the
+      // strip hangs just under the tray's front rim: tied to the stand, and not hidden beneath
+      // the tray from the product view.
+      // The candle stand sits at the world lamp anchor. Placement here runs before the nook
+      // group exists, so the strip is added to the world group and positioned in world metres:
+      // just outside the tray's front rim (about 69 mm radius) on the burn camera's side.
+      // The strip is authored round the tray in the stand's own frame: the module wraps the
+      // tray wall at its measured radius and ties the knot on the burn camera's side, so the
+      // group simply sits at the seat.
+      const anchor = baked.manifest.lampAnchor;
+      const cloth = createWishCloth({
+        THREE, anchor: V3(anchor[0], anchor[1], anchor[2]), seed: 3,
+      });
+      cloth.show(false);
+      // The glTF place group is in world metres, the same space as the lamp anchor.
+      baked.group.add(cloth.group);
+      baked.wishCloth = cloth;
+      // Read by the Tier 1 test, which runs against the production build: the strip must exist under
+      // the candle stand while burning and stay after the ending.
+      {
+        window.__pineWishCloth = () => {
+          // Local to the nook group, which is where the candle stand lives too.
+          const anchor = cloth.anchor;
+          return {
+            visible: cloth.group.visible,
+            position: cloth.group.position.toArray(),
+            anchor: [anchor.x, anchor.y, anchor.z],
+            ...cloth.report(),
+            bbox: (() => {
+              cloth.group.updateWorldMatrix(true, true);
+              const ribbon = cloth.mesh;
+              if (!ribbon) return null;
+              ribbon.geometry.computeBoundingBox();
+              const b = ribbon.geometry.boundingBox.clone().applyMatrix4(ribbon.matrixWorld);
+              return { min: b.min.toArray().map(v => +v.toFixed(3)), max: b.max.toArray().map(v => +v.toFixed(3)) };
+            })(),
+            faces: (() => {
+              const ribbon = cloth.mesh;
+              return ribbon ? { index: ribbon.geometry.index?.count ?? 0, verts: ribbon.geometry.attributes.position?.count ?? 0 } : null;
+            })(),
+          };
+        };
+      }
+      // The cloth is tied to the tray's wall, so it follows the tray's live XZ scale and is lit only
+      // by the visitor's own flame: at night it must not read brighter than the stone beside it.
+      context.up.push((_dt, _time, daylight) => {
+        // The strip loses its sky light as the lamp takes over, so at night it is lit by the candle.
+        cloth.setLight({ daylight });
+      });
+      // The tray's live XZ scale is set by the lamp when a candle shape is chosen; the scene calls
+      // this so the strip follows the wall it is tied to.
+      baked.setClothTrayScale = scale => cloth.setTrayScale(scale);
+      context.disposers.push(cloth.dispose);
     },
 
     // The visitor lights the central recess. The right edge opens to the valley.

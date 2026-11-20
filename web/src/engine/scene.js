@@ -19,6 +19,7 @@ import { acquireNativeAgX, NativeAgXPass } from './baked/nativeAgX.js';
 import visitorFabric from './baked/visitor-fabric.json';
 import { WickPlume, addGauzeVent, createGauzeSmokePath, gauzeFlameSize, gauzeRibGeometry, gauzeThroat } from './WickPlume.js';
 import { createPineTray, createPineWax, waxContactShadow } from './PineWax.js';
+import { TAPER_BEAT, taperHasReachedWick } from './places/pine-taper.js';
 
 // ---------- Renderer ----------
 const canvas = document.getElementById('gl');
@@ -592,7 +593,12 @@ const LAMPS = {
     const pineWax = createPineWax(seat, waxMaterial, { refined, sculptNormal, sunShade });
     pineWax.group.visible = false;
     g.add(pineWax.group);
-    const setShape = shape => {
+    const parts = { g, kind: 'wax', seat, pineWax, holder, shelfContact, sunShade,
+      frame: { h: .2, cy: .08 }, lightMax: .05, light: 0xffbc82, flame: refined ? .91 : 1.13,
+      // The tray's live XZ scale. Everything tied to the tray's wall, such as the visitor cloth,
+      // has to follow it or it hangs off a wall that is not there any more.
+      holderScale: 1 };
+    parts.setShape = shape => {
       pineWax.setShape(shape);
       if (!refined) return;
       const bounds = pineWax.profileBounds();
@@ -600,9 +606,11 @@ const LAMPS = {
       const holderScale = THREE.MathUtils.clamp((waxRadius + .007) / seat.traceRadius, .76, 1);
       holder.scale.set(holderScale, 1, holderScale);
       shelfContact.scale.setScalar(contactRadius * holderScale);
+      parts.holderScale = holderScale;
+      // Anything tied to the tray wall, such as the visitor's cloth, takes the same XZ scale.
+      place?.baked?.setClothTrayScale?.(holderScale);
     };
-    return { g, kind: 'wax', seat, pineWax, holder, shelfContact, setShape, sunShade,
-      frame: { h: .2, cy: .08 }, lightMax: .05, light: 0xffbc82, flame: refined ? .91 : 1.13 };
+    return parts;
   },
   // A brass-framed storm lantern hanging from a hook; the candle stands inside behind glass.
   lantern() {
@@ -1499,6 +1507,10 @@ function daylight(date = new Date(), continuous = false) {
   for (const key of Object.keys(a)) { const value=a[key]+(b[key]-a[key])*k;out[key]=continuous?value:Math.round(value*20)/20; }
   return out;
 }
+// A place may supply its own clock-to-light curve; when it does, that curve replaces the shared
+// day keys for that place only. Snow Roof supplies none, so its look is unchanged.
+const placeLight = (PLACE, date = new Date()) => (PLACE?.lightAt ? PLACE.lightAt(date) : daylight(date));
+
 const hexMix = (a, b, k) => new THREE.Color(a).lerp(new THREE.Color(b), Math.min(1, Math.max(0, k))).getHex();
 function blendPlace(N, L) {
   const D = N.day, n = L.n, g = L.g, mix = (a, b) => a + (b - a) * n;
@@ -1782,9 +1794,9 @@ async function buildPlace(t) {
   attachMine();
 }
 async function buildPlaceNow(t, isolated = false) {
-  const light = daylight(), lightKey = JSON.stringify(light);
-  if (cachedPlaces.has(t.id)) return cachedPlaces.get(t.id);
   PLACES[t.id] ??= (await placeModules[t.id]()).default(placeHelpers);
+  const light = placeLight(PLACES[t.id]), lightKey = JSON.stringify(light);
+  if (cachedPlaces.has(t.id)) return cachedPlaces.get(t.id);
   if(PLACES[t.id].bakedLighting)await ensureNativeAgX();
   if(t.id==='snow-roof')await ensureVisitorFabric();
   if(!PLACES[t.id].bakedLighting)await loadNaturalAssets();
@@ -1994,7 +2006,10 @@ function attachMine() {
     place.visitorPivot.position.copy(place.nookG.worldToLocal(V3(...(N.hangingPoint??[basis[0],3.22,basis[2]]))));
     place.visitorPivot.rotation.set(0,0,0);place.nookG.add(place.visitorPivot);place.visitorPivot.add(mine.g);
   }else place.nookG.add(mine.g);
-  mine.g.position.set(0, N.y, 0);
+  // Successive candles in one visit take the next fixed place on the shelf, leaving the
+  // earlier remnant visible where it stood.
+  const slot = place.baked?.candleOffset?.() ?? [0, 0, 0];
+  mine.g.position.set(slot[0], N.y + slot[1], slot[2]);
   mine.g.rotation.set(0,0,0);
   mine.setType(N.lamp);
   const fixedIndirectBasis = place.baked?.manifest.bake?.lampPassQuantity === 'indirect-diffuse-radiance-per-unit-albedo';
@@ -2339,13 +2354,18 @@ function makeIgnitionTaper(){
   return { g, f, casters };
 }
 /** Light the flame (animation only; the burn clock lives in the UI). */
-export async function ignite({onCatch, remainingFuel}={}) {
+export async function ignite({onCatch, remainingFuel, onTaperLit}={}) {
   const journey=++cameraJourneyVersion;
   const mark = (state, progress, evidence) => {
     if (import.meta.env.DEV) window.__visualIgnition = { state, progress, journey,
       position: rig.pos.toArray(), look: rig.look.toArray(), fov: rig.fov ?? camera.fov, ...evidence };
   };
   lit=true;emberUntil=0;wickPlume.clear();shadeCoolingUntil=0;shadeCoolingGlow=0;shadeCoolingStart=0;shadeCoolingTau=0;roomLight=1;ignitionFill=place.P.bakedLighting?1:0;previewFloor=1;mark('igniting',0);
+  // This candle has taken its place; the next lighting in the same visit moves on, leaving
+  // this remnant where it stands.
+  place?.baked?.takeCandleSlot?.();
+  // The wish strip is tied on when the lamp is lit and stays, through either ending.
+  place?.baked?.wishCloth?.show(true);
   const pine = !!mine.parts?.pineWax;
   if (pine) waxFuel = remainingFuel ?? null;
   if (!place.P.bakedLighting) {
@@ -2384,9 +2404,19 @@ export async function ignite({onCatch, remainingFuel}={}) {
   const start = tip.clone().addScaledVector(right, .27).add(V3(0, -.34, .22));
   const contactOffset = pine ? f.flame.position.clone().applyQuaternion(g.quaternion).negate()
     : V3(.004, -.006, .012);
+  // Pine Gate takes its flame from the shrine oil lamp, which sits behind the camera
+  // (local -1.38, .60, 2.60 against a spread camera at .17, 1.32, .70 looking the other way).
+  // The camera is frozen, so the taper enters from the shrine side, already lit, and the
+  // transfer happens out of frame: a warm moving glow and a soft ignition sound announce it.
+  const shrineSide = pine ? V3(-1, .06, 1).normalize() : null;
+  const behind = pine ? tip.clone().addScaledVector(shrineSide, 1.05).add(V3(0, -.10, 0)) : null;
+  const entry = pine ? tip.clone().addScaledVector(shrineSide, .30).add(V3(0, -.06, .02)) : start;
+  let snuffed = false;
   mine.power = 0;
-  g.visible = true;
+  g.visible = !pine;
   let caught=false;
+  // The transfer happens out of frame, so the caller marks it with a soft ignition cue.
+  if (pine) onTaperLit?.();
   await tween(3.2,k=>{
     if(!active())return;
     const retreat=ease(Math.min(1,k*3.2/1.0));
@@ -2394,20 +2424,35 @@ export async function ignite({onCatch, remainingFuel}={}) {
     rig.fov=THREE.MathUtils.lerp(fovStart,spread.fov,retreat);
     const wick = pine ? wickWorld() : tip;
     const contact = wick.clone().add(contactOffset);
-    if(k<.3)g.position.lerpVectors(start,contact,ease(k/.3));
+    if (pine) {
+      // Entry: the lit taper slides in from the shrine side during the first tenth.
+      const B = TAPER_BEAT;
+      if (k < B.entryEnd) g.position.lerpVectors(behind, entry, ease(k / B.entryEnd));
+      else if (k < B.contactEnd) g.position.lerpVectors(entry, contact, ease((k - B.entryEnd) / (B.contactEnd - B.entryEnd)));
+      else if (k < B.contactHold) g.position.copy(contact);
+      else if (k < B.retreatEnd) g.position.lerpVectors(contact, entry, ease((k - B.contactHold) / (B.retreatEnd - B.contactHold)));
+      else {
+        // Out again the way it came, its flame snuffed with a thread of smoke.
+        if (!snuffed) { snuffed = true; g.traverse((o) => { if (o.material?.emissive) o.material.emissiveIntensity = 0; }); }
+        g.position.lerpVectors(entry, behind, ease((k - B.retreatEnd) / (1 - B.retreatEnd)));
+      }
+      g.visible = k < B.exitEnd;
+    } else if(k<.3)g.position.lerpVectors(start,contact,ease(k/.3));
     else if(k<.58)g.position.copy(contact);
     else g.position.lerpVectors(contact,start.clone().add(V3(.12,-.35,.18)),ease((k-.58)/.42));
+    // The catch lands when the taper reaches the wick, not before.
     const catchPower=smooth(.29,.57,k);
-    if (!caught && catchPower >= .18) {
+    if (!caught && (pine ? taperHasReachedWick(k) : catchPower >= .18)) {
       caught = true;
       if (pine) mine.waxState = 'burning';
       onCatch?.();
     }
     ignitionFill=1-catchPower;
     mine.power=catchPower*(1+.06*Math.sin(Math.PI*smooth(.3,.75,k)));
-    f.tick(clockTime,k>.88?smooth(1,.88,k):1,0,[],0);
+    f.tick(clockTime,pine ? (k < TAPER_BEAT.snuffAt ? 1 : smooth(1,TAPER_BEAT.snuffAt,k)) : (k>.88?smooth(1,.88,k):1),0,[],0);
     const evidence = import.meta.env.DEV && pine ? {
       wickContactMetres: f.flame.getWorldPosition(V3(0, 0, 0)).distanceTo(wick),
+      taperToWickMetres: g.position.distanceTo(contact),
     } : undefined;
     mark('igniting', k * .18, evidence);
   });
@@ -2433,9 +2478,16 @@ export async function ignite({onCatch, remainingFuel}={}) {
   });
   if(active())mark('settled',1);
 }
-/** Put the flame out with a thread of smoke. */
-export async function snuff(done = false, remaining) {
+/** Put the flame out with a thread of smoke. A `gust` bends the flame hard before it dies. */
+export async function snuff(done = false, remaining, gust = false) {
   // Only visuals: settlement and persistence have already happened synchronously.
+  // A mountain gust is the Pine Gate reason for a lamp going out when the visitor leaves:
+  // the flame is pushed aside, then dies, and the place's cloth and needles swing with it.
+  if (gust && !done && place?.baked?.life?.gustBlast) {
+    const journeyAtGust = cameraJourneyVersion;
+    await place.baked.life.gustBlast(1.5);
+    if (journeyAtGust !== cameraJourneyVersion) return;
+  }
   const lastPower=mine.power*(lit?Math.min(1,level*25):1);
   const lastGlow=Math.max(0,...(mine.parts?.shells??[]).map(material=>material.userData.u.uGlow.value/material.userData.strength));
   lit = false;
@@ -2541,7 +2593,7 @@ function frame(stamp = performance.now()) {
   if (place) {
     if(time>nextClockCheck){
       nextClockCheck=time+15;
-      const light=daylight(),key=JSON.stringify(light);
+      const light=placeLight(PLACES[place.id]),key=JSON.stringify(light);
       if(key!==place.lightKey){
         place.P={...PLACES[place.id],...blendPlace(PLACES[place.id],light)};place.lightKey=key;place.daylight=light;
         const p=place.P,u=place.sky.material.uniforms;

@@ -2,20 +2,20 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import * as engine from './engine/index.ts';
 import { placeById, type Locale, type PlaceId } from '../../shared/places.ts';
 import { DEFAULT_PLACE, VISIBLE_PLACES, isVisiblePlace } from './visiblePlaces.ts';
-import { COLORS, DEFAULT_MINUTES, MAX_MINUTES, MIN_MINUTES, PRESET_MINUTES, PRESET_SHAPES, isAllowedMinutes, shapeMinutes, sizedPreset, type Kind, type Shape } from '../../shared/rules.ts';
+import { COLORS, DEFAULT_COLOR, DEFAULT_MINUTES, MAX_MINUTES, MIN_MINUTES, PRESET_MINUTES, PRESET_SHAPES, isAllowedMinutes, shapeMinutes, sizedPreset, type Kind, type Shape } from '../../shared/rules.ts';
 import { remainingFuel } from '../../shared/wax.ts';
 import { api, ApiError, type EndReason, type Stats } from './api.ts';
 import { Burn, type Settlement } from './burn.ts';
 import { presence } from './presence.ts';
 import { DrawPad, rowsFromStrokes, type Pt } from './DrawPad.tsx';
-import { MyCandles, TenLights } from './Panels.tsx';
+import { Credits, MyCandles, TenLights } from './Panels.tsx';
 import { CandleThumb } from './CandleThumb.tsx';
 import { sound } from './sound.ts';
 import { music, type MusicStage } from './music.ts';
 import { DICTS, fmtClock, fmtDuration } from './i18n.ts';
 
 type Screen = engine.ScenePhase;
-type Overlay = 'mine' | 'stats' | null;
+type Overlay = 'mine' | 'stats' | 'credits' | null;
 interface Result { done: boolean; burnedMs: number; plannedMs: number; reason: EndReason; saved: boolean | null }
 
 const TOAST_GAP_MS = 5 * 60_000;
@@ -150,7 +150,17 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
   const [preset, setPreset] = useState<number>(DEFAULT_MINUTES);
   const [strokes, setStrokes] = useState<Pt[][]>([]);
   const [drawingMinutes, setDrawingMinutes] = useState<number | null>(null);
-  const [color, setColor] = useState(1);
+  // The opening place decides the kind, so the first colour must be read from it: the default
+  // place is Snow Roof, a shade place, and its lantern is red gauze.
+  const [color, setColor] = useState(() => DEFAULT_COLOR[kind]);
+  // A different kind starts on its own default colour; a chosen colour does not carry across
+  // kinds, because the rows differ and the same index means a different wax.
+  const colorKind = useRef<Kind>(kind);
+  useEffect(() => {
+    if (colorKind.current === kind) return;
+    colorKind.current = kind;
+    setColor(DEFAULT_COLOR[kind]);
+  }, [kind]);
   const shape: Shape | null = useMemo(() => {
     const rows = tab === 'preset' ? sizedPreset(PRESET_SHAPES[kind][presetShape].rows, preset) : rowsFromStrokes(strokes);
     return rows ? { kind, rows, color: COLORS[kind][color] } : null;
@@ -235,7 +245,10 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
         // No ending cue, or one that failed to load, still has to reach the afterglow.
         if (!started) void music.play('result', lightPlace);
       });
-      void engine.snuff(s.done, isWax ? remainingFuel(Math.floor(s.burnedMs), b.planned) : undefined);
+      // Leaving the page on Pine Gate is the mountain gust: the flame is pushed aside
+      // before it dies, and the place's cloth and needles swing with it.
+      const gust = engine.isLeavingGust(lightPlace, s.reason);
+      void engine.snuff(s.done, isWax ? remainingFuel(Math.floor(s.burnedMs), b.planned) : undefined, gust);
       setResult({ done: s.done, burnedMs: s.burnedMs, plannedMs: b.planned, reason: s.reason, saved: null });
       setScreen('result'); setAskLeave(null);
       s.saved.then((c) => setResult((r) => r && { ...r, saved: !!c }));
@@ -264,6 +277,8 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
               });
             }
           },
+          // The taper takes its flame from the shrine lamp out of frame; the sound marks it.
+          onTaperLit: () => { if (lightPlace === 'pine-gate') sound.ignition(); },
         })
           .catch(() => { if (!b.isSettled) b.settle('put_out'); });
       }
@@ -317,7 +332,7 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
     placeRef.current = id;
     setPlaceId(id);
     if (placeById(id)!.vessel !== place.vessel) {
-      setTab('preset'); setPresetShape(0); setStrokes([]); setDrawingMinutes(null); setColor(1);
+      setTab('preset'); setPresetShape(0); setStrokes([]); setDrawingMinutes(null); setColor(DEFAULT_COLOR[kind]);
     }
     loadPastLamps(id);
     previewCourt(id);
@@ -345,7 +360,7 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
   });
   const backToPlace = () => { engine.setOffer(null); toPlace(); };
   const again = (id: string | null, text: string) => { setOverlay(null); setWishId(id); setWish(text); setStrokes([]); setDrawingMinutes(null); setTab('preset'); setResult(null); engine.setOffer(null); showPlace(); };
-  const startOver = () => { setWish(''); setWishId(null); setStrokes([]); setDrawingMinutes(null); setTab('preset'); setPresetShape(0); setPreset(DEFAULT_MINUTES); setColor(1); setWishHint(false); setResult(null); setScreen('wish'); run(() => engine.toCover()); };
+  const startOver = () => { setWish(''); setWishId(null); setStrokes([]); setDrawingMinutes(null); setTab('preset'); setPresetShape(0); setPreset(DEFAULT_MINUTES); setColor(DEFAULT_COLOR[kind]); setWishHint(false); setResult(null); setScreen('wish'); run(() => engine.toCover()); };
   const backToWish = () => { setScreen('wish'); run(() => engine.toCover()); };
 
   const displayMinutes = drawingMinutes ?? minutes;
@@ -368,6 +383,7 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
           {screen !== 'burning' && <button className="btn small" onClick={switchLocale} aria-label={t.langSwitchLabel}>{t.langSwitch}</button>}
           <button className="btn small" onClick={() => open('stats')}>{t.tenLights}</button>
           <button className="btn small" onClick={() => open('mine')}>{t.myCandles}</button>
+          <button className="btn small credits-link" onClick={() => open('credits')}>{t.creditsLink}</button>
         </nav>
       </header>
 
@@ -555,6 +571,7 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
 
       {overlay === 'mine' && <MyCandles t={t} locale={locale} onClose={() => setOverlay(null)} onAgain={(id, text) => again(id, text)} />}
       {overlay === 'stats' && <TenLights t={t} locale={locale} onClose={() => setOverlay(null)} />}
+      {overlay === 'credits' && <Credits t={t} onClose={() => setOverlay(null)} />}
     </div>
   );
 }

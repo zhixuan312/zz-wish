@@ -85,9 +85,24 @@ export const renderLampThumbnail = (shape: Shape, options: LampThumbnailOptions)
 export const travel = (id: PlaceId) => initialize().then(s => s.travel(id));
 export const toCover = () => initialize().then(s => s.toCover());
 export const ignite = (options: IgnitionOptions = {}) => initialize().then(s => s.ignite(options));
-export const snuff = (done = false, remaining?: number) => initialize().then(s => s.snuff(done, remaining));
+export const snuff = (done = false, remaining?: number, gust = false) => initialize().then(s => s.snuff(done, remaining, gust));
+export { isLeavingGust } from './places/pine-gust.ts';
 export const skip = () => { void initialize().then(s => s.skip()).catch(() => {}); };
 // The visitor's own past lamps: stored for the active place, drawn only where a
 // court defines past lamp slots.
 export const setOwnPastLamps = (list: Parameters<Scene['setOwnPastLamps']>[0]) =>
   initialize().then(s => s.setOwnPastLamps(list));
+
+import { dayPart } from '../../../shared/dayPart.ts';
+import { layersFor, recordedLayersFor } from './places/pine-ambience.ts';
+
+export { layersFor, recordedLayersFor, nextDelay, LEVELS, RECORDED } from './places/pine-ambience.ts';
+export { createRecordedSounds } from './places/pine-recorded-sounds.ts';
+export { PART_LIGHT, PART_ORDER, PART_START, lightAt, partProgress } from './places/pine-day-parts.ts';
+export type { RecordedSounds } from './places/pine-recorded-sounds.ts';
+
+/** One call for the UI: which layers this part of day enables, and which of them are recorded. */
+export function ambienceFor(date: Date) {
+  const part = dayPart(date);
+  return { part, layers: [...layersFor(part)], recorded: recordedLayersFor(part) };
+}

@@ -239,3 +239,14 @@ textarea[aria-invalid=true] { border-color:#f0b69a; }
   #fade { transition-duration:.2s; }
   .hud-bottom,.topbar,.pill { transition-duration:.1s; }
 }
+
+/* Credits: a plain list inside the normal panel, scrollable on a phone. */
+.credits-list { list-style:none; margin:0; padding:0; display:grid; gap:18px; }
+.credits-list li { border-top:1px solid #ffffff24; padding-top:14px; }
+.credits-list li:first-child { border-top:0; padding-top:0; }
+.credits-list h3 { margin:0 0 6px; font-size:15px; font-weight:600; }
+.credits-list p { margin:0 0 6px; line-height:1.5; }
+.credit-links a { color:inherit; text-underline-offset:2px; }
+@media (max-width:430px) {
+  .credits-list p { font-size:14px; }
+}
