@@ -595,7 +595,7 @@ async function captureContext(browser, { hour, look, walk }) {
       await writeFile(join(output, file), JSON.stringify({ viewport, summary, ...audit }, null, 2) + '\n');
       result.lanternAudit = { file, ...summary };
       console.log('SNOW_COURT_LANTERN', size, look, JSON.stringify({ ...summary, failures: summary.failures.length }));
-      assert.deepEqual(summary.failures, [], 'Snow Roof lantern framing failed; see ' + file);
+      assert.equal(summary.failures.length, 0, 'Snow Roof lantern framing failed; see ' + file);
     }
     result.served = [...served];
     assert.deepEqual(report.errors.filter(row => row.hour === hour), [], 'Runtime errors during capture.');

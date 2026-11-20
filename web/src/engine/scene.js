@@ -1873,7 +1873,9 @@ async function buildPlaceNow(t, isolated = false) {
   try {
     // A streamed Snow Court opens on the road. Its visitor lamp shaders can
     // link with the actual lamp when the player reaches the hall.
-    await renderer.compileAsync(stage, stageCamera);
+    // The streamed road is always drawn into the linear compositor target.
+    // Precompiling the screen-space variant as well delays Step inside.
+    if (!streamsSnowInterior) await renderer.compileAsync(stage, stageCamera);
     if (streamsSnowInterior) await compileIntoTarget(stage, stageCamera, warm);
     if (P.bakedLighting && P.nook.lamp === 'gauze' && !streamsSnowInterior) {
       visitorPreview = LAMPS.gauze({ ...presetOf('shade'), liveBaked: true });

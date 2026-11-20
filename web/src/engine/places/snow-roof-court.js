@@ -87,7 +87,7 @@ export default function createWinterCourt(h) {
     return { pos, look: pos.clone().addScaledVector(direction, 3.5), fov };
   };
   const choiceDesktop = lampView(2.22, -8.97, -116.5, -3, 67);
-  const choicePhone = lampView(2.22, -8.96, -117.65, -41, 124);
+  const choicePhone = lampView(2.22, -8.96, -117.65, -41, 127);
   const lampDesktop = lampView(2.22, -8.97, -140, -3, 51);
   const lampPhone = lampView(2.22, -8.96, -144, -12, 80);
   const entrance = pose(site.walk[0]);
