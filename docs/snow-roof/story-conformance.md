@@ -201,3 +201,20 @@ The package uses sixteen maps baked at eight Cycles samples on Metal with Metal 
 | Readable interiors at six times of day | differs pending P3 | The burning frames show beam grain, older lanterns and doors at both tested hours. This review covers midday and night only. It leaves dawn, morning, afternoon and dusk, and the darker exterior eaves, for six-hour calibration. |
 
 The photographic comparisons use daylight reference photographs for material and form in the corresponding night panels. They provide no photographic reference for the chosen night exposure. Gameplay, endings and music retain the statuses in the baseline tables until their respective milestones.
+
+### P2 inspection and corrections
+
+The isolated 8-sample review package has manifest `5a1adda16827da48d1abd9b4b0bfdfc88e3d46d88986244fc71dad3f9b4ecc83`. The base, phone and desktop totals are 14,947,258 B, 25,851,556 B and 32,609,426 B. The prepared and packed resting-contact replays pass twelve support groups and six wick roots. The approved site and the installed assets remain byte-identical.
+
+- The six-second frame in `runtime-05/` confirms that the near right boulder's scanned grain follows the steep surface. The old vertical stretch is reduced. Its metric UV unwrap leaves the geometry and lightmap charts fixed.
+- The 13:00 supplemental views in `inspection-06/` show the original seated figure, the small altar oil lamp, the guest table with two spare shades and two cups, the split fuel rack, the broom and the open flue. These are extra app cameras for checking props, with the approved route and six cameras stored separately. The rack tiers read in the added reflected light. The flue plume is still faint, and several small props have low contrast in the fixed views.
+- The pixel-exact crops in `detail-a-b-06/` show the additional passage bounce and the deeper, partly filled heel and toe marks. The buried impressions are subtle in the wide shot. The west boards are easier to separate from their frames by day. At night, the boards and the timber beneath the eaves still have low contrast.
+- The initial runtime showed the default visitor shade on its cord during the walk. The rebuilt court now waits until the chooser arrival to show the preview. The real lighting action still places the visible settled shade in the existing flow. P4 covers the actual placement, tag, altar transfer and hoist.
+
+The source and the app inspections establish the P2 arrangement. Final visual approval and the near-photographic material pass are separate. Roof snow edges, distant needle detail and the small set dressing remain simpler than the photographs.
+
+### P2 review package
+
+Use `artifacts/snow-roof/quality/p2/runtime-08/report.json` for the final day and night route at runtime revision `5cb966be1e4552a69a04898edf13b7826f629867`. The two walks held every approved camera and ran in 30.08 and 30.07 seconds. Step inside became available in 4.53 seconds at 13:00 and 4.57 seconds at 22:00. Both runs recorded zero runtime errors, HTTP errors and source reloads. The visitor preview was hidden in both entries and all eight timed walking frames. The two settled frames show the visitor lamp. The night landscape and native interior maps were fully active by the reveal.
+
+The review set beside the runtime report contains twelve full frames, twelve photo pairs and twenty-four pixel-exact app and reference crops in `photo-review-08/`. `native-details-08/` adds twenty-two app detail crops. `inspection-06/` and `detail-a-b-06/` provide the separate prop evidence from the same baked package. The final journey keeps the visual difference between that inspection and the review explicit: the central cord waits free until the chooser.
