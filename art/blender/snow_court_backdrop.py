@@ -258,6 +258,7 @@ def main():
     # Bind the common renderer to Blender only after the CPU inspection path.
     plates.bpy = bpy
     plates.Vector = Vector
+    bpy.ops.wm.read_factory_settings(use_empty=True)
     scene = bpy.context.scene
     recipe['devices'] = plates.configure(scene, options, width, height)
     recipe['blenderVersion'] = bpy.app.version_string
