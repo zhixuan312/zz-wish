@@ -107,6 +107,13 @@ export default function createWinterCourt(h) {
       hemi: [0xdae6f1, 0x575359, .89], bloom: [.18, 1.26],
     },
     view: entrance, viewPhone: { ...entrance, fov: entrance.fov + 5 },
+    cameraExposure(position) {
+      // Eyes adapt as the snowy court leaves the view through the deep door
+      // reveal. The lift tapers away well before the visitor reaches a lamp.
+      const depth = -position.z;
+      const { smoothstep } = THREE.MathUtils;
+      return 1 + .68 * smoothstep(depth, .75, 3.1) * (1 - smoothstep(depth, 4.8, 8.1));
+    },
     walk: [], walkSeconds: site.walkSeconds,
     createWalk: (start, _end, phone) => winterCourtWalk(THREE, site, start, phone),
     offerAfterTravel: true,
