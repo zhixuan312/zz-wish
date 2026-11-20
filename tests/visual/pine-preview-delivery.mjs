@@ -27,7 +27,9 @@ export async function readPinePreview(worktree, candidateDir, expectedSha) {
   const manifest = JSON.parse(manifestBytes);
   assert.equal(manifest.place, 'pine-gate');
   assert.equal(manifest.partialPreview, true);
-  assert.equal(manifest.bake.samples, 8);
+  // The shared demo package is a 32-sample night prototype; review captures use whichever
+  // sample count its manifest declares, and must never claim the other.
+  assert([8, 32].includes(manifest.bake.samples), 'Expected an 8- or 32-sample Pine Gate preview package.');
   const files = new Map(manifest.files.map(file => [file.uri, file]));
   assert.equal(files.size, manifest.files.length, 'Duplicate declared preview URI.');
   const backdrop = readPineBackdrop(manifest);
@@ -38,7 +40,8 @@ export async function readPinePreview(worktree, candidateDir, expectedSha) {
   assert.deepEqual(regions, ['approach', 'gate', 'niche']);
   const maps = regions.flatMap(region => ['day', 'dusk', 'night', 'lamp'].map(look => {
     const map = manifest.lightmaps[region][look];
-    assert.equal(map?.samples, 8, `Expected an eight-sample ${region}/${look} preview map.`);
+    assert.equal(map?.samples, manifest.bake.samples,
+      `Expected the ${region}/${look} preview map to match the package's ${manifest.bake.samples} samples.`);
     assert.equal(files.get(map.uri)?.bytes, map.bytes, `Missing ${region}/${look} payload.`);
     return map.uri;
   }));

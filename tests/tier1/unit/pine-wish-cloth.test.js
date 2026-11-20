@@ -127,7 +127,9 @@ test('the band is a narrow upright ring that never exceeds the tray rim', () => 
 test('the cloth is plain lit red cloth with shadows, and carries no text', () => {
   const cloth = createWishCloth({ THREE, anchor });
   const { band } = bandVertices(cloth);
-  expect(band.material.type).toBe('MeshStandardMaterial');
+  // Same family and environment response as the spent wax stubs it sits among.
+  expect(band.material.type).toBe('MeshPhysicalMaterial');
+  expect(band.material.envMapIntensity).toBeCloseTo(.42, 2);
   expect(band.material.color.getHex()).toBe(CLOTH_COLOR_HEX);
   expect(band.material.metalness).toBe(0);
   expect(band.castShadow).toBe(true);

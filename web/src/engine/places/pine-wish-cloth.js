@@ -32,7 +32,7 @@ export function wallRadius(y) {
 export const CLOTH_SPEC = Object.freeze({
   // A narrow band: 8 mm tall, from y .004 to .012, a couple of millimetres off the wall, and
   // never wider than the tray's own rim.
-  band: { from: .004, to: .012, clearance: .0018, width: .008 },
+  band: { from: .004, to: .012, clearance: .0012, width: .008 },
 });
 
 // The strip exists from the moment the place loads, but is tied on only when the lamp is lit,
@@ -49,8 +49,14 @@ export function createWishCloth({ THREE, anchor }) {
   group.visible = false;
 
   const { band } = CLOTH_SPEC;
-  const material = new THREE.MeshStandardMaterial({
-    color: CLOTH_COLOR, roughness: .97, metalness: 0, side: THREE.DoubleSide,
+  // Light the cloth exactly as the spent wax stubs beside it are lit: same material family,
+  // the same environment intensity, no separate tinting. It must never read brighter than the
+  // stone at night, so nothing here pushes light into it.
+  const material = new THREE.MeshPhysicalMaterial({
+    color: CLOTH_COLOR, roughness: .92, metalness: 0,
+    clearcoat: .04, clearcoatRoughness: .6,
+    specularIntensity: .32, envMapIntensity: .42,
+    side: THREE.DoubleSide,
   });
 
   // The tray wall is convex over this band, so a straight span between two rings would cut
