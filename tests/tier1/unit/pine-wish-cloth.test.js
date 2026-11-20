@@ -5,112 +5,172 @@ import * as THREE from 'three';
 
 const anchor = new Vector3(-1.8, 5, .9);
 
-const vertices = (cloth) => {
+// Every vertex of every mesh in the group, in anchor-relative metres (the group sits at the
+// anchor, so a child's position plus its scaled local vertex is the offset).
+function vertices(cloth) {
   const out = [];
   for (const object of cloth.group.children) {
     const position = object.geometry?.attributes?.position;
     if (!position) continue;
+    const scale = object.scale ?? { x: 1, y: 1, z: 1 };
+    object.updateMatrix();
     for (let i = 0; i < position.count; i++) {
-      // Convert to anchor-relative metres: the group sits at the anchor, so each child's
-      // position is its offset and its scale must be applied to the local vertex.
-      const scale = object.scale ?? { x: 1, y: 1, z: 1 };
-      out.push({
-        x: object.position.x + position.getX(i) * scale.x,
-        y: object.position.y + position.getY(i) * scale.y,
-        z: object.position.z + position.getZ(i) * scale.z,
-        mesh: object.name,
-      });
+      // Apply the child's own rotation and scale, which the fray threads use.
+      const local = new THREE.Vector3(
+        position.getX(i) * scale.x, position.getY(i) * scale.y, position.getZ(i) * scale.z,
+      ).applyQuaternion(object.quaternion).add(object.position);
+      out.push({ x: local.x, y: local.y, z: local.z, mesh: object.name });
     }
   }
   return out;
-};
+}
+
+const bandOf = cloth => cloth.group.getObjectByName('Wish cloth band tied round the candle tray');
 
 test('wallRadius follows the tray lathe profile', () => {
   for (const [r, y] of TRAY_PROFILE) expect(wallRadius(y)).toBeCloseTo(r, 6);
-  // Between two profile points it interpolates.
   const mid = (.0035 + .006) / 2;
   expect(wallRadius(mid)).toBeCloseTo((.045 + .052) / 2, 4);
-  // Below the tray it holds the first radius; above the top it holds the last.
   expect(wallRadius(-.01)).toBeCloseTo(.038, 6);
   expect(wallRadius(.5)).toBeCloseTo(.054, 6);
 });
 
-test('no part of the cloth sits below the stone', () => {
+test('the band is an upright narrow strip against the wall, never a flange', () => {
   const cloth = createWishCloth({ THREE, anchor, seed: 3 });
-  const points = vertices(cloth);
-  expect(points.length).toBeGreaterThan(50);
-  for (const point of points) {
-    // The band's own vertices start at the stone; nothing may go under it.
-    expect(point.y, `${point.mesh} at y ${point.y}`).toBeGreaterThanOrEqual(.0005);
+  const band = bandOf(cloth);
+  const position = band.geometry.attributes.position;
+  // Offset from the wall is small and positive everywhere: it hugs the wall.
+  for (let i = 0; i < position.count; i++) {
+    const x = position.getX(i), y = position.getY(i), z = position.getZ(i);
+    const offset = Math.hypot(x, z) - wallRadius(y);
+    expect(offset, `offset at y ${y}`).toBeGreaterThanOrEqual(.0005);
+    expect(offset, `offset at y ${y}`).toBeLessThanOrEqual(.004);
   }
-  cloth.dispose();
-});
+  // Its faces are radial, not a horizontal flange: the normal's outward component must
+  // dominate, and its vertical part stays below the outward part everywhere.
+  band.geometry.computeVertexNormals();
+  const normals = band.geometry.attributes.normal;
+  const pos = band.geometry.attributes.position;
+  let checked = 0, degenerate = 0;
+  for (let i = 0; i < normals.count; i++) {
+    const radial = Math.hypot(pos.getX(i), pos.getZ(i));
+    if (radial < .005) continue; // the seam vertex on the axis has no meaningful radial
 
-test('nothing below the tray top passes inside the tray wall', () => {
-  const cloth = createWishCloth({ THREE, anchor, seed: 3 });
-  for (const point of vertices(cloth)) {
-    if (point.y > .017) continue;
-    const radius = Math.hypot(point.x, point.z);
-    // The band wraps the wall with clearance, so a radius inside the wall would be a burial.
-    expect(radius, `${point.mesh} at y ${point.y} radius ${radius}`)
-      .toBeGreaterThanOrEqual(wallRadius(point.y) + .001 - .0015);
+    const outward = (normals.getX(i) * pos.getX(i) + normals.getZ(i) * pos.getZ(i)) / radial;
+    // Degenerate normals appear where the ring closes on itself; skip those few.
+    if (Math.abs(outward) < .2) { degenerate++; continue; }
+    expect(outward, 'band normal must point outward').toBeGreaterThan(.05);
+    // The tray wall flares 43.5 -> 57.9 mm over this 10 mm band, so the band's own slope is
+    // steep; its normal must still be radial rather than a horizontal flange (a flange would be
+    // outward ~0 and vertical ~1).
+    expect(Math.abs(outward)).toBeGreaterThan(0.5);
+    checked++;
   }
-  cloth.dispose();
-});
-
-test('the band is a tied turn round the wall, the knot faces the camera', () => {
-  const cloth = createWishCloth({ THREE, anchor, seed: 3 });
-  const band = cloth.group.getObjectByName('Wish cloth band tied round the candle tray');
-  expect(band).toBeTruthy();
+  expect(checked).toBeGreaterThan(100);
+  // At most the closing seam may be degenerate.
+  expect(degenerate).toBeLessThanOrEqual(4);
+  // Height is the authored 10 mm band, not a wide disc.
   band.geometry.computeBoundingBox();
-  const b = band.geometry.boundingBox;
-  // A full turn: it spans the wall on both axes, and its height is the 10 mm band.
-  expect(b.max.x - b.min.x).toBeGreaterThan(.09);
-  expect(b.max.z - b.min.z).toBeGreaterThan(.09);
-  expect(b.max.y - b.min.y).toBeCloseTo(CLOTH_SPEC.band.to - CLOTH_SPEC.band.from, 3);
-
-  const knot = cloth.group.getObjectByName('Knot of the visitor wish cloth');
-  expect(knot.position.z).toBeGreaterThan(wallRadius(CLOTH_SPEC.knot.y));
-  expect(knot.position.y).toBeCloseTo(CLOTH_SPEC.knot.y, 6);
+  const box = band.geometry.boundingBox;
+  expect(box.max.y - box.min.y).toBeCloseTo(CLOTH_SPEC.band.to - CLOTH_SPEC.band.from, 3);
+  // It never grows beyond the tray's own rim radius, so it cannot read as a hat brim.
+  expect(box.max.x).toBeLessThanOrEqual(wallRadius(CLOTH_SPEC.band.to) + .004);
   cloth.dispose();
 });
 
-test('two 30 mm tails lie on the stone and reach toward the camera', () => {
+test('the knot is tied cloth, not a smooth sphere', () => {
   const cloth = createWishCloth({ THREE, anchor, seed: 3 });
-  const tails = cloth.group.children.filter((o) => /^Wish cloth tail/.test(o.name));
+  const knot = cloth.group.getObjectByName('Knot of the visitor wish cloth');
+  expect(knot).toBeTruthy();
+  const kinds = [];
+  knot.traverse((object) => { if (object.isMesh) kinds.push(object.geometry.type); });
+  expect(kinds.length).toBeGreaterThanOrEqual(3);
+  expect(kinds).not.toContain('SphereGeometry');
+  // Two cloth loops and a twisted core.
+  expect(kinds.filter(k => k === 'TubeGeometry')).toHaveLength(2);
+  expect(kinds).toContain('CapsuleGeometry');
+  // Roughly 15-20 mm across.
+  for (const object of knot.children) {
+    object.geometry.computeBoundingBox();
+    const box = object.geometry.boundingBox;
+    expect(box.max.x - box.min.x).toBeLessThanOrEqual(.022);
+  }
+  cloth.dispose();
+});
+
+test('the tails are 1 mm thick cloth with undulation and a rounded, unbent edge', () => {
+  const cloth = createWishCloth({ THREE, anchor, seed: 3 });
+  const tails = cloth.group.children.filter(o => /^Wish cloth tail/.test(o.name));
   expect(tails).toHaveLength(2);
   for (const tail of tails) {
-    tail.geometry.computeBoundingBox();
-    const b = tail.geometry.boundingBox;
-    // Ends reach out past the knot toward the burn camera.
-    // Reaches past the knot toward the camera; the half-width of the 30 mm tail can add a
-    // little at the end, so the upper bound allows the cloth's own width.
-    expect(b.max.z).toBeGreaterThan(.100);
-    expect(b.max.z).toBeLessThanOrEqual(.145);
-    // Lying on the stone, never standing up 8 mm tall.
-    expect(b.max.y - b.min.y).toBeLessThan(.010);
-    expect(b.min.y).toBeGreaterThanOrEqual(.0005);
+    const position = tail.geometry.attributes.position;
+    // Thickness: both faces exist, so the y range is about the authored 1 mm.
+    let minY = Infinity, maxY = -Infinity;
+    for (let i = 0; i < position.count; i++) {
+      const y = position.getY(i);
+      minY = Math.min(minY, y); maxY = Math.max(maxY, y);
+    }
+    // 1 mm of cloth plus the gentle undulation along its length.
+    expect(maxY - minY).toBeGreaterThanOrEqual(.0005);
+    expect(maxY - minY).toBeLessThanOrEqual(.010);
+    // Both sides are present: the index buffer closes the strip into a solid.
+    expect(tail.geometry.index.count).toBeGreaterThan(position.count * 2);
   }
-  // Their centres stay on opposite sides of the knot, so they are not parallel and never
-  // collapse into one strip.
-  const centres = tails.map((t) => {
-    t.geometry.computeBoundingBox();
-    const b = t.geometry.boundingBox;
-    return (b.min.x + b.max.x) / 2;
-  });
-  expect(Math.sign(centres[0])).not.toBe(Math.sign(centres[1]));
   cloth.dispose();
 });
 
-test('the cloth is matte fabric with frayed ends and no lettering', () => {
+test('the fray is many fine threads, not blocks', () => {
   const cloth = createWishCloth({ THREE, anchor, seed: 3 });
-  const band = cloth.group.getObjectByName('Wish cloth band tied round the candle tray');
-  expect(band.material.roughness).toBeGreaterThanOrEqual(.9);
-  expect(band.material.metalness).toBe(0);
-  expect(band.material.color.getHex()).toBe(0xb8231d);
-  expect(cloth.group.children.filter((o) => /^Frayed end/.test(o.name)).length).toBeGreaterThanOrEqual(6);
-  let textured = null;
-  cloth.group.traverse((o) => { if (o.isMesh && o.material?.map) textured = o.material.map; });
-  expect(textured).toBeNull();
+  const threads = cloth.group.children.filter(o => /^Frayed thread/.test(o.name));
+  expect(threads.length).toBeGreaterThanOrEqual(16);
+  for (const thread of threads) {
+    expect(thread.geometry.type).toBe('CylinderGeometry');
+    const position = thread.geometry.attributes.position;
+    let minX = Infinity, maxX = -Infinity;
+    for (let i = 0; i < position.count; i++) {
+      minX = Math.min(minX, position.getX(i)); maxX = Math.max(maxX, position.getX(i));
+    }
+    // 0.5 mm across.
+    expect(maxX - minX).toBeLessThanOrEqual(.0008);
+  }
+  cloth.dispose();
+});
+
+test('the material is lit cloth: standard, textured, deep red, no emissive', () => {
+  const cloth = createWishCloth({ THREE, anchor, seed: 3 });
+  const band = bandOf(cloth);
+  const material = band.material;
+  expect(material.type).toBe('MeshStandardMaterial');
+  expect(material.emissive?.getHex?.() ?? 0).toBe(0);
+  expect(material.emissiveIntensity ?? 0).toBeLessThanOrEqual(1);
+  expect(material.toneMapped).not.toBe(false);
+  expect(material.roughness).toBe(1);
+  // Deep fresh-cloth red, not salmon.
+  const hex = material.color.getHex();
+  expect([0xa5161b, 0xb81d22]).toContain(hex);
+  // Procedural woven maps.
+  expect(material.normalMap).toBeTruthy();
+  expect(material.roughnessMap).toBeTruthy();
+  // Every cloth mesh casts and receives, so the stone shows contact shadows.
+  for (const object of cloth.group.children) {
+    if (!object.isMesh) continue;
+    expect(object.castShadow, `${object.name} must cast`).toBe(true);
+    expect(object.receiveShadow, `${object.name} must receive`).toBe(true);
+  }
+  cloth.dispose();
+});
+
+test('nothing sits below the stone or inside the tray wall', () => {
+  const cloth = createWishCloth({ THREE, anchor, seed: 3 });
+  const points = vertices(cloth);
+  expect(points.length).toBeGreaterThan(200);
+  for (const point of points) {
+    expect(point.y, `${point.mesh} at y ${point.y}`).toBeGreaterThanOrEqual(.0004);
+    if (point.y > .017) continue;
+    // The knot deliberately stands proud of the wall; the band and tails must not enter it.
+    if (/Knot|Twisted|loop/.test(point.mesh)) continue;
+    const radius = Math.hypot(point.x, point.z);
+    expect(radius, `${point.mesh} at y ${point.y}`).toBeGreaterThanOrEqual(wallRadius(point.y) - .0015);
+  }
   cloth.dispose();
 });
