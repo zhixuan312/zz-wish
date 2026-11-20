@@ -4,6 +4,45 @@
   "purpose": "Single provenance and license register for every delivered visual asset and shared decoder.",
   "assets": [
     {
+      "id": "snow-court-pine-bark",
+      "kind": "PBR material",
+      "provider": "Poly Haven",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://polyhaven.com/license",
+      "sourceUrl": "https://polyhaven.com/a/pine_bark",
+      "authors": {
+        "Dimitrios Savva": "Photography and processing"
+      },
+      "transformation": "Downsample the three credited 1K JPEGs to 512 pixels. Stage base color as sRGB Basis KTX2 and the normal and roughness as linear Basis KTX2.",
+      "provenance": "docs/licenses/snow-court-pines.md",
+      "files": [
+        {
+          "path": "art/assets/snow-court/pine-bark/diffuse.jpg",
+          "bytes": 143219,
+          "sha256": "e483084f3d95642badfaf6ac21bf0592af750c7430fc4df397456c02a4e40cea",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/pine_bark/pine_bark_diff_1k.jpg",
+          "sourceSha256": "89ddfbff0388d30caff902ba600cdf75eb1e651ca71ece6594b5a9b27abb47ab",
+          "map": "diffuse"
+        },
+        {
+          "path": "art/assets/snow-court/pine-bark/normal.jpg",
+          "bytes": 180934,
+          "sha256": "e2fea3c11ef992ca6a511753cb4bd7db3de3970ce8b56c4d1889b97c4e57f366",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/pine_bark/pine_bark_nor_gl_1k.jpg",
+          "sourceSha256": "666e5f175a010f12577687dd8029125bff99110e6a97958afb295b34266437db",
+          "map": "normal"
+        },
+        {
+          "path": "art/assets/snow-court/pine-bark/roughness.jpg",
+          "bytes": 77327,
+          "sha256": "3f98a2aace73464826144c4d8d8a9ee41ed905a646ff99eaadbe1d9f1377cbfd",
+          "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/pine_bark/pine_bark_rough_1k.jpg",
+          "sourceSha256": "04f466447098d0b6d3d4abdc69ce5766d5da67eedfa076e4a3f22fe6996a60a8",
+          "map": "roughness"
+        }
+      ]
+    },
+    {
       "id": "snow-court-srtm-winter-pass",
       "kind": "Offline elevation source",
       "license": "United States government public domain",

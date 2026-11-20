@@ -507,17 +507,19 @@ def twig_tufts(needles, rime, branch, rng, length, close, snowy):
     for i, station in enumerate((.23, .40, .58, .75, .89, .98)):
         offset = station + rng.uniform(-.035, .02)
         anchor = Vector(path_point(branch, offset))
-        for sign in (-1, 1):
-            axis = twig + side * (sign * rng.uniform(.34, .78)) + up * rng.uniform(-.12, .44)
-            reach = length * rng.uniform(.75, 1.19)
+        spokes = (-1, 0, 1) if i in (2, 4) else (-1, 1)
+        for sign in spokes:
+            rise = rng.uniform(.22, .56) if sign == 0 else rng.uniform(-.11, .30)
+            axis = twig + side * (sign * rng.uniform(.45, .79)) + up * rise
+            reach = length * rng.uniform(.85, 1.29)
             blades = needle_fascicle(anchor, axis, rng.uniform(0., math.tau), reach, rng,
                                      dense=True, mature=True, pairs=3 if close else 2)
-            # Increase the width of the midground silhouette only enough
-            # to integrate to a smooth subpixel needle at the walk distance.
-            needles.append(tuple((root, bend, tip, max(width, .0028) if not close else width)
+            # A visible blade represents the adjacent needles of a tight pair.
+            # Use its combined width so the bunch still reads on the middleground.
+            needles.append(tuple((root, bend, tip, max(width * 1.85, .0033 if close else .0040))
                                  for root, bend, tip, width in blades))
         if snowy and 1 <= i <= 3:
-            crown = anchor + twig * (.22 * length) + up * (.32 * length)
+            crown = anchor + twig * (.22 * length) + up * (.20 * length)
             if i == 1:
                 sleeve_start = crown
             elif i == 3:
@@ -601,7 +603,7 @@ def pine(mesh, bark, needles, snow, rime, ground_height, profile, i):
             tip = add(root_point, add(scale(out, reach), (.15 * lean, reach * rng.uniform(.09, .30), 0)))
             branch = [root_point, mid, tip]
             bark.tube(mesh, branch, [radius * .47, radius * .24, .004], 4, caps=False)
-            twig_tufts(needles, rime, branch, growth, min(.207, .098 + reach * .14),
+            twig_tufts(needles, rime, branch, growth, min(.235, .108 + reach * .155),
                        close, snowy=(j + k + i) % 3 != 0 and shelter > .21)
         if j in (7, 9, 10):
             # Short shoots split away from the bent leader instead of leaving
@@ -686,7 +688,7 @@ def build_approach(site, materials):
     rime_offset = len(points)
     points.extend(rime.vertices)
     faces.extend(tuple(i + rime_offset for i in face) for face in rime.faces)
-    needle_green = mesh.material('Living grey-green winter pine needles', '#587456', rough=.89)
+    needle_green = mesh.material('Living grey-green winter pine needles', '#6b8961', rough=.89)
     needle_green.use_backface_culling = False
     foliage = mesh.mesh_object('Winter pine paired needle fascicles and settled rime',
                                points, faces, needle_green, REGION)
