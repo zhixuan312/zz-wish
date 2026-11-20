@@ -1,7 +1,7 @@
-// The four recorded one-shots at Pine Gate: a far temple bell, roosters, ox bells and the
-// evening village voices. Each is a real CC0 or public-domain recording, fetched only after the
-// visitor steps inside the place, decoded lazily and played through the existing sound module's
-// master gain so mute and the background pause apply to them like everything else.
+// The three recorded one-shots at Pine Gate: a far temple bell, roosters and ox bells. Each is a
+// real CC0, public-domain or attribution-licensed recording, fetched only after the visitor steps
+// inside the place, decoded lazily and played through the existing sound module's master gain so
+// mute and the background pause apply to them like everything else.
 //
 // A failed fetch or decode is silence, never an error: the place must still work offline.
 import type { RecordedLayer } from './pine-ambience.ts';
@@ -12,7 +12,6 @@ export const RECORDINGS: Record<RecordedLayer, readonly string[]> = {
   templeBell: ['temple-bell-1.m4a', 'temple-bell-2.m4a'],
   rooster: ['rooster-1.m4a', 'rooster-2.m4a'],
   oxBell: ['ox-bell-1.m4a', 'ox-bell-2.m4a'],
-  villageVoices: ['village-voices-1.m4a', 'village-voices-2.m4a'],
 };
 
 const DIR = '/places/pine-gate/sound/';

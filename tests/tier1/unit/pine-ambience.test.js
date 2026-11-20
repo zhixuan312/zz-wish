@@ -18,16 +18,16 @@ test('each part enables exactly the sounds the world bible gives it', () => {
   expect(sorted(layersFor('midday'))).toEqual(['spring', 'wind', 'oxBell'].sort());
   expect(sorted(layersFor('afternoon'))).toEqual(['spring', 'wind', 'oxBell', 'insects'].sort());
   expect(sorted(layersFor('dusk')))
-    .toEqual(['spring', 'wind', 'templeBell', 'frogs', 'insects', 'villageVoices'].sort());
+    .toEqual(['spring', 'wind', 'templeBell', 'frogs', 'insects'].sort());
   expect(sorted(layersFor('night'))).toEqual(['spring', 'wind', 'frogs', 'insects'].sort());
 });
 
 test('recorded and synthesised layers are separated, and only enabled ones are fetched', () => {
   // The four recorded layers are exactly the ones that carry a recording.
-  expect(sorted(RECORDED)).toEqual(['oxBell', 'rooster', 'templeBell', 'villageVoices'].sort());
+  expect(sorted(RECORDED)).toEqual(['oxBell', 'rooster', 'templeBell'].sort());
   // Dawn fetches only the rooster; dusk fetches the bell and the voices, never the rooster.
   expect(recordedLayersFor('dawn')).toEqual(['rooster']);
-  expect(sorted(recordedLayersFor('dusk'))).toEqual(['villageVoices', 'templeBell'].sort());
+  expect(recordedLayersFor('dusk')).toEqual(['templeBell']);
   expect(recordedLayersFor('night')).toEqual([]);
   // A synthesised layer is never in the recorded list.
   for (const part of ['dawn', 'morning', 'midday', 'afternoon', 'dusk', 'night']) {
@@ -54,5 +54,4 @@ test('every layer sits under the music, and distant things are quieter', () => {
   for (const level of Object.values(LEVELS)) expect(level).toBeLessThan(.05);
   // The far temple bell is the most present recording; village voices stay quiet.
   expect(LEVELS.templeBell).toBeGreaterThan(LEVELS.rooster);
-  expect(LEVELS.villageVoices).toBeLessThan(LEVELS.templeBell);
 });

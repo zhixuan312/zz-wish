@@ -662,7 +662,9 @@ the ending.
 
 ### S2 maintenance: Pine Gate ambience
 
-The four recorded layers are installed under `web/public/places/pine-gate/sound/`: 8 files,
-578,695 bytes total, largest 98,213 B. They are not part of the base tier; they load after
+The recorded layers are installed under `web/public/places/pine-gate/sound/`: 6 files,
+290,713 bytes total, largest 67,348 B. The temple bell is a bonsho (CC BY 2.1 JP), the ox bell is
+from a study of bells on grazing dairy cows (CC BY 4.0), and the evening village voices were
+dropped because no outdoor rural recording was available. They are not part of the base tier; they load after
 `Step inside` and a failed fetch is silence. Sources and licences are in `sound-sources.md`; how
 the synthesised layers are made is in `sound-design.md`.

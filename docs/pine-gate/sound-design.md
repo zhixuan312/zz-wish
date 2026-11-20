@@ -25,7 +25,9 @@ Levels sit in `LEVELS` in `web/src/engine/places/pine-ambience.ts`, all well und
 | Far temple bell | 2 | 150–420 s | .010 |
 | Rooster | 2 | 70–200 s | .006 |
 | Ox bell | 2 | 50–190 s | .005 |
-| Evening voices | 2 | 120–300 s | .0045 |
+
+Evening village voices were dropped: no outdoor, distant, rural recording was available under an
+acceptable licence, and an indoor mall recording would be wrong for a mountain village.
 
 Each layer keeps its own timer and picks a uniform random wait inside its interval every time, so
 nothing repeats on a recognisable cycle. A take is chosen at random per play.
@@ -45,5 +47,16 @@ From `layersFor()` in `web/src/engine/places/pine-ambience.ts`:
 | Morning | wind, spring, rooster, temple bell, ox bell |
 | Midday | wind, spring, ox bell |
 | Afternoon | wind, spring, ox bell, insects |
-| Dusk | wind, spring, temple bell, frogs, insects, village voices |
+| Dusk | wind, spring, temple bell, frogs, insects |
 | Night | wind, spring, frogs, insects |
+
+## Synthetic fallback for the temple bell
+
+If the CC BY 2.1 JP bonsho is not acceptable, the bell can be synthesised instead. The parameters
+the owner specified, if that route is taken:
+
+- Fundamental around 80–120 Hz; partials at 2.0, 2.76, 3.3 and 4.1 times the fundamental.
+- Two near-identical groups of partials, detuned by about 1 Hz, so they beat slowly.
+- A soft attack of about 40 ms (a log striking from outside, not a metal clapper) and a 12–15 s
+  decay.
+- One strike only; no peal.

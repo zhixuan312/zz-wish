@@ -38,7 +38,7 @@ test('a part of day fetches only the layers it can use', async () => {
   expect(requested).toContain('/places/pine-gate/sound/rooster-2.m4a');
   // Nothing from the bell, the ox bell or the voices.
   expect(requested.some(url => /temple-bell/.test(url))).toBe(false);
-  expect(requested.some(url => /village-voices/.test(url))).toBe(false);
+  expect(requested.some(url => /ox-bell/.test(url))).toBe(false);
 });
 
 test('a failed fetch is silence and never rejects', async () => {
@@ -54,9 +54,9 @@ test('a failed fetch is silence and never rejects', async () => {
 test('a 404 is silence, not an error', async () => {
   const fetchImpl = vi.fn().mockResolvedValue({ ok: false, status: 404, arrayBuffer: async () => new ArrayBuffer(0) });
   const sounds = createRecordedSounds({ context: () => ctx, destination: () => ({}), fetchImpl });
-  sounds.prepare(['villageVoices']);
+  sounds.prepare(['rooster']);
   await vi.runAllTicks(); await Promise.resolve(); await Promise.resolve();
-  expect(sounds.play('villageVoices')).toBe(false);
+  expect(sounds.play('rooster')).toBe(false);
   expect(ctx.started).toBe(0);
 });
 
@@ -83,7 +83,7 @@ test('each occasional layer keeps its own timer, so arming one does not cancel a
 });
 
 test('the recording list covers every recorded layer with at least two takes', () => {
-  for (const layer of ['templeBell', 'rooster', 'oxBell', 'villageVoices']) {
+  for (const layer of ['templeBell', 'rooster', 'oxBell']) {
     expect(RECORDINGS[layer].length, layer).toBeGreaterThanOrEqual(2);
     // Every name is a plain m4a in the place's sound folder.
     for (const name of RECORDINGS[layer]) expect(name).toMatch(/^[a-z0-9-]+\.m4a$/);
