@@ -1,7 +1,11 @@
 import assert from 'node:assert/strict';
 
 const maximumBlockedPoints = 3;
-const maximumEntryYaw = 120;
+const desktopMaximumEntryYaw = 120;
+const phoneMaximumEntryYaw = 145;
+const phoneMaximumEntryYawRate = 25;
+const earlierLanternSlots = [-3, -2, -1, 1, 2, 3];
+const minimumVisibleLanternRays = 2;
 const minimumWalkFraction = .5;
 const burnDistanceMetres = [1, 1.4];
 const burnShadeHeightFraction = [.25, .35];
@@ -12,7 +16,7 @@ const maximumUnobservedDrawSeconds = .15;
 export function installSnowCourtJourneyAudit() {
   let recording;
   window.__startSnowCourtJourneyAudit = () => { recording = { frames: [], visitorGeometry: [] }; };
-  window.__sampleSnowCourtJourneyAudit = (THREE, renderer, camera, baked, lamp, phase, walk, walkClock, ignition) => {
+  window.__sampleSnowCourtJourneyAudit = (THREE, renderer, camera, baked, lamp, phase, walk, walkClock, ignition, renderTimeMs) => {
     if (!recording || !baked || !walk || recording.complete || recording.luminanceError) return;
     const walkSeconds = walkClock?.id === 'snow-roof' ? walkClock.seconds : undefined;
     if (!recording.frames.length && (phase !== 'travel' || !Number.isFinite(walkSeconds))) return;
@@ -27,8 +31,13 @@ export function installSnowCourtJourneyAudit() {
       if (index === -1) index = recording.visitorGeometry.push(cloth) - 1;
       visitor = { index, matrix: cloth.matrixWorld.toArray() };
     }
+    const screen = document.querySelector('.ui')?.dataset.screen;
+    const controls = screen === 'candle' ? document.querySelector('.candle-sheet')
+      : screen === 'burning' ? document.querySelector('.hud-bottom') : null;
+    const rect = controls?.getBoundingClientRect();
     const frame = {
-      timestamp, phase, walk, walkSeconds, ignition: ignition ?? null,
+      timestamp, renderTimeMs, phase, screen, walk, walkSeconds, ignition: ignition ?? null,
+      controls: rect && [rect.left / innerWidth, rect.top / innerHeight, rect.right / innerWidth, rect.bottom / innerHeight],
       position: camera.position.toArray(), rotation: camera.quaternion.toArray(),
       inverseProjection: camera.projectionMatrixInverse.toArray(), near: camera.near,
       direction: camera.getWorldDirection(new THREE.Vector3()).toArray(), visitor,
@@ -66,6 +75,10 @@ export function installSnowCourtJourneyAudit() {
       .expandByScalar(rayDistance);
     const minimumClothOpacity = .70;
     const earlierCloth = /^(Sun-faded rose-red gauze|Faded dusty rose gauze|Faded iron-red gauze|Thin gauze over low flame)$/;
+    // The delivered GLB can batch multiple old shades into one material. Count
+    // actual cloth at the six authored 0.34 m positions beside the free cord.
+    const rowCentre = baked.manifest.lampBasis.position[0];
+    const earlierVertices = new Map([-3, -2, -1, 1, 2, 3].map(slot => [slot, new Map()]));
     const vertices = [new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()];
     const bounds = new THREE.Box3();
     // Needles are shipped as another GLB next to the baked model. Recognize
@@ -89,7 +102,8 @@ export function installSnowCourtJourneyAudit() {
       const groups = Array.isArray(material) ? geometry.groups : [{ start: 0, count: size, materialIndex: 0 }];
       for (const group of groups) {
         const surface = Array.isArray(material) ? material[group.materialIndex] : material;
-        const cloth = mesh.userData.visitorCloth || earlierCloth.test(surface.name);
+        const earlier = earlierCloth.test(surface.name);
+        const cloth = mesh.userData.visitorCloth || earlier;
         if (!surface.visible || (surface.transparent && (!cloth || surface.opacity < minimumClothOpacity))) continue;
         const start = Math.max(geometry.drawRange.start, group.start);
         const end = Math.min(size, geometry.drawRange.start + geometry.drawRange.count, group.start + group.count);
@@ -99,10 +113,19 @@ export function installSnowCourtJourneyAudit() {
           }
           bounds.setFromPoints(vertices);
           if (clip && !bounds.intersectsBox(clip)) continue;
+          const worldVertices = (mirrored ? [vertices[0], vertices[2], vertices[1]] : vertices)
+            .map(vertex => vertex.clone());
+          let earlierSlot;
+          if (earlier) {
+            const x = worldVertices.reduce((sum, vertex) => sum + vertex.x, 0) / 3;
+            earlierSlot = Math.round((x - rowCentre) / .34);
+            const mounted = earlierVertices.get(earlierSlot);
+            if (!mounted) throw new Error('Earlier Snow Court cloth escaped its side of the free cord.');
+            for (const vertex of worldVertices) mounted.set(vertex.toArray().join(','), vertex);
+          }
           output.push({
-            vertices: (mirrored ? [vertices[0], vertices[2], vertices[1]] : vertices).map(vertex => vertex.clone()),
-            bounds: bounds.clone(), source,
-            side: surface.side, material: surface.name, mesh: mesh.name,
+            vertices: worldVertices, bounds: bounds.clone(), source,
+            side: surface.side, material: surface.name, mesh: mesh.name, earlierSlot,
             ...(cloth ? { clothOpacity: surface.opacity } : {}),
           });
         }
@@ -156,11 +179,79 @@ export function installSnowCourtJourneyAudit() {
         const distance = ray.origin.distanceTo(hit);
         if (distance < near || distance >= far) continue;
         far = distance;
-        const { source, material, mesh, clothOpacity } = triangle;
-        nearest = { distance, source, material, mesh, ...(clothOpacity === undefined ? {} : { clothOpacity }) };
+        const { source, material, mesh, clothOpacity, earlierSlot } = triangle;
+        nearest = { distance, source, material, mesh, earlierSlot, ...(clothOpacity === undefined ? {} : { clothOpacity }) };
       }
       return far;
     }
+    function pointHit(x, y, nearPlane, farPlane, clothTree) {
+      direction.set(x, y, .5).applyMatrix4(inverseProjection).normalize().applyQuaternion(rotation);
+      const facing = direction.dot(forward);
+      const near = nearPlane / facing;
+      ray.set(cameraOrigin, direction);
+      nearest = null;
+      const far = cast(tree, farPlane, near);
+      if (clothTree) {
+        const hitStatic = nearest;
+        ray.origin.applyMatrix4(clothInverse);
+        ray.direction.applyMatrix3(clothInverseLinear);
+        const distanceScale = ray.direction.length();
+        ray.direction.divideScalar(distanceScale);
+        nearest = null;
+        cast(clothTree, far * distanceScale, near * distanceScale);
+        if (nearest) nearest.distance /= distanceScale;
+        else nearest = hitStatic;
+      }
+      return nearest;
+    }
+    const clipFromWorld = new THREE.Matrix4();
+    const projection = new THREE.Matrix4();
+    const worldFromCamera = new THREE.Matrix4();
+    const unitScale = new THREE.Vector3(1, 1, 1);
+    const local = new THREE.Vector3();
+    const projected = new THREE.Vector3();
+    const rowBounds = new THREE.Box2();
+    const point = new THREE.Vector2();
+    const rowRayFractions = [.24, .5, .76];
+    function measureEarlierRow(frame, clothTree) {
+      projection.copy(inverseProjection).invert();
+      worldFromCamera.compose(cameraOrigin, rotation, unitScale).invert();
+      clipFromWorld.multiplyMatrices(projection, worldFromCamera);
+      return Array.from(earlierVertices, ([slot, cloth]) => {
+        rowBounds.makeEmpty();
+        let clipped = false;
+        let furthest = 0;
+        for (const vertex of cloth.values()) {
+          local.subVectors(vertex, cameraOrigin);
+          if (local.dot(forward) < frame.near) {
+            clipped = true;
+            continue;
+          }
+          projected.copy(vertex).applyMatrix4(clipFromWorld);
+          clipped ||= projected.z > 1;
+          rowBounds.expandByPoint(point.set((projected.x + 1) / 2, (1 - projected.y) / 2));
+          furthest = Math.max(furthest, local.length());
+        }
+        if (rowBounds.isEmpty()) return { slot, bounds: null, fullyFramed: false, visibleRays: 0 };
+        const { min, max } = rowBounds;
+        const x0 = Math.max(0, min.x), x1 = Math.min(1, max.x);
+        const y0 = Math.max(0, min.y), y1 = Math.min(1, max.y);
+        const fullyFramed = !clipped && x0 === min.x && x1 === max.x && y0 === min.y && y1 === max.y;
+        let visibleRays = 0;
+        if (x0 < x1 && y0 < y1) {
+          for (const sx of rowRayFractions) for (const sy of rowRayFractions) {
+            const x = x0 + (x1 - x0) * sx;
+            const y = y0 + (y1 - y0) * sy;
+            const ui = frame.controls;
+            if (ui && x >= ui[0] && x <= ui[2] && y >= ui[1] && y <= ui[3]) continue;
+            if (pointHit(2 * x - 1, 1 - 2 * y, frame.near, furthest + .002, clothTree)?.earlierSlot === slot) visibleRays++;
+          }
+        }
+        return { slot, bounds: [min.toArray(), max.toArray()], fullyFramed, visibleRays };
+      });
+    }
+    const mark = name => (performance.timeOrigin + performance.getEntriesByName(name).at(-1)?.startTime) / 1000;
+    const entryStart = mark('snow-p1:entry-start'), entryEnd = mark('snow-p1:entry-end');
     let visitorClothFrames = 0;
     const ndcPoints = [-2 / 3, 0, 2 / 3].flatMap(y => [-2 / 3, 0, 2 / 3].map(x => [x, y]));
     for (const frame of frames) {
@@ -174,38 +265,24 @@ export function installSnowCourtJourneyAudit() {
         clothInverse.fromArray(frame.visitor.matrix).invert();
         clothInverseLinear.setFromMatrix4(clothInverse);
       }
-      frame.hits = ndcPoints.map(([x, y]) => {
-        direction.set(x, y, .5).applyMatrix4(inverseProjection).normalize().applyQuaternion(rotation);
-        const near = frame.near / direction.dot(forward);
-        ray.set(cameraOrigin, direction);
-        nearest = null;
-        const far = cast(tree, rayDistance, near);
-        if (clothTree) {
-          const hitStatic = nearest;
-          ray.origin.applyMatrix4(clothInverse);
-          ray.direction.applyMatrix3(clothInverseLinear);
-          const distanceScale = ray.direction.length();
-          ray.direction.divideScalar(distanceScale);
-          nearest = null;
-          cast(clothTree, far * distanceScale, near * distanceScale);
-          if (nearest) nearest.distance /= distanceScale;
-          else nearest = hitStatic;
-        }
-        return nearest;
-      });
+      frame.hits = ndcPoints.map(([x, y]) => pointHit(x, y, frame.near, rayDistance, clothTree));
       frame.centre = frame.hits[4];
       frame.blockedPoints = frame.hits.filter(Boolean).length;
+      if ((frame.timestamp >= entryStart && frame.timestamp <= entryEnd) ||
+        (frame.screen === 'candle' && frame.ignition === null) || frame.ignition === 'settled') {
+        frame.earlierLanterns = measureEarlierRow(frame, clothTree);
+      }
       delete frame.rotation;
       delete frame.inverseProjection;
       delete frame.near;
       delete frame.visitor;
     }
-    const mark = name => (performance.timeOrigin + performance.getEntriesByName(name).at(-1)?.startTime) / 1000;
     return { frames, settledAt, rayDistance, ndcPoints, bakedTriangles, needleTriangles, drawLuminanceSource,
       needleMeshNames: crowns.map(mesh => mesh.name), visitorClothVariants: visitorTrees.filter(Boolean).length, visitorClothFrames,
       minimumClothOpacity,
       rayScope: 'Visible baked model and separately loaded crowns, plus each draw’s visitor cloth transform. Counts opaque triangles and old/new cloth with material opacity at least 0.70, respecting near clipping and sidedness.',
-      entryStart: mark('snow-p1:entry-start'), entryEnd: mark('snow-p1:entry-end') };
+      earlierClothVertices: Object.fromEntries(Array.from(earlierVertices, ([slot, cloth]) => [slot, cloth.size])),
+      entryStart, entryEnd };
   };
 
   // Append the actual shade only to the existing settled projection trace.
@@ -259,7 +336,7 @@ export async function snowCourtPresentedLuminance(encodedFrames) {
   return measured;
 }
 
-export function snowCourtJourneySummary(geometry, presented, durationSeconds) {
+export function snowCourtJourneySummary(geometry, presented, durationSeconds, { phone = false } = {}) {
   const { frames, settledAt, entryStart, entryEnd } = geometry;
   assert(frames.length > 120 && frames[0].phase === 'travel' && frames.at(-1).ignition === 'settled',
     'The Snow Court geometry trace must cover the live walk through settled burning.');
@@ -297,21 +374,33 @@ export function snowCourtJourneySummary(geometry, presented, durationSeconds) {
   const firstEntryDraw = frames.findLastIndex(frame => frame.timestamp <= entryStart);
   const lastEntryDraw = frames.findIndex(frame => frame.timestamp >= entryEnd);
   assert(firstEntryDraw >= 0 && lastEntryDraw > firstEntryDraw, 'The Snow Court draws do not bracket the entry marks.');
-  const headings = frames.slice(firstEntryDraw, lastEntryDraw + 1)
-    .map(frame => Math.atan2(frame.direction[0], -frame.direction[2]));
-  let entryYaw = 0;
+  const entryDraws = frames.slice(firstEntryDraw, lastEntryDraw + 1);
+  const headings = entryDraws.map(frame => Math.atan2(frame.direction[0], -frame.direction[2]));
+  const maximumEntryYaw = phone ? phoneMaximumEntryYaw : desktopMaximumEntryYaw;
+  let entryYaw = 0, maximumEntryYawRate = 0;
   for (let i = 1; i < headings.length; i++) {
     const delta = headings[i] - headings[i - 1];
-    entryYaw += Math.abs(Math.atan2(Math.sin(delta), Math.cos(delta)));
+    const degrees = Math.abs(Math.atan2(Math.sin(delta), Math.cos(delta))) * 180 / Math.PI;
+    entryYaw += degrees;
+    const dt = (entryDraws[i].renderTimeMs - entryDraws[i - 1].renderTimeMs) / 1000;
+    if (dt > 0) maximumEntryYawRate = Math.max(maximumEntryYawRate, degrees / dt);
+    else if (phone && (!Number.isFinite(dt) || dt < 0 || degrees > 1e-8)) {
+      failures.push({ kind: 'invalidEntryDrawTime', index: firstEntryDraw + i, dtSeconds: dt });
+    }
   }
-  entryYaw *= 180 / Math.PI;
   const entryYawTrace = {
-    method: 'Sum of absolute shortest wrapped horizontal yaw deltas between consecutive actual draws bracketing the entry marks.',
+    method: 'Sum of absolute shortest wrapped horizontal yaw deltas between consecutive actual draws bracketing the entry marks. The peak rate uses the animation frame timestamps that advanced the camera.',
     firstDraw: firstEntryDraw, lastDraw: lastEntryDraw, drawCount: headings.length,
     start: frames[firstEntryDraw].timestamp, end: frames[lastEntryDraw].timestamp,
     initialDegrees: headings[0] * 180 / Math.PI, finalDegrees: headings.at(-1) * 180 / Math.PI,
+    maximumDegreesPerSecond: maximumEntryYawRate,
   };
   if (entryYaw > maximumEntryYaw) failures.push({ kind: 'entryYaw', actual: entryYaw, maximum: maximumEntryYaw });
+  if (phone && maximumEntryYawRate > phoneMaximumEntryYawRate + 1e-8) {
+    failures.push({ kind: 'entryYawRate', actual: maximumEntryYawRate, maximum: phoneMaximumEntryYawRate });
+  }
+
+  const earlierRow = earlierLanternSummary(geometry, phone, failures);
   let draw = 0;
   const observed = [];
   let maximumPresentedGap = 0;
@@ -344,12 +433,13 @@ export function snowCourtJourneySummary(geometry, presented, durationSeconds) {
     if (range.seconds > maximumUnobservedDrawSeconds) presentedWarnings.push({ kind: 'compositorCaptureGap', ...range });
   }
   return { limits: { maximumBlockedPoints, maximumEntryYaw, minimumWalkFraction,
+    ...(phone ? { maximumEntryYawRate: phoneMaximumEntryYawRate } : {}),
     minimumLuminance: floor, compositorMinimumLuminance: presentedFloor, maximumUnobservedDrawSeconds },
     referenceLuminance, presentedReferenceLuminance,
     walkBaseline: { method: 'Arithmetic mean of this context’s actual pre-UI draws from the start of the authored walk through its held reveal, before hall entry.',
       drawCount: walk.length, firstWalkSeconds: walk[0].walkSeconds, lastWalkSeconds: walk.at(-1).walkSeconds,
       firstTimestamp: walk[0].timestamp, lastTimestamp: walk.at(-1).timestamp, compositorFrameCount: presentedWalk.length },
-    entryYaw, entryYawTrace, geometryFrameCount: frames.length,
+    entryYaw, entryYawTrace, earlierRow, geometryFrameCount: frames.length,
     drawLuminanceFrameCount: frames.filter(frame => Number.isFinite(frame.luminance)).length,
     minimumDrawLuminance: Math.min(...frames.map(frame => frame.luminance ?? Infinity)),
     maximumBlockedPoints: Math.max(...frames.map(frame => frame.blockedPoints)),
@@ -360,6 +450,39 @@ export function snowCourtJourneySummary(geometry, presented, durationSeconds) {
     compositorLuminanceSource: 'Every received Chromium compositor JPEG, averaged from a 48×36 reduction in Rec.709 display code values (0–255). Chromium may coalesce draws. Gaps in screenshots are independent of the draw luminance gate.',
     minimumPresentedLuminance: Math.min(...presented.map(frame => frame.luminance)),
     failures, presentedWarnings, presented: observed };
+}
+
+function earlierLanternSummary({ frames, earlierClothVertices, entryStart, entryEnd }, phone, failures) {
+  const slotCounts = earlierLanternSlots.map(slot => earlierClothVertices?.[slot] ?? 0);
+  if (slotCounts.some(count => !count)) failures.push({ kind: 'missingEarlierLanternCloth', slotCounts });
+  const measured = frames.flatMap((frame, index) => {
+    if (!frame.earlierLanterns) return [];
+    const visible = frame.earlierLanterns.filter(shade => shade.visibleRays >= minimumVisibleLanternRays);
+    return [{ index, timestamp: frame.timestamp, screen: frame.screen, ignition: frame.ignition,
+      fullyVisibleSlots: visible.filter(shade => shade.fullyFramed).map(shade => shade.slot),
+      visibleSlots: visible.map(shade => shade.slot) }];
+  });
+  const approach = measured.filter(frame => frame.ignition === null &&
+    ((frame.timestamp >= entryStart && frame.timestamp <= entryEnd) || frame.screen === 'candle'));
+  const settled = measured.filter(frame => frame.ignition === 'settled');
+  const full = frame => frame.fullyVisibleSlots.length === earlierLanternSlots.length;
+  const fullApproach = approach.filter(full);
+  if (phone && !fullApproach.length) failures.push({ kind: 'missingPhoneFullRowBeforeIgnition',
+    maximumFullyVisible: Math.max(0, ...approach.map(frame => frame.fullyVisibleSlots.length)) });
+  if (!settled.length) failures.push({ kind: 'missingSettledEarlierLanternDraws' });
+  for (const frame of settled) {
+    const bothSides = frame.visibleSlots.some(slot => slot < 0) && frame.visibleSlots.some(slot => slot > 0);
+    if (phone && !bothSides) failures.push({ kind: 'missingSettledPhoneNeighbors', ...frame });
+    if (!phone && !full(frame)) failures.push({ kind: 'missingSettledDesktopFullRow', ...frame });
+  }
+  return {
+    method: 'Actual GLB cloth geometry, grouped by the six beam positions. Full visibility requires the whole shade to project into the frame and at least two unobscured cloth hits on a 3×3 inset grid. Rays account for opaque surfaces, both old and visitor cloth, the near plane and visible control rectangles.',
+    slotCounts, minimumVisibleLanternRays,
+    approachDraws: approach.length, fullApproachDraws: fullApproach.length, firstFullApproach: fullApproach[0] ?? null,
+    settledDraws: settled.length, firstSettled: settled[0] ?? null,
+    minimumSettledVisible: settled.length ? Math.min(...settled.map(frame => frame.visibleSlots.length)) : null,
+    minimumSettledFullyVisible: settled.length ? Math.min(...settled.map(frame => frame.fullyVisibleSlots.length)) : null,
+  };
 }
 
 export function snowCourtBurnCompositionSummary(audit) {

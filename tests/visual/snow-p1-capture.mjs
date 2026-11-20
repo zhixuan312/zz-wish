@@ -225,7 +225,7 @@ function instrument(source) {
     transformed = transformed.replace(render, match => `${match}
       if (place?.id === 'snow-roof') {
         window.__sampleSnowCourtJourneyAudit?.(THREE, renderer, camera, place.baked, mine, phase,
-          window.__walkProgress?.state, window.__pineCaptureWalkClock, window.__visualIgnition?.state);
+          window.__walkProgress?.state, window.__pineCaptureWalkClock, window.__visualIgnition?.state, stamp);
         if (snowWalkCapture && window.__pineCaptureWalkClock?.seconds >= snowWalkCapture.time) {
           const { time, resolve, reject } = snowWalkCapture;
           snowWalkCapture = null;
@@ -593,7 +593,7 @@ async function captureContext(browser, { hour, look, walk }) {
     if (auditCamera) {
       await page.waitForFunction(() => window.__snowLanternAudit?.completed);
       const audit = await page.evaluate(() => window.__snowLanternAudit);
-      const summary = validateSnowCourtLanternAudit(audit, viewport.width, viewport.height);
+      const summary = validateSnowCourtLanternAudit(audit, viewport.width, viewport.height, { requireSettledRow: !phone });
       const burnComposition = snowCourtBurnCompositionSummary(audit);
       const settleCamera = validateSnowCourtSettleCamera(audit, phone);
       const file = `${look}-lantern-framing.json`;
@@ -641,7 +641,7 @@ try {
   if (auditCamera) {
     assert.equal(journeyAudits.length, 2, 'Both Snow Court light looks must be recorded.');
     for (const { result, geometry, presented } of journeyAudits) {
-      const { presented: measured, ...summary } = snowCourtJourneySummary(geometry, presented, site.walkSeconds);
+      const { presented: measured, ...summary } = snowCourtJourneySummary(geometry, presented, site.walkSeconds, { phone });
       const file = `${result.look}-journey-audit.json`;
       await writeFile(join(output, file), JSON.stringify({ viewport, summary, ...geometry, presented: measured }, null, 2) + '\n', { flag: 'wx' });
       const { unobservedDrawRanges, presentedWarnings, ...headline } = summary;

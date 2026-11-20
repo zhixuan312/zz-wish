@@ -156,7 +156,7 @@ export function installSnowCourtLanternAudit() {
   };
 }
 
-export function validateSnowCourtLanternAudit(audit, width, height) {
+export function validateSnowCourtLanternAudit(audit, width, height, { requireSettledRow = true } = {}) {
   assert(audit?.completed && audit.frames.length > 120, 'Expected every rendered frame through ten seconds of settled burning.');
   const { frames, settledAt } = audit;
   assert(frames.at(-1).time - settledAt >= 10_000);
@@ -164,7 +164,7 @@ export function validateSnowCourtLanternAudit(audit, width, height) {
     && frames.some(frame => frame.ignition === 'spreading'), 'Projection audit missed a required lantern phase.');
   const failures = [];
   const row = audit.earlierRow;
-  if (!row?.clothMeshes || row.bounds[0].some(axis => axis < 0) || row.bounds[1].some(axis => axis > 1)) {
+  if (requireSettledRow && (!row?.clothMeshes || row.bounds[0].some(axis => axis < 0) || row.bounds[1].some(axis => axis > 1))) {
     failures.push({ reasons: ['earlier lantern row missing or clipped'] });
   }
   const left = .1, right = .9, top = .12, clearance = .05;
