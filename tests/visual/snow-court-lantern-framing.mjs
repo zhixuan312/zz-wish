@@ -212,6 +212,7 @@ export function validateSnowCourtLanternAudit(audit, width, height, { requireSet
 export function validateSnowCourtSettleCamera(audit, phone) {
   const desktopTranslationMetres = .1;
   const desktopMaximumFovDegrees = 72;
+  const desktopMaximumDirectionTravelDegrees = 5;
   // The live projection matrix only updates past a one millidegree change.
   const desktopFixedFovToleranceDegrees = .001;
   const spreadingSeconds = [13, 15];
@@ -228,7 +229,8 @@ export function validateSnowCourtSettleCamera(audit, phone) {
   const failures = [];
   const limits = phone ? { spreadingSeconds, maximumSpeedMetresPerSecond, maximumYawDegreesPerSecond,
     maximumPitchRangeDegrees, fixedFovToleranceDegrees, monotonicDistance: true } : {
-    desktopTranslationMetres, desktopMaximumFovDegrees, fixedFovToleranceDegrees: desktopFixedFovToleranceDegrees,
+    desktopTranslationMetres, desktopMaximumFovDegrees, desktopMaximumDirectionTravelDegrees,
+    fixedFovToleranceDegrees: desktopFixedFovToleranceDegrees,
   };
   if (first < 0 || spread <= first || settled <= spread) {
     return { limits, failures: [{ kind: 'missingCameraStage', first, spread, settled }] };
@@ -236,6 +238,11 @@ export function validateSnowCourtSettleCamera(audit, phone) {
 
   const translation = (a, b) => Math.hypot(...a.map((axis, index) => axis - b[index]));
   const wrappedYaw = (a, b) => ((a - b + 540) % 360) - 180;
+  const toRadians = degrees => degrees * Math.PI / 180;
+  const viewDirection = ({ yawDegrees, pitchDegrees }) => {
+    const yaw = toRadians(yawDegrees), pitch = toRadians(pitchDegrees);
+    return [Math.sin(yaw) * Math.cos(pitch), Math.sin(pitch), -Math.cos(yaw) * Math.cos(pitch)];
+  };
   const validPoint = point => point?.length === 3 && point.every(Number.isFinite);
   const hasPose = frame => validPoint(frame.position) && validPoint(frame.modelPosition)
     && [frame.renderTimeMs, frame.yawDegrees, frame.pitchDegrees, frame.fovDegrees, frame.distance].every(Number.isFinite);
@@ -244,7 +251,7 @@ export function validateSnowCourtSettleCamera(audit, phone) {
   }
   const pitch = [], lenses = [];
   let previous, maxExcursion = 0, pathLength = 0, duplicateDraws = 0, measuredIntervals = 0;
-  let maxSpeed = 0, maxYawRate = 0, maxFovRate = 0, maxAdvance = 0, firstMotion, lastMotion;
+  let directionTravelDegrees = 0, maxSpeed = 0, maxYawRate = 0, maxFovRate = 0, maxAdvance = 0, firstMotion, lastMotion;
   for (let index = first; index <= settled; index++) {
     const frame = frames[index];
     if (!hasPose(frame)) {
@@ -275,10 +282,12 @@ export function validateSnowCourtSettleCamera(audit, phone) {
     const yawDegreesPerSecond = yawDeltaDegrees / dtSeconds;
     const fovDegreesPerSecond = (frame.fovDegrees - previous.fovDegrees) / dtSeconds;
     const distanceDeltaMetres = frame.distance - previous.distance;
+    const directionDeltaDegrees = 2 * Math.asin(Math.min(1, translation(viewDirection(frame), viewDirection(previous)) / 2)) * 180 / Math.PI;
     frame.cameraMotion = { dtSeconds, translationMetres, speedMetresPerSecond, yawDeltaDegrees,
-      yawDegreesPerSecond, fovDegreesPerSecond, distanceDeltaMetres };
+      yawDegreesPerSecond, directionDeltaDegrees, fovDegreesPerSecond, distanceDeltaMetres };
     measuredIntervals++;
     pathLength += translationMetres;
+    directionTravelDegrees += directionDeltaDegrees;
     maxSpeed = Math.max(maxSpeed, speedMetresPerSecond);
     maxYawRate = Math.max(maxYawRate, Math.abs(yawDegreesPerSecond));
     maxFovRate = Math.max(maxFovRate, Math.abs(fovDegreesPerSecond));
@@ -319,13 +328,16 @@ export function validateSnowCourtSettleCamera(audit, phone) {
     if (Math.max(chooserToSettledMetres, maxExcursion, pathLength) > desktopTranslationMetres + numericEpsilon) {
       failures.push({ kind: 'desktopCameraTranslation', chooserToSettledMetres, maxExcursion, pathLength });
     }
+    if (directionTravelDegrees > desktopMaximumDirectionTravelDegrees + numericEpsilon) {
+      failures.push({ kind: 'desktopCameraDirectionTravel', directionTravelDegrees });
+    }
     if (fovDegrees[1] > desktopMaximumFovDegrees + numericEpsilon) failures.push({ kind: 'desktopCameraFov', fovDegrees });
     if (fovRange > desktopFixedFovToleranceDegrees + numericEpsilon) failures.push({ kind: 'cameraFovChanged', fovRange });
   }
   return { limits, first, spread, settled, measuredIntervals, duplicateDraws, chooserToSettledMetres, maxExcursion,
-    pathLength, spreadingPhaseSeconds, movingSeconds, maxSpeed, maxYawRate, pitchRange,
+    pathLength, spreadingPhaseSeconds, movingSeconds, maxSpeed, maxYawRate, pitchRange, directionTravelDegrees,
     fovDegrees, fovRange, maxFovRate,
     startDistanceMetres: frames[first].distance, settledDistanceMetres: frames[settled].distance, maxAdvance,
-    method: 'Chronological animation timestamps and post-render camera positions. Rates use unmodified elapsed time. Yaw rate is the shortest signed horizontal delta. Distance uses the fixed lamp basis.',
+    method: 'Chronological animation timestamps and post-render camera poses. Rates use unmodified elapsed time. Direction travel sums the shortest 3D rotations between successive forward vectors. Distance uses the fixed lamp basis.',
     failures };
 }
