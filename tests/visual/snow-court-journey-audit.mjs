@@ -10,8 +10,8 @@ const maximumUnobservedDrawSeconds = .15;
 export function installSnowCourtJourneyAudit() {
   let recording;
   window.__startSnowCourtJourneyAudit = () => { recording = { frames: [], visitorGeometry: [] }; };
-  window.__sampleSnowCourtJourneyAudit = (THREE, camera, baked, lamp, phase, walk, ignition) => {
-    if (!recording || !baked || !walk || recording.complete) return;
+  window.__sampleSnowCourtJourneyAudit = (THREE, renderer, camera, baked, lamp, phase, walk, ignition) => {
+    if (!recording || !baked || !walk || recording.complete || recording.luminanceError) return;
     if (phase !== 'travel' && !recording.frames.length) return;
     recording.THREE = THREE;
     recording.baked = baked;
@@ -24,22 +24,40 @@ export function installSnowCourtJourneyAudit() {
       if (index === -1) index = recording.visitorGeometry.push(cloth) - 1;
       visitor = { index, matrix: cloth.matrixWorld.toArray() };
     }
-    recording.frames.push({
+    const frame = {
       timestamp, phase, walk, ignition: ignition ?? null,
       position: camera.position.toArray(), rotation: camera.quaternion.toArray(),
       inverseProjection: camera.projectionMatrixInverse.toArray(), near: camera.near,
       direction: camera.getWorldDirection(new THREE.Vector3()).toArray(), visitor,
-    });
+    };
+    recording.frames.push(frame);
+    try {
+      recording.luminance ??= window.__createSnowCourtDrawLuminance(THREE, renderer);
+      recording.luminance.capture(frame);
+    } catch (error) {
+      recording.luminanceError = error;
+      return;
+    }
     if (ignition === 'settled') {
       recording.settledAt ??= timestamp;
       if (timestamp - recording.settledAt >= .6) recording.complete = true;
     }
   };
-  window.__snowCourtJourneyComplete = () => recording?.complete === true;
-  window.__finishSnowCourtJourneyAudit = () => {
+  window.__snowCourtJourneyComplete = () => !!(recording?.complete || recording?.luminanceError);
+  window.__finishSnowCourtJourneyAudit = async () => {
+    if (recording?.luminanceError) {
+      const error = recording.luminanceError;
+      await recording.luminance?.finish().catch(() => {});
+      recording = null;
+      throw error;
+    }
     if (!recording?.complete) throw new Error('Snow Court journey pose trace did not reach settled burning.');
-    const { THREE, baked, frames, settledAt, visitorGeometry } = recording;
+    const { THREE, baked, frames, settledAt, visitorGeometry, luminance } = recording;
     recording = null;
+    const drawLuminanceSource = await luminance.finish();
+    if (!frames.every(frame => Number.isFinite(frame.luminance))) {
+      throw new Error('A Snow Court live draw has no pre-UI luminance readback.');
+    }
     const rayDistance = 1.2;
     const pathBounds = new THREE.Box3().setFromPoints(frames.map(frame => new THREE.Vector3(...frame.position)))
       .expandByScalar(rayDistance);
@@ -180,7 +198,7 @@ export function installSnowCourtJourneyAudit() {
       delete frame.visitor;
     }
     const mark = name => (performance.timeOrigin + performance.getEntriesByName(name).at(-1)?.startTime) / 1000;
-    return { frames, settledAt, rayDistance, ndcPoints, bakedTriangles, needleTriangles,
+    return { frames, settledAt, rayDistance, ndcPoints, bakedTriangles, needleTriangles, drawLuminanceSource,
       needleMeshNames: crowns.map(mesh => mesh.name), visitorClothVariants: visitorTrees.filter(Boolean).length, visitorClothFrames,
       minimumClothOpacity,
       rayScope: 'Visible baked model and separately loaded crowns, plus each draw’s visitor cloth transform. Counts opaque triangles and old/new cloth with material opacity at least 0.70, respecting near clipping and sidedness.',
@@ -211,7 +229,7 @@ export async function snowCourtPresentedLuminance(encodedFrames) {
   return measured;
 }
 
-export function snowCourtJourneySummary(geometry, presented, referenceLuminance) {
+export function snowCourtJourneySummary(geometry, presented, referenceLuminance, presentedReferenceLuminance) {
   const { frames, settledAt, entryStart, entryEnd } = geometry;
   assert(frames.length > 120 && frames[0].phase === 'travel' && frames.at(-1).ignition === 'settled',
     'The Snow Court geometry trace must cover the live walk through settled burning.');
@@ -219,13 +237,20 @@ export function snowCourtJourneySummary(geometry, presented, referenceLuminance)
     'The Snow Court journey trace lacks actual entry boundaries.');
   assert(Number.isFinite(referenceLuminance) && referenceLuminance > 0,
     'The Snow Court audit needs a measured 22:00 settled burn luminance reference.');
+  assert(Number.isFinite(presentedReferenceLuminance) && presentedReferenceLuminance > 0,
+    'The Snow Court report needs a measured composited 22:00 settled burn reference.');
   assert(presented.length > 100 && presented.some(frame => frame.timestamp >= settledAt),
     'The Snow Court compositor trace must continue through settled burning.');
   const floor = referenceLuminance * minimumNightBurnFraction;
-  const failures = [];
+  const presentedFloor = presentedReferenceLuminance * minimumNightBurnFraction;
+  const failures = [], presentedWarnings = [];
   for (const [index, frame] of frames.entries()) {
     if (frame.blockedPoints > maximumBlockedPoints) {
       failures.push({ kind: 'nearGeometry', index, timestamp: frame.timestamp, blockedPoints: frame.blockedPoints });
+    }
+    if (!Number.isFinite(frame.luminance)) failures.push({ kind: 'missingDrawLuminance', index, timestamp: frame.timestamp });
+    else if (frame.luminance < floor) {
+      failures.push({ kind: 'lowLuminance', index, timestamp: frame.timestamp, luminance: frame.luminance });
     }
   }
   // Include every actual draw bracketing the entry marks. Sum the absolute
@@ -260,8 +285,8 @@ export function snowCourtJourneySummary(geometry, presented, referenceLuminance)
       observed.length ? frame.timestamp - observed.at(-1).timestamp : 0);
     observed.push(matched);
     if (frame.stamped && Math.abs(matched.drawOffsetSeconds) <= maximumUnobservedDrawSeconds) matchedDraws.add(draw);
-    else failures.push({ kind: 'unmatchedPresentedFrame', ...matched });
-    if (frame.luminance < floor) failures.push({ kind: 'lowLuminance', ...matched });
+    else presentedWarnings.push({ kind: 'unmatchedPresentedFrame', ...matched });
+    if (frame.luminance < presentedFloor) presentedWarnings.push({ kind: 'lowPresentedLuminance', ...matched });
   }
   const unobservedDrawRanges = [];
   for (let i = 0; i < frames.length;) {
@@ -278,17 +303,21 @@ export function snowCourtJourneySummary(geometry, presented, referenceLuminance)
     const range = { first, last, start: frames[first].timestamp, end: frames[last].timestamp };
     range.seconds = range.end - range.start;
     unobservedDrawRanges.push(range);
-    if (range.seconds > maximumUnobservedDrawSeconds) failures.push({ kind: 'compositorCaptureGap', ...range });
+    if (range.seconds > maximumUnobservedDrawSeconds) presentedWarnings.push({ kind: 'compositorCaptureGap', ...range });
   }
   return { limits: { maximumBlockedPoints, maximumEntryYaw, minimumNightBurnFraction,
-    minimumLuminance: floor, maximumUnobservedDrawSeconds },
-    referenceLuminance, entryYaw, entryYawTrace, geometryFrameCount: frames.length,
+    minimumLuminance: floor, compositorMinimumLuminance: presentedFloor, maximumUnobservedDrawSeconds },
+    referenceLuminance, presentedReferenceLuminance, entryYaw, entryYawTrace, geometryFrameCount: frames.length,
+    drawLuminanceFrameCount: frames.filter(frame => Number.isFinite(frame.luminance)).length,
+    minimumDrawLuminance: Math.min(...frames.map(frame => frame.luminance ?? Infinity)),
     maximumBlockedPoints: Math.max(...frames.map(frame => frame.blockedPoints)),
     presentedFrameCount: observed.length, distinctDrawsMatchedToCompositor: matchedDraws.size, maximumPresentedGap,
     unobservedDrawCount: frames.length - matchedDraws.size, unobservedDrawRanges,
     maximumUnobservedDrawSeconds: Math.max(0, ...unobservedDrawRanges.map(range => range.seconds)),
-    luminanceSource: 'Every received Chromium compositor JPEG, averaged from a 48×36 reduction in Rec.709 display code values (0–255). Chromium can coalesce draws; unpaired draw ranges remain unverified for luminance.',
-    minimumPresentedLuminance: Math.min(...presented.map(frame => frame.luminance)), failures, presented: observed };
+    drawLuminanceUnits: 'Mean 48×36 Rec.709 display code values (0–255) sampled from the final pre-UI framebuffer of every live draw.',
+    compositorLuminanceSource: 'Every received Chromium compositor JPEG, averaged from a 48×36 reduction in Rec.709 display code values (0–255). Chromium may coalesce draws. Gaps in screenshots are independent of the draw luminance gate.',
+    minimumPresentedLuminance: Math.min(...presented.map(frame => frame.luminance)),
+    failures, presentedWarnings, presented: observed };
 }
 
 export function snowCourtNightBurnLuminance(presented, settledAt) {

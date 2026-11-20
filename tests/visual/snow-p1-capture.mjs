@@ -14,6 +14,7 @@ import { assertCaptureGpuHealthy, installCaptureGpuGuard } from './capture-prefl
 import { fingerprintCaptureSource } from './capture-source-fingerprint.mjs';
 import { instrumentPineScene } from './pine-gate-scene-audit.mjs';
 import { createSnowCourtCameraFrames } from './snow-court-camera-frames.mjs';
+import { createSnowCourtDrawLuminance } from './snow-court-draw-luminance.mjs';
 import { installSnowCourtLanternAudit, validateSnowCourtLanternAudit } from './snow-court-lantern-framing.mjs';
 import { installSnowCourtJourneyAudit, snowCourtJourneySummary, snowCourtNightBurnLuminance,
   snowCourtPresentedLuminance } from './snow-court-journey-audit.mjs';
@@ -223,7 +224,7 @@ function instrument(source) {
     assert.equal([...transformed.matchAll(render)].length, 1, 'Snow Court evidence requires the live render loop.');
     transformed = transformed.replace(render, match => `${match}
       if (place?.id === 'snow-roof') {
-        window.__sampleSnowCourtJourneyAudit?.(THREE, camera, place.baked, mine, phase,
+        window.__sampleSnowCourtJourneyAudit?.(THREE, renderer, camera, place.baked, mine, phase,
           window.__walkProgress?.state, window.__visualIgnition?.state);
         if (snowWalkCapture && window.__pineCaptureWalkClock?.seconds >= snowWalkCapture.time) {
           const { time, resolve, reject } = snowWalkCapture;
@@ -402,6 +403,7 @@ async function captureContext(browser, { hour, look, walk }) {
     if (auditCamera) {
       await context.addInitScript(installSnowCourtLanternAudit);
       await context.addInitScript(installSnowCourtJourneyAudit);
+      await context.addInitScript({ content: `window.__createSnowCourtDrawLuminance = ${createSnowCourtDrawLuminance.toString()};` });
     }
     await context.addInitScript(hour => {
       Date.prototype.getHours = () => hour;
@@ -632,13 +634,15 @@ try {
   if (auditCamera) {
     assert.equal(journeyAudits.length, 2, 'Both Snow Court light looks must be recorded.');
     const night = journeyAudits.find(({ result }) => result.hour === 22);
-    const baseline = snowCourtNightBurnLuminance(night.presented, night.geometry.settledAt);
+    const baseline = snowCourtNightBurnLuminance(night.geometry.frames, night.geometry.settledAt);
+    const presentedBaseline = snowCourtNightBurnLuminance(night.presented, night.geometry.settledAt);
     for (const { result, geometry, presented } of journeyAudits) {
-      const { presented: measured, ...summary } = snowCourtJourneySummary(geometry, presented, baseline);
+      const { presented: measured, ...summary } = snowCourtJourneySummary(geometry, presented, baseline, presentedBaseline);
       const file = `${result.look}-journey-audit.json`;
       await writeFile(join(output, file), JSON.stringify({ viewport, summary, ...geometry, presented: measured }, null, 2) + '\n', { flag: 'wx' });
-      const { unobservedDrawRanges, ...headline } = summary;
-      result.journeyAudit = { file, ...headline, unobservedDrawRanges: unobservedDrawRanges.length, failures: summary.failures.length };
+      const { unobservedDrawRanges, presentedWarnings, ...headline } = summary;
+      result.journeyAudit = { file, ...headline, drawLuminanceSource: geometry.drawLuminanceSource,
+        unobservedDrawRanges: unobservedDrawRanges.length, presentedWarnings: presentedWarnings.length, failures: summary.failures.length };
       console.log('SNOW_COURT_JOURNEY', size, result.look, JSON.stringify(result.journeyAudit));
     }
     assert(report.contexts.every(row => row.journeyAudit?.failures === 0),
