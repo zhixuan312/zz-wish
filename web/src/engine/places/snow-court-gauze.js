@@ -1,6 +1,21 @@
 export function addSnowCourtGauzeTransmission(shader, ribs, aged) {
   shader.vertexShader = 'varying vec2 vSnowGauze;\n' + shader.vertexShader.replace('#include <uv_vertex>',
     '#include <uv_vertex>\nvSnowGauze = uv;');
+  if (!aged) {
+    shader.vertexShader = shader.vertexShader.replace('vSnowGauze = uv;', `vSnowGauze = uv;
+      // One continuous wrap keeps the fabric seam aligned. A shallower
+      // vertical crop resolves the crosswise fibres at the phone's distance.
+      vec2 visitorWeaveScale = vec2(.78125, .53);
+      #ifdef USE_MAP
+        vMapUv *= visitorWeaveScale;
+      #endif
+      #ifdef USE_NORMALMAP
+        vNormalMapUv *= visitorWeaveScale;
+      #endif
+      #ifdef USE_ROUGHNESSMAP
+        vRoughnessMapUv *= visitorWeaveScale;
+      #endif`);
+  }
   shader.fragmentShader = `varying vec2 vSnowGauze;
     float snowGauzeBamboo() {
       float h = vSnowGauze.y;
@@ -12,7 +27,57 @@ export function addSnowCourtGauzeTransmission(shader, ribs, aged) {
       float gauzeBamboo = snowGauzeBamboo();
       diffuseColor.rgb *= 1. - ${aged ? '.30' : '.085'} * gauzeBamboo;
       diffuseColor.a *= 1. - ${aged ? '.045' : '.055'} * sin(3.141593 * vSnowGauze.y);
+      ${aged ? '' : `#ifdef USE_MAP
+        // Keep the photographed yarn contrast in the light passing through.
+        diffuseColor.rgb *= 1. + clamp((yarn - 1.) * 1.0, -.25, .23);
+      #endif`}
     `);
+}
+
+function wishTagWood(THREE, grain, glow, cut) {
+  const material = new THREE.MeshStandardMaterial({
+    color: cut ? 0xf1d0a3 : 0xd9b484,
+    map: grain, roughness: .88, envMapIntensity: .28,
+  });
+  material.userData.lampOwned = true;
+  material.onBeforeCompile = shader => {
+    shader.uniforms.uWishTagGauzeGlow = glow;
+    shader.fragmentShader = `uniform float uWishTagGauzeGlow;
+      ${cut ? '' : `float wishInkStroke(vec2 p, vec2 start, vec2 end, vec2 width) {
+        vec2 span = end - start;
+        float t = clamp(dot(p - start, span) / dot(span, span), 0., 1.);
+        float distanceToInk = length(p - start - t * span);
+        float feather = max(.006, .49 * fwidth(distanceToInk));
+        float radius = mix(width.x, width.y, t);
+        return 1. - smoothstep(radius - feather, radius + feather, distanceToInk);
+      }`}
+      \n` + shader.fragmentShader.replace('#include <map_fragment>', `#ifdef USE_MAP
+        // Use a longitudinal crop with more contrast so the original grain
+        // still reads on the small face.
+        vec3 woodSample = texture2D(map, vec2(.32, .18) + vMapUv * vec2(.22, .66)).rgb;
+        float annualGrain = clamp(1. + (woodSample.g - .55) * 2.3, .58, 1.36);
+        diffuseColor.rgb *= annualGrain;
+        ${cut ? '' : `vec2 tagUv = vMapUv;
+          float cutEdge = smoothstep(.444, .494, abs(tagUv.x - .5));
+          cutEdge = max(cutEdge, 1. - smoothstep(.004, .033, tagUv.y));
+          diffuseColor.rgb *= mix(vec3(1.), vec3(1.21, 1.24, 1.30), cutEdge);
+          // Deliberately fragmentary brush marks rather than readable text.
+          float ink = wishInkStroke(tagUv, vec2(.31, .71), vec2(.64, .75), vec2(.022, .012));
+          ink = max(ink, wishInkStroke(tagUv, vec2(.49, .73), vec2(.40, .53), vec2(.024, .012)));
+          ink = max(ink, wishInkStroke(tagUv, vec2(.40, .53), vec2(.28, .48), vec2(.017, .005)));
+          ink = max(ink, wishInkStroke(tagUv, vec2(.43, .40), vec2(.68, .47), vec2(.019, .008)));
+          ink = max(ink, wishInkStroke(tagUv, vec2(.52, .38), vec2(.57, .24), vec2(.021, .008)));
+          diffuseColor.rgb *= 1. - ink * (.63 + .11 * annualGrain);`}
+      #endif
+      `).replace('#include <lights_fragment_end>', `#include <lights_fragment_end>
+        // Broad reflection from the floor and the lower edge of the glowing
+        // gauze reaches the tag face which is turned away from the wick.
+        float tagBounce = .040 + .039 * (1. - exp(-uWishTagGauzeGlow));
+        reflectedLight.indirectDiffuse += diffuseColor.rgb * vec3(1., .90, .79) * tagBounce;
+      `);
+  };
+  material.customProgramCacheKey = () => `snow-visitor-wish-tag-${cut ? 'cut' : 'face'}`;
+  return material;
 }
 
 export function tieVisitorWishTag(THREE, parts, grain) {
@@ -39,13 +104,15 @@ export function tieVisitorWishTag(THREE, parts, grain) {
   const hole = new THREE.Path();
   hole.absarc(0, -.015, .0043, 0, Math.PI * 2, true);
   shape.holes.push(hole);
-  const wood = new THREE.MeshStandardMaterial({ color: 0xd5ad79, map: grain, roughness: .88, envMapIntensity: .28 });
-  wood.userData.lampOwned = true;
+  const glow = parts.shells[0].userData.u.uGlow;
+  const face = wishTagWood(THREE, grain, glow, false);
+  const cut = wishTagWood(THREE, grain, glow, true);
   const board = new THREE.Mesh(new THREE.ExtrudeGeometry(shape, {
     depth: .0046, bevelEnabled: true, bevelThickness: .0006, bevelSize: .0006, bevelSegments: 1, curveSegments: 10,
-  }), wood);
+  }), [face, cut]);
   const vertices = board.geometry.getAttribute('position'), uv = board.geometry.getAttribute('uv');
-  for (let i = 0; i < uv.count; i++) uv.setXY(i, .5 + vertices.getX(i) / .10, .93 + vertices.getY(i) / .13);
+  for (let i = 0; i < uv.count; i++) uv.setXY(i,
+    .5 + vertices.getX(i) / (2 * halfWidth), 1 + vertices.getY(i) / height);
   board.position.set(.002, -.029, -.004);
   board.rotation.set(.065, .16, -.13);
   board.updateMatrix();
