@@ -11,7 +11,7 @@ const vertexShader = `
 
 const fragmentShader = `
   uniform sampler2D uPlate;
-  uniform float uOpacity, uStation;
+  uniform float uOpacity, uRadiance, uStation;
   varying vec2 vUv;
 
   void main() {
@@ -26,7 +26,7 @@ const fragmentShader = `
     float alpha = coverage * edge * uOpacity * mediumDistance;
     if (alpha < .002) discard;
     vec3 radiance = (exp2(encoded.rgb * log2(65.)) - 1.) / 8.;
-    gl_FragColor = vec4(radiance, alpha);
+    gl_FragColor = vec4(radiance * uRadiance, alpha);
   }
 `;
 
@@ -88,13 +88,14 @@ export async function loadPineForestBackdrop(baked, renderer, light, descriptor)
   const group = new THREE.Group();
   group.name = 'Pine Gate layered approach forest';
   const uOpacity = { value: 1 };
+  const uRadiance = { value: 1 };
   // Facing the approach, the cutouts pass behind the camera naturally.
   // Render farther cutouts first and let nearby opaque terrain occlude them.
   for (const [index, { z, file, planeWidth, planeHeight, centerX, planeY }] of plates.entries()) {
     const texture = textures[index];
     renderer.initTexture(texture);
     const material = new THREE.ShaderMaterial({
-      uniforms: { uPlate: { value: texture }, uOpacity, uStation: { value: z } },
+      uniforms: { uPlate: { value: texture }, uOpacity, uRadiance, uStation: { value: z } },
       vertexShader, fragmentShader, side: THREE.FrontSide,
       transparent: true, depthWrite: false, toneMapped: false,
     });
@@ -106,10 +107,11 @@ export async function loadPineForestBackdrop(baked, renderer, light, descriptor)
   }
 
   function update(daylight) {
-    // The plates depict the reference midday light. The baked scene takes
-    // over through twilight until independently lit forest plates exist.
-    const day = (1 - daylight.n) * (1 - daylight.g);
-    uOpacity.value = THREE.MathUtils.smoothstep(day, .35, .88);
+    // Low sun dims the trees without uncovering the ground behind their crowns.
+    // The moonlit geometry takes over once the day plates become too bright.
+    const day = 1 - daylight.n;
+    uOpacity.value = THREE.MathUtils.smoothstep(day, .15, .86);
+    uRadiance.value = (.18 + .82 * day) * (1 - .36 * daylight.g);
     group.visible = uOpacity.value > 0;
   }
   update(light);
