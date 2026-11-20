@@ -194,6 +194,25 @@ class Geometry:
         return obj
 
 
+def rock_crown_scan_uv(rings, summit):
+    """Open the crown radially using actual lengths down its stone facets."""
+    sides = len(rings[0])
+    angles = [math.atan2(z - summit[2], x - summit[0]) for x, _, z in rings[0]]
+    radii = [0.] * sides
+    previous = [summit] * sides
+    rows = []
+    for ring in reversed(rings):
+        radii = [radius + math.dist(a, b) for radius, a, b in zip(radii, previous, ring)]
+        mean = sum(radii) / sides
+        # Shared bearings keep the steep sloping faces from collapsing into
+        # the top projection. Modest meridian blending keeps the scan smooth.
+        lengths = [mix(mean, radius, .60) for radius in radii]
+        rows.append([(math.cos(angle) * radius, math.sin(angle) * radius)
+                     for angle, radius in zip(angles, lengths)])
+        previous = ring
+    return [uv for row in reversed(rows) for uv in row] + [(0., 0.)]
+
+
 def rock(mesh, granite, snow, ground_height, face):
     x, z, rx, ry, rz = face
     seed = round(abs(x) * 173 + z * 699)
@@ -225,8 +244,7 @@ def rock(mesh, granite, snow, ground_height, face):
     peak = len(points) - 1
     faces = []
     charts = []
-    # Use one strip around the exposed lower facies and a separate projection
-    # above it, with the same metric coordinates used for the actual scan.
+    # Keep the atlas charts and the coarse scan projection independent.
     arcs = [0.]
     for i in range(sides):
         other = (i + 1) % sides
@@ -258,9 +276,12 @@ def rock(mesh, granite, snow, ground_height, face):
         else:
             rock_profile_uv.append([(u - x, v - z + ry * 3.4) for u, v in coordinates])
     mesh.source_uv(body, rock_profile_uv, 'Connected facies strip and separated planar crown; metre scale.')
+    first = snow_first_ring * sides
+    crown_uv = rock_crown_scan_uv(rings[snow_first_ring:], points[peak])
+    scan_uv = rock_profile_uv[:first * 2] + [[crown_uv[i - first] for i in face] for face in faces[first * 2:]]
     material_uv = body.data.uv_layers['UVMap'].data
     shift_u, shift_v = rng.random(), rng.random()
-    for polygon, coordinates in zip(body.data.polygons, rock_profile_uv):
+    for polygon, coordinates in zip(body.data.polygons, scan_uv):
         for loop, (u, v) in zip(polygon.loop_indices, coordinates):
             material_uv[loop].uv = (u / 1.32 + shift_u, v / 1.32 + shift_v)
 
