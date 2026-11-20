@@ -35,10 +35,13 @@ export function installSnowCourtJourneyAudit() {
     const controls = screen === 'candle' ? document.querySelector('.candle-sheet')
       : screen === 'burning' ? document.querySelector('.hud-bottom') : null;
     const rect = controls?.getBoundingClientRect();
+    const [anchorX, anchorY, anchorZ] = baked.manifest.lampBasis.position;
+    const radiusMetres = Math.hypot(camera.position.x - anchorX, camera.position.z - anchorZ);
     const frame = {
       timestamp, renderTimeMs, phase, screen, walk, walkSeconds, ignition: ignition ?? null,
       controls: rect && [rect.left / innerWidth, rect.top / innerHeight, rect.right / innerWidth, rect.bottom / innerHeight],
       position: camera.position.toArray(), rotation: camera.quaternion.toArray(),
+      fovDegrees: camera.fov, radiusMetres, distanceMetres: Math.hypot(radiusMetres, camera.position.y - anchorY),
       inverseProjection: camera.projectionMatrixInverse.toArray(), near: camera.near,
       direction: camera.getWorldDirection(new THREE.Vector3()).toArray(), visitor,
     };
@@ -278,6 +281,7 @@ export function installSnowCourtJourneyAudit() {
       delete frame.visitor;
     }
     return { frames, settledAt, rayDistance, ndcPoints, bakedTriangles, needleTriangles, drawLuminanceSource,
+      lampBasis: baked.manifest.lampBasis.position,
       needleMeshNames: crowns.map(mesh => mesh.name), visitorClothVariants: visitorTrees.filter(Boolean).length, visitorClothFrames,
       minimumClothOpacity,
       rayScope: 'Visible baked model and separately loaded crowns, plus each draw’s visitor cloth transform. Counts opaque triangles and old/new cloth with material opacity at least 0.70, respecting near clipping and sidedness.',

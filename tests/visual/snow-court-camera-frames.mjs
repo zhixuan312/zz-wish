@@ -9,7 +9,7 @@ const rounded = value => Math.round(value * 1e6) / 1e6;
 const pickedFrameLimit = 1800;
 const fullCaptureFrameLimit = 6500;
 const fullCaptureByteLimit = 200 * 1024 * 1024;
-const importantStages = new Set(['chooser', 'ignition', 'settled']);
+const importantStages = new Set(['chooser', 'ignition', 'spreading', 'settled']);
 
 function nearest(ordered, target) {
   let lo = 0;
@@ -30,12 +30,15 @@ function nearest(ordered, target) {
  * Before clicking Step inside, await start() and mark('walk'). The caller
  * can pass the actual browser-side walk epoch to finish() when it has one.
  * All timestamps are Unix epoch seconds. Manifest t and actualT are relative
- * to the chosen walk origin. Non-integer samples prove brief UI states.
+ * to the chosen walk origin. Extra stage samples show brief UI states.
  */
 export async function createSnowCourtCameraFrames(page, {
-  outputDir, width = 720, height = 450, quality = 65, everyNthFrame = 6, maxOffsetSeconds = .35, measurePresented,
+  outputDir, width = 720, height = 450, quality = 65, everyNthFrame = 6, maxOffsetSeconds = .35,
+  stepSeconds = 1, measurePresented,
 } = {}) {
   if (!outputDir) throw new Error('A Snow Court frame output directory is required.');
+  if (stepSeconds !== 1 && stepSeconds !== .5) throw new Error('Snow Court frame targets must use a one or half second interval.');
+  const gridMaxOffsetSeconds = Math.min(maxOffsetSeconds, stepSeconds / 2);
   const directory = resolve(outputDir);
   const session = await page.context().newCDPSession(page);
   const received = [];
@@ -137,35 +140,38 @@ export async function createSnowCourtCameraFrames(page, {
     const extent = end - origin;
     const picks = [];
     const missing = [];
+    const used = new Set();
     const permitted = received.filter(frame => frame.timestamp >= origin);
-    for (let t = 0; t <= Math.floor(extent); t++) {
+    for (let t = 0; t <= extent; t += stepSeconds) {
       const frame = nearest(permitted, origin + t);
-      if (!frame || Math.abs(frame.timestamp - origin - t) > maxOffsetSeconds) {
+      if (!frame || used.has(frame.timestamp) || Math.abs(frame.timestamp - origin - t) > gridMaxOffsetSeconds) {
         missing.push({ t, stage: stageAt(origin + t), kind: 'second',
           ...(frame ? { nearestOffsetSeconds: rounded(frame.timestamp - origin - t) } : {}) });
         continue;
       }
+      used.add(frame.timestamp);
       picks.push({ t, frame, kind: 'second' });
     }
 
     // Automation can pass through the chooser in less than one second.
-    // Keep distinct evidence of such a state even when no integer sees it.
+    // Keep distinct evidence of such a state even when no timed target sees it.
     for (const [index, mark] of marks.entries()) {
       if (mark.timestamp < origin || mark.timestamp > end || !importantStages.has(mark.stage)) continue;
-      if (picks.some(({ frame }) => stageAt(frame.timestamp) === mark.stage) && mark.stage !== 'settled') continue;
+      if (stepSeconds === 1 && picks.some(({ frame }) => stageAt(frame.timestamp) === mark.stage) && mark.stage !== 'settled') continue;
       const until = Math.min(marks[index + 1]?.timestamp ?? Infinity, mark.timestamp + maxOffsetSeconds);
       const frame = received.find(row => row.timestamp >= mark.timestamp && row.timestamp < until);
       const t = rounded(mark.timestamp - origin);
       if (!frame) {
         missing.push({ t, stage: mark.stage, kind: 'stage' });
-      } else if (!picks.some(selected => selected.frame === frame)) {
+      } else if (!used.has(frame.timestamp)) {
+        used.add(frame.timestamp);
         picks.push({ t, frame, kind: 'stage' });
       }
     }
     picks.sort((a, b) => a.t - b.t || Number(a.kind === 'stage') - Number(b.kind === 'stage'));
     const rows = [];
     for (const { t, frame, kind } of picks) {
-      // A stage boundary may share an integer target. Prefer its already
+      // A stage boundary may share a timed target. Prefer its already
       // recorded entry to a duplicate time in the contact sheet manifest.
       if (rows.some(row => row.t === t)) continue;
       const body = Buffer.from(frame.data, 'base64');
@@ -207,7 +213,7 @@ export async function createSnowCourtCameraFrames(page, {
       capture: { maxWidth: width, maxHeight: height, quality, everyNthFrame },
       timing: { origin: walkStartTimestamp !== undefined ? 'instrumented-walk' : walk ? 'walk-marker' : 'capture-start',
         walkStartTimestamp: origin, recordingStartTimestamp: started, endTimestamp: end,
-        durationSeconds: rounded(extent), maxOffsetSeconds },
+        durationSeconds: rounded(extent), maxOffsetSeconds, stepSeconds, gridMaxOffsetSeconds },
       stageBoundaries: marks.map(({ timestamp, ...state }) => ({ ...state, timestamp, t: rounded(timestamp - origin) })),
       visibility, receivedFrames: received.length, framesWithoutSwapTimestamp: received.filter(frame => !frame.stamped).length,
       missing, frames: rows, ...(darkestPresented ? { darkestPresented } : {}) };

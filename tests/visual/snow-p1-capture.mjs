@@ -30,6 +30,7 @@ const passes = ['day', 'dusk', 'night', 'lamp'];
 const p2 = process.argv.includes('--p2');
 const milestone = p2 ? 'P2' : 'P1';
 const auditCamera = p2 && process.env.SNOW_COURT_FRAMES === '1';
+const simulatedChooserCss = phone ? '.candle-sheet[data-place="snow-roof"] { top: 60vh !important; }' : null;
 const journeyAudits = [];
 const contexts = [{ hour: 13, look: 'day', walk: true }, { hour: 22, look: 'night', walk: p2 }];
 const walkFrame = (look, name) => p2 ? `${look}-${name}` : name;
@@ -187,7 +188,10 @@ const report = {
     authoringBlendSha256: manifest.bake.sourceBlendSha256, bakeFingerprint: manifest.bakeFingerprint, maps, plateUris,
     ...(walkMaps ? { walkLightmaps: walkMaps } : {}),
     budget: manifest.budget, totalCandidateBytes: [...assets.values()].reduce((total, asset) => total + asset.body.length, 0) },
-  ordinaryManifestSha256: installedSha, viewport, captures: [], contexts: [], errors: [], httpErrors: [], viteUpdates: [],
+  ordinaryManifestSha256: installedSha, viewport,
+  ...(simulatedChooserCss ? { simulatedCss: { purpose: 'Capture-only compact portrait chooser; product styles are unchanged.',
+    rule: simulatedChooserCss } } : {}),
+  captures: [], contexts: [], errors: [], httpErrors: [], viteUpdates: [],
   readinessMisses: [],
 };
 await mkdir(dirname(output), { recursive: true });
@@ -322,6 +326,22 @@ async function captureContext(browser, { hour, look, walk }) {
   const button = name => page.getByRole('button', { name });
   const state = () => page.evaluate(() => window.__snowP1Capture());
 
+  async function markCameraStages(stages) {
+    await page.waitForFunction(stage => window.__snowLanternAudit?.frames.some(frame => frame.stage === stage), stages.at(-1));
+    const cameraStages = await page.evaluate(stages => stages.map(stage => {
+      const frame = window.__snowLanternAudit.frames.find(row => row.stage === stage);
+      return { stage, timestamp: (performance.timeOrigin + (frame?.renderTimeMs ?? NaN)) / 1000,
+        snapshot: frame && { position: frame.position, renderTimeMs: frame.renderTimeMs, yawDegrees: frame.yawDegrees,
+          pitchDegrees: frame.pitchDegrees, fovDegrees: frame.fovDegrees, distanceMetres: frame.distance,
+          controls: frame.controls, blockers: frame.blockers } };
+    }), stages);
+    for (const { stage, timestamp, snapshot } of cameraStages) {
+      assert(Number.isFinite(timestamp) && snapshot, `Expected a real ${stage} draw for the Snow Court camera frames.`);
+      cameraFrames.mark(stage, { timestamp, snapshot });
+    }
+    return cameraStages.at(-1).snapshot;
+  }
+
   async function screenshot(name, time = null, entrance = false) {
     await verifyLease();
     await assertCaptureGpuHealthy(page);
@@ -455,6 +475,7 @@ async function captureContext(browser, { hour, look, walk }) {
     });
 
     await page.goto(base.href);
+    if (simulatedChooserCss) await page.addStyleTag({ content: simulatedChooserCss });
     await page.waitForFunction(() => window.__ready === true);
     await page.evaluate(() => document.fonts.ready);
     result.gpu = await page.evaluate(() => {
@@ -505,7 +526,7 @@ async function captureContext(browser, { hour, look, walk }) {
       });
       cameraFrames = await createSnowCourtCameraFrames(page, {
         outputDir: join(output, look === 'day' ? 'camera-frames' : 'camera-frames-night'),
-        width: phone ? viewport.width : 720, height: phone ? viewport.height : 450, everyNthFrame: 1,
+        width: phone ? viewport.width : 720, height: phone ? viewport.height : 450, everyNthFrame: 1, stepSeconds: .5,
         measurePresented: frames => page.evaluate(snowCourtPresentedLuminance, frames),
       });
       await cameraFrames.start();
@@ -542,8 +563,13 @@ async function captureContext(browser, { hour, look, walk }) {
     });
     result.chooserEntryMs = performance.now() - entryStarted;
     if (cameraFrames) {
-      cameraFrames.mark('chooser', { snapshot: (await state()).camera });
-      if (look === 'day') await page.screenshot({ path: join(output, 'camera-chooser-with-controls.png'), scale: 'css' });
+      const chooser = await markCameraStages(['chooser']);
+      if (simulatedChooserCss) {
+        assert(chooser.controls?.[1] >= .6 - 1 / viewport.height, 'The actual compact portrait chooser starts above 60% of the viewport.');
+      }
+      const file = look === 'day' ? 'camera-chooser-with-controls.png' : 'camera-chooser-with-controls-night.png';
+      const image = await page.screenshot({ path: join(output, file), scale: 'css' });
+      result.chooserFrame = { file, sha256: sha(image) };
     }
     await page.getByRole('radio', { name: 'Red gauze', exact: true }).click();
     await page.getByRole('radio', { name: '1 h', exact: true }).click();
@@ -564,7 +590,7 @@ async function captureContext(browser, { hour, look, walk }) {
     await expect(page.getByTestId('with-you')).toBeVisible();
     await page.waitForFunction(() => window.__visualIgnition?.state === 'settled' && window.__visualIgnition.progress === 1);
     if (cameraFrames) {
-      cameraFrames.mark('settled', { snapshot: (await state()).camera });
+      await markCameraStages(['spreading', 'settled']);
       if (look === 'day') await page.screenshot({ path: join(output, 'camera-burning-with-controls.png'), scale: 'css' });
     }
     if (look === 'night') {
