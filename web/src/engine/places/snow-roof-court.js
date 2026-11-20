@@ -80,7 +80,7 @@ export default function createWinterCourt(h) {
   // Leave the lamp clear of the desktop chooser and the narrow-screen sheet.
   // The visitor keeps this view as the wick catches and the light spreads.
   const lampDesktop = { pos: V3(.035, 3.68, -8.23), look: V3(-.04, 3.52, -5.83), fov: 45 };
-  const lampPhone = { pos: V3(.025, 3.66, -9.28), look: V3(.015, 2.08, -6.09), fov: 89 };
+  const lampPhone = { pos: V3(.025, 3.66, -9.28), look: V3(0, 2.08, -6.09), fov: 89 };
   const entrance = pose(site.walk[0]);
   return {
     bakedLighting: true, cameraFar: 880, exposure: 1.11, shade: .55,

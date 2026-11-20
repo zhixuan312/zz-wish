@@ -76,6 +76,17 @@ export function installSnowCourtLanternAudit() {
         if (mesh.isMesh) occluders.push({ mesh, bounds: new THREE.Box3().setFromObject(mesh) });
       });
     }
+    if (ignition === 'settled' && !audit.earlierRow) {
+      const earlier = /^(Sun-faded rose-red gauze|Faded dusty rose gauze|Faded iron-red gauze|Thin gauze over low flame)$/;
+      const row = new THREE.Box2();
+      let clothMeshes = 0;
+      for (const { mesh, bounds } of occluders) {
+        if (![mesh.material].flat().some(material => earlier.test(material.name))) continue;
+        projectInto(row, corners(bounds, new THREE.Matrix4()));
+        clothMeshes++;
+      }
+      audit.earlierRow = { clothMeshes, bounds: [row.min.toArray(), row.max.toArray()] };
+    }
     const segment = world.clone().expandByPoint(camera.position);
     const candidates = occluders.filter(({ bounds }) => segment.intersectsBox(bounds));
     const ray = new THREE.Raycaster();
@@ -121,6 +132,10 @@ export function validateSnowCourtLanternAudit(audit, width, height) {
   assert(frames.some(frame => frame.screen === 'candle') && frames.some(frame => frame.flame)
     && frames.some(frame => frame.ignition === 'spreading'), 'Projection audit missed a required lantern phase.');
   const failures = [];
+  const row = audit.earlierRow;
+  if (!row?.clothMeshes || row.bounds[0].some(axis => axis < 0) || row.bounds[1].some(axis => axis > 1)) {
+    failures.push({ reasons: ['earlier lantern row missing or clipped'] });
+  }
   const left = .1, right = .9, top = .12, clearance = .05;
   let previousDistance = null, minimumMargin = Infinity;
   for (const [index, frame] of frames.entries()) {
@@ -148,5 +163,5 @@ export function validateSnowCourtLanternAudit(audit, width, height) {
     if (reasons.length) failures.push({ index, reasons: [...new Set(reasons)] });
   }
   return { frameCount: frames.length, settledSeconds: (frames.at(-1).time - settledAt) / 1000,
-    minimumMargin, visibilityRays: frames.reduce((sum, frame) => sum + (frame.visibilityRays ?? 0), 0), failures };
+    minimumMargin, earlierRow: row, visibilityRays: frames.reduce((sum, frame) => sum + (frame.visibilityRays ?? 0), 0), failures };
 }
