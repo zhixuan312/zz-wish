@@ -7,7 +7,7 @@ import { gunzipSync, zstdDecompressSync } from 'node:zlib';
 import { read as readKtx, KHR_DF_MODEL_ETC1S, KHR_DF_PRIMARIES_BT709,
   KHR_DF_TRANSFER_LINEAR, KHR_SUPERCOMPRESSION_BASISLZ, KHR_SUPERCOMPRESSION_ZSTD } from 'three/examples/jsm/libs/ktx-parse.module.js';
 
-const required = ['near', 'day', 'night', 'out'];
+const required = ['near', 'needles', 'day', 'night', 'out'];
 const { values } = parseArgs({
   options: {
     ...Object.fromEntries([...required, 'walk', 'high'].map(name => [name, { type: 'string' }])),
@@ -15,10 +15,10 @@ const { values } = parseArgs({
   },
 });
 if (values.help) {
-  console.log('node scripts/stage-snow-court.mjs --near PACKED8 --day WEBP2048 --night WEBP2048 --out NEW_ART_BUILD_DIRECTORY [--walk KTX8192] [--high WEBP8192_OR_KTX8192]');
+  console.log('node scripts/stage-snow-court.mjs --near PACKED8 --needles AUTHORED_GLB --day WEBP2048 --night WEBP2048 --out NEW_ART_BUILD_DIRECTORY [--walk KTX8192] [--high WEBP8192_OR_KTX8192]');
   process.exit(0);
 }
-if (required.some(name => !values[name])) throw new Error('Specify --near, --day, --night and --out.');
+if (required.some(name => !values[name])) throw new Error('Specify --near, --needles, --day, --night and --out.');
 const [near, daySource, nightSource, walkSource, highSource] = await Promise.all([
   realpath(resolve(values.near)), realpath(resolve(values.day)), realpath(resolve(values.night)),
   values.walk && realpath(resolve(values.walk)), values.high && realpath(resolve(values.high)),
@@ -78,9 +78,11 @@ function verifyScene(spec, body) {
     throw new Error('The packed near scene must be a binary glTF.');
   }
   const scene = JSON.parse(body.toString('utf8', 20, 20 + body.readUInt32LE(12)));
-  if (scene.scenes?.[scene.scene ?? 0]?.extras?.snow_court_revision !== revision) {
+  const extras = scene.scenes?.[scene.scene ?? 0]?.extras;
+  if (extras?.snow_court_revision !== revision) {
     throw new Error(`The exported near scene must declare the authored Snow Roof Court revision ${revision}.`);
   }
+  return extras;
 }
 
 function verifyWebp(body, uri, width, height) {
@@ -204,7 +206,18 @@ const scene = fileIndex.get(manifest.scene);
 if (!scene || fileIndex.has('manifest.json') || fileIndex.size !== nearFiles.length) {
   throw new Error('Missing scene or duplicate near asset URI.');
 }
-verifyScene(scene.spec, scene.body);
+const sceneExtras = verifyScene(scene.spec, scene.body);
+const needlesPath = await realpath(resolve(values.needles));
+if (!needlesPath.startsWith(scratch + sep)) throw new Error('The authored needle crowns must come from art/build.');
+const needlesBody = await readFile(needlesPath);
+const needlesSha = digest(needlesBody);
+if (needlesSha !== sceneExtras.snow_court_needles_sha256 || needlesBody.readUInt32LE(0) !== 0x46546c67
+  || needlesBody.readUInt32LE(8) !== needlesBody.length) {
+  throw new Error('The needle crowns differ from the mesh used during the source bake.');
+}
+const needles = { body: needlesBody, spec: {
+  uri: 'snow-court-needles.glb', bytes: needlesBody.length, sha256: needlesSha, role: 'runtime-snow-needle-crowns',
+} };
 const seenMaps = new Set();
 for (const region of regions) {
   const maps = manifest.lightmaps[region];
@@ -235,7 +248,7 @@ for (const [tier, upgrade] of [['walk', walk], ['high', high]]) {
     throw new Error(`The ${tier} tier must use the exact day masters that produced the soft plates.`);
   }
 }
-manifest.snowCourt = { revision };
+manifest.snowCourt = { revision, needles: needles.spec.uri };
 manifest.backdrop = {
   ...day.descriptor, projectionSha256, siteSha256, night: night.descriptor,
   ...(walk ? { walk: walk.descriptor } : {}),
@@ -253,7 +266,7 @@ const fabricFiles = await Promise.all(Object.values(fabric.maps).map(async file 
   verifyWebp(body, uri, file.width, file.height);
   return { body, spec: { uri, bytes: file.bytes, sha256: file.sha256, role: 'runtime-visitor-fabric' } };
 }));
-const files = [...nearFiles, ...fabricFiles, ...day.files, ...night.files, ...(walk?.files ?? []), ...(high?.files ?? [])];
+const files = [...nearFiles, needles, ...fabricFiles, ...day.files, ...night.files, ...(walk?.files ?? []), ...(high?.files ?? [])];
 manifest.files = files.map(file => file.spec);
 if (new Set(manifest.files.map(file => file.uri)).size !== files.length) {
   throw new Error('Duplicate delivery asset URI.');
@@ -300,7 +313,7 @@ const serialized = encode();
 if (serialized.length !== manifest.manifestBytes) throw new Error('Manifest byte count did not converge.');
 console.log('SNOW_COURT_BUDGET', JSON.stringify({
   ...manifest.budget, manifestBytes: manifest.manifestBytes, nativeAgXBytes: agx.bytes,
-  nearBytes: byteSum(nearFiles), dayBytes: byteSum(day.files), nightBytes, walkBytes, highBytes,
+  nearBytes: byteSum([...nearFiles, needles]), dayBytes: byteSum(day.files), nightBytes, walkBytes, highBytes,
   nearManifestSha256: digest(nearBytes), sourceBlendSha256: bake.sourceBlendSha256, projectionSha256, siteSha256,
 }));
 for (const [tier, limit] of Object.entries(limits)) {

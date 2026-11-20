@@ -345,8 +345,14 @@ def build_approach(site, materials):
     for polygon, coordinates in zip(stems.data.polygons, bark.charts):
         for loop, (u, v) in zip(polygon.loop_indices, coordinates):
             uv[loop].uv = (u / .75, v / .75)
-    needles.write(mesh, 'Pine needle geometry in three-dimensional tufts', materials['needle'],
-                  'Individual long needles unfolded in metres.')
+    # The individual needles cast into the bake but get directional light
+    # live. Giving all 6,598 detached needle triangles separate padded UV
+    # charts would take most of the approach atlas away from the trail.
+    foliage = mesh.mesh_object('Pine needle geometry in three-dimensional tufts',
+                               needles.vertices, needles.faces, materials['needle'], REGION)
+    del foliage['one_light_static']
+    foliage['snow_court_needle_crowns'] = True
+    materials['needle'].use_backface_culling = False
     snow.write(mesh, 'Broken snow ridges along pine boughs', materials['snow'],
                'Individual supported snow strips unfolded in metres.')
-    return support
+    return foliage

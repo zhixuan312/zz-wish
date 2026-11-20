@@ -414,7 +414,7 @@ def build(site, projection):
     plates.set_world(scene, look_transport(projection['light']['night']), pre_exposure, 'Clear moonlit winter pass')
     scene['one_light_ambient_worlds'] = json.dumps({'day': daylight.name})
     m = palette()
-    build_approach(site, m)
+    foliage = build_approach(site, m)
     courtyard(site, m)
     fixtures = []
     gate(site, m, contact, fixtures)
@@ -424,7 +424,7 @@ def build(site, projection):
     source = mesh.light('Measured visitor wick transport basis', basis, .33, '#ffc583', .027, role='lamp')
     scene['place_id'] = scene['one_light_place'] = 'snow-roof'
     scene['snow_court_revision'] = site['revision']
-    scene['lightmap_resolutions'] = json.dumps({'gate': 1024, 'court': 1024, 'hall': 1024, 'altar': 512})
+    scene['lightmap_resolutions'] = json.dumps({'gate': 2048, 'court': 1024, 'hall': 1024, 'altar': 512})
     scene['one_light_camera_far'] = 880
     scene['one_light_camera_pre_exposure'] = pre_exposure
     scene['one_light_lamp_pass_quantity'] = 'indirect-diffuse-radiance-per-unit-albedo'
@@ -433,7 +433,7 @@ def build(site, projection):
         'linearColor': list(source.data.color), 'pointRadiusMetres': source.data.shadow_soft_size,
         'sourceObject': source.name})
     scene['one_light_anchor_fields'] = json.dumps(['snow_court_revision', 'snow_court_fixtures_engine',
-                                                   'one_light_lamp_basis'])
+                                                   'one_light_lamp_basis', 'snow_court_needles_sha256'])
     scene.camera = reference_camera('Reference_SnowCourtEntrance', **{
         'position': site['walk'][0]['position'], 'look': site['walk'][0]['look'], 'fov': site['walk'][0]['fov'],
     })
@@ -446,7 +446,7 @@ def build(site, projection):
     scene['snow_court_fixtures_engine'] = json.dumps(painted_fixture_data(fixtures, contact))
     mesh.apply_surface_tints()
     scene['source_lightmap_charts'] = json.dumps(mesh.complete_source_charts(list(mesh.STATIC.objects)))
-    return contact.audit(fail=True)
+    return contact.audit(fail=True), foliage
 
 
 def main():
@@ -454,7 +454,7 @@ def main():
     parser.add_argument('--output', type=Path, required=True)
     args = parser.parse_args(sys.argv[sys.argv.index('--') + 1:])
     site, projection = (json.loads(path.read_text()) for path in (SITE, PROJECTION))
-    contact = build(site, projection)
+    contact, foliage = build(site, projection)
     output = args.output.resolve()
     output.parent.mkdir(parents=True, exist_ok=True)
     scene = bpy.context.scene
@@ -462,6 +462,13 @@ def main():
     scene['source_authoring_sha256'] = json.dumps({
         str(path.resolve().relative_to(ROOT)): sha256(path.read_bytes()).hexdigest() for path in sources
     })
+    bpy.ops.object.select_all(action='DESELECT')
+    bpy.context.view_layer.objects.active = foliage
+    foliage.select_set(True)
+    needles = output.with_name('snow-court-needles.glb')
+    bpy.ops.export_scene.gltf(filepath=str(needles), export_format='GLB', use_selection=True,
+                              export_extras=True, export_yup=True, export_cameras=False, export_lights=False)
+    scene['snow_court_needles_sha256'] = sha256(needles.read_bytes()).hexdigest()
     bpy.ops.wm.save_as_mainfile(filepath=str(output))
     fixtures = json.loads(scene['snow_court_fixtures_engine'])
     fields = json.loads(scene['one_light_anchor_fields'])

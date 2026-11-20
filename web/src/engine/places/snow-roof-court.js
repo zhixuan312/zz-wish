@@ -54,6 +54,10 @@ export default function createWinterCourt(h) {
       }
       context.G.add(baked.group);
       context.baked = baked;
+      const crownUri = baked.manifest.snowCourt.needles;
+      if (crownUri !== 'snow-court-needles.glb') throw new Error('Missing authored Snow Roof needle crowns.');
+      const crowns = await baked.loadDetailModel(crownUri);
+      context.G.add(crowns);
       const raw = baked.group.userData.snow_court_fixtures_engine;
       const fixtures = typeof raw === 'string' ? JSON.parse(raw) : raw;
       if (!Array.isArray(fixtures) || fixtures.length !== 6) throw new Error('Missing measured Snow Roof court lamp contacts.');
