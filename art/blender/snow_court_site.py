@@ -463,9 +463,18 @@ def main():
         str(path.resolve().relative_to(ROOT)): sha256(path.read_bytes()).hexdigest() for path in sources
     })
     bpy.ops.wm.save_as_mainfile(filepath=str(output))
-    output.with_suffix('.audit.json').write_text(json.dumps(contact, indent=2) + '\n')
+    fixtures = json.loads(scene['snow_court_fixtures_engine'])
+    fields = json.loads(scene['one_light_anchor_fields'])
+    receipt = {
+        'source': {'path': str(output.relative_to(ROOT)), 'sha256': sha256(output.read_bytes()).hexdigest()},
+        'contactAudit': contact,
+        'anchorMetadataFields': fields,
+        'anchorMetadata': {name: scene[name] for name in fields},
+        'wicks': fixtures,
+    }
+    output.with_suffix('.audit.json').write_text(json.dumps(receipt, indent=2) + '\n')
     print('SNOW_COURT_SOURCE', output, 'objects', len(mesh.STATIC.objects),
-          'resting groups', len(contact['groups']), 'fixtures', len(json.loads(scene['snow_court_fixtures_engine'])))
+          'resting groups', len(contact['groups']), 'fixtures', len(fixtures))
 
 
 if __name__ == '__main__':
