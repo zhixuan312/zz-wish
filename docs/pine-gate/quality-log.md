@@ -659,3 +659,10 @@ belong to that item.
 
 `05dcc31` adds the browser test that the cloth is present while burning and still present after
 the ending.
+
+### S2 maintenance: Pine Gate ambience
+
+The four recorded layers are installed under `web/public/places/pine-gate/sound/`: 8 files,
+578,695 bytes total, largest 98,213 B. They are not part of the base tier; they load after
+`Step inside` and a failed fetch is silence. Sources and licences are in `sound-sources.md`; how
+the synthesised layers are made is in `sound-design.md`.

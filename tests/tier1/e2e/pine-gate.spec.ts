@@ -110,3 +110,33 @@ test('the opening place, Snow Roof, starts on red gauze without touching the pla
   // Ivory gauze exists in the row but is not the default.
   await expect(page.getByRole('radio', { name: /^素纱$|^Ivory gauze$/ })).not.toBeChecked();
 });
+
+// The recorded ambience must be silent when muted, and a missing recording must not log an error.
+test('muting Pine Gate silences the recorded ambience, and a missing recording throws nothing', async ({ page }) => {
+  // A 404 makes Chromium print its own "Failed to load resource" line that a page cannot
+  // suppress, so this asserts what the code controls: no uncaught error, and nothing playing.
+  const failures: string[] = [];
+  page.on('pageerror', error => failures.push(String(error)));
+  // Break every recording fetch: the place must still work, quietly.
+  await page.route('**/places/pine-gate/sound/*.m4a', route => route.fulfill({ status: 404, body: '' }));
+  await page.goto('/');
+  await page.getByLabel(/你的愿望|Your wish/).fill('Silence is fine.');
+  await page.getByRole('button', { name: /许好了|Set my wish/ }).click();
+  await page.getByRole('radio', { name: /松门石阶|Pine Gate Steps/ }).click();
+  await page.getByRole('button', { name: /走进院里|Step inside/ }).click();
+  await page.getByRole('button', { name: /跳过|Skip/ }).click();
+  await page.getByRole('radio', { name: /^(10 分钟|10 min)$/ }).click();
+  await page.getByRole('button', { name: /点亮这一盏|Light it/ }).click();
+  await expect(page.getByTestId('with-you')).toBeVisible();
+  // The sound control lives on the burning screen; mute it there and let any scheduled layer
+  // have time to try to play.
+  await page.getByRole('button', { name: /^静音$|^Mute$/ }).click();
+  await page.waitForTimeout(3000);
+  // No audio element is playing, and the mute state is recorded.
+  const playing = await page.evaluate(() => [...document.querySelectorAll('audio')]
+    .filter(audio => !audio.paused).length);
+  expect(playing).toBe(0);
+  // The sound control now offers to turn sound back on.
+  await expect(page.getByRole('button', { name: /^开启声音$|^Sound on$/ })).toBeVisible();
+  expect(failures).toEqual([]);
+});

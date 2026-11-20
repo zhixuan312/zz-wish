@@ -88,3 +88,16 @@ export const ignite = (options: IgnitionOptions = {}) => initialize().then(s => 
 export const snuff = (done = false, remaining?: number, gust = false) => initialize().then(s => s.snuff(done, remaining, gust));
 export { isLeavingGust } from './places/pine-gust.ts';
 export const skip = () => { void initialize().then(s => s.skip()).catch(() => {}); };
+
+import { dayPart } from '../../../shared/dayPart.ts';
+import { layersFor, recordedLayersFor } from './places/pine-ambience.ts';
+
+export { layersFor, recordedLayersFor, nextDelay, LEVELS, RECORDED } from './places/pine-ambience.ts';
+export { createRecordedSounds } from './places/pine-recorded-sounds.ts';
+export type { RecordedSounds } from './places/pine-recorded-sounds.ts';
+
+/** One call for the UI: which layers this part of day enables, and which of them are recorded. */
+export function ambienceFor(date: Date) {
+  const part = dayPart(date);
+  return { part, layers: [...layersFor(part)], recorded: recordedLayersFor(part) };
+}
