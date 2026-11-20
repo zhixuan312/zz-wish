@@ -162,27 +162,22 @@ export function createMudPrints({ THREE, surface, prints }: {
     const hit = ray.intersectObject(surface, true)[0];
     if (!hit) continue;
 
-    const material = new THREE.MeshStandardMaterial({
-      // Wet mud on mossy granite: the stone's own lichen mottling runs lighter and greener than a
-      // boot sole, so the print needs a genuinely dark pigment. It stays slightly glossy because a
-      // damp sole catches the sky; that specular edge is what reads against a busy surface when a
-      // difference in value alone is lost.
-      color: 0x090806,
-      // The damp sheen has to be a tight highlight, not a broad wash: at a low roughness with a
-      // strong environment the whole print mirrors the bright sky and turns grey, which hides it
-      // even better than a flat colour did.
-      roughness: .46 - .10 * print.weight,
-      metalness: 0,
-      envMapIntensity: .16,
+    // Unlit on purpose. A lit standard material lifts the dark pigment with sky reflection and
+    // specular, so a print measured brighter than the stone it sits on: the decal read as a pale
+    // patch with a glowing rim. The mud is drawn as a flat stain, which is what a footprint is, and
+    // its darkness then always comes from the pigment rather than the light.
+    const material = new THREE.MeshBasicMaterial({
+      color: 0x0b0907,
       alphaMap: maps?.alpha ?? null,
-      normalMap: maps?.normal ?? null,
-      normalScale: new THREE.Vector2(.9, .9),
       transparent: true,
-      opacity: Math.min(.98, .72 + .26 * print.weight),
-      // The cloth strips and the wax contact shading both sit on stone without polygon offset:
-      // they simply do not write depth. Follow them, rather than offsetting the depth buffer, which
-      // fights the new per-slab geometry and can clip the decal away entirely.
+      opacity: Math.min(.96, .62 + .30 * print.weight),
       depthWrite: false,
+      // Cut the fully transparent texels outright: a soft alpha ramp over a bright slab still
+      // lightens the stone at the quad's rim.
+      alphaTest: .06,
+      polygonOffset: true,
+      polygonOffsetFactor: -2,
+      polygonOffsetUnits: -2,
     });
 
     // The alpha map is square and the sole fills its own length, so the quad is square too: the

@@ -138,9 +138,9 @@ test('the prints are cheap: geometry only, no texture files', () => {
     const position = mesh.geometry.attributes.position;
     expect(position.count).toBeLessThanOrEqual(4);
     expect(mesh.geometry.index?.count ?? 0).toBeLessThanOrEqual(6);
-    // Colours come from the material; the alpha and normal are generated at runtime.
+    // The silhouette comes from an alpha generated at runtime; there is no texture file on disk.
     expect(mesh.material.alphaMap).toBeTruthy();
-    expect(mesh.material.normalMap).toBeTruthy();
+    expect(mesh.material.map).toBeFalsy();
   }
   mud.dispose();
 });

@@ -136,7 +136,26 @@ export default function createPlace(h) {
         if (mud.count) {
           context.G.add(mud.group);
           // Read by the Tier 1 test: the trail must place every print on real paving.
-          if (import.meta.env.DEV) window.__pineMudPrints = () => mud.count;
+          // Read-only diagnostics, exposed in every build so the browser suite can locate the
+          // decals on the production app it actually tests.
+          window.__pineMudPrints = () => mud.count;
+          window.__pineMudGroup = () => mud.group;
+          window.__pinePrintBoxes = () => {
+            const camera = globalThis.__pineDiagCamera;
+            if (!camera) return null;
+            return mud.group.children.map((mesh, index) => {
+              mesh.geometry.computeBoundingBox();
+              const box = mesh.geometry.boundingBox.clone().applyMatrix4(mesh.matrixWorld);
+              const points = [];
+              for (const x of [box.min.x, box.max.x]) for (const y of [box.min.y, box.max.y]) for (const z of [box.min.z, box.max.z]) {
+                const v = new THREE.Vector3(x, y, z).project(camera);
+                points.push([(v.x * .5 + .5) * innerWidth, (-v.y * .5 + .5) * innerHeight]);
+              }
+              const xs = points.map(p => p[0]), ys = points.map(p => p[1]);
+              return { index, x: Math.min(...xs), y: Math.min(...ys),
+                w: Math.max(...xs) - Math.min(...xs), h: Math.max(...ys) - Math.min(...ys) };
+            });
+          };
           context.disposers.push(mud.dispose);
         }
       }

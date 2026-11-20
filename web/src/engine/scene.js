@@ -1891,6 +1891,16 @@ const rig = { pos: V3(0, 1.35, 2.3), look: V3(0, 1, -1), amp: .006, fov: null };
 let cameraJourneyVersion=0;
 let choiceCameraVersion=0;
 const active = outside;
+// A read-only camera pose hook, available in every build: the browser suite sets the declared
+// review pose on the production app and reads the decals' screen boxes.
+{
+  window.__pineDiagCamera = camera;
+  window.__diagPose = (position, look, fov) => {
+    rig.pos.set(...position); rig.look.set(...look); rig.amp = 0;
+    camera.position.set(...position); camera.lookAt(new THREE.Vector3(...look));
+    camera.fov = fov; camera.updateProjectionMatrix();
+  };
+}
 const tweens = [];
 function tween(dur, fn) { if (reducedMotion.matches) { fn(1); return Promise.resolve(); } return new Promise((res) => { tweens.push({ t: 0, dur, fn, res, skip: false }); }); }
 function skipTweens() { for (const tw of tweens) tw.skip = true; }

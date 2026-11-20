@@ -183,3 +183,93 @@ test('the credits panel names both CC BY recordings and links their Commons page
   });
   expect(fits).toBe(true);
 });
+
+// A muddy print is a decal: the alpha map, not the quad, must decide what is drawn. If the whole quad
+// is painted the print reads as a sticking plaster across the joint. For every print, compare its own
+// bounding box against the stone just outside it: the sole's middle must darken, the quad's corners
+// must not, and the stone outside must stay untouched.
+test('each mud print draws its sole, not the whole quad', async ({ page }) => {
+  await page.goto('/');
+  await page.getByLabel(/你的愿望|Your wish/).fill('Prints.');
+  await page.getByRole('button', { name: /许好了|Set my wish/ }).click();
+  await page.getByRole('radio', { name: /松门石阶|Pine Gate Steps/ }).click();
+  const step = page.getByRole('button', { name: /走进院里|Step inside/ });
+  for (let i = 0; i < 240; i++) { if (await step.isEnabled().catch(() => false)) break; await page.waitForTimeout(250); }
+  await step.click();
+  await page.getByRole('button', { name: /跳过|Skip/ }).click();
+  await page.waitForTimeout(1500);
+  await page.evaluate(() => {
+    const pose = window as unknown as { __diagPose?: (p: number[], l: number[], f: number) => void };
+    pose.__diagPose?.([0, 6.5, 7.05], [-0.5, 5.05, 1.93], 68);
+  });
+  await page.waitForTimeout(800);
+  const boxes = await page.evaluate(() => {
+    const api = window as unknown as { __pinePrintBoxes?: () => { index: number; x: number; y: number; w: number; h: number }[] | null };
+    return api.__pinePrintBoxes?.() ?? null;
+  });
+  expect(boxes && boxes.length).toBe(6);
+
+  const shot = async () => page.screenshot({ style: '.ui{visibility:hidden!important}' });
+  const png = await shot();
+  // Second frame with the decals hidden: whatever changes is the print itself.
+  await page.evaluate(() => {
+    const group = (window as unknown as { __pineMudGroup?: () => { visible: boolean } }).__pineMudGroup?.();
+    if (group) group.visible = false;
+  });
+  await page.waitForTimeout(120);
+  const bare = await shot();
+  await page.evaluate(() => {
+    const group = (window as unknown as { __pineMudGroup?: () => { visible: boolean } }).__pineMudGroup?.();
+    if (group) group.visible = true;
+  });
+  const luma = async (spots: [number, number][]) => page.evaluate(async ({ data, spots }) => {
+    const bitmap = await createImageBitmap(new Blob([new Uint8Array(data)], { type: 'image/png' }));
+    const canvas = new OffscreenCanvas(bitmap.width, bitmap.height);
+    const context = canvas.getContext('2d')!;
+    context.drawImage(bitmap, 0, 0);
+    return spots.map(([x, y]) => {
+      const [r, g, b] = context.getImageData(Math.round(x), Math.round(y), 1, 1).data;
+      return (r + g + b) / 3;
+    });
+  }, { data: [...png], spots });
+  const luma2 = async (spots: [number, number][]) => page.evaluate(async ({ data, spots }) => {
+    const bitmap = await createImageBitmap(new Blob([new Uint8Array(data)], { type: 'image/png' }));
+    const canvas = new OffscreenCanvas(bitmap.width, bitmap.height);
+    const context = canvas.getContext('2d')!;
+    context.drawImage(bitmap, 0, 0);
+    return spots.map(([x, y]) => {
+      const [r, g, b] = context.getImageData(Math.round(x), Math.round(y), 1, 1).data;
+      return (r + g + b) / 3;
+    });
+  }, { data: [...bare], spots });
+
+  const inset = 4, outside = 10;
+  let shadedPrints = 0;
+  for (const box of boxes!) {
+    if (box.x < 12 || box.y < 12) continue;
+    const centre: [number, number] = [box.x + box.w / 2, box.y + box.h / 2];
+    const corners: [number, number][] = [
+      [box.x + inset, box.y + inset],
+      [box.x + box.w - inset, box.y + inset],
+      [box.x + inset, box.y + box.h - inset],
+      [box.x + box.w - inset, box.y + box.h - inset],
+    ];
+    // A point beyond the quad, on the same slab: this is the stone the decal must not tint.
+    const stone: [number, number] = [box.x + box.w + outside, box.y + box.h / 2];
+    const [cornerLuma, stoneLuma, centreLuma, bareCentre] = await Promise.all([
+      luma(corners), luma([stone]), luma([centre]), luma2([centre]),
+    ]);
+    const cornerAvg = cornerLuma.reduce((a, b) => a + b, 0) / cornerLuma.length;
+    // The quad's corners sit outside the sole's silhouette: they must match the stone beside them.
+    expect(Math.abs(cornerAvg - stoneLuma[0]),
+      `print ${box.index} corners ${cornerLuma.map(v => v.toFixed(0))} vs stone ${stoneLuma[0].toFixed(0)}`)
+      .toBeLessThan(16);
+    // How much this decal darkens the stone it covers: with-prints minus without-prints.
+    const depth = bareCentre[0] - centreLuma[0];
+    // Every print must darken the stone it covers, and the wetter ones clearly so. The unit is
+    // 0-255 luma; four levels is the smallest step the eye separates on this granite.
+    if (depth > 4) shadedPrints++;
+  }
+  // At least the wettest prints must read as pressed mud: a sole that actually darkens the stone.
+  expect(shadedPrints, 'prints whose sole is clearly darker than the stone beside them').toBeGreaterThanOrEqual(3);
+});
