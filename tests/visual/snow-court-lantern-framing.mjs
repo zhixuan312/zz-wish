@@ -87,10 +87,18 @@ export function installSnowCourtLanternAudit() {
     if (ignition === 'settled' && !audit.earlierRow) {
       const earlier = /^(Sun-faded rose-red gauze|Faded dusty rose gauze|Faded iron-red gauze|Thin gauze over low flame)$/;
       const row = new THREE.Box2();
+      const worldPoint = new THREE.Vector3();
+      const screenPoint = new THREE.Vector2();
       let clothMeshes = 0;
-      for (const { mesh, bounds } of occluders) {
+      for (const { mesh } of occluders) {
         if (![mesh.material].flat().some(material => earlier.test(material.name))) continue;
-        projectInto(row, corners(bounds, new THREE.Matrix4()));
+        // A material batch can contain separate shades. Its world bounds
+        // combine corners which are not on any of their silhouettes.
+        const { index, attributes } = mesh.geometry;
+        for (let i = 0; i < (index?.count ?? attributes.position.count); i++) {
+          worldPoint.fromBufferAttribute(attributes.position, index?.getX(i) ?? i).applyMatrix4(mesh.matrixWorld);
+          row.expandByPoint(screenPoint.set(...project(worldPoint)));
+        }
         clothMeshes++;
       }
       audit.earlierRow = { clothMeshes, bounds: [row.min.toArray(), row.max.toArray()] };
