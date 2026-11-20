@@ -197,7 +197,7 @@ function instrument(source) {
     [/const light\s*=\s*daylight\(\),\s*lightKey\s*=\s*JSON\.stringify\(light\);/g, 'scene-build', true],
     [/await P\.build\(t,\s*context\);/g, 'assets-ready'],
     [/const\s+stage\s*=\s*new THREE\.Scene\(\);\s*stage\.environment\s*=\s*env;/g, 'before-stage', true],
-    [/await renderer\.compileAsync\(stage,\s*stageCamera\);(?=\s*if\s*\(P\.bakedLighting)/g, 'first-compile-ready'],
+    [/if \(warmPrograms\) await warmPrograms;/g, 'first-compile-ready'],
     [/renderer\.setRenderTarget\(warm\);\s*renderer\.render\(stage,\s*stageCamera\);/g, 'warm-render-ready'],
     [/cachedPlaces\.set\(t\.id,\s*candidate\);/g, 'preview-ready', true],
   ];

@@ -1807,6 +1807,14 @@ async function buildPlace(t) {
   trimPlaceCache([t.id]);
   attachMine();
 }
+function compileIntoTarget(scene, view, target) {
+  const previous = renderer.getRenderTarget();
+  renderer.setRenderTarget(target);
+  // Three sets the program's colour-space and tone-mapping defines while
+  // starting the link. Only the completion poll is asynchronous.
+  try { return renderer.compileAsync(scene, view); }
+  finally { renderer.setRenderTarget(previous); }
+}
 async function buildPlaceNow(t, isolated = false) {
   const light = daylight(), lightKey = JSON.stringify(light);
   if (cachedPlaces.has(t.id)) return cachedPlaces.get(t.id);
@@ -1869,10 +1877,12 @@ async function buildPlaceNow(t, isolated = false) {
   // frame must still reach its normal framebuffer while shaders link.
   let visitorPreview;
   const target = renderer.getRenderTarget(), warm = new THREE.WebGLRenderTarget(4, 4);
+  const warmPrograms = streamsSnowInterior ? compileIntoTarget(stage, stageCamera, warm) : null;
   try {
     // A streamed Snow Court opens on the road. Its visitor lamp shaders can
     // link with the actual lamp when the player reaches the hall.
     await renderer.compileAsync(stage, stageCamera);
+    if (warmPrograms) await warmPrograms;
     if (P.bakedLighting && P.nook.lamp === 'gauze' && !streamsSnowInterior) {
       visitorPreview = LAMPS.gauze({ ...presetOf('shade'), liveBaked: true });
       const basis = context.baked.manifest.lampBasis.position;
@@ -2340,7 +2350,7 @@ export async function travel(id) {
     // shadow topology. Restore visibility before the next live frame, then
     // let the driver finish linking while the visitor is on the road.
     mine.g.visible = true;
-    try { offerPrograms = renderer.compileAsync(outside, camera); }
+    try { offerPrograms = compileIntoTarget(outside, camera, composer.readBuffer); }
     finally { mine.g.visible = false; }
   }
   const authoredWalk = P.createWalk?.({ pos: rig.pos.clone(), look: l0, fov: f0 }, end, narrow());
