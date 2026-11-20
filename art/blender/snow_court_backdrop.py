@@ -27,6 +27,8 @@ TILE_URL = 'https://elevation-tiles-prod.s3.amazonaws.com/skadi/N33/N33E107.hgt.
 TILE_SIDE = 3601
 PEAK_ROW, PEAK_COLUMN, PEAK_ELEVATION = 161, 2749, 3753
 LAYER_NAMES = ('far', 'mid', 'cloud')
+SUMMIT_COLUMN_METRES = .86
+SUMMIT_ROW_METRES = .31
 
 
 def read_tile(path):
@@ -45,23 +47,48 @@ def sampled_range(start, stop, stride, required):
     return sorted({*range(start, stop, stride), stop, *required})
 
 
+def snow_retention(elevation, row, col, height, vertical):
+    # Measure both across and down the fall line. Concave chutes retain snow
+    # that the winter wind strips from neighboring convex ridges.
+    span = 7
+    north = max(0, row - span)
+    south = row + span
+    west_height = elevation[row * TILE_SIDE + col - span]
+    east_height = elevation[row * TILE_SIDE + col + span]
+    north_height = elevation[north * TILE_SIDE + col]
+    south_height = elevation[south * TILE_SIDE + col]
+    cross_grade = (east_height - west_height) * vertical / (2 * span * SUMMIT_COLUMN_METRES)
+    depth_grade = (north_height - south_height) * vertical / ((south - north) * SUMMIT_ROW_METRES)
+    up = 1. / math.hypot(cross_grade, depth_grade, 1.)
+    across = .5 * (west_height + east_height)
+    along = lerp(north_height, south_height, (row - north) / (south - north))
+    hollow = (.60 * across + .40 * along - height) * vertical
+    ledge = smooth(.23, .84, up)
+    basin = smooth(-.55, 1.85, hollow)
+    lee = smooth(.75, -.58, cross_grade)
+    return .53 * ledge + .35 * basin + .12 * lee
+
+
 def mountain(elevation, peak):
-    # The crop starts below the main head wall. Rescale the strip into the
-    # fictional backdrop, preserving the real ridge facets and drainage cuts.
-    columns = sampled_range(1880, 3592, 4, (PEAK_COLUMN,))
-    rows = sampled_range(0, 591, 4, (PEAK_ROW,))[::-1]
+    # Keep the approved SRTM peak and framing. Sample the headwall densely
+    # enough to keep small spurs, then carry its near apron down to the valley
+    # below the visible crop instead of ending the mesh across a high slope.
+    columns = sampled_range(1880, 3592, 2, (PEAK_COLUMN,))
+    rows = sampled_range(0, 590, 2, (PEAK_ROW, 591))
+    rows = sorted({*rows, *sampled_range(592, 815, 4, ())}, reverse=True)
     vertical = peak[1] / (PEAK_ELEVATION - 1080)
-    points = []
+    points, retention = [], []
+    edges = [smooth(columns[0], columns[0] + 100, col)
+             * smooth(columns[-1], columns[-1] - 100, col) for col in columns]
     for row in rows:
-        depth = -peak[2] + (PEAK_ROW - row) * .31
-        for col in columns:
-            x = peak[0] + (col - PEAK_COLUMN) * .86
-            height = (elevation[row * TILE_SIDE + col] - 1080) * vertical
-            # The map boundaries taper below the horizon outside the central
-            # product aperture so they never make a square terrain silhouette.
-            edge = smooth(columns[0], columns[0] + 100, col) * smooth(columns[-1], columns[-1] - 100, col)
-            points.append((x, depth, lerp(-28., height, edge)))
-    return surface_grid(points, len(columns))
+        depth = -peak[2] + (PEAK_ROW - row) * SUMMIT_ROW_METRES
+        apron = 1. - smooth(591, 815, row)
+        for col, edge in zip(columns, edges):
+            x = peak[0] + (col - PEAK_COLUMN) * SUMMIT_COLUMN_METRES
+            height = elevation[row * TILE_SIDE + col]
+            points.append((x, depth, lerp(-28., (height - 1080) * vertical, edge * apron)))
+            retention.append(snow_retention(elevation, row, col, height, vertical))
+    return surface_grid(points, len(columns)), retention
 
 
 def pass_flank(elevation, near_depth):
@@ -122,21 +149,64 @@ def pines(flank):
     return batches
 
 
-def hillside_material(name, air, distant):
-    shader = plates.Shader(name)
+def hillside_material(air):
+    shader = plates.Shader('Broken winter snow on the lower valley slopes')
     point = shader.coordinate()
-    height = shader.xyz(point)['Z']
     normal = shader.xyz(shader.nodes.new('ShaderNodeNewGeometry').outputs['Normal'])['Z']
     band = shader.noise(point, (.17, .11, .31), detail=3.8, roughness=.65)
     stone_grain = shader.noise(point, (2.1, 2.3, 3.8), detail=3.4)
     ledges = shader.between(shader.math('ADD', normal, shader.product(band, .2)), .30, .87)
-    snowline = shader.between(height, 27., 91.) if distant else shader.between(band, .21, .61)
+    snowline = shader.between(band, .21, .61)
     snow_on_slope = shader.product(ledges, snowline)
-    light_rock = (.24, .245, .25, 1.) if distant else (.14, .151, .152, 1.)
+    light_rock = (.14, .151, .152, 1.)
     rock = shader.blend((.058, .071, .084, 1.), light_rock, band)
     powder = shader.blend((.65, .71, .80, 1.), (.91, .93, .96, 1.), stone_grain)
     return shader.surface(shader.blend(rock, powder, snow_on_slope), .93,
-                          bump=(stone_grain, .27, .085 if distant else .055), air=air)
+                          bump=(stone_grain, .27, .055), air=air)
+
+
+def summit_material(air):
+    shader = plates.Shader('Fractured summit rock with snow in sheltered chutes')
+    point = shader.coordinate()
+    position = shader.xyz(point)
+    x, depth, height = (position[axis] for axis in ('X', 'Y', 'Z'))
+    shape = shader.noise(point, (.057, .081, .062), detail=2.2)
+    grain = shader.noise(point, (.84, .91, .93), detail=2.6)
+    fine = shader.noise(point, (2.42, 2.56, 2.86), detail=1.4)
+
+    # Warp the strata through the larger weathering pattern so individual
+    # fracture seams follow different inclinations and do not form stripes.
+    axes = shader.nodes.new('ShaderNodeCombineXYZ')
+    shader.input(axes.inputs['X'], x)
+    shader.input(axes.inputs['Y'], depth)
+    dip = shader.math('ADD', shader.product(x, .26), shader.product(depth, -.17))
+    shader.input(axes.inputs['Z'], shader.math('ADD', height, shader.math('ADD', dip, shader.product(shape, 9.))))
+    strata = shader.noise(axes.outputs['Vector'], (.085, .175, .48), detail=2.2, roughness=.68)
+    fissures = shader.between(strata, .39, .54)
+    slab = shader.blend((.065, .070, .075, 1.), (.235, .219, .205, 1.), fissures)
+    talus = shader.blend((.093, .096, .10, 1.), (.172, .164, .148, 1.), grain)
+    rock = shader.blend(slab, talus, shader.between(shape, .39, .64, .17, .64))
+
+    map_node = shader.nodes.new('ShaderNodeAttribute')
+    map_node.attribute_name = 'snow_retention'
+    accumulation = map_node.outputs['Fac']
+    normal = shader.xyz(shader.nodes.new('ShaderNodeNewGeometry').outputs['Normal'])['Z']
+    texture = shader.math('ADD', shader.between(shape, .23, .77, -.115, .115),
+                          shader.between(grain, .25, .77, -.067, .071))
+    fragments = shader.math('ADD', accumulation, texture)
+    # Sparse snow feathers onto lower ledges and stays in deeper high chutes.
+    # Nearly vertical faces keep an exposed rock core even above the snowline.
+    altitude = shader.math('ADD', height, shader.between(shape, .26, .72, -13., 15.))
+    snowline = shader.between(altitude, 17., 84.)
+    snow = shader.product(shader.between(fragments, .36, .59), snowline,
+                          shader.between(normal, .15, .43, .06, 1.))
+    powder = shader.blend((.60, .65, .72, 1.), (.86, .88, .89, 1.), grain)
+
+    # Use rough diffuse faces rather than lobe highlights on each terrain fold.
+    rock_relief = shader.math('ADD', shader.product(strata, .61), shader.product(grain, .39))
+    relief = shader.blend(rock_relief, shader.product(fine, .28), snow)
+    return shader.surface(shader.blend(rock, powder, snow), .94, specular=.22,
+                          bump=(relief, .31, .24), air=air)
 
 
 def forest_materials(air):
@@ -183,7 +253,7 @@ def look_transport(source):
             'airDensity': .89, 'aerosolDensity': .55, 'ozoneDensity': 1.}
 
 
-def describe(far, mid, stands, projection, target):
+def describe(far, retention, mid, stands, projection, target):
     summit = max(far.points, key=lambda p: p[2])
     expected = (target[0], -target[2], target[1])
     if math.dist(summit, expected) > 1e-8:
@@ -195,10 +265,17 @@ def describe(far, mid, stands, projection, target):
     mid_height = max(p[2] for p in mid.points)
     if mid_height >= target[1] * .25 or abs(altitude - center) + 2. > projection['verticalFov'] * .5:
         raise ValueError('The middle ridge or frame no longer clears the hero peak.')
+    apron_depth = far.points[0][1]
+    apron = [point[2] for point in far.points if point[1] == apron_depth]
+    snow_range = [min(retention), max(retention)]
+    if max(apron) >= 0. or len(retention) != len(far.points) or not (0. <= snow_range[0] < snow_range[1] <= 1.):
+        raise ValueError('The near summit apron or its snow-retention coverage is invalid.')
     return {'inputSummit': {'sourceRow': PEAK_ROW, 'sourceColumn': PEAK_COLUMN,
                             'sourceElevationMetres': PEAK_ELEVATION},
             'summitEngine': [summit[0], summit[2], -summit[1]],
             'summitBearingDegrees': [azimuth, altitude], 'midMaximumY': mid_height,
+            'farApron': {'nearDepthMetres': apron_depth, 'maximumEdgeHeightMetres': max(apron)},
+            'snowRetentionRange': snow_range,
             'triangles': {'far': len(far.faces), 'mid': len(mid.faces)},
             'rootedPines': sum(len(batch[0]) for batch in stands),
             'treeGroundOffsetMetres': -.055}
@@ -230,10 +307,10 @@ def main():
     site = json.loads(SITE.read_text())
     peak = site['peak']
     elevation = read_tile(options.dem)
-    far = mountain(elevation, peak['bearingTarget'])
+    far, retention = mountain(elevation, peak['bearingTarget'])
     mid = pass_flank(elevation, peak['nearRidgeDepth'])
     stands = pines(mid)
-    proof = describe(far, mid, stands, projection, peak['bearingTarget'])
+    proof = describe(far, retention, mid, stands, projection, peak['bearingTarget'])
     width = options.width
     if (width * projection['height']) % projection['width']:
         raise ValueError('The requested resolution must preserve the projection aspect ratio.')
@@ -271,10 +348,11 @@ def main():
     for collection in layers.values():
         scene.collection.children.link(collection)
     air = plates.air_perspective(light_source['airRadiance'])
-    plates.mesh(layers['far'], 'SRTM summit and connected winter cirques', far,
-                [hillside_material('Altitude-bound snow and exposed summit rock', air, True)], smooth=True)
+    summit = plates.mesh(layers['far'], 'SRTM summit and connected winter cirques', far,
+                         [summit_material(air)], smooth=True)
+    summit.data.attributes.new('snow_retention', 'FLOAT', 'POINT').data.foreach_set('value', retention)
     inner = plates.mesh(layers['mid'], 'Grounded descending pass flank', mid,
-                        [hillside_material('Broken winter snow on the lower valley slopes', air, False)], smooth=True)
+                        [hillside_material(air)], smooth=True)
     prototypes = bpy.data.collections.new('Winter pine instance templates')
     scene.collection.children.link(prototypes)
     library = plates.crown_library(prototypes, forest_materials(air), far=True)
