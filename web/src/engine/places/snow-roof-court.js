@@ -5,18 +5,18 @@ import projection from '../../../../shared/snow-court-backdrop.json' with { type
 import site from '../../../../shared/snow-roof-court-site.json' with { type: 'json' };
 
 const agedGauzeOpacity = new Map([
-  ['Pink-white sun-faded gauze', .83],
-  ['Faded dusty rose gauze', .86],
-  ['Faded iron-red gauze', .88],
-  ['Thin gauze over low flame', .87],
+  ['Pink-white sun-faded gauze', .90],
+  ['Faded dusty rose gauze', .91],
+  ['Faded iron-red gauze', .92],
+  ['Thin gauze over low flame', .92],
 ]);
 
 function tuneEarlierGauze(material, opacity, sources, THREE, preExposure) {
-  // Draw the near cloth after the opaque split bamboo. The lower opacity
-  // of the worn fabric leaves the actual ribs legible underneath it.
+  // The far cloth softens the room behind it. The near cloth still lets
+  // the opaque ribs read through, without making the sleeve look like glass.
   material.transparent = true;
   material.depthWrite = false;
-  material.side = THREE.FrontSide;
+  material.side = THREE.DoubleSide;
   material.opacity = opacity;
   material.normalScale.setScalar(.63);
   material.envMapIntensity = .07;
@@ -39,27 +39,46 @@ function tuneEarlierGauze(material, opacity, sources, THREE, preExposure) {
         for (int j = 0; j < 2; j++) {
           vec3 fromWick = vBakedWorld - uEarlierWick[j];
           float distance2 = dot(fromWick, fromWick);
-          float thinCloth = .53 * (1. - smoothstep(.29, .45, sqrt(distance2)));
-          totalEmissiveRadiance += uEarlierCandela[j] * diffuseColor.rgb
+          float thinCloth = .67 * (1. - smoothstep(.29, .45, sqrt(distance2)));
+          vec3 throughThreads = pow(max(diffuseColor.rgb, vec3(0.)), vec3(.56));
+          totalEmissiveRadiance += uEarlierCandela[j] * throughThreads
             * thinCloth / (3.141593 * max(distance2, .004));
         }`);
   };
   material.customProgramCacheKey = () => key() + '-snow-hall-gauze';
 }
 
-function tuneSweptSnow(material, THREE) {
+function tuneSweptSnow(material, THREE, lightDirection, lightStrength) {
   const compile = material.onBeforeCompile.bind(material);
   const key = material.customProgramCacheKey.bind(material);
   const tint = new THREE.Color('#e2ebf3');
   material.onBeforeCompile = (shader, renderer) => {
     compile(shader, renderer);
     shader.uniforms.uSweptSnowBase = { value: tint };
-    shader.fragmentShader = 'uniform vec3 uSweptSnowBase;\n' + shader.fragmentShader
+    shader.uniforms.uSnowLightDirection = { value: lightDirection };
+    shader.uniforms.uSnowLightStrength = lightStrength;
+    shader.fragmentShader = `uniform vec3 uSweptSnowBase, uSnowLightDirection;
+      uniform float uSnowLightStrength;
+      float crystalSeed(vec2 cell) {
+        return fract(sin(dot(cell, vec2(123.3, 417.7))) * 43758.5453);
+      }\n` + shader.fragmentShader
       .replace('#include <color_fragment>', `#include <color_fragment>
         #if defined(USE_COLOR) || defined(USE_COLOR_ALPHA)
           vec3 settledGrains = clamp(vColor.rgb / uSweptSnowBase, 0., 1.);
-          diffuseColor.rgb *= mix(vec3(1.), settledGrains, .66);
-        #endif`);
+          diffuseColor.rgb *= mix(vec3(1.), settledGrains, .70);
+        #endif`)
+      .replace('#include <opaque_fragment>', `
+        vec2 grains = vBakedWorld.xz * 73.;
+        float grainFootprint = max(fwidth(grains.x), fwidth(grains.y));
+        float resolved = 1. - smoothstep(.56, 1.4, grainFootprint);
+        float crystal = smoothstep(.958, .999, crystalSeed(floor(grains)));
+        float centre = 1. - smoothstep(.12, .49, length(fract(grains) - .5));
+        vec3 ray = mat3(viewMatrix) * uSnowLightDirection;
+        vec3 halfway = normalize(ray + normalize(vViewPosition));
+        float reflection = pow(max(0., dot(normal, halfway)), 20.);
+        outgoingLight += vec3(.80, .90, 1.) * uSnowLightStrength
+          * resolved * crystal * centre * reflection;
+        #include <opaque_fragment>`);
   };
   material.customProgramCacheKey = () => key() + '-snow-court-broom';
 }
@@ -149,7 +168,19 @@ export default function createWinterCourt(h) {
       for (const [material, opacity] of earlierCloth) {
         tuneEarlierGauze(material, opacity, earlierWicks, THREE, baked.cameraPreExposure);
       }
-      for (const material of sweptSnow) tuneSweptSnow(material, THREE);
+      if (sweptSnow.size) {
+        const sunlight = V3(...projection.light.day.directionEngine);
+        const moonlight = V3(...projection.light.night.directionEngine);
+        const lightDirection = V3();
+        const lightStrength = { value: 0 };
+        const updateCrystals = (_dt, _seconds, light) => {
+          lightDirection.lerpVectors(sunlight, moonlight, light.n).normalize();
+          lightStrength.value = .082 - .062 * light.n;
+        };
+        updateCrystals(0, 0, context.light);
+        context.up.push(updateCrystals);
+        for (const material of sweptSnow) tuneSweptSnow(material, THREE, lightDirection, lightStrength);
+      }
       const crownUri = baked.manifest.snowCourt.needles;
       if (crownUri !== 'snow-court-needles.glb.zstd') throw new Error('Missing authored Snow Roof needle crowns.');
       const crowns = await baked.loadDetailModel(crownUri);

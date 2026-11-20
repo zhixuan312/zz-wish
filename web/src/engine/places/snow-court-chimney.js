@@ -28,7 +28,7 @@ const fragment = `
   void main() {
     vec2 p = gl_PointCoord * 2. - 1.;
     float edge = length(vec2(p.x + .13 * sin(vCurl + p.y * 4.), p.y));
-    float plume = pow(max(0., 1. - edge), 2.);
+    float plume = exp(-2.6 * edge * edge) * (1. - smoothstep(.67, 1., edge));
     gl_FragColor = vec4(uTint, uOpacity * vAlpha * plume);
   }`;
 
