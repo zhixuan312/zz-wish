@@ -44,7 +44,7 @@ export default function createWinterCourt(h) {
     hemi: [0x9aafd2, 0x414354, .59], bloom: [.20, 1.2],
     day: {
       exposure: 1.05,
-      sky: { top: 0x486e9c, horizon: 0xd6e4ea, ground: 0x65788c, sun: 0xffedce,
+      sky: { top: 0x6b9dca, horizon: 0xd8e6ef, ground: 0x65788c, sun: 0xffedce,
         dir: projection.light.day.directionEngine, glow: .43, clouds: .05,
         lit: 0xf1f5f9, dark: 0x9ab0bf, disc: 1.3 },
       fog: [0xc5d4dd, .0035], sunL: [0xffeed9, 1.55],
@@ -119,7 +119,7 @@ export default function createWinterCourt(h) {
     },
     nook: {
       at: { pos: V3(0, 0, 0), ry: 0 }, lamp: 'gauze', y: 3.54,
-      hangingPoint: site.visitorCord, exposure: 1.04, bloom: [.21, 1.22], dust: false,
+      hangingPoint: site.visitorCord, exposure: 1.22, bloom: [.21, 1.22], dust: false,
       gauzeGlow: { base: .48, reach: 7 },
       interior: { min: [site.hall.west, site.hall.floor, site.hall.rear],
         max: [site.hall.east, site.hall.eave, site.hall.front] },
