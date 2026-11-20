@@ -74,9 +74,7 @@ test('the visitor wish cloth is under the candle stand while burning and after t
   expect(burning.position[1]).toBeCloseTo(burning.anchor[1], 6);
   // The modelled asset is loaded and stands on the stone without sinking into it.
   expect(burning.bbox).not.toBeNull();
-  const lowest = burning.anchor[1] + burning.bbox!.min[1] - burning.anchor[1];
   expect(burning.bbox!.min[1]).toBeGreaterThanOrEqual(burning.anchor[1] - .0005);
-  expect(lowest).toBeGreaterThanOrEqual(burning.anchor[1] - .0005);
   // A settled simulation rather than a few quads.
   expect(burning.faces!.verts).toBeGreaterThan(900);
   expect(burning.faces!.index).toBeGreaterThan(3000);

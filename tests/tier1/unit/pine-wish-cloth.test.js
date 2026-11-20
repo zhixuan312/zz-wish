@@ -36,7 +36,27 @@ function glbFacts() {
   }
   const positions = json.meshes[0].primitives[0].attributes.POSITION;
   const accessor = json.accessors[positions];
-  return { bytes: length, verts: accessor.count, min: accessor.min, max: accessor.max, nodes: json.nodes.length };
+  return { bytes: length, verts: accessor.count, min: accessor.min, max: accessor.max, nodes: json.nodes.length, json, data };
+}
+
+// Every POSITION in the glb, decoded from the BIN chunk through its accessor and bufferView
+// strides. This is the geometry the browser actually draws, not a copy kept beside the test.
+function glbPositions() {
+  const { json, data } = glbFacts();
+  const chunkStart = 12 + 8 + data.readUInt32LE(12);
+  const binStart = chunkStart + 8;
+  const accessor = json.accessors[json.meshes[0].primitives[0].attributes.POSITION];
+  const view = json.bufferViews[accessor.bufferView];
+  const base = binStart + (view.byteOffset ?? 0) + (accessor.byteOffset ?? 0);
+  const stride = view.byteStride ?? 12;
+  const out = new Float32Array(accessor.count * 3);
+  for (let i = 0; i < accessor.count; i++) {
+    const at = base + i * stride;
+    out[i * 3] = data.readFloatLE(at);
+    out[i * 3 + 1] = data.readFloatLE(at + 4);
+    out[i * 3 + 2] = data.readFloatLE(at + 8);
+  }
+  return { positions: out, count: accessor.count };
 }
 
 test('wallRadius follows the tray lathe profile', () => {
@@ -64,6 +84,33 @@ test('the shipped strip is the modelled asset, not the parametric band', () => {
   expect(reach).toBeLessThan(.15);
   // +Z is the burning camera side, so the long tail lies on +Z rather than -Z.
   expect(facts.max[2]).toBeGreaterThan(Math.abs(facts.min[2]));
+});
+
+test('no part of the shipped strip is buried in the stone or inside the tray wall', () => {
+  const { positions, count } = glbPositions();
+  expect(positions.length).toBe(count * 3);
+  expect(count).toBe(glbFacts().verts);
+  // The asset is authored in the lamp anchor's frame: y 0 is the stone surface and z is up the
+  // lathe's own axis in Blender, but after export y is up, so the tray height is y.
+  let checkedWall = 0, minimumGap = Infinity;
+  for (let i = 0; i < count; i++) {
+    const x = positions[i * 3], y = positions[i * 3 + 1], z = positions[i * 3 + 2];
+    // Nothing under the stone.
+    expect(y, `vertex ${i} at y ${y}`).toBeGreaterThanOrEqual(-.0001);
+    // Where the strip is at the tray's height it must stand outside the wall, with the same half
+    // millimetre of clearance the simulation was required to keep.
+    if (y > 0 && y <= .017) {
+      const gap = Math.hypot(x, z) - wallRadius(y);
+      minimumGap = Math.min(minimumGap, gap);
+      expect(gap, `vertex ${i} at y ${y.toFixed(4)}, radius ${Math.hypot(x, z).toFixed(4)}`)
+        .toBeGreaterThanOrEqual(.0005);
+      checkedWall++;
+    }
+  }
+  // The strip really does wrap the tray, so the wall check is not vacuous.
+  expect(checkedWall).toBeGreaterThan(100);
+  expect(minimumGap).toBeGreaterThanOrEqual(.0005);
+  expect(minimumGap).toBeLessThan(.004);
 });
 
 test('the cloth is hidden until the lamp is lit and stays after either ending', async () => {
