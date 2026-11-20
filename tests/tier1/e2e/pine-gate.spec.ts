@@ -62,11 +62,24 @@ test('the visitor wish cloth is under the candle stand while burning and after t
 
   const read = () => page.evaluate(() => (window as Window & { __pineWishCloth?: () => unknown }).__pineWishCloth?.());
   await expect.poll(async () => (await read() as { visible?: boolean } | undefined)?.visible, { timeout: 15_000 }).toBe(true);
-  const burning = await read() as { position: number[]; anchor: number[] };
-  // Just under the candle stand, on the same vertical.
+  const burning = await read() as {
+    position: number[]; anchor: number[];
+    bbox: { min: number[]; max: number[] } | null;
+    faces: { index: number; verts: number } | null;
+  };
+  // The cloth hangs on the candle stand, on the same vertical.
   expect(burning.position[0]).toBeCloseTo(burning.anchor[0], 2);
   expect(burning.position[2]).toBeCloseTo(burning.anchor[2], 2);
-  expect(burning.position[1]).toBeLessThan(burning.anchor[1]);
+  // Its origin is the stone surface, so the strip stands on the anchor rather than below it.
+  expect(burning.position[1]).toBeCloseTo(burning.anchor[1], 6);
+  // The modelled asset is loaded and stands on the stone without sinking into it.
+  expect(burning.bbox).not.toBeNull();
+  const lowest = burning.anchor[1] + burning.bbox!.min[1] - burning.anchor[1];
+  expect(burning.bbox!.min[1]).toBeGreaterThanOrEqual(burning.anchor[1] - .0005);
+  expect(lowest).toBeGreaterThanOrEqual(burning.anchor[1] - .0005);
+  // A settled simulation rather than a few quads.
+  expect(burning.faces!.verts).toBeGreaterThan(900);
+  expect(burning.faces!.index).toBeGreaterThan(3000);
 
   await page.getByRole('button', { name: /^(熄灭|Put out)$/ }).click();
   await page.getByRole('button', { name: /熄灭并结束|Put out and end/ }).click();
