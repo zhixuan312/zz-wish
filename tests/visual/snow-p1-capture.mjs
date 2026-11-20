@@ -171,7 +171,23 @@ const save = () => writeFile(reportPath, JSON.stringify(report, null, 2) + '\n')
 await save();
 
 function instrument(source) {
-  const transformed = instrumentPineScene(source, { walkClock: true, directionCamera: true, lighting: true });
+  let transformed = instrumentPineScene(source, { walkClock: true, directionCamera: true, lighting: true });
+  const steps = [
+    ['const light = daylight(), lightKey = JSON.stringify(light);', 'scene-build'],
+    ['await P.build(t, context);', 'assets-ready'],
+    ['if(context.baked?.staticLampShadow)await context.baked.staticLampShadow.capture(renderer,context.baked.group);', 'static-shadow-ready'],
+    ['await renderer.compileAsync(stage, stageCamera);\n    if (P.bakedLighting', 'first-compile-ready'],
+    ['renderer.setRenderTarget(warm); renderer.render(stage, stageCamera);', 'warm-render-ready'],
+    ['cachedPlaces.set(t.id, candidate);', 'preview-ready'],
+  ];
+  for (const [anchor, label] of steps) {
+    assert.equal(transformed.split(anchor).length, 2, 'Snow Court timing hook no longer matches: ' + label);
+    const call = `if(t.id === 'snow-roof') performance.mark('snow-p1:${label}');`;
+    const after = anchor.indexOf('\n');
+    transformed = transformed.replace(anchor, label === 'scene-build' || label === 'preview-ready'
+      ? `${call}\n  ${anchor}`
+      : after >= 0 ? anchor.slice(0, after) + `\n    ${call}` + anchor.slice(after) : `${anchor}\n  ${call}`);
+  }
   const frame = /^([ \t]*)function frame\(stamp\s*=\s*performance\.now\(\)\)\s*\{/gm;
   assert.equal([...transformed.matchAll(frame)].length, 1, 'The Snow Roof scene identity hook no longer matches the app.');
   return transformed.replace(frame, match => `window.__snowP1Capture = () => ({
@@ -333,6 +349,8 @@ async function captureContext(browser, { hour, look, walk }) {
     } finally {
       result.stepInsideMs = performance.now() - start;
       result.placeUi = (await page.locator('.ui').innerText()).slice(0, 350);
+      result.preparation = await page.evaluate(() => performance.getEntriesByType('mark')
+        .filter(mark => mark.name.startsWith('snow-p1:')).map(({ name, startTime }) => ({ name, startTime })));
     }
     if (result.stepInsideMs > 5000) report.readinessMisses.push({ hour, stepInsideMs: result.stepInsideMs });
     assert(served.has('manifest.json') && served.has(manifest.scene), 'The app did not request the verified candidate manifest and model.');
@@ -356,7 +374,9 @@ async function captureContext(browser, { hour, look, walk }) {
     } else {
       await button(/^Skip$/).click();
     }
-    await expect(page.locator('.ui')).toHaveAttribute('data-screen', 'candle');
+    // The 30-second walk ends at the court reveal. The real app then takes
+    // another 5.6 seconds to cross the court and stop at the choice table.
+    await expect(page.locator('.ui')).toHaveAttribute('data-screen', 'candle', { timeout: walk ? 7000 : 5000 });
     await page.getByRole('radio', { name: 'Red gauze', exact: true }).click();
     await page.getByRole('radio', { name: '1 h', exact: true }).click();
     const [posted] = await Promise.all([
