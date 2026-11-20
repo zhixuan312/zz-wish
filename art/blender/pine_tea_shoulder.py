@@ -844,9 +844,11 @@ def hanging_wax_on_shelf_edge(locate):
     for index, (a, c, radius, drop) in enumerate(((-.196, .214, .0130, .030),
                                                   (.171, .219, .0110, .026))):
         # Keep the run cheap in the atlas: a short profile and twelve sides read as a set bead at the
-        # distances the burning view uses, and the approach atlas is already close to its one-atlas bound.
-        profile = [(0, 0), (radius, 0), (radius * .92, -.006),
-                   (radius * .62, -drop * .62), (radius * .30, -drop * .92), (0, -drop)]
+        # distances the burning view uses. The profile runs from the lowest point upward, because the
+        # lathe winds its quads outward only when the radii are walked in that direction; descending
+        # here turned every face inside out and the runs rendered as black backfaces.
+        profile = [(0, -drop), (radius * .30, -drop * .92), (radius * .62, -drop * .62),
+                   (radius * .92, -.006), (radius, 0), (0, 0)]
         x, y, z = locate(a, -.0034, c)
         drip = mesh.lathe(f'Old wax run over the shelf edge {index + 1}', profile, (x, y, z), wax, 12, 'niche')
         for vertex in drip.data.vertices:
