@@ -250,45 +250,25 @@ test('each mud print draws its sole, not the whole quad', async ({ page }, testI
     // A frozen scene may not schedule the next frame; never let the capture wait on it forever.
     setTimeout(done, 900);
   }));
-  const shot = async () => page.screenshot({ style: '.ui{visibility:hidden!important}' });
-  const png = await shot();
-  // Second frame with the decals hidden: whatever changes is the print itself.
-  await page.evaluate(() => {
-    const group = (window as unknown as { __pineMudGroup?: () => { visible: boolean } }).__pineMudGroup?.();
-    if (group) group.visible = false;
-  });
-  await page.waitForTimeout(120);
-  const bare = await shot();
-  await page.evaluate(() => {
-    const group = (window as unknown as { __pineMudGroup?: () => { visible: boolean } }).__pineMudGroup?.();
-    if (group) group.visible = true;
-  });
-  // Read luma at the given points from one screenshot. The page decodes the PNG so the assertion
-  // needs no image library on the Node side.
-  const lumaAt = (frame: Buffer, spots: [number, number][]) => page.evaluate(async ({ data, spots }) => {
-    // Hand the PNG over as base64: a screenshot is a megabyte or more, and spreading it into a plain
-    // array costs far more than the decode itself.
-    const bytes = Uint8Array.from(atob(data), character => character.charCodeAt(0));
-    const bitmap = await createImageBitmap(new Blob([bytes], { type: 'image/png' }));
-    const canvas = new OffscreenCanvas(bitmap.width, bitmap.height);
-    const context = canvas.getContext('2d')!;
-    context.drawImage(bitmap, 0, 0);
-    return spots.map(([x, y]) => {
-      const [r, g, b] = context.getImageData(Math.round(x), Math.round(y), 1, 1).data;
-      return (r + g + b) / 3;
-    });
-  }, { data: frame.toString('base64'), spots });
+  // Stop the render loop and draw the frames the measurement uses, so a box and the pixels it is
+  // compared against come from the same instant. Screenshots taken a frame apart put the samples on
+  // different stone at this distance, which is what made one corner disagree by itself.
+  await page.evaluate(() => { (window as unknown as { __pineLoopPaused?: boolean }).__pineLoopPaused = true; });
 
   const inset = 4;
   let shadedPrints = 0;
   const depths: unknown[] = [];
+  const sample = (spots: [number, number][], hide: number[]) => page.evaluate(({ spots, hide }) =>
+    (window as unknown as { __pineRenderAndSample?: (s: number[][], h: number[]) => number[][] })
+      .__pineRenderAndSample?.(spots, hide) ?? null, { spots, hide });
+
   for (const box of printBoxes!) {
     if (!box.visible) continue;
     if (box.x < 12 || box.y < 12) continue;
     // The quad turns with the walker, so its axis-aligned box has corners the decal never paints; the
-    // hook therefore reports the quad's own corners. Move a few pixels inwards from each quad corner along its diagonal. That point is inside the
-    // quad but outside the sole's silhouette, so the decal must leave the stone untouched there while
-    // still painting the footprint in the middle.
+    // hook therefore reports the quad's own corners. Move a few pixels inwards from each along its
+    // diagonal: that point is inside the quad but outside the sole's silhouette, so the decal must
+    // leave the stone untouched there while still painting the footprint in the middle.
     const centre: [number, number] = [box.x + box.w / 2, box.y + box.h / 2];
     const corners: [number, number][] = box.corners.map(([cx, cy]) => {
       const dx = centre[0] - cx, dy = centre[1] - cy;
@@ -301,9 +281,16 @@ test('each mud print draws its sole, not the whole quad', async ({ page }, testI
     for (const fx of [.38, .5, .62]) for (const fy of [.32, .5, .68]) {
       inner.push([box.x + box.w * fx, box.y + box.h * fy]);
     }
-    // One decode per frame: the corner and interior samples come from the same two pictures.
     const spots = [...corners, ...inner];
-    const [printed, clean] = await Promise.all([lumaAt(png, spots), lumaAt(bare, spots)]);
+    // Printed frame, then the same spots with only this print hidden. Both are drawn on demand from
+    // the pose the boxes were projected from.
+    const [printedPixels, cleanPixels] = [
+      await sample(spots, []),
+      await sample(spots, [box.index]),
+    ];
+    expect(printedPixels && cleanPixels, 'the frame hook must return pixels').toBeTruthy();
+    const luma = (pixels: number[][]) => pixels.map(([r, g, b]) => (r + g + b) / 3);
+    const printed = luma(printedPixels!), clean = luma(cleanPixels!);
     const cornerLuma = printed.slice(0, corners.length), bareCorners = clean.slice(0, corners.length);
     const innerLuma = printed.slice(corners.length), bareInner = clean.slice(corners.length);
     // A few pixels inside each quad corner the sole has not started, so the control frame must show

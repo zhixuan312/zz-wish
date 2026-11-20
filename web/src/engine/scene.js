@@ -25,7 +25,11 @@ import { TAPER_BEAT, taperHasReachedWick } from './places/pine-taper.js';
 
 // ---------- Renderer ----------
 const canvas = document.getElementById('gl');
-const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
+// The E2E build keeps the drawing buffer so a test can read the very frame it asked for; a normal
+// build lets the browser discard it, which is faster.
+const keepDrawingBuffer = import.meta.env.VITE_E2E_HOOKS === '1';
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance',
+  preserveDrawingBuffer: keepDrawingBuffer });
 // Reading shader logs blocks until each program links; only development needs them.
 renderer.debug.checkShaderErrors = import.meta.env.DEV;
 if(import.meta.env.DEV){window.__renderer=renderer;window.__visualWalkAvailable=true;}
@@ -45,6 +49,29 @@ if (import.meta.env.DEV || import.meta.env.VITE_E2E_HOOKS === '1') {
   // Hold the walking rig still while the browser suite measures a declared pose. Only the E2E build
   // carries it; a normal page never defines the flag.
   window.__pineFreezeRig = on => { window.__pineRigFrozen = on === true; };
+  // Draw one frame on demand and read pixels from that same frame. A screenshot taken later can come
+  // from a different frame than the boxes projected for it, which is a dozen pixels out at the print
+  // trail's distance and makes any pixel comparison meaningless.
+  window.__pineRenderAndSample = (spots, hideIndices = []) => {
+    const hidden = [];
+    for (const index of hideIndices) {
+      const child = window.__pineMudGroup?.()?.children?.[index];
+      if (child) { hidden.push([child, child.visible]); child.visible = false; }
+    }
+    composer.render();
+    const gl = renderer.getContext();
+    const width = renderer.domElement.width, height = renderer.domElement.height;
+    const ratio = width / renderer.domElement.clientWidth;
+    const pixels = spots.map(([x, y]) => {
+      const px = Math.round(x * ratio), py = Math.round((renderer.domElement.clientHeight - y) * ratio);
+      const out = new Uint8Array(4);
+      gl.readPixels(px, py, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, out);
+      return [out[0], out[1], out[2], out[3]];
+    });
+    for (const [child, visible] of hidden) child.visible = visible;
+    void width; void height;
+    return pixels;
+  };
 }
 const pmrem = new THREE.PMREMGenerator(renderer);
 // Reflections near the lamp: a near-black room with warm candle points and one cool window,
@@ -2754,6 +2781,9 @@ let clockTime = 0, lastRender = 0, renderDeadline = 0, renderCadence = 0, sample
 const tmp = V3(0, 0, 0), local = V3(0, 0, 0);
 const smooth = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
 function frame(stamp = performance.now()) {
+  // The browser suite can take the loop over so that a pose and the pixels drawn from it come from the
+  // same instant. A normal page never sets the flag, so it always keeps its own clock.
+  if (window.__pineLoopPaused === true) { requestAnimationFrame(frame); return; }
   requestAnimationFrame(frame);
   const interval = 1000 / (powerSaver ? 15 : phase === 'burning' || phase === 'result' ? 30 : 60);
   if (renderCadence !== interval) { renderCadence = interval; renderDeadline = stamp; }
