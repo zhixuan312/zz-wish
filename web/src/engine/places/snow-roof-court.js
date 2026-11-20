@@ -52,6 +52,7 @@ export default function createWinterCourt(h) {
     },
     view: entrance, viewPhone: { ...entrance, fov: entrance.fov + 5 },
     walk: [], walkSeconds: site.walkSeconds, createWalk,
+    offerAfterTravel: true,
     chooseEntry: site.chooseEntry.map(point => V3(...point)),
     doors: V3(...site.gate.center),
     async build(_place, context) {

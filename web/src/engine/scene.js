@@ -2267,7 +2267,7 @@ export async function travel(id) {
   const curve = new THREE.CatmullRomCurve3(pts, false, 'centripetal');
   const lookPts = [P.doors.clone(), ...(N.approach ?? []).map((q) => toWorld(q.clone().add(V3(0, 0, -2)))), end.look];
   const l0 = rig.look.clone(), a0 = rig.amp,f0=rig.fov??camera.fov;
-  atLamp = true; mine.g.visible = !!mine.offer;
+  atLamp = !P.offerAfterTravel; mine.g.visible = atLamp && !!mine.offer;
   const authoredWalk = P.createWalk?.({ pos: rig.pos.clone(), look: l0, fov: f0 }, end, narrow());
   if(import.meta.env.DEV)window.__walkProgress={id,progress:0,state:'walking',position:rig.pos.toArray()};
   const walk = tween(P.walkSeconds ?? 14, (k) => {
@@ -2330,6 +2330,10 @@ export async function travel(id) {
     else await tween(5.6, settle);
   }
   if(!P.bakedLighting){const c = chooseView(); await moveCam(c.pos, c.look,2.4,c.fov);}
+  if (P.offerAfterTravel && place?.P === P) {
+    atLamp = true;
+    mine.g.visible = !!mine.offer;
+  }
 }
 export function skip() { skipNextTravel = true; skipTweens(); }
 let ignitionTaper;

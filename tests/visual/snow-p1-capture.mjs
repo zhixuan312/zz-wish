@@ -208,6 +208,7 @@ function instrument(source) {
   walk: window.__walkProgress ?? null,
   clock: window.__pineCaptureWalkClock ?? null,
   ignition: window.__visualIgnition ?? null,
+  visitorOfferVisible: mine.g.visible,
   backdropVisible: place?.baked?.backdrop?.group?.visible ?? null,
   backdrop: place?.baked?.backdrop?.group?.children.map(layer => ({
     name: layer.name,
@@ -284,6 +285,7 @@ async function captureContext(browser, { hour, look, walk }) {
       assert(before.walk?.id === placeId && before.walk.state === 'walking' && before.clock?.id === placeId
         && before.clock.durationSeconds === site.walkSeconds, 'Expected the native thirty-second authored walk.');
       assert(before.clock.seconds >= time && before.clock.seconds <= time + .6, `Missed the ${time}s authored walk moment.`);
+      assert.equal(before.visitorOfferVisible, false, 'The waiting cord must be empty during the arrival.');
       if (time === 28) {
         const [x, , z] = before.camera.position;
         assert(z > site.hall.front && z < site.gate.center[2] - site.gate.depth / 2 && x > site.court.west && x < site.court.east,
@@ -305,6 +307,7 @@ async function captureContext(browser, { hour, look, walk }) {
     } else {
       assert.equal(before.screen, 'burning');
       assert.equal(before.ignition?.state, 'settled');
+      assert.equal(before.visitorOfferVisible, true, 'The settled visitor lamp is missing.');
     }
     if (time === 28 || time === null) assert.equal(before.backdropVisible, true, 'The authored layered landscape is not active.');
     const file = `${name}.png`;
