@@ -1,5 +1,6 @@
 // Keep the native winter needle geometry small without turning the shoots into cards.
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import { readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -24,12 +25,32 @@ const io = new NodeIO().registerExtensions(ALL_EXTENSIONS).registerDependencies(
 });
 const document = await io.read(input);
 
+function crownInstances(doc) {
+  return doc.getRoot().listNodes().flatMap(node => {
+    const instancing = node.getExtension('EXT_mesh_gpu_instancing');
+    if (!instancing) return [];
+    const streams = instancing.listSemantics().sort().map(semantic => {
+      const accessor = instancing.getAttribute(semantic);
+      const data = accessor.getArray();
+      const bytes = Buffer.from(data.buffer, data.byteOffset, data.byteLength);
+      return [semantic, accessor.getType(), accessor.getComponentType(), accessor.getNormalized(),
+        accessor.getCount(), createHash('sha256').update(bytes).digest('hex')];
+    });
+    return [{ name: node.getName(), matrix: node.getWorldMatrix(), streams }];
+  });
+}
+
 function getPrimitives(doc) {
-  return doc.getRoot().listNodes().flatMap(node => (node.getMesh()?.listPrimitives() ?? []).map(primitive => ({
-    matrix: node.getWorldMatrix(), indices: primitive.getIndices()?.getArray(),
-    points: primitive.getAttribute('POSITION'), normals: primitive.getAttribute('NORMAL'),
-    name: primitive.getMaterial()?.getName(),
-  })));
+  return doc.getRoot().listNodes().flatMap(node => {
+    const owner = node.getExtension('EXT_mesh_gpu_instancing');
+    const instances = owner?.getAttribute(owner.listSemantics()[0])?.getCount() ?? 1;
+    assert(instances > 0, 'An instanced crown group cannot be empty.');
+    return (node.getMesh()?.listPrimitives() ?? []).map(primitive => ({
+      matrix: node.getWorldMatrix(), indices: primitive.getIndices()?.getArray(),
+      points: primitive.getAttribute('POSITION'), normals: primitive.getAttribute('NORMAL'),
+      name: primitive.getMaterial()?.getName(), instances,
+    }));
+  });
 }
 
 function positions({ matrix, points }) {
@@ -52,15 +73,24 @@ function normals({ normals: source }) {
 }
 
 await document.transform(reorder({ encoder: MeshoptEncoder, target: 'size' }));
+const instances = crownInstances(document);
 const source = getPrimitives(document).map(primitive => ({
-  name: primitive.name, indices: primitive.indices.slice(), positions: positions(primitive), normals: normals(primitive),
+  name: primitive.name, instances: primitive.instances, indices: primitive.indices.slice(),
+  positions: positions(primitive), normals: normals(primitive),
 }));
-assert(source.length === 2, 'Expected the needle material and settled-rime material.');
-await document.transform(quantize({ pattern: /^(POSITION|NORMAL)$/, quantizePosition: 16, quantizeNormal: 8 }));
+assert(new Set(source.map(item => item.name)).size >= 2, 'Expected the needle and settled snow materials.');
+if (instances.length) {
+  // Keep the template scale and the per-shoot transforms independent.
+  await document.transform(quantize({ pattern: /^NORMAL$/, quantizeNormal: 8 }));
+} else {
+  await document.transform(quantize({ pattern: /^(POSITION|NORMAL)$/, quantizePosition: 16, quantizeNormal: 8 }));
+}
 document.createExtension(EXTMeshoptCompression).setRequired(true)
   .setEncoderOptions({ method: EXTMeshoptCompression.EncoderMethod.QUANTIZE });
 const bytes = await io.writeBinary(document);
-const decoded = getPrimitives(await io.readBinary(bytes));
+const replay = await io.readBinary(bytes);
+const decoded = getPrimitives(replay);
+assert.deepEqual(crownInstances(replay), instances, 'Crown compression changed authored instance transforms.');
 assert.equal(decoded.length, source.length);
 
 let maxPositionMetres = 0;
@@ -69,6 +99,7 @@ for (let i = 0; i < decoded.length; i++) {
   const original = source[i];
   const after = decoded[i];
   assert.equal(after.name, original.name, 'Needle/rime material ownership changed.');
+  assert.equal(after.instances, original.instances, 'Crown instance count changed.');
   assert.equal(after.indices.length, original.indices.length, 'Needle triangle count changed.');
   // The index codec may rotate a triangle cyclically without changing its winding.
   for (let j = 0; j < after.indices.length; j += 3) {
@@ -90,10 +121,12 @@ for (let i = 0; i < decoded.length; i++) {
     maxNormalDegrees = Math.max(maxNormalDegrees, Math.acos(Math.min(1, Math.max(-1, dot))) * 180 / Math.PI);
   }
 }
-assert(maxPositionMetres <= .001, 'Crown compression moved needle tips more than one millimetre.');
+assert(maxPositionMetres <= (instances.length ? 0 : .001),
+  'Crown compression moved the template or exceeded the needle position limit.');
 assert(maxNormalDegrees <= 1, 'Crown compression changed needle shading normals by more than one degree.');
 await writeFile(output, bytes, { flag: 'wx' });
 console.log('SNOW_COURT_NEEDLE_MESHOPT', JSON.stringify({
   bytes: bytes.byteLength, triangles: source.reduce((sum, item) => sum + item.indices.length / 3, 0),
-  maxPositionMetres, maxNormalDegrees,
+  drawTriangles: source.reduce((sum, item) => sum + item.instances * item.indices.length / 3, 0),
+  instancedGroups: instances.length, maxPositionMetres, maxNormalDegrees,
 }));

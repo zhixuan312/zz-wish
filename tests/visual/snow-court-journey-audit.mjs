@@ -161,7 +161,19 @@ export function installSnowCourtJourneyAudit() {
       if (mesh.isMesh) collect(mesh, mesh.matrixWorld, pathBounds, 'baked-model', obstacles);
     });
     const bakedTriangles = obstacles.length;
-    for (const mesh of crowns) collect(mesh, mesh.matrixWorld, pathBounds, 'needle-crowns', obstacles);
+    const localCrown = new THREE.Matrix4();
+    const worldCrown = new THREE.Matrix4();
+    for (const mesh of crowns) {
+      if (!mesh.isInstancedMesh) {
+        collect(mesh, mesh.matrixWorld, pathBounds, 'needle-crowns', obstacles);
+        continue;
+      }
+      for (let index = 0; index < mesh.count; index++) {
+        mesh.getMatrixAt(index, localCrown);
+        worldCrown.multiplyMatrices(mesh.matrixWorld, localCrown);
+        collect(mesh, worldCrown, pathBounds, 'needle-crowns', obstacles);
+      }
+    }
     const needleTriangles = obstacles.length - bakedTriangles;
     if (!bakedTriangles || !needleTriangles) throw new Error('The journey raycast must cover both baked model and needle crowns.');
     const visitorTrees = visitorGeometry.map(cloth => {
