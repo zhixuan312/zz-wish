@@ -188,10 +188,9 @@ def plaster_scan_patches(scan, x, y, rng):
     return colour / coverage[..., None]
 
 
-def filter_source_scan(scan):
-    """Remove submillimetre grain that would alias at the panel texel pitch."""
+def blur_scan(scan, pad):
+    """Filter the repeating scan without creating a seam at its boundary."""
     blurred = scan.copy()
-    pad = 2
     window = 2 * pad + 1
     for axis in range(2):
         channel = np.moveaxis(blurred, axis, 0)
@@ -212,7 +211,7 @@ def plaster_panel(scan, panel, pixel_width, pixel_height, width, height, rng):
     # Neutralize the outdoor source's green cast while retaining its measured
     # tonal range, pocks and mottling. No synthetic field drives the clean wall.
     colour_variation = 1.15 * (.77 * relief[..., None] + .23 * delta)
-    field = np.array((.745, .722, .680)) + colour_variation
+    field = np.array((.767, .744, .703)) + colour_variation
     slow = plaster_noise(rng, x, y, .63)
     mid = plaster_noise(rng, x, y, .162)
     fine = plaster_noise(rng, x, y, .037)
@@ -237,7 +236,7 @@ def plaster_panel(scan, panel, pixel_width, pixel_height, width, height, rng):
         taper = (1. - smooth(length * .49, length, drop)) * smooth(-.012, .054, drop)
         halo = np.exp(-(lateral / (spread * (1. + .26 * np.maximum(drop, 0.)))) ** 2)
         streak = np.exp(-(lateral / (spread * .30)) ** 2) * smooth(.18, .80, mid)
-        field -= (taper * halo * (.46 + .42 * mid))[..., None] * (.048, .057, .061)
+        field -= (taper * halo * (.46 + .42 * mid))[..., None] * (.024, .029, .031)
         field -= (taper * streak)[..., None] * (.044, .056, .064)
 
     jagged = .032 * (mid - .5) + .023 * (fine - .5)
@@ -249,7 +248,7 @@ def plaster_panel(scan, panel, pixel_width, pixel_height, width, height, rng):
         flakes = np.maximum(flakes, 1. - smooth(-.014, .009, distance))
         rim = np.exp(-((distance - .010) / .012) ** 2) * smooth(.23, .84, fine)
         torn_edges = np.maximum(torn_edges, rim)
-    undercoat = np.array((.567, .539, .496)) + 1.18 * colour_variation - .070 * foot[..., None]
+    undercoat = np.array((.654, .628, .585)) + 1.18 * colour_variation - .070 * foot[..., None]
     field += (undercoat - field) * flakes[..., None]
     field += torn_edges[..., None] * (.041, .040, .037)
 
@@ -284,7 +283,11 @@ def plaster_colour(scan, hall):
     height = hall['eave'] - hall['floor']
     atlas = np.empty((PLASTER_ATLAS_SIZE, PLASTER_ATLAS_SIZE, 3), dtype=np.uint8)
     pad = PLASTER_GUTTER
-    scan = filter_source_scan(scan[..., :3])
+    # Preserve pocks and grit at roughly one centimetre and smaller. Large
+    # stains on the outdoor source are reduced before placing isolated marks.
+    scan = blur_scan(scan[..., :3], 2)
+    coarse = blur_scan(scan, round(scan.shape[0] * .048 / PLASTER_SCAN_WIDTH_METRES))
+    scan -= .49 * (coarse - coarse.mean(axis=(0, 1)))
     for index, (panel, (x, y, w, h)) in enumerate(PLASTER_CELLS.items()):
         metres = (2.72, .66) if panel.endswith('_sill') else (width if panel == 'rear_wall' else depth, height)
         rng = np.random.default_rng(73213 + index * 1387)
