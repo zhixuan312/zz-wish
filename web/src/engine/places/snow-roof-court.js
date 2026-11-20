@@ -86,9 +86,9 @@ export default function createWinterCourt(h) {
     const direction = V3(Math.sin(yaw) * Math.cos(tilt), Math.sin(tilt), -Math.cos(yaw) * Math.cos(tilt));
     return { pos, look: pos.clone().addScaledVector(direction, 3.5), fov };
   };
-  const choiceDesktop = lampView(2.19, -8.97, -116.5, -3, 67);
+  const choiceDesktop = lampView(.75, -7.35, -117.65, -1, 67);
   const choicePhone = lampView(2.19, -8.96, -117.65, -41, 128);
-  const lampDesktop = lampView(.10, -7.52, -176, -4, 65);
+  const lampDesktop = lampView(.75, -7.35, -154, 0, 67);
   const lampPhone = lampView(.16, -7.51, -173, -8, 60);
   const entrance = pose(site.walk[0]);
   return {
