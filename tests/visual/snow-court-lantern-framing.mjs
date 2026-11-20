@@ -18,7 +18,7 @@ export function installSnowCourtLanternAudit() {
     if (audit.settledAt !== null && time - audit.settledAt >= 10_000) audit.completed = true;
 
     const frame = { time, screen, ignition, visible: lamp.g.visible && !!lamp.parts?.g,
-      aspect: camera.aspect, blockers: [] };
+      aspect: camera.aspect, position: camera.position.toArray(), blockers: [] };
     audit.frames.push(frame);
     if (!frame.visible) return;
 
@@ -130,6 +130,7 @@ export function validateSnowCourtLanternAudit(audit, width, height) {
       continue;
     }
     if (Math.abs(frame.aspect - width / height) > .0001) reasons.push('viewport aspect');
+    if (frame.visibilityRays < 12 || !Number.isFinite(frame.distance)) reasons.push('missing geometry samples');
     const [uiLeft, uiTop] = frame.controls ?? [1, 1];
     for (const [[x0, y0], [x1, y1]] of [frame.lantern, ...(frame.flame ? [frame.flame] : [])]) {
       const bottom = uiLeft < left ? uiTop - clearance : 1 - clearance;
