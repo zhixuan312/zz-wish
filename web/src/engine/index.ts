@@ -88,6 +88,10 @@ export const ignite = (options: IgnitionOptions = {}) => initialize().then(s => 
 export const snuff = (done = false, remaining?: number, gust = false) => initialize().then(s => s.snuff(done, remaining, gust));
 export { isLeavingGust } from './places/pine-gust.ts';
 export const skip = () => { void initialize().then(s => s.skip()).catch(() => {}); };
+// The visitor's own past lamps: stored for the active place, drawn only where a
+// court defines past lamp slots.
+export const setOwnPastLamps = (list: Parameters<Scene['setOwnPastLamps']>[0]) =>
+  initialize().then(s => s.setOwnPastLamps(list));
 
 import { dayPart } from '../../../shared/dayPart.ts';
 import { layersFor, recordedLayersFor } from './places/pine-ambience.ts';

@@ -57,7 +57,7 @@ test('a refused light stays in the chooser with its error beside the direct acti
 
 test('a lit candle shows live presence, goes out when the page is hidden, and the record shows it went out', async ({ page }) => {
   await lightTenMinutes(page, 'e2e: hidden page');
-  await expect(page.getByTestId('presence')).toHaveText(re('这里只有你的一盏光|你和另外', 'yours is the light here|You and'));
+  await expect(page.getByTestId('presence')).toHaveText(re('正在这里许愿|你和另外', 'making a wish here now|You and'));
   await page.evaluate(() => {
     Object.defineProperty(document, 'visibilityState', { get: () => 'hidden', configurable: true });
     document.dispatchEvent(new Event('visibilitychange'));

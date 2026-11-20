@@ -35,7 +35,9 @@ p { font-size:15px; line-height:1.7; color:var(--dim); }
 .brand { display:flex; align-items:center; gap:14px; white-space:nowrap; text-shadow:0 2px 10px #000; }
 .brand span:first-child { font-size:24px; letter-spacing:.12em; }
 .brand span:last-child { font-size:12px; letter-spacing:.22em; }
-.topbar nav { display:flex; gap:8px; }
+.topbar nav { display:flex; gap:8px; align-items:center; }
+/* The mute switch is always reachable and shows its state, not just its action. */
+.btn.mute[aria-pressed=true] { border-color:#dcb574a0; color:var(--ember); }
 .btn { min-height:44px; border:1px solid var(--line); border-radius:3px; padding:11px 16px; color:var(--paper); background:#101713a8; font:500 15px/1.25 var(--serif); letter-spacing:.02em; cursor:pointer; white-space:nowrap; transition:background .2s,border-color .2s,color .2s; }
 .btn:hover:not(:disabled) { border-color:var(--ember); background:#262c20c9; }
 .btn.primary { color:#241c0f; background:var(--ember); border-color:var(--ember); }

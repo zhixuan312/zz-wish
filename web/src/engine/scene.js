@@ -2079,6 +2079,20 @@ function toOffer(shape) {
   if (!shape) return null;
   return { kind: shape.kind, rows: shape.rows, color: shape.color, burn: burnOf(shape.rows) };
 }
+// The visitor's own finished lamps for this place. Only stored: a court renders past
+// lamps from nook.pastLampSlots, and none defines those yet, so nothing appears.
+let ownPastLamps = [];
+export function setOwnPastLamps(list) {
+  ownPastLamps = Array.isArray(list) ? list.map((lamp) => ({
+    shape: lamp.shape ?? null,
+    color: lamp.color ?? null,
+    remaining: Number.isFinite(lamp.remaining) ? Math.max(0, Math.min(1, lamp.remaining)) : 0,
+    status: lamp.status ?? null,
+  })) : [];
+  return ownPastLamps.length;
+}
+export function ownPastLampCount() { return ownPastLamps.length; }
+
 /** Show the person's candle or lamp (or hide it with null), full. */
 export function setOffer(shape) {
   const o=toOffer(shape);level=targetLevel=1;mine.g.visible=!!o&&atLamp;
