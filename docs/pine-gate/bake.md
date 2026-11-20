@@ -8,6 +8,23 @@ An isolated Blender 5.3 export confirmed all four material bindings on the four 
 
 The static dish support is at world metres `[-1.8, 5.0, .9]`. Its height is read back from the evaluated shelf triangles. The visitor lamp owns the 8 mm dish seat, wax, wick, pool, runnels, flame and smoke. The lamp atlas supplies indirect bounce from a reference source at `[-1.8, 5.076, .9]` with an authored power of 0.20 W. Live direct light and its local shadows follow the moving wick. The bake applies a camera pre-exposure of 6 once. The source point uses an authored radiant scale without photometric calibration.
 
+## Runtime-lit objects, and the needle charts that stay
+
+Two different things happen to the pine needles, and they must not be confused.
+
+The crowns that the walk tier replaces with `pine-native-trees.glb` are lit by the engine and read no
+approach lightmap. They carry `one_light_dynamic = True`: the bake keeps them in the scene as shadow
+casters and occluders, while the static atlas and the coverage gate leave them out, as for every other
+runtime-lit object.
+
+The modelled needle crowns that stay in the delivered scene do read the approach lightmap, but at the
+authored scale most of their charts fall under the atlas's two-texel core and are dropped from the mask,
+so the coverage gate counted their pixels as unreached and the per-camera fractions sat just below
+0.995. `needle_lightmap_density` scales those objects' `SourceLightmap` UVs by
+`NEEDLE_LIGHTMAP_DENSITY` (4), which grows only their atlas claim: material UVs, silhouette and
+placement are untouched, the approach atlas still fits one 2048 square with 6,070 charts, and no
+`Modelled pine needles` chart remains in the subpixel set.
+
 ## Reproduce the final delivery
 
 Use Blender 5.3 and the pinned CLI dependencies described by the [bake pipeline](../../art/blender/README.md). Use a fresh ignored work directory and take the shared GPU lock before any Blender command. The following commands use `working` for a directory under `art/build/`. `ONE_LIGHT_GLTF_TOOLS` names the directory holding the pinned `watlas@1.0.1` and `@gltf-transform/cli@4.5.1` dependencies.

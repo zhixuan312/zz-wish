@@ -1680,6 +1680,9 @@ def pine_sprays(name, sprays, tint, *, close=False):
                 charts.append([shape[j] for j in corners])
                 material_uvs.append([local_uvs[j] for j in corners])
     obj = mesh.mesh_object(name, points, faces, tint, 'approach')
+    # Replaced at runtime by the walk-tier native model, which is lit at runtime; the crown still stands
+    # in the bake as a shadow caster and occluder.
+    bake_occluder_only(obj)
     source_uv(obj, charts, 'Connected metre-scale wrapping charts for rooted pine fascicles.')
     uv = obj.data.uv_layers['UVMap']
     for face, corners in zip(obj.data.polygons, material_uvs):
@@ -1706,6 +1709,9 @@ def use_native_valley_crown(label, profile, far_crown):
 def pine_fascicles(name, needles, material):
     points, faces, charts, wind = needle_mesh(needles, compact=True)
     canopy = mesh.mesh_object(name, points, faces, material, 'approach')
+    # The walk tier replaces these crowns at runtime with its own KTX2 model, so they are lit at runtime
+    # rather than from the approach lightmap; the bake keeps them as shadow casters.
+    bake_occluder_only(canopy)
     source_uv(canopy, charts, 'Separate needle section nets in metres, with pinned stem UV0.')
     uv = canopy.data.uv_layers['UVMap'].data
     for face in canopy.data.polygons:
@@ -1871,12 +1877,48 @@ def pine_needles(name, shoots, material):
         wind_uv.extend(sway)
 
     canopy = mesh.mesh_object(name, points, faces, material, 'approach')
+    bake_occluder_only(canopy)
     source_uv(canopy, charts, 'Connected metre-scale pine stem and needle charts.')
     uv = canopy.data.uv_layers['UVMap']
     for face in canopy.data.polygons:
         face.use_smooth = True
         for i, vertex in zip(face.loop_indices, face.vertices):
             uv.data[i].uv = wind_uv[vertex]
+
+
+# The modelled needle crowns are thin and numerous; at 1x most of their charts fall under the atlas's
+# two-texel core and are dropped from the mask, so the coverage gate reported their pixels as unreached.
+# Two cleared the per-camera threshold; four removes them from the subpixel set entirely while the
+# approach atlas still fits in one 2048 square.
+NEEDLE_LIGHTMAP_DENSITY = 4
+
+
+def bake_occluder_only(obj):
+    """Keep an object in the bake as an occluder and shadow caster, and nothing else.
+
+    The mesh builder marks every object one_light_static, which gives it a lightmap region, an atlas
+    claim and a share of the coverage statistics. The needle crowns the walk tier replaces at runtime
+    need none of that: they must still block light and cast their shadow onto the ground, but they are
+    never exported and never read a lightmap. Clearing the flag is the whole change; it is not the HERO
+    dynamic flag, which means a separately exported object with its own contact replay.
+    """
+    obj.pop('one_light_static', None)
+    return obj
+
+
+def needle_lightmap_density(obj, factor):
+    """Grow an existing lightmap chart so it earns at least the atlas's core texel count.
+
+    The modelled needle crowns are thin and numerous. At the authored scale most of their charts land
+    under two texels and so are dropped from the atlas mask, which makes the coverage gate report their
+    pixels as unreached even though the geometry is right there. Scaling the lightmap UVs keeps the
+    material UVs and the silhouette untouched; only the atlas claim grows.
+    """
+    chart = obj.data.uv_layers.get('SourceLightmap')
+    if chart is None:
+        return
+    for corner in chart.data:
+        corner.uv *= factor
 
 
 def shoulder_pine_needles(name, shoots, material):
@@ -1948,6 +1990,7 @@ def shoulder_pine_needles(name, shoots, material):
                     charts.extend(((high_uv, low_uv, low, high), (high, low, endpoint)))
     canopy = mesh.mesh_object(name, points, faces, material, 'approach')
     source_uv(canopy, charts, 'One unfolded twig strip with physically attached needles per shoot.')
+    needle_lightmap_density(canopy, NEEDLE_LIGHTMAP_DENSITY)
     uv = canopy.data.uv_layers['UVMap'].data
     for face in canopy.data.polygons:
         face.use_smooth = True
