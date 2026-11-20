@@ -131,6 +131,10 @@ function backdropUris(tier, extensions) {
 }
 
 const backdrop = manifest.backdrop;
+assert.equal(backdrop?.siteSha256, sha(await readFile(join(worktreePath, 'shared/snow-roof-court-site.json'))),
+  'The staged backdrop belongs to a different site configuration.');
+assert.equal(backdrop?.projectionSha256, sha(await readFile(join(worktreePath, 'shared/snow-court-backdrop.json'))),
+  'The staged backdrop belongs to a different projection.');
 const plateUris = {
   base: backdropUris(backdrop, ['.webp']),
   night: backdropUris(backdrop?.night, ['.webp']),
@@ -177,6 +181,12 @@ function instrument(source) {
   clock: window.__pineCaptureWalkClock ?? null,
   ignition: window.__visualIgnition ?? null,
   backdropVisible: place?.baked?.backdrop?.group?.visible ?? null,
+  backdrop: place?.baked?.backdrop?.group?.children.map(layer => ({
+    name: layer.name,
+    width: layer.material.uniforms.uPlate.value.image.width,
+    upgradeMix: layer.material.uniforms.uUpgradeMix.value,
+    nightMix: layer.material.uniforms.uNightMix.value,
+  })) ?? null,
   screen: document.querySelector('.ui')?.dataset.screen ?? null,
   hour: new Date().getHours(),
 });
@@ -354,6 +364,12 @@ async function captureContext(browser, { hour, look, walk }) {
     result.candle = { id: candle.id, shape: candle.shape, durationMs: candle.durationMs, status: candle.status };
     await expect(page.getByTestId('with-you')).toBeVisible();
     await page.waitForFunction(() => window.__visualIgnition?.state === 'settled' && window.__visualIgnition.progress === 1);
+    if (look === 'night') {
+      await page.waitForFunction(() => {
+        const layers = window.__snowP1Capture?.().backdrop;
+        return layers?.length === 3 && layers.every(layer => layer.nightMix === 1);
+      });
+    }
     const expectedPlates = look === 'night' ? [...plateUris.base, ...plateUris.night] : plateUris.base;
     assert(expectedPlates.every(uri => served.has(uri)), `The browser did not load the declared ${look} backdrop.`);
     await screenshot(`${look}-burning`);
