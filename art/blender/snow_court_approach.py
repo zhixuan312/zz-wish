@@ -318,6 +318,33 @@ def rock_crown_scan_uv(rings, summit):
     return [uv for row in reversed(rows) for uv in row] + [(0., 0.)]
 
 
+def refine_rock_rings(rings, stations, x, z, scale_y, strike, ground_height):
+    """Round the broad blocks inside their original footprint, then erode the surface."""
+    rounded = [[between(a, b, t) for a, b in zip(ring, ring[1:] + ring[:1]) for t in (.24, .76)]
+               for ring in rings]
+    lowest = min(point[1] for ring in rings for point in ring)
+    highest = max(point[1] for ring in rings for point in ring)
+    rows = [(stations[0], rounded[0])]
+    for low, high, a, b in zip(stations, stations[1:], rounded, rounded[1:]):
+        cuts = (.29, .71) if scale_y >= .53 else (.5,)
+        rows.extend((mix(low, high, t), [between(p, q, t) for p, q in zip(a, b)]) for t in cuts)
+    rows.append((stations[-1], rounded[-1]))
+    for index, (station, ring) in enumerate(rows):
+        for i, (px, py, pz) in enumerate(ring):
+            theta = math.atan2(pz - z, px - x)
+            # Joint planes make short recessed runs, with finer breaks at their ends.
+            joint = (.5 + .5 * math.cos(7 * theta + strike + station * 11.5)) ** 3
+            weather = .5 + .5 * math.sin(17 * theta - 9 * station + strike)
+            recession = .013 + .048 * joint + .014 * weather
+            nx, nz = mix(px, x, recession), mix(pz, z, recession)
+            lift = scale_y * .016 * math.sin(9 * theta - 10 * station) * math.cos(4 * theta + strike)
+            ny = min(highest, max(lowest, py + lift))
+            if index == 0:
+                ny = min(ny, ground_height(nx, nz) - .061)
+            ring[i] = (nx, ny, nz)
+    return rows
+
+
 def rock(mesh, granite, snow, ground_height, face, scoured=False):
     x, z, rx, ry, rz = face
     seed = round(abs(x) * 173 + z * 699)
@@ -344,17 +371,23 @@ def rock(mesh, granite, snow, ground_height, face, scoured=False):
                 height = min(height, ground_height(x + dx * rx, z + dz * rz) - .06)
             ring.append((x + dx * rx, height, z + dz * rz))
         rings.append(ring)
-    points = [point for ring in rings for point in ring]
-    points.append((x + rx * lean[0], root + ry * 1.02, z + rz * lean[1]))
+    rows = refine_rock_rings(rings, [lift for lift, _ in profile], x, z, ry, strike, ground_height)
+    stations, rings = zip(*rows)
+    sides = len(rings[0])
+    summit = (x + rx * lean[0], root + ry * 1.02, z + rz * lean[1])
+    points = [point for ring in rings for point in ring] + [summit]
     peak = len(points) - 1
     faces = []
     charts = []
-    # Keep the atlas charts and the coarse scan projection independent.
+    # A separate lightmap strip keeps the upward cap independent of the
+    # shaded skirt. The photographic texture is continuous between them.
     arcs = [0.]
+    snow_first_ring = next(i for i, station in enumerate(stations) if station > .18)
     for i in range(sides):
         other = (i + 1) % sides
-        arcs.append(arcs[-1] + math.dist(rings[2][i], rings[2][other]))
-    snow_first_ring = 2
+        arcs.append(arcs[-1] + math.dist(rings[snow_first_ring][i], rings[snow_first_ring][other]))
+    crown_uv = rock_crown_scan_uv(rings[snow_first_ring:], summit)
+    first = snow_first_ring * sides
     for row in range(len(rings) - 1):
         for i in range(sides):
             a, b = row * sides + i, row * sides + (i + 1) % sides
@@ -362,47 +395,53 @@ def rock(mesh, granite, snow, ground_height, face, scoured=False):
             pair = [(a, c, d), (a, d, b)]
             faces.extend(pair)
             if row >= snow_first_ring:
-                charts.extend([[(points[v][0], points[v][2]) for v in triangle] for triangle in pair])
+                charts.extend([[crown_uv[v - first] for v in triangle] for triangle in pair])
                 continue
-            band = [(arcs[i], profile[row][0] * ry), (arcs[i], profile[row + 1][0] * ry),
-                    (arcs[i + 1], profile[row + 1][0] * ry), (arcs[i + 1], profile[row][0] * ry)]
+            band = [(arcs[i], stations[row] * ry), (arcs[i], stations[row + 1] * ry),
+                    (arcs[i + 1], stations[row + 1] * ry), (arcs[i + 1], stations[row] * ry)]
             charts.extend([band[:3], [band[0], band[2], band[3]]])
     top = peak - sides
     for i in range(sides):
         triangle = (top + i, peak, top + (i + 1) % sides)
         faces.append(triangle)
-        charts.append([(points[v][0], points[v][2]) for v in triangle])
+        charts.append([crown_uv[v - first] for v in triangle])
     body = mesh.mesh_object(f'Wind-scoured weathered outcrop {seed}', points, faces, granite, REGION)
-    rock_profile_uv = []
-    for i, (polygon, coordinates) in enumerate(zip(body.data.polygons, charts)):
-        polygon.use_smooth = True
-        if i < snow_first_ring * sides * 2:
-            rock_profile_uv.append(coordinates)
-        else:
-            rock_profile_uv.append([(u - x, v - z + ry * 3.4) for u, v in coordinates])
-    mesh.source_uv(body, rock_profile_uv, 'Connected facies strip and separated planar crown; metre scale.')
-    first = snow_first_ring * sides
-    crown_uv = rock_crown_scan_uv(rings[snow_first_ring:], points[peak])
-    scan_uv = rock_profile_uv[:first * 2] + [[crown_uv[i - first] for i in face] for face in faces[first * 2:]]
+    extent = max(math.hypot(u, v) for u, v in crown_uv)
+    atlas_uv = [chart if i < first * 2 else [(u, v + extent + ry * 1.3) for u, v in chart]
+                for i, chart in enumerate(charts)]
+    mesh.source_uv(body, atlas_uv, 'Unfolded rock skirt and measured crown with a separate lightmap gutter.')
+    stone_uv = rock_crown_scan_uv(rings, summit)
     material_uv = body.data.uv_layers['UVMap'].data
     shift_u, shift_v = rng.random(), rng.random()
-    for polygon, coordinates in zip(body.data.polygons, scan_uv):
-        for loop, (u, v) in zip(polygon.loop_indices, coordinates):
-            material_uv[loop].uv = (u / 1.32 + shift_u, v / 1.32 + shift_v)
+    metres = rng.uniform(.91, 1.19)
+    for polygon, face_indices in zip(body.data.polygons, faces):
+        polygon.use_smooth = True
+        for loop, i in zip(polygon.loop_indices, face_indices):
+            u, v = stone_uv[i]
+            material_uv[loop].uv = (u / metres + shift_u, v / metres + shift_v)
 
-    # Clip the covering against the real facets so its feathered boundary
-    # settles between the stone's rings, with pockets in the rock's lee.
-    lower = 3.81 if scoured else 3.30
-    snowline = [lower + .56 * math.cos(angle - .32) + .24 * math.sin(3 * angle + strike)
-                for angle, _ in spines]
-    margins = [i // sides - snowline[i % sides] for i in range(peak)] + [2.8]
-    margins = [math.copysign(max(.06, abs(margin)), margin) for margin in margins]
-    snow_points, snow_faces = clip_snow(points, faces[snow_first_ring * sides * 2:], margins, ry, strike)
+    # Snow is clipped over the refined stone itself. The thin margin enters
+    # the stone instead of leaving a floating white edge above it.
+    lower = .685 if scoured else .605
+    margins = []
+    for station, ring in rows:
+        for px, _, pz in ring:
+            angle = math.atan2(pz - z, px - x)
+            snowline = lower + .105 * math.cos(angle - .32) + .036 * math.sin(3 * angle + strike)
+            snowline += .026 * math.sin(8 * angle - strike)
+            value = (station - snowline) * 6
+            margins.append(math.copysign(max(.025, abs(value)), value))
+    margins.append(2.8)
+    snow_points, snow_faces, snow_uv = clip_snow(points, faces[first * 2:], margins, crown_uv, first, ry, strike)
     cap = mesh.mesh_object(f'Wind-set snow lapping onto rock {seed}', snow_points, snow_faces, snow, REGION)
-    mesh.source_uv(cap, [[(snow_points[i][0], snow_points[i][2]) for i in face] for face in snow_faces],
+    mesh.source_uv(cap, [[snow_uv[i] for i in face] for face in snow_faces],
                    'Joined snow cover follows the actual rock triangles; metre scale.')
-    for face in cap.data.polygons:
-        face.use_smooth = True
+    uv = cap.data.uv_layers['UVMap'].data
+    for polygon, face_indices in zip(cap.data.polygons, snow_faces):
+        polygon.use_smooth = True
+        for loop, i in zip(polygon.loop_indices, face_indices):
+            u, v = snow_uv[i]
+            uv[loop].uv = (u / 1.08 + shift_u, v / 1.08 + shift_v)
 
 
 def brush_tips(mesh, ground_height, centerline, bark):
@@ -429,29 +468,31 @@ def brush_tips(mesh, ground_height, centerline, bark):
                 'Unfolded stems rooted below the adjacent drift.')
 
 
-def clip_snow(points, faces, margins, height, strike):
-    snow_points, snow_faces, vertices = [], [], {}
+def clip_snow(points, faces, margins, chart, first, height, strike):
+    snow_points, snow_faces, snow_uv, vertices = [], [], [], {}
 
-    def add_vertex(key, point, margin):
+    def add_vertex(key, point, margin, uv):
         if key not in vertices:
             ripple = .83 + .17 * math.sin(5 * point[0] - 3 * point[2] + strike)
-            depth = .0025 + (.105 + .023 * height) * ripple * ease(0., 1.8, margin)
+            depth = -.0012 + (.066 + .026 * height) * ripple * ease(0., 1.8, margin)
             vertices[key] = len(snow_points)
             snow_points.append(add(point, (0., depth, 0.)))
+            snow_uv.append(uv)
         return vertices[key]
 
     for face in faces:
         clipped = []
         for a, b in zip(face, (*face[1:], face[0])):
             if margins[a] > 0:
-                clipped.append(add_vertex(a, points[a], margins[a]))
+                clipped.append(add_vertex(a, points[a], margins[a], chart[a - first]))
             if (margins[a] > 0) != (margins[b] > 0):
                 proportion = margins[a] / (margins[a] - margins[b])
                 point = between(points[a], points[b], proportion)
-                clipped.append(add_vertex(tuple(sorted((a, b))), point, 0.))
+                uv = between(chart[a - first], chart[b - first], proportion)
+                clipped.append(add_vertex(tuple(sorted((a, b))), point, 0., uv))
         for i in range(1, len(clipped) - 1):
             snow_faces.append((clipped[0], clipped[i], clipped[i + 1]))
-    return snow_points, snow_faces
+    return snow_points, snow_faces, snow_uv
 
 
 def twig_tufts(needles, branch, az, rng, length, close):
