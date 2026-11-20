@@ -3,7 +3,7 @@ import { createHash } from 'node:crypto';
 import { lstat, mkdir, readFile, realpath, writeFile } from 'node:fs/promises';
 import { basename, dirname, join, resolve, sep } from 'node:path';
 import { parseArgs } from 'node:util';
-import { gunzipSync, zstdDecompressSync } from 'node:zlib';
+import { constants, gunzipSync, zstdCompressSync, zstdDecompressSync } from 'node:zlib';
 import { read as readKtx, KHR_DF_MODEL_ETC1S, KHR_DF_PRIMARIES_BT709,
   KHR_DF_TRANSFER_LINEAR, KHR_SUPERCOMPRESSION_BASISLZ, KHR_SUPERCOMPRESSION_ZSTD } from 'three/examples/jsm/libs/ktx-parse.module.js';
 
@@ -215,8 +215,10 @@ if (needlesSha !== sceneExtras.snow_court_needles_sha256 || needlesBody.readUInt
   || needlesBody.readUInt32LE(8) !== needlesBody.length) {
   throw new Error('The needle crowns differ from the mesh used during the source bake.');
 }
-const needles = { body: needlesBody, spec: {
-  uri: 'snow-court-needles.glb', bytes: needlesBody.length, sha256: needlesSha, role: 'runtime-snow-needle-crowns',
+const needleTransfer = zstdCompressSync(needlesBody, { params: { [constants.ZSTD_c_compressionLevel]: 12 } });
+const needles = { body: needleTransfer, spec: {
+  uri: 'snow-court-needles.glb.zstd', bytes: needleTransfer.length, sha256: digest(needleTransfer),
+  role: 'runtime-snow-needle-crowns', encoding: 'zstd', decodedBytes: needlesBody.length, decodedSha256: needlesSha,
 } };
 const seenMaps = new Set();
 for (const region of regions) {
