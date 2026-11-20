@@ -70,13 +70,20 @@ export const prefetchPlace = async (
       onProgress?.(progress);
     });
   }
+  let supersededType: (new () => Error) | null = null;
   try {
     if (shouldWarm && !await shouldWarm()) return false;
     const s = await initialize();
+    // Tell the engine which place the visitor actually wants, so a speculative build for another
+    // place stops at its next await instead of finishing alongside the one that was chosen.
+    s.wantPlace(id);
+    supersededType = s.PlaceBuildSuperseded;
     await s.preparePlace(id);
     onProgress?.({ ...progress, stage: 'ready', ratio: 1 });
     return true;
   } catch (error) {
+    // An abandoned speculative build is not a failure: the visitor chose a different place.
+    if (supersededType && error instanceof supersededType) return false;
     onProgress?.({ ...progress, stage: 'error' });
     throw error;
   }

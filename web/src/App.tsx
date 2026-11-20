@@ -19,7 +19,6 @@ type Overlay = 'mine' | 'stats' | 'credits' | null;
 interface Result { done: boolean; burnedMs: number; plannedMs: number; reason: EndReason; saved: boolean | null }
 
 const TOAST_GAP_MS = 5 * 60_000;
-const DEFAULT_PLACE_WARM_DELAY_MS = 1500;
 
 export function App({ initialLocale }: { initialLocale: Locale }) {
   const [locale, setLocaleState] = useState<Locale>(initialLocale);
@@ -125,20 +124,26 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
   const preparePlace = useCallback((id: PlaceId, retry = false, speculative = false) => {
     if (!retry && loadTask.current?.id === id) return loadTask.current.task;
     const version = ++loadVersion.current;
-    // Download the default choice while the visitor writes. Give a visitor who
-    // goes straight to another place time to pick it before we tie up WebGL.
+    // Download the default choice while the visitor writes. A visitor who picks another place
+    // abandons this build: the engine stops it at its next await, so no timer is needed here.
     const deferWarm = speculative && id === DEFAULT_PLACE.id && VISIBLE_PLACES.length > 1;
-    const warmWindow = deferWarm ? new Promise<void>(resolve => setTimeout(resolve, DEFAULT_PLACE_WARM_DELAY_MS)) : null;
     setPlaceLoad({ stage: 'loading', loadedBytes: 0, totalBytes: null, ratio: null });
     const task = engine.prefetchPlace(id, (progress) => { if (version === loadVersion.current) setPlaceLoad((current) => {
       const percent = (ratio: number | null) => ratio === null ? null : Math.round(ratio * 100);
       return current.stage === progress.stage && percent(current.ratio) === percent(progress.ratio) ? current : progress;
-    }); }, warmWindow ? async () => {
-      await warmWindow;
-      return version === loadVersion.current;
-    } : undefined)
-      .then((prepared) => { if (prepared && version === loadVersion.current) setPlaceLoad((value) => ({ ...value, stage: 'ready', ratio: 1 })); })
-      .catch((error: unknown) => { if (version === loadVersion.current) { loadTask.current = null; setPlaceLoad((value) => ({ ...value, stage: 'error' })); } throw error; });
+    }); }, deferWarm ? async () => version === loadVersion.current : undefined)
+      .then((prepared) => {
+        // A speculative build that stood down because the visitor moved on is not a result to keep:
+        // the next attempt must start fresh rather than wait on this one.
+        if (!prepared && loadTask.current?.task === task) loadTask.current = null;
+        if (prepared && version === loadVersion.current) setPlaceLoad((value) => ({ ...value, stage: 'ready', ratio: 1 }));
+      })
+      .catch((error: unknown) => {
+        // This attempt is over either way; clear it so the next one is not told to reuse a dead task.
+        if (loadTask.current?.task === task) loadTask.current = null;
+        if (version === loadVersion.current) setPlaceLoad((value) => ({ ...value, stage: 'error' }));
+        throw error;
+      });
     loadTask.current = { id, task }; return task;
   }, []);
   useEffect(() => { if (wish.trim()) void preparePlace(placeId, false, true).catch(() => {}); }, [wish, placeId, preparePlace]);

@@ -1789,8 +1789,16 @@ function disposePlace(old) {
   for (const m of materials) for (const v of Object.values(m)) if (v?.isTexture && !sharedTextures.has(v) && !naturalResources.textures.has(v)) textures.add(v);
   for (const texture of textures) texture.dispose();
   for(const r of old.reflectors??[])r.getRenderTarget().dispose();
-  old.envTarget.dispose();
+  // A build abandoned before the sky pre-pass has no environment target yet.
+  old.envTarget?.dispose();
 }
+
+// A speculative build may be abandoned: the visitor can switch place while the engine is still
+// constructing the default one. The engine records which place is actually wanted, and a build that
+// is no longer that place stops at its next await instead of finishing and competing for the GPU.
+let wantedPlace = null;
+export function wantPlace(id) { wantedPlace = id; }
+export class PlaceBuildSuperseded extends Error {}
 
 const preparingPlaces = new Map();
 let preparationQueue = Promise.resolve();
@@ -1829,14 +1837,41 @@ async function buildPlace(t) {
   trimPlaceCache([t.id]);
   attachMine();
 }
+// Called after every await a non-isolated build passes. A superseded build unwinds rather than
+// finishing: the caller gets PlaceBuildSuperseded and no cached place is left behind.
+function supersededAfterAwait(id, isolated, built = {}) {
+  if (isolated) return;
+  if (wantedPlace === null || wantedPlace === id) return;
+  // Drop the pending promise first, so a switch back to this place starts a fresh build instead of
+  // waiting on one that is about to reject.
+  preparingPlaces.delete(id);
+  const { C_before, G, envTarget, context } = built;
+  if (C_before !== undefined) C = C_before;
+  // Give back exactly what a finished place would have given back, through the same routine: it knows
+  // which geometries and textures the places share, and disposing those would break the next build.
+  if (G && context) {
+    disposePlace({ G, disposers: context.disposers, baked: context.baked,
+      reflectors: context.reflectors, envTarget });
+    context.disposers.length = 0;
+  } else {
+    envTarget?.dispose();
+  }
+  throw new PlaceBuildSuperseded();
+}
+
 async function buildPlaceNow(t, isolated = false) {
   PLACES[t.id] ??= (await placeModules[t.id]()).default(placeHelpers);
+  supersededAfterAwait(t.id, isolated);
   const light = placeLight(PLACES[t.id]), lightKey = JSON.stringify(light);
   if (cachedPlaces.has(t.id)) return cachedPlaces.get(t.id);
   if(PLACES[t.id].bakedLighting)await ensureNativeAgX();
+  supersededAfterAwait(t.id, isolated);
   if(t.id==='snow-roof')await ensureVisitorFabric();
+  supersededAfterAwait(t.id, isolated);
   if(!PLACES[t.id].bakedLighting)await loadNaturalAssets();
+  supersededAfterAwait(t.id, isolated);
   const P = { ...PLACES[t.id], ...blendPlace(PLACES[t.id], light) }, G = new THREE.Group();
+  const C_before = isolated ? undefined : C;
   // `shade` dims the unlit pieces (backdrop ridges, mist, smoke, rain) to match the night light.
   const context = { G, root:G, disposers:[], up: [], others: [], cover: null, bat: new Map(), seed: seedOf(t.id), rnd: mulberry32(seedOf(t.id)), snow: P.snow ?? 0, shade: P.shade ?? 1, cam: P.view.pos, tgt: P.view.look, light };
   if (!isolated) {
@@ -1853,6 +1888,8 @@ async function buildPlaceNow(t, isolated = false) {
   const sky = new THREE.Mesh(new THREE.SphereGeometry(500, 48, 24), skyMat); sky.renderOrder = -1; G.add(sky);
   const skyScene = new THREE.Scene(); skyScene.add(new THREE.Mesh(sky.geometry, skyMat));
   await pauseBuild();
+  const disposePartial = () => supersededAfterAwait(t.id, isolated, { C_before, G, context });
+  disposePartial();
   const envTarget = pmrem.fromScene(skyScene, 0, .1, 1000), env = envTarget.texture;
   context.environment=env;context.fog=new THREE.FogExp2(...P.fog);
   try {
@@ -1862,6 +1899,7 @@ async function buildPlaceNow(t, isolated = false) {
   sun.shadow.bias = -.00025; sun.shadow.normalBias = .025; sun.shadow.radius = 3; G.add(sun);
   const hemi = new THREE.HemisphereLight(...P.hemi); G.add(hemi);
   await P.build(t, context);
+  supersededAfterAwait(t.id, isolated, { C_before, G, envTarget, context });
   if (!isolated) await finishBatch();
   context.baked?.updateWaxSun?.(dir);
   // The spot where the lamp is lit, built in its own frame and set into the place.
@@ -1871,6 +1909,7 @@ async function buildPlaceNow(t, isolated = false) {
   context.world = G;
   context.G = nookG; context.bat = new Map(); context.cover = null;
   await N.build(placeHelpers, context);
+  supersededAfterAwait(t.id, isolated, { C_before, G, envTarget, context });
   if (!isolated) await finishBatch();
   nookG.traverse((o) => { if (o.isMesh && !o.material.transparent && !o.isInstancedMesh) { o.receiveShadow = true; if (o.userData.cast !== false) o.castShadow = true; } if (o.isLight) o.layers.enableAll(); });
   G.traverse((o) => { if (o.isLight) o.layers.enableAll(); });
@@ -1883,6 +1922,7 @@ async function buildPlaceNow(t, isolated = false) {
   });
   const candidate = { G, disposers:context.disposers, up: context.up, sky, env, envTarget, P, id: t.id, lightKey, daylight: light, nookG, others: context.others, cover: context.cover, baked:context.baked, reflectors:context.reflectors, hemi, sun, hemiBase: hemi.intensity, sunBase: sun.intensity };
   if(context.baked?.staticLampShadow)await context.baked.staticLampShadow.capture(renderer,context.baked.group);
+  supersededAfterAwait(t.id, isolated, { C_before, G, envTarget, context });
   const stage = new THREE.Scene(); stage.environment = env; stage.fog = new THREE.FogExp2(...P.fog); stage.add(G);
   stage.add(previewFill.clone());
   const stageCamera = camera.clone(); stageCamera.position.copy(P.view.pos); stageCamera.lookAt(P.view.look);
@@ -1893,6 +1933,7 @@ async function buildPlaceNow(t, isolated = false) {
   const target = renderer.getRenderTarget(), warm = new THREE.WebGLRenderTarget(4, 4);
   try {
     await renderer.compileAsync(stage, stageCamera);
+    supersededAfterAwait(t.id, isolated, { C_before, G, envTarget, context });
     if (P.bakedLighting && P.nook.lamp === 'gauze') {
       visitorPreview = LAMPS.gauze({ ...presetOf('shade'), liveBaked: true });
       const basis = context.baked.manifest.lampBasis.position;
@@ -1900,6 +1941,7 @@ async function buildPlaceNow(t, isolated = false) {
       const point = new THREE.PointLight(0xffb070, 1, 6, 2);
       point.position.set(...basis); point.castShadow = true; point.shadow.mapSize.set(512, 512); stage.add(point);
       await renderer.compileAsync(stage, stageCamera);
+      supersededAfterAwait(t.id, isolated, { C_before, G, envTarget, context });
     }
     renderer.setRenderTarget(warm); renderer.render(stage, stageCamera);
   }
@@ -1925,7 +1967,10 @@ async function buildPlaceNow(t, isolated = false) {
   return candidate;
   } catch (error) {
     cachedPlaces.delete(t.id);
-    disposePlace({ G, envTarget, disposers:context.disposers, baked: context.baked, reflectors: context.reflectors });
+    // A superseded build already released its own contents and reset the build context.
+    if (!(error instanceof PlaceBuildSuperseded)) {
+      disposePlace({ G, envTarget, disposers:context.disposers, baked: context.baked, reflectors: context.reflectors });
+    }
     throw error;
   }
 }
