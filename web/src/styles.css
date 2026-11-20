@@ -204,10 +204,6 @@ textarea[aria-invalid=true] { border-color:#f0b69a; }
      takes exactly the height that content needs — no more, so the lamp above it stays visible — and
      never grows past 62% of the viewport, which is the line above which the lit lamp still reads. */
   .candle-sheet:has(.draw) { height:auto; max-height:62vh; }
-  /* The sheet scrolls; the action row is the last child and sticks to the foot. The scroller carries
-     bottom padding at least the bar's height plus 8 px, so when it is scrolled to the end the last
-     content row — the colour swatches — clears the bar rather than hiding behind it. The bar keeps a
-     divider and a solid backing, so the text that slides under it reads as content behind a footer. */
   .candle-sheet .inner { gap:4px; overflow-y:auto; overscroll-behavior:contain; flex:1 1 auto; min-height:0; }
   /* The action row is the sheet's own child, not part of the scroller: it keeps its place at the foot
      while the content above scrolls, so it can never travel over the content or push it off screen. */
