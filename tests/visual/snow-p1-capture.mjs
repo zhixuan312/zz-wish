@@ -173,20 +173,17 @@ await save();
 function instrument(source) {
   let transformed = instrumentPineScene(source, { walkClock: true, directionCamera: true, lighting: true });
   const steps = [
-    ['const light = daylight(), lightKey = JSON.stringify(light);', 'scene-build'],
-    ['await P.build(t, context);', 'assets-ready'],
-    ['if(context.baked?.staticLampShadow)await context.baked.staticLampShadow.capture(renderer,context.baked.group);', 'static-shadow-ready'],
-    ['await renderer.compileAsync(stage, stageCamera);\n    if (P.bakedLighting', 'first-compile-ready'],
-    ['renderer.setRenderTarget(warm); renderer.render(stage, stageCamera);', 'warm-render-ready'],
-    ['cachedPlaces.set(t.id, candidate);', 'preview-ready'],
+    [/const light\s*=\s*daylight\(\),\s*lightKey\s*=\s*JSON\.stringify\(light\);/g, 'scene-build', true],
+    [/await P\.build\(t,\s*context\);/g, 'assets-ready'],
+    [/if\s*\(context\.baked\?\.staticLampShadow\)\s*await context\.baked\.staticLampShadow\.capture\(renderer,\s*context\.baked\.group\);/g, 'static-shadow-ready'],
+    [/await renderer\.compileAsync\(stage,\s*stageCamera\);(?=\s*if\s*\(P\.bakedLighting)/g, 'first-compile-ready'],
+    [/renderer\.setRenderTarget\(warm\);\s*renderer\.render\(stage,\s*stageCamera\);/g, 'warm-render-ready'],
+    [/cachedPlaces\.set\(t\.id,\s*candidate\);/g, 'preview-ready', true],
   ];
-  for (const [anchor, label] of steps) {
-    assert.equal(transformed.split(anchor).length, 2, 'Snow Court timing hook no longer matches: ' + label);
+  for (const [pattern, label, before] of steps) {
+    assert.equal([...transformed.matchAll(pattern)].length, 1, 'Snow Court timing hook no longer matches: ' + label);
     const call = `if(t.id === 'snow-roof') performance.mark('snow-p1:${label}');`;
-    const after = anchor.indexOf('\n');
-    transformed = transformed.replace(anchor, label === 'scene-build' || label === 'preview-ready'
-      ? `${call}\n  ${anchor}`
-      : after >= 0 ? anchor.slice(0, after) + `\n    ${call}` + anchor.slice(after) : `${anchor}\n  ${call}`);
+    transformed = transformed.replace(pattern, statement => before ? `${call}\n  ${statement}` : `${statement}\n  ${call}`);
   }
   const frame = /^([ \t]*)function frame\(stamp\s*=\s*performance\.now\(\)\)\s*\{/gm;
   assert.equal([...transformed.matchAll(frame)].length, 1, 'The Snow Roof scene identity hook no longer matches the app.');
