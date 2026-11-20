@@ -39,7 +39,12 @@ renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 const camera = new THREE.PerspectiveCamera(34, 1, 0.01, 900);
 // The render camera, reachable by the browser suite so its projections use the same matrices the
 // frame is drawn with.
-if (import.meta.env.DEV || import.meta.env.VITE_E2E_HOOKS === '1') window.__pineRenderCamera = camera;
+if (import.meta.env.DEV || import.meta.env.VITE_E2E_HOOKS === '1') {
+  window.__pineRenderCamera = camera;
+  // Hold the walking rig still while the browser suite measures a declared pose. Only the E2E build
+  // carries it; a normal page never defines the flag.
+  window.__pineFreezeRig = on => { window.__pineRigFrozen = on === true; };
+}
 const pmrem = new THREE.PMREMGenerator(renderer);
 // Reflections near the lamp: a near-black room with warm candle points and one cool window,
 // so brass reads as metal catching flames instead of a white studio.
@@ -2745,8 +2750,10 @@ function frame(stamp = performance.now()) {
   }
   // A slow drift so the view breathes like a held camera; wider outside.
   const a = reducedMotion.matches || place?.P.bakedLighting || (import.meta.env.DEV && window.__visualFreezeCamera) ? 0 : rig.amp;
-  camera.position.copy(rig.pos).add(tmp.set(Math.sin(time * .13) * a, Math.sin(time * .09) * a * .35, Math.cos(time * .11) * a * .5));
-  camera.lookAt(rig.look);
+  if (!window.__pineRigFrozen) {
+    camera.position.copy(rig.pos).add(tmp.set(Math.sin(time * .13) * a, Math.sin(time * .09) * a * .35, Math.cos(time * .11) * a * .5));
+    camera.lookAt(rig.look);
+  }
   let lens = rig.fov ?? (innerWidth / innerHeight < .8 ? 44 : 32);
   if (import.meta.env.DEV && pineDiagnosticView && mine.g.visible && mine.parts?.pineWax && atLamp) {
     const detail = burnView();

@@ -16,6 +16,7 @@ import { createWishCloth } from './pine-wish-cloth.js';
 import { createCandleSlots } from './pine-candle-slots.js';
 import { hermiteTrack } from './pine-walk-curve.js';
 import { createMudPrints, PINE_PRINTS } from './pine-mud-prints.ts';
+import { screenBox } from './pine-burn-framing.js';
 import { blendInputsAt as pineBlendInputsAt } from './pine-day-parts.ts';
 import { dressPineWetTreads } from './pine-wet-treads.js';
 import { pineDaySunDirection, pineDaySunDiscEdges } from './pine-gate-sun.js';
@@ -173,36 +174,36 @@ export default function createPlace(h) {
           window.__pineMudPrints = () => mud.count;
           window.__pineMudGroup = () => mud.group;
           window.__pinePrintBoxes = () => {
-            // Project with the very camera the renderer draws with, after refreshing its matrices.
-            // Anything else can be a stale pose from an earlier frame, which is what made the reported
-            // boxes several times the frame.
+            // Project with the very camera the renderer draws with, after refreshing its matrices,
+            // and through the same near-plane-clipped projection the framing review uses.
             const camera = globalThis.__pineRenderCamera;
-            // No fallback: E2E builds always expose the render camera, and silently projecting with
-            // some other camera would hide a broken hook behind a plausible-looking number.
-            if (!camera) return null;
             if (!camera) return null;
             camera.updateMatrixWorld(true);
             camera.updateProjectionMatrix();
-            // Screen pixels are the canvas's CSS box, not its drawing buffer: a retina canvas has
-            // twice the pixels and would double every coordinate.
             const canvas = h.renderer?.domElement;
             const rect = canvas?.getBoundingClientRect?.();
             const size = rect && rect.width > 0
               ? { width: rect.width, height: rect.height }
               : { width: innerWidth, height: innerHeight };
+            const view = {
+              pos: { x: camera.position.x, y: camera.position.y, z: camera.position.z },
+              look: (() => {
+                const dir = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion);
+                return { x: camera.position.x + dir.x, y: camera.position.y + dir.y,
+                  z: camera.position.z + dir.z };
+              })(),
+              fov: Number.isFinite(camera.fov) ? camera.fov : 34,
+              aspect: camera.aspect,
+            };
             return mud.group.children.map((mesh, index) => {
+              mesh.updateWorldMatrix(true, false);
               mesh.geometry.computeBoundingBox();
               const box = mesh.geometry.boundingBox.clone().applyMatrix4(mesh.matrixWorld);
-              const points = [];
-              for (const x of [box.min.x, box.max.x]) for (const y of [box.min.y, box.max.y]) for (const z of [box.min.z, box.max.z]) {
-                const v = new THREE.Vector3(x, y, z).project(camera);
-                // Screen pixels of the frame the renderer actually draws, which is not always
-                // innerWidth/innerHeight once a device pixel ratio or a frozen page is involved.
-                points.push([(v.x * .5 + .5) * size.width, (-v.y * .5 + .5) * size.height]);
-              }
-              const xs = points.map(p => p[0]), ys = points.map(p => p[1]);
-              return { index, x: Math.min(...xs), y: Math.min(...ys),
-                w: Math.max(...xs) - Math.min(...xs), h: Math.max(...ys) - Math.min(...ys) };
+              const screen = screenBox({ min: box.min.toArray(), max: box.max.toArray() }, view);
+              if (!screen.visible) return { index, visible: false, x: NaN, y: NaN, w: 0, h: 0 };
+              return { index, visible: true,
+                x: screen.left * size.width, y: screen.top * size.height,
+                w: (screen.right - screen.left) * size.width, h: (screen.bottom - screen.top) * size.height };
             });
           };
           }

@@ -48,22 +48,50 @@ export function projectPoint(point, view) {
  * @param {object} view Camera pose.
  * @param {{left: number, right: number, top: number, bottom: number}} safe Fractions of the frame.
  */
-export function screenBox(box, view, safe = { left: 0, right: 1, top: 0, bottom: 1 }) {
-  const xs = [], ys = [];
-  let depth = Infinity;
+export function screenBox(box, view, safe = { left: 0, right: 1, top: 0, bottom: 1 }, near = .02) {
+  // A corner behind the camera has a non-positive depth, and dividing by it throws the projected
+  // point millions of pixels away. Clip the box to the near plane first and project only what is in
+  // front; a box with nothing in front is simply not visible.
+  const corners = [];
   for (const x of [box.min[0], box.max[0]]) {
     for (const y of [box.min[1], box.max[1]]) {
-      for (const z of [box.min[2], box.max[2]]) {
-        const p = projectPoint({ x, y, z }, view);
-        xs.push(p.x); ys.push(p.y); depth = Math.min(depth, p.depth);
+      for (const z of [box.min[2], box.max[2]]) corners.push({ x, y, z });
+    }
+  }
+  const depthOf = point => projectPoint(point, view).depth;
+  const depths = corners.map(depthOf);
+  const visible = [];
+  for (let i = 0; i < corners.length; i++) if (depths[i] > near) visible.push(corners[i]);
+  const index = (i, j, k) => (i << 2) | (j << 1) | k;
+  for (let i = 0; i < 2; i++) {
+    for (let j = 0; j < 2; j++) {
+      for (let k = 0; k < 2; k++) {
+        for (const [di, dj, dk] of [[1, 0, 0], [0, 1, 0], [0, 0, 1]]) {
+          const i2 = i + di, j2 = j + dj, k2 = k + dk;
+          if (i2 > 1 || j2 > 1 || k2 > 1) continue;
+          const a = index(i, j, k), b = index(i2, j2, k2);
+          if ((depths[a] - near) * (depths[b] - near) >= 0) continue;
+          const t = (near - depths[a]) / (depths[b] - depths[a]);
+          visible.push({ x: corners[a].x + (corners[b].x - corners[a].x) * t,
+            y: corners[a].y + (corners[b].y - corners[a].y) * t,
+            z: corners[a].z + (corners[b].z - corners[a].z) * t });
+        }
       }
     }
   }
-  const rect = { left: Math.min(...xs), right: Math.max(...xs),
-    top: Math.min(...ys), bottom: Math.max(...ys), depth };
-  rect.inside = depth > 0 && rect.left >= safe.left && rect.right <= safe.right
-    && rect.top >= safe.top && rect.bottom <= safe.bottom;
-  return rect;
+  if (!visible.length) {
+    return { visible: false, inside: false, left: NaN, right: NaN, top: NaN, bottom: NaN, depth: 0 };
+  }
+  const xs = [], ys = [];
+  let depth = Infinity;
+  for (const point of visible) {
+    const p = projectPoint(point, view);
+    xs.push(p.x); ys.push(p.y); depth = Math.min(depth, p.depth);
+  }
+  const left = Math.min(...xs), right = Math.max(...xs);
+  const top = Math.min(...ys), bottom = Math.max(...ys);
+  return { visible: true, left, right, top, bottom, depth,
+    inside: left >= safe.left && right <= safe.right && top >= safe.top && bottom <= safe.bottom };
 }
 
 /**
