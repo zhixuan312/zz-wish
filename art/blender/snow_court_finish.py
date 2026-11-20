@@ -28,14 +28,15 @@ def smooth(low, high, values):
     return t * t * (3. - 2. * t)
 
 
-PLASTER_ATLAS_SIZE = 768
-PLASTER_GUTTER = 6
+PLASTER_ATLAS_SIZE = 1024
+PLASTER_GUTTER = 8
+PLASTER_SCAN_WIDTH_METRES = 1.
 PLASTER_CELLS = {
-    'west_wall': (0, 0, 768, 222),
-    'east_wall': (0, 222, 768, 222),
-    'rear_wall': (0, 444, 768, 238),
-    'west_sill': (0, 682, 384, 86),
-    'east_sill': (384, 682, 384, 86),
+    'west_wall': (0, 0, 1024, 300),
+    'east_wall': (0, 300, 1024, 300),
+    'rear_wall': (0, 600, 1024, 320),
+    'west_sill': (0, 920, 512, 104),
+    'east_sill': (512, 920, 512, 104),
 }
 
 # Leaks start at seams and behind the lattice, with a height, run and width
@@ -86,6 +87,32 @@ PLASTER_CRACKS = {
     'west_sill': (((.726, .561), (.718, .515), (.715, .460), (.713, .425)),),
     'east_sill': (((.856, .618), (.860, .571), (.871, .553), (.876, .523)),),
 }
+PLASTER_REPAIRS = {
+    'west_wall': (
+        ((.299, .72), (.314, .69), (.343, .72), (.351, .80), (.343, .93),
+         (.352, 1.00), (.333, 1.055), (.303, 1.04), (.293, .937)),
+    ),
+    'east_wall': (
+        ((.483, .96), (.497, .917), (.533, .94), (.558, .995), (.547, 1.089),
+         (.564, 1.192), (.545, 1.26), (.508, 1.238), (.486, 1.151)),
+        ((.861, 1.34), (.882, 1.32), (.913, 1.392), (.902, 1.481), (.884, 1.468), (.864, 1.507)),
+    ),
+    'rear_wall': (
+        ((.076, .91), (.098, .84), (.132, .883), (.157, .922), (.145, 1.052),
+         (.120, 1.09), (.107, 1.06), (.089, 1.16), (.079, 1.12)),
+    ),
+    'west_sill': (),
+    'east_sill': (),
+}
+# Local rub marks follow the height of hands, passing shoulders and the table.
+# Horizontal fraction, height in metres, half width and slope.
+PLASTER_RUBS = {
+    'west_wall': ((.21, 1.34, .34, -.12), (.648, 1.52, .28, .13)),
+    'east_wall': ((.394, 1.06, .45, .07), (.721, 1.42, .24, -.18), (.898, 1.11, .37, .24)),
+    'rear_wall': ((.216, 1.17, .31, .16), (.781, 1.52, .39, -.11)),
+    'west_sill': ((.678, .468, .24, -.09),),
+    'east_sill': ((.267, .483, .29, .11),),
+}
 
 
 def plaster_noise(rng, x, y, spacing):
@@ -120,42 +147,86 @@ def flake_distance(x, y, points):
     return np.where(inside, -distance, distance)
 
 
-def plaster_panel(scan, panel, pixel_width, pixel_height, width, height, rng):
-    """Keep photographed grit under gravity streaks and loss at wet edges."""
-    y, x = np.mgrid[:pixel_height, :pixel_width].astype(np.float32)
-    x /= pixel_width - 1
-    y /= pixel_height - 1
-    # Rotate the photographed fine grain's starting sample between panels.
-    # The original albedo's coarse stains are removed before new weathering.
-    pad = 12
-    iy = np.rint(y[:, 0] * (scan.shape[0] - 1)).astype(int)
-    ix = np.rint(x[0] * (scan.shape[1] - 1)).astype(int)
-    sample = scan[(iy + rng.integers(scan.shape[0]))[:, None] % scan.shape[0],
-                  (ix + rng.integers(scan.shape[1])) % scan.shape[1], :3]
-    grain = sample @ np.array((.25, .59, .16), dtype=np.float32)
-    blurred = grain.copy()
+def scan_at(scan, u, v):
+    """Bilinearly sample the measured one-metre scan without rescaling it."""
+    h, w = scan.shape[:2]
+    u, v = (u % 1.) * w, (v % 1.) * h
+    i, j = u.astype(int), v.astype(int)
+    s, t = (u - i)[..., None], (v - j)[..., None]
+    low = scan[j, i] * (1. - s) + scan[j, (i + 1) % w] * s
+    high = scan[(j + 1) % h, i] * (1. - s) + scan[(j + 1) % h, (i + 1) % w] * s
+    return low * (1. - t) + high * t
+
+
+def plaster_scan_patches(scan, x, y, rng):
+    """Feather rotated crops of the actual scan at its physical scale."""
+    # A short overlap keeps joins continuous. Unequal shift and rotation keep
+    # memorable pits or trowel marks from marching along the same row.
+    tile, overlap = .79, .093
+    colour = np.zeros((*x.shape, 3), dtype=np.float32)
+    coverage = np.zeros_like(x)
+    for row in range(math.ceil(float(y[-1, 0]) / tile)):
+        y0 = row * tile
+        rows = np.flatnonzero((y[:, 0] >= y0 - overlap) & (y[:, 0] <= y0 + tile + overlap))
+        for col in range(math.ceil(float(x[0, -1]) / tile) + 1):
+            x0 = (col - (.5 if row % 2 else 0.)) * tile
+            cols = np.flatnonzero((x[0] >= x0 - overlap) & (x[0] <= x0 + tile + overlap))
+            if not cols.size:
+                continue
+            section = np.ix_(rows, cols)
+            dx, dy = x[section] - x0, y[section] - y0
+            sx = smooth(-overlap, overlap, dx) * (1. - smooth(tile - overlap, tile + overlap, dx))
+            sy = smooth(-overlap, overlap, dy) * (1. - smooth(tile - overlap, tile + overlap, dy))
+            w = sx * sy
+            angle = rng.uniform(0., math.tau)
+            ca, sa = math.cos(angle), math.sin(angle)
+            offset_u, offset_v = rng.random(2)
+            u = (ca * dx + sa * dy) / PLASTER_SCAN_WIDTH_METRES + offset_u
+            v = (ca * dy - sa * dx) / PLASTER_SCAN_WIDTH_METRES + offset_v
+            colour[section] += scan_at(scan, u, v) * w[..., None]
+            coverage[section] += w
+    return colour / coverage[..., None]
+
+
+def filter_source_scan(scan):
+    """Remove submillimetre grain that would alias at the panel texel pitch."""
+    blurred = scan.copy()
+    pad = 2
+    window = 2 * pad + 1
     for axis in range(2):
-        padded = np.pad(np.moveaxis(blurred, axis, 0), ((pad, pad), (0, 0)), mode='wrap')
-        sums = np.cumsum(np.pad(padded, ((1, 0), (0, 0))), axis=0)
-        window = 2 * pad + 1
+        channel = np.moveaxis(blurred, axis, 0)
+        padded = np.pad(channel, ((pad, pad), (0, 0), (0, 0)), mode='wrap')
+        sums = np.cumsum(np.pad(padded, ((1, 0), (0, 0), (0, 0))), axis=0)
         blurred = np.moveaxis((sums[window:] - sums[:-window]) / window, 0, axis)
-    grit = np.clip((grain - blurred) * .68, -.074, .076)
-    x *= width
-    y *= height
+    return blurred
+
+
+def plaster_panel(scan, panel, pixel_width, pixel_height, width, height, rng):
+    """Keep the scanned plaster colour underneath local repairs and wear."""
+    y, x = np.mgrid[:pixel_height, :pixel_width].astype(np.float32)
+    x *= width / (pixel_width - 1)
+    y *= height / (pixel_height - 1)
+    scan_rgb = plaster_scan_patches(scan, x, y, rng)
+    delta = scan_rgb - np.mean(scan, axis=(0, 1))
+    relief = delta @ np.array((.25, .59, .16), dtype=np.float32)
+    # Neutralize the outdoor source's green cast while retaining its measured
+    # tonal range, pocks and mottling. No synthetic field drives the clean wall.
+    colour_variation = 1.15 * (.77 * relief[..., None] + .23 * delta)
+    field = np.array((.745, .722, .680)) + colour_variation
     slow = plaster_noise(rng, x, y, .63)
     mid = plaster_noise(rng, x, y, .162)
     fine = plaster_noise(rng, x, y, .037)
 
     # Moisture wicks unevenly out of the floor joint, gathering higher beside
     # wetter stone. Its salt residue breaks up into small discontinuous runs.
-    waterline = .105 + .235 * slow[0] ** 1.8 + .074 * mid[0]
-    foot = (1. - smooth(.018, waterline + .070, y)) * (.81 + .19 * mid)
-    wet_age = (1. - smooth(waterline - .060, waterline + .021, y)) * smooth(.34, .83, slow)
-    salt = np.exp(-((y - waterline - .013 * (fine - .5)) / .024) ** 2) * smooth(.34, .82, mid)
-    field = np.array((.717, .688, .641)) + (grit + .024 * (slow - .5))[..., None]
-    field -= foot[..., None] * (.116, .105, .090)
-    field -= wet_age[..., None] * (.044, .043, .038)
-    field += salt[..., None] * (.027, .026, .024)
+    waterline = .13 + .37 * slow[0] ** 1.8 + .10 * mid[0] + .038 * (fine - .5)
+    foot = (1. - smooth(.04, waterline + .085, y)) * (.72 + .28 * mid)
+    wet_age = (1. - smooth(waterline - .077, waterline + .026, y)) * (.39 + .61 * slow)
+    salt_limit = waterline + .052 + .015 * (fine - .5)
+    salt = np.exp(-((y - salt_limit) / .034) ** 2) * smooth(.34, .82, mid)
+    field -= foot[..., None] * (.190, .171, .143)
+    field -= wet_age[..., None] * (.083, .091, .077)
+    field += salt[..., None] * (.041, .041, .035)
 
     # Broad wash around a narrow broken path, rather than isolated spots.
     # Thin strands lose contrast and spread as they move away from the seam.
@@ -178,17 +249,32 @@ def plaster_panel(scan, panel, pixel_width, pixel_height, width, height, rng):
         flakes = np.maximum(flakes, 1. - smooth(-.014, .009, distance))
         rim = np.exp(-((distance - .010) / .012) ** 2) * smooth(.23, .84, fine)
         torn_edges = np.maximum(torn_edges, rim)
-    undercoat = np.array((.602, .575, .530)) + (1.20 * grit + .022 * (mid - .5) - .042 * foot)[..., None]
+    undercoat = np.array((.567, .539, .496)) + 1.18 * colour_variation - .070 * foot[..., None]
     field += (undercoat - field) * flakes[..., None]
     field += torn_edges[..., None] * (.041, .040, .037)
+
+    for point_list in PLASTER_REPAIRS[panel]:
+        points = tuple((u * width, h) for u, h in point_list)
+        edge = flake_distance(x, y, points) + jagged
+        patch = (1. - smooth(-.031, .025, edge)) * (.65 + .35 * mid)
+        field += patch[..., None] * (.087, .086, .075)
+
+    for anchor, level, span, tilt in PLASTER_RUBS[panel]:
+        dx = x - anchor * width
+        path = y - level - tilt * dx - .034 * (fine - .5)
+        edge = (1. - smooth(span * .36, span, abs(dx))) * smooth(.28, .73, mid)
+        grime = edge * np.exp(-(path / .043) ** 2)
+        scrape = edge * np.exp(-((path + .021) / .012) ** 2) * smooth(.32, .79, fine)
+        field -= grime[..., None] * (.092, .079, .060)
+        field += scrape[..., None] * (.066, .064, .061)
 
     hair = np.zeros_like(x)
     for point_list in PLASTER_CRACKS[panel]:
         points = tuple((u * width, h) for u, h in point_list)
         for start, end in zip(points, points[1:]):
             distance = path_distance(x, y, start, end)
-            hair = np.maximum(hair, (1. - smooth(.002, .013, distance)) * (.71 + .29 * fine))
-    field -= hair[..., None] * (.083, .079, .074)
+            hair = np.maximum(hair, (1. - smooth(.002, .011, distance)) * (.71 + .29 * fine))
+    field -= hair[..., None] * (.176, .157, .132)
     return np.clip(field * 255. + .5, 0., 255.).astype(np.uint8)
 
 
@@ -198,6 +284,7 @@ def plaster_colour(scan, hall):
     height = hall['eave'] - hall['floor']
     atlas = np.empty((PLASTER_ATLAS_SIZE, PLASTER_ATLAS_SIZE, 3), dtype=np.uint8)
     pad = PLASTER_GUTTER
+    scan = filter_source_scan(scan[..., :3])
     for index, (panel, (x, y, w, h)) in enumerate(PLASTER_CELLS.items()):
         metres = (2.72, .66) if panel.endswith('_sill') else (width if panel == 'rear_wall' else depth, height)
         rng = np.random.default_rng(73213 + index * 1387)
@@ -240,6 +327,8 @@ def plaster_material(mesh, root, hall):
         'source': str(source.relative_to(root)), 'sourceSha256': source_hash,
         'albedoSha256': sha256(encoded).hexdigest(), 'recipeSha256': recipe,
         'licence': 'CC0-1.0 (Poly Haven, white_plaster_rough_01)',
+        'scanWidthMetres': PLASTER_SCAN_WIDTH_METRES,
+        'scanSourceUrl': 'https://polyhaven.com/a/white_plaster_rough_01',
         'atlasSize': PLASTER_ATLAS_SIZE, 'paddedCellsBottomLeft': PLASTER_CELLS,
     })
     return material
