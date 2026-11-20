@@ -296,8 +296,9 @@ async function captureContext(browser, { hour, look, walk }) {
         }
         if (p2 && walkMaps) {
           assert(walkMapUris.every(uri => served.has(uri)), 'Expected the declared interior banks by the 28s reveal.');
-          for (const pass of [look, 'lamp']) {
+          for (const [pass, index] of [[look, look === 'day' ? 2 : 0], ['lamp', 3]]) {
             assert(before.lights.walkLightmaps?.native.includes(pass), 'The app is still using a soft interior lightmap at the reveal.');
+            assert.equal(before.lights.walkLightmaps.mix[index], 1, 'The interior texture transition is still visible at the reveal.');
           }
         }
       }
