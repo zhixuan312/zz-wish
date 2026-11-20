@@ -14,6 +14,7 @@ import { dressAncientPineBark } from './pine-ancient-bark.js';
 import { dressPineCrestCloth } from './pine-crest-cloth.js';
 import { createWishCloth } from './pine-wish-cloth.js';
 import { createCandleSlots } from './pine-candle-slots.js';
+import { hermiteTrack } from './pine-walk-curve.js';
 import { createMudPrints, PINE_PRINTS } from './pine-mud-prints.ts';
 import { blendInputsAt as pineBlendInputsAt } from './pine-day-parts.ts';
 import { dressPineWetTreads } from './pine-wet-treads.js';
@@ -71,16 +72,19 @@ export default function createPlace(h) {
     startLook[1] -= liftAt(0, phone);
     const looks = [startLook, ...path.waypoints.map(shot => shot.look), end.look.toArray()];
     const fovs = [start.fov, ...path.waypoints.map(shot => phone ? shot.phoneFov : shot.desktopFov), end.fov ?? start.fov];
-    const smooth = THREE.InterpolateSmooth;
-    const position = new THREE.VectorKeyframeTrack('position', times, positions.flat(), smooth).createInterpolant();
-    const look = new THREE.VectorKeyframeTrack('look', times, looks.flat(), smooth).createInterpolant();
-    const fov = new THREE.NumberKeyframeTrack('fov', times, fovs, smooth).createInterpolant();
+    // A monotone cubic track, not three.js's smoothstep or uniform Catmull-Rom. Smoothstep eases to a
+    // standstill at every keyframe, so the camera stopped and started at each beat; uniform
+    // Catmull-Rom assumes evenly spaced keys and overshoots badly on this path. The monotone track
+    // passes through every authored pose with continuous speed and no overshoot.
+    const position = hermiteTrack(times, positions);
+    const look = hermiteTrack(times, looks);
+    const fov = hermiteTrack(times, fovs.map(v => [v]));
     return (progress, rig) => {
       const at = progress * path.seconds;
-      rig.pos.fromArray(position.evaluate(at));
-      rig.look.fromArray(look.evaluate(at));
+      rig.pos.fromArray(position(at));
+      rig.look.fromArray(look(at));
       rig.look.y += liftAt(at, phone);
-      rig.fov = fov.evaluate(at)[0];
+      rig.fov = fov(at)[0];
       rig.amp = 0;
     };
   };
