@@ -44,6 +44,48 @@ for (const [label, viewport, safe, project] of [
       return { top: rect.top / innerHeight, left: rect.left / innerWidth, height: rect.height / innerHeight };
     });
     expect(panel, 'the candle panel must be on screen when a candle is chosen').toBeTruthy();
+    if (project === 'phone-zh') {
+      // The sheet scrolls and its action row is pinned to the foot. Scrolled to the end, every colour
+      // swatch has to clear that row and be reachable, not hidden behind it.
+      await page.evaluate(() => {
+        const inner = document.querySelector('.candle-sheet .inner') as HTMLElement | null;
+        if (inner) inner.scrollTop = inner.scrollHeight;
+      });
+      await page.waitForTimeout(120);
+      const layout = await page.evaluate(() => {
+        const bar = document.querySelector('.candle-sheet .candle-actions')!.getBoundingClientRect();
+        const swatches = [...document.querySelectorAll('.candle-sheet .swatch')].map(node => {
+          const r = node.getBoundingClientRect();
+          return { left: r.left, right: r.right, top: r.top, bottom: r.bottom };
+        });
+        return { bar: { left: bar.left, right: bar.right, top: bar.top, bottom: bar.bottom }, swatches };
+      });
+      expect(layout.swatches.length).toBeGreaterThan(0);
+      for (const [index, swatch] of layout.swatches.entries()) {
+        const overlaps = swatch.left < layout.bar.right && swatch.right > layout.bar.left
+          && swatch.top < layout.bar.bottom && swatch.bottom > layout.bar.top;
+        expect(overlaps, `colour swatch ${index} sits behind the action row`).toBe(false);
+        expect(swatch.bottom, `colour swatch ${index} must be above the action row`)
+          .toBeLessThanOrEqual(layout.bar.top + 1);
+        expect(swatch.bottom, `colour swatch ${index} must be inside the viewport`)
+          .toBeLessThanOrEqual(viewport.height);
+      }
+      // Reachable means clickable: Playwright refuses a click whose point another element covers.
+      const swatches = page.locator('.candle-sheet .swatch');
+      for (let index = 0; index < await swatches.count(); index++) {
+        const swatch = swatches.nth(index);
+        await expect(swatch).toBeVisible();
+        const box = await swatch.boundingBox();
+        expect(box, `colour swatch ${index} must have a box`).toBeTruthy();
+        // Scroll it home, then confirm nothing is painted over its centre.
+        await swatch.scrollIntoViewIfNeeded();
+        const covered = await page.evaluate(({ x, y }) => {
+          const hit = document.elementFromPoint(x, y);
+          return hit ? !hit.closest('.swatch') : true;
+        }, { x: box!.x + box!.width / 2, y: box!.y + box!.height / 2 });
+        expect(covered, `colour swatch ${index} must be the topmost element at its centre`).toBe(false);
+      }
+    }
     const frame = project === 'phone-zh' ? { ...safe, bottom: panel!.top } : safe;
     if (project === 'phone-zh') {
       // A compact bottom sheet leaves the upper half of the picture to the lamp.

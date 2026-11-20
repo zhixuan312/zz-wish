@@ -60,6 +60,21 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
     void music.play('choose', placeIdRef.current);
   };
   const stageRef = useRef<MusicStage | null>(null);
+  // The phone sheet scrolls, and its action row is pinned to the foot. The scroller must reserve at
+  // least the bar's height so the last row clears it; the bar's own height depends on the locale and
+  // the safe-area inset, so it is measured rather than guessed.
+  const candleSheetRef = useRef<HTMLElement | null>(null);
+  useEffect(() => {
+    const sheet = candleSheetRef.current;
+    if (!sheet) return;
+    const bar = sheet.querySelector<HTMLElement>('.candle-actions');
+    if (!bar) return;
+    const observer = new ResizeObserver(() => {
+      sheet.style.setProperty('--candle-actions-h', `${Math.ceil(bar.getBoundingClientRect().height)}px`);
+    });
+    observer.observe(bar);
+    return () => observer.disconnect();
+  }, [screen]);
   // 'pending' until the walk cue answers; 'missing' means no cue will ever end and the
   // candle screen must start `choose` itself; 'taken' means some code already did.
   const walkRef = useRef<'pending' | 'started' | 'missing' | 'taken'>('taken');
@@ -443,7 +458,7 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
       )}
 
       {screen === 'candle' && (
-        <section className="sheet candle-sheet">
+        <section className="sheet candle-sheet" ref={candleSheetRef}>
           <div className="inner">
             <div className="eyebrow">{t.candleEyebrow}</div>
             <h2>{t.stepTitle[kind]}</h2>
