@@ -1836,7 +1836,12 @@ async function buildPlaceNow(t, isolated = false) {
   nookG.traverse((o) => { if (o.isMesh && !o.material.transparent && !o.isInstancedMesh) { o.receiveShadow = true; if (o.userData.cast !== false) o.castShadow = true; } if (o.isLight) o.layers.enableAll(); });
   G.traverse((o) => { if (o.isLight) o.layers.enableAll(); });
   context.G = G;
-  context.up.push((dt, time) => { u.uTime.value = time; });
+  context.up.push((dt, time) => {
+    u.uTime.value = time;
+    const trace = window.__cameraTrace;
+    if (trace?.on) trace.rows.push({ t: time, x: rig.pos.x, y: rig.pos.y, z: rig.pos.z,
+      lx: rig.look.x, ly: rig.look.y, lz: rig.look.z, fov: rig.fov ?? camera.fov });
+  });
   const candidate = { G, disposers:context.disposers, up: context.up, sky, env, envTarget, P, id: t.id, lightKey, daylight: light, nookG, others: context.others, cover: context.cover, baked:context.baked, reflectors:context.reflectors, hemi, sun, hemiBase: hemi.intensity, sunBase: sun.intensity };
   if(context.baked?.staticLampShadow)await context.baked.staticLampShadow.capture(renderer,context.baked.group);
   const stage = new THREE.Scene(); stage.environment = env; stage.fog = new THREE.FogExp2(...P.fog); stage.add(G);
@@ -1891,6 +1896,16 @@ const rig = { pos: V3(0, 1.35, 2.3), look: V3(0, 1, -1), amp: .006, fov: null };
 let cameraJourneyVersion=0;
 let choiceCameraVersion=0;
 const active = outside;
+// The browser suite records the live camera on the real page: a 60 Hz trace of position and aim,
+// which the camera-path test measures instead of trusting the authored keyframes.
+if (import.meta.env.DEV || import.meta.env.VITE_E2E_HOOKS === '1') {
+  window.__cameraTrace = { on: false, rows: [] };
+  window.__startCameraTrace = () => { window.__cameraTrace.on = true; window.__cameraTrace.rows = []; };
+  window.__stopCameraTrace = () => {
+    window.__cameraTrace.on = false;
+    return window.__cameraTrace.rows;
+  };
+}
 // A read-only camera pose hook for the browser suite. It is compiled out of a normal build and only
 // present when VITE_E2E_HOOKS=1, which the Tier 1 config passes to its own build.
 if (import.meta.env.DEV || import.meta.env.VITE_E2E_HOOKS === '1') {
@@ -2298,12 +2313,16 @@ export async function travel(id) {
       && rig.pos.z > 14 && performance.now() - started < 8000);
   }
   const P = place.P, N = P.nook, arrival=viewOf((narrow()&&N.widePhone)||N.wide),end=P.bakedLighting?chooseView():arrival;
+  // A place may end its walk at a reveal pose, hold it, then approach its own end pose. Pine Gate
+  // opts in; every other place walks straight into its end pose as before.
+  const hold = P.walkHold;
+  const walkEnd = hold ? { pos: V3(...hold.pose.position), look: V3(...hold.pose.look), fov: end.fov } : end;
   const pts = [rig.pos.clone(), ...P.walk, ...(N.approach ?? []).map(toWorld), ...(P.bakedLighting&&arrival.pos.z>end.pos.z+.1?[arrival.pos]:[]),...(((narrow()&&N.chooseApproachPhone)||N.chooseApproach)??[]).map(toWorld),end.pos];
   const curve = new THREE.CatmullRomCurve3(pts, false, 'centripetal');
   const lookPts = [P.doors.clone(), ...(N.approach ?? []).map((q) => toWorld(q.clone().add(V3(0, 0, -2)))), end.look];
   const l0 = rig.look.clone(), a0 = rig.amp,f0=rig.fov??camera.fov;
   atLamp = true; mine.g.visible = !!mine.offer;
-  const authoredWalk = P.createWalk?.({ pos: rig.pos.clone(), look: l0, fov: f0 }, end, narrow());
+  const authoredWalk = P.createWalk?.({ pos: rig.pos.clone(), look: l0, fov: f0 }, walkEnd, narrow());
   if(import.meta.env.DEV)window.__walkProgress={id,progress:0,state:'walking',position:rig.pos.toArray()};
   const walk = tween(P.walkSeconds ?? 14, (k) => {
     if (authoredWalk) {
@@ -2350,21 +2369,37 @@ export async function travel(id) {
   if (skipNextTravel) skipTweens();
   await walk;
   if(import.meta.env.DEV)window.__walkProgress={id,progress:1,state:'done',position:rig.pos.toArray()};
-  // Hold the open reveal so the site is actually seen before the camera turns to the shrine, then
-  // walk the last stretch at a plain walking pace. The walk itself is timed to the brief; this hold
-  // and the approach sit after it, and the ambience has a few seconds of tail to cover them.
-  await tween(2.0, () => {});
-  if (skipNextTravel) skipTweens();
-  {
+  // Pine Gate holds the open reveal so the site is actually seen before the camera turns to the
+  // shrine, then walks the last stretch at a plain pace. This is Pine-specific: other places keep
+  // their own travel timing, which their reviews are pinned to.
+  if (hold) {
+    await tween(hold.seconds ?? 2.0, () => {});
+    if (skipNextTravel) skipTweens();
     const from = { pos: rig.pos.clone(), look: rig.look.clone(), fov: rig.fov ?? camera.fov };
     const to = chooseView();
     const metres = from.pos.distanceTo(to.pos);
-    // A plain walking pace over the last stretch, never quicker than 1.4 m/s.
-    const seconds = Math.max(1.2, metres / 1.4);
+    // A plain walking pace over the last stretch, never quicker than the place's own limit.
+    const pace = hold.approachMetresPerSecond ?? 1.4;
+    // One eased pass for both position and aim, timed for whichever needs longer: the walking pace,
+    // or turning the aim no faster than the look limit. Smoothstep peaks at 1.5x its average, so
+    // both budgets use the peak. Sharing one duration is what keeps the aim from finishing its last
+    // few degrees in a couple of frames after the position has already arrived.
+    // Interpolate the aim as a direction, not as two target points. The reveal aims at a point
+    // sixteen metres away and the choose pose at one less than a metre away; lerping between those
+    // points swings the view far faster than the eye expects, because the near target barely moves
+    // while the camera does. A fixed-distance aim point keeps the angular rate honest.
+    const AIM_DISTANCE = 6;
+    const fromAim = from.look.clone().sub(from.pos).normalize();
+    const toAim = to.look.clone().sub(to.pos).normalize();
+    const swing = THREE.MathUtils.radToDeg(Math.acos(THREE.MathUtils.clamp(fromAim.dot(toAim), -1, 1)));
+    const turnLimit = 20;                          // deg/s, a margin under the 25 deg/s limit
+    const seconds = Math.max(1.6, (metres * 1.5) / pace, (swing * 1.5) / turnLimit);
+    const aim = new THREE.Vector3();
     await tween(seconds, k => {
-      const e = ease(k);
+      const e = k * k * (3 - 2 * k);
       rig.pos.lerpVectors(from.pos, to.pos, e);
-      rig.look.lerpVectors(from.look, to.look, e);
+      aim.copy(fromAim).lerp(toAim, e).normalize();
+      rig.look.copy(rig.pos).addScaledVector(aim, AIM_DISTANCE);
       rig.fov = THREE.MathUtils.lerp(from.fov, to.fov, e);
     });
   }
@@ -2455,7 +2490,9 @@ export async function ignite({onCatch, remainingFuel, onTaperLit}={}) {
     // short, slow push that keeps the tray in view the whole way.
     const retreat = pine ? 0 : ease(Math.min(1,k*3.2/1.0));
     if (pine) {
-      const push = ease(Math.min(1, k / .85));
+      // The whole 3.2 s ignition covers this push, so the aim turns slowly enough to stay inside
+      // the look limit even though the camera barely moves.
+      const push = ease(Math.min(1, k));
       const from = cameraStart, to = burn.pos;
       rig.pos.lerpVectors(from, to, push);
       rig.look.lerpVectors(lookStart, burn.look, push);

@@ -97,6 +97,16 @@ export default function createPlace(h) {
     view: { pos: V3(...entrance.position), look: entranceLook(false), fov: entrance.desktopFov },
     viewPhone: { pos: V3(...entrance.phonePosition), look: entranceLook(true), fov: entrance.phoneFov },
     walkSeconds: path.seconds,
+    // Pine Gate's walk ends at the open reveal; the two-second look and the approach to the shrine
+    // are separate, slower segments afterwards. Other places leave this unset and walk straight in.
+    walkHold: {
+      pose: {
+        position: [...path.waypoints.at(-1).position],
+        look: [...path.waypoints.at(-1).look],
+      },
+      seconds: 2.0,
+      approachMetresPerSecond: 1.4,
+    },
     // Optional per-place lighting override: the scene uses this instead of the shared day keys
     // when a place provides it. Pine Gate needs its own six-part curve; Snow Roof does not.
     lightAt: clock => pineBlendInputsAt(clock),

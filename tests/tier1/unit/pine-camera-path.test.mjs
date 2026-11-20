@@ -33,17 +33,42 @@ test('the walk keeps the brief length and its beats', () => {
 
 test('the walk never moves faster than a brisk pace and never snaps', () => {
   const report = measureCameraPath(walkSamples());
-  expect(cameraPathViolations(report), cameraPathViolations(report).join('; ')).toEqual([]);
+  // The walk is the brisk limit; nothing here runs after it, so no settle segment is passed.
+  const failures = cameraPathViolations(report);
+  expect(failures, failures.join('; ')).toEqual([]);
   expect(report.speed.max).toBeLessThanOrEqual(CAMERA_LIMITS.walkSpeedMetresPerSecond);
   expect(report.turn.max).toBeLessThanOrEqual(CAMERA_LIMITS.angularDegreesPerSecond);
   expect(report.acceleration.max).toBeLessThanOrEqual(CAMERA_LIMITS.accelerationMetresPerSecondSquared);
 });
 
-test('the camera keeps a person\'s eye height and never brushes a trunk', () => {
+test('the walk holds eye height above the stairs and keeps clear of every trunk', () => {
   const report = measureCameraPath(walkSamples());
-  // The authored walk climbs a mountain path; height is measured above the local ground by the
-  // capture, so here only the ordering matters: the eye rises with the path and never drops.
-  const heights = report.height.series.map(([, y]) => y);
-  expect(heights.at(-1)).toBeGreaterThan(heights[0]);
-  expect(Math.max(...heights) - Math.min(...heights)).toBeLessThan(3.0);
+  // The authored steps: index = (STAIR_START - z) / STAIR_RUN, top = (index + 1) * STAIR_RISE, from
+  // pine_gate.py (STAIR_START 45.6, STAIR_RUN .8, STAIR_RISE .08, STAIR_COUNT 50).
+  const ground = z => {
+    const index = Math.max(0, Math.min(49, (45.6 - z) / .8));
+    return (index + 1) * .08;
+  };
+  // Eye height is the camera's height above the stair it is over, measured at every sample.
+  const eyes = path.waypoints.map(step => step.position[1] - ground(step.position[2]));
+  const entranceEye = path.entrance.position[1] - ground(path.entrance.position[2]);
+  const all = [entranceEye, ...eyes];
+  expect(Math.min(...all)).toBeGreaterThanOrEqual(1.5);
+  expect(Math.max(...all)).toBeLessThanOrEqual(1.7);
+  // The last pose before the shrine may lean down to the shelf, but not below 1.2 m.
+  expect(eyes.at(-1)).toBeGreaterThanOrEqual(1.2);
+
+  // Trunks and posts the route must not brush. The two ancient saddle pines are authored at
+  // (-1.88, PINE_CREST + .08) and (1.82, PINE_CREST - .32) with PINE_CREST 6.04 in pine_gate.py; the
+  // gate posts and the shrine pillars stand on the shoulder around the lamp anchor at (-1.8, 5, .9).
+  const obstacles = [
+    { name: 'ancient western pine', position: [-1.88, 6.12, 6.04], radius: .30 },
+    { name: 'ancient eastern pine', position: [1.82, 6.12, 5.72], radius: .28 },
+    { name: 'gate post west', position: [-1.45, 5.2, 4.88], radius: .16 },
+    { name: 'gate post east', position: [1.45, 5.2, 4.88], radius: .16 },
+    { name: 'shrine pillar west', position: [-2.25, 5.4, 0.9], radius: .14 },
+    { name: 'shrine pillar east', position: [-1.35, 5.4, 0.9], radius: .14 },
+  ];
+  const clearance = measureCameraPath(walkSamples(), obstacles).clearance.min;
+  expect(clearance, `nearest trunk or post is ${clearance.toFixed(2)} m away`).toBeGreaterThanOrEqual(1.0);
 });

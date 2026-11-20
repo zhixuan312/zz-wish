@@ -36,14 +36,23 @@ const angleBetween = (a, b) => {
  *   Position and look direction in world metres, in capture order.
  * @param {{position: [number, number, number], radius: number}[]} obstacles Trunks and posts.
  */
-export function measureCameraPath(samples, obstacles = []) {
-  if (samples.length < 2) throw new Error('A camera path needs at least two samples.');
+export function measureCameraPath(input, obstacles = []) {
+  if (input.length < 2) throw new Error('A camera path needs at least two samples.');
+  // A live trace begins while the camera is still parked at the entrance, so the first step is a
+  // start from rest, not a jolt during the walk. Drop the leading standstill.
+  let first = 0;
+  while (first < input.length - 2
+    && Math.hypot(input[first + 1].x - input[first].x, input[first + 1].y - input[first].y,
+      input[first + 1].z - input[first].z) < 1e-4) first++;
+  const samples = first ? input.slice(first) : input;
   const times = samples.map(s => s.t);
   const steps = [];
   for (let i = 1; i < samples.length; i++) {
     const a = samples[i - 1], b = samples[i];
     const dt = b.t - a.t;
-    if (dt <= 0) continue;
+    // A dropped frame reports a long step; dividing a small move by it is noise, not motion. Skip
+    // gaps longer than 100 ms so a stutter in the recorder cannot masquerade as a jump.
+    if (dt <= 0 || dt > 0.1) continue;
     const speed = Math.hypot(b.x - a.x, b.y - a.y, b.z - a.z) / dt;
     const turn = angleBetween(
       { x: b.lx - a.x, y: b.ly - a.y, z: b.lz - a.z },
@@ -58,7 +67,27 @@ export function measureCameraPath(samples, obstacles = []) {
     steps.push({ t: b.t, dt, speed, turn, y: b.y, clearance });
   }
   const speeds = steps.map(s => s.speed);
-  const accelerations = steps.slice(1).map((s, i) => Math.abs(s.speed - steps[i].speed) / s.dt);
+  // Acceleration is measured over a 150 ms window rather than frame to frame: a single-frame
+  // difference is dominated by capture jitter, while what the eye sees as a lurch is a speed change
+  // sustained long enough to notice.
+  const WINDOW = 0.15;
+  // A recorder gap longer than 100 ms is a dropped frame; the speed either side of it is not a
+  // real change in motion and must not be read as one.
+  const accelerations = [];
+  // The trace starts while the camera is still held at the entrance pose, so the first step is a
+  // start from standstill, not a jolt in the walk. Begin measuring after the camera has moved.
+  const moving = steps.findIndex(step => step.speed > 0.05);
+  const from = moving < 0 ? 0 : Math.max(0, moving - 1);
+  for (let i = from; i < steps.length; i++) {
+    let j = i;
+    while (j > from && steps[i].t - steps[j].t < WINDOW) j--;
+    const span = steps[i].t - steps[j].t;
+    if (span <= 0) continue;
+    // Only compare steps that are a normal frame apart.
+    if (steps[j].dt > 0.1 || steps[i].dt > 0.1) continue;
+    accelerations.push([steps[i].t, Math.abs(steps[i].speed - steps[j].speed) / span]);
+  }
+  const accelerationSeries = accelerations;
   const turnRates = steps.map(s => s.turn);
   const heights = samples.map(s => s.y);
   const clearances = steps.map(s => s.clearance).filter(Number.isFinite);
@@ -72,8 +101,8 @@ export function measureCameraPath(samples, obstacles = []) {
     speed: { max: worst(speeds).value, at: worst(speeds).t, series: speeds.map((v, i) => [steps[i].t, v]) },
     turn: { max: worst(turnRates).value, at: worst(turnRates).t, series: turnRates.map((v, i) => [steps[i].t, v]) },
     acceleration: {
-      max: accelerations.length ? Math.max(...accelerations) : 0,
-      series: accelerations.map((v, i) => [steps[i + 1].t, v]),
+      max: accelerationSeries.length ? Math.max(...accelerationSeries.map(([, v]) => v)) : 0,
+      series: accelerationSeries,
     },
     height: { min: Math.min(...heights), max: Math.max(...heights), series: samples.map(s => [s.t, s.y]) },
     clearance: {
@@ -83,11 +112,27 @@ export function measureCameraPath(samples, obstacles = []) {
   };
 }
 
-/** The first point at which a measurement breaks its limit, or null when it holds throughout. */
-export function cameraPathViolations(report, limits = CAMERA_LIMITS) {
+/**
+ * The first point at which a measurement breaks its limit, or null when it holds throughout.
+ * `afterWalk` names the instant the authored walk ends: everything from there is the settle into
+ * the shrine, which is held to a plain walking pace rather than the brisk one.
+ */
+export function cameraPathViolations(report, limits = CAMERA_LIMITS, { afterWalk = null } = {}) {
   const failures = [];
   if (report.speed.max > limits.walkSpeedMetresPerSecond) {
     failures.push(`speed ${report.speed.max.toFixed(2)} m/s at ${report.speed.at.toFixed(1)} s exceeds ${limits.walkSpeedMetresPerSecond}`);
+  }
+  if (Number.isFinite(afterWalk)) {
+    const settled = report.speed.series.filter(([t]) => t > afterWalk);
+    const fastest = settled.reduce((best, [t, v]) => (v > best.value ? { t, value: v } : best), { t: 0, value: 0 });
+    if (fastest.value > limits.settleSpeedMetresPerSecond) {
+      failures.push(`settle speed ${fastest.value.toFixed(2)} m/s at ${fastest.t.toFixed(1)} s exceeds ${limits.settleSpeedMetresPerSecond}`);
+    }
+    const turning = report.turn.series.filter(([t]) => t > afterWalk)
+      .reduce((best, [t, v]) => (v > best.value ? { t, value: v } : best), { t: 0, value: 0 });
+    if (turning.value > limits.angularDegreesPerSecond) {
+      failures.push(`settle turn ${turning.value.toFixed(1)} deg/s at ${turning.t.toFixed(1)} s exceeds ${limits.angularDegreesPerSecond}`);
+    }
   }
   if (report.turn.max > limits.angularDegreesPerSecond) {
     failures.push(`turn ${report.turn.max.toFixed(1)} deg/s at ${report.turn.at.toFixed(1)} s exceeds ${limits.angularDegreesPerSecond}`);

@@ -48,27 +48,18 @@ export function hermiteTrack(times, rows) {
   return t => {
     if (t <= times[0]) return rows[0].slice();
     if (t >= times[times.length - 1]) return rows[rows.length - 1].slice();
-    bisect: {
-      for (let i = 1; i < times.length; i++) {
-        if (t > times[i]) continue;
-        const h = times[i] - times[i - 1];
-        const s = (t - times[i - 1]) / h;
-        const s2 = s * s, s3 = s2 * s;
-        const h00 = 2 * s3 - 3 * s2 + 1, h10 = s3 - 2 * s2 + s;
-        const h01 = -2 * s3 + 3 * s2, h11 = s3 - s2;
-        return rows[i - 1].map((v, c) => {
-          const m0 = tangentsByComponent[c][i - 1], m1 = tangentsByComponent[c][i];
-          return h00 * v + h10 * h * m0 + h01 * rows[i][c] + h11 * h * m1;
-        });
-      }
-      break bisect;
+    for (let i = 1; i < times.length; i++) {
+      if (t > times[i]) continue;
+      const h = times[i] - times[i - 1];
+      const s = (t - times[i - 1]) / h;
+      const s2 = s * s, s3 = s2 * s;
+      const h00 = 2 * s3 - 3 * s2 + 1, h10 = s3 - 2 * s2 + s;
+      const h01 = -2 * s3 + 3 * s2, h11 = s3 - s2;
+      return rows[i - 1].map((v, c) => {
+        const m0 = tangentsByComponent[c][i - 1], m1 = tangentsByComponent[c][i];
+        return h00 * v + h10 * h * m0 + h01 * rows[i][c] + h11 * h * m1;
+      });
     }
     return rows[rows.length - 1].slice();
   };
-}
-
-/** A three-component track, for a position or a look target. */
-export function hermiteVectorTrack(times, vectors) {
-  const sample = hermiteTrack(times, vectors.map(v => v.toArray ? v.toArray() : [...v]));
-  return t => sample(t);
 }
