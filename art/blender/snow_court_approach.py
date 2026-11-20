@@ -53,6 +53,24 @@ ROCKS = (
     (13.00, 38.13, 1.95, 1.58, 2.30),
     (-8.00, 31.30, 1.88, 1.27, 1.97),
 )
+SCOURED_LEDGES = (
+    # Trail-relative offset, z, and radii of the low rock breaking the drift.
+    (-1.99, 44.10, .54, .41, .67),
+    (2.02, 43.85, .57, .49, .78),
+    (1.59, 42.12, .37, .33, .55),
+    (-2.14, 40.52, .64, .53, .81),
+    (1.86, 38.78, .52, .52, .77),
+    (2.49, 37.27, .67, .51, .64),
+    (-1.74, 34.07, .47, .39, .74),
+    (1.91, 32.45, .63, .52, .80),
+    (-2.14, 30.65, .62, .41, .91),
+    (1.73, 27.96, .43, .34, .57),
+)
+WINTER_BRUSH = (
+    # Small clumps root in the drift between the trail and the exposed rock.
+    (-1.34, 44.67), (1.44, 42.75), (-1.48, 41.24), (1.52, 38.02),
+    (-1.51, 35.34), (1.47, 33.31), (-1.62, 29.87), (1.51, 27.41),
+)
 
 
 def ease(a, b, value):
@@ -92,15 +110,27 @@ def road_centerline(site):
 
 def snow_ground(site, centerline, x, z):
     offset = x - interpolate(centerline, z, smooth=True)
-    verge = ease(.76, 1.90, abs(offset))
+    distance = abs(offset)
+    side = 1 if offset >= 0 else -1
+    verge = ease(.76, 1.90, distance)
     land = .15 * math.sin(x * .84 + z * .27) + .09 * math.cos(z * .91 - x * .48)
-    land += .29 * ease(2.5, 10, abs(offset))
+    land += .29 * ease(2.5, 10, distance)
     for sx, sz, rx, rz, rise in SHOULDER:
         radius = ((x - sx) / rx) ** 2 + ((z - sz) / rz) ** 2
         land += rise * (1 - ease(.04, 1.35, radius))
     packed = .008 * (math.cos(z * 1.83 + offset * 9) - math.cos(z * 1.83))
-    packed -= .028 * ease(.09, .76, abs(offset))
-    drift = .16 * ease(.55, 1.42, abs(offset)) * (1 - ease(1.42, 3.32, abs(offset)))
+    packed -= .028 * ease(.09, .76, distance)
+    old_drift = .16 * ease(.55, 1.42, distance) * (1 - ease(1.42, 3.32, distance))
+    # Wind scours some exposures and drops staggered loads in their lee.
+    # Blend outside the walked strip, retaining its established grade.
+    phase = z * .76 + side * 1.37
+    crest = 1.58 + .28 * math.sin(phase) + .13 * math.sin(z * 1.52 - side)
+    wedge = ease(.66, crest, distance) * (1 - ease(crest, crest + 1.57, distance))
+    load = .11 + .09 * math.sin(phase + .2) ** 2 + .034 * math.sin(z * 2.35 + offset * 3.1)
+    near_steps = ease(21., 27., z) * (1 - ease(46., START, z))
+    drift = mix(old_drift, wedge * load, near_steps * ease(.76, 1.36, distance))
+    scour = (.11 + .33 * (.5 + .5 * math.cos(phase * 1.71 + offset * 2.06)) ** 2)
+    land -= scour * near_steps * ease(1.13, 1.82, distance) * (1 - ease(3.4, 5.1, distance))
     end_blend = ease(END, 17.2, z)
     return road_height(site, z) + end_blend * (packed + drift + land * verge)
 
@@ -148,6 +178,81 @@ def surface_sampler(vertices):
         return mix(left[1], right[1], (x - left[0]) / width) if width > 1e-8 else left[1]
 
     return height
+
+
+def boot_trail(centerline):
+    """Return an uphill set of older boot impressions on the brushed strip."""
+    rng = random.Random(63906)
+    prints = []
+    depth = 44.29
+    for step in range(54):
+        side = 1 if step % 2 else -1
+        depth -= rng.uniform(.43, .53)
+        if step in (4, 10, 11, 24, 36, 37, 49):
+            continue  # fresh snow has filled these impressions completely
+        center = interpolate(centerline, depth, smooth=True)
+        tangent = interpolate(centerline, depth + .22, smooth=True) - center
+        offset = side * rng.uniform(.112, .178) + .075 * math.sin(depth * .54)
+        angle = math.atan2(tangent, .22) + side * .12 + rng.uniform(-.09, .09)
+        # Keep snow-covered examples in the path as well as the weak ghosts.
+        burial = rng.uniform(.06, .31) if step in (0, 6, 13, 15, 18, 20, 28, 35, 43) else rng.uniform(.23, .91)
+        prints.append((center + offset, depth, angle, burial))
+    return prints
+
+
+def worn_terrain(site, centerline):
+    """Cut the boot relief into the same support as the rest of the trail."""
+    from snow_court_use import boot_relief, refine_sole_triangles
+
+    vertices, faces = terrain_geometry(site, centerline)
+    support = surface_sampler(vertices.copy())
+    footprints = boot_trail(centerline)
+    colours = []
+
+    def sample(x, z, index=None):
+        offset = x - interpolate(centerline, z, smooth=True)
+        cut, packed = boot_relief(x, z, footprints)
+        brush = 1 - ease(.28, .58, abs(offset + .043 * math.sin(z * 1.68)))
+        fine = .5 + .28 * math.sin(z * 5.07 + x * 7.61) + .22 * math.cos(x * 12.1 - z * 8.3)
+        visit = ease(17.2, 19., z) * (1 - ease(45., 47., z))
+        below = visit * (max(0., cut) + brush * (.004 + .006 * fine))
+        grade = support(x, z) if index is None else vertices[index][1]
+        point = (x, grade - below, z)
+        # Packed snow takes a slightly darker, cooler colour underneath the blown cover.
+        strength = visit * (brush * (.055 + .027 * fine) + .33 * packed)
+        shade = tuple(1 - strength * k for k in (.96, .86, .70))
+        if index is None:
+            vertices.append(point)
+            colours.append(shade)
+            return len(vertices) - 1
+        vertices[index] = point
+        colours.append(shade)
+
+    for i, (x, _, z) in enumerate(vertices):
+        sample(x, z, i)
+    faces = refine_sole_triangles(vertices, faces, footprints, sample)
+    return vertices, faces, colours, support
+
+
+def trail_scan_uv(vertices, centerline):
+    """Use one continuous scan projection, stretched by actual bank climb."""
+    cols = len(CROSSING)
+    ground_rows = [point[2] for point in vertices[::cols]]
+    # The regular sections end before the adaptive footprint midpoints.
+    stop = ground_rows.index(START)
+    lengths = []
+    center_col = CROSSING.index(0)
+    for row in range(stop + 1):
+        points = vertices[row * cols:(row + 1) * cols]
+        station = [0.]
+        for a, b in zip(points, points[1:]):
+            station.append(station[-1] + math.dist(a, b))
+        lengths.extend(s - station[center_col] for s in station)
+    tile = .91
+    return [(across / tile, -point[2] / tile) for across, point in zip(lengths, vertices)] + [
+        ((x - interpolate(centerline, z, smooth=True)) / tile, -z / tile)
+        for x, _, z in vertices[len(lengths):]
+    ]
 
 
 def add(a, b):
@@ -213,7 +318,7 @@ def rock_crown_scan_uv(rings, summit):
     return [uv for row in reversed(rows) for uv in row] + [(0., 0.)]
 
 
-def rock(mesh, granite, snow, ground_height, face):
+def rock(mesh, granite, snow, ground_height, face, scoured=False):
     x, z, rx, ry, rz = face
     seed = round(abs(x) * 173 + z * 699)
     rng = random.Random(seed)
@@ -287,7 +392,8 @@ def rock(mesh, granite, snow, ground_height, face):
 
     # Clip the covering against the real facets so its feathered boundary
     # settles between the stone's rings, with pockets in the rock's lee.
-    snowline = [3.30 + .56 * math.cos(angle - .32) + .24 * math.sin(3 * angle + strike)
+    lower = 3.81 if scoured else 3.30
+    snowline = [lower + .56 * math.cos(angle - .32) + .24 * math.sin(3 * angle + strike)
                 for angle, _ in spines]
     margins = [i // sides - snowline[i % sides] for i in range(peak)] + [2.8]
     margins = [math.copysign(max(.06, abs(margin)), margin) for margin in margins]
@@ -297,6 +403,30 @@ def rock(mesh, granite, snow, ground_height, face):
                    'Joined snow cover follows the actual rock triangles; metre scale.')
     for face in cap.data.polygons:
         face.use_smooth = True
+
+
+def brush_tips(mesh, ground_height, centerline, bark):
+    """Low winter stems enter the actual terrain, with most growth buried."""
+    rng = random.Random(30029)
+    brush = Geometry()
+    for offset, z in WINTER_BRUSH:
+        origin = interpolate(centerline, z, smooth=True) + offset
+        for i in range(rng.randint(3, 5)):
+            x = origin + rng.uniform(-.071, .071)
+            depth = z + rng.uniform(-.11, .11)
+            ground = ground_height(x, depth)
+            height = rng.uniform(.20, .46)
+            lean = rng.uniform(-.19, -.058)
+            fan = rng.uniform(-.15, .19)
+            root = (x, ground - .068, depth)
+            bend = (x + lean * .32, ground + height * .54, depth + fan * .46)
+            tip = (x + lean, ground + height, depth + fan)
+            brush.tube(mesh, [root, bend, tip], [.012, .007, .002], 4, caps=False)
+            if i % 2 == 0:
+                shoot = add(bend, (rng.uniform(.02, .13), height * .26, fan * -.47))
+                brush.tube(mesh, [bend, shoot], [.004, .0018], 3, caps=False)
+    brush.write(mesh, 'Dormant brush emerging from the wind-cut banks', bark,
+                'Unfolded stems rooted below the adjacent drift.')
 
 
 def clip_snow(points, faces, margins, height, strike):
@@ -461,17 +591,37 @@ def build_approach(site, materials):
     import snow_roof as mesh
 
     centerline = road_centerline(site)
-    vertices, faces = terrain_geometry(site, centerline)
+    vertices, faces, shades, ground_height = worn_terrain(site, centerline)
+    scan_uv = trail_scan_uv(vertices, centerline)
+    surface = materials['snow'].copy()
+    surface.name = 'Wind-packed snow on the pass trail'
+    for node in surface.node_tree.nodes:
+        if node.type == 'NORMAL_MAP':
+            node.inputs['Strength'].default_value = .46
+    mesh.vertex_tint_shader(surface)
+    del surface['one_light_surface_tint']
     support = mesh.mesh_object('Narrow packed snow trail and wind-cut verges', vertices, faces,
-                               materials['snow'], REGION)
+                               surface, REGION)
     mesh.source_uv(support, [[(vertices[i][0], vertices[i][2]) for i in face] for face in faces],
                    'Connected walk surface projected in metres.')
-    for face in support.data.polygons:
-        face.use_smooth = True
-    ground_height = surface_sampler(vertices)
+    uv = support.data.uv_layers['UVMap'].data
+    tint = support.data.color_attributes.new(name='SurfaceTint', type='FLOAT_COLOR', domain='CORNER')
+    support.data.color_attributes.active_color = tint
+    colour_factor = surface['one_light_vertex_base_tint']
+    for polygon in support.data.polygons:
+        polygon.use_smooth = True
+        for loop in polygon.loop_indices:
+            i = support.data.loops[loop].vertex_index
+            uv[loop].uv = scan_uv[i]
+            tint.data[loop].color = (*(a * b for a, b in zip(colour_factor, shades[i])), 1.)
+
     rock_scan = mesh.material('Pitted exposed rock of the winter pass', '#a8c9ed', 'rock_pitted_mossy', .89)
     for face in ROCKS:
         rock(mesh, rock_scan, materials['snow'], ground_height, face)
+    for offset, z, rx, ry, rz in SCOURED_LEDGES:
+        x = interpolate(centerline, z, smooth=True) + offset
+        rock(mesh, rock_scan, materials['snow'], ground_height, (x, z, rx, ry, rz), scoured=True)
+    brush_tips(mesh, ground_height, centerline, materials['bark'])
 
     bark, needles, snow = (Geometry() for _ in range(3))
     for i, profile in enumerate(PINES):

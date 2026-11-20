@@ -1,14 +1,16 @@
 const sweptName = 'Wind-packed snow with recent broom marks';
 const fieldName = 'Wind-packed winter snow';
+const trailName = 'Wind-packed snow on the pass trail';
 
 export function isWinterCourtSnow(material) {
-  return material.name === sweptName || material.name === fieldName;
+  return material.name === sweptName || material.name === fieldName || material.name === trailName;
 }
 
 export function tuneWinterCourtSnow(material, tint, lightDirection, lightStrength) {
   const compile = material.onBeforeCompile.bind(material);
   const key = material.customProgramCacheKey.bind(material);
   const swept = material.name === sweptName;
+  const trail = material.name === trailName;
   material.onBeforeCompile = (shader, renderer) => {
     compile(shader, renderer);
     shader.uniforms.uSweptSnowBase = { value: tint };
@@ -43,16 +45,43 @@ export function tuneWinterCourtSnow(material, tint, lightDirection, lightStrengt
         ` : ''}
         // An oblique projection keeps grain on the steep drift faces.
         vec2 snowMetres = vBakedWorld.xz + vBakedWorld.y * vec2(.31, -.73);
-        vec2 windMetres = mat2(.96, .28, -.28, .96) * snowMetres;
-        float gust = snowGrain(windMetres * vec2(1.2, 2.4));
-        vec2 ribs = windMetres * vec2(2.4, 11.0) + vec2(1.4 * gust, -2.5 * gust);
-        float windSkin = smoothstep(.25, .75, snowGrain(ribs));
-        float driftRibs = snowResolvable(ribs) * (windSkin - .5);
+        ${trail ? `
+          float lane = 0.;
+          #if defined(USE_MAP)
+            // U is distance across the trail, including the bank climb.
+            lane = vMapUv.x * .91;
+          #endif
+          float bank = smoothstep(.58, 1.19, abs(lane));
+          float gust = snowGrain(snowMetres * .74);
+          float eddy = snowGrain(snowMetres * .43 + 19.3);
+          float heading = .82 * (gust - .5) + 1.57 * (eddy - .5);
+          vec2 scoured = mat2(cos(heading), sin(heading), -sin(heading), cos(heading)) * snowMetres;
+          vec2 ribs = scoured * mix(vec2(1.7, 5.2), vec2(2.8, 8.1), eddy);
+          vec2 rime = vec2(snowMetres.y, -snowMetres.x) * vec2(4.3, 6.2);
+          float ribsSkin = snowResolvable(ribs) * (snowGrain(ribs) - .5);
+          float rimeSkin = snowResolvable(rime) * (snowGrain(rime) - .5);
+          float driftRibs = mix(ribsSkin, rimeSkin, .41) * bank * smoothstep(.25, .65, gust);
+
+          // Short bristle fans disappear under fresh windblown snow.
+          float fan = vBakedWorld.z * 14. + lane * abs(lane) * 18. + 1.7 * eddy;
+          float marks = smoothstep(.56, .91, cos(fan))
+            * (1. - smoothstep(.46, .71, abs(lane)))
+            * smoothstep(.47, .72, snowGrain(snowMetres * 1.86))
+            * snowResolvable(vec2(fan / 6.283, 0.));
+          float snowSkin = .16 * (gust - .5) + .24 * driftRibs - .065 * marks;
+        ` : `
+          vec2 windMetres = mat2(.96, .28, -.28, .96) * snowMetres;
+          float gust = snowGrain(windMetres * vec2(1.2, 2.4));
+          vec2 ribs = windMetres * vec2(2.4, 11.0) + vec2(1.4 * gust, -2.5 * gust);
+          float windSkin = smoothstep(.25, .75, snowGrain(ribs));
+          float driftRibs = snowResolvable(ribs) * (windSkin - .5);
+          float snowSkin = .13 * (gust - .5) + .32 * driftRibs;
+        `}
         vec2 grains = snowMetres * 43.;
         float grainVisibility = snowResolvable(grains);
         vec2 cell = floor(grains);
         float coarseGrain = snowSeed(cell);
-        diffuseColor.rgb *= 1. + .13 * (gust - .5) + .32 * driftRibs
+        diffuseColor.rgb *= 1. + snowSkin
           + .19 * (snowGrain(grains) - .5) * grainVisibility;
     `).replace('#include <opaque_fragment>', `
         // Some tiny ice facets redirect the existing light. Their world-space
@@ -76,7 +105,8 @@ export function tuneWinterCourtSnow(material, tint, lightDirection, lightStrengt
         #include <opaque_fragment>
     `);
   };
-  material.customProgramCacheKey = () => key() + (swept ? '-snow-court-packed' : '-snow-court-drift');
+  const program = trail ? '-snow-court-trail' : (swept ? '-snow-court-packed' : '-snow-court-drift');
+  material.customProgramCacheKey = () => key() + program;
 }
 
 const driftSize = [5.8, 3.16, 4.25];
