@@ -23,7 +23,7 @@ export default function createWinterCourt(h) {
   const choiceDesktop = lampView(.75, -7.35, -117.65, -1, 67);
   const choicePhone = lampView(1.048, -7.52, -139.7, -17.5, 69, 3.71);
   const lampDesktop = lampView(.75, -7.35, -154, 0, 67);
-  const lampPhone = lampView(.12, -7.40, -180, -8, 69);
+  const lampPhone = lampView(.03, -7.40, -180, -8, 69);
   const entrance = pose(site.walk[0]);
   return {
     bakedLighting: true, cameraFar: 880, exposure: 1.11, shade: .55,
