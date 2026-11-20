@@ -177,3 +177,27 @@ The first full day and night replay is in `artifacts/snow-roof/quality/p2/runtim
 In the images, unlit pale shades and tied tags read separately from the visitor's red lamp. The gate has two warm light pools. The winter boards, step risers and interior beams remain too dark at night. The thin pines still read as mostly branches. Angular snow lips and colour bands make the swept path and boulder caps look cut out. The far peak has excessive parallel rock bands. Native diagnostic crops are in `artifacts/snow-roof/quality/p2/native-details-01/`.
 
 The biggest cold-path cost was the first render and local reflection preparation with the glass transmission pass. With the same package, simplifying the thin glass to direct transparent reflection took readiness to 6.14 s day and 4.55 s night. Omitting the dummy lamp from the entrance warm draw then measured 5.50 s and 4.42 s. The next package also skips linking that future visitor-light variant until the real lamp is used. The five-second guard remains active.
+
+## P2 day and night review
+
+The passing Chromium review is in `artifacts/snow-roof/quality/p2/runtime-04/`. The twelve 1440 × 900 frames cover the same six stations at 13:00 and 22:00. Their full photographs, side-by-side comparisons and native-pixel crops are in `photo-review-04/` beside that report. Closer crops of the app frames are in `native-details-04/`. The runtime revision is `08d1404ffbf2d9e65556f8e754607542c605286d` and the isolated preview manifest is `75a8bcd410cde536d6be5b905e89fd250454cf06a14945c6ce7ec19b6bdaa8b3`.
+
+| Hour | Step inside | Walk | Page errors | HTTP errors | Source reloads |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| 13:00 | 4.13 s | 30.05 s | 0 | 0 | 0 |
+| 22:00 | 4.10 s | 30.05 s | 0 | 0 | 0 |
+
+The package uses sixteen maps baked at eight Cycles samples on Metal with Metal denoising. The base, phone and desktop package sizes were 14,898,945 B, 25,805,326 B and 32,563,196 B. The hall and altar start with coarse mips, load their eight native maps after entry, and complete the transition before the reveal. The moonlit far, middle and cloud layers are also available at the 22:00 reveal. Prepared and packed geometry passed twelve resting groups and six wick checks. The installed package is unchanged.
+
+| Requirement | P2 runtime status | Evidence and remaining gap |
+| --- | --- | --- |
+| Gate lamps mark the arrival before the peak reveal | matches at 13:00 and 22:00 | The warm oil pools appear at 17 seconds and remain visible under the gate at 24 seconds. Both flames sit on authored wicks. The summit rises behind the hall after crossing the gate. |
+| Swept approach, buried footprints, winter boards and signs of care | matches in the sampled court views | The swept snow is one continuous surface. At the reveal, the path and broom are visible, the west room is boarded and warm paper identifies open rooms. The side rooms remain harder to read after dark, with some detail under the eaves below the contrast shown in daylight. |
+| Working kitchen, fuel, repaired fabric and ordinary lamps | matches in source, partial in the six fixed views | The shell, roof, side-room apertures and veranda lamp are present. A separate inspection view is needed to show the flue opening and the fuel rack together with their immediate surroundings. |
+| Ordinary altar figure, plain oil lamp and waiting equipment | matches in source, partial in the six fixed views | The seated figure is visible through the hall opening. The altar wick, hall table and separate spare cups and shades are smaller than the canonical reveal can establish. Actual selection remains a P4 interaction. |
+| Old lanterns with tags and a free middle cord | matches the P2 arrangement | The settled views separate the nearest bright red shade from the faded and tagged shades behind it. Twelve old shades and two faint lights are authored. The free cord is visible before the visitor shade occupies it. Placement and hoisting remain in P4. |
+| Half-open door and moving snow beyond the visitor lamp | matches at 13:00 and 22:00 | The door still frames the court snow and gate. The wind moves exterior particles across the opening. The faded tags and dark crossbeam still have less contrast at night. |
+| Wind-bent pines, granite approach and layered snowy DEM summit | matches the site, differs in close texture quality | The crowns and granite breaks are visible at six seconds. The revised summit has fewer repeating rock bands. A steep face on the closest right outcrop stretches the scan in this take. The foreground pine silhouettes and roof snow also have simpler detail than the photographs. |
+| Readable interiors at six times of day | differs pending P3 | The burning frames show beam grain, older lanterns and doors at both tested hours. This review covers midday and night only. It leaves dawn, morning, afternoon and dusk, and the darker exterior eaves, for six-hour calibration. |
+
+The photographic comparisons use daylight reference photographs for material and form in the corresponding night panels. They provide no photographic reference for the chosen night exposure. Gameplay, endings and music retain the statuses in the baseline tables until their respective milestones.
