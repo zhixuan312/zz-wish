@@ -17,7 +17,13 @@ const packagePath = '/places/snow-roof/';
 const viewport = { width: 1440, height: 900 };
 const regions = ['altar', 'court', 'gate', 'hall'];
 const passes = ['day', 'dusk', 'night', 'lamp'];
-const expectedFrames = [...site.keyFrames.map(frame => frame.name), 'day-burning', 'night-burning'];
+const p2 = process.argv.includes('--p2');
+const milestone = p2 ? 'P2' : 'P1';
+const contexts = [{ hour: 13, look: 'day', walk: true }, { hour: 22, look: 'night', walk: p2 }];
+const walkFrame = (look, name) => p2 ? `${look}-${name}` : name;
+const expectedFrames = p2 ? contexts.flatMap(({ look }) => [
+  `${look}-entrance`, ...site.keyFrames.map(({ name }) => walkFrame(look, name)), `${look}-burning`,
+]) : [...site.keyFrames.map(frame => frame.name), 'day-burning', 'night-burning'];
 const pngSignature = Buffer.from('89504e470d0a1a0a', 'hex');
 const sha = bytes => createHash('sha256').update(bytes).digest('hex');
 const isDigest = value => /^[a-f0-9]{64}$/.test(value);
@@ -26,10 +32,12 @@ const worktreePath = await realpath(worktree);
 const locker = join(worktreePath, '../gpu.lock');
 
 if (process.argv.includes('--help')) {
-  console.log('BASE_URL=http://127.0.0.1:8965 DB_FILE=<private SQLite file under TMPDIR> OUTPUT=<new absolute directory> CAPTURE_PREVIEW_DIR=<staged LOW8 directory> CAPTURE_PREVIEW_SHA256=<manifest SHA-256> node tests/visual/snow-p1-capture.mjs');
+  console.log('BASE_URL=http://127.0.0.1:8965 DB_FILE=<private SQLite file under TMPDIR> OUTPUT=<new absolute directory> CAPTURE_PREVIEW_DIR=<staged LOW8 directory> CAPTURE_PREVIEW_SHA256=<manifest SHA-256> node tests/visual/snow-p1-capture.mjs [--p2]');
+  console.log('Use --p2 for an entrance, full thirty-second walk and settled burning at both 13:00 and 22:00.');
   console.log('Acquire the GPU lease as s1 before running. The local API and Vite must already be running.');
   process.exit(0);
 }
+assert.deepEqual(process.argv.slice(2), p2 ? ['--p2'] : [], 'Use --help or --p2.');
 
 function required(name) {
   const value = process.env[name];
@@ -157,6 +165,7 @@ const installedSha = sourceStart.files.find(file => file.path === installedUri)?
 assert.equal(await ordinaryManifest(), installedSha, 'Vite is serving a different Snow Roof install from the stated worktree.');
 const revision = () => execFileSync('git', ['rev-parse', 'HEAD'], { cwd: worktreePath, encoding: 'utf8' }).trim();
 const report = {
+  ...(p2 ? { milestone } : {}),
   base: base.href, sourceRev: revision(), sourceSha256: sourceStart.aggregateSha256,
   preview: { directory: candidate, revision: manifest.snowCourt.revision, manifestSha256: expectedSha,
     authoringBlendSha256: manifest.bake.sourceBlendSha256, bakeFingerprint: manifest.bakeFingerprint, maps, plateUris,
@@ -200,6 +209,9 @@ function instrument(source) {
     width: layer.material.uniforms.uPlate.value.image.width,
     upgradeMix: layer.material.uniforms.uUpgradeMix.value,
     nightMix: layer.material.uniforms.uNightMix.value,
+    ${p2 ? `nightWidth: layer.material.uniforms.uNightPlate.value.image.width,
+    nightWeight: layer.material.uniforms.uNightWeight.value,
+    nightResident: layer.material.uniforms.uNightPlate.value !== layer.material.uniforms.uPlate.value,` : ''}
   })) ?? null,
   screen: document.querySelector('.ui')?.dataset.screen ?? null,
   hour: new Date().getHours(),
@@ -216,6 +228,19 @@ function storedCandle(id) {
   }
 }
 
+function checkEntrance(state) {
+  const { position, look, fov } = site.walk[0];
+  const forward = look.map((component, axis) => component - position[axis]);
+  const length = Math.hypot(...forward);
+  assert.equal(state.screen, 'place', 'Capture the view from the actual place screen.');
+  assert.equal(state.camera.phase, 'place', 'The renderer has not reached the product’s place phase.');
+  assert(Math.hypot(...state.camera.position.map((component, axis) => component - position[axis])) < .01
+    && Math.hypot(...state.camera.direction.map((component, axis) => component - forward[axis] / length)) < .01
+    && Math.abs(state.camera.fov - fov) < .01, 'The place camera differs from the authored entrance.');
+  assert(state.backdrop?.length === 3 && state.backdrop.every(layer => !layer.nightResident && layer.nightMix === 0),
+    'Night plates must remain deferred on the place screen.');
+}
+
 async function captureContext(browser, { hour, look, walk }) {
   const context = await browser.newContext({ viewport, deviceScaleFactor: 1, locale: 'en-US', reducedMotion: 'no-preference' });
   const page = await context.newPage();
@@ -228,7 +253,7 @@ async function captureContext(browser, { hour, look, walk }) {
   const button = name => page.getByRole('button', { name });
   const state = () => page.evaluate(() => window.__snowP1Capture());
 
-  async function screenshot(name, time = null) {
+  async function screenshot(name, time = null, entrance = false) {
     await verifyLease();
     await assertCaptureGpuHealthy(page);
     const before = await state();
@@ -241,7 +266,10 @@ async function captureContext(browser, { hour, look, walk }) {
     assert(before.lights.weights[look === 'day' ? 2 : 0] > .5, `The ${look} bank is not dominant.`);
     assert(before.camera.position.every(Number.isFinite) && before.camera.direction.every(Number.isFinite)
       && Number.isFinite(before.camera.fov) && !before.camera.overview, 'Expected the current product camera.');
-    if (time !== null) {
+    if (entrance) {
+      assert(p2 && !entered, 'Capture the P2 entrance before clicking Step inside.');
+      checkEntrance(before);
+    } else if (time !== null) {
       assert(before.walk?.id === placeId && before.walk.state === 'walking' && before.clock?.id === placeId
         && before.clock.durationSeconds === site.walkSeconds, 'Expected the native thirty-second authored walk.');
       assert(before.clock.seconds >= time && before.clock.seconds <= time + .6, `Missed the ${time}s authored walk moment.`);
@@ -249,6 +277,12 @@ async function captureContext(browser, { hour, look, walk }) {
         const [x, , z] = before.camera.position;
         assert(z > site.hall.front && z < site.gate.center[2] - site.gate.depth / 2 && x > site.court.west && x < site.court.east,
           'The reveal camera must be in the open court between the gate and hall.');
+        if (p2 && look === 'night') {
+          assert(plateUris.night.every(uri => served.has(uri)), 'Expected all declared night plates by the 28s reveal.');
+          assert(before.backdrop?.length === 3 && before.backdrop.every(layer =>
+            layer.nightResident && layer.nightMix === 1 && layer.nightWeight === 1 && layer.nightWidth === backdrop.night.width),
+          'The independent night plates must be fully visible at the authored 28s reveal.');
+        }
       }
     } else {
       assert.equal(before.screen, 'burning');
@@ -257,17 +291,18 @@ async function captureContext(browser, { hour, look, walk }) {
     if (time === 28 || time === null) assert.equal(before.backdropVisible, true, 'The authored layered landscape is not active.');
     const file = `${name}.png`;
     const bytes = await page.screenshot({ path: join(output, file), scale: 'css',
-      style: '.ui { visibility: hidden !important; }' });
+      ...(entrance ? {} : { style: '.ui { visibility: hidden !important; }' }) });
     assert(bytes.subarray(0, 8).equals(pngSignature) && bytes.toString('ascii', 12, 16) === 'IHDR');
     assert.deepEqual([bytes.readUInt32BE(16), bytes.readUInt32BE(20)], [viewport.width, viewport.height]);
     const after = await state();
+    if (entrance) checkEntrance(after);
     if (time !== null) {
       assert(after.clock?.id === placeId && after.clock.seconds >= before.clock.seconds && after.clock.seconds <= time + .9,
         `The screenshot crossed the ${time}s walk moment.`);
     }
     report.captures.push({ name, file, sha256: sha(bytes), hour, targetWalkSeconds: time, before, after });
     result.captures.push(name);
-    console.log('SNOW_P1_FRAME', name, file, time === null ? `hour=${hour}` : `seconds=${before.clock.seconds.toFixed(3)}`);
+    console.log(`SNOW_${milestone}_FRAME`, name, file, time === null ? `hour=${hour}` : `seconds=${before.clock.seconds.toFixed(3)}`);
     await save();
   }
 
@@ -351,6 +386,16 @@ async function captureContext(browser, { hour, look, walk }) {
     }
     if (result.stepInsideMs > 5000) report.readinessMisses.push({ hour, stepInsideMs: result.stepInsideMs });
     assert(served.has('manifest.json') && served.has(manifest.scene), 'The app did not request the verified candidate manifest and model.');
+    if (p2) {
+      await page.waitForFunction(position => {
+        const state = window.__snowP1Capture?.();
+        const fade = document.getElementById('fade');
+        return state?.screen === 'place' && state.lights?.placeId === 'snow-roof'
+          && state.camera.phase === 'place' && state.camera.position.every((value, axis) => Math.abs(value - position[axis]) < .01)
+          && fade && Number(getComputedStyle(fade).opacity) === 0;
+      }, site.walk[0].position);
+      await screenshot(`${look}-entrance`, null, true);
+    }
     const deferredPlates = [...plateUris.night, ...(plateUris.walk ?? []), ...(plateUris.high ?? [])];
     assert(!result.requested.some(({ name, afterEntry }) => !afterEntry && deferredPlates.includes(name)),
       'A deferred image was requested before entry.');
@@ -363,7 +408,7 @@ async function captureContext(browser, { hour, look, walk }) {
           const clock = window.__pineCaptureWalkClock;
           return clock?.id === 'snow-roof' && clock.seconds >= time && window.__walkProgress?.state === 'walking';
         }, time, { timeout: 35_000 });
-        await screenshot(name, time);
+        await screenshot(walkFrame(look, name), time);
       }
       await page.waitForFunction(() => window.__walkProgress?.id === 'snow-roof' && window.__walkProgress.state === 'done');
       result.walkMs = performance.now() - walkStarted;
@@ -418,8 +463,7 @@ try {
   browser = await chromium.launch({ channel: 'chrome',
     args: ['--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist'] });
   report.browser = browser.version();
-  await captureContext(browser, { hour: 13, look: 'day', walk: true });
-  await captureContext(browser, { hour: 22, look: 'night', walk: false });
+  for (const review of contexts) await captureContext(browser, review);
   assert.deepEqual(report.captures.map(frame => frame.name), expectedFrames);
   assert.deepEqual(report.readinessMisses, [], 'Step inside must become enabled within five seconds.');
   assert.notEqual(report.contexts[0].candle.id, report.contexts[1].candle.id, 'Use two actual independent lamps.');
@@ -441,6 +485,6 @@ try {
     process.exitCode = 1;
   }
   await save();
-  console.log('SNOW_P1_RESULT', JSON.stringify({ report: reportPath, frames: report.captures.length, sourceRev: report.sourceRev,
+  console.log(`SNOW_${milestone}_RESULT`, JSON.stringify({ report: reportPath, frames: report.captures.length, sourceRev: report.sourceRev,
     manifestSha256: expectedSha, errors: report.errors.length, httpErrors: report.httpErrors.length, sourceReloads: report.viteUpdates.length }));
 }

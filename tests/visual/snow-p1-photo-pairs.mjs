@@ -6,16 +6,19 @@ import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const usage = 'Usage: node tests/visual/snow-p1-photo-pairs.mjs CAPTURE_REPORT REFERENCE_DIR NEW_OUTPUT_DIR';
+const usage = 'Usage: node tests/visual/snow-p1-photo-pairs.mjs [--p2] CAPTURE_REPORT REFERENCE_DIR NEW_OUTPUT_DIR';
 const args = process.argv.slice(2);
 if (args.length === 1 && args[0] === '--help') {
   console.log(usage);
   process.exit(0);
 }
+const p2 = args[0] === '--p2';
+const milestone = p2 ? 'P2' : 'P1';
+if (p2) args.shift();
 assert.equal(args.length, 3, usage);
 const [captureReport, referenceDir, output] = args.map(path => resolve(path));
 
-const stages = {
+const p1Stages = {
   'snow-road-06s': { reference: '01-snow-road', hour: 13, seconds: 6 },
   'gate-lights-17s': { reference: '02-distant-gate-lamps', hour: 13, seconds: 17 },
   'gate-shadow-24s': { reference: '03-gate-threshold', hour: 13, seconds: 24 },
@@ -23,10 +26,25 @@ const stages = {
   'day-burning': { reference: '05-burning-day', hour: 13, seconds: null },
   'night-burning': { reference: '06-burning-night', hour: 22, seconds: null },
 };
+const p2Stages = Object.fromEntries([['day', 13], ['night', 22]].flatMap(([look, hour]) => {
+  const route = Object.entries(p1Stages).filter(([, stage]) => stage.seconds !== null);
+  return [
+    [`${look}-entrance`, { reference: '01-snow-road', hour, seconds: null }],
+    ...route.map(([name, stage]) => [`${look}-${name}`, { ...stage, hour }]),
+    [`${look}-burning`, p1Stages[`${look}-burning`]],
+  ];
+}));
+const stages = p2 ? p2Stages : p1Stages;
 const imageSize = [1440, 900];
 const pngSignature = Buffer.from('89504e470d0a1a0a', 'hex');
 const isDigest = value => typeof value === 'string' && /^[a-f0-9]{64}$/.test(value);
 const sha = bytes => createHash('sha256').update(bytes).digest('hex');
+
+function referenceLightingNote(name, hour) {
+  if (hour === 13) return 'The app is set to 13:00. The daytime photograph’s exact hour is unverified.';
+  if (name === 'night-burning') return 'The app is set to 22:00. The photograph is a night lantern reference.';
+  return 'The app is set to 22:00. The daytime photograph is reused for route form, scale and materials.';
+}
 
 async function readRegular(path) {
   assert((await lstat(path)).isFile(), `Expected a regular file: ${path}`);
@@ -42,7 +60,12 @@ function checkPng(bytes, dimensions, path) {
 const reportBytes = await readRegular(captureReport);
 const report = JSON.parse(reportBytes);
 assert.deepEqual([report.viewport?.width, report.viewport?.height], imageSize, 'Expected a 1440 × 900 Snow Roof capture.');
-assert.deepEqual(report.captures?.map(frame => frame.name), Object.keys(stages), 'Expected all six Snow Roof P1 views.');
+if (p2) {
+  assert.equal(report.milestone, 'P2', 'Use a capture produced with --p2.');
+  assert.deepEqual(report.readinessMisses, [], 'The P2 report missed the five-second entry budget.');
+}
+assert.deepEqual(report.captures?.map(frame => frame.name), Object.keys(stages),
+  p2 ? 'Expected both hours for all six Snow Roof P2 views.' : 'Expected all six Snow Roof P1 views.');
 for (const field of ['errors', 'httpErrors', 'viteUpdates']) {
   assert.deepEqual(report[field], [], `The capture report contains ${field}.`);
 }
@@ -97,15 +120,17 @@ const frames = await Promise.all(report.captures.map(async frame => {
     && width <= imageSize[0] && height <= imageSize[1] && width * imageSize[1] === height * imageSize[0],
     `Reference crop must fit both images and match the game aspect ratio: ${name}.`);
   const appCrop = [Math.floor((imageSize[0] - width) / 2), Math.floor((imageSize[1] - height) / 2), width, height];
-  return { frame, capture, photo, pixelSize, photoCrop, appCrop, credit };
+  const referenceNote = p2 ? referenceLightingNote(name, frame.hour) : undefined;
+  return { frame, capture, photo, pixelSize, photoCrop, appCrop, credit, referenceNote };
 }));
 
 await mkdir(output);
 for (const directory of ['full', 'crops', 'pairs']) await mkdir(join(output, directory));
-const scratch = await mkdtemp(join(tmpdir(), 'snow-p1-photo-pairs-'));
+const scratch = await mkdtemp(join(tmpdir(), `snow-${milestone.toLowerCase()}-photo-pairs-`));
 try {
   const tiles = [], pairs = [], views = [];
-  for (const { frame, capture, photo, pixelSize, photoCrop, appCrop, credit } of frames) {
+  const copiedPhotos = new Set();
+  for (const { frame, capture, photo, pixelSize, photoCrop, appCrop, credit, referenceNote } of frames) {
     const { name } = frame;
     const full = `full/${frame.file}`;
     const app = `crops/${name}-app.png`;
@@ -113,14 +138,18 @@ try {
     const pair = `pairs/${name}.png`;
     const photoSource = join(scratch, credit.file);
     await writeFile(join(output, full), capture);
-    await writeFile(photoSource, photo);
+    if (!copiedPhotos.has(credit.file)) {
+      await writeFile(photoSource, photo);
+      copiedPhotos.add(credit.file);
+    }
     tiles.push(
       { source: join(output, full), output: join(output, app), rect: appCrop, sourceSize: imageSize },
       { source: photoSource, output: join(output, reference), rect: photoCrop, sourceSize: pixelSize },
     );
     pairs.push({ left: join(output, reference), right: join(output, app), output: join(output, pair) });
     views.push({ name, hour: frame.hour, targetWalkSeconds: frame.targetWalkSeconds, full, app, reference, pair,
-      captureSha256: frame.sha256, appCrop, photoCrop, photoSize: pixelSize, photo: credit });
+      captureSha256: frame.sha256, appCrop, photoCrop, photoSize: pixelSize, photo: credit,
+      ...(referenceNote ? { referenceNote } : {}) });
   }
   const config = join(scratch, 'pixels.json');
   await writeFile(config, JSON.stringify({ tiles, pairs }));
@@ -141,19 +170,21 @@ try {
   }
 
   const note = [
-    '# Snow Roof Court P1 photo references',
+    `# Snow Roof Court ${milestone} photo references`,
     'Review references only. The photograph is on the left of each sheet. The app crop is on the right.',
     'Both crops retain their native pixel scale. Full app captures are byte-for-byte copies.',
-    ...views.map(({ name, pair, photo }) => [
+    ...views.map(({ name, pair, photo, referenceNote }) => [
       `## ${name}`,
       `[Side-by-side crop](${pair})`,
       `${photo.title} by ${photo.author}. Cropped for framing. [Original](${photo.page}) · [${photo.license}](${photo.licenseUrl})`,
+      ...(referenceNote ? [referenceNote] : []),
       photo.matches,
       photo.gap,
     ].join('\n\n')),
   ].join('\n\n') + '\n';
   await writeFile(join(output, 'references.md'), note);
   await writeFile(join(output, 'comparison.json'), JSON.stringify({
+    ...(p2 ? { milestone } : {}),
     captureReport, captureReportSha256: sha(reportBytes), sourceRev: report.sourceRev, sourceSha256: report.sourceSha256,
     candidateManifestSha256: report.preview.manifestSha256, ordinaryManifestSha256: report.ordinaryManifestSha256,
     errors: report.errors.length, httpErrors: report.httpErrors.length, sourceReloads: report.viteUpdates.length,
@@ -162,7 +193,7 @@ try {
     cropMethod: 'Native 1:1 sRGB pixels. Full app PNGs are unchanged. All crops and pairs are decoded and compared pixel by pixel.',
     views, products,
   }, null, 2) + '\n');
-  console.log('SNOW_P1_PHOTO_PAIRS', JSON.stringify({ comparisons: views.length, products: products.length, output }));
+  console.log(`SNOW_${milestone}_PHOTO_PAIRS`, JSON.stringify({ comparisons: views.length, products: products.length, output }));
 } finally {
   await rm(scratch, { recursive: true, force: true });
 }
