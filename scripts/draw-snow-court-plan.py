@@ -113,8 +113,8 @@ def draw(site):
     text(mx - 94, 180, 'Snow peak beyond the hall', 15, ROUTE, 700)
 
     callouts = (
-        ((-7.1, -7.4), 280, 'Kitchen', 'Hearth, dry fuel and leeward chimney'),
-        ((-7.3, -1.9), 358, 'West room', 'Boarded up for the winter'),
+        ((-7.1, -7.4), 395, 'Kitchen', 'Hearth, dry fuel and leeward chimney'),
+        ((-7.3, -1.9), 471, 'West room', 'Boarded up for the winter'),
         ((2.7, -8.5), 241, 'Main hall', 'Buddha, altar lamp and timber lantern beams'),
         ((7.4, -2.1), 312, 'East rest room', 'Repaired tile and warm paper windows'),
         ((0.0, 1.8), 410, 'Swept path', 'Footprints emerge through fine drifting snow'),
@@ -149,7 +149,8 @@ def draw(site):
     line([(77, 1000), (193, 1000)], INK, 2)
     for px in (77, 135, 193):
         line([(px, 996), (px, 1004)], INK, 1.5)
-    text(75, 1026, '0                   5                  10 m', 15, COLD)
+    for px, label in ((75, '0'), (130, '5'), (180, '10 m')):
+        text(px, 1026, label, 15, COLD)
     art.append('</svg>')
     return '\n'.join(art) + '\n'
 
