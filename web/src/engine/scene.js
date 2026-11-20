@@ -1733,6 +1733,7 @@ function captureLocalEnvironment({context=C,root=context.root,environment=contex
   return{texture:target.texture,dispose,metadata:{position:[...position],size,near,far,format:'linear RGBA16F cube → PMREM',sourceRoot:root.name,excluded:exclude.map(object=>object.name),scope:'One local reflection/indirect approximation from actual lit geometry; no extra light, exposure, gain or SH.'}};
 }
 const placeHelpers = { THREE, V3, V2, M, roofMat, ground, pave, hallB, gateB, compound, rock, trees, peak, ridges, mist, burnerAt, postLanterns, pagoda, stairs, paifang, wallRun, water, archBridge, lotus, box, city, fall, lanterns, put, tower, smokeAt, pavingTex, petalTex, pauseBuild, eave, col, rail, wallWithHoles, cloudSea, footprints, bell, otherLamp, lathe, hexMix, addStump:(x,y,z,scale,yaw)=>addScannedStump(C.G,x,y,z,scale,yaw),
+  visitorCloth: { weave: gauzeTex, normal: gauzeNormal, roughness: gauzeRoughness, mean: visitorFabric.meanLinearLuminance },
   liveFlame,pineFixtureFlame,fixtureSpecular,captureLocalEnvironment,loessTex, brickTex, plasterTex, papercutTex, grainTex, latticeTex, sootTex, windowsTex, get renderer() { return renderer; }, get context() { return C; } };
 const cachedPlaces = new Map();
 const sharedTextures = new Set([needleTex, leafTex, pavingTex, grainTex, tileTex, waterTex, latticeTex, softTex, petalTex, windowsTex, patina, crackleTex, holesTex, gauzeTex,gauzeNormal,gauzeRoughness, paperLatticeTex, loessTex, brickTex, plasterTex, papercutTex, sootTex]);

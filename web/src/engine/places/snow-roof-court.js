@@ -12,7 +12,7 @@ const agedGauzeOpacity = new Map([
   ['Thin gauze over low flame', .93],
 ]);
 
-function tuneEarlierGauze(material, opacity, sources, THREE, preExposure) {
+function tuneEarlierGauze(material, opacity, sources, THREE, preExposure, fabric) {
   // The open sleeve retains its back-facing cloth at slits and torn lips.
   // A single draw keeps both sides in one pass as the hall comes into view.
   material.transparent = true;
@@ -20,13 +20,16 @@ function tuneEarlierGauze(material, opacity, sources, THREE, preExposure) {
   material.side = THREE.DoubleSide;
   material.forceSinglePass = true;
   material.opacity = opacity;
-  material.normalScale.setScalar(.63);
+  material.map = fabric.weave;
+  material.normalMap = fabric.normal;
+  material.normalScale.setScalar(.47);
+  material.roughnessMap = fabric.roughness;
   material.envMapIntensity = .07;
-  if (material.name !== 'Thin gauze over low flame') return;
 
   // Scatter the light of the two small old wicks across their own cloth.
   // The baked maps already carry the spill on the surrounding timber.
-  material.emissiveIntensity *= .16;
+  const lit = material.name === 'Thin gauze over low flame';
+  if (lit) material.emissiveIntensity *= .16;
   const compile = material.onBeforeCompile.bind(material);
   const key = material.customProgramCacheKey.bind(material);
   const wicks = sources.map(source => new THREE.Vector3(...source.wickTip));
@@ -34,6 +37,14 @@ function tuneEarlierGauze(material, opacity, sources, THREE, preExposure) {
     .multiplyScalar(source.watts * preExposure / (4 * Math.PI)));
   material.onBeforeCompile = (shader, renderer) => {
     compile(shader, renderer);
+    shader.uniforms.uOldWeaveMean = { value: fabric.mean };
+    shader.fragmentShader = 'uniform float uOldWeaveMean;\n' + shader.fragmentShader
+      .replace('#include <map_fragment>', `
+        vec3 weave = texture2D(map,vMapUv).rgb;
+        float thread = dot(weave, vec3(.2126,.7152,.0722)) / uOldWeaveMean;
+        diffuseColor.rgb *= clamp(1. + (thread - 1.) * 1.12, .62, 1.26);
+      `);
+    if (!lit) return;
     shader.uniforms.uEarlierWick = { value: wicks };
     shader.uniforms.uEarlierCandela = { value: candela };
     shader.fragmentShader = `uniform vec3 uEarlierWick[2], uEarlierCandela[2];\n` + shader.fragmentShader
@@ -47,7 +58,7 @@ function tuneEarlierGauze(material, opacity, sources, THREE, preExposure) {
             * thinCloth / (3.141593 * max(distance2, .004));
         }`);
   };
-  material.customProgramCacheKey = () => key() + '-snow-hall-gauze';
+  material.customProgramCacheKey = () => key() + (lit ? '-snow-hall-wick-fabric' : '-snow-hall-aged-fabric');
 }
 
 function tuneSweptSnow(material, THREE, lightDirection, lightStrength) {
@@ -148,7 +159,7 @@ export default function createWinterCourt(h) {
         }
       });
       for (const [material, opacity] of earlierCloth) {
-        tuneEarlierGauze(material, opacity, earlierWicks, THREE, baked.cameraPreExposure);
+        tuneEarlierGauze(material, opacity, earlierWicks, THREE, baked.cameraPreExposure, h.visitorCloth);
       }
       if (sweptSnow.size) {
         const sunlight = V3(...projection.light.day.directionEngine);
