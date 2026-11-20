@@ -1,5 +1,17 @@
 # Snow Roof Court seated stone figure
 
+## Current figure source
+
+Printables creator Arkam published *Buddha Statue High Detail*, model 1723172, under [CC0 1.0 Universal](https://creativecommons.org/publicdomain/zero/1.0/). The [creator's file page](https://www.printables.com/model/1723172-buddha-statue-high-detail/files) lists one original design file, `Buddha.stl` (file 7192004). The statue is seated, with the right hand lowering to the right knee and the left palm resting upward in the lap. No museum, temple or inscription is attributed to the source.
+
+The original file was downloaded through the published Printables model endpoint on 2026-11-21 at 06:49 Singapore time (2026-11-20 at 22:49 UTC). The [official file](https://files.printables.com/media/prints/08faf6b3-260d-459a-9c45-768f3aa3f8e8/stls/12926201_f2b83f4b-44a4-4f5d-a92f-11de2864d97f_193e9a8f-a2c6-4515-ac1e-3374d7b39aa2/buddha.stl) contains 1,342,854 triangles and 67,142,784 bytes. Its SHA-256 is `158db055e9567f118d4aaa548766684a72906c4163155ae516ffd974516cf892`.
+
+The fit recipe in `art/blender/prepare_snow_court_statue.py` keeps the original pose, prioritises the face and fingers during reduction, and closes the seated bearing. The 184 mm stone seat sets the assembled height to 1.871 m. The figure and seat use the ungrouted parts of Amal Kumar's existing [CC0 Stone Pavers scan](https://polyhaven.com/a/stone_pavers) for albedo, roughness and normal. Source vertex colour applies faint mineral pigment and lamp soot and slightly lightens rubbed ridges. Material and baked-irradiance UVs are separate.
+
+The fitted archive `art/assets/snow-court/seated-earth-touching.npz` is 640,301 bytes. SHA-256 `a3bea13f3d52cee67e272ae71812162502659813b2e31f6c5513ee8493e9a3b3` identifies 18,656 triangles and 9,326 vertices. The width keeps the source scale relative to height. To fit the old altar, depth is 76.12% of the height-scaled source. The underside is closed by a planar 0.564 m² bearing, whose perimeter stays at least 44 mm inside the seat rim. The lower surface is 79 mm above the tip of the fixed altar wick. These are source-space measurements. The delivery atlas and rendered close view require independent checks.
+
+## Earlier source archive
+
 Printables creator dohnni published the 3D scan of an anonymous seated Buddha statuette as `Sitting Buddha statue` (model 720673) under [CC0 1.0 Universal](https://creativecommons.org/publicdomain/zero/1.0/). The listing describes a statuette that the creator found. The listing image and STL show an ordinary seated figure with both hands joined in front. [Creator's original model and listing image](https://www.printables.com/model/720673-sitting-buddha-statue) · [Creator's files](https://www.printables.com/model/720673-sitting-buddha-statue/files).
 
 The original `Sitting_Buddha.stl` (file 3061998) was downloaded from Printables. The file is 8,042,184 bytes with SHA-256 `c9e5d5029478c231fbe605be33ad4ddc7b8f3f733d62de1677bbfcd5c8a3dea0`. The source scan supplies the statue's anatomy, including the face, both hands and the draped robe. The local derivative trims the uneven underside for a flat stone bearing, reduces the mesh with extra weight on the face, and fits the existing altar. Separate lightmap charts are derived from a smoothed copy for UV continuity. The delivered mesh retains the scan's relief.
@@ -10,7 +22,7 @@ Fourteen landmarks register the listing image to the unchanged fitted surface. A
 
 The archival fitted scan measures 1.871 m high, 1.265 m wide and 0.800 m deep. The 17,970 triangles form a flat bearing face of 0.259 m². The source check found 67.0 mm to the altar edge and 25.7 mm to the oil lamp. The 20 statue charts packed with eight existing altar fixture charts on a single 512 × 512 atlas. All 18,483 region triangles retained nonzero UV area, with zero measured pair overlap. The source archive `art/assets/snow-court/seated-stone-scan.npz` is 406,015 bytes with SHA-256 `993a67f303ced95b65378e7ac1c50a4f865b40134cf4689437add82d24b7c966`.
 
-## Snow Court carved finish
+## Earlier scan and carved finish
 
 The scene adds an original tool pass along the scan's shallow closed lids, nose, lips and joined hands. The paths follow landmarks on the fitted scan and the creator's accompanying CC0 image. They displace the front surface by millimetres and leave the scan's connectivity and lightmap chart coordinates intact. Darker stone in the hollows, softly rubbed ridges, faint mineral-red residue in a sheltered robe fold and a soot trace near the oil cup are authored vertex colour. The texture archive remains the credited scan derivative.
 
