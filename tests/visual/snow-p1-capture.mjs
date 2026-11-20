@@ -16,7 +16,7 @@ import { instrumentPineScene } from './pine-gate-scene-audit.mjs';
 import { createSnowCourtCameraFrames } from './snow-court-camera-frames.mjs';
 import { createSnowCourtDrawLuminance } from './snow-court-draw-luminance.mjs';
 import { installSnowCourtLanternAudit, validateSnowCourtLanternAudit } from './snow-court-lantern-framing.mjs';
-import { installSnowCourtJourneyAudit, snowCourtJourneySummary, snowCourtNightBurnLuminance,
+import { installSnowCourtJourneyAudit, snowCourtBurnCompositionSummary, snowCourtJourneySummary,
   snowCourtPresentedLuminance } from './snow-court-journey-audit.mjs';
 
 const placeId = 'snow-roof';
@@ -225,7 +225,7 @@ function instrument(source) {
     transformed = transformed.replace(render, match => `${match}
       if (place?.id === 'snow-roof') {
         window.__sampleSnowCourtJourneyAudit?.(THREE, renderer, camera, place.baked, mine, phase,
-          window.__walkProgress?.state, window.__visualIgnition?.state);
+          window.__walkProgress?.state, window.__pineCaptureWalkClock, window.__visualIgnition?.state);
         if (snowWalkCapture && window.__pineCaptureWalkClock?.seconds >= snowWalkCapture.time) {
           const { time, resolve, reject } = snowWalkCapture;
           snowWalkCapture = null;
@@ -247,6 +247,7 @@ function instrument(source) {
           }
         }
         window.__sampleSnowLanternAudit?.(THREE, camera, mine, place.baked, window.__visualIgnition?.state);
+        window.__sampleSnowCourtBurnComposition?.(THREE, camera, mine);
       }`);
   }
   const frame = /^([ \t]*)function frame\(stamp\s*=\s*performance\.now\(\)\)\s*\{/gm;
@@ -593,9 +594,12 @@ async function captureContext(browser, { hour, look, walk }) {
       await page.waitForFunction(() => window.__snowLanternAudit?.completed);
       const audit = await page.evaluate(() => window.__snowLanternAudit);
       const summary = validateSnowCourtLanternAudit(audit, viewport.width, viewport.height);
+      const burnComposition = snowCourtBurnCompositionSummary(audit);
       const file = `${look}-lantern-framing.json`;
-      await writeFile(join(output, file), JSON.stringify({ viewport, summary, ...audit }, null, 2) + '\n');
+      await writeFile(join(output, file), JSON.stringify({ viewport, summary, burnComposition, ...audit }, null, 2) + '\n');
       result.lanternAudit = { file, ...summary };
+      result.burnComposition = { file, ...burnComposition, failures: burnComposition.failures.length };
+      console.log('SNOW_COURT_BURN_COMPOSITION', size, look, JSON.stringify(result.burnComposition));
       console.log('SNOW_COURT_LANTERN', size, look, JSON.stringify({ ...summary, failures: summary.failures.length }));
       assert.equal(summary.failures.length, 0, 'Snow Roof lantern framing failed; see ' + file);
     }
@@ -633,11 +637,8 @@ try {
   for (const review of contexts) await captureContext(browser, review);
   if (auditCamera) {
     assert.equal(journeyAudits.length, 2, 'Both Snow Court light looks must be recorded.');
-    const night = journeyAudits.find(({ result }) => result.hour === 22);
-    const baseline = snowCourtNightBurnLuminance(night.geometry.frames, night.geometry.settledAt);
-    const presentedBaseline = snowCourtNightBurnLuminance(night.presented, night.geometry.settledAt);
     for (const { result, geometry, presented } of journeyAudits) {
-      const { presented: measured, ...summary } = snowCourtJourneySummary(geometry, presented, baseline, presentedBaseline);
+      const { presented: measured, ...summary } = snowCourtJourneySummary(geometry, presented, site.walkSeconds);
       const file = `${result.look}-journey-audit.json`;
       await writeFile(join(output, file), JSON.stringify({ viewport, summary, ...geometry, presented: measured }, null, 2) + '\n', { flag: 'wx' });
       const { unobservedDrawRanges, presentedWarnings, ...headline } = summary;
@@ -645,8 +646,11 @@ try {
         unobservedDrawRanges: unobservedDrawRanges.length, presentedWarnings: presentedWarnings.length, failures: summary.failures.length };
       console.log('SNOW_COURT_JOURNEY', size, result.look, JSON.stringify(result.journeyAudit));
     }
-    assert(report.contexts.every(row => row.journeyAudit?.failures === 0),
-      'Snow Court journey visibility audit failed; see day-journey-audit.json and night-journey-audit.json.');
+    const failedChecks = report.contexts.flatMap(row => [
+      ...(row.journeyAudit?.failures ? [row.journeyAudit.file] : []),
+      ...(row.burnComposition?.failures ? [row.burnComposition.file] : []),
+    ]);
+    assert.deepEqual(failedChecks, [], 'Snow Court journey visibility or burn composition failed.');
   }
   assert.deepEqual(report.captures.map(frame => frame.name), expectedFrames);
   assert.deepEqual(report.readinessMisses, [], 'Step inside must become enabled within five seconds.');

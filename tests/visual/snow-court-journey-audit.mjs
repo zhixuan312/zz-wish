@@ -2,7 +2,9 @@ import assert from 'node:assert/strict';
 
 const maximumBlockedPoints = 3;
 const maximumEntryYaw = 120;
-const minimumNightBurnFraction = .5;
+const minimumWalkFraction = .5;
+const burnDistanceMetres = [1, 1.4];
+const burnShadeHeightFraction = [.25, .35];
 const maximumUnobservedDrawSeconds = .15;
 
 // Installed only by the visual capture. Record pose immediately after the
@@ -10,9 +12,10 @@ const maximumUnobservedDrawSeconds = .15;
 export function installSnowCourtJourneyAudit() {
   let recording;
   window.__startSnowCourtJourneyAudit = () => { recording = { frames: [], visitorGeometry: [] }; };
-  window.__sampleSnowCourtJourneyAudit = (THREE, renderer, camera, baked, lamp, phase, walk, ignition) => {
+  window.__sampleSnowCourtJourneyAudit = (THREE, renderer, camera, baked, lamp, phase, walk, walkClock, ignition) => {
     if (!recording || !baked || !walk || recording.complete || recording.luminanceError) return;
-    if (phase !== 'travel' && !recording.frames.length) return;
+    const walkSeconds = walkClock?.id === 'snow-roof' ? walkClock.seconds : undefined;
+    if (!recording.frames.length && (phase !== 'travel' || !Number.isFinite(walkSeconds))) return;
     recording.THREE = THREE;
     recording.baked = baked;
     const timestamp = (performance.timeOrigin + performance.now()) / 1000;
@@ -25,7 +28,7 @@ export function installSnowCourtJourneyAudit() {
       visitor = { index, matrix: cloth.matrixWorld.toArray() };
     }
     const frame = {
-      timestamp, phase, walk, ignition: ignition ?? null,
+      timestamp, phase, walk, walkSeconds, ignition: ignition ?? null,
       position: camera.position.toArray(), rotation: camera.quaternion.toArray(),
       inverseProjection: camera.projectionMatrixInverse.toArray(), near: camera.near,
       direction: camera.getWorldDirection(new THREE.Vector3()).toArray(), visitor,
@@ -204,6 +207,33 @@ export function installSnowCourtJourneyAudit() {
       rayScope: 'Visible baked model and separately loaded crowns, plus each draw’s visitor cloth transform. Counts opaque triangles and old/new cloth with material opacity at least 0.70, respecting near clipping and sidedness.',
       entryStart: mark('snow-p1:entry-start'), entryEnd: mark('snow-p1:entry-end') };
   };
+
+  // Append the actual shade only to the existing settled projection trace.
+  // The cloth range excludes the cord, hoops, tassel, flame, and UI.
+  window.__sampleSnowCourtBurnComposition = (THREE, camera, lamp) => {
+    const frame = window.__snowLanternAudit?.frames.at(-1);
+    if (frame?.screen !== 'burning' || frame.ignition !== 'settled' || frame.burnComposition || !frame.visible) return;
+    const cloth = lamp.parts.g.children.find(mesh => mesh.visible && mesh.userData.visitorCloth);
+    if (!cloth) return;
+    const vertices = cloth.geometry.attributes.position;
+    const localToClip = new THREE.Matrix4().multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse)
+      .multiply(cloth.matrixWorld);
+    const bounds = new THREE.Box3();
+    const local = new THREE.Vector3(), world = new THREE.Vector3(), ndc = new THREE.Vector3();
+    let lowest = Infinity, highest = -Infinity;
+    for (let i = 0; i < vertices.count; i++) {
+      local.fromBufferAttribute(vertices, i);
+      bounds.expandByPoint(world.copy(local).applyMatrix4(cloth.matrixWorld));
+      const projectedY = ndc.copy(local).applyMatrix4(localToClip).y;
+      lowest = Math.min(lowest, projectedY);
+      highest = Math.max(highest, projectedY);
+    }
+    const centre = bounds.getCenter(world);
+    frame.burnComposition = {
+      vertices: vertices.count, centre: centre.toArray(), distanceMetres: camera.position.distanceTo(centre),
+      heightFraction: (highest - lowest) / 2,
+    };
+  };
 }
 
 // Decode the actual Chromium compositor JPEGs after recording. This reads
@@ -229,20 +259,28 @@ export async function snowCourtPresentedLuminance(encodedFrames) {
   return measured;
 }
 
-export function snowCourtJourneySummary(geometry, presented, referenceLuminance, presentedReferenceLuminance) {
+export function snowCourtJourneySummary(geometry, presented, durationSeconds) {
   const { frames, settledAt, entryStart, entryEnd } = geometry;
   assert(frames.length > 120 && frames[0].phase === 'travel' && frames.at(-1).ignition === 'settled',
     'The Snow Court geometry trace must cover the live walk through settled burning.');
   assert(Number.isFinite(entryStart) && Number.isFinite(entryEnd) && entryStart < entryEnd,
     'The Snow Court journey trace lacks actual entry boundaries.');
-  assert(Number.isFinite(referenceLuminance) && referenceLuminance > 0,
-    'The Snow Court audit needs a measured 22:00 settled burn luminance reference.');
-  assert(Number.isFinite(presentedReferenceLuminance) && presentedReferenceLuminance > 0,
-    'The Snow Court report needs a measured composited 22:00 settled burn reference.');
+  // The authored walk clock starts only when the route tween draws. Keep
+  // its held reveal, and stop before the separate hall-entry movement.
+  const walk = frames.filter(frame => frame.phase === 'travel' && frame.walk === 'walking'
+    && frame.timestamp < entryStart && frame.walkSeconds >= 0 && frame.walkSeconds <= durationSeconds);
+  assert(walk.length > 120 && walk[0].walkSeconds < .5 && walk.at(-1).walkSeconds >= durationSeconds - .01,
+    'Expected a continuous draw trace for the complete authored Snow Court walk.');
+  assert(walk.every(frame => Number.isFinite(frame.luminance)), 'The walk baseline requires every rendered draw.');
+  const referenceLuminance = walk.reduce((total, frame) => total + frame.luminance, 0) / walk.length;
+  assert(referenceLuminance > 0, 'Expected a visible authored walk luminance baseline.');
+  const presentedWalk = presented.filter(frame => frame.timestamp >= walk[0].timestamp && frame.timestamp < entryStart);
+  assert(presentedWalk.length >= 3, 'Expected the authored walk in the independent compositor trace.');
+  const presentedReferenceLuminance = presentedWalk.reduce((total, frame) => total + frame.luminance, 0) / presentedWalk.length;
   assert(presented.length > 100 && presented.some(frame => frame.timestamp >= settledAt),
     'The Snow Court compositor trace must continue through settled burning.');
-  const floor = referenceLuminance * minimumNightBurnFraction;
-  const presentedFloor = presentedReferenceLuminance * minimumNightBurnFraction;
+  const floor = referenceLuminance * minimumWalkFraction;
+  const presentedFloor = presentedReferenceLuminance * minimumWalkFraction;
   const failures = [], presentedWarnings = [];
   for (const [index, frame] of frames.entries()) {
     if (frame.blockedPoints > maximumBlockedPoints) {
@@ -305,9 +343,13 @@ export function snowCourtJourneySummary(geometry, presented, referenceLuminance,
     unobservedDrawRanges.push(range);
     if (range.seconds > maximumUnobservedDrawSeconds) presentedWarnings.push({ kind: 'compositorCaptureGap', ...range });
   }
-  return { limits: { maximumBlockedPoints, maximumEntryYaw, minimumNightBurnFraction,
+  return { limits: { maximumBlockedPoints, maximumEntryYaw, minimumWalkFraction,
     minimumLuminance: floor, compositorMinimumLuminance: presentedFloor, maximumUnobservedDrawSeconds },
-    referenceLuminance, presentedReferenceLuminance, entryYaw, entryYawTrace, geometryFrameCount: frames.length,
+    referenceLuminance, presentedReferenceLuminance,
+    walkBaseline: { method: 'Arithmetic mean of this context’s actual pre-UI draws from the start of the authored walk through its held reveal, before hall entry.',
+      drawCount: walk.length, firstWalkSeconds: walk[0].walkSeconds, lastWalkSeconds: walk.at(-1).walkSeconds,
+      firstTimestamp: walk[0].timestamp, lastTimestamp: walk.at(-1).timestamp, compositorFrameCount: presentedWalk.length },
+    entryYaw, entryYawTrace, geometryFrameCount: frames.length,
     drawLuminanceFrameCount: frames.filter(frame => Number.isFinite(frame.luminance)).length,
     minimumDrawLuminance: Math.min(...frames.map(frame => frame.luminance ?? Infinity)),
     maximumBlockedPoints: Math.max(...frames.map(frame => frame.blockedPoints)),
@@ -320,9 +362,33 @@ export function snowCourtJourneySummary(geometry, presented, referenceLuminance,
     failures, presentedWarnings, presented: observed };
 }
 
-export function snowCourtNightBurnLuminance(presented, settledAt) {
-  const values = presented.filter(frame => frame.timestamp >= settledAt).map(frame => frame.luminance).sort((a, b) => a - b);
-  assert(values.length >= 3, 'Expected three compositor frames of the live 22:00 settled burn.');
-  const middle = values.length >> 1;
-  return values.length % 2 ? values[middle] : (values[middle - 1] + values[middle]) / 2;
+export function snowCourtBurnCompositionSummary(audit) {
+  const failures = [];
+  let settledFrames = 0;
+  const distances = [], shadeHeights = [];
+  for (const [index, frame] of audit.frames.entries()) {
+    if (frame.screen !== 'burning' || frame.ignition !== 'settled') continue;
+    settledFrames++;
+    const { distanceMetres, heightFraction, vertices } = frame.burnComposition ?? {};
+    if (!vertices || !Number.isFinite(distanceMetres) || !Number.isFinite(heightFraction)) {
+      failures.push({ index, kind: 'missingBurnShade' });
+      continue;
+    }
+    distances.push(distanceMetres);
+    shadeHeights.push(heightFraction);
+    if (distanceMetres < burnDistanceMetres[0] || distanceMetres > burnDistanceMetres[1]) {
+      failures.push({ index, kind: 'burnDistance', distanceMetres });
+    }
+    if (heightFraction < burnShadeHeightFraction[0] || heightFraction > burnShadeHeightFraction[1]) {
+      failures.push({ index, kind: 'burnShadeHeight', heightFraction });
+    }
+  }
+  assert(settledFrames > 0, 'Expected the settled Snow Court burn in the lantern trace.');
+  const range = values => values.length ? [Math.min(...values), Math.max(...values)] : null;
+  return {
+    method: 'Every settled draw of the one-hour Red gauze preset. Distance is from the camera to the world bounds centre of the visible cloth mesh. Height is the actual cloth vertex projection range divided by full frame height.',
+    limits: { distanceMetres: burnDistanceMetres, heightFraction: burnShadeHeightFraction },
+    settledFrames, measuredFrames: distances.length, distanceMetres: range(distances), heightFraction: range(shadeHeights),
+    failures,
+  };
 }
