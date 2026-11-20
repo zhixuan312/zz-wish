@@ -25,7 +25,7 @@ export function tieVisitorWishTag(THREE, parts, grain) {
   tag.userData.visitorWishTag = true;
   parts.g.add(tag);
 
-  const halfWidth = .027, height = .112;
+  const halfWidth = .027, height = .100;
   const shape = new THREE.Shape();
   shape.moveTo(-halfWidth, -.011);
   shape.lineTo(-halfWidth + .009, 0);
@@ -46,7 +46,7 @@ export function tieVisitorWishTag(THREE, parts, grain) {
   }), wood);
   const vertices = board.geometry.getAttribute('position'), uv = board.geometry.getAttribute('uv');
   for (let i = 0; i < uv.count; i++) uv.setXY(i, .5 + vertices.getX(i) / .10, .93 + vertices.getY(i) / .13);
-  board.position.set(.002, -.036, -.004);
+  board.position.set(.002, -.029, -.004);
   board.rotation.set(.065, .16, -.13);
   board.updateMatrix();
   board.castShadow = board.receiveShadow = true;
@@ -57,9 +57,9 @@ export function tieVisitorWishTag(THREE, parts, grain) {
   const through = new THREE.Vector3(0, -.015, .0023).applyMatrix4(board.matrix);
   const path = new THREE.CatmullRomCurve3([
     new THREE.Vector3(-.004, .001, .003),
-    new THREE.Vector3(-.003, -.030, -.006), through.clone().add(new THREE.Vector3(0, 0, -.004)),
+    new THREE.Vector3(-.003, -.024, -.006), through.clone().add(new THREE.Vector3(0, 0, -.004)),
     through.clone().add(new THREE.Vector3(0, 0, .004)),
-    new THREE.Vector3(.004, -.029, .006), new THREE.Vector3(.004, .001, .003),
+    new THREE.Vector3(.004, -.023, .006), new THREE.Vector3(.004, .001, .003),
   ]);
   const twine = new THREE.Mesh(new THREE.TubeGeometry(path, 20, .0011, 5), cord);
   twine.receiveShadow = true;
