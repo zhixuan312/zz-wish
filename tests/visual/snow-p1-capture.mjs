@@ -254,7 +254,7 @@ function instrument(source) {
           }
         }
         window.__sampleSnowLanternAudit?.(THREE, camera, mine, place.baked, window.__visualIgnition?.state, stamp);
-        window.__sampleSnowCourtBurnComposition?.(THREE, camera, mine);
+        window.__sampleSnowCourtBurnComposition?.(THREE, camera, mine, place.baked);
       }`);
   }
   const frame = /^([ \t]*)function frame\(stamp\s*=\s*performance\.now\(\)\)\s*\{/gm;

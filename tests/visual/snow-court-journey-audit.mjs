@@ -9,12 +9,17 @@ const minimumVisibleLanternRays = 2;
 const minimumWalkFraction = .5;
 const burnDistanceMetres = [1, 1.4];
 const burnShadeHeightFraction = [.25, .35];
+const maximumEarlierShadeHeightRatio = .70;
 const maximumUnobservedDrawSeconds = .15;
 
 // Installed only by the visual capture. Record pose immediately after the
 // real draw and defer the geometry work until after the live walk.
 export function installSnowCourtJourneyAudit() {
   let recording;
+  let earlierBurnCloth;
+  const earlierCloth = /^(Sun-faded rose-red gauze|Faded dusty rose gauze|Faded iron-red gauze|Thin gauze over low flame)$/;
+  const rowSlots = [-3, -2, -1, 1, 2, 3];
+  const rowSlot = (x, centre) => Math.round((x - centre) / .34);
   window.__startSnowCourtJourneyAudit = () => { recording = { frames: [], visitorGeometry: [] }; };
   window.__sampleSnowCourtJourneyAudit = (THREE, renderer, camera, baked, lamp, phase, walk, walkClock, ignition, renderTimeMs) => {
     if (!recording || !baked || !walk || recording.complete || recording.luminanceError) return;
@@ -77,11 +82,10 @@ export function installSnowCourtJourneyAudit() {
     const pathBounds = new THREE.Box3().setFromPoints(frames.map(frame => new THREE.Vector3(...frame.position)))
       .expandByScalar(rayDistance);
     const minimumClothOpacity = .70;
-    const earlierCloth = /^(Sun-faded rose-red gauze|Faded dusty rose gauze|Faded iron-red gauze|Thin gauze over low flame)$/;
     // The delivered GLB can batch multiple old shades into one material. Count
     // actual cloth at the six authored 0.34 m positions beside the free cord.
     const rowCentre = baked.manifest.lampBasis.position[0];
-    const earlierVertices = new Map([-3, -2, -1, 1, 2, 3].map(slot => [slot, new Map()]));
+    const earlierVertices = new Map(rowSlots.map(slot => [slot, new Map()]));
     const vertices = [new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()];
     const bounds = new THREE.Box3();
     // Needles are shipped as another GLB next to the baked model. Recognize
@@ -121,7 +125,7 @@ export function installSnowCourtJourneyAudit() {
           let earlierSlot;
           if (earlier) {
             const x = worldVertices.reduce((sum, vertex) => sum + vertex.x, 0) / 3;
-            earlierSlot = Math.round((x - rowCentre) / .34);
+            earlierSlot = rowSlot(x, rowCentre);
             const mounted = earlierVertices.get(earlierSlot);
             if (!mounted) throw new Error('Earlier Snow Court cloth escaped its side of the free cord.');
             for (const vertex of worldVertices) mounted.set(vertex.toArray().join(','), vertex);
@@ -291,14 +295,14 @@ export function installSnowCourtJourneyAudit() {
 
   // Append the actual shade only to the existing settled projection trace.
   // The cloth range excludes the cord, hoops, tassel, flame, and UI.
-  window.__sampleSnowCourtBurnComposition = (THREE, camera, lamp) => {
+  window.__sampleSnowCourtBurnComposition = (THREE, camera, lamp, baked) => {
     const frame = window.__snowLanternAudit?.frames.at(-1);
     if (frame?.screen !== 'burning' || frame.ignition !== 'settled' || frame.burnComposition || !frame.visible) return;
     const cloth = lamp.parts.g.children.find(mesh => mesh.visible && mesh.userData.visitorCloth);
     if (!cloth) return;
     const vertices = cloth.geometry.attributes.position;
-    const localToClip = new THREE.Matrix4().multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse)
-      .multiply(cloth.matrixWorld);
+    const worldToClip = new THREE.Matrix4().multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
+    const localToClip = worldToClip.clone().multiply(cloth.matrixWorld);
     const bounds = new THREE.Box3();
     const local = new THREE.Vector3(), world = new THREE.Vector3(), ndc = new THREE.Vector3();
     let lowest = Infinity, highest = -Infinity;
@@ -310,9 +314,37 @@ export function installSnowCourtJourneyAudit() {
       highest = Math.max(highest, projectedY);
     }
     const centre = bounds.getCenter(world);
+    if (!earlierBurnCloth) {
+      const rowCentre = baked.manifest.lampBasis.position[0];
+      earlierBurnCloth = new Map(rowSlots.map(slot => [slot, new Map()]));
+      baked.group.traverseVisible(mesh => {
+        if (!mesh.isMesh || ![mesh.material].flat().some(material => earlierCloth.test(material.name))) return;
+        const positions = mesh.geometry.attributes.position;
+        const count = mesh.geometry.index?.count ?? positions.count;
+        for (let i = 0; i < count; i++) {
+          const index = mesh.geometry.index?.getX(i) ?? i;
+          world.fromBufferAttribute(positions, index).applyMatrix4(mesh.matrixWorld);
+          const mounted = earlierBurnCloth.get(rowSlot(world.x, rowCentre));
+          if (!mounted) throw new Error('Earlier Snow Court cloth escaped its side of the free cord.');
+          mounted.set(world.toArray().join(','), world.clone());
+        }
+      });
+    }
+    const heightFraction = (highest - lowest) / 2;
+    const earlier = Array.from(earlierBurnCloth, ([slot, points]) => {
+      let low = Infinity, high = -Infinity, inFront = true;
+      for (const point of points.values()) {
+        inFront &&= local.copy(point).applyMatrix4(camera.matrixWorldInverse).z < -camera.near;
+        const y = ndc.copy(point).applyMatrix4(worldToClip).y;
+        low = Math.min(low, y);
+        high = Math.max(high, y);
+      }
+      const projectedHeight = points.size && inFront ? (high - low) / 2 : null;
+      return { slot, vertices: points.size, heightFraction: projectedHeight };
+    });
     frame.burnComposition = {
       vertices: vertices.count, centre: centre.toArray(), distanceMetres: camera.position.distanceTo(centre),
-      heightFraction: (highest - lowest) / 2,
+      heightFraction, earlier,
     };
   };
 }
@@ -493,10 +525,11 @@ export function snowCourtBurnCompositionSummary(audit) {
   const failures = [];
   let settledFrames = 0;
   const distances = [], shadeHeights = [];
+  const oldShadeRatios = new Map(earlierLanternSlots.map(slot => [slot, []]));
   for (const [index, frame] of audit.frames.entries()) {
     if (frame.screen !== 'burning' || frame.ignition !== 'settled') continue;
     settledFrames++;
-    const { distanceMetres, heightFraction, vertices } = frame.burnComposition ?? {};
+    const { distanceMetres, heightFraction, vertices, earlier } = frame.burnComposition ?? {};
     if (!vertices || !Number.isFinite(distanceMetres) || !Number.isFinite(heightFraction)) {
       failures.push({ index, kind: 'missingBurnShade' });
       continue;
@@ -509,13 +542,26 @@ export function snowCourtBurnCompositionSummary(audit) {
     if (heightFraction < burnShadeHeightFraction[0] || heightFraction > burnShadeHeightFraction[1]) {
       failures.push({ index, kind: 'burnShadeHeight', heightFraction });
     }
+    for (const [slot, ratios] of oldShadeRatios) {
+      const shade = earlier?.find(item => item.slot === slot);
+      if (!shade?.vertices || !Number.isFinite(shade.heightFraction) || shade.heightFraction <= 0) {
+        failures.push({ index, kind: 'missingEarlierBurnShade', slot });
+        continue;
+      }
+      const ratio = shade.heightFraction / heightFraction;
+      ratios.push(ratio);
+      if (ratio > maximumEarlierShadeHeightRatio) {
+        failures.push({ index, kind: 'earlierBurnShadeTooLarge', slot, ratio });
+      }
+    }
   }
   assert(settledFrames > 0, 'Expected the settled Snow Court burn in the lantern trace.');
   const range = values => values.length ? [Math.min(...values), Math.max(...values)] : null;
   return {
-    method: 'Every settled draw of the one-hour Red gauze preset. Distance is from the camera to the world bounds centre of the visible cloth mesh. Height is the actual cloth vertex projection range divided by full frame height.',
-    limits: { distanceMetres: burnDistanceMetres, heightFraction: burnShadeHeightFraction },
+    method: 'Every settled draw of the one-hour Red gauze preset. Distance is from the camera to the world bounds centre of the visitor cloth. Project all actual cloth vertices. Ratios use full, unclipped heights so a partially visible or offscreen old shade cannot pass by cropping.',
+    limits: { distanceMetres: burnDistanceMetres, heightFraction: burnShadeHeightFraction, maximumEarlierShadeHeightRatio },
     settledFrames, measuredFrames: distances.length, distanceMetres: range(distances), heightFraction: range(shadeHeights),
+    earlierShadeHeightRatioBySlot: Object.fromEntries(Array.from(oldShadeRatios, ([slot, ratios]) => [slot, range(ratios)])),
     failures,
   };
 }
