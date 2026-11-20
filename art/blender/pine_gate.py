@@ -148,6 +148,13 @@ def stair_course_height(index):
     return top
 
 
+def west_shoulder_weight(x, z):
+    # Keep this grading outside the path, creek, bridge and spring court.
+    x_fade = max(0., min(1., (-x - 6.45) / 3.75, (x + 25.) / 6.))
+    z_fade = max(0., min(1., (z + 4.) / 8., (26. - z) / 5.7))
+    return x_fade ** 2 * (3. - 2. * x_fade) * z_fade ** 2 * (3. - 2. * z_fade)
+
+
 def terrain_height(x, z):
     rise = min(4, max(0, (46 - z) * .1))
     bank = max(0, min(3., (abs(x) - 2.18) * .27))
@@ -168,6 +175,10 @@ def terrain_height(x, z):
     verge = verge ** 2 * (3 - 2 * verge)
     shoulder = crest_screen * ridge_spur * verge * (1.33 + .15 * math.sin(.71 * z + 1.6 * x))
     height = rise - .10 + bank + fold * min(1., bank) + ridge - valley_floor + shoulder
+    # Two shallow gullies cut across the exposed outer hillside. Continue both
+    # through the existing grid so the entrance sees an eroded woodland profile.
+    scour = .55 + .235 * math.sin(.63 * z + .25 * x) + .105 * math.sin(1.08 * z - .59 * x)
+    height -= west_shoulder_weight(x, z) * scour
     if TERRACE_EDGE <= z <= 6.8 and abs(x) < 5.62:
         # The spring court is level under the slabs and meets the ridge
         # gradually beyond the paved edge.
