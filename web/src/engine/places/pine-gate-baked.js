@@ -171,13 +171,20 @@ export default function createPlace(h) {
           window.__pinePrintBoxes = () => {
             const camera = globalThis.__pineDiagCamera;
             if (!camera) return null;
+            const rendererSize = () => {
+              const target = h.renderer?.getSize?.(new THREE.Vector2());
+              return target && target.x > 0 ? target : { width: innerWidth, height: innerHeight };
+            };
             return mud.group.children.map((mesh, index) => {
               mesh.geometry.computeBoundingBox();
               const box = mesh.geometry.boundingBox.clone().applyMatrix4(mesh.matrixWorld);
               const points = [];
               for (const x of [box.min.x, box.max.x]) for (const y of [box.min.y, box.max.y]) for (const z of [box.min.z, box.max.z]) {
                 const v = new THREE.Vector3(x, y, z).project(camera);
-                points.push([(v.x * .5 + .5) * innerWidth, (-v.y * .5 + .5) * innerHeight]);
+                // Screen pixels of the frame the renderer actually draws, which is not always
+                // innerWidth/innerHeight once a device pixel ratio or a frozen page is involved.
+                const size = rendererSize();
+                points.push([(v.x * .5 + .5) * size.width, (-v.y * .5 + .5) * size.height]);
               }
               const xs = points.map(p => p[0]), ys = points.map(p => p[1]);
               return { index, x: Math.min(...xs), y: Math.min(...ys),
