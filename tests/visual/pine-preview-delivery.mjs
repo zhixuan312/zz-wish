@@ -199,6 +199,9 @@ export async function routePinePreview(page, base, preview, onError, onServed, w
     // The recorded ambience ships as ordinary static files beside the package, not inside it, so the
     // preview route must let those through to the server instead of treating them as undeclared.
     if (key.startsWith('sound/')) { await route.fallback(); return; }
+    // The visitor cloth is a shipped static asset beside the package rather than a package payload,
+    // so it too passes through to the server instead of being read as an undeclared preview file.
+    if (key === 'pine-visitor-cloth.glb') { await route.fallback(); return; }
     const asset = preview.assets.get(key);
     const version = url.searchParams.get('v');
     if (!asset || route.request().method() !== 'GET'
