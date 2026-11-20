@@ -2343,14 +2343,30 @@ export async function travel(id) {
   const lookPts = [P.doors.clone(), ...(N.approach ?? []).map((q) => toWorld(q.clone().add(V3(0, 0, -2)))), end.look];
   const l0 = rig.look.clone(), a0 = rig.amp,f0=rig.fov??camera.fov;
   atLamp = !P.offerAfterTravel; mine.g.visible = atLamp && !!mine.offer;
-  let offerPrograms;
   if (P.offerAfterTravel && place.prepareVisitorEnvironment && mine.offer) {
-    // Linking starts synchronously with the real hall lights and visitor
-    // shadow topology. Restore visibility before the next live frame, then
-    // let the driver finish linking while the visitor is on the road.
-    mine.g.visible = true;
-    try { offerPrograms = compileIntoTarget(outside, camera, composer.readBuffer); }
-    finally { mine.g.visible = false; }
+    const lampView = camera.clone();
+    lampView.position.copy(end.pos);
+    lampView.lookAt(end.look);
+    lampView.fov = end.fov ?? camera.fov;
+    lampView.updateProjectionMatrix();
+    const target = renderer.getRenderTarget(), warm = new THREE.WebGLRenderTarget(4, 4);
+    try {
+      mine.g.visible = true;
+      let linking;
+      try { linking = compileIntoTarget(outside, lampView, warm); }
+      finally { mine.g.visible = false; }
+      await linking;
+      // The first real draw also creates the point-light shadow programs.
+      // Prepare those before the camera starts moving and keep the lamp out
+      // of every presented frame until the empty-cord arrival ends.
+      mine.g.visible = true;
+      renderer.setRenderTarget(warm);
+      renderer.render(outside, lampView);
+    } finally {
+      renderer.setRenderTarget(target);
+      mine.g.visible = false;
+      warm.dispose();
+    }
   }
   const authoredWalk = P.createWalk?.({ pos: rig.pos.clone(), look: l0, fov: f0 }, end, narrow());
   if(import.meta.env.DEV)window.__walkProgress={id,progress:0,state:'walking',position:rig.pos.toArray()};
@@ -2420,7 +2436,6 @@ export async function travel(id) {
     else await tween(5.6, settle, true);
   }
   if(!P.bakedLighting){const c = chooseView(); await moveCam(c.pos, c.look,2.4,c.fov);}
-  if (offerPrograms) await offerPrograms;
   if (P.offerAfterTravel && place?.P === P) {
     atLamp = true;
     mine.g.visible = !!mine.offer;
