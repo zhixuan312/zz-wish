@@ -15,7 +15,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import snow_roof as mesh
 import pine_valley_backdrop as plates
 import snow_court_finish as finish
-from snow_court_statue import build as build_statue
+from snow_court_statue import apply_relief as apply_statue_relief, build as build_statue
 import snow_court_use as everyday
 from resting_contacts import RestingContacts, engine
 from snow_court_approach import build_approach
@@ -51,6 +51,7 @@ def palette(site):
         'rope': mesh.material('Rough suspension cord', '#8a7962', rough=.98),
     }
     mesh.vertex_tint_shader(materials['red'])
+    mesh.vertex_tint_shader(materials['figure'])
     materials['red']['one_light_painted_timber'] = True
     mesh.painted_timber_finish(materials['red'])
     mesh.weather_plaster(materials['plaster'])
@@ -617,10 +618,11 @@ def hall(site, m, contact, fixtures):
     plinth = mesh.box('Low stone altar supports the seated figure', (2.09, .52, .93),
                      (0, y + .260, back + .87), m['granite'], .027)
     with contact.group('Generic seated Buddha and lotus support', [plinth]):
-        build_statue(mesh, (0, y + .52, back + .91), m['figure'])
+        carving = build_statue(mesh, (0, y + .52, back + .91), m['figure'])
     oil_lamp('Altar ordinary oil lamp', (.70, y + .52, back + 1.12), m, contact, plinth, 'hall', fixtures, .68)
     area('Warm reflected light on the seated figure and worn plinth', (1.20, y + .99, back + 2.11),
          (0, y + 1.57, back + .91), 5.4, '#e2c69b', .73)
+    return carving
 
 
 def reference_camera(name, position, look, fov):
@@ -692,7 +694,7 @@ def build(site, projection):
     area('Even snow bounce beneath the west room front eave', (-7.09, court_floor + .32, 3.11),
          (-7.30, court_floor + 1.14, 1.46), 9.1, '#d4dce2', 1.57)
     everyday.broom(mesh, site, court_surface, contact, m)
-    hall(site, m, contact, fixtures)
+    carving = hall(site, m, contact, fixtures)
     author_court_cap_charts(mesh.STATIC.objects)
     basis = [site['visitorCord'][0], 3.54, site['visitorCord'][2]]
     source = mesh.light('Measured visitor wick transport basis', basis, .80, '#ffad68', .027, role='lamp')
@@ -719,6 +721,7 @@ def build(site, projection):
     bpy.context.view_layer.update()
     scene['snow_court_fixtures_engine'] = json.dumps(painted_fixture_data(fixtures, contact))
     mesh.apply_surface_tints()
+    apply_statue_relief(carving)
     scene['source_lightmap_charts'] = json.dumps(mesh.complete_source_charts(list(mesh.STATIC.objects)))
     return contact.audit(fail=True), foliage
 

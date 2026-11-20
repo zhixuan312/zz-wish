@@ -133,9 +133,13 @@ def _sleeve(side):
     return rings
 
 
-def _pedestal(height, angle, width, depth, belly):
+def _petal(angle):
     theta = 12 * angle + .094 * math.sin(2 * angle) + .044 * math.sin(5 * angle)
-    leaf = .016 * belly * ((1 + math.cos(theta)) / 2) ** 2
+    return ((1 + math.cos(theta)) / 2) ** 2
+
+
+def _pedestal(height, angle, width, depth, belly):
+    leaf = .016 * belly * _petal(angle)
     radial = 1 + .0039 * math.sin(7 * angle + height * 31) + .0024 * math.sin(13 * angle - height * 53)
     return ((width * radial + leaf) * math.sin(angle), height,
             (depth * radial + leaf * .64) * math.cos(angle))
@@ -196,6 +200,13 @@ ROBE_FOLDS = (
 )
 
 
+def _fold_lobes(height, x):
+    for level, fall, swing, shift, length, relief, thickness in ROBE_FOLDS:
+        line = level + fall * x + swing * x * x
+        yield (relief, _bell(x - shift, length), _bell(height - line, thickness),
+               _bell(height - line - thickness, thickness * .80))
+
+
 def _robe(height, angle, width, depth, centre):
     sine, cosine = math.sin(angle), math.cos(angle)
     x = width * sine
@@ -208,11 +219,8 @@ def _robe(height, angle, width, depth, centre):
     crossed = .118 * _bell(height - .365 - .112 * x, .068) * _bell(x + .09, .542)
     chest = .035 * _bell(height - 1.234, .123) * _bell(abs(x) - .102, .145)
     folds = 0.
-    for level, fall, swing, shift, length, relief, thickness in ROBE_FOLDS:
-        centre_line = level + fall * x + swing * x * x
-        run = _bell(x - shift, length)
-        folds += relief * run * (_bell(height - centre_line, thickness)
-                                 - .28 * _bell(height - centre_line - thickness, thickness * .80))
+    for relief, run, crest, hollow in _fold_lobes(height, x):
+        folds += relief * run * (crest - .28 * hollow)
     lint = .0015 * math.sin(7 * angle + height * 21) * math.sin(height * 17)
     return (x, height, z + (knees + crossed + chest + folds) * front ** .7 + lint)
 
@@ -236,16 +244,21 @@ HEAD = (
 )
 
 
-def _head(height, angle, width, depth, centre):
-    sine, cosine = math.sin(angle), math.cos(angle)
-    x = width * sine
-    front = max(cosine, 0)
-    z = centre + depth * cosine
+def _eye_relief(x, height):
     eye = .056 + .02 * (height - 1.780)
     eye_height = 1.780 - .19 * (abs(x) - .062)
     eyelid = _bell(height - eye_height, .006) * _bell(abs(x) - eye, .030)
     eye_socket = _bell(height - eye_height + .012, .012) * _bell(abs(x) - eye, .032)
     brow = _bell(height - 1.804 - .016 * _bell(abs(x) - .064, .033), .012) * _bell(abs(x) - eye, .033)
+    return eyelid, eye_socket, brow
+
+
+def _head(height, angle, width, depth, centre):
+    sine, cosine = math.sin(angle), math.cos(angle)
+    x = width * sine
+    front = max(cosine, 0)
+    z = centre + depth * cosine
+    eyelid, eye_socket, brow = _eye_relief(x, height)
     cheek = _bell(height - 1.736, .039) * _bell(abs(x) - .084, .034)
     nose = .022 * _bell(x, .023) * _bell(height - 1.758, .048)
     nose += .038 * _bell(x, .022) * _bell(height - 1.731, .02)
@@ -273,10 +286,63 @@ def _palm(height, angle, width, depth, centre, front, side):
     return (x, height, z)
 
 
+def _front(z, depth, centre):
+    return min(1., max(0., (z - centre) / depth))
+
+
+def _face_cavity(x, height, z):
+    _, depth, centre = _profile(HEAD, height)
+    front = _front(z, depth, centre)
+    _, socket, _ = _eye_relief(x, height)
+    nose_side = _bell(abs(x) - .034, .022) * _bell(height - 1.739, .043)
+    under_nose = _bell(abs(x) - .018, .022) * _bell(height - 1.710, .015)
+    mouth_fold = _bell(x, .045) * _bell(height - 1.682, .012)
+    under_lip = _bell(x, .050) * _bell(height - 1.664, .019)
+    return front ** 1.6 * (.21 * socket + .12 * nose_side + .15 * under_nose
+                           + .16 * mouth_fold + .047 * under_lip)
+
+
+def _robe_cavity(x, height, z):
+    _, depth, centre = _profile(BODY, height)
+    front = _front(z, depth, centre)
+    crease = max(run * max(0., hollow - .46 * crest) * relief / .031
+                 for relief, run, crest, hollow in _fold_lobes(height, x))
+    return .25 * crease * front ** .70
+
+
+def _pedestal_cavity(x, height, z):
+    width, depth, belly = _profile(BASE, height)
+    angle = math.atan2(x / width, z / depth)
+    rim = min(1., math.hypot(x / width, z / depth))
+    recess = .088 * belly * (1. - _petal(angle))
+    recess += .155 * _bell(height - .109, .023) + .055 * _bell(height - .023, .018)
+    return rim * recess
+
+
+def apply_relief(parts):
+    """Replace the stock tint on the three broad carved surfaces."""
+    for obj, at, seat, scale, cavity in parts:
+        layer = obj.data.color_attributes.get('SurfaceTint')
+        if layer is None:
+            raise RuntimeError('Stone relief requires the exported SurfaceTint layer')
+        shades = []
+        for vertex in obj.data.vertices:
+            point = vertex.co
+            x = (point.x - at[0]) / scale
+            y = seat + (point.z - at[1] - seat) / scale
+            z = (-point.y - at[2]) / scale
+            shade = max(.69, 1. - cavity(x, y, z))
+            shades.append((shade, shade, shade, 1.))
+        for loop in obj.data.loops:
+            layer.data[loop.index].color = shades[loop.vertex_index]
+        obj['surface_tint_export'] = 'Preserve neutral carved recess tint as glTF COLOR_0.'
+
+
 def build(mesh, at, material):
     """Carve the upright figure and lowered hands over its bearing plinth."""
-    _finish_shell(mesh, 'Weather-softened stone lotus bearing block', at,
-                  _rings(BASE, .023, 48, _pedestal), material)
+    plinth = _finish_shell(mesh, 'Weather-softened stone lotus bearing block', at,
+                           _rings(BASE, .023, 48, _pedestal), material)
+    parts = [(plinth, at, 0., 1., _pedestal_cavity)]
     # Retain the altar contact and keep the hair crown visible beneath the
     # rear ceiling beam when viewed from the hall entry.
     seat = BASE[-1][0]
@@ -286,16 +352,19 @@ def build(mesh, at, material):
         x, y, z = point
         return (x * scale, seat + (y - seat) * scale, z * scale)
 
-    def figure_shell(name, rings):
-        return _finish_shell(mesh, name, at, [[compact(point) for point in ring] for ring in rings],
-                             material, smooth_caps=True)
+    def figure_shell(name, rings, cavity=None):
+        obj = _finish_shell(mesh, name, at, [[compact(point) for point in ring] for ring in rings],
+                            material, smooth_caps=True)
+        if cavity is not None:
+            parts.append((obj, at, seat, scale, cavity))
+        return obj
 
     def figure_detail(name, points, radii, segments):
         placed = [tuple(a + b for a, b in zip(compact(point), at)) for point in points]
         return mesh.curved_tube(name, placed, [radius * scale for radius in radii], material, segments)
 
-    figure_shell('Continuous carved seated robe and crossing knees', _rings(BODY, .035, 48, _robe))
-    figure_shell('Downcast face and low carved hair crown', _rings(HEAD, .011, 56, _head))
+    figure_shell('Continuous carved seated robe and crossing knees', _rings(BODY, .035, 48, _robe), _robe_cavity)
+    figure_shell('Downcast face and low carved hair crown', _rings(HEAD, .011, 56, _head), _face_cavity)
 
     for side in (-1, 1):
         ears = (
@@ -330,3 +399,4 @@ def build(mesh, at, material):
                  (side * .007, .833, .381))
         figure_detail('Thumb sloping toward the joined meditation gesture', thumb,
                       [.027, .023, .018, .010], 12)
+    return parts
