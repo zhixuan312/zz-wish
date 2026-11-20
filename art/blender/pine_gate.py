@@ -2602,9 +2602,10 @@ def paint_stone():
                     green_mix = max(0., min(.65, (moss_outline + (.1 if obj.get('moss_edge') else -.11)) * .96))
                 if obj.get('shrine_moss_base') is not None:
                     # Moss and lichen climb the foot of the shrine and stop; the stone must still read
-                    # as stone, so the cover stays well under half of the face.
+                    # as stone, so the cover stays well under half of the face. The stored foot is a
+                    # height, so it is compared with the world height, not with the depth axis.
                     foot = obj['shrine_moss_base']
-                    climb = max(0., min(1., 1. - (world.z - foot) / .12))
+                    climb = max(0., min(1., 1. - (world.y - foot) / .12))
                     cover = climb * climb * (3. - 2. * climb)
                     patches = noise.noise(world * 11.3) + .27 * noise.noise(world * 37.)
                     green_mix = max(green_mix, max(0., min(.42, cover * (.28 + .30 * patches))))

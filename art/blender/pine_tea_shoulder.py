@@ -812,8 +812,9 @@ def pierced_lamp_shrine(anchor, stone, ledge, iron, contacts, sculpt_normal):
                                ((.370, .270, .227), (.388, .296, .250), (.407, .308, .263),
                                 (.428, .301, .257), (.495, .251, .066), (.511, .216, .049)), 4.8)
     roof['weather_stone'] = roof['moss_edge'] = True
-    # The roof's upper face holds the same lichen as the foundation, from its own top down.
-    roof['shrine_moss_base'] = anchor[1] + .30
+    # The roof's upper face holds the same lichen as the foundation, from its own top down. The mask
+    # climbs 12 cm above this height, so pass the roof's top minus that band.
+    roof['shrine_moss_base'] = anchor[1] + .495
     mesh.beam('Old iron peg for wishes below the centre seat', locate(-.078, -.081, .208),
               locate(-.078, -.081, .244), .005, iron, .004, 'niche')
     with contacts.group('Spent wax fused to the wick shelf', [shelf]):
