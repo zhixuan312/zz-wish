@@ -76,9 +76,15 @@ def tree_layout(profile, ground_height, index, road_clearance, local_centroid):
             end = add(point, (0., reach * rise, 0.)) if mount_index in (0, 2) else base
             fullness = min(1.34, max(.55, 1.29 - .68 * level + .09 * shelter))
             fullness *= rng.uniform(.90, 1.12)
-            if not road_clearance(end, fullness):
+            dimensions = (fullness, fullness * .86, fullness * 1.06)
+            clearance_size = fullness
+            if index == 8:
+                # Close the open silhouette of the pine just right of the gate.
+                dimensions = (dimensions[0] * 1.15, dimensions[1] * 1.32, dimensions[2] * 1.23)
+                clearance_size = max(dimensions)
+            if not road_clearance(end, clearance_size):
                 continue
-            mounts.append((end, side, (fullness, fullness * .86, fullness * 1.06)))
+            mounts.append((end, side, dimensions))
             if mount_index in (0, 2):
                 # The exposed fork is wood. The short buds beyond it are
                 # part of the instanced needle and snow assembly.
