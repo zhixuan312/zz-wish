@@ -2350,6 +2350,24 @@ export async function travel(id) {
   if (skipNextTravel) skipTweens();
   await walk;
   if(import.meta.env.DEV)window.__walkProgress={id,progress:1,state:'done',position:rig.pos.toArray()};
+  // Hold the open reveal so the site is actually seen before the camera turns to the shrine, then
+  // walk the last stretch at a plain walking pace. The walk itself is timed to the brief; this hold
+  // and the approach sit after it, and the ambience has a few seconds of tail to cover them.
+  await tween(2.0, () => {});
+  if (skipNextTravel) skipTweens();
+  {
+    const from = { pos: rig.pos.clone(), look: rig.look.clone(), fov: rig.fov ?? camera.fov };
+    const to = chooseView();
+    const metres = from.pos.distanceTo(to.pos);
+    // A plain walking pace over the last stretch, never quicker than 1.4 m/s.
+    const seconds = Math.max(1.2, metres / 1.4);
+    await tween(seconds, k => {
+      const e = ease(k);
+      rig.pos.lerpVectors(from.pos, to.pos, e);
+      rig.look.lerpVectors(from.look, to.look, e);
+      rig.fov = THREE.MathUtils.lerp(from.fov, to.fov, e);
+    });
+  }
   if(!P.bakedLighting){const c = chooseView(); await moveCam(c.pos, c.look,2.4,c.fov);}
 }
 export function skip() { skipNextTravel = true; skipTweens(); }
@@ -2431,9 +2449,21 @@ export async function ignite({onCatch, remainingFuel, onTaperLit}={}) {
   if (pine) onTaperLit?.();
   await tween(3.2,k=>{
     if(!active())return;
-    const retreat=ease(Math.min(1,k*3.2/1.0));
-    rig.pos.lerpVectors(cameraStart,spread.pos,retreat);rig.look.lerpVectors(lookStart,spread.look,retreat);
-    rig.fov=THREE.MathUtils.lerp(fovStart,spread.fov,retreat);
+    // Pine Gate must not pull back before it settles. The old retreat threw the camera out to the
+    // wide spread pose within the first second and then crawled back for fifteen, which read as a
+    // cut. The shrine camera instead drifts from the near choose pose towards the burning one, a
+    // short, slow push that keeps the tray in view the whole way.
+    const retreat = pine ? 0 : ease(Math.min(1,k*3.2/1.0));
+    if (pine) {
+      const push = ease(Math.min(1, k / .85));
+      const from = cameraStart, to = burn.pos;
+      rig.pos.lerpVectors(from, to, push);
+      rig.look.lerpVectors(lookStart, burn.look, push);
+      rig.fov = THREE.MathUtils.lerp(fovStart, burn.fov, push);
+    } else {
+      rig.pos.lerpVectors(cameraStart,spread.pos,retreat);rig.look.lerpVectors(lookStart,spread.look,retreat);
+      rig.fov=THREE.MathUtils.lerp(fovStart,spread.fov,retreat);
+    }
     const wick = pine ? wickWorld() : tip;
     const contact = wick.clone().add(contactOffset);
     if (pine) {

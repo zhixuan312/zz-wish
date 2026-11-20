@@ -132,7 +132,11 @@ export default function createPlace(h) {
       // let each print find whichever stone is under it.
       const stone = baked.group;
       {
-        const mud = createMudPrints({ THREE, surface: stone, prints: PINE_PRINTS });
+        // The E2E build can hide the trail to shoot the same pose without it; a normal build never
+        // sets the flag, so the prints are always there.
+        const hidePrints = (import.meta.env.DEV || import.meta.env.VITE_E2E_HOOKS === '1')
+          && globalThis.__DIAG_NO_PRINTS === true;
+        const mud = createMudPrints({ THREE, surface: stone, prints: hidePrints ? [] : PINE_PRINTS });
         if (mud.count) {
           context.G.add(mud.group);
           // Read by the Tier 1 test: the trail must place every print on real paving. The hooks are

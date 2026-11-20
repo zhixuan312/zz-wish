@@ -235,7 +235,7 @@ test('each mud print draws its sole, not the whole quad', async ({ page }) => {
     });
   }, { data: [...frame], spots });
 
-  const inset = 4, outside = 10;
+  const inset = 4;
   let shadedPrints = 0;
   for (const box of boxes!) {
     if (box.x < 12 || box.y < 12) continue;
@@ -246,16 +246,16 @@ test('each mud print draws its sole, not the whole quad', async ({ page }) => {
       [box.x + inset, box.y + box.h - inset],
       [box.x + box.w - inset, box.y + box.h - inset],
     ];
-    // A point beyond the quad, on the same slab: this is the stone the decal must not tint.
-    const stone: [number, number] = [box.x + box.w + outside, box.y + box.h / 2];
-    const [cornerLuma, stoneLuma, centreLuma, bareCentre] = await Promise.all([
-      lumaAt(png, corners), lumaAt(png, [stone]), lumaAt(png, [centre]), lumaAt(bare, [centre]),
+    const [cornerLuma, bareCorners, centreLuma, bareCentre] = await Promise.all([
+      lumaAt(png, corners), lumaAt(bare, corners), lumaAt(png, [centre]), lumaAt(bare, [centre]),
     ]);
-    const cornerAvg = cornerLuma.reduce((a, b) => a + b, 0) / cornerLuma.length;
-    // The quad's corners sit outside the sole's silhouette: they must match the stone beside them.
-    expect(Math.abs(cornerAvg - stoneLuma[0]),
-      `print ${box.index} corners ${cornerLuma.map(v => v.toFixed(0))} vs stone ${stoneLuma[0].toFixed(0)}`)
-      .toBeLessThan(16);
+    // The quad's corners sit outside the sole's silhouette, so at the same pixel the control frame
+    // must show the same stone: any real difference means the decal is painting its whole quad.
+    for (const [index, corner] of cornerLuma.entries()) {
+      expect(Math.abs(corner - bareCorners[index]),
+        `print ${box.index} corner ${index}: ${corner.toFixed(0)} vs control ${bareCorners[index].toFixed(0)}`)
+        .toBeLessThan(8);
+    }
     // How much this decal darkens the stone it covers: with-prints minus without-prints.
     const depth = bareCentre[0] - centreLuma[0];
     // Every print must darken the stone it covers, and the wetter ones clearly so. The unit is
