@@ -88,16 +88,20 @@ def swept_ground(mesh, site, materials):
             if row and column:
                 i = len(vertices) - 1
                 face = (i - stride - 1, i - 1, i, i - stride)
-                faces.append(face)
                 edge = sum(treatments[v][0] for v in face) / 4
                 active = min(treatments[v][1] for v in face)
                 footprint = max(treatments[v][2] for v in face)
                 if active > .73 and edge < -.055 and footprint < .23:
-                    finishes.append(1)
+                    finish = 1
                 elif active > .32 and edge < .18:
-                    finishes.append(2)
+                    finish = 2
                 else:
-                    finishes.append(0)
+                    finish = 0
+                # Use one explicit diagonal for source support and glTF replay.
+                # A warped snow quad can otherwise settle props on a different surface.
+                a, b, c, d = face
+                faces.extend(((a, b, c), (a, c, d)))
+                finishes.extend((finish, finish))
     crushed = mesh.material('Snow compacted where the winter court is swept',
                             '#b8c4cd', 'snow_004', .96)
     ground = mesh.mesh_object('Swept grit, buried prints and the connected snow court',
