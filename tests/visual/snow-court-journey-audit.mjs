@@ -1,9 +1,19 @@
 import assert from 'node:assert/strict';
 
 const maximumBlockedPoints = 3;
-const desktopMaximumEntryYaw = 120;
+const desktopMaximumEntryYaw = 185;
+const desktopMaximumEntryView = 185;
+const desktopMaximumEntryRate = 20;
+const desktopMinimumTurnSeconds = 9;
+const desktopActiveYawRate = 1;
+const desktopMinimumPoseHoldSeconds = 1;
 const phoneMaximumEntryYaw = 145;
 const phoneMaximumEntryYawRate = 25;
+const angleEpsilon = 1e-8;
+const poseEpsilon = 1e-6;
+const poseDirectionEpsilon = 2e-6;
+const secondsEpsilon = 1e-8;
+const degreesPerRadian = 180 / Math.PI;
 const earlierLanternSlots = [-3, -2, -1, 1, 2, 3];
 const minimumVisibleLanternRays = 2;
 const minimumWalkFraction = .5;
@@ -397,6 +407,111 @@ export function snowCourtWalkDraws({ frames, entryStart, entryDraws }, durationS
   return { walk, coverage };
 }
 
+function viewAngle(a, b) {
+  const [ax, ay, az] = a, [bx, by, bz] = b;
+  const cross = Math.hypot(ay * bz - az * by, az * bx - ax * bz, ax * by - ay * bx);
+  return Math.atan2(cross, ax * bx + ay * by + az * bz) * degreesPerRadian;
+}
+
+function sameEntryPose(a, b) {
+  const offset = Math.hypot(...a.position.map((value, axis) => value - b.position[axis]));
+  return offset <= poseEpsilon && viewAngle(a.direction, b.direction) <= poseDirectionEpsilon
+    && Math.abs(a.fovDegrees - b.fovDegrees) <= poseEpsilon;
+}
+
+function desktopEntryHold(frames, firstEntryDraw, boundaryEnd, firstChooserDraw, failures) {
+  if (firstChooserDraw < 0) {
+    failures.push({ kind: 'missingEntryChooser' });
+    return null;
+  }
+  if (firstChooserDraw < boundaryEnd) failures.push({ kind: 'entryChooserBeforeEnd', firstChooserDraw, boundaryEnd });
+  const lastHoldDraw = firstChooserDraw - 1;
+  const heldPose = frames[lastHoldDraw];
+  let firstHoldDraw = lastHoldDraw;
+  while (firstHoldDraw > firstEntryDraw && sameEntryPose(frames[firstHoldDraw - 1], heldPose)) firstHoldDraw--;
+  // Stop strictly before the chooser. The opening draw can expose a pose
+  // jump. It cannot add time to the evidence for a pre-chooser hold.
+  const seconds = (heldPose.renderTimeMs - frames[firstHoldDraw].renderTimeMs) / 1000;
+  if (!Number.isFinite(seconds) || seconds + secondsEpsilon < desktopMinimumPoseHoldSeconds) {
+    failures.push({ kind: 'entryPoseHold', actual: seconds, minimum: desktopMinimumPoseHoldSeconds });
+  }
+  let lastChooserDraw = firstChooserDraw;
+  while (frames[lastChooserDraw + 1]?.screen === 'candle' && frames[lastChooserDraw + 1].ignition === null) lastChooserDraw++;
+  const jump = frames.slice(firstChooserDraw, lastChooserDraw + 1).findIndex(frame => !sameEntryPose(frame, heldPose));
+  if (jump >= 0) failures.push({ kind: 'entryPoseJump', draw: firstChooserDraw + jump, lastHoldDraw });
+  return { seconds, firstHoldDraw, lastHoldDraw, firstChooserDraw, lastChooserDraw };
+}
+
+function entryCameraSummary(frames, boundary, phone, failures) {
+  // Start at the last draw before the entry callback. Desktop motion must
+  // finish before the UI appears, even if its callback and that draw differ.
+  const firstDraw = boundary.start - 1;
+  const firstChooser = phone ? -1 : frames.findIndex((frame, index) => index >= boundary.start && frame.screen === 'candle');
+  const lastDraw = Math.max(boundary.end, firstChooser);
+  const entry = frames.slice(firstDraw, lastDraw + 1);
+  const headings = entry.map(frame => Math.atan2(frame.direction[0], -frame.direction[2]));
+  const maximumEntryYaw = phone ? phoneMaximumEntryYaw : desktopMaximumEntryYaw;
+  const maximumEntryYawRate = phone ? phoneMaximumEntryYawRate : desktopMaximumEntryRate;
+  let entryYaw = 0, entryView = 0, peakYawRate = 0, peakViewRate = 0;
+  let activeTurnSeconds = 0, activeIntervals = 0, firstTurningDraw, lastTurningDraw;
+  const firstDrawOutsideTurn = firstChooser >= 0 ? firstChooser : boundary.end;
+  for (let i = 1; i < entry.length; i++) {
+    const delta = headings[i] - headings[i - 1];
+    const yaw = Math.abs(Math.atan2(Math.sin(delta), Math.cos(delta))) * degreesPerRadian;
+    const view = phone ? yaw : viewAngle(entry[i - 1].direction, entry[i].direction);
+    const dt = (entry[i].renderTimeMs - entry[i - 1].renderTimeMs) / 1000;
+    entryYaw += yaw;
+    entryView += view;
+    if (Number.isFinite(dt) && dt > 0) {
+      const yawRate = yaw / dt;
+      peakYawRate = Math.max(peakYawRate, yawRate);
+      peakViewRate = Math.max(peakViewRate, view / dt);
+      const draw = firstDraw + i;
+      // Small horizon recentering and pauses cannot make a short main turn
+      // count as a slow one. Count only substantive turn intervals before UI.
+      if (!phone && draw < firstDrawOutsideTurn && yawRate > desktopActiveYawRate + angleEpsilon) {
+        activeTurnSeconds += dt;
+        activeIntervals++;
+        firstTurningDraw ??= draw;
+        lastTurningDraw = draw;
+      }
+    } else if (!Number.isFinite(dt) || dt < 0 || Math.max(yaw, view) > angleEpsilon) {
+      failures.push({ kind: 'invalidEntryDrawTime', index: firstDraw + i, dtSeconds: dt });
+    }
+  }
+  if (entryYaw > maximumEntryYaw + angleEpsilon) failures.push({ kind: 'entryYaw', actual: entryYaw, maximum: maximumEntryYaw });
+  if (peakYawRate > maximumEntryYawRate + angleEpsilon) {
+    failures.push({ kind: 'entryYawRate', actual: peakYawRate, maximum: maximumEntryYawRate });
+  }
+  const limits = { maximumEntryYaw, maximumEntryYawRate };
+  const entryYawTrace = {
+    method: 'Sum of absolute shortest wrapped yaw deltas between actual draws bracketing the entry. Rates use the animation frame timestamps that advanced the camera.',
+    firstDraw, lastDraw, drawCount: headings.length, start: frames[firstDraw].timestamp, end: frames[lastDraw].timestamp,
+    initialDegrees: headings[0] * degreesPerRadian, finalDegrees: headings.at(-1) * degreesPerRadian,
+    maximumDegreesPerSecond: peakYawRate,
+  };
+  if (!phone) {
+    if (activeTurnSeconds + secondsEpsilon < desktopMinimumTurnSeconds) {
+      failures.push({ kind: 'entryTurnSpan', actual: activeTurnSeconds, minimum: desktopMinimumTurnSeconds });
+    }
+    if (entryView > desktopMaximumEntryView + angleEpsilon) {
+      failures.push({ kind: 'entryViewTravel', actual: entryView, maximum: desktopMaximumEntryView });
+    }
+    if (peakViewRate > desktopMaximumEntryRate + angleEpsilon) {
+      failures.push({ kind: 'entryViewRate', actual: peakViewRate, maximum: desktopMaximumEntryRate });
+    }
+    Object.assign(limits, { maximumEntryView: desktopMaximumEntryView, maximumEntryViewRate: desktopMaximumEntryRate,
+      minimumEntryTurnSeconds: desktopMinimumTurnSeconds, minimumEntryPoseHoldSeconds: desktopMinimumPoseHoldSeconds });
+    Object.assign(entryYawTrace, { totalViewDegrees: entryView, maximumViewDegreesPerSecond: peakViewRate,
+      activeTurn: {
+        method: 'Sum of pre-chooser animation intervals with absolute yaw rate above 1°/s. Pauses and low-rate recentering are excluded.',
+        seconds: activeTurnSeconds, intervals: activeIntervals, firstTurningDraw, lastTurningDraw,
+      },
+      poseHold: desktopEntryHold(frames, firstDraw, boundary.end, firstChooser, failures) });
+  }
+  return { limits, entryYaw, entryYawTrace };
+}
+
 export function snowCourtJourneySummary(geometry, presented, durationSeconds, { phone = false, desktopRow = 'full' } = {}) {
   const { frames, settledAt, entryStart, entryEnd, entryDraws: boundary } = geometry;
   assert(frames.length > 120 && frames[0].phase === 'travel' && frames.at(-1).ignition === 'settled',
@@ -426,36 +541,7 @@ export function snowCourtJourneySummary(geometry, presented, durationSeconds, { 
       failures.push({ kind: 'lowLuminance', index, timestamp: frame.timestamp, luminance: frame.luminance });
     }
   }
-  // Include every actual draw bracketing the entry callbacks. Sum the absolute
-  // shortest wrapped horizontal turn of consecutive headings. Opposite
-  // turns add, and a ±180° crossing never manufactures a 360° turn.
-  const firstEntryDraw = boundary.start - 1;
-  const lastEntryDraw = boundary.end;
-  const entryDraws = frames.slice(firstEntryDraw, lastEntryDraw + 1);
-  const headings = entryDraws.map(frame => Math.atan2(frame.direction[0], -frame.direction[2]));
-  const maximumEntryYaw = phone ? phoneMaximumEntryYaw : desktopMaximumEntryYaw;
-  let entryYaw = 0, maximumEntryYawRate = 0;
-  for (let i = 1; i < headings.length; i++) {
-    const delta = headings[i] - headings[i - 1];
-    const degrees = Math.abs(Math.atan2(Math.sin(delta), Math.cos(delta))) * 180 / Math.PI;
-    entryYaw += degrees;
-    const dt = (entryDraws[i].renderTimeMs - entryDraws[i - 1].renderTimeMs) / 1000;
-    if (dt > 0) maximumEntryYawRate = Math.max(maximumEntryYawRate, degrees / dt);
-    else if (phone && (!Number.isFinite(dt) || dt < 0 || degrees > 1e-8)) {
-      failures.push({ kind: 'invalidEntryDrawTime', index: firstEntryDraw + i, dtSeconds: dt });
-    }
-  }
-  const entryYawTrace = {
-    method: 'Sum of absolute shortest wrapped horizontal yaw deltas between consecutive actual draws bracketing the entry marks. The peak rate uses the animation frame timestamps that advanced the camera.',
-    firstDraw: firstEntryDraw, lastDraw: lastEntryDraw, drawCount: headings.length,
-    start: frames[firstEntryDraw].timestamp, end: frames[lastEntryDraw].timestamp,
-    initialDegrees: headings[0] * 180 / Math.PI, finalDegrees: headings.at(-1) * 180 / Math.PI,
-    maximumDegreesPerSecond: maximumEntryYawRate,
-  };
-  if (entryYaw > maximumEntryYaw) failures.push({ kind: 'entryYaw', actual: entryYaw, maximum: maximumEntryYaw });
-  if (phone && maximumEntryYawRate > phoneMaximumEntryYawRate + 1e-8) {
-    failures.push({ kind: 'entryYawRate', actual: maximumEntryYawRate, maximum: phoneMaximumEntryYawRate });
-  }
+  const entry = entryCameraSummary(frames, boundary, phone, failures);
 
   const earlierRow = earlierLanternSummary(geometry, phone, desktopRow, failures);
   let draw = 0;
@@ -489,14 +575,13 @@ export function snowCourtJourneySummary(geometry, presented, durationSeconds, { 
     unobservedDrawRanges.push(range);
     if (range.seconds > maximumUnobservedDrawSeconds) presentedWarnings.push({ kind: 'compositorCaptureGap', ...range });
   }
-  return { limits: { maximumBlockedPoints, maximumEntryYaw, minimumWalkFraction,
-    ...(phone ? { maximumEntryYawRate: phoneMaximumEntryYawRate } : {}),
+  return { limits: { maximumBlockedPoints, ...entry.limits, minimumWalkFraction,
     minimumLuminance: floor, compositorMinimumLuminance: presentedFloor, maximumUnobservedDrawSeconds },
     referenceLuminance, presentedReferenceLuminance,
     walkBaseline: { method: 'Arithmetic mean of this context’s actual pre-UI draws from the start of the authored walk through its held reveal, before hall entry.',
       ...coverage,
       firstTimestamp: walk[0].timestamp, lastTimestamp: walk.at(-1).timestamp, compositorFrameCount: presentedWalk.length },
-    entryYaw, entryYawTrace, earlierRow, geometryFrameCount: frames.length,
+    entryYaw: entry.entryYaw, entryYawTrace: entry.entryYawTrace, earlierRow, geometryFrameCount: frames.length,
     drawLuminanceFrameCount: frames.filter(frame => Number.isFinite(frame.luminance)).length,
     minimumDrawLuminance: Math.min(...frames.map(frame => frame.luminance ?? Infinity)),
     maximumBlockedPoints: Math.max(...frames.map(frame => frame.blockedPoints)),

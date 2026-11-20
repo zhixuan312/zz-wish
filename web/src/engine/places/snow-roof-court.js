@@ -20,9 +20,8 @@ export default function createWinterCourt(h) {
     const direction = V3(Math.sin(yaw) * Math.cos(tilt), Math.sin(tilt), -Math.cos(yaw) * Math.cos(tilt));
     return { pos, look: pos.clone().addScaledVector(direction, 3.5), fov };
   };
-  const choiceDesktop = lampView(.75, -7.35, -117.65, -1, 67);
   const choicePhone = lampView(1.048, -7.52, -139.7, -17.5, 69, 3.71);
-  const lampDesktop = lampView(.75, -7.35, -154, 0, 67);
+  const lampDesktop = lampView(.20, -7.425, -177.8, 9, 72, 3.53);
   const lampPhone = lampView(.03, -7.40, -180, -8, 69);
   const entrance = pose(site.walk[0]);
   return {
@@ -156,7 +155,7 @@ export default function createWinterCourt(h) {
       wide: arrival, widePhone: { ...arrival, fov: arrival.fov + 5 },
       steadyIgnition: true, settleSecondsPhone: 14,
       createBurnSettle: (start, end) => winterCourtBurnSettle(THREE, site.visitorCord, start, end),
-      choose: choiceDesktop, choosePhone: choicePhone,
+      choose: lampDesktop, choosePhone: choicePhone,
       burn: lampDesktop, burnPhone: lampPhone,
       build() {},
     },

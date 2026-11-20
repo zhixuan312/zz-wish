@@ -86,6 +86,21 @@ function lookAlong(THREE, rig, yaw, pitch, distance) {
   rig.look.z -= Math.cos(yaw) * horizontal;
 }
 
+// Integrate the smooth turn speed so the view can finish before the chooser.
+function desktopEntryHeading(THREE, time, arrival) {
+  const start = 8.05;
+  const accelerate = 1.10;
+  const brake = .45;
+  const cruise = arrival - start - accelerate - brake;
+  const smoothArea = amount => amount ** 3 * (1 - .5 * amount);
+  const { clamp } = THREE.MathUtils;
+  const rampIn = clamp((time - start) / accelerate, 0, 1);
+  const steady = clamp(time - start - accelerate, 0, cruise);
+  const rampOut = clamp((time - arrival + brake) / brake, 0, 1);
+  const travelled = accelerate * smoothArea(rampIn) + steady + brake * (rampOut - smoothArea(rampOut));
+  return travelled / (cruise + (accelerate + brake) / 2);
+}
+
 /** Cross the hall doorway head-on, then follow the aisle beside the lamp row. */
 export function winterCourtEntry(THREE, start, end, phone) {
   const points = [
@@ -108,6 +123,7 @@ export function winterCourtEntry(THREE, start, end, phone) {
     return point;
   });
   const duration = winterCourtEntrySeconds;
+  const arrival = phone ? duration : duration - 1.1;
   const insideTime = 11.65;
   const cadence = 1.28;
   const ramp = 1.5;
@@ -123,33 +139,29 @@ export function winterCourtEntry(THREE, start, end, phone) {
   const [yaw0, pitch0] = viewingAngles(start);
   const [yaw1, pitch1] = viewingAngles(end);
   const turn = THREE.MathUtils.euclideanModulo(yaw1 + Math.PI, Math.PI * 2) - Math.PI;
-  const turnKeys = phone ? [
+  const phoneTurn = [
     [10.15, 0, 0],
     [12.10, .20, .159],
     [14.45, .58, .155],
     [17.10, .94, .078],
     [duration, 1, 0],
-  ] : [
-    [10.78, 0, 0],
-    [12.16, .16, .175],
-    [14.36, .57, .187],
-    [16.78, .91, .085],
-    [duration, 1, 0],
   ];
   const startDistance = start.pos.distanceTo(start.look);
   const endDistance = end.pos.distanceTo(end.look);
   return (progress, rig) => {
-    const time = progress * duration;
-    curve.getPointAt(distanceBetween(distances, time) / length, rig.pos);
+    const time = Math.min(progress * duration, arrival);
+    // Keep the approach cadence and use the last part of the aisle to reach
+    // the final composition before the desktop chooser opens.
+    const aisleProgress = THREE.MathUtils.smoothstep(time, insideTime, arrival);
+    const positionTime = time + (duration - arrival) * aisleProgress;
+    curve.getPointAt(distanceBetween(distances, positionTime) / length, rig.pos);
     // Look into the hall through the opening, then turn across it as the
     // aisle opens into view. The gaze finishes on the lamp and snowy door.
     const approach = THREE.MathUtils.smoothstep(time, 0, 7.6);
-    const angle = distanceBetween(turnKeys, time);
+    const angle = phone ? distanceBetween(phoneTurn, time) : desktopEntryHeading(THREE, time, arrival);
     const yaw = yaw0 * (1 - approach) + turn * angle;
-    // The natural eye line follows the row before the chooser looks down
-    // enough to leave room for the controls.
-    const down = THREE.MathUtils.smoothstep(time, 15, duration);
-    const pitch = THREE.MathUtils.lerp(pitch0 * (1 - approach), pitch1, down);
+    const finalPitch = THREE.MathUtils.smoothstep(time, phone ? 15 : 9.2, arrival);
+    const pitch = THREE.MathUtils.lerp(pitch0 * (1 - approach), pitch1, finalPitch);
     lookAlong(THREE, rig, yaw, pitch, THREE.MathUtils.lerp(startDistance, endDistance, angle));
     const lens = THREE.MathUtils.lerp(start.fov, end.fov, angle);
     // Portrait needs a wider view to see the full beam through the doorway.
