@@ -210,11 +210,12 @@ export default function createPlace(h) {
       // The candle stand sits at the world lamp anchor. Placement here runs before the nook
       // group exists, so the strip is added to the world group and positioned in world metres:
       // just outside the tray's front rim (about 69 mm radius) on the burn camera's side.
+      // The strip is authored round the tray in the stand's own frame: the module wraps the
+      // tray wall at its measured radius and ties the knot on the burn camera's side, so the
+      // group simply sits at the seat.
       const anchor = baked.manifest.lampAnchor;
-      // The tray rim reaches about 69 mm from the anchor; tie the strip just inside the front
-      // lip so it hangs against the tray face instead of lying on the paving.
       const cloth = createWishCloth({
-        THREE, anchor: V3(anchor[0], anchor[1] + .005, anchor[2] + .0525), seed: 3,
+        THREE, anchor: V3(anchor[0], anchor[1], anchor[2]), seed: 3,
       });
       cloth.group.visible = false;
       // The glTF place group is in world metres, the same space as the lamp anchor.
