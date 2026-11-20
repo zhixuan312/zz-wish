@@ -1907,6 +1907,38 @@ if (import.meta.env.DEV || import.meta.env.VITE_E2E_HOOKS === '1') {
     return window.__cameraTrace.rows;
   };
 }
+// Read-only burning geometry for the browser suite: the tray's and flame's world boxes, the wick
+// point and the live camera. Compiled out of a normal build, as the other diagnostics are.
+if (import.meta.env.DEV || import.meta.env.VITE_E2E_HOOKS === '1') {
+  window.__pineBurnFraming = () => {
+    // The visitor's lamp is the module-level `mine`, the same object the burning camera follows.
+    const wax = mine?.parts?.pineWax ?? null;
+    const holder = mine?.parts?.holder ?? null;
+    if (!wax || !holder) return null;
+    holder.updateWorldMatrix(true, false);
+    mine.g.updateWorldMatrix(true, true);
+    const holderBox = new THREE.Box3().setFromObject(holder);
+    // The flame is a shader volume, not a mesh: build its box from the wick tip and the height the
+    // flame parts report, so the framing review measures the thing the visitor actually sees.
+    const wick = mine.g.localToWorld(wax.wickTip.clone());
+    const flameHeight = mine.parts?.flame ? .017 * mine.parts.flame : .017;
+    const flameRadius = .0045;
+    const flameBox = new THREE.Box3(
+      new THREE.Vector3(wick.x - flameRadius, wick.y, wick.z - flameRadius),
+      new THREE.Vector3(wick.x + flameRadius, wick.y + flameHeight, wick.z + flameRadius));
+    return {
+      t: clockTime,
+      view: { pos: { x: rig.pos.x, y: rig.pos.y, z: rig.pos.z },
+        look: { x: rig.look.x, y: rig.look.y, z: rig.look.z },
+        // A pose that never set a field of view leaves rig.fov null; the camera still renders with
+        // its own, so report what the frame is actually drawn with.
+        fov: Number.isFinite(rig.fov) ? rig.fov : camera.fov, aspect: camera.aspect },
+      tray: { min: holderBox.min.toArray(), max: holderBox.max.toArray() },
+      flame: { min: flameBox.min.toArray(), max: flameBox.max.toArray() },
+      wick: { x: wick.x, y: wick.y, z: wick.z },
+    };
+  };
+}
 // A read-only camera pose hook for the browser suite. It is compiled out of a normal build and only
 // present when VITE_E2E_HOOKS=1, which the Tier 1 config passes to its own build.
 if (import.meta.env.DEV || import.meta.env.VITE_E2E_HOOKS === '1') {
@@ -1995,13 +2027,18 @@ function burnView(){
     const profile = candle.profileBounds();
     const bodyHeight = candle.fullHeight();
     const subjectHeight = bodyHeight + .040;
+    // The profile and seat are the lamp group's own coordinates; lift them into world space once so
+    // every pose and aim below is in the same frame as the camera.
     const center = mine.g.localToWorld(V3((profile.min.x + profile.max.x) / 2,
       mine.parts.seat.y + subjectHeight * (bodyHeight < .028 ? .43 : .5), 0));
     const direction = v.pos.clone().sub(center).normalize();
     const bodyFacingCamera = bodyHeight * Math.hypot(direction.x, direction.z);
     const halfFov = THREE.MathUtils.degToRad(v.fov / 2);
     const fraction = bodyHeight > .125 ? .211 : .225;
-    const distance = Math.max(narrow() ? .43 : .36, bodyFacingCamera / (2 * Math.tan(halfFov) * fraction));
+    // Keep the camera well clear of the tray: at a few tens of centimetres the tray fills the frame
+    // and the projection of its own rim becomes unstable. A hand-held reading distance of about
+    // three-quarters of a metre holds the tray, the cloth and the flame together.
+    const distance = Math.max(narrow() ? .74 : .58, bodyFacingCamera / (2 * Math.tan(halfFov) * fraction));
     // Compose from the original wax alone. Reserve space for the intact flame,
     // and keep very wide hand-drawn shapes inside the phone's narrower frame.
     const tangent = Math.max(bodyFacingCamera / (2 * distance * fraction),
@@ -2011,9 +2048,17 @@ function burnView(){
     // Frame the whole lit subject, not the bare wax column: aim between the tray's rim and the top
     // of the flame. Aiming at the wax centre alone pointed the phone camera down at the stone
     // whenever the candle was short, and put the flame above the frame.
-    const trayRim = mine.parts.seat.y + .021;
-    const flameTop = mine.parts.seat.y + subjectHeight + .052;
-    const aimY = (trayRim + flameTop) * .5;
+    // Both heights are in the lamp's own frame, so lift them the same way as the centre.
+    const trayRim = mine.g.localToWorld(V3(0, mine.parts.seat.y + .021, 0));
+    const flameTop = mine.g.localToWorld(V3(0, mine.parts.seat.y + subjectHeight + .052, 0));
+    // A portrait frame gives the phone a sheet across its bottom third, so the tray must sit higher
+    // in the crop than on a desktop. Weight the aim towards the tray rather than splitting it evenly
+    // with the flame.
+    // A portrait frame loses its bottom third to the choice sheet (top: 350 px of 844), so the tray
+    // must sit well above centre. Aim below the tray rim: with the eye above the tray, aiming lower
+    // moves the whole subject up the frame.
+    const aimY = narrow() ? trayRim.y - (flameTop.y - trayRim.y) * .55
+      : (trayRim.y + flameTop.y) * .5;
     v.look.copy(center);
     v.look.y = aimY;
     // Widen enough that the tray's outer rim and the flame both fit the safe area, which a phone
@@ -2587,9 +2632,12 @@ export async function ignite({onCatch, remainingFuel, onTaperLit}={}) {
     }
     rig.look.lerpVectors(orbitLookStart,follow,smooth(0,.2,k)).lerp(burn.look,smooth(.75,1,k));
     if (pine) {
+      // Clamp against the burn pose's own pitch, not the chooser's. The burn aim sits between the
+      // tray rim and the flame top, which is above the chooser's eye line: anchoring the clamp on
+      // the chooser pulled the view back down onto the stone and pushed the flame out of frame.
       const pitch = Math.atan2(rig.look.y - rig.pos.y, Math.hypot(rig.look.x - rig.pos.x, rig.look.z - rig.pos.z));
-      const base = Math.atan2(settleLook.y - settleStart.y,
-        Math.hypot(settleLook.x - settleStart.x, settleLook.z - settleStart.z));
+      const base = Math.atan2(burn.look.y - burn.pos.y,
+        Math.hypot(burn.look.x - burn.pos.x, burn.look.z - burn.pos.z));
       const limit = THREE.MathUtils.degToRad(5);
       const clamped = THREE.MathUtils.clamp(pitch, base - limit, base + limit);
       if (clamped !== pitch) {
