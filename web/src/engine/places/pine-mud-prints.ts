@@ -10,12 +10,9 @@ import type * as THREE_NS from 'three';
 // 7 cm at the round heel, 24-26 cm long. No tread pattern, only two areas pressed deeper: the ball of
 // the foot and the heel. Edges are broken by noise so there is crumbly mud and small gaps, and the
 // cover thins in places so the stone shows through.
-// The half-width of the sole at a fraction `t` of its length, 0 at the toe and 1 at the back of the
-// heel, as a fraction of the print's length. For a 26 cm print these give a 9.5 cm forefoot, a 6 cm
-// arch and a 7 cm heel, which is an adult's grass or cloth sole. One smooth curve, so the print never
-// splits into two pieces.
-// Half-widths as fractions of the sole's length, for a 26 cm print: 9.5 cm across the ball,
-// 6.0 cm at the arch and 7.0 cm at the heel, which is an adult's grass or cloth sole.
+// The sole's half-width at a fraction `t` of its length: 0 at the toe, 1 at the back of the heel.
+// For a 26 cm print these give 9.5 cm across the ball, 6.0 cm at the arch and 7.0 cm at the heel,
+// which is an adult's grass or cloth sole. One smooth curve, so the print never splits in two.
 const SOLE_PROFILE: readonly (readonly [number, number])[] = Object.freeze([
   [0.00, 0.000], [0.05, 0.112], [0.12, 0.178], [0.19, 0.183], [0.28, 0.170],
   [0.38, 0.140], [0.47, 0.118], [0.55, 0.116], [0.64, 0.124], [0.74, 0.132],
@@ -76,23 +73,25 @@ function soleMaps(THREE: typeof THREE_NS, size = 192) {
     for (let px = 0; px < size; px++) {
       const dx = (px - centre) / (w || 1);
       if (Math.abs(dx) > 1.35) continue;
-      // Two deeper presses, at the ball and the heel; elsewhere the mud is thinner.
-      const ballPress = .55 + .45 * Math.exp(-(((t - .27) / .12) ** 2));
-      const heelPress = .5 + .5 * Math.exp(-(((t - .84) / .10) ** 2));
-      const press = Math.max(ballPress, heelPress);
+      // Two deeper presses, at the ball and the heel; the arch is thinner where the foot barely
+      // touches. Keep the range narrow: at product distance a print that is half transparent
+      // disappears into the granite's own mottling.
+      const ballPress = .82 + .18 * Math.exp(-(((t - .27) / .13) ** 2));
+      const heelPress = .78 + .22 * Math.exp(-(((t - .84) / .11) ** 2));
+      const archDip = 1 - .18 * Math.exp(-(((t - .50) / .09) ** 2));
+      const press = Math.max(ballPress, heelPress) * archDip;
       // Irregular rim: coarse noise decides how far in the edge wanders.
       const rim = fbm2(px * .022, py * .022, 5);
       const edge = Math.abs(dx) + .26 * (rim - .5);
       // Solid through the middle, then a broken band at the rim. At forty pixels on screen a soft
       // ramp averages away to nothing, so the print needs mass inside to read at all.
-      const coverage = edge < .78 ? 1 : 1 - Math.min(1, (edge - .78) / .22);
+      const coverage = edge < .88 ? 1 : 1 - Math.min(1, (edge - .88) / .12);
       // A few large patches of clean stone, at a scale that survives the print being a few pixels wide.
       const holes = noise2(px * .055, py * .055, 23);
-      const holeMask = holes > .86 ? .10 : 1;
-      // Thinnest over the arch, where the foot barely touches; pressed at ball and heel.
-      const archThin = 1 - .22 * Math.exp(-(((t - .50) / .10) ** 2));
-      const mottle = .86 + .14 * noise2(px * .045, py * .045, 37);
-      const value = Math.min(1, coverage * press * holeMask * mottle * archThin);
+      const holeMask = holes > .93 ? .18 : 1;
+      const mottle = .93 + .07 * noise2(px * .045, py * .045, 37);
+      // The arch dip already lives in `press`; thinning it twice left a print only a quarter covered.
+      const value = Math.min(1, coverage * press * holeMask * mottle);
       if (value <= .01) continue;
       // three.js samples an alphaMap's green channel and ignores its alpha, so the cover goes into the
       // colour. Writing it into alpha instead keeps every print a solid silhouette.
