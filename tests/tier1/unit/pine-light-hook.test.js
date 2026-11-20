@@ -45,7 +45,9 @@ test('Pine Gate\'s curve is the six-part table, and it changes across the day', 
 test('the blend inputs agree with the plate family the table picks', () => {
   // A day family gives the day look, dusk the warm low look, night the night look.
   const day = blendInputsAt(at(12));
-  const dusk = blendInputsAt(at(18, 30));
+  // 18:30 sits inside the dusk-to-night window, so its warmth is already easing down; sample the
+  // middle of the afternoon instead, where the dusk family is fully in charge.
+  const dusk = blendInputsAt(at(15, 30));
   const night = blendInputsAt(at(23));
   expect(day.n).toBeLessThan(.1);
   expect(dusk.g).toBeGreaterThan(.9);

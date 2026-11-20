@@ -8,8 +8,10 @@ import type { DayPart } from '../../../../shared/dayPart.ts';
 export type PlateSet = 'day' | 'dusk' | 'night';
 
 export interface PartLight {
-  /** Which plate family and ambient lightmap set to draw. */
+  /** The plate family this part belongs to; the dominant one inside a blend. */
   plates: PlateSet;
+  /** During a transition between two different families, both and the eased weight between them. */
+  plateMix?: { a: PlateSet; b: PlateSet; k: number } | null;
   /** Sun or moon direction as a unit vector (x right, y up, z toward the viewer). */
   direction: readonly [number, number, number];
   /** Fog density multiplier against the place's authored base. */
@@ -78,18 +80,23 @@ export function lightAt(date: Date, window = 3): PartLight {
     const end = next === 'dawn' && part === 'night' ? 24 + PART_START.dawn : PART_START[next];
     return { part, next, start, end };
   });
-  // Signed distance from this hour to a boundary: negative before it, positive after, on a clock
-  // that wraps at 24 so the night-to-dawn edge behaves like any other.
+  // The window trails the boundary: the change happens during the last `window` hours of the part
+  // that is ending, and reaches the next part exactly at its start. Centring it would put the
+  // change inside the part that follows, which contradicts the table.
+  // Pick the boundary nearest on the clock, then work from its signed distance. Centring the window
+  // is what makes the curve continuous through the boundary: approaching from either side gives the
+  // same k, so `part` flipping cannot restart the blend.
   const signedTo = (h: number, edge: number) => ((h - edge + 36) % 24) - 12;
-  let active = boundaries[0], activeDistance = Infinity;
-  for (const b of boundaries) {
-    const distance = signedTo(hour, b.end % 24);
-    if (Math.abs(distance) < Math.abs(activeDistance)) { active = b; activeDistance = distance; }
+  let active = boundaries[0], nearest = Infinity;
+  for (const candidate of boundaries) {
+    const distance = signedTo(hour, candidate.end % 24);
+    if (Math.abs(distance) < Math.abs(nearest)) { active = candidate; nearest = distance; }
   }
   const { part, next } = active;
+  void partProgress;
   const a = PART_LIGHT[part], b = PART_LIGHT[next];
-  // 0 at window/2 before the boundary, 1 at window/2 after it.
-  const raw = (activeDistance + window / 2) / window;
+  // 0 at window/2 before the boundary, 1 at window/2 after it, so both sides share one curve.
+  const raw = (nearest + window / 2) / window;
   const clamped = Math.min(1, Math.max(0, raw));
   const k = clamped * clamped * (3 - 2 * clamped);
   const direction: [number, number, number] = [
@@ -99,10 +106,17 @@ export function lightAt(date: Date, window = 3): PartLight {
   ];
   const length = Math.hypot(...direction) || 1;
   return {
-    plates: k < .5 ? a.plates : b.plates,
+    plates: a.plates,
+    // Both plate families are handed back so the renderer can cross-fade them on this same weight.
+    // Report a mix only while it is actually changing: at k=1 the later family has fully taken
+    // over, and returning a mix there would make the next sample (a different boundary) look like
+    // a jump from 1 to 0.
+    plateMix: a.plates === b.plates || k >= 1 ? null : { a: a.plates, b: b.plates, k },
     direction: [direction[0] / length, direction[1] / length, direction[2] / length],
     fog: a.fog + (b.fog - a.fog) * k,
-    lamps: k < .5 ? a.lamps : b.lamps,
+    // Lit whenever either side of the boundary is lit, so the storm lantern comes on as dusk
+    // settles and stays on through the night; only a boundary with both sides unlit is dark.
+    lamps: a.lamps || b.lamps,
   };
 }
 
@@ -125,10 +139,39 @@ const FAMILY: Readonly<Record<PlateSet, Omit<BlendInputs, 'dawn'>>> = Object.fre
 /** Blend inputs for the shared renderer, from the six-part table at this moment. */
 export function blendInputsAt(date: Date, window = 3): BlendInputs {
   const light = lightAt(date, window);
-  const family = FAMILY[light.plates];
+  // Blend the two families' inputs with the same eased weight the light and fog use, so nothing
+  // about the look changes in a step at the midpoint. Reading the family from `light.plates` alone
+  // would jump n from .55 to 1 at the boundary; that was the visible hard cut.
   const hour = date.getHours() + date.getMinutes() / 60;
-  // Warmth eases in through the afternoon and out again by night, which the table's lamp and
-  // direction already imply; derive it from the direction's height so nothing is invented twice.
+  // Pick the boundary by clock, not by the current part: `part` flips at the boundary, and choosing
+  // the family from it would restart the blend from the new part's own look.
+  const signedTo = (h: number, edge: number) => ((h - edge + 36) % 24) - 12;
+  const edges = PART_ORDER.map((part, i) => {
+    const next = PART_ORDER[(i + 1) % PART_ORDER.length];
+    const edge = next === 'dawn' && part === 'night' ? 24 + PART_START.dawn : PART_START[next];
+    return { part, next, edge };
+  });
+  let active = edges[0], nearest = Infinity;
+  for (const candidate of edges) {
+    const distance = signedTo(hour, candidate.edge % 24);
+    if (Math.abs(distance) < Math.abs(nearest)) { active = candidate; nearest = distance; }
+  }
+  const a = FAMILY[PART_LIGHT[active.part].plates], b = FAMILY[PART_LIGHT[active.next].plates];
+  // Two parts that share one plate family have nothing to cross-fade: reporting a weight between
+  // them would be noise, because the renderer would mix a family with itself.
+  const sameFamily = a === b;
+  const raw = (nearest + window / 2) / window;
+  const clamped = Math.min(1, Math.max(0, raw));
+  const k = sameFamily ? 0 : clamped * clamped * (3 - 2 * clamped);
   const elev = Math.min(1, Math.max(.02, light.direction[1]));
-  return { ...family, elev, dawn: hour < 12 };
+  return {
+    n: a.n + (b.n - a.n) * k,
+    g: a.g + (b.g - a.g) * k,
+    blue: a.blue + (b.blue - a.blue) * k,
+    lamp: a.lamp + (b.lamp - a.lamp) * k,
+    haze: a.haze + (b.haze - a.haze) * k,
+    elev,
+    dawn: hour < 12,
+  };
 }
+

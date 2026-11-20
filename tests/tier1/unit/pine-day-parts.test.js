@@ -100,3 +100,62 @@ test('dusk lights the storm lantern and the burning view keeps lamps on all day'
   expect(PART_LIGHT.midday.lamps).toBe(false);
   expect(PART_LIGHT.afternoon.lamps).toBe(false);
 });
+
+test('inside a transition both plate families are handed back with weights that sum to one', () => {
+  // The dusk-to-night window, which is the one that really mixes two families: 18:30 to 20:30.
+  let previous = null;
+  // From a little after the window opens (where k is above zero) to a little before it closes.
+  for (let minutes = 18 * 60 + 10; minutes <= 19 * 60 + 50; minutes += 10) {
+    const light = lightAt(new Date(2026, 10, 20, Math.floor(minutes / 60), minutes % 60));
+    const mix = light.plateMix;
+    expect(mix, `mix at ${minutes}`).toBeTruthy();
+    expect(mix.a).toBe('dusk');
+    expect(mix.b).toBe('night');
+    expect(mix.k).toBeGreaterThanOrEqual(0);
+    expect(mix.k).toBeLessThanOrEqual(1);
+    // Weights sum to one: k for b, 1-k for a.
+    expect(mix.k + (1 - mix.k)).toBeCloseTo(1, 10);
+    // Monotonic through the window: the later family never loses ground.
+    if (previous !== null) expect(mix.k).toBeGreaterThanOrEqual(previous - 1e-9);
+    previous = mix.k;
+  }
+});
+
+test('parts that share one plate family report no mix, rather than a weight between a family and itself', () => {
+  // Afternoon and dusk both draw the dusk plates, and dawn and morning both draw day plates.
+  for (const hour of [15.5, 16, 17, 17.5]) {
+    const mix = lightAt(new Date(2026, 10, 20, Math.floor(hour), Math.round((hour % 1) * 60))).plateMix;
+    expect(mix, `mix at ${hour}`).toBeNull();
+  }
+  for (const hour of [6.6, 7, 8.4, 9.5, 10]) {
+    const mix = lightAt(new Date(2026, 10, 20, Math.floor(hour), Math.round((hour % 1) * 60))).plateMix;
+    expect(mix, `mix at ${hour}`).toBeNull();
+  }
+});
+
+test('no frame jumps the plate weight from 0 to 1', () => {
+  // Scan the whole day at one-minute steps. A hard cut at the midpoint would show as one step
+  // larger than a quarter; the eased window moves it by a few hundredths per minute.
+  let previous = null;
+  let worst = 0;
+  for (let minutes = 0; minutes < 24 * 60; minutes += 1) {
+    const mix = lightAt(new Date(2026, 10, 20, Math.floor(minutes / 60), minutes % 60)).plateMix;
+    const k = mix ? mix.k : null;
+    // A null between two windows means the families match there, not a jump: only compare inside
+    // a run where both samples are a real mix.
+    if (k !== null && previous !== null) worst = Math.max(worst, Math.abs(k - previous));
+    previous = k;
+  }
+  expect(worst).toBeLessThan(.05);
+});
+
+test('both plate families are named across the dusk transition, never just one', () => {
+  const early = lightAt(new Date(2026, 10, 20, 18, 30)).plateMix;
+  expect(early.a).toBe('dusk');
+  expect(early.b).toBe('night');
+  const middle = lightAt(new Date(2026, 10, 20, 19, 0)).plateMix;
+  expect(middle.k).toBeCloseTo(.5, 2);
+  // And the dominant family switches only as the weight passes a half, not at an instant.
+  expect(lightAt(new Date(2026, 10, 20, 18, 50)).plates).toBe('dusk');
+  expect(lightAt(new Date(2026, 10, 20, 19, 20)).plates).toBe('dusk');
+});

@@ -89,8 +89,11 @@ try {
     await page.getByRole('radio', { name: /^10 min$/ }).click();
     await page.getByRole('button', { name: /Light it/ }).click();
     await page.getByTestId('with-you').waitFor({ timeout: 30_000 });
-    await page.waitForTimeout(2500);
-    // The burning view: the product camera settles itself, so hide the panels and shoot.
+    // The camera only reaches the product burning view when ignition settles; shooting earlier
+    // gives the wide ignition frame, which is what made the first batch inconsistent.
+    await page.waitForFunction(() => window.__visualIgnition?.state === 'settled', null, { timeout: 60_000 });
+    await page.waitForTimeout(1200);
+    // The burning view: the product camera is settled, so hide the panels and shoot.
     await page.screenshot({ path: join(dir, h === 22 ? 'night-burning.png' : 'day-burning.png'),
       style: '.ui { visibility: hidden !important; }' });
     const light = await page.evaluate(() => window.__pineCaptureLighting?.() ?? null);
@@ -121,11 +124,12 @@ try {
   await page.getByRole('radio', { name: /^10 min$/ }).click();
   await page.getByRole('button', { name: /Light it/ }).click();
   await page.getByTestId('with-you').waitFor({ timeout: 30_000 });
-  await page.waitForTimeout(2500);
-  // The live clock re-reads every 15 s; step in 15-minute moves and let it catch up.
-  for (let mins = 0; mins <= 150; mins += 15) {
+  await page.waitForFunction(() => window.__visualIgnition?.state === 'settled', null, { timeout: 60_000 });
+  await page.waitForTimeout(1200);
+  // The live clock re-reads every 15 s; step in ten-minute moves and let it catch up.
+  for (let mins = 0; mins <= 180; mins += 10) {
     if (mins > 0) {
-      await page.evaluate(() => window.__advanceWallClock(15 * 60_000));
+      await page.evaluate(() => window.__advanceWallClock(10 * 60_000));
       await page.waitForTimeout(16_500);
     }
     const label = `${String(Math.floor((17 * 60 + mins) / 60)).padStart(2, '0')}-${String((17 * 60 + mins) % 60).padStart(2, '0')}`;

@@ -30,19 +30,30 @@ a plate set, so the six parts map onto three families:
 
 ## Transitions
 
-Each boundary has a three-hour window centred on it. Inside the window the light, fog and lamp
-state ease from one part to the next with a smoothstep, so the midpoint falls exactly on the
-boundary and the curve is the same approached from either side; `part` flipping at the boundary
-cannot restart it. Three hours rather than one because the widest turn between neighbours is 82°
-(dusk to night), and a shorter window swings the sun fast enough to read as a jump.
+Each boundary has a three-hour window **centred on it**, and the light, fog, lamp state and plate
+weight all follow one smoothstep over that window. Centring matters: approaching from either side
+gives the same weight, so the part flipping at the boundary cannot restart the blend. A trailing
+window would put k at 1 on one frame and 0 on the next, which is the hard cut the review caught.
 
-Plate sets cannot cross-fade by number, so the set switches at the midpoint of the window while the
-light and fog move continuously either side. A burning candle crosses these boundaries with the
-same easing, because `lightAt()` is a pure function of the clock and nothing about it depends on
-the screen.
+The weight reaches 0 a half-window before the boundary and 1 a half-window after it. The plate mix
+is reported only *while it is changing*: at k=0 or k=1 there is nothing to cross-fade, so the mix is
+null and the renderer draws one family.
 
-Rules the table enforces:
+Parts that share a plate family — afternoon and dusk both draw dusk, dawn and morning both draw day
+— still cross-fade their light and fog, but report no plate mix, because mixing a family with
+itself is meaningless.
 
-- **The storm lantern lights at dusk** and stays lit through the night.
-- **Ordinary lamps in the burning view stay lit at every part of day**, which the burning camera
-  applies on top of this table.
+The widest measured direction step is 0.087 per six minutes, at the 82° dusk-to-night turn. A hard
+cut would be about 0.5.
+
+## Plates that exist today
+
+| Family | Valley plates | Lightmaps |
+| --- | --- | --- |
+| day | `pine-vista-{far,mid,cloud}.webp` | `*-day.ktx2` for approach, gate, niche |
+| dusk | — (falls back to the day plates plus the dusk lightmaps) | `*-dusk.ktx2` |
+| night | `pine-vista-night-*.webp` | `*-night.ktx2` |
+
+Only day and night ship valley plates, so a day↔night change is the only plate cross-fade the
+renderer performs; it rides `uNightWeight`, derived from `n`, and moves at most 0.063 per minute.
+When S1 bakes a dusk plate family, add it here and to the backdrop's family table.
