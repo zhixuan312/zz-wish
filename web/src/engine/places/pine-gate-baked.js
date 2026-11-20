@@ -268,9 +268,8 @@ export default function createPlace(h) {
       // The cloth is tied to the tray's wall, so it follows the tray's live XZ scale and is lit only
       // by the visitor's own flame: at night it must not read brighter than the stone beside it.
       context.up.push((_dt, _time, daylight) => {
-        // `daylight` is 0 at night and 1 in full day, so the strip loses its sky light after dusk and
-        // keeps only what the visitor's own candle gives it.
-        cloth.setLight({ own: cloth.group.visible ? 1 : 0, ambient: daylight ?? 1 });
+        // The strip loses its sky light as the lamp takes over, so at night it is lit by the candle.
+        cloth.setLight({ daylight });
       });
       // The tray's live XZ scale is set by the lamp when a candle shape is chosen; the scene calls
       // this so the strip follows the wall it is tied to.

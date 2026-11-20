@@ -106,16 +106,18 @@ export function createWishCloth({ THREE, anchor, url = CLOTH_URL, loader = new G
       group.scale.set(value, 1, value);
     },
     /**
-     * Light the strip as the older wax stubs are lit: nothing of its own, just the candle. `lit` is
-     * how much the visitor's own flame is giving, so a tail away from the flame stays darker.
+     * Light the strip as the older wax stubs are lit: nothing of its own, just what reaches it.
+     * `daylight` is the place's clock curve, whose `lamp` is 1 once the sky has gone. At night the
+     * strip keeps almost no sky reflection, so it cannot read brighter than the stone beside it.
      */
-    setLight({ own = 0, ambient = 1 } = {}) {
+    setLight({ daylight = null } = {}) {
       if (!mesh) return;
       const material = mesh.material;
       if (!material) return;
-      // The strip must never read brighter than the stone beside it: at night it is candle-lit only.
-      material.envMapIntensity = .06 + .26 * ambient;
-      material.color?.setRGB?.((.39) * .82 + .05 * own, (.015) * .82, (.023) * .82);
+      // A missing or malformed curve must not write NaN into the material, which blanks the frame.
+      const lamp = Number.isFinite(daylight?.lamp) ? daylight.lamp : 1;
+      const sky = 1 - Math.min(1, Math.max(0, lamp));
+      material.envMapIntensity = .05 + .27 * sky;
     },
     show(lit) { group.visible = wishClothVisible(lit); },
     worldPosition() { return group.getWorldPosition(new V3()); },
