@@ -1877,12 +1877,11 @@ async function buildPlaceNow(t, isolated = false) {
   // frame must still reach its normal framebuffer while shaders link.
   let visitorPreview;
   const target = renderer.getRenderTarget(), warm = new THREE.WebGLRenderTarget(4, 4);
-  const warmPrograms = streamsSnowInterior ? compileIntoTarget(stage, stageCamera, warm) : null;
   try {
     // A streamed Snow Court opens on the road. Its visitor lamp shaders can
     // link with the actual lamp when the player reaches the hall.
     await renderer.compileAsync(stage, stageCamera);
-    if (warmPrograms) await warmPrograms;
+    if (streamsSnowInterior) await compileIntoTarget(stage, stageCamera, warm);
     if (P.bakedLighting && P.nook.lamp === 'gauze' && !streamsSnowInterior) {
       visitorPreview = LAMPS.gauze({ ...presetOf('shade'), liveBaked: true });
       const basis = context.baked.manifest.lampBasis.position;
