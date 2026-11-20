@@ -117,8 +117,8 @@ def main():
     parser.add_argument('--quality', type=int, default=88)
     parser.add_argument('--width', type=int, help='Optional integer downsample width; the Cycles master is left untouched.')
     parser.add_argument('--layers', choices=LAYERS, nargs='+', default=LAYERS)
-    parser.add_argument('--night-shadows', action='store_true',
-                        help='Preserve moonlit terrain RGB losslessly. Use the given quality for clouds.')
+    parser.add_argument('--night-shadows', action=argparse.BooleanOptionalAction, default=None,
+                        help='Preserve moonlit terrain RGB losslessly by default. Use the given quality for clouds.')
     args = parser.parse_args()
     contract = json.loads((ROOT / 'shared/pine-gate-backdrop.json').read_text())
     render = json.loads((args.input / 'render.json').read_text())
@@ -127,7 +127,9 @@ def main():
         raise ValueError('The input must cover the authored projection with the original aspect ratio.')
     if render['alpha'] != 'straight' or render['colorSpace'] != 'scene-linear Rec.709' or render['exposureAppliedStops'] != 0:
         raise ValueError('Expected straight-alpha scene-linear masters before camera exposure.')
-    if args.night_shadows and render.get('lighting') != 'night':
+    is_night = render.get('lighting') == 'night'
+    night_shadows = is_night if args.night_shadows is None else args.night_shadows
+    if night_shadows and not is_night:
         raise ValueError('The night-shadow profile requires moonlit masters.')
     output_width = width if args.width is None else args.width
     if output_width <= 0 or width % output_width or height % (width // output_width):
@@ -151,14 +153,14 @@ def main():
             write_rgba_png(png, image)
             # VP8 quantization and chroma subsampling flatten the dark terrain
             # into visible blocks after log decoding and the AgX view.
-            lossless = args.night_shadows and name != 'cloud'
+            lossless = night_shadows and name != 'cloud'
             profile = ['-lossless', '-q', '100', '-m', '6'] if lossless else ['-q', str(args.quality), '-m', '4']
             subprocess.run(['cwebp', '-quiet', *profile, '-alpha_q', '100', '-exact',
                             str(png), '-o', str(target)], check=True)
         variants[name] = {'uri': target.name, 'bytes': target.stat().st_size, 'sha256': digest(target),
                           'masterSha256': master_hash, 'clippedRadiancePixels': clipped,
                           'clippedOpaquePixelEquivalent': round(clipped_coverage, 2),
-                          **({'webpEncoding': 'VP8L' if lossless else 'VP8'} if args.night_shadows else {})}
+                          **({'webpEncoding': 'VP8L' if lossless else 'VP8'} if night_shadows else {})}
         print('PINE_BACKDROP_PLATE', name, json.dumps(variants[name]), flush=True)
     (args.out / 'encode.json').write_text(json.dumps({
         'width': output_width, 'height': height // factor, 'encoding': 'log2-8-8',
@@ -166,8 +168,8 @@ def main():
         'preExposure': contract['preExposure'],
         'colorSpace': 'linear', 'alpha': 'straight', 'webpQuality': args.quality,
         'renderSha256': digest(args.input / 'render.json'), 'layers': variants,
-        **({'webpProfile': 'night-shadows'} if args.night_shadows else {}),
-        **({'lighting': 'night', 'projectionSha256': render['projectionSha256']} if render.get('lighting') == 'night' else {}),
+        **({'webpProfile': 'night-shadows'} if night_shadows else {}),
+        **({'lighting': 'night', 'projectionSha256': render['projectionSha256']} if is_night else {}),
     }, indent=2) + '\n')
 
 
