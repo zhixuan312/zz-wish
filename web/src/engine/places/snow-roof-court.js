@@ -1,7 +1,7 @@
 import { loadBakedPlace } from '../baked/loadPlace.js';
 import { loadSnowCourtBackdrop } from './snow-court-backdrop.js';
 import { buildSnowChimney } from './snow-court-chimney.js';
-import { winterCourtWalk, winterCourtEntry, winterCourtEntrySeconds } from './snow-court-camera.js';
+import { winterCourtWalk, winterCourtEntry, winterCourtEntrySeconds, winterCourtBurnSettle } from './snow-court-camera.js';
 import { addSnowCourtGauzeTransmission } from './snow-court-gauze.js';
 import { buildSnowDoorDrift, isWinterCourtSnow, tuneWinterCourtSnow } from './snow-court-snow.js';
 import projection from '../../../../shared/snow-court-backdrop.json' with { type: 'json' };
@@ -86,12 +86,11 @@ export default function createWinterCourt(h) {
     const direction = V3(Math.sin(yaw) * Math.cos(tilt), Math.sin(tilt), -Math.cos(yaw) * Math.cos(tilt));
     return { pos, look: pos.clone().addScaledVector(direction, 3.5), fov };
   };
-  const choiceDesktop = lampView(2.22, -8.97, -116.5, -3, 67);
-  const choicePhone = lampView(2.22, -8.96, -117.65, -41, 127);
-  const lampDesktop = lampView(2.22, -8.97, -140, -3, 51);
-  const lampPhone = lampView(2.22, -8.96, -144, -12, 80);
+  const choiceDesktop = lampView(2.19, -8.97, -116.5, -3, 67);
+  const choicePhone = lampView(2.19, -8.96, -117.65, -41, 128);
+  const lampDesktop = lampView(.10, -7.52, -176, -4, 65);
+  const lampPhone = lampView(.16, -7.51, -173, -8, 60);
   const entrance = pose(site.walk[0]);
-  const gaze = V3();
   return {
     bakedLighting: true, cameraFar: 880, exposure: 1.11, shade: .55,
     sky: { top: 0x14243c, horizon: 0x59718a, ground: 0x212936, sun: 0xd9eaff,
@@ -109,17 +108,18 @@ export default function createWinterCourt(h) {
     },
     view: entrance, viewPhone: { ...entrance, fov: entrance.fov + 5 },
     cameraExposure(camera, light) {
-      // Eyes adjust to the two deep door shadows and to the stone below the
-      // cloth while looking down to choose. Looking back up ends the lift.
-      const depth = -camera.position.z;
+      // Adapt to the much dimmer hall after the bright court. The local
+      // gate lift follows the shadow and dies away before the wide reveal.
+      const { z } = camera.position;
       const { smoothstep } = THREE.MathUtils;
-      const hallShade = smoothstep(depth, .75, 3.1) * (1 - smoothstep(depth, 4.8, 8.1));
       const gateZ = site.gate.center[2];
-      const gateShade = smoothstep(-depth, gateZ + 1.65, gateZ + 3.8)
-        * (1 - smoothstep(-depth, gateZ + 4.95, gateZ + 6.95));
-      const stoneFloor = smoothstep(depth, 7.5, 8.6)
-        * smoothstep(-camera.getWorldDirection(gaze).y, .39, .62);
-      return 1 + .68 * hallShade + .34 * light.n * gateShade + .22 * stoneFloor;
+      const gateShade = smoothstep(z, gateZ + 1.55, gateZ + 3.55)
+        * (1 - smoothstep(z, gateZ + 5, gateZ + 7.8));
+      const hall = smoothstep(-z, -1.75, 1.55);
+      const threshold = smoothstep(-z, .8, 2.8) * (1 - smoothstep(-z, 4.3, 5.9));
+      const gateEV = THREE.MathUtils.lerp(1.34, .52, light.n);
+      const hallEV = THREE.MathUtils.lerp(2.63, .72, light.n);
+      return 2 ** (gateEV * gateShade + hallEV * hall + .37 * threshold);
     },
     walk: [], walkSeconds: site.walkSeconds,
     createWalk: (start, _end, phone) => winterCourtWalk(THREE, site, start, phone),
@@ -221,7 +221,8 @@ export default function createWinterCourt(h) {
       interior: { min: [site.hall.west, site.hall.floor, site.hall.rear],
         max: [site.hall.east, site.hall.eave, site.hall.front] },
       wide: arrival, widePhone: { ...arrival, fov: arrival.fov + 5 },
-      steadyIgnition: true, settleGaze: true,
+      steadyIgnition: true,
+      createBurnSettle: (start, end) => winterCourtBurnSettle(THREE, site.visitorCord, start, end),
       choose: choiceDesktop, choosePhone: choicePhone,
       burn: lampDesktop, burnPhone: lampPhone,
       build() {},

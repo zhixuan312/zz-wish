@@ -73,19 +73,17 @@ export function winterCourtWalk(THREE, site, start, phone) {
 
 export const winterCourtEntrySeconds = 19;
 
-function easedDistance(start, end, distance, ramp) {
-  const speed = distance / (end - start - ramp);
-  return [
-    [start, 0, 0],
-    [start + ramp, speed * ramp / 2, speed],
-    [end - ramp, distance - speed * ramp / 2, speed],
-    [end, distance, 0],
-  ];
-}
-
 function viewingAngles({ pos, look }) {
   const direction = look.clone().sub(pos).normalize();
   return [Math.atan2(direction.x, -direction.z), Math.asin(direction.y)];
+}
+
+function lookAlong(THREE, rig, yaw, pitch, distance) {
+  const horizontal = Math.cos(pitch) * distance;
+  rig.look.copy(rig.pos);
+  rig.look.x += Math.sin(yaw) * horizontal;
+  rig.look.y += Math.sin(pitch) * distance;
+  rig.look.z -= Math.cos(yaw) * horizontal;
 }
 
 /** Cross the hall doorway head-on, then follow the aisle beside the lamp row. */
@@ -98,9 +96,8 @@ export function winterCourtEntry(THREE, start, end) {
     new THREE.Vector3(.28, 3.53, -3.55),
     new THREE.Vector3(.29, 3.66, -4.44),
     new THREE.Vector3(.48, 3.655, -5.13),
-    new THREE.Vector3(1.85, 3.65, -5.22),
-    new THREE.Vector3(2.38, 3.65, -6.31),
-    new THREE.Vector3(end.pos.x, 3.65, -7.82),
+    new THREE.Vector3(1.66, 3.65, -5.22),
+    new THREE.Vector3(1.95, 3.65, -6.24),
     end.pos,
   ];
   const { curve, at, length } = measureCurve(THREE, points, point => {
@@ -126,10 +123,15 @@ export function winterCourtEntry(THREE, start, end) {
   const [yaw0, pitch0] = viewingAngles(start);
   const [yaw1, pitch1] = viewingAngles(end);
   const turn = THREE.MathUtils.euclideanModulo(yaw1 + Math.PI, Math.PI * 2) - Math.PI;
-  const turnKeys = easedDistance(insideTime + .32, duration, 1, 1.15);
+  const turnKeys = [
+    [10.78, 0, 0],
+    [12.16, .16, .175],
+    [14.36, .57, .187],
+    [16.78, .91, .085],
+    [duration, 1, 0],
+  ];
   const startDistance = start.pos.distanceTo(start.look);
   const endDistance = end.pos.distanceTo(end.look);
-  const direction = new THREE.Vector3();
   return (progress, rig) => {
     const time = progress * duration;
     curve.getPointAt(distanceBetween(distances, time) / length, rig.pos);
@@ -138,9 +140,32 @@ export function winterCourtEntry(THREE, start, end) {
     const approach = THREE.MathUtils.smoothstep(time, 0, 7.6);
     const angle = distanceBetween(turnKeys, time);
     const yaw = yaw0 * (1 - approach) + turn * angle;
-    const pitch = THREE.MathUtils.lerp(pitch0 * (1 - approach), pitch1, angle);
-    direction.set(Math.sin(yaw) * Math.cos(pitch), Math.sin(pitch), -Math.cos(yaw) * Math.cos(pitch));
-    rig.look.copy(rig.pos).addScaledVector(direction, THREE.MathUtils.lerp(startDistance, endDistance, angle));
+    // The natural eye line follows the row before the chooser looks down
+    // enough to leave room for the controls.
+    const down = THREE.MathUtils.smoothstep(time, 15, duration);
+    const pitch = THREE.MathUtils.lerp(pitch0 * (1 - approach), pitch1, down);
+    lookAlong(THREE, rig, yaw, pitch, THREE.MathUtils.lerp(startDistance, endDistance, angle));
     rig.fov = THREE.MathUtils.lerp(start.fov, end.fov, angle);
+  };
+}
+
+/** Round the visitor's side of the beam as the light spreads. */
+export function winterCourtBurnSettle(THREE, cord, start, end) {
+  const { lerp, smoothstep, euclideanModulo } = THREE.MathUtils;
+  const radius = pose => Math.hypot(pose.pos.x - cord[0], pose.pos.z - cord[2]);
+  const azimuth = pose => Math.atan2(pose.pos.x - cord[0], pose.pos.z - cord[2]);
+  const wrap = delta => euclideanModulo(delta + Math.PI, 2 * Math.PI) - Math.PI;
+  const radiusStart = radius(start), radiusEnd = radius(end);
+  const orbitStart = azimuth(start), orbitDelta = wrap(azimuth(end) - orbitStart);
+  const [yawStart, pitchStart] = viewingAngles(start);
+  const [yawEnd, pitchEnd] = viewingAngles(end);
+  const yawDelta = wrap(yawEnd - yawStart);
+  return (progress, rig) => {
+    const t = smoothstep(progress, .04, .98);
+    const r = lerp(radiusStart, radiusEnd, t), angle = orbitStart + orbitDelta * t;
+    rig.pos.set(cord[0] + Math.sin(angle) * r, lerp(start.pos.y, end.pos.y, t), cord[2] + Math.cos(angle) * r);
+    lookAlong(THREE, rig, yawStart + yawDelta * t, lerp(pitchStart, pitchEnd, t), 3.5);
+    const aperture = fov => Math.tan(THREE.MathUtils.degToRad(fov / 2));
+    rig.fov = THREE.MathUtils.radToDeg(2 * Math.atan(lerp(aperture(start.fov), aperture(end.fov), t)));
   };
 }
