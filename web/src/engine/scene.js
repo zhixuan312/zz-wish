@@ -1834,6 +1834,9 @@ async function buildPlaceNow(t, isolated = false) {
   context.baked?.updateWaxSun?.(dir);
   // The spot where the lamp is lit, built in its own frame and set into the place.
   const N = P.nook, nookG = new THREE.Group(); nookG.position.copy(N.at.pos); nookG.rotation.y = N.at.ry ?? 0; G.add(nookG); nookG.updateMatrixWorld(true);
+  // The world group, so a place can add world-space geometry while its own build runs; context.G is
+  // the nook group for the duration of that build.
+  context.world = G;
   context.G = nookG; context.bat = new Map(); context.cover = null;
   await N.build(placeHelpers, context);
   if (!isolated) await finishBatch();

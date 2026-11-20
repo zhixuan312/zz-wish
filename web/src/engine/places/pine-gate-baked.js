@@ -162,7 +162,11 @@ export default function createPlace(h) {
           && globalThis.__DIAG_NO_PRINTS === true;
         const mud = createMudPrints({ THREE, surface: stone, prints: hidePrints ? [] : PINE_PRINTS });
         if (mud.count) {
-          context.G.add(mud.group);
+          // The prints are already in world metres: their quads are raycast onto world stone. Adding
+          // them to context.G during a place build puts them under the nook group, whose own offset
+          // then displaces every print and inflates its reported screen box. They belong to the
+          // world group.
+          (context.world ?? context.G).add(mud.group);
           // Read by the Tier 1 test: the trail must place every print on real paving. The hooks are
           // compiled out of a normal build; the Tier 1 build sets VITE_E2E_HOOKS=1.
           if (import.meta.env.DEV || import.meta.env.VITE_E2E_HOOKS === '1') {
@@ -172,7 +176,10 @@ export default function createPlace(h) {
             // Project with the very camera the renderer draws with, after refreshing its matrices.
             // Anything else can be a stale pose from an earlier frame, which is what made the reported
             // boxes several times the frame.
-            const camera = globalThis.__pineRenderCamera ?? globalThis.__pineDiagCamera;
+            const camera = globalThis.__pineRenderCamera;
+            // No fallback: E2E builds always expose the render camera, and silently projecting with
+            // some other camera would hide a broken hook behind a plausible-looking number.
+            if (!camera) return null;
             if (!camera) return null;
             camera.updateMatrixWorld(true);
             camera.updateProjectionMatrix();
