@@ -25,7 +25,7 @@ SITE = ROOT / 'shared/snow-roof-court-site.json'
 PROJECTION = ROOT / 'shared/snow-court-backdrop.json'
 
 
-def palette():
+def palette(site):
     materials = {
         'snow': mesh.material('Wind-packed winter snow', '#e2ebf3', 'snow_004', .93),
         'granite': mesh.material('Grey pass granite', '#aeb1b0', 'stone_pavers', .76),
@@ -53,7 +53,7 @@ def palette():
     materials['red']['one_light_painted_timber'] = True
     mesh.painted_timber_finish(materials['red'])
     mesh.weather_plaster(materials['plaster'])
-    materials['hall_plaster'] = finish.plaster_material(mesh, ROOT)
+    materials['hall_plaster'] = finish.plaster_material(mesh, ROOT, site['hall'])
     materials['slate'] = mesh.material('Slightly worn blue-grey hall slate', '#ccdbe7', 'stone_pavers', .84)
     mesh.vertex_tint_shader(materials['slate'])
     # The old stones carry individual scanned faces and authored colour variation.
@@ -565,14 +565,15 @@ def hall(site, m, contact, fixtures):
     for side in (-1, 1):
         wall = mesh.box('Limewashed side wall inside the hall', (.21, wall_height, depth),
                         (side * right, y + wall_height / 2, z), m['plaster'], .019)
-        finish.interior_plaster(wall, m['hall_plaster'], 0, -side, y, wall_height, reverse=side > 0)
+        face = 'west' if side < 0 else 'east'
+        finish.interior_plaster(wall, m['hall_plaster'], 0, -side, face + '_wall')
         for zz in (back + .32, front - .30):
             mesh.lathe('Painted hall post on a granite shoe', [(.132, 0), (.145, .10), (.126, wall_height)],
                        (side * (right - .17), y, zz), m['red'], 22)
         px = side * 2.75
         sill = mesh.box('Hall front sill below the lattice', (2.72, .66, .225),
                         (px, y + .32, front), m['plaster'], .016)
-        finish.interior_plaster(sill, m['hall_plaster'], 1, 1, y, wall_height, reverse=side > 0)
+        finish.interior_plaster(sill, m['hall_plaster'], 1, 1, face + '_sill')
         hall_paper_and_lattice(px, y, front, m)
         mesh.box('Low timber apron below the paper lattice', (2.66, .087, .091),
                  (px, y + .542, front - .175), m['wood'], .010)
@@ -583,7 +584,7 @@ def hall(site, m, contact, fixtures):
     scripture_shelf(front, y, m, contact)
     rear = mesh.box('Subdued rear wall behind the Buddha', (span, wall_height, .22),
                     (0, y + wall_height / 2, back), m['plaster'], .021)
-    finish.interior_plaster(rear, m['hall_plaster'], 1, -1, y, wall_height)
+    finish.interior_plaster(rear, m['hall_plaster'], 1, -1, 'rear_wall')
     mesh.box('Two solid lintels support the half-open doors', (2.61, .27, .24), (0, eave - .17, front), m['red'], .021)
     for side in (-1, 1):
         x = side * 1.26
@@ -707,7 +708,7 @@ def build(site, projection):
     daylight.use_fake_user = True
     plates.set_world(scene, look_transport(projection['light']['night']), pre_exposure, 'Clear moonlit winter pass')
     scene['one_light_ambient_worlds'] = json.dumps({'day': daylight.name})
-    m = palette()
+    m = palette(site)
     gauze_maps(m[key] for key in ('glow', 'red_faded', 'red_dust', 'red_old', 'new_gauze'))
     for key in ('glow', 'red_faded', 'red_dust', 'red_old'):
         mesh.vertex_tint_shader(m[key])
