@@ -106,14 +106,16 @@ export function installSnowCourtJourneyAudit() {
     const bounds = new THREE.Box3();
     // Needles are shipped as another GLB next to the baked model. Recognize
     // the artist's mesh metadata without changing anything in the live scene.
-    const crowns = [];
+    const crowns = new Set();
     for (const sibling of baked.group.parent.children) {
       if (sibling === baked.group) continue;
-      sibling.traverseVisible(mesh => {
-        if (mesh.isMesh && mesh.userData.snow_court_needle_crowns === true) crowns.push(mesh);
+      sibling.traverseVisible(object => {
+        if (object.userData.snow_court_needle_crowns !== true) return;
+        // A glTF with two materials keeps the mark on the parent node.
+        object.traverseVisible(mesh => { if (mesh.isMesh) crowns.add(mesh); });
       });
     }
-    if (!crowns.length) throw new Error('Expected a separate authored Snow Court needle-crown mesh.');
+    if (!crowns.size) throw new Error('Expected a separate authored Snow Court needle-crown mesh.');
     function collect(mesh, transform, clip, source, output) {
       const { geometry, material } = mesh;
       const mirrored = transform.determinant() < 0;
@@ -302,7 +304,7 @@ export function installSnowCourtJourneyAudit() {
     }
     return { frames, settledAt, rayDistance, ndcPoints, bakedTriangles, needleTriangles, drawLuminanceSource,
       lampBasis: baked.manifest.lampBasis.position,
-      needleMeshNames: crowns.map(mesh => mesh.name), visitorClothVariants: visitorTrees.filter(Boolean).length, visitorClothFrames,
+      needleMeshNames: Array.from(crowns, mesh => mesh.name), visitorClothVariants: visitorTrees.filter(Boolean).length, visitorClothFrames,
       minimumClothOpacity,
       rayScope: 'Visible baked model and separately loaded crowns, plus each draw’s visitor cloth transform. Counts opaque triangles and old/new cloth with material opacity at least 0.70, respecting near clipping and sidedness.',
       earlierClothVertices: Object.fromEntries(Array.from(earlierVertices, ([slot, cloth]) => [slot, cloth.size])),
