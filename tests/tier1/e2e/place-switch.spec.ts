@@ -7,10 +7,23 @@ type PlaceBuilds = { started: string[]; superseded: { id: string; checkpoint: st
 // Switching place while the speculative build of the default court is still running must abandon that
 // build rather than let two of them compete for the GPU. This is the only test that proves the abandon
 // path is reached: it waits for the default build to actually start, then switches.
-test('switching place abandons the running build and both courts stay usable', async ({ page }, testInfo) => {
-  test.skip(testInfo.project.name !== 'desktop-en', 'one viewport is enough for this path');
+test('switching place abandons the running build and both courts stay usable', async ({ page }) => {
   const pageErrors: string[] = [];
   page.on('pageerror', (error) => pageErrors.push(String(error)));
+
+  // Hold an asset that the Snow Roof build itself awaits, after it has started. The manifest is no
+  // good for this: it is fetched by the prefetch step before the build begins, so holding it would
+  // only delay the build's start. `ensureVisitorFabric` (scene.js) runs inside buildPlaceNow, just
+  // after its `started` entry, and loads /places/snow-roof/gauze-*.webp; the normal map is the biggest
+  // of the three. The route is installed before the first navigation so no request can slip past.
+  let release!: () => void;
+  const gate = new Promise<void>((resolve) => { release = resolve; });
+  let held = false;
+  await page.route('**/places/snow-roof/gauze-normal.webp*', async (route) => {
+    held = true;
+    await gate;
+    await route.continue();
+  });
 
   // Pin the clock to 13:00 so the rebuilt court is measured in daylight; the brightness check below
   // would otherwise read midnight and say nothing about whether the package loaded.
@@ -20,16 +33,19 @@ test('switching place abandons the running build and both courts stay usable', a
   await page.getByLabel(re('你的愿望', 'Your wish')).fill('A court I can change my mind about.');
   await page.getByRole('button', { name: re('许好了', 'Set my wish') }).click();
 
-  // Hold Snow Roof's manifest so its build cannot finish, then let it start. Waiting for the start
-  // makes the switch deterministic: without this the build may already be cached.
-  await page.route('**/places/snow-roof/manifest.json', async (route) => { await route.continue(); });
-  await page.waitForFunction(() => {
+  // Wait for the build to be suspended on the held asset, not merely for it to have started: the
+  // started entry is pushed before the fabric loads, so only the request itself proves the build is
+  // parked at a real await.
+  await expect.poll(() => held, { timeout: 30_000 }).toBe(true);
+  const started = await page.evaluate(() => {
     const builds = (window as Window & { __placeBuilds?: PlaceBuilds }).__placeBuilds;
-    return !!builds?.started.includes('snow-roof');
-  }, null, { timeout: 30_000 });
+    return builds?.started ?? [];
+  });
+  expect(started, 'the held asset belongs to a build that has begun').toContain('snow-roof');
 
   // Now choose Pine Gate. The running Snow Roof build is no longer wanted.
   await page.getByRole('radio', { name: re('松门石阶', 'Pine Gate Steps') }).click();
+  release();
   await page.waitForFunction(() => {
     const builds = (window as Window & { __placeBuilds?: PlaceBuilds }).__placeBuilds;
     return (builds?.superseded ?? []).some((entry) => entry.id === 'snow-roof');
