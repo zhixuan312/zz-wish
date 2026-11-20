@@ -162,6 +162,12 @@ def between(a, b, t):
     return tuple(mix(x, y, t) for x, y in zip(a, b))
 
 
+def path_point(path, t):
+    station = t * (len(path) - 1)
+    segment = min(len(path) - 2, int(station))
+    return between(path[segment], path[segment + 1], station - segment)
+
+
 class Geometry:
     """Combine repeated forms while preserving their individual source charts."""
 
@@ -199,60 +205,107 @@ def rock(mesh, granite, snow, ground_height, face):
     seed = round(abs(x) * 173 + z * 699)
     rng = random.Random(seed)
     root = ground_height(x, z) - ry * .29
-    spines = [(i / 7 * math.tau + rng.uniform(-.17, .17), rng.uniform(.79, 1.14))
-              for i in range(7)]
+    sides = 11
+    strike = rng.uniform(0, math.tau)
+    spines = [(strike + i / sides * math.tau + rng.uniform(-.15, .15), rng.uniform(.76, 1.10))
+              for i in range(sides)]
+    lean = rng.uniform(-.15, .15), rng.uniform(-.20, .20)
+    ledges = [rng.uniform(-.13, .13) for _ in spines]
     rings = []
-    for lift, spread in [(-.35, .71), (.14, 1), (.69, .69), (.93, .35)]:
-        rings.append([(x + math.cos(a) * rx * f * spread + lift * rx * .11,
-                       root + (lift + rng.uniform(-.16, .16)) * ry,
-                       z + math.sin(a) * rz * f * spread - lift * rz * .19)
-                      for a, f in spines])
-    body = Geometry()
-    for ring, low in enumerate(rings[:-1]):
-        high = rings[ring + 1]
-        for i in range(7):
-            j = (i + 1) % 7
-            body.triangle(low[i], high[i], high[j])
-            body.triangle(low[i], high[j], low[j])
-    tip = (x + rx * .20, root + ry * 1.03, z - rz * .21)
-    for i in range(7):
-        body.triangle(rings[-1][i], tip, rings[-1][(i + 1) % 7])
-    body.write(mesh, f'Wind-scoured granite outcrop {seed}', granite, 'Triangulated granite faces; metre scale.')
-
-    # A sloping snow cap follows each exposed rock lip and thins into the stone.
-    rim = [add(between(rings[2][i], rings[3][i], rng.uniform(.10, .70)),
-               (0, rng.uniform(.01, .028), 0)) for i in range(7)]
-    crown = [add(p, (0, rng.uniform(.055, .105), 0)) for p in rings[3]]
-    cap_tip = add(tip, (0, .078 + ry * .031, 0))
-    points = rim + crown + [cap_tip]
+    profile = [(-.38, .66), (.07, .91), (.30, .98), (.59, .83), (.84, .54), (.96, .24)]
+    for row, (lift, span) in enumerate(profile):
+        ring = []
+        for column, (angle, size) in enumerate(spines):
+            radius = span * size * rng.uniform(.89, 1.06)
+            dx = math.cos(angle) * radius + lift * lean[0]
+            dz = math.sin(angle) * radius + lift * lean[1]
+            tilt = .16 * (dx * math.cos(strike) + dz * math.sin(strike))
+            height = root + ry * (lift + tilt + ledges[column] * (.55 if row < 2 else 1))
+            if row == 0:
+                height = min(height, ground_height(x + dx * rx, z + dz * rz) - .06)
+            ring.append((x + dx * rx, height, z + dz * rz))
+        rings.append(ring)
+    points = [point for ring in rings for point in ring]
+    points.append((x + rx * lean[0], root + ry * 1.02, z + rz * lean[1]))
+    peak = len(points) - 1
     faces = []
-    for i in range(7):
-        j = (i + 1) % 7
-        faces.extend([(i, i + 7, j + 7), (i, j + 7, j), (i + 7, 14, j + 7)])
-    obj = mesh.mesh_object(f'Drift over granite {seed}', points, faces, snow, REGION)
-    mesh.source_uv(obj, [[(points[i][0], points[i][2]) for i in face] for face in faces],
-                   'Top-projected connected snow cap; metre scale.')
-    for face in obj.data.polygons:
+    charts = []
+    # Use one strip around the exposed lower facies and a separate projection
+    # above it, with the same metric coordinates used for the actual scan.
+    arcs = [0.]
+    for i in range(sides):
+        other = (i + 1) % sides
+        arcs.append(arcs[-1] + math.dist(rings[2][i], rings[2][other]))
+    snow_first_ring = 3
+    for row in range(len(rings) - 1):
+        for i in range(sides):
+            a, b = row * sides + i, row * sides + (i + 1) % sides
+            c, d = a + sides, b + sides
+            pair = [(a, c, d), (a, d, b)]
+            faces.extend(pair)
+            if row >= snow_first_ring:
+                charts.extend([[(points[v][0], points[v][2]) for v in triangle] for triangle in pair])
+                continue
+            band = [(arcs[i], profile[row][0] * ry), (arcs[i], profile[row + 1][0] * ry),
+                    (arcs[i + 1], profile[row + 1][0] * ry), (arcs[i + 1], profile[row][0] * ry)]
+            charts.extend([band[:3], [band[0], band[2], band[3]]])
+    top = peak - sides
+    for i in range(sides):
+        triangle = (top + i, peak, top + (i + 1) % sides)
+        faces.append(triangle)
+        charts.append([(points[v][0], points[v][2]) for v in triangle])
+    body = mesh.mesh_object(f'Wind-scoured weathered outcrop {seed}', points, faces, granite, REGION)
+    rock_profile_uv = []
+    for i, (polygon, coordinates) in enumerate(zip(body.data.polygons, charts)):
+        polygon.use_smooth = True
+        if i < snow_first_ring * sides * 2:
+            rock_profile_uv.append(coordinates)
+        else:
+            rock_profile_uv.append([(u - x, v - z + ry * 3.4) for u, v in coordinates])
+    mesh.source_uv(body, rock_profile_uv, 'Connected facies strip and separated planar crown; metre scale.')
+    material_uv = body.data.uv_layers['UVMap'].data
+    shift_u, shift_v = rng.random(), rng.random()
+    for polygon, coordinates in zip(body.data.polygons, rock_profile_uv):
+        for loop, (u, v) in zip(polygon.loop_indices, coordinates):
+            material_uv[loop].uv = (u / 1.32 + shift_u, v / 1.32 + shift_v)
+
+    # Follow the same triangles as the rock, down to a thin attached rim.
+    # The asymmetric lip exposes the windward edge and thickens in its lee.
+    first = snow_first_ring * sides
+    snow_points = []
+    for i, point in enumerate(points[first:], first):
+        row = i // sides
+        phase = spines[i % sides][0]
+        leeward = .5 + .5 * math.cos(phase - strike)
+        thickness = .003 if row == snow_first_ring else (.034 + .050 * leeward + .027 * (row - 4))
+        snow_points.append(add(point, (0, thickness, 0)))
+    snow_faces = [tuple(v - first for v in face) for face in faces[first * 2:]]
+    cap = mesh.mesh_object(f'Wind-set snow lapping onto rock {seed}', snow_points, snow_faces, snow, REGION)
+    mesh.source_uv(cap, [[(snow_points[i][0], snow_points[i][2]) for i in face] for face in snow_faces],
+                   'Joined snow cover follows the actual rock triangles; metre scale.')
+    for face in cap.data.polygons:
         face.use_smooth = True
 
 
-def twig_fan(needles, branch, direction, rng, spread, close):
-    """A three-dimensional group of long needles, supported by the fork."""
-    az = math.atan2(direction[2], direction[0])
-    count = 23 if close else 17
-    for needle in range(count):
-        t = .22 + .77 * needle / (count - 1)
-        segment = min(len(branch) - 2, int(t * (len(branch) - 1)))
-        hinge = between(branch[segment], branch[segment + 1], t * (len(branch) - 1) - segment)
-        phase = math.tau * .381966 * needle + rng.uniform(-.24, .24)
-        angle = az + math.sin(phase) * rng.uniform(.43, 1.15)
-        y = math.cos(phase) * rng.uniform(.21, .64) + .14
-        length = spread * rng.uniform(.52, 1.22) * (1 - .32 * t)
-        direction = (math.cos(angle), y, math.sin(angle))
-        tip = add(hinge, scale(direction, length))
-        side = scale((-math.sin(angle), .74 * math.sin(phase), math.cos(angle)),
-                     length * rng.uniform(.031, .054))
-        needles.triangle(add(hinge, side), add(hinge, scale(side, -1)), tip)
+def twig_fans(needles, branch, az, rng, length, close):
+    """Layer the pine's fascicles along its youngest wood, leaving the scaffold bare."""
+    for station, sweep in ((.48, -.36), (.70, .46), (.91, -.13)):
+        phase = rng.uniform(0, math.tau)
+        count = 9 if close else 7
+        for needle in range(count):
+            pitch = phase + needle * 2.399963
+            anchor = path_point(branch, station + rng.uniform(-.035, .06))
+            angle = az + sweep + math.sin(pitch) * rng.uniform(.36, 1.28)
+            reach = length * rng.uniform(.64, 1.20)
+            raise_tip = rng.uniform(.06, .27) + .40 * math.cos(pitch)
+            middle = add(anchor, (math.cos(angle) * reach * .49, reach * (raise_tip + .10) * .51,
+                                  math.sin(angle) * reach * .49))
+            end_angle = angle + .23 * math.sin(pitch)
+            tip = add(anchor, (math.cos(end_angle) * reach, reach * raise_tip, math.sin(end_angle) * reach))
+            half_width = reach * rng.uniform(.032, .054)
+            edge = scale((-math.sin(angle), .78 * math.sin(pitch), math.cos(angle)), half_width)
+            points = [anchor, add(middle, edge), tip, add(middle, scale(edge, -1))]
+            needles.append(points, [(0, 1, 3), (1, 2, 3)], ())
 
 
 def snow_sleeve(snow, path, width, rng):
@@ -280,7 +333,7 @@ def pine(mesh, bark, needles, snow, ground_height, profile, i):
     trunk = [(x + lean * bend, ground + stature * y, z + bend * direction) for y, bend in
              [(-.042, 0), (.06, -.02), (.22, .12), (.42, .23),
               (.64, .59), (.81, .77), (.95, 1.13), (1, 1.22)]]
-    bark.tube(mesh, trunk, [root * r for r in (1.29, 1.03, .81, .67, .47, .31, .13, .025)], 8)
+    bark.tube(mesh, trunk, [root * r for r in (1.29, 1.03, .81, .67, .47, .31, .13, .025)], 10)
     for j in range(3):
         az = j / 3 * math.tau + rng.uniform(-.25, .25)
         reach = root * rng.uniform(2.1, 3.1)
@@ -290,37 +343,41 @@ def pine(mesh, bark, needles, snow, ground_height, profile, i):
                          (end[0], y - .055, end[2])], [root * .44, root * .28, .013], 5)
     phase = rng.uniform(0, math.tau)
     close = i < 8
-    for j in range(9):
-        t = .43 + j / 9 * .50 + rng.uniform(-.017, .017)
+    for j, tier in enumerate((.36, .43, .46, .53, .59, .63, .71, .77, .80, .88, .93)):
+        t = tier + rng.uniform(-.015, .015)
         ring = next(k for k, (a, b) in enumerate(zip(trunk, trunk[1:]))
                     if a[1] <= ground + stature * t <= b[1])
         a, b = trunk[ring:ring + 2]
         hinge = between(a, b, (ground + stature * t - a[1]) / (b[1] - a[1]))
         az = phase + j * 2.400 + rng.uniform(-.53, .51)
         horizontal = (math.cos(az), 0, math.sin(az))
-        length = stature * (1 - t) * rng.uniform(.47, .71)
+        shelter = .5 + math.copysign(.5, lean) * horizontal[0]
+        length = stature * (1 - t) * rng.uniform(.45, .65) * (.81 + .48 * shelter)
         radius = root * (1 - t) * rng.uniform(.26, .37)
-        bend = add(hinge, add(scale(horizontal, length * .36), (.13 * lean, -length * .10, 0)))
-        shoulder = add(hinge, add(scale(horizontal, length * .72), (.24 * lean, -length * .15, 0)))
-        end = add(hinge, add(scale(horizontal, length), (.36 * lean, length * .025, .08)))
-        bark.tube(mesh, [hinge, bend, shoulder, end], [radius, radius * .82, radius * .51, .008], 4, caps=False)
+        rise = length * rng.uniform(.04, .16)
+        bend = add(hinge, add(scale(horizontal, length * .32), (.07 * lean, -.09 * length, .04)))
+        shoulder = add(hinge, add(scale(horizontal, length * .70), (.20 * lean, -.13 * length, .08)))
+        elbow = add(hinge, add(scale(horizontal, length * .91), (.32 * lean, -.04 * length, .10)))
+        end = add(hinge, add(scale(horizontal, length), (.38 * lean, rise, .10)))
+        bark.tube(mesh, [hinge, bend, shoulder, elbow, end],
+                  [radius, radius * .84, radius * .56, radius * .31, .005], 5, caps=False)
         if j % 2 == 0:
-            snow_sleeve(snow, [bend, shoulder, end], radius * 1.20, rng)
-        for fork in (-1, 0, 1):
-            foot = between(bend, shoulder, .38 + rng.uniform(-.11, .20)) if fork else shoulder
-            theta = az + fork * rng.uniform(.46, .79)
+            snow_sleeve(snow, [bend, shoulder, elbow], radius * .81, rng)
+        for root_point, sweep in ((between(bend, shoulder, .42), -.93), (shoulder, .71), (elbow, -.22)):
+            theta = az + sweep + rng.uniform(-.15, .15)
             out = (math.cos(theta), 0, math.sin(theta))
-            reach = length * rng.uniform(.42, .61)
-            mid = add(foot, add(scale(out, reach * .54), (.09 * lean, -reach * .095, 0)))
-            tip = add(foot, add(scale(out, reach), (.15 * lean, reach * .16, 0)))
-            bark.tube(mesh, [foot, mid, tip], [radius * .50, radius * .27, .006], 3, caps=False)
-            twig_fan(needles, [foot, mid, tip], out, rng, min(.46, .185 + reach * .31), close)
-    tip = trunk[-1]
-    twig_fan(needles, [trunk[-3], trunk[-2], tip], (-.34, .78, .23), rng, .245, True)
+            reach = length * rng.uniform(.38, .60)
+            mid = add(root_point, add(scale(out, reach * .53), (.08 * lean, -.063 * reach, 0)))
+            tip = add(root_point, add(scale(out, reach), (.15 * lean, reach * rng.uniform(.09, .30), 0)))
+            branch = [root_point, mid, tip]
+            bark.tube(mesh, branch, [radius * .47, radius * .24, .004], 4, caps=False)
+            twig_fans(needles, branch, theta, rng, min(.34, .15 + reach * .32), close)
+    twig_fans(needles, trunk[-3:], math.pi if lean < 0 else 0., rng, .27, close)
 
 
 def build_approach(site, materials):
     """Add the walk-in side of the pass and return its snow support surface."""
+    import bpy
     import snow_roof as mesh
 
     centerline = road_centerline(site)
@@ -332,8 +389,9 @@ def build_approach(site, materials):
     for face in support.data.polygons:
         face.use_smooth = True
     ground_height = surface_sampler(vertices)
+    rock_scan = mesh.material('Pitted exposed rock of the winter pass', '#a8c9ed', 'rock_pitted_mossy', .89)
     for face in ROCKS:
-        rock(mesh, materials['granite'], materials['snow'], ground_height, face)
+        rock(mesh, rock_scan, materials['snow'], ground_height, face)
 
     bark, needles, snow = (Geometry() for _ in range(3))
     for i, profile in enumerate(PINES):
@@ -345,14 +403,19 @@ def build_approach(site, materials):
     for polygon, coordinates in zip(stems.data.polygons, bark.charts):
         for loop, (u, v) in zip(polygon.loop_indices, coordinates):
             uv[loop].uv = (u / .75, v / .75)
-    # The individual needles cast into the bake but get directional light
-    # live. Giving all 6,598 detached needle triangles separate padded UV
-    # charts would take most of the approach atlas away from the trail.
-    foliage = mesh.mesh_object('Pine needle geometry in three-dimensional tufts',
-                               needles.vertices, needles.faces, materials['needle'], REGION)
+    # These untextured crowns cast into the bake, then receive live sun and
+    # sky. The independent GLB does not need either material or atlas UVs.
+    needle_green = mesh.material('Living grey-green winter pine needles', '#4c624f', rough=.86)
+    needle_green.use_backface_culling = False
+    foliage = mesh.mesh_object('Pine needle geometry in layered three-dimensional tufts',
+                               needles.vertices, needles.faces, needle_green, REGION)
+    bpy.data.collections['RUNTIME'].objects.link(foliage)
+    mesh.STATIC.objects.unlink(foliage)
     del foliage['one_light_static']
+    foliage.data.uv_layers.remove(foliage.data.uv_layers['UVMap'])
+    for face in foliage.data.polygons:
+        face.use_smooth = True
     foliage['snow_court_needle_crowns'] = True
-    materials['needle'].use_backface_culling = False
     snow.write(mesh, 'Broken snow ridges along pine boughs', materials['snow'],
                'Individual supported snow strips unfolded in metres.')
     return foliage
