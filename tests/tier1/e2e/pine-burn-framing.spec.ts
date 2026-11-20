@@ -91,6 +91,28 @@ for (const [label, viewport, safe, project] of [
       // A compact bottom sheet leaves the upper half of the picture to the lamp.
       expect(panel!.top, 'the phone choice panel must start at or below 60% of the viewport')
         .toBeGreaterThanOrEqual(.60);
+      // GOALS.md lets the taller draw sheet cover the lamp, but only while the draw tab is open.
+      // Opening it and coming back must restore this same compact sheet with the lamp above its edge.
+      await page.getByRole('tab', { name: /自己画|Draw/ }).click();
+      await expect(page.locator('.candle-sheet .pad')).toHaveCount(1);
+      await page.getByRole('tab', { name: /现成的|Ready-made/ }).click();
+      await expect(page.locator('.candle-sheet .pad')).toHaveCount(0);
+      const restored = await page.evaluate(() => {
+        const sheet = document.querySelector('.candle-sheet')!.getBoundingClientRect();
+        const api = window as unknown as {
+          __pineBurnFraming?: () => { screen: (safe: object) => {
+            flame: { top: number; bottom: number }; tray: { top: number; bottom: number } } } | null;
+        };
+        const frame = api.__pineBurnFraming?.() ?? null;
+        const screen = frame ? frame.screen({ left: .10, right: .90, top: .10, bottom: 1 }) : null;
+        return { top: sheet.top / innerHeight, screen };
+      });
+      expect(restored.top, 'leaving the draw tab must restore the compact sheet').toBeGreaterThanOrEqual(.60);
+      expect(restored.screen, 'the framing hook must report the live camera').toBeTruthy();
+      expect(restored.screen!.flame.bottom, 'the flame must be above the restored sheet')
+        .toBeLessThanOrEqual(restored.top);
+      expect(restored.screen!.tray.bottom, 'the tray must be above the restored sheet')
+        .toBeLessThanOrEqual(restored.top);
     }
     // Sample once per rendered frame inside the page. Round-tripping from the test would space the
     // samples by whatever the driver costs that moment, and two samples a third of a second apart
