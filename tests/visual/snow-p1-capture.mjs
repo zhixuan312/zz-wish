@@ -118,25 +118,27 @@ for (const region of regions) for (const pass of passes) {
 }
 assert.equal(new Set(Object.values(maps).map(map => map.uri)).size, 16, 'Expected all 16 distinct lightmaps.');
 
-function backdropUris(tier, extension) {
+function backdropUris(tier, extensions) {
   assert(tier?.encoding === 'log2-8-8' && isDigest(tier.encodedReceiptSha256),
     'Each backdrop needs verified encoded Cycles plates.');
   assert(Number.isSafeInteger(tier.width) && tier.width > 0
     && Number.isSafeInteger(tier.height) && tier.height > 0, 'Invalid backdrop dimensions.');
   assert.deepEqual(Object.keys(tier.layers).sort(), ['cloud', 'far', 'mid']);
   const names = Object.values(tier.layers);
-  assert(names.every(uri => uri.endsWith(extension) && files.has(uri)), 'Missing or invalid declared backdrop image.');
+  assert(names.every(uri => extensions.some(extension => uri.endsWith(extension)) && files.has(uri)),
+    'Missing or invalid declared backdrop image.');
   return names;
 }
 
 const backdrop = manifest.backdrop;
 const plateUris = {
-  base: backdropUris(backdrop, '.webp'),
-  night: backdropUris(backdrop?.night, '.webp'),
-  ...(backdrop?.walk ? { walk: backdropUris(backdrop.walk, '.ktx2') } : {}),
+  base: backdropUris(backdrop, ['.webp']),
+  night: backdropUris(backdrop?.night, ['.webp']),
+  ...(backdrop?.walk ? { walk: backdropUris(backdrop.walk, ['.ktx2']) } : {}),
+  ...(backdrop?.high ? { high: backdropUris(backdrop.high, ['.webp', '.ktx2']) } : {}),
 };
 assert.equal(new Set(Object.values(plateUris).flat()).size, Object.values(plateUris).flat().length,
-  'Day, night and walk tiers must declare separate verified images.');
+  'Each backdrop tier must declare separate verified images.');
 const assets = new Map([['manifest.json', { body: manifestBytes, contentType: 'application/json' }]]);
 for (const [name, file] of files) {
   const body = await localAsset(name);
@@ -154,7 +156,7 @@ const report = {
   base: base.href, sourceRev: revision(), sourceSha256: sourceStart.aggregateSha256,
   preview: { directory: candidate, revision: manifest.snowCourt.revision, manifestSha256: expectedSha,
     authoringBlendSha256: manifest.bake.sourceBlendSha256, bakeFingerprint: manifest.bakeFingerprint, maps, plateUris,
-    totalCandidateBytes: [...assets.values()].reduce((total, asset) => total + asset.body.length, 0) },
+    budget: manifest.budget, totalCandidateBytes: [...assets.values()].reduce((total, asset) => total + asset.body.length, 0) },
   ordinaryManifestSha256: installedSha, viewport, captures: [], contexts: [], errors: [], httpErrors: [], viteUpdates: [],
 };
 await mkdir(dirname(output), { recursive: true });
@@ -314,7 +316,8 @@ async function captureContext(browser, { hour, look, walk }) {
     await expect(enter).toBeEnabled();
     result.stepInsideMs = performance.now() - start;
     assert(served.has('manifest.json') && served.has(manifest.scene), 'The app did not request the verified candidate manifest and model.');
-    assert(!result.requested.some(({ name, afterEntry }) => !afterEntry && [...plateUris.night, ...(plateUris.walk ?? [])].includes(name)),
+    const deferredPlates = [...plateUris.night, ...(plateUris.walk ?? []), ...(plateUris.high ?? [])];
+    assert(!result.requested.some(({ name, afterEntry }) => !afterEntry && deferredPlates.includes(name)),
       'A deferred image was requested before entry.');
     const walkStarted = performance.now();
     entered = true;

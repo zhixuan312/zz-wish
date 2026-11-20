@@ -241,7 +241,19 @@ manifest.backdrop = {
   ...(walk ? { walk: walk.descriptor } : {}),
   ...(high ? { high: high.descriptor } : {}),
 };
-const files = [...nearFiles, ...day.files, ...night.files, ...(walk?.files ?? []), ...(high?.files ?? [])];
+const fabric = JSON.parse(await readFile(new URL('../web/src/engine/baked/visitor-fabric.json', import.meta.url)));
+const installed = new URL('../web/public/places/snow-roof/', import.meta.url);
+const fabricFiles = await Promise.all(Object.values(fabric.maps).map(async file => {
+  const uri = basename(file.path);
+  if (!localName(uri) || file.path !== '/places/snow-roof/' + uri || !isHash(file.sha256)) {
+    throw new Error('Invalid Snow Roof gauze map declaration.');
+  }
+  const body = await readFile(new URL(uri, installed));
+  if (body.length !== file.bytes || digest(body) !== file.sha256) throw new Error('Snow Roof gauze map changed: ' + uri);
+  verifyWebp(body, uri, file.width, file.height);
+  return { body, spec: { uri, bytes: file.bytes, sha256: file.sha256, role: 'runtime-visitor-fabric' } };
+}));
+const files = [...nearFiles, ...fabricFiles, ...day.files, ...night.files, ...(walk?.files ?? []), ...(high?.files ?? [])];
 manifest.files = files.map(file => file.spec);
 if (new Set(manifest.files.map(file => file.uri)).size !== files.length) {
   throw new Error('Duplicate delivery asset URI.');
