@@ -92,7 +92,9 @@ export async function measurePineRealismBase(worktree, preview, ordinaryManifest
   const combinedBytes = combinedPackageBytes + sharedBytes.length;
   const combinedLimitBytes = 40_000_000;
   const phoneBytes = totalBytes + walkBytes;
-  const phoneLimitBytes = 30_000_000;
+  // Approved when the native trees moved into the walk tier: every device loads them, so the phone
+  // payload grew beyond the original 30 MB. Base and the combined desktop budget are unchanged.
+  const phoneLimitBytes = 34_000_000;
   if (walk) assert(phoneBytes <= phoneLimitBytes, `Pine Gate phone payload is ${phoneBytes} bytes and exceeds ${phoneLimitBytes} bytes.`);
   assert(combinedBytes <= combinedLimitBytes, `Pine Gate combined payload is ${combinedBytes} bytes and exceeds ${combinedLimitBytes} bytes.`);
   return { totalBytes, limitBytes, packageBytes, sharedAgXBytes: sharedBytes.length,

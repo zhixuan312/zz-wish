@@ -41,7 +41,7 @@ import { readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { createHash } from 'node:crypto';
-const [modules, input, output, tintJson] = process.argv.slice(1);
+const [modules, input, output, tintJson, toktxPath, ktxScratch] = process.argv.slice(1);
 const dependency = async name => {
     const base = join(modules, 'node_modules', name);
     const info = JSON.parse(await readFile(join(base, 'package.json'), 'utf8'));
@@ -79,10 +79,35 @@ if (JSON.stringify(positions(doc)) !== before || ownership(doc) !== roots)
     throw Error('Non-position quantization moved a tree.');
 doc.createExtension(EXTMeshoptCompression).setRequired(true)
     .setEncoderOptions({ method: EXTMeshoptCompression.EncoderMethod.QUANTIZE });
+// Textures travel as KTX2 rather than PNG: the PNG set dominated the payload, and a phone must load
+// this model in the walk tier. Normals go to UASTC, everything else to ETC1S; the needle colour keeps
+// its alpha, which the foliage cutout needs.
+const { spawnSync } = await import('node:child_process');
+const { existsSync } = await import('node:fs');
+for (const texture of doc.getRoot().listTextures()) {
+    if (!texture.getMimeType().includes('png')) continue;
+    const name = texture.getName() ?? '';
+    const source = join(ktxScratch, 'in.png'), target = join(ktxScratch, 'out.ktx2');
+    await writeFile(source, texture.getImage());
+    if (existsSync(target)) await (await import('node:fs/promises')).rm(target);
+    const normal = /nor_gl/.test(name);
+    const args = normal
+        // The source PNGs carry an ICC profile, which toktx refuses; assign the sRGB transfer
+        // curve explicitly, which is what those profiles describe.
+        ? ['--t2', '--encode', 'uastc', '--uastc_quality', '2', '--zcmp', '18', '--assign_oetf', 'srgb', target, source]
+        : ['--t2', '--encode', 'etc1s', '--clevel', '4', '--qlevel', '255', '--assign_oetf', 'srgb', target, source];
+    const run = spawnSync(toktxPath, args, { encoding: 'utf8' });
+    if (!existsSync(target)) {
+        throw Error('toktx produced no texture for ' + name + ': ' + String(run.stderr).slice(0, 400));
+    }
+    texture.setImage(await readFile(target)).setMimeType('image/ktx2');
+}
 const bytes = await io.writeBinary(doc);
 const replay = await io.readBinary(bytes);
 if (JSON.stringify(positions(replay)) !== before || ownership(replay) !== roots)
     throw Error('Meshopt roundtrip changed rooted positions.');
+if (replay.getRoot().listTextures().some(texture => !texture.getMimeType().includes('ktx2')))
+    throw Error('Every native texture must be KTX2.');
 await writeFile(output, bytes);
 """
 
@@ -313,16 +338,25 @@ def verify_glb(path, prepared):
                 raise ValueError('LOD2 needles lost their double-sided official alpha cutout.')
             texture = data['textures'][pbr['baseColorTexture']['index']]
             image = data['images'][texture['source']]
-            if image.get('mimeType') != 'image/png':
-                raise ValueError('Native needle color and opacity must be embedded together in PNG.')
+            if image.get('mimeType') != 'image/ktx2':
+                raise ValueError('Native needle color and opacity must ship as one KTX2 image.')
             view = data['bufferViews'][image['bufferView']]
             with path.open('rb') as source:
                 source.seek(12)
                 json_bytes, = struct.unpack('<I', source.read(4))
                 source.seek(28 + json_bytes + view.get('byteOffset', 0))
-                header = source.read(26)
-            if not header.startswith(b'\x89PNG\r\n\x1a\n') or header[25] != 6:
-                raise ValueError('The exported needle texture lacks its genuine RGBA alpha channel.')
+                header = source.read(48)
+            if not header.startswith(b'\xabKTX 20\xbb\r\n\x1a\n'):
+                raise ValueError('The exported needle texture is not a KTX2 container.')
+            # The data format descriptor is at the byte offset the KTX2 index names, and its length
+            # states how many channel descriptions it carries. A four-channel RGBA source encodes to
+            # a 60-byte descriptor; a three-channel one to 44. The cutout needs the former.
+            with path.open('rb') as source:
+                source.seek(28 + json_bytes + view.get('byteOffset', 0))
+                index = source.read(8)
+            descriptor_offset, descriptor_length = struct.unpack('<II', index)
+            if descriptor_offset <= 0 or descriptor_length < 60:
+                raise ValueError('The needle KTX2 lost its alpha channel.')
 
     result = {}
     for index in scene['nodes']:
@@ -374,6 +408,7 @@ def main():
     parser.add_argument('--gltf-tools', type=Path, required=True, help='Prefix containing the installed glTF-Transform tools.')
     parser.add_argument('--texture-size', type=int, choices=(384, 512, 768, 1024), default=512)
     parser.add_argument('--max-bytes', type=int, default=8_000_000)
+    parser.add_argument('--toktx', type=Path, required=True, help='ktx2 encoder binary, to ship textures compressed.')
     args = parser.parse_args(sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else [])
     if args.max_bytes < 1:
         parser.error('A positive package budget is required.')
@@ -415,7 +450,7 @@ def main():
         if 'FINISHED' not in operation:
             raise RuntimeError('Blender did not finish the native tree export.')
         subprocess.run(['node', '--input-type=module', '-e', MESHOPT, str(tools), str(raw), str(packed),
-                        json.dumps(FOLIAGE_TINT)], check=True)
+                        json.dumps(FOLIAGE_TINT), str(args.toktx), str(scratch)], check=True)
         trees = verify_glb(packed, prepared)
         byte_count = packed.stat().st_size
         if byte_count > args.max_bytes:

@@ -241,7 +241,9 @@ const budget = {
   backdropBytes: Object.fromEntries(layers.map(([name, spec]) => [name, spec.bytes])),
   waxNormalBytes: wax.bytes, width: encoded.width, height: encoded.height,
   ...(approachForest ? { approachForestBytes: approachForest.plates.reduce((sum, { file }) => sum + file.bytes, 0) } : {}),
-  ...(backdrop.walk ? { phoneBytes, phoneLimitBytes: 30_000_000, walkBytes } : {}),
+  // 34 MB, approved when the native trees moved into the walk tier so every device sees them.
+  // Base stays 15 MB and the combined desktop package stays 40 MB.
+  ...(backdrop.walk ? { phoneBytes, phoneLimitBytes: 34_000_000, walkBytes } : {}),
   ...(night ? { nightBytes } : {}),
   ...(deferred.size ? { walkLightmapBytes, softLightmapBytes: [...softBodies.values()].reduce((sum, data) => sum + data.length, 0) } : {}),
   ...(upgrade ? {
