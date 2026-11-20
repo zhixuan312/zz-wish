@@ -2,76 +2,10 @@ import { loadBakedPlace } from '../baked/loadPlace.js';
 import { loadSnowCourtBackdrop } from './snow-court-backdrop.js';
 import { buildSnowChimney } from './snow-court-chimney.js';
 import { winterCourtWalk, winterCourtEntry, winterCourtEntrySeconds, winterCourtBurnSettle } from './snow-court-camera.js';
-import { addSnowCourtGauzeTransmission } from './snow-court-gauze.js';
+import { isEarlierGauze, tuneEarlierGauze } from './snow-court-gauze.js';
 import { buildSnowDoorDrift, isWinterCourtSnow, tuneWinterCourtSnow } from './snow-court-snow.js';
 import projection from '../../../../shared/snow-court-backdrop.json' with { type: 'json' };
 import site from '../../../../shared/snow-roof-court-site.json' with { type: 'json' };
-
-const agedGauzeOpacity = new Map([
-  ['Sun-faded rose-red gauze', .938],
-  ['Faded dusty rose gauze', .950],
-  ['Faded iron-red gauze', .958],
-  ['Thin gauze over low flame', .924],
-]);
-
-function tuneEarlierGauze(material, opacity, sources, THREE, preExposure, fabric) {
-  // The open sleeve retains its back-facing cloth at slits and torn lips.
-  // A single draw keeps both sides in one pass as the hall comes into view.
-  material.transparent = true;
-  material.depthWrite = false;
-  material.side = THREE.DoubleSide;
-  material.forceSinglePass = true;
-  material.opacity = opacity;
-  material.map = fabric.weave;
-  material.normalMap = fabric.normal;
-  material.normalScale.setScalar(.54);
-  material.roughnessMap = fabric.roughness;
-  material.envMapIntensity = .07;
-
-  // Scatter the light of the two small old wicks across their own cloth.
-  // The baked maps already carry the spill on the surrounding timber.
-  const lit = material.name === 'Thin gauze over low flame';
-  if (lit) material.emissiveIntensity *= .16;
-  const compile = material.onBeforeCompile.bind(material);
-  const key = material.customProgramCacheKey.bind(material);
-  const wicks = sources.map(source => new THREE.Vector3(...source.wickTip));
-  const candela = sources.map(source => new THREE.Color().fromArray(source.linearColor)
-    .multiplyScalar(source.watts * preExposure / (4 * Math.PI)));
-  material.onBeforeCompile = (shader, renderer) => {
-    compile(shader, renderer);
-    addSnowCourtGauzeTransmission(shader, 8, true);
-    shader.uniforms.uOldWeaveMean = { value: fabric.mean };
-    shader.fragmentShader = 'uniform float uOldWeaveMean;\n' + shader.fragmentShader
-      .replace('#include <map_fragment>', `
-        vec3 weave = texture2D(map,vMapUv * vec2(3.2, 1.9)).rgb;
-        float thread = dot(weave, vec3(.2126,.7152,.0722)) / uOldWeaveMean;
-        diffuseColor.rgb *= clamp(1. + (thread - 1.) * 1.65, .48, 1.34);
-      `)
-      .replace('#include <roughnessmap_fragment>', `#include <roughnessmap_fragment>
-        roughnessFactor = max(roughnessFactor, .88);
-      `)
-      .replace('#include <lights_fragment_end>', `#include <lights_fragment_end>
-        reflectedLight.directSpecular *= .12;
-        reflectedLight.indirectSpecular *= .16;
-        reflectedLight.directDiffuse *= ${lit ? '.68' : '.38'};
-        reflectedLight.indirectDiffuse *= ${lit ? '.74' : '.51'};
-      `);
-    if (!lit) return;
-    shader.uniforms.uEarlierWick = { value: wicks };
-    shader.uniforms.uEarlierCandela = { value: candela };
-    shader.fragmentShader = `uniform vec3 uEarlierWick[2], uEarlierCandela[2];\n` + shader.fragmentShader
-      .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
-        for (int j = 0; j < 2; j++) {
-          vec3 fromWick = vBakedWorld - uEarlierWick[j];
-          float distance2 = dot(fromWick, fromWick);
-          float thinCloth = .67 * (1. - smoothstep(.29, .45, sqrt(distance2)));
-          vec3 throughThreads = pow(max(diffuseColor.rgb, vec3(0.)), vec3(.56));
-          totalEmissiveRadiance += uEarlierCandela[j] * throughThreads
-            * thinCloth * (1. - gauzeBamboo * .26) / (3.141593 * max(distance2, .004));
-        }`);
-  };
-  material.customProgramCacheKey = () => key() + (lit ? '-snow-hall-wick-gauze' : '-snow-hall-aged-gauze');
-}
 
 export default function createWinterCourt(h) {
   const { THREE, V3 } = h;
@@ -140,13 +74,12 @@ export default function createWinterCourt(h) {
       const earlierWicks = fixtures.filter(fixture => fixture.kind === 'gauze shade' && fixture.lit);
       if (earlierWicks.length !== 2) throw new Error('Expected two earlier wishes with measured wicks.');
 
-      const earlierCloth = new Map();
+      const earlierCloth = new Set();
       const winterSnow = new Set();
       baked.group.traverse(object => {
         if (!object.isMesh) return;
         for (const material of [object.material].flat()) {
-          const opacity = agedGauzeOpacity.get(material.name);
-          if (opacity !== undefined) earlierCloth.set(material, opacity);
+          if (isEarlierGauze(material)) earlierCloth.add(material);
           if (isWinterCourtSnow(material)) winterSnow.add(material);
           if (material.name === 'Thin pale storm lamp glass') {
             // The thin windscreen shows the flame directly. Avoid a second
@@ -158,8 +91,8 @@ export default function createWinterCourt(h) {
           }
         }
       });
-      for (const [material, opacity] of earlierCloth) {
-        tuneEarlierGauze(material, opacity, earlierWicks, THREE, baked.cameraPreExposure, h.visitorCloth);
+      for (const material of earlierCloth) {
+        tuneEarlierGauze(material, earlierWicks, THREE, baked.cameraPreExposure, h.visitorCloth);
       }
       if (winterSnow.size) {
         const sunlight = V3(...projection.light.day.directionEngine);
