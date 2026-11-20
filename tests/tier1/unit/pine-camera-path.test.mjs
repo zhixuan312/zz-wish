@@ -2,6 +2,9 @@ import { expect, test } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { CAMERA_LIMITS, cameraPathViolations, measureCameraPath } from '../../visual/pine-camera-path.mjs';
 import { hermiteTrack } from '../../../web/src/engine/places/pine-walk-curve.js';
+import createPlace from '../../../web/src/engine/places/pine-gate-baked.js';
+import * as THREE from 'three';
+const V3 = (x, y, z) => new THREE.Vector3(x, y, z);
 
 const path = JSON.parse(readFileSync(new URL('../../../shared/pine-gate-path.json', import.meta.url), 'utf8'));
 
@@ -80,4 +83,65 @@ test('the walk holds eye height above the stairs and keeps clear of every trunk'
   ];
   const clearance = measureCameraPath(walkSamples(), obstacles).clearance.min;
   expect(clearance, `nearest trunk or post is ${clearance.toFixed(2)} m away`).toBeGreaterThanOrEqual(1.0);
+});
+
+test('the place holds the reveal for two seconds before the approach', async () => {
+  // The hold lives on the place, not the path: the walk ends at the reveal and the runtime holds it.
+  const place = createPlace({ THREE, V3 });
+  const hold = place.walkHold;
+  expect(hold).toBeTruthy();
+  expect(hold.seconds).toBeGreaterThanOrEqual(2.0);
+  // Its pose is exactly the last authored waypoint, so the walk and the hold meet without a jump.
+  const last = path.waypoints.at(-1);
+  expect(hold.pose.position).toEqual(last.position);
+  expect(hold.pose.look).toEqual(last.look);
+  // A portrait crop needs its own reveal aim; it is the same authored phone pose.
+  if (last.phoneLook) {
+    expect(hold.phonePose).toBeTruthy();
+    expect(hold.phonePose.position).toEqual(last.phonePosition ?? last.position);
+    expect(hold.phonePose.look).toEqual(last.phoneLook);
+  }
+});
+
+test('the walk to the chooser stays inside the walking pace and the look limit', async () => {
+  const place = createPlace({ THREE, V3 });
+  const hold = place.walkHold;
+  for (const phone of [false, true]) {
+    const start = phone ? place.viewPhone : place.view;
+    const choose = phone ? place.nook.choosePhone : place.nook.choose;
+    const end = { pos: choose.pos.clone().add(place.nook.at.pos), look: choose.look.clone().add(place.nook.at.pos), fov: choose.fov };
+    // The runtime bows round the shrine; sample the same route it walks.
+    const anchor = new THREE.Vector3(-1.8, 5.0, .9);
+    const around = new THREE.Vector3(end.pos.x + 1.05, end.pos.y + .10, end.pos.z + .55);
+    if (around.distanceTo(anchor) < 1.35) around.copy(anchor).add(new THREE.Vector3(1.45, .10, .35));
+    const pose = phone && hold.phonePose ? hold.phonePose : hold.pose;
+    const route = new THREE.CatmullRomCurve3(
+      [new THREE.Vector3(...pose.position), around, end.pos.clone()], false, 'centripetal');
+    const metres = route.getLength();
+    const fromAim = new THREE.Vector3(...pose.look).sub(new THREE.Vector3(...pose.position)).normalize();
+    const toAim = end.look.clone().sub(end.pos).normalize();
+    const swing = THREE.MathUtils.radToDeg(Math.acos(THREE.MathUtils.clamp(fromAim.dot(toAim), -1, 1)));
+    const seconds = Math.max(1.6, (metres * 1.5) / 1.4, (swing * 1.5) / 20);
+
+    // Sample the same eased pass the runtime uses.
+    let peakSpeed = 0, peakTurn = 0;
+    let prev = null, prevAim = null;
+    const step = seconds / 240;
+    for (let i = 0; i <= 240; i++) {
+      const k = i / 240;
+      const e = k * k * (3 - 2 * k);
+      const p = route.getPointAt(Math.min(1, e));
+      const dir = fromAim.clone().lerp(toAim, e).normalize();
+      if (prev) {
+        peakSpeed = Math.max(peakSpeed, p.distanceTo(prev) / step);
+        const turn = THREE.MathUtils.radToDeg(Math.acos(THREE.MathUtils.clamp(dir.dot(prevAim), -1, 1)));
+        peakTurn = Math.max(peakTurn, turn / step);
+      }
+      prev = p.clone(); prevAim = dir.clone();
+    }
+    console.log(`${phone ? 'phone' : 'desk'} walk-to-choose: ${metres.toFixed(2)} m over ${seconds.toFixed(2)} s, `
+      + `peak ${peakSpeed.toFixed(2)} m/s, ${peakTurn.toFixed(1)} deg/s`);
+    expect(peakSpeed, `${phone ? 'phone' : 'desk'} peak speed`).toBeLessThanOrEqual(1.4);
+    expect(peakTurn, `${phone ? 'phone' : 'desk'} peak look rate`).toBeLessThanOrEqual(25);
+  }
 });

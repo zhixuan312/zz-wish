@@ -2378,9 +2378,18 @@ export async function travel(id) {
     if (skipNextTravel) skipTweens();
     const from = { pos: rig.pos.clone(), look: rig.look.clone(), fov: rig.fov ?? camera.fov };
     const to = chooseView();
-    const metres = from.pos.distanceTo(to.pos);
     // A plain walking pace over the last stretch, never quicker than the place's own limit.
     const pace = hold.approachMetresPerSecond ?? 1.4;
+    // Round the shrine, not past it. A straight line from the reveal to the choose pose grazes the
+    // lamp shrine's crown: its envelope is 1.24 m across at the anchor (-1.8, 5.0, .9). A waypoint
+    // out to the shrine's seaward side keeps a metre from its footprint the whole way.
+    const anchor = V3(-1.8, 5.0, .9);
+    const around = V3(to.pos.x + 1.05, to.pos.y + .10, to.pos.z + .55);
+    if (around.distanceTo(anchor) < 1.35) around.copy(anchor).add(V3(1.45, .10, .35));
+    const route = new THREE.CatmullRomCurve3([from.pos.clone(), around, to.pos.clone()], false, 'centripetal');
+    // The approach bows round the shrine, so its path is longer than the straight line between its
+    // ends. Time it on the route's own length or the arc outruns the walking pace.
+    const routeMetres = route.getLength();
     // One eased pass for both position and aim, timed for whichever needs longer: the walking pace,
     // or turning the aim no faster than the look limit. Smoothstep peaks at 1.5x its average, so
     // both budgets use the peak. Sharing one duration is what keeps the aim from finishing its last
@@ -2394,18 +2403,11 @@ export async function travel(id) {
     const toAim = to.look.clone().sub(to.pos).normalize();
     const swing = THREE.MathUtils.radToDeg(Math.acos(THREE.MathUtils.clamp(fromAim.dot(toAim), -1, 1)));
     const turnLimit = 20;                          // deg/s, a margin under the 25 deg/s limit
-    const seconds = Math.max(1.6, (metres * 1.5) / pace, (swing * 1.5) / turnLimit);
-    // Round the shrine, not past it. A straight line from the reveal to the choose pose grazes the
-    // lamp shrine's crown: its envelope is 1.24 m across at the anchor (-1.8, 5.0, .9). A waypoint
-    // out to the shrine's seaward side keeps a metre from its footprint the whole way.
-    const anchor = V3(-1.8, 5.0, .9);
-    const around = V3(to.pos.x + 1.05, to.pos.y + .10, to.pos.z + .55);
-    if (around.distanceTo(anchor) < 1.35) around.copy(anchor).add(V3(1.45, .10, .35));
-    const curve = new THREE.CatmullRomCurve3([from.pos.clone(), around, to.pos.clone()], false, 'centripetal');
+    const seconds = Math.max(1.6, (routeMetres * 1.5) / pace, (swing * 1.5) / turnLimit);
     const aim = new THREE.Vector3();
     await tween(seconds, k => {
       const e = k * k * (3 - 2 * k);
-      rig.pos.copy(curve.getPointAt(e));
+      rig.pos.copy(route.getPointAt(e));
       aim.copy(fromAim).lerp(toAim, e).normalize();
       rig.look.copy(rig.pos).addScaledVector(aim, AIM_DISTANCE);
       rig.fov = THREE.MathUtils.lerp(from.fov, to.fov, e);
@@ -2575,13 +2577,10 @@ export async function ignite({onCatch, remainingFuel, onTaperLit}={}) {
   false, 'centripetal');
   const follow = pine ? burn.look : mine.g.localToWorld(V3(0, mine.parts.frame.cy, 0));
   const orbitLookStart = rig.look.clone();
-  const orbitStart = rig.pos.clone();
   // The settled push is measured from the pose the visitor chose at, so record it before the
   // ignition stage moves anything.
   const settleStart = cameraStart.clone();
   const settleLook = lookStart.clone();
-  const orbitStartPitch = Math.atan2(orbitLookStart.y - orbitStart.y,
-    Math.hypot(orbitLookStart.x - orbitStart.x, orbitLookStart.z - orbitStart.z));
   await tween(9,k=>{
     if(!active())return;
     const r=.08,e=k<r?k*k/(2*r*(1-r)):k>1-r?1-(1-k)*(1-k)/(2*r*(1-r)):(k-r*.5)/(1-r);
