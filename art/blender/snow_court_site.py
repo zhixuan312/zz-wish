@@ -61,7 +61,7 @@ def palette(site):
     mesh.stable_roughness(materials['figure'], .80, preserve_maps=True)
     for node in materials['figure'].node_tree.nodes:
         if node.type == 'NORMAL_MAP':
-            node.inputs['Strength'].default_value = .32
+            node.inputs['Strength'].default_value = .12
     mesh.vertex_tint_shader(materials['figure_seat'])
     materials['red']['one_light_painted_timber'] = True
     mesh.painted_timber_finish(materials['red'])

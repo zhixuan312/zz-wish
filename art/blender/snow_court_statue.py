@@ -116,13 +116,24 @@ def build_seat(mesh, anchor, material):
     return seat, colours
 
 
+def figure_stone_uv(local):
+    """Project one continuous material region from a single ungrouted stone face."""
+    # An eight-degree yaw and three-degree lift suit the inspection sightline
+    # and keep near-horizontal or edge-facing triangles off an axial singularity.
+    yaw, pitch = math.radians(-8.), math.radians(3.)
+    right = (math.cos(yaw), 0., -math.sin(yaw))
+    up = (math.sin(yaw) * math.sin(pitch), math.cos(pitch), math.cos(yaw) * math.sin(pitch))
+    return (np.asarray([.298, .801]) + (local @ np.asarray([right, up]).T) * .104).astype(np.float32)
+
+
 def build(mesh, anchor, material):
     """Place the reduced figure with separate photographed stone and light UVs."""
     with np.load(SCAN_SOURCE, allow_pickle=False) as data:
-        vertices = data['vertices'] + np.asarray(anchor)
+        local = data['vertices']
+        vertices = local + np.asarray(anchor)
         faces = data['faces']
         charts = data['charts']
-        material_uv = data['material_uv']
+        material_uv = figure_stone_uv(local)[faces]
         colours = data['colors'] / 255.
 
     figure = mesh.mesh_object('Seated weathered stone Buddha', vertices.tolist(), faces.tolist(), material)
