@@ -207,8 +207,8 @@ export default function createPlace(h) {
               const geometryBox = mesh.geometry.boundingBox;
               const corners = [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([sx, sy]) => {
                 const local = new THREE.Vector3(
-                  sx === 0 ? 0 : (sx > 0 ? geometryBox.max.x : geometryBox.min.x),
-                  sy === 0 ? 0 : (sy > 0 ? geometryBox.max.y : geometryBox.min.y),
+                  sx > 0 ? geometryBox.max.x : geometryBox.min.x,
+                  sy > 0 ? geometryBox.max.y : geometryBox.min.y,
                   geometryBox.max.z).applyMatrix4(mesh.matrixWorld);
                 const point = projectPoint(local, view);
                 return [point.x * size.width, point.y * size.height];

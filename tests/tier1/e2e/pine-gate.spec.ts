@@ -266,7 +266,10 @@ test('each mud print draws its sole, not the whole quad', async ({ page }, testI
   // Read luma at the given points from one screenshot. The page decodes the PNG so the assertion
   // needs no image library on the Node side.
   const lumaAt = (frame: Buffer, spots: [number, number][]) => page.evaluate(async ({ data, spots }) => {
-    const bitmap = await createImageBitmap(new Blob([new Uint8Array(data)], { type: 'image/png' }));
+    // Hand the PNG over as base64: a screenshot is a megabyte or more, and spreading it into a plain
+    // array costs far more than the decode itself.
+    const bytes = Uint8Array.from(atob(data), character => character.charCodeAt(0));
+    const bitmap = await createImageBitmap(new Blob([bytes], { type: 'image/png' }));
     const canvas = new OffscreenCanvas(bitmap.width, bitmap.height);
     const context = canvas.getContext('2d')!;
     context.drawImage(bitmap, 0, 0);
@@ -274,7 +277,7 @@ test('each mud print draws its sole, not the whole quad', async ({ page }, testI
       const [r, g, b] = context.getImageData(Math.round(x), Math.round(y), 1, 1).data;
       return (r + g + b) / 3;
     });
-  }, { data: [...frame], spots });
+  }, { data: frame.toString('base64'), spots });
 
   const inset = 4;
   let shadedPrints = 0;
@@ -282,14 +285,13 @@ test('each mud print draws its sole, not the whole quad', async ({ page }, testI
   for (const box of printBoxes!) {
     if (!box.visible) continue;
     if (box.x < 12 || box.y < 12) continue;
-    // The quad turns with the walker, so its axis-aligned box has corners the decal never paints.
-    // Sample just outside the quad's own corners instead: the stone there must be untouched, and the
-    // sole's rim is the only thing that could bleed a single pixel inwards.
-    // Push each corner outwards along its own diagonal, so the sample lands on stone the decal
-    // cannot reach.
+    // The quad turns with the walker, so its axis-aligned box has corners the decal never paints; the
+    // hook therefore reports the quad's own corners. Move a few pixels inwards from each quad corner along its diagonal. That point is inside the
+    // quad but outside the sole's silhouette, so the decal must leave the stone untouched there while
+    // still painting the footprint in the middle.
     const centre: [number, number] = [box.x + box.w / 2, box.y + box.h / 2];
     const corners: [number, number][] = box.corners.map(([cx, cy]) => {
-      const dx = cx - centre[0], dy = cy - centre[1];
+      const dx = centre[0] - cx, dy = centre[1] - cy;
       const length = Math.hypot(dx, dy) || 1;
       return [cx + (dx / length) * inset, cy + (dy / length) * inset];
     });
@@ -299,12 +301,14 @@ test('each mud print draws its sole, not the whole quad', async ({ page }, testI
     for (const fx of [.38, .5, .62]) for (const fy of [.32, .5, .68]) {
       inner.push([box.x + box.w * fx, box.y + box.h * fy]);
     }
-    const [cornerLuma, bareCorners, innerLuma, bareInner] = await Promise.all([
-      lumaAt(png, corners), lumaAt(bare, corners), lumaAt(png, inner), lumaAt(bare, inner),
-    ]);
-    // A few pixels beyond each quad corner the sole cannot reach, so the control frame must show the
-    // same stone there: any real difference means the decal is painting its whole quad rather than a
-    // footprint.
+    // One decode per frame: the corner and interior samples come from the same two pictures.
+    const spots = [...corners, ...inner];
+    const [printed, clean] = await Promise.all([lumaAt(png, spots), lumaAt(bare, spots)]);
+    const cornerLuma = printed.slice(0, corners.length), bareCorners = clean.slice(0, corners.length);
+    const innerLuma = printed.slice(corners.length), bareInner = clean.slice(corners.length);
+    // A few pixels inside each quad corner the sole has not started, so the control frame must show
+    // the same stone there: any real difference means the decal is painting its whole quad rather
+    // than a footprint.
     for (const [index, corner] of cornerLuma.entries()) {
       expect(Math.abs(corner - bareCorners[index]),
         `print ${box.index} corner ${index}: ${corner.toFixed(1)} vs control ${bareCorners[index].toFixed(1)}`)
