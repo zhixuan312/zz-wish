@@ -135,9 +135,9 @@ export default function createPlace(h) {
         const mud = createMudPrints({ THREE, surface: stone, prints: PINE_PRINTS });
         if (mud.count) {
           context.G.add(mud.group);
-          // Read by the Tier 1 test: the trail must place every print on real paving.
-          // Read-only diagnostics, exposed in every build so the browser suite can locate the
-          // decals on the production app it actually tests.
+          // Read by the Tier 1 test: the trail must place every print on real paving. The hooks are
+          // compiled out of a normal build; the Tier 1 build sets VITE_E2E_HOOKS=1.
+          if (import.meta.env.DEV || import.meta.env.VITE_E2E_HOOKS === '1') {
           window.__pineMudPrints = () => mud.count;
           window.__pineMudGroup = () => mud.group;
           window.__pinePrintBoxes = () => {
@@ -156,6 +156,7 @@ export default function createPlace(h) {
                 w: Math.max(...xs) - Math.min(...xs), h: Math.max(...ys) - Math.min(...ys) };
             });
           };
+          }
           context.disposers.push(mud.dispose);
         }
       }

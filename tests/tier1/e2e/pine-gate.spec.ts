@@ -222,7 +222,9 @@ test('each mud print draws its sole, not the whole quad', async ({ page }) => {
     const group = (window as unknown as { __pineMudGroup?: () => { visible: boolean } }).__pineMudGroup?.();
     if (group) group.visible = true;
   });
-  const luma = async (spots: [number, number][]) => page.evaluate(async ({ data, spots }) => {
+  // Read luma at the given points from one screenshot. The page decodes the PNG so the assertion
+  // needs no image library on the Node side.
+  const lumaAt = (frame: Buffer, spots: [number, number][]) => page.evaluate(async ({ data, spots }) => {
     const bitmap = await createImageBitmap(new Blob([new Uint8Array(data)], { type: 'image/png' }));
     const canvas = new OffscreenCanvas(bitmap.width, bitmap.height);
     const context = canvas.getContext('2d')!;
@@ -231,17 +233,7 @@ test('each mud print draws its sole, not the whole quad', async ({ page }) => {
       const [r, g, b] = context.getImageData(Math.round(x), Math.round(y), 1, 1).data;
       return (r + g + b) / 3;
     });
-  }, { data: [...png], spots });
-  const luma2 = async (spots: [number, number][]) => page.evaluate(async ({ data, spots }) => {
-    const bitmap = await createImageBitmap(new Blob([new Uint8Array(data)], { type: 'image/png' }));
-    const canvas = new OffscreenCanvas(bitmap.width, bitmap.height);
-    const context = canvas.getContext('2d')!;
-    context.drawImage(bitmap, 0, 0);
-    return spots.map(([x, y]) => {
-      const [r, g, b] = context.getImageData(Math.round(x), Math.round(y), 1, 1).data;
-      return (r + g + b) / 3;
-    });
-  }, { data: [...bare], spots });
+  }, { data: [...frame], spots });
 
   const inset = 4, outside = 10;
   let shadedPrints = 0;
@@ -257,7 +249,7 @@ test('each mud print draws its sole, not the whole quad', async ({ page }) => {
     // A point beyond the quad, on the same slab: this is the stone the decal must not tint.
     const stone: [number, number] = [box.x + box.w + outside, box.y + box.h / 2];
     const [cornerLuma, stoneLuma, centreLuma, bareCentre] = await Promise.all([
-      luma(corners), luma([stone]), luma([centre]), luma2([centre]),
+      lumaAt(png, corners), lumaAt(png, [stone]), lumaAt(png, [centre]), lumaAt(bare, [centre]),
     ]);
     const cornerAvg = cornerLuma.reduce((a, b) => a + b, 0) / cornerLuma.length;
     // The quad's corners sit outside the sole's silhouette: they must match the stone beside them.

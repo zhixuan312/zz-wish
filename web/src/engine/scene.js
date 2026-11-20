@@ -1891,9 +1891,9 @@ const rig = { pos: V3(0, 1.35, 2.3), look: V3(0, 1, -1), amp: .006, fov: null };
 let cameraJourneyVersion=0;
 let choiceCameraVersion=0;
 const active = outside;
-// A read-only camera pose hook, available in every build: the browser suite sets the declared
-// review pose on the production app and reads the decals' screen boxes.
-{
+// A read-only camera pose hook for the browser suite. It is compiled out of a normal build and only
+// present when VITE_E2E_HOOKS=1, which the Tier 1 config passes to its own build.
+if (import.meta.env.DEV || import.meta.env.VITE_E2E_HOOKS === '1') {
   window.__pineDiagCamera = camera;
   window.__diagPose = (position, look, fov) => {
     rig.pos.set(...position); rig.look.set(...look); rig.amp = 0;
