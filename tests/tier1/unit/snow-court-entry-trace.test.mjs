@@ -137,6 +137,13 @@ describe('Snow Court entry from real draw indices and animation stamps', () => {
     expect(summary.failures).toEqual([]);
   });
 
+  it('rejects zoom during the entry turn even when the final hold uses a fixed lens', () => {
+    const summary = summarize(trace({ change: (frames, { start, end }) => {
+      for (const frame of frames.slice(start + 40, end - 20)) frame.fovDegrees = 65;
+    } }));
+    expect(summary.failures).toEqual([expect.objectContaining({ kind: 'entryTurnFov', actual: [65, 69] })]);
+  });
+
   it('keeps the 145 degree and 25 degree per second phone limits without the desktop hold', () => {
     const summary = summarize(trace({ turnDegrees: 142, turnDraws: 61, holdDraws: 2 }), true);
     expect(summary.failures).toEqual([]);

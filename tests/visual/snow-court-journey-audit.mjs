@@ -494,6 +494,12 @@ function entryCameraSummary(frames, boundary, phone, failures) {
     maximumDegreesPerSecond: peakYawRate,
   };
   if (!phone) {
+    const turnLens = firstTurningDraw === undefined ? [] :
+      frames.slice(firstTurningDraw - 1, lastTurningDraw + 1).map(frame => frame.fovDegrees);
+    const turnLensRange = turnLens.length ? [Math.min(...turnLens), Math.max(...turnLens)] : [];
+    if (turnLensRange.length && turnLensRange[1] - turnLensRange[0] > poseFovEpsilon) {
+      failures.push({ kind: 'entryTurnFov', actual: turnLensRange, tolerance: poseFovEpsilon });
+    }
     if (activeTurnSeconds + secondsEpsilon < desktopMinimumTurnSeconds) {
       failures.push({ kind: 'entryTurnSpan', actual: activeTurnSeconds, minimum: desktopMinimumTurnSeconds });
     }
@@ -508,7 +514,7 @@ function entryCameraSummary(frames, boundary, phone, failures) {
     Object.assign(entryYawTrace, { totalViewDegrees: entryView, maximumViewDegreesPerSecond: peakViewRate,
       activeTurn: {
         method: 'Sum of pre-chooser animation intervals with absolute yaw rate above 1°/s. Pauses and low-rate recentering are excluded.',
-        seconds: activeTurnSeconds, intervals: activeIntervals, firstTurningDraw, lastTurningDraw,
+        seconds: activeTurnSeconds, intervals: activeIntervals, firstTurningDraw, lastTurningDraw, fovDegrees: turnLensRange,
       },
       poseHold: desktopEntryHold(frames, firstDraw, boundary.end, firstChooser, failures) });
   }

@@ -72,6 +72,7 @@ export function winterCourtWalk(THREE, site, start, phone) {
 }
 
 export const winterCourtEntrySeconds = 19;
+const desktopTurnStart = 8.05;
 
 function viewingAngles({ pos, look }) {
   const direction = look.clone().sub(pos).normalize();
@@ -88,14 +89,13 @@ function lookAlong(THREE, rig, yaw, pitch, distance) {
 
 // Integrate the smooth turn speed so the view can finish before the chooser.
 function desktopEntryHeading(THREE, time, arrival) {
-  const start = 8.05;
   const accelerate = 1.10;
   const brake = .45;
-  const cruise = arrival - start - accelerate - brake;
+  const cruise = arrival - desktopTurnStart - accelerate - brake;
   const smoothArea = amount => amount ** 3 * (1 - .5 * amount);
   const { clamp } = THREE.MathUtils;
-  const rampIn = clamp((time - start) / accelerate, 0, 1);
-  const steady = clamp(time - start - accelerate, 0, cruise);
+  const rampIn = clamp((time - desktopTurnStart) / accelerate, 0, 1);
+  const steady = clamp(time - desktopTurnStart - accelerate, 0, cruise);
   const rampOut = clamp((time - arrival + brake) / brake, 0, 1);
   const travelled = accelerate * smoothArea(rampIn) + steady + brake * (rampOut - smoothArea(rampOut));
   return travelled / (cruise + (accelerate + brake) / 2);
@@ -163,7 +163,10 @@ export function winterCourtEntry(THREE, start, end, phone) {
     const finalPitch = THREE.MathUtils.smoothstep(time, phone ? 15 : 9.2, arrival);
     const pitch = THREE.MathUtils.lerp(pitch0 * (1 - approach), pitch1, finalPitch);
     lookAlong(THREE, rig, yaw, pitch, THREE.MathUtils.lerp(startDistance, endDistance, angle));
-    const lens = THREE.MathUtils.lerp(start.fov, end.fov, angle);
+    // Widen during the forward approach, while the doorway is still ahead.
+    // The hall turn and the chooser use the same lens.
+    const aperture = phone ? angle : THREE.MathUtils.smoothstep(time, 3, desktopTurnStart);
+    const lens = THREE.MathUtils.lerp(start.fov, end.fov, aperture);
     // Portrait needs a wider view to see the full beam through the doorway.
     // Return to the chooser lens gradually before the visitor reaches the cord.
     const wide = phone ? smoothWindow(THREE, time, 0, 8.25, 9.6, duration) : 0;
