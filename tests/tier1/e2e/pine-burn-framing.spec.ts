@@ -7,6 +7,9 @@ import { writeFile } from 'node:fs/promises';
 const FLAME_MIN = .30;
 const FLAME_MAX = .60;
 const FLAME_STEP = .02;
+// Desktop keeps its own frame: the choice panel sits on the right, not across the picture. On the
+// phone the panel occupies the bottom of the screen, so its real top edge is the safe bottom; that
+// edge comes from the page rather than from a number here, which would drift from the stylesheet.
 const SAFE = { desktop: { left: .12, right: .88, top: .10, bottom: .90 },
   phone: { left: .10, right: .90, top: .10, bottom: .62 } };
 
@@ -30,6 +33,23 @@ for (const [label, viewport, safe, project] of [
     await page.getByRole('button', { name: /跳过|Skip/ }).click();
     const chooser = page.getByRole('radio', { name: /^(10 min|10 分钟)$/ });
     await expect(chooser).toBeVisible({ timeout: 30_000 });
+    // On the phone the panel is a bottom sheet, so its own top edge is the safe bottom: the tray has to
+    // sit above it. Read that edge from the page rather than a number here, which would go stale the
+    // moment the stylesheet moves. On a wide screen the panel is a side column and never crosses the
+    // tray, so the desktop frame is unchanged.
+    const panel = await page.evaluate(() => {
+      const sheet = document.querySelector('.candle-sheet');
+      if (!sheet) return null;
+      const rect = sheet.getBoundingClientRect();
+      return { top: rect.top / innerHeight, left: rect.left / innerWidth, height: rect.height / innerHeight };
+    });
+    expect(panel, 'the candle panel must be on screen when a candle is chosen').toBeTruthy();
+    const frame = project === 'phone-zh' ? { ...safe, bottom: panel!.top } : safe;
+    if (project === 'phone-zh') {
+      // A compact bottom sheet leaves the upper half of the picture to the lamp.
+      expect(panel!.top, 'the phone choice panel must start at or below 60% of the viewport')
+        .toBeGreaterThanOrEqual(.60);
+    }
     // Sample once per rendered frame inside the page. Round-tripping from the test would space the
     // samples by whatever the driver costs that moment, and two samples a third of a second apart
     // cannot tell a jump from a slow push.
@@ -51,7 +71,7 @@ for (const [label, viewport, safe, project] of [
         if (frames.length < 4000) requestAnimationFrame(tick);
       };
       requestAnimationFrame(tick);
-    }, safe);
+    }, frame);
 
     await page.getByRole('button', { name: /点亮这一盏|Light it/ }).click();
     await page.waitForTimeout(13000);
@@ -85,6 +105,7 @@ for (const [label, viewport, safe, project] of [
         .toBeLessThanOrEqual(allowed);
     }
     // The tray is whole and clear of the sheet for every frame after the chooser.
-    expect(samples.every(s => s.trayInside), 'the tray must stay inside the safe area').toBe(true);
+    expect(samples.every(s => s.trayInside),
+      `the tray must stay inside the safe area; panel top ${panel?.top.toFixed(3)}`).toBe(true);
   });
 }
