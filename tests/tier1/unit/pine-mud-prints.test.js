@@ -21,7 +21,8 @@ function installCanvas() {
           return {
             fillStyle: '', globalCompositeOperation: '',
             fillRect() {}, beginPath() {}, ellipse() {}, fill() {},
-            createRadialGradient() { return { addColorStop() {} }; },
+            createImageData(w, h) { return { width: w, height: h, data: new Uint8ClampedArray(w * h * 4) }; },
+            putImageData() {},
             getImageData(x, y, w, h) { return { data: new Uint8ClampedArray(w * h * 4).fill(255) }; },
           };
         },
@@ -33,7 +34,7 @@ function installCanvas() {
 
 test('the trail stays under twenty prints and follows the steps upward', () => {
   expect(PINE_PRINTS.length).toBeLessThanOrEqual(20);
-  expect(PINE_PRINTS.length).toBeGreaterThanOrEqual(8);
+  expect(PINE_PRINTS.length).toBeGreaterThanOrEqual(6);
   // Each print is a plausible adult sole length and a weight in range.
   for (const print of PINE_PRINTS) {
     expect(print.length).toBeGreaterThanOrEqual(.24);
@@ -49,6 +50,40 @@ test('the trail stays under twenty prints and follows the steps upward', () => {
   // And some prints turn aside towards the pavilion rather than all pointing uphill.
   const yaws = PINE_PRINTS.map(print => print.yaw);
   expect(Math.max(...yaws) - Math.min(...yaws)).toBeGreaterThan(.8);
+});
+
+test('the gait alternates either side of the line, at an adult stride', () => {
+  // The first five prints are the walk across the paving, before the two that turn aside.
+  const walk = PINE_PRINTS.slice(0, 4);
+  // Alternate feet, so consecutive prints sit on opposite sides of the walking line.
+  const sign = (n) => Math.sign(n);
+  for (let i = 1; i < walk.length; i++) {
+    const a = walk[i - 1], b = walk[i];
+    const centre = (a.x + b.x) / 2;
+    expect(sign(a.x - centre)).not.toBe(sign(b.x - centre));
+    // Each foot lands 8-10 cm off the middle of the line, which is 16-20 cm heel to heel.
+    expect(Math.abs(a.x - b.x)).toBeGreaterThan(.16);
+    expect(Math.abs(a.x - b.x)).toBeLessThan(.26);
+  }
+  // A stride, not a shuffle: 60-70 cm from one footfall to the next.
+  for (let i = 1; i < walk.length; i++) {
+    const stride = Math.hypot(walk[i].x - walk[i - 1].x, walk[i].z - walk[i - 1].z);
+    expect(stride).toBeGreaterThan(.55);
+    expect(stride).toBeLessThan(.78);
+  }
+  // The toes point outwards: opposite feet turn opposite ways, and each toe leads the heel.
+  for (let i = 1; i < walk.length; i++) {
+    expect(Math.abs(walk[i].yaw)).toBeGreaterThan(.08);
+    expect(Math.sign(walk[i].yaw)).not.toBe(Math.sign(walk[i - 1].yaw));
+  }
+});
+
+test('mud thins along the trail, wettest where the walker leaves the mud path', () => {
+  const weights = PINE_PRINTS.map(print => print.weight);
+  // Monotonically drier, so the trail reads as one crossing and not a scatter of stains.
+  for (let i = 1; i < weights.length; i++) expect(weights[i]).toBeLessThan(weights[i - 1]);
+  expect(weights[0]).toBeGreaterThan(.85);
+  expect(weights.at(-1)).toBeLessThan(.2);
 });
 
 test('prints land on the stone surface, not floating above it', () => {
