@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { CAMERA_LIMITS, cameraPathViolations, measureCameraPath } from '../../visual/pine-camera-path.mjs';
-import { hermiteTrack } from '../../../web/src/engine/places/pine-walk-curve.js';
+import { hermiteTrack, shrineApproach } from '../../../web/src/engine/places/pine-walk-curve.js';
 import createPlace from '../../../web/src/engine/places/pine-gate-baked.js';
 import * as THREE from 'three';
 const V3 = (x, y, z) => new THREE.Vector3(x, y, z);
@@ -104,24 +104,18 @@ test('the place holds the reveal for two seconds before the approach', async () 
 });
 
 test('the walk to the chooser stays inside the walking pace and the look limit', async () => {
+  // Call the shipped function, not a copy of it: the runtime and this test share one route and one
+  // duration, so a change in travel() cannot leave the test passing on an old formula.
   const place = createPlace({ THREE, V3 });
   const hold = place.walkHold;
+  const peaks = {};
   for (const phone of [false, true]) {
-    const start = phone ? place.viewPhone : place.view;
     const choose = phone ? place.nook.choosePhone : place.nook.choose;
-    const end = { pos: choose.pos.clone().add(place.nook.at.pos), look: choose.look.clone().add(place.nook.at.pos), fov: choose.fov };
-    // The runtime bows round the shrine; sample the same route it walks.
-    const anchor = new THREE.Vector3(-1.8, 5.0, .9);
-    const around = new THREE.Vector3(end.pos.x + 1.05, end.pos.y + .10, end.pos.z + .55);
-    if (around.distanceTo(anchor) < 1.35) around.copy(anchor).add(new THREE.Vector3(1.45, .10, .35));
+    const end = { pos: choose.pos.clone().add(place.nook.at.pos),
+      look: choose.look.clone().add(place.nook.at.pos), fov: choose.fov };
     const pose = phone && hold.phonePose ? hold.phonePose : hold.pose;
-    const route = new THREE.CatmullRomCurve3(
-      [new THREE.Vector3(...pose.position), around, end.pos.clone()], false, 'centripetal');
-    const metres = route.getLength();
-    const fromAim = new THREE.Vector3(...pose.look).sub(new THREE.Vector3(...pose.position)).normalize();
-    const toAim = end.look.clone().sub(end.pos).normalize();
-    const swing = THREE.MathUtils.radToDeg(Math.acos(THREE.MathUtils.clamp(fromAim.dot(toAim), -1, 1)));
-    const seconds = Math.max(1.6, (metres * 1.5) / 1.4, (swing * 1.5) / 20);
+    const from = { pos: new THREE.Vector3(...pose.position), look: new THREE.Vector3(...pose.look) };
+    const { route, seconds, fromAim, toAim } = shrineApproach({ THREE, from, to: end, hold });
 
     // Sample the same eased pass the runtime uses.
     let peakSpeed = 0, peakTurn = 0;
@@ -139,9 +133,12 @@ test('the walk to the chooser stays inside the walking pace and the look limit',
       }
       prev = p.clone(); prevAim = dir.clone();
     }
-    console.log(`${phone ? 'phone' : 'desk'} walk-to-choose: ${metres.toFixed(2)} m over ${seconds.toFixed(2)} s, `
-      + `peak ${peakSpeed.toFixed(2)} m/s, ${peakTurn.toFixed(1)} deg/s`);
-    expect(peakSpeed, `${phone ? 'phone' : 'desk'} peak speed`).toBeLessThanOrEqual(1.4);
-    expect(peakTurn, `${phone ? 'phone' : 'desk'} peak look rate`).toBeLessThanOrEqual(25);
+    peaks[phone ? 'phone' : 'desk'] = { peakSpeed, peakTurn, seconds };
+    const pace = hold.approachMetresPerSecond ?? 1.4;
+    expect(peakSpeed, `${phone ? 'phone' : 'desk'} peak speed`).toBeLessThanOrEqual(pace);
+    expect(peakTurn, `${phone ? 'phone' : 'desk'} peak look rate`)
+      .toBeLessThanOrEqual(CAMERA_LIMITS.angularDegreesPerSecond);
   }
+  console.log(`DESK_PEAK speed ${peaks.desk.peakSpeed.toFixed(2)} m/s turn ${peaks.desk.peakTurn.toFixed(1)} deg/s`);
+  console.log(`PHONE_PEAK speed ${peaks.phone.peakSpeed.toFixed(2)} m/s turn ${peaks.phone.peakTurn.toFixed(1)} deg/s`);
 });

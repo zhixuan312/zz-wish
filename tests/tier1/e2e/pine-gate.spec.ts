@@ -209,6 +209,12 @@ test('each mud print draws its sole, not the whole quad', async ({ page }) => {
   });
   expect(boxes && boxes.length).toBe(6);
 
+  // Freeze the scene's own animation so the two frames show the same instant: mist and creek motion
+  // between captures would otherwise dwarf the decal's few levels of darkening.
+  // Freeze the scene's own animation so the two frames show the same instant, and wait two frames so
+  // the frozen picture is on screen before the first capture.
+  await page.evaluate(() => { (window as unknown as { __freezeScene?: boolean }).__freezeScene = true; });
+  await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
   const shot = async () => page.screenshot({ style: '.ui{visibility:hidden!important}' });
   const png = await shot();
   // Second frame with the decals hidden: whatever changes is the print itself.
@@ -235,14 +241,6 @@ test('each mud print draws its sole, not the whole quad', async ({ page }) => {
     });
   }, { data: [...frame], spots });
 
-  // The scene animates: mist drifts and the creek moves, so two frames a moment apart differ even
-  // where nothing was drawn. Measure that noise on stone far from any print, then require a print's
-  // corners to differ from the control by no more than that.
-  const noiseSpots: [number, number][] = [[100, 800], [1180, 760], [760, 850], [420, 700]];
-  const [noiseA, noiseB] = await Promise.all([lumaAt(png, noiseSpots), lumaAt(bare, noiseSpots)]);
-  const noise = Math.max(...noiseA.map((v, i) => Math.abs(v - noiseB[i])));
-  const cornerTolerance = Math.max(8, noise + 6);
-
   const inset = 4;
   let shadedPrints = 0;
   for (const box of boxes!) {
@@ -267,9 +265,8 @@ test('each mud print draws its sole, not the whole quad', async ({ page }) => {
     // must show the same stone: any real difference means the decal is painting its whole quad.
     for (const [index, corner] of cornerLuma.entries()) {
       expect(Math.abs(corner - bareCorners[index]),
-        `print ${box.index} corner ${index}: ${corner.toFixed(1)} vs control ${bareCorners[index].toFixed(1)} `
-        + `(scene noise ${noise.toFixed(1)})`)
-        .toBeLessThan(cornerTolerance);
+        `print ${box.index} corner ${index}: ${corner.toFixed(1)} vs control ${bareCorners[index].toFixed(1)}`)
+        .toBeLessThan(8);
     }
     // How much this decal darkens the stone it covers: with-prints minus without-prints, taking the
     // median of the interior so one unlucky pixel cannot decide it.
@@ -277,10 +274,7 @@ test('each mud print draws its sole, not the whole quad', async ({ page }) => {
     const depth = deltas[Math.floor(deltas.length / 2)];
     // Every print must darken the stone it covers, and the wetter ones clearly so. The unit is
     // 0-255 luma; four levels is the smallest step the eye separates on this granite.
-    // The decal covers about forty by twenty pixels and its alpha averages a fifth, so the median
-    // darkening on screen is a few levels, not tens. Two and a half levels is comfortably above the
-    // scene's own frame-to-frame noise.
-    if (depth > 2.5) shadedPrints++;
+    if (depth > 4) shadedPrints++;
   }
   // At least the wettest prints must read as pressed mud: a sole that actually darkens the stone.
   expect(shadedPrints, 'prints whose sole is clearly darker than the stone beside them').toBeGreaterThanOrEqual(3);

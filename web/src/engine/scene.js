@@ -2378,32 +2378,9 @@ export async function travel(id) {
     if (skipNextTravel) skipTweens();
     const from = { pos: rig.pos.clone(), look: rig.look.clone(), fov: rig.fov ?? camera.fov };
     const to = chooseView();
-    // A plain walking pace over the last stretch, never quicker than the place's own limit.
-    const pace = hold.approachMetresPerSecond ?? 1.4;
-    // Round the shrine, not past it. A straight line from the reveal to the choose pose grazes the
-    // lamp shrine's crown: its envelope is 1.24 m across at the anchor (-1.8, 5.0, .9). A waypoint
-    // out to the shrine's seaward side keeps a metre from its footprint the whole way.
-    const anchor = V3(-1.8, 5.0, .9);
-    const around = V3(to.pos.x + 1.05, to.pos.y + .10, to.pos.z + .55);
-    if (around.distanceTo(anchor) < 1.35) around.copy(anchor).add(V3(1.45, .10, .35));
-    const route = new THREE.CatmullRomCurve3([from.pos.clone(), around, to.pos.clone()], false, 'centripetal');
-    // The approach bows round the shrine, so its path is longer than the straight line between its
-    // ends. Time it on the route's own length or the arc outruns the walking pace.
-    const routeMetres = route.getLength();
-    // One eased pass for both position and aim, timed for whichever needs longer: the walking pace,
-    // or turning the aim no faster than the look limit. Smoothstep peaks at 1.5x its average, so
-    // both budgets use the peak. Sharing one duration is what keeps the aim from finishing its last
-    // few degrees in a couple of frames after the position has already arrived.
-    // Interpolate the aim as a direction, not as two target points. The reveal aims at a point
-    // sixteen metres away and the choose pose at one less than a metre away; lerping between those
-    // points swings the view far faster than the eye expects, because the near target barely moves
-    // while the camera does. A fixed-distance aim point keeps the angular rate honest.
-    const AIM_DISTANCE = 6;
-    const fromAim = from.look.clone().sub(from.pos).normalize();
-    const toAim = to.look.clone().sub(to.pos).normalize();
-    const swing = THREE.MathUtils.radToDeg(Math.acos(THREE.MathUtils.clamp(fromAim.dot(toAim), -1, 1)));
-    const turnLimit = 20;                          // deg/s, a margin under the 25 deg/s limit
-    const seconds = Math.max(1.6, (routeMetres * 1.5) / pace, (swing * 1.5) / turnLimit);
+    // The route and its timing live in Pine's own module so the camera test measures the same code
+    // the page walks.
+    const { route, seconds, fromAim, toAim } = shrineApproach({ THREE, from, to, hold });
     const aim = new THREE.Vector3();
     await tween(seconds, k => {
       const e = k * k * (3 - 2 * k);
@@ -2737,10 +2714,14 @@ function frame(stamp = performance.now()) {
       }
     }
     const P = place.P, N = P.nook;
-    for (const f of place.up) f(dt, time, place.daylight);
+    // The browser suite needs two frames of the same instant to compare a decal against the stone
+    // it covers: mist and creek motion otherwise differ between captures and swamp the reading.
+    // Freezing holds the animation clock still; a normal page never sets the flag.
+    const freeze = window.__freezeScene === true;
+    if (!freeze) for (const f of place.up) f(dt, time, place.daylight);
     place.sky.position.copy(camera.position);
     for (const m of flameMats) m.uniforms.uTime.value = time;
-    for (const o of place.others) o.tick(time);
+    if (!freeze) for (const o of place.others) o.tick(time);
     // Near the lamp the view takes the spot's own exposure, bloom and depth range; inside a hall the sky's light falls away.
     const lamp = mine.g.getWorldPosition(tmp), d = camera.position.distanceTo(lamp), near = smooth(7, 1.5, d);
     local.copy(camera.position); place.nookG.worldToLocal(local);

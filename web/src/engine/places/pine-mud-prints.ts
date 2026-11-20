@@ -85,11 +85,15 @@ function soleMaps(THREE: typeof THREE_NS, size = 192) {
       const edge = Math.abs(dx) + .26 * (rim - .5);
       // Solid through the middle, then a broken band at the rim. At forty pixels on screen a soft
       // ramp averages away to nothing, so the print needs mass inside to read at all.
-      const coverage = edge < .88 ? 1 : 1 - Math.min(1, (edge - .88) / .12);
+      // Full cover across most of the sole, breaking only in the outer tenth. A print is read by how
+      // much stone it actually hides, and a soft ramp over granite hides almost nothing.
+      const coverage = edge < .94 ? 1 : 1 - Math.min(1, (edge - .94) / .06);
       // A few large patches of clean stone, at a scale that survives the print being a few pixels wide.
+      // Only rare, small gaps of clean stone. The print is a few dozen pixels wide on screen, so a
+      // busy interior thins the whole sole rather than reading as texture.
       const holes = noise2(px * .055, py * .055, 23);
-      const holeMask = holes > .93 ? .18 : 1;
-      const mottle = .93 + .07 * noise2(px * .045, py * .045, 37);
+      const holeMask = holes > .97 ? .2 : 1;
+      const mottle = .97 + .03 * noise2(px * .045, py * .045, 37);
       // The arch dip already lives in `press`; thinning it twice left a print only a quarter covered.
       const value = Math.min(1, coverage * press * holeMask * mottle);
       if (value <= .01) continue;
@@ -170,7 +174,7 @@ export function createMudPrints({ THREE, surface, prints }: {
       color: 0x0b0907,
       alphaMap: maps?.alpha ?? null,
       transparent: true,
-      opacity: Math.min(.96, .62 + .30 * print.weight),
+      opacity: Math.min(.98, .84 + .14 * print.weight),
       depthWrite: false,
       // Cut the fully transparent texels outright: a soft alpha ramp over a bright slab still
       // lightens the stone at the quad's rim.

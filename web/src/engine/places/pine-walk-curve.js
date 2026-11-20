@@ -63,3 +63,32 @@ export function hermiteTrack(times, rows) {
     return rows[rows.length - 1].slice();
   };
 }
+
+/**
+ * The last stretch of the Pine Gate walk: round the shrine to the chooser pose.
+ *
+ * Both the runtime and the Tier 1 camera test call this, so the timing under test is the timing that
+ * ships. It bows out to the shrine's seaward side because a straight line from the reveal grazes the
+ * lamp shrine's crown, and it is timed for the slower of two budgets: the walking pace over the
+ * route's own arc, and the look limit over the angle the aim must swing.
+ *
+ * @param {{THREE: object, from: object, to: object, hold: {approachMetresPerSecond?: number,
+ *   lookDegreesPerSecond?: number}}} args
+ * @returns {{ route: object, seconds: number, metres: number, swing: number, fromAim: object, toAim: object }}
+ */
+export function shrineApproach({ THREE, from, to, hold }) {
+  const pace = hold?.approachMetresPerSecond ?? 1.4;
+  const turnLimit = hold?.lookDegreesPerSecond ?? 20;
+  // The shrine stands at the lamp anchor; its envelope is a little over a metre across.
+  const anchor = new THREE.Vector3(-1.8, 5.0, .9);
+  const around = new THREE.Vector3(to.pos.x + 1.05, to.pos.y + .10, to.pos.z + .55);
+  if (around.distanceTo(anchor) < 1.35) around.copy(anchor).add(new THREE.Vector3(1.45, .10, .35));
+  const route = new THREE.CatmullRomCurve3([from.pos.clone(), around, to.pos.clone()], false, 'centripetal');
+  const metres = route.getLength();
+  const fromAim = from.look.clone().sub(from.pos).normalize();
+  const toAim = to.look.clone().sub(to.pos).normalize();
+  const swing = THREE.MathUtils.radToDeg(Math.acos(THREE.MathUtils.clamp(fromAim.dot(toAim), -1, 1)));
+  // Smoothstep peaks at 1.5x its average, so both budgets use the peak.
+  const seconds = Math.max(1.6, (metres * 1.5) / pace, (swing * 1.5) / turnLimit);
+  return { route, seconds, metres, swing, fromAim, toAim };
+}
