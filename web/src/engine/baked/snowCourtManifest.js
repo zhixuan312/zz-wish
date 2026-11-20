@@ -56,7 +56,7 @@ export function readSnowCourtBackdrop(manifest) {
 export function readSnowCourtWalkLightmaps(manifest) {
   const declared = manifest?.walkLightmaps;
   if (declared === undefined) return null;
-  const regions = ['hall', 'altar'];
+  const regions = Object.hasOwn(declared ?? {}, 'court') ? ['hall', 'altar', 'court'] : ['hall', 'altar'];
   const passes = ['night', 'dusk', 'day', 'lamp'];
   const backdrop = readSnowCourtBackdrop(manifest);
   if (!backdrop?.walk || !declared || Object.keys(declared).length !== regions.length) {

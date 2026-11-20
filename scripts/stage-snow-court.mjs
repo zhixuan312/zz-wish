@@ -13,18 +13,21 @@ const { values } = parseArgs({
   options: {
     ...Object.fromEntries([...required, 'walk', 'high'].map(name => [name, { type: 'string' }])),
     'defer-hall-lightmaps': { type: 'boolean' },
+    'defer-court-lightmaps': { type: 'boolean' },
     'near-samples': { type: 'string', default: '8' },
     help: { type: 'boolean' },
   },
 });
 if (values.help) {
-  console.log('node scripts/stage-snow-court.mjs --near PACKED_NEAR --needles AUTHORED_GLB --day WEBP2048 --night WEBP2048 --out NEW_ART_BUILD_DIRECTORY [--walk KTX8192] [--high WEBP8192_OR_KTX8192] [--defer-hall-lightmaps] [--near-samples 8|64]');
+  console.log('node scripts/stage-snow-court.mjs --near PACKED_NEAR --needles AUTHORED_GLB --day WEBP2048 --night WEBP2048 --out NEW_ART_BUILD_DIRECTORY [--walk KTX8192] [--high WEBP8192_OR_KTX8192] [--defer-hall-lightmaps [--defer-court-lightmaps]] [--near-samples 8|64]');
   process.exit(0);
 }
 if (required.some(name => !values[name])) throw new Error('Specify --near, --needles, --day, --night and --out.');
 const nearSampleCount = Number(values['near-samples']);
 if (nearSampleCount !== 8 && nearSampleCount !== 64) throw new Error('Specify --near-samples 8 or 64.');
 const deferHallLightmaps = values['defer-hall-lightmaps'];
+const deferCourtLightmaps = values['defer-court-lightmaps'];
+if (deferCourtLightmaps && !deferHallLightmaps) throw new Error('Deferred court lightmaps require --defer-hall-lightmaps.');
 if (deferHallLightmaps && !values.walk) throw new Error('Deferred Snow Roof lightmaps require --walk.');
 const [near, daySource, nightSource, walkSource, highSource] = await Promise.all([
   realpath(resolve(values.near)), realpath(resolve(values.day)), realpath(resolve(values.night)),
@@ -298,7 +301,8 @@ manifest.backdrop = {
 };
 const softLightmaps = [];
 if (deferHallLightmaps) {
-  manifest.walkLightmaps = Object.fromEntries(['hall', 'altar'].map(region => [
+  const walkRegions = deferCourtLightmaps ? ['hall', 'altar', 'court'] : ['hall', 'altar'];
+  manifest.walkLightmaps = Object.fromEntries(walkRegions.map(region => [
     region,
     Object.fromEntries(passes.map(pass => {
       const map = manifest.lightmaps[region][pass];
