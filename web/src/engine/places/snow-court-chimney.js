@@ -4,22 +4,25 @@ const vertex = `
   varying float vAlpha, vCurl;
   void main() {
     float slot = uTime + aPuff.x;
-    float pulse = floor(slot / 1.8);
     float age = mod(slot, 1.8) + aPuff.y;
-    float length = 1.65 + .67 * sin(.58 * uTime);
-    float gust = sin(pulse * 1.76) * .21;
+    float emitted = uTime - age;
+    float length = 1.68 + .21 * sin(.59 * emitted);
+    float gust = .19 * sin(1.38 * emitted);
     float air = age * age;
     // Hot air first clears the two neighbouring roof slopes, then settles
     // into the crosswind as the plume widens and cools.
-    vec3 drift = vec3(-.43 * air + .17 * age * sin(aPuff.z + age),
-      1.34 * age - .24 * air, -.23 * air + gust * age);
+    vec3 drift = vec3(-.43 * air + .15 * air * sin(aPuff.z + age),
+      1.34 * age - .24 * air, -.23 * air + gust * air);
     vec4 view = modelViewMatrix * vec4(position + drift, 1.);
     gl_Position = projectionMatrix * view;
     float metres = .138 + .386 * age;
     gl_PointSize = uPointScale * projectionMatrix[1][1] * metres / max(1., -view.z);
-    vAlpha = smoothstep(0., .12, age) * (1. - smoothstep(.52, length, age));
-    // A light residual trail outlives the stronger short stove puffs.
-    vAlpha *= .19 + .81 * smoothstep(-.22, .8, sin(pulse * 1.95 + .5 * aPuff.z));
+    // Neighbouring particles inherit the same stove pulse when they leave the
+    // flue. The youngest ones still form a narrow trace between the puffs.
+    float pressure = .17 + .83 * smoothstep(-.34, .79, sin(1.94 * emitted + .28 * sin(.53 * emitted)));
+    float outlet = .61 * (1. - smoothstep(.13, .49, age));
+    vAlpha = smoothstep(0., .038, age) * (1. - smoothstep(.53, length, age))
+      * max(pressure, outlet);
     vCurl = aPuff.z + age;
   }`;
 
@@ -58,12 +61,14 @@ export function buildSnowChimney({ THREE, renderer, group }, origin) {
   group.add(smoke);
   const day = new THREE.Color('#d8dfdf').multiplyScalar(1.94);
   const night = new THREE.Color('#99a6b4').multiplyScalar(1.38);
+  const dawn = new THREE.Color('#ffeddc').multiplyScalar(1.87);
   return {
     update(_dt, seconds, light) {
       uniforms.uTime.value = seconds;
       uniforms.uPointScale.value = renderer.domElement.height * .5;
-      uniforms.uTint.value.copy(day).lerp(night, light.n);
-      uniforms.uOpacity.value = .68 - .21 * light.n;
+      const morning = light.dawn ? light.g : 0;
+      uniforms.uTint.value.copy(day).lerp(night, light.n).lerp(dawn, morning);
+      uniforms.uOpacity.value = .65 - .16 * light.n + .31 * morning;
     },
     dispose() {
       smoke.removeFromParent();
