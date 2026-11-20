@@ -168,31 +168,27 @@ def hillside_material(air):
 def summit_material(air):
     shader = plates.Shader('Fractured summit rock with snow in sheltered chutes')
     point = shader.coordinate()
-    position = shader.xyz(point)
-    x, depth, height = (position[axis] for axis in ('X', 'Y', 'Z'))
+    height = shader.xyz(point)['Z']
     shape = shader.noise(point, (.057, .081, .062), detail=2.2)
-    grain = shader.noise(point, (.84, .91, .93), detail=2.6)
-    fine = shader.noise(point, (2.42, 2.56, 2.86), detail=1.4)
+    snow_grain = shader.noise(point, (.84, .91, .93), detail=2.6)
+    weathering = shader.noise(point, (.136, .119, .153), detail=2.4, roughness=.66)
+    chips = shader.noise(point, (.72, .63, .83), detail=1.9)
+    grains = shader.noise(point, (1.53, 1.68, 1.59), detail=1.4)
 
-    # Warp the strata through the larger weathering pattern so individual
-    # fracture seams follow different inclinations and do not form stripes.
-    axes = shader.nodes.new('ShaderNodeCombineXYZ')
-    shader.input(axes.inputs['X'], x)
-    shader.input(axes.inputs['Y'], depth)
-    dip = shader.math('ADD', shader.product(x, .26), shader.product(depth, -.17))
-    shader.input(axes.inputs['Z'], shader.math('ADD', height, shader.math('ADD', dip, shader.product(shape, 9.))))
-    strata = shader.noise(axes.outputs['Vector'], (.085, .175, .48), detail=2.2, roughness=.68)
-    fissures = shader.between(strata, .39, .54)
-    slab = shader.blend((.065, .070, .075, 1.), (.235, .219, .205, 1.), fissures)
-    talus = shader.blend((.093, .096, .10, 1.), (.172, .164, .148, 1.), grain)
-    rock = shader.blend(slab, talus, shader.between(shape, .39, .64, .17, .64))
+    # The mineral patches and angular debris break at the scale of individual
+    # outcrops. Keep the same inclined surface free of parallel bands elsewhere.
+    rock_block = shader.blend((.089, .098, .108, 1.), (.189, .178, .162, 1.),
+                              shader.between(weathering, .24, .73))
+    talus = shader.blend((.081, .089, .097, 1.), (.168, .154, .133, 1.),
+                         shader.between(chips, .28, .70))
+    rock = shader.blend(rock_block, talus, shader.between(shape, .37, .65, .14, .53))
 
     map_node = shader.nodes.new('ShaderNodeAttribute')
     map_node.attribute_name = 'snow_retention'
     accumulation = map_node.outputs['Fac']
     normal = shader.xyz(shader.nodes.new('ShaderNodeNewGeometry').outputs['Normal'])['Z']
     texture = shader.math('ADD', shader.between(shape, .23, .77, -.115, .115),
-                          shader.between(grain, .25, .77, -.067, .071))
+                          shader.between(snow_grain, .25, .77, -.067, .071))
     fragments = shader.math('ADD', accumulation, texture)
     # Sparse snow feathers onto lower ledges and stays in deeper high chutes.
     # Nearly vertical faces keep an exposed rock core even above the snowline.
@@ -200,13 +196,12 @@ def summit_material(air):
     snowline = shader.between(altitude, 17., 84.)
     snow = shader.product(shader.between(fragments, .36, .59), snowline,
                           shader.between(normal, .15, .43, .06, 1.))
-    powder = shader.blend((.60, .65, .72, 1.), (.86, .88, .89, 1.), grain)
+    powder = shader.blend((.60, .65, .72, 1.), (.86, .88, .89, 1.), snow_grain)
 
-    # Use rough diffuse faces rather than lobe highlights on each terrain fold.
-    rock_relief = shader.math('ADD', shader.product(strata, .61), shader.product(grain, .39))
-    relief = shader.blend(rock_relief, shader.product(fine, .28), snow)
-    return shader.surface(shader.blend(rock, powder, snow), .94, specular=.22,
-                          bump=(relief, .31, .24), air=air)
+    rock_relief = shader.math('ADD', shader.product(chips, .61), shader.product(grains, .39))
+    relief = shader.blend(rock_relief, shader.product(snow_grain, .28), snow)
+    return shader.surface(shader.blend(rock, powder, snow), .96, specular=.16,
+                          bump=(relief, .17, .10), air=air)
 
 
 def forest_materials(air):
@@ -317,12 +312,17 @@ def main():
     height = width * projection['height'] // projection['width']
     light_source = projection['light'][options.lighting]
     light = look_transport(light_source)
+    airlight = light_source['airRadiance']
+    # Snowfield bounce makes daylight between the far slopes less blue than
+    # sky scattering alone. Leave the sun, moon and nearer valley unchanged.
+    summit_airlight = [lerp(channel, .135, .34) for channel in airlight] if options.lighting == 'day' else airlight
     recipe = {'width': width, 'height': height, 'projection': projection,
               'projectionSha256': plates.digest(PROJECTION), 'siteSha256': plates.digest(SITE),
               'terrainSource': TILE_URL, 'terrainSha256': TILE_SHA,
               'sources': {'author': plates.digest(Path(__file__).resolve()),
                           'renderHelpers': plates.digest(Path(plates.__file__).resolve())},
               'geometry': proof, 'lighting': options.lighting, 'lightTransport': light,
+              'summitAirRadiance': summit_airlight,
               'samples': options.samples, 'cloudSamples': options.samples, 'denoise': True,
               'alpha': 'straight', 'colorSpace': 'scene-linear Rec.709', 'exposureAppliedStops': 0,
               'runtimePreExposureMultiplier': projection['preExposure'], 'requestedDevice': options.device}
@@ -347,9 +347,10 @@ def main():
     layers = {name: bpy.data.collections.new(f'Snow Court {name} plate') for name in LAYER_NAMES}
     for collection in layers.values():
         scene.collection.children.link(collection)
-    air = plates.air_perspective(light_source['airRadiance'])
+    air = plates.air_perspective(airlight)
+    summit_air = plates.air_perspective(summit_airlight) if summit_airlight != airlight else air
     summit = plates.mesh(layers['far'], 'SRTM summit and connected winter cirques', far,
-                         [summit_material(air)], smooth=True)
+                         [summit_material(summit_air)], smooth=True)
     summit.data.attributes.new('snow_retention', 'FLOAT', 'POINT').data.foreach_set('value', retention)
     inner = plates.mesh(layers['mid'], 'Grounded descending pass flank', mid,
                         [hillside_material(air)], smooth=True)
