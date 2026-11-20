@@ -60,8 +60,8 @@ if (import.meta.env.DEV || import.meta.env.VITE_E2E_HOOKS === '1') {
     }
     composer.render();
     const gl = renderer.getContext();
-    const width = renderer.domElement.width, height = renderer.domElement.height;
-    const ratio = width / renderer.domElement.clientWidth;
+    // readPixels wants device pixels, and its rows count from the bottom of the buffer.
+    const ratio = renderer.domElement.width / renderer.domElement.clientWidth;
     const pixels = spots.map(([x, y]) => {
       const px = Math.round(x * ratio), py = Math.round((renderer.domElement.clientHeight - y) * ratio);
       const out = new Uint8Array(4);
@@ -69,7 +69,6 @@ if (import.meta.env.DEV || import.meta.env.VITE_E2E_HOOKS === '1') {
       return [out[0], out[1], out[2], out[3]];
     });
     for (const [child, visible] of hidden) child.visible = visible;
-    void width; void height;
     return pixels;
   };
 }
