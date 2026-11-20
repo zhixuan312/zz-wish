@@ -1937,10 +1937,10 @@ let cameraJourneyVersion=0;
 let choiceCameraVersion=0;
 const active = outside;
 const tweens = [];
-function tween(dur, fn, finishWhenDue = false) {
+function tween(dur, fn, finishWhenDue = false, { fromFirstDraw = false } = {}) {
   if (reducedMotion.matches) { fn(1); return Promise.resolve(); }
   return new Promise(res => {
-    const tw = { t: 0, dur, fn, res, skip: false };
+    const tw = { t: 0, dur, fn, res, skip: false, fromFirstDraw };
     tweens.push(tw);
     if (finishWhenDue) tw.deadline = setTimeout(() => {
       const index = tweens.indexOf(tw);
@@ -2415,7 +2415,7 @@ export async function travel(id) {
       rig.look.lerpVectors(l0,target,Math.min(1,e*4));rig.amp=a0*(1-Math.min(1,k*3))+.006;
     }
     if(import.meta.env.DEV)window.__walkProgress={id,progress:e,state:'walking',position:rig.pos.toArray()};
-  });
+  }, false, { fromFirstDraw: !!authoredWalk });
   if (skipNextTravel) skipTweens();
   await walk;
   if(import.meta.env.DEV)window.__walkProgress={id,progress:1,state:'done',position:rig.pos.toArray()};
@@ -2647,7 +2647,13 @@ function frame(stamp = performance.now()) {
   for (let i = tweens.length - 1; i >= 0; i--) {
     // Camera/story durations use elapsed wall time. Particle stability's100ms
     // step cap must not turn a slow browser frame into a slow-motion walk.
-    const tw = tweens[i]; tw.t += Math.max(0,elapsed/1000); const k = tw.skip ? 1 : Math.min(1, tw.t / tw.dur); tw.fn(k);
+    const tw = tweens[i];
+    // Walk setup may finish between rendered frames after a shader warmup.
+    // Start authored travel at its first visible pose, excluding that work.
+    if (!tw.fromFirstDraw) tw.t += Math.max(0, elapsed / 1000);
+    tw.fromFirstDraw = false;
+    const k = tw.skip ? 1 : Math.min(1, tw.t / tw.dur);
+    tw.fn(k);
     if (k >= 1) { clearTimeout(tw.deadline); tweens.splice(i, 1); tw.res(); }
   }
   // A slow drift so the view breathes like a held camera; wider outside.
