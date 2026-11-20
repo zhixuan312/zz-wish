@@ -495,38 +495,39 @@ def clip_snow(points, faces, margins, chart, first, height, strike):
     return snow_points, snow_faces, snow_uv
 
 
-def twig_tufts(needles, branch, az, rng, length, close):
-    """Cluster individual fascicles in depth around the youngest wood."""
-    for station, sweep in ((.35, -.27), (.56, .33), (.76, -.42), (.96, .23)):
-        anchor = path_point(branch, station + rng.uniform(-.04, .035))
-        angle = az + sweep + rng.uniform(-.23, .23)
-        forward = (math.cos(angle), .17, math.sin(angle))
-        side = (-math.sin(angle), 0., math.cos(angle))
-        width = length * rng.uniform(.087, .115)
-        phase = rng.uniform(0., math.tau)
-        sides = 5
-        # The attached roots share a small ring. Individual needle tips sweep
-        # around the shoot, with the widest growth staggered between stations.
-        points = []
-        for i in range(sides):
-            turn = phase + math.tau * i / sides
-            points.append(add(anchor, add(scale(side, math.sin(turn) * width),
-                                          (0., math.cos(turn) * width * .82, 0.))))
-        faces = []
-        for i in range(17 if close else 14):
-            root = i % sides
-            turn = phase + math.tau * (root + .5) / sides + rng.uniform(-.42, .42)
-            reach = length * rng.uniform(.58, 1.10)
-            loop = reach * rng.uniform(.48, .99)
-            rise = loop * (.66 * math.cos(turn) + .14 * math.sin(4 * station))
-            tip = add(anchor, add(scale(forward, reach * rng.uniform(.37, .96)),
-                                  add(scale(side, loop * math.sin(turn)), (0., rise, 0.))))
-            faces.append((root, (root + 1) % sides, len(points)))
-            points.append(tip)
-        needles.append(points, faces, ())
+def twig_tufts(needles, rime, branch, rng, length, close, snowy):
+    """Wrap paired pine needles around the distal, wind-combed twig."""
+    from mathutils import Vector
+    from pine_hero_trees import needle_fascicle
+
+    up = Vector((0., 1., 0.))
+    twig = Vector(branch[-1]) - Vector(branch[-2])
+    twig.normalize()
+    side = twig.cross(up).normalized()
+    for i, station in enumerate((.23, .40, .58, .75, .89, .98)):
+        offset = station + rng.uniform(-.035, .02)
+        anchor = Vector(path_point(branch, offset))
+        for sign in (-1, 1):
+            axis = twig + side * (sign * rng.uniform(.34, .78)) + up * rng.uniform(-.12, .44)
+            reach = length * rng.uniform(.75, 1.19)
+            blades = needle_fascicle(anchor, axis, rng.uniform(0., math.tau), reach, rng,
+                                     dense=True, mature=True, pairs=3 if close else 2)
+            # Increase the width of the midground silhouette only enough
+            # to integrate to a smooth subpixel needle at the walk distance.
+            needles.append(tuple((root, bend, tip, max(width, .0028) if not close else width)
+                                 for root, bend, tip, width in blades))
+        if snowy and 1 <= i <= 3:
+            crown = anchor + twig * (.22 * length) + up * (.32 * length)
+            if i == 1:
+                sleeve_start = crown
+            elif i == 3:
+                # The lower rim intersects the needle layer. Small joined
+                # deposits follow the bent shoot, not the whole crown outline.
+                path = [tuple(sleeve_start), tuple(sleeve_start.lerp(crown, .53)), tuple(crown)]
+                snow_sleeve(rime, path, [.30 * length, .47 * length, .29 * length], rng, charts=False)
 
 
-def snow_sleeve(snow, path, radii, rng):
+def snow_sleeve(snow, path, radii, rng, *, charts=True):
     """Break the settled snow into narrow deposits on actual bough surfaces."""
     for i, (p, q) in enumerate(zip(path, path[1:])):
         az = math.atan2(q[2] - p[2], q[0] - p[0])
@@ -549,10 +550,10 @@ def snow_sleeve(snow, path, radii, rng):
             for strip in (0, 1):
                 a = row * 3 + strip
                 faces.extend(((a, a + 3, a + 1), (a + 1, a + 3, a + 4)))
-        snow.append(points, faces, [[coordinates[i] for i in face] for face in faces])
+        snow.append(points, faces, [[coordinates[i] for i in face] for face in faces] if charts else ())
 
 
-def pine(mesh, bark, needles, snow, ground_height, profile, i):
+def pine(mesh, bark, needles, snow, rime, ground_height, profile, i):
     x, z, stature, root, lean = profile
     rng = random.Random(93489 + 1393 * i)
     growth = random.Random(67119 + 1777 * i)
@@ -580,18 +581,19 @@ def pine(mesh, bark, needles, snow, ground_height, profile, i):
         az = phase + j * 2.400 + rng.uniform(-.53, .51)
         horizontal = (math.cos(az), 0, math.sin(az))
         shelter = .5 + math.copysign(.5, lean) * horizontal[0]
-        length = stature * (1 - t) * rng.uniform(.45, .65) * (.81 + .48 * shelter)
+        length = stature * (1 - t) * rng.uniform(.50, .72) * (.59 + .74 * shelter)
         radius = root * (1 - t) * rng.uniform(.26, .37)
         rise = length * rng.uniform(.04, .16)
         bend = add(hinge, add(scale(horizontal, length * .32), (.07 * lean, -.09 * length, .04)))
         shoulder = add(hinge, add(scale(horizontal, length * .70), (.20 * lean, -.13 * length, .08)))
         elbow = add(hinge, add(scale(horizontal, length * .91), (.32 * lean, -.04 * length, .10)))
-        end = add(hinge, add(scale(horizontal, length), (.38 * lean, rise, .10)))
+        end = add(hinge, add(scale(horizontal, length), (.54 * lean, rise, .10)))
         bark.tube(mesh, [hinge, bend, shoulder, elbow, end],
                   [radius, radius * .84, radius * .56, radius * .31, .005], 5, caps=False)
         if j % 2 == 0:
             snow_sleeve(snow, [bend, shoulder, elbow], [radius * .84, radius * .56, radius * .31], growth)
-        for root_point, sweep in ((between(bend, shoulder, .42), -.93), (shoulder, .71), (elbow, -.22)):
+        for k, (root_point, sweep) in enumerate(((between(bend, shoulder, .42), -.96),
+                                                (shoulder, .62), (elbow, -.46), (end, .26))):
             theta = az + sweep + rng.uniform(-.15, .15)
             out = (math.cos(theta), 0, math.sin(theta))
             reach = length * rng.uniform(.38, .60)
@@ -599,7 +601,8 @@ def pine(mesh, bark, needles, snow, ground_height, profile, i):
             tip = add(root_point, add(scale(out, reach), (.15 * lean, reach * rng.uniform(.09, .30), 0)))
             branch = [root_point, mid, tip]
             bark.tube(mesh, branch, [radius * .47, radius * .24, .004], 4, caps=False)
-            twig_tufts(needles, branch, theta, growth, min(.39, .205 + reach * .35), close)
+            twig_tufts(needles, rime, branch, growth, min(.207, .098 + reach * .14),
+                       close, snowy=(j + k + i) % 3 != 0 and shelter > .21)
         if j in (7, 9, 10):
             # Short shoots split away from the bent leader instead of leaving
             # a bare spear above the broader lower whorls.
@@ -610,8 +613,8 @@ def pine(mesh, bark, needles, snow, ground_height, profile, i):
             final = add(hinge, add(scale(fan, span), (lean * .19, .06, 0.)))
             shoot = [hinge, first, final]
             bark.tube(mesh, shoot, [max(.019, .75 * radius), .012, .004], 4, caps=False)
-            twig_tufts(needles, shoot, heading, growth, min(.38, .19 + span * .19), close)
-    twig_tufts(needles, trunk[-3:], math.pi if lean < 0 else 0., growth, .29, close)
+            twig_tufts(needles, rime, shoot, growth, min(.19, .10 + span * .17), close, snowy=j != 9)
+    twig_tufts(needles, rime, trunk[-3:], growth, .142, close, snowy=False)
 
 
 def set_crown_normals(data):
@@ -630,6 +633,7 @@ def build_approach(site, materials):
     """Add the walk-in side of the pass and return its snow support surface."""
     import bpy
     import snow_roof as mesh
+    from pine_hero_trees import needle_mesh
 
     centerline = road_centerline(site)
     vertices, faces, shades, ground_height = worn_terrain(site, centerline)
@@ -664,28 +668,39 @@ def build_approach(site, materials):
         rock(mesh, rock_scan, materials['snow'], ground_height, (x, z, rx, ry, rz), scoured=True)
     brush_tips(mesh, ground_height, centerline, materials['bark'])
 
-    bark, needles, snow = (Geometry() for _ in range(3))
+    bark, snow, rime = (Geometry() for _ in range(3))
+    needles = []
     for i, profile in enumerate(PINES):
-        pine(mesh, bark, needles, snow, ground_height, profile, i)
-    stems = bark.write(mesh, 'Tapered trunks and wind-bent pine boughs', materials['bark'],
+        pine(mesh, bark, needles, snow, rime, ground_height, profile, i)
+    stems = bark.write(mesh, 'Tapered trunks and wind-bent pine boughs', materials['pine_bark'],
                        'Unrolled bark and end charts; metre scale.', smooth=True)
     # Share the circumferential material UV across each taper instead of projecting a flat side.
     uv = stems.data.uv_layers['UVMap'].data
     for polygon, coordinates in zip(stems.data.polygons, bark.charts):
         for loop, (u, v) in zip(polygon.loop_indices, coordinates):
-            uv[loop].uv = (u / .75, v / .75)
-    # These untextured crowns cast into the bake, then receive live sun and
-    # sky. The independent GLB does not need either material or atlas UVs.
-    needle_green = mesh.material('Living grey-green winter pine needles', '#628263', rough=.86)
+            uv[loop].uv = (u / 1.80, v / 1.80)
+    # Use Pine Gate's native needle sections. The joined twigs cast shadows
+    # into the source bake. Only stems and bough snow consume chart area.
+    points, faces, _charts, _wind = needle_mesh(needles, compact=True)
+    first_snow = len(faces)
+    rime_offset = len(points)
+    points.extend(rime.vertices)
+    faces.extend(tuple(i + rime_offset for i in face) for face in rime.faces)
+    needle_green = mesh.material('Living grey-green winter pine needles', '#587456', rough=.89)
     needle_green.use_backface_culling = False
-    foliage = mesh.mesh_object('Pine needle geometry in layered three-dimensional tufts',
-                               needles.vertices, needles.faces, needle_green, REGION)
+    foliage = mesh.mesh_object('Winter pine paired needle fascicles and settled rime',
+                               points, faces, needle_green, REGION)
+    foliage.data.materials.append(mesh.material('Settled rime in winter pine fascicles', '#d4e1e5', rough=.94))
+    for face in foliage.data.polygons[first_snow:]:
+        face.material_index = 1
     bpy.data.collections['RUNTIME'].objects.link(foliage)
     mesh.STATIC.objects.unlink(foliage)
     del foliage['one_light_static']
     foliage.data.uv_layers.remove(foliage.data.uv_layers['UVMap'])
     set_crown_normals(foliage.data)
     foliage['snow_court_needle_crowns'] = True
+    foliage['snow_court_fascicle_count'] = len(needles)
+    foliage['snow_court_needle_count'] = sum(map(len, needles))
     snow.write(mesh, 'Broken snow ridges along pine boughs', materials['snow'],
                'Joined supported snow strips unfolded in metres.', smooth=True)
     return foliage

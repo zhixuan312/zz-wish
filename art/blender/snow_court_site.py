@@ -6,6 +6,7 @@ import json
 import math
 from pathlib import Path
 import random
+import subprocess
 import sys
 
 import bpy
@@ -24,6 +25,8 @@ from snow_court_backdrop import look_transport
 ROOT = Path(__file__).resolve().parents[2]
 SITE = ROOT / 'shared/snow-roof-court-site.json'
 PROJECTION = ROOT / 'shared/snow-court-backdrop.json'
+PINE_BARK = ROOT / 'art/assets/snow-court/pine-bark'
+NEEDLE_PACKER = ROOT / 'scripts/pack-snow-court-needles.mjs'
 
 
 def palette(site):
@@ -34,7 +37,8 @@ def palette(site):
         'brick': mesh.material('Winter-darkened masonry', '#686a65', 'dark_brick_wall', .89),
         'red': mesh.material('Worn iron-oxide temple paint', '#81392f', rough=.77),
         'wood': mesh.material('Old structural timber', '#8d7863', 'weathered_planks', .83),
-        'bark': mesh.material('Weathered brown winter pine bark', '#6b5648', 'weathered_planks', .88),
+        'bark': mesh.material('Weathered winter brush bark', '#6b5648', 'weathered_planks', .88),
+        'pine_bark': mesh.material('Photographed bark on the wind-bent pines', '#ece0d8', str(PINE_BARK), .88),
         'tile': mesh.material('Repaired northern grey roof tile', '#727579', 'grey_roof_tiles', .78),
         'paper': mesh.material('Warm oiled window paper', '#dfc597', rough=.8, emission=.18),
         'bronze': mesh.material('Dull old lamp bronze', '#735438', rough=.63, metal=.71),
@@ -739,8 +743,10 @@ def main():
     output = args.output.resolve()
     output.parent.mkdir(parents=True, exist_ok=True)
     scene = bpy.context.scene
+    bark_images = tuple(PINE_BARK / f'{slot}.jpg' for slot in ('diffuse', 'normal', 'roughness'))
     sources = (Path(__file__), Path(everyday.__file__), Path(finish.__file__), Path(__file__).with_name('snow_court_approach.py'),
-               Path(__file__).with_name('snow_court_backdrop.py'), Path(statue.__file__), statue.SCAN_SOURCE, SITE, PROJECTION)
+               Path(__file__).with_name('snow_court_backdrop.py'), Path(__file__).with_name('pine_hero_trees.py'),
+               Path(statue.__file__), statue.SCAN_SOURCE, SITE, PROJECTION, NEEDLE_PACKER, *bark_images)
     scene['source_authoring_sha256'] = json.dumps({
         str(path.resolve().relative_to(ROOT)): sha256(path.read_bytes()).hexdigest() for path in sources
     })
@@ -748,8 +754,10 @@ def main():
     bpy.context.view_layer.objects.active = foliage
     foliage.select_set(True)
     needles = output.with_name('snow-court-needles.glb')
-    bpy.ops.export_scene.gltf(filepath=str(needles), export_format='GLB', use_selection=True,
+    uncompressed = output.with_name('snow-court-needles.source.glb')
+    bpy.ops.export_scene.gltf(filepath=str(uncompressed), export_format='GLB', use_selection=True,
                               export_extras=True, export_yup=True, export_cameras=False, export_lights=False)
+    subprocess.run(['node', str(NEEDLE_PACKER), str(uncompressed), str(needles)], check=True)
     scene['snow_court_needles_sha256'] = sha256(needles.read_bytes()).hexdigest()
     bpy.ops.wm.save_as_mainfile(filepath=str(output))
     fixtures = json.loads(scene['snow_court_fixtures_engine'])
