@@ -37,6 +37,9 @@ renderer.toneMappingExposure = 1.0;
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 const camera = new THREE.PerspectiveCamera(34, 1, 0.01, 900);
+// The render camera, reachable by the browser suite so its projections use the same matrices the
+// frame is drawn with.
+if (import.meta.env.DEV || import.meta.env.VITE_E2E_HOOKS === '1') window.__pineRenderCamera = camera;
 const pmrem = new THREE.PMREMGenerator(renderer);
 // Reflections near the lamp: a near-black room with warm candle points and one cool window,
 // so brass reads as metal catching flames instead of a white studio.

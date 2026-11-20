@@ -169,12 +169,20 @@ export default function createPlace(h) {
           window.__pineMudPrints = () => mud.count;
           window.__pineMudGroup = () => mud.group;
           window.__pinePrintBoxes = () => {
-            const camera = globalThis.__pineDiagCamera;
+            // Project with the very camera the renderer draws with, after refreshing its matrices.
+            // Anything else can be a stale pose from an earlier frame, which is what made the reported
+            // boxes several times the frame.
+            const camera = globalThis.__pineRenderCamera ?? globalThis.__pineDiagCamera;
             if (!camera) return null;
-            const rendererSize = () => {
-              const target = h.renderer?.getSize?.(new THREE.Vector2());
-              return target && target.x > 0 ? target : { width: innerWidth, height: innerHeight };
-            };
+            camera.updateMatrixWorld(true);
+            camera.updateProjectionMatrix();
+            // Screen pixels are the canvas's CSS box, not its drawing buffer: a retina canvas has
+            // twice the pixels and would double every coordinate.
+            const canvas = h.renderer?.domElement;
+            const rect = canvas?.getBoundingClientRect?.();
+            const size = rect && rect.width > 0
+              ? { width: rect.width, height: rect.height }
+              : { width: innerWidth, height: innerHeight };
             return mud.group.children.map((mesh, index) => {
               mesh.geometry.computeBoundingBox();
               const box = mesh.geometry.boundingBox.clone().applyMatrix4(mesh.matrixWorld);
@@ -183,7 +191,6 @@ export default function createPlace(h) {
                 const v = new THREE.Vector3(x, y, z).project(camera);
                 // Screen pixels of the frame the renderer actually draws, which is not always
                 // innerWidth/innerHeight once a device pixel ratio or a frozen page is involved.
-                const size = rendererSize();
                 points.push([(v.x * .5 + .5) * size.width, (-v.y * .5 + .5) * size.height]);
               }
               const xs = points.map(p => p[0]), ys = points.map(p => p[1]);

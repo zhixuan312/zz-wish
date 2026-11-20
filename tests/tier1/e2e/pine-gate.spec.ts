@@ -197,18 +197,46 @@ test('each mud print draws its sole, not the whole quad', async ({ page }) => {
   for (let i = 0; i < 240; i++) { if (await step.isEnabled().catch(() => false)) break; await page.waitForTimeout(250); }
   await step.click();
   await page.getByRole('button', { name: /跳过|Skip/ }).click();
-  await page.waitForTimeout(1500);
-  await page.evaluate(() => {
-    const pose = window as unknown as { __diagPose?: (p: number[], l: number[], f: number) => void };
-    pose.__diagPose?.([0, 6.5, 7.05], [-0.5, 5.05, 1.93], 68);
-  });
-  await page.waitForTimeout(800);
+  // Do not force a camera pose: a tween is still running and overwrites it, so the projection would
+  // be taken from a pose the visitor never occupies. Wait for the walk to finish and the camera to
+  // settle on its own, then measure what is actually on screen.
+  await page.waitForTimeout(4000);
   const boxes = await page.evaluate(() => {
-    const api = window as unknown as { __pinePrintBoxes?: () => { index: number; x: number; y: number; w: number; h: number }[] | null };
-    return api.__pinePrintBoxes?.() ?? null;
+    const api = window as unknown as { __pinePrintBoxes?: () => { index: number; x: number; y: number; w: number; h: number }[] | null;
+      __pineRenderCamera?: { fov: number; aspect: number }; __pineDiagCamera?: unknown };
+    const cam = api.__pineRenderCamera as { fov: number; aspect: number; position: {x:number;y:number;z:number} } | undefined;
+    const canvas = document.querySelector('canvas');
+    const rect = canvas?.getBoundingClientRect();
+    const out = api.__pinePrintBoxes?.() ?? null;
+    return { out, diag: { hasRender: !!api.__pineRenderCamera, hasDiag: !!api.__pineDiagCamera,
+      fov: cam?.fov, aspect: cam?.aspect, pos: cam?.position,
+      rect: rect ? [rect.width, rect.height] : null, dpr: devicePixelRatio,
+      inner: [innerWidth, innerHeight], buffer: [canvas?.width, canvas?.height] } };
   });
-  expect(boxes && boxes.length).toBe(6);
+  console.log('DIAG ' + JSON.stringify(boxes.diag));
+  const printBoxes = boxes.out;
+  expect(printBoxes && printBoxes.length).toBe(6);
 
+  // Wait until the camera has actually come to rest: ten consecutive frames under a millimetre. A
+  // capture taken mid-move reports a pose the visitor never sees.
+  await page.evaluate(() => new Promise(resolve => {
+    const samples: [number, number, number][] = [];
+    const tick = () => {
+      const api = window as unknown as { __pineDiagCamera?: { position: { x: number; y: number; z: number } } };
+      const p = api.__pineDiagCamera?.position;
+      if (p) {
+        samples.push([p.x, p.y, p.z]);
+        if (samples.length > 10) samples.shift();
+        if (samples.length === 10) {
+          const still = samples.every(q => Math.hypot(q[0] - p.x, q[1] - p.y, q[2] - p.z) < .001);
+          if (still) { resolve(true); return; }
+        }
+      }
+      if (samples.length > 400) { resolve(false); return; }
+      requestAnimationFrame(tick);
+    };
+    tick();
+  }));
   // Freeze the scene's own animation so the two frames show the same instant, and wait two frames so
   // the frozen picture is on screen before the first capture. Mist and creek motion between captures
   // would otherwise dwarf the decal's few levels of darkening.
@@ -247,7 +275,7 @@ test('each mud print draws its sole, not the whole quad', async ({ page }) => {
 
   const inset = 4;
   let shadedPrints = 0;
-  for (const box of boxes!) {
+  for (const box of printBoxes!) {
     if (box.x < 12 || box.y < 12) continue;
     const centre: [number, number] = [box.x + box.w / 2, box.y + box.h / 2];
     const corners: [number, number][] = [
@@ -278,6 +306,7 @@ test('each mud print draws its sole, not the whole quad', async ({ page }) => {
     const depth = deltas[Math.floor(deltas.length / 2)];
     // Every print must darken the stone it covers, and the wetter ones clearly so. The unit is
     // 0-255 luma; four levels is the smallest step the eye separates on this granite.
+    console.log(`DEPTH ${box.index} ${depth.toFixed(2)} box=${Math.round(box.x)},${Math.round(box.y)} ${Math.round(box.w)}x${Math.round(box.h)}`);
     if (depth > 4) shadedPrints++;
   }
   // At least the wettest prints must read as pressed mud: a sole that actually darkens the stone.
