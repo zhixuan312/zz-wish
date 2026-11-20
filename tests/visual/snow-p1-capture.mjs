@@ -13,6 +13,7 @@ import { winterCourtEntrySeconds } from '../../web/src/engine/places/snow-court-
 import { assertCaptureGpuHealthy, installCaptureGpuGuard } from './capture-preflight.mjs';
 import { fingerprintCaptureSource } from './capture-source-fingerprint.mjs';
 import { instrumentPineScene } from './pine-gate-scene-audit.mjs';
+import { createSnowCourtCameraFrames } from './snow-court-camera-frames.mjs';
 
 const placeId = 'snow-roof';
 const packagePath = '/places/snow-roof/';
@@ -255,6 +256,7 @@ async function captureContext(browser, { hour, look, walk }) {
   const result = { hour, look, requested: [], captures: [] };
   report.contexts.push(result);
   let entered = false;
+  let cameraFrames, walkStartTimestamp;
   const error = (kind, value) => report.errors.push({ hour, kind, text: String(value?.stack ?? value) });
   const served = new Set();
   const button = name => page.getByRole('button', { name });
@@ -422,8 +424,13 @@ async function captureContext(browser, { hour, look, walk }) {
     assert(!result.requested.some(({ name, afterEntry }) => !afterEntry && deferredPlates.includes(name)),
       'A deferred image was requested before entry.');
     if (walkMaps) assert(softMapUris.some(uri => served.has(uri)), 'No verified soft interior map arrived before entry.');
+    if (p2 && look === 'day' && process.env.SNOW_COURT_FRAMES === '1') {
+      cameraFrames = await createSnowCourtCameraFrames(page, { outputDir: join(output, 'camera-frames') });
+      await cameraFrames.start();
+    }
     const walkStarted = performance.now();
     entered = true;
+    cameraFrames?.mark('walk');
     await enter.click();
     if (walk) {
       for (const { name, time } of site.keyFrames) {
@@ -431,10 +438,16 @@ async function captureContext(browser, { hour, look, walk }) {
           const clock = window.__pineCaptureWalkClock;
           return clock?.id === 'snow-roof' && clock.seconds >= time && window.__walkProgress?.state === 'walking';
         }, time, { timeout: 35_000 });
+        if (cameraFrames && walkStartTimestamp === undefined) {
+          walkStartTimestamp = await page.evaluate(() => (
+            (performance.timeOrigin + performance.now()) / 1000 - window.__pineCaptureWalkClock.seconds
+          ));
+        }
         await screenshot(walkFrame(look, name), time);
       }
       await page.waitForFunction(() => window.__walkProgress?.id === 'snow-roof' && window.__walkProgress.state === 'done');
       result.walkMs = performance.now() - walkStarted;
+      cameraFrames?.mark('entry');
       assert(result.walkMs >= 29_500, 'The authored walk finished substantially before thirty seconds.');
     } else {
       await button(/^Skip$/).click();
@@ -446,8 +459,13 @@ async function captureContext(browser, { hour, look, walk }) {
       timeout: walk ? Math.ceil((winterCourtEntrySeconds + 1.4) * 1000) : 5000,
     });
     result.chooserEntryMs = performance.now() - entryStarted;
+    if (cameraFrames) {
+      cameraFrames.mark('chooser', { snapshot: (await state()).camera });
+      await page.screenshot({ path: join(output, 'camera-chooser-with-controls.png'), scale: 'css' });
+    }
     await page.getByRole('radio', { name: 'Red gauze', exact: true }).click();
     await page.getByRole('radio', { name: '1 h', exact: true }).click();
+    cameraFrames?.mark('ignition');
     const [posted] = await Promise.all([
       page.waitForResponse(response => response.request().method() === 'POST' && new URL(response.url()).pathname === '/api/candles'),
       button(/^Light it(?: ·|$)/).click(),
@@ -463,6 +481,10 @@ async function captureContext(browser, { hour, look, walk }) {
     result.candle = { id: candle.id, shape: candle.shape, durationMs: candle.durationMs, status: candle.status };
     await expect(page.getByTestId('with-you')).toBeVisible();
     await page.waitForFunction(() => window.__visualIgnition?.state === 'settled' && window.__visualIgnition.progress === 1);
+    if (cameraFrames) {
+      cameraFrames.mark('settled', { snapshot: (await state()).camera });
+      await page.screenshot({ path: join(output, 'camera-burning-with-controls.png'), scale: 'css' });
+    }
     if (look === 'night') {
       await page.waitForFunction(() => {
         const layers = window.__snowP1Capture?.().backdrop;
@@ -472,6 +494,11 @@ async function captureContext(browser, { hour, look, walk }) {
     const expectedPlates = look === 'night' ? [...plateUris.base, ...plateUris.night] : plateUris.base;
     assert(expectedPlates.every(uri => served.has(uri)), `The browser did not load the declared ${look} backdrop.`);
     await screenshot(`${look}-burning`);
+    if (cameraFrames) {
+      const evidence = await cameraFrames.finish({ walkStartTimestamp });
+      result.presentedCameraFrames = evidence.manifest;
+      cameraFrames = null;
+    }
     result.served = [...served];
     assert.deepEqual(report.errors.filter(row => row.hour === hour), [], 'Runtime errors during capture.');
     assert.deepEqual(report.httpErrors.filter(row => row.hour === hour), [], 'HTTP errors during capture.');
@@ -480,6 +507,7 @@ async function captureContext(browser, { hour, look, walk }) {
     error('capture', value);
     throw value;
   } finally {
+    await cameraFrames?.abort();
     await context.close();
     await save();
   }

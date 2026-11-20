@@ -310,7 +310,7 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
       )}
 
       {screen === 'candle' && (
-        <section className="sheet candle-sheet">
+        <section className="sheet candle-sheet" data-place={placeId}>
           <div className="inner">
             <div className="eyebrow">{t.candleEyebrow}</div>
             <h2>{t.stepTitle[kind]}</h2>

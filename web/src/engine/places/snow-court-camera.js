@@ -54,8 +54,10 @@ export function winterCourtWalk(THREE, site, start, phone) {
     const z = rig.pos.z;
     const sweep = (low, middle, high, end) => THREE.MathUtils.smoothstep(z, low, middle)
       * (1 - THREE.MathUtils.smoothstep(z, high, end));
-    // Lower under the crossing branch, then step up onto the gate tread.
-    rig.pos.y += .035 * sweep(12, 12.33, 12.77, 13.2) - .032 * sweep(33.78, 34.18, 34.66, 35.1);
+    // Stay clear of the hanging needles, then step up onto the gate tread.
+    const forest = sweep(29.9, 34.05, 35.12, 38.3);
+    rig.pos.x += .41 * forest;
+    rig.pos.y += .029 * sweep(12, 12.33, 12.77, 13.2) - .101 * forest;
     direction.fromArray(look.evaluate(time)).normalize();
     rig.look.copy(rig.pos).add(direction);
     rig.fov = lens.evaluate(time)[0];
@@ -63,7 +65,7 @@ export function winterCourtWalk(THREE, site, start, phone) {
   };
 }
 
-export const winterCourtEntrySeconds = 15;
+export const winterCourtEntrySeconds = 16.25;
 
 function viewingAngles({ pos, look }) {
   const direction = look.clone().sub(pos).normalize();
@@ -101,6 +103,13 @@ export function winterCourtEntry(THREE, start, end) {
   return (progress, rig) => {
     const time = progress * duration;
     curve.getPointAt(distanceBetween(distances, time) / length, rig.pos);
+    const depth = -rig.pos.z;
+    const pulse = (low, middle, high, end) => THREE.MathUtils.smoothstep(depth, low, middle)
+      * (1 - THREE.MathUtils.smoothstep(depth, high, end));
+    // Pass the half-open hall leaf on its clear side while climbing the two treads.
+    rig.pos.x += .365 * pulse(2.05, 3.03, 4.16, 5.08);
+    rig.pos.y += .045 * pulse(3.10, 3.26, 3.75, 4.21) - .018 * pulse(2.62, 2.81, 2.94, 3.13);
+
     const angle = THREE.MathUtils.smoothstep(time, 2.75, duration);
     const yaw = yaw0 + turn * angle;
     const pitch = THREE.MathUtils.lerp(pitch0, pitch1, angle);
