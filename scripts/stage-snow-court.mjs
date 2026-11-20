@@ -249,7 +249,10 @@ if (needlesSha !== sceneExtras.snow_court_needles_sha256 || needlesBody.readUInt
   || needlesBody.readUInt32LE(8) !== needlesBody.length) {
   throw new Error('The needle crowns differ from the mesh used during the source bake.');
 }
-const needleTransfer = zstdCompressSync(needlesBody, { params: { [constants.ZSTD_c_compressionLevel]: 12 } });
+const needleTransfer = zstdCompressSync(needlesBody, { params: { [constants.ZSTD_c_compressionLevel]: 22 } });
+if (!zstdDecompressSync(needleTransfer).equals(needlesBody)) {
+  throw new Error('Lossless needle compression did not preserve the authored GLB.');
+}
 const needles = { body: needleTransfer, spec: {
   uri: 'snow-court-needles.glb.zstd', bytes: needleTransfer.length, sha256: digest(needleTransfer),
   role: 'runtime-snow-needle-crowns', encoding: 'zstd', decodedBytes: needlesBody.length, decodedSha256: needlesSha,
