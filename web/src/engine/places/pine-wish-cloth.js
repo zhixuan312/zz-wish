@@ -66,6 +66,14 @@ export function createWishCloth({ THREE, anchor, url = CLOTH_URL, loader = new G
       if (material) {
         material.side = THREE.DoubleSide;
         if (material.map) material.map.colorSpace = THREE.SRGBColorSpace;
+        // The delivered weave is strong enough that its ridges read as stripes on a tail seen close
+        // up. Keep the weave but soften it, so it reads as cloth rather than corduroy.
+        if (material.normalScale) material.normalScale.setScalar(.42);
+        if (material.normalMap) {
+          material.normalMap.repeat.set(2.4, 2.4);
+          material.normalMap.wrapS = material.normalMap.wrapT = THREE.RepeatWrapping;
+          material.normalMap.needsUpdate = true;
+        }
         if (material.sheen !== undefined) material.sheen = .28;
         if (material.sheenColor) material.sheenColor.setRGB(.34, .012, .018);
         material.envMapIntensity = .32;
@@ -89,6 +97,26 @@ export function createWishCloth({ THREE, anchor, url = CLOTH_URL, loader = new G
     /** The loaded mesh, or null until the asset arrives. */
     get mesh() { return mesh; },
     update() { /* A settled cloth on a tray does not move. */ },
+    /**
+     * Follow the live tray. The asset is authored round the nominal tray wall, so when the runtime
+     * holder is scaled in X and Z the cloth must take the same scale or it hangs off the wall.
+     */
+    setTrayScale(scale) {
+      const value = Number.isFinite(scale) && scale > 0 ? scale : 1;
+      group.scale.set(value, 1, value);
+    },
+    /**
+     * Light the strip as the older wax stubs are lit: nothing of its own, just the candle. `lit` is
+     * how much the visitor's own flame is giving, so a tail away from the flame stays darker.
+     */
+    setLight({ own = 0, ambient = 1 } = {}) {
+      if (!mesh) return;
+      const material = mesh.material;
+      if (!material) return;
+      // The strip must never read brighter than the stone beside it: at night it is candle-lit only.
+      material.envMapIntensity = .06 + .26 * ambient;
+      material.color?.setRGB?.((.39) * .82 + .05 * own, (.015) * .82, (.023) * .82);
+    },
     show(lit) { group.visible = wishClothVisible(lit); },
     worldPosition() { return group.getWorldPosition(new V3()); },
     dispose() {

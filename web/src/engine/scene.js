@@ -593,7 +593,12 @@ const LAMPS = {
     const pineWax = createPineWax(seat, waxMaterial, { refined, sculptNormal, sunShade });
     pineWax.group.visible = false;
     g.add(pineWax.group);
-    const setShape = shape => {
+    const parts = { g, kind: 'wax', seat, pineWax, holder, shelfContact, sunShade,
+      frame: { h: .2, cy: .08 }, lightMax: .05, light: 0xffbc82, flame: refined ? .91 : 1.13,
+      // The tray's live XZ scale. Everything tied to the tray's wall, such as the visitor cloth,
+      // has to follow it or it hangs off a wall that is not there any more.
+      holderScale: 1 };
+    parts.setShape = shape => {
       pineWax.setShape(shape);
       if (!refined) return;
       const bounds = pineWax.profileBounds();
@@ -601,9 +606,11 @@ const LAMPS = {
       const holderScale = THREE.MathUtils.clamp((waxRadius + .007) / seat.traceRadius, .76, 1);
       holder.scale.set(holderScale, 1, holderScale);
       shelfContact.scale.setScalar(contactRadius * holderScale);
+      parts.holderScale = holderScale;
+      // Anything tied to the tray wall, such as the visitor's cloth, takes the same XZ scale.
+      place?.baked?.setClothTrayScale?.(holderScale);
     };
-    return { g, kind: 'wax', seat, pineWax, holder, shelfContact, setShape, sunShade,
-      frame: { h: .2, cy: .08 }, lightMax: .05, light: 0xffbc82, flame: refined ? .91 : 1.13 };
+    return parts;
   },
   // A brass-framed storm lantern hanging from a hook; the candle stands inside behind glass.
   lantern() {

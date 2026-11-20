@@ -1,7 +1,7 @@
 import { Vector3 } from 'three';
 import { expect, test } from 'vitest';
 import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, URL } from 'node:url';
 import { createWishCloth, wallRadius, wishClothVisible, CLOTH_URL, TRAY_PROFILE } from '../../../web/src/engine/places/pine-wish-cloth.js';
 import * as THREE from 'three';
 
