@@ -2051,9 +2051,6 @@ function burnView(){
     // Both heights are in the lamp's own frame, so lift them the same way as the centre.
     const trayRim = mine.g.localToWorld(V3(0, mine.parts.seat.y + .021, 0));
     const flameTop = mine.g.localToWorld(V3(0, mine.parts.seat.y + subjectHeight + .052, 0));
-    // A portrait frame gives the phone a sheet across its bottom third, so the tray must sit higher
-    // in the crop than on a desktop. Weight the aim towards the tray rather than splitting it evenly
-    // with the flame.
     // A portrait frame loses its bottom third to the choice sheet (top: 350 px of 844), so the tray
     // must sit well above centre. Aim below the tray rim: with the eye above the tray, aiming lower
     // moves the whole subject up the frame.
