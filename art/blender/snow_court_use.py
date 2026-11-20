@@ -219,35 +219,75 @@ def side_aperture(mesh, label, x, z, z0, z1, level, eave, direction, wood, plast
     return width, low, high, x + direction * .079
 
 
-def winter_boards(mesh, label, coord, center, width, y0, y1, side, wood):
+def winter_boards(mesh, label, coord, center, width, y0, y1, side, materials):
+    """Close a window with continuous reused boards, fixed from outside."""
     rng = random.Random(913 if side else 781)
-    tints = ['#c1b5a5', '#9e8c79', '#b2a28c', '#93816e']
-    planks = [mesh.material('Reused winter board ' + str(i + 1), tint, 'weathered_planks', .94)
+    wood = materials['wood']
+    tints = ('#c0b5a8', '#a49583', '#c7bfb2', '#b1aa9c')
+    planks = [mesh.material('Silvered winter closure timber ' + str(i + 1), tint, 'weathered_planks', .96)
               for i, tint in enumerate(tints)]
-    count = round(width / .175)
-    for i in range(count):
-        along = center - width / 2 + (i + .5) * width / count
-        base, top = y0 + rng.uniform(-.022, .014), y1 + rng.uniform(-.019, .023)
-        thickness = rng.uniform(.047, .064)
-        outer = coord + rng.uniform(-.013, .013)
-        dimensions = (width / count - rng.uniform(.003, .010), top - base, thickness)
-        location = (along, (base + top) / 2, outer)
-        if side:
-            dimensions = (dimensions[2], dimensions[1], dimensions[0])
-            location = (outer, location[1], along)
-        obj = mesh.box(label + ' reused winter plank', dimensions, location,
-                       planks[rng.randrange(len(planks))], .007, rng.uniform(-.027, .027))
-        offset = rng.uniform(0., 1.)
+
+    def wall_point(along, height, outward):
+        return (outward, height, along) if side else (along, height, outward)
+
+    def piece(name, span, height, thickness, along, yy, outward, material, edge):
+        dimensions = (thickness, height, span) if side else (span, height, thickness)
+        return mesh.box(label + ' ' + name, dimensions, wall_point(along, yy, outward), material, edge)
+
+    # On the weather face, only the lengths of the planks and their nails are
+    # exposed. The two horizontal battens support them from inside the frame.
+    width += .13
+    for yy in (y0 + .19, y1 - .25):
+        piece('inside batten supporting closure timber', width - .095, .104, .062,
+              center, yy, coord - .014, wood, .008)
+    count = round(width / .233)
+    sizes = [rng.uniform(.79, 1.22) for _ in range(count)]
+    total = sum(sizes)
+    edge = center - width / 2
+    frost, frost_faces, nails, nail_faces = [], [], [], []
+    for index, breadth in enumerate(sizes):
+        pitch = width * breadth / total
+        along = edge + pitch / 2
+        base, top = y0 + rng.uniform(-.071, -.030), y1 + rng.uniform(.031, .080)
+        thickness = rng.uniform(.058, .074)
+        outward = coord + rng.uniform(.048, .058)
+        obj = piece('full-height reused plank', pitch - rng.uniform(.007, .016), top - base,
+                    thickness, along, (base + top) / 2, outward, planks[rng.randrange(len(planks))], .007)
+        offset = rng.random()
         for loop in obj.data.uv_layers['UVMap'].data:
             loop.uv.x += offset
-    for yy, age in ((y0 + .27, .96), (y1 - .29, .91)):
-        outside = coord + .055
-        dimensions = (width * age, .103, .050)
-        location = (center, yy, outside)
-        if side:
-            dimensions = (dimensions[2], dimensions[1], dimensions[0])
-            location = (outside, yy, center)
-        mesh.box(label + ' removable bracing across winter boards', dimensions, location, wood, .008)
+        surface = outward + thickness / 2
+        for nail_y in (y0 + .19, y1 - .25):
+            nail_x = along + rng.uniform(-.027, .027)
+            first = len(nails)
+            for i in range(6):
+                angle = i * math.tau / 6
+                nails.append(wall_point(nail_x + .009 * math.cos(angle),
+                                        nail_y + .009 * math.sin(angle), surface + .002))
+            face = tuple(range(first, first + 6))
+            nail_faces.append(tuple(reversed(face)) if side else face)
+        edge += pitch
+        if index != count - 1:
+            # Packed snow lies low in open joints and feathers onto both
+            # board edges. Its exposed face is raised above the timber.
+            extent = rng.uniform(.105, .41)
+            peak = len(frost)
+            strips = ((base + .024, .014), (base + .066, .026),
+                      (base + extent * .70, .010), (base + extent, .002))
+            for yy, radius in strips:
+                frost.extend((wall_point(edge - radius, yy, surface + .002),
+                              wall_point(edge + .002, yy, surface + .013),
+                              wall_point(edge + radius, yy, surface + .002)))
+            for row in range(3):
+                for col in range(2):
+                    a = peak + 3 * row + col
+                    face = (a, a + 1, a + 4, a + 3)
+                    frost_faces.append(tuple(reversed(face)) if side else face)
+    mesh.mesh_object(label + ' hand-driven iron nail heads', nails, nail_faces, materials['ash'])
+    snow = mesh.mesh_object(label + ' snow packed into winter plank joints',
+                            frost, frost_faces, materials['snow'])
+    for polygon in snow.data.polygons:
+        polygon.use_smooth = True
 
 
 def warm_side_window(mesh, area, label, frame_x, z, width, y0, y1, direction, wood, paper):
@@ -307,52 +347,55 @@ def replace_roof_tiles(mesh, label, target_x, roof_front):
 
 
 def firewood_stack(mesh, site, room, ground, contacts, materials):
+    """Keep short split fuel dry beside the front corner of the kitchen."""
     rng = random.Random(775)
     level = site['court']['level']
-    end = room['east']
-    stack_z = room['front'] - 1.27
+    front = room['front']
+    stack_x, stack_z = room['east'] + .035, front + .21
     y = level + .22
-    stack_x = end + .337
     faces = [(0, 1, 2, 3), (4, 7, 6, 5), (0, 4, 5, 1),
              (1, 5, 6, 2), (2, 6, 7, 3), (3, 7, 4, 0)]
     shoes = []
     with contacts.group('Granite shoes on the kitchen snow court', [ground]):
-        for shift in (-.37, .37):
-            perimeter = [(stack_x + dx, stack_z + shift + dz)
-                         for dx, dz in ((-.224, -.16), (.224, -.16), (.224, .16), (-.224, .16))]
+        for shift in (-.169, .169):
+            perimeter = [(stack_x + shift + dx, stack_z + dz)
+                         for dx, dz in ((-.085, -.13), (.085, -.13), (.085, .13), (-.085, .13))]
             foot = [(x, mesh.resting_contact_height(x, z, [ground]) - .001, z) for x, z in perimeter]
             top = [(x, y, z) for x, z in perimeter]
             shoes.append(mesh.mesh_object('Granite shoe under the kitchen fuel rack',
                                           foot + top, faces, materials['granite']))
     slats = []
     with contacts.group('Weathered fuel rack carried by two granite shoes', shoes):
-        for shift in (-.111, .111):
-            slats.append(mesh.box('Raised hardwood board from the kitchen fuel rack', (.214, .067, 1.02),
-                                  (stack_x + shift, y + .0335, stack_z), materials['wood'], .005))
+        for shift in (-.063, .063):
+            slats.append(mesh.box('Raised hardwood rail from the kitchen fuel rack', (.502, .067, .125),
+                                  (stack_x, y + .0335, stack_z + shift), materials['wood'], .005))
     y += .067
     heart = mesh.material('Fresh and faded split firewood faces', '#b39573', 'weathered_planks', .87)
     pale_wood = mesh.material('Pale exposed firewood sapwood', '#ceb594', 'weathered_planks', .93)
     with contacts.group('Split fuel resting on the raised wood rack', slats):
-        for row, count in enumerate((6, 5, 4)):
+        for row, count in enumerate((3, 3, 3, 2, 1)):
             for index in range(count):
-                center = stack_z + (index - (count - 1) / 2) * .163 + rng.uniform(-.006, .006)
-                front = end + rng.uniform(.49, .55)
-                rear = end + rng.uniform(.106, .138)
-                bottom = y + row * .104
-                half = rng.uniform(.064, .073)
-                cross = [(-half * .58, 0.), (half * .61, 0.),
-                         (half, .032), (half * .64, .104), (-half * .51, .104), (-half, .066)]
-                skew = rng.uniform(-.039, .037)
-                vertices = [(x, bottom + height, center + offset + drift)
-                            for x, drift in ((front, 0.), (rear, skew)) for offset, height in cross]
+                center = stack_x + (index - (count - 1) / 2) * .146 + rng.uniform(-.008, .008)
+                end = front + rng.uniform(.305, .336)
+                rear = front + rng.uniform(.102, .131)
+                bottom = y + row * .108
+                half = rng.uniform(.062, .074)
+                cross = [(-half * .78, 0.), (half * .73, 0.),
+                         (half, .039), (half * .52, .105), (-half * .35, .108), (-half, .061)]
+                skew = rng.uniform(-.022, .022)
+                vertices = [(center + offset + drift, bottom + height, z)
+                            for z, drift in ((end, 0.), (rear, skew)) for offset, height in cross]
+                # The cut faces face the open passage, with bark left on the
+                # soft outer sides and two differently coloured split faces.
                 sides = [(i, (i + 1) % 6, (i + 1) % 6 + 6, i + 6) for i in range(6)]
                 sides.extend((tuple(reversed(range(6))), tuple(range(6, 12))))
-                log = mesh.mesh_object('Stacked hand-split winter fuel', vertices, sides, materials['bark'])
+                log = mesh.mesh_object('Stacked hand-split winter fuel', vertices,
+                                       [tuple(reversed(face)) for face in sides], materials['bark'])
                 log.data.materials.append(heart)
                 log.data.materials.append(pale_wood)
                 for i in (0, 2, 3, 6, 7):
                     log.data.polygons[i].material_index = 1 + (i >= 6 and (index + row) % 3 != 0)
-                mesh.uv_world(log, .63)
+                mesh.uv_world(log, .48)
                 mesh.bevel(log, .004)
 
 

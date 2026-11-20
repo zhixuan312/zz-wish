@@ -245,7 +245,7 @@ def outbuildings(site, m, court, ground, contact):
             mesh, label, inner, aperture_z, back, front, y, eave, facing, m['wood'], m['plaster'])
         if room.get('boarded'):
             everyday.winter_boards(mesh, label + ' court-side opening', frame, aperture_z,
-                                   opening, low, high, True, m['wood'])
+                                   opening, low, high, True, m)
         else:
             everyday.warm_side_window(mesh, area, label, frame, aperture_z, opening, low, high,
                                       facing, m['wood'], m['paper'])
@@ -256,27 +256,36 @@ def outbuildings(site, m, court, ground, contact):
         mesh.box(label + ' carrying lintel', (width, .25, .24), (x, eave - .16, front), m['red'], .015)
         if room.get('boarded'):
             everyday.winter_boards(mesh, label + ' front opening', front, x,
-                                   width - .47, y + .72, eave - .28, False, m['wood'])
+                                   width - .47, y + .72, eave - .28, False, m)
         else:
             mesh.window(label + ' paper screen', x, y + 1.48, front, width - .5, 1.46, m['wood'], m['paper'])
         mesh.tiled_roof(label, x, eave, z, width + .55, depth / 2 + .35, .79, m['tile'], m['wood'], m['snow'], 'court')
         everyday.replace_roof_tiles(mesh, label, inner - .10 * facing, front + .35)
         if room.get('kitchen'):
-            cx, cz = left + .63, z + .2
+            # The working stove flue comes through the court-facing roof
+            # slope. The nearer ridge otherwise hides the stack and smoke.
+            cx, cz = right - .81, front - .90
+            rim = eave + 1.37
+            lower, upper = eave - .18, rim - .09
+            shaft_height, shaft_mid = upper - lower, (lower + upper) / 2
             for side in (-1, 1):
-                mesh.box('Masonry cheek of the kitchen flue', (.133, 1.0, .38),
-                         (cx + side * .15, eave + .59, cz), m['brick'], .018)
-                mesh.box('Masonry end of the open kitchen flue', (.176, 1.0, .126),
-                         (cx, eave + .59, cz + side * .127), m['brick'], .017)
-                mesh.box('Worn cover stone at the sides of the flue', (.17, .11, .49),
-                         (cx + side * .185, eave + 1.10, cz), m['granite'], .012)
-                mesh.box('Worn cover stone at the ends of the flue', (.20, .11, .145),
-                         (cx, eave + 1.10, cz + side * .1725), m['granite'], .012)
+                mesh.box('Masonry cheek beneath the open kitchen flue', (.135, shaft_height, .39),
+                         (cx + side * .154, shaft_mid, cz), m['brick'], .016)
+                mesh.box('Masonry end beneath the open kitchen flue', (.174, shaft_height, .126),
+                         (cx, shaft_mid, cz + side * .131), m['brick'], .016)
+                mesh.box('Granite cap at the sides of the flue opening', (.159, .134, .51),
+                         (cx + side * .191, rim - .067, cz), m['granite'], .014)
+                mesh.box('Granite cap at the ends of the flue opening', (.23, .134, .146),
+                         (cx, rim - .067, cz + side * .181), m['granite'], .013)
+            # Preserve a visibly open bore so the smoke begins within the
+            # masonry cap. The windblown snow only clings on its leeward edge.
+            mesh.snow_coping('Small leeward frost ledge on the flue cap', .42, .085, .034,
+                            (cx - .214, rim - .006, cz - .019), m['snow'], turn=True, seed=73)
             everyday.firewood_stack(mesh, site, room, ground, contact, m)
-            area('Indirect overcast light from the kitchen passage opening',
-                 (right + .59, y + 1.95, front - .82), (right + .27, y + .53, front - 1.28),
-                 9.2, '#d9e1e7', .73)
-            bpy.context.scene['snow_court_smoke_engine'] = json.dumps([cx, eave + 1.111, cz])
+            area('Snow light reflected toward the split fuel under the kitchen eave',
+                 (right + 1.08, y + 1.17, front + 1.27), (right + .02, y + .49, front + .19),
+                 9.8, '#d9e1e7', .92)
+            bpy.context.scene['snow_court_smoke_engine'] = json.dumps([cx, rim + .006, cz])
 
 
 def earlier_lantern(x, z, y, top, index, m, fixtures, lit=False):
@@ -564,10 +573,10 @@ def build(site, projection):
     gate(site, m, contact, fixtures)
     outbuildings(site, m, site['court'], court_surface, contact)
     court_floor = site['court']['level']
-    area('Blue snow bounce lights the winter-closed boards', (-3.94, court_floor + .31, .14),
-         (-5.49, court_floor + 1.14, -1.45), 10.4, '#cad4df', 1.38)
+    area('Blue snow bounce lights the winter-closed boards', (-3.82, court_floor + .42, -.54),
+         (-5.30, court_floor + 1.28, -1.31), 13.6, '#cad4df', 1.32)
     area('Even snow bounce beneath the west room front eave', (-7.09, court_floor + .32, 3.11),
-         (-7.30, court_floor + 1.14, 1.46), 7.4, '#d4dce2', 1.57)
+         (-7.30, court_floor + 1.14, 1.46), 9.1, '#d4dce2', 1.57)
     everyday.broom(mesh, site, court_surface, contact, m)
     hall(site, m, contact, fixtures)
     basis = [site['visitorCord'][0], 3.54, site['visitorCord'][2]]

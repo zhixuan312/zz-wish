@@ -9,8 +9,8 @@ const vertex = `
     float length = 1.65 + .67 * sin(.58 * uTime);
     float gust = sin(pulse * 1.76) * .21;
     float air = age * age;
-    vec3 drift = vec3(-.56 * air + .17 * age * sin(aPuff.z + age),
-      .58 * age - .104 * air, -.28 * air + gust * age);
+    vec3 drift = vec3(-.51 * air + .17 * age * sin(aPuff.z + age),
+      .71 * age - .082 * air, -.28 * air + gust * age);
     vec4 view = modelViewMatrix * vec4(position + drift, 1.);
     gl_Position = projectionMatrix * view;
     float metres = .09 + .24 * age;
@@ -60,7 +60,7 @@ export function buildSnowChimney({ THREE, renderer, group }, origin) {
       uniforms.uTime.value = seconds;
       uniforms.uPointScale.value = renderer.domElement.height * .5;
       uniforms.uTint.value.copy(day).lerp(night, light.n);
-      uniforms.uOpacity.value = .30 - .10 * light.n;
+      uniforms.uOpacity.value = .37 - .12 * light.n;
     },
     dispose() {
       smoke.removeFromParent();
