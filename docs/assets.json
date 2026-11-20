@@ -4,6 +4,18 @@
   "purpose": "Single provenance and license register for every delivered visual asset and shared decoder.",
   "assets": [
     {
+      "id": "snow-court-srtm-winter-pass",
+      "kind": "Offline elevation source",
+      "license": "United States government public domain",
+      "sourceUrl": "https://doi.org/10.5066/F7PR7TFT",
+      "downloadUrl": "https://elevation-tiles-prod.s3.amazonaws.com/skadi/N33/N33E107.hgt.gz",
+      "tile": "N33E107",
+      "sha256": "c878cd7ebf7b60e148e5441e22f314c034d3c410dff3b97194d0b9ce1fb4b477",
+      "origin": "NASA JPL and NGA SRTM, distributed by USGS EROS",
+      "transformation": "Sample two relief strips, map them to a fictional pass, and relight independently in Cycles. Native EXR masters are local, and only verified encoded planes are delivered.",
+      "provenance": "docs/licenses/snow-court-elevation.md"
+    },
+    {
       "id": "rock_pitted_mossy",
       "kind": "PBR material",
       "provider": "Poly Haven",
