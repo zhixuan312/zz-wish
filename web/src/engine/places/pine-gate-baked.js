@@ -16,7 +16,7 @@ import { createWishCloth } from './pine-wish-cloth.js';
 import { createCandleSlots } from './pine-candle-slots.js';
 import { hermiteTrack } from './pine-walk-curve.js';
 import { createMudPrints, PINE_PRINTS } from './pine-mud-prints.ts';
-import { screenBox } from './pine-burn-framing.js';
+import { projectPoint, screenBox } from './pine-burn-framing.js';
 import { blendInputsAt as pineBlendInputsAt } from './pine-day-parts.ts';
 import { dressPineWetTreads } from './pine-wet-treads.js';
 import { pineDaySunDirection, pineDaySunDiscEdges } from './pine-gate-sun.js';
@@ -200,10 +200,24 @@ export default function createPlace(h) {
               mesh.geometry.computeBoundingBox();
               const box = mesh.geometry.boundingBox.clone().applyMatrix4(mesh.matrixWorld);
               const screen = screenBox({ min: box.min.toArray(), max: box.max.toArray() }, view);
-              if (!screen.visible) return { index, visible: false, x: NaN, y: NaN, w: 0, h: 0 };
+              // A rotated quad's axis-aligned screen box is larger than the quad itself, and by an
+              // amount that grows with the rotation: at 77 degrees a corner inset a few pixels from
+              // the box still lands on the sole. Report the quad's own corners so a review can sample
+              // the place where the decal must not paint.
+              const geometryBox = mesh.geometry.boundingBox;
+              const corners = [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([sx, sy]) => {
+                const local = new THREE.Vector3(
+                  sx === 0 ? 0 : (sx > 0 ? geometryBox.max.x : geometryBox.min.x),
+                  sy === 0 ? 0 : (sy > 0 ? geometryBox.max.y : geometryBox.min.y),
+                  geometryBox.max.z).applyMatrix4(mesh.matrixWorld);
+                const point = projectPoint(local, view);
+                return [point.x * size.width, point.y * size.height];
+              });
+              if (!screen.visible) return { index, visible: false, x: NaN, y: NaN, w: 0, h: 0, corners: [] };
               return { index, visible: true,
                 x: screen.left * size.width, y: screen.top * size.height,
-                w: (screen.right - screen.left) * size.width, h: (screen.bottom - screen.top) * size.height };
+                w: (screen.right - screen.left) * size.width, h: (screen.bottom - screen.top) * size.height,
+                corners };
             });
           };
           }

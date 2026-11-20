@@ -234,7 +234,8 @@ test('each mud print draws its sole, not the whole quad', async ({ page }, testI
   expect(overviewSettled, 'the overview pose must hold before the prints are measured').toBe(true);
 
   const printBoxes = await page.evaluate(() => {
-    const api = window as unknown as { __pinePrintBoxes?: () => { index: number; visible: boolean; x: number; y: number; w: number; h: number }[] | null };
+    const api = window as unknown as { __pinePrintBoxes?: () => { index: number; visible: boolean;
+      x: number; y: number; w: number; h: number; corners: [number, number][] }[] | null };
     return api.__pinePrintBoxes?.() ?? null;
   });
   expect(printBoxes && printBoxes.length).toBe(6);
@@ -281,13 +282,17 @@ test('each mud print draws its sole, not the whole quad', async ({ page }, testI
   for (const box of printBoxes!) {
     if (!box.visible) continue;
     if (box.x < 12 || box.y < 12) continue;
+    // The quad turns with the walker, so its axis-aligned box has corners the decal never paints.
+    // Sample just outside the quad's own corners instead: the stone there must be untouched, and the
+    // sole's rim is the only thing that could bleed a single pixel inwards.
+    // Push each corner outwards along its own diagonal, so the sample lands on stone the decal
+    // cannot reach.
     const centre: [number, number] = [box.x + box.w / 2, box.y + box.h / 2];
-    const corners: [number, number][] = [
-      [box.x + inset, box.y + inset],
-      [box.x + box.w - inset, box.y + inset],
-      [box.x + inset, box.y + box.h - inset],
-      [box.x + box.w - inset, box.y + box.h - inset],
-    ];
+    const corners: [number, number][] = box.corners.map(([cx, cy]) => {
+      const dx = cx - centre[0], dy = cy - centre[1];
+      const length = Math.hypot(dx, dy) || 1;
+      return [cx + (dx / length) * inset, cy + (dy / length) * inset];
+    });
     // Sample a small grid inside the sole, not one centre pixel: a single point can land on a
     // bright fleck of granite or under the tray's own shadow and say nothing about the decal.
     const inner: [number, number][] = [];
@@ -297,8 +302,9 @@ test('each mud print draws its sole, not the whole quad', async ({ page }, testI
     const [cornerLuma, bareCorners, innerLuma, bareInner] = await Promise.all([
       lumaAt(png, corners), lumaAt(bare, corners), lumaAt(png, inner), lumaAt(bare, inner),
     ]);
-    // The quad's corners sit outside the sole's silhouette, so at the same pixel the control frame
-    // must show the same stone: any real difference means the decal is painting its whole quad.
+    // A few pixels beyond each quad corner the sole cannot reach, so the control frame must show the
+    // same stone there: any real difference means the decal is painting its whole quad rather than a
+    // footprint.
     for (const [index, corner] of cornerLuma.entries()) {
       expect(Math.abs(corner - bareCorners[index]),
         `print ${box.index} corner ${index}: ${corner.toFixed(1)} vs control ${bareCorners[index].toFixed(1)}`)
