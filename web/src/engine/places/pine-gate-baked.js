@@ -14,6 +14,7 @@ import { dressAncientPineBark } from './pine-ancient-bark.js';
 import { dressPineCrestCloth } from './pine-crest-cloth.js';
 import { createWishCloth } from './pine-wish-cloth.js';
 import { createCandleSlots } from './pine-candle-slots.js';
+import { blendInputsAt as pineBlendInputsAt } from './pine-day-parts.ts';
 import { dressPineWetTreads } from './pine-wet-treads.js';
 import { pineDaySunDirection, pineDaySunDiscEdges } from './pine-gate-sun.js';
 import crestNeedleAnchors from './pine-crest-needle-anchors.json' with { type: 'json' };
@@ -91,6 +92,9 @@ export default function createPlace(h) {
     view: { pos: V3(...entrance.position), look: entranceLook(false), fov: entrance.desktopFov },
     viewPhone: { pos: V3(...entrance.phonePosition), look: entranceLook(true), fov: entrance.phoneFov },
     walkSeconds: path.seconds,
+    // Optional per-place lighting override: the scene uses this instead of the shared day keys
+    // when a place provides it. Pine Gate needs its own six-part curve; Snow Roof does not.
+    lightAt: clock => pineBlendInputsAt(clock),
     walk: [], doors: V3(-.17, 5.58, 6.32), createWalk,
     async build(_place, context) {
       // Start the soft plates and wax normal while the mesh and lightmaps

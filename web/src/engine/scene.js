@@ -1500,6 +1500,10 @@ function daylight(date = new Date(), continuous = false) {
   for (const key of Object.keys(a)) { const value=a[key]+(b[key]-a[key])*k;out[key]=continuous?value:Math.round(value*20)/20; }
   return out;
 }
+// A place may supply its own clock-to-light curve; when it does, that curve replaces the shared
+// day keys for that place only. Snow Roof supplies none, so its look is unchanged.
+const placeLight = (PLACE, date = new Date()) => (PLACE?.lightAt ? PLACE.lightAt(date) : daylight(date));
+
 const hexMix = (a, b, k) => new THREE.Color(a).lerp(new THREE.Color(b), Math.min(1, Math.max(0, k))).getHex();
 function blendPlace(N, L) {
   const D = N.day, n = L.n, g = L.g, mix = (a, b) => a + (b - a) * n;
@@ -1783,9 +1787,9 @@ async function buildPlace(t) {
   attachMine();
 }
 async function buildPlaceNow(t, isolated = false) {
-  const light = daylight(), lightKey = JSON.stringify(light);
-  if (cachedPlaces.has(t.id)) return cachedPlaces.get(t.id);
   PLACES[t.id] ??= (await placeModules[t.id]()).default(placeHelpers);
+  const light = placeLight(PLACES[t.id]), lightKey = JSON.stringify(light);
+  if (cachedPlaces.has(t.id)) return cachedPlaces.get(t.id);
   if(PLACES[t.id].bakedLighting)await ensureNativeAgX();
   if(t.id==='snow-roof')await ensureVisitorFabric();
   if(!PLACES[t.id].bakedLighting)await loadNaturalAssets();
@@ -2568,7 +2572,7 @@ function frame(stamp = performance.now()) {
   if (place) {
     if(time>nextClockCheck){
       nextClockCheck=time+15;
-      const light=daylight(),key=JSON.stringify(light);
+      const light=placeLight(PLACES[place.id]),key=JSON.stringify(light);
       if(key!==place.lightKey){
         place.P={...PLACES[place.id],...blendPlace(PLACES[place.id],light)};place.lightKey=key;place.daylight=light;
         const p=place.P,u=place.sky.material.uniforms;

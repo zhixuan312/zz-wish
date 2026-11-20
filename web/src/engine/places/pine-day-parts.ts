@@ -105,3 +105,30 @@ export function lightAt(date: Date, window = 3): PartLight {
     lamps: k < .5 ? a.lamps : b.lamps,
   };
 }
+
+/**
+ * The same six-part decision expressed in the shape `blendPlace` in scene.js consumes: n is how
+ * far toward the night look, g the low-sun warmth, blue the blue-hour lift, lamp the lamplight,
+ * haze the mist and elev the sun height. Placing it here keeps scene.js free of Pine Gate rules.
+ */
+export interface BlendInputs {
+  n: number; g: number; blue: number; lamp: number; haze: number; elev: number; dawn: boolean;
+}
+
+// How each plate family reads through those inputs. A family is a look, not an hour.
+const FAMILY: Readonly<Record<PlateSet, Omit<BlendInputs, 'dawn'>>> = Object.freeze({
+  day: { n: 0, g: .12, blue: 0, lamp: 0, haze: 1.1, elev: .85 },
+  dusk: { n: .55, g: 1, blue: .3, lamp: .9, haze: 1.15, elev: .12 },
+  night: { n: 1, g: 0, blue: .32, lamp: 1, haze: 1.2, elev: 1 },
+});
+
+/** Blend inputs for the shared renderer, from the six-part table at this moment. */
+export function blendInputsAt(date: Date, window = 3): BlendInputs {
+  const light = lightAt(date, window);
+  const family = FAMILY[light.plates];
+  const hour = date.getHours() + date.getMinutes() / 60;
+  // Warmth eases in through the afternoon and out again by night, which the table's lamp and
+  // direction already imply; derive it from the direction's height so nothing is invented twice.
+  const elev = Math.min(1, Math.max(.02, light.direction[1]));
+  return { ...family, elev, dawn: hour < 12 };
+}
