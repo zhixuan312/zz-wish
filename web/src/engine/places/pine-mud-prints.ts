@@ -166,15 +166,18 @@ export function createMudPrints({ THREE, surface, prints }: {
       // boot sole, so the print needs a genuinely dark pigment. It stays slightly glossy because a
       // damp sole catches the sky; that specular edge is what reads against a busy surface when a
       // difference in value alone is lost.
-      color: 0x0d0b09,
-      roughness: .30 - .12 * print.weight,
+      color: 0x090806,
+      // The damp sheen has to be a tight highlight, not a broad wash: at a low roughness with a
+      // strong environment the whole print mirrors the bright sky and turns grey, which hides it
+      // even better than a flat colour did.
+      roughness: .46 - .10 * print.weight,
       metalness: 0,
-      envMapIntensity: .55,
+      envMapIntensity: .16,
       alphaMap: maps?.alpha ?? null,
       normalMap: maps?.normal ?? null,
       normalScale: new THREE.Vector2(.9, .9),
       transparent: true,
-      opacity: Math.min(.97, .62 + .35 * print.weight),
+      opacity: Math.min(.98, .72 + .26 * print.weight),
       // The cloth strips and the wax contact shading both sit on stone without polygon offset:
       // they simply do not write depth. Follow them, rather than offsetting the depth buffer, which
       // fights the new per-slab geometry and can clip the decal away entirely.
