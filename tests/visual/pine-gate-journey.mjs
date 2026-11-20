@@ -344,14 +344,22 @@ async function capture(browser, browserName, size, trial) {
     await context.addInitScript(installCaptureGpuGuard);
     if (quality) await context.addInitScript(installLiveAudioAudit);
     await context.addInitScript(({ hour, holdCameraDrift }) => {
-      Date.prototype.getHours = () => Math.floor(hour);
-      Date.prototype.getMinutes = () => Math.floor((hour % 1) * 60);
+      // The wall clock stays at the review hour unless a test moves it; the light curve reads Date,
+      // so this is what decides the part of day.
+      let clockShift = 0;
+      const clockHour = () => hour + clockShift / 3600000;
+      Date.prototype.getHours = () => Math.floor(clockHour()) % 24;
+      Date.prototype.getMinutes = () => Math.floor((clockHour() % 1) * 60);
       Date.prototype.getSeconds = () => 0;
       Date.prototype.getMilliseconds = () => 0;
       const nativeNow = performance.now.bind(performance);
       let offset = 0;
       performance.now = () => nativeNow() + offset;
       window.__advanceVisualClock = delta => { offset += delta; };
+      // Move the wall clock too, for the proof that a burning scene crosses a part boundary without
+      // jumping.
+      window.__advanceWallClock = ms => { clockShift += ms; };
+      window.__visualClockHour = () => clockHour();
       if (holdCameraDrift) window.__visualFreezeCamera = true;
     }, { hour: visualHour, holdCameraDrift });
     const page = await context.newPage();
