@@ -88,7 +88,12 @@ export function createWishCloth({ THREE, anchor }) {
   mesh.castShadow = true;
   mesh.receiveShadow = true;
   mesh.name = 'Wish cloth band tied round the candle tray';
+  // The visible strip is S1's modelled glb. Parameterised geometry cannot read as cloth here, and
+  // the band that was tried spilled past the tray's silhouette from the burning camera, so the
+  // mesh is authored and measured but not drawn. The group, the show() flow and the no-burial
+  // bounds stay live so the modelled strip can be dropped into the same slot.
   group.add(mesh);
+  mesh.visible = false;
 
   const local = new V3();
   return {

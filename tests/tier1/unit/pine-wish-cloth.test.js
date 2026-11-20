@@ -137,8 +137,9 @@ test('the cloth is plain lit red cloth with shadows, and carries no text', () =>
   let textured = null;
   cloth.group.traverse((object) => { if (object.isMesh && object.material?.map) textured = object.material.map; });
   expect(textured).toBeNull();
-  // Plain version: no knot, no tails.
+  // The band is authored and measured but not drawn while S1's modelled strip is pending.
   expect(cloth.group.children).toHaveLength(1);
+  expect(band.visible).toBe(false);
   cloth.dispose();
 });
 
