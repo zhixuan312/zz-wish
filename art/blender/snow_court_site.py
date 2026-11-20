@@ -162,6 +162,14 @@ def oil_lamp(name, position, material, contacts, support, zone, fixtures, watts=
         wick = mesh.lathe(f'{name} charred cotton wick', [(.007, 0), (.008, .028), (.004, .046), (0, .049)],
                          (x, y + .056, z), material['ash'], 9)
         if storm:
+            glass = mesh.material('Thin pale storm lamp glass', '#e9ddc9', rough=.16)
+            optical = glass.node_tree.nodes.get('Principled BSDF')
+            optical.inputs['IOR'].default_value = 1.48
+            optical.inputs['Transmission Weight'].default_value = .94
+            mesh.lathe('Hand-blown windscreen around the veranda flame', [
+                (.101, .110), (.103, .146), (.101, .230), (.095, .247),
+                (.093, .247), (.099, .230), (.101, .146), (.099, .110), (.101, .110),
+            ], position, glass, 22)
             mesh.lathe('Storm lantern separate chimney rim and vent', [
                 (.105, .074), (.102, .105), (.103, .119), (.119, .116), (.124, .101), (.121, .080), (.105, .074),
             ], position, material['bronze'], 20)
@@ -314,6 +322,8 @@ def earlier_lantern(x, z, y, top, index, m, fixtures, lit=False):
                    (radius * .73, ring_height + .009), (radius * .67, ring_height + .009),
                    (radius * .66, ring_height - .013), (radius * .72, ring_height - .013)],
                    (x, y, z), frame, 20)
+        mesh.beam('Slender hardwood bar supporting the hanging lantern', (x - radius * .70, y + ring_height, z),
+                  (x + radius * .70, y + ring_height, z), .007, frame, .006)
     for rib in range(9):
         profile = [cloth_point(rib / 9, level) for level in (0, .23, .5, .77, 1)]
         mesh.curved_tube('Fine bowed rib of an earlier wish lantern', profile, [.003] * len(profile), frame, 5)
@@ -322,10 +332,13 @@ def earlier_lantern(x, z, y, top, index, m, fixtures, lit=False):
                   (x + .032 + end * .007, y - .066, z + .02), .0018, m['rope'], .0015)
     mesh.box('Weathered wooden wish tag', (.053, .125, .008), (x + .032, y - .123, z + .02),
              m['tag'], .002, .15 * math.cos(index * 1.7))
+    mesh.lathe('Old soot-darkened cup inside the gauze', [
+        (0, .006), (.042, .006), (.055, .033), (.048, .040), (.039, .024), (0, .023),
+    ], (x, y, z), m['bronze'], 15)
     if lit:
-        wick = mesh.lathe('Low wick in an earlier wish lantern', [(.005, 0), (.007, .022), (0, .030)],
-                         (x, y + .083, z), m['ash'], 9)
-        source = mesh.light('Soft bounce from an earlier glowing wish', (x, y + .116, z), .17, '#ffad67', .043)
+        wick = mesh.lathe('Low wick in an earlier wish lantern', [(.005, 0), (.007, .012), (0, .020)],
+                         (x, y + .023, z), m['ash'], 9)
+        source = mesh.light('Soft bounce from an earlier glowing wish', (x, y + .066, z), .17, '#ffad67', .043)
         fixtures.append((f'Earlier red wish {index}', 'hall', wick, source, True, 'gauze shade'))
 
 
