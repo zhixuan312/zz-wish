@@ -4,21 +4,25 @@ import { lstat, mkdir, readFile, realpath, writeFile } from 'node:fs/promises';
 import { basename, dirname, join, resolve, sep } from 'node:path';
 import { parseArgs } from 'node:util';
 import { constants, gunzipSync, zstdCompressSync, zstdDecompressSync } from 'node:zlib';
-import { read as readKtx, KHR_DF_MODEL_ETC1S, KHR_DF_PRIMARIES_BT709,
+import { read as readKtx, write as writeKtx, KHR_DF_MODEL_ETC1S, KHR_DF_PRIMARIES_BT709,
   KHR_DF_TRANSFER_LINEAR, KHR_SUPERCOMPRESSION_BASISLZ, KHR_SUPERCOMPRESSION_ZSTD } from 'three/examples/jsm/libs/ktx-parse.module.js';
+import { readSnowCourtWalkLightmaps } from '../web/src/engine/baked/snowCourtManifest.js';
 
 const required = ['near', 'needles', 'day', 'night', 'out'];
 const { values } = parseArgs({
   options: {
     ...Object.fromEntries([...required, 'walk', 'high'].map(name => [name, { type: 'string' }])),
+    'defer-hall-lightmaps': { type: 'boolean' },
     help: { type: 'boolean' },
   },
 });
 if (values.help) {
-  console.log('node scripts/stage-snow-court.mjs --near PACKED8 --needles AUTHORED_GLB --day WEBP2048 --night WEBP2048 --out NEW_ART_BUILD_DIRECTORY [--walk KTX8192] [--high WEBP8192_OR_KTX8192]');
+  console.log('node scripts/stage-snow-court.mjs --near PACKED8 --needles AUTHORED_GLB --day WEBP2048 --night WEBP2048 --out NEW_ART_BUILD_DIRECTORY [--walk KTX8192] [--high WEBP8192_OR_KTX8192] [--defer-hall-lightmaps]');
   process.exit(0);
 }
 if (required.some(name => !values[name])) throw new Error('Specify --near, --needles, --day, --night and --out.');
+const deferHallLightmaps = values['defer-hall-lightmaps'];
+if (deferHallLightmaps && !values.walk) throw new Error('Deferred Snow Roof lightmaps require --walk.');
 const [near, daySource, nightSource, walkSource, highSource] = await Promise.all([
   realpath(resolve(values.near)), realpath(resolve(values.day)), realpath(resolve(values.night)),
   values.walk && realpath(resolve(values.walk)), values.high && realpath(resolve(values.high)),
@@ -133,6 +137,32 @@ function verifyKtx(body, uri, width, height) {
   }
 }
 
+function softLightmap(file, map) {
+  const { uri } = file.spec;
+  const source = readKtx(file.body);
+  const [format] = source.dataFormatDescriptor;
+  const mip = source.levels[2];
+  const mipBytes = Math.ceil(source.pixelWidth / 16) * Math.ceil(source.pixelHeight / 16) * 16;
+  if (map.mipLevels !== 3 || file.spec.mipLevels !== 3 || source.vkFormat !== 0 || source.levels.length !== 3
+    || source.pixelDepth || source.layerCount || source.faceCount !== 1
+    || source.supercompressionScheme !== KHR_SUPERCOMPRESSION_ZSTD
+    || format?.colorModel !== 166 || format.transferFunction !== KHR_DF_TRANSFER_LINEAR
+    || source.pixelWidth < 16 || source.pixelWidth % 4 || source.pixelHeight < 16 || source.pixelHeight % 4
+    || !mip?.levelData.length || mip.uncompressedByteLength !== mipBytes) {
+    throw new Error(`Expected a three-level linear UASTC lightmap: ${uri}`);
+  }
+  // Copy the audited mip2 blocks, UV orientation and transfer metadata.
+  const body = Buffer.from(writeKtx({
+    ...source,
+    pixelWidth: source.pixelWidth / 4,
+    pixelHeight: source.pixelHeight / 4,
+    levels: [mip],
+  }, { keepWriter: true }));
+  return { body, spec: { uri: uri.replace(/\.ktx2$/, '-soft.ktx2'), bytes: body.length, sha256: digest(body),
+    role: 'runtime-snow-soft-lightmap', codec: 'uastc', mipLevels: 1, transfer: 'linear',
+    sourceUri: uri, sourceMip: 2 } };
+}
+
 function verifyLighting(actual, lighting) {
   const { directionEngine: [x, y, z], discDegrees, discIntensity, skyStrength } = projection.light[lighting];
   const degrees = 180 / Math.PI;
@@ -197,7 +227,8 @@ const manifest = JSON.parse(nearBytes);
 const regions = ['altar', 'court', 'gate', 'hall'];
 const passes = ['day', 'dusk', 'night', 'lamp'];
 const bake = manifest.bake;
-if (manifest.place !== 'snow-roof' || manifest.backdrop || manifest.snowCourt || manifest.partialPreview !== true
+if (manifest.place !== 'snow-roof' || manifest.backdrop || manifest.snowCourt || manifest.walkLightmaps
+  || manifest.partialPreview !== true
   || bake?.samples !== 8 || !isHash(bake.sourceBlendSha256) || !isHash(manifest.bakeFingerprint)
   || bake.cameraPreExposure !== projection.preExposure
   || Object.keys(manifest.lightmaps ?? {}).sort().join() !== regions.join()) {
@@ -259,6 +290,20 @@ manifest.backdrop = {
   ...(walk ? { walk: walk.descriptor } : {}),
   ...(high ? { high: high.descriptor } : {}),
 };
+const softLightmaps = [];
+if (deferHallLightmaps) {
+  manifest.walkLightmaps = Object.fromEntries(['hall', 'altar'].map(region => [
+    region,
+    Object.fromEntries(passes.map(pass => {
+      const map = manifest.lightmaps[region][pass];
+      if (map.uri !== `${region}-${pass}.ktx2`) throw new Error(`Missing canonical lightmap ${region}/${pass}.`);
+      const full = fileIndex.get(map.uri);
+      const soft = softLightmap(full, map);
+      softLightmaps.push(soft);
+      return [pass, soft.spec.uri];
+    })),
+  ]));
+}
 const fabric = JSON.parse(await readFile(new URL('../web/src/engine/baked/visitor-fabric.json', import.meta.url)));
 const installed = new URL('../web/public/places/snow-roof/', import.meta.url);
 const fabricFiles = await Promise.all(Object.values(fabric.maps).map(async file => {
@@ -271,11 +316,16 @@ const fabricFiles = await Promise.all(Object.values(fabric.maps).map(async file 
   verifyWebp(body, uri, file.width, file.height);
   return { body, spec: { uri, bytes: file.bytes, sha256: file.sha256, role: 'runtime-visitor-fabric' } };
 }));
-const files = [...nearFiles, needles, ...fabricFiles, ...day.files, ...night.files, ...(walk?.files ?? []), ...(high?.files ?? [])];
+const files = [
+  ...nearFiles, needles, ...fabricFiles, ...day.files, ...night.files,
+  ...(walk?.files ?? []), ...(high?.files ?? []), ...softLightmaps,
+];
 manifest.files = files.map(file => file.spec);
 if (new Set(manifest.files.map(file => file.uri)).size !== files.length) {
   throw new Error('Duplicate delivery asset URI.');
 }
+const walkLightmapBytes = Object.values(readSnowCourtWalkLightmaps(manifest) ?? {})
+  .flatMap(maps => Object.values(maps)).reduce((bytes, { full }) => bytes + full.bytes, 0);
 
 const agx = JSON.parse(agxProvenance).delivered;
 const agxUri = '/color/native-agx-57-f16.bin.zst';
@@ -307,7 +357,7 @@ for (let attempt = 0; attempt < 8; attempt++) {
   const manifestBytes = encode().length;
   const desktop = manifestBytes + manifest.payloadBytes + manifest.sharedVisualBytes;
   const phone = desktop - highBytes;
-  const base = phone - walkBytes - nightBytes;
+  const base = phone - walkBytes - nightBytes - walkLightmapBytes;
   if (manifest.manifestBytes === manifestBytes && manifest.completePackageBytes === desktop) break;
   manifest.manifestBytes = manifestBytes;
   manifest.completePackageBytes = desktop;
@@ -319,6 +369,7 @@ if (serialized.length !== manifest.manifestBytes) throw new Error('Manifest byte
 console.log('SNOW_COURT_BUDGET', JSON.stringify({
   ...manifest.budget, manifestBytes: manifest.manifestBytes, nativeAgXBytes: agx.bytes,
   nearBytes: byteSum([...nearFiles, needles]), dayBytes: byteSum(day.files), nightBytes, walkBytes, highBytes,
+  ...(deferHallLightmaps ? { walkLightmapBytes, softLightmapBytes: byteSum(softLightmaps) } : {}),
   nearManifestSha256: digest(nearBytes), sourceBlendSha256: bake.sourceBlendSha256, projectionSha256, siteSha256,
 }));
 for (const [tier, limit] of Object.entries(limits)) {

@@ -7,6 +7,7 @@ import { createVisitorShadow } from './visitorShadow.js';
 import { createGauzeTransmission } from './gauzeTransmission.js';
 import { createStaticLampShadow } from './staticLampShadow.js';
 import { readPineWalkLightmaps } from './pineManifest.js';
+import { readSnowCourtWalkLightmaps } from './snowCourtManifest.js';
 
 // The scene renderer outlives the places. Share its transcoder pool, including
 // the compiled Basis decoder, across the cover, the selected place and previews.
@@ -25,7 +26,8 @@ function textureTranscoder(renderer) {
 export async function loadBakedPlace(id,renderer,initialLight={n:1,g:0}){
   const base=`/places/${id}/`;
   const manifest=await readBakedManifest(id);
-  const walkLightmaps=id==='pine-gate'?readPineWalkLightmaps(manifest):null;
+  const walkLightmaps=id==='pine-gate'?readPineWalkLightmaps(manifest)
+    :id==='snow-roof'?readSnowCourtWalkLightmaps(manifest):null;
   const versions=new Map((manifest.files??[]).map(file=>[file.uri,file.sha256]));
   const assetUrl=uri=>base+uri+(versions.get(uri)?`${uri.includes('?')?'&':'?'}v=${versions.get(uri)}`:'');
   const verifyBytes=uri=>{
@@ -116,7 +118,7 @@ export async function loadBakedPlace(id,renderer,initialLight={n:1,g:0}){
     const expectedLevels=uri===item.soft?.uri?1:item.mipLevels;
     if(item.soft&&texture.mipmaps.length!==expectedLevels){
       texture.dispose();
-      throw new Error(`Invalid Pine Gate lightmap mip chain: ${uri}`);
+      throw new Error(`Invalid ${id==='pine-gate'?'Pine Gate':'Snow Roof'} lightmap mip chain: ${uri}`);
     }
     texture.name=uri;
     texture.colorSpace=THREE.NoColorSpace;texture.channel=2;texture.flipY=false;

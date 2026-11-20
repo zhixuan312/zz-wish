@@ -8,6 +8,7 @@ import { fileURLToPath } from 'node:url';
 import { chromium, expect } from '@playwright/test';
 import Database from 'better-sqlite3';
 import site from '../../shared/snow-roof-court-site.json' with { type: 'json' };
+import { readSnowCourtWalkLightmaps } from '../../web/src/engine/baked/snowCourtManifest.js';
 import { assertCaptureGpuHealthy, installCaptureGpuGuard } from './capture-preflight.mjs';
 import { fingerprintCaptureSource } from './capture-source-fingerprint.mjs';
 import { instrumentPineScene } from './pine-gate-scene-audit.mjs';
@@ -125,6 +126,9 @@ for (const region of regions) for (const pass of passes) {
     bakeDevice: map.bakeDevice, denoiseDevice: map.denoiseDevice, masterSha256: map.masterSha256 };
 }
 assert.equal(new Set(Object.values(maps).map(map => map.uri)).size, 16, 'Expected all 16 distinct lightmaps.');
+const walkMaps = readSnowCourtWalkLightmaps(manifest);
+const walkMapUris = Object.values(walkMaps ?? {}).flatMap(row => Object.values(row).map(({ full }) => full.uri));
+const softMapUris = Object.values(walkMaps ?? {}).flatMap(row => Object.values(row).map(({ soft }) => soft.uri));
 
 function backdropUris(tier, extensions) {
   assert(tier?.encoding === 'log2-8-8' && isDigest(tier.encodedReceiptSha256),
@@ -169,6 +173,7 @@ const report = {
   base: base.href, sourceRev: revision(), sourceSha256: sourceStart.aggregateSha256,
   preview: { directory: candidate, revision: manifest.snowCourt.revision, manifestSha256: expectedSha,
     authoringBlendSha256: manifest.bake.sourceBlendSha256, bakeFingerprint: manifest.bakeFingerprint, maps, plateUris,
+    ...(walkMaps ? { walkLightmaps: walkMaps } : {}),
     budget: manifest.budget, totalCandidateBytes: [...assets.values()].reduce((total, asset) => total + asset.body.length, 0) },
   ordinaryManifestSha256: installedSha, viewport, captures: [], contexts: [], errors: [], httpErrors: [], viteUpdates: [],
   readinessMisses: [],
@@ -269,6 +274,12 @@ async function captureContext(browser, { hour, look, walk }) {
     if (entrance) {
       assert(p2 && !entered, 'Capture the P2 entrance before clicking Step inside.');
       checkEntrance(before);
+      if (walkMaps) {
+        assert.deepEqual(before.lights.walkLightmaps?.native, [], 'Initial entry must use the soft interior lightmaps.');
+        for (const row of Object.values(walkMaps)) {
+          for (const pass of [look, 'lamp']) assert(served.has(row[pass].soft.uri), 'The app has no verified soft interior pass.');
+        }
+      }
     } else if (time !== null) {
       assert(before.walk?.id === placeId && before.walk.state === 'walking' && before.clock?.id === placeId
         && before.clock.durationSeconds === site.walkSeconds, 'Expected the native thirty-second authored walk.');
@@ -282,6 +293,12 @@ async function captureContext(browser, { hour, look, walk }) {
           assert(before.backdrop?.length === 3 && before.backdrop.every(layer =>
             layer.nightResident && layer.nightMix === 1 && layer.nightWeight === 1 && layer.nightWidth === backdrop.night.width),
           'The independent night plates must be fully visible at the authored 28s reveal.');
+        }
+        if (p2 && walkMaps) {
+          assert(walkMapUris.every(uri => served.has(uri)), 'Expected the declared interior banks by the 28s reveal.');
+          for (const pass of [look, 'lamp']) {
+            assert(before.lights.walkLightmaps?.native.includes(pass), 'The app is still using a soft interior lightmap at the reveal.');
+          }
         }
       }
     } else {
@@ -396,9 +413,10 @@ async function captureContext(browser, { hour, look, walk }) {
       }, site.walk[0].position);
       await screenshot(`${look}-entrance`, null, true);
     }
-    const deferredPlates = [...plateUris.night, ...(plateUris.walk ?? []), ...(plateUris.high ?? [])];
+    const deferredPlates = [...plateUris.night, ...(plateUris.walk ?? []), ...(plateUris.high ?? []), ...walkMapUris];
     assert(!result.requested.some(({ name, afterEntry }) => !afterEntry && deferredPlates.includes(name)),
       'A deferred image was requested before entry.');
+    if (walkMaps) assert(softMapUris.some(uri => served.has(uri)), 'No verified soft interior map arrived before entry.');
     const walkStarted = performance.now();
     entered = true;
     await enter.click();
