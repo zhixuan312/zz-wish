@@ -2315,6 +2315,15 @@ export async function travel(id) {
   const lookPts = [P.doors.clone(), ...(N.approach ?? []).map((q) => toWorld(q.clone().add(V3(0, 0, -2)))), end.look];
   const l0 = rig.look.clone(), a0 = rig.amp,f0=rig.fov??camera.fov;
   atLamp = !P.offerAfterTravel; mine.g.visible = atLamp && !!mine.offer;
+  let offerPrograms;
+  if (P.offerAfterTravel && place.prepareVisitorEnvironment && mine.offer) {
+    // Linking starts synchronously with the real hall lights and visitor
+    // shadow topology. Restore visibility before the next live frame, then
+    // let the driver finish linking while the visitor is on the road.
+    mine.g.visible = true;
+    try { offerPrograms = renderer.compileAsync(outside, camera); }
+    finally { mine.g.visible = false; }
+  }
   const authoredWalk = P.createWalk?.({ pos: rig.pos.clone(), look: l0, fov: f0 }, end, narrow());
   if(import.meta.env.DEV)window.__walkProgress={id,progress:0,state:'walking',position:rig.pos.toArray()};
   const walk = tween(P.walkSeconds ?? 14, (k) => {
@@ -2383,6 +2392,7 @@ export async function travel(id) {
     else await tween(5.6, settle, true);
   }
   if(!P.bakedLighting){const c = chooseView(); await moveCam(c.pos, c.look,2.4,c.fov);}
+  if (offerPrograms) await offerPrograms;
   if (P.offerAfterTravel && place?.P === P) {
     atLamp = true;
     mine.g.visible = !!mine.offer;
