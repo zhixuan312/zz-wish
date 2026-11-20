@@ -6,6 +6,7 @@ import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 import { FocusBlur } from './FocusBlur.js';
 import { shrineApproach } from './places/pine-walk-curve.js';
+import { screenBox } from './places/pine-burn-framing.js';
 import { buildHall } from './architecture.js';
 import { createPineBatch } from './NaturalPines.js';
 import { loadNaturalAssets,scans,isScanTexture,naturalResources,addScannedRock,addScannedStump } from './NaturalAssets.js';
@@ -1947,6 +1948,18 @@ if (import.meta.env.DEV || import.meta.env.VITE_E2E_HOOKS === '1') {
       tray: { min: holderBox.min.toArray(), max: holderBox.max.toArray() },
       flame: { min: flameBox.min.toArray(), max: flameBox.max.toArray() },
       wick: { x: wick.x, y: wick.y, z: wick.z },
+      // Screen fractions, measured with the same clipped projection every review uses. Doing it here
+      // keeps the browser test free of a TypeScript import of a plain module.
+      screen: (safe = { left: 0, right: 1, top: 0, bottom: 1 }) => ({
+        flame: screenBox({ min: flameBox.min.toArray(), max: flameBox.max.toArray() },
+          { pos: { x: rig.pos.x, y: rig.pos.y, z: rig.pos.z },
+            look: { x: rig.look.x, y: rig.look.y, z: rig.look.z },
+            fov: Number.isFinite(rig.fov) ? rig.fov : camera.fov, aspect: camera.aspect }, safe),
+        tray: screenBox({ min: holderBox.min.toArray(), max: holderBox.max.toArray() },
+          { pos: { x: rig.pos.x, y: rig.pos.y, z: rig.pos.z },
+            look: { x: rig.look.x, y: rig.look.y, z: rig.look.z },
+            fov: Number.isFinite(rig.fov) ? rig.fov : camera.fov, aspect: camera.aspect }, safe),
+      }),
     };
   };
 }
@@ -2014,18 +2027,18 @@ function fitShadeView(v,desktopFraction=.45,desktopSubjectY=.36,exact=false,phon
 const CHOOSE_PHONE_YAW=.22;
 const chooseView = () => {
   const N = place.P.nook;
-  if (N.lamp === 'pineWax' && narrow()) {
-    // The phone sheet starts 300 pixels down. Frame the front of the holder
-    // just above it, backing up only as much as the tallest profiles need.
-    const pos = N.choosePhone.pos.clone(), look = N.choosePhone.look.clone(), fov = N.choosePhone.fov;
-    const wax = mine.parts?.pineWax;
-    pos.z = Math.max(pos.z, (wax?.fullHeight() ?? .08) * 6.5) * Math.max(1, innerHeight / 844);
-    const shelfPixel = Math.min(272, innerHeight * .38);
-    const seatY = mine.parts?.seat?.y ?? .008;
-    const elevation = Math.atan2(N.y + seatY - pos.y, Math.hypot(pos.x, pos.z - .065));
-    const screenAngle = Math.atan((1 - 2 * shelfPixel / innerHeight) * Math.tan(THREE.MathUtils.degToRad(fov / 2)));
-    look.y = pos.y + Math.tan(elevation - screenAngle) * Math.hypot(pos.x, pos.z);
-    return viewOf({ pos, look, fov });
+  if (N.lamp === 'pineWax' && place.P.bakedLighting && mine.parts?.pineWax) {
+    // The chooser and the burn are one shot. Composing them separately meant the camera jumped to a
+    // different framing the instant the candle was lit: the flame entered from off the top of the
+    // frame and the tray left the safe area. The chooser now stands at the burn composition, backed
+    // off by the small push ignition is allowed, so lighting only closes in.
+    const burn = burnView();
+    const centre = mine.g.localToWorld(V3(0, mine.parts.seat.y + .03, 0));
+    const away = burn.pos.clone().sub(centre).normalize();
+    const backed = burn.pos.clone().addScaledVector(away, burn.pos.distanceTo(centre) * .15);
+    const look = burn.look.clone();
+    // Keep the same aim: moving straight back along the view line keeps the subject centred.
+    return { pos: backed, look, fov: burn.fov };
   }
   const v=viewOf((narrow()&&N.choosePhone)||N.choose||N.wide);
   if(narrow()&&!place.P.bakedLighting&&N.lamp!=='pineWax')v.look.y-=v.pos.distanceTo(v.look)*.10;
@@ -2065,7 +2078,9 @@ function burnView(){
     // A portrait frame loses its bottom third to the choice sheet (top: 350 px of 844), so the tray
     // must sit well above centre. Aim below the tray rim: with the eye above the tray, aiming lower
     // moves the whole subject up the frame.
-    const aimY = narrow() ? trayRim.y - (flameTop.y - trayRim.y) * .55
+    // Portrait: the choice sheet takes the bottom third, so the tray must clear it while the flame
+    // stays in the upper middle. Aim a little above the rim rather than well below it.
+    const aimY = narrow() ? trayRim.y - (flameTop.y - trayRim.y) * .18
       : (trayRim.y + flameTop.y) * .5;
     v.look.copy(center);
     v.look.y = aimY;

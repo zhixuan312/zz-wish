@@ -188,10 +188,7 @@ test('the credits panel names both CC BY recordings and links their Commons page
 // is painted the print reads as a sticking plaster across the joint. For every print, compare its own
 // bounding box against the stone just outside it: the sole's middle must darken, the quad's corners
 // must not, and the stone outside must stay untouched.
-// This test waits for two settles, stands at a declared pose, then decodes two screenshots; that is
-// longer than the suite's default budget, so it states its own.
 test('each mud print draws its sole, not the whole quad', async ({ page }, testInfo) => {
-  testInfo.setTimeout(240_000);
   await page.goto('/');
   await page.getByLabel(/你的愿望|Your wish/).fill('Prints.');
   await page.getByRole('button', { name: /许好了|Set my wish/ }).click();
