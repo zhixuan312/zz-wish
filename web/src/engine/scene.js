@@ -440,7 +440,7 @@ function shellMaterial(color, o = {}) {
   const Material=o.cloth?THREE.MeshPhysicalMaterial:THREE.MeshStandardMaterial;
   const m = new Material({ color, roughness: o.rough ?? .85, map: o.map ?? null, alphaMap: o.alphaMap ?? null, alphaTest: o.alphaMap ? .5 : 0, side: THREE.DoubleSide, envMapIntensity: .15 });
   if(o.cloth){
-    m.normalMap=gauzeNormal;m.normalScale.set(.38,.38);m.roughnessMap=gauzeRoughness;
+    m.normalMap=gauzeNormal;m.normalScale.setScalar(o.winterWeave ? .67 : .38);m.roughnessMap=gauzeRoughness;
     m.sheen=.45;m.sheenRoughness=.85;m.sheenColor.copy(m.color);m.specularIntensity=.3;
   }
   m.userData.u = { uFlame: { value: V3(0, 0, 0) }, uGlow: { value: 0 }, uGlowColor: { value: new THREE.Color(o.glow ?? 0xffa050) }, uReach: { value: o.reach ?? 9 }, uBase: { value: o.base ?? .2 } };
@@ -483,11 +483,11 @@ function shellMaterial(color, o = {}) {
       sh.fragmentShader='uniform float uWeaveMean;\n'+sh.fragmentShader.replace('#include <map_fragment>',`#ifdef USE_MAP
         vec3 photographedWeave=texture2D(map,vMapUv).rgb;
         float yarn=dot(photographedWeave,vec3(.2126,.7152,.0722))/uWeaveMean;
-        diffuseColor.rgb*=clamp(yarn,.66,1.24);
+        diffuseColor.rgb*=clamp(${o.winterWeave ? '1. + (yarn - 1.) * 1.42' : 'yarn'},.66,1.24);
       #endif`);
     }
   };
-  m.customProgramCacheKey=()=>`translucent-shell-${o.cloth?'woven':'plain'}-3`;
+  m.customProgramCacheKey=()=>`translucent-shell-${o.cloth?'woven':'plain'}-${o.winterWeave?'winter':'3'}`;
   return m;
 }
 const lathe = (pts, seg = 64) => new THREE.LatheGeometry(pts.map(([r, y]) => V2(r, y)), seg);
@@ -697,14 +697,17 @@ const LAMPS = {
     const smokeProfile=prof.map(([r,y])=>[r,y,centerAt(y)]);
     solid(g, new THREE.CylinderGeometry(o.liveBaked?.0025:.0015, o.liveBaked?.0025:.0015, .06, 8), suspension, 0, -.03, 0);
     const vent=addGauzeVent(g,{radius:rTop,topY:prof.at(-1)[1],material:lacquer,cordMaterial:suspension,cordRadius:o.liveBaked?.0025:.0015});
-    const shell = shellMaterial(o.color, { map: gauzeTex, glow: 0xffb070, reach: 18, rough: .82, base: .025, strength: 1.05, cloth:true });
+    const shell = shellMaterial(o.color, { map: gauzeTex, glow: 0xffb070, reach: 18, rough: .82, base: .025, strength: 1.05, cloth:true, winterWeave:o.winterWeave });
     const fabric=lathe(prof,96),fp=fabric.attributes.position;
     for(let i=0;i<fp.count;i++){
       const x=fp.getX(i),z=fp.getZ(i),y=fp.getY(i),r=Math.hypot(x,z),a=Math.atan2(z,x),q=(y-y0)/H;
       // A stretched cloth panel bows gently inward between the bamboo strips.
       // Its seam remains above the strip; the strip never paints the outside.
       const sag=gauzeThroat(r).sag*Math.sin(a*6)**2*Math.sin(Math.PI*q)*(.85+.15*Math.sin(a*5+q*2));
-      const k=Math.max(.001,r-sag)/r;fp.setXYZ(i,x*k+centerAt(y),y,z*k);
+      const wovenRelief = o.winterWeave
+        ? .002 * Math.sin(a * 6) ** 2 * Math.sin(q * Math.PI) * Math.sin(q * 9 + a * 3)
+        : 0;
+      const k=Math.max(.001,r-sag+wovenRelief)/r;fp.setXYZ(i,x*k+centerAt(y),y,z*k);
     }
     fabric.computeVertexNormals();
     const cloth=solid(g,fabric,shell);cloth.castShadow=false;cloth.userData.visitorCloth=true;
@@ -836,14 +839,15 @@ const api = { g, parts: null, partsKey: null, type: null, power: 0, lightPower: 
     // Builds this place's vessel; a dish or a shade takes the person's outline and colour.
     build(o) {
       const drawn = !WAX_LAMPS.has(this.type) && o,liveBaked=!!place?.P.bakedLighting;
+      const winterWeave=this.type==='gauze' && !!place?.P.nook.winterWeave;
       const sculptNormal = this.type === 'pineWax' ? place?.baked?.waxNormal : null;
       const sunShade = this.type === 'pineWax' ? place?.baked?.sunShade : null;
       const key = this.type + (liveBaked?'|cycles':'') + (sculptNormal ? `|sculpt-${sculptNormal.id}` : '')
-        + (sunShade ? '|shaded-sun' : '')
+        + (sunShade ? '|shaded-sun' : '') + (winterWeave ? '|winter-weave' : '')
         + (drawn ? JSON.stringify([o.rows, o.color]) : '');
       if (key === this.partsKey && (!sunShade || this.parts?.sunShade === sunShade)) return;
       if (this.parts) { g.remove(this.parts.g); disposeTree(this.parts.g); }
-      const input=drawn?{...o,liveBaked}:this.type==='gauze'?{...presetOf('shade'),liveBaked}:undefined;
+      const input=drawn?{...o,liveBaked,winterWeave}:this.type==='gauze'?{...presetOf('shade'),liveBaked,winterWeave}:undefined;
       const p = this.type === 'pineWax' ? LAMPS.pineWax({ refined: liveBaked, sculptNormal, sunShade })
         : input ? LAMPS[this.type](input) : LAMPS[this.type]();
       this.parts = p; this.partsKey = key; g.add(p.g);

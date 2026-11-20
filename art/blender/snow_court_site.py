@@ -39,7 +39,8 @@ def palette():
         'ash': mesh.material('Char and burned wick', '#272822', rough=.96),
         'oil': mesh.material('Dark clear seed oil', '#6b4628', rough=.22, metal=.03),
         'figure': mesh.material('Aged cast bronze of the small seated figure', '#8b7453', rough=.66, metal=.27),
-        'glow': mesh.material('Thin gauze over low flame', '#aa6852', rough=.85, emission=.48),
+        'glow': mesh.material('Thin gauze over low flame', '#b97c69', rough=.86, emission=.04),
+        'bamboo': mesh.material('Split bamboo beneath faded linen', '#9a7350', rough=.94),
         'red_faded': mesh.material('Faded dusty rose gauze', '#b38c82', rough=.94),
         'red_dust': mesh.material('Pink-white sun-faded gauze', '#c1a9a0', rough=.96),
         'red_old': mesh.material('Faded iron-red gauze', '#92655b', rough=.92),
@@ -77,7 +78,7 @@ def gauze_maps(materials):
             elif socket == 'Normal':
                 texture.image.colorspace_settings.name = 'Non-Color'
                 normal = nodes.new('ShaderNodeNormalMap')
-                normal.inputs['Strength'].default_value = .35
+                normal.inputs['Strength'].default_value = .59
                 links.new(texture.outputs['Color'], normal.inputs['Color'])
                 links.new(normal.outputs['Normal'], bsdf.inputs[socket])
             else:
@@ -291,28 +292,34 @@ def outbuildings(site, m, court, ground, contact):
 def earlier_lantern(x, z, y, top, index, m, fixtures, lit=False):
     frame = m['wood']
     faded = m['glow' if lit else ('red_dust', 'red_faded', 'red_old')[index % 3]]
-    radius = .139 + .018 * math.sin(index * 2.3)
-    height = .377 + .056 * math.cos(index * 1.43)
+    radius = .112 + .018 * math.sin(index * 2.3)
+    height = .324 + .046 * math.cos(index * 1.43)
     phase = .17 * math.sin(index * 2.51)
-    rows, segments = 10, 27
+    rows, segments, ribs = 11, 36, 9
 
-    def cloth_point(u, v):
+    def cloth_point(u, v, inset=0.):
         angle = phase + math.tau * u
-        fullness = .71 + .292 * math.sin(math.pi * v)
-        ripples = .0048 * math.cos(9 * angle + .3 * math.sin(v * math.tau))
-        width = radius * fullness + ripples * math.sin(math.pi * v)
-        sag = .009 * math.sin(angle * 2. + index) * math.sin(math.pi * v)
-        return (x + width * math.cos(angle) + sag, y + v * height, z + width * math.sin(angle))
+        middle = math.sin(math.pi * v)
+        fullness = .70 + (.30 + .028 * math.cos(index * 2.6)) * middle
+        seam = (.0038 + .0019 * math.cos(angle * 3. - index)) * math.cos(ribs * (angle - phase))
+        folds = .0042 * math.sin(angle * 3. + v * 5. + index) * middle
+        width = radius * fullness + seam * middle + folds - inset
+        sag = .012 * math.sin(angle * 2. + index) * middle
+        edge = .0045 * math.sin(angle * 5. + index) * (1. - middle) if not inset else 0.
+        return (x + width * math.cos(angle) + sag, y + v * height + edge, z + width * math.sin(angle))
 
     points = [cloth_point(col / segments, row / rows)
               for row in range(rows + 1) for col in range(segments)]
     faces, chart, fabric = [], [], []
-    tear = (20 + 2 * index) % segments
-    damaged_rows = {3: (0,), 4: (-1, 0, 1), 5: (0, 1), 6: (0,)}
+    tear = (22 + 5 * index) % segments
+    tear_row = 2 + index % 4
+    worn_edge = index % 4 == 1
     circumference = math.tau * radius
     for row in range(rows):
         for col in range(segments):
-            if not lit and (col - tear) % segments in {d % segments for d in damaged_rows.get(row, ())}:
+            split = row in (tear_row, tear_row + 1) and col == tear
+            lost_edge = row == 0 and (col - tear) % segments < 2
+            if not lit and ((index % 3 == 0 and split) or (worn_edge and lost_edge)):
                 continue
             right = (col + 1) % segments
             faces.append((row * segments + col, (row + 1) * segments + col,
@@ -320,15 +327,24 @@ def earlier_lantern(x, z, y, top, index, m, fixtures, lit=False):
             uv = [(u / segments * circumference, v / rows * height)
                   for u, v in ((col, row), (col, row + 1), (col + 1, row + 1), (col + 1, row))]
             chart.append(uv)
-            fabric.append([(u / .27, v / .27) for u, v in uv])
-    shade = mesh.mesh_object('Worn gauze around the bowed wish-lantern ribs', points, faces, faded)
-    mesh.source_uv(shade, chart, 'Unrolled metre-scale cloth with a seam and open tears.')
-    surface_uv = shade.data.uv_layers['UVMap'].data
+            fabric.append([(u / .158, v / .158) for u, v in uv])
+    shade = mesh.mesh_object('Worn gauze around bowed bamboo', points, faces, faded)
+    mesh.source_uv(shade, chart, 'Unrolled metre-scale cloth with a seam and intermittent damage.')
+    surface = shade.data.uv_layers['UVMap'].data
+    ageing = shade.data.color_attributes.new(name='SurfaceTint', type='FLOAT_COLOR', domain='CORNER')
+    shade.data.color_attributes.active_color = ageing
+    dye = tuple(faded['one_light_vertex_base_tint'])
     for polygon, uv in zip(shade.data.polygons, fabric):
         polygon.use_smooth = True
         for loop, coordinate in zip(polygon.loop_indices, uv):
-            surface_uv[loop].uv = coordinate
-
+            surface[loop].uv = coordinate
+            vertex = shade.data.loops[loop].vertex_index
+            u, v = vertex % segments / segments, vertex // segments / rows
+            fade = (.18 + .15 * math.cos(u * math.tau - index * 1.7)) * (1. - .48 * v)
+            dirt = .10 * math.sin(u * math.tau * 3. + 2.4 * v + index) ** 2 + .15 * v ** 5
+            age = 1. - dirt * (.35 if lit else 1.)
+            ageing.data[loop].color = (*(age * (d + (white - d) * fade) for d, white in
+                                         zip(dye, (.61, .51, .43))), 1.)
     mesh.beam('Old taut lamp cord', (x, y + height, z), (x + .012, top, z), .005, m['rope'], .005)
     for ring_height in (0, height):
         mesh.lathe('Worn wooden lantern ring', [(radius * .72, ring_height - .013),
@@ -337,9 +353,9 @@ def earlier_lantern(x, z, y, top, index, m, fixtures, lit=False):
                    (x, y, z), frame, 20)
         mesh.beam('Slender hardwood bar supporting the hanging lantern', (x - radius * .70, y + ring_height, z),
                   (x + radius * .70, y + ring_height, z), .007, frame, .006)
-    for rib in range(9):
-        profile = [cloth_point(rib / 9, level) for level in (0, .23, .5, .77, 1)]
-        mesh.curved_tube('Fine bowed rib of an earlier wish lantern', profile, [.003] * len(profile), frame, 5)
+    for rib in range(ribs):
+        profile = [cloth_point(rib / ribs, level, .0048) for level in (0, .20, .41, .62, .82, 1)]
+        mesh.curved_tube('Fine bowed bamboo beneath the gauze', profile, [.0019] * len(profile), m['bamboo'], 5)
     for end in (-1, 1):
         mesh.beam('Tied end of the tag string', (x + end * .011, y - .007, z),
                   (x + .032 + end * .007, y - .066, z + .02), .0018, m['rope'], .0015)
@@ -471,14 +487,26 @@ def hall(site, m, contact, fixtures):
     for px in (-3.41, 3.41):
         mesh.lathe('Slim front veranda post', [(.116, 0), (.124, .09), (.117, 1.1), (.104, 2.68)],
                    (px, y - .11, front + .52), m['red'], 20)
-    wish_positions = ((-2.2, -6.21), (-1.16, -6.21), (1.10, -6.21), (2.05, -6.21),
-                      (-2.75, -4.66), (-1.46, -4.66), (.61, -4.66), (2.3, -4.66),
-                      (-2.86, -7.46), (-1.76, -7.46), (1.96, -7.46), (2.8, -7.46))
-    for index, (px, pz) in enumerate(wish_positions):
-        earlier_lantern(px, pz, 3.20 + .066 * math.sin(index * 1.82), 4.449, index, m, fixtures, index in (5, 6))
+    # Stagger the three working rows under their beams. Both lower rows
+    # leave the central sightline and the visitor's reach unobstructed.
+    wishes = (
+        (-6.21, ((-1.48, 3.42), (-.59, 3.26), (.58, 3.39), (1.53, 3.29))),
+        (-5.44, ((-1.72, 3.58), (-.78, 3.77), (.71, 3.73), (1.65, 3.62))),
+        (-4.66, ((-2.61, 3.22), (-1.49, 3.12), (-.62, 3.18),
+                 (.43, 3.14), (1.39, 3.25), (2.55, 3.13))),
+    )
+    index = 0
+    for pz, lamps in wishes:
+        for px, py in lamps:
+            earlier_lantern(px, pz, py, 4.449, index, m, fixtures, index in (6, 10))
+            index += 1
     xcord, ycord, zcord = site['visitorCord']
-    mesh.beam('One empty cord hanging from the centre beam', (xcord, ycord - .274, zcord),
-              (xcord, ycord + .048, zcord), .006, m['rope'], .006)
+    free = mesh.material('Light worn hemp of the waiting suspension', '#b0a084', rough=.96)
+    mesh.beam('One empty cord from the centre beam', (xcord, ycord - .247, zcord),
+              (xcord, ycord + .048, zcord), .005, free, .004)
+    loop = [(xcord + .019 * math.sin(angle), ycord - .269 + .025 * math.cos(angle), zcord)
+            for angle in (0, .63, 1.26, 1.88, 2.51, 3.14, 3.77, 4.40, 5.03, 5.65)]
+    mesh.curved_tube('Empty tied loop for the visitor lantern', loop, [.0036] * len(loop), free, 6, closed=True)
     for x in (-2.8, 2.8):
         area('Paper lattice softly admits the open-snow sky', (x, y + 1.68, front - .16),
              (x * .53, y + .54, front - 2.7), 20.0, '#dbdfdf', 1.48)
@@ -566,6 +594,10 @@ def build(site, projection):
     scene['one_light_ambient_worlds'] = json.dumps({'day': daylight.name})
     m = palette()
     gauze_maps(m[key] for key in ('glow', 'red_faded', 'red_dust', 'red_old', 'new_gauze'))
+    for key in ('glow', 'red_faded', 'red_dust', 'red_old'):
+        mesh.vertex_tint_shader(m[key])
+        # The loom wear is authored per lantern instead of by the generic pass.
+        del m[key]['one_light_surface_tint']
     foliage = build_approach(site, m)
     _, court_surface = courtyard(site, m)
     gate_foothill(site, m['granite'], m['snow'])

@@ -4,6 +4,49 @@ import { buildSnowChimney } from './snow-court-chimney.js';
 import projection from '../../../../shared/snow-court-backdrop.json' with { type: 'json' };
 import site from '../../../../shared/snow-roof-court-site.json' with { type: 'json' };
 
+const agedGauzeOpacity = new Map([
+  ['Pink-white sun-faded gauze', .83],
+  ['Faded dusty rose gauze', .86],
+  ['Faded iron-red gauze', .88],
+  ['Thin gauze over low flame', .87],
+]);
+
+function tuneEarlierGauze(material, opacity, sources, THREE, preExposure) {
+  // Draw the near cloth after the opaque split bamboo. The lower opacity
+  // of the worn fabric leaves the actual ribs legible underneath it.
+  material.transparent = true;
+  material.depthWrite = false;
+  material.side = THREE.FrontSide;
+  material.opacity = opacity;
+  material.normalScale.setScalar(.63);
+  material.envMapIntensity = .07;
+  if (material.name !== 'Thin gauze over low flame') return;
+
+  // Scatter the light of the two small old wicks across their own cloth.
+  // The baked maps already carry the spill on the surrounding timber.
+  material.emissiveIntensity *= .16;
+  const compile = material.onBeforeCompile.bind(material);
+  const key = material.customProgramCacheKey.bind(material);
+  const wicks = sources.map(source => new THREE.Vector3(...source.wickTip));
+  const candela = sources.map(source => new THREE.Color().fromArray(source.linearColor)
+    .multiplyScalar(source.watts * preExposure / (4 * Math.PI)));
+  material.onBeforeCompile = (shader, renderer) => {
+    compile(shader, renderer);
+    shader.uniforms.uEarlierWick = { value: wicks };
+    shader.uniforms.uEarlierCandela = { value: candela };
+    shader.fragmentShader = `uniform vec3 uEarlierWick[2], uEarlierCandela[2];\n` + shader.fragmentShader
+      .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
+        for (int j = 0; j < 2; j++) {
+          vec3 fromWick = vBakedWorld - uEarlierWick[j];
+          float distance2 = dot(fromWick, fromWick);
+          float thinCloth = .53 * (1. - smoothstep(.29, .45, sqrt(distance2)));
+          totalEmissiveRadiance += uEarlierCandela[j] * diffuseColor.rgb
+            * thinCloth / (3.141593 * max(distance2, .004));
+        }`);
+  };
+  material.customProgramCacheKey = () => key() + '-snow-hall-gauze';
+}
+
 export default function createWinterCourt(h) {
   const { THREE, V3 } = h;
   const pose = ({ position, look, fov }) => ({ pos: V3(...position), look: V3(...look), fov });
@@ -62,11 +105,18 @@ export default function createWinterCourt(h) {
       }
       context.G.add(baked.group);
       context.baked = baked;
-      const earlierCloth = new Set();
+      const raw = baked.group.userData.snow_court_fixtures_engine;
+      const fixtures = typeof raw === 'string' ? JSON.parse(raw) : raw;
+      if (!Array.isArray(fixtures) || fixtures.length !== 6) throw new Error('Missing measured Snow Roof court lamp contacts.');
+      const earlierWicks = fixtures.filter(fixture => fixture.kind === 'gauze shade' && fixture.lit);
+      if (earlierWicks.length !== 2) throw new Error('Expected two earlier wishes with measured wicks.');
+
+      const earlierCloth = new Map();
       baked.group.traverse(object => {
         if (!object.isMesh) return;
         for (const material of [object.material].flat()) {
-          if (material.name === 'Thin gauze over low flame') earlierCloth.add(material);
+          const opacity = agedGauzeOpacity.get(material.name);
+          if (opacity !== undefined) earlierCloth.set(material, opacity);
           if (material.name === 'Thin pale storm lamp glass') {
             // The thin windscreen shows the flame directly. Avoid a second
             // scene render for screen-space refraction around this small lamp.
@@ -77,14 +127,13 @@ export default function createWinterCourt(h) {
           }
         }
       });
-      for (const material of earlierCloth) material.emissiveIntensity *= .28;
+      for (const [material, opacity] of earlierCloth) {
+        tuneEarlierGauze(material, opacity, earlierWicks, THREE, baked.cameraPreExposure);
+      }
       const crownUri = baked.manifest.snowCourt.needles;
       if (crownUri !== 'snow-court-needles.glb.zstd') throw new Error('Missing authored Snow Roof needle crowns.');
       const crowns = await baked.loadDetailModel(crownUri);
       context.G.add(crowns);
-      const raw = baked.group.userData.snow_court_fixtures_engine;
-      const fixtures = typeof raw === 'string' ? JSON.parse(raw) : raw;
-      if (!Array.isArray(fixtures) || fixtures.length !== 6) throw new Error('Missing measured Snow Roof court lamp contacts.');
       for (const fixture of fixtures) {
         if (!fixture.lit) continue;
         const contact = fixture.wickTip;
@@ -122,7 +171,7 @@ export default function createWinterCourt(h) {
     nook: {
       at: { pos: V3(0, 0, 0), ry: 0 }, lamp: 'gauze', y: 3.54,
       hangingPoint: site.visitorCord, exposure: 1.22, bloom: [.21, 1.22], dust: false,
-      gauzeGlow: { base: .48, reach: 7 },
+      gauzeGlow: { base: .42, reach: 8.2 }, winterWeave: true,
       interior: { min: [site.hall.west, site.hall.floor, site.hall.rear],
         max: [site.hall.east, site.hall.eave, site.hall.front] },
       wide: arrival, widePhone: { ...arrival, fov: arrival.fov + 5 },
