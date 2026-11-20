@@ -114,6 +114,59 @@ def refine_sole_triangles(vertices, faces, footprints, sample):
     return faces
 
 
+def wall_foot_snow(site, x, z):
+    """Catch blown snow below the quiet eaves, clear of the walked lane."""
+    hall = site['hall']
+    near_centre = smoothrise(1.48, 2.01, abs(x))
+
+    def drift(distance, along, phase):
+        # A compact lip against the wall grades into a longer feather.
+        length = .68 + .19 * math.sin(along * 1.91 + phase)
+        lip = smoothrise(-.11, .095, distance) * (1. - smoothrise(.22, length, distance))
+        mass = .67 + .20 * math.sin(along * 2.56 + phase) + .13 * math.cos(along * 5.32 - phase)
+        return lip * mass
+
+    hall_end = 1. - smoothrise(3.76, 4.67, abs(x))
+    hall_snow = .165 * drift(z - (hall['front'] + .38), x, .73) * hall_end
+    side_snow = 0.
+    for room, side in zip(site['rooms'], (-1, 1)):
+        face = room['east'] if side < 0 else room['west']
+        end = smoothrise(room['rear'] - .29, room['rear'] + .11, z)
+        end *= 1. - smoothrise(room['front'] - .24, room['front'] + .58, z)
+        side_snow += .14 * drift(side * (face - x), z, 2.3 * side) * end
+        width = 1. - smoothrise(room['east'], room['east'] + .41, x)
+        width *= smoothrise(room['west'] - .41, room['west'], x)
+        side_snow += .10 * drift(z - (room['front'] + .12), x, side) * width
+    # Leave the measured supports under the broom and fuel rack as authored.
+    broom_foot = math.hypot((x + 3.14) / .74, (z - hall['front'] - .94) / .79)
+    kitchen = site['kitchen']
+    rack = math.hypot((x - kitchen['east'] - .035) / .85, (z - kitchen['front'] - .21) / .73)
+    keep_supports = smoothrise(.98, 1.48, broom_foot) * smoothrise(.98, 1.48, rack)
+    return near_centre * keep_supports * max(hall_snow, side_snow)
+
+
+def drift_roof_snow(mesh, label):
+    """Shape unequal loads along each eave while keeping the settled seam."""
+    caps = [obj for obj in mesh.STATIC.objects if obj.name.startswith(label + ' curved settled snow cap')]
+    if len(caps) != 2:
+        raise RuntimeError('Expected two authored snow caps for ' + label)
+    for cap in caps:
+        vertices = cap.data.vertices
+        half = len(vertices) // 2
+        for i in range(half):
+            top, base = vertices[i].co, vertices[i + half].co
+            if abs(top.x - base.x) > 1e-5 or abs(top.y - base.y) > 1e-5 or base.z > top.z:
+                raise RuntimeError('Roof snow layers no longer match for ' + label)
+            depth = top.z - base.z
+            # Preserve the closed tile seam and the certified deep-cover limit.
+            flank = smoothrise(.06, .13, depth) * (1. - .55 * smoothrise(.22, .43, depth))
+            gust = .067 * math.sin(top.x * 1.74 - top.y * 2.13)
+            gust += .046 * math.sin(top.x * 3.94 + top.y * 2.74) + .027 * math.cos(top.x * 5.15 + top.y * .43)
+            eroded = min(depth, .238)
+            top.z = base.z + max(eroded, depth + flank * gust)
+        cap.data.update()
+
+
 def swept_ground(mesh, site, materials):
     """Build one court surface, including the thin snow left after sweeping."""
     court = site['court']
@@ -149,7 +202,9 @@ def swept_ground(mesh, site, materials):
                  + .19 * math.exp(-((abs(x) - 9.1) / .91) ** 2))
         depth, tread = boot_relief(x, z, footprints)
         displacement, tint = swept_surface(x, z, across, seam, exposure, fade, tread)
-        relief = .027 + drift * ridge - depth * fade + displacement
+        lee_drift = wall_foot_snow(site, x, z)
+        lee_drift *= smoothrise(.86, 1.31, abs(across))
+        relief = .027 + drift * ridge - depth * fade + displacement + lee_drift
         relief += .005 * math.sin(x * 13.1 + z * 8.6) * math.sin(x * 7.0 - z * 10.2)
         vertices.append((x, level + max(.006, relief), z))
         colours.append(tint)

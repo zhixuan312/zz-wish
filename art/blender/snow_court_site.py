@@ -256,6 +256,7 @@ def gate(site, m, contacts, fixtures):
     mesh.box('Underside boards within the gate shadow', (width, .12, depth), (0, eave - .12, z), m['wood'], .015)
     mesh.tiled_roof('Winter pass gate', 0, eave, z, width + .73, depth / 2 + .46, .89,
                     m['tile'], m['wood'], m['snow'], 'gate')
+    everyday.drift_roof_snow(mesh, 'Winter pass gate')
 
 
 def outbuildings(site, m, court, ground, contact):
@@ -291,6 +292,7 @@ def outbuildings(site, m, court, ground, contact):
         else:
             mesh.window(label + ' paper screen', x, y + 1.48, front, width - .5, 1.46, m['wood'], m['paper'])
         mesh.tiled_roof(label, x, eave, z, width + .55, depth / 2 + .35, .79, m['tile'], m['wood'], m['snow'], 'court')
+        everyday.drift_roof_snow(mesh, label)
         everyday.replace_roof_tiles(mesh, label, inner - .10 * facing, front + .35)
         if room.get('kitchen'):
             # The working stove flue comes through the court-facing roof
@@ -322,17 +324,19 @@ def outbuildings(site, m, court, ground, contact):
 def earlier_lantern(x, z, y, top, index, m, fixtures, lit=False):
     frame = m['wood']
     faded = m['glow' if lit else ('red_dust', 'red_faded', 'red_old')[index % 3]]
-    radius = .112 + .018 * math.sin(index * 2.3)
-    height = .324 + .046 * math.cos(index * 1.43)
+    radius = .138 + .009 * math.sin(index * 2.3)
+    height = .291 + .023 * math.cos(index * 1.43)
     phase = .17 * math.sin(index * 2.51)
-    rows, segments, ribs = 11, 36, 9
+    rows, segments, ribs = 16, 48, 8
 
     def cloth_point(u, v, inset=0.):
         angle = phase + math.tau * u
         middle = math.sin(math.pi * v)
-        fullness = .70 + (.30 + .028 * math.cos(index * 2.6)) * middle
-        seam = (.0038 + .0019 * math.cos(angle * 3. - index)) * math.cos(ribs * (angle - phase))
-        folds = .0042 * math.sin(angle * 3. + v * 5. + index) * middle
+        fullness = .65 + (.35 + .024 * math.cos(index * 2.6)) * middle
+        panel = math.sin(math.pi * ribs * u) ** 2
+        seam = -.009 * panel * middle
+        folds = .006 * math.sin(angle * 3. + v * 8. + index) * middle * panel
+        folds -= .0035 * math.sin(math.tau * 2 * v) ** 2 * middle * panel
         width = radius * fullness + seam * middle + folds - inset
         sag = .012 * math.sin(angle * 2. + index) * middle
         edge = .0045 * math.sin(angle * 5. + index) * (1. - middle) if not inset else 0.
@@ -342,13 +346,14 @@ def earlier_lantern(x, z, y, top, index, m, fixtures, lit=False):
               for row in range(rows + 1) for col in range(segments)]
     faces, chart, fabric = [], [], []
     tear = (22 + 5 * index) % segments
-    tear_row = 2 + index % 4
+    tear_row = 1 + index % 5
     worn_edge = index % 4 == 1
     circumference = math.tau * radius
     for row in range(rows):
         for col in range(segments):
-            split = row in (tear_row, tear_row + 1) and col == tear
-            lost_edge = row == 0 and (col - tear) % segments < 2
+            offset = (col - tear) % segments
+            split = (row == tear_row and offset in (0, 1)) or (row == tear_row + 1 and offset == 1)
+            lost_edge = row <= 1 and offset in (0, 1, 2 - row)
             if not lit and ((index % 3 == 0 and split) or (worn_edge and lost_edge)):
                 continue
             right = (col + 1) % segments
@@ -357,7 +362,7 @@ def earlier_lantern(x, z, y, top, index, m, fixtures, lit=False):
             uv = [(u / segments * circumference, v / rows * height)
                   for u, v in ((col, row), (col, row + 1), (col + 1, row + 1), (col + 1, row))]
             chart.append(uv)
-            fabric.append([(u / .158, v / .158) for u, v in uv])
+            fabric.append([(u / circumference, v / height) for u, v in uv])
     shade = mesh.mesh_object('Worn gauze around bowed bamboo', points, faces, faded)
     mesh.source_uv(shade, chart, 'Unrolled metre-scale cloth with a seam and intermittent damage.')
     surface = shade.data.uv_layers['UVMap'].data
@@ -370,22 +375,31 @@ def earlier_lantern(x, z, y, top, index, m, fixtures, lit=False):
             surface[loop].uv = coordinate
             vertex = shade.data.loops[loop].vertex_index
             u, v = vertex % segments / segments, vertex // segments / rows
-            fade = (.18 + .15 * math.cos(u * math.tau - index * 1.7)) * (1. - .48 * v)
-            dirt = .10 * math.sin(u * math.tau * 3. + 2.4 * v + index) ** 2 + .15 * v ** 5
-            age = 1. - dirt * (.35 if lit else 1.)
+            fade = (.24 + .22 * math.cos(u * math.tau - index * 1.7)) * (1. - .60 * v)
+            stain_distance = abs(math.sin(math.pi * (u + index * .19 + .022 * math.sin(v * 15.))))
+            tide = .35 + .14 * math.cos(u * math.tau * 3. + index)
+            tide_mark = math.exp(-((v - tide) / .072) ** 2)
+            moisture = .20 * tide_mark * math.exp(-stain_distance ** 2 * 7.)
+            dirt = .12 * math.sin(u * math.tau * 5. + 1.9 * v + index) ** 2 + .30 * v ** 6
+            age = 1. - (dirt + moisture) * (.45 if lit else 1.)
             ageing.data[loop].color = (*(age * (d + (white - d) * fade) for d, white in
                                          zip(dye, (.61, .51, .43))), 1.)
     mesh.beam('Old taut lamp cord', (x, y + height, z), (x + .012, top, z), .005, m['rope'], .005)
     for ring_height in (0, height):
-        mesh.lathe('Worn wooden lantern ring', [(radius * .72, ring_height - .013),
-                   (radius * .73, ring_height + .009), (radius * .67, ring_height + .009),
-                   (radius * .66, ring_height - .013), (radius * .72, ring_height - .013)],
+        mesh.lathe('Worn wooden lantern ring', [(radius * .67, ring_height - .012),
+                   (radius * .71, ring_height - .006), (radius * .70, ring_height + .009),
+                   (radius * .60, ring_height + .009), (radius * .60, ring_height - .012),
+                   (radius * .67, ring_height - .012)],
                    (x, y, z), frame, 20)
-        mesh.beam('Slender hardwood bar supporting the hanging lantern', (x - radius * .70, y + ring_height, z),
-                  (x + radius * .70, y + ring_height, z), .007, frame, .006)
+        mesh.beam('Slender hardwood bar supporting the hanging lantern', (x - radius * .64, y + ring_height, z),
+                  (x + radius * .64, y + ring_height, z), .007, frame, .006)
     for rib in range(ribs):
-        profile = [cloth_point(rib / ribs, level, .0048) for level in (0, .20, .41, .62, .82, 1)]
-        mesh.curved_tube('Fine bowed bamboo beneath the gauze', profile, [.0019] * len(profile), m['bamboo'], 5)
+        profile = [cloth_point(rib / ribs, level, .0062) for level in (0, .20, .41, .62, .82, 1)]
+        mesh.curved_tube('Fine bowed bamboo beneath the gauze', profile, [.0026] * len(profile), m['bamboo'], 5)
+    for level in (.25, .50, .75):
+        hoop = [cloth_point(col / 24, level, .0048) for col in range(24)]
+        mesh.curved_tube('Split bamboo hoop shaping the gauze', hoop, [.0024] * len(hoop),
+                         m['bamboo'], 5, closed=True)
     for end in (-1, 1):
         mesh.beam('Tied end of the tag string', (x + end * .011, y - .007, z),
                   (x + .032 + end * .007, y - .066, z + .02), .0018, m['rope'], .0015)
@@ -600,16 +614,16 @@ def hall(site, m, contact, fixtures):
                           (0, eave - .27, zz), m['wood'], index * .239)
     mesh.tiled_roof('Temple main hall', 0, eave, z, span + .97, depth / 2 + .64, 1.64,
                     m['tile'], m['wood'], m['snow'], 'hall')
+    everyday.drift_roof_snow(mesh, 'Temple main hall')
     for px in (-3.41, 3.41):
         mesh.lathe('Slim front veranda post', [(.116, 0), (.124, .09), (.117, 1.1), (.104, 2.68)],
                    (px, y - .11, front + .52), m['red'], 20)
-    # Stagger the three working rows under their beams. Both lower rows
-    # leave the central sightline and the visitor's reach unobstructed.
+    # Keep the three working rows level, with a clear centre aisle to the free cord.
     wishes = (
-        (-6.21, ((-1.48, 3.42), (-.59, 3.26), (.58, 3.39), (1.53, 3.29))),
-        (-5.44, ((-1.72, 3.58), (-.78, 3.77), (.71, 3.73), (1.65, 3.62))),
-        (-4.66, ((-2.61, 3.22), (-1.49, 3.12), (-.62, 3.18),
-                 (.43, 3.14), (1.39, 3.25), (2.55, 3.13))),
+        (-6.21, ((-1.65, 3.39), (-.77, 3.41), (.77, 3.40), (1.65, 3.38))),
+        (-5.44, ((-1.74, 3.57), (-.88, 3.55), (.88, 3.56), (1.74, 3.58))),
+        (-4.66, ((-2.64, 3.25), (-1.72, 3.23), (-.84, 3.24),
+                 (.84, 3.24), (1.72, 3.24), (2.64, 3.25))),
     )
     index = 0
     for pz, lamps in wishes:
@@ -620,9 +634,10 @@ def hall(site, m, contact, fixtures):
     free = mesh.material('Light worn hemp of the waiting suspension', '#b0a084', rough=.96)
     mesh.beam('One empty cord from the centre beam', (xcord, ycord - .247, zcord),
               (xcord, ycord + .048, zcord), .005, free, .004)
-    loop = [(xcord + .019 * math.sin(angle), ycord - .269 + .025 * math.cos(angle), zcord)
-            for angle in (0, .63, 1.26, 1.88, 2.51, 3.14, 3.77, 4.40, 5.03, 5.65)]
-    mesh.curved_tube('Empty tied loop for the visitor lantern', loop, [.0036] * len(loop), free, 6, closed=True)
+    knot = [(xcord, ycord - .226, zcord), (xcord + .009, ycord - .247, zcord),
+            (xcord + .006, ycord - .258, zcord), (xcord - .006, ycord - .252, zcord),
+            (xcord + .003, ycord - .235, zcord)]
+    mesh.curved_tube('Hemp knot at the end of the empty cord', knot, [.0036] * len(knot), free, 6)
     for x in (-2.8, 2.8):
         area('Paper lattice softly admits the open-snow sky', (x, y + 1.68, front - .16),
              (x * .53, y + .54, front - 2.7), 20.0, '#dbdfdf', 1.48)
