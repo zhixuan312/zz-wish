@@ -214,15 +214,47 @@ function instrument(source) {
     assert.equal([...transformed.matchAll(pattern)].length, 1, 'Snow Court entry hook no longer matches: ' + label);
     transformed = transformed.replace(pattern, statement => `${statement}\n  performance.mark('snow-p1:entry-${label}');`);
   }
-  if (p2 && process.env.SNOW_COURT_FRAMES === '1') {
+  if (p2) {
     const render = /^([ \t]*)composer\.render\(\);[ \t]*$/gm;
-    assert.equal([...transformed.matchAll(render)].length, 1, 'The Snow Court projection audit requires the live render loop.');
+    assert.equal([...transformed.matchAll(render)].length, 1, 'Snow Court evidence requires the live render loop.');
     transformed = transformed.replace(render, match => `${match}
-      if (place?.id === 'snow-roof') window.__sampleSnowLanternAudit(THREE, camera, mine, place.baked, window.__visualIgnition?.state);`);
+      if (place?.id === 'snow-roof') {
+        if (snowWalkCapture && window.__pineCaptureWalkClock?.seconds >= snowWalkCapture.time) {
+          const { time, resolve, reject } = snowWalkCapture;
+          snowWalkCapture = null;
+          const before = window.__snowP1Capture();
+          if (before.clock.seconds > time + .6 || before.walk.state !== 'walking') {
+            reject(new Error('Missed the rendered ' + time + 's Snow Court walk frame.'));
+          } else {
+            // The buffer belongs to this draw. Read it here before the next
+            // frame advances the clock, even if encoding the PNG takes time.
+            const cell = { before, after: null };
+            renderer.domElement.toBlob(blob => {
+              if (!blob) { reject(new Error('Snow Court PNG encoding failed.')); return; }
+              const reader = new FileReader();
+              reader.onerror = () => reject(reader.error);
+              reader.onload = () => resolve({ ...cell, data: reader.result });
+              reader.readAsDataURL(blob);
+            }, 'image/png');
+            cell.after = window.__snowP1Capture();
+          }
+        }
+        window.__sampleSnowLanternAudit?.(THREE, camera, mine, place.baked, window.__visualIgnition?.state);
+      }`);
   }
   const frame = /^([ \t]*)function frame\(stamp\s*=\s*performance\.now\(\)\)\s*\{/gm;
   assert.equal([...transformed.matchAll(frame)].length, 1, 'The Snow Roof scene identity hook no longer matches the app.');
-  return transformed.replace(frame, match => `window.__snowP1Capture = () => ({
+  return transformed.replace(frame, match => `${p2 ? `let snowWalkCapture = null;
+window.__captureSnowWalkDraw = time => new Promise((resolve, reject) => {
+  if (snowWalkCapture) { reject(new Error('A Snow Court draw is already pending.')); return; }
+  const deadline = setTimeout(() => {
+    if (snowWalkCapture?.time === time) snowWalkCapture = null;
+    reject(new Error('No Snow Court draw received for the ' + time + 's moment.'));
+  }, 4500);
+  snowWalkCapture = { time, resolve: value => { clearTimeout(deadline); resolve(value); },
+    reject: error => { clearTimeout(deadline); reject(error); } };
+});` : ''}
+window.__snowP1Capture = () => ({
   revision: place?.baked?.manifest?.snowCourt?.revision ?? null,
   lights: window.__pineCaptureLighting(),
   camera: window.__pineCaptureCamera(),
@@ -285,7 +317,8 @@ async function captureContext(browser, { hour, look, walk }) {
   async function screenshot(name, time = null, entrance = false) {
     await verifyLease();
     await assertCaptureGpuHealthy(page);
-    const before = await state();
+    const rendered = p2 && time !== null ? await page.evaluate(seconds => window.__captureSnowWalkDraw(seconds), time) : null;
+    const before = rendered?.before ?? await state();
     assert.equal(before.revision, site.revision, 'The app is not rendering the rebuilt Snow Roof.');
     assert.equal(before.hour, hour);
     assert.equal(before.lights?.placeId, placeId);
@@ -334,17 +367,25 @@ async function captureContext(browser, { hour, look, walk }) {
     }
     if (time === 28 || time === null) assert.equal(before.backdropVisible, true, 'The authored layered landscape is not active.');
     const file = `${name}.png`;
-    const bytes = await page.screenshot({ path: join(output, file), scale: 'css',
-      ...(entrance ? {} : { style: '.ui { visibility: hidden !important; }' }) });
+    let bytes;
+    if (rendered) {
+      assert(rendered.data.startsWith('data:image/png;base64,'));
+      bytes = Buffer.from(rendered.data.slice('data:image/png;base64,'.length), 'base64');
+      await writeFile(join(output, file), bytes, { flag: 'wx' });
+    } else {
+      bytes = await page.screenshot({ path: join(output, file), scale: 'css',
+        ...(entrance ? {} : { style: '.ui { visibility: hidden !important; }' }) });
+    }
     assert(bytes.subarray(0, 8).equals(pngSignature) && bytes.toString('ascii', 12, 16) === 'IHDR');
     assert.deepEqual([bytes.readUInt32BE(16), bytes.readUInt32BE(20)], [viewport.width, viewport.height]);
-    const after = await state();
+    const after = rendered?.after ?? await state();
     if (entrance) checkEntrance(after);
     if (time !== null) {
       assert(after.clock?.id === placeId && after.clock.seconds >= before.clock.seconds && after.clock.seconds <= time + .9,
         `The screenshot crossed the ${time}s walk moment.`);
     }
-    report.captures.push({ name, file, sha256: sha(bytes), hour, targetWalkSeconds: time, before, after });
+    report.captures.push({ name, file, sha256: sha(bytes), hour, targetWalkSeconds: time,
+      captureSource: rendered ? 'rendered canvas' : 'Chromium compositor', before, after });
     result.captures.push(name);
     console.log(`SNOW_${milestone}_FRAME`, name, file, time === null ? `hour=${hour}` : `seconds=${before.clock.seconds.toFixed(3)}`);
     await save();
@@ -462,7 +503,7 @@ async function captureContext(browser, { hour, look, walk }) {
         await page.waitForFunction(time => {
           const clock = window.__pineCaptureWalkClock;
           return clock?.id === 'snow-roof' && clock.seconds >= time && window.__walkProgress?.state === 'walking';
-        }, time, { timeout: 35_000 });
+        }, p2 ? time - .25 : time, { timeout: 35_000 });
         if (cameraFrames && walkStartTimestamp === undefined) {
           walkStartTimestamp = await page.evaluate(() => (
             (performance.timeOrigin + performance.now()) / 1000 - window.__pineCaptureWalkClock.seconds
