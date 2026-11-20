@@ -43,6 +43,15 @@ function tuneEarlierGauze(material, opacity, sources, THREE, preExposure, fabric
         vec3 weave = texture2D(map,vMapUv).rgb;
         float thread = dot(weave, vec3(.2126,.7152,.0722)) / uOldWeaveMean;
         diffuseColor.rgb *= clamp(1. + (thread - 1.) * 1.12, .62, 1.26);
+      `)
+      .replace('#include <roughnessmap_fragment>', `#include <roughnessmap_fragment>
+        roughnessFactor = max(roughnessFactor, .88);
+      `)
+      .replace('#include <lights_fragment_end>', `#include <lights_fragment_end>
+        reflectedLight.directSpecular *= .12;
+        reflectedLight.indirectSpecular *= .16;
+        reflectedLight.directDiffuse *= ${lit ? '.68' : '.38'};
+        reflectedLight.indirectDiffuse *= ${lit ? '.74' : '.51'};
       `);
     if (!lit) return;
     shader.uniforms.uEarlierWick = { value: wicks };
