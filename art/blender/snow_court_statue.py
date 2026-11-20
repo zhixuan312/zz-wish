@@ -11,14 +11,27 @@ SCAN_CREATOR = 'dohnni'
 SCAN_LICENSE = 'CC0-1.0'
 SCAN_RECORD = 'https://www.printables.com/model/720673-sitting-buddha-statue'
 STONE_ROUGHNESS = .94
-SEAT_ROUGHNESS = .81
-SEAT_HEIGHT = .124
+SEAT_HEIGHT = .184
 ASSEMBLED_HEIGHT = 1.871
-SEAT_CENTRE = (-.060, -.035)
-SEAT_RADII = (.620, .370)
-SEAT_EXPONENT = 3.
-SEAT_PETALS = 12
-SEAT_SLICES = SEAT_PETALS * 6
+SEAT_CENTRE = (-.065, -.045)
+# Four dressed faces fill the available altar depth. The short clipped corners
+# and separate foot, waist and crown are cut into one block of stone.
+SEAT_PROFILE = (
+    (0., .581, .335), (.010, .603, .355), (.026, .608, .359),
+    (.042, .598, .351), (.049, .573, .329), (.064, .563, .315),
+    (.078, .537, .287), (.106, .528, .281), (.129, .545, .298),
+    (.145, .576, .326), (.153, .601, .350), (.168, .609, .359),
+    (SEAT_HEIGHT, .600, .350),
+)
+SEAT_CORNER_EASE = (.022, .029, .023, .032)
+# These UV centres are inside Poly Haven's individual ungrouted stone faces.
+# One scale in both axes keeps the photographed stone grain isotropic.
+SEAT_SCAN_PATCHES = (
+    (.626, .868), (.300, .879), (.292, .874), (.641, .869),
+    (.632, .872), (.649, .872), (.639, .865), (.301, .873),
+)
+SEAT_SCAN_CAP = (.300, .878)
+SEAT_SCAN_UV_PER_METRE = .22
 
 
 # Loose tool marks following the existing relief, measured on the fitted scan.
@@ -108,65 +121,85 @@ def restore_relief(local):
     return final, scar, polish
 
 
-def lotus_surface():
-    """Worn stone seat with carved petals, one side strip and two planar caps."""
-    # Profile rows run from the underside to the figure's continuous bearing.
-    # Petal depth is carved back into the stone, within the maximum footprint.
-    profile = ((0., .875, 0.), (.011, .910, 0.), (.025, .938, 0.),
-               (.044, .959, .030), (.063, 1., .065), (.081, 1., .075),
-               (.096, .992, .044), (.108, .947, .007), (.115, .969, 0.),
-               (SEAT_HEIGHT, .965, 0.))
-    angles = np.arange(SEAT_SLICES) * math.tau / SEAT_SLICES
+def seat_ring(x, z):
+    """Walk the four chamfered edges counterclockwise in the X/Z plane."""
+    near_right, near_left, far_left, far_right = SEAT_CORNER_EASE
+    return np.asarray(((x, -z + far_right), (x, z - near_right),
+                       (x - near_right, z), (-x + near_left, z),
+                       (-x, z - near_left), (-x, -z + far_left),
+                       (-x + far_left, -z), (x - far_right, -z)))
+
+
+def stone_seat_surface():
+    """Carve a short Sumeru-style profile as one solid with separate cap charts."""
     cx, cz = SEAT_CENTRE
-    base_x = np.sign(np.cos(angles)) * np.abs(np.cos(angles)) ** (2. / SEAT_EXPONENT) * SEAT_RADII[0]
-    base_z = np.sign(np.sin(angles)) * np.abs(np.sin(angles)) ** (2. / SEAT_EXPONENT) * SEAT_RADII[1]
-    segments = np.diff(np.r_[np.column_stack((base_x, base_z)), [[base_x[0], base_z[0]]]], axis=0)
-    u = np.r_[0., np.cumsum(np.linalg.norm(segments, axis=1))]
-    vertices, faces, charts, colours = [], [], [], []
+    widest = seat_ring(max(x for _, x, _ in SEAT_PROFILE), max(z for _, _, z in SEAT_PROFILE))
+    edge = np.roll(widest, -1, axis=0) - widest
+    length = np.linalg.norm(edge, axis=1)
+    perimeter = np.r_[0., np.cumsum(length)]
+    scale = SEAT_SCAN_UV_PER_METRE
+    count = len(widest)
+    panel_normal = np.column_stack((edge[:, 1], -edge[:, 0])) / length[:, None]
+    scan_v = np.zeros(count)
+    vertices, faces, charts, material_uv, colours = [], [], [], [], []
     v = 0.
     previous = None
-    for row, (y, radius, cut) in enumerate(profile):
-        width = 1. - cut * (.5 - .5 * np.cos(SEAT_PETALS * angles + 10. * (y - .07)))
-        width *= radius * (1. - (.004 * (.5 + .5 * np.sin(5 * angles + .72))) * (cut > 0.))
-        ring = np.column_stack((cx + width * base_x, np.full(SEAT_SLICES, y), cz + width * base_z))
-        vertices.extend(ring.tolist())
-        soot = np.exp(-((ring[:, 0] - .47) / .23) ** 2 - ((ring[:, 2] - .20) / .20) ** 2)
-        faded = (np.sin(7. * angles + y * 26.) ** 2) * cut / .075
-        rubbed_rim = .13 if row in (1, 8, 9) else 0.
-        grain = .035 * np.sin(29. * angles + y * 163.) + .020 * np.sin(53. * angles - y * 411.)
-        luminance = .193 * (width / radius + rubbed_rim + grain - .18 * soot)
-        colours.extend((luminance[:, None] * (np.array([.99, 1., .975]) + faded[:, None] * [.07, -.019, -.047])).tolist())
+    previous_ring = None
+    for row, (y, half_x, half_z) in enumerate(SEAT_PROFILE):
+        ring = seat_ring(half_x, half_z) + [cx, cz]
+        vertices.extend((x, y, z) for x, z in ring)
+        soot = np.exp(-((ring[:, 0] - .491) / .22) ** 2 -
+                      ((ring[:, 1] - .227) / .21) ** 2 - ((y - .125) / .14) ** 2)
+        rubbed = (.03, .11, .13, .04, -.01, -.035, -.04, -.06, -.035, -.012, .025, .08, .09)[row]
+        stone = .89 + rubbed - .10 * soot + .017 * np.sin(47 * ring[:, 0] + 73 * ring[:, 1] + 39 * y)
+        colours.extend((stone[:, None] * [1., 1.025, 1.045]).clip(0., 1.).tolist())
         if previous is not None:
-            old_y, old_radius = previous
-            high_v = v + math.hypot(y - old_y, (radius - old_radius) * max(SEAT_RADII))
-            for i in range(SEAT_SLICES):
-                j = (i + 1) % SEAT_SLICES
-                a, b = (row - 1) * SEAT_SLICES, row * SEAT_SLICES
+            dy = y - previous[0]
+            radial = np.linalg.norm([half_x - previous[1], half_z - previous[2]])
+            high_v = v + math.hypot(dy, radial)
+            for i, (panel_u, panel_v) in enumerate(SEAT_SCAN_PATCHES):
+                j = (i + 1) % count
+                a, b = (row - 1) * count, row * count
                 faces.append((a + i, b + i, b + j, a + j))
-                charts.append(((u[i], v), (u[i], high_v), (u[i + 1], high_v), (u[i + 1], v)))
+                u0, u1 = perimeter[i:i + 2]
+                charts.append(((u0, v), (u0, high_v), (u1, high_v), (u1, v)))
+                old_width = np.linalg.norm(previous_ring[j] - previous_ring[i]) * scale
+                new_width = np.linalg.norm(ring[j] - ring[i]) * scale
+                shift = np.dot((ring[i] + ring[j] - previous_ring[i] - previous_ring[j]) * .5,
+                               panel_normal[i])
+                low = panel_v + scan_v[i] * scale
+                scan_v[i] += math.hypot(dy, shift)
+                high = panel_v + scan_v[i] * scale
+                material_uv.append(((panel_u - old_width / 2, low), (panel_u - new_width / 2, high),
+                                    (panel_u + new_width / 2, high), (panel_u + old_width / 2, low)))
             v = high_v
-        previous = y, radius
-    for top, height, offset in ((False, 0., 0), (True, SEAT_HEIGHT, (len(profile) - 1) * SEAT_SLICES)):
+        previous = y, half_x, half_z
+        previous_ring = ring
+    for top, height, offset in ((False, 0., 0), (True, SEAT_HEIGHT, (len(SEAT_PROFILE) - 1) * count)):
         centre = len(vertices)
         vertices.append((cx, height, cz))
-        colours.append([.196, .196, .190])
-        cap_u = u[-1] + .10 + max(SEAT_RADII)
+        colours.append([.93, .955, .97])
+        cap_u = perimeter[-1] + .8
         cap_v = 1. + 2. * int(top)
-        for i in range(SEAT_SLICES):
-            j = (i + 1) % SEAT_SLICES
+        for i in range(count):
+            j = (i + 1) % count
             ids = (offset + i, centre, offset + j) if top else (centre, offset + i, offset + j)
             faces.append(ids)
-            charts.append(tuple((cap_u + vertices[k][0] - cx, cap_v + vertices[k][2] - cz) for k in ids))
-    return vertices, faces, charts, np.asarray(colours)
+            coordinates = [(vertices[k][0] - cx, vertices[k][2] - cz) for k in ids]
+            charts.append(tuple((cap_u + x, cap_v + z) for x, z in coordinates))
+            material_uv.append(tuple((SEAT_SCAN_CAP[0] + x * scale, SEAT_SCAN_CAP[1] + z * scale)
+                                     for x, z in coordinates))
+    return vertices, faces, charts, material_uv, np.asarray(colours)
 
 
-def build_lotus(mesh, anchor, material):
-    vertices, faces, charts, colours = lotus_surface()
-    seat = mesh.mesh_object('Carved stone lotus seat of the Buddha',
+def build_seat(mesh, anchor, material):
+    vertices, faces, charts, material_uv, colours = stone_seat_surface()
+    seat = mesh.mesh_object('Dressed stone Sumeru seat of the Buddha',
                             (np.asarray(vertices) + np.asarray(anchor)).tolist(), faces, material)
-    mesh.source_uv(seat, charts, 'Connected carved perimeter strip and separate planar stone caps.')
-    for polygon in seat.data.polygons:
-        polygon.use_smooth = len(polygon.vertices) == 4
+    material_layer = seat.data.uv_layers['UVMap'].data
+    material_layer.foreach_set('uv', np.asarray([p for face in material_uv for p in face], dtype=np.float32).ravel())
+    mesh.source_uv(seat, charts, 'Continuous stepped stone perimeter strip and two planar bearing charts.')
+    seat['source_stone_surface'] = 'https://polyhaven.com/a/stone_pavers'
     return seat, colours
 
 

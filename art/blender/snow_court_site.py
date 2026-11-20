@@ -45,7 +45,7 @@ def palette(site):
         'ash': mesh.material('Char and burned wick', '#272822', rough=.96),
         'oil': mesh.material('Dark clear seed oil', '#6b4628', rough=.22, metal=.03),
         'figure': mesh.material('Matte weathered stone of the seated Buddha', rough=statue.STONE_ROUGHNESS),
-        'figure_lotus': mesh.material('Carved lotus stone with rubbed edges', rough=statue.SEAT_ROUGHNESS),
+        'figure_seat': mesh.material('Dressed grey Sumeru stone with rubbed edges', '#ffffff', 'stone_pavers', .84),
         'glow': mesh.material('Thin gauze over low flame', '#b96953', rough=.86, emission=.04),
         'bamboo': mesh.material('Split bamboo beneath faded linen', '#9a7350', rough=.94),
         'red_faded': mesh.material('Faded dusty rose gauze', '#ac6a63', rough=.94),
@@ -57,7 +57,7 @@ def palette(site):
     }
     mesh.vertex_tint_shader(materials['red'])
     mesh.vertex_tint_shader(materials['figure'])
-    mesh.vertex_tint_shader(materials['figure_lotus'])
+    mesh.vertex_tint_shader(materials['figure_seat'])
     materials['red']['one_light_painted_timber'] = True
     mesh.painted_timber_finish(materials['red'])
     mesh.weather_plaster(materials['plaster'])
@@ -624,13 +624,13 @@ def hall(site, m, contact, fixtures):
     plinth = mesh.box('Low stone altar supports the seated figure', (2.09, .52, .93),
                      (0, y + .260, back + .87), m['granite'], .027)
     with contact.group('Seated Buddha on the stone altar', [plinth]):
-        lotus = statue.build_lotus(mesh, (0, y + .52, back + .91), m['figure_lotus'])
-        with contact.group('Seated Buddha on the carved lotus seat', [lotus[0]]):
+        seat = statue.build_seat(mesh, (0, y + .52, back + .91), m['figure_seat'])
+        with contact.group('Seated Buddha on the dressed stone seat', [seat[0]]):
             carving = statue.build(mesh, (0, y + .52 + statue.SEAT_HEIGHT, back + .91), m['figure'])
     oil_lamp('Altar ordinary oil lamp', (.70, y + .52, back + 1.12), m, contact, plinth, 'hall', fixtures, .68)
     area('Warm reflected light on the seated figure and worn plinth', (1.20, y + .99, back + 2.11),
          (0, y + 1.57, back + .91), 5.4, '#e2c69b', .73)
-    return lotus, carving
+    return seat, carving
 
 
 def reference_camera(name, position, look, fov):
