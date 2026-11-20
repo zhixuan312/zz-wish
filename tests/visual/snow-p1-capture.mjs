@@ -29,6 +29,8 @@ const regions = ['altar', 'court', 'gate', 'hall'];
 const passes = ['day', 'dusk', 'night', 'lamp'];
 const p2 = process.argv.includes('--p2');
 const milestone = p2 ? 'P2' : 'P1';
+const nearSampleCount = Number(process.env.SNOW_COURT_NEAR_SAMPLES ?? 8);
+assert(nearSampleCount === 8 || (p2 && nearSampleCount === 64), 'Use an 8-sample preview or an explicit 64-sample P2 near bake.');
 const auditCamera = p2 && process.env.SNOW_COURT_FRAMES === '1';
 const simulatedChooserCss = phone ? '.candle-sheet[data-place="snow-roof"] { top: 60vh !important; }' : null;
 const journeyAudits = [];
@@ -48,6 +50,7 @@ if (process.argv.includes('--help')) {
   console.log('BASE_URL=http://127.0.0.1:8965 DB_FILE=<private SQLite file under TMPDIR> OUTPUT=<new absolute directory> CAPTURE_PREVIEW_DIR=<staged LOW8 directory> CAPTURE_PREVIEW_SHA256=<manifest SHA-256> node tests/visual/snow-p1-capture.mjs [--p2]');
   console.log('Use --p2 for an entrance, full thirty-second walk and settled burning at both 13:00 and 22:00.');
   console.log('Set SNOW_COURT_VIEWPORT=phone for 390×844, and SNOW_COURT_FRAMES=1 for the contact sheets, lantern projection and journey audits.');
+  console.log('Set SNOW_COURT_NEAR_SAMPLES=64 only for a P2 preview staged with a verified 64-sample near bake.');
   console.log('Acquire the GPU lease as s1 before running. The local API and Vite must already be running.');
   process.exit(0);
 }
@@ -119,7 +122,7 @@ const manifest = JSON.parse(manifestBytes);
 assert.equal(manifest.place, placeId);
 assert.equal(manifest.snowCourt?.revision, site.revision, 'The staged manifest is missing the rebuilt Snow Roof revision.');
 assert.equal(manifest.partialPreview, true);
-assert.equal(manifest.bake?.samples, 8);
+assert.equal(manifest.bake?.samples, nearSampleCount);
 assert(isDigest(manifest.bakeFingerprint) && isDigest(manifest.bake.sourceBlendSha256),
   'Expected authored and baked source SHA-256 receipts.');
 assert.deepEqual(Object.keys(manifest.lightmaps).sort(), regions);
@@ -130,8 +133,8 @@ assert(!files.has('manifest.json') && files.has(manifest.scene), 'Missing scene 
 const maps = {};
 for (const region of regions) for (const pass of passes) {
   const map = manifest.lightmaps[region][pass];
-  assert(map?.samples === 8 && map.bakeDevice === 'METAL' && map.denoiseDevice === 'METAL',
-    `Expected a real eight-sample Metal bake and Metal denoise for ${region}/${pass}.`);
+  assert(map?.samples === nearSampleCount && map.bakeDevice === 'METAL' && map.denoiseDevice === 'METAL',
+    `Expected a real ${nearSampleCount}-sample Metal bake and Metal denoise for ${region}/${pass}.`);
   assert(map.bakeFingerprint === manifest.bakeFingerprint && isDigest(map.masterSha256),
     `Source or master receipt mismatch for ${region}/${pass}.`);
   assert.equal(files.get(map.uri)?.bytes, map.bytes, `Missing declared ${region}/${pass} payload.`);

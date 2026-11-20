@@ -13,14 +13,17 @@ const { values } = parseArgs({
   options: {
     ...Object.fromEntries([...required, 'walk', 'high'].map(name => [name, { type: 'string' }])),
     'defer-hall-lightmaps': { type: 'boolean' },
+    'near-samples': { type: 'string', default: '8' },
     help: { type: 'boolean' },
   },
 });
 if (values.help) {
-  console.log('node scripts/stage-snow-court.mjs --near PACKED8 --needles AUTHORED_GLB --day WEBP2048 --night WEBP2048 --out NEW_ART_BUILD_DIRECTORY [--walk KTX8192] [--high WEBP8192_OR_KTX8192] [--defer-hall-lightmaps]');
+  console.log('node scripts/stage-snow-court.mjs --near PACKED_NEAR --needles AUTHORED_GLB --day WEBP2048 --night WEBP2048 --out NEW_ART_BUILD_DIRECTORY [--walk KTX8192] [--high WEBP8192_OR_KTX8192] [--defer-hall-lightmaps] [--near-samples 8|64]');
   process.exit(0);
 }
 if (required.some(name => !values[name])) throw new Error('Specify --near, --needles, --day, --night and --out.');
+const nearSampleCount = Number(values['near-samples']);
+if (nearSampleCount !== 8 && nearSampleCount !== 64) throw new Error('Specify --near-samples 8 or 64.');
 const deferHallLightmaps = values['defer-hall-lightmaps'];
 if (deferHallLightmaps && !values.walk) throw new Error('Deferred Snow Roof lightmaps require --walk.');
 const [near, daySource, nightSource, walkSource, highSource] = await Promise.all([
@@ -229,10 +232,10 @@ const passes = ['day', 'dusk', 'night', 'lamp'];
 const bake = manifest.bake;
 if (manifest.place !== 'snow-roof' || manifest.backdrop || manifest.snowCourt || manifest.walkLightmaps
   || manifest.partialPreview !== true
-  || bake?.samples !== 8 || !isHash(bake.sourceBlendSha256) || !isHash(manifest.bakeFingerprint)
+  || bake?.samples !== nearSampleCount || !isHash(bake.sourceBlendSha256) || !isHash(manifest.bakeFingerprint)
   || bake.cameraPreExposure !== projection.preExposure
   || Object.keys(manifest.lightmaps ?? {}).sort().join() !== regions.join()) {
-  throw new Error('Expected an unstaged eight-sample Snow Roof near package with all four regions.');
+  throw new Error(`Expected an unstaged ${nearSampleCount}-sample Snow Roof near package with all four regions.`);
 }
 const nearFiles = await Promise.all(manifest.files.map(async spec => ({ spec, body: await verifiedFile(near, spec) })));
 const fileIndex = new Map(nearFiles.map(file => [file.spec.uri, file]));
@@ -265,10 +268,10 @@ for (const region of regions) {
     const map = maps[pass];
     const file = fileIndex.get(map?.uri);
     if (!file || !map.uri.endsWith('.ktx2') || file.spec.bytes !== map.bytes || seenMaps.has(map.uri)
-      || map.samples !== 8 || map.bakeDevice !== 'METAL' || map.denoiseDevice !== 'METAL'
+      || map.samples !== nearSampleCount || map.bakeDevice !== 'METAL' || map.denoiseDevice !== 'METAL'
       || map.bakeFingerprint !== manifest.bakeFingerprint || !isHash(map.masterSha256)
       || map.cameraPreExposure !== bake.cameraPreExposure) {
-      throw new Error(`Invalid eight-sample Metal/OIDN map receipt: ${region}/${pass}.`);
+      throw new Error(`Invalid ${nearSampleCount}-sample Metal/OIDN map receipt: ${region}/${pass}.`);
     }
     seenMaps.add(map.uri);
   }
