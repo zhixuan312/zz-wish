@@ -204,5 +204,15 @@ def add_slate(mesh, x, z, width, depth, height, i, j, material):
             uv[loop].uv = texture[index]
             fade = gain * (1. if index < 8 else .91)
             tint.data[loop].color = (*(channel * fade for channel in base), 1.)
-    mesh.source_uv(paver, [[(points[index][0] - x, points[index][2] - z) for index in face]
-                           for face in faces], 'Metric chart over the flat slate and shallow cut edge.')
+    rim_size = len(faces[0])
+    crown = [(2. * (points[index][0] - x), 2. * (points[index][2] - z)) for index in faces[0]]
+    # Reserve a separate gutter where the shadowed skirt meets the worn top.
+    # The extra UV height gives the shallow edge whole texels at the hall atlas density.
+    skirt_depth = 12. * math.dist(points[0], points[rim_size])
+    skirt = []
+    run = 0.
+    for k in range(rim_size):
+        next_run = run + math.dist(points[k], points[(k + 1) % rim_size])
+        skirt.append([(run, 1.), (next_run, 1.), (next_run, 1. + skirt_depth), (run, 1. + skirt_depth)])
+        run = next_run
+    mesh.source_uv(paver, [crown, *skirt], 'Dense slate crown and separately unrolled cut edges with their own gutter.')
