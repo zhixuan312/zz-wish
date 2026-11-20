@@ -26,13 +26,6 @@ def _bell(value, width):
     return math.exp(-((value / width) ** 2))
 
 
-def _face_uv(row, bounds):
-    """Use the photographed grain inside a single paver, excluding its mortar."""
-    initial_u, final_u, initial_v, final_v = bounds
-    return (0.335 + .265 * (row[0] - initial_u) / (final_u - initial_u),
-            0.300 + .148 * (row[1] - initial_v) / (final_v - initial_v))
-
-
 def _finish_shell(mesh, name, at, rings, material, smooth_caps=False):
     """Closed unrolled shell with independent charts for flat stone caps.
 
@@ -76,19 +69,9 @@ def _finish_shell(mesh, name, at, rings, material, smooth_caps=False):
                                 for point in (centre, *(points[k] for k in ids))))
     obj = mesh.mesh_object(name, vertices, faces, material)
     mesh.source_uv(obj, charts, 'Measured horizontal rings with a rear seam and independent caps.')
-    texture = obj.data.uv_layers['UVMap'].data
     side_count = (len(rings) - 1) * steps
     for index, face in enumerate(obj.data.polygons):
         face.use_smooth = index < side_count or smooth_caps
-        if index < side_count:
-            row, column = divmod(index, steps)
-            bounds = (0, width, 0, lifts[-1])
-            coords = charts[index]
-        else:
-            coords = [(vertices[vertex][0] - at[0], vertices[vertex][2] - at[2]) for vertex in face.vertices]
-            bounds = (-.8, .8, -.55, .55)
-        for loop, uv in zip(face.loop_indices, coords):
-            texture[loop].uv = _face_uv(uv, bounds)
     return obj
 
 
@@ -294,14 +277,25 @@ def build(mesh, at, material):
     """Carve the upright figure and lowered hands over its bearing plinth."""
     _finish_shell(mesh, 'Weather-softened stone lotus bearing block', at,
                   _rings(BASE, .023, 48, _pedestal), material)
-    _finish_shell(mesh, 'Continuous carved seated robe and crossing knees', at,
-                  _rings(BODY, .035, 48, _robe), material, smooth_caps=True)
-    _finish_shell(mesh, 'Downcast face and low carved hair crown', at,
-                  _rings(HEAD, .011, 56, _head), material, smooth_caps=True)
-    x, y, z = at
+    # Retain the altar contact and keep the hair crown visible beneath the
+    # rear ceiling beam when viewed from the hall entry.
+    seat = BASE[-1][0]
+    scale = 1. - .190 / (HEAD[-1][0] - seat)
 
-    def world(points):
-        return [(x + px, y + py, z + pz) for px, py, pz in points]
+    def compact(point):
+        x, y, z = point
+        return (x * scale, seat + (y - seat) * scale, z * scale)
+
+    def figure_shell(name, rings):
+        return _finish_shell(mesh, name, at, [[compact(point) for point in ring] for ring in rings],
+                             material, smooth_caps=True)
+
+    def figure_detail(name, points, radii, segments):
+        placed = [tuple(a + b for a, b in zip(compact(point), at)) for point in points]
+        return mesh.curved_tube(name, placed, [radius * scale for radius in radii], material, segments)
+
+    figure_shell('Continuous carved seated robe and crossing knees', _rings(BODY, .035, 48, _robe))
+    figure_shell('Downcast face and low carved hair crown', _rings(HEAD, .011, 56, _head))
 
     for side in (-1, 1):
         ears = (
@@ -309,11 +303,9 @@ def build(mesh, at, material):
             (1.704, .023, .023, .019), (1.757, .026, .024, .023),
             (1.800, .023, .019, .017), (1.828, .012, .013, .010),
         )
-        _finish_shell(mesh, 'Carved ear and long earlobe', at,
-                      _rings(ears, .027, 14,
-                             lambda h, a, w, d, c: _ear(h, a, w, d, c, side)), material, smooth_caps=True)
-        _finish_shell(mesh, 'Draped sleeve from shoulder through bent elbow to lap', at,
-                      _sleeve(side), material, smooth_caps=True)
+        figure_shell('Carved ear and long earlobe',
+                     _rings(ears, .027, 14, lambda h, a, w, d, c: _ear(h, a, w, d, c, side)))
+        figure_shell('Draped sleeve from shoulder through bent elbow to lap', _sleeve(side))
 
     # Palms turn upward and overlap in the lap, leaving one deliberate
     # opening under the joined thumb tips.
@@ -322,10 +314,8 @@ def build(mesh, at, material):
                 (.730, .161, .074, .045, .343), (.753, .151, .067, .046, .350),
                 (.769, .113, .044, .049, .359), (.773, .068, .023, .059, .368))
         raised = [(height + rise, w, d, c, front) for height, w, d, c, front in palm]
-        _finish_shell(mesh, 'Open palm resting over the lap', at,
-                      _rings(raised, .014, 24,
-                             lambda h, a, w, d, c, f: _palm(h, a, w, d, c, f, side)),
-                      material, smooth_caps=True)
+        figure_shell('Open palm resting over the lap',
+                     _rings(raised, .014, 24, lambda h, a, w, d, c, f: _palm(h, a, w, d, c, f, side)))
         for offset, radius, length in ((0, .016, .133), (1, .015, .144),
                                        (2, .014, .131), (3, .012, .109)):
             level = .741 + rise - .004 * offset
@@ -333,11 +323,10 @@ def build(mesh, at, material):
             finger = ((side * (.080 - offset * .004), level, front),
                       (side * -.006, level - .004, front + .007),
                       (side * (.080 - length), level, front + .011))
-            mesh.curved_tube('Rounded fingertip in the resting palm', world(finger),
-                             [radius, radius, radius * .60], material, 8)
+            figure_detail('Rounded fingertip in the resting palm', finger, [radius, radius, radius * .60], 8)
         thumb = ((side * .100, .753 + rise, .370),
                  (side * .068, .797 + rise * .52, .390),
                  (side * .033, .829 + rise * .30, .386),
                  (side * .007, .833, .381))
-        mesh.curved_tube('Thumb sloping toward the joined meditation gesture', world(thumb),
-                         [.027, .023, .018, .010], material, 12)
+        figure_detail('Thumb sloping toward the joined meditation gesture', thumb,
+                      [.027, .023, .018, .010], 12)

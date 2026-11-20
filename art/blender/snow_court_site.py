@@ -40,7 +40,7 @@ def palette(site):
         'bronze': mesh.material('Dull old lamp bronze', '#735438', rough=.63, metal=.71),
         'ash': mesh.material('Char and burned wick', '#272822', rough=.96),
         'oil': mesh.material('Dark clear seed oil', '#6b4628', rough=.22, metal=.03),
-        'figure': mesh.material('Matte warm-grey stone of the seated Buddha', '#c4b8a0', 'stone_pavers', .93),
+        'figure': mesh.material('Matte grey stone of the seated Buddha', '#a9adad', rough=.97),
         'glow': mesh.material('Thin gauze over low flame', '#b96953', rough=.86, emission=.04),
         'bamboo': mesh.material('Split bamboo beneath faded linen', '#9a7350', rough=.94),
         'red_faded': mesh.material('Faded dusty rose gauze', '#ac6a63', rough=.94),
@@ -51,10 +51,6 @@ def palette(site):
         'rope': mesh.material('Rough suspension cord', '#8a7962', rough=.98),
     }
     mesh.vertex_tint_shader(materials['red'])
-    mesh.stable_roughness(materials['figure'], .92)
-    for node in materials['figure'].node_tree.nodes:
-        if node.type == 'NORMAL_MAP':
-            node.inputs['Strength'].default_value = .24
     materials['red']['one_light_painted_timber'] = True
     mesh.painted_timber_finish(materials['red'])
     mesh.weather_plaster(materials['plaster'])
