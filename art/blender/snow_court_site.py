@@ -155,6 +155,10 @@ def gate(site, m, contacts, fixtures):
     half_open = config['clearWidth'] / 2
     stone = m['granite']
     mesh.box('Full bearing stone under the gate', (width, .30, depth + .42), (0, y - .13, z), stone, .025)
+    mesh.box('Granite apron between the snow road and the stair foot',
+             (3.36, .21, .62), (0, 1.074, 14.12), stone, .012)
+    mesh.box('Continuous bedding beneath the granite gate stairs',
+             (3.32, .19, 1.93), (0, 1.029, 13.29), stone, .012)
     for index in range(4):
         top = y - (3 - index) * .113
         height = top - 1.08
