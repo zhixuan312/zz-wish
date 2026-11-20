@@ -246,7 +246,6 @@ export default function createPlace(h) {
           };
         };
       }
-      context.up.push(() => cloth.update(life.gust()));
       context.disposers.push(cloth.dispose);
     },
 
