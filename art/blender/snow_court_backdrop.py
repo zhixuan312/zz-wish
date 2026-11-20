@@ -242,19 +242,12 @@ def hillside_material(air):
 def summit_material(air):
     shader = plates.Shader('Fractured summit rock with snow in sheltered chutes')
     point = shader.coordinate()
-    axes = shader.xyz(point)
-    height = axes['Z']
-    snow_grain = shader.noise(point, (.84, .91, .93), detail=2.6)
-    # Oblique fine jointing follows the face instead of tinting whole hills
-    # with low-frequency noise. Ridge, headwall and chute colors come from
-    # the survey-derived fields.
-    bedding = shader.math('ADD', height,
-                          shader.math('ADD', shader.product(axes['X'], -.31), shader.product(axes['Y'], .17)))
-    rock_coordinates = shader.nodes.new('ShaderNodeCombineXYZ')
-    for axis, component in (('X', axes['X']), ('Y', axes['Y']), ('Z', bedding)):
-        shader.input(rock_coordinates.inputs[axis], component)
-    joints = shader.noise(rock_coordinates.outputs['Vector'], (.106, .145, .62), detail=2.7, roughness=.66)
-    chips = shader.noise(point, (.82, .74, .94), detail=2.3)
+    height = shader.xyz(point)['Z']
+    snow_grain = shader.noise(point, (.88, .88, .88), detail=2.6)
+    # Leave cliffs, crests and fractures to the surveyed geometry. The
+    # isotropic detail is only weathering within each outcrop and talus grain.
+    weathering = shader.noise(point, (.31, .31, .31), detail=2.2, roughness=.61)
+    grains = shader.noise(point, (1.12, 1.12, 1.12), detail=2.2)
 
     def terrain_attribute(name):
         node = shader.nodes.new('ShaderNodeAttribute')
@@ -265,13 +258,14 @@ def summit_material(air):
     cirque = terrain_attribute('measured_cirque')
     gully = terrain_attribute('measured_gully')
     crest = terrain_attribute('measured_spur')
-    rock_block = shader.blend((.107, .103, .096, 1.), (.286, .267, .232, 1.),
-                              shader.between(joints, .28, .74))
-    talus = shader.blend((.070, .081, .093, 1.), (.156, .160, .151, 1.),
-                         shader.between(chips, .30, .77))
-    ledges = shader.math('MAXIMUM', wall, shader.product(crest, .67))
-    rock = shader.blend(talus, rock_block, shader.between(ledges, .07, .86, .09, .91))
-    rock = shader.blend(rock, (.039, .049, .063, 1.), shader.between(gully, .32, .94, 0., .51))
+    rock_block = shader.blend((.158, .151, .140, 1.), (.205, .192, .169, 1.),
+                              shader.between(weathering, .25, .76))
+    talus = shader.blend((.092, .102, .112, 1.), (.128, .130, .124, 1.),
+                         shader.between(grains, .26, .77))
+    ledges = shader.math('MAXIMUM', wall, shader.product(crest, .53))
+    rock = shader.blend(talus, rock_block, shader.between(ledges, .08, .85, .09, .90))
+    hollow = shader.math('MAXIMUM', gully, shader.product(cirque, .48))
+    rock = shader.blend(rock, (.048, .059, .072, 1.), shader.between(hollow, .34, .95, 0., .46))
 
     accumulation = terrain_attribute('snow_retention')
     normal = shader.xyz(shader.nodes.new('ShaderNodeNewGeometry').outputs['Normal'])['Z']
@@ -288,10 +282,9 @@ def summit_material(air):
     powder = shader.blend((.58, .65, .73, 1.), (.93, .95, .97, 1.),
                           shader.between(snow_grain, .22, .78, .32, .88))
 
-    rock_relief = shader.math('ADD', shader.product(joints, .69), shader.product(chips, .31))
-    relief = shader.blend(rock_relief, shader.product(snow_grain, .28), snow)
+    relief = shader.blend(grains, shader.product(snow_grain, .28), snow)
     return shader.surface(shader.blend(rock, powder, snow), .93, specular=.18,
-                          bump=(relief, .30, .13), air=air)
+                          bump=(relief, .19, .055), air=air)
 
 
 def rear_material(air):
