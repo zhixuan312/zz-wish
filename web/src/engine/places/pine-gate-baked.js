@@ -136,7 +136,6 @@ export default function createPlace(h) {
         if (mud.count) {
           context.G.add(mud.group);
           // Read by the Tier 1 test: the trail must place every print on real paving.
-          // Read by the Tier 1 test: the trail must place every print on real paving.
           if (import.meta.env.DEV) window.__pineMudPrints = () => mud.count;
           context.disposers.push(mud.dispose);
         }
@@ -253,14 +252,14 @@ export default function createPlace(h) {
             anchor: [anchor.x, anchor.y, anchor.z],
             bbox: (() => {
               cloth.group.updateWorldMatrix(true, true);
-              const ribbon = cloth.group.getObjectByName('Visitor wish cloth tied under the candle stand');
+              const ribbon = cloth.mesh;
               if (!ribbon) return null;
               ribbon.geometry.computeBoundingBox();
               const b = ribbon.geometry.boundingBox.clone().applyMatrix4(ribbon.matrixWorld);
               return { min: b.min.toArray().map(v => +v.toFixed(3)), max: b.max.toArray().map(v => +v.toFixed(3)) };
             })(),
             faces: (() => {
-              const ribbon = cloth.group.getObjectByName('Visitor wish cloth tied under the candle stand');
+              const ribbon = cloth.mesh;
               return ribbon ? { index: ribbon.geometry.index?.count ?? 0, verts: ribbon.geometry.attributes.position?.count ?? 0 } : null;
             })(),
           };

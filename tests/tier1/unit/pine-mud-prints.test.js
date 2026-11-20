@@ -53,7 +53,7 @@ test('the trail stays under twenty prints and follows the steps upward', () => {
 });
 
 test('the gait alternates either side of the line, at an adult stride', () => {
-  // The first five prints are the walk across the paving, before the two that turn aside.
+  // The first four prints are the walk across the paving, before the two that turn aside.
   const walk = PINE_PRINTS.slice(0, 4);
   // Alternate feet, so consecutive prints sit on opposite sides of the walking line.
   const sign = (n) => Math.sign(n);
