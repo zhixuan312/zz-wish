@@ -194,30 +194,12 @@ test('each mud print draws its sole, not the whole quad', async ({ page }, testI
   await page.getByRole('button', { name: /许好了|Set my wish/ }).click();
   await page.getByRole('radio', { name: /松门石阶|Pine Gate Steps/ }).click();
   const step = page.getByRole('button', { name: /走进院里|Step inside/ });
-  for (let i = 0; i < 240; i++) { if (await step.isEnabled().catch(() => false)) break; await page.waitForTimeout(250); }
+  await expect(step).toBeEnabled({ timeout: 45_000 });
   await step.click();
   await page.getByRole('button', { name: /跳过|Skip/ }).click();
-  // Wait until the camera has actually come to rest: ten consecutive frames under a millimetre. A
-  // capture taken mid-move reports a pose the visitor never occupies. Measure only after that.
-  const settled = await page.evaluate(() => new Promise<boolean>(resolve => {
-    const samples: [number, number, number][] = [];
-    const tick = () => {
-      const api = window as unknown as { __pineRenderCamera?: { position: { x: number; y: number; z: number } } };
-      const p = api.__pineRenderCamera?.position;
-      if (p) {
-        samples.push([p.x, p.y, p.z]);
-        if (samples.length > 10) samples.shift();
-        if (samples.length === 10) {
-          const still = samples.every(q => Math.hypot(q[0] - p.x, q[1] - p.y, q[2] - p.z) < .001);
-          if (still) { resolve(true); return; }
-        }
-      }
-      if (samples.length > 900) { resolve(false); return; }
-      requestAnimationFrame(tick);
-    };
-    tick();
-  }));
-  expect(settled, 'the camera must come to rest before the frames are compared').toBe(true);
+  // Skip lands the travel tween at its last frame, so the camera is already at the place's own pose.
+  // The measurement below freezes the rig and stands it at a declared overview pose; waiting for a
+  // burn settle here would only spend the test's budget.
 
   // The prints lie on the shoulder paving, which the chooser view never shows. Freeze the rig, stand
   // at the declared overview pose the review uses, wait for the camera to stop, and measure there.
