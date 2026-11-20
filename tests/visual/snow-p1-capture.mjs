@@ -32,6 +32,9 @@ const milestone = p2 ? 'P2' : 'P1';
 const nearSampleCount = Number(process.env.SNOW_COURT_NEAR_SAMPLES ?? 8);
 assert(nearSampleCount === 8 || (p2 && nearSampleCount === 64), 'Use an 8-sample preview or an explicit 64-sample P2 near bake.');
 const auditCamera = p2 && process.env.SNOW_COURT_FRAMES === '1';
+const desktopRow = process.env.SNOW_COURT_DESKTOP_ROW ?? 'full';
+assert(desktopRow === 'full' || (desktopRow === 'paired' && auditCamera && !phone),
+  'The paired earlier-row review applies only to desktop P2 camera evidence.');
 const simulatedChooserCss = phone ? '.candle-sheet[data-place="snow-roof"] { top: 60vh !important; }' : null;
 const journeyAudits = [];
 const contexts = [{ hour: 13, look: 'day', walk: true }, { hour: 22, look: 'night', walk: p2 }];
@@ -51,6 +54,7 @@ if (process.argv.includes('--help')) {
   console.log('Use --p2 for an entrance, full thirty-second walk and settled burning at both 13:00 and 22:00.');
   console.log('Set SNOW_COURT_VIEWPORT=phone for 390×844, and SNOW_COURT_FRAMES=1 for the contact sheets, lantern projection and journey audits.');
   console.log('Set SNOW_COURT_NEAR_SAMPLES=64 only for a P2 preview staged with a verified 64-sample near bake.');
+  console.log('For a desktop framing trial only, SNOW_COURT_DESKTOP_ROW=paired requires two complete older shades on each side.');
   console.log('Acquire the GPU lease as s1 before running. The local API and Vite must already be running.');
   process.exit(0);
 }
@@ -192,6 +196,7 @@ const report = {
     ...(walkMaps ? { walkLightmaps: walkMaps } : {}),
     budget: manifest.budget, totalCandidateBytes: [...assets.values()].reduce((total, asset) => total + asset.body.length, 0) },
   ordinaryManifestSha256: installedSha, viewport,
+  ...(auditCamera && !phone ? { desktopRow } : {}),
   ...(simulatedChooserCss ? { simulatedCss: { purpose: 'Capture-only compact portrait chooser; product styles are unchanged.',
     rule: simulatedChooserCss } } : {}),
   captures: [], contexts: [], errors: [], httpErrors: [], viteUpdates: [],
@@ -224,7 +229,9 @@ function instrument(source) {
   ];
   for (const [pattern, label] of entrySteps) {
     assert.equal([...transformed.matchAll(pattern)].length, 1, 'Snow Court entry hook no longer matches: ' + label);
-    transformed = transformed.replace(pattern, statement => `${statement}\n  performance.mark('snow-p1:entry-${label}');`);
+    transformed = transformed.replace(pattern, statement => `${statement}
+  performance.mark('snow-p1:entry-${label}');
+  window.__markSnowCourtJourneyEntry?.('${label}');`);
   }
   if (p2) {
     const render = /^([ \t]*)composer\.render\(\);[ \t]*$/gm;
@@ -529,7 +536,8 @@ async function captureContext(browser, { hour, look, walk }) {
       });
       cameraFrames = await createSnowCourtCameraFrames(page, {
         outputDir: join(output, look === 'day' ? 'camera-frames' : 'camera-frames-night'),
-        width: phone ? viewport.width : 720, height: phone ? viewport.height : 450, everyNthFrame: 1, stepSeconds: .5,
+        width: viewport.width, height: viewport.height, everyNthFrame: 1, stepSeconds: .5,
+        ...(phone ? {} : { maxBufferedBytes: 400 * 1024 * 1024 }),
         measurePresented: frames => page.evaluate(snowCourtPresentedLuminance, frames),
       });
       await cameraFrames.start();
@@ -622,7 +630,8 @@ async function captureContext(browser, { hour, look, walk }) {
     if (auditCamera) {
       await page.waitForFunction(() => window.__snowLanternAudit?.completed);
       const audit = await page.evaluate(() => window.__snowLanternAudit);
-      const summary = validateSnowCourtLanternAudit(audit, viewport.width, viewport.height, { requireSettledRow: !phone });
+      const summary = validateSnowCourtLanternAudit(audit, viewport.width, viewport.height,
+        { requireSettledRow: !phone && desktopRow === 'full' });
       const burnComposition = snowCourtBurnCompositionSummary(audit);
       const settleCamera = validateSnowCourtSettleCamera(audit, phone);
       const file = `${look}-lantern-framing.json`;
@@ -670,8 +679,18 @@ try {
   if (auditCamera) {
     assert.equal(journeyAudits.length, 2, 'Both Snow Court light looks must be recorded.');
     for (const { result, geometry, presented } of journeyAudits) {
-      const { presented: measured, ...summary } = snowCourtJourneySummary(geometry, presented, site.walkSeconds, { phone });
       const file = `${result.look}-journey-audit.json`;
+      let resultSummary;
+      try {
+        resultSummary = snowCourtJourneySummary(geometry, presented, site.walkSeconds, { phone, desktopRow });
+      } catch (error) {
+        const assertion = String(error?.message ?? error);
+        await writeFile(join(output, file), JSON.stringify({ viewport, assertion, ...geometry, presented }, null, 2) + '\n', { flag: 'wx' });
+        result.journeyAudit = { file, failures: 1, assertion };
+        console.log('SNOW_COURT_JOURNEY', size, result.look, JSON.stringify(result.journeyAudit));
+        continue;
+      }
+      const { presented: measured, ...summary } = resultSummary;
       await writeFile(join(output, file), JSON.stringify({ viewport, summary, ...geometry, presented: measured }, null, 2) + '\n', { flag: 'wx' });
       const { unobservedDrawRanges, presentedWarnings, ...headline } = summary;
       result.journeyAudit = { file, ...headline, drawLuminanceSource: geometry.drawLuminanceSource,

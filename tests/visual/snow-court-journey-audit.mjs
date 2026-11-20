@@ -20,7 +20,10 @@ export function installSnowCourtJourneyAudit() {
   const earlierCloth = /^(Sun-faded rose-red gauze|Faded dusty rose gauze|Faded iron-red gauze|Thin gauze over low flame)$/;
   const rowSlots = [-3, -2, -1, 1, 2, 3];
   const rowSlot = (x, centre) => Math.round((x - centre) / .34);
-  window.__startSnowCourtJourneyAudit = () => { recording = { frames: [], visitorGeometry: [] }; };
+  window.__startSnowCourtJourneyAudit = () => { recording = { frames: [], visitorGeometry: [], entryDraws: {} }; };
+  window.__markSnowCourtJourneyEntry = boundary => {
+    if (recording) recording.entryDraws[boundary] = recording.frames.length;
+  };
   window.__sampleSnowCourtJourneyAudit = (THREE, renderer, camera, baked, lamp, phase, walk, walkClock, ignition, renderTimeMs) => {
     if (!recording || !baked || !walk || recording.complete || recording.luminanceError) return;
     const walkSeconds = walkClock?.id === 'snow-roof' ? walkClock.seconds : undefined;
@@ -72,7 +75,7 @@ export function installSnowCourtJourneyAudit() {
       throw error;
     }
     if (!recording?.complete) throw new Error('Snow Court journey pose trace did not reach settled burning.');
-    const { THREE, baked, frames, settledAt, visitorGeometry, luminance } = recording;
+    const { THREE, baked, frames, settledAt, visitorGeometry, luminance, entryDraws } = recording;
     recording = null;
     const drawLuminanceSource = await luminance.finish();
     if (!frames.every(frame => Number.isFinite(frame.luminance))) {
@@ -261,7 +264,7 @@ export function installSnowCourtJourneyAudit() {
     const entryStart = mark('snow-p1:entry-start'), entryEnd = mark('snow-p1:entry-end');
     let visitorClothFrames = 0;
     const ndcPoints = [-2 / 3, 0, 2 / 3].flatMap(y => [-2 / 3, 0, 2 / 3].map(x => [x, y]));
-    for (const frame of frames) {
+    for (const [draw, frame] of frames.entries()) {
       cameraOrigin.fromArray(frame.position);
       rotation.fromArray(frame.rotation);
       forward.fromArray(frame.direction);
@@ -275,7 +278,7 @@ export function installSnowCourtJourneyAudit() {
       frame.hits = ndcPoints.map(([x, y]) => pointHit(x, y, frame.near, rayDistance, clothTree));
       frame.centre = frame.hits[4];
       frame.blockedPoints = frame.hits.filter(Boolean).length;
-      if ((frame.timestamp >= entryStart && frame.timestamp <= entryEnd) ||
+      if ((draw >= entryDraws.start && draw < entryDraws.end) ||
         (frame.screen === 'candle' && frame.ignition === null) || frame.ignition === 'settled') {
         frame.earlierLanterns = measureEarlierRow(frame, clothTree);
       }
@@ -290,7 +293,7 @@ export function installSnowCourtJourneyAudit() {
       minimumClothOpacity,
       rayScope: 'Visible baked model and separately loaded crowns, plus each draw’s visitor cloth transform. Counts opaque triangles and old/new cloth with material opacity at least 0.70, respecting near clipping and sidedness.',
       earlierClothVertices: Object.fromEntries(Array.from(earlierVertices, ([slot, cloth]) => [slot, cloth.size])),
-      entryStart, entryEnd };
+      entryStart, entryEnd, entryDraws };
   };
 
   // Append the actual shade only to the existing settled projection trace.
@@ -372,18 +375,37 @@ export async function snowCourtPresentedLuminance(encodedFrames) {
   return measured;
 }
 
-export function snowCourtJourneySummary(geometry, presented, durationSeconds, { phone = false } = {}) {
-  const { frames, settledAt, entryStart, entryEnd } = geometry;
+export function snowCourtWalkDraws({ frames, entryStart, entryDraws }, durationSeconds) {
+  const isWalk = frame => frame.phase === 'travel' && frame.walk === 'walking'
+    && frame.walkSeconds >= 0 && frame.walkSeconds <= durationSeconds;
+  // The entry callback follows the final walk draw in execution order,
+  // even if both observations land in the same clock quantum.
+  const walk = frames.slice(0, entryDraws.start).filter(isWalk);
+  const legacy = walk.filter(frame => frame.timestamp < entryStart);
+  const coverage = {
+    drawCount: walk.length,
+    firstWalkSeconds: walk[0]?.walkSeconds ?? null,
+    lastWalkSeconds: walk.at(-1)?.walkSeconds ?? null,
+    lastWalkTimestamp: walk.at(-1)?.timestamp ?? null,
+    entryStartTimestamp: entryStart,
+    entryStartDraw: entryDraws.start,
+    legacyDrawCount: legacy.length,
+    legacyLastWalkSeconds: legacy.at(-1)?.walkSeconds ?? null,
+  };
+  assert(walk.length > 120 && walk[0].walkSeconds < .5 && walk.at(-1).walkSeconds >= durationSeconds - .01,
+    'Expected a continuous draw trace for the complete authored Snow Court walk. ' + JSON.stringify(coverage));
+  return { walk, coverage };
+}
+
+export function snowCourtJourneySummary(geometry, presented, durationSeconds, { phone = false, desktopRow = 'full' } = {}) {
+  const { frames, settledAt, entryStart, entryEnd, entryDraws: boundary } = geometry;
   assert(frames.length > 120 && frames[0].phase === 'travel' && frames.at(-1).ignition === 'settled',
     'The Snow Court geometry trace must cover the live walk through settled burning.');
-  assert(Number.isFinite(entryStart) && Number.isFinite(entryEnd) && entryStart < entryEnd,
+  assert(Number.isFinite(entryStart) && Number.isFinite(entryEnd) && entryStart < entryEnd
+    && Number.isInteger(boundary?.start) && Number.isInteger(boundary?.end)
+    && boundary.start > 0 && boundary.start < boundary.end && boundary.end < frames.length,
     'The Snow Court journey trace lacks actual entry boundaries.');
-  // The authored walk clock starts only when the route tween draws. Keep
-  // its held reveal, and stop before the separate hall-entry movement.
-  const walk = frames.filter(frame => frame.phase === 'travel' && frame.walk === 'walking'
-    && frame.timestamp < entryStart && frame.walkSeconds >= 0 && frame.walkSeconds <= durationSeconds);
-  assert(walk.length > 120 && walk[0].walkSeconds < .5 && walk.at(-1).walkSeconds >= durationSeconds - .01,
-    'Expected a continuous draw trace for the complete authored Snow Court walk.');
+  const { walk, coverage } = snowCourtWalkDraws(geometry, durationSeconds);
   assert(walk.every(frame => Number.isFinite(frame.luminance)), 'The walk baseline requires every rendered draw.');
   const referenceLuminance = walk.reduce((total, frame) => total + frame.luminance, 0) / walk.length;
   assert(referenceLuminance > 0, 'Expected a visible authored walk luminance baseline.');
@@ -404,12 +426,11 @@ export function snowCourtJourneySummary(geometry, presented, durationSeconds, { 
       failures.push({ kind: 'lowLuminance', index, timestamp: frame.timestamp, luminance: frame.luminance });
     }
   }
-  // Include every actual draw bracketing the entry marks. Sum the absolute
+  // Include every actual draw bracketing the entry callbacks. Sum the absolute
   // shortest wrapped horizontal turn of consecutive headings. Opposite
   // turns add, and a ±180° crossing never manufactures a 360° turn.
-  const firstEntryDraw = frames.findLastIndex(frame => frame.timestamp <= entryStart);
-  const lastEntryDraw = frames.findIndex(frame => frame.timestamp >= entryEnd);
-  assert(firstEntryDraw >= 0 && lastEntryDraw > firstEntryDraw, 'The Snow Court draws do not bracket the entry marks.');
+  const firstEntryDraw = boundary.start - 1;
+  const lastEntryDraw = boundary.end;
   const entryDraws = frames.slice(firstEntryDraw, lastEntryDraw + 1);
   const headings = entryDraws.map(frame => Math.atan2(frame.direction[0], -frame.direction[2]));
   const maximumEntryYaw = phone ? phoneMaximumEntryYaw : desktopMaximumEntryYaw;
@@ -436,7 +457,7 @@ export function snowCourtJourneySummary(geometry, presented, durationSeconds, { 
     failures.push({ kind: 'entryYawRate', actual: maximumEntryYawRate, maximum: phoneMaximumEntryYawRate });
   }
 
-  const earlierRow = earlierLanternSummary(geometry, phone, failures);
+  const earlierRow = earlierLanternSummary(geometry, phone, desktopRow, failures);
   let draw = 0;
   const observed = [];
   let maximumPresentedGap = 0;
@@ -473,7 +494,7 @@ export function snowCourtJourneySummary(geometry, presented, durationSeconds, { 
     minimumLuminance: floor, compositorMinimumLuminance: presentedFloor, maximumUnobservedDrawSeconds },
     referenceLuminance, presentedReferenceLuminance,
     walkBaseline: { method: 'Arithmetic mean of this context’s actual pre-UI draws from the start of the authored walk through its held reveal, before hall entry.',
-      drawCount: walk.length, firstWalkSeconds: walk[0].walkSeconds, lastWalkSeconds: walk.at(-1).walkSeconds,
+      ...coverage,
       firstTimestamp: walk[0].timestamp, lastTimestamp: walk.at(-1).timestamp, compositorFrameCount: presentedWalk.length },
     entryYaw, entryYawTrace, earlierRow, geometryFrameCount: frames.length,
     drawLuminanceFrameCount: frames.filter(frame => Number.isFinite(frame.luminance)).length,
@@ -488,7 +509,7 @@ export function snowCourtJourneySummary(geometry, presented, durationSeconds, { 
     failures, presentedWarnings, presented: observed };
 }
 
-function earlierLanternSummary({ frames, earlierClothVertices, entryStart, entryEnd }, phone, failures) {
+function earlierLanternSummary({ frames, earlierClothVertices, entryDraws }, phone, desktopRow, failures) {
   const slotCounts = earlierLanternSlots.map(slot => earlierClothVertices?.[slot] ?? 0);
   if (slotCounts.some(count => !count)) failures.push({ kind: 'missingEarlierLanternCloth', slotCounts });
   const measured = frames.flatMap((frame, index) => {
@@ -499,7 +520,7 @@ function earlierLanternSummary({ frames, earlierClothVertices, entryStart, entry
       visibleSlots: visible.map(shade => shade.slot) }];
   });
   const approach = measured.filter(frame => frame.ignition === null &&
-    ((frame.timestamp >= entryStart && frame.timestamp <= entryEnd) || frame.screen === 'candle'));
+    ((frame.index >= entryDraws.start && frame.index < entryDraws.end) || frame.screen === 'candle'));
   const settled = measured.filter(frame => frame.ignition === 'settled');
   const full = frame => frame.fullyVisibleSlots.length === earlierLanternSlots.length;
   const fullApproach = approach.filter(full);
@@ -509,11 +530,16 @@ function earlierLanternSummary({ frames, earlierClothVertices, entryStart, entry
   for (const frame of settled) {
     const bothSides = frame.visibleSlots.some(slot => slot < 0) && frame.visibleSlots.some(slot => slot > 0);
     if (phone && !bothSides) failures.push({ kind: 'missingSettledPhoneNeighbors', ...frame });
-    if (!phone && !full(frame)) failures.push({ kind: 'missingSettledDesktopFullRow', ...frame });
+    if (!phone && desktopRow === 'full' && !full(frame)) failures.push({ kind: 'missingSettledDesktopFullRow', ...frame });
+    if (!phone && desktopRow === 'paired') {
+      const left = frame.fullyVisibleSlots.filter(slot => slot < 0).length;
+      const right = frame.fullyVisibleSlots.length - left;
+      if (left < 2 || right < 2) failures.push({ kind: 'missingSettledDesktopPair', ...frame });
+    }
   }
   return {
     method: 'Actual GLB cloth geometry, grouped by the six beam positions. Full visibility requires the whole shade to project into the frame and at least two unobscured cloth hits on a 3×3 inset grid. Rays account for opaque surfaces, both old and visitor cloth, the near plane and visible control rectangles.',
-    slotCounts, minimumVisibleLanternRays,
+    slotCounts, minimumVisibleLanternRays, desktopRow: phone ? null : desktopRow,
     approachDraws: approach.length, fullApproachDraws: fullApproach.length, firstFullApproach: fullApproach[0] ?? null,
     settledDraws: settled.length, firstSettled: settled[0] ?? null,
     minimumSettledVisible: settled.length ? Math.min(...settled.map(frame => frame.visibleSlots.length)) : null,

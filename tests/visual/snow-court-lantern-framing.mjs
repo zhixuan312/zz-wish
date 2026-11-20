@@ -211,6 +211,9 @@ export function validateSnowCourtLanternAudit(audit, width, height, { requireSet
 // animation timestamp, which is also the time used to advance the tweens.
 export function validateSnowCourtSettleCamera(audit, phone) {
   const desktopTranslationMetres = .1;
+  const desktopMaximumFovDegrees = 72;
+  // The live projection matrix only updates past a one millidegree change.
+  const desktopFixedFovToleranceDegrees = .001;
   const spreadingSeconds = [13, 15];
   const maximumSpeedMetresPerSecond = .35;
   const maximumYawDegreesPerSecond = 10;
@@ -224,7 +227,9 @@ export function validateSnowCourtSettleCamera(audit, phone) {
   const spread = frames.findIndex(frame => frame.stage === 'spreading');
   const failures = [];
   const limits = phone ? { spreadingSeconds, maximumSpeedMetresPerSecond, maximumYawDegreesPerSecond,
-    maximumPitchRangeDegrees, fixedFovToleranceDegrees, monotonicDistance: true } : { desktopTranslationMetres };
+    maximumPitchRangeDegrees, fixedFovToleranceDegrees, monotonicDistance: true } : {
+    desktopTranslationMetres, desktopMaximumFovDegrees, fixedFovToleranceDegrees: desktopFixedFovToleranceDegrees,
+  };
   if (first < 0 || spread <= first || settled <= spread) {
     return { limits, failures: [{ kind: 'missingCameraStage', first, spread, settled }] };
   }
@@ -299,7 +304,8 @@ export function validateSnowCourtSettleCamera(audit, phone) {
   const spreadingPhaseSeconds = (frames[settled].renderTimeMs - frames[spread].renderTimeMs) / 1000;
   const movingSeconds = firstMotion === undefined ? 0 : (lastMotion - firstMotion) / 1000;
   const pitchRange = Math.max(...pitch) - Math.min(...pitch);
-  const fovRange = Math.max(...lenses) - Math.min(...lenses);
+  const fovDegrees = [Math.min(...lenses), Math.max(...lenses)];
+  const fovRange = fovDegrees[1] - fovDegrees[0];
   if (phone) {
     if (spreadingPhaseSeconds < spreadingSeconds[0] || spreadingPhaseSeconds > spreadingSeconds[1]) {
       failures.push({ kind: 'spreadingDuration', spreadingPhaseSeconds });
@@ -309,12 +315,16 @@ export function validateSnowCourtSettleCamera(audit, phone) {
     }
     if (pitchRange > maximumPitchRangeDegrees + numericEpsilon) failures.push({ kind: 'cameraPitchRange', pitchRange });
     if (fovRange > fixedFovToleranceDegrees) failures.push({ kind: 'cameraFovChanged', fovRange });
-  } else if (Math.max(chooserToSettledMetres, maxExcursion, pathLength) > desktopTranslationMetres + numericEpsilon) {
-    failures.push({ kind: 'desktopCameraTranslation', chooserToSettledMetres, maxExcursion, pathLength });
+  } else {
+    if (Math.max(chooserToSettledMetres, maxExcursion, pathLength) > desktopTranslationMetres + numericEpsilon) {
+      failures.push({ kind: 'desktopCameraTranslation', chooserToSettledMetres, maxExcursion, pathLength });
+    }
+    if (fovDegrees[1] > desktopMaximumFovDegrees + numericEpsilon) failures.push({ kind: 'desktopCameraFov', fovDegrees });
+    if (fovRange > desktopFixedFovToleranceDegrees + numericEpsilon) failures.push({ kind: 'cameraFovChanged', fovRange });
   }
   return { limits, first, spread, settled, measuredIntervals, duplicateDraws, chooserToSettledMetres, maxExcursion,
     pathLength, spreadingPhaseSeconds, movingSeconds, maxSpeed, maxYawRate, pitchRange,
-    fovRange, maxFovRate,
+    fovDegrees, fovRange, maxFovRate,
     startDistanceMetres: frames[first].distance, settledDistanceMetres: frames[settled].distance, maxAdvance,
     method: 'Chronological animation timestamps and post-render camera positions. Rates use unmodified elapsed time. Yaw rate is the shortest signed horizontal delta. Distance uses the fixed lamp basis.',
     failures };

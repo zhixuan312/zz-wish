@@ -34,10 +34,11 @@ function nearest(ordered, target) {
  */
 export async function createSnowCourtCameraFrames(page, {
   outputDir, width = 720, height = 450, quality = 65, everyNthFrame = 6, maxOffsetSeconds = .35,
-  stepSeconds = 1, measurePresented,
+  stepSeconds = 1, measurePresented, maxBufferedBytes = fullCaptureByteLimit,
 } = {}) {
   if (!outputDir) throw new Error('A Snow Court frame output directory is required.');
   if (stepSeconds !== 1 && stepSeconds !== .5) throw new Error('Snow Court frame targets must use a one or half second interval.');
+  if (!Number.isSafeInteger(maxBufferedBytes) || maxBufferedBytes <= 0) throw new Error('Invalid Snow Court screencast byte limit.');
   const gridMaxOffsetSeconds = Math.min(maxOffsetSeconds, stepSeconds / 2);
   const directory = resolve(outputDir);
   const session = await page.context().newCDPSession(page);
@@ -59,7 +60,7 @@ export async function createSnowCourtCameraFrames(page, {
     });
     if (!running) return;
     if (received.length >= (measurePresented ? fullCaptureFrameLimit : pickedFrameLimit)
-      || (measurePresented && bufferedBytes + data.length > fullCaptureByteLimit)) {
+      || (measurePresented && bufferedBytes + data.length > maxBufferedBytes)) {
       dropped++;
       return;
     }
@@ -210,7 +211,7 @@ export async function createSnowCourtCameraFrames(page, {
     }
     const manifest = join(directory, 'frames.json');
     const data = { version: 1, source: 'Chromium Page.startScreencast', outputFormat: 'jpeg',
-      capture: { maxWidth: width, maxHeight: height, quality, everyNthFrame },
+      capture: { maxWidth: width, maxHeight: height, quality, everyNthFrame, bufferedBytes, maxBufferedBytes },
       timing: { origin: walkStartTimestamp !== undefined ? 'instrumented-walk' : walk ? 'walk-marker' : 'capture-start',
         walkStartTimestamp: origin, recordingStartTimestamp: started, endTimestamp: end,
         durationSeconds: rounded(extent), maxOffsetSeconds, stepSeconds, gridMaxOffsetSeconds },
