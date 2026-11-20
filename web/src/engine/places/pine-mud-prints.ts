@@ -162,22 +162,23 @@ export function createMudPrints({ THREE, surface, prints }: {
     if (!hit) continue;
 
     const material = new THREE.MeshStandardMaterial({
-      // Wet mud is darker than the granite and slightly glossy, never black. The environment is
-      // bright here, and a stain should not pick up its colour, so keep the reflection low.
-      color: 0x1d1712,
-      roughness: .52 - .18 * print.weight,
+      // Wet mud on mossy granite: the stone's own lichen mottling runs lighter and greener than a
+      // boot sole, so the print needs a genuinely dark pigment. It stays slightly glossy because a
+      // damp sole catches the sky; that specular edge is what reads against a busy surface when a
+      // difference in value alone is lost.
+      color: 0x0d0b09,
+      roughness: .30 - .12 * print.weight,
       metalness: 0,
-      envMapIntensity: .12,
+      envMapIntensity: .55,
       alphaMap: maps?.alpha ?? null,
       normalMap: maps?.normal ?? null,
       normalScale: new THREE.Vector2(.9, .9),
       transparent: true,
-      opacity: Math.min(.92, .35 + .55 * print.weight),
-      // The print is a stain on stone: it must not fight the stone for depth.
+      opacity: Math.min(.97, .62 + .35 * print.weight),
+      // The cloth strips and the wax contact shading both sit on stone without polygon offset:
+      // they simply do not write depth. Follow them, rather than offsetting the depth buffer, which
+      // fights the new per-slab geometry and can clip the decal away entirely.
       depthWrite: false,
-      polygonOffset: true,
-      polygonOffsetFactor: -2,
-      polygonOffsetUnits: -2,
     });
 
     // The sole is about 9.5 cm across the ball; the map's widest row is the forefoot.
@@ -189,7 +190,9 @@ export function createMudPrints({ THREE, surface, prints }: {
     // stone. The step's walkable side is up, so flip any downward normal.
     const normal = hit.face ? hit.face.normal.clone().transformDirection(hit.object.matrixWorld) : up.clone();
     if (normal.y < 0) normal.negate();
-    mesh.position.copy(hit.point).addScaledVector(normal, .002);
+    // Lift enough to clear the slabs' new chamfers and their micro-relief, not so far that the
+    // print floats above the stone.
+    mesh.position.copy(hit.point).addScaledVector(normal, .004);
     // Build the orientation in one go: a PlaneGeometry stands in XY, so tip it flat about X, then
     // turn it about world Y to the walker's heading, then tilt it from world up onto the stone's
     // normal. Doing these as separate rotate calls in the wrong order leaves the print on edge.
