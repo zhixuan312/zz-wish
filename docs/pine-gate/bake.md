@@ -48,7 +48,13 @@ blender -b "$working/preflight/pine-gate-prepared.blend" --python-exit-code 1 \
 node scripts/pack-blender-assets.mjs \
   --source "$working/final64" --out "$working/delivery" --tools "$ONE_LIGHT_GLTF_TOOLS" \
   --material-profile mobile --screen-base-pattern pine-niche-granite-gray --screen-base-size 1024 \
-  --position-format float32 --normal-format float32 --max-bytes 15000000
+  --position-format float32 --normal-format float32 --max-bytes 40000000
+
+`--max-bytes` is the cap the packer enforces on the complete package; for Pine Gate that is the
+desktop ceiling of 40,000,000 B, so it must match `budget.completePackageBytesMaximum`. The base tier's
+15,000,000 B is a different, smaller budget: it is checked by `stage-pine-backdrop.mjs` when it reports
+`PINE_BACKDROP_BUDGET.baseBytes`, and passing 15000000 to `--max-bytes` makes the packer reject a
+25 MB-class delivery before staging ever runs.
 node scripts/attach-place-runtime-assets.mjs \
   --out "$working/delivery" --native-view docs/licenses/native-agx.json
 node scripts/decode-baked-for-contact-audit.mjs \
