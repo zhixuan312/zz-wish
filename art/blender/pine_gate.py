@@ -2707,7 +2707,9 @@ def build(output, impostor_manifest=None, wax_sculpt=None):
     entry = route['entrance']
     scene.camera = camera('Reference_PineSteps', entry['position'], entry['look'], entry['desktopFov'], (1440, 900))
     camera('Reference_PineStepsPhone', entry['phonePosition'], entry['look'], entry['phoneFov'], (390, 844))
-    for name, index in (('Forest', 0), ('Crest', 3), ('Shoulder', 6)):
+    # Shoulder is the route's final waypoint. It used to be index 6, which was the 30.0 s duplicate key
+    # removed in 2dfbe26; -1 names the same place without pinning a count.
+    for name, index in (('Forest', 0), ('Crest', 3), ('Shoulder', -1)):
         shot = route['waypoints'][index]
         camera('Reference_Pine' + name, shot['position'], shot['look'], shot['desktopFov'], (1440, 900))
     camera('Reference_PineTeaPavilion', (0, 6.50, 7.05), (-.50, 5.05, 1.93), 68, (1440, 900))
