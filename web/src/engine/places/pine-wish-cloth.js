@@ -80,7 +80,7 @@ export function createWishCloth({ THREE, anchor, url = CLOTH_URL, loader = new G
         // the candle close by, made the strip read as a lit lamp of its own rather than cloth.
         if (material.sheen !== undefined) material.sheen = .10;
         if (material.sheenColor) material.sheenColor.setRGB(.20, .008, .012);
-        material.envMapIntensity = .12;
+        // Sky reflection is set per frame by setLight, from the place's clock: .32 by day, .05 at night.
         material.roughness = .96;
         // Hold the dye dark: deep red cloth beside grey stone, not a bright orange ribbon.
         if (material.color) material.color.setRGB(.30, .011, .017);
@@ -122,8 +122,8 @@ export function createWishCloth({ THREE, anchor, url = CLOTH_URL, loader = new G
       if (!material) return;
       // A missing or malformed curve must not write NaN into the material, which blanks the frame.
       const lamp = Number.isFinite(daylight?.lamp) ? daylight.lamp : 1;
-      lastSky = 1 - Math.min(1, Math.max(0, lamp));
       const sky = 1 - Math.min(1, Math.max(0, lamp));
+      lastSky = sky;
       material.envMapIntensity = .05 + .27 * sky;
     },
     show(lit) { group.visible = wishClothVisible(lit); },
