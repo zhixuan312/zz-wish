@@ -14,10 +14,14 @@ import { assertCaptureGpuHealthy, installCaptureGpuGuard } from './capture-prefl
 import { fingerprintCaptureSource } from './capture-source-fingerprint.mjs';
 import { instrumentPineScene } from './pine-gate-scene-audit.mjs';
 import { createSnowCourtCameraFrames } from './snow-court-camera-frames.mjs';
+import { installSnowCourtLanternAudit, validateSnowCourtLanternAudit } from './snow-court-lantern-framing.mjs';
 
 const placeId = 'snow-roof';
 const packagePath = '/places/snow-roof/';
-const viewport = { width: 1440, height: 900 };
+const size = process.env.SNOW_COURT_VIEWPORT ?? 'desktop';
+assert(['desktop', 'phone'].includes(size), 'Use desktop or phone for SNOW_COURT_VIEWPORT.');
+const phone = size === 'phone';
+const viewport = phone ? { width: 390, height: 844 } : { width: 1440, height: 900 };
 const regions = ['altar', 'court', 'gate', 'hall'];
 const passes = ['day', 'dusk', 'night', 'lamp'];
 const p2 = process.argv.includes('--p2');
@@ -37,6 +41,7 @@ const locker = join(worktreePath, '../gpu.lock');
 if (process.argv.includes('--help')) {
   console.log('BASE_URL=http://127.0.0.1:8965 DB_FILE=<private SQLite file under TMPDIR> OUTPUT=<new absolute directory> CAPTURE_PREVIEW_DIR=<staged LOW8 directory> CAPTURE_PREVIEW_SHA256=<manifest SHA-256> node tests/visual/snow-p1-capture.mjs [--p2]');
   console.log('Use --p2 for an entrance, full thirty-second walk and settled burning at both 13:00 and 22:00.');
+  console.log('Set SNOW_COURT_VIEWPORT=phone for 390×844, and SNOW_COURT_FRAMES=1 for the contact sheet and lantern projection audit.');
   console.log('Acquire the GPU lease as s1 before running. The local API and Vite must already be running.');
   process.exit(0);
 }
@@ -209,6 +214,12 @@ function instrument(source) {
     assert.equal([...transformed.matchAll(pattern)].length, 1, 'Snow Court entry hook no longer matches: ' + label);
     transformed = transformed.replace(pattern, statement => `${statement}\n  performance.mark('snow-p1:entry-${label}');`);
   }
+  if (p2 && process.env.SNOW_COURT_FRAMES === '1') {
+    const render = /^([ \t]*)composer\.render\(\);[ \t]*$/gm;
+    assert.equal([...transformed.matchAll(render)].length, 1, 'The Snow Court projection audit requires the live render loop.');
+    transformed = transformed.replace(render, match => `${match}
+      if (place?.id === 'snow-roof') window.__sampleSnowLanternAudit(THREE, camera, mine, place.baked, window.__visualIgnition?.state);`);
+  }
   const frame = /^([ \t]*)function frame\(stamp\s*=\s*performance\.now\(\)\)\s*\{/gm;
   assert.equal([...transformed.matchAll(frame)].length, 1, 'The Snow Roof scene identity hook no longer matches the app.');
   return transformed.replace(frame, match => `window.__snowP1Capture = () => ({
@@ -252,13 +263,14 @@ function checkEntrance(state) {
   assert.equal(state.camera.phase, 'place', 'The renderer has not reached the product’s place phase.');
   assert(Math.hypot(...state.camera.position.map((component, axis) => component - position[axis])) < .01
     && Math.hypot(...state.camera.direction.map((component, axis) => component - forward[axis] / length)) < .01
-    && Math.abs(state.camera.fov - fov) < .01, 'The place camera differs from the authored entrance.');
+    && Math.abs(state.camera.fov - fov - (phone ? 5 : 0)) < .01, 'The place camera differs from the authored entrance.');
   assert(state.backdrop?.length === 3 && state.backdrop.every(layer => !layer.nightResident && layer.nightMix === 0),
     'Night plates must remain deferred on the place screen.');
 }
 
 async function captureContext(browser, { hour, look, walk }) {
-  const context = await browser.newContext({ viewport, deviceScaleFactor: 1, locale: 'en-US', reducedMotion: 'no-preference' });
+  const context = await browser.newContext({ viewport, deviceScaleFactor: 1, locale: 'en-US', reducedMotion: 'no-preference',
+    ...(phone ? { isMobile: true, hasTouch: true } : {}) });
   const page = await context.newPage();
   page.setDefaultTimeout(50_000);
   const result = { hour, look, requested: [], captures: [] };
@@ -340,6 +352,7 @@ async function captureContext(browser, { hour, look, walk }) {
 
   try {
     await context.addInitScript(installCaptureGpuGuard);
+    if (p2 && process.env.SNOW_COURT_FRAMES === '1') await context.addInitScript(installSnowCourtLanternAudit);
     await context.addInitScript(hour => {
       Date.prototype.getHours = () => hour;
       Date.prototype.getMinutes = () => 0;
@@ -432,9 +445,13 @@ async function captureContext(browser, { hour, look, walk }) {
     assert(!result.requested.some(({ name, afterEntry }) => !afterEntry && deferredPlates.includes(name)),
       'A deferred image was requested before entry.');
     if (walkMaps) assert(softMapUris.some(uri => served.has(uri)), 'No verified soft interior map arrived before entry.');
-    if (p2 && look === 'day' && process.env.SNOW_COURT_FRAMES === '1') {
-      cameraFrames = await createSnowCourtCameraFrames(page, { outputDir: join(output, 'camera-frames') });
-      await cameraFrames.start();
+    if (p2 && process.env.SNOW_COURT_FRAMES === '1') {
+      await page.evaluate(() => window.__startSnowLanternAudit());
+      if (look === 'day') {
+        cameraFrames = await createSnowCourtCameraFrames(page, { outputDir: join(output, 'camera-frames'),
+          width: phone ? viewport.width : 720, height: phone ? viewport.height : 450, everyNthFrame: 3 });
+        await cameraFrames.start();
+      }
     }
     const walkStarted = performance.now();
     entered = true;
@@ -506,6 +523,16 @@ async function captureContext(browser, { hour, look, walk }) {
       const evidence = await cameraFrames.finish({ walkStartTimestamp });
       result.presentedCameraFrames = evidence.manifest;
       cameraFrames = null;
+    }
+    if (p2 && process.env.SNOW_COURT_FRAMES === '1') {
+      await page.waitForFunction(() => window.__snowLanternAudit?.completed);
+      const audit = await page.evaluate(() => window.__snowLanternAudit);
+      const summary = validateSnowCourtLanternAudit(audit, viewport.width, viewport.height);
+      const file = `${look}-lantern-framing.json`;
+      await writeFile(join(output, file), JSON.stringify({ viewport, summary, ...audit }, null, 2) + '\n');
+      result.lanternAudit = { file, ...summary };
+      console.log('SNOW_COURT_LANTERN', size, look, JSON.stringify({ ...summary, failures: summary.failures.length }));
+      assert.deepEqual(summary.failures, [], 'Snow Roof lantern framing failed; see ' + file);
     }
     result.served = [...served];
     assert.deepEqual(report.errors.filter(row => row.hour === hour), [], 'Runtime errors during capture.');
