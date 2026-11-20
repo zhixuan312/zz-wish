@@ -79,15 +79,17 @@ export default function createWinterCourt(h) {
   const arrival = pose(site.walk.at(-2));
   // Look across the hall from the aisle. The half-open door sits just
   // beyond the visitor's lamp, which stays clear of the chooser controls.
-  const lampView = (x, z, pitch, fov) => {
+  const lampView = (x, z, bearing, pitch, fov) => {
     const pos = V3(x, 3.65, z);
     const tilt = THREE.MathUtils.degToRad(pitch);
-    const yaw = THREE.MathUtils.degToRad(-116.5);
+    const yaw = THREE.MathUtils.degToRad(bearing);
     const direction = V3(Math.sin(yaw) * Math.cos(tilt), Math.sin(tilt), -Math.cos(yaw) * Math.cos(tilt));
     return { pos, look: pos.clone().addScaledVector(direction, 3.5), fov };
   };
-  const lampDesktop = lampView(2.22, -8.97, -3, 67);
-  const lampPhone = lampView(2.84, -8.96, -9, 114);
+  const choiceDesktop = lampView(2.22, -8.97, -116.5, -3, 67);
+  const choicePhone = lampView(2.84, -8.96, -117.65, -35, 122);
+  const lampDesktop = lampView(2.22, -8.97, -140, -3, 51);
+  const lampPhone = lampView(2.84, -8.96, -137, -12, 94);
   const entrance = pose(site.walk[0]);
   return {
     bakedLighting: true, cameraFar: 880, exposure: 1.11, shade: .55,
@@ -205,8 +207,8 @@ export default function createWinterCourt(h) {
       interior: { min: [site.hall.west, site.hall.floor, site.hall.rear],
         max: [site.hall.east, site.hall.eave, site.hall.front] },
       wide: arrival, widePhone: { ...arrival, fov: arrival.fov + 5 },
-      steadyIgnition: true,
-      choose: lampDesktop, choosePhone: lampPhone,
+      steadyIgnition: true, settleGaze: true,
+      choose: choiceDesktop, choosePhone: choicePhone,
       burn: lampDesktop, burnPhone: lampPhone,
       build() {},
     },

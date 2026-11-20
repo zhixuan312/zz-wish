@@ -2531,7 +2531,17 @@ export async function ignite({onCatch, remainingFuel}={}) {
   mine.power=1;mark('spreading',.18);
   await tween(.8,()=>{});if(!active())return;
   if (N.steadyIgnition) {
-    await tween(9, k => { if (active()) mark('spreading', .18 + .82 * k); });
+    await tween(9, k => {
+      if (!active()) return;
+      if (N.settleGaze) {
+        // A seated visitor can lift their gaze while the light spreads.
+        // Keep the eye position fixed and the taper's contact undisturbed.
+        const fade = smooth(.18, .92, k);
+        rig.look.lerpVectors(lookStart, burn.look, fade);
+        rig.fov = THREE.MathUtils.lerp(fovStart, burn.fov, fade);
+      }
+      mark('spreading', .18 + .82 * k);
+    });
     if (active()) mark('settled', 1);
     return;
   }
