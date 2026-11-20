@@ -40,16 +40,36 @@ def boot_relief(x, z, footprints):
     return depth, tread
 
 
-def swept_tint(x, z, across, seam, exposure, fade, tread):
-    """Leave a thin, uneven return of wind-packed snow over the swept grit."""
-    compacted = 1. - smoothrise(exposure - .12, exposure + .10, seam)
-    edge = smoothrise(.16, .33, across) * (1. - smoothrise(.40, .54, across))
-    tongue = .6 + .28 * math.sin(z * 1.59 + .7) + .12 * math.sin(z * 4.39)
-    compacted *= fade * (1. - .56 * edge * tongue)
-    toe = fade * smoothrise(.055, .55, tread)
-    grit = .046 * math.sin(x * 31.7 + z * 11.2) * math.sin(x * 18.4 - z * 12.2)
-    return tuple(1. - (1. - channel + grit) * compacted - .215 * toe
-                 for channel in (.45, .44, .40))
+def swept_surface(x, z, across, seam, exposure, fade, tread):
+    """Model a snowy walking lane, with short broom passes and displaced snow."""
+    side = 1. if across >= 0. else -1.
+    inside = 1. - smoothrise(exposure - .095, exposure + .11, seam)
+    local = fade * (1. - smoothrise(.55, .651, abs(across)))
+
+    # The bristle fan curves across each half of the path. Interrupted passes
+    # and small deposits of blown snow soften the marks between sweeps.
+    phase = z * 11.9 + side * 7.8 * across * across + .61 * math.sin(z * 3.2 + side * .7)
+    fan = smoothrise(.08, .92, math.cos(phase))
+    continuity = .48 + .23 * math.sin(z * 4.37 + x * 7.21) + .21 * math.cos(z * 7.23 - x * 3.89)
+    marks = local * inside * fan * smoothrise(.10, .68, continuity)
+    dust = .5 + .26 * math.sin(z * 5.16 + x * 5.62) + .23 * math.cos(z * 8.27 - x * 10.71)
+
+    # Accumulation is asymmetric with a steeper foot on the swept side.
+    # Fresh wind tongues fill some gaps and hide the top of older piles.
+    lip = exposure + .113 + .034 * math.sin(z * 5.13 + side * 1.9)
+    step = smoothrise(lip - .107, lip - .026, seam)
+    shoulder = 1. - smoothrise(lip + .012, lip + .173, seam)
+    load = .61 + .25 * math.sin(z * 3.83 + side * 1.2) + .14 * math.cos(z * 7.11 - side * 1.6)
+    ridge = local * step * shoulder * load
+    displacement = .065 * ridge - .007 * marks + .012 * dust * local * inside
+
+    # Packed snow keeps most of the scan's albedo. The signs of use are
+    # intermittent ridges, bristle arcs and the sheltered half of each print.
+    pressed = local * inside * (.085 + .068 * (1. - dust))
+    heel_toe = fade * smoothrise(.055, .66, tread)
+    tint = tuple(1. - pressed * coefficient - .072 * marks - .195 * heel_toe + .081 * ridge
+                 for coefficient in (.92, 1., 1.06))
+    return displacement, tint
 
 
 def refine_sole_triangles(vertices, faces, footprints, sample):
@@ -128,10 +148,11 @@ def swept_ground(mesh, site, materials):
         drift = (.063 + .034 * math.sin(1.88 * x + 1.45 * z) * math.cos(z * .91)
                  + .19 * math.exp(-((abs(x) - 9.1) / .91) ** 2))
         depth, tread = boot_relief(x, z, footprints)
-        relief = .027 + drift * ridge - depth * fade
+        displacement, tint = swept_surface(x, z, across, seam, exposure, fade, tread)
+        relief = .027 + drift * ridge - depth * fade + displacement
         relief += .005 * math.sin(x * 13.1 + z * 8.6) * math.sin(x * 7.0 - z * 10.2)
         vertices.append((x, level + max(.006, relief), z))
-        colours.append(swept_tint(x, z, across, seam, exposure, fade, tread))
+        colours.append(tint)
         return len(vertices) - 1
 
     for row, z in enumerate(sorted(stations)):
@@ -151,24 +172,31 @@ def swept_ground(mesh, site, materials):
                 faces.extend(((a, b, c), (a, c, d)))
     faces = refine_sole_triangles(vertices, faces, footprints, sample)
     surface = materials['snow'].copy()
-    surface.name = 'Wind-packed snow and swept mineral grit'
+    surface.name = 'Wind-packed snow with recent broom marks'
+    for node in surface.node_tree.nodes:
+        if node.type == 'NORMAL_MAP':
+            node.inputs['Strength'].default_value = .82
     mesh.vertex_tint_shader(surface)
     # Freeze this surface's authored field before the global pass for plaster
     # and paint. The shader and ordinary COLOR_0 stream use the same layer.
     del surface['one_light_surface_tint']
     snow_factor = surface.get('one_light_vertex_base_tint', (1., 1., 1.))
-    ground = mesh.mesh_object('Swept grit, buried prints and the connected snow court',
+    ground = mesh.mesh_object('Swept snow, displaced berms and buried prints',
                               vertices, faces, surface)
     mesh.source_uv(ground, [[(vertices[i][0], vertices[i][2]) for i in face] for face in faces],
-                   'One continuous x/z chart through swept grit, boot impressions and snow edges.')
-    mesh.uv_world(ground, 1.46)
+                   'One continuous x/z chart through the swept lane, boot impressions and snow berms.')
+    # Reuse the same scanned grain at a finer pitch. The slight diagonal
+    # skew puts the wind-packed texture at an angle to the broom strokes.
+    uv = ground.data.uv_layers['UVMap'].data
     layer = ground.data.color_attributes.new(name='SurfaceTint', type='FLOAT_COLOR', domain='CORNER')
     ground.data.color_attributes.active_color = layer
     for polygon in ground.data.polygons:
         polygon.use_smooth = True
         for loop in polygon.loop_indices:
-            tint = colours[ground.data.loops[loop].vertex_index]
-            layer.data[loop].color = (*(a * b for a, b in zip(snow_factor, tint)), 1.)
+            i = ground.data.loops[loop].vertex_index
+            x, _, z = vertices[i]
+            uv[loop].uv = ((x + .17 * z) / .76, -z / .91)
+            layer.data[loop].color = (*(a * b for a, b in zip(snow_factor, colours[i])), 1.)
     return ground
 
 
