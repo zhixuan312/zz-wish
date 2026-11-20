@@ -9,13 +9,15 @@ const vertex = `
     float length = 1.65 + .67 * sin(.58 * uTime);
     float gust = sin(pulse * 1.76) * .21;
     float air = age * age;
-    vec3 drift = vec3(-.51 * air + .17 * age * sin(aPuff.z + age),
-      .97 * age - .12 * air, -.28 * air + gust * age);
+    // Hot air first clears the two neighbouring roof slopes, then settles
+    // into the crosswind as the plume widens and cools.
+    vec3 drift = vec3(-.43 * air + .17 * age * sin(aPuff.z + age),
+      1.34 * age - .24 * air, -.23 * air + gust * age);
     vec4 view = modelViewMatrix * vec4(position + drift, 1.);
     gl_Position = projectionMatrix * view;
-    float metres = .124 + .294 * age;
+    float metres = .138 + .386 * age;
     gl_PointSize = uPointScale * projectionMatrix[1][1] * metres / max(1., -view.z);
-    vAlpha = smoothstep(0., .1, age) * (1. - smoothstep(.36, length, age));
+    vAlpha = smoothstep(0., .12, age) * (1. - smoothstep(.52, length, age));
     // A light residual trail outlives the stronger short stove puffs.
     vAlpha *= .19 + .81 * smoothstep(-.22, .8, sin(pulse * 1.95 + .5 * aPuff.z));
     vCurl = aPuff.z + age;
@@ -61,7 +63,7 @@ export function buildSnowChimney({ THREE, renderer, group }, origin) {
       uniforms.uTime.value = seconds;
       uniforms.uPointScale.value = renderer.domElement.height * .5;
       uniforms.uTint.value.copy(day).lerp(night, light.n);
-      uniforms.uOpacity.value = .57 - .18 * light.n;
+      uniforms.uOpacity.value = .68 - .21 * light.n;
     },
     dispose() {
       smoke.removeFromParent();
