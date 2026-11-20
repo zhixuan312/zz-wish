@@ -15,6 +15,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import snow_roof as mesh
 import pine_valley_backdrop as plates
 import snow_court_finish as finish
+from snow_court_statue import build as build_statue
 import snow_court_use as everyday
 from resting_contacts import RestingContacts, engine
 from snow_court_approach import build_approach
@@ -39,7 +40,7 @@ def palette(site):
         'bronze': mesh.material('Dull old lamp bronze', '#735438', rough=.63, metal=.71),
         'ash': mesh.material('Char and burned wick', '#272822', rough=.96),
         'oil': mesh.material('Dark clear seed oil', '#6b4628', rough=.22, metal=.03),
-        'figure': mesh.material('Aged cast bronze of the small seated figure', '#8b7453', rough=.66, metal=.27),
+        'figure': mesh.material('Matte warm-grey stone of the seated Buddha', '#c4b8a0', 'stone_pavers', .93),
         'glow': mesh.material('Thin gauze over low flame', '#b96953', rough=.86, emission=.04),
         'bamboo': mesh.material('Split bamboo beneath faded linen', '#9a7350', rough=.94),
         'red_faded': mesh.material('Faded dusty rose gauze', '#ac6a63', rough=.94),
@@ -50,6 +51,10 @@ def palette(site):
         'rope': mesh.material('Rough suspension cord', '#8a7962', rough=.98),
     }
     mesh.vertex_tint_shader(materials['red'])
+    mesh.stable_roughness(materials['figure'], .92)
+    for node in materials['figure'].node_tree.nodes:
+        if node.type == 'NORMAL_MAP':
+            node.inputs['Strength'].default_value = .24
     materials['red']['one_light_painted_timber'] = True
     mesh.painted_timber_finish(materials['red'])
     mesh.weather_plaster(materials['plaster'])
@@ -420,42 +425,6 @@ def earlier_lantern(x, z, y, top, index, m, fixtures, lit=False):
         fixtures.append((f'Earlier red wish {index}', 'hall', wick, source, True, 'gauze shade'))
 
 
-def statue(x, y, z, m, contacts, platform):
-    bronze = m['figure']
-    with contacts.group('Generic seated Buddha and lotus support', [platform]):
-        mesh.lathe('Seated figure low lotus plinth', [(0, 0), (.41, 0), (.45, .079), (.49, .135),
-                   (.42, .19), (0, .19)], (x, y, z), bronze, 30)
-        mesh.lathe('Cross-legged seated silhouette', [(0, .18), (.40, .18), (.44, .218), (.39, .299), (.29, .345),
-                   (.19, .392), (.166, .54), (.219, .75), (.181, .864), (.105, .895), (0, .899)],
-                   (x, y, z), bronze, 28)
-        mesh.lathe('Quiet rounded head and hair knot', [(0, .837), (.094, .856), (.135, .924), (.148, 1.03),
-                   (.128, 1.112), (.095, 1.145), (.047, 1.167), (.040, 1.221), (0, 1.241)],
-                   (x, y, z), bronze, 24)
-        for side in (-1, 1):
-            mesh.curved_tube('Elongated ear on the seated form',
-                             [(x + side * .139, y + .991, z), (x + side * .155, y + .953, z + .012),
-                              (x + side * .137, y + .909, z + .014)], [.024, .022, .015], bronze, 8)
-            mesh.curved_tube('Resting forearm of the seated image', [(x + side * .197, y + .716, z + .019),
-                             (x + side * .19, y + .50, z + .134), (x + side * .078, y + .421, z + .218)],
-                             [.071, .063, .045], bronze, 10)
-            mesh.curved_tube('Lowered lid in the worn face', [
-                (x + side * .032, y + 1.022, z + .145), (x + side * .055, y + 1.016, z + .139),
-                (x + side * .079, y + 1.019, z + .126),
-            ], [.0042, .0055, .0034], bronze, 6)
-        mesh.curved_tube('Simple low nose relief', [(x, y + 1.039, z + .143),
-                         (x, y + .993, z + .158), (x, y + .978, z + .146)],
-                         [.013, .016, .014], bronze, 8)
-        mesh.curved_tube('Barely raised mouth in the cast face', [
-            (x - .026, y + .954, z + .134), (x, y + .950, z + .142), (x + .026, y + .954, z + .134),
-        ], [.005, .008, .005], bronze, 7)
-        mesh.curved_tube('Hands resting together over the robe', [(x - .084, y + .422, z + .206),
-                         (x - .025, y + .407, z + .246), (x + .030, y + .414, z + .245),
-                         (x + .082, y + .424, z + .209)], [.042, .031, .029, .040], bronze, 8)
-        mesh.curved_tube('Fold along the plain robe', [(x - .154, y + .819, z + .103),
-                         (x - .081, y + .706, z + .17), (x + .127, y + .535, z + .13)],
-                         [.009, .010, .008], m['tag'], 8)
-
-
 def waiting_lanterns(table, top, m, contact):
     for index, (x, z, radius, height) in enumerate((
         (-2.80, -5.48, .108, .292), (-2.37, -5.48, .144, .378),
@@ -651,10 +620,11 @@ def hall(site, m, contact, fixtures):
     mesh.REGION = 'altar'
     plinth = mesh.box('Low stone altar supports the seated figure', (2.09, .52, .93),
                      (0, y + .260, back + .87), m['granite'], .027)
-    statue(0, y + .52, back + .91, m, contact, plinth)
+    with contact.group('Generic seated Buddha and lotus support', [plinth]):
+        build_statue(mesh, (0, y + .52, back + .91), m['figure'])
     oil_lamp('Altar ordinary oil lamp', (.70, y + .52, back + 1.12), m, contact, plinth, 'hall', fixtures, .68)
     area('Warm reflected light on the seated figure and worn plinth', (1.20, y + .99, back + 2.11),
-         (0, y + 1.19, back + .91), 5.4, '#e2c69b', .73)
+         (0, y + 1.57, back + .91), 5.4, '#e2c69b', .73)
 
 
 def reference_camera(name, position, look, fov):
