@@ -29,7 +29,8 @@ PEAK_ROW, PEAK_COLUMN, PEAK_ELEVATION = 161, 2749, 3753
 LAYER_NAMES = ('far', 'mid', 'cloud')
 SUMMIT_COLUMN_METRES = .86
 SUMMIT_ROW_METRES = .31
-SUMMIT_CREASE_DEGREES = 54.
+SUMMIT_CREASE_DEGREES = 43.
+REAR_CREASE_DEGREES = 54.
 REAR_ROWS = (813, 1154)
 REAR_COLUMNS = (2088, 2800)
 
@@ -71,30 +72,41 @@ def survey_location(peak, row, col):
 def measured_section(elevation, row, col, height, span):
     north = max(0, row - span)
     south = row + span
-    west_height = elevation[row * TILE_SIDE + col - span]
-    east_height = elevation[row * TILE_SIDE + col + span]
+    west = max(0, col - span)
+    east = min(TILE_SIDE - 1, col + span)
+    west_height = elevation[row * TILE_SIDE + west]
+    east_height = elevation[row * TILE_SIDE + east]
     north_height = elevation[north * TILE_SIDE + col]
     south_height = elevation[south * TILE_SIDE + col]
-    across = .5 * (west_height + east_height)
+    across = lerp(west_height, east_height, (col - west) / (east - west))
     along = lerp(north_height, south_height, (row - north) / (south - north))
-    cross_grade = (east_height - west_height) / (2 * span * SUMMIT_COLUMN_METRES)
+    cross_grade = (east_height - west_height) / ((east - west) * SUMMIT_COLUMN_METRES)
     depth_grade = (north_height - south_height) / (summit_northing(north) - summit_northing(south))
     return cross_grade, depth_grade, across - height, along - height
 
 
 def summit_fields(elevation, row, col, height, vertical):
-    # Measure small gullies and broader bowls separately in the source DEM.
-    # A single broad curvature scale makes isolated spurs collect snow alike.
+    # A narrow DEM cut is only sharpened when the same feature is present
+    # at a wider sampling span. This limits amplification of one-post noise.
     cross, depth, transverse_cut, fall_cut = measured_section(elevation, row, col, height, 3)
+    _, _, transverse_bank, fall_bank = measured_section(elevation, row, col, height, 8)
     _, _, transverse_bowl, fall_bowl = measured_section(elevation, row, col, height, 15)
+    cut = max(min(transverse_cut, transverse_bank), min(fall_cut, fall_bank), 0.) * vertical
+    spur = max(min(-transverse_cut, -transverse_bank), min(-fall_cut, -fall_bank), 0.) * vertical
+    cirque = smooth(.25, 3.5, transverse_bowl * vertical) * smooth(-.85, 2.1, fall_bowl * vertical)
     cross_grade, depth_grade = cross * vertical, depth * vertical
     up = 1. / math.hypot(cross_grade, depth_grade, 1.)
-    cut = smooth(.13, 1.10, max(transverse_cut, fall_cut) * vertical)
-    cirque = smooth(.25, 3.5, transverse_bowl * vertical) * smooth(-.85, 2.1, fall_bowl * vertical)
-    ledge = smooth(.46, .94, up)
+    ledge = smooth(.49, .94, up)
     lee = smooth(.73, -.84, .87 * cross_grade + .36 * depth_grade)
+    gully = smooth(.10, 1.18, cut)
+    crest = smooth(.10, 1.30, spur)
     wall = smooth(.68, .26, up)
-    return .32 * ledge + .21 * cut + .32 * cirque + .15 * lee, cut, cirque, wall
+    retention = .23 * ledge + .38 * gully + .31 * cirque + .08 * lee
+    # Preserve the surveyed summit, taper out below the mountain's rock
+    # belts, and constrain the adjustment to a few metres in scene space.
+    exposure = smooth(1450., 2200., height) * (1. - smooth(3720., PEAK_ELEVATION, height))
+    relief = (min(spur * 1.18, 2.45) - min(cut * 1.03, 2.3)) * exposure
+    return relief, (retention, gully, cirque, wall, crest)
 
 
 def mountain(elevation, peak, projection_origin):
@@ -106,7 +118,8 @@ def mountain(elevation, peak, projection_origin):
     rows = sorted({*rows, *sampled_range(592, 815, 4, ())}, reverse=True)
     vertical = peak[1] / (PEAK_ELEVATION - 1080)
     points = []
-    fields = {'snow_retention': [], 'measured_gully': [], 'measured_cirque': [], 'measured_wall': []}
+    fields = {'snow_retention': [], 'measured_gully': [], 'measured_cirque': [],
+              'measured_wall': [], 'measured_spur': []}
     edges = [smooth(columns[0], columns[0] + 100, col)
              * smooth(columns[-1], columns[-1] - 100, col) for col in columns]
     _, eye_y, eye_z = projection_origin
@@ -116,12 +129,13 @@ def mountain(elevation, peak, projection_origin):
         for col, edge in zip(columns, edges):
             x, depth = survey_location(peak, row, col)
             height = elevation[row * TILE_SIDE + col]
-            scaled_height = lerp(-28., (height - 1080) * vertical, edge * apron)
+            relief, surface = summit_fields(elevation, row, col, height, vertical)
+            scaled_height = lerp(-28., (height - 1080) * vertical + relief, edge * apron)
             # Restore most of the approved vertical angle after spreading
             # out the very shallow depth of the old DEM view.
             height_scale = lerp(1., (depth + eye_z) / (old_depth + eye_z), .76)
             points.append((x, depth, eye_y + (scaled_height - eye_y) * height_scale))
-            for values, value in zip(fields.values(), summit_fields(elevation, row, col, height, vertical), strict=True):
+            for values, value in zip(fields.values(), surface, strict=True):
                 values.append(value)
     return surface_grid(points, len(columns), follow_relief=True), fields
 
@@ -228,51 +242,56 @@ def hillside_material(air):
 def summit_material(air):
     shader = plates.Shader('Fractured summit rock with snow in sheltered chutes')
     point = shader.coordinate()
-    height = shader.xyz(point)['Z']
-    shape = shader.noise(point, (.024, .028, .038), detail=2.)
+    axes = shader.xyz(point)
+    height = axes['Z']
     snow_grain = shader.noise(point, (.84, .91, .93), detail=2.6)
-    weathering = shader.noise(point, (.091, .087, .113), detail=2.8, roughness=.67)
+    # Oblique fine jointing follows the face instead of tinting whole hills
+    # with low-frequency noise. Ridge, headwall and chute colors come from
+    # the survey-derived fields.
+    bedding = shader.math('ADD', height,
+                          shader.math('ADD', shader.product(axes['X'], -.31), shader.product(axes['Y'], .17)))
+    rock_coordinates = shader.nodes.new('ShaderNodeCombineXYZ')
+    for axis, component in (('X', axes['X']), ('Y', axes['Y']), ('Z', bedding)):
+        shader.input(rock_coordinates.inputs[axis], component)
+    joints = shader.noise(rock_coordinates.outputs['Vector'], (.106, .145, .62), detail=2.7, roughness=.66)
     chips = shader.noise(point, (.82, .74, .94), detail=2.3)
-    grains = shader.noise(point, (1.53, 1.68, 1.59), detail=1.4)
 
     def terrain_attribute(name):
         node = shader.nodes.new('ShaderNodeAttribute')
         node.attribute_name = name
         return node.outputs['Fac']
 
-    # Pigment changes at an outcrop scale. The continuous dark gullies follow
-    # measured concavity in the DEM rather than bands in the material texture.
     wall = terrain_attribute('measured_wall')
     cirque = terrain_attribute('measured_cirque')
     gully = terrain_attribute('measured_gully')
-    rock_block = shader.blend((.094, .087, .079, 1.), (.278, .252, .206, 1.),
-                              shader.between(weathering, .30, .75))
-    talus = shader.blend((.043, .053, .062, 1.), (.164, .172, .170, 1.),
-                         shader.between(chips, .32, .72))
-    rock = shader.blend(talus, rock_block, shader.between(wall, .03, .86, .12, .87))
-    rock = shader.blend(rock, (.047, .061, .077, 1.), shader.between(gully, .35, .94, 0., .58))
+    crest = terrain_attribute('measured_spur')
+    rock_block = shader.blend((.107, .103, .096, 1.), (.286, .267, .232, 1.),
+                              shader.between(joints, .28, .74))
+    talus = shader.blend((.070, .081, .093, 1.), (.156, .160, .151, 1.),
+                         shader.between(chips, .30, .77))
+    ledges = shader.math('MAXIMUM', wall, shader.product(crest, .67))
+    rock = shader.blend(talus, rock_block, shader.between(ledges, .07, .86, .09, .91))
+    rock = shader.blend(rock, (.039, .049, .063, 1.), shader.between(gully, .32, .94, 0., .51))
 
     accumulation = terrain_attribute('snow_retention')
     normal = shader.xyz(shader.nodes.new('ShaderNodeNewGeometry').outputs['Normal'])['Z']
-    texture = shader.math('ADD', shader.between(shape, .26, .80, -.037, .062),
-                          shader.between(snow_grain, .24, .80, -.024, .032))
-    fragments = shader.math('ADD', accumulation, texture)
-    # Sparse snow feathers onto lower ledges and stays in deeper high chutes.
-    # Nearly vertical faces keep an exposed rock core even above the snowline.
-    altitude = shader.math('ADD', height, shader.between(shape, .26, .72, -13., 18.))
-    snowline = shader.between(altitude, 28., 111.)
-    settled = shader.product(shader.between(fragments, .32, .55), snowline,
-                             shader.between(normal, .12, .49, .018, 1.))
-    basin_snow = shader.product(shader.between(cirque, .38, .84), snowline,
-                                shader.between(normal, .29, .65, .1, .94))
+    fragments = shader.math('ADD', accumulation, shader.between(snow_grain, .24, .80, -.039, .035))
+    snowline = shader.between(height, 43., 119.)
+    # Snow survives on shelves and joins up inside measured basins; the
+    # exposed cliff faces and wind-scoured spurs stay free of broad patches.
+    settled = shader.product(shader.between(fragments, .35, .63), snowline,
+                             shader.between(normal, .22, .59, .02, 1.),
+                             shader.between(crest, .24, .86, 1., .18))
+    basin_snow = shader.product(shader.between(cirque, .30, .82), snowline,
+                                shader.between(normal, .24, .66, .05, .91))
     snow = shader.math('MAXIMUM', settled, basin_snow)
     powder = shader.blend((.58, .65, .73, 1.), (.93, .95, .97, 1.),
                           shader.between(snow_grain, .22, .78, .32, .88))
 
-    rock_relief = shader.math('ADD', shader.product(chips, .61), shader.product(grains, .39))
+    rock_relief = shader.math('ADD', shader.product(joints, .69), shader.product(chips, .31))
     relief = shader.blend(rock_relief, shader.product(snow_grain, .28), snow)
     return shader.surface(shader.blend(rock, powder, snow), .93, specular=.18,
-                          bump=(relief, .21, .10), air=air)
+                          bump=(relief, .30, .13), air=air)
 
 
 def rear_material(air):
@@ -364,6 +383,7 @@ def describe(far, rear, fields, mid, stands, projection, target):
             'measuredGullyRange': ranges['measured_gully'],
             'measuredCirqueRange': ranges['measured_cirque'],
             'exposedWallRange': ranges['measured_wall'],
+            'measuredSpurRange': ranges['measured_spur'],
             'summitCreaseDegrees': SUMMIT_CREASE_DEGREES,
             'triangles': {'far': len(far.faces), 'rear': len(rear.faces), 'mid': len(mid.faces)},
             'rootedPines': sum(len(batch[0]) for batch in stands),
@@ -410,7 +430,7 @@ def main():
     airlight = light_source['airRadiance']
     # Preserve blue distance haze without a neutral veil over the exposed
     # ridges. The near flank still uses its own shorter optical path.
-    summit_airlight = [channel * .66 for channel in airlight] if options.lighting == 'day' else airlight
+    summit_airlight = [channel * .55 for channel in airlight] if options.lighting == 'day' else airlight
     recipe = {'width': width, 'height': height, 'projection': projection,
               'projectionSha256': plates.digest(PROJECTION), 'siteSha256': plates.digest(SITE),
               'terrainSource': TILE_URL, 'terrainSha256': TILE_SHA,
@@ -451,7 +471,7 @@ def main():
         summit.data.attributes.new(name, 'FLOAT', 'POINT').data.foreach_set('value', values)
     distant = plates.mesh(layers['far'], 'Separate surveyed watershed beyond Snow Court', rear,
                           [rear_material(air)], smooth=True)
-    distant.data.set_sharp_from_angle(angle=math.radians(SUMMIT_CREASE_DEGREES))
+    distant.data.set_sharp_from_angle(angle=math.radians(REAR_CREASE_DEGREES))
     inner = plates.mesh(layers['mid'], 'Grounded descending pass flank', mid,
                         [hillside_material(air)], smooth=True)
     prototypes = bpy.data.collections.new('Winter pine instance templates')

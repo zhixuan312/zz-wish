@@ -19,7 +19,7 @@ import { acquireNativeAgX, NativeAgXPass } from './baked/nativeAgX.js';
 import visitorFabric from './baked/visitor-fabric.json';
 import { WickPlume, addGauzeVent, createGauzeSmokePath, gauzeFlameSize, gauzeRibGeometry, gauzeThroat } from './WickPlume.js';
 import { createPineTray, createPineWax, waxContactShadow } from './PineWax.js';
-import { addSnowCourtGauzeTransmission, snowCourtGauzeHoops } from './places/snow-court-gauze.js';
+import { addSnowCourtGauzeTransmission } from './places/snow-court-gauze.js';
 
 // ---------- Renderer ----------
 const canvas = document.getElementById('gl');
@@ -444,7 +444,7 @@ function shellMaterial(color, o = {}) {
     m.normalMap=gauzeNormal;m.normalScale.setScalar(o.winterWeave ? .67 : .38);m.roughnessMap=gauzeRoughness;
     m.sheen=.45;m.sheenRoughness=.85;m.sheenColor.copy(m.color);m.specularIntensity=.3;
   }
-  if(o.winterWeave){m.transparent=true;m.opacity=.88;m.depthWrite=false;m.forceSinglePass=true;}
+  if(o.winterWeave){m.transparent=true;m.opacity=.965;m.depthWrite=false;m.forceSinglePass=true;}
   m.userData.u = { uFlame: { value: V3(0, 0, 0) }, uGlow: { value: 0 }, uGlowColor: { value: new THREE.Color(o.glow ?? 0xffa050) }, uReach: { value: o.reach ?? 9 }, uBase: { value: o.base ?? .2 } };
   if(o.cloth){
     m.userData.cloth=true;
@@ -467,7 +467,7 @@ function shellMaterial(color, o = {}) {
         physicalTransmissionShadow*=getPointShadow(pointShadowMap[0],ribShadow.shadowMapSize,ribShadow.shadowBias,ribShadow.shadowRadius,vPointShadowCoord[0],ribShadow.shadowCameraNear,ribShadow.shadowCameraFar);
         transmissionShadow=mix(.28,1.,physicalTransmissionShadow);
       #endif`:''}
-      ${o.winterWeave?'transmissionShadow*=1.-gauzeBamboo*.45;physicalTransmissionShadow*=1.-gauzeBamboo*.45;':''}
+      ${o.winterWeave?'transmissionShadow*=1.-gauzeBamboo*.25;physicalTransmissionShadow*=1.-gauzeBamboo*.25;':''}
       vec3 transmitted=${o.cloth?'mix(diffuseColor.rgb,pow(max(diffuseColor.rgb,vec3(0.)),vec3(.55)),.32)':'diffuseColor.rgb'};
       float clothSignedIncidence=${o.cloth?'dot(normal,normalize((viewMatrix*vec4(uFlame,1.)).xyz+vViewPosition))':'1.'};
       float clothIncidence=abs(clothSignedIncidence);
@@ -491,7 +491,7 @@ function shellMaterial(color, o = {}) {
       #endif`);
     }
   };
-  m.customProgramCacheKey=()=>`translucent-shell-${o.cloth?'woven':'plain'}-${o.winterWeave?'winter-hoops':'3'}`;
+  m.customProgramCacheKey=()=>`translucent-shell-${o.cloth?'woven':'plain'}-${o.winterWeave?'winter-bowed-gauze':'3'}`;
   return m;
 }
 const lathe = (pts, seg = 64) => new THREE.LatheGeometry(pts.map(([r, y]) => V2(r, y)), seg);
@@ -704,14 +704,16 @@ const LAMPS = {
     const vent=addGauzeVent(g,{radius:rTop,topY:prof.at(-1)[1],material:lacquer,cordMaterial:suspension,cordRadius:o.liveBaked?.0025:.0015});
     const shell = shellMaterial(o.color, { map: gauzeTex, glow: 0xffb070, reach: 18, rough: .82, base: .025, strength: 1.05, cloth:true, winterWeave:o.winterWeave });
     function clothRadius(r,a,q){
-      // A stretched cloth panel bows gently inward between the bamboo strips.
-      // Its seam remains above the strip; the strip never paints the outside.
       const panel=Math.sin(a*6)**2, middle=Math.sin(Math.PI*q);
       const sag=gauzeThroat(r).sag*panel*middle*(.85+.15*Math.sin(a*5+q*2));
-      const wovenRelief = o.winterWeave
-        ? Math.min(.004,r*.047)*panel*middle*(Math.sin(q*10+a*3)-Math.sin(Math.PI*q*4)**2)
-        : 0;
-      return Math.max(.001,r-sag+wovenRelief);
+      // The Snow Court cloth eases outward between the staves with quiet,
+      // staggered creases. Other shades keep their fitted panels.
+      if(o.winterWeave){
+        const fold=Math.sin(a*3+q*7+.36*Math.sin(q*10));
+        const relief=Math.min(.009,r*.085)*panel*middle*(.57+.57*fold);
+        return Math.max(.001,r+relief);
+      }
+      return Math.max(.001,r-sag);
     }
     const fabric=lathe(prof,96),fp=fabric.attributes.position,uv=fabric.attributes.uv;
     for(let i=0;i<fp.count;i++){
@@ -722,15 +724,6 @@ const LAMPS = {
     fabric.computeVertexNormals();
     const cloth=solid(g,fabric,shell);cloth.castShadow=false;cloth.userData.visitorCloth=true;
     for (let i = 0; i < 12; i++) { const a = i / 12 * Math.PI * 2, rib = new THREE.Mesh(gauzeRibGeometry(smokeProfile,a),ribs); rib.castShadow = true; rib.userData.visitorRib=true;g.add(rib); }
-    if(o.winterWeave)for(const q of snowCourtGauzeHoops){
-      const y=y0+q*H,r=radiusAt(prof,y),thickness=Math.min(.0019,r*.08);
-      const points=Array.from({length:48},(_,i)=>{
-        const a=i*Math.PI*2/48, inset=Math.max(.0004,clothRadius(r,a,q)-thickness*1.8);
-        return V3(centerAt(y)+Math.cos(a)*inset,y,Math.sin(a)*inset);
-      });
-      const hoop=new THREE.TubeGeometry(new THREE.CatmullRomCurve3(points,true),48,thickness,5,true);
-      solid(g,hoop,ribs).userData.visitorRib=true;
-    }
     // The bottom stays open. Three thin risers carry the small internal cup
     // from this bearing ring, leaving real paths for warm light around it.
     const bottomOpening=Math.max(.003,rBot-.008);

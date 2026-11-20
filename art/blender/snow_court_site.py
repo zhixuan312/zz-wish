@@ -332,12 +332,14 @@ def earlier_lantern(x, z, y, top, index, m, fixtures, lit=False):
     def cloth_point(u, v, inset=0.):
         angle = phase + math.tau * u
         middle = math.sin(math.pi * v)
-        fullness = .65 + (.35 + .024 * math.cos(index * 2.6)) * middle
+        fullness = .64 + (.37 + .024 * math.cos(index * 2.6)) * middle ** .73
         panel = math.sin(math.pi * ribs * u) ** 2
-        seam = -.009 * panel * middle
-        folds = .006 * math.sin(angle * 3. + v * 8. + index) * middle * panel
-        folds -= .0035 * math.sin(math.tau * 2 * v) ** 2 * middle * panel
-        width = radius * fullness + seam * middle + folds - inset
+        # Fine cloth relaxes between bowed staves. Each panel has a different
+        # shallow crease so the slack reads independently of the bamboo rhythm.
+        wrinkle = math.sin(angle * 3. + v * 6. + index + .30 * math.sin(v * 11.))
+        folds = panel * middle * (.0038 + .0042 * wrinkle)
+        folds += .0022 * math.sin(angle * 11. - v * 5. + index) * middle
+        width = radius * fullness + folds - inset
         sag = .012 * math.sin(angle * 2. + index) * middle
         edge = .0045 * math.sin(angle * 5. + index) * (1. - middle) if not inset else 0.
         return (x + width * math.cos(angle) + sag, y + v * height + edge, z + width * math.sin(angle))
@@ -396,10 +398,6 @@ def earlier_lantern(x, z, y, top, index, m, fixtures, lit=False):
     for rib in range(ribs):
         profile = [cloth_point(rib / ribs, level, .0062) for level in (0, .20, .41, .62, .82, 1)]
         mesh.curved_tube('Fine bowed bamboo beneath the gauze', profile, [.0026] * len(profile), m['bamboo'], 5)
-    for level in (.25, .50, .75):
-        hoop = [cloth_point(col / 24, level, .0048) for col in range(24)]
-        mesh.curved_tube('Split bamboo hoop shaping the gauze', hoop, [.0024] * len(hoop),
-                         m['bamboo'], 5, closed=True)
     for end in (-1, 1):
         mesh.beam('Tied end of the tag string', (x + end * .011, y - .007, z),
                   (x + .032 + end * .007, y - .066, z + .02), .0018, m['rope'], .0015)

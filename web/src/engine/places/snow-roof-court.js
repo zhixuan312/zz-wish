@@ -3,15 +3,15 @@ import { loadSnowCourtBackdrop } from './snow-court-backdrop.js';
 import { buildSnowChimney } from './snow-court-chimney.js';
 import { winterCourtWalk, winterCourtEntry, winterCourtEntrySeconds } from './snow-court-camera.js';
 import { addSnowCourtGauzeTransmission } from './snow-court-gauze.js';
-import { isWinterCourtSnow, tuneWinterCourtSnow } from './snow-court-snow.js';
+import { buildSnowDoorDrift, isWinterCourtSnow, tuneWinterCourtSnow } from './snow-court-snow.js';
 import projection from '../../../../shared/snow-court-backdrop.json' with { type: 'json' };
 import site from '../../../../shared/snow-roof-court-site.json' with { type: 'json' };
 
 const agedGauzeOpacity = new Map([
-  ['Sun-faded rose-red gauze', .71],
-  ['Faded dusty rose gauze', .77],
-  ['Faded iron-red gauze', .80],
-  ['Thin gauze over low flame', .72],
+  ['Sun-faded rose-red gauze', .938],
+  ['Faded dusty rose gauze', .950],
+  ['Faded iron-red gauze', .958],
+  ['Thin gauze over low flame', .924],
 ]);
 
 function tuneEarlierGauze(material, opacity, sources, THREE, preExposure, fabric) {
@@ -24,7 +24,7 @@ function tuneEarlierGauze(material, opacity, sources, THREE, preExposure, fabric
   material.opacity = opacity;
   material.map = fabric.weave;
   material.normalMap = fabric.normal;
-  material.normalScale.setScalar(.75);
+  material.normalScale.setScalar(.54);
   material.roughnessMap = fabric.roughness;
   material.envMapIntensity = .07;
 
@@ -67,7 +67,7 @@ function tuneEarlierGauze(material, opacity, sources, THREE, preExposure, fabric
           float thinCloth = .67 * (1. - smoothstep(.29, .45, sqrt(distance2)));
           vec3 throughThreads = pow(max(diffuseColor.rgb, vec3(0.)), vec3(.56));
           totalEmissiveRadiance += uEarlierCandela[j] * throughThreads
-            * thinCloth * (1. - gauzeBamboo * .53) / (3.141593 * max(distance2, .004));
+            * thinCloth * (1. - gauzeBamboo * .26) / (3.141593 * max(distance2, .004));
         }`);
   };
   material.customProgramCacheKey = () => key() + (lit ? '-snow-hall-wick-gauze' : '-snow-hall-aged-gauze');
@@ -77,10 +77,17 @@ export default function createWinterCourt(h) {
   const { THREE, V3 } = h;
   const pose = ({ position, look, fov }) => ({ pos: V3(...position), look: V3(...look), fov });
   const arrival = pose(site.walk.at(-2));
-  // Leave the lamp clear of the desktop chooser and the narrow-screen sheet.
-  // The visitor keeps this view as the wick catches and the light spreads.
-  const lampDesktop = { pos: V3(.035, 3.68, -8.23), look: V3(-.04, 3.52, -5.83), fov: 45 };
-  const lampPhone = { pos: V3(.025, 3.66, -9.28), look: V3(0, 2.08, -6.09), fov: 89 };
+  // Look across the hall from the aisle. The half-open door sits just
+  // beyond the visitor's lamp, which stays clear of the chooser controls.
+  const lampView = (x, z, pitch, fov) => {
+    const pos = V3(x, 3.65, z);
+    const tilt = THREE.MathUtils.degToRad(pitch);
+    const yaw = THREE.MathUtils.degToRad(-116.5);
+    const direction = V3(Math.sin(yaw) * Math.cos(tilt), Math.sin(tilt), -Math.cos(yaw) * Math.cos(tilt));
+    return { pos, look: pos.clone().addScaledVector(direction, 3.5), fov };
+  };
+  const lampDesktop = lampView(2.22, -8.97, -3, 67);
+  const lampPhone = lampView(2.84, -8.96, -9, 114);
   const entrance = pose(site.walk[0]);
   return {
     bakedLighting: true, cameraFar: 880, exposure: 1.11, shade: .55,
@@ -187,8 +194,9 @@ export default function createWinterCourt(h) {
       }
       h.fall({ n: 1150, at: [.2, 6.1, 26.4], box: [32, 12, 60], color: 0xe5eef6,
         size: .022, vy: .43, sway: .31, opacity: .58, softEdges: true });
-      h.fall({ n: 96, at: [.9, 3.03, -2.2], box: [5.1, 2.9, 2.65], color: 0xe7eeff,
-        size: .017, vy: .29, sway: .42, wind: -.31, opacity: .78, softEdges: true });
+      const drift = buildSnowDoorDrift({ THREE, renderer: h.renderer, group: context.G }, site.hall.front);
+      context.up.push(drift.update);
+      context.disposers.push(drift.dispose);
     },
     nook: {
       at: { pos: V3(0, 0, 0), ry: 0 }, lamp: 'gauze', y: 3.54,

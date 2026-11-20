@@ -71,7 +71,7 @@ export function winterCourtWalk(THREE, site, start, phone) {
   };
 }
 
-export const winterCourtEntrySeconds = 22.5;
+export const winterCourtEntrySeconds = 19;
 
 function easedDistance(start, end, distance, ramp) {
   const speed = distance / (end - start - ramp);
@@ -88,7 +88,7 @@ function viewingAngles({ pos, look }) {
   return [Math.atan2(direction.x, -direction.z), Math.asin(direction.y)];
 }
 
-/** Follow the swept lane and finish the turn gradually behind the lamp. */
+/** Cross the hall doorway head-on, then follow the aisle beside the lamp row. */
 export function winterCourtEntry(THREE, start, end) {
   const points = [
     start.pos,
@@ -97,7 +97,10 @@ export function winterCourtEntry(THREE, start, end) {
     new THREE.Vector3(.09, 3.38, -2.59),
     new THREE.Vector3(.28, 3.53, -3.55),
     new THREE.Vector3(.29, 3.66, -4.44),
-    new THREE.Vector3(.22, 3.66, -6.30),
+    new THREE.Vector3(.48, 3.655, -5.13),
+    new THREE.Vector3(1.85, 3.65, -5.22),
+    new THREE.Vector3(2.38, 3.65, -6.31),
+    new THREE.Vector3(end.pos.x, 3.65, -7.82),
     end.pos,
   ];
   const { curve, at, length } = measureCurve(THREE, points, point => {
@@ -111,26 +114,27 @@ export function winterCourtEntry(THREE, start, end) {
   const insideTime = 11.65;
   const cadence = 1.28;
   const ramp = 1.5;
+  const aisleSpeed = (length - at(5)) / (duration - insideTime - ramp / 2);
   const distances = [
     [0, 0, 0],
     [ramp, cadence * ramp / 2, cadence],
     [insideTime - 2.1, at(5) - cadence, cadence],
-    [insideTime, at(5), .31],
-    [duration - ramp, length - .23, .30],
+    [insideTime, at(5), aisleSpeed],
+    [duration - ramp, length - aisleSpeed * ramp / 2, aisleSpeed],
     [duration, length, 0],
   ];
   const [yaw0, pitch0] = viewingAngles(start);
   const [yaw1, pitch1] = viewingAngles(end);
   const turn = THREE.MathUtils.euclideanModulo(yaw1 + Math.PI, Math.PI * 2) - Math.PI;
-  const turnKeys = easedDistance(insideTime, duration, 1, 1.9);
+  const turnKeys = easedDistance(insideTime + .32, duration, 1, 1.15);
   const startDistance = start.pos.distanceTo(start.look);
   const endDistance = end.pos.distanceTo(end.look);
   const direction = new THREE.Vector3();
   return (progress, rig) => {
     const time = progress * duration;
     curve.getPointAt(distanceBetween(distances, time) / length, rig.pos);
-    // Walk facing the open doorway. Turn toward the lamp only once the
-    // window, leaf and their frame are behind the visitor.
+    // Look into the hall through the opening, then turn across it as the
+    // aisle opens into view. The gaze finishes on the lamp and snowy door.
     const approach = THREE.MathUtils.smoothstep(time, 0, 7.6);
     const angle = distanceBetween(turnKeys, time);
     const yaw = yaw0 * (1 - approach) + turn * angle;
