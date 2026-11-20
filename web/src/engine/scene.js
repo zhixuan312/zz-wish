@@ -444,7 +444,7 @@ function shellMaterial(color, o = {}) {
     m.normalMap=gauzeNormal;m.normalScale.setScalar(o.winterWeave ? .67 : .38);m.roughnessMap=gauzeRoughness;
     m.sheen=.45;m.sheenRoughness=.85;m.sheenColor.copy(m.color);m.specularIntensity=.3;
   }
-  if(o.winterWeave){m.transparent=true;m.opacity=.965;m.depthWrite=false;m.forceSinglePass=true;}
+  if(o.winterWeave){m.transparent=true;m.opacity=.93;m.depthWrite=false;m.forceSinglePass=true;}
   m.userData.u = { uFlame: { value: V3(0, 0, 0) }, uGlow: { value: 0 }, uGlowColor: { value: new THREE.Color(o.glow ?? 0xffa050) }, uReach: { value: o.reach ?? 9 }, uBase: { value: o.base ?? .2 } };
   if(o.cloth){
     m.userData.cloth=true;
@@ -467,7 +467,14 @@ function shellMaterial(color, o = {}) {
         physicalTransmissionShadow*=getPointShadow(pointShadowMap[0],ribShadow.shadowMapSize,ribShadow.shadowBias,ribShadow.shadowRadius,vPointShadowCoord[0],ribShadow.shadowCameraNear,ribShadow.shadowCameraFar);
         transmissionShadow=mix(.28,1.,physicalTransmissionShadow);
       #endif`:''}
-      ${o.winterWeave?'transmissionShadow*=1.-gauzeBamboo*.25;physicalTransmissionShadow*=1.-gauzeBamboo*.25;':''}
+      ${o.winterWeave?`
+        // At a glancing angle light passes through more fibres. The two
+        // folded hems also transmit less than the unsupported panel.
+        float clothAngle=abs(dot(normal,normalize(vViewPosition)));
+        float hem=smoothstep(.025,.18,vSnowGauze.y)*smoothstep(.025,.18,1.-vSnowGauze.y);
+        float gauzeTransmission=mix(.71,1.,hem)*mix(.69,1.,smoothstep(.15,.80,clothAngle))*(1.-gauzeBamboo*.39);
+        transmissionShadow*=gauzeTransmission;physicalTransmissionShadow*=gauzeTransmission;
+      `:''}
       vec3 transmitted=${o.cloth?'mix(diffuseColor.rgb,pow(max(diffuseColor.rgb,vec3(0.)),vec3(.55)),.32)':'diffuseColor.rgb'};
       float clothSignedIncidence=${o.cloth?'dot(normal,normalize((viewMatrix*vec4(uFlame,1.)).xyz+vViewPosition))':'1.'};
       float clothIncidence=abs(clothSignedIncidence);
@@ -487,7 +494,8 @@ function shellMaterial(color, o = {}) {
       sh.fragmentShader='uniform float uWeaveMean;\n'+sh.fragmentShader.replace('#include <map_fragment>',`#ifdef USE_MAP
         vec3 photographedWeave=texture2D(map,vMapUv).rgb;
         float yarn=dot(photographedWeave,vec3(.2126,.7152,.0722))/uWeaveMean;
-        diffuseColor.rgb*=clamp(${o.winterWeave ? '1. + (yarn - 1.) * 1.42' : 'yarn'},.66,1.24);
+        diffuseColor.rgb*=clamp(${o.winterWeave ? '1. + (yarn - 1.) * 2.05' : 'yarn'},
+          ${o.winterWeave ? '.58,1.30' : '.66,1.24'});
       #endif`);
     }
   };
@@ -862,6 +870,7 @@ const api = { g, parts: null, partsKey: null, type: null, power: 0, lightPower: 
       const input=drawn?{...o,liveBaked,winterWeave}:this.type==='gauze'?{...presetOf('shade'),liveBaked,winterWeave}:undefined;
       const p = this.type === 'pineWax' ? LAMPS.pineWax({ refined: liveBaked, sculptNormal, sunShade })
         : input ? LAMPS[this.type](input) : LAMPS[this.type]();
+      if(winterWeave)place.P.nook.decorateVisitorLantern?.(p,grainTex);
       this.parts = p; this.partsKey = key; g.add(p.g);
       hanger.material=p.suspensionMaterial??defaultSuspensionMaterial;
       f.wick.visible = !p.wickMesh && !p.pineWax;

@@ -10,9 +10,60 @@ export function addSnowCourtGauzeTransmission(shader, ribs, aged) {
     }
     \n` + shader.fragmentShader.replace('#include <color_fragment>', `#include <color_fragment>
       float gauzeBamboo = snowGauzeBamboo();
-      diffuseColor.rgb *= 1. - ${aged ? '.30' : '.065'} * gauzeBamboo;
+      diffuseColor.rgb *= 1. - ${aged ? '.30' : '.085'} * gauzeBamboo;
       diffuseColor.a *= 1. - ${aged ? '.045' : '.055'} * sin(3.141593 * vSnowGauze.y);
     `);
+}
+
+export function tieVisitorWishTag(THREE, parts, grain) {
+  const rim = parts.g.children.find(mesh => mesh.userData.gauzeTransportRole === 'bottom-ring');
+  rim.geometry.computeBoundingBox();
+  const radius = rim.geometry.boundingBox.max.x;
+  const bottom = rim.geometry.boundingBox.min.y;
+  const tag = new THREE.Group();
+  tag.position.set(rim.position.x + radius * .42, bottom, -radius * .90);
+  tag.userData.visitorWishTag = true;
+  parts.g.add(tag);
+
+  const halfWidth = .027, height = .112;
+  const shape = new THREE.Shape();
+  shape.moveTo(-halfWidth, -.011);
+  shape.lineTo(-halfWidth + .009, 0);
+  shape.lineTo(halfWidth - .009, 0);
+  shape.lineTo(halfWidth, -.011);
+  shape.lineTo(halfWidth, -height + .005);
+  shape.lineTo(halfWidth - .004, -height);
+  shape.lineTo(-halfWidth + .004, -height);
+  shape.lineTo(-halfWidth, -height + .004);
+  shape.closePath();
+  const hole = new THREE.Path();
+  hole.absarc(0, -.015, .0043, 0, Math.PI * 2, true);
+  shape.holes.push(hole);
+  const wood = new THREE.MeshStandardMaterial({ color: 0xd5ad79, map: grain, roughness: .88, envMapIntensity: .28 });
+  wood.userData.lampOwned = true;
+  const board = new THREE.Mesh(new THREE.ExtrudeGeometry(shape, {
+    depth: .0046, bevelEnabled: true, bevelThickness: .0006, bevelSize: .0006, bevelSegments: 1, curveSegments: 10,
+  }), wood);
+  const vertices = board.geometry.getAttribute('position'), uv = board.geometry.getAttribute('uv');
+  for (let i = 0; i < uv.count; i++) uv.setXY(i, .5 + vertices.getX(i) / .10, .93 + vertices.getY(i) / .13);
+  board.position.set(.002, -.036, -.004);
+  board.rotation.set(.065, .16, -.13);
+  board.updateMatrix();
+  board.castShadow = board.receiveShadow = true;
+  tag.add(board);
+
+  const cord = new THREE.MeshStandardMaterial({ color: 0x9b6a44, roughness: .96 });
+  cord.userData.lampOwned = true;
+  const through = new THREE.Vector3(0, -.015, .0023).applyMatrix4(board.matrix);
+  const path = new THREE.CatmullRomCurve3([
+    new THREE.Vector3(-.004, .001, .003),
+    new THREE.Vector3(-.003, -.030, -.006), through.clone().add(new THREE.Vector3(0, 0, -.004)),
+    through.clone().add(new THREE.Vector3(0, 0, .004)),
+    new THREE.Vector3(.004, -.029, .006), new THREE.Vector3(.004, .001, .003),
+  ]);
+  const twine = new THREE.Mesh(new THREE.TubeGeometry(path, 20, .0011, 5), cord);
+  twine.receiveShadow = true;
+  tag.add(twine);
 }
 
 const earlierGauze = new Map([

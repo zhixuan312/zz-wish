@@ -2,7 +2,7 @@ import { loadBakedPlace } from '../baked/loadPlace.js';
 import { loadSnowCourtBackdrop } from './snow-court-backdrop.js';
 import { buildSnowChimney } from './snow-court-chimney.js';
 import { winterCourtWalk, winterCourtEntry, winterCourtEntrySeconds, winterCourtBurnSettle } from './snow-court-camera.js';
-import { isEarlierGauze, tuneEarlierGauze } from './snow-court-gauze.js';
+import { isEarlierGauze, tieVisitorWishTag, tuneEarlierGauze } from './snow-court-gauze.js';
 import { buildSnowDoorDrift, isWinterCourtSnow, tuneWinterCourtSnow } from './snow-court-snow.js';
 import projection from '../../../../shared/snow-court-backdrop.json' with { type: 'json' };
 import site from '../../../../shared/snow-roof-court-site.json' with { type: 'json' };
@@ -150,6 +150,7 @@ export default function createWinterCourt(h) {
       at: { pos: V3(0, 0, 0), ry: 0 }, lamp: 'gauze', y: 3.54,
       hangingPoint: site.visitorCord, exposure: 1.22, bloom: [.21, 1.22], dust: false,
       gauzeGlow: { base: .42, reach: 8.2 }, winterWeave: true,
+      decorateVisitorLantern: (parts, grain) => tieVisitorWishTag(THREE, parts, grain),
       interior: { min: [site.hall.west, site.hall.floor, site.hall.rear],
         max: [site.hall.east, site.hall.eave, site.hall.front] },
       wide: arrival, widePhone: { ...arrival, fov: arrival.fov + 5 },
