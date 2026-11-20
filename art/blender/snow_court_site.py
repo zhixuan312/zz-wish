@@ -43,6 +43,7 @@ def palette():
         'red_faded': mesh.material('Faded dusty rose gauze', '#b38c82', rough=.94),
         'red_dust': mesh.material('Pink-white sun-faded gauze', '#c1a9a0', rough=.96),
         'red_old': mesh.material('Faded iron-red gauze', '#92655b', rough=.92),
+        'new_gauze': mesh.material('Dry clean red gauze available at the guest table', '#a64433', rough=.83),
         'tag': mesh.material('Unvarnished wooden wish tag', '#bba17c', 'weathered_planks', .88),
         'rope': mesh.material('Rough suspension cord', '#8a7962', rough=.98),
     }
@@ -53,7 +54,7 @@ def palette():
     return materials
 
 
-def old_gauze_maps(materials):
+def gauze_maps(materials):
     """Use the same licensed linen study already used by the visitor shade."""
     linen = ROOT / 'web/public/places/snow-roof'
     for material in materials:
@@ -378,6 +379,34 @@ def statue(x, y, z, m, contacts, platform):
                          [.009, .010, .008], m['tag'], 8)
 
 
+def waiting_lanterns(table, top, m, contact):
+    for index, (x, z, radius, height) in enumerate((
+        (-2.80, -5.48, .108, .292), (-2.37, -5.48, .144, .378),
+    ), start=1):
+        with contact.group(f'Unlit spare gauze frame {index} set on the table', [table]):
+            mesh.lathe('Unlit guest shade with a clean open throat', [
+                (radius * .68, .008), (radius * .91, height * .24), (radius, height * .50),
+                (radius * .91, height * .76), (radius * .68, height - .006),
+            ], (x, top, z), m['new_gauze'], 24)
+            for lift in (0, height - .013):
+                mesh.lathe('Clean birch ring on the spare frame', [
+                    (radius * .64, lift), (radius * .75, lift), (radius * .73, lift + .013),
+                    (radius * .66, lift + .013), (radius * .64, lift),
+                ], (x, top, z), m['tag'], 24)
+            for rib in range(8):
+                angle = math.tau * rib / 8
+                rib_path = [(x + radius * width * math.cos(angle), top + height * level,
+                             z + radius * width * math.sin(angle))
+                            for width, level in ((.70, .02), (.93, .25), (1., .5), (.93, .75), (.70, .98))]
+                mesh.curved_tube('Light birch rib of the unlit table shade', rib_path, [.0026] * 5, m['tag'], 5)
+    with contact.group('Two unlit oil cups on the guest table', [table]):
+        for x, z, width in ((-1.88, -5.58, .058), (-1.87, -5.28, .076)):
+            mesh.lathe('Separate shallow oil cup beside the waiting shades', [
+                (0, 0), (width * .87, 0), (width, .039), (width * .89, .045),
+                (width * .72, .017), (0, .017),
+            ], (x, top, z), m['bronze'], 20)
+
+
 def hall(site, m, contact, fixtures):
     mesh.REGION = 'hall'
     cfg = site['hall']
@@ -455,9 +484,7 @@ def hall(site, m, contact, fixtures):
     for px in (-2.97, -1.75):
         for pz in (-5.65, -5.19):
             mesh.box('Table leg with visible square joinery', (.098, .65, .091), (px, y + .322, pz), m['wood'], .009)
-    with contact.group('Waiting oil cup on visitor table', [table]):
-        mesh.lathe('Unlit plain cup beside the waiting frames', [(0, 0), (.075, 0), (.084, .040),
-                   (.071, .047), (.059, .013), (0, .012)], (-2.56, y + .729, -5.52), m['bronze'], 20)
+    waiting_lanterns(table, y + .729, m, contact)
     veranda = mesh.box('Veranda storm lantern stone shelf', (.45, .13, .57),
                       (3.05, y + .7, front + .36), m['granite'], .020)
     mesh.box('Old masonry stand below the storm lamp', (.35, .69, .34), (3.05, y + .318, front + .36), m['brick'], .018)
@@ -521,7 +548,7 @@ def build(site, projection):
     plates.set_world(scene, look_transport(projection['light']['night']), pre_exposure, 'Clear moonlit winter pass')
     scene['one_light_ambient_worlds'] = json.dumps({'day': daylight.name})
     m = palette()
-    old_gauze_maps(m[key] for key in ('glow', 'red_faded', 'red_dust', 'red_old'))
+    gauze_maps(m[key] for key in ('glow', 'red_faded', 'red_dust', 'red_old', 'new_gauze'))
     foliage = build_approach(site, m)
     _, court_surface = courtyard(site, m)
     gate_foothill(site, m['granite'], m['snow'])
