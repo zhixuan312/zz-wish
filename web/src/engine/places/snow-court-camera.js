@@ -87,7 +87,7 @@ function lookAlong(THREE, rig, yaw, pitch, distance) {
 }
 
 /** Cross the hall doorway head-on, then follow the aisle beside the lamp row. */
-export function winterCourtEntry(THREE, start, end) {
+export function winterCourtEntry(THREE, start, end, phone) {
   const points = [
     start.pos,
     new THREE.Vector3(-1.02, 3.33, 4.12),
@@ -123,7 +123,13 @@ export function winterCourtEntry(THREE, start, end) {
   const [yaw0, pitch0] = viewingAngles(start);
   const [yaw1, pitch1] = viewingAngles(end);
   const turn = THREE.MathUtils.euclideanModulo(yaw1 + Math.PI, Math.PI * 2) - Math.PI;
-  const turnKeys = [
+  const turnKeys = phone ? [
+    [10.15, 0, 0],
+    [12.10, .20, .159],
+    [14.45, .58, .155],
+    [17.10, .94, .078],
+    [duration, 1, 0],
+  ] : [
     [10.78, 0, 0],
     [12.16, .16, .175],
     [14.36, .57, .187],
@@ -161,7 +167,7 @@ export function winterCourtBurnSettle(THREE, cord, start, end) {
   const [yawEnd, pitchEnd] = viewingAngles(end);
   const yawDelta = wrap(yawEnd - yawStart);
   return (progress, rig) => {
-    const t = smoothstep(progress, .04, .98);
+    const t = smoothstep(progress, .025, .99);
     const r = lerp(radiusStart, radiusEnd, t), angle = orbitStart + orbitDelta * t;
     rig.pos.set(cord[0] + Math.sin(angle) * r, lerp(start.pos.y, end.pos.y, t), cord[2] + Math.cos(angle) * r);
     lookAlong(THREE, rig, yawStart + yawDelta * t, lerp(pitchStart, pitchEnd, t), 3.5);

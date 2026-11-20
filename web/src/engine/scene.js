@@ -2411,7 +2411,7 @@ export async function travel(id) {
   await walk;
   if(import.meta.env.DEV)window.__walkProgress={id,progress:1,state:'done',position:rig.pos.toArray()};
   if (P.createChooseEntry) {
-    const entry = P.createChooseEntry({ pos: rig.pos.clone(), look: rig.look.clone(), fov: rig.fov ?? camera.fov }, end);
+    const entry = P.createChooseEntry({ pos: rig.pos.clone(), look: rig.look.clone(), fov: rig.fov ?? camera.fov }, end, narrow());
     if (skipNextTravel || reducedMotion.matches) entry(1, rig);
     else await tween(P.entrySeconds, progress => entry(progress, rig), true);
   } else if (P.chooseEntry) {
@@ -2534,7 +2534,7 @@ export async function ignite({onCatch, remainingFuel}={}) {
   await tween(.8,()=>{});if(!active())return;
   if (N.steadyIgnition) {
     const settle = N.createBurnSettle?.({ pos: cameraStart, look: lookStart, fov: fovStart }, burn);
-    await tween(9, k => {
+    await tween((narrow() && N.settleSecondsPhone) || 9, k => {
       if (!active()) return;
       settle?.(k, rig);
       mark('spreading', .18 + .82 * k);

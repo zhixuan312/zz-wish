@@ -79,17 +79,17 @@ export default function createWinterCourt(h) {
   const arrival = pose(site.walk.at(-2));
   // Look across the hall from the aisle. The half-open door sits just
   // beyond the visitor's lamp, which stays clear of the chooser controls.
-  const lampView = (x, z, bearing, pitch, fov) => {
-    const pos = V3(x, 3.65, z);
+  const lampView = (x, z, bearing, pitch, fov, eye = 3.65) => {
+    const pos = V3(x, eye, z);
     const tilt = THREE.MathUtils.degToRad(pitch);
     const yaw = THREE.MathUtils.degToRad(bearing);
     const direction = V3(Math.sin(yaw) * Math.cos(tilt), Math.sin(tilt), -Math.cos(yaw) * Math.cos(tilt));
     return { pos, look: pos.clone().addScaledVector(direction, 3.5), fov };
   };
   const choiceDesktop = lampView(.75, -7.35, -117.65, -1, 67);
-  const choicePhone = lampView(2.19, -8.96, -117.65, -41, 128);
+  const choicePhone = lampView(1.048, -7.52, -139.7, -17.5, 69, 3.71);
   const lampDesktop = lampView(.75, -7.35, -154, 0, 67);
-  const lampPhone = lampView(.16, -7.51, -173, -8, 60);
+  const lampPhone = lampView(.12, -7.40, -173, -8, 69);
   const entrance = pose(site.walk[0]);
   return {
     bakedLighting: true, cameraFar: 880, exposure: 1.11, shade: .55,
@@ -125,7 +125,7 @@ export default function createWinterCourt(h) {
     createWalk: (start, _end, phone) => winterCourtWalk(THREE, site, start, phone),
     offerAfterTravel: true,
     entrySeconds: winterCourtEntrySeconds,
-    createChooseEntry: (start, end) => winterCourtEntry(THREE, start, end),
+    createChooseEntry: (start, end, phone) => winterCourtEntry(THREE, start, end, phone),
     doors: V3(...site.gate.center),
     async build(_place, context) {
       const baked = await loadBakedPlace('snow-roof', h.renderer, context.light);
@@ -221,7 +221,7 @@ export default function createWinterCourt(h) {
       interior: { min: [site.hall.west, site.hall.floor, site.hall.rear],
         max: [site.hall.east, site.hall.eave, site.hall.front] },
       wide: arrival, widePhone: { ...arrival, fov: arrival.fov + 5 },
-      steadyIgnition: true,
+      steadyIgnition: true, settleSecondsPhone: 14,
       createBurnSettle: (start, end) => winterCourtBurnSettle(THREE, site.visitorCord, start, end),
       choose: choiceDesktop, choosePhone: choicePhone,
       burn: lampDesktop, burnPhone: lampPhone,
