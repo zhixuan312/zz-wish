@@ -19,9 +19,7 @@ function mockPrefetch() {
   return prefetch;
 }
 function mockScene(ensureReady: () => Promise<void>) {
-  class PlaceBuildSuperseded extends Error {}
-  const scene = { ensureReady: vi.fn(ensureReady), preparePlace: vi.fn(async () => {}), wantPlace: vi.fn(),
-    PlaceBuildSuperseded, setPhase: vi.fn(), setPowerSaver: vi.fn(), setOffer: vi.fn(), setLevel: vi.fn() };
+  const scene = { ensureReady: vi.fn(ensureReady), preparePlace: vi.fn(async () => {}), setPhase: vi.fn(), setPowerSaver: vi.fn(), setOffer: vi.fn(), setLevel: vi.fn() };
   vi.doMock('../../../web/src/engine/scene.js', () => scene);
   return scene;
 }

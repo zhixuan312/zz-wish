@@ -10,10 +10,6 @@ export function setOffer(shape: Shape | null): void;
 export function setLevel(remaining: number): void;
 export function previewPlace(id: PlaceId): Promise<void>;
 export function preparePlace(id: PlaceId): Promise<unknown>;
-/** Record the place the visitor actually wants, so a speculative build for another one stops. */
-export function wantPlace(id: PlaceId): void;
-/** Thrown by a build that was abandoned because the visitor chose a different place. */
-export class PlaceBuildSuperseded extends Error {}
 export function toCover(): Promise<void>;
 export function travel(id: PlaceId): Promise<void>;
 export function skip(): void;
