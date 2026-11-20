@@ -12,12 +12,19 @@ function distanceBetween(keys, time) {
     + (u3 - 2 * u2 + u) * speedA * duration + (u3 - u2) * speedB * duration;
 }
 
-function measureCurve(THREE, points) {
-  const curve = new THREE.CatmullRomCurve3(points, false, 'centripetal');
+function measureCurve(THREE, points, adjust) {
+  const spline = new THREE.CatmullRomCurve3(points, false, 'centripetal');
+  const curve = new THREE.Curve();
+  curve.getPoint = (time, target) => adjust(spline.getPoint(time, target));
   const intervals = 180;
   curve.arcLengthDivisions = intervals * (points.length - 1);
   const lengths = curve.getLengths();
   return { curve, at: index => lengths[index * intervals], length: lengths.at(-1) };
+}
+
+function smoothWindow(THREE, value, low, rise, fall, high) {
+  return THREE.MathUtils.smoothstep(value, low, rise)
+    * (1 - THREE.MathUtils.smoothstep(value, fall, high));
 }
 
 function sightlineTrack(THREE, poses, times) {
@@ -34,7 +41,13 @@ export function winterCourtWalk(THREE, site, start, phone) {
     fov: fov + (phone ? 5 : 0),
   }));
   poses[0] = start;
-  const { curve, at, length } = measureCurve(THREE, poses.map(({ pos }) => pos));
+  const { curve, at, length } = measureCurve(THREE, poses.map(({ pos }) => pos), point => {
+    // Stay clear of the hanging needles, then step up onto the gate tread.
+    const forest = smoothWindow(THREE, point.z, 29.9, 34.05, 35.12, 38.3);
+    point.x += .41 * forest;
+    point.y += .029 * smoothWindow(THREE, point.z, 12, 12.33, 12.77, 13.2) - .101 * forest;
+    return point;
+  });
   const distance = [
     [0, 0, 0],
     [.8, .61, 1.55],
@@ -51,13 +64,6 @@ export function winterCourtWalk(THREE, site, start, phone) {
   return (progress, rig) => {
     const time = Math.min(28, progress * site.walkSeconds);
     curve.getPointAt(distanceBetween(distance, time) / length, rig.pos);
-    const z = rig.pos.z;
-    const sweep = (low, middle, high, end) => THREE.MathUtils.smoothstep(z, low, middle)
-      * (1 - THREE.MathUtils.smoothstep(z, high, end));
-    // Stay clear of the hanging needles, then step up onto the gate tread.
-    const forest = sweep(29.9, 34.05, 35.12, 38.3);
-    rig.pos.x += .41 * forest;
-    rig.pos.y += .029 * sweep(12, 12.33, 12.77, 13.2) - .101 * forest;
     direction.fromArray(look.evaluate(time)).normalize();
     rig.look.copy(rig.pos).add(direction);
     rig.fov = lens.evaluate(time)[0];
@@ -84,7 +90,14 @@ export function winterCourtEntry(THREE, start, end) {
     new THREE.Vector3(.01, 3.66, -6.65),
     end.pos,
   ];
-  const { curve, length } = measureCurve(THREE, points);
+  const { curve, length } = measureCurve(THREE, points, point => {
+    // Pass the half-open hall leaf on its clear side while climbing the two treads.
+    const depth = -point.z;
+    point.x += .365 * smoothWindow(THREE, depth, 2.05, 3.03, 4.16, 5.08);
+    point.y += .045 * smoothWindow(THREE, depth, 3.10, 3.26, 3.75, 4.21)
+      - .018 * smoothWindow(THREE, depth, 2.62, 2.81, 2.94, 3.13);
+    return point;
+  });
   const duration = winterCourtEntrySeconds;
   const ramp = 1.55;
   const speed = length / (duration - ramp);
@@ -103,13 +116,6 @@ export function winterCourtEntry(THREE, start, end) {
   return (progress, rig) => {
     const time = progress * duration;
     curve.getPointAt(distanceBetween(distances, time) / length, rig.pos);
-    const depth = -rig.pos.z;
-    const pulse = (low, middle, high, end) => THREE.MathUtils.smoothstep(depth, low, middle)
-      * (1 - THREE.MathUtils.smoothstep(depth, high, end));
-    // Pass the half-open hall leaf on its clear side while climbing the two treads.
-    rig.pos.x += .365 * pulse(2.05, 3.03, 4.16, 5.08);
-    rig.pos.y += .045 * pulse(3.10, 3.26, 3.75, 4.21) - .018 * pulse(2.62, 2.81, 2.94, 3.13);
-
     const angle = THREE.MathUtils.smoothstep(time, 2.75, duration);
     const yaw = yaw0 + turn * angle;
     const pitch = THREE.MathUtils.lerp(pitch0, pitch1, angle);
