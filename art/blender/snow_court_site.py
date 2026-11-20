@@ -14,6 +14,7 @@ from mathutils import Vector
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import snow_roof as mesh
 import pine_valley_backdrop as plates
+import snow_court_finish as finish
 import snow_court_use as everyday
 from resting_contacts import RestingContacts, engine
 from snow_court_approach import build_approach
@@ -52,6 +53,12 @@ def palette():
     materials['red']['one_light_painted_timber'] = True
     mesh.painted_timber_finish(materials['red'])
     mesh.weather_plaster(materials['plaster'])
+    materials['hall_plaster'] = finish.plaster_material(mesh, ROOT)
+    materials['slate'] = mesh.material('Slightly worn blue-grey hall slate', '#ccdbe7', 'stone_pavers', .84)
+    mesh.vertex_tint_shader(materials['slate'])
+    # The old stones carry individual scanned faces and authored colour variation.
+    del materials['slate']['one_light_surface_tint']
+    materials['slate_joint'] = mesh.material('Packed stone dust in the hall joints', '#57554f', rough=.98)
     return materials
 
 
@@ -536,49 +543,36 @@ def scripture_shelf(front, y, m, contact):
                      (x + dx, base + height * .50, z + .078), cloth, .001, twist)
 
 
-def bedded_hall_paver(x, z, width, depth, height, material):
-    import bmesh
-
-    paver = mesh.irregular_paver('Worn hall floor stone', x, z, width, depth, height, material)
-    # The lowest bevel ring sits inside the solid platform, whose top is
-    # seven millimetres below the nominal floor. Keep the whole exposed
-    # upper nosing and top while removing the enclosed slab underneath.
-    data = paver.data
-    geometry = bmesh.new()
-    geometry.from_mesh(data)
-    buried = [vertex for vertex in geometry.verts if vertex.co.z < height - .07]
-    bmesh.ops.delete(geometry, geom=buried, context='VERTS')
-    geometry.to_mesh(data)
-    geometry.free()
-    data.update()
-    charts = [[(data.vertices[index].co.x - x, -data.vertices[index].co.y - z)
-               for index in polygon.vertices] for polygon in data.polygons]
-    mesh.source_uv(paver, charts, 'One planar chart for the full exposed upper paver and bevel.')
-    return paver
-
-
 def hall(site, m, contact, fixtures):
     mesh.REGION = 'hall'
     cfg = site['hall']
     left, right, back, front, y, eave = (cfg[k] for k in ('west', 'east', 'rear', 'front', 'floor', 'eave'))
     span, depth, z = right - left, front - back, .5 * (front + back)
     wall_height = eave - y
-    mesh.box('Stone platform carries the hall timber frame', (span + .21, .36, depth + .47),
-             (0, y - .187, z + .14), m['granite'], .023)
+    table_feet = [(px, pz) for px in (-2.97, -1.75) for pz in (-5.65, -5.19)]
+    platform = mesh.box('Stone platform carries the hall timber frame', (span + .21, .36, depth + .47),
+                        (0, y - .187, z + .14), m['granite'], .023)
+    top = max(platform.data.polygons, key=lambda polygon: polygon.normal.z)
+    platform.data.materials.append(m['slate_joint'])
+    top.material_index = len(platform.data.materials) - 1
     for j in range(11):
         for i in range(12):
             px = left + (i + .5) * span / 12
             pz = back + (j + .5) * depth / 11
-            bedded_hall_paver(px, pz, span / 12 - .008, depth / 11 - .008,
-                              y + .007 * math.sin(i * 2.3 + j * .77), m['granite'])
+            supports_table = any(abs(fx - px) < span / 24 and abs(fz - pz) < depth / 22 for fx, fz in table_feet)
+            crown = -.0015 if supports_table else .0042 * math.sin(i * 2.3 + j * .77)
+            finish.add_slate(mesh, px, pz, span / 12 - .009, depth / 11 - .009, y + crown, i, j, m['slate'])
     for side in (-1, 1):
-        mesh.box('Limewashed side wall inside the hall', (.21, wall_height, depth), (side * right, y + wall_height / 2, z),
-                 m['plaster'], .019)
+        wall = mesh.box('Limewashed side wall inside the hall', (.21, wall_height, depth),
+                        (side * right, y + wall_height / 2, z), m['plaster'], .019)
+        finish.interior_plaster(wall, m['hall_plaster'], 0, -side, y, wall_height, reverse=side > 0)
         for zz in (back + .32, front - .30):
             mesh.lathe('Painted hall post on a granite shoe', [(.132, 0), (.145, .10), (.126, wall_height)],
                        (side * (right - .17), y, zz), m['red'], 22)
         px = side * 2.75
-        mesh.box('Hall front sill below the lattice', (2.72, .66, .225), (px, y + .32, front), m['plaster'], .016)
+        sill = mesh.box('Hall front sill below the lattice', (2.72, .66, .225),
+                        (px, y + .32, front), m['plaster'], .016)
+        finish.interior_plaster(sill, m['hall_plaster'], 1, 1, y, wall_height, reverse=side > 0)
         hall_paper_and_lattice(px, y, front, m)
         mesh.box('Low timber apron below the paper lattice', (2.66, .087, .091),
                  (px, y + .542, front - .175), m['wood'], .010)
@@ -587,8 +581,9 @@ def hall(site, m, contact, fixtures):
                      (side * (right - .144), y + wall_height / 2, zz), m['wood'], .011)
         mesh.box('Front beam above the paper', (2.72, .46, .21), (px, y + 2.56, front), m['red'], .022)
     scripture_shelf(front, y, m, contact)
-    mesh.box('Subdued rear wall behind the Buddha', (span, wall_height, .22), (0, y + wall_height / 2, back),
-             m['plaster'], .021)
+    rear = mesh.box('Subdued rear wall behind the Buddha', (span, wall_height, .22),
+                    (0, y + wall_height / 2, back), m['plaster'], .021)
+    finish.interior_plaster(rear, m['hall_plaster'], 1, -1, y, wall_height)
     mesh.box('Two solid lintels support the half-open doors', (2.61, .27, .24), (0, eave - .17, front), m['red'], .021)
     for side in (-1, 1):
         x = side * 1.26
@@ -645,9 +640,8 @@ def hall(site, m, contact, fixtures):
     # The kit and practical lamp share the guest-scale height rather than altar height.
     table = mesh.box('Table where visitors find frames and separate oil cups', (1.53, .10, .69),
                      (-2.35, y + .679, -5.42), m['wood'], .018)
-    for px in (-2.97, -1.75):
-        for pz in (-5.65, -5.19):
-            mesh.box('Table leg with visible square joinery', (.098, .65, .091), (px, y + .322, pz), m['wood'], .009)
+    for px, pz in table_feet:
+        mesh.box('Table leg with visible square joinery', (.098, .65, .091), (px, y + .322, pz), m['wood'], .009)
     waiting_lanterns(table, y + .729, m, contact)
     veranda = mesh.box('Veranda storm lantern stone shelf', (.45, .13, .57),
                       (3.05, y + .7, front + .36), m['granite'], .020)
@@ -771,7 +765,7 @@ def main():
     output = args.output.resolve()
     output.parent.mkdir(parents=True, exist_ok=True)
     scene = bpy.context.scene
-    sources = (Path(__file__), Path(everyday.__file__), Path(__file__).with_name('snow_court_approach.py'),
+    sources = (Path(__file__), Path(everyday.__file__), Path(finish.__file__), Path(__file__).with_name('snow_court_approach.py'),
                Path(__file__).with_name('snow_court_backdrop.py'), SITE, PROJECTION)
     scene['source_authoring_sha256'] = json.dumps({
         str(path.resolve().relative_to(ROOT)): sha256(path.read_bytes()).hexdigest() for path in sources
