@@ -8,13 +8,13 @@ import { api, ApiError, type EndReason, type Stats } from './api.ts';
 import { Burn, type Settlement } from './burn.ts';
 import { presence } from './presence.ts';
 import { DrawPad, rowsFromStrokes, type Pt } from './DrawPad.tsx';
-import { MyCandles, TenLights } from './Panels.tsx';
+import { Credits, MyCandles, TenLights } from './Panels.tsx';
 import { CandleThumb } from './CandleThumb.tsx';
 import { sound } from './sound.ts';
 import { DICTS, fmtClock, fmtDuration } from './i18n.ts';
 
 type Screen = engine.ScenePhase;
-type Overlay = 'mine' | 'stats' | null;
+type Overlay = 'mine' | 'stats' | 'credits' | null;
 interface Result { done: boolean; burnedMs: number; plannedMs: number; reason: EndReason; saved: boolean | null }
 
 const TOAST_GAP_MS = 5 * 60_000;
@@ -266,6 +266,7 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
           {screen !== 'burning' && <button className="btn small" onClick={switchLocale} aria-label={t.langSwitchLabel}>{t.langSwitch}</button>}
           <button className="btn small" onClick={() => open('stats')}>{t.tenLights}</button>
           <button className="btn small" onClick={() => open('mine')}>{t.myCandles}</button>
+          <button className="btn small credits-link" onClick={() => open('credits')}>{t.creditsLink}</button>
         </nav>
       </header>
 
@@ -453,6 +454,7 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
 
       {overlay === 'mine' && <MyCandles t={t} locale={locale} onClose={() => setOverlay(null)} onAgain={(id, text) => again(id, text)} />}
       {overlay === 'stats' && <TenLights t={t} locale={locale} onClose={() => setOverlay(null)} />}
+      {overlay === 'credits' && <Credits t={t} onClose={() => setOverlay(null)} />}
     </div>
   );
 }

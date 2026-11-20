@@ -140,3 +140,33 @@ test('muting Pine Gate silences the recorded ambience, and a missing recording t
   await expect(page.getByRole('button', { name: /^开启声音$|^Sound on$/ })).toBeVisible();
   expect(failures).toEqual([]);
 });
+
+test('the credits panel names both CC BY recordings and links their Commons pages', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/');
+  await page.getByRole('button', { name: /^来源与致谢$|^Credits$/ }).click();
+  const panel = page.getByRole('dialog');
+  await expect(panel).toBeVisible();
+  // Both credited recordings are listed, with the English attribution text kept verbatim.
+  await expect(panel.getByTestId('credit-temple-bell')).toContainText('Bonsyou5599');
+  await expect(panel.getByTestId('credit-temple-bell')).toContainText('CC BY 2.1 JP');
+  await expect(panel.getByTestId('credit-ox-bells')).toContainText('Grazing Dairy Cows');
+  await expect(panel.getByTestId('credit-ox-bells')).toContainText('CC BY 4.0');
+  // The links point at the Commons file page and the licence deed.
+  await expect(panel.getByTestId('credit-temple-bell').getByRole('link').first())
+    .toHaveAttribute('href', 'https://commons.wikimedia.org/wiki/File:Bonsyou5599.ogg');
+  await expect(panel.getByTestId('credit-ox-bells').getByRole('link').first())
+    .toHaveAttribute('href', /Do-Bells-Affect-Behaviour/);
+  await expect(panel.getByRole('link', { name: 'CC BY 4.0' }))
+    .toHaveAttribute('href', 'https://creativecommons.org/licenses/by/4.0/');
+  // The rest of the recordings are named as public domain or CC0.
+  await expect(panel).toContainText(/public domain or CC0|公有领域或 CC0/);
+  // On a 390x844 phone the whole list must stay reachable by scrolling.
+  const fits = await panel.evaluate(el => {
+    const inner = el.querySelector('.panel-inner');
+    if (!inner) return false;
+    const style = getComputedStyle(el);
+    return style.overflowY === 'auto' && inner.scrollHeight > 0;
+  });
+  expect(fits).toBe(true);
+});
