@@ -61,7 +61,7 @@ def palette(site):
     materials['red']['one_light_painted_timber'] = True
     mesh.painted_timber_finish(materials['red'])
     mesh.weather_plaster(materials['plaster'])
-    materials['hall_plaster'] = finish.plaster_material(mesh, ROOT, site['hall'])
+    materials['hall_plaster'] = finish.plaster_materials(mesh, ROOT, site['hall'])
     materials['slate'] = mesh.material('Slightly worn blue-grey hall slate', '#ccdbe7', 'stone_pavers', .84)
     mesh.vertex_tint_shader(materials['slate'])
     # The old stones carry individual scanned faces and authored colour variation.

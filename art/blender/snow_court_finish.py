@@ -277,10 +277,15 @@ def plaster_panel(scan, panel, pixel_width, pixel_height, width, height, rng):
     return np.clip(field * 255. + .5, 0., 255.).astype(np.uint8)
 
 
+def plaster_metres(hall, panel):
+    if panel.endswith('_sill'):
+        return 2.72, .66
+    width = hall['east'] - hall['west'] if panel == 'rear_wall' else hall['front'] - hall['rear']
+    return width, hall['eave'] - hall['floor']
+
+
 def plaster_colour(scan, hall):
     """Pack each visible plaster plane once in a single material atlas."""
-    width, depth = hall['east'] - hall['west'], hall['front'] - hall['rear']
-    height = hall['eave'] - hall['floor']
     atlas = np.empty((PLASTER_ATLAS_SIZE, PLASTER_ATLAS_SIZE, 3), dtype=np.uint8)
     pad = PLASTER_GUTTER
     # Preserve pocks and grit at roughly one centimetre and smaller. Large
@@ -289,15 +294,15 @@ def plaster_colour(scan, hall):
     coarse = blur_scan(scan, round(scan.shape[0] * .048 / PLASTER_SCAN_WIDTH_METRES))
     scan -= .49 * (coarse - coarse.mean(axis=(0, 1)))
     for index, (panel, (x, y, w, h)) in enumerate(PLASTER_CELLS.items()):
-        metres = (2.72, .66) if panel.endswith('_sill') else (width if panel == 'rear_wall' else depth, height)
+        metres = plaster_metres(hall, panel)
         rng = np.random.default_rng(73213 + index * 1387)
         pixels = plaster_panel(scan, panel, w - 2 * pad, h - 2 * pad, *metres, rng)
         atlas[y:y + h, x:x + w] = np.pad(pixels, ((pad, pad), (pad, pad), (0, 0)), mode='edge')
     return atlas
 
 
-def plaster_material(mesh, root, hall):
-    """Use the CC0 scan normal and roughness with the unique albedo panels."""
+def plaster_materials(mesh, root, hall):
+    """Keep the unique albedo atlas and place the CC0 microsurface at real scale."""
     import bpy
 
     source = root / 'web/public/materials/scans/white_plaster_rough_01/diffuse.jpg'
@@ -334,7 +339,31 @@ def plaster_material(mesh, root, hall):
         'scanSourceUrl': 'https://polyhaven.com/a/white_plaster_rough_01',
         'atlasSize': PLASTER_ATLAS_SIZE, 'paddedCellsBottomLeft': PLASTER_CELLS,
     })
-    return material
+    panels = {}
+    pad = PLASTER_GUTTER
+    for panel, (x, y, width, height) in PLASTER_CELLS.items():
+        face = material.copy()
+        face.name = f'Worn hall limewash, {panel.replace("_", " ")}'
+        face_nodes, links = face.node_tree.nodes, face.node_tree.links
+        metres_u, metres_v = plaster_metres(hall, panel)
+        scale_u = metres_u * PLASTER_ATLAS_SIZE / ((width - 2 * pad - 1) * PLASTER_SCAN_WIDTH_METRES)
+        scale_v = metres_v * PLASTER_ATLAS_SIZE / ((height - 2 * pad - 1) * PLASTER_SCAN_WIDTH_METRES)
+        left = (x + pad + .5) / PLASTER_ATLAS_SIZE
+        bottom = (y + pad + .5) / PLASTER_ATLAS_SIZE
+        # UV0 stays in the photographed albedo atlas. Remap just the repeating
+        # scan maps from that cell to metres, in Blender and in glTF.
+        mapping = face_nodes.new('ShaderNodeMapping')
+        mapping.vector_type = 'POINT'
+        mapping.inputs['Location'].default_value = (-left * scale_u, -bottom * scale_v, 0.)
+        mapping.inputs['Scale'].default_value = (scale_u, scale_v, 1.)
+        for scan_slot in ('Normal', 'Roughness'):
+            texture = next(node for node in face_nodes if node.label == 'white_plaster_rough_01 ' + scan_slot)
+            source_uv = texture.inputs['Vector'].links[0].from_socket
+            if not mapping.inputs['Vector'].is_linked:
+                links.new(source_uv, mapping.inputs['Vector'])
+            links.new(mapping.outputs['Vector'], texture.inputs['Vector'])
+        panels[panel] = face
+    return panels
 
 
 def interior_plaster(obj, material, axis, sign, panel):
@@ -347,7 +376,7 @@ def interior_plaster(obj, material, axis, sign, panel):
     x, y, width, height = PLASTER_CELLS[panel]
     pad = PLASTER_GUTTER
     uv = obj.data.uv_layers['UVMap'].data
-    obj.data.materials.append(material)
+    obj.data.materials.append(material[panel])
     face.material_index = len(obj.data.materials) - 1
     for loop, vertex in zip(face.loop_indices, vertices):
         u = (vertex[horizontal] - left) / (right - left)
