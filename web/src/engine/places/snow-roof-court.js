@@ -7,6 +7,11 @@ export default function createWinterCourt(h) {
   const { THREE, V3 } = h;
   const pose = ({ position, look, fov }) => ({ pos: V3(...position), look: V3(...look), fov });
   const arrival = pose(site.walk.at(-1));
+  const settledDesktop = pose(site.views.burn);
+  // Keep the closest earlier lamp at the edge of the frame. The free cord
+  // and the doorway can still be read together in the settled view.
+  settledDesktop.look.x -= .24;
+  settledDesktop.fov = 36;
   function createWalk(start, _end, phone) {
     const stops = site.walk.map(row => ({ time: row.time, ...pose(row) }));
     stops[0].pos.copy(start.pos);
@@ -85,14 +90,14 @@ export default function createWinterCourt(h) {
     nook: {
       at: { pos: V3(0, 0, 0), ry: 0 }, lamp: 'gauze', y: 3.54,
       hangingPoint: site.visitorCord, exposure: 1.04, bloom: [.21, 1.22], dust: false,
-      gauzeGlow: { base: .18, reach: 8.5 },
+      gauzeGlow: { base: .48, reach: 7 },
       interior: { min: [site.hall.west, site.hall.floor, site.hall.rear],
         max: [site.hall.east, site.hall.eave, site.hall.front] },
       wide: arrival, widePhone: { ...arrival, fov: arrival.fov + 5 },
       choose: pose(site.views.choose),
       choosePhone: { pos: V3(-2, 3.65, -5.35), look: V3(...site.views.choose.look), fov: 54 },
       spread: pose(site.views.burn), spreadPhone: pose(site.views.burnPhone),
-      burn: pose(site.views.burn), burnPhone: pose(site.views.burnPhone),
+      burn: settledDesktop, burnPhone: pose(site.views.burnPhone),
       burnWalk: [V3(-1.87, 3.64, -5.14), V3(-2.05, 3.65, -6.5), V3(-1.78, 3.67, -7.59)],
       burnWalkPhone: [V3(-2.04, 3.6, -6.48), V3(-1.91, 3.64, -7.61)],
       build() {},
