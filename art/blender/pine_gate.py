@@ -2765,7 +2765,9 @@ def build(output, impostor_manifest=None, wax_sculpt=None):
         views, impostor_sha = load_impostors(impostor_manifest)
         if not {'young', 'ridge'} <= views.keys():
             raise ValueError('Pine Gate needs both the young and the ridge crown views.')
-        shoulder = next(shot for shot in route['waypoints'] if shot['time'] == 27.9)
+        # The shoulder is the route's last waypoint. It used to be the 27.9 s shot, which 2dfbe26
+        # removed as a duplicate of the final entry.
+        shoulder = route['waypoints'][-1]
         if has_verified_native_receipt(impostor_manifest, impostor_sha):
             native_mounts = {}
         far_crown = (Vector(shoulder['position']), views, native_mounts)

@@ -841,8 +841,11 @@ def hanging_wax_on_shelf_edge(locate):
     cover the tray the burning view is composed around."""
     wax = candle_wax('Cold wax run over the shelf lip', '#b3a68c', .66)
     # (a, c, radius, drop) in the shrine's own frame: front of the shelf is z = +.2345, its top y = 0.
-    for index, (a, c, radius, drop) in enumerate(((-.196, .214, .0130, .030),
-                                                  (.171, .219, .0110, .026))):
+    # Radius is half the run's width: 7.5-8.5 mm gives the 1.5-1.7 cm width an old spill has, with a
+    # 2.2-3.0 cm drop below the lip.
+    # The shelf's front lip is z = +.2345, so a run that has come over the edge centres on it.
+    for index, (a, c, radius, drop) in enumerate(((-.196, .232, .0085, .030),
+                                                  (.171, .233, .0075, .022))):
         # Keep the run cheap in the atlas: a short profile and twelve sides read as a set bead at the
         # distances the burning view uses. The profile runs from the lowest point upward, because the
         # lathe winds its quads outward only when the radii are walked in that direction; descending
@@ -852,12 +855,13 @@ def hanging_wax_on_shelf_edge(locate):
         x, y, z = locate(a, -.0034, c)
         drip = mesh.lathe(f'Old wax run over the shelf edge {index + 1}', profile, (x, y, z), wax, 12, 'niche')
         for vertex in drip.data.vertices:
-            dx, dz = vertex.co.x - x, -vertex.co.y - z
+            # Wobble the run's section only. The height axis must be left alone: writing it from the
+            # depth offset flattened the profile onto the pier face and read as a pale triangle.
+            dx, dz = vertex.co.x - x, vertex.co.z - z
             angle = math.atan2(dx, dz)
-            # Let the run wander a little as it set, rather than hanging as a symmetric bead.
             wobble = .16 * math.sin(angle * 3. + index * 2.1) + .09 * math.sin(angle * 5. - index)
             vertex.co.x = x + dx * (1. + wobble)
-            vertex.co.y = -z - dz * (1. + wobble)
+            vertex.co.z = z + dz * (1. + wobble)
         for face in drip.data.polygons:
             face.use_smooth = True
         # The shelf's own charts already own this corner of the atlas; the run gets no extra claim on it.
