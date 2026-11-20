@@ -40,6 +40,18 @@ def boot_relief(x, z, footprints):
     return depth, tread
 
 
+def swept_tint(x, z, across, seam, exposure, fade, tread):
+    """Leave a thin, uneven return of wind-packed snow over the swept grit."""
+    compacted = 1. - smoothrise(exposure - .12, exposure + .10, seam)
+    edge = smoothrise(.16, .33, across) * (1. - smoothrise(.40, .54, across))
+    tongue = .6 + .28 * math.sin(z * 1.59 + .7) + .12 * math.sin(z * 4.39)
+    compacted *= fade * (1. - .56 * edge * tongue)
+    toe = fade * smoothrise(.065, .42, tread)
+    grit = .046 * math.sin(x * 31.7 + z * 11.2) * math.sin(x * 18.4 - z * 12.2)
+    return tuple(1. - (1. - channel + grit) * compacted - .16 * toe
+                 for channel in (.45, .44, .40))
+
+
 def swept_ground(mesh, site, materials):
     """Build one court surface, including the thin snow left after sweeping."""
     court = site['court']
@@ -62,7 +74,7 @@ def swept_ground(mesh, site, materials):
                    .08, .15, .215, .28, .345, .44, .55, .71)
     far_cols = 21
     stride = 2 * far_cols + len(rim_offsets)
-    vertices, treatments, faces, finishes = [], [], [], []
+    vertices, colours, faces = [], [], []
     for row, z in enumerate(sorted(stations)):
         center = sweep_center(route, z)
         rim_bend = .043 * math.sin(z * 2.41) + .027 * math.cos(z * 6.92)
@@ -84,36 +96,32 @@ def swept_ground(mesh, site, materials):
             relief = .027 + drift * ridge - depth * fade
             relief += .005 * math.sin(x * 13.1 + z * 8.6) * math.sin(x * 7.0 - z * 10.2)
             vertices.append((x, level + max(.006, relief), z))
-            treatments.append((seam - exposure, fade, tread))
+            colours.append(swept_tint(x, z, across, seam, exposure, fade, tread))
             if row and column:
                 i = len(vertices) - 1
-                face = (i - stride - 1, i - 1, i, i - stride)
-                edge = sum(treatments[v][0] for v in face) / 4
-                active = min(treatments[v][1] for v in face)
-                footprint = max(treatments[v][2] for v in face)
-                if active > .73 and edge < -.055 and footprint < .23:
-                    finish = 1
-                elif active > .32 and edge < .18:
-                    finish = 2
-                else:
-                    finish = 0
                 # Use one explicit diagonal for source support and glTF replay.
                 # A warped snow quad can otherwise settle props on a different surface.
-                a, b, c, d = face
+                a, b, c, d = i - stride - 1, i - 1, i, i - stride
                 faces.extend(((a, b, c), (a, c, d)))
-                finishes.extend((finish, finish))
-    crushed = mesh.material('Snow compacted where the winter court is swept',
-                            '#b8c4cd', 'snow_004', .96)
+    surface = materials['snow'].copy()
+    surface.name = 'Wind-packed snow and swept mineral grit'
+    mesh.vertex_tint_shader(surface)
+    # Freeze this surface's authored field before the global pass for plaster
+    # and paint. The shader and ordinary COLOR_0 stream use the same layer.
+    del surface['one_light_surface_tint']
+    snow_factor = surface.get('one_light_vertex_base_tint', (1., 1., 1.))
     ground = mesh.mesh_object('Swept grit, buried prints and the connected snow court',
-                              vertices, faces, materials['snow'])
-    ground.data.materials.append(materials['granite'])
-    ground.data.materials.append(crushed)
+                              vertices, faces, surface)
     mesh.source_uv(ground, [[(vertices[i][0], vertices[i][2]) for i in face] for face in faces],
-                   'One continuous x/z chart through swept stone, boot impressions and snow edges.')
+                   'One continuous x/z chart through swept grit, boot impressions and snow edges.')
     mesh.uv_world(ground, 1.46)
-    for polygon, finish in zip(ground.data.polygons, finishes):
+    layer = ground.data.color_attributes.new(name='SurfaceTint', type='FLOAT_COLOR', domain='CORNER')
+    ground.data.color_attributes.active_color = layer
+    for polygon in ground.data.polygons:
         polygon.use_smooth = True
-        polygon.material_index = finish
+        for loop in polygon.loop_indices:
+            tint = colours[ground.data.loops[loop].vertex_index]
+            layer.data[loop].color = (*(a * b for a, b in zip(snow_factor, tint)), 1.)
     return ground
 
 
@@ -138,7 +146,7 @@ def side_aperture(mesh, label, x, z, z0, z1, level, eave, direction, wood, plast
 
 def winter_boards(mesh, label, coord, center, width, y0, y1, side, wood):
     rng = random.Random(913 if side else 781)
-    tints = ['#b0a296', '#877665', '#9f8f7a', '#806b5a']
+    tints = ['#c1b5a5', '#9e8c79', '#b2a28c', '#93816e']
     planks = [mesh.material('Reused winter board ' + str(i + 1), tint, 'weathered_planks', .94)
               for i, tint in enumerate(tints)]
     count = round(width / .175)

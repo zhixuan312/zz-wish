@@ -478,6 +478,9 @@ def hall(site, m, contact, fixtures):
          (-2.76, y + 1.24, -5.22), 4.1, '#f0c99c', 1.3)
     area('Pale courtyard snow reflects through the half-open doorway', (.29, y + .22, front + .39),
          (.06, y + 2.4, front - 2.26), 14.2, '#ccd8e1', .88)
+    for x, watts in ((-1.81, 20.4), (1.74, 17.5)):
+        area('Broad paper and floor bounce meets the inner face of the beam', (x, y + 1.62, front - 3.49),
+             (x * .78, y + 2.29, front - .18), watts, '#dfc09a', 1.26)
     # The kit and practical lamp share the guest-scale height rather than altar height.
     table = mesh.box('Table where visitors find frames and separate oil cups', (1.53, .10, .69),
                      (-2.35, y + .679, -5.42), m['wood'], .018)
@@ -494,6 +497,8 @@ def hall(site, m, contact, fixtures):
                      (0, y + .260, back + .87), m['granite'], .027)
     statue(0, y + .52, back + .91, m, contact, plinth)
     oil_lamp('Altar ordinary oil lamp', (.70, y + .52, back + 1.12), m, contact, plinth, 'hall', fixtures, .68)
+    area('Warm reflected light on the seated figure and worn plinth', (1.20, y + .99, back + 2.11),
+         (0, y + 1.19, back + .91), 5.4, '#e2c69b', .73)
 
 
 def reference_camera(name, position, look, fov):
@@ -555,6 +560,8 @@ def build(site, projection):
     fixtures = []
     gate(site, m, contact, fixtures)
     outbuildings(site, m, site['court'], court_surface, contact)
+    area('Blue snow bounce lights the winter-closed boards', (-2.91, site['court']['level'] + .16, 1.86),
+         (-5.49, site['court']['level'] + 1.14, -1.45), 12.3, '#cad4df', 1.38)
     everyday.broom(mesh, site, court_surface, contact, m)
     hall(site, m, contact, fixtures)
     basis = [site['visitorCord'][0], 3.54, site['visitorCord'][2]]
@@ -595,7 +602,8 @@ def main():
     output = args.output.resolve()
     output.parent.mkdir(parents=True, exist_ok=True)
     scene = bpy.context.scene
-    sources = (Path(__file__), Path(__file__).with_name('snow_court_approach.py'), SITE, PROJECTION)
+    sources = (Path(__file__), Path(everyday.__file__), Path(__file__).with_name('snow_court_approach.py'),
+               Path(__file__).with_name('snow_court_backdrop.py'), SITE, PROJECTION)
     scene['source_authoring_sha256'] = json.dumps({
         str(path.resolve().relative_to(ROOT)): sha256(path.read_bytes()).hexdigest() for path in sources
     })
