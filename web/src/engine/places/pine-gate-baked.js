@@ -14,6 +14,7 @@ import { dressAncientPineBark } from './pine-ancient-bark.js';
 import { dressPineCrestCloth } from './pine-crest-cloth.js';
 import { createWishCloth } from './pine-wish-cloth.js';
 import { createCandleSlots } from './pine-candle-slots.js';
+import { createMudPrints, PINE_PRINTS } from './pine-mud-prints.ts';
 import { blendInputsAt as pineBlendInputsAt } from './pine-day-parts.ts';
 import { dressPineWetTreads } from './pine-wet-treads.js';
 import { pineDaySunDirection, pineDaySunDiscEdges } from './pine-gate-sun.js';
@@ -124,6 +125,19 @@ export default function createPlace(h) {
       if (crest) {
         context.G.add(crest.group);
         context.disposers.push(crest.dispose);
+      }
+      // Wet mud prints on the last steps and the shoulder: decals snapped onto the real stone, so
+      // they follow each tread rather than floating. They add geometry only, no texture file.
+      // The steps are spread across several glTF meshes, not one; raycast the whole baked group and
+      // let each print find whichever stone is under it.
+      const stone = baked.group;
+      {
+        const mud = createMudPrints({ THREE, surface: stone, prints: PINE_PRINTS });
+        if (mud.count) {
+          context.G.add(mud.group);
+          if (import.meta.env.DEV) window.__pineMudPrints = () => mud.count;
+          context.disposers.push(mud.dispose);
+        }
       }
       const ridge = buildPineRidgeFascicles(baked.group);
       if (ridge) context.disposers.push(ridge.dispose);

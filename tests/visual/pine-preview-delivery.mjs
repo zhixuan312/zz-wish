@@ -196,6 +196,9 @@ export async function routePinePreview(page, base, preview, onError, onServed, w
   await page.route(url => url.origin === base.origin && url.pathname.startsWith(pinePackagePath), async route => {
     const url = new URL(route.request().url());
     const key = url.pathname.slice(pinePackagePath.length);
+    // The recorded ambience ships as ordinary static files beside the package, not inside it, so the
+    // preview route must let those through to the server instead of treating them as undeclared.
+    if (key.startsWith('sound/')) { await route.fallback(); return; }
     const asset = preview.assets.get(key);
     const version = url.searchParams.get('v');
     if (!asset || route.request().method() !== 'GET'
