@@ -7,7 +7,9 @@ import { startPreview } from './preview.mjs';
 import { cameraAudit, cameraPeaks, liveCameraAudit } from './camera-audit.mjs';
 
 const out = resolve(process.argv[2] ?? 'artifacts/bell-lane/round-1');
-const picks = process.argv.slice(3);
+const args = process.argv.slice(3);
+const treeReview = args.includes('--tree');
+const picks = args.filter(arg => arg !== '--tree');
 await mkdir(out, { recursive: true });
 const preview = await startPreview();
 let browser;
@@ -162,7 +164,7 @@ try {
         window.__pineRenderCamera?.position.z > 43);
       await page.waitForTimeout(430);
       await snap(page, directory, 'entrance');
-      const record = look === 'day';
+      const record = treeReview || look === 'day';
       await page.evaluate(record => {
         window.__startCameraTrace();
         if (record) window.__armBellLaneRecording();
@@ -192,6 +194,20 @@ try {
       assert.ok(soundRows.court[0].cutoffHz < 400);
       assert.ok(soundRows.court[0].doorGain < soundRows.eaves[0].doorGain * .45);
       const actual = await page.evaluate(() => window.__stopCameraTrace());
+      if (treeReview) {
+        const seated = await snap(page, directory, 'seated');
+        const tree = await page.evaluate(() => window.__bellTreeStats());
+        const opening = actual.filter(row => row.z <= 9.73 && row.z >= 6.05 && row.lz < row.z);
+        const fps = (opening.length - 1) / (opening.at(-1).t - opening[0].t);
+        await writeFile(join(directory, 'tree-review.json'), JSON.stringify({ tree, fps, opening, actual }, null, 2));
+        assert.ok(passing.landmark?.visible && seated.landmark?.visible);
+        assert.equal(passing.landmark.windowId, seated.landmark.windowId);
+        assert.equal(chooser.readyMade.windowCovered, false);
+        assert.equal(tree.meshes, 2);
+        assert.ok(tree.triangles < 6000);
+        console.log(name, 'captured', Math.round(fps), 'fps through the court reveal');
+        continue;
+      }
       const journey = mode === 'desktop' && look === 'day'
         ? await exerciseAudio(page) : undefined;
       const drawn = phone === (look === 'day');

@@ -1,8 +1,9 @@
 import { BELL, LAMP, TREE, TURN_SECONDS, WALK_SECONDS, WINDOW, bellLaneCameras } from './bell-lane-camera.js';
+import { addBellLaneTree } from './bell-lane-tree.js';
 
 // An invented neighbourhood temple: a lit shop lane, one low door, a tree and a small bell court.
 export default function createPlace(h) {
-  const { THREE, V3, M, ground, box, put, wallWithHoles, eave, col, otherLamp, trees,
+  const { THREE, V3, M, ground, box, put, wallWithHoles, eave, col, otherLamp,
     brickTex, plasterTex, grainTex, pavingTex, latticeTex, pauseBuild, lathe, liveFlame } = h;
   const cameras = bellLaneCameras(V3);
   const gateHalfWidth = 1.16;
@@ -144,30 +145,7 @@ export default function createPlace(h) {
       put(roof, h.roofMat(0x3b3d42), bellX, 3.02 + roofRise / 2, bellZ - roofDepth / 2);
       box(4.48, .13, .13, wood, bellX, 3.02 + roofRise, bellZ);
 
-      const [treeX, , treeZ] = TREE;
-      // The generic vegetation helper culls trees near the preview axis. This
-      // trunk is an authored landmark inside the court and belongs in the view.
-      const oldFree = C.free;
-      C.free = true;
-      const T = trees();
-      T.broad(treeX, .02, treeZ, 1.37, 0x40513a);
-      T.finish();
-      C.free = oldFree;
-      const bark = M(0x595047, .97, { map: grainTex });
-      const limb = (start, end, bottom, top) => {
-        const from = V3(treeX + start[0], start[1], treeZ + start[2]);
-        const to = V3(treeX + end[0], end[1], treeZ + end[2]);
-        const axis = to.clone().sub(from);
-        const segment = new THREE.CylinderGeometry(top, bottom, axis.length(), 10);
-        segment.applyQuaternion(new THREE.Quaternion().setFromUnitVectors(V3(0, 1, 0), axis.normalize()));
-        const mid = from.lerp(to, .5);
-        put(segment, bark, mid.x, mid.y, mid.z);
-      };
-      limb([0, .015, 0], [.05, 2.27, -.03], .36, .24);
-      limb([.05, 2.03, -.03], [-.55, 4.12, -.19], .20, .043);
-      limb([.05, 2.0, -.04], [.83, 3.89, -.23], .16, .039);
-      limb([.03, 1.85, -.03], [-.12, 3.86, .64], .16, .043);
-      for (const [x, z] of [[.66, .32], [-.59, .41], [.25, -.61]]) limb([0, .32, 0], [x, .037, z], .20, .051);
+      addBellLaneTree(h, TREE);
       box(1.18, .10, .38, stone, -2.54, .44, 2.22);
       for (const x of [-2.96, -2.12]) box(.19, .40, .28, wall, x, .20, 2.22);
       const courtFill = new THREE.PointLight(0xffc48a, 0, 13, 2);

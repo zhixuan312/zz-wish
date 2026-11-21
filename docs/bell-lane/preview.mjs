@@ -48,6 +48,13 @@ export async function startPreview() {
                   }, 'image/png');
                 }
               }
+              window.__bellTreeStats = () => {
+                const tree = outside.getObjectByName('Bell Lane old tree');
+                return {
+                  meshes: tree.children.length,
+                  triangles: tree.children.reduce((total, mesh) => total + mesh.geometry.index.count / 3, 0),
+                };
+              };
               window.__bellReviewWindow = () => {
                 const windowMesh = outside.getObjectByName('Bell Lane east shop window');
                 if (!windowMesh) return null;

@@ -60,6 +60,12 @@ Capture with `node docs/bell-lane/capture.mjs artifacts/bell-lane/round-1` while
 
 The phone lens opens from 61° to 72° between 24.1 and 27.1 s to keep the tree trunk and bell silhouette together on the narrow screen. The opening is eased and the camera finishes changing lens before the 29.5 s hold. The original captures preserve the narrower view for comparison.
 
+## Old tree detail
+
+The court tree follows the open structure of an old camphor. Its unequal forks taper to fine shoots. Clusters of folded leaf geometry leave sky visible between the branches. The trunk's root flares follow the same surface into the paving. The wood and leaves each use one static mesh, with 5,252 triangles total and no additional asset downloads.
+
+Run `node docs/bell-lane/capture.mjs <output-folder> --tree` under the GPU lease. The focused review records the normal walk and turn to the seat on both viewports by day and night. It saves the 26.3 s and 29.5 s frames, a camera trace, and the window sightline in the seated view.
+
 ## Remaining visual work
 
-The upper left canopy still reads as a straight edged dark mass when the phone looks up at the reveal. The exposed roots have blunt ends and need bark and taper detail. The current bell has a real lower opening and the broad lip reads in the silhouette, but eye level is above the mouth, which hides most of the inner cavity in the wide view. An underside detail and a less uniform wall treatment are useful comparisons during the next realism pass.
+The bell has a lower opening and a broad lip. Eye level hides most of the inner cavity in the wide view.
