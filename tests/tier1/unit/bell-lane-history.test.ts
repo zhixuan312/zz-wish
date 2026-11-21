@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import type { Candle } from '../../../web/src/api.ts';
-import { readBellLanePlacementHistory } from '../../../web/src/bellLaneHistory.ts';
+import { bellLanePlacedHistory, readBellLanePlacementHistory } from '../../../web/src/bellLaneHistory.ts';
 import { DEFAULT_COLOR, PRESET_SHAPES } from '../../../shared/rules.ts';
 
 const record = (id: string, status: Candle['status'], placeId: Candle['placeId'] = 'bell-lane'): Candle => ({
@@ -28,4 +28,15 @@ test('missing, stale and wrong-court active receipts cannot allocate a slot', ()
   ]) {
     expect(() => readBellLanePlacementHistory(history, 'active')).toThrow();
   }
+});
+
+
+test('a closed unlit run never occupies a rack address on retry or revisit', () => {
+  const cancelled = { ...record('cancelled', 'went_out'), burnedMs: 0 };
+  const placed = record('placed', 'went_out');
+  const finished = { ...record('exhausted', 'burned_down'), burnedMs: 600_000 };
+  const prior = [placed, cancelled, finished];
+  expect(bellLanePlacedHistory(prior).map(lamp => lamp.id)).toEqual(['placed', 'exhausted']);
+  expect(readBellLanePlacementHistory([record('retry', 'burning'), ...prior], 'retry'))
+    .toEqual(bellLanePlacedHistory(prior));
 });

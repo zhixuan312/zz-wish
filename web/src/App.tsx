@@ -4,8 +4,8 @@ import { placeById, type Locale, type PlaceId } from '../../shared/places.ts';
 import { DEFAULT_PLACE, VISIBLE_PLACES, isVisiblePlace } from './visiblePlaces.ts';
 import { COLORS, DEFAULT_COLOR, DEFAULT_MINUTES, MAX_MINUTES, MIN_MINUTES, PRESET_MINUTES, PRESET_SHAPES, isAllowedMinutes, shapeMinutes, sizedPreset, type Kind, type Shape } from '../../shared/rules.ts';
 import { remainingFuel } from '../../shared/wax.ts';
-import { api, ApiError, flushPendingEnds, type EndReason, type Stats } from './api.ts';
-import { readBellLanePlacementHistory } from './bellLaneHistory.ts';
+import { api, ApiError, reportEnd, type EndReason, type Stats } from './api.ts';
+import { bellLanePlacedHistory, readBellLanePlacementHistory } from './bellLaneHistory.ts';
 import { Burn, type Settlement } from './burn.ts';
 import { presence } from './presence.ts';
 import { DrawPad, rowsFromStrokes, type Pt } from './DrawPad.tsx';
@@ -118,7 +118,11 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
   const [wishId, setWishId] = useState<string | null>(null);
   const [placeId, setPlaceId] = useState<PlaceId>(DEFAULT_PLACE.id);
   const bellLaneSave = useRef<Settlement['saved'] | null>(null);
-  const bellLaneFailedSave = useRef<Settlement['saved'] | null>(null);
+  const bellLaneFailedSave = useRef<{
+    lampId: string;
+    saved: Settlement['saved'];
+    retry: () => Settlement['saved'];
+  } | null>(null);
   const place = placeById(placeId)!;
   const placeEyebrow = placeId === 'pine-gate' ? t.pinePlaceEyebrow : t.placeEyebrow;
   const placeLead = placeId === 'pine-gate' ? t.pinePlaceLead : t.placeLead;
@@ -244,14 +248,32 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
     if (!shape || !allowed || busy || burnRef.current) return;
     setLightError(null); setAskPutOut(false); setCaught(false); setControlsIdle(false);
     const lightPlace = placeId;
+    const failedSave = lightPlace === 'bell-lane' ? bellLaneFailedSave.current : null;
+    if (failedSave) {
+      setBusy(true);
+      try {
+        const closed = await failedSave.saved ?? await failedSave.retry();
+        if (closed?.id !== failedSave.lampId || closed.status === 'burning') {
+          setLightError(t.lightFailed);
+          return;
+        }
+        bellLaneFailedSave.current = null;
+        bellLaneSave.current = Promise.resolve(closed);
+      } catch {
+        setLightError(t.lightFailed);
+        return;
+      } finally { setBusy(false); }
+      if (screenRef.current !== 'candle' || placeRef.current !== lightPlace) return;
+    }
     const isWax = shape.kind === 'candle';
     const showsRemainingFuel = isWax || lightPlace === 'bell-lane';
-    let rackFailed = false;
+    let unlitLampId: string | null = null;
     const b = new Burn(minutes! * 60_000, (s: Settlement) => {
       burnRef.current = null;
       if (lightPlace === 'bell-lane') bellLaneSave.current = s.saved;
-      if (rackFailed) {
-        bellLaneFailedSave.current = s.saved;
+      if (unlitLampId) {
+        const end = { candleId: unlitLampId, runId: b.runId, reason: s.reason, burnedMs: s.burnedMs };
+        bellLaneFailedSave.current = { lampId: unlitLampId, saved: s.saved, retry: () => reportEnd(end) };
         setScreen('candle');
         setLightError(t.lightFailed);
         return;
@@ -277,15 +299,10 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
     setShowLeft(false);
     if (lightPlace !== 'bell-lane') { sound.prepare(); sound.start(lightPlace); }
     try {
-      if (lightPlace === 'bell-lane' && bellLaneFailedSave.current) {
-        if (!await bellLaneFailedSave.current) await flushPendingEnds();
-        if (b.isSettled) return;
-      }
       const c = await api.light({ runId: b.runId, placeId: lightPlace, shape, ...(wishId ? { wishId } : { wishText: wish.trim() }) });
       setWishId(c.wishId);
       b.confirm(c);
       if (lightPlace === 'bell-lane') {
-        bellLaneFailedSave.current = null;
         if (!b.isSettled) {
           try {
             // The active record proves this is the private history for this run.
@@ -294,8 +311,8 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
             // The server has created the lamp. End that exact run through the
             // existing saved-end queue before letting the visitor try again.
             if (!b.isSettled) {
-              rackFailed = true;
-              b.settle('put_out');
+              unlitLampId = c.id;
+              b.cancelUnlit();
             }
             return;
           }
@@ -346,7 +363,7 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
       return;
     }
     const previous = activeId ? readBellLanePlacementHistory(candles, activeId) :
-      candles.flatMap(c => c.placeId !== id || c.status === 'burning' ? [] : [{
+      id === 'bell-lane' ? bellLanePlacedHistory(candles) : candles.flatMap(c => c.placeId !== id || c.status === 'burning' ? [] : [{
         id: c.id, shape: c.shape, status: c.status,
         remaining: remainingFuel(c.burnedMs, c.durationMs),
       }]);

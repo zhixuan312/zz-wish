@@ -55,9 +55,11 @@ export class Burn {
   private onVisibility = () => { if (document.visibilityState === 'hidden') this.settle('left'); };
   private onLeave = () => this.settle('left');
 
-  settle(reason: EndReason) {
+  /** End a confirmed run whose lamp never caught. */
+  cancelUnlit() { this.settle('put_out', 0); }
+
+  settle(reason: EndReason, burnedMs = this.elapsed()) {
     if (this.settled || !this.active) return;
-    const burnedMs = this.elapsed();
     const done = burnedMs >= this.durationMs;
     this.settled = { reason: done ? 'complete' : reason, burnedMs };
     this.detach();
