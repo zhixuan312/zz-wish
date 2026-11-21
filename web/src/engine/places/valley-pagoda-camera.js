@@ -8,39 +8,50 @@ export const GATE_Z = 18;
 
 // The procedural runtime adds a 2.4 second settle after the route.
 export const WALK_SECONDS = 27.6;
+export const REVEAL_HOLD_SECONDS = 2.05;
+const WALK_RAMP_SECONDS = .65;
 
 export const FOREGROUND_PINES = [
-  [-3.4, 24.5, 1.07], [3.4, 24.0, 1.06],
+  [-3.4, 21.85, 1.07], [3.4, 21.5, 1.06],
   [-2.55, 20.65, .92], [4.8, 19.6, 1.26],
   [-3.5, 14.8, 1.12], [4.9, 13.3, 1.05],
   [-3.15, 7.65, 1.17], [3.7, 7.9, .82],
   [-6.1, 2.3, 1.24], [8.6, -4.9, 1.21],
 ];
 
-// Seconds, world eye position, yaw toward +X from north, and pitch.
+// World eye position, yaw toward +X from north, and pitch.
 const ROUTE = [
-  [0, [-.85, 1.66, 27.6], 2, 6],
-  [.25, [-.85, 1.66, 27.6], 2, 6],
-  [1.5, [-.78, 1.66, 26.55], 1, 6],
-  [4.3, [-.41, 1.66, 22.25], 1, 1],
-  [6.8, [0, 1.66, 18], 0, 1],
-  [8, [.07, 1.66, 15.9], 0, 4],
-  [10.5, [.22, 1.66, 11.4], -1, 12],
-  [13.3, [.7, 1.66, 6.3], 10, 1],
-  [15.3, [1.44, 1.66, 2.75], 16, -3],
-  [16.7, [2.1, 1.66, .35], 9, -2],
-  [19.6, [3.83, 1.66, -4.95], -31, 0],
-  [20.8, [4.07, 1.66, -7.18], -36, -3],
-  [22.2, [4.2, 1.66, -9.6], -33, -5],
-  [24.4, [4.8, 1.66, -13.4], -2, 0],
-  [26.5, [5.9, 1.66, -16.65], 26, -4],
+  [[-.75, 1.66, 23.7], 2, 8],
+  [[-.41, 1.66, 21.15], 1, 1],
+  [[0, 1.66, 18], 0, 1],
+  [[.07, 1.66, 15.9], 0, 4],
+  [[.22, 1.66, 11.4], -1, 12],
+  [[.7, 1.66, 6.3], 10, 1],
+  [[1.44, 1.66, 2.75], 16, -3],
+  [[2.1, 1.66, .35], 9, -2],
+  [[3.83, 1.66, -4.95], -31, 0],
+  [[4.07, 1.66, -7.18], -36, -3],
+  [[4.2, 1.66, -9.6], -33, -5],
+  [[4.8, 1.66, -13.4], -2, 0],
+  [[5.9, 1.66, -16.65], 19, -4],
+  [[6.34, 1.48, -17.62], 19, -9],
 ];
+
+function distanceFraction(seconds) {
+  const moveSeconds = WALK_SECONDS - REVEAL_HOLD_SECONDS;
+  const ramp = WALK_RAMP_SECONDS;
+  const time = Math.min(seconds, moveSeconds);
+  const duration = moveSeconds - ramp;
+  if (time < ramp) return time * time / (2 * ramp * duration);
+  if (time > moveSeconds - ramp) return 1 - (moveSeconds - time) ** 2 / (2 * ramp * duration);
+  return (time - ramp / 2) / duration;
+}
 
 const RADIANS = Math.PI / 180;
 const PHONE_PULLBACK = 1.45;
 const PHONE_CHOOSER_DIP = .10;
 
-export function createValleyPagodaCamera(V3) {
+export function createValleyPagodaCamera(THREE, V3) {
   const table = V3(...TABLE_CENTER);
   const pose = (position, yaw, pitch, fov, distance = 1.75) => {
     const pos = V3(...position);
@@ -58,10 +69,11 @@ export function createValleyPagodaCamera(V3) {
     };
   };
 
-  const wide = pose([6.34, 1.48, -17.62], 26, -9, 50);
-  const widePhone = pose([6.34, 1.48, -17.62], 26, -9, 45);
+  const walkFov = phone => phone ? 45 : 50;
+  const wide = pose(...ROUTE.at(-1), walkFov(false));
+  const widePhone = pose(...ROUTE.at(-1), walkFov(true));
   const choose = pose([6.68, .86, -18.06], 24, -17, 48);
-  const choosePhone = pose([6.68, .81, -18.06], 24, -23, 44);
+  const choosePhone = pose([6.78, .81, -18.06], 19, -18, 44);
 
   // Convert world poses to nook coordinates. The existing narrow-screen
   // transform pulls the eye away from its aim and dips the chooser's aim.
@@ -81,28 +93,30 @@ export function createValleyPagodaCamera(V3) {
     return { pos: pos.sub(table), look: look.sub(table), fov: view.fov };
   };
 
-  const walkRows = [
-    ...ROUTE,
-    [27.25, wide.pos.toArray(), 26, -9],
-    [WALK_SECONDS, wide.pos.toArray(), 26, -9],
-  ];
-  const times = walkRows.map(([seconds]) => seconds);
-  const positionAt = hermiteTrack(times, walkRows.map(([, position]) => position));
-  const directionAt = hermiteTrack(times, walkRows.map(([, , yaw, pitch]) => [yaw, pitch]));
-  const walkFov = phone => phone ? 45 : 50;
+  // Sample by metres instead of keyframe time to keep the same walking pace
+  // around the tower as on the straight parts of the path.
+  const curve = new THREE.CatmullRomCurve3(ROUTE.map(([position]) => V3(...position)));
+  const samplesPerSegment = 64;
+  curve.arcLengthDivisions = (ROUTE.length - 1) * samplesPerSegment;
+  const lengths = curve.getLengths();
+  const totalLength = lengths.at(-1);
+  const directionAt = hermiteTrack(
+    ROUTE.map((_, i) => lengths[i * samplesPerSegment] / totalLength),
+    ROUTE.map(([, yaw, pitch]) => [yaw, pitch]),
+  );
 
   return {
-    view: pose(ROUTE[0][1], ...ROUTE[0].slice(2), walkFov(false)),
-    viewPhone: pose(ROUTE[0][1], ...ROUTE[0].slice(2), walkFov(true)),
+    view: pose(...ROUTE[0], walkFov(false)),
+    viewPhone: pose(...ROUTE[0], walkFov(true)),
     wide: nookPose(wide),
     widePhone: nookPose(widePhone, true),
     choose: nookPose(choose),
     choosePhone: nookPose(choosePhone, true, true),
     createWalk(_start, _end, phone) {
       return (progress, rig) => {
-        const seconds = progress * WALK_SECONDS;
-        const [yaw, pitch] = directionAt(seconds);
-        const view = pose(positionAt(seconds), yaw, pitch, walkFov(phone));
+        const distance = distanceFraction(progress * WALK_SECONDS);
+        const [yaw, pitch] = directionAt(distance);
+        const view = pose(curve.getPointAt(distance).toArray(), yaw, pitch, walkFov(phone));
         rig.pos.copy(view.pos);
         rig.look.copy(view.look);
         rig.fov = view.fov;

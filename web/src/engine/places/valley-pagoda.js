@@ -6,7 +6,7 @@ import {
 
 export default function createPlace(h) {
   const { THREE, V3, M, ground, water, box, put, wallWithHoles, eave, trees, rock, peak, mist, otherLamp, pavingTex, brickTex, grainTex, pauseBuild } = h;
-  const cameras = createValleyPagodaCamera(V3);
+  const cameras = createValleyPagodaCamera(THREE, V3);
   const [tableX, , tableZ] = TABLE_CENTER;
   const towerZ = TOWER_CENTER[2];
 
