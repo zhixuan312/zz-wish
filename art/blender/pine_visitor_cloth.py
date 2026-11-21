@@ -186,6 +186,18 @@ def simulate(scene, obj, pins, colliders):
         for vertex in obstacle.data.vertices:
             vertex.co /= SCALE
         obstacle.modifiers.clear()
+    # The solver lets a free tail ride out past its authored control path by a few millimetres, which
+    # is enough to lay fabric back over the shelf. Hold the settled surface to the same limit as the
+    # path: 3.0 cm past the widest part of the tray wall, which is the tail the world bible allows.
+    limit = .088
+    overhang = 0.
+    for vertex in obj.data.vertices:
+        radius = math.hypot(vertex.co.x, vertex.co.y)
+        if radius > limit:
+            scale = limit / radius
+            vertex.co.x *= scale
+            vertex.co.y *= scale
+            overhang = max(overhang, radius)
     heights = [vertex.co.z for vertex in obj.data.vertices]
     clearance = min(math.hypot(vertex.co.x, vertex.co.y) - radius_at(vertex.co.z)
                     for vertex in obj.data.vertices)
@@ -193,7 +205,10 @@ def simulate(scene, obj, pins, colliders):
         raise RuntimeError(f'Cloth simulation entered stone or bowl: {min(heights):.6f}, {clearance:.6f} m')
     return {'simulationFrames': 32, 'minimumFloorGapMm': 1000 * min(heights),
             'minimumTraySeparationMm': 1000 * clearance, 'widthMm': WIDTH * 1000,
-            'vertices': len(obj.data.vertices)}
+            'vertices': len(obj.data.vertices),
+            'tailLimitRadiusMm': 1000 * limit,
+            'settledTailPastWallMm': 1000 * (limit - .058),
+            'preClampOverhangRadiusMm': 1000 * overhang}
 
 
 def weave_texture(path):
