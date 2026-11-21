@@ -18,8 +18,13 @@ import { CAMERA_LIMITS, cameraPathViolations, measureCameraPath } from './pine-c
 const require = createRequire(import.meta.url);
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const quick = process.argv.includes('--quick');
-const out = join(root, quick ? 'artifacts/cloud-cliff-route-r3-quick' : 'artifacts/cloud-cliff-route-r3');
-const baseline = { commit: 'bf25422', dir: join(root, 'artifacts/cloud-cliff-route-r2') };
+const out = join(root, quick ? 'artifacts/cloud-cliff-route-r4-quick' : 'artifacts/cloud-cliff-route-r4');
+const baseline = {
+  commit: '76e11d7',
+  evidenceDirectory: 'artifacts/cloud-cliff-route-r3',
+  reportSha256: '13ee97a535655309386927fcc40386a2a9b01fe1b45f8c46e6efd529755b201c',
+};
+const baselineDir = join(root, baseline.evidenceDirectory);
 const routeUrl = '/web/src/engine/places/cloud-cliff-route.js';
 const gorgeUrl = '/web/src/engine/places/cloud-cliff-gorge.js';
 const worldUrl = '/places/cloud-cliff/';
@@ -32,6 +37,7 @@ const beats = [
   [26, 'valley-reveal'],
   [30, 'grounded-hold'],
 ];
+const comparisonBeats = [[26, 'valley reveal'], [30, 'lantern rest']];
 const views = [
   { name: 'desktop', phone: false, width: 1440, height: 900 },
   { name: 'phone', phone: true, width: 390, height: 844 },
@@ -278,7 +284,7 @@ async function serveFixture() {
       assert.match(file, /^(desktop|phone)-(day|night)-[0-9]{2}-[a-z-]+\.png$/);
       assert.ok(from === 'current' || from === 'baseline');
       const path = `/evidence/${from}/${file}`;
-      assets.set(path, [join(from === 'baseline' ? baseline.dir : out, file), 'image/png']);
+      assets.set(path, [join(from === 'baseline' ? baselineDir : out, file), 'image/png']);
       return path;
     },
     close: () => new Promise((resolveClose, reject) => {
@@ -309,15 +315,27 @@ function cropAtBeat({ width, height }, seconds, pose) {
 }
 
 async function readBaseline() {
-  const report = JSON.parse(await readFile(join(baseline.dir, 'report.json'), 'utf8'));
+  const reportBytes = await readFile(join(baselineDir, 'report.json'));
+  assert.equal(hash(reportBytes), baseline.reportSha256, `baseline report changed since ${baseline.commit}`);
+  const report = JSON.parse(reportBytes);
+  assert.equal(report.mode, 'full');
   const receipts = await Promise.all(views.flatMap(view => looks.map(async look => {
     const context = report.receipts.find(row => row.view.name === view.name && row.look === look.name);
-    const image = context?.images.find(frame => frame.pose.t === 26);
-    assert.ok(image, `baseline ${view.name} ${look.clock}: missing 26 s reference`);
-    assert.deepEqual([image.width, image.height], [view.width, view.height]);
-    const sha256 = hash(await readFile(join(baseline.dir, image.file)));
-    assert.equal(sha256, image.sha256, `baseline ${image.file}: image changed`);
-    return [`${view.name}-${look.name}`, { file: image.file, sha256 }];
+    assert.equal(context?.clock, look.clock, `baseline ${view.name}: wrong lighting preset`);
+    const frames = await Promise.all(comparisonBeats.map(async ([seconds]) => {
+      const image = context.images.find(frame => frame.pose.t === seconds);
+      assert.ok(image?.crop, `baseline ${view.name} ${look.clock}: missing ${seconds} s frame or crop`);
+      assert.deepEqual([image.width, image.height], [view.width, view.height]);
+      assert.equal(image.crop.scale, 1);
+      for (const { file, width, height, sha256 } of [image, image.crop]) {
+        const bytes = await readFile(join(baselineDir, file));
+        assert.equal(hash(bytes), sha256, `baseline ${file}: image changed`);
+        assert.deepEqual([bytes.readUInt32BE(16), bytes.readUInt32BE(20)], [width, height], file);
+      }
+      const { file, width, height, sha256, crop } = image;
+      return [seconds, { file, width, height, sha256, crop }];
+    }));
+    return [`${view.name}-${look.name}`, Object.fromEntries(frames)];
   })));
   return Object.fromEntries(receipts);
 }
@@ -538,7 +556,8 @@ async function capture() {
   const server = await serveFixture();
   let browser;
   const receipts = [];
-  let browserVersion, sheet, comparisonSheet;
+  let browserVersion, sheet;
+  const comparisonSheets = {};
   try {
     browser = await chromium.launch({
       channel: 'chrome',
@@ -577,7 +596,10 @@ async function capture() {
             const image = await screenshot(tab, `${name}.png`);
             assert.equal(image.width, view.width);
             assert.equal(image.height, view.height);
-            const clip = seconds >= 22 ? cropAtBeat(view, seconds, pose) : null;
+            const beforeCrop = beforeFrames[captureStart][seconds]?.crop;
+            const clip = beforeCrop
+              ? { x: beforeCrop.originPx[0], y: beforeCrop.originPx[1], width: beforeCrop.width, height: beforeCrop.height }
+              : seconds >= 22 ? cropAtBeat(view, seconds, pose) : null;
             const crop = clip ? await screenshot(tab, `${name}-crop.png`, clip) : null;
             if (crop) assert.deepEqual([crop.width, crop.height], [clip.width, clip.height]);
             images.push({ ...image, crop: crop && { ...crop, originPx: [clip.x, clip.y], scale: 1 }, pose });
@@ -603,18 +625,29 @@ async function capture() {
       headers: beats.map(([t], i) => `${t} s · ${labels[i]}`), rows: receipts,
       file: 'contact-sheet.png', width: 1660, height: 1000,
     });
-    comparisonSheet = await drawSheet(browser, server, {
-      title: 'Cloud Cliff Court · 26 s reveal',
-      note: 'Matched walk beat, viewport and lighting preset',
-      headers: [`Before · ${baseline.commit}`, 'Joined gorge · current'],
-      rows: receipts.map(({ view, look, clock, images }) => ({
-        view, clock, images: [
-          { ...beforeFrames[`${view.name}-${look}`], from: 'baseline' },
-          images.find(({ pose }) => pose.t === 26),
-        ],
-      })),
-      file: 'comparison-26s.png', width: 1240, height: 1240, imageHeight: 265,
-    });
+    for (const [seconds, label] of comparisonBeats) {
+      const rows = receipts.map(({ view, look, clock, images }) => {
+        const before = beforeFrames[`${view.name}-${look}`][seconds];
+        const after = images.find(({ pose }) => pose.t === seconds);
+        return { view, clock, images: [{ ...before, from: 'baseline' }, after] };
+      });
+      const comparison = await drawSheet(browser, server, {
+        title: `Cloud Cliff Court · ${seconds} s ${label}`,
+        note: 'Matched walk beat, viewport and lighting preset',
+        headers: [`Before · ${baseline.commit}`, 'Round 4 · current'],
+        rows,
+        file: `comparison-${seconds}s.png`, width: 1240, height: 1240, imageHeight: 265,
+      });
+      comparisonSheets[seconds] = {
+        ...comparison,
+        pairs: rows.map(({ view, clock, images: [before, after] }) => ({
+          view: view.name,
+          clock,
+          before: { file: before.file, sha256: before.sha256, crop: before.crop },
+          after: { file: after.file, sha256: after.sha256, crop: after.crop },
+        })),
+      };
+    }
   } finally {
     try {
       await browser?.close();
@@ -635,8 +668,8 @@ async function capture() {
     scope: 'Private engine fixture. 13:00 and 22:00 are fixed lighting presets. The original Home cover is a reference from its own viewpoint.',
     terrain: 'The near bank, valley floor and far bank must stay visible continuously around the 26 s beat while the lantern bounds remain outside the frame and the lantern is occluded or outside the view.',
     clips: 'Full captures record the rendered WebGL canvas during the same normal playback that produces the trace, from about 23 seconds through the 30-second hold.',
-    sitePlan: 'site-plan.svg', contactSheet: sheet, comparisonSheet,
-    baseline: { commit: baseline.commit, evidenceDirectory: 'artifacts/cloud-cliff-route-r2', frames: beforeFrames },
+    sitePlan: 'site-plan.svg', contactSheet: sheet, comparisonSheets,
+    baseline: { ...baseline, frames: beforeFrames },
     clearance: 'Runtime wall clearance measures nearest wall or spur triangle; floor clearance is the downward ray distance. Platform edge is a signed plan distance.',
     planned, receipts,
   };
@@ -676,6 +709,7 @@ async function capture() {
 
 if (process.argv.includes('--check')) {
   checkRevealContract();
+  if (process.argv.includes('--check-baseline')) await readBaseline();
   console.log(JSON.stringify(checkRoute(), null, 2));
 } else if (process.argv.includes('--serve')) {
   const server = await serveFixture();
