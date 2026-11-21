@@ -90,7 +90,7 @@ export function sampleCloudCliffRoute(seconds, phone = false) {
 
 const bandNoise = (a, b) => Math.sin(a * 12.9898 + b * 78.233) * .5 + .5;
 
-function addRock(THREE, parent, polygon, heights, depths, palette, inset, surface) {
+function addRock(THREE, parent, polygon, heights, depths, palette, inset, surface, capSurface = true) {
   const positions = [], colours = [], uvs = [];
   const bands = depths.map((depth, row) => polygon.map(([x, z], i) => {
     const jitter = row === 0 ? 0 : (bandNoise(i, row) - .5) * inset;
@@ -123,10 +123,12 @@ function addRock(THREE, parent, polygon, heights, depths, palette, inset, surfac
     }
   }
 
-  const cap = heights ? bands.at(-1) : bands[0];
-  const outline = cap.map(([x, , z]) => new THREE.Vector2(x, z));
-  for (const [a, b, c] of THREE.ShapeUtils.triangulateShape(outline, [])) {
-    face(cap[a], cap[b], cap[c], palette[0], .93 + .16 * bandNoise(a, b));
+  if (capSurface) {
+    const cap = heights ? bands.at(-1) : bands[0];
+    const outline = cap.map(([x, , z]) => new THREE.Vector2(x, z));
+    for (const [a, b, c] of THREE.ShapeUtils.triangulateShape(outline, [])) {
+      face(cap[a], cap[b], cap[c], palette[0], .93 + .16 * bandNoise(a, b));
+    }
   }
   const geometry = new THREE.BufferGeometry();
   geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
@@ -251,6 +253,10 @@ function stageRock(THREE, scene, rock, pavers) {
     [0xa49d8e, 0x9b988f, 0xa69f93, 0xada696, 0xaeab9e, 0xa19b8a], .17, rock);
   const outerBank = [[-18, 12.5], [-9, 13.4], [2, 12.75], [8.8, 13.4], [14, 13.9], [16, 9.8],
     [19, 7.8], [24, 10.6], [44, 13], [48, 37], [-18, 28]];
+  // The bank extends beyond the platform. Carry its footing below the rim
+  // into the valley mesh so the side of the approach has no air gap.
+  addRock(THREE, scene, outerBank, null, [0, -3, -10, -26, -74],
+    [0x989187, 0xa19a90, 0x898177], .12, rock, false);
   addRock(THREE, scene, outerBank, [4, 3.1, 3.5, 2.4, 3.3, 4.8, 5.1, 7.3, 10, 9.6, 4.5],
     [0, .22, .48, .74, 1], [0xa39c90, 0xa89f92, 0x969088], .13, rock);
   addWornPath(THREE, scene, pavers);
