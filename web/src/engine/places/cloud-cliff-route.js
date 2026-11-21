@@ -13,11 +13,13 @@ export const ROUTE_WALL = [
   [-17, 6.75],
 ];
 export const ROUTE_LANTERN = [11.77, 1.34, 2.25];
+const SPUR = [[11, 2.81], [11.44, 2.8], [11.68, 2.88], [11.76, 3.02],
+  [11.55, 3.13], [11.05, 3.12], [10.91, 3.04]];
 
 const PATH = [
   [0, -14, 9.6], [3, -12.3, 9.6], [12, -3.15, 9.55], [19, 3.9, 9.45],
-  [22, 6.7, 9.3], [24, 8.8, 8.55], [26, 10.45, 5.9], [28.5, 10.75, 3.9],
-  [ROUTE_DURATION, 10.75, 3.9],
+  [22, 6.7, 9.3], [24, 8.8, 8.55], [26, 10.45, 5.9], [27.1, 10.76, 5.13], [28.65, 11.95, 4.23],
+  [ROUTE_DURATION, 11.95, 4.23],
 ];
 const ROCK_HEIGHTS = [7.5, 8.3, 7.7, 7.1, 6.7, 6.1, 5.7, 5.4, 5.8, 6.1, 6.65, 6.9, 7.6, 7.5, 8.1, 7.6, 7.7];
 const WALK_FOV = 51;
@@ -45,9 +47,9 @@ function smoothRange(start, end, value) {
 }
 
 function lookYaw(t, phone) {
-  const open = phone ? -13.5 : -20.5;
+  const open = phone ? -13.5 : -24.5;
   const keys = [[0, 70, 0], [12, 71, 0], [17, 65, -3], [22, phone ? 34 : 26, -12],
-    [25.3, open, 0], [27.27, open, 0], [ROUTE_DURATION, phone ? 31 : 15, 0]];
+    [25.3, open, 0], [27.27, open, 0], [ROUTE_DURATION, -5, 0]];
   const i = keys.findIndex(([time]) => time >= t);
   if (i === 0) return keys[0][1] * Math.PI / 180;
   const [ta, a, da] = keys[i - 1], [tb, b, db] = keys[i];
@@ -85,7 +87,7 @@ export function sampleCloudCliffRoute(seconds, phone = false) {
     lz: z - Math.cos(yaw) * horizontal,
     fov: WALK_FOV,
     floorClearance: y,
-    wallClearance: -boundaryDistance(ROUTE_WALL, x, z),
+    wallClearance: Math.min(-boundaryDistance(ROUTE_WALL, x, z), -boundaryDistance(SPUR, x, z)),
     edgeClearance: boundaryDistance(ROUTE_FLOOR, x, z),
   };
 }
@@ -199,6 +201,8 @@ function stageRock(THREE, scene, rock, pavers) {
     [0x989187, 0xa19a90, 0x898177], .12, rock, false);
   const outer = addRock(THREE, scene, outerBank, [4, 3.1, 3.5, 2.4, 3.3, 4.8, 5.1, 7.3, 10, 9.6, 4.5],
     [0, .22, .48, .74, 1], [0xa39c90, 0xa89f92, 0x969088], .13, rock);
+  const spur = addRock(THREE, scene, SPUR, [2.45, 2.4, 2.44, 2.33, 2.34, 2.3, 2.35],
+    [0, .3, .55, .75, 1], [0xa49d8e, 0x9b988f, 0xa69f93, 0xada696], .06, rock);
   addWornPath(THREE, scene, pavers);
 
   const [x, y, z] = ROUTE_LANTERN;
@@ -212,7 +216,7 @@ function stageRock(THREE, scene, rock, pavers) {
   scene.add(seat);
   addContactShade(THREE, scene, x, seatTop, z);
   const gorge = addCloudCliffGorge(THREE, scene, rock);
-  return { floor, wall, outer, gorge };
+  return { floor, wall, outer, spur, gorge };
 }
 
 function addContactShade(THREE, scene, x, y, z) {
@@ -409,7 +413,7 @@ export async function mountCloudCliffRoute({ mount, phone = false, night = false
     scannedSurface(THREE, 'stone_pavers'),
     loadLantern(scene, loader).finally(() => ktx.dispose()),
   ]);
-  const { floor, wall, outer, gorge } = stageRock(THREE, scene, rock, pavers);
+  const { floor, wall, outer, spur, gorge } = stageRock(THREE, scene, rock, pavers);
   const catchGroup = addCatch(THREE, scene);
   setLighting(THREE, scene, night);
   lightLantern(THREE, renderer, scene, lantern, catchGroup, night);
@@ -419,10 +423,15 @@ export async function mountCloudCliffRoute({ mount, phone = false, night = false
   const down = new THREE.Vector3(0, -1, 0);
   const targets = Object.fromEntries(Object.entries(GORGE_PROBES).map(([name, [d, side]]) =>
     [name, new THREE.Vector3(...gorge.pointAt(d, side))]));
-  const terrainOccluders = [wall, floor, outer];
-  const triangles = meshTriangles(THREE, wall);
+  const terrainOccluders = [wall, floor, outer, spur];
+  const triangles = [...meshTriangles(THREE, wall), ...meshTriangles(THREE, spur)];
   const lanternBounds = visibleBounds(THREE, lantern, catchGroup);
   const station = new THREE.Vector3(...ROUTE_LANTERN);
+  const [min, max] = [lanternBounds.min, lanternBounds.max];
+  const lanternProbes = [
+    [min.x, station.y, max.z], [max.x, station.y, max.z], [station.x, min.y, max.z],
+    [min.x, max.y, station.z], [max.x, max.y, station.z], [station.x, max.y, max.z],
+  ].map(point => new THREE.Vector3(...point)).concat(station);
   const viewSize = new THREE.Vector2();
   const projected = new THREE.Vector3(), closest = new THREE.Vector3();
   const frustum = new THREE.Frustum(), viewProjection = new THREE.Matrix4();
@@ -463,7 +472,9 @@ export async function mountCloudCliffRoute({ mount, phone = false, night = false
     frustum.setFromProjectionMatrix(viewProjection.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse));
     renderer.getSize(viewSize);
     const lanternInFrame = frustum.intersectsBox(lanternBounds);
-    const lanternVisible = lanternInFrame && !wallBetween(raycaster, camera.position, station, wall);
+    const lanternVisible = lanternInFrame && lanternProbes.some(point => inFrame(point)
+      && !wallBetween(raycaster, camera.position, point, wall)
+      && !wallBetween(raycaster, camera.position, point, spur));
     const anchor = projected.copy(station).project(camera);
     return {
       ...row,

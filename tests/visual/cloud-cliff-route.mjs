@@ -360,7 +360,7 @@ function continuousReveal(rows) {
   let current = null;
   for (const row of window) {
     const supported = Number.isFinite(row.floorClearance) && Number.isFinite(row.wallClearance);
-    const visible = gorgeInFrame(row) && row.lanternInFrame === false;
+    const visible = gorgeInFrame(row) && row.lanternVisible === false;
     if (!supported || !visible) {
       current = null;
       continue;
@@ -526,7 +526,7 @@ async function capture() {
     terrain: 'The reveal identifies the near bank, valley floor and far bank separately. Each must stay visible continuously at the 26 s beat before the lantern enters frame.',
     sitePlan: 'site-plan.svg', contactSheet: sheet, comparisonSheet,
     baseline: { commit: baseline.commit, evidenceDirectory: 'artifacts/cloud-cliff-route-r2', frames: beforeFrames },
-    clearance: 'Runtime wall clearance measures nearest wall triangle; floor clearance is the downward ray distance. Platform edge is a signed plan distance.',
+    clearance: 'Runtime wall clearance measures nearest wall or spur triangle; floor clearance is the downward ray distance. Platform edge is a signed plan distance.',
     planned, receipts,
   };
   await writeFile(join(out, 'report.json'), JSON.stringify(report, null, 2) + '\n');
