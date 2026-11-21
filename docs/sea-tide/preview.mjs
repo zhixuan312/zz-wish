@@ -206,7 +206,53 @@ const matchedPoseScript = `
     }));
   };`;
 
-export async function startPreview({ tideWorldSource, matchedPose = false, includeDriftControl = false } = {}) {
+const lampPairScript = `
+  let tidePairPower;
+  window.__tideCaptureLampState = ({ cameraPose, animationSecond, on }) => {
+    if (place?.id !== 'sea-tide' || phase !== 'burning' || !mine.g.visible || !lit) {
+      throw new Error('Matched lamp shots require a settled, lit Tide Temple journey.');
+    }
+    tidePairPower ??= mine.power;
+    if (tidePairPower <= .02) throw new Error('The initial Tide flame has no power.');
+    window.__visualFreezeCamera = true;
+    window.__freezeScene = true;
+    window.__tideLampVisualSecond = animationSecond;
+    rig.amp = 0;
+    rig.pos.fromArray(cameraPose.position);
+    rig.look.fromArray(cameraPose.direction).add(rig.pos);
+    rig.fov = cameraPose.fov;
+    wind = 0;
+    emberUntil = 0;
+    shadeCoolingUntil = 0;
+    mine.power = on ? tidePairPower : 0;
+    mine.update(animationSecond);
+    waterTex.offset.set(animationSecond * .004, animationSecond * .002);
+    for (const update of place.up) update(0, animationSecond, place.daylight);
+    for (const lamp of place.others) lamp.tick(animationSecond);
+    return new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(() => {
+      const fixtureLights = [];
+      const visitorLights = [];
+      place.G.traverseVisible(object => {
+        if (!object.isLight) return;
+        let visitor = false;
+        for (let ancestor = object; ancestor; ancestor = ancestor.parent) {
+          if (ancestor === mine.g) visitor = true;
+        }
+        const entry = { name: object.name || object.type, intensity: object.intensity,
+          color: object.color?.toArray(), position: object.getWorldPosition(new THREE.Vector3()).toArray() };
+        (visitor ? visitorLights : fixtureLights).push(entry);
+      });
+      const frame = window.__tideReview();
+      resolve({ ...frame, lampState: {
+        animationSecond, on, phase, power: mine.power, lightPower: mine.lightPower, visitorLights, fixtureLights,
+        roomLight, sunlight: place.sun.intensity, ambient: place.hemi.intensity, chooserFill: previewFill.intensity,
+      } });
+    })));
+  };`;
+
+export async function startPreview({
+  tideWorldSource, matchedPose = false, includeDriftControl = false, lampPair = false,
+} = {}) {
   const temp = await mkdtemp(join(tmpdir(), 'tide-review-'));
   let app;
   let vite;
@@ -253,10 +299,13 @@ export async function startPreview({ tideWorldSource, matchedPose = false, inclu
           }
           if (path.endsWith('/web/src/engine/scene.js')) {
             const trace = 'lx: rig.look.x, ly: rig.look.y, lz: rig.look.z, fov: rig.fov ?? camera.fov });';
-            return replaceOnce(source, trace, `lx: rig.look.x, ly: rig.look.y, lz: rig.look.z, fov: camera.fov,
+            const traced = replaceOnce(source, trace, `lx: rig.look.x, ly: rig.look.y, lz: rig.look.z, fov: camera.fov,
               actual: camera.position.toArray(), walkState: window.__walkProgress?.state,
               walkProgress: window.__walkProgress?.progress, mouth: window.__tideSampleMouth?.(),
-              deck: window.__tideSampleDeck?.() });`) + '\n' + reviewScript + (matchedPose ? '\n' + matchedPoseScript : '');
+              deck: window.__tideSampleDeck?.() });`);
+            const timed = lampPair ? replaceOnce(traced, 'const time = clockTime;',
+              'const time = window.__tideLampVisualSecond ?? clockTime;') : traced;
+            return [timed, reviewScript, matchedPose ? matchedPoseScript : '', lampPair ? lampPairScript : ''].join('\n');
           }
         },
       }],

@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { test, vi } from 'vitest';
 import * as THREE from 'three';
 import createPlace from '../../../web/src/engine/places/sea-tide.js';
+import { buildTideHood } from '../../../web/src/engine/places/sea-tide-hood.js';
 
 const V3 = (...coordinates) => new THREE.Vector3(...coordinates);
 const route = createPlace({ V3 });
@@ -120,10 +121,41 @@ test('Tide builds its wall deposits and animated harbour water before the first 
     const sea = context.G.getObjectByName('Tide Temple harbour water');
     assert.ok(sea);
     assert.equal(sea.position.y, -2.8);
+    for (const name of ['South', 'North']) {
+      const apron = context.G.getObjectByName(`${name} harbour submerged rock apron`);
+      const bounds = new THREE.Box3().setFromObject(apron);
+      assert.ok(bounds.min.y < sea.position.y && bounds.max.y > sea.position.y);
+    }
     context.up[0](1 / 60, 2, { n: .7, g: .2 });
     assert.equal(sea.material.uniforms.uTime.value, 2);
     assert.equal(sea.material.uniforms.uNight.value, .7);
   } finally {
     vi.unstubAllGlobals();
   }
+});
+
+test('Tide hood has open vents between opaque clay and no bounce after extinction', () => {
+  const lathe = (points, sides) => new THREE.LatheGeometry(points.map(([r, y]) => new THREE.Vector2(r, y)), sides);
+  const solid = (group, geometry, material) => {
+    const mesh = new THREE.Mesh(geometry, material);
+    group.add(mesh);
+    return mesh;
+  };
+  const radius = .06, top = .21;
+  const hood = buildTideHood(THREE, { lathe, solid, radiusAt: () => radius }, [[radius, 0], [radius, top]], 0xa82a1c);
+  const shell = hood.g.getObjectByName('Tide pierced earthenware hood');
+  assert.equal(shell.material.transparent, false);
+  assert.equal(shell.material.emissive.getHex(), 0);
+  const direction = V3(1, 0, 1).normalize();
+  const ventHeight = .012 + top * (.305 + .005 * Math.sin(1));
+  const ray = new THREE.Raycaster(direction.clone().multiplyScalar(.12).setY(ventHeight),
+    direction.clone().negate(), 0, .10);
+  assert.equal(ray.intersectObject(shell).length, 0);
+  ray.ray.origin.y += .012;
+  assert.ok(ray.intersectObject(shell).length > 0);
+  const bounce = hood.g.getObjectByName('Tide hood bounce');
+  hood.updateLight({ intensity: .08 });
+  assert.ok(bounce.intensity > 0);
+  hood.updateLight({ intensity: 0 });
+  assert.equal(bounce.intensity, 0);
 });

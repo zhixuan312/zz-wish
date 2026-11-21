@@ -1,6 +1,7 @@
 // Run under the S7 GPU lease. The fixture never listens outside loopback.
-/* global document, getComputedStyle, performance, window */
+/* global Blob, document, FileReader, getComputedStyle, MediaRecorder, performance, window */
 import { chromium } from '@playwright/test';
+import { Buffer } from 'node:buffer';
 import { execFile } from 'node:child_process';
 import console from 'node:console';
 import { mkdir, writeFile } from 'node:fs/promises';
@@ -14,7 +15,12 @@ import { walkSeconds } from '../../web/src/engine/places/sea-tide-camera.js';
 
 const output = process.env.TIDE_EVIDENCE_DIR;
 if (!output) throw new Error('Set TIDE_EVIDENCE_DIR to the external S7 artifacts directory.');
-const modeList = process.argv.slice(2);
+const args = process.argv.slice(2);
+const pilot = args.includes('--pilot');
+const pickedModes = args.filter(arg => arg !== '--pilot');
+const modeList = pilot && !pickedModes.length ? ['phone-night'] : pickedModes;
+const captureLampPairs = pilot || process.env.TIDE_LAMP_PAIRS === '1';
+const recordRevealClip = process.env.TIDE_REVEAL_CLIPS === '1';
 const out = resolve(output);
 const run = promisify(execFile);
 const markersFor = phone => [
@@ -206,6 +212,101 @@ async function entrance(page) {
   return state;
 }
 
+async function startRevealClip(page) {
+  return page.evaluate(() => {
+    const stream = document.querySelector('#gl').captureStream(30);
+    const mimeType = 'video/webm;codecs=vp8';
+    let recorder;
+    try {
+      recorder = new MediaRecorder(stream, { mimeType, videoBitsPerSecond: 2_500_000 });
+    } catch (error) {
+      for (const track of stream.getTracks()) track.stop();
+      throw error;
+    }
+    const chunks = [];
+    recorder.ondataavailable = event => { if (event.data.size > 0) chunks.push(event.data); };
+    const elapsedStart = performance.now();
+    window.__finishTideRevealClip = async () => {
+      const seconds = (performance.now() - elapsedStart) / 1000;
+      try {
+        await new Promise((resolve, reject) => {
+          recorder.onstop = resolve;
+          recorder.onerror = event => reject(event.error);
+          recorder.stop();
+        });
+        const blob = new Blob(chunks, { type: mimeType });
+        const encoded = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result.split(',')[1]);
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        });
+        return { encoded, seconds, size: blob.size };
+      } finally {
+        for (const track of stream.getTracks()) track.stop();
+      }
+    };
+    recorder.start(1000);
+    return { walkProgress: window.__walkProgress?.progress };
+  });
+}
+
+async function finishRevealClip(page, dir, start) {
+  const { encoded, seconds, size } = await page.evaluate(() => window.__finishTideRevealClip());
+  if (seconds < 5 || size <= 0) throw new Error('Continuous reveal recording did not cover the required interval.');
+  const file = join(dir, 'continuous-reveal.webm');
+  await writeFile(file, Buffer.from(encoded, 'base64'));
+  return { file, seconds, bytes: size, startWalkSeconds: start.walkProgress * walkSeconds,
+    scope: 'Uninterrupted WebGL canvas from the approach to the settled burning lamp.' };
+}
+
+async function captureLampPair(page, dir, settled, problems) {
+  const animationSecond = 7.25;
+  await page.addStyleTag({ content: '.ui { visibility: hidden !important; }' });
+  const samples = {};
+  for (const [key, on] of [['lit', true], ['off', false]]) {
+    const sample = await page.evaluate(request => window.__tideCaptureLampState(request),
+      { cameraPose: settled.camera, animationSecond, on });
+    const file = join(dir, 'matched-lamp-' + key + '.png');
+    await page.screenshot({ path: file, scale: 'css', timeout: 25_000 });
+    samples[key] = { ...sample, file };
+  }
+  const { lit, off } = samples;
+  const poseDifference = (a, b) => ({ positionMetres: distance(a.position, b.position),
+    viewingDirectionVectorDelta: distance(a.direction, b.direction),
+    fieldOfViewDegrees: Math.abs(a.fov - b.fov) });
+  const poseDeltas = { between: poseDifference(lit.camera, off.camera),
+    litToOriginal: poseDifference(lit.camera, settled.camera), offToOriginal: poseDifference(off.camera, settled.camera) };
+  const samePose = Object.values(poseDeltas).every(delta => Object.values(delta).every(value => value <= 1e-6));
+  const fixedKeys = ['phase', 'roomLight', 'sunlight', 'ambient', 'chooserFill', 'fixtureLights'];
+  const sameEnvironment = fixedKeys.every(key => JSON.stringify(lit.lampState[key]) === JSON.stringify(off.lampState[key]));
+  const noVisitorLightOff = off.lampState.power === 0 && off.lampState.lightPower === 0
+    && off.lampState.visitorLights.length > 0 && off.lampState.visitorLights.every(light => light.intensity === 0);
+  const bounceLightName = 'Tide hood bounce';
+  const visitorLightOn = lit.lampState.power > 0 && lit.lampState.lightPower > 0
+    && lit.lampState.visitorLights.some(light => light.name !== bounceLightName && light.intensity > 0);
+  const bounceLightOn = lit.lampState.visitorLights.some(light => light.name === bounceLightName && light.intensity > 0);
+  const crops = await Promise.all(['lit', 'off'].map(key =>
+    crop(dir, samples[key], 'matched-lamp-' + key, lit.lamp?.base, 430, 350)));
+  const result = { original: settled.file, animationSecond, samePose, sameEnvironment, noVisitorLightOff,
+    visitorLightOn, bounceLightOn, poseDeltas, crops, lit, off };
+  await json(join(dir, 'matched-lamp-pair.json'), result);
+  if (!samePose || !sameEnvironment || !noVisitorLightOff || !visitorLightOn || !bounceLightOn || crops.some(value => value === null)) {
+    problems.push({ type: 'matched lamp pair', samePose, sameEnvironment, noVisitorLightOff, visitorLightOn, bounceLightOn,
+      bothCrops: crops.every(Boolean) });
+  }
+  return { receipt: join(dir, 'matched-lamp-pair.json'), samePose, sameEnvironment, noVisitorLightOff, visitorLightOn, bounceLightOn };
+}
+
+async function optionalEvidence(type, problems, action) {
+  try {
+    return await action();
+  } catch (error) {
+    problems.push({ type, error: error.stack ?? String(error) });
+    return null;
+  }
+}
+
 async function captureCase(browser, preview, size, look, dir) {
   const recording = process.env.TIDE_RECORD_WALKS === '1' && look.name === 'day';
   const videoSize = size.phone ? { width: 390, height: 844 } : { width: 864, height: 540 };
@@ -238,22 +339,32 @@ async function captureCase(browser, preview, size, look, dir) {
     const initialEntrance = await entrance(page);
     shots.entrance = { ...await capture(page, dir, 'entrance'), readiness: initialEntrance };
 
-    await button(page, 'Step inside').click();
-    await page.waitForFunction(() => window.__walkProgress?.id === 'sea-tide'
-      && window.__walkProgress?.state === 'walking' && window.__walkProgress.progress > .015);
-    const skipStart = await review(page);
-    await button(page, 'Skip').click();
-    await screen(page, 'candle');
-    shots.skip = await capture(page, dir, 'skip-endpoint');
-    await button(page, 'Back outside').click();
-    const returnEntrance = await entrance(page);
+    let skipStart = null;
+    let returnEntrance = null;
+    if (!pilot) {
+      await button(page, 'Step inside').click();
+      await page.waitForFunction(() => window.__walkProgress?.id === 'sea-tide'
+        && window.__walkProgress?.state === 'walking' && window.__walkProgress.progress > .015);
+      skipStart = await review(page);
+      await button(page, 'Skip').click();
+      await screen(page, 'candle');
+      shots.skip = await capture(page, dir, 'skip-endpoint');
+      await button(page, 'Back outside').click();
+      returnEntrance = await entrance(page);
+    }
 
     const dwellSeconds = entranceDwells[size.name][look.name];
     await page.waitForTimeout(dwellSeconds * 1000);
     await page.evaluate(() => window.__startCameraTrace());
     const clickMs = await page.evaluate(() => performance.now());
     await button(page, 'Step inside').click();
+    let revealClipStart = null;
     for (const [name, at] of markers) {
+      if (recordRevealClip && name === 'salt-wall') {
+        await page.waitForFunction(progress => window.__walkProgress?.id === 'sea-tide'
+          && window.__walkProgress?.progress >= progress, (at - 2.5) / walkSeconds);
+        revealClipStart = await optionalEvidence('reveal clip start', problems, () => startRevealClip(page));
+      }
       await page.waitForFunction(({ at, walkSeconds }) => window.__walkProgress?.id === 'sea-tide'
         && window.__walkProgress.progress >= at / walkSeconds, { at, walkSeconds });
       shots[name] = await capture(page, dir, name);
@@ -272,7 +383,11 @@ async function captureCase(browser, preview, size, look, dir) {
     if (!eyeHeight.passed) problems.push({
       type: 'walk eye height or deck', complete: eyeHeight.complete, ...eyeHeight.total,
     });
-    const delta = endpointDelta(shots.chooser, shots.skip);
+    const revealClip = revealClipStart ? await optionalEvidence('reveal clip completion', problems,
+      () => finishRevealClip(page, dir, revealClipStart)) : null;
+    const matchedLamp = captureLampPairs ? await optionalEvidence('matched lamp capture', problems,
+      () => captureLampPair(page, dir, shots.burning, problems)) : null;
+    const delta = shots.skip ? endpointDelta(shots.chooser, shots.skip) : null;
     const crops = (await Promise.all([
       crop(dir, shots['salt-wall'], 'salt-wall', shots['salt-wall'].salt.find(point => point.inFrame && !point.occluder), 290, 260),
       crop(dir, shots['harbour-reveal'], 'harbour-mouth', shots['harbour-reveal'].mouth, 480, 300),
@@ -292,9 +407,9 @@ async function captureCase(browser, preview, size, look, dir) {
     for (const frame of ['harbour-reveal', 'chooser', 'burning']) {
       if (!shoreClear(shots[frame])) problems.push({ type: 'harbour tips not both visible', frame, tips: shots[frame].harbourTips });
     }
-    const evidence = { viewport: [size.width, size.height], localHour: look.hour, marks, shots, crops, returnEntrance, dwellSeconds,
-      normalWalkToChooserSeconds: (chooserMs - clickMs) / 1000, skipStart: skipStart.walk, endpointDelta: delta,
-      video: recording ? join(dir, 'continuous-review.webm') : null,
+    const evidence = { viewport: [size.width, size.height], localHour: look.hour, marks, shots, crops, returnEntrance, dwellSeconds, pilot,
+      normalWalkToChooserSeconds: (chooserMs - clickMs) / 1000, skipStart: skipStart?.walk ?? null, endpointDelta: delta,
+      revealClip, matchedLamp, video: recording ? join(dir, 'continuous-review.webm') : null,
       observations: {
         concealedSeaSampleCount: shots['last-enclosed'].sea.filter(point => point.inFrame && !point.occluder).length,
         revealMouthInView: shots['harbour-reveal'].mouth.inFrame && !shots['harbour-reveal'].mouth.occluder,
@@ -333,7 +448,7 @@ async function captureCase(browser, preview, size, look, dir) {
 }
 
 await mkdir(out, { recursive: true });
-const preview = await startPreview();
+const preview = await startPreview({ lampPair: captureLampPairs });
 const summary = {};
 let browser;
 try {

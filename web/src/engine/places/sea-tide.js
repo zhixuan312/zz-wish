@@ -110,9 +110,96 @@ function buildInlandRidge({ THREE, M, context }) {
   context.G.add(slope);
 }
 
+const harbourLevel = -2.8;
+
+function tideRockMaterial(material, grain = false) {
+  const surface = material.clone();
+  surface.customProgramCacheKey = () => `${material.customProgramCacheKey()}/tide-wet-${grain}`;
+  surface.onBeforeCompile = (shader, renderer) => {
+    material.onBeforeCompile(shader, renderer);
+    shader.vertexShader = shader.vertexShader
+      .replace('#include <common>', '#include <common>\nvarying vec3 vTideRockWorld;')
+      .replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\n'
+        + 'vTideRockWorld = (modelMatrix * vec4(transformed, 1.0)).xyz;');
+    shader.fragmentShader = shader.fragmentShader
+      .replace('#include <common>', '#include <common>\nvarying vec3 vTideRockWorld;')
+      .replace('#include <roughnessmap_fragment>', `#include <roughnessmap_fragment>
+        float tideVariation = sin(vTideRockWorld.x * 2.4 + vTideRockWorld.z * 1.8)
+          * sin(vTideRockWorld.z * 3.1 - vTideRockWorld.x * 1.2);
+        float stainTop = -2.16 + 0.22 * tideVariation
+          + 0.16 * sin(vTideRockWorld.x * 0.73 - vTideRockWorld.z * 0.81);
+        float tideDamp = 1.0 - smoothstep(stainTop - 0.28, stainTop + 0.36, vTideRockWorld.y);
+        float dampGrain = 0.91 + 0.09 * tideVariation;
+        diffuseColor.rgb *= mix(1.0, 0.54 * dampGrain, tideDamp);
+        roughnessFactor = mix(roughnessFactor, min(roughnessFactor, 0.45), tideDamp * 0.88);
+        ${grain ? `float fracture = sin(vTideRockWorld.x * 2.2 + vTideRockWorld.y * 8.4
+          + vTideRockWorld.z * 0.8 + 0.8 * tideVariation);
+        float roughFace = 0.83 + 0.27 * tideVariation + 0.12 * fracture;
+        diffuseColor.rgb *= mix(roughFace, 1.0, smoothstep(2.0, 9.0, vTideRockWorld.y));` : ''}
+      `);
+  };
+  return surface;
+}
+
+function buildShoreApron({ THREE, M, context }, edge, inland) {
+  // The toe submerges and the ledges climb into the shoulder. Every cross
+  // section overlaps the visible armour above and the water below.
+  const bands = [[0, -3.86], [.48, -3.13], [1.2, -2.46], [2.35, -1.77],
+    [3.72, -1.28], [6.1, -.3], [10.5, 1.72], [16, 4.38]];
+  const positions = [], colours = [], faces = [];
+  const dark = new THREE.Color(0x3f4946), light = new THREE.Color(0x69706a), tone = new THREE.Color();
+  const steps = 8;
+  for (let column = 0; column <= (edge.length - 1) * steps; column++) {
+    const segment = Math.min(edge.length - 2, Math.floor(column / steps));
+    const fraction = (column - segment * steps) / steps;
+    const [a, b] = [edge[segment], edge[segment + 1]];
+    const x = THREE.MathUtils.lerp(a[0], b[0], fraction);
+    const shoreline = THREE.MathUtils.lerp(a[1], b[1], fraction);
+    for (let row = 0; row < bands.length; row++) {
+      const [width, height] = bands[row];
+      const joint = Math.sin(x * 1.88 + row * 1.39) * Math.cos(x * .93 - row * 1.72);
+      const jut = .34 * Math.sin(x * 1.31 + row * .58) + .18 * Math.cos(x * 2.93 + row * 1.91);
+      positions.push(x + .19 * joint, height + (.23 + width * .034) * joint,
+        shoreline + inland * (width + jut));
+      tone.copy(dark).lerp(light, .52 + .30 * joint + .15 * Math.sin(x * .47 + row));
+      colours.push(tone.r, tone.g, tone.b);
+      if (column && row) {
+        const d = column * bands.length + row, c = d - 1;
+        const b = d - bands.length, a = b - 1;
+        if (inland > 0) faces.push(a, b, c, b, d, c);
+        else faces.push(a, c, b, b, c, d);
+      }
+    }
+  }
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  geometry.setAttribute('color', new THREE.Float32BufferAttribute(colours, 3));
+  geometry.setIndex(faces);
+  geometry.computeVertexNormals();
+  const apron = new THREE.Mesh(geometry, tideRockMaterial(M(0xffffff, .91, { vertexColors: true }), true));
+  apron.name = inland > 0 ? 'North harbour submerged rock apron' : 'South harbour submerged rock apron';
+  apron.receiveShadow = true;
+  context.G.add(apron);
+
+  // Find the water crossing along each section of this same ground mesh.
+  const waterline = [];
+  const stride = bands.length * 3;
+  for (let section = 0; section < positions.length; section += stride) {
+    for (let below = section; below < section + stride - 3; below += 3) {
+      const above = below + 3;
+      if (positions[above + 1] < harbourLevel) continue;
+      const t = (harbourLevel - positions[below + 1]) / (positions[above + 1] - positions[below + 1]);
+      waterline.push([THREE.MathUtils.lerp(positions[below], positions[above], t),
+        THREE.MathUtils.lerp(positions[below + 2], positions[above + 2], t)]);
+      break;
+    }
+  }
+  return waterline.sort((a, b) => a[0] - b[0]);
+}
+
 function buildHarbour(h) {
-  const { M, box, peak, rock, context } = h;
-  const shore = M(0x394b4b, .94);
+  const { THREE, M, box, peak, rock, context } = h;
+  const shore = tideRockMaterial(M(0x454d48, .94), true);
   const distant = M(0x586d72, 1);
   // Overlapping rocks carry the two shoulders to a narrow, open channel.
   peak(71, -5.6, -30, 32, 18, shore, 17, .84);
@@ -127,18 +214,42 @@ function buildHarbour(h) {
     [54, 24, 9.5, 3.2, 4, 10], [67, 20.4, 8, 2.9, 4, 12],
     [73, 17.8, 7.4, 2.9, 3.8, 24, '', .23], [79, 14.5, 8.3, 2.8, 3.3, 27, 'North harbour tip', -.15],
   ];
+  const wetVariants = new Map();
+  function wetMaterial(material) {
+    if (!wetVariants.has(material)) wetVariants.set(material, tideRockMaterial(material));
+    return wetVariants.get(material);
+  }
+  const bounds = new THREE.Box3();
   for (const [x, z, sx, sy, sz, seed, name, rotation] of stones) {
     const first = context.G.children.length;
     rock(x, -2.6, z, [sx, sy, sz], seed * 19);
     for (const object of context.G.children.slice(first)) {
       if (name) object.name = name;
       if (rotation !== undefined) object.rotation.y = rotation;
+      // Hold the established tip silhouette while lowering each scanned foot
+      // past sea level. The water can cut across the body rather than its base.
+      bounds.setFromObject(object, true);
+      const drownedFoot = harbourLevel - .66 - Math.min(.28, sy * .065);
+      const height = bounds.max.y - bounds.min.y;
+      if (height > .2 && bounds.min.y > drownedFoot) {
+        const stretch = (bounds.max.y - drownedFoot) / height;
+        object.scale.y *= stretch;
+        object.position.y = bounds.max.y - (bounds.max.y - object.position.y) * stretch;
+      }
+      object.traverse((part) => {
+        if (!part.isMesh || !part.material) return;
+        part.material = Array.isArray(part.material) ? part.material.map(wetMaterial) : wetMaterial(part.material);
+      });
     }
   }
+  const south = buildShoreApron(h, [[17, -24], [25, -18], [36, -12.2], [46, -7.2], [56, -3.6],
+    [64, -.1], [71, 3.9], [77, 6.5], [80, 5.25], [86, .8], [92, -5.6]], -1);
+  const north = buildShoreApron(h, [[18, 32], [27, 28.8], [37, 25.6], [47, 23.2], [57, 19.6],
+    [64, 16.9], [72, 14.2], [79, 11], [82, 11.73], [88, 15.6], [94, 22.9]], 1);
   const quay = M(0x535e5a, .94, { map: h.pavingTex });
   box(15, 2.1, 3.1, quay, 30.5, -2.4, -17.7, -.4);
   box(13, 2.0, 3.2, quay, 28, -2.4, 32.6, .26);
-  buildTideWater(h, { shoals: [
+  buildTideWater(h, { waterlines: [south, north], shoals: [
     [26, -22, 10.2, 6], [49, -8, 8.2, 4.9], [68, .7, 8.6, 4.5], [77, 3.9, 7.5, 3],
     [27, 34, 10.8, 5.1], [54, 24, 8.3, 4.4], [69, 20, 9.1, 4.2], [79, 14.5, 8.5, 3.3],
   ] });

@@ -22,6 +22,7 @@ import visitorFabric from './baked/visitor-fabric.json';
 import { WickPlume, addGauzeVent, createGauzeSmokePath, gauzeFlameSize, gauzeRibGeometry, gauzeThroat } from './WickPlume.js';
 import { createPineTray, createPineWax, waxContactShadow } from './PineWax.js';
 import { TAPER_BEAT, taperHasReachedWick } from './places/pine-taper.js';
+import { buildTideHood } from './places/sea-tide-hood.js';
 
 // ---------- Renderer ----------
 const canvas = document.getElementById('gl');
@@ -401,11 +402,6 @@ const crackleTex = canvasTex(512, 512, (g, w, h) => {
   const rnd = mulberry32(23); g.fillStyle = '#808080'; g.fillRect(0, 0, w, h); g.strokeStyle = 'rgba(40,40,40,.5)'; g.lineWidth = 1.2;
   for (let i = 0; i < 160; i++) { let x = rnd() * w, y = rnd() * h; g.beginPath(); g.moveTo(x, y); for (let k = 0; k < 5; k++) { x += (rnd() - .5) * 60; y += (rnd() - .5) * 60; g.lineTo(x, y); } g.stroke(); }
 }, false);
-// Holes punched in a pottery hood, as an alpha map (white = solid).
-const holesTex = canvasTex(256, 256, (g, w, h) => {
-  g.fillStyle = '#fff'; g.fillRect(0, 0, w, h); g.fillStyle = '#000';
-  for (let row = 0; row < 4; row++) for (let i = 0; i < 9; i++) { const x = (i + (row % 2) * .5) / 9 * w, y = h * (.3 + row * .13); g.beginPath(); g.arc(x, y, 4.5 - row * .5, 0, 6.3); g.fill(); }
-}, false);
 // Actual photographed weave/normal/roughness. The photograph contributes its
 // measured yarn luminance; the person's chosen colour remains the cloth dye.
 const gauzeTex=new THREE.Texture(),gauzeNormal=new THREE.Texture(),gauzeRoughness=new THREE.Texture();
@@ -703,13 +699,8 @@ const LAMPS = {
   },
   // A pottery hood pierced with small holes, over a clay cup; its outline is the person's.
   hood(o = presetOf('shade')) {
-    const g = new THREE.Group(), P = scaled(o.rows, shadeScale(o.rows, 1.5, .045)), r0 = P[0][0], top = P[P.length - 1][1];
-    solid(g, lathe([[0, 0], [r0 + .012, 0], [r0 + .016, .012], [r0 + .01, .014], [r0 + .006, .006], [0, .006]], 48), clayMat);
-    solid(g, lathe([[0, .006], [.018, .006], [.022, .026], [.019, .028], [0, .022]], 32), clayMat);
-    const shell = shellMaterial(o.color, { alphaMap: holesTex, glow: 0xff9040, reach: 18, rough: .95, base: .02, strength: .3 });
-    solid(g, lathe(P.map(([r, y]) => [r, y + .012]), 48), shell);
-    solid(g, new THREE.SphereGeometry(.012, 16, 10), clayMat, 0, top + .016, 0);
-    return { g, kind: 'shade', shells: [shell], wick: { at: V3(0, .03, 0) }, frame: { h: top + .03, cy: top * .48 }, lightMax: .6, flame: .8, light: 0xffa048 };
+    const profile = scaled(o.rows, shadeScale(o.rows, 1.5, .045));
+    return buildTideHood(THREE, { lathe, solid, radiusAt }, profile, o.color);
   },
   // A gauze lantern hanging under the eaves, ribbed with bamboo, a tassel below; its outline is the person's.
   gauze(o = presetOf('shade')) {
@@ -1033,6 +1024,7 @@ const api = { g, parts: null, partsKey: null, type: null, power: 0, lightPower: 
         : p.kind === 'wax' ? Math.min(1, ((this.top.y - (p.seat?.y ?? 0) + .03) / .2) ** 2) : 1;
       const power = this.power * (lit ? Math.min(1, level * 25) : 1);
       const fw = this.flameWorld(), k = f.tick(time, power, p.lightMax * keep * this.lightBoost, p.pineWax?.materials ?? [wax, poolMat, oilGlow], fw.y);
+      p.updateLight?.(f.light);
       if (p.pineWax) {
         p.pineWax.updateLight(f.light, place?.baked?.manifest.lampBasis?.pointRadiusMetres, time, wind);
         if (f.light.intensity > .0001) {
@@ -1115,6 +1107,7 @@ function otherLamp(type, x, y, z, L = .6, ry = 0, power = .62) {
   const o = { g, f, p, tick(time) {
     g.updateMatrixWorld(); fw.copy(top).applyMatrix4(g.matrixWorld);
     const k = f.tick(time, power, p.lightMax * .55 * power / .62, wx, fw.y);
+    p.updateLight?.(f.light);
     for (const m of p.shells ?? []) { m.userData.u.uFlame.value.copy(fw); m.userData.u.uGlow.value = 1.6 * m.userData.strength * k; }
     if (p.kind === 'shade') f.halo.material.opacity *= .3;
   } };
@@ -1777,7 +1770,7 @@ function captureLocalEnvironment({context=C,root=context.root,environment=contex
 const placeHelpers = { THREE, V3, V2, M, roofMat, ground, pave, hallB, gateB, compound, rock, trees, peak, ridges, mist, burnerAt, postLanterns, pagoda, stairs, paifang, wallRun, water, archBridge, lotus, box, city, fall, lanterns, put, tower, smokeAt, pavingTex, petalTex, pauseBuild, eave, col, rail, wallWithHoles, cloudSea, footprints, bell, otherLamp, lathe, hexMix, addStump:(x,y,z,scale,yaw)=>addScannedStump(C.G,x,y,z,scale,yaw),
   liveFlame,pineFixtureFlame,fixtureSpecular,captureLocalEnvironment,loessTex, brickTex, plasterTex, papercutTex, grainTex, latticeTex, sootTex, windowsTex, get renderer() { return renderer; }, get context() { return C; } };
 const cachedPlaces = new Map();
-const sharedTextures = new Set([needleTex, leafTex, pavingTex, grainTex, tileTex, waterTex, latticeTex, softTex, petalTex, windowsTex, patina, crackleTex, holesTex, gauzeTex,gauzeNormal,gauzeRoughness, paperLatticeTex, loessTex, brickTex, plasterTex, papercutTex, sootTex]);
+const sharedTextures = new Set([needleTex, leafTex, pavingTex, grainTex, tileTex, waterTex, latticeTex, softTex, petalTex, windowsTex, patina, crackleTex, gauzeTex,gauzeNormal,gauzeRoughness, paperLatticeTex, loessTex, brickTex, plasterTex, papercutTex, sootTex]);
 // Materials are left to the garbage collector rather than disposed: disposing them would also
 // release their shader programs, and the next place would stall recompiling the same variants.
 // The program set is bounded by the variants the ten places use.

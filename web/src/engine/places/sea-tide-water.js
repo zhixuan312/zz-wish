@@ -22,6 +22,8 @@ const fragmentShader = /* glsl */ `
   uniform vec3 uWaterDay, uWaterNight, uHorizonDay, uHorizonNight, uSkyDay, uSkyNight;
   uniform vec3 uFoamDay, uFoamNight, uSunDirection, uQuay;
   uniform vec4 uShoals[8];
+  uniform vec4 uShoreRange;
+  uniform sampler2D uShoreTex;
   #include <fog_pars_fragment>
 
   float hash(vec2 p) {
@@ -47,6 +49,13 @@ const fragmentShader = /* glsl */ `
   float nearShore(vec2 p) {
     vec2 quayDistance = vec2(abs(p.x - uQuay.x), max(0.0, max(uQuay.y - p.y, p.y - uQuay.z)));
     float distanceToShore = length(quayDistance);
+    if (p.x >= uShoreRange.x && p.x <= uShoreRange.y) {
+      float u = (p.x - uShoreRange.x) / (uShoreRange.y - uShoreRange.x);
+      vec2 shores = mix(vec2(uShoreRange.z), vec2(uShoreRange.w),
+        texture2D(uShoreTex, vec2((0.5 + u * 255.0) / 256.0, 0.5)).rg);
+      vec2 approach = abs(p.y - shores);
+      return min(distanceToShore, min(approach.x, approach.y));
+    }
     for (int i = 0; i < 8; i++) {
       vec4 shoal = uShoals[i];
       vec2 scaled = (p - shoal.xy) / shoal.zw;
@@ -121,10 +130,37 @@ const fragmentShader = /* glsl */ `
   }
 `;
 
+function shoreLookup(THREE, waterlines) {
+  if (!waterlines) return { texture: null, range: new THREE.Vector4(1, 0, 0, 1) };
+  const size = 256;
+  const left = Math.max(...waterlines.map(line => line[0][0]));
+  const right = Math.min(...waterlines.map(line => line.at(-1)[0]));
+  const levels = waterlines.flatMap(line => line.map(point => point[1]));
+  const low = Math.min(...levels), high = Math.max(...levels);
+  const data = new Uint8Array(size * 4);
+  const segment = [0, 0];
+  for (let index = 0; index < size; index++) {
+    const x = THREE.MathUtils.lerp(left, right, index / (size - 1));
+    for (const [bank, profile] of waterlines.entries()) {
+      while (segment[bank] + 1 < profile.length - 1 && profile[segment[bank] + 1][0] < x) segment[bank]++;
+      const a = profile[segment[bank]], b = profile[segment[bank] + 1];
+      const z = THREE.MathUtils.lerp(a[1], b[1], (x - a[0]) / (b[0] - a[0]));
+      data[index * 4 + bank] = Math.round(255 * (z - low) / (high - low));
+    }
+    data[index * 4 + 3] = 255;
+  }
+  const texture = new THREE.DataTexture(data, size, 1);
+  texture.magFilter = texture.minFilter = THREE.LinearFilter;
+  texture.needsUpdate = true;
+  return { texture, range: new THREE.Vector4(left, right, low, high) };
+}
+
 // The single depth-writing surface stays at the harbour's existing sea level.
 // Shore distances affect only the last few metres of water beside each rock.
-export function buildTideWater({ THREE, context }, { shoals = harbourShoals, quay = [13, -18, 35] } = {}) {
+export function buildTideWater({ THREE, context }, { shoals = harbourShoals, quay = [13, -18, 35], waterlines } = {}) {
   const colour = value => ({ value: new THREE.Color(value) });
+  const { texture, range } = shoreLookup(THREE, waterlines);
+  if (texture) (context.disposers ??= []).push(() => texture.dispose());
   const uniforms = THREE.UniformsUtils.merge([THREE.UniformsLib.fog, {
     uTime: { value: 0 }, uNight: { value: 0 }, uWarm: { value: 0 },
     uWaterDay: colour(0x41605c), uWaterNight: colour(0x1b333d),
@@ -134,7 +170,9 @@ export function buildTideWater({ THREE, context }, { shoals = harbourShoals, qua
     uSunDirection: { value: new THREE.Vector3() },
     uQuay: { value: new THREE.Vector3(...quay) },
     uShoals: { value: shoals.map(shape => new THREE.Vector4(...shape)) },
+    uShoreRange: { value: range },
   }]);
+  uniforms.uShoreTex = { value: texture };
   const material = new THREE.ShaderMaterial({
     vertexShader, fragmentShader, uniforms, fog: true,
     extensions: { derivatives: true },
