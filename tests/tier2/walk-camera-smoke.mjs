@@ -8,7 +8,7 @@
 // Usage: node tests/tier2/walk-camera-smoke.mjs --run-dir TMP --out DIR [--port 8910]
 // The caller runs this under gpu-lease.sh; the script starts and stops its own server and prints its pid.
 import { chromium } from '@playwright/test';
-import { mkdirSync, writeFileSync, existsSync } from 'node:fs';
+import { mkdirSync, writeFileSync, existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execFileSync, spawn } from 'node:child_process';
@@ -24,13 +24,23 @@ const args = Object.fromEntries(process.argv.slice(2).reduce((rows, value, index
 }, []));
 const runDir = args['run-dir'];
 if (!runDir) throw new Error('Pass --run-dir (the worker tmp that safe-kill.sh authorises).');
-const out = args.out ?? join(runDir, 'walk-smoke');
 const port = Number(args.port ?? 8910);
+// Evidence never overwrites evidence. Each run writes into its own stamped directory: by default under
+// walk-smoke/, and under an explicit --out it refuses to start if that directory already holds results,
+// because silent replacement would destroy a previous run's raw snapshot.
+const stamp = `${new Date().toISOString().replace(/[:.]/g, '-')}-${process.pid}`;
+const evidenceBase = args.out ?? join(runDir, 'walk-smoke');
+// An explicit --out must be empty or absent: a directory that already holds runs is evidence, and
+// overwriting it would silently destroy a previous raw snapshot.
+if (args.out && existsSync(evidenceBase) && readdirSync(evidenceBase).length) {
+  throw new Error('Refusing to write into a non-empty --out: ' + evidenceBase + ' already holds '
+    + readdirSync(evidenceBase).length + ' entr(y/ies).');
+}
+const out = join(evidenceBase, stamp);
 mkdirSync(out, { recursive: true });
-// Every run gets its own directory for the database and the web symlink. A previous run may have left its
-// database behind after a refusal, and that evidence must survive this run untouched.
-const runId = `${new Date().toISOString().replace(/[:.]/g, '-')}-${process.pid}`;
-const runScratch = join(runDir, 'smoke-runs', runId);
+// The database and the web symlink live in a scratch directory of their own, so nothing outside it is
+// touched — not a database an earlier refusal kept, and not any earlier run's evidence.
+const runScratch = join(runDir, 'smoke-runs', stamp);
 mkdirSync(runScratch, { recursive: true });
 
 // Revision and build provenance are recorded before anything runs.
@@ -38,9 +48,17 @@ const revision = execFileSync('git', ['-C', REPO, 'rev-parse', 'HEAD'], { encodi
 const builtIndex = join(REPO, 'web', 'dist', 'index.html');
 if (!existsSync(builtIndex)) throw new Error('No build at ' + builtIndex + '; build with VITE_E2E_HOOKS=1 first.');
 const buildMtime = execFileSync('stat', ['-f', '%Sm', builtIndex], { encoding: 'utf8' }).trim();
-const distHasCameraHook = execFileSync('sh', ['-c',
-  `grep -rl "__pineRenderCamera" ${JSON.stringify(join(REPO, 'web', 'dist', 'assets'))} | head -1 || true`],
-  { encoding: 'utf8' }).trim();
+// No shell, no path interpolation: walk the built assets and test each file's bytes.
+const distHasCameraHook = (() => {
+  const assets = join(REPO, 'web', 'dist', 'assets');
+  if (!existsSync(assets)) return '';
+  for (const name of readdirSync(assets)) {
+    if (!name.endsWith('.js')) continue;
+    try { if (readFileSync(join(assets, name), 'utf8').includes('__pineRenderCamera')) return name; }
+    catch { /* unreadable file is not a hit */ }
+  }
+  return '';
+})();
 
 // The server runs with its cwd inside the authorised tmp, with a web symlink into the real build.
 const link = join(runScratch, 'web');
@@ -146,7 +164,7 @@ try {
   writeFileSync(join(out, 'server.log'), serverLog.join(''));
 
   const cleanup = await stopServerAndRemoveDatabase({
-    pid: server.pid, dbFile, safeKill: join(ROOT, 'safe-kill.sh'), exec: execFileSync,
+    pid: server.pid, child: server, dbFile, safeKill: join(ROOT, 'safe-kill.sh'), exec: execFileSync,
   });
   record.cleanup = cleanup.report;
   record.runScratch = runScratch;

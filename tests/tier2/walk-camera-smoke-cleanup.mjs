@@ -1,3 +1,5 @@
+import { lstatSync } from 'node:fs';
+
 // Cleanup contract for a run that starts its own server.
 //
 // This is the single implementation the smoke harness calls from its `finally`, and the same function the
@@ -14,18 +16,37 @@
 //
 // The database lives in a directory unique to the run, so nothing here can delete another run's files.
 
-/** True when a status query says the pid is running. Throws are returned as `unknown`, never as gone. */
-export function processAlive(pid, exec) {
-  try {
-    const out = exec('sh', ['-c', `ps -p ${Number(pid)} >/dev/null 2>&1 && echo yes || echo no`]);
-    const text = String(out ?? '').trim();
-    if (text === 'yes') return 'alive';
-    if (text === 'no') return 'gone';
-    return 'unknown';
-  } catch {
-    // A failed query is not evidence of absence.
-    return 'unknown';
+/**
+ * The process state of a ChildProcess, read from its own record rather than from `ps`.
+ *
+ * A shell wrapper that swallows `ps` errors turns every failed query into "gone", which is the one answer
+ * that must never be guessed. A ChildProcess carries the truth directly: `exitCode` and `signalCode` are
+ * set once the child exits, and `killed`/`pid` say whether it ever existed. `unknown` is returned when the
+ * handle has no usable information, so a caller can refuse to delete rather than assume absence.
+ *
+ * @param {import('node:child_process').ChildProcess|null|undefined} child
+ * @param {{pid?: number}} [expected] the pid recorded at startup, when the handle is unavailable
+ */
+export function processState(child, expected) {
+  if (child && typeof child === 'object') {
+    if (child.exitCode !== null && child.exitCode !== undefined) return { state: 'gone', exitCode: child.exitCode };
+    if (child.signalCode !== null && child.signalCode !== undefined) return { state: 'gone', signalCode: child.signalCode };
+    if (typeof child.pid === 'number' && child.pid > 0) return { state: 'alive', pid: child.pid };
+    return { state: 'unknown', reason: 'the child handle has neither a pid nor an exit' };
   }
+  if (expected && typeof expected.pid === 'number') {
+    // Without the handle there is nothing authoritative to read; a bare pid cannot distinguish a dead
+    // process from one whose status cannot be queried.
+    try {
+      process.kill(expected.pid, 0);
+      return { state: 'alive', pid: expected.pid };
+    } catch (error) {
+      if (error?.code === 'ESRCH') return { state: 'gone', pid: expected.pid };
+      // EPERM and anything else mean the process may exist but cannot be inspected.
+      return { state: 'unknown', pid: expected.pid, reason: String(error?.code ?? error?.message ?? error) };
+    }
+  }
+  return { state: 'unknown', reason: 'no child handle and no pid' };
 }
 
 /**
@@ -33,6 +54,8 @@ export function processAlive(pid, exec) {
  *
  * @param {object} options
  * @param {number} options.pid recorded when the server was started
+ * @param {import('node:child_process').ChildProcess} [options.child] the handle used to read the process
+ *   state authoritatively; without it the pid is probed with `process.kill(pid, 0)`
  * @param {string} options.dbFile the database this run created, inside its own directory
  * @param {string} options.safeKill path to safe-kill.sh
  * @param {(file: string, args: string[], opts?: object) => string} options.exec
@@ -42,18 +65,15 @@ export function processAlive(pid, exec) {
  * @param {string[]} [options.suffixes] sidecar suffixes to remove with the database
  * @returns {Promise<{ok: boolean, report: object}>}
  */
-export async function stopServerAndRemoveDatabase({ pid, dbFile, safeKill, exec, sleep, suffixes, exists }) {
+export async function stopServerAndRemoveDatabase({ pid, child, dbFile, safeKill, exec, sleep, suffixes,
+  exists }) {
   const wait = sleep ?? (ms => new Promise(resolve => setTimeout(resolve, ms)));
   const sidecars = suffixes ?? ['', '-shm', '-wal'];
-  // Verification is required, not optional: "removed" must mean the file is not there.
+  // Existence is read with lstat and no shell: only ENOENT means the file is not there. Any other error
+  // (a permission problem, an unreadable directory) cannot prove absence, so it counts as present.
   const present = exists ?? (file => {
-    try {
-      return String(exec('sh', ['-c', `test -e ${JSON.stringify(file)} && echo yes || echo no`]) ?? '')
-        .trim() === 'yes';
-    } catch {
-      // A query that fails cannot prove absence, so treat the file as still present.
-      return true;
-    }
+    try { lstatSync(file); return true; }
+    catch (error) { return error?.code !== 'ENOENT'; }
   });
   const report = { pid, attempted: true, output: '', launched: false, refused: false, exitStatus: null,
     processState: null, confirmedGone: false, databaseRemoved: false, filesRemoved: [],
@@ -76,15 +96,17 @@ export async function stopServerAndRemoveDatabase({ pid, dbFile, safeKill, exec,
   const stopAuthorised = report.exitStatus === 0 && !report.refused
     && /stopped|gone/i.test(report.output);
 
-  // 2. Confirm the process is gone. An unknown state is not gone.
-  let state = 'unknown';
+  // 2. Confirm the process is gone, from the child handle when there is one. An unknown state is not gone.
+  let observed = { state: 'unknown', reason: 'not queried' };
   for (let attempt = 0; attempt < 40; attempt++) {
-    state = processAlive(pid, exec);
-    if (state === 'gone') break;
-    if (state === 'unknown' && attempt > 2) break;
+    observed = processState(child ?? null, { pid });
+    if (observed.state === 'gone') break;
+    if (observed.state === 'unknown' && attempt > 2) break;
     await wait(100);
   }
+  const state = observed.state;
   report.processState = state;
+  report.processDetail = observed;
   report.confirmedGone = state === 'gone' && stopAuthorised;
 
   if (!stopAuthorised) {
