@@ -1,7 +1,7 @@
-// The court tree is built once as two static meshes: ridged wood and folded leaves.
+// The court tree is built once as two static meshes: ridged wood and leaf blades.
 export function addBellLaneTree({ THREE, V3, M, context }, [x, y, z]) {
   const bark = { positions: [], indices: [], colors: [], uv: [] };
-  const leaves = { positions: [], indices: [], colors: [] };
+  const leaves = { positions: [], indices: [], colors: [], uv: [] };
   const up = V3(0, 1, 0);
   const wood = new THREE.Color(0x65584a);
   const moss = new THREE.Color(0x50513a);
@@ -16,7 +16,10 @@ export function addBellLaneTree({ THREE, V3, M, context }, [x, y, z]) {
     const first = bark.positions.length / 3;
     const axis = centers.at(-1).clone().sub(centers[0]).normalize();
     const reference = Math.abs(axis.x) > .7 ? up : V3(1, 0, 0);
-    centers.forEach((center, ring) => {
+    // A single vertex closes the taper. A child shoot always starts upstream
+    // of this point, inside a part of the parent that can support it.
+    const ringCount = centers.length - 1;
+    centers.slice(0, ringCount).forEach((center, ring) => {
       const tangent = centers[Math.min(ring + 1, centers.length - 1)].clone()
         .sub(centers[Math.max(ring - 1, 0)]).normalize();
       const u = reference.clone().addScaledVector(tangent, -reference.dot(tangent)).normalize();
@@ -40,23 +43,30 @@ export function addBellLaneTree({ THREE, V3, M, context }, [x, y, z]) {
         bark.uv.push(side / sides, center.y);
       }
     });
-    for (let ring = 1; ring < centers.length; ring++) for (let side = 0; side < sides; side++) {
+    for (let ring = 1; ring < ringCount; ring++) for (let side = 0; side < sides; side++) {
       const a = first + (ring - 1) * sides + side;
       const b = first + (ring - 1) * sides + (side + 1) % sides;
       bark.indices.push(a, a + sides, b, b, a + sides, b + sides);
+    }
+    const tip = bark.positions.length / 3;
+    addVertex(bark, centers.at(-1), wood);
+    bark.uv.push(.5, centers.at(-1).y);
+    const lastRing = tip - sides;
+    for (let side = 0; side < sides; side++) {
+      bark.indices.push(lastRing + side, tip, lastRing + (side + 1) % sides);
     }
   }
 
   limb([
     [0, -.03, 0, .39], [0, .023, 0, .34], [0, .082, 0, .295],
     [0, .17, 0, .275], [0, .32, 0, .264], [-.028, .67, .025, .25],
-    [.055, 1.23, .018, .224], [.049, 1.80, -.06, .207], [-.07, 2.32, -.09, .183],
-    [-.29, 2.90, -.18, .134], [-.43, 3.48, -.33, .09], [-.41, 3.99, -.49, .049],
+    [.055, 1.23, .018, .224], [.049, 1.80, -.06, .221], [-.07, 2.32, -.09, .194],
+    [-.29, 2.90, -.18, .146], [-.43, 3.48, -.33, .10], [-.41, 3.99, -.49, .049],
     [-.64, 4.55, -.63, .021], [-.75, 4.86, -.67, .003],
   ], 32, true);
   limb([
     [.03, 1.80, -.05, .155], [.20, 2.31, -.10, .133], [.38, 2.72, -.07, .099],
-    [.71, 3.06, -.22, .072], [.87, 3.38, -.18, .042], [1.11, 3.72, -.29, .02], [1.26, 4.03, -.44, .003],
+    [.71, 3.06, -.22, .075], [.98, 3.31, -.28, .046], [1.20, 3.51, -.38, .023], [1.39, 3.76, -.45, 0],
   ], 10);
   limb([
     [.02, 1.95, -.024, .115], [-.20, 2.42, .32, .097], [-.43, 2.80, .61, .067],
@@ -64,57 +74,70 @@ export function addBellLaneTree({ THREE, V3, M, context }, [x, y, z]) {
   ], 10);
 
   const limbs = [
-    [[-.27, 2.83, -.17, .080], [-.63, 3.20, -.31, .059], [-1.12, 3.59, -.42, .026], [-1.64, 3.86, -.72, .004]],
-    [[-.43, 3.47, -.32, .053], [-.75, 3.84, -.18, .036], [-1.23, 4.07, .20, .016], [-1.67, 4.39, .34, .004]],
-    [[-.39, 3.78, -.45, .049], [-.39, 4.11, -.91, .035], [-.25, 4.45, -1.26, .016], [-.39, 4.72, -1.73, .004]],
-    [[-.64, 4.55, -.62, .025], [-.72, 4.75, -.48, .021], [-.99, 4.98, -.36, .012], [-1.15, 5.19, -.20, .003]],
-    [[.37, 2.69, -.08, .064], [.66, 2.92, .16, .047], [1.09, 3.11, .43, .024], [1.46, 3.45, .63, .004]],
-    [[.70, 3.05, -.21, .048], [.79, 3.50, -.65, .034], [1.10, 3.80, -.84, .015], [1.32, 4.02, -1.21, .004]],
-    [[.87, 3.37, -.19, .032], [1.13, 3.68, -.16, .025], [1.44, 3.88, .17, .013], [1.78, 4.22, .21, .003]],
-    [[-.43, 2.79, .60, .048], [-.27, 3.12, .95, .038], [-.06, 3.39, 1.34, .018], [.06, 3.66, 1.65, .004]],
-    [[-.69, 3.04, .90, .036], [-.86, 3.26, 1.05, .025], [-1.16, 3.42, 1.46, .012], [-1.49, 3.68, 1.53, .003]],
-    [[-.09, 2.45, -.11, .067], [-.10, 2.85, -.54, .046], [.04, 3.23, -.95, .020], [.35, 3.50, -1.28, .004]],
+    [[-.27, 2.83, -.17, .079], [-.67, 3.12, -.31, .053], [-1.20, 3.43, -.55, .021], [-1.60, 3.77, -.73, 0]],
+    [[-.43, 3.47, -.32, .053], [-.80, 3.79, -.15, .035], [-1.20, 4.10, .16, .018], [-1.56, 4.35, .32, 0]],
+    [[-.39, 3.78, -.45, .049], [-.39, 4.13, -.92, .035], [-.21, 4.45, -1.26, .017], [-.39, 4.72, -1.73, 0]],
+    [[-.47, 4.20, -.53, .034], [-.75, 4.66, -.40, .025], [-1.05, 4.92, -.36, .014], [-1.29, 5.16, -.20, 0]],
+    [[-.40, 3.90, -.46, .040], [-.18, 4.38, -.22, .027], [.13, 4.68, -.21, .015], [.33, 4.99, -.41, 0]],
+    [[.37, 2.69, -.08, .064], [.68, 2.92, .19, .047], [1.04, 3.07, .49, .027], [1.29, 3.38, .79, 0]],
+    [[.70, 3.05, -.21, .049], [.95, 3.38, -.53, .033], [1.17, 3.70, -.77, .016], [1.42, 3.93, -1.07, 0]],
+    [[.96, 3.30, -.28, .034], [1.21, 3.53, -.07, .026], [1.54, 3.75, .06, .015], [1.79, 3.99, .12, 0]],
+    [[1.18, 3.49, -.38, .021], [1.28, 3.84, -.35, .017], [1.24, 4.15, -.25, .010], [1.19, 4.36, -.19, 0]],
+    [[-.43, 2.79, .60, .048], [-.26, 3.13, .97, .036], [-.01, 3.52, 1.16, .017], [.08, 3.79, 1.43, 0]],
+    [[-.69, 3.04, .90, .036], [-.90, 3.29, 1.18, .025], [-1.24, 3.47, 1.41, .013], [-1.51, 3.71, 1.55, 0]],
+    [[-.09, 2.45, -.11, .067], [-.10, 2.85, -.54, .047], [.04, 3.24, -.95, .023], [.36, 3.54, -1.29, 0]],
   ];
-  const palette = [0x51673b, 0x607847, 0x6c7c47, 0x818e54, 0x53694a].map(color => new THREE.Color(color));
+  const palette = [0x617643, 0x627648, 0x708150, 0x788652, 0x566c40].map(color => new THREE.Color(color));
   const rnd = context.rnd;
 
-  function leaf(base, direction, size, color) {
-    const across = V3(-direction.z, 0, direction.x).normalize().applyAxisAngle(direction, (rnd() - .5) * 1.7);
-    const fold = across.clone().cross(direction);
-    const mid = base.clone().addScaledVector(direction, size * .47);
-    const width = size * (.20 + rnd() * .095);
-    const vertices = [base, mid.clone().addScaledVector(across, width), mid.clone().addScaledVector(fold, size * .10),
-      mid.clone().addScaledVector(across, -width * .90), base.clone().addScaledVector(direction, size)];
-    const start = leaves.positions.length / 3;
-    vertices.forEach((point, i) => addVertex(leaves, point, color.clone().multiplyScalar(i === 2 ? 1.12 : .88 + rnd() * .17)));
-    leaves.indices.push(start, start + 1, start + 2, start, start + 2, start + 3,
-      start + 1, start + 4, start + 2, start + 2, start + 4, start + 3);
+  function leaf(attachment, axis, size, color) {
+    const across = V3(-axis.z, 0, axis.x).normalize().applyAxisAngle(axis, (rnd() - .5) * 2.2);
+    const heel = attachment.clone().addScaledVector(axis, -size * .11);
+    const index = leaves.positions.length / 3;
+    addVertex(leaves, heel.clone().addScaledVector(across, size * .60), color);
+    addVertex(leaves, heel.clone().addScaledVector(across, -size * .60), color);
+    addVertex(leaves, attachment.clone().addScaledVector(axis, size * 1.08), color);
+    leaves.uv.push(0, 0, 1, 0, .5, 1);
+    leaves.indices.push(index, index + 1, index + 2);
   }
 
   for (const branch of limbs) {
     limb(branch, 8);
-    const shoulder = V3(...branch[2].slice(0, 3));
-    const tip = V3(...branch[3].slice(0, 3));
-    const heading = tip.clone().sub(shoulder).normalize();
-    const side = heading.clone().cross(up).normalize();
-    // Three sprays per branch preserve the open spaces between the larger limbs.
-    for (const offset of [-1, 0, 1]) {
-      const start = offset === 0 ? tip : shoulder.clone().lerp(tip, .16 + rnd() * .48);
-      const direction = heading.clone().addScaledVector(side, offset * (.85 + rnd() * .40))
-        .addScaledVector(up, rnd() * .38 - .32).normalize();
-      const reach = .41 + rnd() * .23;
-      const mid = start.clone().addScaledVector(direction, reach * .54).addScaledVector(up, .07);
-      const end = start.clone().addScaledVector(direction, reach);
-      limb([[...start.toArray(), .013], [...mid.toArray(), .008], [...end.toArray(), .002]], 5);
-      for (let i = 0; i < 26; i++) {
-        const progress = .15 + .85 * rnd();
-        const angle = rnd() * Math.PI * 2;
-        const spread = (.11 + rnd() * .32) * Math.sin(Math.PI * progress);
-        const base = start.clone().lerp(end, progress).addScaledVector(side, Math.cos(angle) * spread)
-          .addScaledVector(up, Math.sin(angle) * spread);
-        const axis = direction.clone().addScaledVector(side, Math.cos(angle) * .95)
-          .addScaledVector(up, (rnd() - .5) * 1.15).normalize();
-        leaf(base, axis, .14 + rnd() * .15, palette[Math.floor(rnd() * palette.length)]);
+    const axis = branch.map(node => V3(...node.slice(0, 3)));
+    // Offset each fork both along and around the branch. Short shoots then
+    // carry alternate leaves on several levels across each rounded clump.
+    for (const [joint, sign, depth] of [[1, -1, .30], [1, 1, -.73], [2, -1, .82], [2, 1, -.46]]) {
+      const parent = axis[joint + 1].clone().sub(axis[joint]);
+      const fraction = .13 + rnd() * .38;
+      const start = axis[joint].clone().addScaledVector(parent, fraction);
+      const forward = parent.normalize();
+      const lateral = forward.clone().cross(up).normalize();
+      const reach = .30 + rnd() * .39;
+      const elbow = start.clone().addScaledVector(forward, reach * .36)
+        .addScaledVector(lateral, sign * reach * .55).addScaledVector(up, depth * .18);
+      const tip = elbow.clone().addScaledVector(forward, reach * .45)
+        .addScaledVector(lateral, sign * reach * .37).addScaledVector(up, .05 + depth * .24);
+      const r = (branch[joint][3] * (1 - fraction) + branch[joint + 1][3] * fraction) * .64;
+      limb([[...start.toArray(), r], [...elbow.toArray(), r * .54], [...tip.toArray(), 0]], 4);
+      const green = palette[Math.floor(rnd() * palette.length)];
+
+      for (const [at, turn, rise] of [[.08, 1, .38], [.36, -1, -.51], [.70, .7, .29], [.86, -.60, .56]]) {
+        const base = elbow.clone().lerp(tip, at);
+        const ray = tip.clone().sub(elbow).normalize().addScaledVector(lateral, turn * (.7 + rnd() * .5))
+          .addScaledVector(up, rise).normalize();
+        const shootLength = .14 + rnd() * .24;
+        const end = base.clone().addScaledVector(ray, shootLength);
+        limb([[...base.toArray(), Math.min(.004, r * .42 * (1 - at))], [...end.toArray(), 0]], 3);
+        const cross = ray.clone().cross(up).normalize();
+        const blades = 11 + Math.floor(rnd() * 5);
+        for (let i = 0; i < blades; i++) {
+          const t = (i + .36 + rnd() * .57) / blades;
+          const attach = base.clone().lerp(end, t);
+          const stalk = ray.clone().addScaledVector(cross, (i % 2 ? -1 : 1) * (.83 + rnd() * 1.3))
+            .addScaledVector(up, (rnd() - .44) * 1.28).normalize();
+          const size = (.062 + rnd() * .059) * (1 - .17 * t);
+          leaf(attach, stalk, size, green.clone().multiplyScalar(.86 + rnd() * .27));
+        }
       }
     }
   }
@@ -136,6 +159,33 @@ export function addBellLaneTree({ THREE, V3, M, context }, [x, y, z]) {
     group.add(object);
   }
   mesh(bark, M(0xffffff, .97, { vertexColors: true }), 'Trunk and branches');
-  mesh(leaves, M(0xffffff, .88, { vertexColors: true, bumpMap: null, side: THREE.DoubleSide }), 'Leaf sprays');
+  mesh(leaves, M(0xffffff, .84, {
+    map: camphorBlade(THREE), alphaTest: .42, vertexColors: true, bumpMap: null, side: THREE.DoubleSide,
+  }), 'Leaf sprays');
   context.G.add(group);
+}
+
+// One small leaf mask replaces broad foliage cards. Each triangle carries
+// one rounded blade in a fixed orientation, with a solid edge for shadows.
+function camphorBlade(THREE) {
+  const canvas = document.createElement('canvas');
+  canvas.width = canvas.height = 64;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#f3f4ef';
+  ctx.beginPath();
+  ctx.moveTo(32, 57);
+  ctx.bezierCurveTo(21, 51, 20, 38, 24, 28);
+  ctx.bezierCurveTo(27, 19, 31, 12, 32, 6);
+  ctx.bezierCurveTo(34, 13, 38, 20, 41, 32);
+  ctx.bezierCurveTo(45, 45, 40, 53, 32, 57);
+  ctx.fill();
+  ctx.strokeStyle = '#d0d6b6';
+  ctx.lineWidth = .8;
+  ctx.beginPath();
+  ctx.moveTo(32, 56);
+  ctx.quadraticCurveTo(35, 38, 32, 13);
+  ctx.stroke();
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  return texture;
 }
