@@ -2,7 +2,7 @@
 import { createHash } from 'node:crypto';
 import { lstat, mkdir, readFile, realpath, rm, writeFile } from 'node:fs/promises';
 import { basename, dirname, isAbsolute, join, relative, sep } from 'node:path';
-import { parseArgs } from 'node:util';
+import { isDeepStrictEqual, parseArgs } from 'node:util';
 import { read as readKtx, KHR_DF_PRIMARIES_BT709, KHR_DF_TRANSFER_LINEAR,
   KHR_SUPERCOMPRESSION_ZSTD } from 'three/examples/jsm/libs/ktx-parse.module.js';
 
@@ -236,14 +236,19 @@ async function verifyPreparedBaseline(input) {
   require(within(buildDirectory, path), 'The prepared receiver input must be under art/build.');
   if (!preparedBaseline) {
     const directory = dirname(path);
-    const [blend, raw] = await Promise.all([
-      localFile(directory, basename(path)), receipt(join(directory, 'baked'), 'manifest.json'),
+    const bakedDirectory = join(directory, 'baked');
+    const [blend, raw, transport] = await Promise.all([
+      localFile(directory, basename(path)), receipt(bakedDirectory, 'manifest.json'),
+      receipt(bakedDirectory, 'bake-fingerprint.json'),
     ]);
     require(raw.value.bakeFingerprint === manifest.bakeFingerprint
       && raw.value.geometryFingerprint === manifest.geometryFingerprint
       && raw.value.bake.sourceBlendSha256 === manifest.bake.sourceBlendSha256,
       'The original prepared receiver does not match the R54 delivery.');
-    preparedBaseline = { path, blendSha256: digest(blend), rawSha256: raw.sha256, receiver: raw.value.bake.receiverProfiles.court };
+    preparedBaseline = {
+      path, blendSha256: digest(blend), rawSha256: raw.sha256, receiver: raw.value.bake.receiverProfiles.court,
+      nightWorld: transport.value.world, nightWorldBakeName: raw.value.bake.sourceNightLighting.world.name,
+    };
   }
   require(preparedBaseline.path === path && preparedBaseline.blendSha256 === input.preparedInput.sha256
     && preparedBaseline.rawSha256 === input.baselineManifestSha256
@@ -279,7 +284,9 @@ async function verifyCourt(directory, look, source) {
     && isHash(baked.bakeFingerprint) && baked.bake.sourceBlendSha256 === manifest.bake.sourceBlendSha256
     && baked.bake.engine === 'Cycles' && baked.bake.cameraPreExposure === preExposure
     && baked.bake.resolutionByRegion.court === size && baked.bake.samples === 64
-    && (pass === 'night' ? baked.bake.sourceNightLighting?.world?.name : baked.bake.authoredAmbientWorlds?.[pass]) === input.worldName,
+    // The baker snapshots the Blender night world by copying the datablock.
+    && (pass === 'night' ? baked.bake.sourceNightLighting?.world?.name === preparedBaseline.nightWorldBakeName
+      : baked.bake.authoredAmbientWorlds?.[pass] === input.worldName),
     'Court bake binding, configured sample count or world does not match: ' + look);
   require(entry?.uri === 'court-' + pass + '.ktx2' && entry.source === 'court-' + pass + '.exr'
     && entry.encoding === 'log2-hdr' && entry.scale > 0 && Number.isFinite(entry.scale)
@@ -298,6 +305,8 @@ async function verifyCourt(directory, look, source) {
     && fingerprint.value.receivers?.court?.receiverFingerprint === input.receiverFingerprint
     && fingerprint.value.receivers?.court?.lightmapUVFingerprint === input.lightmapUVFingerprint,
     'The actual bake used a different receiver or source: ' + look);
+  if (pass === 'night') require(isDeepStrictEqual(fingerprint.value.world, preparedBaseline.nightWorld),
+    'The court night sky graph differs from the accepted R54 bake.');
   verifyWorld(fingerprint.value, pass, input, transport, preExposure, look);
   const [packed, master, ...mipmaps] = await Promise.all([
     receipt(court, entry.uri + '.json'), localFile(court, entry.source),
