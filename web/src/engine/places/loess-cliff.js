@@ -1,3 +1,69 @@
+const lampSeatY = 1;
+
+// The cut rolls from the earthen window into a level bearing surface and over
+// the worn front lip. Closely spaced rows in the cut carry the sediment bands.
+function windowSeat(THREE, loessTex) {
+  const section = [
+    [-.46, .095, .57, 0x97765b], [-.413, .081, .57, 0x89664e],
+    [-.373, .062, .58, 0xab8968], [-.335, .052, .60, 0xa48263],
+    [-.304, .038, .62, 0x8e6c52], [-.273, .023, .65, 0xab8766],
+    [-.242, .013, .67, 0x9d7b5e], [-.20, 0, .68, 0x99765a],
+  ];
+  for (let row = 1; row <= 34; row++) {
+    section.push([-.20 + row * .01, 0, .68, 0x9c795c]);
+  }
+  section.push(
+    [.157, -.004, .676, 0xa78261], [.171, -.015, .668, 0xa58263],
+    [.179, -.033, .658, 0x957155], [.177, -.052, .65, 0xa68061],
+    [.165, -.067, .645, 0x87654a], [.143, -.08, .64, 0x8c694d],
+    [-.235, -.087, .64, 0x826149],
+  );
+
+  const columns = 84;
+  const stride = columns + 1;
+  const positions = [], colors = [], uvs = [], triangles = [];
+  const color = new THREE.Color();
+  for (let row = 0; row < section.length; row++) {
+    const [z, y, halfWidth, earth] = section[row];
+    for (let column = 0; column <= columns; column++) {
+      const x = (2 * column / columns - 1) * halfWidth;
+      const ridge = Math.sin(x * 15 + z * 9) * Math.sin(x * 36 - .7);
+      const lip = THREE.MathUtils.smoothstep(z, .06, .17);
+      const contour = z + lip * (.005 * ridge - .025 * Math.pow(Math.abs(x / halfWidth), 10));
+      positions.push(x, lampSeatY + y + ridge * Math.abs(y) * .045, contour);
+      uvs.push(x * 2.2 + .5, (y + z * .24) * 3.1 + .5);
+
+      // Oil soaked into the porous earth at the seat, with a softer, uneven edge.
+      const distance = Math.hypot((x + .012) / .069, (z + .012) / .056);
+      const stain = (1 - THREE.MathUtils.smoothstep(distance + ridge * .09, .28, 1.24)) * .46;
+      color.setHex(earth).multiplyScalar((1 - stain) * (1 + .028 * ridge));
+      colors.push(color.r, color.g, color.b);
+      if (row === 0 || column === 0) continue;
+      const lower = row * stride + column;
+      const upper = lower - stride;
+      triangles.push(upper - 1, lower - 1, upper, upper, lower - 1, lower);
+    }
+  }
+  // Fan caps close the exposed sides; the rear edge is within the cave wall.
+  for (const column of [0, columns]) {
+    for (let row = 1; row < section.length - 1; row++) {
+      const edge = row * stride + column;
+      if (column === 0) triangles.push(column, edge, edge + stride);
+      else triangles.push(column, edge + stride, edge);
+    }
+  }
+  const geometry = new THREE.BufferGeometry();
+  geometry.setIndex(triangles);
+  geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+  geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+  geometry.computeVertexNormals();
+  const material = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .96, bumpMap: loessTex, bumpScale: .007 });
+  const mesh = new THREE.Mesh(geometry, material);
+  mesh.name = 'Loess visitor window seat';
+  return mesh;
+}
+
 // An invented cave court. The lamp window, cave fronts and cliff are one continuous piece of ground.
 export default function createPlace(h) {
   const { THREE, V3, M, ground, box, put, wallWithHoles, otherLamp, loessTex, papercutTex, grainTex, pavingTex, mist, pauseBuild } = h;
@@ -26,9 +92,13 @@ export default function createPlace(h) {
       mist({ n: 10, at: [0, .6, 24], box: [30, 1.2, 22], color: 0x9c8b76, opacity: .05, size: 10, drift: .45 });
     },
     nook: {
-      at: { pos: V3(0, 0, -3), ry: 0 }, lamp: 'clay', y: 1, exposure: 1.08, bloom: [.35, 1.05],
+      at: { pos: V3(0, 0, -3), ry: 0 }, lamp: 'clay', y: lampSeatY, exposure: 1.08, bloom: [.35, 1.05],
       approach: [V3(.7, 1.65, 6), V3(.9, 1.5, 3.2)],
       wide: { pos: V3(.85, 1.35, 2), look: V3(-.15, 1.3, -.3) },
+      choose: { pos: V3(.25, 1.25, .58), look: V3(.005, 1.037, -.025), fov: 32 },
+      // The procedural phone camera pulls this back and lowers its aim. Frame
+      // the rim, bearing surface and wick in the space above the chooser.
+      choosePhone: { pos: V3(.18, 1.22, .43), look: V3(.005, 1.047, -.025) },
       async build(hh, C) {
         const earth = M(0x9d794e, .98, { map: loessTex }), packed = M(0x725638, .98, { map: loessTex }), wood = M(0x47301e, .85, { map: grainTex });
         // A thick cliff face with fully open arches. The front is the actual cave wall, rather than a distant scenery copy.
@@ -52,7 +122,8 @@ export default function createPlace(h) {
           const pane = new THREE.Mesh(new THREE.PlaneGeometry(w, 1.25), paper); pane.position.set(x, 1.65, -.52); C.G.add(pane);
           for (let k = -2; k <= 2; k++) box(.018, 1.25, .035, wood, x + k * w / 5, 1.65, -.46);
           for (const y of [1.08, 1.65, 2.23]) box(w, .025, .045, wood, x, y, -.44);
-          box(w + .18, .065, .62, packed, x, .98, -.25);
+          if (x === 0) C.G.add(windowSeat(THREE, loessTex));
+          else box(w + .18, .065, .62, packed, x, .98, -.25);
         }
         const curtain = new THREE.Mesh(new THREE.PlaneGeometry(1.24, 2.36, 12, 1), M(0x273141, .98, { side: THREE.DoubleSide }));
         const cp = curtain.geometry.attributes.position; for (let i = 0; i < cp.count; i++) cp.setZ(i, Math.sin(cp.getX(i) * 32) * .045); curtain.geometry.computeVertexNormals(); curtain.position.set(1.9, 1.19, -.75); C.G.add(curtain);
