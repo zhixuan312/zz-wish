@@ -34,18 +34,48 @@ export function positionFromViewMatrix(elements) {
   };
 }
 
-/** Extract the camera's forward axis (negative Z column of the view rotation). */
+/** Extract the camera's world forward axis from a view matrix (world-inverse). */
 export function forwardFromViewMatrix(elements) {
   if (!elements || elements.length !== 16) return null;
-  // Column-major: the third column is elements 8, 9, 10; the camera looks down its negative Z.
-  return { x: -elements[8], y: -elements[9], z: -elements[10] };
+  // The world-inverse's third ROW is the camera's world-space forward basis, and the camera looks down
+  // the negative Z of its own frame. Column-major storage places that row at elements 2, 6 and 10.
+  // Verified against camera.getWorldDirection() for a non-axis-aligned yaw+pitch pose: exact.
+  // Using elements 8, 9, 10 instead reads the third COLUMN, which happens to agree only for rotations
+  // with no pitch and no roll.
+  return { x: -elements[2], y: -elements[6], z: -elements[10] };
+}
+
+/** The camera's rotation as a 3x3 basis, read from the view matrix. */
+export function basisFromViewMatrix(elements) {
+  if (!elements || elements.length !== 16) return null;
+  // Column-major: column i is elements [4i, 4i+1, 4i+2]. The world rotation is the transpose of the
+  // inverse's rotation, so the basis columns are the inverse's rows.
+  return [
+    [elements[0], elements[4], elements[8]],
+    [elements[1], elements[5], elements[9]],
+    [elements[2], elements[6], elements[10]],
+  ];
+}
+
+/**
+ * Relative rotation angle between two camera bases, in radians.
+ *
+ * The full 3x3 relative rotation is used, not just the forward direction: a pure roll about the view
+ * axis leaves the forward vector unchanged, so a forward-only test reports "no rotation" for a camera
+ * that visibly turned on its own axis. For orthonormal bases the angle satisfies
+ * cos(theta) = (trace(Ra^T Rb) - 1) / 2.
+ */
+export function rotationBetweenBases(a, b) {
+  if (!a || !b) return null;
+  let trace = 0;
+  for (let row = 0; row < 3; row++) {
+    for (let column = 0; column < 3; column++) trace += a[row][column] * b[row][column];
+  }
+  const cosine = Math.max(-1, Math.min(1, (trace - 1) / 2));
+  return Math.acos(cosine);
 }
 
 const distance = (a, b) => Math.hypot(a.x - b.x, a.y - b.y, a.z - b.z);
-const angle = (a, b) => {
-  const dot = Math.max(-1, Math.min(1, a.x * b.x + a.y * b.y + a.z * b.z));
-  return Math.acos(dot);
-};
 
 /**
  * Judge a camera sample sequence.
@@ -68,33 +98,50 @@ export function judgeCameraMotion(samples, options = {}) {
   }).sort((a, b) => a.t - b.t);
 
   if (valid.length < minimum) {
-    return { verdict: 'unknown', firstMovement: null, bounds: { earliest: null, latest: null },
-      firstRotation: null, validSamples: valid.length,
+    return { verdict: 'unknown', firstExceedance: null, bounds: null, firstRotation: null,
+      validSamples: valid.length,
       reasons: [...reasons, `only ${valid.length} valid sample(s); at least ${minimum} needed`] };
   }
 
+  // Displacement is measured from the first sample, which the caller takes before the Step click. A
+  // per-frame comparison would miss a slow walk: 0.4 mm each frame never exceeds a 1 mm step limit, yet
+  // two millimetres accumulate in five frames and that is real movement.
+  const reference = positionFromViewMatrix(valid[0].elements);
+  const referenceBasis = basisFromViewMatrix(valid[0].elements);
+  if (!reference || !referenceBasis) {
+    return { verdict: 'unknown', firstExceedance: null, bounds: null, firstRotation: null,
+      validSamples: valid.length, reasons: [...reasons, 'the reference matrix could not be read'] };
+  }
+
   let firstRotation = null;
-  for (let index = 1; index < valid.length; index++) {
-    const previous = valid[index - 1], current = valid[index];
-    const a = positionFromViewMatrix(previous.elements), b = positionFromViewMatrix(current.elements);
-    const fa = forwardFromViewMatrix(previous.elements), fb = forwardFromViewMatrix(current.elements);
-    if (!a || !b || !fa || !fb) { reasons.push('could not read a position or forward axis'); continue; }
-    // Two consecutive samples only bracket the change: movement happened between them, not at either.
-    if (distance(a, b) > translationLimit) {
-      return { verdict: 'moving', firstMovement: current.t,
-        bounds: { earliest: previous.t, latest: current.t }, firstRotation, validSamples: valid.length,
-        reasons: [...reasons, `translation ${distance(a, b).toFixed(4)} m exceeds ${translationLimit} m `
-          + `between ${previous.t} and ${current.t} ms`] };
+  for (const sample of valid) {
+    const position = positionFromViewMatrix(sample.elements);
+    const basis = basisFromViewMatrix(sample.elements);
+    if (!position || !basis) { reasons.push('could not read a position or basis'); continue; }
+    if (firstRotation === null && rotationBetweenBases(referenceBasis, basis) > rotationLimit) {
+      firstRotation = sample.t;
     }
-    if (firstRotation === null && angle(fa, fb) > rotationLimit) firstRotation = current.t;
+    const travelled = distance(reference, position);
+    if (travelled > translationLimit) {
+      // The first sample past the limit bounds where the limit was crossed, not where motion began: a
+      // continuous 0.4 mm per frame walk crosses 1 mm somewhere inside this interval.
+      const index = valid.indexOf(sample);
+      const previous = index > 0 ? valid[index - 1].t : null;
+      return { verdict: 'moving', firstExceedance: sample.t,
+        bounds: { earliest: previous, latest: sample.t },
+        displacementMetres: travelled, firstRotation, validSamples: valid.length,
+        reasons: [...reasons, `travelled ${travelled.toFixed(4)} m from the reference at ${valid[0].t} ms, `
+          + `exceeding ${translationLimit} m at ${sample.t} ms`] };
+    }
   }
 
   if (firstRotation !== null) {
-    return { verdict: 'rotating', firstMovement: null, bounds: { earliest: null, latest: null },
-      firstRotation, validSamples: valid.length,
-      reasons: [...reasons, 'orientation changed while position stayed within the translation limit'] };
+    return { verdict: 'rotating', firstExceedance: null, bounds: null, firstRotation,
+      validSamples: valid.length,
+      reasons: [...reasons, 'orientation changed while position stayed within the translation limit, '
+        + 'measured on the full relative rotation so a pure roll counts'] };
   }
-  return { verdict: 'still', firstMovement: null, bounds: { earliest: null, latest: null },
-    firstRotation: null, validSamples: valid.length,
+  return { verdict: 'still', firstExceedance: null, bounds: null, firstRotation: null,
+    validSamples: valid.length,
     reasons: [...reasons, 'neither position nor orientation changed beyond the thresholds'] };
 }

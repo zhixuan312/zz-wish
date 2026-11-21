@@ -34,19 +34,35 @@ returns one of `moving`, `rotating`, `still`, `unknown`.
   column is `-Rᵀp`, so a rotated camera's translation differs from its position; reading `-t` made a
   rotating camera look like it was moving. Verified against three.js: a camera at `(0,5,10)` yields a
   position error of at most `2e-15` at three different orientations.
-- Orientation is the negative Z column, so a turn can be reported separately from a displacement.
+- Forward is the negated **third row** of the world-inverse (`elements[2], [6], [10]`), which is the
+  camera's world forward basis. Taking `elements[8], [9], [10]` reads the third column and agrees only when
+  there is no pitch and no roll; compared with `getWorldDirection()` on a yaw+pitch pose the column reading
+  is wrong by 1.36.
+- Rotation is the full relative 3x3 rotation, `acos((trace(RaᵀRb) − 1) / 2)`, not just the forward axis.
+  A pure roll about the view axis leaves forward unchanged, so a forward-only test calls a camera that
+  visibly turned "still".
 - Thresholds default to 1 mm and 1 mrad; both are parameters.
-- The onset is bracketed, never asserted at a point: the first moving pair gives
-  `bounds = { earliest: previousT, latest: currentT }`, because the change happened somewhere in that
-  interval.
+- Displacement is cumulative from the **first sample, taken before the Step click**, not a per-frame step.
+  A walk that gains 0.4 mm per frame never exceeds a 1 mm step, yet reaches 2 mm in five frames; per-frame
+  comparison therefore reports `still` for real movement.
+- The reported time is `firstExceedance`, the first sample at which cumulative displacement passes the
+  threshold, with `bounds = { earliest: previousSampleT, latest: thatSampleT }`. Those bounds enclose where
+  the **threshold was crossed**, which is not the moment motion began: a continuous slow walk began earlier,
+  in the interval the samples cannot resolve.
 - `unknown` is returned rather than a guess when fewer than two valid samples exist, and non-finite
   matrices are dropped with a stated reason.
 
-Synthetic coverage (`npm --prefix . exec vitest run tests/tier2/walk-camera-judge.test.mjs`, offline, no GPU):
-a camera that never moves while the picture animates reads `still`; one that only turns reads `rotating`
-with `firstMovement: null`; a 2 cm translation reads `moving` at the later sample with a two-sample
-bracket; a 0.5 mm drift reads `still`; an empty or NaN-only sequence reads `unknown`; a single sample reads
-`unknown` instead of `still`. **7 tests pass.**
+Synthetic coverage (`npx vitest run tests/tier2/walk-camera-judge.test.mjs`, offline, no GPU): position and
+forward extraction against three.js at three orientations; forward against `getWorldDirection()` on a
+yaw+pitch pose; a pure roll reported as `rotating` though forward never changes; a camera that never moves
+while the picture animates reads `still`; rotate-only reads `rotating` with `firstExceedance: null`; a 2 cm
+translation reads `moving` with a two-sample bracket; a 0.4 mm-per-frame walk reaching 1.2 mm reads
+`moving` with `bounds {32, 48}`; a single 0.5 mm drift reads `still`; an empty or NaN-only sequence and a
+single sample read `unknown` instead of `still`. **10 tests pass.**
+
+Both regressions were re-introduced to confirm the tests catch them: reading forward from
+`elements[8..10]` fails only the `getWorldDirection` case, and comparing consecutive samples instead of the
+reference fails only the slow-walk case.
 
 ## What this does not establish
 
@@ -58,11 +74,11 @@ here, and none can be derived from the existing matrix.**
 ## Minimum live work to settle it
 
 1. Build with `VITE_E2E_HOOKS=1` (the Tier 1 configuration) — this exposes `__pineRenderCamera`.
-2. In the page, sample `window.__pineRenderCamera.matrixWorldInverse.elements` on every
-   `requestAnimationFrame` once the Step button is clicked, tagging each sample with
-   `performance.now()`.
-3. Feed the samples to `judgeCameraMotion` and report its verdict, its first-movement bracket, and the
-   thresholds used.
+2. Sample `window.__pineRenderCamera.matrixWorldInverse.elements` on every `requestAnimationFrame`
+   **starting before the Step click**, tagging each sample with `performance.now()`. The first sample is the
+   reference the judge measures cumulative displacement from; starting at the click would lose it.
+3. Feed the samples to `judgeCameraMotion` and report its verdict, `firstExceedance`, the bracket around the
+   threshold crossing, and the thresholds used. Do not report the bracket as the moment motion began.
 4. Reject any sample whose camera is not `__pineRenderCamera`; that is the only guard against a shadow or
    preview camera being sampled by mistake.
 
