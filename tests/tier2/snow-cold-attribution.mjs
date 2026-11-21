@@ -114,6 +114,38 @@ try {
     };
   }, hour);
   const page = await context.newPage();
+  // CPU-side stage timeline, recorded from attributes the page already publishes: `#cover-poster[data-ready]`
+  // is set when compileAsync finishes and the frame loop starts, and `[data-stage]` on the loading pill is the
+  // prepare stage. Reading them costs no product instrumentation and puts boot, compile and prepare on the
+  // same clock as the click.
+  await page.addInitScript(() => {
+    const marks = { t0: performance.now() };
+    window.__stageMarks = marks;
+    const stamp = (name, value) => {
+      if (!(name in marks)) marks[name] = { at: performance.now(), value };
+    };
+    let poster = null, pill = null;
+    const scan = () => {
+      if (!poster) {
+        poster = document.getElementById('cover-poster');
+        if (poster) {
+          const read = () => { if (poster.dataset.ready === 'true') stamp('coverReady', true); };
+          read();
+          new MutationObserver(read).observe(poster, { attributes: true, attributeFilter: ['data-ready'] });
+        }
+      }
+      if (!pill) {
+        pill = document.querySelector('.court-loading[data-stage]');
+        if (pill) {
+          const read = () => stamp('stage-' + pill.dataset.stage, true);
+          read();
+          new MutationObserver(read).observe(pill, { attributes: true, attributeFilter: ['data-stage'] });
+        }
+      }
+      if ((!poster || !pill) && !(marks.coverReady && marks['stage-ready'])) requestAnimationFrame(scan);
+    };
+    scan();
+  });
   const cdp = await context.newCDPSession(page);
   await cdp.send('Network.enable');
   if (profile.net) {
@@ -209,10 +241,23 @@ try {
   } catch { moved = false; }
   record.cutoffs.firstStep = snapshotOf(ledger);
   if (args.screenshots === true) {
+    // `firstStep` is the first moving frame, which is mid-walk: the two versions reach it at different times,
+    // so the camera is at a different pose and the pictures cannot be compared. The walk ends when the
+    // duration chooser appears, which is a stable pose at the same hour in both versions; that is the shot
+    // parity uses.
     record.firstStepShot = 'firstStep.png';
     await page.screenshot({ path: join(out, record.firstStepShot) });
+    const chooser = page.locator('[role=radio]').filter({ hasText: /10\s*min/i }).first();
+    let arrived = true;
+    try { await chooser.waitFor({ timeout: 180000 }); } catch { arrived = false; }
+    if (arrived) {
+      record.arrivedAt = await page.evaluate(() => performance.now());
+      record.arrivedShot = 'arrived.png';
+      await page.screenshot({ path: join(out, record.arrivedShot) });
+    } else record.arrivedFailure = 'the duration chooser never appeared';
   }
   record.probe = await page.evaluate(() => window.__coldProbe);
+  record.stageMarks = await page.evaluate(() => window.__stageMarks ?? null);
   record.movedObserved = moved;
 
   writeFileSync(join(out, 'events.json'), JSON.stringify(events, null, 2));
