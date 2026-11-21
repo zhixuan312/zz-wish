@@ -71,6 +71,6 @@ Reusable source assets are the shared [celadon builder](../../web/src/engine/sce
 
 ## Filling and lighting the visitor cup
 
-The [Bamboo oil prelude](../../web/src/engine/places/bamboo-oil-fill.js) fills the visitor’s dry cup after Light. The small dipper puts the stream inside the cup, and the oil surface follows the vessel’s actual inner volume. The filled surface remains visible before the existing wick catches. The sequence uses the seated composition with the tile edge and channel in view.
+The [Bamboo oil prelude](../../web/src/engine/places/bamboo-oil-fill.js) fills the visitor’s dry cup after Light. The small dipper puts the stream inside the cup, and the oil surface follows the vessel’s actual inner volume. The filled surface remains visible before the existing wick catches. The sequence uses the seated composition with the tile edge and channel in view. Reduced motion keeps the rise and full-cup pause at the same seat while omitting the dipper motion.
 
 The [scene](../../web/src/engine/scene.js) prelude is optional. Its visual oil fraction is separate from the burn fuel tracked by the existing run. A pre-catch exit clears the dipper and liquid and invalidates the old ignition sequence. Once the wick catches, the cup follows the existing fuel and extinguishing behavior. The chooser palette, rain audio lifecycle and public picker follow the existing flow.

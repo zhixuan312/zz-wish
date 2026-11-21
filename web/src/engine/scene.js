@@ -2016,7 +2016,10 @@ if (import.meta.env.DEV || import.meta.env.VITE_E2E_HOOKS === '1') {
   };
 }
 const tweens = [];
-function tween(dur, fn) { if (reducedMotion.matches) { fn(1); return Promise.resolve(); } return new Promise((res) => { tweens.push({ t: 0, dur, fn, res, skip: false }); }); }
+function tween(dur, fn, { motion = true } = {}) {
+  if (motion && reducedMotion.matches) { fn(1); return Promise.resolve(); }
+  return new Promise((res) => { tweens.push({ t: 0, dur, fn, res, skip: false }); });
+}
 function skipTweens() { for (const tw of tweens) tw.skip = true; }
 function moveCam(pos, look, dur, fov) {
   const p0 = rig.pos.clone(), l0 = rig.look.clone(),f0=rig.fov??camera.fov,f1=fov??(narrow()?44:32);
@@ -2586,22 +2589,24 @@ export async function ignite({onCatch, remainingFuel, onTaperLit}={}) {
     resetOilPrelude();
     wickPlume.clear(); emberUntil = 0;
     const vessel = parts.vessel;
-    const pour = fill.create(mine.g, vessel.ys.at(-1));
+    const reduced = reducedMotion.matches;
+    const pour = reduced ? null : fill.create(mine.g, vessel.ys.at(-1));
     oilPour = pour;
     mark('filling', 0);
+    // Reduced motion keeps the oil change and unlit hold readable at the fixed seat.
     try {
-      await tween(fill.seconds, k => {
+      await tween(reduced ? .65 : fill.seconds, k => {
         if (!sameCup()) return;
         const sample = fill.frame(k);
         mine.oilFillFraction = sample.amount;
         mine.setLevel(level);
-        pour.update(k, sample, mine.lastOil, vessel.r(mine.lastOil));
+        pour?.update(k, sample, mine.lastOil, vessel.r(mine.lastOil));
         mark('filling', sample.amount);
-      });
+      }, { motion: false });
     } finally { removeOilPour(pour); }
     if (!sameCup()) return;
     mark('oil-ready', 1);
-    await tween(fill.hold, () => {});
+    await tween(fill.hold, () => {}, { motion: false });
     if (!sameCup()) return;
   }
   lit=true;emberUntil=0;wickPlume.clear();shadeCoolingUntil=0;shadeCoolingGlow=0;shadeCoolingStart=0;shadeCoolingTau=0;roomLight=1;ignitionFill=place.P.bakedLighting?1:0;previewFloor=1;mark('igniting',0);
