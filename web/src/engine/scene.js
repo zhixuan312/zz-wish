@@ -2895,12 +2895,14 @@ export async function snuff(done = false, remaining, gust = false) {
     }
   } else if (done) { level = targetLevel = 0; mine.setLevel(0); }
   const wickTip = endingParts?.pineWax?.wickTip.clone() ?? mine.top.clone().add(V3(.0007,.004,0));
+  const suddenSnowShade = !done && place.id === 'snow-roof' && endingParts?.kind === 'shade';
   wickPlume.start({ time: clockTime, done, frame: mine.g, path: endingParts?.smokePath, wickTip,
-    variant: endingParts?.pineWax ? 'pine' : undefined, valid: () => mine.parts === endingParts });
+    variant: endingParts?.pineWax ? 'pine' : suddenSnowShade ? 'snow' : undefined,
+    valid: () => mine.parts === endingParts });
   emberUntil = clockTime + (done ? 3.8 : .35);
   // Snow Court's put-out cuts the cloth transmission and flame on the same draw.
   // Keep the brief wick ember and the thread through the existing gauze vent.
-  if (!done && place.id === 'snow-roof' && endingParts?.kind === 'shade') {
+  if (suddenSnowShade) {
     mine.power = 0;
     return;
   }

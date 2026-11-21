@@ -106,6 +106,8 @@ const configurations={natural:{delay:1.9,duration:1.5,rate:36,speed:.13,outsideL
 const pineSudden = { delay: 0, duration: 1.04, rate: 88, speed: .19, outsideLife: 1.64,
   riseSpeed: .105, width: .0015, growth: .011, curl: .014, opacity: .19,
   rootFade: .018, rootClearance: .0008, coherent: true };
+const snowSudden = { ...configurations.sudden, duration: .42, rate: 88, speed: .49,
+  outsideLife: 1.72, riseSpeed: .18, growth: .024, curl: .020, opacity: .30, coherent: true };
 export class WickPlume{
   constructor({scene,map,count=96}){
     this.parts=Array.from({length:count},(_,i)=>{
@@ -115,7 +117,8 @@ export class WickPlume{
   clear(){this.run=null;for(const p of this.parts){p.s.visible=false;p.exitWorld=null;}}
   start({time,done,frame,path,wickTip,variant,valid}){
     this.clear();frame.updateWorldMatrix(true,false);
-    const config = !done && variant === 'pine' ? pineSudden : configurations[done ? 'natural' : 'sudden'];
+    const config = done ? configurations.natural
+      : variant === 'pine' ? pineSudden : variant === 'snow' ? snowSudden : configurations.sudden;
     if (!path) {
       const length = .008;
       const end = wickTip.clone().add(new THREE.Vector3(0, length, 0));
