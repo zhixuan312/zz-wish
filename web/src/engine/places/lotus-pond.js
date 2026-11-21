@@ -57,7 +57,7 @@ function buildBridge(THREE, put, box, granite) {
     }
   }
   rail(1, [-1, 1.6, 4.4, 7.2, 10, 12.8, 15.6, 17.8]);
-  rail(-1, [10.35, 11.65, 12.95]);
+  rail(-1, [10.35, 11.65, 12.95, 14.2]);
 }
 
 function buildOldStands(THREE, put, box, stone, wax, paleWax, otherLamp) {
