@@ -79,7 +79,16 @@ const waitWalk = (page, seconds) => page.waitForFunction(value => window.__walkP
 
 async function snap(page, directory, name, seconds = null) {
   const path = join(directory, name + '.png');
-  const { png, ...camera } = await page.evaluate(seconds => window.__captureBellFrame(seconds), seconds);
+  const { png, ...camera } = await page.evaluate(async seconds => {
+    let timer;
+    try {
+      return await Promise.race([window.__captureBellFrame(seconds), new Promise((_, reject) => {
+        timer = setTimeout(() => reject(new Error('No Bell Lane frame at ' + seconds)), 45000);
+      })]);
+    } finally {
+      clearTimeout(timer);
+    }
+  }, seconds);
   await writeFile(path, Buffer.from(png, 'base64'));
   shots.push({ file: path, ...camera });
   return camera;
@@ -137,96 +146,102 @@ try {
       viewport: phone ? { width: 390, height: 844 } : { width: 1440, height: 900 },
       locale: 'en-US', timezoneId: 'Asia/Singapore', isMobile: phone, hasTouch: phone, deviceScaleFactor: 1,
     });
-    await context.addInitScript(instrument);
-    const page = await context.newPage();
-    const bellManifests = [];
-    page.on('request', request => { if (request.url().includes('/places/bell-lane/manifest.json')) bellManifests.push(request.url()); });
-    page.on('pageerror', error => problems.push({ name, error: String(error) }));
-    page.on('response', response => { if (response.status() >= 400 && response.url().startsWith(preview.url)) problems.push({ name, status: response.status(), url: response.url().replace(preview.url, '') }); });
-    await page.clock.setFixedTime(new Date(look === 'day' ? '2026-11-21T13:00:00+08:00' : '2026-11-21T22:00:00+08:00'));
-    await page.goto(preview.url);
-    await page.getByLabel('Your wish', { exact: true }).fill('May there always be a light for the way home.');
-    await button(page, 'Set my wish').click();
-    await button(page, 'Step inside').waitFor({ timeout: 80000 });
-    await page.waitForFunction(() => window.__ready && document.querySelector('.court-loading[data-stage="ready"]') &&
-      window.__pineRenderCamera?.position.z > 43);
-    await page.waitForTimeout(430);
-    await snap(page, directory, 'entrance');
-    const record = look === 'day';
-    await page.evaluate(record => {
-      window.__startCameraTrace();
-      if (record) window.__armBellLaneRecording();
-    }, record);
-    await button(page, 'Step inside').click();
-    const soundRows = {};
-    await waitWalk(page, 12);
-    soundRows.eaves = await audio(page);
-    const passing = await snap(page, directory, 'passing-window', 16.75);
-    await waitWalk(page, 22);
-    soundRows.approach = await audio(page);
-    await snap(page, directory, 'threshold', 24.2);
-    soundRows.door = await audio(page);
-    await snap(page, directory, 'open-court-26s', 26.3);
-    soundRows.court = await audio(page);
-    await snap(page, directory, 'open-court-29s', 29.5);
-    await screen(page, 'candle');
-    await page.screenshot({ path: join(directory, 'chooser-ready-made.png'), scale: 'css' });
-    const chooser = { readyMade: await page.evaluate(() => window.__bellReviewWindow()) };
-    if (record) {
-      const encoded = await page.evaluate(() => window.__finishBellLaneRecording());
-      await writeFile(join(directory, 'continuous-walk.webm'), Buffer.from(encoded, 'base64'));
-    }
-    assert.equal(soundRows.eaves.length, 1);
-    assert.equal(soundRows.court.length, 1);
-    assert.ok(soundRows.eaves[0].cutoffHz > 2600);
-    assert.ok(soundRows.court[0].cutoffHz < 400);
-    assert.ok(soundRows.court[0].doorGain < soundRows.eaves[0].doorGain * .45);
-    const actual = await page.evaluate(() => window.__stopCameraTrace());
-    const journey = mode === 'desktop' && look === 'day'
-      ? await exerciseAudio(page) : undefined;
-    const drawn = phone === (look === 'day');
-    if (drawn) {
-      await page.getByRole('tab', { name: /^Draw/ }).click();
-      const size = await page.locator('canvas.pad').boundingBox();
-      await page.mouse.move(size.x + size.width * .22, size.y + size.height * .82);
-      await page.mouse.down();
-      for (const [x, y] of [[.19, .62], [.24, .36], [.32, .15], [.65, .15], [.73, .36], [.78, .59], [.74, .82]]) {
-        await page.mouse.move(size.x + size.width * x, size.y + size.height * y, { steps: 4 });
+    try {
+      await context.addInitScript(instrument);
+      const page = await context.newPage();
+      const bellManifests = [];
+      page.on('request', request => { if (request.url().includes('/places/bell-lane/manifest.json')) bellManifests.push(request.url()); });
+      page.on('pageerror', error => problems.push({ name, error: String(error) }));
+      page.on('response', response => { if (response.status() >= 400 && response.url().startsWith(preview.url)) problems.push({ name, status: response.status(), url: response.url().replace(preview.url, '') }); });
+      await page.clock.setFixedTime(new Date(look === 'day' ? '2026-11-21T13:00:00+08:00' : '2026-11-21T22:00:00+08:00'));
+      await page.goto(preview.url);
+      await page.getByLabel('Your wish', { exact: true }).fill('May there always be a light for the way home.');
+      await button(page, 'Set my wish').click();
+      await button(page, 'Step inside').waitFor({ timeout: 80000 });
+      await page.waitForFunction(() => window.__ready && document.querySelector('.court-loading[data-stage="ready"]') &&
+        window.__pineRenderCamera?.position.z > 43);
+      await page.waitForTimeout(430);
+      await snap(page, directory, 'entrance');
+      const record = look === 'day';
+      await page.evaluate(record => {
+        window.__startCameraTrace();
+        if (record) window.__armBellLaneRecording();
+      }, record);
+      await button(page, 'Step inside').click();
+      const soundRows = {};
+      await waitWalk(page, 12);
+      soundRows.eaves = await audio(page);
+      const passing = await snap(page, directory, 'passing-window', 16.75);
+      await waitWalk(page, 22);
+      soundRows.approach = await audio(page);
+      await snap(page, directory, 'threshold', 24.2);
+      soundRows.door = await audio(page);
+      await snap(page, directory, 'open-court-26s', 26.3);
+      soundRows.court = await audio(page);
+      await snap(page, directory, 'open-court-29s', 29.5);
+      await screen(page, 'candle');
+      await page.screenshot({ path: join(directory, 'chooser-ready-made.png'), scale: 'css' });
+      const chooser = { readyMade: await page.evaluate(() => window.__bellReviewWindow()) };
+      if (record) {
+        const encoded = await page.evaluate(() => window.__finishBellLaneRecording());
+        await writeFile(join(directory, 'continuous-walk.webm'), Buffer.from(encoded, 'base64'));
       }
-      await page.mouse.up();
-      await page.screenshot({ path: join(directory, 'chooser-draw.png'), scale: 'css' });
-      chooser.draw = await page.evaluate(() => window.__bellReviewWindow());
-      await page.getByRole('tab', { name: /^Ready-made/ }).click();
-      await page.screenshot({ path: join(directory, 'chooser-restored.png'), scale: 'css' });
-      chooser.restored = await page.evaluate(() => window.__bellReviewWindow());
-      await page.getByRole('tab', { name: /^Draw/ }).click();
+      assert.equal(soundRows.eaves.length, 1);
+      assert.equal(soundRows.court.length, 1);
+      assert.ok(soundRows.eaves[0].cutoffHz > 2600);
+      assert.ok(soundRows.court[0].cutoffHz < 400);
+      assert.ok(soundRows.court[0].doorGain < soundRows.eaves[0].doorGain * .45);
+      const actual = await page.evaluate(() => window.__stopCameraTrace());
+      const journey = mode === 'desktop' && look === 'day'
+        ? await exerciseAudio(page) : undefined;
+      const drawn = phone === (look === 'day');
+      if (drawn) {
+        await page.getByRole('tab', { name: /^Draw/ }).click();
+        const size = await page.locator('canvas.pad').boundingBox();
+        await page.mouse.move(size.x + size.width * .22, size.y + size.height * .82);
+        await page.mouse.down();
+        for (const [x, y] of [[.19, .62], [.24, .36], [.32, .15], [.65, .15], [.73, .36], [.78, .59], [.74, .82]]) {
+          await page.mouse.move(size.x + size.width * x, size.y + size.height * y, { steps: 4 });
+        }
+        await page.mouse.up();
+        await page.screenshot({ path: join(directory, 'chooser-draw.png'), scale: 'css' });
+        chooser.draw = await page.evaluate(() => window.__bellReviewWindow());
+        await page.getByRole('tab', { name: /^Ready-made/ }).click();
+        await page.screenshot({ path: join(directory, 'chooser-restored.png'), scale: 'css' });
+        chooser.restored = await page.evaluate(() => window.__bellReviewWindow());
+        await page.getByRole('tab', { name: /^Draw/ }).click();
+      }
+      await page.getByRole('button', { name: /^Light it/ }).click({ timeout: 20000 });
+      await screen(page, 'burning');
+      await page.waitForFunction(() => window.__visualIgnition?.state === 'wick-contact');
+      const contact = await page.evaluate(() => window.__visualIgnition);
+      assert.ok(contact.wickContactMetres <= .001);
+      await snap(page, directory, 'taper-contact');
+      await writeFile(join(directory, 'taper-contact.json'), JSON.stringify({ drawn, ...contact }, null, 2));
+      await page.waitForFunction(() => window.__visualIgnition?.state === 'settled');
+      const seatedFrame = await snap(page, directory, 'seated');
+      await page.screenshot({ path: join(directory, 'seated-with-controls.png'), scale: 'css' });
+      soundRows.seated = await audio(page);
+      const { walkMetrics, arrivalMetrics, seated, rows } = cameraAudit(phone);
+      const { observed, chart } = liveCameraAudit(actual);
+      await writeFile(join(directory, 'camera.json'), JSON.stringify({ actual, observed, rows, walk: cameraPeaks(walkMetrics), arrival: cameraPeaks(arrivalMetrics), seated }, null, 2));
+      await writeFile(join(directory, 'camera-curves.svg'), chart);
+      await writeFile(join(directory, 'audio.json'), JSON.stringify({ walk: soundRows, lifecycle: journey }, null, 2));
+      await writeFile(join(directory, 'chooser.json'), JSON.stringify(chooser, null, 2));
+      assert.deepEqual(bellManifests, []);
+      assert.equal(chooser.readyMade.wickCovered, false);
+      assert.equal(chooser.readyMade.windowCovered, false);
+      if (drawn) assert.equal(chooser.restored.wickCovered, false);
+      assert.ok(passing.landmark?.visible, 'the window mesh must be visible while passing');
+      assert.ok(seatedFrame.landmark?.visible, 'the window mesh must be visible through the door');
+      assert.equal(passing.landmark.windowId, seatedFrame.landmark.windowId);
+      console.log(name, 'captured');
+    } catch (error) {
+      problems.push({ name, error: error.stack ?? String(error) });
+      console.error(name, error);
+    } finally {
+      await context.close();
     }
-    await page.getByRole('button', { name: /^Light it/ }).click({ timeout: 20000 });
-    await screen(page, 'burning');
-    await page.waitForFunction(() => window.__visualIgnition?.state === 'wick-contact');
-    const contact = await page.evaluate(() => window.__visualIgnition);
-    assert.ok(contact.wickContactMetres <= .001);
-    await snap(page, directory, 'taper-contact');
-    await writeFile(join(directory, 'taper-contact.json'), JSON.stringify({ drawn, ...contact }, null, 2));
-    await page.waitForFunction(() => window.__visualIgnition?.state === 'settled');
-    const seatedFrame = await snap(page, directory, 'seated');
-    await page.screenshot({ path: join(directory, 'seated-with-controls.png'), scale: 'css' });
-    soundRows.seated = await audio(page);
-    const { walkMetrics, arrivalMetrics, seated, rows } = cameraAudit(phone);
-    const { observed, chart } = liveCameraAudit(actual);
-    await writeFile(join(directory, 'camera.json'), JSON.stringify({ actual, observed, rows, walk: cameraPeaks(walkMetrics), arrival: cameraPeaks(arrivalMetrics), seated }, null, 2));
-    await writeFile(join(directory, 'camera-curves.svg'), chart);
-    await writeFile(join(directory, 'audio.json'), JSON.stringify({ walk: soundRows, lifecycle: journey }, null, 2));
-    await writeFile(join(directory, 'chooser.json'), JSON.stringify(chooser, null, 2));
-    assert.deepEqual(bellManifests, []);
-    assert.equal(chooser.readyMade.wickCovered, false);
-    assert.equal(chooser.readyMade.windowCovered, false);
-    if (drawn) assert.equal(chooser.restored.wickCovered, false);
-    assert.ok(passing.landmark?.visible, 'the window mesh must be visible while passing');
-    assert.ok(seatedFrame.landmark?.visible, 'the window mesh must be visible through the door');
-    assert.equal(passing.landmark.windowId, seatedFrame.landmark.windowId);
-    await context.close();
-    console.log(name, 'captured');
   }
 } finally {
   await browser?.close();
