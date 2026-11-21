@@ -931,6 +931,13 @@ const api = { g, parts: null, partsKey: null, type: null, power: 0, lightPower: 
     },
     setType(type) {
       if (this.type === type) return;
+      // The pond camera sees the back of the visitor flame's upright quad.
+      // This material is reused when the visitor moves to another court.
+      const side = type === 'lotus' ? THREE.DoubleSide : THREE.FrontSide;
+      if (f.fm.side !== side) {
+        f.fm.side = side;
+        f.fm.needsUpdate = true;
+      }
       this.type = type; this.partsKey = null; this.build(null);
       if (this.offer) this.setOffer(this.offer);
     },
