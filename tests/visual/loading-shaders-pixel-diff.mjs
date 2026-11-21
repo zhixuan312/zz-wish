@@ -154,6 +154,9 @@ function assertMatchedDraw(before, comparison) {
   assert.equal(b.renderer, a.renderer, `${label}: hardware renderer differs.`);
   assert.equal(b.quality, a.quality, `${label}: render quality differs.`);
   assert.equal(b.frame.ordinal, a.frame.ordinal, `${label}: fixture draw ordinal differs.`);
+  assert.equal(b.frame.clock, a.frame.clock, `${label}: visual clock differs.`);
+  assert.equal(b.frame.walkSeconds, a.frame.walkSeconds, `${label}: walk clock differs.`);
+  assert.deepEqual(b.frame.lighting, a.frame.lighting, `${label}: baked lighting state differs.`);
   assert.deepEqual(b.frame.cameraWorld, a.frame.cameraWorld, `${label}: world camera matrix differs.`);
   assert.deepEqual(b.frame.cameraProjection, a.frame.cameraProjection, `${label}: projection matrix differs.`);
 }
