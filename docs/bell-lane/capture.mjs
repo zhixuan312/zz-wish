@@ -1,6 +1,11 @@
 // Use the existing project Chrome/Metal test setup, with normal App controls.
+// These globals are used by callbacks running in the browser page.
+/* global AudioNode, Blob, FileReader, GainNode, MediaRecorder, MediaStream, StereoPannerNode, clearTimeout, document, setTimeout, window */
 import { chromium } from '@playwright/test';
 import assert from 'node:assert/strict';
+import { Buffer } from 'node:buffer';
+import console from 'node:console';
+import process from 'node:process';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { resolve, join } from 'node:path';
 import { startPreview } from './preview.mjs';

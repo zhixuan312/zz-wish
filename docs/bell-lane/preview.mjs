@@ -1,5 +1,7 @@
 // Loopback-only fixture. The game uses its regular UI and API with a disposable database.
+import console from 'node:console';
 import { mkdtemp, rm } from 'node:fs/promises';
+import process from 'node:process';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createServer } from 'vite';

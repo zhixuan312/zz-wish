@@ -1,3 +1,5 @@
+import console from 'node:console';
+import process from 'node:process';
 import { Vector3, PerspectiveCamera } from 'three';
 import { bellLaneCameras, WALK_SECONDS, TURN_SECONDS, LAMP, TREE, BELL, WINDOW, DOOR_Z } from '../../web/src/engine/places/bell-lane-camera.js';
 import { measureCameraPath } from '../../tests/visual/pine-camera-path.mjs';
@@ -13,8 +15,7 @@ const obstacles = [
 
 export const cameraPeaks = metrics => Object.fromEntries(Object.entries(metrics).map(([key, item]) => {
   if (typeof item !== 'object') return [key, item];
-  const { series: _series, ...rest } = item;
-  return [key, rest];
+  return [key, Object.fromEntries(Object.entries(item).filter(([field]) => field !== 'series'))];
 }));
 
 export function cameraAudit(phone) {

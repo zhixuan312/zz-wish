@@ -86,6 +86,7 @@ export const toCover = () => initialize().then(s => s.toCover());
 export const ignite = (options: IgnitionOptions = {}) => initialize().then(s => s.ignite(options));
 export const snuff = (done = false, remaining?: number, gust = false) => initialize().then(s => s.snuff(done, remaining, gust));
 export { isLeavingGust } from './places/pine-gust.ts';
+export { bellLaneChimes } from './places/bell-lane-chime.ts';
 export const skip = () => { void initialize().then(s => s.skip()).catch(() => {}); };
 // The visitor's own past lamps: stored for the active place, drawn only where a
 // court defines past lamp slots.

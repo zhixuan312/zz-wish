@@ -2,8 +2,7 @@
 // device is opened from the light gesture; preparation before then never produces sound.
 import type { PlaceId } from '../../shared/places.ts';
 import { seamlessNoiseLoop } from './audio-loop.ts';
-import { bellLaneChimes } from './engine/places/bell-lane-chime.ts';
-import { ambienceFor, createRecordedSounds, type RecordedSounds } from './engine/index.ts';
+import { ambienceFor, bellLaneChimes, createRecordedSounds, type RecordedSounds } from './engine/index.ts';
 const rooms: Record<PlaceId, { low: number; high: number; gain: number; swell: number; detail: 'drip' | 'bird' | 'air' | 'frog' | 'bell' }> = {
   // Pine wind high in the trees.
   'pine-gate': { low: 380, high: 1400, gain: .006, swell: .07, detail: 'air' },
