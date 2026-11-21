@@ -17,7 +17,8 @@ import { CAMERA_LIMITS, cameraPathViolations, measureCameraPath } from './pine-c
 
 const require = createRequire(import.meta.url);
 const root = fileURLToPath(new URL('../../', import.meta.url));
-const out = join(root, 'artifacts/cloud-cliff-route');
+const quick = process.argv.includes('--quick');
+const out = join(root, quick ? 'artifacts/cloud-cliff-route-r2-quick' : 'artifacts/cloud-cliff-route-r2');
 const routeUrl = '/web/src/engine/places/cloud-cliff-route.js';
 const worldUrl = '/places/cloud-cliff/';
 const worldDir = join(root, 'web/public', worldUrl);
@@ -34,6 +35,8 @@ const views = [
   { name: 'phone', phone: true, width: 390, height: 844 },
 ];
 const looks = [{ name: 'day', night: false }, { name: 'night', night: true }];
+const scanTextures = ['rock_pitted_mossy', 'stone_pavers'].flatMap(material =>
+  ['diffuse', 'normal', 'roughness'].map(map => `/materials/scans/${material}/${map}.jpg`));
 
 function routeSamples(phone) {
   return Array.from({ length: duration * 60 + 1 }, (_, index) =>
@@ -66,17 +69,19 @@ function evaluateTrace(rows) {
   const metrics = measureCameraPath(rows);
   metrics.turn = measuredTurn(rows);
   const nearestWall = Math.min(...rows.map(row => row.wallClearance));
+  const allWallDistances = rows.every(row => Number.isFinite(row.wallClearance));
+  const allGroundHits = rows.every(row => Number.isFinite(row.floorClearance));
   const nearestEdge = Math.min(...rows.map(row => row.edgeClearance));
   const lowEye = Math.min(...rows.map(row => row.floorClearance));
   const highEye = Math.max(...rows.map(row => row.floorClearance));
   const deviations = cameraPathViolations(metrics);
-  if (!Number.isFinite(nearestWall) || nearestWall < CAMERA_LIMITS.clearanceMetres) {
+  if (!allWallDistances || nearestWall < CAMERA_LIMITS.clearanceMetres) {
     deviations.push(`wall clearance ${nearestWall.toFixed(2)} m must be at least ${CAMERA_LIMITS.clearanceMetres} m`);
   }
   if (!Number.isFinite(nearestEdge) || nearestEdge <= 0) {
     deviations.push(`floor support lost: signed edge clearance ${nearestEdge.toFixed(2)} m`);
   }
-  if (!Number.isFinite(lowEye) || !Number.isFinite(highEye)
+  if (!allGroundHits
       || lowEye < CAMERA_LIMITS.eyeMinMetres || highEye > CAMERA_LIMITS.eyeMaxMetres) {
     deviations.push(`walking eye height spans ${lowEye.toFixed(2)}–${highEye.toFixed(2)} m`);
   }
@@ -91,7 +96,7 @@ function evaluateTrace(rows) {
     nearestWallMetres: nearestWall,
     nearestEdgeMetres: nearestEdge,
     eyeHeightMetres: [lowEye, highEye],
-    deviations,
+    allGroundHits, allWallDistances, deviations,
   };
 }
 
@@ -213,6 +218,7 @@ async function serveFixture() {
     ...['far-day.ktx2', 'far-night.ktx2', 'far-dusk.ktx2']
       .map(name => [worldUrl + name, [join(worldDir, name), 'image/ktx2']]),
     [worldUrl + 'manifest.json', [join(worldDir, 'manifest.json'), 'application/json']],
+    ...scanTextures.map(url => [url, [join(root, 'web/public', url), 'image/jpeg']]),
     ...[['basis_transcoder.js', 'text/javascript'], ['basis_transcoder.wasm', 'application/wasm']]
       .map(([name, type]) => [`/codecs/basis/${name}`, [join(root, 'web/public/codecs/basis', name), type]]),
   ]);
@@ -224,6 +230,10 @@ async function serveFixture() {
     const { pathname } = new URL(request.url, 'http://127.0.0.1');
     if (pathname === '/') {
       response.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' }).end(page);
+      return;
+    }
+    if (pathname === '/evidence-sheet') {
+      response.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' }).end('<!doctype html>');
       return;
     }
     if (pathname === '/favicon.ico') {
@@ -250,6 +260,12 @@ async function serveFixture() {
   });
   return {
     origin: `http://127.0.0.1:${server.address().port}`,
+    exposeOriginal(file) {
+      assert.match(file, /^(desktop|phone)-(day|night)-[0-9]{2}-[a-z-]+\.png$/);
+      const path = `/evidence/${file}`;
+      assets.set(path, [join(out, file), 'image/png']);
+      return path;
+    },
     close: () => new Promise((resolveClose, reject) => {
       server.close(error => error ? reject(error) : resolveClose());
     }),
@@ -265,10 +281,73 @@ async function screenshot(tab, name, clip) {
   return { file: name, width: bytes.readUInt32BE(16), height: bytes.readUInt32BE(20), sha256: hash(bytes) };
 }
 
-function centerCrop({ width, height }) {
-  const cropWidth = Math.floor(width * .58);
-  const cropHeight = Math.floor(height * .50);
-  return { x: Math.floor((width - cropWidth) / 2), y: Math.floor(height * .22), width: cropWidth, height: cropHeight };
+function cropAtBeat({ width, height }, seconds, pose) {
+  const w = Math.floor(width * (seconds === 30 ? .83 : .72));
+  const h = Math.floor(height * .60);
+  const focalX = seconds === 30 ? pose.lanternPx.x : width * (seconds === 22 ? .36 : .50);
+  const focalY = seconds === 30 ? pose.lanternPx.y - height * .12 : height * .52;
+  return {
+    x: Math.max(0, Math.min(width - w, Math.round(focalX - w / 2))),
+    y: Math.max(0, Math.min(height - h, Math.round(focalY - h / 2))),
+    width: w, height: h,
+  };
+}
+
+async function contactSheet(browser, server, receipts) {
+  const context = await browser.newContext({
+    viewport: { width: 1660, height: 1000 }, deviceScaleFactor: 1,
+  });
+  try {
+    const tab = await context.newPage();
+    await tab.goto(`${server.origin}/evidence-sheet`);
+    const labels = ['Entrance', 'Wall approach', 'Before shoulder', 'Valley reveal', 'Lantern'];
+    const header = beats.map(([t], i) => `<th>${t} s · ${labels[i]}</th>`).join('');
+    const rows = receipts.map(({ view, look, images }) => {
+      const columns = images.map(({ file }) =>
+        `<td><img src="${server.origin}${server.exposeOriginal(file)}" alt="${file}"></td>`).join('');
+      return `<tr><th scope="row">${view.name}<br>${look}<small>${view.width} × ${view.height}</small></th>${columns}</tr>`;
+    }).join('');
+    await tab.setContent(`<!doctype html><meta charset="utf-8"><title>Cloud Cliff Court contact sheet</title>
+<style>
+*{box-sizing:border-box} body{margin:0;padding:24px;background:#171a1c;color:#e9e6df;font:16px system-ui,sans-serif}
+h1{margin:0 0 4px;font-size:25px} p{margin:0 0 16px;color:#bababa}
+table{width:100%;border-collapse:separate;border-spacing:8px 6px;table-layout:fixed}
+th:first-child{width:92px;text-align:left} th{font-weight:600} small{display:block;color:#bababa;font-size:12px}
+td{height:190px;text-align:center;background:#202427} img{width:100%;height:185px;object-fit:contain;display:block}
+</style><h1>Cloud Cliff Court</h1><p>Private route review · day and night · thumbnails fit their original aspect ratios</p>
+<table><thead><tr><th>View</th>${header}</tr></thead><tbody>${rows}</tbody></table>`);
+    await tab.evaluate(() => Promise.all(Array.from(document.images, image => image.decode())));
+    return await screenshot(tab, 'contact-sheet.png');
+  } finally {
+    await context.close();
+  }
+}
+
+function continuousReveal(rows) {
+  const window = rows.filter(row => row.t >= 24 && row.t <= 29);
+  const segments = [];
+  let current = null;
+  for (const row of window) {
+    const supported = Number.isFinite(row.floorClearance) && Number.isFinite(row.wallClearance);
+    const visible = row.valleyVisible === true && row.valleyBedInFrame === true;
+    if (!supported || !visible) {
+      current = null;
+      continue;
+    }
+    if (!current || row.t - current.to > .1) {
+      current = { from: row.t, to: row.t, samples: 0 };
+      segments.push(current);
+    }
+    current.to = row.t;
+    current.samples++;
+  }
+  // Count only a continuous interval that contains the approved reveal beat.
+  const segment = segments.find(part => part.from <= 26 && part.to >= 26);
+  return {
+    ...segment, seconds: segment ? segment.to - segment.from : 0,
+    firstLanternFrame: rows.find(row => row.t > 26 && row.lanternInFrame === true)?.t ?? null,
+    sampleWindow: window,
+  };
 }
 
 async function inspectJourney(tab, view) {
@@ -292,15 +371,18 @@ async function inspectJourney(tab, view) {
     preview.seek(0);
     return preview.play({ reducedMotion: window.matchMedia('(prefers-reduced-motion: reduce)').matches });
   });
-  const endpointFields = ({ t, x, y, z, lx, ly, lz }) => [t, x, y, z, lx, ly, lz];
+  const endpointFields = ({ t, x, y, z, lx, ly, lz, fov }) => [t, x, y, z, lx, ly, lz, fov];
   assert.equal(journey.start.t, 0, `${view.name} entry clock`);
   for (const endpoint of [journey.skipped, journey.resolvedAfterSkip, reducedMotion]) {
     assert.deepEqual(endpointFields(endpoint), endpointFields(journey.final), `${view.name} endpoint parity`);
   }
   const traceFile = `trace-${view.name}.json`;
   await writeFile(join(out, traceFile), JSON.stringify(journey.continuous));
+  const revealFile = `reveal-${view.name}.json`;
+  const { sampleWindow, ...reveal } = continuousReveal(journey.continuous);
+  await writeFile(join(out, revealFile), JSON.stringify(sampleWindow));
   return {
-    traceFile, ...evaluateTrace(journey.continuous),
+    traceFile, revealFile, reveal, ...evaluateTrace(journey.continuous),
     endpoint: endpointFields(journey.final), skipAtSeconds: journey.beforeSkip.t, skipParity: true, reducedMotionParity: true,
   };
 }
@@ -313,7 +395,7 @@ async function capture() {
   const server = await serveFixture();
   let browser;
   const receipts = [];
-  let browserVersion;
+  let browserVersion, sheet;
   try {
     browser = await chromium.launch({
       channel: 'chrome',
@@ -352,12 +434,14 @@ async function capture() {
             const image = await screenshot(tab, `${name}.png`);
             assert.equal(image.width, view.width);
             assert.equal(image.height, view.height);
-            const crop = seconds >= 26 ? await screenshot(tab, `${name}-crop.png`, centerCrop(view)) : null;
-            images.push({ ...image, crop, pose });
+            const clip = seconds >= 22 ? cropAtBeat(view, seconds, pose) : null;
+            const crop = clip ? await screenshot(tab, `${name}-crop.png`, clip) : null;
+            if (crop) assert.deepEqual([crop.width, crop.height], [clip.width, clip.height]);
+            images.push({ ...image, crop: crop && { ...crop, originPx: [clip.x, clip.y], scale: 1 }, pose });
           }
           const reference = `reference-${captureStart}-source19-home.webp`;
           await copyFile(join(worldDir, `cover-${look.name}-${view.name}.webp`), join(out, reference));
-          const trace = await inspectJourney(tab, { ...view, name: captureStart });
+          const trace = quick ? null : await inspectJourney(tab, { ...view, name: captureStart });
           const referenceSha256 = hash(await readFile(join(out, reference)));
           receipts.push({ view, look: look.name, images, reference, referenceSha256, trace, errors, warnings });
           console.log(`${captureStart}: ${images.length} originals${trace ? `, ${trace.samples} route samples` : ''}`);
@@ -366,6 +450,7 @@ async function capture() {
         }
       }
     }
+    sheet = await contactSheet(browser, server, receipts);
   } finally {
     try {
       await browser?.close();
@@ -378,25 +463,41 @@ async function capture() {
     'tests/visual/cloud-cliff-route.mjs',
     'web/public/places/cloud-cliff/cloud-cliff.glb.gzip',
     'web/public/places/cloud-cliff/cloud-cliff-storm.glb.gzip',
+    ...scanTextures.map(path => `web/public${path}`),
   ].map(async file => [file, hash(await readFile(join(root, file)))]));
   const report = {
-    browserVersion,
+    browserVersion, mode: quick ? 'frames-only' : 'full',
     inputSha256: Object.fromEntries(inputs),
     scope: 'Engine fixture. The shipped reference is the original Home cover, from its own pose. No product chooser is shown.',
-    sitePlan: 'site-plan.svg', planned, receipts,
+    sitePlan: 'site-plan.svg', contactSheet: sheet,
+    clearance: 'Runtime wall clearance measures nearest wall triangle; floor clearance is the downward ray distance. Platform edge is a signed plan distance.',
+    planned, receipts,
   };
   await writeFile(join(out, 'report.json'), JSON.stringify(report, null, 2) + '\n');
-  for (const receipt of receipts) {
-    assert.deepEqual(receipt.errors, [], `${receipt.view.name} ${receipt.look}: browser errors`);
-    assert.deepEqual(receipt.trace.deviations, [], `${receipt.view.name} ${receipt.look}: live trace`);
-    assert.deepEqual(receipt.images.map(({ pose }) => pose.valleyOccluded), [true, true, true, false, false],
-      `${receipt.view.name} ${receipt.look}: representative valley ray should clear the wall at the reveal`);
-    assert.ok(receipt.images.slice(-2).every(({ pose }) => pose.valleyInFrame),
-      `${receipt.view.name} ${receipt.look}: the valley reference must be framed at the reveal and hold`);
-    const lantern = receipt.images.at(-1).pose.lanternPx;
-    assert.ok(lantern.x > 0 && lantern.x < receipt.view.width && lantern.y > 0 && lantern.y < receipt.view.height,
-      `${receipt.view.name} ${receipt.look}: final lantern wick is outside the view`);
+  const errors = [];
+  for (const { view, look, errors: browserErrors, images, trace } of receipts) {
+    const name = `${view.name} ${look}`;
+    const requireEvidence = (test, message) => { if (!test) errors.push(`${name}: ${message}`); };
+    requireEvidence(browserErrors.length === 0, browserErrors.join('; '));
+    if (trace) {
+      requireEvidence(trace.deviations.length === 0, trace.deviations.join('; '));
+      requireEvidence(trace.reveal.seconds >= 2,
+        `continuous supported reveal at 26 s lasts ${trace.reveal.seconds.toFixed(3)} s (need at least 2)`);
+      requireEvidence(trace.reveal.firstLanternFrame > 26, 'lantern approach must follow the reveal');
+    }
+    requireEvidence(images.slice(0, 3).every(({ pose }) =>
+      pose.innerWallInFrame === true && pose.valleyVisible === false && pose.lanternVisible === false),
+    'the inner wall must be framed and the valley hidden at 0, 12 and 22 s');
+    const reveal = images[3].pose;
+    requireEvidence(reveal.valleyVisible === true && reveal.valleyBedInFrame === true,
+      'opposite face and connected valley floor must be visible at 26 s');
+    requireEvidence(reveal.lanternInFrame === false, 'lantern must stay outside the 26 s reveal');
+    const final = images[4].pose;
+    requireEvidence(final.lanternInFrame === true, 'lantern must be framed at 30 s');
+    requireEvidence(images.every(({ pose }) => Number.isFinite(pose.floorClearance)),
+      'all recorded poses must have mesh support below the eye');
   }
+  assert.deepEqual(errors, [], errors.join('\n'));
 }
 
 if (process.argv.includes('--check')) {

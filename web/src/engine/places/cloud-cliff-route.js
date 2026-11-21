@@ -6,11 +6,11 @@ export const ROUTE_FLOOR = [
 ];
 export const ROUTE_WALL = [
   [-17, 3], [-11, 2.5], [-6, 2.6], [-2, 2.3], [2.7, 2.4], [5.5, 3],
-  [7.1, 4], [7.8, 5.25], [7.6, 6.15], [6.85, 6.9], [4.6, 7.05],
+  [7.1, 4], [8.45, 5.25], [8.85, 6.15], [8.6, 6.9], [4.6, 7.05],
   [1.2, 6.5], [-2.1, 6.75], [-5.5, 6.85], [-8.1, 6.65], [-12.5, 7],
   [-17, 6.75],
 ];
-export const ROUTE_LANTERN = [11.18, 1.34, 1.46];
+export const ROUTE_LANTERN = [11.77, 1.34, 2.25];
 
 const PATH = [
   [0, -14, 9.6], [3, -12.3, 9.6], [12, -3.15, 9.55], [19, 3.9, 9.45],
@@ -42,6 +42,19 @@ function smoothRange(start, end, value) {
   return t * t * (3 - 2 * t);
 }
 
+function lookYaw(t, phone) {
+  const open = phone ? -8 : -23;
+  const keys = [[0, 70, 0], [12, 71, 0], [17, 65, -3], [22, 26, -12],
+    [25.3, open, 0], [27.4, open, 0], [ROUTE_DURATION, phone ? 31 : 15, 0]];
+  const i = keys.findIndex(([time]) => time >= t);
+  if (i === 0) return keys[0][1] * Math.PI / 180;
+  const [ta, a, da] = keys[i - 1], [tb, b, db] = keys[i];
+  const span = tb - ta, u = (t - ta) / span;
+  const blend = u * u * (3 - 2 * u);
+  const yaw = a + (b - a) * blend + span * u * (1 - u) * ((1 - u) * da - u * db);
+  return yaw * Math.PI / 180;
+}
+
 function boundaryDistance(polygon, x, z) {
   let distance = Infinity;
   let inside = false;
@@ -58,9 +71,8 @@ function boundaryDistance(polygon, x, z) {
 export function sampleCloudCliffRoute(seconds, phone = false) {
   const t = Math.max(0, Math.min(ROUTE_DURATION, seconds));
   const x = positionAt(t, 1), y = 1.62, z = positionAt(t, 2);
-  const turn = smoothRange(19.3, phone ? 27 : 28.5, t);
-  const yaw = (Math.PI * .484) * (1 - turn) + (phone ? .075 : .015) * turn;
-  const pitch = -.11 - .075 * turn;
+  const yaw = lookYaw(t, phone);
+  const pitch = -.205 - .055 * smoothRange(22, 25.3, t) + .09 * smoothRange(27.4, 30, t);
   const aim = 6;
   const horizontal = Math.cos(pitch) * aim;
   return {
@@ -77,8 +89,8 @@ export function sampleCloudCliffRoute(seconds, phone = false) {
 
 const bandNoise = (a, b) => Math.sin(a * 12.9898 + b * 78.233) * .5 + .5;
 
-function addRock(THREE, parent, polygon, heights, depths, palette, inset) {
-  const positions = [], colours = [];
+function addRock(THREE, parent, polygon, heights, depths, palette, inset, surface) {
+  const positions = [], colours = [], uvs = [];
   const bands = depths.map((depth, row) => polygon.map(([x, z], i) => {
     const jitter = row === 0 ? 0 : (bandNoise(i, row) - .5) * inset;
     const [nextX, nextZ] = polygon[(i + 1) % polygon.length];
@@ -90,7 +102,13 @@ function addRock(THREE, parent, polygon, heights, depths, palette, inset) {
   function face(a, b, c, colour, variation) {
     positions.push(...a, ...b, ...c);
     tint.setHex(colour).multiplyScalar(variation);
-    for (let i = 0; i < 3; i++) colours.push(tint.r, tint.g, tint.b);
+    const dx = b[0] - a[0], dz = b[2] - a[2];
+    const horizontal = a[1] === b[1] && b[1] === c[1];
+    for (const [x, y, z] of [a, b, c]) {
+      colours.push(tint.r, tint.g, tint.b);
+      if (horizontal) uvs.push(x / 2.7, z / 2.7);
+      else uvs.push((Math.abs(dx) >= Math.abs(dz) ? x : z) / 2.7, y / 2.7);
+    }
   }
 
   for (let k = 0; k < bands.length - 1; k++) {
@@ -112,32 +130,159 @@ function addRock(THREE, parent, polygon, heights, depths, palette, inset) {
   const geometry = new THREE.BufferGeometry();
   geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
   geometry.setAttribute('color', new THREE.Float32BufferAttribute(colours, 3));
+  geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
   geometry.computeVertexNormals();
-  const material = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .98, side: THREE.DoubleSide });
+  const material = new THREE.MeshStandardMaterial({
+    ...surface, vertexColors: true, roughness: .96, side: THREE.DoubleSide,
+    normalScale: new THREE.Vector2(.74, .74),
+  });
   const mesh = new THREE.Mesh(geometry, material);
   parent.add(mesh);
   return mesh;
 }
 
-function stageRock(THREE, scene) {
+function addWornPath(THREE, scene, surface) {
+  const positions = [], uvs = [], colors = [], indices = [];
+  const points = [[-17, 9.65]];
+  for (let t = 0; t < 28.9; t += .32) {
+    const { x, z } = sampleCloudCliffRoute(t);
+    if (Math.hypot(x - points.at(-1)[0], z - points.at(-1)[1]) > .045) points.push([x, z]);
+  }
+  points.push([11.25, 2.75]);
+  for (let i = 0; i < points.length; i++) {
+    const [x, z] = points[i];
+    const [ax, az] = points[Math.max(0, i - 1)];
+    const [bx, bz] = points[Math.min(points.length - 1, i + 1)];
+    const dx = bx - ax, dz = bz - az, length = Math.hypot(dx, dz);
+    const radius = 1.13 + .18 * (bandNoise(i, 11) - .5);
+    for (const [offset, strength] of [[-1, 0], [-.76, .67], [0, .85], [.76, .65], [1, 0]]) {
+      const px = x - dz / length * radius * offset, pz = z + dx / length * radius * offset;
+      positions.push(px, .012, pz);
+      uvs.push(px / 1.8, pz / 1.8);
+      const shade = .65 + .09 * bandNoise(i, offset);
+      colors.push(shade, shade, shade * .95, strength * (i === points.length - 1 ? .25 : 1));
+    }
+    if (!i) continue;
+    const previous = (i - 1) * 5;
+    for (let j = 0; j < 4; j++) {
+      const a = previous + j;
+      indices.push(a, a + 1, a + 5, a + 1, a + 6, a + 5);
+    }
+  }
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+  geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 4));
+  geometry.setIndex(indices);
+  geometry.computeVertexNormals();
+  scene.add(new THREE.Mesh(geometry, new THREE.MeshStandardMaterial({
+    ...surface, vertexColors: true, transparent: true, depthWrite: false, side: THREE.DoubleSide,
+    roughness: .96, normalScale: new THREE.Vector2(.6, .6),
+  })));
+}
+
+const VALLEY_BED = [-63, -281];
+
+function valleyHeight(x, z) {
+  const distance = -z;
+  const channel = -32 + 53 * Math.sin(distance / 174);
+  const cross = Math.abs(x - channel);
+  const ridges = 13 * Math.sin(x / 36 + distance / 38) + 11 * Math.sin(x / 85 - distance / 43);
+  const nearCliff = 157 * (1 - smoothRange(8, 198, distance));
+  const opposite = 98 * smoothRange(204, 395, distance);
+  const farRidge = 163 * smoothRange(780, 1390, distance);
+  const flanks = 130 * smoothRange(58, 400, cross);
+  return -214 + nearCliff + opposite + farRidge + flanks + ridges;
+}
+
+function addValleyBed(THREE, scene) {
+  const width = 134, height = 121;
+  const positions = [], colours = [], indices = [];
+  const shade = new THREE.Color(), base = new THREE.Color(0x5b5b4f), clay = new THREE.Color(0x817268);
+  for (let row = 0; row < height; row++) {
+    const z = 22 - row * 16;
+    for (let col = 0; col < width; col++) {
+      const x = -1064 + col * 16;
+      const y = valleyHeight(x, z);
+      positions.push(x, y, z);
+      shade.copy(base).lerp(clay, .43 + .25 * Math.sin(x / 71 - z / 39));
+      shade.multiplyScalar(.83 + .14 * bandNoise(col, row));
+      colours.push(shade.r, shade.g, shade.b);
+      if (row && col) {
+        const a = row * width + col;
+        indices.push(a - width - 1, a - width, a - 1, a - width, a, a - 1);
+      }
+    }
+  }
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  geometry.setAttribute('color', new THREE.Float32BufferAttribute(colours, 3));
+  geometry.setIndex(indices);
+  geometry.computeVertexNormals();
+  const mesh = new THREE.Mesh(geometry, new THREE.MeshStandardMaterial({
+    vertexColors: true, side: THREE.DoubleSide, roughness: 1,
+  }));
+  mesh.name = 'Connected valley bed and far ridge';
+  scene.add(mesh);
+  return mesh;
+}
+
+function stageRock(THREE, scene, rock, pavers) {
   const floor = addRock(THREE, scene, ROUTE_FLOOR, null, [0, -.45, -1.2, -3, -6.4, -13, -27, -55],
-    [0x787068, 0x625d53, 0x6e6557, 0x615a50, 0x554e47, 0x675e50], .27);
+    [0xb3a99d, 0xa69a89, 0xb3a597, 0x9b948a, 0x9b938a, 0xa69688], .2, rock);
   const wall = addRock(THREE, scene, ROUTE_WALL, ROCK_HEIGHTS, [0, .08, .15, .32, .48, .64, .81, 1],
-    [0x686256, 0x5c584f, 0x70695f, 0x665e54, 0x756c60, 0x61594f], .24);
-  const outerBank = [[-18, 12.5], [-9, 13.4], [2, 12.75], [8.8, 13.4], [13, 13.9], [12, 21], [-18, 20]];
-  addRock(THREE, scene, outerBank, [4, 3.1, 3.5, 2.4, 2.8, 5.1, 4.5], [0, .22, .48, .74, 1],
-    [0x60594e, 0x584f44, 0x675c4f], .2);
+    [0xa49d8e, 0x9b988f, 0xa69f93, 0xada696, 0xaeab9e, 0xa19b8a], .17, rock);
+  const outerBank = [[-18, 12.5], [-9, 13.4], [2, 12.75], [8.8, 13.4], [14, 13.9], [16, 9.8],
+    [19, 7.8], [24, 10.6], [44, 13], [48, 37], [-18, 28]];
+  addRock(THREE, scene, outerBank, [4, 3.1, 3.5, 2.4, 3.3, 4.8, 5.1, 7.3, 10, 9.6, 4.5],
+    [0, .22, .48, .74, 1], [0xa39c90, 0xa89f92, 0x969088], .13, rock);
+  addWornPath(THREE, scene, pavers);
 
   const [x, y, z] = ROUTE_LANTERN;
   const seatTop = y + (BASE_SOURCE_Y - WICK_SOURCE[1]);
   const seat = new THREE.Mesh(
-    new THREE.CylinderGeometry(.38, .52, seatTop, 9, 1),
-    new THREE.MeshStandardMaterial({ color: 0x696258, roughness: .93, flatShading: true }),
+    new THREE.CylinderGeometry(.37, .49, seatTop, 11, 4),
+    new THREE.MeshStandardMaterial({ ...rock, color: 0xa29b90, roughness: .93, flatShading: true }),
   );
   seat.position.set(x, seatTop / 2, z);
   seat.rotation.y = Math.PI / 7;
   scene.add(seat);
-  return { floor, wall };
+  addContactShade(THREE, scene, x, seatTop, z);
+  const valley = addValleyBed(THREE, scene);
+  return { floor, wall, valley };
+}
+
+function addContactShade(THREE, scene, x, y, z) {
+  const width = 32;
+  const data = new Uint8Array(width * width * 4);
+  for (let j = 0; j < width; j++) {
+    for (let i = 0; i < width; i++) {
+      const radius = Math.hypot(i + .5 - width / 2, j + .5 - width / 2) / (width / 2);
+      data[(j * width + i) * 4 + 3] = Math.round(163 * (1 - smoothRange(.44, 1, radius)));
+    }
+  }
+  const map = new THREE.DataTexture(data, width, width);
+  map.magFilter = THREE.LinearFilter;
+  map.needsUpdate = true;
+  const mark = new THREE.Mesh(new THREE.PlaneGeometry(.45, .45),
+    new THREE.MeshBasicMaterial({ map, transparent: true, depthWrite: false }));
+  mark.rotation.x = -Math.PI / 2;
+  mark.position.set(x, y + .001, z);
+  scene.add(mark);
+}
+
+async function scannedSurface(THREE, name) {
+  const loader = new THREE.TextureLoader();
+  const path = '/materials/scans/' + name + '/';
+  const [map, normalMap, roughnessMap] = await Promise.all(
+    ['diffuse', 'normal', 'roughness'].map(kind => loader.loadAsync(path + kind + '.jpg')),
+  );
+  map.colorSpace = THREE.SRGBColorSpace;
+  for (const texture of [map, normalMap, roughnessMap]) {
+    texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+    texture.anisotropy = 4;
+  }
+  return { map, normalMap, roughnessMap };
 }
 
 const ASSETS = '/places/cloud-cliff/';
@@ -162,12 +307,12 @@ async function loadValley(scene, loader) {
   });
   storm.scene.position.set(x - WICK_SOURCE[0], y - WICK_SOURCE[1], z - WICK_SOURCE[2]);
   scene.add(storm.scene);
-  return far;
+  return { far, lantern: storm.scene };
 }
 
 function setLighting(THREE, scene, night) {
-  scene.background = new THREE.Color(night ? 0x142339 : 0x9eafbd);
-  scene.fog = new THREE.FogExp2(night ? 0x1d2e46 : 0xa1b3c0, .00082);
+  scene.background = new THREE.Color(night ? 0x1d2b41 : 0xaebfcb);
+  scene.fog = new THREE.FogExp2(night ? 0x1d2b41 : 0xaebfcb, .00096);
 
   const hemi = new THREE.HemisphereLight(night ? 0x9bbbf0 : 0xe8f1f7, night ? 0x5e625e : 0x8a7461, night ? 1.0 : 1.8);
   const key = new THREE.DirectionalLight(night ? 0xb4c9ee : 0xffebd5, night ? 1.25 : 2.65);
@@ -175,6 +320,101 @@ function setLighting(THREE, scene, night) {
   const fill = new THREE.DirectionalLight(night ? 0x88786b : 0xd7e5f4, night ? .45 : .4);
   fill.position.set(-6, 7, -2);
   scene.add(hemi, key, fill);
+}
+
+function addCatch(THREE, scene) {
+  const [x, y, z] = ROUTE_LANTERN;
+  // Replica of a hinged clasp for this proof. The catch meets a bowed upright
+  // and the rim: nothing is attached to the translating Source19 glass asset.
+  const catchGroup = new THREE.Group();
+  catchGroup.position.set(x - .117, y - .014, z + .136);
+  catchGroup.rotation.y = -.46;
+  const brass = new THREE.MeshStandardMaterial({ color: 0x856039, roughness: .43, metalness: .79 });
+  const wear = new THREE.MeshStandardMaterial({ color: 0xbe9560, roughness: .34, metalness: .76 });
+  const pin = new THREE.MeshStandardMaterial({ color: 0x53422d, roughness: .53, metalness: .68 });
+  function part(geo, material, px, py, pz) {
+    const mesh = new THREE.Mesh(geo, material);
+    mesh.position.set(px, py, pz);
+    catchGroup.add(mesh);
+    return mesh;
+  }
+  part(new THREE.BoxGeometry(.035, .081, .015), brass, 0, -.019, -.005);
+  part(new THREE.BoxGeometry(.039, .039, .025), wear, .009, .013, .004).rotation.z = -.16;
+  part(new THREE.CylinderGeometry(.008, .008, .047, 14), pin, .005, -.008, .012).rotation.z = Math.PI / 2;
+  for (const py of [-.043, .02]) {
+    part(new THREE.SphereGeometry(.007, 12, 8), wear, -.009, py, .01).scale.z = .36;
+  }
+  scene.add(catchGroup);
+  return catchGroup;
+}
+
+function lightLantern(THREE, renderer, scene, lantern, catchGroup, night) {
+  const reflection = new THREE.Scene();
+  reflection.background = new THREE.Color(night ? 0x26344d : 0x8eabc2);
+  const panel = (x, y, z, width, height, tint, intensity) => {
+    const color = new THREE.Color(tint).multiplyScalar(intensity);
+    const mesh = new THREE.Mesh(new THREE.PlaneGeometry(width, height),
+      new THREE.MeshBasicMaterial({ color, side: THREE.DoubleSide }));
+    mesh.position.set(x, y, z);
+    mesh.lookAt(0, 0, 0);
+    reflection.add(mesh);
+  };
+  panel(-3, 2.2, 3.4, .65, 4.6, 0xffdda1, night ? 2.4 : 1.65);
+  panel(4, 2.7, -2, 2.8, .65, 0xbacde8, night ? .8 : 1.1);
+  panel(1, -3, 2, 7, 7, 0x595349, night ? .5 : 1.4);
+  const generator = new THREE.PMREMGenerator(renderer);
+  const environment = generator.fromScene(reflection, .07);
+  generator.dispose();
+  reflection.traverse(mesh => {
+    if (mesh.isMesh) {
+      mesh.geometry.dispose();
+      mesh.material.dispose();
+    }
+  });
+  for (const group of [lantern, catchGroup]) {
+    group.traverse(mesh => {
+      if (!mesh.isMesh) return;
+      for (const material of [mesh.material].flat()) {
+        if (!material.isMeshStandardMaterial) continue;
+        material.envMap = environment.texture;
+        material.envMapIntensity = night ? .8 : .55;
+        if (material.transmission > .5) {
+          material.roughness = .14;
+          material.thickness = .002;
+          material.color.setHex(0xe1e9ed);
+        }
+      }
+    });
+  }
+  if (night) {
+    const [x, y, z] = ROUTE_LANTERN;
+    // A local off-axis practical spill reads on the brass and ledge without
+    // implying that the unlit candle is emitting light.
+    const bounce = new THREE.PointLight(0xffd3a3, 6.4, 3.6, 2);
+    bounce.position.set(x - .92, y + .54, z + .42);
+    scene.add(bounce);
+  }
+}
+
+function meshTriangles(THREE, mesh) {
+  const positions = mesh.geometry.getAttribute('position'), triangles = [];
+  const vertex = index => new THREE.Vector3().fromBufferAttribute(positions, index).applyMatrix4(mesh.matrixWorld);
+  for (let i = 0; i < positions.count; i += 3) triangles.push(new THREE.Triangle(vertex(i), vertex(i + 1), vertex(i + 2)));
+  return triangles;
+}
+
+function visibleBounds(THREE, ...roots) {
+  const bounds = new THREE.Box3();
+  const part = new THREE.Box3();
+  for (const root of roots) {
+    root.traverseVisible(mesh => {
+      if (!mesh.isMesh) return;
+      mesh.geometry.computeBoundingBox();
+      part.copy(mesh.geometry.boundingBox).applyMatrix4(mesh.matrixWorld);
+      bounds.union(part);
+    });
+  }
+  return bounds;
 }
 
 export async function mountCloudCliffRoute({ mount, phone = false, night = false }) {
@@ -195,17 +435,48 @@ export async function mountCloudCliffRoute({ mount, phone = false, night = false
   const camera = new THREE.PerspectiveCamera(WALK_FOV, mount.clientWidth / mount.clientHeight, .03, 2000);
   const ktx = new KTX2Loader().setTranscoderPath('/codecs/basis/').detectSupport(renderer);
   const loader = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).setKTX2Loader(ktx);
-  const { floor, wall } = stageRock(THREE, scene);
-  const far = await loadValley(scene, loader).finally(() => ktx.dispose());
+  const [rock, pavers, { far, lantern }] = await Promise.all([
+    scannedSurface(THREE, 'rock_pitted_mossy'),
+    scannedSurface(THREE, 'stone_pavers'),
+    loadValley(scene, loader).finally(() => ktx.dispose()),
+  ]);
+  const { floor, wall, valley } = stageRock(THREE, scene, rock, pavers);
+  const catchGroup = addCatch(THREE, scene);
   setLighting(THREE, scene, night);
+  lightLantern(THREE, renderer, scene, lantern, catchGroup, night);
   scene.updateMatrixWorld(true);
 
   const raycaster = new THREE.Raycaster();
-  const valleyPoint = new THREE.Vector3(0, 5, -400);
   const down = new THREE.Vector3(0, -1, 0);
+  const direction = new THREE.Vector3();
+  const reveal = sampleCloudCliffRoute(26);
+  const revealEye = new THREE.Vector3(reveal.x, reveal.y, reveal.z);
+  const oppositeFace = [-68, -74, -80, -86, -92].map(x => {
+    const sight = new THREE.Vector3(x, 10, -412);
+    raycaster.set(revealEye, direction.copy(sight).sub(revealEye).normalize());
+    return raycaster.intersectObject(far)[0]?.point;
+  }).find(Boolean);
+  raycaster.set(new THREE.Vector3(VALLEY_BED[0], 400, VALLEY_BED[1]), down);
+  const valleyBed = raycaster.intersectObject(valley)[0]?.point;
+  if (!oppositeFace || !valleyBed) throw new Error('The reveal needs points on both sides of the valley');
+  const triangles = meshTriangles(THREE, wall);
+  const lanternBounds = visibleBounds(THREE, lantern, catchGroup);
   const station = new THREE.Vector3(...ROUTE_LANTERN);
   const viewSize = new THREE.Vector2();
-  const projected = new THREE.Vector3();
+  const projected = new THREE.Vector3(), closest = new THREE.Vector3();
+  const frustum = new THREE.Frustum(), viewProjection = new THREE.Matrix4();
+  const wallProbes = [-.9, -.68, -.44, -.15, .15, .44, .68, .9]
+    .flatMap(x => [.12, .46].map(y => new THREE.Vector2(x, y)));
+
+  function inFrame(point) {
+    const ndc = projected.copy(point).project(camera);
+    return Math.abs(ndc.x) <= 1 && Math.abs(ndc.y) <= 1 && Math.abs(ndc.z) <= 1;
+  }
+
+  function blockedByWall(point) {
+    raycaster.set(camera.position, direction.copy(point).sub(camera.position).normalize());
+    return raycaster.intersectObject(wall).length > 0;
+  }
   let running = null;
 
   function seek(seconds) {
@@ -217,16 +488,25 @@ export async function mountCloudCliffRoute({ mount, phone = false, night = false
 
     raycaster.set(camera.position, down);
     const ground = raycaster.intersectObject(floor)[0];
-    raycaster.set(camera.position, valleyPoint.clone().sub(camera.position).normalize());
-    const valleyOccluded = raycaster.intersectObject(wall).length > 0;
-    const valley = projected.copy(valleyPoint).project(camera);
-    const valleyInFrame = Math.abs(valley.x) <= 1 && Math.abs(valley.y) <= 1 && Math.abs(valley.z) <= 1;
+    const valleyVisible = inFrame(oppositeFace) && !blockedByWall(oppositeFace);
+    const valleyBedInFrame = inFrame(valleyBed) && !blockedByWall(valleyBed);
+    const innerWallInFrame = wallProbes.some(probe => {
+      raycaster.setFromCamera(probe, camera);
+      return raycaster.intersectObject(wall).length > 0;
+    });
+    const wallDistance = triangles.reduce((nearest, triangle) =>
+      Math.min(nearest, triangle.closestPointToPoint(camera.position, closest).distanceToSquared(camera.position)), Infinity);
+    frustum.setFromProjectionMatrix(viewProjection.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse));
     renderer.getSize(viewSize);
+    const lanternInFrame = frustum.intersectsBox(lanternBounds);
+    const lanternVisible = lanternInFrame && !blockedByWall(station);
     const anchor = projected.copy(station).project(camera);
     return {
       ...row,
       floorClearance: ground?.distance ?? null,
-      valleyOccluded, valleyInFrame,
+      wallClearance: Math.sqrt(wallDistance),
+      innerWallInFrame, valleyVisible, valleyBedInFrame,
+      lanternInFrame, lanternVisible,
       lanternPx: { x: (anchor.x + 1) * viewSize.x / 2, y: (1 - anchor.y) * viewSize.y / 2 },
       farMesh: far.name,
     };
