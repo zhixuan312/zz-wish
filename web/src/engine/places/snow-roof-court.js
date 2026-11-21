@@ -60,8 +60,8 @@ function tuneRepairedEave(material) {
     shader.fragmentShader = shader.fragmentShader.replace('float away=', `
       vec3 tileNormal = inverseTransformDirection(nonPerturbedNormal, viewMatrix);
       float towardSnow = max(0., dot(tileNormal, normalize(vec3(0., -.66, .75))));
-      vec3 snowBounce = vec3(.78, .87, 1.) * dot(uBakedWeights, vec3(.031, .046, .072));
-      baked += snowBounce * (.35 + .65 * towardSnow);
+      vec3 snowBounce = vec3(.78, .87, 1.) * dot(uBakedWeights, vec3(.115, .125, .232));
+      baked += snowBounce * (.55 + .45 * towardSnow);
       float away=`);
   };
   material.customProgramCacheKey = () => baseKey() + '-mended-eave';
