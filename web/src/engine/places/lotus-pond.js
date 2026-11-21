@@ -7,17 +7,17 @@ const waterHeight = .05;
 const nookOrigin = [-3.55, .12, 7.2];
 const walkSeconds = 27.6; // The procedural engine adds a 2.4 s hold at the chooser.
 
-// The gaze turns downward before the stands enter the field of view. The
-// reflection stays in frame until the camera clears the south end of the rail.
+// The high stone rail hides the upper bank while the open span below it
+// frames the water. The gaze rises after the bend onto the inner bridge.
 const waypoints = [
-  { time: 4, pos: [.38, 1.72, 30], aim: [5.3, 1.7, 20], fov: 38 },
-  { time: 9, pos: [3.15, 1.7, 23.3], aim: [4.1, .1, 17.6], fov: 40 },
-  { time: 13, pos: [3.55, 1.7, 19.1], aim: [-.3, -1.05, 16.6], fov: 40 },
-  { time: 15.9, pos: [1.25, 1.82, 18.35], aim: [-3.4, -3.13, 13.5], fov: 40, phoneFov: 41 },
-  { time: 16.98, pos: [.03, 1.94, 17.66], aim: [-4.93, -3.71, 12.03], fov: 40, phoneFov: 41 },
-  { time: 19.38, pos: [-.31, 1.985, 17.38], aim: [-5.33, -3.83, 11.66], fov: 40, phoneFov: 41 },
-  { time: 21.7, pos: [-.63, 2.4, 14.4], aim: [-5.5, -3.45, 11.5], fov: 38, phoneFov: 40 },
-  { time: 24.7, pos: [-.64, 2.64, 11.25], aim: [-6.0, .40, 11.4], fov: 48 },
+  { time: 4, pos: [.38, 30], aim: [5.3, 1.7, 20], fov: 38 },
+  { time: 9, pos: [3.15, 23.3], aim: [4.1, .1, 17.6], fov: 40 },
+  { time: 13, pos: [3.10, 19.1], aim: [-.3, -1.75, 16.6], fov: 40 },
+  { time: 15.9, pos: [-.18, 18.35], aim: [-3.4, -2.95, 13.5], fov: 40, phoneFov: 42 },
+  { time: 17.3, pos: [-.20, 17.66], aim: [-4.93, -.86, 12.03], fov: 38, phoneFov: 43 },
+  { time: 19.38, pos: [-.31, 17.38], aim: [-5.33, -.91, 11.66], fov: 38, phoneFov: 43 },
+  { time: 21.7, pos: [-.63, 14.4], aim: [-5.5, -3.28, 11.5], fov: 38, phoneFov: 41 },
+  { time: 24.7, pos: [-.64, 11.25], aim: [-6.0, .40, 11.4], fov: 48 },
 ];
 
 function deckHeight(z) {
@@ -25,14 +25,31 @@ function deckHeight(z) {
   return .16 + .87 * Math.cos(Math.PI * u / 2) ** 1.2;
 }
 
+const deckSegments = 32;
+const deckStep = 2 * bridgeHalfLength / deckSegments;
+const deckStart = bridgeCenter - bridgeHalfLength;
+const deckEnd = bridgeCenter + bridgeHalfLength;
+const pavingHeight = .12;
+const deckProfile = Array.from({ length: deckSegments + 1 }, (_, index) => {
+  const z = deckStart + index * deckStep;
+  return [z, deckHeight(z)];
+});
+
+function walkingSurface(z) {
+  if (z >= deckEnd) return pavingHeight;
+  const step = Math.max(0, (z - deckStart) / deckStep);
+  const i = Math.floor(step);
+  const y = deckProfile[i][1] + (deckProfile[i + 1][1] - deckProfile[i][1]) * (step - i);
+  // Ease the small paving-to-stone seam. At the outer edge the two surfaces
+  // differ by four centimetres and the camera's clearance stays in range.
+  const ramp = Math.min(1, (deckEnd - z) / .35);
+  return pavingHeight + (y - pavingHeight) * ramp;
+}
+
 function buildBridge(THREE, put, box, granite) {
-  // Trace the top and a shallow opening below it as one perimeter. The deck
-  // and its two feet can then share a single continuous masonry surface.
+  // The deck and its two feet share a shallow arch and continuous masonry.
   const shape = new THREE.Shape();
-  const profile = Array.from({ length: 33 }, (_, index) => {
-    const z = -bridgeHalfLength + index * bridgeHalfLength / 16;
-    return [z, deckHeight(z + bridgeCenter)];
-  });
+  const profile = deckProfile.map(([z, y]) => [z - bridgeCenter, y]);
   shape.moveTo(...profile[0]);
   for (const point of profile.slice(1)) shape.lineTo(...point);
   shape.lineTo(bridgeHalfLength, -.2);
@@ -59,6 +76,20 @@ function buildBridge(THREE, put, box, granite) {
   }
   rail(1, [-1, 1.6, 4.4, 7.2, 10, 12.8, 15.6, 17.8]);
   rail(-1, [10.35, 11.65, 12.95, 14.2]);
+
+  // This broad cap leaves an open sightline below it. From the toe of the
+  // bridge, the old stands are hidden behind the cap and visible in water.
+  const x = -1.55, north = 14.22, south = 17.48;
+  const northY = 1.67, southY = 1.49;
+  const cap = new THREE.BoxGeometry(.25, .44, Math.hypot(south - north, southY - northY));
+  cap.rotateX(-Math.atan2(southY - northY, south - north));
+  put(cap, granite, x, (northY + southY) / 2, (north + south) / 2);
+  box(.28, .84, south - north, granite, x, .60, (north + south) / 2);
+  for (const [z, y] of [[north, northY], [south, southY]]) {
+    const floor = deckHeight(z);
+    const top = y + .25;
+    box(.31, top - floor, .24, granite, x, (floor + top) / 2, z);
+  }
 }
 
 function buildOldStands(THREE, put, box, stone, wax, paleWax, otherLamp) {
@@ -103,7 +134,12 @@ export default function createPlace(h) {
     const look = arrival.look.clone();
     if (phone) look.y -= arrival.pos.distanceTo(look) * .10;
     const times = [0, ...waypoints.map(point => point.time), walkSeconds, walkSeconds + .01];
-    const positions = [start.pos.toArray(), ...waypoints.map(point => point.pos), arrival.pos.toArray(), arrival.pos.toArray()];
+    const horizontal = v => [v.x, v.z];
+    const positions = [horizontal(start.pos), ...waypoints.map(point => point.pos), horizontal(arrival.pos), horizontal(arrival.pos)];
+    const arrivalEye = arrival.pos.y - walkingSurface(arrival.pos.z);
+    const eyeAt = hermiteTrack([0, 4, 24, walkSeconds, walkSeconds + .01], [
+      [start.pos.y - walkingSurface(start.pos.z)], [1.60], [1.60], [arrivalEye], [arrivalEye],
+    ]);
     const looks = [start.look.toArray(), ...waypoints.map(point => point.aim), look.toArray(), look.toArray()];
     const fovs = [start.fov, ...waypoints.map(point => phone ? point.phoneFov ?? point.fov + 4 : point.fov), phone ? 44 : seated.fov, phone ? 44 : seated.fov];
     const positionAt = hermiteTrack(times, positions);
@@ -113,7 +149,8 @@ export default function createPlace(h) {
     return (progress, rig) => {
       entranceDrift ??= rig.amp;
       const time = progress * walkSeconds;
-      rig.pos.fromArray(positionAt(time));
+      const [x, z] = positionAt(time);
+      rig.pos.set(x, walkingSurface(z) + eyeAt(time)[0], z);
       rig.look.fromArray(lookAt(time));
       rig.fov = fovAt(time)[0];
       rig.amp = entranceDrift * (1 - THREE.MathUtils.smoothstep(time, 0, 4));
@@ -137,11 +174,14 @@ export default function createPlace(h) {
       for (const [x, z, width, depth] of [[0, -3, 29, 1], [-8.25, 17.5, 13, 1], [8.25, 17.5, 13, 1], [-14.5, 7.2, 1, 21], [14.5, 7.2, 1, 21]]) {
         box(width, .7, depth, granite, x, -.1, z);
       }
-      water(waterHeight, 0x132923, { geo: new THREE.PlaneGeometry(28, 20), z: 7.2, reflect: true });
+      const pond = water(waterHeight, 0x132923, { geo: new THREE.PlaneGeometry(28, 20), z: 7.2, reflect: true });
+      pond.material.uniforms.color.value.set(0x9da9a3);
       lotus(-13.5, -7.5, -2, 16.5, .08, 34);
       lotus(2.7, 13.5, -2, 16.5, .08, 46);
       buildBridge(THREE, put, box, granite);
-      const standStone = M(0x77786c, .88, { map: pavingTex });
+      const standStone = M(0xa29a87, .88, {
+        map: pavingTex, emissive: 0x554a3e, emissiveIntensity: .19,
+      });
       buildOldStands(THREE, put, box, standStone, M(0x823b32, .72), M(0xc5a67a, .7), otherLamp);
       // White plaster courts, low dark roofs, no ceremonial yellow or ranked roof stack.
       gateB({ z: 30, w: 8, h: 3.8, wall: white, roof: grey, lift: .2 });
