@@ -1,11 +1,11 @@
 import { hermiteTrack } from './pine-walk-curve.js';
 
 export const HIGH_WHITE_WALK_SECONDS = 30;
-export const HIGH_WHITE_TRAVEL_SECONDS = 46;
+export const HIGH_WHITE_TRAVEL_SECONDS = 49.5;
 export const HIGH_WHITE_NOOK = [16, 0, 16];
 
 const radians = Math.PI / 180;
-const skyHold = [0, 1.66, 25.75];
+const skyHold = [.65, 1.66, 26.1];
 const route = [
   // Seconds, eye position in metres, yaw from +Z, pitch.
   [0,    [.38, 1.66, 47.3], 181,   0],
@@ -17,10 +17,11 @@ const route = [
   [24.7, [  0, 1.66, 27.0], 180,   4],
   [26,   skyHold,          180,   8],
   [HIGH_WHITE_WALK_SECONDS, skyHold, 180, 8],
-  [33.5, [3.25, 1.66, 23.85], 130,  1],
-  [37.5, [8.85, 1.66, 22.25], 111, -2],
-  [41,   [13.6, 1.65, 20.7], 130,  -3],
-  [43.4, [16.45, 1.55, 19.5], 170, -7],
+  // Cross the court diagonally, then enter the nook from its open end.
+  [33.55, [3.15, 1.66, 25.05], 134, 1],
+  [37.95, [8.37, 1.66, 22.9], 111, -2],
+  [42.45, [13.57, 1.65, 20.75], 130, -3],
+  [45.05, [16.25, 1.55, 19.65], 168, -7],
 ];
 
 const planarView = (V3, pos, yaw, pitch, fov) => {
@@ -64,11 +65,12 @@ export function highWhiteCameras(V3) {
     const yaw = Math.atan2(delta.x, delta.z) / radians + 360;
     const pitch = Math.atan2(delta.y, Math.hypot(delta.x, delta.z)) / radians;
     const end = [seat.pos.toArray(), yaw, pitch];
-    const keys = [...route, [45.75, ...end], [HIGH_WHITE_TRAVEL_SECONDS, ...end]];
+    const seatTime = HIGH_WHITE_TRAVEL_SECONDS - .25;
+    const keys = [...route, [seatTime, ...end], [HIGH_WHITE_TRAVEL_SECONDS, ...end]];
     const times = keys.map(key => key[0]);
     const position = hermiteTrack(times, keys.map(key => key[1]));
     const aim = hermiteTrack(times, keys.map(key => key.slice(2)));
-    const lens = hermiteTrack([0, 22, 26, 34, 41, 45.75, HIGH_WHITE_TRAVEL_SECONDS],
+    const lens = hermiteTrack([0, 22, 26, 34, 42.45, seatTime, HIGH_WHITE_TRAVEL_SECONDS],
       [entry(phone), entry(phone), open(phone), open(phone), 48, seat.fov, seat.fov].map(value => [value]));
 
     return (progress, rig) => {
@@ -76,7 +78,7 @@ export function highWhiteCameras(V3) {
       const [heading, tilt] = aim(t);
       rig.pos.fromArray(position(t));
       const view = planarView(V3, rig.pos, heading, tilt, lens(t)[0]);
-      rig.look.copy(t >= 45.75 ? seat.look : view.look);
+      rig.look.copy(t >= seatTime ? seat.look : view.look);
       rig.fov = view.fov;
       // Ease out the same idle drift used by the entrance preview.
       const still = Math.min(1, t / 1.6);

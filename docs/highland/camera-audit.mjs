@@ -1,5 +1,6 @@
 import { Vector3 } from 'three';
 import { measureCameraPath } from '../../tests/visual/pine-camera-path.mjs';
+import { HIGH_WHITE_WALK_SECONDS } from '../../web/src/engine/places/highland-camera.js';
 
 // Conservative world-space envelopes for the doorway and the solids beside
 // the route. Dimensions come from the entrance wall, east wing and nook in
@@ -28,15 +29,24 @@ function clearance(row, [name, lo, hi]) {
 }
 
 export function highWhiteTraceMetrics(rows) {
-  const { duration, samples, speed, acceleration, height } = measureCameraPath(rows);
+  const { duration, samples, acceleration, height } = measureCameraPath(rows);
   const direction = row => new Vector3(row.lx - row.x, row.ly - row.y, row.lz - row.z);
   const peakTurn = { value: 0, at: rows[0].t };
+  const peakWalkSpeed = { value: 0, at: rows[0].t };
+  const peakSeatSpeed = { value: 0, at: rows[0].t };
   for (let index = 1; index < rows.length; index++) {
     const before = rows[index - 1], after = rows[index];
     const dt = after.t - before.t;
     if (dt <= 0) continue;
-    const value = direction(before).angleTo(direction(after)) * (180 / Math.PI) / dt;
-    if (value > peakTurn.value) Object.assign(peakTurn, { value, at: after.t });
+    const turn = direction(before).angleTo(direction(after)) * (180 / Math.PI) / dt;
+    if (turn > peakTurn.value) Object.assign(peakTurn, { value: turn, at: after.t });
+    const speed = Math.hypot(after.x - before.x, after.y - before.y, after.z - before.z) / dt;
+    // Include an edge that straddles the boundary in both phases, so neither
+    // limit can hide a speed jump at the end of the reveal hold.
+    if ((before.walkSeconds ?? before.t) < HIGH_WHITE_WALK_SECONDS && speed > peakWalkSpeed.value)
+      Object.assign(peakWalkSpeed, { value: speed, at: after.t });
+    if ((after.walkSeconds ?? after.t) > HIGH_WHITE_WALK_SECONDS && speed > peakSeatSpeed.value)
+      Object.assign(peakSeatSpeed, { value: speed, at: after.t });
   }
   const closest = (frames, solids) => frames.reduce((minimum, frame) => {
     for (const solid of solids) {
@@ -48,7 +58,7 @@ export function highWhiteTraceMetrics(rows) {
   const { min, max } = height;
   return {
     duration, samples,
-    peakSpeed: { value: speed.max, at: speed.at },
+    peakWalkSpeed, peakSeatSpeed,
     peakTurn,
     peakAcceleration: acceleration.max,
     height: { min, max },

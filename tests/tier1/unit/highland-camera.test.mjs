@@ -37,11 +37,12 @@ for (const [viewport, phone] of [['desktop', false], ['phone', true]]) {
     const audit = highWhiteTraceMetrics(path);
     expect(audit.doorway.metres).toBeGreaterThan(1);
     expect(audit.nearestStructure.metres).toBeGreaterThan(.65);
-    expect(audit.peakSpeed.value).toBeLessThan(1.9);
+    expect(audit.peakWalkSpeed.value).toBeLessThanOrEqual(1.8);
+    expect(audit.peakSeatSpeed.value).toBeLessThanOrEqual(1.4);
     expect(audit.peakTurn.value).toBeLessThan(25);
     const skipped = poseAt(HIGH_WHITE_TRAVEL_SECONDS);
-    expect(frame(skipped, 46)).toEqual(path.at(-1));
-    expect(frame(skipped, 46)).toEqual(frame(cameras.seated(phone), 46));
+    expect(frame(skipped, HIGH_WHITE_TRAVEL_SECONDS)).toEqual(path.at(-1));
+    expect(frame(skipped, HIGH_WHITE_TRAVEL_SECONDS)).toEqual(frame(cameras.seated(phone), HIGH_WHITE_TRAVEL_SECONDS));
     expect(skipped.amp).toBe(0);
   });
 }

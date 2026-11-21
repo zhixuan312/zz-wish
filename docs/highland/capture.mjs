@@ -61,13 +61,15 @@ function measureTrace(rows) {
   const metrics = highWhiteTraceMetrics(rows.map(frame => {
     const [x, y, z] = frame.position;
     const [dx, dy, dz] = frame.direction;
-    return { t: (frame.stampMs - first) / 1000, x, y, z, lx: x + dx, ly: y + dy, lz: z + dz, fov: frame.fov };
+    return { t: (frame.stampMs - first) / 1000, walkSeconds: frame.walkSeconds,
+      x, y, z, lx: x + dx, ly: y + dy, lz: z + dz, fov: frame.fov };
   }));
   const staticTail = rows.filter(row => row.walkState === 'done');
   assert.ok(metrics.nearestStructure.metres > .2, 'Camera eye entered a checked structure or grazed an edge');
   return {
     frames: rows.length, largestRenderGapMs: Math.max(...gaps),
-    peakSpeedMetresPerSecond: metrics.peakSpeed.value,
+    peakWalkSpeedMetresPerSecond: metrics.peakWalkSpeed.value,
+    peakSeatSpeedMetresPerSecond: metrics.peakSeatSpeed.value,
     peakTurnDegreesPerSecond: metrics.peakTurn.value,
     doorway, path: metrics,
     tail: {
@@ -226,6 +228,8 @@ async function capture(browser, preview, view) {
     assert.ok(report.readyMade.lampInsideViewport && !report.readyMade.lampOverlapsSheet,
       'The full lamp must clear the actual Ready-made sheet');
     assert.ok(report.trace.peakTurnDegreesPerSecond <= 25.1, 'The turn must stay at or below 25°/s within sample tolerance');
+    assert.ok(report.trace.peakWalkSpeedMetresPerSecond <= 1.8, 'The live walk must stay at or below 1.8 m/s');
+    assert.ok(report.trace.peakSeatSpeedMetresPerSecond <= 1.4, 'The live seat approach must stay at or below 1.4 m/s');
     assert.deepEqual(issues, [], 'No page, request or HTTP errors');
   } catch (error) {
     report.failure = error.stack;
