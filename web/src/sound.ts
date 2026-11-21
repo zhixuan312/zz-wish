@@ -2,6 +2,7 @@
 // device is opened from the light gesture; preparation before then never produces sound.
 import type { PlaceId } from '../../shared/places.ts';
 import { seamlessNoiseLoop } from './audio-loop.ts';
+import { bellLaneChimes } from './engine/places/bell-lane-chime.ts';
 import { ambienceFor, createRecordedSounds, type RecordedSounds } from './engine/index.ts';
 const rooms: Record<PlaceId, { low: number; high: number; gain: number; swell: number; detail: 'drip' | 'bird' | 'air' | 'frog' | 'bell' }> = {
   // Pine wind high in the trees.
@@ -55,6 +56,8 @@ let context: AudioContext | null = null;
 let master: GainNode | null = null;
 let nodes: AudioScheduledSourceNode[] = [];
 let detailTimer = 0;
+let streetTimer = 0;
+const claimBellLaneChime = bellLaneChimes();
 let muted = false;
 let generation = 0;
 let street: {
@@ -82,6 +85,9 @@ if (typeof document !== 'undefined') {
   // A hidden tab must be silent: stop the occasional recordings and re-arm them on return.
   document.addEventListener('visibilitychange', () => {
     hidden = document.hidden === true;
+    if (context && master && street) {
+      fadeGain(master.gain, hidden || muted ? 0 : .65, context.currentTime, .16);
+    }
     if (!recorded) return;
     if (hidden) recorded.stop();
     else if (recordedFor === 'pine-gate') {
@@ -102,6 +108,29 @@ function tone(frequency: number, duration: number, volume: number, glide = .45) 
   nodes.push(oscillator);
   oscillator.onended = () => { oscillator.disconnect(); envelope.disconnect(); nodes = nodes.filter(node => node !== oscillator); };
 }
+// A small irregular sequence of handling sounds under the shop eaves.
+function makeStreetActivity(c: AudioContext) {
+  const rate = 24_000, result = c.createBuffer(1, rate * 2, rate);
+  const data = result.getChannelData(0);
+  let soft = 0, wood = 0;
+  for (let i = 0; i < data.length; i++) {
+    const t = i / rate, noise = Math.random() * 2 - 1;
+    soft = .89 * soft + .11 * noise;
+    wood = .57 * wood + .43 * noise;
+    const scrape = Math.sin(Math.PI * Math.min(1, Math.max(0, (t - .07) / 1.17))) ** 2;
+    let sound = soft * scrape * .18 * (.64 + .36 * Math.sin(t * 40));
+    for (const at of [.33, .57, 1.20]) {
+      const elapsed = t - at;
+      if (elapsed >= 0) {
+        const hit = Math.min(1, elapsed * 1050) * Math.exp(-elapsed * 28);
+        sound += (wood * .28 + Math.sin(elapsed * 2 * Math.PI * 278) * .096) * hit;
+      }
+    }
+    data[i] = sound;
+  }
+  return result;
+}
+
 function fadeGain(gain: AudioParam, target: number, now: number, duration: number) {
   // In particular, remove the future startup ramp before a mute or an ending.
   gain.cancelAndHoldAtTime(now);
@@ -119,7 +148,7 @@ export const sound = {
       context ??= new AudioContext();
       void context.resume().catch(() => {});
       const c = context, room = rooms[id], now = c.currentTime, token = ++generation;
-      master = c.createGain(); master.gain.setValueAtTime(0, now); master.gain.linearRampToValueAtTime(muted ? 0 : .65, now + 1.8); master.connect(c.destination);
+      master = c.createGain(); master.gain.setValueAtTime(0, now); master.gain.linearRampToValueAtTime(muted || (id === 'bell-lane' && hidden) ? 0 : .65, now + 1.8); master.connect(c.destination);
       while (!noiseReady()) fillNoise(Infinity);
       loop ??= seamlessNoiseLoop(noise, NOISE_RATE);
       const buffer = c.createBuffer(2, loop[0].length, NOISE_RATE);
@@ -146,6 +175,24 @@ export const sound = {
         source.disconnect(); filter.disconnect(); volume.disconnect(); swell.disconnect(); amount.disconnect();
         installedStreet?.filter.disconnect(); installedStreet?.volume.disconnect(); installedStreet?.pan.disconnect();
       };
+      if (installedStreet) {
+        const activity = makeStreetActivity(c);
+        const hearShop = () => {
+          if (token !== generation) return;
+          const handling = c.createBufferSource(), level = c.createGain();
+          handling.buffer = activity;
+          handling.playbackRate.value = .81 + Math.random() * .31;
+          level.gain.value = .16 + Math.random() * .06;
+          handling.connect(level).connect(installedStreet.filter);
+          handling.start(); nodes.push(handling);
+          handling.onended = () => {
+            handling.disconnect(); level.disconnect();
+            nodes = nodes.filter(node => node !== handling);
+          };
+          streetTimer = window.setTimeout(hearShop, 6700 + Math.random() * 2100);
+        };
+        streetTimer = window.setTimeout(hearShop, 3300);
+      }
       if (id === 'snow-roof') {
         const flame = c.createBufferSource(), warmth = c.createBiquadFilter(), breath = c.createGain();
         flame.buffer = buffer; flame.loop = true; flame.playbackRate.value = 1.13;
@@ -183,11 +230,8 @@ export const sound = {
         if (room.detail === 'bell' && id !== 'bell-lane') {
           tone(196, 8, .0072, .999); tone(392.6, 5, .00288, .999); tone(588, 3, .00144, .999);
         }
-        if (id === 'bell-lane' && street && street.inside > .98 && !hidden) {
-          const hour = new Date().getHours();
-          if (hour === 6 || hour === 18) {
-            tone(184, 8, .009, .998); tone(414, 4.8, .003, .999); tone(609, 2.6, .0014, .999);
-          }
+        if (street && claimBellLaneChime(new Date(), street.inside > .98, !muted && !hidden)) {
+          tone(184, 8, .009, .998); tone(414, 4.8, .003, .999); tone(609, 2.6, .0014, .999);
         }
         detailTimer = window.setTimeout(detail, id === 'bell-lane' ? 90000 : id === 'snow-roof' ? 38000 + Math.random() * 42000 : 3500 + Math.random() * 11000);
       };
@@ -217,9 +261,9 @@ export const sound = {
     tone(320, .26, .012, .62);
     window.setTimeout(() => tone(880, .12, .006, 1.35), 90);
   },
-  mute(value: boolean) { muted = value; if (master && context) fadeGain(master.gain, value ? 0 : .65, context.currentTime, .16); },
+  mute(value: boolean) { muted = value; if (master && context) fadeGain(master.gain, value || (street && hidden) ? 0 : .65, context.currentTime, .16); },
   stop() {
-    generation++; clearTimeout(detailTimer);
+    generation++; clearTimeout(detailTimer); clearTimeout(streetTimer);
     recorded?.stop(); recorded = null; recordedFor = null;
     const oldMaster = master;
     if (oldMaster && context) fadeGain(oldMaster.gain, 0, context.currentTime, .3);
