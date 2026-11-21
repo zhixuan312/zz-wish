@@ -25,6 +25,7 @@ from snow_court_backdrop import look_transport
 ROOT = Path(__file__).resolve().parents[2]
 SITE = ROOT / 'shared/snow-roof-court-site.json'
 PROJECTION = ROOT / 'shared/snow-court-backdrop.json'
+LOW_SUN = ROOT / 'shared/snow-court-low-sun.json'
 PINE_BARK = ROOT / 'art/assets/snow-court/pine-bark'
 NEEDLE_PACKER = ROOT / 'scripts/pack-snow-court-needles.mjs'
 
@@ -228,6 +229,10 @@ def oil_lamp(name, position, material, contacts, support, zone, fixtures, watts=
                 (x + .066, y + .321, z), (x + .076, y + .268, z),
             ], [.0048] * 5, material['bronze'], 7)
         source = mesh.light(f'{name} lamp light', (x, y + .14, z), watts, '#ffc27a', .032)
+        if storm:
+            # The two solar worlds mute this source. Its pool enters when
+            # the night lightmap blends in at dusk.
+            source['bake_role'] = 'ambient'
     fixtures.append((name, zone, wick, source, True, 'plain oil cup' if not storm else 'storm lantern'))
 
 
@@ -683,8 +688,12 @@ def build(site, projection):
     plates.set_world(scene, look_transport(projection['light']['day']), pre_exposure, 'Clear winter midday over the sheltered court')
     daylight = scene.world
     daylight.use_fake_user = True
+    late = json.loads(LOW_SUN.read_text())
+    plates.set_world(scene, look_transport(late), pre_exposure, 'Low western sun over the winter court')
+    low_sun = scene.world
+    low_sun.use_fake_user = True
     plates.set_world(scene, look_transport(projection['light']['night']), pre_exposure, 'Clear moonlit winter pass')
-    scene['one_light_ambient_worlds'] = json.dumps({'day': daylight.name})
+    scene['one_light_ambient_worlds'] = json.dumps({'day': daylight.name, 'dusk': low_sun.name})
     m = palette(site)
     gauze_maps(m[key] for key in ('glow', 'red_faded', 'red_dust', 'red_old', 'new_gauze'))
     for key in ('glow', 'red_faded', 'red_dust', 'red_old'):
