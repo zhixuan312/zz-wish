@@ -589,6 +589,9 @@ def brush_tips(mesh, ground_height, centerline, bark):
     brush = Geometry()
     for offset, z in WINTER_BRUSH:
         origin = interpolate(centerline, z, smooth=True) + offset
+        if z == 33.31:
+            # Tuck the stems up the bank where the walk rounds this drift.
+            origin += .46
         for i in range(rng.randint(3, 5)):
             x = origin + rng.uniform(-.071, .071)
             depth = z + rng.uniform(-.11, .11)
