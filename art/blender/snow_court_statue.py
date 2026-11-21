@@ -241,7 +241,7 @@ def refine_facial_relief(local):
                             + .003 * roll(dy, -.012, .008))
 
     dy, weight = seam_profile(LIP_SEAM, .024, .013)
-    relief += weight * (.010 * roll(dy, .009, .007)
+    relief += weight * (.010 * roll(dy, .007, .006)
                         - .007 * roll(dy, 0., .0055)
                         + .012 * roll(dy, -.010, .0075)
                         - .004 * roll(dy, -.023, .008))
