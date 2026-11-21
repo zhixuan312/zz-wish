@@ -58,8 +58,7 @@ test('files can finish without warming a default place the visitor has left', as
     return false;
   });
   await vi.waitFor(() => expect(stages).toEqual(['preparing']));
-  // Nothing is downloaded before the warm decision any more: the whole-package prefetch is gone, so a place
-  // the visitor has left costs no bytes at all. `download` exists only to prove it is never called.
+  // Snow Roof no longer downloads before the warm decision, so a place the visitor has left costs no bytes.
   expect(download).not.toHaveBeenCalled();
   expect(scene.preparePlace).not.toHaveBeenCalled();
   await expect(engine.prefetchPlace('pine-gate')).resolves.toBe(true);
@@ -94,6 +93,30 @@ test('fire-and-forget effects survive failure and replay only their latest reque
   expect(scene.setOffer).toHaveBeenCalledExactlyOnceWith(null);
   expect(scene.setLevel).toHaveBeenCalledExactlyOnceWith(.7);
   engine.setPhase('burning'); expect(scene.setPhase).toHaveBeenLastCalledWith('burning');
+});
+
+test('only Snow Roof prepares on demand; every other place still downloads its manifest up front', async () => {
+  mockScene(async () => {});
+  const download = mockPrefetch();
+  const engine = await import('../../../web/src/engine/index.ts');
+  engine.boot();
+  const { PLACES } = await import('../../../shared/places.ts');
+  const onDemand = new Set(['pine-gate', 'snow-roof']);
+  const eager = PLACES.map(p => p.id).filter(id => !onDemand.has(id));
+  expect(eager.length).toBeGreaterThan(0);
+  for (const id of eager) {
+    download.mockClear();
+    const stages: string[] = [];
+    await engine.prefetchPlace(id, progress => stages.push(progress.stage));
+    expect(download).toHaveBeenCalledExactlyOnceWith(id, expect.any(Function));
+    // The manifest download is the only progress source, so the bar keeps a measured value for these places.
+    expect(stages).toEqual(['preparing', 'ready']);
+  }
+  download.mockClear();
+  const snow: string[] = [];
+  await engine.prefetchPlace('snow-roof', progress => snow.push(progress.stage));
+  expect(download).not.toHaveBeenCalled();
+  expect(snow).toEqual(['preparing', 'ready']);
 });
 
 test('a module-import failure is surfaced and is not described as an asset-startup retry', async () => {

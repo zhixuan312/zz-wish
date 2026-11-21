@@ -31,6 +31,9 @@ if (!runDir) throw new Error('Pass --run-dir (the worker tmp that safe-kill.sh a
 const hour = Number(args.hour ?? 13);
 if (!Number.isFinite(hour)) throw new Error('Pass --hour as a number.');
 const port = Number(args.port ?? 8916);
+const viewport = (args.viewport ?? 'phone') === 'desktop'
+  ? { width: 1440, height: 900, isMobile: false, hasTouch: false, deviceScaleFactor: 2 }
+  : { width: 390, height: 844, isMobile: true, hasTouch: true, deviceScaleFactor: 3 };
 
 const stamp = `${new Date().toISOString().replace(/[:.]/g, '-')}-${process.pid}`;
 const evidenceBase = args.out ?? join(runDir, 'snow-cold');
@@ -59,7 +62,8 @@ server.stdout.on('data', chunk => serverLog.push(String(chunk)));
 server.stderr.on('data', chunk => serverLog.push(String(chunk)));
 
 const record = { revision, out, port, serverPid: server.pid, hour, place: 'snow-roof',
-  condition: 'phone-4x-4g', observations: 1, revisit: false };
+  condition: (args.viewport ?? 'phone') === 'desktop' ? 'desktop-fast' : 'phone-4x-4g',
+  viewport: `${viewport.width}x${viewport.height}`, observations: 1, revisit: false };
 let failure = false;
 let browser;
 
@@ -89,8 +93,9 @@ try {
 
   browser = await chromium.launch({ channel: 'chrome',
     args: ['--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist'] });
-  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, locale: 'en-US',
-    isMobile: true, hasTouch: true, deviceScaleFactor: 3 });
+  const context = await browser.newContext({ viewport: { width: viewport.width, height: viewport.height },
+    locale: 'en-US', isMobile: viewport.isMobile, hasTouch: viewport.hasTouch,
+    deviceScaleFactor: viewport.deviceScaleFactor });
   await context.addInitScript(h => {
     const RealDate = Date;
     const fixed = new RealDate(2026, 10, 21, h, 0, 0).getTime();
@@ -138,6 +143,9 @@ try {
     return Boolean(button) && !button.disabled && button.getAttribute('aria-disabled') !== 'true';
   });
   record.cutoffs = { usable: snapshotOf(ledger) };
+  // One screenshot per cutoff, so the lighting can be compared and not only the bytes counted.
+  record.usableShot = 'usable.png';
+  await page.screenshot({ path: join(out, record.usableShot) });
 
   // Capture the click on the button itself, then watch for the first frame in which the picture moves.
   await page.evaluate(() => {
@@ -187,6 +195,8 @@ try {
     await page.waitForFunction(() => window.__coldProbe?.firstMoveAt !== null, null, { timeout: 60000 });
   } catch { moved = false; }
   record.cutoffs.firstStep = snapshotOf(ledger);
+  record.firstStepShot = 'firstStep.png';
+  await page.screenshot({ path: join(out, record.firstStepShot) });
   record.probe = await page.evaluate(() => window.__coldProbe);
   record.movedObserved = moved;
 

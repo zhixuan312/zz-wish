@@ -21,10 +21,13 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execFileSync, spawn } from 'node:child_process';
+import { stopServerAndRemoveDatabase } from './walk-camera-smoke-cleanup.mjs';
 
 // The repository this harness lives in: every path and probe is resolved from here, so the harness can be
 // launched from any directory (the authorised tmp, a scheduler, a shell in another tree).
 const REPO = fileURLToPath(new URL('../..', import.meta.url));
+// safe-kill.sh lives at the shared root, above the worker tmp it authorises.
+const SHARED_ROOT = join(REPO, '..');
 const options = Object.fromEntries(process.argv.slice(2).reduce((rows, value, index, all) => {
   if (value.startsWith('--')) rows.push([value.slice(2), all[index + 1] ?? '']);
   return rows;
@@ -409,7 +412,7 @@ async function runOnce(target, condition, run, phase) {
       : { harnessMs: null, navProxyMs: null, bytes: null, failed: true, basis: 'canvas-proxy' }
 
     // The chooser is a separate stage; waiting for it is not a movement measure.
-    // The duration radio is labelled by fmtDuration: "10 min" in English, "10 分钟" in Chinese.
+    // The duration radio is labelled by fmtDuration, so match its ten-minute text in the page locale.
     const chooser = page.locator('[role=radio]').filter({ hasText: en ? /10\s*min/i : /10\s*分钟/ }).first();
     // The chooser arrives only after the walk finishes, which is 30 s of authored travel plus the load
     // itself; the phone condition needs well over a minute of wall time.
@@ -550,11 +553,18 @@ try {
   console.error('RUN FAILED', error?.message ?? error);
   writeFileSync(join(out, 'failure.json'), JSON.stringify({ environment, error: String(error?.message ?? error) }, null, 2));
 } finally {
-  // H7: stop exactly the process this file started, by its recorded pid, then remove its database.
-  try { server.child.kill('SIGTERM'); } catch { /* already gone */ }
-  await new Promise(resolve => setTimeout(resolve, 500));
-  for (const suffix of ['', '-shm', '-wal']) {
-    try { execFileSync('rm', ['-f', dbFile + suffix]); } catch { /* absent */ }
+  // The cleanup contract lives in one place: stop this run's server through safe-kill with the recorded pid,
+  // wait until its process state is confirmed gone, and only then remove databases this run created. A
+  // refusal, an unconfirmed exit or a surviving file retains the database and is reported as a failure.
+  const cleanup = await stopServerAndRemoveDatabase({
+    pid: server.child.pid, child: server.child, dbFile,
+    safeKill: join(SHARED_ROOT, 'safe-kill.sh'),
+    exec: (file, argv, opts) => execFileSync(file, argv, opts),
+  });
+  writeFileSync(join(out, 'cleanup.json'), JSON.stringify(cleanup.report, null, 2));
+  if (!cleanup.ok) {
+    console.error('CLEANUP FAILED', cleanup.report.reason ?? cleanup.report.removalErrors);
+    exitCode = exitCode || 1;
   }
   writeFileSync(join(out, 'server.log'), server.log.join(''));
 }
