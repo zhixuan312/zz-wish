@@ -1,9 +1,18 @@
 // Low, overlapping ranges behind the court. All units are world metres.
 const ranges = [
   {
-    name: 'Near folded slopes', front: 148, depth: 158, width: 910, columns: 148, rows: 29,
-    base: 18, seed: 23, cut: 5.2, rock: 0x797168, scree: 0x998c78,
-    peaks: [[-234, 21, 62, 116], [-114, 31, 89, 61], [-3, 6, 23, 45], [155, 32, 84, 110], [283, 13, 78, 118]],
+    name: 'Near folded slopes', front: 49, depth: 126, width: 492, columns: 246, rows: 63,
+    base: 19, seed: 23, rock: 0x675746, scree: 0xb69b76,
+    peaks: [[-128, 12, 35, 52], [-57, 12, 41, 29], [-10, 5, 24, 16], [22, 7, 22, 33], [65, 13, 29, 41], [135, 14, 62, 40]],
+    // Crest start, toe offset, bend, cut depth, west/east tributary reach.
+    drains: [
+      [-171, -12, 8, 7, 17, 10], [-119, 29, -4, 8.5, 21, 13],
+      [-79, -14, 8, 8, 10, 14], [-39, 9, -8, 8.9, 15, 15],
+      [-13, -12, 5, 7.5, 12, 9], [12, 8, -4, 8, 13, 13],
+      [38, 12, 5, 9.1, 16, 14], [73, -13, -5, 8.8, 15, 17],
+      [111, 21, 9, 8, 14, 16], [158, 13, -11, 7.7, 23, 12],
+      [194, 7, 12, 7, 14, 15],
+    ],
   },
   {
     name: 'Middle broken ridgeline', front: 239, depth: 185, width: 1100, columns: 150, rows: 25,
@@ -20,6 +29,11 @@ const ranges = [
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 const smooth = t => t * t * (3 - 2 * t);
 const mix = (a, b, t) => a + (b - a) * t;
+const bell = x => Math.exp(-x * x);
+
+function fade(a, b, x) {
+  return smooth(clamp((x - a) / (b - a), 0, 1));
+}
 
 function noise(x, seed) {
   const cell = Math.floor(x);
@@ -30,12 +44,16 @@ function noise(x, seed) {
   return mix(hash(cell), hash(cell + 1), smooth(x - cell));
 }
 
-function section(range, x, distance) {
-  const { peaks, base, seed, cut } = range;
-  const crest = peaks.reduce((height, [centre, rise, west, east]) => {
+function crestHeight(range, x) {
+  return range.peaks.reduce((height, [centre, rise, west, east]) => {
     const side = (x - centre) / (x < centre ? west : east);
     return height + rise * Math.exp(-side * side * 1.5);
-  }, base);
+  }, range.base);
+}
+
+function section(range, x, distance) {
+  const { seed, cut } = range;
+  const crest = crestHeight(range, x);
   const roughness = 3.8 * noise(x * .045, seed) + 1.6 * noise(x * .14, seed + 11);
   const apex = .61 + .095 * noise(x * .015, seed + 18);
   const flank = distance <= apex ? distance / apex : (1 - distance) / (1 - apex);
@@ -52,6 +70,40 @@ function section(range, x, distance) {
   return { height, carve, face };
 }
 
+function cutByDrain(x, down, [head, spread, bend, depth, west, east]) {
+  const thalweg = head + spread * down + bend * Math.sin(Math.PI * down);
+  const across = x - thalweg;
+  if (Math.abs(across) > Math.max(west, east) + 18) return 0;
+  // Narrow cuts near the crest widen toward the fan. Each upper tributary
+  // approaches the main channel at a different height and angle.
+  const width = mix(1.8, 6.5, down);
+  const westJoin = fade(.14, .43, down), eastJoin = fade(.20, .54, down);
+  const trunk = bell(across / width);
+  const left = bell((across + west * (1 - westJoin)) / (1.6 + .7 * westJoin)) * (1 - westJoin);
+  const right = bell((across - east * (1 - eastJoin)) / (1.5 + .9 * eastJoin)) * (1 - eastJoin);
+  const recessed = Math.max(trunk, .54 * left, .48 * right);
+  return depth * recessed * fade(.01, .18, down) * (1 - fade(.82, 1, down));
+}
+
+function nearSection(range, x, distance) {
+  const { seed } = range;
+  const apex = .58 + .095 * noise(x * .028, seed + 18) + .024 * noise(x * .09, seed + 2);
+  const front = distance <= apex;
+  const flank = front ? distance / apex : (1 - distance) / (1 - apex);
+  const down = 1 - flank;
+  const face = front ? flank ** 1.19 : flank ** .83;
+  let incised = 0;
+  if (front) for (const trunk of range.drains) incised = Math.max(incised, cutByDrain(x, down, trunk));
+  // Fractured rock shifts the slope underneath the scree in long, irregular
+  // plates. Small ridges move from the crest down and out along the face.
+  const fault = x + down * (11 + 19 * noise(x * .017, seed + 7));
+  const crag = 2.5 * noise(fault * .11, seed + 9) + 1.1 * noise(fault * .22 - distance * 3, seed + 2);
+  const plate = 1.9 * noise(x * .044 + distance * 4, seed + 13) + .8 * noise(x * .34 - distance * 12, seed + 5);
+  const edge = fade(0, 57, range.width * .5 - Math.abs(x));
+  const height = -1.4 + edge * (face * (crestHeight(range, x) + crag + plate + 2) - incised);
+  return { height, carve: incised / 9.1, face };
+}
+
 export function buildHighWhiteRidges({ THREE, context }) {
   for (const range of ranges) {
     const { columns, rows, width, front, depth } = range;
@@ -59,18 +111,27 @@ export function buildHighWhiteRidges({ THREE, context }) {
     const vertices = geometry.attributes.position;
     const colours = new Float32Array(vertices.count * 3);
     const rock = new THREE.Color(range.rock), scree = new THREE.Color(range.scree), shade = new THREE.Color();
+    const sample = range.drains ? nearSection : section;
     for (let row = 0; row <= rows; row++) {
       const distance = 1 - row / rows;
       for (let column = 0; column <= columns; column++) {
         const i = row * (columns + 1) + column;
         const x = vertices.getX(i), z = -front - distance * depth;
-        const { height, carve, face } = section(range, x, distance);
+        const { height, carve, face } = sample(range, x, distance);
         vertices.setXYZ(i, x, height, z);
         // Pale scree sits between darker drainage cuts; the variation follows
         // the geometry so changing sun angle reveals real slope shape.
         const band = noise(x * .045 - height * .04 + z * .016, range.seed + 28);
-        const stone = clamp(.49 + .22 * band - .58 * carve + .10 * face, .08, .87);
-        shade.copy(rock).lerp(scree, stone).toArray(colours, i * 3);
+        let stone = clamp(.49 + .22 * band - .58 * carve + .10 * face, .08, .87);
+        if (range.drains) {
+          const strata = noise(height * .25 + x * .024 - z * .038, range.seed + 4);
+          const fragments = noise(x * .22 + z * .17, range.seed + 6);
+          stone = clamp(stone + .21 * strata + .15 * fragments + .16 * (1 - face), .05, .94);
+        }
+        shade.copy(rock).lerp(scree, stone);
+        // Concave cuts receive less indirect light than the open ridges above.
+        if (range.drains) shade.multiplyScalar(1 - .34 * clamp(carve, 0, 1));
+        shade.toArray(colours, i * 3);
       }
     }
     geometry.setAttribute('color', new THREE.BufferAttribute(colours, 3));
