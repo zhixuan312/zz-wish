@@ -222,7 +222,7 @@ async function runOnce(target, condition, run, phase) {
     const at = () => Date.now() - wall;
     // One line per stage, flushed immediately: a slow stage must be visible, not look like a hang.
     const progress = stage => console.log(`  [${condition.name} run ${run} ${phase}] ${stage} `
-      + `+${at()}ms ${Math.round(bytes() / 1048576 * 10) / 10}MB`);
+      + `+${at()}ms ${Math.round(bytes() / 1048576 * 10) / 10}MiB`);
 
     await page.goto(target, { waitUntil: 'domcontentloaded' });
     await page.getByLabel(L.wish).waitFor();
