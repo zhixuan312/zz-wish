@@ -215,6 +215,9 @@ async function runOnce(target, condition, run, phase) {
     const inFlight = () => [...requests.values()].filter(row => row.done === null).length;
     const wall = Date.now();
     const at = () => Date.now() - wall;
+    // One line per stage, flushed immediately: a slow stage must be visible, not look like a hang.
+    const progress = stage => console.log(`  [${condition.name} run ${run} ${phase}] ${stage} `
+      + `+${at()}ms ${Math.round(bytes() / 1048576 * 10) / 10}MB`);
 
     await page.goto(target, { waitUntil: 'domcontentloaded' });
     await page.getByLabel(L.wish).waitFor();
@@ -227,6 +230,7 @@ async function runOnce(target, condition, run, phase) {
       await page.waitForFunction(() => window.__ready === true, null, { timeout: 300000 });
       record.ready = { ms: at(), bytes: bytes(), inFlight: inFlight() };
     }
+    progress('ready');
     record.home = { ms: at(), bytes: bytes() };
 
     // Home stage, captured where it happens: the cover poster is in the DOM here and removes itself
@@ -305,6 +309,7 @@ async function runOnce(target, condition, run, phase) {
       maxMs: Math.round(Math.max(0, ...snapshot.longTasks.map(task => task[1]))) };
     record.canvas = snapshot.canvas;
     record.stepCover = snapshot.poster;
+    progress('step');
     record.stepShot = `${condition.name}-run-${run}-${phase}-step.png`;
     await page.screenshot({ path: join(out, record.stepShot) });
 
@@ -387,6 +392,7 @@ async function runOnce(target, condition, run, phase) {
       fadeClearedMs: window.__walkProbe.fadeCleared, firstProxyMs: window.__walkProbe.first,
       framesAfterArm: window.__walkProbe.framesAfterArm, samples: window.__walkProbe.samples,
     }));
+    progress('walk');
     record.walkProbe = probeState;
     record.walkMovement = walkMoved
       ? { harnessMs: at(), navProxyMs: probeState?.firstProxyMs, bytes: bytes(),
@@ -408,6 +414,7 @@ async function runOnce(target, condition, run, phase) {
 
     // Burning: answer the duration chooser, then light the candle and read frame percentiles inside the
     // settled burning view. The light control only exists after the chooser is answered.
+    progress('chooser');
     record.chooserClicked = false;
     if (chooserShown) {
       record.chooserClicked = await chooser.click({ timeout: 60000 }).then(() => true).catch(() => false);
@@ -437,6 +444,7 @@ async function runOnce(target, condition, run, phase) {
       record.burning = { failed: true, reason: String(error?.message ?? error).slice(0, 160) };
     }
 
+    progress('burning');
     // Same-context revisit: reload and repeat the journey to Step inside with the cache warm. Wire bytes
     // start again at the reload: the counter below is the first visit's total and must not be inherited.
     const revisitBytesBase = bytes();
@@ -459,6 +467,7 @@ async function runOnce(target, condition, run, phase) {
     record.revisitStep = { ms: Date.now() - revisitWall, bytes: revisitBytes(), inFlight: inFlight(),
       requestsSinceReload: requests.size - revisitRequestsBase };
 
+    progress('revisit');
     record.requests = { started: requests.size, failed: [...requests.values()].filter(row => row.failed).length,
       failedHttp: failedHttp.length, inFlightAtStep: record.step.inFlight };
     record.failedHttp = failedHttp.slice(0, 20);
