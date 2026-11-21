@@ -11,10 +11,11 @@ ignition.
 - Use the rock-backed temple and nearby landing in the photographs as a
   reference for terrain meeting a working shore. The fictional temple has
   its own layout and has no identifying features from the reference.
-  [Hong Kong Tourism Commission, Lei Yue Mun waterfront](https://www.tourism.gov.hk/LYMProject/en/ip6.html)
+  [Exterior photograph by Dr. Poon Sun Wah](https://www.tourism.gov.hk/LYMProject/images/ip6_01.jpg)
+  ([Hong Kong Tourism Commission source and credit](https://www.tourism.gov.hk/LYMProject/en/ip6.html)).
 - Use the photographs of the breakwater gap and rock armour to compare the
   low shoreline shoulders and open water beyond the channel.
-  [Civil Engineering and Development Department, Aberdeen Typhoon Shelter environmental assessment, landscape baseline](https://www.epd.gov.hk/eia/files/applications/en/pp_357/eia_5944/progress/action_172087/20250509_EIA_HTML/eia/appendix/ch10/appendix_10_1.pdf)
+  [Aberdeen Typhoon Shelter environmental assessment, plates 1-1 and 1-2](https://www.epd.gov.hk/eia/files/applications/en/pp_357/eia_5944/progress/action_172087/20250509_EIA_HTML/eia/appendix/ch10/appendix_10_1.pdf#page=2).
 
 ## Capture
 
