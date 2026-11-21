@@ -23,27 +23,26 @@ Baseline fbe82e3. Requirements come from the approved Bell Lane storyline, the w
 
 ## Site plan
 
-World coordinates in metres. Up on this plan is the street (+Z). The two routes use the same aperture and window.
+World coordinates in metres. Up on this plan is the street (+Z). The desktop and phone routes use the same aperture and window.
 
 ```text
-                    STREET   +Z
-                Entrance   (0.4, 46)
-                           |
-              west eaves  |     east eaves
-                           |     blue shop window (3.0, 14.5)
-                           |         /
-       wall =============[ door ]===/============= z = 10
-                           |       /
-          older wishes  ---*------/       * visitor lamp
-                  rack (-1.05, 7.0)      open court
-                         / |               old tree (-1.42, 0.60)
-        seat (-1.60, 5.5)  | reveal
-                           |
-                  low bell pavilion (2.30, -2.70)
-                    COURT    -Z
+                              STREET  +Z
+                           entrance (0.40, 46)
+                                  |
+                    west eaves    |    east eaves
+                                  |    shop window (2.99, 14.80)
+                                  |             /
+       wall ===================[ door ]========/======= z = 10
+                                 x = 0
+                     lamp rack *   |         /
+                     (-1.06, 7)    |       /
+                 seat (-1.60, 5.50) *     reveal (0.03, 6.05)
+                                   |
+          old tree (-1.42, 0.60)   |     bell pavilion (2.30, -2.70)
+                               COURT  -Z
 ```
 
-At 12 s, the route is under the shop eaves. At 22 s, it is centered on the door approach. The camera crosses the sill between 22 and 26 s, then holds the open court through the end of the 30 s walk. The final turn happens inside the court. The shop window is a single physical mesh.
+At 12 s, the route is under the shop eaves. At 22 s, it is centered on the door approach. The camera crosses the sill between 22 and 26 s, then holds the open court through the end of the 30 s walk. The final turn happens inside the court. The seat and shop window sightline crosses the open door to the east of the visitor’s lamp. The shop window is a single physical mesh.
 
 ## Review
 
@@ -51,7 +50,7 @@ The isolated preview enables Bell Lane in the ordinary wish, place, walk, choose
 
 For the authored camera samples, run `node docs/bell-lane/camera-audit.mjs`. The walk is 30 seconds, followed by a 12.5 second turn and seat transition. The last second is a still hold. On both viewports the planned maximum speed is 1.77 m/s and minimum structural clearance is 1.13 m, measured to the jamb rather than along the window sightline. The planned turn peaks at 20.18°/s desktop and 19.90°/s phone.
 
-Capture with `node docs/bell-lane/capture.mjs artifacts/bell-lane/round-1` while holding the project GPU lease. The fixture records PNGs at the two viewport sizes, stores the actual game camera trace alongside the authored curve, and records the canvas and Bell Lane audio master in a WebM. The recording captures the street sound through the doorway filter. PNGs with controls preserve the same view in the regular app. Test context time is fixed only for setting the local lighting.
+Capture with `node docs/bell-lane/capture.mjs artifacts/bell-lane/round-1` while holding the project GPU lease. The fixture records original PNGs at 1440 × 900 and 390 × 844. It reads the camera, window and wick from the same rendered frame, stores the actual game camera trace alongside the authored curve, and records the canvas and Bell Lane audio master in a WebM. The recording captures the street sound through the doorway filter. PNGs with controls preserve the same view in the regular app. Test context time is fixed only for setting the local lighting.
 
 ## Physical references
 
