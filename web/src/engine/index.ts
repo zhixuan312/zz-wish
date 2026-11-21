@@ -60,9 +60,8 @@ export const prefetchPlace = async (
   id: PlaceId, onProgress?: (progress: PlaceLoadProgress) => void, shouldWarm?: () => Promise<boolean>,
 ) => {
   let progress: PlaceLoadProgress = { loadedBytes: 0, totalBytes: 0, ratio: null, stage: 'preparing' };
-  // Pine Gate prepares with its current ambient look and the lamp pass. The
-  // loader verifies every bank as it is needed, including later time-of-day changes.
-  if (id === 'pine-gate') onProgress?.(progress);
+  // Pine Gate streams lighting as needed. Bell Lane is assembled from engine assets.
+  if (id === 'pine-gate' || id === 'bell-lane') onProgress?.(progress);
   else {
     const { prefetchBakedPlace } = await import('./baked/prefetchPlace.js');
     await prefetchBakedPlace(id, value => {
