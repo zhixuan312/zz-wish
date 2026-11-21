@@ -10,13 +10,16 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import { resolve, join } from 'node:path';
 import { startPreview } from './preview.mjs';
 import { cameraAudit, cameraPeaks, liveCameraAudit } from './camera-audit.mjs';
+import { WALK_SECONDS } from '../../web/src/engine/places/bell-lane-camera.js';
 
 const out = resolve(process.argv[2] ?? 'artifacts/bell-lane/round-1');
 const args = process.argv.slice(3);
 const treeReview = args.includes('--tree');
-const picks = args.filter(arg => arg !== '--tree');
+const frameGapReview = args.includes('--frame-gaps');
+assert.ok(!(treeReview && frameGapReview), 'Run --frame-gaps separately from image capture');
+const picks = args.filter(arg => arg !== '--tree' && arg !== '--frame-gaps');
 await mkdir(out, { recursive: true });
-const preview = await startPreview();
+const preview = await startPreview({ frameGapReview });
 let browser;
 const shots = [];
 const problems = [];
@@ -83,6 +86,49 @@ const screen = (page, state) => page.locator('.ui[data-screen="' + state + '"]')
 const ready = page => page.waitForFunction(() => document.querySelector('.ui[data-screen="place"] .court-loading[data-stage="ready"]'));
 const audio = page => page.evaluate(() => window.__reviewBellLaneAudio());
 const waitWalk = (page, seconds) => page.waitForFunction(value => window.__walkProgress?.progress >= value / 30, seconds, { timeout: 60000 });
+
+async function measureFrameGaps(page) {
+  await page.evaluate(() => window.__armBellFrameTiming());
+  await button(page, 'Step inside').click();
+  const frames = await page.evaluate(async () => {
+    let timeout;
+    try {
+      return await Promise.race([window.__bellFrameTiming, new Promise((_, reject) => {
+        timeout = setTimeout(() => reject(new Error('The Bell Lane walk did not finish in time')), 60000);
+      })]);
+    } finally {
+      clearTimeout(timeout);
+    }
+  });
+  assert.ok(frames[0]?.walkSeconds < 26 && frames.at(-1)?.walkSeconds === WALK_SECONDS,
+    'Render samples must bracket the entire court reveal');
+  const gaps = frames.slice(1).map((frame, i) => {
+    const before = frames[i];
+    assert.ok(frame.stampMs > before.stampMs && frame.walkSeconds >= before.walkSeconds,
+      'Consecutive render timestamps and walk progress must be in order');
+    return { gapMs: frame.stampMs - before.stampMs, fromWalkSeconds: before.walkSeconds, toWalkSeconds: frame.walkSeconds };
+  });
+  const summarize = (startSeconds, endSeconds) => {
+    const intervals = gaps.filter(gap => gap.toWalkSeconds >= startSeconds && gap.fromWalkSeconds < endSeconds);
+    const ordered = [...intervals].sort((a, b) => a.gapMs - b.gapMs);
+    const spanMs = intervals.reduce((sum, gap) => sum + gap.gapMs, 0);
+    return {
+      startSeconds, endSeconds, intervalCount: intervals.length, averageFps: intervals.length * 1000 / spanMs,
+      p95Ms: ordered[Math.ceil(ordered.length * .95) - 1].gapMs, longestInterval: ordered.at(-1),
+    };
+  };
+  const at29_5 = gaps.find(gap => gap.fromWalkSeconds < 29.5 && gap.toWalkSeconds >= 29.5);
+  assert.ok(at29_5, 'The 29.5 s reveal must be covered by consecutive render timestamps');
+  await screen(page, 'candle');
+  return {
+    measurement: 'Consecutive animation-frame timestamps for completed composer.render() calls, with the walk clock sampled in the same callback.',
+    capture: { screenshots: false, pixelReadback: false, mediaRecording: false, audioMeter: false },
+    courtReveal: summarize(26, WALK_SECONDS),
+    around29_5: summarize(29.25, 29.75),
+    at29_5,
+    frames,
+  };
+}
 
 async function snap(page, directory, name, criteria = {}) {
   const path = join(directory, name + '.png');
@@ -154,7 +200,7 @@ try {
       locale: 'en-US', timezoneId: 'Asia/Singapore', isMobile: phone, hasTouch: phone, deviceScaleFactor: 1,
     });
     try {
-      await context.addInitScript(instrument);
+      if (!frameGapReview) await context.addInitScript(instrument);
       const page = await context.newPage();
       const bellManifests = [];
       page.on('request', request => { if (request.url().includes('/places/bell-lane/manifest.json')) bellManifests.push(request.url()); });
@@ -168,6 +214,12 @@ try {
       await page.waitForFunction(() => window.__ready && document.querySelector('.court-loading[data-stage="ready"]') &&
         window.__pineRenderCamera?.position.z > 43);
       await page.waitForTimeout(430);
+      if (frameGapReview) {
+        const timing = await measureFrameGaps(page);
+        await writeFile(join(directory, 'frame-gaps.json'), JSON.stringify(timing, null, 2));
+        console.log(name, '29.5 s frame gap:', timing.at29_5.gapMs.toFixed(1), 'ms');
+        continue;
+      }
       await snap(page, directory, 'entrance');
       const record = treeReview || look === 'day';
       await page.evaluate(record => {

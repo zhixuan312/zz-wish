@@ -6,9 +6,10 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createServer } from 'vite';
 import config from '../../web/vite.config.ts';
+import { WALK_SECONDS } from '../../web/src/engine/places/bell-lane-camera.js';
 import { buildApp } from '../../server/app.ts';
 
-export async function startPreview() {
+export async function startPreview({ frameGapReview = false } = {}) {
   const temp = await mkdtemp(join(tmpdir(), 'bell-lane-review-'));
   const { app } = await buildApp({ dbFile: join(temp, 'review.db'), logger: false });
   let vite;
@@ -27,6 +28,34 @@ export async function startPreview() {
             const anchor = 'const outside = new THREE.Scene();';
             const draw = '  composer.render();\n}\n\n// ---------- Start ----------';
             if (!source.includes(anchor) || !source.includes(draw)) throw new Error('Bell Lane review cannot find the active scene or render loop.');
+            if (frameGapReview) return source.replace(anchor, anchor + `
+              let sampleBellFrame;
+              window.__armBellFrameTiming = () => {
+                const frames = [];
+                let previousStamp, previousWalkSeconds;
+                window.__bellFrameTiming = new Promise(resolve => {
+                  sampleBellFrame = stampMs => {
+                    const walk = window.__walkProgress;
+                    if (walk?.id !== 'bell-lane') return;
+                    const walkSeconds = walk.progress * ${WALK_SECONDS};
+                    if (walkSeconds < 25.5) {
+                      previousStamp = stampMs;
+                      previousWalkSeconds = walkSeconds;
+                      return;
+                    }
+                    // Keep the immediately preceding rendered frame so a gap crossing the window is retained.
+                    if (!frames.length && previousStamp !== undefined) {
+                      frames.push({ stampMs: previousStamp, walkSeconds: previousWalkSeconds });
+                    }
+                    frames.push({ stampMs, walkSeconds });
+                    if (walkSeconds >= ${WALK_SECONDS}) {
+                      sampleBellFrame = undefined;
+                      resolve(frames);
+                    }
+                  };
+                });
+              };
+            `).replace(draw, draw.replace('composer.render();', 'composer.render(); sampleBellFrame?.(stamp);'));
             return source.replace(anchor, anchor + `
               const requestedBellFrames = [];
               window.__captureBellFrame = (criteria = {}) => new Promise((resolve, reject) => {

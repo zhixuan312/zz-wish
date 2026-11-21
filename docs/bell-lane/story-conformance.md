@@ -62,9 +62,9 @@ The phone lens opens from 61° to 72° between 24.1 and 27.1 s to keep the tree 
 
 ## Old tree detail
 
-The court tree follows the open structure of an old camphor. Its unequal forks taper to fine shoots. Clusters of folded leaf geometry leave sky visible between the branches. The trunk's root flares follow the same surface into the paving. The wood and leaves each use one static mesh, with 5,252 triangles total and no additional asset downloads.
+The court tree follows the open structure of an old camphor. Unequal forks feed staggered shoots and leaf groups at different heights and depths. Every woody tip tapers to a point. A small generated mask gives the leaves a rounded shoulder and a pointed tip at the scale of camphor foliage. Sky remains visible between the leaf groups. The trunk's root flares follow the same surface into the paving. Wood and leaves each use one static mesh with no additional asset downloads.
 
-Run `node docs/bell-lane/capture.mjs <output-folder> --tree` under the GPU lease. The focused review records the normal walk and turn to the seat on both viewports by day and night. It saves the 26.3 s and 29.5 s frames, a camera trace, and the window sightline in the seated view.
+Run `node docs/bell-lane/capture.mjs <output-folder> --tree` under the GPU lease. The focused review records the normal walk and turn to the seat on both viewports by day and night. It saves the 26.3 s and 29.5 s frames, a camera trace, and the window sightline in the seated view. Run `node docs/bell-lane/capture.mjs <output-folder> --frame-gaps` in a separate lease to measure consecutive render intervals around 29.5 s. That mode uses the normal walk with no screenshots, pixel readback, audio taps, or video recording.
 
 ## Remaining visual work
 
