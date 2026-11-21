@@ -1,136 +1,187 @@
-// Offline checks for the smoke harness's cleanup and failure propagation.
+// Tests for the cleanup the smoke harness actually runs.
 //
-// The harness cannot be run here: it needs a build, a browser and a lease. What can be pinned is the
-// contract its finally block must obey, exercised against a stub that stands in for the server and for
-// safe-kill.sh. Each case drives the same decision the harness makes and asserts the resulting exit code
-// and whether the run's own database survived.
+// Every case calls stopServerAndRemoveDatabase — the same function walk-camera-smoke.mjs calls from its
+// finally — with stubbed safe-kill, status and removal. Nothing here re-implements the decision, so a
+// regression in the real path turns these red.
 import { expect, test } from 'vitest';
-import { execFileSync, spawn } from 'node:child_process';
-import { existsSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, rmSync, writeFileSync, existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { stopServerAndRemoveDatabase, processAlive } from './walk-camera-smoke-cleanup.mjs';
 
-// The decision the harness makes after safe-kill returns, extracted so a stub can drive it without a
-// browser. It mirrors walk-camera-smoke.mjs's finally block:
-//   - safe-kill is the only stop path; its refusal keeps the database and fails the run
-//   - the database is removed only after the process is confirmed gone
-//   - a run with no usable measurement fails even without an exception
-function finishRun({ pid, dbFile, safeKillOutput, gone, verdict }) {
-  const refused = /refused/i.test(safeKillOutput);
-  const killReport = { pid, attempted: true, output: safeKillOutput, stopped: !refused };
-  killReport.confirmedGone = gone && !refused;
-  let failure = false;
-  if (killReport.confirmedGone) {
-    rmSync(dbFile, { force: true });
-    killReport.databaseRemoved = true;
-  } else {
-    killReport.databaseRemoved = false;
-    killReport.retainedDatabase = dbFile;
-    failure = true;
-  }
-  const usable = verdict === 'moving' || verdict === 'rotating' || verdict === 'still';
-  if (!usable) failure = true;
-  return { killReport, exitCode: failure ? 1 : 0 };
-}
+const noSleep = async () => {};
 
-function workspace() {
-  const dir = mkdtempSync(join(tmpdir(), 'smoke-stub-'));
+// A stub exec: safe-kill behaviour, `ps` state and `rm`/`test -e` over a real temp directory. Files are
+// created on disk so "removed" and "survives" are facts, not flags.
+function stubWorld({ safeKill = { status: 0, stdout: 'stopped 4242 (/tmp/x)' }, states, rmFails }) {
+  const dir = mkdtempSync(join(tmpdir(), 'cleanup-test-'));
   const dbFile = join(dir, 'smoke.db');
-  writeFileSync(dbFile, 'sqlite');
-  return { dir, dbFile };
+  for (const suffix of ['', '-shm', '-wal']) writeFileSync(dbFile + suffix, 'sqlite');
+  const script = {
+    safeKillCalls: 0, statusCalls: 0, rmCalls: [],
+    exec(file, args) {
+      if (String(file).endsWith('safe-kill.sh')) {
+        script.safeKillCalls++;
+        if (safeKill.throwLaunch) {
+          const error = new Error(safeKill.stdout ?? 'spawn failed');
+          error.status = safeKill.status;
+          error.stdout = safeKill.stdout;
+          throw error;
+        }
+        if (safeKill.status === 0) return safeKill.stdout;
+        const error = new Error(safeKill.stdout ?? 'non-zero');
+        error.status = safeKill.status;
+        error.stdout = safeKill.stdout;
+        throw error;
+      }
+      if (file === 'sh') {
+        const line = args[1];
+        if (line.startsWith('ps -p')) {
+          script.statusCalls++;
+          if (states.throwStatus) throw new Error('ps failed');
+          return states.value === 'alive' ? 'yes' : 'no';
+        }
+        if (line.startsWith('test -e')) return existsSync(dbFile) ? 'yes' : 'no';
+        return '';
+      }
+      if (file === 'rm') {
+        script.rmCalls.push(args[1]);
+        if (!rmFails) rmSync(args[1], { force: true });
+        return '';
+      }
+      return '';
+    },
+  };
+  return { dir, dbFile, script };
 }
 
-test('a stopped process lets the run remove its own database and exit zero', () => {
-  const { dbFile, dir } = workspace();
-  const outcome = finishRun({ pid: 4242, dbFile, safeKillOutput: 'stopped 4242 (/tmp/x)', gone: true,
-    verdict: 'moving' });
-  expect(outcome.exitCode).toBe(0);
-  expect(outcome.killReport.stopped).toBe(true);
-  expect(outcome.killReport.databaseRemoved).toBe(true);
+test('a stopped process removes this run’s database and reports success', async () => {
+  const { dir, dbFile, script } = stubWorld({ states: { value: 'gone' } });
+  const { ok, report } = await stopServerAndRemoveDatabase({
+    pid: 4242, dbFile, safeKill: '/root/safe-kill.sh', exec: script.exec, sleep: noSleep });
+  expect(ok).toBe(true);
+  expect(report.confirmedGone).toBe(true);
+  expect(report.databaseRemoved).toBe(true);
   expect(existsSync(dbFile)).toBe(false);
+  expect(script.safeKillCalls).toBe(1);
   rmSync(dir, { recursive: true, force: true });
 });
 
-test('a safe-kill refusal keeps the database and exits non-zero', () => {
-  const { dbFile, dir } = workspace();
-  const outcome = finishRun({ pid: 4242, dbFile,
-    safeKillOutput: 'refused 4242: cwd is not yours', gone: false, verdict: 'moving' });
-  expect(outcome.exitCode).toBe(1);
-  expect(outcome.killReport.stopped).toBe(false);
-  expect(outcome.killReport.databaseRemoved).toBe(false);
-  expect(outcome.killReport.retainedDatabase).toBe(dbFile);
-  // The database is still there for inspection: never cleaned on a refusal.
+test('a refusal keeps the database and fails', async () => {
+  const { dir, dbFile, script } = stubWorld({
+    safeKill: { status: 3, stdout: 'refused 4242: cwd is not yours' }, states: { value: 'alive' } });
+  const { ok, report } = await stopServerAndRemoveDatabase({
+    pid: 4242, dbFile, safeKill: '/root/safe-kill.sh', exec: script.exec, sleep: noSleep });
+  expect(ok).toBe(false);
+  expect(report.refused).toBe(true);
+  expect(report.databaseRemoved).toBe(false);
+  expect(report.retainedDatabase).toBe(dbFile);
+  expect(existsSync(dbFile)).toBe(true);
+  expect(script.rmCalls).toHaveLength(0);
+  rmSync(dir, { recursive: true, force: true });
+});
+
+test('a non-zero status with no text still means no cleanup', async () => {
+  const { dir, dbFile, script } = stubWorld({ safeKill: { status: 3, stdout: '' }, states: { value: 'gone' } });
+  const { ok, report } = await stopServerAndRemoveDatabase({
+    pid: 4242, dbFile, safeKill: '/root/safe-kill.sh', exec: script.exec, sleep: noSleep });
+  expect(ok).toBe(false);
+  expect(report.refused).toBe(false);
+  expect(report.exitStatus).toBe(3);
+  expect(report.databaseRemoved).toBe(false);
   expect(existsSync(dbFile)).toBe(true);
   rmSync(dir, { recursive: true, force: true });
 });
 
-test('a process that survives safe-kill is treated as a refusal, not as success', () => {
-  const { dbFile, dir } = workspace();
-  const outcome = finishRun({ pid: 4242, dbFile, safeKillOutput: 'stopped 4242 (/tmp/x)', gone: false,
-    verdict: 'moving' });
-  expect(outcome.exitCode).toBe(1);
-  expect(outcome.killReport.databaseRemoved).toBe(false);
+test('a safe-kill launch failure is not success', async () => {
+  const { dir, dbFile, script } = stubWorld({ safeKill: { throwLaunch: true, status: undefined }, states: { value: 'gone' } });
+  const { ok, report } = await stopServerAndRemoveDatabase({
+    pid: 4242, dbFile, safeKill: '/missing/safe-kill.sh', exec: script.exec, sleep: noSleep });
+  expect(ok).toBe(false);
+  expect(report.exitStatus).toBe('launch-failed');
   expect(existsSync(dbFile)).toBe(true);
   rmSync(dir, { recursive: true, force: true });
 });
 
-test('a run with no usable verdict fails even when nothing threw', () => {
-  const { dbFile, dir } = workspace();
-  for (const verdict of ['unknown', undefined, null]) {
-    writeFileSync(dbFile, 'sqlite');
-    const outcome = finishRun({ pid: 4242, dbFile, safeKillOutput: 'stopped 4242', gone: true, verdict });
-    expect(outcome.exitCode, String(verdict)).toBe(1);
-  }
-  rmSync(dir, { recursive: true, force: true });
-});
-
-test('a rotating or still verdict counts as usable, and only moving crosses no threshold', () => {
-  const { dbFile, dir } = workspace();
-  for (const verdict of ['moving', 'rotating', 'still']) {
-    writeFileSync(dbFile, 'sqlite');
-    const outcome = finishRun({ pid: 4242, dbFile, safeKillOutput: 'stopped 4242', gone: true, verdict });
-    expect(outcome.exitCode, verdict).toBe(0);
-  }
-  rmSync(dir, { recursive: true, force: true });
-});
-
-test('safe-kill refuses a process outside the authorised tree, and the harness would see that text', () => {
-  // Use the real script against this test process: it is not in a worker worktree, so it must refuse.
-  let output;
-  try {
-    output = execFileSync('/Users/xuan/OpenBot/Shared/one-light/safe-kill.sh',
-      ['s2', String(process.pid)], { encoding: 'utf8' });
-  } catch (error) {
-    output = String(error?.stdout ?? '');
-  }
-  expect(output).toMatch(/refused/);
-  // And the harness's own decision on that text keeps the database and fails.
-  const { dbFile, dir } = workspace();
-  const outcome = finishRun({ pid: process.pid, dbFile, safeKillOutput: output, gone: true, verdict: 'moving' });
-  expect(outcome.exitCode).toBe(1);
+test('an unknown process state is not gone, so nothing is removed', async () => {
+  const { dir, dbFile, script } = stubWorld({ states: { throwStatus: true } });
+  const { ok, report } = await stopServerAndRemoveDatabase({
+    pid: 4242, dbFile, safeKill: '/root/safe-kill.sh', exec: script.exec, sleep: noSleep });
+  expect(ok).toBe(false);
+  expect(report.processState).toBe('unknown');
+  expect(report.confirmedGone).toBe(false);
   expect(existsSync(dbFile)).toBe(true);
   rmSync(dir, { recursive: true, force: true });
 });
 
-test('a stub server started and stopped through the real safe-kill contract exits cleanly', async () => {
-  // A short-lived process whose cwd is the authorised tmp, so safe-kill permits stopping it.
-  const runDir = '/Users/xuan/OpenBot/Shared/one-light/tmp/s2';
-  const stub = spawn('sh', ['-c', 'sleep 30'], { cwd: runDir, stdio: 'ignore' });
-  try {
-    await new Promise(resolve => setTimeout(resolve, 150));
-    const output = execFileSync('/Users/xuan/OpenBot/Shared/one-light/safe-kill.sh',
-      ['s2', String(stub.pid)], { encoding: 'utf8' }).trim();
-    expect(output).toMatch(/stopped|gone/);
-    const { dbFile, dir } = workspace();
-    const outcome = finishRun({ pid: stub.pid, dbFile, safeKillOutput: output, gone: true, verdict: 'moving' });
-    expect(outcome.exitCode).toBe(0);
-    expect(existsSync(dbFile)).toBe(false);
-    rmSync(dir, { recursive: true, force: true });
-  } finally {
-    // The stub may already be gone; if not, the same sanctioned path stops it.
-    try {
-      execFileSync('/Users/xuan/OpenBot/Shared/one-light/safe-kill.sh', ['s2', String(stub.pid)],
-        { encoding: 'utf8' });
-    } catch { /* already stopped */ }
-  }
+test('a process that survives safe-kill keeps the database', async () => {
+  const { dir, dbFile, script } = stubWorld({ states: { value: 'alive' } });
+  const { ok, report } = await stopServerAndRemoveDatabase({
+    pid: 4242, dbFile, safeKill: '/root/safe-kill.sh', exec: script.exec, sleep: noSleep });
+  expect(ok).toBe(false);
+  expect(report.processState).toBe('alive');
+  expect(existsSync(dbFile)).toBe(true);
+  rmSync(dir, { recursive: true, force: true });
+});
+
+test('a removal that fails, leaving the file, is a failure', async () => {
+  const { dir, dbFile, script } = stubWorld({ states: { value: 'gone' }, rmFails: true });
+  const { ok, report } = await stopServerAndRemoveDatabase({
+    pid: 4242, dbFile, safeKill: '/root/safe-kill.sh', exec: script.exec, sleep: noSleep });
+  expect(ok).toBe(false);
+  expect(report.databaseRemoved).toBe(false);
+  expect(report.failedRemovals.length).toBeGreaterThan(0);
+  expect(report.reason).toMatch(/survived removal/);
+  expect(existsSync(dbFile)).toBe(true);
+  rmSync(dir, { recursive: true, force: true });
+});
+
+test('a pre-existing file outside this run is never touched', async () => {
+  // A previous refused run's database sits next to this run's scratch dir; only this run's files go.
+  const dir = mkdtempSync(join(tmpdir(), 'cleanup-test-'));
+  const earlier = join(dir, 'previous-run.db');
+  writeFileSync(earlier, 'earlier evidence');
+  const runDir = join(dir, 'this-run');
+  mkdtempSync(join(dir, 'x-')); // keep dir busy
+  const { mkdirSync } = await import('node:fs');
+  mkdirSync(runDir, { recursive: true });
+  const dbFile = join(runDir, 'smoke.db');
+  writeFileSync(dbFile, 'sqlite');
+  const exec = (file, args) => {
+    if (String(file).endsWith('safe-kill.sh')) return 'stopped 4242';
+    if (file === 'sh') {
+      if (args[1].startsWith('ps -p')) return 'no';
+      if (args[1].startsWith('test -e')) return existsSync(args[1].includes(dbFile) ? dbFile : earlier) ? 'yes' : 'no';
+    }
+    if (file === 'rm') { rmSync(args[1], { force: true }); return ''; }
+    return '';
+  };
+  const { ok } = await stopServerAndRemoveDatabase({
+    pid: 4242, dbFile, safeKill: '/root/safe-kill.sh', exec, sleep: noSleep });
+  expect(ok).toBe(true);
+  expect(existsSync(dbFile)).toBe(false);
+  expect(existsSync(earlier)).toBe(true);
+  rmSync(dir, { recursive: true, force: true });
+});
+
+test('the status query reports unknown rather than gone when it throws', () => {
+  expect(processAlive(4242, () => { throw new Error('ps unavailable'); })).toBe('unknown');
+  expect(processAlive(4242, () => 'yes')).toBe('alive');
+  expect(processAlive(4242, () => 'no')).toBe('gone');
+  expect(processAlive(4242, () => '')).toBe('unknown');
+});
+
+test('regression guard: a non-zero exit that still prints a stop line is not success', async () => {
+  // The hard case: the text looks like a stop, but safe-kill exited non-zero. If the real cleanup ever
+  // drops its status check and trusts the text, this alone turns red — the other non-zero cases pass
+  // merely because their text is empty.
+  const { dir, dbFile, script } = stubWorld({
+    safeKill: { status: 3, stdout: 'stopped 4242 (/tmp/x)' }, states: { value: 'gone' } });
+  const { ok, report } = await stopServerAndRemoveDatabase({
+    pid: 4242, dbFile, safeKill: '/root/safe-kill.sh', exec: script.exec, sleep: noSleep });
+  expect(ok).toBe(false);
+  expect(report.exitStatus).toBe(3);
+  expect(report.databaseRemoved).toBe(false);
+  expect(existsSync(dbFile)).toBe(true);
+  rmSync(dir, { recursive: true, force: true });
 });

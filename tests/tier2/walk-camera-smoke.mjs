@@ -15,6 +15,7 @@ import { execFileSync, spawn } from 'node:child_process';
 import { pageSampler, pageArmClickCapture, pageCollect, samplesFromSnapshot, sampleInterval }
   from './walk-camera-sampler.mjs';
 import { judgeCameraMotion } from './walk-camera-judge.mjs';
+import { stopServerAndRemoveDatabase } from './walk-camera-smoke-cleanup.mjs';
 
 const REPO = fileURLToPath(new URL('../..', import.meta.url));
 const args = Object.fromEntries(process.argv.slice(2).reduce((rows, value, index, all) => {
@@ -26,6 +27,11 @@ if (!runDir) throw new Error('Pass --run-dir (the worker tmp that safe-kill.sh a
 const out = args.out ?? join(runDir, 'walk-smoke');
 const port = Number(args.port ?? 8910);
 mkdirSync(out, { recursive: true });
+// Every run gets its own directory for the database and the web symlink. A previous run may have left its
+// database behind after a refusal, and that evidence must survive this run untouched.
+const runId = `${new Date().toISOString().replace(/[:.]/g, '-')}-${process.pid}`;
+const runScratch = join(runDir, 'smoke-runs', runId);
+mkdirSync(runScratch, { recursive: true });
 
 // Revision and build provenance are recorded before anything runs.
 const revision = execFileSync('git', ['-C', REPO, 'rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
@@ -37,12 +43,13 @@ const distHasCameraHook = execFileSync('sh', ['-c',
   { encoding: 'utf8' }).trim();
 
 // The server runs with its cwd inside the authorised tmp, with a web symlink into the real build.
-const link = join(runDir, 'web');
+const link = join(runScratch, 'web');
 try { execFileSync('rm', ['-f', link]); } catch { /* absent */ }
 execFileSync('ln', ['-s', join(REPO, 'web'), link]);
-const dbFile = join(out, 'smoke.db');
+const dbFile = join(runScratch, 'smoke.db');
 const server = spawn('node', [join(REPO, 'server', 'main.ts')], {
-  cwd: runDir, env: { ...process.env, PORT: String(port), HOST: '127.0.0.1', DB_FILE: dbFile },
+  // The server resolves web/dist from its cwd, so its cwd is the per-run scratch dir that holds the link.
+  cwd: runScratch, env: { ...process.env, PORT: String(port), HOST: '127.0.0.1', DB_FILE: dbFile },
   stdio: ['ignore', 'pipe', 'pipe'],
 });
 const serverLog = [];
@@ -133,48 +140,20 @@ try {
   record.failed = String(error?.message ?? error).slice(0, 400);
   failure = true;
 } finally {
-  // GOALS.md cleanup: stop the server only through safe-kill.sh, with the PID recorded when it was
-  // started. `kill`/`pkill` are forbidden because the public demo runs the same command. The database is
-  // this run's own file, so it is removed only after the process is confirmed gone; if safe-kill refuses,
-  // the database stays for inspection and the run exits non-zero rather than falling back to a signal.
+  // GOALS.md cleanup, through the one shared implementation the tests also drive: safe-kill with the PID
+  // recorded at startup, a confirmed exit, then removal of this run's own files with verification.
   if (browser) await browser.close().catch(() => {});
   writeFileSync(join(out, 'server.log'), serverLog.join(''));
 
-  const killReport = { pid: server.pid, attempted: true, output: '', stopped: false, refused: false };
-  try {
-    killReport.output = execFileSync(join(ROOT, 'safe-kill.sh'), ['s2', String(server.pid)],
-      { encoding: 'utf8' }).trim();
-    killReport.refused = /refused/i.test(killReport.output);
-    killReport.stopped = !killReport.refused && /stopped|gone/i.test(killReport.output);
-  } catch (error) {
-    // safe-kill exits non-zero when it refuses a PID; capture the refusal text instead of hiding it.
-    killReport.output = String(error?.stdout ?? '').trim() || String(error?.message ?? error).slice(0, 200);
-    killReport.refused = /refused/i.test(killReport.output);
-    killReport.stopped = false;
-  }
-
-  // Confirm the process is gone before touching its file. A missing process is success.
-  let alive = true;
-  for (let attempt = 0; attempt < 40 && alive; attempt++) {
-    alive = execFileSync('sh', ['-c', `ps -p ${Number(server.pid)} >/dev/null 2>&1 && echo yes || echo no`],
-      { encoding: 'utf8' }).trim() === 'yes';
-    if (alive) await new Promise(resolve => setTimeout(resolve, 100));
-  }
-  // A refusal means the process was never stopped by the sanctioned path, so it does not count as gone
-  // even if it happened to exit on its own; the run fails and the database stays.
-  killReport.confirmedGone = !alive && !killReport.refused;
-
-  if (killReport.confirmedGone) {
-    for (const suffix of ['', '-shm', '-wal']) {
-      try { execFileSync('rm', ['-f', dbFile + suffix]); } catch { /* absent */ }
-    }
-    killReport.databaseRemoved = true;
-  } else {
-    killReport.databaseRemoved = false;
-    killReport.retainedDatabase = dbFile;
+  const cleanup = await stopServerAndRemoveDatabase({
+    pid: server.pid, dbFile, safeKill: join(ROOT, 'safe-kill.sh'), exec: execFileSync,
+  });
+  record.cleanup = cleanup.report;
+  record.runScratch = runScratch;
+  if (!cleanup.ok) {
     failure = true;
+    record.failureReason = record.failureReason ?? cleanup.report.reason ?? 'cleanup did not finish';
   }
-  record.cleanup = killReport;
 
   // A run that measured nothing is a failure even when no exception was thrown.
   const measured = record.measurement?.verdict?.verdict;
