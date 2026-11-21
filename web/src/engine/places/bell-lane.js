@@ -104,8 +104,7 @@ export default function createPlace(h) {
       for (const x of [-3.45, 3.45]) box(.12, .008, 48, M(0x25282b, .95), x, .067, 34);
       for (let i = 0; i < 12; i++) box(.4 + C.rnd() * .35, .008, .6, M(0x6b6a65, .94, { map: pavingTex }), (C.rnd() - .5) * 5, .067, 14 + C.rnd() * 40);
 
-      const floorMap = brickTex.clone(); floorMap.repeat.set(4, 5);
-      const floor = M(0x7a7570, .95, { map: floorMap });
+      const floor = M(0x8c8174, .94, { map: pavingTex });
       box(12.6, .12, 22.6, floor, 0, -.045, -1.35);
       for (const x of [-6.3, 6.3]) {
         box(.5, 3.05, 22.6, wall, x, 1.525, -1.35);

@@ -52,3 +52,8 @@ The isolated preview enables Bell Lane in the ordinary wish, place, walk, choose
 For the authored camera samples, run `node docs/bell-lane/camera-audit.mjs`. The walk is 30 seconds, followed by a 12.5 second turn and seat transition. The last second is a still hold. On both viewports the planned maximum speed is 1.77 m/s and minimum structural clearance is 1.13 m, measured to the jamb rather than along the window sightline. The planned turn peaks at 20.18°/s desktop and 19.90°/s phone.
 
 Capture with `node docs/bell-lane/capture.mjs artifacts/bell-lane/round-1` while holding the project GPU lease. The fixture records PNGs at the two viewport sizes, stores the actual game camera trace alongside the authored curve, and records the canvas and Bell Lane audio master in a WebM. The recording captures the street sound through the doorway filter. PNGs with controls preserve the same view in the regular app. Test context time is fixed only for setting the local lighting.
+
+## Physical references
+
+- The [Powerhouse Chinese temple bell](https://collection.powerhouse.com.au/object/249120) shows a domed bronze body hung from its crown and a flared lower rim. Bell Lane uses a plain suspended body with a separate interior wall and a downward opening. The fixture at 29 s should read the wide lip and the inset dark cavity.
+- UNESCO's [Ping Yao courtyard photographs](https://whc.unesco.org/en/canopy/ping-yao/) show the material distinction between an enclosed street courtyard's paving and upright masonry. Bell Lane uses the existing [Stone Pavers and Dark Brick Wall scans](../licenses/polyhaven-scans.md) for those surfaces. The 29 s view should show broad grey paving underfoot and dark courses on the boundary walls.
