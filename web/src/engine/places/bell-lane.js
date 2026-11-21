@@ -1,15 +1,17 @@
-import { BELL, LAMP, TREE, TURN_SECONDS, WALK_SECONDS, WINDOW, bellLaneCameras } from './bell-lane-camera.js';
+import { BELL, LAMP, TREE, TURN_SECONDS, WALK_SECONDS, bellLaneCameras } from './bell-lane-camera.js';
 import { addBellLaneTree } from './bell-lane-tree.js';
 import { addBellLaneOilCup, makeBellLaneOilBowl } from './bell-lane-oil.js';
 import { BELL_LANE_CUPS } from './bell-lane-cups.ts';
 import { addBellLaneWishTag } from './bell-lane-wish-tag.js';
-import { BELL_LANE_SHELF, bellLaneRack, bellLaneTransfer } from './bell-lane-rack.js';
-import { bellLaneLocalHour, bellLaneShutterOffset, bellLaneShutterOpening } from './bell-lane-dawn.ts';
+import { BELL_LANE_SHELF, bellLaneTransfer } from './bell-lane-rack.js';
+import { bellLaneRackDisplay, makeBellLaneSavedTag } from './bell-lane-rack-display.js';
+import { addBellLaneShops } from './bell-lane-shops.js';
+import { bellLaneLocalHour, bellLaneShutterOpening } from './bell-lane-dawn.ts';
 
 // An invented neighbourhood temple: a lit shop lane, one low door, a tree and a small bell court.
 export default function createPlace(h) {
   const { THREE, V3, M, ground, box, put, wallWithHoles, eave, col, otherLamp,
-    brickTex, plasterTex, grainTex, pavingTex, latticeTex, pauseBuild, lathe, liveFlame, unlitLattice } = h;
+    brickTex, plasterTex, grainTex, pavingTex, pauseBuild, lathe, liveFlame, unlitLattice } = h;
   const cameras = bellLaneCameras(V3);
   const gateHalfWidth = 1.16;
   const taperSource = V3(-1.47, .658, .092);
@@ -38,73 +40,10 @@ export default function createPlace(h) {
     walkSeconds: WALK_SECONDS, createWalk: cameras.createWalk,
     arrivalSeconds: TURN_SECONDS, createArrival: cameras.createArrival,
     async build() {
-      const C = h.context, wall = M(0x6b6c6d, .97, { map: brickTex }), wood = M(0x3b271b, .85, { map: grainTex }), paper = M(0xb7aa8c, .96), stone = M(0x59595a, .9, { map: pavingTex });
-      const shutters = [];
-      ground(0x444546, { mat: { map: pavingTex } }); box(7.6, .06, 48, stone, 0, .03, 34);
-      // Two irregular rows of small shops make an enclosed, human-scale lane rather than an avenue to a palace.
-      for (let i = 0; i < 7; i++) for (const side of [-1, 1]) {
-        const landmark = side === 1 && i === 0;
-        const z = 14 + i * 6, ht = 3.2 + (i % 3) * .32;
-        const face = landmark ? WINDOW[0] : side * (3.9 + (i % 2) * .16);
-        const shade = M(i % 3 === 0 ? 0x6a645a : 0x767574, .95, { map: i % 3 === 0 ? plasterTex : brickTex });
-        const wallX = face + side * 1.73, windowZ = landmark ? WINDOW[2] : z, windowY = landmark ? WINDOW[1] : 1.55;
-        const width = landmark ? 2.65 : 3.8;
-        const frame = landmark ? M(0x385e60, .91, { map: grainTex }) : wood;
-        box(3.4, ht, 5.8, shade, wallX, ht / 2, z);
-        // The east corner shop is the window visible again through the door.
-        const pane = new THREE.Mesh(new THREE.PlaneGeometry(width, 1.38), new THREE.MeshStandardMaterial({
-          color: landmark ? 0xcead79 : 0x80694d, map: latticeTex,
-          emissive: 0xffb76b, emissiveMap: latticeTex, roughness: .9,
-        }));
-        pane.position.set(face, windowY, windowZ);
-        pane.rotation.y = -side * Math.PI / 2;
-        if (landmark) pane.name = 'Bell Lane east shop window';
-        C.G.add(pane);
-        const sill = landmark ? M(0x854630, .94, { map: grainTex }) : frame;
-        box(.22, .12, width + .26, sill, face - side * .08, windowY - .72, windowZ);
-        box(.13, .10, width + .20, frame, face - side * .04, windowY + .72, windowZ);
-        for (const dz of [-.50, -.17, .17, .50]) box(.12, 1.48, .075, frame, face - side * .045, windowY, windowZ + dz * width);
-        box(.11, landmark ? 1.48 : 2.6, landmark ? .50 : .52, frame, face - side * .11,
-          landmark ? windowY : 1.3, landmark ? windowZ - 1.57 : z + 2.54, landmark ? -.45 : 0);
-        if (landmark) {
-          for (let j = 0; j < 7; j++) box(.07, .037, .42, sill, face - .20, .94 + j * .16, windowZ - 1.55, -.45);
-        } else if (i >= 2 && i % 2 === 0) {
-          // These leaves are up the lane beyond the seated view. They keep the
-          // landmark recognizable when the rest of the street closes for the night.
-          const leafSize = width / 2 - .018;
-          for (const hinge of [-1, 1]) {
-            const pivot = new THREE.Group();
-            pivot.position.set(face - side * .06, windowY, windowZ + hinge * width / 2);
-            const leaf = new THREE.Mesh(new THREE.BoxGeometry(.05, 1.37, leafSize), wood);
-            leaf.position.z = -hinge * leafSize / 2;
-            leaf.castShadow = leaf.receiveShadow = true;
-            pivot.add(leaf);
-            C.G.add(pivot);
-            shutters.push({ pivot, sign: side * hinge, timeOffset: bellLaneShutterOffset(i, side) });
-          }
-        }
-        const canopy = landmark ? 4.12 : 3.7;
-        box(canopy, .21, 6.06, h.roofMat(0x3f4244), wallX - side * .30, ht + .12, z);
-        // An uneven overhang with exposed joist ends catches the shop glow.
-        box(.6, .12, 5.8, wood, face - side * .2, 2.68, z);
-        for (let q = 0; q < 6; q++) box(.62, .065, .055, wood, face - side * .2, 2.62, z - 2.4 + q * .9);
-        // One practical light marks the way home. Wall-facing windows give the other shops their glow.
-        const lamp = landmark ? new THREE.PointLight(0xffb66c, 0, 6, 2) : null;
-        if (lamp) {
-          lamp.position.set(face - .36, 1.74, windowZ);
-          C.G.add(lamp);
-        }
-        const setWindowLight = light => {
-          pane.material.emissiveIntensity = landmark ? .045 + 1.30 * light.lamp : .012 + light.lamp * (.12 + (i % 4) * .035);
-          if (lamp) lamp.intensity = .25 + 3.2 * light.lamp;
-        };
-        setWindowLight(C.light);
-        C.up.push((_dt, _t, light) => setWindowLight(light));
-        // A low counter and baskets beside the doorway, all grounded.
-        if (!landmark) box(.46, .65, 1.4, wood, face - side * .3, .325, z - 1.2);
-        put(new THREE.CylinderGeometry(.2, .16, .28, 24, 1, true), paper, face - side * .32, .14, z + 1.6);
-        if (!landmark && i % 2 === 0) { const sign = new THREE.Mesh(new THREE.PlaneGeometry(.38, 1.1), M(0x6e3220, .97, { side: THREE.DoubleSide })); sign.position.set(face - side * .45, 2.1, z + 2.2); sign.rotation.y = -.35 * side; C.G.add(sign); }
-      }
+      const C = h.context, wall = M(0x6b6c6d, .97, { map: brickTex }), wood = M(0x3b271b, .85, { map: grainTex }), stone = M(0x59595a, .9, { map: pavingTex });
+      ground(0x444546, { mat: { map: pavingTex } });
+      box(7.6, .06, 48, stone, 0, .03, 34);
+      const shutters = addBellLaneShops(h, stone);
       await pauseBuild();
       // The wall is solid across the lane except for this one door.
       wallWithHoles({ x0: -6.3, x1: 6.3, y0: 0, y1: 3.05, z: 10, depth: .55, m: wall, uv: .75,
@@ -192,8 +131,13 @@ export default function createPlace(h) {
       at: { pos: V3(...LAMP), ry: 0 }, lamp: 'lattice', y: shelf.top, exposure: 1.1, bloom: [.35, 1.02],
       makeVisitorCup: makeCup,
       makeVisitorWishTag: makeWishTag,
-      visitorLampPlacement: { layout: bellLaneRack, position: bellLaneTransfer },
-      makePastLamp: lamp => unlitLattice(lamp, makeCup, makeWishTag),
+      visitorLampPlacement: { layout: bellLaneRackDisplay, position: bellLaneTransfer },
+      makePastLamp(lamp) {
+        const tie = lamp.rackDisplay
+          ? (group, post) => makeBellLaneSavedTag(h, group, post, lamp.rackDisplay)
+          : makeWishTag;
+        return unlitLattice(lamp, makeCup, tie);
+      },
       explicitPhoneViews: true, wide: cameras.wide, widePhone: cameras.widePhone,
       choose: cameras.choose, choosePhone: cameras.choosePhone, taperSource,
       async build() {
@@ -202,7 +146,12 @@ export default function createPlace(h) {
         const tag = M(0x9b7552, .96);
         const clay = M(0x9d623f, .84);
         const depth = shelf.back - shelf.front, middle = shelf.front + depth / 2;
-        box(shelf.width, .09, depth, wood, 0, shelf.top - .045, middle);
+        const plank = shelf.width / 5;
+        const worn = M(0x80654e, .96, { map: grainTex });
+        box(shelf.width, .072, depth, edge, 0, shelf.top - .054, middle);
+        for (let board = -2; board <= 2; board++) {
+          box(plank - .002, .018, depth, board % 2 === 0 ? worn : wood, board * plank, shelf.top - .009, middle);
+        }
         for (const x of [-.94, .94]) for (const z of [shelf.front + .07, shelf.back - .07])
           box(.085, .37, .081, edge, x, .185, z);
         box(1.85, .09, .29, edge, 0, .18, middle);

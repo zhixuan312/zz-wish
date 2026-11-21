@@ -1,8 +1,11 @@
 // A visitor lifts the tag off the tray and ties its cord to the shade's front corner.
-export function addBellLaneWishTag({ THREE, grainTex }, lamp, post) {
+export function addBellLaneWishTag({ THREE, grainTex }, lamp, post, { side: sideOfPost = 1, saved = false } = {}) {
   const { Vector3, MathUtils } = THREE;
   const rig = new THREE.Group();
   rig.name = 'Bell Lane wish tag rig';
+  // The lattice has another matching front corner. Reflect the entire tie,
+  // including its knot and eyelet, so the cord still wraps the physical post.
+  rig.scale.x = sideOfPost;
   lamp.add(rig);
 
   const profile = new THREE.Shape();
@@ -22,7 +25,9 @@ export function addBellLaneWishTag({ THREE, grainTex }, lamp, post) {
   board.translate(0, 0, -.002);
   const uv = board.getAttribute('uv');
   for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) / .044 + .5, uv.getY(i) / .09 + .5);
-  const wood = new THREE.MeshStandardMaterial({ color: 0xc39a68, roughness: .91, map: grainTex });
+  const wood = new THREE.MeshStandardMaterial({
+    color: saved ? 0xd7b783 : 0xc39a68, roughness: saved ? .85 : .91, map: grainTex,
+  });
   const hemp = new THREE.MeshStandardMaterial({ color: 0x9f8053, roughness: .96 });
   wood.userData.lampOwned = hemp.userData.lampOwned = true;
   const tag = new THREE.Mesh(board, wood);
@@ -67,6 +72,11 @@ export function addBellLaneWishTag({ THREE, grainTex }, lamp, post) {
   const rest = new Vector3(.080, .513, -.059);
   const hanging = anchor.clone().add(new Vector3(.046, -.055, -.037));
   hanging.z = Math.min(hanging.z, -.144);
+  if (saved) {
+    hanging.x = .117;
+    hanging.y += .012;
+  }
+  const faceYaw = saved ? .24 * sideOfPost : -.08;
   const lift = hanging.clone().add(new Vector3(0, .072, -.012));
   const direction = new Vector3();
   const hole = new Vector3(), bend = new Vector3(), tail = new Vector3(), fixed = new Vector3();
@@ -86,7 +96,7 @@ export function addBellLaneWishTag({ THREE, grainTex }, lamp, post) {
     const lowered = MathUtils.smoothstep(progress, .51, 1);
     const tighten = MathUtils.smoothstep(progress, .48, .93);
     tag.position.copy(rest).lerp(lift, raised).lerp(hanging, lowered);
-    tag.rotation.set(-(1 - raised) * Math.PI / 2, -.08 * raised, -.12 * lowered);
+    tag.rotation.set(-(1 - raised) * Math.PI / 2, faceYaw * raised, -.12 * lowered);
     knot.visible = progress >= .76;
     for (let i = 0; i < 2; i++) {
       const side = i === 0 ? -1 : 1;
