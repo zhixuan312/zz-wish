@@ -4,6 +4,7 @@
 import assert from 'node:assert/strict';
 import { Buffer } from 'node:buffer';
 import console from 'node:console';
+import { createHash } from 'node:crypto';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import process from 'node:process';
@@ -12,9 +13,9 @@ import { Vector3 } from 'three';
 import { HIGH_WHITE_TRAVEL_SECONDS, highWhiteCameras } from '../../web/src/engine/places/highland-camera.js';
 import { startPreview } from './preview.mjs';
 import { highWhiteGeometryMetrics, highWhiteTraceMetrics } from './camera-audit.mjs';
-import { hasReusableBaseline } from './capture-evidence.mjs';
+import { hasReusableBaseline, THRESHOLD_CLIP_FILE, THRESHOLD_CLIP_PLAN, validThresholdClip } from './capture-evidence.mjs';
 
-const TARGETS = [
+const allTargets = [
   ...[20, 21, 22, 23, 24, 25].map(seconds => ({ name: `threshold-${seconds}s`, seconds })),
   { name: 'open-court-26s', seconds: 26 },
   { name: 'open-court-29s', seconds: 29 },
@@ -29,6 +30,8 @@ const baseline = requested.includes('--baseline');
 const paired = requested.includes('--paired');
 const resume = requested.includes('--resume');
 const liveCrops = requested.includes('--live-crops');
+const ridgeReview = requested.includes('--ridge-review');
+const TARGETS = ridgeReview ? allTargets.filter(({ seconds }) => seconds >= 24 && seconds !== 25) : allTargets;
 const referenceArg = requested.find(value => value.startsWith('--match='));
 const match = referenceArg ? resolve(referenceArg.slice('--match='.length)) : null;
 assert.ok(!referenceArg || referenceArg.length > '--match='.length, 'Set --match to the baseline output directory.');
@@ -36,7 +39,7 @@ assert.ok(!baseline || !match, 'Use --match on the candidate, not the baseline.'
 assert.ok(!paired || (!baseline && !match), 'Use --paired by itself to save before and after together.');
 assert.ok(!resume || paired, 'Use --resume with --paired to keep completed baseline cases.');
 assert.ok(!match || match !== output, 'The baseline and candidate output directories must be different.');
-const filters = requested.filter(value => !['--baseline', '--paired', '--resume', '--live-crops'].includes(value) && value !== referenceArg);
+const filters = requested.filter(value => !['--baseline', '--paired', '--resume', '--live-crops', '--ridge-review'].includes(value) && value !== referenceArg);
 const combinations = views.flatMap(view => [13, 22].map(hour => ({ ...view, hour, key: `${view.name}-${hour}` })));
 assert.ok(filters.every(key => combinations.some(view => view.key === key)), 'Use desktop-13, desktop-22, phone-13 or phone-22.');
 const selected = filters.length ? combinations.filter(view => filters.includes(view.key)) : combinations;
@@ -208,6 +211,13 @@ async function compareToBaseline(report, referenceDir) {
   assert.equal(reference.failure, undefined, `Baseline failed: ${path}`);
   assert.equal(reference.source.mode, 'baseline', `Expected a baseline report: ${path}`);
   assert.equal(reference.source.cameraSha256, report.source.cameraSha256, 'Camera source must match.');
+  if (ridgeReview) {
+    assert.equal(reference.source.baseline, report.source.baseline, 'Use the requested ridge baseline revision.');
+    assert.deepEqual(reference.source.sceneModulesSha256, report.source.baselineModulesSha256,
+      'Baseline must match all historical Highland scene source modules.');
+    assert.ok(validThresholdClip(reference.thresholdClip, await readFile(join(referenceDir, report.view.key, THRESHOLD_CLIP_FILE)), report.view),
+      'The historical baseline video is missing, corrupted, or does not cover the live threshold through the hold.');
+  }
   const stages = { seated: poseDelta(reference.seated, report.seated), lit: poseDelta(reference.lit, report.lit) };
   for (const [name, delta] of Object.entries(stages)) assert.ok(posesMatch(delta), `Actual ${name} pose differs across runs.`);
   const images = report.scenes.map(scene => {
@@ -218,6 +228,21 @@ async function compareToBaseline(report, referenceDir) {
     return { name: scene.name, liveTriggerDeltaSeconds: (scene.livePose.walkSeconds ?? 0) - baselineSeconds };
   });
   return { path, exactDiagnosticPoses: images, actualUiPoses: stages, cropRects: reference.crops };
+}
+
+async function saveThresholdClip(page, directory, view, report) {
+  const clip = await page.evaluate(() => new Promise((resolve, reject) => {
+    const timer = window.setTimeout(() => reject(new Error('Continuous live clip did not finish')), 10_000);
+    Promise.resolve(window.__highlandReview.clipResult()).then(resolve, reject).finally(() => window.clearTimeout(timer));
+  }));
+  assert.ok(clip?.dataUrl, clip?.error ?? 'Continuous live clip has no recorded bytes');
+  const { dataUrl, ...metadata } = clip;
+  const video = Buffer.from(dataUrl.slice(dataUrl.indexOf(',') + 1), 'base64');
+  report.thresholdClip = {
+    file: THRESHOLD_CLIP_FILE, ...metadata, bytes: video.length, sha256: createHash('sha256').update(video).digest('hex'),
+  };
+  await writeFile(join(directory, THRESHOLD_CLIP_FILE), video);
+  assert.ok(validThresholdClip(report.thresholdClip, video, view), 'Live clip must be native size and continuous from 22.5 seconds through the 30-second hold');
 }
 
 async function capture(browser, preview, view, outputDir, referenceDir) {
@@ -239,6 +264,7 @@ async function capture(browser, preview, view, outputDir, referenceDir) {
       live: 'Original composer render from the running camera, with same-frame live pose',
       diagnostic: 'Separate render at the exact authored time and pose, for matched before/after comparisons',
       seatedUi: 'Actual browser screenshots after the seated camera has settled',
+      ...(ridgeReview ? { clip: 'Original composer output recorded live from 22.5 s through 30 s at native viewport size. No UI overlays or sound.' } : {}),
     },
   };
   const pose = exactPose(view);
@@ -269,9 +295,10 @@ async function capture(browser, preview, view, outputDir, referenceDir) {
     }, view.hour);
     await page.goto(preview.url, { waitUntil: 'domcontentloaded' });
     await startVisit(page, click);
+    preview.verifySource();
     await saveScene('entrance', await nextStill(page, pose(0)));
 
-    await page.evaluate(steps => window.__highlandReview.start(steps), targets);
+    await page.evaluate(({ steps, clip }) => window.__highlandReview.start(steps, clip), { steps: targets, clip: ridgeReview ? THRESHOLD_CLIP_PLAN : null });
     await click(button(page, 'Step inside'));
     report.seated = await seat(page);
     const trace = await page.evaluate(() => window.__highlandReview.stop());
@@ -284,6 +311,7 @@ async function capture(browser, preview, view, outputDir, referenceDir) {
       assert.ok(frame.walkSeconds - frame.targetSeconds < .4, `Capture too late: ${frame.name}`);
       await saveScene(frame.name, frame);
     }
+    if (ridgeReview) await saveThresholdClip(page, directory, view, report);
     const seatedBytes = await page.screenshot({ path: join(directory, 'seated-ready-made.png'), scale: 'css' });
     const { lamp, sheet } = report.seated;
     report.readyMade = {
@@ -346,11 +374,11 @@ async function capture(browser, preview, view, outputDir, referenceDir) {
 
 const failures = [];
 async function captureBatch(browser, isBaseline, outputDir, referenceDir) {
-  const preview = await startPreview({ baseline: isBaseline });
+  const preview = await startPreview({ baseline: isBaseline, ridgeReview });
   try {
     console.log(`${isBaseline ? 'Baseline' : 'Candidate'}: ${outputDir}`);
     for (const view of selected) {
-      if (isBaseline && resume && await hasReusableBaseline(join(outputDir, view.key), view, preview.source, TARGETS, liveCrops)) {
+      if (isBaseline && resume && await hasReusableBaseline(join(outputDir, view.key), view, preview.source, TARGETS, liveCrops, ridgeReview)) {
         console.log(`${view.key}: kept validated baseline`);
         continue;
       }
