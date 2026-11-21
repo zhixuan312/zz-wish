@@ -797,7 +797,8 @@ const LAMPS = {
     const flameSize=gauzeFlameSize(smokeProfile,wick,vent.topY);
     return { g, kind: 'shade', shells: [shell], wick: { at:wick },wickMesh,smokePath,suspensionMaterial:suspension, frame: { h: H + .2, cy: -.07 - H * .5 }, lightMax: .9, flame: flameSize, light: 0xff6a3a, hang: true };
   },
-  // A square lattice lamp with paper panels on a low wooden stand; its outline, turned square, is the person's.
+  // Bell Lane's square lattice lamp. One unpapered side is the service opening
+  // for the oil cup and taper, and faces the visitor at the rack.
   lattice(o = presetOf('shade')) {
     const g = new THREE.Group(), y0 = .5, P = scaled(o.rows, shadeScale(o.rows, 1.8, .05)).map(([r, y]) => [r * Math.SQRT2, y0 + .02 + y]), top = P[P.length - 1][1];
     for (const [x, z] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) solid(g, new THREE.BoxGeometry(.022, y0, .022), lampWood, x * .11, y0 / 2, z * .11);
@@ -805,11 +806,22 @@ const LAMPS = {
     for (const y of [.1, .3]) for (const [w, d] of [[.24, .014], [.014, .24]]) for (const s of [-1, 1]) solid(g, new THREE.BoxGeometry(w, .016, d), lampWood, w > .1 ? 0 : s * .11, y, w > .1 ? s * .11 : 0);
     const paper = paperLatticeTex.clone(); paper.wrapS = THREE.RepeatWrapping; paper.repeat.set(4, 1); paper.needsUpdate = true;
     const shell = shellMaterial(o.color, { map: paper, glow: 0xffb070, reach: 9, rough: .9, base: .06, strength: .45 });
-    const box4 = lathe(P, 4); box4.rotateY(Math.PI / 4); solid(g, box4, shell).castShadow = false;
+    const box4 = lathe(P, 4);
+    const faces = Array.from(box4.index.array), faceSize = 6 * (P.length - 1);
+    faces.splice(faceSize, faceSize); // The -Z side after the quarter-diagonal rotation.
+    box4.setIndex(faces);
+    box4.rotateY(Math.PI / 4);
+    solid(g, box4, shell).castShadow = false;
     // Corner posts follow the outline; rails close it at the top and the bottom.
     for (let i = 0; i < 4; i++) { const a = Math.PI / 4 + i * Math.PI / 2, post = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(P.map(([r, y]) => V3(Math.sin(a) * r, y, Math.cos(a) * r))), 16, .006, 4), lampWood); post.castShadow = true; g.add(post); }
     for (const [r, y] of [P[0], P[P.length - 1]]) { const ring = lathe([[r + .006, y - .008], [r + .006, y + .008]], 4); ring.rotateY(Math.PI / 4); solid(g, ring, lampWood); }
     solid(g, lathe([[0, y0 + .01], [.022, y0 + .01], [.024, y0 + .03], [.02, y0 + .032], [0, y0 + .026]], 32), clayMat);
+    const tagMat = new THREE.MeshStandardMaterial({ color: 0xac7952, roughness: .91, map: grainTex });
+    tagMat.userData.lampOwned = true;
+    const tag = solid(g, new THREE.BoxGeometry(.036, .086, .004), tagMat, .095, y0 - .044, -.129);
+    tag.rotation.z = -.13;
+    const cord = solid(g, new THREE.TorusGeometry(.008, .0014, 5, 14), lampWood, .09, y0 - .002, -.129);
+    cord.rotation.y = .18;
     return { g, kind: 'shade', shells: [shell], wick: { at: V3(0, y0 + .036, 0) }, frame: { h: top - y0 + .08, cy: (y0 + top) / 2 }, lightMax: .8, flame: .85, light: 0xffaa60 };
   },
 };
@@ -2529,7 +2541,7 @@ export function skip() {
     sound.bellLaneListener(pos.x, pos.z, look.x - pos.x, look.z - pos.z, true);
   }
 }
-let ignitionTaper;
+let ignitionTaper, courtTaper;
 function makeIgnitionTaper(){
   const g=new THREE.Group();outside.add(g);g.visible=false;
   solid(g,new THREE.CylinderGeometry(.003,.004,.19,12),new THREE.MeshStandardMaterial({color:0xdfc9a3,roughness:.86}),0,-.10,0);
@@ -2556,6 +2568,45 @@ export async function ignite({onCatch, remainingFuel, onTaperLit}={}) {
   place?.baked?.wishCloth?.show(true);
   const pine = !!mine.parts?.pineWax;
   if (pine) waxFuel = remainingFuel ?? null;
+  if (place.P.nook.taperSource) {
+    courtTaper ??= makeIgnitionTaper();
+    const { g, f, casters } = courtTaper;
+    for (const part of casters) part.castShadow = false;
+    const wick = mine.flameWorld().clone();
+    const fixture = toWorld(place.P.nook.taperSource);
+    const entry = wick.clone().add(V3(-.18, .025, -.30));
+    const exchange = fixture.clone().add(V3(0, .040, -.035));
+    const withdrawn = entry.clone().add(V3(-.21, -.17, -.20));
+    const tip = V3();
+    g.quaternion.setFromUnitVectors(V3(0, 1, 0), V3(.26, .14, .95).normalize());
+    const graphicOffset = f.flame.position.clone().applyQuaternion(g.quaternion);
+    let caught = false;
+    mine.power = 0;
+    try {
+      g.visible = true;
+      await tween(13.2, k => {
+        if (!lit || journey !== cameraJourneyVersion) { g.visible = false; return; }
+        if (k < .18) tip.lerpVectors(exchange, entry, smooth(0, .18, k));
+        else if (k < .31) tip.lerpVectors(entry, wick, smooth(.18, .31, k));
+        else if (k < .37) tip.copy(wick);
+        else tip.lerpVectors(wick, withdrawn, smooth(.37, .61, k));
+        g.position.copy(tip).sub(graphicOffset);
+        g.visible = k < .63;
+        f.tick(clockTime, 1 - smooth(.50, .63, k), 0, [], tip.y);
+        if (!caught && k >= .31) {
+          caught = true;
+          onCatch?.();
+        }
+        mine.power = smooth(.31, .62, k);
+        mark(k >= .31 && k < .37 ? 'wick-contact' : 'igniting', k,
+          { wickContactMetres: tip.distanceTo(wick) });
+      });
+    } finally {
+      if (journey === cameraJourneyVersion) g.visible = false;
+    }
+    if (lit && journey === cameraJourneyVersion) mark('settled', 1);
+    return;
+  }
   if (!place.P.bakedLighting) {
     const start = pine ? { pos: rig.pos.clone(), look: rig.look.clone(), fov: rig.fov } : null;
     const burn = pine ? burnView() : null;

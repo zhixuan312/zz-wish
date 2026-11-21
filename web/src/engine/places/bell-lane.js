@@ -6,6 +6,7 @@ export default function createPlace(h) {
     brickTex, plasterTex, grainTex, pavingTex, latticeTex, pauseBuild, lathe, liveFlame } = h;
   const cameras = bellLaneCameras(V3);
   const gateHalfWidth = 1.16;
+  const taperSource = V3(-1.47, .658, .092);
   return {
     exposure: 1.12, shade: .32,
     sky: { top: 0x080d19, horizon: 0x282c38, ground: 0x0b0e15, sun: 0xe0e4ee, dir: [-.7, .5, .35], glow: .12, clouds: .3, lit: 0x424e65, dark: 0x11141c, stars: .35, disc: 1.2 },
@@ -141,7 +142,7 @@ export default function createPlace(h) {
     nook: {
       at: { pos: V3(...LAMP), ry: 0 }, lamp: 'lattice', y: .46, exposure: 1.1, bloom: [.35, 1.02],
       explicitPhoneViews: true, wide: cameras.wide, widePhone: cameras.widePhone,
-      choose: cameras.choose, choosePhone: cameras.choosePhone,
+      choose: cameras.choose, choosePhone: cameras.choosePhone, taperSource,
       async build() {
         const wood = M(0x6a4732, .93, { map: grainTex });
         const edge = M(0x574333, .95, { map: grainTex });
@@ -155,7 +156,6 @@ export default function createPlace(h) {
           [.42, .055, -.21, 0], [.76, .02, .3, .22]]) {
           const { g } = otherLamp('lattice', x, .46, z, .55, yaw, power);
           g.scale.setScalar(.52);
-          box(.046, .105, .005, tag, x + .058, .62, z - .098, yaw);
         }
         // Supplies for the next visitor are kept beside the rack.
         box(.56, .065, .42, wood, -1.57, .58, .18);
@@ -165,7 +165,7 @@ export default function createPlace(h) {
         box(.15, .012, .083, tag, -1.39, .625, .24, .08);
         box(.24, .008, .008, tag, -1.52, .63, .31, .21);
         put(cup, clay, -1.47, .615, .092);
-        liveFlame(-1.47, .658, .092, { size: .53, power: .48 });
+        liveFlame(taperSource.x, taperSource.y, taperSource.z, { size: .53, power: .48 });
         const broom = new THREE.CylinderGeometry(.017, .019, 1.24, 10);
         broom.rotateZ(.19);
         put(broom, edge, -2.24, .67, .39);

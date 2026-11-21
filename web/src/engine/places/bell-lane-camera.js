@@ -1,7 +1,7 @@
 import { hermiteTrack } from './pine-walk-curve.js';
 
 export const WALK_SECONDS = 30;
-export const TURN_SECONDS = 12;
+export const TURN_SECONDS = 12.5;
 export const DOOR_Z = 9.73;
 export const WINDOW = [2.99, 1.53, 14.8];
 export const LAMP = [-1.06, 0, 7];
@@ -11,6 +11,7 @@ export const BELL = [0, 0, -1.6];
 const route = [
   // Seconds, position, yaw from +Z, pitch.
   [0, [ .40, 1.66, 46.0], 177, 1],
+  [.18, [ .40, 1.66, 46.0], 177, 1],
   [1.4, [ .32, 1.66, 45.1], 177, 1],
   [12, [ .25, 1.66, 29.7], 174, 0],
   [17, [ .49, 1.66, 21.5], 170, -1],
