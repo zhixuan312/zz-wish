@@ -250,12 +250,100 @@ const lampPairScript = `
     })));
   };`;
 
+
+const endingReviewScript = `
+  let tideEndingRows;
+  let tideEndingOrigin;
+  function tideEndingSample() {
+    const flame = mine.tideReviewFlame;
+    const hood = mine.parts?.g;
+    const lights = {
+      wick: flame.light.intensity,
+      bounce: hood?.getObjectByName('Tide hood bounce')?.intensity ?? 0,
+      aperture: hood?.getObjectByName('Tide hood ember light')?.intensity ?? 0,
+    };
+    const aperture = hood?.getObjectByName('Tide ceramic vent interior');
+    const emberColor = flame.ember.material.color;
+    const plume = wickPlume.state();
+    return {
+      wallMs: performance.now(),
+      clockTime,
+      sinceSnuffSeconds: tideEndingOrigin ? clockTime - tideEndingOrigin.clockTime : null,
+      placeId: place?.id ?? null,
+      phase,
+      appScreen: document.querySelector('.ui')?.dataset.screen,
+      camera: { position: camera.position.toArray(), fov: camera.fov, look: rig.look.toArray() },
+      visitorVisible: mine.g.visible,
+      visitorType: mine.type,
+      flamePower: flame.fm.uniforms.uPower.value,
+      wickEmber: { visible: flame.ember.visible, intensity: Math.max(emberColor.r, emberColor.g, emberColor.b) },
+      haloOpacity: flame.halo.material.opacity,
+      aperture: { authored: Boolean(aperture), glow: aperture?.material?.userData?.u?.uGlow?.value ?? 0 },
+      lights, smoke: plume ? { mode: plume.mode, visibleSprites: plume.visibleSprites, exteriorSprites: plume.exteriorSprites } : null,
+    };
+  }
+  window.__tideDrawProfile = () => {
+    const shell = mine.parts?.g?.getObjectByName('Tide pierced earthenware hood');
+    if (place?.id !== 'sea-tide' || !mine.g.visible || !mine.offer || !shell) return null;
+    const geometry = shell.geometry;
+    if (!geometry.boundingBox) geometry.computeBoundingBox();
+    const bounds = geometry.boundingBox;
+    const positions = geometry.getAttribute('position');
+    const height = bounds.max.y - bounds.min.y;
+    const crossSections = [.18, .42, .67, .89].map(fraction => {
+      const cutY = bounds.min.y + fraction * height;
+      let minX = Infinity, maxX = -Infinity, minZ = Infinity, maxZ = -Infinity;
+      let points = 0;
+      for (let i = 0; i < positions.count; i++) {
+        if (Math.abs(positions.getY(i) - cutY) > .055 * height) continue;
+        const x = positions.getX(i), z = positions.getZ(i);
+        minX = Math.min(minX, x); maxX = Math.max(maxX, x);
+        minZ = Math.min(minZ, z); maxZ = Math.max(maxZ, z);
+        points++;
+      }
+      return { fraction, cutY, points, widthX: points ? maxX - minX : null,
+        widthZ: points ? maxZ - minZ : null, centerX: points ? (minX + maxX) / 2 : null,
+        centerZ: points ? (minZ + maxZ) / 2 : null };
+    });
+    return { inputRGB: mine.offer.color, sourceRows: mine.offer.rows, clayLinearRGB: shell.material.color.toArray(),
+      localBounds: { min: bounds.min.toArray(), max: bounds.max.toArray() }, crossSections };
+  };
+  window.__tideEndingSample = tideEndingSample;
+  window.__startTideEndingTrace = () => {
+    tideEndingRows = [];
+    tideEndingOrigin = null;
+  };
+  window.__markTideSnuff = done => {
+    if (place?.id === 'sea-tide' && tideEndingRows) tideEndingOrigin = { done, clockTime, wallMs: performance.now() };
+  };
+  window.__tideRecordEndingFrame = () => {
+    if (tideEndingRows) tideEndingRows.push(tideEndingSample());
+  };
+  window.__stopTideEndingTrace = () => {
+    const result = { origin: tideEndingOrigin, frames: tideEndingRows };
+    tideEndingRows = null;
+    return result;
+  };
+`;
+
+function instrumentEnding(source) {
+  const lamp = 'const api = { g, parts: null, partsKey: null, type: null,';
+  const snuff = 'export async function snuff(done = false, remaining, gust = false) {';
+  const render = '  composer.render();\n}\n\n// ---------- Start ----------';
+  const withFlame = replaceOnce(source, lamp, lamp.replace('{ g,', '{ g, tideReviewFlame: f,'));
+  const withEndingMark = replaceOnce(withFlame, snuff, snuff + '\n  window.__markTideSnuff?.(done);');
+  return replaceOnce(withEndingMark, render, render.replace('composer.render();',
+    'composer.render(); window.__tideRecordEndingFrame?.();')) + '\n' + endingReviewScript;
+}
+
 export async function startPreview({
   tideWorldSource, matchedPose = false, includeDriftControl = false, lampPair = false,
+  endingReview = false, endingSources = {},
 } = {}) {
   const temp = await mkdtemp(join(tmpdir(), 'tide-review-'));
   let app;
   let vite;
+  let serverClockOffsetMs = 0;
   async function close() {
     try {
       await vite?.close();
@@ -268,7 +356,8 @@ export async function startPreview({
     }
   }
   try {
-    ({ app } = await buildApp({ dbFile: join(temp, 'review.db'), logger: false }));
+    ({ app } = await buildApp({ dbFile: join(temp, 'review.db'), logger: false,
+      ...(endingReview ? { now: () => Date.now() + serverClockOffsetMs } : {}) }));
     await app.listen({ port: 0, host: '127.0.0.1' });
     const api = 'http://127.0.0.1:' + app.server.address().port;
     vite = await createServer({
@@ -280,6 +369,15 @@ export async function startPreview({
         enforce: 'pre',
         transform(source, id) {
           const path = id.split('?')[0];
+          if (endingReview && path.endsWith('/web/src/burn.ts')) {
+            const elapsed = 'performance.now() - this.start, this.durationMs';
+            return replaceOnce(source, elapsed,
+              'performance.now() - this.start + ((window as Window & { __tideBurnOffsetMs?: number }).__tideBurnOffsetMs ?? 0), this.durationMs');
+          }
+          for (const name of ['sea-tide.js', 'sea-tide-hood.js']) {
+            const baseline = endingReview ? endingSources[name] : undefined;
+            if (path.endsWith('/web/src/engine/places/' + name) && baseline !== undefined) return baseline;
+          }
           if (path.endsWith('/web/src/engine/places/sea-tide.js') && tideWorldSource !== undefined) return tideWorldSource;
           if (path.endsWith('/web/src/visiblePlaces.ts')) {
             const tideCatalog = includeDriftControl
@@ -299,7 +397,8 @@ export async function startPreview({
           }
           if (path.endsWith('/web/src/engine/scene.js')) {
             const trace = 'lx: rig.look.x, ly: rig.look.y, lz: rig.look.z, fov: rig.fov ?? camera.fov });';
-            const traced = replaceOnce(source, trace, `lx: rig.look.x, ly: rig.look.y, lz: rig.look.z, fov: camera.fov,
+            const engine = endingReview ? instrumentEnding(endingSources['scene.js'] ?? source) : source;
+            const traced = replaceOnce(engine, trace, `lx: rig.look.x, ly: rig.look.y, lz: rig.look.z, fov: camera.fov,
               actual: camera.position.toArray(), walkState: window.__walkProgress?.state,
               walkProgress: window.__walkProgress?.progress, mouth: window.__tideSampleMouth?.(),
               deck: window.__tideSampleDeck?.() });`);
@@ -316,7 +415,10 @@ export async function startPreview({
     });
     await vite.listen(0);
     const address = vite.httpServer.address();
-    return { url: 'http://127.0.0.1:' + address.port, close };
+    return { url: 'http://127.0.0.1:' + address.port, close, advanceBurnClockBy(ms) {
+      if (!endingReview || !Number.isFinite(ms) || ms <= 0) throw new Error('Invalid review burn clock advance.');
+      serverClockOffsetMs += ms;
+    } };
   } catch (error) {
     await close();
     throw error;
