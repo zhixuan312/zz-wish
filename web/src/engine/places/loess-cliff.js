@@ -1,4 +1,4 @@
-import { cartRut, createLoessWalk, cutGrid, cutHeight, gateZ, routeBeats, routeClearance, routeGround, walkSeconds } from './loess-route.js';
+import { cartRut, createLoessWalk, cutGrid, cutHeight, gateZ, routeBeats, routeClearances, routeGround, walkingEyeHeight, walkSeconds } from './loess-route.js';
 
 const lampSeatY = 1;
 const windowBack = -.63;
@@ -200,7 +200,7 @@ export default function createPlace(h) {
   const { THREE, V3, M, ground, box, put, wallWithHoles, otherLamp, loessTex, papercutTex, grainTex, pavingTex, mist, pauseBuild } = h;
   const choose = { pos: V3(.68, 1.34, .92), look: V3(0, 1.15, -.18), fov: 32 };
   const choosePhone = { pos: V3(.53, 1.22, .70), look: V3(-.165, 1.11, -.22) };
-  const entry = { pos: V3(1.92, routeGround(1.92, 30.3) + 1.67, 30.3), look: V3(1.30, 3.1, 15.6), fov: 39 };
+  const entry = { pos: V3(1.92, routeGround(1.92, 30.3) + walkingEyeHeight, 30.3), look: V3(1.30, 3.1, 15.6), fov: 39 };
   return {
     exposure: 1.12, shade: .3,
     sky: { top: 0x080b12, horizon: 0x24232a, ground: 0x100e0c, sun: 0xc9d2e4, dir: [-.4, .5, .5], glow: .08, clouds: .45, lit: 0x333b4a, dark: 0x111118, stars: .6, disc: 1.1 },
@@ -208,7 +208,8 @@ export default function createPlace(h) {
     day: { exposure: 1, sky: { top: 0x657f9a, horizon: 0xe0d5bd, ground: 0x8f704d, sun: 0xffebcf, dir: [-.5, .55, .5], glow: .35, clouds: .25, lit: 0xffeee0, dark: 0x8793a4 }, fog: [0xb9aa96, .006], sunL: [0xffe4c0, 2], hemi: [0xc4d5e5, 0x62503b, .85], bloom: [.3, 1.4] },
     view: entry, viewPhone: { ...entry, fov: 48 },
     walk: [], doors: V3(1.35, 1.6, gateZ),
-    walkSeconds, createWalk: createLoessWalk, routeGround, routeBeats, routeClearance,
+    walkSeconds, createWalk: createLoessWalk, routeGround, routeBeats, routeClearances,
+    verticalCameraDrift: 0,
     async build() {
       const C = h.context, earth = M(0x8f6c46, .98, { map: loessTex }), cap = M(0x74634e, .95, { map: loessTex });
       ground(0x725c43, { y: -.14, mat: { map: loessTex } });

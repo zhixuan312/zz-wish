@@ -1,5 +1,6 @@
 // World metres. The carved lane, walking camera and review all share this grade.
 export const gateZ = 16.3;
+export const walkingEyeHeight = 1.64;
 export const cutGrid = { west: -36, north: -10, columns: 288, rows: 142, stepX: .25, stepZ: .5 };
 export const walkSeconds = 27.6; // The procedural engine then seats the visitor over 2.4 s.
 export const routeBeats = [
@@ -42,20 +43,26 @@ export function routeGround(x, z) {
 
 // Conservative distance to the passage, open door leaf and near window stone.
 // The floor is measured separately as eye height above the terrain.
-const gateSolids = [
+const pillars = [
   [-9, -.2, 0, 2.7, gateZ - .8, gateZ],
   [3.2, 9, 0, 2.7, gateZ - .8, gateZ],
-  [-.325, 3.325, 2.69, 2.87, gateZ - .825, gateZ + .125],
-  [-.68, .68, .91, 1.096, -3.66, -2.817],
+  [-.64, -.457, 1.045, 1.93, -3.62, -3.27],
+  [.457, .64, 1.045, 1.93, -3.62, -3.27],
 ];
+const lintel = [-.325, 3.325, 2.69, 2.87, gateZ - .825, gateZ + .125];
+const sill = [-.68, .68, .91, 1.096, -3.66, -2.817];
 const distanceToBox = (x, y, z, [left, right, bottom, top, back, front]) => Math.hypot(
   Math.max(0, left - x, x - right), Math.max(0, bottom - y, y - top), Math.max(0, back - z, z - front),
 );
-export function routeClearance(x, y, z) {
+export function routeClearances(x, y, z) {
   const dx = x - 3.17, dz = z - (gateZ - .9);
   const cos = Math.cos(-1.25), sin = Math.sin(-1.25);
   const door = distanceToBox(dx * cos - dz * sin, y, dx * sin + dz * cos, [-.65, .65, .005, 2.455, -.04, .04]);
-  return Math.min(door, ...gateSolids.map(solid => distanceToBox(x, y, z, solid)));
+  return {
+    door: Math.min(door, distanceToBox(x, y, z, lintel)),
+    pillar: Math.min(...pillars.map(solid => distanceToBox(x, y, z, solid))),
+    sill: distanceToBox(x, y, z, sill),
+  };
 }
 
 // A Hermite track has a shared tangent across each authored time key. Position,
@@ -96,7 +103,7 @@ export function createLoessWalk(start, end, phone) {
     const seconds = progress * walkSeconds;
     const x = xAt(seconds), z = zAt(seconds);
     // The shared 2.4 s seating move owns every bit of the eye-height drop.
-    const h = routeGround(x, z) + 1.67;
+    const h = routeGround(x, z) + walkingEyeHeight;
     const yaw = yawAt(seconds), pitch = pitchAt(seconds);
     const focus = blend(startDirection.length(), 5.5, smooth(0, 3, seconds));
     const distance = blend(focus, finalDirection.length(), smooth(23, walkSeconds, seconds));
@@ -107,6 +114,8 @@ export function createLoessWalk(start, end, phone) {
       z - Math.cos(yaw) * Math.cos(pitch) * distance,
     );
     rig.fov = fovAt(seconds);
-    rig.amp = .006;
+    // Continue the preview's horizontal breathing at the first frame, then
+    // bring its amplitude down before the cart lane turns into the descent.
+    rig.amp = blend(1, .006, smooth(0, 3.5, seconds));
   };
 }
