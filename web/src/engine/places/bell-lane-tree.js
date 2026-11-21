@@ -62,7 +62,7 @@ export function addBellLaneTree({ THREE, V3, M, context }, [x, y, z]) {
     [0, .17, 0, .275], [0, .32, 0, .264], [-.028, .67, .025, .25],
     [.055, 1.23, .018, .224], [.049, 1.80, -.06, .221], [-.07, 2.32, -.09, .194],
     [-.29, 2.90, -.18, .146], [-.43, 3.48, -.33, .10], [-.41, 3.99, -.49, .049],
-    [-.64, 4.55, -.63, .021], [-.75, 4.86, -.67, .003],
+    [-.64, 4.55, -.63, .021], [-.75, 4.86, -.67, 0],
   ], 32, true);
   limb([
     [.03, 1.80, -.05, .155], [.20, 2.31, -.10, .133], [.38, 2.72, -.07, .099],
@@ -70,7 +70,7 @@ export function addBellLaneTree({ THREE, V3, M, context }, [x, y, z]) {
   ], 10);
   limb([
     [.02, 1.95, -.024, .115], [-.20, 2.42, .32, .097], [-.43, 2.80, .61, .067],
-    [-.68, 3.02, .89, .044], [-.78, 3.32, 1.13, .023], [-1.05, 3.65, 1.26, .003],
+    [-.68, 3.02, .89, .044], [-.78, 3.32, 1.13, .023], [-1.05, 3.65, 1.26, 0],
   ], 10);
 
   const limbs = [
@@ -83,6 +83,7 @@ export function addBellLaneTree({ THREE, V3, M, context }, [x, y, z]) {
     [[.70, 3.05, -.21, .049], [.95, 3.38, -.53, .033], [1.17, 3.70, -.77, .016], [1.42, 3.93, -1.07, 0]],
     [[.96, 3.30, -.28, .034], [1.21, 3.53, -.07, .026], [1.54, 3.75, .06, .015], [1.79, 3.99, .12, 0]],
     [[1.18, 3.49, -.38, .021], [1.28, 3.84, -.35, .017], [1.24, 4.15, -.25, .010], [1.19, 4.36, -.19, 0]],
+    [[1.27, 3.86, -.35, .012], [1.08, 4.09, -.04, .010], [.98, 4.35, .29, .007], [.88, 4.63, .48, 0]],
     [[-.43, 2.79, .60, .048], [-.26, 3.13, .97, .036], [-.01, 3.52, 1.16, .017], [.08, 3.79, 1.43, 0]],
     [[-.69, 3.04, .90, .036], [-.90, 3.29, 1.18, .025], [-1.24, 3.47, 1.41, .013], [-1.51, 3.71, 1.55, 0]],
     [[-.09, 2.45, -.11, .067], [-.10, 2.85, -.54, .047], [.04, 3.24, -.95, .023], [.36, 3.54, -1.29, 0]],
@@ -90,14 +91,15 @@ export function addBellLaneTree({ THREE, V3, M, context }, [x, y, z]) {
   const palette = [0x617643, 0x627648, 0x708150, 0x788652, 0x566c40].map(color => new THREE.Color(color));
   const rnd = context.rnd;
 
-  function leaf(attachment, axis, size, color) {
+  function foliage(attachment, axis, size, color, cluster) {
     const across = V3(-axis.z, 0, axis.x).normalize().applyAxisAngle(axis, (rnd() - .5) * 2.2);
     const heel = attachment.clone().addScaledVector(axis, -size * .11);
     const index = leaves.positions.length / 3;
     addVertex(leaves, heel.clone().addScaledVector(across, size * .60), color);
     addVertex(leaves, heel.clone().addScaledVector(across, -size * .60), color);
     addVertex(leaves, attachment.clone().addScaledVector(axis, size * 1.08), color);
-    leaves.uv.push(0, 0, 1, 0, .5, 1);
+    const lower = cluster ? 0 : .5;
+    leaves.uv.push(0, lower, 1, lower, .5, lower + .5);
     leaves.indices.push(index, index + 1, index + 2);
   }
 
@@ -135,8 +137,11 @@ export function addBellLaneTree({ THREE, V3, M, context }, [x, y, z]) {
           const attach = base.clone().lerp(end, t);
           const stalk = ray.clone().addScaledVector(cross, (i % 2 ? -1 : 1) * (.83 + rnd() * 1.3))
             .addScaledVector(up, (rnd() - .44) * 1.28).normalize();
-          const size = (.062 + rnd() * .059) * (1 - .17 * t);
-          leaf(attach, stalk, size, green.clone().multiplyScalar(.86 + rnd() * .27));
+          // Fill the heart of each lobe with short sprays. Individual blades
+          // on the outside preserve the smaller openings between their tips.
+          const cluster = t > .14 && t < .89 && rnd() < .77;
+          const size = (cluster ? .197 + rnd() * .085 : .062 + rnd() * .059) * (1 - .17 * t);
+          foliage(attach, stalk, size, green.clone().multiplyScalar(.87 + rnd() * .25), cluster);
         }
       }
     }
@@ -160,31 +165,51 @@ export function addBellLaneTree({ THREE, V3, M, context }, [x, y, z]) {
   }
   mesh(bark, M(0xffffff, .97, { vertexColors: true }), 'Trunk and branches');
   mesh(leaves, M(0xffffff, .84, {
-    map: camphorBlade(THREE), alphaTest: .42, vertexColors: true, bumpMap: null, side: THREE.DoubleSide,
+    map: camphorLeaves(THREE), alphaTest: .42, vertexColors: true, bumpMap: null, side: THREE.DoubleSide,
   }), 'Leaf sprays');
   context.G.add(group);
 }
 
-// One small leaf mask replaces broad foliage cards. Each triangle carries
-// one rounded blade in a fixed orientation, with a solid edge for shadows.
-function camphorBlade(THREE) {
+// The atlas carries a single blade and one five-leaf sprig. Both fit
+// within a triangle, so the silhouettes can use small overlapping layers.
+function camphorLeaves(THREE) {
   const canvas = document.createElement('canvas');
-  canvas.width = canvas.height = 64;
+  canvas.width = 128;
+  canvas.height = 256;
   const ctx = canvas.getContext('2d');
-  ctx.fillStyle = '#f3f4ef';
+
+  function blade(x, y, tipX, tipY, width, tint) {
+    const dx = tipX - x, dy = tipY - y;
+    const length = Math.hypot(dx, dy);
+    const sx = -dy / length * width, sy = dx / length * width;
+    ctx.fillStyle = tint;
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.bezierCurveTo(x + dx * .18 + sx, y + dy * .18 + sy,
+      x + dx * .60 + sx, y + dy * .60 + sy, tipX, tipY);
+    ctx.bezierCurveTo(x + dx * .68 - sx, y + dy * .68 - sy,
+      x + dx * .17 - sx, y + dy * .17 - sy, x, y);
+    ctx.fill();
+    ctx.strokeStyle = '#c6ceb0';
+    ctx.lineWidth = .8;
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.lineTo(x + dx * .87, y + dy * .87);
+    ctx.stroke();
+  }
+
+  blade(64, 115, 64, 12, 25, '#f3f4ef');
+  ctx.strokeStyle = '#9da980';
+  ctx.lineWidth = 1.5;
   ctx.beginPath();
-  ctx.moveTo(32, 57);
-  ctx.bezierCurveTo(21, 51, 20, 38, 24, 28);
-  ctx.bezierCurveTo(27, 19, 31, 12, 32, 6);
-  ctx.bezierCurveTo(34, 13, 38, 20, 41, 32);
-  ctx.bezierCurveTo(45, 45, 40, 53, 32, 57);
-  ctx.fill();
-  ctx.strokeStyle = '#d0d6b6';
-  ctx.lineWidth = .8;
-  ctx.beginPath();
-  ctx.moveTo(32, 56);
-  ctx.quadraticCurveTo(35, 38, 32, 13);
+  ctx.moveTo(64, 251);
+  ctx.quadraticCurveTo(62, 211, 65, 186);
   ctx.stroke();
+  blade(64, 240, 29, 218, 10, '#d9e0c9');
+  blade(64, 247, 104, 223, 11, '#e6ecd8');
+  blade(63, 222, 39, 199, 9, '#e7ecd8');
+  blade(64, 232, 95, 202, 10, '#d0d9bd');
+  blade(64, 208, 65, 146, 13, '#f3f4ef');
   const texture = new THREE.CanvasTexture(canvas);
   texture.colorSpace = THREE.SRGBColorSpace;
   return texture;
