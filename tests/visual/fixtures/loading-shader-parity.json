@@ -1,0 +1,230 @@
+{
+  "schemaVersion": 1,
+  "baseline": "fbe82e358be8004a6b5013e6c3647e384bcac381",
+  "evidenceRoot": "artifacts/loading-shaders/<base12>__<candidate12>",
+  "timezone": "Asia/Singapore",
+  "requiredChangedPixels": 0,
+  "requiredMaxRgbaDelta": 0,
+  "artifactsPerStage": [
+    "before.rgba",
+    "before.json",
+    "before.png",
+    "before-repeat.rgba",
+    "before-repeat.json",
+    "before-repeat.png",
+    "after.rgba",
+    "after.json",
+    "after.png",
+    "baseline-repeat-diff.png",
+    "diff.png"
+  ],
+  "dimensions": {
+    "desktop": [
+      1440,
+      900
+    ],
+    "phone": [
+      390,
+      844
+    ]
+  },
+  "cases": [
+    {
+      "place": "snow-roof",
+      "role": "visitor-choice",
+      "viewport": "desktop",
+      "hour": 13,
+      "wallTime": "2026-11-21T13:00:00+08:00",
+      "locale": "en",
+      "manifestPath": "web/public/places/snow-roof/manifest.json",
+      "manifestSha256": "0ffd1c87dc92720346c47d62f99b1fcb02a2fa61872fd49cbd7f5f8682c4730d",
+      "assetFiles": 20,
+      "capturedStages": [
+        "place-first-visible",
+        "walk-28s",
+        "burning-settled"
+      ],
+      "relativePath": "snow-roof/desktop/13-00/<stage>"
+    },
+    {
+      "place": "snow-roof",
+      "role": "visitor-choice",
+      "viewport": "desktop",
+      "hour": 22,
+      "wallTime": "2026-11-21T22:00:00+08:00",
+      "locale": "en",
+      "manifestPath": "web/public/places/snow-roof/manifest.json",
+      "manifestSha256": "0ffd1c87dc92720346c47d62f99b1fcb02a2fa61872fd49cbd7f5f8682c4730d",
+      "assetFiles": 20,
+      "capturedStages": [
+        "place-first-visible",
+        "walk-28s",
+        "burning-settled"
+      ],
+      "relativePath": "snow-roof/desktop/22-00/<stage>"
+    },
+    {
+      "place": "snow-roof",
+      "role": "visitor-choice",
+      "viewport": "phone",
+      "hour": 13,
+      "wallTime": "2026-11-21T13:00:00+08:00",
+      "locale": "zh",
+      "manifestPath": "web/public/places/snow-roof/manifest.json",
+      "manifestSha256": "0ffd1c87dc92720346c47d62f99b1fcb02a2fa61872fd49cbd7f5f8682c4730d",
+      "assetFiles": 20,
+      "capturedStages": [
+        "place-first-visible",
+        "walk-28s",
+        "burning-settled"
+      ],
+      "relativePath": "snow-roof/phone/13-00/<stage>"
+    },
+    {
+      "place": "snow-roof",
+      "role": "visitor-choice",
+      "viewport": "phone",
+      "hour": 22,
+      "wallTime": "2026-11-21T22:00:00+08:00",
+      "locale": "zh",
+      "manifestPath": "web/public/places/snow-roof/manifest.json",
+      "manifestSha256": "0ffd1c87dc92720346c47d62f99b1fcb02a2fa61872fd49cbd7f5f8682c4730d",
+      "assetFiles": 20,
+      "capturedStages": [
+        "place-first-visible",
+        "walk-28s",
+        "burning-settled"
+      ],
+      "relativePath": "snow-roof/phone/22-00/<stage>"
+    },
+    {
+      "place": "pine-gate",
+      "role": "visitor-choice",
+      "viewport": "desktop",
+      "hour": 13,
+      "wallTime": "2026-11-21T13:00:00+08:00",
+      "locale": "en",
+      "manifestPath": "web/public/places/pine-gate/manifest.json",
+      "manifestSha256": "45c31e502dc4a645bdc4d9034a3b7fe106227a345c1e6bb81c79b916627b1c1f",
+      "assetFiles": 13,
+      "capturedStages": [
+        "place-first-visible",
+        "walk-28s",
+        "burning-settled"
+      ],
+      "relativePath": "pine-gate/desktop/13-00/<stage>"
+    },
+    {
+      "place": "pine-gate",
+      "role": "visitor-choice",
+      "viewport": "desktop",
+      "hour": 22,
+      "wallTime": "2026-11-21T22:00:00+08:00",
+      "locale": "en",
+      "manifestPath": "web/public/places/pine-gate/manifest.json",
+      "manifestSha256": "45c31e502dc4a645bdc4d9034a3b7fe106227a345c1e6bb81c79b916627b1c1f",
+      "assetFiles": 13,
+      "capturedStages": [
+        "place-first-visible",
+        "walk-28s",
+        "burning-settled"
+      ],
+      "relativePath": "pine-gate/desktop/22-00/<stage>"
+    },
+    {
+      "place": "pine-gate",
+      "role": "visitor-choice",
+      "viewport": "phone",
+      "hour": 13,
+      "wallTime": "2026-11-21T13:00:00+08:00",
+      "locale": "zh",
+      "manifestPath": "web/public/places/pine-gate/manifest.json",
+      "manifestSha256": "45c31e502dc4a645bdc4d9034a3b7fe106227a345c1e6bb81c79b916627b1c1f",
+      "assetFiles": 13,
+      "capturedStages": [
+        "place-first-visible",
+        "walk-28s",
+        "burning-settled"
+      ],
+      "relativePath": "pine-gate/phone/13-00/<stage>"
+    },
+    {
+      "place": "pine-gate",
+      "role": "visitor-choice",
+      "viewport": "phone",
+      "hour": 22,
+      "wallTime": "2026-11-21T22:00:00+08:00",
+      "locale": "zh",
+      "manifestPath": "web/public/places/pine-gate/manifest.json",
+      "manifestSha256": "45c31e502dc4a645bdc4d9034a3b7fe106227a345c1e6bb81c79b916627b1c1f",
+      "assetFiles": 13,
+      "capturedStages": [
+        "place-first-visible",
+        "walk-28s",
+        "burning-settled"
+      ],
+      "relativePath": "pine-gate/phone/22-00/<stage>"
+    },
+    {
+      "place": "cloud-cliff",
+      "role": "cover-control",
+      "viewport": "desktop",
+      "hour": 13,
+      "wallTime": "2026-11-21T13:00:00+08:00",
+      "locale": "en",
+      "manifestPath": "web/public/places/cloud-cliff/manifest.json",
+      "manifestSha256": "b21e3749da7bc75ddca90b1e5c8f65985f714b7350867ec8419df19b3ce7b2ac",
+      "assetFiles": 26,
+      "capturedStages": [
+        "cover-first-visible"
+      ],
+      "relativePath": "cloud-cliff/desktop/13-00/<stage>"
+    },
+    {
+      "place": "cloud-cliff",
+      "role": "cover-control",
+      "viewport": "desktop",
+      "hour": 22,
+      "wallTime": "2026-11-21T22:00:00+08:00",
+      "locale": "en",
+      "manifestPath": "web/public/places/cloud-cliff/manifest.json",
+      "manifestSha256": "b21e3749da7bc75ddca90b1e5c8f65985f714b7350867ec8419df19b3ce7b2ac",
+      "assetFiles": 26,
+      "capturedStages": [
+        "cover-first-visible"
+      ],
+      "relativePath": "cloud-cliff/desktop/22-00/<stage>"
+    },
+    {
+      "place": "cloud-cliff",
+      "role": "cover-control",
+      "viewport": "phone",
+      "hour": 13,
+      "wallTime": "2026-11-21T13:00:00+08:00",
+      "locale": "zh",
+      "manifestPath": "web/public/places/cloud-cliff/manifest.json",
+      "manifestSha256": "b21e3749da7bc75ddca90b1e5c8f65985f714b7350867ec8419df19b3ce7b2ac",
+      "assetFiles": 26,
+      "capturedStages": [
+        "cover-first-visible"
+      ],
+      "relativePath": "cloud-cliff/phone/13-00/<stage>"
+    },
+    {
+      "place": "cloud-cliff",
+      "role": "cover-control",
+      "viewport": "phone",
+      "hour": 22,
+      "wallTime": "2026-11-21T22:00:00+08:00",
+      "locale": "zh",
+      "manifestPath": "web/public/places/cloud-cliff/manifest.json",
+      "manifestSha256": "b21e3749da7bc75ddca90b1e5c8f65985f714b7350867ec8419df19b3ce7b2ac",
+      "assetFiles": 26,
+      "capturedStages": [
+        "cover-first-visible"
+      ],
+      "relativePath": "cloud-cliff/phone/22-00/<stage>"
+    }
+  ],
+  "pixelFormat": "RGBA8, tightly packed, top row first"
+}
