@@ -57,19 +57,21 @@ test('a failing warm does not reject or block the place build', async () => {
   const unhandled: unknown[] = [];
   const onUnhandled = (reason: unknown) => unhandled.push(reason);
   process.on('unhandledRejection', onUnhandled);
-  // The warm read is rejected; the build succeeds on its own.
-  const { assets } = mockBaked(async () => { throw new Error('Changed snow.glb.zstd'); });
-  mockScene(async () => {});
-  const engine = await import('../../../web/src/engine/index.ts');
-  engine.boot();
-  await expect(engine.prefetchPlace('snow-roof')).resolves.toBe(true);
-  // Drain the microtask queue so a rejection that was not handled would have fired by now. Awaiting the
-  // already-settled place promise is the condition; no wall-clock delay is involved.
-  await Promise.resolve();
-  await Promise.resolve();
-  process.off('unhandledRejection', onUnhandled);
-  expect(unhandled).toEqual([]);
-  expect(assets.readBakedAsset).toHaveBeenCalled();
+  try {
+    // The warm read is rejected; the build succeeds on its own.
+    const { assets } = mockBaked(async () => { throw new Error('Changed snow.glb.zstd'); });
+    mockScene(async () => {});
+    const engine = await import('../../../web/src/engine/index.ts');
+    engine.boot();
+    await expect(engine.prefetchPlace('snow-roof')).resolves.toBe(true);
+    // Node reports an unhandled rejection at a turn boundary, not at the end of the microtask queue, so
+    // draining promises cannot prove one was handled. setImmediate runs after that boundary has passed.
+    await new Promise<void>(resolve => setImmediate(resolve));
+    expect(unhandled).toEqual([]);
+    expect(assets.readBakedAsset).toHaveBeenCalled();
+  } finally {
+    process.off('unhandledRejection', onUnhandled);
+  }
 });
 
 test('a failed place build still reports through its own error and a retry succeeds', async () => {
