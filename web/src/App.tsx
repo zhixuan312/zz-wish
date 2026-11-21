@@ -4,7 +4,7 @@ import { placeById, type Locale, type PlaceId } from '../../shared/places.ts';
 import { DEFAULT_PLACE, VISIBLE_PLACES, isVisiblePlace } from './visiblePlaces.ts';
 import { COLORS, DEFAULT_COLOR, DEFAULT_MINUTES, MAX_MINUTES, MIN_MINUTES, PRESET_MINUTES, PRESET_SHAPES, isAllowedMinutes, shapeMinutes, sizedPreset, type Kind, type Shape } from '../../shared/rules.ts';
 import { remainingFuel } from '../../shared/wax.ts';
-import { api, ApiError, reportEnd, type EndReason, type Stats } from './api.ts';
+import { api, ApiError, type EndReason, type Stats } from './api.ts';
 import { bellLanePlacedHistory, readBellLanePlacementHistory } from './bellLaneHistory.ts';
 import { Burn, type Settlement } from './burn.ts';
 import { presence } from './presence.ts';
@@ -267,13 +267,18 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
     }
     const isWax = shape.kind === 'candle';
     const showsRemainingFuel = isWax || lightPlace === 'bell-lane';
-    let unlitLampId: string | null = null;
+    const rememberUnlitEnd = (burn: Burn, saved: Settlement['saved']) => {
+      const lampId = burn.candleId;
+      if (lampId) bellLaneFailedSave.current = { lampId, saved, retry: () => burn.retrySettlement() };
+    };
+    let rackFailed = false;
     const b = new Burn(minutes! * 60_000, (s: Settlement) => {
       burnRef.current = null;
-      if (lightPlace === 'bell-lane') bellLaneSave.current = s.saved;
-      if (unlitLampId) {
-        const end = { candleId: unlitLampId, runId: b.runId, reason: s.reason, burnedMs: s.burnedMs };
-        bellLaneFailedSave.current = { lampId: unlitLampId, saved: s.saved, retry: () => reportEnd(end) };
+      if (lightPlace === 'bell-lane') {
+        bellLaneSave.current = s.saved;
+        if (b.isWaitingForWick) rememberUnlitEnd(b, s.saved);
+      }
+      if (rackFailed) {
         setScreen('candle');
         setLightError(t.lightFailed);
         return;
@@ -293,7 +298,7 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
       s.saved.then((c) => setResult((r) => r && { ...r, saved: !!c }));
       if (afterSettle.current) { setOverlay(afterSettle.current); afterSettle.current = null; }
       presence.watch(lightPlace);
-    });
+    }, lightPlace === 'bell-lane');
     burnRef.current = b; setBusy(true);
     b.keepScreenOn();
     setShowLeft(false);
@@ -301,8 +306,12 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
     try {
       const c = await api.light({ runId: b.runId, placeId: lightPlace, shape, ...(wishId ? { wishId } : { wishText: wish.trim() }) });
       setWishId(c.wishId);
-      b.confirm(c);
+      const savedOnConfirm = b.confirm(c);
       if (lightPlace === 'bell-lane') {
+        if (savedOnConfirm && b.isWaitingForWick) {
+          bellLaneSave.current = savedOnConfirm;
+          rememberUnlitEnd(b, savedOnConfirm);
+        }
         if (!b.isSettled) {
           try {
             // The active record proves this is the private history for this run.
@@ -311,8 +320,8 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
             // The server has created the lamp. End that exact run through the
             // existing saved-end queue before letting the visitor try again.
             if (!b.isSettled) {
-              unlitLampId = c.id;
-              b.cancelUnlit();
+              rackFailed = true;
+              b.settle('put_out');
             }
             return;
           }
@@ -328,6 +337,7 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
             // to the burning bed; starting the bed here would cut it off. A missing ignite
             // never ends, so the bed starts here instead of the burn staying silent.
             if (burnRef.current === b && !b.isSettled) {
+              b.wickCaught();
               setCaught(true);
               void music.play('ignite', lightPlace).then((started) => {
                 if (!started && burnRef.current === b && !b.isSettled) void music.play('burn', lightPlace);

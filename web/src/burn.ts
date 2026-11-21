@@ -14,10 +14,12 @@ export class Burn {
   private timer = 0;
   private wake: WakeLockSentinel | null = null;
   private active = true;
+  private waitingForWick: boolean;
   private onEnd: (s: Settlement) => void;
   wakeOn = false;
 
-  constructor(plannedMs: number, onEnd: (s: Settlement) => void) {
+  constructor(plannedMs: number, onEnd: (s: Settlement) => void, waitForWick = false) {
+    this.waitingForWick = waitForWick;
     this.durationMs = plannedMs;
     this.onEnd = onEnd;
     document.addEventListener('visibilitychange', this.onVisibility);
@@ -41,7 +43,7 @@ export class Burn {
   confirm(candle: Candle) {
     this.candle = candle;
     this.durationMs = candle.durationMs;
-    if (this.settled) this.report();
+    if (this.settled) return this.report();
   }
 
   /** The lighting was refused; nothing burned. */
@@ -51,15 +53,19 @@ export class Burn {
   get planned() { return this.durationMs; }
   get candleId() { return this.candle?.id ?? null; }
   get isSettled() { return this.settled !== null; }
+  get isWaitingForWick() { return this.waitingForWick; }
+
+  wickCaught() { this.waitingForWick = false; }
+  retrySettlement() { return this.settled ? this.report() : Promise.resolve(null); }
 
   private onVisibility = () => { if (document.visibilityState === 'hidden') this.settle('left'); };
   private onLeave = () => this.settle('left');
 
-  /** End a confirmed run whose lamp never caught. */
-  cancelUnlit() { this.settle('put_out', 0); }
-
-  settle(reason: EndReason, burnedMs = this.elapsed()) {
+  settle(reason: EndReason) {
     if (this.settled || !this.active) return;
+    // The timer keeps its tap origin once the wick catches. Before contact
+    // a cancelled Bell Lane run has no burnt oil to leave on the rack.
+    const burnedMs = this.waitingForWick ? 0 : this.elapsed();
     const done = burnedMs >= this.durationMs;
     this.settled = { reason: done ? 'complete' : reason, burnedMs };
     this.detach();
