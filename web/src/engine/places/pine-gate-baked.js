@@ -277,7 +277,12 @@ export default function createPlace(h) {
           context.disposers.push(verge.dispose);
         }
       }
-      const highTrees = preparePineHighTrees(baked, readPineBackdrop(baked.manifest)?.high?.trees);
+      // The tree model lives on whichever tier declares it: pineManifest reports a model in the walk
+      // tier on `walk`, and sets `high` to null so the byte accounting stays honest. Reading only
+      // `high` therefore found nothing for every shipped package, and the 3.5 MB of native trees was
+      // downloaded but never installed; the 160-vertex relief proxies stayed on screen.
+      const treeTiers = readPineBackdrop(baked.manifest);
+      const highTrees = preparePineHighTrees(baked, treeTiers?.walk?.trees ?? treeTiers?.high?.trees);
       if (highTrees) {
         baked.highTrees = highTrees;
         if (highTrees.base) context.G.add(highTrees.base);
