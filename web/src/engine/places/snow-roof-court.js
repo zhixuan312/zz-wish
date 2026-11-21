@@ -51,6 +51,22 @@ function tuneAltarFigure(material) {
   material.customProgramCacheKey = () => baseKey() + '-altar-figure';
 }
 
+function tuneRepairedEave(material) {
+  const baseShader = material.onBeforeCompile.bind(material);
+  const baseKey = material.customProgramCacheKey.bind(material);
+  material.onBeforeCompile = shader => {
+    baseShader(shader);
+    // Reflected light from the courtyard snow reaches the undercut clay lips.
+    shader.fragmentShader = shader.fragmentShader.replace('float away=', `
+      vec3 tileNormal = inverseTransformDirection(nonPerturbedNormal, viewMatrix);
+      float towardSnow = max(0., dot(tileNormal, normalize(vec3(0., -.66, .75))));
+      vec3 snowBounce = vec3(.78, .87, 1.) * dot(uBakedWeights, vec3(.031, .046, .072));
+      baked += snowBounce * (.35 + .65 * towardSnow);
+      float away=`);
+  };
+  material.customProgramCacheKey = () => baseKey() + '-mended-eave';
+}
+
 export default function createWinterCourt(h) {
   const { THREE, V3 } = h;
   const pose = ({ position, look, fov }) => ({ pos: V3(...position), look: V3(...look), fov });
@@ -121,13 +137,16 @@ export default function createWinterCourt(h) {
       const winterSnow = new Set();
       const limewash = new Set();
       const altarFigure = new Set();
+      const repairedEave = new Set();
       baked.group.traverse(object => {
         if (!object.isMesh) return;
+        const region = object.userData.lightmap_region ?? object.userData.region ?? object.parent?.userData.lightmap_region;
         for (const material of [object.material].flat()) {
           if (isEarlierGauze(material)) earlierCloth.add(material);
           if (isWinterCourtSnow(material)) winterSnow.add(material);
           if (/^Worn hall limewash, (east|west) wall$/.test(material.name)) limewash.add(material);
           if (material.name === 'Matte weathered stone of the seated Buddha') altarFigure.add(material);
+          if (region === 'hall' && material.name === 'Greyer clay of the replaced eave tiles') repairedEave.add(material);
           if (material.name === 'Thin pale storm lamp glass') {
             // The thin windscreen shows the flame directly. Avoid a second
             // scene render for screen-space refraction around this small lamp.
@@ -140,6 +159,7 @@ export default function createWinterCourt(h) {
       });
       for (const material of altarFigure) tuneAltarFigure(material);
       for (const material of limewash) tuneHallLimewash(material, site.hall.floor);
+      for (const material of repairedEave) tuneRepairedEave(material);
       for (const material of earlierCloth) {
         tuneEarlierGauze(material, earlierWicks, THREE, baked.cameraPreExposure, h.visitorCloth);
       }
