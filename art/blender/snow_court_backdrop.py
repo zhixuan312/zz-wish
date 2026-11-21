@@ -13,6 +13,7 @@ import math
 import os
 from pathlib import Path
 import random
+from shutil import copyfile
 import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -33,6 +34,7 @@ SUMMIT_CREASE_DEGREES = 43.
 REAR_CREASE_DEGREES = 54.
 REAR_ROWS = (813, 1154)
 REAR_COLUMNS = (2088, 2800)
+REAR_EAST_OFFSET = 121.
 
 
 def read_tile(path):
@@ -101,7 +103,9 @@ def summit_fields(elevation, row, col, height, vertical):
     gully = smooth(.10, 1.18, cut)
     crest = smooth(.10, 1.30, spur)
     wall = smooth(.68, .26, up)
-    retention = .23 * ledge + .38 * gully + .31 * cirque + .08 * lee
+    # Winter cover connects across the slopes below the wind-scoured ridge.
+    # Concave lee slopes hold deeper snow, including gullies through steep rock.
+    retention = min(1., .56 * up + .18 * ledge + .21 * gully + .18 * cirque + .15 * lee)
     # Preserve the surveyed summit, taper out below the mountain's rock
     # belts, and constrain the adjustment to a few metres in scene space.
     exposure = smooth(1450., 2200., height) * (1. - smooth(3720., PEAK_ELEVATION, height))
@@ -134,7 +138,13 @@ def mountain(elevation, peak, projection_origin):
             # Restore most of the approved vertical angle after spreading
             # out the very shallow depth of the old DEM view.
             height_scale = lerp(1., (depth + eye_z) / (old_depth + eye_z), .76)
-            points.append((x, depth, eye_y + (scaled_height - eye_y) * height_scale))
+            height = eye_y + (scaled_height - eye_y) * height_scale
+            # Separate the headwalls on either side of the surveyed crown.
+            # Work on the upper relief only, leaving the crown and apron fixed.
+            east = x - peak[0]
+            shoulder = smooth(9., 135., -east) * 58. + smooth(10., 100., east) * 56.
+            height -= shoulder * smooth(32., 175., height)
+            points.append((x, depth, height))
             for values, value in zip(fields.values(), surface, strict=True):
                 values.append(value)
     return surface_grid(points, len(columns), follow_relief=True), fields
@@ -156,7 +166,8 @@ def rear_ridge(elevation):
             side = smooth(first_col, first_col + 67, col) * smooth(last_col, last_col - 67, col)
             apron = smooth(last_row, last_row - 64, row) * smooth(first_row, first_row + 54, row)
             height = elevation[row * TILE_SIDE + col]
-            points.append((365. + east + .10 * north, depth, lerp(-36., (height - 1470) * .173, side * apron)))
+            points.append((REAR_EAST_OFFSET + east + .10 * north, depth,
+                           lerp(-36., (height - 1470) * .173, side * apron)))
     return surface_grid(points, len(columns), follow_relief=True)
 
 
@@ -240,7 +251,7 @@ def hillside_material(air):
 
 
 def summit_material(air):
-    shader = plates.Shader('Fractured summit rock with snow in sheltered chutes')
+    shader = plates.Shader('Snowfields interrupted by exposed summit ribs and cliffs')
     point = shader.coordinate()
     height = shader.xyz(point)['Z']
     snow_grain = shader.noise(point, (.88, .88, .88), detail=2.6)
@@ -269,18 +280,16 @@ def summit_material(air):
 
     accumulation = terrain_attribute('snow_retention')
     normal = shader.xyz(shader.nodes.new('ShaderNodeNewGeometry').outputs['Normal'])['Z']
-    fragments = shader.math('ADD', accumulation, shader.between(snow_grain, .24, .80, -.039, .035))
-    snowline = shader.between(height, 43., 119.)
-    # Snow survives on shelves and joins up inside measured basins; the
-    # exposed cliff faces and wind-scoured spurs stay free of broad patches.
-    settled = shader.product(shader.between(fragments, .35, .63), snowline,
-                             shader.between(normal, .22, .59, .02, 1.),
-                             shader.between(crest, .24, .86, 1., .18))
-    basin_snow = shader.product(shader.between(cirque, .30, .82), snowline,
-                                shader.between(normal, .24, .66, .05, .91))
-    snow = shader.math('MAXIMUM', settled, basin_snow)
-    powder = shader.blend((.58, .65, .73, 1.), (.93, .95, .97, 1.),
-                          shader.between(snow_grain, .22, .78, .32, .88))
+    drifts = shader.noise(point, (.095, .076, .062), detail=2.5, roughness=.67)
+    snowline = shader.between(shader.math('ADD', height, shader.between(drifts, .22, .79, -16., 14.)), 43., 108.)
+    pockets = shader.math('ADD', accumulation, shader.between(drifts, .25, .77, -.10, .11))
+    wind_scour = shader.product(shader.between(crest, .37, .90), .19)
+    settled = shader.product(shader.between(shader.math('SUBTRACT', pockets, wind_scour), .29, .59),
+                             shader.between(normal, .27, .65))
+    chute = shader.product(shader.between(hollow, .24, .85), shader.between(normal, .19, .51))
+    snow = shader.product(shader.math('MAXIMUM', settled, chute), snowline)
+    powder = shader.blend((.72, .78, .84, 1.), (.95, .96, .98, 1.),
+                          shader.between(snow_grain, .23, .79, .31, .79))
 
     relief = shader.blend(grains, shader.product(snow_grain, .28), snow)
     return shader.surface(shader.blend(rock, powder, snow), .93, specular=.18,
@@ -292,8 +301,8 @@ def rear_material(air):
     normal = shader.xyz(shader.nodes.new('ShaderNodeNewGeometry').outputs['Normal'])['Z']
     height = shader.xyz(shader.coordinate())['Z']
     grains = shader.noise(shader.coordinate(), (.118, .16, .12), detail=2.2)
-    snow = shader.product(shader.between(normal, .36, .81),
-                          shader.between(shader.math('ADD', height, shader.product(grains, 16.)), 97., 180.))
+    snow = shader.product(shader.between(normal, .30, .75),
+                          shader.between(shader.math('ADD', height, shader.product(grains, 16.)), 77., 153.))
     rock = shader.blend((.096, .098, .105, 1.), (.171, .177, .168, 1.), grains)
     return shader.surface(shader.blend(rock, (.83, .89, .96, 1.), snow), .94, specular=.12, air=air)
 
@@ -371,6 +380,7 @@ def describe(far, rear, fields, mid, stands, projection, target):
             'summitBearingDegrees': [azimuth, altitude], 'midMaximumY': mid_height,
             'farApron': {'nearDepthMetres': min(point[1] for point in apron), 'maximumEdgeHeightMetres': apron_height},
             'rearRidge': {'sourceRows': list(REAR_ROWS), 'sourceColumns': list(REAR_COLUMNS),
+                          'eastOffsetMetres': REAR_EAST_OFFSET,
                           'nearestCrestDepthMetres': min(rear_crest), 'primaryCrestFarDepthMetres': max(near_crest)},
             'snowRetentionRange': ranges['snow_retention'],
             'measuredGullyRange': ranges['measured_gully'],
@@ -395,12 +405,44 @@ def arguments():
     parser.add_argument('--layers', choices=LAYER_NAMES, nargs='+', default=LAYER_NAMES)
     parser.add_argument('--inspect', action='store_true')
     parser.add_argument('--resume', action='store_true')
+    parser.add_argument('--retain-mid-cloud-from', type=Path,
+                        help='Copy verified mid and cloud EXRs for a far-only revision at the same render settings.')
     options = parser.parse_args(sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else sys.argv[1:])
     if options.width < 32 or options.samples < 1 or (not options.inspect and not options.out):
         parser.error('Choose a render destination, positive samples, and a width of at least 32.')
+    if options.retain_mid_cloud_from and options.layers != ['far']:
+        parser.error('Select only --layers far when retaining mid and cloud from a previous render.')
     options.cloud_samples = options.samples
     options.no_denoise = False
     return options
+
+
+def retain_mid_cloud(source, target, recipe, resume):
+    # Keep the accepted mid distance and haze pixel-identical during an isolated
+    # summit revision. Record the earlier receipt instead of claiming a rebake.
+    receipt = source / 'render.json'
+    previous = json.loads(receipt.read_text())
+    previous.pop('plates')
+    common = ('width', 'height', 'projectionSha256', 'siteSha256', 'terrainSha256', 'lighting',
+              'lightTransport', 'samples', 'cloudSamples', 'denoise', 'alpha', 'colorSpace',
+              'exposureAppliedStops', 'runtimePreExposureMultiplier', 'blenderVersion')
+    if any(previous[key] != recipe[key] for key in common):
+        raise ValueError('Retained Snow Court layers must share the projection, transport, and render settings.')
+    if previous['sources']['renderHelpers'] != recipe['sources']['renderHelpers']:
+        raise ValueError('Retained Snow Court layers must use the same render helpers.')
+    verified = plates.prepare_plates(source, True, previous)
+    retained = {name: verified[name] for name in ('mid', 'cloud')}
+    recipe['retainedLayers'] = {'names': list(retained), 'renderSha256': plates.digest(receipt),
+                                'sourceSha256': previous['sources']['author']}
+    if resume:
+        return
+    target.mkdir(parents=True, exist_ok=False)
+    for spec in retained.values():
+        output = target / spec['file']
+        copyfile(source / spec['file'], output)
+        if plates.digest(output) != spec['sha256']:
+            raise ValueError(f"Copied EXR differs from its receipt: {spec['file']}.")
+    (target / 'render.json').write_text(json.dumps({**recipe, 'plates': retained}, indent=2) + '\n')
 
 
 def main():
@@ -447,6 +489,9 @@ def main():
     scene = bpy.context.scene
     recipe['devices'] = plates.configure(scene, options, width, height)
     recipe['blenderVersion'] = bpy.app.version_string
+    if options.retain_mid_cloud_from:
+        retain_mid_cloud(options.retain_mid_cloud_from, options.out, recipe, options.resume)
+        options.resume = True
     plates.set_world(scene, light, projection['preExposure'],
                      f"Snow Court {'lunar' if options.lighting == 'night' else 'solar'} winter sky")
     plates.projection_camera(scene, projection)
