@@ -124,17 +124,31 @@ export async function stopServerAndRemoveDatabase({ pid, child, dbFile, safeKill
 
   // 3. Remove only files this run created, and verify each is gone. A failed removal, or a file that
   // survives it, means the run did not clean up.
+  const removalErrors = [];
   for (const suffix of sidecars) {
     const file = dbFile + suffix;
-    try { exec('rm', ['-f', file]); }
-    catch { /* recorded below through the existence check */ }
-    if (present(file)) report.failedRemovals.push(file);
-    else report.filesRemoved.push(file);
+    let removed = false;
+    let failure = null;
+    try { exec('rm', ['-f', file]); removed = true; }
+    catch (error) { failure = String(error?.message ?? error).slice(0, 200); }
+    // Two independent facts, both required. A successful rm that leaves the file is a failure, and a
+    // failed rm is a failure even if a later check reports the file absent — a race, a stale mount or a
+    // wrong path must never be recorded as a cleanup that happened.
+    if (failure !== null) {
+      report.failedRemovals.push(file);
+      removalErrors.push(`${file}: ${failure}`);
+    } else if (!removed || present(file)) {
+      report.failedRemovals.push(file);
+      removalErrors.push(`${file}: survived removal`);
+    } else {
+      report.filesRemoved.push(file);
+    }
   }
+  report.removalErrors = removalErrors;
   report.databaseRemoved = report.failedRemovals.length === 0;
   report.ok = report.databaseRemoved;
   if (!report.ok) {
-    report.reason = `files survived removal: ${report.failedRemovals.join(', ')}`;
+    report.reason = `removal did not complete: ${removalErrors.join('; ')}`;
   }
   return { ok: report.ok, report };
 }

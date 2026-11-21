@@ -125,6 +125,32 @@ test('a process that survives safe-kill keeps the database', async () => {
   rmSync(dir, { recursive: true, force: true });
 });
 
+test('an rm that throws is a failure even when the file reads as absent', async () => {
+  // The dangerous combination: rm fails, yet a later existence check says ENOENT (a race, a stale mount, a
+  // wrong path). Recording that as removed would claim a cleanup that never happened.
+  const dir = mkdtempSync(join(tmpdir(), 'cleanup-rmthrow-'));
+  const dbFile = join(dir, 'smoke.db');
+  writeFileSync(dbFile, 'sqlite');
+  const child = fakeChild({ exitCode: 0 });
+  let rmCalls = 0;
+  const exec = file => {
+    if (String(file).endsWith('safe-kill.sh')) return 'stopped 4242';
+    if (file === 'rm') { rmCalls++; throw new Error('rm failed: EACCES'); }
+    return '';
+  };
+  // exists() reports every file absent, which is the misleading half of the pair.
+  const exists = () => false;
+  const { ok, report } = await stopServerAndRemoveDatabase({
+    pid: 4242, child, dbFile, safeKill: '/root/safe-kill.sh', exec, sleep: noSleep, exists });
+  expect(rmCalls).toBe(3);                       // every sidecar was attempted
+  expect(ok).toBe(false);
+  expect(report.databaseRemoved).toBe(false);
+  expect(report.failedRemovals).toEqual([dbFile, dbFile + '-shm', dbFile + '-wal']);
+  expect(report.filesRemoved).toEqual([]);      // never recorded as a success alongside the failure
+  expect(report.reason).toMatch(/rm failed/);
+  rmSync(dir, { recursive: true, force: true });
+});
+
 test('a removal that fails, leaving the file, is a failure', async () => {
   const { dir, dbFile, script, child } = stubWorld({ states: { child: { exitCode: 0 } }, rmFails: true });
   const { ok, report } = await stopServerAndRemoveDatabase({
