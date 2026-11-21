@@ -78,3 +78,26 @@ test('a direct cover-asset failure also refreshes its manifest on retry', async 
   const buffer=await readBakedAsset('direct-retry',(await readBakedManifest('direct-retry')).files[0]);
   expect(new Uint8Array(buffer)).toEqual(source);expect(requests).toBe(2);
 });
+
+test('concurrent reads of the scene model share one network request', async () => {
+  const source = new TextEncoder().encode('glTF model bytes for the dedup case');
+  const digest = createHash('sha256').update(source).digest('hex');
+  const file = { uri: 'court.glb', bytes: source.length, sha256: digest };
+  let modelRequests = 0;
+  vi.stubGlobal('fetch', vi.fn(async (url: string) => {
+    if (url.endsWith('/manifest.json')) return Response.json({ scene: file.uri, files: [file] });
+    modelRequests++;
+    return new Response(source);
+  }));
+  const { readBakedManifest, readBakedAsset } = await import('../../../web/src/engine/baked/prefetchPlace.js');
+  const manifest = await readBakedManifest('dedup-case');
+  const scene = manifest.files.find(candidate => candidate.uri === manifest.scene)!;
+  // The warm path and the build both ask; the in-flight map must collapse them to one transfer.
+  const [first, second] = await Promise.all([
+    readBakedAsset('dedup-case', scene),
+    readBakedAsset('dedup-case', scene),
+  ]);
+  expect(modelRequests).toBe(1);
+  expect(new Uint8Array(first)).toEqual(source);
+  expect(new Uint8Array(second)).toEqual(source);
+});

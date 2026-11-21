@@ -73,6 +73,7 @@ export const prefetchPlace = async (
   }
   try {
     if (shouldWarm && !await shouldWarm()) return false;
+    if (id === 'snow-roof') void warmBakedModel(id).catch(() => {});
     const s = await initialize();
     await s.preparePlace(id);
     onProgress?.({ ...progress, stage: 'ready', ratio: 1 });
@@ -82,6 +83,18 @@ export const prefetchPlace = async (
     throw error;
   }
 };
+// Snow Roof has no whole-package prefetch, so without this its scene model is first requested from inside
+// preparePlace, after the build has already started. Reading it here — only once the visitor's current choice
+// has reached prefetchPlace and the warm window is open — overlaps that transfer with scene startup.
+// download() keeps an in-flight promise per URL, verifies the sha256 and caches the buffer, so preparePlace's
+// own read joins this request instead of repeating it; a rejection is swallowed here and surfaces through
+// preparePlace's usual error and retry path.
+async function warmBakedModel(id: PlaceId) {
+  const { readBakedManifest, readBakedAsset } = await import('./baked/prefetchPlace.js');
+  const manifest = await readBakedManifest(id);
+  const scene = manifest.files.find(file => file.uri === manifest.scene);
+  if (scene) await readBakedAsset(id, scene);
+}
 export const renderLampThumbnail = (shape: Shape, options: LampThumbnailOptions) => initialize().then(s => s.renderLampThumbnail(shape, options));
 export const travel = (id: PlaceId) => initialize().then(s => s.travel(id));
 export const toCover = () => initialize().then(s => s.toCover());
