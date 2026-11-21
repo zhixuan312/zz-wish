@@ -369,7 +369,9 @@ async function runOnce(target, condition, run, phase) {
       };
       requestAnimationFrame(sample);
     }));
-    await walkProbe;
+    // The probe resolves only when movement is found, so install it and click; awaiting it here would
+    // deadlock, because nothing moves until the click.
+    const probeInstalled = walkProbe.then(() => true).catch(() => false);
     record.walkClick = { ms: at(), bytes: bytes() };
     await step.click();
     let walkMoved = true;
@@ -379,6 +381,7 @@ async function runOnce(target, condition, run, phase) {
       walkMoved = false;
       record.walkFailure = String(error?.message ?? error).slice(0, 160);
     }
+    await probeInstalled.catch(() => false);
     const probeState = await page.evaluate(() => window.__walkProbe && ({
       armed: window.__walkProbe.armed, fadeSeenMs: window.__walkProbe.fadeSeen,
       fadeClearedMs: window.__walkProbe.fadeCleared, firstProxyMs: window.__walkProbe.first,
