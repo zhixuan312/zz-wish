@@ -15,6 +15,7 @@ import {
 } from '../../web/src/engine/places/cloud-cliff-route.js';
 import { CAMERA_LIMITS, cameraPathViolations, measureCameraPath } from './pine-camera-path.mjs';
 
+const require = createRequire(import.meta.url);
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const out = join(root, 'artifacts/cloud-cliff-route');
 const routeUrl = '/web/src/engine/places/cloud-cliff-route.js';
@@ -198,7 +199,6 @@ try {
 </script>`;
 
 async function serveFixture() {
-  const require = createRequire(import.meta.url);
   const three = resolve(dirname(require.resolve('three')), '..');
   const assets = new Map([
     [routeUrl, [join(root, routeUrl), 'text/javascript']],
@@ -307,7 +307,7 @@ async function inspectJourney(tab, view) {
 
 async function capture() {
   const planned = checkRoute();
-  const { chromium } = await import('@playwright/test');
+  const { chromium } = require('@playwright/test');
   await mkdir(out, { recursive: true });
   await writeFile(join(out, 'site-plan.svg'), sitePlan());
   const server = await serveFixture();
