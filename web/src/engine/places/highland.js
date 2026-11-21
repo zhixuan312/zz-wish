@@ -1,14 +1,18 @@
 // High White Court: white walls and flat roofs under a wide sky, ridges far off.
+import { HIGH_WHITE_NOOK, HIGH_WHITE_TRAVEL_SECONDS, highWhiteCameras } from './highland-camera.js';
+
 export default function createPlace(h) {
   const { THREE, V3, M, ground, pave, peak, ridges, box, wallWithHoles, plasterTex, pavingTex, grainTex, pauseBuild } = h;
+  const cameras = highWhiteCameras(V3);
   return {
     exposure: 1.05, shade: 0.3,
     sky: { top: 0x030716, horizon: 0x16223e, ground: 0x0e0c0c, sun: 0xdfe8ff, dir: [.35, .55, -.6], glow: .12, clouds: .08, lit: 0x2a3450, dark: 0x0a0e1c, stars: 1, disc: 1.6 },
     fog: [0x101a30, .0045], sunL: [0xb4c8ff, .9], hemi: [0x3a4c7a, 0x1a140e, .35], bloom: [.7, .8], porch: [0xffb860, 160],
     // The same place by day; the scene blends toward it by the visitor's local time.
     day: { exposure: .9, sky: { top: 0x0b3d9e, horizon: 0x8ab6e6, ground: 0x6a5a48, sun: 0xffffff, dir: [.35, .8, -.5], glow: .3, clouds: .3, lit: 0xffffff, dark: 0xc4d4ea, disc: 4 }, fog: [0xa9c6ea, .004], sunL: [0xffffff, 3.1], hemi: [0x9ac0ff, 0x6a5030, .8], bloom: [.25, 2.2] },
-    view: { pos: V3(3.5, 1.75, 48), look: V3(0, 2.2, 26) },
-    walk: [V3(.2, 1.7, 40), V3(0, 1.7, 30), V3(1.5, 1.7, 25), V3(8, 1.7, 22), V3(15, 1.65, 21)], doors: V3(0, 1.6, 28),
+    view: cameras.view, viewPhone: cameras.viewPhone,
+    walkSeconds: HIGH_WHITE_TRAVEL_SECONDS, createWalk: cameras.createWalk,
+    walk: [], doors: V3(0, 1.66, 28),
     async build() {
       const C = h.context;
       const white = M(0xe0dcd2, .97, { map: plasterTex }), cap = M(0x524f48, .92), paving = M(0x8b877c, .9, { map: pavingTex }), dark = M(0x252a29, .95), wood = M(0x493b2c, .85, { map: grainTex });
@@ -47,10 +51,10 @@ export default function createPlace(h) {
 
     // The inside corner of two thick white walls, out of the wind. A stone ledge, the brass lamp under its glass.
     nook: {
-      at: { pos: V3(16, 0, 16), ry: 0 },
+      at: { pos: V3(...HIGH_WHITE_NOOK), ry: 0 },
       lamp: 'chimney', y: .92, exposure: 1.05, bloom: [.38, .98],
-      approach: [V3(1.6, 1.65, 4)],
-      wide: { pos: V3(1.7, 1.45, 2.1), look: V3(.1, 1.1, -.1) },
+      wide: cameras.wide, widePhone: cameras.widePhone,
+      choose: cameras.choose, choosePhone: cameras.choosePhone,
       async build(hh) {
         const { M, box, fall, otherLamp, plasterTex, pavingTex, grainTex, pauseBuild } = hh;
         const white = M(0xece8de, .95, { map: plasterTex }), cap = M(0x3a3836, .85), stoneM = M(0x7a766e, .85, { map: pavingTex }), wood = M(0x3a2618, .7, { map: grainTex });
