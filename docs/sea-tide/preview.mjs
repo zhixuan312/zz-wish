@@ -213,6 +213,10 @@ const matchedPoseScript = `
     rig.pos.fromArray(position);
     rig.look.fromArray(direction).add(rig.pos);
     rig.fov = fov;
+    // Normal rendering skips lens updates below .001 degrees. A diagnostic
+    // pair must use the captured projection exactly, even below that threshold.
+    camera.fov = fov;
+    camera.updateProjectionMatrix();
     if (preserveLitLamp) {
       mine.tideReviewFlame.fm.uniforms.uSeedU.value = 3.25;
       wind = 0;
