@@ -4,7 +4,8 @@ import { placeById, type Locale, type PlaceId } from '../../shared/places.ts';
 import { DEFAULT_PLACE, VISIBLE_PLACES, isVisiblePlace } from './visiblePlaces.ts';
 import { COLORS, DEFAULT_COLOR, DEFAULT_MINUTES, MAX_MINUTES, MIN_MINUTES, PRESET_MINUTES, PRESET_SHAPES, isAllowedMinutes, shapeMinutes, sizedPreset, type Kind, type Shape } from '../../shared/rules.ts';
 import { remainingFuel } from '../../shared/wax.ts';
-import { api, ApiError, type EndReason, type Stats } from './api.ts';
+import { api, ApiError, flushPendingEnds, type EndReason, type Stats } from './api.ts';
+import { readBellLanePlacementHistory } from './bellLaneHistory.ts';
 import { Burn, type Settlement } from './burn.ts';
 import { presence } from './presence.ts';
 import { DrawPad, rowsFromStrokes, type Pt } from './DrawPad.tsx';
@@ -117,6 +118,7 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
   const [wishId, setWishId] = useState<string | null>(null);
   const [placeId, setPlaceId] = useState<PlaceId>(DEFAULT_PLACE.id);
   const bellLaneSave = useRef<Settlement['saved'] | null>(null);
+  const bellLaneFailedSave = useRef<Settlement['saved'] | null>(null);
   const place = placeById(placeId)!;
   const placeEyebrow = placeId === 'pine-gate' ? t.pinePlaceEyebrow : t.placeEyebrow;
   const placeLead = placeId === 'pine-gate' ? t.pinePlaceLead : t.placeLead;
@@ -244,9 +246,17 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
     const lightPlace = placeId;
     const isWax = shape.kind === 'candle';
     const showsRemainingFuel = isWax || lightPlace === 'bell-lane';
+    let rackFailed = false;
     const b = new Burn(minutes! * 60_000, (s: Settlement) => {
-      presence.stopBurning(); sound.stop();
       burnRef.current = null;
+      if (lightPlace === 'bell-lane') bellLaneSave.current = s.saved;
+      if (rackFailed) {
+        bellLaneFailedSave.current = s.saved;
+        setScreen('candle');
+        setLightError(t.lightFailed);
+        return;
+      }
+      presence.stopBurning(); sound.stop();
       const ending: MusicStage = s.done ? 'endingBurned' : 'endingPutOut';
       void music.play(ending, lightPlace).then((started) => {
         // No ending cue, or one that failed to load, still has to reach the afterglow.
@@ -258,7 +268,6 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
       void engine.snuff(s.done, showsRemainingFuel ? remainingFuel(Math.floor(s.burnedMs), b.planned) : undefined, gust);
       setResult({ done: s.done, burnedMs: s.burnedMs, plannedMs: b.planned, reason: s.reason, saved: null });
       setScreen('result'); setAskLeave(null);
-      if (lightPlace === 'bell-lane') bellLaneSave.current = s.saved;
       s.saved.then((c) => setResult((r) => r && { ...r, saved: !!c }));
       if (afterSettle.current) { setOverlay(afterSettle.current); afterSettle.current = null; }
       presence.watch(lightPlace);
@@ -268,12 +277,30 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
     setShowLeft(false);
     if (lightPlace !== 'bell-lane') { sound.prepare(); sound.start(lightPlace); }
     try {
+      if (lightPlace === 'bell-lane' && bellLaneFailedSave.current) {
+        if (!await bellLaneFailedSave.current) await flushPendingEnds();
+        if (b.isSettled) return;
+      }
       const c = await api.light({ runId: b.runId, placeId: lightPlace, shape, ...(wishId ? { wishId } : { wishText: wish.trim() }) });
       setWishId(c.wishId);
       b.confirm(c);
-      // With this run active, another tab cannot put a lamp ahead of it on the rack.
-      // Refresh its private predecessors before selecting the physical address.
-      if (lightPlace === 'bell-lane' && !b.isSettled) await loadPastLamps(lightPlace);
+      if (lightPlace === 'bell-lane') {
+        bellLaneFailedSave.current = null;
+        if (!b.isSettled) {
+          try {
+            // The active record proves this is the private history for this run.
+            await loadPastLamps(lightPlace, c.id);
+          } catch {
+            // The server has created the lamp. End that exact run through the
+            // existing saved-end queue before letting the visitor try again.
+            if (!b.isSettled) {
+              rackFailed = true;
+              b.settle('put_out');
+            }
+            return;
+          }
+        }
+      }
       if (!b.isSettled) {
         presence.burn(lightPlace, c.id, () => b.elapsed()); setScreen('burning');
         void engine.ignite({
@@ -309,20 +336,21 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
   // Drop a reply for a court already left. A fast return can start before the
   // end request has saved the lamp, so wait for that save before reading the rack.
   const pastLampVersion = useRef(0);
-  const loadPastLamps = useCallback((id: PlaceId) => {
+  const loadPastLamps = useCallback(async (id: PlaceId, activeId?: string) => {
     const version = ++pastLampVersion.current;
-    return (async () => {
-      if (id === 'bell-lane') await bellLaneSave.current;
-      if (version !== pastLampVersion.current) return;
-      const { candles } = await api.myCandles();
-      if (version !== pastLampVersion.current) return;
-      await engine.setOwnPastLamps(id,
-        candles.flatMap((c) => c.placeId !== id || c.status === 'burning' ? [] : [{
-          id: c.id, shape: c.shape, status: c.status,
-          remaining: remainingFuel(c.burnedMs, c.durationMs),
-        }]),
-      );
-    })().catch(() => {});
+    if (id === 'bell-lane' && !activeId) await bellLaneSave.current;
+    if (!activeId && version !== pastLampVersion.current) return;
+    const { candles } = await api.myCandles(activeId ? AbortSignal.timeout(3000) : undefined);
+    if (version !== pastLampVersion.current) {
+      if (activeId) throw new Error('Bell Lane history request was superseded');
+      return;
+    }
+    const previous = activeId ? readBellLanePlacementHistory(candles, activeId) :
+      candles.flatMap(c => c.placeId !== id || c.status === 'burning' ? [] : [{
+        id: c.id, shape: c.shape, status: c.status,
+        remaining: remainingFuel(c.burnedMs, c.durationMs),
+      }]);
+    await engine.setOwnPastLamps(id, previous);
   }, []);
 
   // Navigation between steps; the scene moves with them.
@@ -337,7 +365,7 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
   const showPlace = () => {
     setWishHint(false); screenRef.current = 'place'; setScreen('place');
     previewCourt(placeId);
-    loadPastLamps(placeId);
+    void loadPastLamps(placeId).catch(() => {});
   };
   const toPlace = () => {
     if (!wish.trim()) { setWishHint(true); wishField.current?.focus(); return; }
@@ -350,7 +378,7 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
     if (placeById(id)!.vessel !== place.vessel) {
       setTab('preset'); setPresetShape(0); setStrokes([]); setDrawingMinutes(null); setColor(DEFAULT_COLOR[kind]);
     }
-    loadPastLamps(id);
+    void loadPastLamps(id).catch(() => {});
     previewCourt(id);
   };
   const goTravel = () => run(async () => {

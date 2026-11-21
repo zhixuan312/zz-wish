@@ -25,7 +25,7 @@ export const api = {
   setLocale: (locale: Locale) => call('/api/me/locale', { method: 'PUT', body: JSON.stringify({ locale }) }),
   light: (body: { runId: string; placeId: PlaceId; shape: Shape; wishId?: string; wishText?: string }) =>
     call<Candle>('/api/candles', { method: 'POST', keepalive: true, body: JSON.stringify(body) }),
-  myCandles: () => call<{ candles: Candle[]; totals: Totals }>('/api/me/candles'),
+  myCandles: (signal?: AbortSignal) => call<{ candles: Candle[]; totals: Totals }>('/api/me/candles', { signal }),
   myWishes: () => call<{ wishes: WishSummary[] }>('/api/me/wishes'),
   stats: () => call<Stats>('/api/places/stats'),
 };

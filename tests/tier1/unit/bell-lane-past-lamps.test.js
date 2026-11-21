@@ -57,7 +57,7 @@ test('each transfer keeps the full-size base on the shelf and clear of occupied 
   }
 });
 
-test('the first two transfers and all settled wick locations stay in the seated view', () => {
+test('every wick stays within the original seated limits throughout the full transfer', () => {
   const { nook } = createBellLane({ THREE, V3 });
   const { layout } = nook.visitorLampPlacement;
   for (const [view, aspect] of [[nook.choose, 1440 / 900], [nook.choosePhone, 390 / 844]]) {
@@ -67,9 +67,9 @@ test('the first two transfers and all settled wick locations stay in the seated 
     camera.updateMatrixWorld();
     for (let i = 0; i < 5; i++) {
       const { next } = layout(Array.from({ length: i }, (_, id) => ({ id })));
-      for (const progress of (i < 2 ? [0, .25, .5, .75, 1] : [1])) {
-        const wick = at(nook, next, progress).add(V3(0, .536, 0)).project(camera);
-        expect(Math.abs(wick.x)).toBeLessThan(.95);
+      for (let step = 0; step <= 100; step++) {
+        const wick = at(nook, next, step / 100).add(V3(0, .536, 0)).project(camera);
+        expect(Math.abs(wick.x)).toBeLessThan(.7);
         expect(Math.abs(wick.y)).toBeLessThan(.7);
       }
     }

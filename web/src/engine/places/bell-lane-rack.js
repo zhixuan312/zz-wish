@@ -1,13 +1,13 @@
 // The four latest saved lamps stay on the rack. The fifth address is left
 // free for the next lamp, so a return never needs to shuffle a saved one.
-export const BELL_LANE_SHELF = { width: 2.11, front: -.40, back: .71, top: .46 };
+export const BELL_LANE_SHELF = { width: 2.11, front: -.46, back: .74, top: .46 };
 
 const slots = [
-  { id: 'visitor', x: 0, z: .32, approach: 0 },
-  { id: 'window-side', x: .29, z: .32, approach: .045 },
-  { id: 'front-end', x: -.29, z: -.255, approach: -.255 },
-  { id: 'far-end', x: .58, z: .38, approach: .045 },
-  { id: 'door-side', x: -.29, z: .025, approach: .025 },
+  { id: 'visitor', path: [[0, 0], [0, .32]] },
+  { id: 'window-side', path: [[0, 0], [.28, 0], [.28, .60]] },
+  { id: 'front-end', path: [[0, 0], [.08, 0], [.08, -.28]] },
+  { id: 'far-end', path: [[0, 0], [.37, 0], [.56, .30], [.56, .38]] },
+  { id: 'door-side', path: [[0, 0], [-.20, 0], [-.25, -.32]] },
 ];
 
 export function bellLaneRack(lamps) {
@@ -21,16 +21,17 @@ export function bellLaneRack(lamps) {
   };
 }
 
-export function bellLaneTransfer(slot, progress, target) {
-  if (progress === 0) return target.set(0, BELL_LANE_SHELF.top, 0);
-  const ease = (start, end) => {
+export function bellLaneTransfer({ path }, progress, target) {
+  const smooth = (start, end) => {
     const k = Math.min(1, Math.max(0, (progress - start) / (end - start)));
     return k * k * (3 - 2 * k);
   };
-  const lift = ease(0, .28) * (1 - ease(.72, 1));
-  const x = slot.x * ease(.24, .64);
-  // Cross the shelf in front of the display row before advancing into it.
-  const z = slot.x === 0 ? slot.z * ease(.18, .84) :
-    slot.approach * ease(.12, .33) + (slot.z - slot.approach) * ease(.63, .88);
-  target.set(x, BELL_LANE_SHELF.top + .073 * lift, z);
+  const lift = smooth(0, .28) * (1 - smooth(.72, 1));
+  // Sweep around the occupied stands while keeping the wick within the seated view.
+  const segments = path.length - 1;
+  const travel = smooth(.12, .88) * segments;
+  const index = Math.min(Math.floor(travel), segments - 1);
+  const mix = travel - index;
+  const [x0, z0] = path[index], [x1, z1] = path[index + 1];
+  target.set(x0 + (x1 - x0) * mix, BELL_LANE_SHELF.top + .073 * lift, z0 + (z1 - z0) * mix);
 }

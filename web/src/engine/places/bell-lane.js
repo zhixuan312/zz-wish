@@ -207,7 +207,7 @@ export default function createPlace(h) {
           box(.085, .37, .081, edge, x, .185, z);
         box(1.85, .09, .29, edge, 0, .18, middle);
         // Keep the original six fixtures outside the visitor's service and display spaces.
-        const darkLamps = [[-.79, .01, -.1, .52, 0x69533e], [.44, .60, -.21, .52, 0x826648],
+        const darkLamps = [[-.79, .01, -.1, .52, 0x69533e], [.52, .66, -.21, .52, 0x826648],
           [.84, .34, .3, .52, 0x604a39], [.75, -.23, .10, .38, 0x73523b], [-.66, -.163, -.24, .39, 0x756359]];
         darkLamps.forEach(([x, z, yaw, scale, color], i) => {
           const lamp = unlitLattice({ color }, makeCup);
@@ -222,14 +222,14 @@ export default function createPlace(h) {
         other.g.scale.setScalar(.52);
         other.p.shells[0].color.setHex(0x88603d);
         // The two matching bowls sit on a small ledge beside the central lamp, within both seated views.
-        const cupLedgeY = .912, cupLedgeZ = -.24;
-        box(.206, .018, .105, wood, .279, cupLedgeY - .009, cupLedgeZ);
-        box(.246, .018, .024, edge, .231, cupLedgeY - .028, cupLedgeZ - .029);
+        const cupLedgeY = .912, cupLedgeZ = -.203;
+        box(.166, .018, .108, wood, .305, cupLedgeY - .009, cupLedgeZ);
+        box(.166, .018, .024, edge, .305, cupLedgeY - .028, cupLedgeZ - .029);
         BELL_LANE_CUPS.forEach(({ id, color, roughness }, i) => {
           const bowl = makeBellLaneOilBowl(h, M(color, roughness), -.010);
           bowl.name = `Bell Lane rack oil cup ${id}`;
           bowl.userData.cupId = id;
-          bowl.position.set(.23 + .099 * i, cupLedgeY, cupLedgeZ);
+          bowl.position.set(.262 + .085 * i, cupLedgeY, cupLedgeZ + .018 * i);
           h.context.G.add(bowl);
         });
         // Taper and tag supplies stay on the side table.
