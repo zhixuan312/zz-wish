@@ -12,6 +12,7 @@ import { Vector3 } from 'three';
 import { HIGH_WHITE_TRAVEL_SECONDS, highWhiteCameras } from '../../web/src/engine/places/highland-camera.js';
 import { startPreview } from './preview.mjs';
 import { highWhiteGeometryMetrics, highWhiteTraceMetrics } from './camera-audit.mjs';
+import { hasReusableBaseline } from './capture-evidence.mjs';
 
 const TARGETS = [
   ...[20, 21, 22, 23, 24, 25].map(seconds => ({ name: `threshold-${seconds}s`, seconds })),
@@ -344,24 +345,12 @@ async function capture(browser, preview, view, outputDir, referenceDir) {
 }
 
 const failures = [];
-async function hasBaseline(outputDir, view, source) {
-  try {
-    const report = JSON.parse(await readFile(join(outputDir, view.key, 'report.json'), 'utf8'));
-    return !report.failure && report.issues.length === 0 && report.source.mode === 'baseline'
-      && report.source.highlandSha256 === source.highlandSha256 && report.source.cameraSha256 === source.cameraSha256
-      && report.scenes.length === TARGETS.length + 1 && report.scenes.every(scene => scene.capturePose && scene.livePose)
-      && report.lit && report.readyMade.lampInsideViewport && !report.readyMade.lampOverlapsSheet;
-  } catch {
-    return false;
-  }
-}
-
 async function captureBatch(browser, isBaseline, outputDir, referenceDir) {
   const preview = await startPreview({ baseline: isBaseline });
   try {
     console.log(`${isBaseline ? 'Baseline' : 'Candidate'}: ${outputDir}`);
     for (const view of selected) {
-      if (isBaseline && resume && await hasBaseline(outputDir, view, preview.source)) {
+      if (isBaseline && resume && await hasReusableBaseline(join(outputDir, view.key), view, preview.source, TARGETS, liveCrops)) {
         console.log(`${view.key}: kept validated baseline`);
         continue;
       }
