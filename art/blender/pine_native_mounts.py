@@ -46,7 +46,7 @@ def has_verified_native_receipt(path, verified_sha):
     return bool(json.loads(receipt).get('nativeSource'))
 
 
-def private_material(obj, name, node, role):
+def private_material(obj, name, key, role):
     # The packer deduplicates by properties, so a distinct name alone is not
     # enough. Keep every shader, texture and UV while distinguishing this slot.
     materials = obj.data.materials
@@ -56,7 +56,9 @@ def private_material(obj, name, node, role):
     material.name = name
     if material.name != name:
         raise ValueError(f'Pine Valley material name is already taken: {name}')
-    material['one_light_pine_native_mount'] = f'{node}:{role}'
+    # Keyed by the authored label, not the model: one model now backs several trees, and two mounts
+    # that shared a key could be merged by the packer.
+    material['one_light_pine_native_mount'] = f'{key}:{role}'
     materials[0] = material
     return material.name
 
