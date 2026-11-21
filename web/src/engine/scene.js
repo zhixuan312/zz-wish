@@ -865,6 +865,7 @@ const mine = (() => {
   const oilGlow = waxMaterial(0xb0761e, { roughness: .05, clearcoat: 1, glow: 0xffa040, fall: 30 });
   const oilBody = new THREE.Mesh(new THREE.BufferGeometry(), oilGlow); oilBody.renderOrder = 1; g.add(oilBody);
   const f = flameParts(g);
+  f.flame.name = 'Visitor flame'; f.wick.name = 'Visitor wick';
   const defaultSuspensionMaterial=new THREE.MeshStandardMaterial({color:0x746041,roughness:.95});
   const hanger=new THREE.Mesh(new THREE.CylinderGeometry(1,1,1,8),defaultSuspensionMaterial);
   hanger.visible=false;g.add(hanger);
@@ -2630,7 +2631,7 @@ export async function ignite({onCatch, remainingFuel, onTaperLit}={}) {
         onCatch?.();
       }
     });
-    if (lit && journey === cameraJourneyVersion) mark('settled', 1);
+    if (lit && journey === cameraJourneyVersion && (!fill || sameCup())) mark('settled', 1);
     return;
   }
   const N=place.P.nook,spread=viewOf((narrow()&&N.spreadPhone)||N.spread),burn=burnView();
