@@ -1,16 +1,54 @@
 const lampSeatY = 1;
 
+// A tiling colour and height field for the packed silt. Layers come from the
+// carved profile, while fine grains and small pockets continue across them.
+function seatGrain(THREE) {
+  const size = 256;
+  const pixels = new Uint8Array(size * size * 4);
+  function grain(u, v, cells) {
+    const x = u * cells, y = v * cells;
+    const ix = Math.floor(x), iy = Math.floor(y);
+    const fx = THREE.MathUtils.smoothstep(x - ix, 0, 1);
+    const fy = THREE.MathUtils.smoothstep(y - iy, 0, 1);
+    function sample(dx, dy) {
+      const key = ((ix + dx) % cells) + cells * ((iy + dy) % cells);
+      let bits = Math.imul(key + 37, 0x45d9f3b);
+      bits = Math.imul(bits ^ (bits >>> 16), 0x45d9f3b);
+      return ((bits ^ (bits >>> 16)) >>> 0) / 0xffffffff;
+    }
+    const lo = THREE.MathUtils.lerp(sample(0, 0), sample(1, 0), fx);
+    const hi = THREE.MathUtils.lerp(sample(0, 1), sample(1, 1), fx);
+    return THREE.MathUtils.lerp(lo, hi, fy);
+  }
+  for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
+    const u = x / size, v = y / size;
+    const mottling = grain(u, v, 9) * .18 + grain(u, v, 32) * .20;
+    const fines = grain(u, v, 101) * .22;
+    const value = Math.round(255 * (.46 + mottling + fines));
+    pixels.set([value, value, value, 255], (x + y * size) * 4);
+  }
+  const texture = new THREE.DataTexture(pixels, size, size);
+  texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+  texture.magFilter = THREE.LinearFilter;
+  texture.minFilter = THREE.LinearMipmapLinearFilter;
+  texture.generateMipmaps = true;
+  texture.needsUpdate = true;
+  return texture;
+}
+
 // The cut rolls from the earthen window into a level bearing surface and over
 // the worn front lip. Closely spaced rows in the cut carry the sediment bands.
-function windowSeat(THREE, loessTex) {
+function windowSeat(THREE) {
   const section = [
-    [-.46, .095, .57, 0x97765b], [-.413, .081, .57, 0x89664e],
-    [-.373, .062, .58, 0xab8968], [-.335, .052, .60, 0xa48263],
-    [-.304, .038, .62, 0x8e6c52], [-.273, .023, .65, 0xab8766],
-    [-.242, .013, .67, 0x9d7b5e], [-.20, 0, .68, 0x99765a],
+    [-.46, .095, .57, 0x937156], [-.413, .082, .57, 0x89664e],
+    [-.373, .070, .58, 0xa48061], [-.335, .057, .60, 0x9d795b],
+    [-.304, .050, .62, 0x8e6c52], [-.273, .041, .65, 0xa48163],
+    [-.242, .036, .67, 0x927053], [-.205, .030, .68, 0xa58063],
+    [-.181, .019, .68, 0x987457], [-.159, .006, .68, 0x99765a],
+    [-.14, 0, .68, 0x9c795c],
   ];
-  for (let row = 1; row <= 34; row++) {
-    section.push([-.20 + row * .01, 0, .68, 0x9c795c]);
+  for (let row = 1; row <= 28; row++) {
+    section.push([-.14 + row * .01, 0, .68, 0x9c795c]);
   }
   section.push(
     [.157, -.004, .676, 0xa78261], [.171, -.015, .668, 0xa58263],
@@ -23,20 +61,28 @@ function windowSeat(THREE, loessTex) {
   const stride = columns + 1;
   const positions = [], colors = [], uvs = [], triangles = [];
   const color = new THREE.Color();
+  let surfaceDistance = 0;
   for (let row = 0; row < section.length; row++) {
     const [z, y, halfWidth, earth] = section[row];
+    if (row > 0) {
+      const [lastZ, lastY] = section[row - 1];
+      surfaceDistance += Math.hypot(z - lastZ, y - lastY);
+    }
     for (let column = 0; column <= columns; column++) {
       const x = (2 * column / columns - 1) * halfWidth;
       const ridge = Math.sin(x * 15 + z * 9) * Math.sin(x * 36 - .7);
       const lip = THREE.MathUtils.smoothstep(z, .06, .17);
       const contour = z + lip * (.005 * ridge - .025 * Math.pow(Math.abs(x / halfWidth), 10));
       positions.push(x, lampSeatY + y + ridge * Math.abs(y) * .045, contour);
-      uvs.push(x * 2.2 + .5, (y + z * .24) * 3.1 + .5);
+      uvs.push(x * 2.7 + .5, surfaceDistance * 2.7);
 
-      // Oil soaked into the porous earth at the seat, with a softer, uneven edge.
-      const distance = Math.hypot((x + .012) / .069, (z + .012) / .056);
-      const stain = (1 - THREE.MathUtils.smoothstep(distance + ridge * .09, .28, 1.24)) * .46;
-      color.setHex(earth).multiplyScalar((1 - stain) * (1 + .028 * ridge));
+      // The compact dark mark grades into the absorbed edge of older spills.
+      const uneven = .12 * Math.sin(x * 212 + z * 90) * Math.cos(z * 174);
+      const contact = Math.hypot((x + .006) / .038, (z + .004) / .03) + uneven;
+      const spill = Math.hypot((x + .024 - z * .28) / .066, (z + .014) / .04) + uneven;
+      const stain = .38 * (1 - THREE.MathUtils.smoothstep(contact, .40, 1.10))
+        + .31 * (1 - THREE.MathUtils.smoothstep(spill, .34, 1.32));
+      color.setHex(earth).multiplyScalar((1 - stain) * (1 + .035 * ridge));
       colors.push(color.r, color.g, color.b);
       if (row === 0 || column === 0) continue;
       const lower = row * stride + column;
@@ -58,7 +104,10 @@ function windowSeat(THREE, loessTex) {
   geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
   geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
   geometry.computeVertexNormals();
-  const material = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .96, bumpMap: loessTex, bumpScale: .007 });
+  const grain = seatGrain(THREE);
+  const material = new THREE.MeshStandardMaterial({
+    vertexColors: true, roughness: .96, map: grain, bumpMap: grain, bumpScale: .0016,
+  });
   const mesh = new THREE.Mesh(geometry, material);
   mesh.name = 'Loess visitor window seat';
   return mesh;
@@ -122,7 +171,7 @@ export default function createPlace(h) {
           const pane = new THREE.Mesh(new THREE.PlaneGeometry(w, 1.25), paper); pane.position.set(x, 1.65, -.52); C.G.add(pane);
           for (let k = -2; k <= 2; k++) box(.018, 1.25, .035, wood, x + k * w / 5, 1.65, -.46);
           for (const y of [1.08, 1.65, 2.23]) box(w, .025, .045, wood, x, y, -.44);
-          if (x === 0) C.G.add(windowSeat(THREE, loessTex));
+          if (x === 0) C.G.add(windowSeat(THREE));
           else box(w + .18, .065, .62, packed, x, .98, -.25);
         }
         const curtain = new THREE.Mesh(new THREE.PlaneGeometry(1.24, 2.36, 12, 1), M(0x273141, .98, { side: THREE.DoubleSide }));
