@@ -83,7 +83,14 @@ export function tuneWinterCourtSnow(material, tint, lightDirection, lightStrengt
         float coarseGrain = snowSeed(cell);
         diffuseColor.rgb *= 1. + snowSkin
           + .19 * (snowGrain(grains) - .5) * grainVisibility;
-    `).replace('#include <opaque_fragment>', `
+    `).replace('float away=', `
+      ${trail ? `
+        // Diffuse skylight reaches the path beneath the dark pine shadows.
+        float winterPath = 1. - .84 * smoothstep(.63, 1.24, abs(lane));
+        float snowUp = max(0., dot(nonPerturbedNormal, viewMatrix[1].xyz));
+        baked += uBakedWeights.x * winterPath * (.32 + .68 * snowUp) * vec3(.007, .010, .014);
+      ` : ''}
+      float away=`).replace('#include <opaque_fragment>', `
         // Some tiny ice facets redirect the existing light. Their world-space
         // seeds stay fixed, while view angle and distance control visibility.
         float facetMask = smoothstep(.84, .982, coarseGrain);

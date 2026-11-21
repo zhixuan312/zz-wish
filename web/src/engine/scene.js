@@ -1573,8 +1573,8 @@ function daylight(date = new Date(), continuous = false) {
   for (const key of Object.keys(a)) { const value=a[key]+(b[key]-a[key])*k;out[key]=continuous?value:Math.round(value*20)/20; }
   return out;
 }
-// A place may supply its own clock-to-light curve; when it does, that curve replaces the shared
-// day keys for that place only. Snow Roof supplies none, so its look is unchanged.
+// Places may supply their own clock-to-light curve and baked-bank weights.
+// Other places continue to use the shared day keys.
 const placeLight = (PLACE, date = new Date()) => (PLACE?.lightAt ? PLACE.lightAt(date) : daylight(date));
 
 const hexMix = (a, b, k) => new THREE.Color(a).lerp(new THREE.Color(b), Math.min(1, Math.max(0, k))).getHex();
@@ -1583,18 +1583,20 @@ function blendPlace(N, L) {
   const warm = L.dawn ? 0xeaa08a : 0xee8a46, sunWarm = L.dawn ? 0xffc6a0 : 0xff8c42;
   // Morning light comes from the other side of the court than afternoon light.
   const dDir = [D.sky.dir[0] * (L.dawn ? -1 : 1), Math.max(.02, D.sky.dir[1] * L.elev), D.sky.dir[2]];
+  const dayTop = L.daySky ? hexMix(D.sky.top, L.daySky.top, L.daySky.weight) : D.sky.top;
+  const dayHorizon = L.daySky ? hexMix(D.sky.horizon, L.daySky.horizon, L.daySky.weight) : D.sky.horizon;
   const sky = {
-    top: hexMix(hexMix(D.sky.top, N.sky.top, n), 0x1c2c56, .55 * L.blue * n),
-    horizon: hexMix(hexMix(hexMix(D.sky.horizon, N.sky.horizon, n), warm, .65 * g), 0x3a4a7a, .4 * L.blue * n),
+    top: hexMix(hexMix(dayTop, N.sky.top, n), 0x1c2c56, .55 * L.blue * n),
+    horizon: hexMix(hexMix(hexMix(dayHorizon, N.sky.horizon, n), warm, .65 * g), 0x3a4a7a, .4 * L.blue * n),
     ground: hexMix(D.sky.ground, N.sky.ground, n),
     sun: hexMix(hexMix(D.sky.sun, N.sky.sun, n), sunWarm, g),
-    dir: dDir.map((v, j) => v + (N.sky.dir[j] - v) * n),
+    dir: L.direction ?? dDir.map((v, j) => v + (N.sky.dir[j] - v) * n),
     glow: mix(D.sky.glow, N.sky.glow) + .9 * g, clouds: mix(D.sky.clouds, N.sky.clouds),
     lit: hexMix(hexMix(D.sky.lit, N.sky.lit, n), warm, .5 * g), dark: hexMix(D.sky.dark, N.sky.dark, n),
-    stars: (N.sky.stars ?? 0) * n * n * (1 - .6 * L.blue), disc: mix(D.sky.disc ?? 5, N.sky.disc ?? 0),
+    stars: (N.sky.stars ?? 0) * n * n * (1 - .6 * L.blue), disc: mix(D.sky.disc ?? 5, N.sky.disc ?? 0) * (L.discScale ?? 1),
     discEdges: (D.sky.discEdges ?? defaultDiscEdges).map((edge, index) => mix(edge, (N.sky.discEdges ?? defaultDiscEdges)[index])),
   };
-  const sunScale = n < .5 ? .35 + .65 * L.elev : 1;
+  const sunScale = L.sunScale ?? (n < .5 ? .35 + .65 * L.elev : 1);
   return {
     sky, exposure: mix(D.exposure ?? 1,N.exposure ?? 1)*(N.bakedLighting?1:1+1.2*n), shade: mix(1, N.shade ?? 1),
     fog: [hexMix(hexMix(D.fog[0], N.fog[0], n), warm, .18 * g), mix(D.fog[1], N.fog[1]) * L.haze * (1 - .3 * g)],
@@ -1764,11 +1766,12 @@ function pineFixtureFlame(context, position, height, seed) {
     uniforms.uTime.value = time * .52;
   });
 }
-function fixtureSpecular(x,y,z,watts=8,linearColor=[1,173/255,102/255]){
+function fixtureSpecular(x,y,z,watts=8,linearColor=[1,173/255,102/255],gain=()=>1){
   const baked=C.baked,light=new THREE.PointLight(new THREE.Color().fromArray(linearColor),watts/(4*Math.PI),12,2);
-  light.intensity*=baked?.fixturePower()??1;
+  const update=()=>{light.intensity=watts/(4*Math.PI)*(baked?.fixturePower()??1)*gain();};
+  update();
   light.position.set(x,y,z);C.G.add(light);
-  C.up.push(()=>{light.intensity=watts/(4*Math.PI)*(baked?.fixturePower()??1);});
+  C.up.push(update);
   return light;
 }
 // A local reflection probe samples actual lit construction. Clone the scene
@@ -1806,7 +1809,7 @@ function captureLocalEnvironment({context=C,root=context.root,environment=contex
 }
 const placeHelpers = { THREE, V3, V2, M, roofMat, ground, pave, hallB, gateB, compound, rock, trees, peak, ridges, mist, burnerAt, postLanterns, pagoda, stairs, paifang, wallRun, water, archBridge, lotus, box, city, fall, lanterns, put, tower, smokeAt, pavingTex, petalTex, pauseBuild, eave, col, rail, wallWithHoles, cloudSea, footprints, bell, otherLamp, lathe, hexMix, addStump:(x,y,z,scale,yaw)=>addScannedStump(C.G,x,y,z,scale,yaw),
   visitorCloth: { weave: gauzeTex, normal: gauzeNormal, roughness: gauzeRoughness, mean: visitorFabric.meanLinearLuminance },
-  liveFlame,pineFixtureFlame,fixtureSpecular,captureLocalEnvironment,loessTex, brickTex, plasterTex, papercutTex, grainTex, latticeTex, sootTex, windowsTex, get renderer() { return renderer; }, get context() { return C; } };
+  liveFlame,pineFixtureFlame,fixtureSpecular,captureLocalEnvironment,loessTex, brickTex, plasterTex, papercutTex, grainTex, latticeTex, sootTex, windowsTex, get renderer() { return renderer; }, get camera() { return camera; }, get context() { return C; } };
 const cachedPlaces = new Map();
 const sharedTextures = new Set([needleTex, leafTex, pavingTex, grainTex, tileTex, waterTex, latticeTex, softTex, petalTex, windowsTex, patina, crackleTex, holesTex, gauzeTex,gauzeNormal,gauzeRoughness, paperLatticeTex, loessTex, brickTex, plasterTex, papercutTex, sootTex]);
 // Materials are left to the garbage collector rather than disposed: disposing them would also
@@ -1964,7 +1967,7 @@ async function buildPlaceNow(t, isolated = false) {
   if(P.bakedLighting&&context.baked&&(N.lamp==='gauze'||pineOpening)){
     const basis=context.baked.manifest.lampBasis.position;
     const probe = () => {
-      context.baked.update(candidate.daylight, 0, V3(...basis));
+      context.baked.update(P.bakedLightAt?.(new Date()) ?? candidate.daylight, 0, V3(...basis));
       // A prepared place may already own the hidden visitor pivot. Exclude
       // it and the distant projection from the deferred room probe.
       const exclude = streamsSnowInterior
@@ -3009,10 +3012,8 @@ function frame(stamp = performance.now()) {
         for(const [name,value] of Object.entries({uTop:p.sky.top,uHorizon:p.sky.horizon,uGround:p.sky.ground,uSun:p.sky.sun,uLit:p.sky.lit,uDark:p.sky.dark}))u[name].value.setHex(value);
         u.uDir.value.set(...p.sky.dir).normalize();u.uGlow.value=p.sky.glow;u.uClouds.value=p.sky.clouds;u.uStars.value=p.sky.stars;u.uDisc.value=p.sky.disc;
         u.uDiscEdges.value.set(...p.sky.discEdges);
-        if (place.id === 'pine-gate') {
-          place.sun.position.copy(u.uDir.value).multiplyScalar(100);
-          place.baked?.updateWaxSun?.(u.uDir.value);
-        }
+        if (light.direction || place.id === 'pine-gate') place.sun.position.copy(u.uDir.value).multiplyScalar(100);
+        if (place.id === 'pine-gate') place.baked?.updateWaxSun?.(u.uDir.value);
         place.sun.color.setHex(p.sunL[0]);place.sunBase=p.sunL[1];place.hemi.color.setHex(p.hemi[0]);place.hemi.groundColor.setHex(p.hemi[1]);place.hemiBase=p.hemi[2];outside.fog.color.setHex(p.fog[0]);outside.fog.density=p.fog[1];
       }
     }
@@ -3048,7 +3049,11 @@ function frame(stamp = performance.now()) {
     else level += (targetLevel-level)*(1-Math.exp(-dt*5));
     if (mine.g.visible && mine.offer) { mine.setLevel(level); mine.update(time); }
     const cover=!atLamp&&place.cover;
-    place.baked?.update(daylight(new Date(),true),mine.g.visible?mine.lightPower:cover?(cover.power??1):0,mine.g.visible?mine.lightWorld():cover?.light?.getWorldPosition(V3()));
+    if (place.baked) {
+      const clock = new Date();
+      const bakedLight = P.bakedLightAt?.(clock) ?? daylight(clock, true);
+      place.baked.update(bakedLight,mine.g.visible?mine.lightPower:cover?(cover.power??1):0,mine.g.visible?mine.lightWorld():cover?.light?.getWorldPosition(V3()));
+    }
     if(P.bakedLighting&&mine.parts?.frame&&!mine.parts.pineWax){
       const centre=mine.g.localToWorld(V3(0,mine.parts.frame.cy,0));
       aimGauzePreview(previewFill,previewFillTarget,centre,camera.position);

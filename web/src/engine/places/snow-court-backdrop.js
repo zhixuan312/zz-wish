@@ -13,6 +13,8 @@ const vertexShader = `varying vec2 vUv;
 
 const fragmentShader = `uniform sampler2D uPlate, uUpgradePlate, uNightPlate;
   uniform vec2 uPlateSampleSize, uUpgradeSampleSize;
+  uniform vec3 uBackdropLook;
+  uniform float uTwilightReach;
   uniform float uUpgradeMix, uNightWeight, uNightMix;
   varying vec2 vUv;
 
@@ -45,6 +47,17 @@ const fragmentShader = `uniform sampler2D uPlate, uUpgradePlate, uNightPlate;
       if (uNightMix > 0.) dark = mix(dark, linearPlate(uNightPlate, vUv), uNightMix);
       color = mix(color, dark, uNightWeight);
     }
+    // The low light reaches pale snow, while rock and recessed gullies
+    // retain cold skylight. Work in scene-linear radiance before exposure.
+    if (max(uBackdropLook.x, uBackdropLook.y) > 0.) {
+      float linearLuma = dot(color.rgb, vec3(.2126, .7152, .0722)) / max(color.a, .0001);
+      float litSnow = smoothstep(.14, .75, linearLuma / mix(1., .30, uNightWeight));
+      vec3 dawn = mix(vec3(.75, .90, 1.24), vec3(1.76, .92, 1.04), litSnow);
+      vec3 sunset = mix(vec3(.91, .96, 1.09), vec3(1.53, 1.12, .67), litSnow);
+      color.rgb *= mix(vec3(1.), dawn, uBackdropLook.x * uTwilightReach);
+      color.rgb *= mix(vec3(1.), sunset, uBackdropLook.y * uTwilightReach);
+    }
+    color.rgb *= mix(vec3(1.), vec3(.98, 1.03, 1.10), uBackdropLook.z * uTwilightReach);
     vec2 border = min(vUv, 1. - vUv);
     float edge = smoothstep(0., .015, min(border.x, border.y));
     // Blowing snow in the sheltered cutting conceals the distant valley
@@ -117,6 +130,7 @@ export async function loadSnowCourtBackdrop(baked, renderer, initialLight) {
   const uUpgradeMix = { value: 0 };
   const uNightWeight = { value: 0 };
   const uNightMix = { value: 0 };
+  const uBackdropLook = { value: new THREE.Vector3() };
   let entered = false;
   let wantsHigh = false;
   let dayTier = descriptor;
@@ -136,7 +150,8 @@ export async function loadSnowCourtBackdrop(baked, renderer, initialLight) {
       uniforms: {
         uPlate: { value: texture }, uUpgradePlate: { value: texture }, uNightPlate: { value: texture },
         uPlateSampleSize: { value: new THREE.Vector2() }, uUpgradeSampleSize: { value: new THREE.Vector2() },
-        uUpgradeMix, uNightWeight, uNightMix,
+        uUpgradeMix, uNightWeight, uNightMix, uBackdropLook,
+        uTwilightReach: { value: name === 'far' ? 1 : (name === 'mid' ? .26 : .14) },
       },
       transparent: true, premultipliedAlpha: true, depthWrite: false, toneMapped: false,
     });
@@ -188,6 +203,7 @@ export async function loadSnowCourtBackdrop(baked, renderer, initialLight) {
     if (disposed) return;
     const now = performance.now();
     uNightWeight.value = THREE.MathUtils.smoothstep(light.n, .13, .97);
+    uBackdropLook.value.set(light.dawnPeak, light.sunsetPeak, light.morning);
     startNight(now);
     if (nightAt !== null) uNightMix.value = THREE.MathUtils.smoothstep(now, nightAt, nightAt + fadeMs);
     if (dayTransition) {

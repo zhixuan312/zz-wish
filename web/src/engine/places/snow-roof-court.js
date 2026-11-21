@@ -1,6 +1,7 @@
 import { loadBakedPlace } from '../baked/loadPlace.js';
 import { loadSnowCourtBackdrop } from './snow-court-backdrop.js';
 import { buildSnowChimney } from './snow-court-chimney.js';
+import { snowCourtLight, snowCourtBakedLight } from './snow-court-light.js';
 import { winterCourtWalk, winterCourtEntry, winterCourtEntrySeconds, winterCourtBurnSettle } from './snow-court-camera.js';
 import { isEarlierGauze, tieVisitorWishTag, tuneEarlierGauze } from './snow-court-gauze.js';
 import { buildSnowDoorDrift, isWinterCourtSnow, tuneWinterCourtSnow } from './snow-court-snow.js';
@@ -24,6 +25,21 @@ function tuneHallLimewash(material, floor) {
       float away=`);
   };
   material.customProgramCacheKey = () => baseKey() + '-hall-limewash';
+}
+
+function tuneHallSnowBounce(material, hall) {
+  const compile = material.onBeforeCompile.bind(material);
+  const key = material.customProgramCacheKey.bind(material);
+  material.onBeforeCompile = (shader, renderer) => {
+    compile(shader, renderer);
+    shader.fragmentShader = shader.fragmentShader.replace('float away=', `
+      vec3 timberNormal = inverseTransformDirection(nonPerturbedNormal, viewMatrix);
+      float fromOpening = .36 + .64 * smoothstep(${hall.rear.toFixed(2)}, ${hall.front.toFixed(2)}, vBakedWorld.z);
+      float facesSnow = .35 + .65 * max(0., dot(timberNormal, normalize(vec3(.13, .69, .71))));
+      baked += uBakedWeights.z * fromOpening * facesSnow * vec3(.029, .035, .043);
+      float away=`);
+  };
+  material.customProgramCacheKey = () => key() + '-hall-window-bounce';
 }
 
 function tuneAltarFigure(material) {
@@ -86,6 +102,8 @@ export default function createWinterCourt(h) {
   const entrance = pose(site.walk[0]);
   return {
     bakedLighting: true, cameraFar: 880, exposure: 1.11, shade: .55,
+    lightAt: snowCourtLight,
+    bakedLightAt: snowCourtBakedLight,
     sky: { top: 0x14243c, horizon: 0x59718a, ground: 0x212936, sun: 0xd9eaff,
       dir: projection.light.night.directionEngine, glow: .17, clouds: .04, lit: 0x889ab0,
       dark: 0x394c6c, stars: .075, disc: .64 },
@@ -111,7 +129,7 @@ export default function createWinterCourt(h) {
       const hall = smoothstep(-z, -1.75, 1.55);
       const threshold = smoothstep(-z, .8, 2.8) * (1 - smoothstep(-z, 4.3, 5.9));
       const gateEV = THREE.MathUtils.lerp(1.34, .52, light.n);
-      const hallEV = THREE.MathUtils.lerp(2.63, .72, light.n);
+      const hallEV = THREE.MathUtils.lerp(2.39, .72, light.n);
       return 2 ** (gateEV * gateShade + hallEV * hall + .37 * threshold);
     },
     walk: [], walkSeconds: site.walkSeconds,
@@ -121,7 +139,7 @@ export default function createWinterCourt(h) {
     createChooseEntry: (start, end, phone) => winterCourtEntry(THREE, start, end, phone),
     doors: V3(...site.gate.center),
     async build(_place, context) {
-      const baked = await loadBakedPlace('snow-roof', h.renderer, context.light);
+      const baked = await loadBakedPlace('snow-roof', h.renderer, { n: context.light.n, g: context.light.west });
       if (baked.group.userData.snow_court_revision !== site.revision) {
         throw new Error('Snow Roof P1 package and authored court revision disagree.');
       }
@@ -138,6 +156,8 @@ export default function createWinterCourt(h) {
       const limewash = new Set();
       const altarFigure = new Set();
       const repairedEave = new Set();
+      const hallBounce = new Set();
+      const paperGlow = new Map();
       baked.group.traverse(object => {
         if (!object.isMesh) return;
         const region = object.userData.lightmap_region ?? object.userData.region ?? object.parent?.userData.lightmap_region;
@@ -147,6 +167,9 @@ export default function createWinterCourt(h) {
           if (/^Worn hall limewash, (east|west) wall$/.test(material.name)) limewash.add(material);
           if (material.name === 'Matte weathered stone of the seated Buddha') altarFigure.add(material);
           if (region === 'hall' && material.name === 'Greyer clay of the replaced eave tiles') repairedEave.add(material);
+          if (region === 'hall' && ['Slightly worn blue-grey hall slate', 'Old structural timber',
+            'Worn iron-oxide temple paint'].includes(material.name)) hallBounce.add(material);
+          if (material.name === 'Warm oiled window paper') paperGlow.set(material, material.emissiveIntensity);
           if (material.name === 'Thin pale storm lamp glass') {
             // The thin windscreen shows the flame directly. Avoid a second
             // scene render for screen-space refraction around this small lamp.
@@ -160,17 +183,24 @@ export default function createWinterCourt(h) {
       for (const material of altarFigure) tuneAltarFigure(material);
       for (const material of limewash) tuneHallLimewash(material, site.hall.floor);
       for (const material of repairedEave) tuneRepairedEave(material);
+      for (const material of hallBounce) tuneHallSnowBounce(material, site.hall);
+      const updatePaper = (_dt, _time, light) => {
+        // Snow illuminates the paper by day. The weak warm interior source
+        // becomes easier to see after the light in the courtyard falls.
+        const warm = .77 + .23 * Math.max(light.n, light.sunsetPeak * .85);
+        for (const [material, strength] of paperGlow) material.emissiveIntensity = strength * warm;
+      };
+      updatePaper(0, 0, context.light);
+      context.up.push(updatePaper);
       for (const material of earlierCloth) {
         tuneEarlierGauze(material, earlierWicks, THREE, baked.cameraPreExposure, h.visitorCloth);
       }
       if (winterSnow.size) {
-        const sunlight = V3(...projection.light.day.directionEngine);
-        const moonlight = V3(...projection.light.night.directionEngine);
         const lightDirection = V3();
         const lightStrength = { value: 0 };
         const snowTint = new THREE.Color('#e2ebf3');
         const updateCrystals = (_dt, _seconds, light) => {
-          lightDirection.lerpVectors(sunlight, moonlight, light.n).normalize();
+          lightDirection.fromArray(light.direction).normalize();
           lightStrength.value = .76 - .59 * light.n;
         };
         updateCrystals(0, 0, context.light);
@@ -195,8 +225,29 @@ export default function createWinterCourt(h) {
           : fixture.zone === 'gate' ? { size: 1.15, radiance: .92 }
           : { size: .94, radiance: .90 };
         const flame = h.liveFlame(...contact, { ...flameAppearance, halo: false });
-        h.fixtureSpecular(...fixture.pointLight, fixture.watts * baked.cameraPreExposure, fixture.linearColor);
-        context.up.push(() => { flame.power = .66 + .26 * baked.fixturePower(); });
+        flame.g.name = fixture.name;
+        const seasonal = fixture.kind === 'storm lantern';
+        let level = seasonal ? context.light.veranda : 1;
+        const wickWorld = V3(...contact);
+        const wickScreen = V3();
+        h.fixtureSpecular(...fixture.pointLight, fixture.watts * baked.cameraPreExposure,
+          fixture.linearColor, () => level);
+        const updateFlame = (_dt, _time, light) => {
+          if (seasonal && level !== light.veranda) {
+            // A passer-by can see the change only after looking away. Allow a
+            // margin around the wick for its glass and the edge of its pool.
+            const { camera } = h;
+            camera.updateMatrixWorld();
+            wickScreen.copy(wickWorld).project(camera);
+            const inFrame = Math.abs(wickScreen.x) <= 1.16 && Math.abs(wickScreen.y) <= 1.2
+              && wickScreen.z > -1 && wickScreen.z < 1;
+            if (!inFrame) level = light.veranda;
+          }
+          flame.g.visible = level > .01;
+          flame.power = level * (.66 + .26 * baked.fixturePower());
+        };
+        updateFlame(0, 0, context.light);
+        context.up.push(updateFlame);
       }
       const backdrop = await loadSnowCourtBackdrop(baked, h.renderer, context.light);
       if (!backdrop) throw new Error('Missing Snow Roof court backdrop.');
