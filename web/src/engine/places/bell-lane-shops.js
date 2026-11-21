@@ -134,10 +134,7 @@ export function addBellLaneShops(h, stone) {
     pane.position.set(face, windowY, windowZ);
     pane.rotation.y = -side * Math.PI / 2;
     pane.receiveShadow = true;
-    if (landmark) {
-      pane.name = 'Bell Lane east shop window';
-      pane.userData.bellLaneReferenceDetails = 'three green-painted bays, amber sill, patched paper and split shutter';
-    }
+    if (landmark) pane.name = 'Bell Lane east shop window';
     C.G.add(pane);
 
     const sill = landmark ? M(0x96604a, .92, { map: grainTex }) : variant % 2 ? stone : timber;
