@@ -271,9 +271,13 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
       const c = await api.light({ runId: b.runId, placeId: lightPlace, shape, ...(wishId ? { wishId } : { wishText: wish.trim() }) });
       setWishId(c.wishId);
       b.confirm(c);
+      // With this run active, another tab cannot put a lamp ahead of it on the rack.
+      // Refresh its private predecessors before selecting the physical address.
+      if (lightPlace === 'bell-lane' && !b.isSettled) await loadPastLamps(lightPlace);
       if (!b.isSettled) {
         presence.burn(lightPlace, c.id, () => b.elapsed()); setScreen('burning');
         void engine.ignite({
+          ...(lightPlace === 'bell-lane' ? { lampId: c.id } : {}),
           ...(isWax ? { remainingFuel: () => remainingFuel(b.elapsed(), b.planned) } : {}),
           onCatch: () => {
             // The ignite cue is timed to the flame catching, and its own end hands over
@@ -307,7 +311,7 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
   const pastLampVersion = useRef(0);
   const loadPastLamps = useCallback((id: PlaceId) => {
     const version = ++pastLampVersion.current;
-    void (async () => {
+    return (async () => {
       if (id === 'bell-lane') await bellLaneSave.current;
       if (version !== pastLampVersion.current) return;
       const { candles } = await api.myCandles();

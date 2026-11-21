@@ -3,6 +3,7 @@ import { addBellLaneTree } from './bell-lane-tree.js';
 import { addBellLaneOilCup, makeBellLaneOilBowl } from './bell-lane-oil.js';
 import { BELL_LANE_CUPS } from './bell-lane-cups.ts';
 import { addBellLaneWishTag } from './bell-lane-wish-tag.js';
+import { BELL_LANE_SHELF, bellLaneRack, bellLaneTransfer } from './bell-lane-rack.js';
 import { bellLaneLocalHour, bellLaneShutterOffset, bellLaneShutterOpening } from './bell-lane-dawn.ts';
 
 // An invented neighbourhood temple: a lit shop lane, one low door, a tree and a small bell court.
@@ -13,6 +14,8 @@ export default function createPlace(h) {
   const gateHalfWidth = 1.16;
   const taperSource = V3(-1.47, .658, .092);
   const makeCup = (group, clay, baseY) => addBellLaneOilCup(h, group, clay, baseY);
+  const makeWishTag = (lamp, post) => addBellLaneWishTag(h, lamp, post);
+  const shelf = BELL_LANE_SHELF;
   return {
     exposure: 1.12, shade: .32,
     sky: { top: 0x080d19, horizon: 0x282c38, ground: 0x0b0e15, sun: 0xe0e4ee, dir: [-.7, .5, .35], glow: .12, clouds: .3, lit: 0x424e65, dark: 0x11141c, stars: .35, disc: 1.2 },
@@ -186,23 +189,11 @@ export default function createPlace(h) {
       await pauseBuild();
     },
     nook: {
-      at: { pos: V3(...LAMP), ry: 0 }, lamp: 'lattice', y: .46, exposure: 1.1, bloom: [.35, 1.02],
+      at: { pos: V3(...LAMP), ry: 0 }, lamp: 'lattice', y: shelf.top, exposure: 1.1, bloom: [.35, 1.02],
       makeVisitorCup: makeCup,
-      makeVisitorWishTag: (lamp, post) => addBellLaneWishTag(h, lamp, post),
-      visitorLampPlacement: {
-        slot: 'visitor',
-        position(progress, target) {
-          const smooth = THREE.MathUtils.smoothstep;
-          const lift = smooth(progress, 0, .3) * (1 - smooth(progress, .65, 1));
-          // Lift from the service spot, move into the row, and lower the feet onto the same shelf.
-          target.set(0, .46 + .073 * lift, .139 * smooth(progress, .18, .82));
-        },
-      },
-      // The two most recent lamps flank the current lamp within the seated phone view.
-      // The remaining slots are farther back on the same shelf.
-      pastLampSlots: [[.318, .46, .205, .47, .14], [-.205, .46, .075, .45, .27],
-        [.59, .46, .205, .38, -.16], [-.61, .46, .202, .38, .13]],
-      makePastLamp: lamp => unlitLattice(lamp, makeCup),
+      makeVisitorWishTag: makeWishTag,
+      visitorLampPlacement: { layout: bellLaneRack, position: bellLaneTransfer },
+      makePastLamp: lamp => unlitLattice(lamp, makeCup, makeWishTag),
       explicitPhoneViews: true, wide: cameras.wide, widePhone: cameras.widePhone,
       choose: cameras.choose, choosePhone: cameras.choosePhone, taperSource,
       async build() {
@@ -210,12 +201,14 @@ export default function createPlace(h) {
         const edge = M(0x574333, .95, { map: grainTex });
         const tag = M(0x9b7552, .96);
         const clay = M(0x9d623f, .84);
-        // Leave the center of the rack clear from the service spot to the display row.
-        box(2.11, .09, .56, wood, 0, .415, 0);
-        for (const x of [-.94, .94]) for (const z of [-.21, .21]) box(.085, .37, .081, edge, x, .185, z);
-        box(1.85, .09, .29, edge, 0, .18, 0);
-        const darkLamps = [[-.79, .01, -.1, .52, 0x69533e], [.42, .055, -.21, .52, 0x826648],
-          [.76, .02, .3, .52, 0x604a39], [.62, -.154, .10, .38, 0x73523b], [-.66, -.163, -.24, .39, 0x756359]];
+        const depth = shelf.back - shelf.front, middle = shelf.front + depth / 2;
+        box(shelf.width, .09, depth, wood, 0, shelf.top - .045, middle);
+        for (const x of [-.94, .94]) for (const z of [shelf.front + .07, shelf.back - .07])
+          box(.085, .37, .081, edge, x, .185, z);
+        box(1.85, .09, .29, edge, 0, .18, middle);
+        // Keep the original six fixtures outside the visitor's service and display spaces.
+        const darkLamps = [[-.79, .01, -.1, .52, 0x69533e], [.44, .60, -.21, .52, 0x826648],
+          [.84, .34, .3, .52, 0x604a39], [.75, -.23, .10, .38, 0x73523b], [-.66, -.163, -.24, .39, 0x756359]];
         darkLamps.forEach(([x, z, yaw, scale, color], i) => {
           const lamp = unlitLattice({ color }, makeCup);
           lamp.name = `Bell Lane old lamp ${i + 1}`;
@@ -224,19 +217,19 @@ export default function createPlace(h) {
           lamp.scale.setScalar(scale);
           h.context.G.add(lamp);
         });
-        const other = otherLamp('lattice', -.44, .46, .055, .55, .13, .31);
+        const other = otherLamp('lattice', -.55, .46, .055, .55, .13, .31);
         other.g.name = 'Bell Lane old lamp 6';
         other.g.scale.setScalar(.52);
         other.p.shells[0].color.setHex(0x88603d);
         // The two matching bowls sit on a small ledge beside the central lamp, within both seated views.
-        const cupLedgeY = .912, cupLedgeZ = .139;
-        box(.206, .018, .105, wood, .359, cupLedgeY - .009, cupLedgeZ);
-        box(.331, .018, .024, edge, .2685, cupLedgeY - .028, .11);
+        const cupLedgeY = .912, cupLedgeZ = -.24;
+        box(.206, .018, .105, wood, .279, cupLedgeY - .009, cupLedgeZ);
+        box(.246, .018, .024, edge, .231, cupLedgeY - .028, cupLedgeZ - .029);
         BELL_LANE_CUPS.forEach(({ id, color, roughness }, i) => {
           const bowl = makeBellLaneOilBowl(h, M(color, roughness), -.010);
           bowl.name = `Bell Lane rack oil cup ${id}`;
           bowl.userData.cupId = id;
-          bowl.position.set(.31 + .099 * i, cupLedgeY, cupLedgeZ);
+          bowl.position.set(.23 + .099 * i, cupLedgeY, cupLedgeZ);
           h.context.G.add(bowl);
         });
         // Taper and tag supplies stay on the side table.

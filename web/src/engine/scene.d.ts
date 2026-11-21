@@ -4,7 +4,7 @@ import type { BellLaneCupId } from './places/bell-lane-cups.ts';
 export type ScenePhase = 'wish' | 'place' | 'travel' | 'candle' | 'burning' | 'result';
 export type PlaceLoadProgress = { loadedBytes: number; totalBytes: number; ratio: number | null; stage: 'loading' | 'preparing' | 'ready' | 'error' };
 export type LampThumbnailOptions = { state: 'unlit' | 'burning' | 'went_out' | 'burned_down'; remaining: number; width: number; height: number };
-export type IgnitionOptions = { onCatch?: () => void; remainingFuel?: () => number; onTaperLit?: () => void };
+export type IgnitionOptions = { lampId?: string; onCatch?: () => void; remainingFuel?: () => number; onTaperLit?: () => void };
 export const ready: Promise<void>;
 export function ensureReady(): Promise<void>;
 export function setOffer(shape: Shape | null): void;
@@ -19,7 +19,7 @@ export function ignite(options?: IgnitionOptions): Promise<void>;
 export function renderLampThumbnail(shape: Shape, options: LampThumbnailOptions): Promise<string>;
 export function snuff(done?: boolean, remaining?: number, gust?: boolean): Promise<void>;
 
-// A court opts into drawing its visitor's finished lamps with nook.pastLampSlots.
+// A court opts into drawing its visitor's finished lamps with nook.visitorLampPlacement.
 export type OwnPastLamp = { id: string; shape: Shape; remaining: number; status: 'went_out' | 'burned_down' | 'ended_unexpectedly' };
 export function setOwnPastLamps(id: PlaceId, list: readonly OwnPastLamp[]): void;
 

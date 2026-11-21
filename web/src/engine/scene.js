@@ -1156,8 +1156,9 @@ function otherLamp(type, x, y, z, L = .6, ry = 0, power = .62) {
   C.others.push(o); return o;
 }
 
-function unlitLattice({ shape, color, remaining = 0 }, makeCup) {
-  const p = LAMPS.lattice(shape ?? { ...presetOf('shade'), color }, makeCup);
+function unlitLattice({ shape, color, remaining = 0 }, makeCup, makeWishTag) {
+  const p = LAMPS.lattice(shape ?? { ...presetOf('shade'), color }, makeCup, makeWishTag);
+  p.wishTag?.setProgress(1);
   p.setFuelLevel?.(remaining);
   // The small, stationary stands share wood and a transform, so draw one wood mesh per lamp.
   const woodParts = p.g.children.filter(mesh => mesh.material === lampWood);
@@ -2284,30 +2285,27 @@ export function setOwnPastLamps(id, lamps) {
 }
 
 function showPastLamps(court) {
-  const { pastLampSlots, makePastLamp } = court.P.nook;
-  if (!pastLampSlots) return;
-  const lamps = (ownPastLamps.get(court.id) ?? []).slice(0, pastLampSlots.length);
-  // Repeat visits reuse the meshes, including when only off-shelf records changed.
-  const key = lamps.map(lamp => `${lamp.id}:${lamp.status}:${lamp.remaining}`).join(',');
+  const { visitorLampPlacement: placement, makePastLamp } = court.P.nook;
+  if (!placement) return;
+  const { previous } = placement.layout(ownPastLamps.get(court.id) ?? []);
+  const key = previous.map(({ lamp, slot }) => `${lamp.id}:${lamp.status}:${lamp.remaining}:${slot.id}`).join(',');
   if (key === (court.pastLampKey ?? '')) return;
   const group = new THREE.Group();
   group.name = 'Own past lamps';
-  lamps.forEach((lamp, i) => {
-    const [x, y, z, scale, yaw] = pastLampSlots[i];
+  previous.forEach(({ lamp, slot }, i) => {
     const model = makePastLamp(lamp);
     model.name = `Own past lamp ${i + 1}`;
-    model.userData = { candleId: lamp.id, remaining: lamp.remaining, status: lamp.status, color: lamp.shape.color, slot: i + 1 };
-    model.position.set(x, y, z);
-    model.scale.setScalar(scale);
-    model.rotation.y = yaw;
+    model.userData = { candleId: lamp.id, remaining: lamp.remaining, status: lamp.status, color: lamp.shape.color,
+      slot: i + 1, rackSlot: slot.id };
+    placement.position(slot, 1, model.position);
     group.add(model);
   });
   if (court.pastLampGroup) {
     court.pastLampGroup.removeFromParent();
     disposeTree(court.pastLampGroup);
   }
-  if (lamps.length) court.nookG.add(group);
-  court.pastLampGroup = lamps.length ? group : null;
+  if (previous.length) court.nookG.add(group);
+  court.pastLampGroup = previous.length ? group : null;
   court.pastLampKey = key;
 }
 
@@ -2316,7 +2314,7 @@ export function setOffer(shape) {
   const o=toOffer(shape);level=targetLevel=1;mine.g.visible=!!o&&atLamp;
   waxFuel = null;
   if (visitorLampPlacement) {
-    visitorLampPlacement.rule.position(0, mine.g.position);
+    visitorLampPlacement.rule.position(visitorLampPlacement.slot, 0, mine.g.position);
     visitorLampPlacement = null;
   }
   if(o)mine.setOffer(o);else mine.offer=null;
@@ -2630,7 +2628,7 @@ function makeIgnitionTaper(){
   return { g, f, casters };
 }
 /** Light the flame (animation only; the burn clock lives in the UI). */
-export async function ignite({onCatch, remainingFuel, onTaperLit}={}) {
+export async function ignite({onCatch, remainingFuel, onTaperLit, lampId}={}) {
   const journey=++cameraJourneyVersion;
   const mark = (state, progress, evidence) => {
     if (import.meta.env.DEV) window.__visualIgnition = { state, progress, journey,
@@ -2647,11 +2645,11 @@ export async function ignite({onCatch, remainingFuel, onTaperLit}={}) {
   if (place.P.nook.taperSource) {
     const { taperSource, visitorLampPlacement: placementRule } = place.P.nook;
     const placement = placementRule
-      ? { rule: placementRule, progress: 0, caught: false }
+      ? { rule: placementRule, slot: placementRule.layout(ownPastLamps.get(place.id) ?? []).next, progress: 0, caught: false }
       : null;
     visitorLampPlacement = placement;
     const placementEvidence = () => placement ? {
-      rackSlot: placement.rule.slot,
+      rackSlot: placement.slot.id, lampId,
       lampPosition: mine.g.position.toArray(),
       placementProgress: placement.progress,
     } : {};
@@ -2693,7 +2691,7 @@ export async function ignite({onCatch, remainingFuel, onTaperLit}={}) {
         mine.power = smooth(.31, .62, k);
         if (placement && k >= taperCleared) {
           placement.progress = THREE.MathUtils.inverseLerp(taperCleared, placementEnds, Math.min(k, placementEnds));
-          placement.rule.position(placement.progress, mine.g.position);
+          placement.rule.position(placement.slot, placement.progress, mine.g.position);
         }
         if (import.meta.env.DEV) {
           const taperTip = f.flame.getWorldPosition(tip);
@@ -2910,7 +2908,7 @@ export async function snuff(done = false, remaining, gust = false) {
     void tween(1.4, k => {
       if (placement !== visitorLampPlacement || journey !== cameraJourneyVersion) return;
       placement.progress = THREE.MathUtils.lerp(from, 1, k);
-      placement.rule.position(placement.progress, mine.g.position);
+      placement.rule.position(placement.slot, placement.progress, mine.g.position);
     });
   }
   if(ignitionTaper)ignitionTaper.g.visible=false;
