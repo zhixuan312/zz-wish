@@ -27,16 +27,18 @@ export async function startPreview() {
             if (!source.includes(anchor) || !source.includes(draw)) throw new Error('Bell Lane review cannot find the active scene or render loop.');
             return source.replace(anchor, anchor + `
               const requestedBellFrames = [];
-              window.__captureBellFrame = seconds => new Promise((resolve, reject) => {
-                requestedBellFrames.push({ seconds, resolve, reject });
+              window.__captureBellFrame = (criteria = {}) => new Promise((resolve, reject) => {
+                requestedBellFrames.push({ ...criteria, resolve, reject });
               });
               function captureBellFrames() {
                 const walk = window.__walkProgress ?? null;
+                const ignition = window.__visualIgnition ?? null;
                 for (const request of requestedBellFrames.slice()) {
-                  if (request.seconds !== null && (walk?.id !== 'bell-lane' || walk.progress * 30 < request.seconds)) continue;
+                  if (request.seconds != null && (walk?.id !== 'bell-lane' || walk.progress * 30 < request.seconds)) continue;
+                  if (request.ignitionState && ignition?.state !== request.ignitionState) continue;
                   requestedBellFrames.splice(requestedBellFrames.indexOf(request), 1);
                   const frame = { position: camera.position.toArray(), direction: camera.getWorldDirection(new THREE.Vector3()).toArray(),
-                    fov: camera.fov, walk, landmark: window.__bellReviewWindow(), ignition: window.__visualIgnition ?? null };
+                    fov: camera.fov, walk, landmark: window.__bellReviewWindow(), ignition };
                   renderer.domElement.toBlob(blob => {
                     if (!blob) { request.reject(new Error('The renderer returned no frame')); return; }
                     const reader = new FileReader();

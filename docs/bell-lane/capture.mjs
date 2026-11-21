@@ -77,18 +77,18 @@ const ready = page => page.waitForFunction(() => document.querySelector('.ui[dat
 const audio = page => page.evaluate(() => window.__reviewBellLaneAudio());
 const waitWalk = (page, seconds) => page.waitForFunction(value => window.__walkProgress?.progress >= value / 30, seconds, { timeout: 60000 });
 
-async function snap(page, directory, name, seconds = null) {
+async function snap(page, directory, name, criteria = {}) {
   const path = join(directory, name + '.png');
-  const { png, ...camera } = await page.evaluate(async seconds => {
+  const { png, ...camera } = await page.evaluate(async criteria => {
     let timer;
     try {
-      return await Promise.race([window.__captureBellFrame(seconds), new Promise((_, reject) => {
-        timer = setTimeout(() => reject(new Error('No Bell Lane frame at ' + seconds)), 45000);
+      return await Promise.race([window.__captureBellFrame(criteria), new Promise((_, reject) => {
+        timer = setTimeout(() => reject(new Error('No Bell Lane frame matching ' + JSON.stringify(criteria))), 45000);
       })]);
     } finally {
       clearTimeout(timer);
     }
-  }, seconds);
+  }, criteria);
   await writeFile(path, Buffer.from(png, 'base64'));
   shots.push({ file: path, ...camera });
   return camera;
@@ -171,14 +171,14 @@ try {
       const soundRows = {};
       await waitWalk(page, 12);
       soundRows.eaves = await audio(page);
-      const passing = await snap(page, directory, 'passing-window', 16.75);
+      const passing = await snap(page, directory, 'passing-window', { seconds: 16.75 });
       await waitWalk(page, 22);
       soundRows.approach = await audio(page);
-      await snap(page, directory, 'threshold', 24.2);
+      await snap(page, directory, 'threshold', { seconds: 24.2 });
       soundRows.door = await audio(page);
-      await snap(page, directory, 'open-court-26s', 26.3);
+      await snap(page, directory, 'open-court-26s', { seconds: 26.3 });
       soundRows.court = await audio(page);
-      await snap(page, directory, 'open-court-29s', 29.5);
+      await snap(page, directory, 'open-court-29s', { seconds: 29.5 });
       await screen(page, 'candle');
       await page.screenshot({ path: join(directory, 'chooser-ready-made.png'), scale: 'css' });
       const chooser = { readyMade: await page.evaluate(() => window.__bellReviewWindow()) };
@@ -213,10 +213,9 @@ try {
       }
       await page.getByRole('button', { name: /^Light it/ }).click({ timeout: 20000 });
       await screen(page, 'burning');
-      await page.waitForFunction(() => window.__visualIgnition?.state === 'wick-contact');
-      const contact = await page.evaluate(() => window.__visualIgnition);
+      const { ignition: contact } = await snap(page, directory, 'taper-contact', { ignitionState: 'wick-contact' });
+      assert.equal(contact.state, 'wick-contact');
       assert.ok(contact.wickContactMetres <= .001);
-      await snap(page, directory, 'taper-contact');
       await writeFile(join(directory, 'taper-contact.json'), JSON.stringify({ drawn, ...contact }, null, 2));
       await page.waitForFunction(() => window.__visualIgnition?.state === 'settled');
       const seatedFrame = await snap(page, directory, 'seated');
