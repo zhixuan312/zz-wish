@@ -191,15 +191,19 @@ def swept_ground(mesh, site, materials):
                      (.94, -.12, .12, .22), (-.24, -.19, .12, .23),
                      (-1.36, -.15, .15, .29))
 
-    def stone_core(across, z):
+    def stone_exposure(across, z):
         for pz, px, width, length in scoured_stones:
             t = (z - pz) / length
-            if abs(t) < 1.:
+            if abs(t) < 1.22:
                 u = (across - px) / width + .31 * t
-                edge = .91 + .085 * math.sin(34. * z + across * 28.)
-                if abs(u) ** 3 + abs(t) ** 2.5 < edge:
-                    return True
-        return False
+                texture = .15 * math.sin(17. * z + across * 23.)
+                cover = abs(u) ** 2.4 + abs(t) ** 2.2 + texture
+                return .76 * (1. - smoothrise(.19, 1.32, cover))
+        return 0.
+
+    # Keep granite colour under a continuous skin of frost. A material
+    # boundary along the triangulation would make the thin edge look cut.
+    frost_over_stone = (.54, .57, .61)
     # Sample the boot centres at actual row coordinates. Keep enough regular
     # rows to describe the intervening snow and contiguous atlas chart.
     stations = [rear + (front + .08 - rear) * i / 119 for i in range(120)]
@@ -223,6 +227,8 @@ def swept_ground(mesh, site, materials):
                  + .19 * math.exp(-((abs(x) - 9.1) / .91) ** 2))
         depth, tread = boot_relief(x, z, footprints, sole_scale=.92)
         displacement, tint = swept_surface(x, z, across, seam, exposure, fade, tread)
+        scoured = stone_exposure(across, z)
+        tint = tuple(snow + scoured * (stone - snow) for snow, stone in zip(tint, frost_over_stone))
         lee_drift = wall_foot_snow(site, x, z)
         lee_drift *= smoothrise(.86, 1.31, abs(across))
         relief = .027 + drift * ridge - 1.40 * depth * fade + displacement + lee_drift
@@ -259,12 +265,6 @@ def swept_ground(mesh, site, materials):
     snow_factor = surface.get('one_light_vertex_base_tint', (1., 1., 1.))
     ground = mesh.mesh_object('Swept snow, displaced berms and buried prints',
                               vertices, faces, surface)
-    stone = materials['granite'].copy()
-    stone.name = 'Scoured pass granite under the swept snow'
-    mesh.vertex_tint_shader(stone)
-    del stone['one_light_surface_tint']
-    stone_factor = stone['one_light_vertex_base_tint']
-    ground.data.materials.append(stone)
     mesh.source_uv(ground, [[(vertices[i][0], vertices[i][2]) for i in face] for face in faces],
                    'One continuous x/z chart through the swept lane, boot impressions and snow berms.')
     # Reuse the same scanned grain at a finer pitch. The slight diagonal
@@ -274,20 +274,11 @@ def swept_ground(mesh, site, materials):
     ground.data.color_attributes.active_color = layer
     for polygon in ground.data.polygons:
         polygon.use_smooth = True
-        points = [vertices[i] for i in polygon.vertices]
-        cx = sum(point[0] for point in points) / 3
-        cz = sum(point[2] for point in points) / 3
-        exposed = stone_core(cx - sweep_center(route, cz), cz)
-        polygon.material_index = int(exposed)
         for loop in polygon.loop_indices:
             i = ground.data.loops[loop].vertex_index
             x, _, z = vertices[i]
             uv[loop].uv = ((x + .17 * z) / .76, -z / .91)
-            if exposed:
-                frost = .28 + .13 * math.sin(z * 6.9 + x * 8.4)
-                layer.data[loop].color = (*(a + frost * (b - a) for a, b in zip(stone_factor, snow_factor)), 1.)
-            else:
-                layer.data[loop].color = (*(a * b for a, b in zip(snow_factor, colours[i])), 1.)
+            layer.data[loop].color = (*(a * b for a, b in zip(snow_factor, colours[i])), 1.)
     return ground
 
 
