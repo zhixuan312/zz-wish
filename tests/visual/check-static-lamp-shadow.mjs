@@ -12,8 +12,17 @@ function mockRenderer({failRender=false,failCopy=false}={}){
  const r={isWebGLRenderer:true,capabilities:{maxTextureSize:8192},xr:{enabled:true},shadowMap:{enabled:false,autoUpdate:true,needsUpdate:false,type:THREE.PCFSoftShadowMap},toneMapping:THREE.AgXToneMapping,toneMappingExposure:1.7,outputColorSpace:THREE.SRGBColorSpace,autoClear:false,autoClearColor:false,autoClearDepth:false,autoClearStencil:false,target:new THREE.WebGLRenderTarget(3,5),face:2,mip:1,viewport:new THREE.Vector4(1,2,3,4),scissor:new THREE.Vector4(2,3,4,5),scissorTest:true,clear:new THREE.Color(.2,.3,.4),alpha:.6,compileCalls:0,renderCalls:0,copyCalls:0,atlasDisposals:0,textureDisposals:0,
   getRenderTarget(){return this.target;},getActiveCubeFace(){return this.face;},getActiveMipmapLevel(){return this.mip;},getViewport(v){return v.copy(this.viewport);},getScissor(v){return v.copy(this.scissor);},getScissorTest(){return this.scissorTest;},getClearColor(v){return v.copy(this.clear);},getClearAlpha(){return this.alpha;},
   setRenderTarget(t,face=0,mip=0){this.target=t;this.face=face;this.mip=mip;},setViewport(x,y,z,w){if(x.isVector4)this.viewport.copy(x);else this.viewport.set(x,y,z,w);},setScissor(x,y,z,w){if(x.isVector4)this.scissor.copy(x);else this.scissor.set(x,y,z,w);},setScissorTest(v){this.scissorTest=v;},setClearColor(c,a){this.clear.set(c);this.alpha=a;},
-  async compileAsync(scene){this.compileCalls++;assert(scene.overrideMaterial.isMeshBasicMaterial);this.wrappers=scene.children.filter(o=>o.isMesh).map(o=>({name:o.name,geometry:o.geometry,material:o.material,matrix:o.matrix.clone(),castShadow:o.castShadow}));},
-  render(scene){this.renderCalls++;assert.equal(this.target.width,4);assert.equal(this.target.height,4);assert.equal(this.xr.enabled,false);assert.equal(this.shadowMap.enabled,true);if(failRender)throw Error('forced render failure');const light=scene.children.find(o=>o.isPointLight);assert(light?.shadow.isPointLightShadow);this.nativeLight=light;light.shadow.map=new THREE.WebGLRenderTarget(light.shadow.mapSize.x*4,light.shadow.mapSize.y*2);light.shadow.map.addEventListener('dispose',()=>this.atlasDisposals++);},
+  async compileAsync(){this.compileCalls++;throw Error('Unexpected receiver shader compile');},
+  render(scene){
+   this.renderCalls++;
+   assert(scene.overrideMaterial.isMeshBasicMaterial);
+   this.wrappers=scene.children.filter(o=>o.isMesh).map(o=>({name:o.name,geometry:o.geometry,material:o.material,matrix:o.matrix.clone(),castShadow:o.castShadow}));
+   assert.equal(this.target.width,4);assert.equal(this.target.height,4);assert.equal(this.xr.enabled,false);assert.equal(this.shadowMap.enabled,true);
+   if(failRender)throw Error('forced render failure');
+   const light=scene.children.find(o=>o.isPointLight);assert(light?.shadow.isPointLightShadow);
+   this.nativeLight=light;light.shadow.map=new THREE.WebGLRenderTarget(light.shadow.mapSize.x*4,light.shadow.mapSize.y*2);
+   light.shadow.map.addEventListener('dispose',()=>this.atlasDisposals++);
+  },
   copyFramebufferToTexture(position,texture){this.copyCalls++;assert.deepEqual(position.toArray(),[0,0]);assert.equal(this.target,this.nativeLight.shadow.map);assert(texture.isFramebufferTexture);assert.deepEqual([texture.image.width,texture.image.height],[2048,1024]);texture.addEventListener('dispose',()=>this.textureDisposals++);if(failCopy)throw Error('forced copy failure');},
  };
  return r;
@@ -28,7 +37,7 @@ const dynamic=new THREE.Mesh(geometry,opaque);dynamic.userData.one_light_dynamic
 const original={parent:mesh.parent,castShadow:mesh.castShadow,material:mesh.material,matrix:mesh.matrixWorld.toArray(),children:root.children.slice()};
 const basis=new THREE.Vector3(-1.5,2.25,-1.3),state=createStaticLampShadow({lightWorld:basis,sourceRadius:.004}),renderer=mockRenderer(),before=snapshot(renderer);
 basis.x+=.02;assert.equal(state.uniforms.uStaticLampPoint.value.x,-1.5);assert.equal(state.uniforms.uStaticLampLivePoint.value,basis);
-const metadata=await state.capture(renderer,root);assert.deepEqual(snapshot(renderer),before);assert.equal(metadata.staticMeshes,2);assert.equal(metadata.storage,'framebuffer-texture-copy');assert.equal(metadata.rgbaTextureBytes,8388608);assert.equal(metadata.mainSceneMutations,0);assert.equal(renderer.atlasDisposals,1);assert.equal(renderer.textureDisposals,0);assert.equal(state.texture.isFramebufferTexture,true);
+const metadata=await state.capture(renderer,root);assert.equal(renderer.compileCalls,0);assert.deepEqual(snapshot(renderer),before);assert.equal(metadata.staticMeshes,2);assert.equal(metadata.storage,'framebuffer-texture-copy');assert.equal(metadata.rgbaTextureBytes,8388608);assert.equal(metadata.mainSceneMutations,0);assert.equal(renderer.atlasDisposals,1);assert.equal(renderer.textureDisposals,0);assert.equal(state.texture.isFramebufferTexture,true);
 const wrapper=renderer.wrappers.find(o=>o.name===mesh.name);assert.equal(wrapper.geometry,geometry);assert.equal(wrapper.material,opaque);assert.equal(wrapper.material.alphaTest,.5);assert.equal(wrapper.material.map,alpha);assert.deepEqual(wrapper.matrix.toArray(),mesh.matrixWorld.toArray());assert.equal(wrapper.castShadow,true);
 assert.equal(mesh.parent,original.parent);assert.equal(mesh.castShadow,original.castShadow);assert.equal(mesh.material,original.material);assert.deepEqual(mesh.matrixWorld.toArray(),original.matrix);assert.deepEqual(root.children,original.children);
 await state.capture(renderer,root);assert.equal(renderer.renderCalls,1);assert.equal(renderer.copyCalls,1);await assert.rejects(state.capture(renderer,new THREE.Group()),/new static place/);

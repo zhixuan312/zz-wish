@@ -112,9 +112,7 @@ export function createStaticLampShadow({lightWorld,sourceRadius,resolution=512,n
     if(!meshes)throw Error('No opaque actual static meshes to capture');
     scene.overrideMaterial=override;light.position.copy(basis);light.castShadow=true;light.shadow.mapSize.set(resolution,resolution);light.shadow.camera.near=near;light.shadow.camera.far=far;light.shadow.camera.updateProjectionMatrix();light.shadow.autoUpdate=false;light.shadow.needsUpdate=true;scene.add(light);
     camera.position.copy(basis);camera.lookAt(basis.clone().add(new Vector3(1,0,0)));scene.updateMatrixWorld(true);
-    // Compile the unshown four-by-four beauty pass before changing render state.
-    await renderer.compileAsync(scene,camera);
-    if(disposed)throw Error('Static lamp-shadow state disposed during warm compile');
+    // The capture uses the native distance shaders and a basic color override.
     saved=captureState(renderer);renderer.xr.enabled=false;renderer.shadowMap.enabled=true;renderer.shadowMap.autoUpdate=false;renderer.shadowMap.needsUpdate=true;
     renderer.autoClear=true;renderer.autoClearColor=true;renderer.autoClearDepth=true;renderer.autoClearStencil=true;renderer.toneMapping=NoToneMapping;renderer.toneMappingExposure=1;renderer.outputColorSpace=LinearSRGBColorSpace;
     renderer.setScissorTest(false);renderer.setClearColor(0,0);renderer.setRenderTarget(warm);renderer.setViewport(0,0,4,4);renderer.render(scene,camera);
