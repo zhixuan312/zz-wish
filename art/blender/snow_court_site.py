@@ -580,6 +580,8 @@ def hall(site, m, contact, fixtures):
     mesh.tiled_roof('Temple main hall', 0, eave, z, span + .97, depth / 2 + .64, 1.64,
                     m['tile'], m['wood'], m['snow'], 'hall')
     everyday.drift_roof_snow(mesh, 'Temple main hall')
+    # A local repair straddles the exposed front eave above the doorway.
+    everyday.replace_roof_tiles(mesh, 'Temple main hall', .44, front + .64)
     for px in (-3.41, 3.41):
         mesh.lathe('Slim front veranda post', [(.116, 0), (.124, .09), (.117, 1.1), (.104, 2.68)],
                    (px, y - .11, front + .52), m['red'], 20)
