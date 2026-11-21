@@ -154,3 +154,31 @@ leases were released.
 
 The complete follow-up index is
 `/Users/xuan/OpenBot/Shared/one-light/artifacts/sea-tide/round-2/index.md`.
+
+## Shoreline, pottery and endings
+
+Browser source `86834b5`. Shore armour enters the water with an irregular
+wet boundary, exposed seams and foam driven by the shoreline geometry.
+The hood uses opaque fired clay and openings with visible thickness. The
+wick and broad reflected light on the stone follow the flame. Only the
+interior ceramic around the apertures carries the ending afterglow.
+
+The four 13:00 and 22:00 journeys used a 1440×900 desktop and a 390×844
+emulated phone. Both harbour tips remained visible through reveal, chooser
+and burn. The clear reveal lasted 3.504–3.559 seconds and the walking eye
+height was 1.520–1.530 m. The closest wall clearance was 0.512 m on desktop
+and 0.854 m on phone. Normal and Skip reached the same position and aim.
+The four lit/off pairs held the same actual camera pose and surroundings.
+
+The phone night ending pilot replayed the prior `e67f7a3` material and the
+final source through the real app. The prior material showed no vent tail.
+The restored put-out and exhaustion tails ended at 16.006 and 5.200 s.
+The wick flame and its stone bounce reached zero together at 0.132 and
+2.609 s. The Bamboo switch and Tide restart showed zero residual visitor
+light. The Draw test kept its flared profile through the red and ivory
+selections, which produced distinct fired clay tints.
+
+Both runs released the S7 lease and all recorded runners exited. The
+photo sources, original frames, native crops, clips, traces and focused
+checks are indexed at
+`/Users/xuan/OpenBot/Shared/one-light/artifacts/sea-tide/round-3-final/index.md`.
