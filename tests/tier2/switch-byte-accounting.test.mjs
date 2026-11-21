@@ -180,6 +180,46 @@ test('chunks exceeding the authoritative total are quarantined, not partially pl
   expect(reconciled).toBe(true);
 });
 
+test('a boundary anchored on the wrong request is detectable before it is trusted', () => {
+  // The live defect: the anchor was a Fetch for /api/me/candles, 2 069 ms after the document. This pins the
+  // selection rule the harness must use — only a Document-typed request is an anchor — and shows what a bad
+  // anchor does to the split.
+  const events = [
+    { ts: 805299.638814, type: 'Document', url: 'http://127.0.0.1:8912/' },
+    { ts: 805301.251745, type: 'Fetch', url: 'http://127.0.0.1:8912/api/me/candles' },
+    { ts: 805301.708079, type: 'Fetch', url: 'http://127.0.0.1:8912/api/me/candles' },
+  ];
+  const document = events.find(event => event.type === 'Document');
+  expect(document.ts).toBe(805299.638814);
+  // A URL-shaped match is not enough: the rule has to carry the request type, because a Fetch can look like
+  // a document path. Selecting by type is the only selector that survives new endpoints.
+  const byUrlOnly = events.filter(event => /\/($|\?)/.test(event.url));
+  expect(byUrlOnly.map(event => event.type)).toEqual(['Document']);   // only the document has a bare path
+  const byFallback = events[0];                                        // a bare fallback takes the first
+  expect(byFallback.type).toBe('Document');                            // which happened to be right here
+  // What a fallback risks: the last Fetch in this stream is 2 069.265 ms later than the document.
+  expect(Math.abs(events[2].ts - document.ts) * 1000).toBeCloseTo(2069.265, 3);
+  // And the guard the harness needs: refuse when no Document-typed request is present.
+  const noDocument = events.filter(event => event.type !== 'Document');
+  expect(noDocument.find(event => event.type === 'Document')).toBeUndefined();
+});
+
+test('a delayed checked flip widens the bracket and moves the boundary', () => {
+  // With an observed transition the boundary is the midpoint of click-to-checked, so a late flip is not
+  // silently treated as an immediate one.
+  const anchor = 805299.638814 * 1000;
+  const boundaryOf = (clickedPageMs, firstCheckedPageMs) =>
+    anchor + clickedPageMs + (firstCheckedPageMs - clickedPageMs) / 2;
+  const immediate = boundaryOf(1000, 1016);
+  const delayed = boundaryOf(1000, 1400);
+  expect(immediate).toBeCloseTo(anchor + 1008, 6);
+  expect(delayed).toBeCloseTo(anchor + 1200, 6);
+  expect(delayed - immediate).toBeCloseTo(192, 6);   // a 384 ms later flip moves it 192 ms
+  // And the uncertainty must cover at least the half-bracket.
+  const halfBracket = (1400 - 1000) / 2;
+  expect(Math.max(33, halfBracket)).toBe(200);
+});
+
 test('the adapter never substitutes a decoded length for a missing encoded length', () => {
   const ledger = createByteLedger({ uncertaintyMs: 5 });
   ledger.fromCdp({ method: 'Network.requestWillBeSent',

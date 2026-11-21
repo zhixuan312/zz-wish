@@ -118,41 +118,119 @@ try {
   // event: navigation starts when the document request is sent, so its CDP timestamp corresponds to
   // performance.now() ≈ 0 within the document's own start-up.
   const alignmentEvents = [];
-  const alignmentListener = params => alignmentEvents.push({ ts: params.timestamp, url: params.request?.url });
+  // Keep the request type: the document request is the only sound anchor, and matching on URL alone once
+  // picked a Fetch for /api/me/candles that happened to look like a document.
+  const alignmentListener = params => alignmentEvents.push({ ts: params.timestamp,
+    url: params.request?.url ?? '', type: params.type ?? params.request?.type ?? null });
   cdp.on('Network.requestWillBeSent', alignmentListener);
 
-  // Switch: click the Pine Gate radio, then read back which radio is checked. The checked radio, not the
-  // click's promise, is what proves the selection took effect.
+  // Install a capture listener on the real Pine radio before touching it, so the transition is observed
+  // rather than inferred from a later read. It records the page clock at the click and at the first moment a
+  // single aria-checked radio is Pine Gate.
+  await page.evaluate(() => {
+    const pine = [...document.querySelectorAll('[role=radio].place')]
+      .find(node => (node.getAttribute('aria-label') ?? node.textContent ?? '').includes('Pine Gate'));
+    window.__switchProbe = { clickedAt: null, firstCheckedAt: null, checkedLabel: null,
+      samples: 0, stopped: false, pineFound: Boolean(pine) };
+    if (!pine) return;
+    pine.addEventListener('click', () => {
+      window.__switchProbe.clickedAt = performance.now();
+    }, true);
+    const watch = () => {
+      const probe = window.__switchProbe;
+      if (probe.stopped || probe.firstCheckedAt !== null) return;
+      const checked = [...document.querySelectorAll('[role=radio].place')]
+        .filter(node => node.getAttribute('aria-checked') === 'true');
+      if (checked.length === 1
+        && (checked[0].getAttribute('aria-label') ?? checked[0].textContent ?? '').includes('Pine Gate')) {
+        probe.firstCheckedAt = performance.now();
+        probe.checkedLabel = (checked[0].getAttribute('aria-label') ?? '').trim();
+        return;
+      }
+      probe.samples++;
+      if (probe.samples < 3600) requestAnimationFrame(watch);
+    };
+    requestAnimationFrame(watch);
+  });
+  const probeFound = await page.evaluate(() => window.__switchProbe?.pineFound === true);
+  if (!probeFound) throw new Error('no Pine Gate radio was present before the click');
+
   const pine = page.locator('[role=radio].place').filter({ hasText: /Pine Gate/ }).first();
   await pine.click();
-  await page.waitForTimeout(600);
-  const checked = await page.evaluate(() => [...document.querySelectorAll('[role=radio].place')]
-    .filter(node => node.getAttribute('aria-checked') === 'true')
-    .map(node => (node.getAttribute('aria-label') ?? '').trim()));
-  record.checkedAfterClick = checked;
-  const switched = checked.length === 1 && checked[0].startsWith('Pine Gate');
+  // Wait for the observed transition, not a fixed sleep: the probe stops only when the checked radio becomes
+  // Pine Gate, and a timeout is a failed observation.
+  let transitionObserved = true;
+  try {
+    await page.waitForFunction(() => window.__switchProbe?.firstCheckedAt !== null, null, { timeout: 30000 });
+  } catch { transitionObserved = false; }
+  const probe = await page.evaluate(() => { if (window.__switchProbe) window.__switchProbe.stopped = true;
+    return window.__switchProbe ?? null; });
+  record.switchProbe = probe;
+  record.checkedAfterClick = probe?.checkedLabel ? [probe.checkedLabel] : [];
+  const switched = transitionObserved && Boolean(probe?.checkedLabel?.startsWith('Pine Gate'));
   record.switched = switched;
 
   if (!switched) {
     record.boundary = null;
-    ledger.switchUnconfirmed('the checked radio was ' + JSON.stringify(checked));
+    ledger.switchUnconfirmed(transitionObserved
+      ? 'the checked radio was ' + JSON.stringify(record.checkedAfterClick)
+      : 'the checked radio never became Pine Gate within 30 s of the click');
   } else {
-    // Map the confirmation onto the ledger's event clock. CDP times are monotonic seconds with an arbitrary
-    // origin, unrelated to Date.now(), so the only sound mapping is "page time minus CDP time" from an event
-    // whose page-side position is known: the document request, whose CDP timestamp corresponds to
-    // performance.now() ≈ 0 within the document's own start-up.
-    const confirmedPage = await page.evaluate(() => performance.now());
-    const documentRequest = alignmentEvents.find(event => /\/($|\?|index\.html)/.test(event.url ?? ''))
-      ?? alignmentEvents[0];
-    if (!documentRequest) throw new Error('the document request never reached the CDP listener; the boundary cannot be placed');
+    // Map the observed transition onto the ledger's event clock. CDP's timestamp is a monotonic clock with an
+    // arbitrary origin, so the mapping must come from the document request only — never from a lookalike
+    // request, and never from Date.now().
+    const documentRequest = alignmentEvents.find(event => event.type === 'Document');
+    if (!documentRequest) {
+      throw new Error('no Document request carried a type in the CDP stream; the boundary cannot be placed');
+    }
+    // CDP Performance.getMetrics gives NavigationStart and Timestamp on the same monotonic scale as
+    // Network timestamps, which anchors performance.now() exactly. The page sample is bracketed by two CDP
+    // round trips whose page clocks are read either side, so the offset carries a measured error.
+    const metrics = (await cdp.send('Performance.getMetrics')).metrics ?? [];
+    const metric = name => metrics.find(entry => entry.name === name)?.value ?? null;
+    const navigationStart = metric('NavigationStart');
+    const cdpTimestamp = metric('Timestamp');
+
+    const sampleOffset = async () => {
+      const beforeWall = Date.now();
+      const pageMs = await page.evaluate(() => performance.now());
+      const afterWall = Date.now();
+      // Midpoint of the round trip, on the wall clock, paired with the page reading.
+      return { pageMs, wallMs: (beforeWall + afterWall) / 2, bracketMs: afterWall - beforeWall };
+    };
+    const firstSample = await sampleOffset();
+    await page.waitForTimeout(60);
+    const secondSample = await sampleOffset();
+    const offsetChange = Math.abs((secondSample.wallMs - secondSample.pageMs)
+      - (firstSample.wallMs - firstSample.pageMs));
+    const bracket = Math.max(firstSample.bracketMs, secondSample.bracketMs);
+
+    // The document request's CDP time and NavigationStart both mark the document; their difference is the
+    // anchor's own error.
+    const documentAnchorError = navigationStart === null || cdpTimestamp === null ? null
+      : Math.abs((documentRequest.ts - navigationStart) * 1000);
+    const uncertaintyMs = Math.max(bracket, offsetChange, documentAnchorError ?? 0, 16);
+
+    // The transition is bracketed by the click and the first checked read, both on the page clock. Use the
+    // midpoint and let the uncertainty cover half the bracket.
+    const clickedAt = probe.clickedAt;
+    const firstCheckedAt = probe.firstCheckedAt;
+    const bracketHalf = (firstCheckedAt - clickedAt) / 2;
+    const boundaryPageMs = clickedAt + bracketHalf;
     const navTsMs = documentRequest.ts * 1000;
-    const boundaryMs = navTsMs + confirmedPage;
-    // The document's own start-up is the mapping error: scripts and layout run after the request is sent, so
-    // performance.now() at the first paint is not exactly the request's time. One frame is a fair floor.
-    const uncertaintyMs = 33;
-    record.boundary = { pageMsAtConfirm: +confirmedPage.toFixed(3), navRequestCdpMs: +navTsMs.toFixed(3),
-      boundaryCdpMs: +boundaryMs.toFixed(3), uncertaintyMs,
-      method: 'document request CDP timestamp plus page performance.now() at the confirmed check' };
+    const boundaryMs = navTsMs + boundaryPageMs;
+    record.clockAlignment = { offsetMs: +((firstSample.wallMs + secondSample.wallMs) / 2
+      - (firstSample.pageMs + secondSample.pageMs) / 2).toFixed(3),
+      bracketMs: bracket, offsetChangeMs: +offsetChange.toFixed(3),
+      navigationStart: navigationStart, cdpTimestamp: cdpTimestamp,
+      documentAnchorErrorMs: documentAnchorError === null ? null : +documentAnchorError.toFixed(3),
+      samples: [firstSample, secondSample],
+      method: 'Performance.getMetrics NavigationStart/Timestamp anchors the document; page offset bracketed by two round trips' };
+    record.boundary = { clickedPageMs: +clickedAt.toFixed(3), firstCheckedPageMs: +firstCheckedAt.toFixed(3),
+      transitionBracketMs: +(firstCheckedAt - clickedAt).toFixed(3),
+      documentRequestCdpMs: +navTsMs.toFixed(3), boundaryPageMs: +boundaryPageMs.toFixed(3),
+      boundaryCdpMs: +boundaryMs.toFixed(3), uncertaintyMs: +uncertaintyMs.toFixed(3),
+      method: 'document request anchor plus the midpoint of the observed click-to-checked bracket' };
     ledger.switchConfirmed({ atEventMs: boundaryMs, uncertaintyMs });
   }
 
