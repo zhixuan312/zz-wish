@@ -44,7 +44,7 @@ function smoothRange(start, end, value) {
 
 function lookYaw(t, phone) {
   const open = phone ? -8 : -23;
-  const keys = [[0, 70, 0], [12, 71, 0], [17, 65, -3], [22, 26, -12],
+  const keys = [[0, 70, 0], [12, 71, 0], [17, 65, -3], [22, phone ? 34 : 26, -12],
     [25.3, open, 0], [27.4, open, 0], [ROUTE_DURATION, phone ? 31 : 15, 0]];
   const i = keys.findIndex(([time]) => time >= t);
   if (i === 0) return keys[0][1] * Math.PI / 180;
@@ -72,7 +72,8 @@ export function sampleCloudCliffRoute(seconds, phone = false) {
   const t = Math.max(0, Math.min(ROUTE_DURATION, seconds));
   const x = positionAt(t, 1), y = 1.62, z = positionAt(t, 2);
   const yaw = lookYaw(t, phone);
-  const pitch = -.205 - .055 * smoothRange(22, 25.3, t) + .09 * smoothRange(27.4, 30, t);
+  const phoneShoulder = phone ? .035 * smoothRange(17, 22, t) * (1 - smoothRange(22, 25.3, t)) : 0;
+  const pitch = -.205 - phoneShoulder - .055 * smoothRange(22, 25.3, t) + .09 * smoothRange(27.4, 30, t);
   const aim = 6;
   const horizontal = Math.cos(pitch) * aim;
   return {
@@ -195,17 +196,20 @@ function valleyHeight(x, z) {
   return -214 + nearCliff + opposite + farRidge + flanks + ridges;
 }
 
-function addValleyBed(THREE, scene) {
+function addValleyBed(THREE, scene, rock) {
   const width = 134, height = 121;
-  const positions = [], colours = [], indices = [];
-  const shade = new THREE.Color(), base = new THREE.Color(0x5b5b4f), clay = new THREE.Color(0x817268);
+  const positions = [], colours = [], uvs = [], indices = [];
+  const shade = new THREE.Color(), base = new THREE.Color(0x657269), clay = new THREE.Color(0x988978);
   for (let row = 0; row < height; row++) {
     const z = 22 - row * 16;
     for (let col = 0; col < width; col++) {
       const x = -1064 + col * 16;
       const y = valleyHeight(x, z);
       positions.push(x, y, z);
-      shade.copy(base).lerp(clay, .43 + .25 * Math.sin(x / 71 - z / 39));
+      // Warp the world-scale rough surface so repeated source rock does not
+      // line up between the ridge and canyon slopes.
+      uvs.push(x / 48 + .28 * Math.sin(z / 33), z / 48 + .24 * Math.sin(x / 39));
+      shade.copy(base).lerp(clay, .39 + .19 * Math.sin(x / 71 - z / 39) + .10 * Math.sin(x / 23 + z / 17));
       shade.multiplyScalar(.83 + .14 * bandNoise(col, row));
       colours.push(shade.r, shade.g, shade.b);
       if (row && col) {
@@ -217,11 +221,24 @@ function addValleyBed(THREE, scene) {
   const geometry = new THREE.BufferGeometry();
   geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
   geometry.setAttribute('color', new THREE.Float32BufferAttribute(colours, 3));
+  geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
   geometry.setIndex(indices);
   geometry.computeVertexNormals();
-  const mesh = new THREE.Mesh(geometry, new THREE.MeshStandardMaterial({
+  const material = new THREE.MeshStandardMaterial({
+    map: rock.map, normalMap: rock.normalMap, normalScale: new THREE.Vector2(.32, .32),
     vertexColors: true, side: THREE.DoubleSide, roughness: 1,
-  }));
+  });
+  // Keep texture contrast in the distance while taking the geologic colour
+  // from the different slope bands rather than the near cliff's orange rock.
+  material.onBeforeCompile = shader => {
+    shader.fragmentShader = shader.fragmentShader.replace('#include <map_fragment>', `
+      #ifdef USE_MAP
+        float rockLuma = dot(texture2D(map, vMapUv).rgb, vec3(0.2126, 0.7152, 0.0722));
+        diffuseColor.rgb *= mix(0.64, 1.07, clamp(rockLuma * 2.7, 0., 1.));
+      #endif
+    `);
+  };
+  const mesh = new THREE.Mesh(geometry, material);
   mesh.name = 'Connected valley bed and far ridge';
   scene.add(mesh);
   return mesh;
@@ -248,7 +265,7 @@ function stageRock(THREE, scene, rock, pavers) {
   seat.rotation.y = Math.PI / 7;
   scene.add(seat);
   addContactShade(THREE, scene, x, seatTop, z);
-  const valley = addValleyBed(THREE, scene);
+  const valley = addValleyBed(THREE, scene, rock);
   return { floor, wall, valley };
 }
 
@@ -363,7 +380,7 @@ function lightLantern(THREE, renderer, scene, lantern, catchGroup, night) {
   panel(4, 2.7, -2, 2.8, .65, 0xbacde8, night ? .8 : 1.1);
   panel(1, -3, 2, 7, 7, 0x595349, night ? .5 : 1.4);
   const generator = new THREE.PMREMGenerator(renderer);
-  const environment = generator.fromScene(reflection, .07);
+  const environment = generator.fromScene(reflection, .035);
   generator.dispose();
   reflection.traverse(mesh => {
     if (mesh.isMesh) {
