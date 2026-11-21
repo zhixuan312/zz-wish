@@ -35,6 +35,14 @@ SEAT_SCAN_PATCHES = (
 )
 SEAT_SCAN_CAP = (.300, .878)
 SEAT_SCAN_UV_PER_METRE = .22
+# Centre lines on the original closed lids, measured by casting onto the
+# fitted figure from its front. Coordinates are in the figure's local metres.
+EYELID_CUTS = (
+    ((-.189, 1.3716, .0300), (-.160, 1.3719, .0450), (-.145, 1.3729, .0498),
+     (-.129, 1.3716, .0537), (-.109, 1.3699, .0561)),
+    ((-.027, 1.3624, .0559), (-.012, 1.3688, .0552), (.003, 1.3726, .0532),
+     (.018, 1.3744, .0502), (.038, 1.3741, .0436), (.053, 1.3724, .0360)),
+)
 
 
 def seat_ring(x, z):
@@ -200,6 +208,25 @@ def figure_stone_uv(local):
     return ((local @ np.asarray([right, up]).T) / .27 + [.5, .18]).astype(np.float32)
 
 
+def figure_eyelid_weight(local):
+    """Feather the cut around each existing eyelid crease."""
+    x, y, z = local.T
+    weight = np.zeros(len(local))
+
+    def smooth(value):
+        t = np.clip(value, 0., 1.)
+        return t * t * (3. - 2. * t)
+
+    for cut in EYELID_CUTS:
+        line_x, line_y, line_z = np.asarray(cut).T
+        along = smooth((x - line_x[0] + .005) / .015) * smooth((line_x[-1] + .005 - x) / .015)
+        dy = abs(y - np.interp(x, line_x, line_y))
+        dz = abs(z - np.interp(x, line_x, line_z))
+        across = np.exp(-.5 * (dy / .008) ** 2) * (1. - smooth((dy - .016) / .008))
+        weight += along * across * (1. - smooth((dz - .008) / .012))
+    return weight
+
+
 def figure_stone_colours(vertices, faces):
     """Keep dust in the cuts, with rubbed ridges and a trace of lamp soot."""
     a, b, c = vertices[faces].transpose(1, 0, 2)
@@ -228,7 +255,7 @@ def figure_stone_colours(vertices, faces):
     chin = np.exp(-((x - .02) / .125) ** 2 - ((y - 1.16) / .075) ** 2)
     front = np.clip((vertex_normals[:, 2] + .24) / .72, 0., 1.)
     soot = (.060 * chest + .038 * chin) * front
-    tone = .97 - .16 * dust + .05 * polish - soot
+    tone = .96 - .16 * dust + .04 * polish - soot
     return np.repeat(tone[:, None], 3, axis=1)
 
 
@@ -236,11 +263,14 @@ def build(mesh, anchor, material):
     """Place the reduced figure with separate photographed stone and light UVs."""
     with np.load(SCAN_SOURCE, allow_pickle=False) as data:
         local = data['vertices']
-        vertices = local + np.asarray(anchor)
         faces = data['faces']
         charts = data['charts']
         material_uv = figure_stone_uv(local)[faces]
+    eyelids = figure_eyelid_weight(local)
+    local[:, 2] -= .003 * eyelids
+    vertices = local + np.asarray(anchor)
     colours = figure_stone_colours(local, faces)
+    colours *= (1. - .045 * eyelids[:, None])
 
     figure = mesh.mesh_object('Seated weathered stone Buddha', vertices.tolist(), faces.tolist(), material)
     figure.data.uv_layers['UVMap'].data.foreach_set('uv', material_uv.ravel())
