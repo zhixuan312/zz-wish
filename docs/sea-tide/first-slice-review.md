@@ -39,9 +39,11 @@ remaining 2.4 seconds. The focused check samples both routes at 120 Hz and
 checks the limits separately: at most 1.8 m/s while walking and 1.4 m/s
 through the chooser move. The loopback trace measures the rendered camera,
 including any preview drift, and records both peak speeds separately.
-It checks that the harbour mouth stays within the frame for at least two
-seconds before the walk ends. At the reveal frame it also checks the sight
-line against the scene geometry.
+For each eligible frame the fixture projects a point at the harbour mouth
+and a water point underneath, then casts rays from the actual camera against
+the scene geometry. Either occlusion or departure from the frame resets the
+continuous reveal timer. At least two seconds must remain visible before the
+walk ends.
 
 The chooser probe projects the complete hood bounding box and a conservative
 flame envelope against both viewport bounds and the actual sheet. It records

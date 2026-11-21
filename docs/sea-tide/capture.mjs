@@ -1,7 +1,6 @@
 // Run under the S7 GPU lease. The fixture never listens outside loopback.
 /* global document, getComputedStyle, performance, window */
 import { chromium } from '@playwright/test';
-import { PerspectiveCamera, Vector3 } from 'three';
 import { execFile } from 'node:child_process';
 import console from 'node:console';
 import { mkdir, writeFile } from 'node:fs/promises';
@@ -59,30 +58,26 @@ function wallEnvelopeDistances({ x, z }) {
   return distances;
 }
 
-function summarizeTrace(rows, width, height) {
+function summarizeTrace(rows) {
   if (rows.length < 30) throw new Error('Continuous journey trace is incomplete.');
   const first = rows[0];
   let peakTurn = { degreesPerSecond: 0 };
   const speed = { walk: { metresPerSecond: 0 }, other: { metresPerSecond: 0 } };
-  const camera = new PerspectiveCamera(44, width / height, .02, 1500);
-  const mouth = new Vector3(66, 0, 8.5), projected = new Vector3();
-  let visibleSince = null, revealHoldSeconds = 0;
+  let visibleSince = null, revealHoldSeconds = 0, occludedMouthFrames = 0;
+  let verifiedReveal;
   let minimum = { metres: Infinity };
   let collisions = 0;
   for (const [i, row] of rows.entries()) {
     const [x, y, z] = row.actual;
-    if (row.walkState === 'walking' && row.walkProgress > .5) {
-      camera.position.set(x, y, z);
-      camera.lookAt(row.lx, row.ly, row.lz);
-      camera.fov = row.fov;
-      camera.updateProjectionMatrix();
-      camera.updateMatrixWorld();
-      projected.copy(mouth).project(camera);
-      if (Math.abs(projected.x) <= .85 && Math.abs(projected.y) <= .85 && Math.abs(projected.z) <= 1) {
-        visibleSince ??= row.t;
-        revealHoldSeconds = Math.max(revealHoldSeconds, row.t - visibleSince);
-      } else visibleSince = null;
-    }
+    if (row.mouth?.projected && !row.mouth.visible) occludedMouthFrames++;
+    if (row.walkState === 'walking' && row.mouth?.visible) {
+      visibleSince ??= row;
+      const duration = row.t - visibleSince.t;
+      if (duration > revealHoldSeconds) {
+        revealHoldSeconds = duration;
+        verifiedReveal = { fromWalkSecond: visibleSince.walkProgress * walkSeconds, toWalkSecond: row.walkProgress * walkSeconds };
+      }
+    } else visibleSince = null;
     for (const [name, metres] of wallEnvelopeDistances({ x, z })) {
       if (metres === 0) collisions++;
       if (metres < minimum.metres) minimum = { metres, wall: name, elapsedSeconds: row.t - first.t, position: [x, y, z] };
@@ -98,7 +93,7 @@ function summarizeTrace(rows, width, height) {
     if (metresPerSecond > speed[stage].metresPerSecond) speed[stage] = { metresPerSecond, elapsedSeconds };
   }
   return { frames: rows.length, seconds: rows.at(-1).t - first.t, minFov: Math.min(...rows.map(row => row.fov)),
-    maxFov: Math.max(...rows.map(row => row.fov)), peakTurn, speed, revealHoldSeconds,
+    maxFov: Math.max(...rows.map(row => row.fov)), peakTurn, speed, revealHoldSeconds, verifiedReveal, occludedMouthFrames,
     clearance: { envelopes: laneWalls, wallReturn, minimum, intersectingFrameWallPairs: collisions } };
 }
 
@@ -210,7 +205,7 @@ async function captureCase(browser, preview, size, look, dir) {
     const marks = Object.fromEntries(markers.map(([name, requested]) => [name, {
       requested, observedAtProbe: shots[name].walk?.progress * walkSeconds, state: shots[name].walk?.state,
     }]));
-    const trace = summarizeTrace(actual, size.width, size.height);
+    const trace = summarizeTrace(actual);
     for (const [stage, limit] of [['walk', 1.8], ['other', 1.4]]) {
       if (trace.speed[stage].metresPerSecond > limit) problems.push({ type: 'speed limit', stage, limit, ...trace.speed[stage] });
     }

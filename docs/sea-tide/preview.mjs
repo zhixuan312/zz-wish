@@ -17,6 +17,45 @@ function replaceOnce(source, original, replacement) {
 const reviewScript = `
   // These probes are assigned only in the loopback review server.
   window.__tideSceneVisible = () => place?.id === 'sea-tide';
+
+  const mouthPoints = [new THREE.Vector3(66, 0, 8.5), new THREE.Vector3(66, -2.76, 8.5)];
+  const mouthRay = new THREE.Raycaster();
+  const mouthAim = new THREE.Vector3();
+  const mouthProjection = new THREE.Vector3();
+  let tracedPlace;
+  let mouthOccluders = [];
+  window.__tideSampleMouth = () => {
+    if (place?.id !== 'sea-tide' || window.__walkProgress?.state !== 'walking'
+        || window.__walkProgress.progress < .5) return null;
+    camera.updateMatrixWorld();
+    const projected = mouthPoints.every(point => {
+      const ndc = mouthProjection.copy(point).project(camera);
+      return Math.abs(ndc.x) <= .85 && Math.abs(ndc.y) <= .85 && Math.abs(ndc.z) <= 1;
+    });
+    if (!projected) return { projected, visible: false, blockedBy: null };
+    if (tracedPlace !== place) {
+      tracedPlace = place;
+      place.G.updateMatrixWorld(true);
+      mouthOccluders = [];
+      place.G.traverse(object => {
+        if (!object.isMesh || ![object.material].flat().some(material => !material.transparent)) return;
+        if (!object.geometry.boundingBox) object.geometry.computeBoundingBox();
+        mouthOccluders.push(object);
+      });
+    }
+    for (const point of mouthPoints) {
+      const direction = mouthAim.copy(point).sub(camera.position);
+      mouthRay.set(camera.position, direction.clone().normalize());
+      mouthRay.far = direction.length() - .035;
+      const hit = mouthRay.intersectObjects(mouthOccluders, false).find(({ object }) => {
+        for (let parent = object; parent; parent = parent.parent) if (!parent.visible) return false;
+        return true;
+      });
+      if (hit) return { projected, visible: false, blockedBy: hit.object.name || hit.object.parent?.name || hit.object.type };
+    }
+    return { projected, visible: true, blockedBy: null };
+  };
+
   window.__tideReview = () => {
     if (place?.id !== 'sea-tide') return null;
     camera.updateMatrixWorld();
@@ -126,7 +165,7 @@ export async function startPreview() {
             const trace = 'lx: rig.look.x, ly: rig.look.y, lz: rig.look.z, fov: rig.fov ?? camera.fov });';
             return replaceOnce(source, trace, `lx: rig.look.x, ly: rig.look.y, lz: rig.look.z, fov: camera.fov,
               actual: camera.position.toArray(), walkState: window.__walkProgress?.state,
-              walkProgress: window.__walkProgress?.progress });`) + '\n' + reviewScript;
+              walkProgress: window.__walkProgress?.progress, mouth: window.__tideSampleMouth?.() });`) + '\n' + reviewScript;
           }
         },
       }],
