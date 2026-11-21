@@ -15,7 +15,7 @@ import { installLoadingShaderProgramTrace } from './loading-shaders-program-trac
 const fixture = JSON.parse(await readFile(new URL('./fixtures/loading-shader-parity.json', import.meta.url)));
 const args = parseArgs({ allowPositionals: true, options: {
   checkout: { type: 'string' }, url: { type: 'string' }, root: { type: 'string' }, side: { type: 'string' },
-  mode: { type: 'string', default: 'parity' }, match: { type: 'string' },
+  mode: { type: 'string', default: 'parity' }, match: { type: 'string' }, 'ready-only': { type: 'boolean' },
 } });
 const [command] = args.positionals;
 const { mode, side } = args.values;
@@ -28,7 +28,8 @@ const hash = input => createHash('sha256').update(input).digest('hex');
 const sourceRev = git('rev-parse', 'HEAD');
 const sourceSha256 = hash(git('ls-tree', '-r', 'HEAD', 'web', 'shared', 'server', 'package-lock.json'));
 assert.equal(git('status', '--porcelain', '--untracked-files=no'), '', 'Run with a clean tracked checkout.');
-const buildReceipt = { sourceRev, sourceSha256, mode };
+const buildReceipt = { sourceRev, sourceSha256, mode: mode === 'parity' ? 'parity' : 'production' };
+assert(!args.values['ready-only'] || mode !== 'parity', 'Pixel parity requires the three court stages.');
 
 function instrumentScene(input) {
   // These are test-only compile-time anchors present in both fbe82e3 and the candidate.
@@ -83,7 +84,7 @@ if (command === 'check-source') {
   assert.equal(owner, 's1', 'Acquire the S1 GPU lease before a build.');
   process.chdir(checkout);
   process.env.VITE_E2E_HOOKS = mode === 'parity' ? '1' : '0';
-  process.env.ONE_LIGHT_VITE_CACHE = join(checkout, 'node_modules/.vite-loading-fixture');
+  process.env.ONE_LIGHT_VITE_CACHE = join(checkout, '.loading-vite-cache');
   await build({
     configFile: join(checkout, 'web/vite.config.ts'),
     mode: 'production',
@@ -322,6 +323,10 @@ async function captureCase(browser, origin, item, root) {
     await verifyServed();
     await view('place-first-visible');
     row.atReady = await readStats('court-ready');
+    if (args.values['ready-only']) {
+      if (mode === 'trace') row.trace = await page.evaluate(() => window.__loadingShaderTrace.snapshot());
+      return row;
+    }
     await page.evaluate(() => window.__loadingShaderTrace?.mark('step-inside-click'));
     await enter.evaluate(button => button.addEventListener('click',
       () => window.__loadingFrameObservations.click('step-inside'), { once: true, capture: true }));
