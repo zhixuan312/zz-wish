@@ -22,9 +22,22 @@ test('an explicit value on a boolean flag is rejected, not interpreted', () => {
   expect(() => parseArgs(['--screenshots', 'false'], flags)).toThrow(/takes no value/);
   expect(() => parseArgs(['--screenshots', 'true'], flags)).toThrow(/takes no value/);
   expect(() => parseArgs(['--screenshots', '0'], flags)).toThrow(/takes no value/);
+  // The same value written with `=` used to fall through as a value option and be ignored entirely.
+  expect(() => parseArgs(['--screenshots=false'], flags)).toThrow(/takes no value/);
+  expect(() => parseArgs(['--screenshots=true'], flags)).toThrow(/takes no value/);
+});
+
+test('a value option never swallows the following flag', () => {
+  // `--hour --screenshots` used to set hour to the literal string "--screenshots" and drop the flag, so
+  // the run silently used no hour and took no captures.
+  expect(() => parseArgs(['--hour', '--screenshots'], flags)).toThrow(/needs a value/);
+  expect(() => parseArgs(['--hour'], flags)).toThrow(/needs a value/);
+  expect(() => parseArgs(['--screenshots', '--hour', '--viewport', 'phone'], flags))
+    .toThrow(/--hour needs a value/);
 });
 
 test('value options keep their own value and never consume a flag', () => {
   const args = parseArgs(['--hour', '22', '--screenshots', '--viewport', 'phone'], flags);
   expect(args).toEqual({ hour: '22', screenshots: true, viewport: 'phone' });
+  expect(parseArgs(['--hour=22'], flags)).toEqual({ hour: '22' });
 });
