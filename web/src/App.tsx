@@ -279,6 +279,7 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
         if (b.isWaitingForWick) rememberUnlitEnd(b, s.saved);
       }
       if (rackFailed) {
+        presence.watch(lightPlace);
         setScreen('candle');
         setLightError(t.lightFailed);
         return;
@@ -313,6 +314,9 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
           rememberUnlitEnd(b, savedOnConfirm);
         }
         if (!b.isSettled) {
+          // Keep the confirmed run live during the history read, just as it is
+          // during ignition. A second tab must not reap it as abandoned.
+          presence.burn(lightPlace, c.id, () => b.isWaitingForWick ? 0 : b.elapsed());
           try {
             // The active record proves this is the private history for this run.
             await loadPastLamps(lightPlace, c.id);
@@ -328,7 +332,8 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
         }
       }
       if (!b.isSettled) {
-        presence.burn(lightPlace, c.id, () => b.elapsed()); setScreen('burning');
+        if (lightPlace !== 'bell-lane') presence.burn(lightPlace, c.id, () => b.elapsed());
+        setScreen('burning');
         void engine.ignite({
           ...(lightPlace === 'bell-lane' ? { lampId: c.id } : {}),
           ...(isWax ? { remainingFuel: () => remainingFuel(b.elapsed(), b.planned) } : {}),
