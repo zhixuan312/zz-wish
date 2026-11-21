@@ -836,8 +836,13 @@ function candleGeo(rows, cut, seg = 56) {
   g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); g.setIndex(idx);
   g.computeVertexNormals(); return g;
 }
-// The oil inside a clear vessel, from the bottom up to the level.
-function oilBodyGeo(vessel, y) { const pts = [[0, vessel.ys[0]]]; for (const yy of vessel.ys) if (yy < y) pts.push([vessel.r(yy) * .97, yy]); pts.push([vessel.r(y) * .97, y], [0, y]); return lathe(pts, 40); }
+// The oil in a clear vessel has a bottom and sides. The separate oil disc supplies the surface.
+function oilBodyGeo(vessel, y) {
+  const pts = [[0, vessel.ys[0]]];
+  for (const yy of vessel.ys) if (yy < y) pts.push([vessel.r(yy) * .97, yy]);
+  pts.push([vessel.r(y) * .97, y]);
+  return lathe(pts, 40);
+}
 function disposeTree(o) {
   const geometries=new Set(),materials=new Set();
   o.traverse(object=>{
