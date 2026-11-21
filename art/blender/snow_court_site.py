@@ -688,12 +688,9 @@ def build(site, projection):
     plates.set_world(scene, look_transport(projection['light']['day']), pre_exposure, 'Clear winter midday over the sheltered court')
     daylight = scene.world
     daylight.use_fake_user = True
-    late = json.loads(LOW_SUN.read_text())
-    plates.set_world(scene, look_transport(late), pre_exposure, 'Low western sun over the winter court')
-    low_sun = scene.world
-    low_sun.use_fake_user = True
     plates.set_world(scene, look_transport(projection['light']['night']), pre_exposure, 'Clear moonlit winter pass')
-    scene['one_light_ambient_worlds'] = json.dumps({'day': daylight.name, 'dusk': low_sun.name})
+    scene['one_light_ambient_worlds'] = json.dumps({'day': daylight.name})
+    configure_low_sun(scene, pre_exposure)
     m = palette(site)
     gauze_maps(m[key] for key in ('glow', 'red_faded', 'red_dust', 'red_old', 'new_gauze'))
     for key in ('glow', 'red_faded', 'red_dust', 'red_old'):
@@ -744,20 +741,53 @@ def build(site, projection):
     return contact.audit(fail=True), foliage
 
 
+def configure_low_sun(scene, pre_exposure):
+    night = scene.world
+    worlds = json.loads(scene['one_light_ambient_worlds'])
+    late = json.loads(LOW_SUN.read_text())
+    plates.bpy = bpy
+    plates.set_world(scene, look_transport(late), pre_exposure, 'Low western sun over the winter court')
+    scene.world.use_fake_user = True
+    worlds['dusk'] = scene.world.name
+    scene['one_light_ambient_worlds'] = json.dumps(worlds)
+    scene.world = night
+
+
+def relight_prepared(scene, output):
+    regions = [obj for obj in scene.objects if obj.get('one_light_static')]
+    if not regions or not all(obj.type == 'MESH' and obj.data.uv_layers.get('Lightmap') for obj in regions):
+        raise RuntimeError('Load the prepared Snow Court receivers before changing their lighting.')
+    if not scene.get('one_light_source_binding'):
+        raise RuntimeError('Prepared Snow Court is missing its authored source binding.')
+    if output.exists() or 'dusk' in json.loads(scene['one_light_ambient_worlds']):
+        raise RuntimeError('Use a fresh output and a prepared scene without the low sun bank.')
+    storm = scene.objects.get('Veranda everyday storm lantern lamp light')
+    if not storm or storm.type != 'LIGHT':
+        raise RuntimeError('Prepared Snow Court is missing its veranda fixture.')
+    configure_low_sun(scene, scene['one_light_camera_pre_exposure'])
+    storm['bake_role'] = 'ambient'
+    bpy.ops.wm.save_as_mainfile(filepath=str(output))
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output', type=Path, required=True)
+    parser.add_argument('--relight-prepared', action='store_true',
+                        help='Add the late sun bank to an existing prepared Snow Court without unwrapping.')
     args = parser.parse_args(sys.argv[sys.argv.index('--') + 1:])
-    site, projection = (json.loads(path.read_text()) for path in (SITE, PROJECTION))
-    contact, foliage = build(site, projection)
     output = args.output.resolve()
     output.parent.mkdir(parents=True, exist_ok=True)
+    if args.relight_prepared:
+        relight_prepared(bpy.context.scene, output)
+        return
+    site, projection = (json.loads(path.read_text()) for path in (SITE, PROJECTION))
+    contact, foliage = build(site, projection)
     scene = bpy.context.scene
     bark_images = tuple(PINE_BARK / f'{slot}.jpg' for slot in ('diffuse', 'normal', 'roughness'))
     sources = (Path(__file__), Path(everyday.__file__), Path(finish.__file__), Path(__file__).with_name('snow_court_approach.py'),
                Path(__file__).with_name('snow_court_backdrop.py'), Path(__file__).with_name('pine_hero_trees.py'),
                Path(__file__).with_name('snow_court_pines.py'),
-               Path(statue.__file__), statue.SCAN_SOURCE, SITE, PROJECTION, NEEDLE_PACKER, *bark_images)
+               Path(statue.__file__), statue.SCAN_SOURCE, SITE, PROJECTION, LOW_SUN, NEEDLE_PACKER, *bark_images)
     scene['source_authoring_sha256'] = json.dumps({
         str(path.resolve().relative_to(ROOT)): sha256(path.read_bytes()).hexdigest() for path in sources
     })
