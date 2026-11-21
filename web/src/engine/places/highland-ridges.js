@@ -91,7 +91,7 @@ function principalRavine(x, down, seed) {
   const across = x - centre;
   if (Math.abs(across) > 28) return null;
 
-  const apronStart = fade(.32, .59, down);
+  const apronStart = fade(.26, .55, down);
   const reach = fade(.035, .145, down) * (1 - fade(.89, .99, down));
   const width = mix(3.1, 4.8, fade(.11, .42, down)) * (1 - .37 * apronStart);
   const runnel = reach * bell(across / width);
@@ -103,8 +103,10 @@ function principalRavine(x, down, seed) {
   const bedding = noise(x * .21 + down * 15, seed + 5);
   const rubble = noise(x * .53 - down * 20, seed + 8);
   const exposedLedge = rock * bell((across - width * 1.22) / (width * .82));
+  const shallowBend = fade(.11, .26, down) * (1 - fade(.42, .58, down));
+  const depth = mix(6.5, 2.05, apronStart) * (1 - .65 * shallowBend);
   const height = 1.65 * exposedLedge + rock * (.98 * bedding + .45 * rubble)
-    + apron * (1.2 + .35 * rubble) - mix(6.5, 2.05, apronStart) * runnel;
+    + apron * (1.2 + .35 * rubble) - depth * runnel;
   return { height, runnel, rock, apron, bedding, rubble };
 }
 
