@@ -1,4 +1,5 @@
 import projection from '../../../../shared/snow-court-backdrop.json' with { type: 'json' };
+import directionalLight from '../../../../shared/snow-court-directional-light.json' with { type: 'json' };
 
 const layerNames = ['far', 'mid', 'cloud'];
 const digest = /^[a-f0-9]{64}$/;
@@ -51,6 +52,32 @@ export function readSnowCourtBackdrop(manifest) {
     }
   }
   return { ...base, walk, night, high };
+}
+
+export function readSnowCourtRelight(manifest) {
+  const relight = manifest.snowCourtRelight;
+  if (relight === undefined) return null;
+  const looks = Object.keys(directionalLight.looks);
+  if (relight?.version !== 1 || Object.keys(relight.looks ?? {}).length !== looks.length) {
+    throw new Error('Invalid Snow Roof directional lighting declaration');
+  }
+  return Object.fromEntries(looks.map(look => {
+    const { directionEngine, far, court } = relight.looks[look] ?? {};
+    const expected = directionalLight.looks[look].directionEngine;
+    if (!Array.isArray(directionEngine) || directionEngine.length !== 3 ||
+      !expected.every((value, axis) => value === directionEngine[axis]) ||
+      far?.uri !== `snow-relight-${look}-far.webp` || court?.uri !== `snow-relight-${look}-court.ktx2` ||
+      !Number.isSafeInteger(far.width) || !Number.isSafeInteger(far.height) ||
+      far.width <= 0 || far.width > projection.width || far.height <= 0 ||
+      far.width * projection.height !== far.height * projection.width ||
+      ![court.scale, court.logRange, court.logGain].every(value => Number.isFinite(value) && value > 0)) {
+      throw new Error(`Invalid Snow Roof directional lighting look: ${look}`);
+    }
+    return [look, { directionEngine,
+      far: { ...far, file: readAsset(manifest, far.uri, 'directional backdrop') },
+      court: { ...court, file: readAsset(manifest, court.uri, 'directional lightmap') },
+    }];
+  }));
 }
 
 export function readSnowCourtWalkLightmaps(manifest) {

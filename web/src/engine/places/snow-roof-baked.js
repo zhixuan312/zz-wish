@@ -2,6 +2,7 @@
 // This descriptor owns cameras and live weather only; no static architecture is made here.
 import { loadBakedPlace } from '../baked/loadPlace.js';
 import { readBakedManifest } from '../baked/prefetchPlace.js';
+import { readSnowCourtRelight } from '../baked/snowCourtManifest.js';
 
 function incenseStrands(h, C, config) {
   const { THREE, V3 } = h;
@@ -52,7 +53,7 @@ function sourceDust(h, C, config) {
 export default async function createPlace(h) {
   const manifest = await readBakedManifest('snow-roof');
   if (manifest.snowCourt?.revision === 'winter-pass-v1') {
-    return (await import('./snow-roof-court.js')).default(h);
+    return (await import('./snow-roof-court.js')).default(h, !!readSnowCourtRelight(manifest));
   }
   return createLegacyPlace(h);
 }

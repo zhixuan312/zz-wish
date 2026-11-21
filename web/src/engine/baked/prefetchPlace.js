@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { sha256 } from './sha256.js';
 import { readPineBackdrop, readPineWalkLightmaps, readPineWaxNormal } from './pineManifest.js';
-import { readSnowCourtBackdrop, readSnowCourtWalkLightmaps } from './snowCourtManifest.js';
+import { readSnowCourtBackdrop, readSnowCourtRelight, readSnowCourtWalkLightmaps } from './snowCourtManifest.js';
 
 // FileLoader and KTX2Loader consume these same verified ArrayBuffers, so typing
 // a wish can download the next court without constructing or showing its scene.
@@ -111,6 +111,10 @@ export function prefetchBakedPlace(id, onProgress) {
       if (snowCourt) {
         for (const tier of [backdrop?.night, backdrop?.high]) {
           for (const file of Object.values(tier?.files ?? {})) lateFiles.add(file);
+        }
+        for (const { far, court } of Object.values(readSnowCourtRelight(manifest) ?? {})) {
+          lateFiles.add(far.file);
+          lateFiles.add(court.file);
         }
       }
       // Trees declared in the walk tier are needed by every device before the crest, so they are

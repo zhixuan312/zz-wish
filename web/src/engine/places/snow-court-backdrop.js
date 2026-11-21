@@ -66,7 +66,16 @@ const fragmentShader = `uniform sampler2D uPlate, uUpgradePlate, uNightPlate;
     gl_FragColor = color * edge * valleyTransmission;
   }`;
 
-export async function loadSnowCourtBackdrop(baked, renderer, initialLight) {
+const relitFragmentShader = `
+  uniform vec2 uSnowRelightWeights;
+  uniform sampler2D uSnowFarA, uSnowFarB;
+` + fragmentShader.replace('vec2 border =', `
+    color *= 1. - uSnowRelightWeights.x - uSnowRelightWeights.y;
+    if (uSnowRelightWeights.x > 0.) color += uSnowRelightWeights.x * linearPlate(uSnowFarA, vUv);
+    if (uSnowRelightWeights.y > 0.) color += uSnowRelightWeights.y * linearPlate(uSnowFarB, vUv);
+    vec2 border =`);
+
+export async function loadSnowCourtBackdrop(baked, renderer, initialLight, relight = null) {
   const descriptor = readSnowCourtBackdrop(baked.manifest);
   if (!descriptor) return null;
   if (baked.cameraPreExposure !== projection.preExposure) {
@@ -145,13 +154,15 @@ export async function loadSnowCourtBackdrop(baked, renderer, initialLight) {
   // still lets the courtyard and shrine occlude the landscape.
   for (const [index, name] of names.entries()) {
     const texture = base.get(name);
+    const farRelight = name === 'far' ? relight?.far : null;
     const material = new THREE.ShaderMaterial({
-      vertexShader, fragmentShader,
+      vertexShader, fragmentShader: farRelight ? relitFragmentShader : fragmentShader,
       uniforms: {
         uPlate: { value: texture }, uUpgradePlate: { value: texture }, uNightPlate: { value: texture },
         uPlateSampleSize: { value: new THREE.Vector2() }, uUpgradeSampleSize: { value: new THREE.Vector2() },
         uUpgradeMix, uNightWeight, uNightMix, uBackdropLook,
         uTwilightReach: { value: name === 'far' ? 1 : (name === 'mid' ? .26 : .14) },
+        ...farRelight,
       },
       transparent: true, premultipliedAlpha: true, depthWrite: false, toneMapped: false,
     });
@@ -201,6 +212,7 @@ export async function loadSnowCourtBackdrop(baked, renderer, initialLight) {
 
   function update(light) {
     if (disposed) return;
+    relight?.update(light.relight ?? []);
     const now = performance.now();
     uNightWeight.value = THREE.MathUtils.smoothstep(light.n, .13, .97);
     uBackdropLook.value.set(light.dawnPeak, light.sunsetPeak, light.morning);
@@ -231,6 +243,7 @@ export async function loadSnowCourtBackdrop(baked, renderer, initialLight) {
     group, update,
     startWalk() {
       entered = true;
+      relight?.start();
       const now = performance.now();
       startNight(now);
       return startDay(now);

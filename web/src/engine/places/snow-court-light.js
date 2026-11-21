@@ -1,5 +1,6 @@
 import projection from '../../../../shared/snow-court-backdrop.json' with { type: 'json' };
 import lowSun from '../../../../shared/snow-court-low-sun.json' with { type: 'json' };
+import directional from '../../../../shared/snow-court-directional-light.json' with { type: 'json' };
 
 // The sky palette and the irradiance weights have independent jobs. The
 // low western key casts a long shadow in the afternoon transport bank.
@@ -38,7 +39,26 @@ function transition(value, start, end) {
   return fraction * fraction * (3 - 2 * fraction);
 }
 
-export function snowCourtLight(date) {
+const directionalKeys = [
+  [0, 'night'], [4.5, 'night'], [6, 'dawn'], [9, 'morning'],
+  [13, null, projection.light.day], [16, null, lowSun], [18, 'evening'],
+  [22, 'night'], [24, 'night'],
+];
+
+function directionalLook(hour) {
+  const next = directionalKeys.findIndex(([time]) => time > hour);
+  const [fromHour, fromName, fromBase] = directionalKeys[next - 1];
+  const [toHour, toName, toBase] = directionalKeys[next];
+  const amount = transition(hour, fromHour, toHour);
+  const source = fromBase ?? directional.looks[fromName];
+  const target = toBase ?? directional.looks[toName];
+  const lerp = interpolateDirection(source.directionEngine, target.directionEngine, amount);
+  const weights = fromName === toName ? [[fromName, 1]] : [[fromName, 1 - amount], [toName, amount]];
+  const relight = weights.filter(([name, weight]) => name && weight > 0).map(([name, weight]) => ({ name, weight }));
+  return { direction: lerp, relight };
+}
+
+export function snowCourtLight(date, useDirectional = false) {
   const [hour, n, g, blue, west, dawnPeak, sunsetPeak] = sampleSnowLight(date);
   // The sheltered pass receives diffuse early light. The dawn tint is
   // strongest in the sky and on the snow high above the court.
@@ -46,14 +66,16 @@ export function snowCourtLight(date) {
   const moon = projection.light.night.directionEngine;
   const solar = interpolateDirection(daylight, lowSun.directionEngine, west);
   const nightDirection = hour < 12 ? 1 - transition(hour, 4.25, 8) : transition(hour, 18, 20.75);
-  const direction = interpolateDirection(solar, moon, nightDirection);
+  const look = useDirectional ? directionalLook(hour) : null;
+  const direction = look?.direction ?? interpolateDirection(solar, moon, nightDirection);
   const elev = direction[1] / daylight[1];
-  const sunScale = (.35 + .65 * solar[1] / daylight[1]) * (1 - n) + n;
+  const sunScale = (.35 + .65 * (look ? direction[1] : solar[1]) / daylight[1]) * (1 - n) + n;
   const morning = transition(hour, 7.3, 9) * (1 - transition(hour, 9, 12));
   const veranda = 1 - transition(hour, 6.25, 7.5) + transition(hour, 17.2, 17.95);
   return { n, g, blue, sunScale, lamp: .55 + .45 * n, haze: 1 + .42 * dawnPeak, elev, direction,
     dawn: hour < 12, discScale: 1 - .96 * dawnPeak, west, dawnPeak, sunsetPeak, morning, veranda,
-    daySky: { top: 0x93b9d8, horizon: 0xe2edf6, weight: .54 * morning } };
+    daySky: { top: 0x93b9d8, horizon: 0xe2edf6, weight: .54 * morning },
+    ...(look && { relight: look.relight }) };
 }
 
 export function snowCourtBakedLight(date) {

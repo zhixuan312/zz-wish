@@ -1,5 +1,6 @@
 import { loadBakedPlace } from '../baked/loadPlace.js';
 import { loadSnowCourtBackdrop } from './snow-court-backdrop.js';
+import { createSnowCourtRelight } from './snow-court-relight.js';
 import { buildSnowChimney } from './snow-court-chimney.js';
 import { snowCourtLight, snowCourtBakedLight } from './snow-court-light.js';
 import { winterCourtWalk, winterCourtEntry, winterCourtEntrySeconds, winterCourtBurnSettle } from './snow-court-camera.js';
@@ -83,7 +84,7 @@ function tuneRepairedEave(material) {
   material.customProgramCacheKey = () => baseKey() + '-mended-eave';
 }
 
-export default function createWinterCourt(h) {
+export default function createWinterCourt(h, directional) {
   const { THREE, V3 } = h;
   const pose = ({ position, look, fov }) => ({ pos: V3(...position), look: V3(...look), fov });
   const arrival = pose(site.walk.at(-2));
@@ -102,7 +103,7 @@ export default function createWinterCourt(h) {
   const entrance = pose(site.walk[0]);
   return {
     bakedLighting: true, cameraFar: 880, exposure: 1.11, shade: .55,
-    lightAt: snowCourtLight,
+    lightAt: date => snowCourtLight(date, directional),
     bakedLightAt: snowCourtBakedLight,
     sky: { top: 0x14243c, horizon: 0x59718a, ground: 0x212936, sun: 0xd9eaff,
       dir: projection.light.night.directionEngine, glow: .17, clouds: .04, lit: 0x889ab0,
@@ -145,6 +146,11 @@ export default function createWinterCourt(h) {
       }
       context.G.add(baked.group);
       context.baked = baked;
+      const relight = createSnowCourtRelight(baked, h.renderer);
+      if (relight) {
+        baked.snowRelightState = relight.state;
+        context.disposers.push(relight.dispose);
+      }
       const raw = baked.group.userData.snow_court_fixtures_engine;
       const fixtures = typeof raw === 'string' ? JSON.parse(raw) : raw;
       if (!Array.isArray(fixtures) || fixtures.length !== 6) throw new Error('Missing measured Snow Roof court lamp contacts.');
@@ -162,6 +168,7 @@ export default function createWinterCourt(h) {
         if (!object.isMesh) return;
         const region = object.userData.lightmap_region ?? object.userData.region ?? object.parent?.userData.lightmap_region;
         for (const material of [object.material].flat()) {
+          if (region === 'court') relight?.install(material);
           if (isEarlierGauze(material)) earlierCloth.add(material);
           if (isWinterCourtSnow(material)) winterSnow.add(material);
           if (/^Worn hall limewash, (east|west) wall$/.test(material.name)) limewash.add(material);
@@ -249,7 +256,7 @@ export default function createWinterCourt(h) {
         updateFlame(0, 0, context.light);
         context.up.push(updateFlame);
       }
-      const backdrop = await loadSnowCourtBackdrop(baked, h.renderer, context.light);
+      const backdrop = await loadSnowCourtBackdrop(baked, h.renderer, context.light, relight);
       if (!backdrop) throw new Error('Missing Snow Roof court backdrop.');
       baked.backdrop = backdrop;
       context.G.add(backdrop.group);
