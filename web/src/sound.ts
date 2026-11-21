@@ -1,7 +1,8 @@
-// Quiet, locally synthesized environments. Nothing is audible before the light tap; the audio
-// device is opened from the light gesture; preparation before then never produces sound.
+// Quiet, locally synthesized environments. Audio starts on a visitor gesture;
+// preparation before that never produces sound.
 import type { PlaceId } from '../../shared/places.ts';
 import { seamlessNoiseLoop } from './audio-loop.ts';
+import { createBambooRainSound, type BambooRainStage } from './bamboo-rain-sound.ts';
 import { ambienceFor, createRecordedSounds, type RecordedSounds } from './engine/index.ts';
 const rooms: Record<PlaceId, { low: number; high: number; gain: number; swell: number; detail: 'drip' | 'bird' | 'air' | 'frog' | 'bell' }> = {
   // Pine wind high in the trees.
@@ -57,6 +58,8 @@ let nodes: AudioScheduledSourceNode[] = [];
 let detailTimer = 0;
 let muted = false;
 let generation = 0;
+let bamboo: ReturnType<typeof createBambooRainSound> | null = null;
+let retiringBambooMaster: GainNode | null = null;
 // Pine Gate's four recorded layers ride on the same context, master gain and generation token,
 // so mute, stop and the background pause cover them without a second audio path.
 let recorded: RecordedSounds | null = null;
@@ -99,6 +102,10 @@ export const sound = {
   },
   start(id: PlaceId) {
     this.stop();
+    // A rapid return can happen during the exit fade. End the old Bamboo
+    // output before connecting any new session so its bed can never double.
+    retiringBambooMaster?.disconnect();
+    retiringBambooMaster = null;
     try {
       context ??= new AudioContext();
       void context.resume().catch(() => {});
@@ -113,10 +120,16 @@ export const sound = {
       // Keep the higher, clearer pine wind close to the level of the quiet snow bed.
       const swellDepth = id === 'snow-roof' ? .15 : id === 'pine-gate' ? .28 : .65;
       volume.gain.value = room.gain; swell.frequency.value = room.swell; amount.gain.value = room.gain * swellDepth;
-      source.connect(filter).connect(volume).connect(master); swell.connect(amount).connect(volume.gain);
+      source.connect(filter).connect(volume); swell.connect(amount).connect(volume.gain);
+      const rain = id === 'bamboo-rain' ? createBambooRainSound(c, master, source, volume, buffer) : null;
+      bamboo = rain;
+      if (!rain) volume.connect(master);
       filter.frequency.setValueAtTime(room.low, now); filter.frequency.exponentialRampToValueAtTime(room.high, now + 18);
       source.start(); swell.start(); nodes = [source, swell];
-      source.onended = () => { source.disconnect(); filter.disconnect(); volume.disconnect(); swell.disconnect(); amount.disconnect(); };
+      source.onended = () => {
+        source.disconnect(); filter.disconnect(); volume.disconnect(); swell.disconnect(); amount.disconnect();
+        rain?.disconnect();
+      };
       if (id === 'snow-roof') {
         const flame = c.createBufferSource(), warmth = c.createBiquadFilter(), breath = c.createGain();
         flame.buffer = buffer; flame.loop = true; flame.playbackRate.value = 1.13;
@@ -154,23 +167,32 @@ export const sound = {
         if (room.detail === 'bell') { const far = id === 'snow-roof' ? .36 : 1; tone(196, 8, .02 * far, .999); tone(392.6, 5, .008 * far, .999); tone(588, 3, .004 * far, .999); }
         detailTimer = window.setTimeout(detail, id === 'snow-roof' ? 38000 + Math.random() * 42000 : 3500 + Math.random() * 11000);
       };
-      detailTimer = window.setTimeout(detail, id === 'snow-roof' ? 14000 + Math.random() * 10000 : 2500 + Math.random() * 5000);
+      if (!rain) detailTimer = window.setTimeout(detail, id === 'snow-roof' ? 14000 + Math.random() * 10000 : 2500 + Math.random() * 5000);
     } catch { /* Unsupported or denied audio must never block lighting. */ }
+  },
+  bambooRainListener(x: number, z: number, dx: number, dz: number, stage: BambooRainStage, immediate = false) {
+    bamboo?.listen(x, z, dx, dz, stage, immediate);
   },
   /** A taper taking flame from the shrine lamp: a soft breath, then a small flicker. */
   ignition() {
     // Deliberately quiet: the sound says "it caught" beside the light, it does not announce it.
+    const token = generation;
     tone(320, .26, .012, .62);
-    window.setTimeout(() => tone(880, .12, .006, 1.35), 90);
+    window.setTimeout(() => { if (token === generation) tone(880, .12, .006, 1.35); }, 90);
   },
   mute(value: boolean) { muted = value; if (master && context) fadeGain(master.gain, value ? 0 : .65, context.currentTime, .16); },
   stop() {
     generation++; clearTimeout(detailTimer);
     recorded?.stop(); recorded = null; recordedFor = null;
     const oldMaster = master;
+    if (bamboo) retiringBambooMaster = oldMaster;
+    bamboo = null;
     if (oldMaster && context) fadeGain(oldMaster.gain, 0, context.currentTime, .3);
     for (const node of nodes) { try { node.stop((context?.currentTime ?? 0) + .32); } catch { /* Already stopped. */ } }
-    if (oldMaster) window.setTimeout(() => oldMaster.disconnect(), 400);
+    if (oldMaster) window.setTimeout(() => {
+      oldMaster.disconnect();
+      if (retiringBambooMaster === oldMaster) retiringBambooMaster = null;
+    }, 400);
     nodes = []; master = null;
   },
 };

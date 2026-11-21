@@ -2,7 +2,7 @@
 // hold up the wish form, and the engine never receives product records or wishes.
 import type { Shape } from '../../../shared/rules.ts';
 import type { PlaceId } from '../../../shared/places.ts';
-import type { ScenePhase, PlaceLoadProgress, LampThumbnailOptions, IgnitionOptions } from './scene.js';
+import type { ScenePhase, PlaceLoadProgress, LampThumbnailOptions, IgnitionOptions, TravelAudioListener } from './scene.js';
 export type { ScenePhase, PlaceLoadProgress, LampThumbnailOptions } from './scene.js';
 type Scene = typeof import('./scene.js');
 let resolveScene: (scene: Scene) => void;
@@ -82,7 +82,7 @@ export const prefetchPlace = async (
   }
 };
 export const renderLampThumbnail = (shape: Shape, options: LampThumbnailOptions) => initialize().then(s => s.renderLampThumbnail(shape, options));
-export const travel = (id: PlaceId) => initialize().then(s => s.travel(id));
+export const travel = (id: PlaceId, listener?: TravelAudioListener) => initialize().then(s => s.travel(id, listener));
 export const toCover = () => initialize().then(s => s.toCover());
 export const ignite = (options: IgnitionOptions = {}) => initialize().then(s => s.ignite(options));
 export const snuff = (done = false, remaining?: number, gust = false) => initialize().then(s => s.snuff(done, remaining, gust));

@@ -2209,11 +2209,21 @@ window.addEventListener('pointermove', (e) => {
 // ---------- Public API ----------
 // On the cover the lamp already burning there is the subject, drawn sharp in front of the blurred scene.
 function coverLayers() { place?.cover?.g.traverse((o) => { if (!o.isLight) o.layers.set(0); }); }
-export function setPhase(next) { phase = next; coverLayers(); }
+export function setPhase(next) {
+  phase = next;
+  if (next === 'place' || next === 'wish' || next === 'result') travelListener = null;
+  coverLayers();
+}
 export function setPowerSaver(on) { powerSaver = on; resize(); }
 
 let level = 1, targetLevel = 1, lit = false, wanted = null, previewTask = null, skipNextTravel = false;
 let waxFuel = null;
+let travelListener = null;
+
+function notifyTravelListener(pos, look, stage, immediate = false) {
+  if (!travelListener || travelListener.id !== place?.id) return;
+  travelListener.notify(pos.x, pos.z, look.x - pos.x, look.z - pos.z, stage, immediate);
+}
 
 function toOffer(shape) {
   if (!shape) return null;
@@ -2374,6 +2384,7 @@ async function showPlace(id) {
 }
 /** Show a place from outside while it is being chosen. */
 export function previewPlace(id) {
+  travelListener = null;
   cameraJourneyVersion++;choiceCameraVersion++;
   wanted = id;
   // A new choice can arrive while an earlier fade is in progress. Keep both
@@ -2398,6 +2409,7 @@ async function showRequestedPreview() {
 
 /** Back to the cover: the cliff gallery over the clouds, one lamp already burning (the wish screen). */
 export async function toCover() {
+  travelListener = null;
   cameraJourneyVersion++;choiceCameraVersion++;
   wanted = null; while (previewTask) await previewTask.catch(() => {}); roomLight = 1;
   await fadeTo(1, 400);
@@ -2408,9 +2420,10 @@ export async function toCover() {
 }
 
 /** Walk in from outside, through the place, to its lamp, ready to choose. One continuous walk. */
-export async function travel(id) {
+export async function travel(id, listener) {
   cameraJourneyVersion++;
   skipNextTravel = false;
+  travelListener = listener ? { id, notify: listener } : null;
   wanted = null; while (previewTask) await previewTask.catch(() => {});
   if (place?.id !== id) {
     await fadeTo(1, 200); await showPlace(id);
@@ -2510,8 +2523,16 @@ export async function travel(id) {
     });
   }
   if(!P.bakedLighting){const c = chooseView(); await moveCam(c.pos, c.look,2.4,c.fov);}
+  if (skipNextTravel) notifyTravelListener(rig.pos, rig.look, 'candle', true);
 }
-export function skip() { skipNextTravel = true; skipTweens(); }
+export function skip() {
+  skipNextTravel = true;
+  skipTweens();
+  if (travelListener && travelListener.id === place?.id) {
+    const { pos, look } = chooseView();
+    notifyTravelListener(pos, look, 'candle', true);
+  }
+}
 let ignitionTaper;
 function makeIgnitionTaper(){
   const g=new THREE.Group();outside.add(g);g.visible=false;
@@ -2827,6 +2848,11 @@ function frame(stamp = performance.now()) {
     }
     camera.position.copy(detail.pos);
     camera.lookAt(detail.look);
+  }
+  // Skip gives the listener the seated pose immediately. Do not play the
+  // intermediate tweens as they fast-forward to that pose.
+  if (travelListener && (phase === 'candle' || phase === 'burning' || (phase === 'travel' && !skipNextTravel))) {
+    notifyTravelListener(camera.position, rig.look, phase);
   }
   if(Math.abs(camera.fov-lens)>.001){camera.fov=lens;camera.updateProjectionMatrix();}
   if (place) {

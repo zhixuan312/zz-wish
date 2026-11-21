@@ -1,12 +1,11 @@
 // A tiled shelter at the edge of a wet bamboo court.
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { bambooEave, bambooNook } from '../../bamboo-rain-shelter.ts';
 import { ARRIVAL_SECONDS, WALK_SECONDS, bambooRainCameras } from './bamboo-rain-camera.js';
 
 const cloister = {
-  start: -4.65,
-  end: 4.45,
+  ...bambooEave,
   eaveY: 2.72,
-  eaveZ: 2.11,
   waterY: -.447,
   bedY: -.487,
   channel: [1.95, 2.28],
@@ -172,7 +171,7 @@ function buildCloister(h) {
 
 export default function createPlace(h) {
   const { THREE, V3, M, roofMat, ground, pave, hallB, gateB, trees, peak, ridges, box, put, wallRun, col, otherLamp, rock, plasterTex, grainTex, pavingTex, pauseBuild } = h;
-  const nook = { pos: V3(-9.3, .35, 6), ry: Math.PI / 2 };
+  const nook = { pos: V3(bambooNook.x, bambooNook.y, bambooNook.z), ry: bambooNook.ry };
   const cameras = bambooRainCameras(V3, nook);
   return {
     exposure: 1.22, shade: .34,

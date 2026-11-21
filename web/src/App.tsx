@@ -31,6 +31,13 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
   const switchLocale = () => { const next = locale === 'zh' ? 'en' : 'zh'; setLocaleState(next); api.setLocale(next).catch(() => {}); };
 
   const [screen, setScreen] = useState<Screen>('wish');
+  const bambooTravelAmbience = useRef(false);
+  const stopBambooTravelAmbience = useCallback(() => {
+    if (!bambooTravelAmbience.current) return;
+    bambooTravelAmbience.current = false;
+    sound.stop();
+  }, []);
+  useEffect(() => stopBambooTravelAmbience, [stopBambooTravelAmbience]);
   // One mute governs both the ambient world and the music, and the choice survives.
   const [quiet, setQuiet] = useState(() => music.isMuted());
   useEffect(() => { sound.mute(quiet); music.setMuted(quiet); }, [quiet]);
@@ -238,7 +245,9 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
     const lightPlace = placeId;
     const isWax = shape.kind === 'candle';
     const b = new Burn(minutes! * 60_000, (s: Settlement) => {
-      presence.stopBurning(); sound.stop();
+      presence.stopBurning();
+      if (lightPlace === 'bamboo-rain') stopBambooTravelAmbience();
+      else sound.stop();
       burnRef.current = null;
       const ending: MusicStage = s.done ? 'endingBurned' : 'endingPutOut';
       void music.play(ending, lightPlace).then((started) => {
@@ -257,7 +266,8 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
     });
     burnRef.current = b; setBusy(true);
     b.keepScreenOn();
-    setShowLeft(false); sound.prepare(); sound.start(lightPlace);
+    setShowLeft(false);
+    if (lightPlace !== 'bamboo-rain') { sound.prepare(); sound.start(lightPlace); }
     try {
       const c = await api.light({ runId: b.runId, placeId: lightPlace, shape, ...(wishId ? { wishId } : { wishText: wish.trim() }) });
       setWishId(c.wishId);
@@ -284,7 +294,9 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
       }
     } catch (e) {
       if (!b.isSettled) {
-        b.abort(); sound.stop(); burnRef.current = null; setScreen('candle');
+        b.abort();
+        if (lightPlace !== 'bamboo-rain') sound.stop();
+        burnRef.current = null; setScreen('candle');
         setLightError(e instanceof ApiError && e.code === 'already_burning' ? t.alreadyBurning : t.lightFailed);
       }
     } finally { setBusy(false); }
@@ -319,6 +331,7 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
     });
   };
   const showPlace = () => {
+    stopBambooTravelAmbience();
     setWishHint(false); screenRef.current = 'place'; setScreen('place');
     previewCourt(placeId);
     loadPastLamps(placeId);
@@ -338,6 +351,11 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
     previewCourt(id);
   };
   const goTravel = () => run(async () => {
+    const withRain = placeId === 'bamboo-rain';
+    if (withRain && !bambooTravelAmbience.current) {
+      bambooTravelAmbience.current = true;
+      sound.start(placeId);
+    }
     engine.setOffer(shape);
     // Travel never waits for music: the walk must start even if a slow network is
     // still fetching the cue list. Claiming the stage here also stops the screen
@@ -353,7 +371,14 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
       handOverOnce();
     });
     setScreen('travel');
-    await engine.travel(placeId);
+    try {
+      await engine.travel(placeId, withRain ? sound.bambooRainListener : undefined);
+    } catch (error) {
+      if (!withRain) throw error;
+      walkRef.current = 'taken';
+      showPlace();
+      return;
+    }
     setScreen('candle');
     candleRef.current = true;
     handOverOnce();
