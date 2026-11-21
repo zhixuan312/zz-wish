@@ -1,4 +1,5 @@
 import { readFile } from 'node:fs/promises';
+import { URL } from 'node:url';
 import { expect, test, vi } from 'vitest';
 import { blendInputsAt, lightAt, PART_LIGHT } from '../../../web/src/engine/places/pine-day-parts.ts';
 import createSnowRoof from '../../../web/src/engine/places/snow-roof-baked.js';
