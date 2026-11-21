@@ -308,6 +308,26 @@ try {
       const light = page.getByRole('button', { name: /Light it/ }).first();
       await light.waitFor({ timeout: 90000 });
       await light.click();
+      // Read the burning candle back from the API rather than trusting the screen: this proves ignition
+      // reached the server, which the HUD alone does not. The POST is asynchronous, so poll until it lands
+      // instead of reading once right after the click and recording a false negative.
+      let readback = null;
+      for (let attempt = 0; attempt < 20; attempt++) {
+        try {
+          readback = await page.evaluate(async () => {
+            const response = await fetch('/api/me/candles');
+            return response.ok ? await response.json() : null;
+          });
+        } catch { readback = null; }
+        const burning = (readback?.candles ?? []).filter(c => c.status === 'burning');
+        if (burning.length) {
+          record.activeCandle = { id: burning[0].id, placeId: burning[0].placeId,
+            status: burning[0].status, durationMs: burning[0].durationMs };
+          break;
+        }
+        await page.waitForTimeout(150);
+      }
+      if (!record.activeCandle) record.activeCandleReadbackFailed = true;
       // A real burning view, not merely a canvas: the burning HUD renders `with-you` and nowhere else. A canvas
       // exists from the cover onward, so counting canvases proved nothing.
       await page.waitForSelector('[data-testid="with-you"]', { timeout: 120000 });
