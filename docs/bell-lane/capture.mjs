@@ -83,9 +83,10 @@ async function snap(page, directory, name) {
   const camera = await page.evaluate(() => {
     const c = window.__pineRenderCamera;
     return { position: c.position.toArray(), direction: c.getWorldDirection(c.position.clone()).toArray(),
-      fov: c.fov, walk: window.__walkProgress ?? null };
+      fov: c.fov, walk: window.__walkProgress ?? null, landmark: window.__bellReviewWindow?.() ?? null };
   });
   shots.push({ file: path, ...camera });
+  return camera;
 }
 
 async function exerciseAudio(page) {
@@ -165,7 +166,7 @@ try {
     await waitWalk(page, 12);
     soundRows.eaves = await audio(page);
     await waitWalk(page, 17);
-    await snap(page, directory, 'passing-window');
+    const passing = await snap(page, directory, 'passing-window');
     await waitWalk(page, 22);
     soundRows.approach = await audio(page);
     await waitWalk(page, 24.2);
@@ -177,6 +178,8 @@ try {
     await waitWalk(page, 29.5);
     await snap(page, directory, 'open-court-29s');
     await screen(page, 'candle');
+    await page.screenshot({ path: join(directory, 'chooser-ready-made.png'), scale: 'css' });
+    const chooser = { readyMade: await page.evaluate(() => window.__bellReviewWindow()) };
     if (record) {
       const encoded = await page.evaluate(() => window.__finishBellLaneRecording());
       await writeFile(join(directory, 'continuous-walk.webm'), Buffer.from(encoded, 'base64'));
@@ -199,6 +202,12 @@ try {
         await page.mouse.move(size.x + size.width * x, size.y + size.height * y, { steps: 4 });
       }
       await page.mouse.up();
+      await page.screenshot({ path: join(directory, 'chooser-draw.png'), scale: 'css' });
+      chooser.draw = await page.evaluate(() => window.__bellReviewWindow());
+      await page.getByRole('tab', { name: /^Ready-made/ }).click();
+      await page.screenshot({ path: join(directory, 'chooser-restored.png'), scale: 'css' });
+      chooser.restored = await page.evaluate(() => window.__bellReviewWindow());
+      await page.getByRole('tab', { name: /^Draw/ }).click();
     }
     await page.getByRole('button', { name: /^Light it/ }).click({ timeout: 20000 });
     await screen(page, 'burning');
@@ -208,13 +217,20 @@ try {
     await snap(page, directory, 'taper-contact');
     await writeFile(join(directory, 'taper-contact.json'), JSON.stringify({ drawn, ...contact }, null, 2));
     await page.waitForFunction(() => window.__visualIgnition?.state === 'settled');
-    await snap(page, directory, 'seated');
+    const seatedFrame = await snap(page, directory, 'seated');
     await page.screenshot({ path: join(directory, 'seated-with-controls.png'), scale: 'css' });
     soundRows.seated = await audio(page);
     const { walkMetrics, arrivalMetrics, seated, rows } = cameraAudit(phone);
     await writeFile(join(directory, 'camera.json'), JSON.stringify({ actual, rows, walk: cameraPeaks(walkMetrics), arrival: cameraPeaks(arrivalMetrics), seated }, null, 2));
     await writeFile(join(directory, 'audio.json'), JSON.stringify({ walk: soundRows, lifecycle: journey }, null, 2));
+    await writeFile(join(directory, 'chooser.json'), JSON.stringify(chooser, null, 2));
     assert.deepEqual(bellManifests, []);
+    assert.equal(chooser.readyMade.wickCovered, false);
+    assert.equal(chooser.readyMade.windowCovered, false);
+    if (drawn) assert.equal(chooser.restored.wickCovered, false);
+    assert.ok(passing.landmark?.visible, 'the window mesh must be visible while passing');
+    assert.ok(seatedFrame.landmark?.visible, 'the window mesh must be visible through the door');
+    assert.equal(passing.landmark.windowId, seatedFrame.landmark.windowId);
     await context.close();
     console.log(name, 'captured');
   }
