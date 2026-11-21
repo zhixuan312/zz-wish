@@ -8,8 +8,8 @@
 // Usage: node tests/tier2/walk-camera-smoke.mjs --run-dir TMP --out DIR [--port 8910]
 // The caller runs this under gpu-lease.sh; the script starts and stops its own server and prints its pid.
 import { chromium } from '@playwright/test';
-import { mkdirSync, writeFileSync, readFileSync, existsSync } from 'node:fs';
-import { join, resolve } from 'node:path';
+import { mkdirSync, writeFileSync, existsSync } from 'node:fs';
+import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execFileSync, spawn } from 'node:child_process';
 import { pageSampler, pageArmClickCapture, pageCollect, samplesFromSnapshot, sampleInterval }
