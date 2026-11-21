@@ -817,8 +817,13 @@ def pierced_lamp_shrine(anchor, stone, ledge, iron, contacts, sculpt_normal):
     roof['shrine_moss_base'] = anchor[1] + .495
     mesh.beam('Old iron peg for wishes below the centre seat', locate(-.078, -.081, .208),
               locate(-.078, -.081, .244), .005, iron, .004, 'niche')
+    # The stubs rest on the shelf's flat top; the spills hang over its front lip and never touch it.
+    # Measuring both against one support let the lip's chamfer, 2.4 cm below the top, drive the whole
+    # group's placement ray, which lifted every stub 5 mm clear of the shelf. Two groups keep each
+    # set on its own bearing surface.
     with contacts.group('Spent wax fused to the wick shelf', [shelf]):
         spent_wax_on_sill(locate, iron, sculpt_normal)
+    with contacts.group('Cold wax run over the shelf lip', [shelf]):
         hanging_wax_on_shelf_edge(locate)
     wax = candle_wax('Wax of the two remaining short candles', '#a29476', .46)
     for a, c, h, radius in ((-.143, -.105, .026, .014), (.139, -.081, .019, .012)):
