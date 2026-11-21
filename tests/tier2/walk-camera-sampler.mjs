@@ -1,9 +1,12 @@
 // Sample the main camera during the Step click, so walk movement can be judged rather than guessed.
 //
-// Install this before clicking Step. `install` records a reference on every frame while the camera is
-// still, so the last frame before the click is the reference the judge measures from; `markClick` stamps
-// the click on the same `performance.now()` clock as the samples. Each frame copies the 16 matrix elements
-// by value: a live reference to the camera's array would be rewritten by the very movement being measured.
+// Install this before clicking Step. The sampler keeps the newest frame as its reference, and a one-shot
+// capture listener on the Step button marks the click and freezes that reference **inside the dispatch of
+// the real click**, before any other handler can run. Marking from Playwright after `await click()` would
+// be too late: animation frames run between the dispatch and the promise resolving, so the reference would
+// be overwritten by the first moving frame and that first movement would be lost. Each frame copies the 16
+// matrix elements by value, because a live reference to the camera's array is rewritten by the very
+// movement being measured.
 //
 // Only `window.__pineRenderCamera` is read. That object is absent from production and from the Tier 1
 // build's absence of walk progress, so this sampler reports `unknown` when it is missing rather than
@@ -19,6 +22,9 @@ export function pageSampler() {
     clickAt: null,
     reference: null,
     referenceAt: null,
+    referenceFrozen: null,
+    frozenAt: null,
+    armed: false,
     frames: [],
     stopped: false,
     missing: 0,
@@ -56,12 +62,35 @@ export function pageSampler() {
   requestAnimationFrame(tick);
 }
 
-/** Runs inside the page: stamp the click on the sampler's clock. */
-export function pageMarkClick() {
+/**
+ * Runs inside the page: arm a one-shot capture listener on the Step button.
+ *
+ * The listener runs in the capture phase, in the same task as the click's own dispatch, so it records the
+ * click time and freezes the reference before the app's handler can move the camera. It then removes
+ * itself, so a second click cannot re-freeze a reference the walk has already left behind.
+ */
+export function pageArmClickCapture(label) {
   const state = window.__walkSamplerState;
-  if (!state) return null;
-  state.clickAt = performance.now();
-  return state.clickAt;
+  if (!state) return { armed: false, reason: 'sampler is not installed' };
+  const button = [...document.querySelectorAll('button')]
+    .find(node => (node.textContent ?? '').trim() === label);
+  if (!button) return { armed: false, reason: 'no Step button with that label' };
+  if (state.armed) return { armed: false, reason: 'a capture listener is already armed' };
+
+  const onCapture = () => {
+    // Freeze before anything else in this dispatch runs.
+    if (state.clickAt === null) {
+      state.clickAt = performance.now();
+      state.referenceFrozen = state.reference;
+      state.frozenAt = state.referenceAt;
+    }
+    button.removeEventListener('click', onCapture, true);
+    state.armed = false;
+  };
+  button.addEventListener('click', onCapture, true);
+  state.armed = true;
+  state.armedLabel = label;
+  return { armed: true };
 }
 
 /** Runs inside the page: stop sampling and return a plain snapshot. */
@@ -72,8 +101,9 @@ export function pageCollect() {
   return {
     installedAt: state.installedAt,
     clickAt: state.clickAt,
-    reference: state.reference,
-    referenceAt: state.referenceAt,
+    reference: state.referenceFrozen ?? state.reference,
+    referenceAt: state.frozenAt ?? state.referenceAt,
+    armed: state.armed,
     frames: state.frames.map(frame => ({ t: frame.t, elements: frame.elements })),
     missing: state.missing,
     errors: state.errors,
@@ -91,20 +121,39 @@ export function samplesFromSnapshot(snapshot) {
   if (!snapshot) return { samples: [], clickAt: null, reasons: ['no sampler snapshot was collected'] };
   if (snapshot.missing) reasons.push(`the main camera was absent on ${snapshot.missing} frame(s)`);
   if (snapshot.errors?.length) reasons.push(`sampler errors: ${snapshot.errors.join('; ')}`);
-  if (snapshot.referenceAt === null || snapshot.referenceAt === undefined) {
+
+  // A reference is valid only if it is exactly sixteen finite numbers. A later frame must never stand in
+  // for a broken reference: substituting it would measure motion from a pose the visitor had already
+  // moved away from, which is precisely the error this sampler exists to avoid.
+  const usable = Array.isArray(snapshot.reference) && snapshot.reference.length === 16
+    && snapshot.reference.every(Number.isFinite);
+  if (!usable) {
     return { samples: [], clickAt: snapshot.clickAt ?? null,
-      reasons: [...reasons, 'no pre-click reference frame was captured'] };
+      reasons: [...reasons, snapshot.reference
+        ? 'the pre-click reference matrix is not sixteen finite elements'
+        : 'no pre-click reference frame was captured'] };
   }
   if (snapshot.clickAt === null || snapshot.clickAt === undefined) {
     return { samples: [], clickAt: null, reasons: [...reasons, 'the click was never marked'] };
   }
+
+  // Timestamps keep their fractional part: performance.now() is sub-millisecond, and rounding would blur
+  // the interval the crossing is bracketed by.
   const base = snapshot.clickAt;
-  const samples = [{ t: Math.round(snapshot.referenceAt - base), elements: snapshot.reference }];
+  const samples = [{ t: snapshot.referenceAt - base, elements: snapshot.reference }];
+  let accepted = 0;
   for (const frame of snapshot.frames ?? []) {
-    if (!Array.isArray(frame.elements) || frame.elements.length !== 16) continue;
-    samples.push({ t: Math.round(frame.t - base), elements: frame.elements });
+    if (!frame || !Number.isFinite(frame.t)) { reasons.push('dropped a frame with no timestamp'); continue; }
+    if (!Array.isArray(frame.elements) || frame.elements.length !== 16
+      || !frame.elements.every(Number.isFinite)) {
+      reasons.push('dropped a frame whose matrix is not sixteen finite elements');
+      continue;
+    }
+    samples.push({ t: frame.t - base, elements: frame.elements });
+    accepted++;
   }
-  if (samples.length < 3) reasons.push(`only ${samples.length} sample(s) after rebasing; the judge needs a reference and at least one frame`);
+  // A reference and a single valid frame are enough to decide: that frame either moved or it did not.
+  if (!accepted) reasons.push('no valid frame was captured after the click');
   return { samples, clickAt: base, reasons };
 }
 

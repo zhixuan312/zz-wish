@@ -67,6 +67,16 @@ mark, a missing camera and a sampler error each yield `unknown` with their own r
 still; a null snapshot is `unknown`; and the median interval is reported or null with one sample.
 **9 tests pass.** Reverting the no-reference guard was confirmed to fail exactly its own test.
 
+`walk-camera-sampler-events.test.mjs` drives the real page functions against a fake DOM and a manual
+animation-frame queue, so ordering is exact. It covers: an app handler that moves the camera in the same
+dispatch while Playwright's promise resolves later, with the frozen reference still showing the pre-click
+position and `firstExceedance` at the first post-click frame; a click on another button leaving the
+listener armed and the result `unknown`; arming without an installed sampler or without the button; the
+listener removing itself after firing; a corrupted reference never replaced by a later valid frame;
+the reference being exactly sixteen finite elements; fractional timestamps surviving rebasing; and one
+reference plus one valid frame being enough to decide. **9 tests pass**, and replacing the in-dispatch mark
+with a mark one frame later fails five of them.
+
 Both regressions were re-introduced to confirm the tests catch them: reading forward from
 `elements[8..10]` fails only the `getWorldDirection` case, and comparing consecutive samples instead of the
 reference fails only the slow-walk case.
@@ -88,21 +98,25 @@ same `performance.now()` clock as the click.
 Invocation from a Playwright test (the page must be a `VITE_E2E_HOOKS=1` build):
 
 ```js
-import { pageSampler, pageMarkClick, pageCollect, samplesFromSnapshot, sampleInterval }
+import { pageSampler, pageArmClickCapture, pageCollect, samplesFromSnapshot, sampleInterval }
   from './walk-camera-sampler.mjs';
 import { judgeCameraMotion } from './walk-camera-judge.mjs';
 
-await page.evaluate(pageSampler);            // install before the Step click
-await page.waitForTimeout(300);              // let a few pre-click frames land
-const step = page.getByRole('button', { name: 'Step inside', exact: true });
-await step.click();
-await page.evaluate(pageMarkClick);          // stamp the click on the sampler's clock
+await page.evaluate(pageSampler);                        // install before the Step click
+await page.waitForTimeout(300);                          // let a few pre-click frames land
+await page.evaluate(pageArmClickCapture, 'Step inside'); // one-shot capture listener on the button
+await page.getByRole('button', { name: 'Step inside', exact: true }).click();
 await page.waitForTimeout(4000);
 const snapshot = await page.evaluate(pageCollect);
 const { samples, reasons } = samplesFromSnapshot(snapshot);
 const verdict = judgeCameraMotion(samples);
 console.log(verdict.verdict, verdict.firstExceedance, verdict.bounds, sampleInterval(samples), reasons);
 ```
+
+**Do not mark the click after `await click()`.** Animation frames run between the dispatch and the promise
+resolving; a frame in that gap overwrites the reference with an already-moving pose and the first movement
+is lost. The capture listener sets the click time inside the dispatch, before the app's own handler can
+move the camera, and removes itself so a second click cannot re-freeze a stale reference.
 
 What it reports: the verdict, `firstExceedance` (the first sample past the threshold), the bracket around
 that crossing, the median sample interval, and every reason a sample was dropped or a stage could not be
