@@ -1,4 +1,5 @@
 const lampSeatY = 1;
+const windowBack = -.63;
 
 // A tiling colour and height field for the packed silt. Layers come from the
 // carved profile, while fine grains and small pockets continue across them.
@@ -22,9 +23,11 @@ function seatGrain(THREE) {
   }
   for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
     const u = x / size, v = y / size;
-    const mottling = grain(u, v, 9) * .18 + grain(u, v, 32) * .20;
-    const fines = grain(u, v, 101) * .22;
-    const value = Math.round(255 * (.46 + mottling + fines));
+    const mottling = grain(u, v, 7) * .11 + grain(u, v, 28) * .16;
+    const grit = grain(u, v, 79) * .20;
+    const fines = grain(u, v, 128) * .12;
+    const pores = .12 * THREE.MathUtils.smoothstep(grain(u, v, 69), .69, .96);
+    const value = Math.round(255 * (.48 + mottling + grit + fines - pores));
     pixels.set([value, value, value, 255], (x + y * size) * 4);
   }
   const texture = new THREE.DataTexture(pixels, size, size);
@@ -40,10 +43,12 @@ function seatGrain(THREE) {
 // the worn front lip. Closely spaced rows in the cut carry the sediment bands.
 function windowSeat(THREE) {
   const section = [
-    [-.46, .095, .57, 0x937156], [-.413, .082, .57, 0x89664e],
-    [-.373, .070, .58, 0xa48061], [-.335, .057, .60, 0x9d795b],
-    [-.304, .050, .62, 0x8e6c52], [-.273, .041, .65, 0xa48163],
-    [-.242, .036, .67, 0x927053], [-.205, .030, .68, 0xa58063],
+    [windowBack - .03, .096, .50, 0x84654d], [-.55, .094, .54, 0x916c50],
+    [-.46, .092, .57, 0x967359], [-.413, .083, .57, 0x88654b],
+    [-.373, .071, .58, 0xb08b67], [-.335, .062, .60, 0x9a7657],
+    [-.304, .050, .62, 0x89634a], [-.284, .048, .64, 0x9c7355],
+    [-.273, .044, .65, 0xac8364], [-.242, .037, .67, 0x90694e],
+    [-.225, .036, .68, 0xa07a5c], [-.205, .032, .68, 0x9f7a5d],
     [-.181, .019, .68, 0x987457], [-.159, .006, .68, 0x99765a],
     [-.14, 0, .68, 0x9c795c],
   ];
@@ -57,10 +62,12 @@ function windowSeat(THREE) {
     [-.235, -.087, .64, 0x826149],
   );
 
-  const columns = 84;
+  const columns = 144;
   const stride = columns + 1;
   const positions = [], colors = [], uvs = [], triangles = [];
   const color = new THREE.Color();
+  const earthBase = new THREE.Color(0x9d7859);
+  const absorbedOil = new THREE.Color(0x634834);
   let surfaceDistance = 0;
   for (let row = 0; row < section.length; row++) {
     const [z, y, halfWidth, earth] = section[row];
@@ -73,16 +80,23 @@ function windowSeat(THREE) {
       const ridge = Math.sin(x * 15 + z * 9) * Math.sin(x * 36 - .7);
       const lip = THREE.MathUtils.smoothstep(z, .06, .17);
       const contour = z + lip * (.005 * ridge - .025 * Math.pow(Math.abs(x / halfWidth), 10));
-      positions.push(x, lampSeatY + y + ridge * Math.abs(y) * .045, contour);
-      uvs.push(x * 2.7 + .5, surfaceDistance * 2.7);
+      const cut = 1 - THREE.MathUtils.smoothstep(z, -.22, -.14);
+      const erosion = Math.sin(x * 19 + z * 24) * Math.cos(x * 47 - z * 31);
+      positions.push(x, lampSeatY + y + ridge * Math.abs(y) * .04 + cut * .0038 * erosion, contour);
+      uvs.push(x * 3.4 + .5, surfaceDistance * 3.4);
 
-      // The compact dark mark grades into the absorbed edge of older spills.
-      const uneven = .12 * Math.sin(x * 212 + z * 90) * Math.cos(z * 174);
-      const contact = Math.hypot((x + .006) / .038, (z + .004) / .03) + uneven;
-      const spill = Math.hypot((x + .024 - z * .28) / .066, (z + .014) / .04) + uneven;
-      const stain = .38 * (1 - THREE.MathUtils.smoothstep(contact, .40, 1.10))
-        + .31 * (1 - THREE.MathUtils.smoothstep(spill, .34, 1.32));
-      color.setHex(earth).multiplyScalar((1 - stain) * (1 + .035 * ridge));
+      // Old oil soaked in several centimetres outside the present cup. The
+      // displaced, uneven pools stay distinct from the dish's contact shadow.
+      const uneven = .12 * Math.sin(x * 138 + z * 69) * Math.cos(z * 144);
+      const contact = Math.hypot(x / .024, z / .022);
+      const spill = Math.hypot((x + .085 + (z - .058) * .74) / .043, (z - .058) / .026) + uneven;
+      const drip = Math.hypot((x + .134) / .018, (z - .075) / .011) + uneven;
+      const absorbed = .64 * (1 - THREE.MathUtils.smoothstep(spill, .54, 1.31))
+        + .34 * (1 - THREE.MathUtils.smoothstep(drip, .18, 1.17));
+      const bearing = .19 * (1 - THREE.MathUtils.smoothstep(contact, .42, 1.12));
+      const interrupted = cut * THREE.MathUtils.smoothstep(erosion, -.64, .55) * .62;
+      color.setHex(earth).lerp(earthBase, interrupted).lerp(absorbedOil, absorbed)
+        .multiplyScalar((1 - bearing) * (1 + .045 * ridge));
       colors.push(color.r, color.g, color.b);
       if (row === 0 || column === 0) continue;
       const lower = row * stride + column;
@@ -106,8 +120,18 @@ function windowSeat(THREE) {
   geometry.computeVertexNormals();
   const grain = seatGrain(THREE);
   const material = new THREE.MeshStandardMaterial({
-    vertexColors: true, roughness: .96, map: grain, bumpMap: grain, bumpScale: .0016,
+    vertexColors: true, roughness: .96, map: grain, bumpMap: grain, bumpScale: .0014,
   });
+  // Broaden the peak from the visitor's near point source on the rough earth.
+  // Lamp, wick, shadows and falloff beyond the window stay on the live light.
+  material.onBeforeCompile = shader => {
+    const pointLight = 'getPointLightInfo( pointLight, geometryPosition, directLight );';
+    const lights = THREE.ShaderChunk.lights_fragment_begin.replace(pointLight, `${pointLight}
+      directLight.color *= mix(0.23, 1.0,
+        smoothstep(0.055, 0.43, length(pointLight.position - geometryPosition)));`);
+    shader.fragmentShader = shader.fragmentShader.replace('#include <lights_fragment_begin>', lights);
+  };
+  material.customProgramCacheKey = () => 'loess-window-earth-v1';
   const mesh = new THREE.Mesh(geometry, material);
   mesh.name = 'Loess visitor window seat';
   return mesh;
@@ -144,10 +168,10 @@ export default function createPlace(h) {
       at: { pos: V3(0, 0, -3), ry: 0 }, lamp: 'clay', y: lampSeatY, exposure: 1.08, bloom: [.35, 1.05],
       approach: [V3(.7, 1.65, 6), V3(.9, 1.5, 3.2)],
       wide: { pos: V3(.85, 1.35, 2), look: V3(-.15, 1.3, -.3) },
-      choose: { pos: V3(.25, 1.25, .58), look: V3(.005, 1.037, -.025), fov: 32 },
+      choose: { pos: V3(.68, 1.34, .92), look: V3(0, 1.15, -.18), fov: 32 },
       // The procedural phone camera pulls this back and lowers its aim. Frame
       // the rim, bearing surface and wick in the space above the chooser.
-      choosePhone: { pos: V3(.18, 1.22, .43), look: V3(.005, 1.047, -.025) },
+      choosePhone: { pos: V3(.53, 1.22, .70), look: V3(-.165, 1.11, -.22) },
       async build(hh, C) {
         const earth = M(0x9d794e, .98, { map: loessTex }), packed = M(0x725638, .98, { map: loessTex }), wood = M(0x47301e, .85, { map: grainTex });
         // A thick cliff face with fully open arches. The front is the actual cave wall, rather than a distant scenery copy.
@@ -168,11 +192,25 @@ export default function createPlace(h) {
         }
         const paper = new THREE.MeshStandardMaterial({ map: papercutTex, emissive: 0xffb875, emissiveMap: papercutTex, emissiveIntensity: .09 + .11 * C.light.n, roughness: .95, side: THREE.DoubleSide });
         for (const [x, w] of [[0, 1.16], [-2.5, 1.3]]) {
-          const pane = new THREE.Mesh(new THREE.PlaneGeometry(w, 1.25), paper); pane.position.set(x, 1.65, -.52); C.G.add(pane);
-          for (let k = -2; k <= 2; k++) box(.018, 1.25, .035, wood, x + k * w / 5, 1.65, -.46);
-          for (const y of [1.08, 1.65, 2.23]) box(w, .025, .045, wood, x, y, -.44);
-          if (x === 0) C.G.add(windowSeat(THREE));
-          else box(w + .18, .065, .62, packed, x, .98, -.25);
+          const hero = x === 0;
+          const back = hero ? windowBack : -.52;
+          const pane = new THREE.Mesh(new THREE.PlaneGeometry(w, 1.25), paper); pane.position.set(x, 1.65, back); C.G.add(pane);
+          const latticeWidth = hero ? 1 : w;
+          for (let k = -2; k <= 2; k++) box(.018, 1.25, .035, wood, x + k * latticeWidth / 5, 1.65, back + .06);
+          for (const y of [1.08, 1.65, 2.23]) box(latticeWidth, .025, .045, wood, x, y, back + .08);
+          if (hero) {
+            C.G.add(windowSeat(THREE));
+            // Short fired-clay slips hold the timber away from raw earth.
+            // The dark inner frame sits behind the front plane of the cliff.
+            const slips = [M(0x656052, .95, { map: pavingTex }), M(0x544f45, .96, { map: pavingTex })];
+            for (const side of [-1, 1]) {
+              box(.043, .84, .055, wood, side * .479, 1.51, back + .05);
+              for (let course = 0; course < 5; course++) {
+                const depth = .19 + (course % 3) * .012;
+                box(.082, .118, depth, slips[course % 2], side * .537, 1.145 + .123 * course, back + .14 + depth / 2);
+              }
+            }
+          } else box(w + .18, .065, .62, packed, x, .98, -.25);
         }
         const curtain = new THREE.Mesh(new THREE.PlaneGeometry(1.24, 2.36, 12, 1), M(0x273141, .98, { side: THREE.DoubleSide }));
         const cp = curtain.geometry.attributes.position; for (let i = 0; i < cp.count; i++) cp.setZ(i, Math.sin(cp.getX(i) * 32) * .045); curtain.geometry.computeVertexNormals(); curtain.position.set(1.9, 1.19, -.75); C.G.add(curtain);
