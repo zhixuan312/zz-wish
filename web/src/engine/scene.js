@@ -2806,7 +2806,8 @@ function frame(stamp = performance.now()) {
   // A slow drift so the view breathes like a held camera; wider outside.
   const a = reducedMotion.matches || place?.P.bakedLighting || (import.meta.env.DEV && window.__visualFreezeCamera) ? 0 : rig.amp;
   if (!window.__pineRigFrozen) {
-    camera.position.copy(rig.pos).add(tmp.set(Math.sin(time * .13) * a, Math.sin(time * .09) * a * .35, Math.cos(time * .11) * a * .5));
+    const verticalDrift = place?.P.verticalCameraDrift ?? .35;
+    camera.position.copy(rig.pos).add(tmp.set(Math.sin(time * .13) * a, Math.sin(time * .09) * a * verticalDrift, Math.cos(time * .11) * a * .5));
     camera.lookAt(rig.look);
   }
   let lens = rig.fov ?? (innerWidth / innerHeight < .8 ? 44 : 32);

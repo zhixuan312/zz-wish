@@ -5,6 +5,7 @@ import { execFile } from 'node:child_process';
 import console from 'node:console';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
+import { tmpdir } from 'node:os';
 import process from 'node:process';
 import { promisify } from 'node:util';
 import { startPreview } from './preview.mjs';
@@ -26,6 +27,7 @@ const viewports = [
   { name: 'phone', width: 390, height: 844, phone: true },
 ];
 const looks = [{ name: 'day', hour: 13 }, { name: 'night', hour: 22 }];
+const entranceDwells = { desktop: { day: .35, night: 2.15 }, phone: { day: 1.05, night: 3.05 } };
 const screen = (page, state) => page.locator('.ui[data-screen="' + state + '"]').waitFor();
 const button = (page, name) => page.getByRole('button', { name, exact: true });
 const review = page => page.evaluate(() => window.__tideReview());
@@ -97,6 +99,51 @@ function summarizeTrace(rows) {
     clearance: { envelopes: laneWalls, wallReturn, minimum, intersectingFrameWallPairs: collisions } };
 }
 
+const eyeHeightLimits = { minimumMetres: 1.50, maximumMetres: 1.70 };
+const deckHeightLimits = { minimumY: .114, maximumY: .128, minimumNormalY: .999 };
+const openingSeconds = 1.5;
+
+function summarizeEyeHeight(rows) {
+  const walking = rows.filter(row => row.walkState === 'walking').map(row => ({
+    walkSecond: row.walkProgress * walkSeconds,
+    cameraWorldPosition: row.actual,
+    deck: row.deck,
+  }));
+  const opening = walking.filter(row => row.walkSecond <= openingSeconds);
+  const hasDeck = ({ deck }) => deck && deck.y >= deckHeightLimits.minimumY
+    && deck.y <= deckHeightLimits.maximumY && deck.normalY >= deckHeightLimits.minimumNormalY;
+  const outsideEyeLimits = ({ deck }) => deck.eyeMetres < eyeHeightLimits.minimumMetres - 1e-6
+    || deck.eyeMetres > eyeHeightLimits.maximumMetres + 1e-6;
+  function summarize(samples) {
+    const deckSamples = samples.filter(hasDeck);
+    const heights = deckSamples.map(row => row.deck.eyeMetres);
+    return {
+      frameCount: samples.length,
+      firstWalkSecond: samples[0]?.walkSecond ?? null,
+      lastWalkSecond: samples.at(-1)?.walkSecond ?? null,
+      longestIntervalSeconds: samples.reduce((maximum, row, i) => i === 0
+        ? maximum : Math.max(maximum, row.walkSecond - samples[i - 1].walkSecond), 0),
+      unverifiedDeckFrames: samples.length - deckSamples.length,
+      outsideEyeLimitsFrames: deckSamples.filter(outsideEyeLimits).length,
+      minimumEyeMetres: heights.length ? Math.min(...heights) : null,
+      maximumEyeMetres: heights.length ? Math.max(...heights) : null,
+      deckSurfaceY: deckSamples.length ? { minimum: Math.min(...deckSamples.map(row => row.deck.y)),
+        maximum: Math.max(...deckSamples.map(row => row.deck.y)) } : null,
+    };
+  }
+  const total = summarize(walking);
+  const first1_5Seconds = summarize(opening);
+  const complete = opening.length >= 6 && first1_5Seconds.firstWalkSecond <= .1
+    && first1_5Seconds.lastWalkSecond >= openingSeconds - .1
+    && total.lastWalkSecond >= walkSeconds - .1;
+  return {
+    measurement: 'Per rendered frame, actual camera position minus the upward deck face hit by a vertical ray.',
+    eyeHeightLimits, deckHeightLimits, complete, total,
+    first1_5Seconds: { ...first1_5Seconds, samples: opening },
+    passed: complete && total.unverifiedDeckFrames === 0 && total.outsideEyeLimitsFrames === 0,
+  };
+}
+
 async function capture(page, dir, name) {
   const frame = await review(page);
   if (!frame) throw new Error('Tide is not the rendered scene during ' + name);
@@ -160,9 +207,12 @@ async function entrance(page) {
 }
 
 async function captureCase(browser, preview, size, look, dir) {
+  const recording = process.env.TIDE_RECORD_WALKS === '1' && look.name === 'day';
+  const videoSize = size.phone ? { width: 390, height: 844 } : { width: 864, height: 540 };
   const context = await browser.newContext({
     viewport: { width: size.width, height: size.height },
     locale: 'en-US', timezoneId: 'Asia/Singapore', isMobile: size.phone, hasTouch: size.phone, deviceScaleFactor: 1,
+    ...(recording ? { recordVideo: { dir: tmpdir(), size: videoSize } } : {}),
   });
   const problems = [];
   const shots = {};
@@ -172,6 +222,11 @@ async function captureCase(browser, preview, size, look, dir) {
     page = await context.newPage();
     page.setDefaultTimeout(60_000);
     page.on('pageerror', error => problems.push({ type: 'page error', error: String(error) }));
+    page.on('console', message => {
+      if (/THREE.WebGLProgram|WebGL: INVALID_/i.test(message.text())) {
+        problems.push({ type: 'renderer error', error: message.text() });
+      }
+    });
     page.on('response', response => {
       if (response.status() < 400 || !response.url().startsWith(preview.url)) return;
       problems.push({ type: 'HTTP error', status: response.status(), url: response.url().slice(preview.url.length) });
@@ -193,6 +248,8 @@ async function captureCase(browser, preview, size, look, dir) {
     await button(page, 'Back outside').click();
     const returnEntrance = await entrance(page);
 
+    const dwellSeconds = entranceDwells[size.name][look.name];
+    await page.waitForTimeout(dwellSeconds * 1000);
     await page.evaluate(() => window.__startCameraTrace());
     const clickMs = await page.evaluate(() => performance.now());
     await button(page, 'Step inside').click();
@@ -210,6 +267,11 @@ async function captureCase(browser, preview, size, look, dir) {
     shots.burning = await capture(page, dir, 'lit-recess');
     const actual = await page.evaluate(() => window.__stopCameraTrace());
     await json(join(dir, 'camera-trace.json'), actual);
+    const eyeHeight = summarizeEyeHeight(actual);
+    await json(join(dir, 'walk-eye-height.json'), eyeHeight);
+    if (!eyeHeight.passed) problems.push({
+      type: 'walk eye height or deck', complete: eyeHeight.complete, ...eyeHeight.total,
+    });
     const delta = endpointDelta(shots.chooser, shots.skip);
     const crops = (await Promise.all([
       crop(dir, shots['salt-wall'], 'salt-wall', shots['salt-wall'].salt.find(point => point.inFrame && !point.occluder), 290, 260),
@@ -225,8 +287,14 @@ async function captureCase(browser, preview, size, look, dir) {
     }
     if (trace.revealHoldSeconds < 2) problems.push({ type: 'reveal hold', seconds: trace.revealHoldSeconds });
     const boundsClear = value => Boolean(value?.inFrame && !value.underSheet);
-    const evidence = { viewport: [size.width, size.height], localHour: look.hour, marks, shots, crops, returnEntrance,
+    const shoreClear = frame => frame.harbourTips?.length === 2
+      && frame.harbourTips.every(tip => (tip?.visibleRays ?? 0) > 0);
+    for (const frame of ['harbour-reveal', 'chooser', 'burning']) {
+      if (!shoreClear(shots[frame])) problems.push({ type: 'harbour tips not both visible', frame, tips: shots[frame].harbourTips });
+    }
+    const evidence = { viewport: [size.width, size.height], localHour: look.hour, marks, shots, crops, returnEntrance, dwellSeconds,
       normalWalkToChooserSeconds: (chooserMs - clickMs) / 1000, skipStart: skipStart.walk, endpointDelta: delta,
+      video: recording ? join(dir, 'continuous-review.webm') : null,
       observations: {
         concealedSeaSampleCount: shots['last-enclosed'].sea.filter(point => point.inFrame && !point.occluder).length,
         revealMouthInView: shots['harbour-reveal'].mouth.inFrame && !shots['harbour-reveal'].mouth.occluder,
@@ -239,8 +307,14 @@ async function captureCase(browser, preview, size, look, dir) {
         litWholeFlameEnvelopeClear: boundsClear(shots.burning.lamp?.flameEnvelope),
         litMouthInView: shots.burning.mouth.inFrame && !shots.burning.mouth.occluder,
         lampContactMetres: shots.burning.lamp?.contactMetres,
+        chooserMargins: {
+          mouth: shots.chooser.mouth.uiMargins,
+          hood: shots.chooser.lamp?.hoodBounds?.uiMargins,
+          flame: shots.chooser.lamp?.flameEnvelope?.uiMargins,
+        },
       },
-      trace, problems };
+      trace: { ...trace, eyeHeight: { passed: eyeHeight.passed, complete: eyeHeight.complete,
+        ...eyeHeight.total, first1_5SecondsFrames: eyeHeight.first1_5Seconds.frameCount } }, problems };
     await json(join(dir, 'review.json'), evidence);
     return evidence;
   } catch (error) {
@@ -249,7 +323,12 @@ async function captureCase(browser, preview, size, look, dir) {
     await json(join(dir, 'review.json'), { shots, problems });
     return { problems };
   } finally {
+    const video = page?.video();
     await context.close();
+    if (video) {
+      await video.saveAs(join(dir, 'continuous-review.webm'));
+      await video.delete();
+    }
   }
 }
 

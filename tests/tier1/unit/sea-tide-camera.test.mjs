@@ -38,6 +38,7 @@ for (const phone of [false, true]) {
     const walk = route.createWalk({ ...start, fov: start.fov ?? (phone ? 44 : 32) }, end, phone);
     const rig = { pos: V3(), look: V3(), amp: 0, fov: 0 };
     assert.equal(route.walkSeconds + 2.4, 30);
+    assert.equal(route.verticalCameraDrift, 0);
 
     walk(0, rig);
     assert.ok(rig.pos.distanceTo(start.pos) < 1e-6);
@@ -64,6 +65,12 @@ for (const phone of [false, true]) {
         const ease = t < 0.5 ? 4 * t ** 3 : 1 - (2 - 2 * t) ** 3 / 2;
         rig.pos.lerp(seated.pos, ease);
         rig.look.lerp(seated.look, ease);
+      }
+      if (seconds <= route.walkSeconds) {
+        const { x, y, z } = rig.pos;
+        const deck = Math.abs(x) <= 2.69 && z >= 12.5 && z <= 35.5 ? .122 : .12;
+        const eye = y - deck;
+        assert.ok(eye >= 1.50 && eye <= 1.70, `Authored walking eye ${eye.toFixed(3)} m at ${seconds.toFixed(2)} s`);
       }
       minimumClearance = Math.min(minimumClearance, wallDistance(rig.pos));
       const direction = rig.look.clone().sub(rig.pos).normalize();
@@ -92,7 +99,7 @@ for (const phone of [false, true]) {
 }
 
 
-test('Tide builds its wall deposits and moving crests before the first preview', async () => {
+test('Tide builds its wall deposits and animated harbour water before the first preview', async () => {
   const noGeometry = () => {};
   const context = { G: new THREE.Group(), up: [] };
   const helpers = {
@@ -109,12 +116,13 @@ test('Tide builds its wall deposits and moving crests before the first preview',
     await tide.build();
     await tide.nook.build(helpers);
     assert.ok(context.G.getObjectByName('Salt on the descending return'));
-    assert.equal(context.up.length, 20);
-    const crest = context.G.getObjectByName('Harbour wave crest');
-    assert.ok(crest);
-    const before = crest.position.x;
-    context.up[0](1 / 60, 2, { n: 0 });
-    assert.notEqual(crest.position.x, before);
+    assert.equal(context.up.length, 1);
+    const sea = context.G.getObjectByName('Tide Temple harbour water');
+    assert.ok(sea);
+    assert.equal(sea.position.y, -2.8);
+    context.up[0](1 / 60, 2, { n: .7, g: .2 });
+    assert.equal(sea.material.uniforms.uTime.value, 2);
+    assert.equal(sea.material.uniforms.uNight.value, .7);
   } finally {
     vi.unstubAllGlobals();
   }
