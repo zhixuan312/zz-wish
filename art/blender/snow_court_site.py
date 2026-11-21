@@ -754,6 +754,7 @@ def configure_low_sun(scene, pre_exposure):
 
 
 def relight_prepared(scene, output):
+    prepared = Path(bpy.data.filepath).resolve()
     regions = [obj for obj in scene.objects if obj.get('one_light_static')]
     if not regions or not all(obj.type == 'MESH' and obj.data.uv_layers.get('Lightmap') for obj in regions):
         raise RuntimeError('Load the prepared Snow Court receivers before changing their lighting.')
@@ -764,9 +765,30 @@ def relight_prepared(scene, output):
     storm = scene.objects.get('Veranda everyday storm lantern lamp light')
     if not storm or storm.type != 'LIGHT':
         raise RuntimeError('Prepared Snow Court is missing its veranda fixture.')
+    geometry_provenance = {
+        key: scene.get(key) for key in ('one_light_source_binding', 'source_authoring_sha256')
+    }
+    sources = (Path(__file__), Path(plates.__file__), Path(__file__).with_name('snow_court_backdrop.py'), LOW_SUN)
+    input_digest = sha256(prepared.read_bytes()).hexdigest()
+    receipt = {
+        'preparedInput': {'path': str(prepared), 'sha256': input_digest},
+        'lightingSourceSha256': {
+            str(path.resolve().relative_to(ROOT)): sha256(path.read_bytes()).hexdigest() for path in sources
+        },
+    }
     configure_low_sun(scene, scene['one_light_camera_pre_exposure'])
     storm['bake_role'] = 'ambient'
+    receipt['duskWorld'] = json.loads(scene['one_light_ambient_worlds'])['dusk']
+    scene['snow_court_relight_receipt'] = json.dumps(receipt)
     bpy.ops.wm.save_as_mainfile(filepath=str(output))
+    bpy.ops.wm.open_mainfile(filepath=str(output))
+    saved = bpy.context.scene
+    saved_world = json.loads(saved['one_light_ambient_worlds'])['dusk']
+    if (json.loads(saved['snow_court_relight_receipt']) != receipt
+            or any(saved.get(key) != value for key, value in geometry_provenance.items())
+            or saved_world != receipt['duskWorld'] or saved_world not in bpy.data.worlds):
+        raise RuntimeError('Saved Snow Court does not preserve its relight or geometry provenance.')
+    print('SNOW_COURT_RELIGHT_RECEIPT', json.dumps(receipt), flush=True)
 
 
 def main():
