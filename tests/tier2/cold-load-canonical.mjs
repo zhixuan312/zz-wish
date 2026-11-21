@@ -333,7 +333,7 @@ async function runOnce(target, condition, run, phase) {
     // movement appeared, which is exactly the movement we are waiting to measure.
     await page.evaluate(() => {
       const probe = { armed: false, first: null, samples: 0, baseline: null, streak: 0,
-        fadeSeen: null, fadeCleared: null, framesAfterArm: 0 };
+        fadeSeenAt: null, armReason: null, maxOpacity: 0 };
       window.__walkProbe = probe;
       const canvas = document.querySelector('canvas');
       const fade = document.getElementById('fade');
@@ -342,22 +342,21 @@ async function runOnce(target, condition, run, phase) {
       scratch.width = 48; scratch.height = 30;
       const g = scratch.getContext('2d', { willReadFrequently: true });
       const startedAt = performance.now();
+      const opacityOf = () => (fade ? Number(fade.style.opacity === '' ? 0 : fade.style.opacity) : 0);
       const sample = () => {
         const now = performance.now();
-        // Watch the fade: it becomes opaque for the transition, then clears.
-        if (fade) {
-          const opacity = Number(getComputedStyle(fade).opacity);
-          if (opacity > .05 && probe.fadeSeen === null) probe.fadeSeen = now - startedAt;
-          if (probe.fadeSeen !== null && opacity <= .05 && !probe.armed) {
-            probe.fadeCleared = now - startedAt;
-            probe.armed = true;
-          }
-        } else if (!probe.armed && now - startedAt > 700) {
-          // No fade element at all: fall back to a fixed settle delay, still labelled a proxy.
-          probe.armed = true;
+        const inline = opacityOf();
+        if (inline > probe.maxOpacity) probe.maxOpacity = inline;
+        if (inline > .05 && probe.fadeSeenAt === null) probe.fadeSeenAt = now - startedAt;
+        if (probe.fadeSeenAt !== null && inline <= .05 && !probe.armed) {
+          probe.armed = true; probe.armReason = 'fade-cleared';
+        }
+        if (!probe.armed && probe.fadeSeenAt === null && now - startedAt > 800 && inline <= .05) {
+          // No fade was visible this run and the overlay is already clear: arm anyway and say so, so a
+          // run without a fade is labelled rather than left unmeasured.
+          probe.armed = true; probe.armReason = 'no-fade';
         }
         if (probe.armed) {
-          probe.framesAfterArm++;
           try {
             g.drawImage(canvas, 0, 0, scratch.width, scratch.height);
             const pixels = g.getImageData(0, 0, scratch.width, scratch.height).data;
@@ -378,7 +377,7 @@ async function runOnce(target, condition, run, phase) {
           } catch { /* resized canvas */ }
         }
         probe.samples++;
-        if (probe.samples < 6000) requestAnimationFrame(sample);
+        if (probe.samples < 9000) requestAnimationFrame(sample);
       };
       requestAnimationFrame(sample);
     });
@@ -392,9 +391,9 @@ async function runOnce(target, condition, run, phase) {
       record.walkFailure = String(error?.message ?? error).slice(0, 160);
     }
     const probeState = await page.evaluate(() => window.__walkProbe && ({
-      armed: window.__walkProbe.armed, fadeSeenMs: window.__walkProbe.fadeSeen,
-      fadeClearedMs: window.__walkProbe.fadeCleared, firstProxyMs: window.__walkProbe.first,
-      framesAfterArm: window.__walkProbe.framesAfterArm, samples: window.__walkProbe.samples,
+      armed: window.__walkProbe.armed, armReason: window.__walkProbe.armReason,
+      fadeSeenMs: window.__walkProbe.fadeSeenAt, maxOpacity: window.__walkProbe.maxOpacity,
+      firstProxyMs: window.__walkProbe.first, samples: window.__walkProbe.samples,
     }));
     progress('walk');
     record.walkProbe = probeState;
@@ -403,7 +402,8 @@ async function runOnce(target, condition, run, phase) {
         basis: 'canvas-proxy',
         note: 'First sustained change after the #fade element clears. The production build exposes no '
           + 'camera pose, so this is a picture proxy, not a measured camera displacement.',
-        fadeClearedMs: probeState?.fadeClearedMs, framesAfterArm: probeState?.framesAfterArm }
+        armReason: probeState?.armReason, fadeSeenMs: probeState?.fadeSeenMs,
+        maxOpacity: probeState?.maxOpacity }
       : { harnessMs: null, navProxyMs: null, bytes: null, failed: true, basis: 'canvas-proxy' }
 
     // The chooser is a separate stage; waiting for it is not a movement measure.
