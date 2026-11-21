@@ -506,3 +506,14 @@ The first repair pass moved the detail into view. The roof boarding and snow sti
 The matched reveal crops use the unchanged product camera. Compared with the clay-only repair, the night median of visible repair samples on a coded 0–255 luma scale rises from 7 to 13 on desktop and from 9 to 15 on phone. The originals, markers and crop pairs are indexed in `artifacts/snow-roof/quality/p2/r48-architecture-reviewed/README.md`.
 
 The four accepted architecture visits use `78ffd08` and the 64-sample `app-48` preview with manifest SHA-256 `926e4abfc9282affec465cd30c6e308cc7f96c168f2af4b680b3e95c6f4a9851`. They have zero runtime errors, HTTP errors and source reloads. Step inside takes 3.08–3.93 s. The first phone attempt took 12.88 s and missed the six-second capture. The retake preserves the five-second gate and captures the requested reveal and entry beats. All sixteen decoded contacts pass. The three payloads are 13,499,483 B, 25,844,775 B and 32,523,763 B.
+
+#### P2 swept court and wind-refilled boot impressions
+
+| Requirement | Normal-route read at 13:00 and 22:00 |
+| --- | --- |
+| Narrow swept path | The reveal shows the lane. On the court approach, thin frost over grey stone and the displaced snow lip give it a different surface and edge from the surrounding drifts. |
+| Footprints half covered by new snow | The closest impressions show heel and toe relief beside gaps where windblown snow has partly refilled older steps. Individual prints are too small at the reveal. At 22:00, use the desktop frame near entry +1 s and the phone frames near +3 to +4 s. The shallowest impressions still fade into the snow. |
+
+The same normal route and camera show the R48 and R49b surfaces. Original frames, native 1× crops, frame times and photographic references are indexed in `artifacts/snow-roof/quality/p2/r49-swept-comparison/README.md`. The initial exposed stone faces followed the triangle borders too closely. The final pass feathers the granite colour under the frost on the continuous court surface. The route, camera, sculpture, architecture and global lighting source stay frozen.
+
+The 64-sample `app-49b` preview uses source `90e419e` and manifest SHA-256 `7c2d3fe8e129486f4b8a03fbc386b30c8615e69f9c9e27b044b60a11ebedcff3`. Its four Chromium visits have zero runtime errors, HTTP errors and source reloads. Step inside takes 2.70–3.60 s. All sixteen decoded contact groups pass. Both capture services are stopped and the S1 lease is released. Phone evidence uses the 390 × 844 Chromium viewport.
