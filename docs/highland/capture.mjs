@@ -11,7 +11,7 @@ import { chromium } from '@playwright/test';
 import { Vector3 } from 'three';
 import { HIGH_WHITE_TRAVEL_SECONDS, highWhiteCameras } from '../../web/src/engine/places/highland-camera.js';
 import { startPreview } from './preview.mjs';
-import { highWhiteTraceMetrics } from './camera-audit.mjs';
+import { highWhiteGeometryMetrics, highWhiteTraceMetrics } from './camera-audit.mjs';
 
 const TARGETS = [
   ...[20, 21, 22, 23, 24, 25].map(seconds => ({ name: `threshold-${seconds}s`, seconds })),
@@ -26,13 +26,14 @@ const output = resolve(process.argv[2] ?? 'artifacts/highland/matched');
 const requested = process.argv.slice(3);
 const baseline = requested.includes('--baseline');
 const paired = requested.includes('--paired');
+const liveCrops = requested.includes('--live-crops');
 const referenceArg = requested.find(value => value.startsWith('--match='));
 const match = referenceArg ? resolve(referenceArg.slice('--match='.length)) : null;
 assert.ok(!referenceArg || referenceArg.length > '--match='.length, 'Set --match to the baseline output directory.');
 assert.ok(!baseline || !match, 'Use --match on the candidate, not the baseline.');
 assert.ok(!paired || (!baseline && !match), 'Use --paired by itself to save before and after together.');
 assert.ok(!match || match !== output, 'The baseline and candidate output directories must be different.');
-const filters = requested.filter(value => value !== '--baseline' && value !== '--paired' && value !== referenceArg);
+const filters = requested.filter(value => value !== '--baseline' && value !== '--paired' && value !== '--live-crops' && value !== referenceArg);
 const combinations = views.flatMap(view => [13, 22].map(hour => ({ ...view, hour, key: `${view.name}-${hour}` })));
 assert.ok(filters.every(key => combinations.some(view => view.key === key)), 'Use desktop-13, desktop-22, phone-13 or phone-22.');
 const selected = filters.length ? combinations.filter(view => filters.includes(view.key)) : combinations;
@@ -41,7 +42,6 @@ const clamp = (value, low, high) => Math.max(low, Math.min(high, value));
 const distance = (a, b) => Math.hypot(...a.map((value, i) => value - b[i]));
 const angle = (a, b) => Math.acos(clamp(a.reduce((sum, value, i) => sum + value * b[i], 0), -1, 1)) * 180 / Math.PI;
 const pngBytes = png => Buffer.from(png.slice(png.indexOf(',') + 1), 'base64');
-const withoutPng = ({ png: _, ...camera }) => camera;
 const cameras = highWhiteCameras((...args) => new Vector3(...args));
 
 function exactPose(view) {
@@ -68,7 +68,7 @@ function posesMatch(delta) {
 // The passage solid occupies z=27.15..28. The camera passes between the stone
 // jambs at x=±1.15, under the 2.8 m opening. The paving top is y=.12 here.
 const opening = { walls: [27.15, 28], halfWidth: 1.15, ceiling: 2.8, floor: .12 };
-function measureTrace(rows) {
+function measureTrace(rows, geometry, isBaseline) {
   const gaps = rows.slice(1).map((end, index) => {
     const start = rows[index];
     const gapMs = end.stampMs - start.stampMs;
@@ -90,12 +90,13 @@ function measureTrace(rows) {
   const authoredTravel = rows.filter(row => row.walkState === 'walking');
   const final = authoredTravel.at(-1);
   const first = rows[0].stampMs;
-  const metrics = highWhiteTraceMetrics(rows.map(frame => {
+  const samples = rows.map(frame => {
     const [x, y, z] = frame.position;
     const [dx, dy, dz] = frame.direction;
     return { t: (frame.stampMs - first) / 1000, walkSeconds: frame.walkSeconds,
       x, y, z, lx: x + dx, ly: y + dy, lz: z + dz, fov: frame.fov };
-  }));
+  });
+  const metrics = highWhiteTraceMetrics(samples);
   const staticTail = rows.filter(row => row.walkState === 'done');
   assert.ok(metrics.nearestStructure.metres > .2, 'Camera eye entered a checked structure or grazed an edge');
   return {
@@ -103,13 +104,23 @@ function measureTrace(rows) {
     peakWalkSpeedMetresPerSecond: metrics.peakWalkSpeed.value,
     peakSeatSpeedMetresPerSecond: metrics.peakSeatSpeed.value,
     peakTurnDegreesPerSecond: metrics.peakTurn.value,
-    doorway, path: metrics,
+    doorway, path: metrics, geometry: highWhiteGeometryMetrics(samples, geometry, isBaseline),
     tail: {
       secondsAfterAuthoredTravel: (rows.at(-1).stampMs - final.stampMs) / 1000,
       maxDriftMetres: Math.max(0, ...staticTail.map(row => distance(row.position, final.position))),
       maxTurnDegrees: Math.max(0, ...staticTail.map(row => angle(row.direction, final.direction))),
     },
   };
+}
+
+function checkGeometry(geometry) {
+  assert.deepEqual(geometry.missingOrInvalid, [], 'All seven named rendered meshes must have a unique world AABB');
+  assert.ok(geometry.doorFrame.metres >= .6, 'The camera needs at least 0.6 m from the doorway frame');
+  assert.ok(geometry.westPier.metres >= 1, 'The camera needs at least 1 m from the west pier');
+  const eye = geometry.eyeAbovePaving;
+  assert.ok(eye.firstWalkSecond < 1 && eye.lastWalkSecond > 29.5, 'The paving measurement must span the walk and reveal hold');
+  assert.equal(eye.uncoveredFrames, 0, 'Every walk frame must have a paving slab under the camera');
+  assert.ok(eye.min.metres >= 1.5 && eye.max.metres <= 1.7, 'The walking eye must stay 1.5–1.7 m above the rendered paving');
 }
 
 function watchErrors(page, issues) {
@@ -200,7 +211,8 @@ async function compareToBaseline(report, referenceDir) {
     const original = reference.scenes.find(frame => frame.name === scene.name);
     assert.ok(original?.capturePose, `Missing baseline pose for ${scene.name}`);
     assert.deepEqual(original.capturePose, scene.capturePose, `Diagnostic camera differs at ${scene.name}.`);
-    return { name: scene.name, liveTriggerDeltaSeconds: (scene.walkSeconds ?? 0) - (original.walkSeconds ?? 0) };
+    const baselineSeconds = original.livePose?.walkSeconds ?? original.walkSeconds ?? 0;
+    return { name: scene.name, liveTriggerDeltaSeconds: (scene.livePose.walkSeconds ?? 0) - baselineSeconds };
   });
   return { path, exactDiagnosticPoses: images, actualUiPoses: stages, cropRects: reference.crops };
 }
@@ -218,17 +230,30 @@ async function capture(browser, preview, view, outputDir, referenceDir) {
   watchErrors(page, issues);
   page.setDefaultTimeout(80_000);
   const click = locator => view.touch ? locator.tap() : locator.click();
-  const report = { view, source: preview.source, issues, scenes: [] };
+  const report = {
+    view, source: preview.source, issues, scenes: [],
+    captureTypes: {
+      live: 'Original composer render from the running camera, with same-frame live pose',
+      diagnostic: 'Separate render at the exact authored time and pose, for matched before/after comparisons',
+      seatedUi: 'Actual browser screenshots after the seated camera has settled',
+    },
+  };
   const pose = exactPose(view);
   const targets = TARGETS.map(target => ({ ...target, pose: pose(target.seconds) }));
-  const originals = new Map();
-  async function saveScene(name, frame) {
-    report.scenes.push({ name, ...withoutPng(frame) });
-    const bytes = pngBytes(frame.png);
+  const diagnosticOriginals = new Map(), liveOriginals = new Map();
+  async function saveOriginal(originals, name, png, filename) {
+    const bytes = pngBytes(png);
     assert.equal(bytes.readUInt32BE(16), view.width, 'Render must have native viewport width');
     assert.equal(bytes.readUInt32BE(20), view.height, 'Render must have native viewport height');
     originals.set(name, bytes);
-    await writeFile(join(directory, `${name}.png`), bytes);
+    await writeFile(join(directory, filename), bytes);
+  }
+
+  async function saveScene(name, { png, livePng, capturePose, targetSeconds, lamp: _lamp, ...livePose }) {
+    const images = { diagnostic: `diagnostic-${name}.png`, live: `live-${name}.png` };
+    report.scenes.push({ name, targetSeconds, capturePose, livePose, images });
+    await saveOriginal(diagnosticOriginals, name, png, images.diagnostic);
+    await saveOriginal(liveOriginals, name, livePng, images.live);
   }
 
   try {
@@ -250,7 +275,7 @@ async function capture(browser, preview, view, outputDir, referenceDir) {
     const { samples, frames } = trace;
     assert.deepEqual(trace.missed, [], 'All timed render captures must be present');
     assert.ok(samples[0].walkSeconds < 1 && samples.at(-1).walkSeconds === HIGH_WHITE_TRAVEL_SECONDS, 'Trace must cover the entire authored camera movement');
-    report.trace = measureTrace(samples);
+    report.trace = measureTrace(samples, trace.geometry, preview.source.mode === 'baseline');
     await writeFile(join(directory, 'camera-trace.json'), `${JSON.stringify(samples, null, 2)}\n`);
     for (const frame of frames) {
       assert.ok(frame.walkSeconds - frame.targetSeconds < .4, `Capture too late: ${frame.name}`);
@@ -293,7 +318,8 @@ async function capture(browser, preview, view, outputDir, referenceDir) {
     }
     for (const { name, seconds } of TARGETS) {
       const rect = seconds <= 26 ? report.crops.doorway : report.crops.reveal;
-      await crop(page, originals.get(name), rect, join(directory, `crop-${name}.png`));
+      await crop(page, diagnosticOriginals.get(name), rect, join(directory, `crop-diagnostic-${name}.png`));
+      if (liveCrops) await crop(page, liveOriginals.get(name), rect, join(directory, `crop-live-${name}.png`));
     }
     await crop(page, seatedBytes, report.crops.lamp, join(directory, 'crop-seated-lamp.png'));
     await crop(page, litBytes, report.crops.lamp, join(directory, 'crop-lit-lamp.png'));
@@ -302,6 +328,7 @@ async function capture(browser, preview, view, outputDir, referenceDir) {
     assert.ok(report.trace.peakTurnDegreesPerSecond <= 25.1, 'The turn must stay at or below 25°/s within sample tolerance');
     assert.ok(report.trace.peakWalkSpeedMetresPerSecond <= 1.8, 'The live walk must stay at or below 1.8 m/s');
     assert.ok(report.trace.peakSeatSpeedMetresPerSecond <= 1.4, 'The live seat approach must stay at or below 1.4 m/s');
+    if (preview.source.mode === 'candidate') checkGeometry(report.trace.geometry);
     assert.deepEqual(issues, [], 'No page, request or HTTP errors');
   } catch (error) {
     report.failure = error.stack;

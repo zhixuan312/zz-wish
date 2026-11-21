@@ -10,6 +10,7 @@ import { createServer } from 'vite';
 import { buildApp } from '../../server/app.ts';
 import config from '../../web/vite.config.ts';
 import { HIGH_WHITE_TRAVEL_SECONDS } from '../../web/src/engine/places/highland-camera.js';
+import { HIGH_WHITE_VERIFIED_MESHES } from './camera-audit.mjs';
 
 const SOURCE = 'web/src/engine/places/highland.js';
 const CAMERA_SOURCE = 'web/src/engine/places/highland-camera.js';
@@ -42,10 +43,10 @@ function replaceOnce(source, before, after) {
 }
 
 // Serialized into the scene module only by the local review server. Capture the
-// exact rendered frame without changing the clock, the rig, or the game UI.
-function makeReview(THREE, camera, canvas, mine, duration) {
+// actual rendered frame and an explicitly separate matched diagnostic render.
+function makeReview(THREE, camera, canvas, mine, duration, meshNames) {
   const samples = [];
-  let requests = [], frames = [], recording = false, walking = false;
+  let requests = [], frames = [], recording = false, walking = false, geometry = null;
   const direction = new THREE.Vector3();
   function sample(stamp, progress) {
     return {
@@ -81,31 +82,49 @@ function makeReview(THREE, camera, canvas, mine, duration) {
       worldBounds: [box.min.toArray(), box.max.toArray()],
     };
   }
+  function meshBounds(group) {
+    const matches = new Map(meshNames.map(name => [name, []]));
+    group.traverse(object => matches.get(object.name)?.push(object));
+    return [...matches].map(([name, objects]) => {
+      const [mesh] = objects;
+      if (objects.length !== 1 || !mesh.isMesh || !mesh.visible) return { name, count: objects.length, min: null, max: null };
+      const bounds = new THREE.Box3().setFromObject(mesh, true);
+      return { name, count: objects.length, min: bounds.min.toArray(), max: bounds.max.toArray() };
+    });
+  }
   let latest, stills = [];
   window.__highlandReview = {
-    start(targets) { samples.length = 0; frames = []; requests = [...targets]; recording = true; walking = false; },
+    start(targets) { samples.length = 0; frames = []; requests = [...targets]; recording = true; walking = false; geometry = null; },
     read() { return { ...latest, lamp: lampProjection() }; },
     nextStill(pose) { return new Promise(resolve => stills.push({ pose, resolve })); },
-    stop() { recording = false; return { samples, frames, missed: requests }; },
+    stop() { recording = false; return { samples, frames, geometry, missed: requests }; },
   };
-  return (stamp, placeId, progress, drawMatched) => {
-    if (placeId !== 'highland') return;
+  return (stamp, place, progress, drawMatched) => {
+    if (place?.id !== 'highland') return false;
     latest = sample(stamp, progress);
+    let livePng;
+    const bothRenders = pose => {
+      livePng ??= canvas.toDataURL('image/png');
+      return { capturePose: pose, png: drawMatched(pose), livePng };
+    };
     if (recording && latest.walkState === 'walking') walking = true;
     if (recording && walking) {
+      geometry ??= meshBounds(place.G);
       samples.push(latest);
       if (requests.length && latest.walkSeconds >= requests[0].seconds) {
         const { name, seconds, pose } = requests.shift();
-        frames.push({ name, targetSeconds: seconds, ...latest, capturePose: pose, png: drawMatched(pose) });
+        frames.push({ name, targetSeconds: seconds, ...latest, ...bothRenders(pose) });
       }
     }
     if (stills.length) {
       const next = stills; stills = [];
       for (const { pose, resolve } of next) {
-        const png = pose ? drawMatched(pose) : null;
-        resolve({ ...latest, ...(pose ? { capturePose: pose, png } : {}), lamp: lampProjection() });
+        resolve({ ...latest, ...(pose ? bothRenders(pose) : {}), lamp: lampProjection() });
       }
     }
+    // A diagnostic render used the same canvas. Let the caller put the actual
+    // camera back in the visible framebuffer before this browser frame ends.
+    return Boolean(livePng);
   };
 }
 
@@ -141,9 +160,10 @@ export async function startPreview({ baseline = false } = {}) {
           if (id.endsWith('/web/src/engine/scene.js')) {
             const entry = 'function frame(stamp = performance.now()) {';
             const draw = '  composer.render();\n}\n\n// ---------- Start ----------';
-            const setup = `const reviewHighlandFrame = (${makeReview.toString()})(THREE, camera, canvas, mine, ${HIGH_WHITE_TRAVEL_SECONDS});`;
+            const setup = `const reviewHighlandFrame = (${makeReview.toString()})(THREE, camera, canvas, mine, ${HIGH_WHITE_TRAVEL_SECONDS}, ${JSON.stringify(HIGH_WHITE_VERIFIED_MESHES)});`;
             return replaceOnce(replaceOnce(source, entry, `${setup}\n${entry}`), draw, `
-  reviewHighlandFrame(stamp, place?.id, window.__walkProgress, ({ position, look, fov }) => {
+  composer.render();
+  const paintedDiagnostic = reviewHighlandFrame(stamp, place, window.__walkProgress, ({ position, look, fov }) => {
     const live = { position: camera.position.clone(), rotation: camera.quaternion.clone(), fov: camera.fov, near: camera.near, sky: place.sky.position.clone() };
     try {
       camera.position.fromArray(position);
@@ -161,7 +181,10 @@ export async function startPreview({ baseline = false } = {}) {
       place.sky.position.copy(live.sky);
     }
   });
-${draw}`);
+  if (paintedDiagnostic) composer.render();
+}
+
+// ---------- Start ----------`);
           }
         },
       }],

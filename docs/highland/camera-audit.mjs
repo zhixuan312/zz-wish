@@ -2,6 +2,11 @@ import { Vector3 } from 'three';
 import { measureCameraPath } from '../../tests/visual/pine-camera-path.mjs';
 import { HIGH_WHITE_WALK_SECONDS } from '../../web/src/engine/places/highland-camera.js';
 
+const frameNames = ['High White west jamb', 'High White east jamb', 'High White lintel'];
+const pierName = 'High White west pier';
+const floorNames = ['High White entrance paving', 'High White court paving', 'High White threshold stone'];
+export const HIGH_WHITE_VERIFIED_MESHES = [...frameNames, pierName, ...floorNames];
+
 // Conservative world-space envelopes for the doorway and the solids beside
 // the route. Dimensions come from the entrance wall, east wing and nook in
 // highland.js. The camera is on the open side of the other court buildings.
@@ -31,6 +36,71 @@ function clearance(row, [name, lo, hi]) {
   return { name, metres: distance, at: row.t };
 }
 
+function closest(frames, solids) {
+  return frames.reduce((minimum, frame) => {
+    for (const solid of solids) {
+      const candidate = clearance(frame, solid);
+      if (candidate.metres < minimum.metres) minimum = { ...candidate, walkSeconds: frame.walkSeconds ?? frame.t };
+    }
+    return minimum;
+  }, { metres: Infinity });
+}
+
+const validMeshBounds = mesh => mesh?.count === 1 && [mesh.min, mesh.max].every(bound => (
+  Array.isArray(bound) && bound.length === 3 && bound.every(Number.isFinite)
+)) && mesh.min.every((low, index) => low < mesh.max[index]);
+
+// Measure sampled eye points against visible world AABBs, not the authored
+// rig or the conservative envelopes above. A floor top is eligible only if
+// the eye's x/z point falls inside its footprint. Overlap uses the upper slab.
+export function highWhiteGeometryMetrics(rows, meshes, baseline) {
+  const byName = new Map(meshes?.map(mesh => [mesh.name, mesh]) ?? []);
+  const missingOrInvalid = HIGH_WHITE_VERIFIED_MESHES.filter(name => !validMeshBounds(byName.get(name)));
+  const asSolid = name => {
+    const { min, max } = byName.get(name);
+    return [name, min, max];
+  };
+  const result = { bounds: meshes, missingOrInvalid };
+  let floor;
+  if (!missingOrInvalid.length) {
+    Object.assign(result, {
+      source: 'Rendered scene mesh world AABBs',
+      doorFrame: closest(rows, frameNames.map(asSolid)),
+      westPier: closest(rows, [asSolid(pierName)]),
+    });
+    floor = floorNames.map(asSolid);
+  } else if (baseline) {
+    Object.assign(result, {
+      source: 'Historical paving and frame estimates. Baseline meshes are untagged.',
+      doorFrame: closest(rows, walls.slice(0, 3)), westPier: null,
+    });
+    floor = walls.filter(([name]) => name === 'entrance paving' || name === 'court paving');
+  } else {
+    return { ...result, source: 'Could not read required rendered scene meshes' };
+  }
+
+  const walk = rows.filter(row => (row.walkSeconds ?? row.t) <= HIGH_WHITE_WALK_SECONDS);
+  const bySurface = {};
+  let min = null, max = null, uncoveredFrames = 0;
+  for (const row of walk) {
+    const eligible = floor.filter(([, lo, hi]) => (
+      row.x >= lo[0] && row.x <= hi[0] && row.z >= lo[2] && row.z <= hi[2]
+    ));
+    const surface = eligible.reduce((upper, slab) => !upper || slab[2][1] > upper[2][1] ? slab : upper, null);
+    if (!surface) { uncoveredFrames++; continue; }
+    const [name, , hi] = surface;
+    const sample = { metres: row.y - hi[1], surface: name, topMetres: hi[1], walkSeconds: row.walkSeconds ?? row.t };
+    bySurface[name] = (bySurface[name] ?? 0) + 1;
+    if (!min || sample.metres < min.metres) min = sample;
+    if (!max || sample.metres > max.metres) max = sample;
+  }
+  return { ...result, eyeAbovePaving: {
+    min, max, sampledFrames: walk.length, uncoveredFrames, bySurface,
+    firstWalkSecond: walk[0]?.walkSeconds ?? walk[0]?.t,
+    lastWalkSecond: walk.at(-1)?.walkSeconds ?? walk.at(-1)?.t,
+  } };
+}
+
 export function highWhiteTraceMetrics(rows) {
   const { duration, samples, acceleration, height } = measureCameraPath(rows);
   const direction = row => new Vector3(row.lx - row.x, row.ly - row.y, row.lz - row.z);
@@ -51,13 +121,6 @@ export function highWhiteTraceMetrics(rows) {
     if ((after.walkSeconds ?? after.t) > HIGH_WHITE_WALK_SECONDS && speed > peakSeatSpeed.value)
       Object.assign(peakSeatSpeed, { value: speed, at: after.t });
   }
-  const closest = (frames, solids) => frames.reduce((minimum, frame) => {
-    for (const solid of solids) {
-      const candidate = clearance(frame, solid);
-      if (candidate.metres < minimum.metres) minimum = candidate;
-    }
-    return minimum;
-  }, { metres: Infinity });
   const { min, max } = height;
   return {
     duration, samples,
