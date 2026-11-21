@@ -37,12 +37,19 @@ export function bellLaneCameras(V3) {
     return { pos, look: aimAt(V3, pos, yaw * rad, pitch * rad), fov };
   };
   const lens = phone => phone ? 61 : 48;
+  const portraitOpening = t => {
+    const k = Math.min(1, Math.max(0, (t - 24.1) / 3.0));
+    return k * k * (3 - 2 * k);
+  };
   const inNook = view => ({
     pos: view.pos.clone().sub(V3(...LAMP)),
     look: view.look.clone().sub(V3(...LAMP)),
     fov: view.fov,
   });
-  const reveal = phone => pose(route.at(-1), lens(phone));
+  const reveal = phone => {
+    const [time, position, yaw, pitch] = route.at(-1);
+    return pose([time, position, yaw + Number(phone), pitch], phone ? 72 : lens(false));
+  };
   const seat = phone => pose([0, [-1.60, 1.24, 5.50], phone ? 22 : 20, phone ? -12 : -9], phone ? 56 : 43);
   const time = route.map(k => k[0]);
   const position = hermiteTrack(time, route.map(k => k[1]));
@@ -59,9 +66,12 @@ export function bellLaneCameras(V3) {
       return (progress, rig) => {
         const t = progress * WALK_SECONDS;
         const [yaw, pitch] = direction(t);
+        const unmask = phone ? portraitOpening(t) : 0;
         rig.pos.fromArray(position(t));
-        rig.look.copy(aimAt(V3, rig.pos, yaw * rad, pitch * rad));
-        rig.fov = lens(phone);
+        rig.look.copy(aimAt(V3, rig.pos, (yaw + unmask) * rad, pitch * rad));
+        // The portrait lens opens while crossing the real jamb, finishing well
+        // before the court hold. The landscape lens and seated views stay fixed.
+        rig.fov = lens(phone) + 11 * unmask;
         rig.amp = 0;
       };
     },

@@ -48,7 +48,7 @@ At 12 s, the route is under the shop eaves. At 22 s, it is centered on the door 
 
 The isolated preview enables Bell Lane in the ordinary wish, place, walk, choose and light flow. Start it with `node docs/bell-lane/preview.mjs` after installing the repository dependencies. It prints a loopback URL and uses a separate temporary database. The default game catalog remains unchanged.
 
-For the authored camera samples, run `node docs/bell-lane/camera-audit.mjs`. The walk is 30 seconds, followed by a 12.5 second turn and seat transition. The last second is a still hold. On both viewports the planned maximum speed is 1.77 m/s and minimum structural clearance is 1.13 m, measured to the jamb rather than along the window sightline. The planned turn peaks at 20.18°/s desktop and 19.90°/s phone.
+For the authored camera samples, run `node docs/bell-lane/camera-audit.mjs`. The walk is 30 seconds, followed by a 12.5 second turn and seat transition. The last second is a still hold. On both viewports the planned maximum speed is 1.77 m/s and minimum structural clearance is 1.13 m, measured to the jamb rather than along the window sightline. The planned turn peaks at 20.18°/s desktop and 20.03°/s phone.
 
 Capture with `node docs/bell-lane/capture.mjs artifacts/bell-lane/round-1` while holding the project GPU lease. The fixture records original PNGs at 1440 × 900 and 390 × 844. It reads the camera, window and wick from the same rendered frame, stores the actual game camera trace alongside the authored curve, and records the canvas and Bell Lane audio master in a WebM. The recording captures the street sound through the doorway filter. PNGs with controls preserve the same view in the regular app. Test context time is fixed only for setting the local lighting.
 
@@ -56,3 +56,10 @@ Capture with `node docs/bell-lane/capture.mjs artifacts/bell-lane/round-1` while
 
 - The [Powerhouse Chinese temple bell](https://collection.powerhouse.com.au/object/249120) shows a domed bronze body hung from its crown and a flared lower rim. Bell Lane uses a plain suspended body with a separate interior wall and a downward opening. The fixture at 29 s should read the wide lip and the inset dark cavity.
 - UNESCO's [Ping Yao courtyard photographs](https://whc.unesco.org/en/canopy/ping-yao/) show the material distinction between an enclosed street courtyard's paving and upright masonry. Bell Lane uses the existing [Stone Pavers and Dark Brick Wall scans](../licenses/polyhaven-scans.md) for those surfaces. The 29 s view should show broad grey paving underfoot and dark courses on the boundary walls.
+
+
+The phone lens opens from 61° to 72° between 24.1 and 27.1 s to keep the tree trunk and bell silhouette together on the narrow screen. The opening is eased and the camera finishes changing lens before the 29.5 s hold. The original captures preserve the narrower view for comparison.
+
+## Remaining visual work
+
+The upper left canopy still reads as a straight edged dark mass when the phone looks up at the reveal. The exposed roots have blunt ends and need bark and taper detail. The current bell has a real lower opening and the broad lip reads in the silhouette, but eye level is above the mouth, which hides most of the inner cavity in the wide view. An underside detail and a less uniform wall treatment are useful comparisons during the next realism pass.
