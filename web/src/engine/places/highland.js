@@ -44,8 +44,10 @@ export default function createPlace(h) {
       for (let i=0;i<30;i++) box(.3+C.rnd()*.6,.02,.15+C.rnd()*.3,M(0x7d735f,1),-10.8+C.rnd()*34,.012,-.2+C.rnd()*.5);
       await pauseBuild();
       const mountain = M(0x647181, 1);
-      peak(-130, -10, -210, 100, 150, mountain, 5, 1.1); peak(80, -10, -280, 120, 190, mountain, 9, 1.05);
-      ridges([[370, 0, 165, 0x71819b, 105], [560, 0, 205, 0x93a6c5, 140]]);
+      // Keep a low horizon behind the hall so leaving the doorway opens onto sky.
+      peak(-160, -10, -245, 125, 54, mountain, 5, 1.12);
+      peak(154, -10, -309, 155, 68, mountain, 9, 1.07);
+      ridges([[370, 2, 54, 0x71819b], [560, 0, 74, 0x93a6c5]]);
       await pauseBuild();
     },
 
