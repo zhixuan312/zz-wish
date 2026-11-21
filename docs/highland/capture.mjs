@@ -4,16 +4,17 @@
 import assert from 'node:assert/strict';
 import { Buffer } from 'node:buffer';
 import console from 'node:console';
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import process from 'node:process';
 import { chromium } from '@playwright/test';
-import { HIGH_WHITE_TRAVEL_SECONDS } from '../../web/src/engine/places/highland-camera.js';
+import { Vector3 } from 'three';
+import { HIGH_WHITE_TRAVEL_SECONDS, highWhiteCameras } from '../../web/src/engine/places/highland-camera.js';
 import { startPreview } from './preview.mjs';
 import { highWhiteTraceMetrics } from './camera-audit.mjs';
 
 const TARGETS = [
-  { name: 'threshold-24s', seconds: 24 },
+  ...[20, 21, 22, 23, 24, 25].map(seconds => ({ name: `threshold-${seconds}s`, seconds })),
   { name: 'open-court-26s', seconds: 26 },
   { name: 'open-court-29s', seconds: 29 },
 ];
@@ -21,10 +22,15 @@ const views = [
   { name: 'desktop', width: 1440, height: 900, touch: false },
   { name: 'phone', width: 390, height: 844, touch: true },
 ];
-const output = resolve(process.argv[2] ?? 'artifacts/highland/round-1');
+const output = resolve(process.argv[2] ?? 'artifacts/highland/matched');
 const requested = process.argv.slice(3);
-const video = requested.includes('--video');
-const filters = requested.filter(value => value !== '--video');
+const baseline = requested.includes('--baseline');
+const referenceArg = requested.find(value => value.startsWith('--match='));
+const match = referenceArg ? resolve(referenceArg.slice('--match='.length)) : null;
+assert.ok(!referenceArg || referenceArg.length > '--match='.length, 'Set --match to the baseline output directory.');
+assert.ok(!baseline || !match, 'Use --match on the candidate, not the baseline.');
+assert.ok(!match || match !== output, 'The baseline and candidate output directories must be different.');
+const filters = requested.filter(value => value !== '--baseline' && value !== referenceArg);
 const combinations = views.flatMap(view => [13, 22].map(hour => ({ ...view, hour, key: `${view.name}-${hour}` })));
 assert.ok(filters.every(key => combinations.some(view => view.key === key)), 'Use desktop-13, desktop-22, phone-13 or phone-22.');
 const selected = filters.length ? combinations.filter(view => filters.includes(view.key)) : combinations;
@@ -34,6 +40,28 @@ const distance = (a, b) => Math.hypot(...a.map((value, i) => value - b[i]));
 const angle = (a, b) => Math.acos(clamp(a.reduce((sum, value, i) => sum + value * b[i], 0), -1, 1)) * 180 / Math.PI;
 const pngBytes = png => Buffer.from(png.slice(png.indexOf(',') + 1), 'base64');
 const withoutPng = ({ png: _, ...camera }) => camera;
+const cameras = highWhiteCameras((...args) => new Vector3(...args));
+
+function exactPose(view) {
+  const walk = cameras.createWalk(null, null, view.touch);
+  return seconds => {
+    const rig = { pos: new Vector3(), look: new Vector3() };
+    walk(seconds / HIGH_WHITE_TRAVEL_SECONDS, rig);
+    return { position: rig.pos.toArray(), look: rig.look.toArray(), fov: rig.fov };
+  };
+}
+
+function poseDelta(a, b) {
+  return {
+    positionDeltaMetres: distance(a.position, b.position),
+    directionDeltaDegrees: angle(a.direction, b.direction),
+    fovDeltaDegrees: Math.abs(a.fov - b.fov),
+  };
+}
+
+function posesMatch(delta) {
+  return delta.positionDeltaMetres < .01 && delta.directionDeltaDegrees < .1 && delta.fovDeltaDegrees < .1;
+}
 
 // The passage solid occupies z=27.15..28. The camera passes between the stone
 // jambs at x=±1.15, under the 2.8 m opening. The paving top is y=.12 here.
@@ -93,7 +121,7 @@ function watchErrors(page, issues) {
 
 const button = (page, name) => page.getByRole('button', { name, exact: true });
 const choose = page => page.getByRole('tab', { name: 'Ready-made', exact: true });
-const nextStill = page => page.evaluate(() => window.__highlandReview.nextStill());
+const nextStill = (page, pose = null) => page.evaluate(target => window.__highlandReview.nextStill(target), pose);
 
 async function startVisit(page, click) {
   await page.getByLabel('Your wish').fill('May this small light keep someone company.');
@@ -116,11 +144,21 @@ async function seat(page) {
   const tab = choose(page);
   await tab.waitFor({ timeout: 120_000 });
   assert.equal(await tab.getAttribute('aria-selected'), 'true');
-  await nextStill(page);
-  const camera = await page.evaluate(() => window.__highlandReview.read());
+  const camera = await nextStill(page);
   const sheet = await page.locator('.candle-sheet').boundingBox();
   assert.ok(camera.lamp?.visibleDepth && sheet, 'Missing rendered lamp or Ready-made controls');
   return { ...camera, sheet };
+}
+
+async function ignite(page, click, directory) {
+  await click(page.getByRole('button', { name: /^Light it/ }));
+  await page.getByTestId('with-you').waitFor();
+  await page.waitForFunction(() => window.__visualIgnition?.state === 'settled');
+  const camera = await nextStill(page);
+  const bytes = await page.screenshot({ path: join(directory, 'seated-lit.png'), scale: 'css' });
+  await click(button(page, 'Put out'));
+  await click(button(page, 'Put out and end'));
+  return { camera, bytes };
 }
 
 function centredCrop(cx, cy, width, height, view) {
@@ -142,6 +180,23 @@ async function crop(page, bytes, rect, destination) {
   await writeFile(destination, pngBytes(png));
 }
 
+async function compareToBaseline(report) {
+  const path = join(match, report.view.key, 'report.json');
+  const reference = JSON.parse(await readFile(path, 'utf8'));
+  assert.equal(reference.failure, undefined, `Baseline failed: ${path}`);
+  assert.equal(reference.source.mode, 'baseline', `Expected a baseline report: ${path}`);
+  assert.equal(reference.source.cameraSha256, report.source.cameraSha256, 'Camera source must match.');
+  const stages = { seated: poseDelta(reference.seated, report.seated), lit: poseDelta(reference.lit, report.lit) };
+  for (const [name, delta] of Object.entries(stages)) assert.ok(posesMatch(delta), `Actual ${name} pose differs across runs.`);
+  const images = report.scenes.map(scene => {
+    const original = reference.scenes.find(frame => frame.name === scene.name);
+    assert.ok(original?.capturePose, `Missing baseline pose for ${scene.name}`);
+    assert.deepEqual(original.capturePose, scene.capturePose, `Diagnostic camera differs at ${scene.name}.`);
+    return { name: scene.name, liveTriggerDeltaSeconds: (scene.walkSeconds ?? 0) - (original.walkSeconds ?? 0) };
+  });
+  return { path, exactDiagnosticPoses: images, actualUiPoses: stages, cropRects: reference.crops };
+}
+
 async function capture(browser, preview, view) {
   const directory = join(output, view.key);
   await mkdir(directory, { recursive: true });
@@ -150,13 +205,14 @@ async function capture(browser, preview, view) {
   const context = await browser.newContext({
     viewport, locale: 'en-US', deviceScaleFactor: 1, hasTouch: view.touch,
     isMobile: view.touch, reducedMotion: 'no-preference',
-    ...(video ? { recordVideo: { dir: directory, size: viewport } } : {}),
   });
   const page = await context.newPage();
   watchErrors(page, issues);
   page.setDefaultTimeout(80_000);
   const click = locator => view.touch ? locator.tap() : locator.click();
-  const report = { view, issues, scenes: [] };
+  const report = { view, source: preview.source, issues, scenes: [] };
+  const pose = exactPose(view);
+  const targets = TARGETS.map(target => ({ ...target, pose: pose(target.seconds) }));
   const originals = new Map();
   async function saveScene(name, frame) {
     report.scenes.push({ name, ...withoutPng(frame) });
@@ -177,9 +233,9 @@ async function capture(browser, preview, view) {
     }, view.hour);
     await page.goto(preview.url, { waitUntil: 'domcontentloaded' });
     await startVisit(page, click);
-    await saveScene('entrance', await nextStill(page));
+    await saveScene('entrance', await nextStill(page, pose(0)));
 
-    await page.evaluate(targets => window.__highlandReview.start(targets), TARGETS);
+    await page.evaluate(steps => window.__highlandReview.start(steps), targets);
     await click(button(page, 'Step inside'));
     report.seated = await seat(page);
     const trace = await page.evaluate(() => window.__highlandReview.stop());
@@ -200,15 +256,11 @@ async function capture(browser, preview, view) {
         && lamp.top < sheet.y + sheet.height && lamp.bottom > sheet.y,
     };
     report.crops = {
-      doorway: centredCrop(view.width * .5, view.height * .5, view.touch ? 300 : 500, view.touch ? 490 : 540, view),
+      doorway: centredCrop(view.width * .5, view.height * .5, view.width, view.touch ? 540 : 630, view),
       reveal: centredCrop(view.width * .5, view.height * .43, view.touch ? 330 : 720, view.touch ? 480 : 450, view),
       lamp: centredCrop((lamp.left + lamp.right) / 2, (lamp.top + lamp.bottom) / 2,
         Math.ceil(lamp.right - lamp.left) + 52, Math.ceil(lamp.bottom - lamp.top) + 52, view),
     };
-    await crop(page, originals.get('threshold-24s'), report.crops.doorway, join(directory, 'crop-doorway.png'));
-    await crop(page, originals.get('open-court-29s'), report.crops.reveal, join(directory, 'crop-open-court.png'));
-    await crop(page, seatedBytes, report.crops.lamp, join(directory, 'crop-seated-lamp.png'));
-
     await click(button(page, 'Back outside'));
     await waitEntrance(page);
     await page.evaluate(() => window.__highlandReview.start([]));
@@ -219,12 +271,24 @@ async function capture(browser, preview, view) {
     await page.evaluate(() => window.__highlandReview.stop());
     report.skip = {
       pose: skipped,
-      positionDeltaMetres: distance(skipped.position, report.seated.position),
-      directionDeltaDegrees: angle(skipped.direction, report.seated.direction),
-      fovDeltaDegrees: Math.abs(skipped.fov - report.seated.fov),
+      ...poseDelta(skipped, report.seated),
     };
-    assert.ok(report.skip.positionDeltaMetres < .01 && report.skip.directionDeltaDegrees < .1
-      && report.skip.fovDeltaDegrees < .1, 'Skip must end at the same Ready-made pose');
+    assert.ok(posesMatch(report.skip), 'Skip must end at the same Ready-made pose');
+
+    const { camera: lit, bytes: litBytes } = await ignite(page, click, directory);
+    report.lit = lit;
+    assert.ok(posesMatch(poseDelta(report.seated, lit)), 'The lit frame moved away from the Ready-made pose');
+
+    if (match) {
+      report.match = await compareToBaseline(report);
+      report.crops = report.match.cropRects;
+    }
+    for (const { name, seconds } of TARGETS) {
+      const rect = seconds <= 26 ? report.crops.doorway : report.crops.reveal;
+      await crop(page, originals.get(name), rect, join(directory, `crop-${name}.png`));
+    }
+    await crop(page, seatedBytes, report.crops.lamp, join(directory, 'crop-seated-lamp.png'));
+    await crop(page, litBytes, report.crops.lamp, join(directory, 'crop-lit-lamp.png'));
     assert.ok(report.readyMade.lampInsideViewport && !report.readyMade.lampOverlapsSheet,
       'The full lamp must clear the actual Ready-made sheet');
     assert.ok(report.trace.peakTurnDegreesPerSecond <= 25.1, 'The turn must stay at or below 25°/s within sample tolerance');
@@ -238,7 +302,6 @@ async function capture(browser, preview, view) {
   } finally {
     await writeFile(join(directory, 'report.json'), `${JSON.stringify(report, null, 2)}\n`);
     await context.close();
-    if (video) console.log(`Continuous UI recording: ${await page.video().path()}`);
   }
   console.log(`${view.key}: ${report.trace.frames} frames, ${report.trace.peakTurnDegreesPerSecond.toFixed(2)}°/s peak turn, no errors`);
 }
@@ -246,7 +309,7 @@ async function capture(browser, preview, view) {
 let preview, browser;
 const failures = [];
 try {
-  preview = await startPreview();
+  preview = await startPreview({ baseline });
   browser = await chromium.launch({ channel: 'chrome', headless: true,
     args: ['--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist'] });
   for (const view of selected) {

@@ -1,12 +1,40 @@
 // A loopback review of the ordinary UI with an isolated API and database.
 /* global window */
-import { mkdtemp, rm } from 'node:fs/promises';
+import { execFileSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
+import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { fileURLToPath, URL } from 'node:url';
 import { createServer } from 'vite';
 import { buildApp } from '../../server/app.ts';
 import config from '../../web/vite.config.ts';
 import { HIGH_WHITE_TRAVEL_SECONDS } from '../../web/src/engine/places/highland-camera.js';
+
+const SOURCE = 'web/src/engine/places/highland.js';
+const CAMERA_SOURCE = 'web/src/engine/places/highland-camera.js';
+const BASELINE = 'a49d538';
+const root = fileURLToPath(new URL('../../', import.meta.url));
+const git = (...args) => execFileSync('git', args, { cwd: root, encoding: 'utf8' });
+const hash = text => createHash('sha256').update(text).digest('hex');
+
+async function reviewSource(baseline) {
+  const committedCamera = git('show', `${BASELINE}:${CAMERA_SOURCE}`);
+  const currentCamera = await readFile(join(root, CAMERA_SOURCE), 'utf8');
+  if (committedCamera !== currentCamera) throw new Error('The authored camera differs from the matched baseline.');
+  const injected = baseline ? git('show', `${BASELINE}:${SOURCE}`) : null;
+  return {
+    injected,
+    metadata: {
+      mode: baseline ? 'baseline' : 'candidate',
+      checkout: git('rev-parse', 'HEAD').trim(),
+      baseline: git('rev-parse', BASELINE).trim(),
+      highlandSha256: hash(injected ?? await readFile(join(root, SOURCE), 'utf8')),
+      cameraSha256: hash(currentCamera),
+      injectedFiles: baseline ? [SOURCE] : [],
+    },
+  };
+}
 
 function replaceOnce(source, before, after) {
   if (source.split(before).length !== 2) throw new Error(`Review anchor changed: ${before}`);
@@ -57,29 +85,32 @@ function makeReview(THREE, camera, canvas, mine, duration) {
   window.__highlandReview = {
     start(targets) { samples.length = 0; frames = []; requests = [...targets]; recording = true; walking = false; },
     read() { return { ...latest, lamp: lampProjection() }; },
-    nextStill() { return new Promise(resolve => stills.push(resolve)); },
+    nextStill(pose) { return new Promise(resolve => stills.push({ pose, resolve })); },
     stop() { recording = false; return { samples, frames, missed: requests }; },
   };
-  return (stamp, placeId, progress) => {
+  return (stamp, placeId, progress, drawMatched) => {
     if (placeId !== 'highland') return;
     latest = sample(stamp, progress);
     if (recording && latest.walkState === 'walking') walking = true;
     if (recording && walking) {
       samples.push(latest);
       if (requests.length && latest.walkSeconds >= requests[0].seconds) {
-        const { name, seconds } = requests.shift();
-        frames.push({ name, targetSeconds: seconds, ...latest, png: canvas.toDataURL('image/png') });
+        const { name, seconds, pose } = requests.shift();
+        frames.push({ name, targetSeconds: seconds, ...latest, capturePose: pose, png: drawMatched(pose) });
       }
     }
     if (stills.length) {
       const next = stills; stills = [];
-      const frame = { ...latest, png: canvas.toDataURL('image/png') };
-      for (const resolve of next) resolve(frame);
+      for (const { pose, resolve } of next) {
+        const png = pose ? drawMatched(pose) : null;
+        resolve({ ...latest, ...(pose ? { capturePose: pose, png } : {}), lamp: lampProjection() });
+      }
     }
   };
 }
 
-export async function startPreview() {
+export async function startPreview({ baseline = false } = {}) {
+  const sourceReview = await reviewSource(baseline);
   const temporary = await mkdtemp(join(tmpdir(), 'highland-review-'));
   let app, vite;
   async function close() {
@@ -99,6 +130,7 @@ export async function startPreview() {
       plugins: [...config.plugins, {
         name: 'high-white-court-review', enforce: 'pre',
         transform(source, id) {
+          if (id.endsWith(`/${SOURCE}`) && sourceReview.injected !== null) return sourceReview.injected;
           if (id.endsWith('/web/src/visiblePlaces.ts')) {
             return replaceOnce(source, "['snow-roof', 'pine-gate']", "['snow-roof', 'pine-gate', 'highland']");
           }
@@ -110,15 +142,33 @@ export async function startPreview() {
             const entry = 'function frame(stamp = performance.now()) {';
             const draw = '  composer.render();\n}\n\n// ---------- Start ----------';
             const setup = `const reviewHighlandFrame = (${makeReview.toString()})(THREE, camera, canvas, mine, ${HIGH_WHITE_TRAVEL_SECONDS});`;
-            return replaceOnce(replaceOnce(source, entry, `${setup}\n${entry}`), draw,
-              draw.replace('composer.render();', 'composer.render();\n  reviewHighlandFrame(stamp, place?.id, window.__walkProgress);'));
+            return replaceOnce(replaceOnce(source, entry, `${setup}\n${entry}`), draw, `
+  reviewHighlandFrame(stamp, place?.id, window.__walkProgress, ({ position, look, fov }) => {
+    const live = { position: camera.position.clone(), rotation: camera.quaternion.clone(), fov: camera.fov, near: camera.near, sky: place.sky.position.clone() };
+    try {
+      camera.position.fromArray(position);
+      camera.lookAt(V3(...look));
+      camera.fov = fov;
+      camera.near = Math.min(.3, Math.max(.01, camera.position.distanceTo(mine.g.getWorldPosition(V3())) * .012));
+      camera.updateProjectionMatrix();
+      place.sky.position.copy(camera.position);
+      composer.render();
+      return canvas.toDataURL('image/png');
+    } finally {
+      camera.position.copy(live.position); camera.quaternion.copy(live.rotation);
+      camera.fov = live.fov; camera.near = live.near; camera.updateProjectionMatrix();
+      camera.updateMatrixWorld(true);
+      place.sky.position.copy(live.sky);
+    }
+  });
+${draw}`);
           }
         },
       }],
       server: { ...config.server, host: '127.0.0.1', port: 0, strictPort: true, proxy: { '/api': { target, ws: true } } },
     });
     await vite.listen(0);
-    return { url: `http://127.0.0.1:${vite.httpServer.address().port}`, close };
+    return { url: `http://127.0.0.1:${vite.httpServer.address().port}`, source: sourceReview.metadata, close };
   } catch (error) {
     await close();
     throw error;
