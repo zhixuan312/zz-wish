@@ -10,13 +10,15 @@ function insertAt(source, anchor, name, statement, before = false) {
 
 const readinessAnchors = [
   ['queued', /^([ \t]*)if\s*\(\s*!preparingPlaces\.has\(id\)\s*\)\s*\{/gm, 'id'],
-  ['build-started', /^([ \t]*)PLACES\[t\.id\]\s*\?\?=\s*\(await placeModules\[t\.id\]\(\)\)\.default\(placeHelpers\);/gm, 't.id', true],
+  ['build-started', /^([ \t]*)PLACES\[t\.id\]\s*\?\?=\s*(?:await )?\(await placeModules\[t\.id\]\(\)\)\.default\(placeHelpers\);/gm, 't.id', true],
   ['environment-ready', /^([ \t]*)const envTarget\s*=\s*pmrem\.fromScene\(skyScene,\s*0,\s*0?\.1,\s*(?:1000|1e3)\),\s*env\s*=\s*envTarget\.texture;/gm, 't.id'],
   ['assets-ready', /^([ \t]*)await P\.build\(t,\s*context\);\s+if\s*\(!isolated\)\s*await finishBatch\(\);/gm, 't.id'],
-  ['compile-started', /^([ \t]*)try\s*\{(?=\s*await renderer\.compileAsync\(stage,\s*stageCamera\);)/gm, 't.id'],
+  ['compile-started', /^([ \t]*)try\s*\{(?=\s*(?://[^\r\n]*\r?\n\s*)*(?:if\s*\(!streamsSnowInterior\)\s*)?await renderer\.compileAsync\(stage,\s*stageCamera\);)/gm, 't.id'],
   ['shaders-ready', /^([ \t]*)renderer\.setRenderTarget\(warm\);\s*renderer\.render\(stage,\s*stageCamera\);/gm, 't.id'],
   ['build-finished', /^([ \t]*)cachedPlaces\.set\(t\.id,\s*candidate\);/gm, 't.id'],
 ];
+
+export const sceneComposerDraw = /^([ \t]*)composer\.render\(\);[ \t]*(?=\r?\n\}\r?\n\r?\n\/\/ ---------- Start ----------)/gm;
 
 const frameAnchor = /^([ \t]*)function frame\(stamp\s*=\s*performance\.now\(\)\)\s*\{/gm;
 
@@ -32,16 +34,16 @@ export function readDirectionOverview(raw) {
 
 export function instrumentPineScene(source, { readiness, cadence, lighting, walkClock, directionCamera, solarProbe, backdropProbe, realismBaseOnly }) {
   if (realismBaseOnly) {
-    const anchor = /^([ \t]*)if \(!narrow\(\) && !touchPrimary\.matches && !powerSaver\) \{(?=\s+const entering = place, started = performance\.now\(\);)/gm;
+    const anchor = /^([ \t]*)if \(!narrow\(\) && !touchPrimary\.matches && !powerSaver\)(?=\s+(?:\{\s+const entering = place, started = performance\.now\(\);|entering\.baked\?\.backdrop\?\.startDesktopHigh\(\);))/gm;
     assert.equal([...source.matchAll(anchor)].length, 1, 'Expected one scene audit anchor for desktop high-tier streaming.');
-    source = source.replace(anchor, "$1if (id !== 'pine-gate' && !narrow() && !touchPrimary.matches && !powerSaver) {");
+    source = source.replace(anchor, "$1if (id !== 'pine-gate' && !narrow() && !touchPrimary.matches && !powerSaver)");
   }
   if (readiness) for (const [name, anchor, id, before] of readinessAnchors) {
     const mark = `if (${id} === 'pine-gate' || ${id} === 'snow-roof') performance.mark('one-light:' + ${id} + ':${name}');`;
     source = insertAt(source, anchor, name, mark, before);
   }
   if (cadence) {
-    source = insertAt(source, /^([ \t]*)composer\.render\(\);[ \t]*$/gm, 'composer render', 'window.__pineMeasureFrame?.();');
+    source = insertAt(source, sceneComposerDraw, 'composer render', 'window.__pineMeasureFrame?.();');
   }
   if (walkClock) {
     source = insertAt(source, /^([ \t]*)const walk\s*=\s*tween\(P\.walkSeconds\s*\?\?\s*14,\s*(?:\(k\)|k)\s*=>\s*\{/gm,

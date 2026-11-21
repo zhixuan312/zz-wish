@@ -12,7 +12,7 @@ import { readSnowCourtWalkLightmaps } from '../../web/src/engine/baked/snowCourt
 import { winterCourtEntrySeconds } from '../../web/src/engine/places/snow-court-camera.js';
 import { assertCaptureGpuHealthy, installCaptureGpuGuard } from './capture-preflight.mjs';
 import { fingerprintCaptureSource } from './capture-source-fingerprint.mjs';
-import { instrumentPineScene } from './pine-gate-scene-audit.mjs';
+import { instrumentPineScene, sceneComposerDraw } from './pine-gate-scene-audit.mjs';
 import { createSnowCourtCameraFrames } from './snow-court-camera-frames.mjs';
 import { createSnowCourtDrawLuminance } from './snow-court-draw-luminance.mjs';
 import { installSnowCourtLanternAudit, validateSnowCourtLanternAudit, validateSnowCourtSettleCamera } from './snow-court-lantern-framing.mjs';
@@ -231,7 +231,7 @@ function instrument(source) {
   window.__markSnowCourtJourneyEntry?.('${label}');`);
   }
   if (p2) {
-    const render = /^([ \t]*)composer\.render\(\);[ \t]*$/gm;
+    const render = sceneComposerDraw;
     assert.equal([...transformed.matchAll(render)].length, 1, 'Snow Court evidence requires the live render loop.');
     transformed = transformed.replace(render, match => `${match}
       if (place?.id === 'snow-roof') {
