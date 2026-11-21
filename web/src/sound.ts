@@ -1,8 +1,7 @@
-// Quiet, locally synthesized environments. Nothing is audible before the light tap; the audio
-// device is opened from the light gesture; preparation before then never produces sound.
+// Quiet environments. Audio starts from a light gesture or Bell Lane's Step inside gesture.
 import type { PlaceId } from '../../shared/places.ts';
 import { seamlessNoiseLoop } from './audio-loop.ts';
-import { ambienceFor, bellLaneChimes, createRecordedSounds, type RecordedSounds } from './engine/index.ts';
+import { ambienceFor, bellLaneChimes, bellLaneSweepGain, bellLaneSweepOffset, createRecordedSounds, type RecordedSounds } from './engine/index.ts';
 const rooms: Record<PlaceId, { low: number; high: number; gain: number; swell: number; detail: 'drip' | 'bird' | 'air' | 'frog' | 'bell' }> = {
   // Pine wind high in the trees.
   'pine-gate': { low: 380, high: 1400, gain: .006, swell: .07, detail: 'air' },
@@ -59,9 +58,29 @@ let streetTimer = 0;
 const claimBellLaneChime = bellLaneChimes();
 let muted = false;
 let generation = 0;
+type SweepCue = {
+  gain: number;
+  buffer?: AudioBuffer;
+  started: boolean;
+  playing?: { source: AudioBufferSourceNode; envelope: GainNode };
+};
 let street: {
   filter: BiquadFilterNode; volume: GainNode; pan: StereoPannerNode; updatedAt: number; inside: number;
+  sweep: SweepCue | null;
 } | null = null;
+let sweepBuffer: Promise<AudioBuffer> | undefined;
+
+function loadBellLaneSweep(c: AudioContext) {
+  sweepBuffer ??= fetch('/places/bell-lane/sound/dawn-sweeping.m4a').then(response => {
+    if (!response.ok) throw new Error(`Bell Lane broom recording returned ${response.status}`);
+    return response.arrayBuffer();
+  }).then(bytes => c.decodeAudioData(bytes)).catch(error => {
+    sweepBuffer = undefined;
+    throw error;
+  });
+  return sweepBuffer;
+}
+
 const STREET_SOURCE = { x: 2.4, z: 16.8 };
 const BELL_DOOR_Z = 9.73;
 function streetAt(x: number, z: number, dx: number, dz: number) {
@@ -164,7 +183,10 @@ export const sound = {
         const initial = streetAt(.4, 46, 0, -1);
         lowPass.frequency.value = initial.cutoff; doorGain.gain.value = initial.level; pan.pan.value = initial.pan;
         volume.connect(lowPass).connect(doorGain).connect(pan).connect(master);
-        street = { filter: lowPass, volume: doorGain, pan, updatedAt: -Infinity, inside: initial.inside };
+        const sweepGain = bellLaneSweepGain(new Date());
+        const sweep: SweepCue | null = sweepGain > 0 ? { gain: sweepGain, started: false } : null;
+        street = { filter: lowPass, volume: doorGain, pan, updatedAt: -Infinity, inside: initial.inside, sweep };
+        if (sweep) void loadBellLaneSweep(c).then(buffer => { sweep.buffer = buffer; }, () => { /* Keep the ordinary street. */ });
       } else volume.connect(master);
       const installedStreet = street;
       swell.connect(amount).connect(volume.gain);
@@ -253,6 +275,35 @@ export const sound = {
         param.setTargetAtTime(value, now, .095);
       }
     }
+  },
+  bellLaneWalk(seconds: number) {
+    const c = context, loc = street, cue = loc?.sweep;
+    if (!c || !loc || !cue?.buffer || cue.started) return;
+    const offset = bellLaneSweepOffset(seconds, cue.buffer.duration);
+    if (offset === null) return;
+    const now = c.currentTime, sweep = c.createBufferSource(), envelope = c.createGain();
+    sweep.buffer = cue.buffer;
+    envelope.gain.setValueAtTime(0, now);
+    envelope.gain.linearRampToValueAtTime(cue.gain, now + .045);
+    sweep.connect(envelope).connect(loc.filter);
+    cue.started = true;
+    cue.playing = { source: sweep, envelope };
+    sweep.onended = () => {
+      sweep.disconnect(); envelope.disconnect();
+      cue.playing = undefined;
+      nodes = nodes.filter(node => node !== sweep);
+    };
+    sweep.start(now, offset);
+    nodes.push(sweep);
+  },
+  cancelBellLaneSweep() {
+    if (!street?.sweep) return;
+    const playing = street.sweep.playing;
+    street.sweep = null;
+    if (!context || !playing) return;
+    const now = context.currentTime;
+    fadeGain(playing.envelope.gain, 0, now, .045);
+    playing.source.stop(now + .05);
   },
   /** A taper taking flame from the shrine lamp: a soft breath, then a small flicker. */
   ignition() {

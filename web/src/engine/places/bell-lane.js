@@ -1,6 +1,7 @@
 import { BELL, LAMP, TREE, TURN_SECONDS, WALK_SECONDS, WINDOW, bellLaneCameras } from './bell-lane-camera.js';
 import { addBellLaneTree } from './bell-lane-tree.js';
 import { addBellLaneOilCup } from './bell-lane-oil.js';
+import { bellLaneLocalHour, bellLaneShutterOffset, bellLaneShutterOpening } from './bell-lane-dawn.ts';
 
 // An invented neighbourhood temple: a lit shop lane, one low door, a tree and a small bell court.
 export default function createPlace(h) {
@@ -73,7 +74,7 @@ export default function createPlace(h) {
             leaf.castShadow = leaf.receiveShadow = true;
             pivot.add(leaf);
             C.G.add(pivot);
-            shutters.push({ pivot, sign: side * hinge, timeOffset: i * .045 + side * .08 });
+            shutters.push({ pivot, sign: side * hinge, timeOffset: bellLaneShutterOffset(i, side) });
           }
         }
         const canopy = landmark ? 4.12 : 3.7;
@@ -171,11 +172,9 @@ export default function createPlace(h) {
       stick.rotateZ(-.18);
       put(stick, wood, -3.60, .68, 23.4);
       const setLocalTime = () => {
-        const clock = new Date();
-        const hour = clock.getHours() + clock.getMinutes() / 60 + clock.getSeconds() / 3600;
+        const hour = bellLaneLocalHour(new Date());
         for (const { pivot, sign, timeOffset } of shutters) {
-          const t = hour + timeOffset;
-          const open = THREE.MathUtils.smoothstep(t, 5.25, 7.9) * (1 - THREE.MathUtils.smoothstep(t, 17, 19.2));
+          const open = bellLaneShutterOpening(hour + timeOffset);
           pivot.rotation.y = sign * open * (Math.PI * .97);
         }
       };

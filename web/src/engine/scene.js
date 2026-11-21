@@ -2462,6 +2462,7 @@ export async function travel(id) {
   const walk = tween(P.walkSeconds ?? 14, (k) => {
     if (authoredWalk) {
       authoredWalk(k, rig);
+      if (id === 'bell-lane' && !skipNextTravel) sound.bellLaneWalk(k * P.walkSeconds);
       if(import.meta.env.DEV)window.__walkProgress={id,progress:k,state:'walking',position:rig.pos.toArray()};
       return;
     }
@@ -2543,6 +2544,7 @@ export function skip() {
   skipNextTravel = true;
   skipTweens();
   if (place?.id === 'bell-lane') {
+    sound.cancelBellLaneSweep();
     const { pos, look } = chooseView();
     sound.bellLaneListener(pos.x, pos.z, look.x - pos.x, look.z - pos.z, true);
   }
