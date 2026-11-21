@@ -860,7 +860,8 @@ const mine = (() => {
     const mesh = new THREE.Mesh(lathe([[0, -1], [.65, -.96], [1, -.8], [.55, -.45], [.3, .25], [.2, 1], [0, 1]], 12), wax);
     mesh.visible = false; candleG.add(mesh); return { mesh, angle: i * 2.399, start: .015 + i * .025, reach: .006 + .014 * ((i * .618 + .17) % 1), width: .00065 + .0004 * ((i * .414 + .3) % 1) };
   });
-  const oil = new THREE.Mesh(new THREE.CircleGeometry(1, 56).rotateX(-Math.PI / 2), oilMat); g.add(oil);
+  const oil = new THREE.Mesh(new THREE.CircleGeometry(1, 56).rotateX(-Math.PI / 2), oilMat);
+  oil.name = 'Visitor oil surface'; g.add(oil);
   const oilGlow = waxMaterial(0xb0761e, { roughness: .05, clearcoat: 1, glow: 0xffa040, fall: 30 });
   const oilBody = new THREE.Mesh(new THREE.BufferGeometry(), oilGlow); oilBody.renderOrder = 1; g.add(oilBody);
   const f = flameParts(g);
@@ -876,7 +877,7 @@ const mine = (() => {
   const pineShadowPoint = V3(0, 0, 0);
   const lastPineShadowPoint = V3(Infinity, Infinity, Infinity);
 const api = { g, parts: null, partsKey: null, type: null, power: 0, lightPower: 0, lightBoost: 1, lightTint: null, offer: null, top: V3(0, 0, 0), lastCut: -1, scale: 1, mirrorY: null, lastOil: -1,
-    waxState: 'unlit',
+    waxState: 'unlit', oilFillFraction: null,
     // Builds this place's vessel; a dish or a shade takes the person's outline and colour.
     build(o) {
       const drawn = !WAX_LAMPS.has(this.type) && o,liveBaked=!!place?.P.bakedLighting;
@@ -931,7 +932,7 @@ const api = { g, parts: null, partsKey: null, type: null, power: 0, lightPower: 
     },
     setType(type) {
       if (this.type === type) return;
-      this.type = type; this.partsKey = null; this.build(null);
+      this.type = type; this.partsKey = null; this.oilFillFraction = null; this.build(null);
       if (this.offer) this.setOffer(this.offer);
     },
     setOffer(o) {
@@ -945,6 +946,10 @@ const api = { g, parts: null, partsKey: null, type: null, power: 0, lightPower: 
         p.pineWax.group.visible = o.kind === 'candle';
         if (p.pineWax.group.visible) p.setShape(o);
       }
+      const fill = p.kind === 'oil' ? place?.P.nook?.oilFill : null;
+      this.oilFillFraction = fill ? 0 : null;
+      oil.material = fill?.surface ?? oilMat;
+      if (fill) warmReflections(oil);
       candleG.visible = isWax && !p.pineWax; oil.visible = p.kind === 'oil'; oilBody.visible = !!p.oilBody;
       drips.forEach(({ mesh }) => { mesh.visible = false; });
       if (isWax && !p.pineWax && o.kind === 'candle') {
@@ -975,8 +980,10 @@ const api = { g, parts: null, partsKey: null, type: null, power: 0, lightPower: 
           mesh.scale.set(width * grown, Math.max(.0001, length * .5), width * grown);
         }
       } else if (p.kind === 'oil') {
-        // The vessel shows its oil on a gentler curve than volume, so a short burn still holds visible oil.
-        const V = p.vessel, [i, k] = findCum(V.cum, L * V.vol), y = V.ys[i - 1] + (V.ys[i] - V.ys[i - 1]) * k;
+        // The ritual can drive the visible liquid without changing the recorded burn fuel.
+        const amount = this.oilFillFraction ?? L;
+        oil.visible = this.oilFillFraction === null || amount > 0;
+        const V = p.vessel, [i, k] = findCum(V.cum, amount * V.vol), y = V.ys[i - 1] + (V.ys[i] - V.ys[i - 1]) * k;
         if (Math.abs(y - this.lastOil) > .0002) {
           this.lastOil = y; oil.position.y = y; oil.scale.setScalar(V.r(y));
           if (p.oilBody) { oilBody.geometry.dispose(); oilBody.geometry = oilBodyGeo(V, y); }
@@ -2219,6 +2226,21 @@ export function setPowerSaver(on) { powerSaver = on; resize(); }
 let level = 1, targetLevel = 1, lit = false, wanted = null, previewTask = null, skipNextTravel = false;
 let waxFuel = null;
 let travelListener = null;
+let oilPour = null;
+
+function removeOilPour(pour = oilPour) {
+  if (!pour || pour !== oilPour) return;
+  oilPour = null;
+  pour.dispose();
+}
+
+function resetOilPrelude() {
+  removeOilPour();
+  if (mine.oilFillFraction === null) return;
+  mine.oilFillFraction = 0;
+  mine.power = 0;
+  mine.setLevel(level);
+}
 
 function notifyTravelListener(pos, look, stage, immediate = false) {
   if (!travelListener || travelListener.id !== place?.id) return;
@@ -2245,6 +2267,7 @@ export function ownPastLampCount() { return ownPastLamps.length; }
 
 /** Show the person's candle or lamp (or hide it with null), full. */
 export function setOffer(shape) {
+  resetOilPrelude();
   const o=toOffer(shape);level=targetLevel=1;mine.g.visible=!!o&&atLamp;
   waxFuel = null;
   if(o)mine.setOffer(o);else mine.offer=null;
@@ -2385,6 +2408,7 @@ async function showPlace(id) {
 /** Show a place from outside while it is being chosen. */
 export function previewPlace(id) {
   travelListener = null;
+  resetOilPrelude();
   cameraJourneyVersion++;choiceCameraVersion++;
   wanted = id;
   // A new choice can arrive while an earlier fade is in progress. Keep both
@@ -2410,6 +2434,7 @@ async function showRequestedPreview() {
 /** Back to the cover: the cliff gallery over the clouds, one lamp already burning (the wish screen). */
 export async function toCover() {
   travelListener = null;
+  resetOilPrelude();
   cameraJourneyVersion++;choiceCameraVersion++;
   wanted = null; while (previewTask) await previewTask.catch(() => {}); roomLight = 1;
   await fadeTo(1, 400);
@@ -2423,6 +2448,7 @@ export async function toCover() {
 export async function travel(id, listener) {
   cameraJourneyVersion++;
   skipNextTravel = false;
+  resetOilPrelude();
   travelListener = listener ? { id, notify: listener } : null;
   wanted = null; while (previewTask) await previewTask.catch(() => {});
   if (place?.id !== id) {
@@ -2552,6 +2578,31 @@ export async function ignite({onCatch, remainingFuel, onTaperLit}={}) {
     if (import.meta.env.DEV) window.__visualIgnition = { state, progress, journey,
       position: rig.pos.toArray(), look: rig.look.toArray(), fov: rig.fov ?? camera.fov, ...evidence };
   };
+  const parts = mine.parts, offer = mine.offer, activePlace = place;
+  const fill = parts?.kind === 'oil' ? activePlace.P.nook.oilFill : null;
+  const sameCup = () => journey === cameraJourneyVersion && place === activePlace && mine.parts === parts && mine.offer === offer;
+  if (fill) {
+    resetOilPrelude();
+    wickPlume.clear(); emberUntil = 0;
+    const vessel = parts.vessel;
+    const pour = fill.create(mine.g, vessel.ys.at(-1));
+    oilPour = pour;
+    mark('filling', 0);
+    try {
+      await tween(fill.seconds, k => {
+        if (!sameCup()) return;
+        const sample = fill.frame(k);
+        mine.oilFillFraction = sample.amount;
+        mine.setLevel(level);
+        pour.update(k, sample, mine.lastOil, vessel.r(mine.lastOil));
+        mark('filling', sample.amount);
+      });
+    } finally { removeOilPour(pour); }
+    if (!sameCup()) return;
+    mark('oil-ready', 1);
+    await tween(fill.hold, () => {});
+    if (!sameCup()) return;
+  }
   lit=true;emberUntil=0;wickPlume.clear();shadeCoolingUntil=0;shadeCoolingGlow=0;shadeCoolingStart=0;shadeCoolingTau=0;roomLight=1;ignitionFill=place.P.bakedLighting?1:0;previewFloor=1;mark('igniting',0);
   // This candle has taken its place; the next lighting in the same visit moves on, leaving
   // this remnant where it stands.
@@ -2565,7 +2616,7 @@ export async function ignite({onCatch, remainingFuel, onTaperLit}={}) {
     const burn = pine ? burnView() : null;
     let caught = false;
     await tween(1.6, k => {
-      if (!lit || journey !== cameraJourneyVersion) return;
+      if (!lit || journey !== cameraJourneyVersion || (fill && !sameCup())) return;
       mine.power = k < .18 ? k * .35 : Math.min(1.15, ease((k - .18) / .82) + Math.sin(k * Math.PI) * .22);
       if (burn) {
         rig.pos.lerpVectors(start.pos, burn.pos, ease(k));
@@ -2575,6 +2626,7 @@ export async function ignite({onCatch, remainingFuel, onTaperLit}={}) {
       if (!caught && k >= .28) {
         caught = true;
         if (pine) mine.waxState = 'burning';
+        if (fill) mine.oilFillFraction = null;
         onCatch?.();
       }
     });
@@ -2742,6 +2794,14 @@ export async function snuff(done = false, remaining, gust = false) {
     const journeyAtGust = cameraJourneyVersion;
     await place.baked.life.gustBlast(1.5);
     if (journeyAtGust !== cameraJourneyVersion) return;
+  }
+  if (mine.oilFillFraction !== null) {
+    const journey = ++cameraJourneyVersion;
+    lit = false; emberUntil = 0;
+    resetOilPrelude();
+    wickPlume.clear();
+    if (import.meta.env.DEV) window.__visualIgnition = { state: 'cancelled', journey };
+    return;
   }
   const lastPower=mine.power*(lit?Math.min(1,level*25):1);
   const lastGlow=Math.max(0,...(mine.parts?.shells??[]).map(material=>material.userData.u.uGlow.value/material.userData.strength));

@@ -1,6 +1,7 @@
 // A tiled shelter at the edge of a wet bamboo court.
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { bambooEave, bambooNook } from '../../bamboo-rain-shelter.ts';
+import { bambooOilFill } from './bamboo-oil-fill.js';
 import { ARRIVAL_SECONDS, WALK_SECONDS, bambooRainCameras } from './bamboo-rain-camera.js';
 
 const cloister = {
@@ -274,7 +275,7 @@ export default function createPlace(h) {
 
     nook: {
       at: nook,
-      lamp: 'celadon', y: .91, exposure: 1.14, bloom: [.37, 1],
+      lamp: 'celadon', y: .91, exposure: 1.14, bloom: [.37, 1], oilFill: bambooOilFill(THREE),
       explicitPhoneViews: true,
       wide: cameras.wide, widePhone: cameras.widePhone,
       choose: cameras.choose, choosePhone: cameras.choosePhone,
