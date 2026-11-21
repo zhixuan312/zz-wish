@@ -59,17 +59,14 @@ export const previewPlace = (id: PlaceId) => initialize().then(s => s.previewPla
 export const prefetchPlace = async (
   id: PlaceId, onProgress?: (progress: PlaceLoadProgress) => void, shouldWarm?: () => Promise<boolean>,
 ) => {
-  let progress: PlaceLoadProgress = { loadedBytes: 0, totalBytes: 0, ratio: null, stage: 'preparing' };
-  // Pine Gate prepares with its current ambient look and the lamp pass. The
-  // loader verifies every bank as it is needed, including later time-of-day changes.
-  if (id === 'pine-gate') onProgress?.(progress);
-  else {
-    const { prefetchBakedPlace } = await import('./baked/prefetchPlace.js');
-    await prefetchBakedPlace(id, value => {
-      progress = { ...value, stage: value.stage === 'ready' ? 'preparing' : value.stage };
-      onProgress?.(progress);
-    });
-  }
+  // Every baked place prepares the way Pine Gate already did: the scene build asks the loader for the model
+  // and for the lightmaps its current light weights actually need, and later hours pull the remaining passes
+  // lazily. Pre-fetching the whole manifest up front downloaded sixteen lightmaps when one ambient pass plus
+  // the lamp map were all the entry used, and it did so before the visitor had chosen anything.
+  // The bar is indeterminate while the build runs: the loader reports no byte count per pass, so inventing a
+  // proportion would be a guess. `stage` still moves through preparing and ready, which is what the UI reads.
+  const progress: PlaceLoadProgress = { loadedBytes: 0, totalBytes: 0, ratio: null, stage: 'preparing' };
+  onProgress?.(progress);
   try {
     if (shouldWarm && !await shouldWarm()) return false;
     const s = await initialize();

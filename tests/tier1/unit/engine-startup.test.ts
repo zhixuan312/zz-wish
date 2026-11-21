@@ -58,7 +58,9 @@ test('files can finish without warming a default place the visitor has left', as
     return false;
   });
   await vi.waitFor(() => expect(stages).toEqual(['preparing']));
-  expect(download).toHaveBeenCalledOnce();
+  // Nothing is downloaded before the warm decision any more: the whole-package prefetch is gone, so a place
+  // the visitor has left costs no bytes at all. `download` exists only to prove it is never called.
+  expect(download).not.toHaveBeenCalled();
   expect(scene.preparePlace).not.toHaveBeenCalled();
   await expect(engine.prefetchPlace('pine-gate')).resolves.toBe(true);
   wait.resolve();
@@ -79,8 +81,10 @@ test('fire-and-forget effects survive failure and replay only their latest reque
   engine.setLevel(.2); engine.setLevel(.7);
   const failedStages: string[] = [];
   const failed = engine.prefetchPlace('snow-roof', progress => failedStages.push(progress.stage));
-  await vi.waitFor(() => expect(failedStages).toContain('preparing'));
-  expect(scene.ensureReady).toHaveBeenCalledOnce();
+  // `preparing` is now emitted synchronously, before the scene module resolves, so wait on the startup call
+  // itself rather than on the progress array.
+  await vi.waitFor(() => expect(scene.ensureReady).toHaveBeenCalledOnce());
+  expect(failedStages).toContain('preparing');
   first.reject(new Error('Temporary cover compile failure'));
   await expect(failed).rejects.toThrow('Temporary cover compile failure');
   expect(scene.setPhase).not.toHaveBeenCalled();
