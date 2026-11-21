@@ -80,6 +80,35 @@ function buildLane(h, granite, dark) {
   }
 }
 
+function buildInlandRidge({ THREE, M, context }) {
+  // The path faces the landmass behind the temple. Its slope closes glints of
+  // distant water through the gate before the camera rounds the wall.
+  const ground = new THREE.PlaneGeometry(360, 174, 72, 42).rotateX(-Math.PI / 2);
+  const positions = ground.getAttribute('position');
+  const colour = [];
+  const grey = new THREE.Color(0x5d655e);
+  const green = new THREE.Color(0x46544a);
+  const tint = new THREE.Color();
+  for (let i = 0; i < positions.count; i++) {
+    const x = positions.getX(i);
+    const z = positions.getZ(i);
+    const edge = Math.max(0, 1 - (Math.abs(x) / 180) ** 5)
+      * Math.max(0, 1 - (Math.abs(z) / 87) ** 2);
+    const ribs = .56 + .18 * Math.sin(x / 28 + z / 19)
+      + .12 * Math.sin(x / 12 - z / 17) + .08 * Math.cos(x / 5 + z / 10);
+    positions.setY(i, -5 + edge * (33 * ribs + 6 * Math.cos(z / 19)));
+    tint.copy(grey).lerp(green, Math.max(0, Math.min(1, (ribs - .25) * 1.7)));
+    colour.push(tint.r, tint.g, tint.b);
+  }
+  ground.setAttribute('color', new THREE.Float32BufferAttribute(colour, 3));
+  ground.computeVertexNormals();
+  const slope = new THREE.Mesh(ground, M(0xffffff, .98, { vertexColors: true }));
+  slope.position.z = -106;
+  slope.receiveShadow = true;
+  slope.name = 'Inland temple ridge';
+  context.G.add(slope);
+}
+
 function buildHarbour(h) {
   const { THREE, M, box, peak, rock, context } = h;
   const shore = M(0x394b4b, .94);
@@ -158,6 +187,7 @@ export default function createPlace(h) {
       hallB({ z: -8, w: 13, d: 8, h: 3.8, wall: granite, roof: tile, base: .28, lift: .25, glow: .22 });
       gateB({ z: 4.2, w: 7, h: 3.55, wall: granite, roof: tile, lift: .19 });
       peak(-42, -7, -9, 40, 22, M(0x42534f, .98), 88, 1.4);
+      buildInlandRidge(h);
       buildLane(h, granite, darkStone);
       buildHarbour(h);
       // A quay cap stays low in the seaward view and ends beside the sheltered nook.
