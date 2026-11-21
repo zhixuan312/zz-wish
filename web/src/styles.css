@@ -35,7 +35,9 @@ p { font-size:15px; line-height:1.7; color:var(--dim); }
 .brand { display:flex; align-items:center; gap:14px; white-space:nowrap; text-shadow:0 2px 10px #000; }
 .brand span:first-child { font-size:24px; letter-spacing:.12em; }
 .brand span:last-child { font-size:12px; letter-spacing:.22em; }
-.topbar nav { display:flex; gap:8px; }
+.topbar nav { display:flex; gap:8px; align-items:center; }
+/* The mute switch is always reachable and shows its state, not just its action. */
+.btn.mute[aria-pressed=true] { border-color:#dcb574a0; color:var(--ember); }
 .btn { min-height:44px; border:1px solid var(--line); border-radius:3px; padding:11px 16px; color:var(--paper); background:#101713a8; font:500 15px/1.25 var(--serif); letter-spacing:.02em; cursor:pointer; white-space:nowrap; transition:background .2s,border-color .2s,color .2s; }
 .btn:hover:not(:disabled) { border-color:var(--ember); background:#262c20c9; }
 .btn.primary { color:#241c0f; background:var(--ember); border-color:var(--ember); }
@@ -193,9 +195,22 @@ textarea[aria-invalid=true] { border-color:#f0b69a; }
   .place-actions { justify-content:space-between; gap:12px; } .place-actions .primary { min-width:190px; }
   .travel { padding-top:16vh; } .travel .big { font-size:32px; }
   .skip { right:18px; bottom:max(20px,env(safe-area-inset-bottom)); }
-  .candle-sheet { top:300px; bottom:0; left:0; right:0; width:auto; max-height:none; padding:12px 16px max(14px,env(safe-area-inset-bottom)); border-width:1px 0 0; border-radius:0; background:linear-gradient(0deg,#080d0cfa 80%,#080d0cd9); }
-  .candle-sheet[data-place="snow-roof"] { top:max(300px,40dvh); }
-  .candle-sheet .inner { gap:4px; }
+  /* A compact bottom sheet: the top two fifths of the picture stay clear so the lamp is visible while
+     a candle is chosen. The content scrolls inside the sheet and the actions stay pinned to its foot,
+     so Light is always reachable without scrolling. */
+  .candle-sheet { top:auto; bottom:0; left:0; right:0; width:auto; height:40vh; max-height:40vh; display:flex; flex-direction:column;
+    padding:10px 16px max(14px,env(safe-area-inset-bottom)); border-width:1px 0 0; border-radius:0;
+    background:linear-gradient(0deg,#080d0cfa 80%,#080d0cd9); }
+  /* The drawing pad is a fixed 200x300 target that has to stay fully on screen with its tools. The sheet
+     takes exactly the height that content needs — no more, so the lamp above it stays visible — and
+     never grows past 62% of the viewport, which is the line above which the lit lamp still reads. */
+  .candle-sheet:has(.draw) { height:auto; max-height:62vh; }
+  .candle-sheet .inner { gap:4px; overflow-y:auto; overscroll-behavior:contain; flex:1 1 auto; min-height:0; }
+  /* The action row is the sheet's own child, not part of the scroller: it keeps its place at the foot
+     while the content above scrolls, so it can never travel over the content or push it off screen. */
+  .candle-sheet .candle-actions { flex:none; margin:0 -16px calc(-1 * max(14px,env(safe-area-inset-bottom)));
+    padding:6px 16px max(8px,env(safe-area-inset-bottom));
+    border-top:1px solid #b8bc9b26; background:#080d0cf7; }
   .candle-sheet h2 { font-size:21px; line-height:1.25; }
   .design-options { height:170px; gap:3px; }
   .design-options:has(.draw) { height:228px; }
@@ -232,11 +247,22 @@ textarea[aria-invalid=true] { border-color:#f0b69a; }
 }
 @media(max-height:650px) and (max-width:720px) {
   .ui[data-screen=wish] .sheet { top:28vh; }
-  .candle-sheet { top:115px; }
-  .candle-sheet[data-place="snow-roof"] { top:max(115px,36dvh); }
+  /* A short phone still gets the bottom sheet, just a taller share of it. */
+  .candle-sheet { top:auto; bottom:0; height:50vh; max-height:50vh; }
 }
 @media(prefers-reduced-motion:reduce) {
   .sheet .inner,.travel { animation:none; }
   #fade { transition-duration:.2s; }
   .hud-bottom,.topbar,.pill { transition-duration:.1s; }
+}
+
+/* Credits: a plain list inside the normal panel, scrollable on a phone. */
+.credits-list { list-style:none; margin:0; padding:0; display:grid; gap:18px; }
+.credits-list li { border-top:1px solid #ffffff24; padding-top:14px; }
+.credits-list li:first-child { border-top:0; padding-top:0; }
+.credits-list h3 { margin:0 0 6px; font-size:15px; font-weight:600; }
+.credits-list p { margin:0 0 6px; line-height:1.5; }
+.credit-links a { color:inherit; text-underline-offset:2px; }
+@media (max-width:430px) {
+  .credits-list p { font-size:14px; }
 }

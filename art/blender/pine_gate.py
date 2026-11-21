@@ -802,7 +802,9 @@ def landing_stone(name, width, depth, centre, stone, dressing):
         ring.append((a * width, b * depth, dip))
 
     points = []
-    for lower, inset in ((-.115, .018), (-.018, 0), (0, .009)):
+    # A dressed slab keeps a crisp arris: a small chamfer at the top and a plain side below it.
+    # The old .009 top inset rounded every corner enough to read as a cushion.
+    for lower, inset in ((-.115, .012), (-.018, 0), (0, .0034)):
         for u, v, dip in ring:
             roundness = inset * (.70 + .3 * math.sin(17.7 * u + 5.8 * v + offset))
             px = u * (1. - 2 * roundness / width)
@@ -842,7 +844,7 @@ def landing_stone(name, width, depth, centre, stone, dressing):
     return slab
 
 
-def landing_flagstones(stone, gravel):
+def landing_flagstones(stone, gravel, dressing_stone=None):
     joint = random.Random(5917)
     dressing = random.Random(2816)
     slabs = []
@@ -860,9 +862,12 @@ def landing_flagstones(stone, gravel):
             x, z = (left + right) * .5, (front + back) * .5
             gap = joint.uniform(.009, .020)
             settle = joint.uniform(-.009, .008) * (.44 if abs(x) < .8 else 1.)
+            # The landing shares the footpath's wet granite scan, so the paving and the worn
+            # treads are visibly the same stone rather than a smooth slab beside rough steps.
+            material = dressing_stone or RANDOM.choice(stone)
             slab = landing_stone(f'Landing flagstone {row} {col}', right - left - gap, back - front - gap,
                                  (x, 4.004 + settle + RANDOM.uniform(-.003, .003), z),
-                                 RANDOM.choice(stone), dressing)
+                                 material, dressing)
             slab['moss_edge'] = joint.random() < (.26 if abs(x) < 1.2 else .57)
             slabs.append(slab)
     landing_joint_fill(seams, slabs, gravel)
@@ -1009,8 +1014,8 @@ def climbing_steps(stone, ground, bedding_material, rubble_granite, tread_granit
     print(f'PINE_SCANNED_TREAD_SHOULDERS {len(scanned_treads)} stones in five surveyed courses.')
     audit_approach_tread_bearings(bedding_rows, bed, ground)
     audit_stair_course_rises(bedding_rows)
-    landing_bed(stone[2])
-    landing_flagstones(stone, rubble_granite)
+    landing_bed(tread_granite)
+    landing_flagstones(stone, rubble_granite, tread_granite)
     fit_stone_undersides(ground, bridge_curbs)
     return bridge_curbs
 
@@ -1675,6 +1680,9 @@ def pine_sprays(name, sprays, tint, *, close=False):
                 charts.append([shape[j] for j in corners])
                 material_uvs.append([local_uvs[j] for j in corners])
     obj = mesh.mesh_object(name, points, faces, tint, 'approach')
+    # Replaced at runtime by the walk-tier native model, which is lit at runtime; the crown still stands
+    # in the bake as a shadow caster and occluder.
+    bake_occluder_only(obj)
     source_uv(obj, charts, 'Connected metre-scale wrapping charts for rooted pine fascicles.')
     uv = obj.data.uv_layers['UVMap']
     for face, corners in zip(obj.data.polygons, material_uvs):
@@ -1701,6 +1709,9 @@ def use_native_valley_crown(label, profile, far_crown):
 def pine_fascicles(name, needles, material):
     points, faces, charts, wind = needle_mesh(needles, compact=True)
     canopy = mesh.mesh_object(name, points, faces, material, 'approach')
+    # The walk tier replaces these crowns at runtime with its own KTX2 model, so they are lit at runtime
+    # rather than from the approach lightmap; the bake keeps them as shadow casters.
+    bake_occluder_only(canopy)
     source_uv(canopy, charts, 'Separate needle section nets in metres, with pinned stem UV0.')
     uv = canopy.data.uv_layers['UVMap'].data
     for face in canopy.data.polygons:
@@ -1866,12 +1877,48 @@ def pine_needles(name, shoots, material):
         wind_uv.extend(sway)
 
     canopy = mesh.mesh_object(name, points, faces, material, 'approach')
+    bake_occluder_only(canopy)
     source_uv(canopy, charts, 'Connected metre-scale pine stem and needle charts.')
     uv = canopy.data.uv_layers['UVMap']
     for face in canopy.data.polygons:
         face.use_smooth = True
         for i, vertex in zip(face.loop_indices, face.vertices):
             uv.data[i].uv = wind_uv[vertex]
+
+
+# The modelled needle crowns are thin and numerous; at 1x most of their charts fall under the atlas's
+# two-texel core and are dropped from the mask, so the coverage gate reported their pixels as unreached.
+# Two cleared the per-camera threshold; four removes them from the subpixel set entirely while the
+# approach atlas still fits in one 2048 square.
+NEEDLE_LIGHTMAP_DENSITY = 4
+
+
+def bake_occluder_only(obj):
+    """Keep an object in the bake as an occluder and shadow caster, and nothing else.
+
+    The mesh builder marks every object one_light_static, which gives it a lightmap region, an atlas
+    claim and a share of the coverage statistics. The needle crowns the walk tier replaces at runtime
+    need none of that: they must still block light and cast their shadow onto the ground, but they are
+    never exported and never read a lightmap. Clearing the flag is the whole change; it is not the HERO
+    dynamic flag, which means a separately exported object with its own contact replay.
+    """
+    obj.pop('one_light_static', None)
+    return obj
+
+
+def needle_lightmap_density(obj, factor):
+    """Grow an existing lightmap chart so it earns at least the atlas's core texel count.
+
+    The modelled needle crowns are thin and numerous. At the authored scale most of their charts land
+    under two texels and so are dropped from the atlas mask, which makes the coverage gate report their
+    pixels as unreached even though the geometry is right there. Scaling the lightmap UVs keeps the
+    material UVs and the silhouette untouched; only the atlas claim grows.
+    """
+    chart = obj.data.uv_layers.get('SourceLightmap')
+    if chart is None:
+        return
+    for corner in chart.data:
+        corner.uv *= factor
 
 
 def shoulder_pine_needles(name, shoots, material):
@@ -1943,6 +1990,7 @@ def shoulder_pine_needles(name, shoots, material):
                     charts.extend(((high_uv, low_uv, low, high), (high, low, endpoint)))
     canopy = mesh.mesh_object(name, points, faces, material, 'approach')
     source_uv(canopy, charts, 'One unfolded twig strip with physically attached needles per shoot.')
+    needle_lightmap_density(canopy, NEEDLE_LIGHTMAP_DENSITY)
     uv = canopy.data.uv_layers['UVMap'].data
     for face in canopy.data.polygons:
         face.use_smooth = True
@@ -2504,6 +2552,31 @@ def spring_sediment_tint(tint, x, z, channel, width, bed):
             for a, b, scan in zip(tint, seam, (.349, .227, .141))]
 
 
+# The visitor's candle sits at the shrine's wick line; the lintel above it collects soot, and the
+# shelf edge carries spent wax. Both are masks over the existing granite, never a material swap.
+# ANCHOR is the shelf's own top centre, in world metres.
+SHRINE_WICK = Vector(ANCHOR)
+SOOT_RADIUS = .15
+
+
+def shrine_soot_tint(tint_color, world):
+    """Darken the lintel underside towards the wick, and make the soot slightly smoother."""
+    distance = (world - SHRINE_WICK).length
+    reach = max(0., min(1., 1. - distance / SOOT_RADIUS))
+    soot = reach * reach * (3. - 2. * reach)
+    # The centre reads about 0.04 of the stone's own albedo, settling back to full stone at the rim.
+    return [channel * (1. - .96 * soot) for channel in tint_color]
+
+
+def shrine_wax_tint(tint_color, world):
+    """Old spilled wax on the shelf edge: warm, slightly yellow, a touch brighter than the granite."""
+    band = max(0., min(1., (-world.z + .012) / .034))
+    patch = .5 + .5 * noise.noise(Vector((world.x * 46., world.y * 61., world.z * 46.)))
+    wax = band * max(0., min(1., (patch - .58) * 3.2))
+    return [channel * (1. + wax * change)
+            for channel, change in zip(tint_color, (.30, .16, -.06))]
+
+
 def paint_stone():
     for obj in mesh.STATIC.objects:
         materials = list(obj.data.materials)
@@ -2527,6 +2600,15 @@ def paint_stone():
                 if obj.get('weather_stone'):
                     moss_outline = noise.noise(world * 7.9) + .21 * noise.noise(world * 33)
                     green_mix = max(0., min(.65, (moss_outline + (.1 if obj.get('moss_edge') else -.11)) * .96))
+                if obj.get('shrine_moss_base') is not None:
+                    # Moss and lichen climb the foot of the shrine and stop; the stone must still read
+                    # as stone, so the cover stays well under half of the face. Blender is Z-up, so the
+                    # world height is z; the stored value is a height in the same frame.
+                    foot = obj['shrine_moss_base']
+                    climb = max(0., min(1., 1. - (world.z - foot) / .12))
+                    cover = climb * climb * (3. - 2. * climb)
+                    patches = noise.noise(world * 11.3) + .27 * noise.noise(world * 37.)
+                    green_mix = max(green_mix, max(0., min(.42, cover * (.28 + .30 * patches))))
                 if obj.get('matched_granite'):
                     shade = .94 + .36 * (shade - .94)
                 if stair_block:
@@ -2575,6 +2657,10 @@ def paint_stone():
                     tint_color = [channel * crest * bank for channel, crest, bank in zip(
                         tint_color, crest_soil_tint(x, z), inner_bank_tint(x, z, creek_x, width))]
                     tint_color = spring_sediment_tint(tint_color, x, z, creek_x, width, face.material_index == 1)
+                if obj.get('shrine_soot'):
+                    tint_color = shrine_soot_tint(tint_color, world)
+                if obj.get('shrine_wax_drip'):
+                    tint_color = shrine_wax_tint(tint_color, world)
                 tint.data[i].color = (*tint_color, 1.)
 
 
@@ -2679,7 +2765,9 @@ def build(output, impostor_manifest=None, wax_sculpt=None):
         views, impostor_sha = load_impostors(impostor_manifest)
         if not {'young', 'ridge'} <= views.keys():
             raise ValueError('Pine Gate needs both the young and the ridge crown views.')
-        shoulder = next(shot for shot in route['waypoints'] if shot['time'] == 27.9)
+        # The shoulder is the route's last waypoint. It used to be the 27.9 s shot, which 2dfbe26
+        # removed as a duplicate of the final entry.
+        shoulder = route['waypoints'][-1]
         if has_verified_native_receipt(impostor_manifest, impostor_sha):
             native_mounts = {}
         far_crown = (Vector(shoulder['position']), views, native_mounts)
@@ -2702,7 +2790,9 @@ def build(output, impostor_manifest=None, wax_sculpt=None):
     entry = route['entrance']
     scene.camera = camera('Reference_PineSteps', entry['position'], entry['look'], entry['desktopFov'], (1440, 900))
     camera('Reference_PineStepsPhone', entry['phonePosition'], entry['look'], entry['phoneFov'], (390, 844))
-    for name, index in (('Forest', 0), ('Crest', 3), ('Shoulder', 6)):
+    # Shoulder is the route's final waypoint. It used to be index 6, which was the 30.0 s duplicate key
+    # removed in 2dfbe26; -1 names the same place without pinning a count.
+    for name, index in (('Forest', 0), ('Crest', 3), ('Shoulder', -1)):
         shot = route['waypoints'][index]
         camera('Reference_Pine' + name, shot['position'], shot['look'], shot['desktopFov'], (1440, 900))
     camera('Reference_PineTeaPavilion', (0, 6.50, 7.05), (-.50, 5.05, 1.93), 68, (1440, 900))

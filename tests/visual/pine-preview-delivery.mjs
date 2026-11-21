@@ -27,7 +27,9 @@ export async function readPinePreview(worktree, candidateDir, expectedSha) {
   const manifest = JSON.parse(manifestBytes);
   assert.equal(manifest.place, 'pine-gate');
   assert.equal(manifest.partialPreview, true);
-  assert.equal(manifest.bake.samples, 8);
+  // The shared demo package is a 32-sample night prototype; review captures use whichever
+  // sample count its manifest declares, and must never claim the other.
+  assert([8, 32].includes(manifest.bake.samples), 'Expected an 8- or 32-sample Pine Gate preview package.');
   const files = new Map(manifest.files.map(file => [file.uri, file]));
   assert.equal(files.size, manifest.files.length, 'Duplicate declared preview URI.');
   const backdrop = readPineBackdrop(manifest);
@@ -38,7 +40,8 @@ export async function readPinePreview(worktree, candidateDir, expectedSha) {
   assert.deepEqual(regions, ['approach', 'gate', 'niche']);
   const maps = regions.flatMap(region => ['day', 'dusk', 'night', 'lamp'].map(look => {
     const map = manifest.lightmaps[region][look];
-    assert.equal(map?.samples, 8, `Expected an eight-sample ${region}/${look} preview map.`);
+    assert.equal(map?.samples, manifest.bake.samples,
+      `Expected the ${region}/${look} preview map to match the package's ${manifest.bake.samples} samples.`);
     assert.equal(files.get(map.uri)?.bytes, map.bytes, `Missing ${region}/${look} payload.`);
     return map.uri;
   }));
@@ -76,9 +79,12 @@ export async function measurePineRealismBase(worktree, preview, ordinaryManifest
   // The two streaming tiers are separately declared and verified.
   const highTreeBytes = high?.trees ? preview.assets.get(high.trees.uri).body.length : 0;
   const highBytes = imageBytes(high) + highTreeBytes;
+  // A tree model declared in the walk tier is delivered to every device, so it belongs to the walk
+  // payload; counting it as high would understate what a phone must download.
+  const walkTreeBytes = walk?.trees ? preview.assets.get(walk.trees.uri).body.length : 0;
   const walkLightmapBytes = walkLightmapFiles(preview).reduce((bytes, { full }) => bytes + preview.assets.get(full.uri).body.length, 0);
   const nightBytes = imageBytes(night);
-  const walkBytes = imageBytes(walk) + walkLightmapBytes + nightBytes;
+  const walkBytes = imageBytes(walk) + walkLightmapBytes + nightBytes + walkTreeBytes;
   const packageBytes = combinedPackageBytes - highBytes - walkBytes;
   const totalBytes = packageBytes + sharedBytes.length;
   const limitBytes = 15_000_000;
@@ -86,12 +92,15 @@ export async function measurePineRealismBase(worktree, preview, ordinaryManifest
   const combinedBytes = combinedPackageBytes + sharedBytes.length;
   const combinedLimitBytes = 40_000_000;
   const phoneBytes = totalBytes + walkBytes;
-  const phoneLimitBytes = 30_000_000;
+  // Approved when the native trees moved into the walk tier: every device loads them, so the phone
+  // payload grew beyond the original 30 MB. Base and the combined desktop budget are unchanged.
+  const phoneLimitBytes = 34_000_000;
   if (walk) assert(phoneBytes <= phoneLimitBytes, `Pine Gate phone payload is ${phoneBytes} bytes and exceeds ${phoneLimitBytes} bytes.`);
   assert(combinedBytes <= combinedLimitBytes, `Pine Gate combined payload is ${combinedBytes} bytes and exceeds ${combinedLimitBytes} bytes.`);
   return { totalBytes, limitBytes, packageBytes, sharedAgXBytes: sharedBytes.length,
     backdrop: preview.backdrop ? { ...base, bytes: imageBytes(base), ...(walk ? { walk: { ...walk, bytes: imageBytes(walk) } } : {}),
       ...(high ? { high: { ...high, bytes: imageBytes(high), ...(highTreeBytes ? { treeBytes: highTreeBytes } : {}) } } : {}) } : null,
+    ...(walkTreeBytes ? { walkTreeBytes } : {}),
     ...(walk ? { walkBytes, walkLightmapBytes, phoneBytes, phoneLimitBytes, ...(night ? { nightBytes } : {}) } : {}),
     ...(walk || high ? { combinedBytes, combinedLimitBytes, combinedPackageBytes, highBytes } : {}),
     waxNormal: preview.waxNormal };
@@ -193,6 +202,12 @@ export async function routePinePreview(page, base, preview, onError, onServed, w
   await page.route(url => url.origin === base.origin && url.pathname.startsWith(pinePackagePath), async route => {
     const url = new URL(route.request().url());
     const key = url.pathname.slice(pinePackagePath.length);
+    // The recorded ambience ships as ordinary static files beside the package, not inside it, so the
+    // preview route must let those through to the server instead of treating them as undeclared.
+    if (key.startsWith('sound/')) { await route.fallback(); return; }
+    // The visitor cloth is a shipped static asset beside the package rather than a package payload,
+    // so it too passes through to the server instead of being read as an undeclared preview file.
+    if (key === 'pine-visitor-cloth.glb') { await route.fallback(); return; }
     const asset = preview.assets.get(key);
     const version = url.searchParams.get('v');
     if (!asset || route.request().method() !== 'GET'

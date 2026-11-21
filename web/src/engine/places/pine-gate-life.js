@@ -227,6 +227,8 @@ export function createPineGateLife({
   const pathPoints = path.map((p) => new THREE.Vector3(...p));
 
   let sky = null, elapsed = 0, dustBlend = 0, needleDebt = 0, disposed = false;
+  // End of a leaving gust, on the same clock the wind uniforms advance with.
+  let blastUntil = 0;
   const cameraAt = new THREE.Vector3(0, 0, 34);
 
   // The needle band follows the walker: choose the path station nearest the eye.
@@ -245,7 +247,9 @@ export function createPineGateLife({
       const saver = !!renderer && renderer.shadowMap?.enabled === false;
       elapsed += dt;
       // A gust every eleven seconds or so, easing in and out rather than switching.
-      const gust = Math.pow(0.5 + 0.5 * Math.sin(elapsed * 0.57) * Math.sin(elapsed * 0.23 + 1.1), 3);
+      let gust = Math.pow(0.5 + 0.5 * Math.sin(elapsed * 0.57) * Math.sin(elapsed * 0.23 + 1.1), 3);
+      // A leaving gust is one hard push that fades over its window.
+      if (blastUntil > elapsed) gust = Math.max(gust, .55 + .45 * Math.sin(Math.PI * Math.min(1, (elapsed - (blastUntil - 1.5)) / 1.5)));
       for (const u of windUniforms) {
         u.uPineTime.value = still || saver ? 0 : time;
         u.uPineGust.value = still || saver ? 0 : gust;
@@ -333,6 +337,27 @@ export function createPineGateLife({
       const attachWeights = swayStats.flatMap(row => row.maxAttachEdgeWeight ?? []);
       return { windMaterials: windUniforms.length, sway: swayStats, cameraProxy: sky ? 'sky' : 'fallback',
         maxAttachEdgeWeight: attachWeights.length ? Math.max(...attachWeights) : null };
+    },
+    // A short, hard gust: the needles and the cloth are pushed aside together, then it dies
+    // away. Resolves when the push is over, about 1.5 s later.
+    gustBlast(seconds = 1.5) {
+      return new Promise((resolve) => {
+        blastUntil = elapsed + seconds;
+        const check = () => {
+          if (disposed || elapsed >= blastUntil) { resolve(); return; }
+          setTimeout(check, 60);
+        };
+        check();
+      });
+    },
+    // The same eased gust the sprays feel, so cloth and needles move together.
+    gust() {
+      const still = reduced();
+      const saver = !!renderer && renderer.shadowMap?.enabled === false;
+      if (still || saver) return 0;
+      let value = Math.pow(0.5 + 0.5 * Math.sin(elapsed * 0.57) * Math.sin(elapsed * 0.23 + 1.1), 3);
+      if (blastUntil > elapsed) value = Math.max(value, .55 + .45 * Math.sin(Math.PI * Math.min(1, (elapsed - (blastUntil - 1.5)) / 1.5)));
+      return value;
     },
   };
 }

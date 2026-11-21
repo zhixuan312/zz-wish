@@ -158,7 +158,8 @@ test('the soft near lightmaps use the original mip blocks, preserve full maps, a
 
 test.each([
   [{ orientation: 'rd' }, /bottom-up, linear, single-level native Basis/],
-  [{ farWalkBytes: 29_900_000 }, /exceeds the combined Pine Gate phone asset budget/],
+  // Above the approved 34 MB phone budget: the staging step must still refuse before writing.
+  [{ farWalkBytes: 33_900_000 }, /exceeds the combined Pine Gate phone asset budget/],
 ])('walk staging rejects projection changes and phone overflow before writing %j', async (options, error) => {
   const { stage } = await fixture(options);
   const result = stage('rejected-walk', 'walk');

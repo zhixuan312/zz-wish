@@ -57,4 +57,17 @@ test('the phone drawing pad and its tools stay reachable, and one touch stroke l
   await expect(page.getByRole('button', { name: re('撤销', 'Undo') })).toBeEnabled();
   // The stroke changes the drawing, so its length-derived duration must change too.
   await expect(page.getByTestId('duration')).not.toHaveText(before);
+
+  // GOALS.md lets the taller draw sheet cover the lamp, but only while the draw tab is open. Coming
+  // back to the ready-made tab has to restore the compact sheet. The lamp framing itself is checked in
+  // pine-burn-framing, which is the place whose hook reports the flame and tray; this place's lamp has
+  // no such hook, so the sheet's own edge is what is measured here.
+  await page.getByRole('tab', { name: re('现成的', 'Ready-made') }).click();
+  await expect(page.locator('.candle-sheet .pad')).toHaveCount(0);
+  const sheetTop = await page.evaluate(() => {
+    const sheet = document.querySelector('.candle-sheet')!.getBoundingClientRect();
+    return sheet.top / innerHeight;
+  });
+  expect(sheetTop, 'the ready-made tab must restore the compact sheet at or below 60% of the viewport')
+    .toBeGreaterThanOrEqual(.60);
 });

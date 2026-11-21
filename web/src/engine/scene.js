@@ -5,6 +5,8 @@ import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 import { FocusBlur } from './FocusBlur.js';
+import { shrineApproach } from './places/pine-walk-curve.js';
+import { screenBox } from './places/pine-burn-framing.js';
 import { buildHall } from './architecture.js';
 import { createPineBatch } from './NaturalPines.js';
 import { loadNaturalAssets,scans,isScanTexture,naturalResources,addScannedRock,addScannedStump } from './NaturalAssets.js';
@@ -20,10 +22,15 @@ import visitorFabric from './baked/visitor-fabric.json';
 import { WickPlume, addGauzeVent, createGauzeSmokePath, gauzeFlameSize, gauzeRibGeometry, gauzeThroat } from './WickPlume.js';
 import { createPineTray, createPineWax, waxContactShadow } from './PineWax.js';
 import { addSnowCourtGauzeTransmission } from './places/snow-court-gauze.js';
+import { TAPER_BEAT, taperHasReachedWick } from './places/pine-taper.js';
 
 // ---------- Renderer ----------
 const canvas = document.getElementById('gl');
-const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
+// The E2E build keeps the drawing buffer so a test can read the very frame it asked for; a normal
+// build lets the browser discard it, which is faster.
+const keepDrawingBuffer = import.meta.env.VITE_E2E_HOOKS === '1';
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance',
+  preserveDrawingBuffer: keepDrawingBuffer });
 // Reading shader logs blocks until each program links; only development needs them.
 renderer.debug.checkShaderErrors = import.meta.env.DEV;
 if(import.meta.env.DEV){window.__renderer=renderer;window.__visualWalkAvailable=true;}
@@ -36,6 +43,36 @@ renderer.toneMappingExposure = 1.0;
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 const camera = new THREE.PerspectiveCamera(34, 1, 0.01, 900);
+// The render camera, reachable by the browser suite so its projections use the same matrices the
+// frame is drawn with.
+if (import.meta.env.DEV || import.meta.env.VITE_E2E_HOOKS === '1') {
+  window.__pineRenderCamera = camera;
+  // Hold the walking rig still while the browser suite measures a declared pose. Only the E2E build
+  // carries it; a normal page never defines the flag.
+  window.__pineFreezeRig = on => { window.__pineRigFrozen = on === true; };
+  // Draw one frame on demand and read pixels from that same frame. A screenshot taken later can come
+  // from a different frame than the boxes projected for it, which is a dozen pixels out at the print
+  // trail's distance and makes any pixel comparison meaningless.
+  window.__pineRenderAndSample = (spots, hideIndices = []) => {
+    const hidden = [];
+    for (const index of hideIndices) {
+      const child = window.__pineMudGroup?.()?.children?.[index];
+      if (child) { hidden.push([child, child.visible]); child.visible = false; }
+    }
+    composer.render();
+    const gl = renderer.getContext();
+    // readPixels wants device pixels, and its rows count from the bottom of the buffer.
+    const ratio = renderer.domElement.width / renderer.domElement.clientWidth;
+    const pixels = spots.map(([x, y]) => {
+      const px = Math.round(x * ratio), py = Math.round((renderer.domElement.clientHeight - y) * ratio);
+      const out = new Uint8Array(4);
+      gl.readPixels(px, py, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, out);
+      return [out[0], out[1], out[2], out[3]];
+    });
+    for (const [child, visible] of hidden) child.visible = visible;
+    return pixels;
+  };
+}
 const pmrem = new THREE.PMREMGenerator(renderer);
 // Reflections near the lamp: a near-black room with warm candle points and one cool window,
 // so brass reads as metal catching flames instead of a white studio.
@@ -604,7 +641,12 @@ const LAMPS = {
     const pineWax = createPineWax(seat, waxMaterial, { refined, sculptNormal, sunShade });
     pineWax.group.visible = false;
     g.add(pineWax.group);
-    const setShape = shape => {
+    const parts = { g, kind: 'wax', seat, pineWax, holder, shelfContact, sunShade,
+      frame: { h: .2, cy: .08 }, lightMax: .05, light: 0xffbc82, flame: refined ? .91 : 1.13,
+      // The tray's live XZ scale. Everything tied to the tray's wall, such as the visitor cloth,
+      // has to follow it or it hangs off a wall that is not there any more.
+      holderScale: 1 };
+    parts.setShape = shape => {
       pineWax.setShape(shape);
       if (!refined) return;
       const bounds = pineWax.profileBounds();
@@ -612,9 +654,11 @@ const LAMPS = {
       const holderScale = THREE.MathUtils.clamp((waxRadius + .007) / seat.traceRadius, .76, 1);
       holder.scale.set(holderScale, 1, holderScale);
       shelfContact.scale.setScalar(contactRadius * holderScale);
+      parts.holderScale = holderScale;
+      // Anything tied to the tray wall, such as the visitor's cloth, takes the same XZ scale.
+      place?.baked?.setClothTrayScale?.(holderScale);
     };
-    return { g, kind: 'wax', seat, pineWax, holder, shelfContact, setShape, sunShade,
-      frame: { h: .2, cy: .08 }, lightMax: .05, light: 0xffbc82, flame: refined ? .91 : 1.13 };
+    return parts;
   },
   // A brass-framed storm lantern hanging from a hook; the candle stands inside behind glass.
   lantern() {
@@ -1526,6 +1570,10 @@ function daylight(date = new Date(), continuous = false) {
   for (const key of Object.keys(a)) { const value=a[key]+(b[key]-a[key])*k;out[key]=continuous?value:Math.round(value*20)/20; }
   return out;
 }
+// A place may supply its own clock-to-light curve; when it does, that curve replaces the shared
+// day keys for that place only. Snow Roof supplies none, so its look is unchanged.
+const placeLight = (PLACE, date = new Date()) => (PLACE?.lightAt ? PLACE.lightAt(date) : daylight(date));
+
 const hexMix = (a, b, k) => new THREE.Color(a).lerp(new THREE.Color(b), Math.min(1, Math.max(0, k))).getHex();
 function blendPlace(N, L) {
   const D = N.day, n = L.n, g = L.g, mix = (a, b) => a + (b - a) * n;
@@ -1818,9 +1866,9 @@ function compileIntoTarget(scene, view, target) {
   finally { renderer.setRenderTarget(previous); }
 }
 async function buildPlaceNow(t, isolated = false) {
-  const light = daylight(), lightKey = JSON.stringify(light);
   if (cachedPlaces.has(t.id)) return cachedPlaces.get(t.id);
   PLACES[t.id] ??= await (await placeModules[t.id]()).default(placeHelpers);
+  const light = placeLight(PLACES[t.id]), lightKey = JSON.stringify(light);
   if(PLACES[t.id].bakedLighting)await ensureNativeAgX();
   if(t.id==='snow-roof')await ensureVisitorFabric();
   if(!PLACES[t.id].bakedLighting)await loadNaturalAssets();
@@ -1854,13 +1902,21 @@ async function buildPlaceNow(t, isolated = false) {
   context.baked?.updateWaxSun?.(dir);
   // The spot where the lamp is lit, built in its own frame and set into the place.
   const N = P.nook, nookG = new THREE.Group(); nookG.position.copy(N.at.pos); nookG.rotation.y = N.at.ry ?? 0; G.add(nookG); nookG.updateMatrixWorld(true);
+  // The world group, so a place can add world-space geometry while its own build runs; context.G is
+  // the nook group for the duration of that build.
+  context.world = G;
   context.G = nookG; context.bat = new Map(); context.cover = null;
   await N.build(placeHelpers, context);
   if (!isolated) await finishBatch();
   nookG.traverse((o) => { if (o.isMesh && !o.material.transparent && !o.isInstancedMesh) { o.receiveShadow = true; if (o.userData.cast !== false) o.castShadow = true; } if (o.isLight) o.layers.enableAll(); });
   G.traverse((o) => { if (o.isLight) o.layers.enableAll(); });
   context.G = G;
-  context.up.push((dt, time) => { u.uTime.value = time; });
+  context.up.push((dt, time) => {
+    u.uTime.value = time;
+    const trace = window.__cameraTrace;
+    if (trace?.on) trace.rows.push({ t: time, x: rig.pos.x, y: rig.pos.y, z: rig.pos.z,
+      lx: rig.look.x, ly: rig.look.y, lz: rig.look.z, fov: rig.fov ?? camera.fov });
+  });
   const candidate = { G, disposers:context.disposers, up: context.up, sky, env, envTarget, P, id: t.id, lightKey, daylight: light, nookG, others: context.others, cover: context.cover, baked:context.baked, reflectors:context.reflectors, hemi, sun, hemiBase: hemi.intensity, sunBase: sun.intensity };
   const streamsSnowInterior = t.id === 'snow-roof'
     && context.baked?.manifest.snowCourt && context.baked.manifest.walkLightmaps;
@@ -1936,6 +1992,78 @@ const rig = { pos: V3(0, 1.35, 2.3), look: V3(0, 1, -1), amp: .006, fov: null };
 let cameraJourneyVersion=0;
 let choiceCameraVersion=0;
 const active = outside;
+// The browser suite records the live camera on the real page: a 60 Hz trace of position and aim,
+// which the camera-path test measures instead of trusting the authored keyframes.
+if (import.meta.env.DEV || import.meta.env.VITE_E2E_HOOKS === '1') {
+  window.__cameraTrace = { on: false, rows: [] };
+  window.__startCameraTrace = () => { window.__cameraTrace.on = true; window.__cameraTrace.rows = []; };
+  window.__stopCameraTrace = () => {
+    window.__cameraTrace.on = false;
+    return window.__cameraTrace.rows;
+  };
+}
+// Read-only burning geometry for the browser suite: the tray's and flame's world boxes, the wick
+// point and the live camera. Compiled out of a normal build, as the other diagnostics are.
+if (import.meta.env.DEV || import.meta.env.VITE_E2E_HOOKS === '1') {
+  window.__pineBurnFraming = () => {
+    // The visitor's lamp is the module-level `mine`, the same object the burning camera follows.
+    const wax = mine?.parts?.pineWax ?? null;
+    const holder = mine?.parts?.holder ?? null;
+    if (!wax || !holder) return null;
+    holder.updateWorldMatrix(true, false);
+    mine.g.updateWorldMatrix(true, true);
+    const holderBox = new THREE.Box3().setFromObject(holder);
+    // The flame is a shader volume, not a mesh: build its box from the wick tip and the height the
+    // flame parts report, so the framing review measures the thing the visitor actually sees.
+    const wick = mine.g.localToWorld(wax.wickTip.clone());
+    const flameHeight = mine.parts?.flame ? .017 * mine.parts.flame : .017;
+    const flameRadius = .0045;
+    const flameBox = new THREE.Box3(
+      new THREE.Vector3(wick.x - flameRadius, wick.y, wick.z - flameRadius),
+      new THREE.Vector3(wick.x + flameRadius, wick.y + flameHeight, wick.z + flameRadius));
+    return {
+      t: clockTime,
+      view: { pos: { x: rig.pos.x, y: rig.pos.y, z: rig.pos.z },
+        look: { x: rig.look.x, y: rig.look.y, z: rig.look.z },
+        // A pose that never set a field of view leaves rig.fov null; the camera still renders with
+        // its own, so report what the frame is actually drawn with.
+        fov: Number.isFinite(rig.fov) ? rig.fov : camera.fov, aspect: camera.aspect },
+      tray: { min: holderBox.min.toArray(), max: holderBox.max.toArray() },
+      flame: { min: flameBox.min.toArray(), max: flameBox.max.toArray() },
+      wick: { x: wick.x, y: wick.y, z: wick.z },
+      // The wax column the flame stands on, so a review can tell a camera move from a melting candle.
+      candleHeight: wax.fullHeight(),
+      // The pose, so a review can tell the candle being swapped from the camera moving.
+      pose: { x: rig.pos.x, y: rig.pos.y, z: rig.pos.z,
+        lx: rig.look.x, ly: rig.look.y, lz: rig.look.z,
+        fov: Number.isFinite(rig.fov) ? rig.fov : camera.fov },
+      // Also report the flame's own scale: a pop can come from the flame growing, not from the camera.
+      flameSize: mine.parts?.flame ?? 1,
+      // Screen fractions, measured with the same clipped projection every review uses. Doing it here
+      // keeps the browser test free of a TypeScript import of a plain module.
+      screen: (safe = { left: 0, right: 1, top: 0, bottom: 1 }) => ({
+        flame: screenBox({ min: flameBox.min.toArray(), max: flameBox.max.toArray() },
+          { pos: { x: rig.pos.x, y: rig.pos.y, z: rig.pos.z },
+            look: { x: rig.look.x, y: rig.look.y, z: rig.look.z },
+            fov: Number.isFinite(rig.fov) ? rig.fov : camera.fov, aspect: camera.aspect }, safe),
+        tray: screenBox({ min: holderBox.min.toArray(), max: holderBox.max.toArray() },
+          { pos: { x: rig.pos.x, y: rig.pos.y, z: rig.pos.z },
+            look: { x: rig.look.x, y: rig.look.y, z: rig.look.z },
+            fov: Number.isFinite(rig.fov) ? rig.fov : camera.fov, aspect: camera.aspect }, safe),
+      }),
+    };
+  };
+}
+// A read-only camera pose hook for the browser suite. It is compiled out of a normal build and only
+// present when VITE_E2E_HOOKS=1, which the Tier 1 config passes to its own build.
+if (import.meta.env.DEV || import.meta.env.VITE_E2E_HOOKS === '1') {
+  window.__pineDiagCamera = camera;
+  window.__diagPose = (position, look, fov) => {
+    rig.pos.set(...position); rig.look.set(...look); rig.amp = 0;
+    camera.position.set(...position); camera.lookAt(new THREE.Vector3(...look));
+    camera.fov = fov; camera.updateProjectionMatrix();
+  };
+}
 const tweens = [];
 function tween(dur, fn, finishWhenDue = false, { fromFirstDraw = false } = {}) {
   if (reducedMotion.matches) { fn(1); return Promise.resolve(); }
@@ -2003,18 +2131,18 @@ function fitShadeView(v,desktopFraction=.45,desktopSubjectY=.36,exact=false,phon
 const CHOOSE_PHONE_YAW=.22;
 const chooseView = () => {
   const N = place.P.nook;
-  if (N.lamp === 'pineWax' && narrow()) {
-    // The phone sheet starts 300 pixels down. Frame the front of the holder
-    // just above it, backing up only as much as the tallest profiles need.
-    const pos = N.choosePhone.pos.clone(), look = N.choosePhone.look.clone(), fov = N.choosePhone.fov;
-    const wax = mine.parts?.pineWax;
-    pos.z = Math.max(pos.z, (wax?.fullHeight() ?? .08) * 6.5) * Math.max(1, innerHeight / 844);
-    const shelfPixel = Math.min(272, innerHeight * .38);
-    const seatY = mine.parts?.seat?.y ?? .008;
-    const elevation = Math.atan2(N.y + seatY - pos.y, Math.hypot(pos.x, pos.z - .065));
-    const screenAngle = Math.atan((1 - 2 * shelfPixel / innerHeight) * Math.tan(THREE.MathUtils.degToRad(fov / 2)));
-    look.y = pos.y + Math.tan(elevation - screenAngle) * Math.hypot(pos.x, pos.z);
-    return viewOf({ pos, look, fov });
+  if (N.lamp === 'pineWax' && place.P.bakedLighting && mine.parts?.pineWax) {
+    // The chooser and the burn are one shot. Composing them separately meant the camera jumped to a
+    // different framing the instant the candle was lit: the flame entered from off the top of the
+    // frame and the tray left the safe area. The chooser now stands at the burn composition, backed
+    // off by the small push ignition is allowed, so lighting only closes in.
+    const burn = burnView();
+    const centre = mine.g.localToWorld(V3(0, mine.parts.seat.y + .03, 0));
+    const away = burn.pos.clone().sub(centre).normalize();
+    const backed = burn.pos.clone().addScaledVector(away, burn.pos.distanceTo(centre) * .15);
+    const look = burn.look.clone();
+    // Keep the same aim: moving straight back along the view line keeps the subject centred.
+    return { pos: backed, look, fov: burn.fov };
   }
   const v=viewOf((narrow()&&N.choosePhone)||N.choose||N.wide);
   if (N.steadyIgnition) return v;
@@ -2028,20 +2156,44 @@ function burnView(){
     const profile = candle.profileBounds();
     const bodyHeight = candle.fullHeight();
     const subjectHeight = bodyHeight + .040;
+    // The profile and seat are the lamp group's own coordinates; lift them into world space once so
+    // every pose and aim below is in the same frame as the camera.
     const center = mine.g.localToWorld(V3((profile.min.x + profile.max.x) / 2,
       mine.parts.seat.y + subjectHeight * (bodyHeight < .028 ? .43 : .5), 0));
     const direction = v.pos.clone().sub(center).normalize();
     const bodyFacingCamera = bodyHeight * Math.hypot(direction.x, direction.z);
     const halfFov = THREE.MathUtils.degToRad(v.fov / 2);
     const fraction = bodyHeight > .125 ? .211 : .225;
-    const distance = Math.max(narrow() ? .43 : .36, bodyFacingCamera / (2 * Math.tan(halfFov) * fraction));
+    // Keep the camera well clear of the tray: at a few tens of centimetres the tray fills the frame
+    // and the projection of its own rim becomes unstable. A hand-held reading distance of about
+    // three-quarters of a metre holds the tray, the cloth and the flame together.
+    const distance = Math.max(narrow() ? .74 : .58, bodyFacingCamera / (2 * Math.tan(halfFov) * fraction));
     // Compose from the original wax alone. Reserve space for the intact flame,
     // and keep very wide hand-drawn shapes inside the phone's narrower frame.
     const tangent = Math.max(bodyFacingCamera / (2 * distance * fraction),
       (profile.max.x - profile.min.x) / (2 * distance * camera.aspect * .79), subjectHeight / (2 * distance * .84));
     v.fov = THREE.MathUtils.radToDeg(2 * Math.atan(tangent));
     v.pos.copy(center).addScaledVector(direction, distance);
+    // Frame the whole lit subject, not the bare wax column: aim between the tray's rim and the top
+    // of the flame. Aiming at the wax centre alone pointed the phone camera down at the stone
+    // whenever the candle was short, and put the flame above the frame.
+    // Both heights are in the lamp's own frame, so lift them the same way as the centre.
+    const trayRim = mine.g.localToWorld(V3(0, mine.parts.seat.y + .021, 0));
+    const flameTop = mine.g.localToWorld(V3(0, mine.parts.seat.y + subjectHeight + .052, 0));
+    // A portrait frame loses its bottom third to the choice sheet (top: 350 px of 844), so the tray
+    // must sit well above centre. Aim below the tray rim: with the eye above the tray, aiming lower
+    // moves the whole subject up the frame.
+    // Portrait: the choice sheet takes the bottom third, so the tray must clear it while the flame
+    // stays in the upper middle. Aim a little above the rim rather than well below it.
+    const aimY = narrow() ? trayRim.y - (flameTop.y - trayRim.y) * .18
+      : (trayRim.y + flameTop.y) * .5;
     v.look.copy(center);
+    v.look.y = aimY;
+    // Widen enough that the tray's outer rim and the flame both fit the safe area, which a phone
+    // loses 300 px of at the bottom to its sheet.
+    const vertical = (flameTop - (mine.parts.seat.y - .004));
+    const needed = vertical / (2 * distance * (narrow() ? .58 : .74));
+    v.fov = Math.max(v.fov, THREE.MathUtils.radToDeg(2 * Math.atan(needed)));
     return v;
   }
   if(!N.burnFar)return v;
@@ -2065,7 +2217,10 @@ function attachMine() {
     place.visitorPivot.position.copy(place.nookG.worldToLocal(V3(...(N.hangingPoint??[basis[0],3.22,basis[2]]))));
     place.visitorPivot.rotation.set(0,0,0);place.nookG.add(place.visitorPivot);place.visitorPivot.add(mine.g);
   }else place.nookG.add(mine.g);
-  mine.g.position.set(0, N.y, 0);
+  // Successive candles in one visit take the next fixed place on the shelf, leaving the
+  // earlier remnant visible where it stood.
+  const slot = place.baked?.candleOffset?.() ?? [0, 0, 0];
+  mine.g.position.set(slot[0], N.y + slot[1], slot[2]);
   mine.g.rotation.set(0,0,0);
   mine.setType(N.lamp);
   const fixedIndirectBasis = place.baked?.manifest.bake?.lampPassQuantity === 'indirect-diffuse-radiance-per-unit-albedo';
@@ -2135,6 +2290,20 @@ function toOffer(shape) {
   if (!shape) return null;
   return { kind: shape.kind, rows: shape.rows, color: shape.color, burn: burnOf(shape.rows) };
 }
+// The visitor's own finished lamps for this place. Only stored: a court renders past
+// lamps from nook.pastLampSlots, and none defines those yet, so nothing appears.
+let ownPastLamps = [];
+export function setOwnPastLamps(list) {
+  ownPastLamps = Array.isArray(list) ? list.map((lamp) => ({
+    shape: lamp.shape ?? null,
+    color: lamp.color ?? null,
+    remaining: Number.isFinite(lamp.remaining) ? Math.max(0, Math.min(1, lamp.remaining)) : 0,
+    status: lamp.status ?? null,
+  })) : [];
+  return ownPastLamps.length;
+}
+export function ownPastLampCount() { return ownPastLamps.length; }
+
 /** Show the person's candle or lamp (or hide it with null), full. */
 export function setOffer(shape) {
   const o=toOffer(shape);level=targetLevel=1;mine.g.visible=!!o&&atLamp;
@@ -2334,14 +2503,21 @@ export async function travel(id) {
   }
   place.baked?.startWalkLightmaps?.();
   place.baked?.backdrop?.startWalk();
-  if (!narrow() && !touchPrimary.matches && !powerSaver) {
+  // The native tree model may live in the walk tier, which every device loads, so this is no
+  // longer gated on a wide pointer screen: phones must see the same trees. It still only swaps
+  // on the closed forest ascent, before the crest reveals the site.
+  {
     const entering = place, started = performance.now();
-    entering.baked?.backdrop?.startDesktopHigh();
-    // On the closed forest ascent the site across the ridge is still hidden.
+    if (!narrow() && !touchPrimary.matches && !powerSaver) entering.baked?.backdrop?.startDesktopHigh();
     entering.baked?.highTrees?.start(() => place === entering && phase === 'travel'
       && rig.pos.z > 14 && performance.now() - started < 8000);
   }
   const P = place.P, N = P.nook, arrival=viewOf((narrow()&&N.widePhone)||N.wide),end=P.bakedLighting?chooseView():arrival;
+  // A place may end its walk at a reveal pose, hold it, then approach its own end pose. Pine Gate
+  // opts in; every other place walks straight into its end pose as before.
+  const hold = P.walkHold;
+  const holdPose = (hold && narrow() && hold.phonePose) ? hold.phonePose : hold?.pose;
+  const walkEnd = holdPose ? { pos: V3(...holdPose.position), look: V3(...holdPose.look), fov: end.fov } : end;
   const pts = [rig.pos.clone(), ...P.walk, ...(N.approach ?? []).map(toWorld), ...(P.bakedLighting&&arrival.pos.z>end.pos.z+.1?[arrival.pos]:[]),...(((narrow()&&N.chooseApproachPhone)||N.chooseApproach)??[]).map(toWorld),end.pos];
   const curve = new THREE.CatmullRomCurve3(pts, false, 'centripetal');
   const lookPts = [P.doors.clone(), ...(N.approach ?? []).map((q) => toWorld(q.clone().add(V3(0, 0, -2)))), end.look];
@@ -2372,7 +2548,7 @@ export async function travel(id) {
       warm.dispose();
     }
   }
-  const authoredWalk = P.createWalk?.({ pos: rig.pos.clone(), look: l0, fov: f0 }, end, narrow());
+  const authoredWalk = P.createWalk?.({ pos: rig.pos.clone(), look: l0, fov: f0 }, walkEnd, narrow());
   if(import.meta.env.DEV)window.__walkProgress={id,progress:0,state:'walking',position:rig.pos.toArray()};
   const walk = tween(P.walkSeconds ?? 14, (k) => {
     if (authoredWalk) {
@@ -2419,7 +2595,30 @@ export async function travel(id) {
   if (skipNextTravel) skipTweens();
   await walk;
   if(import.meta.env.DEV)window.__walkProgress={id,progress:1,state:'done',position:rig.pos.toArray()};
-  if (P.createChooseEntry) {
+  // Pine Gate holds the open reveal so the site is actually seen before the camera turns to the
+  // shrine, then walks the last stretch at a plain pace. This is Pine-specific: other places keep
+  // their own travel timing, which their reviews are pinned to.
+  if (hold) {
+    // A visitor who skips must not sit through the reveal hold.
+    if (!skipNextTravel) await tween(hold.seconds ?? 2.0, () => {});
+    if (skipNextTravel) skipTweens();
+    const from = { pos: rig.pos.clone(), look: rig.look.clone(), fov: rig.fov ?? camera.fov };
+    const to = chooseView();
+    // The route and its timing live in Pine's own module so the camera test measures the same code
+    // the page walks.
+    const { route, seconds, fromAim, toAim } = shrineApproach({ THREE, from, to, hold });
+    // Aim at a fixed distance: the reveal's target point is sixteen metres away and the chooser's
+    // under a metre, so interpolating between the two points swings the view far too fast.
+    const AIM_DISTANCE = 6;
+    const aim = new THREE.Vector3();
+    await tween(seconds, k => {
+      const e = k * k * (3 - 2 * k);
+      rig.pos.copy(route.getPointAt(e));
+      aim.copy(fromAim).lerp(toAim, e).normalize();
+      rig.look.copy(rig.pos).addScaledVector(aim, AIM_DISTANCE);
+      rig.fov = THREE.MathUtils.lerp(from.fov, to.fov, e);
+    });
+  } else if (P.createChooseEntry) {
     const entry = P.createChooseEntry({ pos: rig.pos.clone(), look: rig.look.clone(), fov: rig.fov ?? camera.fov }, end, narrow());
     if (skipNextTravel || reducedMotion.matches) entry(1, rig);
     else await tween(P.entrySeconds, progress => entry(progress, rig), true);
@@ -2459,13 +2658,18 @@ function makeIgnitionTaper(){
   return { g, f, casters };
 }
 /** Light the flame (animation only; the burn clock lives in the UI). */
-export async function ignite({onCatch, remainingFuel}={}) {
+export async function ignite({onCatch, remainingFuel, onTaperLit}={}) {
   const journey=++cameraJourneyVersion;
   const mark = (state, progress, evidence) => {
     if (import.meta.env.DEV) window.__visualIgnition = { state, progress, journey,
       position: rig.pos.toArray(), look: rig.look.toArray(), fov: rig.fov ?? camera.fov, ...evidence };
   };
   lit=true;emberUntil=0;wickPlume.clear();shadeCoolingUntil=0;shadeCoolingGlow=0;shadeCoolingStart=0;shadeCoolingTau=0;roomLight=1;ignitionFill=place.P.bakedLighting?1:0;previewFloor=1;mark('igniting',0);
+  // This candle has taken its place; the next lighting in the same visit moves on, leaving
+  // this remnant where it stands.
+  place?.baked?.takeCandleSlot?.();
+  // The wish strip is tied on when the lamp is lit and stays, through either ending.
+  place?.baked?.wishCloth?.show(true);
   const pine = !!mine.parts?.pineWax;
   if (pine) waxFuel = remainingFuel ?? null;
   if (!place.P.bakedLighting) {
@@ -2507,33 +2711,86 @@ export async function ignite({onCatch, remainingFuel}={}) {
   const start = tip.clone().addScaledVector(right, .27).add(V3(0, -.34, .22));
   const contactOffset = pine ? f.flame.position.clone().applyQuaternion(g.quaternion).negate()
     : V3(.004, -.006, .012);
+  // Pine Gate takes its flame from the shrine oil lamp, which sits behind the camera
+  // (local -1.38, .60, 2.60 against a spread camera at .17, 1.32, .70 looking the other way).
+  // The camera is frozen, so the taper enters from the shrine side, already lit, and the
+  // transfer happens out of frame: a warm moving glow and a soft ignition sound announce it.
+  const shrineSide = pine ? V3(-1, .06, 1).normalize() : null;
+  const behind = pine ? tip.clone().addScaledVector(shrineSide, 1.05).add(V3(0, -.10, 0)) : null;
+  const entry = pine ? tip.clone().addScaledVector(shrineSide, .30).add(V3(0, -.06, .02)) : start;
+  let snuffed = false;
   mine.power = 0;
-  g.visible = true;
+  g.visible = !pine;
   let caught=false;
+  // The transfer happens out of frame, so the caller marks it with a soft ignition cue.
+  if (pine) onTaperLit?.();
   await tween(3.2,k=>{
     if(!active())return;
-    if (!N.steadyIgnition) {
-      const retreat = ease(Math.min(1, k * 3.2 / 1.0));
-      rig.pos.lerpVectors(cameraStart, spread.pos, retreat);
-      rig.look.lerpVectors(lookStart, spread.look, retreat);
-      rig.fov = THREE.MathUtils.lerp(fovStart, spread.fov, retreat);
+    // Pine Gate must not pull back before it settles. The old retreat threw the camera out to the
+    // wide spread pose within the first second and then crawled back for fifteen, which read as a
+    // cut. The shrine camera instead drifts from the near choose pose towards the burning one, a
+    // short, slow push that keeps the tray in view the whole way.
+    // Pine never retreats: after ignition the camera may only close in or hold still.
+    const retreat = pine ? 0 : ease(Math.min(1,k*3.2/1.0));
+    if (pine) {
+      // The whole 3.2 s ignition covers this push, so the aim turns slowly enough to stay inside
+      // the look limit even though the camera barely moves.
+      const push = ease(Math.min(1, k));
+      const from = cameraStart, to = burn.pos;
+      rig.pos.lerpVectors(from, to, push);
+      // A settled burn is a slow push, not a lift. Keep the eye within 0.15 m of where the chooser
+      // stood and the aim within 5 degrees of its pitch, or the sky appears between two and three
+      // seconds and the frame changes character mid-ignition.
+      rig.pos.y = THREE.MathUtils.clamp(rig.pos.y, from.y - .15, from.y + .15);
+      rig.look.lerpVectors(lookStart, burn.look, push);
+      {
+        const reach = Math.hypot(rig.look.x - rig.pos.x, rig.look.z - rig.pos.z);
+        // Anchor the allowance on the settled burn pose, not on the chooser's lower eye line: the burn
+        // aims above the tray rim, and clamping against the chooser dragged the view down far enough
+        // to push the flame off the top of the frame for the first seconds.
+        const basePitch = Math.atan2(burn.look.y - burn.pos.y,
+          Math.hypot(burn.look.x - burn.pos.x, burn.look.z - burn.pos.z));
+        const pitch = Math.atan2(rig.look.y - rig.pos.y, reach);
+        const limit = THREE.MathUtils.degToRad(5);
+        const clamped = THREE.MathUtils.clamp(pitch, basePitch - limit, basePitch + limit);
+        if (clamped !== pitch) rig.look.y = rig.pos.y + Math.tan(clamped) * reach;
+      }
+      rig.fov = THREE.MathUtils.lerp(fovStart, burn.fov, push);
+    } else if (!N.steadyIgnition) {
+      rig.pos.lerpVectors(cameraStart,spread.pos,retreat);rig.look.lerpVectors(lookStart,spread.look,retreat);
+      rig.fov=THREE.MathUtils.lerp(fovStart,spread.fov,retreat);
     }
     const wick = pine ? wickWorld() : tip;
     const contact = wick.clone().add(contactOffset);
-    if(k<.3)g.position.lerpVectors(start,contact,ease(k/.3));
+    if (pine) {
+      // Entry: the lit taper slides in from the shrine side during the first tenth.
+      const B = TAPER_BEAT;
+      if (k < B.entryEnd) g.position.lerpVectors(behind, entry, ease(k / B.entryEnd));
+      else if (k < B.contactEnd) g.position.lerpVectors(entry, contact, ease((k - B.entryEnd) / (B.contactEnd - B.entryEnd)));
+      else if (k < B.contactHold) g.position.copy(contact);
+      else if (k < B.retreatEnd) g.position.lerpVectors(contact, entry, ease((k - B.contactHold) / (B.retreatEnd - B.contactHold)));
+      else {
+        // Out again the way it came, its flame snuffed with a thread of smoke.
+        if (!snuffed) { snuffed = true; g.traverse((o) => { if (o.material?.emissive) o.material.emissiveIntensity = 0; }); }
+        g.position.lerpVectors(entry, behind, ease((k - B.retreatEnd) / (1 - B.retreatEnd)));
+      }
+      g.visible = k < B.exitEnd;
+    } else if(k<.3)g.position.lerpVectors(start,contact,ease(k/.3));
     else if(k<.58)g.position.copy(contact);
     else g.position.lerpVectors(contact,start.clone().add(V3(.12,-.35,.18)),ease((k-.58)/.42));
+    // The catch lands when the taper reaches the wick, not before.
     const catchPower=smooth(.29,.57,k);
-    if (!caught && catchPower >= .18) {
+    if (!caught && (pine ? taperHasReachedWick(k) : catchPower >= .18)) {
       caught = true;
       if (pine) mine.waxState = 'burning';
       onCatch?.();
     }
     ignitionFill=1-catchPower;
     mine.power=catchPower*(1+.06*Math.sin(Math.PI*smooth(.3,.75,k)));
-    f.tick(clockTime,k>.88?smooth(1,.88,k):1,0,[],0);
+    f.tick(clockTime,pine ? (k < TAPER_BEAT.snuffAt ? 1 : smooth(1,TAPER_BEAT.snuffAt,k)) : (k>.88?smooth(1,.88,k):1),0,[],0);
     const evidence = import.meta.env.DEV && pine ? {
       wickContactMetres: f.flame.getWorldPosition(V3(0, 0, 0)).distanceTo(wick),
+      taperToWickMetres: g.position.distanceTo(contact),
     } : undefined;
     mark('igniting', k * .18, evidence);
   });
@@ -2553,25 +2810,64 @@ export async function ignite({onCatch, remainingFuel}={}) {
   }
   const routeStart = rig.pos.clone();
   const front = pine ? burn.pos : viewOf((narrow() && N.burnPhone) || N.burn).pos;
+  // From choose to the settled burn the eye only drifts forward: height changes by at most 0.15 m
+  // and the aim tilts by at most 5 degrees. A walk point that lifted the camera onto the shelf is
+  // what made the sky appear between two seconds and three.
   const burnWalk = pine ? [.34, .67].map((fraction, i) =>
-    routeStart.clone().lerp(burn.pos, fraction).add(V3((i === 0 ? .035 : .025), .012, 0)))
+    routeStart.clone().lerp(burn.pos, fraction).add(V3((i === 0 ? .035 : .025), 0, 0)))
     : ((narrow() && N.burnWalkPhone) || N.burnWalk).map(toWorld);
-  const route = new THREE.CatmullRomCurve3([routeStart, ...burnWalk,
-    ...(burn.pos.distanceTo(front) > .01 ? [front] : []), burn.pos], false, 'centripetal');
+  // Pine pushes straight to the burn pose; the extra `front` waypoint was a second stop that moved
+  // the eye far more than a push should.
+  const route = new THREE.CatmullRomCurve3(pine
+    ? [routeStart, ...burnWalk, burn.pos]
+    : [routeStart, ...burnWalk, ...(burn.pos.distanceTo(front) > .01 ? [front] : []), burn.pos],
+  false, 'centripetal');
   const follow = pine ? burn.look : mine.g.localToWorld(V3(0, mine.parts.frame.cy, 0));
   const orbitLookStart = rig.look.clone();
+  // The settled push is measured from the pose the visitor chose at, so record it before the
+  // ignition stage moves anything.
+  const settleStart = cameraStart.clone();
   await tween(9,k=>{
     if(!active())return;
     const r=.08,e=k<r?k*k/(2*r*(1-r)):k>1-r?1-(1-k)*(1-k)/(2*r*(1-r)):(k-r*.5)/(1-r);
-    rig.pos.copy(route.getPointAt(e));rig.look.lerpVectors(orbitLookStart,follow,smooth(0,.2,k)).lerp(burn.look,smooth(.75,1,k));
-    rig.fov=THREE.MathUtils.lerp(spread.fov,burn.fov,smooth(.60,1,k));
+    rig.pos.copy(route.getPointAt(e));
+    if (pine) {
+      // Clamp the eye and the aim against the pose the settle started from, so the move is a slow
+      // push and nothing else. 0.15 m of height and 5 degrees of pitch are the whole allowance.
+      rig.pos.y = THREE.MathUtils.clamp(rig.pos.y, settleStart.y - .15, settleStart.y + .15);
+    }
+    rig.look.lerpVectors(orbitLookStart,follow,smooth(0,.2,k)).lerp(burn.look,smooth(.75,1,k));
+    if (pine) {
+      // Clamp against the burn pose's own pitch, not the chooser's. The burn aim sits between the
+      // tray rim and the flame top, which is above the chooser's eye line: anchoring the clamp on
+      // the chooser pulled the view back down onto the stone and pushed the flame out of frame.
+      const pitch = Math.atan2(rig.look.y - rig.pos.y, Math.hypot(rig.look.x - rig.pos.x, rig.look.z - rig.pos.z));
+      const base = Math.atan2(burn.look.y - burn.pos.y,
+        Math.hypot(burn.look.x - burn.pos.x, burn.look.z - burn.pos.z));
+      const limit = THREE.MathUtils.degToRad(5);
+      const clamped = THREE.MathUtils.clamp(pitch, base - limit, base + limit);
+      if (clamped !== pitch) {
+        const reach = Math.hypot(rig.look.x - rig.pos.x, rig.look.z - rig.pos.z);
+        rig.look.y = rig.pos.y + Math.tan(clamped) * reach;
+      }
+    }
+    // Pine's field of view only narrows onto the burn pose; it must not open to the wide spread
+    // value first, which is what read as a pull-back before the settle.
+    rig.fov=THREE.MathUtils.lerp(pine ? (rig.fov ?? spread.fov) : spread.fov, burn.fov, smooth(.60,1,k));
     mark('walking',.18+.82*k);
   });
   if(active())mark('settled',1);
 }
-/** Put the flame out with a thread of smoke. */
-export async function snuff(done = false, remaining) {
+/** Put the flame out with a thread of smoke. A `gust` bends the flame hard before it dies. */
+export async function snuff(done = false, remaining, gust = false) {
   // Only visuals: settlement and persistence have already happened synchronously.
+  // A mountain gust is the Pine Gate reason for a lamp going out when the visitor leaves:
+  // the flame is pushed aside, then dies, and the place's cloth and needles swing with it.
+  if (gust && !done && place?.baked?.life?.gustBlast) {
+    const journeyAtGust = cameraJourneyVersion;
+    await place.baked.life.gustBlast(1.5);
+    if (journeyAtGust !== cameraJourneyVersion) return;
+  }
   const lastPower=mine.power*(lit?Math.min(1,level*25):1);
   const lastGlow=Math.max(0,...(mine.parts?.shells??[]).map(material=>material.userData.u.uGlow.value/material.userData.strength));
   lit = false;
@@ -2629,6 +2925,9 @@ let clockTime = 0, lastRender = 0, renderDeadline = 0, renderCadence = 0, sample
 const tmp = V3(0, 0, 0), local = V3(0, 0, 0);
 const smooth = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
 function frame(stamp = performance.now()) {
+  // The browser suite can take the loop over so that a pose and the pixels drawn from it come from the
+  // same instant. A normal page never sets the flag, so it always keeps its own clock.
+  if (window.__pineLoopPaused === true) { requestAnimationFrame(frame); return; }
   requestAnimationFrame(frame);
   const interval = 1000 / (powerSaver ? 15 : phase === 'burning' || phase === 'result' ? 30 : 60);
   if (renderCadence !== interval) { renderCadence = interval; renderDeadline = stamp; }
@@ -2658,8 +2957,10 @@ function frame(stamp = performance.now()) {
   }
   // A slow drift so the view breathes like a held camera; wider outside.
   const a = reducedMotion.matches || place?.P.bakedLighting || (import.meta.env.DEV && window.__visualFreezeCamera) ? 0 : rig.amp;
-  camera.position.copy(rig.pos).add(tmp.set(Math.sin(time * .13) * a, Math.sin(time * .09) * a * .35, Math.cos(time * .11) * a * .5));
-  camera.lookAt(rig.look);
+  if (!window.__pineRigFrozen) {
+    camera.position.copy(rig.pos).add(tmp.set(Math.sin(time * .13) * a, Math.sin(time * .09) * a * .35, Math.cos(time * .11) * a * .5));
+    camera.lookAt(rig.look);
+  }
   let lens = rig.fov ?? (innerWidth / innerHeight < .8 ? 44 : 32);
   if (import.meta.env.DEV && pineDiagnosticView && mine.g.visible && mine.parts?.pineWax && atLamp) {
     const detail = burnView();
@@ -2683,7 +2984,7 @@ function frame(stamp = performance.now()) {
   if (place) {
     if(time>nextClockCheck){
       nextClockCheck=time+15;
-      const light=daylight(),key=JSON.stringify(light);
+      const light=placeLight(PLACES[place.id]),key=JSON.stringify(light);
       if(key!==place.lightKey){
         place.P={...PLACES[place.id],...blendPlace(PLACES[place.id],light)};place.lightKey=key;place.daylight=light;
         const p=place.P,u=place.sky.material.uniforms;
@@ -2698,10 +2999,14 @@ function frame(stamp = performance.now()) {
       }
     }
     const P = place.P, N = P.nook;
-    for (const f of place.up) f(dt, time, place.daylight);
+    // The browser suite needs two frames of the same instant to compare a decal against the stone
+    // it covers: mist and creek motion otherwise differ between captures and swamp the reading.
+    // Freezing holds the animation clock still; a normal page never sets the flag.
+    const freeze = window.__freezeScene === true;
+    if (!freeze) for (const f of place.up) f(dt, time, place.daylight);
     place.sky.position.copy(camera.position);
     for (const m of flameMats) m.uniforms.uTime.value = time;
-    for (const o of place.others) o.tick(time);
+    if (!freeze) for (const o of place.others) o.tick(time);
     // Near the lamp the view takes the spot's own exposure, bloom and depth range; inside a hall the sky's light falls away.
     const lamp = mine.g.getWorldPosition(tmp), d = camera.position.distanceTo(lamp), near = smooth(7, 1.5, d);
     local.copy(camera.position); place.nookG.worldToLocal(local);

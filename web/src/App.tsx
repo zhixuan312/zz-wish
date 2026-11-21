@@ -2,19 +2,20 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import * as engine from './engine/index.ts';
 import { placeById, type Locale, type PlaceId } from '../../shared/places.ts';
 import { DEFAULT_PLACE, VISIBLE_PLACES, isVisiblePlace } from './visiblePlaces.ts';
-import { COLORS, DEFAULT_MINUTES, MAX_MINUTES, MIN_MINUTES, PRESET_MINUTES, PRESET_SHAPES, isAllowedMinutes, shapeMinutes, sizedPreset, type Kind, type Shape } from '../../shared/rules.ts';
+import { COLORS, DEFAULT_COLOR, DEFAULT_MINUTES, MAX_MINUTES, MIN_MINUTES, PRESET_MINUTES, PRESET_SHAPES, isAllowedMinutes, shapeMinutes, sizedPreset, type Kind, type Shape } from '../../shared/rules.ts';
 import { remainingFuel } from '../../shared/wax.ts';
 import { api, ApiError, type EndReason, type Stats } from './api.ts';
 import { Burn, type Settlement } from './burn.ts';
 import { presence } from './presence.ts';
 import { DrawPad, rowsFromStrokes, type Pt } from './DrawPad.tsx';
-import { MyCandles, TenLights } from './Panels.tsx';
+import { Credits, MyCandles, TenLights } from './Panels.tsx';
 import { CandleThumb } from './CandleThumb.tsx';
 import { sound } from './sound.ts';
+import { music, type MusicStage } from './music.ts';
 import { DICTS, fmtClock, fmtDuration } from './i18n.ts';
 
 type Screen = engine.ScenePhase;
-type Overlay = 'mine' | 'stats' | null;
+type Overlay = 'mine' | 'stats' | 'credits' | null;
 interface Result { done: boolean; burnedMs: number; plannedMs: number; reason: EndReason; saved: boolean | null }
 
 const TOAST_GAP_MS = 5 * 60_000;
@@ -30,11 +31,76 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
   const switchLocale = () => { const next = locale === 'zh' ? 'en' : 'zh'; setLocaleState(next); api.setLocale(next).catch(() => {}); };
 
   const [screen, setScreen] = useState<Screen>('wish');
-  const [quiet, setQuiet] = useState(false);
+  // One mute governs both the ambient world and the music, and the choice survives.
+  const [quiet, setQuiet] = useState(() => music.isMuted());
+  useEffect(() => { sound.mute(quiet); music.setMuted(quiet); }, [quiet]);
   const [powerSaver, setPowerSaver] = useState(false);
   useEffect(() => { engine.setPhase(screen); }, [screen]);
   useEffect(() => { engine.setPowerSaver(powerSaver); }, [powerSaver]);
   const [overlay, setOverlay] = useState<Overlay>(null);
+  // Music follows the same screens the engine does; burning and its endings are
+  // started by the light and settlement paths below, which know the outcome.
+  // The candle screen asks for nothing: either the 36-second walk cue reaches it and
+  // hands over on `ended`, or Skip cuts to `choose` first. Starting `choose` here
+  // would fade out the walk's authored tail.
+  // The result screen and the panels opened over it share one cue: the journey is over,
+  // so the afterglow loop is what should play either way.
+  const stageForScreen = (value: Screen, overlayValue: Overlay): MusicStage | null =>
+    value === 'result' || overlayValue ? 'result' :
+    value === 'wish' ? 'home' :
+    value === 'place' ? 'place' :
+    value === 'travel' ? 'walk' : null;
+  // A missing walk has nothing to end, so the candle screen must start `choose`. The two
+  // inputs (the cue answering, the player arriving) can happen in either order, so this
+  // runs from both and is idempotent.
+  const handOverOnce = () => {
+    if (walkRef.current !== 'missing' || !candleRef.current) return;
+    walkRef.current = 'taken';
+    stageRef.current = 'choose';
+    void music.play('choose', placeIdRef.current);
+  };
+  const stageRef = useRef<MusicStage | null>(null);
+  // 'pending' until the walk cue answers; 'missing' means no cue will ever end and the
+  // candle screen must start `choose` itself; 'taken' means some code already did.
+  const walkRef = useRef<'pending' | 'started' | 'missing' | 'taken'>('taken');
+  const candleRef = useRef(false);
+  const screenRef = useRef<Screen>(screen);
+  const overlayRef = useRef<Overlay>(null);
+  // The place is chosen further down; this ref is updated as soon as it is known.
+  const placeIdRef = useRef<PlaceId>(DEFAULT_PLACE.id);
+  screenRef.current = screen; overlayRef.current = overlay;
+  useEffect(() => {
+    const stage = stageForScreen(screen, overlay);
+    if (!stage || stage === stageRef.current) return;
+    // An ending one-shot hands over to the result loop when it ends; starting that loop
+    // here would fade the ending out a moment after it began. Its own end starts it, so
+    // the stage is still recorded to keep this effect from asking again.
+    stageRef.current = stage;
+    if (music.holdingFor(stage)) return;
+    void music.play(stage, placeIdRef.current);
+  }, [screen, overlay]);
+  // Browsers refuse sound before a gesture. The device may open a moment after the
+  // screen has already moved, so play whatever stage is current rather than home.
+  useEffect(() => {
+    // A touch only counts as user activation on pointerup/touchend; pointerdown counts
+    // for a mouse alone. The listener stays until the context really runs, then goes,
+    // so a gesture the browser ignored still gets another chance on the next one.
+    const events = ['pointerdown', 'pointerup', 'touchend', 'keydown'] as const;
+    // One tap fires several of these events, and each unlock() resolves on its own; the
+    // flag is what keeps a single gesture from starting the same cue once per event.
+    let started = false;
+    const unlock = () => {
+      void music.unlock().then(() => {
+        if (started || !music.isRunning()) return; // rejected: keep listening
+        started = true;
+        for (const name of events) window.removeEventListener(name, unlock, true);
+        const stage = stageForScreen(screenRef.current, overlayRef.current);
+        if (stage) void music.play(stage, placeIdRef.current);
+      });
+    };
+    for (const name of events) window.addEventListener(name, unlock, true);
+    return () => { for (const name of events) window.removeEventListener(name, unlock, true); };
+  }, []);
   const [busy, setBusy] = useState(false);
   const navigationVersion = useRef(0);
   const run = async (fn: () => Promise<void>) => {
@@ -84,7 +150,17 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
   const [preset, setPreset] = useState<number>(DEFAULT_MINUTES);
   const [strokes, setStrokes] = useState<Pt[][]>([]);
   const [drawingMinutes, setDrawingMinutes] = useState<number | null>(null);
-  const [color, setColor] = useState(1);
+  // The opening place decides the kind, so the first colour must be read from it: the default
+  // place is Snow Roof, a shade place, and its lantern is red gauze.
+  const [color, setColor] = useState(() => DEFAULT_COLOR[kind]);
+  // A different kind starts on its own default colour; a chosen colour does not carry across
+  // kinds, because the rows differ and the same index means a different wax.
+  const colorKind = useRef<Kind>(kind);
+  useEffect(() => {
+    if (colorKind.current === kind) return;
+    colorKind.current = kind;
+    setColor(DEFAULT_COLOR[kind]);
+  }, [kind]);
   const shape: Shape | null = useMemo(() => {
     const rows = tab === 'preset' ? sizedPreset(PRESET_SHAPES[kind][presetShape].rows, preset) : rowsFromStrokes(strokes);
     return rows ? { kind, rows, color: COLORS[kind][color] } : null;
@@ -99,8 +175,8 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
   const [toast, setToast] = useState(false);
   const [toastMuted, setToastMuted] = useState(false);
   const lastToast = useRef(0);
-  const screenRef = useRef(screen); screenRef.current = screen;
   const placeRef = useRef(placeId); placeRef.current = placeId;
+  placeIdRef.current = placeId;
   const mutedRef = useRef(toastMuted); mutedRef.current = toastMuted;
   useEffect(() => { setOnline(presence.online); }, []); // the socket may have opened before this component subscribed
   useEffect(() => presence.on((e) => {
@@ -164,7 +240,15 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
     const b = new Burn(minutes! * 60_000, (s: Settlement) => {
       presence.stopBurning(); sound.stop();
       burnRef.current = null;
-      void engine.snuff(s.done, isWax ? remainingFuel(Math.floor(s.burnedMs), b.planned) : undefined);
+      const ending: MusicStage = s.done ? 'endingBurned' : 'endingPutOut';
+      void music.play(ending, lightPlace).then((started) => {
+        // No ending cue, or one that failed to load, still has to reach the afterglow.
+        if (!started) void music.play('result', lightPlace);
+      });
+      // Leaving the page on Pine Gate is the mountain gust: the flame is pushed aside
+      // before it dies, and the place's cloth and needles swing with it.
+      const gust = engine.isLeavingGust(lightPlace, s.reason);
+      void engine.snuff(s.done, isWax ? remainingFuel(Math.floor(s.burnedMs), b.planned) : undefined, gust);
       setResult({ done: s.done, burnedMs: s.burnedMs, plannedMs: b.planned, reason: s.reason, saved: null });
       setScreen('result'); setAskLeave(null);
       s.saved.then((c) => setResult((r) => r && { ...r, saved: !!c }));
@@ -182,7 +266,19 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
         presence.burn(lightPlace, c.id, () => b.elapsed()); setScreen('burning');
         void engine.ignite({
           ...(isWax ? { remainingFuel: () => remainingFuel(b.elapsed(), b.planned) } : {}),
-          onCatch: () => { if (burnRef.current === b && !b.isSettled) setCaught(true); },
+          onCatch: () => {
+            // The ignite cue is timed to the flame catching, and its own end hands over
+            // to the burning bed; starting the bed here would cut it off. A missing ignite
+            // never ends, so the bed starts here instead of the burn staying silent.
+            if (burnRef.current === b && !b.isSettled) {
+              setCaught(true);
+              void music.play('ignite', lightPlace).then((started) => {
+                if (!started && burnRef.current === b && !b.isSettled) void music.play('burn', lightPlace);
+              });
+            }
+          },
+          // The taper takes its flame from the shrine lamp out of frame; the sound marks it.
+          onTaperLit: () => { if (lightPlace === 'pine-gate') sound.ignition(); },
         })
           .catch(() => { if (!b.isSettled) b.settle('put_out'); });
       }
@@ -197,6 +293,22 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
   const open = (o: Overlay) => { if (burnRef.current && !burnRef.current.isSettled) setAskLeave(o); else setOverlay(o); };
   const leaveAndOpen = () => { afterSettle.current = askLeave; setAskLeave(null); burnRef.current?.settle('navigated'); };
 
+  // The engine keeps one place's past lamps at a time, so the request is keyed on the
+  // place and a slower reply for a court already left is dropped rather than applied.
+  const pastLampVersion = useRef(0);
+  const loadPastLamps = useCallback((id: PlaceId) => {
+    const version = ++pastLampVersion.current;
+    void api.myCandles().then(({ candles }) => {
+      if (version !== pastLampVersion.current) return;
+      engine.setOwnPastLamps(
+        candles.filter((c) => c.placeId === id && c.status !== 'burning').map((c) => ({
+          shape: c.shape, color: c.shape.color, status: c.status,
+          remaining: c.durationMs > 0 ? Math.max(0, 1 - c.burnedMs / c.durationMs) : 0,
+        })),
+      );
+    }).catch(() => {});
+  }, []);
+
   // Navigation between steps; the scene moves with them.
   const previewCourt = (id: PlaceId, retry = false) => {
     void run(async () => {
@@ -209,6 +321,7 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
   const showPlace = () => {
     setWishHint(false); screenRef.current = 'place'; setScreen('place');
     previewCourt(placeId);
+    loadPastLamps(placeId);
   };
   const toPlace = () => {
     if (!wish.trim()) { setWishHint(true); wishField.current?.focus(); return; }
@@ -219,17 +332,35 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
     placeRef.current = id;
     setPlaceId(id);
     if (placeById(id)!.vessel !== place.vessel) {
-      setTab('preset'); setPresetShape(0); setStrokes([]); setDrawingMinutes(null); setColor(1);
+      setTab('preset'); setPresetShape(0); setStrokes([]); setDrawingMinutes(null); setColor(DEFAULT_COLOR[kind]);
     }
+    loadPastLamps(id);
     previewCourt(id);
   };
   const goTravel = () => run(async () => {
-    engine.setOffer(shape); setScreen('travel');
-    await engine.travel(placeId); setScreen('candle');
+    engine.setOffer(shape);
+    // Travel never waits for music: the walk must start even if a slow network is
+    // still fetching the cue list. Claiming the stage here also stops the screen
+    // effect from asking for `walk` a second time.
+    stageRef.current = 'walk';
+    walkRef.current = 'pending';
+    candleRef.current = false;
+    // Whether the walk was delivered and whether the player has arrived are two
+    // independent events, in either order; handOverOnce is what joins them.
+    void music.play('walk', placeId).then((walkStarted) => {
+      if (walkRef.current !== 'pending') return; // Skip already took over.
+      walkRef.current = walkStarted ? 'started' : 'missing';
+      handOverOnce();
+    });
+    setScreen('travel');
+    await engine.travel(placeId);
+    setScreen('candle');
+    candleRef.current = true;
+    handOverOnce();
   });
   const backToPlace = () => { engine.setOffer(null); toPlace(); };
   const again = (id: string | null, text: string) => { setOverlay(null); setWishId(id); setWish(text); setStrokes([]); setDrawingMinutes(null); setTab('preset'); setResult(null); engine.setOffer(null); showPlace(); };
-  const startOver = () => { setWish(''); setWishId(null); setStrokes([]); setDrawingMinutes(null); setTab('preset'); setPresetShape(0); setPreset(DEFAULT_MINUTES); setColor(1); setWishHint(false); setResult(null); setScreen('wish'); run(() => engine.toCover()); };
+  const startOver = () => { setWish(''); setWishId(null); setStrokes([]); setDrawingMinutes(null); setTab('preset'); setPresetShape(0); setPreset(DEFAULT_MINUTES); setColor(DEFAULT_COLOR[kind]); setWishHint(false); setResult(null); setScreen('wish'); run(() => engine.toCover()); };
   const backToWish = () => { setScreen('wish'); run(() => engine.toCover()); };
 
   const displayMinutes = drawingMinutes ?? minutes;
@@ -248,9 +379,11 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
       <header className="topbar">
         <span className="brand"><span lang="zh-CN">一盏</span><span lang="en">One Light</span></span>
         <nav>
+          <button className="btn small mute" aria-label={quiet ? t.soundOn : t.soundOff} aria-pressed={quiet} onClick={() => setQuiet(!quiet)}>{quiet ? t.controlMuted : t.controlSound}</button>
           {screen !== 'burning' && <button className="btn small" onClick={switchLocale} aria-label={t.langSwitchLabel}>{t.langSwitch}</button>}
           <button className="btn small" onClick={() => open('stats')}>{t.tenLights}</button>
           <button className="btn small" onClick={() => open('mine')}>{t.myCandles}</button>
+          <button className="btn small credits-link" onClick={() => open('credits')}>{t.creditsLink}</button>
         </nav>
       </header>
 
@@ -305,13 +438,13 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
       {screen === 'travel' && (
         <>
           {travelTitle && <div className="travel"><div className="go">{t.travelGo}</div><div className="big">{place.name[locale]}</div><div className="where">{place.lamp[locale]}</div></div>}
-          <button className="btn small skip" onClick={() => engine.skip()}>{t.skip}</button>
+          <button className="btn small skip" onClick={() => { engine.skip(); walkRef.current = 'taken'; candleRef.current = false; stageRef.current = 'choose'; void music.play('choose', placeIdRef.current); }}>{t.skip}</button>
         </>
       )}
 
       {screen === 'candle' && (
         <section className="sheet candle-sheet" data-place={placeId}>
-          <div className="inner">
+          <div className="inner candle-sheet-scroll">
             <div className="eyebrow">{t.candleEyebrow}</div>
             <h2>{t.stepTitle[kind]}</h2>
             <div className="tabs" role="tablist">
@@ -370,11 +503,11 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
               {minutes !== null && minutes >= 720 && <p className="note">{t.longLightNote}</p>}
               {lightError && <p className="error" role="alert">{lightError}</p>}
             </div>
+          </div>
             <div className="row candle-actions">
               <button className="btn" onClick={backToPlace} disabled={busy}>{t.candleBack}</button>
               <button className="btn primary" onClick={light} disabled={!allowed || busy} aria-busy={busy}>{busy ? t.lighting : t.light(dLabel)}</button>
             </div>
-          </div>
         </section>
       )}
 
@@ -398,7 +531,8 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
               </div>
             ) : (
               <div className="row ctl">
-                <button className="btn small" aria-label={quiet ? t.soundOn : t.soundOff} aria-pressed={quiet} onClick={() => { sound.mute(!quiet); setQuiet(!quiet); }}>{quiet ? t.controlMuted : t.controlSound}</button>
+                {/* The top bar owns the only mute control: it persists the choice and mutes both the
+                    music and the ambience. A second one here collided with it by label. */}
                 <button className="btn small" aria-label={powerSaver ? t.qualityOn : t.powerSaver} aria-pressed={powerSaver} onClick={() => setPowerSaver(!powerSaver)}>{powerSaver ? t.controlSaver : t.controlDetail}</button>
                 <button className="btn small" aria-label={showWish ? t.hideWish : t.showWish} aria-pressed={showWish} onClick={() => setShowWish(!showWish)}>{t.controlWish}</button>
                 <button className="btn small" aria-label={showLeft ? t.hideRemaining : t.showRemaining} aria-pressed={showLeft} onClick={() => setShowLeft(!showLeft)}>{t.controlTime}</button>
@@ -438,6 +572,7 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
 
       {overlay === 'mine' && <MyCandles t={t} locale={locale} onClose={() => setOverlay(null)} onAgain={(id, text) => again(id, text)} />}
       {overlay === 'stats' && <TenLights t={t} locale={locale} onClose={() => setOverlay(null)} />}
+      {overlay === 'credits' && <Credits t={t} onClose={() => setOverlay(null)} />}
     </div>
   );
 }

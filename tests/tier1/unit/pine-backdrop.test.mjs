@@ -218,3 +218,31 @@ test('the desktop high plates start after entry and blend only after all three a
   expect(uniforms.every(u => u.uHighMix.value === 1)).toBe(true);
   backdrop.dispose();
 });
+
+test('a phone downloads base and walk only, never a byte of the high tier', () => {
+  // The walk tier is what every device loads; the high tier is the desktop-only plate upgrade.
+  // A phone must therefore resolve the walk backdrop and the native trees without ever reading a
+  // high-tier file, or the phone payload silently grows past its budget.
+  const delivery = walkManifest();
+  const walkTrees = 'walk-trees.glb';
+  delete delivery.backdrop.high;
+  delivery.backdrop.walk.trees = walkTrees;
+  delivery.files.push(file(walkTrees));
+  const backdrop = readPineBackdrop(delivery);
+  expect(backdrop.walk.files.far).toEqual(file(walkLayers.far));
+  expect(backdrop.walk.trees).toEqual(file(walkTrees));
+  expect(backdrop.treesInWalk).toBe(true);
+  expect(backdrop.high).toBeNull();
+
+  // Everything a phone fetches comes from base or walk.
+  const phoneFiles = new Set([...Object.values(backdrop.files), ...Object.values(backdrop.walk.files), backdrop.walk.trees]
+    .map(entry => entry.uri));
+  expect(phoneFiles.has(walkTrees)).toBe(true);
+  expect([...phoneFiles].every(uri => !uri.startsWith('high-'))).toBe(true);
+
+  // A tree declared on both tiers is ambiguous and must be refused rather than double-counted.
+  const both = walkManifest();
+  both.backdrop.walk.trees = walkTrees;
+  both.files.push(file(walkTrees));
+  expect(() => readPineBackdrop(both)).toThrow('exactly one tier');
+});

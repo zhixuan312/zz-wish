@@ -144,3 +144,46 @@ export function TenLights({ t, locale, onClose }: { t: Dict; locale: Locale; onC
     </Panel>
   );
 }
+
+// Two recordings need attribution under CC BY. The text is the author's, kept in English on
+// purpose; the surrounding panel copy is translated.
+const CREDITS = [
+  {
+    id: 'temple-bell',
+    title: 'Temple bell',
+    text: '"Bonsyou5599" by Jnn, CC BY 2.1 JP, via Wikimedia Commons (trimmed).',
+    source: 'https://commons.wikimedia.org/wiki/File:Bonsyou5599.ogg',
+    licence: 'https://creativecommons.org/licenses/by/2.1/jp/deed.en',
+    licenceName: 'CC BY 2.1 JP',
+  },
+  {
+    id: 'ox-bells',
+    title: 'Ox bells',
+    text: '"Do Bells Affect Behaviour and Heart Rate Variability in Grazing Dairy Cows?" supplementary audio by Johns J, Patt A, Hillmann E, CC BY 4.0, via Wikimedia Commons (trimmed).',
+    source: 'https://commons.wikimedia.org/wiki/File:Do-Bells-Affect-Behaviour-and-Heart-Rate-Variability-in-Grazing-Dairy-Cows-pone.0131632.s005.oga',
+    licence: 'https://creativecommons.org/licenses/by/4.0/',
+    licenceName: 'CC BY 4.0',
+  },
+] as const;
+
+export function Credits({ t, onClose }: { t: Dict; onClose: () => void }) {
+  return (
+    <Panel title={t.creditsTitle} onClose={onClose} closeLabel={t.close}>
+      <p className="lead">{t.creditsLead}</p>
+      <ul className="credits-list">
+        {CREDITS.map(entry => (
+          <li key={entry.id} data-testid={`credit-${entry.id}`}>
+            <h3>{entry.title}</h3>
+            <p>{entry.text}</p>
+            <p className="credit-links">
+              <a href={entry.source} target="_blank" rel="noreferrer noopener">{t.creditsSource}</a>
+              {' · '}
+              <a href={entry.licence} target="_blank" rel="noreferrer noopener">{entry.licenceName}</a>
+            </p>
+          </li>
+        ))}
+      </ul>
+      <p className="note">{t.creditsOther}</p>
+    </Panel>
+  );
+}

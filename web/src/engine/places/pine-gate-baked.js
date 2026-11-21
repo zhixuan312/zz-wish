@@ -12,6 +12,12 @@ import { buildPineRidgeFascicles } from './pine-ridge-fascicles.js';
 import { buildPineBankVerge } from './pine-bank-verge.js';
 import { dressAncientPineBark } from './pine-ancient-bark.js';
 import { dressPineCrestCloth } from './pine-crest-cloth.js';
+import { createWishCloth } from './pine-wish-cloth.js';
+import { createCandleSlots } from './pine-candle-slots.js';
+import { hermiteTrack } from './pine-walk-curve.js';
+import { createMudPrints, PINE_PRINTS } from './pine-mud-prints.ts';
+import { projectPoint, screenBox } from './pine-burn-framing.js';
+import { blendInputsAt as pineBlendInputsAt } from './pine-day-parts.ts';
 import { dressPineWetTreads } from './pine-wet-treads.js';
 import { pineDaySunDirection, pineDaySunDiscEdges } from './pine-gate-sun.js';
 import crestNeedleAnchors from './pine-crest-needle-anchors.json' with { type: 'json' };
@@ -60,23 +66,31 @@ export default function createPlace(h) {
   };
   const nookOrigin = [-1.8, 4, .9];
   const createWalk = (start, end, phone) => {
+    // A phone frames a portrait crop, so its last approach needs its own pose: the desktop reveal
+    // puts the horizon high and a portrait crop fills with sky. The phone aims lower and a little
+    // wider so the shrine, the pavilion and the platform all sit in frame.
+    const shotPosition = shot => (phone && shot.phonePosition) || shot.position;
+    const shotLook = shot => (phone && shot.phoneLook) || shot.look;
     const times = [0, ...path.waypoints.map(shot => shot.time), path.seconds];
-    const positions = [start.pos.toArray(), ...path.waypoints.map(shot => shot.position), end.pos.toArray()];
+    const positions = [start.pos.toArray(), ...path.waypoints.map(shot => shotPosition(shot)), end.pos.toArray()];
     const startLook = start.look.toArray();
     // Add the entrance lift back after interpolation so it fades before the crest.
     startLook[1] -= liftAt(0, phone);
-    const looks = [startLook, ...path.waypoints.map(shot => shot.look), end.look.toArray()];
+    const looks = [startLook, ...path.waypoints.map(shot => shotLook(shot)), end.look.toArray()];
     const fovs = [start.fov, ...path.waypoints.map(shot => phone ? shot.phoneFov : shot.desktopFov), end.fov ?? start.fov];
-    const smooth = THREE.InterpolateSmooth;
-    const position = new THREE.VectorKeyframeTrack('position', times, positions.flat(), smooth).createInterpolant();
-    const look = new THREE.VectorKeyframeTrack('look', times, looks.flat(), smooth).createInterpolant();
-    const fov = new THREE.NumberKeyframeTrack('fov', times, fovs, smooth).createInterpolant();
+    // A monotone cubic track, not three.js's smoothstep or uniform Catmull-Rom. Smoothstep eases to a
+    // standstill at every keyframe, so the camera stopped and started at each beat; uniform
+    // Catmull-Rom assumes evenly spaced keys and overshoots badly on this path. The monotone track
+    // passes through every authored pose with continuous speed and no overshoot.
+    const position = hermiteTrack(times, positions);
+    const look = hermiteTrack(times, looks);
+    const fov = hermiteTrack(times, fovs.map(v => [v]));
     return (progress, rig) => {
       const at = progress * path.seconds;
-      rig.pos.fromArray(position.evaluate(at));
-      rig.look.fromArray(look.evaluate(at));
+      rig.pos.fromArray(position(at));
+      rig.look.fromArray(look(at));
       rig.look.y += liftAt(at, phone);
-      rig.fov = fov.evaluate(at)[0];
+      rig.fov = fov(at)[0];
       rig.amp = 0;
     };
   };
@@ -89,6 +103,24 @@ export default function createPlace(h) {
     view: { pos: V3(...entrance.position), look: entranceLook(false), fov: entrance.desktopFov },
     viewPhone: { pos: V3(...entrance.phonePosition), look: entranceLook(true), fov: entrance.phoneFov },
     walkSeconds: path.seconds,
+    // Pine Gate's walk ends at the open reveal; the two-second look and the approach to the shrine
+    // are separate, slower segments afterwards. Other places leave this unset and walk straight in.
+    walkHold: {
+      pose: {
+        position: [...path.waypoints.at(-1).position],
+        look: [...path.waypoints.at(-1).look],
+      },
+      // A portrait crop needs its own reveal aim, for the same reason the phone walk does.
+      phonePose: path.waypoints.at(-1).phoneLook ? {
+        position: [...(path.waypoints.at(-1).phonePosition ?? path.waypoints.at(-1).position)],
+        look: [...path.waypoints.at(-1).phoneLook],
+      } : undefined,
+      seconds: 2.0,
+      approachMetresPerSecond: 1.4,
+    },
+    // Optional per-place lighting override: the scene uses this instead of the shared day keys
+    // when a place provides it. Pine Gate needs its own six-part curve; Snow Roof does not.
+    lightAt: clock => pineBlendInputsAt(clock),
     walk: [], doors: V3(-.17, 5.58, 6.32), createWalk,
     async build(_place, context) {
       // Start the soft plates and wax normal while the mesh and lightmaps
@@ -118,6 +150,79 @@ export default function createPlace(h) {
       if (crest) {
         context.G.add(crest.group);
         context.disposers.push(crest.dispose);
+      }
+      // Wet mud prints on the last steps and the shoulder: decals snapped onto the real stone, so
+      // they follow each tread rather than floating. They add geometry only, no texture file.
+      // The steps are spread across several glTF meshes, not one; raycast the whole baked group and
+      // let each print find whichever stone is under it.
+      const stone = baked.group;
+      {
+        // The E2E build can hide the trail to shoot the same pose without it; a normal build never
+        // sets the flag, so the prints are always there.
+        const hidePrints = (import.meta.env.DEV || import.meta.env.VITE_E2E_HOOKS === '1')
+          && globalThis.__DIAG_NO_PRINTS === true;
+        const mud = createMudPrints({ THREE, surface: stone, prints: hidePrints ? [] : PINE_PRINTS });
+        if (mud.count) {
+          // The prints are already in world metres: their quads are raycast onto world stone. Adding
+          // them to context.G during a place build puts them under the nook group, whose own offset
+          // then displaces every print and inflates its reported screen box. They belong to the
+          // world group.
+          (context.world ?? context.G).add(mud.group);
+          // Read by the Tier 1 test: the trail must place every print on real paving. The hooks are
+          // compiled out of a normal build; the Tier 1 build sets VITE_E2E_HOOKS=1.
+          if (import.meta.env.DEV || import.meta.env.VITE_E2E_HOOKS === '1') {
+          window.__pineMudPrints = () => mud.count;
+          window.__pineMudGroup = () => mud.group;
+          window.__pinePrintBoxes = () => {
+            // Project with the very camera the renderer draws with, after refreshing its matrices,
+            // and through the same near-plane-clipped projection the framing review uses.
+            const camera = globalThis.__pineRenderCamera;
+            if (!camera) return null;
+            camera.updateMatrixWorld(true);
+            camera.updateProjectionMatrix();
+            const canvas = h.renderer?.domElement;
+            const rect = canvas?.getBoundingClientRect?.();
+            const size = rect && rect.width > 0
+              ? { width: rect.width, height: rect.height }
+              : { width: innerWidth, height: innerHeight };
+            const view = {
+              pos: { x: camera.position.x, y: camera.position.y, z: camera.position.z },
+              look: (() => {
+                const dir = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion);
+                return { x: camera.position.x + dir.x, y: camera.position.y + dir.y,
+                  z: camera.position.z + dir.z };
+              })(),
+              fov: Number.isFinite(camera.fov) ? camera.fov : 34,
+              aspect: camera.aspect,
+            };
+            return mud.group.children.map((mesh, index) => {
+              mesh.updateWorldMatrix(true, false);
+              mesh.geometry.computeBoundingBox();
+              const box = mesh.geometry.boundingBox.clone().applyMatrix4(mesh.matrixWorld);
+              const screen = screenBox({ min: box.min.toArray(), max: box.max.toArray() }, view);
+              // A rotated quad's axis-aligned screen box is larger than the quad itself, and by an
+              // amount that grows with the rotation: at 77 degrees a corner inset a few pixels from
+              // the box still lands on the sole. Report the quad's own corners so a review can sample
+              // the place where the decal must not paint.
+              const geometryBox = mesh.geometry.boundingBox;
+              const corners = [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([sx, sy]) => {
+                const local = new THREE.Vector3(
+                  sx > 0 ? geometryBox.max.x : geometryBox.min.x,
+                  sy > 0 ? geometryBox.max.y : geometryBox.min.y,
+                  geometryBox.max.z).applyMatrix4(mesh.matrixWorld);
+                const point = projectPoint(local, view);
+                return [point.x * size.width, point.y * size.height];
+              });
+              if (!screen.visible) return { index, visible: false, x: NaN, y: NaN, w: 0, h: 0, corners: [] };
+              return { index, visible: true,
+                x: screen.left * size.width, y: screen.top * size.height,
+                w: (screen.right - screen.left) * size.width, h: (screen.bottom - screen.top) * size.height,
+                corners };
+            });
+          };
+          }
+          context.disposers.push(mud.dispose);
+        }
       }
       const ridge = buildPineRidgeFascicles(baked.group);
       if (ridge) context.disposers.push(ridge.dispose);
@@ -190,6 +295,71 @@ export default function createPlace(h) {
       context.up.push((dt, time, daylight) => life.update(dt, time, daylight));
       baked.life = life;
       context.disposers.push(life.dispose);
+
+      // The visitor's red cloth, tied under the candle stand. It lives with the place, not
+      // with the lamp, so rebuilding the candle never removes it and both endings keep it.
+      // Fixed, authored order of free places on the shrine shelf. The first candle takes the
+      // centre, and each later one moves to the next place while the earlier remnant stays.
+      // Coordinates are metres in the place group, offset from the lamp anchor.
+      const slots = createCandleSlots();
+      baked.candleOffset = slots.current;
+      baked.takeCandleSlot = slots.take;
+      if (import.meta.env.DEV) {
+        window.__pineCandleSlot = () => ({ index: slots.index, current: slots.current() });
+      }
+      // The candle sits at nook-local (0, N.y, 0) and the burn camera looks from +z, so the
+      // strip hangs just under the tray's front rim: tied to the stand, and not hidden beneath
+      // the tray from the product view.
+      // The candle stand sits at the world lamp anchor. Placement here runs before the nook
+      // group exists, so the strip is added to the world group and positioned in world metres:
+      // just outside the tray's front rim (about 69 mm radius) on the burn camera's side.
+      // The strip is authored round the tray in the stand's own frame: the module wraps the
+      // tray wall at its measured radius and ties the knot on the burn camera's side, so the
+      // group simply sits at the seat.
+      const anchor = baked.manifest.lampAnchor;
+      const cloth = createWishCloth({
+        THREE, anchor: V3(anchor[0], anchor[1], anchor[2]), seed: 3,
+      });
+      cloth.show(false);
+      // The glTF place group is in world metres, the same space as the lamp anchor.
+      baked.group.add(cloth.group);
+      baked.wishCloth = cloth;
+      // Read by the Tier 1 test, which runs against the production build: the strip must exist under
+      // the candle stand while burning and stay after the ending.
+      {
+        window.__pineWishCloth = () => {
+          // Local to the nook group, which is where the candle stand lives too.
+          const anchor = cloth.anchor;
+          return {
+            visible: cloth.group.visible,
+            position: cloth.group.position.toArray(),
+            anchor: [anchor.x, anchor.y, anchor.z],
+            ...cloth.report(),
+            bbox: (() => {
+              cloth.group.updateWorldMatrix(true, true);
+              const ribbon = cloth.mesh;
+              if (!ribbon) return null;
+              ribbon.geometry.computeBoundingBox();
+              const b = ribbon.geometry.boundingBox.clone().applyMatrix4(ribbon.matrixWorld);
+              return { min: b.min.toArray().map(v => +v.toFixed(3)), max: b.max.toArray().map(v => +v.toFixed(3)) };
+            })(),
+            faces: (() => {
+              const ribbon = cloth.mesh;
+              return ribbon ? { index: ribbon.geometry.index?.count ?? 0, verts: ribbon.geometry.attributes.position?.count ?? 0 } : null;
+            })(),
+          };
+        };
+      }
+      // The cloth is tied to the tray's wall, so it follows the tray's live XZ scale and is lit only
+      // by the visitor's own flame: at night it must not read brighter than the stone beside it.
+      context.up.push((_dt, _time, daylight) => {
+        // The strip loses its sky light as the lamp takes over, so at night it is lit by the candle.
+        cloth.setLight({ daylight });
+      });
+      // The tray's live XZ scale is set by the lamp when a candle shape is chosen; the scene calls
+      // this so the strip follows the wall it is tied to.
+      baked.setClothTrayScale = scale => cloth.setTrayScale(scale);
+      context.disposers.push(cloth.dispose);
     },
 
     // The visitor lights the central recess. The right edge opens to the valley.
@@ -204,7 +374,9 @@ export default function createPlace(h) {
       choosePhone: { pos: V3(.09, 1.25, .56), look: V3(0, .95, 0), fov: 43 },
       // The low eye line keeps the day and night horizon visible through the stone posts.
       burn: { pos: V3(-.055, 1.092, .44), look: V3(0, 1.074, -.045), fov: 34 },
-      burnPhone: { pos: V3(-.05, 1.104, .53), look: V3(0, 1.065, -.06), fov: 39 },
+      // Portrait burning: back off far enough that the whole tray, the tied cloth, both older
+      // stubs and a sliver of valley stay in frame. At .53 m and 39 degrees the crop cut the tray.
+      burnPhone: { pos: V3(-.04, 1.128, .92), look: V3(0, 1.055, -.10), fov: 47 },
       spread: { pos: V3(.17, 1.32, .70), look: V3(.04, 1.10, 0), fov: 39 },
       spreadPhone: { pos: V3(.11, 1.33, .74), look: V3(0, 1.10, 0), fov: 43 },
       async build() {},

@@ -113,7 +113,10 @@ export function prefetchBakedPlace(id, onProgress) {
           for (const file of Object.values(tier?.files ?? {})) lateFiles.add(file);
         }
       }
-      if (backdrop?.high?.trees) lateFiles.add(backdrop.high.trees);
+      // Trees declared in the walk tier are needed by every device before the crest, so they are
+      // fetched with the walk stream rather than after entry.
+      const walkTrees = backdrop?.treesInWalk ? backdrop.walk?.trees : null;
+      if (!walkTrees && backdrop?.high?.trees) lateFiles.add(backdrop.high.trees);
       const walkLightmaps = id === 'pine-gate' ? readPineWalkLightmaps(manifest)
         : snowCourt ? readSnowCourtWalkLightmaps(manifest) : null;
       for (const region of Object.values(walkLightmaps ?? {})) {
@@ -123,6 +126,7 @@ export function prefetchBakedPlace(id, onProgress) {
       if (snowCourt || id === 'pine-gate') {
         const waxNormal = id === 'pine-gate' ? readPineWaxNormal(manifest) : null;
         files.push(...Object.values(backdrop?.files ?? {}));
+        if (walkTrees && !files.some(file => file.uri === walkTrees.uri)) files.push(walkTrees);
         if (waxNormal) files.push(waxNormal);
       }
       const totalBytes = files.reduce((sum, file) => sum + file.bytes, 0);

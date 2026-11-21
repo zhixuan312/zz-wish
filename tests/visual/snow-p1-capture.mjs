@@ -35,7 +35,6 @@ const auditCamera = p2 && process.env.SNOW_COURT_FRAMES === '1';
 const desktopRow = process.env.SNOW_COURT_DESKTOP_ROW ?? 'full';
 assert(desktopRow === 'full' || (desktopRow === 'paired' && auditCamera && !phone),
   'The paired earlier-row review applies only to desktop P2 camera evidence.');
-const simulatedChooserCss = phone ? '.candle-sheet[data-place="snow-roof"] { top: 60vh !important; }' : null;
 const journeyAudits = [];
 const contexts = [{ hour: 13, look: 'day', walk: true }, { hour: 22, look: 'night', walk: p2 }];
 const walkFrame = (look, name) => p2 ? `${look}-${name}` : name;
@@ -197,8 +196,6 @@ const report = {
     budget: manifest.budget, totalCandidateBytes: [...assets.values()].reduce((total, asset) => total + asset.body.length, 0) },
   ordinaryManifestSha256: installedSha, viewport,
   ...(auditCamera && !phone ? { desktopRow } : {}),
-  ...(simulatedChooserCss ? { simulatedCss: { purpose: 'Capture-only compact portrait chooser; product styles are unchanged.',
-    rule: simulatedChooserCss } } : {}),
   captures: [], contexts: [], errors: [], httpErrors: [], viteUpdates: [],
   readinessMisses: [],
 };
@@ -211,7 +208,7 @@ await save();
 function instrument(source) {
   let transformed = instrumentPineScene(source, { walkClock: true, directionCamera: true, lighting: true });
   const steps = [
-    [/const light\s*=\s*daylight\(\),\s*lightKey\s*=\s*JSON\.stringify\(light\);/g, 'scene-build', true],
+    [/const light\s*=\s*(?:daylight\(\)|placeLight\(PLACES\[t\.id\]\)),\s*lightKey\s*=\s*JSON\.stringify\(light\);/g, 'scene-build', true],
     [/await P\.build\(t,\s*context\);/g, 'assets-ready'],
     [/const\s+stage\s*=\s*new THREE\.Scene\(\);\s*stage\.environment\s*=\s*env;/g, 'before-stage', true],
     [/if \(streamsSnowInterior\) await compileIntoTarget\(stage, stageCamera, warm\);/g, 'first-compile-ready'],
@@ -485,7 +482,6 @@ async function captureContext(browser, { hour, look, walk }) {
     });
 
     await page.goto(base.href);
-    if (simulatedChooserCss) await page.addStyleTag({ content: simulatedChooserCss });
     await page.waitForFunction(() => window.__ready === true);
     await page.evaluate(() => document.fonts.ready);
     result.gpu = await page.evaluate(() => {
@@ -575,7 +571,7 @@ async function captureContext(browser, { hour, look, walk }) {
     result.chooserEntryMs = performance.now() - entryStarted;
     if (cameraFrames) {
       const chooser = await markCameraStages(['chooser']);
-      if (simulatedChooserCss) {
+      if (phone) {
         assert(chooser.controls?.[1] >= .6 - 1 / viewport.height, 'The actual compact portrait chooser starts above 60% of the viewport.');
       }
       const file = look === 'day' ? 'camera-chooser-with-controls.png' : 'camera-chooser-with-controls-night.png';
