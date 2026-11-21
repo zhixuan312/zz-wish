@@ -6,9 +6,10 @@ import { crc32, deflateSync } from 'node:zlib';
 import fixture from './fixtures/loading-shader-parity.json' with { type: 'json' };
 
 const [rootArg, ...flags] = process.argv.slice(2);
-const baselineOnly = flags[0] === '--baseline-only';
-assert(rootArg && !rootArg.startsWith('-') && flags.length === (baselineOnly ? 1 : 0),
-  'Usage: node tests/visual/loading-shaders-pixel-diff.mjs <root> [--baseline-only]');
+const baselineOnly = flags.includes('--baseline-only');
+const match = flags.find(flag => flag.startsWith('--match='))?.slice(8);
+assert(rootArg && !rootArg.startsWith('-') && flags.length === Number(baselineOnly) + Number(Boolean(match)),
+  'Usage: node tests/visual/loading-shaders-pixel-diff.mjs <root> [--baseline-only] [--match=place/viewport/hour]');
 const root = resolve(rootArg);
 const sides = baselineOnly ? ['before', 'before-repeat'] : ['before', 'before-repeat', 'after'];
 const phaseForStage = {
@@ -166,7 +167,9 @@ const report = {
   diffLegend: 'Each changed pixel is opaque magenta. Unchanged pixels are opaque black. All four RGBA channels are compared.',
   stages: [],
 };
-for (const spec of fixture.cases) {
+const cases = fixture.cases.filter(spec => !match || [spec.place, spec.viewport, spec.hour].join('/') === match);
+assert(cases.length, 'The fixture filter did not match a case.');
+for (const spec of cases) {
   const [width, height] = fixture.dimensions[spec.viewport];
   for (const stage of spec.capturedStages) {
     const path = spec.relativePath.replace('<stage>', stage);

@@ -236,24 +236,32 @@ async function run() {
     else run[key] = value;
     await writeFile(file, JSON.stringify(run, null, 2) + '\n');
   }
-  const report = [];
-  const browser = await chromium.launch({ channel: 'chrome' });
-  try {
-    for (const item of fixture.cases) {
-      const key = [item.place, item.viewport, item.hour].join('/');
-      if (args.values.match && !key.includes(args.values.match)) continue;
-      const row = await captureCase(browser, origin, item, root);
-      report.push(row);
-      console.log('LOADING_SHADER_CASE', key, row.stepInsideMs ?? '', row.atReady?.resident ?? '', row.errors.length);
-      await writeFile(join(root, mode + '-' + side + (args.values.match ? '-' + hash(args.values.match).slice(0, 8) : '') + '.json'),
-        JSON.stringify(report, null, 2) + '\n');
-    }
-    assert(report.length, 'The case filter matched no fixture cells.');
-    assert(report.every(row => row.errors.length === 0), 'Runtime or HTTP errors were recorded.');
-  } finally { await browser.close(); }
+  const caseKey = item => [item.place, item.viewport, item.hour].join('/');
+  const cases = fixture.cases.filter(item => !args.values.match || caseKey(item).includes(args.values.match));
+  assert(cases.length, 'The case filter matched no fixture cells.');
+  // A single baseline case is the determinism pilot. Run its repeat in an independent Chrome.
+  const pilot = mode === 'parity' && side === 'before' && args.values.match && cases.length === 1;
+  for (const captureSide of pilot ? ['before', 'before-repeat'] : [side]) {
+    const report = [];
+    const browser = await chromium.launch({ channel: 'chrome' });
+    try {
+      for (const item of cases) {
+        const row = await captureCase(browser, origin, item, root, captureSide);
+        report.push(row);
+        console.log('LOADING_SHADER_CASE', captureSide, caseKey(item), row.stepInsideMs ?? '', row.atReady?.resident ?? '', row.errors.length);
+        await writeFile(join(root, mode + '-' + captureSide + (args.values.match ? '-' + hash(args.values.match).slice(0, 8) : '') + '.json'),
+          JSON.stringify(report, null, 2) + '\n');
+        assert.equal(row.errors.length, 0, 'Runtime or HTTP errors were recorded.');
+      }
+    } finally { await browser.close(); }
+  }
+  if (pilot) {
+    execFileSync(process.execPath, [new URL('./loading-shaders-pixel-diff.mjs', import.meta.url).pathname,
+      root, '--baseline-only', '--match=' + caseKey(cases[0])], { stdio: 'inherit' });
+  }
 }
 
-async function captureCase(browser, origin, item, root) {
+async function captureCase(browser, origin, item, root, captureSide) {
   const [width, height] = fixture.dimensions[item.viewport];
   const phone = item.viewport === 'phone';
   const context = await browser.newContext({
@@ -309,12 +317,12 @@ async function captureCase(browser, origin, item, root) {
       const rgba = Buffer.from(draw.rgba, 'base64');
       const dir = join(root, item.place, item.viewport, String(item.hour).padStart(2, '0') + '-00', stage);
       await mkdir(dir, { recursive: true });
-      await writeFile(join(dir, side + '.rgba'), rgba, { flag: 'wx' });
-      const receipt = { schemaVersion: 1, side, placeId: item.place,
+      await writeFile(join(dir, captureSide + '.rgba'), rgba, { flag: 'wx' });
+      const receipt = { schemaVersion: 1, side: captureSide, placeId: item.place,
         viewport: { width, height, deviceScaleFactor: 1 }, hour: item.hour, stage, wallTime: item.wallTime,
         sourceRev, sourceSha256, manifestSha256: item.manifestSha256, rgbaSha256: hash(rgba),
         frame: draw.frame, renderer: draw.renderer, quality: draw.quality };
-      await writeFile(join(dir, side + '.json'), JSON.stringify(receipt, null, 2) + '\n', { flag: 'wx' });
+      await writeFile(join(dir, captureSide + '.json'), JSON.stringify(receipt, null, 2) + '\n', { flag: 'wx' });
     };
     const translation = item.locale === 'zh';
     const wish = page.getByRole('textbox').first();
