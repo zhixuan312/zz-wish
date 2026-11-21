@@ -528,3 +528,15 @@ The 64-sample `app-49b` preview uses source `90e419e` and manifest SHA-256 `7c2d
 | Tag face and brush marks | The snowy doorway washed out the phone's thin midday ink. The visitor tag-only shader lifts the matte wood and deepens the same fragmentary marks. The face and marks are stronger in the matched chooser and settled crops. Some grain remains muted against the midday snow. The cut fragment expressions and the old tags retain their prior appearance. P4 covers the private written wish interaction. |
 
 The baseline source `9b80f81` and tag source `3257f39` use the same `app-49b` manifest SHA-256 `7c2d3fe8e129486f4b8a03fbc386b30c8615e69f9c9e27b044b60a11ebedcff3`. Across eight Chromium visits there are zero runtime errors, HTTP errors and source reloads. All local capture listeners are stopped and the lease is released. Original frames, timestamped stages, eight native 1× pairs, decoded projection bounds and the photographed wooden tag reference are indexed in `artifacts/snow-roof/quality/p2/r50-hall-review/README.md`.
+
+#### P2 ordinary oil lights on the normal route
+
+| Fixture | Normal-route read at 13:00 and 22:00 |
+| --- | --- |
+| West and east gate oil cups | Both warmed cups appear at the 13-second sample in each viewport. The 20-second desktop view separates both bronze vessels, the small flames close to their rims and the cast pools on the gate. In portrait the east cup reaches the right edge by 17 seconds and both are outside by 20 seconds. The early portrait pair reads from the warm cups and pools. |
+| Veranda storm lantern | The desktop approach near entry +6 seconds shows the cap, handle, glass and fuel body. The protected flame is faint against the paper window. The phone frame at 22 seconds shows the fixture from under the gate. The cup and glow read before the closer portrait approach cuts off the right veranda. |
+| Altar oil cup | Both cameras show the vessel and a tiny glow above its rim around entry +10.5 seconds. The desktop view resolves more of the flame than the portrait view. The reversal toward the visitor lantern leaves the altar behind the camera. |
+
+The R51 adjustment affects only the visible wick flames on these four fixtures. The decoded positions, glass, baked light, power, camera and R47–R50 assets retain their prior values. The normal-route originals, timestamps, native comparisons and three physical references are indexed in `artifacts/snow-roof/quality/p2/r51-practical-review/README.md`. Altar-to-taper ignition is P4.
+
+The baseline `0f9626d` and flame pass `3b7948b` both served the 64-sample `app-49b` manifest SHA-256 `7c2d3fe8e129486f4b8a03fbc386b30c8615e69f9c9e27b044b60a11ebedcff3`. The transfers are 13,488,736 B base, 25,836,129 B phone and 32,515,117 B desktop. All sixteen support groups and four decoded practical wick anchors pass. Eight Chromium visits report zero runtime errors, HTTP errors and source reloads. Step inside takes 2.66–3.63 s. The camerapath pairs differ by at most 19 mm, 0.328° of direction and 0.101° of FOV from presentation sampling. The capture servers and browser contexts closed and S1 released each lease.
