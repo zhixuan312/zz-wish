@@ -1,9 +1,9 @@
-// Quiet, locally synthesized environments. Nothing is audible before the light tap; the audio
-// device is opened from the light gesture; preparation before then never produces sound.
+// Quiet, locally synthesized environments. Audio opens from a user gesture.
 import type { PlaceId } from '../../shared/places.ts';
 import { seamlessNoiseLoop } from './audio-loop.ts';
-import { ambienceFor, createRecordedSounds, type RecordedSounds } from './engine/index.ts';
-const rooms: Record<PlaceId, { low: number; high: number; gain: number; swell: number; detail: 'drip' | 'bird' | 'air' | 'frog' | 'bell' }> = {
+import { ambienceFor, createRecordedSounds, type RecordedSounds, type TravelAudioListener } from './engine/index.ts';
+import { createSeaTideSound } from './sea-tide-sound.ts';
+const rooms: Record<Exclude<PlaceId, 'sea-tide'>, { low: number; high: number; gain: number; swell: number; detail: 'drip' | 'bird' | 'air' | 'frog' | 'bell' }> = {
   // Pine wind high in the trees.
   'pine-gate': { low: 380, high: 1400, gain: .006, swell: .07, detail: 'air' },
   // Rain on tiles, drops from the eaves.
@@ -12,8 +12,6 @@ const rooms: Record<PlaceId, { low: number; high: number; gain: number; swell: n
   'cloud-cliff': { low: 160, high: 700, gain: .07, swell: .09, detail: 'air' },
   // Still water, now and then a frog.
   'lotus-pond': { low: 260, high: 900, gain: .02, swell: .04, detail: 'frog' },
-  // Surf on the rocks below.
-  'sea-tide': { low: 140, high: 900, gain: .085, swell: .11, detail: 'air' },
   // Snow muffles everything.
   'snow-roof': { low: 90, high: 220, gain: .004, swell: .018, detail: 'bell' },
   // Dry wind over the loess.
@@ -57,6 +55,8 @@ let nodes: AudioScheduledSourceNode[] = [];
 let detailTimer = 0;
 let muted = false;
 let generation = 0;
+let playingTide = false;
+let retiringTideMaster: GainNode | null = null;
 // Pine Gate's four recorded layers ride on the same context, master gain and generation token,
 // so mute, stop and the background pause cover them without a second audio path.
 let recorded: RecordedSounds | null = null;
@@ -97,17 +97,27 @@ export const sound = {
     if (context) return;
     try { context = new AudioContext(); void context.suspend().catch(() => {}); } catch { /* Audio is optional. */ }
   },
-  start(id: PlaceId) {
+  start(id: PlaceId): TravelAudioListener | undefined {
     this.stop();
+    // A quick re-entry must start with only the new surf source.
+    retiringTideMaster?.disconnect();
+    retiringTideMaster = null;
     try {
       context ??= new AudioContext();
       void context.resume().catch(() => {});
-      const c = context, room = rooms[id], now = c.currentTime, token = ++generation;
+      const c = context, now = c.currentTime, token = ++generation;
       master = c.createGain(); master.gain.setValueAtTime(0, now); master.gain.linearRampToValueAtTime(muted ? 0 : .65, now + 1.8); master.connect(c.destination);
       while (!noiseReady()) fillNoise(Infinity);
       loop ??= seamlessNoiseLoop(noise, NOISE_RATE);
       const buffer = c.createBuffer(2, loop[0].length, NOISE_RATE);
       loop.forEach((data, channel) => buffer.copyToChannel(data, channel));
+      if (id === 'sea-tide') {
+        const tide = createSeaTideSound(c, master, buffer);
+        nodes = [tide.source];
+        playingTide = true;
+        return (...position) => { if (token === generation) tide.listen(...position); };
+      }
+      const room = rooms[id];
       const source = c.createBufferSource(), filter = c.createBiquadFilter(), volume = c.createGain(), swell = c.createOscillator(), amount = c.createGain();
       source.buffer = buffer; source.loop = true; filter.type = 'bandpass'; filter.frequency.value = room.low; filter.Q.value = .35;
       // Keep the higher, clearer pine wind close to the level of the quiet snow bed.
@@ -163,14 +173,23 @@ export const sound = {
     tone(320, .26, .012, .62);
     window.setTimeout(() => tone(880, .12, .006, 1.35), 90);
   },
-  mute(value: boolean) { muted = value; if (master && context) fadeGain(master.gain, value ? 0 : .65, context.currentTime, .16); },
+  mute(value: boolean) {
+    muted = value;
+    if (master && context) fadeGain(master.gain, value ? 0 : .65, context.currentTime, .16);
+    if (value && retiringTideMaster && context) fadeGain(retiringTideMaster.gain, 0, context.currentTime, .16);
+  },
   stop() {
     generation++; clearTimeout(detailTimer);
     recorded?.stop(); recorded = null; recordedFor = null;
     const oldMaster = master;
+    if (playingTide) retiringTideMaster = oldMaster;
+    playingTide = false;
     if (oldMaster && context) fadeGain(oldMaster.gain, 0, context.currentTime, .3);
     for (const node of nodes) { try { node.stop((context?.currentTime ?? 0) + .32); } catch { /* Already stopped. */ } }
-    if (oldMaster) window.setTimeout(() => oldMaster.disconnect(), 400);
+    if (oldMaster) window.setTimeout(() => {
+      oldMaster.disconnect();
+      if (oldMaster === retiringTideMaster) retiringTideMaster = null;
+    }, 400);
     nodes = []; master = null;
   },
 };
