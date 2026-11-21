@@ -100,8 +100,8 @@ for (const phone of [false, true]) {
     const targets = [
       V3(0, .91, 0),
       V3(0, 1.09, 0),
-      V3(3.35, 2.80, 1.89),
-      V3(3.35, -.259, 1.89),
+      V3(3.95, 2.80, 2.14),
+      V3(3.95, -.447, 2.14),
     ];
     for (const target of targets) {
       const view = target.project(camera);

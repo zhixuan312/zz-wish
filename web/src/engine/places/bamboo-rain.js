@@ -1,18 +1,112 @@
 // A tiled shelter at the edge of a wet bamboo court.
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { ARRIVAL_SECONDS, WALK_SECONDS, bambooRainCameras } from './bamboo-rain-camera.js';
 
 const cloister = {
   start: -4.65,
   end: 4.45,
   eaveY: 2.72,
-  eaveZ: 1.86,
-  waterY: -.259,
-  channel: [1.79, 2.16],
+  eaveZ: 2.11,
+  waterY: -.447,
+  bedY: -.487,
+  channel: [1.95, 2.28],
+  banks: [1.64, 2.46],
   crossing: { center: -3.65, width: 1.44 },
 };
 
+function cutChannelThroughGround(THREE, terrain, nook) {
+  const size = 1600;
+  const half = size / 2;
+  const outline = new THREE.Shape([[-half, -half], [half, -half], [half, half], [-half, half]]
+    .map(([x, y]) => new THREE.Vector2(x, y)));
+  const { start, end, banks: [near, far] } = cloister;
+  // The nook faces the court along world +X. Terrain's horizontal coordinate maps to world -Z.
+  outline.holes.push(new THREE.Path([[near, start], [near, end], [far, end], [far, start]]
+    .map(([z, x]) => new THREE.Vector2(nook.pos.x + z, x - nook.pos.z))));
+  const geometry = new THREE.ShapeGeometry(outline);
+  const { position, uv } = geometry.attributes;
+  for (let i = 0; i < uv.count; i++) {
+    uv.setXY(i, position.getX(i) / size + .5, position.getY(i) / size + .5);
+  }
+  terrain.geometry.dispose();
+  terrain.geometry = geometry;
+}
+
+function layChannelBank(THREE, G, name, profile, tones, offset) {
+  const { start, end, bedY } = cloister;
+  const lengths = [.47, .66, .55, .78, .44, .61, .53];
+  const weathering = [0, -.007, .006, -.010, .002, .009, -.004];
+  const batches = tones.map(() => []);
+  const bevel = .008;
+  const bank = new THREE.Group();
+  bank.name = name;
+  for (let x = start, i = offset; x < end; i++) {
+    const stoneLength = lengths[i % lengths.length];
+    const span = end - x < stoneLength + .10 ? end - x : stoneLength;
+    const wear = weathering[i % weathering.length];
+    const section = new THREE.Shape(profile.map(([z, y]) =>
+      new THREE.Vector2(-z, y + wear * Math.max(0, (y - bedY) / .25))));
+    const stone = new THREE.ExtrudeGeometry(section, {
+      depth: span - 4 * bevel,
+      bevelThickness: bevel,
+      bevelSize: bevel,
+      bevelSegments: 2,
+      curveSegments: 1,
+    });
+    stone.rotateY(Math.PI / 2);
+    stone.translate(x + 2 * bevel, 0, 0);
+    batches[i % tones.length].push(stone);
+    x += span;
+  }
+  for (const [i, stones] of batches.entries()) {
+    const stonework = new THREE.Mesh(mergeGeometries(stones), tones[i]);
+    stonework.castShadow = true;
+    stonework.receiveShadow = true;
+    bank.add(stonework);
+    for (const stone of stones) stone.dispose();
+  }
+  G.add(bank);
+}
+
+function buildChannel({ THREE, M, water, pavingTex }, { G }) {
+  const { start, end, bedY, waterY, banks: [near, far], channel: [inner, outer] } = cloister;
+  const length = end - start;
+  const middle = (start + end) / 2;
+  const floor = M(0x2b332a, .88, { map: pavingTex });
+  const invert = new THREE.Mesh(new THREE.BoxGeometry(length, .064, far - near), floor);
+  invert.name = 'Bamboo Rain drain invert';
+  invert.position.set(middle, bedY - .032, (near + far) / 2);
+  invert.receiveShadow = true;
+  G.add(invert);
+  const nearStones = [0x565342, 0x676252, 0x515647].map(color => M(color, .84, { map: pavingTex }));
+  const courtStones = [0x6d6757, 0x706a61, 0x646355].map(color => M(color, .91, { map: pavingTex }));
+  // The shaded side is a worn slope. The court's proud stone ends expose a deeper face.
+  layChannelBank(THREE, G, 'Bamboo Rain inner bank', [
+    [1.635, -.188], [1.690, -.202], [1.747, -.261], [1.824, -.321], [1.926, -.387],
+    [2.00, bedY], [1.635, bedY],
+  ], nearStones, 0);
+  layChannelBank(THREE, G, 'Bamboo Rain court bank', [
+    [2.272, bedY], [2.333, -.433], [2.356, -.375], [2.398, -.352],
+    [2.463, -.341], [2.52, -.356], [2.52, bedY],
+  ], courtStones, 3);
+
+  const stream = water(waterY, 0x3b5045, {
+    x: middle, z: (inner + outer) / 2,
+    geo: new THREE.PlaneGeometry(length, outer - inner),
+    rough: .43, waves: .09, env: .23,
+  });
+  stream.material.clearcoat = .02;
+  stream.material.specularIntensity = .15;
+  stream.material.transparent = true;
+  stream.material.opacity = .68;
+  stream.material.depthWrite = false;
+  stream.name = 'Bamboo Rain channel water';
+  stream.receiveShadow = true;
+  stream.renderOrder = 1;
+}
+
 function buildCloister(h) {
-  const { THREE, M, box, put, col, eave, otherLamp, water, plasterTex, grainTex, pavingTex } = h;
+  const { THREE, M, box, put, col, eave, otherLamp, plasterTex, grainTex, pavingTex } = h;
   const { G, up, rnd } = h.context;
   const { start, end, eaveY, eaveZ, waterY, channel, crossing } = cloister;
   const length = end - start;
@@ -32,7 +126,7 @@ function buildCloister(h) {
   box(length, .145, .145, wetStone, middle, -.2525, 1.60);
   for (const x of [-4.55, 3.10]) col(x, 1.32, 2.48, .115, post);
   box(length, .16, .21, timber, middle, 2.54, 1.32);
-  eave({ x0: start, x1: end, y: eaveY, z: eaveZ, depth: 2.58, rise: .64, tile: 0x3d4442 });
+  eave({ x0: start, x1: end, y: eaveY, z: eaveZ, depth: eaveZ + .72, rise: .64, tile: 0x3d4442 });
 
   // The visitor's cup rests directly on the sill. The extra width leaves a usable dry edge.
   const shelf = new THREE.Mesh(new THREE.BoxGeometry(4.18, .056, .48), board);
@@ -51,25 +145,7 @@ function buildCloister(h) {
     otherLamp('celadon', x, .91, -.15, glowing ? .12 : .005, 0, glowing ? .23 : 0);
   }
 
-  const [inner, outer] = channel;
-  const ditchWidth = outer - inner;
-  const ditchCenter = (inner + outer) / 2;
-  const invertY = waterY - .041;
-  box(length, .065, ditchWidth, wetStone, middle, invertY - .0325, ditchCenter);
-  for (let x = start; x < end; x += .58) {
-    const span = Math.min(.58, end - x);
-    const center = x + span / 2;
-    box(span - .012, .104, .10, wetStone, center, invertY + .052, inner - .05);
-    box(span - .012, .073, .16, dressedStone, center, invertY + .0365, outer + .08);
-  }
-  const stream = water(waterY, 0x3b4840, {
-    x: middle, z: ditchCenter, geo: new THREE.PlaneGeometry(length, ditchWidth),
-    rough: .35, waves: .065, env: .48,
-  });
-  stream.material.clearcoat = .08;
-  stream.material.specularIntensity = .31;
-  stream.name = 'Bamboo Rain channel water';
-  stream.receiveShadow = true;
+  buildChannel(h, h.context);
 
   const { center, width } = crossing;
   box(width, .085, .70, dressedStone, center, -.14, 1.886);
@@ -78,8 +154,9 @@ function buildCloister(h) {
   box(width + .12, .11, .54, dressedStone, center, -.2525, 2.44);
   box(width + .12, .079, .42, dressedStone, center, -.319, 2.84);
   for (const x of [center - width / 2 + .07, center + width / 2 - .07]) {
-    box(.14, .24, .17, wetStone, x, -.213, 1.76);
-    box(.14, .14, .17, wetStone, x, -.265, 2.19);
+    for (const [top, z] of [[-.093, 1.76], [-.195, 2.19]]) {
+      box(.14, top - cloister.bedY, .17, wetStone, x, (top + cloister.bedY) / 2, z);
+    }
   }
 
   // The source positions follow the drip tips generated by eave(). The bridge interrupts the row.
@@ -125,10 +202,12 @@ export default function createPlace(h) {
       const stone = M(0x535b55, .32, { map: pavingTex });
       const wood = M(0x44352b, .82, { map: grainTex });
 
-      ground(0x283b30, { y: -.013 });
+      cutChannelThroughGround(THREE, ground(0x283b30, { y: -.013 }), nook);
       pave(0, 26.95, 3.55, 22.1, -.12, stone);
-      // The court paving stops at the outside rim of the near channel.
-      pave(.38, 5.3, 14.9, 21.2, -.12, stone);
+      // Stop the paving and open-air rain at the court side of the cut.
+      const west = nook.pos.x + cloister.banks[1];
+      const east = 7.83;
+      pave((west + east) / 2, 5.3, east - west, 21.2, -.12, stone);
       gateB({ z: 18, w: 7, h: 3.7, wall: white, roof: tile, lift: .22 });
       wallRun(-11, 18, -3.5, 18, 2.8, white, tile);
       wallRun(3.5, 18, 11, 18, 2.8, white, tile);
@@ -188,7 +267,7 @@ export default function createPlace(h) {
         // Keep both volumes off the gate roof, walls and covered walks.
         volumes: [
           { x: [-6.8, 6.8], y: [.01, 8], z: [21, 39], count: 510, opacity: .32 },
-          { x: [-7.10, 6.35], y: [.01, 8], z: [-4.6, 15.18], count: 580, opacity: .30 },
+          { x: [west, 6.35], y: [.01, 8], z: [-4.6, 15.18], count: 580, opacity: .30 },
         ],
       });
       await pauseBuild();
@@ -248,12 +327,13 @@ const streakVertex = `
     vec4 mvPosition = mix(front, rear, uv.y);
     // Carry sub-pixel rain at a distance without letting near drops become broad ribbons.
     float halfWidth = clamp(0.0026 + max(0.0, -mvPosition.z) * 0.00043, 0.003, 0.011);
+    if (uRunoff) halfWidth *= 1.35;
     mvPosition.xy += across * position.x * (2.0 * halfWidth);
     gl_Position = projectionMatrix * mvPosition;
 
     vDropUV = uv;
     float fadeIn = smoothstep(0.0, 0.055, progress);
-    float fadeOut = 1.0 - smoothstep(0.94, 1.0, progress);
+    float fadeOut = 1.0 - smoothstep(uRunoff ? 0.98 : 0.94, 1.0, progress);
     float distanceFade = 1.0 - smoothstep(13.0, 30.0, -mvPosition.z);
     vAlpha = dropMotion.w * fadeIn * fadeOut * distanceFade * uLight;
     #include <fog_vertex>
@@ -290,7 +370,7 @@ const rippleVertex = `
     float age = dropAge() - flightSeconds();
     float lifetime = mix(0.34, 0.52, dropMotion.x);
     float progress = clamp(age / lifetime, 0.0, 1.0);
-    float radius = mix(0.012, 0.13, progress);
+    float radius = mix(0.012, 0.145, progress);
     vRipple = position.xy * 2.0;
     vChannelPoint = dropOrigin.xz + vRipple * radius;
 
@@ -316,8 +396,8 @@ const rippleFragment = `
     float distanceToImpact = length(vRipple);
     float ring = 1.0 - smoothstep(0.042, 0.12, abs(distanceToImpact - 0.76));
     float crescent = 0.54 + 0.46 * smoothstep(-0.5, 0.5, dot(vRipple, vec2(-0.6, 0.8)));
-    float centre = (1.0 - smoothstep(0.02, 0.16, distanceToImpact)) * vAlpha * 0.16;
-    gl_FragColor = vec4(uColor, vAlpha * ring * crescent * 0.46 + centre);
+    float centre = (1.0 - smoothstep(0.02, 0.16, distanceToImpact)) * vAlpha * 0.23;
+    gl_FragColor = vec4(uColor, vAlpha * ring * crescent * 0.50 + centre);
     #include <tonemapping_fragment>
     #include <colorspace_fragment>
     #include <fog_fragment>
@@ -397,9 +477,9 @@ function addBambooStorm({ THREE, G, up, rnd }, { volumes = [], runoff }) {
       dropOrigin.push(x, y, z, surfaceY);
       dropMotion.push(
         rnd(),
-        Math.sqrt((y - surfaceY) / 4.9) + between([0.68, 1.36]),
-        between([0.10, 0.22]),
-        between([0.32, 0.49]),
+        Math.sqrt((y - surfaceY) / 4.9) + between([0.60, 1.08]),
+        between([0.12, 0.25]),
+        between([0.42, 0.56]),
       );
     }
     const eaveDrops = makeGeometry(THREE, dropOrigin, dropMotion);
@@ -423,6 +503,6 @@ function addBambooStorm({ THREE, G, up, rnd }, { volumes = [], runoff }) {
     group.visible = !motionPreference?.matches;
     if (!group.visible) return;
     common.uSeconds.value = seconds;
-    common.uLight.value = 1 - (light?.n ?? 0) * 0.32;
+    common.uLight.value = 1 - (light?.n ?? 0) * (runoff ? 0.13 : 0.32);
   });
 }
