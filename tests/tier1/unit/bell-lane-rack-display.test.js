@@ -108,7 +108,7 @@ test('saved tag boards clear the next tray along all five transfer paths', () =>
 });
 
 
-test.each([[1440, 900, 'choose', 0], [390, 844, 'choosePhone', 24]])(
+test.each([[1440, 900, 'choose', 0], [390, 844, 'choosePhone', 32]])(
   'a tall chooser shade leaves both saved paper bodies visible at %d×%d',
   (width, height, view, minimumPaperWidth) => {
     const { previous } = bellLaneRackDisplay([{ id: 'tall' }, { id: 'drum' }]);

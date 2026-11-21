@@ -50,9 +50,10 @@ export function bellLaneCameras(V3) {
     const [time, position, yaw, pitch] = route.at(-1);
     return pose([time, position, yaw + Number(phone), pitch], phone ? 72 : lens(false));
   };
-  // View down the rack from just behind the nearest stand. This separates the
-  // two restored shades when the chooser still holds a tall shade in front.
-  const seat = phone => pose([0, [-1.54, 1.24, 5.30], phone ? 18.5 : 19, phone ? -12 : -9], phone ? 56 : 43);
+  const seat = pose([0, [-1.54, 1.24, 5.30], 19, -9], 43);
+  // The raised portrait view shows the saved Tall's shoulder above the
+  // foreground shade and keeps the saved Drum's curved outer panel in view.
+  const seatPhone = pose([0, [-1.548, 1.50, 5.65], 22.25, -19], 60);
   const time = route.map(k => k[0]);
   const position = hermiteTrack(time, route.map(k => k[1]));
   const direction = hermiteTrack(time, route.map(k => k.slice(2)));
@@ -62,8 +63,8 @@ export function bellLaneCameras(V3) {
     viewPhone: pose(route[0], lens(true)),
     wide: inNook(reveal(false)),
     widePhone: inNook(reveal(true)),
-    choose: inNook(seat(false)),
-    choosePhone: inNook(seat(true)),
+    choose: inNook(seat),
+    choosePhone: inNook(seatPhone),
     createWalk(_start, _end, phone) {
       return (progress, rig) => {
         const t = progress * WALK_SECONDS;
