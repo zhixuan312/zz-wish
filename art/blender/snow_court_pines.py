@@ -24,7 +24,40 @@ def position_along(trunk, height):
     return between(a, b, (height - a[1]) / (b[1] - a[1]))
 
 
-def tree_layout(profile, ground_height, index, road_clearance, local_centroid):
+def trail_wood_clearance(site, centreline):
+    """Keep bough surfaces clear of the walked strip and its eye heights."""
+    def clear(position, radius):
+        x, y, z = position
+        # The runtime walk follows the trail grade, with a small sideways
+        # dodge at the shoulder. Check an envelope for both camera sizes.
+        distance = 1.12 + radius
+        for step in range(-math.ceil(distance * 10), math.ceil(distance * 10) + 1):
+            depth = z + step / 10
+            route_x = interpolate(centreline, depth, smooth=True)
+            grade = road_height(site, depth)
+            dx = max(route_x - .08 - x, x - route_x - .42, 0.)
+            dy = max(grade + 1.50 - y, y - grade - 1.65, 0.)
+            if math.hypot(dx, dy, depth - z) < distance:
+                return False
+        return True
+
+    return clear
+
+
+def clear_bough(path, radii, clear, frosted=False):
+    # Reserve a little more than the maximum rise of a settled snow sleeve.
+    load = 1.52 if frosted else 1.
+    for i, (start, end) in enumerate(zip(path, path[1:])):
+        divisions = max(1, math.ceil(math.dist(start, end) / .08))
+        for step in range(divisions + 1):
+            t = step / divisions
+            radius = (radii[i] * (1. - t) + radii[i + 1] * t) * load
+            if not clear(between(start, end, t), radius):
+                return False
+    return True
+
+
+def tree_layout(profile, ground_height, index, road_clearance, local_centroid, wood_clearance):
     """Retain each surveyed root and stature while shaping the canopy in the lee."""
     x, z, stature, root_radius, old_sweep = profile
     ground = ground_height(x, z)
@@ -34,7 +67,7 @@ def tree_layout(profile, ground_height, index, road_clearance, local_centroid):
     span = stature * math.tan(math.radians(6.9 + 5.3 * abs(old_sweep) / 1.19))
     trunk = [add(add(origin, (0., t * stature, 0.)), scale(motion, span * bend))
              for t, bend in zip(TRUNK_HEIGHTS, TRUNK_SWEEP)]
-    roots, boughs, mounts = [], [], []
+    roots, boughs, stubs, mounts = [], [], [], []
     windward, leeward = [], []
     for i in range(3):
         heading = i * math.tau / 3. + rng.uniform(-.24, .24)
@@ -53,7 +86,6 @@ def tree_layout(profile, ground_height, index, road_clearance, local_centroid):
         length = stature * rng.uniform(.56, .73) * (1. - level) * (.83 + .196 * shelter)
         if .43 < level < .81:
             length *= 1.09
-        (windward if shelter < .5 else leeward).append(length)
         heading = forward(direction)
         outward = (.26, .53, .78, 1.)
         bends = (.009, .027, .044, .062)
@@ -64,7 +96,20 @@ def tree_layout(profile, ground_height, index, road_clearance, local_centroid):
             path.append(add(p, (0., length * rise, 0.)))
         root_branch = root_radius * (1. - level) * rng.uniform(.26, .36)
         radii = (root_branch, root_branch * .79, root_branch * .54, root_branch * .29, .004)
-        boughs.append((path, radii, index_at_level % 3 == 0))
+        frosted = index_at_level % 3 == 0
+        kept = clear_bough(path, radii, wood_clearance, frosted)
+        if kept:
+            (windward if shelter < .5 else leeward).append(length)
+            boughs.append((path, radii, frosted))
+        else:
+            # Leave a weathered short cut above the collar. No detached
+            # foliage from the removed part of the branch survives the cut.
+            stub_length = root_radius + 2. * root_branch
+            tip = between(path[0], path[1], min(1., stub_length / math.dist(path[0], path[1])))
+            stub_path = [path[0], tip]
+            stub_radii = [root_branch, root_branch * .70]
+            if clear_bough(stub_path, stub_radii, wood_clearance):
+                stubs.append((stub_path, stub_radii))
         branch_mounts = ((1, .31, -.96), (2, .24, .71), (2, .90, -.83),
                          (3, .42, .78), (3, .97, -.16))
         for mount_index, (part, t, turn) in enumerate(branch_mounts):
@@ -82,14 +127,17 @@ def tree_layout(profile, ground_height, index, road_clearance, local_centroid):
                 # Close the open silhouette of the pine just right of the gate.
                 dimensions = (dimensions[0] * 1.15, dimensions[1] * 1.32, dimensions[2] * 1.23)
                 clearance_size = max(dimensions)
-            if not road_clearance(end, clearance_size):
+            if not kept or not road_clearance(end, clearance_size):
                 continue
-            mounts.append((end, side, dimensions))
             if mount_index in (0, 2):
                 # The exposed fork is wood. The short buds beyond it are
                 # part of the instanced needle and snow assembly.
-                boughs.append(([base, between(base, end, .48), end],
-                               (root_branch * .41, root_branch * .26, .004), False))
+                fork = [base, between(base, end, .48), end]
+                fork_radii = (root_branch * .41, root_branch * .26, .004)
+                if not clear_bough(fork, fork_radii, wood_clearance):
+                    continue
+                boughs.append((fork, fork_radii, False))
+            mounts.append((end, side, dimensions))
     for level in (.88, .935, .975):
         point = position_along(trunk, ground + stature * level)
         for side in (-.57, .63):
@@ -110,6 +158,7 @@ def tree_layout(profile, ground_height, index, road_clearance, local_centroid):
     return {
         'origin': origin, 'trunk': trunk, 'trunkAngle': trunk_angle, 'crownAngle': crown_angle,
         'rootRadii': tuple(root_radius * r for r in TRUNK_RADII), 'roots': roots, 'boughs': boughs,
+        'stubs': stubs,
         'mounts': mounts, 'windward': windward, 'leeward': leeward,
     }
 
@@ -252,13 +301,16 @@ def build_pines(mesh, materials, site, centreline, ground_height):
         eye_y = road_height(site, z) + 1.64
         return abs(x - route_x) - .45 * size > .94 or y - eye_y - .32 * size > 1.03
 
+    wood_clearance = trail_wood_clearance(site, centreline)
     count = fans = needles = triangles = 0
     for i, profile in enumerate(PINES):
         data, at_fans, at_needles, at_triangles, centroid = prototypes[i % len(prototypes)]
-        authored = tree_layout(profile, ground_height, i, road_clearance, centroid)
+        authored = tree_layout(profile, ground_height, i, road_clearance, centroid, wood_clearance)
         bark.tube(mesh, authored['trunk'], authored['rootRadii'], 10)
         for path, radii, sides in authored['roots']:
             bark.tube(mesh, path, radii, sides)
+        for path, radii in authored['stubs']:
+            bark.tube(mesh, path, radii, 5)
         for path, radii, frosted in authored['boughs']:
             bark.tube(mesh, path, radii, 5, caps=False)
             if frosted:
