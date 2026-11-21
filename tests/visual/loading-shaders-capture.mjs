@@ -83,6 +83,10 @@ if (window.__loadingShaderTrace) {
     line => line + `
     window.__loadingParity?.ignition(state, progress);
     window.__loadingFrameObservations?.ignition(state);`, 'real ignition state');
+  source = replaceOnce(source, /^ {2}const f=flameParts\(g,\{light:false,size:options\.size\?\?1\.3\}\);f\.soft=true;f\.place\(0,0,0\);$/gm,
+    line => line + `
+  if (window.__loadingParity) f.fm.uniforms.uSeedU.value = window.__loadingParity.fixtureFlameSeed(C.seed, x, y, z);`,
+    'authored fixed fixture flames');
   source = replaceOnce(source, /^ {4}if \(mine\.parts\?\.pineWax\) level = THREE\.MathUtils\.clamp\(waxFuel\?\.\(\) \?\? targetLevel, 0, 1\);$/gm,
     '    if (mine.parts?.pineWax) level = THREE.MathUtils.clamp(window.__loadingParity?.waxFuel ?? waxFuel?.() ?? targetLevel, 0, 1);',
     'wick fuel clock');
@@ -161,6 +165,13 @@ function installWallClock({ wallTime, seed, readyLightmapWeights }) {
   const animationStep = 1000 / 60;
   window.__loadingParity = {
     waxFuel: 1,
+    fixtureFlameSeed(placeSeed, x, y, z) {
+      // Use each authored wick's identity to hold its flicker input across fresh browsers.
+      let value = 0x811c9dc5;
+      const anchor = [placeSeed, x, y, z].join(':');
+      for (let i = 0; i < anchor.length; i++) value = Math.imul(value ^ anchor.charCodeAt(i), 0x01000193);
+      return (value >>> 0) * (10 / 4294967296);
+    },
     advance(phase, place) {
       const key = phase + ':' + place;
       if (key !== current) { current = key; ordinal = 0; }
