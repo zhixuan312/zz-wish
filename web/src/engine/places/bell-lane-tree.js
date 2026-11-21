@@ -153,6 +153,45 @@ export function addBellLaneTree({ THREE, V3, M, context }, [x, y, z]) {
     }
   }
 
+  // Short, inward-growing branches fill the middle in overlapping layers.
+  // The outside sprays keep their irregular edge and see-through tips.
+  const crownInterior = [
+    // Parent limb, segment, attachment fraction, bend, tip, sprig size, tint.
+    [4, 2, .35, [.62, 4.57, -.34], [1.00, 4.49, -.40], .35, 0x52643f],
+    [9, 1, .65, [.85, 4.18, .12], [.65, 4.31, .36], .33, 0x76834f],
+    [9, 2, .33, [1.12, 4.45, .25], [1.38, 4.48, .12], .29, 0x627646],
+    [7, 1, .42, [1.23, 3.94, .17], [.99, 4.17, .31], .36, 0x62744a],
+    [6, 2, .35, [1.14, 4.04, -.97], [.93, 4.40, -1.01], .38, 0x455d42],
+    [5, 2, .24, [1.22, 3.40, .58], [1.32, 3.68, .72], .29, 0x6b7c4d],
+  ];
+  for (const [parent, segment, at, bend, tip, size, tint] of crownInterior) {
+    const a = limbs[parent][segment], b = limbs[parent][segment + 1];
+    const start = V3(...a.slice(0, 3)).lerp(V3(...b.slice(0, 3)), at);
+    const elbow = V3(...bend), end = V3(...tip);
+    const radius = THREE.MathUtils.lerp(a[3], b[3], at) * .48;
+    limb([[...start.toArray(), radius], [...elbow.toArray(), radius * .47], [...end.toArray(), 0]], 5);
+
+    const forward = end.clone().sub(elbow).normalize();
+    const across = forward.clone().cross(up).normalize();
+    const green = new THREE.Color(tint);
+    for (const [fraction, spread, lift, count] of [[.05, -.27, .12, 13], [.33, .29, -.12, 16], [.69, -.16, .08, 14]]) {
+      const fork = elbow.clone().lerp(end, fraction);
+      const target = fork.clone().addScaledVector(forward, .15 + rnd() * .17)
+        .addScaledVector(across, spread).addScaledVector(up, lift);
+      limb([[...fork.toArray(), radius * .31 * (1 - fraction)], [...target.toArray(), 0]], 3);
+      const axis = target.clone().sub(fork).normalize();
+      const side = axis.clone().cross(up).normalize();
+      for (let i = 0; i < count; i++) {
+        const t = (i + rnd()) / count;
+        const base = fork.clone().lerp(target, t);
+        const angle = (i % 2 ? -1 : 1) * (.45 + rnd());
+        const direction = axis.clone().addScaledVector(side, angle)
+          .addScaledVector(up, (rnd() - .5) * 1.25).normalize();
+        foliage(base, direction, size * (.71 + rnd() * .39), green.clone().multiplyScalar(.84 + rnd() * .29), true);
+      }
+    }
+  }
+
   function smoothCollar(geo) {
     const { position, normal, color } = geo.attributes;
     // Use the parent cylinder's local surface direction at the junction.
