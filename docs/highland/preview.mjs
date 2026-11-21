@@ -188,7 +188,8 @@ export async function startPreview({ baseline = false } = {}) {
           }
         },
       }],
-      server: { ...config.server, host: '127.0.0.1', port: 0, strictPort: true, proxy: { '/api': { target, ws: true } } },
+      server: { ...config.server, host: '127.0.0.1', port: 0, strictPort: true, watch: null,
+        proxy: { '/api': { target, ws: true } } },
     });
     await vite.listen(0);
     return { url: `http://127.0.0.1:${vite.httpServer.address().port}`, source: sourceReview.metadata, close };

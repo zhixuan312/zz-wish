@@ -26,14 +26,16 @@ const output = resolve(process.argv[2] ?? 'artifacts/highland/matched');
 const requested = process.argv.slice(3);
 const baseline = requested.includes('--baseline');
 const paired = requested.includes('--paired');
+const resume = requested.includes('--resume');
 const liveCrops = requested.includes('--live-crops');
 const referenceArg = requested.find(value => value.startsWith('--match='));
 const match = referenceArg ? resolve(referenceArg.slice('--match='.length)) : null;
 assert.ok(!referenceArg || referenceArg.length > '--match='.length, 'Set --match to the baseline output directory.');
 assert.ok(!baseline || !match, 'Use --match on the candidate, not the baseline.');
 assert.ok(!paired || (!baseline && !match), 'Use --paired by itself to save before and after together.');
+assert.ok(!resume || paired, 'Use --resume with --paired to keep completed baseline cases.');
 assert.ok(!match || match !== output, 'The baseline and candidate output directories must be different.');
-const filters = requested.filter(value => value !== '--baseline' && value !== '--paired' && value !== '--live-crops' && value !== referenceArg);
+const filters = requested.filter(value => !['--baseline', '--paired', '--resume', '--live-crops'].includes(value) && value !== referenceArg);
 const combinations = views.flatMap(view => [13, 22].map(hour => ({ ...view, hour, key: `${view.name}-${hour}` })));
 assert.ok(filters.every(key => combinations.some(view => view.key === key)), 'Use desktop-13, desktop-22, phone-13 or phone-22.');
 const selected = filters.length ? combinations.filter(view => filters.includes(view.key)) : combinations;
@@ -342,11 +344,27 @@ async function capture(browser, preview, view, outputDir, referenceDir) {
 }
 
 const failures = [];
+async function hasBaseline(outputDir, view, source) {
+  try {
+    const report = JSON.parse(await readFile(join(outputDir, view.key, 'report.json'), 'utf8'));
+    return !report.failure && report.issues.length === 0 && report.source.mode === 'baseline'
+      && report.source.highlandSha256 === source.highlandSha256 && report.source.cameraSha256 === source.cameraSha256
+      && report.scenes.length === TARGETS.length + 1 && report.scenes.every(scene => scene.capturePose && scene.livePose)
+      && report.lit && report.readyMade.lampInsideViewport && !report.readyMade.lampOverlapsSheet;
+  } catch {
+    return false;
+  }
+}
+
 async function captureBatch(browser, isBaseline, outputDir, referenceDir) {
   const preview = await startPreview({ baseline: isBaseline });
   try {
     console.log(`${isBaseline ? 'Baseline' : 'Candidate'}: ${outputDir}`);
     for (const view of selected) {
+      if (isBaseline && resume && await hasBaseline(outputDir, view, preview.source)) {
+        console.log(`${view.key}: kept validated baseline`);
+        continue;
+      }
       try { await capture(browser, preview, view, outputDir, referenceDir); }
       catch (error) { failures.push({ view: view.key, message: error.message }); console.error(view.key, error); }
     }
