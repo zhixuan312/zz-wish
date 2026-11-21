@@ -570,7 +570,14 @@ const radiusAt = (P, y) => { let i = 1; while (i < P.length - 1 && P[i][1] < y) 
 function dish(rows, s, m, o = {}) {
   const P = scaled(rows, s), top = P[P.length - 1][1], wall = o.wall ?? .0028, floor = Math.min(.006, top * .22);
   const inner = (y) => Math.max(.0015, radiusAt(P, y) - wall);
-  const pts = [[0, 0], ...P, [inner(top), top]];
+  const pts = [[0, 0], ...P];
+  const shoulder = P.at(-2)?.[1] ?? top;
+  const bevel = Math.min(o.rimBevel ?? 0, wall * .4, top * .025, (top - shoulder) * .45);
+  if (bevel > 0) {
+    pts.pop();
+    pts.push([radiusAt(P, top - bevel), top - bevel], [P.at(-1)[0] - bevel * .68, top],
+      [inner(top) + bevel * .68, top], [inner(top - bevel), top - bevel]);
+  } else pts.push([inner(top), top]);
   for (let i = P.length - 1; i >= 0; i--) if (P[i][1] > floor && P[i][1] < top) pts.push([inner(P[i][1]), P[i][1]]);
   pts.push([inner(floor), floor], [0, floor]);
   const geo = lathe(pts, 72);
@@ -581,7 +588,8 @@ function dish(rows, s, m, o = {}) {
     geo.computeVertexNormals();
   }
   const mesh = new THREE.Mesh(geo, m); mesh.castShadow = !m.transparent; mesh.receiveShadow = true;
-  return { mesh, top, rim: P[P.length - 1][0], vessel: cupVolume(inner, floor, top * .94) };
+  const baseRadius = o.contact ? P.reduce((radius, [r, y]) => y === 0 ? Math.max(radius, r) : radius, 0) : 0;
+  return { mesh, top, rim: P[P.length - 1][0], baseRadius, vessel: cupVolume(inner, floor, top * .94) };
 }
 // The person's glaze: celadon and white porcelain shine, clay stays matte.
 function dishMaterial(color, glass) {
@@ -605,6 +613,28 @@ function actualHallEnvironment(material,texture){
   material.customProgramCacheKey=()=>key()+'-actual-hall-environment-1';material.needsUpdate=true;
 }
 const presetOf = (kind) => ({ rows: PRESET_SHAPES[kind][0].rows, color: COLORS[kind][0] });
+// Approximate the occluded light at the glass-to-stone joint using only the
+// actual underside of the turned profile. This never casts a hard vessel shadow.
+function glassContact(radius, opacity) {
+  const material = new THREE.ShaderMaterial({
+    transparent: true,
+    depthWrite: false,
+    uniforms: { opacity: { value: opacity } },
+    vertexShader: `varying vec2 contactUv;
+      void main() { contactUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.); }`,
+    fragmentShader: `uniform float opacity; varying vec2 contactUv;
+      void main() {
+        float radius = length(contactUv * 2. - 1.);
+        gl_FragColor = vec4(0., 0., 0., opacity * (1. - smoothstep(.60, 1., radius)));
+      }`,
+  });
+  material.userData.lampOwned = true;
+  const mesh = new THREE.Mesh(new THREE.PlaneGeometry(2 * radius, 2 * radius).rotateX(-Math.PI / 2), material);
+  mesh.name = 'Glass contact';
+  mesh.position.y = .00015;
+  mesh.renderOrder = 1;
+  return mesh;
+}
 const LAMPS = {
   // A small rough stone dish in a niche.
   niche() {
@@ -697,9 +727,30 @@ const LAMPS = {
     return { g, kind: 'oil', vessel, wick: { at: V3(0, wy, 0) }, frame: { h: wy + .12, cy: wy * .6 }, lightMax: .3, flame: .9 };
   },
   // A small dish of tinted glass; the wick floats on the oil.
-  glass(o = presetOf('oil')) {
-    const g = new THREE.Group(), d = dish(o.rows, 1, dishMaterial(o.color, true), { wall: .0018 }); d.mesh.renderOrder = 2; d.mesh.castShadow = false; g.add(d.mesh);
-    return { g, kind: 'oil', vessel: d.vessel, wick: { float: .005 }, oilBody: true, frame: { h: Math.max(.08, d.top + .04), cy: d.top * .5 }, lightMax: .24, flame: .78 };
+  glass(o = presetOf('oil'), appearance) {
+    const material = dishMaterial(o.color, true);
+    if (appearance) {
+      material.roughness = appearance.roughness ?? material.roughness;
+      material.opacity = appearance.opacity ?? material.opacity;
+      material.clearcoat = appearance.clearcoat ?? material.clearcoat;
+      material.clearcoatRoughness = appearance.clearcoatRoughness ?? material.clearcoatRoughness;
+      material.envMapIntensity = appearance.envMapIntensity ?? material.envMapIntensity;
+      material.userData.lampOwned = true;
+    }
+    const g = new THREE.Group();
+    const d = dish(o.rows, 1, material, {
+      wall: .0018, rimBevel: appearance?.rimBevel, contact: !!appearance?.contactOpacity,
+    });
+    d.mesh.renderOrder = 2;
+    d.mesh.castShadow = false;
+    if (d.baseRadius > 0) g.add(glassContact(d.baseRadius, appearance.contactOpacity));
+    g.add(d.mesh);
+    return {
+      g, kind: 'oil', vessel: d.vessel, wick: { float: .005 }, oilBody: true,
+      glassAppearance: appearance,
+      frame: { h: Math.max(.08, d.top + .04), cy: d.top * .5 },
+      lightMax: .24 * (appearance?.lightScale ?? 1), flame: .78,
+    };
   },
   // A pottery hood pierced with small holes, over a clay cup; its outline is the person's.
   hood(o = presetOf('shade')) {
@@ -890,10 +941,13 @@ const api = { g, parts: null, partsKey: null, type: null, power: 0, lightPower: 
       const key = this.type + (liveBaked?'|cycles':'') + (sculptNormal ? `|sculpt-${sculptNormal.id}` : '')
         + (sunShade ? '|shaded-sun' : '')
         + (drawn ? JSON.stringify([o.rows, o.color]) : '');
-      if (key === this.partsKey && (!sunShade || this.parts?.sunShade === sunShade)) return;
+      const glassAppearance = this.type === 'glass' ? place?.P.nook.visitorGlass : undefined;
+      if (key === this.partsKey && (!sunShade || this.parts?.sunShade === sunShade)
+        && this.parts?.glassAppearance === glassAppearance) return;
       if (this.parts) { g.remove(this.parts.g); disposeTree(this.parts.g); }
       const input=drawn?{...o,liveBaked}:this.type==='gauze'?{...presetOf('shade'),liveBaked}:undefined;
       const p = this.type === 'pineWax' ? LAMPS.pineWax({ refined: liveBaked, sculptNormal, sunShade })
+        : this.type === 'glass' ? LAMPS.glass(input, glassAppearance)
         : input ? LAMPS[this.type](input) : LAMPS[this.type]();
       this.parts = p; this.partsKey = key; g.add(p.g);
       hanger.material=p.suspensionMaterial??defaultSuspensionMaterial;
@@ -935,7 +989,7 @@ const api = { g, parts: null, partsKey: null, type: null, power: 0, lightPower: 
       }else place?.baked?.gauzeTransmission?.disable();
     },
     setType(type) {
-      if (this.type === type) return;
+      if (this.type === type && (type !== 'glass' || this.parts?.glassAppearance === place?.P.nook.visitorGlass)) return;
       this.type = type; this.partsKey = null; this.build(null);
       if (this.offer) this.setOffer(this.offer);
     },
@@ -1052,7 +1106,7 @@ const api = { g, parts: null, partsKey: null, type: null, power: 0, lightPower: 
       for (const material of p.pineWax?.materials ?? []) material.userData.u.uGlow.value *= .52;
       place?.baked?.gauzeTransmission?.update(f.light);
       this.lightPower = power * k * keep;
-      oilGlow.userData.u.uGlow.value = .4 * power * k;
+      oilGlow.userData.u.uGlow.value = (p.glassAppearance?.oilGlowScale ?? .4) * power * k;
       // Burned down keeps its short power curve; a put-out shade cools on an
       // exponential in time, which holds a steady fractional step per frame.
       const cooling=clockTime<shadeCoolingUntil?(shadeCoolingTau>0?shadeCoolingGlow*Math.exp(-(clockTime-shadeCoolingStart)/shadeCoolingTau):shadeCoolingGlow*Math.pow((shadeCoolingUntil-clockTime)/5.2,1.5)):0;

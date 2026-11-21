@@ -69,6 +69,11 @@ export default function createPlace(h) {
     nook: {
       at: { pos: V3(...TABLE_CENTER), ry: 0 },
       lamp: 'glass', y: .46, exposure: 1.1, bloom: [.18, 1.2],
+      visitorGlass: {
+        roughness: .14, opacity: .54, clearcoat: .24, clearcoatRoughness: .2,
+        envMapIntensity: .72, rimBevel: .00055, lightScale: .64, oilGlowScale: .19,
+        contactOpacity: .46,
+      },
       wide: cameras.wide,
       widePhone: cameras.widePhone,
       choose: cameras.choose,
