@@ -108,3 +108,49 @@ opening to the left of the recess and hides most of the right shoulder.
 The public app still has no Tide selector, approach surf or Tide-specific
 entrance and chooser copy. The loopback used the shared UI, which displayed
 the existing Snow Roof fallback copy.
+
+## Follow-up browser receipt
+
+Capture source: `484410b`. The earlier figures and first round originals
+above remain available. The follow-up fixes Tide's vertical entrance drift
+while the shared camera retains its default and reduced-motion behavior.
+The camera starts above the actual deck minimum. The two harbour shoulders
+extend into the seated composition, and a narrower stone return keeps them
+visible beside the hood on phone. The new water combines shorter wind
+ripples, longer cross-swell, interrupted highlights and foam concentrated
+near the shore.
+
+| Case | Entrance wait | Actual walking eye | First 1.5 s frames | Clear harbour | Peak walk / other | Peak turn | Closest recorded wall | Hood / flame to chooser |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| Desktop, 13:00 | 0.35 s | 1.520–1.530 m | 88 | 3.544 s | 1.667 / 1.094 m/s | 20.48°/s | 0.512 m | 57.2 / 68.4 px left |
+| Desktop, 22:00 | 2.15 s | 1.520–1.530 m | 88 | 3.538 s | 1.667 / 1.053 m/s | 20.48°/s | 0.512 m | 57.2 / 68.4 px left |
+| Phone, 13:00 | 1.05 s | 1.520–1.530 m | 90 | 3.551 s | 1.667 / 0.810 m/s | 20.87°/s | 0.854 m | 41.9 / 49.4 px above |
+| Phone, 22:00 | 3.05 s | 1.520–1.530 m | 90 | 3.550 s | 1.667 / 0.811 m/s | 20.87°/s | 0.854 m | 41.9 / 49.3 px above |
+
+The browser cast down to the actual deck for every walking frame and found
+no out-of-range eye height or missing deck hit. No frame entered the wall
+envelope. Normal and Skip had identical final position and aim, with the
+largest rendered field-of-view difference about 0.00055°. Rays hit both
+named shoreline tips at the reveal, chooser and burn. The phone original
+shows the left tip close to the frame edge and the right one between the
+channel and the niche. The Tide → Bamboo Rain → Tide switch measured zero
+vertical preview offset on both Tide visits. Bamboo retained a varying
+0.197–0.233 m offset in the sampled preview.
+
+The six static before/after pairs use the same actual camera position,
+direction and field of view, local time and 7.25-second water animation
+time. They compare the old Tide world at `039a7ee` with the new one.
+The diagnostic pairs hide UI. The normal originals retain the actual
+chooser and burn UI, and the two daytime videos show the live sequence.
+The channel now has visible shore foam and cross-swell, though the water
+and shoreline remain procedural.
+
+The initial desktop 13:00 follow-up used a reserved GLSL identifier and
+reported shader errors. The reserved desktop retry at `484410b` succeeded
+after the rename, and the initial failure remains separate. All four
+accepted normal captures and six matched pairs recorded zero reported
+errors. The preview servers and all recorded runners exited, and both S7
+leases were released.
+
+The complete follow-up index is
+`/Users/xuan/OpenBot/Shared/one-light/artifacts/sea-tide/round-2/index.md`.
