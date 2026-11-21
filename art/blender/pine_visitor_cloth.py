@@ -82,7 +82,18 @@ def knots():
     points.extend([(-.032, .0118, .060), (-.020, .0190, .062), (-.006, .0235, .061),
                    (.009, .0195, .069), (.015, .009, .084), (.027, .005, .095),
                    (.042, .004, .110), (.063, .0024, .120)])
-    return [Vector(p) for p in points]
+    # The cloth is tied under the candle stand, so neither end may trail out over the shelf. Both
+    # used to finish 13.6 cm from the tray axis against a 5.8 cm wall, laying 8 cm of fabric flat on
+    # the stone. Hold every control outside the wall to 8.55 cm, which keeps the knot's shape and
+    # leaves the ends 2.7 cm past the widest part of the tray wall.
+    max_radius = .0855
+    held = []
+    for x, y, z in points:
+        radius = math.hypot(x, z)
+        if radius > max_radius:
+            x, z = x * max_radius / radius, z * max_radius / radius
+        held.append((x, y, z))
+    return [Vector(p) for p in held]
 
 
 def ribbon(mat):
