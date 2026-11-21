@@ -13,7 +13,7 @@ const readinessAnchors = [
   ['build-started', /^([ \t]*)PLACES\[t\.id\]\s*\?\?=\s*(?:await )?\(await placeModules\[t\.id\]\(\)\)\.default\(placeHelpers\);/gm, 't.id', true],
   ['environment-ready', /^([ \t]*)const envTarget\s*=\s*pmrem\.fromScene\(skyScene,\s*0,\s*0?\.1,\s*(?:1000|1e3)\),\s*env\s*=\s*envTarget\.texture;/gm, 't.id'],
   ['assets-ready', /^([ \t]*)await P\.build\(t,\s*context\);\s+if\s*\(!isolated\)\s*await finishBatch\(\);/gm, 't.id'],
-  ['compile-started', /^([ \t]*)try\s*\{(?=\s*(?://[^\r\n]*\r?\n\s*)*(?:if\s*\(!streamsSnowInterior\)\s*)?await renderer\.compileAsync\(stage,\s*stageCamera\);)/gm, 't.id'],
+  ['compile-started', /^([ \t]*)try\s*\{(?=\s*(?:\/\/[^\r\n]*\r?\n\s*)*(?:if\s*\(!streamsSnowInterior\)\s*)?await renderer\.compileAsync\(stage,\s*stageCamera\);)/gm, 't.id'],
   ['shaders-ready', /^([ \t]*)renderer\.setRenderTarget\(warm\);\s*renderer\.render\(stage,\s*stageCamera\);/gm, 't.id'],
   ['build-finished', /^([ \t]*)cachedPlaces\.set\(t\.id,\s*candidate\);/gm, 't.id'],
 ];
