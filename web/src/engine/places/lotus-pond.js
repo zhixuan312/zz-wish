@@ -4,13 +4,13 @@ const bridgeCenter = 7.2;
 const bridgeHalfLength = 11.5;
 const bridgeHalfWidth = 1.7;
 const waterHeight = .05;
-const nookOrigin = [-3.55, .12, 7.2];
+const nookOrigin = [-3.40, .12, 7.34];
 const walkSeconds = 27.6; // The procedural engine adds a 2.4 s hold at the chooser.
 
 // The high stone rail hides the upper bank while the open span below it
 // frames the water. The gaze rises after the bend onto the inner bridge.
 const waypoints = [
-  { time: 4, pos: [.38, 30], aim: [5.3, 1.7, 20], fov: 38 },
+  { time: 4.35, pos: [.38, 30], aim: [5.3, 1.7, 20], fov: 38 },
   { time: 9, pos: [3.15, 23.3], aim: [4.1, .1, 17.6], fov: 40 },
   { time: 13, pos: [3.10, 19.1], aim: [-.3, -1.75, 16.6], fov: 40 },
   { time: 15.9, pos: [-.18, 18.35], aim: [-3.4, -2.95, 13.5], fov: 40, phoneFov: 42 },
@@ -117,6 +117,7 @@ export default function createPlace(h) {
   const view = { pos: V3(1.45, 1.74, 36.6), look: V3(6.3, 1.7, 24), fov: 38 };
   const viewPhone = { ...view, fov: 44 };
   const local = (x, y, z) => V3(nookOrigin[2] - z, y - nookOrigin[1], x - nookOrigin[0]);
+  // Keep the established chooser and Skip cameras in world space as the seat moves.
   const seated = {
     pos: local(-.95, 2.57, 8.38),
     look: local(-3.65, .03, 7.2),
@@ -153,7 +154,8 @@ export default function createPlace(h) {
       rig.pos.set(x, walkingSurface(z) + eyeAt(time)[0], z);
       rig.look.fromArray(lookAt(time));
       rig.fov = fovAt(time)[0];
-      rig.amp = entranceDrift * (1 - THREE.MathUtils.smoothstep(time, 0, 4));
+      // Carry the entrance's breathing motion through the gate gradually.
+      rig.amp = entranceDrift * (1 - THREE.MathUtils.smoothstep(time, 0, 6));
     };
   }
 
@@ -194,30 +196,36 @@ export default function createPlace(h) {
       await pauseBuild();
       const T = trees();
       for (let i = 0; i < 36; i++) { const side = i % 2 ? -1 : 1; T.broad(side * (22 + C.rnd() * 24), 0, -28 + C.rnd() * 75, 1.1 + C.rnd(), 0x294332); }
+      // The far bank's canopy is reflected behind the wick. Floating leaves
+      // frame the open water without sitting on the candle's reflection ray.
+      T.broad(-15.7, .18, -.4, 4.45, 0x293f31);
       T.finish(); await pauseBuild();
+      lotus(-5.45, -4.2, 7.9, 9.15, .077, 7);
+      lotus(-5.5, -4.35, 5.55, 6.55, .078, 6);
       peak(-110, -20, -170, 90, 65, M(0x344239, 1), 12, .7);
       peak(120, -20, -220, 110, 85, M(0x2f3b39, 1), 18, .7);
       await pauseBuild();
     },
 
-    // A pale stone rail at the pond's edge; the lamp sits on the rail and burns twice, once in the water.
+    // The candle rests in a low stone socket over the water.
     nook: {
       at: { pos: V3(...nookOrigin), ry: Math.PI / 2 },
-      lamp: 'lotus', y: .78, exposure: 1.1, bloom: [.42, .95],
+      lamp: 'lotus', y: .64, exposure: 1.1, bloom: [.42, .95],
       wide: seated, burn: seated, widePhone: portraitSeat, choosePhone: portraitSeat, burnPhone: portraitSeat,
       async build(hh) {
         const { THREE, M, box, put, pavingTex, pauseBuild } = hh;
         const pale = M(0xc9c1b2, .76, { map: pavingTex });
-        // The cantilever is below the chooser's sightline. Its side braces
-        // leave the view of open water beneath the candle clear.
+        // The arms key into the bridge masonry. The narrow front beam leaves
+        // open water below the socket and a clear view of the reflected wick.
         for (const x of [-.88, .88]) {
-          box(.145, .14, 1.88, pale, x, .55, .91);
-          const brace = new THREE.BoxGeometry(.13, .98, .13);
-          brace.rotateX(-.88);
-          put(brace, pale, x, .31, 1.45);
+          box(.11, .12, 1.8, pale, x, .49, .87);
+          box(.17, .40, .34, pale, x, .64, 1.61);
+          const brace = new THREE.BoxGeometry(.11, .66, .115);
+          brace.rotateX(.72);
+          put(brace, pale, x, .38, 1.44);
         }
-        box(1.98, .105, .23, pale, 0, .56, 0);
-        box(.235, .17, .16, pale, 0, .695, 0);
+        box(1.88, .105, .18, pale, 0, .5025, 0);
+        put(new THREE.CylinderGeometry(.091, .105, .085, 12), pale, 0, .5975, 0);
         await pauseBuild();
       },
     },
