@@ -35,6 +35,7 @@ REAR_CREASE_DEGREES = 54.
 REAR_ROWS = (813, 1154)
 REAR_COLUMNS = (2088, 2800)
 REAR_EAST_OFFSET = 121.
+REAR_RELIEF_SCALE = .203
 
 
 def read_tile(path):
@@ -167,7 +168,7 @@ def rear_ridge(elevation):
             apron = smooth(last_row, last_row - 64, row) * smooth(first_row, first_row + 54, row)
             height = elevation[row * TILE_SIDE + col]
             points.append((REAR_EAST_OFFSET + east + .10 * north, depth,
-                           lerp(-36., (height - 1470) * .173, side * apron)))
+                           lerp(-36., (height - 1470) * REAR_RELIEF_SCALE, side * apron)))
     return surface_grid(points, len(columns), follow_relief=True)
 
 
@@ -380,7 +381,7 @@ def describe(far, rear, fields, mid, stands, projection, target):
             'summitBearingDegrees': [azimuth, altitude], 'midMaximumY': mid_height,
             'farApron': {'nearDepthMetres': min(point[1] for point in apron), 'maximumEdgeHeightMetres': apron_height},
             'rearRidge': {'sourceRows': list(REAR_ROWS), 'sourceColumns': list(REAR_COLUMNS),
-                          'eastOffsetMetres': REAR_EAST_OFFSET,
+                          'eastOffsetMetres': REAR_EAST_OFFSET, 'reliefScale': REAR_RELIEF_SCALE,
                           'nearestCrestDepthMetres': min(rear_crest), 'primaryCrestFarDepthMetres': max(near_crest)},
             'snowRetentionRange': ranges['snow_retention'],
             'measuredGullyRange': ranges['measured_gully'],
