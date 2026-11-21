@@ -163,8 +163,8 @@ function buildHarbour(h) {
 
 export default function createPlace(h) {
   const { THREE, V3, M, roofMat, pave, hallB, peak, water, box, gateB, pauseBuild, pavingTex } = h;
-  const wide = { pos: V3(-1.04, 1.62, 4), look: V3(-1.42, 1.1, -2), fov: 42 };
-  const widePhone = { pos: V3(-1, 1.62, 2.72), look: V3(-.88, 1.26, -.12) };
+  const wide = { pos: V3(-.96, 1.62, 2.4), look: V3(-1.02, 1.21, -2), fov: 42 };
+  const widePhone = { pos: V3(-.914, 1.508, 1.928), look: V3(-.88, 1.26, -.12) };
   return {
     exposure: 1.14, shade: .32,
     sky: { top: 0x0b142b, horizon: 0x3d4c64, ground: 0x0d1521, sun: 0xcac1ac, dir: [.95, .13, -.5], glow: .6, clouds: .29, lit: 0x4d5f80, dark: 0x1c2339, stars: .62, disc: 0 },

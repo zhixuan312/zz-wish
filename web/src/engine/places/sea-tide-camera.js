@@ -18,17 +18,17 @@ export function createWalk(start, end, phone) {
   const finalFov = end.fov ?? (phone ? 44 : 32);
   const turn = Math.atan2(Math.sin(last.yaw - first.yaw), Math.cos(last.yaw - first.yaw));
   const position = hermiteTrack(
-    [0, 0.35, 10, 20, 22.3, 23.7, 25, 26.2, 27.4, walkSeconds],
-    [start.pos.toArray(), start.pos.toArray(), [0, 1.65, 24], [0, 1.65, 16],
-      [0, 1.65, 13.9], [0.65, 1.65, 12.15], [2, 1.65, 10.65],
-      [4.05, 1.65, 9.65], end.pos.toArray(), end.pos.toArray()],
+    [0, .35, 9, 16.5, 19.5, 21.4, 23.15, 24.85, 26.1, walkSeconds],
+    [start.pos.toArray(), start.pos.toArray(), [0, 1.65, 24], [0, 1.65, 17.5],
+      [0, 1.65, 14.5], [1, 1.65, 11.8], [3, 1.65, 10.48],
+      [5.22, 1.65, 9.38], [6.84, 1.64, 9.05], end.pos.toArray()],
   );
   // Keep the gaze inside the lane while approaching its open end. Spread the
   // turn over the crossing and the last steps so the harbour comes into view
   // at walking pace. Interpolate angles at a separate distance from the eye.
   const orientation = hermiteTrack(
-    [0, 19.1, 21.45, 23.45, 25.4, 27.25, walkSeconds],
-    [0, 0, 0.22, 0.54, 0.85, 1, 1].map(amount => [
+    [0, 18.35, 20.2, 21.9, 23.4, 24.95, walkSeconds],
+    [0, 0, .18, .49, .81, 1, 1].map(amount => [
       first.yaw + turn * amount,
       first.pitch + (last.pitch - first.pitch) * amount,
       first.distance + (last.distance - first.distance) * amount,

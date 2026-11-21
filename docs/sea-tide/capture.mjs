@@ -1,6 +1,7 @@
 // Run under the S7 GPU lease. The fixture never listens outside loopback.
 /* global document, getComputedStyle, performance, window */
 import { chromium } from '@playwright/test';
+import { PerspectiveCamera, Vector3 } from 'three';
 import { execFile } from 'node:child_process';
 import console from 'node:console';
 import { mkdir, writeFile } from 'node:fs/promises';
@@ -17,9 +18,9 @@ const modeList = process.argv.slice(2);
 const out = resolve(output);
 const run = promisify(execFile);
 const markersFor = phone => [
-  ['last-enclosed', Number(process.env.TIDE_ENCLOSED_SECONDS ?? 21.5)],
-  ['salt-wall', Number(process.env.TIDE_WALL_SECONDS ?? (phone ? 25.9 : 24))],
-  ['harbour-reveal', Number(process.env.TIDE_REVEAL_SECONDS ?? (phone ? 26.65 : 26.2))],
+  ['last-enclosed', Number(process.env.TIDE_ENCLOSED_SECONDS ?? 18)],
+  ['salt-wall', Number(process.env.TIDE_WALL_SECONDS ?? (phone ? 24.5 : 23.4))],
+  ['harbour-reveal', Number(process.env.TIDE_REVEAL_SECONDS ?? 25.5)],
 ];
 const viewports = [
   { name: 'desktop', width: 1440, height: 900, phone: false },
@@ -32,7 +33,7 @@ const review = page => page.evaluate(() => window.__tideReview());
 const json = (path, object) => writeFile(path, JSON.stringify(object, null, 2) + '\n');
 const distance = (a, b) => Math.hypot(...a.map((value, i) => value - b[i]));
 const dot = (a, b) => a.reduce((sum, component, i) => sum + component * b[i], 0);
-const aim = row => [row.lx - row.x, row.ly - row.y, row.lz - row.z];
+const aim = row => [row.lx - row.actual[0], row.ly - row.actual[1], row.lz - row.actual[2]];
 const angleDegrees = (a, b) => Math.acos(Math.max(-1, Math.min(1, dot(a, b) / (Math.hypot(...a) * Math.hypot(...b))))) * 180 / Math.PI;
 
 // The envelopes describe the solid masonry bounding the lane at eye height.
@@ -58,29 +59,46 @@ function wallEnvelopeDistances({ x, z }) {
   return distances;
 }
 
-function summarizeTrace(rows) {
+function summarizeTrace(rows, width, height) {
   if (rows.length < 30) throw new Error('Continuous journey trace is incomplete.');
   const first = rows[0];
   let peakTurn = { degreesPerSecond: 0 };
-  let peakSpeed = { metresPerSecond: 0 };
+  const speed = { walk: { metresPerSecond: 0 }, other: { metresPerSecond: 0 } };
+  const camera = new PerspectiveCamera(44, width / height, .02, 1500);
+  const mouth = new Vector3(66, 0, 8.5), projected = new Vector3();
+  let visibleSince = null, revealHoldSeconds = 0;
   let minimum = { metres: Infinity };
   let collisions = 0;
   for (const [i, row] of rows.entries()) {
-    for (const [name, metres] of wallEnvelopeDistances(row)) {
+    const [x, y, z] = row.actual;
+    if (row.walkState === 'walking' && row.walkProgress > .5) {
+      camera.position.set(x, y, z);
+      camera.lookAt(row.lx, row.ly, row.lz);
+      camera.fov = row.fov;
+      camera.updateProjectionMatrix();
+      camera.updateMatrixWorld();
+      projected.copy(mouth).project(camera);
+      if (Math.abs(projected.x) <= .85 && Math.abs(projected.y) <= .85 && Math.abs(projected.z) <= 1) {
+        visibleSince ??= row.t;
+        revealHoldSeconds = Math.max(revealHoldSeconds, row.t - visibleSince);
+      } else visibleSince = null;
+    }
+    for (const [name, metres] of wallEnvelopeDistances({ x, z })) {
       if (metres === 0) collisions++;
-      if (metres < minimum.metres) minimum = { metres, wall: name, elapsedSeconds: row.t - first.t, position: [row.x, row.y, row.z] };
+      if (metres < minimum.metres) minimum = { metres, wall: name, elapsedSeconds: row.t - first.t, position: [x, y, z] };
     }
     const prev = rows[i - 1];
     if (!prev || row.t <= prev.t) continue;
     const interval = row.t - prev.t;
     const elapsedSeconds = row.t - first.t;
     const degreesPerSecond = angleDegrees(aim(row), aim(prev)) / interval;
-    const metresPerSecond = distance([row.x, row.y, row.z], [prev.x, prev.y, prev.z]) / interval;
+    const metresPerSecond = distance(row.actual, prev.actual) / interval;
+    const stage = row.walkState === 'walking' || prev.walkState === 'walking' ? 'walk' : 'other';
     if (degreesPerSecond > peakTurn.degreesPerSecond) peakTurn = { degreesPerSecond, elapsedSeconds };
-    if (metresPerSecond > peakSpeed.metresPerSecond) peakSpeed = { metresPerSecond, elapsedSeconds };
+    if (metresPerSecond > speed[stage].metresPerSecond) speed[stage] = { metresPerSecond, elapsedSeconds };
   }
   return { frames: rows.length, seconds: rows.at(-1).t - first.t, minFov: Math.min(...rows.map(row => row.fov)),
-    maxFov: Math.max(...rows.map(row => row.fov)), peakTurn, peakSpeed,
+    maxFov: Math.max(...rows.map(row => row.fov)), peakTurn, speed, revealHoldSeconds,
     clearance: { envelopes: laneWalls, wallReturn, minimum, intersectingFrameWallPairs: collisions } };
 }
 
@@ -192,6 +210,12 @@ async function captureCase(browser, preview, size, look, dir) {
     const marks = Object.fromEntries(markers.map(([name, requested]) => [name, {
       requested, observedAtProbe: shots[name].walk?.progress * walkSeconds, state: shots[name].walk?.state,
     }]));
+    const trace = summarizeTrace(actual, size.width, size.height);
+    for (const [stage, limit] of [['walk', 1.8], ['other', 1.4]]) {
+      if (trace.speed[stage].metresPerSecond > limit) problems.push({ type: 'speed limit', stage, limit, ...trace.speed[stage] });
+    }
+    if (trace.revealHoldSeconds < 2) problems.push({ type: 'reveal hold', seconds: trace.revealHoldSeconds });
+    const boundsClear = value => Boolean(value?.inFrame && !value.underSheet);
     const evidence = { viewport: [size.width, size.height], localHour: look.hour, marks, shots, crops,
       normalWalkToChooserSeconds: (chooserMs - clickMs) / 1000, skipStart: skipStart.walk, endpointDelta: delta,
       observations: {
@@ -199,11 +223,15 @@ async function captureCase(browser, preview, size, look, dir) {
         revealMouthInView: shots['harbour-reveal'].mouth.inFrame && !shots['harbour-reveal'].mouth.occluder,
         chooserMouthAboveSheet: shots.chooser.mouth.inFrame && !shots.chooser.mouth.occluder && !shots.chooser.mouth.underSheet,
         chooserHoodBaseAboveSheet: Boolean(shots.chooser.lamp?.base.inFrame && !shots.chooser.lamp.base.underSheet),
-        chooserWickAboveSheet: Boolean(shots.chooser.lamp?.wick.inFrame && !shots.chooser.lamp.wick.underSheet),
+        chooserWickAboveSheet: boundsClear(shots.chooser.lamp?.wick),
+        chooserWholeHoodClear: boundsClear(shots.chooser.lamp?.hoodBounds),
+        chooserWholeFlameEnvelopeClear: boundsClear(shots.chooser.lamp?.flameEnvelope),
+        litWholeHoodClear: boundsClear(shots.burning.lamp?.hoodBounds),
+        litWholeFlameEnvelopeClear: boundsClear(shots.burning.lamp?.flameEnvelope),
         litMouthInView: shots.burning.mouth.inFrame && !shots.burning.mouth.occluder,
         lampContactMetres: shots.burning.lamp?.contactMetres,
       },
-      trace: summarizeTrace(actual), problems };
+      trace, problems };
     await json(join(dir, 'review.json'), evidence);
     return evidence;
   } catch (error) {

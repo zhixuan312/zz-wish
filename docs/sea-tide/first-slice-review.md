@@ -30,3 +30,19 @@ reveal, the chooser with its actual sheet, lit recess and Skip endpoint.
 The report records the per-frame camera trace, minimum envelope clearance,
 peak turn speed, the Skip endpoint difference and projected landmark visibility.
 Native crops copy pixels from the viewport originals without rescaling.
+
+## Camera acceptance
+
+The authored walk is 27.6 seconds. The stock chooser approach uses the
+remaining 2.4 seconds. The focused check samples both routes at 120 Hz and
+checks the limits separately: at most 1.8 m/s while walking and 1.4 m/s
+through the chooser move. The loopback trace measures the rendered camera,
+including any preview drift, and records both peak speeds separately.
+It checks that the harbour mouth stays within the frame for at least two
+seconds before the walk ends. At the reveal frame it also checks the sight
+line against the scene geometry.
+
+The chooser probe projects the complete hood bounding box and a conservative
+flame envelope against both viewport bounds and the actual sheet. It records
+the sill contact distance and compares the final camera after Skip with the
+unskipped endpoint.

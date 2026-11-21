@@ -20,6 +20,7 @@ const reviewScript = `
   window.__tideReview = () => {
     if (place?.id !== 'sea-tide') return null;
     camera.updateMatrixWorld();
+    const sheet = document.querySelector('.candle-sheet')?.getBoundingClientRect();
     const solids = [];
     place.G.traverseVisible(object => {
       if (!object.isMesh || Array.isArray(object.material) || object.material.transparent) return;
@@ -32,7 +33,6 @@ const reviewScript = `
       const ndc = point.clone().project(camera);
       const pixel = [(ndc.x + 1) * innerWidth / 2, (1 - ndc.y) * innerHeight / 2];
       const inFrame = Math.abs(ndc.x) <= 1 && Math.abs(ndc.y) <= 1 && Math.abs(ndc.z) <= 1;
-      const sheet = document.querySelector('.candle-sheet')?.getBoundingClientRect();
       const underSheet = Boolean(sheet && pixel[0] >= sheet.left && pixel[0] <= sheet.right
         && pixel[1] >= sheet.top && pixel[1] <= sheet.bottom);
       const direction = point.clone().sub(camera.position);
@@ -43,7 +43,25 @@ const reviewScript = `
       return { point: point.toArray(), pixel, inFrame, underSheet,
         occluder: nearest ? (nearest.name || nearest.parent?.name || nearest.type) : null };
     }
+    function bounds(box) {
+      if (box.isEmpty()) return null;
+      const corners = [];
+      for (const x of [box.min.x, box.max.x]) for (const y of [box.min.y, box.max.y]) {
+        for (const z of [box.min.z, box.max.z]) corners.push(probe(new THREE.Vector3(x, y, z)));
+      }
+      const left = Math.min(...corners.map(corner => corner.pixel[0]));
+      const right = Math.max(...corners.map(corner => corner.pixel[0]));
+      const top = Math.min(...corners.map(corner => corner.pixel[1]));
+      const bottom = Math.max(...corners.map(corner => corner.pixel[1]));
+      const underSheet = Boolean(sheet && left < sheet.right && right > sheet.left
+        && top < sheet.bottom && bottom > sheet.top);
+      return { left, right, top, bottom, inFrame: corners.every(corner => corner.inFrame), underSheet };
+    }
     const hood = mine.g.getWorldPosition(new THREE.Vector3());
+    const wick = mine.flameWorld().clone();
+    const flameEnvelope = new THREE.Box3(wick.clone().add(new THREE.Vector3(-.035, -.015, -.035)),
+      wick.clone().add(new THREE.Vector3(.035, .085, .035)));
+    const lamp = mine.g.visible && mine.parts?.g;
     const floor = new THREE.Raycaster(hood.clone().add(new THREE.Vector3(0, .04, 0)),
       new THREE.Vector3(0, -1, 0), 0, .2).intersectObjects(solids, false)[0];
     const sea = [
@@ -56,12 +74,13 @@ const reviewScript = `
         fov: camera.fov, rig: { position: rig.pos.toArray(), look: rig.look.toArray(), fov: rig.fov } },
       walk: window.__walkProgress ?? null, ignition: window.__visualIgnition ?? null,
       screen: document.querySelector('.ui')?.dataset.screen,
-      lamp: mine.g.visible ? { base: probe(hood), wick: probe(mine.flameWorld()),
+      lamp: lamp ? { base: probe(hood), wick: probe(wick), hoodBounds: bounds(new THREE.Box3().setFromObject(lamp)),
+        flameEnvelope: bounds(flameEnvelope),
         contactMetres: floor ? hood.y - floor.point.y : null } : null,
       sea,
       mouth: probe(new THREE.Vector3(66, 0, 8.5), true),
-      salt: [probe(new THREE.Vector3(3, 1.05, 13.996), true),
-        ...[14.3, 15, 16, 17.2].map(z => probe(new THREE.Vector3(3.51, 1.05, z), true))],
+      salt: [[8.77, .48, 9.78], [8.11, .48, 10.25], [7.24, .48, 10.89], [3, 1.05, 13.996]]
+        .map(point => probe(new THREE.Vector3(...point), true)),
       screenSize: [innerWidth, innerHeight],
     };
   };`;
@@ -103,7 +122,12 @@ export async function startPreview() {
             return replaceOnce(procedural, "onProgress?.({ ...progress, stage: 'error' });",
               "window.__tidePrepareError = String((error as Error)?.stack ?? error); onProgress?.({ ...progress, stage: 'error' });");
           }
-          if (path.endsWith('/web/src/engine/scene.js')) return source + '\n' + reviewScript;
+          if (path.endsWith('/web/src/engine/scene.js')) {
+            const trace = 'lx: rig.look.x, ly: rig.look.y, lz: rig.look.z, fov: rig.fov ?? camera.fov });';
+            return replaceOnce(source, trace, `lx: rig.look.x, ly: rig.look.y, lz: rig.look.z, fov: camera.fov,
+              actual: camera.position.toArray(), walkState: window.__walkProgress?.state,
+              walkProgress: window.__walkProgress?.progress });`) + '\n' + reviewScript;
+          }
         },
       }],
       server: {

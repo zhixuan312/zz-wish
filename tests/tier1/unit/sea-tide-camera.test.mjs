@@ -43,14 +43,15 @@ for (const phone of [false, true]) {
     assert.ok(rig.pos.distanceTo(start.pos) < 1e-6);
     assert.ok(rig.look.distanceTo(start.look) < 1e-6);
 
-    walk(20 / route.walkSeconds, rig);
+    walk(18 / route.walkSeconds, rig);
     assert.ok(rig.pos.x < wall.west && rig.pos.z > wall.south);
     assert.ok(rig.look.z < rig.pos.z);
     walk(26.2 / route.walkSeconds, rig);
     assert.ok(rig.pos.x > wall.east && rig.pos.z < wall.south);
     assert.ok(rig.look.x > rig.pos.x);
 
-    let previousDirection;
+    let previousPosition, previousDirection;
+    let peakWalkingSpeed = 0, peakOtherSpeed = 0;
     let minimumClearance = Infinity;
     let peakTurn = 0;
     const fps = 120;
@@ -68,11 +69,17 @@ for (const phone of [false, true]) {
       const direction = rig.look.clone().sub(rig.pos).normalize();
       if (previousDirection) {
         peakTurn = Math.max(peakTurn, THREE.MathUtils.radToDeg(previousDirection.angleTo(direction)) * fps);
+        const speed = previousPosition.distanceTo(rig.pos) * fps;
+        if (seconds <= route.walkSeconds) peakWalkingSpeed = Math.max(peakWalkingSpeed, speed);
+        else peakOtherSpeed = Math.max(peakOtherSpeed, speed);
       }
+      previousPosition = rig.pos.clone();
       previousDirection = direction;
     }
     assert.ok(minimumClearance >= 0.6, `Granite wall clearance ${minimumClearance.toFixed(2)} m`);
     assert.ok(peakTurn <= 25, `Maximum angular speed ${peakTurn.toFixed(2)}°/s`);
+    assert.ok(peakWalkingSpeed <= 1.8, `Maximum walking speed ${peakWalkingSpeed.toFixed(3)} m/s`);
+    assert.ok(peakOtherSpeed <= 1.4, `Maximum chooser speed ${peakOtherSpeed.toFixed(3)} m/s`);
     assert.ok(rig.pos.distanceTo(seated.pos) < 1e-6);
     assert.ok(rig.look.distanceTo(seated.look) < 1e-6);
 
