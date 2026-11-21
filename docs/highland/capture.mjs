@@ -31,6 +31,9 @@ const paired = requested.includes('--paired');
 const resume = requested.includes('--resume');
 const liveCrops = requested.includes('--live-crops');
 const ridgeReview = requested.includes('--ridge-review');
+const revisionArgs = requested.filter(value => value.startsWith('--baseline-revision='));
+const [baselineRevisionArg] = revisionArgs;
+const baselineRevision = baselineRevisionArg?.slice('--baseline-revision='.length);
 const TARGETS = ridgeReview ? allTargets.filter(({ seconds }) => seconds >= 24 && seconds !== 25) : allTargets;
 const referenceArg = requested.find(value => value.startsWith('--match='));
 const match = referenceArg ? resolve(referenceArg.slice('--match='.length)) : null;
@@ -39,7 +42,9 @@ assert.ok(!baseline || !match, 'Use --match on the candidate, not the baseline.'
 assert.ok(!paired || (!baseline && !match), 'Use --paired by itself to save before and after together.');
 assert.ok(!resume || paired, 'Use --resume with --paired to keep completed baseline cases.');
 assert.ok(!match || match !== output, 'The baseline and candidate output directories must be different.');
-const filters = requested.filter(value => !['--baseline', '--paired', '--resume', '--live-crops', '--ridge-review'].includes(value) && value !== referenceArg);
+assert.ok(revisionArgs.length <= 1 && (!baselineRevisionArg || (ridgeReview && /^[0-9a-f]{7,40}$/i.test(baselineRevision))),
+  'Use --baseline-revision=<commit SHA> once with --ridge-review.');
+const filters = requested.filter(value => !['--baseline', '--paired', '--resume', '--live-crops', '--ridge-review', baselineRevisionArg, referenceArg].includes(value));
 const combinations = views.flatMap(view => [13, 22].map(hour => ({ ...view, hour, key: `${view.name}-${hour}` })));
 assert.ok(filters.every(key => combinations.some(view => view.key === key)), 'Use desktop-13, desktop-22, phone-13 or phone-22.');
 const selected = filters.length ? combinations.filter(view => filters.includes(view.key)) : combinations;
@@ -374,7 +379,7 @@ async function capture(browser, preview, view, outputDir, referenceDir) {
 
 const failures = [];
 async function captureBatch(browser, isBaseline, outputDir, referenceDir) {
-  const preview = await startPreview({ baseline: isBaseline, ridgeReview });
+  const preview = await startPreview({ baseline: isBaseline, ridgeReview, baselineRevision });
   try {
     console.log(`${isBaseline ? 'Baseline' : 'Candidate'}: ${outputDir}`);
     for (const view of selected) {

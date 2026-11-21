@@ -21,8 +21,10 @@ const root = fileURLToPath(new URL('../../', import.meta.url));
 const git = (...args) => execFileSync('git', args, { cwd: root, encoding: 'utf8' });
 const hash = text => createHash('sha256').update(text).digest('hex');
 
-async function reviewSource(baseline, ridgeReview) {
-  const revision = git('rev-parse', ridgeReview ? RIDGE_BASELINE : BASELINE).trim();
+async function reviewSource(baseline, ridgeReview, baselineRevision) {
+  if (baselineRevision !== undefined && !ridgeReview) throw new Error('A baseline revision override requires ridge review.');
+  const reference = baselineRevision ?? (ridgeReview ? RIDGE_BASELINE : BASELINE);
+  const revision = git('rev-parse', '--verify', '--end-of-options', `${reference}^{commit}`).trim();
   const committedCamera = git('show', `${revision}:${CAMERA_SOURCE}`);
   const currentCamera = await readFile(join(root, CAMERA_SOURCE), 'utf8');
   if (committedCamera !== currentCamera) throw new Error('The authored camera differs from the matched baseline.');
@@ -252,8 +254,8 @@ function makeReview(THREE, camera, canvas, mine, duration, meshNames, createClip
   };
 }
 
-export async function startPreview({ baseline = false, ridgeReview = false } = {}) {
-  const sourceReview = await reviewSource(baseline, ridgeReview);
+export async function startPreview({ baseline = false, ridgeReview = false, baselineRevision } = {}) {
+  const sourceReview = await reviewSource(baseline, ridgeReview, baselineRevision);
   const temporary = await mkdtemp(join(tmpdir(), 'highland-review-'));
   let app, vite;
   async function close() {
