@@ -72,6 +72,14 @@ for (const phone of [false, true]) {
         .toBeGreaterThanOrEqual(CAMERA_LIMITS.clearanceMetres);
     }
 
+    // Each jamb is 2.4 m deep. Include its inside corner while the path turns left.
+    const jambs = [[-3.5, -1.4], [1.4, 3.5]];
+    for (const [left, right] of jambs) {
+      const clearance = Math.min(...samples.map(({ x, z }) =>
+        Math.hypot(Math.max(left - x, 0, x - right), Math.max(16.8 - z, 0, z - 19.2))));
+      expect(clearance).toBeGreaterThanOrEqual(CAMERA_LIMITS.clearanceMetres);
+    }
+
     const skip = freshRig();
     walk(1, skip);
     arrive(1, skip);

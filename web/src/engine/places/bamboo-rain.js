@@ -45,8 +45,9 @@ function buildCloister(h) {
     const brace = new THREE.BoxGeometry(.055, .33, .055).rotateX(.71);
     put(brace, timber, x, .755, -.13);
   }
-  for (const x of [-1.49, -1.02, -.61, .64, 1.11, 1.54]) {
-    const glowing = x === -1.02 || x === 1.11;
+  // The old cups continue away from the seat, leaving the visitor's cup in front.
+  for (const x of [-1.94, .53, .84, 1.16, 1.47, 1.77]) {
+    const glowing = x === .84 || x === 1.47;
     otherLamp('celadon', x, .91, -.15, glowing ? .12 : .005, 0, glowing ? .23 : 0);
   }
 
@@ -61,10 +62,12 @@ function buildCloister(h) {
     box(span - .012, .104, .10, wetStone, center, invertY + .052, inner - .05);
     box(span - .012, .073, .16, dressedStone, center, invertY + .0365, outer + .08);
   }
-  const stream = water(waterY, 0x3f554f, {
+  const stream = water(waterY, 0x3b4840, {
     x: middle, z: ditchCenter, geo: new THREE.PlaneGeometry(length, ditchWidth),
-    rough: .24, waves: .055, env: .66,
+    rough: .35, waves: .065, env: .48,
   });
+  stream.material.clearcoat = .08;
+  stream.material.specularIntensity = .31;
   stream.name = 'Bamboo Rain channel water';
   stream.receiveShadow = true;
 
@@ -129,6 +132,8 @@ export default function createPlace(h) {
       wallRun(3.5, 18, 11, 18, 2.8, white, tile);
       wallRun(10, 18, 10, -9, 2.8, white, tile);
       wallRun(-10, 18, -10, -9, 2.8, white, tile);
+      wallRun(-10, -5.6, -6.9, -5.6, 2.35, white, tile);
+      pave(-8.57, -2.05, 3.16, 7.1, -.122, stone);
       hallB({ z: -8, w: 15, d: 5, h: 3, wall: white, roof: tile, base: .3, lift: .2, glow: .18 });
 
       box(2.7, .35, 19, stone, 8.3, .175, 4);
@@ -310,7 +315,7 @@ const rippleFragment = `
     float ring = 1.0 - smoothstep(0.042, 0.12, abs(distanceToImpact - 0.76));
     float crescent = 0.54 + 0.46 * smoothstep(-0.5, 0.5, dot(vRipple, vec2(-0.6, 0.8)));
     float centre = (1.0 - smoothstep(0.02, 0.16, distanceToImpact)) * vAlpha * 0.16;
-    gl_FragColor = vec4(uColor, vAlpha * ring * crescent * 0.38 + centre);
+    gl_FragColor = vec4(uColor, vAlpha * ring * crescent * 0.46 + centre);
     #include <tonemapping_fragment>
     #include <colorspace_fragment>
     #include <fog_fragment>

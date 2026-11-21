@@ -12,9 +12,10 @@ const ROUTE = [
   [7, [.10, 1.64, 28.8], 180, 1],
   [12, [.10, 1.64, 23.3], 179, 1],
   [15.5, [.08, 1.64, 19.45], 180, 0],
-  [17.5, [-.20, 1.62, 17.25], 199, 0],
-  [19.5, [-2.55, 1.62, 15.15], 219, 0],
-  [22, [-5.49, 1.62, 12.68], 222, -2],
+  [17.5, [-.10, 1.62, 17.05], 185, 0],
+  [18.6, [-.42, 1.62, 15.85], 201, 0],
+  [20.25, [-2.52, 1.62, 14.39], 219, 0],
+  [22, [-4.98, 1.62, 12.61], 222, -2],
   [23.5, [-6.65, 1.62, 10.92], 212, -4],
   [24.5, [-6.88, 1.75, 9.92], 200, -4],
   [25.2, [-7.16, 1.84, 9.53], 190, -2],
@@ -69,8 +70,8 @@ export function bambooRainCameras(V3, nook) {
 
   // Angle along the dry shelf into the courtyard. The portrait lens keeps the
   // cup left of the tile-to-channel sightline and above the chooser sheet.
-  const choose = pose([-1.50, 1.24, .24], 83, -3.5, 50, 1.6);
-  const choosePhone = pose([-1.88, 1.27, .14], 84.5, -15.5, 65, 1.9);
+  const choose = pose([-1.13, 1.26, .10], 81, -5, 51, 1.6);
+  const choosePhone = pose([-1.36, 1.24, -.04], 79, -13, 66, 1.9);
   return {
     view: walkPose(0, false),
     viewPhone: walkPose(0, true),
