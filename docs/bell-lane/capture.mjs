@@ -77,14 +77,10 @@ const ready = page => page.waitForFunction(() => document.querySelector('.ui[dat
 const audio = page => page.evaluate(() => window.__reviewBellLaneAudio());
 const waitWalk = (page, seconds) => page.waitForFunction(value => window.__walkProgress?.progress >= value / 30, seconds, { timeout: 60000 });
 
-async function snap(page, directory, name) {
+async function snap(page, directory, name, seconds = null) {
   const path = join(directory, name + '.png');
-  const camera = await page.evaluate(() => {
-    const c = window.__pineRenderCamera;
-    return { position: c.position.toArray(), direction: c.getWorldDirection(c.position.clone()).toArray(),
-      fov: c.fov, walk: window.__walkProgress ?? null, landmark: window.__bellReviewWindow?.() ?? null };
-  });
-  await page.screenshot({ path, style: '#root, #fade { visibility: hidden !important; }', scale: 'css' });
+  const { png, ...camera } = await page.evaluate(seconds => window.__captureBellFrame(seconds), seconds);
+  await writeFile(path, Buffer.from(png, 'base64'));
   shots.push({ file: path, ...camera });
   return camera;
 }
@@ -165,18 +161,14 @@ try {
     const soundRows = {};
     await waitWalk(page, 12);
     soundRows.eaves = await audio(page);
-    await waitWalk(page, 16.75);
-    const passing = await snap(page, directory, 'passing-window');
+    const passing = await snap(page, directory, 'passing-window', 16.75);
     await waitWalk(page, 22);
     soundRows.approach = await audio(page);
-    await waitWalk(page, 24.2);
-    await snap(page, directory, 'threshold');
+    await snap(page, directory, 'threshold', 24.2);
     soundRows.door = await audio(page);
-    await waitWalk(page, 26.3);
-    await snap(page, directory, 'open-court-26s');
+    await snap(page, directory, 'open-court-26s', 26.3);
     soundRows.court = await audio(page);
-    await waitWalk(page, 29.5);
-    await snap(page, directory, 'open-court-29s');
+    await snap(page, directory, 'open-court-29s', 29.5);
     await screen(page, 'candle');
     await page.screenshot({ path: join(directory, 'chooser-ready-made.png'), scale: 'css' });
     const chooser = { readyMade: await page.evaluate(() => window.__bellReviewWindow()) };

@@ -23,8 +23,29 @@ export async function startPreview() {
         transform(source, id) {
           if (id.endsWith('/web/src/engine/scene.js')) {
             const anchor = 'const outside = new THREE.Scene();';
-            if (!source.includes(anchor)) throw new Error('Bell Lane review cannot find the active scene.');
+            const draw = '  composer.render();\n}\n\n// ---------- Start ----------';
+            if (!source.includes(anchor) || !source.includes(draw)) throw new Error('Bell Lane review cannot find the active scene or render loop.');
             return source.replace(anchor, anchor + `
+              const requestedBellFrames = [];
+              window.__captureBellFrame = seconds => new Promise((resolve, reject) => {
+                requestedBellFrames.push({ seconds, resolve, reject });
+              });
+              function captureBellFrames() {
+                const walk = window.__walkProgress ?? null;
+                for (const request of requestedBellFrames.slice()) {
+                  if (request.seconds !== null && (walk?.id !== 'bell-lane' || walk.progress * 30 < request.seconds)) continue;
+                  requestedBellFrames.splice(requestedBellFrames.indexOf(request), 1);
+                  const frame = { position: camera.position.toArray(), direction: camera.getWorldDirection(new THREE.Vector3()).toArray(),
+                    fov: camera.fov, walk, landmark: window.__bellReviewWindow(), ignition: window.__visualIgnition ?? null };
+                  renderer.domElement.toBlob(blob => {
+                    if (!blob) { request.reject(new Error('The renderer returned no frame')); return; }
+                    const reader = new FileReader();
+                    reader.onload = () => request.resolve({ ...frame, png: reader.result.split(',')[1] });
+                    reader.onerror = request.reject;
+                    reader.readAsDataURL(blob);
+                  }, 'image/png');
+                }
+              }
               window.__bellReviewWindow = () => {
                 const windowMesh = outside.getObjectByName('Bell Lane east shop window');
                 if (!windowMesh) return null;
@@ -42,7 +63,7 @@ export async function startPreview() {
                 return { wickNdc: wick.toArray(), wickCovered: covered(wick), windowCovered: covered(ndc), windowId: windowMesh.uuid, visible: hit?.object === windowMesh && Math.abs(ndc.x) < 1 && Math.abs(ndc.y) < 1,
                   ndc: ndc.toArray(), obstruction: hit?.object === windowMesh ? null : (hit?.object?.name || hit?.object?.type || null) };
               };
-            `);
+            `).replace(draw, draw.replace('composer.render();', 'composer.render(); captureBellFrames();'));
           }
           if (!id.endsWith('/web/src/visiblePlaces.ts')) return;
           const original = "['snow-roof', 'pine-gate']";
