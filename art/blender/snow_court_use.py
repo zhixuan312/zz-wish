@@ -18,15 +18,15 @@ def sweep_center(route, z):
     return route[0 if z > route[0][1] else -1][0]
 
 
-def boot_relief(x, z, footprints):
+def boot_relief(x, z, footprints, sole_scale=1.):
     """Model the heel and toe separately, with a return drift inside each print."""
     depth, tread = 0., 0.
     for px, pz, angle, age in footprints:
         if abs(z - pz) > .28:
             continue
         dx, dz = x - px, z - pz
-        across = dx * math.cos(angle) - dz * math.sin(angle)
-        along = dx * math.sin(angle) + dz * math.cos(angle)
+        across = (dx * math.cos(angle) - dz * math.sin(angle)) / sole_scale
+        along = (dx * math.sin(angle) + dz * math.cos(angle)) / sole_scale
         heel = ((along - .089) / .074) ** 2 + (across / .067) ** 2
         toe = ((along + .069) / .105) ** 2 + ((across - .011) / .094) ** 2
         shape = min(heel, toe)
@@ -61,13 +61,13 @@ def swept_surface(x, z, across, seam, exposure, fade, tread):
     shoulder = 1. - smoothrise(lip + .012, lip + .173, seam)
     load = .61 + .25 * math.sin(z * 3.83 + side * 1.2) + .14 * math.cos(z * 7.11 - side * 1.6)
     ridge = local * step * shoulder * load
-    displacement = .065 * ridge - .007 * marks + .012 * dust * local * inside
+    displacement = .092 * ridge - .007 * marks + .012 * dust * local * inside
 
     # Packed snow keeps most of the scan's albedo. The signs of use are
     # intermittent ridges, bristle arcs and the sheltered half of each print.
-    pressed = local * inside * (.085 + .068 * (1. - dust))
-    heel_toe = fade * smoothrise(.055, .66, tread)
-    tint = tuple(1. - pressed * coefficient - .072 * marks - .195 * heel_toe + .081 * ridge
+    pressed = local * inside * (.165 + .066 * (1. - dust))
+    heel_toe = fade * smoothrise(.035, .50, tread)
+    tint = tuple(1. - pressed * coefficient - .055 * marks - .35 * heel_toe + .11 * ridge
                  for coefficient in (.92, 1., 1.06))
     return displacement, tint
 
@@ -174,11 +174,32 @@ def swept_ground(mesh, site, materials):
     left, right, rear, front, level = (court[key] for key in ('west', 'east', 'rear', 'front', 'level'))
     rng = random.Random(513)
     footprints = []
+    z = route[0][1] - .22
     for index in range(27):
-        z = route[0][1] - .22 - index * .475 + rng.uniform(-.036, .036)
+        if index:
+            z -= rng.uniform(.395, .545)
         sign = 1. if index % 2 else -1.
-        x = sweep_center(route, z) + .21 + sign * .132 + rng.uniform(-.026, .026)
-        footprints.append((x, z, sign * .19 + rng.uniform(-.08, .08), rng.uniform(.07, .96)))
+        x = sweep_center(route, z) + .166 + sign * .114 + rng.uniform(-.043, .043)
+        drifted = smoothrise(.12, .81, math.sin(z * 2.41 - .57))
+        age = min(.99, rng.uniform(.08, .86) + .34 * drifted)
+        footprints.append((x, z, sign * .16 + rng.uniform(-.19, .19), age))
+
+    # A few slab faces break through on the lee side of the swept lane.
+    # Keep intact snow between them and clear of the boot track.
+    scoured_stones = ((7.12, -.14, .13, .24), (5.46, -.16, .13, .32),
+                     (4.69, -.17, .10, .18), (2.90, -.17, .15, .35),
+                     (.94, -.12, .12, .22), (-.24, -.19, .12, .23),
+                     (-1.36, -.15, .15, .29))
+
+    def stone_core(across, z):
+        for pz, px, width, length in scoured_stones:
+            t = (z - pz) / length
+            if abs(t) < 1.:
+                u = (across - px) / width + .31 * t
+                edge = .91 + .085 * math.sin(34. * z + across * 28.)
+                if abs(u) ** 3 + abs(t) ** 2.5 < edge:
+                    return True
+        return False
     # Sample the boot centres at actual row coordinates. Keep enough regular
     # rows to describe the intervening snow and contiguous atlas chart.
     stations = [rear + (front + .08 - rear) * i / 119 for i in range(120)]
@@ -200,11 +221,11 @@ def swept_ground(mesh, site, materials):
         ridge = 1. - fade * (1. - smoothrise(exposure, .82, seam))
         drift = (.063 + .034 * math.sin(1.88 * x + 1.45 * z) * math.cos(z * .91)
                  + .19 * math.exp(-((abs(x) - 9.1) / .91) ** 2))
-        depth, tread = boot_relief(x, z, footprints)
+        depth, tread = boot_relief(x, z, footprints, sole_scale=.92)
         displacement, tint = swept_surface(x, z, across, seam, exposure, fade, tread)
         lee_drift = wall_foot_snow(site, x, z)
         lee_drift *= smoothrise(.86, 1.31, abs(across))
-        relief = .027 + drift * ridge - depth * fade + displacement + lee_drift
+        relief = .027 + drift * ridge - 1.40 * depth * fade + displacement + lee_drift
         relief += .005 * math.sin(x * 13.1 + z * 8.6) * math.sin(x * 7.0 - z * 10.2)
         vertices.append((x, level + max(.006, relief), z))
         colours.append(tint)
@@ -238,6 +259,12 @@ def swept_ground(mesh, site, materials):
     snow_factor = surface.get('one_light_vertex_base_tint', (1., 1., 1.))
     ground = mesh.mesh_object('Swept snow, displaced berms and buried prints',
                               vertices, faces, surface)
+    stone = materials['granite'].copy()
+    stone.name = 'Scoured pass granite under the swept snow'
+    mesh.vertex_tint_shader(stone)
+    del stone['one_light_surface_tint']
+    stone_factor = stone['one_light_vertex_base_tint']
+    ground.data.materials.append(stone)
     mesh.source_uv(ground, [[(vertices[i][0], vertices[i][2]) for i in face] for face in faces],
                    'One continuous x/z chart through the swept lane, boot impressions and snow berms.')
     # Reuse the same scanned grain at a finer pitch. The slight diagonal
@@ -247,11 +274,20 @@ def swept_ground(mesh, site, materials):
     ground.data.color_attributes.active_color = layer
     for polygon in ground.data.polygons:
         polygon.use_smooth = True
+        points = [vertices[i] for i in polygon.vertices]
+        cx = sum(point[0] for point in points) / 3
+        cz = sum(point[2] for point in points) / 3
+        exposed = stone_core(cx - sweep_center(route, cz), cz)
+        polygon.material_index = int(exposed)
         for loop in polygon.loop_indices:
             i = ground.data.loops[loop].vertex_index
             x, _, z = vertices[i]
             uv[loop].uv = ((x + .17 * z) / .76, -z / .91)
-            layer.data[loop].color = (*(a * b for a, b in zip(snow_factor, colours[i])), 1.)
+            if exposed:
+                frost = .28 + .13 * math.sin(z * 6.9 + x * 8.4)
+                layer.data[loop].color = (*(a + frost * (b - a) for a, b in zip(stone_factor, snow_factor)), 1.)
+            else:
+                layer.data[loop].color = (*(a * b for a, b in zip(snow_factor, colours[i])), 1.)
     return ground
 
 
