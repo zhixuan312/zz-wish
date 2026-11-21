@@ -21,6 +21,7 @@ import { acquireNativeAgX, NativeAgXPass } from './baked/nativeAgX.js';
 import visitorFabric from './baked/visitor-fabric.json';
 import { WickPlume, addGauzeVent, createGauzeSmokePath, gauzeFlameSize, gauzeRibGeometry, gauzeThroat } from './WickPlume.js';
 import { createPineTray, createPineWax, waxContactShadow } from './PineWax.js';
+import { addSnowCourtGauzeTransmission } from './places/snow-court-gauze.js';
 import { TAPER_BEAT, taperHasReachedWick } from './places/pine-taper.js';
 
 // ---------- Renderer ----------
@@ -477,9 +478,10 @@ function shellMaterial(color, o = {}) {
   const Material=o.cloth?THREE.MeshPhysicalMaterial:THREE.MeshStandardMaterial;
   const m = new Material({ color, roughness: o.rough ?? .85, map: o.map ?? null, alphaMap: o.alphaMap ?? null, alphaTest: o.alphaMap ? .5 : 0, side: THREE.DoubleSide, envMapIntensity: .15 });
   if(o.cloth){
-    m.normalMap=gauzeNormal;m.normalScale.set(.38,.38);m.roughnessMap=gauzeRoughness;
+    m.normalMap=gauzeNormal;m.normalScale.setScalar(o.winterWeave ? .67 : .38);m.roughnessMap=gauzeRoughness;
     m.sheen=.45;m.sheenRoughness=.85;m.sheenColor.copy(m.color);m.specularIntensity=.3;
   }
+  if(o.winterWeave){m.transparent=true;m.opacity=.93;m.depthWrite=false;m.forceSinglePass=true;}
   m.userData.u = { uFlame: { value: V3(0, 0, 0) }, uGlow: { value: 0 }, uGlowColor: { value: new THREE.Color(o.glow ?? 0xffa050) }, uReach: { value: o.reach ?? 9 }, uBase: { value: o.base ?? .2 } };
   if(o.cloth){
     m.userData.cloth=true;
@@ -489,6 +491,7 @@ function shellMaterial(color, o = {}) {
   m.userData.lampOwned=true;
   m.onBeforeCompile = (sh) => {
     Object.assign(sh.uniforms, m.userData.u);
+    if(o.winterWeave)addSnowCourtGauzeTransmission(sh,12,false);
     sh.vertexShader = 'varying vec3 vSPos;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\nvSPos = (modelMatrix * vec4(transformed, 1.0)).xyz;');
     sh.fragmentShader = 'uniform vec3 uFlame; uniform float uGlow; uniform vec3 uGlowColor; uniform float uReach; uniform float uBase; varying vec3 vSPos;\n'+(o.cloth?'uniform float uClothPhysical,uClothIntensity,uClothEmitterRadius,uClothTransmissionWeight,uClothReflectionWeight;uniform vec3 uClothSourceRGB;\n':'') + sh.fragmentShader.replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
       float near = exp(-distance(vSPos, uFlame) * uReach);
@@ -501,6 +504,14 @@ function shellMaterial(color, o = {}) {
         physicalTransmissionShadow*=getPointShadow(pointShadowMap[0],ribShadow.shadowMapSize,ribShadow.shadowBias,ribShadow.shadowRadius,vPointShadowCoord[0],ribShadow.shadowCameraNear,ribShadow.shadowCameraFar);
         transmissionShadow=mix(.28,1.,physicalTransmissionShadow);
       #endif`:''}
+      ${o.winterWeave?`
+        // At a glancing angle light passes through more fibres. The two
+        // folded hems also transmit less than the unsupported panel.
+        float clothAngle=abs(dot(normal,normalize(vViewPosition)));
+        float hem=smoothstep(.025,.18,vSnowGauze.y)*smoothstep(.025,.18,1.-vSnowGauze.y);
+        float gauzeTransmission=mix(.71,1.,hem)*mix(.69,1.,smoothstep(.15,.80,clothAngle))*(1.-gauzeBamboo*.39);
+        transmissionShadow*=gauzeTransmission;physicalTransmissionShadow*=gauzeTransmission;
+      `:''}
       vec3 transmitted=${o.cloth?'mix(diffuseColor.rgb,pow(max(diffuseColor.rgb,vec3(0.)),vec3(.55)),.32)':'diffuseColor.rgb'};
       float clothSignedIncidence=${o.cloth?'dot(normal,normalize((viewMatrix*vec4(uFlame,1.)).xyz+vViewPosition))':'1.'};
       float clothIncidence=abs(clothSignedIncidence);
@@ -520,11 +531,12 @@ function shellMaterial(color, o = {}) {
       sh.fragmentShader='uniform float uWeaveMean;\n'+sh.fragmentShader.replace('#include <map_fragment>',`#ifdef USE_MAP
         vec3 photographedWeave=texture2D(map,vMapUv).rgb;
         float yarn=dot(photographedWeave,vec3(.2126,.7152,.0722))/uWeaveMean;
-        diffuseColor.rgb*=clamp(yarn,.66,1.24);
+        diffuseColor.rgb*=clamp(${o.winterWeave ? '1. + (yarn - 1.) * 2.05' : 'yarn'},
+          ${o.winterWeave ? '.58,1.30' : '.66,1.24'});
       #endif`);
     }
   };
-  m.customProgramCacheKey=()=>`translucent-shell-${o.cloth?'woven':'plain'}-3`;
+  m.customProgramCacheKey=()=>`translucent-shell-${o.cloth?'woven':'plain'}-${o.winterWeave?'winter-bowed-gauze':'3'}`;
   return m;
 }
 const lathe = (pts, seg = 64) => new THREE.LatheGeometry(pts.map(([r, y]) => V2(r, y)), seg);
@@ -729,6 +741,7 @@ const LAMPS = {
       // instead of concentrating it, without dimming the rim's own colour.
       lacquer.roughness=Math.max(lacquer.roughness,.9);lacquer.clearcoat=0;lacquer.envMapIntensity=Math.min(lacquer.envMapIntensity??1,.25);
     }
+    if(o.winterWeave){lacquer.color.setHex(0x93704b);lacquer.map=grainTex;}
     const g = new THREE.Group(), P = scaled(o.rows,size), H = P[P.length - 1][1], y0 = -.066 - H;
     const centerAt=y=>{const q=ringAt(o.rows,Math.max(0,Math.min(H,(y-y0)))/size);return(q.cx-topCx)*size;};
     const bottomCx=centerAt(y0);
@@ -741,14 +754,24 @@ const LAMPS = {
     const smokeProfile=prof.map(([r,y])=>[r,y,centerAt(y)]);
     solid(g, new THREE.CylinderGeometry(o.liveBaked?.0025:.0015, o.liveBaked?.0025:.0015, .06, 8), suspension, 0, -.03, 0);
     const vent=addGauzeVent(g,{radius:rTop,topY:prof.at(-1)[1],material:lacquer,cordMaterial:suspension,cordRadius:o.liveBaked?.0025:.0015});
-    const shell = shellMaterial(o.color, { map: gauzeTex, glow: 0xffb070, reach: 18, rough: .82, base: .025, strength: 1.05, cloth:true });
-    const fabric=lathe(prof,96),fp=fabric.attributes.position;
+    const shell = shellMaterial(o.color, { map: gauzeTex, glow: 0xffb070, reach: 18, rough: .82, base: .025, strength: 1.05, cloth:true, winterWeave:o.winterWeave });
+    function clothRadius(r,a,q){
+      const panel=Math.sin(a*6)**2, middle=Math.sin(Math.PI*q);
+      const sag=gauzeThroat(r).sag*panel*middle*(.85+.15*Math.sin(a*5+q*2));
+      // The Snow Court cloth eases outward between the staves with quiet,
+      // staggered creases. Other shades keep their fitted panels.
+      if(o.winterWeave){
+        const fold=Math.sin(a*3+q*7+.36*Math.sin(q*10));
+        const relief=Math.min(.009,r*.085)*panel*middle*(.57+.57*fold);
+        return Math.max(.001,r+relief);
+      }
+      return Math.max(.001,r-sag);
+    }
+    const fabric=lathe(prof,96),fp=fabric.attributes.position,uv=fabric.attributes.uv;
     for(let i=0;i<fp.count;i++){
       const x=fp.getX(i),z=fp.getZ(i),y=fp.getY(i),r=Math.hypot(x,z),a=Math.atan2(z,x),q=(y-y0)/H;
-      // A stretched cloth panel bows gently inward between the bamboo strips.
-      // Its seam remains above the strip; the strip never paints the outside.
-      const sag=gauzeThroat(r).sag*Math.sin(a*6)**2*Math.sin(Math.PI*q)*(.85+.15*Math.sin(a*5+q*2));
-      const k=Math.max(.001,r-sag)/r;fp.setXYZ(i,x*k+centerAt(y),y,z*k);
+      const k=clothRadius(r,a,q)/r;fp.setXYZ(i,x*k+centerAt(y),y,z*k);
+      if(o.winterWeave)uv.setY(i,q);
     }
     fabric.computeVertexNormals();
     const cloth=solid(g,fabric,shell);cloth.castShadow=false;cloth.userData.visitorCloth=true;
@@ -880,16 +903,18 @@ const api = { g, parts: null, partsKey: null, type: null, power: 0, lightPower: 
     // Builds this place's vessel; a dish or a shade takes the person's outline and colour.
     build(o) {
       const drawn = !WAX_LAMPS.has(this.type) && o,liveBaked=!!place?.P.bakedLighting;
+      const winterWeave=this.type==='gauze' && !!place?.P.nook.winterWeave;
       const sculptNormal = this.type === 'pineWax' ? place?.baked?.waxNormal : null;
       const sunShade = this.type === 'pineWax' ? place?.baked?.sunShade : null;
       const key = this.type + (liveBaked?'|cycles':'') + (sculptNormal ? `|sculpt-${sculptNormal.id}` : '')
-        + (sunShade ? '|shaded-sun' : '')
+        + (sunShade ? '|shaded-sun' : '') + (winterWeave ? '|winter-weave' : '')
         + (drawn ? JSON.stringify([o.rows, o.color]) : '');
       if (key === this.partsKey && (!sunShade || this.parts?.sunShade === sunShade)) return;
       if (this.parts) { g.remove(this.parts.g); disposeTree(this.parts.g); }
-      const input=drawn?{...o,liveBaked}:this.type==='gauze'?{...presetOf('shade'),liveBaked}:undefined;
+      const input=drawn?{...o,liveBaked,winterWeave}:this.type==='gauze'?{...presetOf('shade'),liveBaked,winterWeave}:undefined;
       const p = this.type === 'pineWax' ? LAMPS.pineWax({ refined: liveBaked, sculptNormal, sunShade })
         : input ? LAMPS[this.type](input) : LAMPS[this.type]();
+      if(winterWeave)place.P.nook.decorateVisitorLantern?.(p,grainTex);
       this.parts = p; this.partsKey = key; g.add(p.g);
       hanger.material=p.suspensionMaterial??defaultSuspensionMaterial;
       f.wick.visible = !p.wickMesh && !p.pineWax;
@@ -1055,6 +1080,8 @@ const api = { g, parts: null, partsKey: null, type: null, power: 0, lightPower: 
         const u=m.userData.u,transport=place?.baked?.gauzeTransmission;
         u.uFlame.value.copy(fw);u.uGlow.value=Math.max(2.4*m.userData.strength*power*k*keep,cooling*m.userData.strength);
         if(m.userData.cloth){
+          const gauzeGlow=place?.P.nook.gauzeGlow;
+          if(gauzeGlow){u.uBase.value=gauzeGlow.base;u.uReach.value=gauzeGlow.reach;}
           u.uClothPhysical.value=transport?1:0;
           if(transport){
             const basis=place.baked.manifest.lampBasis,emberIntensity=place.baked.lampCandela*cooling/2.4;
@@ -1775,6 +1802,7 @@ function captureLocalEnvironment({context=C,root=context.root,environment=contex
   return{texture:target.texture,dispose,metadata:{position:[...position],size,near,far,format:'linear RGBA16F cube → PMREM',sourceRoot:root.name,excluded:exclude.map(object=>object.name),scope:'One local reflection/indirect approximation from actual lit geometry; no extra light, exposure, gain or SH.'}};
 }
 const placeHelpers = { THREE, V3, V2, M, roofMat, ground, pave, hallB, gateB, compound, rock, trees, peak, ridges, mist, burnerAt, postLanterns, pagoda, stairs, paifang, wallRun, water, archBridge, lotus, box, city, fall, lanterns, put, tower, smokeAt, pavingTex, petalTex, pauseBuild, eave, col, rail, wallWithHoles, cloudSea, footprints, bell, otherLamp, lathe, hexMix, addStump:(x,y,z,scale,yaw)=>addScannedStump(C.G,x,y,z,scale,yaw),
+  visitorCloth: { weave: gauzeTex, normal: gauzeNormal, roughness: gauzeRoughness, mean: visitorFabric.meanLinearLuminance },
   liveFlame,pineFixtureFlame,fixtureSpecular,captureLocalEnvironment,loessTex, brickTex, plasterTex, papercutTex, grainTex, latticeTex, sootTex, windowsTex, get renderer() { return renderer; }, get context() { return C; } };
 const cachedPlaces = new Map();
 const sharedTextures = new Set([needleTex, leafTex, pavingTex, grainTex, tileTex, waterTex, latticeTex, softTex, petalTex, windowsTex, patina, crackleTex, holesTex, gauzeTex,gauzeNormal,gauzeRoughness, paperLatticeTex, loessTex, brickTex, plasterTex, papercutTex, sootTex]);
@@ -1829,10 +1857,18 @@ async function buildPlace(t) {
   trimPlaceCache([t.id]);
   attachMine();
 }
+function compileIntoTarget(scene, view, target) {
+  const previous = renderer.getRenderTarget();
+  renderer.setRenderTarget(target);
+  // Three sets the program's colour-space and tone-mapping defines while
+  // starting the link. Only the completion poll is asynchronous.
+  try { return renderer.compileAsync(scene, view); }
+  finally { renderer.setRenderTarget(previous); }
+}
 async function buildPlaceNow(t, isolated = false) {
-  PLACES[t.id] ??= (await placeModules[t.id]()).default(placeHelpers);
-  const light = placeLight(PLACES[t.id]), lightKey = JSON.stringify(light);
   if (cachedPlaces.has(t.id)) return cachedPlaces.get(t.id);
+  PLACES[t.id] ??= await (await placeModules[t.id]()).default(placeHelpers);
+  const light = placeLight(PLACES[t.id]), lightKey = JSON.stringify(light);
   if(PLACES[t.id].bakedLighting)await ensureNativeAgX();
   if(t.id==='snow-roof')await ensureVisitorFabric();
   if(!PLACES[t.id].bakedLighting)await loadNaturalAssets();
@@ -1882,7 +1918,15 @@ async function buildPlaceNow(t, isolated = false) {
       lx: rig.look.x, ly: rig.look.y, lz: rig.look.z, fov: rig.fov ?? camera.fov });
   });
   const candidate = { G, disposers:context.disposers, up: context.up, sky, env, envTarget, P, id: t.id, lightKey, daylight: light, nookG, others: context.others, cover: context.cover, baked:context.baked, reflectors:context.reflectors, hemi, sun, hemiBase: hemi.intensity, sunBase: sun.intensity };
-  if(context.baked?.staticLampShadow)await context.baked.staticLampShadow.capture(renderer,context.baked.group);
+  const streamsSnowInterior = t.id === 'snow-roof'
+    && context.baked?.manifest.snowCourt && context.baked.manifest.walkLightmaps;
+  if (context.baked?.staticLampShadow) {
+    const capture = () => context.baked.staticLampShadow.capture(renderer, context.baked.group);
+    // The road preview has no visitor light. Capture its indoor shadow as
+    // part of entry, before the visitor can light the lantern.
+    if (streamsSnowInterior) candidate.prepareStaticLampShadow = capture;
+    else await capture();
+  }
   const stage = new THREE.Scene(); stage.environment = env; stage.fog = new THREE.FogExp2(...P.fog); stage.add(G);
   stage.add(previewFill.clone());
   const stageCamera = camera.clone(); stageCamera.position.copy(P.view.pos); stageCamera.lookAt(P.view.look);
@@ -1892,8 +1936,13 @@ async function buildPlaceNow(t, isolated = false) {
   let visitorPreview;
   const target = renderer.getRenderTarget(), warm = new THREE.WebGLRenderTarget(4, 4);
   try {
-    await renderer.compileAsync(stage, stageCamera);
-    if (P.bakedLighting && P.nook.lamp === 'gauze') {
+    // A streamed Snow Court opens on the road. Its visitor lamp shaders can
+    // link with the actual lamp when the player reaches the hall.
+    // The streamed road is always drawn into the linear compositor target.
+    // Precompiling the screen-space variant as well delays Step inside.
+    if (!streamsSnowInterior) await renderer.compileAsync(stage, stageCamera);
+    if (streamsSnowInterior) await compileIntoTarget(stage, stageCamera, warm);
+    if (P.bakedLighting && P.nook.lamp === 'gauze' && !streamsSnowInterior) {
       visitorPreview = LAMPS.gauze({ ...presetOf('shade'), liveBaked: true });
       const basis = context.baked.manifest.lampBasis.position;
       visitorPreview.g.position.set(...basis); stage.add(visitorPreview.g);
@@ -1911,10 +1960,18 @@ async function buildPlaceNow(t, isolated = false) {
   const pineOpening = N.lamp === 'pineWax' && context.baked?.waxNormal;
   if(P.bakedLighting&&context.baked&&(N.lamp==='gauze'||pineOpening)){
     const basis=context.baked.manifest.lampBasis.position;
-    context.baked.update(context.light,0,V3(...basis));
-    // All hall programs are already warmed above. This bounded six-face
-    // capture adds no light and keeps the visitor out of its own environment.
-    candidate.visitorEnvironment=captureLocalEnvironment({context,root:G,environment:env,fog:stage.fog,position:[...basis],size:64,near:.01,far:pineOpening ? stageCamera.far : 30});
+    const probe = () => {
+      context.baked.update(candidate.daylight, 0, V3(...basis));
+      // A prepared place may already own the hidden visitor pivot. Exclude
+      // it and the distant projection from the deferred room probe.
+      const exclude = streamsSnowInterior
+        ? [context.baked.backdrop.group, candidate.visitorPivot].filter(Boolean)
+        : [];
+      return captureLocalEnvironment({ context, root: G, environment: env, fog: stage.fog,
+        position: [...basis], exclude, size: 64, near: .01, far: pineOpening ? stageCamera.far : 30 });
+    };
+    if (streamsSnowInterior) candidate.prepareVisitorEnvironment = probe;
+    else candidate.visitorEnvironment = probe();
   }
   cachedPlaces.set(t.id, candidate);
   // Preserve a prepared Pine Gate while the cover is still on screen.
@@ -2008,7 +2065,20 @@ if (import.meta.env.DEV || import.meta.env.VITE_E2E_HOOKS === '1') {
   };
 }
 const tweens = [];
-function tween(dur, fn) { if (reducedMotion.matches) { fn(1); return Promise.resolve(); } return new Promise((res) => { tweens.push({ t: 0, dur, fn, res, skip: false }); }); }
+function tween(dur, fn, finishWhenDue = false, { fromFirstDraw = false } = {}) {
+  if (reducedMotion.matches) { fn(1); return Promise.resolve(); }
+  return new Promise(res => {
+    const tw = { t: 0, dur, fn, res, skip: false, fromFirstDraw };
+    tweens.push(tw);
+    if (finishWhenDue) tw.deadline = setTimeout(() => {
+      const index = tweens.indexOf(tw);
+      if (index === -1) return;
+      tweens.splice(index, 1);
+      fn(1);
+      res();
+    }, dur * 1000);
+  });
+}
 function skipTweens() { for (const tw of tweens) tw.skip = true; }
 function moveCam(pos, look, dur, fov) {
   const p0 = rig.pos.clone(), l0 = rig.look.clone(),f0=rig.fov??camera.fov,f1=fov??(narrow()?44:32);
@@ -2075,6 +2145,7 @@ const chooseView = () => {
     return { pos: backed, look, fov: burn.fov };
   }
   const v=viewOf((narrow()&&N.choosePhone)||N.choose||N.wide);
+  if (N.steadyIgnition) return v;
   if(narrow()&&!place.P.bakedLighting&&N.lamp!=='pineWax')v.look.y-=v.pos.distanceTo(v.look)*.10;
   return fitShadeView(v, undefined, undefined, false, CHOOSE_PHONE_YAW);
 };
@@ -2416,6 +2487,20 @@ export async function travel(id) {
     await fadeTo(1, 200); await showPlace(id);
     const p=PLACES[id],v=(narrow()&&p.viewPhone)||p.view;rig.pos.copy(v.pos);rig.look.copy(v.look);rig.amp=1;rig.fov=v.fov??null;await fadeTo(0,267);
   }
+  if (place.prepareStaticLampShadow) {
+    await place.prepareStaticLampShadow();
+    place.prepareStaticLampShadow = null;
+  }
+  if (place.prepareVisitorEnvironment && !place.visitorEnvironment) {
+    // Sample the hall after the road is usable and before the route moves.
+    // Refresh the existing offer so it uses the same indoor reflection from
+    // the first frame in the chooser.
+    place.visitorEnvironment = place.prepareVisitorEnvironment();
+    if (mine.offer) {
+      mine.partsKey = null;
+      mine.setOffer(mine.offer);
+    }
+  }
   place.baked?.startWalkLightmaps?.();
   place.baked?.backdrop?.startWalk();
   // The native tree model may live in the walk tier, which every device loads, so this is no
@@ -2437,7 +2522,32 @@ export async function travel(id) {
   const curve = new THREE.CatmullRomCurve3(pts, false, 'centripetal');
   const lookPts = [P.doors.clone(), ...(N.approach ?? []).map((q) => toWorld(q.clone().add(V3(0, 0, -2)))), end.look];
   const l0 = rig.look.clone(), a0 = rig.amp,f0=rig.fov??camera.fov;
-  atLamp = true; mine.g.visible = !!mine.offer;
+  atLamp = !P.offerAfterTravel; mine.g.visible = atLamp && !!mine.offer;
+  if (P.offerAfterTravel && place.prepareVisitorEnvironment && mine.offer) {
+    const lampView = camera.clone();
+    lampView.position.copy(end.pos);
+    lampView.lookAt(end.look);
+    lampView.fov = end.fov ?? camera.fov;
+    lampView.updateProjectionMatrix();
+    const target = renderer.getRenderTarget(), warm = new THREE.WebGLRenderTarget(4, 4);
+    try {
+      mine.g.visible = true;
+      let linking;
+      try { linking = compileIntoTarget(outside, lampView, warm); }
+      finally { mine.g.visible = false; }
+      await linking;
+      // The first real draw also creates the point-light shadow programs.
+      // Prepare those before the camera starts moving and keep the lamp out
+      // of every presented frame until the empty-cord arrival ends.
+      mine.g.visible = true;
+      renderer.setRenderTarget(warm);
+      renderer.render(outside, lampView);
+    } finally {
+      renderer.setRenderTarget(target);
+      mine.g.visible = false;
+      warm.dispose();
+    }
+  }
   const authoredWalk = P.createWalk?.({ pos: rig.pos.clone(), look: l0, fov: f0 }, walkEnd, narrow());
   if(import.meta.env.DEV)window.__walkProgress={id,progress:0,state:'walking',position:rig.pos.toArray()};
   const walk = tween(P.walkSeconds ?? 14, (k) => {
@@ -2481,7 +2591,7 @@ export async function travel(id) {
       rig.look.lerpVectors(l0,target,Math.min(1,e*4));rig.amp=a0*(1-Math.min(1,k*3))+.006;
     }
     if(import.meta.env.DEV)window.__walkProgress={id,progress:e,state:'walking',position:rig.pos.toArray()};
-  });
+  }, false, { fromFirstDraw: !!authoredWalk });
   if (skipNextTravel) skipTweens();
   await walk;
   if(import.meta.env.DEV)window.__walkProgress={id,progress:1,state:'done',position:rig.pos.toArray()};
@@ -2508,8 +2618,31 @@ export async function travel(id) {
       rig.look.copy(rig.pos).addScaledVector(aim, AIM_DISTANCE);
       rig.fov = THREE.MathUtils.lerp(from.fov, to.fov, e);
     });
+  } else if (P.createChooseEntry) {
+    const entry = P.createChooseEntry({ pos: rig.pos.clone(), look: rig.look.clone(), fov: rig.fov ?? camera.fov }, end, narrow());
+    if (skipNextTravel || reducedMotion.matches) entry(1, rig);
+    else await tween(P.entrySeconds, progress => entry(progress, rig), true);
+  } else if (P.chooseEntry) {
+    // The court reveal belongs to the walk. Approaching the lamp table is a
+    // separate, continuous move that keeps the doorway on the sightline.
+    const entry = new THREE.CatmullRomCurve3([rig.pos.clone(), ...P.chooseEntry, end.pos],
+      false, 'centripetal');
+    const entryLook = rig.look.clone(), entryFov = rig.fov ?? camera.fov;
+    const settle = t => {
+      rig.pos.copy(entry.getPointAt(t));
+      rig.look.lerpVectors(entryLook, end.look, smooth(0, 1, t));
+      rig.fov = THREE.MathUtils.lerp(entryFov, end.fov ?? entryFov, t);
+    };
+    if (skipNextTravel || reducedMotion.matches) settle(1);
+    // Even when the last frame misses its display slot, finish the handoff
+    // at the authored pose so the chooser does not wait for another frame.
+    else await tween(5.6, settle, true);
   }
   if(!P.bakedLighting){const c = chooseView(); await moveCam(c.pos, c.look,2.4,c.fov);}
+  if (P.offerAfterTravel && place?.P === P) {
+    atLamp = true;
+    mine.g.visible = !!mine.offer;
+  }
 }
 export function skip() { skipNextTravel = true; skipTweens(); }
 let ignitionTaper;
@@ -2560,8 +2693,11 @@ export async function ignite({onCatch, remainingFuel, onTaperLit}={}) {
     if (lit && journey === cameraJourneyVersion) mark('settled', 1);
     return;
   }
-  const N=place.P.nook,spread=viewOf((narrow()&&N.spreadPhone)||N.spread),burn=burnView();
-  if(!narrow())spread.fov=Math.min(N.lampFovMax??Infinity,spread.fov+12*THREE.MathUtils.clamp((mine.parts.frame.h-.45)/.32,0,1));
+  const N=place.P.nook,burn=burnView();
+  const spread = N.steadyIgnition ? burn : viewOf((narrow() && N.spreadPhone) || N.spread);
+  if (!N.steadyIgnition && !narrow()) {
+    spread.fov = Math.min(N.lampFovMax ?? Infinity, spread.fov + 12 * THREE.MathUtils.clamp((mine.parts.frame.h - .45) / .32, 0, 1));
+  }
   const cameraStart=rig.pos.clone(),lookStart=rig.look.clone(),fovStart=rig.fov??camera.fov;
   const active=()=>lit&&journey===cameraJourneyVersion;
   ignitionTaper??=makeIgnitionTaper();
@@ -2620,7 +2756,7 @@ export async function ignite({onCatch, remainingFuel, onTaperLit}={}) {
         if (clamped !== pitch) rig.look.y = rig.pos.y + Math.tan(clamped) * reach;
       }
       rig.fov = THREE.MathUtils.lerp(fovStart, burn.fov, push);
-    } else {
+    } else if (!N.steadyIgnition) {
       rig.pos.lerpVectors(cameraStart,spread.pos,retreat);rig.look.lerpVectors(lookStart,spread.look,retreat);
       rig.fov=THREE.MathUtils.lerp(fovStart,spread.fov,retreat);
     }
@@ -2662,6 +2798,16 @@ export async function ignite({onCatch, remainingFuel, onTaperLit}={}) {
   if(!active())return;
   mine.power=1;mark('spreading',.18);
   await tween(.8,()=>{});if(!active())return;
+  if (N.steadyIgnition) {
+    const settle = N.createBurnSettle?.({ pos: cameraStart, look: lookStart, fov: fovStart }, burn);
+    await tween((narrow() && N.settleSecondsPhone) || 9, k => {
+      if (!active()) return;
+      settle?.(k, rig);
+      mark('spreading', .18 + .82 * k);
+    });
+    if (active()) mark('settled', 1);
+    return;
+  }
   const routeStart = rig.pos.clone();
   const front = pine ? burn.pos : viewOf((narrow() && N.burnPhone) || N.burn).pos;
   // From choose to the settled burn the eye only drifts forward: height changes by at most 0.15 m
@@ -2800,8 +2946,14 @@ function frame(stamp = performance.now()) {
   for (let i = tweens.length - 1; i >= 0; i--) {
     // Camera/story durations use elapsed wall time. Particle stability's100ms
     // step cap must not turn a slow browser frame into a slow-motion walk.
-    const tw = tweens[i]; tw.t += Math.max(0,elapsed/1000); const k = tw.skip ? 1 : Math.min(1, tw.t / tw.dur); tw.fn(k);
-    if (k >= 1) { tweens.splice(i, 1); tw.res(); }
+    const tw = tweens[i];
+    // Walk setup may finish between rendered frames after a shader warmup.
+    // Start authored travel at its first visible pose, excluding that work.
+    if (!tw.fromFirstDraw) tw.t += Math.max(0, elapsed / 1000);
+    tw.fromFirstDraw = false;
+    const k = tw.skip ? 1 : Math.min(1, tw.t / tw.dur);
+    tw.fn(k);
+    if (k >= 1) { clearTimeout(tw.deadline); tweens.splice(i, 1); tw.res(); }
   }
   // A slow drift so the view breathes like a held camera; wider outside.
   const a = reducedMotion.matches || place?.P.bakedLighting || (import.meta.env.DEV && window.__visualFreezeCamera) ? 0 : rig.amp;
@@ -2862,7 +3014,8 @@ function frame(stamp = performance.now()) {
     place.hemi.intensity = place.hemiBase * (P.bakedLighting?1:1-.8*inside); place.sun.intensity = place.sunBase * (1 - .9 * inside);
     // Baked radiance, source lights and emission already include the common
     // camera pre-exposure. Only the remaining camera multiplier belongs here.
-    const cameraMultiplier=roomLight*(P.exposure??1)*(1+((N.exposure??1)-1)*near);
+    const cameraMultiplier=roomLight*(P.exposure??1)*(1+((N.exposure??1)-1)*near)
+      *(P.cameraExposure?.(camera,place.daylight)??1);
     if(nativeAgXPass){
       nativeAgXPass.enabled=!!P.bakedLighting;
       nativeAgXPass.uniforms.cameraExposureEV.value=Math.log2(Math.max(1e-8,cameraMultiplier))+(place.baked?.residualCameraExposureEV??0);

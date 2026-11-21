@@ -1,0 +1,228 @@
+export function addSnowCourtGauzeTransmission(shader, ribs, aged) {
+  shader.vertexShader = 'varying vec2 vSnowGauze;\n' + shader.vertexShader.replace('#include <uv_vertex>',
+    '#include <uv_vertex>\nvSnowGauze = uv;');
+  if (!aged) {
+    shader.vertexShader = shader.vertexShader.replace('vSnowGauze = uv;', `vSnowGauze = uv;
+      // One continuous wrap keeps the fabric seam aligned. A shallower
+      // vertical crop resolves the crosswise fibres at the phone's distance.
+      vec2 visitorWeaveScale = vec2(.78125, .53);
+      #ifdef USE_MAP
+        vMapUv *= visitorWeaveScale;
+      #endif
+      #ifdef USE_NORMALMAP
+        vNormalMapUv *= visitorWeaveScale;
+      #endif
+      #ifdef USE_ROUGHNESSMAP
+        vRoughnessMapUv *= visitorWeaveScale;
+      #endif`);
+  }
+  shader.fragmentShader = `varying vec2 vSnowGauze;
+    float snowGauzeBamboo() {
+      float h = vSnowGauze.y;
+      float verticalDistance = abs(fract(vSnowGauze.x * ${ribs.toFixed(1)} + .5) - .5);
+      float rib = 1. - smoothstep(.021, .087 + fwidth(vSnowGauze.x) * ${ribs.toFixed(1)}, verticalDistance);
+      return rib * smoothstep(0., .09, h) * smoothstep(0., .09, 1. - h);
+    }
+    \n` + shader.fragmentShader.replace('#include <color_fragment>', `#include <color_fragment>
+      float gauzeBamboo = snowGauzeBamboo();
+      diffuseColor.rgb *= 1. - ${aged ? '.30' : '.085'} * gauzeBamboo;
+      diffuseColor.a *= 1. - ${aged ? '.045' : '.055'} * sin(3.141593 * vSnowGauze.y);
+      ${aged ? '' : `#ifdef USE_MAP
+        // Keep the photographed yarn contrast in the light passing through.
+        diffuseColor.rgb *= 1. + clamp((yarn - 1.) * 1.0, -.25, .23);
+      #endif`}
+    `);
+}
+
+function wishTagWood(THREE, grain, glow, cut) {
+  const material = new THREE.MeshStandardMaterial({
+    color: cut ? 0xf1d0a3 : 0xd9b484,
+    map: grain, roughness: .88, envMapIntensity: .28,
+  });
+  material.userData.lampOwned = true;
+  material.onBeforeCompile = shader => {
+    shader.uniforms.uWishTagGauzeGlow = glow;
+    shader.fragmentShader = `uniform float uWishTagGauzeGlow;
+      ${cut ? '' : `float wishInkStroke(vec2 p, vec2 start, vec2 end, vec2 width) {
+        vec2 span = end - start;
+        float t = clamp(dot(p - start, span) / dot(span, span), 0., 1.);
+        float distanceToInk = length(p - start - t * span);
+        float feather = max(.006, .49 * fwidth(distanceToInk));
+        float radius = mix(width.x, width.y, t);
+        return 1. - smoothstep(radius - feather, radius + feather, distanceToInk);
+      }`}
+      \n` + shader.fragmentShader.replace('#include <map_fragment>', `#ifdef USE_MAP
+        // Use a longitudinal crop with more contrast so the original grain
+        // still reads on the small face.
+        vec3 woodSample = texture2D(map, vec2(.32, .18) + vMapUv * vec2(.22, .66)).rgb;
+        float annualGrain = clamp(1. + (woodSample.g - .55) * 2.3, .58, 1.36);
+        diffuseColor.rgb *= annualGrain;
+        ${cut ? '' : `vec2 tagUv = vMapUv;
+          float cutEdge = smoothstep(.444, .494, abs(tagUv.x - .5));
+          cutEdge = max(cutEdge, 1. - smoothstep(.004, .033, tagUv.y));
+          diffuseColor.rgb *= mix(vec3(1.), vec3(1.21, 1.24, 1.30), cutEdge);
+          // Deliberately fragmentary brush marks rather than readable text.
+          float ink = wishInkStroke(tagUv, vec2(.31, .71), vec2(.64, .75), vec2(.022, .012));
+          ink = max(ink, wishInkStroke(tagUv, vec2(.49, .73), vec2(.40, .53), vec2(.024, .012)));
+          ink = max(ink, wishInkStroke(tagUv, vec2(.40, .53), vec2(.28, .48), vec2(.017, .005)));
+          ink = max(ink, wishInkStroke(tagUv, vec2(.43, .40), vec2(.68, .47), vec2(.019, .008)));
+          ink = max(ink, wishInkStroke(tagUv, vec2(.52, .38), vec2(.57, .24), vec2(.021, .008)));
+          diffuseColor.rgb *= 1. - ink * (.63 + .11 * annualGrain);`}
+      #endif
+      `).replace('#include <lights_fragment_end>', `#include <lights_fragment_end>
+        // Broad reflection from the floor and the lower edge of the glowing
+        // gauze reaches the tag face which is turned away from the wick.
+        float tagBounce = .040 + .039 * (1. - exp(-uWishTagGauzeGlow));
+        reflectedLight.indirectDiffuse += diffuseColor.rgb * vec3(1., .90, .79) * tagBounce;
+      `);
+  };
+  material.customProgramCacheKey = () => `snow-visitor-wish-tag-${cut ? 'cut' : 'face'}`;
+  return material;
+}
+
+export function tieVisitorWishTag(THREE, parts, grain) {
+  const rim = parts.g.children.find(mesh => mesh.userData.gauzeTransportRole === 'bottom-ring');
+  rim.geometry.computeBoundingBox();
+  const radius = rim.geometry.boundingBox.max.x;
+  const bottom = rim.geometry.boundingBox.min.y;
+  const tag = new THREE.Group();
+  tag.position.set(rim.position.x + radius * .42, bottom, -radius * .90);
+  tag.userData.visitorWishTag = true;
+  parts.g.add(tag);
+
+  const halfWidth = .027, height = .100;
+  const shape = new THREE.Shape();
+  shape.moveTo(-halfWidth, -.011);
+  shape.lineTo(-halfWidth + .009, 0);
+  shape.lineTo(halfWidth - .009, 0);
+  shape.lineTo(halfWidth, -.011);
+  shape.lineTo(halfWidth, -height + .005);
+  shape.lineTo(halfWidth - .004, -height);
+  shape.lineTo(-halfWidth + .004, -height);
+  shape.lineTo(-halfWidth, -height + .004);
+  shape.closePath();
+  const hole = new THREE.Path();
+  hole.absarc(0, -.015, .0043, 0, Math.PI * 2, true);
+  shape.holes.push(hole);
+  const glow = parts.shells[0].userData.u.uGlow;
+  const face = wishTagWood(THREE, grain, glow, false);
+  const cut = wishTagWood(THREE, grain, glow, true);
+  const board = new THREE.Mesh(new THREE.ExtrudeGeometry(shape, {
+    depth: .0046, bevelEnabled: true, bevelThickness: .0006, bevelSize: .0006, bevelSegments: 1, curveSegments: 10,
+  }), [face, cut]);
+  const vertices = board.geometry.getAttribute('position'), uv = board.geometry.getAttribute('uv');
+  for (let i = 0; i < uv.count; i++) uv.setXY(i,
+    .5 + vertices.getX(i) / (2 * halfWidth), 1 + vertices.getY(i) / height);
+  board.position.set(.002, -.029, -.004);
+  board.rotation.set(.065, .16, -.13);
+  board.updateMatrix();
+  board.castShadow = board.receiveShadow = true;
+  tag.add(board);
+
+  const cord = new THREE.MeshStandardMaterial({ color: 0x9b6a44, roughness: .96 });
+  cord.userData.lampOwned = true;
+  const through = new THREE.Vector3(0, -.015, .0023).applyMatrix4(board.matrix);
+  const path = new THREE.CatmullRomCurve3([
+    new THREE.Vector3(-.004, .001, .003),
+    new THREE.Vector3(-.003, -.024, -.006), through.clone().add(new THREE.Vector3(0, 0, -.004)),
+    through.clone().add(new THREE.Vector3(0, 0, .004)),
+    new THREE.Vector3(.004, -.023, .006), new THREE.Vector3(.004, .001, .003),
+  ]);
+  const twine = new THREE.Mesh(new THREE.TubeGeometry(path, 20, .0011, 5), cord);
+  twine.receiveShadow = true;
+  tag.add(twine);
+}
+
+const earlierGauze = new Map([
+  ['Sun-faded rose-red gauze', .77],
+  ['Faded dusty rose gauze', .79],
+  ['Faded iron-red gauze', .81],
+  ['Thin gauze over low flame', .78],
+]);
+
+export function isEarlierGauze(material) {
+  return earlierGauze.has(material.name);
+}
+
+export function tuneEarlierGauze(material, sources, THREE, preExposure, fabric) {
+  // Blend the rear layer before the front. The existing open throat, tears
+  // and actual inward bamboo remain visible between those two surfaces.
+  material.transparent = true;
+  material.depthWrite = false;
+  material.side = THREE.DoubleSide;
+  material.forceSinglePass = false;
+  material.opacity = earlierGauze.get(material.name);
+  material.map = fabric.weave;
+  material.normalMap = fabric.normal;
+  material.normalScale.setScalar(.68);
+  material.roughness = .96;
+  material.roughnessMap = fabric.roughness;
+  material.envMapIntensity = 0;
+
+  const lit = material.name === 'Thin gauze over low flame';
+  if (lit) material.emissiveIntensity = 0;
+  const compile = material.onBeforeCompile.bind(material);
+  const key = material.customProgramCacheKey.bind(material);
+  const wicks = sources.map(source => new THREE.Vector3(...source.wickTip));
+  const candela = sources.map(source => new THREE.Color().fromArray(source.linearColor)
+    .multiplyScalar(source.watts * preExposure / (4 * Math.PI)));
+  material.onBeforeCompile = (shader, renderer) => {
+    compile(shader, renderer);
+    addSnowCourtGauzeTransmission(shader, 8, true);
+    shader.uniforms.uOldWeaveMean = { value: fabric.mean };
+    shader.fragmentShader = `uniform float uOldWeaveMean;
+      const vec3 OLD_GAUZE_LUMA = vec3(.2126, .7152, .0722);
+      vec2 oldGauzeFabricScale() { return vec2(2.1, 1.13); }
+      \n` + shader.fragmentShader
+      .replace('#include <map_fragment>', `
+        vec3 weave = texture2D(map, vMapUv * oldGauzeFabricScale()).rgb;
+        float thread = dot(weave, OLD_GAUZE_LUMA) / uOldWeaveMean;
+        diffuseColor.rgb *= clamp(1. + (thread - 1.) * 2.1, .52, 1.39);
+      `)
+      .replace('#include <alphamap_fragment>', `
+        #include <alphamap_fragment>
+        // Keep the smooth low folds and the grain independent of the staves.
+        // Filament coverage varies softly across a fold, including in backlight.
+        float around = 6.2831853 * vSnowGauze.x;
+        float height = vSnowGauze.y;
+        float crease = sin(around * 19. + 2.8 * height + sin(around * 7. - height * 8.))
+          + .55 * sin(around * 29. - height * 6. + .55 * sin(height * 12.));
+        float readCreases = 1. - smoothstep(.9, 2.2, fwidth(around * 29.));
+        float thinFold = crease * sin(3.141593 * height) * readCreases;
+        diffuseColor.rgb *= vec3(.92, .75, .74) * (1. + .105 * thinFold);
+        diffuseColor.a = clamp(diffuseColor.a - .019 * thinFold
+          + .09 * gauzeBamboo + .035 * (clamp(thread, .35, 1.65) - 1.), .70, .95);
+      `)
+      .replace('#include <roughnessmap_fragment>', `#include <roughnessmap_fragment>
+        roughnessFactor = max(roughnessFactor, .93);
+      `)
+      .replace('#include <normal_fragment_maps>', THREE.ShaderChunk.normal_fragment_maps
+        .replaceAll('normalMap, vNormalMapUv )', 'normalMap, vNormalMapUv * oldGauzeFabricScale() )'))
+      .replace('#include <lights_fragment_end>', `#include <lights_fragment_end>
+        reflectedLight.directSpecular = vec3(0.);
+        reflectedLight.indirectSpecular = vec3(0.);
+        reflectedLight.directDiffuse *= .38;
+        reflectedLight.indirectDiffuse *= .51;
+        // Translucent yarn scatters the broad paper-window bounce across
+        // nearby fibres. It should not repeat the opaque sleeve's bright band.
+        float incident = dot(reflectedLight.indirectDiffuse, OLD_GAUZE_LUMA);
+        reflectedLight.indirectDiffuse /= 1. + 2.8 * max(incident - .095, 0.);
+      `);
+    if (!lit) return;
+    shader.uniforms.uEarlierWick = { value: wicks };
+    shader.uniforms.uEarlierCandela = { value: candela };
+    shader.fragmentShader = `uniform vec3 uEarlierWick[2], uEarlierCandela[2];\n` + shader.fragmentShader
+      .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
+        for (int j = 0; j < 2; j++) {
+          vec3 fromWick = vBakedWorld - uEarlierWick[j];
+          float distance2 = dot(fromWick, fromWick);
+          // The little flame varies the warm centre of its own lantern only.
+          float thinCloth = .52 * (1. - smoothstep(.24, .34, sqrt(distance2)));
+          vec3 throughThreads = pow(max(diffuseColor.rgb, vec3(0.)), vec3(.64));
+          totalEmissiveRadiance += uEarlierCandela[j] * throughThreads
+            * thinCloth * (1. - gauzeBamboo * .47) / (3.141593 * max(distance2, .007));
+        }`);
+  };
+  material.customProgramCacheKey = () => key() + (lit ? '-snow-faded-gauze-wick-2' : '-snow-faded-gauze-2');
+  material.needsUpdate = true;
+}

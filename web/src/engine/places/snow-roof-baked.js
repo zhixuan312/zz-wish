@@ -1,6 +1,7 @@
 // The Snow Roof pilot uses authored Blender construction and Cycles lighting.
 // This descriptor owns cameras and live weather only; no static architecture is made here.
 import { loadBakedPlace } from '../baked/loadPlace.js';
+import { readBakedManifest } from '../baked/prefetchPlace.js';
 
 function incenseStrands(h, C, config) {
   const { THREE, V3 } = h;
@@ -48,7 +49,15 @@ function sourceDust(h, C, config) {
   });
 }
 
-export default function createPlace(h){
+export default async function createPlace(h) {
+  const manifest = await readBakedManifest('snow-roof');
+  if (manifest.snowCourt?.revision === 'winter-pass-v1') {
+    return (await import('./snow-roof-court.js')).default(h);
+  }
+  return createLegacyPlace(h);
+}
+
+function createLegacyPlace(h){
   const {V3}=h;
   let staticWicks;
   const sourcePoint=(baked,key)=>{

@@ -176,6 +176,7 @@ textarea[aria-invalid=true] { border-color:#f0b69a; }
 @keyframes arrive { from { opacity:0; transform:translateY(5px); } to { opacity:1; transform:translateY(0); } }
 @keyframes travel-title { 0% { opacity:0; transform:translateY(6px); } 10%,85% { opacity:1; transform:translateY(0); } 100% { opacity:0; transform:translateY(0); } }
 @media(max-width:999px) and (min-width:721px) { .ui[data-screen=wish] .sheet { right:4vw; width:370px; } .candle-sheet { right:3vw; width:350px; } }
+@media(max-width:850px) and (min-width:721px) { .candle-sheet[data-place="snow-roof"] { width:min(350px,42vw); } }
 @media(max-width:720px) {
   h1 { font-size:28px; } h2 { font-size:22px; }
   .topbar { padding:max(12px,env(safe-area-inset-top)) 16px 8px; gap:8px; }
