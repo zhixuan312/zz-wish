@@ -37,6 +37,7 @@ function sourceDust(h, C, config) {
   for (let i = 0; i < config.count; i++) for (let axis = 0; axis < 3; axis++) positions[i * 3 + axis] = lo.getComponent(axis) + C.rnd() * (hi.getComponent(axis) - lo.getComponent(axis));
   const geometry = new THREE.BufferGeometry(); geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
   const material = new THREE.PointsMaterial({ color: 0xc4a27c, size: config.radiusMetres * 2, transparent: true, opacity: config.opacity, depthWrite: false });
+  material.customProgramCacheKey = () => 'snow-roof-source-dust-v1';
   const points = new THREE.Points(geometry, material); C.G.add(points);
   C.up.push(dt => {
     const attribute = geometry.attributes.position;
