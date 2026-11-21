@@ -74,7 +74,8 @@ function buildCloister(h) {
   const { center, width } = crossing;
   box(width, .085, .70, dressedStone, center, -.14, 1.886);
   box(width, .062, .15, dressedStone, center, -.071, 1.54);
-  box(width + .12, .125, .54, dressedStone, center, -.245, 2.44);
+  // Leave a full eye-height margin as the bridge is approached from the side.
+  box(width + .12, .11, .54, dressedStone, center, -.2525, 2.44);
   box(width + .12, .079, .42, dressedStone, center, -.319, 2.84);
   for (const x of [center - width / 2 + .07, center + width / 2 - .07]) {
     box(.14, .24, .17, wetStone, x, -.213, 1.76);
@@ -111,6 +112,7 @@ export default function createPlace(h) {
       },
       fog: [0xa7b8b0, .016], sunL: [0xd3ded9, 1.04], hemi: [0xc3d5d4, 0x61795d, 1.04], bloom: [.34, 1.2],
     },
+    verticalCameraDrift: 0,
     view: cameras.view, viewPhone: cameras.viewPhone,
     walk: [], doors: V3(0, 1.6, 18),
     walkSeconds: WALK_SECONDS, createWalk: cameras.createWalk,
