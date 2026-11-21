@@ -189,8 +189,12 @@ export default function createWinterCourt(h) {
         }
         // Earlier gauze lamps glow through the shell. Their flame is inside it.
         if (fixture.kind === 'gauze shade') continue;
-        const atGate = fixture.zone === 'gate';
-        const flame = h.liveFlame(...contact, { size: atGate ? .77 : .46, radiance: atGate ? .76 : .66, halo: false });
+        // Keep the oil flame above the metal rim at walk distance. The
+        // veranda flame also has to read through its backlit windscreen.
+        const flameAppearance = fixture.kind === 'storm lantern' ? { size: 1.12, radiance: .98 }
+          : fixture.zone === 'gate' ? { size: 1.15, radiance: .92 }
+          : { size: .94, radiance: .90 };
+        const flame = h.liveFlame(...contact, { ...flameAppearance, halo: false });
         h.fixtureSpecular(...fixture.pointLight, fixture.watts * baked.cameraPreExposure, fixture.linearColor);
         context.up.push(() => { flame.power = .66 + .26 * baked.fixturePower(); });
       }
