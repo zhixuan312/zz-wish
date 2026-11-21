@@ -20,6 +20,10 @@ import { execFileSync, spawn } from 'node:child_process';
 import { createByteLedger } from './switch-byte-accounting.mjs';
 import { stopServerAndRemoveDatabase } from './walk-camera-smoke-cleanup.mjs';
 import { parseArgs } from './cli-args.mjs';
+import { recordStageMarks } from './stage-marks.mjs';
+
+// Serialised once: an init script must be a function or a string, and the recorder itself takes the document.
+const recordStageMarksScript = `(${recordStageMarks.toString()})(document)`;
 
 const REPO = fileURLToPath(new URL('../..', import.meta.url));
 const ROOT = '/Users/xuan/OpenBot/Shared/one-light';
@@ -114,56 +118,11 @@ try {
     };
   }, hour);
   const page = await context.newPage();
-  // CPU-side stage timeline, recorded from attributes the page already publishes. No product code changes.
-  //
-  // `#cover-poster[data-ready]` is set inside ensureReady after showPlace, compileAsync and the next frame, so
-  // it is a cumulative "cover usable" mark, not a compile duration; it is reported as such.
-  // `[data-stage]` on the loading pill is the prepare stage. App mounts that pill twice (once while the wish
-  // is being written, once on the place screen), so the element is replaced: a single observer on the first
-  // node would miss every later stage. The observer watches the document and records each node it sees,
-  // keeping the first time each stage value appears so the order survives a replacement.
-  await page.addInitScript(() => {
-    const marks = { t0: performance.now(), stageOrder: [] };
-    window.__stageMarks = marks;
-    const stamp = (name, at, value) => { if (!(name in marks)) marks[name] = { at, value }; };
-    const readStage = node => {
-      const stage = node?.dataset?.stage;
-      if (!stage) return;
-      if (!marks.stageOrder.some(entry => entry.value === stage)) {
-        marks.stageOrder.push({ value: stage, at: performance.now() });
-      }
-      stamp('stage-' + stage, performance.now(), stage);
-    };
-    const readPoster = node => {
-      if (node?.dataset?.ready === 'true') stamp('coverReady', performance.now(), true);
-    };
-    const observe = () => {
-      const observer = new MutationObserver(records => {
-        for (const record of records) {
-          if (record.type === 'attributes') {
-            const node = record.target;
-            if (node.id === 'cover-poster') readPoster(node);
-            else if (node.classList?.contains('court-loading')) readStage(node);
-            continue;
-          }
-          for (const added of record.addedNodes) {
-            if (!(added instanceof Element)) continue;
-            if (added.id === 'cover-poster') readPoster(added);
-            if (added.classList?.contains('court-loading')) readStage(added);
-            for (const inner of added.querySelectorAll?.('.court-loading[data-stage]') ?? []) readStage(inner);
-            if (added.id === 'cover-poster' || added.querySelector?.('#cover-poster')) readPoster(added);
-          }
-        }
-      });
-      observer.observe(document.documentElement, { subtree: true, childList: true,
-        attributes: true, attributeFilter: ['data-stage', 'data-ready'] });
-      // Whatever the document already holds at first paint still counts.
-      readPoster(document.getElementById('cover-poster'));
-      for (const node of document.querySelectorAll('.court-loading[data-stage]')) readStage(node);
-    };
-    if (document.documentElement) observe();
-    else document.addEventListener('DOMContentLoaded', observe, { once: true });
-  });
+  // CPU-side stage timeline. The recorder lives in stage-marks.mjs so the node-replacement cases are covered by
+  // a fixture test; it only reads attributes the page already publishes. `coverReady` is one cumulative mark
+  // (showPlace + compileAsync + the next frame), never a compile duration.
+  // Playwright takes a function or {content}; a bare string is treated as a path, and the script then never runs.
+  await page.addInitScript({ content: recordStageMarksScript });
   const cdp = await context.newCDPSession(page);
   await cdp.send('Network.enable');
   if (profile.net) {
