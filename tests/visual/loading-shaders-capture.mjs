@@ -15,7 +15,8 @@ import { installLoadingShaderProgramTrace } from './loading-shaders-program-trac
 const fixture = JSON.parse(await readFile(new URL('./fixtures/loading-shader-parity.json', import.meta.url)));
 const args = parseArgs({ allowPositionals: true, options: {
   checkout: { type: 'string' }, url: { type: 'string' }, root: { type: 'string' }, side: { type: 'string' },
-  mode: { type: 'string', default: 'parity' }, match: { type: 'string' }, 'ready-only': { type: 'boolean' },
+  mode: { type: 'string', default: 'parity' }, match: { type: 'string' }, exclude: { type: 'string' },
+  'ready-only': { type: 'boolean' },
 } });
 const [command] = args.positionals;
 const { mode, side } = args.values;
@@ -246,23 +247,25 @@ async function run() {
     await writeFile(file, JSON.stringify(run, null, 2) + '\n');
   }
   const caseKey = item => [item.place, item.viewport, item.hour].join('/');
-  const cases = fixture.cases.filter(item => !args.values.match || caseKey(item).includes(args.values.match));
+  const cases = fixture.cases.filter(item => (!args.values.match || caseKey(item).includes(args.values.match))
+    && caseKey(item) !== args.values.exclude);
   assert(cases.length, 'The case filter matched no fixture cells.');
   // A single baseline case is the determinism pilot. Run its repeat in an independent Chrome.
   const pilot = mode === 'parity' && side === 'before' && args.values.match && cases.length === 1;
   for (const captureSide of pilot ? ['before', 'before-repeat'] : [side]) {
     const report = [];
-    const browser = await chromium.launch({ channel: 'chrome' });
-    try {
-      for (const item of cases) {
+    const filter = [args.values.match, args.values.exclude].filter(Boolean).join(':');
+    const name = [mode, captureSide, ...(filter ? [hash(filter).slice(0, 8)] : [])].join('-') + '.json';
+    for (const item of cases) {
+      const browser = await chromium.launch({ channel: 'chrome' });
+      try {
         const row = await captureCase(browser, origin, item, root, captureSide);
         report.push(row);
         console.log('LOADING_SHADER_CASE', captureSide, caseKey(item), row.stepInsideMs ?? '', row.atReady?.resident ?? '', row.errors.length);
-        await writeFile(join(root, mode + '-' + captureSide + (args.values.match ? '-' + hash(args.values.match).slice(0, 8) : '') + '.json'),
-          JSON.stringify(report, null, 2) + '\n');
+        await writeFile(join(root, name), JSON.stringify(report, null, 2) + '\n');
         assert.equal(row.errors.length, 0, 'Runtime or HTTP errors were recorded.');
-      }
-    } finally { await browser.close(); }
+      } finally { await browser.close(); }
+    }
   }
   if (mode === 'parity' && args.values.match && cases.length === 1 && (pilot || side === 'before-repeat')) {
     execFileSync(process.execPath, [new URL('./loading-shaders-pixel-diff.mjs', import.meta.url).pathname,
