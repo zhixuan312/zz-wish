@@ -1,5 +1,6 @@
 import { BELL, LAMP, TREE, TURN_SECONDS, WALK_SECONDS, WINDOW, bellLaneCameras } from './bell-lane-camera.js';
 import { addBellLaneTree } from './bell-lane-tree.js';
+import { addBellLaneOilCup } from './bell-lane-oil.js';
 
 // An invented neighbourhood temple: a lit shop lane, one low door, a tree and a small bell court.
 export default function createPlace(h) {
@@ -184,6 +185,7 @@ export default function createPlace(h) {
     },
     nook: {
       at: { pos: V3(...LAMP), ry: 0 }, lamp: 'lattice', y: .46, exposure: 1.1, bloom: [.35, 1.02],
+      makeVisitorCup: (group, clay, baseY) => addBellLaneOilCup(h, group, clay, baseY),
       explicitPhoneViews: true, wide: cameras.wide, widePhone: cameras.widePhone,
       choose: cameras.choose, choosePhone: cameras.choosePhone, taperSource,
       async build() {

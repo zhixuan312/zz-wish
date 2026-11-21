@@ -799,7 +799,7 @@ const LAMPS = {
   },
   // Bell Lane's square lattice lamp. One unpapered side is the service opening
   // for the oil cup and taper, and faces the visitor at the rack.
-  lattice(o = presetOf('shade')) {
+  lattice(o = presetOf('shade'), makeVisitorCup) {
     const g = new THREE.Group(), y0 = .5, P = scaled(o.rows, shadeScale(o.rows, 1.8, .05)).map(([r, y]) => [r * Math.SQRT2, y0 + .02 + y]), top = P[P.length - 1][1];
     for (const [x, z] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) solid(g, new THREE.BoxGeometry(.022, y0, .022), lampWood, x * .11, y0 / 2, z * .11);
     solid(g, new THREE.BoxGeometry(.26, .02, .26), lampWood, 0, y0, 0);
@@ -815,14 +815,16 @@ const LAMPS = {
     // Corner posts follow the outline; rails close it at the top and the bottom.
     for (let i = 0; i < 4; i++) { const a = Math.PI / 4 + i * Math.PI / 2, post = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(P.map(([r, y]) => V3(Math.sin(a) * r, y, Math.cos(a) * r))), 16, .006, 4), lampWood); post.castShadow = true; g.add(post); }
     for (const [r, y] of [P[0], P[P.length - 1]]) { const ring = lathe([[r + .006, y - .008], [r + .006, y + .008]], 4); ring.rotateY(Math.PI / 4); solid(g, ring, lampWood); }
-    solid(g, lathe([[0, y0 + .01], [.022, y0 + .01], [.024, y0 + .03], [.02, y0 + .032], [0, y0 + .026]], 32), clayMat);
+    const visitorCup = makeVisitorCup?.(g, clayMat, y0);
+    if (!visitorCup) solid(g, lathe([[0, y0 + .01], [.022, y0 + .01], [.024, y0 + .03], [.02, y0 + .032], [0, y0 + .026]], 32), clayMat);
     const tagMat = new THREE.MeshStandardMaterial({ color: 0xac7952, roughness: .91, map: grainTex });
     tagMat.userData.lampOwned = true;
     const tag = solid(g, new THREE.BoxGeometry(.036, .086, .004), tagMat, .095, y0 - .044, -.129);
+    if (visitorCup) tag.name = 'Bell Lane visitor tag';
     tag.rotation.z = -.13;
     const cord = solid(g, new THREE.TorusGeometry(.008, .0014, 5, 14), lampWood, .09, y0 - .002, -.129);
     cord.rotation.y = .18;
-    return { g, kind: 'shade', shells: [shell], wick: { at: V3(0, y0 + .036, 0) }, frame: { h: top - y0 + .08, cy: (y0 + top) / 2 }, lightMax: .16, flame: 1.0, light: 0xffaa60 };
+    return { g, kind: 'shade', shells: [shell], wick: { at: V3(0, y0 + .036, 0) }, frame: { h: top - y0 + .08, cy: (y0 + top) / 2 }, lightMax: .16, flame: 1.0, light: 0xffaa60, ...visitorCup };
   },
 };
 
@@ -902,7 +904,7 @@ const api = { g, parts: null, partsKey: null, type: null, power: 0, lightPower: 
       if (this.parts) { g.remove(this.parts.g); disposeTree(this.parts.g); }
       const input=drawn?{...o,liveBaked}:this.type==='gauze'?{...presetOf('shade'),liveBaked}:undefined;
       const p = this.type === 'pineWax' ? LAMPS.pineWax({ refined: liveBaked, sculptNormal, sunShade })
-        : input ? LAMPS[this.type](input) : LAMPS[this.type]();
+        : LAMPS[this.type](input, place?.P.nook.makeVisitorCup);
       this.parts = p; this.partsKey = key; g.add(p.g);
       hanger.material=p.suspensionMaterial??defaultSuspensionMaterial;
       f.wick.visible = !p.wickMesh && !p.pineWax;
@@ -995,8 +997,10 @@ const api = { g, parts: null, partsKey: null, type: null, power: 0, lightPower: 
           if (p.oilBody) { oilBody.geometry.dispose(); oilBody.geometry = oilBodyGeo(V, y); }
         }
         if (p.wick.float) this.top.set(0, y + p.wick.float, 0); else this.top.copy(p.wick.at);
-      } else if (p.kind === 'shade') this.top.copy(p.wick.at);
-      else this.top.set(0, p.seat.y, 0); // a wax lamp still holding the last place's oil offer, until the UI sends a candle
+      } else if (p.kind === 'shade') {
+        p.setFuelLevel?.(L);
+        this.top.copy(p.wick.at);
+      } else this.top.set(0, p.seat.y, 0); // a wax lamp still holding the last place's oil offer, until the UI sends a candle
       hanger.visible=!!place?.baked&&p.kind==='shade';
       if(hanger.visible){
         // Size changes the shade, while the actual light stays on its Cycles
@@ -2817,7 +2821,10 @@ export async function snuff(done = false, remaining, gust = false) {
         if (journey === cameraJourneyVersion) rig.look.y = THREE.MathUtils.lerp(start, end, ease(k));
       });
     }
-  } else if (done) { level = targetLevel = 0; mine.setLevel(0); }
+  } else if (done || endingParts?.setFuelLevel) {
+    level = targetLevel = done ? 0 : THREE.MathUtils.clamp(remaining ?? level, 0, 1);
+    mine.setLevel(level);
+  }
   const wickTip = endingParts?.pineWax?.wickTip.clone() ?? mine.top.clone().add(V3(.0007,.004,0));
   wickPlume.start({ time: clockTime, done, frame: mine.g, path: endingParts?.smokePath, wickTip,
     variant: endingParts?.pineWax ? 'pine' : undefined, valid: () => mine.parts === endingParts });
