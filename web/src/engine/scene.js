@@ -2598,8 +2598,11 @@ export async function ignite({onCatch, remainingFuel, onTaperLit}={}) {
           onCatch?.();
         }
         mine.power = smooth(.31, .62, k);
-        mark(k >= .31 && k < .37 ? 'wick-contact' : 'igniting', k,
-          { wickContactMetres: tip.distanceTo(wick) });
+        if (import.meta.env.DEV) {
+          const taperTip = f.flame.getWorldPosition(tip);
+          mark(k >= .31 && k < .37 ? 'wick-contact' : 'igniting', k,
+            { wickContactMetres: taperTip.distanceTo(wick), wick: wick.toArray(), taperTip: taperTip.toArray() });
+        }
       });
     } finally {
       if (journey === cameraJourneyVersion) g.visible = false;

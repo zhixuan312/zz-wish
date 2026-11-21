@@ -11,13 +11,15 @@ export default function createPlace(h) {
     exposure: 1.12, shade: .32,
     sky: { top: 0x080d19, horizon: 0x282c38, ground: 0x0b0e15, sun: 0xe0e4ee, dir: [-.7, .5, .35], glow: .12, clouds: .3, lit: 0x424e65, dark: 0x11141c, stars: .35, disc: 1.2 },
     fog: [0x1b2230, .007], sunL: [0xc1cce4, .48], hemi: [0x424f69, 0x15140f, .35], bloom: [.45, 1.05], porch: [0xffb46a, 2.4],
-    day: { exposure: 1, sky: { top: 0x6489ba, horizon: 0xe5dcc8, ground: 0x685f52, sun: 0xffe6bf, dir: [-.7, .5, .35], glow: .4, clouds: .25, lit: 0xfff2e0, dark: 0x8d9aaf }, fog: [0xc9c6bd, .004], sunL: [0xffe3b5, 2], hemi: [0xc2d5e8, 0x4c4539, .85], bloom: [.25, 1.4] },
+    day: { exposure: 1, sky: { top: 0x6489ba, horizon: 0xe5dcc8, ground: 0x685f52, sun: 0xffe6bf, dir: [-.7, 1.65, .35], glow: .4, clouds: .25, lit: 0xfff2e0, dark: 0x8d9aaf }, fog: [0xc9c6bd, .004], sunL: [0xffe3b5, 2], hemi: [0xc2d5e8, 0x4c4539, .85], bloom: [.25, 1.4] },
     view: cameras.view, viewPhone: cameras.viewPhone,
     walk: [], doors: V3(0, 1.66, 10),
     walkSeconds: WALK_SECONDS, createWalk: cameras.createWalk,
     arrivalSeconds: TURN_SECONDS, createArrival: cameras.createArrival,
     async build() {
       const C = h.context, wall = M(0x6b6c6d, .97, { map: brickTex }), wood = M(0x3b271b, .85, { map: grainTex }), paper = M(0xb7aa8c, .96), stone = M(0x59595a, .9, { map: pavingTex });
+      const daylight = C.G.children.find(object => object.isDirectionalLight);
+      const shutters = [];
       ground(0x444546, { mat: { map: pavingTex } }); box(7.6, .06, 48, stone, 0, .03, 34);
       // Two irregular rows of small shops make an enclosed, human-scale lane rather than an avenue to a palace.
       for (let i = 0; i < 7; i++) for (const side of [-1, 1]) {
@@ -46,6 +48,20 @@ export default function createPlace(h) {
           landmark ? windowY : 1.3, landmark ? windowZ - 1.57 : z + 2.54, landmark ? -.45 : 0);
         if (landmark) {
           for (let j = 0; j < 7; j++) box(.07, .037, .42, sill, face - .20, .94 + j * .16, windowZ - 1.55, -.45);
+        } else if (i >= 2 && i % 2 === 0) {
+          // These leaves are up the lane beyond the seated view. They keep the
+          // landmark recognizable when the rest of the street closes for the night.
+          const leafSize = width / 2 - .018;
+          for (const hinge of [-1, 1]) {
+            const pivot = new THREE.Group();
+            pivot.position.set(face - side * .06, windowY, windowZ + hinge * width / 2);
+            const leaf = new THREE.Mesh(new THREE.BoxGeometry(.05, 1.37, leafSize), wood);
+            leaf.position.z = -hinge * leafSize / 2;
+            leaf.castShadow = leaf.receiveShadow = true;
+            pivot.add(leaf);
+            C.G.add(pivot);
+            shutters.push({ pivot, sign: side * hinge, timeOffset: i * .045 + side * .08 });
+          }
         }
         const canopy = landmark ? 4.12 : 3.7;
         box(canopy, .21, 6.06, h.roofMat(0x3f4244), wallX - side * .30, ht + .12, z);
@@ -120,8 +136,8 @@ export default function createPlace(h) {
       eave({ x0: -2.2, x1: 2.2, y: 2.82, z: bellZ + roofDepth, depth: roofDepth, rise: roofRise, tile: 0x3b3d42 });
       const roof = new THREE.BoxGeometry(4.43, .11, Math.hypot(roofRise, roofDepth));
       roof.rotateX(-Math.atan2(roofRise, roofDepth));
-      put(roof, h.roofMat(0x3b3d42), 0, 2.82 + roofRise / 2, bellZ - roofDepth / 2);
-      box(4.48, .13, .13, wood, 0, 2.82 + roofRise, bellZ);
+      put(roof, h.roofMat(0x3b3d42), 0, 3.02 + roofRise / 2, bellZ - roofDepth / 2);
+      box(4.48, .13, .13, wood, 0, 3.02 + roofRise, bellZ);
 
       const [treeX, , treeZ] = TREE;
       const T = trees();
@@ -137,6 +153,31 @@ export default function createPlace(h) {
       const courtFill = new THREE.PointLight(0xffc48a, 0, 13, 2);
       courtFill.position.set(-2.3, 2.6, 8.7); C.G.add(courtFill);
       C.up.push((_dt, _t, light) => { courtFill.intensity = .4 + light.n * 5; });
+      // A broom and sweep pile sit under the west eave before anyone opens.
+      const brush = new THREE.ConeGeometry(.081, .25, 14);
+      brush.rotateZ(-.18);
+      put(brush, M(0x9b855f, .99), -3.49, .14, 23.4);
+      const stick = new THREE.CylinderGeometry(.016, .019, 1.13, 10);
+      stick.rotateZ(-.18);
+      put(stick, wood, -3.60, .68, 23.4);
+      const setLocalTime = (_dt, _t, light) => {
+        const clock = new Date();
+        const hour = clock.getHours() + clock.getMinutes() / 60 + clock.getSeconds() / 3600;
+        for (const { pivot, sign, timeOffset } of shutters) {
+          const t = hour + timeOffset;
+          const open = THREE.MathUtils.smoothstep(t, 5.25, 7.9) * (1 - THREE.MathUtils.smoothstep(t, 17, 19.2));
+          pivot.rotation.y = sign * open * (Math.PI * .97);
+        }
+        if (daylight) {
+          const n = light.n;
+          daylight.position.set(
+            THREE.MathUtils.lerp(light.dawn ? .70 : -.70, -.70, n),
+            THREE.MathUtils.lerp(Math.max(.02, 1.65 * light.elev), .50, n), .35,
+          ).normalize().multiplyScalar(100);
+        }
+      };
+      setLocalTime(0, 0, C.light);
+      C.up.push(setLocalTime);
       await pauseBuild();
     },
     nook: {
