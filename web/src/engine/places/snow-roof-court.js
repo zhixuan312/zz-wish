@@ -34,13 +34,15 @@ function tuneAltarFigure(material) {
     // The small altar atlas undersamples diffuse light across the carving.
     // Restore the broad paper-window bounce using the incoming direction
     // in hall space and the continuous vertex normals of the sculpture.
+    // The darker stone needs stronger night window bounce to keep the
+    // carving readable while retaining the unlit sides and the day look.
     shader.fragmentShader = shader.fragmentShader.replace('float away=', `
       vec3 stoneNormal = inverseTransformDirection(nonPerturbedNormal, viewMatrix);
       float windowBounce = max(0., dot(stoneNormal, normalize(vec3(.53, .72, .62))));
-      vec3 stoneFill = uBakedWeights.x * vec3(.019, .017, .016)
+      vec3 stoneFill = uBakedWeights.x * vec3(.031, .028, .026)
                      + uBakedWeights.y * vec3(.022, .019, .017)
                      + uBakedWeights.z * vec3(.029, .027, .024);
-      vec3 stoneKey = uBakedWeights.x * vec3(.088, .077, .063)
+      vec3 stoneKey = uBakedWeights.x * vec3(.157, .137, .112)
                     + uBakedWeights.y * vec3(.102, .086, .069)
                     + uBakedWeights.z * vec3(.119, .111, .100);
       baked = mix(baked, stoneFill + stoneKey * windowBounce, .97);
