@@ -20,10 +20,6 @@ import { parseArgs } from './cli-args.mjs';
 import { diagnosisProblems } from './diagnosis-problems.mjs';
 import { observeFirstVisible } from './first-visible.mjs';
 
-// Serialised once: a function passed to page.evaluate cannot close over Node-side bindings, so the observer's
-// own source is injected and re-created inside the page.
-const OBSERVERS = { observeFirstVisible: new Function(`return (${observeFirstVisible.toString()})`)() };
-
 const REPO = fileURLToPath(new URL('../..', import.meta.url));
 // The radios show a localised name and carry no id; this maps the name back to the id the API uses.
 const PLACE_NAMES = {
@@ -34,7 +30,7 @@ const PLACE_NAMES = {
   "bell-lane": "Lane's End Bell Court", 'valley-pagoda': 'Valley Pagoda Court',
 };
 const ROOT = '/Users/xuan/OpenBot/Shared/one-light';
-const args = parseArgs(process.argv.slice(2), new Set(['no-switch', 'stay-away']));
+const args = parseArgs(process.argv.slice(2), new Set(['no-switch', 'stay-away', 'capture-pose']));
 const runDir = args['run-dir'];
 if (!runDir) throw new Error('Pass --run-dir (the worker tmp that safe-kill.sh authorises).');
 const port = Number(args.port ?? 8920);
@@ -71,6 +67,7 @@ server.stderr.on('data', chunk => serverLog.push(String(chunk)));
 
 const record = { revision, manifestSha, out, port, serverPid: server.pid, stayMs, skipSwitch, stayAway,
   pinnedHour: Number(args.hour ?? 13),
+  network: args['net-mbps'] ? { mbps: Number(args['net-mbps']), latencyMs: Number(args.latency ?? 150) } : null,
   selections: [], stageEvents: [], errors: [] };
 let failure = false;
 let browser;
@@ -117,6 +114,10 @@ try {
   cdp.on('Network.loadingFinished', params => {
     const row = requests.find(entry => entry.id === params.requestId);
     if (row) { row.bytes = params.encodedDataLength ?? 0; row.finishedAt = params.timestamp; }
+  });
+  cdp.on('Network.loadingFailed', params => {
+    const row = requests.findLast(entry => entry.id === params.requestId);
+    if (row) row.failure = { text: params.errorText, canceled: params.canceled === true, atCdpSeconds: params.timestamp };
   });
 
   page.on('pageerror', error => record.errors.push(String(error).slice(0, 200)));
@@ -263,10 +264,11 @@ try {
       generation = step + 1;
     }
     return {
-      url: row.url.split('?')[0], type: row.type, bytes: row.bytes,
+      id: row.id, url: row.url.split('?')[0], type: row.type, bytes: row.bytes,
       initiatorType: row.initiatorType, initiatorUrl: row.initiatorUrl,
       initiatorFunction: row.initiatorFunction, finished: row.finishedAt !== null,
       sentAtCdpSeconds: row.sentAt, finishedAtCdpSeconds: row.finishedAt,
+      failure: row.failure ?? null,
       generation,
       generationLabel: generation === 0 ? 'initial' : boundaries[generation - 1]?.label ?? `g${generation}`,
     };
@@ -290,10 +292,6 @@ try {
     }, null, { timeout: 300000 });
     record.readyProvenAt = await page.evaluate(() => performance.now());
     await page.evaluate(() => {
-      // Timestamp the first moment the burning HUD exists, from inside the page and before the click, so no
-      // harness polling can move it. The recorder itself is tested in isolation.
-      window.__ignitionProbe = { at: null };
-      (OBSERVERS.observeFirstVisible)(document, '[data-testid="with-you"]', window.__ignitionProbe);
       window.__walkProbe2 = { clickedAt: null, firstMoveAt: null, baseline: null, streak: 0 };
       const button = [...document.querySelectorAll('button')]
         .find(node => node.textContent.trim() === 'Step inside');
@@ -334,6 +332,39 @@ try {
       await chooser.waitFor({ timeout: 300000 });
       const light = page.getByRole('button', { name: /Light it/ }).first();
       await light.waitFor({ timeout: 90000 });
+      if (args['capture-pose']) {
+        const frame = await page.evaluate(async () => {
+          const camera = window.__pineRenderCamera;
+          const canvas = document.querySelector('#gl');
+          if (!camera || !canvas || !window.__pineRenderAndSample) throw new Error('camera or E2E renderer unavailable');
+          const matrices = () => [...camera.matrixWorld.elements, ...camera.projectionMatrix.elements];
+          let previous = matrices();
+          let stableFrames = 0;
+          for (let frame = 0; frame < 120 && stableFrames < 3; frame++) {
+            await new Promise(resolve => requestAnimationFrame(resolve));
+            const next = matrices();
+            stableFrames = next.every((value, i) => Math.abs(value - previous[i]) <= 1e-8) ? stableFrames + 1 : 0;
+            previous = next;
+          }
+          if (stableFrames < 3) throw new Error('camera did not settle at duration chooser');
+          const paused = window.__pineLoopPaused;
+          window.__pineLoopPaused = true;
+          try {
+            window.__pineRenderAndSample([]);
+            return { matrixWorld: [...camera.matrixWorld.elements],
+              projectionMatrix: [...camera.projectionMatrix.elements],
+              width: canvas.width, height: canvas.height, hour: new Date().getHours(),
+              png: canvas.toDataURL('image/png').split(',')[1] };
+          } finally {
+            window.__pineLoopPaused = paused;
+          }
+        });
+        const { png, ...pose } = frame;
+        if (!png) throw new Error('camera frame PNG was empty');
+        writeFileSync(join(out, 'fixed-pose.png'), Buffer.from(png, 'base64'));
+        record.fixedPose = { ...pose, stage: 'duration-chooser', file: 'fixed-pose.png' };
+      }
+      await light.evaluate(observeFirstVisible, '[data-testid="with-you"]');
       await light.click();
       // Read the burning candle back from the API rather than trusting the screen: this proves ignition
       // reached the server, which the HUD alone does not. The POST is asynchronous, so poll until it lands
@@ -352,25 +383,39 @@ try {
           && c.placeId === record.selectedPlaceId);
         return burning.length ? burning[0] : null;
       };
-      // The HUD time and the API time are independent observations and must not influence each other. The HUD
-      // timestamp was previously read after the API had answered, so a slow readback pushed it later; the
-      // observer below runs in the page from before the click and stamps the first frame the element exists.
-      await page.waitForSelector('[data-testid="with-you"]', { timeout: 120000 });
-      ignited = true;
-      for (let attempt = 0; attempt < 20 && !record.activeCandle; attempt++) {
-        const candle = await readCandle();
-        if (candle) {
-          record.activeCandle = { id: candle.id, placeId: candle.placeId, status: candle.status,
-            durationMs: candle.durationMs, readAt: await page.evaluate(() => performance.now()) };
-          break;
+      // The page records visibility independently of when Playwright or the candle API responds.
+      const readHud = async () => {
+        const hudSelector = '[data-testid="with-you"]';
+        ignited = await page.locator(hudSelector).waitFor({ state: 'visible', timeout: 120000 })
+          .then(() => true, () => false);
+        if (ignited) {
+          const stamp = await page.waitForFunction(() => window.__ignitionProbe?.at != null,
+            null, { timeout: 5000 }).catch(() => null);
+          await stamp?.dispose();
         }
-        await page.waitForTimeout(150);
-      }
-      if (!record.activeCandle) record.activeCandleReadbackFailed = true;
-      record.ignitionHudAt = await page.evaluate(() => window.__ignitionProbe?.at ?? null);
+        const ignition = await page.evaluate(() => window.__ignitionProbe ?? null);
+        record.lightClickAt = ignition?.clickAt ?? null;
+        record.ignitionHudAt = ignition?.at ?? null;
+      };
+      const readMatchingCandle = async () => {
+        for (let attempt = 0; attempt < 20; attempt++) {
+          const candle = await readCandle();
+          if (candle) {
+            record.activeCandle = { id: candle.id, placeId: candle.placeId, status: candle.status,
+              durationMs: candle.durationMs, readAt: await page.evaluate(() => performance.now()) };
+            return;
+          }
+          await page.waitForTimeout(150);
+        }
+        record.activeCandleReadbackFailed = true;
+      };
+      await Promise.all([readHud(), readMatchingCandle()]);
       // Let the burning view settle so any transfer it triggers can finish and be recorded.
       await page.waitForTimeout(2000);
-    } catch { ignited = false; }
+    } catch (error) {
+      ignited = false;
+      record.ignitionFailure = String(error?.message ?? error).slice(0, 200);
+    }
     const walk = await page.evaluate(() => window.__walkProbe2 ?? null);
     record.clickedAt = walk?.clickedAt ?? null;
     record.firstMoveAt = walk?.firstMoveAt ?? null;

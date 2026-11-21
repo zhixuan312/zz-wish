@@ -6,7 +6,7 @@ import { diagnosisProblems } from '../../tier2/diagnosis-problems.mjs';
 
 const healthy = {
   lightClockPinned: true, lightClock: { hours: 13 }, readyTimedOut: false,
-  moved: true, ignited: true,
+  moved: true, ignited: true, lightClickAt: 100, ignitionHudAt: 120,
   selectedPlaceId: 'snow-roof',
   activeCandle: { id: 'c1', placeId: 'snow-roof', status: 'burning', durationMs: 1800000 },
   errors: [], httpErrors: [],
@@ -14,6 +14,20 @@ const healthy = {
 
 test('a run with both signals agreeing on the court passes', () => {
   expect(diagnosisProblems(healthy, 13)).toEqual([]);
+});
+
+test('missing HUD and click times fail independently of the readback', () => {
+  for (const record of [
+    { ...healthy, lightClickAt: null },
+    { ...healthy, ignitionHudAt: null },
+  ]) {
+    expect(diagnosisProblems(record, 13)).toEqual(['ignition HUD or light click timestamp is missing']);
+  }
+});
+
+test('a HUD already visible at setup cannot prove this ignition', () => {
+  expect(diagnosisProblems({ ...healthy, ignitionHudAt: 80 }, 13))
+    .toEqual(['ignition HUD was visible before the light click']);
 });
 
 test('an empty readback fails even when the burning HUD appeared', () => {

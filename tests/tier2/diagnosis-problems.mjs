@@ -12,6 +12,11 @@ export function diagnosisProblems(record, pinnedHour) {
   if (record.readyTimedOut) problems.push('ready was never reported after the last selection');
   if (!record.moved) problems.push('the walk never produced a first movement');
   if (!record.ignited) problems.push('ignition was never reached');
+  if (!Number.isFinite(record.ignitionHudAt) || !Number.isFinite(record.lightClickAt)) {
+    problems.push('ignition HUD or light click timestamp is missing');
+  } else if (record.ignitionHudAt < record.lightClickAt) {
+    problems.push('ignition HUD was visible before the light click');
+  }
 
   if (!record.activeCandle) {
     problems.push(record.activeCandleReadbackFailed
