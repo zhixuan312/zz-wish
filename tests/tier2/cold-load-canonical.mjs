@@ -48,9 +48,11 @@ const L = {
 
 // The harness owns its server: it starts it, records the pid, and stops it in the same finally block
 // that closes the browser. Nothing outside this file needs to kill a process by name or port.
-function startServer(port, dbFile) {
-  const child = spawn('node', ['server/main.ts'], {
-    cwd: process.cwd(),
+function startServer(port, dbFile, repo) {
+  // Run from the repository but with the private DB under the shared tmp, and record the pid so
+  // safe-kill.sh can stop exactly this process; its allowlist covers tmp/s2.
+  const child = spawn('node', [join(repo, 'server/main.ts')], {
+    cwd: repo,
     env: { ...process.env, PORT: String(port), HOST: '127.0.0.1', DB_FILE: dbFile },
     stdio: ['ignore', 'pipe', 'pipe'],
   });
@@ -221,6 +223,33 @@ async function runOnce(target, condition, run, phase) {
       record.ready = { ms: at(), bytes: bytes(), inFlight: inFlight() };
     }
     record.home = { ms: at(), bytes: bytes() };
+
+    // Home stage, captured where it happens: the cover poster is in the DOM here and removes itself
+    // 700 ms after ready, so a snapshot taken after Step enabled would always find nothing.
+    const readCover = () => page.evaluate(() => {
+      const poster = document.getElementById('cover-poster');
+      if (!poster) return { present: false };
+      const picture = poster.querySelector('img');
+      const style = getComputedStyle(poster);
+      return { present: true, ready: poster.dataset?.ready ?? null,
+        opacity: style.opacity, visibility: style.visibility, display: style.display,
+        image: picture ? { complete: picture.complete, naturalWidth: picture.naturalWidth,
+          naturalHeight: picture.naturalHeight } : null };
+    });
+    record.homeCover = await readCover();
+    record.homeShaders = await page.evaluate(() => ({
+      links: window.__s.links, glslBytes: window.__s.srcBytes, contexts: window.__s.contexts,
+      firstDraw: window.__s.firstDraw, homeFrame: window.__s.homeFrame,
+      longTaskCount: window.__s.longTasks.length,
+      longTaskTotalMs: Math.round(window.__s.longTasks.reduce((sum, task) => sum + task[1], 0)),
+      longTaskMaxMs: Math.round(Math.max(0, ...window.__s.longTasks.map(task => task[1]))),
+      frames: window.__s.frames.slice(-240),
+    }));
+    record.homeFrames = { p50: percentile(record.homeShaders.frames, .5),
+      p95: percentile(record.homeShaders.frames, .95), count: record.homeShaders.frames.length };
+    delete record.homeShaders.frames;
+    record.homeShot = `${condition.name}-run-${run}-${phase}-home.png`;
+    await page.screenshot({ path: join(out, record.homeShot) });
     record.readyAtInput = await page.evaluate(() => window.__ready === true);
 
     // The default place must already be Snow Roof; this harness never chooses one. The place panel is
@@ -262,55 +291,95 @@ async function runOnce(target, condition, run, phase) {
           visible: style.visibility !== 'hidden' && style.display !== 'none' };
       })(),
     }));
-    record.shaders = { links: snapshot.links, glslBytes: snapshot.srcBytes, contexts: snapshot.contexts };
-    record.frames = { p50: percentile(snapshot.frames, .5), p95: percentile(snapshot.frames, .95),
+    // Step stage, kept apart from home: counters and cover are read here only to show what changed.
+    record.stepShaders = { links: snapshot.links, glslBytes: snapshot.srcBytes, contexts: snapshot.contexts };
+    record.stepFrames = { p50: percentile(snapshot.frames, .5), p95: percentile(snapshot.frames, .95),
       count: snapshot.frames.length };
-    record.longTaskTotalMs = Math.round(snapshot.longTasks.reduce((sum, task) => sum + task[1], 0));
-    record.longTaskMaxMs = Math.round(Math.max(0, ...snapshot.longTasks.map(task => task[1])));
-    record.longTaskCount = snapshot.longTasks.length;
+    record.stepLongTask = { count: snapshot.longTasks.length,
+      totalMs: Math.round(snapshot.longTasks.reduce((sum, task) => sum + task[1], 0)),
+      maxMs: Math.round(Math.max(0, ...snapshot.longTasks.map(task => task[1]))) };
     record.canvas = snapshot.canvas;
-    record.cover = snapshot.poster;
+    record.stepCover = snapshot.poster;
+    record.stepShot = `${condition.name}-run-${run}-${phase}-step.png`;
+    await page.screenshot({ path: join(out, record.stepShot) });
 
-    // A screenshot of the settled home frame, so the cover's completeness is visible and not only
-    // inferred from a style rule.
-    await page.waitForTimeout(1200);
-    await page.screenshot({ path: join(out, `${condition.name}-run-${run}-${phase}-home.png`) });
-    await page.waitForTimeout(200);
-    record.homeShot = `${condition.name}-run-${run}-${phase}-home.png`;
+    // Walk: the click, the first frame the picture actually moves, and the chooser, each separate. The
+    // production build exposes no camera, so movement is read from the canvas with a settle delay that
+    // skips the fade, requiring four consecutive changed frames. A timeout is recorded as a failure, not
+    // silently as a missing value.
+    const walkProbe = page.evaluate(() => {
+      const canvas = document.querySelector('canvas');
+      const probe = { first: null, samples: 0, baseline: null, streak: 0, started: null, stopped: false };
+      window.__walkProbe = probe;
+      if (!canvas) return;
+      const scratch = document.createElement('canvas');
+      scratch.width = 48; scratch.height = 30;
+      const g = scratch.getContext('2d', { willReadFrequently: true });
+      const sample = () => {
+        if (probe.stopped || probe.first !== null) return;
+        if (probe.started === null) probe.started = performance.now();
+        const settled = performance.now() - probe.started > 600;
+        try {
+          g.drawImage(canvas, 0, 0, scratch.width, scratch.height);
+          const now = g.getImageData(0, 0, scratch.width, scratch.height).data;
+          if (!settled || probe.baseline === null) probe.baseline = now.slice();
+          else {
+            let changed = 0, total = 0;
+            for (let i = 0; i < now.length; i += 4) {
+              const delta = Math.abs(now[i] - probe.baseline[i]) + Math.abs(now[i + 1] - probe.baseline[i + 1])
+                + Math.abs(now[i + 2] - probe.baseline[i + 2]);
+              if (delta > 24) changed++;
+              total++;
+            }
+            probe.streak = changed / total > .10 ? probe.streak + 1 : 0;
+            if (probe.streak >= 4) probe.first = performance.now();
+            probe.baseline = now.slice();
+          }
+        } catch { /* resized canvas */ }
+        probe.samples++;
+        if (probe.samples < 3600) requestAnimationFrame(sample);
+      };
+      requestAnimationFrame(sample);
+    });
+    await walkProbe;
+    record.walkClick = { ms: at(), bytes: bytes() };
+    await step.click();
+    let walkMoved = true;
+    try {
+      await page.waitForFunction(() => window.__walkProbe?.first !== null, null, { timeout: 60000 });
+    } catch (error) {
+      walkMoved = false;
+      record.walkFailure = String(error?.message ?? error).slice(0, 160);
+    }
+    await page.evaluate(() => { if (window.__walkProbe) window.__walkProbe.stopped = true; });
+    record.walkMovement = walkMoved
+      ? { ms: at(), bytes: bytes(), samples: await page.evaluate(() => window.__walkProbe.samples) }
+      : { ms: null, bytes: null, failed: true };
+
+    // The chooser is a separate stage; waiting for it is not a movement measure.
+    const chooser = page.getByRole('radio', { name: en ? /^10 minutes$/ : /^10 分钟$/ });
+    let chooserShown = true;
+    try { await chooser.waitFor({ timeout: 60000 }); }
+    catch { chooserShown = false; }
+    record.chooser = chooserShown ? { ms: at(), bytes: bytes() } : { ms: null, bytes: null, failed: true };
 
     // Burning: light the candle, then read frame percentiles inside the settled burning view.
-    await step.click();
-    await page.waitForFunction(() => {
-      const light = [...document.querySelectorAll('button')].find(node => /Light it|点亮这一盏/.test(node.textContent));
-      return Boolean(light);
-    }, null, { timeout: 120000 }).catch(() => {});
-    record.walkStart = { ms: at(), bytes: bytes() };
-    await page.waitForTimeout(2000);
     const light = page.getByRole('button', { name: en ? /Light it/ : /点亮这一盏/ }).first();
-    if (await light.count()) {
-      await light.click();
-      await page.waitForTimeout(3000);
-      const burning = await page.evaluate(() => {
-        const before = window.__s.frames.length;
-        return new Promise(resolve => {
-          const started = performance.now();
-          const tick = () => {
-            if (performance.now() - started < 3000) { requestAnimationFrame(tick); return; }
-            resolve(window.__s.frames.slice(before));
-          };
-          requestAnimationFrame(tick);
-        });
-      });
-      record.burningFrames = { p50: percentile(burning, .5), p95: percentile(burning, .95), count: burning.length };
-      await page.screenshot({ path: join(out, `${condition.name}-run-${run}-${phase}-burning.png`) });
-      record.burningShot = `${condition.name}-run-${run}-${phase}-burning.png`;
+    if (chooserShown && await chooser.count()) {
+      await chooser.click({ timeout: 30000 }).catch(() => {});
     }
+    await page.waitForTimeout(1500);
 
-    // Same-context revisit: reload and repeat the journey to Step inside, with the cache warm.
+    // Same-context revisit: reload and repeat the journey to Step inside with the cache warm. Wire bytes
+    // start again at the reload: the counter below is the first visit's total and must not be inherited.
+    const revisitBytesBase = bytes();
+    const revisitRequestsBase = requests.size;
     const revisitWall = Date.now();
+    const revisitBytes = () => bytes() - revisitBytesBase;
     await page.goto(target, { waitUntil: 'domcontentloaded' });
     await page.getByLabel(L.wish).waitFor();
-    record.revisitInput = { ms: Date.now() - revisitWall, bytes: bytes() };
+    record.revisitInput = { ms: Date.now() - revisitWall, bytes: revisitBytes(),
+      requestsSinceReload: requests.size - revisitRequestsBase };
     await page.waitForFunction(() => window.__ready === true, null, { timeout: 300000 });
     await page.getByLabel(L.wish).fill('Measuring how long the court takes.');
     await page.getByRole('button', { name: L.submit, exact: true }).click();
@@ -320,7 +389,8 @@ async function runOnce(target, condition, run, phase) {
       const button = [...document.querySelectorAll('button')].find(node => node.textContent.trim() === name);
       return Boolean(button) && !button.disabled && button.getAttribute('aria-disabled') !== 'true';
     }, L.step);
-    record.revisitStep = { ms: Date.now() - revisitWall, bytes: bytes(), inFlight: inFlight() };
+    record.revisitStep = { ms: Date.now() - revisitWall, bytes: revisitBytes(), inFlight: inFlight(),
+      requestsSinceReload: requests.size - revisitRequestsBase };
 
     record.requests = { started: requests.size, failed: [...requests.values()].filter(row => row.failed).length,
       failedHttp: failedHttp.length, inFlightAtStep: record.step.inFlight };
@@ -342,7 +412,7 @@ async function runOnce(target, condition, run, phase) {
 const all = [];
 const port = Number(options.port ?? 8902);
 const dbFile = join(out, 'cold-load.db');
-const server = startServer(port, dbFile);
+const server = startServer(port, dbFile, process.cwd());
 let exitCode = 0;
 try {
   if (!await waitForServer(port)) throw new Error('The harness server never answered on ' + port
