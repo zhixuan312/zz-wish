@@ -105,6 +105,11 @@ try {
   });
 
   page.on('pageerror', error => record.errors.push(String(error).slice(0, 200)));
+  // HTTP failures and console errors are separate from page errors and must also fail the run.
+  page.on('response', response => {
+    if (response.status() >= 400) record.httpErrors = [...(record.httpErrors ?? []),
+      `${response.status()} ${response.url().split('?')[0]}`];
+  });
 
   // Record selection generations and pill stages on the page clock, keyed to the court they belong to.
   await page.addInitScript(() => {
@@ -152,10 +157,18 @@ try {
 
   // Capture the request index at the moment a selection lands. Reading it here, from the CDP stream the
   // harness owns, is exact: no page clock and CDP clock are ever subtracted.
+  // Click a place and wait for a transition that happens *after this click*. A historical `.some` check is
+  // satisfied by the initial Snow Roof selection, so a click that never took effect would look successful.
   const pick = async (matcher, text) => {
+    const before = await page.evaluate(() => window.__genProbe.selections.length);
     await page.locator('[role=radio].place').filter({ hasText: matcher }).first().click();
-    await page.waitForFunction(pattern => window.__genProbe.selections
-      .some(entry => entry.label.includes(pattern)), text, { timeout: 30000 });
+    await page.waitForFunction(([pattern, since]) => window.__genProbe.selections
+      .slice(since).some(entry => entry.label.includes(pattern)), [text, before],
+      { timeout: 30000 });
+    const landed = await page.evaluate(() => window.__genProbe.selections.at(-1)?.label ?? null);
+    if (!landed || !landed.includes(text.slice(0, 8))) {
+      throw new Error(`selection did not land on ${text}; the newest selection is ${landed}`);
+    }
     record.selectionBoundaries = record.selectionBoundaries ?? [];
     record.selectionBoundaries.push({ label: text, requestsSent: requests.length });
   };
@@ -204,7 +217,9 @@ try {
       url: row.url.split('?')[0], type: row.type, bytes: row.bytes,
       initiatorType: row.initiatorType, initiatorUrl: row.initiatorUrl,
       initiatorFunction: row.initiatorFunction, finished: row.finishedAt !== null,
-      generation, generationLabel: boundaries[generation - 1]?.label ?? 'initial',
+      sentAtCdpSeconds: row.sentAt, finishedAtCdpSeconds: row.finishedAt,
+      generation,
+      generationLabel: generation === 0 ? 'initial' : boundaries[generation - 1]?.label ?? `g${generation}`,
     };
   });
 
@@ -218,6 +233,87 @@ try {
   }
   record.bytesByPlace = byPlace;
   record.requestCount = record.requests.length;
+  // The radio only says which place is selected; it does not prove the scene is that place. Record the canvas
+  // signature and whether the app reports that it is on the place screen, and say plainly that selection is
+  // not visibility.
+  record.selectionIsNotVisibility = true;
+
+  // Walk through to an actual ignition so the arm proves the court is operable, not merely selected.
+  let moved = false; let ignited = false;
+  try {
+    const step = page.getByRole('button', { name: 'Step inside', exact: true });
+    await page.waitForFunction(() => {
+      const button = [...document.querySelectorAll('button')]
+        .find(node => node.textContent.trim() === 'Step inside');
+      return Boolean(button) && !button.disabled;
+    }, null, { timeout: 300000 });
+    record.readyProvenAt = await page.evaluate(() => performance.now());
+    await page.evaluate(() => {
+      window.__walkProbe2 = { clickedAt: null, firstMoveAt: null, baseline: null, streak: 0 };
+      const button = [...document.querySelectorAll('button')]
+        .find(node => node.textContent.trim() === 'Step inside');
+      button?.addEventListener('click', () => { window.__walkProbe2.clickedAt = performance.now(); }, true);
+      const canvas = document.querySelector('canvas');
+      if (!canvas) return;
+      const scratch = document.createElement('canvas');
+      scratch.width = 48; scratch.height = 30;
+      const g = scratch.getContext('2d', { willReadFrequently: true });
+      const watch = () => {
+        const probe = window.__walkProbe2;
+        if (probe.firstMoveAt !== null) return;
+        if (probe.clickedAt === null) { requestAnimationFrame(watch); return; }
+        try {
+          g.drawImage(canvas, 0, 0, scratch.width, scratch.height);
+          const now = g.getImageData(0, 0, scratch.width, scratch.height).data;
+          if (probe.baseline === null) probe.baseline = now.slice();
+          else {
+            let changed = 0;
+            for (let i = 0; i < now.length; i += 4) {
+              if (Math.abs(now[i] - probe.baseline[i]) + Math.abs(now[i + 1] - probe.baseline[i + 1])
+                + Math.abs(now[i + 2] - probe.baseline[i + 2]) > 24) changed++;
+            }
+            probe.streak = changed / (now.length / 4) > .10 ? probe.streak + 1 : 0;
+            if (probe.streak >= 4) { probe.firstMoveAt = performance.now(); return; }
+            probe.baseline = now.slice();
+          }
+        } catch { /* resized canvas */ }
+        requestAnimationFrame(watch);
+      };
+      requestAnimationFrame(watch);
+    });
+    await step.click();
+    try { await page.waitForFunction(() => window.__walkProbe2?.firstMoveAt !== null, null,
+      { timeout: 120000 }); moved = true; } catch { moved = false; }
+    const chooser = page.locator('[role=radio]').filter({ hasText: /10\s*min/i }).first();
+    try {
+      await chooser.waitFor({ timeout: 300000 });
+      const light = page.getByRole('button', { name: /Light it/ }).first();
+      await light.waitFor({ timeout: 90000 });
+      await light.click();
+      await page.waitForTimeout(1500);
+      const before = await page.evaluate(() => document.querySelectorAll('canvas').length);
+      ignited = before > 0;
+    } catch { ignited = false; }
+    const walk = await page.evaluate(() => window.__walkProbe2 ?? null);
+    record.clickedAt = walk?.clickedAt ?? null;
+    record.firstMoveAt = walk?.firstMoveAt ?? null;
+  } catch (error) {
+    record.flowFailure = String(error?.message ?? error).slice(0, 200);
+  }
+  record.moved = moved;
+  record.ignited = ignited;
+
+  // A run only counts when it reached ready, moved, and ignited, with no page, HTTP or cleanup error.
+  const problems = [];
+  if (record.readyTimedOut) problems.push('ready was never reported after the last selection');
+  if (!moved) problems.push('the walk never produced a first movement');
+  if (!ignited) problems.push('ignition was never reached');
+  if ((record.errors ?? []).length) problems.push(`${record.errors.length} page error(s)`);
+  if ((record.httpErrors ?? []).length) problems.push(`${record.httpErrors.length} HTTP error(s)`);
+  if (problems.length) {
+    failure = true;
+    record.failureReason = problems.join('; ');
+  }
 
   writeFileSync(join(out, 'requests.json'), JSON.stringify(record.requests, null, 2));
 } catch (error) {
