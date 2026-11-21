@@ -1,7 +1,9 @@
 // Private geometry preview. The shipped Home descriptor does not import this module.
+import { addCloudCliffGorge, GORGE_PROBES } from './cloud-cliff-gorge.js';
 export const ROUTE_DURATION = 30;
 export const ROUTE_FLOOR = [
-  [-18, 2], [-9, 1.2], [-2, .1], [6.3, -.5], [11.6, -.6], [13.4, .7],
+  [-18, 2], [-9, 1.2], [-2, .1], [6.3, -.5], [7.6, .78], [9.15, 1.58], [10.7, 1.64],
+  [11.6, 1.45], [12.5, .91], [13.4, .7],
   [14, 4.7], [13.8, 9.4], [12.7, 12.6], [4, 13.1], [-5, 13.6], [-18, 13.5],
 ];
 export const ROUTE_WALL = [
@@ -43,9 +45,9 @@ function smoothRange(start, end, value) {
 }
 
 function lookYaw(t, phone) {
-  const open = phone ? -8 : -23;
+  const open = phone ? -13.5 : -20.5;
   const keys = [[0, 70, 0], [12, 71, 0], [17, 65, -3], [22, phone ? 34 : 26, -12],
-    [25.3, open, 0], [27.4, open, 0], [ROUTE_DURATION, phone ? 31 : 15, 0]];
+    [25.3, open, 0], [27.27, open, 0], [ROUTE_DURATION, phone ? 31 : 15, 0]];
   const i = keys.findIndex(([time]) => time >= t);
   if (i === 0) return keys[0][1] * Math.PI / 180;
   const [ta, a, da] = keys[i - 1], [tb, b, db] = keys[i];
@@ -184,68 +186,6 @@ function addWornPath(THREE, scene, surface) {
   })));
 }
 
-const VALLEY_BED = [-63, -281];
-
-function valleyHeight(x, z) {
-  const distance = -z;
-  const channel = -32 + 53 * Math.sin(distance / 174);
-  const cross = Math.abs(x - channel);
-  const ridges = 13 * Math.sin(x / 36 + distance / 38) + 11 * Math.sin(x / 85 - distance / 43);
-  const nearCliff = 157 * (1 - smoothRange(8, 198, distance));
-  const opposite = 98 * smoothRange(204, 395, distance);
-  const farRidge = 163 * smoothRange(780, 1390, distance);
-  const flanks = 130 * smoothRange(58, 400, cross);
-  return -214 + nearCliff + opposite + farRidge + flanks + ridges;
-}
-
-function addValleyBed(THREE, scene, rock) {
-  const width = 134, height = 121;
-  const positions = [], colours = [], uvs = [], indices = [];
-  const shade = new THREE.Color(), base = new THREE.Color(0x657269), clay = new THREE.Color(0x988978);
-  for (let row = 0; row < height; row++) {
-    const z = 22 - row * 16;
-    for (let col = 0; col < width; col++) {
-      const x = -1064 + col * 16;
-      const y = valleyHeight(x, z);
-      positions.push(x, y, z);
-      // Warp the world-scale rough surface so repeated source rock does not
-      // line up between the ridge and canyon slopes.
-      uvs.push(x / 48 + .28 * Math.sin(z / 33), z / 48 + .24 * Math.sin(x / 39));
-      shade.copy(base).lerp(clay, .39 + .19 * Math.sin(x / 71 - z / 39) + .10 * Math.sin(x / 23 + z / 17));
-      shade.multiplyScalar(.83 + .14 * bandNoise(col, row));
-      colours.push(shade.r, shade.g, shade.b);
-      if (row && col) {
-        const a = row * width + col;
-        indices.push(a - width - 1, a - width, a - 1, a - width, a, a - 1);
-      }
-    }
-  }
-  const geometry = new THREE.BufferGeometry();
-  geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-  geometry.setAttribute('color', new THREE.Float32BufferAttribute(colours, 3));
-  geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
-  geometry.setIndex(indices);
-  geometry.computeVertexNormals();
-  const material = new THREE.MeshStandardMaterial({
-    map: rock.map, normalMap: rock.normalMap, normalScale: new THREE.Vector2(.32, .32),
-    vertexColors: true, side: THREE.DoubleSide, roughness: 1,
-  });
-  // Keep texture contrast in the distance while taking the geologic colour
-  // from the different slope bands rather than the near cliff's orange rock.
-  material.onBeforeCompile = shader => {
-    shader.fragmentShader = shader.fragmentShader.replace('#include <map_fragment>', `
-      #ifdef USE_MAP
-        float rockLuma = dot(texture2D(map, vMapUv).rgb, vec3(0.2126, 0.7152, 0.0722));
-        diffuseColor.rgb *= mix(0.64, 1.07, clamp(rockLuma * 2.7, 0., 1.));
-      #endif
-    `);
-  };
-  const mesh = new THREE.Mesh(geometry, material);
-  mesh.name = 'Connected valley bed and far ridge';
-  scene.add(mesh);
-  return mesh;
-}
-
 function stageRock(THREE, scene, rock, pavers) {
   const floor = addRock(THREE, scene, ROUTE_FLOOR, null, [0, -.45, -1.2, -3, -6.4, -13, -27, -55],
     [0xb3a99d, 0xa69a89, 0xb3a597, 0x9b948a, 0x9b938a, 0xa69688], .2, rock);
@@ -257,7 +197,7 @@ function stageRock(THREE, scene, rock, pavers) {
   // into the valley mesh so the side of the approach has no air gap.
   addRock(THREE, scene, outerBank, null, [0, -3, -10, -26, -74],
     [0x989187, 0xa19a90, 0x898177], .12, rock, false);
-  addRock(THREE, scene, outerBank, [4, 3.1, 3.5, 2.4, 3.3, 4.8, 5.1, 7.3, 10, 9.6, 4.5],
+  const outer = addRock(THREE, scene, outerBank, [4, 3.1, 3.5, 2.4, 3.3, 4.8, 5.1, 7.3, 10, 9.6, 4.5],
     [0, .22, .48, .74, 1], [0xa39c90, 0xa89f92, 0x969088], .13, rock);
   addWornPath(THREE, scene, pavers);
 
@@ -271,8 +211,8 @@ function stageRock(THREE, scene, rock, pavers) {
   seat.rotation.y = Math.PI / 7;
   scene.add(seat);
   addContactShade(THREE, scene, x, seatTop, z);
-  const valley = addValleyBed(THREE, scene, rock);
-  return { floor, wall, valley };
+  const gorge = addCloudCliffGorge(THREE, scene, rock);
+  return { floor, wall, outer, gorge };
 }
 
 function addContactShade(THREE, scene, x, y, z) {
@@ -310,16 +250,8 @@ async function scannedSurface(THREE, name) {
 
 const ASSETS = '/places/cloud-cliff/';
 
-async function loadValley(scene, loader) {
-  const [land, storm] = await Promise.all([
-    loader.loadAsync(ASSETS + 'cloud-cliff.glb.gzip'),
-    loader.loadAsync(ASSETS + 'cloud-cliff-storm.glb.gzip'),
-  ]);
-  const far = land.scene.getObjectByName('cloud-cliff_far');
-  if (!far?.isMesh) throw new Error('The shipped Source19 far landscape is missing');
-  far.updateWorldMatrix(true, false);
-  scene.attach(far);
-
+async function loadLantern(scene, loader) {
+  const storm = await loader.loadAsync(ASSETS + 'cloud-cliff-storm.glb.gzip');
   const [x, y, z] = ROUTE_LANTERN;
   storm.scene.traverse(object => {
     // These chain links supported the original hanging cover mount.
@@ -330,7 +262,7 @@ async function loadValley(scene, loader) {
   });
   storm.scene.position.set(x - WICK_SOURCE[0], y - WICK_SOURCE[1], z - WICK_SOURCE[2]);
   scene.add(storm.scene);
-  return { far, lantern: storm.scene };
+  return storm.scene;
 }
 
 function setLighting(THREE, scene, night) {
@@ -472,12 +404,12 @@ export async function mountCloudCliffRoute({ mount, phone = false, night = false
   const camera = new THREE.PerspectiveCamera(WALK_FOV, mount.clientWidth / mount.clientHeight, .03, 2000);
   const ktx = new KTX2Loader().setTranscoderPath('/codecs/basis/').detectSupport(renderer);
   const loader = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).setKTX2Loader(ktx);
-  const [rock, pavers, { far, lantern }] = await Promise.all([
+  const [rock, pavers, lantern] = await Promise.all([
     scannedSurface(THREE, 'rock_pitted_mossy'),
     scannedSurface(THREE, 'stone_pavers'),
-    loadValley(scene, loader).finally(() => ktx.dispose()),
+    loadLantern(scene, loader).finally(() => ktx.dispose()),
   ]);
-  const { floor, wall, valley } = stageRock(THREE, scene, rock, pavers);
+  const { floor, wall, outer, gorge } = stageRock(THREE, scene, rock, pavers);
   const catchGroup = addCatch(THREE, scene);
   setLighting(THREE, scene, night);
   lightLantern(THREE, renderer, scene, lantern, catchGroup, night);
@@ -485,17 +417,9 @@ export async function mountCloudCliffRoute({ mount, phone = false, night = false
 
   const raycaster = new THREE.Raycaster();
   const down = new THREE.Vector3(0, -1, 0);
-  const direction = new THREE.Vector3();
-  const reveal = sampleCloudCliffRoute(26);
-  const revealEye = new THREE.Vector3(reveal.x, reveal.y, reveal.z);
-  const oppositeFace = [-68, -74, -80, -86, -92].map(x => {
-    const sight = new THREE.Vector3(x, 10, -412);
-    raycaster.set(revealEye, direction.copy(sight).sub(revealEye).normalize());
-    return raycaster.intersectObject(far)[0]?.point;
-  }).find(Boolean);
-  raycaster.set(new THREE.Vector3(VALLEY_BED[0], 400, VALLEY_BED[1]), down);
-  const valleyBed = raycaster.intersectObject(valley)[0]?.point;
-  if (!oppositeFace || !valleyBed) throw new Error('The reveal needs points on both sides of the valley');
+  const targets = Object.fromEntries(Object.entries(GORGE_PROBES).map(([name, [d, side]]) =>
+    [name, new THREE.Vector3(...gorge.pointAt(d, side))]));
+  const terrainOccluders = [wall, floor, outer];
   const triangles = meshTriangles(THREE, wall);
   const lanternBounds = visibleBounds(THREE, lantern, catchGroup);
   const station = new THREE.Vector3(...ROUTE_LANTERN);
@@ -510,8 +434,10 @@ export async function mountCloudCliffRoute({ mount, phone = false, night = false
     return Math.abs(ndc.x) <= 1 && Math.abs(ndc.y) <= 1 && Math.abs(ndc.z) <= 1;
   }
 
-  function blockedByWall(point) {
-    return wallBetween(raycaster, camera.position, point, wall);
+  function terrainVisible(point) {
+    return inFrame(point)
+      && !terrainOccluders.some(mesh => wallBetween(raycaster, camera.position, point, mesh))
+      && !gorge.blocksSegment(camera.position, point);
   }
   let running = null;
 
@@ -524,8 +450,10 @@ export async function mountCloudCliffRoute({ mount, phone = false, night = false
 
     raycaster.set(camera.position, down);
     const ground = raycaster.intersectObject(floor)[0];
-    const valleyVisible = inFrame(oppositeFace) && !blockedByWall(oppositeFace);
-    const valleyBedInFrame = inFrame(valleyBed) && !blockedByWall(valleyBed);
+    const nearBankInFrame = terrainVisible(targets.nearBank);
+    const valleyBedInFrame = terrainVisible(targets.valleyBed);
+    const farBankInFrame = terrainVisible(targets.farBank);
+    const valleyVisible = nearBankInFrame && valleyBedInFrame && farBankInFrame;
     const innerWallInFrame = wallProbes.some(probe => {
       raycaster.setFromCamera(probe, camera);
       return raycaster.intersectObject(wall).length > 0;
@@ -535,16 +463,16 @@ export async function mountCloudCliffRoute({ mount, phone = false, night = false
     frustum.setFromProjectionMatrix(viewProjection.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse));
     renderer.getSize(viewSize);
     const lanternInFrame = frustum.intersectsBox(lanternBounds);
-    const lanternVisible = lanternInFrame && !blockedByWall(station);
+    const lanternVisible = lanternInFrame && !wallBetween(raycaster, camera.position, station, wall);
     const anchor = projected.copy(station).project(camera);
     return {
       ...row,
       floorClearance: ground?.distance ?? null,
       wallClearance: Math.sqrt(wallDistance),
-      innerWallInFrame, valleyVisible, valleyBedInFrame,
+      innerWallInFrame, valleyVisible, nearBankInFrame, valleyBedInFrame, farBankInFrame,
       lanternInFrame, lanternVisible,
       lanternPx: { x: (anchor.x + 1) * viewSize.x / 2, y: (1 - anchor.y) * viewSize.y / 2 },
-      farMesh: far.name,
+      farMesh: gorge.mesh.name,
     };
   }
 

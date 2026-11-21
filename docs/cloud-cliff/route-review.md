@@ -2,7 +2,7 @@
 
 ## Photograph references
 
-These photographs informed the private preview. The preview uses the repository's existing Source19 meshes and Poly Haven materials. The photographs are review references rather than scene textures. The local photo comparison copies are under `artifacts/cloud-cliff-route-r2/references/`.
+These photographs informed the private preview. The preview uses the repository's Source19 lantern and Poly Haven materials. The released Home landscape remains the reference for the production assets. The photographs are review references rather than scene textures. The local photo comparison copies are under `artifacts/cloud-cliff-route-r2/references/`.
 
 | Photograph | Credit and rights | What to compare |
 | --- | --- | --- |
@@ -15,3 +15,9 @@ The component material credits are [Rock Pitted Mossy](https://polyhaven.com/a/r
 ## Repeat the capture
 
 Run `node tests/visual/cloud-cliff-route.mjs --check` for the deterministic camera checks. With the S5 lease held, run `node tests/visual/cloud-cliff-route.mjs` from the worktree with the project dependencies available. The review harness binds to loopback, runs Chromium, closes the browser and server, and saves originals, 1:1 crops, a contact sheet, the plan, runtime traces and JSON receipts under `artifacts/cloud-cliff-route-r2/`. The baseline originals remain under `artifacts/cloud-cliff-route/`. The revised route is still a private preview with a static lantern and no product chooser.
+
+## Joined gorge review
+
+The private overlook now uses one indexed terrain mesh for the near wall, ravine floor and opposite strata. The 26-second checkpoint is measured before the lantern enters the view. Each reveal sample must show all three test points on the terrain, with the near rock, platform and canyon triangles included in the occlusion checks. The 22-second trail and 30-second fixture remain part of the same 30-second walk.
+
+Use the full capture to review the 13:00 and 22:00 preview presets on both screen sizes. The round-three capture writes to `artifacts/cloud-cliff-route-r3/`. Its matched 26-second sheet uses the original `bf25422` captures from `artifacts/cloud-cliff-route-r2/`.

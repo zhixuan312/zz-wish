@@ -18,8 +18,10 @@ import { CAMERA_LIMITS, cameraPathViolations, measureCameraPath } from './pine-c
 const require = createRequire(import.meta.url);
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const quick = process.argv.includes('--quick');
-const out = join(root, quick ? 'artifacts/cloud-cliff-route-r2-quick' : 'artifacts/cloud-cliff-route-r2');
+const out = join(root, quick ? 'artifacts/cloud-cliff-route-r3-quick' : 'artifacts/cloud-cliff-route-r3');
+const baseline = { commit: 'bf25422', dir: join(root, 'artifacts/cloud-cliff-route-r2') };
 const routeUrl = '/web/src/engine/places/cloud-cliff-route.js';
+const gorgeUrl = '/web/src/engine/places/cloud-cliff-gorge.js';
 const worldUrl = '/places/cloud-cliff/';
 const worldDir = join(root, 'web/public', worldUrl);
 const duration = 30;
@@ -34,7 +36,10 @@ const views = [
   { name: 'desktop', phone: false, width: 1440, height: 900 },
   { name: 'phone', phone: true, width: 390, height: 844 },
 ];
-const looks = [{ name: 'day', night: false }, { name: 'night', night: true }];
+const looks = [
+  { name: 'day', night: false, hour: 13, clock: '13:00' },
+  { name: 'night', night: true, hour: 22, clock: '22:00' },
+];
 const scanTextures = ['rock_pitted_mossy', 'stone_pavers'].flatMap(material =>
   ['diffuse', 'normal', 'roughness'].map(map => `/materials/scans/${material}/${map}.jpg`));
 
@@ -43,23 +48,34 @@ function routeSamples(phone) {
     sampleCloudCliffRoute(index / 60, phone));
 }
 
+function addMeasuredMotion(rows) {
+  return rows.map((row, i) => {
+    const previous = rows[i - 1];
+    const dt = previous ? row.t - previous.t : 0;
+    if (dt <= 0) return { ...row, sampleGapSeconds: null, speedMetresPerSecond: null, turnDegreesPerSecond: null };
+    // Each direction starts at the camera position of its own sample.
+    const u = [previous.lx - previous.x, previous.ly - previous.y, previous.lz - previous.z];
+    const v = [row.lx - row.x, row.ly - row.y, row.lz - row.z];
+    const dot = u.reduce((sum, component, axis) => sum + component * v[axis], 0);
+    const cosine = dot / (Math.hypot(...u) * Math.hypot(...v));
+    return {
+      ...row, sampleGapSeconds: dt,
+      speedMetresPerSecond: Math.hypot(row.x - previous.x, row.y - previous.y, row.z - previous.z) / dt,
+      turnDegreesPerSecond: Math.acos(Math.max(-1, Math.min(1, cosine))) * 180 / Math.PI / dt,
+    };
+  });
+}
+
 function measuredTurn(rows) {
   const series = [];
   let max = 0, at = 0;
-  for (let i = 1; i < rows.length; i++) {
-    const a = rows[i - 1], b = rows[i], dt = b.t - a.t;
-    if (dt <= 0 || dt > .1) continue;
-    // Each view direction starts at the camera position of its own sample.
-    const u = [a.lx - a.x, a.ly - a.y, a.lz - a.z];
-    const v = [b.lx - b.x, b.ly - b.y, b.lz - b.z];
-    const dot = u.reduce((sum, component, axis) => sum + component * v[axis], 0);
-    const cosine = dot / (Math.hypot(...u) * Math.hypot(...v));
-    const rate = Math.acos(Math.max(-1, Math.min(1, cosine))) * 180 / Math.PI / dt;
-    if (rate > max) {
-      max = rate;
-      at = b.t;
+  for (const { t, sampleGapSeconds, turnDegreesPerSecond } of rows) {
+    if (sampleGapSeconds == null || sampleGapSeconds > .1) continue;
+    if (turnDegreesPerSecond > max) {
+      max = turnDegreesPerSecond;
+      at = t;
     }
-    series.push([b.t, rate]);
+    series.push([t, turnDegreesPerSecond]);
   }
   return { max, at, series };
 }
@@ -102,7 +118,7 @@ function evaluateTrace(rows) {
 
 function checkRoute() {
   return Object.fromEntries(views.map(view => {
-    const rows = routeSamples(view.phone);
+    const rows = addMeasuredMotion(routeSamples(view.phone));
     const report = evaluateTrace(rows);
     assert.ok(rows.every((row, i) => row.t === i / 60), `${view.name}: invalid route clock`);
     assert.deepEqual(report.deviations, [], view.name);
@@ -207,16 +223,14 @@ async function serveFixture() {
   const three = resolve(dirname(require.resolve('three')), '..');
   const assets = new Map([
     [routeUrl, [join(root, routeUrl), 'text/javascript']],
+    [gorgeUrl, [join(root, gorgeUrl), 'text/javascript']],
     ['/three/three.module.js', [join(three, 'build/three.module.js'), 'text/javascript']],
     ...[
       'loaders/GLTFLoader.js', 'loaders/KTX2Loader.js',
       'utils/BufferGeometryUtils.js', 'utils/WorkerPool.js',
       'libs/ktx-parse.module.js', 'libs/zstddec.module.js', 'libs/meshopt_decoder.module.js',
     ].map(name => [`/three/addons/${name}`, [join(three, 'examples/jsm', name), 'text/javascript']]),
-    ...['cloud-cliff.glb.gzip', 'cloud-cliff-storm.glb.gzip']
-      .map(name => [worldUrl + name, [join(worldDir, name), 'model/gltf-binary', 'gzip']]),
-    ...['far-day.ktx2', 'far-night.ktx2', 'far-dusk.ktx2']
-      .map(name => [worldUrl + name, [join(worldDir, name), 'image/ktx2']]),
+    [worldUrl + 'cloud-cliff-storm.glb.gzip', [join(worldDir, 'cloud-cliff-storm.glb.gzip'), 'model/gltf-binary', 'gzip']],
     [worldUrl + 'manifest.json', [join(worldDir, 'manifest.json'), 'application/json']],
     ...scanTextures.map(url => [url, [join(root, 'web/public', url), 'image/jpeg']]),
     ...[['basis_transcoder.js', 'text/javascript'], ['basis_transcoder.wasm', 'application/wasm']]
@@ -260,10 +274,11 @@ async function serveFixture() {
   });
   return {
     origin: `http://127.0.0.1:${server.address().port}`,
-    exposeOriginal(file) {
+    exposeOriginal(file, from = 'current') {
       assert.match(file, /^(desktop|phone)-(day|night)-[0-9]{2}-[a-z-]+\.png$/);
-      const path = `/evidence/${file}`;
-      assets.set(path, [join(out, file), 'image/png']);
+      assert.ok(from === 'current' || from === 'baseline');
+      const path = `/evidence/${from}/${file}`;
+      assets.set(path, [join(from === 'baseline' ? baseline.dir : out, file), 'image/png']);
       return path;
     },
     close: () => new Promise((resolveClose, reject) => {
@@ -293,34 +308,50 @@ function cropAtBeat({ width, height }, seconds, pose) {
   };
 }
 
-async function contactSheet(browser, server, receipts) {
-  const context = await browser.newContext({
-    viewport: { width: 1660, height: 1000 }, deviceScaleFactor: 1,
-  });
+async function readBaseline() {
+  const report = JSON.parse(await readFile(join(baseline.dir, 'report.json'), 'utf8'));
+  const receipts = await Promise.all(views.flatMap(view => looks.map(async look => {
+    const context = report.receipts.find(row => row.view.name === view.name && row.look === look.name);
+    const image = context?.images.find(frame => frame.pose.t === 26);
+    assert.ok(image, `baseline ${view.name} ${look.clock}: missing 26 s reference`);
+    assert.deepEqual([image.width, image.height], [view.width, view.height]);
+    const sha256 = hash(await readFile(join(baseline.dir, image.file)));
+    assert.equal(sha256, image.sha256, `baseline ${image.file}: image changed`);
+    return [`${view.name}-${look.name}`, { file: image.file, sha256 }];
+  })));
+  return Object.fromEntries(receipts);
+}
+
+async function drawSheet(browser, server, { title, note, headers, rows, file, width, height, imageHeight = 185 }) {
+  const context = await browser.newContext({ viewport: { width, height }, deviceScaleFactor: 1 });
   try {
     const tab = await context.newPage();
     await tab.goto(`${server.origin}/evidence-sheet`);
-    const labels = ['Entrance', 'Wall approach', 'Before shoulder', 'Valley reveal', 'Lantern'];
-    const header = beats.map(([t], i) => `<th>${t} s · ${labels[i]}</th>`).join('');
-    const rows = receipts.map(({ view, look, images }) => {
-      const columns = images.map(({ file }) =>
-        `<td><img src="${server.origin}${server.exposeOriginal(file)}" alt="${file}"></td>`).join('');
-      return `<tr><th scope="row">${view.name}<br>${look}<small>${view.width} × ${view.height}</small></th>${columns}</tr>`;
+    const heading = headers.map(label => `<th>${label}</th>`).join('');
+    const body = rows.map(({ view, clock, images }) => {
+      const columns = images.map(({ file, from }) =>
+        `<td><img src="${server.origin}${server.exposeOriginal(file, from)}" alt="${file}"></td>`).join('');
+      return `<tr><th scope="row">${view.name}<br>${clock}<small>${view.width} × ${view.height}</small></th>${columns}</tr>`;
     }).join('');
-    await tab.setContent(`<!doctype html><meta charset="utf-8"><title>Cloud Cliff Court contact sheet</title>
+    await tab.setContent(`<!doctype html><meta charset="utf-8"><title>${title}</title>
 <style>
 *{box-sizing:border-box} body{margin:0;padding:24px;background:#171a1c;color:#e9e6df;font:16px system-ui,sans-serif}
 h1{margin:0 0 4px;font-size:25px} p{margin:0 0 16px;color:#bababa}
 table{width:100%;border-collapse:separate;border-spacing:8px 6px;table-layout:fixed}
 th:first-child{width:92px;text-align:left} th{font-weight:600} small{display:block;color:#bababa;font-size:12px}
-td{height:190px;text-align:center;background:#202427} img{width:100%;height:185px;object-fit:contain;display:block}
-</style><h1>Cloud Cliff Court</h1><p>Private route review · day and night · thumbnails fit their original aspect ratios</p>
-<table><thead><tr><th>View</th>${header}</tr></thead><tbody>${rows}</tbody></table>`);
+td{height:${imageHeight + 5}px;text-align:center;background:#202427} img{width:100%;height:${imageHeight}px;object-fit:contain;display:block}
+</style><h1>${title}</h1><p>${note}</p>
+<table><thead><tr><th>View</th>${heading}</tr></thead><tbody>${body}</tbody></table>`);
     await tab.evaluate(() => Promise.all(Array.from(document.images, image => image.decode())));
-    return await screenshot(tab, 'contact-sheet.png');
+    return await screenshot(tab, file);
   } finally {
     await context.close();
   }
+}
+
+function gorgeInFrame(row) {
+  return row.valleyVisible === true && row.nearBankInFrame === true &&
+    row.farBankInFrame === true && row.valleyBedInFrame === true;
 }
 
 function continuousReveal(rows) {
@@ -329,7 +360,7 @@ function continuousReveal(rows) {
   let current = null;
   for (const row of window) {
     const supported = Number.isFinite(row.floorClearance) && Number.isFinite(row.wallClearance);
-    const visible = row.valleyVisible === true && row.valleyBedInFrame === true;
+    const visible = gorgeInFrame(row) && row.lanternInFrame === false;
     if (!supported || !visible) {
       current = null;
       continue;
@@ -345,7 +376,7 @@ function continuousReveal(rows) {
   const segment = segments.find(part => part.from <= 26 && part.to >= 26);
   return {
     ...segment, seconds: segment ? segment.to - segment.from : 0,
-    firstLanternFrame: rows.find(row => row.t > 26 && row.lanternInFrame === true)?.t ?? null,
+    firstLanternFrame: rows.find(row => row.lanternVisible === true)?.t ?? null,
     sampleWindow: window,
   };
 }
@@ -377,25 +408,27 @@ async function inspectJourney(tab, view) {
     assert.deepEqual(endpointFields(endpoint), endpointFields(journey.final), `${view.name} endpoint parity`);
   }
   const traceFile = `trace-${view.name}.json`;
-  await writeFile(join(out, traceFile), JSON.stringify(journey.continuous));
+  const rows = addMeasuredMotion(journey.continuous);
+  await writeFile(join(out, traceFile), JSON.stringify(rows));
   const revealFile = `reveal-${view.name}.json`;
-  const { sampleWindow, ...reveal } = continuousReveal(journey.continuous);
+  const { sampleWindow, ...reveal } = continuousReveal(rows);
   await writeFile(join(out, revealFile), JSON.stringify(sampleWindow));
   return {
-    traceFile, revealFile, reveal, ...evaluateTrace(journey.continuous),
+    traceFile, revealFile, reveal, ...evaluateTrace(rows),
     endpoint: endpointFields(journey.final), skipAtSeconds: journey.beforeSkip.t, skipParity: true, reducedMotionParity: true,
   };
 }
 
 async function capture() {
   const planned = checkRoute();
+  const beforeFrames = await readBaseline();
   const { chromium } = require('@playwright/test');
   await mkdir(out, { recursive: true });
   await writeFile(join(out, 'site-plan.svg'), sitePlan());
   const server = await serveFixture();
   let browser;
   const receipts = [];
-  let browserVersion, sheet;
+  let browserVersion, sheet, comparisonSheet;
   try {
     browser = await chromium.launch({
       channel: 'chrome',
@@ -443,14 +476,35 @@ async function capture() {
           await copyFile(join(worldDir, `cover-${look.name}-${view.name}.webp`), join(out, reference));
           const trace = quick ? null : await inspectJourney(tab, { ...view, name: captureStart });
           const referenceSha256 = hash(await readFile(join(out, reference)));
-          receipts.push({ view, look: look.name, images, reference, referenceSha256, trace, errors, warnings });
+          receipts.push({
+            view, look: look.name, hour: look.hour, clock: look.clock,
+            images, reference, referenceSha256, trace, errors, warnings,
+          });
           console.log(`${captureStart}: ${images.length} originals${trace ? `, ${trace.samples} route samples` : ''}`);
         } finally {
           await context.close();
         }
       }
     }
-    sheet = await contactSheet(browser, server, receipts);
+    const labels = ['Entrance', 'Wall approach', 'Before shoulder', 'Valley reveal', 'Lantern'];
+    sheet = await drawSheet(browser, server, {
+      title: 'Cloud Cliff Court',
+      note: 'Private route review · thumbnails fit their original aspect ratios',
+      headers: beats.map(([t], i) => `${t} s · ${labels[i]}`), rows: receipts,
+      file: 'contact-sheet.png', width: 1660, height: 1000,
+    });
+    comparisonSheet = await drawSheet(browser, server, {
+      title: 'Cloud Cliff Court · 26 s reveal',
+      note: 'Matched walk beat, viewport and lighting preset',
+      headers: [`Before · ${baseline.commit}`, 'Joined gorge · current'],
+      rows: receipts.map(({ view, look, clock, images }) => ({
+        view, clock, images: [
+          { ...beforeFrames[`${view.name}-${look}`], from: 'baseline' },
+          images.find(({ pose }) => pose.t === 26),
+        ],
+      })),
+      file: 'comparison-26s.png', width: 1240, height: 1240, imageHeight: 265,
+    });
   } finally {
     try {
       await browser?.close();
@@ -460,40 +514,43 @@ async function capture() {
   }
   const inputs = await Promise.all([
     routeUrl.slice(1),
+    gorgeUrl.slice(1),
     'tests/visual/cloud-cliff-route.mjs',
-    'web/public/places/cloud-cliff/cloud-cliff.glb.gzip',
     'web/public/places/cloud-cliff/cloud-cliff-storm.glb.gzip',
     ...scanTextures.map(path => `web/public${path}`),
   ].map(async file => [file, hash(await readFile(join(root, file)))]));
   const report = {
     browserVersion, mode: quick ? 'frames-only' : 'full',
     inputSha256: Object.fromEntries(inputs),
-    scope: 'Engine fixture. The shipped reference is the original Home cover, from its own pose. No product chooser is shown.',
-    sitePlan: 'site-plan.svg', contactSheet: sheet,
+    scope: 'Private engine fixture. 13:00 and 22:00 are fixed lighting presets. The original Home cover is a reference from its own viewpoint.',
+    terrain: 'The reveal identifies the near bank, valley floor and far bank separately. Each must stay visible continuously at the 26 s beat before the lantern enters frame.',
+    sitePlan: 'site-plan.svg', contactSheet: sheet, comparisonSheet,
+    baseline: { commit: baseline.commit, evidenceDirectory: 'artifacts/cloud-cliff-route-r2', frames: beforeFrames },
     clearance: 'Runtime wall clearance measures nearest wall triangle; floor clearance is the downward ray distance. Platform edge is a signed plan distance.',
     planned, receipts,
   };
   await writeFile(join(out, 'report.json'), JSON.stringify(report, null, 2) + '\n');
   const errors = [];
-  for (const { view, look, errors: browserErrors, images, trace } of receipts) {
-    const name = `${view.name} ${look}`;
+  for (const { view, clock, errors: browserErrors, warnings, images, trace } of receipts) {
+    const name = `${view.name} ${clock}`;
     const requireEvidence = (test, message) => { if (!test) errors.push(`${name}: ${message}`); };
     requireEvidence(browserErrors.length === 0, browserErrors.join('; '));
+    requireEvidence(warnings.length === 0, warnings.join('; '));
     if (trace) {
       requireEvidence(trace.deviations.length === 0, trace.deviations.join('; '));
       requireEvidence(trace.reveal.seconds >= 2,
         `continuous supported reveal at 26 s lasts ${trace.reveal.seconds.toFixed(3)} s (need at least 2)`);
-      requireEvidence(trace.reveal.firstLanternFrame > 26, 'lantern approach must follow the reveal');
+      requireEvidence(trace.reveal.firstLanternFrame >= trace.reveal.to,
+        'lantern approach must follow the visible gorge interval');
     }
     requireEvidence(images.slice(0, 3).every(({ pose }) =>
       pose.innerWallInFrame === true && pose.valleyVisible === false && pose.lanternVisible === false),
     'the inner wall must be framed and the valley hidden at 0, 12 and 22 s');
     const reveal = images[3].pose;
-    requireEvidence(reveal.valleyVisible === true && reveal.valleyBedInFrame === true,
-      'opposite face and connected valley floor must be visible at 26 s');
+    requireEvidence(gorgeInFrame(reveal), 'near bank, valley floor and far bank must all be visible at 26 s');
     requireEvidence(reveal.lanternInFrame === false, 'lantern must stay outside the 26 s reveal');
     const final = images[4].pose;
-    requireEvidence(final.lanternInFrame === true, 'lantern must be framed at 30 s');
+    requireEvidence(final.lanternInFrame === true && final.lanternVisible === true, 'lantern must be visible at 30 s');
     requireEvidence(images.every(({ pose }) => Number.isFinite(pose.floorClearance)),
       'all recorded poses must have mesh support below the eye');
   }
@@ -508,7 +565,7 @@ if (process.argv.includes('--check')) {
     for (const look of looks) {
       const address = new URL(fixtureUrl(server.origin, view, look));
       address.searchParams.set('review', '1');
-      console.log(`${view.name} ${look.name}: ${address.href}`);
+      console.log(`${view.name} ${look.clock}: ${address.href}`);
     }
   }
   for (const signal of ['SIGINT', 'SIGTERM']) process.once(signal, () => void server.close());
