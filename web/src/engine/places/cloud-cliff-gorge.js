@@ -160,7 +160,7 @@ function scatterBendScree(THREE, scene, surface, rock) {
   const count = 29;
   const gravel = new THREE.InstancedMesh(
     new THREE.IcosahedronGeometry(1, 0),
-    new THREE.MeshStandardMaterial({ map: rock.map, roughness: 1, flatShading: true }),
+    new THREE.MeshStandardMaterial({ map: rock.map ?? null, roughness: 1, flatShading: true }),
     count,
   );
   gravel.name = 'Cloud Cliff bend scree';

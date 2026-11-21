@@ -13,7 +13,9 @@ export const ROUTE_WALL = [
   [-17, 6.75],
 ];
 export const ROUTE_LANTERN = [11.77, 1.34, 2.25];
-const SPUR = [[11, 2.81], [11.44, 2.8], [11.68, 2.88], [11.76, 3.02],
+// This angled edge keeps the fixture screened on the turn and clears the
+// clasp and rim from the existing settled camera.
+const SPUR = [[11, 2.81], [11.44, 2.8], [11.64, 2.88], [11.70, 3.15],
   [11.55, 3.13], [11.05, 3.12], [10.91, 3.04]];
 
 const PATH = [
@@ -426,6 +428,10 @@ export async function mountCloudCliffRoute({ mount, phone = false, night = false
   const terrainOccluders = [wall, floor, outer, spur];
   const triangles = [...meshTriangles(THREE, wall), ...meshTriangles(THREE, spur)];
   const lanternBounds = visibleBounds(THREE, lantern, catchGroup);
+  const claspBounds = visibleBounds(THREE, catchGroup);
+  const claspProbes = [claspBounds.min.x, claspBounds.max.x].flatMap(x =>
+    [claspBounds.min.y, claspBounds.max.y].map(y => new THREE.Vector3(x, y, claspBounds.max.z)));
+  claspProbes.push(claspBounds.getCenter(new THREE.Vector3()));
   const station = new THREE.Vector3(...ROUTE_LANTERN);
   const [min, max] = [lanternBounds.min, lanternBounds.max];
   const lanternProbes = [
@@ -447,6 +453,12 @@ export async function mountCloudCliffRoute({ mount, phone = false, night = false
     return inFrame(point)
       && !terrainOccluders.some(mesh => wallBetween(raycaster, camera.position, point, mesh))
       && !gorge.blocksSegment(camera.position, point);
+  }
+
+  function visiblePastScreen(point) {
+    return inFrame(point)
+      && !wallBetween(raycaster, camera.position, point, wall)
+      && !wallBetween(raycaster, camera.position, point, spur);
   }
   let running = null;
 
@@ -472,16 +484,15 @@ export async function mountCloudCliffRoute({ mount, phone = false, night = false
     frustum.setFromProjectionMatrix(viewProjection.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse));
     renderer.getSize(viewSize);
     const lanternInFrame = frustum.intersectsBox(lanternBounds);
-    const lanternVisible = lanternInFrame && lanternProbes.some(point => inFrame(point)
-      && !wallBetween(raycaster, camera.position, point, wall)
-      && !wallBetween(raycaster, camera.position, point, spur));
+    const lanternVisible = lanternInFrame && lanternProbes.some(visiblePastScreen);
+    const claspClear = lanternVisible && claspProbes.every(visiblePastScreen);
     const anchor = projected.copy(station).project(camera);
     return {
       ...row,
       floorClearance: ground?.distance ?? null,
       wallClearance: Math.sqrt(wallDistance),
       innerWallInFrame, valleyVisible, nearBankInFrame, valleyBedInFrame, farBankInFrame,
-      lanternInFrame, lanternVisible,
+      lanternInFrame, lanternVisible, claspClear,
       lanternPx: { x: (anchor.x + 1) * viewSize.x / 2, y: (1 - anchor.y) * viewSize.y / 2 },
       farMesh: gorge.mesh.name,
     };

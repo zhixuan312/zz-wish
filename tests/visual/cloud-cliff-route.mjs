@@ -332,8 +332,8 @@ async function readBaseline() {
         assert.equal(hash(bytes), sha256, `baseline ${file}: image changed`);
         assert.deepEqual([bytes.readUInt32BE(16), bytes.readUInt32BE(20)], [width, height], file);
       }
-      const { file, width, height, sha256, crop } = image;
-      return [seconds, { file, width, height, sha256, crop }];
+      const { file, width, height, sha256, crop, pose } = image;
+      return [seconds, { file, width, height, sha256, crop, cameraPose: cameraPose(pose) }];
     }));
     return [`${view.name}-${look.name}`, Object.fromEntries(frames)];
   })));
@@ -370,6 +370,10 @@ td{height:${imageHeight + 5}px;text-align:center;background:#202427} img{width:1
 function gorgeInFrame(row) {
   return row.valleyVisible === true && row.nearBankInFrame === true &&
     row.farBankInFrame === true && row.valleyBedInFrame === true;
+}
+
+function cameraPose({ t, x, y, z, lx, ly, lz, fov }) {
+  return [t, x, y, z, lx, ly, lz, fov];
 }
 
 function continuousReveal(rows) {
@@ -518,10 +522,9 @@ async function inspectJourney(tab, view) {
     preview.seek(0);
     return preview.play({ reducedMotion: window.matchMedia('(prefers-reduced-motion: reduce)').matches });
   });
-  const endpointFields = ({ t, x, y, z, lx, ly, lz, fov }) => [t, x, y, z, lx, ly, lz, fov];
   assert.equal(journey.start.t, 0, `${view.name} entry clock`);
   for (const endpoint of [journey.skipped, journey.resolvedAfterSkip, reducedMotion]) {
-    assert.deepEqual(endpointFields(endpoint), endpointFields(journey.final), `${view.name} endpoint parity`);
+    assert.deepEqual(cameraPose(endpoint), cameraPose(journey.final), `${view.name} endpoint parity`);
   }
   const traceFile = `trace-${view.name}.json`;
   const rows = addMeasuredMotion(journey.continuous);
@@ -543,7 +546,7 @@ async function inspectJourney(tab, view) {
   }
   return {
     traceFile, revealFile, reveal, clip, ...evaluateTrace(rows),
-    endpoint: endpointFields(journey.final), skipAtSeconds: journey.beforeSkip.t, skipParity: true, reducedMotionParity: true,
+    endpoint: cameraPose(journey.final), skipAtSeconds: journey.beforeSkip.t, skipParity: true, reducedMotionParity: true,
   };
 }
 
@@ -592,11 +595,13 @@ async function capture() {
           const images = [];
           for (const [seconds, beat] of beats) {
             const pose = await tab.evaluate(t => window.cloudCliff.seek(t), seconds);
+            const before = beforeFrames[captureStart][seconds];
+            if (before) assert.deepEqual(cameraPose(pose), before.cameraPose, `${captureStart}: matched ${seconds} s camera`);
             const name = `${captureStart}-${String(seconds).padStart(2, '0')}-${beat}`;
             const image = await screenshot(tab, `${name}.png`);
             assert.equal(image.width, view.width);
             assert.equal(image.height, view.height);
-            const beforeCrop = beforeFrames[captureStart][seconds]?.crop;
+            const beforeCrop = before?.crop;
             const clip = beforeCrop
               ? { x: beforeCrop.originPx[0], y: beforeCrop.originPx[1], width: beforeCrop.width, height: beforeCrop.height }
               : seconds >= 22 ? cropAtBeat(view, seconds, pose) : null;
@@ -701,6 +706,7 @@ async function capture() {
       'lantern must stay outside the 26 s reveal');
     const final = images[4].pose;
     requireEvidence(final.lanternInFrame === true && final.lanternVisible === true, 'lantern must be visible at 30 s');
+    requireEvidence(final.claspClear === true, 'the clasp front must clear the rock screen at 30 s');
     requireEvidence(images.every(({ pose }) => Number.isFinite(pose.floorClearance)),
       'all recorded poses must have mesh support below the eye');
   }
