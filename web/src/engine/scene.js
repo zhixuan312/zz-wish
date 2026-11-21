@@ -2566,7 +2566,13 @@ export async function ignite({onCatch, remainingFuel, onTaperLit}={}) {
         onCatch?.();
       }
     });
-    if (lit && journey === cameraJourneyVersion) mark('settled', 1);
+    if (lit && journey === cameraJourneyVersion) {
+      mark('settled', 1);
+      if (!reducedMotion.matches) {
+        place.P.nook.onIgnitionSettled?.(clockTime,
+          () => lit && journey === cameraJourneyVersion && !reducedMotion.matches);
+      }
+    }
     return;
   }
   const N=place.P.nook,spread=viewOf((narrow()&&N.spreadPhone)||N.spread),burn=burnView();

@@ -1,4 +1,6 @@
 import { hermiteTrack } from './pine-walk-curve.js';
+import { buildForegroundLotus } from './lotus-pond-plants.js';
+import { configureLotusWater } from './lotus-pond-water.js';
 
 const bridgeCenter = 7.2;
 const bridgeHalfLength = 11.5;
@@ -115,6 +117,7 @@ function buildOldStands(THREE, put, box, stone, wax, paleWax, otherLamp) {
 }
 export default function createPlace(h) {
   const { THREE, V3, M, roofMat, ground, pave, hallB, gateB, wallRun, trees, peak, water, lotus, box, put, otherLamp, plasterTex, pavingTex, pauseBuild } = h;
+  let pondSurface;
   const view = { pos: V3(1.45, 1.74, 36.6), look: V3(6.3, 1.7, 24), fov: 38 };
   const viewPhone = { ...view, fov: 44 };
   const local = (x, y, z) => V3(nookOrigin[2] - z, y - nookOrigin[1], x - nookOrigin[0]);
@@ -180,6 +183,9 @@ export default function createPlace(h) {
       }
       const pond = water(waterHeight, 0x132923, { geo: new THREE.PlaneGeometry(28, 20), z: 7.2, reflect: true });
       pond.material.uniforms.color.value.set(0x9da9a3);
+      const surface = configureLotusWater(THREE, pond);
+      pondSurface = surface;
+      C.up.push((_dt, time) => surface.step(time));
       lotus(-13.5, -7.5, -2, 16.5, .08, 34);
       lotus(2.7, 13.5, -2, 16.5, .08, 46);
       buildBridge(THREE, put, box, granite);
@@ -202,8 +208,7 @@ export default function createPlace(h) {
       // frame the open water without sitting on the candle's reflection ray.
       T.broad(-15.7, .18, -.4, 4.45, 0x293f31);
       T.finish(); await pauseBuild();
-      lotus(-5.45, -4.2, 7.9, 9.15, .077, 7);
-      lotus(-5.5, -4.35, 5.55, 6.55, .078, 6);
+      buildForegroundLotus(THREE, C.G, waterHeight);
       peak(-110, -20, -170, 90, 65, M(0x344239, 1), 12, .7);
       peak(120, -20, -220, 110, 85, M(0x2f3b39, 1), 18, .7);
       await pauseBuild();
@@ -213,6 +218,9 @@ export default function createPlace(h) {
     nook: {
       at: { pos: V3(...nookOrigin), ry: Math.PI / 2 },
       lamp: 'lotus', y: .64, exposure: 1.1, bloom: [.42, .95],
+      onIgnitionSettled(time, isBurning) {
+        pondSurface?.start(time, isBurning);
+      },
       // More of the live flame clears the candle shoulder in the steep desktop reflection.
       desktopFlameScale: 1.6,
       wide: seated, burn: seated, widePhone: portraitSeat, choosePhone: portraitSeat, burnPhone: portraitSeat,
