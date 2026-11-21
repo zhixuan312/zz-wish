@@ -16,7 +16,12 @@ function latticeFixture(rows, slot, tagSide) {
   const rings = rows.map(({ r, y }) => [Math.max(.002, r * scale), .52 + y * scale]);
   const tray = new THREE.Mesh(new THREE.BoxGeometry(.26, .02, .26));
   tray.position.y = .5;
-  const shell = new THREE.Mesh(new THREE.LatheGeometry(rings.map(([r, y]) => new THREE.Vector2(Math.SQRT2 * r, y)), 4));
+  const geometry = new THREE.LatheGeometry(rings.map(([r, y]) => new THREE.Vector2(Math.SQRT2 * r, y)), 4);
+  const faces = Array.from(geometry.index.array);
+  const sideSize = 6 * (rings.length - 1);
+  faces.splice(sideSize, sideSize);
+  geometry.setIndex(faces);
+  const shell = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({ side: THREE.DoubleSide }));
   shell.rotation.y = Math.PI / 4;
   lamp.add(tray, shell);
   if (tagSide) {
@@ -101,3 +106,41 @@ test('saved tag boards clear the next tray along all five transfer paths', () =>
     }
   }
 });
+
+
+test.each([[1440, 900, 'choose'], [390, 844, 'choosePhone']])(
+  'a tall chooser shade leaves both saved paper bodies visible at %d×%d',
+  (width, height, view) => {
+    const { previous } = bellLaneRackDisplay([{ id: 'tall' }, { id: 'drum' }]);
+    const tall = sizedPreset(PRESET_SHAPES.shade[1].rows, 10);
+    const current = latticeFixture(tall);
+    const [left, right] = previous.map(({ slot, lamp }, i) =>
+      latticeFixture(i === 0 ? tall : drum(30), slot, lamp.rackDisplay));
+    const pose = bellLaneCameras(V3)[view];
+    const camera = new THREE.PerspectiveCamera(pose.fov, width / height);
+    camera.position.copy(pose.pos);
+    camera.lookAt(pose.look);
+    camera.updateMatrixWorld();
+    const solids = [current, left, right].flatMap(({ tray, shell }) => [tray, shell]);
+    for (const { shell } of [left, right]) {
+      const projected = [];
+      const points = shell.geometry.getAttribute('position');
+      for (let i = 0; i < points.count; i++) {
+        projected.push(V3().fromBufferAttribute(points, i).applyMatrix4(shell.matrixWorld).project(camera));
+      }
+      const [minX, maxX] = [Math.min, Math.max].map(fn => fn(...projected.map(point => point.x)));
+      const [minY, maxY] = [Math.min, Math.max].map(fn => fn(...projected.map(point => point.y)));
+      const ray = new THREE.Raycaster();
+      let silhouette = 0, clear = 0;
+      for (let i = 0; i < 15; i++) for (let j = 0; j < 15; j++) {
+        const x = THREE.MathUtils.lerp(minX, maxX, (i + .5) / 15);
+        const y = THREE.MathUtils.lerp(minY, maxY, (j + .5) / 15);
+        ray.setFromCamera(new THREE.Vector2(x, y), camera);
+        if (!ray.intersectObject(shell, false).length) continue;
+        silhouette++;
+        if (Math.abs(x) < 1 && Math.abs(y) < 1 && ray.intersectObjects(solids, false)[0]?.object === shell) clear++;
+      }
+      expect(clear / silhouette).toBeGreaterThan(.30);
+    }
+  },
+);

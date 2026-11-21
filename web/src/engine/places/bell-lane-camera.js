@@ -50,7 +50,9 @@ export function bellLaneCameras(V3) {
     const [time, position, yaw, pitch] = route.at(-1);
     return pose([time, position, yaw + Number(phone), pitch], phone ? 72 : lens(false));
   };
-  const seat = phone => pose([0, [-1.60, 1.24, 5.50], phone ? 22 : 20, phone ? -12 : -9], phone ? 56 : 43);
+  // View down the rack from just behind the nearest stand. This separates the
+  // two restored shades when the chooser still holds a tall shade in front.
+  const seat = phone => pose([0, [-1.54, 1.24, 5.30], phone ? 18.5 : 19, phone ? -12 : -9], phone ? 56 : 43);
   const time = route.map(k => k[0]);
   const position = hermiteTrack(time, route.map(k => k[1]));
   const direction = hermiteTrack(time, route.map(k => k.slice(2)));
