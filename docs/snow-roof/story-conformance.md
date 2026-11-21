@@ -517,3 +517,14 @@ The four accepted architecture visits use `78ffd08` and the 64-sample `app-48` p
 The same normal route and camera show the R48 and R49b surfaces. Original frames, native 1× crops, frame times and photographic references are indexed in `artifacts/snow-roof/quality/p2/r49-swept-comparison/README.md`. The initial exposed stone faces followed the triangle borders too closely. The final pass feathers the granite colour under the frost on the continuous court surface. The route, camera, sculpture, architecture and global lighting source stay frozen.
 
 The 64-sample `app-49b` preview uses source `90e419e` and manifest SHA-256 `7c2d3fe8e129486f4b8a03fbc386b30c8615e69f9c9e27b044b60a11ebedcff3`. Its four Chromium visits have zero runtime errors, HTTP errors and source reloads. Step inside takes 2.70–3.60 s. All sixteen decoded contact groups pass. Both capture services are stopped and the S1 lease is released. Phone evidence uses the 390 × 844 Chromium viewport.
+
+#### P2 hall beam, older wishes and the visitor tag
+
+| Requirement | Read on the normal route at 13:00 and 22:00 |
+| --- | --- |
+| One row of six older red shades and six tied wooden tags | Several silhouettes are visible at the 24.016 s gate sample. The boards are easier to identify at entry +6 s. At +9 s both viewports show all six below the same beam, with the wooden tags and a gap at the centre. |
+| Two old wishes still softly glowing and one free central cord | The two warm shades and the empty hemp cord are distinguishable by entry +8 s. The doorway conceals part of the row at that point. |
+| Visitor lamp takes priority after lighting | The chooser first shows the unlit visitor preview around entry +19.5 s. The lit cloth fills 26.1% of the desktop height and 28.4% of the phone height. The tallest visible old shade is at most 69.5% of its height. The desktop settled view contains the full row. The portrait settled edges crop the two adjacent shades and omit the four farther ones, including both low wicks. |
+| Tag face and brush marks | The snowy doorway washed out the phone's thin midday ink. The visitor tag-only shader lifts the matte wood and deepens the same fragmentary marks. The face and marks are stronger in the matched chooser and settled crops. Some grain remains muted against the midday snow. The cut fragment expressions and the old tags retain their prior appearance. P4 covers the private written wish interaction. |
+
+The baseline source `9b80f81` and tag source `3257f39` use the same `app-49b` manifest SHA-256 `7c2d3fe8e129486f4b8a03fbc386b30c8615e69f9c9e27b044b60a11ebedcff3`. Across eight Chromium visits there are zero runtime errors, HTTP errors and source reloads. All local capture listeners are stopped and the lease is released. Original frames, timestamped stages, eight native 1× pairs, decoded projection bounds and the photographed wooden tag reference are indexed in `artifacts/snow-roof/quality/p2/r50-hall-review/README.md`.
