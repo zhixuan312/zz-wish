@@ -14,9 +14,13 @@ const args = Object.fromEntries(process.argv.slice(2).reduce((rows, value, index
   return rows;
 }, []));
 const dir = args.dir ?? 'tmp/cold-canonical';
-const records = readdirSync(dir)
-  .filter(file => /-run-\d+-(canonical|immediate)\.json$/.test(file))
-  .map(file => JSON.parse(readFileSync(join(dir, file), 'utf8')));
+// A merged matrix directory holds all.json instead of the per-run files, so read whichever exists.
+const files = readdirSync(dir);
+const single = files.filter(file => /-run-\d+-(canonical|immediate)\.json$/.test(file));
+const records = single.length
+  ? single.map(file => JSON.parse(readFileSync(join(dir, file), 'utf8')))
+  : JSON.parse(readFileSync(join(dir, 'all.json'), 'utf8')).runs;
+if (!records.length) throw new Error('No records found in ' + dir);
 
 const fmt = (value, unit) => (value === null || value === undefined ? '—' : `${value}${unit}`);
 const conditions = [...new Set(records.map(record => record.condition))];
