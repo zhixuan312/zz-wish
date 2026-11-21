@@ -262,6 +262,15 @@ export async function loadBakedPlace(id,renderer,initialLight={n:1,g:0}){
     const convert=source=>{
       const spentWax = shelteredNiche && /^Weathered cold wax tone [1-4]$/.test(source.name);
       const cooledWax = spentWax || (shelteredNiche && source.name === 'Wax of the two remaining short candles');
+      // The atlas and its decoding parameters are material uniforms. Key only the GLSL branches.
+      const programKey=[
+        'baked-lightmap-2',
+        movingNicheLight?'moving':'fixed',
+        indirectLamp?'indirect':'full',
+        shelteredNiche?'sheltered':'open',
+        walkRegion?'walk-mip':'native',
+        spentWax?'spent-wax':cooledWax?'cooled-wax':'surface',
+      ].join('-');
       const material=source.clone();material.lightMap=empty;material.lightMapIntensity=1;material.envMapIntensity=.18;
       const perMaterial={...uniforms,
         uBakedNight:{value:maps.night.texture},uBakedDusk:{value:maps.dusk.texture},uBakedDay:{value:maps.day.texture},uBakedLamp:{value:maps.lamp.texture},
@@ -370,7 +379,7 @@ export async function loadBakedPlace(id,renderer,initialLight={n:1,g:0}){
             radiance+=getIBLRadiance(geometryViewDir,geometryNormal,material.roughness);
           #endif`);
       };
-      material.customProgramCacheKey=()=>`${movingNicheLight ? 'pine-lightmap' : 'cycles-lightmap-1'}-${region}${spentWax ? '-spent-wax' : cooledWax ? '-wax' : ''}${walkRegion?'-walk-mip':''}`;
+      material.customProgramCacheKey=()=>programKey;
       visitorShadow?.install(material);
       gauzeTransmission?.install(material);
       staticLampShadow?.install(material);
