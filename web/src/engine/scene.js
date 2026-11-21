@@ -906,6 +906,7 @@ const api = { g, parts: null, partsKey: null, type: null, power: 0, lightPower: 
       const input=drawn?{...o,liveBaked}:this.type==='gauze'?{...presetOf('shade'),liveBaked}:undefined;
       const p = this.type === 'pineWax' ? LAMPS.pineWax({ refined: liveBaked, sculptNormal, sunShade })
         : LAMPS[this.type](input, place?.P.nook.makeVisitorCup);
+      p.setCupFinish?.(place?.visitorCupFinish);
       this.parts = p; this.partsKey = key; g.add(p.g);
       hanger.material=p.suspensionMaterial??defaultSuspensionMaterial;
       f.wick.visible = !p.wickMesh && !p.pineWax;
@@ -2304,6 +2305,11 @@ export function setOffer(shape) {
       void tween(1.2,k=>{if(version!==choiceCameraVersion||phase!=='candle')return;const e=ease(k);rig.pos.lerpVectors(p0,v.pos,e);rig.look.lerpVectors(l0,v.look,e);rig.fov=THREE.MathUtils.lerp(f0,v.fov,e);});
     }
   }
+}
+export function setVisitorCupFinish(id) {
+  if (!place?.P.nook.makeVisitorCup) return;
+  place.visitorCupFinish = id;
+  mine.parts?.setCupFinish?.(id);
 }
 let atLamp = false; // the person has walked in and stands at their lamp
 /** Remaining fraction of the wax or oil, 1 = untouched. */

@@ -52,6 +52,8 @@ function updateState(apply: (scene: Scene) => void) {
   } else void initialize().catch(() => {});
 }
 export const setOffer = (shape: Shape | null) => { requested.offer = shape; updateState(s => s.setOffer(shape)); };
+export const setVisitorCupFinish = (id: Parameters<Scene['setVisitorCupFinish']>[0]) =>
+  updateState(s => s.setVisitorCupFinish(id));
 export const setLevel = (level: number) => { requested.level = level; updateState(s => s.setLevel(level)); };
 export const setPhase = (phase: ScenePhase) => { requested.phase = phase; updateState(s => s.setPhase(phase)); };
 export const setPowerSaver = (on: boolean) => { requested.powerSaver = on; updateState(s => s.setPowerSaver(on)); };
@@ -88,6 +90,7 @@ export const snuff = (done = false, remaining?: number, gust = false) => initial
 export { isLeavingGust } from './places/pine-gust.ts';
 export { bellLaneChimes } from './places/bell-lane-chime.ts';
 export { bellLaneSweepGain, bellLaneSweepOffset } from './places/bell-lane-dawn.ts';
+export { BELL_LANE_CUPS, type BellLaneCupId } from './places/bell-lane-cups.ts';
 export const skip = () => { void initialize().then(s => s.skip()).catch(() => {}); };
 export const setOwnPastLamps = (id: PlaceId, list: Parameters<Scene['setOwnPastLamps']>[1]) =>
   initialize().then(s => s.setOwnPastLamps(id, list));

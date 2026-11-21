@@ -1,19 +1,43 @@
-// The visitor's shallow, straight-sided oil well keeps the surface visible at the seated angle.
-// Its outer wall, foot and rim follow the lattice lantern's original clay cup.
-export function addBellLaneOilCup({ THREE, lathe }, group, clay, baseY) {
-  const floor = baseY + .0292;
-  const full = baseY + .031;
-  const wellRadius = .0195;
+import { BELL_LANE_CUPS } from './bell-lane-cups.ts';
+
+const WELL_FLOOR = .0292;
+const WELL_FULL = .031;
+const WELL_RADIUS = .0195;
+
+// Use the same shallow ceramic body on the rack and inside the lantern.
+export function makeBellLaneOilBowl({ THREE, lathe }, clay, baseY) {
   const cup = new THREE.Mesh(lathe([
     [0, baseY + .010], [.022, baseY + .010], [.024, baseY + .030], [.020, baseY + .032],
-    [wellRadius, full], [wellRadius, floor], [0, floor],
+    [WELL_RADIUS, baseY + WELL_FULL], [WELL_RADIUS, baseY + WELL_FLOOR], [0, baseY + WELL_FLOOR],
   ], 32), clay);
-  cup.name = 'Bell Lane visitor oil cup';
   cup.castShadow = cup.receiveShadow = true;
+  return cup;
+}
+
+export function addBellLaneOilCup(h, group, clay, baseY) {
+  const { THREE, lathe } = h;
+  const floor = baseY + WELL_FLOOR;
+  const full = baseY + WELL_FULL;
+  const cup = makeBellLaneOilBowl(h, clay, baseY);
+  cup.name = 'Bell Lane visitor oil cup';
+  const defaultFinish = BELL_LANE_CUPS[0];
+  cup.userData.cupId = defaultFinish.id;
+
+  function setCupFinish(id) {
+    const finish = BELL_LANE_CUPS.find(option => option.id === id) ?? defaultFinish;
+    if (cup.userData.cupId === finish.id) return;
+    if (cup.material === clay) {
+      cup.material = clay.clone();
+      cup.material.userData.lampOwned = true;
+    }
+    cup.material.color.setHex(finish.color);
+    cup.material.roughness = finish.roughness;
+    cup.userData.cupId = finish.id;
+  }
 
   // A flat pool and the part that rises against the clay share one dielectric surface.
   // The changing normals catch an arc of daylight along the contact line.
-  const contactRadius = wellRadius - .0001;
+  const contactRadius = WELL_RADIUS - .0001;
   const oil = new THREE.Mesh(lathe([
     [contactRadius, .00056], [contactRadius - .00043, .00027],
     [contactRadius - .00098, .00010], [contactRadius - .00165, .00002],
@@ -41,5 +65,5 @@ export function addBellLaneOilCup({ THREE, lathe }, group, clay, baseY) {
     oil.scale.y = Math.min(1, 8 * fraction);
   }
   setFuelLevel(1);
-  return { wickMesh, setFuelLevel };
+  return { wickMesh, setFuelLevel, setCupFinish };
 }

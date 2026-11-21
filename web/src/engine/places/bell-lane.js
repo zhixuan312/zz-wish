@@ -1,6 +1,7 @@
 import { BELL, LAMP, TREE, TURN_SECONDS, WALK_SECONDS, WINDOW, bellLaneCameras } from './bell-lane-camera.js';
 import { addBellLaneTree } from './bell-lane-tree.js';
-import { addBellLaneOilCup } from './bell-lane-oil.js';
+import { addBellLaneOilCup, makeBellLaneOilBowl } from './bell-lane-oil.js';
+import { BELL_LANE_CUPS } from './bell-lane-cups.ts';
 import { bellLaneLocalHour, bellLaneShutterOffset, bellLaneShutterOpening } from './bell-lane-dawn.ts';
 
 // An invented neighbourhood temple: a lit shop lane, one low door, a tree and a small bell court.
@@ -216,11 +217,21 @@ export default function createPlace(h) {
         other.g.name = 'Bell Lane old lamp 6';
         other.g.scale.setScalar(.52);
         other.p.shells[0].color.setHex(0x88603d);
-        // Supplies for the next visitor are kept beside the rack.
+        // The two matching bowls sit on a small ledge beside the central lamp, within both seated views.
+        const cupLedgeY = .887, cupLedgeZ = .139;
+        box(.206, .018, .105, wood, .306, cupLedgeY - .009, cupLedgeZ);
+        box(.278, .018, .024, edge, .242, cupLedgeY - .028, .11);
+        BELL_LANE_CUPS.forEach(({ id, color, roughness }, i) => {
+          const bowl = makeBellLaneOilBowl(h, M(color, roughness), -.010);
+          bowl.name = `Bell Lane rack oil cup ${id}`;
+          bowl.userData.cupId = id;
+          bowl.position.set(.257 + .099 * i, cupLedgeY, cupLedgeZ);
+          h.context.G.add(bowl);
+        });
+        // Taper and tag supplies stay on the side table.
         box(.56, .065, .42, wood, -1.57, .58, .18);
         for (const x of [-1.79, -1.35]) box(.061, .55, .28, edge, x, .275, .18);
         const cup = lathe([[0, 0], [.038, 0], [.057, .034], [.051, .034], [.032, .011], [0, .011]], 28);
-        for (const z of [.08, .23]) put(cup, clay, -1.62, .615, z);
         box(.15, .012, .083, tag, -1.39, .625, .24, .08);
         box(.24, .008, .008, tag, -1.52, .63, .31, .21);
         put(cup, clay, -1.47, .615, .092);

@@ -149,6 +149,11 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
   const [tab, setTab] = useState<'preset' | 'draw'>('preset');
   const [presetShape, setPresetShape] = useState(0);
   const [preset, setPreset] = useState<number>(DEFAULT_MINUTES);
+  const [cupFinish, setCupFinish] = useState<engine.BellLaneCupId>(engine.BELL_LANE_CUPS[0].id);
+  const chooseCup = (id: engine.BellLaneCupId) => {
+    setCupFinish(id);
+    engine.setVisitorCupFinish(id);
+  };
   const [strokes, setStrokes] = useState<Pt[][]>([]);
   const [drawingMinutes, setDrawingMinutes] = useState<number | null>(null);
   // The opening place decides the kind, so the first colour must be read from it: the default
@@ -345,6 +350,7 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
     previewCourt(id);
   };
   const goTravel = () => run(async () => {
+    if (placeId === 'bell-lane') chooseCup(engine.BELL_LANE_CUPS[0].id);
     engine.setOffer(shape);
     // Travel never waits for music: the walk must start even if a slow network is
     // still fetching the cue list. Claiming the stage here also stops the screen
@@ -463,6 +469,19 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
           <div className="inner candle-sheet-scroll">
             <div className="eyebrow">{t.candleEyebrow}</div>
             <h2>{t.stepTitle[kind]}</h2>
+            {placeId === 'bell-lane' && (
+              <div className="cup-choice" role="radiogroup" aria-labelledby="oil-cup-label">
+                <span id="oil-cup-label" className="eyebrow">{t.oilCupLabel}</span>
+                {engine.BELL_LANE_CUPS.map(({ id, color }) => (
+                  <label key={id}>
+                    <input type="radio" name="bell-lane-oil-cup" value={id} checked={cupFinish === id}
+                      data-bell-lane-cup={id} onChange={() => chooseCup(id)} />
+                    <span className="cup-sample" aria-hidden="true" style={{ backgroundColor: `#${color.toString(16)}` }} />
+                    {t.oilCupNames[id]}
+                  </label>
+                ))}
+              </div>
+            )}
             <div className="tabs" role="tablist">
               <button role="tab" className="tab" aria-selected={tab === 'preset'} onClick={() => setTab('preset')}>{t.tabPresets}</button>
               <button role="tab" className="tab" aria-selected={tab === 'draw'} onClick={() => setTab('draw')}>{t.tabDraw}</button>

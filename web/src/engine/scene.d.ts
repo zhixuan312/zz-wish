@@ -1,5 +1,6 @@
 import type { Shape } from '../../../shared/rules.ts';
 import type { PlaceId } from '../../../shared/places.ts';
+import type { BellLaneCupId } from './places/bell-lane-cups.ts';
 export type ScenePhase = 'wish' | 'place' | 'travel' | 'candle' | 'burning' | 'result';
 export type PlaceLoadProgress = { loadedBytes: number; totalBytes: number; ratio: number | null; stage: 'loading' | 'preparing' | 'ready' | 'error' };
 export type LampThumbnailOptions = { state: 'unlit' | 'burning' | 'went_out' | 'burned_down'; remaining: number; width: number; height: number };
@@ -7,6 +8,7 @@ export type IgnitionOptions = { onCatch?: () => void; remainingFuel?: () => numb
 export const ready: Promise<void>;
 export function ensureReady(): Promise<void>;
 export function setOffer(shape: Shape | null): void;
+export function setVisitorCupFinish(id: BellLaneCupId): void;
 export function setLevel(remaining: number): void;
 export function previewPlace(id: PlaceId): Promise<void>;
 export function preparePlace(id: PlaceId): Promise<unknown>;

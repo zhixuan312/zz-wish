@@ -84,6 +84,10 @@ textarea[aria-invalid=true] { border-color:#f0b69a; }
 .candle-sheet { left:auto; right:4vw; top:120px; bottom:auto; width:380px; max-height:calc(100% - 145px); padding:18px; background:linear-gradient(90deg,#0a100c99,#0a100ce0); border:1px solid #b8bc9b20; border-radius:4px; }
 .candle-sheet .inner { gap:11px; }
 .candle-sheet .inner > .eyebrow:first-child { display:none; }
+.cup-choice { display:flex; align-items:center; flex-wrap:wrap; gap:0 9px; }
+.cup-choice label { display:inline-flex; align-items:center; gap:5px; min-height:44px; padding:0 4px; color:var(--paper); font:13px var(--serif); cursor:pointer; }
+.cup-choice input { margin:0; accent-color:var(--ember); }
+.cup-sample { width:18px; height:9px; border:1px solid #ffffff4d; border-radius:30% 30% 55% 55%; box-shadow:inset 0 2px #0006; }
 .tabs { display:grid; grid-template-columns:1fr 1fr; border-bottom:1px solid var(--line); }
 .tab { min-height:44px; padding:8px; border:0; border-bottom:2px solid transparent; background:transparent; color:var(--dim); font:14px var(--serif); cursor:pointer; white-space:nowrap; }
 .tab[aria-selected=true] { color:var(--paper); border-bottom-color:var(--ember); }
