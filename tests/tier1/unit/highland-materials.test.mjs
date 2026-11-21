@@ -3,11 +3,11 @@ import * as THREE from 'three';
 import createPlace from '../../../web/src/engine/places/highland.js';
 import { highWhiteCameras, HIGH_WHITE_TRAVEL_SECONDS } from '../../../web/src/engine/places/highland-camera.js';
 import { buildHighWhiteRidges } from '../../../web/src/engine/places/highland-ridges.js';
-import { fitHighWhiteChimneys } from '../../../web/src/engine/places/highland-surfaces.js';
+import { fitHighWhiteChimneys, HIGH_WHITE_PLASTER_UV_SCALE } from '../../../web/src/engine/places/highland-surfaces.js';
 
 const vector = (...components) => new THREE.Vector3(...components);
 
-test('the mounted portal and paving keep the routed camera at walking eye height', async () => {
+async function portal() {
   const court = new THREE.Group();
   const context = { G: court, up: [], rnd: () => .5, light: { n: 0 } };
   const noop = () => {};
@@ -15,6 +15,30 @@ test('the mounted portal and paving keep the routed camera at walking eye height
     ground: noop, box: noop, wallWithHoles: noop, pauseBuild: noop, context });
   await place.build();
   court.updateMatrixWorld(true);
+  return { court, place };
+}
+
+test('an independent lintel and jambs share metres and origin in their plaster UV', async () => {
+  const { court } = await portal();
+  for (const [name, width] of [['west jamb', 10.85], ['east jamb', 23.85], ['lintel', 37]]) {
+    const mesh = court.getObjectByName(`High White ${name}`);
+    const { position, uv, normal } = mesh.geometry.attributes;
+    for (const face of [-1, 1]) {
+      const faceUV = [];
+      for (let i = 0; i < position.count; i++) {
+        if (normal.getZ(i) !== face) continue;
+        const world = mesh.localToWorld(vector().fromBufferAttribute(position, i));
+        expect(uv.getX(i)).toBeCloseTo(world.x * HIGH_WHITE_PLASTER_UV_SCALE, 5);
+        expect(uv.getY(i)).toBeCloseTo(world.y * HIGH_WHITE_PLASTER_UV_SCALE, 5);
+        faceUV.push(uv.getX(i));
+      }
+      expect(Math.max(...faceUV) - Math.min(...faceUV)).toBeCloseTo(width * HIGH_WHITE_PLASTER_UV_SCALE, 5);
+    }
+  }
+});
+
+test('the mounted portal and paving keep the routed camera at walking eye height', async () => {
+  const { court, place } = await portal();
   const bounds = name => new THREE.Box3().setFromObject(court.getObjectByName(`High White ${name}`));
   const door = ['west jamb', 'east jamb', 'lintel'].map(bounds);
   const pier = bounds('west pier');

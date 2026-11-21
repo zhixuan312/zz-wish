@@ -1,3 +1,19 @@
+export const HIGH_WHITE_PLASTER_UV_SCALE = .57;
+
+export function mapHighWhitePlasterUV(geometry, [x, y, z]) {
+  const { position, normal, uv } = geometry.attributes;
+  const scale = HIGH_WHITE_PLASTER_UV_SCALE;
+  for (let i = 0; i < position.count; i++) {
+    const ax = Math.abs(normal.getX(i)), ay = Math.abs(normal.getY(i)), az = Math.abs(normal.getZ(i));
+    const worldX = position.getX(i) + x, worldY = position.getY(i) + y, worldZ = position.getZ(i) + z;
+    if (ay > Math.max(ax, az)) uv.setXY(i, worldX * scale, worldZ * scale);
+    else if (ax > az) uv.setXY(i, worldZ * scale, worldY * scale);
+    else uv.setXY(i, worldX * scale, worldY * scale);
+  }
+  uv.needsUpdate = true;
+  return geometry;
+}
+
 export function whitewash(THREE, scan, color, wear = 1) {
   const material = new THREE.MeshStandardMaterial({
     color, map: scan.map, normalMap: scan.normalMap,
@@ -22,7 +38,7 @@ export function whitewash(THREE, scan, color, wear = 1) {
       vec3 a = abs(vLimeNormal);
       vec2 face = a.y > max(a.x, a.z) ? vLimePosition.xz
         : a.x > a.z ? vLimePosition.zy : vLimePosition.xy;
-      vec2 limeUV = face * .57;
+      vec2 limeUV = face * ${HIGH_WHITE_PLASTER_UV_SCALE.toFixed(2)};
       vec3 stone = texture2D(map, limeUV).rgb;
       float age = limeCloud(face * 1.1) * .69 + limeCloud(face * 4.9) * .31;
       float eroded = (1.0 - smoothstep(.10, .42 + age * .26, vLimePosition.y)) * (.25 + .75 * age);

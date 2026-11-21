@@ -1,7 +1,7 @@
 // High White Court: white walls and flat roofs under a wide sky, ridges far off.
 import { HIGH_WHITE_NOOK, HIGH_WHITE_TRAVEL_SECONDS, highWhiteCameras } from './highland-camera.js';
 import { buildHighWhiteRidges } from './highland-ridges.js';
-import { fitHighWhiteChimneys, whitewash } from './highland-surfaces.js';
+import { fitHighWhiteChimneys, mapHighWhitePlasterUV, whitewash } from './highland-surfaces.js';
 
 export default function createPlace(h) {
   const { THREE, V3, M, ground, box, wallWithHoles, plasterTex, pavingTex, grainTex, pauseBuild } = h;
@@ -35,7 +35,9 @@ export default function createPlace(h) {
       // Keep the floor and entrance solids separate in the scene graph so
       // their true world bounds are available during camera review.
       function structure(name, size, position, material) {
-        const mesh = new THREE.Mesh(new THREE.BoxGeometry(...size), material);
+        const geometry = new THREE.BoxGeometry(...size);
+        if (material === white || material === innerLime) mapHighWhitePlasterUV(geometry, position);
+        const mesh = new THREE.Mesh(geometry, material);
         mesh.name = `High White ${name}`;
         mesh.position.set(...position);
         mesh.castShadow = mesh.receiveShadow = true;
