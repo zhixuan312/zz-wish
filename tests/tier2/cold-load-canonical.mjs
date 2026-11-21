@@ -12,7 +12,10 @@
 // Shader counts and GLSL source bytes come from the same hooks perf-ref/shaders.cjs uses, installed with
 // addInitScript; the production bundle is not touched.
 //
-// Usage: node tests/tier2/cold-load-canonical.mjs --base URL --out DIR [--runs 3] [--only NAME]
+// Usage: node tests/tier2/cold-load-canonical.mjs --out DIR --run-dir TMP [--runs 3] [--only NAME]
+//        [--locale en-US] [--port 8902]
+// --run-dir must be the worker tmp that safe-kill.sh authorises; the harness starts its own server there
+// and records the pid, so cleanup never needs a process name or port.
 import { chromium } from '@playwright/test';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -309,54 +312,86 @@ async function runOnce(target, condition, run, phase) {
     // production build exposes no camera, so movement is read from the canvas with a settle delay that
     // skips the fade, requiring four consecutive changed frames. A timeout is recorded as a failure, not
     // silently as a missing value.
-    const walkProbe = page.evaluate(() => {
-      const canvas = document.querySelector('canvas');
-      const probe = { first: null, samples: 0, baseline: null, streak: 0, started: null, stopped: false };
+    // Movement must not be inferred from the fade. The page's #fade element is the one real
+    // stage signal the production build leaves in the DOM: the walk fades in, and only after that
+    // opacity reaches 0 does the camera travel. The probe therefore arms itself on the fade
+    // clearing, then requires four consecutive frames whose coarse grid differs materially from the
+    // first post-fade frame. The result is labelled a canvas proxy, because the production build
+    // exposes no camera pose.
+    const walkProbe = page.evaluate(() => new Promise(resolve => {
+      const probe = { armed: false, first: null, samples: 0, baseline: null, streak: 0,
+        fadeSeen: null, fadeCleared: null, framesAfterArm: 0 };
       window.__walkProbe = probe;
-      if (!canvas) return;
+      const canvas = document.querySelector('canvas');
+      const fade = document.getElementById('fade');
+      if (!canvas) { resolve(false); return; }
       const scratch = document.createElement('canvas');
       scratch.width = 48; scratch.height = 30;
       const g = scratch.getContext('2d', { willReadFrequently: true });
+      const startedAt = performance.now();
       const sample = () => {
-        if (probe.stopped || probe.first !== null) return;
-        if (probe.started === null) probe.started = performance.now();
-        const settled = performance.now() - probe.started > 600;
-        try {
-          g.drawImage(canvas, 0, 0, scratch.width, scratch.height);
-          const now = g.getImageData(0, 0, scratch.width, scratch.height).data;
-          if (!settled || probe.baseline === null) probe.baseline = now.slice();
-          else {
-            let changed = 0, total = 0;
-            for (let i = 0; i < now.length; i += 4) {
-              const delta = Math.abs(now[i] - probe.baseline[i]) + Math.abs(now[i + 1] - probe.baseline[i + 1])
-                + Math.abs(now[i + 2] - probe.baseline[i + 2]);
-              if (delta > 24) changed++;
-              total++;
-            }
-            probe.streak = changed / total > .10 ? probe.streak + 1 : 0;
-            if (probe.streak >= 4) probe.first = performance.now();
-            probe.baseline = now.slice();
+        const now = performance.now();
+        // Watch the fade: it becomes opaque for the transition, then clears.
+        if (fade) {
+          const opacity = Number(getComputedStyle(fade).opacity);
+          if (opacity > .05 && probe.fadeSeen === null) probe.fadeSeen = now - startedAt;
+          if (probe.fadeSeen !== null && opacity <= .05 && !probe.armed) {
+            probe.fadeCleared = now - startedAt;
+            probe.armed = true;
           }
-        } catch { /* resized canvas */ }
+        } else if (!probe.armed && now - startedAt > 700) {
+          // No fade element at all: fall back to a fixed settle delay, still labelled a proxy.
+          probe.armed = true;
+        }
+        if (probe.armed) {
+          probe.framesAfterArm++;
+          try {
+            g.drawImage(canvas, 0, 0, scratch.width, scratch.height);
+            const pixels = g.getImageData(0, 0, scratch.width, scratch.height).data;
+            if (probe.baseline === null) probe.baseline = pixels.slice();
+            else {
+              let changed = 0, total = 0;
+              for (let i = 0; i < pixels.length; i += 4) {
+                const delta = Math.abs(pixels[i] - probe.baseline[i])
+                  + Math.abs(pixels[i + 1] - probe.baseline[i + 1])
+                  + Math.abs(pixels[i + 2] - probe.baseline[i + 2]);
+                if (delta > 24) changed++;
+                total++;
+              }
+              probe.streak = changed / total > .10 ? probe.streak + 1 : 0;
+              if (probe.streak >= 4) { probe.first = now - startedAt; resolve(true); return; }
+              probe.baseline = pixels.slice();
+            }
+          } catch { /* resized canvas */ }
+        }
         probe.samples++;
-        if (probe.samples < 3600) requestAnimationFrame(sample);
+        if (probe.samples < 6000) requestAnimationFrame(sample);
       };
       requestAnimationFrame(sample);
-    });
+    }));
     await walkProbe;
     record.walkClick = { ms: at(), bytes: bytes() };
     await step.click();
     let walkMoved = true;
     try {
-      await page.waitForFunction(() => window.__walkProbe?.first !== null, null, { timeout: 60000 });
+      await page.waitForFunction(() => window.__walkProbe?.first !== null, null, { timeout: 90000 });
     } catch (error) {
       walkMoved = false;
       record.walkFailure = String(error?.message ?? error).slice(0, 160);
     }
-    await page.evaluate(() => { if (window.__walkProbe) window.__walkProbe.stopped = true; });
+    const probeState = await page.evaluate(() => window.__walkProbe && ({
+      armed: window.__walkProbe.armed, fadeSeenMs: window.__walkProbe.fadeSeen,
+      fadeClearedMs: window.__walkProbe.fadeCleared, firstProxyMs: window.__walkProbe.first,
+      framesAfterArm: window.__walkProbe.framesAfterArm, samples: window.__walkProbe.samples,
+    }));
+    record.walkProbe = probeState;
     record.walkMovement = walkMoved
-      ? { ms: at(), bytes: bytes(), samples: await page.evaluate(() => window.__walkProbe.samples) }
-      : { ms: null, bytes: null, failed: true };
+      ? { harnessMs: at(), navProxyMs: probeState?.firstProxyMs, bytes: bytes(),
+        basis: 'canvas-proxy',
+        note: 'First sustained change after the #fade element clears. The production build exposes no '
+          + 'camera pose, so this is a picture proxy, not a measured camera displacement.',
+        fadeClearedMs: probeState?.fadeClearedMs, framesAfterArm: probeState?.framesAfterArm }
+      : { harnessMs: null, navProxyMs: null, bytes: null, failed: true, basis: 'canvas-proxy' }
 
     // The chooser is a separate stage; waiting for it is not a movement measure.
     // The duration radio is labelled by fmtDuration: "10 min" in English, "10 分钟" in Chinese.
@@ -445,9 +480,28 @@ const dbFile = join(out, 'cold-load.db');
 // safe-kill.sh authorises the recorded pid. server/main.ts resolves web/dist from its working
 // directory, so a `web` symlink to the repository points it at the real build without touching product
 // code or serving anything outside the tmp tree.
-const runDir = join('/Users/xuan/OpenBot/Shared/one-light/tmp/s2', 'cold-load-run');
+// The authorised tmp directory is configuration, never a literal path: --run-dir points at the worker's
+// tmp (safe-kill.sh only authorises server processes whose working directory is inside it), and
+// $ONE_LIGHT_TMP is the fallback the repository's own scripts use.
+const allowedTmp = options['run-dir'] ?? process.env.ONE_LIGHT_TMP;
+if (!allowedTmp) {
+  throw new Error('Pass --run-dir (the worker tmp that safe-kill.sh authorises) or set ONE_LIGHT_TMP.');
+}
+const runDir = join(allowedTmp, 'cold-load-run');
 mkdirSync(runDir, { recursive: true });
-try { execFileSync('ln', ['-sfn', join(process.cwd(), 'web'), join(runDir, 'web')]); } catch { /* exists */ }
+// The server resolves web/dist from its working directory, so point it at this run's build. The link is
+// checked after creation: a symlink to a different tree would make every measurement describe some
+// other build.
+const webLink = join(runDir, 'web');
+try { execFileSync('rm', ['-f', webLink]); } catch { /* absent */ }
+execFileSync('ln', ['-s', join(process.cwd(), 'web'), webLink]);
+const linkedTo = execFileSync('readlink', [webLink], { encoding: 'utf8' }).trim();
+if (linkedTo !== join(process.cwd(), 'web')) {
+  throw new Error(`web symlink points at ${linkedTo}, not this build`);
+}
+const builtIndex = join(linkedTo, 'dist', 'index.html');
+const builtStat = execFileSync('sh', ['-c', `test -f ${JSON.stringify(builtIndex)} && echo ok || echo missing`], { encoding: 'utf8' }).trim();
+if (builtStat !== 'ok') throw new Error('No built index at ' + builtIndex + '; run npm run build first.');
 const server = startServer(port, dbFile, process.cwd(), runDir);
 let exitCode = 0;
 try {
