@@ -435,6 +435,9 @@ def retain_mid_cloud(source, target, recipe, resume):
     recipe['retainedLayers'] = {'names': list(retained), 'renderSha256': plates.digest(receipt),
                                 'sourceSha256': previous['sources']['author']}
     if resume:
+        saved = plates.prepare_plates(target, True, recipe)
+        if any(saved.get(name) != spec for name, spec in retained.items()):
+            raise ValueError('Resume requires both retained Snow Court EXRs to match the approved source receipt.')
         return
     target.mkdir(parents=True, exist_ok=False)
     for spec in retained.values():
