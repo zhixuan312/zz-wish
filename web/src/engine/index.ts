@@ -89,10 +89,8 @@ export { isLeavingGust } from './places/pine-gust.ts';
 export { bellLaneChimes } from './places/bell-lane-chime.ts';
 export { bellLaneSweepGain, bellLaneSweepOffset } from './places/bell-lane-dawn.ts';
 export const skip = () => { void initialize().then(s => s.skip()).catch(() => {}); };
-// The visitor's own past lamps: stored for the active place, drawn only where a
-// court defines past lamp slots.
-export const setOwnPastLamps = (list: Parameters<Scene['setOwnPastLamps']>[0]) =>
-  initialize().then(s => s.setOwnPastLamps(list));
+export const setOwnPastLamps = (id: PlaceId, list: Parameters<Scene['setOwnPastLamps']>[1]) =>
+  initialize().then(s => s.setOwnPastLamps(id, list));
 
 import { dayPart } from '../../../shared/dayPart.ts';
 import { layersFor, recordedLayersFor } from './places/pine-ambience.ts';

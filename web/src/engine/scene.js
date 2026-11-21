@@ -427,6 +427,8 @@ const paperLatticeTex = canvasTex(256, 384, (g, w, h) => {
   const rnd = mulberry32(37); for (let i = 0; i < 1600; i++) { g.fillStyle = `rgba(150,120,80,${rnd() * .08})`; g.fillRect(rnd() * w, rnd() * h, 1 + rnd() * 4, 1); }
   g.fillStyle = '#3a2416'; for (let x = 0; x <= w; x += w / 3) g.fillRect(x - 5, 0, 10, h); for (let y = 0; y <= h; y += h / 4) g.fillRect(0, y - 5, w, 10);
 });
+paperLatticeTex.wrapS = THREE.RepeatWrapping;
+paperLatticeTex.repeat.set(4, 1);
 
 const brass = new THREE.MeshStandardMaterial({ color: 0xc09454, metalness: 1, roughness: .34, roughnessMap: patina, envMapIntensity: 1.1 });
 const darkBrass = new THREE.MeshStandardMaterial({ color: 0x7a5a32, metalness: 1, roughness: .42, roughnessMap: patina, envMapIntensity: .9 });
@@ -804,8 +806,7 @@ const LAMPS = {
     for (const [x, z] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) solid(g, new THREE.BoxGeometry(.022, y0, .022), lampWood, x * .11, y0 / 2, z * .11);
     solid(g, new THREE.BoxGeometry(.26, .02, .26), lampWood, 0, y0, 0);
     for (const y of [.1, .3]) for (const [w, d] of [[.24, .014], [.014, .24]]) for (const s of [-1, 1]) solid(g, new THREE.BoxGeometry(w, .016, d), lampWood, w > .1 ? 0 : s * .11, y, w > .1 ? s * .11 : 0);
-    const paper = paperLatticeTex.clone(); paper.wrapS = THREE.RepeatWrapping; paper.repeat.set(4, 1); paper.needsUpdate = true;
-    const shell = shellMaterial(o.color, { map: paper, glow: 0xffb070, reach: 9, rough: .9, base: .04, strength: .20 });
+    const shell = shellMaterial(o.color, { map: paperLatticeTex, glow: 0xffb070, reach: 9, rough: .9, base: .04, strength: .20 });
     const box4 = lathe(P, 4);
     const faces = Array.from(box4.index.array), faceSize = 6 * (P.length - 1);
     faces.splice(faceSize, faceSize); // The -Z side after the quarter-diagonal rotation.
@@ -1136,6 +1137,24 @@ function otherLamp(type, x, y, z, L = .6, ry = 0, power = .62) {
     if (p.kind === 'shade') f.halo.material.opacity *= .3;
   } };
   C.others.push(o); return o;
+}
+
+function unlitLattice({ shape, color, remaining = 0 }, makeCup) {
+  const p = LAMPS.lattice(shape ?? { ...presetOf('shade'), color }, makeCup);
+  p.setFuelLevel?.(remaining);
+  // The small, stationary stands share wood and a transform, so draw one wood mesh per lamp.
+  const woodParts = p.g.children.filter(mesh => mesh.material === lampWood);
+  const wood = mergeGeometries(woodParts.map(mesh => {
+    mesh.updateMatrix();
+    return mesh.geometry.applyMatrix4(mesh.matrix);
+  }));
+  for (const mesh of woodParts) {
+    mesh.removeFromParent();
+    mesh.geometry.dispose();
+  }
+  solid(p.g, wood, lampWood);
+  p.g.traverse(warmReflections);
+  return p.g;
 }
 
 // Motes drifting in the lamplight, where the spot is sheltered enough to hold them.
@@ -1792,7 +1811,7 @@ function captureLocalEnvironment({context=C,root=context.root,environment=contex
   return{texture:target.texture,dispose,metadata:{position:[...position],size,near,far,format:'linear RGBA16F cube → PMREM',sourceRoot:root.name,excluded:exclude.map(object=>object.name),scope:'One local reflection/indirect approximation from actual lit geometry; no extra light, exposure, gain or SH.'}};
 }
 const placeHelpers = { THREE, V3, V2, M, roofMat, ground, pave, hallB, gateB, compound, rock, trees, peak, ridges, mist, burnerAt, postLanterns, pagoda, stairs, paifang, wallRun, water, archBridge, lotus, box, city, fall, lanterns, put, tower, smokeAt, pavingTex, petalTex, pauseBuild, eave, col, rail, wallWithHoles, cloudSea, footprints, bell, otherLamp, lathe, hexMix, addStump:(x,y,z,scale,yaw)=>addScannedStump(C.G,x,y,z,scale,yaw),
-  liveFlame,pineFixtureFlame,fixtureSpecular,captureLocalEnvironment,loessTex, brickTex, plasterTex, papercutTex, grainTex, latticeTex, sootTex, windowsTex, get renderer() { return renderer; }, get context() { return C; } };
+  unlitLattice,liveFlame,pineFixtureFlame,fixtureSpecular,captureLocalEnvironment,loessTex, brickTex, plasterTex, papercutTex, grainTex, latticeTex, sootTex, windowsTex, get renderer() { return renderer; }, get context() { return C; } };
 const cachedPlaces = new Map();
 const sharedTextures = new Set([needleTex, leafTex, pavingTex, grainTex, tileTex, waterTex, latticeTex, softTex, petalTex, windowsTex, patina, crackleTex, holesTex, gauzeTex,gauzeNormal,gauzeRoughness, paperLatticeTex, loessTex, brickTex, plasterTex, papercutTex, sootTex]);
 // Materials are left to the garbage collector rather than disposed: disposing them would also
@@ -1844,6 +1863,7 @@ async function buildPlace(t) {
   outside.fog = new THREE.FogExp2(...place.P.fog);
   cachedPlaces.delete(t.id); cachedPlaces.set(t.id, place);
   trimPlaceCache([t.id]);
+  showPastLamps(place);
   attachMine();
 }
 async function buildPlaceNow(t, isolated = false) {
@@ -2238,19 +2258,39 @@ function toOffer(shape) {
   if (!shape) return null;
   return { kind: shape.kind, rows: shape.rows, color: shape.color, burn: burnOf(shape.rows) };
 }
-// The visitor's own finished lamps for this place. Only stored: a court renders past
-// lamps from nook.pastLampSlots, and none defines those yet, so nothing appears.
-let ownPastLamps = [];
-export function setOwnPastLamps(list) {
-  ownPastLamps = Array.isArray(list) ? list.map((lamp) => ({
-    shape: lamp.shape ?? null,
-    color: lamp.color ?? null,
-    remaining: Number.isFinite(lamp.remaining) ? Math.max(0, Math.min(1, lamp.remaining)) : 0,
-    status: lamp.status ?? null,
-  })) : [];
-  return ownPastLamps.length;
+const ownPastLamps = new Map();
+export function setOwnPastLamps(id, lamps) {
+  ownPastLamps.set(id, lamps);
+  if (place?.id === id) showPastLamps(place);
 }
-export function ownPastLampCount() { return ownPastLamps.length; }
+
+function showPastLamps(court) {
+  const { pastLampSlots, makePastLamp } = court.P.nook;
+  if (!pastLampSlots) return;
+  const lamps = (ownPastLamps.get(court.id) ?? []).slice(0, pastLampSlots.length);
+  // Repeat visits reuse the meshes, including when only off-shelf records changed.
+  const key = lamps.map(lamp => `${lamp.id}:${lamp.status}:${lamp.remaining}`).join(',');
+  if (key === (court.pastLampKey ?? '')) return;
+  const group = new THREE.Group();
+  group.name = 'Own past lamps';
+  lamps.forEach((lamp, i) => {
+    const [x, y, z, scale, yaw] = pastLampSlots[i];
+    const model = makePastLamp(lamp);
+    model.name = `Own past lamp ${i + 1}`;
+    model.userData = { candleId: lamp.id, remaining: lamp.remaining, status: lamp.status, color: lamp.shape.color, slot: i + 1 };
+    model.position.set(x, y, z);
+    model.scale.setScalar(scale);
+    model.rotation.y = yaw;
+    group.add(model);
+  });
+  if (court.pastLampGroup) {
+    court.pastLampGroup.removeFromParent();
+    disposeTree(court.pastLampGroup);
+  }
+  if (lamps.length) court.nookG.add(group);
+  court.pastLampGroup = lamps.length ? group : null;
+  court.pastLampKey = key;
+}
 
 /** Show the person's candle or lamp (or hide it with null), full. */
 export function setOffer(shape) {

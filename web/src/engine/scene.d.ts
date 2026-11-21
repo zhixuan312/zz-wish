@@ -17,11 +17,9 @@ export function ignite(options?: IgnitionOptions): Promise<void>;
 export function renderLampThumbnail(shape: Shape, options: LampThumbnailOptions): Promise<string>;
 export function snuff(done?: boolean, remaining?: number, gust?: boolean): Promise<void>;
 
-// The visitor's own finished lamps for the current place. The engine stores them;
-// a court draws them only once it defines nook.pastLampSlots.
-export type OwnPastLamp = { shape: Shape | null; color: number | null; remaining: number; status: string | null };
-export function setOwnPastLamps(list: readonly OwnPastLamp[]): number;
-export function ownPastLampCount(): number;
+// A court opts into drawing its visitor's finished lamps with nook.pastLampSlots.
+export type OwnPastLamp = { id: string; shape: Shape; remaining: number; status: 'went_out' | 'burned_down' | 'ended_unexpectedly' };
+export function setOwnPastLamps(id: PlaceId, list: readonly OwnPastLamp[]): void;
 
 export function setPhase(phase: ScenePhase): void;
 export function setPowerSaver(on: boolean): void;

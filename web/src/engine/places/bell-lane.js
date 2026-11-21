@@ -6,10 +6,11 @@ import { bellLaneLocalHour, bellLaneShutterOffset, bellLaneShutterOpening } from
 // An invented neighbourhood temple: a lit shop lane, one low door, a tree and a small bell court.
 export default function createPlace(h) {
   const { THREE, V3, M, ground, box, put, wallWithHoles, eave, col, otherLamp,
-    brickTex, plasterTex, grainTex, pavingTex, latticeTex, pauseBuild, lathe, liveFlame } = h;
+    brickTex, plasterTex, grainTex, pavingTex, latticeTex, pauseBuild, lathe, liveFlame, unlitLattice } = h;
   const cameras = bellLaneCameras(V3);
   const gateHalfWidth = 1.16;
   const taperSource = V3(-1.47, .658, .092);
+  const makeCup = (group, clay, baseY) => addBellLaneOilCup(h, group, clay, baseY);
   return {
     exposure: 1.12, shade: .32,
     sky: { top: 0x080d19, horizon: 0x282c38, ground: 0x0b0e15, sun: 0xe0e4ee, dir: [-.7, .5, .35], glow: .12, clouds: .3, lit: 0x424e65, dark: 0x11141c, stars: .35, disc: 1.2 },
@@ -184,7 +185,12 @@ export default function createPlace(h) {
     },
     nook: {
       at: { pos: V3(...LAMP), ry: 0 }, lamp: 'lattice', y: .46, exposure: 1.1, bloom: [.35, 1.02],
-      makeVisitorCup: (group, clay, baseY) => addBellLaneOilCup(h, group, clay, baseY),
+      makeVisitorCup: makeCup,
+      // The two most recent lamps flank the current lamp within the seated phone view.
+      // The remaining slots are farther back on the same shelf.
+      pastLampSlots: [[.243, .46, .137, .47, .14], [-.205, .46, .075, .45, .27],
+        [.59, .46, .205, .38, -.16], [-.61, .46, .202, .38, .13]],
+      makePastLamp: lamp => unlitLattice(lamp, makeCup),
       explicitPhoneViews: true, wide: cameras.wide, widePhone: cameras.widePhone,
       choose: cameras.choose, choosePhone: cameras.choosePhone, taperSource,
       async build() {
@@ -192,16 +198,24 @@ export default function createPlace(h) {
         const edge = M(0x574333, .95, { map: grainTex });
         const tag = M(0x9b7552, .96);
         const clay = M(0x9d623f, .84);
-        // The visitor occupies the only free slot in the center.
+        // Keep the center for the current lamp and leave room among the older lamps.
         box(2.11, .09, .56, wood, 0, .415, 0);
         for (const x of [-.94, .94]) for (const z of [-.21, .21]) box(.085, .37, .081, edge, x, .185, z);
         box(1.85, .09, .29, edge, 0, .18, 0);
-        for (const [x, z, yaw, power] of [[-.79, .01, -.1, 0], [-.44, .055, .13, .31],
-          [.42, .055, -.21, 0], [.76, .02, .3, .22]]) {
-          const { g, p } = otherLamp('lattice', x, .46, z, .55, yaw, power);
-          g.scale.setScalar(.52);
-          for (const shell of p.shells) shell.color.setHex(power ? 0x88603d : 0x624b38);
-        }
+        const darkLamps = [[-.79, .01, -.1, .52, 0x69533e], [.42, .055, -.21, .52, 0x826648],
+          [.76, .02, .3, .52, 0x604a39], [.62, -.154, .10, .38, 0x73523b], [-.66, -.163, -.24, .39, 0x756359]];
+        darkLamps.forEach(([x, z, yaw, scale, color], i) => {
+          const lamp = unlitLattice({ color }, makeCup);
+          lamp.name = `Bell Lane old lamp ${i + 1}`;
+          lamp.position.set(x, .46, z);
+          lamp.rotation.y = yaw;
+          lamp.scale.setScalar(scale);
+          h.context.G.add(lamp);
+        });
+        const other = otherLamp('lattice', -.44, .46, .055, .55, .13, .31);
+        other.g.name = 'Bell Lane old lamp 6';
+        other.g.scale.setScalar(.52);
+        other.p.shells[0].color.setHex(0x88603d);
         // Supplies for the next visitor are kept beside the rack.
         box(.56, .065, .42, wood, -1.57, .58, .18);
         for (const x of [-1.79, -1.35]) box(.061, .55, .28, edge, x, .275, .18);

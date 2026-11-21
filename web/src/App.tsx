@@ -116,6 +116,7 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
   const [wishHint, setWishHint] = useState(false);
   const [wishId, setWishId] = useState<string | null>(null);
   const [placeId, setPlaceId] = useState<PlaceId>(DEFAULT_PLACE.id);
+  const bellLaneSave = useRef<Settlement['saved'] | null>(null);
   const place = placeById(placeId)!;
   const placeEyebrow = placeId === 'pine-gate' ? t.pinePlaceEyebrow : t.placeEyebrow;
   const placeLead = placeId === 'pine-gate' ? t.pinePlaceLead : t.placeLead;
@@ -252,6 +253,7 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
       void engine.snuff(s.done, showsRemainingFuel ? remainingFuel(Math.floor(s.burnedMs), b.planned) : undefined, gust);
       setResult({ done: s.done, burnedMs: s.burnedMs, plannedMs: b.planned, reason: s.reason, saved: null });
       setScreen('result'); setAskLeave(null);
+      if (lightPlace === 'bell-lane') bellLaneSave.current = s.saved;
       s.saved.then((c) => setResult((r) => r && { ...r, saved: !!c }));
       if (afterSettle.current) { setOverlay(afterSettle.current); afterSettle.current = null; }
       presence.watch(lightPlace);
@@ -295,20 +297,23 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
   const open = (o: Overlay) => { if (burnRef.current && !burnRef.current.isSettled) setAskLeave(o); else setOverlay(o); };
   const leaveAndOpen = () => { afterSettle.current = askLeave; setAskLeave(null); burnRef.current?.settle('navigated'); };
 
-  // The engine keeps one place's past lamps at a time, so the request is keyed on the
-  // place and a slower reply for a court already left is dropped rather than applied.
+  // Drop a reply for a court already left. A fast return can start before the
+  // end request has saved the lamp, so wait for that save before reading the rack.
   const pastLampVersion = useRef(0);
   const loadPastLamps = useCallback((id: PlaceId) => {
     const version = ++pastLampVersion.current;
-    void api.myCandles().then(({ candles }) => {
+    void (async () => {
+      if (id === 'bell-lane') await bellLaneSave.current;
       if (version !== pastLampVersion.current) return;
-      engine.setOwnPastLamps(
-        candles.filter((c) => c.placeId === id && c.status !== 'burning').map((c) => ({
-          shape: c.shape, color: c.shape.color, status: c.status,
-          remaining: c.durationMs > 0 ? Math.max(0, 1 - c.burnedMs / c.durationMs) : 0,
-        })),
+      const { candles } = await api.myCandles();
+      if (version !== pastLampVersion.current) return;
+      await engine.setOwnPastLamps(id,
+        candles.flatMap((c) => c.placeId !== id || c.status === 'burning' ? [] : [{
+          id: c.id, shape: c.shape, status: c.status,
+          remaining: remainingFuel(c.burnedMs, c.durationMs),
+        }]),
       );
-    }).catch(() => {});
+    })().catch(() => {});
   }, []);
 
   // Navigation between steps; the scene moves with them.
