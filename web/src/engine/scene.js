@@ -593,7 +593,7 @@ function dishMaterial(color, glass) {
 const WAX_LAMPS = new Set(['niche', 'pineWax', 'lantern', 'lotus']);
 // Metal, glaze and wax near a flame reflect a dark room with warm points, not the open sky.
 const nearMaterials = new WeakSet();
-function warmReflections(o) { for (const m of [o.material].flat()) if (m && 'envMap' in m && !nearMaterials.has(m)) { nearMaterials.add(m); m.envMap = spotEnv; m.needsUpdate = true; } }
+function warmReflections(o) { for (const m of [o.material].flat()) if (m && 'envMap' in m && !m.userData.useSceneEnvironment && !nearMaterials.has(m)) { nearMaterials.add(m); m.envMap = spotEnv; m.needsUpdate = true; } }
 function actualHallEnvironment(material,texture){
   const compile=material.onBeforeCompile,key=material.customProgramCacheKey.bind(material);
   material.envMap=texture;material.envMapIntensity=1;

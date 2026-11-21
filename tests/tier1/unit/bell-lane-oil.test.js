@@ -40,6 +40,19 @@ test('Bell Lane stops at the settled fuel fraction, exposes the dry cup at zero,
   expect(oil.position.y).toBe(full);
 });
 
+test('the reflective oil edge stays below the ceramic rim and retreats at low fuel', () => {
+  const { oil, cup, setFuelLevel } = visitorCup();
+  oil.geometry.computeBoundingBox();
+  cup.geometry.computeBoundingBox();
+  const edgeHeight = oil.geometry.boundingBox.max.y;
+  expect(edgeHeight).toBeGreaterThan(0);
+  expect(oil.position.y + edgeHeight).toBeLessThan(cup.geometry.boundingBox.max.y);
+  expect(oil.material.emissive.getHex()).toBe(0);
+  expect(oil.material.userData.useSceneEnvironment).toBe(true);
+  setFuelLevel(.01);
+  expect(oil.scale.y * edgeHeight).toBeLessThan(.00005);
+});
+
 test.each(['choose', 'choosePhone'])(
   'the fixed seated %s angle can see the oil even near the clay floor', view => {
     const { cup, group, oil, setFuelLevel } = visitorCup();
