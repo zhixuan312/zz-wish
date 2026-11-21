@@ -204,6 +204,21 @@ test('a boundary anchored on the wrong request is detectable before it is truste
   expect(noDocument.find(event => event.type === 'Document')).toBeUndefined();
 });
 
+test('a missing anchor error is refused, not treated as zero', () => {
+  // The third live failure: Performance.getMetrics returned nothing because the domain was not enabled, and
+  // the harness defaulted the anchor error to 0, so the uncertainty looked measured when it was not.
+  const chooseUncertainty = ({ bracket, offsetChange, anchorError, floor = 16 }) => {
+    if (anchorError === null || anchorError === undefined) {
+      throw new Error('anchor error unknown: refuse to place the boundary');
+    }
+    return Math.max(bracket, offsetChange, anchorError, floor);
+  };
+  expect(() => chooseUncertainty({ bracket: 1, offsetChange: 0, anchorError: null })).toThrow(/refuse/);
+  // With a measured error the largest term wins, so a bad anchor is not masked by a tight bracket.
+  expect(chooseUncertainty({ bracket: 1, offsetChange: 0, anchorError: 42 })).toBe(42);
+  expect(chooseUncertainty({ bracket: 30, offsetChange: 4, anchorError: 5 })).toBe(30);
+});
+
 test('an anchor listener registered after navigation misses the document', () => {
   // Mirror of the second live failure: the listener was attached after page.goto, so the Document request had
   // already been emitted and the guard found no typed document. A late and an early registration differ only

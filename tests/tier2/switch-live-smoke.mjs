@@ -84,6 +84,9 @@ try {
   const page = await context.newPage();
   const cdp = await context.newCDPSession(page);
   await cdp.send('Network.enable');
+  // The Performance domain is not on by default; without it getMetrics returns an empty list and the anchor
+  // error would silently default to zero.
+  await cdp.send('Performance.enable');
   await cdp.send('Network.emulateNetworkConditions', { offline: false, latency: 150,
     downloadThroughput: 9e6 / 8, uploadThroughput: 2e6 / 8 });
   await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
@@ -202,9 +205,13 @@ try {
 
     // The document request's CDP time and NavigationStart both mark the document; their difference is the
     // anchor's own error.
-    const documentAnchorError = navigationStart === null || cdpTimestamp === null ? null
-      : Math.abs((documentRequest.ts - navigationStart) * 1000);
-    const uncertaintyMs = Math.max(bracket, offsetChange, documentAnchorError ?? 0, 16);
+    if (navigationStart === null || cdpTimestamp === null) {
+      // No measured anchor error is not the same as a zero anchor error. Refuse rather than pretend.
+      throw new Error('Performance.getMetrics returned no NavigationStart/Timestamp; the clock mapping '
+        + 'cannot be measured, so the boundary is not placed');
+    }
+    const documentAnchorError = Math.abs((documentRequest.ts - navigationStart) * 1000);
+    const uncertaintyMs = Math.max(bracket, offsetChange, documentAnchorError, 16);
 
     // The transition is bracketed by the click and the first checked read, both on the page clock. Use the
     // midpoint and let the uncertainty cover half the bracket.
@@ -218,7 +225,7 @@ try {
       - (firstSample.pageMs + secondSample.pageMs) / 2).toFixed(3),
       bracketMs: bracket, offsetChangeMs: +offsetChange.toFixed(3),
       navigationStart: navigationStart, cdpTimestamp: cdpTimestamp,
-      documentAnchorErrorMs: documentAnchorError === null ? null : +documentAnchorError.toFixed(3),
+      documentAnchorErrorMs: +documentAnchorError.toFixed(3),
       samples: [firstSample, secondSample],
       method: 'Performance.getMetrics NavigationStart/Timestamp anchors the document; page offset bracketed by two round trips' };
     record.boundary = { clickedPageMs: +clickedAt.toFixed(3), firstCheckedPageMs: +firstCheckedAt.toFixed(3),
