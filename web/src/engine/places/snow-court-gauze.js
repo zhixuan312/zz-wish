@@ -54,7 +54,7 @@ function wishTagWood(THREE, grain, glow, cut) {
         float t = clamp(dot(p - start, span) / dot(span, span), 0., 1.);
         float distanceToInk = length(p - start - t * span);
         float feather = max(.006, .49 * fwidth(distanceToInk));
-        float radius = mix(width.x, width.y, t);
+        float radius = 1.32 * mix(width.x, width.y, t);
         return 1. - smoothstep(radius - feather, radius + feather, distanceToInk);
       }`}
       \n` + shader.fragmentShader.replace('#include <map_fragment>', `#ifdef USE_MAP
@@ -73,12 +73,13 @@ function wishTagWood(THREE, grain, glow, cut) {
           ink = max(ink, wishInkStroke(tagUv, vec2(.40, .53), vec2(.28, .48), vec2(.017, .005)));
           ink = max(ink, wishInkStroke(tagUv, vec2(.43, .40), vec2(.68, .47), vec2(.019, .008)));
           ink = max(ink, wishInkStroke(tagUv, vec2(.52, .38), vec2(.57, .24), vec2(.021, .008)));
-          diffuseColor.rgb *= 1. - ink * (.63 + .11 * annualGrain);`}
+          diffuseColor.rgb *= 1. - ink * (.86 + .06 * annualGrain);`}
       #endif
       `).replace('#include <lights_fragment_end>', `#include <lights_fragment_end>
-        // Broad reflection from the floor and the lower edge of the glowing
-        // gauze reaches the tag face which is turned away from the wick.
-        float tagBounce = .040 + .039 * (1. - exp(-uWishTagGauzeGlow));
+        // The matte face receives broad reflection from the floor and gauze.
+        // Keep this contribution in the pigmented diffuse response so the
+        // wood and ink remain distinct against the bright snowy doorway.
+        float tagBounce = ${cut ? '.040 + .039' : '.090 + .075'} * (1. - exp(-uWishTagGauzeGlow));
         reflectedLight.indirectDiffuse += diffuseColor.rgb * vec3(1., .90, .79) * tagBounce;
       `);
   };
