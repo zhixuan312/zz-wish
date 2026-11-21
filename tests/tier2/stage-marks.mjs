@@ -66,16 +66,12 @@ export function recordStageMarks(doc, Observer = globalThis.MutationObserver) {
       }
     }
   });
-  // At init-script time documentElement may not exist yet; observe once it does.
-  const start = () => {
-    observer.observe(doc.documentElement, { subtree: true, childList: true,
-      attributes: true, attributeFilter: ['data-stage', 'data-ready'] });
-    scan(doc.documentElement);
-  };
-  if (doc.documentElement) start();
-  else doc.addEventListener('readystatechange', function once() {
-    doc.removeEventListener('readystatechange', once);
-    start();
-  });
+  // Observe the Document itself, not documentElement. An init script runs before parsing, so documentElement
+  // may still be null; waiting for it to appear (or for readystatechange) misses any pill React mounts and
+  // replaces during parsing. A Document node always exists and its subtree covers everything added later,
+  // including the root element itself. Whatever is already present is scanned once.
+  observer.observe(doc, { subtree: true, childList: true,
+    attributes: true, attributeFilter: ['data-stage', 'data-ready'] });
+  scan(doc.documentElement);
   return marks;
 }

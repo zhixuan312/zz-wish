@@ -98,6 +98,24 @@ test('the pill is followed across replacement and every stage keeps its order', 
   expect((marks['stage-ready'] as { value: string }).value).toBe('ready');
 });
 
+test('a pill replaced during parsing is recorded when the root starts empty', () => {
+  const { Observer, calls } = fakeObserver();
+  // documentElement is null at init-script time: the document has no root yet.
+  const doc = { documentElement: null as FakeNode | null, querySelectorAll: () => [] as FakeNode[],
+    defaultView: undefined as unknown };
+  const marks = recordStageMarks(doc, Observer);
+  // The observer must be on the Document, not on a root that does not exist yet.
+  expect(calls[0].target).toBe(doc);
+  const first = node({ classes: ['court-loading'], dataset: { stage: 'loading' } });
+  const root = node({ id: 'root', children: [first] });
+  calls[0].fire([{ type: 'childList', addedNodes: [root] }]);
+  // The pill is replaced before readystatechange ever fires; no wait was needed to catch it.
+  const second = node({ classes: ['court-loading'], dataset: { stage: 'ready' } });
+  calls[0].fire([{ type: 'childList', addedNodes: [second] }]);
+  expect(marks.stageOrder.map(entry => entry.value)).toEqual(['loading', 'ready']);
+  expect((marks['stage-ready'] as { value: string }).value).toBe('ready');
+});
+
 test('the marks are published for the harness to read', () => {
   const { Observer } = fakeObserver();
   const doc = docWith([node({ id: 'cover-poster', dataset: { ready: 'true' } })]);
