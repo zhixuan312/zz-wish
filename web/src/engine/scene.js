@@ -1040,6 +1040,8 @@ const api = { g, parts: null, partsKey: null, type: null, power: 0, lightPower: 
         : p.kind === 'wax' ? Math.min(1, ((this.top.y - (p.seat?.y ?? 0) + .03) / .2) ** 2) : 1;
       const power = this.power * (lit ? Math.min(1, level * 25) : 1);
       const fw = this.flameWorld(), k = f.tick(time, power, p.lightMax * keep * this.lightBoost, p.pineWax?.materials ?? [wax, poolMat, oilGlow], fw.y);
+      const desktopFlameScale = place?.P.nook.desktopFlameScale;
+      if (desktopFlameScale && !narrow()) f.fm.uniforms.uScale.value *= desktopFlameScale;
       if (p.pineWax) {
         p.pineWax.updateLight(f.light, place?.baked?.manifest.lampBasis?.pointRadiusMetres, time, wind);
         if (f.light.intensity > .0001) {

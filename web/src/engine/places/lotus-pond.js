@@ -213,6 +213,8 @@ export default function createPlace(h) {
     nook: {
       at: { pos: V3(...nookOrigin), ry: Math.PI / 2 },
       lamp: 'lotus', y: .64, exposure: 1.1, bloom: [.42, .95],
+      // More of the live flame clears the candle shoulder in the steep desktop reflection.
+      desktopFlameScale: 1.6,
       wide: seated, burn: seated, widePhone: portraitSeat, choosePhone: portraitSeat, burnPhone: portraitSeat,
       async build(hh) {
         const { THREE, M, box, put, pavingTex, pauseBuild } = hh;
