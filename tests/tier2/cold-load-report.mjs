@@ -26,7 +26,7 @@ const fmt = (value, unit) => (value === null || value === undefined ? '—' : `$
 const conditions = [...new Set(records.map(record => record.condition))];
 const lines = [];
 
-lines.push('| condition | phase | run | input (ms) | ready (ms) | Step inside (ms) | wire bytes at Step (MB) | long task total / max (ms) | long tasks | frame p50 / p95 (ms) |');
+lines.push('| condition | phase | run | wish field visible (ms) | ready, window.__ready (ms) | Step inside enabled (ms) | wire bytes at Step (MiB) | long task total / max (ms) | long tasks | frame p50 / p95 (ms) |');
 lines.push('|---|---|---|---|---|---|---|---|---|---|');
 
 for (const condition of conditions) {
@@ -36,9 +36,12 @@ for (const condition of conditions) {
     const longTask = record.stepLongTask ?? record.homeShaders ?? {};
     lines.push([
       condition, record.phase, record.run,
-      fmt(record.home?.ms, ''), fmt(record.ready?.ms, ''),
+      // The field mark is the moment the wish input was visible and editable. It is not the engine's
+      // readiness: on this build the two differ (91 ms and 901 ms in the same run), and conflating them
+      // hid that a visitor can type a full second before the engine is ready.
+      fmt(record.input?.ms, ''), fmt(record.ready?.ms, ''),
       fmt(record.step?.ms, ''),
-      fmt(record.step?.bytes === undefined ? null : +(record.step.bytes / 1048576).toFixed(1), ''),
+      fmt(record.step?.bytes === undefined ? null : +(record.step.bytes / 1048576).toFixed(1), ' MiB'),
       `${fmt(longTask.totalMs, '')} / ${fmt(longTask.maxMs, '')}`,
       fmt(longTask.count, ''),
       `${fmt(record.stepFrames?.p50, '')} / ${fmt(record.stepFrames?.p95, '')}`,
