@@ -101,13 +101,13 @@ export function preparePineBaseCrowns(mounts, source) {
       normalMap: original?.normalMap ?? null, envMapIntensity: .30,
     });
     const tree = new THREE.Group();
-    tree.name = mount.node;
+    tree.name = mount.label ?? mount.node;
     tree.position.fromArray(mount.position);
     tree.rotation.y = mount.yawRadians;
     tree.scale.setScalar(mount.height);
     const crown = new THREE.Mesh(model.needles, foliage);
     tree.add(new THREE.Mesh(model.bark, bark), crown);
-    needles.set(mount.node, crown);
+    needles.set(mount.label ?? mount.node, crown);
     group.add(tree);
   }
   for (const [proxy] of previous) proxy.visible = false;

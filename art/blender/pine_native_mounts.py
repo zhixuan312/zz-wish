@@ -10,6 +10,11 @@ VALLEY_NODES = {
     'Layered ridge pine 4': 'PineRidgeNative',
     'Back ridge pine 5': 'PineYoungNative',
     'Layered ridge pine 1': 'PineShoulderNative',
+    # Three more relief crowns that draw larger than 270 px on the walk. They reuse the same two
+    # native models, so the runtime must place one instance per mount rather than one per model.
+    'Layered ridge pine 12': 'PineRidgeNative',
+    'Layered ridge pine 10': 'PineRidgeNative',
+    'Back ridge pine 3': 'PineRidgeNative',
 }
 SHARED_PROTOTYPES = {'PineShoulderNative': 'PineRidgeNative'}
 
@@ -40,8 +45,8 @@ def private_material(obj, name, node, role):
 def add_native_mount(mounts, label, trunk, camera, views, proxy, stem):
     """Record metres in glTF Y-up at the authored root, with a +Y yaw delta."""
     node = VALLEY_NODES[label]
-    if node in mounts:
-        raise ValueError(f'Duplicate Pine native mount: {node}')
+    if label in mounts:
+        raise ValueError(f'Duplicate Pine native mount: {label}')
     root = trunk[0]
     position = list(root)
     height = trunk[-1].y - root.y
@@ -52,17 +57,19 @@ def add_native_mount(mounts, label, trunk, camera, views, proxy, stem):
     # native model scales uniformly from its root to this centreline height.
     view = min(views, key=lambda row: abs(math.remainder(camera_azimuth - row['azimuthDegrees'], 360.)))
     yaw = math.radians(math.remainder(camera_azimuth - view['azimuthDegrees'], 360.))
-    mounts[node] = {
-        'node': node, 'position': position, 'height': height, 'yawRadians': yaw,
-        # Keep the prefix used to retain the original crown texture dimensions.
-        'proxyMaterial': private_material(proxy, f'Depth-reconstructed pine crown {node}', node, 'proxy'),
-        'stemMaterial': private_material(stem, f'Knotted pine bark {node}', node, 'stem'),
+    # One model may back several trees, so every material and mount is named by its own label. The
+    # node stays a field: the runtime picks the model from it and finds this tree's fallback meshes
+    # by the two private material names.
+    mounts[label] = {
+        'node': node, 'label': label, 'position': position, 'height': height, 'yawRadians': yaw,
+        'proxyMaterial': private_material(proxy, f'Depth-reconstructed pine crown {label}', label, 'proxy'),
+        'stemMaterial': private_material(stem, f'Knotted pine bark {label}', label, 'stem'),
     }
     if node in SHARED_PROTOTYPES:
-        mounts[node]['prototype'] = SHARED_PROTOTYPES[node]
+        mounts[label]['prototype'] = SHARED_PROTOTYPES[node]
 
 
 def serialize_native_mounts(mounts):
-    if set(mounts) != set(VALLEY_NODES.values()):
+    if set(mounts) != set(VALLEY_NODES):
         raise ValueError('All authored Pine native mounts must exist.')
-    return json.dumps([mounts[node] for node in VALLEY_NODES.values()], separators=(',', ':'), allow_nan=False)
+    return json.dumps([mounts[label] for label in VALLEY_NODES], separators=(',', ':'), allow_nan=False)
