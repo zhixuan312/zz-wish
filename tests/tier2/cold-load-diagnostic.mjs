@@ -101,24 +101,27 @@ await page.waitForFunction(name => {
 }, labels.step);
 mark('step');
 
-// Walk start without engine hooks: the production build exposes no camera. Sample the canvas itself and
-// call the first frame whose pixels differ materially from the settled step frame. A fade alone changes
-// pixels slowly; a walk moves the whole view, so a coarse grid comparison distinguishes them.
+// Walk start: after the click the page fades, then the camera travels. A fade alone changes pixels
+// smoothly and a click can change one frame, so a single differing frame is not movement. Require the
+// coarse grid to stay changed across four consecutive frames, measured only after a settle delay that
+// covers the fade.
 await page.evaluate(() => {
   const canvas = document.querySelector('canvas');
-  window.__walkProbe = { first: null, samples: 0, baseline: null };
+  window.__walkProbe = { first: null, samples: 0, baseline: null, streak: 0, started: null };
   if (!canvas) return;
   const scratch = document.createElement('canvas');
   scratch.width = 48; scratch.height = 30;
   const g = scratch.getContext('2d', { willReadFrequently: true });
   const sample = () => {
     const probe = window.__walkProbe;
-    const frame = g || null;
+    if (probe.started === null) probe.started = performance.now();
+    // Ignore the first 600 ms: the fade to black runs there and would read as movement.
+    const settled = performance.now() - probe.started > 600;
     try {
       g.drawImage(canvas, 0, 0, scratch.width, scratch.height);
       const now = g.getImageData(0, 0, scratch.width, scratch.height).data;
-      if (probe.baseline === null) probe.baseline = now.slice();
-      else if (probe.first === null) {
+      if (!settled || probe.baseline === null) probe.baseline = now.slice();
+      else {
         let changed = 0, total = 0;
         for (let i = 0; i < now.length; i += 4) {
           const delta = Math.abs(now[i] - probe.baseline[i]) + Math.abs(now[i + 1] - probe.baseline[i + 1])
@@ -126,17 +129,19 @@ await page.evaluate(() => {
           if (delta > 24) changed++;
           total++;
         }
-        // A tenth of the coarse grid moving is unmistakably the camera, not a fade.
-        if (changed / total > .10) probe.first = performance.now();
+        // A tenth of the grid moving, four frames running, is the camera; a fade is gradual and uniform.
+        probe.streak = changed / total > .10 ? probe.streak + 1 : 0;
+        if (probe.streak >= 4 && probe.first === null) probe.first = performance.now();
+        probe.baseline = now.slice();
       }
-    } catch { /* a tainted or resized canvas is not fatal; try the next frame */ }
+    } catch { /* a resized or tainted canvas is not fatal */ }
     probe.samples++;
-    if (probe.first === null && probe.samples < 1800) requestAnimationFrame(sample);
+    if (probe.first === null && probe.samples < 3600) requestAnimationFrame(sample);
   };
   requestAnimationFrame(sample);
 });
 await step.click();
-await page.waitForFunction(() => window.__walkProbe?.first !== null, null, { timeout: 120000 });
+await page.waitForFunction(() => window.__walkProbe?.first !== null, null, { timeout: 180000 });
 mark('walkFrame');
 
 const detail = await page.evaluate(() => ({
