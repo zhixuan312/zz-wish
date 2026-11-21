@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { resolve, join } from 'node:path';
 import { startPreview } from './preview.mjs';
-import { cameraAudit, cameraPeaks } from './camera-audit.mjs';
+import { cameraAudit, cameraPeaks, liveCameraAudit } from './camera-audit.mjs';
 
 const out = resolve(process.argv[2] ?? 'artifacts/bell-lane/round-1');
 const picks = process.argv.slice(3);
@@ -221,7 +221,9 @@ try {
     await page.screenshot({ path: join(directory, 'seated-with-controls.png'), scale: 'css' });
     soundRows.seated = await audio(page);
     const { walkMetrics, arrivalMetrics, seated, rows } = cameraAudit(phone);
-    await writeFile(join(directory, 'camera.json'), JSON.stringify({ actual, rows, walk: cameraPeaks(walkMetrics), arrival: cameraPeaks(arrivalMetrics), seated }, null, 2));
+    const { observed, chart } = liveCameraAudit(actual);
+    await writeFile(join(directory, 'camera.json'), JSON.stringify({ actual, observed, rows, walk: cameraPeaks(walkMetrics), arrival: cameraPeaks(arrivalMetrics), seated }, null, 2));
+    await writeFile(join(directory, 'camera-curves.svg'), chart);
     await writeFile(join(directory, 'audio.json'), JSON.stringify({ walk: soundRows, lifecycle: journey }, null, 2));
     await writeFile(join(directory, 'chooser.json'), JSON.stringify(chooser, null, 2));
     assert.deepEqual(bellManifests, []);
