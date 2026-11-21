@@ -255,7 +255,7 @@ async function run() {
       }
     } finally { await browser.close(); }
   }
-  if (pilot) {
+  if (mode === 'parity' && args.values.match && cases.length === 1 && (pilot || side === 'before-repeat')) {
     execFileSync(process.execPath, [new URL('./loading-shaders-pixel-diff.mjs', import.meta.url).pathname,
       root, '--baseline-only', '--match=' + caseKey(cases[0])], { stdio: 'inherit' });
   }
