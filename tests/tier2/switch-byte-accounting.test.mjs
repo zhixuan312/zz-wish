@@ -204,6 +204,21 @@ test('a boundary anchored on the wrong request is detectable before it is truste
   expect(noDocument.find(event => event.type === 'Document')).toBeUndefined();
 });
 
+test('a cutoff snapshot is frozen by value and keeps its own byte counts', () => {
+  const ledger = createByteLedger();
+  ledger.request({ id: 'a', url: '/places/snow-roof/snow-roof.glb.zstd', atMs: 10 });
+  ledger.data({ id: 'a', atMs: 20, bytes: 100 });
+  const first = ledger.rows();
+  expect(first[0].bytes).toBe(100);
+  // Traffic arriving after the snapshot must not change it, even before the request finishes.
+  ledger.data({ id: 'a', atMs: 30, bytes: 200 });
+  ledger.finished({ id: 'a', atMs: 40, encodedBytes: 300 });
+  expect(first[0].bytes).toBe(100);
+  expect(ledger.rows()[0].bytes).toBe(300);
+  // And the snapshot is a plain object, not a live row.
+  expect(first[0]).not.toBe(ledger.rows()[0]);
+});
+
 test('a missing anchor error is refused, not treated as zero', () => {
   // The third live failure: Performance.getMetrics returned nothing because the domain was not enabled, and
   // the harness defaulted the anchor error to 0, so the uncertainty looked measured when it was not.

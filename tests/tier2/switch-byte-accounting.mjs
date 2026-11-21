@@ -129,6 +129,22 @@ export function createByteLedger(options = {}) {
       }
     },
 
+    /**
+     * The current per-request bytes as plain copies, for a cutoff snapshot.
+     *
+     * Each row is a fresh object with a frozen byte count, so taking a snapshot cannot be changed by traffic
+     * that arrives afterwards.
+     */
+    rows() {
+      return [...requests.values()].sort((a, b) => a.order - b.order).map(row => ({
+        id: row.id, url: row.url,
+        bytes: row.authoritativeBytes ?? row.chunks.reduce((sum, chunk) => sum + chunk.bytes, 0),
+        startAt: row.startAt, finishedAt: row.finishedAt, failedAt: row.failedAt,
+        failureText: row.failureText,
+        finished: row.authoritativeBytes !== null,
+      }));
+    },
+
     bytesOf(id) {
       const row = requests.get(id);
       if (!row) return 0;
