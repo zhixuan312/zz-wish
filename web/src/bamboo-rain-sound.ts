@@ -1,6 +1,6 @@
 import { bambooEave, bambooNook } from './bamboo-rain-shelter.ts';
 
-const { start, end, eaveZ } = bambooEave;
+const { start, end, eaveZ, backZ } = bambooEave;
 const sin = Math.sin(bambooNook.ry);
 const cos = Math.cos(bambooNook.ry);
 const unit = (value: number) => Math.max(0, Math.min(1, value));
@@ -9,8 +9,8 @@ export function bambooRainMix(x: number, z: number, dx: number, dz: number) {
   const fromNookX = x - bambooNook.x, fromNookZ = z - bambooNook.z;
   const along = cos * fromNookX - sin * fromNookZ;
   const across = sin * fromNookX + cos * fromNookZ;
-  // Blend over 1.30 m centered on the actual roof edge. The two ends matter as well.
-  const roofDistance = Math.min(eaveZ - across, along - start, end - along);
+  // Blend over 1.30 m centered on the actual roof edge.
+  const roofDistance = Math.min(eaveZ - across, across - backZ, along - start, end - along);
   const t = unit(.5 + roofDistance / 1.3);
   const shelter = t * t * (3 - 2 * t);
 

@@ -107,7 +107,7 @@ function buildChannel({ THREE, M, water, pavingTex }, { G }) {
 function buildCloister(h) {
   const { THREE, M, box, put, col, eave, otherLamp, plasterTex, grainTex, pavingTex } = h;
   const { G, up, rnd } = h.context;
-  const { start, end, eaveY, eaveZ, waterY, channel, crossing } = cloister;
+  const { start, end, eaveY, eaveZ, backZ, waterY, channel, crossing } = cloister;
   const length = end - start;
   const middle = (start + end) / 2;
   const timber = M(0x4a3829, .75, { map: grainTex });
@@ -125,7 +125,7 @@ function buildCloister(h) {
   box(length, .145, .145, wetStone, middle, -.2525, 1.60);
   for (const x of [-4.55, 3.10]) col(x, 1.32, 2.48, .115, post);
   box(length, .16, .21, timber, middle, 2.54, 1.32);
-  eave({ x0: start, x1: end, y: eaveY, z: eaveZ, depth: eaveZ + .72, rise: .64, tile: 0x3d4442 });
+  eave({ x0: start, x1: end, y: eaveY, z: eaveZ, depth: eaveZ - backZ, rise: .64, tile: 0x3d4442 });
 
   // The visitor's cup rests directly on the sill. The extra width leaves a usable dry edge.
   const shelf = new THREE.Mesh(new THREE.BoxGeometry(4.18, .056, .48), board);

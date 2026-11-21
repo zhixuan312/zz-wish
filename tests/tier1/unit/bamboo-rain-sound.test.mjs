@@ -27,6 +27,7 @@ test('rain changes smoothly across the finite roof footprint', () => {
   expect(covered.drips).toBeGreaterThan(0);
   expect(at(lipX - 1, bambooNook.z - bambooEave.start + .66).shelter).toBe(0);
   expect(at(lipX - 1, bambooNook.z - bambooEave.end - .66).shelter).toBe(0);
+  expect(at(bambooNook.x + bambooEave.backZ - .66).shelter).toBe(0);
   expect(bambooRainMix(lipX - .65, bambooNook.z, 0, 1).dripPan).toBeCloseTo(-covered.dripPan, 10);
 });
 
