@@ -2,7 +2,7 @@ import { BELL, LAMP, TREE, TURN_SECONDS, WALK_SECONDS, WINDOW, bellLaneCameras }
 
 // An invented neighbourhood temple: a lit shop lane, one low door, a tree and a small bell court.
 export default function createPlace(h) {
-  const { THREE, V3, M, ground, box, put, wallWithHoles, eave, col, otherLamp, trees, bell,
+  const { THREE, V3, M, ground, box, put, wallWithHoles, eave, col, otherLamp, trees,
     brickTex, plasterTex, grainTex, pavingTex, latticeTex, pauseBuild, lathe, liveFlame } = h;
   const cameras = bellLaneCameras(V3);
   const gateHalfWidth = 1.16;
@@ -83,7 +83,7 @@ export default function createPlace(h) {
         // A low counter and baskets beside the doorway, all grounded.
         if (!landmark) box(.46, .65, 1.4, wood, face - side * .3, .325, z - 1.2);
         put(new THREE.CylinderGeometry(.2, .16, .28, 24, 1, true), paper, face - side * .32, .14, z + 1.6);
-        if (i % 2 === 0) { const sign = new THREE.Mesh(new THREE.PlaneGeometry(.38, 1.1), M(0x6e3220, .97, { side: THREE.DoubleSide })); sign.position.set(face - side * .45, 2.1, z + 2.2); sign.rotation.y = -.35 * side; C.G.add(sign); }
+        if (!landmark && i % 2 === 0) { const sign = new THREE.Mesh(new THREE.PlaneGeometry(.38, 1.1), M(0x6e3220, .97, { side: THREE.DoubleSide })); sign.position.set(face - side * .45, 2.1, z + 2.2); sign.rotation.y = -.35 * side; C.G.add(sign); }
       }
       await pauseBuild();
       // The wall is solid across the lane except for this one door.
@@ -106,7 +106,7 @@ export default function createPlace(h) {
 
       const floorMap = brickTex.clone(); floorMap.repeat.set(4, 5);
       const floor = M(0x7a7570, .95, { map: floorMap });
-      box(12.6, .12, 22.6, floor, 0, -.06, -1.35);
+      box(12.6, .12, 22.6, floor, 0, -.045, -1.35);
       for (const x of [-6.3, 6.3]) {
         box(.5, 3.05, 22.6, wall, x, 1.525, -1.35);
         box(.69, .18, 22.6, h.roofMat(0x3f4144), x, 3.12, -1.35);
@@ -124,32 +124,53 @@ export default function createPlace(h) {
       box(4.12, .28, 3.32, stone, bellX, .14, bellZ);
       box(3.8, .13, .35, stone, bellX, .065, bellZ + 1.75);
       box(3.8, .13, .30, stone, bellX, .19, bellZ + 1.59);
-      for (const x of [-1.62, 1.62]) for (const dz of [-1.29, 1.29]) col(x, bellZ + dz, 2.43, .12, red, .28);
-      for (const dz of [-1.29, 1.29]) box(3.57, .21, .17, wood, 0, 2.69, bellZ + dz);
-      box(.17, .23, 2.91, wood, 0, 2.61, bellZ);
+      for (const x of [-1.62, 1.62]) for (const dz of [-1.29, 1.29]) col(bellX + x, bellZ + dz, 2.43, .12, red, .28);
+      for (const dz of [-1.29, 1.29]) box(3.57, .21, .17, wood, bellX, 2.69, bellZ + dz);
+      box(.17, .23, 2.91, wood, bellX, 2.61, bellZ);
       const bronze = M(0x564830, .56, { metalness: .78 });
-      put(new THREE.CylinderGeometry(.021, .021, .19, 12), bronze, 0, 2.42, bellZ);
-      bell(0, 2.33, bellZ, 1.07, bronze);
-      box(.105, .095, 1.24, wood, .99, 1.53, bellZ);
-      for (const dz of [-.42, .42]) put(new THREE.CylinderGeometry(.007, .007, 1.13, 8), bronze, .99, 2.08, bellZ + dz);
+      put(new THREE.CylinderGeometry(.021, .021, .19, 12), bronze, bellX, 2.42, bellZ);
+      const bellBody = lathe([[.40, 0], [.414, .018], [.403, .074], [.36, .23], [.287, .65],
+        [.251, .82], [.173, .94], [.045, .96], [0, .95], [0, .915], [.156, .912],
+        [.221, .819], [.264, .649], [.341, .21], [.382, .064], [.38, .016], [.40, 0]], 48);
+      put(bellBody, bronze, bellX, 1.36, bellZ);
+      for (const [radius, y] of [[.405, 1.397], [.362, 1.584], [.273, 2.055]]) {
+        put(new THREE.TorusGeometry(radius, .009, 7, 44).rotateX(Math.PI / 2), bronze, bellX, y, bellZ);
+      }
+      box(.105, .095, 1.24, wood, bellX + .99, 1.53, bellZ);
+      for (const dz of [-.42, .42]) put(new THREE.CylinderGeometry(.007, .007, 1.13, 8), bronze, bellX + .99, 2.08, bellZ + dz);
       const roofDepth = 1.86, roofRise = .66;
-      eave({ x0: -2.2, x1: 2.2, y: 2.82, z: bellZ + roofDepth, depth: roofDepth, rise: roofRise, tile: 0x3b3d42 });
+      eave({ x0: bellX - 2.2, x1: bellX + 2.2, y: 2.82, z: bellZ + roofDepth, depth: roofDepth, rise: roofRise, tile: 0x3b3d42 });
       const roof = new THREE.BoxGeometry(4.43, .11, Math.hypot(roofRise, roofDepth));
       roof.rotateX(-Math.atan2(roofRise, roofDepth));
-      put(roof, h.roofMat(0x3b3d42), 0, 3.02 + roofRise / 2, bellZ - roofDepth / 2);
-      box(4.48, .13, .13, wood, 0, 3.02 + roofRise, bellZ);
+      put(roof, h.roofMat(0x3b3d42), bellX, 3.02 + roofRise / 2, bellZ - roofDepth / 2);
+      box(4.48, .13, .13, wood, bellX, 3.02 + roofRise, bellZ);
 
       const [treeX, , treeZ] = TREE;
+      // The generic vegetation helper culls trees near the preview axis. This
+      // trunk is an authored landmark inside the court and belongs in the view.
+      const oldFree = C.free;
+      C.free = true;
       const T = trees();
-      T.broad(treeX, 0, treeZ, 1.45, 0x374334);
+      T.broad(treeX, .02, treeZ, 1.37, 0x40513a);
       T.finish();
-      for (const [dx, dz, angle] of [[.38, .16, -.62], [-.35, .24, .66], [.21, -.32, -.41]]) {
-        const root = new THREE.CylinderGeometry(.085, .14, .61, 12);
-        root.rotateZ(angle);
-        put(root, wood, treeX + dx, .25, treeZ + dz);
-      }
-      box(1.18, .10, .38, stone, 2.4, .44, 2.45);
-      for (const x of [1.98, 2.82]) box(.19, .40, .28, wall, x, .20, 2.45);
+      C.free = oldFree;
+      const bark = M(0x595047, .97, { map: grainTex });
+      const limb = (start, end, bottom, top) => {
+        const from = V3(treeX + start[0], start[1], treeZ + start[2]);
+        const to = V3(treeX + end[0], end[1], treeZ + end[2]);
+        const axis = to.clone().sub(from);
+        const segment = new THREE.CylinderGeometry(top, bottom, axis.length(), 10);
+        segment.applyQuaternion(new THREE.Quaternion().setFromUnitVectors(V3(0, 1, 0), axis.normalize()));
+        const mid = from.lerp(to, .5);
+        put(segment, bark, mid.x, mid.y, mid.z);
+      };
+      limb([0, .015, 0], [.05, 2.27, -.03], .36, .24);
+      limb([.05, 2.03, -.03], [-.55, 4.12, -.19], .20, .043);
+      limb([.05, 2.0, -.04], [.83, 3.89, -.23], .16, .039);
+      limb([.03, 1.85, -.03], [-.12, 3.86, .64], .16, .043);
+      for (const [x, z] of [[.66, .32], [-.59, .41], [.25, -.61]]) limb([0, .32, 0], [x, .037, z], .20, .051);
+      box(1.18, .10, .38, stone, -2.54, .44, 2.22);
+      for (const x of [-2.96, -2.12]) box(.19, .40, .28, wall, x, .20, 2.22);
       const courtFill = new THREE.PointLight(0xffc48a, 0, 13, 2);
       courtFill.position.set(-2.3, 2.6, 8.7); C.G.add(courtFill);
       C.up.push((_dt, _t, light) => { courtFill.intensity = .4 + light.n * 5; });
@@ -195,8 +216,9 @@ export default function createPlace(h) {
         box(1.85, .09, .29, edge, 0, .18, 0);
         for (const [x, z, yaw, power] of [[-.79, .01, -.1, 0], [-.44, .055, .13, .31],
           [.42, .055, -.21, 0], [.76, .02, .3, .22]]) {
-          const { g } = otherLamp('lattice', x, .46, z, .55, yaw, power);
+          const { g, p } = otherLamp('lattice', x, .46, z, .55, yaw, power);
           g.scale.setScalar(.52);
+          for (const shell of p.shells) shell.color.setHex(power ? 0x88603d : 0x624b38);
         }
         // Supplies for the next visitor are kept beside the rack.
         box(.56, .065, .42, wood, -1.57, .58, .18);

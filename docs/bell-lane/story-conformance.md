@@ -36,10 +36,10 @@ World coordinates in metres. Up on this plan is the street (+Z). The two routes 
                            |       /
           older wishes  ---*------/       * visitor lamp
                   rack (-1.05, 7.0)      open court
-                         / |               old tree (2.4, 1.24)
+                         / |               old tree (-1.42, 0.60)
         seat (-1.60, 5.5)  | reveal
                            |
-                  low bell pavilion (0, -1.6)
+                  low bell pavilion (2.30, -2.70)
                     COURT    -Z
 ```
 
@@ -49,6 +49,6 @@ At 12 s, the route is under the shop eaves. At 22 s, it is centered on the door 
 
 The isolated preview enables Bell Lane in the ordinary wish, place, walk, choose and light flow. Start it with `node docs/bell-lane/preview.mjs` after installing the repository dependencies. It prints a loopback URL and uses a separate temporary database. The default game catalog remains unchanged.
 
-For the authored camera samples, run `node docs/bell-lane/camera-audit.mjs`. The walk is 30 seconds, followed by a 12.5 second turn and seat transition. The last second is a still hold. On both viewports the planned maximum speed is 1.77 m/s and minimum structural clearance is 1.13 m, measured to the jamb rather than along the window sightline. The planned turn peaks at 18.62°/s desktop and 18.32°/s phone.
+For the authored camera samples, run `node docs/bell-lane/camera-audit.mjs`. The walk is 30 seconds, followed by a 12.5 second turn and seat transition. The last second is a still hold. On both viewports the planned maximum speed is 1.77 m/s and minimum structural clearance is 1.13 m, measured to the jamb rather than along the window sightline. The planned turn peaks at 20.18°/s desktop and 19.90°/s phone.
 
 Capture with `node docs/bell-lane/capture.mjs artifacts/bell-lane/round-1` while holding the project GPU lease. The fixture records PNGs at the two viewport sizes, stores the actual game camera trace alongside the authored curve, and records the canvas and Bell Lane audio master in a WebM. The recording captures the street sound through the doorway filter. PNGs with controls preserve the same view in the regular app. Test context time is fixed only for setting the local lighting.

@@ -1,5 +1,5 @@
 import { Vector3, PerspectiveCamera } from 'three';
-import { bellLaneCameras, WALK_SECONDS, TURN_SECONDS, LAMP, TREE, WINDOW, DOOR_Z } from '../../web/src/engine/places/bell-lane-camera.js';
+import { bellLaneCameras, WALK_SECONDS, TURN_SECONDS, LAMP, TREE, BELL, WINDOW, DOOR_Z } from '../../web/src/engine/places/bell-lane-camera.js';
 import { measureCameraPath } from '../../tests/visual/pine-camera-path.mjs';
 
 const V3 = (...args) => new Vector3(...args);
@@ -8,7 +8,7 @@ const obstacles = [
   { position: [-1.20, 1.66, DOOR_Z], radius: .07 },
   { position: [1.20, 1.66, DOOR_Z], radius: .07 },
   { position: [TREE[0], 1.66, TREE[2]], radius: .4 },
-  ...[-1.62, 1.62].flatMap(x => [-2.89, -.31].map(z => ({ position: [x, 1.66, z], radius: .17 }))),
+  ...[-1.62, 1.62].flatMap(x => [-1.29, 1.29].map(z => ({ position: [BELL[0] + x, 1.66, BELL[2] + z], radius: .17 }))),
 ];
 
 export const cameraPeaks = metrics => Object.fromEntries(Object.entries(metrics).map(([key, item]) => {

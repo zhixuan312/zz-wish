@@ -79,12 +79,12 @@ const waitWalk = (page, seconds) => page.waitForFunction(value => window.__walkP
 
 async function snap(page, directory, name) {
   const path = join(directory, name + '.png');
-  await page.screenshot({ path, style: '#root, #fade { visibility: hidden !important; }', scale: 'css' });
   const camera = await page.evaluate(() => {
     const c = window.__pineRenderCamera;
     return { position: c.position.toArray(), direction: c.getWorldDirection(c.position.clone()).toArray(),
       fov: c.fov, walk: window.__walkProgress ?? null, landmark: window.__bellReviewWindow?.() ?? null };
   });
+  await page.screenshot({ path, style: '#root, #fade { visibility: hidden !important; }', scale: 'css' });
   shots.push({ file: path, ...camera });
   return camera;
 }
@@ -165,7 +165,7 @@ try {
     const soundRows = {};
     await waitWalk(page, 12);
     soundRows.eaves = await audio(page);
-    await waitWalk(page, 17);
+    await waitWalk(page, 16.75);
     const passing = await snap(page, directory, 'passing-window');
     await waitWalk(page, 22);
     soundRows.approach = await audio(page);

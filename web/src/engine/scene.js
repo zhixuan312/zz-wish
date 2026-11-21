@@ -805,7 +805,7 @@ const LAMPS = {
     solid(g, new THREE.BoxGeometry(.26, .02, .26), lampWood, 0, y0, 0);
     for (const y of [.1, .3]) for (const [w, d] of [[.24, .014], [.014, .24]]) for (const s of [-1, 1]) solid(g, new THREE.BoxGeometry(w, .016, d), lampWood, w > .1 ? 0 : s * .11, y, w > .1 ? s * .11 : 0);
     const paper = paperLatticeTex.clone(); paper.wrapS = THREE.RepeatWrapping; paper.repeat.set(4, 1); paper.needsUpdate = true;
-    const shell = shellMaterial(o.color, { map: paper, glow: 0xffb070, reach: 9, rough: .9, base: .06, strength: .45 });
+    const shell = shellMaterial(o.color, { map: paper, glow: 0xffb070, reach: 9, rough: .9, base: .04, strength: .20 });
     const box4 = lathe(P, 4);
     const faces = Array.from(box4.index.array), faceSize = 6 * (P.length - 1);
     faces.splice(faceSize, faceSize); // The -Z side after the quarter-diagonal rotation.
@@ -822,7 +822,7 @@ const LAMPS = {
     tag.rotation.z = -.13;
     const cord = solid(g, new THREE.TorusGeometry(.008, .0014, 5, 14), lampWood, .09, y0 - .002, -.129);
     cord.rotation.y = .18;
-    return { g, kind: 'shade', shells: [shell], wick: { at: V3(0, y0 + .036, 0) }, frame: { h: top - y0 + .08, cy: (y0 + top) / 2 }, lightMax: .8, flame: .85, light: 0xffaa60 };
+    return { g, kind: 'shade', shells: [shell], wick: { at: V3(0, y0 + .036, 0) }, frame: { h: top - y0 + .08, cy: (y0 + top) / 2 }, lightMax: .16, flame: 1.0, light: 0xffaa60 };
   },
 };
 
