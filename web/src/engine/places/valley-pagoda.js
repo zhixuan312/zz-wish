@@ -1,11 +1,14 @@
 // An invented valley court, one old brick pagoda and the stream beyond its eastern wall.
 import {
-  createValleyPagodaCamera, FOREGROUND_PINES, GATE_Z, STREAM_X,
+  createValleyPagodaCamera, FOREGROUND_PINES, GATE_Z,
   TABLE_CENTER, TOWER_BASE_RADIUS, TOWER_CENTER, WALK_SECONDS,
 } from './valley-pagoda-camera.js';
+import { addValleyRidges, valleyRidgeHeight } from './valley-pagoda-ridges.js';
+import { addValleyRiparianTrees } from './valley-pagoda-riparian.js';
+import { addValleyStream, streamCenter, streamEdge, streamHalfWidth, valleyBankHeight } from './valley-pagoda-stream.js';
 
 export default function createPlace(h) {
-  const { THREE, V3, M, ground, water, box, put, wallWithHoles, eave, trees, rock, peak, mist, otherLamp, pavingTex, brickTex, grainTex, pauseBuild } = h;
+  const { THREE, V3, M, ground, box, put, wallWithHoles, eave, trees, rock, mist, otherLamp, pavingTex, brickTex, grainTex, pauseBuild } = h;
   const cameras = createValleyPagodaCamera(THREE, V3);
   const [tableX, , tableZ] = TABLE_CENTER;
   const towerZ = TOWER_CENTER[2];
@@ -26,10 +29,7 @@ export default function createPlace(h) {
       const wall = M(0x66645c, .97, { map: brickTex });
       const wood = M(0x3b291c, .9, { map: grainTex });
       const paving = M(0x72716a, .95, { map: pavingTex });
-      const bank = M(0x4e5548, .98);
       ground(0x394639, { y: -.8 });
-      box(23, .8, 67, bank, -.7, -.4, 11);
-      box(22, .8, 13.5, bank, -1.1, -.4, -27);
       box(3, .07, 32, paving, 0, .035, 33.8);
 
       // The existing gate is the narrow point between the two wooded stretches.
@@ -43,79 +43,32 @@ export default function createPlace(h) {
       leaf.castShadow = leaf.receiveShadow = true;
       C.G.add(leaf);
 
-      // One continuous bed. The bend below the terrace brings moving water into
-      // the resting view without switching sides or introducing a second water feature.
-      const channel = z => {
-        const bend = Math.exp(-(((z + 31) / 14) ** 2));
-        return STREAM_X - 1.55 * bend + 4.4 * Math.max(0, (-z - 38) / 39);
-      };
-      const waterZ = -20;
-      const bed = new THREE.PlaneGeometry(5.2, 132, 1, 44);
-      const points = bed.attributes.position;
-      for (let i = 0; i < points.count; i++) {
-        points.setX(i, points.getX(i) + channel(waterZ - points.getY(i)) - STREAM_X);
-      }
-      bed.computeBoundingSphere();
-      const stream = water(-.48, 0x244140, { geo: bed, x: STREAM_X, z: waterZ, waves: 1.2, env: .48, rough: .26 });
-      stream.material.clearcoat = .05;
-      stream.material.specularIntensity = .55;
-      for (let i = 0; i < 36; i++) {
-        const z = -78 + i * 3.4;
-        const x = channel(z);
-        const size = .25 + C.rnd() * .48;
-        rock(x - 2.7 - C.rnd() * .4, -.49, z, [size, size * .65, size * 1.4], i * 3 + 7);
-        rock(x + 2.7 + C.rnd() * .6, -.49, z + .8, [size, size * .8, size * 1.6], i * 3 + 8);
-      }
-      const rippleMaterial = new THREE.MeshBasicMaterial({ color: 0xb1c3c5, transparent: true, opacity: .19, depthWrite: false });
-      const ripples = Array.from({ length: 44 }, () => {
-        const ripple = new THREE.Mesh(new THREE.PlaneGeometry(.19 + C.rnd() * .48, .02), rippleMaterial);
-        ripple.rotation.x = -Math.PI / 2;
-        ripple.rotation.z = (C.rnd() - .5) * .55;
-        const z = -75 + C.rnd() * 110;
-        const offset = (C.rnd() - .5) * 3.6;
-        ripple.position.set(channel(z) + offset, -.467, z);
-        C.G.add(ripple);
-        return { ripple, offset, z };
-      });
-      C.up.push((dt) => {
-        for (const item of ripples) {
-          item.z -= dt * .65;
-          if (item.z < -78) item.z += 112;
-          item.ripple.position.set(channel(item.z) + item.offset, -.467, item.z);
-        }
-      });
+      addValleyStream(h);
       await pauseBuild();
-
-      const mountain = M(0x293b35, 1);
-      for (const [x, z, radius, height, seed] of [
-        [-72, -83, 60, 76, 11], [-92, 5, 61, 95, 17],
-        [106, -92, 60, 94, 23], [91, 18, 58, 104, 27],
-        [-16, -181, 86, 107, 31], [42, -205, 61, 72, 61],
-      ]) peak(x, -12, z, radius, height, mountain, seed, 1.05);
+      addValleyRidges(h);
       const grove = trees();
       for (const [x, z, scale] of FOREGROUND_PINES) {
         grove.pine(x, 0, z, scale, 0x354d37, true);
       }
+      const terrainHeight = (x, z) => Math.max(valleyBankHeight(x, z), valleyRidgeHeight(x, z));
       for (let i = 0; i < 56; i++) {
         const side = i % 2 ? -1 : 1;
         const z = -70 + C.rnd() * 118;
-        grove.pine(side * (18 + C.rnd() * 31), -.58, z, .8 + C.rnd() * 1.4, 0x253b2b);
+        const distance = 18 + C.rnd() * 31;
+        const x = side < 0 ? -distance : Math.max(distance, streamEdge(z, 1) + 8);
+        grove.pine(x, terrainHeight(x, z) - .04, z, .8 + C.rnd() * 1.4, 0x253b2b);
       }
-      for (const [x, z, scale] of [
-        [17.5, -16, .65], [16.4, -23.5, .75], [17.1, -29, .8], [17.9, -33, .55],
-        [19.9, -37, .94], [19.3, -45, .72], [20.5, -49, .85],
-        [8.8, -32, .63], [9.3, -38.3, .51], [11.6, -51.7, .7], [12.9, -65, .77],
-      ]) grove.broad(x, -.66, z, scale, 0x405c36);
       grove.finish();
+      addValleyRiparianTrees(h, terrainHeight, streamCenter, streamHalfWidth);
       for (const [x, z, size] of [[-7, 27, 1.2], [6, 31, 1], [-6, 38, .7], [8.85, -22.8, .34], [10.05, -24.7, .51], [9.1, -26.3, .47]]) {
-        rock(x, z < -21 ? -.12 : 0, z, [size, size * .7, size * .9], Math.round(z));
+        rock(x, valleyBankHeight(x, z) - .08, z, [size, size * .7, size * .9], Math.round(z));
       }
       mist({ n: 26, at: [0, 1.8, -52], box: [90, 3.1, 88], color: 0xb6c9cb, opacity: .055, size: 13, drift: .5 });
       await pauseBuild();
     },
     nook: {
       at: { pos: V3(...TABLE_CENTER), ry: 0 },
-      lamp: 'glass', y: .46, exposure: 1.1, bloom: [.36, 1.02],
+      lamp: 'glass', y: .46, exposure: 1.1, bloom: [.18, 1.2],
       wide: cameras.wide,
       widePhone: cameras.widePhone,
       choose: cameras.choose,
@@ -126,7 +79,13 @@ export default function createPlace(h) {
         bricks.needsUpdate = true;
         const brick = M(0x6e6458, .96, { map: bricks });
         const cap = M(0x4b4e4b, .95, { map: pavingTex });
-        const stone = M(0x73766b, .9, { map: pavingTex });
+        // A matte, absorptive stone seat keeps the small glass lamp out of a broad white highlight.
+        const stone = M(0x565855, .96, { map: pavingTex });
+        stone.color.setHex(0x565855);
+        stone.normalScale.set(.34, .34);
+        stone.roughnessMap = null;
+        stone.roughness = .96;
+        stone.envMapIntensity = .42;
         const court = M(0x555b51, .96, { map: pavingTex });
         const moss = M(0x3f5038, 1);
         const worldBox = (w, height, d, material, x, y, z, yaw) => box(w, height, d, material, x - tableX, y, z - tableZ, yaw);
