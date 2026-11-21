@@ -45,7 +45,12 @@ function restoreShrineFixtureFlames(h, context, niche, anchor) {
   for (const [index, box] of bounds.entries()) {
     box.getCenter(point);
     point.y = box.min.y;
-    h.pineFixtureFlame(context, point, box.max.y - box.min.y, 2.2 + index * 2.5);
+    const height = box.max.y - box.min.y;
+    h.pineFixtureFlame(context, point, height, 2.2 + index * 2.5);
+    // The flame plane alone leaves the wax body unlit, so at 22:00 a burning stub read as an
+    // unlit lump with a bright streak. The visitor's own candle peaks at .05; hold each stub to
+    // .024 so it is clearly alight and clearly dimmer than the wish the visitor is making.
+    h.fixtureSpecular(point.x, point.y + height * .55, point.z, .30, [1, 176 / 255, 112 / 255]);
   }
 }
 
