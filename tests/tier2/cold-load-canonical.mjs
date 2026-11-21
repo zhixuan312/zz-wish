@@ -146,7 +146,9 @@ const CLOCK = () => {
   const RealDate = Date;
   const fixed = new RealDate(2026, 10, 21, 13, 0, 0).getTime();
   const offset = fixed - RealDate.now();
-  // eslint-disable-next-line no-global-assign
+  // window.Date is replaced deliberately: the daylight pass reads the wall clock, and a fixed 13:00 is
+  // what makes the two conditions comparable. Assigning a property is not a global redeclaration, so no
+  // eslint exception is needed.
   window.Date = class extends RealDate {
     constructor(...args) { return args.length ? new RealDate(...args) : new RealDate(RealDate.now() + offset); }
     static now() { return RealDate.now() + offset; }
