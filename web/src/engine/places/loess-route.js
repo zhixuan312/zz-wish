@@ -1,5 +1,6 @@
 // World metres. The carved lane, walking camera and review all share this grade.
 export const gateZ = 16.3;
+export const cutGrid = { west: -36, north: -10, columns: 288, rows: 142, stepX: .25, stepZ: .5 };
 export const walkSeconds = 27.6; // The procedural engine then seats the visitor over 2.4 s.
 export const routeBeats = [
   { at: 0, id: 'cart-lane' }, { at: 5, id: 'descent' }, { at: 13, id: 'threshold' },
@@ -18,11 +19,25 @@ export function cartRut(x, z) {
   return (1 - smooth(.025, .23, Math.abs(offset - .66))) * smooth(17, 22, z);
 }
 
-export function routeGround(x, z) {
+export function cutHeight(x, z) {
   const grade = 2.18 * smooth(15.5, 26.5, z);
   const cutHalfWidth = blend(15.2, 2.45, smooth(12.3, 17.6, z));
   const bank = smooth(cutHalfWidth, cutHalfWidth + 3.8, Math.abs(x - 1));
   return blend(grade, 2.45 + .14 * Math.sin(x * .36 + z * .12), bank) - .052 * cartRut(x, z);
+}
+
+// Sample the exact diagonal used by the rendered PlaneGeometry triangles.
+// The camera's grade follows the mesh between vertices as well as at them.
+export function routeGround(x, z) {
+  const { west, north, columns, rows, stepX, stepZ } = cutGrid;
+  const gx = (x - west) / stepX, gz = (z - north) / stepZ;
+  if (gx < 0 || gx > columns || gz < 0 || gz > rows) return -.14;
+  const ix = Math.min(columns - 1, Math.floor(gx)), iz = Math.min(rows - 1, Math.floor(gz));
+  const u = gx - ix, v = gz - iz;
+  const left = west + ix * stepX, front = north + iz * stepZ;
+  const a = cutHeight(left, front), b = cutHeight(left, front + stepZ);
+  const c = cutHeight(left + stepX, front + stepZ), d = cutHeight(left + stepX, front);
+  return u + v <= 1 ? (1 - u - v) * a + v * b + u * d : (1 - u) * b + (u + v - 1) * c + (1 - v) * d;
 }
 
 // Conservative distance to the passage, open door leaf and near window stone.
@@ -80,8 +95,8 @@ export function createLoessWalk(start, end, phone) {
   return (progress, rig) => {
     const seconds = progress * walkSeconds;
     const x = xAt(seconds), z = zAt(seconds);
-    const eye = blend(1.67, end.pos.y + .19, smooth(25, walkSeconds, seconds));
-    const h = routeGround(x, z) + eye;
+    // The shared 2.4 s seating move owns every bit of the eye-height drop.
+    const h = routeGround(x, z) + 1.67;
     const yaw = yawAt(seconds), pitch = pitchAt(seconds);
     const focus = blend(startDirection.length(), 5.5, smooth(0, 3, seconds));
     const distance = blend(focus, finalDirection.length(), smooth(23, walkSeconds, seconds));

@@ -1,4 +1,4 @@
-import { cartRut, createLoessWalk, gateZ, routeBeats, routeClearance, routeGround, walkSeconds } from './loess-route.js';
+import { cartRut, createLoessWalk, cutGrid, cutHeight, gateZ, routeBeats, routeClearance, routeGround, walkSeconds } from './loess-route.js';
 
 const lampSeatY = 1;
 const windowBack = -.63;
@@ -140,12 +140,15 @@ function windowSeat(THREE) {
 }
 
 function cutGround(THREE, material) {
-  const geometry = new THREE.PlaneGeometry(72, 71, 288, 142).rotateX(-Math.PI / 2).translate(0, 0, 25.5);
+  const { west, north, columns, rows, stepX, stepZ } = cutGrid;
+  const width = columns * stepX, depth = rows * stepZ;
+  const geometry = new THREE.PlaneGeometry(width, depth, columns, rows).rotateX(-Math.PI / 2)
+    .translate(west + width / 2, 0, north + depth / 2);
   const points = geometry.attributes.position;
   const colors = [];
   for (let i = 0; i < points.count; i++) {
     const x = points.getX(i), z = points.getZ(i);
-    const h = routeGround(x, z);
+    const h = cutHeight(x, z);
     points.setY(i, h);
     const rut = cartRut(x, z);
     const bank = Math.min(1, Math.max(0, (h - routeGround(1, z)) * .55));
