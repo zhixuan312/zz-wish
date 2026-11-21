@@ -18,6 +18,11 @@ import { execFileSync, spawn } from 'node:child_process';
 import { stopServerAndRemoveDatabase } from './walk-camera-smoke-cleanup.mjs';
 import { parseArgs } from './cli-args.mjs';
 import { diagnosisProblems } from './diagnosis-problems.mjs';
+import { observeFirstVisible } from './first-visible.mjs';
+
+// Serialised once: a function passed to page.evaluate cannot close over Node-side bindings, so the observer's
+// own source is injected and re-created inside the page.
+const OBSERVERS = { observeFirstVisible: new Function(`return (${observeFirstVisible.toString()})`)() };
 
 const REPO = fileURLToPath(new URL('../..', import.meta.url));
 // The radios show a localised name and carry no id; this maps the name back to the id the API uses.
@@ -285,6 +290,10 @@ try {
     }, null, { timeout: 300000 });
     record.readyProvenAt = await page.evaluate(() => performance.now());
     await page.evaluate(() => {
+      // Timestamp the first moment the burning HUD exists, from inside the page and before the click, so no
+      // harness polling can move it. The recorder itself is tested in isolation.
+      window.__ignitionProbe = { at: null };
+      (OBSERVERS.observeFirstVisible)(document, '[data-testid="with-you"]', window.__ignitionProbe);
       window.__walkProbe2 = { clickedAt: null, firstMoveAt: null, baseline: null, streak: 0 };
       const button = [...document.querySelectorAll('button')]
         .find(node => node.textContent.trim() === 'Step inside');
@@ -329,34 +338,36 @@ try {
       // Read the burning candle back from the API rather than trusting the screen: this proves ignition
       // reached the server, which the HUD alone does not. The POST is asynchronous, so poll until it lands
       // instead of reading once right after the click and recording a false negative.
-      let readback = null;
-      for (let attempt = 0; attempt < 20; attempt++) {
+      // A burning candle anywhere is not proof for this run: it must be the place the visitor finally
+      // selected. Otherwise a leftover candle from another court would satisfy the check.
+      const readCandle = async () => {
+        let readback;
         try {
           readback = await page.evaluate(async () => {
             const response = await fetch('/api/me/candles');
             return response.ok ? await response.json() : null;
           });
         } catch { readback = null; }
-        // A burning candle anywhere is not proof for this run: it must be the place the visitor finally
-        // selected. Otherwise a leftover candle from another court would satisfy the check.
         const burning = (readback?.candles ?? []).filter(c => c.status === 'burning'
           && c.placeId === record.selectedPlaceId);
-        if (burning.length) {
-          record.activeCandle = { id: burning[0].id, placeId: burning[0].placeId,
-            status: burning[0].status, durationMs: burning[0].durationMs,
-            readAt: await page.evaluate(() => performance.now()) };
+        return burning.length ? burning[0] : null;
+      };
+      // The HUD time and the API time are independent observations and must not influence each other. The HUD
+      // timestamp was previously read after the API had answered, so a slow readback pushed it later; the
+      // observer below runs in the page from before the click and stamps the first frame the element exists.
+      await page.waitForSelector('[data-testid="with-you"]', { timeout: 120000 });
+      ignited = true;
+      for (let attempt = 0; attempt < 20 && !record.activeCandle; attempt++) {
+        const candle = await readCandle();
+        if (candle) {
+          record.activeCandle = { id: candle.id, placeId: candle.placeId, status: candle.status,
+            durationMs: candle.durationMs, readAt: await page.evaluate(() => performance.now()) };
           break;
         }
         await page.waitForTimeout(150);
       }
       if (!record.activeCandle) record.activeCandleReadbackFailed = true;
-      // A real burning view, not merely a canvas: the burning HUD renders `with-you` and nowhere else. A canvas
-      // exists from the cover onward, so counting canvases proved nothing.
-      await page.waitForSelector('[data-testid="with-you"]', { timeout: 120000 });
-      ignited = true;
-      // Ignition has its own timestamp on the same page clock as ready, click and first movement, so the walk
-      // can be reported as navigation → ignition rather than stopping at first movement.
-      record.ignitionHudAt = await page.evaluate(() => performance.now());
+      record.ignitionHudAt = await page.evaluate(() => window.__ignitionProbe?.at ?? null);
       // Let the burning view settle so any transfer it triggers can finish and be recorded.
       await page.waitForTimeout(2000);
     } catch { ignited = false; }
