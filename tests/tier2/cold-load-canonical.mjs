@@ -48,12 +48,14 @@ const L = {
 
 // The harness owns its server: it starts it, records the pid, and stops it in the same finally block
 // that closes the browser. Nothing outside this file needs to kill a process by name or port.
-function startServer(port, dbFile, repo) {
-  // Run from the repository but with the private DB under the shared tmp, and record the pid so
-  // safe-kill.sh can stop exactly this process; its allowlist covers tmp/s2.
+function startServer(port, dbFile, repo, runDir) {
+  // The process runs with its working directory under the shared tmp, which safe-kill.sh authorises for
+  // this worker, so the recorded pid can always be stopped the sanctioned way. The server resolves
+  // web/dist from the repository, so the repository is passed through the environment.
   const child = spawn('node', [join(repo, 'server/main.ts')], {
-    cwd: repo,
-    env: { ...process.env, PORT: String(port), HOST: '127.0.0.1', DB_FILE: dbFile },
+    cwd: runDir,
+    env: { ...process.env, PORT: String(port), HOST: '127.0.0.1', DB_FILE: dbFile,
+      ONE_LIGHT_REPO: repo },
     stdio: ['ignore', 'pipe', 'pipe'],
   });
   const log = [];
@@ -357,18 +359,45 @@ async function runOnce(target, condition, run, phase) {
       : { ms: null, bytes: null, failed: true };
 
     // The chooser is a separate stage; waiting for it is not a movement measure.
-    const chooser = page.getByRole('radio', { name: en ? /^10 minutes$/ : /^10 分钟$/ });
+    // The duration radio is labelled by fmtDuration: "10 min" in English, "10 分钟" in Chinese.
+    const chooser = page.locator('[role=radio]').filter({ hasText: en ? /10\s*min/i : /10\s*分钟/ }).first();
+    // The chooser arrives only after the walk finishes, which is 30 s of authored travel plus the load
+    // itself; the phone condition needs well over a minute of wall time.
     let chooserShown = true;
-    try { await chooser.waitFor({ timeout: 60000 }); }
-    catch { chooserShown = false; }
+    try { await chooser.waitFor({ timeout: 180000 }); }
+    catch (error) { chooserShown = false; record.chooserFailure = String(error?.message ?? error).slice(0, 160); }
     record.chooser = chooserShown ? { ms: at(), bytes: bytes() } : { ms: null, bytes: null, failed: true };
 
-    // Burning: light the candle, then read frame percentiles inside the settled burning view.
-    const light = page.getByRole('button', { name: en ? /Light it/ : /点亮这一盏/ }).first();
-    if (chooserShown && await chooser.count()) {
-      await chooser.click({ timeout: 30000 }).catch(() => {});
+    // Burning: answer the duration chooser, then light the candle and read frame percentiles inside the
+    // settled burning view. The light control only exists after the chooser is answered.
+    record.chooserClicked = false;
+    if (chooserShown) {
+      record.chooserClicked = await chooser.click({ timeout: 60000 }).then(() => true).catch(() => false);
     }
     await page.waitForTimeout(1500);
+
+    // Burning stage: light the visitor's candle and read frame times and counters inside the settled view.
+    const light = page.getByRole('button', { name: en ? /Light it/ : /点亮这一盏/ }).first();
+    record.burning = null;
+    try {
+      await light.waitFor({ timeout: 60000 });
+      const before = await page.evaluate(() => ({ frames: window.__s.frames.length, links: window.__s.links }));
+      await light.click({ timeout: 30000 });
+      await page.waitForTimeout(4000);
+      const burning = await page.evaluate(() => ({
+        frames: window.__s.frames.slice(-180), links: window.__s.links,
+        contextLost: document.querySelector('canvas')?.getContext('webgl2')?.isContextLost?.() ?? null,
+      }));
+      record.burning = {
+        frames: { p50: percentile(burning.frames, .5), p95: percentile(burning.frames, .95),
+          count: burning.frames.length },
+        linksAdded: burning.links - before.links, contextLost: burning.contextLost,
+        shot: `${condition.name}-run-${run}-${phase}-burning.png`,
+      };
+      await page.screenshot({ path: join(out, record.burning.shot) });
+    } catch (error) {
+      record.burning = { failed: true, reason: String(error?.message ?? error).slice(0, 160) };
+    }
 
     // Same-context revisit: reload and repeat the journey to Step inside with the cache warm. Wire bytes
     // start again at the reload: the counter below is the first visit's total and must not be inherited.
@@ -412,7 +441,14 @@ async function runOnce(target, condition, run, phase) {
 const all = [];
 const port = Number(options.port ?? 8902);
 const dbFile = join(out, 'cold-load.db');
-const server = startServer(port, dbFile, process.cwd());
+// A run directory inside the shared tmp: both the server's cwd and its database live there, so
+// safe-kill.sh authorises the recorded pid. server/main.ts resolves web/dist from its working
+// directory, so a `web` symlink to the repository points it at the real build without touching product
+// code or serving anything outside the tmp tree.
+const runDir = join('/Users/xuan/OpenBot/Shared/one-light/tmp/s2', 'cold-load-run');
+mkdirSync(runDir, { recursive: true });
+try { execFileSync('ln', ['-sfn', join(process.cwd(), 'web'), join(runDir, 'web')]); } catch { /* exists */ }
+const server = startServer(port, dbFile, process.cwd(), runDir);
 let exitCode = 0;
 try {
   if (!await waitForServer(port)) throw new Error('The harness server never answered on ' + port
