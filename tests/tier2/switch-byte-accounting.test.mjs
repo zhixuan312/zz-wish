@@ -28,7 +28,38 @@ test('the case from the review: 30 before, 10 inside, 50 after, total 100', () =
   // because the request has chunks on both sides of the window.
   expect(rows[0].residual).toBe(10);
   expect(rows[0].insideWindowBytes).toBe(10);
-  expect(rows[0].note).toMatch(/cannot be placed/);
+  expect(rows[0].note).toMatch(/residual has no timestamp|cannot be placed/);
+});
+
+test('a start inside the window does not let its chunks plus residual exceed the authoritative total', () => {
+  // Case from the review: start 100 (inside 95–105), one chunk at 150, authoritative 100. The request must
+  // contribute exactly 100, not 100 + 10.
+  const ledger = createByteLedger({ uncertaintyMs: 5 });
+  ledger.request({ id: 'r', url: '/places/snow-roof/x.ktx2', atMs: 100 });
+  ledger.data({ id: 'r', atMs: 150, bytes: 90 });
+  ledger.finished({ id: 'r', atMs: 200, encodedBytes: 100 });
+  ledger.switchConfirmed({ atEventMs: 100, uncertaintyMs: 5 });
+  const { totals, delivered, reconciled } = ledger.report({ isSnowUri: SNOW });
+  expect(totals.all).toBe(100);
+  expect(totals.unattributed).toBe(100);
+  expect(delivered).toBe(100);
+  expect(reconciled).toBe(true);
+});
+
+test('a crossing request keeps its observed chunks on their side and leaves the residual unattributed', () => {
+  // Case from the review: start 20 (before), one chunk at 80 (before) for 90, authoritative 100 at finish
+  // 200 (after). The 90 observed bytes are pre-switch; the unobserved 10 could have arrived at any time, so
+  // they are not credited to pre.
+  const ledger = createByteLedger({ uncertaintyMs: 5 });
+  ledger.request({ id: 'r', url: '/places/snow-roof/x.ktx2', atMs: 20 });
+  ledger.data({ id: 'r', atMs: 80, bytes: 90 });
+  ledger.finished({ id: 'r', atMs: 200, encodedBytes: 100 });
+  ledger.switchConfirmed({ atEventMs: 100, uncertaintyMs: 5 });
+  const { totals, reconciled } = ledger.report({ isSnowUri: SNOW });
+  expect(totals.preSwitchSnowDone).toBe(90);
+  expect(totals.unattributed).toBe(10);
+  expect(totals.all).toBe(100);
+  expect(reconciled).toBe(true);
 });
 
 test('a residual follows its chunks only when the request lies wholly on one side', () => {
@@ -116,6 +147,35 @@ test('a chunk without a timestamp is refused rather than placed', () => {
   expect(ledger.bytesOf('a')).toBe(40);
 });
 
+test('chunks exceeding the authoritative total are quarantined, not partially placed', () => {
+  const ledger = createByteLedger({ uncertaintyMs: 5 });
+  ledger.request({ id: 'c', url: '/places/snow-roof/court-day.ktx2', atMs: 100 });
+  ledger.data({ id: 'c', atMs: 150, bytes: 60 });
+  ledger.data({ id: 'c', atMs: 160, bytes: 60 });     // 120 in chunks
+  ledger.finished({ id: 'c', atMs: 200, encodedBytes: 100 });   // but CDP counted 100
+  ledger.switchConfirmed({ atEventMs: 300, uncertaintyMs: 5 });
+  const { totals, rows, contradictions, delivered, reconciled } = ledger.report({ isSnowUri: SNOW });
+  expect(contradictions).toHaveLength(1);
+  expect(rows[0].phase).toBe('contradiction');
+  expect(rows[0].note).toMatch(/contradict/);
+  // Only the authoritative total is conserved; no phase claims the excess.
+  expect(totals.all).toBe(100);
+  expect(totals.preSwitchSnowDone).toBe(0);
+  expect(delivered).toBe(100);
+  expect(reconciled).toBe(true);
+});
+
+test('the adapter never substitutes a decoded length for a missing encoded length', () => {
+  const ledger = createByteLedger({ uncertaintyMs: 5 });
+  ledger.fromCdp({ method: 'Network.requestWillBeSent',
+    params: { requestId: 'r', timestamp: 0.1, request: { url: '/places/snow-roof/x.ktx2' } } });
+  // encodedDataLength omitted; only the decoded dataLength is present.
+  const accepted = ledger.fromCdp({ method: 'Network.dataReceived',
+    params: { requestId: 'r', timestamp: 0.2, dataLength: 40 } });
+  expect(accepted).toBe(false);
+  expect(ledger.bytesOf('r')).toBe(0);
+});
+
 test('a duplicate finish never doubles a request, and no total is negative', () => {
   const ledger = createByteLedger({ uncertaintyMs: 5 });
   ledger.request({ id: 'a', url: '/places/snow-roof/snow-roof.glb.zstd', atMs: 10 });
@@ -183,9 +243,15 @@ test('a real CDP-shaped event stream feeds the ledger through the adapter', () =
   });
   ledger.fromCdp({ method: 'Network.dataReceived',
     params: { requestId: 'r1', timestamp: 0.2, dataLength: 30, encodedDataLength: 30 } });
+  // Finish at 0.4 s is after the boundary at 0.3 s, so this request crosses it: its 30 observed bytes are
+  // pre-switch and the 70 bytes CDP counted but never reported as chunks cannot be placed.
   ledger.fromCdp({ method: 'Network.loadingFinished',
     params: { requestId: 'r1', timestamp: 0.4, encodedDataLength: 100 } });
   ledger.switchConfirmed({ atEventMs: 300, uncertaintyMs: 5 });
-  const { totals } = ledger.report({ isSnowUri: SNOW });
-  expect(totals.preSwitchSnowDone).toBe(100);
+  const { totals, reconciled, delivered } = ledger.report({ isSnowUri: SNOW });
+  expect(totals.preSwitchSnowDone).toBe(30);
+  expect(totals.unattributed).toBe(70);
+  expect(totals.all).toBe(100);
+  expect(delivered).toBe(100);
+  expect(reconciled).toBe(true);
 });

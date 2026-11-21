@@ -115,8 +115,9 @@ export function createByteLedger(options = {}) {
           this.request({ id: params.requestId, url: params.request?.url ?? '', atMs });
           return true;
         case 'Network.dataReceived':
-          return this.data({ id: params.requestId, atMs,
-            bytes: typeof params.encodedDataLength === 'number' ? params.encodedDataLength : params.dataLength });
+          // Only `encodedDataLength` is wire bytes. `dataLength` is the decoded size, which differs for any
+          // compressed response, so substituting it would overstate the transfer.
+          return this.data({ id: params.requestId, atMs, bytes: params.encodedDataLength });
         case 'Network.loadingFinished':
           this.finished({ id: params.requestId, atMs, encodedBytes: params.encodedDataLength });
           return true;
@@ -146,107 +147,139 @@ export function createByteLedger(options = {}) {
       const totals = { preSwitchSnowDone: 0, snowContinuedAfterSwitch: 0, newSnowAfterSwitch: 0,
         otherPlace: 0, unattributed: 0 };
       const rows = [];
+      const contradictions = [];
       const classify = uri => (isSnowUri ? isSnowUri(uri) : /\/places\/snow-roof\//.test(uri));
       const window = windowOf();
 
       for (const row of [...requests.values()].sort((a, b) => a.order - b.order)) {
         const snow = classify(row.url);
         const chunkTotal = row.chunks.reduce((sum, chunk) => sum + chunk.bytes, 0);
-        const total = row.authoritativeBytes ?? chunkTotal;
-        // A residual is bytes CDP counted but never reported as chunks. It is never negative.
-        const residual = Math.max(0, total - chunkTotal);
+        // The authoritative total is the conservation basis: it is what actually crossed the wire. If
+        // CDP reports fewer bytes in chunks than it counted at loadingFinished, the difference is a
+        // residual with no timestamp. If it reports MORE, the numbers contradict each other and no phase may
+        // claim the excess.
+        const authoritative = row.authoritativeBytes;
+        const conservative = authoritative ?? chunkTotal;
+        // No finish means no authoritative total, so no residual is knowable.
+        const residual = authoritative === null || authoritative === undefined
+          ? 0 : Math.max(0, authoritative - chunkTotal);
         const notes = [];
-        let pre = 0, post = 0, inside = 0, unattributedResidual = 0;
-        let phase;
 
-        if (!confirmed) {
-          rows.push({ id: row.id, url: row.url, phase: 'unattributed', bytes: total, snow,
-            preSwitchBytes: 0, afterSwitchBytes: 0, insideWindowBytes: 0, residual,
+        if (authoritative !== null && authoritative !== undefined && chunkTotal > authoritative) {
+          notes.push(`chunk total ${chunkTotal} exceeds the authoritative ${authoritative}; the numbers contradict`);
+          contradictions.push({ id: row.id, url: row.url, chunkTotal, authoritative });
+          rows.push({ id: row.id, url: row.url, phase: 'contradiction', bytes: authoritative, snow,
+            preSwitchBytes: 0, afterSwitchBytes: 0, insideWindowBytes: 0, residual: 0,
             startAt: row.startAt, finishedAt: row.finishedAt, failedAt: row.failedAt,
-            failureText: row.failureText, note: unconfirmedReason });
-          totals.unattributed += total;
+            failureText: row.failureText, note: notes.join('; ') });
+          // Nothing from this request is placed; the authoritative total is quarantined.
+          totals.unattributed += authoritative;
           continue;
         }
 
-        const startedInsideWindow = row.startAt >= window.start && row.startAt <= window.end;
-        const startedAfter = row.startAt > window.end;
-        if (startedInsideWindow) notes.push('start lies inside the boundary window; not assumed to be an old request');
+        if (!confirmed) {
+          rows.push({ id: row.id, url: row.url, phase: 'unattributed', bytes: conservative, snow,
+            preSwitchBytes: 0, afterSwitchBytes: 0, insideWindowBytes: 0, residual,
+            startAt: row.startAt, finishedAt: row.finishedAt, failedAt: row.failedAt,
+            failureText: row.failureText, note: unconfirmedReason });
+          totals.unattributed += conservative;
+          continue;
+        }
 
-        // Chunks are placed by their own times. This is the whole point of keeping the timestamp.
+        // Place the observed chunks by their own times.
+        let pre = 0, post = 0, inside = 0;
         for (const chunk of row.chunks) {
           if (chunk.atMs < window.start) pre += chunk.bytes;
           else if (chunk.atMs > window.end) post += chunk.bytes;
           else inside += chunk.bytes;
         }
-
-        // Kept for the row record: the window bytes are folded into `unattributed` for the totals, but a
-        // reader must still be able to see how many chunks fell inside the window.
         const insideSeen = inside;
+
+        // The request's whole lifetime decides whether an unobserved residual can be placed at all. A start
+        // or a finish inside the window, or one on each side of it, means the bytes could have arrived at any
+        // time, so the residual cannot follow the chunks.
+        const startedInside = row.startAt >= window.start && row.startAt <= window.end;
+        const startedAfter = row.startAt > window.end;
+        const finishedBefore = row.finishedAt !== null && row.finishedAt <= window.start;
+        const finishedAfter = row.finishedAt !== null && row.finishedAt > window.end;
+        const finishedInside = row.finishedAt !== null && row.finishedAt >= window.start
+          && row.finishedAt <= window.end;
+        const lifetimeWhollyBefore = row.startAt < window.start && finishedBefore;
+        const lifetimeWhollyAfter = startedAfter && finishedAfter;
+
+        if (startedInside) notes.push('start lies inside the boundary window; not assumed to be an old request');
+        if (finishedInside) notes.push('finish lies inside the boundary window; the residual cannot be placed');
+
+        // A residual is only placeable when the request provably lived entirely on one side.
+        let preResidual = 0, postResidual = 0, unplacedResidual = 0;
+        if (residual > 0) {
+          if (lifetimeWhollyBefore) preResidual = residual;
+          else if (lifetimeWhollyAfter) postResidual = residual;
+          else {
+            unplacedResidual = residual;
+            notes.push('the residual has no timestamp and the request crosses the boundary; it is unattributed');
+          }
+        }
+
+        let phase;
         if (!snow) {
           phase = 'otherPlace';
         } else if (startedAfter) {
           phase = 'newSnowAfterSwitch';
-          // A request that started after the window can only receive chunks after it; anything else would
-          // be a clock anomaly and is left unattributed rather than moved.
           if (pre > 0) { notes.push('a request that started after the boundary reported earlier chunks'); inside += pre; pre = 0; }
-        } else if (pre > 0 && post === 0 && inside === 0) {
-          phase = 'preSwitchSnowDone';
-        } else if (post > 0) {
-          phase = 'snowContinuedAfterSwitch';
-        } else if (pre > 0) {
-          phase = 'preSwitchSnowDone';
-        } else {
-          phase = 'snowContinuedAfterSwitch';
-        }
-
-        // Place the residual only when the whole request landed on one side of the window.
-        if (residual > 0) {
-          if (post > 0 && pre === 0 && inside === 0) post += residual;
-          else if (pre > 0 && post === 0 && inside === 0) pre += residual;
-          else {
-            unattributedResidual = residual;
-            notes.push('the authoritative total exceeds the reported chunks and cannot be placed');
-          }
-        }
-
-        // A start inside the window means its ownership cannot be asserted; everything it received is
-        // left unassigned, including the residual.
-        if (startedInsideWindow) {
-          totals.unattributed += pre + post + inside + residual;
-          pre = 0; post = 0; unattributedResidual = 0;
+        } else if (startedInside) {
           phase = 'unattributed';
-        } else if (inside > 0) {
-          // Chunks that arrived inside the window belong to no phase.
+        } else if (finishedBefore && post === 0 && inside === 0) {
+          phase = 'preSwitchSnowDone';
+        } else if (post > 0 || finishedAfter) {
+          phase = 'snowContinuedAfterSwitch';
+        } else {
+          phase = 'preSwitchSnowDone';
+        }
+
+        // A start inside the window means ownership cannot be asserted; everything it received is unassigned.
+        if (startedInside) {
+          totals.unattributed += pre + post + inside + residual;
+          rows.push({ id: row.id, url: row.url, phase: 'unattributed', bytes: conservative, snow,
+            preSwitchBytes: 0, afterSwitchBytes: 0, insideWindowBytes: insideSeen, residual,
+            startAt: row.startAt, finishedAt: row.finishedAt, failedAt: row.failedAt,
+            failureText: row.failureText, note: notes.join('; ') || null });
+          continue;
+        }
+
+        if (inside > 0) {
           totals.unattributed += inside;
           notes.push('some chunks arrived inside the boundary window');
         }
-        if (unattributedResidual > 0) totals.unattributed += unattributedResidual;
+        if (unplacedResidual > 0) totals.unattributed += unplacedResidual;
 
-        if (phase === 'otherPlace') {
-          totals.otherPlace += pre + post;
-        } else if (phase === 'newSnowAfterSwitch') {
-          totals.newSnowAfterSwitch += pre + post;
-        } else if (phase === 'preSwitchSnowDone') {
-          totals.preSwitchSnowDone += pre;
+        if (phase === 'otherPlace') totals.otherPlace += pre + post + preResidual + postResidual;
+        else if (phase === 'newSnowAfterSwitch') totals.newSnowAfterSwitch += pre + post + postResidual;
+        else if (phase === 'preSwitchSnowDone') {
+          totals.preSwitchSnowDone += pre + preResidual;
           if (post > 0) totals.snowContinuedAfterSwitch += post;
         } else if (phase === 'snowContinuedAfterSwitch') {
-          totals.snowContinuedAfterSwitch += post;
+          totals.snowContinuedAfterSwitch += post + postResidual;
           if (pre > 0) totals.preSwitchSnowDone += pre;
+        } else {
+          // Unattributed phases accumulate their own chunks through the branches above.
+          if (pre + post > 0) totals.unattributed += pre + post;
         }
 
-        rows.push({ id: row.id, url: row.url, phase, bytes: total, snow,
+        rows.push({ id: row.id, url: row.url, phase, bytes: conservative, snow,
           preSwitchBytes: pre, afterSwitchBytes: post, insideWindowBytes: insideSeen, residual,
           startAt: row.startAt, finishedAt: row.finishedAt, failedAt: row.failedAt,
           failureText: row.failureText, note: notes.length ? notes.join('; ') : null });
       }
 
-      const sum = Object.values(totals).reduce((accumulator, value) => accumulator + value, 0);
-      const delivered = [...requests.values()]
-        .reduce((accumulator, row) => accumulator + (row.authoritativeBytes
-          ?? row.chunks.reduce((chunkSum, chunk) => chunkSum + chunk.bytes, 0)), 0);
-      totals.all = sum;
+      // Conservation is against each request's authoritative total, never against a sum of phases that could
+      // double a residual.
+      const delivered = [...requests.values()].reduce((accumulator, row) =>
+        accumulator + (row.authoritativeBytes ?? row.chunks.reduce((sum, chunk) => sum + chunk.bytes, 0)), 0);
+      const all = Object.values(totals).reduce((accumulator, value) => accumulator + value, 0);
+      totals.all = all;
       return { confirmed, unconfirmedReason, boundary, uncertaintyMs: boundary?.uncertaintyMs ?? uncertainty,
-        totals, rows, delivered, reconciled: sum === delivered };
+        totals, rows, delivered, contradictions, reconciled: all === delivered };
     },
   };
 }

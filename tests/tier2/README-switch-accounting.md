@@ -49,6 +49,7 @@ authoritative total    100   → residual 10, and the chunks straddle the window
 totals.preSwitchSnowDone            30
 totals.snowContinuedAfterSwitch     50
 totals.unattributed                 20   10 inside the window + 10 residual
+                                     (finish at 1600 is after the window, so the residual cannot follow)
 totals.all                         100
 reconciled                        true
 ```
@@ -72,12 +73,15 @@ Its row:
 | a chunk whose `timestamp` is inside the window | counted in `unattributed`, and shown on the row as `insideWindowBytes` |
 | request start inside the window | whole request `unattributed`; never assumed to be an old request |
 | request started after the window | `newSnowAfterSwitch` |
-| residual (authoritative total minus chunks) with chunks wholly on one side | follows that side |
+| residual (authoritative total minus chunks) when the request's whole lifetime is on one side | follows that side |
+| residual when the request starts or finishes inside the window, or crosses it | `unattributed` — the bytes have no timestamp and could have arrived at any time |
 | residual with chunks on both sides | `unattributed`, note "cannot be placed" |
 | cancelled request | keeps each side's chunks, `failureText` recorded |
 | request never finished | keeps its chunks on each side |
 | click never confirmed a checked place | every byte `unattributed`, `confirmed: false`, reason recorded |
 | chunk without a usable timestamp | refused, not placed |
+| `dataReceived` with no `encodedDataLength` | refused; the decoded `dataLength` is never substituted |
+| chunk sum greater than the authoritative total | the request is quarantined as `contradiction`; only the authoritative total is counted |
 | duplicate `loadingFinished` | the row is not doubled |
 
 Bytes are read from one running total per request, never summed from both event streams. A duplicate
@@ -88,7 +92,13 @@ Bytes are read from one running total per request, never summed from both event 
 There is none of the kind the first version documented. CDP's `dataReceivedPayload` carries both
 `timestamp: MonotonicTime` and `encodedDataLength`
 (node_modules/playwright-core/types/protocol.d.ts, around line 12078), so a straddling request is split by
-its own chunk times rather than inferred from a total. What remains genuinely unknown is the **residual**:
-bytes CDP counted at `loadingFinished` but never reported as chunks. There is no timestamp for those, so
-they follow their request only when every chunk lies on one side of the window, and are otherwise left
+its own chunk times rather than inferred from a total. What remains genuinely unknown is the **residual**: bytes CDP counted at
+`loadingFinished` but never reported as chunks. It has no timestamp, so it follows its request only when the
+request's **whole lifetime** — start and finish — lies on one side of the window. A start inside the window,
+a finish inside it, or a crossing means the residual could have arrived at any time, and it is
 `unattributed`.
+
+Conservation is measured against each request's authoritative total, never against a sum of phases: a
+residual is added to exactly one phase or to `unattributed`, never both. A request whose chunks exceed its
+authoritative total is a contradiction in CDP's own numbers; it is quarantined and only the authoritative
+total is counted.
