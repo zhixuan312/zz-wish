@@ -257,14 +257,18 @@ async function run() {
     const filter = [args.values.match, args.values.exclude].filter(Boolean).join(':');
     const name = [mode, captureSide, ...(filter ? [hash(filter).slice(0, 8)] : [])].join('-') + '.json';
     for (const item of cases) {
+      const browserStartEpochMs = Date.now();
       const browser = await chromium.launch({ channel: 'chrome' });
+      let row;
       try {
-        const row = await captureCase(browser, origin, item, root, captureSide);
-        report.push(row);
-        console.log('LOADING_SHADER_CASE', captureSide, caseKey(item), row.stepInsideMs ?? '', row.atReady?.resident ?? '', row.errors.length);
-        await writeFile(join(root, name), JSON.stringify(report, null, 2) + '\n');
-        assert.equal(row.errors.length, 0, 'Runtime or HTTP errors were recorded.');
+        row = await captureCase(browser, origin, item, root, captureSide);
       } finally { await browser.close(); }
+      row.browserStartEpochMs = browserStartEpochMs;
+      row.browserEndEpochMs = Date.now();
+      report.push(row);
+      console.log('LOADING_SHADER_CASE', captureSide, caseKey(item), row.stepInsideMs ?? '', row.atReady?.resident ?? '', row.errors.length);
+      await writeFile(join(root, name), JSON.stringify(report, null, 2) + '\n');
+      assert.equal(row.errors.length, 0, 'Runtime or HTTP errors were recorded.');
     }
   }
   if (mode === 'parity' && args.values.match && cases.length === 1 && (pilot || side === 'before-repeat')) {
