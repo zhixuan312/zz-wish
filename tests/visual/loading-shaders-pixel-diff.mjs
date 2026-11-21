@@ -147,6 +147,12 @@ async function readFrame(directory, side, spec, stage, width, height) {
   return { side, receipt, rgba };
 }
 
+function comparableLighting(lighting) {
+  if (!lighting) return lighting;
+  // Resident pass enumeration follows asynchronous texture completion.
+  return { ...lighting, residentPasses: lighting.residentPasses.toSorted() };
+}
+
 function assertMatchedDraw(before, comparison) {
   const a = before.receipt;
   const b = comparison.receipt;
@@ -157,7 +163,7 @@ function assertMatchedDraw(before, comparison) {
   assert.equal(b.frame.clock, a.frame.clock, `${label}: visual clock differs.`);
   assert.equal(b.frame.simulationTime, a.frame.simulationTime, `${label}: simulation clock differs.`);
   assert.equal(b.frame.walkSeconds, a.frame.walkSeconds, `${label}: walk clock differs.`);
-  assert.deepEqual(b.frame.lighting, a.frame.lighting, `${label}: baked lighting state differs.`);
+  assert.deepEqual(comparableLighting(b.frame.lighting), comparableLighting(a.frame.lighting), `${label}: baked lighting state differs.`);
   assert.deepEqual(b.frame.cameraWorld, a.frame.cameraWorld, `${label}: world camera matrix differs.`);
   assert.deepEqual(b.frame.cameraProjection, a.frame.cameraProjection, `${label}: projection matrix differs.`);
 }
