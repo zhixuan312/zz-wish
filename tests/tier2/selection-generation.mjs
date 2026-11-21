@@ -17,8 +17,17 @@ import { fileURLToPath } from 'node:url';
 import { execFileSync, spawn } from 'node:child_process';
 import { stopServerAndRemoveDatabase } from './walk-camera-smoke-cleanup.mjs';
 import { parseArgs } from './cli-args.mjs';
+import { diagnosisProblems } from './diagnosis-problems.mjs';
 
 const REPO = fileURLToPath(new URL('../..', import.meta.url));
+// The radios show a localised name and carry no id; this maps the name back to the id the API uses.
+const PLACE_NAMES = {
+  'pine-gate': 'Pine Gate Steps', 'bamboo-rain': 'Bamboo Rain Cloister',
+  'cloud-cliff': 'Cloud Cliff Court', 'lotus-pond': 'Lotus Pond Court',
+  'sea-tide': 'Tide Temple', 'snow-roof': 'Snow Roof Court',
+  'loess-cliff': 'Loess Cliff Court', 'highland': 'High White Court',
+  "bell-lane": "Lane's End Bell Court", 'valley-pagoda': 'Valley Pagoda Court',
+};
 const ROOT = '/Users/xuan/OpenBot/Shared/one-light';
 const args = parseArgs(process.argv.slice(2), new Set(['no-switch', 'stay-away']));
 const runDir = args['run-dir'];
@@ -209,6 +218,15 @@ try {
     { timeout: 300000 }).catch(() => { record.readyTimedOut = true; });
   record.readyAt = await page.evaluate(() => performance.now());
   record.readyAfterLastSelection = !record.readyTimedOut;
+  // Map the checked radio's visible name to a place id. The radio carries no id attribute, so the mapping is
+  // done from the shared place table rather than guessed from the label.
+  record.selectedPlaceId = await page.evaluate(names => {
+    const checked = [...document.querySelectorAll('[role=radio].place')]
+      .find(node => node.getAttribute('aria-checked') === 'true');
+    const text = (checked?.textContent ?? '').trim();
+    for (const [id, name] of Object.entries(names)) if (text.startsWith(name)) return id;
+    return null;
+  }, PLACE_NAMES);
   record.visiblePlace = await page.evaluate(() => [...document.querySelectorAll('[role=radio].place')]
     .filter(node => node.getAttribute('aria-checked') === 'true')
     .map(node => (node.getAttribute('aria-label') ?? '').split('·')[0].trim()));
@@ -319,7 +337,10 @@ try {
             return response.ok ? await response.json() : null;
           });
         } catch { readback = null; }
-        const burning = (readback?.candles ?? []).filter(c => c.status === 'burning');
+        // A burning candle anywhere is not proof for this run: it must be the place the visitor finally
+        // selected. Otherwise a leftover candle from another court would satisfy the check.
+        const burning = (readback?.candles ?? []).filter(c => c.status === 'burning'
+          && c.placeId === record.selectedPlaceId);
         if (burning.length) {
           record.activeCandle = { id: burning[0].id, placeId: burning[0].placeId,
             status: burning[0].status, durationMs: burning[0].durationMs };
@@ -360,13 +381,7 @@ try {
     .reduce((sum, row) => sum + row.bytes, 0);
 
   // A run only counts when it reached ready, moved, and ignited, with no page, HTTP or cleanup error.
-  const problems = [];
-  if (!record.lightClockPinned) problems.push(`light clock is ${record.lightClock?.hours}h, expected ${pinnedHour}h`);
-  if (record.readyTimedOut) problems.push('ready was never reported after the last selection');
-  if (!moved) problems.push('the walk never produced a first movement');
-  if (!ignited) problems.push('ignition was never reached');
-  if ((record.errors ?? []).length) problems.push(`${record.errors.length} page error(s)`);
-  if ((record.httpErrors ?? []).length) problems.push(`${record.httpErrors.length} HTTP error(s)`);
+  const problems = diagnosisProblems(record, pinnedHour);
   if (problems.length) {
     failure = true;
     record.failureReason = problems.join('; ');
