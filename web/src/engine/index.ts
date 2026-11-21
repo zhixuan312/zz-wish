@@ -58,6 +58,7 @@ export const setPowerSaver = (on: boolean) => { requested.powerSaver = on; updat
 export const previewPlace = (id: PlaceId) => initialize().then(s => s.previewPlace(id));
 export const prefetchPlace = async (
   id: PlaceId, onProgress?: (progress: PlaceLoadProgress) => void, shouldWarm?: () => Promise<boolean>,
+  isCurrent?: () => boolean,
 ) => {
   let progress: PlaceLoadProgress = { loadedBytes: 0, totalBytes: 0, ratio: null, stage: 'preparing' };
   // Snow Roof enters on the pass its light weights need, so it prepares the way Pine Gate does: the scene build
@@ -75,6 +76,11 @@ export const prefetchPlace = async (
     if (shouldWarm && !await shouldWarm()) return false;
     if (id === 'snow-roof') void warmBakedModel(id).catch(() => {});
     const s = await initialize();
+    // A preview or speculative preparation can outlive the selection that asked for it: the visitor may have
+    // moved to another court while initialize() was still resolving. Checking here, after the await and before
+    // the build is handed off, drops only work that has not started yet, so nothing already in flight is
+    // cancelled and a build the visitor is waiting for is never skipped.
+    if (isCurrent && !isCurrent()) return false;
     await s.preparePlace(id);
     onProgress?.({ ...progress, stage: 'ready', ratio: 1 });
     return true;

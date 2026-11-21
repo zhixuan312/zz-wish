@@ -136,7 +136,7 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
     }); }, warmWindow ? async () => {
       await warmWindow;
       return version === loadVersion.current;
-    } : undefined)
+    } : undefined, retry ? undefined : () => version === loadVersion.current)
       .then((prepared) => { if (prepared && version === loadVersion.current) setPlaceLoad((value) => ({ ...value, stage: 'ready', ratio: 1 })); })
       .catch((error: unknown) => { if (version === loadVersion.current) { loadTask.current = null; setPlaceLoad((value) => ({ ...value, stage: 'error' })); } throw error; });
     loadTask.current = { id, task }; return task;
