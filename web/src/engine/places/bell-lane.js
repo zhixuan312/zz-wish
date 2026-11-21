@@ -188,7 +188,7 @@ export default function createPlace(h) {
       makeVisitorCup: makeCup,
       // The two most recent lamps flank the current lamp within the seated phone view.
       // The remaining slots are farther back on the same shelf.
-      pastLampSlots: [[.243, .46, .137, .47, .14], [-.205, .46, .075, .45, .27],
+      pastLampSlots: [[.318, .46, .205, .47, .14], [-.205, .46, .075, .45, .27],
         [.59, .46, .205, .38, -.16], [-.61, .46, .202, .38, .13]],
       makePastLamp: lamp => unlitLattice(lamp, makeCup),
       explicitPhoneViews: true, wide: cameras.wide, widePhone: cameras.widePhone,
