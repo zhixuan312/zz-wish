@@ -280,7 +280,8 @@ async function captureCase(browser, origin, item, root, captureSide) {
   const page = await context.newPage();
   page.setDefaultTimeout(90_000);
   const errors = [];
-  const row = { key: [item.place, item.viewport, item.hour].join('/'), manifestSha256: item.manifestSha256, errors };
+  const row = { key: [item.place, item.viewport, item.hour].join('/'), sourceRev, sourceSha256,
+    manifestSha256: item.manifestSha256, errors };
   page.on('pageerror', error => errors.push(error.message));
   page.on('console', message => { if (message.type() === 'error') errors.push(message.text()); });
   page.on('response', result => { if (result.status() >= 400) errors.push('HTTP ' + result.status() + ' ' + result.url()); });
