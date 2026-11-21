@@ -47,7 +47,7 @@ function smoothRange(start, end, value) {
 }
 
 function lookYaw(t, phone) {
-  const open = phone ? -13.5 : -24.5;
+  const open = phone ? -13.5 : -30;
   const keys = [[0, 70, 0], [12, 71, 0], [17, 65, -3], [22, phone ? 34 : 26, -12],
     [25.3, open, 0], [27.27, open, 0], [ROUTE_DURATION, -5, 0]];
   const i = keys.findIndex(([time]) => time >= t);

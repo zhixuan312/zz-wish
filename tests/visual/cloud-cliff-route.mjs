@@ -360,7 +360,7 @@ function continuousReveal(rows) {
   let current = null;
   for (const row of window) {
     const supported = Number.isFinite(row.floorClearance) && Number.isFinite(row.wallClearance);
-    const visible = gorgeInFrame(row) && row.lanternVisible === false;
+    const visible = gorgeInFrame(row) && row.lanternInFrame === false && row.lanternVisible === false;
     if (!supported || !visible) {
       current = null;
       continue;
@@ -381,11 +381,109 @@ function continuousReveal(rows) {
   };
 }
 
+function checkRevealContract() {
+  const rows = Array.from({ length: 301 }, (_, i) => {
+    const t = 24 + i / 60;
+    return {
+      t, floorClearance: 1.62, wallClearance: 1.12,
+      valleyVisible: true, nearBankInFrame: true, valleyBedInFrame: true, farBankInFrame: true,
+      lanternInFrame: t >= 28, lanternVisible: t >= 28,
+    };
+  });
+  const reveal = continuousReveal(rows);
+  assert.ok(reveal.seconds >= 2 && reveal.to < 28);
+  const atReveal = rows.findIndex(row => row.t === 26);
+  for (const overrides of [
+    { nearBankInFrame: false }, { valleyBedInFrame: false }, { farBankInFrame: false },
+    { lanternInFrame: true, lanternVisible: false },
+  ]) {
+    const interrupted = rows.map((row, i) => i === atReveal ? { ...row, ...overrides } : row);
+    assert.equal(continuousReveal(interrupted).seconds, 0);
+  }
+  const earlyLantern = rows.map((row, i) => i === 2 ? { ...row, lanternVisible: true } : row);
+  assert.equal(continuousReveal(earlyLantern).firstLanternFrame, rows[2].t);
+}
+
 async function inspectJourney(tab, view) {
   const journey = await tab.evaluate(async () => {
     const preview = window.cloudCliff;
     const rows = [preview.seek(0)];
-    const final = await preview.play({ onSample: row => rows.push(row) });
+    const clipStart = 23;
+    const clipFps = 30;
+    let recordAttempted = false;
+    let stream, track, recorder, recording;
+    let recordError, recordStart, recordStartWall;
+    let final, clip;
+
+    function startClip(row) {
+      recordAttempted = true;
+      try {
+        const canvas = document.querySelector('#preview canvas');
+        if (!canvas) throw new Error('Private route canvas was not found');
+        stream = canvas.captureStream(clipFps);
+        [track] = stream.getVideoTracks();
+        if (!track) throw new Error('Canvas capture did not create a video track');
+        const mimeType = ['video/webm;codecs=vp8', 'video/webm;codecs=vp9', 'video/webm']
+          .find(type => MediaRecorder.isTypeSupported(type));
+        if (!mimeType) throw new Error('Chromium has no WebM MediaRecorder profile');
+        recorder = new MediaRecorder(stream, { mimeType, videoBitsPerSecond: 4_000_000 });
+        const chunks = [];
+        recording = new Promise(resolve => {
+          recorder.addEventListener('dataavailable', event => {
+            if (event.data.size > 0) chunks.push(event.data);
+          });
+          recorder.addEventListener('error', event => resolve({
+            error: event.error?.message ?? 'Canvas MediaRecorder failed',
+          }), { once: true });
+          recorder.addEventListener('stop', () => resolve({
+            blob: new Blob(chunks, { type: recorder.mimeType }),
+          }), { once: true });
+        });
+        recorder.start();
+        recordStart = row.t;
+        recordStartWall = performance.now();
+        track.requestFrame?.();
+      } catch (error) {
+        recordError = error.message;
+      }
+    }
+
+    try {
+      final = await preview.play({
+        onSample: row => {
+          rows.push(row);
+          if (!recordAttempted && row.t >= clipStart) startClip(row);
+        },
+      });
+      if (recordError || !recorder) {
+        clip = { error: recordError ?? 'Normal playback never reached the clip start' };
+      } else {
+        // Keep the final normal-playback pose on the canvas long enough to encode it.
+        track.requestFrame?.();
+        await new Promise(resolve => setTimeout(resolve, 100));
+        const captureSeconds = (performance.now() - recordStartWall) / 1000;
+        if (recorder.state !== 'inactive') recorder.stop();
+        const { blob, error } = await recording;
+        if (error || !blob?.size) {
+          clip = { error: error ?? 'Canvas MediaRecorder returned an empty WebM' };
+        } else {
+          const bytes = new Uint8Array(await blob.arrayBuffer());
+          let binary = '';
+          for (let offset = 0; offset < bytes.length; offset += 0x8000) {
+            binary += String.fromCharCode(...bytes.subarray(offset, offset + 0x8000));
+          }
+          const canvas = document.querySelector('#preview canvas');
+          clip = {
+            data: btoa(binary), mimeType: blob.type, width: canvas.width, height: canvas.height,
+            normalPlaybackFromSeconds: recordStart, normalPlaybackToSeconds: final.t,
+            captureSeconds, requestedFramesPerSecond: clipFps,
+            trackFramesPerSecond: track.getSettings().frameRate ?? null,
+          };
+        }
+      }
+    } finally {
+      for (const mediaTrack of stream?.getTracks() ?? []) mediaTrack.stop();
+    }
     const continuous = rows.at(-1).t === final.t ? rows : [...rows, final];
     const start = preview.seek(0);
     let moved;
@@ -394,7 +492,7 @@ async function inspectJourney(tab, view) {
     const beforeSkip = await motion;
     const skipped = preview.skip();
     const resolvedAfterSkip = await pending;
-    return { continuous, final, start, beforeSkip, skipped, resolvedAfterSkip };
+    return { continuous, final, start, beforeSkip, skipped, resolvedAfterSkip, clip };
   });
   await tab.emulateMedia({ reducedMotion: 'reduce' });
   const reducedMotion = await tab.evaluate(() => {
@@ -413,8 +511,20 @@ async function inspectJourney(tab, view) {
   const revealFile = `reveal-${view.name}.json`;
   const { sampleWindow, ...reveal } = continuousReveal(rows);
   await writeFile(join(out, revealFile), JSON.stringify(sampleWindow));
+  const { data, ...clipMetadata } = journey.clip;
+  let clip = clipMetadata;
+  if (data) {
+    const bytes = Buffer.from(data, 'base64');
+    const file = `clip-${view.name}-23s-30s.webm`;
+    if (bytes.subarray(0, 4).toString('hex') === '1a45dfa3') {
+      await writeFile(join(out, file), bytes);
+      clip = { ...clipMetadata, file, bytes: bytes.length, sha256: hash(bytes) };
+    } else {
+      clip = { ...clipMetadata, error: 'Canvas recording is missing the WebM container marker' };
+    }
+  }
   return {
-    traceFile, revealFile, reveal, ...evaluateTrace(rows),
+    traceFile, revealFile, reveal, clip, ...evaluateTrace(rows),
     endpoint: endpointFields(journey.final), skipAtSeconds: journey.beforeSkip.t, skipParity: true, reducedMotionParity: true,
   };
 }
@@ -523,7 +633,8 @@ async function capture() {
     browserVersion, mode: quick ? 'frames-only' : 'full',
     inputSha256: Object.fromEntries(inputs),
     scope: 'Private engine fixture. 13:00 and 22:00 are fixed lighting presets. The original Home cover is a reference from its own viewpoint.',
-    terrain: 'The reveal identifies the near bank, valley floor and far bank separately. Each must stay visible continuously at the 26 s beat before the lantern enters frame.',
+    terrain: 'The near bank, valley floor and far bank must stay visible continuously around the 26 s beat while the lantern bounds remain outside the frame and the lantern is occluded or outside the view.',
+    clips: 'Full captures record the rendered WebGL canvas during the same normal playback that produces the trace, from about 23 seconds through the 30-second hold.',
     sitePlan: 'site-plan.svg', contactSheet: sheet, comparisonSheet,
     baseline: { commit: baseline.commit, evidenceDirectory: 'artifacts/cloud-cliff-route-r2', frames: beforeFrames },
     clearance: 'Runtime wall clearance measures nearest wall or spur triangle; floor clearance is the downward ray distance. Platform edge is a signed plan distance.',
@@ -542,13 +653,19 @@ async function capture() {
         `continuous supported reveal at 26 s lasts ${trace.reveal.seconds.toFixed(3)} s (need at least 2)`);
       requireEvidence(trace.reveal.firstLanternFrame >= trace.reveal.to,
         'lantern approach must follow the visible gorge interval');
+      requireEvidence(typeof trace.clip.file === 'string', trace.clip.error ?? 'normal-playback WebM is missing');
+      requireEvidence(trace.clip.width === view.width && trace.clip.height === view.height,
+        'normal-playback WebM must use the capture viewport dimensions');
+      requireEvidence(trace.clip.normalPlaybackFromSeconds >= 23 && trace.clip.normalPlaybackFromSeconds <= 23.1 &&
+        trace.clip.normalPlaybackToSeconds === 30, 'normal-playback WebM must cover approximately 23 to 30 seconds');
     }
     requireEvidence(images.slice(0, 3).every(({ pose }) =>
       pose.innerWallInFrame === true && pose.valleyVisible === false && pose.lanternVisible === false),
     'the inner wall must be framed and the valley hidden at 0, 12 and 22 s');
     const reveal = images[3].pose;
     requireEvidence(gorgeInFrame(reveal), 'near bank, valley floor and far bank must all be visible at 26 s');
-    requireEvidence(reveal.lanternInFrame === false, 'lantern must stay outside the 26 s reveal');
+    requireEvidence(reveal.lanternInFrame === false && reveal.lanternVisible === false,
+      'lantern must stay outside the 26 s reveal');
     const final = images[4].pose;
     requireEvidence(final.lanternInFrame === true && final.lanternVisible === true, 'lantern must be visible at 30 s');
     requireEvidence(images.every(({ pose }) => Number.isFinite(pose.floorClearance)),
@@ -558,6 +675,7 @@ async function capture() {
 }
 
 if (process.argv.includes('--check')) {
+  checkRevealContract();
   console.log(JSON.stringify(checkRoute(), null, 2));
 } else if (process.argv.includes('--serve')) {
   const server = await serveFixture();
