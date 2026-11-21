@@ -18,7 +18,7 @@ const readinessAnchors = [
   ['build-finished', /^([ \t]*)cachedPlaces\.set\(t\.id,\s*candidate\);/gm, 't.id'],
 ];
 
-export const sceneComposerDraw = /^([ \t]*)composer\.render\(\);[ \t]*(?=\r?\n\}\r?\n\r?\n\/\/ ---------- Start ----------)/gm;
+export const sceneComposerDraw = /^([ \t]*)composer\.render\(\);[ \t]*(?=\r?\n\})/gm;
 
 const frameAnchor = /^([ \t]*)function frame\(stamp\s*=\s*performance\.now\(\)\)\s*\{/gm;
 
