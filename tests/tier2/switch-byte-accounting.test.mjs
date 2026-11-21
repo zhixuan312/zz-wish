@@ -204,6 +204,25 @@ test('a boundary anchored on the wrong request is detectable before it is truste
   expect(noDocument.find(event => event.type === 'Document')).toBeUndefined();
 });
 
+test('an anchor listener registered after navigation misses the document', () => {
+  // Mirror of the second live failure: the listener was attached after page.goto, so the Document request had
+  // already been emitted and the guard found no typed document. A late and an early registration differ only
+  // in what they observe, so a simulated event sequence shows the rule.
+  const emit = () => [
+    { ts: 100.0, type: 'Document', url: 'http://x/' },
+    { ts: 101.0, type: 'Fetch', url: 'http://x/api/me/candles' },
+  ];
+  const registrations = { early: [], late: [] };
+  for (const event of emit()) registrations.early.push(event);
+  // A listener added after navigation sees only what is emitted afterwards.
+  for (const event of emit().slice(1)) registrations.late.push(event);
+
+  expect(registrations.early.find(event => event.type === 'Document')).toBeDefined();
+  expect(registrations.late.find(event => event.type === 'Document')).toBeUndefined();
+  // Which is why the harness must refuse rather than fall back to whichever request it did catch.
+  expect(registrations.late[0].type).toBe('Fetch');
+});
+
 test('a delayed checked flip widens the bracket and moves the boundary', () => {
   // With an observed transition the boundary is the midpoint of click-to-checked, so a late flip is not
   // silently treated as an immediate one.

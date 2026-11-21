@@ -98,6 +98,13 @@ try {
     });
   }
 
+  // Record request types from the start: the Document request is the only sound anchor for mapping the page
+  // clock onto CDP's monotonic clock, and it is emitted during navigation. A listener registered after
+  // `page.goto` would miss it — which is exactly how a lookalike Fetch became the anchor once.
+  const alignmentEvents = [];
+  cdp.on('Network.requestWillBeSent', params => alignmentEvents.push({ ts: params.timestamp,
+    url: params.request?.url ?? '', type: params.type ?? params.request?.type ?? null }));
+
   const errors = [];
   page.on('pageerror', error => errors.push(String(error).slice(0, 200)));
   page.setDefaultTimeout(180000);
@@ -111,18 +118,6 @@ try {
   record.initialPlace = await page.evaluate(() => [...document.querySelectorAll('[role=radio].place')]
     .filter(node => node.getAttribute('aria-checked') === 'true')
     .map(node => (node.getAttribute('aria-label') ?? '').trim()));
-
-  // Clock alignment. CDP's `timestamp` is a monotonic clock in seconds with an arbitrary origin — measured
-  // here as roughly 8e5 s, unrelated to Date.now() — so the only sound mapping is "page time minus CDP time"
-  // taken from a network event whose page-side time is known. The request for the page itself is such an
-  // event: navigation starts when the document request is sent, so its CDP timestamp corresponds to
-  // performance.now() ≈ 0 within the document's own start-up.
-  const alignmentEvents = [];
-  // Keep the request type: the document request is the only sound anchor, and matching on URL alone once
-  // picked a Fetch for /api/me/candles that happened to look like a document.
-  const alignmentListener = params => alignmentEvents.push({ ts: params.timestamp,
-    url: params.request?.url ?? '', type: params.type ?? params.request?.type ?? null });
-  cdp.on('Network.requestWillBeSent', alignmentListener);
 
   // Install a capture listener on the real Pine radio before touching it, so the transition is observed
   // rather than inferred from a later read. It records the page clock at the click and at the first moment a
