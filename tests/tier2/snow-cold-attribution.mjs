@@ -19,13 +19,11 @@ import { fileURLToPath } from 'node:url';
 import { execFileSync, spawn } from 'node:child_process';
 import { createByteLedger } from './switch-byte-accounting.mjs';
 import { stopServerAndRemoveDatabase } from './walk-camera-smoke-cleanup.mjs';
+import { parseArgs } from './cli-args.mjs';
 
 const REPO = fileURLToPath(new URL('../..', import.meta.url));
 const ROOT = '/Users/xuan/OpenBot/Shared/one-light';
-const args = Object.fromEntries(process.argv.slice(2).reduce((rows, value, index, all) => {
-  if (value.startsWith('--')) rows.push([value.slice(2), all[index + 1] ?? '']);
-  return rows;
-}, []));
+const args = parseArgs(process.argv.slice(2), new Set(['screenshots']));
 const runDir = args['run-dir'];
 if (!runDir) throw new Error('Pass --run-dir (the worker tmp that safe-kill.sh authorises).');
 const hour = Number(args.hour ?? 13);
@@ -72,7 +70,7 @@ server.stderr.on('data', chunk => serverLog.push(String(chunk)));
 
 const record = { revision, out, port, serverPid: server.pid, hour, place: 'snow-roof',
   condition: profile.name, viewport: `${profile.width}x${profile.height}`,
-  throttling: { cpu: profile.cpu, net: profile.net }, screenshots: Boolean(args.screenshots),
+  throttling: { cpu: profile.cpu, net: profile.net }, screenshots: args.screenshots === true,
   observations: 1, revisit: false };
 let failure = false;
 let browser;
@@ -157,7 +155,7 @@ try {
   record.cutoffs = { usable: snapshotOf(ledger) };
   // Screenshots are opt-in: a capture before the click holds the page for real time and would hand a
   // background download extra seconds the timing run must not get.
-  if (args.screenshots) {
+  if (args.screenshots === true) {
     record.usableShot = 'usable.png';
     await page.screenshot({ path: join(out, record.usableShot) });
   }
@@ -210,7 +208,7 @@ try {
     await page.waitForFunction(() => window.__coldProbe?.firstMoveAt !== null, null, { timeout: 60000 });
   } catch { moved = false; }
   record.cutoffs.firstStep = snapshotOf(ledger);
-  if (args.screenshots) {
+  if (args.screenshots === true) {
     record.firstStepShot = 'firstStep.png';
     await page.screenshot({ path: join(out, record.firstStepShot) });
   }
