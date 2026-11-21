@@ -182,3 +182,28 @@ Both runs released the S7 lease and all recorded runners exited. The
 photo sources, original frames, native crops, clips, traces and focused
 checks are indexed at
 `/Users/xuan/OpenBot/Shared/one-light/artifacts/sea-tide/round-3-final/index.md`.
+
+## Continuous banks and sheltered water
+
+Browser source `8f440c0`. Both near banks now run from the submerged rock
+toe through the shoreline slope. Foreground armour uses smaller overlapping
+blocks. Rounded distant headlands sit behind the banks. The water combines
+short crossed ripples near the shore with finer, lower-contrast motion across
+the opening.
+
+The four desktop and phone journeys at 13:00 and 22:00 retained both shore
+tips through reveal, chooser and burn. The harbour stayed continuously
+visible for 3.535–3.568 s. Measured wall clearance was at least 0.512 m
+on desktop and 0.854 m on phone. Walking eye height was 1.520–1.530 m.
+The normal walk and Skip had identical endpoint position and aim. The
+phone chooser cleared the hood by 41.9 px and the flame envelope by 49.3 px.
+
+Eight pairs compare `86834b5` with the new world and water at the same
+projection and animation time. The initial fixture retained live lens
+differences below 0.001° in three seated frames. The corrected fixture
+pinned the projection and reran those three cases. Five matched pairs and
+all four live journeys retain their original files.
+
+The full frames, native crops, true-speed footage, photo references, traces
+and test receipts are indexed at
+`/Users/xuan/OpenBot/Shared/one-light/artifacts/sea-tide/round-4/index.md`.
