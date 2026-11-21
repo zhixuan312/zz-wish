@@ -39,15 +39,34 @@ function instrumentScene(input) {
   };
   let source = replaceOnce(input, /^const renderer = new THREE\.WebGLRenderer\([\s\S]*?preserveDrawingBuffer: keepDrawingBuffer \}\);/gm,
     line => line + `
-window.__loadingShaderStats = () => ({
-  resident: renderer.info.programs.length,
-  hardware: renderer.getContext().getParameter(renderer.getContext().RENDERER),
-  programs: renderer.info.programs.map(program => ({
-    id: program.id, name: program.name, key: program.cacheKey, usedTimes: program.usedTimes,
-    traceId: window.__loadingShaderTrace?.programId(program.program) ?? null,
-  })),
-});
-window.__loadingShaderTrace?.mark('renderer-created');`, 'renderer construction');
+window.__loadingShaderStats = () => {
+  const gl = renderer.getContext();
+  const debug = gl.getExtension('WEBGL_debug_renderer_info');
+  return {
+    resident: renderer.info.programs.length,
+    hardware: gl.getParameter(debug ? debug.UNMASKED_RENDERER_WEBGL : gl.RENDERER),
+    programs: renderer.info.programs.map(program => ({
+      id: program.id, name: program.name, key: program.cacheKey, usedTimes: program.usedTimes,
+      traceId: window.__loadingShaderTrace?.programId(program.program) ?? null,
+    })),
+  };
+};
+if (window.__loadingShaderTrace) {
+  const trace = window.__loadingShaderTrace;
+  const compile = renderer.compileAsync.bind(renderer);
+  trace.mark('renderer-created');
+  let sequence = 0;
+  renderer.compileAsync = (...parameters) => {
+    const target = renderer.getRenderTarget();
+    const detail = { sequence: ++sequence, target: target ? [target.width, target.height] : null,
+      override: parameters[0].overrideMaterial?.type ?? null };
+    trace.mark('compileAsync:start', detail);
+    return compile(...parameters).then(result => {
+      trace.mark('compileAsync:ready', detail);
+      return result;
+    });
+  };
+}`, 'renderer construction');
   source = replaceOnce(source, /^ {2}const elapsed = stamp - lastRender;$/gm,
     "  const elapsed = window.__loadingParity?.advance(phase, place?.id) ?? stamp - lastRender;", 'render frame timing');
   source = replaceOnce(source, /^ {2}if \(sampleFrames < 180 &&/gm,
