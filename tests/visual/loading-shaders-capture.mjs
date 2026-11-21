@@ -75,9 +75,13 @@ if (window.__loadingShaderTrace) {
     line => line.replace('const time = clockTime;', 'const time = window.__loadingParity?.visualTime(phase) ?? clockTime;'),
     'animation clock');
   source = replaceOnce(source, /^ {2}const walk = tween\(P\.walkSeconds \?\? 14, \(k\) => \{$/gm,
-    line => line + "\n    window.__loadingParity?.walk(k * (P.walkSeconds ?? 14));", 'real walk tween');
+    line => line + `
+    window.__loadingParity?.walk(k * (P.walkSeconds ?? 14));
+    window.__loadingFrameObservations?.walk(k * (P.walkSeconds ?? 14));`, 'real walk tween');
   source = replaceOnce(source, /^ {2}const mark = \(state, progress, evidence\) => \{$/gm,
-    line => line + '\n    window.__loadingParity?.ignition(state, progress);', 'real ignition state');
+    line => line + `
+    window.__loadingParity?.ignition(state, progress);
+    window.__loadingFrameObservations?.ignition(state);`, 'real ignition state');
   source = replaceOnce(source, /^ {4}if \(mine\.parts\?\.pineWax\) level = THREE\.MathUtils\.clamp\(waxFuel\?\.\(\) \?\? targetLevel, 0, 1\);$/gm,
     '    if (mine.parts?.pineWax) level = THREE.MathUtils.clamp(window.__loadingParity?.waxFuel ?? waxFuel?.() ?? targetLevel, 0, 1);',
     'wick fuel clock');
@@ -131,12 +135,17 @@ function installWallClock({ wallTime, seed }) {
   }
   const drawRows = {};
   const clicks = {};
+  let walkTime = 0, ignitionStage = '';
   window.__loadingFrameObservations = {
     click(name) { clicks[name] = performance.now(); },
+    walk(seconds) { walkTime = seconds; },
+    ignition(state) { ignitionStage = state; },
+    get settled() { return ignitionStage === 'settled'; },
     draw(phase, place, stamp) {
       const key = phase + ':' + place;
       const frames = drawRows[key] ??= [];
-      if (frames.length < 120) frames.push({ stamp, presentedAt: performance.now() });
+      if (frames.length === 0) window.__loadingShaderTrace?.mark('first-draw:' + key);
+      if (frames.length < 120) frames.push({ stamp, presentedAt: performance.now(), walkTime, ignitionStage });
     },
     report() { return { drawRows, clicks }; },
   };
@@ -372,6 +381,7 @@ async function captureCase(browser, origin, item, root, captureSide) {
     await lightIt.click();
     await expect(page.getByTestId('with-you')).toBeVisible({ timeout: 90_000 });
     await view('burning-settled');
+    if (mode !== 'parity') await page.waitForFunction(() => window.__loadingFrameObservations.settled);
     row.atBurning = await readStats('burning-visible');
     row.frameTiming = await page.evaluate(() => window.__loadingFrameObservations.report());
     if (mode === 'trace') row.trace = await page.evaluate(() => window.__loadingShaderTrace.snapshot());
