@@ -31,9 +31,18 @@ if (!runDir) throw new Error('Pass --run-dir (the worker tmp that safe-kill.sh a
 const hour = Number(args.hour ?? 13);
 if (!Number.isFinite(hour)) throw new Error('Pass --hour as a number.');
 const port = Number(args.port ?? 8916);
-const viewport = (args.viewport ?? 'phone') === 'desktop'
-  ? { width: 1440, height: 900, isMobile: false, hasTouch: false, deviceScaleFactor: 2 }
-  : { width: 390, height: 844, isMobile: true, hasTouch: true, deviceScaleFactor: 3 };
+// One profile per viewport drives all three uses: the browser context, the CDP throttling, and the recorded
+// condition name. A profile that only renamed the condition would claim desktop-fast while still emulating
+// a phone, and the bytes and timings would describe neither.
+const PROFILES = {
+  desktop: { name: 'desktop-fast', width: 1440, height: 900, isMobile: false, hasTouch: false,
+    deviceScaleFactor: 2, cpu: 1, net: null },
+  phone: { name: 'phone-4x-4g', width: 390, height: 844, isMobile: true, hasTouch: true,
+    deviceScaleFactor: 3, cpu: 4, net: { latency: 150, down: 9e6 / 8, up: 2e6 / 8 } },
+};
+const profileName = args.viewport ?? 'phone';
+const profile = PROFILES[profileName];
+if (!profile) throw new Error('Pass --viewport desktop or phone; got ' + profileName);
 
 const stamp = `${new Date().toISOString().replace(/[:.]/g, '-')}-${process.pid}`;
 const evidenceBase = args.out ?? join(runDir, 'snow-cold');
@@ -62,8 +71,9 @@ server.stdout.on('data', chunk => serverLog.push(String(chunk)));
 server.stderr.on('data', chunk => serverLog.push(String(chunk)));
 
 const record = { revision, out, port, serverPid: server.pid, hour, place: 'snow-roof',
-  condition: (args.viewport ?? 'phone') === 'desktop' ? 'desktop-fast' : 'phone-4x-4g',
-  viewport: `${viewport.width}x${viewport.height}`, observations: 1, revisit: false };
+  condition: profile.name, viewport: `${profile.width}x${profile.height}`,
+  throttling: { cpu: profile.cpu, net: profile.net }, screenshots: Boolean(args.screenshots),
+  observations: 1, revisit: false };
 let failure = false;
 let browser;
 
@@ -93,9 +103,9 @@ try {
 
   browser = await chromium.launch({ channel: 'chrome',
     args: ['--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist'] });
-  const context = await browser.newContext({ viewport: { width: viewport.width, height: viewport.height },
-    locale: 'en-US', isMobile: viewport.isMobile, hasTouch: viewport.hasTouch,
-    deviceScaleFactor: viewport.deviceScaleFactor });
+  const context = await browser.newContext({ viewport: { width: profile.width, height: profile.height },
+    locale: 'en-US', isMobile: profile.isMobile, hasTouch: profile.hasTouch,
+    deviceScaleFactor: profile.deviceScaleFactor });
   await context.addInitScript(h => {
     const RealDate = Date;
     const fixed = new RealDate(2026, 10, 21, h, 0, 0).getTime();
@@ -108,9 +118,11 @@ try {
   const page = await context.newPage();
   const cdp = await context.newCDPSession(page);
   await cdp.send('Network.enable');
-  await cdp.send('Network.emulateNetworkConditions', { offline: false, latency: 150,
-    downloadThroughput: 9e6 / 8, uploadThroughput: 2e6 / 8 });
-  await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
+  if (profile.net) {
+    await cdp.send('Network.emulateNetworkConditions', { offline: false, latency: profile.net.latency,
+      downloadThroughput: profile.net.down, uploadThroughput: profile.net.up });
+  }
+  if (profile.cpu !== 1) await cdp.send('Emulation.setCPUThrottlingRate', { rate: profile.cpu });
 
   const ledger = createByteLedger({ uncertaintyMs: 0 });
   const events = [];
@@ -143,9 +155,12 @@ try {
     return Boolean(button) && !button.disabled && button.getAttribute('aria-disabled') !== 'true';
   });
   record.cutoffs = { usable: snapshotOf(ledger) };
-  // One screenshot per cutoff, so the lighting can be compared and not only the bytes counted.
-  record.usableShot = 'usable.png';
-  await page.screenshot({ path: join(out, record.usableShot) });
+  // Screenshots are opt-in: a capture before the click holds the page for real time and would hand a
+  // background download extra seconds the timing run must not get.
+  if (args.screenshots) {
+    record.usableShot = 'usable.png';
+    await page.screenshot({ path: join(out, record.usableShot) });
+  }
 
   // Capture the click on the button itself, then watch for the first frame in which the picture moves.
   await page.evaluate(() => {
@@ -195,8 +210,10 @@ try {
     await page.waitForFunction(() => window.__coldProbe?.firstMoveAt !== null, null, { timeout: 60000 });
   } catch { moved = false; }
   record.cutoffs.firstStep = snapshotOf(ledger);
-  record.firstStepShot = 'firstStep.png';
-  await page.screenshot({ path: join(out, record.firstStepShot) });
+  if (args.screenshots) {
+    record.firstStepShot = 'firstStep.png';
+    await page.screenshot({ path: join(out, record.firstStepShot) });
+  }
   record.probe = await page.evaluate(() => window.__coldProbe);
   record.movedObserved = moved;
 
