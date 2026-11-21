@@ -21,6 +21,7 @@ const pickedModes = args.filter(arg => arg !== '--pilot');
 const modeList = pilot && !pickedModes.length ? ['phone-night'] : pickedModes;
 const captureLampPairs = pilot || process.env.TIDE_LAMP_PAIRS === '1';
 const recordRevealClip = process.env.TIDE_REVEAL_CLIPS === '1';
+const revealClipSeatedHoldSeconds = 1.5;
 const out = resolve(output);
 const run = promisify(execFile);
 const markersFor = phone => [
@@ -257,7 +258,8 @@ async function finishRevealClip(page, dir, start) {
   const file = join(dir, 'continuous-reveal.webm');
   await writeFile(file, Buffer.from(encoded, 'base64'));
   return { file, seconds, bytes: size, startWalkSeconds: start.walkProgress * walkSeconds,
-    scope: 'Uninterrupted WebGL canvas from the approach to the settled burning lamp.' };
+    settledHoldSeconds: revealClipSeatedHoldSeconds, playbackRate: 1,
+    scope: 'Uninterrupted real-time WebGL canvas from the approach through the settled burning lamp and water.' };
 }
 
 async function captureLampPair(page, dir, settled, problems) {
@@ -383,6 +385,7 @@ async function captureCase(browser, preview, size, look, dir) {
     if (!eyeHeight.passed) problems.push({
       type: 'walk eye height or deck', complete: eyeHeight.complete, ...eyeHeight.total,
     });
+    if (revealClipStart) await page.waitForTimeout(revealClipSeatedHoldSeconds * 1000);
     const revealClip = revealClipStart ? await optionalEvidence('reveal clip completion', problems,
       () => finishRevealClip(page, dir, revealClipStart)) : null;
     const matchedLamp = captureLampPairs ? await optionalEvidence('matched lamp capture', problems,
@@ -407,8 +410,14 @@ async function captureCase(browser, preview, size, look, dir) {
     for (const frame of ['harbour-reveal', 'chooser', 'burning']) {
       if (!shoreClear(shots[frame])) problems.push({ type: 'harbour tips not both visible', frame, tips: shots[frame].harbourTips });
     }
+    const normalWalkToChooserSeconds = (chooserMs - clickMs) / 1000;
+    const chooserSettleSeconds = 2.4;
+    const approachTiming = { routeSeconds: walkSeconds, chooserSettleSeconds,
+      nominalSeconds: walkSeconds + chooserSettleSeconds, buttonToChooserSeconds: normalWalkToChooserSeconds,
+      observedBeyondNominalSeconds: normalWalkToChooserSeconds - walkSeconds - chooserSettleSeconds,
+      simulatedTimeScale: 1 };
     const evidence = { viewport: [size.width, size.height], localHour: look.hour, marks, shots, crops, returnEntrance, dwellSeconds, pilot,
-      normalWalkToChooserSeconds: (chooserMs - clickMs) / 1000, skipStart: skipStart?.walk ?? null, endpointDelta: delta,
+      normalWalkToChooserSeconds, approachTiming, skipStart: skipStart?.walk ?? null, endpointDelta: delta,
       revealClip, matchedLamp, video: recording ? join(dir, 'continuous-review.webm') : null,
       observations: {
         concealedSeaSampleCount: shots['last-enclosed'].sea.filter(point => point.inFrame && !point.occluder).length,

@@ -188,22 +188,55 @@ const reviewScript = `
   };`;
 
 const matchedPoseScript = `
-  window.__tideSetMatchedPose = ({ position, direction, fov, animationSecond, offer }) => {
+  let tideMatchedOriginal;
+  window.__tideReleaseMatchedPose = () => {
+    if (!tideMatchedOriginal) return;
+    rig.pos.copy(tideMatchedOriginal.position);
+    rig.look.copy(tideMatchedOriginal.look);
+    rig.amp = tideMatchedOriginal.amp;
+    rig.fov = tideMatchedOriginal.fov;
+    tideMatchedOriginal = null;
+    window.__visualFreezeCamera = false;
+    window.__freezeScene = false;
+    window.__tideLampVisualSecond = undefined;
+  };
+  window.__tideSetMatchedPose = ({ position, direction, fov, animationSecond, offer, preserveLitLamp = false }) => {
     if (place?.id !== 'sea-tide') throw new Error('Matched pose requires live Tide Temple.');
+    if (preserveLitLamp && (phase !== 'burning' || !lit || !mine.g.visible || mine.power <= .02)) {
+      throw new Error('Matched seated lighting requires a settled normal ignition.');
+    }
+    tideMatchedOriginal ??= { position: rig.pos.clone(), look: rig.look.clone(), amp: rig.amp, fov: rig.fov };
     window.__visualFreezeCamera = true;
     window.__freezeScene = true;
+    window.__tideLampVisualSecond = animationSecond;
     rig.amp = 0;
     rig.pos.fromArray(position);
     rig.look.fromArray(direction).add(rig.pos);
     rig.fov = fov;
-    atLamp = Boolean(offer);
-    setOffer(offer ?? null);
+    if (preserveLitLamp) {
+      mine.tideReviewFlame.fm.uniforms.uSeedU.value = 3.25;
+      wind = 0;
+      level = targetLevel = 1;
+      mine.update(animationSecond);
+    } else {
+      atLamp = Boolean(offer);
+      setOffer(offer ?? null);
+    }
     waterTex.offset.set(animationSecond * .004, animationSecond * .002);
     for (const update of place.up) update(0, animationSecond, place.daylight);
+    for (const lamp of place.others) lamp.tick(animationSecond);
     // Read back from the renderer after a full paint, then save the screenshot.
-    return new Promise(resolve => requestAnimationFrame(() => {
-      requestAnimationFrame(() => resolve(window.__tideReview()));
-    }));
+    return new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(() => {
+      const waterUniforms = place.G.getObjectByName('Tide Temple harbour water')?.material?.uniforms;
+      resolve({ ...window.__tideReview(), matchedState: {
+        enginePhase: phase, animationSecond: window.__tideLampVisualSecond, preserveLitLamp,
+        wickIntensity: preserveLitLamp ? mine.tideReviewFlame.light.intensity : null,
+        wickFlickerSeed: preserveLitLamp ? mine.tideReviewFlame.fm.uniforms.uSeedU.value : null,
+        waterPhase: waterUniforms?.uTime.value ?? null,
+        nightMix: waterUniforms?.uNight.value ?? null,
+        waterTextureOffset: waterTex.offset.toArray(),
+      } });
+    })));
   };`;
 
 const lampPairScript = `
@@ -326,18 +359,22 @@ const endingReviewScript = `
   };
 `;
 
+function exposeReviewFlame(source) {
+  const anchor = 'const api = { g, parts: null, partsKey: null, type: null,';
+  return replaceOnce(source, anchor, anchor.replace('{ g,', '{ g, tideReviewFlame: f,'));
+}
+
 function instrumentEnding(source) {
-  const lamp = 'const api = { g, parts: null, partsKey: null, type: null,';
   const snuff = 'export async function snuff(done = false, remaining, gust = false) {';
   const render = '  composer.render();\n}\n\n// ---------- Start ----------';
-  const withFlame = replaceOnce(source, lamp, lamp.replace('{ g,', '{ g, tideReviewFlame: f,'));
+  const withFlame = exposeReviewFlame(source);
   const withEndingMark = replaceOnce(withFlame, snuff, snuff + '\n  window.__markTideSnuff?.(done);');
   return replaceOnce(withEndingMark, render, render.replace('composer.render();',
     'composer.render(); window.__tideRecordEndingFrame?.();')) + '\n' + endingReviewScript;
 }
 
 export async function startPreview({
-  tideWorldSource, matchedPose = false, includeDriftControl = false, lampPair = false,
+  tideWorldSource, tideWaterSource, matchedPose = false, includeDriftControl = false, lampPair = false,
   endingReview = false, endingSources = {},
 } = {}) {
   const temp = await mkdtemp(join(tmpdir(), 'tide-review-'));
@@ -379,6 +416,7 @@ export async function startPreview({
             if (path.endsWith('/web/src/engine/places/' + name) && baseline !== undefined) return baseline;
           }
           if (path.endsWith('/web/src/engine/places/sea-tide.js') && tideWorldSource !== undefined) return tideWorldSource;
+          if (path.endsWith('/web/src/engine/places/sea-tide-water.js') && tideWaterSource !== undefined) return tideWaterSource;
           if (path.endsWith('/web/src/visiblePlaces.ts')) {
             const tideCatalog = includeDriftControl
               ? "['sea-tide', 'snow-roof', 'pine-gate', 'bamboo-rain']" : "['sea-tide', 'snow-roof', 'pine-gate']";
@@ -397,12 +435,13 @@ export async function startPreview({
           }
           if (path.endsWith('/web/src/engine/scene.js')) {
             const trace = 'lx: rig.look.x, ly: rig.look.y, lz: rig.look.z, fov: rig.fov ?? camera.fov });';
-            const engine = endingReview ? instrumentEnding(endingSources['scene.js'] ?? source) : source;
+            const engine = endingReview ? instrumentEnding(endingSources['scene.js'] ?? source)
+              : matchedPose ? exposeReviewFlame(source) : source;
             const traced = replaceOnce(engine, trace, `lx: rig.look.x, ly: rig.look.y, lz: rig.look.z, fov: camera.fov,
               actual: camera.position.toArray(), walkState: window.__walkProgress?.state,
               walkProgress: window.__walkProgress?.progress, mouth: window.__tideSampleMouth?.(),
               deck: window.__tideSampleDeck?.() });`);
-            const timed = lampPair ? replaceOnce(traced, 'const time = clockTime;',
+            const timed = lampPair || matchedPose ? replaceOnce(traced, 'const time = clockTime;',
               'const time = window.__tideLampVisualSecond ?? clockTime;') : traced;
             return [timed, reviewScript, matchedPose ? matchedPoseScript : '', lampPair ? lampPairScript : ''].join('\n');
           }

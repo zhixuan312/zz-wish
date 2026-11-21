@@ -32,18 +32,29 @@ const fragmentShader = /* glsl */ `
     return fract((q.x + q.y) * q.z);
   }
 
-  float noise(vec2 p) {
+  // Cubic value noise and its local gradient, returned from the same four
+  // cells. A bump ends with its patch instead of spanning the channel.
+  vec3 waterNoise(vec2 p) {
     vec2 i = floor(p);
     vec2 f = fract(p);
-    f = f * f * (3.0 - 2.0 * f);
-    return mix(mix(hash(i), hash(i + vec2(1.0, 0.0)), f.x),
-      mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), f.x), f.y);
+    vec2 curve = f * f * (3.0 - 2.0 * f);
+    vec2 rate = 6.0 * f * (1.0 - f);
+    float a = hash(i);
+    float b = hash(i + vec2(1.0, 0.0));
+    float c = hash(i + vec2(0.0, 1.0));
+    float d = hash(i + vec2(1.0, 1.0));
+    return vec3(mix(mix(a, b, curve.x), mix(c, d, curve.x), curve.y),
+      mix(b - a, d - c, curve.y) * rate.x,
+      mix(c - a, d - b, curve.x) * rate.y);
   }
 
-  vec2 slope(vec2 p, vec2 direction, float k, float speed, float stretch) {
-    float phase = dot(p, direction) * k + uTime * speed;
-    float resolved = 1.0 - smoothstep(0.35, 1.7, fwidth(phase));
-    return direction * cos(phase) * stretch * resolved;
+  vec2 rippleSlope(vec2 p, vec2 axis, vec2 spacing, vec2 travel) {
+    vec2 across = vec2(-axis.y, axis.x);
+    vec2 cells = vec2(dot(p, axis), dot(p, across)) / spacing - uTime * travel;
+    vec2 pixelSpan = fwidth(cells);
+    float visible = 1.0 - smoothstep(0.38, 1.5, max(pixelSpan.x, pixelSpan.y));
+    vec2 gradient = waterNoise(cells).yz;
+    return (axis * gradient.x + across * gradient.y * 0.76) * visible;
   }
 
   float nearShore(vec2 p) {
@@ -74,52 +85,51 @@ const fragmentShader = /* glsl */ `
     if (p.x < 90.0 && p.x > 8.0 && abs(p.y - 8.5) < 37.0) shoreDistance = nearShore(p);
     float shoaling = 1.0 - smoothstep(0.7, 7.5, shoreDistance);
 
-    // Irregular incoming swell, crossed by shorter wind ripples. Perspective
-    // and derivative filtering preserve the larger crests farther offshore.
-    vec2 wash = vec2(sin(p.y * 0.19 + p.x * 0.07), sin(p.x * 0.13 - p.y * 0.16));
-    vec2 water = p + 0.9 * wash;
-    float swellPatch = noise(p * vec2(0.29, 0.17) + vec2(uTime * 0.055, 0.0));
-    vec2 gradient = slope(water, vec2(0.96, 0.28), 0.57, 0.92, 0.055);
-    gradient += slope(water, vec2(0.81, -0.59), 0.99, 1.21, 0.045);
-    gradient += slope(water, vec2(0.35, 0.94), 1.66, -1.68, 0.034);
-    vec2 ripples = slope(p + 0.41 * wash, vec2(0.88, 0.48), 3.8, 2.28, 0.067);
-    ripples += slope(p, vec2(0.46, -0.89), 5.7, -2.77, 0.052);
-    ripples += slope(p + 0.18 * wash, vec2(0.69, 0.72), 11.9, 4.2, 0.043);
-    gradient = gradient * mix(0.97, 0.77, shoaling)
-      + ripples * (0.45 + 0.75 * swellPatch + 0.37 * shoaling) * (1.0 - smoothstep(22.0, 110.0, range));
+    // Local crossed chop at three scales. Pixel footprints suppress the
+    // finer cells by distance and perspective before they can crawl or alias.
+    float wind = waterNoise(p * 0.47 + vec2(uTime * 0.034, -uTime * 0.026)).x;
+    vec2 swell = rippleSlope(p, vec2(0.91, 0.41), vec2(1.55, 1.18), vec2(0.61, 0.09));
+    vec2 chop = rippleSlope(p + vec2(2.1, -4.7), vec2(0.52, -0.85), vec2(0.60, 0.96), vec2(0.38, -0.15));
+    vec2 ruffle = rippleSlope(p + vec2(4.4, 2.9), vec2(0.77, 0.64), vec2(0.25, 0.39), vec2(0.71, 0.25));
+    vec2 gradient = swell * mix(0.043, 0.028, shoaling);
+    gradient += chop * (0.038 + 0.021 * wind + 0.022 * shoaling);
+    gradient += ruffle * (0.026 + 0.021 * wind + 0.017 * shoaling);
     vec3 normal = normalize(vec3(-gradient.x, 1.0, -gradient.y));
 
     vec3 horizon = mix(uHorizonDay, uHorizonNight, uNight);
     vec3 overhead = mix(uSkyDay, uSkyNight, uNight);
     vec3 body = mix(uWaterDay, uWaterNight, uNight);
     vec3 reflected = reflect(-viewDirection, normal);
-    vec3 incidentSky = mix(horizon, overhead, pow(clamp(reflected.y * 1.7, 0.0, 1.0), 0.59));
+    // Blend the sky over a broad angle so the grazing horizon cannot paint
+    // a bright stripe on one side of every small change in surface normal.
+    float skyElevation = smoothstep(-0.08, 0.68, reflected.y);
+    vec3 incidentSky = mix(horizon * 0.73, overhead, skyElevation);
     float grazing = 1.0 - clamp(dot(normal, viewDirection), 0.0, 1.0);
-    float fresnel = 0.11 + 0.79 * pow(grazing, 4.2);
-    vec3 colour = mix(body * mix(0.79, 1.15, swellPatch), incidentSky, fresnel * (1.0 - 0.30 * shoaling));
+    float fresnel = 0.19 + 0.43 * pow(grazing, 4.0);
+    vec3 colour = mix(body * mix(0.92, 1.06, wind), incidentSky, fresnel * (1.0 - 0.29 * shoaling));
 
-    // Surface facets reflect the light in fragmented groups. The darker
-    // water around each group keeps a continuous bright bar from forming.
+    // Small highlights follow the sun and grazing sky within separate wind
+    // cells. They remain subtle on the shaded or moonlit surface.
+    vec2 glintCells = p * vec2(1.13, 1.68) + vec2(-uTime * 0.18, uTime * 0.11);
+    vec2 glintSpan = fwidth(glintCells);
+    float glintResolved = 1.0 - smoothstep(0.45, 1.55, max(glintSpan.x, glintSpan.y));
+    float flecks = smoothstep(0.51, 0.86, waterNoise(glintCells).x) * glintResolved;
     vec3 halfway = normalize(viewDirection + uSunDirection);
-    float facing = max(dot(normal, halfway), 0.0);
-    float broken = smoothstep(0.31, 0.77, swellPatch);
-    float lightPatch = (pow(facing, 34.0) * 0.16 + pow(facing, 111.0) * 0.38) * broken;
-    float localGlint = pow(max(0.0, dot(reflected, normalize(vec3(0.94, 0.25, -0.26)))), 22.0);
-    localGlint *= smoothstep(0.47, 0.76, swellPatch) * (1.0 - smoothstep(45.0, 125.0, range));
-    vec3 glint = mix(vec3(0.60, 0.70, 0.66), vec3(0.21, 0.31, 0.40), uNight);
-    glint = mix(glint, vec3(0.84, 0.52, 0.29), uWarm * 0.26);
-    colour += glint * (lightPatch + localGlint * 0.23);
+    float sunGlint = pow(max(dot(normal, halfway), 0.0), 82.0);
+    float skyGlint = smoothstep(0.015, 0.31, reflected.y) * pow(grazing, 2.1);
+    vec3 glint = mix(vec3(0.48, 0.58, 0.53), vec3(0.30, 0.38, 0.46), uNight);
+    glint = mix(glint, vec3(0.76, 0.49, 0.28), uWarm * 0.23);
+    colour += glint * (sunGlint * 0.26 + skyGlint * 0.10) * flecks * (0.40 + 0.60 * wind);
 
-    if (shoreDistance < 3.1) {
-      float local = noise(p * 0.61 + vec2(uTime * 0.12, -uTime * 0.064));
-      float debris = noise(p * 1.93 + vec2(-uTime * 0.20, uTime * 0.13));
-      float runup = 0.30 + 0.25 * sin(uTime * 1.52 + p.y * 0.66 + p.x * 0.29 + 4.0 * local);
-      float crests = 1.0 - smoothstep(0.05, 0.24, abs(shoreDistance - runup));
-      float washLine = 1.0 - smoothstep(0.12, 0.40, abs(shoreDistance - (0.9 + 0.70 * local)));
-      float flecks = smoothstep(0.49, 0.78, 0.66 * debris + 0.34 * local);
-      float foam = (crests * 0.57 + washLine * 0.36) * flecks * (1.0 - smoothstep(55.0, 118.0, range));
-      vec3 foamColour = mix(uFoamDay, uFoamNight, uNight);
-      colour = mix(colour, foamColour, clamp(foam, 0.0, 0.65));
+    if (shoreDistance < 1.85) {
+      float runs = waterNoise(p * 0.92 + vec2(uTime * 0.12, -uTime * 0.064)).x;
+      float bubbles = waterNoise(p * 4.0 + vec2(-uTime * 0.26, uTime * 0.16)).x;
+      float wash = 0.20 + 0.14 * sin(uTime * 1.7 + 5.3 * runs + p.y * 0.41 + p.x * 0.29);
+      float breaker = 1.0 - smoothstep(0.032, 0.18, abs(shoreDistance - wash));
+      float drain = 1.0 - smoothstep(0.05, 0.25, abs(shoreDistance - (0.52 + 0.40 * runs)));
+      float gaps = smoothstep(0.53, 0.81, 0.53 * bubbles + 0.47 * runs);
+      float foam = (breaker * 0.44 + drain * 0.24) * gaps * (1.0 - smoothstep(45.0, 110.0, range));
+      colour = mix(colour, mix(uFoamDay, uFoamNight, uNight), min(foam, 0.48));
     }
 
     colour = mix(colour, horizon, 0.80 * smoothstep(130.0, 725.0, range));

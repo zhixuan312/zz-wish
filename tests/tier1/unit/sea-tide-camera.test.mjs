@@ -121,11 +121,18 @@ test('Tide builds its wall deposits and animated harbour water before the first 
     const sea = context.G.getObjectByName('Tide Temple harbour water');
     assert.ok(sea);
     assert.equal(sea.position.y, -2.8);
+    const harbourTerrain = [];
     for (const name of ['South', 'North']) {
       const apron = context.G.getObjectByName(`${name} harbour submerged rock apron`);
       const bounds = new THREE.Box3().setFromObject(apron);
       assert.ok(bounds.min.y < sea.position.y && bounds.max.y > sea.position.y);
+      const headland = context.G.getObjectByName(`${name} harbour far headland`);
+      const farBounds = new THREE.Box3().setFromObject(headland);
+      assert.ok(farBounds.min.y < sea.position.y && farBounds.max.y > bounds.max.y);
+      harbourTerrain.push(apron, headland);
     }
+    const channel = new THREE.Raycaster(V3(9, 0, 8.5), V3(1, 0, 0), 0, 170);
+    assert.equal(channel.intersectObjects(harbourTerrain, false).length, 0);
     context.up[0](1 / 60, 2, { n: .7, g: .2 });
     assert.equal(sea.material.uniforms.uTime.value, 2);
     assert.equal(sea.material.uniforms.uNight.value, .7);

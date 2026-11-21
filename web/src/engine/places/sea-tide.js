@@ -121,8 +121,25 @@ function tideRockMaterial(material, grain = false) {
       .replace('#include <common>', '#include <common>\nvarying vec3 vTideRockWorld;')
       .replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\n'
         + 'vTideRockWorld = (modelMatrix * vec4(transformed, 1.0)).xyz;');
+    const stoneGrain = grain ? `
+      float tideBankHash(vec3 p) {
+        p = fract(p * .1031);
+        p += dot(p, p.yzx + 19.19);
+        return fract((p.x + p.y) * p.z);
+      }
+      float tideBankGrain(vec3 p) {
+        vec3 i = floor(p), f = fract(p);
+        f = f * f * (3. - 2. * f);
+        vec4 a = vec4(tideBankHash(i), tideBankHash(i + vec3(1,0,0)),
+          tideBankHash(i + vec3(0,1,0)), tideBankHash(i + vec3(1,1,0)));
+        vec4 b = vec4(tideBankHash(i + vec3(0,0,1)), tideBankHash(i + vec3(1,0,1)),
+          tideBankHash(i + vec3(0,1,1)), tideBankHash(i + vec3(1,1,1)));
+        vec4 layers = mix(a, b, f.z);
+        return mix(mix(layers.x, layers.y, f.x), mix(layers.z, layers.w, f.x), f.y);
+      }
+    ` : '';
     shader.fragmentShader = shader.fragmentShader
-      .replace('#include <common>', '#include <common>\nvarying vec3 vTideRockWorld;')
+      .replace('#include <common>', '#include <common>\nvarying vec3 vTideRockWorld;\n' + stoneGrain)
       .replace('#include <roughnessmap_fragment>', `#include <roughnessmap_fragment>
         float tideVariation = sin(vTideRockWorld.x * 2.4 + vTideRockWorld.z * 1.8)
           * sin(vTideRockWorld.z * 3.1 - vTideRockWorld.x * 1.2);
@@ -132,40 +149,56 @@ function tideRockMaterial(material, grain = false) {
         float dampGrain = 0.91 + 0.09 * tideVariation;
         diffuseColor.rgb *= mix(1.0, 0.54 * dampGrain, tideDamp);
         roughnessFactor = mix(roughnessFactor, min(roughnessFactor, 0.45), tideDamp * 0.88);
-        ${grain ? `float fracture = sin(vTideRockWorld.x * 2.2 + vTideRockWorld.y * 8.4
-          + vTideRockWorld.z * 0.8 + 0.8 * tideVariation);
-        float roughFace = 0.83 + 0.27 * tideVariation + 0.12 * fracture;
-        diffuseColor.rgb *= mix(roughFace, 1.0, smoothstep(2.0, 9.0, vTideRockWorld.y));` : ''}
+        ${grain ? `float exposed = tideBankGrain(vTideRockWorld * .19);
+        float seams = tideBankGrain(vTideRockWorld * vec3(.93, 1.46, .87));
+        float chipDetail = 1. - smoothstep(.22, .7, length(fwidth(vTideRockWorld)));
+        float chips = tideBankGrain(vTideRockWorld * 3.1);
+        float weathered = .78 + .36 * exposed + .13 * seams + .12 * chipDetail * (chips - .5);
+        diffuseColor.rgb *= weathered;
+        roughnessFactor = mix(roughnessFactor, .95, (1. - tideDamp) * seams * .5);` : ''}
       `);
   };
   return surface;
 }
 
-function buildShoreApron({ THREE, M, context }, edge, inland) {
-  // The toe submerges and the ledges climb into the shoulder. Every cross
-  // section overlaps the visible armour above and the water below.
-  const bands = [[0, -3.86], [.48, -3.13], [1.2, -2.46], [2.35, -1.77],
-    [3.72, -1.28], [6.1, -.3], [10.5, 1.72], [16, 4.38]];
+function buildShoreBank({ THREE, M, context }, edge, inland) {
+  // Each section runs from below the rock armour through the same slope and
+  // over the inland crest. The lower courses also supply the waterline.
+  const toe = [[0, -3.86], [.48, -3.13], [1.2, -2.46], [2.35, -1.77],
+    [3.72, -1.28], [6.1, -.3], [10.5, 1.72]];
+  const upland = [15, 18, 22, 27, 32, 37, 43, 50, 58, 68, 82, 100];
+  const rowCount = toe.length + upland.length;
   const positions = [], colours = [], faces = [];
-  const dark = new THREE.Color(0x3f4946), light = new THREE.Color(0x69706a), tone = new THREE.Color();
-  const steps = 8;
+  const dark = new THREE.Color(0x484d45), light = new THREE.Color(0x79776a);
+  const scrub = new THREE.Color(0x53634e), tone = new THREE.Color();
+  const steps = 7;
   for (let column = 0; column <= (edge.length - 1) * steps; column++) {
     const segment = Math.min(edge.length - 2, Math.floor(column / steps));
     const fraction = (column - segment * steps) / steps;
     const [a, b] = [edge[segment], edge[segment + 1]];
     const x = THREE.MathUtils.lerp(a[0], b[0], fraction);
     const shoreline = THREE.MathUtils.lerp(a[1], b[1], fraction);
-    for (let row = 0; row < bands.length; row++) {
-      const [width, height] = bands[row];
+    const head = Math.exp(-(((x - (inland > 0 ? 72 : 61)) / 25) ** 2));
+    const back = Math.exp(-(((x - (inland > 0 ? 113 : 101)) / 27) ** 2));
+    const relief = (inland > 0 ? 14 : 11) * (.27 + .73 * head + .46 * back);
+    for (let row = 0; row < rowCount; row++) {
+      const width = row < toe.length ? toe[row][0] : upland[row - toe.length];
+      const rising = THREE.MathUtils.smoothstep(width, 13, 35);
+      const receding = THREE.MathUtils.smoothstep(width, 38, 90);
+      const height = row < toe.length ? toe[row][1] : 3.65 + rising * relief - receding * 9.3;
       const joint = Math.sin(x * 1.88 + row * 1.39) * Math.cos(x * .93 - row * 1.72);
       const jut = .34 * Math.sin(x * 1.31 + row * .58) + .18 * Math.cos(x * 2.93 + row * 1.91);
-      positions.push(x + .19 * joint, height + (.23 + width * .034) * joint,
+      const reliefDetail = .22 * joint + rising * (1 - receding)
+        * (.51 * Math.sin(x * .25 + width * .34) + .43 * Math.sin(x * .15 - width * .48));
+      positions.push(x + .19 * joint, height + reliefDetail,
         shoreline + inland * (width + jut));
-      tone.copy(dark).lerp(light, .52 + .30 * joint + .15 * Math.sin(x * .47 + row));
+      const cover = .44 + .29 * Math.sin(x * .084 + width * .116) * Math.cos(x * .23 - width * .27);
+      tone.copy(dark).lerp(light, .54 + .20 * joint + .16 * Math.sin(x * .44 + width * .29));
+      tone.lerp(scrub, THREE.MathUtils.smoothstep(width, 8, 25) * cover);
       colours.push(tone.r, tone.g, tone.b);
       if (column && row) {
-        const d = column * bands.length + row, c = d - 1;
-        const b = d - bands.length, a = b - 1;
+        const d = column * rowCount + row, c = d - 1;
+        const b = d - rowCount, a = b - 1;
         if (inland > 0) faces.push(a, b, c, b, d, c);
         else faces.push(a, c, b, b, c, d);
       }
@@ -183,7 +216,7 @@ function buildShoreApron({ THREE, M, context }, edge, inland) {
 
   // Find the water crossing along each section of this same ground mesh.
   const waterline = [];
-  const stride = bands.length * 3;
+  const stride = rowCount * 3;
   for (let section = 0; section < positions.length; section += stride) {
     for (let below = section; below < section + stride - 3; below += 3) {
       const above = below + 3;
@@ -197,21 +230,65 @@ function buildShoreApron({ THREE, M, context }, edge, inland) {
   return waterline.sort((a, b) => a[0] - b[0]);
 }
 
+function buildFarHeadland({ THREE, M, context }, { name, x, z, width, depth, height, tint }) {
+  const ground = new THREE.PlaneGeometry(width * 2, depth * 2, 46, 38).rotateX(-Math.PI / 2);
+  const points = ground.getAttribute('position');
+  const colours = [];
+  const shade = new THREE.Color(tint), weathered = new THREE.Color(0x7a8585);
+  const tone = new THREE.Color();
+  for (let i = 0; i < points.count; i++) {
+    const u = points.getX(i) / width, v = points.getZ(i) / depth;
+    const shore = Math.max(0, 1 - (u * u + v * v));
+    const ridge = 1 + .16 * Math.sin(u * 7 + v * 3) + .075 * Math.sin(v * 12 - u * 5);
+    points.setY(i, -5.4 + height * shore ** 1.45 * ridge);
+    tone.copy(shade).lerp(weathered, .20 + .13 * Math.sin(u * 5 - v * 2));
+    colours.push(tone.r, tone.g, tone.b);
+  }
+  ground.setAttribute('color', new THREE.Float32BufferAttribute(colours, 3));
+  ground.computeVertexNormals();
+  const land = new THREE.Mesh(ground, M(0xffffff, .98, { vertexColors: true }));
+  land.position.set(x, 0, z);
+  land.name = name;
+  context.G.add(land);
+}
+
+function harbourArmour(edge, side) {
+  const stones = [];
+  const variation = (n) => .5 + .5 * Math.sin(n * 2.399);
+  // Stagger a row at the toe and a second on the low bank. The overlapping
+  // stones have different aspect ratios and expose joints between faces.
+  for (let segment = 1; segment < edge.length; segment++) {
+    const [[x0, z0], [x1, z1]] = [edge[segment - 1], edge[segment]];
+    const count = Math.ceil((x1 - x0) / 3.35);
+    for (let i = 0; i < count; i++) {
+      const seed = 27 * segment + 17 * i + (side > 0 ? 43 : 19);
+      const t = (i + .26 + .48 * variation(seed)) / count;
+      const x = x0 + t * (x1 - x0), toeZ = z0 + t * (z1 - z0);
+      stones.push([x, toeZ + side * (1.26 + .38 * variation(seed + 5)), 1.32 + .62 * variation(seed + 1),
+        1.02 + .85 * variation(seed + 3), .98 + .64 * variation(seed + 2), seed]);
+      if (i % 2 === segment % 2) {
+        stones.push([x + .81, toeZ + side * (3.7 + .63 * variation(seed + 6)), 1.44 + .46 * variation(seed + 2),
+          1.53 + .72 * variation(seed + 8), 1.45 + .51 * variation(seed + 3), seed + 9]);
+      }
+    }
+  }
+  return stones;
+}
+
 function buildHarbour(h) {
-  const { THREE, M, box, peak, rock, context } = h;
-  const shore = tideRockMaterial(M(0x454d48, .94), true);
-  const distant = M(0x586d72, 1);
-  // Overlapping rocks carry the two shoulders to a narrow, open channel.
-  peak(71, -5.6, -30, 32, 18, shore, 17, .84);
-  peak(78, -5.4, 45, 32, 23, shore, 69, .83);
-  peak(96, -6, -62, 48, 29, distant, 57, .93);
-  peak(113, -6, 78, 50, 37, distant, 31, .94);
+  const { THREE, M, box, rock, context } = h;
+  const southEdge = [[8, -28], [17, -24], [25, -18], [36, -12.2], [46, -7.2], [56, -3.6],
+    [64, -.1], [71, 3.9], [77, 6.5], [80, 5.25], [86, .8], [92, -5.6], [104, -12], [119, -20], [137, -29]];
+  const northEdge = [[8, 38], [18, 32], [27, 28.8], [37, 25.6], [47, 23.2], [57, 19.6],
+    [64, 16.9], [72, 14.2], [79, 11], [82, 11.73], [88, 15.6], [94, 22.9], [108, 30], [124, 38], [141, 47]];
+  const south = buildShoreBank(h, southEdge, -1);
+  const north = buildShoreBank(h, northEdge, 1);
+  buildFarHeadland(h, { name: 'South harbour far headland', x: 153, z: -52, width: 61, depth: 38, height: 27, tint: 0x687e80 });
+  buildFarHeadland(h, { name: 'North harbour far headland', x: 168, z: 70, width: 72, depth: 49, height: 31, tint: 0x6b8086 });
   const stones = [
-    [26, -22, 12, 4.2, 6, 1], [38, -14, 10, 3.4, 5, 2],
-    [49, -8, 9, 2.8, 4.1, 3], [61, -4.5, 8, 2.5, 4, 5],
+    ...harbourArmour(southEdge.slice(1, 7), -1),
+    ...harbourArmour(northEdge.slice(1, 8), 1),
     [68, .7, 8, 2.65, 3.8, 17, '', -.16], [77, 3.9, 7.2, 2.7, 3.05, 21, 'South harbour tip', .12],
-    [27, 34, 13, 4.9, 5.2, 6], [42, 29, 10, 4.0, 4.4, 8],
-    [54, 24, 9.5, 3.2, 4, 10], [67, 20.4, 8, 2.9, 4, 12],
     [73, 17.8, 7.4, 2.9, 3.8, 24, '', .23], [79, 14.5, 8.3, 2.8, 3.3, 27, 'North harbour tip', -.15],
   ];
   const wetVariants = new Map();
@@ -242,10 +319,6 @@ function buildHarbour(h) {
       });
     }
   }
-  const south = buildShoreApron(h, [[17, -24], [25, -18], [36, -12.2], [46, -7.2], [56, -3.6],
-    [64, -.1], [71, 3.9], [77, 6.5], [80, 5.25], [86, .8], [92, -5.6]], -1);
-  const north = buildShoreApron(h, [[18, 32], [27, 28.8], [37, 25.6], [47, 23.2], [57, 19.6],
-    [64, 16.9], [72, 14.2], [79, 11], [82, 11.73], [88, 15.6], [94, 22.9]], 1);
   const quay = M(0x535e5a, .94, { map: h.pavingTex });
   box(15, 2.1, 3.1, quay, 30.5, -2.4, -17.7, -.4);
   box(13, 2.0, 3.2, quay, 28, -2.4, 32.6, .26);
