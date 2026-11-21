@@ -2,8 +2,10 @@
 //
 // The problem this solves: a canvas difference cannot tell a camera move from a fade, a shader
 // animation, or a rotating camera that stands still. A view matrix can. From `matrixWorldInverse` the
-// camera position is the negated translation of the rotation part, so two samples can be compared for
-// translation separately from rotation.
+// camera position is recovered as p = -(R^T t), and the rotation as the transpose of the inverse's 3x3
+// part, so translation and orientation are judged separately. Translation is measured cumulatively from
+// one reference sample, not between consecutive samples: a slow walk gains a fraction of the threshold
+// per frame and a per-frame comparison would call it still.
 //
 // Scope: this judges the MAIN render camera only. Shadow cameras and secondary cameras are different
 // objects with their own matrices; a sequence from any of them must not be passed in here, and the
@@ -13,10 +15,10 @@
 // (see tests/tier2/README-walk-judge.md), so this module is only as good as the samples given to it.
 //
 // Every decision is one of:
-//   'moving'  — translation between consecutive samples exceeds the threshold
-//   'rotating'— the camera turned but its position stayed within the threshold
+//   'moving'  — cumulative displacement from the reference sample exceeds the distance threshold
+//   'rotating'— orientation changed beyond the angle threshold while displacement stayed under it
 //   'still'   — neither position nor orientation changed beyond the thresholds
-//   'unknown' — not enough valid samples to decide
+//   'unknown' — no usable reference sample, or too few valid samples, to decide
 
 /** Extract the camera position from a view matrix (world-inverse). */
 export function positionFromViewMatrix(elements) {
@@ -80,10 +82,14 @@ const distance = (a, b) => Math.hypot(a.x - b.x, a.y - b.y, a.z - b.z);
 /**
  * Judge a camera sample sequence.
  *
+ * The first sample is the reference; the caller must take it before the Step click, or every displacement
+ * is measured from a pose the visitor had already left.
+ *
  * @param {Array<{t:number, elements:number[]}>} samples view matrices with times in milliseconds
  * @param {{translationMetres?:number, rotationRadians?:number, minimumSamples?:number}} [options]
- * @returns {{verdict:string, firstMovement:number|null, bounds:{earliest:number|null, latest:number|null},
- *            firstRotation:number|null, reasons:string[], validSamples:number}}
+ * @returns {{verdict:string, firstExceedance:number|null,
+ *            bounds:{earliest:number|null, latest:number|null}|null, firstRotation:number|null,
+ *            displacementMetres?:number, reasons:string[], validSamples:number}}
  */
 export function judgeCameraMotion(samples, options = {}) {
   const translationLimit = options.translationMetres ?? 1e-3;   // 1 mm

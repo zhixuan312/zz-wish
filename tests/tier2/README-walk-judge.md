@@ -60,6 +60,13 @@ translation reads `moving` with a two-sample bracket; a 0.4 mm-per-frame walk re
 `moving` with `bounds {32, 48}`; a single 0.5 mm drift reads `still`; an empty or NaN-only sequence and a
 single sample read `unknown` instead of `still`. **10 tests pass.**
 
+`walk-camera-sampler.test.mjs` drives the sampling transform against simulated frames: a walk starting
+after the click rebases to the click with the pre-click frame at −100 ms and reports the crossing at
+(32, 48]; a reference copied by value survives the source array being overwritten; no reference, no click
+mark, a missing camera and a sampler error each yield `unknown` with their own reason; a still camera stays
+still; a null snapshot is `unknown`; and the median interval is reported or null with one sample.
+**9 tests pass.** Reverting the no-reference guard was confirmed to fail exactly its own test.
+
 Both regressions were re-introduced to confirm the tests catch them: reading forward from
 `elements[8..10]` fails only the `getWorldDirection` case, and comparing consecutive samples instead of the
 reference fails only the slow-walk case.
@@ -70,6 +77,37 @@ The judge cannot be applied to the baseline records at all. Those records carry 
 (`basis: 'canvas-proxy'`, `armReason: 'no-fade'`, `maxOpacity: 0`), and the production bundle they were
 taken from exposes neither the camera nor the walk progress. **No production first-step time is claimed
 here, and none can be derived from the existing matrix.**
+
+## Runnable E2E entry point
+
+`tests/tier2/walk-camera-sampler.mjs` is the sampling half, ready to drive from a browser test. It reads
+only `window.__pineRenderCamera`, keeps replacing its reference frame every animation frame until the
+click is marked, then copies each frame's `matrixWorldInverse.elements` by value and timestamps it with the
+same `performance.now()` clock as the click.
+
+Invocation from a Playwright test (the page must be a `VITE_E2E_HOOKS=1` build):
+
+```js
+import { pageSampler, pageMarkClick, pageCollect, samplesFromSnapshot, sampleInterval }
+  from './walk-camera-sampler.mjs';
+import { judgeCameraMotion } from './walk-camera-judge.mjs';
+
+await page.evaluate(pageSampler);            // install before the Step click
+await page.waitForTimeout(300);              // let a few pre-click frames land
+const step = page.getByRole('button', { name: 'Step inside', exact: true });
+await step.click();
+await page.evaluate(pageMarkClick);          // stamp the click on the sampler's clock
+await page.waitForTimeout(4000);
+const snapshot = await page.evaluate(pageCollect);
+const { samples, reasons } = samplesFromSnapshot(snapshot);
+const verdict = judgeCameraMotion(samples);
+console.log(verdict.verdict, verdict.firstExceedance, verdict.bounds, sampleInterval(samples), reasons);
+```
+
+What it reports: the verdict, `firstExceedance` (the first sample past the threshold), the bracket around
+that crossing, the median sample interval, and every reason a sample was dropped or a stage could not be
+measured. `unknown` is returned when there is no pre-click reference, no click mark, or no main camera —
+each with its own sentence, never a silent `still`.
 
 ## Minimum live work to settle it
 
