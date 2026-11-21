@@ -2471,6 +2471,7 @@ export async function travel(id, listener) {
       && rig.pos.z > 14 && performance.now() - started < 8000);
   }
   const P = place.P, N = P.nook, arrival=viewOf((narrow()&&N.widePhone)||N.wide),end=P.bakedLighting?chooseView():arrival;
+  if (N.oilFill) roomLight = 1;
   // A place may end its walk at a reveal pose, hold it, then approach its own end pose. Pine Gate
   // opts in; every other place walks straight into its end pose as before.
   const hold = P.walkHold;
@@ -2818,6 +2819,8 @@ export async function snuff(done = false, remaining, gust = false) {
   if(import.meta.env.DEV)window.__visualIgnition={state:'cancelled',journey};
   if(ignitionTaper)ignitionTaper.g.visible=false;
   const endingParts = mine.parts;
+  const oilFillEnding = endingParts?.kind === 'oil' && !!place.P.nook.oilFill;
+  const ownsEnding = () => !oilFillEnding || journey === cameraJourneyVersion;
   if (endingParts?.pineWax) {
     const fuel = done ? 0 : THREE.MathUtils.clamp(remaining ?? waxFuel?.() ?? level, 0, 1);
     waxFuel = null;
@@ -2837,7 +2840,9 @@ export async function snuff(done = false, remaining, gust = false) {
     variant: endingParts?.pineWax ? 'pine' : undefined, valid: () => mine.parts === endingParts });
   emberUntil = clockTime + (done ? 3.8 : .35);
   // Went out: sudden, and the place keeps less of its light. Burned down: it stays as it was.
-  if (!done && !place.P.bakedLighting) void tween(1.6, (k) => { roomLight = 1 - .3 * ease(k); });
+  if (!done && !place.P.bakedLighting) void tween(1.6, (k) => {
+    if (ownsEnding()) roomLight = 1 - .3 * ease(k);
+  });
   const p0=done?Math.min(.24,Math.max(.015,lastPower)):mine.power;mine.power=p0;
   // Putting a lamp out stays sudden for the flame, its light and the smoke: only
   // the cloth holds heat. The cloth starts from the glow it had a frame before
@@ -2845,7 +2850,10 @@ export async function snuff(done = false, remaining, gust = false) {
   // The cloth's own glow is what cools, and it sits around 2.4 * strength * power
   // while lit; start from that so the first cooled frame matches the last lit one.
   if(!done&&endingParts?.shells?.length){shadeCoolingStart=clockTime;shadeCoolingGlow=Math.max(.02,Math.min(2.4,lastGlow*.9));shadeCoolingUntil=clockTime+16;shadeCoolingTau=2.6;}
-  await tween(done?2.6:.12,k=>{mine.power=p0*Math.pow(1-k,done?1.35:1)*(done?.78+.22*Math.sin(k*17)**2:1);});mine.power=0;
+  await tween(done ? 2.6 : .12, k => {
+    if (ownsEnding()) mine.power = p0 * Math.pow(1 - k, done ? 1.35 : 1) * (done ? .78 + .22 * Math.sin(k * 17) ** 2 : 1);
+  });
+  if (ownsEnding()) mine.power = 0;
 }
 
 function resize() {
