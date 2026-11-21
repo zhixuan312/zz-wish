@@ -34,8 +34,7 @@ export default function createPlace(h) {
       const rubbedStone = M(0x9a8974, .89, { map: pavingTex });
       // Keep the floor and entrance solids separate in the scene graph so
       // their true world bounds are available during camera review.
-      function structure(name, size, position, material) {
-        const geometry = new THREE.BoxGeometry(...size);
+      function structure(name, size, position, material, geometry = new THREE.BoxGeometry(...size)) {
         if (material === white || material === innerLime) mapHighWhitePlasterUV(geometry, position);
         const mesh = new THREE.Mesh(geometry, material);
         mesh.name = `High White ${name}`;
@@ -71,6 +70,34 @@ export default function createPlace(h) {
       wallWithHoles({ x0: -11.5, x1: 14.5, y0: 0, y1: 4.5, z: -1, depth: .8, m: white, uv: .3, holes });
       box(26, 4.5, .7, white, 1.5, 2.25, -9); for (const x of [-11.5, 14.5]) box(.7, 4.5, 8, white, x, 2.25, -5);
       box(26.8, .28, 9, cap, 1.5, 4.64, -5); box(26.8, .16, 9, white, 1.5, 4.86, -5);
+      // The hall's service passage sits behind the facade. Its returns close
+      // in toward the inner frame so both planes read from across the court.
+      const passageDepth = 3.4;
+      for (const side of [-1, 1]) {
+        const size = [.26, 2.65, passageDepth];
+        const returnWall = new THREE.BoxGeometry(...size);
+        const { position } = returnWall.attributes;
+        for (let i = 0; i < position.count; i++) {
+          if (position.getX(i) * side >= 0) continue;
+          const depth = .5 - position.getZ(i) / passageDepth;
+          position.setX(i, position.getX(i) - side * .40 * depth);
+        }
+        returnWall.computeVertexNormals();
+        structure(`hall passage ${side < 0 ? 'west' : 'east'} return`, size,
+          [side * 1.33, 1.325, -3.48], innerLime, returnWall);
+      }
+      structure('hall passage ceiling', [2.76, .18, 3.92], [0, 2.70, -3.15], wood);
+      structure('hall passage sill', [2.38, .092, .46], [0, .053, -1.23], rubbedStone);
+      for (const [index, z] of [-2.035, -3.185, -4.335, -5.485, -6.635, -7.785].entries()) {
+        structure(`hall passage slab ${index + 1}`, [2.38, .082, 1.14], [0, .043, z], paving);
+      }
+      const innerTimber = M(0x49382a, .88, { map: grainTex });
+      for (const x of [-.79, .79]) box(.16, 2.42, .24, innerTimber, x, 1.23, -5.19);
+      box(1.74, .17, .25, innerTimber, 0, 2.45, -5.19);
+      const recess = whitewash(THREE, scan, 0xa19480, 1.1);
+      box(2.64, 2.61, .22, recess, 0, 1.305, -8.63);
+      box(1.04, 1.99, .13, innerTimber, -.26, 1.04, -8.48);
+      box(1.23, .10, .21, rubbedStone, -.26, .10, -8.42);
       const windowPaper = new THREE.MeshStandardMaterial({ color: 0x9d7952, emissive: 0xf0a054, emissiveIntensity: .03, roughness: .84 });
       C.up.push((_dt, _time, light) => { windowPaper.emissiveIntensity = .025 + .11 * light.lamp; });
       for (const x of [-8, -4, 4, 8, 12]) {

@@ -78,6 +78,24 @@ test('the inner west return reaches the edge of the existing desktop threshold v
   expect(insideEdge.z).toBeLessThan(1);
 });
 
+test('both hall returns and successive floor slabs are visible through the reveal opening', async () => {
+  const { court } = await portal();
+  const passage = court.children.filter(mesh => mesh.name.startsWith('High White hall passage'));
+  const eye = vector(.65, 1.66, 26.1);
+  const firstHit = target => new THREE.Raycaster(eye, target.sub(eye).normalize())
+    .intersectObjects(passage)[0];
+
+  for (const [side, x] of [['west', -1.02], ['east', 1.02]]) {
+    const hit = firstHit(vector(x, 1.4, -1));
+    expect(hit.object.name).toBe(`High White hall passage ${side} return`);
+    expect(hit.point.z).toBeLessThan(-1.78);
+    expect(hit.point.z).toBeGreaterThan(-5.18);
+  }
+  const floor = [-2.035, -4.335].map(z => firstHit(vector(0, .08, z)));
+  expect(floor.map(hit => hit.object.name)).toEqual(['High White hall passage slab 1', 'High White hall passage slab 3']);
+  expect(floor[1].distance - floor[0].distance).toBeGreaterThan(2);
+});
+
 test('the ridges leave the center of the reveal sky above the hall', () => {
   const court = new THREE.Group();
   buildHighWhiteRidges({ THREE, context: { G: court, light: { n: 0 } } });
