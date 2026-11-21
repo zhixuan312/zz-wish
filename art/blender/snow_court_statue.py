@@ -1,9 +1,12 @@
 """Place the credited CC0 earth-touching figure and its stone seat."""
 
+from hashlib import sha256
 import math
 from pathlib import Path
 
 import numpy as np
+
+from snow_bronze_maps import _png
 
 SCAN_SOURCE = Path(__file__).resolve().parents[2] / 'art/assets/snow-court/seated-earth-touching.npz'
 SCAN_MODEL = '1723172'
@@ -116,14 +119,109 @@ def build_seat(mesh, anchor, material):
     return seat, colours
 
 
+def figure_scan_patch(bpy, path):
+    """Take the same intact paver face from all three photographed maps."""
+    image = bpy.data.images.load(str(path), check_existing=False)
+    try:
+        image.colorspace_settings.name = 'Non-Color'
+        width, height = image.size
+        pixels = np.empty(width * height * 4, dtype=np.float32)
+        image.pixels.foreach_get(pixels)
+        xs = np.linspace(.214 * width, .366 * width, 128).round().astype(int)
+        ys = np.linspace(.807 * height, .962 * height, 128).round().astype(int)
+        return pixels.reshape(height, width, 4)[ys[:, None], xs, :3].copy()
+    finally:
+        bpy.data.images.remove(image)
+
+
+def reflected_tile(patch, normal=False):
+    """Mirror the source crop with tangent direction reflected at each join."""
+    horizontal = patch[:, ::-1].copy()
+    if normal:
+        horizontal[:, :, 0] = 1. - horizontal[:, :, 0]
+    top = np.concatenate((patch, horizontal), axis=1)
+    bottom = top[::-1].copy()
+    if normal:
+        bottom[:, :, 1] = 1. - bottom[:, :, 1]
+    return np.concatenate((top, bottom), axis=0)
+
+
+def figure_surface(mesh):
+    """Give the existing carved figure fine, neutral photographed stone."""
+    import bpy
+
+    source = mesh.MATERIALS / 'stone_pavers'
+    inputs = tuple(source / f'{channel}.jpg' for channel in ('diffuse', 'normal', 'roughness'))
+    recipe = sha256(Path(__file__).read_bytes() + b''.join(sha256(path.read_bytes()).digest() for path in inputs))
+    directory = mesh.ROOT / 'art/build/authored-materials' / ('buddha-fine-stone-' + recipe.hexdigest()[:12])
+    directory.mkdir(parents=True, exist_ok=True)
+
+    diffuse, normal, roughness = (figure_scan_patch(bpy, path) for path in inputs)
+    luma = reflected_tile(diffuse @ np.array([.2126, .7152, .0722]))
+    low = luma
+    for axis in range(2):
+        low = sum(weight * np.roll(low, shift, axis=axis)
+                  for shift, weight in ((-6, .0625), (-3, .25), (0, .375), (3, .25), (6, .0625)))
+    texture = np.asarray([.773, .765, .746]) + np.clip((luma - low) * .80, -.034, .034)[:, :, None]
+
+    scanned_normal = reflected_tile(normal, normal=True)
+    rough = reflected_tile(roughness[:, :, 0])
+    rough = np.repeat((.79 + .13 * rough)[:, :, None], 3, axis=2)
+    material = mesh.material('Matte weathered stone of the seated Buddha', '#ffffff', 'stone_pavers', STONE_ROUGHNESS)
+    maps = {'diffuse.jpg': texture, 'normal.jpg': scanned_normal, 'roughness.jpg': rough}
+    for node in material.node_tree.nodes:
+        if node.type == 'TEX_IMAGE' and node.image:
+            source_name = Path(node.image.filepath).name
+            if source_name not in maps:
+                continue
+            result = directory / Path(source_name).with_suffix('.png')
+            data = _png(np.round(np.clip(maps[source_name][::-1], 0., 1.) * 255.).astype(np.uint8))
+            if result.exists() and result.read_bytes() != data:
+                raise RuntimeError(f'Immutable Buddha stone map recipe collision: {result}')
+            if not result.exists():
+                result.write_bytes(data)
+            node.image = bpy.data.images.load(str(result), check_existing=True)
+            if source_name != 'diffuse.jpg':
+                node.image.colorspace_settings.name = 'Non-Color'
+        elif node.type == 'NORMAL_MAP':
+            node.inputs['Strength'].default_value = .15
+    mesh.vertex_tint_shader(material)
+    mesh.stable_roughness(material, .78, preserve_maps=True)
+    return material
+
+
 def figure_stone_uv(local):
-    """Project one continuous material region from a single ungrouted stone face."""
-    # An eight-degree yaw and three-degree lift suit the inspection sightline
-    # and keep near-horizontal or edge-facing triangles off an axial singularity.
+    """Project a continuous stone grain at a 270 mm repeat."""
     yaw, pitch = math.radians(-8.), math.radians(3.)
     right = (math.cos(yaw), 0., -math.sin(yaw))
     up = (math.sin(yaw) * math.sin(pitch), math.cos(pitch), math.cos(yaw) * math.sin(pitch))
-    return (np.asarray([.298, .801]) + (local @ np.asarray([right, up]).T) * .104).astype(np.float32)
+    # Keep the front projection and the lightmap coordinates independent.
+    return ((local @ np.asarray([right, up]).T) / .27 + [.5, .18]).astype(np.float32)
+
+
+def figure_stone_colours(vertices, faces):
+    """Keep dust in concave detail and polish exposed ridges."""
+    a, b, c = vertices[faces].transpose(1, 0, 2)
+    face_normals = np.cross(b - a, c - a)
+    vertex_normals = np.zeros_like(vertices)
+    for corners in faces.T:
+        np.add.at(vertex_normals, corners, face_normals)
+    vertex_normals /= np.maximum(np.linalg.norm(vertex_normals, axis=1, keepdims=True), 1e-9)
+    starts = faces.ravel()
+    ends = np.roll(faces, -1, axis=1).ravel()
+    offsets = vertices[ends] - vertices[starts]
+    displacement = np.zeros_like(vertices)
+    reach = np.zeros(len(vertices))
+    np.add.at(displacement, starts, offsets)
+    np.add.at(displacement, ends, -offsets)
+    lengths = np.linalg.norm(offsets, axis=1)
+    np.add.at(reach, starts, lengths)
+    np.add.at(reach, ends, lengths)
+    relief = (displacement * vertex_normals).sum(axis=1) / np.maximum(reach, 1e-9)
+    dust = np.clip((relief - .018) / .115, 0., 1.)
+    polish = np.clip((-relief - .027) / .15, 0., 1.)
+    tone = .94 - .085 * dust + .06 * polish
+    return np.repeat(tone[:, None], 3, axis=1)
 
 
 def build(mesh, anchor, material):
@@ -134,7 +232,7 @@ def build(mesh, anchor, material):
         faces = data['faces']
         charts = data['charts']
         material_uv = figure_stone_uv(local)[faces]
-        colours = data['colors'] / 255.
+    colours = figure_stone_colours(local, faces)
 
     figure = mesh.mesh_object('Seated weathered stone Buddha', vertices.tolist(), faces.tolist(), material)
     figure.data.uv_layers['UVMap'].data.foreach_set('uv', material_uv.ravel())

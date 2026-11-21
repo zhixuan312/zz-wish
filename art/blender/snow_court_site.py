@@ -44,8 +44,7 @@ def palette(site):
         'bronze': mesh.material('Dull old lamp bronze', '#735438', rough=.63, metal=.71),
         'ash': mesh.material('Char and burned wick', '#272822', rough=.96),
         'oil': mesh.material('Dark clear seed oil', '#6b4628', rough=.22, metal=.03),
-        'figure': mesh.material('Matte weathered stone of the seated Buddha', '#ffffff', 'stone_pavers',
-                                statue.STONE_ROUGHNESS),
+        'figure': statue.figure_surface(mesh),
         'figure_seat': mesh.material('Dressed grey Sumeru stone with rubbed edges', '#ffffff', 'stone_pavers', .84),
         'glow': mesh.material('Thin gauze over low flame', '#b96953', rough=.86, emission=.04),
         'bamboo': mesh.material('Split bamboo beneath faded linen', '#9a7350', rough=.94),
@@ -57,11 +56,6 @@ def palette(site):
         'rope': mesh.material('Rough suspension cord', '#8a7962', rough=.98),
     }
     mesh.vertex_tint_shader(materials['red'])
-    mesh.vertex_tint_shader(materials['figure'])
-    mesh.stable_roughness(materials['figure'], .80, preserve_maps=True)
-    for node in materials['figure'].node_tree.nodes:
-        if node.type == 'NORMAL_MAP':
-            node.inputs['Strength'].default_value = .12
     mesh.vertex_tint_shader(materials['figure_seat'])
     materials['red']['one_light_painted_timber'] = True
     mesh.painted_timber_finish(materials['red'])
