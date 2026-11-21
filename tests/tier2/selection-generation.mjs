@@ -343,7 +343,8 @@ try {
           && c.placeId === record.selectedPlaceId);
         if (burning.length) {
           record.activeCandle = { id: burning[0].id, placeId: burning[0].placeId,
-            status: burning[0].status, durationMs: burning[0].durationMs };
+            status: burning[0].status, durationMs: burning[0].durationMs,
+            readAt: await page.evaluate(() => performance.now()) };
           break;
         }
         await page.waitForTimeout(150);
@@ -353,6 +354,9 @@ try {
       // exists from the cover onward, so counting canvases proved nothing.
       await page.waitForSelector('[data-testid="with-you"]', { timeout: 120000 });
       ignited = true;
+      // Ignition has its own timestamp on the same page clock as ready, click and first movement, so the walk
+      // can be reported as navigation → ignition rather than stopping at first movement.
+      record.ignitionHudAt = await page.evaluate(() => performance.now());
       // Let the burning view settle so any transfer it triggers can finish and be recorded.
       await page.waitForTimeout(2000);
     } catch { ignited = false; }
