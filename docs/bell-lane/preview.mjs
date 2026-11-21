@@ -52,18 +52,29 @@ export async function startPreview() {
                 const windowMesh = outside.getObjectByName('Bell Lane east shop window');
                 if (!windowMesh) return null;
                 const p = windowMesh.getWorldPosition(new THREE.Vector3());
-                const caster = new THREE.Raycaster(camera.position, p.clone().sub(camera.position).normalize(), 0, p.distanceTo(camera.position) + .01);
                 const solids = [];
                 outside.traverseVisible(object => {
                   if (object.isMesh && !object.material.transparent && !Array.isArray(object.material)) solids.push(object);
                 });
-                const hit = caster.intersectObjects(solids, false)[0];
+                // Do not cast through the shared diagonal of the two pane triangles.
+                // Multiple interior samples also distinguish a window from a glimpse of one corner.
+                const samples = [];
+                for (const across of [-.77, -.29, .29, .77]) for (const up of [-.30, .26]) {
+                  const point = windowMesh.localToWorld(new THREE.Vector3(across, up, 0));
+                  const ray = point.clone().sub(camera.position);
+                  const caster = new THREE.Raycaster(camera.position, ray.clone().normalize(), 0, ray.length() + .02);
+                  const projected = point.clone().project(camera);
+                  const inFrame = projected.z > -1 && projected.z < 1 && Math.abs(projected.x) < 1 && Math.abs(projected.y) < 1;
+                  const hit = caster.intersectObjects(solids, false)[0]?.object;
+                  samples.push({ inFrame, onPane: hit === windowMesh, obstruction: hit && hit !== windowMesh ? (hit.name || hit.type) : null });
+                }
                 const ndc = p.clone().project(camera);
                 const wick = mine.flameWorld().clone().project(camera);
                 const covered = point => Boolean(document.elementFromPoint((point.x + 1) * innerWidth / 2,
                   (1 - point.y) * innerHeight / 2)?.closest('.candle-sheet'));
-                return { wickNdc: wick.toArray(), wickCovered: covered(wick), windowCovered: covered(ndc), windowId: windowMesh.uuid, visible: hit?.object === windowMesh && Math.abs(ndc.x) < 1 && Math.abs(ndc.y) < 1,
-                  ndc: ndc.toArray(), obstruction: hit?.object === windowMesh ? null : (hit?.object?.name || hit?.object?.type || null) };
+                const clearSamples = samples.filter(sample => sample.inFrame && sample.onPane).length;
+                return { wickNdc: wick.toArray(), wickCovered: covered(wick), windowCovered: covered(ndc), windowId: windowMesh.uuid,
+                  visible: clearSamples >= 2, clearSamples, ndc: ndc.toArray(), samples };
               };
             `).replace(draw, draw.replace('composer.render();', 'composer.render(); captureBellFrames();'));
           }
