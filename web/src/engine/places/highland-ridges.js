@@ -87,13 +87,14 @@ function cutByDrain(x, down, [head, spread, bend, depth, west, east]) {
 
 function principalRavine(x, down, seed) {
   // The channel bends around the shoulder before the deposit spreads at its foot.
-  const centre = 79 - 24 * down + 7 * Math.sin(Math.PI * down) + .85 * noise(down * 8, seed + 14);
+  const lowerTurn = 2.45 * fade(.50, .85, down);
+  const centre = 79 - 24 * down + 7 * Math.sin(Math.PI * down) + .85 * noise(down * 8, seed + 14) - lowerTurn;
   const across = x - centre;
   if (Math.abs(across) > 28) return null;
 
   const apronStart = fade(.26, .55, down);
   const reach = fade(.035, .145, down) * (1 - fade(.89, .99, down));
-  const width = mix(3.1, 4.8, fade(.11, .42, down)) * (1 - .37 * apronStart);
+  const width = mix(3.1, 4.8, fade(.11, .42, down)) * (1 - .25 * apronStart);
   const runnel = reach * bell(across / width);
   const widthAtBank = width * (across < 0 ? 2.20 : 2.66);
   const rock = reach * (1 - apronStart) * (1 - fade(.47, 1, Math.abs(across) / widthAtBank));
@@ -105,8 +106,8 @@ function principalRavine(x, down, seed) {
   const exposedLedge = rock * bell((across - width * 1.22) / (width * .82));
   const shallowBend = fade(.11, .26, down) * (1 - fade(.42, .58, down));
   const depth = mix(6.5, 2.05, apronStart) * (1 - .65 * shallowBend);
-  const height = 1.65 * exposedLedge + rock * (.98 * bedding + .45 * rubble)
-    + apron * (1.2 + .35 * rubble) - depth * runnel;
+  const height = 1.65 * exposedLedge + rock * (1.28 * bedding + .60 * rubble)
+    + apron * (1.2 + .5 * rubble) - depth * runnel;
   return { height, runnel, rock, apron, bedding, rubble };
 }
 
@@ -138,7 +139,8 @@ export function buildHighWhiteRidges({ THREE, context }) {
     const vertices = geometry.attributes.position;
     const colours = new Float32Array(vertices.count * 3);
     const rock = new THREE.Color(range.rock), scree = new THREE.Color(range.scree), shade = new THREE.Color();
-    const fracturedRock = new THREE.Color(0x51463e), paleApron = new THREE.Color(0xbcab91);
+    const fracturedRock = new THREE.Color(0x51463e), paleApron = new THREE.Color(0xc5b49b);
+    const channelSilt = new THREE.Color(0x594c41);
     const sample = range.drains ? nearSection : section;
     for (let row = 0; row <= rows; row++) {
       const distance = 1 - row / rows;
@@ -161,7 +163,9 @@ export function buildHighWhiteRidges({ THREE, context }) {
         if (range.drains) shade.multiplyScalar(1 - .34 * clamp(carve, 0, 1));
         if (ravine) {
           shade.lerp(fracturedRock, ravine.rock * (.66 + .16 * ravine.bedding));
-          shade.lerp(paleApron, ravine.apron * (.92 + .08 * ravine.rubble));
+          shade.lerp(paleApron, ravine.apron * (.78 + .20 * ravine.rubble));
+          // Fine, darker sediment marks the same floor as it crosses the fan.
+          shade.lerp(channelSilt, .94 * ravine.runnel * ravine.apron);
           // The channel floor and the sheltered side receive less sky light.
           shade.multiplyScalar(1 - ravine.runnel * (.34 - .17 * ravine.apron));
         }
