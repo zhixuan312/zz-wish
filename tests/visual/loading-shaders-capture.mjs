@@ -91,7 +91,7 @@ if (window.__loadingShaderTrace) {
   window.__loadingFrameObservations?.draw(phase, place?.id, stamp);
   window.__loadingParity?.afterDraw({
     renderer, camera, phase, place: place?.id, quality,
-    lighting: place?.baked?.lightingState(), clock: window.__loadingParity.visualTime(phase),
+    lighting: place?.baked?.lightingState(), clock: window.__loadingParity.visualTime(phase), simulationTime: clockTime,
   });`,
     'main composer draw');
   return source;
@@ -127,7 +127,7 @@ if (command === 'check-source') {
   await run();
 }
 
-function installWallClock({ wallTime, seed }) {
+function installWallClock({ wallTime, seed, readyLightmapWeights }) {
   const ActualDate = Date;
   const pinned = new ActualDate(wallTime);
   for (const name of ['getHours', 'getMinutes', 'getSeconds', 'getMilliseconds']) {
@@ -164,6 +164,8 @@ function installWallClock({ wallTime, seed }) {
     advance(phase, place) {
       const key = phase + ':' + place;
       if (key !== current) { current = key; ordinal = 0; }
+      // React can enter the burning screen before the engine starts ignition.
+      if (phase === 'burning' && !ignitionState) return 0;
       ordinal++;
       if (phase === 'wish' || phase === 'place') return 0;
       if (phase === 'candle' && ordinal > 100) return 0;
@@ -185,15 +187,18 @@ function installWallClock({ wallTime, seed }) {
       if (waiting) throw Error('One fixture draw may be pending.');
       return new Promise(resolve => { waiting = { stage, place, resolve }; });
     },
-    afterDraw({ renderer, camera, phase, place, quality, lighting, clock }) {
+    afterDraw({ renderer, camera, phase, place, quality, lighting, clock, simulationTime }) {
       if (!waiting || waiting.place !== place) return;
       const { stage } = waiting;
       const ui = document.querySelector('.ui');
       const fade = document.querySelector('#fade');
       const fadeGone = fade && Number(getComputedStyle(fade).opacity) < .001;
+      // Use the real post-crossfade image. The production readiness clock is measured separately.
+      const lightmapSettled = !readyLightmapWeights || (lighting && lighting.pendingPasses.length === 0
+        && readyLightmapWeights.every((weight, index) => lighting.weights[index] === weight));
       if (stage === 'cover-first-visible' && (phase !== 'wish' || !fadeGone)) return;
       if (stage === 'place-first-visible' && (phase !== 'place' || !fadeGone
-        || !ui?.querySelector('.place-actions .primary:enabled'))) return;
+        || !ui?.querySelector('.place-actions .primary:enabled') || !lightmapSettled)) return;
       if (stage === 'walk-28s' && (phase !== 'travel' || walkSeconds < 28 - 1e-8 || walkSeconds > 28.02)) return;
       if (stage === 'burning-settled' && (phase !== 'burning' || ignitionState !== 'settled'
         || settleFrame !== 12 || !ui?.querySelector('[data-testid="with-you"]'))) return;
@@ -208,7 +213,7 @@ function installWallClock({ wallTime, seed }) {
       for (let i = 0; i < topDown.length; i += 16384) chunks.push(String.fromCharCode(...topDown.subarray(i, i + 16384)));
       const frame = { phase, ordinal: stage === 'walk-28s' ? 1680 : stage === 'burning-settled' ? 12 : 0,
         cameraWorld: camera.matrixWorld.toArray(), cameraProjection: camera.projectionMatrix.toArray(),
-        drawingBuffer: [width, height], clock, walkSeconds, lighting };
+        drawingBuffer: [width, height], clock, simulationTime, walkSeconds, lighting };
       const extension = gl.getExtension('WEBGL_debug_renderer_info');
       const hardware = gl.getParameter(extension ? extension.UNMASKED_RENDERER_WEBGL : gl.RENDERER);
       waiting.resolve({ rgba: btoa(chunks.join('')), frame, quality, renderer: hardware });
@@ -293,7 +298,9 @@ async function captureCase(browser, origin, item, root, captureSide) {
   page.on('console', message => { if (message.type() === 'error') errors.push(message.text()); });
   page.on('response', result => { if (result.status() >= 400) errors.push('HTTP ' + result.status() + ' ' + result.url()); });
   if (mode === 'trace') await context.addInitScript(installLoadingShaderProgramTrace);
-  await context.addInitScript(installWallClock, { wallTime: item.wallTime, seed: mode === 'parity' ? 9031 : null });
+  const readyLightmapWeights = item.place === 'pine-gate' ? (item.hour === 22 ? [1, 0, 0] : [0, 0, 1]) : null;
+  await context.addInitScript(installWallClock, { wallTime: item.wallTime,
+    seed: mode === 'parity' ? 9031 : null, readyLightmapWeights });
   const manifestRoute = '/places/' + item.place + '/manifest.json';
   const servedManifests = [];
   page.on('response', result => {
