@@ -13,13 +13,24 @@ export default function createPlace(h) {
     sky: { top: 0x080d19, horizon: 0x282c38, ground: 0x0b0e15, sun: 0xe0e4ee, dir: [-.7, .5, .35], glow: .12, clouds: .3, lit: 0x424e65, dark: 0x11141c, stars: .35, disc: 1.2 },
     fog: [0x1b2230, .007], sunL: [0xc1cce4, .48], hemi: [0x424f69, 0x15140f, .35], bloom: [.45, 1.05], porch: [0xffb46a, 2.4],
     day: { exposure: 1, sky: { top: 0x6489ba, horizon: 0xe5dcc8, ground: 0x685f52, sun: 0xffe6bf, dir: [-.7, 1.65, .35], glow: .4, clouds: .25, lit: 0xfff2e0, dark: 0x8d9aaf }, fog: [0xc9c6bd, .004], sunL: [0xffe3b5, 2], hemi: [0xc2d5e8, 0x4c4539, .85], bloom: [.25, 1.4] },
+    sunDirectionAt(date, { n, elev }) {
+      const hour = date.getHours() + date.getMinutes() / 60
+        + (date.getSeconds() + date.getMilliseconds() / 1000) / 3600;
+      // Cross above the lane around noon. Keep the morning side light and the westward
+      // afternoon direction that carries the tree's shadow to the bell pavilion.
+      const west = THREE.MathUtils.smoothstep(hour, 10.5, 13.5);
+      return [
+        THREE.MathUtils.lerp(THREE.MathUtils.lerp(.70, -.70, west), -.70, n),
+        THREE.MathUtils.lerp(Math.max(.02, 1.65 * elev), .50, n),
+        .35,
+      ];
+    },
     view: cameras.view, viewPhone: cameras.viewPhone,
     walk: [], doors: V3(0, 1.66, 10),
     walkSeconds: WALK_SECONDS, createWalk: cameras.createWalk,
     arrivalSeconds: TURN_SECONDS, createArrival: cameras.createArrival,
     async build() {
       const C = h.context, wall = M(0x6b6c6d, .97, { map: brickTex }), wood = M(0x3b271b, .85, { map: grainTex }), paper = M(0xb7aa8c, .96), stone = M(0x59595a, .9, { map: pavingTex });
-      const daylight = C.G.children.find(object => object.isDirectionalLight);
       const shutters = [];
       ground(0x444546, { mat: { map: pavingTex } }); box(7.6, .06, 48, stone, 0, .03, 34);
       // Two irregular rows of small shops make an enclosed, human-scale lane rather than an avenue to a palace.
@@ -158,7 +169,7 @@ export default function createPlace(h) {
       const stick = new THREE.CylinderGeometry(.016, .019, 1.13, 10);
       stick.rotateZ(-.18);
       put(stick, wood, -3.60, .68, 23.4);
-      const setLocalTime = (_dt, _t, light) => {
+      const setLocalTime = () => {
         const clock = new Date();
         const hour = clock.getHours() + clock.getMinutes() / 60 + clock.getSeconds() / 3600;
         for (const { pivot, sign, timeOffset } of shutters) {
@@ -166,15 +177,8 @@ export default function createPlace(h) {
           const open = THREE.MathUtils.smoothstep(t, 5.25, 7.9) * (1 - THREE.MathUtils.smoothstep(t, 17, 19.2));
           pivot.rotation.y = sign * open * (Math.PI * .97);
         }
-        if (daylight) {
-          const n = light.n;
-          daylight.position.set(
-            THREE.MathUtils.lerp(light.dawn ? .70 : -.70, -.70, n),
-            THREE.MathUtils.lerp(Math.max(.02, 1.65 * light.elev), .50, n), .35,
-          ).normalize().multiplyScalar(100);
-        }
       };
-      setLocalTime(0, 0, C.light);
+      setLocalTime();
       C.up.push(setLocalTime);
       await pauseBuild();
     },

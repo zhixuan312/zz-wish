@@ -1844,7 +1844,7 @@ async function buildPlace(t) {
 }
 async function buildPlaceNow(t, isolated = false) {
   PLACES[t.id] ??= (await placeModules[t.id]()).default(placeHelpers);
-  const light = placeLight(PLACES[t.id]), lightKey = JSON.stringify(light);
+  const date = new Date(), light = placeLight(PLACES[t.id], date), lightKey = JSON.stringify(light);
   if (cachedPlaces.has(t.id)) return cachedPlaces.get(t.id);
   if(PLACES[t.id].bakedLighting)await ensureNativeAgX();
   if(t.id==='snow-roof')await ensureVisitorFabric();
@@ -1858,7 +1858,9 @@ async function buildPlaceNow(t, isolated = false) {
     C.stone = M(0x9c968c, .85, { map: pavingTex }); C.pave = M(0xa8a296, .85, { map: pavingTex });
     C.red = M(0x8a2a1e, .9); C.col = M(0x6e1a12, .5); C.paint = M(0x2c4a52, .8); C.dark = M(0x1c1714, .6, { metalness: .5 });
   }
-  const s = P.sky, dir = V3(...s.dir).normalize(), col = (h) => new THREE.Color(h);
+  const s = P.sky, col = (h) => new THREE.Color(h);
+  const solar = P.sunDirectionAt ? P.sunDirectionAt(date, daylight(date, true)) : s.dir;
+  const dir = V3(...solar).normalize();
   const u = { uTop: { value: col(s.top) }, uHorizon: { value: col(s.horizon) }, uGround: { value: col(s.ground) }, uSun: { value: col(s.sun) }, uDir: { value: dir },
     uLit: { value: col(s.lit) }, uDark: { value: col(s.dark) }, uGlow: { value: s.glow }, uClouds: { value: s.clouds }, uStars: { value: s.stars ?? 0 }, uTime: { value: 0 }, uDisc: { value: s.disc ?? 5 },
     uDiscEdges: { value: new THREE.Vector2(...(s.discEdges ?? defaultDiscEdges)) } };
@@ -2911,7 +2913,8 @@ function frame(stamp = performance.now()) {
         place.P={...PLACES[place.id],...blendPlace(PLACES[place.id],light)};place.lightKey=key;place.daylight=light;
         const p=place.P,u=place.sky.material.uniforms;
         for(const [name,value] of Object.entries({uTop:p.sky.top,uHorizon:p.sky.horizon,uGround:p.sky.ground,uSun:p.sky.sun,uLit:p.sky.lit,uDark:p.sky.dark}))u[name].value.setHex(value);
-        u.uDir.value.set(...p.sky.dir).normalize();u.uGlow.value=p.sky.glow;u.uClouds.value=p.sky.clouds;u.uStars.value=p.sky.stars;u.uDisc.value=p.sky.disc;
+        if (!p.sunDirectionAt) u.uDir.value.set(...p.sky.dir).normalize();
+        u.uGlow.value=p.sky.glow;u.uClouds.value=p.sky.clouds;u.uStars.value=p.sky.stars;u.uDisc.value=p.sky.disc;
         u.uDiscEdges.value.set(...p.sky.discEdges);
         if (place.id === 'pine-gate') {
           place.sun.position.copy(u.uDir.value).multiplyScalar(100);
@@ -2925,6 +2928,13 @@ function frame(stamp = performance.now()) {
     // it covers: mist and creek motion otherwise differ between captures and swamp the reading.
     // Freezing holds the animation clock still; a normal page never sets the flag.
     const freeze = window.__freezeScene === true;
+    // Places with an authored solar path update every frame. The shared look still
+    // refreshes on its usual schedule, with the sky and shadow using one direction.
+    if (P.sunDirectionAt && !freeze) {
+      const date = new Date(), dir = place.sky.material.uniforms.uDir.value;
+      dir.set(...P.sunDirectionAt(date, daylight(date, true))).normalize();
+      place.sun.position.copy(dir).multiplyScalar(100);
+    }
     if (!freeze) for (const f of place.up) f(dt, time, place.daylight);
     place.sky.position.copy(camera.position);
     for (const m of flameMats) m.uniforms.uTime.value = time;
