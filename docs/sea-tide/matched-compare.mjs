@@ -14,10 +14,12 @@ import { startPreview } from './preview.mjs';
 
 const [receipts, output, ...args] = process.argv.slice(2);
 if (!receipts || !output || resolve(receipts) === resolve(output)) {
-  throw new Error('Usage: node docs/sea-tide/matched-compare.mjs NEW_CAPTURE_DIR NEW_COMPARE_DIR [--shoreline] [desktop-day ...]');
+  throw new Error('Usage: node docs/sea-tide/matched-compare.mjs NEW_CAPTURE_DIR NEW_COMPARE_DIR [--shoreline [--seated-only]] [desktop-day ...]');
 }
 const shoreline = args.includes('--shoreline');
-const filter = args.filter(arg => arg !== '--shoreline');
+const seatedOnly = args.includes('--seated-only');
+if (seatedOnly && !shoreline) throw new Error('--seated-only requires --shoreline');
+const filter = args.filter(arg => arg !== '--shoreline' && arg !== '--seated-only');
 const baseline = shoreline ? '86834b5' : '039a7ee';
 const paths = { world: 'web/src/engine/places/sea-tide.js', water: 'web/src/engine/places/sea-tide-water.js' };
 const root = fileURLToPath(new URL('../../', import.meta.url));
@@ -42,7 +44,7 @@ for (const name of cases) {
     throw new Error('No captured match poses in ' + name);
   }
   const phone = name.startsWith('phone');
-  const shots = [{ label: 'water-reveal', pose: evidence.shots['harbour-reveal'].camera, offer: null }];
+  const shots = seatedOnly ? [] : [{ label: 'water-reveal', pose: evidence.shots['harbour-reveal'].camera, offer: null }];
   if (shoreline) {
     const seated = evidence.shots.burning?.camera;
     if (!seated) throw new Error('No real settled burning pose in ' + name);
