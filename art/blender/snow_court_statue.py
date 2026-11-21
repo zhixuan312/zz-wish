@@ -162,7 +162,8 @@ def figure_surface(mesh):
     for axis in range(2):
         low = sum(weight * np.roll(low, shift, axis=axis)
                   for shift, weight in ((-6, .0625), (-3, .25), (0, .375), (3, .25), (6, .0625)))
-    texture = np.asarray([.773, .765, .746]) + np.clip((luma - low) * .80, -.034, .034)[:, :, None]
+    grain = np.clip((luma - low) * 1.20, -.048, .048)
+    texture = np.asarray([.556, .531, .506]) + grain[:, :, None]
 
     scanned_normal = reflected_tile(normal, normal=True)
     rough = reflected_tile(roughness[:, :, 0])
@@ -184,7 +185,7 @@ def figure_surface(mesh):
             if source_name != 'diffuse.jpg':
                 node.image.colorspace_settings.name = 'Non-Color'
         elif node.type == 'NORMAL_MAP':
-            node.inputs['Strength'].default_value = .15
+            node.inputs['Strength'].default_value = .23
     mesh.vertex_tint_shader(material)
     mesh.stable_roughness(material, .78, preserve_maps=True)
     return material
@@ -200,7 +201,7 @@ def figure_stone_uv(local):
 
 
 def figure_stone_colours(vertices, faces):
-    """Keep dust in concave detail and polish exposed ridges."""
+    """Keep dust in the cuts, with rubbed ridges and a trace of lamp soot."""
     a, b, c = vertices[faces].transpose(1, 0, 2)
     face_normals = np.cross(b - a, c - a)
     vertex_normals = np.zeros_like(vertices)
@@ -218,9 +219,16 @@ def figure_stone_colours(vertices, faces):
     np.add.at(reach, starts, lengths)
     np.add.at(reach, ends, lengths)
     relief = (displacement * vertex_normals).sum(axis=1) / np.maximum(reach, 1e-9)
-    dust = np.clip((relief - .018) / .115, 0., 1.)
+    dust = np.clip((relief - .012) / .112, 0., 1.)
     polish = np.clip((-relief - .027) / .15, 0., 1.)
-    tone = .94 - .085 * dust + .06 * polish
+    x, y, _ = vertices.T
+    # The oil cup stands on the right of the altar. A faint stain trails
+    # up across the front of the chest towards the underside of the chin.
+    chest = np.exp(-((x - .29) / .20) ** 2 - ((y - .96) / .20) ** 2)
+    chin = np.exp(-((x - .02) / .125) ** 2 - ((y - 1.16) / .075) ** 2)
+    front = np.clip((vertex_normals[:, 2] + .24) / .72, 0., 1.)
+    soot = (.060 * chest + .038 * chin) * front
+    tone = .97 - .16 * dust + .05 * polish - soot
     return np.repeat(tone[:, None], 3, axis=1)
 
 
