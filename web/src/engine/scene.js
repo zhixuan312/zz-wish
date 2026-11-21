@@ -2025,7 +2025,7 @@ const narrow = () => innerWidth < 720;
 const toWorld = (v) => place.nookG.localToWorld(v.clone());
 const viewOf = (v) => {
   const pos = toWorld(v.pos), look = toWorld(v.look);
-  if (!narrow() || place.P.bakedLighting || place.P.nook.lamp === 'pineWax') return { pos, look, fov:v.fov };
+  if (!narrow() || place.P.bakedLighting || place.P.nook.explicitPhoneViews || place.P.nook.lamp === 'pineWax') return { pos, look, fov:v.fov };
   // A narrow screen pulls the same view back along its line.
   return { pos: look.clone().add(pos.sub(look).multiplyScalar(1.45)), look };
 };
@@ -2076,7 +2076,7 @@ const chooseView = () => {
     return { pos: backed, look, fov: burn.fov };
   }
   const v=viewOf((narrow()&&N.choosePhone)||N.choose||N.wide);
-  if(narrow()&&!place.P.bakedLighting&&N.lamp!=='pineWax')v.look.y-=v.pos.distanceTo(v.look)*.10;
+  if(narrow()&&!place.P.bakedLighting&&!N.explicitPhoneViews&&N.lamp!=='pineWax')v.look.y-=v.pos.distanceTo(v.look)*.10;
   return fitShadeView(v, undefined, undefined, false, CHOOSE_PHONE_YAW);
 };
 function burnView(){
@@ -2510,7 +2510,16 @@ export async function travel(id) {
       rig.fov = THREE.MathUtils.lerp(from.fov, to.fov, e);
     });
   }
-  if(!P.bakedLighting){const c = chooseView(); await moveCam(c.pos, c.look,2.4,c.fov);}
+  if (P.createArrival) {
+    const start = { pos: rig.pos.clone(), look: rig.look.clone(), fov: rig.fov ?? camera.fov };
+    const route = P.createArrival(start, chooseView());
+    const arrival = tween(P.arrivalSeconds, k => route(k, rig));
+    if (skipNextTravel) skipTweens();
+    await arrival;
+  } else if (!P.bakedLighting) {
+    const c = chooseView();
+    await moveCam(c.pos, c.look, 2.4, c.fov);
+  }
 }
 export function skip() {
   skipNextTravel = true;

@@ -1,82 +1,183 @@
+import { BELL, LAMP, TREE, TURN_SECONDS, WALK_SECONDS, WINDOW, bellLaneCameras } from './bell-lane-camera.js';
+
 // An invented neighbourhood temple: a lit shop lane, one low door, a tree and a small bell court.
 export default function createPlace(h) {
-  const { THREE, V3, M, ground, box, put, wallWithHoles, eave, col, otherLamp, trees, bell, brickTex, plasterTex, grainTex, pavingTex, latticeTex, pauseBuild } = h;
+  const { THREE, V3, M, ground, box, put, wallWithHoles, eave, col, otherLamp, trees, bell,
+    brickTex, plasterTex, grainTex, pavingTex, latticeTex, pauseBuild, lathe, liveFlame } = h;
+  const cameras = bellLaneCameras(V3);
+  const gateHalfWidth = 1.16;
   return {
     exposure: 1.12, shade: .32,
     sky: { top: 0x080d19, horizon: 0x282c38, ground: 0x0b0e15, sun: 0xe0e4ee, dir: [-.7, .5, .35], glow: .12, clouds: .3, lit: 0x424e65, dark: 0x11141c, stars: .35, disc: 1.2 },
     fog: [0x1b2230, .007], sunL: [0xc1cce4, .48], hemi: [0x424f69, 0x15140f, .35], bloom: [.45, 1.05], porch: [0xffb46a, 2.4],
     day: { exposure: 1, sky: { top: 0x6489ba, horizon: 0xe5dcc8, ground: 0x685f52, sun: 0xffe6bf, dir: [-.7, .5, .35], glow: .4, clouds: .25, lit: 0xfff2e0, dark: 0x8d9aaf }, fog: [0xc9c6bd, .004], sunL: [0xffe3b5, 2], hemi: [0xc2d5e8, 0x4c4539, .85], bloom: [.25, 1.4] },
-    view: { pos: V3(.55, 1.68, 50), look: V3(.1, 1.9, 12) },
-    walk: [V3(.2, 1.68, 41), V3(-.1, 1.68, 27), V3(.1, 1.68, 16), V3(.2, 1.68, 7)], doors: V3(0, 1.4, 10),
+    view: cameras.view, viewPhone: cameras.viewPhone,
+    walk: [], doors: V3(0, 1.66, 10),
+    walkSeconds: WALK_SECONDS, createWalk: cameras.createWalk,
+    arrivalSeconds: TURN_SECONDS, createArrival: cameras.createArrival,
     async build() {
       const C = h.context, wall = M(0x6b6c6d, .97, { map: brickTex }), wood = M(0x3b271b, .85, { map: grainTex }), paper = M(0xb7aa8c, .96), stone = M(0x59595a, .9, { map: pavingTex });
       ground(0x444546, { mat: { map: pavingTex } }); box(7.6, .06, 48, stone, 0, .03, 34);
       // Two irregular rows of small shops make an enclosed, human-scale lane rather than an avenue to a palace.
       for (let i = 0; i < 7; i++) for (const side of [-1, 1]) {
-        const z = 14 + i * 6, ht = 3.2 + (i % 3) * .32, face = side * (3.9 + (i % 2) * .16), shade = M(i % 3 === 0 ? 0x6a645a : 0x767574, .95, { map: i % 3 === 0 ? plasterTex : brickTex });
-        box(3.4, ht, 5.8, shade, side * 5.6, ht / 2, z);
-        // Side-facing lattice windows, dark frames, a slightly open timber shutter and a shallow tiled canopy.
-        const pane = new THREE.Mesh(new THREE.PlaneGeometry(3.8, 1.55), new THREE.MeshStandardMaterial({ color: 0x4c3220, emissive: 0xffb76b, emissiveMap: latticeTex, emissiveIntensity: .16 + (i % 4) * .08, roughness: .9, side: THREE.DoubleSide })); pane.position.set(face, 1.55, z); pane.rotation.y = -side * Math.PI / 2; C.G.add(pane);
-        box(.11, .1, 4.1, wood, face - side * .04, .73, z); box(.11, .12, 4.1, wood, face - side * .04, 2.4, z);
-        for (const dz of [-2.05, -.68, .68, 2.05]) box(.11, 1.75, .065, wood, face - side * .04, 1.55, z + dz);
-        box(.11, 2.6, .52, wood, face - side * .06, 1.3, z + 2.54);
-        box(3.7, .16, 6.1, M(0x34373b, .88), side * 5.4, ht + .12, z);
+        const landmark = side === 1 && i === 0;
+        const z = 14 + i * 6, ht = 3.2 + (i % 3) * .32;
+        const face = landmark ? WINDOW[0] : side * (3.9 + (i % 2) * .16);
+        const shade = M(i % 3 === 0 ? 0x6a645a : 0x767574, .95, { map: i % 3 === 0 ? plasterTex : brickTex });
+        const wallX = face + side * 1.73, windowZ = landmark ? WINDOW[2] : z, windowY = landmark ? WINDOW[1] : 1.55;
+        const width = landmark ? 2.65 : 3.8;
+        const frame = landmark ? M(0x385e60, .91, { map: grainTex }) : wood;
+        box(3.4, ht, 5.8, shade, wallX, ht / 2, z);
+        // The east corner shop is the window visible again through the door.
+        const pane = new THREE.Mesh(new THREE.PlaneGeometry(width, 1.38), new THREE.MeshStandardMaterial({
+          color: landmark ? 0xcead79 : 0x80694d, map: latticeTex,
+          emissive: 0xffb76b, emissiveMap: latticeTex, roughness: .9,
+        }));
+        pane.position.set(face, windowY, windowZ);
+        pane.rotation.y = -side * Math.PI / 2;
+        if (landmark) pane.name = 'Bell Lane east shop window';
+        C.G.add(pane);
+        const sill = landmark ? M(0x854630, .94, { map: grainTex }) : frame;
+        box(.22, .12, width + .26, sill, face - side * .08, windowY - .72, windowZ);
+        box(.13, .10, width + .20, frame, face - side * .04, windowY + .72, windowZ);
+        for (const dz of [-.50, -.17, .17, .50]) box(.12, 1.48, .075, frame, face - side * .045, windowY, windowZ + dz * width);
+        box(.11, landmark ? 1.48 : 2.6, landmark ? .50 : .52, frame, face - side * .11,
+          landmark ? windowY : 1.3, landmark ? windowZ - 1.57 : z + 2.54, landmark ? -.45 : 0);
+        if (landmark) {
+          for (let j = 0; j < 7; j++) box(.07, .037, .42, sill, face - .20, .94 + j * .16, windowZ - 1.55, -.45);
+        }
+        const canopy = landmark ? 4.12 : 3.7;
+        box(canopy, .21, 6.06, h.roofMat(0x3f4244), wallX - side * .30, ht + .12, z);
         // An uneven overhang with exposed joist ends catches the shop glow.
         box(.6, .12, 5.8, wood, face - side * .2, 2.68, z);
         for (let q = 0; q < 6; q++) box(.62, .065, .055, wood, face - side * .2, 2.62, z - 2.4 + q * .9);
-        const lamp = new THREE.PointLight(0xffb66c, .7 + (i % 3) * .35, 5.5, 2); lamp.position.set(face - side * .12, 1.65, z); C.G.add(lamp);
+        // One practical light marks the way home. Wall-facing windows give the other shops their glow.
+        const lamp = landmark ? new THREE.PointLight(0xffb66c, 0, 6, 2) : null;
+        if (lamp) {
+          lamp.position.set(face - .36, 1.74, windowZ);
+          C.G.add(lamp);
+        }
+        const setWindowLight = light => {
+          pane.material.emissiveIntensity = landmark ? .045 + 1.30 * light.lamp : .012 + light.lamp * (.12 + (i % 4) * .035);
+          if (lamp) lamp.intensity = .25 + 3.2 * light.lamp;
+        };
+        setWindowLight(C.light);
+        C.up.push((_dt, _t, light) => setWindowLight(light));
         // A low counter and baskets beside the doorway, all grounded.
-        box(.46, .65, 1.4, wood, face - side * .3, .325, z - 1.2);
+        if (!landmark) box(.46, .65, 1.4, wood, face - side * .3, .325, z - 1.2);
         put(new THREE.CylinderGeometry(.2, .16, .28, 24, 1, true), paper, face - side * .32, .14, z + 1.6);
         if (i % 2 === 0) { const sign = new THREE.Mesh(new THREE.PlaneGeometry(.38, 1.1), M(0x6e3220, .97, { side: THREE.DoubleSide })); sign.position.set(face - side * .45, 2.1, z + 2.2); sign.rotation.y = -.35 * side; C.G.add(sign); }
       }
       await pauseBuild();
-      // The lane ends at this actual small doorway. The court and bell tower beyond it are already present.
-      wallWithHoles({ x0: -6.3, x1: 6.3, y0: 0, y1: 3.05, z: 10, depth: .55, m: wall, uv: .75, holes: [{ x0: -.78, x1: .78, y0: 0, y1: 2.3 }] });
-      box(1.8, .16, .68, wood, 0, 2.4, 9.78); box(1.65, .07, .72, stone, 0, .035, 9.7);
-      const door = new THREE.Mesh(new THREE.BoxGeometry(.7, 2.25, .065), M(0x573122, .82, { map: grainTex })); door.position.set(-.8, 1.13, 9.25); door.rotation.y = -1.2; door.castShadow = door.receiveShadow = true; C.G.add(door);
+      // The wall is solid across the lane except for this one door.
+      wallWithHoles({ x0: -6.3, x1: 6.3, y0: 0, y1: 3.05, z: 10, depth: .55, m: wall, uv: .75,
+        holes: [{ x0: -gateHalfWidth, x1: gateHalfWidth, y0: 0, y1: 2.28 }] });
+      box(2.44, .17, .68, wood, 0, 2.37, 9.75);
+      box(2.31, .065, .75, stone, 0, .0325, 9.73);
+      for (const x of [-1.20, 1.20]) box(.14, 2.28, .60, wood, x, 1.14, 9.73);
+      // The open leaf sits outside the opening and does not block the return sightline.
+      box(.085, 2.12, 1.11, wood, -1.29, 1.08, 8.83, -.075);
+      for (const y of [.36, 1.73]) box(.13, .075, 1.04, M(0x47433b, .76, { metalness: .52 }), -1.29, y, 8.83, -.075);
       eave({ x0: -6.5, x1: 6.5, y: 3.06, z: 10.45, depth: 1.3, rise: .3, tile: 0x34383d });
+      box(.27, .33, .20, wood, -1.65, 2.16, 10.12);
+      box(.19, .23, .025, M(0xc9a678, .88, { emissive: 0xfda350, emissiveIntensity: .42 }), -1.65, 2.16, 10.23);
+      const thresholdLight = new THREE.PointLight(0xffbb82, 2.3, 5.8, 2);
+      thresholdLight.position.set(-1.57, 2.17, 10.43); C.G.add(thresholdLight);
       // Narrow drains and a few patched paving slabs carry the view all the way to the door.
       for (const x of [-3.45, 3.45]) box(.12, .008, 48, M(0x25282b, .95), x, .067, 34);
       for (let i = 0; i < 12; i++) box(.4 + C.rnd() * .35, .008, .6, M(0x6b6a65, .94, { map: pavingTex }), (C.rnd() - .5) * 5, .067, 14 + C.rnd() * 40);
+
+      const floorMap = brickTex.clone(); floorMap.repeat.set(4, 5);
+      const floor = M(0x7a7570, .95, { map: floorMap });
+      box(12.6, .12, 22.6, floor, 0, -.06, -1.35);
+      for (const x of [-6.3, 6.3]) {
+        box(.5, 3.05, 22.6, wall, x, 1.525, -1.35);
+        box(.69, .18, 22.6, h.roofMat(0x3f4144), x, 3.12, -1.35);
+        for (const z of [-10, -5, 0, 5]) box(.53, 4.25, 4.8, shadeWall(M, plasterTex), x * 1.11, 2.08, z);
+      }
+      box(12.6, 3.05, .5, wall, 0, 1.525, -12.55);
+      box(12.8, .13, .66, h.roofMat(0x36383b), 0, 3.12, -12.55);
+      for (const x of [-4.2, 3.8]) {
+        box(5.1, 4.8, 3.3, M(0x756b60, .97, { map: plasterTex }), x, 2.4, -14.3);
+        eave({ x0: x - 2.62, x1: x + 2.62, y: 4.8, z: -12.5, depth: 1.92, rise: .65, tile: 0x454544 });
+      }
+
+      const [bellX, , bellZ] = BELL;
+      const red = M(0x673b2b, .9, { map: grainTex });
+      box(4.12, .28, 3.32, stone, bellX, .14, bellZ);
+      box(3.8, .13, .35, stone, bellX, .065, bellZ + 1.75);
+      box(3.8, .13, .30, stone, bellX, .19, bellZ + 1.59);
+      for (const x of [-1.62, 1.62]) for (const dz of [-1.29, 1.29]) col(x, bellZ + dz, 2.43, .12, red, .28);
+      for (const dz of [-1.29, 1.29]) box(3.57, .21, .17, wood, 0, 2.69, bellZ + dz);
+      box(.17, .23, 2.91, wood, 0, 2.61, bellZ);
+      const bronze = M(0x564830, .56, { metalness: .78 });
+      put(new THREE.CylinderGeometry(.021, .021, .19, 12), bronze, 0, 2.42, bellZ);
+      bell(0, 2.33, bellZ, 1.07, bronze);
+      box(.105, .095, 1.24, wood, .99, 1.53, bellZ);
+      for (const dz of [-.42, .42]) put(new THREE.CylinderGeometry(.007, .007, 1.13, 8), bronze, .99, 2.08, bellZ + dz);
+      const roofDepth = 1.86, roofRise = .66;
+      eave({ x0: -2.2, x1: 2.2, y: 2.82, z: bellZ + roofDepth, depth: roofDepth, rise: roofRise, tile: 0x3b3d42 });
+      const roof = new THREE.BoxGeometry(4.43, .11, Math.hypot(roofRise, roofDepth));
+      roof.rotateX(-Math.atan2(roofRise, roofDepth));
+      put(roof, h.roofMat(0x3b3d42), 0, 2.82 + roofRise / 2, bellZ - roofDepth / 2);
+      box(4.48, .13, .13, wood, 0, 2.82 + roofRise, bellZ);
+
+      const [treeX, , treeZ] = TREE;
+      const T = trees();
+      T.broad(treeX, 0, treeZ, 1.45, 0x374334);
+      T.finish();
+      for (const [dx, dz, angle] of [[.38, .16, -.62], [-.35, .24, .66], [.21, -.32, -.41]]) {
+        const root = new THREE.CylinderGeometry(.085, .14, .61, 12);
+        root.rotateZ(angle);
+        put(root, wood, treeX + dx, .25, treeZ + dz);
+      }
+      box(1.18, .10, .38, stone, 2.4, .44, 2.45);
+      for (const x of [1.98, 2.82]) box(.19, .40, .28, wall, x, .20, 2.45);
+      const courtFill = new THREE.PointLight(0xffc48a, 0, 13, 2);
+      courtFill.position.set(-2.3, 2.6, 8.7); C.G.add(courtFill);
+      C.up.push((_dt, _t, light) => { courtFill.intensity = .4 + light.n * 5; });
       await pauseBuild();
     },
     nook: {
-      at: { pos: V3(0, 0, -3.5), ry: 0 }, lamp: 'lattice', y: 0, exposure: 1.1, bloom: [.35, 1.02],
-      approach: [V3(.4, 1.65, 7), V3(.8, 1.6, 4.2)],
-      wide: { pos: V3(1.5, 1.55, 2.6), look: V3(-.3, .85, -.8) },
-      async build(hh, C) {
-        const bricks = brickTex.clone(); bricks.repeat.set(4, 5); bricks.needsUpdate = true;
-        const wallMap = brickTex.clone(); wallMap.repeat.set(1.5, 1); wallMap.needsUpdate = true;
-        const floor = M(0x626365, .9, { map: bricks }), wall = M(0x66676a, .97, { map: wallMap }), red = M(0x5e291e, .85, { map: grainTex }), wood = M(0x35251b, .86, { map: grainTex });
-        box(12.6, .12, 22.6, floor, 0, -.06, 2.7);
-        for (const x of [-6.3, 6.3]) box(.5, 3.05, 22.6, wall, x, 1.525, 2.7);
-        box(12.6, 3.05, .5, wall, 0, 1.525, -8.6);
-        for (const x of [-6.3, 6.3]) box(.66, .12, 22.6, M(0x35383d, .9), x, 3.1, 2.7);
-        box(12.8, .12, .66, M(0x35383d, .9), 0, 3.1, -8.6);
-        // Low bell tower with an open pavilion, timber beams and a bell genuinely suspended between them.
-        wallWithHoles({ x0: -2, x1: 2, y0: 0, y1: 2.6, z: -3.6, depth: 3.6, m: wall, uv: .65, holes: [{ x0: -.7, x1: .7, y0: 0, y1: 2.1, arch: true }] });
-        box(4.2, .16, 3.9, M(0x46474a, .92), 0, 2.68, -5.4);
-        for (const [x,z] of [[-1.55,-4.0],[1.55,-4.0],[-1.55,-6.8],[1.55,-6.8]]) col(x, z, 2.45, .115, red, 2.75);
-        for (const z of [-4, -6.8]) box(3.5, .2, .17, wood, 0, 5.13, z);
-        box(.18, .22, 3.2, wood, 0, 5.1, -5.4);
-        put(new THREE.CylinderGeometry(.012,.012,.22,12), M(0x463a26,.7,{metalness:.7}), 0,4.87,-5.4);
-        bell(0, 4.78, -5.4, .9, M(0x4a3b27, .48, { metalness: .85 }));
-        // Two simple roof slopes, underside boards and tile ends, without a ceremonial roof rank.
-        eave({ x0: -2.4, x1: 2.4, y: 5.28, z: -3.15, depth: 2.25, rise: .95, tile: 0x32363c });
-        const backRoof = new THREE.Group(); backRoof.position.set(0, 0, -5.4); backRoof.rotation.y = Math.PI; C.G.add(backRoof);
-        // Geometry is placed directly here because the main batch remains in the court's frame.
-        const slope = Math.atan2(.95,2.25), backG = new THREE.BoxGeometry(5,.11,Math.hypot(.95,2.25)); backG.rotateX(slope); backG.translate(0,5.28+.95/2+.2,1.125);
-        const backM = new THREE.Mesh(backG, hh.roofMat(0x32363c)); backM.castShadow = backM.receiveShadow = true; backRoof.add(backM);
-        box(4.9,.16,.18,wood,0,6.5,-5.4);
-        // Old tree and an irregular stone seat. It belongs to the court, not to a background layer.
-        const T = trees(); T.broad(3.8, 0, -2.3, 1.45, 0x26372b); T.finish();
-        for(const [dx,dz,angle] of [[.5,0,-.65],[-.4,.25,.6],[.2,-.35,.45]]) { const g=new THREE.CylinderGeometry(.065,.12,1.4,12);g.rotateZ(angle);put(g,wood,3.8+dx,.7,-2.3+dz); }
-        box(1.2,.09,.38,M(0x68665f,.94,{map:pavingTex}),2.5,.42,.7);for(const x of [2.08,2.92])box(.2,.39,.28,wall,x,.195,.7);
-        otherLamp('lattice', -1.4, 0, -2.6, .65, .3);
-        const glow = new THREE.PointLight(0xffb46e, 1.1, 7, 2); glow.position.set(-.8, 1.3, 12.4); C.G.add(glow);
+      at: { pos: V3(...LAMP), ry: 0 }, lamp: 'lattice', y: .46, exposure: 1.1, bloom: [.35, 1.02],
+      explicitPhoneViews: true, wide: cameras.wide, widePhone: cameras.widePhone,
+      choose: cameras.choose, choosePhone: cameras.choosePhone,
+      async build() {
+        const wood = M(0x6a4732, .93, { map: grainTex });
+        const edge = M(0x574333, .95, { map: grainTex });
+        const tag = M(0x9b7552, .96);
+        const clay = M(0x9d623f, .84);
+        // The visitor occupies the only free slot in the center.
+        box(2.11, .09, .56, wood, 0, .415, 0);
+        for (const x of [-.94, .94]) for (const z of [-.21, .21]) box(.085, .37, .081, edge, x, .185, z);
+        box(1.85, .09, .29, edge, 0, .18, 0);
+        for (const [x, z, yaw, power] of [[-.79, .01, -.1, 0], [-.44, .055, .13, .31],
+          [.42, .055, -.21, 0], [.76, .02, .3, .22]]) {
+          const { g } = otherLamp('lattice', x, .46, z, .55, yaw, power);
+          g.scale.setScalar(.52);
+          box(.046, .105, .005, tag, x + .058, .62, z - .098, yaw);
+        }
+        // Supplies for the next visitor are kept beside the rack.
+        box(.56, .065, .42, wood, -1.57, .58, .18);
+        for (const x of [-1.79, -1.35]) box(.061, .55, .28, edge, x, .275, .18);
+        const cup = lathe([[0, 0], [.038, 0], [.057, .034], [.051, .034], [.032, .011], [0, .011]], 28);
+        for (const z of [.08, .23]) put(cup, clay, -1.62, .615, z);
+        box(.15, .012, .083, tag, -1.39, .625, .24, .08);
+        box(.24, .008, .008, tag, -1.52, .63, .31, .21);
+        put(cup, clay, -1.47, .615, .092);
+        liveFlame(-1.47, .658, .092, { size: .53, power: .48 });
+        const broom = new THREE.CylinderGeometry(.017, .019, 1.24, 10);
+        broom.rotateZ(.19);
+        put(broom, edge, -2.24, .67, .39);
+        const straw = new THREE.ConeGeometry(.082, .28, 13);
+        straw.rotateZ(.19);
+        put(straw, tag, -2.12, .16, .39);
         await pauseBuild();
       },
     },
   };
+}
+
+function shadeWall(M, plasterTex) {
+  return M(0x706c63, .97, { map: plasterTex });
 }
