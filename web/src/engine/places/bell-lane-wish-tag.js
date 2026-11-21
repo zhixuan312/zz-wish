@@ -1,5 +1,5 @@
-// A visitor lifts the blank-backed tag off the lantern tray and draws its cord around the front post.
-export function addBellLaneWishTag({ THREE, grainTex }, lamp) {
+// A visitor lifts the tag off the tray and ties its cord to the shade's front corner.
+export function addBellLaneWishTag({ THREE, grainTex }, lamp, post) {
   const { Vector3, MathUtils } = THREE;
   const rig = new THREE.Group();
   rig.name = 'Bell Lane wish tag rig';
@@ -39,20 +39,36 @@ export function addBellLaneWishTag({ THREE, grainTex }, lamp) {
     cord.add(piece);
     return piece;
   });
-  const anchor = new Vector3(.11, .479, -.11);
+  const { path, tubularSegments, radius } = post.geometry.parameters;
+  post.updateMatrix();
+  // Use an actual tube section. Choose one close to the cup, outside the flame column,
+  // even when a drawn shade is much taller or narrower than a preset.
+  const sections = Array.from({ length: tubularSegments - 1 }, (_, i) => {
+    const index = i + 1;
+    return { index, point: path.getPointAt(index / tubularSegments).applyMatrix4(post.matrix) };
+  });
+  const clear = sections.filter(({ point }) =>
+    Math.hypot(point.x, point.y - MathUtils.clamp(point.y, .536, .576), point.z) >= .028);
+  const { index: section, point: anchor } = (clear.length ? clear : sections).reduce((best, candidate) =>
+    Math.abs(candidate.point.y - .565) < Math.abs(best.point.y - .565) ? candidate : best);
+  const tangent = post.geometry.tangents[section].clone().transformDirection(post.matrix);
+  const up = new Vector3(0, 1, 0);
+  const wrapRadius = radius + .0021;
   const knot = new THREE.Group();
   knot.name = 'Bell Lane wish tag knot';
   knot.position.copy(anchor);
-  const wrap = new THREE.Mesh(new THREE.TorusGeometry(.0175, .0023, 6, 24).rotateX(Math.PI / 2), hemp);
-  const hitch = new THREE.Mesh(new THREE.SphereGeometry(.0047, 8, 6), hemp);
-  hitch.position.set(.003, .001, -.018);
+  knot.quaternion.setFromUnitVectors(up, tangent);
+  const wrap = new THREE.Mesh(new THREE.TorusGeometry(wrapRadius, .0022, 6, 24).rotateX(Math.PI / 2), hemp);
+  const hitch = new THREE.Mesh(new THREE.SphereGeometry(.0042, 8, 6), hemp);
+  hitch.position.set(.001, 0, -wrapRadius);
   knot.add(wrap, hitch);
   cord.add(knot);
 
   const rest = new Vector3(.080, .513, -.059);
-  const lift = new Vector3(.118, .554, -.162);
-  const hanging = new Vector3(.112, .453, -.159);
-  const up = new Vector3(0, 1, 0), direction = new Vector3();
+  const hanging = anchor.clone().add(new Vector3(.046, -.055, -.037));
+  hanging.z = Math.min(hanging.z, -.144);
+  const lift = hanging.clone().add(new Vector3(0, .072, -.012));
+  const direction = new Vector3();
   const hole = new Vector3(), bend = new Vector3(), tail = new Vector3(), fixed = new Vector3();
   function connect(mesh, a, b) {
     direction.subVectors(b, a);
@@ -76,11 +92,16 @@ export function addBellLaneWishTag({ THREE, grainTex }, lamp) {
       const side = i === 0 ? -1 : 1;
       hole.set(.0018 * side, .032, 0).applyQuaternion(tag.quaternion).add(tag.position);
       tail.set(.014 * side, .062, .001).applyQuaternion(tag.quaternion).add(tag.position);
-      fixed.set(anchor.x + .005 * side, anchor.y + .001, anchor.z - .017);
+      fixed.set(.003 * side, 0, -Math.sqrt(wrapRadius ** 2 - .003 ** 2)).applyQuaternion(knot.quaternion).add(anchor);
       tail.lerp(fixed, tighten);
       bend.copy(hole).lerp(tail, .55);
       bend.x += .007 * side * (1 - tighten);
       bend.y += .009 * raised * (1 - tighten);
+      if (hole.y < .513) {
+        // A short shade can leave the eye below the tray. Lead the cord over its lip.
+        bend.y = MathUtils.lerp(bend.y, Math.max(bend.y, .515), tighten);
+        bend.z = MathUtils.lerp(bend.z, Math.min(bend.z, -.134), tighten);
+      }
       connect(ends[i * 2], hole, bend);
       connect(ends[i * 2 + 1], bend, tail);
     }

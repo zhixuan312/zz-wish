@@ -804,7 +804,8 @@ const LAMPS = {
   lattice(o = presetOf('shade'), makeVisitorCup, makeVisitorWishTag) {
     const g = new THREE.Group(), y0 = .5, P = scaled(o.rows, shadeScale(o.rows, 1.8, .05)).map(([r, y]) => [r * Math.SQRT2, y0 + .02 + y]), top = P[P.length - 1][1];
     for (const [x, z] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) solid(g, new THREE.BoxGeometry(.022, y0, .022), lampWood, x * .11, y0 / 2, z * .11);
-    solid(g, new THREE.BoxGeometry(.26, .02, .26), lampWood, 0, y0, 0);
+    const tray = solid(g, new THREE.BoxGeometry(.26, .02, .26), lampWood, 0, y0, 0);
+    if (makeVisitorWishTag) tray.name = 'Bell Lane lattice tray';
     for (const y of [.1, .3]) for (const [w, d] of [[.24, .014], [.014, .24]]) for (const s of [-1, 1]) solid(g, new THREE.BoxGeometry(w, .016, d), lampWood, w > .1 ? 0 : s * .11, y, w > .1 ? s * .11 : 0);
     const shell = shellMaterial(o.color, { map: paperLatticeTex, glow: 0xffb070, reach: 9, rough: .9, base: .04, strength: .20 });
     const box4 = lathe(P, 4);
@@ -814,11 +815,22 @@ const LAMPS = {
     box4.rotateY(Math.PI / 4);
     solid(g, box4, shell).castShadow = false;
     // Corner posts follow the outline; rails close it at the top and the bottom.
-    for (let i = 0; i < 4; i++) { const a = Math.PI / 4 + i * Math.PI / 2, post = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(P.map(([r, y]) => V3(Math.sin(a) * r, y, Math.cos(a) * r))), 16, .006, 4), lampWood); post.castShadow = true; g.add(post); }
+    let tagPost;
+    for (let i = 0; i < 4; i++) {
+      const a = Math.PI / 4 + i * Math.PI / 2;
+      const path = new THREE.CatmullRomCurve3(P.map(([r, y]) => V3(Math.sin(a) * r, y, Math.cos(a) * r)));
+      const post = new THREE.Mesh(new THREE.TubeGeometry(path, 16, .006, 4), lampWood);
+      post.castShadow = true;
+      g.add(post);
+      if (i === 1 && makeVisitorWishTag) {
+        post.name = 'Bell Lane lattice tag post';
+        tagPost = post;
+      }
+    }
     for (const [r, y] of [P[0], P[P.length - 1]]) { const ring = lathe([[r + .006, y - .008], [r + .006, y + .008]], 4); ring.rotateY(Math.PI / 4); solid(g, ring, lampWood); }
     const visitorCup = makeVisitorCup?.(g, clayMat, y0);
     if (!visitorCup) solid(g, lathe([[0, y0 + .01], [.022, y0 + .01], [.024, y0 + .03], [.02, y0 + .032], [0, y0 + .026]], 32), clayMat);
-    const wishTag = makeVisitorWishTag?.(g);
+    const wishTag = makeVisitorWishTag?.(g, tagPost);
     if (!wishTag) {
       const tagMat = new THREE.MeshStandardMaterial({ color: 0xac7952, roughness: .91, map: grainTex });
       tagMat.userData.lampOwned = true;

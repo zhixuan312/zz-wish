@@ -188,7 +188,7 @@ export default function createPlace(h) {
     nook: {
       at: { pos: V3(...LAMP), ry: 0 }, lamp: 'lattice', y: .46, exposure: 1.1, bloom: [.35, 1.02],
       makeVisitorCup: makeCup,
-      makeVisitorWishTag: lamp => addBellLaneWishTag(h, lamp),
+      makeVisitorWishTag: (lamp, post) => addBellLaneWishTag(h, lamp, post),
       // The two most recent lamps flank the current lamp within the seated phone view.
       // The remaining slots are farther back on the same shelf.
       pastLampSlots: [[.318, .46, .205, .47, .14], [-.205, .46, .075, .45, .27],
