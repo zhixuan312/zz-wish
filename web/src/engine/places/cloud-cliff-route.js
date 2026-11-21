@@ -417,6 +417,20 @@ function visibleBounds(THREE, ...roots) {
   return bounds;
 }
 
+export function wallBetween(raycaster, origin, target, wall) {
+  const direction = target.clone().sub(origin);
+  const distance = direction.length();
+  if (!distance) return false;
+  raycaster.set(origin, direction.multiplyScalar(1 / distance));
+  const previousFar = raycaster.far;
+  try {
+    raycaster.far = distance;
+    return raycaster.intersectObject(wall, false).length > 0;
+  } finally {
+    raycaster.far = previousFar;
+  }
+}
+
 export async function mountCloudCliffRoute({ mount, phone = false, night = false }) {
   const [THREE, { GLTFLoader }, { KTX2Loader }, { MeshoptDecoder }] = await Promise.all([
     import('three'),
@@ -474,8 +488,7 @@ export async function mountCloudCliffRoute({ mount, phone = false, night = false
   }
 
   function blockedByWall(point) {
-    raycaster.set(camera.position, direction.copy(point).sub(camera.position).normalize());
-    return raycaster.intersectObject(wall).length > 0;
+    return wallBetween(raycaster, camera.position, point, wall);
   }
   let running = null;
 
