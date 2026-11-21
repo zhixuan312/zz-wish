@@ -93,6 +93,8 @@ export function createSnowCourtRelight(baked, renderer) {
       return selection.map(({ name, weight }, index) => ({
         name, requested: weight, ready: !!active.get(name)?.textures, actual: weights.value.getComponent(index),
         directionEngine: looks[name].directionEngine,
+        farUri: far['uSnowFar' + slots[index]].value.name || null,
+        courtUri: court['uSnowCourt' + slots[index]].value.name || null,
       }));
     },
     install(material) {
