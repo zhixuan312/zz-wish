@@ -4,8 +4,17 @@ import { buildHighWhiteRidges } from './highland-ridges.js';
 import { fitHighWhiteChimneys, whitewash } from './highland-surfaces.js';
 
 export default function createPlace(h) {
-  const { THREE, V3, M, ground, pave, box, wallWithHoles, plasterTex, pavingTex, grainTex, pauseBuild } = h;
+  const { THREE, V3, M, ground, box, wallWithHoles, plasterTex, pavingTex, grainTex, pauseBuild } = h;
   const cameras = highWhiteCameras(V3);
+  function createWalk(start, end, phone) {
+    const walk = cameras.createWalk(start, end, phone);
+    return (progress, rig) => {
+      walk(progress, rig);
+      // The held entrance can drift more than a walking eye. Keep the small
+      // start-of-walk sway within the height allowed above the raised paving.
+      rig.amp *= .1;
+    };
+  }
   return {
     exposure: 1.05, shade: 0.3,
     sky: { top: 0x030716, horizon: 0x16223e, ground: 0x0e0c0c, sun: 0xdfe8ff, dir: [.35, .55, -.6], glow: .12, clouds: .08, lit: 0x2a3450, dark: 0x0a0e1c, stars: 1, disc: 1.6 },
@@ -13,7 +22,7 @@ export default function createPlace(h) {
     // The same place by day; the scene blends toward it by the visitor's local time.
     day: { exposure: .9, sky: { top: 0x0b3d9e, horizon: 0x8ab6e6, ground: 0x6a5a48, sun: 0xfff4e4, dir: [.48, .78, .52], glow: .3, clouds: .3, lit: 0xffffff, dark: 0xc4d4ea, disc: 4 }, fog: [0xa9c6ea, .004], sunL: [0xfff4e4, 2.8], hemi: [0xd8e5f3, 0xa49377, .84], bloom: [.25, 2.2] },
     view: cameras.view, viewPhone: cameras.viewPhone,
-    walkSeconds: HIGH_WHITE_TRAVEL_SECONDS, createWalk: cameras.createWalk,
+    walkSeconds: HIGH_WHITE_TRAVEL_SECONDS, createWalk,
     walk: [], doors: V3(0, 1.66, 28),
     async build() {
       const C = h.context;
@@ -23,18 +32,31 @@ export default function createPlace(h) {
       const cap = M(0x524f48, .92), paving = M(0x8b877c, .9, { map: pavingTex });
       const wood = M(0x53412d, .85, { map: grainTex });
       const rubbedStone = M(0x9a8974, .89, { map: pavingTex });
-      ground(0x706954); pave(0, 39, 4.2, 26, 0, paving); pave(5, 12, 33, 32, -.04, paving);
+      // Keep the floor and entrance solids separate in the scene graph so
+      // their true world bounds are available during camera review.
+      function structure(name, size, position, material) {
+        const mesh = new THREE.Mesh(new THREE.BoxGeometry(...size), material);
+        mesh.name = `High White ${name}`;
+        mesh.position.set(...position);
+        mesh.castShadow = mesh.receiveShadow = true;
+        C.G.add(mesh);
+      }
+      ground(0x706954);
+      structure('entrance paving', [4.2, .12, 26], [0, .06, 39], paving);
+      structure('court paving', [33, .12, 32], [5, .02, 12], paving);
       // A thick plain entrance wall, with a deep recessed door rather than a ranked roof or ceremonial tower.
-      wallWithHoles({ x0: -12, x1: 25, y0: 0, y1: 3.6, z: 28, depth: .85, m: white, uv: .4, holes: [{ x0: -1.15, x1: 1.15, y0: 0, y1: 2.8 }] });
+      structure('west jamb', [10.85, 2.8, .85], [-6.575, 1.4, 27.575], white);
+      structure('east jamb', [23.85, 2.8, .85], [13.075, 1.4, 27.575], white);
+      structure('lintel', [37, .8, .85], [6.5, 3.2, 27.575], white);
       box(37.4, .2, 1.05, cap, 6.5, 3.7, 27.6);
       for (const x of [-1.24, 1.24]) box(.18, 2.9, .18, wood, x, 1.45, 28.03);
       box(2.7, .2, .2, wood, 0, 2.9, 28.03);
       // The inner west pier extends into the court. Its sunlit return stays in
       // the edge of the crossing shot without moving or narrowing the opening.
-      box(1.45, 3.24, 1.05, innerLime, -1.875, 1.62, 26.625);
+      structure('west pier', [1.45, 3.24, 1.05], [-1.875, 1.62, 26.625], innerLime);
       box(1.55, .14, 1.12, cap, -1.90, 3.31, 26.62);
       box(1.45, .22, 1.05, rubbedStone, -1.872, .20, 26.626);
-      box(2.3, .073, 1.92, rubbedStone, 0, .0855, 27.19);
+      structure('threshold stone', [2.3, .073, 1.92], [0, .0855, 27.19], rubbedStone);
       // A lower patch where the plaster has worn around the interior foot.
       for (const [index, length] of [.18, .24, .14, .19].entries()) {
         box(.006, .075 - index * .01, length, rubbedStone, -1.149, .30, 26.32 + index * .21);
