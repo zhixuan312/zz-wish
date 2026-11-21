@@ -69,7 +69,7 @@ const fragmentShader = /* glsl */ `
     // and derivative filtering preserve the larger crests farther offshore.
     vec2 wash = vec2(sin(p.y * 0.19 + p.x * 0.07), sin(p.x * 0.13 - p.y * 0.16));
     vec2 water = p + 0.9 * wash;
-    float patch = noise(p * vec2(0.29, 0.17) + vec2(uTime * 0.055, 0.0));
+    float swellPatch = noise(p * vec2(0.29, 0.17) + vec2(uTime * 0.055, 0.0));
     vec2 gradient = slope(water, vec2(0.96, 0.28), 0.57, 0.92, 0.055);
     gradient += slope(water, vec2(0.81, -0.59), 0.99, 1.21, 0.045);
     gradient += slope(water, vec2(0.35, 0.94), 1.66, -1.68, 0.034);
@@ -77,7 +77,7 @@ const fragmentShader = /* glsl */ `
     ripples += slope(p, vec2(0.46, -0.89), 5.7, -2.77, 0.052);
     ripples += slope(p + 0.18 * wash, vec2(0.69, 0.72), 11.9, 4.2, 0.043);
     gradient = gradient * mix(0.97, 0.77, shoaling)
-      + ripples * (0.45 + 0.75 * patch + 0.37 * shoaling) * (1.0 - smoothstep(22.0, 110.0, range));
+      + ripples * (0.45 + 0.75 * swellPatch + 0.37 * shoaling) * (1.0 - smoothstep(22.0, 110.0, range));
     vec3 normal = normalize(vec3(-gradient.x, 1.0, -gradient.y));
 
     vec3 horizon = mix(uHorizonDay, uHorizonNight, uNight);
@@ -87,16 +87,16 @@ const fragmentShader = /* glsl */ `
     vec3 incidentSky = mix(horizon, overhead, pow(clamp(reflected.y * 1.7, 0.0, 1.0), 0.59));
     float grazing = 1.0 - clamp(dot(normal, viewDirection), 0.0, 1.0);
     float fresnel = 0.11 + 0.79 * pow(grazing, 4.2);
-    vec3 colour = mix(body * mix(0.79, 1.15, patch), incidentSky, fresnel * (1.0 - 0.30 * shoaling));
+    vec3 colour = mix(body * mix(0.79, 1.15, swellPatch), incidentSky, fresnel * (1.0 - 0.30 * shoaling));
 
     // Surface facets reflect the light in fragmented groups. The darker
     // water around each group keeps a continuous bright bar from forming.
     vec3 halfway = normalize(viewDirection + uSunDirection);
     float facing = max(dot(normal, halfway), 0.0);
-    float broken = smoothstep(0.31, 0.77, patch);
+    float broken = smoothstep(0.31, 0.77, swellPatch);
     float lightPatch = (pow(facing, 34.0) * 0.16 + pow(facing, 111.0) * 0.38) * broken;
     float localGlint = pow(max(0.0, dot(reflected, normalize(vec3(0.94, 0.25, -0.26)))), 22.0);
-    localGlint *= smoothstep(0.47, 0.76, patch) * (1.0 - smoothstep(45.0, 125.0, range));
+    localGlint *= smoothstep(0.47, 0.76, swellPatch) * (1.0 - smoothstep(45.0, 125.0, range));
     vec3 glint = mix(vec3(0.60, 0.70, 0.66), vec3(0.21, 0.31, 0.40), uNight);
     glint = mix(glint, vec3(0.84, 0.52, 0.29), uWarm * 0.26);
     colour += glint * (lightPatch + localGlint * 0.23);
