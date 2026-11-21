@@ -1818,6 +1818,21 @@ function trimPlaceCache(protectedIds) {
     cachedPlaces.delete(id);
   }
 }
+function withWarmTarget(target, run) {
+  const previous = renderer.getRenderTarget();
+  const face = renderer.getActiveCubeFace(), mip = renderer.getActiveMipmapLevel();
+  const viewport = previous && renderer.getCurrentViewport(new THREE.Vector4());
+  const changedViewport = viewport && !viewport.equals(previous.viewport) ? previous.viewport.clone() : null;
+  try {
+    renderer.setRenderTarget(target);
+    return run();
+  } finally {
+    // Three restores a target's configured viewport. Preserve an active override too.
+    if (changedViewport) previous.viewport.copy(viewport);
+    try { renderer.setRenderTarget(previous, face, mip); }
+    finally { if (changedViewport) previous.viewport.copy(changedViewport); }
+  }
+}
 async function buildPlace(t) {
   const next = await preparePlace(t.id);
   mine.g.removeFromParent(); outside.add(mine.g);
@@ -1887,24 +1902,24 @@ async function buildPlaceNow(t, isolated = false) {
   stage.add(previewFill.clone());
   const stageCamera = camera.clone(); stageCamera.position.copy(P.view.pos); stageCamera.lookAt(P.view.look);
   stageCamera.far = P.cameraFar ?? 1500; stageCamera.updateProjectionMatrix();
-  // Never leave a render target bound across an await: the live cover's next
-  // frame must still reach its normal framebuffer while shaders link.
+  // Three selects program variants synchronously in compileAsync. Restore the
+  // live cover's framebuffer before awaiting links for the offscreen draw.
   let visitorPreview;
-  const target = renderer.getRenderTarget(), warm = new THREE.WebGLRenderTarget(4, 4);
+  const warm = new THREE.WebGLRenderTarget(4, 4);
   try {
-    await renderer.compileAsync(stage, stageCamera);
+    await withWarmTarget(warm, () => renderer.compileAsync(stage, stageCamera));
     if (P.bakedLighting && P.nook.lamp === 'gauze') {
       visitorPreview = LAMPS.gauze({ ...presetOf('shade'), liveBaked: true });
       const basis = context.baked.manifest.lampBasis.position;
       visitorPreview.g.position.set(...basis); stage.add(visitorPreview.g);
       const point = new THREE.PointLight(0xffb070, 1, 6, 2);
       point.position.set(...basis); point.castShadow = true; point.shadow.mapSize.set(512, 512); stage.add(point);
-      await renderer.compileAsync(stage, stageCamera);
+      await withWarmTarget(warm, () => renderer.compileAsync(stage, stageCamera));
     }
-    renderer.setRenderTarget(warm); renderer.render(stage, stageCamera);
+    withWarmTarget(warm, () => renderer.render(stage, stageCamera));
   }
   finally {
-    renderer.setRenderTarget(target); warm.dispose(); stage.remove(G);
+    warm.dispose(); stage.remove(G);
     if(visitorPreview)disposeTree(visitorPreview.g);
     stage.traverse(object => object.shadow?.dispose());
   }
@@ -2933,7 +2948,7 @@ export function ensureReady() {
     setPhase('wish');
     await showPlace(COVER);
     rig.amp = .006; const v = coverView(); rig.fov=v.fov??null; rig.pos.copy(v.pos); rig.look.copy(v.look);
-    try { camera.layers.set(1); await renderer.compileAsync(outside, camera); }
+    try { camera.layers.set(1); await withWarmTarget(composer.readBuffer, () => renderer.compileAsync(outside, camera)); }
     finally { camera.layers.set(0); }
     if (!frameStarted) { frameStarted = true; frame(); }
     const poster = document.getElementById('cover-poster');
