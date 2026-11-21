@@ -163,6 +163,108 @@ function cutGround(THREE, material) {
   return mesh;
 }
 
+// Wind and rain take small flakes out of the cut and expose short runs of sediment.
+function courtyardEarth(material) {
+  const baseCompile = material.onBeforeCompile;
+  const baseKey = material.customProgramCacheKey();
+  material.customProgramCacheKey = () => baseKey + '-loess-courtyard-earth';
+  material.onBeforeCompile = (shader, renderer) => {
+    shader.fragmentShader = shader.fragmentShader.replace('void main() {', `
+      float spall(vec2 p, vec2 centre, vec2 extent) {
+        return 1. - smoothstep(.63, 1., length((p - centre) / extent));
+      }
+      void main() {`).replace('#include <color_fragment>', `
+      #include <color_fragment>
+      vec2 face = vSurface.xy;
+      vec2 torn = face + vec2(
+        (surfaceNoise(vec3(face * .94, 4.7)) - .5) * .64,
+        (surfaceNoise(vec3(face * vec2(1.2, 2.3), 8.4)) - .5) * .36);
+      float spallCoverage = max(spall(torn, vec2(-8.6, 5.04), vec2(2.12, .81)),
+                                spall(torn, vec2(-3.54, 4.21), vec2(1.46, .48)));
+      spallCoverage = max(spallCoverage, spall(torn, vec2(3.14, 6.73), vec2(2.07, .86)));
+      spallCoverage = max(spallCoverage, spall(torn, vec2(7.61, 4.26), vec2(1.72, .60)));
+      spallCoverage = max(spallCoverage, spall(torn, vec2(11.95, 7.59), vec2(2.36, 1.04)));
+      spallCoverage = max(spallCoverage, spall(torn, vec2(-1.25, 9.53), vec2(2.90, .58)));
+      float facade = smoothstep(-3.58, -3.23, vSurface.z) * smoothstep(2.34, 3.24, face.y);
+      float runoff = surfaceNoise(vec3(face * vec2(1.28, .34), 2.8));
+      float silt = surfaceNoise(vec3(torn * vec2(1.3, 14.), 7.2));
+      float exposed = spallCoverage * smoothstep(.25, .77, silt);
+      diffuseColor.rgb *= mix(vec3(1.), mix(vec3(.84, .83, .82), vec3(1.28, 1.23, 1.16),
+        clamp(runoff * .68 + exposed * .56, 0., 1.)), facade);
+      float recessRelief = facade * (-.022 * spallCoverage + .011 * exposed);
+      `).replace('#include <normal_fragment_maps>', `
+      #include <normal_fragment_maps>
+      #ifdef USE_BUMPMAP
+        normal = perturbNormalArb(-vViewPosition, normal,
+          vec2(dFdx(recessRelief), dFdy(recessRelief)), faceDirection);
+      #endif
+      `);
+    baseCompile(shader, renderer);
+  };
+  return material;
+}
+
+// The original cut stays at the mouth. A narrowing vault turns into a blind
+// chamber, with the same earth on its cheeks, ceiling and rising floor.
+function caveRecess(THREE, material, hole) {
+  const radius = (hole.x1 - hole.x0) / 2;
+  const centre = hole.x0 + radius;
+  const spring = hole.y1 - radius;
+  const outline = [[1, 0]];
+  for (let i = 0; i <= 18; i++) {
+    const angle = i * Math.PI / 18;
+    outline.push([Math.cos(angle), spring + radius * Math.sin(angle)]);
+  }
+  outline.push([-1, 0]);
+  const sections = [.025, .23, .57, 1.08, 1.72, 2.53, 3.48, 4.43, 5.19];
+  const positions = [], colors = [], uv = [], triangles = [];
+  const sill = .006;
+  const add = (x, y, z, shade, u, v) => {
+    positions.push(x, y, z);
+    colors.push(shade, shade, shade);
+    uv.push(u, v);
+    return positions.length / 3 - 1;
+  };
+  const join = (a, b, c, d) => triangles.push(a, b, c, b, d, c);
+  let previousWall, previousFloor;
+  for (const distance of sections) {
+    const depth = distance / sections.at(-1);
+    const start = THREE.MathUtils.smoothstep(depth, 0, .20);
+    const x = centre + .105 * depth * Math.sin(centre * 1.4);
+    const width = radius * (.989 - .145 * start - .155 * depth);
+    const ground = sill + .022 * depth;
+    const height = 1 - .066 * start - .143 * depth;
+    const z = -.2 - distance;
+    const ambient = .19 + .76 * Math.exp(-distance * .96);
+    const wall = outline.map(([side, y], column) => {
+      const overhead = THREE.MathUtils.smoothstep(y, spring * .55, hole.y1);
+      const rough = .009 * start * Math.sin(column * 2.14 + distance * 2.6);
+      return add(x + side * (width + rough), ground + y * height, z,
+        ambient * (1 - overhead * .24), column * .11, distance * .46);
+    });
+    const floor = [-1, 1].map(side => add(x + side * (width + .014), ground, z,
+      (.23 + .71 * Math.exp(-distance * .77)), side * width * .46, distance * .46));
+    if (previousWall) {
+      for (let i = 1; i < wall.length; i++) join(previousWall[i - 1], previousWall[i], wall[i - 1], wall[i]);
+      join(previousFloor[0], previousFloor[1], floor[0], floor[1]);
+    }
+    previousWall = wall;
+    previousFloor = floor;
+  }
+  const end = add(centre + .06 * Math.sin(centre), spring * .75, -5.59, .16, centre * .46, spring * .46);
+  for (let i = 1; i < previousWall.length; i++) triangles.push(end, previousWall[i - 1], previousWall[i]);
+  triangles.push(end, previousWall.at(-1), previousWall[0]);
+  const geometry = new THREE.BufferGeometry();
+  geometry.setIndex(triangles);
+  geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+  geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+  geometry.computeVertexNormals();
+  const mesh = new THREE.Mesh(geometry, material);
+  mesh.name = 'Loess blind cave recess';
+  return mesh;
+}
+
 function smokedPaper(THREE) {
   const canvas = document.createElement('canvas');
   canvas.width = canvas.height = 512;
@@ -237,22 +339,13 @@ export default function createPlace(h) {
       wide: choose, widePhone: choosePhone, choose, choosePhone,
       async build(hh, C) {
         const earth = M(0x9d794e, .98, { map: loessTex }), packed = M(0x725638, .98, { map: loessTex }), wood = M(0x47301e, .85, { map: grainTex });
-        // A thick cliff face with fully open arches. The front is the actual cave wall, rather than a distant scenery copy.
+        // Cut the paper windows and the full-depth openings from one earthen face.
         const holes = [{ x0: -.58, x1: .58, y0: 1.02, y1: 2.3, arch: true }, { x0: 1.25, x1: 2.55, y0: 0, y1: 2.65, arch: true }, { x0: -3.15, x1: -1.85, y0: .92, y1: 2.3, arch: true }, { x0: -7.7, x1: -5.5, y0: 0, y1: 3.1, arch: true }, { x0: 5.2, x1: 7.5, y0: 0, y1: 3.25, arch: true }];
-        wallWithHoles({ x0: -16, x1: 16, y0: 0, y1: 11, z: -.2, depth: 5.5, m: earth, uv: .34, holes });
-        // Sediment shelves run through the cliff; their different thicknesses catch a thin band of moonlight.
-        for (const [y, depth, tint] of [[3.5, .16, 0x8a6946], [5.6, .28, 0xa38156], [7.9, .22, 0x8c6d49], [9.8, .36, 0xa6855b]]) {
-          for (let i = 0; i < 8; i++) box(4.08, .035 + (i % 3) * .025, depth, M(tint, 1, { map: loessTex }), -14 + i * 4, y + Math.sin(i * 1.7) * .12, -.14);
-        }
-        box(32, 1.4, 8, earth, 0, 11.6, -3.8);
+        const face = courtyardEarth(M(0x9d794e, .98, { map: loessTex, bumpScale: .013 }));
+        wallWithHoles({ x0: -16, x1: 16, y0: 0, y1: 12.3, z: -.2, depth: 5.5, m: face, uv: .34, holes });
         for (const x of [-18, 18]) box(5, 9, 14, earth, x, 4.5, -4.8);
-        // Deep dark cave interiors stay visible through the open arches, with small pools of light far inside.
-        for (const [x, w, hh2, glow] of [[-6.6, 2.2, 3.1, .18], [1.9, 1.3, 2.65, .1], [6.35, 2.3, 3.25, .14]]) {
-          box(w + .15, hh2, .08, M(0x24180f, .98), x, hh2 / 2, -5.35);
-          const glowM = new THREE.MeshStandardMaterial({ color: 0x291a10, roughness: 1, emissive: 0xffa25b, emissiveIntensity: glow });
-          box(w * .65, hh2 * .7, .04, glowM, x, hh2 * .35, -5.29);
-          box(w, .08, 5.2, packed, x, .04, -2.9);
-        }
+        const recessEarth = M(0x9d794e, .98, { map: loessTex, vertexColors: true });
+        for (const hole of holes.filter(opening => opening.y0 === 0)) C.G.add(caveRecess(THREE, recessEarth, hole));
         const paper = new THREE.MeshStandardMaterial({ map: papercutTex, emissive: 0xffb875, emissiveMap: papercutTex, emissiveIntensity: .09 + .11 * C.light.n, roughness: .95, side: THREE.DoubleSide });
         const heroTexture = smokedPaper(THREE);
         const heroPaper = new THREE.MeshStandardMaterial({
