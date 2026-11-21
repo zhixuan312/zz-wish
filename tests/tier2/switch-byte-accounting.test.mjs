@@ -147,6 +147,21 @@ test('a chunk without a timestamp is refused rather than placed', () => {
   expect(ledger.bytesOf('a')).toBe(40);
 });
 
+test('a non-Snow residual is never dropped from the conservation sum', () => {
+  // Found on a live run: /materials/*.jpg are not Snow Roof, and their residuals were counted in the row's
+  // bytes but silently omitted from otherPlace, so the phases fell short of the delivered total.
+  const ledger = createByteLedger({ uncertaintyMs: 5 });
+  ledger.request({ id: 'img', url: '/materials/weathered-granite.jpg', atMs: 10 });
+  ledger.data({ id: 'img', atMs: 20, bytes: 900 });
+  ledger.finished({ id: 'img', atMs: 30, encodedBytes: 1200 });   // residual 300
+  ledger.switchConfirmed({ atEventMs: 100, uncertaintyMs: 5 });
+  const { totals, delivered, reconciled } = ledger.report({ isSnowUri: SNOW });
+  expect(totals.otherPlace).toBe(900);
+  expect(totals.unattributed).toBe(300);
+  expect(totals.all).toBe(delivered);
+  expect(reconciled).toBe(true);
+});
+
 test('chunks exceeding the authoritative total are quarantined, not partially placed', () => {
   const ledger = createByteLedger({ uncertaintyMs: 5 });
   ledger.request({ id: 'c', url: '/places/snow-roof/court-day.ktx2', atMs: 100 });

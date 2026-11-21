@@ -220,6 +220,12 @@ export function createByteLedger(options = {}) {
             notes.push('the residual has no timestamp and the request crosses the boundary; it is unattributed');
           }
         }
+        // A non-Snow request has no before/after phases of its own, so its residual can never be placed; it is
+        // unattributed rather than silently dropped from the conservation sum.
+        if (!snow && residual > 0 && unplacedResidual === 0) {
+          unplacedResidual = residual;
+          preResidual = 0; postResidual = 0;
+        }
 
         let phase;
         if (!snow) {
@@ -253,7 +259,7 @@ export function createByteLedger(options = {}) {
         }
         if (unplacedResidual > 0) totals.unattributed += unplacedResidual;
 
-        if (phase === 'otherPlace') totals.otherPlace += pre + post + preResidual + postResidual;
+        if (phase === 'otherPlace') totals.otherPlace += pre + post;
         else if (phase === 'newSnowAfterSwitch') totals.newSnowAfterSwitch += pre + post + postResidual;
         else if (phase === 'preSwitchSnowDone') {
           totals.preSwitchSnowDone += pre + preResidual;
