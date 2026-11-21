@@ -1,13 +1,21 @@
-import { expect, test } from 'vitest';
+import { readFile } from 'node:fs/promises';
+import { expect, test, vi } from 'vitest';
 import { blendInputsAt, lightAt, PART_LIGHT } from '../../../web/src/engine/places/pine-day-parts.ts';
 import createSnowRoof from '../../../web/src/engine/places/snow-roof-baked.js';
 import createPineGate from '../../../web/src/engine/places/pine-gate-baked.js';
 import * as THREE from 'three';
 
+vi.mock('../../../web/src/engine/baked/prefetchPlace.js', async importOriginal => ({
+  ...await importOriginal(),
+  readBakedManifest: async id => JSON.parse(await readFile(
+    new URL(`../../../web/public/places/${id}/manifest.json`, import.meta.url), 'utf8',
+  )),
+}));
+
 // Both modules export createPlace(h); the descriptors are what the scene sees, so call them with a
 // minimal helper bag. Only the fields the descriptors build at this stage are needed.
 const helpers = { THREE, V3: (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z), V2: (x = 0, y = 0) => new THREE.Vector2(x, y) };
-const snowRoof = createSnowRoof(helpers);
+const snowRoof = await createSnowRoof(helpers);
 const pineGate = createPineGate(helpers);
 
 const at = (hour, minute = 0) => new Date(2026, 10, 20, hour, minute, 0);
@@ -19,6 +27,7 @@ const usesOwnLight = place => typeof place?.lightAt === 'function';
 
 test('only Pine Gate supplies a light curve; Snow Roof falls back to the shared keys', () => {
   expect(usesOwnLight(pineGate)).toBe(true);
+  expect(snowRoof.bakedLighting).toBe(true);
   expect(usesOwnLight(snowRoof)).toBe(false);
   // Snow Roof's descriptor has no lightAt key at all, so the shared curve is what it gets.
   expect('lightAt' in snowRoof).toBe(false);
