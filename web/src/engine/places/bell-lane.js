@@ -218,14 +218,14 @@ export default function createPlace(h) {
         other.g.scale.setScalar(.52);
         other.p.shells[0].color.setHex(0x88603d);
         // The two matching bowls sit on a small ledge beside the central lamp, within both seated views.
-        const cupLedgeY = .887, cupLedgeZ = .139;
-        box(.206, .018, .105, wood, .306, cupLedgeY - .009, cupLedgeZ);
-        box(.278, .018, .024, edge, .242, cupLedgeY - .028, .11);
+        const cupLedgeY = .912, cupLedgeZ = .139;
+        box(.206, .018, .105, wood, .359, cupLedgeY - .009, cupLedgeZ);
+        box(.331, .018, .024, edge, .2685, cupLedgeY - .028, .11);
         BELL_LANE_CUPS.forEach(({ id, color, roughness }, i) => {
           const bowl = makeBellLaneOilBowl(h, M(color, roughness), -.010);
           bowl.name = `Bell Lane rack oil cup ${id}`;
           bowl.userData.cupId = id;
-          bowl.position.set(.257 + .099 * i, cupLedgeY, cupLedgeZ);
+          bowl.position.set(.31 + .099 * i, cupLedgeY, cupLedgeZ);
           h.context.G.add(bowl);
         });
         // Taper and tag supplies stay on the side table.
