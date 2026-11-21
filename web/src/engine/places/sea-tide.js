@@ -212,7 +212,7 @@ export default function createPlace(h) {
       at: { pos: V3(10, 0, 10), ry: -Math.PI / 2 },
       lamp: 'hood', y: 1.04, exposure: 1.09, bloom: [.43, .95],
       wide, widePhone,
-      choose: { pos: V3(-.63, 1.43, 1.61), look: V3(-.29, 1.3, -.39), fov: 36 },
+      choose: { pos: V3(-.63, 1.43, 1.61), look: V3(-.13, 1.3, -.39), fov: 36 },
       choosePhone: { pos: V3(-.33, 1.50, 1.34), look: V3(-.18, 1.34, -.35) },
       async build(hh) {
         const { THREE, M, box, put, wallWithHoles, otherLamp, pavingTex, pauseBuild } = hh;
