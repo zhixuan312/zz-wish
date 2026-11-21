@@ -47,7 +47,7 @@ const dependency = async name => {
     const info = JSON.parse(await readFile(join(base, 'package.json'), 'utf8'));
     return import(pathToFileURL(join(base, info.module ?? info.main)).href);
 };
-const [{ NodeIO }, { ALL_EXTENSIONS, EXTMeshoptCompression }, { reorder, quantize },
+const [{ NodeIO }, { ALL_EXTENSIONS, EXTMeshoptCompression, KHRTextureBasisu }, { reorder, quantize },
     { MeshoptDecoder, MeshoptEncoder }] = await Promise.all([
     dependency('@gltf-transform/core'), dependency('@gltf-transform/extensions'),
     dependency('@gltf-transform/functions'), dependency('meshoptimizer'),
@@ -118,12 +118,21 @@ for (const texture of doc.getRoot().listTextures()) {
     }
     texture.setImage(await readFile(target)).setMimeType('image/ktx2');
 }
+// KTX2 images reach three.js only through KHR_texture_basisu: GLTFLoader routes an image to its
+// KTX2Loader solely when the texture declares this extension. Without it the loader hands the
+// image/ktx2 bytes to the plain ImageLoader, every texture rejects, and the material falls back to
+// its base colour factor: white bark and a flat green card for the foliage.
+// The extension writes the per-texture declaration itself: on write it moves each KTX2 texture's
+// source into extensions.KHR_texture_basisu. Registering it required is the whole change.
+doc.createExtension(KHRTextureBasisu).setRequired(true);
 const bytes = await io.writeBinary(doc);
 const replay = await io.readBinary(bytes);
 if (JSON.stringify(positions(replay)) !== before || ownership(replay) !== roots)
     throw Error('Meshopt roundtrip changed rooted positions.');
 if (replay.getRoot().listTextures().some(texture => !texture.getMimeType().includes('ktx2')))
     throw Error('Every native texture must be KTX2.');
+if (!replay.getRoot().listExtensionsUsed().some(extension => extension.extensionName === 'KHR_texture_basisu'))
+    throw Error('KTX2 textures must declare KHR_texture_basisu or three.js cannot decode them.');
 await writeFile(output, bytes);
 """
 
@@ -329,6 +338,28 @@ def verify_glb(path, prepared):
     data = glb_json(path)
     if 'EXT_meshopt_compression' not in data.get('extensionsRequired', []):
         raise ValueError('Native delivery requires Meshopt compression.')
+    # three.js reaches a KTX2 image only through this extension: GLTFLoader picks its KTX2Loader by
+    # the texture's declared extension, never by the image mime type. A KTX2 texture without it loads
+    # as a plain image, fails, and the material silently falls back to its base colour factor.
+    if 'KHR_texture_basisu' not in data.get('extensionsRequired', []):
+        raise ValueError('Native delivery requires KHR_texture_basisu for its KTX2 textures.')
+    def image_of(texture_index):
+        # KHR_texture_basisu moves the image index into the texture's extension; a fallback texture keeps
+        # a plain source. Both shapes name the same image, so resolve either.
+        texture = data['textures'][texture_index]
+        declared = (texture.get('extensions') or {}).get('KHR_texture_basisu')
+        return data['images'][(declared or texture)['source']]
+
+    for texture in data.get('textures', []):
+        # With the extension written, the image index lives inside the declaration, not on the texture.
+        declared = (texture.get('extensions') or {}).get('KHR_texture_basisu')
+        if not declared:
+            raise ValueError('Every native KTX2 texture must declare KHR_texture_basisu.')
+        if 'source' in texture:
+            raise ValueError('A KHR_texture_basisu texture must not keep a plain source index.')
+        image = data['images'][declared['source']]
+        if image.get('mimeType') != 'image/ktx2':
+            raise ValueError('KHR_texture_basisu is declared on a texture that is not KTX2.')
     scene = data['scenes'][data['scene']]
     if len(data['meshes']) != len(MESHES) or len(data['nodes']) != len(MESHES) or len(scene['nodes']) != len(MESHES):
         raise ValueError('Native delivery must contain exactly two reusable trees.')
@@ -352,8 +383,7 @@ def verify_glb(path, prepared):
             if (material.get('alphaMode') != 'MASK' or abs(material.get('alphaCutoff', .5) - ALPHA_CUTOFF) > 1e-6
                     or not material.get('doubleSided')):
                 raise ValueError('LOD2 needles lost their double-sided official alpha cutout.')
-            texture = data['textures'][pbr['baseColorTexture']['index']]
-            image = data['images'][texture['source']]
+            image = image_of(pbr['baseColorTexture']['index'])
             if image.get('mimeType') != 'image/ktx2':
                 raise ValueError('Native needle color and opacity must ship as one KTX2 image.')
             view = data['bufferViews'][image['bufferView']]
@@ -392,7 +422,7 @@ def verify_glb(path, prepared):
         texture_index = roles[slot]
         if texture_index is None:
             return None
-        image = data['images'][data['textures'][texture_index]['source']]
+        image = image_of(texture_index)
         if image.get('mimeType') != 'image/ktx2':
             raise ValueError(f'{material} {slot} is not KTX2.')
         view = data['bufferViews'][image['bufferView']]
