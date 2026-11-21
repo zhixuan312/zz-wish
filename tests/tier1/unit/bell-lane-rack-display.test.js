@@ -108,9 +108,9 @@ test('saved tag boards clear the next tray along all five transfer paths', () =>
 });
 
 
-test.each([[1440, 900, 'choose'], [390, 844, 'choosePhone']])(
+test.each([[1440, 900, 'choose', 0], [390, 844, 'choosePhone', 24]])(
   'a tall chooser shade leaves both saved paper bodies visible at %d×%d',
-  (width, height, view) => {
+  (width, height, view, minimumPaperWidth) => {
     const { previous } = bellLaneRackDisplay([{ id: 'tall' }, { id: 'drum' }]);
     const tall = sizedPreset(PRESET_SHAPES.shade[1].rows, 10);
     const current = latticeFixture(tall);
@@ -131,16 +131,35 @@ test.each([[1440, 900, 'choose'], [390, 844, 'choosePhone']])(
       const [minX, maxX] = [Math.min, Math.max].map(fn => fn(...projected.map(point => point.x)));
       const [minY, maxY] = [Math.min, Math.max].map(fn => fn(...projected.map(point => point.y)));
       const ray = new THREE.Raycaster();
+      const samples = 25;
+      const columnWidth = (maxX - minX) * width / (2 * samples);
       let silhouette = 0, clear = 0;
-      for (let i = 0; i < 15; i++) for (let j = 0; j < 15; j++) {
-        const x = THREE.MathUtils.lerp(minX, maxX, (i + .5) / 15);
-        const y = THREE.MathUtils.lerp(minY, maxY, (j + .5) / 15);
-        ray.setFromCamera(new THREE.Vector2(x, y), camera);
-        if (!ray.intersectObject(shell, false).length) continue;
-        silhouette++;
-        if (Math.abs(x) < 1 && Math.abs(y) < 1 && ray.intersectObjects(solids, false)[0]?.object === shell) clear++;
+      const paperWidths = [];
+      for (let row = 0; row < samples; row++) {
+        let run = 0;
+        let longestRun = 0;
+        for (let column = 0; column < samples; column++) {
+          const x = THREE.MathUtils.lerp(minX, maxX, (column + .5) / samples);
+          const y = THREE.MathUtils.lerp(minY, maxY, (row + .5) / samples);
+          ray.setFromCamera(new THREE.Vector2(x, y), camera);
+          const hitsPaper = ray.intersectObject(shell, false).length > 0;
+          if (hitsPaper) silhouette++;
+          if (hitsPaper && Math.abs(x) < 1 && Math.abs(y) < 1 && ray.intersectObjects(solids, false)[0]?.object === shell) {
+            clear++;
+            run++;
+            longestRun = Math.max(longestRun, run);
+          } else {
+            run = 0;
+          }
+        }
+        paperWidths.push(longestRun * columnWidth);
       }
       expect(clear / silhouette).toBeGreaterThan(.30);
+      // A wide strip at the very top can pass an area check while the body
+      // still reads as a narrow edge. Measure the middle of each shade.
+      const outerRows = Math.floor(samples / 4);
+      const middleWidths = paperWidths.slice(outerRows, samples - outerRows).sort((a, b) => a - b);
+      expect(middleWidths[Math.floor(middleWidths.length / 2)]).toBeGreaterThan(minimumPaperWidth);
     }
   },
 );
