@@ -29,6 +29,9 @@ for (const phone of [false, true]) {
     expect(rig.pos.x).toBeLessThan(nook.pos.x + 1.80);
     expect(rig.pos.z).toBeGreaterThan(9);
     expect(rig.pos.z).toBeLessThan(10.3);
+    walk((WALK_SECONDS - 1) / WALK_SECONDS, rig);
+    expect(rig.pos.distanceTo(held.pos)).toBeLessThan(1e-9);
+    expect(rig.look.distanceTo(held.look)).toBeLessThan(1e-9);
     walk(1, rig);
     expect(rig.pos.distanceTo(held.pos)).toBeLessThan(1e-9);
     expect(rig.look.distanceTo(held.look)).toBeLessThan(1e-9);
