@@ -1,6 +1,7 @@
 // The 3D scene: ten places, each with the spot inside it where a lamp is lit, the person's lamp, flame and camera.
 // Ported from the index.html prototype. It owns its render loop; the UI drives it only through the exported functions.
 import * as THREE from 'three';
+import { sound } from '../sound.ts';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
@@ -2511,7 +2512,14 @@ export async function travel(id) {
   }
   if(!P.bakedLighting){const c = chooseView(); await moveCam(c.pos, c.look,2.4,c.fov);}
 }
-export function skip() { skipNextTravel = true; skipTweens(); }
+export function skip() {
+  skipNextTravel = true;
+  skipTweens();
+  if (place?.id === 'bell-lane') {
+    const { pos, look } = chooseView();
+    sound.bellLaneListener(pos.x, pos.z, look.x - pos.x, look.z - pos.z, true);
+  }
+}
 let ignitionTaper;
 function makeIgnitionTaper(){
   const g=new THREE.Group();outside.add(g);g.visible=false;
@@ -2802,6 +2810,9 @@ function frame(stamp = performance.now()) {
     // step cap must not turn a slow browser frame into a slow-motion walk.
     const tw = tweens[i]; tw.t += Math.max(0,elapsed/1000); const k = tw.skip ? 1 : Math.min(1, tw.t / tw.dur); tw.fn(k);
     if (k >= 1) { tweens.splice(i, 1); tw.res(); }
+  }
+  if (place?.id === 'bell-lane' && (!skipNextTravel || phase !== 'travel')) {
+    sound.bellLaneListener(rig.pos.x, rig.pos.z, rig.look.x - rig.pos.x, rig.look.z - rig.pos.z);
   }
   // A slow drift so the view breathes like a held camera; wider outside.
   const a = reducedMotion.matches || place?.P.bakedLighting || (import.meta.env.DEV && window.__visualFreezeCamera) ? 0 : rig.amp;

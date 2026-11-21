@@ -257,7 +257,8 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
     });
     burnRef.current = b; setBusy(true);
     b.keepScreenOn();
-    setShowLeft(false); sound.prepare(); sound.start(lightPlace);
+    setShowLeft(false);
+    if (lightPlace !== 'bell-lane') { sound.prepare(); sound.start(lightPlace); }
     try {
       const c = await api.light({ runId: b.runId, placeId: lightPlace, shape, ...(wishId ? { wishId } : { wishText: wish.trim() }) });
       setWishId(c.wishId);
@@ -284,7 +285,7 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
       }
     } catch (e) {
       if (!b.isSettled) {
-        b.abort(); sound.stop(); burnRef.current = null; setScreen('candle');
+        b.abort(); if (lightPlace !== 'bell-lane') sound.stop(); burnRef.current = null; setScreen('candle');
         setLightError(e instanceof ApiError && e.code === 'already_burning' ? t.alreadyBurning : t.lightFailed);
       }
     } finally { setBusy(false); }
@@ -352,13 +353,22 @@ export function App({ initialLocale }: { initialLocale: Locale }) {
       walkRef.current = walkStarted ? 'started' : 'missing';
       handOverOnce();
     });
+    if (placeId === 'bell-lane') sound.start(placeId);
     setScreen('travel');
-    await engine.travel(placeId);
+    try {
+      await engine.travel(placeId);
+    } catch (error) {
+      if (placeId === 'bell-lane') sound.stop();
+      throw error;
+    }
     setScreen('candle');
     candleRef.current = true;
     handOverOnce();
   });
-  const backToPlace = () => { engine.setOffer(null); toPlace(); };
+  const backToPlace = () => {
+    if (placeId === 'bell-lane') sound.stop();
+    engine.setOffer(null); toPlace();
+  };
   const again = (id: string | null, text: string) => { setOverlay(null); setWishId(id); setWish(text); setStrokes([]); setDrawingMinutes(null); setTab('preset'); setResult(null); engine.setOffer(null); showPlace(); };
   const startOver = () => { setWish(''); setWishId(null); setStrokes([]); setDrawingMinutes(null); setTab('preset'); setPresetShape(0); setPreset(DEFAULT_MINUTES); setColor(DEFAULT_COLOR[kind]); setWishHint(false); setResult(null); setScreen('wish'); run(() => engine.toCover()); };
   const backToWish = () => { setScreen('wish'); run(() => engine.toCover()); };

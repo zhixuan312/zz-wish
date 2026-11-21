@@ -20,8 +20,8 @@ const rooms: Record<PlaceId, { low: number; high: number; gain: number; swell: n
   'loess-cliff': { low: 220, high: 1100, gain: .055, swell: .06, detail: 'air' },
   // High, thin wind.
   'highland': { low: 300, high: 1600, gain: .05, swell: .08, detail: 'air' },
-  // The lane's hum beyond the wall; a bell now and then.
-  'bell-lane': { low: 120, high: 500, gain: .03, swell: .035, detail: 'bell' },
+  // The street bed is filtered again at the court door.
+  'bell-lane': { low: 360, high: 480, gain: .11, swell: .12, detail: 'bell' },
   // The stream beyond the wall.
   'valley-pagoda': { low: 700, high: 2600, gain: .045, swell: .05, detail: 'drip' },
 };
@@ -57,6 +57,22 @@ let nodes: AudioScheduledSourceNode[] = [];
 let detailTimer = 0;
 let muted = false;
 let generation = 0;
+let street: {
+  filter: BiquadFilterNode; volume: GainNode; pan: StereoPannerNode; updatedAt: number; inside: number;
+} | null = null;
+const STREET_SOURCE = { x: 2.4, z: 16.8 };
+const BELL_DOOR_Z = 9.73;
+function streetAt(x: number, z: number, dx: number, dz: number) {
+  const t = Math.max(0, Math.min(1, (BELL_DOOR_Z + 1.3 - z) / 2.6));
+  const inside = t * t * (3 - 2 * t);
+  const sx = STREET_SOURCE.x - x, sz = STREET_SOURCE.z - z;
+  const distance = Math.hypot(sx, sz), heading = Math.hypot(dx, dz);
+  const distanceGain = .48 + .52 / (1 + distance / 14);
+  return {
+    inside, level: distanceGain * (1 - .78 * inside), cutoff: 2700 - 2330 * inside,
+    pan: heading && distance ? .68 * (-dz * sx + dx * sz) / (heading * distance) : 0,
+  };
+}
 // Pine Gate's four recorded layers ride on the same context, master gain and generation token,
 // so mute, stop and the background pause cover them without a second audio path.
 let recorded: RecordedSounds | null = null;
@@ -113,10 +129,23 @@ export const sound = {
       // Keep the higher, clearer pine wind close to the level of the quiet snow bed.
       const swellDepth = id === 'snow-roof' ? .15 : id === 'pine-gate' ? .28 : .65;
       volume.gain.value = room.gain; swell.frequency.value = room.swell; amount.gain.value = room.gain * swellDepth;
-      source.connect(filter).connect(volume).connect(master); swell.connect(amount).connect(volume.gain);
+      source.connect(filter).connect(volume);
+      if (id === 'bell-lane') {
+        const lowPass = c.createBiquadFilter(), doorGain = c.createGain(), pan = c.createStereoPanner();
+        lowPass.type = 'lowpass'; lowPass.Q.value = .45;
+        const initial = streetAt(.4, 46, 0, -1);
+        lowPass.frequency.value = initial.cutoff; doorGain.gain.value = initial.level; pan.pan.value = initial.pan;
+        volume.connect(lowPass).connect(doorGain).connect(pan).connect(master);
+        street = { filter: lowPass, volume: doorGain, pan, updatedAt: -Infinity, inside: initial.inside };
+      } else volume.connect(master);
+      const installedStreet = street;
+      swell.connect(amount).connect(volume.gain);
       filter.frequency.setValueAtTime(room.low, now); filter.frequency.exponentialRampToValueAtTime(room.high, now + 18);
       source.start(); swell.start(); nodes = [source, swell];
-      source.onended = () => { source.disconnect(); filter.disconnect(); volume.disconnect(); swell.disconnect(); amount.disconnect(); };
+      source.onended = () => {
+        source.disconnect(); filter.disconnect(); volume.disconnect(); swell.disconnect(); amount.disconnect();
+        installedStreet?.filter.disconnect(); installedStreet?.volume.disconnect(); installedStreet?.pan.disconnect();
+      };
       if (id === 'snow-roof') {
         const flame = c.createBufferSource(), warmth = c.createBiquadFilter(), breath = c.createGain();
         flame.buffer = buffer; flame.loop = true; flame.playbackRate.value = 1.13;
@@ -151,11 +180,36 @@ export const sound = {
         if (room.detail === 'drip') tone(1500 + Math.random() * 1000, .1, .018);
         if (room.detail === 'bird') { tone(2200 + Math.random() * 1100, .14, .012, 1.7); }
         if (room.detail === 'frog') { tone(420 + Math.random() * 80, .08, .01, 1.3); tone(400 + Math.random() * 80, .07, .008, 1.3); }
-        if (room.detail === 'bell') { const far = id === 'snow-roof' ? .36 : 1; tone(196, 8, .02 * far, .999); tone(392.6, 5, .008 * far, .999); tone(588, 3, .004 * far, .999); }
-        detailTimer = window.setTimeout(detail, id === 'snow-roof' ? 38000 + Math.random() * 42000 : 3500 + Math.random() * 11000);
+        if (room.detail === 'bell' && id !== 'bell-lane') {
+          tone(196, 8, .0072, .999); tone(392.6, 5, .00288, .999); tone(588, 3, .00144, .999);
+        }
+        if (id === 'bell-lane' && street && street.inside > .98 && !hidden) {
+          const hour = new Date().getHours();
+          if (hour === 6 || hour === 18) {
+            tone(184, 8, .009, .998); tone(414, 4.8, .003, .999); tone(609, 2.6, .0014, .999);
+          }
+        }
+        detailTimer = window.setTimeout(detail, id === 'bell-lane' ? 90000 : id === 'snow-roof' ? 38000 + Math.random() * 42000 : 3500 + Math.random() * 11000);
       };
-      detailTimer = window.setTimeout(detail, id === 'snow-roof' ? 14000 + Math.random() * 10000 : 2500 + Math.random() * 5000);
+      detailTimer = window.setTimeout(detail, id === 'bell-lane' ? 55000 : id === 'snow-roof' ? 14000 + Math.random() * 10000 : 2500 + Math.random() * 5000);
     } catch { /* Unsupported or denied audio must never block lighting. */ }
+  },
+  bellLaneListener(x: number, z: number, dx: number, dz: number, immediate = false) {
+    if (!street || !context) return;
+    const now = context.currentTime;
+    if (!immediate && now - street.updatedAt < .055) return;
+    street.updatedAt = now;
+    const next = streetAt(x, z, dx, dz);
+    street.inside = next.inside;
+    for (const [param, value] of [[street.filter.frequency, next.cutoff], [street.volume.gain, next.level], [street.pan.pan, next.pan]] as const) {
+      if (immediate) {
+        param.cancelScheduledValues(now);
+        param.setValueAtTime(value, now);
+      } else {
+        param.cancelAndHoldAtTime(now);
+        param.setTargetAtTime(value, now, .095);
+      }
+    }
   },
   /** A taper taking flame from the shrine lamp: a soft breath, then a small flicker. */
   ignition() {
@@ -171,6 +225,6 @@ export const sound = {
     if (oldMaster && context) fadeGain(oldMaster.gain, 0, context.currentTime, .3);
     for (const node of nodes) { try { node.stop((context?.currentTime ?? 0) + .32); } catch { /* Already stopped. */ } }
     if (oldMaster) window.setTimeout(() => oldMaster.disconnect(), 400);
-    nodes = []; master = null;
+    nodes = []; master = null; street = null;
   },
 };
