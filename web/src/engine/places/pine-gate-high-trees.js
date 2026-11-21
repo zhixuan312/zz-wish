@@ -7,19 +7,6 @@ const mountPrototypes = new Map([
   ['PineShoulderNative', 'PineRidgeNative'],
 ]);
 
-// A stable 32-bit hash of the mount's name, then yaw in [-12°, 12°] and scale in [0.85, 1.15].
-// Math.random would make the forest differ between loads and between the two clients.
-function jitterFor(seedText) {
-  let hash = 2166136261;
-  for (let index = 0; index < seedText.length; index++) {
-    hash ^= seedText.charCodeAt(index);
-    hash = Math.imul(hash, 16777619);
-  }
-  const unit = ((hash >>> 0) % 1000003) / 1000003;
-  const unit2 = (((hash >>> 11) ^ (hash >>> 3)) >>> 0) % 1000003 / 1000003;
-  return { yaw: (unit * 2 - 1) * (12 * Math.PI / 180), scale: .85 + unit2 * .30 };
-}
-
 function readMounts(group) {
   const mounts = JSON.parse(group.userData.one_light_pine_native_mounts ?? '[]');
   const nodes = new Set(Array.isArray(mounts) ? mounts.map(mount => mount?.node) : []);
@@ -84,15 +71,14 @@ export function preparePineHighTrees(baked, file) {
       if (!Number.isFinite(height) || height <= 0 || Math.abs(box.min.y) > .005) {
         throw new Error('Invalid native tree root or height: ' + mount.node);
       }
-      // One clone per mount, sharing the prototype's geometry and materials. A deterministic per-tree
-    // yaw and scale break the repeated silhouette without changing what loads: the seed is the mount's
-    // own label, so every load draws the same forest.
-    const jitter = jitterFor(mount.label ?? mount.node);
-    const tree = prototype.clone();
+      // One clone per mount, sharing the prototype's geometry and materials. The transform is exactly
+      // the mount's own fields, which the export already carries per tree: the same values the base
+      // crown draws with, so nothing moves when this model arrives.
+      const tree = prototype.clone();
       tree.name = mount.label ?? mount.node;
       tree.position.fromArray(mount.position);
-      tree.quaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), mount.yawRadians + jitter.yaw);
-      tree.scale.setScalar((mount.height / height) * jitter.scale);
+      tree.quaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), mount.yawRadians);
+      tree.scale.setScalar(mount.height / height);
       if (base) retainNeedleProfile(tree, base.needles.get(mount.label ?? mount.node), height);
       return tree;
     });

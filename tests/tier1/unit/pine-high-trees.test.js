@@ -34,13 +34,9 @@ test('the native trees replace only their mounted proxies and preserve the sourc
   base.add(untouched);
   expect(await high.start(() => true)).toBe(true);
   expect(high.group.children.map(tree => tree.position.toArray())).toEqual([[0, 4, -2], [1, 4, -2]]);
-  // Each instance carries its own deterministic yaw and scale, so the repeated silhouette breaks up
-  // without the forest changing between loads. The authored height stays inside the 0.85-1.15 band.
-  for (const [index, tree] of high.group.children.entries()) {
-    const authored = [3, 3.5][index];
-    expect(tree.scale.y).toBeGreaterThanOrEqual(authored * .85 - 1e-9);
-    expect(tree.scale.y).toBeLessThanOrEqual(authored * 1.15 + 1e-9);
-  }
+  // These two are the approved trees: the instance takes the mount's height and yaw verbatim, exactly
+  // as reviewed. Any per-tree jitter lives in the export and never reaches them.
+  expect(high.group.children.map(tree => tree.scale.y)).toEqual([3, 3.5]);
   expect(base.children.map(tree => tree.visible)).toEqual([false, false, true]);
   high.dispose();
   expect(base.children.every(tree => tree.visible)).toBe(true);
@@ -61,6 +57,9 @@ test('the native bark upgrade preserves the position, scale and geometry of visi
     // only the instance transform differs, which the deterministic jitter supplies.
     expect(activeNeedles.geometry).toBe(before[i].geometry);
     expect(activeNeedles.material).toBe(before[i].material);
+    // Identical transform: the fallback crown and the native instance must occupy the same space, or the
+    // tree would jump in height or turn when the detail model finishes loading.
+    expect(activeNeedles.matrixWorld.equals(before[i].matrixWorld)).toBe(true);
   }
 });
 
@@ -138,6 +137,16 @@ test('a model that backs several trees installs one instance per mount', async (
   // The prototype is a bare mesh here, so the instance itself carries the shared geometry.
   expect(new Set(ridgeInstances.map(tree => tree.geometry)).size).toBe(1);
   expect(new Set(ridgeInstances.map(tree => tree.material)).size).toBe(1);
+  // Every instance sits exactly where its fallback crown sits: same position, same yaw, same scale.
+  // Without base crowns in this fixture, compare against the mount fields the base crown consumes.
+  high.group.updateMatrixWorld(true);
+  for (const [index, tree] of high.group.children.entries()) {
+    const mount = mounts[index];
+    expect(tree.position.toArray()).toEqual(mount.position);
+    expect(tree.scale.y * 2).toBeCloseTo(mount.height, 9);
+    const yaw = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), mount.yawRadians);
+    expect(tree.quaternion.toArray()).toEqual(yaw.toArray());
+  }
   // Deterministic: a second load produces the same transforms.
   const transforms = high.group.children.map(tree => [tree.position.toArray(), tree.quaternion.toArray(), tree.scale.toArray()]);
   high.dispose();

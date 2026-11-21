@@ -17,6 +17,25 @@ VALLEY_NODES = {
     'Back ridge pine 3': 'PineRidgeNative',
 }
 SHARED_PROTOTYPES = {'PineShoulderNative': 'PineRidgeNative'}
+# Three crowns added after the first visual pass. Their relief was a soft 160-vertex blob, so they now
+# take a native model like the approved three. Only these take a per-tree jitter: the approved trees
+# keep the transform their review signed off, and every consumer reads one transform, so the fallback
+# crown and the native instance always agree and nothing pops when the detail model arrives.
+JITTERED_LABELS = {'Layered ridge pine 12', 'Layered ridge pine 10', 'Back ridge pine 3'}
+
+
+def jitter(label):
+    """A stable yaw offset and scale for one tree, seeded from its authored label.
+
+    A hash keeps it identical on every load and on both clients; random numbers would make the walk
+    look different each time it is entered.
+    """
+    seed = 2166136261
+    for character in label:
+        seed = ((seed ^ ord(character)) * 16777619) & 0xffffffff
+    first = (seed % 1000003) / 1000003
+    second = (((seed >> 11) ^ (seed >> 3)) % 1000003) / 1000003
+    return math.radians((first * 2 - 1) * 12), .85 + second * .30
 
 
 def has_verified_native_receipt(path, verified_sha):
@@ -60,6 +79,10 @@ def add_native_mount(mounts, label, trunk, camera, views, proxy, stem):
     # One model may back several trees, so every material and mount is named by its own label. The
     # node stays a field: the runtime picks the model from it and finds this tree's fallback meshes
     # by the two private material names.
+    if label in JITTERED_LABELS:
+        yaw_offset, scale = jitter(label)
+        yaw += yaw_offset
+        height *= scale
     mounts[label] = {
         'node': node, 'label': label, 'position': position, 'height': height, 'yawRadians': yaw,
         'proxyMaterial': private_material(proxy, f'Depth-reconstructed pine crown {label}', label, 'proxy'),
