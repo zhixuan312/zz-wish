@@ -36,9 +36,11 @@ for (const condition of conditions) {
     const longTask = record.stepLongTask ?? record.homeShaders ?? {};
     lines.push([
       condition, record.phase, record.run,
-      // The field mark is the moment the wish input was visible and editable. It is not the engine's
-      // readiness: on this build the two differ (91 ms and 901 ms in the same run), and conflating them
-      // hid that a visitor can type a full second before the engine is ready.
+      // The field mark is when Playwright's waitFor() first found the wish label in the DOM and the
+      // harness could fill it. waitFor() proves presence and visibility, not that the field accepts
+      // text or that the page will honour it; the fill that follows is what actually exercised it. This
+      // is not the engine's readiness: on this build the two differ (91 ms and 901 ms in one run), and
+      // conflating them hid that the field appears about a second before the engine is ready.
       fmt(record.input?.ms, ''), fmt(record.ready?.ms, ''),
       fmt(record.step?.ms, ''),
       fmt(record.step?.bytes === undefined ? null : +(record.step.bytes / 1048576).toFixed(1), ' MiB'),
