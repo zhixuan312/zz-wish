@@ -76,11 +76,13 @@ def add_night_snow_bounce():
     site = json.loads(SITE.read_text())
     room = next(room for room in site['rooms'] if room['name'] == 'East rest room')
     floor = site['court']['level']
-    # A broad low source represents reflected moonlight from the snow in
-    # front of the east room. The existing beam and eave occlude that bounce.
-    lamp = area(MOON_BOUNCE, (room['west'] - 1.44, floor + .36, room['front'] + 1.32),
-                (room['west'] + .18, floor + 1.26, room['front'] - .86),
-                5.6, '#becfe6', 2.35)
+    inner_wall = room['west']
+    court_bay = (room['rear'] + room['front']) * .5 + .185
+    # Light reflected from the court snow reaches the middle bay from
+    # below. A front-corner source grazes the wall and misses the dark eave.
+    lamp = area(MOON_BOUNCE, (inner_wall - 1.45, floor + .58, court_bay),
+                (inner_wall, floor + 1.79, court_bay),
+                8., '#becfe6', 1.35)
     # The night bake retains ambient sources. An authored solar world and
     # the visitor lamp pass mute them in the shared baker.
     lamp['bake_role'] = 'ambient'
