@@ -17,7 +17,8 @@ const waypoints = [
   { time: 17.3, pos: [-.20, 17.66], aim: [-4.93, -.86, 12.03], fov: 38, phoneFov: 43 },
   { time: 19.38, pos: [-.31, 17.38], aim: [-5.33, -.91, 11.66], fov: 38, phoneFov: 43 },
   { time: 21.7, pos: [-.63, 14.4], aim: [-5.5, -3.28, 11.5], fov: 38, phoneFov: 41 },
-  { time: 24.7, pos: [-.64, 11.25], aim: [-6.0, .40, 11.4], fov: 48 },
+  // The narrower portrait turn starts lining up with the seat here.
+  { time: 24.7, pos: [-.64, 11.25], aim: [-6.0, .40, 11.4], phoneAim: [-6.0, .40, 11.0], fov: 48 },
 ];
 
 function deckHeight(z) {
@@ -141,7 +142,8 @@ export default function createPlace(h) {
     const eyeAt = hermiteTrack([0, 4, 24, walkSeconds, walkSeconds + .01], [
       [start.pos.y - walkingSurface(start.pos.z)], [1.60], [1.60], [arrivalEye], [arrivalEye],
     ]);
-    const looks = [start.look.toArray(), ...waypoints.map(point => point.aim), look.toArray(), look.toArray()];
+    const walkAims = waypoints.map(point => phone && point.phoneAim ? point.phoneAim : point.aim);
+    const looks = [start.look.toArray(), ...walkAims, look.toArray(), look.toArray()];
     const fovs = [start.fov, ...waypoints.map(point => phone ? point.phoneFov ?? point.fov + 4 : point.fov), phone ? 44 : seated.fov, phone ? 44 : seated.fov];
     const positionAt = hermiteTrack(times, positions);
     const lookAt = hermiteTrack(times, looks);
