@@ -4,7 +4,7 @@ import { addBellLaneOilCup, makeBellLaneOilBowl } from './bell-lane-oil.js';
 import { BELL_LANE_CUPS } from './bell-lane-cups.ts';
 import { addBellLaneWishTag } from './bell-lane-wish-tag.js';
 import { BELL_LANE_SHELF, bellLaneTransfer } from './bell-lane-rack.js';
-import { bellLaneRackDisplay, makeBellLaneSavedTag } from './bell-lane-rack-display.js';
+import { bellLaneRackDisplay, finishBellLaneSavedPaper, makeBellLaneSavedTag } from './bell-lane-rack-display.js';
 import { addBellLaneShops } from './bell-lane-shops.js';
 import { bellLaneLocalHour, bellLaneShutterOpening } from './bell-lane-dawn.ts';
 
@@ -18,6 +18,7 @@ export default function createPlace(h) {
   const makeCup = (group, clay, baseY) => addBellLaneOilCup(h, group, clay, baseY);
   const makeWishTag = (lamp, post) => addBellLaneWishTag(h, lamp, post);
   const shelf = BELL_LANE_SHELF;
+  const savedPapers = new Map();
   return {
     exposure: 1.12, shade: .32,
     sky: { top: 0x080d19, horizon: 0x282c38, ground: 0x0b0e15, sun: 0xe0e4ee, dir: [-.7, .5, .35], glow: .12, clouds: .3, lit: 0x424e65, dark: 0x11141c, stars: .35, disc: 1.2 },
@@ -136,11 +137,17 @@ export default function createPlace(h) {
         const tie = lamp.rackDisplay
           ? (group, post) => makeBellLaneSavedTag(h, group, post, lamp.rackDisplay)
           : makeWishTag;
-        return unlitLattice(lamp, makeCup, tie);
+        const model = unlitLattice(lamp, makeCup, tie);
+        if (lamp.rackDisplay) finishBellLaneSavedPaper(THREE, model, lamp.rackDisplay, savedPapers);
+        return model;
       },
       explicitPhoneViews: true, wide: cameras.wide, widePhone: cameras.widePhone,
       choose: cameras.choose, choosePhone: cameras.choosePhone, taperSource,
       async build() {
+        h.context.disposers.push(() => {
+          for (const paper of savedPapers.values()) paper.dispose();
+          savedPapers.clear();
+        });
         const wood = M(0x6a4732, .93, { map: grainTex });
         const edge = M(0x574333, .95, { map: grainTex });
         const tag = M(0x9b7552, .96);
