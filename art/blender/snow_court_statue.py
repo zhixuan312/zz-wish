@@ -43,6 +43,12 @@ EYELID_CUTS = (
     ((-.027, 1.3624, .0559), (-.012, 1.3688, .0552), (.003, 1.3726, .0532),
      (.018, 1.3744, .0502), (.038, 1.3741, .0436), (.053, 1.3724, .0360)),
 )
+# The mouth corners rise gently from the centre of the closed lips.
+LIP_SEAM = (
+    (-.126, 1.260, .052), (-.106, 1.258, .058), (-.086, 1.256, .067),
+    (-.067, 1.253, .069), (-.046, 1.256, .064), (-.026, 1.259, .056),
+    (-.012, 1.261, .051),
+)
 
 
 def seat_ring(x, z):
@@ -208,23 +214,40 @@ def figure_stone_uv(local):
     return ((local @ np.asarray([right, up]).T) / .27 + [.5, .18]).astype(np.float32)
 
 
-def figure_eyelid_weight(local):
-    """Feather the cut around each existing eyelid crease."""
+def refine_facial_relief(local):
+    """Dress the closed lids, lips and chin into the front of the fitted mesh."""
     x, y, z = local.T
-    weight = np.zeros(len(local))
 
     def smooth(value):
         t = np.clip(value, 0., 1.)
         return t * t * (3. - 2. * t)
 
-    for cut in EYELID_CUTS:
-        line_x, line_y, line_z = np.asarray(cut).T
-        along = smooth((x - line_x[0] + .005) / .015) * smooth((line_x[-1] + .005 - x) / .015)
-        dy = abs(y - np.interp(x, line_x, line_y))
+    def seam_profile(path, ease, depth):
+        line_x, line_y, line_z = np.asarray(path).T
+        along = smooth((x - line_x[0]) / ease) * smooth((line_x[-1] - x) / ease)
+        dy = y - np.interp(x, line_x, line_y)
         dz = abs(z - np.interp(x, line_x, line_z))
-        across = np.exp(-.5 * (dy / .008) ** 2) * (1. - smooth((dy - .016) / .008))
-        weight += along * across * (1. - smooth((dz - .008) / .012))
-    return weight
+        return dy, along * (1. - smooth((dz - depth) / depth))
+
+    def roll(distance, centre, width):
+        # Blend the tool pass into the surrounding stone without a hard border.
+        return np.exp(-.5 * ((distance - centre) / width) ** 2)
+
+    relief = np.zeros(len(local))
+    for lid in EYELID_CUTS:
+        dy, weight = seam_profile(lid, .018, .010)
+        relief += weight * (.010 * roll(dy, .012, .009)
+                            - .008 * roll(dy, 0., .006)
+                            + .003 * roll(dy, -.012, .008))
+
+    dy, weight = seam_profile(LIP_SEAM, .024, .013)
+    relief += weight * (.010 * roll(dy, .009, .007)
+                        - .007 * roll(dy, 0., .0055)
+                        + .012 * roll(dy, -.010, .0075)
+                        - .004 * roll(dy, -.023, .008))
+    jaw = (1. - smooth((abs(x + .071) - .030) / .051)) * smooth((z - .032) / .024)
+    relief += jaw * .010 * roll(y, 1.217, .012)
+    return .90 * relief
 
 
 def figure_stone_colours(vertices, faces):
@@ -266,11 +289,9 @@ def build(mesh, anchor, material):
         faces = data['faces']
         charts = data['charts']
         material_uv = figure_stone_uv(local)[faces]
-    eyelids = figure_eyelid_weight(local)
-    local[:, 2] -= .003 * eyelids
+    local[:, 2] += refine_facial_relief(local)
     vertices = local + np.asarray(anchor)
     colours = figure_stone_colours(local, faces)
-    colours *= (1. - .045 * eyelids[:, None])
 
     figure = mesh.mesh_object('Seated weathered stone Buddha', vertices.tolist(), faces.tolist(), material)
     figure.data.uv_layers['UVMap'].data.foreach_set('uv', material_uv.ravel())
