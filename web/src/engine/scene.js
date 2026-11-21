@@ -1813,6 +1813,7 @@ function trimPlaceCache(protectedIds) {
 }
 async function buildPlace(t) {
   const next = await preparePlace(t.id);
+  if (place && place !== next && mine.type === 'hood') clearTideEnding();
   mine.g.removeFromParent(); outside.add(mine.g);
   if (place) outside.remove(place.G);
   place = next;
@@ -2226,11 +2227,24 @@ export function setOwnPastLamps(list) {
 }
 export function ownPastLampCount() { return ownPastLamps.length; }
 
+function clearTideEnding() {
+  lit = false;
+  mine.power = 0;
+  shadeCoolingUntil = shadeCoolingGlow = shadeCoolingStart = shadeCoolingTau = emberUntil = 0;
+  roomLight = 1;
+  wickPlume.clear();
+  mine.update(clockTime);
+}
+
 /** Show the person's candle or lamp (or hide it with null), full. */
 export function setOffer(shape) {
   const o=toOffer(shape);level=targetLevel=1;mine.g.visible=!!o&&atLamp;
   waxFuel = null;
-  if(o)mine.setOffer(o);else mine.offer=null;
+  if (o) mine.setOffer(o);
+  else {
+    mine.offer = null;
+    if (mine.type === 'hood') clearTideEnding();
+  }
   if(o&&atLamp&&phase==='candle'&&(place?.P.bakedLighting||(mine.parts?.pineWax&&narrow()))){
     const v=chooseView(),version=++choiceCameraVersion;
     if(rig.pos.distanceTo(v.pos)>.015||rig.look.distanceTo(v.look)>.015){
@@ -2724,6 +2738,8 @@ export async function snuff(done = false, remaining, gust = false) {
   if(import.meta.env.DEV)window.__visualIgnition={state:'cancelled',journey};
   if(ignitionTaper)ignitionTaper.g.visible=false;
   const endingParts = mine.parts;
+  const tideOffer = mine.type === 'hood' ? mine.offer : null;
+  const endingIsCurrent = () => !tideOffer || (mine.offer === tideOffer && journey === cameraJourneyVersion);
   if (endingParts?.pineWax) {
     const fuel = done ? 0 : THREE.MathUtils.clamp(remaining ?? waxFuel?.() ?? level, 0, 1);
     waxFuel = null;
@@ -2743,7 +2759,9 @@ export async function snuff(done = false, remaining, gust = false) {
     variant: endingParts?.pineWax ? 'pine' : undefined, valid: () => mine.parts === endingParts });
   emberUntil = clockTime + (done ? 3.8 : .35);
   // Went out: sudden, and the place keeps less of its light. Burned down: it stays as it was.
-  if (!done && !place.P.bakedLighting) void tween(1.6, (k) => { roomLight = 1 - .3 * ease(k); });
+  if (!done && !place.P.bakedLighting) void tween(1.6, (k) => {
+    if (endingIsCurrent()) roomLight = 1 - .3 * ease(k);
+  });
   const p0=done?Math.min(.24,Math.max(.015,lastPower)):mine.power;mine.power=p0;
   // Putting a lamp out stays sudden for the flame, its light and the smoke: only
   // the cloth holds heat. The cloth starts from the glow it had a frame before
@@ -2751,7 +2769,11 @@ export async function snuff(done = false, remaining, gust = false) {
   // The cloth's own glow is what cools, and it sits around 2.4 * strength * power
   // while lit; start from that so the first cooled frame matches the last lit one.
   if(!done&&endingParts?.shells?.length){shadeCoolingStart=clockTime;shadeCoolingGlow=Math.max(.02,Math.min(2.4,lastGlow*.9));shadeCoolingUntil=clockTime+16;shadeCoolingTau=2.6;}
-  await tween(done?2.6:.12,k=>{mine.power=p0*Math.pow(1-k,done?1.35:1)*(done?.78+.22*Math.sin(k*17)**2:1);});mine.power=0;
+  await tween(done ? 2.6 : .12, k => {
+    if (endingIsCurrent()) mine.power = p0 * Math.pow(1 - k, done ? 1.35 : 1)
+      * (done ? .78 + .22 * Math.sin(k * 17) ** 2 : 1);
+  });
+  if (endingIsCurrent()) mine.power = 0;
 }
 
 function resize() {

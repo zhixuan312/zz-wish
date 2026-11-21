@@ -134,7 +134,7 @@ test('Tide builds its wall deposits and animated harbour water before the first 
   }
 });
 
-test('Tide hood has open vents between opaque clay and no bounce after extinction', () => {
+test('Tide hood keeps cooling inside open vents and loses its stone bounce on extinction', () => {
   const lathe = (points, sides) => new THREE.LatheGeometry(points.map(([r, y]) => new THREE.Vector2(r, y)), sides);
   const solid = (group, geometry, material) => {
     const mesh = new THREE.Mesh(geometry, material);
@@ -144,8 +144,12 @@ test('Tide hood has open vents between opaque clay and no bounce after extinctio
   const radius = .06, top = .21;
   const hood = buildTideHood(THREE, { lathe, solid, radiusAt: () => radius }, [[radius, 0], [radius, top]], 0xa82a1c);
   const shell = hood.g.getObjectByName('Tide pierced earthenware hood');
+  const vent = hood.g.getObjectByName('Tide ceramic vent interior');
   assert.equal(shell.material.transparent, false);
   assert.equal(shell.material.emissive.getHex(), 0);
+  assert.equal(shell.material.userData.u, undefined);
+  assert.deepEqual(hood.shells, [vent.material]);
+  assert.equal(vent.material.userData.u.uGlow.value, 0);
   const direction = V3(1, 0, 1).normalize();
   const ventHeight = .012 + top * (.305 + .005 * Math.sin(1));
   const ray = new THREE.Raycaster(direction.clone().multiplyScalar(.12).setY(ventHeight),
