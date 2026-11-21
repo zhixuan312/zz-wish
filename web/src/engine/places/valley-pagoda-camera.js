@@ -106,8 +106,10 @@ export function createValleyPagodaCamera(THREE, V3) {
   );
 
   return {
-    view: pose(...ROUTE[0], walkFov(false)),
-    viewPhone: pose(...ROUTE[0], walkFov(true)),
+    // The idle exterior drifts around this gaze. Aim at the distant tower,
+    // so the same metre of drift does not push it out of a portrait frame.
+    view: pose(...ROUTE[0], walkFov(false), 34),
+    viewPhone: pose(...ROUTE[0], walkFov(true), 34),
     wide: nookPose(wide),
     widePhone: nookPose(widePhone, true),
     choose: nookPose(choose),

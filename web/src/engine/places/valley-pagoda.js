@@ -13,8 +13,8 @@ export default function createPlace(h) {
   return {
     exposure: 1.12, shade: .32,
     sky: { top: 0x080d18, horizon: 0x263044, ground: 0x0c1119, sun: 0xdce4f4, dir: [-.35, .6, -.25], glow: .1, clouds: .65, lit: 0x424e65, dark: 0x121924, stars: .2, disc: .7 },
-    fog: [0x1c2737, .009], sunL: [0xb8c9e5, .55], hemi: [0x3e516d, 0x131914, .34], bloom: [.48, 1.05], porch: [0xffa65c, 5],
-    day: { exposure: 1, sky: { top: 0x5c7b9e, horizon: 0xd6dfdb, ground: 0x53604f, sun: 0xffe6c0, dir: [-.35, .6, -.25], glow: .35, clouds: .55, lit: 0xffeee0, dark: 0x83989d }, fog: [0xa5b8b5, .006], sunL: [0xffe7c8, 1.8], hemi: [0xc5dce5, 0x42523e, .85], bloom: [.25, 1.4] },
+    fog: [0x1c2737, .0075], sunL: [0xb8c9e5, .55], hemi: [0x3e516d, 0x131914, .34], bloom: [.48, 1.05], porch: [0xffa65c, 5],
+    day: { exposure: 1, sky: { top: 0x5c7b9e, horizon: 0xd6dfdb, ground: 0x53604f, sun: 0xffe6c0, dir: [-.35, .6, -.25], glow: .35, clouds: .55, lit: 0xffeee0, dark: 0x83989d }, fog: [0xa5b8b5, .0043], sunL: [0xffe7c8, 1.8], hemi: [0xc5dce5, 0x42523e, .85], bloom: [.25, 1.4] },
     view: cameras.view,
     viewPhone: cameras.viewPhone,
     walkSeconds: WALK_SECONDS,
@@ -56,11 +56,13 @@ export default function createPlace(h) {
         points.setX(i, points.getX(i) + channel(waterZ - points.getY(i)) - STREAM_X);
       }
       bed.computeBoundingSphere();
-      water(-.48, 0x29464b, { geo: bed, x: STREAM_X, z: waterZ, waves: .8, env: .85, rough: .18 });
+      const stream = water(-.48, 0x244140, { geo: bed, x: STREAM_X, z: waterZ, waves: 1.2, env: .48, rough: .26 });
+      stream.material.clearcoat = .05;
+      stream.material.specularIntensity = .55;
       for (let i = 0; i < 36; i++) {
         const z = -78 + i * 3.4;
         const x = channel(z);
-        const size = .35 + C.rnd() * .5;
+        const size = .25 + C.rnd() * .48;
         rock(x - 2.7 - C.rnd() * .4, -.49, z, [size, size * .65, size * 1.4], i * 3 + 7);
         rock(x + 2.7 + C.rnd() * .6, -.49, z + .8, [size, size * .8, size * 1.6], i * 3 + 8);
       }
@@ -86,9 +88,9 @@ export default function createPlace(h) {
 
       const mountain = M(0x293b35, 1);
       for (const [x, z, radius, height, seed] of [
-        [-70, -80, 58, 130, 11], [-88, 5, 60, 145, 17],
-        [100, -84, 58, 155, 23], [88, 18, 62, 150, 27],
-        [-12, -170, 85, 185, 31], [42, -175, 61, 142, 61],
+        [-72, -83, 60, 76, 11], [-92, 5, 61, 95, 17],
+        [106, -92, 60, 94, 23], [91, 18, 58, 104, 27],
+        [-16, -181, 86, 107, 31], [42, -205, 61, 72, 61],
       ]) peak(x, -12, z, radius, height, mountain, seed, 1.05);
       const grove = trees();
       for (const [x, z, scale] of FOREGROUND_PINES) {
@@ -99,11 +101,16 @@ export default function createPlace(h) {
         const z = -70 + C.rnd() * 118;
         grove.pine(side * (18 + C.rnd() * 31), -.58, z, .8 + C.rnd() * 1.4, 0x253b2b);
       }
+      for (const [x, z, scale] of [
+        [17.5, -16, .65], [16.4, -23.5, .75], [17.1, -29, .8], [17.9, -33, .55],
+        [19.9, -37, .94], [19.3, -45, .72], [20.5, -49, .85],
+        [8.8, -32, .63], [9.3, -38.3, .51], [11.6, -51.7, .7], [12.9, -65, .77],
+      ]) grove.broad(x, -.66, z, scale, 0x405c36);
       grove.finish();
-      for (const [x, z, size] of [[-7, 27, 1.2], [6, 31, 1], [-6, 38, .7], [7.9, -22, .5], [9.35, -24, .68], [9.1, -26.3, .6]]) {
+      for (const [x, z, size] of [[-7, 27, 1.2], [6, 31, 1], [-6, 38, .7], [8.85, -22.8, .34], [10.05, -24.7, .51], [9.1, -26.3, .47]]) {
         rock(x, z < -21 ? -.12 : 0, z, [size, size * .7, size * .9], Math.round(z));
       }
-      mist({ n: 38, at: [0, 1.8, -38], box: [90, 3.1, 86], color: 0xb6c9cb, opacity: .085, size: 17, drift: .5 });
+      mist({ n: 26, at: [0, 1.8, -52], box: [90, 3.1, 88], color: 0xb6c9cb, opacity: .055, size: 13, drift: .5 });
       await pauseBuild();
     },
     nook: {
