@@ -2,6 +2,7 @@ import { BELL, LAMP, TREE, TURN_SECONDS, WALK_SECONDS, WINDOW, bellLaneCameras }
 import { addBellLaneTree } from './bell-lane-tree.js';
 import { addBellLaneOilCup, makeBellLaneOilBowl } from './bell-lane-oil.js';
 import { BELL_LANE_CUPS } from './bell-lane-cups.ts';
+import { addBellLaneWishTag } from './bell-lane-wish-tag.js';
 import { bellLaneLocalHour, bellLaneShutterOffset, bellLaneShutterOpening } from './bell-lane-dawn.ts';
 
 // An invented neighbourhood temple: a lit shop lane, one low door, a tree and a small bell court.
@@ -187,6 +188,7 @@ export default function createPlace(h) {
     nook: {
       at: { pos: V3(...LAMP), ry: 0 }, lamp: 'lattice', y: .46, exposure: 1.1, bloom: [.35, 1.02],
       makeVisitorCup: makeCup,
+      makeVisitorWishTag: lamp => addBellLaneWishTag(h, lamp),
       // The two most recent lamps flank the current lamp within the seated phone view.
       // The remaining slots are farther back on the same shelf.
       pastLampSlots: [[.318, .46, .205, .47, .14], [-.205, .46, .075, .45, .27],

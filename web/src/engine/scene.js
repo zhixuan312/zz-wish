@@ -801,7 +801,7 @@ const LAMPS = {
   },
   // Bell Lane's square lattice lamp. One unpapered side is the service opening
   // for the oil cup and taper, and faces the visitor at the rack.
-  lattice(o = presetOf('shade'), makeVisitorCup) {
+  lattice(o = presetOf('shade'), makeVisitorCup, makeVisitorWishTag) {
     const g = new THREE.Group(), y0 = .5, P = scaled(o.rows, shadeScale(o.rows, 1.8, .05)).map(([r, y]) => [r * Math.SQRT2, y0 + .02 + y]), top = P[P.length - 1][1];
     for (const [x, z] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) solid(g, new THREE.BoxGeometry(.022, y0, .022), lampWood, x * .11, y0 / 2, z * .11);
     solid(g, new THREE.BoxGeometry(.26, .02, .26), lampWood, 0, y0, 0);
@@ -818,14 +818,17 @@ const LAMPS = {
     for (const [r, y] of [P[0], P[P.length - 1]]) { const ring = lathe([[r + .006, y - .008], [r + .006, y + .008]], 4); ring.rotateY(Math.PI / 4); solid(g, ring, lampWood); }
     const visitorCup = makeVisitorCup?.(g, clayMat, y0);
     if (!visitorCup) solid(g, lathe([[0, y0 + .01], [.022, y0 + .01], [.024, y0 + .03], [.02, y0 + .032], [0, y0 + .026]], 32), clayMat);
-    const tagMat = new THREE.MeshStandardMaterial({ color: 0xac7952, roughness: .91, map: grainTex });
-    tagMat.userData.lampOwned = true;
-    const tag = solid(g, new THREE.BoxGeometry(.036, .086, .004), tagMat, .095, y0 - .044, -.129);
-    if (visitorCup) tag.name = 'Bell Lane visitor tag';
-    tag.rotation.z = -.13;
-    const cord = solid(g, new THREE.TorusGeometry(.008, .0014, 5, 14), lampWood, .09, y0 - .002, -.129);
-    cord.rotation.y = .18;
-    return { g, kind: 'shade', shells: [shell], wick: { at: V3(0, y0 + .036, 0) }, frame: { h: top - y0 + .08, cy: (y0 + top) / 2 }, lightMax: .16, flame: 1.0, light: 0xffaa60, ...visitorCup };
+    const wishTag = makeVisitorWishTag?.(g);
+    if (!wishTag) {
+      const tagMat = new THREE.MeshStandardMaterial({ color: 0xac7952, roughness: .91, map: grainTex });
+      tagMat.userData.lampOwned = true;
+      const tag = solid(g, new THREE.BoxGeometry(.036, .086, .004), tagMat, .095, y0 - .044, -.129);
+      if (visitorCup) tag.name = 'Bell Lane visitor tag';
+      tag.rotation.z = -.13;
+      const cord = solid(g, new THREE.TorusGeometry(.008, .0014, 5, 14), lampWood, .09, y0 - .002, -.129);
+      cord.rotation.y = .18;
+    }
+    return { g, kind: 'shade', shells: [shell], wick: { at: V3(0, y0 + .036, 0) }, frame: { h: top - y0 + .08, cy: (y0 + top) / 2 }, lightMax: .16, flame: 1.0, light: 0xffaa60, wishTag, ...visitorCup };
   },
 };
 
@@ -905,7 +908,7 @@ const api = { g, parts: null, partsKey: null, type: null, power: 0, lightPower: 
       if (this.parts) { g.remove(this.parts.g); disposeTree(this.parts.g); }
       const input=drawn?{...o,liveBaked}:this.type==='gauze'?{...presetOf('shade'),liveBaked}:undefined;
       const p = this.type === 'pineWax' ? LAMPS.pineWax({ refined: liveBaked, sculptNormal, sunShade })
-        : LAMPS[this.type](input, place?.P.nook.makeVisitorCup);
+        : LAMPS[this.type](input, place?.P.nook.makeVisitorCup, place?.P.nook.makeVisitorWishTag);
       p.setCupFinish?.(place?.visitorCupFinish);
       this.parts = p; this.partsKey = key; g.add(p.g);
       hanger.material=p.suspensionMaterial??defaultSuspensionMaterial;
@@ -955,6 +958,7 @@ const api = { g, parts: null, partsKey: null, type: null, power: 0, lightPower: 
       this.offer = o; this.lastCut = -1; this.lastOil = -1;
       if (this.parts && this.parts.kind !== 'wax' && o.kind === this.parts.kind) this.build(o);
       const p = this.parts; if (!p) return;
+      p.wishTag?.setProgress(0);
       f.soft = !!place?.P.bakedLighting;
       const isWax = p.kind === 'wax';
       this.waxState = 'unlit';
@@ -2623,6 +2627,10 @@ export async function ignite({onCatch, remainingFuel, onTaperLit}={}) {
   const pine = !!mine.parts?.pineWax;
   if (pine) waxFuel = remainingFuel ?? null;
   if (place.P.nook.taperSource) {
+    const tag = mine.parts?.wishTag;
+    // Tie and hold the tag within the original approach beat. Contact and the burn clock keep their timing.
+    const tiedAt = tag ? .102 : 0;
+    const taperStarts = tag ? .124 : 0;
     courtTaper ??= makeIgnitionTaper();
     const { g, f, casters } = courtTaper;
     for (const part of casters) part.castShadow = false;
@@ -2637,15 +2645,16 @@ export async function ignite({onCatch, remainingFuel, onTaperLit}={}) {
     let caught = false;
     mine.power = 0;
     try {
-      g.visible = true;
+      g.visible = !tag;
       await tween(13.2, k => {
         if (!lit || journey !== cameraJourneyVersion) { g.visible = false; return; }
-        if (k < .18) tip.lerpVectors(exchange, entry, smooth(0, .18, k));
+        tag?.setProgress(k / tiedAt);
+        if (k < .18) tip.lerpVectors(exchange, entry, smooth(taperStarts, .18, k));
         else if (k < .31) tip.lerpVectors(entry, wick, smooth(.18, .31, k));
         else if (k < .37) tip.copy(wick);
         else tip.lerpVectors(wick, withdrawn, smooth(.37, .61, k));
         g.position.copy(tip).sub(graphicOffset);
-        g.visible = k < .63;
+        g.visible = k >= taperStarts && k < .63;
         f.tick(clockTime, 1 - smooth(.50, .63, k), 0, [], tip.y);
         if (!caught && k >= .31) {
           caught = true;
@@ -2654,7 +2663,8 @@ export async function ignite({onCatch, remainingFuel, onTaperLit}={}) {
         mine.power = smooth(.31, .62, k);
         if (import.meta.env.DEV) {
           const taperTip = f.flame.getWorldPosition(tip);
-          mark(k >= .31 && k < .37 ? 'wick-contact' : 'igniting', k,
+          const state = k < tiedAt ? 'tying-tag' : k < taperStarts ? 'tag-tied' : k >= .31 && k < .37 ? 'wick-contact' : 'igniting';
+          mark(state, k,
             { wickContactMetres: taperTip.distanceTo(wick), wick: wick.toArray(), taperTip: taperTip.toArray() });
         }
       });
@@ -2849,6 +2859,7 @@ export async function snuff(done = false, remaining, gust = false) {
   }
   const lastPower=mine.power*(lit?Math.min(1,level*25):1);
   const lastGlow=Math.max(0,...(mine.parts?.shells??[]).map(material=>material.userData.u.uGlow.value/material.userData.strength));
+  if (lit) mine.parts?.wishTag?.setProgress(1);
   lit = false;
   shadeCoolingUntil=done?clockTime+5.2:0;shadeCoolingGlow=done?Math.min(.65,Math.max(.12,lastGlow*.55)):0;
   ignitionFill=0;
