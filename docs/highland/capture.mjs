@@ -25,12 +25,14 @@ const views = [
 const output = resolve(process.argv[2] ?? 'artifacts/highland/matched');
 const requested = process.argv.slice(3);
 const baseline = requested.includes('--baseline');
+const paired = requested.includes('--paired');
 const referenceArg = requested.find(value => value.startsWith('--match='));
 const match = referenceArg ? resolve(referenceArg.slice('--match='.length)) : null;
 assert.ok(!referenceArg || referenceArg.length > '--match='.length, 'Set --match to the baseline output directory.');
 assert.ok(!baseline || !match, 'Use --match on the candidate, not the baseline.');
+assert.ok(!paired || (!baseline && !match), 'Use --paired by itself to save before and after together.');
 assert.ok(!match || match !== output, 'The baseline and candidate output directories must be different.');
-const filters = requested.filter(value => value !== '--baseline' && value !== referenceArg);
+const filters = requested.filter(value => value !== '--baseline' && value !== '--paired' && value !== referenceArg);
 const combinations = views.flatMap(view => [13, 22].map(hour => ({ ...view, hour, key: `${view.name}-${hour}` })));
 assert.ok(filters.every(key => combinations.some(view => view.key === key)), 'Use desktop-13, desktop-22, phone-13 or phone-22.');
 const selected = filters.length ? combinations.filter(view => filters.includes(view.key)) : combinations;
@@ -77,11 +79,13 @@ function measureTrace(rows) {
   assert.ok(crossing.length, 'No rendered frame inside the physical doorway');
   const doorway = {
     firstWalkSecond: crossing[0].walkSeconds, lastWalkSecond: crossing.at(-1).walkSeconds,
+    eyeHeightMetres: [Math.min(...crossing.map(({ position: p }) => p[1])), Math.max(...crossing.map(({ position: p }) => p[1]))],
     nearestJambMetres: Math.min(...crossing.map(({ position: p }) => opening.halfWidth - Math.abs(p[0]))),
     lintelMetres: Math.min(...crossing.map(({ position: p }) => opening.ceiling - p[1])),
     floorMetres: Math.min(...crossing.map(({ position: p }) => p[1] - opening.floor)),
   };
   assert.ok(doorway.firstWalkSecond >= 22 && doorway.lastWalkSecond <= 26, 'The camera crossed the opening outside the scheduled 22–26 s segment');
+  assert.ok(doorway.eyeHeightMetres.every(height => Math.abs(height - 1.66) < .02), 'Pass the doorway at walking eye height');
   assert.ok(Math.min(doorway.nearestJambMetres, doorway.lintelMetres, doorway.floorMetres) > .2, 'Camera eye entered the passage solids or grazed an edge');
   const authoredTravel = rows.filter(row => row.walkState === 'walking');
   const final = authoredTravel.at(-1);
@@ -110,6 +114,10 @@ function measureTrace(rows) {
 
 function watchErrors(page, issues) {
   page.on('pageerror', error => issues.push({ type: 'page', message: error.message }));
+  page.on('console', message => {
+    if (message.type() === 'error' && /webgl|shader error/i.test(message.text()))
+      issues.push({ type: 'graphics', message: message.text() });
+  });
   page.on('response', response => {
     if (response.status() >= 400) issues.push({ type: 'http', status: response.status(), url: response.url() });
   });
@@ -180,8 +188,8 @@ async function crop(page, bytes, rect, destination) {
   await writeFile(destination, pngBytes(png));
 }
 
-async function compareToBaseline(report) {
-  const path = join(match, report.view.key, 'report.json');
+async function compareToBaseline(report, referenceDir) {
+  const path = join(referenceDir, report.view.key, 'report.json');
   const reference = JSON.parse(await readFile(path, 'utf8'));
   assert.equal(reference.failure, undefined, `Baseline failed: ${path}`);
   assert.equal(reference.source.mode, 'baseline', `Expected a baseline report: ${path}`);
@@ -197,8 +205,8 @@ async function compareToBaseline(report) {
   return { path, exactDiagnosticPoses: images, actualUiPoses: stages, cropRects: reference.crops };
 }
 
-async function capture(browser, preview, view) {
-  const directory = join(output, view.key);
+async function capture(browser, preview, view, outputDir, referenceDir) {
+  const directory = join(outputDir, view.key);
   await mkdir(directory, { recursive: true });
   const issues = [];
   const viewport = { width: view.width, height: view.height };
@@ -279,8 +287,8 @@ async function capture(browser, preview, view) {
     report.lit = lit;
     assert.ok(posesMatch(poseDelta(report.seated, lit)), 'The lit frame moved away from the Ready-made pose');
 
-    if (match) {
-      report.match = await compareToBaseline(report);
+    if (referenceDir) {
+      report.match = await compareToBaseline(report, referenceDir);
       report.crops = report.match.cropRects;
     }
     for (const { name, seconds } of TARGETS) {
@@ -306,18 +314,31 @@ async function capture(browser, preview, view) {
   console.log(`${view.key}: ${report.trace.frames} frames, ${report.trace.peakTurnDegreesPerSecond.toFixed(2)}°/s peak turn, no errors`);
 }
 
-let preview, browser;
 const failures = [];
+async function captureBatch(browser, isBaseline, outputDir, referenceDir) {
+  const preview = await startPreview({ baseline: isBaseline });
+  try {
+    console.log(`${isBaseline ? 'Baseline' : 'Candidate'}: ${outputDir}`);
+    for (const view of selected) {
+      try { await capture(browser, preview, view, outputDir, referenceDir); }
+      catch (error) { failures.push({ view: view.key, message: error.message }); console.error(view.key, error); }
+    }
+  } finally {
+    await preview.close();
+  }
+}
+
+const browser = await chromium.launch({ channel: 'chrome', headless: true,
+  args: ['--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist'] });
 try {
-  preview = await startPreview({ baseline });
-  browser = await chromium.launch({ channel: 'chrome', headless: true,
-    args: ['--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist'] });
-  for (const view of selected) {
-    try { await capture(browser, preview, view); }
-    catch (error) { failures.push({ view: view.key, message: error.message }); console.error(view.key, error); }
+  if (paired) {
+    const before = join(output, 'before');
+    await captureBatch(browser, true, before, null);
+    if (failures.length === 0) await captureBatch(browser, false, join(output, 'after'), before);
+  } else {
+    await captureBatch(browser, baseline, output, match);
   }
 } finally {
-  try { await browser?.close(); }
-  finally { await preview?.close(); }
+  await browser.close();
 }
 if (failures.length) process.exitCode = 1;
