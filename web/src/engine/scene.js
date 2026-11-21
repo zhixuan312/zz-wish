@@ -2486,7 +2486,7 @@ export async function toCover() {
 
 /** Walk in from outside, through the place, to its lamp, ready to choose. One continuous walk. */
 export async function travel(id) {
-  cameraJourneyVersion++;
+  const journey = ++cameraJourneyVersion;
   skipNextTravel = false;
   wanted = null; while (previewTask) await previewTask.catch(() => {});
   if (place?.id !== id) {
@@ -2509,16 +2509,17 @@ export async function travel(id) {
   }
   place.baked?.startWalkLightmaps?.();
   place.baked?.backdrop?.startWalk();
+  const entering = place;
   // The native tree model may live in the walk tier, which every device loads, so this is no
   // longer gated on a wide pointer screen: phones must see the same trees. It still only swaps
   // on the closed forest ascent, before the crest reveals the site.
   {
-    const entering = place, started = performance.now();
+    const started = performance.now();
     if (!narrow() && !touchPrimary.matches && !powerSaver) entering.baked?.backdrop?.startDesktopHigh();
     entering.baked?.highTrees?.start(() => place === entering && phase === 'travel'
       && rig.pos.z > 14 && performance.now() - started < 8000);
   }
-  const P = place.P, N = P.nook, arrival=viewOf((narrow()&&N.widePhone)||N.wide),end=P.bakedLighting?chooseView():arrival;
+  const P = entering.P, N = P.nook, arrival=viewOf((narrow()&&N.widePhone)||N.wide),end=P.bakedLighting?chooseView():arrival;
   // A place may end its walk at a reveal pose, hold it, then approach its own end pose. Pine Gate
   // opts in; every other place walks straight into its end pose as before.
   const hold = P.walkHold;
@@ -2645,7 +2646,8 @@ export async function travel(id) {
     else await tween(5.6, settle, true);
   }
   if(!P.bakedLighting){const c = chooseView(); await moveCam(c.pos, c.look,2.4,c.fov);}
-  if (P.offerAfterTravel && place?.P === P) {
+  // A clock refresh replaces the visual settings without changing the visit.
+  if (P.offerAfterTravel && place === entering && journey === cameraJourneyVersion) {
     atLamp = true;
     mine.g.visible = !!mine.offer;
   }
