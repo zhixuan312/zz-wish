@@ -19,8 +19,12 @@
 import { chromium } from '@playwright/test';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { execFileSync, spawn } from 'node:child_process';
 
+// The repository this harness lives in: every path and probe is resolved from here, so the harness can be
+// launched from any directory (the authorised tmp, a scheduler, a shell in another tree).
+const REPO = fileURLToPath(new URL('../..', import.meta.url));
 const options = Object.fromEntries(process.argv.slice(2).reduce((rows, value, index, all) => {
   if (value.startsWith('--')) rows.push([value.slice(2), all[index + 1] ?? '']);
   return rows;
@@ -81,7 +85,8 @@ async function waitForServer(port, timeoutMs = 30000) {
 
 const environment = {
   wallTime: new Date().toISOString(),
-  commit: execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim(),
+  // Every probe names its own directory: the harness may be launched from anywhere.
+  commit: execFileSync('git', ['-C', REPO, 'rev-parse', 'HEAD'], { encoding: 'utf8' }).trim(),
   chrome: execFileSync('sh', ['-c',
     '/Applications/Google\\ Chrome.app/Contents/MacOS/Google\\ Chrome --version'], { encoding: 'utf8' }).trim(),
   gpu: execFileSync('sh', ['-c', 'system_profiler SPDisplaysDataType 2>/dev/null | grep -m1 Chipset'], { encoding: 'utf8' }).trim(),
@@ -323,13 +328,16 @@ async function runOnce(target, condition, run, phase) {
     // clearing, then requires four consecutive frames whose coarse grid differs materially from the
     // first post-fade frame. The result is labelled a canvas proxy, because the production build
     // exposes no camera pose.
-    const walkProbe = page.evaluate(() => new Promise(resolve => {
+    // page.evaluate awaits a returned promise, so the probe must NOT return one: it installs itself and
+    // reports through window.__walkProbe. Returning a promise would block the evaluate call until
+    // movement appeared, which is exactly the movement we are waiting to measure.
+    await page.evaluate(() => {
       const probe = { armed: false, first: null, samples: 0, baseline: null, streak: 0,
         fadeSeen: null, fadeCleared: null, framesAfterArm: 0 };
       window.__walkProbe = probe;
       const canvas = document.querySelector('canvas');
       const fade = document.getElementById('fade');
-      if (!canvas) { resolve(false); return; }
+      if (!canvas) return;
       const scratch = document.createElement('canvas');
       scratch.width = 48; scratch.height = 30;
       const g = scratch.getContext('2d', { willReadFrequently: true });
@@ -364,7 +372,7 @@ async function runOnce(target, condition, run, phase) {
                 total++;
               }
               probe.streak = changed / total > .10 ? probe.streak + 1 : 0;
-              if (probe.streak >= 4) { probe.first = now - startedAt; resolve(true); return; }
+              if (probe.streak >= 4) { probe.first = now - startedAt; return; }
               probe.baseline = pixels.slice();
             }
           } catch { /* resized canvas */ }
@@ -373,10 +381,7 @@ async function runOnce(target, condition, run, phase) {
         if (probe.samples < 6000) requestAnimationFrame(sample);
       };
       requestAnimationFrame(sample);
-    }));
-    // The probe resolves only when movement is found, so install it and click; awaiting it here would
-    // deadlock, because nothing moves until the click.
-    const probeInstalled = walkProbe.then(() => true).catch(() => false);
+    });
     record.walkClick = { ms: at(), bytes: bytes() };
     await step.click();
     let walkMoved = true;
@@ -386,7 +391,6 @@ async function runOnce(target, condition, run, phase) {
       walkMoved = false;
       record.walkFailure = String(error?.message ?? error).slice(0, 160);
     }
-    await probeInstalled.catch(() => false);
     const probeState = await page.evaluate(() => window.__walkProbe && ({
       armed: window.__walkProbe.armed, fadeSeenMs: window.__walkProbe.fadeSeen,
       fadeClearedMs: window.__walkProbe.fadeCleared, firstProxyMs: window.__walkProbe.first,
@@ -506,15 +510,15 @@ mkdirSync(runDir, { recursive: true });
 // other build.
 const webLink = join(runDir, 'web');
 try { execFileSync('rm', ['-f', webLink]); } catch { /* absent */ }
-execFileSync('ln', ['-s', join(process.cwd(), 'web'), webLink]);
+execFileSync('ln', ['-s', join(REPO, 'web'), webLink]);
 const linkedTo = execFileSync('readlink', [webLink], { encoding: 'utf8' }).trim();
-if (linkedTo !== join(process.cwd(), 'web')) {
+if (linkedTo !== join(REPO, 'web')) {
   throw new Error(`web symlink points at ${linkedTo}, not this build`);
 }
 const builtIndex = join(linkedTo, 'dist', 'index.html');
 const builtStat = execFileSync('sh', ['-c', `test -f ${JSON.stringify(builtIndex)} && echo ok || echo missing`], { encoding: 'utf8' }).trim();
 if (builtStat !== 'ok') throw new Error('No built index at ' + builtIndex + '; run npm run build first.');
-const server = startServer(port, dbFile, process.cwd(), runDir);
+const server = startServer(port, dbFile, REPO, runDir);
 let exitCode = 0;
 try {
   if (!await waitForServer(port)) throw new Error('The harness server never answered on ' + port
