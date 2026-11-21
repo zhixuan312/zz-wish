@@ -34,11 +34,11 @@ function bendWeight(d) {
 }
 
 function brokenFace(d, westDistance) {
-  const alongJoint = d + .63 * (westDistance - 27);
-  const wall = smooth(19, 30, westDistance) * (1 - smooth(44, 66, westDistance));
-  const slab = smooth(422, 440, alongJoint) * (1 - smooth(447, 455, alongJoint));
-  const seam = smooth(447, 453, alongJoint) * (1 - smooth(455, 466, alongJoint));
-  return wall * (16 * slab - 6 * seam);
+  const alongJoint = d + .74 * (westDistance - 27);
+  const wall = smooth(18, 29, westDistance) * (1 - smooth(53, 79, westDistance));
+  const slab = smooth(419, 435, alongJoint) * (1 - smooth(444, 454, alongJoint));
+  const seam = smooth(444, 451, alongJoint) * (1 - smooth(457, 472, alongJoint));
+  return wall * (9 * slab - 11 * seam);
 }
 
 function screeFan(d, westDistance) {
@@ -171,12 +171,12 @@ function scatterBendScree(THREE, scene, surface, rock) {
     return sample - Math.floor(sample);
   };
   for (let i = 0; i < count; i++) {
-    const westDistance = 9 + 25 * drift(i, 1);
+    const westDistance = 10 + 24 * drift(i, 1) ** 1.6;
     const d = 443 + 20 * drift(i, 2) - .55 * (westDistance - 20);
     const span = (.5 + 1.8 * drift(i, 3)) * (.65 + .9 * smooth(10, 29, westDistance));
     const height = span * (.47 + .45 * drift(i, 4));
     const [x, y, z] = surface.pointAt(d, channelAt(d) - westDistance);
-    chip.position.set(x, y + .12 * height, z);
+    chip.position.set(x, y - .1 * height, z);
     chip.rotation.set(.3 * (drift(i, 5) - .5), 2 * Math.PI * drift(i, 6), .53 * (drift(i, 7) - .5));
     chip.scale.set(span, height, span * (.58 + .28 * drift(i, 8)));
     chip.updateMatrix();
@@ -191,8 +191,8 @@ export function addCloudCliffGorge(THREE, scene, rock) {
   const positions = [], colours = [], bank = [], indices = [];
   const shade = new THREE.Color();
   const bedrock = new THREE.Color(0x796f64), bedding = new THREE.Color(0x9c927d);
-  const upper = new THREE.Color(0x6a7770), channel = new THREE.Color(0x526363);
-  const freshRock = new THREE.Color(0x77756e), scree = new THREE.Color(0x9a9180);
+  const upper = new THREE.Color(0x6a7770);
+  const freshRock = new THREE.Color(0x6d6c65), scree = new THREE.Color(0x9a9180);
   for (const [row, d] of DEPTH.entries()) {
     const centreline = channelAt(d), bend = bendWeight(d);
     for (const [col, side] of CROSS.entries()) {
@@ -205,9 +205,8 @@ export function addCloudCliffGorge(THREE, scene, rock) {
       const grain = .5 + .5 * Math.sin(side / 23 + d / 29);
       shade.copy(bedrock).lerp(bedding, .21 + .26 * Math.max(0, layers) + .1 * grain);
       shade.lerp(upper, .66 * smooth(-24, 84, y) + .13 * grain);
-      shade.lerp(channel, .81 * (1 - smooth(2, 10, Math.abs(offset))) * (1 - bend));
-      shade.lerp(freshRock, .7 * smooth(2, 12, Math.abs(relief)));
-      shade.multiplyScalar(1 - .24 * smooth(1, 5, -relief));
+      shade.lerp(freshRock, .82 * smooth(1, 9, Math.abs(relief)));
+      shade.multiplyScalar(1 - .33 * smooth(1, 7, -relief));
       shade.lerp(scree, .58 * screeFan(d, -offset));
       colours.push(shade.r, shade.g, shade.b);
       bank.push(offset, bend, smooth(1, 11, Math.abs(relief)));
@@ -249,15 +248,20 @@ export function addCloudCliffGorge(THREE, scene, rock) {
         vec3 colourZ = texture2D(uGorgeRock, p.xy / 28.0).rgb;
         float grain = dot(weights.x * colourX + weights.y * colourY + weights.z * colourZ,
           vec3(0.2126, 0.7152, 0.0722));
-        diffuseColor.rgb *= mix(0.57, 1.22, clamp(grain * 2.8, 0.0, 1.0));
+        float rockTone = mix(0.57, 1.22, clamp(grain * 2.8, 0.0, 1.0));
+        diffuseColor.rgb *= rockTone;
 
+        // Keep one water colour along the reach. Only its width and the
+        // gravel at the edge change through the inside of the bend.
         float offset = vGorgeBank.x - 1.15 * vGorgeBank.y;
-        float distanceFromWater = abs(offset) - mix(5.1, 3.3, vGorgeBank.y);
-        float wet = 1.0 - smoothstep(-0.32, 0.36, distanceFromWater);
+        float distanceFromWater = abs(offset) - mix(3.5, 3.3, vGorgeBank.y);
+        float feather = mix(6.5, 0.72, vGorgeBank.y);
+        float wet = 1.0 - smoothstep(-0.22 * feather, feather, distanceFromWater);
         float shingle = 1.0 - smoothstep(0.28, offset < 0.0 ? 4.6 : 2.4, distanceFromWater);
-        vec3 river = vec3(0.035, 0.057, 0.063) * (0.91 + 0.09 * sin(p.z * 0.31));
+        vec3 river = vec3(0.084, 0.125, 0.125) * rockTone;
         vec3 gravel = vec3(0.22, 0.20, 0.16) * (0.78 + 0.34 * grain);
-        diffuseColor.rgb = mix(diffuseColor.rgb, mix(gravel, river, wet), shingle * vGorgeBank.y);
+        diffuseColor.rgb = mix(diffuseColor.rgb, gravel, 0.48 * shingle * (1.0 - wet) * vGorgeBank.y);
+        diffuseColor.rgb = mix(diffuseColor.rgb, river, 0.81 * wet);
       `).replace('#include <normal_fragment_begin>', `#include <normal_fragment_begin>
         vec3 facet = normalize(cross(dFdx(vViewPosition), dFdy(vViewPosition)));
         normal = normalize(mix(normal, facet, vGorgeBank.z * 0.69));
