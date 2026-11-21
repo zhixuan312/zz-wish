@@ -124,25 +124,39 @@ function endpointDelta(normal, skip) {
     fovDegrees: Math.abs(normal.camera.fov - skip.camera.fov) };
 }
 
-const entranceState = () => ({
-  visibleHook: typeof window.__tideSceneVisible,
-  tideVisible: window.__tideSceneVisible?.(),
-  prepareError: window.__tidePrepareError,
-  court: document.querySelector('.tname')?.textContent,
-  loadStage: document.querySelector('.court-loading')?.dataset.stage,
-  fadeOpacity: getComputedStyle(document.querySelector('#fade')).opacity,
-});
+const entranceState = () => {
+  const action = document.querySelector('.ui[data-screen="place"] .place-actions .primary');
+  return {
+    visibleHook: typeof window.__tideSceneVisible,
+    tideVisible: window.__tideSceneVisible?.(),
+    prepareError: window.__tidePrepareError,
+    previewError: window.__tidePreviewError,
+    court: document.querySelector('.tname')?.textContent,
+    loadStage: document.querySelector('.court-loading')?.dataset.stage,
+    actionLabel: action?.textContent?.trim(),
+    actionDisabled: action?.disabled,
+    fadeOpacity: getComputedStyle(document.querySelector('#fade')).opacity,
+  };
+};
 
 async function entrance(page) {
-  await button(page, 'Step inside').waitFor();
-  let state = await page.evaluate(entranceState);
-  if (state.loadStage === 'ready' && state.visibleHook === 'function' && state.tideVisible) {
-    await page.waitForFunction(() => Number(getComputedStyle(document.querySelector('#fade')).opacity) <= .01,
-      null, { polling: 100, timeout: 5_000 }).catch(() => {});
-    state = await page.evaluate(entranceState);
-    if (Number(state.fadeOpacity) <= .01) return;
+  try {
+    await page.waitForFunction(() => {
+      const stage = document.querySelector('.court-loading')?.dataset.stage;
+      const action = document.querySelector('.ui[data-screen="place"] .place-actions .primary');
+      return stage === 'error' || (stage === 'ready' && action?.textContent?.trim() === 'Step inside'
+        && !action.disabled && window.__tideSceneVisible?.()
+        && Number(getComputedStyle(document.querySelector('#fade')).opacity) <= .01);
+    }, null, { polling: 100 });
+  } catch (error) {
+    throw new Error('Timed out waiting for Tide entrance: ' + JSON.stringify(await page.evaluate(entranceState)),
+      { cause: error });
   }
-  throw new Error('Tide entrance did not settle: ' + JSON.stringify(state));
+  const state = await page.evaluate(entranceState);
+  if (state.loadStage !== 'ready' || state.actionDisabled || !state.tideVisible) {
+    throw new Error('Tide court failed to prepare: ' + JSON.stringify(state));
+  }
+  return state;
 }
 
 async function captureCase(browser, preview, size, look, dir) {
@@ -166,8 +180,8 @@ async function captureCase(browser, preview, size, look, dir) {
     await page.goto(preview.url);
     await page.getByLabel('Your wish', { exact: true }).fill('For a safe crossing home.');
     await button(page, 'Set my wish').click();
-    await entrance(page);
-    shots.entrance = await capture(page, dir, 'entrance');
+    const initialEntrance = await entrance(page);
+    shots.entrance = { ...await capture(page, dir, 'entrance'), readiness: initialEntrance };
 
     await button(page, 'Step inside').click();
     await page.waitForFunction(() => window.__walkProgress?.id === 'sea-tide'
@@ -177,7 +191,7 @@ async function captureCase(browser, preview, size, look, dir) {
     await screen(page, 'candle');
     shots.skip = await capture(page, dir, 'skip-endpoint');
     await button(page, 'Back outside').click();
-    await entrance(page);
+    const returnEntrance = await entrance(page);
 
     await page.evaluate(() => window.__startCameraTrace());
     const clickMs = await page.evaluate(() => performance.now());
@@ -211,7 +225,7 @@ async function captureCase(browser, preview, size, look, dir) {
     }
     if (trace.revealHoldSeconds < 2) problems.push({ type: 'reveal hold', seconds: trace.revealHoldSeconds });
     const boundsClear = value => Boolean(value?.inFrame && !value.underSheet);
-    const evidence = { viewport: [size.width, size.height], localHour: look.hour, marks, shots, crops,
+    const evidence = { viewport: [size.width, size.height], localHour: look.hour, marks, shots, crops, returnEntrance,
       normalWalkToChooserSeconds: (chooserMs - clickMs) / 1000, skipStart: skipStart.walk, endpointDelta: delta,
       observations: {
         concealedSeaSampleCount: shots['last-enclosed'].sea.filter(point => point.inFrame && !point.occluder).length,

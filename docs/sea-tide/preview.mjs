@@ -158,8 +158,10 @@ export async function startPreview() {
           if (path.endsWith('/web/src/engine/index.ts')) {
             const procedural = replaceOnce(source, "if (id === 'pine-gate') onProgress?.(progress);",
               "if (id === 'pine-gate' || id === 'sea-tide') onProgress?.(progress);");
-            return replaceOnce(procedural, "onProgress?.({ ...progress, stage: 'error' });",
+            const prepare = replaceOnce(procedural, "onProgress?.({ ...progress, stage: 'error' });",
               "window.__tidePrepareError = String((error as Error)?.stack ?? error); onProgress?.({ ...progress, stage: 'error' });");
+            return replaceOnce(prepare, "initialize().then(s => s.previewPlace(id));",
+              "initialize().then(s => s.previewPlace(id)).catch(error => { window.__tidePreviewError = String(error?.stack ?? error); throw error; });");
           }
           if (path.endsWith('/web/src/engine/scene.js')) {
             const trace = 'lx: rig.look.x, ly: rig.look.y, lz: rig.look.z, fov: rig.fov ?? camera.fov });';

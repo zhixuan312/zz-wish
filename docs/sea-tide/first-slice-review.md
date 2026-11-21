@@ -49,3 +49,25 @@ The chooser probe projects the complete hood bounding box and a conservative
 flame envelope against both viewport bounds and the actual sheet. It records
 the sill contact distance and compares the final camera after Skip with the
 unskipped endpoint.
+
+## Entrance readiness and the first probe
+
+Both `round-1-probe` day cases stopped at the first entrance wait with empty
+shot lists. The old fixture waited for the English button label to become
+visible, then waited for scene readiness. In `web/src/App.tsx:432`,
+**Step inside** is the label whenever the app is idle and the load stage is
+neither loading nor preparing. That includes the error stage. The button
+only enables when the load stage is ready and the app is idle. Selecting a
+court calls preparation and then scene preview (`App.tsx:313–319`).
+Only a click on the enabled button starts travel (`App.tsx:340–359`).
+
+A CPU source probe reproduced a `ReferenceError` in the then-current lane
+builder. The salt decal loop declared a local `yaw` that shadowed the wall
+return's rotation while the loop's input list was still being evaluated.
+This is the identified preparation failure path. The old browser receipts
+did not record the underlying exception. Commit `6255aa9` renamed the loop
+binding and added a focused test that executes both scene builders.
+The current fixture records load and preview exceptions, checks the
+enabled button, verifies that Tide is the active scene and waits for the
+entrance fade. It saves this readiness evidence before the first walk
+and again on the return from Skip.
