@@ -189,6 +189,15 @@ export default function createPlace(h) {
       at: { pos: V3(...LAMP), ry: 0 }, lamp: 'lattice', y: .46, exposure: 1.1, bloom: [.35, 1.02],
       makeVisitorCup: makeCup,
       makeVisitorWishTag: (lamp, post) => addBellLaneWishTag(h, lamp, post),
+      visitorLampPlacement: {
+        slot: 'visitor',
+        position(progress, target) {
+          const smooth = THREE.MathUtils.smoothstep;
+          const lift = smooth(progress, 0, .3) * (1 - smooth(progress, .65, 1));
+          // Lift from the service spot, move into the row, and lower the feet onto the same shelf.
+          target.set(0, .46 + .073 * lift, .139 * smooth(progress, .18, .82));
+        },
+      },
       // The two most recent lamps flank the current lamp within the seated phone view.
       // The remaining slots are farther back on the same shelf.
       pastLampSlots: [[.318, .46, .205, .47, .14], [-.205, .46, .075, .45, .27],
@@ -201,7 +210,7 @@ export default function createPlace(h) {
         const edge = M(0x574333, .95, { map: grainTex });
         const tag = M(0x9b7552, .96);
         const clay = M(0x9d623f, .84);
-        // Keep the center for the current lamp and leave room among the older lamps.
+        // Leave the center of the rack clear from the service spot to the display row.
         box(2.11, .09, .56, wood, 0, .415, 0);
         for (const x of [-.94, .94]) for (const z of [-.21, .21]) box(.085, .37, .081, edge, x, .185, z);
         box(1.85, .09, .29, edge, 0, .18, 0);

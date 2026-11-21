@@ -2196,6 +2196,7 @@ function burnView(){
 // The person's lamp lives in the current place's spot.
 function attachMine() {
   const N = place.P.nook;
+  visitorLampPlacement = null;
   if(place.baked&&N.lamp==='gauze'){
     place.visitorPivot??=new THREE.Group();place.visitorPivot.userData.visitorPivot=true;
     const basis=place.baked.manifest.lampBasis.position;
@@ -2270,6 +2271,7 @@ export function setPowerSaver(on) { powerSaver = on; resize(); }
 
 let level = 1, targetLevel = 1, lit = false, wanted = null, previewTask = null, skipNextTravel = false;
 let waxFuel = null;
+let visitorLampPlacement = null;
 
 function toOffer(shape) {
   if (!shape) return null;
@@ -2313,6 +2315,10 @@ function showPastLamps(court) {
 export function setOffer(shape) {
   const o=toOffer(shape);level=targetLevel=1;mine.g.visible=!!o&&atLamp;
   waxFuel = null;
+  if (visitorLampPlacement) {
+    visitorLampPlacement.rule.position(0, mine.g.position);
+    visitorLampPlacement = null;
+  }
   if(o)mine.setOffer(o);else mine.offer=null;
   if(o&&atLamp&&phase==='candle'&&(place?.P.bakedLighting||(mine.parts?.pineWax&&narrow()))){
     const v=chooseView(),version=++choiceCameraVersion;
@@ -2639,15 +2645,26 @@ export async function ignite({onCatch, remainingFuel, onTaperLit}={}) {
   const pine = !!mine.parts?.pineWax;
   if (pine) waxFuel = remainingFuel ?? null;
   if (place.P.nook.taperSource) {
+    const { taperSource, visitorLampPlacement: placementRule } = place.P.nook;
+    const placement = placementRule
+      ? { rule: placementRule, progress: 0, caught: false }
+      : null;
+    visitorLampPlacement = placement;
+    const placementEvidence = () => placement ? {
+      rackSlot: placement.rule.slot,
+      lampPosition: mine.g.position.toArray(),
+      placementProgress: placement.progress,
+    } : {};
     const tag = mine.parts?.wishTag;
     // Tie and hold the tag within the original approach beat. Contact and the burn clock keep their timing.
     const tiedAt = tag ? .102 : 0;
     const taperStarts = tag ? .124 : 0;
+    const taperCleared = .63, placementEnds = .90;
     courtTaper ??= makeIgnitionTaper();
     const { g, f, casters } = courtTaper;
     for (const part of casters) part.castShadow = false;
     const wick = mine.flameWorld().clone();
-    const fixture = toWorld(place.P.nook.taperSource);
+    const fixture = toWorld(taperSource);
     const entry = wick.clone().add(V3(-.18, .025, -.30));
     const exchange = fixture.clone().add(V3(0, .040, -.035));
     const withdrawn = entry.clone().add(V3(-.21, -.17, -.20));
@@ -2666,24 +2683,33 @@ export async function ignite({onCatch, remainingFuel, onTaperLit}={}) {
         else if (k < .37) tip.copy(wick);
         else tip.lerpVectors(wick, withdrawn, smooth(.37, .61, k));
         g.position.copy(tip).sub(graphicOffset);
-        g.visible = k >= taperStarts && k < .63;
-        f.tick(clockTime, 1 - smooth(.50, .63, k), 0, [], tip.y);
+        g.visible = k >= taperStarts && k < taperCleared;
+        f.tick(clockTime, 1 - smooth(.50, taperCleared, k), 0, [], tip.y);
         if (!caught && k >= .31) {
           caught = true;
+          if (placement) placement.caught = true;
           onCatch?.();
         }
         mine.power = smooth(.31, .62, k);
+        if (placement && k >= taperCleared) {
+          placement.progress = THREE.MathUtils.inverseLerp(taperCleared, placementEnds, Math.min(k, placementEnds));
+          placement.rule.position(placement.progress, mine.g.position);
+        }
         if (import.meta.env.DEV) {
           const taperTip = f.flame.getWorldPosition(tip);
-          const state = k < tiedAt ? 'tying-tag' : k < taperStarts ? 'tag-tied' : k >= .31 && k < .37 ? 'wick-contact' : 'igniting';
+          let state = 'igniting';
+          if (k < tiedAt) state = 'tying-tag';
+          else if (k < taperStarts) state = 'tag-tied';
+          else if (k >= .31 && k < .37) state = 'wick-contact';
+          else if (placement && k >= taperCleared) state = placement.progress < 1 ? 'placing-lamp' : 'placed';
           mark(state, k,
-            { wickContactMetres: taperTip.distanceTo(wick), wick: wick.toArray(), taperTip: taperTip.toArray() });
+            { wickContactMetres: taperTip.distanceTo(wick), wick: wick.toArray(), taperTip: taperTip.toArray(), ...placementEvidence() });
         }
       });
     } finally {
       if (journey === cameraJourneyVersion) g.visible = false;
     }
-    if (lit && journey === cameraJourneyVersion) mark('settled', 1);
+    if (lit && journey === cameraJourneyVersion) mark('settled', 1, placementEvidence());
     return;
   }
   if (!place.P.bakedLighting) {
@@ -2877,6 +2903,16 @@ export async function snuff(done = false, remaining, gust = false) {
   ignitionFill=0;
   const journey = ++cameraJourneyVersion;
   if(import.meta.env.DEV)window.__visualIgnition={state:'cancelled',journey};
+  const placement = visitorLampPlacement;
+  if (placement && courtTaper) courtTaper.g.visible = false;
+  if (placement?.caught && placement.progress < 1) {
+    const from = placement.progress;
+    void tween(1.4, k => {
+      if (placement !== visitorLampPlacement || journey !== cameraJourneyVersion) return;
+      placement.progress = THREE.MathUtils.lerp(from, 1, k);
+      placement.rule.position(placement.progress, mine.g.position);
+    });
+  }
   if(ignitionTaper)ignitionTaper.g.visible=false;
   const endingParts = mine.parts;
   if (endingParts?.pineWax) {
