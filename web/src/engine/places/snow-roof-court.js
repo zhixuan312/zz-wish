@@ -26,6 +26,29 @@ function tuneHallLimewash(material, floor) {
   material.customProgramCacheKey = () => baseKey() + '-hall-limewash';
 }
 
+function tuneAltarFigure(material) {
+  const baseShader = material.onBeforeCompile.bind(material);
+  const baseKey = material.customProgramCacheKey.bind(material);
+  material.onBeforeCompile = shader => {
+    baseShader(shader);
+    // The small altar atlas undersamples diffuse light across the carving.
+    // Restore the broad paper-window bounce using the incoming direction
+    // in hall space and the continuous vertex normals of the sculpture.
+    shader.fragmentShader = shader.fragmentShader.replace('float away=', `
+      vec3 stoneNormal = inverseTransformDirection(nonPerturbedNormal, viewMatrix);
+      float windowBounce = max(0., dot(stoneNormal, normalize(vec3(.53, .72, .62))));
+      vec3 stoneFill = uBakedWeights.x * vec3(.019, .017, .016)
+                     + uBakedWeights.y * vec3(.022, .019, .017)
+                     + uBakedWeights.z * vec3(.029, .027, .024);
+      vec3 stoneKey = uBakedWeights.x * vec3(.088, .077, .063)
+                    + uBakedWeights.y * vec3(.102, .086, .069)
+                    + uBakedWeights.z * vec3(.119, .111, .100);
+      baked = mix(baked, stoneFill + stoneKey * windowBounce, .97);
+      float away=`);
+  };
+  material.customProgramCacheKey = () => baseKey() + '-altar-figure';
+}
+
 export default function createWinterCourt(h) {
   const { THREE, V3 } = h;
   const pose = ({ position, look, fov }) => ({ pos: V3(...position), look: V3(...look), fov });
@@ -95,12 +118,14 @@ export default function createWinterCourt(h) {
       const earlierCloth = new Set();
       const winterSnow = new Set();
       const limewash = new Set();
+      const altarFigure = new Set();
       baked.group.traverse(object => {
         if (!object.isMesh) return;
         for (const material of [object.material].flat()) {
           if (isEarlierGauze(material)) earlierCloth.add(material);
           if (isWinterCourtSnow(material)) winterSnow.add(material);
           if (/^Worn hall limewash, (east|west) wall$/.test(material.name)) limewash.add(material);
+          if (material.name === 'Matte weathered stone of the seated Buddha') altarFigure.add(material);
           if (material.name === 'Thin pale storm lamp glass') {
             // The thin windscreen shows the flame directly. Avoid a second
             // scene render for screen-space refraction around this small lamp.
@@ -111,6 +136,7 @@ export default function createWinterCourt(h) {
           }
         }
       });
+      for (const material of altarFigure) tuneAltarFigure(material);
       for (const material of limewash) tuneHallLimewash(material, site.hall.floor);
       for (const material of earlierCloth) {
         tuneEarlierGauze(material, earlierWicks, THREE, baked.cameraPreExposure, h.visitorCloth);
