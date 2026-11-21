@@ -55,23 +55,29 @@ export function addBellLaneTree({ THREE, V3, M, context }, [x, y, z]) {
     for (let side = 0; side < sides; side++) {
       bark.indices.push(lastRing + side, tip, lastRing + (side + 1) % sides);
     }
+    return first;
   }
 
-  limb([
+  const trunk = [
     [0, -.03, 0, .39], [0, .023, 0, .34], [0, .082, 0, .295],
     [0, .17, 0, .275], [0, .32, 0, .264], [-.028, .67, .025, .25],
     [.055, 1.23, .018, .224], [.049, 1.80, -.06, .221], [-.07, 2.32, -.09, .194],
     [-.29, 2.90, -.18, .146], [-.43, 3.48, -.33, .10], [-.41, 3.99, -.49, .049],
     [-.64, 4.55, -.63, .021], [-.75, 4.86, -.67, 0],
-  ], 32, true);
+  ];
+  limb(trunk, 32, true);
   limb([
     [.03, 1.80, -.05, .155], [.20, 2.31, -.10, .133], [.38, 2.72, -.07, .099],
     [.71, 3.06, -.22, .075], [.98, 3.31, -.28, .046], [1.20, 3.51, -.38, .023], [1.39, 3.76, -.45, 0],
   ], 10);
-  limb([
-    [.02, 1.95, -.024, .115], [-.20, 2.42, .32, .097], [-.43, 2.80, .61, .067],
+  // The foreground fork starts inside the trunk and grows through a broad
+  // collar before resuming the original branch profile.
+  const collarSides = 12;
+  const collarStart = limb([
+    [.047, 1.72, -.050, .090], [.018, 1.91, -.007, .116], [-.039, 2.09, .080, .127],
+    [-.117, 2.245, .205, .114], [-.20, 2.42, .32, .097], [-.43, 2.80, .61, .067],
     [-.68, 3.02, .89, .044], [-.78, 3.32, 1.13, .023], [-1.05, 3.65, 1.26, 0],
-  ], 10);
+  ], collarSides);
 
   const limbs = [
     [[-.27, 2.83, -.17, .079], [-.67, 3.12, -.31, .053], [-1.20, 3.43, -.55, .021], [-1.60, 3.77, -.73, 0]],
@@ -147,6 +153,33 @@ export function addBellLaneTree({ THREE, V3, M, context }, [x, y, z]) {
     }
   }
 
+  function smoothCollar(geo) {
+    const { position, normal, color } = geo.attributes;
+    // Use the parent cylinder's local surface direction at the junction.
+    // A few centimetres from the trunk, leave the branch normals intact.
+    const blendEnd = collarStart + 5 * collarSides;
+    for (let i = collarStart; i < blendEnd; i++) {
+      const point = V3().fromBufferAttribute(position, i);
+      const upper = trunk.findIndex(node => node[1] >= point.y);
+      const [ax, ay, az, ar] = trunk[upper - 1];
+      const [bx, by, bz, br] = trunk[upper];
+      const t = (point.y - ay) / (by - ay);
+      const radial = V3(point.x - THREE.MathUtils.lerp(ax, bx, t), 0, point.z - THREE.MathUtils.lerp(az, bz, t));
+      const angle = Math.atan2(radial.z, radial.x);
+      const groove = Math.sin(5 * angle + point.y * 1.1) * .55 + Math.cos(9 * angle - point.y * .7) * .45;
+      const radius = THREE.MathUtils.lerp(ar, br, t) * (1 + .13 * groove);
+      const weight = 1 - THREE.MathUtils.smoothstep(radial.length() - radius, .008, .113);
+      const stemNormal = radial.normalize();
+      stemNormal.y = -(stemNormal.x * (bx - ax) + stemNormal.z * (bz - az) + br - ar) / (by - ay);
+      stemNormal.normalize();
+      const n = V3().fromBufferAttribute(normal, i).lerp(stemNormal, weight).normalize();
+      normal.setXYZ(i, n.x, n.y, n.z);
+      const tint = new THREE.Color().fromBufferAttribute(color, i)
+        .lerp(wood.clone().multiplyScalar(1 + groove * .19), weight);
+      color.setXYZ(i, tint.r, tint.g, tint.b);
+    }
+  }
+
   const group = new THREE.Group();
   group.name = 'Bell Lane old tree';
   group.position.set(x, y, z);
@@ -157,6 +190,7 @@ export function addBellLaneTree({ THREE, V3, M, context }, [x, y, z]) {
     if (data.uv) geo.setAttribute('uv', new THREE.Float32BufferAttribute(data.uv, 2));
     geo.setIndex(data.indices);
     geo.computeVertexNormals();
+    if (data === bark) smoothCollar(geo);
     const object = new THREE.Mesh(geo, material);
     object.name = name;
     object.castShadow = true;
