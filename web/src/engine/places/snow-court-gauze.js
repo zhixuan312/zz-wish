@@ -17,6 +17,7 @@ export function addSnowCourtGauzeTransmission(shader, ribs, aged) {
       #endif`);
   }
   shader.fragmentShader = `varying vec2 vSnowGauze;
+    ${aged ? '' : 'uniform float uSnowGauzeWear;'}
     float snowGauzeBamboo() {
       float h = vSnowGauze.y;
       float verticalDistance = abs(fract(vSnowGauze.x * ${ribs.toFixed(1)} + .5) - .5);
@@ -30,7 +31,12 @@ export function addSnowCourtGauzeTransmission(shader, ribs, aged) {
       ${aged ? '' : `#ifdef USE_MAP
         // Keep the photographed yarn contrast in the light passing through.
         diffuseColor.rgb *= 1. + clamp((yarn - 1.) * 1.0, -.25, .23);
-      #endif`}
+      #endif
+      float yarnLuminance = dot(diffuseColor.rgb, vec3(.2126, .7152, .0722));
+      vec3 wornGauze = mix(diffuseColor.rgb, yarnLuminance * vec3(1.19, .95, .87), .48);
+      float hemDust = 1. - smoothstep(.035, .26, vSnowGauze.y);
+      wornGauze *= .96 - .20 * hemDust - .08 * gauzeBamboo;
+      diffuseColor.rgb = mix(diffuseColor.rgb, wornGauze, uSnowGauzeWear);`}
     `);
 }
 

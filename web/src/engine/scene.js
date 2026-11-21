@@ -483,6 +483,7 @@ function shellMaterial(color, o = {}) {
   }
   if(o.winterWeave){m.transparent=true;m.opacity=.93;m.depthWrite=false;m.forceSinglePass=true;}
   m.userData.u = { uFlame: { value: V3(0, 0, 0) }, uGlow: { value: 0 }, uGlowColor: { value: new THREE.Color(o.glow ?? 0xffa050) }, uReach: { value: o.reach ?? 9 }, uBase: { value: o.base ?? .2 } };
+  if(o.winterWeave)m.userData.u.uSnowGauzeWear={value:0};
   if(o.cloth){
     m.userData.cloth=true;
     Object.assign(m.userData.u,{uClothPhysical:{value:0},uClothIntensity:{value:0},uClothSourceRGB:{value:new THREE.Color()},uClothEmitterRadius:{value:.004},uClothTransmissionWeight:{value:.65},uClothReflectionWeight:{value:.35}});
@@ -963,6 +964,8 @@ const api = { g, parts: null, partsKey: null, type: null, power: 0, lightPower: 
       this.offer = o; this.lastCut = -1; this.lastOil = -1;
       if (this.parts && this.parts.kind !== 'wax' && o.kind === this.parts.kind) this.build(o);
       const p = this.parts; if (!p) return;
+      const shadeWear = p.shells?.[0]?.userData.u?.uSnowGauzeWear;
+      if (shadeWear) shadeWear.value = 0;
       f.soft = !!place?.P.bakedLighting;
       const isWax = p.kind === 'wax';
       this.waxState = 'unlit';
@@ -2900,6 +2903,13 @@ export async function snuff(done = false, remaining, gust = false) {
   if (!done && place.id === 'snow-roof' && endingParts?.kind === 'shade') {
     mine.power = 0;
     return;
+  }
+  const shadeWear = done && endingParts?.shells?.[0]?.userData.u?.uSnowGauzeWear;
+  if (shadeWear) {
+    // The extinguished cloth stays on the same cord as it joins the old row.
+    void tween(5.2, progress => {
+      if (journey === cameraJourneyVersion && mine.parts === endingParts) shadeWear.value = ease(progress);
+    }, true);
   }
   // Went out: sudden, and the place keeps less of its light. Burned down: it stays as it was.
   if (!done && !place.P.bakedLighting) void tween(1.6, (k) => { roomLight = 1 - .3 * ease(k); });
