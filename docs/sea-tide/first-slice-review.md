@@ -71,3 +71,40 @@ The current fixture records load and preview exceptions, checks the
 enabled button, verifies that Tide is the active scene and waits for the
 entrance fade. It saves this readiness evidence before the first walk
 and again on the return from Skip.
+
+## Round 1 browser receipt
+
+Capture source: `039a7ee`. Originals, native crops, case receipts and raw
+camera traces are under
+`/Users/xuan/OpenBot/Shared/one-light/artifacts/sea-tide/round-1/`. All four
+cases completed the entrance, Skip, return and unskipped walk, then showed
+the ready-made chooser and lit recess. The first and return entrances both
+reported a ready court, an enabled **Step inside** button and zero fade
+opacity. The captured listener recorded zero page exceptions or HTTP errors.
+
+| Case | Continuous clear harbour | Peak walk / other motion | Minimum wall clearance while walking / through chooser | Hood / flame margin to chooser |
+| --- | ---: | ---: | ---: | ---: |
+| Desktop, 13:00 | 3.426 s | 1.667 / 1.084 m/s | 1.241 / 0.512 m | 57.2 / 68.4 px left |
+| Desktop, 22:00 | 3.407 s | 1.667 / 1.082 m/s | 1.241 / 0.512 m | 57.2 / 68.4 px left |
+| Phone, 13:00 | 3.423 s | 1.667 / 1.136 m/s | 1.478 / 0.609 m | 23.5 / 31.9 px above |
+| Phone, 22:00 | 3.423 s | 1.667 / 1.135 m/s | 1.478 / 0.609 m | 23.5 / 31.9 px above |
+
+The eye heights use the rendered camera Y minus the lane or court pave top
+at its ground projection. The walk varies from 1.499 to 1.784 m across all
+four cases. The higher values occur while the inherited entrance drift
+eases out in the first 1.5 seconds. After that, the walk stays at
+1.499–1.530 m. The settled eye is 1.310 m on desktop and 1.452 m on phone.
+Walk-only wall clearance is horizontal to the lane or wall return envelope.
+The smallest through-chooser distance occurs beside the low wall return.
+No frame entered a wall envelope.
+
+Click-to-chooser timing across the four recordings was 30.13–30.48 seconds.
+Normal and Skip endpoints agreed in position and aim. The largest rendered
+field-of-view delta was 0.00025°. The hood base contacted the sill within the
+precision of the raycast. The actual flame is under the hood, with the lit
+cut-outs and the upper rim showing its glow. The phone reveal shows both
+shoreline tips, while the seated phone view compresses the channel into the
+opening to the left of the recess and hides most of the right shoulder.
+The public app still has no Tide selector, approach surf or Tide-specific
+entrance and chooser copy. The loopback used the shared UI, which displayed
+the existing Snow Roof fallback copy.
