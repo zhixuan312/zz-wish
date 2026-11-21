@@ -13,9 +13,9 @@ const waypoints = [
   { time: 4, pos: [.38, 1.72, 30], aim: [5.3, 1.7, 20], fov: 38 },
   { time: 9, pos: [3.15, 1.7, 23.3], aim: [4.1, .1, 17.6], fov: 40 },
   { time: 13, pos: [3.55, 1.7, 19.1], aim: [-.3, -1.05, 16.6], fov: 40 },
-  { time: 15.9, pos: [1.25, 1.82, 18.35], aim: [-3.4, -2.5, 13.5], fov: 40 },
-  { time: 17.8, pos: [-.48, 2.03, 17.1], aim: [-5.5, -3.10, 11.5], fov: 40 },
-  { time: 21.7, pos: [-.63, 2.4, 14.4], aim: [-5.5, -2.6, 11.5], fov: 38 },
+  { time: 15.9, pos: [1.25, 1.82, 18.35], aim: [-3.4, -3.13, 13.5], fov: 40, phoneFov: 41 },
+  { time: 17.8, pos: [-.48, 2.03, 17.1], aim: [-5.5, -3.88, 11.5], fov: 40, phoneFov: 41 },
+  { time: 21.7, pos: [-.63, 2.4, 14.4], aim: [-5.5, -3.45, 11.5], fov: 38, phoneFov: 40 },
   { time: 24.7, pos: [-.64, 2.64, 11.25], aim: [-6.0, .40, 11.4], fov: 48 },
 ];
 
@@ -91,8 +91,8 @@ export default function createPlace(h) {
     fov: 39,
   };
   const portraitSeat = {
-    look: local(-3.70, -.29, 7.13),
-    pos: local(-.82, 2.57, 8.66),
+    look: local(-3.70, -.10, 7.13),
+    pos: local(-.58, 2.58, 9.82),
   };
   // Invert the procedural portrait pullback. The chooser's additional tilt
   // remains in effect so both the lamp and its reflection clear the sheet.
@@ -104,7 +104,7 @@ export default function createPlace(h) {
     const times = [0, ...waypoints.map(point => point.time), walkSeconds, walkSeconds + .01];
     const positions = [start.pos.toArray(), ...waypoints.map(point => point.pos), arrival.pos.toArray(), arrival.pos.toArray()];
     const looks = [start.look.toArray(), ...waypoints.map(point => point.aim), look.toArray(), look.toArray()];
-    const fovs = [start.fov, ...waypoints.map(point => point.fov + (phone ? 4 : 0)), phone ? 44 : seated.fov, phone ? 44 : seated.fov];
+    const fovs = [start.fov, ...waypoints.map(point => phone ? point.phoneFov ?? point.fov + 4 : point.fov), phone ? 44 : seated.fov, phone ? 44 : seated.fov];
     const positionAt = hermiteTrack(times, positions);
     const lookAt = hermiteTrack(times, looks);
     const fovAt = hermiteTrack(times, fovs.map(fov => [fov]));
@@ -170,13 +170,13 @@ export default function createPlace(h) {
         // The cantilever is below the chooser's sightline. Its side braces
         // leave the view of open water beneath the candle clear.
         for (const x of [-.88, .88]) {
-          box(.21, .17, 1.88, pale, x, .62, .91);
-          const brace = new THREE.BoxGeometry(.16, .98, .16);
+          box(.145, .14, 1.88, pale, x, .55, .91);
+          const brace = new THREE.BoxGeometry(.13, .98, .13);
           brace.rotateX(-.88);
           put(brace, pale, x, .31, 1.45);
         }
-        box(1.98, .09, .29, pale, 0, .645, 0);
-        box(.27, .16, .20, pale, 0, .70, 0);
+        box(1.98, .105, .23, pale, 0, .56, 0);
+        box(.235, .17, .16, pale, 0, .695, 0);
         await pauseBuild();
       },
     },
