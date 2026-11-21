@@ -2895,6 +2895,12 @@ export async function snuff(done = false, remaining, gust = false) {
   wickPlume.start({ time: clockTime, done, frame: mine.g, path: endingParts?.smokePath, wickTip,
     variant: endingParts?.pineWax ? 'pine' : undefined, valid: () => mine.parts === endingParts });
   emberUntil = clockTime + (done ? 3.8 : .35);
+  // Snow Court's put-out cuts the cloth transmission and flame on the same draw.
+  // Keep the brief wick ember and the thread through the existing gauze vent.
+  if (!done && place.id === 'snow-roof' && endingParts?.kind === 'shade') {
+    mine.power = 0;
+    return;
+  }
   // Went out: sudden, and the place keeps less of its light. Burned down: it stays as it was.
   if (!done && !place.P.bakedLighting) void tween(1.6, (k) => { roomLight = 1 - .3 * ease(k); });
   const p0=done?Math.min(.24,Math.max(.015,lastPower)):mine.power;mine.power=p0;
