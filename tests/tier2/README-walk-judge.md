@@ -113,6 +113,12 @@ const verdict = judgeCameraMotion(samples);
 console.log(verdict.verdict, verdict.firstExceedance, verdict.bounds, sampleInterval(samples), reasons);
 ```
 
+What the reported numbers mean, and do not mean: `firstExceedance` is the first sample whose **net
+displacement from the reference** passes the threshold, and `displacementMetres` is that same net
+displacement at that sample. Neither is the path length travelled, and neither is the true motion onset,
+which happened somewhere inside the bracket and may have started before the previous sample. A walk that
+curves can accumulate a much longer path than its net displacement.
+
 **Do not mark the click after `await click()`.** Animation frames run between the dispatch and the promise
 resolving; a frame in that gap overwrites the reference with an already-moving pose and the first movement
 is lost. The capture listener sets the click time inside the dispatch, before the app's own handler can

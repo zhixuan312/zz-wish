@@ -51,6 +51,9 @@ server.stderr.on('data', chunk => serverLog.push(String(chunk)));
 
 const record = { revision, buildMtime, distHasCameraHook: Boolean(distHasCameraHook), port, serverPid: server.pid,
   place: 'snow-roof', condition: 'desktop-fast immediate-entry', build: 'VITE_E2E_HOOKS=1' };
+// The shared root holds safe-kill.sh; the worker tmp below it is what safe-kill authorises.
+const ROOT = '/Users/xuan/OpenBot/Shared/one-light';
+let failure = false;
 
 let browser;
 try {
@@ -126,17 +129,61 @@ try {
     verdict,
     reasons,
   };
-  console.log(JSON.stringify(record, null, 2));
-  writeFileSync(join(out, 'result.json'), JSON.stringify(record, null, 2));
 } catch (error) {
   record.failed = String(error?.message ?? error).slice(0, 400);
+  failure = true;
+} finally {
+  // GOALS.md cleanup: stop the server only through safe-kill.sh, with the PID recorded when it was
+  // started. `kill`/`pkill` are forbidden because the public demo runs the same command. The database is
+  // this run's own file, so it is removed only after the process is confirmed gone; if safe-kill refuses,
+  // the database stays for inspection and the run exits non-zero rather than falling back to a signal.
+  if (browser) await browser.close().catch(() => {});
+  writeFileSync(join(out, 'server.log'), serverLog.join(''));
+
+  const killReport = { pid: server.pid, attempted: true, output: '', stopped: false, refused: false };
+  try {
+    killReport.output = execFileSync(join(ROOT, 'safe-kill.sh'), ['s2', String(server.pid)],
+      { encoding: 'utf8' }).trim();
+    killReport.refused = /refused/i.test(killReport.output);
+    killReport.stopped = !killReport.refused && /stopped|gone/i.test(killReport.output);
+  } catch (error) {
+    // safe-kill exits non-zero when it refuses a PID; capture the refusal text instead of hiding it.
+    killReport.output = String(error?.stdout ?? '').trim() || String(error?.message ?? error).slice(0, 200);
+    killReport.refused = /refused/i.test(killReport.output);
+    killReport.stopped = false;
+  }
+
+  // Confirm the process is gone before touching its file. A missing process is success.
+  let alive = true;
+  for (let attempt = 0; attempt < 40 && alive; attempt++) {
+    alive = execFileSync('sh', ['-c', `ps -p ${Number(server.pid)} >/dev/null 2>&1 && echo yes || echo no`],
+      { encoding: 'utf8' }).trim() === 'yes';
+    if (alive) await new Promise(resolve => setTimeout(resolve, 100));
+  }
+  // A refusal means the process was never stopped by the sanctioned path, so it does not count as gone
+  // even if it happened to exit on its own; the run fails and the database stays.
+  killReport.confirmedGone = !alive && !killReport.refused;
+
+  if (killReport.confirmedGone) {
+    for (const suffix of ['', '-shm', '-wal']) {
+      try { execFileSync('rm', ['-f', dbFile + suffix]); } catch { /* absent */ }
+    }
+    killReport.databaseRemoved = true;
+  } else {
+    killReport.databaseRemoved = false;
+    killReport.retainedDatabase = dbFile;
+    failure = true;
+  }
+  record.cleanup = killReport;
+
+  // A run that measured nothing is a failure even when no exception was thrown.
+  const measured = record.measurement?.verdict?.verdict;
+  if (!record.measurement || (measured !== 'moving' && measured !== 'rotating' && measured !== 'still')) {
+    failure = true;
+    record.failureReason = record.failureReason ?? 'no usable measurement was produced';
+  }
+  record.exitCode = failure ? 1 : 0;
   console.log(JSON.stringify(record, null, 2));
   writeFileSync(join(out, 'result.json'), JSON.stringify(record, null, 2));
-} finally {
-  // H7: close the browser, then stop exactly the server this script started, by its recorded pid.
-  if (browser) await browser.close().catch(() => {});
-  try { server.kill('SIGTERM'); } catch { /* already gone */ }
-  await new Promise(resolve => setTimeout(resolve, 400));
-  for (const suffix of ['', '-shm', '-wal']) { try { execFileSync('rm', ['-f', dbFile + suffix]); } catch { /* absent */ } }
-  writeFileSync(join(out, 'server.log'), serverLog.join(''));
+  if (failure) process.exitCode = 1;
 }
