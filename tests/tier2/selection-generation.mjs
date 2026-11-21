@@ -56,6 +56,7 @@ server.stdout.on('data', chunk => serverLog.push(String(chunk)));
 server.stderr.on('data', chunk => serverLog.push(String(chunk)));
 
 const record = { revision, manifestSha, out, port, serverPid: server.pid, stayMs, skipSwitch, stayAway,
+  pinnedHour: Number(args.hour ?? 13),
   selections: [], stageEvents: [], errors: [] };
 let failure = false;
 let browser;
@@ -112,6 +113,18 @@ try {
   });
 
   // Record selection generations and pill stages on the page clock, keyed to the court they belong to.
+  // Pin the wall clock so the daylight pass is the same hour in every arm, and read the pinned value back so a
+  // silently failed init script cannot pass as a pinned clock.
+  const pinnedHour = Number(args.hour ?? 13);
+  await page.addInitScript(hour => {
+    const RealDate = Date;
+    const fixed = new RealDate(2026, 10, 21, hour, 0, 0).getTime();
+    const offset = fixed - RealDate.now();
+    window.Date = class extends RealDate {
+      constructor(...a) { return a.length ? new RealDate(...a) : new RealDate(RealDate.now() + offset); }
+      static now() { return RealDate.now() + offset; }
+    };
+  }, pinnedHour);
   await page.addInitScript(() => {
     const log = { selections: [], stages: [] };
     window.__genProbe = log;
@@ -200,14 +213,27 @@ try {
     .filter(node => node.getAttribute('aria-checked') === 'true')
     .map(node => (node.getAttribute('aria-label') ?? '').split('·')[0].trim()));
 
+  // Read the pinned clock back. The light pass is chosen from Date, so this is the actual light clock; a pin
+  // that silently failed would show here as the real hour instead of the requested one.
+  record.lightClock = await page.evaluate(() => ({
+    hours: new Date().getHours(), iso: new Date().toISOString(),
+  }));
+  record.lightClock.pinnedHour = pinnedHour;
+  record.lightClockPinned = record.lightClock.hours === pinnedHour;
+
   const probe = await page.evaluate(() => window.__genProbe);
   record.selections = probe.selections;
   record.stageEvents = probe.stages;
 
-  // Attribute each request to a selection generation by arrival order at the boundaries the harness
-  // observed. The nth request belongs to the last selection that had happened before the stream reached it.
+  // Two snapshots, deliberately kept apart:
+  //   - `readySnapshot` is taken now, before the walk, and records what was still unfinished at the moment
+  //     the final court reported ready. It is evidence about that instant, not about the run.
+  //   - `requests` is rebuilt after ignition from the live CDP rows, so every `finishedAt` that arrived later is
+  //     included. Writing the earlier copy was the defect: a transfer that completed during the walk still
+  //     looked unfinished.
   const boundaries = record.selectionBoundaries ?? [];
-  record.requests = requests.map((row, index) => {
+  const attribute = row => {
+    const index = requests.indexOf(row);
     let generation = 0;
     for (let step = 0; step < boundaries.length; step++) {
       if (index < boundaries[step].requestsSent) break;
@@ -221,23 +247,15 @@ try {
       generation,
       generationLabel: generation === 0 ? 'initial' : boundaries[generation - 1]?.label ?? `g${generation}`,
     };
-  });
+  };
+  record.readySnapshot = {
+    unfinished: requests.filter(row => row.finishedAt === null).map(row => row.url.split('?')[0]),
+    unfinishedBytes: requests.filter(row => row.finishedAt === null)
+      .reduce((sum, row) => sum + row.bytes, 0),
+    rows: requests.map(attribute),
+  };
 
-  const byPlace = {};
-  for (const row of record.requests) {
-    const match = row.url.match(/\/places\/([^/]+)\//);
-    const key = match ? match[1] : 'page';
-    byPlace[key] = byPlace[key] ?? { requests: 0, bytes: 0 };
-    byPlace[key].requests += 1;
-    byPlace[key].bytes += row.bytes;
-  }
-  record.bytesByPlace = byPlace;
-  record.requestCount = record.requests.length;
-  // The radio only says which place is selected; it does not prove the scene is that place. Record the canvas
-  // signature and whether the app reports that it is on the place screen, and say plainly that selection is
-  // not visibility.
-  record.selectionIsNotVisibility = true;
-
+  // `byPlace` is computed after the walk, from the final rows, so it includes bytes that finished late.
   // Walk through to an actual ignition so the arm proves the court is operable, not merely selected.
   let moved = false; let ignited = false;
   try {
@@ -290,9 +308,12 @@ try {
       const light = page.getByRole('button', { name: /Light it/ }).first();
       await light.waitFor({ timeout: 90000 });
       await light.click();
-      await page.waitForTimeout(1500);
-      const before = await page.evaluate(() => document.querySelectorAll('canvas').length);
-      ignited = before > 0;
+      // A real burning view, not merely a canvas: the burning HUD renders `with-you` and nowhere else. A canvas
+      // exists from the cover onward, so counting canvases proved nothing.
+      await page.waitForSelector('[data-testid="with-you"]', { timeout: 120000 });
+      ignited = true;
+      // Let the burning view settle so any transfer it triggers can finish and be recorded.
+      await page.waitForTimeout(2000);
     } catch { ignited = false; }
     const walk = await page.evaluate(() => window.__walkProbe2 ?? null);
     record.clickedAt = walk?.clickedAt ?? null;
@@ -303,8 +324,24 @@ try {
   record.moved = moved;
   record.ignited = ignited;
 
+  // Final, complete rows: every request as it stands after the real burning view was reached.
+  record.requests = requests.map(attribute);
+  const byPlace = {};
+  for (const row of record.requests) {
+    const match = row.url.match(/\/places\/([^/]+)\//);
+    const key = match ? match[1] : 'page';
+    byPlace[key] = byPlace[key] ?? { requests: 0, bytes: 0 };
+    byPlace[key].requests += 1;
+    byPlace[key].bytes += row.bytes;
+  }
+  record.bytesByPlace = byPlace;
+  record.unfinishedAtEnd = record.requests.filter(row => !row.finished).map(row => row.url);
+  record.unfinishedBytesAtEnd = record.requests.filter(row => !row.finished)
+    .reduce((sum, row) => sum + row.bytes, 0);
+
   // A run only counts when it reached ready, moved, and ignited, with no page, HTTP or cleanup error.
   const problems = [];
+  if (!record.lightClockPinned) problems.push(`light clock is ${record.lightClock?.hours}h, expected ${pinnedHour}h`);
   if (record.readyTimedOut) problems.push('ready was never reported after the last selection');
   if (!moved) problems.push('the walk never produced a first movement');
   if (!ignited) problems.push('ignition was never reached');
