@@ -20,20 +20,18 @@ const reviewScript = `
   window.__tideDriftProbe = () => ({ id: place?.id, y: camera.position.y, rigY: rig.pos.y, amp: rig.amp });
 
   const mouthPoints = [new THREE.Vector3(66, 0, 8.5), new THREE.Vector3(66, -2.76, 8.5)];
+  const waterSightPoints = [24, 43, 65].flatMap(x =>
+    [6, 8.5, 11].map(z => new THREE.Vector3(x, -2.78, z)));
   const mouthRay = new THREE.Raycaster();
   const mouthAim = new THREE.Vector3();
   const mouthProjection = new THREE.Vector3();
   let tracedPlace;
   let mouthOccluders = [];
-  window.__tideSampleMouth = () => {
-    if (place?.id !== 'sea-tide' || window.__walkProgress?.state !== 'walking'
-        || window.__walkProgress.progress < .5) return null;
-    camera.updateMatrixWorld();
-    const projected = mouthPoints.every(point => {
-      const ndc = mouthProjection.copy(point).project(camera);
-      return Math.abs(ndc.x) <= .85 && Math.abs(ndc.y) <= .85 && Math.abs(ndc.z) <= 1;
-    });
-    if (!projected) return { projected, visible: false, blockedBy: null };
+  function tidePointInFrame(point, border) {
+    const ndc = mouthProjection.copy(point).project(camera);
+    return Math.abs(ndc.x) <= border && Math.abs(ndc.y) <= border && Math.abs(ndc.z) <= 1;
+  }
+  function tideSightObstruction(point) {
     if (tracedPlace !== place) {
       tracedPlace = place;
       place.G.updateMatrixWorld(true);
@@ -44,17 +42,29 @@ const reviewScript = `
         mouthOccluders.push(object);
       });
     }
-    for (const point of mouthPoints) {
-      const direction = mouthAim.copy(point).sub(camera.position);
-      mouthRay.set(camera.position, direction.clone().normalize());
-      mouthRay.far = direction.length() - .035;
-      const hit = mouthRay.intersectObjects(mouthOccluders, false).find(({ object }) => {
-        for (let parent = object; parent; parent = parent.parent) if (!parent.visible) return false;
-        return true;
-      });
-      if (hit) return { projected, visible: false, blockedBy: hit.object.name || hit.object.parent?.name || hit.object.type };
-    }
+    mouthAim.copy(point).sub(camera.position);
+    mouthRay.far = mouthAim.length() - .035;
+    mouthRay.set(camera.position, mouthAim.normalize());
+    return mouthRay.intersectObjects(mouthOccluders, false).find(({ object }) => {
+      for (let parent = object; parent; parent = parent.parent) if (!parent.visible) return false;
+      return true;
+    })?.object;
+  }
+  window.__tideSampleMouth = () => {
+    if (place?.id !== 'sea-tide' || window.__walkProgress?.state !== 'walking'
+        || window.__walkProgress.progress < .5) return null;
+    camera.updateMatrixWorld();
+    const projected = mouthPoints.every(point => tidePointInFrame(point, .85));
+    if (!projected) return { projected, visible: false, blockedBy: null };
+    const hit = mouthPoints.map(tideSightObstruction).find(Boolean);
+    if (hit) return { projected, visible: false, blockedBy: hit.name || hit.parent?.name || hit.type };
     return { projected, visible: true, blockedBy: null };
+  };
+  window.__tideSampleWater = () => {
+    if (place?.id !== 'sea-tide' || window.__walkProgress?.state !== 'walking') return null;
+    camera.updateMatrixWorld();
+    const point = waterSightPoints.find(point => tidePointInFrame(point, 1) && !tideSightObstruction(point));
+    return point?.toArray() ?? null;
   };
 
   // Sample the rendered camera over the actual deck, including the entrance drift.
@@ -379,7 +389,7 @@ function instrumentEnding(source) {
 
 export async function startPreview({
   tideWorldSource, tideWaterSource, matchedPose = false, includeDriftControl = false, lampPair = false,
-  endingReview = false, endingSources = {},
+  endingReview = false, endingSources = {}, surfReview = false,
 } = {}) {
   const temp = await mkdtemp(join(tmpdir(), 'tide-review-'));
   let app;
@@ -421,6 +431,12 @@ export async function startPreview({
           }
           if (path.endsWith('/web/src/engine/places/sea-tide.js') && tideWorldSource !== undefined) return tideWorldSource;
           if (path.endsWith('/web/src/engine/places/sea-tide-water.js') && tideWaterSource !== undefined) return tideWaterSource;
+          if (surfReview && path.endsWith('/web/src/sea-tide-sound.ts')) {
+            const connect = 'output.connect(master);';
+            return replaceOnce(source, connect, connect + `\n  (window as Window & {
+              __tideCaptureBus?: (output: AudioNode, master: AudioNode, body: BiquadFilterNode, foam: BiquadFilterNode) => void;
+            }).__tideCaptureBus?.(output, master, bodyFilter, foamLowpass);`);
+          }
           if (path.endsWith('/web/src/visiblePlaces.ts')) {
             const tideCatalog = includeDriftControl
               ? "['sea-tide', 'snow-roof', 'pine-gate', 'bamboo-rain']" : "['sea-tide', 'snow-roof', 'pine-gate']";
@@ -444,7 +460,8 @@ export async function startPreview({
             const traced = replaceOnce(engine, trace, `lx: rig.look.x, ly: rig.look.y, lz: rig.look.z, fov: camera.fov,
               actual: camera.position.toArray(), walkState: window.__walkProgress?.state,
               walkProgress: window.__walkProgress?.progress, mouth: window.__tideSampleMouth?.(),
-              deck: window.__tideSampleDeck?.() });`);
+              deck: window.__tideSampleDeck?.()${surfReview
+    ? ', atMs: performance.now(), water: window.__tideSampleWater?.()' : ''} });`);
             const timed = lampPair || matchedPose ? replaceOnce(traced, 'const time = clockTime;',
               'const time = window.__tideLampVisualSecond ?? clockTime;') : traced;
             return [timed, reviewScript, matchedPose ? matchedPoseScript : '', lampPair ? lampPairScript : ''].join('\n');
