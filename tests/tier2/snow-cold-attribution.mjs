@@ -19,18 +19,32 @@ import { fileURLToPath } from 'node:url';
 import { execFileSync, spawn } from 'node:child_process';
 import { createByteLedger } from './switch-byte-accounting.mjs';
 import { stopServerAndRemoveDatabase } from './walk-camera-smoke-cleanup.mjs';
+import { parseArgs } from './cli-args.mjs';
+import { recordStageMarks } from './stage-marks.mjs';
+
+// Serialised once: an init script must be a function or a string, and the recorder itself takes the document.
+const recordStageMarksScript = `(${recordStageMarks.toString()})(document)`;
 
 const REPO = fileURLToPath(new URL('../..', import.meta.url));
 const ROOT = '/Users/xuan/OpenBot/Shared/one-light';
-const args = Object.fromEntries(process.argv.slice(2).reduce((rows, value, index, all) => {
-  if (value.startsWith('--')) rows.push([value.slice(2), all[index + 1] ?? '']);
-  return rows;
-}, []));
+const args = parseArgs(process.argv.slice(2), new Set(['screenshots']));
 const runDir = args['run-dir'];
 if (!runDir) throw new Error('Pass --run-dir (the worker tmp that safe-kill.sh authorises).');
 const hour = Number(args.hour ?? 13);
 if (!Number.isFinite(hour)) throw new Error('Pass --hour as a number.');
 const port = Number(args.port ?? 8916);
+// One profile per viewport drives all three uses: the browser context, the CDP throttling, and the recorded
+// condition name. A profile that only renamed the condition would claim desktop-fast while still emulating
+// a phone, and the bytes and timings would describe neither.
+const PROFILES = {
+  desktop: { name: 'desktop-fast', width: 1440, height: 900, isMobile: false, hasTouch: false,
+    deviceScaleFactor: 2, cpu: 1, net: null },
+  phone: { name: 'phone-4x-4g', width: 390, height: 844, isMobile: true, hasTouch: true,
+    deviceScaleFactor: 3, cpu: 4, net: { latency: 150, down: 9e6 / 8, up: 2e6 / 8 } },
+};
+const profileName = args.viewport ?? 'phone';
+const profile = PROFILES[profileName];
+if (!profile) throw new Error('Pass --viewport desktop or phone; got ' + profileName);
 
 const stamp = `${new Date().toISOString().replace(/[:.]/g, '-')}-${process.pid}`;
 const evidenceBase = args.out ?? join(runDir, 'snow-cold');
@@ -59,7 +73,9 @@ server.stdout.on('data', chunk => serverLog.push(String(chunk)));
 server.stderr.on('data', chunk => serverLog.push(String(chunk)));
 
 const record = { revision, out, port, serverPid: server.pid, hour, place: 'snow-roof',
-  condition: 'phone-4x-4g', observations: 1, revisit: false };
+  condition: profile.name, viewport: `${profile.width}x${profile.height}`,
+  throttling: { cpu: profile.cpu, net: profile.net }, screenshots: args.screenshots === true,
+  observations: 1, revisit: false };
 let failure = false;
 let browser;
 
@@ -89,8 +105,9 @@ try {
 
   browser = await chromium.launch({ channel: 'chrome',
     args: ['--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist'] });
-  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, locale: 'en-US',
-    isMobile: true, hasTouch: true, deviceScaleFactor: 3 });
+  const context = await browser.newContext({ viewport: { width: profile.width, height: profile.height },
+    locale: 'en-US', isMobile: profile.isMobile, hasTouch: profile.hasTouch,
+    deviceScaleFactor: profile.deviceScaleFactor });
   await context.addInitScript(h => {
     const RealDate = Date;
     const fixed = new RealDate(2026, 10, 21, h, 0, 0).getTime();
@@ -101,11 +118,18 @@ try {
     };
   }, hour);
   const page = await context.newPage();
+  // CPU-side stage timeline. The recorder lives in stage-marks.mjs so the node-replacement cases are covered by
+  // a fixture test; it only reads attributes the page already publishes. `coverReady` is one cumulative mark
+  // (showPlace + compileAsync + the next frame), never a compile duration.
+  // Playwright takes a function or {content}; a bare string is treated as a path, and the script then never runs.
+  await page.addInitScript({ content: recordStageMarksScript });
   const cdp = await context.newCDPSession(page);
   await cdp.send('Network.enable');
-  await cdp.send('Network.emulateNetworkConditions', { offline: false, latency: 150,
-    downloadThroughput: 9e6 / 8, uploadThroughput: 2e6 / 8 });
-  await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
+  if (profile.net) {
+    await cdp.send('Network.emulateNetworkConditions', { offline: false, latency: profile.net.latency,
+      downloadThroughput: profile.net.down, uploadThroughput: profile.net.up });
+  }
+  if (profile.cpu !== 1) await cdp.send('Emulation.setCPUThrottlingRate', { rate: profile.cpu });
 
   const ledger = createByteLedger({ uncertaintyMs: 0 });
   const events = [];
@@ -138,6 +162,12 @@ try {
     return Boolean(button) && !button.disabled && button.getAttribute('aria-disabled') !== 'true';
   });
   record.cutoffs = { usable: snapshotOf(ledger) };
+  // Screenshots are opt-in: a capture before the click holds the page for real time and would hand a
+  // background download extra seconds the timing run must not get.
+  if (args.screenshots === true) {
+    record.usableShot = 'usable.png';
+    await page.screenshot({ path: join(out, record.usableShot) });
+  }
 
   // Capture the click on the button itself, then watch for the first frame in which the picture moves.
   await page.evaluate(() => {
@@ -187,7 +217,24 @@ try {
     await page.waitForFunction(() => window.__coldProbe?.firstMoveAt !== null, null, { timeout: 60000 });
   } catch { moved = false; }
   record.cutoffs.firstStep = snapshotOf(ledger);
+  if (args.screenshots === true) {
+    // `firstStep` is the first moving frame, which is mid-walk: the two versions reach it at different times,
+    // so the camera is at a different pose and the pictures cannot be compared. The walk ends when the
+    // duration chooser appears, which is a stable pose at the same hour in both versions; that is the shot
+    // parity uses.
+    record.firstStepShot = 'firstStep.png';
+    await page.screenshot({ path: join(out, record.firstStepShot) });
+    const chooser = page.locator('[role=radio]').filter({ hasText: /10\s*min/i }).first();
+    let arrived = true;
+    try { await chooser.waitFor({ timeout: 180000 }); } catch { arrived = false; }
+    if (arrived) {
+      record.arrivedAt = await page.evaluate(() => performance.now());
+      record.arrivedShot = 'arrived.png';
+      await page.screenshot({ path: join(out, record.arrivedShot) });
+    } else record.arrivedFailure = 'the duration chooser never appeared';
+  }
   record.probe = await page.evaluate(() => window.__coldProbe);
+  record.stageMarks = await page.evaluate(() => window.__stageMarks ?? null);
   record.movedObserved = moved;
 
   writeFileSync(join(out, 'events.json'), JSON.stringify(events, null, 2));
