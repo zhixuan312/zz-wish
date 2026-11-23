@@ -2,15 +2,15 @@
 
 The approved site and product cameras are frozen at `4eb4627`. The current day review is [P2 R15](quality-log.md) at capture source `7be59e7`. The app under review uses an isolated staged package. The public package still has manifest SHA-256 `45c31e502dc4a645bdc4d9034a3b7fe106227a345c1e6bb81c79b916627b1c1f` and predates the shoulder, tea pavilion and layered valley. A green run against that package cannot approve the new scene.
 
-On this Mac the active branch is `s1/pine-gate-candle`. The latest near-scene inputs, frozen asset receipts and local working scripts remain in `/Users/xuan/OpenBot/Shared/one-light/s1-pine-gate/art/build/pine-gate` and `/Users/xuan/OpenBot/Shared/one-light/tmp/s1`. These are ignored local data. Use your assigned worktree and worker name for new files, jobs and commits. Read the current shared `GOALS.md` and `world-bible.md` before changing the layout or approval stages.
+On this Mac the active branch is `s1/pine-gate-candle`. The latest near-scene inputs, frozen asset receipts and local working scripts remain in the main checkout at `art/build/pine-gate` and `artifacts/openbot/one-light/tmp/s1`. These are ignored local data. Use your assigned worktree and worker name for new files, jobs and commits. Read [world-bible.md](../direction/world-bible.md) and the archived `artifacts/openbot/one-light/GOALS.md` before changing the layout or approval stages.
 
 ## Tools and ownership
 
 Run the shell blocks from your Pine Gate worktree. Use a fresh output name for every run.
 
 ```sh
-shared=/Users/xuan/OpenBot/Shared/one-light
-previous="$shared/s1-pine-gate/art/build/pine-gate"
+shared=/Users/xuan/Documents/code/zz-wish/artifacts/openbot/one-light
+previous=/Users/xuan/Documents/code/zz-wish/art/build/pine-gate
 previous_tmp="$shared/tmp/s1"
 worker=s2
 export TMPDIR="$shared/tmp/$worker/"

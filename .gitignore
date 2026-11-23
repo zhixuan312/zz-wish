@@ -21,3 +21,6 @@ docs/evidence/**/*.wav
 docs/evidence/**/*.npz
 docs/evidence/**/*.bin
 docs/evidence/**/*.gz
+
+# Long-lived local worktrees (the public demo runs from .worktrees/demo)
+.worktrees/

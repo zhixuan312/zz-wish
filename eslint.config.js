@@ -3,7 +3,7 @@ import ts from 'typescript-eslint';
 import globals from 'globals';
 
 export default [
-  { ignores: ['node_modules/**', 'web/dist/**', 'web/public/**', 'art/build/**', 'artifacts/**', 'archive/**'] },
+  { ignores: ['node_modules/**', 'web/dist/**', 'web/public/**', 'art/build/**', 'artifacts/**', 'archive/**', '.worktrees/**'] },
   js.configs.recommended,
   ...ts.configs.recommended,
   { files: ['web/src/**/*.{js,ts,tsx}'], languageOptions: { globals: globals.browser } },

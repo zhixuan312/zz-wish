@@ -1,7 +1,7 @@
 # Pine Gate Steps: story conformance
 
-Audit of the built place at `74a04f0` against the approved `world-bible.md` and
-`one-light-experience-and-music-brief.md`. Every row names the document line, the status, the
+Audit of the built place at `74a04f0` against the approved [world-bible.md](../direction/world-bible.md) and
+[one-light-experience-and-music-brief.md](../direction/one-light-experience-and-music-brief.md). Every row names the document line, the status, the
 evidence in this worktree, and the change needed when it is not already a match.
 
 Statuses: **matches** means the build does what the documents say and evidence exists;
